@@ -44,12 +44,9 @@ typedef struct {
 #define MAX_DRAW_GEOMETRY 4096
 
 typedef struct {
-	s16vec2_t position;
+	vec2s_t position;
 	vec2_t diffuse;
-	union {
-		uint32_t uint;
-		u8vec4_t abgr;
-	} color;
+	color_t color;
 } r_draw_vertex_t;
 
 #define MAX_DRAW_VERTEXES (MAX_DRAW_GEOMETRY * 6)
@@ -62,9 +59,6 @@ static struct {
 
 	// active font
 	r_font_t *font;
-
-	// actual text colors as ABGR integers
-	uint32_t colors[MAX_COLORS];
 
 	// accumulated draw arrays to draw for this frame
 	r_draw_arrays_t draw_arrays[MAX_DRAW_GEOMETRY];
@@ -105,7 +99,7 @@ static struct {
 /**
  * @brief
  */
-void R_AddDrawArrays(const r_draw_arrays_t *draw) {
+static void R_AddDrawArrays(const r_draw_arrays_t *draw) {
 
 	if (r_draw.num_draw_arrays == MAX_DRAW_GEOMETRY) {
 		Com_Warn("MAX_DRAW_GEOMETRY\n");
@@ -118,6 +112,8 @@ void R_AddDrawArrays(const r_draw_arrays_t *draw) {
 
 	r_draw.draw_arrays[r_draw.num_draw_arrays] = *draw;
 	r_draw.num_draw_arrays++;
+
+	r_view.count_draw_arrays++;
 }
 
 /**
@@ -137,39 +133,39 @@ static void R_EmitDrawVertexes_Quad(const r_draw_vertex_t *quad) {
 	r_draw.vertexes[r_draw.num_vertexes++] = quad[0];
 	r_draw.vertexes[r_draw.num_vertexes++] = quad[2];
 	r_draw.vertexes[r_draw.num_vertexes++] = quad[3];
+
+	r_view.count_draw_quads++;
 }
 
 /**
  * @brief
  */
-static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
+static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 
 	const uint32_t row = (uint32_t) c >> 4;
 	const uint32_t col = (uint32_t) c & 15;
 
-	const vec_t s0 = col * 0.0625;
-	const vec_t t0 = row * 0.1250;
-	const vec_t s1 = (col + 1) * 0.0625;
-	const vec_t t1 = (row + 1) * 0.1250;
-
-	color = r_draw.colors[color & (MAX_COLORS - 1)];
+	const float s0 = col * 0.0625;
+	const float t0 = row * 0.1250;
+	const float s1 = (col + 1) * 0.0625;
+	const float t1 = (row + 1) * 0.1250;
 
 	r_draw_vertex_t quad[4];
 
-	Vector2Set(quad[0].position, x, y);
-	Vector2Set(quad[1].position, x + r_draw.font->char_width, y);
-	Vector2Set(quad[2].position, x + r_draw.font->char_width, y + r_draw.font->char_height);
-	Vector2Set(quad[3].position, x, y + r_draw.font->char_height);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + r_draw.font->char_width, y);
+	quad[2].position = Vec2s(x + r_draw.font->char_width, y + r_draw.font->char_height);
+	quad[3].position = Vec2s(x, y + r_draw.font->char_height);
 
-	Vector2Set(quad[0].diffuse, s0, t0);
-	Vector2Set(quad[1].diffuse, s1, t0);
-	Vector2Set(quad[2].diffuse, s1, t1);
-	Vector2Set(quad[3].diffuse, s0, t1);
+	quad[0].diffuse = Vec2(s0, t0);
+	quad[1].diffuse = Vec2(s1, t0);
+	quad[2].diffuse = Vec2(s1, t1);
+	quad[3].diffuse = Vec2(s0, t1);
 
-	quad[0].color.uint = color;
-	quad[1].color.uint = color;
-	quad[2].color.uint = color;
-	quad[3].color.uint = color;
+	quad[0].color = color;
+	quad[1].color = color;
+	quad[2].color = color;
+	quad[3].color = color;
 
 	R_EmitDrawVertexes_Quad(quad);
 }
@@ -177,7 +173,11 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 /**
  * @brief
  */
-void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
+void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
+
+	if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+		return;
+	}
 
 	r_draw_arrays_t draw = {
 		.mode = GL_TRIANGLES,
@@ -201,14 +201,14 @@ r_pixel_t R_StringWidth(const char *s) {
 /**
  * @brief
  */
-size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int32_t color) {
+size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, const color_t color) {
 	return R_DrawSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
 }
 
 /**
  * @brief
  */
-size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int32_t color) {
+size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, const color_t color) {
 	return R_DrawSizedString(x, y, s, size, size, color);
 }
 
@@ -216,8 +216,7 @@ size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int32_t
  * @brief Draws at most len chars or size bytes of the specified string. Color escape
  * sequences are not visible chars. Returns the number of chars drawn.
  */
-size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size,
-                         int32_t color) {
+size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size, const color_t color) {
 	size_t i, j;
 
 	r_draw_arrays_t draw = {
@@ -226,24 +225,19 @@ size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, si
 		.first_vertex = r_draw.num_vertexes
 	};
 
+	color_t c = color;
+
 	i = j = 0;
 	while (*s && i < len && j < size) {
 
-		if (IS_COLOR(s)) {
-			color = *(s + 1) - '0';
+		if (StrIsColor(s)) {
+			c = ColorEsc(StrColor(s));
 			j += 2;
 			s += 2;
 			continue;
 		}
 
-		if (IS_LEGACY_COLOR(s)) {
-			color = CON_COLOR_ALT;
-			j++;
-			s++;
-			continue;
-		}
-
-		R_DrawChar_(x, y, *s, color);
+		R_DrawChar_(x, y, *s, c);
 		x += r_draw.font->char_width; // next char position in line
 
 		i++;
@@ -270,7 +264,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 	int32_t i;
 	for (i = 0; i < r_draw.num_fonts; i++) {
 		if (!g_strcmp0(name, r_draw.fonts[i].name)) {
-			if (r_context.high_dpi && i < r_draw.num_fonts - 1) {
+			if (r_context.window_scale > 1.f && i < r_draw.num_fonts - 1) {
 				r_draw.font = &r_draw.fonts[i + 1];
 			} else {
 				r_draw.font = &r_draw.fonts[i];
@@ -295,7 +289,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 /**
  * @brief
  */
-void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image) {
+void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color) {
 
 	r_draw_arrays_t draw = {
 		.mode = GL_TRIANGLES,
@@ -306,20 +300,20 @@ void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r
 
 	r_draw_vertex_t quad[4];
 
-	Vector2Set(quad[0].position, x, y);
-	Vector2Set(quad[1].position, x + w, y);
-	Vector2Set(quad[2].position, x + w, y + h);
-	Vector2Set(quad[3].position, x, y + h);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + w, y);
+	quad[2].position = Vec2s(x + w, y + h);
+	quad[3].position = Vec2s(x, y + h);
 
-	Vector2Set(quad[0].diffuse, 0, 0);
-	Vector2Set(quad[1].diffuse, 1, 0);
-	Vector2Set(quad[2].diffuse, 1, 1);
-	Vector2Set(quad[3].diffuse, 0, 1);
+	quad[0].diffuse = Vec2(0, 0);
+	quad[1].diffuse = Vec2(1, 0);
+	quad[2].diffuse = Vec2(1, 1);
+	quad[3].diffuse = Vec2(0, 1);
 
-	quad[0].color.uint = 0xffffffff;
-	quad[1].color.uint = 0xffffffff;
-	quad[2].color.uint = 0xffffffff;
-	quad[3].color.uint = 0xffffffff;
+	quad[0].color = color;
+	quad[1].color = color;
+	quad[2].color = color;
+	quad[3].color = color;
 
 	R_EmitDrawVertexes_Quad(quad);
 	R_AddDrawArrays(&draw);
@@ -328,26 +322,16 @@ void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r
 /**
  * @brief
  */
-void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
+void R_DrawImage(r_pixel_t x, r_pixel_t y, float scale, const r_image_t *image, const color_t color) {
 
-	R_DrawImageRect(x, y, image->width * scale, image->height * scale, image);
+	R_DrawImageRect(x, y, image->width * scale, image->height * scale, image, color);
 }
 
 /**
  * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
-void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, vec_t a) {
-
-	if (a > 1.0) {
-		Com_Warn("Bad alpha %f\n", a);
-		return;
-	}
-
-	if (a >= 0.0) { // palette index
-		c = img_palette[c] & 0x00FFFFFF;
-		c |= (((u8vec_t) (a * 255.0)) & 0xFF) << 24;
-	}
+void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color) {
 
 	r_draw_arrays_t draw = {
 		.mode = GL_TRIANGLES,
@@ -358,15 +342,15 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 
 	r_draw_vertex_t quad[4];
 
-	Vector2Set(quad[0].position, x, y);
-	Vector2Set(quad[1].position, x + w, y);
-	Vector2Set(quad[2].position, x + w, y + h);
-	Vector2Set(quad[3].position, x, y + h);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + w, y);
+	quad[2].position = Vec2s(x + w, y + h);
+	quad[3].position = Vec2s(x, y + h);
 
-	quad[0].color.uint = c;
-	quad[1].color.uint = c;
-	quad[2].color.uint = c;
-	quad[3].color.uint = c;
+	quad[0].color = color;
+	quad[1].color = color;
+	quad[2].color = color;
+	quad[3].color = color;
 
 	R_EmitDrawVertexes_Quad(quad);
 	R_AddDrawArrays(&draw);
@@ -375,17 +359,7 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 /**
  * @brief
  */
-void R_DrawLines(const r_pixel_t *points, size_t count, int32_t c, vec_t a) {
-
-	if (a > 1.0) {
-		Com_Warn("Bad alpha %f\n", a);
-		return;
-	}
-
-	if (a >= 0.0) { // palette index
-		c = img_palette[c] & 0x00FFFFFF;
-		c |= (((u8vec_t) (a * 255.0)) & 0xFF) << 24;
-	}
+void R_DrawLines(const r_pixel_t *points, size_t count, const color_t color) {
 
 	r_draw_arrays_t draw = {
 		.mode = GL_LINE_STRIP,
@@ -399,10 +373,10 @@ void R_DrawLines(const r_pixel_t *points, size_t count, int32_t c, vec_t a) {
 	const r_pixel_t *in = points;
 	for (size_t i = 0; i < count; i++, in += 2, out++) {
 
-		out->position[0] = *(in + 0);
-		out->position[1] = *(in + 1);
+		out->position.x = *(in + 0);
+		out->position.y = *(in + 1);
 
-		out->color.uint = c;
+		out->color = color;
 	}
 
 	r_draw.num_vertexes += count;
@@ -526,16 +500,6 @@ static void R_InitDrawProgram(void) {
 void R_InitDraw(void) {
 
 	memset(&r_draw, 0, sizeof(r_draw));
-
-	// set ABGR color values
-	r_draw.colors[CON_COLOR_BLACK] = 0xff000000;
-	r_draw.colors[CON_COLOR_RED] = 0xff0000ff;
-	r_draw.colors[CON_COLOR_GREEN] = 0xff00ff00;
-	r_draw.colors[CON_COLOR_YELLOW] = 0xff00ffff;
-	r_draw.colors[CON_COLOR_BLUE] = 0xffff0000;
-	r_draw.colors[CON_COLOR_MAGENTA] = 0xffff00ff;
-	r_draw.colors[CON_COLOR_CYAN] = 0xffffff00;
-	r_draw.colors[CON_COLOR_WHITE] = 0xffffffff;
 
 	R_InitFont("small");
 	R_InitFont("medium");

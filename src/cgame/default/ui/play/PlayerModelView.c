@@ -34,7 +34,7 @@ static void rotateAction(Control *control, const SDL_Event *event, ident sender,
 
 	PlayerModelView *this = (PlayerModelView *) sender;
 
-	this->yaw = ClampAngle(this->yaw + event->motion.xrel);
+	this->yaw += event->motion.xrel;
 }
 
 /**
@@ -44,7 +44,7 @@ static void zoomAction(Control *control, const SDL_Event *event, ident sender, i
 
 	PlayerModelView *this = (PlayerModelView *) sender;
 
-	this->zoom = Clamp(this->zoom + event->wheel.y * 0.0125, 0.0, 1.0);
+	this->zoom = Clampf(this->zoom + event->wheel.y * 0.0125, 0.0, 1.0);
 }
 
 #pragma mark - Object
@@ -122,14 +122,14 @@ static void render(View *self, Renderer *renderer) {
 //		cgi.SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, false);
 //
 //		// create projection matrix
-//		const vec_t aspect = (vec_t) viewport.w / (vec_t) viewport.h;
+//		const float aspect = (float) viewport.w / (float) viewport.h;
 //
-//		const vec_t ymax = NEAR_Z * tanf(Radians(40)); // Field of view
-//		const vec_t ymin = -ymax;
+//		const float ymax = NEAR_Z * tanf(radians(40)); // Field of view
+//		const float ymin = -ymax;
 //
-//		const vec_t xmin = ymin * aspect;
-//		const vec_t xmax = ymax * aspect;
-//		matrix4x4_t mat;
+//		const float xmin = ymin * aspect;
+//		const float xmax = ymax * aspect;
+//		mat4_t mat;
 //
 //		Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
 //
@@ -145,7 +145,7 @@ static void render(View *self, Renderer *renderer) {
 //
 //		Matrix4x4_ConcatRotate(&mat, -25.0 - (this->zoom * -10.0), 0.0, 1.0, 0.0);
 //
-//		Matrix4x4_ConcatRotate(&mat, sinf(Radians(cgi.client->unclamped_time * 0.05)) * 10.0, 0.0, 0.0, 1.0);
+//		Matrix4x4_ConcatRotate(&mat, sinf(radians(cgi.client->unclamped_time * 0.05)) * 10.0, 0.0, 0.0, 1.0);
 //
 //		cgi.EnableDepthTest(true);
 //		cgi.DepthRange(0.0, 0.1);
@@ -223,27 +223,27 @@ static void updateBindings(View *self) {
 
 	this->legs.model = this->client.legs;
 	this->legs.scale = 1.0;
-	Vector4Set(this->legs.color, 1.0, 1.0, 1.0, 1.0);
+	this->legs.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->torso.model = this->client.torso;
 	this->torso.scale = 1.0;
-	Vector4Set(this->torso.color, 1.0, 1.0, 1.0, 1.0);
+	this->torso.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->head.model = this->client.head;
 	this->head.scale = 1.0;
-	Vector4Set(this->head.color, 1.0, 1.0, 1.0, 1.0);
+	this->head.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
 	this->weapon.scale = 1.0;
-	Vector4Set(this->weapon.color, 1.0, 1.0, 1.0, 1.0);
+	this->weapon.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->platformBase.model = cgi.LoadModel("models/objects/platform/base/tris");
 	this->platformBase.scale = 1.0;
-	Vector4Set(this->platformBase.color, 1.0, 1.0, 1.0, 1.0);
+	this->platformBase.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->platformCenter.model = cgi.LoadModel("models/objects/platform/center/tris");
 	this->platformCenter.scale = 1.0;
-	Vector4Set(this->platformCenter.color, 1.0, 1.0, 1.0, 1.0);
+	this->platformCenter.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
 	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
@@ -312,8 +312,8 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
 		}
 	}
 
-	a->lerp = (elapsedTime % frameTime) / (vec_t) frameTime;
-	a->fraction = elapsedTime / (vec_t) animationTime;
+	a->lerp = (elapsedTime % frameTime) / (float) frameTime;
+	a->fraction = elapsedTime / (float) animationTime;
 
 	e->frame = a->frame;
 	e->old_frame = a->old_frame;
@@ -338,40 +338,40 @@ static void animate(PlayerModelView *self) {
 	self->weapon.frame = 0;
 	self->weapon.lerp = 1.0;
 
-	VectorClear(self->legs.origin);
-	VectorClear(self->torso.origin);
-	VectorClear(self->head.origin);
-	VectorClear(self->weapon.origin);
-	VectorClear(self->platformBase.origin);
-	VectorClear(self->platformCenter.origin);
+	self->legs.origin = Vec3_Zero();
+	self->torso.origin = Vec3_Zero();
+	self->head.origin = Vec3_Zero();
+	self->weapon.origin = Vec3_Zero();
+	self->platformBase.origin = Vec3_Zero();
+	self->platformCenter.origin = Vec3_Zero();
 
-	VectorClear(self->legs.angles);
-	VectorClear(self->torso.angles);
-	VectorClear(self->head.angles);
-	VectorClear(self->weapon.angles);
-	VectorClear(self->platformBase.angles);
-	VectorClear(self->platformCenter.angles);
+	self->legs.angles = Vec3_Zero();
+	self->torso.angles = Vec3_Zero();
+	self->head.angles = Vec3_Zero();
+	self->weapon.angles = Vec3_Zero();
+	self->platformBase.angles = Vec3_Zero();
+	self->platformCenter.angles = Vec3_Zero();
 
 	self->legs.scale = self->torso.scale = self->head.scale = 1.0;
 	self->weapon.scale = 1.0;
 	self->platformBase.scale = self->platformCenter.scale = 1.0;
 
 	if (self->client.shirt.a) {
-		ColorToVec4(self->client.shirt, self->torso.tints[0]);
+		self->torso.tints[0] = Color_Vec4(self->client.shirt);
 	} else {
-		Vector4Clear(self->torso.tints[0]);
+		self->torso.tints[0] = Vec4_Zero();
 	}
 
 	if (self->client.pants.a) {
-		ColorToVec4(self->client.pants, self->legs.tints[1]);
+		self->legs.tints[1] = Color_Vec4(self->client.pants);
 	} else {
-		Vector4Clear(self->legs.tints[1]);
+		self->legs.tints[1] = Vec4_Zero();
 	}
 
 	if (self->client.helmet.a) {
-		ColorToVec4(self->client.helmet, self->head.tints[2]);
+		self->head.tints[2] = Color_Vec4(self->client.helmet);
 	} else {
-		Vector4Clear(self->head.tints[2]);
+		self->head.tints[2] = Vec4_Zero();
 	}
 
 	Matrix4x4_CreateFromEntity(&self->legs.matrix, self->legs.origin, self->legs.angles, self->legs.scale);

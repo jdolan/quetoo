@@ -28,32 +28,32 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	vec3_t forward, right, org, org2;
 
 	// project the flash just in front of the entity
-	AngleVectors(ent->angles, forward, right, NULL );
-	VectorMA(ent->origin, 30.0, forward, org);
-	VectorMA(org, 6.0, right, org);
+	Vec3_Vectors(ent->angles, &forward, &right, NULL );
+	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
+	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
 
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
-		VectorSubtract(ent->origin, tr.end, org);
-		VectorScale(org, 0.75, org);
+		org = Vec3_Subtract(ent->origin, tr.end);
+		org = Vec3_Scale(org, 0.75);
 
-		VectorAdd(ent->origin, org, org);
+		org = Vec3_Add(ent->origin, org);
 	}
 
 	// and adjust for ducking
-	org[2] += Cg_IsDucking(ent) ? -2.0 : 20.0;
+	org.z += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
 	cg_light_t l;
-	VectorCopy(org, l.origin);
+	l.origin = org;
 	l.radius = 80.0;
-	ColorToVec3(color, l.color);
+	l.color = Color_Vec3(color);
 	l.decay = 450;
 
 	Cg_AddLight(&l);
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
-		VectorMA(ent->origin, 40.0, forward, org2);
+		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
 		Cg_BubbleTrail(org, org2, 10.0);
 	}
 }
@@ -66,31 +66,31 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	vec3_t forward, right, org, org2;
 
 	// project the puff just in front of the entity
-	AngleVectors(ent->angles, forward, right, NULL );
-	VectorMA(ent->origin, 30.0, forward, org);
-	VectorMA(org, 6.0, right, org);
+	Vec3_Vectors(ent->angles, &forward, &right, NULL );
+	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
+	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
 
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
-		VectorSubtract(ent->origin, tr.end, org);
-		VectorScale(org, 0.75, org);
+		org = Vec3_Subtract(ent->origin, tr.end);
+		org = Vec3_Scale(org, 0.75);
 
-		VectorAdd(ent->origin, org, org);
+		org = Vec3_Add(ent->origin, org);
 	}
 
 	// and adjust for ducking
-	org[2] += Cg_IsDucking(ent) ? -2.0 : 20.0;
+	org.z += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
 	Cg_AddLight(&(cg_light_t) {
-		.origin = { org[0], org[1], org[2] },
+		.origin = org,
 		.radius = 120.0,
-		.color = { 0.8, 0.7, 0.5 },
+		.color = Vec3(0.8, 0.7, 0.5),
 		.decay = 300
 	});
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
-		VectorMA(ent->origin, 40.0, forward, org2);
+		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
 		Cg_BubbleTrail(org, org2, 10.0);
 		return;
 	}
@@ -99,21 +99,21 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		return;
 	}
 
-	VectorCopy(org, p->origin);
+	p->origin = org;
 
 	p->lifetime = 500;
 
-	cgi.ColorFromPalette(Randomr(0, 8), &p->color);
+	p->color = Color3b(128, 128, 128);
 	p->color.a = 200;
 	p->delta_color.a = -10;
 
 	p->size = 4.0;
 	p->delta_size = 1.0;
 
-	p->velocity[0] = Randomc();
-	p->velocity[1] = Randomc();
-	p->velocity[2] = 10.0;
-	p->acceleration[2] = 5.0;
+	p->velocity = Vec3_RandomRange(-1.f, 1.f);
+	p->velocity.z += 10.f;
+
+	p->acceleration.z = 5.0;
 }
 
 /**
@@ -179,7 +179,7 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 		case MZ_HYPERBLASTER:
 			sample = cg_sample_hyperblaster_fire;
-			Cg_EnergyFlash(ent, ColorFromRGB(191, 123, 111));
+			Cg_EnergyFlash(ent, Color3b(191, 123, 111));
 			pitch = (int16_t) (Randomc() * 5.0);
 			break;
 		case MZ_LIGHTNING:
@@ -192,7 +192,7 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 		case MZ_BFG10K:
 			sample = cg_sample_bfg_fire;
-			Cg_EnergyFlash(ent, ColorFromRGB(75, 91, 39));
+			Cg_EnergyFlash(ent, Color3b(75, 91, 39));
 			pitch = (int16_t) (Randomc() * 2.0);
 			break;
 		case MZ_LOGOUT:

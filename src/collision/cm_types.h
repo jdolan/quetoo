@@ -59,7 +59,7 @@
  */
 typedef struct {
 	vec3_t normal;
-	vec_t dist;
+	float dist;
 	uint16_t type; // for fast side tests
 	uint16_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
 } cm_bsp_plane_t;
@@ -127,7 +127,7 @@ typedef struct {
 	 * @brief The fraction of the desired distance traveled (0.0 - 1.0). If
 	 * 1.0, no plane was impacted.
 	 */
-	vec_t fraction;
+	float fraction;
 
 	/**
 	 * @brief The destination position.

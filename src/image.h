@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "color.h"
 #include "files.h"
 #include "filesystem.h"
 
@@ -47,7 +48,7 @@ void Img_InitPalette(void);
 /**
  * @brief Resolves an RGB color value for the given value.
  */
-void Img_ColorFromPalette(uint8_t c, color_t *out);
+color_t Img_ColorFromPalette(uint8_t c);
 
 /**
 * @brief Write pixel data to a PNG file.

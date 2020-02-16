@@ -24,14 +24,14 @@
 #include "deps/genann/genann.h"
 
 typedef struct {
-    dvec3_t origin;
-	dvec3_t velocity;
+    vec3d_t origin;
+	vec3d_t velocity;
 } ai_ann_input_t;
 
 #define AI_ANN_INPUTS (sizeof(ai_ann_input_t) / sizeof(double))
 
 typedef struct {
-	dvec3_t dir;
+	vec3d_t dir;
 } ai_ann_output_t;
 
 #define AI_ANN_OUTPUTS (sizeof(ai_ann_output_t) / sizeof(double))
@@ -59,27 +59,26 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 
 	if (ent->client->ps.pm_state.type == PM_NORMAL) {
 		if (cmd->forward || cmd->right || cmd->up) {
-			vec3_t angles, forward, right, up, dir;
+			vec3_t forward, right, up, dir;
 
 			ai_ann_input_t in;
 
-            VectorCopy(ent->s.origin, in.origin);
-			VectorCopy(&ENTITY_DATA(ent, velocity), in.velocity);
+            in.origin = Vec3_CastVec3d(ent->s.origin);
+			in.velocity = Vec3_CastVec3d(ENTITY_DATA(ent, velocity));
 
 			ai_ann_output_t out;
 
-			UnpackAngles(cmd->angles, angles);
-			AngleVectors(angles, forward, right, up);
+			Vec3_Vectors(cmd->angles, &forward, &right, &up);
 
-			VectorClear(dir);
-			VectorMA(dir, cmd->forward, forward, dir);
-			VectorMA(dir, cmd->right, right, dir);
-			VectorMA(dir, cmd->up, up, dir);
+			dir = Vec3_Zero();
+			dir = Vec3_Add(dir, Vec3_Scale(forward, cmd->forward));
+			dir = Vec3_Add(dir, Vec3_Scale(right, cmd->right));
+			dir = Vec3_Add(dir, Vec3_Scale(up, cmd->up));
 
-			VectorNormalize(dir);
-			VectorCopy(dir, out.dir);
+			dir = Vec3_Normalize(dir);
+			out.dir = Vec3_CastVec3d(dir);
 
-			genann_train(ai_genann, (const dvec_t *) &in, (const dvec_t *) &out, AI_ANN_LEARNING_RATE);
+			genann_train(ai_genann, (const double *) &in, (const double *) &out, AI_ANN_LEARNING_RATE);
 		}
 	}
 }
@@ -87,23 +86,23 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 /**
  * @brief
  */
-void Ai_Predict(const g_entity_t *ent, vec3_t dir) {
+void Ai_Predict(const g_entity_t *ent, vec3_t *dir) {
 
 	if (!ai_genann) {
-		VectorClear(dir);
+		*dir = Vec3_Zero();
 		return;
 	}
 
 	ai_ann_input_t in;
 
-	VectorCopy(ent->s.origin, in.origin);
-	VectorCopy(&ENTITY_DATA(ent, velocity), in.velocity);
+	in.origin = Vec3_CastVec3d(ent->s.origin);
+	in.velocity = Vec3_CastVec3d(ENTITY_DATA(ent, velocity));
 
-	const ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_genann, (const dvec_t *) &in);
+	const ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_genann, (const double *) &in);
 	assert(out);
 
-	VectorCopy(out->dir, dir);
-	VectorNormalize(dir);
+	*dir = Vec3d_CastVec3(out->dir);
+	*dir = Vec3_Normalize(*dir);
 }
 
 /**

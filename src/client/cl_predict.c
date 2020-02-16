@@ -81,8 +81,8 @@ int32_t Cl_PointContents(const vec3_t point) {
  * @brief A structure facilitating clipping to SOLID_BOX entities.
  */
 typedef struct {
-	const vec_t *mins, *maxs;
-	const vec_t *start, *end;
+	vec3_t start, end;
+	vec3_t mins, maxs;
 	vec3_t box_mins, box_maxs;
 	cm_trace_t trace;
 	uint16_t skip;
@@ -113,7 +113,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			continue;
 		}
 
-		if (!BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box_mins, trace->box_maxs)) {
+		if (!Cm_BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box_mins, trace->box_maxs)) {
 			continue;
 		}
 
@@ -147,12 +147,6 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 
 	memset(&trace, 0, sizeof(trace));
 
-	if (!mins) {
-		mins = vec3_origin;
-	}
-	if (!maxs) {
-		maxs = vec3_origin;
-	}
 
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
@@ -171,7 +165,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	trace.skip = skip;
 	trace.contents = contents;
 
-	Cm_TraceBounds(start, end, mins, maxs, trace.box_mins, trace.box_maxs);
+	Cm_TraceBounds(start, end, mins, maxs, &trace.box_mins, &trace.box_maxs);
 
 	Cl_ClipTraceToEntities(&trace);
 
@@ -231,13 +225,13 @@ void Cl_CheckPredictionError(void) {
 		const uint32_t cmd = cls.net_chan.incoming_acknowledged & CMD_MASK;
 
 		// subtract what the server returned with what we had predicted it to be
-		VectorSubtract(cl.frame.ps.pm_state.origin, pr->origins[cmd], pr->error);
+		pr->error = Vec3_Subtract(cl.frame.ps.pm_state.origin, pr->origins[cmd]);
 
 		// if the error is too large, it was likely a teleport or respawn, so ignore it
-		const vec_t len = VectorLength(pr->error);
+		const float len = Vec3_Length(pr->error);
 		if (len > 64.0) {
 			Com_Debug(DEBUG_CLIENT, "Clear %s\n", vtos(pr->error));
-			VectorClear(pr->error);
+			pr->error = Vec3_Zero();
 		} else if (len > 0.1) {
 			Com_Debug(DEBUG_CLIENT, "Error %s\n", vtos(pr->error));
 		}
@@ -245,12 +239,11 @@ void Cl_CheckPredictionError(void) {
 	} else {
 		Com_Debug(DEBUG_CLIENT, "No delta\n");
 
-		VectorCopy(cl.frame.ps.pm_state.origin, pr->view.origin);
-
-		UnpackVector(cl.frame.ps.pm_state.view_offset, pr->view.offset);
-		UnpackAngles(cl.frame.ps.pm_state.view_angles, pr->view.angles);
-
-		VectorClear(pr->error);
+		pr->view.origin = cl.frame.ps.pm_state.origin;
+		pr->view.offset = cl.frame.ps.pm_state.view_offset;
+		pr->view.angles = cl.frame.ps.pm_state.view_angles;
+		
+		pr->error = Vec3_Zero();
 	}
 }
 

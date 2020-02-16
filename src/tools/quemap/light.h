@@ -88,21 +88,24 @@ typedef struct {
 	/**
 	 * @brief The light radius in units.
 	 */
-	vec_t radius;
+	float radius;
 
 	/**
 	 * @brief The angle, in radians, from the normal where spotlight attenuation occurs.
 	 */
-	vec_t theta;
+	float theta;
 
 	/**
 	 * @brief The size of the light, in world units, to simulate area lights.
 	 */
-	vec_t size;
+	float size;
 
 } light_t;
 
 extern GList *lights;
+
+float ColorNormalize(const vec3_t in, vec3_t *out);
+vec3_t ColorFilter(const vec3_t in);
 
 void BuildDirectLights(const GList *entities);
 void BuildIndirectLights(void);

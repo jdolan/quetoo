@@ -24,14 +24,14 @@
 _Bool antialias = false;
 _Bool indirect = false;
 
-vec_t brightness = 1.0;
-vec_t saturation = 1.0;
-vec_t contrast = 1.0;
+float brightness = 1.0;
+float saturation = 1.0;
+float contrast = 1.0;
 
 int16_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 int16_t patch_size = DEFAULT_BSP_PATCH_SIZE;
 
-vec_t radiosity = LIGHT_RADIOSITY;
+float radiosity = LIGHT_RADIOSITY;
 int32_t num_bounces = 1;
 
 // we use the collision detection facilities for lighting
@@ -86,10 +86,10 @@ int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
  */
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask) {
 
-	cm_trace_t trace = Cm_BoxTrace(start, end, NULL, NULL, 0, mask);
+	cm_trace_t trace = Cm_BoxTrace(start, end, Vec3_Zero(), Vec3_Zero(), 0, mask);
 
 	if (head_node) {
-		cm_trace_t tr = Cm_BoxTrace(start, end, NULL, NULL,head_node, mask);
+		cm_trace_t tr = Cm_BoxTrace(start, end, Vec3_Zero(), Vec3_Zero(), head_node, mask);
 		if (tr.fraction < trace.fraction) {
 			trace = tr;
 		}
@@ -147,7 +147,7 @@ static void LightWorld(void) {
 	}
 
 	if (luxel_size == BSP_LIGHTMAP_LUXEL_SIZE) {
-		vec_t v;
+		float v;
 		if (Cm_EntityVector(e, "luxel_size", &v, 1) == 1) {
 			luxel_size = v;
 			Com_Verbose("Luxel size: %d\n", luxel_size);
@@ -155,7 +155,7 @@ static void LightWorld(void) {
 	}
 
 	if (patch_size == DEFAULT_BSP_PATCH_SIZE) {
-		vec_t v;
+		float v;
 		if (Cm_EntityVector(e, "patch_size", &v, 1) == 1) {
 			patch_size = v;
 			Com_Verbose("Patch size: %d\n", patch_size);

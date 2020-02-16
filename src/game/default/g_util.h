@@ -26,17 +26,16 @@
 #ifdef __GAME_LOCAL_H__
 
 void G_KillBox(g_entity_t *ent);
-void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod);
+void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius, uint32_t mod);
 void G_Gib(g_entity_t *ent);
 void G_InitPlayerSpawn(g_entity_t *ent);
-void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org,
-                      const float hand_scale);
+void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand);
 g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match);
 g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match);
-g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad);
+g_entity_t *G_FindRadius(g_entity_t *from, const vec3_t org, float rad);
 g_entity_t *G_PickTarget(char *target_name);
 void G_UseTargets(g_entity_t *ent, g_entity_t *activator);
-void G_SetMoveDir(vec3_t angles, vec3_t movedir);
+void G_SetMoveDir(g_entity_t *ent);
 char *G_GameplayName(int32_t g);
 g_gameplay_t G_GameplayByName(const char *c);
 g_team_t *G_TeamByName(const char *c);

@@ -84,7 +84,7 @@ static void Cm_LoadBspPlanes(void) {
 
 	for (int32_t i = 0; i < num_planes; i++, in++, out++) {
 
-		VectorCopy(in->normal, out->normal);
+		out->normal = in->normal;
 		out->dist = in->dist;
 		out->type = Cm_PlaneTypeForNormal(out->normal);
 		out->sign_bits = Cm_SignBitsForPlane(out);
@@ -214,13 +214,13 @@ static void Cm_SetupBspBrushes(void) {
 	for (int32_t i = 0; i < cm_bsp.file.num_brushes; i++, b++) {
 		const cm_bsp_brush_side_t *bs = cm_bsp.brush_sides + b->first_brush_side;
 
-		b->mins[0] = -bs[0].plane->dist;
-		b->mins[1] = -bs[2].plane->dist;
-		b->mins[2] = -bs[4].plane->dist;
+		b->mins.x = -bs[0].plane->dist;
+		b->mins.y = -bs[2].plane->dist;
+		b->mins.z = -bs[4].plane->dist;
 
-		b->maxs[0] = bs[1].plane->dist;
-		b->maxs[1] = bs[3].plane->dist;
-		b->maxs[2] = bs[5].plane->dist;
+		b->maxs.x = bs[1].plane->dist;
+		b->maxs.y = bs[3].plane->dist;
+		b->maxs.z = bs[5].plane->dist;
 	}
 }
 
@@ -238,10 +238,8 @@ static void Cm_LoadBspInlineModels(void) {
 
 		out->head_node = in->head_node;
 
-		for (int32_t j = 0; j < 3; j++) {
-			out->mins[j] = in->mins[j];
-			out->maxs[j] = in->maxs[j];
-		}
+		out->mins = Vec3s_CastVec3(in->mins);
+		out->maxs = Vec3s_CastVec3(in->maxs);
 	}
 }
 

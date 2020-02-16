@@ -28,7 +28,7 @@ static cg_light_t cg_lights[MAX_LIGHTS];
 /**
  * @brief
  */
-void Cg_AddLight(const cg_light_t *s) {
+void Cg_AddLight(const cg_light_t *l) {
 	size_t i;
 
 	for (i = 0; i < lengthof(cg_lights); i++)
@@ -37,11 +37,11 @@ void Cg_AddLight(const cg_light_t *s) {
 		}
 
 	if (i == lengthof(cg_lights)) {
-		cgi.Debug("MAX_LIGHTS reached\n");
+		cgi.Debug("MAX_LIGHTS\n");
 		return;
 	}
 
-	cg_lights[i] = *s;
+	cg_lights[i] = *l;
 
 	if (cg_lights[i].intensity == 0.0) {
 		cg_lights[i].intensity = LIGHT_INTENSITY;
@@ -64,16 +64,13 @@ void Cg_AddLights(void) {
 			continue;
 		}
 
-		r_light_t out;
-
-		VectorCopy(l->origin, out.origin);
-		out.origin[3] = l->radius;
-
-		VectorCopy(l->color, out.color);
-		out.color[3] = l->intensity;
+		r_light_t out = {
+			.origin = Vec3_ToVec4(l->origin, l->radius),
+			.color = Vec3_ToVec4(l->color, l->intensity)
+		};
 
 		if (l->decay) {
-			out.color[3] = (expiration - cgi.client->unclamped_time) / (vec_t) (l->decay);
+			out.color.w = (expiration - cgi.client->unclamped_time) / (float) (l->decay);
 		}
 
 		cgi.AddLight(&out);

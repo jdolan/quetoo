@@ -38,7 +38,7 @@ typedef struct {
 	/**
 	 * @brief The light radius.
 	 */
-	vec_t radius;
+	float radius;
 
 	/**
 	 * @brief The light color.
@@ -48,7 +48,7 @@ typedef struct {
 	/**
 	 * @brief The light intensity.
 	 */
-	vec_t intensity;
+	float intensity;
 
 	/**
 	 * @brief The decay period in milliseconds.

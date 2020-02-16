@@ -38,7 +38,7 @@ extern _Bool leaked;
 
 extern int32_t block_xl, block_xh, block_yl, block_yh;
 
-extern vec_t micro_volume;
+extern float micro_volume;
 
 extern int32_t entity_num;
 

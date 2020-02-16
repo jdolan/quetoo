@@ -63,9 +63,8 @@ extern r_view_t r_view;
 void R_GetError_(const char *function, const char *msg);
 #define R_GetError(msg) R_GetError_(__func__, msg)
 
-void R_Color(const vec4_t color); // FIXME: this has to go
 _Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
-_Bool R_CullSphere(const vec3_t point, const vec_t radius);
+_Bool R_CullSphere(const vec3_t point, const float radius);
 void R_Init(void);
 void R_Shutdown(void);
 void R_LoadMedia(void);
@@ -93,17 +92,17 @@ typedef struct {
 	/**
 	 * @brief The 3D projection matrix.
 	 */
-	matrix4x4_t projection3D;
+	mat4_t projection3D;
 
 	/**
 	 * @brief The 2D projection matrix.
 	 */
-	matrix4x4_t projection2D;
+	mat4_t projection2D;
 
 	/**
 	 * @brief The view matrix.
 	 */
-	matrix4x4_t view;
+	mat4_t view;
 
 	/**
 	 * @brief The view frustum, for box and sphere culling.

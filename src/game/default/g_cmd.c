@@ -560,7 +560,7 @@ static void G_Say_f(g_entity_t *ent) {
 		cl->locals.chat_time = g_level.time + 250;
 	}
 
-	const int32_t color = team ? CON_COLOR_TEAMCHAT : CON_COLOR_CHAT;
+	const int32_t color = team ? ESC_COLOR_TEAMCHAT : ESC_COLOR_CHAT;
 	g_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->locals.persistent.net_name, color, s);
 
 	for (i = 1; i <= sv_max_clients->integer; i++) { // print to clients
@@ -1205,7 +1205,7 @@ static void G_Ready_f(g_entity_t *ent) {
 		}
 	}
 
-	g_warmup_time->integer = Clamp(g_warmup_time->integer, 0, 30);
+	g_warmup_time->integer = Clampf(g_warmup_time->integer, 0, 30);
 
 	gi.BroadcastPrint(PRINT_HIGH, "Match starting in %d seconds...\n", g_warmup_time->integer);
 	g_level.match_time = g_level.time + (g_warmup_time->integer * 1000);

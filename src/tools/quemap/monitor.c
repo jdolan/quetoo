@@ -155,7 +155,7 @@ void Mon_SendPoint_(const char *func, mon_level_t level, const vec3_t p, const c
 	xmlSetProp(point_msg, xmlString("level"), xmlStringf("%d", level));
 
 	xmlNodePtr point = xmlNewNode(NULL, xmlString("point"));
-	xmlNodeSetContent(point, xmlStringf("(%g %g %g", p[0], p[1], p[2]));
+	xmlNodeSetContent(point, xmlStringf("(%g %g %g", p.x, p.y, p.z));
 	xmlAddChild(point_msg, point);
 
 	Mon_SendXML(point_msg);
@@ -177,16 +177,16 @@ void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], uin
 	xmlAddChild(winding_msg, winding);
 
 	vec3_t center;
-	VectorClear(center);
+	center = Vec3_Zero();
 
 	for (int32_t i = 0; i < n; i++) {
-		xmlNodeAddContent(winding, xmlStringf("(%g %g %g)", p[i][0], p[i][1], p[i][2]));
-		VectorAdd(center, p[i], center);
+		xmlNodeAddContent(winding, xmlStringf("(%g %g %g)", p[i].x, p[i].y, p[i].z));
+		center = Vec3_Add(center, p[i]);
 	}
 
 	Mon_SendXML(winding_msg);
 
-	VectorScale(center, 1.0 / n, center);
+	center = Vec3_Scale(center, 1.0 / n);
 	Mon_Stdio(level, va("%s: Winding with center %s: %s", func, vtos(center), msg));
 }
 

@@ -40,7 +40,8 @@ TESTS = \
 	check_mem \
 	check_r_media \
 	check_shared \
-	check_thread
+	check_thread \
+	check_vector
 
 noinst_PROGRAMS = $(TESTS)
 
@@ -137,5 +138,14 @@ check_thread_CFLAGS = \
 check_thread_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/libthread.la
+
+check_vector_SOURCES = \
+	check_vector.c
+check_vector_CFLAGS = \
+	-I$(top_srcdir)/src \
+	$(TESTS_CFLAGS)
+check_vector_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/libvector.la
 
 endif

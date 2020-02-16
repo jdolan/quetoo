@@ -79,8 +79,8 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 	// if it is an inline model, get the size information for it
 	if (name[0] == '*') {
 		const cm_bsp_model_t *mod = Cm_Model(name);
-		VectorCopy(mod->mins, ent->mins);
-		VectorCopy(mod->maxs, ent->maxs);
+		ent->mins = mod->mins;
+		ent->maxs = mod->maxs;
 		Sv_LinkEntity(ent);
 	}
 }
@@ -113,7 +113,7 @@ static void Sv_SetConfigString(const uint16_t index, const char *val) {
 		Net_WriteShort(&sv.multicast, index);
 		Net_WriteString(&sv.multicast, val);
 
-		Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
+		Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R, NULL);
 	}
 }
 
@@ -158,8 +158,8 @@ static void Sv_WriteString(const char *s) {
 	Net_WriteString(&sv.multicast, s);
 }
 
-static void Sv_WriteVector(const vec_t v) {
-	Net_WriteVector(&sv.multicast, v);
+static void Sv_WriteVector(const float v) {
+	Net_WriteFloat(&sv.multicast, v);
 }
 
 static void Sv_WritePosition(const vec3_t pos) {
@@ -170,7 +170,7 @@ static void Sv_WriteDir(const vec3_t dir) {
 	Net_WriteDir(&sv.multicast, dir);
 }
 
-static void Sv_WriteAngle(const vec_t v) {
+static void Sv_WriteAngle(const float v) {
 	Net_WriteAngle(&sv.multicast, v);
 }
 
@@ -240,11 +240,9 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
  */
 static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch) {
 
-	if (!ent) {
-		return;
-	}
+	assert(ent);
 
-	Sv_PositionedSound(NULL, ent, index, atten, pitch);
+	Sv_PositionedSound(ent->s.origin, ent, index, atten, pitch);
 }
 
 static void *ai_handle;

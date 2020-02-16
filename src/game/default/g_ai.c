@@ -189,14 +189,14 @@ static void G_Ai_AddBots(const int32_t count) {
 		return;
 	}
 
-	g_game.ai_left_to_spawn += Min(count, empty_slots);
+	g_game.ai_left_to_spawn += Minf(count, empty_slots);
 }
 
 /**
  * @brief
  */
 static void G_Ai_RemoveBots(const int32_t count) {
-	int32_t clamped = Min(count, G_Ai_NumberOfBots());
+	int32_t clamped = Minf(count, G_Ai_NumberOfBots());
 
 	if (!clamped) {
 		return;
@@ -315,7 +315,7 @@ void G_Ai_Frame(void) {
 		if (g_ai_max_clients->integer == -1) {
 			g_ai_max_clients->integer = sv_max_clients->integer;
 		} else {
-			g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, sv_max_clients->integer);
+			g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
 		}
 
 		int32_t slot_diff = g_ai_max_clients->integer - G_Ai_NumberOfClients();

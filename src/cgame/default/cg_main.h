@@ -24,7 +24,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-vec_t Cg_GetHookPullSpeed(void);
+float Cg_GetHookPullSpeed(void);
 
 extern cvar_t *cg_add_emits;
 extern cvar_t *cg_add_entities;

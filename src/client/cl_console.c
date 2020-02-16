@@ -48,23 +48,19 @@ static void Cl_DrawConsole_Background(void) {
 	const r_image_t *image = R_LoadImage("ui/conback", IT_UI);
 	if (image->type != IT_NULL) {
 
-		const vec_t x_scale = r_context.width / (vec_t) image->width;
-		const vec_t y_scale = r_context.height / (vec_t) image->height;
+		const float x_scale = r_context.width / (float) image->width;
+		const float y_scale = r_context.height / (float) image->height;
 
-		const vec_t scale = Max(x_scale, y_scale);
+		const float scale = Maxf(x_scale, y_scale);
 		r_pixel_t ch;
 
 		R_BindFont("small", NULL, &ch);
 
 		r_pixel_t y = cl_console.height * ch;
 
-//		R_Color((const vec4_t) {
-//			1.0, 1.0, 1.0, cl_draw_console_background_alpha->value
-//		});
+		const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
 
-		R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image);
-
-//		R_Color(NULL);
+		R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image, color);
 	}
 }
 
@@ -81,10 +77,10 @@ static void Cl_DrawConsole_Buffer(void) {
 
 	r_pixel_t y = (cl_console.height - count) * ch;
 
-	int32_t color = CON_COLOR_DEFAULT;
+	color_t color = color_white;
 	for (size_t i = 0; i < count; i++) {
 		R_DrawString(0, y, lines[i], color);
-		color = StrrColor(lines[i]);
+		color = ColorEsc(StrrColor(lines[i]));
 		g_free(lines[i]);
 		y += ch;
 	}
@@ -101,7 +97,7 @@ static void Cl_DrawConsole_Input(void) {
 	r_pixel_t x = 1, y = cl_console.height * ch;
 
 	// draw the prompt
-	R_DrawChar(0, y, ']', CON_COLOR_ALT);
+	R_DrawChar(0, y, ']', color_green);
 
 	// and the input buffer, scrolling horizontally if appropriate
 	const char *s = cl_console.input.buffer;
@@ -110,14 +106,14 @@ static void Cl_DrawConsole_Input(void) {
 	}
 
 	while (*s) {
-		R_DrawChar(x * cw, y, *s, CON_COLOR_DEFAULT);
+		R_DrawChar(x * cw, y, *s, color_white);
 
 		s++;
 		x++;
 	}
 
 	// and lastly cursor
-	R_DrawChar((cl_console.input.pos + 1) * cw, y, 0x0b, CON_COLOR_DEFAULT);
+	R_DrawChar((cl_console.input.pos + 1) * cw, y, 0x0b, color_white);
 }
 
 /**
@@ -129,7 +125,7 @@ void Cl_DrawConsole(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	height = r_context.height * (cls.state == CL_ACTIVE ? Clamp(cl_console_height->value, 0.1, 1.0) : 1.0);
+	height = r_context.height * (cls.state == CL_ACTIVE ? Clampf(cl_console_height->value, 0.1, 1.0) : 1.0);
 
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
@@ -157,7 +153,7 @@ void Cl_DrawNotify(void) {
 
 	console_t con = {
 		.width = r_context.width / cw,
-		.height = Clamp(cl_notify_lines->integer, 1, 12),
+		.height = Clampf(cl_notify_lines->integer, 1, 12),
 		.level = (PRINT_MEDIUM | PRINT_HIGH),
 	};
 
@@ -170,10 +166,10 @@ void Cl_DrawNotify(void) {
 
 	r_pixel_t y = 0;
 
-	int32_t color = CON_COLOR_DEFAULT;
+	color_t color = color_white;
 	for (size_t i = 0; i < count; i++) {
 		R_DrawString(0, y, lines[i], color);
-		color = StrrColor(lines[i]);
+		color = ColorEsc(StrrColor(lines[i]));
 		g_free(lines[i]);
 		y += ch;
 	}
@@ -192,7 +188,7 @@ void Cl_DrawChat(void) {
 	r_pixel_t x = 1, y = r_view.viewport.y + r_view.viewport.h * 0.66;
 
 	cl_chat_console.width = r_context.width / cw / 3;
-	cl_chat_console.height = Clamp(cl_chat_lines->integer, 0, 8);
+	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 8);
 
 	if (cl_draw_chat->value && cl_chat_console.height) {
 
@@ -203,10 +199,10 @@ void Cl_DrawChat(void) {
 		char *lines[cl_chat_console.height];
 		const size_t count = Con_Tail(&cl_chat_console, lines, cl_chat_console.height);
 
-		int32_t color = CON_COLOR_DEFAULT;
+		color_t color = color_white;
 		for (size_t i = 0; i < count; i++) {
 			R_DrawString(0, y, lines[i], color);
-			color = StrrColor(lines[i]);
+			color = ColorEsc(StrrColor(lines[i]));
 			g_free(lines[i]);
 			y += ch;
 		}
@@ -214,10 +210,10 @@ void Cl_DrawChat(void) {
 
 	if (cls.key_state.dest == KEY_CHAT) {
 
-		const int32_t color = cls.chat_state.team_chat ? CON_COLOR_TEAMCHAT : CON_COLOR_CHAT;
+		const int32_t esc = cls.chat_state.team_chat ? ESC_COLOR_TEAMCHAT : ESC_COLOR_CHAT;
 
 		// draw the prompt
-		R_DrawChar(0, y, ']', color);
+		R_DrawChar(0, y, ']', ColorEsc(esc));
 
 		// and the input, scrolling horizontally if appropriate
 		const char *s = cl_chat_console.input.buffer;
@@ -226,14 +222,14 @@ void Cl_DrawChat(void) {
 		}
 
 		while (*s) {
-			R_DrawChar(x * cw, y, *s, CON_COLOR_DEFAULT);
+			R_DrawChar(x * cw, y, *s, color_white);
 
 			s++;
 			x++;
 		}
 
 		// and lastly cursor
-		R_DrawChar(x * cw, y, 0x0b, CON_COLOR_DEFAULT);
+		R_DrawChar(x * cw, y, 0x0b, color_white);
 	}
 }
 

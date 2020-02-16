@@ -46,10 +46,10 @@ typedef struct cl_emit_s {
 	vec3_t dir; // for particle direction
 	vec3_t vel; // for particle velocity
 	vec3_t color;
-	vec_t hz, drift; // how frequently and randomly we fire
-	vec_t radius; // flame and corona radius
-	vec_t flicker;
-	vec_t scale; // mesh model scale
+	float hz, drift; // how frequently and randomly we fire
+	float radius; // flame and corona radius
+	float flicker;
+	float scale; // mesh model scale
 	int32_t count; // particle counts
 	char sound[MAX_QPATH]; // sound name
 	s_sample_t *sample; // sound sample
@@ -140,8 +140,8 @@ void Cg_LoadEmits(void) {
 					e->flags |= EMIT_MODEL;
 				}
 
-				if (VectorCompare(e->color, vec3_origin)) { // default color
-					VectorSet(e->color, 1.0, 1.0, 1.0);
+				if (Vec3_Equal(e->color, Vec3_Zero())) { // default color
+					e->color = Vec3(1.0, 1.0, 1.0);
 				}
 
 				if (e->count <= 0) { // default particle count
@@ -159,15 +159,15 @@ void Cg_LoadEmits(void) {
 					}
 				}
 
-				if (VectorCompare(e->vel, vec3_origin)) { // default velocity
+				if (Vec3_Equal(e->vel, Vec3_Zero())) { // default velocity
 
 					if (e->flags & EMIT_STEAM) {
-						VectorSet(e->vel, 0.0, 0.0, 40.0);
+						e->vel = Vec3(0.0, 0.0, 40.0);
 					}
 				}
 
 				if (e->flags & EMIT_SPARKS) { // default directional scale
-					VectorScale(e->dir, 40.0, e->dir);
+					e->dir = Vec3_Scale(e->dir, 40.0);
 				}
 
 				if (e->scale <= 0.0) { // default mesh model scale
@@ -272,7 +272,7 @@ void Cg_LoadEmits(void) {
 
 		if (!g_strcmp0(token, "origin")) {
 
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->org, 3) != 3) {
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->org.xyz, 3) != 3) {
 				break;
 			}
 
@@ -281,17 +281,17 @@ void Cg_LoadEmits(void) {
 
 		if (!g_strcmp0(token, "angles")) { // resolve angles and directional vector
 
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->angles, 3) != 3) {
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->angles.xyz, 3) != 3) {
 				break;
 			}
 
-			AngleVectors(e->angles, e->dir, NULL, NULL);
+			Vec3_Vectors(e->angles, &e->dir, NULL, NULL);
 			continue;
 		}
 
 		if (!g_strcmp0(token, "color")) { // resolve color as vector
 
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->color, 3) != 3) {
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->color.xyz, 3) != 3) {
 				break;
 			}
 
@@ -383,7 +383,7 @@ void Cg_LoadEmits(void) {
 
 		if (!g_strcmp0(token, "velocity")) {
 
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->vel, 3) != 3) {
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->vel.xyz, 3) != 3) {
 				break;
 			}
 
@@ -417,7 +417,7 @@ static cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 	}
 
 	if (em.flags && em.hz && em.time < cgi.client->unclamped_time) { // update the time stamp
-		const vec_t drift = e->drift * Randomf() * 1000.0;
+		const float drift = e->drift * Randomf() * 1000.0;
 		e->time = cgi.client->unclamped_time + (1000.0 / e->hz) + drift;
 	}
 
@@ -441,16 +441,17 @@ void Cg_AddEmits(void) {
 
 		if ((e->flags & EMIT_LIGHT) && !e->hz) {
 			Cg_AddLight(&(cg_light_t) {
-				.origin = { e->org[0], e->org[1], e->org[2] },
+				.origin = e->org,
 				.radius = e->radius,
-				.color = { e->color[0], e->color[1], e->color[2] },
+				.color = e->color,
+				.decay = 0
 			});
 		}
 
 		if ((e->flags & EMIT_SOUND) && e->loop) {
 			cgi.AddSample(&(const s_play_sample_t) {
 				.sample = e->sample,
-				.origin = { e->org[0], e->org[1], e->org[2] },
+				.origin = e->org,
 				.attenuation = e->atten,
 				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 			});
@@ -461,8 +462,8 @@ void Cg_AddEmits(void) {
 
 			memset(&ent, 0, sizeof(ent));
 
-			VectorCopy(e->org, ent.origin);
-			VectorCopy(e->angles, ent.angles);
+			ent.origin = e->org;
+			ent.angles = e->angles;
 
 			ent.model = e->mod;
 			ent.lerp = 1.0;
@@ -477,8 +478,8 @@ void Cg_AddEmits(void) {
 //			cg_particle_t *p = Cg_AllocParticle();
 //
 //			if (p) {
-//				VectorCopy(e->color, p->color);
-//				VectorCopy(e->org, p->origin);
+//				p->color = e->color;
+//				p->origin = e->org;
 //
 //				p->part.scale = CORONA_SCALE(e->radius, e->flicker);
 //			}
@@ -492,9 +493,9 @@ void Cg_AddEmits(void) {
 
 		if ((e->flags & EMIT_LIGHT) && e->hz) {
 			Cg_AddLight(&(cg_light_t) {
-				.origin = { e->org[0], e->org[1], e->org[2] },
+				.origin = e->org,
 				.radius = e->radius,
-				.color = { e->color[0], e->color[1], e->color[2] },
+				.color = e->color,
 				.decay = 1000
 			});
 		}
@@ -514,7 +515,7 @@ void Cg_AddEmits(void) {
 		if ((e->flags & EMIT_SOUND) && !e->loop) {
 			cgi.AddSample(&(const s_play_sample_t) {
 				.sample = e->sample,
-				.origin = { e->org[0], e->org[1], e->org[2] },
+				.origin = e->org,
 				.attenuation = e->atten,
 				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT
 			});

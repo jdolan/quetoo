@@ -39,10 +39,10 @@ static cg_kick_t cg_kick;
  */
 void Cg_ParseViewKick(void) {
 
-	const vec3_t kick = { cgi.ReadAngle(), 0.0, cgi.ReadAngle() };
+	const vec3_t kick = Vec3(cgi.ReadAngle(), 0.0, cgi.ReadAngle());
 
-	VectorCopy(cg_kick.kick, cg_kick.prev);
-	VectorAdd(cg_kick.prev, kick, cg_kick.next);
+	cg_kick.prev = cg_kick.kick;
+	cg_kick.next = Vec3_Add(cg_kick.prev, kick);
 
 	cg_kick.timestamp = cgi.client->unclamped_time;
 	cg_kick.interval = 64;
@@ -65,20 +65,18 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 			cgi.Debug("Respawned, clearing kick %s\n", vtos(cg_kick.kick));
 			memset(&cg_kick, 0, sizeof(cg_kick));
 		} else {
-			vec3_t delta0, delta1;
+			vec3_t delta0 = ps0->pm_state.delta_angles;
+			vec3_t delta1 = ps1->pm_state.delta_angles;
 
-			UnpackAngles(ps0->pm_state.delta_angles, delta0);
-			UnpackAngles(ps1->pm_state.delta_angles, delta1);
-
-			if (!VectorCompare(delta0, delta1)) {
+			if (!Vec3_Equal(delta0, delta1)) {
 				static int32_t frame;
 
 				if (cgi.client->frame.frame_num != frame) {
 					cgi.Debug("Delta kick %s\n", vtos(cg_kick.kick));
 
-					VectorCopy(cg_kick.kick, cg_kick.next);
-					VectorClear(cg_kick.kick);
-					VectorClear(cg_kick.prev);
+					cg_kick.next = cg_kick.kick;
+					cg_kick.kick = Vec3_Zero();
+					cg_kick.prev = Vec3_Zero();
 
 					cg_kick.timestamp = cgi.client->unclamped_time;
 					cg_kick.interval = 1;
@@ -91,29 +89,29 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 
 	const uint32_t delta = cgi.client->unclamped_time - cg_kick.timestamp;
 	if (delta < cg_kick.interval) {
-		const vec_t frac = Min(delta, cmd->msec) / (vec_t) cg_kick.interval;
+		const float frac = Minf(delta, cmd->msec) / (float) cg_kick.interval;
 
 		vec3_t kick;
-		VectorSubtract(cg_kick.next, cg_kick.prev, kick);
-		VectorScale(kick, frac, kick);
+		kick = Vec3_Subtract(cg_kick.next, cg_kick.prev);
+		kick = Vec3_Scale(kick, frac);
 
-		VectorAdd(cg_kick.kick, kick, cg_kick.kick);
-		VectorAdd(cgi.client->angles, kick, cgi.client->angles);
+		cg_kick.kick = Vec3_Add(cg_kick.kick, kick);
+		cgi.client->angles = Vec3_Add(cgi.client->angles, kick);
 
-	} else if (!VectorCompare(cg_kick.kick, vec3_origin)) {
+	} else if (!Vec3_Equal(cg_kick.kick, Vec3_Zero())) {
 
 		if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
 			return;
 		}
 
-		const vec_t len = VectorLength(cg_kick.kick);
+		const float len = Vec3_Length(cg_kick.kick);
 		if (len < 0.1) {
-			VectorSubtract(cgi.client->angles, cg_kick.kick, cgi.client->angles);
+			cgi.client->angles = Vec3_Subtract(cgi.client->angles, cg_kick.kick);
 			memset(&cg_kick, 0, sizeof(cg_kick));
 		} else {
 
-			VectorCopy(cg_kick.kick, cg_kick.prev);
-			VectorClear(cg_kick.next);
+			cg_kick.prev = cg_kick.kick;
+			cg_kick.next = Vec3_Zero();
 
 			cg_kick.timestamp = cgi.client->unclamped_time;
 			cg_kick.interval = 240;
@@ -125,7 +123,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
  * @brief
  */
 static void Cg_WeaponKick(const pm_cmd_t *cmd) {
-	static vec_t kick;
+	static float kick;
 
 	if (cgi.client->third_person) {
 		return;
@@ -137,13 +135,13 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 		return;
 	}
 
-	vec_t delta = 0.0;
+	float delta = 0.0;
 
 	if (ent->animation1.animation == ANIM_TORSO_ATTACK1 && ent->animation1.fraction <= 0.33) {
 
 		const player_state_t *ps = &cgi.client->frame.ps;
 
-		vec_t degrees, interval = 64.0;
+		float degrees, interval = 64.0;
 
 		switch (ps->stats[STAT_WEAPON_TAG] & 0xFF) {
 			case WEAPON_BLASTER:
@@ -186,14 +184,14 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 				return;
 		}
 
-		delta = Min(degrees - kick, degrees * (cmd->msec / interval));
+		delta = Minf(degrees - kick, degrees * (cmd->msec / interval));
 
 	} else {
-		delta = -Min(kick, kick * (cmd->msec / 196.0));
+		delta = -Minf(kick, kick * (cmd->msec / 196.0));
 	}
 
 	kick += delta;
-	cgi.client->angles[PITCH] -= delta;
+	cgi.client->angles.x -= delta;
 }
 
 /**

@@ -159,64 +159,113 @@ void R_InitSky(void) {
 
 	const r_sky_vertex_t vertexes[] = {
 		// +z (top)
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+		{
+			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+		},
 
 		// -z (bottom)
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
+		{
+			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+		},
+		{
+			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+		},
 
 		// +x (right)
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+		{
+			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+		},
 
 		// -x (left)
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+		{
+			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+		},
+		{
+			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+		},
 
 		// +y (back)
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+		{
+			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+		},
 
 		// -y (front)
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+		{
+			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+		},
+		{
+			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+		},
+		{
+			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
+			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+
+		},
 	};
 
 	glGenVertexArrays(1, &r_sky.vertex_array);

@@ -369,14 +369,14 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "color")) {
 
-			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, s->color, 3) != 3) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, s->color.xyz, 3) != 3) {
 				Cm_MaterialWarn(path, parser, "Need 3 values for color");
 				continue;
 			}
 
 			for (int32_t i = 0; i < 3; i++) {
 
-				if (s->color[i] < 0.0 || s->color[i] > 1.0) {
+				if (s->color.xyz[i] < 0.0 || s->color.xyz[i] > 1.0) {
 					Cm_MaterialWarn(path, parser, "Invalid value for color, must be between 0.0 and 1.0");
 				}
 			}
@@ -640,7 +640,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			          "  anim.num_frames: %d\n"
 			          "  anim.fps: %.1f\n", s->flags, (*s->asset.name ? s->asset.name : "NULL"),
 			          ((s->flags & STAGE_LIGHTING) ? "true" : "false"), s->blend.src,
-			          s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
+			          s->blend.dest, s->color.x, s->color.y, s->color.z, s->pulse.hz,
 			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
 			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
 			          s->anim.fps);
@@ -794,7 +794,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		}
 
 		if (!strncmp(token, "tintmap.", strlen("tintmap."))) {
-			vec_t *color = NULL;
+			vec4_t color = Vec4_One();
 
 			if (!g_strcmp0(token, "tintmap.tint_r_default")) {
 				color = m->tintmap_defaults[TINT_R];
@@ -806,20 +806,17 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, va("Invalid token \"%s\"", token));
 			}
 
-			if (color) {
-				size_t num_parsed = Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, color, 4);
+			const size_t num_parsed = Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, color.xyzw, 4);
+			if (num_parsed < 3 || num_parsed > 4) {
+				Cm_MaterialWarn(path, &parser, "Invalid color (must be 3 or 4 components)");
+			} else {
+				if (num_parsed != 4) {
+					color.w = 1.0;
+				}
 
-				if (num_parsed < 3 || num_parsed > 4) {
-					Cm_MaterialWarn(path, &parser, "Too many numbers for color (must be 3 or 4)");
-				} else {
-					if (num_parsed != 4) {
-						color[3] = 1.0;
-					}
-
-					for (size_t i = 0; i < num_parsed; i++) {
-						if (color[i] < 0.0 || color[i] > 1.0) {
-							Cm_MaterialWarn(path, &parser, "Color number out of range (must be between 0.0 and 1.0)");
-						}
+				for (size_t i = 0; i < num_parsed; i++) {
+					if (color.xyzw[i] < 0.0 || color.xyzw[i] > 1.0) {
+						Cm_MaterialWarn(path, &parser, "Color number out of range (must be between 0.0 and 1.0)");
 					}
 				}
 			}
@@ -1160,7 +1157,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	}
 
 	if (stage->flags & STAGE_COLOR) {
-		Fs_Print(file, "\t\tcolor %g %g %g\n", stage->color[0], stage->color[1], stage->color[2]);
+		Fs_Print(file, "\t\tcolor %g %g %g\n", stage->color.x, stage->color.y, stage->color.z);
 	}
 
 	if (stage->flags & STAGE_PULSE) {

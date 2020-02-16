@@ -21,9 +21,9 @@
 
 #include "cg_local.h"
 
-#define HUD_COLOR_STAT			CON_COLOR_DEFAULT
-#define HUD_COLOR_STAT_MED		CON_COLOR_YELLOW
-#define HUD_COLOR_STAT_LOW		CON_COLOR_RED
+#define HUD_COLOR_STAT			color_white
+#define HUD_COLOR_STAT_MED		color_yellow
+#define HUD_COLOR_STAT_LOW		color_red
 
 #define HUD_PIC_HEIGHT			64
 
@@ -102,15 +102,14 @@ static cg_hud_locals_t cg_hud_locals;
 /**
  * @brief Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
-static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const vec_t scale,
-                        const uint16_t icon) {
+static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale, const uint16_t icon, const color_t color) {
 
 	if (icon >= MAX_IMAGES || !cgi.client->image_precache[icon]) {
 		cgi.Warn("Invalid icon: %d\n", icon);
 		return;
 	}
 
-	cgi.DrawImage(x, y, scale, cgi.client->image_precache[icon]);
+	cgi.DrawImage(x, y, scale, cgi.client->image_precache[icon], color);
 }
 
 /**
@@ -120,12 +119,12 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
                          int16_t low) {
 	r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT + 4;
 
-	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
-	int32_t color = HUD_COLOR_STAT;
+	color_t color = HUD_COLOR_STAT;
+	color_t pulse = color_white;
 
 	if (value < low) {
 		if (cg_draw_vitals_pulse->integer) {
-			pulse[3] = sinf(cgi.client->unclamped_time / 250.0) + 0.75;
+			pulse.a = Clampf(sinf(cgi.client->unclamped_time / 250.f), 0.75f, 1.f) * 255;
 		}
 		color = HUD_COLOR_STAT_LOW;
 	} else if (value < med) {
@@ -140,9 +139,7 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 	x += cgi.StringWidth(string);
 	y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT;
 
-	cgi.Color(pulse);
-	Cg_DrawIcon(x, y, 1.0, icon);
-	cgi.Color(NULL);
+	Cg_DrawIcon(x, y, 1.0, icon, pulse);
 }
 
 /**
@@ -199,8 +196,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *icon) {
 	r_pixel_t x;
 
-	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
-	int32_t color = HUD_COLOR_STAT;
+	color_t color = HUD_COLOR_STAT;
 
 	if (value < HUD_POWERUP_LOW) {
 		color = HUD_COLOR_STAT_LOW;
@@ -210,9 +206,7 @@ static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *ic
 
 	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
 
-	cgi.Color(pulse);
-	cgi.DrawImage(x, y, 1.0, icon);
-	cgi.Color(NULL);
+	cgi.DrawImage(x, y, 1.0, icon, color_white);
 
 	x += HUD_PIC_HEIGHT;
 
@@ -235,10 +229,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
 
 	if (ps->stats[STAT_QUAD_TIME] > 0) {
 		const int32_t timer = ps->stats[STAT_QUAD_TIME];
-
 		Cg_DrawPowerup(y, timer, cgi.LoadImage("pics/i_quad", IT_PIC));
-
-		y += HUD_PIC_HEIGHT;
 	}
 
 	cgi.BindFont(NULL, NULL, NULL);
@@ -254,20 +245,19 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 		return;
 	}
 
-	vec4_t pulse = { 1.0, 1.0, 1.0, sinf(cgi.client->unclamped_time / 150.0) + 0.75 };
+	const int16_t flag = ps->stats[STAT_CARRYING_FLAG];
+	if (!flag) {
+		return;
+	}
+
+	color_t pulse = color_white;
+	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
 
 	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
 	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 2));
 
-	uint16_t flag = ps->stats[STAT_CARRYING_FLAG];
-
-	if (flag != 0) {
-		cgi.Color(pulse);
-
-		cgi.DrawImage(x, y, 1.0, cgi.LoadImage(va("pics/i_flag%d", flag), IT_PIC));
-
-		cgi.Color(NULL);
-	}
+	const r_image_t *icon = cgi.LoadImage(va("pics/i_flag%d", flag),  IT_PIC);
+	cgi.DrawImage(x, y, 1.0, icon, pulse);
 }
 
 /**
@@ -280,20 +270,18 @@ static void Cg_DrawHeldTech(const player_state_t *ps) {
 		return;
 	}
 
-	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
+	const int16_t tech = ps->stats[STAT_TECH_ICON];
+	if (tech == -1) {
+		return;
+	}
+
+	color_t pulse = color_white;
+	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
 
 	x = cgi.view->viewport.x + 4;
 	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 4));
 
-	int16_t tech = ps->stats[STAT_TECH_ICON];
-
-	if (tech != -1) {
-		cgi.Color(pulse);
-
-		Cg_DrawIcon(x, y, 1.0, tech);
-
-		cgi.Color(NULL);
-	}
+	Cg_DrawIcon(x, y, 1.0, tech, pulse);
 }
 
 /**
@@ -317,7 +305,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 		x = cgi.view->viewport.x + cgi.view->viewport.w - HUD_PIC_HEIGHT - cgi.StringWidth(string);
 		y = cgi.view->viewport.y;
 
-		Cg_DrawIcon(x, y, 1.0, icon);
+		Cg_DrawIcon(x, y, 1.0, icon, color_white);
 
 		x += HUD_PIC_HEIGHT;
 		y += (HUD_PIC_HEIGHT - ch) / 2 + 2;
@@ -346,7 +334,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Frags");
 	y = cgi.view->viewport.y + HUD_PIC_HEIGHT + ch;
 
-	cgi.DrawString(x, y, "Frags", CON_COLOR_GREEN);
+	cgi.DrawString(x, y, "Frags", color_green);
 	y += ch;
 
 	cgi.BindFont("large", &cw, NULL);
@@ -378,7 +366,7 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Deaths");
 	y = cgi.view->viewport.y + 2 * (HUD_PIC_HEIGHT + ch);
 
-	cgi.DrawString(x, y, "Deaths", CON_COLOR_GREEN);
+	cgi.DrawString(x, y, "Deaths", color_green);
 	y += ch;
 
 	cgi.BindFont("large", &cw, NULL);
@@ -415,7 +403,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Captures");
 	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
 
-	cgi.DrawString(x, y, "Captures", CON_COLOR_GREEN);
+	cgi.DrawString(x, y, "Captures", color_green);
 	y += ch;
 
 	cgi.BindFont("large", &cw, NULL);
@@ -442,7 +430,7 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
 	x = cgi.view->viewport.w - cgi.StringWidth("Spectating");
 	y = cgi.view->viewport.y + HUD_PIC_HEIGHT;
 
-	cgi.DrawString(x, y, "Spectating", CON_COLOR_GREEN);
+	cgi.DrawString(x, y, "Spectating", color_green);
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
@@ -482,7 +470,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 	x = cgi.view->viewport.x + cgi.view->viewport.w * 0.5 - cgi.StringWidth(string) / 2;
 	y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT - ch;
 
-	cgi.DrawString(x, y, string, CON_COLOR_GREEN);
+	cgi.DrawString(x, y, string, color_green);
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
@@ -509,7 +497,7 @@ static void Cg_DrawVote(const player_state_t *ps) {
 	x = cgi.view->viewport.x;
 	y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT - ch;
 
-	cgi.DrawString(x, y, string, CON_COLOR_GREEN);
+	cgi.DrawString(x, y, string, color_green);
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
@@ -538,7 +526,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
 		y += HUD_PIC_HEIGHT + ch;
 	}
 
-	cgi.DrawString(x, y, string, CON_COLOR_DEFAULT);
+	cgi.DrawString(x, y, string, color_white);
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
@@ -564,7 +552,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
 
 	y += ch;
 
-	cgi.DrawString(x, y, "Ready", CON_COLOR_GREEN);
+	cgi.DrawString(x, y, "Ready", color_green);
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
@@ -590,7 +578,7 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
 	x = cgi.view->viewport.x;
 	y = cgi.view->viewport.y + cgi.view->viewport.h - 64;
 
-	cgi.DrawFill(x, y, cgi.view->viewport.w, 64, color.abgr, -1.0);
+	cgi.DrawFill(x, y, cgi.view->viewport.w, 64, color);
 }
 
 /**
@@ -647,91 +635,89 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (cg_draw_crosshair_color->modified) { // crosshair color
 		cg_draw_crosshair_color->modified = false;
 
-		color_t color;
+		color_t color = color_white;
 
-		if (!g_strcmp0(cg_draw_crosshair_color->string, "default")) {
-			color.r = color.g = color.b = 255;
-		} else {
-			ColorFromHex(cg_draw_crosshair_color->string, &color);
+		if (g_strcmp0(cg_draw_crosshair_color->string, "default")) {
+			ColorParse(cg_draw_crosshair_color->string, &color);
 		}
 
-		ColorToVec4(color, crosshair.color);
+		crosshair.color = Color_Vec4(color);
 	}
 
 	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {
-		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+		float health_frac = Clampf(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
 
-		crosshair.color[0] = 1.0;
-		crosshair.color[1] = health_frac;
-		crosshair.color[2] = health_frac;
+		crosshair.color.x = 1.0;
+		crosshair.color.y = health_frac;
+		crosshair.color.z = health_frac;
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE_GREEN) {
-		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
-		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
+		float health_frac = Clampf(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+		float health_over = Clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
 
 		if (ps->stats[STAT_HEALTH] <= 100) {
-			crosshair.color[0] = 1.0;
-			crosshair.color[1] = health_frac;
-			crosshair.color[2] = health_frac;
+			crosshair.color.x = 1.0;
+			crosshair.color.y = health_frac;
+			crosshair.color.z = health_frac;
 		} else {
-			crosshair.color[0] = 1.0 - health_over;
-			crosshair.color[1] = 1.0;
-			crosshair.color[2] = 1.0 - health_over;
+			crosshair.color.x = 1.0 - health_over;
+			crosshair.color.y = 1.0;
+			crosshair.color.z = 1.0 - health_over;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE) {
-		vec_t health_frac_low = Clamp((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
-		vec_t health_frac_medium = Clamp((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
+		float health_frac_low = Clampf((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
+		float health_frac_medium = Clampf((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
 
 		if (ps->stats[STAT_HEALTH] <= 20) {
-			crosshair.color[0] = 1.0;
-			crosshair.color[1] = 0.0;
-			crosshair.color[2] = 0.0;
+			crosshair.color.x = 1.0;
+			crosshair.color.y = 0.0;
+			crosshair.color.z = 0.0;
 		} else if (ps->stats[STAT_HEALTH] <= 70) {
-			crosshair.color[0] = 1.0;
-			crosshair.color[1] = health_frac_low;
-			crosshair.color[2] = 0.0;
+			crosshair.color.x = 1.0;
+			crosshair.color.y = health_frac_low;
+			crosshair.color.z = 0.0;
 		} else {
-			crosshair.color[0] = 1.0;
-			crosshair.color[1] = 1.0;
-			crosshair.color[2] = health_frac_medium;
+			crosshair.color.x = 1.0;
+			crosshair.color.y = 1.0;
+			crosshair.color.z = health_frac_medium;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN) {
-		vec_t health_frac_low = Clamp((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
-		vec_t health_frac_medium = Clamp((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
-		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
+		float health_frac_low = Clampf((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
+		float health_frac_medium = Clampf((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
+		float health_over = Clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
 
 		if (ps->stats[STAT_HEALTH] <= 20) {
-			crosshair.color[0] = 1.0;
-			crosshair.color[1] = 0.0;
-			crosshair.color[2] = 0.0;
+			crosshair.color.x = 1.0;
+			crosshair.color.y = 0.0;
+			crosshair.color.z = 0.0;
 		} else if (ps->stats[STAT_HEALTH] <= 70) {
-			crosshair.color[0] = 1.0;
-			crosshair.color[1] = health_frac_low;
-			crosshair.color[2] = 0.0;
+			crosshair.color.x = 1.0;
+			crosshair.color.y = health_frac_low;
+			crosshair.color.z = 0.0;
 		} else if (ps->stats[STAT_HEALTH] <= 100) {
-			crosshair.color[0] = 1.0;
-			crosshair.color[1] = 1.0;
-			crosshair.color[2] = health_frac_medium;
+			crosshair.color.x = 1.0;
+			crosshair.color.y = 1.0;
+			crosshair.color.z = health_frac_medium;
 		} else {
-			crosshair.color[0] = 1.0 - health_over;
-			crosshair.color[1] = 1.0;
-			crosshair.color[2] = 1.0 - health_over;
+			crosshair.color.x = 1.0 - health_over;
+			crosshair.color.y = 1.0;
+			crosshair.color.z = 1.0 - health_over;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_WHITE_GREEN) {
-		vec_t health_over = (1.0 - Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0));
+		float health_over = (1.0 - Clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0));
 
 		if (ps->stats[STAT_HEALTH] <= 100) {
-			crosshair.color[0] = 1.0;
-			crosshair.color[1] = 1.0;
-			crosshair.color[2] = 1.0;
+			crosshair.color.x = 1.0;
+			crosshair.color.y = 1.0;
+			crosshair.color.z = 1.0;
 		} else {
-			crosshair.color[0] = 1.0 - health_over;
-			crosshair.color[1] = 1.0;
-			crosshair.color[2] = 1.0 - health_over;
+			crosshair.color.x = 1.0 - health_over;
+			crosshair.color.y = 1.0;
+			crosshair.color.z = 1.0 - health_over;
 		}
 	}
 
-	vec_t scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE * MVC_WindowScale(NULL, NULL, NULL);
-	vec_t alpha = cg_draw_crosshair_alpha->value;
+	float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE * MVC_WindowScale(NULL, NULL, NULL);
+	float alpha = cg_draw_crosshair_alpha->value;
 
 	// pulse the crosshair size and alpha based on pickups
 	if (cg_draw_crosshair_pulse->value) {
@@ -745,23 +731,19 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 		const uint32_t delta = cgi.client->unclamped_time - cg_hud_locals.pulse.time;
 		if (delta < 300) {
-			const vec_t frac = 1.0 - (delta / 300.0);
+			const float frac = 1.0 - (delta / 300.0);
 			scale += cg_draw_crosshair_pulse->value * CROSSHAIR_SCALE * frac * scale;
 			alpha += cg_draw_crosshair_pulse->value * CROSSHAIR_SCALE * frac;
 		}
 
-		crosshair.color[3] = alpha;
+		crosshair.color.z = alpha;
 	}
-
-	cgi.Color(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
 	x = (cgi.context->width - crosshair.image->width * scale) / 2.0;
 	y = (cgi.context->height - crosshair.image->height * scale) / 2.0;
 
-	cgi.DrawImage(x, y, scale, crosshair.image);
-
-	cgi.Color(NULL);
+	cgi.DrawImage(x, y, scale, crosshair.image, Color4fv(crosshair.color));
 }
 
 /**
@@ -816,7 +798,7 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 	while (*line) {
 		x = (cgi.context->width - cgi.StringWidth(line)) / 2;
 
-		cgi.DrawString(x, y, line, CON_COLOR_DEFAULT);
+		cgi.DrawString(x, y, line, color_white);
 		line += MAX_STRING_CHARS;
 		y += ch;
 	}
@@ -827,40 +809,21 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 /**
  * @brief Perform composition of the dst/src blends.
  */
-static void Cg_AddBlend(vec4_t blend, const vec4_t input) {
+static void Cg_AddBlend(vec4_t *blend, const vec4_t input) {
 
-	if (input[3] <= 0.0) {
+	if (input.w <= 0.0) {
 		return;
 	}
 
-	vec4_t out;
+	vec4_t out = *blend;
 
-	out[3] = input[3] + blend[3] * (1.0 - input[3]);
+	out.w = input.w + out.w * (1.0 - input.w);
 
 	for (int32_t i = 0; i < 3; i++) {
-		out[i] = ((input[i] * input[3]) + ((blend[i] * blend[3]) * (1.0 - input[3]))) / out[3];
+		out.xyzw[i] = ((input.xyzw[i] * input.w) + ((out.xyzw[i] * out.w) * (1.0 - input.w))) / out.w;
 	}
 
-	Vector4Copy(out, blend);
-}
-
-/**
- * @brief Perform composition of the src blend with the specified color palette index/alpha combo.
- */
-static void Cg_AddBlendPalette(vec4_t blend, const uint8_t color, const vec_t alpha) {
-
-	if (alpha <= 0.0) {
-		return;
-	}
-
-	color_t c;
-	cgi.ColorFromPalette(color, &c);
-
-	vec4_t v;
-	ColorToVec3(c, v);
-	v[3] = alpha;
-
-	Cg_AddBlend(blend, v);
+	*blend = out;
 }
 
 /**
@@ -869,12 +832,12 @@ static void Cg_AddBlendPalette(vec4_t blend, const uint8_t color, const vec_t al
  * @param blend_decay_time The length of the blend in milliseconds.
  * @param blend_alpha The base alpha value.
  */
-static vec_t Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint32_t blend_decay_time,
-                                    const vec_t blend_alpha) {
+static float Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint32_t blend_decay_time,
+                                    const float blend_alpha) {
 
 	if ((cgi.client->unclamped_time - blend_start_time) <= blend_decay_time) {
-		const vec_t time_factor = (vec_t) (cgi.client->unclamped_time - blend_start_time) / blend_decay_time;
-		const vec_t alpha = cg_draw_blend->value * (blend_alpha - (time_factor * blend_alpha));
+		const float time_factor = (float) (cgi.client->unclamped_time - blend_start_time) / blend_decay_time;
+		const float alpha = cg_draw_blend->value * (blend_alpha - (time_factor * blend_alpha));
 
 		return alpha;
 	}
@@ -887,15 +850,14 @@ static vec_t Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint3
  * @param icon The picture to use
  * @param alpha The alpha of the blend
  */
-static void Cg_DrawBlendFlashImage(const r_image_t *image, const vec_t alpha) {
+static void Cg_DrawBlendFlashImage(const r_image_t *image, const float alpha) {
 
 	if (alpha <= 0.0) {
 		return;
 	}
 
-	cgi.Color((const vec4_t) { 1.0, 1.0, 1.0, alpha });
-	cgi.DrawImageRect(0, 0, cgi.context->width, cgi.context->height, image);
-	cgi.Color(NULL);
+	const color_t color = Color4f(1.0, 1.0, 1.0, alpha);
+	cgi.DrawImageRect(0, 0, cgi.context->width, cgi.context->height, image, color);
 }
 
 #define CG_DAMAGE_BLEND_TIME 1500
@@ -910,23 +872,25 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		return;
 	}
 
-	vec4_t blend = { 0.0, 0.0, 0.0, 0.0 };
-
+	vec4_t blend = Vec4_Zero();
+	
 	// start with base blend based on view origin conents
 
 	const int32_t contents = cgi.view->contents;
 
 	if ((contents & MASK_LIQUID) && cg_draw_blend_liquid->value) {
-		uint8_t color;
+		vec4_t color;
 		if (contents & CONTENTS_LAVA) {
-			color = 71;
+			color = Vec4(.8f, .4f, .1f, 1.f);
 		} else if (contents & CONTENTS_SLIME) {
-			color = 201;
+			color = Vec4(.4f, .7f, .2f, 1.f);
 		} else {
-			color = 114;
+			color = Vec4(.4f, .5f, .6f, 1.f);
 		}
 
-		Cg_AddBlendPalette(blend, color, 0.4 * cg_draw_blend_liquid->value);
+		color.w = Clampf(cg_draw_blend_liquid->value * 0.4, 0.f, 0.4f);
+
+		Cg_AddBlend(&blend, color);
 	}
 
 	// pickups
@@ -966,15 +930,15 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	// if we have a blend, draw it
 
-	if (blend[3] > 0.0) {
+	if (blend.w > 0.0) {
 		color_t final_color;
 
 		for (int32_t i = 0; i < 4; i++) {
-			final_color.bytes[i] = (uint8_t) (blend[i] * 255.0);
+			final_color.bytes[i] = (uint8_t) (blend.xyzw[i] * 255.0);
 		}
 
 		cgi.DrawFill(cgi.view->viewport.x, cgi.view->viewport.y,
-		             cgi.view->viewport.w, cgi.view->viewport.h, final_color.abgr, -1.0);
+		             cgi.view->viewport.w, cgi.view->viewport.h, final_color);
 	}
 }
 
@@ -1214,12 +1178,12 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 			continue;
 		}
 
-		Cg_DrawIcon(x, y, 1.0, cg_hud_weapons[i].icon_index);
+		Cg_DrawIcon(x, y, 1.0, cg_hud_weapons[i].icon_index, color_white);
 
 		if (i == cg_hud_locals.weapon.tag) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_weapons[i].item_index];
 			cgi.DrawString(cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (cgi.StringWidth(name) / 2)), y - ch, name, HUD_COLOR_STAT);
-			cgi.DrawImage(x, y, 1.0, cg_select_weapon_image);
+			cgi.DrawImage(x, y, 1.0, cg_select_weapon_image, color_white);
 		}
 
 		x += HUD_PIC_HEIGHT + 4;
@@ -1242,9 +1206,9 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 	}
 
 	vec3_t pos;
-	VectorMA(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward, pos);
+	pos = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, MAX_WORLD_DIST));
 
-	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, NULL, NULL, 0, MASK_MEAT);
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, Vec3_Zero(), Vec3_Zero(), 0, MASK_MEAT);
 	if (tr.fraction < 1.0) {
 
 		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];
@@ -1269,7 +1233,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 		const r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (w / 2));
 		const r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - 192 - ch;
 
-		cgi.DrawString(x, y, name, CON_COLOR_GREEN);
+		cgi.DrawString(x, y, name, color_green);
 	}
 }
 

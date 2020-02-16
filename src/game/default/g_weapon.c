@@ -446,11 +446,10 @@ void G_ClientHookDetach(g_entity_t *ent) {
 	// see if we can backflip for style
 	if (ent->in_use && ent->locals.health > 0) {
 
-		const vec3_t velocity = { ent->locals.velocity[0], ent->locals.velocity[1], 0.0 };
-		const vec_t fwd_speed = VectorLength(velocity) / 1.75;
+		const vec3_t velocity = Vec3(ent->locals.velocity.x, ent->locals.velocity.y, 0.0);
+		const float fwd_speed = Vec3_Length(velocity) / 1.75;
 
-		if (ent->locals.velocity[2] > 50 &&
-		        ent->locals.velocity[2] > fwd_speed) {
+		if (ent->locals.velocity.z > 50 && ent->locals.velocity.z > fwd_speed) {
 			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 		}
 	}
@@ -481,7 +480,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent, const _Bool refire) {
 
 	// fire away!
 	vec3_t forward, right, up, org;
-	G_InitProjectile(ent, forward, right, up, org, -1.0);
+	G_InitProjectile(ent, &forward, &right, &up, &org, -1.0);
 
 	ent->client->locals.hook_pull = false;
 	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward);
@@ -540,7 +539,7 @@ void G_FireBlaster(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_BlasterProjectile(ent, org, forward, g_balance_blaster_speed->integer,
 			g_balance_blaster_damage->integer, g_balance_blaster_knockback->integer);
@@ -559,7 +558,7 @@ void G_FireShotgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_ShotgunProjectiles(ent, org, forward, g_balance_shotgun_damage->integer,
 			g_balance_shotgun_knockback->integer, g_balance_shotgun_spread_x->integer,
@@ -579,7 +578,7 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_ShotgunProjectiles(ent, org, forward, g_balance_supershotgun_damage->integer,
 			g_balance_supershotgun_knockback->integer, g_balance_supershotgun_spread_x->integer,
@@ -599,7 +598,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_BulletProjectile(ent, org, forward, g_balance_machinegun_damage->integer,
 			g_balance_machinegun_knockback->integer, g_balance_machinegun_spread_x->integer,
@@ -667,7 +666,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	}
 
 	const uint32_t nade_time = 3 * 1000; // 3 seconds before boom
-	vec_t throw_speed = 500.0; // minimum
+	float throw_speed = 500.0; // minimum
 
 	// use small epsilon for low server frame rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1) {
@@ -718,12 +717,12 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	}
 
 	// figure out how fast/far to throw
-	throw_speed *= (vec_t) hold_time / 1000;
-	throw_speed = Clamp(throw_speed, 500, 1200);
+	throw_speed *= (float) hold_time / 1000;
+	throw_speed = Clampf(throw_speed, 500, 1200);
 
 	vec3_t forward, right, up, org;
 
-	G_InitProjectile(ent, forward, right, up, org, 1.0);
+	G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 	G_HandGrenadeProjectile(
 	    ent,					// player
 	    ent->client->locals.held_grenade, // the grenade
@@ -754,7 +753,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_GrenadeProjectile(ent, org, forward, g_balance_grenadelauncher_speed->integer,
 			g_balance_grenadelauncher_damage->integer, g_balance_grenadelauncher_knockback->integer,
@@ -774,7 +773,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_RocketProjectile(ent, org, forward, g_balance_rocketlauncher_speed->integer,
 			g_balance_rocketlauncher_damage->integer, g_balance_rocketlauncher_knockback->integer,
@@ -794,7 +793,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_HyperblasterProjectile(ent, org, forward, g_balance_hyperblaster_speed->integer,
 			g_balance_hyperblaster_damage->integer, g_balance_hyperblaster_knockback->value);
@@ -825,7 +824,7 @@ void G_FireLightning(g_entity_t *ent) {
 			G_MuzzleFlash(ent, MZ_LIGHTNING);
 		}
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_LightningProjectile(ent, org, forward, g_balance_lightning_damage->integer, g_balance_lightning_knockback->integer);
 
@@ -841,7 +840,7 @@ void G_FireRailgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		const int16_t damage = (g_level.gameplay == GAME_INSTAGIB) ? 999 : g_balance_railgun_damage->integer;
 
@@ -862,7 +861,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 		if (ent->owner->client->locals.weapon == g_media.items.weapons[WEAPON_BFG10K]) {
 			vec3_t forward, right, up, org;
 
-			G_InitProjectile(ent->owner, forward, right, up, org, 1.0);
+			G_InitProjectile(ent->owner, &forward, &right, &up, &org, 1.0);
 
 			G_BfgProjectile(ent->owner, org, forward, g_balance_bfg_speed->integer,
 				g_balance_bfg_damage->integer, g_balance_bfg_knockback->integer,

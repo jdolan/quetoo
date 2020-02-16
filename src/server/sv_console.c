@@ -173,14 +173,14 @@ static void Sv_DrawConsole_Color(int32_t color) {
  */
 static void Sv_DrawConsole_Background(void) {
 
-	Sv_DrawConsole_Color(CON_COLOR_WHITE);
+	Sv_DrawConsole_Color(ESC_COLOR_WHITE);
 
 	bkgdset(' ');
 	clear();
 
 	border(0, 0, 0, ' ', 0, 0, 0, 0);
 
-	Sv_DrawConsole_Color(CON_COLOR_ALT);
+	Sv_DrawConsole_Color(ESC_COLOR_ALT);
 	mvaddstr(0, 2, va("Quetoo Dedicated %s", VERSION));
 }
 
@@ -199,13 +199,11 @@ static void Sv_DrawConsole_Buffer(void) {
 		char *line = lines[j];
 		char *s = line;
 
-		Sv_DrawConsole_Color(j ? StrrColor(lines[j - 1]) : CON_COLOR_DEFAULT);
+		Sv_DrawConsole_Color(j ? StrrColor(lines[j - 1]) : ESC_COLOR_DEFAULT);
 
 		size_t col = 1;
 		while (*s) {
-			if (IS_LEGACY_COLOR(s)) {
-				Sv_DrawConsole_Color(CON_COLOR_ALT);
-			} else if (IS_COLOR(s)) {
+			if (StrIsColor(s)) {
 				Sv_DrawConsole_Color(*(s + 1) - '0');
 				s++;
 			} else if (isascii(*s)) {
@@ -218,7 +216,7 @@ static void Sv_DrawConsole_Buffer(void) {
 		row--;
 	}
 
-	Sv_DrawConsole_Color(CON_COLOR_DEFAULT);
+	Sv_DrawConsole_Color(ESC_COLOR_DEFAULT);
 }
 
 /**
@@ -226,7 +224,7 @@ static void Sv_DrawConsole_Buffer(void) {
  */
 static void Sv_DrawConsole_Input(void) {
 
-	Sv_DrawConsole_Color(CON_COLOR_ALT);
+	Sv_DrawConsole_Color(ESC_COLOR_ALT);
 
 	const console_input_t *in = &sv_console.input;
 
@@ -312,13 +310,13 @@ void Sv_InitConsole(void) {
 	if (has_colors() == TRUE) {
 		start_color();
 		use_default_colors();
-		init_pair(CON_COLOR_RED, COLOR_RED, -1);
-		init_pair(CON_COLOR_GREEN, COLOR_GREEN, -1);
-		init_pair(CON_COLOR_YELLOW, COLOR_YELLOW, -1);
-		init_pair(CON_COLOR_BLUE, COLOR_BLUE, -1);
-		init_pair(CON_COLOR_CYAN, COLOR_CYAN, -1);
-		init_pair(CON_COLOR_MAGENTA, COLOR_MAGENTA, -1);
-		init_pair(CON_COLOR_WHITE, COLOR_WHITE, -1);
+		init_pair(ESC_COLOR_RED, COLOR_RED, -1);
+		init_pair(ESC_COLOR_GREEN, COLOR_GREEN, -1);
+		init_pair(ESC_COLOR_YELLOW, COLOR_YELLOW, -1);
+		init_pair(ESC_COLOR_BLUE, COLOR_BLUE, -1);
+		init_pair(ESC_COLOR_CYAN, COLOR_CYAN, -1);
+		init_pair(ESC_COLOR_MAGENTA, COLOR_MAGENTA, -1);
+		init_pair(ESC_COLOR_WHITE, COLOR_WHITE, -1);
 	}
 
 #ifdef SIGWINCH

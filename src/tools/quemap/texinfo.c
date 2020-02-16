@@ -21,45 +21,46 @@
 
 #include "bsp.h"
 #include "map.h"
+#include "texinfo.h"
 
 /**
  * @brief
  */
-static void TextureAxisFromPlane(const plane_t *plane, vec3_t xv, vec3_t yv) {
+static void TextureAxisFromPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
 	static const vec3_t base_axis[18] = { // base texture axis
-		{ 0, 0, 1 },
-		{ 1, 0, 0 },
-		{ 0, -1, 0 }, // floor
-		{ 0, 0, -1 },
-		{ 1, 0, 0 },
-		{ 0, -1, 0 }, // ceiling
-		{ 1, 0, 0 },
-		{ 0, 1, 0 },
-		{ 0, 0, -1 }, // west wall
-		{ -1, 0, 0 },
-		{ 0, 1, 0 },
-		{ 0, 0, -1 }, // east wall
-		{ 0, 1, 0 },
-		{ 1, 0, 0 },
-		{ 0, 0, -1 }, // south wall
-		{ 0, -1, 0 },
-		{ 1, 0, 0 },
-		{ 0, 0, -1 }, // north wall
+		{ {  0,  0,  1 } },
+		{ {  1,  0,  0 } },
+		{ {  0, -1,  0 } }, // floor
+		{ {  0,  0, -1 } },
+		{ {  1,  0,  0 } },
+		{ {  0, -1,  0 } }, // ceiling
+		{ {  1,  0,  0 } },
+		{ {  0,  1,  0 } },
+		{ {  0,  0, -1 } }, // west wall
+		{ { -1,  0,  0 } },
+		{ {  0,  1,  0 } },
+		{ {  0,  0, -1 } }, // east wall
+		{ {  0,  1,  0 } },
+		{ {  1,  0,  0 } },
+		{ {  0,  0, -1 } }, // south wall
+		{ {  0, -1,  0 } },
+		{ {  1,  0,  0 } },
+		{ {  0,  0, -1 } }, // north wall
 	};
 
 	int32_t best_axis = 0;
-	vec_t best = 0.0;
+	float best = 0.0;
 
 	for (int32_t i = 0; i < 6; i++) {
-		const vec_t dot = DotProduct(plane->normal, base_axis[i * 3]);
+		const float dot = Vec3_Dot(plane->normal, base_axis[i * 3]);
 		if (dot > best) {
 			best = dot;
 			best_axis = i;
 		}
 	}
 
-	VectorCopy(base_axis[best_axis * 3 + 1], xv);
-	VectorCopy(base_axis[best_axis * 3 + 2], yv);
+	*xv = base_axis[best_axis * 3 + 1];
+	*yv = base_axis[best_axis * 3 + 2];
 }
 
 /**
@@ -104,7 +105,7 @@ static int32_t FindTexinfo(bsp_texinfo_t *tx) {
  * @brief
  */
 int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t origin) {
-	vec_t sinv, cosv;
+	float sinv, cosv;
 
 	if (!bt->name[0]) {
 		return 0;
@@ -115,17 +116,17 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 	strcpy(tx.texture, bt->name);
 
 	vec3_t vecs[2];
-	TextureAxisFromPlane(plane, vecs[0], vecs[1]);
+	TextureAxisFromPlane(plane, &vecs[0], &vecs[1]);
 
 	vec2_t shift;
-	shift[0] = DotProduct(origin, vecs[0]);
-	shift[1] = DotProduct(origin, vecs[1]);
+	shift.x = Vec3_Dot(origin, vecs[0]);
+	shift.y = Vec3_Dot(origin, vecs[1]);
 
-	if (!bt->scale[0]) {
-		bt->scale[0] = 1.0;
+	if (!bt->scale.x) {
+		bt->scale.x = 1.0;
 	}
-	if (!bt->scale[1]) {
-		bt->scale[1] = 1.0;
+	if (!bt->scale.y) {
+		bt->scale.y = 1.0;
 	}
 
 	// rotate axis
@@ -147,37 +148,37 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 	}
 
 	int32_t sv;
-	if (vecs[0][0]) {
+	if (vecs[0].x) {
 		sv = 0;
-	} else if (vecs[0][1]) {
+	} else if (vecs[0].y) {
 		sv = 1;
 	} else {
 		sv = 2;
 	}
 
 	int32_t tv;
-	if (vecs[1][0]) {
+	if (vecs[1].x) {
 		tv = 0;
-	} else if (vecs[1][1]) {
+	} else if (vecs[1].y) {
 		tv = 1;
 	} else {
 		tv = 2;
 	}
 
 	for (int32_t i = 0; i < 2; i++) {
-		const vec_t ns = cosv * vecs[i][sv] - sinv * vecs[i][tv];
-		const vec_t nt = sinv * vecs[i][sv] + cosv * vecs[i][tv];
-		vecs[i][sv] = ns;
-		vecs[i][tv] = nt;
+		const float ns = cosv * vecs[i].xyz[sv] - sinv * vecs[i].xyz[tv];
+		const float nt = sinv * vecs[i].xyz[sv] + cosv * vecs[i].xyz[tv];
+		vecs[i].xyz[sv] = ns;
+		vecs[i].xyz[tv] = nt;
 	}
 
 	for (int32_t i = 0; i < 2; i++)
 		for (int32_t j = 0; j < 3; j++) {
-			tx.vecs[i][j] = vecs[i][j] / bt->scale[i];
+			tx.vecs[i].xyzw[j] = vecs[i].xyz[j] / bt->scale.xy[i];
 		}
 
-	tx.vecs[0][3] = bt->shift[0] + shift[0];
-	tx.vecs[1][3] = bt->shift[1] + shift[1];
+	tx.vecs[0].w = bt->shift.x + shift.x;
+	tx.vecs[1].w = bt->shift.y + shift.y;
 	tx.flags = bt->flags;
 	tx.value = bt->value;
 

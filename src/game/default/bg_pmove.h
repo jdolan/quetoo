@@ -26,39 +26,39 @@
 /**
  * @brief Acceleration constants.
  */
-#define PM_ACCEL_AIR			2.125
-#define PM_ACCEL_AIR_MOD_DUCKED	0.125
-#define PM_ACCEL_GROUND			10.0
-#define PM_ACCEL_GROUND_SLICK	4.375
-#define PM_ACCEL_LADDER			16.0
-#define PM_ACCEL_SPECTATOR		2.5
-#define PM_ACCEL_WATER			2.8
+#define PM_ACCEL_AIR			2.125f
+#define PM_ACCEL_AIR_MOD_DUCKED	0.125f
+#define PM_ACCEL_GROUND			10.f
+#define PM_ACCEL_GROUND_SLICK	4.375f
+#define PM_ACCEL_LADDER			16.f
+#define PM_ACCEL_SPECTATOR		2.5f
+#define PM_ACCEL_WATER			2.8f
 
 /**
  * @brief Bounce constant when clipping against solids.
  */
-#define PM_CLIP_BOUNCE			1.01
+#define PM_CLIP_BOUNCE			1.01f
 
 /**
  * @brief Friction constants.
  */
-#define PM_FRICT_AIR			0.1
-#define PM_FRICT_GROUND			6.0
-#define PM_FRICT_GROUND_SLICK	2.0
-#define PM_FRICT_LADDER			5.0
-#define PM_FRICT_SPECTATOR		2.5
-#define PM_FRICT_WATER			2.0
+#define PM_FRICT_AIR			0.1f
+#define PM_FRICT_GROUND			6.f
+#define PM_FRICT_GROUND_SLICK	2.f
+#define PM_FRICT_LADDER			5.f
+#define PM_FRICT_SPECTATOR		2.5f
+#define PM_FRICT_WATER			2.f
 
 /**
  * @brief Water gravity constant.
  */
-#define PM_GRAVITY_WATER		0.33
+#define PM_GRAVITY_WATER		0.33f
 
 /**
  * @brief Distances traced when seeking ground.
  */
-#define PM_GROUND_DIST			0.25
-#define PM_GROUND_DIST_TRICK	16.0
+#define PM_GROUND_DIST			0.25f
+#define PM_GROUND_DIST_TRICK	16.f
 
 /**
  * @brief If set, use Quake3 step-slide movement.
@@ -68,58 +68,58 @@
 /**
  * @brief Speed constants; intended velocities are clipped to these.
  */
-#define PM_SPEED_AIR			350.0
-#define PM_SPEED_CURRENT		100.0
-#define PM_SPEED_DUCK_STAND		200.0
-#define PM_SPEED_DUCKED			140.0
-#define PM_SPEED_FALL			-700.0
-#define PM_SPEED_FALL_FAR		-900.0
-#define PM_SPEED_JUMP			270.0
-#define PM_SPEED_LADDER			125.0
-#define PM_SPEED_LAND			-280.0
-#define PM_SPEED_RUN			300.0
-#define PM_SPEED_SPECTATOR		500.0
-#define PM_SPEED_STOP			100.0
-#define PM_SPEED_UP				0.1
-#define PM_SPEED_TRICK_JUMP		0.0
-#define PM_SPEED_WATER			118.0
-#define PM_SPEED_WATER_JUMP		420.0
-#define PM_SPEED_WATER_SINK		-16.0
+#define PM_SPEED_AIR			350.f
+#define PM_SPEED_CURRENT		100.f
+#define PM_SPEED_DUCK_STAND		200.f
+#define PM_SPEED_DUCKED			140.f
+#define PM_SPEED_FALL			-700.f
+#define PM_SPEED_FALL_FAR		-900.f
+#define PM_SPEED_JUMP			270.f
+#define PM_SPEED_LADDER			125.f
+#define PM_SPEED_LAND			-280.f
+#define PM_SPEED_RUN			300.f
+#define PM_SPEED_SPECTATOR		500.f
+#define PM_SPEED_STOP			100.f
+#define PM_SPEED_UP				0.1f
+#define PM_SPEED_TRICK_JUMP		0.f
+#define PM_SPEED_WATER			118.f
+#define PM_SPEED_WATER_JUMP		420.f
+#define PM_SPEED_WATER_SINK		-16.f
 
 /**
  * @brief The walk modifier slows all user-controlled speeds.
  */
-#define PM_SPEED_MOD_WALK		0.66
+#define PM_SPEED_MOD_WALK		0.66f
 
 /**
  * @brief Water reduces jumping ability.
  */
-#define PM_SPEED_JUMP_MOD_WATER	0.66
+#define PM_SPEED_JUMP_MOD_WATER	0.66f
 
 /**
  * @brief The vertical distance afforded in step climbing.
  */
-#define PM_STEP_HEIGHT			16.0
+#define PM_STEP_HEIGHT			16.f
 
 /**
  * @brief The smallest step that will be interpolated by the client.
  */
-#define PM_STEP_HEIGHT_MIN		4.0
+#define PM_STEP_HEIGHT_MIN		4.f
 
 /**
  * @brief The minimum Z plane normal component required for standing.
  */
-#define PM_STEP_NORMAL			0.7
+#define PM_STEP_NORMAL			0.7f
 
 /**
  * @brief Velocity is cleared when less than this.
  */
-#define PM_STOP_EPSILON			0.1
+#define PM_STOP_EPSILON			0.1f
 
 /**
  * @brief Invalid player positions are nudged to find a valid position.
  */
-#define PM_NUDGE_DIST			1.0
+#define PM_NUDGE_DIST			1.f
 
 /**
  * @brief Valid player positions are snapped a small distance away from planes.
@@ -127,9 +127,9 @@
 #define PM_SNAP_DISTANCE		PM_GROUND_DIST
 
 /**
- * @brief Player bounding box scaling. VectorScale(PM_MINS, PM_SCALE, mins)..
+ * @brief Player bounding box scaling. mins = Vec3_Scale(PM_MINS, PM_SCALE)..
  */
-#define PM_SCALE 1.0
+#define PM_SCALE 1.f
 
 extern const vec3_t PM_MINS;
 extern const vec3_t PM_MAXS;
@@ -185,7 +185,7 @@ typedef struct {
 
 	pm_state_t s; // movement state (in / out)
 
-	vec_t hook_pull_speed; // hook pull speed (in)
+	float hook_pull_speed; // hook pull speed (in)
 
 	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS]; // entities touched (out)
 	uint16_t num_touch_ents;
@@ -198,7 +198,7 @@ typedef struct {
 	int32_t water_type; // water type and level (out)
 	pm_water_level_t water_level;
 
-	vec_t step; // traversed step height (out)
+	float step; // traversed step height (out)
 
 	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);

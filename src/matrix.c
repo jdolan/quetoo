@@ -20,7 +20,7 @@
 
 #include "matrix.h"
 
-const matrix4x4_t matrix4x4_identity = {
+const mat4_t matrix4x4_identity = {
 	{
 		{1, 0, 0, 0},
 		{0, 1, 0, 0},
@@ -29,11 +29,11 @@ const matrix4x4_t matrix4x4_identity = {
 	}
 };
 
-void Matrix4x4_Copy (matrix4x4_t *out, const matrix4x4_t *in) {
+void Matrix4x4_Copy (mat4_t *out, const mat4_t *in) {
 	*out = *in;
 }
 
-void Matrix4x4_CopyRotateOnly (matrix4x4_t *out, const matrix4x4_t *in) {
+void Matrix4x4_CopyRotateOnly (mat4_t *out, const mat4_t *in) {
 	out->m[0][0] = in->m[0][0];
 	out->m[0][1] = in->m[0][1];
 	out->m[0][2] = in->m[0][2];
@@ -52,7 +52,7 @@ void Matrix4x4_CopyRotateOnly (matrix4x4_t *out, const matrix4x4_t *in) {
 	out->m[3][3] = 1.0f;
 }
 
-void Matrix4x4_CopyTranslateOnly (matrix4x4_t *out, const matrix4x4_t *in) {
+void Matrix4x4_CopyTranslateOnly (mat4_t *out, const mat4_t *in) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = 1.0f;
 	out->m[1][0] = 0.0f;
@@ -90,18 +90,18 @@ void Matrix4x4_CopyTranslateOnly (matrix4x4_t *out, const matrix4x4_t *in) {
 #endif
 }
 
-void Matrix4x4_Concat (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_t *in2) {
+void Matrix4x4_Concat (mat4_t *out, const mat4_t *in1, const mat4_t *in2) {
 	// In the case where Concat uses the output as input,
 	// handle it with a quick stop'n'swap.
 	// Ideally I think a Matrix4x4_Multiply(out, in) would
 	// be a better option though, to operate as out *= in.
 	if (in1 == out) {
-		static matrix4x4_t in1_temp;
+		static mat4_t in1_temp;
 		Matrix4x4_Copy(&in1_temp, in1);
 		in1 = &in1_temp;
 	}
 	if (in2 == out) {
-		static matrix4x4_t in2_temp;
+		static mat4_t in2_temp;
 		Matrix4x4_Copy(&in2_temp, in2);
 		in2 = &in2_temp;
 	}
@@ -175,9 +175,9 @@ void Matrix4x4_Concat (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4
 #endif
 }
 
-void Matrix4x4_Transpose (matrix4x4_t *out, const matrix4x4_t *in1) {
+void Matrix4x4_Transpose (mat4_t *out, const mat4_t *in1) {
 	if (in1 == out) {
-		static matrix4x4_t in1_temp;
+		static mat4_t in1_temp;
 		Matrix4x4_Copy(&in1_temp, in1);
 		in1 = &in1_temp;
 	}
@@ -203,8 +203,8 @@ void Matrix4x4_Transpose (matrix4x4_t *out, const matrix4x4_t *in1) {
 #if 0
 // Adapted from code contributed to Mesa by David Moore (Mesa 7.6 under SGI Free License B - which is MIT/X11-type)
 // added helper for common subexpression elimination by eihrul, and other optimizations by div0
-int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1) {
-	vec_t det;
+int32_t Matrix4x4_Invert_Full (mat4_t *out, const mat4_t *in1) {
+	float det;
 
 	// note: orientation does not matter, as transpose(invert(transpose(m))) == invert(m), proof:
 	//   transpose(invert(transpose(m))) * m
@@ -214,7 +214,7 @@ int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1) {
 	// = identity
 
 	// this seems to help gcc's common subexpression elimination, and also makes the code look nicer
-	vec_t   m00 = in1->m[0][0], m01 = in1->m[0][1], m02 = in1->m[0][2], m03 = in1->m[0][3],
+	float   m00 = in1->m[0][0], m01 = in1->m[0][1], m02 = in1->m[0][2], m03 = in1->m[0][3],
 	        m10 = in1->m[1][0], m11 = in1->m[1][1], m12 = in1->m[1][2], m13 = in1->m[1][3],
 	        m20 = in1->m[2][0], m21 = in1->m[2][1], m22 = in1->m[2][2], m23 = in1->m[2][3],
 	        m30 = in1->m[3][0], m31 = in1->m[3][1], m32 = in1->m[3][2], m33 = in1->m[3][3];
@@ -268,8 +268,8 @@ int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1) {
 }
 #elif 1
 // Adapted from code contributed to Mesa by David Moore (Mesa 7.6 under SGI Free License B - which is MIT/X11-type)
-int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1) {
-	matrix4x4_t temp;
+int32_t Matrix4x4_Invert_Full (mat4_t *out, const mat4_t *in1) {
+	mat4_t temp;
 	double det;
 	int32_t i, j;
 
@@ -389,7 +389,7 @@ int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1) {
 	return 1;
 }
 #else
-int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1) {
+int32_t Matrix4x4_Invert_Full (mat4_t *out, const mat4_t *in1) {
 	double	*temp;
 	double	*r[4];
 	double	rtemp[4][8];
@@ -654,7 +654,7 @@ int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1) {
 }
 #endif
 
-void Matrix4x4_Invert_Simple (matrix4x4_t *out, const matrix4x4_t *in1) {
+void Matrix4x4_Invert_Simple (mat4_t *out, const mat4_t *in1) {
 	// we only support uniform scaling, so assume the first row is enough
 	// (note the lack of sqrt here, because we're trying to undo the scaling,
 	// this means multiplying by the inverse scale twice - squaring it, which
@@ -706,7 +706,7 @@ void Matrix4x4_Invert_Simple (matrix4x4_t *out, const matrix4x4_t *in1) {
 #endif
 }
 
-void Matrix4x4_Interpolate (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_t *in2, double frac) {
+void Matrix4x4_Interpolate (mat4_t *out, const mat4_t *in1, const mat4_t *in2, double frac) {
 	int32_t i, j;
 	for (i = 0; i < 4; i++)
 		for (j = 0; j < 4; j++) {
@@ -714,7 +714,7 @@ void Matrix4x4_Interpolate (matrix4x4_t *out, const matrix4x4_t *in1, const matr
 		}
 }
 
-void Matrix4x4_Clear (matrix4x4_t *out) {
+void Matrix4x4_Clear (mat4_t *out) {
 	int32_t i, j;
 	for (i = 0; i < 4; i++)
 		for (j = 0; j < 4; j++) {
@@ -722,7 +722,7 @@ void Matrix4x4_Clear (matrix4x4_t *out) {
 		}
 }
 
-void Matrix4x4_Accumulate (matrix4x4_t *out, const matrix4x4_t *in, double weight) {
+void Matrix4x4_Accumulate (mat4_t *out, const mat4_t *in, double weight) {
 	int32_t i, j;
 	for (i = 0; i < 4; i++)
 		for (j = 0; j < 4; j++) {
@@ -730,7 +730,7 @@ void Matrix4x4_Accumulate (matrix4x4_t *out, const matrix4x4_t *in, double weigh
 		}
 }
 
-void Matrix4x4_Normalize (matrix4x4_t *out, const matrix4x4_t *in1) {
+void Matrix4x4_Normalize (mat4_t *out, const mat4_t *in1) {
 	// scale rotation matrix vectors to a length of 1
 	// note: this is only designed to undo uniform scaling
 	double scale = 1.0 / sqrt(in1->m[0][0] * in1->m[0][0] + in1->m[0][1] * in1->m[0][1] + in1->m[0][2] * in1->m[0][2]);
@@ -738,7 +738,7 @@ void Matrix4x4_Normalize (matrix4x4_t *out, const matrix4x4_t *in1) {
 	Matrix4x4_Scale(out, scale, 1);
 }
 
-void Matrix4x4_Normalize3 (matrix4x4_t *out, const matrix4x4_t *in1) {
+void Matrix4x4_Normalize3 (mat4_t *out, const mat4_t *in1) {
 	int32_t i;
 	double scale;
 	// scale each rotation matrix vector to a length of 1
@@ -765,7 +765,7 @@ void Matrix4x4_Normalize3 (matrix4x4_t *out, const matrix4x4_t *in1) {
 	}
 }
 
-void Matrix4x4_Reflect (matrix4x4_t *out, double normalx, double normaly, double normalz, double dist,
+void Matrix4x4_Reflect (mat4_t *out, double normalx, double normaly, double normalz, double dist,
                         double axisscale) {
 	int32_t i;
 	double d;
@@ -793,7 +793,7 @@ void Matrix4x4_Reflect (matrix4x4_t *out, double normalx, double normaly, double
 	}
 }
 
-void Matrix4x4_CreateIdentity (matrix4x4_t *out) {
+void Matrix4x4_CreateIdentity (mat4_t *out) {
 	out->m[0][0] = 1.0f;
 	out->m[0][1] = 0.0f;
 	out->m[0][2] = 0.0f;
@@ -812,7 +812,7 @@ void Matrix4x4_CreateIdentity (matrix4x4_t *out) {
 	out->m[3][3] = 1.0f;
 }
 
-void Matrix4x4_CreateTranslate (matrix4x4_t *out, double x, double y, double z) {
+void Matrix4x4_CreateTranslate (mat4_t *out, double x, double y, double z) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = 1.0f;
 	out->m[1][0] = 0.0f;
@@ -850,7 +850,7 @@ void Matrix4x4_CreateTranslate (matrix4x4_t *out, double x, double y, double z) 
 #endif
 }
 
-void Matrix4x4_CreateRotate (matrix4x4_t *out, double angle, double x, double y, double z) {
+void Matrix4x4_CreateRotate (mat4_t *out, double angle, double x, double y, double z) {
 	double len, c, s;
 
 	len = x * x + y * y + z * z;
@@ -902,7 +902,7 @@ void Matrix4x4_CreateRotate (matrix4x4_t *out, double angle, double x, double y,
 #endif
 }
 
-void Matrix4x4_CreateScale (matrix4x4_t *out, double x) {
+void Matrix4x4_CreateScale (mat4_t *out, double x) {
 	out->m[0][0] = x;
 	out->m[0][1] = 0.0f;
 	out->m[0][2] = 0.0f;
@@ -921,7 +921,7 @@ void Matrix4x4_CreateScale (matrix4x4_t *out, double x) {
 	out->m[3][3] = 1.0f;
 }
 
-void Matrix4x4_CreateScale3 (matrix4x4_t *out, double x, double y, double z) {
+void Matrix4x4_CreateScale3 (mat4_t *out, double x, double y, double z) {
 	out->m[0][0] = x;
 	out->m[0][1] = 0.0f;
 	out->m[0][2] = 0.0f;
@@ -940,7 +940,7 @@ void Matrix4x4_CreateScale3 (matrix4x4_t *out, double x, double y, double z) {
 	out->m[3][3] = 1.0f;
 }
 
-void Matrix4x4_CreateFromQuakeEntity(matrix4x4_t *out, double x, double y, double z, double pitch, double yaw,
+void Matrix4x4_CreateFromQuakeEntity(mat4_t *out, double x, double y, double z, double pitch, double yaw,
                                      double roll, double scale) {
 	double angle, sr, sp, sy, cr, cp, cy;
 
@@ -1109,7 +1109,13 @@ void Matrix4x4_CreateFromQuakeEntity(matrix4x4_t *out, double x, double y, doubl
 	}
 }
 
-void Matrix4x4_ToVectors(const matrix4x4_t *in, vec_t vx[3], vec_t vy[3], vec_t vz[3], vec_t t[3]) {
+void Matrix4x4_CreateFromEntity(mat4_t *out, const vec3_t origin, const vec3_t angles, float scale) {
+	Matrix4x4_CreateFromQuakeEntity(out, origin.x, origin.y, origin.z,
+										 angles.x, angles.y, angles.z,
+										 scale);
+}
+
+void Matrix4x4_ToVectors(const mat4_t *in, float vx[3], float vy[3], float vz[3], float t[3]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	if (vx) {
 		vx[0] = in->m[0][0];
@@ -1155,8 +1161,8 @@ void Matrix4x4_ToVectors(const matrix4x4_t *in, vec_t vx[3], vec_t vy[3], vec_t 
 #endif
 }
 
-void Matrix4x4_FromVectors(matrix4x4_t *out, const vec_t vx[3], const vec_t vy[3], const vec_t vz[3],
-                           const vec_t t[3]) {
+void Matrix4x4_FromVectors(mat4_t *out, const float vx[3], const float vy[3], const float vz[3],
+                           const float t[3]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = vx[0];
 	out->m[1][0] = vy[0];
@@ -1194,7 +1200,7 @@ void Matrix4x4_FromVectors(matrix4x4_t *out, const vec_t vx[3], const vec_t vy[3
 #endif
 }
 
-void Matrix4x4_ToArrayDoubleGL(const matrix4x4_t *in, double out[16]) {
+void Matrix4x4_ToArrayDoubleGL(const mat4_t *in, double out[16]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[ 0] = in->m[0][0];
 	out[ 1] = in->m[0][1];
@@ -1232,7 +1238,7 @@ void Matrix4x4_ToArrayDoubleGL(const matrix4x4_t *in, double out[16]) {
 #endif
 }
 
-void Matrix4x4_FromArrayDoubleGL (matrix4x4_t *out, const double in[16]) {
+void Matrix4x4_FromArrayDoubleGL (mat4_t *out, const double in[16]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = in[0];
 	out->m[0][1] = in[1];
@@ -1270,7 +1276,7 @@ void Matrix4x4_FromArrayDoubleGL (matrix4x4_t *out, const double in[16]) {
 #endif
 }
 
-void Matrix4x4_ToArrayDoubleD3D(const matrix4x4_t *in, double out[16]) {
+void Matrix4x4_ToArrayDoubleD3D(const mat4_t *in, double out[16]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[ 0] = in->m[0][0];
 	out[ 1] = in->m[1][0];
@@ -1308,7 +1314,7 @@ void Matrix4x4_ToArrayDoubleD3D(const matrix4x4_t *in, double out[16]) {
 #endif
 }
 
-void Matrix4x4_FromArrayDoubleD3D (matrix4x4_t *out, const double in[16]) {
+void Matrix4x4_FromArrayDoubleD3D (mat4_t *out, const double in[16]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = in[0];
 	out->m[1][0] = in[1];
@@ -1346,7 +1352,7 @@ void Matrix4x4_FromArrayDoubleD3D (matrix4x4_t *out, const double in[16]) {
 #endif
 }
 
-void Matrix4x4_ToArrayFloatGL(const matrix4x4_t *in, vec_t out[16]) {
+void Matrix4x4_ToArrayFloatGL(const mat4_t *in, float out[16]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[ 0] = in->m[0][0];
 	out[ 1] = in->m[0][1];
@@ -1384,7 +1390,7 @@ void Matrix4x4_ToArrayFloatGL(const matrix4x4_t *in, vec_t out[16]) {
 #endif
 }
 
-void Matrix4x4_FromArrayFloatGL (matrix4x4_t *out, const vec_t in[16]) {
+void Matrix4x4_FromArrayFloatGL (mat4_t *out, const float in[16]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = in[0];
 	out->m[0][1] = in[1];
@@ -1422,7 +1428,7 @@ void Matrix4x4_FromArrayFloatGL (matrix4x4_t *out, const vec_t in[16]) {
 #endif
 }
 
-void Matrix4x4_ToArrayFloatD3D(const matrix4x4_t *in, vec_t out[16]) {
+void Matrix4x4_ToArrayFloatD3D(const mat4_t *in, float out[16]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[ 0] = in->m[0][0];
 	out[ 1] = in->m[1][0];
@@ -1460,7 +1466,7 @@ void Matrix4x4_ToArrayFloatD3D(const matrix4x4_t *in, vec_t out[16]) {
 #endif
 }
 
-void Matrix4x4_FromArrayFloatD3D (matrix4x4_t *out, const vec_t in[16]) {
+void Matrix4x4_FromArrayFloatD3D (mat4_t *out, const float in[16]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = in[0];
 	out->m[1][0] = in[1];
@@ -1498,7 +1504,7 @@ void Matrix4x4_FromArrayFloatD3D (matrix4x4_t *out, const vec_t in[16]) {
 #endif
 }
 
-void Matrix4x4_ToArray12FloatGL(const matrix4x4_t *in, vec_t out[12]) {
+void Matrix4x4_ToArray12FloatGL(const mat4_t *in, float out[12]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[ 0] = in->m[0][0];
 	out[ 1] = in->m[0][1];
@@ -1528,7 +1534,7 @@ void Matrix4x4_ToArray12FloatGL(const matrix4x4_t *in, vec_t out[12]) {
 #endif
 }
 
-void Matrix4x4_FromArray12FloatGL(matrix4x4_t *out, const vec_t in[12]) {
+void Matrix4x4_FromArray12FloatGL(mat4_t *out, const float in[12]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = in[0];
 	out->m[0][1] = in[1];
@@ -1566,7 +1572,7 @@ void Matrix4x4_FromArray12FloatGL(matrix4x4_t *out, const vec_t in[12]) {
 #endif
 }
 
-void Matrix4x4_ToArray12FloatD3D(const matrix4x4_t *in, vec_t out[12]) {
+void Matrix4x4_ToArray12FloatD3D(const mat4_t *in, float out[12]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[ 0] = in->m[0][0];
 	out[ 1] = in->m[1][0];
@@ -1596,7 +1602,7 @@ void Matrix4x4_ToArray12FloatD3D(const matrix4x4_t *in, vec_t out[12]) {
 #endif
 }
 
-void Matrix4x4_FromArray12FloatD3D(matrix4x4_t *out, const vec_t in[12]) {
+void Matrix4x4_FromArray12FloatD3D(mat4_t *out, const float in[12]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = in[0];
 	out->m[1][0] = in[1];
@@ -1634,7 +1640,7 @@ void Matrix4x4_FromArray12FloatD3D(matrix4x4_t *out, const vec_t in[12]) {
 #endif
 }
 
-void Matrix4x4_FromOriginQuat(matrix4x4_t *m, double ox, double oy, double oz, double x, double y, double z, double w) {
+void Matrix4x4_FromOriginQuat(mat4_t *m, double ox, double oy, double oz, double x, double y, double z, double w) {
 #if MATRIX4x4_OPENGLORIENTATION
 	m->m[0][0] = 1 - 2 * (y * y + z * z);
 	m->m[1][0] =  2 * (x * y - z * w);
@@ -1673,8 +1679,8 @@ void Matrix4x4_FromOriginQuat(matrix4x4_t *m, double ox, double oy, double oz, d
 }
 
 // see http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-void Matrix4x4_ToOrigin3Quat4Float(const matrix4x4_t *m, vec_t *origin, vec_t *quat) {
-	vec_t s;
+void Matrix4x4_ToOrigin3Quat4Float(const mat4_t *m, float *origin, float *quat) {
+	float s;
 	quat[3] = sqrt(1.0f + m->m[0][0] + m->m[1][1] + m->m[2][2]) * 0.5f;
 	s = 0.25f / quat[3];
 #if MATRIX4x4_OPENGLORIENTATION
@@ -1696,7 +1702,7 @@ void Matrix4x4_ToOrigin3Quat4Float(const matrix4x4_t *m, vec_t *origin, vec_t *q
 
 // LordHavoc: I got this code from:
 //http://www.doom3world.org/phpbb2/viewtopic.php?t=2884
-void Matrix4x4_FromDoom3Joint(matrix4x4_t *m, double ox, double oy, double oz, double x, double y, double z) {
+void Matrix4x4_FromDoom3Joint(mat4_t *m, double ox, double oy, double oz, double x, double y, double z) {
 	double w = 1.0f - (x * x + y * y + z * z);
 	w = w > 0.0f ? -sqrt(w) : 0.0f;
 #if MATRIX4x4_OPENGLORIENTATION
@@ -1736,9 +1742,9 @@ void Matrix4x4_FromDoom3Joint(matrix4x4_t *m, double ox, double oy, double oz, d
 #endif
 }
 
-void Matrix4x4_FromBonePose6s(matrix4x4_t *m, vec_t originscale, const int16_t *pose6s) {
-	vec_t origin[3];
-	vec_t quat[4];
+void Matrix4x4_FromBonePose6s(mat4_t *m, float originscale, const int16_t *pose6s) {
+	float origin[3];
+	float quat[4];
 	origin[0] = pose6s[0] * originscale;
 	origin[1] = pose6s[1] * originscale;
 	origin[2] = pose6s[2] * originscale;
@@ -1750,10 +1756,10 @@ void Matrix4x4_FromBonePose6s(matrix4x4_t *m, vec_t originscale, const int16_t *
 	Matrix4x4_FromOriginQuat(m, origin[0], origin[1], origin[2], quat[0], quat[1], quat[2], quat[3]);
 }
 
-void Matrix4x4_ToBonePose6s(const matrix4x4_t *m, vec_t origininvscale, int16_t *pose6s) {
-	vec_t origin[3];
-	vec_t quat[4];
-	vec_t s;
+void Matrix4x4_ToBonePose6s(const mat4_t *m, float origininvscale, int16_t *pose6s) {
+	float origin[3];
+	float quat[4];
+	float s;
 	Matrix4x4_ToOrigin3Quat4Float(m, origin, quat);
 	// normalize quaternion so that it is unit length
 	s = quat[0] * quat[0] + quat[1] * quat[1] + quat[2] * quat[2] + quat[3] * quat[3];
@@ -1774,7 +1780,7 @@ void Matrix4x4_ToBonePose6s(const matrix4x4_t *m, vec_t origininvscale, int16_t 
 	pose6s[5] = quat[2] * -32767.0f;
 }
 
-void Matrix4x4_Blend (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_t *in2, double blend) {
+void Matrix4x4_Blend (mat4_t *out, const mat4_t *in1, const mat4_t *in2, double blend) {
 	double iblend = 1 - blend;
 	out->m[0][0] = in1->m[0][0] * iblend + in2->m[0][0] * blend;
 	out->m[0][1] = in1->m[0][1] * iblend + in2->m[0][1] * blend;
@@ -1794,9 +1800,9 @@ void Matrix4x4_Blend (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_
 	out->m[3][3] = in1->m[3][3] * iblend + in2->m[3][3] * blend;
 }
 
-void Matrix4x4_Transform2 (const matrix4x4_t *in, const vec_t v[2], vec_t out[2]) {
-	const vec_t v0 = v[0];
-	const vec_t v1 = v[1];
+void Matrix4x4_Transform2 (const mat4_t *in, const float v[2], float out[2]) {
+	const float v0 = v[0];
+	const float v1 = v[1];
 
 #if MATRIX4x4_OPENGLORIENTATION
 	out[0] = v0 * in->m[0][0] + v1 * in->m[1][0] + in->m[3][0];
@@ -1807,7 +1813,7 @@ void Matrix4x4_Transform2 (const matrix4x4_t *in, const vec_t v[2], vec_t out[2]
 #endif
 }
 
-void Matrix4x4_Transform (const matrix4x4_t *in, const vec_t v[3], vec_t out[3]) {
+void Matrix4x4_Transform (const mat4_t *in, const float v[3], float out[3]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[0] = v[0] * in->m[0][0] + v[1] * in->m[1][0] + v[2] * in->m[2][0] + in->m[3][0];
 	out[1] = v[0] * in->m[0][1] + v[1] * in->m[1][1] + v[2] * in->m[2][1] + in->m[3][1];
@@ -1819,7 +1825,7 @@ void Matrix4x4_Transform (const matrix4x4_t *in, const vec_t v[3], vec_t out[3])
 #endif
 }
 
-void Matrix4x4_Transform4 (const matrix4x4_t *in, const vec_t v[4], vec_t out[4]) {
+void Matrix4x4_Transform4 (const mat4_t *in, const float v[4], float out[4]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[0] = v[0] * in->m[0][0] + v[1] * in->m[1][0] + v[2] * in->m[2][0] + in->m[3][0];
 	out[1] = v[0] * in->m[0][1] + v[1] * in->m[1][1] + v[2] * in->m[2][1] + in->m[3][1];
@@ -1833,7 +1839,7 @@ void Matrix4x4_Transform4 (const matrix4x4_t *in, const vec_t v[4], vec_t out[4]
 #endif
 }
 
-void Matrix4x4_Transform3x3 (const matrix4x4_t *in, const vec_t v[3], vec_t out[3]) {
+void Matrix4x4_Transform3x3 (const mat4_t *in, const float v[3], float out[3]) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[0] = v[0] * in->m[0][0] + v[1] * in->m[1][0] + v[2] * in->m[2][0];
 	out[1] = v[0] * in->m[0][1] + v[1] * in->m[1][1] + v[2] * in->m[2][1];
@@ -1845,9 +1851,9 @@ void Matrix4x4_Transform3x3 (const matrix4x4_t *in, const vec_t v[3], vec_t out[
 #endif
 }
 
-void Matrix4x4_TransformPositivePlane(const matrix4x4_t *in, vec_t x, vec_t y, vec_t z, vec_t d, vec_t *o) {
-	vec_t scale = sqrt(in->m[0][0] * in->m[0][0] + in->m[0][1] * in->m[0][1] + in->m[0][2] * in->m[0][2]);
-	vec_t iscale = 1.0f / scale;
+void Matrix4x4_TransformPositivePlane(const mat4_t *in, float x, float y, float z, float d, float *o) {
+	float scale = sqrt(in->m[0][0] * in->m[0][0] + in->m[0][1] * in->m[0][1] + in->m[0][2] * in->m[0][2]);
+	float iscale = 1.0f / scale;
 #if MATRIX4x4_OPENGLORIENTATION
 	o[0] = (x * in->m[0][0] + y * in->m[1][0] + z * in->m[2][0]) * iscale;
 	o[1] = (x * in->m[0][1] + y * in->m[1][1] + z * in->m[2][1]) * iscale;
@@ -1861,9 +1867,9 @@ void Matrix4x4_TransformPositivePlane(const matrix4x4_t *in, vec_t x, vec_t y, v
 #endif
 }
 
-void Matrix4x4_TransformStandardPlane(const matrix4x4_t *in, vec_t x, vec_t y, vec_t z, vec_t d, vec_t *o) {
-	vec_t scale = sqrt(in->m[0][0] * in->m[0][0] + in->m[0][1] * in->m[0][1] + in->m[0][2] * in->m[0][2]);
-	vec_t iscale = 1.0f / scale;
+void Matrix4x4_TransformStandardPlane(const mat4_t *in, float x, float y, float z, float d, float *o) {
+	float scale = sqrt(in->m[0][0] * in->m[0][0] + in->m[0][1] * in->m[0][1] + in->m[0][2] * in->m[0][2]);
+	float iscale = 1.0f / scale;
 #if MATRIX4x4_OPENGLORIENTATION
 	o[0] = (x * in->m[0][0] + y * in->m[1][0] + z * in->m[2][0]) * iscale;
 	o[1] = (x * in->m[0][1] + y * in->m[1][1] + z * in->m[2][1]) * iscale;
@@ -1877,12 +1883,12 @@ void Matrix4x4_TransformStandardPlane(const matrix4x4_t *in, vec_t x, vec_t y, v
 #endif
 }
 
-void Matrix4x4_TransformQuakePlane(const matrix4x4_t *in, const vec3_t n, vec_t d, vec4_t out) {
-	Matrix4x4_TransformPositivePlane(in, n[0], n[1], n[2], d, out);
+void Matrix4x4_TransformQuakePlane(const mat4_t *in, const vec3_t n, float d, vec4_t *out) {
+	Matrix4x4_TransformPositivePlane(in, n.x, n.y, n.z, d, out->xyzw);
 }
 
 /*
-void Matrix4x4_SimpleUntransform (const matrix4x4_t *in, const vec_t v[3], vec_t out[3])
+void Matrix4x4_SimpleUntransform (const mat4_t *in, const float v[3], float out[3])
 {
 	double t[3];
 #if MATRIX4x4_OPENGLORIENTATION
@@ -1904,38 +1910,38 @@ void Matrix4x4_SimpleUntransform (const matrix4x4_t *in, const vec_t v[3], vec_t
 */
 
 // FIXME: optimize
-void Matrix4x4_ConcatTranslate (matrix4x4_t *out, double x, double y, double z) {
-	matrix4x4_t base, temp;
+void Matrix4x4_ConcatTranslate (mat4_t *out, double x, double y, double z) {
+	mat4_t base, temp;
 	base = *out;
 	Matrix4x4_CreateTranslate(&temp, x, y, z);
 	Matrix4x4_Concat(out, &base, &temp);
 }
 
 // FIXME: optimize
-void Matrix4x4_ConcatRotate (matrix4x4_t *out, double angle, double x, double y, double z) {
-	matrix4x4_t base, temp;
+void Matrix4x4_ConcatRotate (mat4_t *out, double angle, double x, double y, double z) {
+	mat4_t base, temp;
 	base = *out;
 	Matrix4x4_CreateRotate(&temp, angle, x, y, z);
 	Matrix4x4_Concat(out, &base, &temp);
 }
 
 // FIXME: optimize
-void Matrix4x4_ConcatScale (matrix4x4_t *out, double x) {
-	matrix4x4_t base, temp;
+void Matrix4x4_ConcatScale (mat4_t *out, double x) {
+	mat4_t base, temp;
 	base = *out;
 	Matrix4x4_CreateScale(&temp, x);
 	Matrix4x4_Concat(out, &base, &temp);
 }
 
 // FIXME: optimize
-void Matrix4x4_ConcatScale3 (matrix4x4_t *out, double x, double y, double z) {
-	matrix4x4_t base, temp;
+void Matrix4x4_ConcatScale3 (mat4_t *out, double x, double y, double z) {
+	mat4_t base, temp;
 	base = *out;
 	Matrix4x4_CreateScale3(&temp, x, y, z);
 	Matrix4x4_Concat(out, &base, &temp);
 }
 
-void Matrix4x4_OriginFromMatrix (const matrix4x4_t *in, vec_t *out) {
+void Matrix4x4_OriginFromMatrix (const mat4_t *in, float *out) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out[0] = in->m[3][0];
 	out[1] = in->m[3][1];
@@ -1947,12 +1953,12 @@ void Matrix4x4_OriginFromMatrix (const matrix4x4_t *in, vec_t *out) {
 #endif
 }
 
-double Matrix4x4_ScaleFromMatrix (const matrix4x4_t *in) {
+double Matrix4x4_ScaleFromMatrix (const mat4_t *in) {
 	// we only support uniform scaling, so assume the first row is enough
 	return sqrt(in->m[0][0] * in->m[0][0] + in->m[0][1] * in->m[0][1] + in->m[0][2] * in->m[0][2]);
 }
 
-void Matrix4x4_SetOrigin (matrix4x4_t *out, double x, double y, double z) {
+void Matrix4x4_SetOrigin (mat4_t *out, double x, double y, double z) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[3][0] = x;
 	out->m[3][1] = y;
@@ -1964,7 +1970,7 @@ void Matrix4x4_SetOrigin (matrix4x4_t *out, double x, double y, double z) {
 #endif
 }
 
-void Matrix4x4_AdjustOrigin (matrix4x4_t *out, double x, double y, double z) {
+void Matrix4x4_AdjustOrigin (mat4_t *out, double x, double y, double z) {
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[3][0] += x;
 	out->m[3][1] += y;
@@ -1976,7 +1982,7 @@ void Matrix4x4_AdjustOrigin (matrix4x4_t *out, double x, double y, double z) {
 #endif
 }
 
-void Matrix4x4_Scale (matrix4x4_t *out, double rotatescale, double originscale) {
+void Matrix4x4_Scale (mat4_t *out, double rotatescale, double originscale) {
 	out->m[0][0] *= rotatescale;
 	out->m[0][1] *= rotatescale;
 	out->m[0][2] *= rotatescale;
@@ -1997,7 +2003,7 @@ void Matrix4x4_Scale (matrix4x4_t *out, double rotatescale, double originscale) 
 #endif
 }
 
-void Matrix4x4_Abs (matrix4x4_t *out) {
+void Matrix4x4_Abs (mat4_t *out) {
 	out->m[0][0] = fabs(out->m[0][0]);
 	out->m[0][1] = fabs(out->m[0][1]);
 	out->m[0][2] = fabs(out->m[0][2]);
@@ -2010,7 +2016,7 @@ void Matrix4x4_Abs (matrix4x4_t *out) {
 }
 
 // dutifully stolen from https://github.com/toji/gl-matrix/blob/master/src/gl-matrix/mat4.js
-void Matrix4x4_FromFrustum (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval,
+void Matrix4x4_FromFrustum (mat4_t *out, double left, double right, double bottom, double top, double nearval,
                             double farval) {
 	double rl = 1.0 / (right - left);
 	double tb = 1.0 / (top - bottom);
@@ -2036,7 +2042,7 @@ void Matrix4x4_FromFrustum (matrix4x4_t *out, double left, double right, double 
 }
 
 // dutifully stolen from https://github.com/toji/gl-matrix/blob/master/src/gl-matrix/mat4.js
-void Matrix4x4_FromOrtho (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval,
+void Matrix4x4_FromOrtho (mat4_t *out, double left, double right, double bottom, double top, double nearval,
                           double farval) {
 	double lr = 1.0 / (left - right);
 	double bt = 1.0 / (bottom - top);

@@ -73,6 +73,10 @@ static GList *G_MapList_Parse(const char *filename) {
 			map->hook = -1;
 		}
 
+		if (!map) {
+			continue;
+		}
+
 		if (!g_strcmp0(token, "name")) {
 			if (!Parse_Token(&parser, PARSE_DEFAULT, map->name, sizeof(map->name))) {
 				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);

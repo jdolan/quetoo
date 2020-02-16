@@ -97,7 +97,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 	// map title
 	x = cgi.context->width / 2 - sw / 2;
-	cgi.DrawString(x, y, map_name, CON_COLOR_DEFAULT);
+	cgi.DrawString(x, y, map_name, color_white);
 
 	y += ch;
 
@@ -120,21 +120,21 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 			switch (i) {
 			case TEAM_RED:
 			default:
-				color_id = CON_COLOR_RED;
+				color_id = ESC_COLOR_RED;
 				break;
 			case TEAM_BLUE:
-				color_id = CON_COLOR_BLUE;
+				color_id = ESC_COLOR_BLUE;
 				break;
 			case TEAM_GREEN:
-				color_id = CON_COLOR_GREEN;
+				color_id = ESC_COLOR_GREEN;
 				break;
 			case TEAM_ORANGE:
-				color_id = CON_COLOR_YELLOW;
+				color_id = ESC_COLOR_YELLOW;
 				break;
 			}
 
-			cgi.DrawString(x, y, va("%s^7 %d %s", cg_team_info[i].team_name, score_num,
-									cg_score_state.ctf ? "caps" : "frags"), color_id);
+			cgi.DrawString(x, y, va("^%d%s^7 %d %s", color_id, cg_team_info[i].team_name, score_num,
+									cg_score_state.ctf ? "caps" : "frags"), color_white);
 
 			x += SCORES_COL_WIDTH;
 		}
@@ -154,20 +154,20 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	const cl_client_info_t *info = &cgi.client->client_info[s->client];
 
 	// icon
-	const vec_t is = (vec_t) (SCORES_ICON_WIDTH - 2) / (vec_t) info->icon->width;
-	cgi.DrawImage(x, y, is, info->icon);
+	const float is = (float) (SCORES_ICON_WIDTH - 2) / (float) info->icon->width;
+	cgi.DrawImage(x, y, is, info->icon, color_white);
 
 	// flag carrier icon
 	if (atoi(cgi.ConfigString(CS_CTF)) && (s->flags & SCORE_CTF_FLAG)) {
 		const int32_t team = s->team;
 		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IT_PIC);
-		cgi.DrawImage(x, y, 0.33, flag);
+		cgi.DrawImage(x, y, 0.33, flag, color_white);
 	}
 
 	x += SCORES_ICON_WIDTH;
 
 	// background
-	const vec_t fa = s->client == cgi.client->client_num ? 0.3 : 0.15;
+	const float fa = s->client == cgi.client->client_num ? 0.3 : 0.15;
 	const r_pixel_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
 	const r_pixel_t fh = SCORES_ROW_HEIGHT - 1;
 
@@ -180,39 +180,39 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 			.a = (fa * 255)
 		};
 
-		cgi.DrawFill(x, y, fw, fh, c.abgr, -1.0);
+		cgi.DrawFill(x, y, fw, fh, c);
 	}
 
 	cgi.BindFont("small", &cw, &ch);
 
 	// name
-	cgi.DrawString(x, y, info->name, CON_COLOR_DEFAULT);
+	cgi.DrawString(x, y, info->name, color_white);
 
 	// ping
 	{
 		const r_pixel_t px = x + SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 6 * cw;
-		cgi.DrawString(px, y, va("%3dms", s->ping), CON_COLOR_DEFAULT);
+		cgi.DrawString(px, y, va("%3dms", s->ping), color_white);
 		y += ch;
 	}
 
 	// spectating
 	if (s->flags & SCORE_SPECTATOR) {
-		cgi.DrawString(x, y, "spectating", CON_COLOR_DEFAULT);
+		cgi.DrawString(x, y, "spectating", color_white);
 		return true;
 	}
 
 	// frags
-	cgi.DrawString(x, y, va("%d frags", s->score), CON_COLOR_DEFAULT);
+	cgi.DrawString(x, y, va("%d frags", s->score), color_white);
 
 	// deaths
 	char *deaths = va("%d deaths ", s->deaths);
-	cgi.DrawString(x + fw - cgi.StringWidth(deaths), y, deaths, CON_COLOR_DEFAULT);
+	cgi.DrawString(x + fw - cgi.StringWidth(deaths), y, deaths, color_white);
 	y += ch;
 
 	// ready/not ready
 	if (atoi(cgi.ConfigString(CS_MATCH))) {
 		if (s->flags & SCORE_NOT_READY) {
-			cgi.DrawString(x + fw - cgi.StringWidth("not ready "), y, "not ready", CON_COLOR_DEFAULT);
+			cgi.DrawString(x + fw - cgi.StringWidth("not ready "), y, "not ready", color_white);
 		}
 	}
 
@@ -221,7 +221,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 		return true;
 	}
 
-	cgi.DrawString(x, y, va("%d captures", s->captures), CON_COLOR_DEFAULT);
+	cgi.DrawString(x, y, va("%d captures", s->captures), color_white);
 	return true;
 }
 

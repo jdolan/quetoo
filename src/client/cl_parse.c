@@ -154,7 +154,7 @@ static void Cl_ParseBaseline(void) {
 			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, ent->baseline.angles, 1.0);
 			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 		} else { // bounding-box entities
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, vec3_origin, 1.0);
+			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, Vec3_Zero(), 1.0);
 			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 		}
 	}
@@ -391,7 +391,7 @@ static void Cl_ParseSound(void) {
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
-		Net_ReadPosition(&net_message, play.origin);
+		play.origin = Net_ReadPosition(&net_message);
 		play.flags |= S_PLAY_POSITIONED;
 	}
 

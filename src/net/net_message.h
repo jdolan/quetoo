@@ -64,7 +64,7 @@
 #define U_CLIENT				(1 << 8) // offset into client skins array
 #define U_SOUND					(1 << 9) // looped sounds
 #define U_SOLID					(1 << 10) // solid type
-#define U_BOUNDS				(1 << 11) // encoded bounding box
+#define U_BOUNDS				(1 << 11) // bounding box mins
 #define U_REMOVE				(1 << 12) // remove this entity, don't add it
 
 /**
@@ -79,16 +79,17 @@
  * @brief Message writing and reading facilities.
  */
 void Net_WriteData(mem_buf_t *msg, const void *data, size_t len);
-void Net_WriteChar(mem_buf_t *msg, const int32_t c);
-void Net_WriteByte(mem_buf_t *msg, const int32_t c);
-void Net_WriteShort(mem_buf_t *msg, const int32_t c);
-void Net_WriteLong(mem_buf_t *msg, const int32_t c);
+void Net_WriteChar(mem_buf_t *msg, int32_t c);
+void Net_WriteByte(mem_buf_t *msg, int32_t c);
+void Net_WriteShort(mem_buf_t *msg, int32_t c);
+void Net_WriteLong(mem_buf_t *msg, int32_t c);
 void Net_WriteString(mem_buf_t *msg, const char *s);
-void Net_WriteVector(mem_buf_t *msg, const vec_t f);
+void Net_WriteFloat(mem_buf_t *msg, float f);
 void Net_WritePosition(mem_buf_t *msg, const vec3_t pos);
-void Net_WriteAngle(mem_buf_t *msg, const vec_t f);
+void Net_WriteAngle(mem_buf_t *msg, float f);
 void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles);
 void Net_WriteDir(mem_buf_t *msg, const vec3_t dir);
+void Net_WriteBounds(mem_buf_t *msg, const vec3_t mins, const vec3_t maxs);
 void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to);
 void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to);
 void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to, _Bool force);
@@ -101,11 +102,12 @@ int32_t Net_ReadShort(mem_buf_t *msg);
 int32_t Net_ReadLong(mem_buf_t *msg);
 char *Net_ReadString(mem_buf_t *msg);
 char *Net_ReadStringLine(mem_buf_t *msg);
-vec_t Net_ReadVector(mem_buf_t *msg);
-void Net_ReadPosition(mem_buf_t *msg, vec3_t pos);
-vec_t Net_ReadAngle(mem_buf_t *msg);
-void Net_ReadAngles(mem_buf_t *msg, vec3_t angles);
-void Net_ReadDir(mem_buf_t *msg, vec3_t vector);
+float Net_ReadFloat(mem_buf_t *msg);
+vec3_t Net_ReadPosition(mem_buf_t *msg);
+float Net_ReadAngle(mem_buf_t *msg);
+vec3_t Net_ReadAngles(mem_buf_t *msg);
+vec3_t Net_ReadDir(mem_buf_t *msg);
+void Net_ReadBounds(mem_buf_t *msg, vec3_t *mins, vec3_t *maxs);
 void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to);
 void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to);
 void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to,

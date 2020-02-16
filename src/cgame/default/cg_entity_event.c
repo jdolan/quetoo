@@ -28,9 +28,6 @@
  */
 static void Cg_ItemRespawnEffect(const vec3_t org) {
 
-	color_t color;
-	cgi.ColorFromPalette(110, &color);
-
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
@@ -38,42 +35,35 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 			break;
 		}
 
-		p->origin[0] = org[0] + Randomc() * 8.0;
-		p->origin[1] = org[1] + Randomc() * 8.0;
-		p->origin[2] = org[2] + 8.0 + Randomf() * 8.0;
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
+		p->origin.z += 8.f;
 
-		p->velocity[0] = Randomc() * 48.0;
-		p->velocity[1] = Randomc() * 48.0;
-		p->velocity[2] = Randomf() * 48.0;
+		p->velocity = Vec3_RandomRange(-48.0, 48.0);
+		p->velocity.z = fabsf(p->velocity.z);
 
-		p->acceleration[0] = p->acceleration[1] = 0;
-		p->acceleration[2] = -PARTICLE_GRAVITY * 0.1;
+		p->acceleration.z = -PARTICLE_GRAVITY * 0.1;
 
 		p->lifetime = 500 + Randomf() * 100;
 
-		p->color = color;
+		p->color = Color3b(224, 224, 224);
 		p->delta_color.a = -1;
 
 		p->size = 1.0;
 		p->delta_size = -0.1;
 	}
 
-	cg_light_t l;
-	VectorCopy(org, l.origin);
-	l.radius = 80.0;
-	VectorSet(l.color, 0.9, 0.9, 0.9);
-	l.decay = 1000;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = org,
+		.radius = 80.f,
+		.color = Vec3(.9f, .9f, .9f),
+		.decay = 1000
+	});
 }
 
 /**
  * @brief
  */
 static void Cg_ItemPickupEffect(const vec3_t org) {
-
-	color_t color;
-	cgi.ColorFromPalette(110, &color);
 
 	for (int32_t i = 0; i < 32; i++) {
 		cg_particle_t *p;
@@ -82,20 +72,17 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 			break;
 		}
 
-		p->origin[0] = org[0] + Randomc() * 8.0;
-		p->origin[1] = org[1] + Randomc() * 8.0;
-		p->origin[2] = org[2] + 8 + Randomc() * 16.0;
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-8.0, 8.0));
+		p->origin.z += 8.f;
 
-		p->velocity[0] = Randomc() * 16.0;
-		p->velocity[1] = Randomc() * 16.0;
-		p->velocity[2] = Randomf() * 128.0;
+		p->velocity = Vec3_RandomRange(-16.f, 16.f);
+		p->velocity.z += 100.f;
 
-		p->acceleration[0] = p->acceleration[1] = 0;
-		p->acceleration[2] = PARTICLE_GRAVITY * 0.2;
+		p->acceleration.z = PARTICLE_GRAVITY * 0.2;
 
 		p->lifetime = 500 + Randomf() * 100;
 
-		p->color = color;
+		p->color = Color3b(224, 224, 224);
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;
@@ -103,9 +90,9 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 	}
 
 	cg_light_t l;
-	VectorCopy(org, l.origin);
+	l.origin = org;
 	l.radius = 80.0;
-	VectorSet(l.color, 0.9, 1.0, 1.0);
+	l.color = Vec3(0.9, 1.0, 1.0);
 	l.decay = 1000;
 
 	Cg_AddLight(&l);
@@ -116,9 +103,6 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
  */
 static void Cg_TeleporterEffect(const vec3_t org) {
 
-	color_t color;
-	cgi.ColorFromPalette(110, &color);
-
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
@@ -126,37 +110,33 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 			break;
 		}
 
-		p->origin[0] = org[0] + Randomc() * 16.0;
-		p->origin[1] = org[1] + Randomc() * 16.0;
-		p->origin[2] = org[2] + 8.0 + Randomf() * 24.0;
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f));
+		p->origin.z += RandomRangef(8.f, 32.f);
 
-		p->velocity[0] = Randomc() * 24.0;
-		p->velocity[1] = Randomc() * 24.0;
-		p->velocity[2] = Randomf() * 64.0;
+		p->velocity = Vec3_RandomRange(-24.f, 24.f);
+		p->velocity.z = RandomRangef(16.f, 48.f);
 
-		p->acceleration[0] = p->acceleration[1] = 0;
-		p->acceleration[2] = -PARTICLE_GRAVITY * 0.1;
+		p->acceleration.z = -PARTICLE_GRAVITY * 0.1;
 
 		p->lifetime = 500;
 
-		p->color = color;
+		p->color = Color3b(224, 224, 224);
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;
 		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
 	}
 
-	cg_light_t l;
-	VectorCopy(org, l.origin);
-	l.radius = 120.0;
-	VectorSet(l.color, 0.9, 0.9, 0.9);
-	l.decay = 1000;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = org,
+		.radius = 120.f,
+		.color = Vec3(.9f, .9f, .9f),
+		.decay = 1000
+	});
 
 	const s_play_sample_t play = {
 		.sample = cg_sample_respawn,
-		.origin = { org[0], org[1], org[2] },
+		.origin = org,
 		.attenuation = ATTEN_IDLE,
 		.flags = S_PLAY_POSITIONED
 	};
@@ -168,7 +148,6 @@ static void Cg_TeleporterEffect(const vec3_t org) {
  * @brief A player is gasping for air under water.
  */
 static void Cg_GurpEffect(cl_entity_t *ent) {
-	vec3_t start, end;
 
 	const s_play_sample_t play = {
 		.sample = cgi.LoadSample("*gurp_1"),
@@ -179,11 +158,11 @@ static void Cg_GurpEffect(cl_entity_t *ent) {
 
 	cgi.AddSample(&play);
 
-	VectorCopy(ent->current.origin, start);
-	start[2] += 16.0;
+	vec3_t start = ent->current.origin;
+	start.z += 16.0;
 
-	VectorCopy(start, end);
-	end[2] += 16.0;
+	vec3_t end = start;
+	end.z += 16.0;
 
 	Cg_BubbleTrail(start, end, 32.0);
 }
@@ -192,7 +171,6 @@ static void Cg_GurpEffect(cl_entity_t *ent) {
  * @brief A player has drowned.
  */
 static void Cg_DrownEffect(cl_entity_t *ent) {
-	vec3_t start, end;
 
 	const s_play_sample_t play = {
 		.sample = cgi.LoadSample("*drown_1"),
@@ -203,11 +181,11 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
 
 	cgi.AddSample(&play);
 
-	VectorCopy(ent->current.origin, start);
-	start[2] += 16.0;
+	vec3_t start = ent->current.origin;
+	start.z += 16.0;
 
-	VectorCopy(start, end);
-	end[2] += 16.0;
+	vec3_t end = start;
+	end.z += 16.0;
 
 	Cg_BubbleTrail(start, end, 32.0);
 }
@@ -219,18 +197,13 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
 	const char *footsteps = "default";
 
-	vec3_t mins, maxs;
-	UnpackBounds(ent->current.bounds, mins, maxs);
+	vec3_t start = ent->current.origin;
+	start.z += ent->current.mins.z;
 
-	cm_trace_t tr = cgi.Trace((const vec3_t) {
-		ent->current.origin[0],
-		ent->current.origin[1],
-		ent->current.origin[2] + mins[2]
-	}, (const vec3_t) {
-		ent->current.origin[0],
-		ent->current.origin[1],
-		ent->current.origin[2] + mins[2] - PM_STEP_HEIGHT
-	}, vec3_origin, vec3_origin, ent->current.number, MASK_SOLID);
+	vec3_t end = start;
+	end.z -= PM_STEP_HEIGHT;
+
+	cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, MASK_SOLID);
 
 	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->footsteps) {
 		footsteps = tr.surface->material->footsteps;
@@ -277,7 +250,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			play.sample = cgi.LoadSample("*land_1");
 			break;
 		case EV_CLIENT_STEP: {
-			const vec_t height = ent->current.origin[2] - ent->prev.origin[2];
+			const float height = ent->current.origin.z - ent->prev.origin.z;
 			Cg_TraverseStep(&ent->step, cgi.client->unclamped_time, height);
 		}
 			break;

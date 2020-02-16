@@ -116,7 +116,7 @@ void G_target_light(g_entity_t *self) {
 	}
 
 	self->locals.colors[0] = G_ColorByName(g_game.spawn.colors, PALETTE_COLOR_WHITE);
-	self->s.termination[0] = self->locals.damage; // radius
+	self->s.termination.x = self->locals.damage; // radius
 
 	self->locals.Use = G_target_light_Use;
 

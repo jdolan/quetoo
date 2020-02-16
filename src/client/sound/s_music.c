@@ -32,7 +32,7 @@ cvar_t *s_music_volume;
 typedef struct s_music_state_s {
 	ALuint source;
 	ALuint *music_buffers;
-	vec_t *raw_frame_buffer;
+	float *raw_frame_buffer;
 	int16_t *frame_buffer;
 	size_t resample_frame_buffer_size;
 	int16_t *resample_frame_buffer;
@@ -357,7 +357,7 @@ void S_FrameMusic(void) {
 	last_state = cls.state;
 
 	if (s_music_volume->modified) {
-		const vec_t volume = Clamp(s_music_volume->value, 0.0, 1.0);
+		const float volume = Clampf(s_music_volume->value, 0.0, 1.0);
 
 		if (volume) {
 			alSourcef(s_music_state.source, AL_GAIN, volume);
@@ -413,7 +413,7 @@ void S_InitMusic(void) {
 	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_ARCHIVE | CVAR_S_MEDIA, "The size of each buffer for music streaming.");	
 	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 
-	s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(vec_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
+	s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(float) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.resample_frame_buffer = NULL;
 

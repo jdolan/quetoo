@@ -48,6 +48,7 @@ src/tests/check_mem
 src/tests/check_r_media
 src/tests/check_shared
 src/tests/check_thread
+src/tests/check_vector
 src/tools/quemap/quemap
 src/tools/quetoo-master/quetoo-master
 src/tools/quetoo-update/quetoo-update

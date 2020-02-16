@@ -31,7 +31,7 @@
 #pragma mark - QuetooRenderer
 
 static double drawScale;
-static SDL_Color drawColor;
+static color_t drawColor;
 
 /**
  * @see Renderer::beginFrame(Renderer *self)
@@ -41,7 +41,7 @@ static void beginFrame(Renderer *self) {
 
 	drawScale = MVC_WindowScale(r_context.window, NULL, NULL);
 
-	drawColor = Colors.White;
+	drawColor = color_white;
 }
 
 /**
@@ -101,7 +101,7 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
 		p[i][1] = points[i].y * drawScale;
 	}
 
-	R_DrawLines((r_pixel_t *) p, count, *(int32_t *) &drawColor, -1.0);
+	R_DrawLines((r_pixel_t *) p, count, drawColor);
 }
 
 
@@ -127,7 +127,7 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 		{ r.x,			r.y },
 	};
 
-	R_DrawLines((r_pixel_t *) points, lengthof(points), *(int32_t *) &drawColor, -1.0);
+	R_DrawLines((r_pixel_t *) points, lengthof(points), drawColor);
 }
 
 /**
@@ -144,7 +144,7 @@ static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 		rect->h * drawScale
 	};
 
-	R_DrawFill(r.x, r.y, r.w, r.h, *(int32_t *) &drawColor, -1.0);
+	R_DrawFill(r.x, r.y, r.w, r.h, drawColor);
 }
 
 /**
@@ -163,7 +163,7 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
 
 	const r_image_t image = { .texnum = texture };
 
-	R_DrawImageRect(r.x, r.y, r.w, r.h, &image);
+	R_DrawImageRect(r.x, r.y, r.w, r.h, &image, drawColor);
 }
 
 /**
@@ -180,9 +180,12 @@ static void endFrame(Renderer *self) {
 static void setDrawColor(Renderer *self, const SDL_Color *color) {
 
 	if (color) {
-		drawColor = *color;
+		drawColor.r = color->r;
+		drawColor.g = color->g;
+		drawColor.b = color->b;
+		drawColor.a = color->a;
 	} else {
-		drawColor = Colors.White;
+		drawColor = color_white;
 	}
 }
 

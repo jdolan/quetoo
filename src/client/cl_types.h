@@ -49,17 +49,17 @@ typedef struct {
 	uint32_t time;
 	int32_t frame;
 	int32_t old_frame;
-	vec_t lerp;
-	vec_t fraction;
+	float lerp;
+	float fraction;
 	_Bool reverse;
 } cl_entity_animation_t;
 
 typedef struct {
-	vec_t height;
+	float height;
 	uint32_t time;
 	uint32_t timestamp;
 	uint32_t interval;
-	vec_t delta_height;
+	float delta_height;
 } cl_entity_step_t;
 
 typedef struct {
@@ -80,12 +80,12 @@ typedef struct {
 	vec3_t angles; // and angles
 	vec3_t mins, maxs; // bounding box
 	vec3_t abs_mins, abs_maxs; // absolute bounding box
-	vec_t legs_yaw; // only used by player models, the leg angle we're currently at
+	float legs_yaw; // only used by player models, the leg angle we're currently at
 
 	cl_entity_step_t step; // the step the entity just traversed
 
-	matrix4x4_t matrix; // interpolated translation and rotation
-	matrix4x4_t inverse_matrix; // for box hull collision
+	mat4_t matrix; // interpolated translation and rotation
+	mat4_t inverse_matrix; // for box hull collision
 } cl_entity_t;
 
 // the total number of tokens info can contain
@@ -180,7 +180,7 @@ typedef struct {
 	uint32_t time; // clamped simulation time that the client is rendering at
 	uint32_t unclamped_time; // unclamped simulation time, useful for effect durations
 
-	vec_t lerp; // linear interpolation fraction between frames
+	float lerp; // linear interpolation fraction between frames
 
 	// the client maintains its own idea of view angles, which are
 	// sent to the server each frame. It is cleared to 0 upon entering each level.

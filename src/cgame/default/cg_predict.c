@@ -98,14 +98,14 @@ void Cg_PredictMovement(const GList *cmds) {
 
 		// save for error detection
 		const uint32_t frame = (uint32_t) (uintptr_t) (cmd - cgi.client->cmds);
-		VectorCopy(pm.s.origin, pr->origins[frame]);
+		pr->origins[frame] = pm.s.origin;
 
 		e = e->next;
 	}
 
 	// copy results out for rendering
-	VectorCopy(pm.s.origin, pr->view.origin);
-	UnpackVector(pm.s.view_offset, pr->view.offset);
-	UnpackAngles(pm.cmd.angles, pr->view.angles);
+	pr->view.origin = pm.s.origin;
+	pr->view.offset = pm.s.view_offset;
+	pr->view.angles = pm.cmd.angles;
 	pr->ground_entity = pm.ground_entity;
 }

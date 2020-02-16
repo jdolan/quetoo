@@ -25,7 +25,7 @@
 
 #ifdef __CG_LOCAL_H__
 void Cg_BreathTrail(cl_entity_t *ent);
-void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density);
+void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density);
 void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end);
 void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end);
 void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel);

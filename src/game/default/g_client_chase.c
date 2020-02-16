@@ -32,43 +32,33 @@ void G_ClientChaseThink(g_entity_t *ent) {
 
 		// calculate delta angles if switching targets
 		if (targ != ent->client->locals.old_chase_target) {
-			VectorSubtract(ent->client->locals.angles, targ->client->locals.angles, new_delta);
+			new_delta = Vec3_Subtract(ent->client->locals.angles, targ->client->locals.angles);
 			ent->client->locals.old_chase_target = targ;
 		} else {
-			VectorClear(new_delta);
+			new_delta = Vec3_Zero();
 		}
 
 		// copy origin
-		VectorCopy(targ->s.origin, ent->s.origin);
+		ent->s.origin = targ->s.origin;
 
 		// velocity
-		VectorCopy(targ->locals.velocity, ent->locals.velocity);
+		ent->locals.velocity = targ->locals.velocity;
 
 		// and angles
-		VectorCopy(targ->client->locals.angles, ent->client->locals.angles);
+		ent->client->locals.angles = targ->client->locals.angles;
 
 		// and player state
 		memcpy(&ent->client->ps, &targ->client->ps, sizeof(player_state_t));
 
 		// add in delta angles in case we've switched targets
-		if (!VectorCompare(new_delta, vec3_origin)) {
-			vec3_t delta_angles;
-
-			UnpackAngles(ent->client->ps.pm_state.delta_angles, delta_angles);
-			VectorAdd(delta_angles, new_delta, delta_angles);
-
-			PackAngles(delta_angles, ent->client->ps.pm_state.delta_angles);
+		if (!Vec3_Equal(new_delta, Vec3_Zero())) {
+			ent->client->ps.pm_state.delta_angles = Vec3_Add(ent->client->ps.pm_state.delta_angles, new_delta);
 		}
 
 		// disable the spectator's input
 		ent->client->ps.pm_state.type = PM_FREEZE;
 	} else {
-		vec3_t delta_angles;
-
-		UnpackAngles(ent->client->ps.pm_state.delta_angles, delta_angles);
-		delta_angles[2] = -delta_angles[2];
-
-		PackAngles(delta_angles, ent->client->ps.pm_state.delta_angles);
+		ent->client->ps.pm_state.delta_angles.z = -ent->client->ps.pm_state.delta_angles.z;
 
 		// enable the spectator's input
 		ent->client->ps.pm_state.type = PM_SPECTATOR;

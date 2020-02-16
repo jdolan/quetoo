@@ -124,13 +124,6 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /**
- * @brief
- */
-void R_Color(const vec4_t color) {
-
-}
-
-/**
  * @brief Returns true if the specified bounding box is completely culled by the
  * view frustum, false otherwise.
  */
@@ -153,7 +146,7 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
  * @brief Returns true if the specified sphere (point and radius) is completely culled by the
  * view frustum, false otherwise.
  */
-_Bool R_CullSphere(const vec3_t point, const vec_t radius) {
+_Bool R_CullSphere(const vec3_t point, const float radius) {
 
 	if (!r_cull->value) {
 		return false;
@@ -161,7 +154,7 @@ _Bool R_CullSphere(const vec3_t point, const vec_t radius) {
 
 	for (size_t i = 0 ; i < lengthof(r_locals.frustum) ; i++)  {
 		const cm_bsp_plane_t *p = &r_locals.frustum[i];
-		const vec_t dist = DotProduct(point, p->normal) - p->dist;
+		const float dist = Vec3_Dot(point, p->normal) - p->dist;
 
 		if (dist < -radius) {
 			return true;
@@ -180,13 +173,13 @@ static void R_UpdateViewport(void) {
 
 	glViewport(viewport->x, viewport->y, viewport->w, viewport->h);
 
-	const vec_t aspect = (vec_t) viewport->w / (vec_t) viewport->h;
+	const float aspect = (float) viewport->w / (float) viewport->h;
 
-	const vec_t ymax = 1.0 * tanf(Radians(r_view.fov[1]));
-	const vec_t ymin = -ymax;
+	const float ymax = 1.0 * tanf(Radians(r_view.fov.y));
+	const float ymin = -ymax;
 
-	const vec_t xmin = ymin * aspect;
-	const vec_t xmax = ymax * aspect;
+	const float xmin = ymin * aspect;
+	const float xmax = ymax * aspect;
 
 	Matrix4x4_FromFrustum(&r_locals.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
 
@@ -195,11 +188,11 @@ static void R_UpdateViewport(void) {
 	Matrix4x4_ConcatRotate(&r_locals.view, -90.0, 1.0, 0.0, 0.0); // put Z going up
 	Matrix4x4_ConcatRotate(&r_locals.view,  90.0, 0.0, 0.0, 1.0); // put Z going up
 
-	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles[YAW],   0.0, 0.0, 1.0);
+	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles.z, 1.0, 0.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles.x, 0.0, 1.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles.y, 0.0, 0.0, 1.0);
 
-	Matrix4x4_ConcatTranslate(&r_locals.view, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
+	Matrix4x4_ConcatTranslate(&r_locals.view, -r_view.origin.x, -r_view.origin.y, -r_view.origin.z);
 }
 
 /**
@@ -214,29 +207,29 @@ static void R_UpdateFrustum(void) {
 
 	cm_bsp_plane_t *p = r_locals.frustum;
 
-	vec_t ang = Radians(r_view.fov[0]);
-	vec_t xs = sinf(ang);
-	vec_t xc = cosf(ang);
+	float ang = Radians(r_view.fov.x);
+	float xs = sinf(ang);
+	float xc = cosf(ang);
 
-	VectorScale(r_view.forward, xs, p[0].normal);
-	VectorMA(p[0].normal, xc, r_view.right, p[0].normal);
+	p[0].normal = Vec3_Scale(r_view.forward, xs);
+	p[0].normal = Vec3_Add(p[0].normal, Vec3_Scale(r_view.right, xc));
 
-	VectorScale(r_view.forward, xs, p[1].normal);
-	VectorMA(p[1].normal, -xc, r_view.right, p[1].normal);
+	p[1].normal = Vec3_Scale(r_view.forward, xs);
+	p[1].normal = Vec3_Add(p[1].normal, Vec3_Scale(r_view.right, -xc));
 
-	ang = Radians(r_view.fov[1]);
+	ang = Radians(r_view.fov.y);
 	xs = sinf(ang);
 	xc = cosf(ang);
 
-	VectorScale(r_view.forward, xs, p[2].normal);
-	VectorMA(p[2].normal, xc, r_view.up, p[2].normal);
+	p[2].normal = Vec3_Scale(r_view.forward, xs);
+	p[2].normal = Vec3_Add(p[2].normal, Vec3_Scale(r_view.up, xc));
 
-	VectorScale(r_view.forward, xs, p[3].normal);
-	VectorMA(p[3].normal, -xc, r_view.up, p[3].normal);
+	p[3].normal = Vec3_Scale(r_view.forward, xs);
+	p[3].normal = Vec3_Add(p[3].normal, Vec3_Scale(r_view.up, -xc));
 
 	for (int32_t i = 0; i < 4; i++) {
 		p[i].type = PLANE_ANY_Z;
-		p[i].dist = DotProduct (r_view.origin, p[i].normal);
+		p[i].dist = Vec3_Dot (r_view.origin, p[i].normal);
 		p[i].sign_bits = Cm_SignBitsForPlane(&p[i]);
 	}
 }
@@ -266,7 +259,7 @@ void R_DrawView(r_view_t *view) {
 
 #if 0
 	vec3_t tmp;
-	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, tmp);
+	tmp = vec3_add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST);
 
 	cm_trace_t tr = Cl_Trace(r_view.origin, tmp, NULL, NULL, 0, MASK_SOLID);
 	if (tr.fraction > 0.0 && tr.fraction < 1.0) {
@@ -319,6 +312,7 @@ void R_BeginFrame(void) {
 	R_Clear();
 
 	r_view.count_draw_arrays = 0;
+	r_view.count_draw_quads = 0;
 
 	r_view.count_bsp_nodes = 0;
 	r_view.count_bsp_draw_elements = 0;
@@ -346,7 +340,7 @@ void R_EndFrame(void) {
 /**
  * @brief Initializes the view and locals structures so that loading may begin.
  */
-void R_InitView(void) {
+static void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
 

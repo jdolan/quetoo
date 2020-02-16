@@ -30,7 +30,7 @@
 	 #define SDL_MAIN_HANDLED
 	#endif
 
-	#include <windows.h>
+	#include <Windows.h>
 #endif
 
 #include <SDL.h>
@@ -298,7 +298,7 @@ static void Check_LIGHT_Options(int32_t argc) {
 		}
 	}
 
-	patch_size = Max(patch_size, luxel_size);
+	patch_size = Maxf(patch_size, luxel_size);
 }
 
 /**

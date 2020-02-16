@@ -125,7 +125,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 
-	matrix4x4_t normal;
+	mat4_t normal;
 	Matrix4x4_Concat(&normal, &r_locals.view, &e->matrix);
 	Matrix4x4_CopyRotateOnly(&normal, &normal);
 	Matrix4x4_Invert_Simple(&normal, &normal);
@@ -134,7 +134,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glUniformMatrix4fv(r_mesh_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
-	glUniform4fv(r_mesh_program.color, 1, e->color);
+	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
 
 	const r_mesh_face_t *face = mesh->faces;
 	for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
@@ -227,8 +227,8 @@ void R_DrawMeshEntities(void) {
 			glBindTexture(GL_TEXTURE_3D, lg->textures[i]->texnum);
 		}
 
-		glUniform3fv(r_mesh_program.lightgrid_mins, 1, lg->mins);
-		glUniform3fv(r_mesh_program.lightgrid_maxs, 1, lg->maxs);
+		glUniform3fv(r_mesh_program.lightgrid_mins, 1, lg->mins.xyz);
+		glUniform3fv(r_mesh_program.lightgrid_maxs, 1, lg->maxs.xyz);
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);

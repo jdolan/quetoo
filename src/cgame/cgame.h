@@ -267,7 +267,7 @@ typedef struct cg_import_s {
 	/**
 	 * @return The floating point value of the console variable with the given name.
 	 */
-	vec_t (*GetCvarValue)(const char *name);
+	float (*GetCvarValue)(const char *name);
 
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
@@ -282,7 +282,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
 	 */
-	cvar_t *(*SetCvarValue)(const char *name, vec_t value);
+	cvar_t *(*SetCvarValue)(const char *name, float value);
 
 	/**
 	 * @brief Forces the console variable to take the value of the string immediately.
@@ -298,7 +298,7 @@ typedef struct cg_import_s {
 	 * @param value The variable value.
 	 * @return The modified variable.
 	 */
-	cvar_t *(*ForceSetCvarValue)(const char *name, vec_t value);
+	cvar_t *(*ForceSetCvarValue)(const char *name, float value);
 
 	/**
 	 * @brief Toggles the console variable by `name`.
@@ -446,27 +446,27 @@ typedef struct cg_import_s {
 	 * @brief Reads a vector (float) from the last received network message.
 	 * @return The vector.
 	 */
-	vec_t (*ReadVector)(void);
+	float (*ReadFloat)(void);
 
 	/**
 	 * @brief Reads a positional vector from the last received network message.
 	 */
-	void (*ReadPosition)(vec3_t pos);
+	vec3_t (*ReadPosition)(void);
 
 	/**
 	 * @brief Reads a 32 bit precision directional vector from the last received network message.
 	 */
-	void (*ReadDir)(vec3_t dir);
+	vec3_t (*ReadDir)(void);
 
 	/**
 	 * @brief Reads a 16 bit precision angle from the last received network message.
 	 */
-	vec_t (*ReadAngle)(void);
+	float (*ReadAngle)(void);
 
 	/**
 	 * @brief Reads a 16 bit precision angle triplet from the last received network message.
 	 */
-	void (*ReadAngles)(vec3_t angles);
+	vec3_t (*ReadAngles)(void);
 
 	/**
 	 * @}
@@ -535,7 +535,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Returns the fraction of the command interval for which the key was down.
 	 */
-	vec_t (*KeyState)(button_t *key, uint32_t cmd_msec);
+	float (*KeyState)(button_t *key, uint32_t cmd_msec);
 
 	/**
 	 * @brief Loads a sound sample by the given name.
@@ -558,9 +558,9 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Resolves a color from the specified palette index.
 	 * @param c The palette index.
-	 * @param color The color result.
+	 * @return The color result.
 	 */
-	void (*ColorFromPalette)(uint8_t c, color_t *out);
+	color_t (*ColorFromPalette)(uint8_t c);
 
 	/**
 	 * @brief Query if a box is visible on screen.
@@ -578,13 +578,7 @@ typedef struct cg_import_s {
 	 * @return Returns true if the specified sphere is completely culled by the
 	 * view frustum, false otherwise.
 	 */
-	_Bool (*CullSphere)(const vec3_t point, const vec_t radius);
-
-	/**
-	 * @brief Sets the drawing color.
-	 * @param color The RGBA drawing color.
-	 */
-	void (*Color)(const vec4_t color);
+	_Bool (*CullSphere)(const vec3_t point, const float radius);
 
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
@@ -690,14 +684,14 @@ typedef struct cg_import_s {
 	 * @param id The matrix ID.
 	 * @param matrix The new matrix.
 	 */
-	void (*SetMatrix)(const r_matrix_id_t id, const matrix4x4_t *matrix);
+	void (*SetMatrix)(const r_matrix_id_t id, const mat4_t *matrix);
 
 	/**
 	 * @brief Fetch the matrix identified by "id" and stick it in "matrix".
 	 * @param id The matrix ID.
 	 * @param matrix The matrix to store the active matrix in.
 	 */
-	void (*GetMatrix)(const r_matrix_id_t id, matrix4x4_t *matrix);
+	void (*GetMatrix)(const r_matrix_id_t id, mat4_t *matrix);
 
 	/**
 	 * @brief Push the active matrix into the stack
@@ -773,8 +767,9 @@ typedef struct cg_import_s {
 	 * @param y The y coordinate, in pixels.
 	 * @param scale The image scale.
 	 * @param image The image.
+	 * @param color The color.
 	 */
-	void (*DrawImage)(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image);
+	void (*DrawImage)(r_pixel_t x, r_pixel_t y, float scale, const r_image_t *image, const color_t color);
 
 	/**
 	 * @brief Draws an image with an arbitrary size on the screen.
@@ -783,8 +778,9 @@ typedef struct cg_import_s {
 	 * @param x The width, in pixels.
 	 * @param y The height, in pixels.
 	 * @param image The image.
+	 * @param color The color.
 	 */
-	void (*DrawImageRect)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image);
+	void (*DrawImageRect)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
 
 	/**
 	 * @brief Draws a filled rectangle in orthographic projection on the screen.
@@ -792,10 +788,10 @@ typedef struct cg_import_s {
 	 * @param y The y coordinate, in pixels.
 	 * @param w The width, in pixels.
 	 * @param h The height, in pixels.
-	 * @param c The color palette index.
+	 * @param c The color.
 	 * @param a The alpha component.
 	 */
-	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, vec_t a);
+	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color);
 
 	/**
 	 * @brief Binds the font by `name`, optionally returning the character width and height.
@@ -815,10 +811,10 @@ typedef struct cg_import_s {
 	 * @param x The x coordinate, in pixels.
 	 * @param y The y coordinate, in pixels.
 	 * @param s The string.
-	 * @param color The color palette index.
+	 * @param color The color.
 	 * @return The number of visible characters drawn.
 	 */
-	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, int32_t color);
+	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, const color_t color);
 
 	/**
 	 * @}

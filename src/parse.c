@@ -335,6 +335,10 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
 	parser_position_t old_position = { NULL, 0, 0 };
 
+	if (!parser) {
+		return false;
+	}
+
 	if (flags & PARSE_PEEK) {
 		old_position = parser->position;
 	}
@@ -427,7 +431,7 @@ static size_t Parse_TypeSize(const parse_type_t type) {
  */
 static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *output) {
 	int32_t result;
-	static byte scan_buffer[sizeof(dvec_t)];
+	static byte scan_buffer[sizeof(double)];
 	const size_t type_size = Parse_TypeSize(type);
 
 	switch (type) {
@@ -442,10 +446,10 @@ static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *o
 		result = sscanf(input, "%" SCNi32, (int32_t *) scan_buffer);
 		break;
 	case PARSE_FLOAT:
-		result = sscanf(input, "%f", (vec_t *) scan_buffer);
+		result = sscanf(input, "%f", (float *) scan_buffer);
 		break;
 	case PARSE_DOUBLE:
-		result = sscanf(input, "%lf", (dvec_t *) scan_buffer);
+		result = sscanf(input, "%lf", (double *) scan_buffer);
 		break;
 	default:
 		result = 0;

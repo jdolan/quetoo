@@ -23,7 +23,7 @@
 
 #if 0
 
-static matrix4x4_t r_texture_matrix;
+static mat4_t r_texture_matrix;
 
 #define UPDATE_TICKS 16
 
@@ -140,10 +140,10 @@ static void R_StageLighting(const r_bsp_face_t *surf, const r_stage_t *stage) {
 /**
  * @brief Generates a single vertex for the specified stage.
  */
-static void R_StageVertex(const r_bsp_face_t *surf, const r_stage_t *stage, const vec3_t in, vec3_t out) {
+static void R_StageVertex(const r_bsp_face_t *surf, const r_stage_t *stage, const vec3_t in, vec3_t *out) {
 
 	// TODO: vertex deformation
-	VectorCopy(in, out);
+	*out = in;
 }
 
 /**
@@ -152,7 +152,7 @@ static void R_StageVertex(const r_bsp_face_t *surf, const r_stage_t *stage, cons
  */
 static void R_StageTextureMatrix(const r_bsp_face_t *surf, const r_stage_t *stage) {
 	static _Bool identity = true;
-	vec_t s, t;
+	float s, t;
 
 	if (!(stage->cm->flags & STAGE_TEXTURE_MATRIX)) {
 
@@ -213,8 +213,8 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 
 	if (stage->cm->flags & STAGE_ENVMAP) { // generate texcoords
 
-		VectorSubtract(v, r_view.origin, tmp);
-		VectorNormalize(tmp);
+		tmp = Vec3_Subtract(v, r_view.origin);
+		tmp = Vec3_Normalize(tmp);
 
 		out[0] = tmp[0];
 		out[1] = tmp[1];
@@ -227,7 +227,7 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 }
 
 #define NUM_DIRTMAP_ENTRIES 16
-static const vec_t dirtmap[NUM_DIRTMAP_ENTRIES] = {
+static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
 	0.6,
 	0.5,
 	0.3,
@@ -251,14 +251,14 @@ static const vec_t dirtmap[NUM_DIRTMAP_ENTRIES] = {
  */
 static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, u8vec4_t color) {
 
-	vec_t a;
+	float a;
 
 	if (stage->cm->flags & STAGE_TERRAIN) {
 
 		if (stage->cm->flags & STAGE_COLOR) { // honor stage color
 			ColorDecompose3(stage->cm->color, color);
 		} else { // or use white
-			VectorSet(color, 255, 255, 255);
+			color = vec3(255, 255, 255);
 		}
 
 		// resolve alpha for vert based on z axis height
@@ -270,7 +270,7 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, u8vec4_t
 			a = (v[2] - stage->cm->terrain.floor) / stage->cm->terrain.height;
 		}
 
-		color[3] = (u8vec_t) (a * 255.0);
+		color[3] = (u8float) (a * 255.0);
 	} else if (stage->cm->flags & STAGE_DIRTMAP) {
 
 		// resolve dirtmap based on vertex position
@@ -280,10 +280,10 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, u8vec4_t
 		} else
 			// or use white
 		{
-			VectorSet(color, 255, 255, 255);
+			color = vec3(255, 255, 255);
 		}
 
-		color[3] = (u8vec_t) (dirtmap[index] * stage->cm->dirt.intensity);
+		color[3] = (u8float) (dirtmap[index] * stage->cm->dirt.intensity);
 	} else { // simply use white
 		color[0] = color[1] = color[2] = color[3] = 255;
 	}
@@ -318,13 +318,13 @@ static void R_SetStageState(const r_bsp_face_t *surf, const r_stage_t *stage) {
 
 		// resolve the shade color
 		if (stage->cm->mesh_color) { // explicit
-			VectorCopy(r_mesh_state.color, color);
+			color = r_mesh_state.color;
 		} else if (stage->cm->flags & STAGE_COLOR) { // explicit
-			VectorCopy(stage->cm->color, color);
+			color = stage->cm->color;
 		} else if (stage->cm->flags & STAGE_ENVMAP) { // implicit
-			VectorCopy(surf->texinfo->material->diffuse->color, color);
+			color = surf->texinfo->material->diffuse->color;
 		} else {
-			VectorSet(color, 1.0, 1.0, 1.0);
+			color = vec3(1.0, 1.0, 1.0);
 		}
 
 		// modulate the alpha value for pulses
@@ -333,8 +333,6 @@ static void R_SetStageState(const r_bsp_face_t *surf, const r_stage_t *stage) {
 		} else {
 			color[3] = 1.0;
 		}
-
-		R_Color(color);
 	}
 
 	if (stage->cm->flags & STAGE_FOG) {
@@ -376,9 +374,9 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_face_t *surf, const r_stag
 		}
 
 		if (r_state.lighting_enabled) { // normals and tangents
-			VectorCopy(in->normal, out->normal);
-			VectorCopy(in->tangent, out->tangent);
-			VectorCopy(in->bitangent, out->bitangent);
+			out->normal = in->normal;
+			out->tangent = in->tangent;
+			out->bitangent = in->bitangent;
 		}
 	}
 
@@ -416,7 +414,7 @@ void R_DrawMaterialBspFaces(const r_bsp_faces_t *surfs) {
 
 		R_UpdateMaterial(m);
 
-		vec_t j = -10.0;
+		float j = -10.0;
 		for (r_stage_t *s = m->stages; s; s = s->next, j -= 10.0) {
 
 			if (!(s->cm->flags & STAGE_DIFFUSE)) {
@@ -479,7 +477,7 @@ void R_DrawMaterialBspFaces(const r_bsp_faces_t *surfs) {
 
 		r_material_t *m = surf->texinfo->material;
 
-		vec_t j = R_OFFSET_UNITS;
+		float j = R_OFFSET_UNITS;
 		for (const r_stage_t *s = m->stages; s; s = s->next, j += R_OFFSET_UNITS) {
 
 			if (!(s->cm->flags & STAGE_DIFFUSE)) {
@@ -517,8 +515,6 @@ void R_DrawMaterialBspFaces(const r_bsp_faces_t *surfs) {
 	R_UseMaterial(NULL);
 
 	R_EnableLighting(false);
-
-	R_Color(NULL);
 }
 
 /**
@@ -546,7 +542,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	R_EnablePolygonOffset(true);
 
 	r_stage_t *s = m->stages;
-	for (vec_t j = R_OFFSET_UNITS; s; s = s->next, j += R_OFFSET_UNITS) {
+	for (float j = R_OFFSET_UNITS; s; s = s->next, j += R_OFFSET_UNITS) {
 
 		if (!(s->cm->flags & STAGE_DIFFUSE)) {
 			continue;

@@ -23,7 +23,7 @@
 
 #ifdef __CG_LOCAL_H__
 
-#define PARTICLE_GRAVITY 180.0
+#define PARTICLE_GRAVITY 180.f
 
 #define PARTICLE_FRAME 16
 
@@ -60,17 +60,17 @@ typedef struct cg_particle_s {
 	/**
 	 * @brief The particle scale, in world units.
 	 */
-	vec_t size;
+	float size;
 
 	/**
 	 * @brief The size to add each frame.
 	 */
-	vec_t delta_size;
+	float delta_size;
 
 	/**
 	 * @brief Collide with solids.
 	 */
-	vec_t bounce;
+	float bounce;
 
 	/**
 	 * @brief The client time when the particle was allocated.

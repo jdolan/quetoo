@@ -53,8 +53,6 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID_SIZE)
 };
 
-#if SDL_BYTEORDER != SDL_LIL_ENDIAN
-
 /**
  * @brief Table of swap functions.
  */
@@ -69,10 +67,8 @@ static void Bsp_SwapTexinfos(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		for (int32_t j = 0; j < 4; j++) {
-			texinfo->vecs[0][j] = LittleFloat(texinfo->vecs[0][j]);
-			texinfo->vecs[1][j] = LittleFloat(texinfo->vecs[1][j]);
-		}
+		texinfo->vecs[0] = LittleVec4(texinfo->vecs[0]);
+		texinfo->vecs[1] = LittleVec4(texinfo->vecs[1]);
 
 		texinfo->flags = LittleLong(texinfo->flags);
 		texinfo->value = LittleLong(texinfo->value);
@@ -90,10 +86,7 @@ static void Bsp_SwapPlanes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		for (int32_t j = 0; j < 3; j++) {
-			plane->normal[j] = LittleFloat(plane->normal[j]);
-		}
-
+		plane->normal = LittleVec3(plane->normal);
 		plane->dist = LittleFloat(plane->dist);
 
 		plane++;
@@ -142,17 +135,13 @@ static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		for (int32_t j = 0; j < 3; j++) {
-			vertex->position[j] = LittleFloat(vertex->position[j]);
-			vertex->normal[j] = LittleFloat(vertex->normal[j]);
-			vertex->tangent[j] = LittleFloat(vertex->tangent[j]);
-			vertex->bitangent[j] = LittleFloat(vertex->bitangent[j]);
-		}
+		vertex->position = LittleVec3(vertex->position);
+		vertex->normal = LittleVec3(vertex->normal);
+		vertex->tangent = LittleVec3(vertex->tangent);
+		vertex->bitangent = LittleVec3(vertex->bitangent);
 
-		for (int32_t j = 0; j < 2; j++) {
-			vertex->diffuse[j] = LittleFloat(vertex->diffuse[j]);
-			vertex->lightmap[j] = LittleFloat(vertex->diffuse[j]);
-		}
+		vertex->diffuse = LittleVec2(vertex->diffuse);
+		vertex->lightmap = LittleVec2(vertex->diffuse);
 
 		vertex->texinfo = LittleLong(vertex->texinfo);
 
@@ -201,12 +190,11 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
  */
 static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 
-	bsp_draw_elements_t *draw = (int32_t *) lump;
+	bsp_draw_elements_t *draw = (bsp_draw_elements_t *) lump;
 
 	for (int32_t i = 0; i < num; i++) {
 
 		draw->texinfo = LittleLong(draw->texinfo);
-		draw->lightmap = LittleLong(draw->lightmap);
 		draw->first_element = LittleLong(draw->first_element);
 		draw->num_elements = LittleLong(draw->num_elements);
 
@@ -227,10 +215,8 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 		node->children[0] = LittleLong(node->children[0]);
 		node->children[1] = LittleLong(node->children[1]);
 
-		for (int32_t j = 0; j < 3; j++) {
-			node->mins[j] = LittleShort(node->mins[j]);
-			node->maxs[j] = LittleShort(node->maxs[j]);
-		}
+		node->mins = LittleVec3s(node->mins);
+		node->maxs = LittleVec3s(node->maxs);
 
 		node->first_face = LittleLong(node->first_face);
 		node->num_faces = LittleLong(node->num_faces);
@@ -276,10 +262,8 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 		leaf->cluster = LittleLong(leaf->cluster);
 		leaf->area = LittleLong(leaf->area);
 
-		for (int32_t j = 0; j < 3; j++) {
-			leaf->mins[j] = LittleShort(leaf->mins[j]);
-			leaf->maxs[j] = LittleShort(leaf->maxs[j]);
-		}
+		leaf->mins = LittleVec3s(leaf->mins);
+		leaf->maxs = LittleVec3s(leaf->maxs);
 
 		leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
 		leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
@@ -302,11 +286,8 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 		model->head_node = LittleLong(model->head_node);
 
-		for (int32_t j = 0; j < 3; j++) {
-			model->mins[j] = LittleShort(model->mins[j]);
-			model->maxs[j] = LittleShort(model->maxs[j]);
-			model->origin[j] = LittleFloat(model->origin[j]);
-		}
+		model->mins = LittleVec3s(model->mins);
+		model->maxs = LittleVec3s(model->maxs);
 
 		model->first_face = LittleLong(model->first_face);
 		model->num_faces = LittleLong(model->num_faces);
@@ -373,7 +354,7 @@ static void Bsp_SwapLightmap(void *lump, const int32_t num) {
 
 	bsp_lightmap_t *lightmap = (bsp_lightmap_t *) lump;
 
-	lightmap->lump = LittleLong(lightmap->lump);
+	lightmap->width = LittleLong(lightmap->width);
 }
 
 /**
@@ -383,34 +364,42 @@ static void Bsp_SwapLightgrid(void *lump, const int32_t num) {
 
 	bsp_lightgrid_t *lightgrid = (bsp_lightgrid_t *) lump;
 
-	for (int32_t i = 0; i < 3; i++) {
-		lightgrid->size[i] = LittleLong(lightgrid->size[i]);
-	}
+	lightgrid->size = LittleVec3i(lightgrid->size);
 }
 
+/**
+ * @brief Swap entry point.
+ */
+static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count) {
 
-static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
-	NULL,
-	Bsp_SwapTexinfos,
-	Bsp_SwapPlanes,
-	Bsp_SwapBrushSides,
-	Bsp_SwapBrushes,
-	Bsp_SwapVertexes,
-	Bsp_SwapElements,
-	Bsp_SwapFaces,
-	Bsp_SwapDrawElements,
-	Bsp_SwapNodes,
-	Bsp_SwapLeafBrushes,
-	Bsp_SwapLeafFaces,
-	Bsp_SwapLeafs,
-	Bsp_SwapModels,
-	Bsp_SwapAreaPortals,
-	Bsp_SwapAreas,
-	Bsp_SwapVis,
-	Bsp_SwapLightmap,
-	Bsp_SwapLightgrid,
-};
+	const Bsp_SwapFunction swap[BSP_LUMP_LAST] = {
+		NULL,
+		Bsp_SwapTexinfos,
+		Bsp_SwapPlanes,
+		Bsp_SwapBrushSides,
+		Bsp_SwapBrushes,
+		Bsp_SwapVertexes,
+		Bsp_SwapElements,
+		Bsp_SwapFaces,
+		Bsp_SwapDrawElements,
+		Bsp_SwapNodes,
+		Bsp_SwapLeafBrushes,
+		Bsp_SwapLeafFaces,
+		Bsp_SwapLeafs,
+		Bsp_SwapModels,
+		Bsp_SwapAreaPortals,
+		Bsp_SwapAreas,
+		Bsp_SwapVis,
+		Bsp_SwapLightmap,
+		Bsp_SwapLightgrid,
+	};
+
+	if (swap[lump_id]) {
+#if SDL_BYTEORDER != SDL_LIL_ENDIAN
+		swap[lump_id](lump, count);
 #endif
+	}
+}
 
 /**
  * @brief Calculates the effective size of the BSP file.
@@ -589,23 +578,15 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 
 	if (*lump_count) {
 		*lump_data = Mem_TagMalloc(lump.file_len, MEM_TAG_BSP | (lump_id << 16));
-	} else {
-		*lump_data = NULL;
-	}
 
-	// blit the data into memory
-	if (lump.file_ofs && lump.file_len) {
+		// blit the data into memory
+		if (lump.file_ofs && lump.file_len) {
+			const byte *src = ((byte *) file) + lump.file_ofs;
 
-		const byte *file_lump = ((byte *) file) + lump.file_ofs;
+			memcpy(*lump_data, src, lump.file_len);
 
-		memcpy(*lump_data, file_lump, lump.file_len);
-
-#if SDL_BYTEORDER != SDL_LIL_ENDIAN
-		// swap the lump if required
-		if (bsp_swap_funcs[lump_id]) {
-			bsp_swap_funcs[lump_id](*lump_data, *lump_count);
+			Bsp_SwapLump(lump_id, *lump_data, *lump_count);
 		}
-#endif
 	}
 
 	bsp->loaded_lumps |= (bsp_lump_id_t) (1 << lump_id);

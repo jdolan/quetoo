@@ -25,4 +25,4 @@
 
 GList *Cm_LoadEntities(const char *entity_string);
 const char *Cm_EntityValue(const cm_entity_t *entity, const char *key);
-size_t Cm_EntityVector(const cm_entity_t *entity, const char *key, vec_t *out, size_t count);
+size_t Cm_EntityVector(const cm_entity_t *entity, const char *key, float *out, size_t count);

@@ -50,10 +50,7 @@ void FreeNode(node_t *node) {
  */
 tree_t *AllocTree(void) {
 
-	tree_t *tree = Mem_TagMalloc(sizeof(*tree), MEM_TAG_TREE);
-	ClearBounds(tree->mins, tree->maxs);
-
-	return tree;
+	return Mem_TagMalloc(sizeof(tree_t), MEM_TAG_TREE);
 }
 
 /**
@@ -435,6 +432,9 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 
 	tree_t *tree = AllocTree();
 
+	tree->mins = Vec3_Mins();
+	tree->maxs = Vec3_Maxs();
+
 	int32_t c_brushes = 0;
 	int32_t c_vis_faces = 0;
 	int32_t c_non_vis_faces = 0;
@@ -442,7 +442,7 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 	for (csg_brush_t *b = brushes; b; b = b->next) {
 		c_brushes++;
 
-		const vec_t volume = BrushVolume(b);
+		const float volume = BrushVolume(b);
 		if (volume < micro_volume) {
 			Mon_SendSelect(MON_WARN, b->original->entity_num, b->original->brush_num, "Micro volume");
 		}
@@ -464,21 +464,18 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 			}
 		}
 
-		AddPointToBounds(b->mins, tree->mins, tree->maxs);
-		AddPointToBounds(b->maxs, tree->mins, tree->maxs);
+		tree->mins = Vec3_Minf(tree->mins, b->mins);
+		tree->maxs = Vec3_Maxf(tree->maxs, b->maxs);
 	}
 
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", c_brushes);
 	Com_Debug(DEBUG_ALL, "%5i visible faces\n", c_vis_faces);
 	Com_Debug(DEBUG_ALL, "%5i nonvisible faces\n", c_non_vis_faces);
 
-	node_t *node = AllocNode();
+	tree->head_node = AllocNode();
+	tree->head_node->volume = BrushFromBounds(mins, maxs);
 
-	node->volume = BrushFromBounds(mins, maxs);
-
-	tree->head_node = node;
-
-	node = BuildTree_r(node, brushes);
+	BuildTree_r(tree->head_node, brushes);
 
 	return tree;
 }

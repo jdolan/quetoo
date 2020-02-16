@@ -104,14 +104,17 @@ csg_brush_t *CopyBrush(const csg_brush_t *brush) {
  */
 static void SetBrushBounds(csg_brush_t *brush) {
 
-	ClearBounds(brush->mins, brush->maxs);
+	brush->mins = Vec3_Mins();
+	brush->maxs = Vec3_Maxs();
+
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		const cm_winding_t *w = brush->sides[i].winding;
 		if (!w) {
 			continue;
 		}
 		for (int32_t j = 0; j < w->num_points; j++) {
-			AddPointToBounds(w->points[j], brush->mins, brush->maxs);
+			brush->mins = Vec3_Minf(brush->mins, w->points[j]);
+			brush->maxs = Vec3_Maxf(brush->maxs, w->points[j]);
 		}
 	}
 }
@@ -155,13 +158,13 @@ csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs) {
 
 	for (int32_t i = 0; i < 3; i++) {
 		vec3_t normal;
-		VectorClear(normal);
+		normal = Vec3_Zero();
 
-		normal[i] = 1;
-		b->sides[i].plane_num = FindPlane(normal, maxs[i]);
+		normal.xyz[i] = 1;
+		b->sides[i].plane_num = FindPlane(normal, maxs.xyz[i]);
 
-		normal[i] = -1;
-		b->sides[3 + i].plane_num = FindPlane(normal, -mins[i]);
+		normal.xyz[i] = -1;
+		b->sides[3 + i].plane_num = FindPlane(normal, -mins.xyz[i]);
 	}
 
 	CreateBrushWindings(b);
@@ -171,7 +174,7 @@ csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs) {
 /**
  * @brief
  */
-vec_t BrushVolume(csg_brush_t *brush) {
+float BrushVolume(csg_brush_t *brush) {
 	int32_t i;
 	vec3_t corner;
 
@@ -192,19 +195,19 @@ vec_t BrushVolume(csg_brush_t *brush) {
 		return 0;
 	}
 
-	VectorCopy(w->points[0], corner);
+	corner = w->points[0];
 
 	// make tetrahedrons to all other faces
 
-	vec_t volume = 0.0;
+	float volume = 0.0;
 	for (; i < brush->num_sides; i++) {
 		w = brush->sides[i].winding;
 		if (!w) {
 			continue;
 		}
 		plane_t *plane = &planes[brush->sides[i].plane_num];
-		const vec_t d = -(DotProduct(corner, plane->normal) - plane->dist);
-		const vec_t area = Cm_WindingArea(w);
+		const float d = -(Vec3_Dot(corner, plane->normal) - plane->dist);
+		const float area = Cm_WindingArea(w);
 		volume += d * area;
 	}
 
@@ -215,15 +218,15 @@ vec_t BrushVolume(csg_brush_t *brush) {
 /**
  * @return SIDE_FRONT, SIDE_BACK, or SIDE_BOTH
  */
-static int32_t BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t *plane) {
+static int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const plane_t *plane) {
 	int32_t side = 0;
 
 	// axial planes are easy
 	if (AXIAL(plane)) {
-		if (plane->dist - SIDE_EPSILON <= mins[plane->type]) {
+		if (plane->dist - SIDE_EPSILON <= mins.xyz[plane->type]) {
 			return SIDE_FRONT;
 		}
-		if (plane->dist + SIDE_EPSILON >= maxs[plane->type]) {
+		if (plane->dist + SIDE_EPSILON >= maxs.xyz[plane->type]) {
 			return SIDE_BACK;
 		}
 		return SIDE_BOTH;
@@ -232,17 +235,17 @@ static int32_t BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t *plane) {
 
 	vec3_t corners[2];
 	for (int32_t i = 0; i < 3; i++) {
-		if (plane->normal[i] < 0) {
-			corners[0][i] = mins[i];
-			corners[1][i] = maxs[i];
+		if (plane->normal.xyz[i] < 0) {
+			corners[0].xyz[i] = mins.xyz[i];
+			corners[1].xyz[i] = maxs.xyz[i];
 		} else {
-			corners[1][i] = mins[i];
-			corners[0][i] = maxs[i];
+			corners[1].xyz[i] = mins.xyz[i];
+			corners[0].xyz[i] = maxs.xyz[i];
 		}
 	}
 
-	const dvec_t dist1 = DotProduct(plane->normal, corners[0]) - plane->dist;
-	const dvec_t dist2 = DotProduct(plane->normal, corners[1]) - plane->dist;
+	const double dist1 = Vec3_Dot(plane->normal, corners[0]) - plane->dist;
+	const double dist2 = Vec3_Dot(plane->normal, corners[1]) - plane->dist;
 
 	if (dist1 >= SIDE_EPSILON) {
 		side |= SIDE_FRONT;
@@ -285,7 +288,7 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 	}
 
 	// if both sides, count the visible faces split
-	dvec_t d_front = 0.0, d_back = 0.0;
+	double d_front = 0.0, d_back = 0.0;
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		if (brush->sides[i].texinfo == TEXINFO_NODE) {
@@ -302,7 +305,7 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 		int32_t front = 0, back = 0;
 
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const dvec_t d = DotProduct(w->points[j], plane->normal) - plane->dist;
+			const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
 			if (d > d_front) {
 				d_front = d;
 			}
@@ -339,7 +342,7 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
  */
 static int32_t BrushMostlyOnSide(csg_brush_t *brush, plane_t *plane) {
 
-	dvec_t max = 0.0;
+	double max = 0.0;
 	int32_t side = SIDE_FRONT;
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
@@ -348,7 +351,7 @@ static int32_t BrushMostlyOnSide(csg_brush_t *brush, plane_t *plane) {
 			continue;
 		}
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const dvec_t d = DotProduct(w->points[j], plane->normal) - plane->dist;
+			const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
 			if (d > max) {
 				max = d;
 				side = SIDE_FRONT;
@@ -374,14 +377,14 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 	plane_t *plane = &planes[plane_num];
 
 	// check all points
-	dvec_t d_front = 0.0, d_back = 0.0;
+	double d_front = 0.0, d_back = 0.0;
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		cm_winding_t *w = brush->sides[i].winding;
 		if (!w) {
 			continue;
 		}
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const dvec_t d = DotProduct(w->points[j], plane->normal) - plane->dist;
+			const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
 			if (d > 0.0 && d > d_front) {
 				d_front = d;
 			}
@@ -463,7 +466,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 		SetBrushBounds(cb[i]);
 		int32_t j;
 		for (j = 0; j < 3; j++) {
-			if (cb[i]->mins[j] < MIN_WORLD_COORD || cb[i]->maxs[j] > MAX_WORLD_COORD) {
+			if (cb[i]->mins.xyz[j] < MIN_WORLD_COORD || cb[i]->maxs.xyz[j] > MAX_WORLD_COORD) {
 				Com_Debug(DEBUG_ALL, "bogus brush after clip\n");
 				break;
 			}
@@ -509,7 +512,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 	}
 
 	for (int32_t i = 0; i < 2; i++) {
-		const vec_t v1 = BrushVolume(cb[i]);
+		const float v1 = BrushVolume(cb[i]);
 		if (v1 < 1.0) {
 			FreeBrush(cb[i]);
 			cb[i] = NULL;

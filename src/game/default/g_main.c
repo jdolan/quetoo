@@ -153,9 +153,9 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
 
 	team->color = color;
 
-	ColorFromHex(tint, &team->shirt);
-	ColorFromHex(tint, &team->pants);
-	ColorFromHex(tint, &team->helmet);
+	ColorParse(tint, &team->shirt);
+	ColorParse(tint, &team->pants);
+	ColorParse(tint, &team->helmet);
 
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 
@@ -290,7 +290,7 @@ void G_CheckHook(void) {
 	}
 
 	if (g_hook_distance->modified) {
-		g_hook_distance->value = Clamp(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
+		g_hook_distance->value = Clampf(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
 		g_hook_distance->modified = false;
 	}
 }
@@ -500,8 +500,8 @@ static void G_BeginIntermission(const char *map) {
 		}
 	}
 
-	VectorCopy(ent->s.origin, g_level.intermission_origin);
-	VectorCopy(ent->s.angles, g_level.intermission_angle);
+	g_level.intermission_origin = ent->s.origin;
+	g_level.intermission_angle = ent->s.angles;
 
 	// move all clients to the intermission point
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
@@ -1023,7 +1023,7 @@ static void G_CheckRules(void) {
 	if (g_friendly_fire->modified) {
 		g_friendly_fire->modified = false;
 
-		gi.SetCvarValue(g_friendly_fire->name, Clamp(g_friendly_fire->value, 0.0, 4.0));
+		gi.SetCvarValue(g_friendly_fire->name, Clampf(g_friendly_fire->value, 0.0, 4.0));
 
 		gi.BroadcastPrint(PRINT_HIGH, "Friendly fire has been changed to %g\n",
 		                  g_friendly_fire->value);
@@ -1032,7 +1032,7 @@ static void G_CheckRules(void) {
 	if (g_self_damage->modified) {
 		g_self_damage->modified = false;
 
-		gi.SetCvarValue(g_self_damage->name, Clamp(g_self_damage->value, 0.0, 4.0));
+		gi.SetCvarValue(g_self_damage->name, Clampf(g_self_damage->value, 0.0, 4.0));
 
 		gi.BroadcastPrint(PRINT_HIGH, "Self damage has been changed to %g\n",
 		                  g_self_damage->value);
@@ -1073,7 +1073,7 @@ static void G_CheckRules(void) {
 		if (!g_strcmp0(g_num_teams->string, "default")) {
 			num_teams = -1; // G_InitNumTeams will pick this up
 		} else {
-			num_teams = Clamp(g_num_teams->integer, 2, MAX_TEAMS);
+			num_teams = Clampf(g_num_teams->integer, 2, MAX_TEAMS);
 		}
 
 		if (g_level.num_teams != num_teams) {
@@ -1362,7 +1362,7 @@ void G_InitNumTeams(void) {
 			g_level.num_teams++;
 		}
 
-		g_level.num_teams = Clamp(g_level.num_teams, 2, MAX_TEAMS);
+		g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
 	}
 
 	gi.SetConfigString(CS_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));

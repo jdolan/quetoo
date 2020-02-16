@@ -24,76 +24,12 @@
 
 #include "shared.h"
 
-START_TEST(check_DotProduct) {
-
-	const vec_t dot = DotProduct(vec3_up, vec3_down);
-	ck_assert(dot == -1.0);
-
-} END_TEST
-
-START_TEST(check_TriangleArea) {
-	vec3_t a, b, c;
-
-	VectorSet(a, 0, 0, 0);
-	VectorSet(b, 0, 1, 0);
-	VectorSet(c, 1, 1, 0);
-
-	const vec_t area = TriangleArea(a, b, c);
-	ck_assert(area == 0.5);
-
-} END_TEST
-
-START_TEST(check_BarycentricCoordinates) {
-	vec3_t a, b, c, p, out;
-
-	VectorSet(a, 0, 0, 0);
-	VectorSet(b, 0, 1, 0);
-	VectorSet(c, 1, 1, 0);
-
-	VectorSet(p, 0, 0, 0);
-
-	BarycentricCoordinates(a, b, c, p, out);
-//	puts(vtos(out));
-	ck_assert(out[0] == 1);
-	ck_assert(out[1] == 0);
-	ck_assert(out[2] == 0);
-
-	VectorSet(p, 0, 1, 0);
-
-	BarycentricCoordinates(a, b, c, p, out);
-//	puts(vtos(out));
-	ck_assert(out[0] == 0);
-	ck_assert(out[1] == 1);
-	ck_assert(out[2] == 0);
-
-	VectorSet(p, 1, 1, 0);
-
-	BarycentricCoordinates(a, b, c, p, out);
-//	puts(vtos(out));
-	ck_assert(out[0] == 0);
-	ck_assert(out[1] == 0);
-	ck_assert(out[2] == 1);
-
-	VectorSet(p, 0.5, 0.5, 0);
-
-	BarycentricCoordinates(a, b, c, p, out);
-//	puts(vtos(out));
-	ck_assert(out[0] == 0.5);
-	ck_assert(out[1] == 0);
-	ck_assert(out[2] == 0.5);
-
-} END_TEST
-
 /**
  * @brief Test entry point.
  */
 int32_t main(int32_t argc, char **argv) {
 
 	TCase *tcase = tcase_create("check_shared");
-
-	tcase_add_test(tcase, check_DotProduct);
-	tcase_add_test(tcase, check_TriangleArea);
-	tcase_add_test(tcase, check_BarycentricCoordinates);
 
 	Suite *suite = suite_create("check_shared");
 	suite_add_tcase(suite, tcase);

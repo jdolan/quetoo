@@ -43,40 +43,40 @@ typedef struct {
 } cm_stage_blend_t;
 
 typedef struct {
-	vec_t hz;
+	float hz;
 } cm_stage_pulse_t;
 
 typedef struct {
-	vec_t hz;
-	vec_t amp;
+	float hz;
+	float amp;
 } cm_stage_stretch_t;
 
 typedef struct {
-	vec_t hz;
+	float hz;
 } cm_stage_rotate_t;
 
 typedef struct {
-	vec_t s, t;
+	float s, t;
 } cm_stage_scroll_t;
 
 typedef struct {
-	vec_t s, t;
+	float s, t;
 } cm_stage_scale_t;
 
 typedef struct {
-	vec_t floor, ceil;
-	vec_t height;
+	float floor, ceil;
+	float height;
 } cm_stage_terrain_t;
 
 typedef struct {
-	vec_t intensity;
+	float intensity;
 } cm_stage_dirt_t;
 
 // frame based material animation, lerp between consecutive images
 typedef struct {
 	int32_t num_frames;
 	cm_asset_t *frames;
-	vec_t fps;
+	float fps;
 } cm_stage_anim_t;
 
 typedef enum {
@@ -201,27 +201,27 @@ typedef struct cm_material_s {
 	/**
 	 * @brief Light emission applied to surfaces referencing this material.
 	 */
-	vec_t light;
+	float light;
 
 	/**
 	 * @brief The bump factor to use for the normal map.
 	 */
-	vec_t bump;
+	float bump;
 
 	/**
 	 * @brief The hardness factor to use for the normal map.
 	 */
-	vec_t hardness;
+	float hardness;
 
 	/**
 	 * @brief The specular factor to use for the specular map.
 	 */
-	vec_t specular;
+	float specular;
 
 	/**
 	 * @brief The parallel factor to use for the normal map.
 	 */
-	vec_t parallax;
+	float parallax;
 
 	/**
 	 * @brief The name for the footstep sounds to query on this surface

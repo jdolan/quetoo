@@ -29,7 +29,7 @@
  */
 typedef struct plane_s {
 	vec3_t normal;
-	dvec_t dist;
+	double dist;
 	int32_t type;
 	struct plane_s *hash_chain;
 } plane_t;
@@ -38,9 +38,9 @@ typedef struct plane_s {
  * @brief The map file representation of texture attributes.
  */
 typedef struct {
-	vec_t shift[2];
-	vec_t rotate;
-	vec_t scale[2];
+	vec2_t shift;
+	float rotate;
+	vec2_t scale;
 	char name[32];
 	int32_t flags;
 	int32_t value;
@@ -77,7 +77,7 @@ void FreeBrush(csg_brush_t *brush);
 void FreeBrushes(csg_brush_t *brushes);
 size_t CountBrushes(csg_brush_t *brushes);
 csg_brush_t *CopyBrush(const csg_brush_t *brush);
-vec_t BrushVolume(csg_brush_t *brush);
+float BrushVolume(csg_brush_t *brush);
 csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs);
 int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_splits, _Bool *hint_split, int32_t *epsilon_brush);
 void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_brush_t **back);

@@ -117,9 +117,9 @@ static void Con_Dump_f(void) {
 		while (list) {
 			const char *c = ((console_string_t *) list->data)->chars;
 			while (*c) {
-				if (IS_COLOR(c)) {
+				if (StrIsColor(c)) {
 					c++;
-				} else if (!IS_LEGACY_COLOR(c)) {
+				} else {
 					if (Fs_Write(file, c, 1, 1) != 1) {
 						fputs("Failed to dump console\n", stderr);
 						break;
@@ -213,7 +213,7 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 
 	size_t count = 0;
 
-	int8_t wrap_color = CON_COLOR_DEFAULT, color = CON_COLOR_DEFAULT;
+	int8_t wrap_color = ESC_COLOR_DEFAULT, color = ESC_COLOR_DEFAULT;
 
 	const char *line = chars;
 	while (*line) {
@@ -229,12 +229,9 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 				break;
 			}
 
-			if (IS_COLOR(c)) {
+			if (StrIsColor(c)) {
 				color = *(c + 1) - '0';
 				c += 2;
-			} else if (IS_LEGACY_COLOR(c)) {
-				color = CON_COLOR_ALT;
-				c += 1;
 			} else {
 				c++;
 				width++;
@@ -256,7 +253,7 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 		if (lines) {
 			if (count < max_lines) {
 				lines[count] = g_malloc((eol - line) + 3);
-				lines[count][0] = COLOR_ESC;
+				lines[count][0] = ESC_COLOR;
 				lines[count][1] = wrap_color + '0';
 				lines[count][2] = '\0';
 				strncat(lines[count], line, eol - line);
@@ -443,8 +440,8 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
 	}
 
 	// calculate # that can fit in a row
-	const size_t per_row = Max(console->width / widest, 1u);
-	const size_t num_rows = Max(num_matches / per_row, 1u);
+	const size_t per_row = Maxf(console->width / widest, 1u);
+	const size_t num_rows = Maxf(num_matches / per_row, 1u);
 
 	// simple path
 	if (per_row == 1 || (!all_simple && num_rows == 1)) {

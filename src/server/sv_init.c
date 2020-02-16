@@ -54,7 +54,7 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bo
 		Net_WriteByte(&sv.multicast, SV_CMD_CONFIG_STRING);
 		Net_WriteShort(&sv.multicast, start + i);
 		Net_WriteString(&sv.multicast, name);
-		Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
+		Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R, NULL);
 	}
 
 	return i;
@@ -156,7 +156,7 @@ static void Sv_UpdateLatchedVars(void) {
 
 	Cvar_UpdateLatched();
 
-	sv_max_clients->integer = Clamp(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
+	sv_max_clients->integer = Clampf(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
 
 	cm_no_areas = sv_no_areas->integer;
 	cm_no_vis = sv_no_vis->integer;

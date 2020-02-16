@@ -25,7 +25,7 @@
  * @brief Local state to the cgame per server.
  */
 typedef struct {
-	vec_t hook_pull_speed;
+	float hook_pull_speed;
 } cg_state_t;
 
 static cg_state_t cg_state;
@@ -345,7 +345,7 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
 /**
  * @brief Fetch the server's reported hook pull speed.
  */
-vec_t Cg_GetHookPullSpeed(void) {
+float Cg_GetHookPullSpeed(void) {
 
 	return cg_state.hook_pull_speed;
 }
@@ -387,7 +387,7 @@ static void Cg_ParseTeamInfo(const char *s) {
 
 		const int16_t hue = atoi(info[i + 1]);
 		const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
-		team->color.abgr = *(int32_t *) &color;
+		team->color.rgba = *(int32_t *) &color;
 	}
 
 	g_strfreev(info);

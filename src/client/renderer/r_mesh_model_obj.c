@@ -88,8 +88,6 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	mod->mesh = out = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
 	out->num_frames = 1;
 
-	ClearBounds(mod->mins, mod->maxs);
-
 	r_obj_t obj = {
 		.v = g_array_new(FALSE, FALSE, sizeof(vec3_t)),
 		.vt = g_array_new(FALSE, FALSE, sizeof(vec2_t)),
@@ -108,18 +106,19 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 		vec3_t vec;
 		if (strncmp("v ", line, strlen("v ")) == 0) {
-			if (sscanf(line, "v %f %f %f", &vec[0], &vec[2], &vec[1]) == 3) {
-				AddPointToBounds(vec, mod->mins, mod->maxs);
+			if (sscanf(line, "v %f %f %f", &vec.x, &vec.z, &vec.y) == 3) {
+				mod->mins = Vec3_Minf(mod->mins, vec);
+				mod->maxs = Vec3_Maxf(mod->maxs, vec);
 				g_array_append_val(obj.v, vec);
 			}
 		} else if (strncmp("vt ", line, strlen("vt ")) == 0) {
-			if (sscanf(line, "vt %f %f", &vec[0], &vec[1]) == 2) {
-				vec[1] = -vec[1];
+			if (sscanf(line, "vt %f %f", &vec.x, &vec.y) == 2) {
+				vec.y = -vec.y;
 				g_array_append_val(obj.vt, vec);
 			}
 		} else if (strncmp("vn ", line, strlen("vn ")) == 0) {
-			if (sscanf(line, "vn %f %f %f", &vec[0], &vec[2], &vec[1]) == 3) {
-				VectorNormalize(vec);
+			if (sscanf(line, "vn %f %f %f", &vec.x, &vec.z, &vec.y) == 3) {
+				vec = Vec3_Normalize(vec);
 				g_array_append_val(obj.vn, vec);
 			}
 		} else if (strncmp("g ", line, strlen("g ")) == 0) {
@@ -182,9 +181,9 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 				r_mesh_vertex_t v = { 0 };
 
-				VectorCopy(g_array_index(obj.v, vec3_t, fv->v - 1), v.position);
-				Vector2Copy(g_array_index(obj.vt, vec2_t, fv->vt - 1), v.diffuse);
-				VectorCopy(g_array_index(obj.vn, vec3_t, fv->vn - 1), v.normal);
+				v.position = g_array_index(obj.v, vec3_t, fv->v - 1);
+				v.diffuse = g_array_index(obj.vt, vec2_t, fv->vt - 1);
+				v.normal = g_array_index(obj.vn, vec3_t, fv->vn - 1);
 
 				fv->el = R_FindOrAppendObjVertex(face, &v);
 			}

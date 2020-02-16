@@ -244,5 +244,6 @@ void Com_QuitSubsystem(uint32_t s);
 extern cvar_t *dedicated;
 extern cvar_t *game;
 extern cvar_t *ai;
+extern cvar_t *threads;
 extern cvar_t *time_demo;
 extern cvar_t *time_scale;

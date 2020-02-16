@@ -56,7 +56,7 @@ START_TEST(check_Ai_Learn) {
 
 		const vec3_t origin = { (i - 32) * 64.0, (i - 32) * 64.0, 0.0 };
 
-		VectorCopy(origin, player.s.origin);
+		player.s.origin = origin;
 
 		pm_cmd_t cmd = {
 			.forward = 300
@@ -72,13 +72,13 @@ START_TEST(check_Ai_Learn) {
 			}
 		};
 
-		VectorMA(origin, Randomc() * 16.0, vec3_down, bot.s.origin);
+		bot.s.origin = Vec3_Add(origin, Vec3_Scale(Vec3_Down(), Randomc() * 16.0));
 
 		vec3_t dir;
-		Ai_Predict(&bot, dir);
+		Ai_Predict(&bot, &dir);
 
-		printf("%.2f %.2f %.2f\n", dir[0], dir[1], dir[2]);
-		ck_assert(VectorLength(dir) >= 1.0 - FLT_EPSILON);
+		printf("%.2f %.2f %.2f\n", dir.x, dir.y, dir.z);
+		ck_assert(Vec3_Length(dir) >= 1.0 - FLT_EPSILON);
 	}
 } END_TEST
 

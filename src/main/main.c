@@ -38,6 +38,7 @@ static cvar_t *version;
 cvar_t *dedicated;
 cvar_t *game;
 cvar_t *ai;
+cvar_t *threads;
 cvar_t *time_demo;
 cvar_t *time_scale;
 
@@ -76,29 +77,29 @@ static void Debug_f(void) {
 		Com_Print("  none\n");
 
 		for (size_t i = 0; i < lengthof(categories); i++) {
-			int32_t color = CON_COLOR_WHITE;
+			int32_t color = ESC_COLOR_WHITE;
 			switch (1 << i) {
 				case DEBUG_AI:
 				case DEBUG_GAME:
 				case DEBUG_SERVER:
-					color = CON_COLOR_CYAN;
+					color = ESC_COLOR_CYAN;
 					break;
 				case DEBUG_CGAME:
 				case DEBUG_CLIENT:
 				case DEBUG_RENDERER:
 				case DEBUG_SOUND:
 				case DEBUG_UI:
-					color = CON_COLOR_MAGENTA;
+					color = ESC_COLOR_MAGENTA;
 					break;
 				case DEBUG_COLLISION:
 				case DEBUG_CONSOLE:
 				case DEBUG_FILESYSTEM:
 				case DEBUG_NET:
-					color = CON_COLOR_YELLOW;
+					color = ESC_COLOR_YELLOW;
 					break;
 				case DEBUG_PMOVE_CLIENT:
 				case DEBUG_PMOVE_SERVER:
-					color = CON_COLOR_BLUE;
+					color = ESC_COLOR_BLUE;
 					break;
 				default:
 					break;
@@ -122,29 +123,29 @@ static void Debug_f(void) {
  */
 static void Debug(const debug_t debug, const char *msg) {
 
-	int32_t color = CON_COLOR_WHITE;
+	int32_t color = ESC_COLOR_WHITE;
 	switch (debug) {
 		case DEBUG_AI:
 		case DEBUG_GAME:
 		case DEBUG_SERVER:
-			color = CON_COLOR_CYAN;
+			color = ESC_COLOR_CYAN;
 			break;
 		case DEBUG_CGAME:
 		case DEBUG_CLIENT:
 		case DEBUG_RENDERER:
 		case DEBUG_SOUND:
 		case DEBUG_UI:
-			color = CON_COLOR_MAGENTA;
+			color = ESC_COLOR_MAGENTA;
 			break;
 		case DEBUG_COLLISION:
 		case DEBUG_CONSOLE:
 		case DEBUG_FILESYSTEM:
 		case DEBUG_NET:
-			color = CON_COLOR_YELLOW;
+			color = ESC_COLOR_YELLOW;
 			break;
 		case DEBUG_PMOVE_CLIENT:
 		case DEBUG_PMOVE_SERVER:
-			color = CON_COLOR_BLUE;
+			color = ESC_COLOR_BLUE;
 			break;
 		default:
 			break;
@@ -464,7 +465,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
 		if (time_scale->modified) {
 			time_scale->modified = false;
-			time_scale->value = Clamp(time_scale->value, 0.1, 3.0);
+			time_scale->value = Clampf(time_scale->value, 0.1, 3.0);
 		}
 
 		do {

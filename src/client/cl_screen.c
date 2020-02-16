@@ -26,8 +26,8 @@
 
 // net graph samples
 typedef struct {
-	vec_t value;
-	int32_t color;
+	float value;
+	color_t color;
 } net_graph_sample_t;
 
 static net_graph_sample_t net_graph_samples[NET_GRAPH_WIDTH];
@@ -36,7 +36,7 @@ static int32_t num_net_graph_samples;
 /**
  * @brief Accumulates a net graph sample.
  */
-static void Cl_NetGraph(vec_t value, int32_t color) {
+static void Cl_NetGraph(float value, const color_t color) {
 
 	net_graph_samples[num_net_graph_samples].value = value;
 	net_graph_samples[num_net_graph_samples].color = color;
@@ -66,18 +66,18 @@ void Cl_AddNetGraph(void) {
 	}
 
 	for (i = 0; i < cls.net_chan.dropped; i++) {
-		Cl_NetGraph(1.0, 0x40);
+		Cl_NetGraph(1.0, color_red);
 	}
 
 	for (i = 0; i < cl.suppress_count; i++) {
-		Cl_NetGraph(1.0, 0xdf);
+		Cl_NetGraph(1.0, color_yellow);
 	}
 
 	// see what the latency was on this packet
 	const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
 	const uint32_t ping = cl.unclamped_time - cl.cmds[frame].timestamp;
 
-	Cl_NetGraph(ping / 300.0, 0xd0); // 300ms is lagged out
+	Cl_NetGraph(ping / 300.0, color_green); // 300ms is lagged out
 }
 
 /**
@@ -99,7 +99,7 @@ static void Cl_DrawNetGraph(void) {
 	x = r_context.width - NET_GRAPH_WIDTH;
 	y = r_context.height - NET_GRAPH_Y - netgraph_height;
 
-	R_DrawFill(x, y, NET_GRAPH_WIDTH, netgraph_height, 8, 0.2);
+	R_DrawFill(x, y, NET_GRAPH_WIDTH, netgraph_height, Color4bv(0x40404080));
 
 	for (i = 0; i < NET_GRAPH_WIDTH; i++) {
 
@@ -113,7 +113,7 @@ static void Cl_DrawNetGraph(void) {
 		x = r_context.width - i;
 		y = r_context.height - NET_GRAPH_Y - h;
 
-		R_DrawFill(x, y, 1, h, net_graph_samples[j].color, 0.5);
+		R_DrawFill(x, y, 1, h, net_graph_samples[j].color);
 	}
 }
 
@@ -127,46 +127,47 @@ static void Cl_DrawRendererStats(void) {
 		return;
 	}
 
-	if (cls.state != CL_ACTIVE) {
-		return;
+	if (cls.key_state.dest == KEY_CONSOLE) {
+		y += r_context.height / 2.0;
 	}
 
 	R_BindFont("small", NULL, &ch);
-	R_DrawString(0, y, "BSP:", CON_COLOR_YELLOW);
+	R_DrawString(0, y, "BSP:", color_yellow);
 	y += ch;
 
-	R_DrawString(0, y, va("%d nodes", r_view.count_bsp_nodes), CON_COLOR_YELLOW);
+	R_DrawString(0, y, va("%d nodes", r_view.count_bsp_nodes), color_yellow);
 	y += ch;
 
-	R_DrawString(0, y, va("%d draw elements", r_view.count_bsp_draw_elements), CON_COLOR_YELLOW);
-	y += ch;
-
-	y += ch;
-	R_DrawString(0, y, "Mesh:", CON_COLOR_CYAN);
-	y += ch;
-
-	R_DrawString(0, y, va("%d models", r_view.count_mesh_models), CON_COLOR_CYAN);
-	y += ch;
-
-	R_DrawString(0, y, va("%d triangles", r_view.count_mesh_triangles), CON_COLOR_CYAN);
+	R_DrawString(0, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_yellow);
 	y += ch;
 
 	y += ch;
-	R_DrawString(0, y, "2D:", CON_COLOR_CYAN);
+	R_DrawString(0, y, "Mesh:", color_cyan);
 	y += ch;
 
-	R_DrawString(0, y, va("%d arrays", r_view.count_draw_arrays), CON_COLOR_CYAN);
+	R_DrawString(0, y, va("%d models", r_view.count_mesh_models), color_cyan);
+	y += ch;
+
+	R_DrawString(0, y, va("%d triangles", r_view.count_mesh_triangles), color_cyan);
 	y += ch;
 
 	y += ch;
-	R_DrawString(0, y, "Other:", CON_COLOR_WHITE);
+	R_DrawString(0, y, "2D:", color_blue);
+	y += ch;
+	
+	R_DrawString(0, y, va("%d quads", r_view.count_draw_quads), color_blue);
+	y += ch;
+	R_DrawString(0, y, va("%d arrays", r_view.count_draw_arrays), color_blue);
 	y += ch;
 
-	R_DrawString(0, y, va("%d lights", r_view.num_lights), CON_COLOR_WHITE);
+	y += ch;
+	R_DrawString(0, y, "Other:", color_white);
 	y += ch;
 
-	R_DrawString(0, y, va("%d particles", r_view.num_particles), CON_COLOR_WHITE);
+	R_DrawString(0, y, va("%d lights", r_view.num_lights), color_white);
 	y += ch;
+
+	R_DrawString(0, y, va("%d particles", r_view.num_particles), color_white);
 
 	R_BindFont(NULL, NULL, NULL);
 }
@@ -187,10 +188,10 @@ static void Cl_DrawSoundStats(void) {
 
 	R_BindFont("small", NULL, &ch);
 
-	R_DrawString(0, y, "Sound:", CON_COLOR_MAGENTA);
+	R_DrawString(0, y, "Sound:", color_magenta);
 	y += ch;
 
-	R_DrawString(0, y, va("%d channels", s_env.num_active_channels), CON_COLOR_MAGENTA);
+	R_DrawString(0, y, va("%d channels", s_env.num_active_channels), color_magenta);
 	y += ch;
 
 	for (int32_t i = 0; i < MAX_CHANNELS; i++) {
@@ -206,7 +207,7 @@ static void Cl_DrawSoundStats(void) {
 		if (state != AL_PLAYING)
 			continue;
 
-		R_DrawString(ch, y, va("%i: %s", i, channel->sample->media.name), CON_COLOR_MAGENTA);
+		R_DrawString(ch, y, va("%i: %s", i, channel->sample->media.name), color_magenta);
 		y += ch;
 	}
 
@@ -235,10 +236,10 @@ static void Cl_DrawCounters(void) {
 
 	if (quetoo.ticks - last_speed_time >= 100) {
 
-		VectorCopy(cl.frame.ps.pm_state.velocity, velocity);
-		velocity[2] = 0.0;
+		velocity = cl.frame.ps.pm_state.velocity;
+		velocity.z = 0.0;
 
-		g_snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
+		g_snprintf(spd, sizeof(spd), "%4.0fspd", Vec3_Length(velocity));
 
 		last_speed_time = quetoo.ticks;
 	}
@@ -255,17 +256,19 @@ static void Cl_DrawCounters(void) {
 	}
 
 	if (cl_draw_position->integer) {
-		R_DrawString(r_context.width - 14 * cw, y - ch, va("%4.0f %4.0f %4.0f", cl.frame.ps.pm_state.origin[0], cl.frame.ps.pm_state.origin[1], cl.frame.ps.pm_state.origin[2]), CON_COLOR_DEFAULT);
+		R_DrawString(r_context.width - 14 * cw, y - ch, va("%4.0f %4.0f %4.0f",
+														   cl.frame.ps.pm_state.origin.x,
+														   cl.frame.ps.pm_state.origin.y,
+														   cl.frame.ps.pm_state.origin.z), color_white);
 	}
 
-	R_DrawString(x, y, spd, CON_COLOR_DEFAULT);
+	R_DrawString(x, y, spd, color_white);
 	y += ch;
 
-	R_DrawString(x, y, fps, CON_COLOR_DEFAULT);
+	R_DrawString(x, y, fps, color_white);
 	y += ch;
 
-	R_DrawString(x, y, pps, CON_COLOR_DEFAULT);
-	y += ch;
+	R_DrawString(x, y, pps, color_white);
 
 	R_BindFont(NULL, NULL, NULL);
 }
@@ -292,7 +295,6 @@ void Cl_UpdateScreen(void) {
 
 		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
 			Cl_DrawNotify();
-			Cl_DrawRendererStats();
 			Cl_DrawSoundStats();
 
 			cls.cgame->UpdateScreen(&cl.frame);
@@ -308,6 +310,8 @@ void Cl_UpdateScreen(void) {
 	}
 
 	R_Draw2D();
+
+	Cl_DrawRendererStats();
 
 	R_EndFrame();
 

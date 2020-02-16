@@ -21,6 +21,7 @@
 
 #include "portal.h"
 #include "entity.h"
+#include "leakfile.h"
 
 /**
  * @brief Finds the shortest possible chain of portals that leads from the
@@ -58,13 +59,13 @@ void LeakFile(tree_t *tree) {
 		node = next_node;
 
 		// add the portal center
-		Cm_WindingCenter(next_portal->winding, point);
-		Fs_Print(file, "%f %f %f\n", point[0], point[1], point[2]);
+		point = Cm_WindingCenter(next_portal->winding);
+		Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
 	}
 	
 	// add the entity origin
-	VectorForKey(node->occupant, "origin", point, NULL);
-	Fs_Print(file, "%f %f %f\n", point[0], point[1], point[2]);
+	point = VectorForKey(node->occupant, "origin", Vec3_Zero());
+	Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
 
 	Fs_Close(file);
 }

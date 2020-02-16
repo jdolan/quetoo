@@ -24,7 +24,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, const vec_t size, _Bool splash);
+void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, const float size, _Bool splash);
 
 void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
                          int32_t speed, int16_t damage, int16_t knockback);
@@ -35,17 +35,17 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
                               int32_t speed, int16_t damage, int16_t knockback);
 void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
-                         int32_t speed, int16_t damage, int16_t knockback, vec_t damage_radius, uint32_t timer);
+                         int32_t speed, int16_t damage, int16_t knockback, float damage_radius, uint32_t timer);
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
-                        int32_t speed, int16_t damage, int16_t knockback, vec_t damage_radius);
+                        int32_t speed, int16_t damage, int16_t knockback, float damage_radius);
 void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
                            int16_t damage, int16_t knockback);
 void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
                          int16_t damage, int16_t knockback);
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
-                     int32_t speed, int16_t damage, int16_t knockback, vec_t damage_radius);
-void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t const start,
-                             const vec3_t dir, int32_t speed, int16_t damage, int16_t knockback, vec_t damage_radius,
+                     int32_t speed, int16_t damage, int16_t knockback, float damage_radius);
+void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, const vec3_t start,
+                             const vec3_t dir, int32_t speed, int16_t damage, int16_t knockback, float damage_radius,
                              uint32_t timer);
 void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
                                const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf);

@@ -264,7 +264,7 @@ typedef struct g_import_s {
 	/**
 	 * @return The floating point value of the console variable with the given name.
 	 */
-	vec_t (*GetCvarValue)(const char *name);
+	float (*GetCvarValue)(const char *name);
 
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
@@ -279,7 +279,7 @@ typedef struct g_import_s {
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
 	 */
-	cvar_t *(*SetCvarValue)(const char *name, vec_t value);
+	cvar_t *(*SetCvarValue)(const char *name, float value);
 
 	/**
 	 * @brief Forces the console variable to take the value of the string immediately.
@@ -295,7 +295,7 @@ typedef struct g_import_s {
 	 * @param value The variable value.
 	 * @return The modified variable.
 	 */
-	cvar_t *(*ForceSetCvarValue)(const char *name, vec_t value);
+	cvar_t *(*ForceSetCvarValue)(const char *name, float value);
 
 	/**
 	 * @brief Toggles the console variable by `name`.
@@ -357,8 +357,8 @@ typedef struct g_import_s {
 	 * @brief Sound sample playback dispatch for server-local entities, or
 	 * sounds that do not originate from any specific entity.
 	 *
-	 * @param origin The origin of the sound.
-	 * @param ent The entity originating the sound.
+	 * @param origin The origin of the sound (required).
+	 * @param ent The entity originating the sound, `NULL` for worldspawn.
 	 * @param index The configuration string index of the sound to be played.
 	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
 	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
@@ -441,10 +441,10 @@ typedef struct g_import_s {
 	void (*WriteShort)(const int32_t c);
 	void (*WriteLong)(const int32_t c);
 	void (*WriteString)(const char *s);
-	void (*WriteVector)(const vec_t v);
+	void (*WriteVector)(const float v);
 	void (*WritePosition)(const vec3_t pos);
 	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
-	void (*WriteAngle)(const vec_t v);
+	void (*WriteAngle)(const float v);
 	void (*WriteAngles)(const vec3_t angles);
 
 	/**

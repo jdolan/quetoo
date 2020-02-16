@@ -283,10 +283,10 @@ static void Sv_Say_f(void) {
 			continue;
 		}
 
-		Sv_ClientPrint(client->entity, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_CHAT, s);
+		Sv_ClientPrint(client->entity, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_CHAT, s);
 	}
 
-	Com_Print("^1console^%d: %s\n", CON_COLOR_CHAT, s);
+	Com_Print("^1console^%d: %s\n", ESC_COLOR_CHAT, s);
 }
 
 /**
@@ -321,8 +321,8 @@ static void Sv_Tell_f(void) {
 		return;
 	}
 
-	Sv_ClientPrint(sv_client->entity, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
-	Com_Print("^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
+	Sv_ClientPrint(sv_client->entity, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_TEAMCHAT, s);
+	Com_Print("^1console^%d: %s\n", ESC_COLOR_TEAMCHAT, s);
 }
 
 /**

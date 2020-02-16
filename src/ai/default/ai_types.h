@@ -83,7 +83,7 @@ typedef struct ai_item_data_s {
 	/**
 	 * @brief The priority, for bots to weigh.
 	 */
-	vec_t *priority;
+	float *priority;
 
 } ai_item_data_t;
 
@@ -109,7 +109,7 @@ typedef struct ai_entity_data_s {
 	/**
 	 * @brief Offset to velocity
 	 */
-	const vec_t *velocity;
+	const vec3_t *velocity;
 
 	/**
 	 * @brief Offset to health
@@ -141,7 +141,7 @@ typedef struct ai_client_data_s {
 	/**
 	 * @brief Offset to view angles
 	 */
-	const vec_t *angles;
+	const vec3_t *angles;
 
 	/**
 	 * @brief Offset to inventory
@@ -198,7 +198,7 @@ typedef enum {
 
 typedef struct {
 	ai_goal_type_t type;
-	vec_t priority;
+	float priority;
 	uint32_t time; // time this goal was set
 	const g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY/TEAMMATE
 	uint16_t ent_id; // FOR AI_GOAL_ITEM/ENEMY/TEAMMATE
@@ -246,7 +246,7 @@ typedef struct ai_locals_s {
 	ai_goal_t aim_target;
 	ai_goal_t move_target;
 
-	vec_t wander_angle;
+	float wander_angle;
 	vec3_t ghost_position;
 
 	uint32_t weapon_check_time;

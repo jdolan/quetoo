@@ -21,11 +21,16 @@
 
 #pragma once
 
-#include "quetoo.h"
+#include "vector.h"
 
 int16_t BigShort(int16_t s);
 int16_t LittleShort(int16_t s);
 int32_t BigLong(int32_t l);
 int32_t LittleLong(int32_t l);
-vec_t BigFloat(vec_t f);
-vec_t LittleFloat(vec_t f);
+float BigFloat(float f);
+float LittleFloat(float f);
+vec3s_t LittleVec3s(const vec3s_t v);
+vec3i_t LittleVec3i(const vec3i_t v);
+vec2_t LittleVec2(const vec2_t v);
+vec3_t LittleVec3(const vec3_t v);
+vec4_t LittleVec4(const vec4_t v);

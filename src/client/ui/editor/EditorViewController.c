@@ -101,10 +101,10 @@ static void viewWillAppear(ViewController *self) {
 	r_material_t *material = NULL;
 
 	vec3_t end;
-	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
+	end = Vec3_Add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST));
 
 	const int32_t contents = MASK_SOLID | MASK_LIQUID | CONTENTS_MIST;
-	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, contents);
+	const cm_trace_t tr = Cl_Trace(r_view.origin, end, Vec3_Zero(), Vec3_Zero(), 0, contents);
 	if (tr.fraction < 1.0 && tr.surface->material) {
 		material = R_LoadMaterial(tr.surface->name, ASSET_CONTEXT_TEXTURES);
 	}

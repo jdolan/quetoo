@@ -26,13 +26,11 @@
  * @brief True if the winding would be crunched out of existence by vertex snapping.
  */
 _Bool WindingIsSmall(const cm_winding_t *w) {
-	vec3_t delta;
 
 	int32_t valid_edges = 0;
 	for (int32_t i = 0; i < w->num_points; i++) {
-		VectorSubtract(w->points[i], w->points[(i + 1) % w->num_points], delta);
-		const vec_t len = VectorLength(delta);
-		if (len > ON_EPSILON) {
+		const float dist = Vec3_Distance(w->points[i], w->points[(i + 1) % w->num_points]);
+		if (dist > ON_EPSILON) {
 			if (++valid_edges == 3) {
 				return false;
 			}
@@ -48,7 +46,7 @@ _Bool WindingIsLarge(const cm_winding_t *w) {
 
 	for (int32_t i = 0; i < w->num_points; i++) {
 		for (int32_t j = 0; j < 3; j++)
-			if (w->points[i][j] < -MAX_WORLD_COORD || w->points[i][j] > MAX_WORLD_COORD) {
+			if (w->points[i].xyz[j] < -MAX_WORLD_COORD || w->points[i].xyz[j] > MAX_WORLD_COORD) {
 				return true;
 			}
 	}
