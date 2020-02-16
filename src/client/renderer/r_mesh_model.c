@@ -149,7 +149,7 @@ void R_LoadMeshConfigs(r_model_t *mod) {
 
 	R_LoadMeshConfig(&mod->mesh->config.world, va("%s/world.cfg", path));
 	R_LoadMeshConfig(&mod->mesh->config.view, va("%s/view.cfg", path));
-	R_LoadMeshConfig(&mod->mesh->config.world, va("%s/link.cfg", path));
+	R_LoadMeshConfig(&mod->mesh->config.link, va("%s/link.cfg", path));
 }
 
 /**

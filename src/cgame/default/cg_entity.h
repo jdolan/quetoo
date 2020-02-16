@@ -28,9 +28,6 @@ cl_entity_t *Cg_Self(void);
 _Bool Cg_IsSelf(const cl_entity_t *ent);
 _Bool Cg_IsDucking(const cl_entity_t *ent);
 void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, float height);
-void Cg_ApplyMeshTag(r_entity_t *child, const r_entity_t *parent, const char *tag_name);
-r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
-                                    const char *tag_name);
 void Cg_InterpolateStep(cl_entity_step_t *step);
 void Cg_Interpolate(const cl_frame_t *frame);
 void Cg_AddEntities(const cl_frame_t *frame);

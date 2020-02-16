@@ -136,10 +136,8 @@ typedef enum {
  * @brief The 16 high bits of the effects mask are not transmitted by the
  * protocol. Rather, they are reserved for the renderer.
  */
-#define EF_LINKED			(1 << 23) // linked to another model
-#define EF_CLIENT			(1 << 24) // player model
 #define EF_WEAPON			(1 << 25) // view weapon
-#define EF_SHELL			(1 << 26) // environment map shell
+#define EF_SHELL			(1 << 26) // colored shell
 #define EF_ALPHATEST		(1 << 27) // alpha test
 #define EF_BLEND			(1 << 28) // alpha blend
 #define EF_NO_SHADOW		(1 << 29) // no shadow

@@ -22,22 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief
- */
-static void R_SetMatrixForEntity(r_entity_t *e) {
-
-	if (!(e->effects & EF_LINKED)) { // linked models use a tag matrix, do not recompute
-		Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
-	}
-
-	if (IS_MESH_MODEL(e->model)) {
-		R_ApplyMeshModelConfig(e);
-	}
-
-	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
-}
-
-/**
  * @brief Adds an entity to the view.
  */
 r_entity_t *R_AddEntity(const r_entity_t *ent) {
@@ -50,7 +34,22 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 	r_entity_t *e = &r_view.entities[r_view.num_entities++];
 	*e = *ent;
 
-	R_SetMatrixForEntity(e);
+	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
+
+	if (e->parent) {
+		if (IS_MESH_MODEL(e->model)) {
+			if (e->tag) {
+				R_ApplyMeshTag(e);
+			}
+			R_ApplyMeshConfig(e);
+		}
+	} else {
+		if (IS_MESH_MODEL(e->model)) {
+			R_ApplyMeshConfig(e);
+		}
+	}
+
+	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 	return e;
 }
 

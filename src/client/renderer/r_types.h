@@ -614,31 +614,95 @@ typedef struct {
  * when an entity moves.
  */
 typedef struct r_entity_s {
+	/**
+	 * @brief The parent entity, if any, for linked mesh models.
+	 */
+	const struct r_entity_s *parent;
+
+	/**
+	 * @brief The tag name, if any, for linked mesh models.
+	 */
+	const char *tag;
+
+	/**
+	 * @brief The entity origin.
+	 */
 	vec3_t origin;
+
+	/**
+	 * @brief The entity termination for beams.
+	 */
 	vec3_t termination;
+
+	/**
+	 * @brief The entity angles.
+	 */
 	vec3_t angles;
+
+	/**
+	 * @brief The entity scale, for mesh models.
+	 */
+	float scale;
+
+	/**
+	 * @brief The entity bounds, for frustum culling.
+	 */
 	vec3_t mins, maxs;
 
+	/**
+	 * @brief The model matrix.
+	 */
 	mat4_t matrix;
+
+	/**
+	 * @brief The inverse model matrix.
+	 */
 	mat4_t inverse_matrix;
 
+	/**
+	 * @brief The model, if any.
+	 */
 	const r_model_t *model;
 
-	int32_t frame, old_frame; // frame-based animations
+	/**
+	 * @brief Frame animations.
+	 */
+	int32_t frame, old_frame;
+
+	/**
+	 * @brief Frame interpolation.
+	 */
 	float lerp, back_lerp;
 
-	float scale; // for mesh models
+	/**
+	 * @brief Mesh model skins, up to one per face. NULL implies the default skin.
+	 */
+	r_material_t *skins[MAX_ENTITY_SKINS];
 
-	r_material_t *skins[MAX_ENTITY_SKINS]; // NULL for default skin
+	/**
+	 * @brief The number of mesh model skins.
+	 */
 	int32_t num_skins;
 
-	int32_t effects; // e.g. EF_NO_DRAW, EF_WEAPON, ..
+	/**
+	 * @brief Entity effects (`EF_NO_DRAW`, `EF_WEAPON`, ..).
+	 */
+	int32_t effects;
 
-	vec4_t color; // shaded color, e.g. EF_PULSE
+	/**
+	 * @brief The entity shade color for e.g. `EF_PULSE`.
+	 */
+	vec4_t color;
 
-	vec3_t shell; // shell color
+	/**
+	 * @brief The entity shell color for flag carriers, etc.
+	 */
+	vec3_t shell;
 
-	vec4_t tints[TINT_TOTAL]; // tint colors, non-zero alpha enables the tint
+	/**
+	 * @brief Tint maps allow users to customize their player skins.
+	 */
+	vec4_t tints[TINT_TOTAL];
 } r_entity_t;
 
 #define WEATHER_NONE        0x0

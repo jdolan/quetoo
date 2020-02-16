@@ -381,9 +381,9 @@ static void animate(PlayerModelView *self) {
 	Matrix4x4_CreateFromEntity(&self->platformBase.matrix, self->platformBase.origin, self->platformBase.angles, self->platformBase.scale);
 	Matrix4x4_CreateFromEntity(&self->platformCenter.matrix, self->platformCenter.origin, self->platformCenter.angles, self->platformCenter.scale);
 
-	Cg_ApplyMeshTag(&self->torso, &self->legs, "tag_torso");
-	Cg_ApplyMeshTag(&self->head, &self->torso, "tag_head");
-	Cg_ApplyMeshTag(&self->weapon, &self->torso, "tag_weapon");
+//	Cg_ApplyMeshTag(&self->torso, &self->legs, "tag_torso");
+//	Cg_ApplyMeshTag(&self->head, &self->torso, "tag_head");
+//	Cg_ApplyMeshTag(&self->weapon, &self->torso, "tag_weapon");
 }
 
 /**

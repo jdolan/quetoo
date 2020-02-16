@@ -257,19 +257,6 @@ void Cl_InitCgame(void) {
 	import.WorldModel = R_WorldModel;
 
 	import.AddEntity = R_AddEntity;
-	import.MeshTag = R_MeshTag;
-//	import.SetMatrixForEntity = R_SetMatrixForEntity;
-//	import.SetMatrix = R_SetMatrix;
-//	import.GetMatrix = R_GetMatrix;
-//	import.PushMatrix = R_PushMatrix;
-//	import.PopMatrix = R_PopMatrix;
-//	import.DrawMeshModel = R_DrawMeshModel_default;
-//	import.DrawMeshModelMaterials = R_DrawMeshModelMaterials_default;
-//	import.EnableBlend = R_EnableBlend;
-//	import.EnableDepthTest = R_EnableDepthTest;
-//	import.DepthRange = R_DepthRange;
-//	import.EnableTexture = R_EnableTextureByIdentifier;
-//	import.SetViewport = R_SetViewport;
 	import.AddLight = R_AddLight;
 	import.AddParticle = R_AddParticle;
 	import.AddStain = R_AddStain;

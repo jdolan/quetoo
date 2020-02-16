@@ -145,93 +145,6 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 }
 
 /**
- * @brief Applies transformation and rotation for the specified linked entity. The matrix
- * component of the parent and child must be set up already. The child's matrix will be modified
- * by this function and is used instead of origin/angles/scale.
- */
-void Cg_ApplyMeshTag(r_entity_t *child, const r_entity_t *parent, const char *tag_name) {
-
-	if (!parent || !parent->model || parent->model->type != MOD_MESH) {
-		cgi.Warn("Invalid parent entity\n");
-		return;
-	}
-
-	if (!tag_name || !*tag_name) {
-		cgi.Warn("NULL tag_name\n");
-		return;
-	}
-
-	// interpolate the tag over the frames of the parent entity
-
-	const r_mesh_tag_t *t1 = cgi.MeshTag(parent->model, tag_name, parent->old_frame);
-	const r_mesh_tag_t *t2 = cgi.MeshTag(parent->model, tag_name, parent->frame);
-
-	if (!t1 || !t2) {
-		return;
-	}
-
-	mat4_t local, world;
-
-	Matrix4x4_Interpolate(&local, &t2->matrix, &t1->matrix, parent->back_lerp);
-	Matrix4x4_Normalize(&local, &local);
-
-	// add local origins to the local offset
-	Matrix4x4_Concat(&local, &local, &child->matrix);
-
-	// move by parent matrix
-	Matrix4x4_Concat(&world, &parent->matrix, &local);
-
-	child->effects |= EF_LINKED;
-
-	// calculate final origin/angles
-	vec3_t forward;
-
-	Matrix4x4_ToVectors(&world, forward.xyz, NULL, NULL, child->origin.xyz);
-
-	child->angles = Vec3_Euler(forward);
-
-	child->scale = Matrix4x4_ScaleFromMatrix(&world);
-
-	// copy matrix over to child
-	Matrix4x4_Copy(&child->matrix, &world);
-}
-
-/**
- * @brief Binds a linked model to its parent, and copies it into the view structure.
- */
-r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
-                                    const char *tag_name) {
-
-	if (!parent) {
-		cgi.Warn("NULL parent\n");
-		return NULL;
-	}
-
-	r_entity_t ent = *parent;
-
-	ent.origin = Vec3_Zero();
-	ent.angles = Vec3_Zero();
-
-	ent.model = model;
-
-	memset(ent.skins, 0, sizeof(ent.skins));
-	ent.num_skins = 0;
-
-	ent.frame = ent.old_frame = 0;
-
-	ent.lerp = 1.0;
-	ent.back_lerp = 0.0;
-
-	r_entity_t *r_ent = cgi.AddEntity(&ent);
-
-	Matrix4x4_CreateFromEntity(&r_ent->matrix, r_ent->origin, r_ent->angles, r_ent->scale);
-
-	Cg_ApplyMeshTag(r_ent, parent, tag_name);
-
-	return r_ent;
-}
-
-/**
  * @brief The min velocity we should apply leg rotation on.
  */
 #define CLIENT_LEGS_SPEED_EPSILON		.5f
@@ -258,11 +171,6 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		cgi.Debug("Invalid client info: %d\n", s->client);
 		return;
 	}
-
-	const uint32_t effects = e->effects;
-
-	e->effects |= EF_CLIENT;
-	e->effects &= ~EF_CTF_MASK;
 
 	const _Bool self_no_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
 
@@ -345,33 +253,39 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 
 	r_entity_t *r_legs = cgi.AddEntity(&legs);
+
+	torso.parent = r_legs;
+	torso.tag = "tag_torso";
+
 	r_entity_t *r_torso = cgi.AddEntity(&torso);
-	r_entity_t *r_head = cgi.AddEntity(&head);
 
-	Matrix4x4_CreateFromEntity(&r_legs->matrix, r_legs->origin, r_legs->angles, r_legs->scale);
-	Matrix4x4_CreateFromEntity(&r_torso->matrix, r_torso->origin, r_torso->angles, r_torso->scale);
-	Matrix4x4_CreateFromEntity(&r_head->matrix, r_head->origin, r_head->angles, r_head->scale);
+	head.parent = r_torso;
+	head.tag = "tag_head";
 
-	Cg_ApplyMeshTag(r_torso, r_legs, "tag_torso");
-	Cg_ApplyMeshTag(r_head, r_torso, "tag_head");
+	cgi.AddEntity(&head);
 
 	if (s->model2) {
-		r_model_t *model = cgi.client->model_precache[s->model2];
-		r_entity_t *weapon = Cg_AddLinkedEntity(r_torso, model, "tag_weapon");
-
-		if (self_no_draw) {
-			weapon->effects |= EF_NO_DRAW;
-		}
+		cgi.AddEntity(&(const r_entity_t) {
+			.parent = r_torso,
+			.tag = "tag_weapon",
+			.scale = e->scale,
+			.model = cgi.client->model_precache[s->model2],
+			.effects = e->effects,
+			.color = e->color,
+			.shell = e->shell,
+		});
 	}
 
 	if (s->model3) {
-		r_model_t *model = cgi.client->model_precache[s->model3];
-		r_entity_t *carry = Cg_AddLinkedEntity(r_torso, model, "tag_head");
-		carry->effects |= effects;
-
-		if (self_no_draw) {
-			carry->effects |= EF_NO_DRAW;
-		}
+		cgi.AddEntity(&(const r_entity_t) {
+			.parent = r_torso,
+			.tag = "tag_head",
+			.scale = e->scale,
+			.model = cgi.client->model_precache[s->model3],
+			.effects = e->effects,
+			.color = e->color,
+			.shell = e->shell,
+		});
 	}
 
 	if (s->model4) {
@@ -557,22 +471,15 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
  * @brief Adds the specified client entity to the view.
  */
 static void Cg_AddEntity(cl_entity_t *ent) {
-	r_entity_t e;
-
-	memset(&e, 0, sizeof(e));
-	e.scale = 1.0;
 
 	// set the origin and angles so that we know where to add effects
-	e.origin = ent->origin;
-	e.angles = ent->angles;
-
-	// set the bounding box, according to the server, for debugging
-	if (ent->current.solid != SOLID_BSP) {
-		if (!Cg_IsSelf(ent) || cgi.client->third_person) {
-			e.mins = ent->current.mins;
-			e.maxs = ent->current.maxs;
-		}
-	}
+	r_entity_t e = {
+		.origin = ent->origin,
+		.angles = ent->angles,
+		.scale = 1.f,
+		.mins = ent->current.mins,
+		.maxs = ent->current.maxs
+	};
 
 	// add effects, augmenting the renderer entity
 	Cg_EntityEffects(ent, &e);
