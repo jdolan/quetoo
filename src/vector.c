@@ -501,7 +501,7 @@ vec3_t Vec3_Euler(const vec3_t dir) {
 	} else {
 		if (dir.x) {
 			yaw = Degrees(atan2f(dir.y, dir.x));
-		} else if (dir.y > 0) {
+		} else if (dir.y > 0.f) {
 			yaw = 90.f;
 		} else {
 			yaw = 270.f;
@@ -520,9 +520,6 @@ vec3_t Vec3_Euler(const vec3_t dir) {
 	}
 
 	return Vec3(-pitch, yaw, 0);
-}
-
-	return Vec3(pitch, yaw, 0.0);
 }
 
 /**
