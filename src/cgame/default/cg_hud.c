@@ -635,11 +635,9 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (cg_draw_crosshair_color->modified) { // crosshair color
 		cg_draw_crosshair_color->modified = false;
 
-		color_t color;
+		color_t color = color_white;
 
-		if (!g_strcmp0(cg_draw_crosshair_color->string, "default")) {
-			color.r = color.g = color.b = 255;
-		} else {
+		if (g_strcmp0(cg_draw_crosshair_color->string, "default")) {
 			ColorParse(cg_draw_crosshair_color->string, &color);
 		}
 
