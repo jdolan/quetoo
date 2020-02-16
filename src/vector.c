@@ -36,6 +36,13 @@ vec2s_t Vec2s(int16_t x, int16_t y) {
 /**
  * @brief
  */
+vec2s_t Vec2s_Scale(const vec2s_t v, float scale) {
+	return Vec2s((int16_t) v.x * scale, (int16_t) v.y * scale);
+}
+
+/**
+ * @brief
+ */
 vec2s_t Vec2s_Zero(void) {
 	return Vec2s(0, 0);
 }

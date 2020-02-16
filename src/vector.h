@@ -150,6 +150,11 @@ typedef union {
 vec2s_t Vec2s(int16_t x, int16_t y);
 
 /**
+ * @return The Vector `v` scaled by `scale`.
+ */
+vec2s_t Vec2s_Scale(const vec2s_t v, float scale);
+
+/**
  * @return The vector `(0, 0)`.
  */
 vec2s_t Vec2s_Zero(void);
