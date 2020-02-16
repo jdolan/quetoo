@@ -486,7 +486,7 @@ void BeginModel(void) {
 			continue; // not a real brush (origin brush)
 		}
 		mins = Vec3_Minf(mins, b->mins);
-		maxs = Vec3_Maxf(mins, b->maxs);
+		maxs = Vec3_Maxf(maxs, b->maxs);
 	}
 
 	mod->mins = Vec3_CastS16Vec3(mins);
