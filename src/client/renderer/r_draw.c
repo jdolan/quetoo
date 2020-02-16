@@ -264,7 +264,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 	int32_t i;
 	for (i = 0; i < r_draw.num_fonts; i++) {
 		if (!g_strcmp0(name, r_draw.fonts[i].name)) {
-			if (r_context.high_dpi && i < r_draw.num_fonts - 1) {
+			if (r_context.window_scale > 1.f && i < r_draw.num_fonts - 1) {
 				r_draw.font = &r_draw.fonts[i + 1];
 			} else {
 				r_draw.font = &r_draw.fonts[i];

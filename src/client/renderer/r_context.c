@@ -172,7 +172,7 @@ void R_InitContext(void) {
 	r_context.window_width = ww;
 	r_context.window_height = wh;
 
-	r_context.high_dpi = dw > ww && dh > wh;
+	r_context.window_scale = dw / (float) ww;
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 

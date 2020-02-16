@@ -778,9 +778,9 @@ typedef struct {
 	r_pixel_t window_width, window_height;
 
 	/**
-	 * @brief True if the application window uses High-DPI (Retina, 4K).
+	 * @brief Greater than 1.0 if High DPI mode is enabled.
 	 */
-	_Bool high_dpi;
+	float window_scale;
 
 	/**
 	 * @brief True if fullscreen, false if windowed.
