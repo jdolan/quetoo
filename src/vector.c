@@ -470,33 +470,34 @@ _Bool Vec3_Equal(const vec3_t a, const vec3_t b) {
  * @brief
  */
 vec3_t Vec3_Euler(const vec3_t dir) {
-	float	yaw, pitch;
-	
-	if (dir.y == 0 && dir.x == 0)
-	{
-		yaw = 0;
-		if (dir.z > 0)
-			pitch = 90;
-		else
-			pitch = 270;
-	}
-	else
-	{
-	// PMM - fixed to correct for pitch of 0
-		if (dir.x)
-			yaw = (atan2f(dir.y, dir.x) * 180 / M_PI);
-		else if (dir.y > 0)
-			yaw = 90;
-		else
-			yaw = 270;
+	float pitch, yaw;
 
-		if (yaw < 0)
-			yaw += 360;
+	if (dir.y == 0.f && dir.x == 0.f) {
+		yaw = 0.f;
+		if (dir.z > 0.f) {
+			pitch = 90.f;
+		} else {
+			pitch = 270.f;
+		}
+	} else {
+		if (dir.x) {
+			yaw = Degrees(atan2f(dir.y, dir.x));
+		} else if (dir.y > 0) {
+			yaw = 90.f;
+		} else {
+			yaw = 270.f;
+		}
 
-		const float forward = sqrtf(dir.x*dir.x + dir.y*dir.y);
-		pitch = (atan2f(dir.z, forward) * 180 / M_PI);
-		if (pitch < 0)
-			pitch += 360;
+		if (yaw < 0.f) {
+			yaw += 360.f;
+		}
+
+		const float forward = sqrtf(dir.x * dir.x + dir.y * dir.y);
+		pitch = Degrees(atan2f(dir.z, forward));
+
+		if (pitch < 0.f) {
+			pitch += 360.f;
+		}
 	}
 
 	return Vec3(-pitch, yaw, 0);
@@ -697,8 +698,10 @@ vec3_t Vec3_Up(void) {
 	return Vec3(0.f, 0.f, 1.f);
 }
 
-static void SinCos(const float rad, float *s, float *c)
-{
+/**
+ * @brief
+ */
+static void SinCos(const float rad, float *s, float *c) {
 	*s = sinf(rad);
 	*c = cosf(rad);
 }
@@ -714,25 +717,22 @@ void Vec3_Vectors(const vec3_t euler, vec3_t *forward, vec3_t *right, vec3_t *up
 	SinCos((euler.x * DEG2RAD), &sp, &cp );
 	SinCos((euler.z * DEG2RAD), &sr, &cr );
 
-	if (forward)
-	{
-		forward->x = cp*cy;
-		forward->y = cp*sy;
+	if (forward) {
+		forward->x = cp * cy;
+		forward->y = cp * sy;
 		forward->z = -sp;
 	}
 
-	if (right)
-	{
-		right->x = (-1*sr*sp*cy+-1*cr*-sy);
-		right->y = (-1*sr*sp*sy+-1*cr*cy);
-		right->z = -1*sr*cp;
+	if (right) {
+		right->x = (-1 * sr * sp * cy + -1 * cr * -sy);
+		right->y = (-1 * sr * sp * sy + -1 * cr * cy);
+		right->z = -1 * sr * cp;
 	}
 
-	if (up)
-	{
-		up->x = (cr*sp*cy+-sr*-sy);
-		up->y = (cr*sp*sy+-sr*cy);
-		up->z = cr*cp;
+	if (up) {
+		up->x = (cr * sp * cy + -sr * -sy);
+		up->y = (cr * sp * sy + -sr * cy);
+		up->z = cr * cp;
 	}
 }
 
