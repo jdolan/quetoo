@@ -115,9 +115,8 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
 /**
  * @brief Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, int16_t med,
-                         int16_t low) {
-	r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT + 4;
+static void Cg_DrawVital(r_pixel_t x, r_pixel_t ch, const int16_t value, const int16_t icon, int16_t med, int16_t low) {
+	r_pixel_t y = cgi.context->height - HUD_PIC_HEIGHT + (HUD_PIC_HEIGHT - ch) / 2;
 
 	color_t color = HUD_COLOR_STAT;
 	color_t pulse = color_white;
@@ -133,11 +132,10 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 
 	const char *string = va("%3d", value);
 
-	x += cgi.view->viewport.x;
 	cgi.DrawString(x, y, string, color);
 
 	x += cgi.StringWidth(string);
-	y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT;
+	y = cgi.context->height - HUD_PIC_HEIGHT;
 
 	Cg_DrawIcon(x, y, 1.0, icon, pulse);
 }
@@ -146,13 +144,13 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawVitals(const player_state_t *ps) {
-	r_pixel_t x, cw, x_offset;
+	r_pixel_t x, cw, ch, x_offset;
 
 	if (!cg_draw_vitals->integer) {
 		return;
 	}
 
-	cgi.BindFont("large", &cw, NULL);
+	cgi.BindFont("large", &cw, &ch);
 
 	x_offset = 3 * cw;
 
@@ -160,9 +158,9 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 		const int16_t health = ps->stats[STAT_HEALTH];
 		const int16_t health_icon = ps->stats[STAT_HEALTH_ICON];
 
-		x = cgi.view->viewport.w * 0.25 - x_offset;
+		x = cgi.context->width * 0.25 - x_offset;
 
-		Cg_DrawVital(x, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
+		Cg_DrawVital(x, ch, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
 	}
 
 	if (atoi(cgi.ConfigString(CS_GAMEPLAY)) != GAME_INSTAGIB) {
@@ -172,18 +170,18 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 			const int16_t ammo_low = ps->stats[STAT_AMMO_LOW];
 			const int16_t ammo_icon = ps->stats[STAT_AMMO_ICON];
 
-			x = cgi.view->viewport.w * 0.5 - x_offset;
+			x = cgi.context->width * 0.5 - x_offset;
 
-			Cg_DrawVital(x, ammo, ammo_icon, -1, ammo_low);
+			Cg_DrawVital(x, ch, ammo, ammo_icon, -1, ammo_low);
 		}
 
 		if (ps->stats[STAT_ARMOR] > 0) {
 			const int16_t armor = ps->stats[STAT_ARMOR];
 			const int16_t armor_icon = ps->stats[STAT_ARMOR_ICON];
 
-			x = cgi.view->viewport.w * 0.75 - x_offset;
+			x = cgi.context->width * 0.75 - x_offset;
 
-			Cg_DrawVital(x, armor, armor_icon, HUD_ARMOR_MED, HUD_ARMOR_LOW);
+			Cg_DrawVital(x, ch, armor, armor_icon, HUD_ARMOR_MED, HUD_ARMOR_LOW);
 		}
 	}
 
@@ -204,7 +202,7 @@ static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *ic
 
 	const char *string = va("%d", value);
 
-	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
+	x = HUD_PIC_HEIGHT / 2;
 
 	cgi.DrawImage(x, y, 1.0, icon, color_white);
 
@@ -225,7 +223,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
 
 	cgi.BindFont("large", &ch, NULL);
 
-	y = cgi.view->viewport.y + (cgi.view->viewport.h / 2);
+	y = cgi.context->height / 2;
 
 	if (ps->stats[STAT_QUAD_TIME] > 0) {
 		const int32_t timer = ps->stats[STAT_QUAD_TIME];
@@ -253,8 +251,8 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	color_t pulse = color_white;
 	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
 
-	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
-	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 2));
+	x = HUD_PIC_HEIGHT / 2;
+	y = cgi.context->height / 2 - HUD_PIC_HEIGHT * 2;
 
 	const r_image_t *icon = cgi.LoadImage(va("pics/i_flag%d", flag),  IT_PIC);
 	cgi.DrawImage(x, y, 1.0, icon, pulse);
@@ -278,8 +276,8 @@ static void Cg_DrawHeldTech(const player_state_t *ps) {
 	color_t pulse = color_white;
 	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
 
-	x = cgi.view->viewport.x + 4;
-	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 4));
+	x = 4;
+	y = cgi.context->height / 2 - HUD_PIC_HEIGHT * 4;
 
 	Cg_DrawIcon(x, y, 1.0, tech, pulse);
 }
@@ -302,8 +300,8 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 
 		const char *string = cgi.ConfigString(pickup);
 
-		x = cgi.view->viewport.x + cgi.view->viewport.w - HUD_PIC_HEIGHT - cgi.StringWidth(string);
-		y = cgi.view->viewport.y;
+		x = cgi.context->width - HUD_PIC_HEIGHT - cgi.StringWidth(string);
+		y = 0;
 
 		Cg_DrawIcon(x, y, 1.0, icon, color_white);
 
@@ -331,15 +329,15 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Frags");
-	y = cgi.view->viewport.y + HUD_PIC_HEIGHT + ch;
+	x = cgi.context->width - cgi.StringWidth("Frags");
+	y = HUD_PIC_HEIGHT + ch;
 
 	cgi.DrawString(x, y, "Frags", color_green);
 	y += ch;
 
 	cgi.BindFont("large", &cw, NULL);
 
-	x = cgi.view->viewport.x + cgi.view->viewport.w - 3 * cw;
+	x = cgi.context->width - 3 * cw;
 
 	cgi.DrawString(x, y, va("%3d", frags), HUD_COLOR_STAT);
 
@@ -363,15 +361,15 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Deaths");
-	y = cgi.view->viewport.y + 2 * (HUD_PIC_HEIGHT + ch);
+	x = cgi.context->width - cgi.StringWidth("Deaths");
+	y = 2 * (HUD_PIC_HEIGHT + ch);
 
 	cgi.DrawString(x, y, "Deaths", color_green);
 	y += ch;
 
 	cgi.BindFont("large", &cw, NULL);
 
-	x = cgi.view->viewport.x + cgi.view->viewport.w - 3 * cw;
+	x = cgi.context->width - 3 * cw;
 
 	cgi.DrawString(x, y, va("%3d", deaths), HUD_COLOR_STAT);
 
@@ -400,15 +398,15 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Captures");
-	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
+	x = cgi.context->width - cgi.StringWidth("Captures");
+	y = 3 * (HUD_PIC_HEIGHT + ch);
 
 	cgi.DrawString(x, y, "Captures", color_green);
 	y += ch;
 
 	cgi.BindFont("large", &cw, NULL);
 
-	x = cgi.view->viewport.x + cgi.view->viewport.w - 3 * cw;
+	x = cgi.context->width - 3 * cw;
 
 	cgi.DrawString(x, y, va("%3d", captures), HUD_COLOR_STAT);
 
@@ -427,8 +425,8 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
 
 	cgi.BindFont("small", &cw, NULL);
 
-	x = cgi.view->viewport.w - cgi.StringWidth("Spectating");
-	y = cgi.view->viewport.y + HUD_PIC_HEIGHT;
+	x = cgi.context->width - cgi.StringWidth("Spectating");
+	y = HUD_PIC_HEIGHT;
 
 	cgi.DrawString(x, y, "Spectating", color_green);
 
@@ -467,8 +465,8 @@ static void Cg_DrawChase(const player_state_t *ps) {
 		*s = '\0';
 	}
 
-	x = cgi.view->viewport.x + cgi.view->viewport.w * 0.5 - cgi.StringWidth(string) / 2;
-	y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT - ch;
+	x = cgi.context->width * 0.5 - cgi.StringWidth(string) / 2;
+	y = cgi.context->height - HUD_PIC_HEIGHT - ch;
 
 	cgi.DrawString(x, y, string, color_green);
 
@@ -494,8 +492,8 @@ static void Cg_DrawVote(const player_state_t *ps) {
 
 	g_snprintf(string, sizeof(string), "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
 
-	x = cgi.view->viewport.x;
-	y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT - ch;
+	x = 0;
+	y = cgi.context->height - HUD_PIC_HEIGHT - ch;
 
 	cgi.DrawString(x, y, string, color_green);
 
@@ -519,8 +517,8 @@ static void Cg_DrawTime(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth(string);
-	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
+	x = cgi.context->width - cgi.StringWidth(string);
+	y = 3 * (HUD_PIC_HEIGHT + ch);
 
 	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
 		y += HUD_PIC_HEIGHT + ch;
@@ -543,8 +541,8 @@ static void Cg_DrawReady(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Ready");
-	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
+	x = cgi.context->width - cgi.StringWidth("Ready");
+	y = 3 * (HUD_PIC_HEIGHT + ch);
 
 	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
 		y += HUD_PIC_HEIGHT + ch;
@@ -575,10 +573,10 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
 	color_t color = cg_team_info[team].color;
 	color.a = 38;
 
-	x = cgi.view->viewport.x;
-	y = cgi.view->viewport.y + cgi.view->viewport.h - 64;
+	x = 0;
+	y = cgi.context->height - 64;
 
-	cgi.DrawFill(x, y, cgi.view->viewport.w, 64, color);
+	cgi.DrawFill(x, y, cgi.context->width, 64, color);
 }
 
 /**
@@ -716,8 +714,9 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		}
 	}
 
-	float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE * MVC_WindowScale(NULL, NULL, NULL);
-	float alpha = cg_draw_crosshair_alpha->value;
+	float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE;
+
+	vec4_t color = crosshair.color;
 
 	// pulse the crosshair size and alpha based on pickups
 	if (cg_draw_crosshair_pulse->value) {
@@ -731,19 +730,19 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 		const uint32_t delta = cgi.client->unclamped_time - cg_hud_locals.pulse.time;
 		if (delta < 300) {
-			const float frac = 1.0 - (delta / 300.0);
-			scale += cg_draw_crosshair_pulse->value * CROSSHAIR_SCALE * frac * scale;
-			alpha += cg_draw_crosshair_pulse->value * CROSSHAIR_SCALE * frac;
+			const float frac = delta / 300.f;
+			scale += sinf(frac * M_PI) * CROSSHAIR_SCALE;
+			color.w += sinf((frac - 1.f) * M_PI) * CROSSHAIR_PULSE_ALPHA;
 		}
-
-		crosshair.color.z = alpha;
 	}
+
+	color.w *= cg_draw_crosshair_alpha->value;
 
 	// calculate width and height based on crosshair image and scale
 	x = (cgi.context->width - crosshair.image->width * scale) / 2.0;
 	y = (cgi.context->height - crosshair.image->height * scale) / 2.0;
 
-	cgi.DrawImage(x, y, scale, crosshair.image, Color4fv(crosshair.color));
+	cgi.DrawImage(x, y, scale, crosshair.image, Color4fv(color));
 }
 
 /**
@@ -937,8 +936,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 			final_color.bytes[i] = (uint8_t) (blend.xyzw[i] * 255.0);
 		}
 
-		cgi.DrawFill(cgi.view->viewport.x, cgi.view->viewport.y,
-		             cgi.view->viewport.w, cgi.view->viewport.h, final_color);
+		cgi.DrawFill(0, 0, cgi.context->width, cgi.context->height, final_color);
 	}
 }
 
@@ -1166,8 +1164,8 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	// figure out weapon.tag
 	Cg_ValidateSelectedWeapon(ps);
 
-	r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - ((cg_hud_locals.weapon.num * HUD_PIC_HEIGHT) / 2));
-	r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - (HUD_PIC_HEIGHT * 2.0) - 16;
+	r_pixel_t x = ((cgi.context->width / 2) - ((cg_hud_locals.weapon.num * HUD_PIC_HEIGHT) / 2));
+	r_pixel_t y = cgi.context->height - (HUD_PIC_HEIGHT * 2.0) - 16;
 
 	r_pixel_t ch;
 	cgi.BindFont("medium", NULL, &ch);
@@ -1182,7 +1180,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 
 		if (i == cg_hud_locals.weapon.tag) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_weapons[i].item_index];
-			cgi.DrawString(cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (cgi.StringWidth(name) / 2)), y - ch, name, HUD_COLOR_STAT);
+			cgi.DrawString(((cgi.context->width / 2) - (cgi.StringWidth(name) / 2)), y - ch, name, HUD_COLOR_STAT);
 			cgi.DrawImage(x, y, 1.0, cg_select_weapon_image, color_white);
 		}
 
@@ -1230,8 +1228,8 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 		cgi.BindFont("medium", NULL, &ch);
 
 		const r_pixel_t w = cgi.StringWidth(name);
-		const r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (w / 2));
-		const r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - 192 - ch;
+		const r_pixel_t x = cgi.context->width / 2 - w / 2;
+		const r_pixel_t y = cgi.context->height - 192 - ch;
 
 		cgi.DrawString(x, y, name, color_green);
 	}

@@ -167,13 +167,9 @@ _Bool R_CullSphere(const vec3_t point, const float radius) {
 /**
  * @brief
  */
-static void R_UpdateViewport(void) {
+static void R_UpdateProjection(void) {
 
-	const SDL_Rect *viewport = &r_view.viewport;
-
-	glViewport(viewport->x, viewport->y, viewport->w, viewport->h);
-
-	const float aspect = (float) viewport->w / (float) viewport->h;
+	const float aspect = (float) r_context.width / (float) r_context.height;
 
 	const float ymax = 1.0 * tanf(Radians(r_view.fov.y));
 	const float ymin = -ymax;
@@ -239,7 +235,7 @@ static void R_UpdateFrustum(void) {
  */
 void R_DrawView(r_view_t *view) {
 
-	R_UpdateViewport();
+	R_UpdateProjection();
 
 	R_UpdateFrustum();
 
@@ -286,11 +282,6 @@ static void R_Clear(void) {
 		bits |= GL_COLOR_BUFFER_BIT;
 	}
 
-	// or if the viewport is less than fullscreen
-	if (r_view.viewport.x || r_view.viewport.y) {
-		bits |= GL_COLOR_BUFFER_BIT;
-	}
-
 	// or if the client is not fully loaded
 	if (cls.state != CL_ACTIVE) {
 		bits |= GL_COLOR_BUFFER_BIT;
@@ -311,14 +302,16 @@ void R_BeginFrame(void) {
 
 	R_Clear();
 
-	r_view.count_draw_arrays = 0;
-	r_view.count_draw_quads = 0;
-
 	r_view.count_bsp_nodes = 0;
 	r_view.count_bsp_draw_elements = 0;
 
 	r_view.count_mesh_models = 0;
 	r_view.count_mesh_triangles = 0;
+
+	r_view.count_draw_chars = 0;
+	r_view.count_draw_fills = 0;
+	r_view.count_draw_images = 0;
+	r_view.count_draw_lines = 0;
 }
 
 /**
@@ -578,7 +571,9 @@ void R_Init(void) {
 
 	R_GetError("Video initialization");
 
-	Com_Print("Video initialized %dx%d %s\n", r_context.width, r_context.height,
+	Com_Print("Video initialized %dx%d (%dx%d) %s\n",
+			  r_context.width, r_context.height,
+			  r_context.drawable_width, r_context.drawable_height,
 	          (r_context.fullscreen ? "fullscreen" : "windowed"));
 }
 

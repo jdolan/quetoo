@@ -36,6 +36,7 @@ typedef enum {
 #define CROSSHAIR_HEALTH_LAST CROSSHAIR_HEALTH_WHITE_BLUE
 
 #define CROSSHAIR_SCALE 0.125
+#define CROSSHAIR_PULSE_ALPHA 0.5
 
 #ifdef __CG_LOCAL_H__
 void Cg_ParseCenterPrint(void);

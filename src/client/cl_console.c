@@ -185,7 +185,7 @@ void Cl_DrawChat(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	r_pixel_t x = 1, y = r_view.viewport.y + r_view.viewport.h * 0.66;
+	r_pixel_t x = 1, y = r_context.height * 0.66;
 
 	cl_chat_console.width = r_context.width / cw / 3;
 	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 8);

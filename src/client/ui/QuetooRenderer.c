@@ -30,7 +30,6 @@
 
 #pragma mark - QuetooRenderer
 
-static double drawScale;
 static color_t drawColor;
 
 /**
@@ -38,8 +37,6 @@ static color_t drawColor;
  * @memberof QuetooRenderer
  */
 static void beginFrame(Renderer *self) {
-
-	drawScale = MVC_WindowScale(r_context.window, NULL, NULL);
 
 	drawColor = color_white;
 }
@@ -97,8 +94,8 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
 	r_pixel_t p[count][2];
 
 	for (size_t i = 0; i < count; i++) {
-		p[i][0] = points[i].x * drawScale;
-		p[i][1] = points[i].y * drawScale;
+		p[i][0] = points[i].x;
+		p[i][1] = points[i].y;
 	}
 
 	R_DrawLines((r_pixel_t *) p, count, drawColor);
@@ -112,12 +109,7 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	const SDL_Rect r = {
-		rect->x * drawScale,
-		rect->y * drawScale,
-		rect->w * drawScale - 1.0 * drawScale,
-		rect->h * drawScale - 1.0 * drawScale
-	};
+	const SDL_Rect r = *rect;
 
 	const r_pixel_t points[][2] = {
 		{ r.x,			r.y },
@@ -137,14 +129,7 @@ static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	const SDL_Rect r = {
-		rect->x * drawScale,
-		rect->y * drawScale,
-		rect->w * drawScale,
-		rect->h * drawScale
-	};
-
-	R_DrawFill(r.x, r.y, r.w, r.h, drawColor);
+	R_DrawFill(rect->x, rect->y, rect->w, rect->h, drawColor);
 }
 
 /**
@@ -154,16 +139,9 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
 
 	assert(rect);
 
-	const SDL_Rect r = {
-		rect->x * drawScale,
-		rect->y * drawScale,
-		rect->w * drawScale,
-		rect->h * drawScale
-	};
-
 	const r_image_t image = { .texnum = texture };
 
-	R_DrawImageRect(r.x, r.y, r.w, r.h, &image, drawColor);
+	R_DrawImageRect(rect->x, rect->y, rect->w, rect->h, &image, drawColor);
 }
 
 /**

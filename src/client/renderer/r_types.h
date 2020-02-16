@@ -660,11 +660,6 @@ typedef struct {
 	uint32_t ticks;
 
 	/**
-	 * @brief The Viewport.
-	 */
-	SDL_Rect viewport;
-
-	/**
 	 * @brief The horizontal and vertical field of view.
 	 */
 	vec2_t fov;
@@ -740,14 +735,16 @@ typedef struct {
 
 	// counters, reset each frame
 
-	int32_t count_draw_arrays;
-	int32_t count_draw_quads;
-
 	int32_t count_bsp_nodes;
 	int32_t count_bsp_draw_elements;
 
 	int32_t count_mesh_models;
 	int32_t count_mesh_triangles;
+
+	int32_t count_draw_chars;
+	int32_t count_draw_fills;
+	int32_t count_draw_images;
+	int32_t count_draw_lines;
 
 	_Bool update; // inform the client of state changes
 	
@@ -770,12 +767,12 @@ typedef struct {
 	/**
 	 * @brief OpenGL context size in drawable pixels, as reported by SDL_GL_GetDrawableSize.
 	 */
-	r_pixel_t width, height;
+	r_pixel_t drawable_width, drawable_height;
 
 	/**
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
 	 */
-	r_pixel_t window_width, window_height;
+	r_pixel_t width, height;
 
 	/**
 	 * @brief Greater than 1.0 if High DPI mode is enabled.

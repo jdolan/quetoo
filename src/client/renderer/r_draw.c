@@ -112,8 +112,6 @@ static void R_AddDrawArrays(const r_draw_arrays_t *draw) {
 
 	r_draw.draw_arrays[r_draw.num_draw_arrays] = *draw;
 	r_draw.num_draw_arrays++;
-
-	r_view.count_draw_arrays++;
 }
 
 /**
@@ -133,14 +131,16 @@ static void R_EmitDrawVertexes_Quad(const r_draw_vertex_t *quad) {
 	r_draw.vertexes[r_draw.num_vertexes++] = quad[0];
 	r_draw.vertexes[r_draw.num_vertexes++] = quad[2];
 	r_draw.vertexes[r_draw.num_vertexes++] = quad[3];
-
-	r_view.count_draw_quads++;
 }
 
 /**
  * @brief
  */
 static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
+
+	if (isspace(c)) {
+		return;
+	}
 
 	const uint32_t row = (uint32_t) c >> 4;
 	const uint32_t col = (uint32_t) c & 15;
@@ -150,12 +150,15 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 	const float s1 = (col + 1) * 0.0625;
 	const float t1 = (row + 1) * 0.1250;
 
+	const r_pixel_t cw = r_draw.font->char_width;
+	const r_pixel_t ch = r_draw.font->char_height;
+
 	r_draw_vertex_t quad[4];
 
-	quad[0].position = Vec2s(x, y);
-	quad[1].position = Vec2s(x + r_draw.font->char_width, y);
-	quad[2].position = Vec2s(x + r_draw.font->char_width, y + r_draw.font->char_height);
-	quad[3].position = Vec2s(x, y + r_draw.font->char_height);
+	quad[0].position = Vec2s_Scale(Vec2s(x, y), r_context.window_scale);
+	quad[1].position = Vec2s_Scale(Vec2s(x + cw, y), r_context.window_scale);
+	quad[2].position = Vec2s_Scale(Vec2s(x + cw, y + ch), r_context.window_scale);
+	quad[3].position = Vec2s_Scale(Vec2s(x, y + ch), r_context.window_scale);
 
 	quad[0].diffuse = Vec2(s0, t0);
 	quad[1].diffuse = Vec2(s1, t0);
@@ -168,6 +171,8 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 	quad[3].color = color;
 
 	R_EmitDrawVertexes_Quad(quad);
+
+	r_view.count_draw_chars++;
 }
 
 /**
@@ -175,7 +180,7 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
  */
 void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 
-	if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+	if (isspace(c)) {
 		return;
 	}
 
@@ -300,10 +305,10 @@ void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r
 
 	r_draw_vertex_t quad[4];
 
-	quad[0].position = Vec2s(x, y);
-	quad[1].position = Vec2s(x + w, y);
-	quad[2].position = Vec2s(x + w, y + h);
-	quad[3].position = Vec2s(x, y + h);
+	quad[0].position = Vec2s_Scale(Vec2s(x, y), r_context.window_scale);
+	quad[1].position = Vec2s_Scale(Vec2s(x + w, y), r_context.window_scale);
+	quad[2].position = Vec2s_Scale(Vec2s(x + w, y + h), r_context.window_scale);
+	quad[3].position = Vec2s_Scale(Vec2s(x, y + h), r_context.window_scale);
 
 	quad[0].diffuse = Vec2(0, 0);
 	quad[1].diffuse = Vec2(1, 0);
@@ -317,6 +322,8 @@ void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r
 
 	R_EmitDrawVertexes_Quad(quad);
 	R_AddDrawArrays(&draw);
+
+	r_view.count_draw_images++;
 }
 
 /**
@@ -342,10 +349,10 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_
 
 	r_draw_vertex_t quad[4];
 
-	quad[0].position = Vec2s(x, y);
-	quad[1].position = Vec2s(x + w, y);
-	quad[2].position = Vec2s(x + w, y + h);
-	quad[3].position = Vec2s(x, y + h);
+	quad[0].position = Vec2s_Scale(Vec2s(x, y), r_context.window_scale);
+	quad[1].position = Vec2s_Scale(Vec2s(x + w, y), r_context.window_scale);
+	quad[2].position = Vec2s_Scale(Vec2s(x + w, y + h), r_context.window_scale);
+	quad[3].position = Vec2s_Scale(Vec2s(x, y + h), r_context.window_scale);
 
 	quad[0].color = color;
 	quad[1].color = color;
@@ -354,6 +361,8 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_
 
 	R_EmitDrawVertexes_Quad(quad);
 	R_AddDrawArrays(&draw);
+
+	r_view.count_draw_fills++;
 }
 
 /**
@@ -373,8 +382,8 @@ void R_DrawLines(const r_pixel_t *points, size_t count, const color_t color) {
 	const r_pixel_t *in = points;
 	for (size_t i = 0; i < count; i++, in += 2, out++) {
 
-		out->position.x = *(in + 0);
-		out->position.y = *(in + 1);
+		out->position.x = *(in + 0) * r_context.window_scale;
+		out->position.y = *(in + 1) * r_context.window_scale;
 
 		out->color = color;
 	}
@@ -382,6 +391,8 @@ void R_DrawLines(const r_pixel_t *points, size_t count, const color_t color) {
 	r_draw.num_vertexes += count;
 
 	R_AddDrawArrays(&draw);
+
+	r_view.count_draw_lines += count >> 1;
 }
 
 /**
@@ -389,14 +400,12 @@ void R_DrawLines(const r_pixel_t *points, size_t count, const color_t color) {
  */
 void R_Draw2D(void) {
 
-	glViewport(0, 0, r_context.width, r_context.height);
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(r_draw_program.name);
 
-	Matrix4x4_FromOrtho(&r_locals.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+	Matrix4x4_FromOrtho(&r_locals.projection2D, 0.0, r_context.drawable_width, r_context.drawable_height, 0.0, -1.0, 1.0);
 	glUniformMatrix4fv(r_draw_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection2D.m);
 
 	glUniform1f(r_draw_program.brightness, r_brightness->value);
@@ -416,7 +425,6 @@ void R_Draw2D(void) {
 	for (int32_t i = 0; i < r_draw.num_draw_arrays; i++, draw++) {
 
 		glBindTexture(GL_TEXTURE_2D, draw->texture);
-
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
 
@@ -456,8 +464,8 @@ static void R_InitFont(char *name) {
 
 	font->image = R_LoadImage(va("fonts/%s", name), IT_FONT);
 
-	font->char_width = font->image->width / 16;
-	font->char_height = font->image->height / 8;
+	font->char_width = font->image->width / r_context.window_scale / 16;
+	font->char_height = font->image->height / r_context.window_scale / 8;
 
 	Com_Debug(DEBUG_RENDERER, "%s (%dx%d)\n", font->name, font->char_width, font->char_height);
 }

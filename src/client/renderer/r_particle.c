@@ -103,7 +103,7 @@ void R_DrawParticles(void) {
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
-	glUniform2f(r_particle_program.viewport, r_view.viewport.w, r_view.viewport.h);
+	glUniform2f(r_particle_program.viewport, r_context.drawable_width, r_context.drawable_height);
 
 	glUniform1f(r_particle_program.brightness, r_brightness->value);
 	glUniform1f(r_particle_program.contrast, r_contrast->value);

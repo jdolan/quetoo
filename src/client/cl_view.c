@@ -21,8 +21,6 @@
 
 #include "cl_local.h"
 
-static cvar_t *cl_view_size;
-
 /**
  * @brief Clears all volatile view members so that a new scene may be populated.
  */
@@ -35,26 +33,6 @@ void Cl_ClearView(void) {
 }
 
 /**
- * @brief
- */
-static void Cl_UpdateViewSize(void) {
-
-	if (!cl_view_size->modified && !r_view.update) {
-		return;
-	}
-
-	Cvar_SetValue(cl_view_size->name, Clampf(cl_view_size->value, 40.0, 100.0));
-
-	r_view.viewport.w = r_context.width * cl_view_size->value / 100.0;
-	r_view.viewport.h = r_context.height * cl_view_size->value / 100.0;
-
-	r_view.viewport.x = (r_context.width - r_view.viewport.w) / 2.0;
-	r_view.viewport.y = (r_context.height - r_view.viewport.h) / 2.0;
-
-	cl_view_size->modified = false;
-}
-
-/**
  * @brief Updates the view definition for the pending render frame.
  */
 void Cl_UpdateView(void) {
@@ -62,23 +40,7 @@ void Cl_UpdateView(void) {
 	r_view.ticks = cl.unclamped_time;
 	r_view.area_bits = cl.frame.area_bits;
 
-	Cl_UpdateViewSize();
-
 	cls.cgame->UpdateView(&cl.frame);
-}
-
-/**
- * @brief
- */
-static void Cl_ViewSizeUp_f(void) {
-	Cvar_SetValue("cl_view_size", cl_view_size->integer + 10);
-}
-
-/**
- * @brief
- */
-static void Cl_ViewSizeDown_f(void) {
-	Cvar_SetValue("cl_view_size", cl_view_size->integer - 10);
 }
 
 /**
@@ -86,8 +48,4 @@ static void Cl_ViewSizeDown_f(void) {
  */
 void Cl_InitView(void) {
 
-	cl_view_size = Cvar_Add("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
-
-	Cmd_Add("cl_view_size_up", Cl_ViewSizeUp_f, CMD_CLIENT, NULL);
-	Cmd_Add("cl_view_size_down", Cl_ViewSizeDown_f, CMD_CLIENT, NULL);
 }

@@ -90,7 +90,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 	cgi.BindFont("medium", &cw, &ch);
 
-	y = cgi.view->viewport.y + 64 - ch - 4;
+	y = 64 - ch - 4;
 
 	const char *map_name = cgi.ConfigString(CS_NAME);
 	const r_pixel_t sw = cgi.StringWidth(map_name);
