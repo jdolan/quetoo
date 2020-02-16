@@ -438,11 +438,6 @@ _Bool Vec3_Equal(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_res
 vec3_t Vec3_Euler(const vec3_t dir) __attribute__ ((warn_unused_result));
 
 /**
- * @return The forward directional vector for the euler angles, in radians.
- */
-vec3_t Vec3_Forward(const vec3_t euler) __attribute__ ((warn_unused_result));
-
-/**
  * @return The squared length (magnitude) of `v`.
  */
 float Vec3_LengthSquared(const vec3_t v) __attribute__ ((warn_unused_result));

@@ -522,14 +522,7 @@ vec3_t Vec3_Euler(const vec3_t dir) {
 	return Vec3(-pitch, yaw, 0);
 }
 
-/**
- * @brief
- */
-vec3_t Vec3_Forward(const vec3_t euler) {
-	const vec3_t radians = Vec3_Radians(euler);
-	return Vec3(cosf(radians.x) * cosf(radians.y),
-				 cosf(radians.x) * sinf(radians.y),
-				 sinf(radians.x) * -1.f);
+	return Vec3(pitch, yaw, 0.0);
 }
 
 /**
