@@ -127,6 +127,19 @@ vec3i_t Vec3i_Zero(void) {
 /**
  * @brief
  */
+float ClampEuler(float theta) {
+	while (theta >= 360.f) {
+		theta -= 360.f;
+	}
+	while (theta < 0.f) {
+		theta += 360.f;
+	}
+	return theta;
+}
+
+/**
+ * @brief
+ */
 float Clampf(float f, float min, float max) {
 	return Minf(Maxf(f, min), max);
 }
@@ -393,6 +406,12 @@ vec3i_t Vec3_CastVec3i(const vec3_t v) {
 		.y = (int32_t) v.y,
 		.z = (int32_t) v.z
 	};
+}
+
+vec3_t Vec3_ClampEuler(const vec3_t euler) {
+	return Vec3(ClampEuler(euler.x),
+				ClampEuler(euler.y),
+				ClampEuler(euler.z));
 }
 
 /**
@@ -713,9 +732,9 @@ void Vec3_Vectors(const vec3_t euler, vec3_t *forward, vec3_t *right, vec3_t *up
 
 	float sr, sp, sy, cr, cp, cy;
 
-	SinCos((euler.y * DEG2RAD), &sy, &cy );
-	SinCos((euler.x * DEG2RAD), &sp, &cp );
-	SinCos((euler.z * DEG2RAD), &sr, &cr );
+	SinCos((euler.x * DEG2RAD), &sp, &cp);
+	SinCos((euler.y * DEG2RAD), &sy, &cy);
+	SinCos((euler.z * DEG2RAD), &sr, &cr);
 
 	if (forward) {
 		forward->x = cp * cy;
@@ -724,9 +743,9 @@ void Vec3_Vectors(const vec3_t euler, vec3_t *forward, vec3_t *right, vec3_t *up
 	}
 
 	if (right) {
-		right->x = (-1 * sr * sp * cy + -1 * cr * -sy);
-		right->y = (-1 * sr * sp * sy + -1 * cr * cy);
-		right->z = -1 * sr * cp;
+		right->x = (-1.f * sr * sp * cy + -1.f * cr * -sy);
+		right->y = (-1.f * sr * sp * sy + -1.f * cr * cy);
+		right->z =  -1.f * sr * cp;
 	}
 
 	if (up) {

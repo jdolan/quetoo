@@ -204,6 +204,11 @@ vec3i_t Vec3i_Zero(void);
 #pragma mark - single precision
 
 /**
+ * @return The angle `theta` circularly clamped.
+ */
+float ClampEuler(float theta);
+
+/**
  * @return The value `f`, clamped to the specified `min` and `max`.
  */
 float Clampf(float f, float min, float max) __attribute__ ((warn_unused_result));
@@ -376,6 +381,11 @@ vec3s_t Vec3_CastVec3s(const vec3_t v) __attribute__ ((warn_unused_result));
  * @return The vector `v` cast to `s32vec3_t`.
  */
 vec3i_t Vec3_CastVec3i(const vec3_t v) __attribute__ ((warn_unused_result));
+
+/**
+ * @return The specified Euler angles circularly clamped to `0.f - 360.f`.
+ */
+vec3_t Vec3_ClampEuler(const vec3_t euler) __attribute__ ((warn_unused_result));
 
 /**
  * @return The cross product of `a ✕ b`.

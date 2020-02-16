@@ -81,8 +81,8 @@ static void Cg_UpdateFov(void) {
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	vec3_t forward, right, up, origin, point;
 
-	const vec3_t mins = Vec3(-8.0, -8.0, -8.0);
-	const vec3_t maxs = Vec3( 8.0,  8.0,  8.0);
+	const vec3_t mins = Vec3(-16.0, -16.0, -16.0);
+	const vec3_t maxs = Vec3( 16.0,  16.0,  16.0);
 
 	if (cg_third_person->value || (cg_third_person_chasecam->value && ps->stats[STAT_CHASE])) {
 		cgi.client->third_person = true;
@@ -97,11 +97,11 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 		cg_third_person_z->value
 	);
 
-	const vec3_t angles = Vec3(
+	const vec3_t angles = Vec3_ClampEuler(Vec3(
 		cgi.view->angles.x + cg_third_person_pitch->value,
 		cgi.view->angles.y + cg_third_person_yaw->value,
 		cgi.view->angles.z
-	);
+	));
 
 	const float yaw = angles.y;
 
@@ -119,7 +119,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	cgi.view->origin = tr.end;
 
 	point = Vec3_Subtract(point, cgi.view->origin);
-	cgi.view->angles = Vec3_Euler(point);
+	cgi.view->angles = Vec3_Euler(Vec3_Normalize(point));
 	cgi.view->angles.y = yaw;
 
 	Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
