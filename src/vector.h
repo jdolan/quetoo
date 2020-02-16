@@ -365,17 +365,17 @@ _Bool Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmi
 /**
  * @return The vector `v` cast to `vec3d_t`.
  */
-vec3d_t Vec3_CastDVec3(const vec3_t v) __attribute__ ((warn_unused_result));
+vec3d_t Vec3_CastVec3d(const vec3_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `v` cast to `s16vec3_t`.
  */
-vec3s_t Vec3_CastS16Vec3(const vec3_t v) __attribute__ ((warn_unused_result));
+vec3s_t Vec3_CastVec3s(const vec3_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `v` cast to `s32vec3_t`.
  */
-vec3i_t Vec3_CastS32Vec3(const vec3_t v) __attribute__ ((warn_unused_result));
+vec3i_t Vec3_CastVec3i(const vec3_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return The cross product of `a ✕ b`.

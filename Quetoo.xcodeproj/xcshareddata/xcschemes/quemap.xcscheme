@@ -106,11 +106,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light --indirect"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light --antialias --indirect"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-zip"

@@ -63,8 +63,8 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 
 			ai_ann_input_t in;
 
-            in.origin = Vec3_CastDVec3(ent->s.origin);
-			in.velocity = Vec3_CastDVec3(ENTITY_DATA(ent, velocity));
+            in.origin = Vec3_CastVec3d(ent->s.origin);
+			in.velocity = Vec3_CastVec3d(ENTITY_DATA(ent, velocity));
 
 			ai_ann_output_t out;
 
@@ -76,7 +76,7 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 			dir = Vec3_Add(dir, Vec3_Scale(up, cmd->up));
 
 			dir = Vec3_Normalize(dir);
-			out.dir = Vec3_CastDVec3(dir);
+			out.dir = Vec3_CastVec3d(dir);
 
 			genann_train(ai_genann, (const double *) &in, (const double *) &out, AI_ANN_LEARNING_RATE);
 		}
@@ -95,8 +95,8 @@ void Ai_Predict(const g_entity_t *ent, vec3_t *dir) {
 
 	ai_ann_input_t in;
 
-	in.origin = Vec3_CastDVec3(ent->s.origin);
-	in.velocity = Vec3_CastDVec3(ENTITY_DATA(ent, velocity));
+	in.origin = Vec3_CastVec3d(ent->s.origin);
+	in.velocity = Vec3_CastVec3d(ENTITY_DATA(ent, velocity));
 
 	const ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_genann, (const double *) &in);
 	assert(out);

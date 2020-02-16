@@ -428,21 +428,21 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 		if (trace->skip) { // see if we can skip it
 
 			if (ent == trace->skip) {
-				continue;    // explicitly (ourselves)
+				continue; // explicitly (ourselves)
 			}
 
 			if (ent->owner == trace->skip) {
-				continue;    // or via ownership (we own it)
+				continue; // or via ownership (we own it)
 			}
 
 			if (trace->skip->owner) {
 
 				if (ent == trace->skip->owner) {
-					continue;    // which is bidirectional (inverse of previous case)
+					continue; // which is bidirectional (inverse of previous case)
 				}
 
 				if (ent->owner == trace->skip->owner) {
-					continue;    // and commutative (we are both owned by the same)
+					continue; // and commutative (we are both owned by the same)
 				}
 			}
 

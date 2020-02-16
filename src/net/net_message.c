@@ -157,13 +157,13 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
  */
 void Net_WriteBounds(mem_buf_t *msg, const vec3_t mins, const vec3_t maxs) {
 
-	const vec3s_t _mins = Vec3_CastS16Vec3(mins);
+	const vec3s_t _mins = Vec3_CastVec3s(mins);
 
 	Net_WriteShort(msg, _mins.x);
 	Net_WriteShort(msg, _mins.y);
 	Net_WriteShort(msg, _mins.z);
 
-	const vec3s_t _maxs = Vec3_CastS16Vec3(maxs);
+	const vec3s_t _maxs = Vec3_CastVec3s(maxs);
 
 	Net_WriteShort(msg, _maxs.x);
 	Net_WriteShort(msg, _maxs.y);

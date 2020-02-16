@@ -365,7 +365,7 @@ _Bool Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmi
 /**
  * @brief
  */
-vec3d_t Vec3_CastDVec3(const vec3_t v) {
+vec3d_t Vec3_CastVec3d(const vec3_t v) {
 	return (vec3d_t) {
 		.x = (double) v.x,
 		.y = (double) v.y,
@@ -376,7 +376,7 @@ vec3d_t Vec3_CastDVec3(const vec3_t v) {
 /**
  * @brief
  */
-vec3s_t Vec3_CastS16Vec3(const vec3_t v) {
+vec3s_t Vec3_CastVec3s(const vec3_t v) {
 	return (vec3s_t) {
 		.x = (int16_t) v.x,
 		.y = (int16_t) v.y,
@@ -387,7 +387,7 @@ vec3s_t Vec3_CastS16Vec3(const vec3_t v) {
 /**
  * @brief
  */
-vec3i_t Vec3_CastS32Vec3(const vec3_t v) {
+vec3i_t Vec3_CastVec3i(const vec3_t v) {
 	return (vec3i_t) {
 		.x = (int32_t) v.x,
 		.y = (int32_t) v.y,
