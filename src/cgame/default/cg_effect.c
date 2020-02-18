@@ -103,21 +103,26 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_face_t *s) {
 
 	e->origins = cgi.Malloc(sizeof(vec4_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
 
-	// resolve the origins and end_z
-	for (int32_t i = 0; i < e->num_origins; i++) {
+	// resolve the origins and their end positions
+
+	int32_t i = 0;
+	while (i < e->num_origins) {
 		vec4_t *origin = e->origins + i;
 
 		// randomize the origin over the surface
 
-		vec3_t org = Vec3_Add(s->mins, Vec3_Scale(delta, Randomf()));
-		org = Vec3_Add(org, s->plane->normal);
+		const vec3_t org = Vec3_Add(Vec3_Mix3(s->mins, s->maxs, Vec3_Random()), s->plane->normal);
 
 		vec3_t end = org;
 		end.z -= MAX_WORLD_DIST;
 
-		cm_trace_t trace = cgi.Trace(org, end, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE | MASK_LIQUID);
+		const cm_trace_t tr = cgi.Trace(org, end, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE | MASK_LIQUID);
+		if (!tr.surface) {
+			continue;
+		}
 
-		*origin = Vec3_ToVec4(org, trace.end.z);
+		*origin = Vec3_ToVec4(org, tr.end.z);
+		i++;
 	}
 
 	// push on to the linked list

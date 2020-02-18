@@ -478,6 +478,11 @@ vec3_t Vec3_MixEuler(const vec3_t a, const vec3_t b, float mix) __attribute__ ((
 vec3_t Vec3_Mix(const vec3_t a, const vec3_t b, float mix) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The linear interpolation of `a` and `b` using the specified fractions.
+ */
+vec3_t Vec3_Mix3(const vec3_t a, const vec3_t b, const vec3_t mix) __attribute__ ((warn_unused_result));
+
+/**
  * @return The product `a * b`.
  */
 vec3_t Vec3_Multiply(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_result));

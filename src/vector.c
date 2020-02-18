@@ -592,6 +592,13 @@ vec3_t Vec3_Mix(const vec3_t a, const vec3_t b, float mix) {
 /**
  * @brief
  */
+vec3_t Vec3_Mix3(const vec3_t a, const vec3_t b, const vec3_t mix) {
+	return Vec3_Add(Vec3_Multiply(a, Vec3_Subtract(Vec3_One(), mix)), Vec3_Multiply(b, mix));
+}
+
+/**
+ * @brief
+ */
 vec3_t Vec3_Multiply(const vec3_t a, const vec3_t b) {
 	return Vec3(a.x * b.x, a.y * b.y, a.z * b.z);
 }

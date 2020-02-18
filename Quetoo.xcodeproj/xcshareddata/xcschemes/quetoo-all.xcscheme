@@ -90,7 +90,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map torn"
@@ -101,8 +101,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_cheats 1 +no_clip +give all"
-            isEnabled = "NO">
+            argument = "+set g_cheats 1 +give all"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
