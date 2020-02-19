@@ -171,7 +171,7 @@ static void R_UpdateProjection(void) {
 
 	const float aspect = (float) r_context.width / (float) r_context.height;
 
-	const float ymax = 1.0 * tanf(Radians(r_view.fov.y));
+	const float ymax = tanf(Radians(r_view.fov.y));
 	const float ymin = -ymax;
 
 	const float xmin = ymin * aspect;

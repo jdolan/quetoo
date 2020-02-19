@@ -27,7 +27,8 @@ layout (location = 1) in vec4 in_color;
 uniform mat4 projection;
 uniform mat4 view;
 
-uniform vec2 viewport;
+uniform float pixels_per_radian;
+uniform float far_z;
 
 out vertex_data {
 	vec4 color;
@@ -40,11 +41,9 @@ void main(void) {
 
 	gl_Position = projection * view * vec4(in_position.xyz, 1.0);
 
-	vec4 view_position = view * vec4(in_position.xyz, 1.0);
-	vec4 projected_size = projection * vec4(in_position.w, in_position.w, view_position.z, view_position.w);
-	vec2 size = viewport * projected_size.xy / projected_size.w;
+	float depth = clamp(gl_Position.z / far_z, 0.0, 1.0);
 
-	gl_PointSize = size.x + size.y;
+	gl_PointSize = in_position.w * pixels_per_radian / depth;
 
 	vertex.color = in_color;
 }

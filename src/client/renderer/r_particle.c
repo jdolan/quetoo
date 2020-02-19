@@ -57,7 +57,8 @@ static struct {
 	GLint projection;
 	GLint view;
 
-	GLint viewport;
+	GLint pixels_per_radian;
+	GLint far_z;
 
 	GLint texture_diffuse;
 
@@ -103,7 +104,8 @@ void R_DrawParticles(void) {
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
-	glUniform2f(r_particle_program.viewport, r_context.drawable_width, r_context.drawable_height);
+	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y)));
+	glUniform1f(r_particle_program.far_z, MAX_WORLD_DIST);
 
 	glUniform1f(r_particle_program.brightness, r_brightness->value);
 	glUniform1f(r_particle_program.contrast, r_contrast->value);
@@ -151,7 +153,8 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.projection = glGetUniformLocation(r_particle_program.name, "projection");
 	r_particle_program.view = glGetUniformLocation(r_particle_program.name, "view");
 
-	r_particle_program.viewport = glGetUniformLocation(r_particle_program.name, "viewport");
+	r_particle_program.pixels_per_radian = glGetUniformLocation(r_particle_program.name, "pixels_per_radian");
+	r_particle_program.far_z = glGetUniformLocation(r_particle_program.name, "far_z");
 
 	r_particle_program.texture_diffuse = glGetUniformLocation(r_particle_program.name, "texture_diffuse");
 
