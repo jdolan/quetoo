@@ -229,6 +229,11 @@ _Bool EqualEpsilonf(float a, float b, float epsilon) __attribute__ ((warn_unused
 float Minf(float a, float b) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The linear interpolation of `a` and `b` using the specified fraction.
+ */
+float Mixf(float a, float b, float mix) __attribute__ ((warn_unused_result));
+
+/**
  * @return The maximum of `a` and `b`.
  */
 float Maxf(float a, float b) __attribute__ ((warn_unused_result));

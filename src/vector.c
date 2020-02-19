@@ -168,6 +168,13 @@ float Minf(float a, float b) {
 /**
  * @brief
  */
+float Mixf(float a, float b, float mix) {
+	return a * (1.f - mix) + b * mix;
+}
+
+/**
+ * @brief
+ */
 float Maxf(float a, float b) {
 	return a > b ? a : b;
 }
