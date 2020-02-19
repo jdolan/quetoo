@@ -102,6 +102,27 @@ color_t Color4fv(const vec4_t rgba) {
 /**
  * @brief
  */
+color_t Color_Add(const color_t a, const color_t b) {
+	return Color4fv(Vec4_Add(Color_Vec4(a), Color_Vec4(b)));
+}
+
+/**
+ * @brief
+ */
+color_t Color_Mix(const color_t a, const color_t b, float mix) {
+	return Color4fv(Vec4_Mix(Color_Vec4(a), Color_Vec4(b), mix));
+}
+
+/**
+ * @brief
+ */
+color_t Color_Subtract(const color_t a, const color_t b) {
+	return Color4fv(Vec4_Subtract(Color_Vec4(a), Color_Vec4(b)));
+}
+
+/**
+ * @brief
+ */
 vec3_t Color_Vec3(const color_t color) {
 	return Vec3_Scale(Vec3(color.r, color.g, color.b), 1.f / 255.f);
 }

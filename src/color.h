@@ -98,6 +98,21 @@ color_t Color4f(float r, float g, float b, float a);
 color_t Color4fv(const vec4_t rgba);
 
 /**
+ * @return The sub of `a + b`.
+ */
+color_t Color_Add(const color_t a, const color_t b);
+
+/**
+ * @return The linear interpolation of `a` and `b` using the specified fraction.
+ */
+color_t Color_Mix(const color_t a, const color_t b, float mix);
+
+/**
+ * @return The difference of `a - b`.
+ */
+color_t Color_Subtract(const color_t a, const color_t b);
+
+/**
  * @return A floating point vector for the specified color;
  */
 vec3_t Color_Vec3(const color_t color);
