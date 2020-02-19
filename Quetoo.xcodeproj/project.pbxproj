@@ -212,10 +212,6 @@
 		CE354F0622087CFA008AE0C2 /* libatlas.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE354EE722073AD6008AE0C2 /* libatlas.a */; };
 		CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3C529221E4DF2500FEDBED /* cm_polylib.h */; };
 		CE3C529521E4DF2500FEDBED /* cm_polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3C529321E4DF2500FEDBED /* cm_polylib.c */; };
-		CE40147B204B9EF0009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
-		CE40147C204B9F32009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
-		CE40147D204B9F4C009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
-		CE40147E204B9FBB009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
 		CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */; };
 		CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */; };
@@ -257,7 +253,6 @@
 		CE51FBA921481DD300ABE14F /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE51FBB021481E1C00ABE14F /* check_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */; };
 		CE51FBB121481E5C00ABE14F /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
-		CE51FBB221481E7300ABE14F /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
 		CE51FBB521481F2500ABE14F /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE51FBB821481F2500ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE51FBB921481F2500ABE14F /* libconsole.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A211D9CB408000FA6B2 /* libconsole.a */; };
@@ -274,7 +269,6 @@
 		CE51FBD621481FC100ABE14F /* libparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.a */; };
 		CE51FBD721481FC100ABE14F /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CE51FBD821481FC100ABE14F /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CE51FBD921481FC100ABE14F /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
 		CE51FBDA21481FC100ABE14F /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE51FBE221481FD500ABE14F /* check_filesystem.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6CF1C5C58C300CD0B13 /* check_filesystem.c */; };
 		CE51FBE321481FE500ABE14F /* libfilesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A4C1D9CB483000FA6B2 /* libfilesystem.a */; };
@@ -283,7 +277,6 @@
 		CE51FBEE2148207700ABE14F /* libparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.a */; };
 		CE51FBEF2148207700ABE14F /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CE51FBF02148207700ABE14F /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CE51FBF12148207700ABE14F /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
 		CE51FBF22148207700ABE14F /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE51FC042148213200ABE14F /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE51FC052148213200ABE14F /* libsys.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A5D1D9CB4FC000FA6B2 /* libsys.a */; };
@@ -371,6 +364,14 @@
 		CE6EE40E1F720F3A00FBC830 /* libcgame-ui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */; };
 		CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
+		CE78386523FDC2EB004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CE78386623FDC353004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CE78386723FDC368004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CE78386823FDC37F004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CE78386923FDC3D2004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CE78386A23FDC3E9004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CE78386B23FDC3FF004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CE78386D23FDC5CF004A7EBB /* libopenal.1.20.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386C23FDC5CF004A7EBB /* libopenal.1.20.1.dylib */; };
 		CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C0D202F6134004BC58E /* MainView.json */; };
 		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7D2C14202F690A004BC58E /* HomeViewController.h */; };
@@ -584,7 +585,6 @@
 		CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */; };
 		CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F923D70A11002FD074 /* sky_vs.glsl */; };
 		CE91924D2055731E007AC8FF /* tjunction.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunction.c */; };
-		CE948B0E222C130600D961FA /* libopenal.1.15.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE948B0D222C130600D961FA /* libopenal.1.15.1.dylib */; };
 		CE948B1B2235652600D961FA /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CE948B1C2235652600D961FA /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE948B1D2235652600D961FA /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
@@ -1779,6 +1779,8 @@
 		CE6EE40F1F72919800FBC830 /* cg_ui.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_ui.c; sourceTree = "<group>"; };
 		CE6EE4101F72919800FBC830 /* cg_ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_ui.h; sourceTree = "<group>"; };
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
+		CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.0.2.dylib; path = ../../../../opt/local/lib/libphysfs.3.0.2.dylib; sourceTree = "<group>"; };
+		CE78386C23FDC5CF004A7EBB /* libopenal.1.20.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.20.1.dylib; path = ../../../../opt/local/lib/libopenal.1.20.1.dylib; sourceTree = "<group>"; };
 		CE7D2C06202E670E004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C07202E9C6D004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C08202E9DE6004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1972,10 +1974,10 @@
 				CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */,
 				CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CE1A281C1F740E7B005F62A9 /* libncurses.6.dylib in Frameworks */,
-				CE40147B204B9EF0009FD74E /* libphysfs.3.0.1.dylib in Frameworks */,
+				CE78386D23FDC5CF004A7EBB /* libopenal.1.20.1.dylib in Frameworks */,
+				CE78386523FDC2EB004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
-				CE948B0E222C130600D961FA /* libopenal.1.15.1.dylib in Frameworks */,
 				CE1A281E1F740ECC005F62A9 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2044,7 +2046,7 @@
 				CE2B082823F9EBFC007C77B6 /* libvector.a in Frameworks */,
 				CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */,
-				CE40147C204B9F32009FD74E /* libphysfs.3.0.1.dylib in Frameworks */,
+				CE78386823FDC37F004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2103,7 +2105,7 @@
 				CE2B083123F9EC8F007C77B6 /* libvector.a in Frameworks */,
 				CE51FBA821481DD300ABE14F /* libcheck.0.dylib in Frameworks */,
 				CE51FBA921481DD300ABE14F /* libglib-2.0.0.dylib in Frameworks */,
-				CE51FBB221481E7300ABE14F /* libphysfs.3.0.1.dylib in Frameworks */,
+				CE78386923FDC3D2004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE51FBB121481E5C00ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2144,7 +2146,7 @@
 				CE2B084623F9EE52007C77B6 /* libvector.a in Frameworks */,
 				CE51FBD721481FC100ABE14F /* libcheck.0.dylib in Frameworks */,
 				CE51FBD821481FC100ABE14F /* libglib-2.0.0.dylib in Frameworks */,
-				CE51FBD921481FC100ABE14F /* libphysfs.3.0.1.dylib in Frameworks */,
+				CE78386A23FDC3E9004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE51FBDA21481FC100ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2164,7 +2166,7 @@
 				CE2B084923F9EE80007C77B6 /* libvector.a in Frameworks */,
 				CE51FBEF2148207700ABE14F /* libcheck.0.dylib in Frameworks */,
 				CE51FBF02148207700ABE14F /* libglib-2.0.0.dylib in Frameworks */,
-				CE51FBF12148207700ABE14F /* libphysfs.3.0.1.dylib in Frameworks */,
+				CE78386B23FDC3FF004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE51FBF22148207700ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2219,7 +2221,7 @@
 				CEFC7AA01D9CB840000FA6B2 /* libthread.a in Frameworks */,
 				CE89269A23F05F1E00CF3D33 /* libvector.a in Frameworks */,
 				CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */,
-				CE40147E204B9FBB009FD74E /* libphysfs.3.0.1.dylib in Frameworks */,
+				CE78386723FDC368004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */,
 				CE1A28201F748B20005F62A9 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */,
@@ -2358,7 +2360,7 @@
 				CEFC7A971D9CB780000FA6B2 /* libsys.a in Frameworks */,
 				CE2B082B23F9EC1B007C77B6 /* libvector.a in Frameworks */,
 				CEFC7A961D9CB776000FA6B2 /* libglib-2.0.0.dylib in Frameworks */,
-				CE40147D204B9F4C009FD74E /* libphysfs.3.0.1.dylib in Frameworks */,
+				CE78386623FDC353004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE1A28261F748BBA005F62A9 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3410,6 +3412,8 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE78386C23FDC5CF004A7EBB /* libopenal.1.20.1.dylib */,
+				CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */,
 				CE948B0D222C130600D961FA /* libopenal.1.15.1.dylib */,
 				CE51FB9121481AE300ABE14F /* libcheck.0.dylib */,
 				CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */,
