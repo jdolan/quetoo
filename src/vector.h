@@ -600,6 +600,16 @@ vec4_t Vec4_Mix(const vec4_t a, const vec4_t b, float mix) __attribute__ ((warn_
 vec4_t Vec4_One(void) __attribute__ ((warn_unused_result));
 
 /**
+ * @return A vector with random values between `begin` and `end`.
+ */
+vec4_t Vec4_RandomRange(float begin, float end) __attribute__ ((warn_unused_result));
+
+/**
+ * @return A vevtor with random values between `0` and `1`.
+ */
+vec4_t Vec4_Random(void) __attribute__ ((warn_unused_result));
+
+/**
  * @return The vector `v` scaled by `scale`.
  */
 vec4_t Vec4_Scale(const vec4_t v, float scale) __attribute__ ((warn_unused_result));

@@ -816,6 +816,23 @@ vec4_t Vec4_One(void) {
 /**
  * @brief
  */
+vec4_t Vec4_RandomRange(float begin, float end) {
+	return Vec4(RandomRangef(begin, end),
+				RandomRangef(begin, end),
+				RandomRangef(begin, end),
+				RandomRangef(begin, end));
+}
+
+/**
+ * @brief
+ */
+vec4_t Vec4_Random(void) {
+	return Vec4_RandomRange(0.f, 1.f);
+}
+
+/**
+ * @brief
+ */
 vec4_t Vec4_Scale(const vec4_t v, float scale) {
 	return Vec4(v.x * scale, v.y * scale, v.z * scale, v.w * scale);
 }
