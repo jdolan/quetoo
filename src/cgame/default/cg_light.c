@@ -65,12 +65,14 @@ void Cg_AddLights(void) {
 		}
 
 		r_light_t out = {
-			.origin = Vec3_ToVec4(l->origin, l->radius),
-			.color = Vec3_ToVec4(l->color, l->intensity)
+			.origin = l->origin,
+			.radius = l->radius,
+			.color = l->color,
+			.intensity = l->intensity
 		};
 
 		if (l->decay) {
-			out.color.w = (expiration - cgi.client->unclamped_time) / (float) (l->decay);
+			out.intensity = (expiration - cgi.client->unclamped_time) / (float) (l->decay);
 		}
 
 		cgi.AddLight(&out);

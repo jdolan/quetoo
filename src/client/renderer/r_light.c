@@ -38,7 +38,7 @@ void R_AddLight(const r_light_t *in) {
 	r_light_t *out = &r_view.lights[r_view.num_lights++];
 	*out = *in;
 
-	out->color.w *= r_lights->value;
+	out->intensity *= r_lights->value;
 }
 
 /**
@@ -53,13 +53,13 @@ void R_UpdateLights(void) {
 
 	for (int32_t i = 0; i < r_view.num_lights; i++, in++) {
 
-		if (R_CullSphere(Vec4_XYZ(in->origin), in->origin.w)) {
+		if (R_CullSphere(in->origin, in->radius)) {
 			continue;
 		}
 
 		*out = *in;
 
-		Matrix4x4_Transform(&r_locals.view, in->origin.xyzw, out->origin.xyzw);
+		Matrix4x4_Transform(&r_locals.view, in->origin.xyz, out->origin.xyz);
 
 		out++;
 	}
