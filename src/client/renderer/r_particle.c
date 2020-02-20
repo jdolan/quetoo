@@ -104,7 +104,7 @@ void R_DrawParticles(void) {
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
-	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y)));
+	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y) / 2.0));
 	glUniform1f(r_particle_program.far_z, MAX_WORLD_DIST);
 
 	glUniform1f(r_particle_program.brightness, r_brightness->value);
@@ -183,7 +183,7 @@ void R_InitParticles(void) {
 	glGenBuffers(1, &r_particles.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_particles.vertex_buffer);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, position));
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, position));
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, color));
 
 	glBindVertexArray(0);

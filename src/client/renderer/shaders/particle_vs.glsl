@@ -43,7 +43,7 @@ void main(void) {
 
 	float depth = clamp(gl_Position.z / far_z, 0.0, 1.0);
 
-	gl_PointSize = in_position.w * pixels_per_radian / depth;
+	gl_PointSize = pixels_per_radian * in_position.w  / depth;
 
 	vertex.color = in_color;
 }
