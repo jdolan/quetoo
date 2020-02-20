@@ -25,8 +25,6 @@
 
 #define PARTICLE_GRAVITY 180.f
 
-#define PARTICLE_FRAME 16
-
 /**
  * @brief Client game particles can persist over multiple frames.
  */
@@ -53,19 +51,29 @@ typedef struct cg_particle_s {
 	color_t color;
 
 	/**
-	 * @brief The color to add each frame.
+	 * @brief The particle color velocity.
 	 */
-	color_t delta_color;
+	vec4_t color_velocity;
 
 	/**
-	 * @brief The particle scale, in world units.
+	 * @brief The particle color acceleration.
+	 */
+	vec4_t color_acceleration;
+
+	/**
+	 * @brief The particle size, in world units.
 	 */
 	float size;
 
 	/**
-	 * @brief The size to add each frame.
+	 * @brief The particle size velocity.
 	 */
-	float delta_size;
+	float size_velocity;
+
+	/**
+	 * @brief The particle size acceleration.
+	 */
+	float size_acceleration;
 
 	/**
 	 * @brief Collide with solids.
@@ -78,7 +86,7 @@ typedef struct cg_particle_s {
 	uint32_t time;
 
 	/**
-	 * @brief The lifetime, after which point it is freed.
+	 * @brief The lifetime, after which point it decays.
 	 */
 	uint32_t lifetime;
 

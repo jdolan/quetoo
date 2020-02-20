@@ -26,8 +26,6 @@ static cg_particle_t *cg_active_particles; // list of active particles
 
 static cg_particle_t cg_particles[MAX_PARTICLES];
 
-static uint32_t cg_particle_time;
-
 /**
  * @brief Pushes the particle onto the head of specified list.
  */
@@ -121,8 +119,6 @@ void Cg_FreeParticles(void) {
 	for (size_t i = 0; i < lengthof(cg_particles); i++) {
 		Cg_PushParticle(&cg_particles[i], &cg_free_particles);
 	}
-
-	cg_particle_time = cgi.client->unclamped_time;
 }
 
 /**
@@ -150,45 +146,43 @@ void Cg_AddParticles(void) {
 		return;
 	}
 
-	cg_particle_time = cgi.client->unclamped_time;
+	const float delta = MILLIS_TO_SECONDS(cgi.client->frame_msec);
 
 	cg_particle_t *p = cg_active_particles;
 	while (p) {
-		if (cg_particle_time - p->timestamp >= PARTICLE_FRAME) {
 
-			const float delta = (cg_particle_time - p->timestamp) * 0.001;
-
-			vec3_t old_origin;
-			old_origin = p->origin;
-
-			p->velocity = Vec3_Add(p->velocity, Vec3_Scale(p->acceleration, delta));
-			p->origin = Vec3_Add(p->origin, Vec3_Scale(p->velocity, delta));
-
-			if (p->bounce && cg_particle_quality->integer) {
-				const cm_trace_t tr = cgi.Trace(old_origin, p->origin, Vec3_Zero(), Vec3_Zero(), 0, MASK_SOLID);
-				if (tr.fraction < 1.0) {
-					p->velocity = Cg_ClipVelocity(p->velocity, tr.plane.normal, p->bounce);
-					p->origin = tr.end;
-				}
+		if (p->time != cgi.client->unclamped_time) {
+			if (cgi.client->unclamped_time - p->time > p->lifetime) {
+				p = Cg_FreeParticle(p);
+				continue;
 			}
-
-			for (size_t i = 0; i < lengthof(p->color.bytes); i++) {
-				const int32_t byte = p->color.bytes[i] + (int8_t) p->delta_color.bytes[i];
-				p->color.bytes[i] = Clampf(byte, 0, 255);
-			}
-
-			p->size += p->delta_size;
-			p->timestamp = cg_particle_time;
 		}
 
-		// free expired particles
-		if (cgi.client->unclamped_time > p->time + p->lifetime) {
+		const vec3_t old_origin = p->origin;
+
+		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(p->acceleration, delta));
+		p->origin = Vec3_Add(p->origin, Vec3_Scale(p->velocity, delta));
+
+		if (p->bounce && cg_particle_quality->integer) {
+			const cm_trace_t tr = cgi.Trace(old_origin, p->origin, Vec3_Zero(), Vec3_Zero(), 0, MASK_SOLID);
+			if (tr.fraction < 1.0) {
+				p->velocity = Cg_ClipVelocity(p->velocity, tr.plane.normal, p->bounce);
+				p->origin = tr.end;
+			}
+		}
+
+		p->color_velocity = Vec4_Add(p->color_velocity, Vec4_Scale(p->color_acceleration, delta));
+		p->color = Color4fv(Vec4_Add(Color_Vec4(p->color), Vec4_Scale(p->color_velocity, delta)));
+
+		if (p->color.a <= 0) {
 			p = Cg_FreeParticle(p);
 			continue;
 		}
 
-		// or particles that have disappeared
-		if (p->color.a == 0 || p->size <= 0.0) {
+		p->size_velocity += p->size_acceleration * delta;
+		p->size += p->size_velocity * delta;
+
+		if (p->size <= 0.f) {
 			p = Cg_FreeParticle(p);
 			continue;
 		}

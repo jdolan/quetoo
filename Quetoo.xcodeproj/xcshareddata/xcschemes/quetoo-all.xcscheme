@@ -66,18 +66,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 0 +set r_width 1280 +set r_height 800 +set r_display 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 1"
-            isEnabled = "NO">
+            argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 0"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightgrid 1"
+            argument = "+set r_draw_bsp_lightgrid 7"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -101,7 +101,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_cheats 1 +give all"
+            argument = "+set g_cheats 1 +give all "
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

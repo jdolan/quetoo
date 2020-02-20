@@ -105,10 +105,10 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 
 	p->color = Color3b(128, 128, 128);
 	p->color.a = 200;
-	p->delta_color.a = -10;
+//	p->delta_color.a = -10;
 
 	p->size = 4.0;
-	p->delta_size = 1.0;
+//	p->delta_size = 1.0;
 
 	p->velocity = Vec3_RandomRange(-1.f, 1.f);
 	p->velocity.z += 10.f;

@@ -46,10 +46,10 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 		p->lifetime = 500 + Randomf() * 100;
 
 		p->color = Color3b(224, 224, 224);
-		p->delta_color.a = -1;
+//		p->delta_color.a = -1;
 
 		p->size = 1.0;
-		p->delta_size = -0.1;
+//		p->delta_size = -0.1;
 	}
 
 	Cg_AddLight(&(cg_light_t) {
@@ -83,10 +83,10 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 		p->lifetime = 500 + Randomf() * 100;
 
 		p->color = Color3b(224, 224, 224);
-		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;
-		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
+//		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
 	}
 
 	cg_light_t l;
@@ -121,10 +121,10 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 		p->lifetime = 500;
 
 		p->color = Color3b(224, 224, 224);
-		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;
-		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
+//		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
 	}
 
 	Cg_AddLight(&(cg_light_t) {

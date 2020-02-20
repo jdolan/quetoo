@@ -38,15 +38,15 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 
 		p->velocity = Vec3_Scale(dir, 150.0);
 		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-50.0, 50.0));
-		p->acceleration.z -= 2.0 * PARTICLE_GRAVITY;
+		p->acceleration.z = -2.5 * PARTICLE_GRAVITY;
 
-		p->lifetime = 450 + g_random_double_range(0., 450.);
+		p->lifetime = RandomRangef(500, 1000);
 
 		p->color = color;
-		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+		p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 
 		p->size = 3.5;
-		p->delta_size = -450 / PARTICLE_FRAME;
+		p->size_velocity = -p->size / MILLIS_TO_SECONDS(p->lifetime);
 
 		p->bounce = 1.15;
 	}
@@ -83,18 +83,14 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 
 		p->origin = start;
 
-		p->velocity = Vec3_Subtract(end, start);
-		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(p->velocity, 4.f)); // Ghetto indeed
+		const float dist = Vec3_DistanceDir(end, start, &p->velocity);
+
+		p->velocity = Vec3_Scale(p->velocity, 8000.f);
 		p->acceleration.z = -PARTICLE_GRAVITY * 3.f;
 
-		p->lifetime = 0.1f * Vec3_Distance(start, end); // 0.1ms per unit in distance
+		p->lifetime = SECONDS_TO_MILLIS(dist / 8000.f);
 
-		p->color.r = 255;
-		p->color.g = 220;
-		p->color.b = 80;
-
-		p->size = 1.5f;
-		p->delta_size = -p->lifetime / PARTICLE_FRAME;
+		p->color = Color3bv(0xffa050);
 	}
 }
 
@@ -104,46 +100,41 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
 	cg_particle_t *p;
-	int32_t k = Randomr(1, 5);
 	vec3_t vec;
 
 	if (cgi.PointContents(org) & MASK_LIQUID) {
 		vec = Vec3_Add(org, Vec3_Scale(dir, 8.f));
 		Cg_BubbleTrail(org, vec, 32.0);
 	} else {
-		while (k--) {
-			if ((p = Cg_AllocParticle())) {
+		if ((p = Cg_AllocParticle())) {
 
-				p->origin = org;
-				p->velocity = Vec3_Scale(dir, 180.f + Randomf() * 40.f);
+			p->origin = org;
+			p->velocity = Vec3_Scale(dir, RandomRangef(180.f, 400.f));
 
-				p->acceleration = Vec3_RandomRange(-40.f, -40.f);
-				p->acceleration.z -= PARTICLE_GRAVITY;
+			p->acceleration = Vec3_RandomRange(-40.f, -40.f);
+			p->acceleration.z -= PARTICLE_GRAVITY;
 
-				p->bounce = 1.5f;
-				p->lifetime = 100 + Randomf() * 350;
+			p->bounce = 1.5f;
+			p->lifetime = RandomRangef(150.f, 300.f);
 
-				p->color = cgi.ColorFromPalette(221 + (Randomr(0, 8)));
-				p->color.a = 200 + Randomf() * 55;
-
-				p->size = 0.6f + Randomf() * 0.4f;
-			}
+			p->color = Color_Add(Color3bv(0xffa050), Color3fv(Vec3_RandomRange(-1.f, .1f)));
+			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 
 		if ((p = Cg_AllocParticle())) {
 
 			p->origin = org;
-			p->velocity = Vec3_Scale(dir, 60.f + (Randomc() * 60.f));
-			p->acceleration = Vec3_Scale(dir, -80.f);
-			p->acceleration = Vec3_Add(p->acceleration, Vec3_Scale(Vec3_Up(), 20.f));
+			p->velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f));
+			p->acceleration = Vec3_Scale(dir, -20.f);
+			p->acceleration.z = RandomRangef(20.f, 30.f);
 
-			p->lifetime = 150 + Randomf() * 600;
+			p->lifetime = RandomRangef(600.f, 1000.f);
 
-			p->color = Color4bv(0xf0f0f0f0);
-			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+			p->color = Color_Add(Color3bv(0xa0a0a0), Color3fv(Vec3_RandomRange(-1.f, .1f)));
+			p->color_velocity.w = -p->color.a / 255.f / MILLIS_TO_SECONDS(p->lifetime);
 
-			p->size = 2.f + Randomf() * 2.f;
-			p->delta_size = 0.1f + Randomf() * 8.f;
+			p->size = RandomRangef(1.f, 2.f);
+			p->size_velocity = 1.f;
 		}
 	}
 
@@ -199,7 +190,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->lifetime = 100 + Randomf() * 500;
 
 		p->color = Color4bv(0x882200aa);
-		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = RandomRangef(5.0, 8.0);
 	}
@@ -262,7 +253,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 			p->lifetime = 700 + Randomf() * 400;
 
 			p->color = Color4bv(0x800000f8);
-			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+//			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = RandomRangef(3.0, 7.0);
 		}
@@ -402,10 +393,10 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			p->lifetime = 200 + Randomf() * 500;
 
 			p->color = Color4bv(0x22aaffff);
-			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+//			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = 3.5;
-			p->delta_size = Randomf() / PARTICLE_FRAME;
+//			p->delta_size = Randomf() / PARTICLE_FRAME;
 
 			p->bounce = 1.15;
 		}
@@ -504,15 +495,13 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 		p->acceleration = Vec3_Add(right, up);
 
-		p->lifetime = 1500 + Randomf() * 50;
+		p->lifetime = RandomRangef(1500.f, 1600.f);
 
-		p->color = color;
-		p->delta_color.r =  1;
-		p->delta_color.g =  1;
-		p->delta_color.b =  1;
-		p->delta_color.a = -4;
+		p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
+//		p->delta_color = p->color;
+//		p->delta_color.a = 0;
 
-		p->size = 5.0;
+		p->size = 1.0;
 
 		if (!(p = Cg_AllocParticle())) {
 			break;
@@ -525,10 +514,10 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 		p->color = color;
 		p->color.a = 200;
-		p->delta_color.r =  4;
-		p->delta_color.g =  4;
-		p->delta_color.b =  4;
-		p->delta_color.a = -4;
+//		p->delta_color.r =  4;
+//		p->delta_color.g =  4;
+//		p->delta_color.b =  4;
+//		p->delta_color.a = -4;
 
 		p->size = 1.0;
 
@@ -629,8 +618,8 @@ static void Cg_BfgEffect(const vec3_t org) {
 		p->lifetime = 750;
 
 		p->color = Color3b(60, 224, 72);
-		p->delta_color.g = 0x10;
-		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+//		p->delta_color.g = 0x10;
+//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 2.0;
 	}
@@ -679,10 +668,10 @@ void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity
 	p->lifetime = Randomr(500, 1500) * (viscosity * 0.1);
 
 	p->color = Color4bv(0x8080a0FF);
-	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+//	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 	p->size = size + Randomc() * 0.5;
-	p->delta_size = 3.0 + Randomf() * 0.5 / PARTICLE_FRAME;
+//	p->delta_size = 3.0 + Randomf() * 0.5 / PARTICLE_FRAME;
 }
 
 /**
@@ -705,10 +694,10 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 		p->lifetime = 250 + Randomc() * 150;
 
 		p->color = color_white;
-		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 0.8;
-		p->delta_size = 0.3 * -p->lifetime / PARTICLE_FRAME;
+//		p->delta_size = 0.3 * -p->lifetime / PARTICLE_FRAME;
 	}
 
 	if ((p = Cg_AllocParticle())) {
@@ -723,7 +712,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 		p->lifetime = 120 + Randomf() * 80;
 
 		p->color = Color4bv(0x80e0e0e0);
-		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.4 + Randomf() * 0.7;
 	}
