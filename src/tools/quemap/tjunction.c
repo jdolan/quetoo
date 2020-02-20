@@ -109,12 +109,8 @@ static void FixTJunctions_(int32_t face_num) {
 					}
 				}
 
-				SDL_AtomicLock(&lock);
-
 				Cm_FreeWinding(face->w);
 				face->w = w;
-
-				SDL_AtomicUnlock(&lock);
 
 				SDL_AtomicAdd(&c_tjunctions, 1);
 				break;

@@ -594,7 +594,7 @@ typedef struct {
 	color_t color;
 
 	/**
-	 * @brief The stain media.
+	 * @brief The stain media. FIXME: remove this?
 	 */
 	const r_media_t *media;
 } r_stain_t;

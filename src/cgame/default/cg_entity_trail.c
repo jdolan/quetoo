@@ -325,6 +325,8 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
  */
 static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
+	Cg_SmokeTrail(ent, start, end);
+
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
 		.radius = 12.f + 12.f * sinf(cgi.client->unclamped_time * 0.02),
@@ -390,7 +392,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 
 	const float radius = 6.f;
 
-	const float ltime = cgi.client->unclamped_time * .01;
+	const float ltime = (ent->current.number + cgi.client->unclamped_time) * .01;
 
 	for (int32_t i = 0; i < NUM_APPROXIMATE_NORMALS; i += 2) {
 		cg_particle_t *p;
@@ -496,9 +498,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 	if (ent->timestamp < cgi.client->unclamped_time) {
 
-		vec3_t real_end;
-		real_end = Vec3_Add(start, Vec3_Scale(dir, -(dist_total + 32.0)));
-		cm_trace_t tr = cgi.Trace(start, real_end, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
+		cm_trace_t tr = cgi.Trace(start, Vec3_Add(end, Vec3_Scale(dir, -128.0)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
 
 		if (tr.surface) {
 
@@ -522,7 +522,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 					p->origin = pos;
 
-					p->velocity = Vec3_Add(dir, Vec3_RandomRange(-300.f, 100.f));
+					p->velocity = Vec3_Scale(Vec3_Add(tr.plane.normal, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200));
 
 					p->acceleration.z = -PARTICLE_GRAVITY * 3.0;
 
@@ -629,7 +629,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color) {
 			break;
 		}
 
-		p->origin = ent->origin;
+		p->origin = Vec3_Add(ent->origin, Vec3_RandomRange(-32.0f, 32.0f));
 
 		p->velocity.z = RandomRangef(80.f, 120.f);
 
