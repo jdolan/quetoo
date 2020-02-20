@@ -550,7 +550,7 @@ typedef struct r_model_s {
 #define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
 
 /**
- * @brief Particles are alhpa blended quads.
+ * @brief Particles are alhpa blended points.
  */
 typedef struct {
 
@@ -578,13 +578,28 @@ typedef struct {
  * data. They are persistent for the duration of the map.
  */
 typedef struct {
+	/**
+	 * @brief The stain origin.
+	 */
 	vec3_t origin;
+
+	/**
+	 * @brief The stain radius.
+	 */
 	float radius;
-	const r_media_t *media;
+
+	/**
+	 * @brief The stain color.
+	 */
 	color_t color;
+
+	/**
+	 * @brief The stain media. FIXME: remove this?
+	 */
+	const r_media_t *media;
 } r_stain_t;
 
-#define MAX_STAINS			64
+#define MAX_STAINS			0x400
 
 /**
  * @brief Dynamic light sources.
