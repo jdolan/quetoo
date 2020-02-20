@@ -581,7 +581,7 @@ typedef struct {
 	vec3_t origin;
 	float radius;
 	const r_media_t *media;
-	vec4_t color;
+	color_t color;
 } r_stain_t;
 
 #define MAX_STAINS			64
