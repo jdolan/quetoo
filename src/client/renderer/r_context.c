@@ -51,7 +51,7 @@ void R_InitContext(void) {
 		}
 	}
 
-	uint32_t flags = SDL_WINDOW_OPENGL;
+	uint32_t flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_GRABBED;
 
 	const int display = Clampf(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
 
