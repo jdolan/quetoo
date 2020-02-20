@@ -255,35 +255,33 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
  * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by finding all of
  * the faces which share a given vertex, and calculating a weighted average of their normals.
  */
-void PhongVertexes(void) {
+void PhongVertexes(int32_t vertex_num) {
 	const bsp_face_t *phong_faces[MAX_PHONG_FACES];
 
-	bsp_vertex_t *v = bsp_file.vertexes;
-	for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
+	bsp_vertex_t *v = &bsp_file.vertexes[vertex_num];
 
-		const size_t count = PhongFacesForVertex(v, phong_faces);
-		if (count) {
+	const size_t count = PhongFacesForVertex(v, phong_faces);
+	if (count) {
 
-			v->normal = Vec3_Zero();
+		v->normal = Vec3_Zero();
 
-			const bsp_face_t **pf = phong_faces;
-			for (size_t j = 0; j < count; j++, pf++) {
+		const bsp_face_t **pf = phong_faces;
+		for (size_t j = 0; j < count; j++, pf++) {
 
-				const plane_t *plane = &planes[(*pf)->plane_num];
+			const plane_t *plane = &planes[(*pf)->plane_num];
 
-				cm_winding_t *w = Cm_WindingForFace(&bsp_file, *pf);
-				v->normal = Vec3_Add(v->normal, Vec3_Scale(plane->normal, Cm_WindingArea(w)));
-				Cm_FreeWinding(w);
-			}
-
-			v->normal = Vec3_Normalize(v->normal);
-
-			const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
-
-			const vec3_t sdir = Vec4_XYZ(texinfo->vecs[0]);
-			const vec3_t tdir = Vec4_XYZ(texinfo->vecs[1]);
-
-			Vec3_Tangents(v->normal, sdir, tdir, &v->tangent, &v->bitangent);
+			cm_winding_t *w = Cm_WindingForFace(&bsp_file, *pf);
+			v->normal = Vec3_Add(v->normal, Vec3_Scale(plane->normal, Cm_WindingArea(w)));
+			Cm_FreeWinding(w);
 		}
+
+		v->normal = Vec3_Normalize(v->normal);
+
+		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
+
+		const vec3_t sdir = Vec4_XYZ(texinfo->vecs[0]);
+		const vec3_t tdir = Vec4_XYZ(texinfo->vecs[1]);
+
+		Vec3_Tangents(v->normal, sdir, tdir, &v->tangent, &v->bitangent);
 	}
 }

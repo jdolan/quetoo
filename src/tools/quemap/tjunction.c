@@ -25,6 +25,7 @@
 
 static SDL_atomic_t c_tjunctions;
 static GPtrArray *faces;
+static SDL_SpinLock *faces_locks;
 
 // FIXME/TODO temp fix since we're using old glib
 #if defined(_WIN32)
@@ -50,10 +51,9 @@ g_ptr_array_find(GPtrArray *haystack,
 /**
  * @brief
  */
-static _Bool FixTJunctions_(int32_t face_num) {
-
+static void FixTJunctions_(int32_t face_num) {
 	face_t *face = g_ptr_array_index(faces, face_num);
-	_Bool found = false;
+	SDL_SpinLock *face_lock = &faces_locks[face_num];
 
 	for (size_t s = 0; s < faces->len; s++) {
 
@@ -61,6 +61,9 @@ static _Bool FixTJunctions_(int32_t face_num) {
 		if (face == f) {
 			continue;
 		}
+		
+		SDL_SpinLock *f_lock = &faces_locks[s];
+		SDL_AtomicLock(f_lock);
 
 		const plane_t *plane = &planes[face->plane_num];
 
@@ -109,17 +112,20 @@ static _Bool FixTJunctions_(int32_t face_num) {
 					}
 				}
 
+				SDL_AtomicLock(face_lock);
+
 				Cm_FreeWinding(face->w);
 				face->w = w;
 
+				SDL_AtomicUnlock(face_lock);
+
 				SDL_AtomicAdd(&c_tjunctions, 1);
-				found = true;
 				break;
 			}
 		}
-	}
 
-	return found;
+		SDL_AtomicUnlock(f_lock);
+	}
 }
 
 /**
@@ -154,22 +160,12 @@ void FixTJunctions(node_t *node) {
 	faces = g_ptr_array_new();
 	FixTJunctions_r(node);
 
-	uint32_t i = 1, count;
+	faces_locks = Mem_Malloc(sizeof(SDL_SpinLock) * faces->len);
 
-	do {
-		count = 0;
-		Com_Print("Fixing t-junctions (iteration %d)... ", i++);
-
-		for (int32_t f = 0; f < faces->len; f++) {
-			if (FixTJunctions_(f)) {
-				count++;
-			}
-		}
-
-		Com_Print(" fixed %u\n", count);
-	} while (count);
+	Work(entity_num == 0 ? "Fixing t-junctions" : NULL, FixTJunctions_, faces->len);
 
 	Com_Verbose("%5i fixed tjunctions\n", SDL_AtomicGet(&c_tjunctions));
 
+	Mem_Free(faces_locks);
 	g_ptr_array_free(faces, true);
 }
