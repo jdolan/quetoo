@@ -582,7 +582,6 @@ static void Cl_InitLocal(void) {
  */
 void Cl_Frame(const uint32_t msec) {
 	static uint32_t frame_timestamp;
-	static uint32_t frame_msec;
 
 	if (dedicated->value) {
 		return;
@@ -595,7 +594,7 @@ void Cl_Frame(const uint32_t msec) {
 	cl.unclamped_time += msec;
 
 	// and the pending command duration
-	frame_msec += msec;
+	cl.frame_msec += msec;
 
 	if (time_demo->value) { // accumulate timed demo statistics
 		if (!cl.time_demo_start) {
@@ -603,7 +602,7 @@ void Cl_Frame(const uint32_t msec) {
 		}
 		cl.time_demo_frames++;
 	} else if (cl_max_fps->value > 0.0) { // cap render frame rate
-		if (quetoo.ticks - frame_timestamp < 1000.0 / cl_max_fps->value) {
+		if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / cl_max_fps->value) {
 			return;
 		}
 	}
@@ -620,7 +619,7 @@ void Cl_Frame(const uint32_t msec) {
 
 	if (cls.state == CL_ACTIVE) {
 
-		Cl_UpdateMovementCommand(frame_msec);
+		Cl_UpdateMovementCommand(cl.frame_msec);
 
 		Cl_SendCommands();
 
@@ -638,7 +637,7 @@ void Cl_Frame(const uint32_t msec) {
 	S_Frame();
 
 	frame_timestamp = quetoo.ticks;
-	frame_msec = 0;
+	cl.frame_msec = 0;
 }
 
 /**

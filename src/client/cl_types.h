@@ -180,6 +180,7 @@ typedef struct {
 	uint32_t time; // clamped simulation time that the client is rendering at
 	uint32_t unclamped_time; // unclamped simulation time, useful for effect durations
 
+	uint32_t frame_msec; // the duration of the current frame
 	float lerp; // linear interpolation fraction between frames
 
 	// the client maintains its own idea of view angles, which are
