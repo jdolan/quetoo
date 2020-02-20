@@ -123,7 +123,7 @@ static void R_DrawBspLightgrid(void) {
 
 				r_particle_t p = {
 					.origin = Vec3(s + 0.5, t + 0.5, u + 0.5),
-					.size = BSP_LIGHTGRID_LUXEL_SIZE,
+					.size = 4.f,
 					.color = Color3b(r, g, b),
 				};
 
