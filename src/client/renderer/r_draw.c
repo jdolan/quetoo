@@ -138,7 +138,7 @@ static void R_EmitDrawVertexes_Quad(const r_draw_vertex_t *quad) {
  */
 static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 
-	if (isspace(c)) {
+	if (isspace(c) && c != 0x0b) {
 		return;
 	}
 
@@ -180,7 +180,7 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
  */
 void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 
-	if (isspace(c)) {
+	if (isspace(c) && c != 0x0b) {
 		return;
 	}
 

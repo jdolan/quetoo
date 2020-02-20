@@ -50,10 +50,10 @@ g_ptr_array_find(GPtrArray *haystack,
 /**
  * @brief
  */
-static void FixTJunctions_(int32_t face_num) {
-	static SDL_SpinLock lock;
+static _Bool FixTJunctions_(int32_t face_num) {
 
 	face_t *face = g_ptr_array_index(faces, face_num);
+	_Bool found = false;
 
 	for (size_t s = 0; s < faces->len; s++) {
 
@@ -113,10 +113,13 @@ static void FixTJunctions_(int32_t face_num) {
 				face->w = w;
 
 				SDL_AtomicAdd(&c_tjunctions, 1);
+				found = true;
 				break;
 			}
 		}
 	}
+
+	return found;
 }
 
 /**
@@ -151,7 +154,20 @@ void FixTJunctions(node_t *node) {
 	faces = g_ptr_array_new();
 	FixTJunctions_r(node);
 
-	Work(entity_num == 0 ? "Fixing t-junctions" : NULL, FixTJunctions_, faces->len);
+	uint32_t i = 1, count;
+
+	do {
+		count = 0;
+		Com_Print("Fixing t-junctions (iteration %d)... ", i++);
+
+		for (int32_t f = 0; f < faces->len; f++) {
+			if (FixTJunctions_(f)) {
+				count++;
+			}
+		}
+
+		Com_Print(" fixed %u\n", count);
+	} while (count);
 
 	Com_Verbose("%5i fixed tjunctions\n", SDL_AtomicGet(&c_tjunctions));
 
