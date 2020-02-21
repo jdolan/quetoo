@@ -284,14 +284,14 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 	} else {
-		for (float d = 0.f; d < dist; d += 2.f) {
+		for (int32_t i = 1; i < floorf(dist / 2.f); i++) {
 
 			if (!(p = Cg_AllocParticle())) {
 				break;
 			}
 
 			p->lifetime = RandomRangef(250.f, 300.f);
-			p->origin = Vec3_Add(start, Vec3_Scale(dir, d));
+			p->origin = Vec3_Add(start, Vec3_Scale(dir, (i - 1) * 2));
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
 			p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);

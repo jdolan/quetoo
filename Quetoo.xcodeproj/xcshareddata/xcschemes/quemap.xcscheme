@@ -94,7 +94,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-vis --fast"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-vis"
@@ -106,7 +106,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light --indirect"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light --antialias --indirect"
@@ -117,7 +117,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/jgothic.map"
+            argument = "maps/torn3.map"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
