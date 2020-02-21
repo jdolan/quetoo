@@ -73,31 +73,31 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp --only-ents"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "-bsp"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp --no-prune --no-tjunc"
+            argument = "--only-ents"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp --no-merge"
+            argument = "--no-prune"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--no-tjunc"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp --no-detail"
+            argument = "--no-merge"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp --no-weld"
+            argument = "--no-detail"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-vis --fast"
+            argument = "--no-weld"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -105,15 +105,19 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--fast"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-light"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-light --indirect"
+            argument = "--indirect"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-light --antialias --indirect"
+            argument = "--antialias "
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -125,12 +129,16 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "maps/jgothic.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "maps/torn.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/wake.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

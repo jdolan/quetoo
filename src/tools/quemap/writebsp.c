@@ -108,7 +108,7 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 
 	int32_t num_draw_elements = bsp_file.num_draw_elements;
 
-	bsp_face_t *faces = bsp_file.faces + node->first_face;
+	const bsp_face_t *faces = bsp_file.faces + node->first_face;
 	for (int32_t i = 0; i < node->num_faces; i++) {
 
 		if (bsp_file.num_draw_elements >= MAX_BSP_DRAW_ELEMENTS) {
@@ -137,7 +137,9 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
 			}
 
-			memcpy(bsp_file.elements + bsp_file.num_elements, bsp_file.elements + b->first_element, sizeof(int32_t) * b->num_elements);
+			memcpy(bsp_file.elements + bsp_file.num_elements,
+				   bsp_file.elements + b->first_element,
+				   sizeof(int32_t) * b->num_elements);
 
 			bsp_file.num_elements += b->num_elements;
 			out->num_elements += b->num_elements;
@@ -263,7 +265,7 @@ static int32_t EmitNode(node_t *node) {
 
 	out->mins = Vec3_CastVec3s(node->mins);
 	out->maxs = Vec3_CastVec3s(node->maxs);
-	
+
 	out->plane_num = node->plane_num;
 
 	if (node->faces) {
