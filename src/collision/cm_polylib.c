@@ -547,20 +547,17 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			point_t *b = &points[(i + 1) % num_points];
 			point_t *c = &points[(i + 2) % num_points];
 
-			vec3_t ba, cb;
-			ba = Vec3_Subtract(b->position, a->position);
-			cb = Vec3_Subtract(c->position, b->position);
-			ba = Vec3_Normalize(ba);
-			cb = Vec3_Normalize(cb);
+			const vec3_t ba = Vec3_Normalize(Vec3_Subtract(b->position, a->position));
+			const vec3_t cb = Vec3_Normalize(Vec3_Subtract(c->position, b->position));
 
-			if (Vec3_Dot(ba, cb) > 1.0 - SIDE_EPSILON) {
+			if (Vec3_Dot(ba, cb) > 1.0 - FLT_EPSILON) {
 				b->corner = 0;
 			} else {
 				b->corner = ++num_corners;
 			}
 		}
 
-		//assert(num_corners > 2);
+		assert(num_corners > 2);
 
 		// chip away at edges with collinear points first
 
@@ -575,10 +572,9 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 
 				if (!a->corner && b->corner) {
 
-					vec3_t ba, cb, cross;
-					ba = Vec3_Subtract(b->position, a->position);
-					cb = Vec3_Subtract(c->position, b->position);
-					cross = Vec3_Cross(ba, cb);
+					const vec3_t ba = Vec3_Subtract(b->position, a->position);
+					const vec3_t cb = Vec3_Subtract(c->position, b->position);
+					const vec3_t cross = Vec3_Cross(ba, cb);
 
 					const float area = 0.5 * Vec3_Length(cross);
 					if (area < best) {
