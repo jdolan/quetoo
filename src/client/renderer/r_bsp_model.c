@@ -516,14 +516,15 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 /**
  * @brief Extra lumps we need to load for the renderer.
  */
-#define R_BSP_LUMPS \
+#define R_BSP_LUMPS ( \
 	(1 << BSP_LUMP_VERTEXES) | \
 	(1 << BSP_LUMP_ELEMENTS) | \
 	(1 << BSP_LUMP_FACES) | \
 	(1 << BSP_LUMP_DRAW_ELEMENTS) | \
 	(1 << BSP_LUMP_LEAF_FACES) | \
 	(1 << BSP_LUMP_LIGHTMAP) | \
-	(1 << BSP_LUMP_LIGHTGRID)
+	(1 << BSP_LUMP_LIGHTGRID) \
+)
 
 /**
  * @brief
