@@ -213,7 +213,8 @@ static int32_t BrushContents(const brush_t *b) {
 	for (int32_t i = 1; i < b->num_sides; i++, s++) {
 		surface |= bsp_file.texinfo[s->texinfo].flags;
 		if (s->contents != contents) {
-			Mon_SendSelect(MON_WARN, b->entity_num, b->brush_num, "Mixed face contents");
+			Mon_SendSelect(MON_WARN, b->entity_num, b->brush_num,
+						   va("Mixed face contents: %#x expected %#x", s->contents, contents));
 			break;
 		}
 	}
