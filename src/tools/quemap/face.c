@@ -23,6 +23,7 @@
 #include "face.h"
 #include "map.h"
 #include "material.h"
+#include "qbsp.h"
 
 int32_t c_merge;
 static int32_t c_faces;
@@ -133,11 +134,13 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 
 		out.position = face->w->points[i];
 
-		if (!(texinfo->flags & SURF_NO_WELD)) {
-			for (int32_t j = 0; j < 3; j++) {
-				out.position.xyz[j] = SNAP_TO_FLOAT * floorf(out.position.xyz[j] * SNAP_TO_INT + 0.5);
+		if (!no_weld) {
+			if (!(texinfo->flags & SURF_NO_WELD)) {
+				for (int32_t j = 0; j < 3; j++) {
+					out.position.xyz[j] = SNAP_TO_FLOAT * floorf(out.position.xyz[j] * SNAP_TO_INT + 0.5);
+				}
+				face->w->points[i] = out.position;
 			}
-			face->w->points[i] = out.position;
 		}
 
 		out.normal = planes[face->plane_num].normal;

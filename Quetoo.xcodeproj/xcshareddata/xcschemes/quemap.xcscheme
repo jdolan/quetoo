@@ -78,7 +78,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp --no-prune --no-tjunc"
@@ -91,6 +91,10 @@
          <CommandLineArgument
             argument = "-bsp --no-detail"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-bsp --no-weld"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-vis --fast"
