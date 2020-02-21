@@ -136,10 +136,13 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 
 		if (!no_weld) {
 			if (!(texinfo->flags & SURF_NO_WELD)) {
+				vec3d_t pos = Vec3_CastVec3d(face->w->points[i]);
+
 				for (int32_t j = 0; j < 3; j++) {
-					out.position.xyz[j] = SNAP_TO_FLOAT * floorf(out.position.xyz[j] * SNAP_TO_INT + 0.5);
+					pos.xyz[j] = SNAP_TO_FLOAT * floor(pos.xyz[j] * SNAP_TO_INT + 0.5);
 				}
-				face->w->points[i] = out.position;
+				
+				face->w->points[i] = out.position = Vec3d_CastVec3(pos);
 			}
 		}
 
