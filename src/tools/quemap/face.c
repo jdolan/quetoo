@@ -255,7 +255,7 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
  * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by finding all of
  * the faces which share a given vertex, and calculating a weighted average of their normals.
  */
-void PhongVertexes(int32_t vertex_num) {
+void PhongVertex(int32_t vertex_num) {
 	const bsp_face_t *phong_faces[MAX_PHONG_FACES];
 
 	bsp_vertex_t *v = &bsp_file.vertexes[vertex_num];

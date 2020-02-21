@@ -454,7 +454,7 @@ void EndBSPFile(void) {
 	EmitAreaPortals();
 	EmitEntities();
 
-	Work("Calculating phong normals", PhongVertexes, bsp_file.num_vertexes);
+	Work("Calculating Phong normals", PhongVertex, bsp_file.num_vertexes);
 }
 
 /**
