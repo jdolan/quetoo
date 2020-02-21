@@ -325,8 +325,6 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
  */
 static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	Cg_SmokeTrail(ent, start, end);
-
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
 		.radius = 12.f + 12.f * sinf(cgi.client->unclamped_time * 0.02),
