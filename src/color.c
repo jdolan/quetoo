@@ -102,6 +102,55 @@ color_t Color4fv(const vec4_t rgba) {
 /**
  * @brief
  */
+color_t ColorHSL(float hue, float saturation, float lightness) {
+	
+	hue = ClampEuler(hue);
+
+	const float chroma = (1.f - fabs((2.f * lightness) - 1.f)) * saturation;
+	const uint8_t huePrime = (uint8_t)(hue / 60.0f);
+	const float secondComponent = chroma * (1.f - fabs((huePrime % 2) - 1.f));
+
+	float red = 0, green = 0, blue = 0;
+
+	switch (huePrime) {
+		case 0:
+			red = chroma;
+			green = secondComponent;
+			break;
+		case 1:
+			red = secondComponent;
+			green = chroma;
+			break;
+		case 2:
+			green = chroma;
+			blue = secondComponent;
+			break;
+		case 3:
+			green = secondComponent;
+			blue = chroma;
+			break;
+		case 4:
+			red = secondComponent;
+			blue = chroma;
+			break;
+		case 5:
+			red = chroma;
+			blue = secondComponent;
+			break;
+	}
+
+	const float lightnessAdjustment = lightness - (chroma / 2.f);
+
+	return Color3b(
+		fabs(roundf((red + lightnessAdjustment) * 255.f)),
+		fabs(roundf((green + lightnessAdjustment) * 255.f)),
+		fabs(roundf((blue + lightnessAdjustment) * 255.f))
+	);
+}
+
+/**
+ * @brief
+ */
 color_t Color_Add(const color_t a, const color_t b) {
 	return Color4fv(Vec4_Add(Color_Vec4(a), Color_Vec4(b)));
 }

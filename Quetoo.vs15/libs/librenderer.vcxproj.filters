@@ -196,9 +196,6 @@
     <None Include="..\..\src\client\renderer\shaders\particle_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\particle_gs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
     <None Include="..\..\src\client\renderer\shaders\particle_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>

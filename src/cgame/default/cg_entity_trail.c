@@ -84,7 +84,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 
 		p->lifetime = 4000 - (Randomf() * 100);
 
-		p->color = cgi.ColorFromPalette(6 + (Randomr(0, 8)));
+		p->color = color_white;// cgi.ColorFromPalette(6 + (Randomr(0, 8)));
 		p->color.a = 200;
 
 //		p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
@@ -203,7 +203,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 
 	p->lifetime = 4500 / (5.0 + Randomf() * 0.5);
 
-	p->color = cgi.ColorFromPalette(6 + (Randomr(0, 8)));
+	p->color = color_white;//cgi.ColorFromPalette(6 + (Randomr(0, 8)));
 	p->color.a = 50;
 
 //	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
@@ -248,7 +248,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 
 		p->lifetime = 1000 - (Randomf() * 100);
 
-		p->color = cgi.ColorFromPalette(6 + (Randomr(0, 4)));
+		p->color = color_blue;//cgi.ColorFromPalette(6 + (Randomr(0, 4)));
 
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
@@ -464,9 +464,9 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			break;
 		}
 
-		p->color = cgi.ColorFromPalette(12 + (Randomr(0, 4)));
+		p->color = Color3b(190, 190, Randomr(190, 210));//cgi.ColorFromPalette(12 + (Randomr(0, 4)));
 
-		p->size = 8.0;
+		p->size = 1.0;
 
 		p->origin = pos;
 
@@ -528,15 +528,13 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 					p->lifetime = 600 + Randomf() * 300;
 
-					if (i % 3 == 0) {
-						p->color = color_white;
-					} else {
-						p->color = Color4bv(0xaaaaffff);
-					}
+					p->color = ColorHSL(180, RandomRangef(.0f, .7f), RandomRangef(.5f, 1.f));
 
 					p->bounce = 1.15;
 
 					p->size = 1.3 + Randomf() * 0.6;
+
+					p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 				}
 			}
 		}

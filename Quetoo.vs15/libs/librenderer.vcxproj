@@ -88,7 +88,6 @@
     <None Include="..\..\src\client\renderer\shaders\null_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_corona_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\particle_gs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl" />

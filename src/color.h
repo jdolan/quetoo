@@ -98,6 +98,11 @@ color_t Color4f(float r, float g, float b, float a);
 color_t Color4fv(const vec4_t rgba);
 
 /**
+ * @return A color with the specified RGB vector converted from HSL.
+ */
+color_t ColorHSL(float hue, float saturation, float lightness);
+
+/**
  * @return The sub of `a + b`.
  */
 color_t Color_Add(const color_t a, const color_t b);

@@ -295,7 +295,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->lifetime = 500 + Randomf() * 250;
 
-		p->color = cgi.ColorFromPalette(221 + (Randomr(0, 8)));
+		p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20)); //cgi.ColorFromPalette(221 + (Randomr(0, 8)));
 		p->color.a = 200 + Randomf() * 55;
 
 		p->size = 0.6 + Randomf() * 0.2;
@@ -338,7 +338,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
 			p->lifetime = 200 + Randomf() * 300;
 
-			p->color = cgi.ColorFromPalette(221 + (Randomr(0, 8)));
+			p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20));//cgi.ColorFromPalette(221 + (Randomr(0, 8)));
 			p->color.a = 200 + Randomf() * 55;
 
 			p->size = 1.0 + Randomf() * 0.4;
@@ -399,6 +399,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 //			p->delta_size = Randomf() / PARTICLE_FRAME;
 
 			p->bounce = 1.15;
+
+			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 	}
 
@@ -586,7 +588,7 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 
 		p->lifetime = 50;
 
-		p->color = cgi.ColorFromPalette(200 + Randomr(0, 3));
+		p->color = color_green;//cgi.ColorFromPalette(200 + Randomr(0, 3));
 
 		p->size = 6.0;
 	}
