@@ -52,7 +52,9 @@ g_ptr_array_find(GPtrArray *haystack,
  * @brief
  */
 static void FixTJunctions_(int32_t face_num) {
+
 	face_t *face = g_ptr_array_index(faces, face_num);
+
 	SDL_SpinLock *face_lock = &faces_locks[face_num];
 
 	for (size_t s = 0; s < faces->len; s++) {

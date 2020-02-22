@@ -189,17 +189,16 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
 			}
 		}
 
-		vec3_t dir;
-		float dist;
+
+		float dist; vec3_t dir;
 		if (light->type == LIGHT_AMBIENT) {
+			dist = 0.0;
 			dir = Vec3(0.0, 0.0, 1.0);
-			dist = 0.0;
 		} else if (light->type == LIGHT_SUN) {
-			dir = Vec3_Negate(light->normal);
 			dist = 0.0;
+			dir = Vec3_Negate(light->normal);
 		} else {
-			dist = Vec3_Distance(light->origin, luxel->origin);
-			dir = Vec3_Normalize(Vec3_Subtract(light->origin, luxel->origin));
+			dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
 		}
 
 		if (light->atten != LIGHT_ATTEN_NONE) {

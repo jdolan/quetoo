@@ -23,6 +23,7 @@
 #include "face.h"
 #include "map.h"
 #include "material.h"
+#include "qbsp.h"
 
 int32_t c_merge;
 static int32_t c_faces;
@@ -133,11 +134,16 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 
 		out.position = face->w->points[i];
 
-		if (!(texinfo->flags & SURF_NO_WELD)) {
-			for (int32_t j = 0; j < 3; j++) {
-				out.position.xyz[j] = SNAP_TO_FLOAT * floorf(out.position.xyz[j] * SNAP_TO_INT + 0.5);
+		if (!no_weld) {
+			if (!(texinfo->flags & SURF_NO_WELD)) {
+				vec3d_t pos = Vec3_CastVec3d(face->w->points[i]);
+
+				for (int32_t j = 0; j < 3; j++) {
+					pos.xyz[j] = SNAP_TO_FLOAT * floor(pos.xyz[j] * SNAP_TO_INT + 0.5);
+				}
+				
+				face->w->points[i] = out.position = Vec3d_CastVec3(pos);
 			}
-			face->w->points[i] = out.position;
 		}
 
 		out.normal = planes[face->plane_num].normal;
@@ -255,7 +261,7 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
  * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by finding all of
  * the faces which share a given vertex, and calculating a weighted average of their normals.
  */
-void PhongVertexes(int32_t vertex_num) {
+void PhongVertex(int32_t vertex_num) {
 	const bsp_face_t *phong_faces[MAX_PHONG_FACES];
 
 	bsp_vertex_t *v = &bsp_file.vertexes[vertex_num];
