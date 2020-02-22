@@ -285,7 +285,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 	} else {
-		
+
 		particles = Cg_ParticlesPerSecond(400.f);
 		for (int32_t i = 0; i < particles; i++) {
 
@@ -682,27 +682,35 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const color_t color) {
  * @brief
  */
 static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	static uint32_t added = 0;
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
 		Cg_BubbleTrail(start, end, 8.0);
 		return;
 	}
 
-	vec3_t move;
-	float dist = Vec3_DistanceDir(end, start, &move);
+	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
-	while (dist > 0.0) {
+	const float particles = Cg_ParticlesPerSecond(90.f);
+	for (int32_t i = 0; i < particles; i++) {
 		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle())) {
 			break;
 		}
 
-		p->origin = Vec3_Add(end, Vec3_Scale(move, dist));
+		p->lifetime = RandomRangef(1000.f, 1500.f);
 
-		p->lifetime = 1000 + Randomf() * 500;
+		p->origin = Vec3_Mix(start, end, i / particles);
+		p->velocity = Vec3_Scale(dir, 20.0);
+		p->acceleration.z = -PARTICLE_GRAVITY / 2.0;
 
+		p->color = Color4bv(0x80000080);
+		p->color_velocity.x = -.1f / MILLIS_TO_SECONDS(p->lifetime);
+		p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
+
+		p->size = RandomRangef(3.0, 7.0);
+
+		static uint32_t added = 0;
 		if ((added++ % 3) == 0) {
 			cgi.AddStain(&(const r_stain_t) {
 				.origin = p->origin,
@@ -711,17 +719,6 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 				.color = Color4bv(0x80101080),
 			});
 		}
-
-		p->color = Color4bv(0x80000080);
-//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
-
-		p->size = RandomRangef(3.0, 7.0);
-
-		p->velocity = Vec3_Scale(move, 20.0);
-
-		p->acceleration.z = -PARTICLE_GRAVITY / 2.0;
-		
-		dist -= 1.5;
 	}
 }
 
