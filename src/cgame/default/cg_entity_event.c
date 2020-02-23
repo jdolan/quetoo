@@ -38,24 +38,22 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 		p->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
 		p->origin.z += 8.f;
 
-		p->velocity = Vec3_RandomRange(-48.0, 48.0);
+		p->velocity = Vec3_RandomRange(-24.f, 24.f);
 		p->velocity.z = fabsf(p->velocity.z);
 
-		p->acceleration.z = -PARTICLE_GRAVITY * 0.1;
+		p->acceleration = Vec3_RandomRange(-24.f, 24.f);
+		p->acceleration.z = RandomRangef(60.f, 90.f);
 
-		p->lifetime = 500 + Randomf() * 100;
+		p->lifetime = RandomRangef(800.f, 1200.f);
 
-		p->color = Color3b(224, 224, 224);
-//		p->delta_color.a = -1;
-
-		p->size = 1.0;
-//		p->delta_size = -0.1;
+		p->color = Color3f(.3f, .6f, .3f);
+		p->color_velocity = Vec4_Scale(Vec4(.3f, .4f, .3f, -1.f), 1.f / p->lifetime);
 	}
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
 		.radius = 80.f,
-		.color = Vec3(.9f, .9f, .9f),
+		.color = Vec3(.9f, 1.f, .9f),
 		.decay = 1000
 	});
 }
