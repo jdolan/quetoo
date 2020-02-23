@@ -100,13 +100,10 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 	}
 }
 
-#define SMOKE_DENSITY 36.0
-
 /**
  * @brief
  */
 void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	cg_particle_t *p;
 
 	if (ent) { // don't emit smoke trails for static entities (grenades on the floor)
 		if (Vec3_Equal(ent->current.origin, ent->prev.origin)) {
@@ -119,26 +116,27 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		return;
 	}
 
-	vec3_t dir;
-	const float len = Vec3_DistanceDir(end, start, &dir);
+	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
-	for (float i = 0.0; i < len; i += SMOKE_DENSITY) {
+	float particles = Cg_ParticlesPerSecond(60.f);
+	for (int32_t i = 0; i < particles; i++) {
+		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle())) {
 			return;
 		}
 
-		p->origin = Vec3_Add(start, Vec3_Scale(dir, i));
+		p->origin = Vec3_Mix(start, end, i / particles + RandomRangef(-.5f, .5f));
 		p->velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f));
 		p->acceleration = Vec3_Scale(dir, -20.f);
 
-		p->lifetime = RandomRangef(600.f, 1000.f);
+		p->lifetime = RandomRangef(1000.f, 1400.f);
 
-		p->color = Color4fv(Vec4_RandomRange(.3, .4));
-		p->color_velocity.w = -p->color.a / 255.0 / MILLIS_TO_SECONDS(p->lifetime);
+		p->color = Color4fv(Vec4_RandomRange(.22f, .33f));
+		p->color_velocity.w = -p->color.a / 255.f / MILLIS_TO_SECONDS(p->lifetime);
 
-		p->size = 1.f;
-		p->size_velocity = 1.f;
+		p->size = 1.5f;
+		p->size_velocity = 10.f;
 	}
 }
 
@@ -215,45 +213,45 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 /**
  * @brief
  */
-void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
-	vec3_t vec, move;
+void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float target) {
 
-	move = start;
-	vec = Vec3_Subtract(end, start);
+	const float particles = Cg_ParticlesPerSecond(target);
 
-	float len;
-	vec = Vec3_NormalizeLength(vec, &len);
+	for (int32_t i = 0; i < particles; i++) {
 
-	const float delta = 16.0 / density;
-	vec = Vec3_Scale(vec, delta);
-	move = Vec3_Subtract(move, vec);
-
-	for (float i = 0.0; i < len; i += delta) {
-		move = Vec3_Add(move, vec);
-
-		if (!(cgi.PointContents(move) & MASK_LIQUID)) {
+		const vec3_t pos = Vec3_Mix(start, end, i / particles);
+		const int32_t contents = cgi.PointContents(pos);
+		if (!(contents & MASK_LIQUID)) {
 			continue;
 		}
 
 		cg_particle_t *p;
-
 		if (!(p = Cg_AllocParticle())) {
 			return;
 		}
 
-		p->origin = Vec3_Add(move, Vec3_RandomRange(-2.f, 2.f));
+		p->origin = Vec3_Add(pos, Vec3_RandomRange(-2.f, 2.f));
 		p->velocity = Vec3_RandomRange(-5.f, 5.f);
 		p->velocity.z += 6.0;
 		p->acceleration.z = 10.0;
 
 		p->lifetime = 1000 - (Randomf() * 100);
 
-		p->color = color_blue;//cgi.ColorFromPalette(6 + (Randomr(0, 4)));
+		p->color = Color3bv(0x447788);
 
-//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
+		if (contents & CONTENTS_LAVA) {
+			p->color = Color3bv(0x886644);
+			p->velocity = Vec3_Scale(p->velocity, .33f);
+		} else if (contents & CONTENTS_SLIME) {
+			p->color = Color3bv(0x556644);
+			p->velocity = Vec3_Scale(p->velocity, .66f);
+		}
 
-		p->size = 1.5;
-//		p->delta_size = p->size - (0.6 + Randomf() * 0.2) * -p->lifetime / PARTICLE_FRAME;
+		p->color.a = RandomRangef(.4f, .7f) * 255;
+		p->color_velocity.w = -p->color.a / 255.f / MILLIS_TO_SECONDS(p->lifetime);
+
+		p->size = RandomRangef(1.f, 2.f);
+		p->size_velocity = -p->size / MILLIS_TO_SECONDS(p->lifetime);
 	}
 }
 
