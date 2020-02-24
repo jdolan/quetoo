@@ -103,8 +103,8 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 
 	p->lifetime = 500;
 
-	p->color = Color3b(128, 128, 128);
-	p->color.a = 200;
+	p->color = Color_Vec4(Color3b(128, 128, 128));
+	p->color.w = 200 / 255.0;
 //	p->delta_color.a = -10;
 
 	p->size = 4.0;

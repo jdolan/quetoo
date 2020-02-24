@@ -87,7 +87,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 
 			p->lifetime = 1000 - (Randomf() * 100);
 
-			p->color = Color3b(160, 160, 160);
+			p->color = Color_Vec4(Color3b(160, 160, 160));
 //			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = 3.0;
@@ -103,8 +103,8 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 
 		p->lifetime = 4000 - (Randomf() * 100);
 
-		p->color = color_white;// cgi.ColorFromPalette(6 + (Randomr(0, 8)));
-		p->color.a = 200;
+		p->color = Color_Vec4(color_white);// cgi.ColorFromPalette(6 + (Randomr(0, 8)));
+		p->color.w = 200 / 255.f;
 
 //		p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
 
@@ -151,8 +151,8 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 		p->lifetime = RandomRangef(1000.f, 1400.f);
 
-		p->color = Color4fv(Vec4_RandomRange(.22f, .33f));
-		p->color_velocity.w = -p->color.a / 255.f / MILLIS_TO_SECONDS(p->lifetime);
+		p->color = Vec4_RandomRange(.22f, .33f);
+		p->color_velocity.w = -p->color.w / MILLIS_TO_SECONDS(p->lifetime);
 
 		p->size = 1.5f;
 		p->size_velocity = 10.f;
@@ -182,8 +182,8 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	p->lifetime = 1500;
 
 	const int32_t r = Random() & 15;
-	p->color = Color3b(224 + r, 180 * r, 40 + r);
-	p->color.a = 200;
+	p->color = Color_Vec4(Color3b(224 + r, 180 * r, 40 + r));
+	p->color.w = 200 / 255.f;
 //	p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
 
 	p->size = 10.0 + Randomc();
@@ -220,8 +220,8 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 
 	p->lifetime = 4500 / (5.0 + Randomf() * 0.5);
 
-	p->color = color_white;//cgi.ColorFromPalette(6 + (Randomr(0, 8)));
-	p->color.a = 50;
+	p->color = Color_Vec4(color_white);//cgi.ColorFromPalette(6 + (Randomr(0, 8)));
+	p->color.w = 50 / 255.f;
 
 //	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
@@ -256,18 +256,18 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float target) {
 
 		p->lifetime = 1000 - (Randomf() * 100);
 
-		p->color = Color3bv(0x447788);
+		p->color = Color_Vec4(Color3bv(0x447788));
 
 		if (contents & CONTENTS_LAVA) {
-			p->color = Color3bv(0x886644);
+			p->color = Color_Vec4(Color3bv(0x886644));
 			p->velocity = Vec3_Scale(p->velocity, .33f);
 		} else if (contents & CONTENTS_SLIME) {
-			p->color = Color3bv(0x556644);
+			p->color = Color_Vec4(Color3bv(0x556644));
 			p->velocity = Vec3_Scale(p->velocity, .66f);
 		}
 
-		p->color.a = RandomRangef(.4f, .7f) * 255;
-		p->color_velocity.w = -p->color.a / 255.f / MILLIS_TO_SECONDS(p->lifetime);
+		p->color.w = RandomRangef(.4f, .7f);
+		p->color_velocity.w = -p->color.w / MILLIS_TO_SECONDS(p->lifetime);
 
 		p->size = RandomRangef(1.f, 2.f);
 		p->size_velocity = -p->size / MILLIS_TO_SECONDS(p->lifetime);
@@ -299,7 +299,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			p->lifetime = RandomRangef(250.f, 300.f);
 			p->origin = Vec3_Mix(trail_start, end, i / (float) particles);
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
-			p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
+			p->color = Color_Vec4(Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f))));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 	} else {
@@ -315,7 +315,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			p->lifetime = RandomRangef(250.f, 300.f);
 			p->origin = Vec3_Mix(trail_start, end, i / (float) particles);
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
-			p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
+			p->color = Color_Vec4(Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f))));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 
@@ -332,7 +332,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
 			p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-20.f, 20.f));
 			p->acceleration.z -= PARTICLE_GRAVITY;
-			p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
+			p->color = Color_Vec4(Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f))));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 	}
@@ -341,7 +341,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		p->lifetime = 0;
 		p->origin = end;
 		p->size = 2;
-		p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
+		p->color = Color_Vec4(Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f))));
 	}
 
 	Cg_AddLight(&(cg_light_t) {
@@ -386,7 +386,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		p->velocity = Vec3_Scale(dir, RandomRangef(150.f, 200.f));
 		p->acceleration = Vec3_RandomRange(-10.f, 10.f);
 		p->acceleration.z -= PARTICLE_GRAVITY;
-		p->color = Color4bv(0xffaa22ff);
+		p->color = Color_Vec4(Color4bv(0xffaa22ff));
 		p->size = 2.0;
 		p->size_velocity = -2.f / MILLIS_TO_SECONDS(p->lifetime);
 	}
@@ -404,7 +404,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-20.f, 20.f));
 		p->acceleration = Vec3_RandomRange(-10.f, 10.f);
 		p->acceleration.z -= PARTICLE_GRAVITY;
-		p->color = Color4bv(0xcc9922ff);
+		p->color = Color_Vec4(Color4bv(0xcc9922ff));
 		p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 	}
 
@@ -448,7 +448,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 		p->origin = Vec3_Add(p->origin, Vec3_Scale(forward, radius));
 
 		const float d = dist / radius / 2.f;
-		p->color = Color_Add(Color3bv(0x22aaff), Color3fv(Vec3(d, d, d)));
+		p->color = Color_Vec4(Color_Add(Color3bv(0x22aaff), Color3fv(Vec3(d, d, d))));
 	}
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
@@ -494,7 +494,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			break;
 		}
 
-		p->color = Color3b(190, 190, Randomr(190, 210));//cgi.ColorFromPalette(12 + (Randomr(0, 4)));
+		p->color = Color_Vec4(Color3b(190, 190, Randomr(190, 210)));//cgi.ColorFromPalette(12 + (Randomr(0, 4)));
 
 		p->size = 1.0;
 
@@ -558,7 +558,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 					p->lifetime = 600 + Randomf() * 300;
 
-					p->color = ColorHSL(180, RandomRangef(.0f, .7f), RandomRangef(.5f, 1.f));
+					p->color = Color_Vec4(ColorHSL(180, RandomRangef(.0f, .7f), RandomRangef(.5f, 1.f)));
 
 					p->bounce = 1.15;
 
@@ -584,7 +584,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 
 		p->origin = start;
 
-		p->color = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_GREEN);
+		p->color = Color_Vec4(Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_GREEN));
 
 		p->size = 0.35;
 	}
@@ -620,7 +620,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 		p->origin = Vec3_Add(p->origin, Vec3_Scale(approximate_normals[i], radius));
 		p->origin = Vec3_Add(p->origin, Vec3_Scale(forward, radius));
 
-		p->color = Color3bv(0x22ff44);
+		p->color = Color_Vec4(Color3bv(0x22ff44));
 
 		p->size = 2.5f;
 	}
@@ -672,7 +672,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color) {
 
 		p->lifetime = 450;
 
-		p->color = color;
+		p->color = Color_Vec4(color);
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 2.0;
@@ -701,7 +701,7 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const color_t color) {
 
 		p->lifetime = 450;
 
-		p->color = color;
+		p->color = Color_Vec4(color);
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 16.0;
@@ -735,9 +735,9 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		p->velocity = Vec3_Scale(dir, 20.0);
 		p->acceleration.z = -PARTICLE_GRAVITY / 2.0;
 
-		p->color = Color4bv(0x80000080);
+		p->color = Color_Vec4(Color4bv(0x80000080));
 		p->color_velocity.x = -.1f / MILLIS_TO_SECONDS(p->lifetime);
-		p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
+		p->color_velocity.w = -p->color.w / MILLIS_TO_SECONDS(p->lifetime);
 
 		p->size = RandomRangef(3.0, 7.0);
 

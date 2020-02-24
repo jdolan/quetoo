@@ -48,7 +48,7 @@ typedef struct cg_particle_s {
 	/**
 	 * @brief The particle color.
 	 */
-	color_t color;
+	vec4_t color;
 
 	/**
 	 * @brief The particle color velocity.

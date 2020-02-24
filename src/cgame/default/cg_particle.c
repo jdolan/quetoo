@@ -99,7 +99,7 @@ cg_particle_t *Cg_AllocParticle() {
 
 	memset(p, 0, sizeof(cg_particle_t));
 
-	p->color = color_white;
+	p->color = Color_Vec4(color_white);
 	p->size = 1.0;
 
 	p->time = p->timestamp = cgi.client->unclamped_time;
@@ -189,9 +189,9 @@ void Cg_AddParticles(void) {
 		}
 
 		p->color_velocity = Vec4_Add(p->color_velocity, Vec4_Scale(p->color_acceleration, delta));
-		p->color = Color4fv(Vec4_Add(Color_Vec4(p->color), Vec4_Scale(p->color_velocity, delta)));
+		p->color = Vec4_Add(p->color, Vec4_Scale(p->color_velocity, delta));
 
-		if (p->color.a <= 0) {
+		if (p->color.w <= 0) {
 			p = Cg_FreeParticle(p);
 			continue;
 		}
@@ -207,7 +207,7 @@ void Cg_AddParticles(void) {
 		cgi.AddParticle(&(r_particle_t) {
 			.origin = p->origin,
 			.size = p->size,
-			.color = p->color
+			.color = Color4fv(p->color)
 		});
 		
 		p = p->next;
