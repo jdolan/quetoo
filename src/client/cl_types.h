@@ -70,6 +70,8 @@ typedef struct {
 	int32_t frame_num; // the last frame in which this entity was seen
 
 	uint32_t timestamp; // for intermittent effects
+	_Bool update_trail_origin;
+	vec3_t previous_trail_origin;
 
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation

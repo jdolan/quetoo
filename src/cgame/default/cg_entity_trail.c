@@ -25,6 +25,25 @@
 /**
  * @brief
  */
+uint32_t Cg_ParticleTrailDensity(cl_entity_t *ent, const vec3_t start, const vec3_t end, const float min_length, const float max_length, const float density) {
+
+	// first we have to reach up to min_length before we decide to start spawning
+	if (Vec3_Distance(start, ent->previous_trail_origin) < min_length) {
+		return 0;
+	}
+
+	// check how far we're gonna draw a trail
+	const float dist = Vec3_Distance(ent->previous_trail_origin, end);
+	const float frac = dist / (max_length - min_length);
+
+	ent->update_trail_origin = true;
+
+	return density * frac;
+}
+
+/**
+ * @brief
+ */
 void Cg_BreathTrail(cl_entity_t *ent) {
 
 	if (ent->animation1.animation < ANIM_TORSO_GESTURE) { // death animations
@@ -260,7 +279,8 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float target) {
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
-	float particles;
+	uint32_t particles;
+	const vec3_t trail_start = ent->previous_trail_origin;
 
 	const color_t color = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_ORANGE);
 
@@ -269,7 +289,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	if (cgi.PointContents(end) & MASK_LIQUID) {
 		Cg_BubbleTrail(start, end, 12.0);
 
-		particles = Cg_ParticlesPerSecond(120.f);
+		particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 8);
 		for (int32_t i = 0; i < particles; i++) {
 
 			if (!(p = Cg_AllocParticle())) {
@@ -277,14 +297,15 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			}
 
 			p->lifetime = RandomRangef(250.f, 300.f);
-			p->origin = Vec3_Mix(start, end, i / particles);
+			p->origin = Vec3_Mix(trail_start, end, i / (float) particles);
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
 			p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 	} else {
 
-		particles = Cg_ParticlesPerSecond(400.f);
+		particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 24);
+
 		for (int32_t i = 0; i < particles; i++) {
 
 			if (!(p = Cg_AllocParticle())) {
@@ -292,13 +313,14 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			}
 
 			p->lifetime = RandomRangef(250.f, 300.f);
-			p->origin = Vec3_Mix(start, end, i / particles);
+			p->origin = Vec3_Mix(trail_start, end, i / (float) particles);
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
 			p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 
-		particles = Cg_ParticlesPerSecond(120.f);
+		particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 8);
+
 		for (int32_t i = 0; i < particles; i++) {
 
 			if (!(p = Cg_AllocParticle())) {
@@ -306,13 +328,20 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			}
 
 			p->lifetime = RandomRangef(450.f, 650.f);
-			p->origin = Vec3_Mix(start, end, i / particles);
+			p->origin = Vec3_Mix(trail_start, end, i / (float) particles);
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
 			p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-20.f, 20.f));
 			p->acceleration.z -= PARTICLE_GRAVITY;
 			p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
+	}
+	
+	if ((p = Cg_AllocParticle())) {
+		p->lifetime = 0;
+		p->origin = end;
+		p->size = 2;
+		p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
 	}
 
 	Cg_AddLight(&(cg_light_t) {
@@ -621,6 +650,12 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color) {
 //			.flags = S_PLAY_ENTITY
 //	});
 
+	if (ent->timestamp > cgi.client->unclamped_time) {
+		return;
+	}
+
+	ent->timestamp = cgi.client->unclamped_time + 16;
+
 	for (int32_t i = 0; i < 8; i++) {
 		cg_particle_t *p;
 
@@ -832,5 +867,10 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			break;
 		default:
 			break;
+	}
+
+	if (ent->update_trail_origin) {
+		ent->previous_trail_origin = end;
+		ent->update_trail_origin = false;
 	}
 }
