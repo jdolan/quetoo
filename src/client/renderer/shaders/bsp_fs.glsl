@@ -157,19 +157,6 @@ void apply_dither(inout vec4 color) {
 }
 
 /**
- * @brief Used to dither the image before quantizing, combats banding artifacts.
- */
-void DitherFragment(inout vec3 color) {
-
-	// source: Alex Vlachos, Valve Software. Advanced VR Rendering, GDC2015.
-
-	vec3 pattern = vec3(dot(vec2(171.0, 231.0), gl_FragCoord.xy));
-	pattern.rgb = fract(pattern.rgb / vec3(103.0, 71.0, 97.0));
-	color = clamp(color + (pattern.rgb / 255.0), 0.0, 1.0);
-
-}
-
-/**
  * @brief
  */
 void main(void) {
