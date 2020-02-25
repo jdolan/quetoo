@@ -387,7 +387,7 @@ static void Cg_ParseTeamInfo(const char *s) {
 
 		const int16_t hue = atoi(info[i + 1]);
 		const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
-		team->color.rgba = *(int32_t *) &color;
+		team->color = Color4bv(*(uint32_t *) &color);
 	}
 
 	g_strfreev(info);

@@ -56,7 +56,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 	p->origin = org;
 	p->origin.z += 50.f;
 
-	p->color = Color_Vec4(color_white);
+	p->color = color_white;
 	p->size = 10.0;
 }
 

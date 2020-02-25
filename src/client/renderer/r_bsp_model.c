@@ -96,7 +96,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 			default:
 				break;
 		}
-		out->color = Color4f(1.0, 1.0, 1.0, alpha);
+		out->color = Color_Rgba(Color4f(1.0, 1.0, 1.0, alpha));
 	}
 }
 

@@ -26,35 +26,31 @@
 /**
  * @brief Color constants.
  */
-#define color_black     Color3bv(0x000000)
-#define color_red       Color3bv(0xff0000)
-#define color_green     Color3bv(0x00ff00)
-#define color_yellow    Color3bv(0xffff00)
-#define color_blue      Color3bv(0x0000ff)
-#define color_magenta   Color3bv(0xff00ff)
-#define color_cyan      Color3bv(0x00ffff)
-#define color_white     Color3bv(0xffffff)
+#define color_black			Color3bv(0x000000)
+#define color_red			Color3bv(0xff0000)
+#define color_green			Color3bv(0x00ff00)
+#define color_yellow		Color3bv(0xffff00)
+#define color_blue			Color3bv(0x0000ff)
+#define color_magenta		Color3bv(0xff00ff)
+#define color_cyan			Color3bv(0x00ffff)
+#define color_white			Color3bv(0xffffff)
+#define color_transparent	Color4bv(0);
 
 /**
- * @brief A 32-bit RGBA color
+ * @brief A clamped floating point RGBA color.
  */
 typedef union {
 	/**
 	 * @brief Component accessors.
 	 */
 	struct {
-		byte r, g, b, a;
+		float r, g, b, a;
 	};
 
 	/**
 	 * @brief Array accessor.
 	 */
-	byte bytes[4];
-
-	/**
-	 * @brief Integer accessor.
-	 */
-	uint32_t rgba;
+	float rgba[4];
 } color_t;
 
 /**
@@ -68,12 +64,12 @@ color_t Color3b(byte r, byte g, byte b);
 color_t Color3bv(uint32_t rgb);
 
 /**
- * @return A color with the specified RGB floating point values.
+ * @return A color with the specified RGB floating point values. Note that the resulting color is clamped.
  */
 color_t Color3f(float r, float g, float b);
 
 /**
- * @return A color with the specified RGB vector.
+ * @return A color with the specified RGB vector. Note that the resulting color is clamped.
  */
 color_t Color3fv(const vec3_t rgb);
 
@@ -88,12 +84,12 @@ color_t Color4b(byte r, byte g, byte b, byte a);
 color_t Color4bv(uint32_t rgba);
 
 /**
- * @return A color with the specified RGBA floating point values.
+ * @return A color with the specified RGBA floating point values. Note that the resulting color is clamped.
  */
 color_t Color4f(float r, float g, float b, float a);
 
 /**
- * @return A color with the specified RGBA vector.
+ * @return A color with the specified RGBA vector. Note that the resulting color is clamped.
  */
 color_t Color4fv(const vec4_t rgba);
 
@@ -103,9 +99,14 @@ color_t Color4fv(const vec4_t rgba);
 color_t ColorHSL(float hue, float saturation, float lightness);
 
 /**
- * @return The sub of `a + b`.
+ * @return The sum of `a + b`.
  */
 color_t Color_Add(const color_t a, const color_t b);
+
+/**
+ * @return The value of `a * b`.
+ */
+color_t Color_Scale(const color_t a, const float b);
 
 /**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
@@ -126,3 +127,18 @@ vec3_t Color_Vec3(const color_t color);
  * @return A floating point vector for the specified color.
  */
 vec4_t Color_Vec4(const color_t color);
+
+/**
+ * @return A 32-bit RGBA value for the specified color.
+ */
+uint32_t Color_Rgba(const color_t color);
+
+/**
+ * @return True if the parsing succeeded
+ */
+_Bool ColorHex(const char *s, color_t *color);
+
+/**
+ * @return A temporary string of the color as hex
+ */
+const char *Color_ToHex(const color_t color);

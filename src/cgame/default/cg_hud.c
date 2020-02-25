@@ -636,7 +636,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		color_t color = color_white;
 
 		if (g_strcmp0(cg_draw_crosshair_color->string, "default")) {
-			ColorParse(cg_draw_crosshair_color->string, &color);
+			ColorHex(cg_draw_crosshair_color->string, &color);
 		}
 
 		crosshair.color = Color_Vec4(color);
@@ -808,18 +808,18 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 /**
  * @brief Perform composition of the dst/src blends.
  */
-static void Cg_AddBlend(vec4_t *blend, const vec4_t input) {
+static void Cg_AddBlend(color_t *blend, const color_t input) {
 
-	if (input.w <= 0.0) {
+	if (input.a <= 0.0) {
 		return;
 	}
 
-	vec4_t out = *blend;
+	color_t out = *blend;
 
-	out.w = input.w + out.w * (1.0 - input.w);
+	out.a = input.a + out.a * (1.0 - input.a);
 
 	for (int32_t i = 0; i < 3; i++) {
-		out.xyzw[i] = ((input.xyzw[i] * input.w) + ((out.xyzw[i] * out.w) * (1.0 - input.w))) / out.w;
+		out.rgba[i] = ((input.rgba[i] * input.a) + ((out.rgba[i] * out.a) * (1.0 - input.a))) / out.a;
 	}
 
 	*blend = out;
@@ -871,23 +871,23 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		return;
 	}
 
-	vec4_t blend = Vec4_Zero();
+	color_t blend = color_transparent;
 	
 	// start with base blend based on view origin conents
 
 	const int32_t contents = cgi.view->contents;
 
 	if ((contents & MASK_LIQUID) && cg_draw_blend_liquid->value) {
-		vec4_t color;
+		color_t color;
 		if (contents & CONTENTS_LAVA) {
-			color = Vec4(.8f, .4f, .1f, 1.f);
+			color = Color4f(.8f, .4f, .1f, 1.f);
 		} else if (contents & CONTENTS_SLIME) {
-			color = Vec4(.4f, .7f, .2f, 1.f);
+			color = Color4f(.4f, .7f, .2f, 1.f);
 		} else {
-			color = Vec4(.4f, .5f, .6f, 1.f);
+			color = Color4f(.4f, .5f, .6f, 1.f);
 		}
 
-		color.w = Clampf(cg_draw_blend_liquid->value * 0.4, 0.f, 0.4f);
+		color.a = Clampf(cg_draw_blend_liquid->value * 0.4, 0.f, 0.4f);
 
 		Cg_AddBlend(&blend, color);
 	}
@@ -929,14 +929,8 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	// if we have a blend, draw it
 
-	if (blend.w > 0.0) {
-		color_t final_color;
-
-		for (int32_t i = 0; i < 4; i++) {
-			final_color.bytes[i] = (uint8_t) (blend.xyzw[i] * 255.0);
-		}
-
-		cgi.DrawFill(0, 0, cgi.context->width, cgi.context->height, final_color);
+	if (blend.a > 0.0) {
+		cgi.DrawFill(0, 0, cgi.context->width, cgi.context->height, blend);
 	}
 }
 

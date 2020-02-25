@@ -46,7 +46,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 
 		p->lifetime = RandomRangef(800.f, 1200.f);
 
-		p->color = Color_Vec4(Color3f(.3f, .6f, .3f));
+		p->color = Color3f(.3f, .6f, .3f);
 		p->color_velocity = Vec4_Scale(Vec4(.3f, .4f, .3f, -1.f), 1.f / p->lifetime);
 	}
 
@@ -80,7 +80,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 
 		p->lifetime = 500 + Randomf() * 100;
 
-		p->color = Color_Vec4(Color3b(224, 224, 224));
+		p->color = Color3b(224, 224, 224);
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;
@@ -118,7 +118,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 
 		p->lifetime = 500;
 
-		p->color = Color_Vec4(Color3b(224, 224, 224));
+		p->color = Color3b(224, 224, 224);
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;

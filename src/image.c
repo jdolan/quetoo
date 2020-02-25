@@ -120,7 +120,7 @@ color_t Img_ColorFromPalette(uint8_t c) {
 		Img_InitPalette();
 	}
 
-	return (color_t) img_palette[c];
+	return Color4bv(img_palette[c]);
 }
 
 /**

@@ -42,7 +42,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 
 		p->lifetime = RandomRangef(500, 1000);
 
-		p->color = Color_Vec4(color);
+		p->color = color;
 		p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 
 		p->size = 3.5;
@@ -90,7 +90,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 
 		p->lifetime = SECONDS_TO_MILLIS(dist / 8000.f);
 
-		p->color = Color_Vec4(Color3bv(0xffa050));
+		p->color = Color3bv(0xffa050);
 	}
 }
 
@@ -117,7 +117,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			p->bounce = 1.5f;
 			p->lifetime = RandomRangef(150.f, 300.f);
 
-			p->color = Color_Vec4(Color_Add(Color3bv(0xffa050), Color3fv(Vec3_RandomRange(-1.f, .1f))));
+			p->color = Color_Add(Color3bv(0xffa050), Color3fv(Vec3_RandomRange(-1.f, .1f)));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
 
@@ -130,8 +130,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 			p->lifetime = RandomRangef(600.f, 1000.f);
 
-			p->color = Color_Vec4(Color_Add(Color3bv(0xa0a0a0), Color3fv(Vec3_RandomRange(-1.f, .1f))));
-			p->color_velocity.w = -p->color.w / MILLIS_TO_SECONDS(p->lifetime);
+			p->color = Color_Add(Color3bv(0xa0a0a0), Color3fv(Vec3_RandomRange(-1.f, .1f)));
+			p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
 
 			p->size = RandomRangef(1.f, 2.f);
 			p->size_velocity = 1.f;
@@ -189,7 +189,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->lifetime = 100 + Randomf() * 500;
 
-		p->color = Color_Vec4(Color4bv(0x882200aa));
+		p->color = Color4bv(0x882200aa);
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = RandomRangef(5.0, 8.0);
@@ -252,7 +252,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 			p->lifetime = 700 + Randomf() * 400;
 
-			p->color = Color_Vec4(Color4bv(0x800000f8));
+			p->color = Color4bv(0x800000f8);
 //			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = RandomRangef(3.0, 7.0);
@@ -295,8 +295,8 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->lifetime = 500 + Randomf() * 250;
 
-		p->color = Color_Vec4(Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20))); //cgi.ColorFromPalette(221 + (Randomr(0, 8)));
-		p->color.w = (200 + Randomf() * 55) / 255.f;
+		p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20)); //cgi.ColorFromPalette(221 + (Randomr(0, 8)));
+		p->color.a = (200 + Randomf() * 55) / 255.f;
 
 		p->size = 0.6 + Randomf() * 0.2;
 
@@ -338,8 +338,8 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
 			p->lifetime = 200 + Randomf() * 300;
 
-			p->color = Color_Vec4(Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20)));//cgi.ColorFromPalette(221 + (Randomr(0, 8)));
-			p->color.w = (200 + Randomf() * 55) / 255.f;
+			p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20));//cgi.ColorFromPalette(221 + (Randomr(0, 8)));
+			p->color.a = (200 + Randomf() * 55) / 255.f;
 
 			p->size = 1.0 + Randomf() * 0.4;
 		}
@@ -392,7 +392,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 			p->lifetime = 200 + Randomf() * 500;
 
-			p->color = Color_Vec4(Color4bv(0x22aaffff));
+			p->color = Color4bv(0x22aaffff);
 //			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = 3.5;
@@ -499,7 +499,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 		p->lifetime = RandomRangef(1500.f, 1600.f);
 
-		p->color = Color_Vec4(Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f))));
+		p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
 //		p->delta_color = p->color;
 //		p->delta_color.a = 0;
 
@@ -514,8 +514,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 		p->lifetime = 1500 + Randomf() * 50;
 
-		p->color = Color_Vec4(color);
-		p->color.w = 200 / 255.f;
+		p->color = color;
+		p->color.a = 200 / 255.f;
 //		p->delta_color.r =  4;
 //		p->delta_color.g =  4;
 //		p->delta_color.b =  4;
@@ -554,7 +554,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 			p->lifetime = 50 + Randomf() * 100;
 
-			p->color = Color_Vec4(color);
+			p->color = color;
 
 			p->size = 1.6 + Randomf() * 0.6;
 		}
@@ -588,7 +588,7 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 
 		p->lifetime = 50;
 
-		p->color = Color_Vec4(color_green);//cgi.ColorFromPalette(200 + Randomr(0, 3));
+		p->color = color_green;//cgi.ColorFromPalette(200 + Randomr(0, 3));
 
 		p->size = 6.0;
 	}
@@ -619,7 +619,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 		p->lifetime = 750;
 
-		p->color = Color_Vec4(Color3b(60, 224, 72));
+		p->color = Color3b(60, 224, 72);
 //		p->delta_color.g = 0x10;
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
@@ -669,7 +669,7 @@ void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity
 
 	p->lifetime = Randomr(500, 1500) * (viscosity * 0.1);
 
-	p->color = Color_Vec4(Color4bv(0x8080a0FF));
+	p->color = Color4bv(0x8080a0ff);
 //	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 	p->size = size + Randomc() * 0.5;
@@ -695,7 +695,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 
 		p->lifetime = 250 + Randomc() * 150;
 
-		p->color = Color_Vec4(color_white);
+		p->color = color_white;
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 0.8;
@@ -713,7 +713,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 
 		p->lifetime = 120 + Randomf() * 80;
 
-		p->color = Color_Vec4(Color4bv(0x80e0e0e0));
+		p->color = Color4bv(0x80e0e0e0);
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.4 + Randomf() * 0.7;
@@ -739,8 +739,8 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 
 		p->lifetime = 100 + (Randomf() * 150);
 
-		p->color = Color_Vec4(Color3b(248, 224, 40));
-		p->color.w = (200 * Randomf() * 55) / 255.f;
+		p->color = Color3b(248, 224, 40);
+		p->color.a = (200 * Randomf() * 55) / 255.f;
 
 		p->size = 0.8 + Randomf() * 0.4;
 	}

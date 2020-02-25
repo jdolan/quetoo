@@ -428,39 +428,6 @@ int32_t StrrColor(const char *s) {
 }
 
 /**
- * @brief Attempt to convert a hexadecimal value to its string representation.
- */
-_Bool ColorParse(const char *s, color_t *color) {
-
-	const size_t length = strlen(s);
-	if (length != 6 && length != 8) {
-		return false;
-	}
-
-	char buffer[9];
-	g_strlcpy(buffer, s, sizeof(buffer));
-
-	if (length == 6) {
-		g_strlcat(buffer, "ff", sizeof(buffer));
-	}
-
-	uint32_t rgba;
-	if (sscanf(buffer, "%x", &rgba) != 1) {
-		return false;
-	}
-
-	*color = Color4bv(rgba);
-	return true;
-}
-
-/**
- * @brief
- */
-const char *ColorUnparse(const color_t color) {
-	return va("%02x%02x%02x%02x", color.r, color.g, color.b, color.a);
-}
-
-/**
  * @brief A shorthand g_snprintf into a statically allocated buffer. Several
  * buffers are maintained internally so that nested va()'s are safe within
  * reasonable limits. This function is not thread safe.

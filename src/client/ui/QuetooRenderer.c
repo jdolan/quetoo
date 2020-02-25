@@ -158,10 +158,7 @@ static void endFrame(Renderer *self) {
 static void setDrawColor(Renderer *self, const SDL_Color *color) {
 
 	if (color) {
-		drawColor.r = color->r;
-		drawColor.g = color->g;
-		drawColor.b = color->b;
-		drawColor.a = color->a;
+		drawColor = Color4b(color->r, color->g, color->b, color->a);
 	} else {
 		drawColor = color_white;
 	}

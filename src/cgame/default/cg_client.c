@@ -223,22 +223,22 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		if (!ColorParse(info[2], &ci->shirt)) {
+		if (!ColorHex(info[2], &ci->shirt)) {
 			ci->shirt.a = 0;
 		}
 
-		if (!ColorParse(info[3], &ci->pants)) {
+		if (!ColorHex(info[3], &ci->pants)) {
 			ci->pants.a = 0;
 		}
 
-		if (!ColorParse(info[4], &ci->helmet)) {
+		if (!ColorHex(info[4], &ci->helmet)) {
 			ci->helmet.a = 0;
 		}
 
 		const int16_t hue = atoi(info[5]);
 		if (hue >= 0) {
 			const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
-			ci->color.rgba = *(int32_t *) &color;
+			ci->color = Color4bv(*(uint32_t *) &color);
 		} else {
 			ci->color.a = 0;
 		}

@@ -21,6 +21,7 @@
 
 #include "color.h"
 #include "swap.h"
+#include "shared.h"
 
 /**
  * @brief
@@ -55,10 +56,10 @@ color_t Color3fv(const vec3_t rgb) {
  */
 color_t Color4b(byte r, byte g, byte b, byte a) {
 	return (color_t) {
-		.r = r,
-		.g = g,
-		.b = b,
-		.a = a
+		.r = r / 255.f,
+		.g = g / 255.f,
+		.b = b / 255.f,
+		.a = a / 255.f
 	};
 }
 
@@ -66,9 +67,13 @@ color_t Color4b(byte r, byte g, byte b, byte a) {
  * @brief
  */
 color_t Color4bv(uint32_t rgba) {
-	return (color_t) {
-		.rgba = BigLong(rgba)
+	union {
+		uint32_t rgba;
+		byte bytes[4];
+	} c = {
+		BigLong(rgba)
 	};
+	return Color4b(c.bytes[0], c.bytes[1], c.bytes[2], c.bytes[3]);
 }
 
 /**
@@ -85,10 +90,10 @@ color_t Color4f(float r, float g, float b, float a) {
 	}
 
 	return (color_t) {
-		.r = Clampf(r, 0.f, 1.f) * 255,
-		.g = Clampf(g, 0.f, 1.f) * 255,
-		.b = Clampf(b, 0.f, 1.f) * 255,
-		.a = Clampf(a, 0.f, 1.f) * 255
+		.r = Clampf(r, 0.f, 1.f),
+		.g = Clampf(g, 0.f, 1.f),
+		.b = Clampf(b, 0.f, 1.f),
+		.a = Clampf(a, 0.f, 1.f)
 	};
 }
 
@@ -141,10 +146,10 @@ color_t ColorHSL(float hue, float saturation, float lightness) {
 
 	const float lightnessAdjustment = lightness - (chroma / 2.f);
 
-	return Color3b(
-		fabs(roundf((red + lightnessAdjustment) * 255.f)),
-		fabs(roundf((green + lightnessAdjustment) * 255.f)),
-		fabs(roundf((blue + lightnessAdjustment) * 255.f))
+	return Color3f(
+		red + lightnessAdjustment,
+		green + lightnessAdjustment,
+		blue + lightnessAdjustment
 	);
 }
 
@@ -172,13 +177,72 @@ color_t Color_Subtract(const color_t a, const color_t b) {
 /**
  * @brief
  */
+color_t Color_Scale(const color_t a, const float b) {
+	return Color4fv(Vec4_Scale(Color_Vec4(a), b));
+}
+
+/**
+ * @brief
+ */
 vec3_t Color_Vec3(const color_t color) {
-	return Vec3_Scale(Vec3(color.r, color.g, color.b), 1.f / 255.f);
+	return Vec3(color.r, color.g, color.b);
 }
 
 /**
  * @brief
  */
 vec4_t Color_Vec4(const color_t color) {
-	return Vec4_Scale(Vec4(color.r, color.g, color.b, color.a), 1.f / 255.f);
+	return Vec4(color.r, color.g, color.b, color.a);
+}
+
+/**
+ * @brief
+ */
+uint32_t Color_Rgba(const color_t color) {
+	union {
+		byte bytes[4];
+		uint32_t rgba;
+	} c = {
+		{ color.r * 255.f, color.g * 255.f, color.b * 255.f, color.a * 255.f }
+	};
+	return c.rgba;
+}
+
+/**
+ * @brief Attempt to convert a hexadecimal value to its string representation.
+ */
+_Bool ColorHex(const char *s, color_t *color) {
+
+	const size_t length = strlen(s);
+	if (length != 6 && length != 8) {
+		return false;
+	}
+
+	char buffer[9];
+	g_strlcpy(buffer, s, sizeof(buffer));
+
+	if (length == 6) {
+		g_strlcat(buffer, "ff", sizeof(buffer));
+	}
+
+	uint32_t rgba;
+	if (sscanf(buffer, "%x", &rgba) != 1) {
+		return false;
+	}
+
+	*color = Color4bv(rgba);
+	return true;
+}
+
+/**
+ * @brief
+ */
+const char *Color_ToHex(const color_t color) {
+	union {
+		uint32_t rgba;
+		byte bytes[4];
+	} c = {
+		Color_Rgba(color)
+	};
+	return va("%02x%02x%02x%02x", c.bytes[0], c.bytes[1], c.bytes[2], c.bytes[3]);
 }
