@@ -362,7 +362,12 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 				R_FilterImage(image, GL_RGBA, surf->pixels);
 			}
 
-			R_UploadImage(image, GL_RGBA8, surf->pixels);
+			if (image->type & IT_DIFFUSE) {
+				// Gamma correct diffuse color textures during load.
+				R_UploadImage(image, GL_SRGB8_ALPHA8, surf->pixels);
+			} else {
+				R_UploadImage(image, GL_RGBA8, surf->pixels);
+			}
 
 			SDL_FreeSurface(surf);
 		} else {
