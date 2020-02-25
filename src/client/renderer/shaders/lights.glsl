@@ -48,15 +48,13 @@ vec3 dynamic_light(in vec3 position, in vec3 normal) {
 		if (dist < radius) {
 
 			vec3 dir = normalize(lights[i].origin.xyz - position);
-			if (dot(dir, normal) > 0.0) {
+			float angle_atten = dot(dir, normal);
+			if (angle_atten > 0.0) {
 
-				float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-				atten *= atten;
-
-				float lambert = radius * dot(dir, normal) * atten;
-				float intensity = lights[i].color.a;
-
-				diffuse += lambert * lights[i].color.rgb * intensity;
+				float dist_atten = smoothstep(1.0, 0.0, dist / radius);
+				float attenuation = radius * dist_atten * angle_atten;
+				
+				diffuse += attenuation * lights[i].color.a * lights[i].color.rgb;
 			}
 		}
 	}
