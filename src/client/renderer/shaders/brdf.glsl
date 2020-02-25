@@ -1,3 +1,28 @@
+#version 330
+
+/*
+* Copyright(c) 1997-2001 id Software, Inc.
+* Copyright(c) 2002 The Quakeforge Project.
+* Copyright(c) 2006 Quetoo.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+*
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*/
+
+uniform float gamma;
+
 /**
  * @brief Phong BRDF for specular highlights.
  */
@@ -15,10 +40,9 @@ vec3 brdf_phong(vec3 view_dir, vec3 light_dir, vec3 normal,
 vec3 brdf_blinn(vec3 view_dir, vec3 light_dir, vec3 normal,
 	vec3 light_color, float specular_intensity, float specular_exponent) {
 
-	const float exponent = 16.0 * 4.0; // roughly matches phong this way
 	vec3 half_angle = normalize(light_dir + view_dir);
 	float n_dot_h = max(dot(normal, half_angle), 0.0);
-	return light_color * specular_intensity * pow(n_dot_h, exponent * specular_exponent);
+	return light_color * specular_intensity * pow(n_dot_h, specular_exponent);
 }
 
 /**

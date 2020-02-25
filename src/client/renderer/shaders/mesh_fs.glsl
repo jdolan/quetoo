@@ -106,11 +106,12 @@ void main(void) {
 	}
 
 	vec3 lightgrid;
+	vec3 diffuse_dir;
 	if ((textures & TEXTURE_MASK_LIGHTGRID) == TEXTURE_MASK_LIGHTGRID) {
 		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
 		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
 		vec3 radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
-		vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
+		diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
 		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
 
 		vec3 normal = normalize(vertex.normal);
@@ -122,8 +123,12 @@ void main(void) {
 		lightgrid = vec3(1.0);
 	}
 
-	lightgrid += dynamic_light(vertex.position, vertex.normal);
-
-	out_color = ColorFilter(diffuse * vec4(lightgrid, 1.0));
+	vec3 diffuse_light = lightgrid;
+	vec3 specular_light = vec3(0);
+	dynamic_light(diffuse_dir, vertex.normal, vertex.eye, diffuse_light, specular_light);
+	out_color = diffuse;
+	out_color.rgb *= diffuse_light;
+	out_color.rgb += specular_light;
+	out_color = ColorFilter(out_color);
 }
 
