@@ -94,9 +94,9 @@ color_t Color4f(float r, float g, float b, float a);
 color_t Color4fv(const vec4_t rgba);
 
 /**
- * @return A color with the specified RGB vector converted from HSL.
+ * @return A color with the specified RGB vector converted from HSV.
  */
-color_t ColorHSL(float hue, float saturation, float lightness);
+color_t ColorHSV(float hue, float saturation, float value);
 
 /**
  * @return The sum of `a + b`.

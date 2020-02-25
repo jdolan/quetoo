@@ -107,50 +107,56 @@ color_t Color4fv(const vec4_t rgba) {
 /**
  * @brief
  */
-color_t ColorHSL(float hue, float saturation, float lightness) {
+color_t ColorHSV(float hue, float saturation, float value) {
+
+    if (saturation <= 0.0) {
+		return Color3f(value, value, value);
+    }
 	
-	hue = ClampEuler(hue);
+	hue = ClampEuler(hue) / 60.f;
+	color_t color = { .a = 1.f };
 
-	const float chroma = (1.f - fabs((2.f * lightness) - 1.f)) * saturation;
-	const uint8_t huePrime = (uint8_t)(hue / 60.0f);
-	const float secondComponent = chroma * (1.f - fabs((huePrime % 2) - 1.f));
+	const double h = fabs(hue);
+	const int i = (int) h;
+	const double f = h - i;
+	const double p = value * (1.0 - saturation);
+	const double q = value * (1.0 - (saturation * f));
+	const double t = value * (1.0 - (saturation * (1.0 - f)));
 
-	float red = 0, green = 0, blue = 0;
-
-	switch (huePrime) {
+	switch (i) {
 		case 0:
-			red = chroma;
-			green = secondComponent;
+			color.r = value;
+			color.g = t;
+			color.b = p;
 			break;
 		case 1:
-			red = secondComponent;
-			green = chroma;
+			color.r = q;
+			color.g = value;
+			color.b = p;
 			break;
 		case 2:
-			green = chroma;
-			blue = secondComponent;
+			color.r = p;
+			color.g = value;
+			color.b = t;
 			break;
 		case 3:
-			green = secondComponent;
-			blue = chroma;
+			color.r = p;
+			color.g = q;
+			color.b = value;
 			break;
 		case 4:
-			red = secondComponent;
-			blue = chroma;
+			color.r = t;
+			color.g = p;
+			color.b = value;
 			break;
-		case 5:
-			red = chroma;
-			blue = secondComponent;
+		default:
+			color.r = value;
+			color.g = p;
+			color.b = q;
 			break;
 	}
 
-	const float lightnessAdjustment = lightness - (chroma / 2.f);
-
-	return Color3f(
-		red + lightnessAdjustment,
-		green + lightnessAdjustment,
-		blue + lightnessAdjustment
-	);
+	return color;
 }
 
 /**

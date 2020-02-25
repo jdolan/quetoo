@@ -27,23 +27,6 @@ static cg_particle_t *cg_active_particles; // list of active particles
 static cg_particle_t cg_particles[MAX_PARTICLES];
 
 /**
- * @return The number of particles to add this frame in order to maintain count per second.
- */
-float Cg_ParticlesPerSecond(float target) {
-
-	const float frame_seconds = MILLIS_TO_SECONDS(cgi.client->frame_msec);
-	float particles = target * frame_seconds;
-
-	if (particles < 1) {
-		if (Randomf() <= frame_seconds * target) {
-			particles++;
-		}
-	}
-
-	return particles;
-}
-
-/**
  * @brief Pushes the particle onto the head of specified list.
  */
 static void Cg_PushParticle(cg_particle_t *p, cg_particle_t **list) {

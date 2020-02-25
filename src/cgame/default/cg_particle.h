@@ -99,7 +99,6 @@ typedef struct cg_particle_s {
 	struct cg_particle_s *next;
 } cg_particle_t;
 
-float Cg_ParticlesPerSecond(float target);
 cg_particle_t *Cg_AllocParticle(void);
 cg_particle_t *Cg_FreeParticle(cg_particle_t *p);
 void Cg_FreeParticles(void);

@@ -104,7 +104,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 	if (cgi.PointContents(org) & MASK_LIQUID) {
 		vec = Vec3_Add(org, Vec3_Scale(dir, 8.f));
-		Cg_BubbleTrail(org, vec, 32.0);
+		Cg_BubbleTrail(NULL, org, vec, 32.0);
 	} else {
 		if ((p = Cg_AllocParticle())) {
 
@@ -219,7 +219,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		tmp = org;
 		tmp.z += 64.0;
 
-		Cg_BubbleTrail(org, tmp, 16.0);
+		Cg_BubbleTrail(NULL, org, tmp, 16.0);
 	}
 
 	for (int32_t i = 0; i < count; i++) {
@@ -432,7 +432,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 static void Cg_LightningDischargeEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 40; i++) {
-		Cg_BubbleTrail(org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)), 4.0);
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)), 4.0);
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -526,7 +526,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		// Check for bubble trail
 
 		if (i % 6 == 0 && (cgi.PointContents(point) & MASK_LIQUID)) {
-			Cg_BubbleTrail(point, p->origin, 16.0);
+			Cg_BubbleTrail(NULL, point, p->origin, 16.0);
 		}
 	}
 
@@ -839,7 +839,7 @@ void Cg_ParseTempEntity(void) {
 		case TE_BUBBLES: // bubbles chasing projectiles in water
 			pos = cgi.ReadPosition();
 			pos2 = cgi.ReadPosition();
-			Cg_BubbleTrail(pos, pos2, 1.0);
+			Cg_BubbleTrail(NULL, pos, pos2, 1.0);
 			break;
 
 		case TE_RIPPLE: // liquid surface ripples

@@ -25,18 +25,20 @@
 /**
  * @brief
  */
-uint32_t Cg_ParticleTrailDensity(cl_entity_t *ent, const vec3_t start, const vec3_t end, const float min_length, const float max_length, const float density) {
+static float Cg_ParticleTrailDensity(cl_entity_t *ent, const vec3_t start, const vec3_t end, const float min_length, const float max_length, const float density) {
 
 	// first we have to reach up to min_length before we decide to start spawning
-	if (Vec3_Distance(start, ent->previous_trail_origin) < min_length) {
+	if (ent && Vec3_Distance(start, ent->previous_trail_origin) < min_length) {
 		return 0;
 	}
 
 	// check how far we're gonna draw a trail
-	const float dist = Vec3_Distance(ent->previous_trail_origin, end);
+	const float dist = Vec3_Distance(ent ? ent->previous_trail_origin : start, end);
 	const float frac = dist / (max_length - min_length);
 
-	ent->update_trail_origin = true;
+	if (ent) {
+		ent->update_trail_origin = true;
+	}
 
 	return density * frac;
 }
@@ -131,13 +133,13 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
-		Cg_BubbleTrail(start, end, 24.0);
+		Cg_BubbleTrail(ent, start, end, 24.0);
 		return;
 	}
 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
+	const float particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 8);
 
-	float particles = Cg_ParticlesPerSecond(60.f);
 	for (int32_t i = 0; i < particles; i++) {
 		cg_particle_t *p;
 
@@ -151,7 +153,8 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 		p->lifetime = RandomRangef(1000.f, 1400.f);
 
-		p->color = Color4fv(Vec4_RandomRange(.22f, .33f));
+		const float color = RandomRangef(.22f, .33f);
+		p->color = Color4f(color, color, color, RandomRangef(.22f, .33f));
 		p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
 
 		p->size = 1.5f;
@@ -166,7 +169,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
-		Cg_BubbleTrail(start, end, 10.0);
+		Cg_BubbleTrail(ent, start, end, 10.0);
 		return;
 	}
 
@@ -207,7 +210,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	end = Vec3_Add(org, vel);
 
 	if (cgi.PointContents(org) & MASK_LIQUID) {
-		Cg_BubbleTrail(org, end, 10.0);
+		Cg_BubbleTrail(ent, org, end, 10.0);
 		return;
 	}
 
@@ -232,9 +235,9 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 /**
  * @brief
  */
-void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float target) {
+void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, float target) {
 
-	const float particles = Cg_ParticlesPerSecond(target);
+	const float particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, target);
 
 	for (int32_t i = 0; i < particles; i++) {
 
@@ -279,7 +282,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float target) {
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
-	uint32_t particles;
+	float particles;
 	const vec3_t trail_start = ent->previous_trail_origin;
 
 	const color_t color = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_ORANGE);
@@ -287,7 +290,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
-		Cg_BubbleTrail(start, end, 12.0);
+		Cg_BubbleTrail(ent, start, end, 12.0);
 
 		particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 8);
 		for (int32_t i = 0; i < particles; i++) {
@@ -297,7 +300,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			}
 
 			p->lifetime = RandomRangef(250.f, 300.f);
-			p->origin = Vec3_Mix(trail_start, end, i / (float) particles);
+			p->origin = Vec3_Mix(trail_start, end, i / particles);
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
 			p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
@@ -313,7 +316,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			}
 
 			p->lifetime = RandomRangef(250.f, 300.f);
-			p->origin = Vec3_Mix(trail_start, end, i / (float) particles);
+			p->origin = Vec3_Mix(trail_start, end, i / particles);
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
 			p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
@@ -328,7 +331,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			}
 
 			p->lifetime = RandomRangef(450.f, 650.f);
-			p->origin = Vec3_Mix(trail_start, end, i / (float) particles);
+			p->origin = Vec3_Mix(trail_start, end, i / particles);
 			p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
 			p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-20.f, 20.f));
 			p->acceleration.z -= PARTICLE_GRAVITY;
@@ -374,7 +377,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
-	particles = Cg_ParticlesPerSecond(80.f);
+	particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 14);
 	for (int32_t i = 0; i < particles; i++) {
 
 		if (!(p = Cg_AllocParticle())) {
@@ -391,7 +394,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		p->size_velocity = -2.f / MILLIS_TO_SECONDS(p->lifetime);
 	}
 
-	particles = Cg_ParticlesPerSecond(120.f);
+	particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 10);
 	for (int32_t i = 0; i < particles; i++) {
 
 		if (!(p = Cg_AllocParticle())) {
@@ -452,7 +455,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	}
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
-		Cg_BubbleTrail(ent->prev.origin, ent->origin, radius / 4.0);
+		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
 	}
 
 	Cg_AddLight(&(cg_light_t) {
@@ -558,7 +561,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 					p->lifetime = 600 + Randomf() * 300;
 
-					p->color = ColorHSL(180, RandomRangef(.0f, .7f), RandomRangef(.5f, 1.f));
+					p->color = ColorHSV(180, RandomRangef(.0f, .7f), RandomRangef(.5f, 1.f));
 
 					p->bounce = 1.15;
 
@@ -626,7 +629,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 	}
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
-		Cg_BubbleTrail(ent->prev.origin, ent->origin, radius / 4.0);
+		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
 	}
 
 	const float mod = sinf(cgi.client->unclamped_time >> 5);
@@ -715,13 +718,13 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const color_t color) {
 static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
-		Cg_BubbleTrail(start, end, 8.0);
+		Cg_BubbleTrail(ent, start, end, 8.0);
 		return;
 	}
 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
-	const float particles = Cg_ParticlesPerSecond(90.f);
+	const float particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 6);
 	for (int32_t i = 0; i < particles; i++) {
 		cg_particle_t *p;
 

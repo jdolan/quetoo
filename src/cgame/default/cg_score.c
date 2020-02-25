@@ -172,13 +172,8 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	const r_pixel_t fh = SCORES_ROW_HEIGHT - 1;
 
 	if (s->color != 0) {
-		const SDL_Color color = MVC_HSVToRGB(s->color, 1.0, 1.0);
-		const color_t c = {
-			.r = color.r / 255.f,
-			.g = color.g / 255.f,
-			.b = color.b / 255.f,
-			.a = fa
-		};
+		color_t c = ColorHSV(s->color, 1.0, 1.0);
+		c.a = fa;
 
 		cgi.DrawFill(x, y, fw, fh, c);
 	}

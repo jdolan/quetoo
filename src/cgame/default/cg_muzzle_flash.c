@@ -54,7 +54,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
 		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
-		Cg_BubbleTrail(org, org2, 10.0);
+		Cg_BubbleTrail(NULL, org, org2, 10.0);
 	}
 }
 
@@ -91,7 +91,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
 		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
-		Cg_BubbleTrail(org, org2, 10.0);
+		Cg_BubbleTrail(NULL, org, org2, 10.0);
 		return;
 	}
 
