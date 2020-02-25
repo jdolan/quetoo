@@ -66,13 +66,11 @@ color_t Color4b(byte r, byte g, byte b, byte a) {
  * @brief
  */
 color_t Color4bv(uint32_t rgba) {
-	union {
-		uint32_t rgba;
-		byte bytes[4];
-	} c = {
-		BigLong(rgba)
+	const color32_t c = {
+		.rgba = BigLong(rgba)
 	};
-	return Color4b(c.bytes[0], c.bytes[1], c.bytes[2], c.bytes[3]);
+
+	return Color4b(c.r, c.g, c.b, c.a);
 }
 
 /**
