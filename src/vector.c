@@ -861,13 +861,6 @@ vec4_t Vec4_Scale(const vec4_t v, float scale) {
 /**
  * @brief
  */
-vec4_t Vec4_Subtract(const vec4_t a, const vec4_t b) {
-	return Vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
-}
-
-/**
- * @brief
- */
 vec3_t Vec4_XYZ(const vec4_t v) {
 	return Vec3(v.x, v.y, v.z);
 }
