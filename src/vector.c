@@ -792,6 +792,20 @@ vec4_t Vec4_Add(const vec4_t a, const vec4_t b) {
 /**
  * @brief
  */
+vec4_t Vec4_Subtract(const vec4_t a, const vec4_t b) {
+	return Vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+}
+
+/**
+ * @brief
+ */
+vec4_t Vec4_Multiply(const vec4_t a, const vec4_t b) {
+	return Vec4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+}
+
+/**
+ * @brief
+ */
 _Bool Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) {
 	return fabsf(a.x - b.x) <= epsilon &&
 		   fabsf(a.y - b.y) <= epsilon &&
