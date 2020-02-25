@@ -454,79 +454,75 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const color_t color) {
-	vec3_t vec, right, up, point;
+	vec3_t forward;
 	cg_particle_t *p;
-	cg_light_t l;
 
-	l.origin = start;
-	l.radius = 100.0;
-	l.color = Color_Vec3(color);
-	l.decay = 500;
+	Cg_AddLight(&(cg_light_t) {
+		.origin = start,
+		.radius = 100.f,
+		.color = Color_Vec3(color),
+		.decay = 500,
+	});
 
-	Cg_AddLight(&l);
+	const float dist = Vec3_DistanceDir(end, start, &forward);
+	const vec3_t right = Vec3(forward.z, -forward.x, forward.y);
+	const vec3_t up = Vec3_Cross(forward, right);
 
-	point = start;
-
-	vec = Vec3_Subtract(end, start);
-
-	float len;
-	vec = Vec3_NormalizeLength(vec, &len);
-
-	right = Vec3(vec.z, -vec.x, vec.y);
-	up = Vec3_Cross(vec, right);
-
-	for (int32_t i = 0; i < len; i++) {
+	for (int32_t i = 0; i < dist; i++) {
 
 		if (!(p = Cg_AllocParticle())) {
 			break;
 		}
 
-		point = Vec3_Add(point, vec);
-		p->origin = point;
+		p->origin = Vec3_Add(start, Vec3_Scale(forward, i));
+		p->velocity = Vec3_Scale(forward, 20.f);
 
-		p->velocity = Vec3_Scale(vec, 20.0);
+		const float cosi = cosf(i * 0.1f);
+		const float sini = sinf(i * 0.1f);
 
-		const float cosi = cosf(i * 0.03);
-		const float sini = sinf(i * 0.03);
+		const float frac = (1.0 - (i / dist));
 
-		p->origin = Vec3_Add(p->origin, Vec3_Scale(right, cosi * 1.0));
-		p->origin = Vec3_Add(p->origin, Vec3_Scale(up, sini * 1.0));
+		p->origin = Vec3_Add(p->origin, Vec3_Scale(right, cosi));
+		p->origin = Vec3_Add(p->origin, Vec3_Scale(up, sini));
 
-		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(right, cosi * 10.0));
-		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(up, sini * 10.0));
+		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(right, cosi * frac));
+		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(up, sini * frac));
 
-		p->acceleration = Vec3_Add(right, up);
+		p->acceleration = Vec3_Add(p->acceleration, Vec3_Scale(right, cosi * 8.f));
+		p->acceleration = Vec3_Add(p->acceleration, Vec3_Scale(up, sini * 8.f));
+		p->acceleration.z += 1.f;
 
-		p->lifetime = RandomRangef(1500.f, 1600.f);
+		p->lifetime = RandomRangef(1500.f, 1550.f);
 
-		p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
-//		p->delta_color = p->color;
-//		p->delta_color.a = 0;
+		p->color = Color_Add(color, Color4fv(Vec4_RandomRange(-.25f, .25f)));
+		p->color.a = .66f;
 
-		p->size = 1.0;
+		p->color_velocity = Vec4(-.125f, -.125f, -.125f, -p->color.a);
+		p->color_velocity = Vec4_Scale(p->color_velocity, 1.f / MILLIS_TO_SECONDS(p->lifetime));
+
+		p->color_acceleration = Vec4(-.125f, -.125f, -.125f, -.125f);
+		p->color_acceleration = Vec4_Scale(p->color_acceleration, 1.f / MILLIS_TO_SECONDS(p->lifetime));
+
+		p->size = frac;
+		p->size_velocity = 2.f / MILLIS_TO_SECONDS(p->lifetime);
 
 		if (!(p = Cg_AllocParticle())) {
 			break;
 		}
 
-		p->origin = point;
-		p->velocity = Vec3_Scale(vec, 20.0);
+		p->origin = Vec3_Add(start, Vec3_Scale(forward, i));
+		p->velocity = Vec3_Scale(forward, 20.f);
 
-		p->lifetime = 1500 + Randomf() * 50;
+		p->lifetime = RandomRangef(1500.f, 1550.f);
 
-		p->color = color;
-		p->color.a = 200 / 255.f;
-//		p->delta_color.r =  4;
-//		p->delta_color.g =  4;
-//		p->delta_color.b =  4;
-//		p->delta_color.a = -4;
-
-		p->size = 1.0;
+		p->color = Color_Add(color, color_white);
+		p->color.a = .125f;
+		p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
 
 		// Check for bubble trail
 
-		if (i % 6 == 0 && (cgi.PointContents(point) & MASK_LIQUID)) {
-			Cg_BubbleTrail(NULL, point, p->origin, 16.0);
+		if (cgi.PointContents(p->origin) & MASK_LIQUID) {
+			Cg_BubbleTrail(NULL, p->origin, p->origin, 16.f);
 		}
 	}
 
@@ -562,11 +558,12 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Impact light
 
-	l.origin = Vec3_Add(end, Vec3_Scale(vec, -12.0));
-	l.radius = 120.0;
-	l.decay += 250;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = Vec3_Add(end, Vec3_Scale(forward, -12.f)),
+		.radius = 120.f,
+		.color = Color_Vec3(color),
+		.decay = 250
+	});
 
 //	cgi.AddStain(&(const r_stain_t) {
 //		.origin = { end[0], end[1], end[2] },
