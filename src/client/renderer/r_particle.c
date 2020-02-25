@@ -26,7 +26,7 @@
  */
 typedef struct {
 	vec4_t position;
-	uint32_t color;
+	color32_t color;
 } r_particle_vertex_t;
 
 /**
@@ -81,7 +81,7 @@ void R_AddParticle(const r_particle_t *p) {
 	r_particle_vertex_t *out = r_particles.particles + r_view.num_particles;
 
 	out->position = Vec3_ToVec4(p->origin, p->size);
-	out->color = Color_Rgba(p->color);
+	out->color = Color_Color32(p->color);
 
 	r_view.particles[r_view.num_particles++] = *p;
 }

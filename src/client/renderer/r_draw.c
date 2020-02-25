@@ -46,7 +46,7 @@ typedef struct {
 typedef struct {
 	vec2s_t position;
 	vec2_t diffuse;
-	uint32_t color;
+	color32_t color;
 } r_draw_vertex_t;
 
 #define MAX_DRAW_VERTEXES (MAX_DRAW_GEOMETRY * 6)
@@ -165,12 +165,10 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 	quad[2].diffuse = Vec2(s1, t1);
 	quad[3].diffuse = Vec2(s0, t1);
 
-	const uint32_t rgba = Color_Rgba(color);
-
-	quad[0].color = rgba;
-	quad[1].color = rgba;
-	quad[2].color = rgba;
-	quad[3].color = rgba;
+	quad[0].color = Color_Color32(color);
+	quad[1].color = Color_Color32(color);
+	quad[2].color = Color_Color32(color);
+	quad[3].color = Color_Color32(color);
 
 	R_EmitDrawVertexes_Quad(quad);
 
@@ -317,12 +315,10 @@ void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r
 	quad[2].diffuse = Vec2(1, 1);
 	quad[3].diffuse = Vec2(0, 1);
 
-	const uint32_t rgba = Color_Rgba(color);
-
-	quad[0].color = rgba;
-	quad[1].color = rgba;
-	quad[2].color = rgba;
-	quad[3].color = rgba;
+	quad[0].color = Color_Color32(color);
+	quad[1].color = Color_Color32(color);
+	quad[2].color = Color_Color32(color);
+	quad[3].color = Color_Color32(color);
 
 	R_EmitDrawVertexes_Quad(quad);
 	R_AddDrawArrays(&draw);
@@ -358,12 +354,10 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_
 	quad[2].position = Vec2s(x + w, y + h);
 	quad[3].position = Vec2s(x, y + h);
 
-	const uint32_t rgba = Color_Rgba(color);
-
-	quad[0].color = rgba;
-	quad[1].color = rgba;
-	quad[2].color = rgba;
-	quad[3].color = rgba;
+	quad[0].color = Color_Color32(color);
+	quad[1].color = Color_Color32(color);
+	quad[2].color = Color_Color32(color);
+	quad[3].color = Color_Color32(color);
 
 	R_EmitDrawVertexes_Quad(quad);
 	R_AddDrawArrays(&draw);
@@ -385,14 +379,13 @@ void R_DrawLines(const r_pixel_t *points, size_t count, const color_t color) {
 
 	r_draw_vertex_t *out = r_draw.vertexes + r_draw.num_vertexes;
 	
-	const uint32_t rgba = Color_Rgba(color);
 	const r_pixel_t *in = points;
 	for (size_t i = 0; i < count; i++, in += 2, out++) {
 
 		out->position.x = *(in + 0);
 		out->position.y = *(in + 1);
 
-		out->color = rgba;
+		out->color = Color_Color32(color);
 	}
 
 	r_draw.num_vertexes += count;

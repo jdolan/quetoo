@@ -21,7 +21,6 @@
 
 #include "color.h"
 #include "swap.h"
-#include "shared.h"
 
 /**
  * @brief
@@ -174,50 +173,9 @@ color_t Color_Mix(const color_t a, const color_t b, float mix) {
 }
 
 /**
- * @brief
- */
-color_t Color_Subtract(const color_t a, const color_t b) {
-	return Color4fv(Vec4_Subtract(Color_Vec4(a), Color_Vec4(b)));
-}
-
-/**
- * @brief
- */
-color_t Color_Scale(const color_t a, const float b) {
-	return Color4fv(Vec4_Scale(Color_Vec4(a), b));
-}
-
-/**
- * @brief
- */
-vec3_t Color_Vec3(const color_t color) {
-	return Vec3(color.r, color.g, color.b);
-}
-
-/**
- * @brief
- */
-vec4_t Color_Vec4(const color_t color) {
-	return Vec4(color.r, color.g, color.b, color.a);
-}
-
-/**
- * @brief
- */
-uint32_t Color_Rgba(const color_t color) {
-	union {
-		byte bytes[4];
-		uint32_t rgba;
-	} c = {
-		{ color.r * 255.f, color.g * 255.f, color.b * 255.f, color.a * 255.f }
-	};
-	return c.rgba;
-}
-
-/**
  * @brief Attempt to convert a hexadecimal value to its string representation.
  */
-_Bool ColorHex(const char *s, color_t *color) {
+_Bool Color_Parse(const char *s, color_t *color) {
 
 	const size_t length = strlen(s);
 	if (length != 6 && length != 8) {
@@ -243,12 +201,68 @@ _Bool ColorHex(const char *s, color_t *color) {
 /**
  * @brief
  */
-const char *Color_ToHex(const color_t color) {
-	union {
-		uint32_t rgba;
-		byte bytes[4];
-	} c = {
-		Color_Rgba(color)
+color_t Color_Subtract(const color_t a, const color_t b) {
+	return Color4fv(Vec4_Subtract(Color_Vec4(a), Color_Vec4(b)));
+}
+
+/**
+ * @brief
+ */
+color_t Color_Scale(const color_t a, const float b) {
+	return Color4fv(Vec4_Scale(Color_Vec4(a), b));
+}
+
+/**
+ * @brief
+ */
+const char *Color_Unparse(const color_t color) {
+	const color32_t c = Color_Color32(color);
+
+	static char buffer[12];
+	g_snprintf(buffer, sizeof(buffer), "%02x%02x%02x%02x", c.r, c.g, c.b, c.a);
+
+	return buffer;
+}
+
+/**
+ * @brief
+ */
+vec3_t Color_Vec3(const color_t color) {
+	return Vec3(color.r, color.g, color.b);
+}
+
+/**
+ * @brief
+ */
+vec4_t Color_Vec4(const color_t color) {
+	return Vec4(color.r, color.g, color.b, color.a);
+}
+
+/**
+ * @brief
+ */
+color32_t Color_Color32(const color_t color) {
+	return Color32(color.r * 255.f,
+				   color.g * 255.f,
+				   color.b * 255.f,
+				   color.a * 255.f);
+}
+
+/**
+ * @brief
+ */
+color32_t Color32(byte r, byte g, byte b, byte a) {
+	return (color32_t) {
+		.r = r,
+		.b = b,
+		.g = g,
+		.a = a
 	};
-	return va("%02x%02x%02x%02x", c.bytes[0], c.bytes[1], c.bytes[2], c.bytes[3]);
+}
+
+/**
+ * @brief
+ */
+color_t Color32_Color(const color32_t c) {
+	return Color4bv(c.rgba);
 }

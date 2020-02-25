@@ -223,15 +223,15 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		if (!ColorHex(info[2], &ci->shirt)) {
+		if (!Color_Parse(info[2], &ci->shirt)) {
 			ci->shirt.a = 0;
 		}
 
-		if (!ColorHex(info[3], &ci->pants)) {
+		if (!Color_Parse(info[3], &ci->pants)) {
 			ci->pants.a = 0;
 		}
 
-		if (!ColorHex(info[4], &ci->helmet)) {
+		if (!Color_Parse(info[4], &ci->helmet)) {
 			ci->helmet.a = 0;
 		}
 

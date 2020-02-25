@@ -54,6 +54,29 @@ typedef union {
 } color_t;
 
 /**
+ * @brief A clamped integer RGBA color.
+ */
+typedef union {
+
+	/**
+	 * @brief Component accessors.
+	 */
+	struct {
+		byte r, g, b, a;
+	};
+
+	/**
+	 * @brief Array accessor.
+	 */
+	byte bytes[4];
+
+	/**
+	 * @brief Integer accessor.
+	 */
+	int32_t rgba;
+} color32_t;
+
+/**
  * @return A color with the specified RGB byte values.
  */
 color_t Color3b(byte r, byte g, byte b);
@@ -104,19 +127,29 @@ color_t ColorHSV(float hue, float saturation, float value);
 color_t Color_Add(const color_t a, const color_t b);
 
 /**
- * @return The value of `a * b`.
- */
-color_t Color_Scale(const color_t a, const float b);
-
-/**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 color_t Color_Mix(const color_t a, const color_t b, float mix);
 
 /**
+ * @return True if the parsing succeeded, false otherwise.
+ */
+_Bool Color_Parse(const char *s, color_t *color);
+
+/**
+ * @return The value of `a * b`.
+ */
+color_t Color_Scale(const color_t a, const float b);
+
+/**
  * @return The difference of `a - b`.
  */
 color_t Color_Subtract(const color_t a, const color_t b);
+
+/**
+ * @return A hexadecimal string (`rrggbb[aa]`) of the specified color.
+ */
+const char *Color_Unparse(const color_t color);
 
 /**
  * @return A floating point vector for the specified color;
@@ -129,16 +162,16 @@ vec3_t Color_Vec3(const color_t color);
 vec4_t Color_Vec4(const color_t color);
 
 /**
- * @return A 32-bit RGBA value for the specified color.
+ * @return A 32-bit integer color for the specified color.
  */
-uint32_t Color_Rgba(const color_t color);
+color32_t Color_Color32(const color_t color);
 
 /**
- * @return True if the parsing succeeded
+ * @return A color32_t with the specified RGBA components.
  */
-_Bool ColorHex(const char *s, color_t *color);
+color32_t Color32(byte r, byte g, byte b, byte a);
 
 /**
- * @return A temporary string of the color as hex
+ * @return A floating point color for the specified 32 bit integer color.
  */
-const char *Color_ToHex(const color_t color);
+color_t Color32_Color(const color32_t c);

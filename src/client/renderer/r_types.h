@@ -222,7 +222,7 @@ typedef struct {
 	vec3_t bitangent;
 	vec2_t diffuse;
 	vec2_t lightmap;
-	uint32_t color;
+	color32_t color;
 } r_bsp_vertex_t;
 
 typedef struct {
