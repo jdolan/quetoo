@@ -165,6 +165,8 @@ void R_Draw3D(void) {
 		return;
 	}
 
+	glEnable(GL_DEPTH_TEST);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -198,6 +200,8 @@ void R_Draw3D(void) {
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
+
+	glDisable(GL_DEPTH_TEST);
 
 	R_GetError(NULL);
 }
