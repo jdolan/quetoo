@@ -109,7 +109,7 @@ color_t ColorHSV(float hue, float saturation, float value) {
     if (saturation <= 0.0) {
 		return Color3f(value, value, value);
     }
-	
+
 	hue = ClampEuler(hue) / 60.f;
 	color_t color = { .a = 1.f };
 
@@ -166,6 +166,27 @@ color_t Color_Add(const color_t a, const color_t b) {
 /**
  * @brief
  */
+color_t Color_Subtract(const color_t a, const color_t b) {
+	return Color4fv(Vec4_Subtract(Color_Vec4(a), Color_Vec4(b)));
+}
+
+/**
+ * @brief
+ */
+color_t Color_Multiply(const color_t a, const color_t b) {
+	return Color4fv(Vec4_Multiply(Color_Vec4(a), Color_Vec4(b)));
+}
+
+/**
+ * @brief
+ */
+color_t Color_Scale(const color_t a, const float b) {
+	return Color4fv(Vec4_Scale(Color_Vec4(a), b));
+}
+
+/**
+ * @brief
+ */
 color_t Color_Mix(const color_t a, const color_t b, float mix) {
 	return Color4fv(Vec4_Mix(Color_Vec4(a), Color_Vec4(b), mix));
 }
@@ -194,20 +215,6 @@ _Bool Color_Parse(const char *s, color_t *color) {
 
 	*color = Color4bv(rgba);
 	return true;
-}
-
-/**
- * @brief
- */
-color_t Color_Subtract(const color_t a, const color_t b) {
-	return Color4fv(Vec4_Subtract(Color_Vec4(a), Color_Vec4(b)));
-}
-
-/**
- * @brief
- */
-color_t Color_Scale(const color_t a, const float b) {
-	return Color4fv(Vec4_Scale(Color_Vec4(a), b));
 }
 
 /**
