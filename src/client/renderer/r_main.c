@@ -43,6 +43,7 @@ cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_lightmaps;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
+static cvar_t *r_draw_depth;
 
 cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
@@ -70,6 +71,7 @@ cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
 cvar_t *r_shell;
+cvar_t *r_soft_particles;
 cvar_t *r_specular;
 cvar_t *r_stainmaps;
 cvar_t *r_supersample;
@@ -231,9 +233,45 @@ static void R_UpdateFrustum(void) {
 }
 
 /**
+ * @brief
+ */
+static void R_Clear(void) {
+
+	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
+
+	// clear the stencil bit if shadows are enabled
+	if (r_shadows->value) {
+		bits |= GL_STENCIL_BUFFER_BIT;
+	}
+
+	// clear the color buffer if requested
+	if (r_clear->value || r_draw_wireframe->value) {
+		bits |= GL_COLOR_BUFFER_BIT;
+	}
+
+	// or if the client is not fully loaded
+	if (cls.state != CL_ACTIVE) {
+		bits |= GL_COLOR_BUFFER_BIT;
+	}
+
+	// or if the client is no-clipping around the world
+	if (r_view.contents & CONTENTS_SOLID) {
+		bits |= GL_COLOR_BUFFER_BIT;
+	}
+
+	glClear(bits);
+}
+
+/**
  * @brief Main entry point for drawing the scene (world and entities).
  */
 void R_DrawView(r_view_t *view) {
+
+	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
+
+	R_Clear();
+
+	R_GetError(NULL);
 
 	R_UpdateProjection();
 
@@ -263,36 +301,14 @@ void R_DrawView(r_view_t *view) {
 	}
 
 #endif
-}
 
-/**
- * @brief
- */
-static void R_Clear(void) {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	const r_image_t color_attachment = { .texnum =  r_draw_depth->value ? r_context.depth_attachment : r_context.color_attachment, .width = r_context.drawable_width, .height = -r_context.drawable_height };
 
-	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
+	R_DrawImage(0, r_context.drawable_height, 1, &color_attachment, color_white);
 
-	// clear the stencil bit if shadows are enabled
-	if (r_shadows->value) {
-		bits |= GL_STENCIL_BUFFER_BIT;
-	}
-
-	// clear the color buffer if requested
-	if (r_clear->value || r_draw_wireframe->value) {
-		bits |= GL_COLOR_BUFFER_BIT;
-	}
-
-	// or if the client is not fully loaded
-	if (cls.state != CL_ACTIVE) {
-		bits |= GL_COLOR_BUFFER_BIT;
-	}
-
-	// or if the client is no-clipping around the world
-	if (r_view.contents & CONTENTS_SOLID) {
-		bits |= GL_COLOR_BUFFER_BIT;
-	}
-
-	glClear(bits);
+	R_GetError(NULL);
 }
 
 /**
@@ -458,6 +474,7 @@ static void R_InitLocal(void) {
 	r_draw_bsp_lightmaps = Cvar_Add("r_draw_bsp_lightmaps", "0", CVAR_DEVELOPER, "Controls the rendering of BSP lightmap textures (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
+	r_draw_depth = Cvar_Add("r_draw_depth", "0", CVAR_DEVELOPER, "Controls rendering the depth buffer attachment");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
@@ -486,6 +503,7 @@ static void R_InitLocal(void) {
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
 	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE, "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
+	r_soft_particles = Cvar_Add("r_soft_particles", "1", CVAR_ARCHIVE, "Whether soft particles are enabled or not");
 	r_specular = Cvar_Add("r_specular", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects");
 	r_stainmaps = Cvar_Add("r_stainmaps", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");
 	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the level of super-sampling. Requires framebuffer extension.");
@@ -541,6 +559,56 @@ static void R_InitConfig(void) {
 }
 
 /**
+ * @brief Creates the default 3d framebuffer.
+ */
+static void R_InitFramebuffer(void) {
+
+	glGenFramebuffers(1, &r_context.framebuffer);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
+
+	R_GetError("Make framebuffer");
+
+	glGenTextures(1, &r_context.color_attachment);
+	glBindTexture(GL_TEXTURE_2D, r_context.color_attachment);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r_context.drawable_width, r_context.drawable_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_context.color_attachment, 0);
+
+	R_GetError("Color attachment");
+	
+	glGenTextures(1, &r_context.depth_attachment);
+	glBindTexture(GL_TEXTURE_2D, r_context.depth_attachment);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.drawable_width, r_context.drawable_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, r_context.depth_attachment, 0);
+
+	R_GetError("Depth attachment");
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+/**
+ * @brief Destroys the default 3d framebuffer.
+ */
+static void R_ShutdownFramebuffer(void) {
+	
+	glDeleteFramebuffers(1, &r_context.framebuffer);
+	glDeleteTextures(1, &r_context.color_attachment);
+	glDeleteTextures(1, &r_context.depth_attachment);
+
+	R_GetError(NULL);
+}
+
+/**
  * @brief Creates the OpenGL context and initializes all GL state.
  */
 void R_Init(void) {
@@ -552,6 +620,8 @@ void R_Init(void) {
 	R_InitContext();
 
 	R_InitConfig();
+
+	R_InitFramebuffer();
 
 	R_InitMedia();
 
@@ -596,6 +666,8 @@ void R_Shutdown(void) {
 	R_ShutdownSky();
 
 	R_ShutdownMaterials();
+
+	R_ShutdownFramebuffer();
 
 	R_ShutdownContext();
 

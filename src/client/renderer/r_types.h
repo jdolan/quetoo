@@ -871,6 +871,11 @@ typedef struct {
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	_Bool fullscreen;
+	
+	/**
+	 * @brief Framebuffer things.
+	 */
+	GLuint framebuffer, color_attachment, depth_attachment;
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
