@@ -73,28 +73,28 @@ static View *init(View *self) {
 /**
  * @brief Renders the given entity stub.
  */
-static void renderMeshEntity(r_entity_t *e) {
-
-//	cgi.view->current_entity = e;
+// static void renderMeshEntity(r_entity_t *e) {
 //
-//	cgi.SetMatrixForEntity(e);
+// 	cgi.view->current_entity = e;
 //
-//	cgi.EnableBlend(false);
+// 	cgi.SetMatrixForEntity(e);
 //
-//	cgi.DrawMeshModel(e);
+// 	cgi.EnableBlend(false);
 //
-//	cgi.EnableBlend(true);
-}
+// 	cgi.DrawMeshModel(e);
+//
+// 	cgi.EnableBlend(true);
+// }
 
 /**
  * @brief Renders the given entity stub.
  */
-static void renderMeshMaterialsEntity(r_entity_t *e) {
-
+// static void renderMeshMaterialsEntity(r_entity_t *e) {
+//
 //	cgi.view->current_entity = e;
 //
 //	cgi.DrawMeshModelMaterials(e);
-}
+// }
 
 #define NEAR_Z 1.0
 #define FAR_Z  MAX_WORLD_COORD
