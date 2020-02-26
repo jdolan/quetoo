@@ -57,10 +57,15 @@ static struct {
 	GLint projection;
 	GLint view;
 
+	GLint soft_particles;
 	GLint pixels_per_radian;
 	GLint far_z;
-
+	GLint camera_range;
+	GLint inv_viewport_size;
+	GLint transition_size;
+	
 	GLint texture_diffuse;
+	GLint depth_attachment;
 
 	GLint brightness;
 	GLint contrast;
@@ -106,6 +111,10 @@ void R_DrawParticles(void) {
 
 	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y) / 2.0));
 	glUniform1f(r_particle_program.far_z, MAX_WORLD_DIST);
+	glUniform2f(r_particle_program.camera_range, 1.0, MAX_WORLD_DIST);
+	glUniform2f(r_particle_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
+	glUniform1f(r_particle_program.transition_size, .0016f);
+	glUniform1i(r_particle_program.soft_particles, r_soft_particles->integer);
 
 	glUniform1f(r_particle_program.brightness, r_brightness->value);
 	glUniform1f(r_particle_program.contrast, r_contrast->value);
@@ -118,8 +127,15 @@ void R_DrawParticles(void) {
 
 	glEnableVertexAttribArray(r_particle_program.in_position);
 	glEnableVertexAttribArray(r_particle_program.in_color);
-
+	
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, r_particles.particle->texnum);
+	
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, r_context.depth_attachment);
+	
+	glActiveTexture(GL_TEXTURE0);
+
 	glDrawArrays(GL_POINTS, 0, r_view.num_particles);
 
 	glDisable(GL_PROGRAM_POINT_SIZE);
@@ -155,15 +171,21 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.pixels_per_radian = glGetUniformLocation(r_particle_program.name, "pixels_per_radian");
 	r_particle_program.far_z = glGetUniformLocation(r_particle_program.name, "far_z");
+	r_particle_program.camera_range = glGetUniformLocation(r_particle_program.name, "camera_range");
+	r_particle_program.inv_viewport_size = glGetUniformLocation(r_particle_program.name, "inv_viewport_size");
+	r_particle_program.transition_size = glGetUniformLocation(r_particle_program.name, "transition_size");
+	r_particle_program.soft_particles = glGetUniformLocation(r_particle_program.name, "soft_particles");
 
 	r_particle_program.texture_diffuse = glGetUniformLocation(r_particle_program.name, "texture_diffuse");
+	r_particle_program.depth_attachment = glGetUniformLocation(r_particle_program.name, "depth_attachment");
 
 	r_particle_program.brightness = glGetUniformLocation(r_particle_program.name, "brightness");
 	r_particle_program.contrast = glGetUniformLocation(r_particle_program.name, "contrast");
 	r_particle_program.saturation = glGetUniformLocation(r_particle_program.name, "saturation");
 	r_particle_program.gamma = glGetUniformLocation(r_particle_program.name, "gamma");
-
+	
 	glUniform1i(r_particle_program.texture_diffuse, 0);
+	glUniform1i(r_particle_program.depth_attachment, 1);
 
 	glUseProgram(0);
 
