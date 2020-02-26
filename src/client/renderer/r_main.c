@@ -261,6 +261,7 @@ static void R_Clear(void) {
 	}
 
 	glClear(bits);
+	R_GetError(NULL);
 }
 
 /**
@@ -270,11 +271,7 @@ void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
 
-	glEnable(GL_FRAMEBUFFER_SRGB);
-
 	R_Clear();
-
-	R_GetError(NULL);
 
 	R_UpdateProjection();
 
@@ -297,7 +294,6 @@ void R_DrawView(r_view_t *view) {
 	glDisable(GL_FRAMEBUFFER_SRGB); // FIXME: put me in a more logical spot please
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_FRAMEBUFFER_SRGB);
 	
 	const r_image_t frame_buffer = {
 		.texnum =  r_draw_depth->value ? r_context.depth_attachment : r_context.color_attachment,
@@ -577,6 +573,8 @@ static void R_InitFramebuffer(void) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_context.color_attachment, 0);
+
+	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	R_GetError("Color attachment");
 	
