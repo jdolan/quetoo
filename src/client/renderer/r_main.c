@@ -261,7 +261,6 @@ static void R_Clear(void) {
 	}
 
 	glClear(bits);
-	R_GetError(NULL);
 }
 
 /**
@@ -270,6 +269,12 @@ static void R_Clear(void) {
 void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
+
+	glEnable(GL_FRAMEBUFFER_SRGB);
+
+	R_Clear();
+
+	R_GetError(NULL);
 
 	R_UpdateProjection();
 
@@ -289,9 +294,11 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawParticles();
 
-	glDisable(GL_FRAMEBUFFER_SRGB);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_FRAMEBUFFER_SRGB); // FIXME: put me in a more logical spot please
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_FRAMEBUFFER_SRGB);
+	
 	const r_image_t frame_buffer = {
 		.texnum =  r_draw_depth->value ? r_context.depth_attachment : r_context.color_attachment,
 		.width = r_context.width,
