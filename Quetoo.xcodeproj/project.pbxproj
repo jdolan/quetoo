@@ -2928,8 +2928,8 @@
 		CE12D5F31C5C58C300CD0B13 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */,
 				F5B7EB65240405C600A0E0BC /* brdf.glsl */,
+				CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */,
 				CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */,
 				CE8FD2F323D60E7B002FD074 /* color_filter.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */,
