@@ -122,8 +122,13 @@ void main(void) {
 		lightgrid = vec3(1.0);
 	}
 
-	// lightgrid += dynamic_light(vertex.position, vertex.normal);
+	vec3 light_diffuse = vec3(0.0), light_specular = vec3(0.0);
+	dynamic_light(vertex.position, vertex.normal, 64, light_diffuse, light_specular);
 
-	out_color = ColorFilter(diffuse * vec4(lightgrid, 1.0));
+	diffuse = diffuse * vec4(lightgrid, 1.0);
+	diffuse.rgb = clamp(diffuse.rgb * light_diffuse, 0.0, 32.0);
+	diffuse.rgb = clamp(diffuse.rgb + light_specular, 0.0, 32.0);
+
+	out_color = ColorFilter(diffuse);
 }
 

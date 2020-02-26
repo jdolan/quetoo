@@ -270,14 +270,13 @@ static void R_Clear(void) {
 void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
-	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	R_UpdateProjection();
 
 	R_UpdateFrustum();
 
 	R_UpdateVis();
-
+	
 	R_UpdateLights();
 
 	R_DrawWorld();
@@ -300,7 +299,7 @@ void R_DrawView(r_view_t *view) {
 	};
 
 	R_Draw2DImage(0, r_context.height, frame_buffer.width, frame_buffer.height, &frame_buffer, color_white);
-
+	
 	R_GetError(NULL);
 }
 
@@ -576,7 +575,7 @@ static void R_InitFramebuffer(void) {
 	
 	glGenTextures(1, &r_context.depth_attachment);
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_attachment);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, r_context.drawable_width, r_context.drawable_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.drawable_width, r_context.drawable_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
