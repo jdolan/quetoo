@@ -270,7 +270,7 @@ static void R_Clear(void) {
 void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
-//	glEnable(GL_FRAMEBUFFER_SRGB);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	R_Clear();
 
@@ -292,9 +292,9 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawParticles();
 
-//	glDisable(GL_FRAMEBUFFER_SRGB);
+	glDisable(GL_FRAMEBUFFER_SRGB);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
+
 	const r_image_t frame_buffer = {
 		.texnum =  r_draw_depth->value ? r_context.depth_attachment : r_context.color_attachment,
 		.width = r_context.width,
@@ -567,7 +567,7 @@ static void R_InitFramebuffer(void) {
 
 	glGenTextures(1, &r_context.color_attachment);
 	glBindTexture(GL_TEXTURE_2D, r_context.color_attachment);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r_context.drawable_width, r_context.drawable_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, r_context.drawable_width, r_context.drawable_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
