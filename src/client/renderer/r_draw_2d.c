@@ -487,7 +487,7 @@ static void R_InitDraw2DProgram(void) {
 
 	r_draw_2d_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "draw_2d_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "draw_2d_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "draw_2d_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_draw_2d_program.name);

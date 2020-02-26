@@ -579,7 +579,7 @@
 		CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8FD2EB23D3E034002FD074 /* r_program.c */; };
 		CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EF23D48AB7002FD074 /* r_stain.h */; };
 		CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8FD2F023D48AB7002FD074 /* r_stain.c */; };
-		CE8FD2F423D611C0002FD074 /* color_filter.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F323D60E7B002FD074 /* color_filter.glsl */; };
+		CE8FD2F423D611C0002FD074 /* common.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F323D60E7B002FD074 /* common.glsl */; };
 		CE8FD2F723D69A32002FD074 /* particle_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F523D69A10002FD074 /* particle_vs.glsl */; };
 		CE8FD2F823D69A32002FD074 /* particle_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F623D69A1E002FD074 /* particle_fs.glsl */; };
 		CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */; };
@@ -684,6 +684,8 @@
 		CED4397F1D9D3EBF0052BAFA /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
 		CED5BB152406A95800784D93 /* r_draw_3d.h in Headers */ = {isa = PBXBuildFile; fileRef = CED5BB132406A95800784D93 /* r_draw_3d.h */; };
 		CED5BB162406A95800784D93 /* r_draw_3d.c in Sources */ = {isa = PBXBuildFile; fileRef = CED5BB142406A95800784D93 /* r_draw_3d.c */; };
+		CED5BB192407163D00784D93 /* draw_3d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CED5BB182406B74300784D93 /* draw_3d_fs.glsl */; };
+		CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */; };
 		CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
 		CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEE3A0FA21EE2B3F0070FD3E /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
@@ -1035,9 +1037,11 @@
 			files = (
 				CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */,
 				CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */,
-				CE8FD2F423D611C0002FD074 /* color_filter.glsl in CopyFiles */,
+				CE8FD2F423D611C0002FD074 /* common.glsl in CopyFiles */,
 				CE4A255C1FA2032700A539E7 /* draw_2d_fs.glsl in CopyFiles */,
 				CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */,
+				CED5BB192407163D00784D93 /* draw_3d_fs.glsl in CopyFiles */,
+				CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */,
 				CE9CFC8F23E66CDF0009DA65 /* lights.glsl in CopyFiles */,
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
@@ -1045,15 +1049,6 @@
 				CE8FD2F823D69A32002FD074 /* particle_fs.glsl in CopyFiles */,
 				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
 				CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE4A256A1FA2032F00A539E7 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = shaders/include;
-			dstSubfolderSpec = 16;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1833,7 +1828,7 @@
 		CE8FD2EB23D3E034002FD074 /* r_program.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_program.c; sourceTree = "<group>"; };
 		CE8FD2EF23D48AB7002FD074 /* r_stain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_stain.h; sourceTree = "<group>"; };
 		CE8FD2F023D48AB7002FD074 /* r_stain.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_stain.c; sourceTree = "<group>"; };
-		CE8FD2F323D60E7B002FD074 /* color_filter.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = color_filter.glsl; sourceTree = "<group>"; };
+		CE8FD2F323D60E7B002FD074 /* common.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = common.glsl; sourceTree = "<group>"; };
 		CE8FD2F523D69A10002FD074 /* particle_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_vs.glsl; sourceTree = "<group>"; };
 		CE8FD2F623D69A1E002FD074 /* particle_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_fs.glsl; sourceTree = "<group>"; };
 		CE8FD2F923D70A11002FD074 /* sky_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sky_vs.glsl; sourceTree = "<group>"; };
@@ -1909,7 +1904,6 @@
 		CEFC7A6B1D9CB512000FA6B2 /* libimage.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libimage.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFC7A831D9CB5C9000FA6B2 /* libmatrix.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libmatrix.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-pmove.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F5B7EB65240405C600A0E0BC /* brdf.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = brdf.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2928,10 +2922,9 @@
 		CE12D5F31C5C58C300CD0B13 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
-				F5B7EB65240405C600A0E0BC /* brdf.glsl */,
 				CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */,
 				CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */,
-				CE8FD2F323D60E7B002FD074 /* color_filter.glsl */,
+				CE8FD2F323D60E7B002FD074 /* common.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */,
 				CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */,
 				CED5BB182406B74300784D93 /* draw_3d_fs.glsl */,
@@ -4676,7 +4669,6 @@
 				CED438271D9D34450052BAFA /* Sources */,
 				CED4385D1D9D34450052BAFA /* Frameworks */,
 				CED4386A1D9D34450052BAFA /* Headers */,
-				CE4A256A1FA2032F00A539E7 /* CopyFiles */,
 				CE4A25571FA2030900A539E7 /* CopyFiles */,
 			);
 			buildRules = (

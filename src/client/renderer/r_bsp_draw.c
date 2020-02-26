@@ -97,12 +97,29 @@ static void R_DrawBspNormals(void) {
 	const r_bsp_vertex_t *v = bsp->vertexes;
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
 
-		const vec3_t points[] = {
+		const r_bsp_leaf_t *leaf = R_LeafForPoint(v->position, bsp);
+		if (!R_LeafVisible(leaf)) {
+			continue;
+		}
+
+		const vec3_t normal[] = {
 			v->position,
-			Vec3_Add(v->position, Vec3_Scale(v->normal, 4.f))
+			Vec3_Add(v->position, Vec3_Scale(v->normal, 8.f))
 		};
 
-		R_Draw3DLines(points, 2, color_red);
+		const vec3_t tangent[] = {
+			v->position,
+			Vec3_Add(v->position, Vec3_Scale(v->tangent, 8.f))
+		};
+
+		const vec3_t bitangent[] = {
+			v->position,
+			Vec3_Add(v->position, Vec3_Scale(v->bitangent, 8.f))
+		};
+
+		R_Draw3DLines(normal, 2, color_red);
+		R_Draw3DLines(tangent, 2, color_green);
+		R_Draw3DLines(bitangent, 2, color_blue);
 	}
 }
 
@@ -357,7 +374,7 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "bsp_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "lights.glsl", "bsp_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "lights.glsl", "bsp_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_bsp_program.name);

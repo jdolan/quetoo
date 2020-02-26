@@ -625,6 +625,8 @@ void R_Init(void) {
 
 	R_InitDraw2D();
 
+	R_InitDraw3D();
+
 	R_InitModels();
 
 	R_InitView();
@@ -654,6 +656,8 @@ void R_Shutdown(void) {
 	R_ShutdownMedia();
 
 	R_ShutdownDraw2D();
+
+	R_ShutdownDraw3D();
 
 	R_ShutdownModels();
 

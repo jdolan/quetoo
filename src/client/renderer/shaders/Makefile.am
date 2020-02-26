@@ -3,7 +3,7 @@ shadersdir = @PKGLIBDIR@/default/shaders
 shaders_DATA = \
 	bsp_fs.glsl \
 	bsp_vs.glsl \
-	color_filter.glsl \
+	common.glsl \
 	draw_2d_fs.glsl \
 	draw_2d_vs.glsl \
 	draw_3d_fs.glsl \
@@ -14,5 +14,4 @@ shaders_DATA = \
 	particle_fs.glsl \
 	particle_vs.glsl \
 	sky_fs.glsl \
-	sky_vs.glsl \
-	brdf.glsl
+	sky_vs.glsl

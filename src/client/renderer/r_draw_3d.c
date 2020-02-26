@@ -41,7 +41,7 @@ typedef struct {
 	GLsizei num_vertexes;
 } r_draw_3d_arrays_t;
 
-#define MAX_DRAW_3D_ARRAYS 0x10000
+#define MAX_DRAW_3D_ARRAYS 0x100000
 
 /**
  * @brief 3D vertex struct.
@@ -170,18 +170,14 @@ void R_Draw3D(void) {
 
 	glUseProgram(r_draw_3d_program.name);
 
-	R_GetError(NULL);
-
 	glUniform1f(r_draw_3d_program.brightness, r_brightness->value);
 	glUniform1f(r_draw_3d_program.contrast, r_contrast->value);
 	glUniform1f(r_draw_3d_program.saturation, r_saturation->value);
 	glUniform1f(r_draw_3d_program.gamma, r_gamma->value);
-	R_GetError(NULL);
 
 	glUniformMatrix4fv(r_draw_3d_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_draw_3d_program.model, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 	glUniformMatrix4fv(r_draw_3d_program.view, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
-	R_GetError(NULL);
 
 	glBindVertexArray(r_draw_3d.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_3d.vertex_buffer);
@@ -189,7 +185,6 @@ void R_Draw3D(void) {
 
 	glEnableVertexAttribArray(r_draw_3d_program.in_position);
 	glEnableVertexAttribArray(r_draw_3d_program.in_color);
-	R_GetError(NULL);
 
 	const r_draw_3d_arrays_t *draw = r_draw_3d.draw_arrays;
 	for (int32_t i = 0; i < r_draw_3d.num_draw_arrays; i++, draw++) {
@@ -197,9 +192,6 @@ void R_Draw3D(void) {
 	}
 
 	glUseProgram(0);
-
-	r_draw_3d.num_draw_arrays = 0;
-	r_draw_3d.num_vertexes = 0;
 
 	r_draw_3d.num_draw_arrays = 0;
 	r_draw_3d.num_vertexes = 0;
@@ -219,7 +211,7 @@ static void R_InitDraw3DProgram(void) {
 
 	r_draw_3d_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "draw_3d_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "draw_3d_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "draw_3d_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_draw_3d_program.name);

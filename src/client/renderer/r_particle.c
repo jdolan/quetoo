@@ -158,7 +158,7 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "particle_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "particle_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "particle_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_particle_program.name);
