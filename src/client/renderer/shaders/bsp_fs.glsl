@@ -105,7 +105,6 @@ void apply_fog(inout vec4 scene_color) {
  * @brief Prevents surfaces from becoming overexposed by lights (looks bad).
  */
 void apply_tonemap(inout vec4 color) {
-	// clamp to fudge factor to avoid precision issues
 	color.rgb *= exp(color.rgb);
 	color.rgb /= color.rgb + 0.825;
 }
