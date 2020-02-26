@@ -102,20 +102,11 @@ static void R_DrawBspNormals(void) {
 			continue;
 		}
 
-		const vec3_t normal[] = {
-			v->position,
-			Vec3_Add(v->position, Vec3_Scale(v->normal, 8.f))
-		};
+		const vec3_t pos = Vec3_Add(v->position, v->normal);
 
-		const vec3_t tangent[] = {
-			v->position,
-			Vec3_Add(v->position, Vec3_Scale(v->tangent, 8.f))
-		};
-
-		const vec3_t bitangent[] = {
-			v->position,
-			Vec3_Add(v->position, Vec3_Scale(v->bitangent, 8.f))
-		};
+		const vec3_t normal[] = { pos, Vec3_Add(pos, Vec3_Scale(v->normal, 8.f)) };
+		const vec3_t tangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->tangent, 8.f)) };
+		const vec3_t bitangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->bitangent, 8.f)) };
 
 		R_Draw3DLines(normal, 2, color_red);
 		R_Draw3DLines(tangent, 2, color_green);
