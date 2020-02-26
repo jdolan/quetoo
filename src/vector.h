@@ -585,6 +585,16 @@ vec4_t Vec4(float x, float y, float z, float w) __attribute__ ((warn_unused_resu
 vec4_t Vec4_Add(const vec4_t a, const vec4_t b) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The sub of `a + b`.
+ */
+vec4_t Vec4_Subtract(const vec4_t a, const vec4_t b) __attribute__ ((warn_unused_result));
+
+/**
+ * @return The sub of `a + b`.
+ */
+vec4_t Vec4_Multiply(const vec4_t a, const vec4_t b) __attribute__ ((warn_unused_result));
+
+/**
  * @return True if `a` and `b` are equal using the specified epsilon.
  */
 _Bool Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) __attribute__ ((warn_unused_result));

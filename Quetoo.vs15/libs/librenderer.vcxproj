@@ -75,28 +75,19 @@
     <ClInclude Include="..\..\src\client\renderer\r_types.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\client\renderer\shaders\corona_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\corona_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\default_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\default_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\include\fog.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\include\color.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\include\matrix.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\include\noise3d.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\include\tint.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\null_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\null_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\particle_corona_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\bsp_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\bsp_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\color_filter.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\draw_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\draw_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\lights.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\Makefile.am" />
+    <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\mesh_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\shell_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\shell_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\stain_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\stain_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\warp_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\warp_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\sky_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3B26D4D9-B320-4D6F-B4D1-9A2487BBD0B3}</ProjectGuid>

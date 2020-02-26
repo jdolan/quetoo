@@ -7,9 +7,6 @@
     <Filter Include="src\shaders">
       <UniqueIdentifier>{e3fb06cc-1d00-4dfc-9a2c-937fc80a05ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\shaders\include">
-      <UniqueIdentifier>{8024ea4b-3931-45ab-adb8-2e5f653246a0}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\renderer\r_bsp.c">
@@ -172,25 +169,31 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\client\renderer\shaders\corona_fs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\bsp_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\corona_vs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\bsp_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\default_fs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\color_filter.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\default_vs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\draw_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\null_fs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\draw_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\null_vs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\lights.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\particle_corona_vs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\Makefile.am">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\mesh_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\particle_fs.glsl">
@@ -199,44 +202,11 @@
     <None Include="..\..\src\client\renderer\shaders\particle_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\sky_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl">
       <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\shell_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\shell_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\stain_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\stain_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\warp_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\warp_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\include\fog.glsl">
-      <Filter>src\shaders\include</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\include\noise3d.glsl">
-      <Filter>src\shaders\include</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\include\tint.glsl">
-      <Filter>src\shaders\include</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\include\color.glsl">
-      <Filter>src\shaders\include</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\include\matrix.glsl">
-      <Filter>src\shaders\include</Filter>
     </None>
   </ItemGroup>
 </Project>

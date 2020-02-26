@@ -696,7 +696,9 @@ void Vec3_Tangents(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, ve
 	const vec3_t s = Vec3_Normalize(sdir);
 	const vec3_t t = Vec3_Normalize(tdir);
 
-	*tangent = Vec3_Add(s, Vec3_Scale(normal, -Vec3_Dot(s, normal)));
+	const float n_dot_s = Vec3_Dot(s, normal);
+	
+	*tangent = Vec3_Add(normal, Vec3_Scale(s, -n_dot_s));
 	if (Vec3_Dot(s, *tangent) < 0.f) {
 		*tangent = Vec3_Negate(*tangent);
 	}
@@ -792,6 +794,20 @@ vec4_t Vec4_Add(const vec4_t a, const vec4_t b) {
 /**
  * @brief
  */
+vec4_t Vec4_Subtract(const vec4_t a, const vec4_t b) {
+	return Vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+}
+
+/**
+ * @brief
+ */
+vec4_t Vec4_Multiply(const vec4_t a, const vec4_t b) {
+	return Vec4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+}
+
+/**
+ * @brief
+ */
 _Bool Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) {
 	return fabsf(a.x - b.x) <= epsilon &&
 		   fabsf(a.y - b.y) <= epsilon &&
@@ -842,13 +858,6 @@ vec4_t Vec4_Random(void) {
  */
 vec4_t Vec4_Scale(const vec4_t v, float scale) {
 	return Vec4(v.x * scale, v.y * scale, v.z * scale, v.w * scale);
-}
-
-/**
- * @brief
- */
-vec4_t Vec4_Subtract(const vec4_t a, const vec4_t b) {
-	return Vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 }
 
 /**
