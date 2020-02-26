@@ -41,6 +41,7 @@ cvar_t *r_lock_vis;
 cvar_t *r_no_vis;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_lightmaps;
+cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
 static cvar_t *r_draw_depth;
@@ -263,11 +264,12 @@ static void R_Clear(void) {
 }
 
 /**
- * @brief Main entry point for drawing the scene (world and entities).
+ * @brief Main entry point for drawing the 3D view.
  */
 void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	glEnable(GL_FRAMEBUFFER_SRGB);
 
@@ -293,24 +295,18 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawParticles();
 
-#if 0
-	vec3_t tmp;
-	tmp = vec3_add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST);
-
-	cm_trace_t tr = Cl_Trace(r_view.origin, tmp, NULL, NULL, 0, MASK_SOLID);
-	if (tr.fraction > 0.0 && tr.fraction < 1.0) {
-		Com_Print("%s: %d: %s\n", tr.surface->name, tr.plane.num, vtos(tr.plane.normal));
-	}
-
-#endif
-
 	glDisable(GL_FRAMEBUFFER_SRGB); // FIXME: put me in a more logical spot please
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_FRAMEBUFFER_SRGB);
 	
-	const r_image_t color_attachment = { .texnum =  r_draw_depth->value ? r_context.depth_attachment : r_context.color_attachment, .width = r_context.drawable_width, .height = -r_context.drawable_height };
+	const r_image_t frame_buffer = {
+		.texnum =  r_draw_depth->value ? r_context.depth_attachment : r_context.color_attachment,
+		.width = r_context.width,
+		.height = -r_context.height
+	};
 
-	R_DrawImage(0, r_context.drawable_height, 1, &color_attachment, color_white);
+	R_Draw2DImage(0, r_context.height, frame_buffer.width, frame_buffer.height, &frame_buffer, color_white);
 
 	R_GetError(NULL);
 }
@@ -476,6 +472,7 @@ static void R_InitLocal(void) {
 	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_DEVELOPER, "Disables PVS refresh and lookup for world surfaces (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
 	r_draw_bsp_lightmaps = Cvar_Add("r_draw_bsp_lightmaps", "0", CVAR_DEVELOPER, "Controls the rendering of BSP lightmap textures (developer tool)");
+	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 	r_draw_depth = Cvar_Add("r_draw_depth", "0", CVAR_DEVELOPER, "Controls rendering the depth buffer attachment");
@@ -631,7 +628,7 @@ void R_Init(void) {
 
 	R_InitImages();
 
-	R_InitDraw();
+	R_InitDraw2D();
 
 	R_InitModels();
 
@@ -661,7 +658,7 @@ void R_Shutdown(void) {
 
 	R_ShutdownMedia();
 
-	R_ShutdownDraw();
+	R_ShutdownDraw2D();
 
 	R_ShutdownModels();
 

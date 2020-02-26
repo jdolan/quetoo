@@ -195,11 +195,9 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			}
 		}
 
-		p->lifetime = 3000 + Randomf() * 500;
-
 		if (cgi.view->weather & WEATHER_RAIN) {
-			p->color = Color4bv(0x90909080);
-			p->size = 1.0;
+			p->color = Color4bv(0x90909040);
+			p->size = .33f;
 
 			p->velocity = Vec3_RandomRange(-2.f, 2.f);
 			p->velocity.z -= 600.f;
@@ -207,7 +205,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			p->acceleration = Vec3_RandomRange(-2.f, 2.f);
 		} else {
 			p->color = Color4bv(0xf0f0f090);
-			p->size = 1.5;
+			p->size = 0.66f;
 
 			p->velocity = Vec3_RandomRange(-12.f, 12.f);
 			p->velocity.z -= 120.0;

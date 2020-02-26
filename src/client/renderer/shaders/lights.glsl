@@ -20,6 +20,7 @@
 */
 
 #define MAX_LIGHTS 64
+#define FLOAT_MAX 3.40282347e+38f
 
 struct light {
 	vec4 origin;
@@ -33,9 +34,8 @@ layout (std140) uniform lights_block {
 /**
  * @brief
  */
-vec3 dynamic_light(in vec3 position, in vec3 normal) {
-
-	vec3 diffuse = vec3(0);
+void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
+				   inout vec3 diff_light, inout vec3 spec_light) {
 
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
@@ -47,17 +47,23 @@ vec3 dynamic_light(in vec3 position, in vec3 normal) {
 		float dist = distance(lights[i].origin.xyz, position);
 		if (dist < radius) {
 
-			vec3 dir = normalize(lights[i].origin.xyz - position);
-			float angle_atten = dot(dir, normal);
+			vec3 light_dir = normalize(lights[i].origin.xyz - position);
+			float angle_atten = dot(light_dir, normal);
 			if (angle_atten > 0.0) {
-
-				float dist_atten = smoothstep(1.0, 0.0, dist / radius);
-				float attenuation = radius * dist_atten * angle_atten;
 				
-				diffuse += attenuation * lights[i].color.a * lights[i].color.rgb;
+				float dist_atten = smoothstep(1.0, 0.0, dist / radius);
+				float attenuation = dist_atten * angle_atten;
+				
+				vec3 view_dir = normalize(-position);
+				vec3 half_dir = max(normalize(light_dir + view_dir), 0.0);
+				float specular_base = dot(half_dir, normal);
+				float specular = pow(specular_base, specular_exponent);
+				
+				vec3 color = lights[i].color.rgb * lights[i].color.a;
+				
+				diff_light += attenuation * radius * color;
+				spec_light += attenuation * attenuation * radius * specular * color;
 			}
 		}
 	}
-
-	return diffuse;
 }

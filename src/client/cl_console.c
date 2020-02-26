@@ -60,7 +60,10 @@ static void Cl_DrawConsole_Background(void) {
 
 		const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
 
-		R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image, color);
+		R_Draw2DImage(0,
+					(-image->height * scale) + y + ch * 1.25,
+					r_context.width,
+					r_context.height, image, color);
 	}
 }
 
@@ -79,7 +82,7 @@ static void Cl_DrawConsole_Buffer(void) {
 
 	color_t color = color_white;
 	for (size_t i = 0; i < count; i++) {
-		R_DrawString(0, y, lines[i], color);
+		R_Draw2DString(0, y, lines[i], color);
 		color = ColorEsc(StrrColor(lines[i]));
 		g_free(lines[i]);
 		y += ch;
@@ -97,7 +100,7 @@ static void Cl_DrawConsole_Input(void) {
 	r_pixel_t x = 1, y = cl_console.height * ch;
 
 	// draw the prompt
-	R_DrawChar(0, y, ']', color_green);
+	R_Draw2DChar(0, y, ']', color_green);
 
 	// and the input buffer, scrolling horizontally if appropriate
 	const char *s = cl_console.input.buffer;
@@ -106,14 +109,14 @@ static void Cl_DrawConsole_Input(void) {
 	}
 
 	while (*s) {
-		R_DrawChar(x * cw, y, *s, color_white);
+		R_Draw2DChar(x * cw, y, *s, color_white);
 
 		s++;
 		x++;
 	}
 
 	// and lastly cursor
-	R_DrawChar((cl_console.input.pos + 1) * cw, y, 0x0b, color_white);
+	R_Draw2DChar((cl_console.input.pos + 1) * cw, y, 0x0b, color_white);
 }
 
 /**
@@ -168,7 +171,7 @@ void Cl_DrawNotify(void) {
 
 	color_t color = color_white;
 	for (size_t i = 0; i < count; i++) {
-		R_DrawString(0, y, lines[i], color);
+		R_Draw2DString(0, y, lines[i], color);
 		color = ColorEsc(StrrColor(lines[i]));
 		g_free(lines[i]);
 		y += ch;
@@ -201,7 +204,7 @@ void Cl_DrawChat(void) {
 
 		color_t color = color_white;
 		for (size_t i = 0; i < count; i++) {
-			R_DrawString(0, y, lines[i], color);
+			R_Draw2DString(0, y, lines[i], color);
 			color = ColorEsc(StrrColor(lines[i]));
 			g_free(lines[i]);
 			y += ch;
@@ -213,7 +216,7 @@ void Cl_DrawChat(void) {
 		const int32_t esc = cls.chat_state.team_chat ? ESC_COLOR_TEAMCHAT : ESC_COLOR_CHAT;
 
 		// draw the prompt
-		R_DrawChar(0, y, ']', ColorEsc(esc));
+		R_Draw2DChar(0, y, ']', ColorEsc(esc));
 
 		// and the input, scrolling horizontally if appropriate
 		const char *s = cl_chat_console.input.buffer;
@@ -222,14 +225,14 @@ void Cl_DrawChat(void) {
 		}
 
 		while (*s) {
-			R_DrawChar(x * cw, y, *s, color_white);
+			R_Draw2DChar(x * cw, y, *s, color_white);
 
 			s++;
 			x++;
 		}
 
 		// and lastly cursor
-		R_DrawChar(x * cw, y, 0x0b, color_white);
+		R_Draw2DChar(x * cw, y, 0x0b, color_white);
 	}
 }
 

@@ -261,13 +261,11 @@ void Cl_InitCgame(void) {
 	import.AddParticle = R_AddParticle;
 	import.AddStain = R_AddStain;
 
-	import.DrawImage = R_DrawImage;
-	import.DrawImageRect = R_DrawImageRect;
-	import.DrawFill = R_DrawFill;
-
 	import.BindFont = R_BindFont;
+	import.Draw2DFill = R_Draw2DFill;
+	import.Draw2DImage = R_Draw2DImage;
+	import.Draw2DString = R_Draw2DString;
 	import.StringWidth = R_StringWidth;
-	import.DrawString = R_DrawString;
 
 	cgame_handle = Sys_OpenLibrary("cgame", true);
 	assert(cgame_handle);

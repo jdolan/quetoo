@@ -97,7 +97,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 	// map title
 	x = cgi.context->width / 2 - sw / 2;
-	cgi.DrawString(x, y, map_name, color_white);
+	cgi.Draw2DString(x, y, map_name, color_white);
 
 	y += ch;
 
@@ -133,7 +133,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 				break;
 			}
 
-			cgi.DrawString(x, y, va("^%d%s^7 %d %s", color_id, cg_team_info[i].team_name, score_num,
+			cgi.Draw2DString(x, y, va("^%d%s^7 %d %s", color_id, cg_team_info[i].team_name, score_num,
 									cg_score_state.ctf ? "caps" : "frags"), color_white);
 
 			x += SCORES_COL_WIDTH;
@@ -154,14 +154,13 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	const cl_client_info_t *info = &cgi.client->client_info[s->client];
 
 	// icon
-	const float is = (float) (SCORES_ICON_WIDTH - 2) / (float) info->icon->width;
-	cgi.DrawImage(x, y, is, info->icon, color_white);
+	cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2, info->icon, color_white);
 
 	// flag carrier icon
 	if (atoi(cgi.ConfigString(CS_CTF)) && (s->flags & SCORE_CTF_FLAG)) {
 		const int32_t team = s->team;
 		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IT_PIC);
-		cgi.DrawImage(x, y, 0.33, flag, color_white);
+		cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * .3f, flag, color_white);
 	}
 
 	x += SCORES_ICON_WIDTH;
@@ -175,39 +174,39 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 		color_t c = ColorHSV(s->color, 1.0, 1.0);
 		c.a = fa;
 
-		cgi.DrawFill(x, y, fw, fh, c);
+		cgi.Draw2DFill(x, y, fw, fh, c);
 	}
 
 	cgi.BindFont("small", &cw, &ch);
 
 	// name
-	cgi.DrawString(x, y, info->name, color_white);
+	cgi.Draw2DString(x, y, info->name, color_white);
 
 	// ping
 	{
 		const r_pixel_t px = x + SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 6 * cw;
-		cgi.DrawString(px, y, va("%3dms", s->ping), color_white);
+		cgi.Draw2DString(px, y, va("%3dms", s->ping), color_white);
 		y += ch;
 	}
 
 	// spectating
 	if (s->flags & SCORE_SPECTATOR) {
-		cgi.DrawString(x, y, "spectating", color_white);
+		cgi.Draw2DString(x, y, "spectating", color_white);
 		return true;
 	}
 
 	// frags
-	cgi.DrawString(x, y, va("%d frags", s->score), color_white);
+	cgi.Draw2DString(x, y, va("%d frags", s->score), color_white);
 
 	// deaths
 	char *deaths = va("%d deaths ", s->deaths);
-	cgi.DrawString(x + fw - cgi.StringWidth(deaths), y, deaths, color_white);
+	cgi.Draw2DString(x + fw - cgi.StringWidth(deaths), y, deaths, color_white);
 	y += ch;
 
 	// ready/not ready
 	if (atoi(cgi.ConfigString(CS_MATCH))) {
 		if (s->flags & SCORE_NOT_READY) {
-			cgi.DrawString(x + fw - cgi.StringWidth("not ready "), y, "not ready", color_white);
+			cgi.Draw2DString(x + fw - cgi.StringWidth("not ready "), y, "not ready", color_white);
 		}
 	}
 
@@ -216,7 +215,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 		return true;
 	}
 
-	cgi.DrawString(x, y, va("%d captures", s->captures), color_white);
+	cgi.Draw2DString(x, y, va("%d captures", s->captures), color_white);
 	return true;
 }
 

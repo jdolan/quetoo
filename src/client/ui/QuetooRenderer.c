@@ -98,7 +98,7 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
 		p[i][1] = points[i].y;
 	}
 
-	R_DrawLines((r_pixel_t *) p, count, drawColor);
+	R_Draw2DLines((r_pixel_t *) p, count, drawColor);
 }
 
 
@@ -119,7 +119,7 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 		{ r.x,			r.y },
 	};
 
-	R_DrawLines((r_pixel_t *) points, lengthof(points), drawColor);
+	R_Draw2DLines((r_pixel_t *) points, lengthof(points), drawColor);
 }
 
 /**
@@ -129,7 +129,7 @@ static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	R_DrawFill(rect->x, rect->y, rect->w, rect->h, drawColor);
+	R_Draw2DFill(rect->x, rect->y, rect->w, rect->h, drawColor);
 }
 
 /**
@@ -141,7 +141,7 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
 
 	const r_image_t image = { .texnum = texture };
 
-	R_DrawImageRect(rect->x, rect->y, rect->w, rect->h, &image, drawColor);
+	R_Draw2DImage(rect->x, rect->y, rect->w, rect->h, &image, drawColor);
 }
 
 /**

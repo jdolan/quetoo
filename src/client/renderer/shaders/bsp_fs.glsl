@@ -66,6 +66,9 @@ in vertex_data {
 
 out vec4 out_color;
 
+vec3 light_diffuse;
+vec3 light_specular;
+
 /**
 * @brief Clamps to [0.0, 1.0], like in HLSL.
 */
@@ -102,6 +105,7 @@ void apply_fog(inout vec4 scene_color) {
  * @brief Prevents surfaces from becoming overexposed by lights (looks bad).
  */
 void apply_tonemap(inout vec4 color) {
+	// clamp to fudge factor to avoid precision issues
 	color.rgb *= exp(color.rgb);
 	color.rgb /= color.rgb + 0.825;
 }
@@ -214,14 +218,21 @@ void main(void) {
 		stainmap = vec4(0.0);
 	}
 
-	// shade bsp
-	lightmap += dynamic_light(vertex.position, vertex.normal);
-	out_color = ColorFilter(diffuse * vec4(lightmap, 1.0));
+	light_diffuse = lightmap.rgb;
+	light_specular = vec3(0.0);
+	
+	dynamic_light(vertex.position, vertex.normal, 64, light_diffuse, light_specular);
+	
+	out_color.rgb = diffuse.rgb;
+	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
+	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
 	
 	apply_tonemap(out_color);
 	
 	// tonemapping changes fog color, so do it afterwards for now.
 	apply_fog(out_color);
+	
+	out_color = ColorFilter(out_color);
 	
 	apply_dither(out_color);
 }
