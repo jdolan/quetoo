@@ -47,7 +47,7 @@ void main(void) {
 
 	if (soft_particles) {
 		vec2 coords = gl_FragCoord.xy * inv_viewport_size;
-		float geometryZ = calc_depth(texture2D(depth_attachment, coords).r);
+		float geometryZ = calc_depth(texture(depth_attachment, coords).r);
 		float sceneZ = calc_depth(gl_FragCoord.z);
 		float a = clamp(geometryZ - sceneZ, 0.0, 1.0);
 		float b = smoothstep(0.0, transition_size, a);
