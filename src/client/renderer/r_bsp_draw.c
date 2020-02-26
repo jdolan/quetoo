@@ -86,6 +86,29 @@ static struct {
 /**
  * @brief
  */
+static void R_DrawBspNormals(void) {
+
+	if (!r_draw_bsp_normals->value) {
+		return;
+	}
+
+	const r_bsp_model_t *bsp = r_model_state.world->bsp;
+
+	const r_bsp_vertex_t *v = bsp->vertexes;
+	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
+
+		const vec3_t points[] = {
+			v->position,
+			Vec3_Add(v->position, Vec3_Scale(v->normal, 4.f))
+		};
+
+		R_Draw3DLines(points, 2, color_red);
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_DrawBspLightgrid(void) {
 
 	if (!r_draw_bsp_lightgrid->value) {
@@ -240,7 +263,7 @@ static void R_DrawBspEntity(const r_entity_t *e) {
  * @brief
  */
 void R_DrawWorld(void) {
-	
+
 	// Make GL convert from linear to gamma space on framebuffer writes
 	glEnable(GL_FRAMEBUFFER_SRGB); // FIXME: put me in a more logical spot please
 
@@ -324,6 +347,7 @@ void R_DrawWorld(void) {
 
 	R_GetError(NULL);
 
+	R_DrawBspNormals();
 	R_DrawBspLightgrid();
 }
 

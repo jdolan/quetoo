@@ -143,6 +143,7 @@ extern cvar_t *r_lock_vis;
 extern cvar_t *r_no_vis;
 extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_lightmaps;
+extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_wireframe;
 

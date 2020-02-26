@@ -93,7 +93,6 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
-	 *
 	 * @defgroup memory-management Memory management
 	 * @{
 	 */
@@ -122,7 +121,6 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
-	 *
 	 * @defgroup threads Threads
 	 * @{
 	 */
@@ -146,7 +144,6 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
-	 *
 	 * @defgroup filesystem Filesystem
 	 * @{
 	 */
@@ -648,6 +645,11 @@ typedef struct cg_import_s {
 	r_model_t *(*WorldModel)(void);
 
 	/**
+	 * @defgroup scene Scene management
+	 * @{
+	 */
+
+	/**
 	 * @brief Adds an entity to the scene for the current frame.
 	 * @return The added entity.
 	 */
@@ -669,41 +671,10 @@ typedef struct cg_import_s {
 	void (*AddStain)(const r_stain_t *s);
 
 	/**
+	 * @}
 	 * @defgroup draw-2d 2D drawing
 	 * @{
 	 */
-
-	/**
-	 * @brief Draws an image in orthographic projection on the screen.
-	 * @param x The x coordinate, in pixels.
-	 * @param y The y coordinate, in pixels.
-	 * @param scale The image scale.
-	 * @param image The image.
-	 * @param color The color.
-	 */
-	void (*DrawImage)(r_pixel_t x, r_pixel_t y, float scale, const r_image_t *image, const color_t color);
-
-	/**
-	 * @brief Draws an image with an arbitrary size on the screen.
-	 * @param x The x coordinate, in pixels.
-	 * @param y The y coordinate, in pixels.
-	 * @param x The width, in pixels.
-	 * @param y The height, in pixels.
-	 * @param image The image.
-	 * @param color The color.
-	 */
-	void (*DrawImageRect)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
-
-	/**
-	 * @brief Draws a filled rectangle in orthographic projection on the screen.
-	 * @param x The x coordinate, in pixels.
-	 * @param y The y coordinate, in pixels.
-	 * @param w The width, in pixels.
-	 * @param h The height, in pixels.
-	 * @param c The color.
-	 * @param a The alpha component.
-	 */
-	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color);
 
 	/**
 	 * @brief Binds the font by `name`, optionally returning the character width and height.
@@ -714,9 +685,26 @@ typedef struct cg_import_s {
 	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);
 
 	/**
-	 * @return The width of the string `s` in pixels, using the currently bound font.
+	 * @brief Draws a filled rectangle in orthographic projection on the screen.
+	 * @param x The x coordinate, in pixels.
+	 * @param y The y coordinate, in pixels.
+	 * @param w The width, in pixels.
+	 * @param h The height, in pixels.
+	 * @param c The color.
+	 * @param a The alpha component.
 	 */
-	r_pixel_t (*StringWidth)(const char *s);
+	void (*Draw2DFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color);
+
+	/**
+	 * @brief Draws an image in orthographic projection on the screen.
+	 * @param x The x coordinate, in pixels.
+	 * @param y The y coordinate, in pixels.
+	 * @param x The width, in pixels.
+	 * @param y The height, in pixels.
+	 * @param image The image.
+	 * @param color The color.
+	 */
+	void (*Draw2DImage)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
 
 	/**
 	 * @brief Draws the string `s` at the given coordinates.
@@ -726,7 +714,12 @@ typedef struct cg_import_s {
 	 * @param color The color.
 	 * @return The number of visible characters drawn.
 	 */
-	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, const color_t color);
+	size_t (*Draw2DString)(r_pixel_t x, r_pixel_t y, const char *s, const color_t color);
+
+	/**
+	 * @return The width of the string `s` in pixels, using the currently bound font.
+	 */
+	r_pixel_t (*StringWidth)(const char *s);
 
 	/**
 	 * @}

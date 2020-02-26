@@ -99,7 +99,7 @@ static void Cl_DrawNetGraph(void) {
 	x = r_context.width - NET_GRAPH_WIDTH;
 	y = r_context.height - NET_GRAPH_Y - netgraph_height;
 
-	R_DrawFill(x, y, NET_GRAPH_WIDTH, netgraph_height, Color4bv(0x40404080));
+	R_Draw2DFill(x, y, NET_GRAPH_WIDTH, netgraph_height, Color4bv(0x40404080));
 
 	for (int32_t i = 0; i < NET_GRAPH_WIDTH; i++) {
 
@@ -114,7 +114,7 @@ static void Cl_DrawNetGraph(void) {
 		y = r_context.height - NET_GRAPH_Y;
 
 		const r_pixel_t points[4] = { x, y, x, y - h };
-		R_DrawLines(points, 2, net_graph_samples[j].color);
+		R_Draw2DLines(points, 2, net_graph_samples[j].color);
 	}
 }
 
@@ -137,43 +137,43 @@ static void Cl_DrawRendererStats(void) {
 	}
 
 	R_BindFont("small", NULL, &ch);
-	R_DrawString(x, y, "BSP:", color_red);
+	R_Draw2DString(x, y, "BSP:", color_red);
 	y += ch;
 
-	R_DrawString(x, y, va("%d nodes", r_view.count_bsp_nodes), color_red);
+	R_Draw2DString(x, y, va("%d nodes", r_view.count_bsp_nodes), color_red);
 	y += ch;
-	R_DrawString(x, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_red);
-	y += ch;
-
-	y += ch;
-	R_DrawString(x, y, "Mesh:", color_yellow);
-	y += ch;
-
-	R_DrawString(x, y, va("%d models", r_view.count_mesh_models), color_yellow);
-	y += ch;
-	R_DrawString(x, y, va("%d triangles", r_view.count_mesh_triangles), color_yellow);
+	R_Draw2DString(x, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_red);
 	y += ch;
 
 	y += ch;
-	R_DrawString(x, y, "2D:", color_green);
+	R_Draw2DString(x, y, "Mesh:", color_yellow);
 	y += ch;
 
-	R_DrawString(x, y, va("%d chars", r_view.count_draw_chars), color_green);
+	R_Draw2DString(x, y, va("%d models", r_view.count_mesh_models), color_yellow);
 	y += ch;
-	R_DrawString(x, y, va("%d fills", r_view.count_draw_fills), color_green);
-	y += ch;
-	R_DrawString(x, y, va("%d images", r_view.count_draw_images), color_green);
-	y += ch;
-	R_DrawString(x, y, va("%d lines", r_view.count_draw_lines), color_green);
+	R_Draw2DString(x, y, va("%d triangles", r_view.count_mesh_triangles), color_yellow);
 	y += ch;
 
 	y += ch;
-	R_DrawString(x, y, "Other:", color_white);
+	R_Draw2DString(x, y, "2D:", color_green);
 	y += ch;
 
-	R_DrawString(x, y, va("%d lights", r_view.num_lights), color_white);
+	R_Draw2DString(x, y, va("%d chars", r_view.count_draw_chars), color_green);
 	y += ch;
-	R_DrawString(x, y, va("%d particles", r_view.num_particles), color_white);
+	R_Draw2DString(x, y, va("%d fills", r_view.count_draw_fills), color_green);
+	y += ch;
+	R_Draw2DString(x, y, va("%d images", r_view.count_draw_images), color_green);
+	y += ch;
+	R_Draw2DString(x, y, va("%d lines", r_view.count_draw_lines), color_green);
+	y += ch;
+
+	y += ch;
+	R_Draw2DString(x, y, "Other:", color_white);
+	y += ch;
+
+	R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_white);
+	y += ch;
+	R_Draw2DString(x, y, va("%d particles", r_view.num_particles), color_white);
 
 	R_BindFont(NULL, NULL, NULL);
 }
@@ -198,10 +198,10 @@ static void Cl_DrawSoundStats(void) {
 
 	R_BindFont("small", NULL, &ch);
 
-	R_DrawString(x, y, "Sound:", color_magenta);
+	R_Draw2DString(x, y, "Sound:", color_magenta);
 	y += ch;
 
-	R_DrawString(x, y, va("%d channels", s_env.num_active_channels), color_magenta);
+	R_Draw2DString(x, y, va("%d channels", s_env.num_active_channels), color_magenta);
 	y += ch;
 
 	for (int32_t i = 0; i < MAX_CHANNELS; i++) {
@@ -217,7 +217,7 @@ static void Cl_DrawSoundStats(void) {
 		if (state != AL_PLAYING)
 			continue;
 
-		R_DrawString(x + ch, y, va("%i: %s", i, channel->sample->media.name), color_magenta);
+		R_Draw2DString(x + ch, y, va("%i: %s", i, channel->sample->media.name), color_magenta);
 		y += ch;
 	}
 
@@ -266,19 +266,19 @@ static void Cl_DrawCounters(void) {
 	}
 
 	if (cl_draw_position->integer) {
-		R_DrawString(r_context.width - 14 * cw, y - ch, va("%4.0f %4.0f %4.0f",
+		R_Draw2DString(r_context.width - 14 * cw, y - ch, va("%4.0f %4.0f %4.0f",
 														   cl.frame.ps.pm_state.origin.x,
 														   cl.frame.ps.pm_state.origin.y,
 														   cl.frame.ps.pm_state.origin.z), color_white);
 	}
 
-	R_DrawString(x, y, spd, color_white);
+	R_Draw2DString(x, y, spd, color_white);
 	y += ch;
 
-	R_DrawString(x, y, fps, color_white);
+	R_Draw2DString(x, y, fps, color_white);
 	y += ch;
 
-	R_DrawString(x, y, pps, color_white);
+	R_Draw2DString(x, y, pps, color_white);
 
 	R_BindFont(NULL, NULL, NULL);
 }
@@ -318,6 +318,7 @@ void Cl_UpdateScreen(void) {
 
 		case CL_ACTIVE:
 			R_DrawView(&r_view);
+			R_Draw3D();
 
 			Cl_DrawNetGraph();
 			Cl_DrawCounters();
