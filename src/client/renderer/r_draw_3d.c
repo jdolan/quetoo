@@ -168,6 +168,7 @@ void R_Draw3D(void) {
 	glEnable(GL_DEPTH_TEST);
 
 	glEnable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(r_draw_3d_program.name);
@@ -199,6 +200,7 @@ void R_Draw3D(void) {
 	r_draw_3d.num_vertexes = 0;
 
 	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 
 	glDisable(GL_DEPTH_TEST);

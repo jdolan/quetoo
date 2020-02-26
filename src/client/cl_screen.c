@@ -318,7 +318,6 @@ void Cl_UpdateScreen(void) {
 
 		case CL_ACTIVE:
 			R_DrawView(&r_view);
-			R_Draw3D();
 
 			Cl_DrawNetGraph();
 			Cl_DrawCounters();
