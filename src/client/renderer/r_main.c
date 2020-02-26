@@ -292,6 +292,8 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawParticles();
 
+	R_Draw3D();
+
 	glDisable(GL_FRAMEBUFFER_SRGB);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
