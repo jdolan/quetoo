@@ -696,7 +696,9 @@ void Vec3_Tangents(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, ve
 	const vec3_t s = Vec3_Normalize(sdir);
 	const vec3_t t = Vec3_Normalize(tdir);
 
-	*tangent = Vec3_Add(s, Vec3_Scale(normal, -Vec3_Dot(s, normal)));
+	const float n_dot_s = Vec3_Dot(s, normal);
+	
+	*tangent = Vec3_Add(normal, Vec3_Scale(s, -n_dot_s));
 	if (Vec3_Dot(s, *tangent) < 0.f) {
 		*tangent = Vec3_Negate(*tangent);
 	}
