@@ -302,7 +302,7 @@ void R_DrawView(r_view_t *view) {
 		.height = -r_context.height
 	};
 
-	R_Draw2DImage(0, r_context.`height, frame_buffer.width, frame_buffer.height, &frame_buffer, color_white);
+	R_Draw2DImage(0, r_context.height, frame_buffer.width, frame_buffer.height, &frame_buffer, color_white);
 
 	R_GetError(NULL);
 }
