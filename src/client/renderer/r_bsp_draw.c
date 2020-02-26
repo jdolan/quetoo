@@ -264,9 +264,6 @@ static void R_DrawBspEntity(const r_entity_t *e) {
  */
 void R_DrawWorld(void) {
 
-	// Make GL convert from linear to gamma space on framebuffer writes
-	glEnable(GL_FRAMEBUFFER_SRGB); // FIXME: put me in a more logical spot please
-
 	glEnable(GL_DEPTH_TEST);
 
 	glEnable(GL_CULL_FACE);

@@ -264,11 +264,12 @@ static void R_Clear(void) {
 }
 
 /**
- * @brief Main entry point for drawing the scene (world and entities).
+ * @brief Main entry point for drawing the 3D view.
  */
 void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	R_Clear();
 
@@ -292,22 +293,16 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawParticles();
 
-#if 0
-	vec3_t tmp;
-	tmp = vec3_add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST);
-
-	cm_trace_t tr = Cl_Trace(r_view.origin, tmp, NULL, NULL, 0, MASK_SOLID);
-	if (tr.fraction > 0.0 && tr.fraction < 1.0) {
-		Com_Print("%s: %d: %s\n", tr.surface->name, tr.plane.num, vtos(tr.plane.normal));
-	}
-
-#endif
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_FRAMEBUFFER_SRGB);
 	
-	const r_image_t color_attachment = { .texnum =  r_draw_depth->value ? r_context.depth_attachment : r_context.color_attachment, .width = r_context.drawable_width, .height = -r_context.drawable_height };
+	const r_image_t frame_buffer = {
+		.texnum =  r_draw_depth->value ? r_context.depth_attachment : r_context.color_attachment,
+		.width = r_context.width,
+		.height = -r_context.height
+	};
 
-	R_DrawImage(0, r_context.drawable_height, 1, &color_attachment, color_white);
+	R_Draw2DImage(0, r_context.`height, frame_buffer.width, frame_buffer.height, &frame_buffer, color_white);
 
 	R_GetError(NULL);
 }
