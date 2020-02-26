@@ -213,20 +213,15 @@ void main(void) {
 	} else {
 		stainmap = vec4(0.0);
 	}
-	
+
 	// shade bsp
-	vec3 specular_light = vec3(0.0);
-	vec3 diffuse_light = lightmap.rgb;
-	dynamic_light(vertex.position, vertex.normal, vertex.eye, diffuse_light, specular_light);
-	out_color = diffuse;
-	out_color.rgb *= diffuse_light;
-	out_color.rgb += specular_light;
+	lightmap += dynamic_light(vertex.position, vertex.normal);
+	out_color = ColorFilter(diffuse * vec4(lightmap, 1.0));
+	
 	apply_tonemap(out_color);
 	
 	// tonemapping changes fog color, so do it afterwards for now.
 	apply_fog(out_color);
-	
-	out_color = ColorFilter(out_color);
 	
 	apply_dither(out_color);
 }
