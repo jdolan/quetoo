@@ -133,11 +133,14 @@ void main(void) {
 	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
 	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
 	
-	apply_tonemap(out_color);
+	out_color.rgb = tonemap(out_color.rgb);
+	
+	// TODO: GL should apply gamma ramp to the framebuffer instead
+	out_color.rgb = pow3(out_color.rgb, 1.0/2.2); // gamma hack
 	
 	out_color.rgb = fog(vertex.position, out_color.rgb);
 	
-	out_color = ColorFilter(out_color);
+	out_color.rgb = color_filter(out_color.rgb);
 	
-	apply_dither(out_color);
+	out_color.rgb = dither(out_color.rgb);
 }
