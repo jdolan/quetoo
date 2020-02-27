@@ -576,17 +576,18 @@ vec3_t Vec3_Mins(void) {
  */
 vec3_t Vec3_MixEuler(const vec3_t a, const vec3_t b, float mix) {
 
-	vec3_t mixed = Vec3_Mix(a, b, mix);
+	vec3_t _a = a;
+	vec3_t _b = b;
 
-	for (size_t i = 0; i < lengthof(mixed.xyz); i++) {
-		if (mixed.xyz[i] > 180.f) {
-			mixed.xyz[i] -= 360.f;
-		} else if (mixed.xyz[i] < -180.f) {
-			mixed.xyz[i] += 360.f;
+	for (size_t i = 0; i < 3; i++) {
+		if (_b.xyz[i] - _a.xyz[i] >= 180.f) {
+			_a.xyz[i] += 360.f;
+		} else if (_b.xyz[i] - _a.xyz[i] <= -180.f) {
+			_b.xyz[i] += 360.f;
 		}
 	}
 
-	return mixed;
+	return Vec3_Mix(_a, _b, mix);
 }
 
 /**
