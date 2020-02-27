@@ -53,15 +53,8 @@ vec3 fog(in vec3 position, in vec3 color) {
 	float far = fog_parameters.y;
 	float density = fog_parameters.z;
 
-	if (density == 0.0) {
-		return color;
-	}
-
-	float strength;
-	strength = (length(position) - near) / (far - near);
-	strength = clamp(strength * density, 0.0, 1.0);
-
-	return mix(color.rgb, fog_color, strength);
+	float strength = density * ((length(position) - near) / (far - near));
+	return mix(color.rgb, fog_color, saturate(strength));
 }
 
 /**
@@ -174,4 +167,11 @@ void apply_dither(inout vec4 color) {
 	// apply the pattern, causing some fractional color values to be
 	// rounded up and others down, thus removing banding artifacts.
 	color.rgb = saturate3(color.rgb + pattern);
+}
+
+vec3 pow3(vec3 v, float exponent) {
+	v.x = pow(v.x, exponent);
+	v.y = pow(v.y, exponent);
+	v.z = pow(v.z, exponent);
+	return v;
 }
