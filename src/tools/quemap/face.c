@@ -104,7 +104,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
-#define SNAP_TO_INT		(8.0)
+#define SNAP_TO_INT		(4.0)
 #define SNAP_TO_FLOAT	(1.0 / SNAP_TO_INT)
 
 /**
