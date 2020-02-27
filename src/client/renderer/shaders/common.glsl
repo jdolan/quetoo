@@ -27,7 +27,7 @@ uniform float saturation;
 uniform float gamma;
 
 /**
- * @brief
+ * @brief Handles color adjustments.
  */
 vec4 ColorFilter(in vec4 color) {
 
@@ -78,3 +78,77 @@ vec3 brdf_halflambert(vec3 light_dir, vec3 normal, vec3 light_color) {
 	return light_color * (1.0 - (dot(normal, light_dir) * 0.5 + 0.5));
 }
 
+/**
+ * @brief Clamps to [0.0, 1.0], like in HLSL.
+ */
+float saturate(float x) {
+	return clamp(x, 0.0, 1.0);
+}
+
+/**
+ * @brief Clamps vec3 components to [0.0, 1.0], like in HLSL.
+ */
+vec3 saturate3(vec3 v) {
+	v.x = saturate(v.x);
+	v.y = saturate(v.y);
+	v.z = saturate(v.z);
+	return v;
+}
+
+/**
+ * @brief Prevents surfaces from becoming overexposed by lights (looks bad).
+ */
+void apply_tonemap(inout vec4 color) {
+	color.rgb *= exp(color.rgb);
+	color.rgb /= color.rgb + 0.825;
+}
+
+/**
+ * Converts uniform distribution into triangle-shaped distribution. Used for dithering.
+ */
+float remap_triangular(float v) {
+	
+    float original = v * 2.0 - 1.0;
+    v = original / sqrt(abs(original));
+    v = max(-1.0, v);
+    v = v - sign(original) + 0.5;
+
+    return v;
+
+    // result is range [-0.5,1.5] which is useful for actual dithering.
+    // convert to [0,1] for output
+    // return (v + 0.5f) * 0.5f;
+}
+
+/**
+ * Converts uniform distribution into triangle-shaped distribution for vec3. Used for dithering.
+ */
+vec3 remap_triangular_3(vec3 c) {
+    return vec3(remap_triangular(c.r), remap_triangular(c.g), remap_triangular(c.b));
+}
+
+/**
+ * Applies dithering before quantizing to 8-bit values to remove color banding.
+ */
+void apply_dither(inout vec4 color) {
+
+	// The function is adapted from slide 49 of Alex Vlachos's
+	// GDC 2015 talk: "Advanced VR Rendering".
+	// http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
+	// original shadertoy implementation by Zavie:
+	// https://www.shadertoy.com/view/4dcSRX
+	// modification with triangular distribution by Hornet (loopit.dk):
+	// https://www.shadertoy.com/view/Md3XRf
+
+	vec3 pattern;
+	// generate dithering pattern
+	pattern = vec3(dot(vec2(131.0, 312.0), gl_FragCoord.xy));
+    pattern = fract(pattern / vec3(103.0, 71.0, 97.0));
+	// remap distribution for smoother results
+	pattern = remap_triangular_3(pattern);
+	// scale the magnitude to be the distance between two 8-bit colors
+	pattern /= 255.0;
+	// apply the pattern, causing some fractional color values to be
+	// rounded up and others down, thus removing banding artifacts.
+	color.rgb = saturate3(color.rgb + pattern);
+}
