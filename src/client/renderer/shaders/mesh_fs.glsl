@@ -119,7 +119,8 @@ void main(void) {
 		lightgrid = vec3(1.0);
 	}
 
-	vec3 light_diffuse = vec3(0.0), light_specular = vec3(0.0);
+	vec3 light_diffuse = lightgrid;
+	vec3 light_specular = vec3(0.0);
 	dynamic_light(vertex.position, vertex.normal, 64, light_diffuse, light_specular);
 
 	diffuse = diffuse * vec4(lightgrid, 1.0);
@@ -127,6 +128,8 @@ void main(void) {
 	diffuse.rgb = clamp(diffuse.rgb + light_specular, 0.0, 32.0);
 	
 	out_color = diffuse;
+	
+	// postprocessing
 	
 	out_color.rgb = tonemap(out_color.rgb);
 	

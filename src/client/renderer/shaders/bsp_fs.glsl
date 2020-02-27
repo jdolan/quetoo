@@ -133,6 +133,8 @@ void main(void) {
 	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
 	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
 	
+	// postprocessing
+	
 	out_color.rgb = tonemap(out_color.rgb);
 	
 	// TODO: GL should apply gamma ramp to the framebuffer instead

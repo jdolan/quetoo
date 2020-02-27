@@ -34,5 +34,8 @@ out vec4 out_color;
 void main(void) {
 
 	out_color = vertex.color * texture(texture_diffuse, vertex.diffuse);
+	
+	// postprocessing
+	
 	out_color.rgb = color_filter(out_color.rgb);
 }
