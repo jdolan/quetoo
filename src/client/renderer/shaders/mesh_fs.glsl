@@ -55,9 +55,6 @@ uniform float parallax;
 uniform float hardness;
 uniform float specular;
 
-uniform vec3 fog_parameters;
-uniform vec3 fog_color;
-
 uniform vec4 caustics;
 
 in vertex_data {
@@ -130,5 +127,7 @@ void main(void) {
 	diffuse.rgb = clamp(diffuse.rgb + light_specular, 0.0, 32.0);
 
 	out_color = ColorFilter(diffuse);
+
+	out_color.rgb = fog(vertex.position, out_color.rgb);
 }
 

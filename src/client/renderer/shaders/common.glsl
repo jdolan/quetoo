@@ -27,7 +27,7 @@ uniform float saturation;
 uniform float gamma;
 
 /**
- * @brief Handles color adjustments.
+ * @brief Brightness, contrast, saturation and gamma.
  */
 vec4 ColorFilter(in vec4 color) {
 
@@ -39,6 +39,29 @@ vec4 ColorFilter(in vec4 color) {
 	color.rgb = mix(bias, mix(vec3(dot(luminance, scaled)), scaled, saturation), contrast);
 
 	return color;
+}
+
+uniform vec3 fog_parameters;
+uniform vec3 fog_color;
+
+/**
+ * @brief Global fog.
+ */
+vec3 fog(in vec3 position, in vec3 color) {
+
+	float near = fog_parameters.x;
+	float far = fog_parameters.y;
+	float density = fog_parameters.z;
+
+	if (density == 0.0) {
+		return color;
+	}
+
+	float strength;
+	strength = (length(position) - near) / (far - near);
+	strength = clamp(strength * density, 0.0, 1.0);
+
+	return mix(color.rgb, fog_color, strength);
 }
 
 /**

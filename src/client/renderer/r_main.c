@@ -236,6 +236,14 @@ static void R_UpdateFrustum(void) {
 /**
  * @brief
  */
+static void R_UpdateFog(void) {
+
+	r_locals.fog_parameters = Vec3_Multiply(r_view.fog_parameters, Vec3(1.f, 1.f, r_fog->value));
+}
+
+/**
+ * @brief
+ */
 static void R_Clear(void) {
 
 	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
@@ -281,6 +289,8 @@ void R_DrawView(r_view_t *view) {
 	R_UpdateVis();
 	
 	R_UpdateLights();
+
+	R_UpdateFog();
 
 	R_DrawWorld();
 

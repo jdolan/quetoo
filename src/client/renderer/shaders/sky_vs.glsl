@@ -28,6 +28,7 @@ uniform mat4 projection;
 uniform mat4 view;
 
 out vertex_data {
+	vec3 position;
 	vec2 diffuse;
 } vertex;
 
@@ -37,6 +38,8 @@ out vertex_data {
 void main(void) {
 
 	gl_Position = projection * view * vec4(in_position, 1.0);
+
+	vertex.position = vec3(view * vec4(in_position, 1.0));
 
 	vertex.diffuse = in_diffuse;
 }

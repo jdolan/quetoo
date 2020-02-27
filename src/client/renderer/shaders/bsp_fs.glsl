@@ -48,9 +48,6 @@ uniform float parallax;
 uniform float hardness;
 uniform float specular;
 
-uniform vec3 fog_parameters;
-uniform vec3 fog_color;
-
 uniform vec4 caustics;
 
 in vertex_data {
@@ -68,21 +65,6 @@ out vec4 out_color;
 
 vec3 light_diffuse;
 vec3 light_specular;
-
-/**
- * @brief Adds fog on top of the scene.
- */
-void apply_fog(inout vec4 scene_color) {
-	float near  = fog_parameters.x;
-	float far   = fog_parameters.y;
-	float scale = fog_parameters.z;
-	
-	float strength;
-	strength = (length(vertex.position) - near) / (far - near);
-	strength = clamp(strength * scale, 0.0, 1.0);
-	
-	scene_color.rgb = mix(scene_color.rgb, fog_color, strength);
-}
 
 /**
  * @brief
@@ -153,8 +135,7 @@ void main(void) {
 	
 	apply_tonemap(out_color);
 	
-	// tonemapping changes fog color, so do it afterwards for now.
-	apply_fog(out_color);
+	out_color.rgb = fog(vertex.position, out_color.rgb);
 	
 	out_color = ColorFilter(out_color);
 	

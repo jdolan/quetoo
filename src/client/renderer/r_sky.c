@@ -64,6 +64,9 @@ static struct {
 	GLint contrast;
 	GLint saturation;
 	GLint gamma;
+
+	GLint fog_parameters;
+	GLint fog_color;
 } r_sky_program;
 
 /**
@@ -86,6 +89,9 @@ void R_DrawSkyBox(void) {
 	glUniform1f(r_sky_program.contrast, r_contrast->value);
 	glUniform1f(r_sky_program.saturation, r_saturation->value);
 	glUniform1f(r_sky_program.gamma, r_gamma->value);
+
+	glUniform3fv(r_sky_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
+	glUniform3fv(r_sky_program.fog_color, 1, r_view.fog_color.xyz);
 
 	glBindVertexArray(r_sky.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_sky.vertex_buffer);
@@ -142,6 +148,9 @@ static void R_InitSkyProgram(void) {
 	r_sky_program.contrast = glGetUniformLocation(r_sky_program.name, "contrast");
 	r_sky_program.saturation = glGetUniformLocation(r_sky_program.name, "saturation");
 	r_sky_program.gamma = glGetUniformLocation(r_sky_program.name, "gamma");
+
+	r_sky_program.fog_parameters = glGetUniformLocation(r_sky_program.name, "fog_parameters");
+	r_sky_program.fog_color = glGetUniformLocation(r_sky_program.name, "fog_color");
 
 	glUniform1i(r_sky_program.texture_diffuse, 0);
 

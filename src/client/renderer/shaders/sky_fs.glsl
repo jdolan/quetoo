@@ -22,6 +22,7 @@
 uniform sampler2D texture_diffuse;
 
 in vertex_data {
+	vec3 position;
 	vec2 diffuse;
 } vertex;
 
@@ -33,4 +34,6 @@ out vec4 out_color;
 void main(void) {
 
 	out_color = ColorFilter(texture(texture_diffuse, vertex.diffuse));
+
+	out_color.rgb = fog(vertex.position, out_color.rgb);
 }

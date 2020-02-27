@@ -71,6 +71,9 @@ static struct {
 	GLint contrast;
 	GLint saturation;
 	GLint gamma;
+
+	GLint fog_parameters;
+	GLint fog_color;
 } r_particle_program;
 
 /**
@@ -120,6 +123,9 @@ void R_DrawParticles(void) {
 	glUniform1f(r_particle_program.contrast, r_contrast->value);
 	glUniform1f(r_particle_program.saturation, r_saturation->value);
 	glUniform1f(r_particle_program.gamma, r_gamma->value);
+
+	glUniform3fv(r_particle_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
+	glUniform3fv(r_particle_program.fog_color, 1, r_view.fog_color.xyz);
 
 	glBindVertexArray(r_particles.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_particles.vertex_buffer);
@@ -183,6 +189,9 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.contrast = glGetUniformLocation(r_particle_program.name, "contrast");
 	r_particle_program.saturation = glGetUniformLocation(r_particle_program.name, "saturation");
 	r_particle_program.gamma = glGetUniformLocation(r_particle_program.name, "gamma");
+
+	r_particle_program.fog_parameters = glGetUniformLocation(r_particle_program.name, "fog_parameters");
+	r_particle_program.fog_color = glGetUniformLocation(r_particle_program.name, "fog_color");
 	
 	glUniform1i(r_particle_program.texture_diffuse, 0);
 	glUniform1i(r_particle_program.depth_attachment, 1);

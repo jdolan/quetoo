@@ -235,6 +235,9 @@ void R_DrawMeshEntities(void) {
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_mesh_program.lights_buffer);
 
+	glUniform3fv(r_mesh_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
+	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
+
 	{
 		glEnable(GL_CULL_FACE);
 

@@ -305,8 +305,8 @@ void R_DrawWorld(void) {
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_bsp_program.lights_buffer);
 
-	glUniform3f(r_bsp_program.fog_parameters, FOG_START, FOG_END, r_fog->value);
-	glUniform3fv(r_bsp_program.fog_color, 1, r_view.fog.xyzw);
+	glUniform3fv(r_bsp_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
+	glUniform3fv(r_bsp_program.fog_color, 1, r_view.fog_color.xyz);
 
 	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
 

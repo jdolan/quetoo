@@ -734,8 +734,9 @@ typedef struct r_entity_s {
 #define WEATHER_SNOW        0x2
 #define WEATHER_FOG         0x4
 
-#define FOG_START			128.0
-#define FOG_END				2048.0
+#define FOG_START			0.f
+#define FOG_END				MAX_WORLD_AXIAL
+#define FOG_DENSITY			1.f
 
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
@@ -795,7 +796,12 @@ typedef struct {
 	/**
 	 * @brief The fog color.
 	 */
-	vec4_t fog;
+	vec3_t fog_color;
+
+	/**
+	 * @brief The fog start, end and density.
+	 */
+	vec3_t fog_parameters;
 
 	/**
 	 * @brief The entities to render for the current frame.
