@@ -125,9 +125,18 @@ void main(void) {
 	diffuse = diffuse * vec4(lightgrid, 1.0);
 	diffuse.rgb = clamp(diffuse.rgb * light_diffuse, 0.0, 32.0);
 	diffuse.rgb = clamp(diffuse.rgb + light_specular, 0.0, 32.0);
+	
+	out_color = diffuse;
+	
+	out_color.rgb = tonemap(out_color.rgb);
+	
+	out_color.rgb = color_filter(diffuse.rgb);
 
-	out_color = ColorFilter(diffuse);
-
+	// TODO: GL should apply gamma ramp to the framebuffer instead
+	out_color.rgb = pow3(out_color.rgb, 1.0/2.2); // gamma hack
+	
 	out_color.rgb = fog(vertex.position, out_color.rgb);
+	
+	out_color.rgb = dither(out_color.rgb);
 }
 
