@@ -51,7 +51,7 @@ void main(void) {
 
 	out_color.rgb = fog(vertex.position, out_color.rgb);
 
-	out_color = ColorFilter(out_color);
+	out_color.rgb = color_filter(out_color.rgb);
 
 	if (soft_particles) {
 		vec2 coords = gl_FragCoord.xy * inv_viewport_size;

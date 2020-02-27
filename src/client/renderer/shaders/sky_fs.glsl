@@ -33,7 +33,12 @@ out vec4 out_color;
  */
 void main(void) {
 
-	out_color = ColorFilter(texture(texture_diffuse, vertex.diffuse));
+	out_color = texture(texture_diffuse, vertex.diffuse);
+	
+	// TODO: GL should apply gamma ramp to the framebuffer instead
+	out_color.rgb = pow3(out_color.rgb, 1.0/2.2); // gamma hack
+	
+	out_color.rgb = color_filter(out_color.rgb);
 
 	out_color.rgb = fog(vertex.position, out_color.rgb);
 }

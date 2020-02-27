@@ -30,5 +30,5 @@ out vec4 out_color;
  */
 void main(void) {
 
-	out_color = ColorFilter(vertex.color);
+	out_color.rgb = color_filter(vertex.color.rgb);
 }
