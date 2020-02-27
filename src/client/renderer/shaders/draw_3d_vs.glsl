@@ -19,35 +19,26 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#version 330
 
-#include "collision/collision.h"
-#include "console.h"
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec4 in_color;
 
-#include "r_gl_types.h"
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
 
-#include "r_atlas.h"
-#include "r_bsp.h"
-#include "r_bsp_draw.h"
-#include "r_bsp_model.h"
-#include "r_context.h"
-#include "r_draw_2d.h"
-#include "r_draw_3d.h"
-#include "r_entity.h"
-#include "r_flare.h"
-#include "r_image.h"
-#include "r_light.h"
-#include "r_main.h"
-#include "r_material.h"
-#include "r_media.h"
-#include "r_mesh_draw.h"
-#include "r_mesh_model.h"
-#include "r_mesh_model_md3.h"
-#include "r_mesh_model_obj.h"
-#include "r_mesh.h"
-#include "r_model.h"
-#include "r_particle.h"
-#include "r_program.h"
-#include "r_sky.h"
-#include "r_stain.h"
-#include "r_types.h"
+out vertex_data {
+	vec4 color;
+} vertex;
+
+/**
+ * @brief
+ */
+void main(void) {
+
+	gl_Position = projection * view * model * vec4(in_position, 1.0);
+
+	vertex.color = in_color;
+}
+

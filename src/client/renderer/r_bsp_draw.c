@@ -86,6 +86,37 @@ static struct {
 /**
  * @brief
  */
+static void R_DrawBspNormals(void) {
+
+	if (!r_draw_bsp_normals->value) {
+		return;
+	}
+
+	const r_bsp_model_t *bsp = r_model_state.world->bsp;
+
+	const r_bsp_vertex_t *v = bsp->vertexes;
+	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
+
+		const r_bsp_leaf_t *leaf = R_LeafForPoint(v->position, bsp);
+		if (!R_LeafVisible(leaf)) {
+			continue;
+		}
+
+		const vec3_t pos = Vec3_Add(v->position, v->normal);
+
+		const vec3_t normal[] = { pos, Vec3_Add(pos, Vec3_Scale(v->normal, 8.f)) };
+		const vec3_t tangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->tangent, 8.f)) };
+		const vec3_t bitangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->bitangent, 8.f)) };
+
+		R_Draw3DLines(normal, 2, color_red);
+		R_Draw3DLines(tangent, 2, color_green);
+		R_Draw3DLines(bitangent, 2, color_blue);
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_DrawBspLightgrid(void) {
 
 	if (!r_draw_bsp_lightgrid->value) {
@@ -240,9 +271,6 @@ static void R_DrawBspEntity(const r_entity_t *e) {
  * @brief
  */
 void R_DrawWorld(void) {
-	
-	// Make GL convert from linear to gamma space on framebuffer writes
-	glEnable(GL_FRAMEBUFFER_SRGB); // FIXME: put me in a more logical spot please
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -324,6 +352,7 @@ void R_DrawWorld(void) {
 
 	R_GetError(NULL);
 
+	R_DrawBspNormals();
 	R_DrawBspLightgrid();
 }
 
@@ -336,7 +365,7 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "bsp_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "lights.glsl", "bsp_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "lights.glsl", "bsp_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_bsp_program.name);

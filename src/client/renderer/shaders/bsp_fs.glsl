@@ -234,4 +234,6 @@ void main(void) {
 	out_color = ColorFilter(out_color);
 	
 	apply_dither(out_color);
+
+	out_color.a = 1;
 }

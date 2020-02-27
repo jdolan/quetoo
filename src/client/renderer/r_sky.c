@@ -125,7 +125,7 @@ static void R_InitSkyProgram(void) {
 
 	r_sky_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "sky_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "sky_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "sky_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_sky_program.name);

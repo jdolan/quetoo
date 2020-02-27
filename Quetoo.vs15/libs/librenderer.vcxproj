@@ -24,7 +24,8 @@
     <ClCompile Include="..\..\src\client\renderer\r_bsp_draw.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_context.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_draw.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_draw_2d.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c" />
     <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
     <ClCompile Include="..\..\src\client\renderer\r_flare.c" />
     <ClCompile Include="..\..\src\client\renderer\r_gl.c" />
@@ -51,7 +52,8 @@
     <ClInclude Include="..\..\src\client\renderer\r_bsp_draw.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_context.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_draw.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_draw_2d.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h" />
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />
     <ClInclude Include="..\..\src\client\renderer\r_flare.h" />
     <ClInclude Include="..\..\src\client\renderer\r_gl.h" />
@@ -78,8 +80,10 @@
     <None Include="..\..\src\client\renderer\shaders\bsp_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\bsp_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\color_filter.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\draw_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\draw_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\draw_2d_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\draw_2d_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\draw_3d_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\lights.glsl" />
     <None Include="..\..\src\client\renderer\shaders\Makefile.am" />
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
