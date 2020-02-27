@@ -198,13 +198,9 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	glBindTexture(target, image->texnum);
 
-	GLint input_format = GL_RGB;
 	switch (format) {
 		case GL_RGB:
-			input_format = GL_RGB;
-			break;
 		case GL_RGBA:
-			input_format = GL_RGBA;
 			break;
 		default:
 			Com_Error(ERROR_DROP, "Unsupported format %d\n", format);
@@ -237,9 +233,9 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	}
 
 	if (image->depth) {
-		glTexImage3D(target, 0, format, image->width, image->height, image->depth, 0, input_format, type, data);
+		glTexImage3D(target, 0, format, image->width, image->height, image->depth, 0, format, type, data);
 	} else {
-		glTexImage2D(target, 0, format, image->width, image->height, 0, input_format, type, data);
+		glTexImage2D(target, 0, format, image->width, image->height, 0, format, type, data);
 	}
 
 	if (image->type & IT_MASK_MIPMAP) {
