@@ -237,12 +237,9 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
 		}
 
 		const bsp_vertex_t *v = &bsp_file.vertexes[face->first_vertex];
-		for (uint16_t j = 0; j < face->num_vertexes; j++, v++) {
+		for (int32_t j = 0; j < face->num_vertexes; j++, v++) {
 
-			vec3_t delta;
-			delta = Vec3_Subtract(vertex->position, v->position);
-
-			if (Vec3_Length(delta) <= ON_EPSILON) {
+			if (Vec3_Distance(vertex->position, v->position) <= ON_EPSILON) {
 				phong_faces[count++] = face;
 				break;
 			}
@@ -266,28 +263,32 @@ void PhongVertex(int32_t vertex_num) {
 
 	bsp_vertex_t *v = &bsp_file.vertexes[vertex_num];
 
-	const size_t count = PhongFacesForVertex(v, phong_faces);
-	if (count) {
+	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
+	if (texinfo->flags & SURF_PHONG) {
 
-		v->normal = Vec3_Zero();
+		const size_t count = PhongFacesForVertex(v, phong_faces);
+		if (count > 1) {
 
-		const bsp_face_t **pf = phong_faces;
-		for (size_t j = 0; j < count; j++, pf++) {
+			v->normal = Vec3_Zero();
 
-			const plane_t *plane = &planes[(*pf)->plane_num];
+			const bsp_face_t **pf = phong_faces;
+			for (size_t j = 0; j < count; j++, pf++) {
 
-			cm_winding_t *w = Cm_WindingForFace(&bsp_file, *pf);
-			v->normal = Vec3_Add(v->normal, Vec3_Scale(plane->normal, Cm_WindingArea(w)));
-			Cm_FreeWinding(w);
+				const plane_t *plane = &planes[(*pf)->plane_num];
+
+				cm_winding_t *w = Cm_WindingForFace(&bsp_file, *pf);
+				v->normal = Vec3_Add(v->normal, Vec3_Scale(plane->normal, Cm_WindingArea(w)));
+				Cm_FreeWinding(w);
+			}
+
+			v->normal = Vec3_Normalize(v->normal);
+
+			const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
+
+			const vec3_t sdir = Vec4_XYZ(texinfo->vecs[0]);
+			const vec3_t tdir = Vec4_XYZ(texinfo->vecs[1]);
+
+			Vec3_Tangents(v->normal, sdir, tdir, &v->tangent, &v->bitangent);
 		}
-
-		v->normal = Vec3_Normalize(v->normal);
-
-		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
-
-		const vec3_t sdir = Vec4_XYZ(texinfo->vecs[0]);
-		const vec3_t tdir = Vec4_XYZ(texinfo->vecs[1]);
-
-		Vec3_Tangents(v->normal, sdir, tdir, &v->tangent, &v->bitangent);
 	}
 }
