@@ -49,6 +49,8 @@ void main(void) {
 
 	out_color = vertex.color * texture(texture_diffuse, gl_PointCoord);
 
+	// postprocessing
+
 	out_color.rgb = fog(vertex.position, out_color.rgb);
 
 	out_color.rgb = color_filter(out_color.rgb);
@@ -63,4 +65,3 @@ void main(void) {
 		out_color.a *= b;
 	}
 }
-

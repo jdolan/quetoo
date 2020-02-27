@@ -442,7 +442,7 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 	out->atlas->height = out->width;
 	out->atlas->depth = BSP_LIGHTMAP_LAYERS;
 
-	R_UploadImage(out->atlas, GL_RGB8, (byte *) in + sizeof(bsp_lightmap_t));
+	R_UploadImage(out->atlas, GL_RGB, (byte *) in + sizeof(bsp_lightmap_t));
 }
 
 /**
@@ -480,7 +480,7 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 		out->textures[i]->height = out->size.y;
 		out->textures[i]->depth = out->size.z;
 
-		R_UploadImage(out->textures[i], GL_RGB8, data);
+		R_UploadImage(out->textures[i], GL_RGB, data);
 	}
 }
 

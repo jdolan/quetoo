@@ -21,11 +21,6 @@
 
 #version 330
 
-uniform float brightness;
-uniform float contrast;
-uniform float saturation;
-uniform float gamma;
-
 /**
  * @brief Clamps to [0.0, 1.0], like in HLSL.
  */
@@ -42,6 +37,11 @@ vec3 saturate3(vec3 v) {
 	v.z = saturate(v.z);
 	return v;
 }
+
+uniform float brightness;
+uniform float contrast;
+uniform float saturation;
+uniform float gamma;
 
 /**
  * @brief Brightness, contrast, saturation and gamma.
