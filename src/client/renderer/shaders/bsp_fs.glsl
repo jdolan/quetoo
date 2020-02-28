@@ -223,7 +223,7 @@ void main(void) {
 	
 	dynamic_light(vertex.position, vertex.normal, 64, light_diffuse, light_specular);
 	
-	out_color.rgb = diffuse.rgb;
+	out_color = diffuse;
 	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
 	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
 	
@@ -235,6 +235,4 @@ void main(void) {
 	out_color = ColorFilter(out_color);
 	
 	apply_dither(out_color);
-
-	out_color.a = 1;
 }
