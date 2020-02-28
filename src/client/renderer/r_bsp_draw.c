@@ -84,7 +84,7 @@ static struct {
 } r_bsp_program;
 
 /**
- * @brief
+ * @brief POPSICLE MODE !!!
  */
 static void R_DrawBspNormals(void) {
 
@@ -96,13 +96,13 @@ static void R_DrawBspNormals(void) {
 
 	const r_bsp_vertex_t *v = bsp->vertexes;
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
+		
+		const vec3_t pos = Vec3_Add(v->position, v->normal);
 
-		const r_bsp_leaf_t *leaf = R_LeafForPoint(v->position, bsp);
+		const r_bsp_leaf_t *leaf = R_LeafForPoint(pos, bsp);
 		if (!R_LeafVisible(leaf)) {
 			continue;
 		}
-
-		const vec3_t pos = Vec3_Add(v->position, Vec3_Scale(v->normal, 2.f));
 
 		const vec3_t normal[] = { pos, Vec3_Add(pos, Vec3_Scale(v->normal, 8.f)) };
 		const vec3_t tangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->tangent, 8.f)) };
