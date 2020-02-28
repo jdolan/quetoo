@@ -571,7 +571,7 @@ typedef struct {
 
 } r_particle_t;
 
-#define MAX_PARTICLES		0x4000
+#define MAX_PARTICLES		0x7ffe
 
 /**
  * @brief Stains are low-resolution color effects added to the map's lightmap
