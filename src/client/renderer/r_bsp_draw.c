@@ -102,7 +102,7 @@ static void R_DrawBspNormals(void) {
 			continue;
 		}
 
-		const vec3_t pos = Vec3_Add(v->position, v->normal);
+		const vec3_t pos = Vec3_Add(v->position, Vec3_Scale(v->normal, 2.f));
 
 		const vec3_t normal[] = { pos, Vec3_Add(pos, Vec3_Scale(v->normal, 8.f)) };
 		const vec3_t tangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->tangent, 8.f)) };
@@ -111,7 +111,24 @@ static void R_DrawBspNormals(void) {
 		R_Draw3DLines(normal, 2, color_red);
 		R_Draw3DLines(tangent, 2, color_green);
 		R_Draw3DLines(bitangent, 2, color_blue);
+		
+		R_AddParticle(&(r_particle_t) {
+			.origin = normal[1],
+			.size = .5f,
+			.color = Color3b(255, 0, 0)
+		});
+		R_AddParticle(&(r_particle_t) {
+			.origin = tangent[1],
+			.size = .5f,
+			.color = Color3b(0, 255, 0)
+		});
+		R_AddParticle(&(r_particle_t) {
+			.origin = bitangent[1],
+			.size = .5f,
+			.color = Color3b(0, 0, 255)
+		});
 	}
+	R_DrawParticles();
 }
 
 /**
