@@ -1091,7 +1091,7 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 
 	assert(material);
 
-	if (!Cm_ResolveMaterialAsset(material, &material->diffuse, context, (const char *[]) { "", "_d", NULL })) {
+	if (!Cm_ResolveMaterialAsset(material, &material->diffusemap, context, (const char *[]) { "", "_d", NULL })) {
 		return false;
 	}
 
@@ -1133,7 +1133,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 			Fs_Print(file, "\t\tflare %s\n", stage->asset.name);
 		}
 	} else {
-		Com_Warn("Material %s has a stage with no image?\n", material->diffuse.name);
+		Com_Warn("Material %s has a stage with no image?\n", material->diffusemap.name);
 	}
 
 	if (stage->flags & STAGE_BLEND) {

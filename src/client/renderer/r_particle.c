@@ -64,7 +64,7 @@ static struct {
 	GLint inv_viewport_size;
 	GLint transition_size;
 	
-	GLint texture_diffuse;
+	GLint texture_diffusemap;
 	GLint depth_attachment;
 
 	GLint brightness;
@@ -182,7 +182,7 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.transition_size = glGetUniformLocation(r_particle_program.name, "transition_size");
 	r_particle_program.soft_particles = glGetUniformLocation(r_particle_program.name, "soft_particles");
 
-	r_particle_program.texture_diffuse = glGetUniformLocation(r_particle_program.name, "texture_diffuse");
+	r_particle_program.texture_diffusemap = glGetUniformLocation(r_particle_program.name, "texture_diffusemap");
 	r_particle_program.depth_attachment = glGetUniformLocation(r_particle_program.name, "depth_attachment");
 
 	r_particle_program.brightness = glGetUniformLocation(r_particle_program.name, "brightness");
@@ -193,7 +193,7 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.fog_parameters = glGetUniformLocation(r_particle_program.name, "fog_parameters");
 	r_particle_program.fog_color = glGetUniformLocation(r_particle_program.name, "fog_color");
 	
-	glUniform1i(r_particle_program.texture_diffuse, 0);
+	glUniform1i(r_particle_program.texture_diffusemap, 0);
 	glUniform1i(r_particle_program.depth_attachment, 1);
 
 	glUseProgram(0);

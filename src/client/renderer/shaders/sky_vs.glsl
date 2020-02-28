@@ -22,14 +22,14 @@
 #version 330
 
 layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec2 in_diffuse;
+layout (location = 1) in vec2 in_diffusemap;
 
 uniform mat4 projection;
 uniform mat4 view;
 
 out vertex_data {
 	vec3 position;
-	vec2 diffuse;
+	vec2 diffusemap;
 } vertex;
 
 /**
@@ -41,6 +41,6 @@ void main(void) {
 
 	vertex.position = vec3(view * vec4(in_position, 1.0));
 
-	vertex.diffuse = in_diffuse;
+	vertex.diffusemap = in_diffusemap;
 }
 

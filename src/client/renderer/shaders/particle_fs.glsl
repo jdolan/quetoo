@@ -25,7 +25,7 @@ uniform float transition_size;
 
 uniform bool soft_particles;
 
-uniform sampler2D texture_diffuse;
+uniform sampler2D texture_diffusemap;
 uniform sampler2D depth_attachment;
 
 in vertex_data {
@@ -47,7 +47,7 @@ float calc_depth(in float z) {
  */
 void main(void) {
 
-	out_color = vertex.color * texture(texture_diffuse, gl_PointCoord);
+	out_color = vertex.color * texture(texture_diffusemap, gl_PointCoord);
 
 	// postprocessing
 

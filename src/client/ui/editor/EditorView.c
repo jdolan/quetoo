@@ -43,7 +43,7 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 		Outlet outlets[] = MakeOutlets(
 			MakeOutlet("name", &self->name),
-			MakeOutlet("diffuse", &self->diffuse),
+			MakeOutlet("diffusemap", &self->diffusemap),
 			MakeOutlet("normalmap", &self->normalmap),
 			MakeOutlet("glossmap", &self->glossmap),
 			MakeOutlet("bumpmap", &self->bump),
@@ -72,7 +72,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 
 	if (self->material) {
 		$(self->name, setDefaultText, self->material->cm->basename);
-		$(self->diffuse, setDefaultText, self->material->cm->diffuse.name);
+		$(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
 		$(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
 		$(self->glossmap, setDefaultText, self->material->cm->glossmap.name);
 
@@ -82,7 +82,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->parallax, setValue, (double) self->material->cm->parallax);
 	} else {
 		$(self->name, setDefaultText, NULL);
-		$(self->diffuse, setDefaultText, NULL);
+		$(self->diffusemap, setDefaultText, NULL);
 		$(self->normalmap, setDefaultText, NULL);
 		$(self->glossmap, setDefaultText, NULL);
 

@@ -19,13 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define TEXTURE_DIFFUSE                  0
+#define TEXTURE_DIFFUSEMAP                  0
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
 #define TEXTURE_LIGHTMAP                 3
 #define TEXTURE_STAINMAP                 4
 
-#define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
 #define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
 #define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
@@ -34,7 +34,7 @@
 
 uniform int textures;
 
-uniform sampler2D texture_diffuse;
+uniform sampler2D texture_diffusemap;
 uniform sampler2D texture_normalmap;
 uniform sampler2D texture_glossmap;
 uniform sampler2DArray texture_lightmap;
@@ -55,7 +55,7 @@ in vertex_data {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
-	vec2 diffuse;
+	vec2 diffusemap;
 	vec2 lightmap;
 	vec4 color;
 	vec3 eye;
@@ -73,20 +73,20 @@ void main(void) {
 
 	// fetch textures
 	
-	vec4 diffuse;
-	if ((textures & TEXTURE_MASK_DIFFUSE) == TEXTURE_MASK_DIFFUSE) {
-		diffuse = texture(texture_diffuse, vertex.diffuse) * vertex.color;
+	vec4 diffusemap;
+	if ((textures & TEXTURE_MASK_DIFFUSEMAP) == TEXTURE_MASK_DIFFUSEMAP) {
+		diffusemap = texture(texture_diffusemap, vertex.diffusemap) * vertex.color;
 
-		if (diffuse.a < alpha_threshold) {
+		if (diffusemap.a < alpha_threshold) {
 			discard;
 		}
 	} else {
-		diffuse = vertex.color;
+		diffusemap = vertex.color;
 	}
 
 	vec4 normalmap;
 	if ((textures & TEXTURE_MASK_NORMALMAP) == TEXTURE_MASK_NORMALMAP) {
-		normalmap = texture(texture_normalmap, vertex.diffuse);
+		normalmap = texture(texture_normalmap, vertex.diffusemap);
 		normalmap.xyz = normalize(normalmap.xyz);
 		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * bump;
 		normalmap.xyz = normalize(normalmap.xyz);
@@ -96,7 +96,7 @@ void main(void) {
 
 	vec4 glossmap;
 	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {
-		glossmap = texture(texture_glossmap, vertex.diffuse);
+		glossmap = texture(texture_glossmap, vertex.diffusemap);
 	} else {
 		glossmap = vec4(1.0);
 	}
@@ -129,7 +129,7 @@ void main(void) {
 	
 	dynamic_light(vertex.position, vertex.normal, 64, light_diffuse, light_specular);
 	
-	out_color = diffuse;
+	out_color = diffusemap;
 	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
 	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
 	

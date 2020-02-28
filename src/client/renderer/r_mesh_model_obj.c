@@ -183,7 +183,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 				const r_mesh_vertex_t v = {
 					.position = g_array_index(obj.v, vec3_t, fv->v - 1),
-					.diffuse = g_array_index(obj.vt, vec2_t, fv->vt - 1),
+					.diffusemap = g_array_index(obj.vt, vec2_t, fv->vt - 1),
 					.normal = g_array_index(obj.vn, vec3_t, fv->vn - 1),
 				};
 

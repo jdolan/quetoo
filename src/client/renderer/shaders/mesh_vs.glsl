@@ -25,7 +25,7 @@ layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_tangent;
 layout (location = 3) in vec3 in_bitangent;
-layout (location = 4) in vec2 in_diffuse;
+layout (location = 4) in vec2 in_diffusemap;
 
 layout (location = 5) in vec3 in_next_position;
 layout (location = 6) in vec3 in_next_normal;
@@ -47,7 +47,7 @@ out vertex_data {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
-	vec2 diffuse;
+	vec2 diffusemap;
 	vec3 lightgrid;
 	vec3 eye;
 } vertex;
@@ -69,7 +69,7 @@ void main(void) {
 	vertex.tangent = normalize(vec3(normal * lerp_tangent));
 	vertex.bitangent = normalize(vec3(normal * lerp_bitangent));
 
-	vertex.diffuse = in_diffuse;
+	vertex.diffusemap = in_diffusemap;
 
 	vec3 world_position = vec3(model * lerp_position);
 	vertex.lightgrid = (world_position - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);

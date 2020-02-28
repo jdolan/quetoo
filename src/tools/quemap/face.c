@@ -152,8 +152,8 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		const float s = Vec3_Dot(out.position, sdir) + texinfo->vecs[0].w;
 		const float t = Vec3_Dot(out.position, tdir) + texinfo->vecs[1].w;
 
-		out.diffuse.x = s / (diffuse ? diffuse->w : 1.0);
-		out.diffuse.y = t / (diffuse ? diffuse->h : 1.0);
+		out.diffusemap.x = s / (diffuse ? diffuse->w : 1.0);
+		out.diffusemap.y = t / (diffuse ? diffuse->h : 1.0);
 
 		bsp_file.vertexes[bsp_file.num_vertexes] = out;
 		bsp_file.num_vertexes++;

@@ -169,7 +169,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 
 /**
  * @brief Uploads the specified image to the OpenGL implementation. Images that
- * do not have a GL texture reserved (which is most diffuse textures) will have
+ * do not have a GL texture reserved (which is most diffusemap textures) will have
  * one generated for them. This flexibility allows for explicitly managed
  * textures (such as lightmaps) to be here as well.
  */
@@ -272,7 +272,7 @@ void R_FreeImage(r_media_t *media) {
  * given normalmap surface. This is to handle loading of Quake4 texture sets
  * like Q4Power.
  *
- * @param name The diffuse name.
+ * @param name The diffusemap name.
  * @param surf The normalmap surface.
  */
 static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {

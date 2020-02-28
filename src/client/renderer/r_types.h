@@ -194,7 +194,7 @@ typedef struct r_material_s {
 	struct cm_material_s *cm; // the parsed material
 
 	// renderer-local stuff parsed from cm
-	r_image_t *diffuse;
+	r_image_t *diffusemap;
 	r_image_t *normalmap;
 	r_image_t *glossmap;
 	r_image_t *tintmap;
@@ -220,7 +220,7 @@ typedef struct {
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-	vec2_t diffuse;
+	vec2_t diffusemap;
 	vec2_t lightmap;
 	color32_t color;
 } r_bsp_vertex_t;
@@ -450,7 +450,7 @@ typedef struct {
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-	vec2_t diffuse;
+	vec2_t diffusemap;
 } r_mesh_vertex_t;
 
 typedef struct {

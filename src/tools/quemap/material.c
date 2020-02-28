@@ -91,7 +91,7 @@ SDL_Surface *LoadAsset(const cm_asset_t *asset) {
  * @brief
  */
 SDL_Surface *LoadDiffuseTexture(const char *name) {
-	return LoadAsset(&LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->diffuse);
+	return LoadAsset(&LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->diffusemap);
 }
 
 /**

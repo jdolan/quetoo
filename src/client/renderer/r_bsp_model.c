@@ -81,7 +81,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 		out->tangent = in->tangent;
 		out->bitangent = in->bitangent;
 
-		out->diffuse = in->diffuse;
+		out->diffusemap = in->diffusemap;
 		out->lightmap = in->lightmap;
 
 		float alpha = 1.0;
@@ -316,8 +316,8 @@ static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t 
 		face->mins = Vec3_Minf(face->mins, v->position);
 		face->maxs = Vec3_Maxf(face->maxs, v->position);
 
-		face->st_mins = Vec2_Minf(face->st_mins, v->diffuse);
-		face->st_maxs = Vec2_Maxf(face->st_maxs, v->diffuse);
+		face->st_mins = Vec2_Minf(face->st_mins, v->diffusemap);
+		face->st_maxs = Vec2_Maxf(face->st_maxs, v->diffusemap);
 
 		face->lightmap.st_mins = Vec2_Minf(face->lightmap.st_mins, v->lightmap);
 		face->lightmap.st_maxs = Vec2_Maxf(face->lightmap.st_maxs, v->lightmap);
@@ -504,7 +504,7 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
-	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffuse));
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
 	glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, lightmap));
 	glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
 
@@ -640,7 +640,7 @@ void R_ExportBsp_f(void) {
 			continue;
 		}
 
-		const r_image_t *diffuse = surf->texinfo->material->diffuse;
+		const r_image_t *diffuse = surf->texinfo->material->diffusemap;
 
 		Fs_Print(file, "newmtl %s\n", diffuse->media.name);
 		Fs_Print(file, "map_Ka %s.png\n", diffuse->media.name);
@@ -669,7 +669,7 @@ void R_ExportBsp_f(void) {
 
 		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",
 				-v->position.x, v->position.z, v->position.y,
-				 v->diffuse.x, -v->diffuse.y,
+				 v->diffusemap.x, -v->diffusemap.y,
 				-v->normal.x, v->normal.z, v->normal.y);
 	}
 
@@ -684,8 +684,8 @@ void R_ExportBsp_f(void) {
 	while (g_hash_table_iter_next (&iter, &key, NULL)) {
 		const r_material_t *material = (const r_material_t *) key;
 
-		Fs_Print(file, "g %s\n", material->diffuse->media.name);
-		Fs_Print(file, "usemtl %s\n", material->diffuse->media.name);
+		Fs_Print(file, "g %s\n", material->diffusemap->media.name);
+		Fs_Print(file, "usemtl %s\n", material->diffusemap->media.name);
 
 		for (int32_t i = 0; i < world->bsp->num_faces; i++) {
 			const r_bsp_face_t *face = &world->bsp->faces[i];

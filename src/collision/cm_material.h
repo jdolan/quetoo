@@ -154,14 +154,14 @@ typedef struct cm_material_s {
 	char name[MAX_QPATH];
 
 	/**
-	 * @brief The base name of this material without any diffuse suffix.
+	 * @brief The base name of this material without any diffusemap suffix.
 	 */
 	char basename[MAX_QPATH];
 
 	/**
-	 * @brief The diffuse asset.
+	 * @brief The diffusemap asset.
 	 */
-	cm_asset_t diffuse;
+	cm_asset_t diffusemap;
 
 	/**
 	 * @brief The normalmap asset.
@@ -229,7 +229,7 @@ typedef struct cm_material_s {
 	char footsteps[MAX_QPATH];
 
 	/**
-	 * @brief Whether only stages should be rendered or the diffuse should too
+	 * @brief Whether only stages should be rendered or the diffusemap should too
 	 */
 	_Bool only_stages;
 

@@ -33,7 +33,7 @@
  */
 typedef struct {
 	vec3_t position;
-	vec2_t diffuse;
+	vec2_t diffusemap;
 } r_sky_vertex_t;
 
 /**
@@ -53,12 +53,12 @@ static struct {
 	GLuint name;
 
 	GLint in_position;
-	GLint in_diffuse;
+	GLint in_diffusemap;
 
 	GLint projection;
 	GLint view;
 
-	GLint texture_diffuse;
+	GLint texture_diffusemap;
 
 	GLint brightness;
 	GLint contrast;
@@ -97,7 +97,7 @@ void R_DrawSkyBox(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_sky.vertex_buffer);
 
 	glEnableVertexAttribArray(r_sky_program.in_position);
-	glEnableVertexAttribArray(r_sky_program.in_diffuse);
+	glEnableVertexAttribArray(r_sky_program.in_diffusemap);
 
 	glBindTexture(GL_TEXTURE_2D, r_sky.images[4]->texnum);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -137,12 +137,12 @@ static void R_InitSkyProgram(void) {
 	glUseProgram(r_sky_program.name);
 
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
-	r_sky_program.in_diffuse = glGetAttribLocation(r_sky_program.name, "in_diffuse");
+	r_sky_program.in_diffusemap = glGetAttribLocation(r_sky_program.name, "in_diffusemap");
 
 	r_sky_program.projection = glGetUniformLocation(r_sky_program.name, "projection");
 	r_sky_program.view = glGetUniformLocation(r_sky_program.name, "view");
 
-	r_sky_program.texture_diffuse = glGetUniformLocation(r_sky_program.name, "texture_diffuse");
+	r_sky_program.texture_diffusemap = glGetUniformLocation(r_sky_program.name, "texture_diffusemap");
 
 	r_sky_program.brightness = glGetUniformLocation(r_sky_program.name, "brightness");
 	r_sky_program.contrast = glGetUniformLocation(r_sky_program.name, "contrast");
@@ -152,7 +152,7 @@ static void R_InitSkyProgram(void) {
 	r_sky_program.fog_parameters = glGetUniformLocation(r_sky_program.name, "fog_parameters");
 	r_sky_program.fog_color = glGetUniformLocation(r_sky_program.name, "fog_color");
 
-	glUniform1i(r_sky_program.texture_diffuse, 0);
+	glUniform1i(r_sky_program.texture_diffusemap, 0);
 
 	glUseProgram(0);
 
@@ -170,109 +170,109 @@ void R_InitSky(void) {
 		// +z (top)
 		{
 			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
 		},
 
 		// -z (bottom)
 		{
 			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
 		},
 		{
 			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
 		},
 
 		// +x (right)
 		{
 			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
 		},
 
 		// -x (left)
 		{
 			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
 		},
 		{
 			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
 		},
 
 		// +y (back)
 		{
 			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
 		},
 
 		// -y (front)
 		{
 			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
 		},
 		{
 			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MAX, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MAX)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
 		},
 		{
 			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffuse = Vec2(SKY_ST_MIN, SKY_ST_MIN)
+			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
 
 		},
 	};
@@ -285,7 +285,7 @@ void R_InitSky(void) {
 	glBufferData(GL_ARRAY_BUFFER, lengthof(vertexes) * sizeof(r_sky_vertex_t), vertexes, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sky_vertex_t), (void *) offsetof(r_sky_vertex_t, position));
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sky_vertex_t), (void *) offsetof(r_sky_vertex_t, diffuse));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sky_vertex_t), (void *) offsetof(r_sky_vertex_t, diffusemap));
 
 	glBindVertexArray(0);
 
