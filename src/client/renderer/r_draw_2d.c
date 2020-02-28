@@ -54,7 +54,7 @@ typedef struct {
  */
 typedef struct {
 	vec2s_t position;
-	vec2_t diffuse;
+	vec2_t diffusemap;
 	color32_t color;
 } r_draw_2d_vertex_t;
 
@@ -95,12 +95,12 @@ static struct {
 	GLuint name;
 
 	GLint in_position;
-	GLint in_diffuse;
+	GLint in_diffusemap;
 	GLint in_color;
 
 	GLint projection;
 
-	GLint texture_diffuse;
+	GLint texture_diffusemap;
 
 	GLint brightness;
 	GLint contrast;
@@ -172,10 +172,10 @@ static void R_Draw2DChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color)
 	quad[2].position = Vec2s(x + cw, y + ch);
 	quad[3].position = Vec2s(x, y + ch);
 
-	quad[0].diffuse = Vec2(s0, t0);
-	quad[1].diffuse = Vec2(s1, t0);
-	quad[2].diffuse = Vec2(s1, t1);
-	quad[3].diffuse = Vec2(s0, t1);
+	quad[0].diffusemap = Vec2(s0, t0);
+	quad[1].diffusemap = Vec2(s1, t0);
+	quad[2].diffusemap = Vec2(s1, t1);
+	quad[3].diffusemap = Vec2(s0, t1);
 
 	quad[0].color = Color_Color32(color);
 	quad[1].color = Color_Color32(color);
@@ -322,10 +322,10 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 	quad[2].position = Vec2s(x + w, y + h);
 	quad[3].position = Vec2s(x, y + h);
 
-	quad[0].diffuse = Vec2(0, 0);
-	quad[1].diffuse = Vec2(1, 0);
-	quad[2].diffuse = Vec2(1, 1);
-	quad[3].diffuse = Vec2(0, 1);
+	quad[0].diffusemap = Vec2(0, 0);
+	quad[1].diffusemap = Vec2(1, 0);
+	quad[2].diffusemap = Vec2(1, 1);
+	quad[3].diffusemap = Vec2(0, 1);
 
 	quad[0].color = Color_Color32(color);
 	quad[1].color = Color_Color32(color);
@@ -427,7 +427,7 @@ void R_Draw2D(void) {
 	glBufferData(GL_ARRAY_BUFFER, r_draw_2d.num_vertexes * sizeof(r_draw_2d_vertex_t), r_draw_2d.vertexes, GL_DYNAMIC_DRAW);
 
 	glEnableVertexAttribArray(r_draw_2d_program.in_position);
-	glEnableVertexAttribArray(r_draw_2d_program.in_diffuse);
+	glEnableVertexAttribArray(r_draw_2d_program.in_diffusemap);
 	glEnableVertexAttribArray(r_draw_2d_program.in_color);
 
 	const r_draw_2d_arrays_t *draw = r_draw_2d.draw_arrays;
@@ -493,19 +493,19 @@ static void R_InitDraw2DProgram(void) {
 	glUseProgram(r_draw_2d_program.name);
 
 	r_draw_2d_program.in_position = glGetAttribLocation(r_draw_2d_program.name, "in_position");
-	r_draw_2d_program.in_diffuse = glGetAttribLocation(r_draw_2d_program.name, "in_diffuse");
+	r_draw_2d_program.in_diffusemap = glGetAttribLocation(r_draw_2d_program.name, "in_diffusemap");
 	r_draw_2d_program.in_color = glGetAttribLocation(r_draw_2d_program.name, "in_color");
 
 	r_draw_2d_program.projection = glGetUniformLocation(r_draw_2d_program.name, "projection");
 
-	r_draw_2d_program.texture_diffuse = glGetUniformLocation(r_draw_2d_program.name, "texture_diffuse");
+	r_draw_2d_program.texture_diffusemap = glGetUniformLocation(r_draw_2d_program.name, "texture_diffusemap");
 
 	r_draw_2d_program.brightness = glGetUniformLocation(r_draw_2d_program.name, "brightness");
 	r_draw_2d_program.contrast = glGetUniformLocation(r_draw_2d_program.name, "contrast");
 	r_draw_2d_program.saturation = glGetUniformLocation(r_draw_2d_program.name, "saturation");
 	r_draw_2d_program.gamma = glGetUniformLocation(r_draw_2d_program.name, "gamma");
 
-	glUniform1i(r_draw_2d_program.texture_diffuse, 0);
+	glUniform1i(r_draw_2d_program.texture_diffusemap, 0);
 
 	R_GetError(NULL);
 }
@@ -530,7 +530,7 @@ void R_InitDraw2D(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
 
 	glVertexAttribPointer(0, 2, GL_SHORT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, position));
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, diffuse));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, diffusemap));
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, color));
 
 	glBindVertexArray(0);

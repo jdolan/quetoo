@@ -169,7 +169,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 
 /**
  * @brief Uploads the specified image to the OpenGL implementation. Images that
- * do not have a GL texture reserved (which is most diffuse textures) will have
+ * do not have a GL texture reserved (which is most diffusemap textures) will have
  * one generated for them. This flexibility allows for explicitly managed
  * textures (such as lightmaps) to be here as well.
  */
@@ -198,33 +198,16 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	glBindTexture(target, image->texnum);
 
-	GLint input_format = GL_RGB;
-	GLenum type = GL_UNSIGNED_BYTE;
-
 	switch (format) {
 		case GL_RGB:
-		case GL_RGB8:
-		case GL_SRGB:
-		case GL_SRGB8:
-			input_format = GL_RGB;
-			type = GL_UNSIGNED_BYTE;
-			break;
 		case GL_RGBA:
-		case GL_RGBA8:
-		case GL_SRGB_ALPHA:
-		case GL_SRGB8_ALPHA8:
-			input_format = GL_RGBA;
-			type = GL_UNSIGNED_BYTE;
 			break;
-		case GL_RGB16:
-			input_format = GL_RGB;
-			type = GL_UNSIGNED_SHORT;
-			break;
-		case GL_RGBA16:
-			input_format = GL_RGBA;
-			type = GL_UNSIGNED_SHORT;
+		default:
+			Com_Error(ERROR_DROP, "Unsupported format %d\n", format);
 			break;
 	}
+
+	const GLenum type = GL_UNSIGNED_BYTE;
 
 	if (image->type & IT_MASK_MIPMAP) {
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
@@ -250,9 +233,9 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	}
 
 	if (image->depth) {
-		glTexImage3D(target, 0, format, image->width, image->height, image->depth, 0, input_format, type, data);
+		glTexImage3D(target, 0, format, image->width, image->height, image->depth, 0, format, type, data);
 	} else {
-		glTexImage2D(target, 0, format, image->width, image->height, 0, input_format, type, data);
+		glTexImage2D(target, 0, format, image->width, image->height, 0, format, type, data);
 	}
 
 	if (image->type & IT_MASK_MIPMAP) {
@@ -289,7 +272,7 @@ void R_FreeImage(r_media_t *media) {
  * given normalmap surface. This is to handle loading of Quake4 texture sets
  * like Q4Power.
  *
- * @param name The diffuse name.
+ * @param name The diffusemap name.
  * @param surf The normalmap surface.
  */
 static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {
@@ -362,12 +345,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 				R_FilterImage(image, GL_RGBA, surf->pixels);
 			}
 
-			if (image->type & IT_DIFFUSE) {
-				// Gamma correct diffuse color textures during load.
-				R_UploadImage(image, GL_SRGB8_ALPHA8, surf->pixels);
-			} else {
-				R_UploadImage(image, GL_RGBA8, surf->pixels);
-			}
+			R_UploadImage(image, GL_RGBA, surf->pixels);
 
 			SDL_FreeSurface(surf);
 		} else {
@@ -480,7 +458,7 @@ static void R_InitNullImage(void) {
 	byte data[1 * 1 * 3];
 	memset(&data, 0xff, sizeof(data));
 
-	R_UploadImage(r_image_state.null, GL_RGB8, data);
+	R_UploadImage(r_image_state.null, GL_RGB, data);
 }
 
 #define WARP_SIZE 16
@@ -509,7 +487,7 @@ static void R_InitWarpImage(void) {
 		}
 	}
 
-	R_UploadImage(r_image_state.warp, GL_RGBA8, (byte *) data);
+	R_UploadImage(r_image_state.warp, GL_RGBA, (byte *) data);
 }
 
 /**

@@ -21,13 +21,13 @@
 
 #include "r_local.h"
 
-#define TEXTURE_DIFFUSE                  0
+#define TEXTURE_DIFFUSEMAP               0
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
 #define TEXTURE_LIGHTMAP                 3
 #define TEXTURE_STAINMAP                 4
 
-#define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
 #define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
 #define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
@@ -44,7 +44,7 @@ static struct {
 	GLint in_normal;
 	GLint in_tangent;
 	GLint in_bitangent;
-	GLint in_diffuse;
+	GLint in_diffusemap;
 	GLint in_lightmap;
 	GLint in_color;
 
@@ -55,7 +55,7 @@ static struct {
 
 	GLint textures;
 
-	GLint texture_diffuse;
+	GLint texture_diffusemap;
 	GLint texture_normalmap;
 	GLint texture_glossmap;
 	GLint texture_lightmap;
@@ -102,20 +102,11 @@ static void R_DrawBspNormals(void) {
 			continue;
 		}
 
-		const vec3_t normal[] = {
-			v->position,
-			Vec3_Add(v->position, Vec3_Scale(v->normal, 8.f))
-		};
+		const vec3_t pos = Vec3_Add(v->position, v->normal);
 
-		const vec3_t tangent[] = {
-			v->position,
-			Vec3_Add(v->position, Vec3_Scale(v->tangent, 8.f))
-		};
-
-		const vec3_t bitangent[] = {
-			v->position,
-			Vec3_Add(v->position, Vec3_Scale(v->bitangent, 8.f))
-		};
+		const vec3_t normal[] = { pos, Vec3_Add(pos, Vec3_Scale(v->normal, 8.f)) };
+		const vec3_t tangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->tangent, 8.f)) };
+		const vec3_t bitangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->bitangent, 8.f)) };
 
 		R_Draw3DLines(normal, 2, color_red);
 		R_Draw3DLines(tangent, 2, color_green);
@@ -216,9 +207,9 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 		if (draw->texinfo->material != material) {
 			material = draw->texinfo->material;
 
-			tex |= TEXTURE_MASK_DIFFUSE;
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
-			glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
+			tex |= TEXTURE_MASK_DIFFUSEMAP;
+			glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+			glBindTexture(GL_TEXTURE_2D, material->diffusemap->texnum);
 
 			if (material->normalmap) {
 				tex |= TEXTURE_MASK_NORMALMAP;
@@ -314,8 +305,8 @@ void R_DrawWorld(void) {
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_bsp_program.lights_buffer);
 
-	glUniform3f(r_bsp_program.fog_parameters, FOG_START, FOG_END, r_fog->value);
-	glUniform3fv(r_bsp_program.fog_color, 1, r_view.fog.xyzw);
+	glUniform3fv(r_bsp_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
+	glUniform3fv(r_bsp_program.fog_color, 1, r_view.fog_color.xyz);
 
 	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
 
@@ -328,7 +319,7 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_normal);
 	glEnableVertexAttribArray(r_bsp_program.in_tangent);
 	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
-	glEnableVertexAttribArray(r_bsp_program.in_diffuse);
+	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
@@ -383,7 +374,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.in_normal = glGetAttribLocation(r_bsp_program.name, "in_normal");
 	r_bsp_program.in_tangent = glGetAttribLocation(r_bsp_program.name, "in_tangent");
 	r_bsp_program.in_bitangent = glGetAttribLocation(r_bsp_program.name, "in_bitangent");
-	r_bsp_program.in_diffuse = glGetAttribLocation(r_bsp_program.name, "in_diffuse");
+	r_bsp_program.in_diffusemap = glGetAttribLocation(r_bsp_program.name, "in_diffusemap");
 	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
 	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
 
@@ -393,7 +384,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.normal = glGetUniformLocation(r_bsp_program.name, "normal");
 
 	r_bsp_program.textures = glGetUniformLocation(r_bsp_program.name, "textures");
-	r_bsp_program.texture_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_diffuse");
+	r_bsp_program.texture_diffusemap = glGetUniformLocation(r_bsp_program.name, "texture_diffusemap");
 	r_bsp_program.texture_normalmap = glGetUniformLocation(r_bsp_program.name, "texture_normalmap");
 	r_bsp_program.texture_glossmap = glGetUniformLocation(r_bsp_program.name, "texture_glossmap");
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
@@ -420,7 +411,7 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.caustics = glGetUniformLocation(r_bsp_program.name, "caustics");
 
-	glUniform1i(r_bsp_program.texture_diffuse, TEXTURE_DIFFUSE);
+	glUniform1i(r_bsp_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_bsp_program.texture_normalmap, TEXTURE_NORMALMAP);
 	glUniform1i(r_bsp_program.texture_glossmap, TEXTURE_GLOSSMAP);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);

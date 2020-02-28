@@ -141,7 +141,7 @@ static _Bool AddAsset(const cm_asset_t *asset) {
  */
 static void AddMaterial(const cm_material_t *material) {
 
-	if (AddAsset(&material->diffuse)) {
+	if (AddAsset(&material->diffusemap)) {
 		AddAsset(&material->normalmap);
 		AddAsset(&material->heightmap);
 		AddAsset(&material->glossmap);

@@ -31,6 +31,7 @@ uniform float pixels_per_radian;
 uniform float far_z;
 
 out vertex_data {
+	vec3 position;
 	vec4 color;
 } vertex;
 
@@ -40,6 +41,8 @@ out vertex_data {
 void main(void) {
 
 	gl_Position = projection * view * vec4(in_position.xyz, 1.0);
+
+	vertex.position = vec3(view * vec4(in_position.xyz, 1.0));
 
 	float depth = clamp(gl_Position.z / far_z, 0.0, 1.0);
 

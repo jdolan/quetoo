@@ -22,13 +22,13 @@
 #version 330
 
 layout (location = 0) in vec2 in_position;
-layout (location = 1) in vec2 in_diffuse;
+layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec4 in_color;
 
 uniform mat4 projection;
 
 out vertex_data {
-	vec2 diffuse;
+	vec2 diffusemap;
 	vec4 color;
 } vertex;
 
@@ -39,6 +39,6 @@ void main(void) {
 
 	gl_Position = projection * vec4(in_position, 0.0, 1.0);
 
-	vertex.diffuse = in_diffuse;
+	vertex.diffusemap = in_diffusemap;
 	vertex.color = in_color;
 }

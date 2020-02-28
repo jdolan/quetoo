@@ -44,7 +44,6 @@ cvar_t *r_draw_bsp_lightmaps;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
-static cvar_t *r_draw_depth;
 
 cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
@@ -236,6 +235,14 @@ static void R_UpdateFrustum(void) {
 /**
  * @brief
  */
+static void R_UpdateFog(void) {
+
+	r_locals.fog_parameters = Vec3_Multiply(r_view.fog_parameters, Vec3(1.f, 1.f, r_fog->value));
+}
+
+/**
+ * @brief
+ */
 static void R_Clear(void) {
 
 	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
@@ -270,7 +277,6 @@ static void R_Clear(void) {
 void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
-	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	R_Clear();
 
@@ -281,6 +287,8 @@ void R_DrawView(r_view_t *view) {
 	R_UpdateVis();
 	
 	R_UpdateLights();
+
+	R_UpdateFog();
 
 	R_DrawWorld();
 
@@ -294,17 +302,16 @@ void R_DrawView(r_view_t *view) {
 
 	R_Draw3D();
 
-	glDisable(GL_FRAMEBUFFER_SRGB);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	const r_image_t frame_buffer = {
-		.texnum =  r_draw_depth->value ? r_context.depth_attachment : r_context.color_attachment,
+		.texnum = r_context.color_attachment,
 		.width = r_context.width,
 		.height = -r_context.height
 	};
 
 	R_Draw2DImage(0, r_context.height, frame_buffer.width, frame_buffer.height, &frame_buffer, color_white);
-	
+
 	R_GetError(NULL);
 }
 
@@ -472,7 +479,6 @@ static void R_InitLocal(void) {
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
-	r_draw_depth = Cvar_Add("r_draw_depth", "0", CVAR_DEVELOPER, "Controls rendering the depth buffer attachment");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
@@ -495,14 +501,14 @@ static void R_InitLocal(void) {
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
 	r_max_lights = Cvar_Add("r_max_lights", "16", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the maximum number of lights affecting a rendered object");
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
-	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing)");
-	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects");
-	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation");
+	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");
+	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects.");
+	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
 	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE, "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
-	r_soft_particles = Cvar_Add("r_soft_particles", "1", CVAR_ARCHIVE, "Whether soft particles are enabled or not");
-	r_specular = Cvar_Add("r_specular", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects");
+	r_soft_particles = Cvar_Add("r_soft_particles", "1", CVAR_ARCHIVE, "Controls soft particles, which are more expensive.");
+	r_specular = Cvar_Add("r_specular", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_stainmaps = Cvar_Add("r_stainmaps", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");
 	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the level of super-sampling. Requires framebuffer extension.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
@@ -569,7 +575,7 @@ static void R_InitFramebuffer(void) {
 
 	glGenTextures(1, &r_context.color_attachment);
 	glBindTexture(GL_TEXTURE_2D, r_context.color_attachment);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, r_context.drawable_width, r_context.drawable_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r_context.drawable_width, r_context.drawable_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

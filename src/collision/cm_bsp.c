@@ -140,8 +140,8 @@ static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 		vertex->tangent = LittleVec3(vertex->tangent);
 		vertex->bitangent = LittleVec3(vertex->bitangent);
 
-		vertex->diffuse = LittleVec2(vertex->diffuse);
-		vertex->lightmap = LittleVec2(vertex->diffuse);
+		vertex->diffusemap = LittleVec2(vertex->diffusemap);
+		vertex->lightmap = LittleVec2(vertex->diffusemap);
 
 		vertex->texinfo = LittleLong(vertex->texinfo);
 

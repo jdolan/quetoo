@@ -581,7 +581,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 static void R_RegisterMaterial(r_media_t *self) {
 	r_material_t *mat = (r_material_t *) self;
 
-	R_RegisterDependency(self, (r_media_t *) mat->diffuse);
+	R_RegisterDependency(self, (r_media_t *) mat->diffusemap);
 	R_RegisterDependency(self, (r_media_t *) mat->normalmap);
 	R_RegisterDependency(self, (r_media_t *) mat->glossmap);
 	R_RegisterDependency(self, (r_media_t *) mat->tintmap);
@@ -757,8 +757,8 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	if (Cm_ResolveMaterial(cm, context)) {
 
-		material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
-		if (material->diffuse->type == IT_DIFFUSE) {
+		material->diffusemap = R_LoadImage(cm->diffusemap.path, IT_DIFFUSE);
+		if (material->diffusemap->type == IT_DIFFUSE) {
 
 			if (*cm->normalmap.path) {
 				material->normalmap = R_LoadImage(cm->normalmap.path, IT_NORMALMAP);
@@ -782,7 +782,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			}
 		}
 	} else {
-		material->diffuse = r_image_state.null;
+		material->diffusemap = r_image_state.null;
 		Com_Warn("Failed to resolve %s\n", cm->name);
 	}
 
@@ -794,7 +794,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
  */
 static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
 
-	if (material->diffuse->type == IT_DIFFUSE) {
+	if (material->diffusemap->type == IT_DIFFUSE) {
 
 		const cm_material_t *cm = material->cm;
 
@@ -864,7 +864,7 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 
 			r_material_t *material = R_ResolveMaterial(cm, context);
 
-			if (material->diffuse->type == IT_NULL) {
+			if (material->diffusemap->type == IT_NULL) {
 				Com_Warn("Failed to resolve %s\n", cm->name);
 			}
 
@@ -876,7 +876,7 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 
 			R_ResolveMaterialStages(material, context);
 
-			if (material->diffuse->type != IT_NULL) {
+			if (material->diffusemap->type != IT_NULL) {
 				Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", material->cm->name, material->cm->num_stages);
 			}
 

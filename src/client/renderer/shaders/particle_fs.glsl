@@ -22,19 +22,23 @@
 uniform vec2 camera_range;
 uniform vec2 inv_viewport_size;
 uniform float transition_size;
+
 uniform bool soft_particles;
 
-uniform sampler2D texture_diffuse;
+uniform sampler2D texture_diffusemap;
 uniform sampler2D depth_attachment;
 
 in vertex_data {
+	vec3 position;
 	vec4 color;
 } vertex;
 
 out vec4 out_color;
 
-float calc_depth(in float z)
-{
+/**
+ * @brief
+ */
+float calc_depth(in float z) {
 	return (2. * camera_range.x) / (camera_range.y + camera_range.x - z * (camera_range.y - camera_range.x));
 }
 
@@ -43,7 +47,13 @@ float calc_depth(in float z)
  */
 void main(void) {
 
-	out_color = ColorFilter(vertex.color * texture(texture_diffuse, gl_PointCoord));
+	out_color = vertex.color * texture(texture_diffusemap, gl_PointCoord);
+
+	// postprocessing
+
+	out_color.rgb = fog(vertex.position, out_color.rgb);
+
+	out_color.rgb = color_filter(out_color.rgb);
 
 	if (soft_particles) {
 		vec2 coords = gl_FragCoord.xy * inv_viewport_size;
@@ -55,4 +65,3 @@ void main(void) {
 		out_color.a *= b;
 	}
 }
-

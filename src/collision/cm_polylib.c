@@ -131,7 +131,7 @@ void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
 /**
  * @brief Create a massive polygon for the specified plane.
  */
-cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const double dist) {
+cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist) {
 	vec3_t org, right, up;
 
 	// find the major axis
@@ -221,7 +221,7 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 /**
  * @brief
  */
-void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const double dist, double epsilon,
+void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, double epsilon,
 						cm_winding_t **front, cm_winding_t **back) {
 
 	assert(in->num_points);
@@ -326,7 +326,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const double d
 /**
  * @brief Clips the winding against the given plane.
  */
-void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, const double dist, const double epsilon) {
+void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, double epsilon) {
 
 	cm_winding_t *in = *in_out;
 	

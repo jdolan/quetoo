@@ -186,10 +186,10 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 				const float bz_az = b->position.z - a->position.z;
 				const float cz_az = c->position.z - a->position.z;
 
-				const float bs_as = b->diffuse.x - a->diffuse.x;
-				const float cs_as = c->diffuse.x - a->diffuse.x;
-				const float bt_at = b->diffuse.y - a->diffuse.y;
-				const float ct_at = c->diffuse.y - a->diffuse.y;
+				const float bs_as = b->diffusemap.x - a->diffusemap.x;
+				const float cs_as = c->diffusemap.x - a->diffusemap.x;
+				const float bt_at = b->diffusemap.y - a->diffusemap.y;
+				const float ct_at = c->diffusemap.y - a->diffusemap.y;
 
 				const float r = 1.0 / (bs_as * ct_at - cs_as * bt_at);
 
@@ -284,7 +284,7 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, normal));
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, tangent));
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, bitangent));
-	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, diffuse));
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, diffusemap));
 
 	R_GetError(mod->media.name);
 

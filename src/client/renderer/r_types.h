@@ -194,7 +194,7 @@ typedef struct r_material_s {
 	struct cm_material_s *cm; // the parsed material
 
 	// renderer-local stuff parsed from cm
-	r_image_t *diffuse;
+	r_image_t *diffusemap;
 	r_image_t *normalmap;
 	r_image_t *glossmap;
 	r_image_t *tintmap;
@@ -220,7 +220,7 @@ typedef struct {
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-	vec2_t diffuse;
+	vec2_t diffusemap;
 	vec2_t lightmap;
 	color32_t color;
 } r_bsp_vertex_t;
@@ -450,7 +450,7 @@ typedef struct {
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-	vec2_t diffuse;
+	vec2_t diffusemap;
 } r_mesh_vertex_t;
 
 typedef struct {
@@ -734,8 +734,9 @@ typedef struct r_entity_s {
 #define WEATHER_SNOW        0x2
 #define WEATHER_FOG         0x4
 
-#define FOG_START			128.0
-#define FOG_END				2048.0
+#define FOG_START			0.f
+#define FOG_END				MAX_WORLD_AXIAL
+#define FOG_DENSITY			1.f
 
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
@@ -795,7 +796,12 @@ typedef struct {
 	/**
 	 * @brief The fog color.
 	 */
-	vec4_t fog;
+	vec3_t fog_color;
+
+	/**
+	 * @brief The fog start, end and density.
+	 */
+	vec3_t fog_parameters;
 
 	/**
 	 * @brief The entities to render for the current frame.

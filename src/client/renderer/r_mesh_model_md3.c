@@ -425,7 +425,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 						const d_md3_texcoord_t texcoord = R_SwapMd3Texcoord(in_texcoord);
 
-						out_vertex->diffuse = texcoord.st;
+						out_vertex->diffusemap = texcoord.st;
 					}
 				}
 			}

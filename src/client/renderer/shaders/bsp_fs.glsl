@@ -19,13 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define TEXTURE_DIFFUSE                  0
+#define TEXTURE_DIFFUSEMAP                  0
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
 #define TEXTURE_LIGHTMAP                 3
 #define TEXTURE_STAINMAP                 4
 
-#define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
 #define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
 #define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
@@ -34,7 +34,7 @@
 
 uniform int textures;
 
-uniform sampler2D texture_diffuse;
+uniform sampler2D texture_diffusemap;
 uniform sampler2D texture_normalmap;
 uniform sampler2D texture_glossmap;
 uniform sampler2DArray texture_lightmap;
@@ -48,9 +48,6 @@ uniform float parallax;
 uniform float hardness;
 uniform float specular;
 
-uniform vec3 fog_parameters;
-uniform vec3 fog_color;
-
 uniform vec4 caustics;
 
 in vertex_data {
@@ -58,7 +55,7 @@ in vertex_data {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
-	vec2 diffuse;
+	vec2 diffusemap;
 	vec2 lightmap;
 	vec4 color;
 	vec3 eye;
@@ -70,117 +67,26 @@ vec3 light_diffuse;
 vec3 light_specular;
 
 /**
-* @brief Clamps to [0.0, 1.0], like in HLSL.
-*/
-float saturate(float x) {
-	return clamp(x, 0.0, 1.0);
-}
-
-/**
-* @brief Clamps vec3 components to [0.0, 1.0], like in HLSL.
-*/
-vec3 saturate3(vec3 v) {
-	v.x = saturate(v.x);
-	v.y = saturate(v.y);
-	v.z = saturate(v.z);
-	return v;
-}
-
-/**
- * @brief Adds fog on top of the scene.
- */
-void apply_fog(inout vec4 scene_color) {
-	float near  = fog_parameters.x;
-	float far   = fog_parameters.y;
-	float scale = fog_parameters.z;
-	
-	float strength;
-	strength = (length(vertex.position) - near) / (far - near);
-	strength = clamp(strength * scale, 0.0, 1.0);
-	
-	scene_color.rgb = mix(scene_color.rgb, fog_color, strength);
-}
-
-/**
- * @brief Prevents surfaces from becoming overexposed by lights (looks bad).
- */
-void apply_tonemap(inout vec4 color) {
-	// clamp to fudge factor to avoid precision issues
-	color.rgb *= exp(color.rgb);
-	color.rgb /= color.rgb + 0.825;
-}
-
-/**
- * Converts uniform distribution into triangle-shaped distribution.
- */
-float remap_triangular(float v) {
-	
-    float original = v * 2.0 - 1.0;
-    v = original / sqrt(abs(original));
-    v = max(-1.0, v);
-    v = v - sign(original) + 0.5;
-
-    return v;
-
-    // result is range [-0.5,1.5] which is useful for actual dithering.
-    // convert to [0,1] for output
-    // return (v + 0.5f) * 0.5f;
-}
-
-/**
- * Converts uniform distribution into triangle-shaped distribution for vec3.
- */
-vec3 remap_triangular_3(vec3 c) {
-    return vec3(remap_triangular(c.r), remap_triangular(c.g), remap_triangular(c.b));
-}
-
-/**
- * Applies dithering before quantizing to 8-bit values to remove color banding.
- */
-void apply_dither(inout vec4 color) {
-
-	// The function is adapted from slide 49 of Alex Vlachos's
-	// GDC 2015 talk: "Advanced VR Rendering".
-	// http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
-	// original shadertoy implementation by Zavie:
-	// https://www.shadertoy.com/view/4dcSRX
-	// modification with triangular distribution by Hornet (loopit.dk):
-	// https://www.shadertoy.com/view/Md3XRf
-
-	vec3 pattern;
-	// generate dithering pattern
-	pattern = vec3(dot(vec2(131.0, 312.0), gl_FragCoord.xy));
-    pattern = fract(pattern / vec3(103.0, 71.0, 97.0));
-	// remap distribution for smoother results
-	pattern = remap_triangular_3(pattern);
-	// scale the magnitude to be the distance between two 8-bit colors
-	pattern /= 255.0;
-	// apply the pattern, causing some fractional color values to be
-	// rounded up and others down, thus removing banding artifacts.
-	color.rgb = saturate3(color.rgb + pattern);
-}
-
-/**
  * @brief
  */
 void main(void) {
 
 	// fetch textures
 	
-	vec4 diffuse;
-	if ((textures & TEXTURE_MASK_DIFFUSE) == TEXTURE_MASK_DIFFUSE) {
-		diffuse = texture(texture_diffuse, vertex.diffuse) * vertex.color;
+	vec4 diffusemap;
+	if ((textures & TEXTURE_MASK_DIFFUSEMAP) == TEXTURE_MASK_DIFFUSEMAP) {
+		diffusemap = texture(texture_diffusemap, vertex.diffusemap) * vertex.color;
 
-		if (diffuse.a < alpha_threshold) {
+		if (diffusemap.a < alpha_threshold) {
 			discard;
 		}
 	} else {
-		diffuse = vertex.color;
+		diffusemap = vertex.color;
 	}
 
 	vec4 normalmap;
 	if ((textures & TEXTURE_MASK_NORMALMAP) == TEXTURE_MASK_NORMALMAP) {
-		normalmap = texture(texture_normalmap, vertex.diffuse);
+		normalmap = texture(texture_normalmap, vertex.diffusemap);
 		normalmap.xyz = normalize(normalmap.xyz);
 		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * bump;
 		normalmap.xyz = normalize(normalmap.xyz);
@@ -190,7 +96,7 @@ void main(void) {
 
 	vec4 glossmap;
 	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {
-		glossmap = texture(texture_glossmap, vertex.diffuse);
+		glossmap = texture(texture_glossmap, vertex.diffusemap);
 	} else {
 		glossmap = vec4(1.0);
 	}
@@ -223,16 +129,17 @@ void main(void) {
 	
 	dynamic_light(vertex.position, vertex.normal, 64, light_diffuse, light_specular);
 	
-	out_color = diffuse;
+	out_color = diffusemap;
 	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
 	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
 	
-	apply_tonemap(out_color);
+	// postprocessing
 	
-	// tonemapping changes fog color, so do it afterwards for now.
-	apply_fog(out_color);
+	out_color.rgb = tonemap(out_color.rgb);
 	
-	out_color = ColorFilter(out_color);
+	out_color.rgb = fog(vertex.position, out_color.rgb);
 	
-	apply_dither(out_color);
+	out_color.rgb = color_filter(out_color.rgb);
+	
+	out_color.rgb = dither(out_color.rgb);
 }

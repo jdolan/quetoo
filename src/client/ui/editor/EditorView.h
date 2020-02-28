@@ -62,9 +62,9 @@ struct EditorView {
 	TextView *name;
 
 	/**
-	 * @brief The diffuse texture.
+	 * @brief The diffusemap texture.
 	 */
-	TextView *diffuse;
+	TextView *diffusemap;
 
 	/**
 	 * @brief The normalmap texture.

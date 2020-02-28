@@ -19,10 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler2D texture_diffuse;
+uniform sampler2D texture_diffusemap;
 
 in vertex_data {
-	vec2 diffuse;
+	vec3 position;
+	vec2 diffusemap;
 } vertex;
 
 out vec4 out_color;
@@ -32,5 +33,11 @@ out vec4 out_color;
  */
 void main(void) {
 
-	out_color = ColorFilter(texture(texture_diffuse, vertex.diffuse));
+	out_color = texture(texture_diffusemap, vertex.diffusemap);
+
+	// postprocessing
+	
+	out_color.rgb = fog(vertex.position, out_color.rgb);
+
+	out_color.rgb = color_filter(out_color.rgb);
 }

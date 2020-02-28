@@ -21,9 +21,7 @@
 
 #include "r_local.h"
 
-#define MAX_ACTIVE_LIGHTS               10
-
-#define TEXTURE_DIFFUSE                  0
+#define TEXTURE_DIFFUSEMAP               0
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
 #define TEXTURE_LIGHTGRID                3
@@ -32,7 +30,7 @@
 #define TEXTURE_LIGHTGRID_RADIOSITY      5
 #define TEXTURE_LIGHTGRID_DIFFUSE_DIR    6
 
-#define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
 #define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
 #define TEXTURE_MASK_LIGHTGRID          (1 << TEXTURE_LIGHTGRID)
@@ -48,7 +46,7 @@ static struct {
 	GLint in_normal;
 	GLint in_tangent;
 	GLint in_bitangent;
-	GLint in_diffuse;
+	GLint in_diffusemap;
 
 	GLint in_next_position;
 	GLint in_next_normal;
@@ -64,7 +62,7 @@ static struct {
 
 	GLint textures;
 
-	GLint texture_diffuse;
+	GLint texture_diffusemap;
 	GLint texture_normalmap;
 	GLint texture_glossmap;
 
@@ -116,7 +114,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glEnableVertexAttribArray(r_mesh_program.in_normal);
 	glEnableVertexAttribArray(r_mesh_program.in_tangent);
 	glEnableVertexAttribArray(r_mesh_program.in_bitangent);
-	glEnableVertexAttribArray(r_mesh_program.in_diffuse);
+	glEnableVertexAttribArray(r_mesh_program.in_diffusemap);
 
 	glEnableVertexAttribArray(r_mesh_program.in_next_position);
 	glEnableVertexAttribArray(r_mesh_program.in_next_normal);
@@ -145,7 +143,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, normal));
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, tangent));
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, bitangent));
-		glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, diffuse));
+		glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap));
 
 		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
@@ -165,10 +163,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 			glUniform1f(r_mesh_program.hardness, material->cm->hardness);
 			glUniform1f(r_mesh_program.specular, material->cm->specular);
 
-			if (material->diffuse) {
-				textures |= TEXTURE_MASK_DIFFUSE;
-				glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
-				glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
+			if (material->diffusemap) {
+				textures |= TEXTURE_MASK_DIFFUSEMAP;
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+				glBindTexture(GL_TEXTURE_2D, material->diffusemap->texnum);
 			}
 
 			if (material->normalmap) {
@@ -234,6 +232,9 @@ void R_DrawMeshEntities(void) {
 	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_mesh_program.lights_buffer);
+
+	glUniform3fv(r_mesh_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
+	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
 
 	{
 		glEnable(GL_CULL_FACE);
@@ -320,7 +321,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.in_normal = glGetAttribLocation(r_mesh_program.name, "in_normal");
 	r_mesh_program.in_tangent = glGetAttribLocation(r_mesh_program.name, "in_tangent");
 	r_mesh_program.in_bitangent = glGetAttribLocation(r_mesh_program.name, "in_bitangent");
-	r_mesh_program.in_diffuse = glGetAttribLocation(r_mesh_program.name, "in_diffuse");
+	r_mesh_program.in_diffusemap = glGetAttribLocation(r_mesh_program.name, "in_diffusemap");
 
 	r_mesh_program.in_next_position = glGetAttribLocation(r_mesh_program.name, "in_next_position");
 	r_mesh_program.in_next_normal = glGetAttribLocation(r_mesh_program.name, "in_next_normal");
@@ -335,7 +336,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
 
 	r_mesh_program.textures = glGetUniformLocation(r_mesh_program.name, "textures");
-	r_mesh_program.texture_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_diffuse");
+	r_mesh_program.texture_diffusemap = glGetUniformLocation(r_mesh_program.name, "texture_diffusemap");
 	r_mesh_program.texture_normalmap = glGetUniformLocation(r_mesh_program.name, "texture_normalmap");
 	r_mesh_program.texture_glossmap = glGetUniformLocation(r_mesh_program.name, "texture_glossmap");
 
@@ -370,7 +371,7 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.caustics = glGetUniformLocation(r_mesh_program.name, "caustics");
 
-	glUniform1i(r_mesh_program.texture_diffuse, TEXTURE_DIFFUSE);
+	glUniform1i(r_mesh_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_mesh_program.texture_normalmap, TEXTURE_NORMALMAP);
 	glUniform1i(r_mesh_program.texture_glossmap, TEXTURE_GLOSSMAP);
 

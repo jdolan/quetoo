@@ -1066,26 +1066,10 @@ static _Bool Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
 /**
  * @brief Resolves the asset for the given material.
  */
-static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, cm_asset_context_t context) {
+static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, cm_asset_context_t context, const char **suffix) {
 
 	if (*asset->name) {
 		return Cm_ResolveAsset(asset, context);
-	}
-
-	const char **suffix = NULL;
-
-	if (asset == &material->diffuse) {
-		suffix = (const char *[]) { "", "_d", NULL };
-	} else if (asset == &material->normalmap) {
-		suffix = (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL };
-	} else if (asset == &material->heightmap) {
-		suffix = (const char *[]) { "_h", "_height", NULL };
-	} else if (asset == &material->glossmap) {
-		suffix = (const char *[]) { "_s", "_gloss", "_spec", NULL };
-	} else if (asset == &material->tintmap) {
-		suffix = (const char *[]) { "_tint", NULL };
-	} else {
-		assert(false);
 	}
 
 	for (const char **s = suffix; *s; s++) {
@@ -1107,14 +1091,14 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 
 	assert(material);
 
-	if (Cm_ResolveMaterialAsset(material, &material->diffuse, context)) {
-		Cm_ResolveMaterialAsset(material, &material->normalmap, context);
-		Cm_ResolveMaterialAsset(material, &material->heightmap, context);
-		Cm_ResolveMaterialAsset(material, &material->glossmap, context);
-		Cm_ResolveMaterialAsset(material, &material->tintmap, context);
-	} else {
+	if (!Cm_ResolveMaterialAsset(material, &material->diffusemap, context, (const char *[]) { "", "_d", NULL })) {
 		return false;
 	}
+
+	Cm_ResolveMaterialAsset(material, &material->normalmap, context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
+	Cm_ResolveMaterialAsset(material, &material->heightmap, context, (const char *[]) { "_h", "_height", NULL });
+	Cm_ResolveMaterialAsset(material, &material->glossmap, context, (const char *[]) { "_s", "_gloss", "_spec", NULL });
+	Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
 
 	cm_stage_t *stage = material->stages;
 	while (stage) {
@@ -1149,7 +1133,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 			Fs_Print(file, "\t\tflare %s\n", stage->asset.name);
 		}
 	} else {
-		Com_Warn("Material %s has a stage with no image?\n", material->diffuse.name);
+		Com_Warn("Material %s has a stage with no image?\n", material->diffusemap.name);
 	}
 
 	if (stage->flags & STAGE_BLEND) {

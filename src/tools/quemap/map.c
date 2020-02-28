@@ -80,7 +80,7 @@ static inline void AddPlaneToHash(plane_t *p) {
 /**
  * @brief
  */
-static int32_t CreatePlane(const vec3_t normal, float dist) {
+static int32_t CreatePlane(const vec3_t normal, double dist) {
 
 	// bad plane
 	if (Vec3_Length(normal) < 0.5) {
@@ -242,7 +242,7 @@ static void AddBrushBevels(brush_t *b) {
 	brush_texture_t tdtemp;
 	brush_side_t *s, *s2;
 	vec3_t normal;
-	float dist;
+	double dist;
 	cm_winding_t *w, *w2;
 	vec3_t vec, vec2;
 	float d;

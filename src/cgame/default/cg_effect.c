@@ -37,17 +37,17 @@ typedef struct {
 static cg_weather_state_t cg_weather_state;
 
 /**
- * @brief Parses CS_WEATHER for weather and fog parameters, e.g. "rain fog 0.8 0.75 0.65 [1.0]".
+ * @brief Parses CS_WEATHER for weather and fog parameters, e.g. "rain fog 0.8 0.75 0.65 [128.0 2048.0 1.0]".
  */
 void Cg_ResolveWeather(const char *weather) {
 	char *c;
-	int32_t err;
 
 	cgi.Debug("%s\n", weather);
 
 	cgi.view->weather = WEATHER_NONE;
 
-	cgi.view->fog = Vec4(0.75, 0.75, 0.75, 1.0);
+	cgi.view->fog_color = Vec3_Zero();
+	cgi.view->fog_parameters = Vec3_Zero();
 
 	if (!weather || *weather == '\0') {
 		return;
@@ -64,18 +64,27 @@ void Cg_ResolveWeather(const char *weather) {
 	if ((c = strstr(weather, "fog"))) {
 
 		cgi.view->weather |= WEATHER_FOG;
-		err = -1;
+		int32_t n = 0;
 
-		if (strlen(c) > 3) { // try to parse fog color
-			err = sscanf(c + 4, "%f %f %f %f",
-						 &cgi.view->fog.x,
-						 &cgi.view->fog.y,
-						 &cgi.view->fog.z,
-						 &cgi.view->fog.w);
+		if (strlen(c) > 3) { // try to parse fog color and parameters
+			n = sscanf(c + 4, "%f %f %f %f %f %f",
+						 &cgi.view->fog_color.x,
+						 &cgi.view->fog_color.y,
+						 &cgi.view->fog_color.z,
+						 &cgi.view->fog_parameters.x,
+						 &cgi.view->fog_parameters.y,
+						 &cgi.view->fog_parameters.z);
 		}
 
-		if (err != 3 && err != 4) { // default to gray
-			cgi.view->fog = Vec4(0.75, 0.75, 0.75, 1.0);
+		if (n == 6) {
+			// we got all 6 parameters, we're good
+		} else if (n == 3) {
+			cgi.view->fog_parameters = Vec3(FOG_START, FOG_END, FOG_DENSITY);
+		} else {
+			cgi.Warn("Invalid fog string: %s\n", c);
+
+			cgi.view->fog_color = Vec3(0.75, 0.75, 0.75);
+			cgi.view->fog_parameters = Vec3(FOG_START, FOG_END, FOG_DENSITY);
 		}
 	}
 }

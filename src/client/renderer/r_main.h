@@ -132,6 +132,11 @@ typedef struct {
 	 */
 	r_light_t view_lights[MAX_LIGHTS];
 
+	/**
+	 * @brief The fog parameters, scaled by the renderer.
+	 */
+	vec3_t fog_parameters;
+
 } r_locals_t;
 
 extern r_locals_t r_locals;
