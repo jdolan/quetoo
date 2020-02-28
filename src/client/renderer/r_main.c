@@ -44,7 +44,6 @@ cvar_t *r_draw_bsp_lightmaps;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
-static cvar_t *r_draw_depth;
 
 cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
@@ -480,7 +479,6 @@ static void R_InitLocal(void) {
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
-	r_draw_depth = Cvar_Add("r_draw_depth", "0", CVAR_DEVELOPER, "Controls rendering the depth buffer attachment");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
