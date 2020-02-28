@@ -104,17 +104,17 @@ void main(void) {
 
 	vec3 lightgrid;
 	if ((textures & TEXTURE_MASK_LIGHTGRID) == TEXTURE_MASK_LIGHTGRID) {
-		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
-		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
-		vec3 radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
-		vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
-		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
+		vec3 lg_ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
+		vec3 lg_diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
+		vec3 lg_radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
+		vec3 lg_diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
+		lg_diffuse_dir = normalize(lg_diffuse_dir * 2.0 - 1.0);
 
 		vec3 normal = normalize(vertex.normal);
 
-		lightgrid = ambient +
-		            diffuse * max(0.0, dot(normal, diffuse_dir)) +
-					radiosity;
+		lightgrid = lg_ambient +
+		            lg_diffuse * max(0.0, dot(normal, lg_diffuse_dir)) +
+					lg_radiosity;
 	} else {
 		lightgrid = vec3(1.0);
 	}
@@ -123,12 +123,10 @@ void main(void) {
 	vec3 light_specular = vec3(0.0);
 	dynamic_light(vertex.position, vertex.normal, 64, light_diffuse, light_specular);
 
-	diffuse = diffuse * vec4(lightgrid, 1.0);
-	diffuse.rgb = clamp(diffuse.rgb * light_diffuse, 0.0, 32.0);
-	diffuse.rgb = clamp(diffuse.rgb + light_specular, 0.0, 32.0);
-	
-	out_color = diffuse;
-	
+	out_color = diffuse * vec4(lightgrid, 1.0);
+	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
+	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
+
 	// postprocessing
 	
 	out_color.rgb = tonemap(out_color.rgb);
