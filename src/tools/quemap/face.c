@@ -147,7 +147,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		}
 
 		out.normal = planes[face->plane_num].normal;
-		Vec3_Tangents(out.normal, sdir, tdir, &out.tangent, &out.tangent);
+		Vec3_Tangents(out.normal, sdir, tdir, &out.tangent, &out.bitangent);
 
 		const float s = Vec3_Dot(out.position, sdir) + texinfo->vecs[0].w;
 		const float t = Vec3_Dot(out.position, tdir) + texinfo->vecs[1].w;
