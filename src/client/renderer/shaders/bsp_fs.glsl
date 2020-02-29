@@ -127,7 +127,10 @@ void main(void) {
 	light_diffuse = lightmap.rgb;
 	light_specular = vec3(0.0);
 	
-	dynamic_light(vertex.position, vertex.normal, 64, light_diffuse, light_specular);
+	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+	vec3 normal = normalize(tbn * normalmap.xyz);
+	
+	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 	
 	out_color = diffusemap;
 	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
