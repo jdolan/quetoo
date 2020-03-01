@@ -165,6 +165,8 @@ typedef struct {
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
 	vec2_t diffusemap;
 	vec2_t lightmap;
 	int32_t texinfo;
