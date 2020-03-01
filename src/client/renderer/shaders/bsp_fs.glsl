@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define TEXTURE_DIFFUSEMAP                  0
+#define TEXTURE_DIFFUSEMAP               0
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
 #define TEXTURE_LIGHTMAP                 3

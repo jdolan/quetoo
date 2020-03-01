@@ -34,6 +34,8 @@
 #define TEXTURE_MASK_LIGHTGRID          (1 << TEXTURE_LIGHTGRID)
 #define TEXTURE_MASK_ALL                0xff
 
+uniform mat4 view;
+
 uniform int textures;
 
 uniform sampler2D texture_diffusemap;
@@ -74,6 +76,8 @@ out vec4 out_color;
  */
 void main(void) {
 
+	vec3 normal = normalize(vertex.normal);
+
 	vec4 diffusemap;
 	if ((textures & TEXTURE_MASK_DIFFUSEMAP) == TEXTURE_MASK_DIFFUSEMAP) {
 		diffusemap = texture(texture_diffusemap, vertex.diffusemap) * color;
@@ -107,10 +111,9 @@ void main(void) {
 		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
 		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
 		vec3 radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
-		vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
-		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
 
-		vec3 normal = normalize(vertex.normal);
+		vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
+		diffuse_dir = normalize((view * vec4(diffuse_dir * 2.0 - 1.0, 1.0)).xyz);
 
 		lightgrid = ambient +
 		            diffuse * max(0.0, dot(normal, diffuse_dir)) +
@@ -124,7 +127,7 @@ void main(void) {
 	vec3 light_diffuse = lightgrid;
 	vec3 light_specular = vec3(0.0);
 	
-	dynamic_light(vertex.position, vertex.normal, 64, light_diffuse, light_specular);
+	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 
 	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
 	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);

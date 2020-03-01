@@ -56,7 +56,6 @@ static struct {
 	GLint projection;
 	GLint model;
 	GLint view;
-	GLint normal;
 
 	GLint lerp;
 
@@ -122,14 +121,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glEnableVertexAttribArray(r_mesh_program.in_next_bitangent);
 
 	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-
-	mat4_t normal;
-	Matrix4x4_Concat(&normal, &r_locals.view, &e->matrix);
-	Matrix4x4_CopyRotateOnly(&normal, &normal);
-	Matrix4x4_Invert_Simple(&normal, &normal);
-	Matrix4x4_Transpose(&normal, &normal);
-
-	glUniformMatrix4fv(r_mesh_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
@@ -331,7 +322,6 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.projection = glGetUniformLocation(r_mesh_program.name, "projection");
 	r_mesh_program.view = glGetUniformLocation(r_mesh_program.name, "view");
 	r_mesh_program.model = glGetUniformLocation(r_mesh_program.name, "model");
-	r_mesh_program.normal = glGetUniformLocation(r_mesh_program.name, "normal");
 
 	r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
 

@@ -35,7 +35,6 @@ layout (location = 8) in vec3 in_next_bitangent;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-uniform mat4 normal;
 
 uniform float lerp;
 
@@ -65,9 +64,9 @@ void main(void) {
 	gl_Position = projection * view * model * lerp_position;
 
 	vertex.position = vec3(view * model * lerp_position);
-	vertex.normal = normalize(vec3(normal * lerp_normal));
-	vertex.tangent = normalize(vec3(normal * lerp_tangent));
-	vertex.bitangent = normalize(vec3(normal * lerp_bitangent));
+	vertex.normal = normalize(vec3(view * model * lerp_normal));
+	vertex.tangent = normalize(vec3(view * model * lerp_tangent));
+	vertex.bitangent = normalize(vec3(view * model * lerp_bitangent));
 
 	vertex.diffusemap = in_diffusemap;
 
