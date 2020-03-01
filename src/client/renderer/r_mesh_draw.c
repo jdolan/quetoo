@@ -149,10 +149,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		const r_material_t *material = e->skins[i] ?: face->material;
 		if (material) {
 
-			glUniform1f(r_mesh_program.bump, material->cm->bump);
-			glUniform1f(r_mesh_program.parallax, material->cm->parallax);
-			glUniform1f(r_mesh_program.hardness, material->cm->hardness);
-			glUniform1f(r_mesh_program.specular, material->cm->specular);
+			glUniform1f(r_mesh_program.bump, material->cm->bump * r_bumpmap->value);
+			glUniform1f(r_mesh_program.parallax, material->cm->parallax * r_parallax->value);
+			glUniform1f(r_mesh_program.hardness, material->cm->hardness * r_hardness->value);
+			glUniform1f(r_mesh_program.specular, material->cm->specular * r_specular->value);
 
 			if (material->diffusemap) {
 				textures |= TEXTURE_MASK_DIFFUSEMAP;

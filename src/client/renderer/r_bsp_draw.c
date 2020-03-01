@@ -244,10 +244,10 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 				tex &= ~TEXTURE_MASK_GLOSSMAP;
 			}
 
-			glUniform1f(r_bsp_program.bump, material->cm->bump);
-			glUniform1f(r_bsp_program.parallax, material->cm->parallax);
-			glUniform1f(r_bsp_program.hardness, material->cm->hardness);
-			glUniform1f(r_bsp_program.specular, material->cm->specular);
+			glUniform1f(r_bsp_program.bump, material->cm->bump * r_bumpmap->value);
+			glUniform1f(r_bsp_program.parallax, material->cm->parallax * r_parallax->value);
+			glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
+			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
 		}
 
 		if (bsp->lightmap) {
