@@ -218,11 +218,8 @@ typedef struct {
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
-	vec3_t tangent;
-	vec3_t bitangent;
 	vec2_t diffusemap;
 	vec2_t lightmap;
-	color32_t color;
 } r_bsp_vertex_t;
 
 typedef struct {
@@ -448,8 +445,6 @@ typedef struct {
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
-	vec3_t tangent;
-	vec3_t bitangent;
 	vec2_t diffusemap;
 } r_mesh_vertex_t;
 

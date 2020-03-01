@@ -104,7 +104,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
-#define SNAP_TO_INT		(4.0)
+#define SNAP_TO_INT		(8.0)
 #define SNAP_TO_FLOAT	(1.0 / SNAP_TO_INT)
 
 /**
@@ -147,7 +147,6 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		}
 
 		out.normal = planes[face->plane_num].normal;
-		Vec3_Tangents(out.normal, sdir, tdir, &out.tangent, &out.bitangent);
 
 		const float s = Vec3_Dot(out.position, sdir) + texinfo->vecs[0].w;
 		const float t = Vec3_Dot(out.position, tdir) + texinfo->vecs[1].w;
@@ -282,13 +281,6 @@ void PhongVertex(int32_t vertex_num) {
 			}
 
 			v->normal = Vec3_Normalize(v->normal);
-
-			const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
-
-			const vec3_t sdir = Vec4_XYZ(texinfo->vecs[0]);
-			const vec3_t tdir = Vec4_XYZ(texinfo->vecs[1]);
-
-			Vec3_Tangents(v->normal, sdir, tdir, &v->tangent, &v->bitangent);
 		}
 	}
 }

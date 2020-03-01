@@ -62,11 +62,8 @@ uniform vec4 caustics;
 in vertex_data {
 	vec3 position;
 	vec3 normal;
-	vec3 tangent;
-	vec3 bitangent;
 	vec2 diffusemap;
 	vec3 lightgrid;
-	vec3 eye;
 } vertex;
 
 out vec4 out_color;
@@ -75,8 +72,6 @@ out vec4 out_color;
  * @brief
  */
 void main(void) {
-
-	vec3 normal = normalize(vertex.normal);
 
 	vec4 diffusemap;
 	if ((textures & TEXTURE_MASK_DIFFUSEMAP) == TEXTURE_MASK_DIFFUSEMAP) {
@@ -99,38 +94,38 @@ void main(void) {
 		normalmap = vec4(0.0, 0.0, 1.0, 0.5);
 	}
 
-	vec4 glossmap;
+	vec3 glossmap;
 	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {
-		glossmap = texture(texture_glossmap, vertex.diffusemap);
+		glossmap = texture(texture_glossmap, vertex.diffusemap).rgb * specular;
 	} else {
-		glossmap = vec4(1.0);
+		glossmap = vec3(0.5) * specular;
 	}
 
-	vec3 lightgrid;
+	vec3 ambient, diffuse, radiosity, diffuse_dir;
 	if ((textures & TEXTURE_MASK_LIGHTGRID) == TEXTURE_MASK_LIGHTGRID) {
-		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
-		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
-		vec3 radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
+		ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
+		diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
+		radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
 
-		vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
+		diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
 		diffuse_dir = normalize((view * vec4(diffuse_dir * 2.0 - 1.0, 1.0)).xyz);
-
-		lightgrid = ambient +
-		            diffuse * max(0.0, dot(normal, diffuse_dir)) +
-					radiosity;
 	} else {
-		lightgrid = vec3(1.0);
+		ambient = vec3(1.0) * modulate;
+		diffuse = vec3(0.0) * modulate;
+		radiosity = vec3(0.0) * modulate;
+		diffuse_dir = vertex.normal;
 	}
 
 	out_color = diffusemap;
 
-	vec3 light_diffuse = lightgrid;
-	vec3 light_specular = vec3(0.0);
-	
-	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
+	mat3 tbn = cotangent_frame(normalize(vertex.normal), normalize(-vertex.position), vertex.diffusemap);
 
-	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
-	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
+	vec3 normal = normalize(tbn * normalmap.xyz);
+
+	out_color.rgb *= ambient +
+					 radiosity +
+					 directional_light(vertex.position, normal, diffuse_dir, diffuse, specular) +
+	                 dynamic_light(vertex.position, normal, specular);
 
 	// postprocessing
 	
