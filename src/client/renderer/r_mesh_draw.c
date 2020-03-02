@@ -44,19 +44,13 @@ static struct {
 
 	GLint in_position;
 	GLint in_normal;
-	GLint in_tangent;
-	GLint in_bitangent;
 	GLint in_diffusemap;
-
 	GLint in_next_position;
 	GLint in_next_normal;
-	GLint in_next_tangent;
-	GLint in_next_bitangent;
 
 	GLint projection;
 	GLint model;
 	GLint view;
-	GLint normal;
 
 	GLint lerp;
 
@@ -88,8 +82,9 @@ static struct {
 	GLint hardness;
 	GLint specular;
 
+	GLint lights_active;
+	GLint lights_block;
 	GLuint lights_buffer;
-	GLuint lights_block;
 
 	GLint fog_parameters;
 	GLint fog_color;
@@ -112,24 +107,12 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	glEnableVertexAttribArray(r_mesh_program.in_position);
 	glEnableVertexAttribArray(r_mesh_program.in_normal);
-	glEnableVertexAttribArray(r_mesh_program.in_tangent);
-	glEnableVertexAttribArray(r_mesh_program.in_bitangent);
 	glEnableVertexAttribArray(r_mesh_program.in_diffusemap);
 
 	glEnableVertexAttribArray(r_mesh_program.in_next_position);
 	glEnableVertexAttribArray(r_mesh_program.in_next_normal);
-	glEnableVertexAttribArray(r_mesh_program.in_next_tangent);
-	glEnableVertexAttribArray(r_mesh_program.in_next_bitangent);
 
 	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-
-	mat4_t normal;
-	Matrix4x4_Concat(&normal, &r_locals.view, &e->matrix);
-	Matrix4x4_CopyRotateOnly(&normal, &normal);
-	Matrix4x4_Invert_Simple(&normal, &normal);
-	Matrix4x4_Transpose(&normal, &normal);
-
-	glUniformMatrix4fv(r_mesh_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
@@ -141,16 +124,12 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, position));
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, normal));
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, tangent));
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, bitangent));
 		glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap));
 
 		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
 		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, position));
 		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, normal));
-		glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, tangent));
-		glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, bitangent));
 
 		const r_bsp_lightgrid_t *lg = r_model_state.world->bsp->lightgrid;
 		GLint textures = lg ? TEXTURE_MASK_LIGHTGRID : 0;
@@ -158,10 +137,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		const r_material_t *material = e->skins[i] ?: face->material;
 		if (material) {
 
-			glUniform1f(r_mesh_program.bump, material->cm->bump);
-			glUniform1f(r_mesh_program.parallax, material->cm->parallax);
-			glUniform1f(r_mesh_program.hardness, material->cm->hardness);
-			glUniform1f(r_mesh_program.specular, material->cm->specular);
+			glUniform1f(r_mesh_program.bump, material->cm->bump * r_bumpmap->value);
+			glUniform1f(r_mesh_program.parallax, material->cm->parallax * r_parallax->value);
+			glUniform1f(r_mesh_program.hardness, material->cm->hardness * r_hardness->value);
+			glUniform1f(r_mesh_program.specular, material->cm->specular * r_specular->value);
 
 			if (material->diffusemap) {
 				textures |= TEXTURE_MASK_DIFFUSEMAP;
@@ -229,6 +208,7 @@ void R_DrawMeshEntities(void) {
 		glUniform3fv(r_mesh_program.lightgrid_maxs, 1, lg->maxs.xyz);
 	}
 
+	glUniform1i(r_mesh_program.lights_active, r_view.num_lights);
 	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_mesh_program.lights_buffer);
@@ -319,19 +299,13 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.in_position = glGetAttribLocation(r_mesh_program.name, "in_position");
 	r_mesh_program.in_normal = glGetAttribLocation(r_mesh_program.name, "in_normal");
-	r_mesh_program.in_tangent = glGetAttribLocation(r_mesh_program.name, "in_tangent");
-	r_mesh_program.in_bitangent = glGetAttribLocation(r_mesh_program.name, "in_bitangent");
 	r_mesh_program.in_diffusemap = glGetAttribLocation(r_mesh_program.name, "in_diffusemap");
-
 	r_mesh_program.in_next_position = glGetAttribLocation(r_mesh_program.name, "in_next_position");
 	r_mesh_program.in_next_normal = glGetAttribLocation(r_mesh_program.name, "in_next_normal");
-	r_mesh_program.in_next_tangent = glGetAttribLocation(r_mesh_program.name, "in_next_tangent");
-	r_mesh_program.in_next_bitangent = glGetAttribLocation(r_mesh_program.name, "in_next_bitangent");
 
 	r_mesh_program.projection = glGetUniformLocation(r_mesh_program.name, "projection");
 	r_mesh_program.view = glGetUniformLocation(r_mesh_program.name, "view");
 	r_mesh_program.model = glGetUniformLocation(r_mesh_program.name, "model");
-	r_mesh_program.normal = glGetUniformLocation(r_mesh_program.name, "normal");
 
 	r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
 
@@ -362,6 +336,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.hardness = glGetUniformLocation(r_mesh_program.name, "hardness");
 	r_mesh_program.specular = glGetUniformLocation(r_mesh_program.name, "specular");
 
+	r_mesh_program.lights_active = glGetUniformLocation(r_mesh_program.name, "lights_active");
 	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
 	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 0);
 	glGenBuffers(1, &r_mesh_program.lights_buffer);

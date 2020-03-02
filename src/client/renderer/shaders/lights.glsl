@@ -20,50 +20,66 @@
 */
 
 #define MAX_LIGHTS 64
-#define FLOAT_MAX 3.40282347e+38f
 
+/**
+ * @brief Dynamic light source struct.
+ */
 struct light {
 	vec4 origin;
 	vec4 color;
 };
 
+/**
+ * @brief Dynamic light sources, in view space.
+ */
 layout (std140) uniform lights_block {
 	light lights[MAX_LIGHTS];
 };
 
 /**
+ * @brief The number of active dynamic light sources.
+ */
+uniform int lights_active;
+
+/**
  * @brief
  */
-void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
-				   inout vec3 diff_light, inout vec3 spec_light) {
+vec3 directional_light(in vec3 position,
+		   in vec3 normal,
+		   in vec3 light_dir,
+		   in vec3 light_color,
+		   in float specularity) {
 
-	for (int i = 0; i < MAX_LIGHTS; i++) {
+	vec3 diffuse = light_color * max(0.0, dot(normal, light_dir));
+
+	vec3 eye = normalize(position);
+	vec3 specular = light_color * pow(max(dot(reflect(-light_dir, normal), eye), 0.0), specularity * 64);
+
+	return diffuse + specular;
+}
+
+/**
+ * @brief
+ */
+vec3 dynamic_light(in vec3 position,
+				   in vec3 normal,
+				   in float specularity) {
+
+	vec3 dynamic = vec3(0.0);
+
+	for (int i = 0; i < lights_active; i++) {
 
 		float radius = lights[i].origin.w;
-		if (radius == 0.0) {
-			break;
-		}
-
 		float dist = distance(lights[i].origin.xyz, position);
 		if (dist < radius) {
 
 			vec3 light_dir = normalize(lights[i].origin.xyz - position);
-			float angle_atten = dot(light_dir, normal);
-			if (angle_atten > 0.0) {
-				
-				float dist_atten = smoothstep(1.0, 0.0, dist / radius);
-				float attenuation = dist_atten * angle_atten;
-				
-				vec3 view_dir = normalize(-position);
-				vec3 half_dir = max(normalize(light_dir + view_dir), 0.0);
-				float specular_base = dot(half_dir, normal);
-				float specular = pow(specular_base, specular_exponent);
-				
-				vec3 color = lights[i].color.rgb * lights[i].color.a;
-				
-				diff_light += attenuation * radius * color;
-				spec_light += attenuation * attenuation * radius * specular * color;
-			}
+			vec3 light_color = lights[i].color.rgb * lights[i].color.a * 4; // FIXME: lol 4
+
+			float attenuation = smoothstep(1.0, 0.0, dist / radius);
+			dynamic += attenuation * directional_light(position, normal, light_dir, light_color, specularity);
 		}
 	}
+
+	return dynamic;
 }

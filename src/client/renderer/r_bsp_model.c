@@ -78,25 +78,9 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
 		out->position = in->position;
 		out->normal = in->normal;
-		out->tangent = in->tangent;
-		out->bitangent = in->bitangent;
-
+		
 		out->diffusemap = in->diffusemap;
 		out->lightmap = in->lightmap;
-
-		float alpha = 1.0;
-
-		const r_bsp_texinfo_t *texinfo = bsp->texinfo + in->texinfo;
-		switch (texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
-			case SURF_BLEND_33:
-				alpha = 0.333;
-				break;
-			case SURF_BLEND_66:
-				alpha = 0.666;
-			default:
-				break;
-		}
-		out->color = Color_Color32(Color4f(1.0, 1.0, 1.0, alpha));
 	}
 }
 
@@ -502,11 +486,8 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
-	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
-	glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, lightmap));
-	glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, lightmap));
 
 	R_GetError(mod->media.name);
 

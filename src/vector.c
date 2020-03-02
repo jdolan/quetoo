@@ -692,27 +692,6 @@ vec3_t Vec3_Scale(const vec3_t v, float scale) {
 /**
  * @brief
  */
-void Vec3_Tangents(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec3_t *tangent, vec3_t *bitangent) {
-
-	const vec3_t s = Vec3_Normalize(sdir);
-	const vec3_t t = Vec3_Normalize(tdir);
-
-	const float n_dot_s = Vec3_Dot(s, normal);
-	
-	*tangent = Vec3_Add(normal, Vec3_Scale(s, -n_dot_s));
-	if (Vec3_Dot(s, *tangent) < 0.f) {
-		*tangent = Vec3_Negate(*tangent);
-	}
-
-	*bitangent = Vec3_Cross(normal, *tangent);
-	if (Vec3_Dot(t, *bitangent) < 0.f) {
-		*bitangent = Vec3_Negate(*bitangent);
-	}
-}
-
-/**
- * @brief
- */
 vec4_t Vec3_ToVec4(const vec3_t v, float w) {
 	return Vec4(v.x, v.y, v.z, w);
 }

@@ -42,16 +42,12 @@ static struct {
 
 	GLint in_position;
 	GLint in_normal;
-	GLint in_tangent;
-	GLint in_bitangent;
 	GLint in_diffusemap;
 	GLint in_lightmap;
-	GLint in_color;
 
 	GLint projection;
 	GLint view;
 	GLint model;
-	GLint normal;
 
 	GLint textures;
 
@@ -60,6 +56,7 @@ static struct {
 	GLint texture_glossmap;
 	GLint texture_lightmap;
 
+	GLint color;
 	GLint alpha_threshold;
 
 	GLint brightness;
@@ -74,6 +71,7 @@ static struct {
 	GLint hardness;
 	GLint specular;
 
+	GLint lights_active;
 	GLint lights_block;
 	GLuint lights_buffer;
 
@@ -96,21 +94,17 @@ static void R_DrawBspNormals(void) {
 
 	const r_bsp_vertex_t *v = bsp->vertexes;
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
+		
+		const vec3_t pos = Vec3_Add(v->position, v->normal);
 
-		const r_bsp_leaf_t *leaf = R_LeafForPoint(v->position, bsp);
+		const r_bsp_leaf_t *leaf = R_LeafForPoint(pos, bsp);
 		if (!R_LeafVisible(leaf)) {
 			continue;
 		}
 
-		const vec3_t pos = Vec3_Add(v->position, v->normal);
+		const vec3_t points[] = { pos, Vec3_Add(pos, Vec3_Scale(v->normal, 8.f)) };
 
-		const vec3_t normal[] = { pos, Vec3_Add(pos, Vec3_Scale(v->normal, 8.f)) };
-		const vec3_t tangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->tangent, 8.f)) };
-		const vec3_t bitangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->bitangent, 8.f)) };
-
-		R_Draw3DLines(normal, 2, color_red);
-		R_Draw3DLines(tangent, 2, color_green);
-		R_Draw3DLines(bitangent, 2, color_blue);
+		R_Draw3DLines(points, 2, color_red);
 	}
 }
 
@@ -227,10 +221,10 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 				tex &= ~TEXTURE_MASK_GLOSSMAP;
 			}
 
-			glUniform1f(r_bsp_program.bump, material->cm->bump);
-			glUniform1f(r_bsp_program.parallax, material->cm->parallax);
-			glUniform1f(r_bsp_program.hardness, material->cm->hardness);
-			glUniform1f(r_bsp_program.specular, material->cm->specular);
+			glUniform1f(r_bsp_program.bump, material->cm->bump * r_bumpmap->value);
+			glUniform1f(r_bsp_program.parallax, material->cm->parallax * r_parallax->value);
+			glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
+			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
 		}
 
 		if (bsp->lightmap) {
@@ -257,13 +251,6 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 
-	mat4_t normal;
-	Matrix4x4_Concat(&normal, &r_locals.view, &e->matrix);
-	Matrix4x4_Invert_Full(&normal, &normal);
-	Matrix4x4_Transpose(&normal, &normal);
-
-	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
-
 	R_DrawBspDrawElements(e->model->bsp_inline);
 }
 
@@ -287,12 +274,7 @@ void R_DrawWorld(void) {
 	glUniformMatrix4fv(r_bsp_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 
-	mat4_t normal;
-	Matrix4x4_Invert_Full(&normal, &r_locals.view);
-	Matrix4x4_Transpose(&normal, &normal);
-
-	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
-
+	glUniform4fv(r_bsp_program.color, 1, color_white.rgba);
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	glUniform1f(r_bsp_program.brightness, r_brightness->value);
@@ -301,6 +283,7 @@ void R_DrawWorld(void) {
 	glUniform1f(r_bsp_program.gamma, r_gamma->value);
 	glUniform1f(r_bsp_program.modulate, r_modulate->value);
 
+	glUniform1i(r_bsp_program.lights_active, r_view.num_lights);
 	glBindBuffer(GL_UNIFORM_BUFFER, r_bsp_program.lights_buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_bsp_program.lights_buffer);
@@ -317,11 +300,8 @@ void R_DrawWorld(void) {
 
 	glEnableVertexAttribArray(r_bsp_program.in_position);
 	glEnableVertexAttribArray(r_bsp_program.in_normal);
-	glEnableVertexAttribArray(r_bsp_program.in_tangent);
-	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
 	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
-	glEnableVertexAttribArray(r_bsp_program.in_color);
 
 	if (bsp->lightmap) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
@@ -372,16 +352,12 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.in_position = glGetAttribLocation(r_bsp_program.name, "in_position");
 	r_bsp_program.in_normal = glGetAttribLocation(r_bsp_program.name, "in_normal");
-	r_bsp_program.in_tangent = glGetAttribLocation(r_bsp_program.name, "in_tangent");
-	r_bsp_program.in_bitangent = glGetAttribLocation(r_bsp_program.name, "in_bitangent");
 	r_bsp_program.in_diffusemap = glGetAttribLocation(r_bsp_program.name, "in_diffusemap");
 	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
-	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
 
 	r_bsp_program.projection = glGetUniformLocation(r_bsp_program.name, "projection");
 	r_bsp_program.view = glGetUniformLocation(r_bsp_program.name, "view");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
-	r_bsp_program.normal = glGetUniformLocation(r_bsp_program.name, "normal");
 
 	r_bsp_program.textures = glGetUniformLocation(r_bsp_program.name, "textures");
 	r_bsp_program.texture_diffusemap = glGetUniformLocation(r_bsp_program.name, "texture_diffusemap");
@@ -389,6 +365,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_glossmap = glGetUniformLocation(r_bsp_program.name, "texture_glossmap");
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
 
+	r_bsp_program.color = glGetUniformLocation(r_bsp_program.name, "color");
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
 	r_bsp_program.brightness = glGetUniformLocation(r_bsp_program.name, "brightness");
@@ -402,6 +379,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.hardness = glGetUniformLocation(r_bsp_program.name, "hardness");
 	r_bsp_program.specular = glGetUniformLocation(r_bsp_program.name, "specular");
 
+	r_bsp_program.lights_active = glGetUniformLocation(r_bsp_program.name, "lights_active");
 	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
 	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 0);
 	glGenBuffers(1, &r_bsp_program.lights_buffer);

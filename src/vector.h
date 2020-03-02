@@ -543,11 +543,6 @@ vec3_t Vec3_Reflect(const vec3_t a, const vec3_t b);
 vec3_t Vec3_Subtract(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_result));
 
 /**
- * @return The tangent and bitangent vectors for the given normal and texture directional vectors.
- */
-void Vec3_Tangents(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec3_t *tangent, vec3_t *bitangent);
-
-/**
  * @return A `vec4_t` comprised of the specified `vec3_t` and `w`.
  */
 vec4_t Vec3_ToVec4(const vec3_t v, float w);
