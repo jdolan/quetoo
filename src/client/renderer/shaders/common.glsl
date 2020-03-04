@@ -75,6 +75,19 @@ vec3 fog(in vec3 position, in vec3 color) {
 }
 
 /**
+ * @brief Global fog.
+ */
+float fog_factor(in vec3 position) {
+
+	float near = fog_parameters.x;
+	float far = fog_parameters.y;
+	float density = fog_parameters.z;
+
+	float strength = density * ((length(position) - near) / (far - near));
+	return saturate(strength);
+}
+
+/**
  * @brief Phong BRDF for specular highlights.
  */
 vec3 brdf_phong(vec3 view_dir, vec3 light_dir, vec3 normal,
