@@ -79,6 +79,18 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 }
 
 /**
+ * @return The distance from `point` to `plane` from the specified side.
+ */
+float Cm_DistanceToFace(const vec3_t point, const cm_bsp_plane_t *plane, int32_t plane_side) {
+
+	if (plane_side) {
+		return -Cm_DistanceToPlane(point, plane);
+	} else {
+		return Cm_DistanceToPlane(point, plane);
+	}
+}
+
+/**
  * @return Non-zero if the bounding boxes intersect, zero otherwise.
  */
 int32_t Cm_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
