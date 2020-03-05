@@ -133,10 +133,16 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 		out->num_elements = in->num_elements;
 
-		out->lightmap.s = in->lightmap.s;
-		out->lightmap.t = in->lightmap.t;
-		out->lightmap.w = in->lightmap.w;
-		out->lightmap.h = in->lightmap.h;
+		if (out->texinfo->flags & SURF_NO_LIGHTMAP) {
+			continue;
+		}
+
+		r_bsp_face_lightmap_t *lm = &out->lightmap;
+
+		lm->s = in->lightmap.s;
+		lm->t = in->lightmap.t;
+		lm->w = in->lightmap.w;
+		lm->h = in->lightmap.h;
 	}
 }
 

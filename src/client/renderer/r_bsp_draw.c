@@ -184,11 +184,7 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 			continue;
 		}
 
-		if (draw->texinfo->flags & SURF_SKY) {
-			continue;
-		}
-
-		if (draw->texinfo->flags & SURF_MATERIAL) {
+		if (draw->texinfo->flags & SURF_NO_LIGHTMAP) {
 			continue;
 		}
 

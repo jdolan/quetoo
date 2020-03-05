@@ -212,7 +212,8 @@ void SubdividePatch(int32_t patch_num) {
 	patch_t *patch = &patches[patch_num];
 
 	const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
-	if (tex->flags & SURF_SKY) {
+
+	if (tex->flags & SURF_NO_LIGHTMAP) {
 		return;
 	}
 

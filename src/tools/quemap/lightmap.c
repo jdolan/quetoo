@@ -180,7 +180,7 @@ void BuildLightmaps(void) {
 		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
 		lm->plane = &bsp_file.planes[lm->face->plane_num];
 
-		if (lm->texinfo->flags & SURF_SKY) {
+		if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -492,7 +492,7 @@ void DirectLightmap(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_SKY) {
+	if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 		return;
 	}
 
@@ -544,7 +544,7 @@ void IndirectLightmap(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_SKY) {
+	if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 		return;
 	}
 
@@ -590,7 +590,7 @@ void FinalizeLightmap(int32_t face_num) {
 
 	lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_SKY) {
+	if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 		return;
 	}
 
@@ -651,7 +651,7 @@ void EmitLightmap(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & SURF_SKY) {
+		if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -705,7 +705,7 @@ void EmitLightmap(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & SURF_SKY) {
+		if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -731,7 +731,7 @@ void EmitLightmapTexcoords(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & SURF_SKY) {
+		if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 			continue;
 		}
 
