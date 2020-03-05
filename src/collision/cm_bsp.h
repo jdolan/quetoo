@@ -62,7 +62,7 @@
 #define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
 
 /**
- * @brief Lightgrid ambient, diffuse, radiosity, and direction layers.
+ * @brief Lightmap ambient, diffuse, radiosity, and direction layers.
  */
 #define BSP_LIGHTMAP_LAYERS 4
 
