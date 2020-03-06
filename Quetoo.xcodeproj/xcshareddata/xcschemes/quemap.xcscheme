@@ -65,6 +65,14 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-p /Users/Pieter/Documents/Github/quetoo-data/src/default"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--threads 2"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--verbose"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -74,7 +82,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--only-ents"
@@ -102,7 +110,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-vis"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--fast"
@@ -113,12 +121,24 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--indirect"
+            argument = "--patch-size 32"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--antialias "
+            argument = "--luxel-size 8"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--indirect"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--antialias "
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ao 0"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-zip"
