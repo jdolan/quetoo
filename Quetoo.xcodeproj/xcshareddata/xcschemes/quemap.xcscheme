@@ -61,12 +61,8 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--threads 1"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-p /Users/Pieter/Documents/GitHub/quetoo-data/src/default"
-            isEnabled = "YES">
+            argument = "--threads -1"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--verbose"
@@ -74,7 +70,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-mat"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp"
@@ -110,27 +106,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--fast"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--patch-size 32"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--luxel-size 16"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ao 0"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--indirect"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--antialias "

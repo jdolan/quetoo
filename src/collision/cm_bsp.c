@@ -187,6 +187,8 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 		face->lightmap.st_mins = LittleVec2(face->lightmap.st_mins);
 		face->lightmap.st_maxs = LittleVec2(face->lightmap.st_maxs);
 
+		face->lightmap.matrix = LittleMat4(face->lightmap.matrix);
+		
 		face++;
 	}
 }
