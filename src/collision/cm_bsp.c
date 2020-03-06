@@ -170,14 +170,20 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
 		face->plane_num = LittleLong(face->plane_num);
 		face->texinfo = LittleLong(face->texinfo);
+
 		face->first_vertex = LittleLong(face->first_vertex);
 		face->num_vertexes = LittleLong(face->num_vertexes);
+
 		face->first_element = LittleLong(face->first_element);
 		face->num_elements = LittleLong(face->num_elements);
+
 		face->lightmap.s = LittleLong(face->lightmap.s);
 		face->lightmap.t = LittleLong(face->lightmap.t);
 		face->lightmap.w = LittleLong(face->lightmap.w);
 		face->lightmap.h = LittleLong(face->lightmap.h);
+
+		face->lightmap.st_mins = LittleVec2(face->lightmap.st_mins);
+		face->lightmap.st_maxs = LittleVec2(face->lightmap.st_maxs);
 
 		face++;
 	}

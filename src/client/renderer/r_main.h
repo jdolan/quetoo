@@ -52,7 +52,7 @@ extern cvar_t *r_shadows;
 extern cvar_t *r_shell;
 extern cvar_t *r_soft_particles;
 extern cvar_t *r_specular;
-extern cvar_t *r_stainmaps;
+extern cvar_t *r_stains;
 extern cvar_t *r_supersample;
 extern cvar_t *r_texture_mode;
 extern cvar_t *r_swap_interval;
@@ -126,6 +126,11 @@ typedef struct {
 	 * frame in order to be drawn.
 	 */
 	int32_t vis_frame;
+
+	/**
+	 * @brief The stain frame counter.
+	 */
+	int32_t stain_frame;
 
 	/**
 	 * @brief The light sources for the current view, transformed to view space.

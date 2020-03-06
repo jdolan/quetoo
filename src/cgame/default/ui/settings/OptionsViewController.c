@@ -36,25 +36,25 @@ static void didSelectQuality(Select *select, Option *option) {
 		case 3:
 			cgi.SetCvarInteger("r_caustics", 1);
 			cgi.SetCvarInteger("r_shadows", 3);
-			cgi.SetCvarInteger("r_stainmaps", 1);
+			cgi.SetCvarInteger("r_stains", 1);
 			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 2:
 			cgi.SetCvarInteger("r_caustics", 1);
 			cgi.SetCvarInteger("r_shadows", 2);
-			cgi.SetCvarInteger("r_stainmaps", 1);
+			cgi.SetCvarInteger("r_stains", 1);
 			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 1:
 			cgi.SetCvarInteger("r_caustics", 0);
 			cgi.SetCvarInteger("r_shadows", 1);
-			cgi.SetCvarInteger("r_stainmaps", 1);
+			cgi.SetCvarInteger("r_stains", 1);
 			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 0:
 			cgi.SetCvarInteger("r_caustics", 0);
 			cgi.SetCvarInteger("r_shadows", 0);
-			cgi.SetCvarInteger("r_stainmaps", 0);
+			cgi.SetCvarInteger("r_stains", 0);
 			cgi.SetCvarInteger("cg_weather", 0);
 			break;
 		default:

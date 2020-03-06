@@ -58,12 +58,11 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		.decay = 350
 	});
 
-//	cgi.AddStain(&(const r_stain_t) {
-//		.origin = { org[0], org[1], org[2] },
-//		.radius = 4.0,
-//		.media = cg_particles_default->media,
-//		.color = { c[0], c[1], c[2], 0.33 }
-//	});
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = org,
+		.radius = 4.0,
+		.color = Color_Add(color, Color4f(0.f, 0.f, 0.f, -.66f))
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_blaster_hit,
@@ -145,12 +144,11 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		.decay = 250
 	});
 
-//	cgi.AddStain(&(const r_stain_t) {
-//		.origin = { org[0], org[1], org[2] },
-//		.radius = 2.0,
-//		.media = cg_particles_default->media,
-//		.color = { 0.0, 0.0, 0.0, 0.33 },
-//	});
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = org,
+		.radius = 2.0,
+		.color = Color4bv(0x00000050),
+	});
 
 	if (cgi.client->unclamped_time < last_ric_time) {
 		last_ric_time = 0;
@@ -195,12 +193,11 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->size = RandomRangef(5.0, 8.0);
 	}
 
-//	cgi.AddStain(&(const r_stain_t) {
-//		.origin = { org[0], org[1], org[2] },
-//		.radius = count * 6.0,
-//		.media = cg_stain_blood,
-//		.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
-//	});
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = org,
+		.radius = count * 6.0,
+		.color = Color4bv(0xAA2222AA),
+	});
 }
 
 #define GIB_STREAM_DIST 180.0
@@ -259,12 +256,11 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		}
 	}
 
-//	cgi.AddStain(&(const r_stain_t) {
-//		.origin = { org[0], org[1], org[2] },
-//		.radius = count * 6.0,
-//		.media = cg_particles_default->media,
-//		.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
-//	});
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = org,
+		.radius = count * 6.0,
+		.color = Color4bv(0x88111188),
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_gib,
@@ -352,15 +348,11 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		.decay = 1000
 	});
 
-//	vec3_t c;
-//	cgi.ColorFromPalette(Randomr(0, 2), c);
-
-//	cgi.AddStain(&(const r_stain_t) {
-//		.origin = { org[0], org[1], org[2] },
-//		.radius = 88.0 + (64.0 * Randomc() * 0.15),
-//		.media = cg_stain_explosion,
-//		.color = { c[0], c[1], c[2], 0.66 },
-//	});
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = org,
+		.radius = 88.0 + (64.0 * Randomc() * 0.15),
+		.color = Color4bv(0x20202080),
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_explosion,
@@ -411,12 +403,11 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.decay = 250
 	});
 
-//	cgi.AddStain(&(const r_stain_t) {
-//		.origin = { org[0], org[1], org[2] },
-//		.radius = 16.0,
-//		.media = cg_particles_default->media,
-//		.color = { color[0], color[1], color[2], 0.33 },
-//	});
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = org,
+		.radius = 16.0,
+		.color = Color4f(.4f, .7f, 1.f, .33f),
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_hyperblaster_hit,
@@ -565,12 +556,11 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.decay = 250
 	});
 
-//	cgi.AddStain(&(const r_stain_t) {
-//		.origin = { end[0], end[1], end[2] },
-//		.radius = 8.0,
-//		.media = cg_particles_default->media,
-//		.color = { l.color[0], l.color[1], l.color[2], 0.66 },
-//	});
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = end,
+		.radius = 8.0,
+		.color = color,
+	});
 }
 
 /**
@@ -630,15 +620,11 @@ static void Cg_BfgEffect(const vec3_t org) {
 		.decay = 1000
 	});
 
-//	vec3_t c;
-//	cgi.ColorFromPalette(203 + Randomr(0, 3), c);
-//
-//	cgi.AddStain(&(const r_stain_t) {
-//		.origin = { org[0], org[1], org[2] },
-//		.radius = 96.0,
-//		.media = cg_particles_default->media,
-//		.color = { c[0], c[1], c[2], 0.75 },
-//	});
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = org,
+		.radius = 96.0,
+		.color = Color3b(40, 200, 60),
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_bfg_hit,

@@ -714,6 +714,11 @@ void EmitLightmap(void) {
 		lm->face->lightmap.w = lm->w;
 		lm->face->lightmap.h = lm->h;
 
+		lm->face->lightmap.matrix = lm->matrix;
+
+		lm->face->lightmap.st_mins = lm->st_mins;
+		lm->face->lightmap.st_maxs = lm->st_maxs;
+
 		SDL_FreeSurface(lm->ambient);
 		SDL_FreeSurface(lm->diffuse);
 		SDL_FreeSurface(lm->radiosity);

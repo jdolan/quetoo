@@ -540,7 +540,6 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			cgi.AddStain(&(const r_stain_t) {
 				.origin = pos,
 				.radius = 8.0 + Randomf() * 4.0,
-				.media = cg_stain_lightning,
 				.color = Color4bv(0x00000040),
 			});
 
@@ -749,7 +748,6 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 			cgi.AddStain(&(const r_stain_t) {
 				.origin = p->origin,
 				.radius = 12.0 * Randomf() * 3.0,
-				.media = cg_stain_blood,
 				.color = Color4bv(0x80101080),
 			});
 		}

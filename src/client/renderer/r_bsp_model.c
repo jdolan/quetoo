@@ -139,10 +139,17 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 		r_bsp_face_lightmap_t *lm = &out->lightmap;
 
-		lm->s = in->lightmap.s;
-		lm->t = in->lightmap.t;
-		lm->w = in->lightmap.w;
-		lm->h = in->lightmap.h;
+		out->lightmap.s = in->lightmap.s;
+		out->lightmap.t = in->lightmap.t;
+		out->lightmap.w = in->lightmap.w;
+		out->lightmap.h = in->lightmap.h;
+
+		out->lightmap.matrix = in->lightmap.matrix;
+
+		out->lightmap.st_mins = in->lightmap.st_mins;
+		out->lightmap.st_maxs = in->lightmap.st_maxs;
+
+		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * BSP_LIGHTMAP_BPP, bsp->faces);
 	}
 }
 
@@ -384,9 +391,17 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 	out->atlas->type = IT_LIGHTMAP;
 	out->atlas->width = out->width;
 	out->atlas->height = out->width;
-	out->atlas->depth = BSP_LIGHTMAP_LAYERS;
+	out->atlas->depth = BSP_LIGHTMAP_LAYERS + BSP_STAINMAP_LAYERS;
 
-	R_UploadImage(out->atlas, GL_RGB, (byte *) in + sizeof(bsp_lightmap_t));
+	const size_t in_size = in->width * in->width * BSP_LIGHTMAP_LAYERS * BSP_LIGHTMAP_BPP;
+	const size_t out_size = out->atlas->width * out->atlas->height * out->atlas->depth * BSP_LIGHTMAP_BPP;
+
+	byte *data = Mem_Malloc(out_size);
+	memcpy(data, (byte *) in + sizeof(bsp_lightmap_t), in_size);
+
+	R_UploadImage(out->atlas, GL_RGB, data);
+
+	Mem_Free(data);
 }
 
 /**

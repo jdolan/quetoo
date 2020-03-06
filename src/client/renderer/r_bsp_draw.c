@@ -25,13 +25,11 @@
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
 #define TEXTURE_LIGHTMAP                 3
-#define TEXTURE_STAINMAP                 4
 
 #define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
 #define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
 #define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
-#define TEXTURE_MASK_STAINMAP           (1 << TEXTURE_STAINMAP)
 #define TEXTURE_MASK_ALL                0xff
 
 /**

@@ -23,13 +23,11 @@
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
 #define TEXTURE_LIGHTMAP                 3
-#define TEXTURE_STAINMAP                 4
 
 #define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
 #define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
 #define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
-#define TEXTURE_MASK_STAINMAP           (1 << TEXTURE_STAINMAP)
 #define TEXTURE_MASK_ALL                0xff
 
 uniform mat4 view;
@@ -99,7 +97,7 @@ void main(void) {
 		glossmap = vec3(0.5) * specular;
 	}
 
-	vec3 ambient, diffuse, radiosity, diffuse_dir;
+	vec3 ambient, diffuse, radiosity, diffuse_dir, stainmap;
 	if ((textures & TEXTURE_MASK_LIGHTMAP) == TEXTURE_MASK_LIGHTMAP) {
 		ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
 		diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb * modulate;
@@ -107,21 +105,18 @@ void main(void) {
 
 		diffuse_dir = texture(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
 		diffuse_dir = normalize((view * model * vec4(diffuse_dir * 2.0 - 1.0, 0.0)).xyz);
+
+		stainmap = texture(texture_lightmap, vec3(vertex.lightmap, 4)).rgb; // TODO: add a scalar
+
 	} else {
 		ambient = vec3(1.0) * modulate;
 		diffuse = vec3(0.0) * modulate;
 		radiosity = vec3(0.0) * modulate;
 		diffuse_dir = vertex.normal;
+		stainmap = vec3(0.0);
 	}
 
-	vec4 stainmap;
-	if ((textures & TEXTURE_MASK_STAINMAP) == TEXTURE_MASK_STAINMAP) {
-		stainmap = texture(texture_lightmap, vec3(vertex.lightmap, 2)); // TODO: add a scalar
-	} else {
-		stainmap = vec4(0.0);
-	}
-
-	out_color = diffusemap + stainmap;
+	out_color = diffusemap + vec4(stainmap, 1.0);
 
 	mat3 tbn = cotangent_frame(normalize(vertex.normal), normalize(-vertex.position), vertex.diffusemap);
 
@@ -141,5 +136,6 @@ void main(void) {
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
-	//out_color.rgb = vec3(dot(diffuse_dir * 0.5 + 0.5, normal * 0.5 + 0.5));
+
+	//out_color = vec4(ambient + diffuse + radiosity + stainmap, 1.0);
 }
