@@ -251,8 +251,6 @@ typedef struct {
 
 	r_bsp_face_lightmap_t lightmap;
 
-	vec3_t mins, maxs;
-	vec2_t st_mins, st_maxs;
 
 	struct r_bsp_node_s *node;
 

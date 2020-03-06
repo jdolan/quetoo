@@ -287,52 +287,6 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Sets up the bsp_face_t for rendering.
- */
-static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t *face) {
-
-	face->mins = Vec3_Mins();
-	face->maxs = Vec3_Maxs();
-
-	face->st_mins = Vec2_Mins();
-	face->st_maxs = Vec2_Maxs();
-
-	face->lightmap.st_mins = Vec2_Mins();
-	face->lightmap.st_maxs = Vec2_Maxs();
-
-	const r_bsp_vertex_t *v = face->vertexes;
-	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
-
-		face->mins = Vec3_Minf(face->mins, v->position);
-		face->maxs = Vec3_Maxf(face->maxs, v->position);
-
-		face->st_mins = Vec2_Minf(face->st_mins, v->diffusemap);
-		face->st_maxs = Vec2_Maxf(face->st_maxs, v->diffusemap);
-
-		face->lightmap.st_mins = Vec2_Minf(face->lightmap.st_mins, v->lightmap);
-		face->lightmap.st_maxs = Vec2_Maxf(face->lightmap.st_maxs, v->lightmap);
-	}
-
-//	R_CreateBspSurfaceFlare(bsp, face);
-}
-
-/**
- * @brief Iterates r_bsp_face_t by their respective leafs, preparing them for rendering.
- */
-static void R_SetupBspFaces(r_bsp_model_t *bsp) {
-
-	r_bsp_leaf_t *leaf = bsp->leafs;
-	for (int32_t i = 0; i < bsp->num_leafs; i++, leaf++) {
-
-		r_bsp_face_t **face = leaf->leaf_faces;
-		for (int32_t j = 0; j < leaf->num_leaf_faces; j++, face++) {
-
-			R_SetupBspFace(bsp, leaf, *face);
-		}
-	}
-}
-
-/**
  * @brief
  */
 static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inline_model_t *model) {
@@ -555,9 +509,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Cl_LoadingProgress(38, "nodes");
 	R_LoadBspNodes(mod->bsp);
-
-	Cl_LoadingProgress(42, "faces");
-	R_SetupBspFaces(mod->bsp);
 
 	Cl_LoadingProgress(46, "inline models");
 	R_LoadBspInlineModels(mod->bsp);
