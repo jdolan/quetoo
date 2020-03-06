@@ -100,18 +100,18 @@ void main(void) {
 
 	vec3 lightmap, stainmap;
 	if ((textures & TEXTURE_MASK_LIGHTMAP) == TEXTURE_MASK_LIGHTMAP) {
-		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
-		vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb * modulate;
-		vec3 radiosity = texture(texture_lightmap, vec3(vertex.lightmap, 2)).rgb * modulate;
+		vec3 ambient = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
+		vec3 diffuse = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 1)).rgb * modulate;
+		vec3 radiosity = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 2)).rgb * modulate;
 		
-		vec3 diffuse_dir = texture(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
+		vec3 diffuse_dir = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
 		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
 
 		lightmap = ambient +
 		           diffuse + // TODO: bumpmapping
 		           radiosity;
 
-		stainmap = texture(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
+		stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
 	} else {
 		lightmap = vec3(1.0);
 		stainmap = vec3(0.0);
@@ -120,8 +120,10 @@ void main(void) {
 	vec3 light_diffuse = lightmap;
 	vec3 light_specular = vec3(0.0);
 	
-	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-	vec3 normal = normalize(tbn * normalmap.xyz);
+	// TODO: fix tangents
+	// mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+	// vec3 normal = normalize(tbn * normalmap.xyz);
+	vec3 normal = normalize(vertex.normal);
 	
 	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 	
