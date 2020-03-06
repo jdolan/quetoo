@@ -628,8 +628,26 @@ void FinalizeLightmap(int32_t face_num) {
 			*out_radiosity++ = (byte) Clampf(radiosity.xyz[j] * 255.0, 0, 255);
 		}
 
-		// write the directional sample data
-		const vec3_t diffuse_dir = Vec3_Normalize(Vec3_Add(l->normal, l->diffuse_dir));
+		// write the directional sample data, in tangent space
+		vec3_t diffuse_dir;
+
+		if (!Vec3_Equal(l->diffuse_dir, Vec3_Zero())) {
+
+			const vec3_t sdir = Vec4_XYZ(lm->texinfo->vecs[0]);
+			const vec3_t tdir = Vec4_XYZ(lm->texinfo->vecs[1]);
+
+			vec3_t tangent, bitangent;
+			Vec3_Tangents(l->normal, sdir, tdir, &tangent, &bitangent);
+
+			diffuse_dir.x = Vec3_Dot(l->diffuse_dir, tangent);
+			diffuse_dir.y = Vec3_Dot(l->diffuse_dir, bitangent);
+			diffuse_dir.z = Vec3_Dot(l->diffuse_dir, l->normal);
+
+			diffuse_dir = Vec3_Add(diffuse_dir, Vec3_Up());
+			diffuse_dir = Vec3_Normalize(diffuse_dir);
+		} else {
+			diffuse_dir = Vec3_Up();
+		}
 
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 		for (int32_t j = 0; j < 3; j++) {

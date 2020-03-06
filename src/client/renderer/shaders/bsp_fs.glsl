@@ -23,15 +23,14 @@
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
 #define TEXTURE_LIGHTMAP                 3
+#define TEXTURE_STAINMAP                 4
 
 #define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
 #define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
 #define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
+#define TEXTURE_MASK_STAINMAP           (1 << TEXTURE_STAINMAP)
 #define TEXTURE_MASK_ALL                0xff
-
-uniform mat4 view;
-uniform mat4 model;
 
 uniform int textures;
 
@@ -40,7 +39,6 @@ uniform sampler2D texture_normalmap;
 uniform sampler2D texture_glossmap;
 uniform sampler2DArray texture_lightmap;
 
-uniform vec4 color;
 uniform float alpha_threshold;
 
 uniform float modulate;
@@ -55,32 +53,35 @@ uniform vec4 caustics;
 in vertex_data {
 	vec3 position;
 	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
 	vec2 diffusemap;
 	vec2 lightmap;
+	vec4 color;
+	vec3 eye;
 } vertex;
 
 out vec4 out_color;
-
-vec3 light_diffuse;
-vec3 light_specular;
 
 /**
  * @brief
  */
 void main(void) {
 
+	// fetch textures
+	
 	vec4 diffusemap;
 	if ((textures & TEXTURE_MASK_DIFFUSEMAP) == TEXTURE_MASK_DIFFUSEMAP) {
-		diffusemap = texture(texture_diffusemap, vertex.diffusemap) * color;
+		diffusemap = texture(texture_diffusemap, vertex.diffusemap) * vertex.color;
 
 		if (diffusemap.a < alpha_threshold) {
 			discard;
 		}
 	} else {
-		diffusemap = color;
+		diffusemap = vertex.color;
 	}
 
-	vec4 normalmap; // TODO: parallax? Or repurpose alpha for specularity?
+	vec4 normalmap;
 	if ((textures & TEXTURE_MASK_NORMALMAP) == TEXTURE_MASK_NORMALMAP) {
 		normalmap = texture(texture_normalmap, vertex.diffusemap);
 		normalmap.xyz = normalize(normalmap.xyz);
@@ -90,42 +91,44 @@ void main(void) {
 		normalmap = vec4(0.0, 0.0, 1.0, 0.5);
 	}
 
-	vec3 glossmap; // TODO: Use this, or lose it.
+	vec4 glossmap;
 	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {
-		glossmap = texture(texture_glossmap, vertex.diffusemap).rgb * specular;
+		glossmap = texture(texture_glossmap, vertex.diffusemap);
 	} else {
-		glossmap = vec3(0.5) * specular;
+		glossmap = vec4(1.0);
 	}
 
-	vec3 ambient, diffuse, radiosity, diffuse_dir, stainmap;
+	vec3 lightmap, stainmap;
 	if ((textures & TEXTURE_MASK_LIGHTMAP) == TEXTURE_MASK_LIGHTMAP) {
-		ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
-		diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb * modulate;
-		radiosity = texture(texture_lightmap, vec3(vertex.lightmap, 2)).rgb * modulate;
+		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
+		vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb * modulate;
+		vec3 radiosity = texture(texture_lightmap, vec3(vertex.lightmap, 2)).rgb * modulate;
+		
+		vec3 diffuse_dir = texture(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
+		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
 
-		diffuse_dir = texture(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
-		diffuse_dir = normalize((view * model * vec4(diffuse_dir * 2.0 - 1.0, 0.0)).xyz);
+		lightmap = ambient +
+		           diffuse + // TODO: bumpmapping
+		           radiosity;
 
-		stainmap = texture(texture_lightmap, vec3(vertex.lightmap, 4)).rgb; // TODO: add a scalar
-
+		stainmap = texture(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
 	} else {
-		ambient = vec3(1.0) * modulate;
-		diffuse = vec3(0.0) * modulate;
-		radiosity = vec3(0.0) * modulate;
-		diffuse_dir = vertex.normal;
+		lightmap = vec3(1.0);
 		stainmap = vec3(0.0);
 	}
 
+	vec3 light_diffuse = lightmap;
+	vec3 light_specular = vec3(0.0);
+	
+	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+	vec3 normal = normalize(tbn * normalmap.xyz);
+	
+	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
+	
 	out_color = diffusemap + vec4(stainmap, 1.0);
 
-	mat3 tbn = cotangent_frame(normalize(vertex.normal), normalize(-vertex.position), vertex.diffusemap);
-
-	vec3 normal = normalize(tbn * normalmap.xyz);
-
-	out_color.rgb *= ambient +
-	                 radiosity +
-	                 directional_light(vertex.position, normal, diffuse_dir, diffuse, specular) +
-					 dynamic_light(vertex.position, normal, specular);
+	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
+	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
 	
 	// postprocessing
 
@@ -136,6 +139,4 @@ void main(void) {
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
-
-	//out_color = vec4(ambient + diffuse + radiosity + stainmap, 1.0);
 }

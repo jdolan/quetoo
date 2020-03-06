@@ -51,7 +51,10 @@ void main(void) {
 
 	// postprocessing
 
-	out_color.rgb = fog(vertex.position, out_color.rgb);
+	// maybe move this to the vertex shader?
+	float fogginess = fog_factor(vertex.position);
+	out_color.rgb = mix(out_color.rgb, fog_color, fogginess);
+	out_color.a = mix(out_color.a, 0.0, fogginess);
 
 	out_color.rgb = color_filter(out_color.rgb);
 
