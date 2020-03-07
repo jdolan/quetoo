@@ -93,7 +93,7 @@ void Cg_ResolveWeather(const char *weather) {
  * @brief Creates an emitter for the given surface. The number of origins for the
  * emitter depends on the area of the surface.
  */
-static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_face_t *face) {
+static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 	cg_weather_emit_t *e = cgi.Malloc(sizeof(cg_weather_emit_t), MEM_TAG_CGAME_LEVEL);
 
@@ -111,7 +111,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_face_t *face) 
 	vec3_t center = Vec3_Mix(mins, maxs, 0.5);
 	center = Vec3_Add(center, Vec3_Scale(face->plane->normal, 1.0));
 
-	e->leaf = cgi.LeafForPoint(center, bsp);
+	e->leaf = cgi.LeafForPoint(center);
 
 	// resolve the number of origins based on surface area
 	vec3_t delta = Vec3_Subtract(maxs, mins);
@@ -173,7 +173,7 @@ static void Cg_LoadWeather(void) {
 
 		// for downward facing sky brushes, create an emitter
 		if ((face->texinfo->flags & SURF_SKY) && face->plane->normal.z < -0.1) {
-			Cg_LoadWeather_(bsp, face);
+			Cg_LoadWeather_(face);
 			j++;
 		}
 	}

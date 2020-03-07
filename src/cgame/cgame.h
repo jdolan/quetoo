@@ -500,10 +500,9 @@ typedef struct cg_import_s {
 
 	/**
 	 * @param p The point to check.
-	 * @param model The model to check within, or `NULL` for the world model.
 	 * @return The BSP leaf at the given point `p`, in the given `model`.
 	 */
-	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p, const r_bsp_model_t *model);
+	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p);
 
 	/**
 	 * @return True if `leaf` is in the potentially hearable set for the current frame.

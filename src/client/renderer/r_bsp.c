@@ -24,13 +24,9 @@
 /**
  * @brief Returns the leaf for the specified point.
  */
-const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
+const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 
-	if (!bsp) {
-		bsp = r_model_state.world->bsp;
-	}
-
-	return &bsp->leafs[Cm_PointLeafnum(p, 0)];
+	return &r_model_state.world->bsp->leafs[Cm_PointLeafnum(p, 0)];
 }
 
 /**
@@ -99,7 +95,7 @@ void R_UpdateVis(void) {
 		return;
 	}
 
-	r_locals.leaf = R_LeafForPoint(r_view.origin, NULL);
+	r_locals.leaf = R_LeafForPoint(r_view.origin);
 
 	if (r_locals.leaf->cluster == -1 || r_no_vis->integer) {
 
