@@ -82,7 +82,7 @@ static struct {
 } r_bsp_program;
 
 /**
- * @brief POPSICLE MODE !!!
+ * @brief
  */
 static void R_DrawBspNormals(void) {
 
@@ -95,10 +95,8 @@ static void R_DrawBspNormals(void) {
 	const r_bsp_vertex_t *v = bsp->vertexes;
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
 		
-		const vec3_t pos = Vec3_Add(v->position, v->normal);
-
-		const r_bsp_leaf_t *leaf = R_LeafForPoint(pos, bsp);
-		if (!R_LeafVisible(leaf)) {
+		const vec3_t pos = v->position;
+		if (Vec3_Distance(pos, r_view.origin) > 256.f) {
 			continue;
 		}
 
@@ -107,26 +105,15 @@ static void R_DrawBspNormals(void) {
 		const vec3_t bitangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->bitangent, 8.f)) };
 
 		R_Draw3DLines(normal, 2, color_red);
-		R_Draw3DLines(tangent, 2, color_green);
-		R_Draw3DLines(bitangent, 2, color_blue);
-		
-		R_AddParticle(&(r_particle_t) {
-			.origin = normal[1],
-			.size = .5f,
-			.color = Color3b(255, 0, 0)
-		});
-		R_AddParticle(&(r_particle_t) {
-			.origin = tangent[1],
-			.size = .5f,
-			.color = Color3b(0, 255, 0)
-		});
-		R_AddParticle(&(r_particle_t) {
-			.origin = bitangent[1],
-			.size = .5f,
-			.color = Color3b(0, 0, 255)
-		});
+
+		if (r_draw_bsp_normals->integer > 1) {
+			R_Draw3DLines(tangent, 2, color_green);
+
+			if (r_draw_bsp_normals->integer > 2) {
+				R_Draw3DLines(bitangent, 2, color_blue);
+			}
+		}
 	}
-	R_DrawParticles();
 }
 
 /**
