@@ -76,7 +76,7 @@ out vec4 out_color;
  */
 void main(void) {
 
-	vec3 normal = normalize(vertex.normal);
+	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
 	vec4 diffusemap;
 	if ((textures & TEXTURE_MASK_DIFFUSEMAP) == TEXTURE_MASK_DIFFUSEMAP) {
@@ -92,12 +92,14 @@ void main(void) {
 	vec4 normalmap;
 	if ((textures & TEXTURE_MASK_NORMALMAP) == TEXTURE_MASK_NORMALMAP) {
 		normalmap = texture(texture_normalmap, vertex.diffusemap);
-		normalmap.xyz = normalize(normalmap.xyz);
-		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * bump;
+		normalmap.xyz = normalize(normalmap.xyz * 2.0 - 1.0);
+		normalmap.xy *= bump;
 		normalmap.xyz = normalize(normalmap.xyz);
 	} else {
 		normalmap = vec4(0.0, 0.0, 1.0, 0.5);
 	}
+
+	vec3 normal = normalize(tbn * normalmap.xyz);
 
 	vec4 glossmap;
 	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {

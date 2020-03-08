@@ -58,7 +58,6 @@ in vertex_data {
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec4 color;
-	vec3 eye;
 } vertex;
 
 out vec4 out_color;
@@ -68,8 +67,8 @@ out vec4 out_color;
  */
 void main(void) {
 
-	// fetch textures
-	
+	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+
 	vec4 diffusemap;
 	if ((textures & TEXTURE_MASK_DIFFUSEMAP) == TEXTURE_MASK_DIFFUSEMAP) {
 		diffusemap = texture(texture_diffusemap, vertex.diffusemap) * vertex.color;
@@ -84,12 +83,14 @@ void main(void) {
 	vec4 normalmap;
 	if ((textures & TEXTURE_MASK_NORMALMAP) == TEXTURE_MASK_NORMALMAP) {
 		normalmap = texture(texture_normalmap, vertex.diffusemap);
-		normalmap.xyz = normalize(normalmap.xyz);
-		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * bump;
+		normalmap.xyz = normalize(normalmap.xyz * 2.0 - 1.0);
+		normalmap.xy *= bump;
 		normalmap.xyz = normalize(normalmap.xyz);
 	} else {
 		normalmap = vec4(0.0, 0.0, 1.0, 0.5);
 	}
+
+	vec3 normal = normalize(tbn * normalmap.xyz);
 
 	vec4 glossmap;
 	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {
@@ -100,12 +101,13 @@ void main(void) {
 
 	vec3 lightmap, stainmap;
 	if ((textures & TEXTURE_MASK_LIGHTMAP) == TEXTURE_MASK_LIGHTMAP) {
-		vec3 ambient = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
+		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
 		vec3 diffuse = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 1)).rgb * modulate;
-		vec3 radiosity = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 2)).rgb * modulate;
+		vec3 radiosity = texture(texture_lightmap, vec3(vertex.lightmap, 2)).rgb * modulate;
 		
 		vec3 diffuse_dir = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
 		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
+		diffuse_dir = normalize(tbn * diffuse_dir);
 
 		lightmap = ambient +
 		           diffuse + // TODO: bumpmapping
@@ -119,12 +121,7 @@ void main(void) {
 
 	vec3 light_diffuse = lightmap;
 	vec3 light_specular = vec3(0.0);
-	
-	// TODO: fix tangents
-	// mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-	// vec3 normal = normalize(tbn * normalmap.xyz);
-	vec3 normal = normalize(vertex.normal);
-	
+
 	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 	
 	out_color = diffusemap + vec4(stainmap, 1.0);
@@ -141,4 +138,5 @@ void main(void) {
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
+	//out_color.rgb = (normal + 1) * 0.5;
 }

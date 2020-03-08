@@ -457,6 +457,8 @@ void EndBSPFile(void) {
 	EmitEntities();
 
 	Work("Phong shading", PhongVertex, bsp_file.num_vertexes);
+
+	EmitTangents();
 }
 
 /**

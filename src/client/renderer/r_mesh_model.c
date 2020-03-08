@@ -164,63 +164,27 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 	const r_mesh_face_t *face = mod->mesh->faces;
 	for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
 
+		cm_vertex_t *vertexes = Mem_Malloc(sizeof(cm_vertex_t) * face->num_vertexes);
+
 		for (int32_t j = 0; j < mod->mesh->num_frames; j++) {
+
 			r_mesh_vertex_t *v = face->vertexes + face->num_vertexes * j;
-
-			vec3_t *sdir = (vec3_t *) Mem_Malloc(face->num_vertexes * sizeof(vec3_t));
-			vec3_t *tdir = (vec3_t *) Mem_Malloc(face->num_vertexes * sizeof(vec3_t));
-
-			GLuint *e = (GLuint *) ((byte *) mod->mesh->elements + (ptrdiff_t) face->elements);
-			for (int32_t k = 0; k < face->num_elements; k += 3) {
-
-				const r_mesh_vertex_t *a = &v[e[k + 0]];
-				const r_mesh_vertex_t *b = &v[e[k + 1]];
-				const r_mesh_vertex_t *c = &v[e[k + 2]];
-
-				vec3_t s, t;
-
-				const float bx_ax = b->position.x - a->position.x;
-				const float cx_ax = c->position.x - a->position.x;
-				const float by_ay = b->position.y - a->position.y;
-				const float cy_ay = c->position.y - a->position.y;
-				const float bz_az = b->position.z - a->position.z;
-				const float cz_az = c->position.z - a->position.z;
-
-				const float bs_as = b->diffusemap.x - a->diffusemap.x;
-				const float cs_as = c->diffusemap.x - a->diffusemap.x;
-				const float bt_at = b->diffusemap.y - a->diffusemap.y;
-				const float ct_at = c->diffusemap.y - a->diffusemap.y;
-
-				const float r = 1.0 / (bs_as * ct_at - cs_as * bt_at);
-
-				s = Vec3(ct_at * bx_ax - bt_at * cx_ax,
-						 ct_at * by_ay - bt_at * cy_ay,
-						 ct_at * bz_az - bt_at * cz_az);
-
-				s = Vec3_Scale(s, r);
-
-				t = Vec3(bs_as * cx_ax - cs_as * bx_ax,
-						 bs_as * cy_ay - cs_as * by_ay,
-						 bs_as * cz_az - cs_as * bz_az);
-
-				t = Vec3_Scale(t, r);
-
-				sdir[e[k + 0]] = Vec3_Add(sdir[e[k + 0]], s);
-				sdir[e[k + 1]] = Vec3_Add(sdir[e[k + 1]], s);
-				sdir[e[k + 2]] = Vec3_Add(sdir[e[k + 2]], s);
-
-				tdir[e[k + 0]] = Vec3_Add(tdir[e[k + 0]], t);
-				tdir[e[k + 1]] = Vec3_Add(tdir[e[k + 1]], t);
-				tdir[e[k + 2]] = Vec3_Add(tdir[e[k + 2]], t);
+			for (int32_t k = 0; k < face->num_vertexes; k++, v++) {
+				vertexes[k] = (cm_vertex_t) {
+					.position = &v->position,
+					.normal = &v->normal,
+					.tangent = &v->tangent,
+					.bitangent = &v->bitangent,
+					.st = &v->diffusemap
+				};
 			}
 
-			for (int32_t k = 0; k < face->num_vertexes; k++) {
-				Vec3_Tangents(v->normal, sdir[k], tdir[k], &v->tangent, &v->bitangent);
-			}
+			const int32_t *elements = (int32_t *) ((byte *) mod->mesh->elements + (ptrdiff_t) face->elements);
 
-			Mem_Free(sdir);
-			Mem_Free(tdir);
+			Cm_Tangents(vertexes, face->num_vertexes, elements, face->num_elements);
 		}
+
+		Mem_Free(vertexes);
 	}
 }
 
@@ -247,7 +211,7 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 	mod->mesh->elements = Mem_LinkMalloc(mod->mesh->num_elements * sizeof(GLuint), mod->mesh);
 
 	r_mesh_vertex_t *vertex = mod->mesh->vertexes;
-	GLuint *elements = mod->mesh->elements;
+	int32_t *elements = mod->mesh->elements;
 
 	{
 		r_mesh_face_t *face = mod->mesh->faces;
@@ -262,7 +226,7 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 			memcpy(elements, face->elements, face->num_elements * sizeof(GLuint));
 			Mem_Free(face->elements);
 
-			face->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(GLuint));
+			face->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(int32_t));
 			elements += face->num_elements;
 		}
 	}

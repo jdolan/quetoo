@@ -49,7 +49,6 @@ static struct {
 	GLint projection;
 	GLint view;
 	GLint model;
-	GLint normal;
 
 	GLint textures;
 
@@ -255,13 +254,6 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 
-	mat4_t normal;
-	Matrix4x4_Concat(&normal, &r_locals.view, &e->matrix);
-	Matrix4x4_Invert_Full(&normal, &normal);
-	Matrix4x4_Transpose(&normal, &normal);
-
-	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
-
 	R_DrawBspDrawElements(e->model->bsp_inline);
 }
 
@@ -284,12 +276,6 @@ void R_DrawWorld(void) {
 	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_bsp_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
-
-	mat4_t normal;
-	Matrix4x4_Invert_Full(&normal, &r_locals.view);
-	Matrix4x4_Transpose(&normal, &normal);
-
-	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
@@ -379,7 +365,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.projection = glGetUniformLocation(r_bsp_program.name, "projection");
 	r_bsp_program.view = glGetUniformLocation(r_bsp_program.name, "view");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
-	r_bsp_program.normal = glGetUniformLocation(r_bsp_program.name, "normal");
 
 	r_bsp_program.textures = glGetUniformLocation(r_bsp_program.name, "textures");
 	r_bsp_program.texture_diffusemap = glGetUniformLocation(r_bsp_program.name, "texture_diffusemap");

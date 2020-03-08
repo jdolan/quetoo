@@ -51,3 +51,4 @@ void FreeFace(face_t *f);
 face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal);
 int32_t EmitFace(const face_t *face);
 void PhongVertex(int32_t vertex_num);
+void EmitTangents(void);

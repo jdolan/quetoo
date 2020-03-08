@@ -400,7 +400,6 @@ typedef struct {
  * @brief
  */
 typedef struct {
-
 	/**
 	 * @brief The lightgrid size in luxels.
 	 */
@@ -516,7 +515,7 @@ typedef struct {
 	r_mesh_vertex_t *vertexes;
 	int32_t num_vertexes;
 
-	GLuint *elements;
+	int32_t *elements;
 	int32_t num_elements;
 
 	r_mesh_frame_t *frames;
