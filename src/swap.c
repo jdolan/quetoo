@@ -94,6 +94,19 @@ float LittleFloat(float f) {
 /**
  * @brief
  */
+mat4_t LittleMat4(const mat4_t m) {
+	mat4_t out = m;
+	for (int32_t i = 0; i < 4; i++) {
+		for (int32_t j = 0; j < 4; j++) {
+			out.m[i][j] = LittleFloat(out.m[i][j]);
+		}
+	}
+	return out;
+}
+
+/**
+ * @brief
+ */
 vec3s_t LittleVec3s(const vec3s_t v) {
 	return Vec3s(LittleShort(v.x),
 				   LittleShort(v.y),

@@ -26,4 +26,5 @@
 void R_AddStain(const r_stain_t *stain);
 
 #ifdef __R_LOCAL_H__
+void R_UpdateStains(void);
 #endif /* __R_LOCAL_H__ */

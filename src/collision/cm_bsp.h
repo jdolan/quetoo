@@ -62,9 +62,14 @@
 #define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
 
 /**
- * @brief Lightgrid ambient, diffuse, radiosity, and direction layers.
+ * @brief Lightmap ambient, diffuse, radiosity, and direction layers.
  */
 #define BSP_LIGHTMAP_LAYERS 4
+
+/**
+ * @brief Stainmap layers.
+ */
+#define BSP_STAINMAP_LAYERS 1
 
 /**
  * @brief Lightgrid luxel size in world units.
@@ -165,11 +170,27 @@ typedef struct {
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
 	vec2_t diffusemap;
 	vec2_t lightmap;
 	int32_t texinfo;
 } bsp_vertex_t;
 
+/**
+ * @brief Face lightmaps contain atlas offsets and dimensions.
+ */
+typedef struct {
+	int32_t s, t;
+	int32_t w, h;
+
+	vec2_t st_mins, st_maxs;
+	mat4_t matrix;
+} bsp_face_lightmap_t;
+
+/**
+ * @brief Faces are polygon primitives, stored as both vertex and element arrays.
+ */
 typedef struct {
 	int32_t plane_num;
 	int32_t texinfo;
@@ -180,10 +201,7 @@ typedef struct {
 	int32_t first_element; // element array for triangles
 	int32_t num_elements;
 
-	struct {
-		int32_t s, t;
-		int32_t w, h;
-	} lightmap;
+	bsp_face_lightmap_t lightmap;
 } bsp_face_t;
 
 /**

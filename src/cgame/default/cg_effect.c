@@ -93,20 +93,28 @@ void Cg_ResolveWeather(const char *weather) {
  * @brief Creates an emitter for the given surface. The number of origins for the
  * emitter depends on the area of the surface.
  */
-static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_face_t *s) {
-	vec3_t center, delta;
+static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 	cg_weather_emit_t *e = cgi.Malloc(sizeof(cg_weather_emit_t), MEM_TAG_CGAME_LEVEL);
 
 	// resolve the leaf for the point just in front of the surface
 
-	center = Vec3_Mix(s->mins, s->maxs, 0.5);
-	center = Vec3_Add(center, Vec3_Scale(s->plane->normal, 1.0));
+	vec3_t mins = Vec3_Mins();
+	vec3_t maxs = Vec3_Maxs();
 
-	e->leaf = cgi.LeafForPoint(center, bsp);
+	const r_bsp_vertex_t *v = face->vertexes;
+	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
+		mins = Vec3_Minf(mins, v->position);
+		maxs = Vec3_Maxf(maxs, v->position);
+	}
+
+	vec3_t center = Vec3_Mix(mins, maxs, 0.5);
+	center = Vec3_Add(center, Vec3_Scale(face->plane->normal, 1.0));
+
+	e->leaf = cgi.LeafForPoint(center);
 
 	// resolve the number of origins based on surface area
-	delta = Vec3_Subtract(s->maxs, s->mins);
+	vec3_t delta = Vec3_Subtract(maxs, mins);
 	e->num_origins = Vec3_Length(delta) / 32.0;
 	e->num_origins = Clampf(e->num_origins, 1, 128);
 
@@ -120,7 +128,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_face_t *s) {
 
 		// randomize the origin over the surface
 
-		const vec3_t org = Vec3_Add(Vec3_Mix3(s->mins, s->maxs, Vec3_Random()), s->plane->normal);
+		const vec3_t org = Vec3_Add(Vec3_Mix3(mins, maxs, Vec3_Random()), face->plane->normal);
 
 		vec3_t end = org;
 		end.z -= MAX_WORLD_DIST;
@@ -165,7 +173,7 @@ static void Cg_LoadWeather(void) {
 
 		// for downward facing sky brushes, create an emitter
 		if ((face->texinfo->flags & SURF_SKY) && face->plane->normal.z < -0.1) {
-			Cg_LoadWeather_(bsp, face);
+			Cg_LoadWeather_(face);
 			j++;
 		}
 	}

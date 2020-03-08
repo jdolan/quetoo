@@ -23,8 +23,11 @@
 
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
-layout (location = 2) in vec2 in_diffusemap;
-layout (location = 3) in vec2 in_lightmap;
+layout (location = 2) in vec3 in_tangent;
+layout (location = 3) in vec3 in_bitangent;
+layout (location = 4) in vec2 in_diffusemap;
+layout (location = 5) in vec2 in_lightmap;
+layout (location = 6) in vec4 in_color;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -33,8 +36,11 @@ uniform mat4 model;
 out vertex_data {
 	vec3 position;
 	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
 	vec2 diffusemap;
 	vec2 lightmap;
+	vec4 color;
 } vertex;
 
 /**
@@ -45,8 +51,11 @@ void main(void) {
 	gl_Position = projection * view * model * vec4(in_position, 1.0);
 
 	vertex.position = (view * model * vec4(in_position, 1.0)).xyz;
-	vertex.normal = normalize(vec3(view * model * vec4(in_normal, 0.0)));
+	vertex.normal = normalize(vec3(view * model * vec4(in_normal, 0.0)).xyz);
+	vertex.tangent = normalize(vec3(view * model * vec4(in_tangent, 0.0)).xyz);
+	vertex.bitangent = normalize(vec3(view * model * vec4(in_bitangent, 0.0)).xyz);
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
+	vertex.color = in_color;
 }

@@ -54,3 +54,36 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements);
 float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c);
 float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t *out);
+
+/**
+ * @brief A UV mapped vertex primitive.
+ */
+typedef struct {
+	/**
+	 * @brief The vertex position.
+	 */
+	vec3_t *position;
+
+	/**
+	 * @brief The vertex normal.
+	 */
+	vec3_t *normal;
+
+	/**
+	 * @brief The vertex tangent.
+	 */
+	vec3_t *tangent;
+
+	/**
+	 * @brief The vertex bitangent.
+	 */
+	vec3_t *bitangent;
+
+	/**
+	 * @brief The vertex texture coordinate.
+	 */
+	vec2_t *st;
+} cm_vertex_t;
+
+
+void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *elements, int32_t num_elements);

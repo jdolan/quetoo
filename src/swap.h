@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "matrix.h"
 #include "vector.h"
 
 int16_t BigShort(int16_t s);
@@ -29,6 +30,7 @@ int32_t BigLong(int32_t l);
 int32_t LittleLong(int32_t l);
 float BigFloat(float f);
 float LittleFloat(float f);
+mat4_t LittleMat4(const mat4_t m);
 vec3s_t LittleVec3s(const vec3s_t v);
 vec3i_t LittleVec3i(const vec3i_t v);
 vec2_t LittleVec2(const vec2_t v);

@@ -153,6 +153,42 @@ void R_LoadMeshConfigs(r_model_t *mod) {
 }
 
 /**
+ * @brief Calculates tangent vectors for each MD3 vertex for per-pixel
+ * lighting. See http://www.terathon.com/code/tangent.html.
+ */
+static void R_LoadMeshTangents(r_model_t *mod) {
+
+	assert(mod->mesh);
+	assert(mod->mesh->num_faces);
+
+	const r_mesh_face_t *face = mod->mesh->faces;
+	for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+
+		cm_vertex_t *vertexes = Mem_Malloc(sizeof(cm_vertex_t) * face->num_vertexes);
+
+		for (int32_t j = 0; j < mod->mesh->num_frames; j++) {
+
+			r_mesh_vertex_t *v = face->vertexes + face->num_vertexes * j;
+			for (int32_t k = 0; k < face->num_vertexes; k++, v++) {
+				vertexes[k] = (cm_vertex_t) {
+					.position = &v->position,
+					.normal = &v->normal,
+					.tangent = &v->tangent,
+					.bitangent = &v->bitangent,
+					.st = &v->diffusemap
+				};
+			}
+
+			const int32_t *elements = (int32_t *) ((byte *) mod->mesh->elements + (ptrdiff_t) face->elements);
+
+			Cm_Tangents(vertexes, face->num_vertexes, elements, face->num_elements);
+		}
+
+		Mem_Free(vertexes);
+	}
+}
+
+/**
  * @brief
  */
 void R_LoadMeshVertexArray(r_model_t *mod) {
@@ -175,7 +211,7 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 	mod->mesh->elements = Mem_LinkMalloc(mod->mesh->num_elements * sizeof(GLuint), mod->mesh);
 
 	r_mesh_vertex_t *vertex = mod->mesh->vertexes;
-	GLuint *elements = mod->mesh->elements;
+	int32_t *elements = mod->mesh->elements;
 
 	{
 		r_mesh_face_t *face = mod->mesh->faces;
@@ -190,10 +226,12 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 			memcpy(elements, face->elements, face->num_elements * sizeof(GLuint));
 			Mem_Free(face->elements);
 
-			face->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(GLuint));
+			face->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(int32_t));
 			elements += face->num_elements;
 		}
 	}
+
+	R_LoadMeshTangents(mod);
 
 	glGenVertexArrays(1, &mod->mesh->vertex_array);
 	glBindVertexArray(mod->mesh->vertex_array);
@@ -208,7 +246,9 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, position));
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, normal));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, diffusemap));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, tangent));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, bitangent));
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, diffusemap));
 
 	R_GetError(mod->media.name);
 

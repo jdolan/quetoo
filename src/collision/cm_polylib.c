@@ -644,3 +644,48 @@ float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_
 
    return FLT_MAX;
 }
+
+/**
+ * @brief Calculates the tangent vectors for the given vertexes and triangle elements.
+ * @see http://foundationsofgameenginedev.com/FGED2-sample.pdf
+ */
+void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *elements, int32_t num_elements) {
+
+	for (int32_t i = 0; i < num_elements; i += 3) {
+
+		const int32_t i0 = *(elements + i + 0);
+		const int32_t i1 = *(elements + i + 1);
+		const int32_t i2 = *(elements + i + 2);
+
+		cm_vertex_t *v0 = vertexes + i0;
+		cm_vertex_t *v1 = vertexes + i1;
+		cm_vertex_t *v2 = vertexes + i2;
+
+		const vec3_t e1 = Vec3_Subtract(*v1->position, *v0->position);
+		const vec3_t e2 = Vec3_Subtract(*v2->position, *v0->position);
+
+		const float x1 = v1->st->x - v0->st->x;
+		const float x2 = v2->st->x - v0->st->x;
+
+		const float y1 = v1->st->y - v0->st->y;
+		const float y2 = v2->st->y - v0->st->y;
+
+		const float r = 1.f / (x1 * y2 - x2 * y1);
+
+		const vec3_t t = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e1, y2), Vec3_Scale(e2, y1)), r);
+		const vec3_t b = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e2, x1), Vec3_Scale(e1, x2)), r);
+
+		*v0->tangent = Vec3_Add(*v0->tangent, t);
+		*v1->tangent = Vec3_Add(*v1->tangent, t);
+		*v2->tangent = Vec3_Add(*v2->tangent, t);
+
+		*v0->bitangent = Vec3_Add(*v0->bitangent, b);
+		*v1->bitangent = Vec3_Add(*v1->bitangent, b);
+		*v2->bitangent = Vec3_Add(*v2->bitangent, b);
+	}
+
+	cm_vertex_t *v = vertexes;
+	for (int32_t i = 0; i < num_vertexes; i++, v++) {
+		Vec3_Tangents(*v->normal, *v->tangent, *v->bitangent, v->tangent, v->bitangent);
+	}
+}

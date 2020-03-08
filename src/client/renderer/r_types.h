@@ -218,8 +218,11 @@ typedef struct {
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
 	vec2_t diffusemap;
 	vec2_t lightmap;
+	color32_t color;
 } r_bsp_vertex_t;
 
 typedef struct {
@@ -231,18 +234,41 @@ typedef struct {
 } r_bsp_flare_t;
 
 /**
- * @brief Each indivudual surface lightmap has a projection matrix.
+ * @brief Indivudual face lightmap information.
  */
 typedef struct {
-	r_image_t *atlas; // the lightmap atlas containing this lightmap
+	/**
+	 * @brief The texture coordinates of this lightmap in the lightmap atlas.
+	 */
+	r_pixel_t s, t;
 
-	r_pixel_t s, t; // the texture coordinates into the atlas image
+	/**
+	 * @brief The width and height of this lightmap.
+	 */
 	r_pixel_t w, h;
 
+	/**
+	 * @brief The world-to-lightmap projection matrix.
+	 */
+	mat4_t matrix;
+
+	/**
+	 * @brief The texture coordinate bounds.
+	 */
 	vec2_t st_mins, st_maxs;
+
+	/**
+	 * @brief The stainmap for this lightmap.
+	 */
+	byte *stainmap;
 } r_bsp_face_lightmap_t;
 
+/**
+ * @brief BSP faces, which may reside on the front or back of their node.
+ */
 typedef struct {
+	struct r_bsp_node_s *node;
+
 	cm_bsp_plane_t *plane;
 	byte plane_side;
 
@@ -251,16 +277,13 @@ typedef struct {
 
 	r_bsp_face_lightmap_t lightmap;
 
-	vec3_t mins, maxs;
-	vec2_t st_mins, st_maxs;
-
-	struct r_bsp_node_s *node;
-
 	r_bsp_vertex_t *vertexes;
 	int32_t num_vertexes;
 
 	GLvoid *elements;
 	int32_t num_elements;
+
+	int32_t stain_frame;
 } r_bsp_face_t;
 
 /**
@@ -362,7 +385,6 @@ typedef struct r_bsp_inline_model_s {
  * @brief
  */
 typedef struct {
-
 	/**
 	 * @brief The atlas width.
 	 */
@@ -378,7 +400,6 @@ typedef struct {
  * @brief
  */
 typedef struct {
-
 	/**
 	 * @brief The lightgrid size in luxels.
 	 */
@@ -445,6 +466,8 @@ typedef struct {
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
 	vec2_t diffusemap;
 } r_mesh_vertex_t;
 
@@ -492,7 +515,7 @@ typedef struct {
 	r_mesh_vertex_t *vertexes;
 	int32_t num_vertexes;
 
-	GLuint *elements;
+	int32_t *elements;
 	int32_t num_elements;
 
 	r_mesh_frame_t *frames;
@@ -587,11 +610,6 @@ typedef struct {
 	 * @brief The stain color.
 	 */
 	color_t color;
-
-	/**
-	 * @brief The stain media. FIXME: remove this?
-	 */
-	const r_media_t *media;
 } r_stain_t;
 
 #define MAX_STAINS			0x400

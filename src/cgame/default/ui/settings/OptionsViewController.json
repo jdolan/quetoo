@@ -76,7 +76,7 @@
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "r_stainmaps"
+                          "var": "r_stains"
                         }
                       },
                       {
@@ -89,7 +89,7 @@
                         "control": {
                           "class": "CvarSelect",
                           "identifier": "stains",
-                          "var": "r_stainmaps_expiration"
+                          "var": "r_stains_expiration"
                         }
                       },
                       {

@@ -78,9 +78,25 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
 		out->position = in->position;
 		out->normal = in->normal;
-		
+		out->tangent = in->tangent;
+		out->bitangent = in->bitangent;
+
 		out->diffusemap = in->diffusemap;
 		out->lightmap = in->lightmap;
+
+		float alpha = 1.0;
+
+		const r_bsp_texinfo_t *texinfo = bsp->texinfo + in->texinfo;
+		switch (texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
+			case SURF_BLEND_33:
+				alpha = 0.333;
+				break;
+			case SURF_BLEND_66:
+				alpha = 0.666;
+			default:
+				break;
+		}
+		out->color = Color_Color32(Color4f(1.0, 1.0, 1.0, alpha));
 	}
 }
 
@@ -133,10 +149,23 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 		out->num_elements = in->num_elements;
 
+		if (out->texinfo->flags & SURF_NO_LIGHTMAP) {
+			continue;
+		}
+
+		r_bsp_face_lightmap_t *lm = &out->lightmap;
+
 		out->lightmap.s = in->lightmap.s;
 		out->lightmap.t = in->lightmap.t;
 		out->lightmap.w = in->lightmap.w;
 		out->lightmap.h = in->lightmap.h;
+
+		out->lightmap.matrix = in->lightmap.matrix;
+
+		out->lightmap.st_mins = in->lightmap.st_mins;
+		out->lightmap.st_maxs = in->lightmap.st_maxs;
+
+		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * BSP_LIGHTMAP_BPP, bsp->faces);
 	}
 }
 
@@ -281,52 +310,6 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Sets up the bsp_face_t for rendering.
- */
-static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t *face) {
-
-	face->mins = Vec3_Mins();
-	face->maxs = Vec3_Maxs();
-
-	face->st_mins = Vec2_Mins();
-	face->st_maxs = Vec2_Maxs();
-
-	face->lightmap.st_mins = Vec2_Mins();
-	face->lightmap.st_maxs = Vec2_Maxs();
-
-	const r_bsp_vertex_t *v = face->vertexes;
-	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
-
-		face->mins = Vec3_Minf(face->mins, v->position);
-		face->maxs = Vec3_Maxf(face->maxs, v->position);
-
-		face->st_mins = Vec2_Minf(face->st_mins, v->diffusemap);
-		face->st_maxs = Vec2_Maxf(face->st_maxs, v->diffusemap);
-
-		face->lightmap.st_mins = Vec2_Minf(face->lightmap.st_mins, v->lightmap);
-		face->lightmap.st_maxs = Vec2_Maxf(face->lightmap.st_maxs, v->lightmap);
-	}
-
-//	R_CreateBspSurfaceFlare(bsp, face);
-}
-
-/**
- * @brief Iterates r_bsp_face_t by their respective leafs, preparing them for rendering.
- */
-static void R_SetupBspFaces(r_bsp_model_t *bsp) {
-
-	r_bsp_leaf_t *leaf = bsp->leafs;
-	for (int32_t i = 0; i < bsp->num_leafs; i++, leaf++) {
-
-		r_bsp_face_t **face = leaf->leaf_faces;
-		for (int32_t j = 0; j < leaf->num_leaf_faces; j++, face++) {
-
-			R_SetupBspFace(bsp, leaf, *face);
-		}
-	}
-}
-
-/**
  * @brief
  */
 static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inline_model_t *model) {
@@ -424,9 +407,17 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 	out->atlas->type = IT_LIGHTMAP;
 	out->atlas->width = out->width;
 	out->atlas->height = out->width;
-	out->atlas->depth = BSP_LIGHTMAP_LAYERS;
+	out->atlas->depth = BSP_LIGHTMAP_LAYERS + BSP_STAINMAP_LAYERS;
 
-	R_UploadImage(out->atlas, GL_RGB, (byte *) in + sizeof(bsp_lightmap_t));
+	const size_t in_size = in->width * in->width * BSP_LIGHTMAP_LAYERS * BSP_LIGHTMAP_BPP;
+	const size_t out_size = out->atlas->width * out->atlas->height * out->atlas->depth * BSP_LIGHTMAP_BPP;
+
+	byte *data = Mem_Malloc(out_size);
+	memcpy(data, (byte *) in + sizeof(bsp_lightmap_t), in_size);
+
+	R_UploadImage(out->atlas, GL_RGB, data);
+
+	Mem_Free(data);
 }
 
 /**
@@ -486,8 +477,11 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, lightmap));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
+	glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, lightmap));
+	glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
 
 	R_GetError(mod->media.name);
 
@@ -549,9 +543,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Cl_LoadingProgress(38, "nodes");
 	R_LoadBspNodes(mod->bsp);
-
-	Cl_LoadingProgress(42, "faces");
-	R_SetupBspFaces(mod->bsp);
 
 	Cl_LoadingProgress(46, "inline models");
 	R_LoadBspInlineModels(mod->bsp);

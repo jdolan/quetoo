@@ -104,7 +104,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
-#define SNAP_TO_INT		(8.0)
+#define SNAP_TO_INT		(4.0)
 #define SNAP_TO_FLOAT	(1.0 / SNAP_TO_INT)
 
 /**
@@ -215,7 +215,7 @@ int32_t EmitFace(const face_t *face) {
 #define MAX_PHONG_FACES 256
 
 /**
- * @brief Populate Phong faces with indexes of all Phong shaded faces referencing the vertex.
+ * @brief Populate phong_faces with pointers to all Phong shaded faces referencing the vertex.
  * @return The number of Phong shaded bsp_face_t's referencing the vertex.
  */
 static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t **phong_faces) {
@@ -283,4 +283,27 @@ void PhongVertex(int32_t vertex_num) {
 			v->normal = Vec3_Normalize(v->normal);
 		}
 	}
+}
+
+/**
+ * @brief Emits tangent and bitangent vectors to the face's vertexes.
+ */
+void EmitTangents(void) {
+
+	cm_vertex_t *vertexes = Mem_Malloc(sizeof(cm_vertex_t) * bsp_file.num_vertexes);
+
+	bsp_vertex_t *v = bsp_file.vertexes;
+	for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
+		vertexes[i] = (cm_vertex_t) {
+			.position = &v->position,
+			.normal = &v->normal,
+			.tangent = &v->tangent,
+			.bitangent = &v->bitangent,
+			.st = &v->diffusemap
+		};
+	}
+
+	Cm_Tangents(vertexes, bsp_file.num_vertexes, bsp_file.elements, bsp_file.num_elements);
+
+	Mem_Free(vertexes);
 }

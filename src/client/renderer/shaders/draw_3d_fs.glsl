@@ -30,7 +30,9 @@ out vec4 out_color;
  */
 void main(void) {
 
+	out_color = vertex.color;
+
 	// postprocessing
-	
-	out_color.rgb = color_filter(vertex.color.rgb);
+
+	out_color.rgb = color_filter(out_color.rgb);
 }

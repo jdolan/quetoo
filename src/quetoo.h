@@ -264,6 +264,11 @@ typedef enum {
 #define SURF_TEXINFO_CMP        ~(SURF_LIGHT | SURF_PHONG | SURF_NO_WELD | SURF_DEBUG_LUXEL)
 
 /**
+ * @brief Texinfo's with these flags will not have lightmap data.
+ */
+#define SURF_NO_LIGHTMAP		(SURF_SKY | SURF_WARP | SURF_NO_DRAW | SURF_HINT | SURF_MATERIAL)
+
+/**
  * @brief Contents masks: frequently combined contents flags.
  */
 #define MASK_ALL				(-1)

@@ -73,7 +73,7 @@ cvar_t *r_shadows;
 cvar_t *r_shell;
 cvar_t *r_soft_particles;
 cvar_t *r_specular;
-cvar_t *r_stainmaps;
+cvar_t *r_stains;
 cvar_t *r_supersample;
 cvar_t *r_texture_mode;
 cvar_t *r_swap_interval;
@@ -287,6 +287,8 @@ void R_DrawView(r_view_t *view) {
 	R_UpdateVis();
 	
 	R_UpdateLights();
+
+	R_UpdateStains();
 
 	R_UpdateFog();
 
@@ -509,7 +511,7 @@ static void R_InitLocal(void) {
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_soft_particles = Cvar_Add("r_soft_particles", "1", CVAR_ARCHIVE, "Controls soft particles, which are more expensive.");
 	r_specular = Cvar_Add("r_specular", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-	r_stainmaps = Cvar_Add("r_stainmaps", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");
+	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");
 	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the level of super-sampling. Requires framebuffer extension.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");

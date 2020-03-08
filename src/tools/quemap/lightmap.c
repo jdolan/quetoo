@@ -154,13 +154,6 @@ void BuildLightmaps(void) {
 
 	lightmaps = Mem_TagMalloc(sizeof(lightmap_t) * bsp_file.num_faces, MEM_TAG_LIGHTMAP);
 
-	bsp_draw_elements_t *draw = bsp_file.draw_elements;
-	for (int32_t i = 0; i < bsp_file.num_draw_elements; i++, draw++) {
-		for (int32_t j = 0; j < draw->num_faces; j++) {
-			lightmaps[draw->first_face + j].draw = draw;
-		}
-	}
-
 	const bsp_leaf_t *leaf = bsp_file.leafs;
 	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
 		const int32_t *leaf_face = bsp_file.leaf_faces + leaf->first_leaf_face;
@@ -182,13 +175,12 @@ void BuildLightmaps(void) {
 		lightmap_t *lm = &lightmaps[i];
 
 		assert(lm->leaf);
-		assert(lm->draw);
 
 		lm->face = &bsp_file.faces[i];
 		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
 		lm->plane = &bsp_file.planes[lm->face->plane_num];
 
-		if (lm->texinfo->flags & SURF_SKY) {
+		if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -333,7 +325,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 				const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 				const float thresh = cosf(light->theta);
 				const float smooth = 0.03;
-				intensity *= Smoothf(thresh - smooth, thresh + smooth, cone_dot);
+				intensity *= Smoothf(cone_dot, thresh - smooth, thresh + smooth);
 				intensity *= DEFAULT_BSP_PATCH_SIZE;
 			}
 				break;
@@ -500,7 +492,7 @@ void DirectLightmap(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_SKY) {
+	if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 		return;
 	}
 
@@ -552,7 +544,7 @@ void IndirectLightmap(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_SKY) {
+	if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 		return;
 	}
 
@@ -598,7 +590,7 @@ void FinalizeLightmap(int32_t face_num) {
 
 	lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_SKY) {
+	if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 		return;
 	}
 
@@ -636,8 +628,26 @@ void FinalizeLightmap(int32_t face_num) {
 			*out_radiosity++ = (byte) Clampf(radiosity.xyz[j] * 255.0, 0, 255);
 		}
 
-		// write the directional sample data
-		const vec3_t diffuse_dir = Vec3_Normalize(Vec3_Add(l->normal, l->diffuse_dir));
+		// write the directional sample data, in tangent space
+		vec3_t diffuse_dir;
+
+		if (!Vec3_Equal(l->diffuse_dir, Vec3_Zero())) {
+
+			const vec3_t sdir = Vec4_XYZ(lm->texinfo->vecs[0]);
+			const vec3_t tdir = Vec4_XYZ(lm->texinfo->vecs[1]);
+
+			vec3_t tangent, bitangent;
+			Vec3_Tangents(l->normal, sdir, tdir, &tangent, &bitangent);
+
+			diffuse_dir.x = Vec3_Dot(l->diffuse_dir, tangent);
+			diffuse_dir.y = Vec3_Dot(l->diffuse_dir, bitangent);
+			diffuse_dir.z = Vec3_Dot(l->diffuse_dir, l->normal);
+
+			diffuse_dir = Vec3_Add(diffuse_dir, Vec3_Up());
+			diffuse_dir = Vec3_Normalize(diffuse_dir);
+		} else {
+			diffuse_dir = Vec3_Up();
+		}
 
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 		for (int32_t j = 0; j < 3; j++) {
@@ -659,7 +669,7 @@ void EmitLightmap(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & SURF_SKY) {
+		if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -713,7 +723,7 @@ void EmitLightmap(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & SURF_SKY) {
+		if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -721,6 +731,11 @@ void EmitLightmap(void) {
 		lm->face->lightmap.t = lm->t = nodes[i]->y;
 		lm->face->lightmap.w = lm->w;
 		lm->face->lightmap.h = lm->h;
+
+		lm->face->lightmap.matrix = lm->matrix;
+
+		lm->face->lightmap.st_mins = lm->st_mins;
+		lm->face->lightmap.st_maxs = lm->st_maxs;
 
 		SDL_FreeSurface(lm->ambient);
 		SDL_FreeSurface(lm->diffuse);
@@ -739,7 +754,7 @@ void EmitLightmapTexcoords(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & SURF_SKY) {
+		if (lm->texinfo->flags & SURF_NO_LIGHTMAP) {
 			continue;
 		}
 
