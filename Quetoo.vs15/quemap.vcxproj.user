@@ -12,7 +12,7 @@
     <LocalDebuggerCommandArguments>-bsp -vis -light -v --indirect maps/torn.map</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-bsp -vis -light --indirect --antialias torn.map</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-bsp -vis -light torn.map</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommandArguments>-bsp -vis -light wake.map</LocalDebuggerCommandArguments>
