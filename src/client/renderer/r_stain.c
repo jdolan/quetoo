@@ -152,6 +152,8 @@ void R_UpdateStains(void) {
 		return;
 	}
 
+	r_locals.stain_frame++;
+
 	const r_stain_t *stain = r_view.stains;
 	for (int32_t i = 0; i < r_view.num_stains; i++, stain++) {
 
@@ -190,8 +192,6 @@ void R_UpdateStains(void) {
 					face->lightmap.stainmap);
 		}
 	}
-
-	r_locals.stain_frame++;
 
 	R_GetError(NULL);
 }

@@ -129,7 +129,7 @@ void main(void) {
 	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
 	
 	// postprocessing
-
+	
 	out_color.rgb = tonemap(out_color.rgb);
 	
 	out_color.rgb = fog(vertex.position, out_color.rgb);

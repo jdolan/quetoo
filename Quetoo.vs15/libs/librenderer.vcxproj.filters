@@ -212,5 +212,8 @@
     <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\common.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
