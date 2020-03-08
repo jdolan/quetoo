@@ -237,3 +237,10 @@ vec4 texture_bicubic(sampler2DArray sampler, vec3 coords) {
 	   mix(sample3, sample2, sx), mix(sample1, sample0, sx)
 	, sy);
 }
+
+/**
+* @brief
+*/
+float grayscale(vec3 color) {
+	return dot(color, vec3(0.299, 0.587, 0.114));
+}

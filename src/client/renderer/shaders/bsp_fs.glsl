@@ -63,6 +63,33 @@ in vertex_data {
 out vec4 out_color;
 
 /**
+ * @brief Highpasses the heightmap to approximate ambient occlusion.
+ */
+float gen_cavity(vec4 normalmap) {
+	float height_a = normalmap.a;
+	float height_b = texture(texture_normalmap, vertex.diffusemap, 4).a;
+	float ao = (height_a - height_b) * 0.5 + 0.5;
+	return ao * smoothstep(0.8, 1.0, normalmap.z);
+}
+
+/**
+* @brief For materials without a gloss texture.
+*/
+float gen_gloss(vec4 diffusemap) {
+	float gloss = grayscale(diffusemap.rgb) * 0.875 + 0.125;
+	return saturate(pow(gloss * 3.0, 4.0));
+}
+
+/**
+* @brief For materials without a gloss texture.
+*/
+float auto_glossmap(vec4 normalmap, vec4 diffusemap) {
+	float gloss = gen_gloss(diffusemap) * 0.333 + 0.333;
+	float cavity = gen_cavity(normalmap);
+	return saturate((gloss + cavity) - 0.333);
+}
+
+/**
  * @brief
  */
 void main(void) {
@@ -99,7 +126,7 @@ void main(void) {
 	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {
 		glossmap = texture(texture_glossmap, vertex.diffusemap);
 	} else {
-		glossmap = vec4(1.0);
+		glossmap = vec4(auto_glossmap(normalmap, diffusemap));
 	}
 
 	vec3 lightmap, stainmap;
@@ -138,4 +165,7 @@ void main(void) {
 	
 	out_color.rgb = dither(out_color.rgb);
 	//out_color.rgb = (normal + 1) * 0.5;
+	// out_color.rgb = vec3(gen_cavity(normalmap));
+	// out_color.rgb = vec3(gen_gloss(diffusemap));
+	// out_color.rgb = vec3(auto_glossmap(normalmap, diffusemap));
 }
