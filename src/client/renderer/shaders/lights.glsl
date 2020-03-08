@@ -55,7 +55,7 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 				float attenuation = dist_atten * angle_atten;
 				
 				vec3 view_dir = normalize(-position);
-				vec3 half_dir = max(normalize(light_dir + view_dir), 0.0);
+				vec3 half_dir = normalize(light_dir + view_dir);
 				float specular_base = dot(half_dir, normal);
 				float specular = pow(specular_base, specular_exponent);
 				

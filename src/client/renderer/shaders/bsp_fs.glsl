@@ -68,6 +68,9 @@ out vec4 out_color;
 void main(void) {
 
 	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+	
+	vec3 light_diffuse = vec3(0.0);
+	vec3 light_specular = vec3(0.0);
 
 	vec4 diffusemap;
 	if ((textures & TEXTURE_MASK_DIFFUSEMAP) == TEXTURE_MASK_DIFFUSEMAP) {
@@ -109,18 +112,14 @@ void main(void) {
 		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
 		diffuse_dir = normalize(tbn * diffuse_dir);
 
-		lightmap = ambient +
-		           diffuse + // TODO: bumpmapping
-		           radiosity;
+		light_diffuse = diffuse * max(dot(diffuse_dir, normal), 0.0) + ambient + radiosity;
+		light_specular = brdf_blinn(normalize(-vertex.position), diffuse_dir, normal, diffuse, glossmap.r, 0.5);
 
 		stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
 	} else {
 		lightmap = vec3(1.0);
 		stainmap = vec3(0.0);
 	}
-
-	vec3 light_diffuse = lightmap;
-	vec3 light_specular = vec3(0.0);
 
 	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 	
