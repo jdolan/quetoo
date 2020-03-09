@@ -51,7 +51,10 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 			float angle_atten = dot(light_dir, normal);
 			if (angle_atten > 0.0) {
 				
-				float dist_atten = smoothstep(1.0, 0.0, dist / radius);
+				float dist_atten;
+				dist_atten = 1.0 - dist / radius;
+				dist_atten *= dist_atten; // for looks, not for correctness
+				
 				float attenuation = dist_atten * angle_atten;
 				
 				vec3 view_dir = normalize(-position);

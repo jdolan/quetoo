@@ -129,7 +129,7 @@ vec3 brdf_halflambert(vec3 light_dir, vec3 normal, vec3 light_color) {
  */
 vec3 tonemap(vec3 color) {
 	color *= exp(color);
-	color /= color + 0.825;
+	color /= color + 2.71828;
 	return color;
 }
 
