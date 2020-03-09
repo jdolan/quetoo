@@ -340,9 +340,12 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 		switch (light->atten) {
 			case LIGHT_ATTEN_NONE:
 				break;
-			case LIGHT_ATTEN_INVERSE_SQUARE:
 			case LIGHT_ATTEN_LINEAR:
 				atten = Clampf(1.0 - dist / light->radius, 0.0, 1.0);
+				break;
+			case LIGHT_ATTEN_INVERSE_SQUARE:
+				atten = Clampf(1.0 - dist / light->radius, 0.0, 1.0);
+				atten *= atten;
 				break;
 		}
 
