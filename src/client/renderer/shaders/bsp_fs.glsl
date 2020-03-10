@@ -140,7 +140,7 @@ void main(void) {
 		diffuse_dir = normalize(tbn * diffuse_dir);
 
 		light_diffuse = diffuse * max(dot(diffuse_dir, normal), 0.0) + ambient + radiosity;
-		light_specular = brdf_blinn(normalize(-vertex.position), diffuse_dir, normal, diffuse, glossmap.r, 0.5);
+		light_specular = brdf_blinn(normalize(-vertex.position), diffuse_dir, normal, diffuse, glossmap.r * hardness, specular);
 
 		stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
 	} else {
