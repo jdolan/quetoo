@@ -362,9 +362,6 @@ typedef struct {
 	// leaf specific
 	int32_t cluster;
 	int32_t area;
-
-	int32_t num_leaf_faces;
-	r_bsp_face_t **leaf_faces;
 } r_bsp_leaf_t;
 
 // bsp model memory representation
@@ -443,9 +440,6 @@ typedef struct {
 	GPtrArray *draw_elements_blend;
 	GPtrArray *draw_elements_material;
 	GPtrArray *draw_elements_warp;
-
-	int32_t num_leaf_faces;
-	r_bsp_face_t **leaf_faces;
 
 	int32_t num_nodes;
 	r_bsp_node_t *nodes;

@@ -244,29 +244,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
- */
-static void R_LoadBspLeafFaces(r_bsp_model_t *bsp) {
-	r_bsp_face_t **out;
-
-	const int32_t *in = bsp->cm->file.leaf_faces;
-
-	bsp->num_leaf_faces = bsp->cm->file.num_leaf_faces;
-	bsp->leaf_faces = out = Mem_LinkMalloc(bsp->num_leaf_faces * sizeof(*out), bsp);
-
-	for (int32_t i = 0; i < bsp->num_leaf_faces; i++) {
-
-		const int32_t j = in[i];
-
-		if (j < 0 || j >= bsp->num_faces) {
-			Com_Error(ERROR_DROP, "Bad face number: %d\n", j);
-		}
-
-		out[i] = bsp->faces + j;
-	}
-}
-
-/**
  * @brief Loads all r_bsp_node_t for the specified BSP model.
  */
 static void R_LoadBspNodes(r_bsp_model_t *bsp) {
@@ -324,9 +301,6 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 		out->cluster = in->cluster;
 		out->area = in->area;
-
-		out->leaf_faces = bsp->leaf_faces + in->first_leaf_face;
-		out->num_leaf_faces = in->num_leaf_faces;
 	}
 }
 
@@ -517,7 +491,6 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	(1 << BSP_LUMP_ELEMENTS) | \
 	(1 << BSP_LUMP_FACES) | \
 	(1 << BSP_LUMP_DRAW_ELEMENTS) | \
-	(1 << BSP_LUMP_LEAF_FACES) | \
 	(1 << BSP_LUMP_LIGHTMAP) | \
 	(1 << BSP_LUMP_LIGHTGRID) \
 )
@@ -556,9 +529,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(26, "draw elements");
 	R_LoadBspDrawElements(mod->bsp);
 
-	Cl_LoadingProgress(30, "leaf faces");
-	R_LoadBspLeafFaces(mod->bsp);
-
 	Cl_LoadingProgress(34, "leafs");
 	R_LoadBspLeafs(mod->bsp);
 
@@ -592,8 +562,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->bsp->num_elements);
 	Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->bsp->num_faces);
 	Com_Debug(DEBUG_RENDERER, "!  Draw elements:  %d\n", mod->bsp->num_draw_elements);
-	Com_Debug(DEBUG_RENDERER, "!  Leafs:          %d\n", mod->bsp->num_leafs);
-	Com_Debug(DEBUG_RENDERER, "!  Leaf faces:     %d\n", mod->bsp->num_leaf_faces);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
 
