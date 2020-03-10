@@ -870,10 +870,18 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 
 	brush_side_t *side = p->side;
 	if (!side) {
-		return NULL;    // portal does not bridge different visible contents
+		return NULL; // portal does not bridge different visible contents
 	}
 
+	// don't emit faces marked as no draw or skip
+	// FIXME: We could actually skip sky faces altogether here, right?
 	if (side->surf & (SURF_NO_DRAW | SURF_SKIP) && !(side->surf & (SURF_SKY | SURF_HINT))) {
+		return NULL;
+	}
+
+	// don't show insides of windows
+	if ((p->nodes[pside]->contents & CONTENTS_WINDOW) &&
+		VisibleContents(p->nodes[!pside]->contents ^ p->nodes[pside]->contents) == CONTENTS_WINDOW) {
 		return NULL;
 	}
 
@@ -882,11 +890,6 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	f->texinfo = side->texinfo;
 	f->plane_num = (side->plane_num & ~1) | pside;
 	f->portal = p;
-
-	if ((p->nodes[pside]->contents & CONTENTS_WINDOW) &&
-		VisibleContents(p->nodes[!pside]->contents ^ p->nodes[pside]->contents) == CONTENTS_WINDOW) {
-		return NULL; // don't show insides of windows
-	}
 
 	if (pside) {
 		f->w = Cm_ReverseWinding(p->winding);
