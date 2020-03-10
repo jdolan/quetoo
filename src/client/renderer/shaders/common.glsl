@@ -128,7 +128,7 @@ vec3 brdf_halflambert(vec3 light_dir, vec3 normal, vec3 light_color) {
  * @brief Prevents surfaces from becoming overexposed by lights (looks bad).
  */
 vec3 tonemap(vec3 color) {
-	#if 0
+	/*#if 0
 		// 1.6  = 0.5 after tonemapping
 		// 16.0 = 1.0 after tonemapping
 		const float as = 2.71828, bs =  1.0;
@@ -141,7 +141,7 @@ vec3 tonemap(vec3 color) {
 	a *= exp(a);
 	a /= a + as;
 	b = b / (b + 1.0);
-	return saturate3(a * b * 1.0625);
+	 return saturate3(a * b * 1.0625);*/ return color;
 }
 
 /**
