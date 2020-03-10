@@ -876,7 +876,7 @@ static void Pm_CheckWater(void) {
 	pos.z = pm->s.origin.z + pm->mins.z + PM_GROUND_DIST;
 
 	int32_t contents = pm->PointContents(pos);
-	if (contents & MASK_LIQUID) {
+	if (contents & CONTENTS_MASK_LIQUID) {
 
 		pm->water_type = contents;
 		pm->water_level = WATER_FEET;
@@ -885,7 +885,7 @@ static void Pm_CheckWater(void) {
 
 		contents = pm->PointContents(pos);
 
-		if (contents & MASK_LIQUID) {
+		if (contents & CONTENTS_MASK_LIQUID) {
 
 			pm->water_type |= contents;
 			pm->water_level = WATER_WAIST;
@@ -894,7 +894,7 @@ static void Pm_CheckWater(void) {
 
 			contents = pm->PointContents(pos);
 
-			if (contents & MASK_LIQUID) {
+			if (contents & CONTENTS_MASK_LIQUID) {
 				pm->water_type |= contents;
 				pm->water_level = WATER_UNDER;
 
@@ -1082,7 +1082,7 @@ static _Bool Pm_CheckWaterJump(void) {
 
 	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
-	if ((trace.fraction < 1.0) && (trace.contents & MASK_SOLID)) {
+	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_MASK_SOLID)) {
 
 		pos.z += PM_STEP_HEIGHT + pm->maxs.z - pm->mins.z;
 
@@ -1247,7 +1247,7 @@ static void Pm_WaterMove(void) {
 			view = Vec3_Add(pm->s.origin, pm->s.view_offset);
 			view.z -= 4.0;
 
-			if (!(pm->PointContents(view) & MASK_LIQUID)) {
+			if (!(pm->PointContents(view) & CONTENTS_MASK_LIQUID)) {
 				pm->s.velocity.z = Minf(pm->s.velocity.z, 0.0);
 				vel.z = Minf(vel.z, 0.0);
 			}

@@ -74,8 +74,8 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 
 	const int32_t contents = cgi.PointContents(pos);
 
-	if (contents & MASK_LIQUID) {
-		if ((contents & MASK_LIQUID) == CONTENTS_WATER) {
+	if (contents & CONTENTS_MASK_LIQUID) {
+		if ((contents & CONTENTS_MASK_LIQUID) == CONTENTS_WATER) {
 
 			if (!(p = Cg_AllocParticle())) {
 				return;
@@ -132,7 +132,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		}
 	}
 
-	if (cgi.PointContents(end) & MASK_LIQUID) {
+	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, start, end, 24.0);
 		return;
 	}
@@ -168,7 +168,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
-	if (cgi.PointContents(end) & MASK_LIQUID) {
+	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, start, end, 10.0);
 		return;
 	}
@@ -209,7 +209,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	vec3_t end;
 	end = Vec3_Add(org, vel);
 
-	if (cgi.PointContents(org) & MASK_LIQUID) {
+	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, org, end, 10.0);
 		return;
 	}
@@ -243,7 +243,7 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, floa
 
 		const vec3_t pos = Vec3_Mix(start, end, i / particles);
 		const int32_t contents = cgi.PointContents(pos);
-		if (!(contents & MASK_LIQUID)) {
+		if (!(contents & CONTENTS_MASK_LIQUID)) {
 			continue;
 		}
 
@@ -289,7 +289,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
-	if (cgi.PointContents(end) & MASK_LIQUID) {
+	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, start, end, 12.0);
 
 		particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 8);
@@ -454,7 +454,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 		p->color = Color_Add(Color3bv(0x22aaff), Color3fv(Vec3(d, d, d)));
 	}
 
-	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
+	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
 	}
 
@@ -545,7 +545,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 			pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 2.0));
 
-			if ((cgi.PointContents(pos) & MASK_LIQUID) == 0) {
+			if ((cgi.PointContents(pos) & CONTENTS_MASK_LIQUID) == 0) {
 				for (i = 0; i < 6; i++) {
 
 					if (!(p = Cg_AllocParticle())) {
@@ -627,7 +627,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 		p->size = 2.5f;
 	}
 
-	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
+	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
 	}
 
@@ -716,7 +716,7 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const color_t color) {
  */
 static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	if (cgi.PointContents(end) & MASK_LIQUID) {
+	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, start, end, 8.0);
 		return;
 	}
@@ -759,7 +759,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
  */
 static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	if (cgi.PointContents(end) & MASK_LIQUID) {
+	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
 		return;
 	}
 

@@ -381,7 +381,7 @@ typedef struct g_import_s {
 	 * @param mins The bounding box mins (optional).
 	 * @param maxs The bounding box maxs (optional).
 	 * @param skip The entity to skip (e.g. self) (optional).
-	 * @param contents The contents mask to intersect with (e.g. MASK_SOLID).
+	 * @param contents The contents mask to intersect with (e.g. CONTENTS_MASK_SOLID).
 	 *
 	 * @return The resulting trace. A fraction less than 1.0 indicates that
 	 * the trace intersected a plane.

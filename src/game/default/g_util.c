@@ -58,7 +58,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 	// resolve the projectile destination
 	const vec3_t start = Vec3_Add(ent->s.origin, ent->client->ps.pm_state.view_offset);
 	const vec3_t end = Vec3_Add(start, Vec3_Scale(ent->client->locals.forward, MAX_WORLD_DIST));
-	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	// resolve the projectile origin
 	vec3_t ent_forward, ent_right, ent_up;
@@ -84,7 +84,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 	}
 
 	// if the projected origin is invalid, use the entity's origin
-	if (gi.Trace(*org, *org, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE).start_solid) {
+	if (gi.Trace(*org, *org, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
 		*org = ent->s.origin;
 	}
 

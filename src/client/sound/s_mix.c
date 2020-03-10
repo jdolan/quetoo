@@ -130,7 +130,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	ch->filter = AL_NONE;
 
 	// adjust pitch in liquids
-	if (r_view.contents & MASK_LIQUID) {
+	if (r_view.contents & CONTENTS_MASK_LIQUID) {
 		ch->pitch = 0.5;
 	}
 
@@ -143,10 +143,10 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	// apply sound effects
 	if (s_env.effects.loaded) {
 
-		if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
+		if (Cm_PointContents(ch->position, 0) & CONTENTS_MASK_LIQUID) {
 			ch->filter = s_env.effects.underwater;
 		} else {
-			const cm_trace_t tr = Cl_Trace(r_view.origin, ch->position, Vec3_Zero(), Vec3_Zero(), ch->play.entity, MASK_CLIP_PROJECTILE);
+			const cm_trace_t tr = Cl_Trace(r_view.origin, ch->position, Vec3_Zero(), Vec3_Zero(), ch->play.entity, CONTENTS_MASK_CLIP_PROJECTILE);
 			if (tr.fraction < 1.0) {
 				ch->filter = s_env.effects.occluded;
 			}

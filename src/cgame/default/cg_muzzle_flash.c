@@ -32,7 +32,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
 	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
 
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		org = Vec3_Subtract(ent->origin, tr.end);
@@ -52,7 +52,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 
 	Cg_AddLight(&l);
 
-	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
+	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
 		Cg_BubbleTrail(NULL, org, org2, 10.0);
 	}
@@ -70,7 +70,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
 	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
 
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		org = Vec3_Subtract(ent->origin, tr.end);
@@ -89,7 +89,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		.decay = 300
 	});
 
-	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
+	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
 		Cg_BubbleTrail(NULL, org, org2, 10.0);
 		return;

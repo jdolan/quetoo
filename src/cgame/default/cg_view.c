@@ -115,7 +115,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	origin = Vec3_Add(origin, Vec3_Scale(right, offset.y));
 	origin = Vec3_Add(origin, Vec3_Scale(forward, offset.x));
 
-	const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, mins, maxs, 0, MASK_CLIP_PLAYER);
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, mins, maxs, 0, CONTENTS_MASK_CLIP_PLAYER);
 	cgi.view->origin = tr.end;
 
 	point = Vec3_Subtract(point, cgi.view->origin);

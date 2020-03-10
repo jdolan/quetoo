@@ -101,7 +101,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	cg_particle_t *p;
 	vec3_t vec;
 
-	if (cgi.PointContents(org) & MASK_LIQUID) {
+	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
 		vec = Vec3_Add(org, Vec3_Scale(dir, 8.f));
 		Cg_BubbleTrail(NULL, org, vec, 32.0);
 	} else {
@@ -212,7 +212,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	float dist;
 
 	// if a player has died underwater, emit some bubbles
-	if (cgi.PointContents(org) & MASK_LIQUID) {
+	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
 		tmp = org;
 		tmp.z += 64.0;
 
@@ -230,7 +230,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		dist = GIB_STREAM_DIST;
 		tmp = Vec3_Add(o, Vec3_Scale(v, dist));
 
-		const cm_trace_t tr = cgi.Trace(o, tmp, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE);
+		const cm_trace_t tr = cgi.Trace(o, tmp, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
 		dist = GIB_STREAM_DIST * tr.fraction;
 
 		for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {
@@ -322,7 +322,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	// TODO: Bubbles in water?
 
-	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {
+	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
 
 		for (int32_t i = 0; i < 40; i++) {
 			if (!(p = Cg_AllocParticle())) {
@@ -368,7 +368,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	cg_particle_t *p;
 
-	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {
+	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
 		for (int32_t i = 0; i < 6; i++) {
 
 			if (!(p = Cg_AllocParticle())) {
@@ -512,7 +512,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 		// Check for bubble trail
 
-		if (cgi.PointContents(p->origin) & MASK_LIQUID) {
+		if (cgi.PointContents(p->origin) & CONTENTS_MASK_LIQUID) {
 			Cg_BubbleTrail(NULL, p->origin, p->origin, 16.f);
 		}
 	}
@@ -525,7 +525,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Rail impact sparks
 
-	if (cg_particle_quality->integer && (cgi.PointContents(end) & MASK_LIQUID) == 0) {
+	if (cg_particle_quality->integer && (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) == 0) {
 
 		for (int32_t i = 0; i < 24; i++) {
 			if (!(p = Cg_AllocParticle())) {

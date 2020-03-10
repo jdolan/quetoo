@@ -881,7 +881,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	const int32_t contents = cgi.view->contents;
 
-	if ((contents & MASK_LIQUID) && cg_draw_blend_liquid->value) {
+	if ((contents & CONTENTS_MASK_LIQUID) && cg_draw_blend_liquid->value) {
 		color_t color;
 		if (contents & CONTENTS_LAVA) {
 			color = Color4f(.8f, .4f, .1f, 1.f);
@@ -1209,7 +1209,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 	vec3_t pos;
 	pos = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, MAX_WORLD_DIST));
 
-	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, Vec3_Zero(), Vec3_Zero(), 0, MASK_MEAT);
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_MEAT);
 	if (tr.fraction < 1.0) {
 
 		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];

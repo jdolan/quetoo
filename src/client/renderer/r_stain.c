@@ -118,7 +118,7 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 	r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
-		if (face->texinfo->flags & SURF_NO_LIGHTMAP) {
+		if (face->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
 

@@ -41,7 +41,7 @@ static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
 static _Bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
 
 	const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->mins,
-	                               projectile->maxs, ent, MASK_SOLID);
+	                               projectile->maxs, ent, CONTENTS_MASK_SOLID);
 
 	return tr.fraction < 1.0;
 }
@@ -67,10 +67,10 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	dir = Vec3_Normalize(dir);
 	pos = Vec3_Add(tr->end, Vec3_Scale(dir, -2));
 
-	if (gi.PointContents(pos) & MASK_LIQUID) {
+	if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
 		tr->end = pos;
 	} else {
-		const cm_trace_t trace = gi.Trace(pos, start, Vec3_Zero(), Vec3_Zero(), tr->ent, MASK_LIQUID);
+		const cm_trace_t trace = gi.Trace(pos, start, Vec3_Zero(), Vec3_Zero(), tr->ent, CONTENTS_MASK_LIQUID);
 		tr->end = trace.end;
 	}
 
@@ -151,7 +151,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		end = pos2;
 	}
 
-	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, MASK_LIQUID);
+	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_LIQUID);
 	if (tr.start_solid || tr.fraction == 1.0) {
 		gi.Debug("%s failed to resolve water\n", etos(ent));
 		return;
@@ -355,7 +355,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	}
 
 	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
@@ -374,7 +374,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
                         int16_t knockback, uint16_t hspread, uint16_t vspread, uint32_t mod) {
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, start, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = gi.Trace(ent->s.origin, start, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 	if (tr.fraction == 1.0) {
 		vec3_t angles, forward, right, up, end;
 
@@ -385,7 +385,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		end = Vec3_Add(end, Vec3_Scale(right, Randomc() * hspread));
 		end = Vec3_Add(end, Vec3_Scale(up, Randomc() * vspread));
 
-		tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE);
+		tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
 		G_Tracer(start, tr.end);
 	}
@@ -399,10 +399,10 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 			G_BulletImpact(impact, &tr.plane, tr.surface);
 		}
 
-		if (gi.PointContents(start) & MASK_LIQUID) {
+		if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) {
 			G_Ripple(NULL, tr.end, start, 8.0, false);
 			G_BubbleTrail(start, &tr);
-		} else if (gi.PointContents(tr.end) & MASK_LIQUID) {
+		} else if (gi.PointContents(tr.end) & CONTENTS_MASK_LIQUID) {
 			G_Ripple(NULL, start, tr.end, 8.0, true);
 			G_BubbleTrail(start, &tr);
 		}
@@ -542,7 +542,7 @@ void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	projectile->locals.avelocity.x = -300.0 + 10 * Randomc();
 	projectile->locals.avelocity.y = 50.0 * Randomc();
 	projectile->locals.avelocity.z = 25.0 * Randomc();
-	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
@@ -666,7 +666,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 	}
 
 	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
@@ -753,7 +753,7 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 	}
 
 	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
 	projectile->locals.ripple_size = 22.0;
@@ -844,7 +844,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		start = self->owner->s.origin;
 	}
 
-	if (gi.PointContents(start) & MASK_LIQUID) { // discharge and return
+	if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) { // discharge and return
 		G_LightningProjectile_Discharge(self);
 		G_FreeEntity(self);
 		return;
@@ -854,9 +854,9 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	end = Vec3_Add(end, Vec3_Scale(up, 2.0 * sinf(g_level.time / 4.0)));
 	end = Vec3_Add(end, Vec3_Scale(right, 2.0 * Randomc()));
 
-	tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), self, MASK_CLIP_PROJECTILE | MASK_LIQUID);
+	tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 
-	if (tr.contents & MASK_LIQUID) { // entered water, play sound, leave trail
+	if (tr.contents & CONTENTS_MASK_LIQUID) { // entered water, play sound, leave trail
 		water_start = tr.end;
 
 		if (!self->locals.water_level) {
@@ -864,7 +864,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			self->locals.water_level = WATER_FEET;
 		}
 
-		tr = gi.Trace(water_start, end, Vec3_Zero(), Vec3_Zero(), self, MASK_CLIP_PROJECTILE);
+		tr = gi.Trace(water_start, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 		G_BubbleTrail(water_start, &tr);
 
 		G_Ripple(NULL, start, end, 16.0, true);
@@ -885,7 +885,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_LIGHTNING);
 			self->locals.damage = 0;
 		} else { // or leave a mark
-			if (tr.contents & MASK_SOLID) {
+			if (tr.contents & CONTENTS_MASK_SOLID) {
 				if (G_IsStructural(tr.ent, tr.surface)) {
 					self->s.angles = Vec3_Euler(tr.plane.normal);
 					self->s.animation1 = LIGHTNING_SOLID_HIT;
@@ -929,7 +929,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 
 		projectile->owner = ent;
 		projectile->solid = SOLID_NOT;
-		projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+		projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 		projectile->locals.move_type = MOVE_TYPE_THINK;
 		projectile->locals.Think = G_LightningProjectile_Think;
 		projectile->locals.knockback = knockback;
@@ -957,17 +957,17 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	pos = start;
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, pos, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = gi.Trace(ent->s.origin, pos, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 	if (tr.fraction < 1.0) {
 		pos = ent->s.origin;
 	}
 
-	int32_t content_mask = MASK_CLIP_PROJECTILE | MASK_LIQUID;
+	int32_t content_mask = CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID;
 	_Bool liquid = false;
 
 	// are we starting in water?
-	if (gi.PointContents(pos) & MASK_LIQUID) {
-		content_mask &= ~MASK_LIQUID;
+	if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
+		content_mask &= ~CONTENTS_MASK_LIQUID;
 		liquid = true;
 	}
 
@@ -982,9 +982,9 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 			break;
 		}
 
-		if ((tr.contents & MASK_LIQUID) && !liquid) {
+		if ((tr.contents & CONTENTS_MASK_LIQUID) && !liquid) {
 
-			content_mask &= ~MASK_LIQUID;
+			content_mask &= ~CONTENTS_MASK_LIQUID;
 			liquid = true;
 
 			gi.PositionedSound(tr.end, NULL, g_media.sounds.water_in, ATTEN_NORM, 0);
@@ -1133,7 +1133,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 	}
 
 	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
@@ -1319,7 +1319,7 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 	}
 
 	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
 	projectile->locals.Touch = G_HookProjectile_Touch;
 	projectile->s.model1 = g_media.models.hook;
@@ -1336,7 +1336,7 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 
 	trail->owner = ent;
 	trail->solid = SOLID_NOT;
-	trail->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	trail->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	trail->locals.move_type = MOVE_TYPE_THINK;
 	trail->s.client = ent->s.client; // player number, for client prediction fix
 	trail->s.effects = EF_BEAM;

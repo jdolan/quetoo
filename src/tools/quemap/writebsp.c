@@ -55,8 +55,8 @@ static int32_t TexinfoCmp(const int32_t a, const int32_t b) {
 
 	int32_t order = strcmp(a_tex->texture, b_tex->texture);
 	if (order == 0) {
-		const int32_t a_flags = (a_tex->flags & SURF_TEXINFO_CMP);
-		const int32_t b_flags = (b_tex->flags & SURF_TEXINFO_CMP);
+		const int32_t a_flags = (a_tex->flags & SURF_MASK_TEXINFO_CMP);
+		const int32_t b_flags = (b_tex->flags & SURF_MASK_TEXINFO_CMP);
 		order = a_flags - b_flags;
 	}
 

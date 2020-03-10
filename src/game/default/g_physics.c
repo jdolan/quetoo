@@ -38,7 +38,7 @@ static void G_CheckGround(g_entity_t *ent) {
 		pos = ent->s.origin;
 		pos.z -= PM_GROUND_DIST;
 
-		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, ent->locals.clip_mask ? : MASK_SOLID);
+		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, ent->locals.clip_mask ? : CONTENTS_MASK_SOLID);
 
 		if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
 			if (ent->locals.ground_entity == NULL) {
@@ -86,7 +86,7 @@ static void G_CheckWater(g_entity_t *ent) {
 		maxs = ent->maxs;
 	}
 
-	const cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, MASK_LIQUID);
+	const cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, CONTENTS_MASK_LIQUID);
 
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? WATER_UNDER : WATER_NONE;
@@ -144,7 +144,7 @@ void G_RunThink(g_entity_t *ent) {
  */
 static _Bool G_GoodPosition(const g_entity_t *ent) {
 
-	const int32_t mask = ent->locals.clip_mask ? : MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ? : CONTENTS_MASK_SOLID;
 
 	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
 
@@ -726,7 +726,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 	origin = ent->s.origin;
 	angles = ent->s.angles;
 
-	const int32_t mask = ent->locals.clip_mask ? : MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ? : CONTENTS_MASK_SOLID;
 
 	float time_remaining = QUETOO_TICK_SECONDS;
 	int32_t num_planes = 0;

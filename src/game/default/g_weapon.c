@@ -621,7 +621,7 @@ static void G_PullGrenadePin(g_entity_t *ent) {
 	nade->solid = SOLID_NOT;
 	nade->sv_flags |= SVF_NO_CLIENT;
 	nade->locals.move_type = MOVE_TYPE_NONE;
-	nade->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	nade->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	nade->locals.take_damage = true;
 	nade->locals.Touch = G_GrenadeProjectile_Touch;
 	nade->locals.touch_time = g_level.time;

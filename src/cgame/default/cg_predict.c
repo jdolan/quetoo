@@ -51,7 +51,7 @@ _Bool Cg_UsePrediction(void) {
  */
 static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
         const vec3_t maxs) {
-	return cgi.Trace(start, end, mins, maxs, 0, MASK_CLIP_PLAYER);
+	return cgi.Trace(start, end, mins, maxs, 0, CONTENTS_MASK_CLIP_PLAYER);
 }
 
 /**

@@ -54,7 +54,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	if (targ->solid == SOLID_BSP) {
 		dest = Vec3_Add(targ->abs_mins, targ->abs_maxs);
 		dest = Vec3_Scale(dest, 0.5);
-		tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
+		tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, CONTENTS_MASK_SOLID);
 		if (tr.fraction == 1.0) {
 			return true;
 		}
@@ -64,7 +64,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 		return false;
 	}
 
-	tr = gi.Trace(inflictor->s.origin, targ->s.origin, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, targ->s.origin, Vec3_Zero(), Vec3_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -72,7 +72,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x += 15.0;
 	dest.y += 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -80,7 +80,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x += 15.0;
 	dest.y -= 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -88,7 +88,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x -= 15.0;
 	dest.y += 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -96,7 +96,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x -= 15.0;
 	dest.y -= 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}

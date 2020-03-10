@@ -355,7 +355,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 			ent->s.angles.xyz[i] = Randomf() * 360;
 		}
 
-		ent->locals.clip_mask = MASK_CLIP_CORPSE;
+		ent->locals.clip_mask = CONTENTS_MASK_CLIP_CORPSE;
 		ent->locals.dead = true;
 		ent->locals.mass = (gib_index + 1) * 20.0;
 		ent->locals.move_type = MOVE_TYPE_BOUNCE;
@@ -441,7 +441,7 @@ static void G_ClientCorpse(g_entity_t *self) {
 
 	ent->locals.velocity = self->locals.velocity;
 
-	ent->locals.clip_mask = MASK_CLIP_CORPSE;
+	ent->locals.clip_mask = CONTENTS_MASK_CLIP_CORPSE;
 	ent->locals.dead = true;
 	ent->locals.mass = self->locals.mass;
 	ent->locals.move_type = MOVE_TYPE_BOUNCE;
@@ -927,7 +927,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
 		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
-		ent->locals.clip_mask = MASK_CLIP_PLAYER;
+		ent->locals.clip_mask = CONTENTS_MASK_CLIP_PLAYER;
 		ent->locals.dead = false;
 		ent->locals.Die = G_ClientDie;
 		ent->locals.ground_entity = NULL;
@@ -1354,9 +1354,9 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 	const g_entity_t *self = g_level.current_entity;
 
 	if (self->locals.dead) {
-		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_CORPSE);
+		return gi.Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_CORPSE);
 	} else {
-		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
+		return gi.Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_PLAYER);
 	}
 }
 
@@ -1452,7 +1452,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				point = Vec3_Add(ent->s.origin, Vec3_Scale(velocity, cl->locals.speed * 0.4));
 
 				// trace towards our jump destination to see if we have room to backflip
-				tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, MASK_CLIP_PLAYER);
+				tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, CONTENTS_MASK_CLIP_PLAYER);
 
 				if (Vec3_Dot(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0) {
 					G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);

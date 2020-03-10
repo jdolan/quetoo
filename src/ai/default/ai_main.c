@@ -70,7 +70,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 		return false;
 	}
 
-	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Vec3_Zero(), Vec3_Zero(), self, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	if (!Vec3_BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs)) {
 		return false; // something was in the way of our trace
@@ -608,7 +608,7 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 
 	vec3_t end = Vec3_Add(self->s.origin, Vec3_Scale(forward, (self->maxs.x - self->mins.x) * 2.0));
 
-	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, MASK_CLIP_PLAYER);
+	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0) { // hit a wall
 		float angle = 45 + Randomf() * 45;
@@ -649,9 +649,9 @@ static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, cons
 	const g_entity_t *self = ai_current_entity;
 
 	if (self->solid == SOLID_DEAD) {
-		return aim.gi->Trace(start, end, mins, maxs, self, MASK_CLIP_CORPSE);
+		return aim.gi->Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_CORPSE);
 	} else {
-		return aim.gi->Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
+		return aim.gi->Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_PLAYER);
 	}
 }
 

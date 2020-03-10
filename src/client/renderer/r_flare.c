@@ -110,7 +110,7 @@ void R_AddFlareBspFaces(const r_bsp_faces_t *surfs) {
 				f->alpha = 0.0;
 			}
 
-			cm_trace_t tr = Cl_Trace(r_view.origin, f->particle.org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+			cm_trace_t tr = Cl_Trace(r_view.origin, f->particle.org, NULL, NULL, 0, CONTENTS_MASK_CLIP_PROJECTILE);
 
 			f->alpha += (tr.fraction == 1.0) ? 0.03 : -0.15; // ramp
 			f->alpha = clampf(f->alpha, 0.0, 1.0); // clamp

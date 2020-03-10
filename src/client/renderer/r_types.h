@@ -437,7 +437,12 @@ typedef struct {
 
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
-	r_bsp_draw_elements_t **draw_elements_sorted;
+
+	GPtrArray *draw_elements_opaque;
+	GPtrArray *draw_elements_alpha_test;
+	GPtrArray *draw_elements_blend;
+	GPtrArray *draw_elements_material;
+	GPtrArray *draw_elements_warp;
 
 	int32_t num_leaf_faces;
 	r_bsp_face_t **leaf_faces;

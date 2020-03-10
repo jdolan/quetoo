@@ -169,7 +169,7 @@ static void R_DrawBspLightgrid(void) {
 /**
  * @brief
  */
-static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
+static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArray *draw_elements) {
 
 	const r_bsp_model_t *bsp = r_model_state.world->bsp;
 	assert(bsp);
@@ -177,24 +177,15 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 	const r_material_t *material = NULL;
 	GLint textures = 0;
 
-	r_bsp_draw_elements_t **sorted = bsp->draw_elements_sorted;
-	for (int32_t i = 0; i < bsp->num_draw_elements; i++, sorted++) {
+	for (guint i = 0; i < draw_elements->len; i++) {
 
-		const r_bsp_draw_elements_t *draw = *sorted;
+		const r_bsp_draw_elements_t *draw = g_ptr_array_index(draw_elements, i);
 
 		if (draw->node->model != in) {
 			continue;
 		}
 
 		if (draw->node->vis_frame != r_locals.vis_frame) {
-			continue;
-		}
-
-		if (draw->texinfo->flags & SURF_NO_LIGHTMAP) {
-			continue;
-		}
-
-		if (draw->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
 			continue;
 		}
 
@@ -253,7 +244,7 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 
-	R_DrawBspDrawElements(e->model->bsp_inline);
+	R_DrawBspDrawElements(e->model->bsp_inline, r_model_state.world->bsp->draw_elements_opaque);
 }
 
 /**
@@ -311,7 +302,7 @@ void R_DrawWorld(void) {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, bsp->lightmap->atlas->texnum);
 	}
 
-	R_DrawBspDrawElements(bsp->inline_models);
+	R_DrawBspDrawElements(bsp->inline_models, bsp->draw_elements_opaque);
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {

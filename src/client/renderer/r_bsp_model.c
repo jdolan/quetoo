@@ -87,7 +87,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 		float alpha = 1.0;
 
 		const r_bsp_texinfo_t *texinfo = bsp->texinfo + in->texinfo;
-		switch (texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
+		switch (texinfo->flags & SURF_MASK_BLEND) {
 			case SURF_BLEND_33:
 				alpha = 0.333;
 				break;
@@ -149,7 +149,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 		out->num_elements = in->num_elements;
 
-		if (out->texinfo->flags & SURF_NO_LIGHTMAP) {
+		if (out->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -172,15 +172,15 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static int32_t R_DrawElementsCmp(const void *a, const void *b) {
+static gint R_DrawElementsCmp(gconstpointer a, gconstpointer b) {
 
 	r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
 	r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
 
 	int32_t order = strcmp(a_draw->texinfo->texture, b_draw->texinfo->texture);
 	if (order == 0) {
-		const int32_t a_flags = (a_draw->texinfo->flags & SURF_TEXINFO_CMP);
-		const int32_t b_flags = (b_draw->texinfo->flags & SURF_TEXINFO_CMP);
+		const int32_t a_flags = (a_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
+		const int32_t b_flags = (b_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
 
 		order = a_flags - b_flags;
 	}
@@ -196,7 +196,12 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 	bsp->num_draw_elements = bsp->cm->file.num_draw_elements;
 	bsp->draw_elements = out = Mem_LinkMalloc(bsp->num_draw_elements * sizeof(*out), bsp);
-	bsp->draw_elements_sorted = Mem_LinkMalloc(bsp->num_draw_elements * sizeof (out), bsp);
+
+	bsp->draw_elements_opaque = g_ptr_array_new();
+	bsp->draw_elements_alpha_test = g_ptr_array_new();
+	bsp->draw_elements_blend = g_ptr_array_new();
+	bsp->draw_elements_material = g_ptr_array_new();
+	bsp->draw_elements_warp = g_ptr_array_new();
 
 	const bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
@@ -216,10 +221,24 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 
-		bsp->draw_elements_sorted[i] = out;
+		if (out->texinfo->flags & SURF_ALPHA_TEST) {
+			g_ptr_array_add(bsp->draw_elements_alpha_test, out);
+		} else if (out->texinfo->flags & SURF_MASK_BLEND) {
+			g_ptr_array_add(bsp->draw_elements_blend, out);
+		} else if (out->texinfo->flags & SURF_MATERIAL) {
+			g_ptr_array_add(bsp->draw_elements_material, out);
+		} else if (out->texinfo->flags & SURF_WARP) {
+			g_ptr_array_add(bsp->draw_elements_warp, out);
+		} else {
+			g_ptr_array_add(bsp->draw_elements_opaque, out);
+		}
 	}
 
-	qsort(bsp->draw_elements_sorted, bsp->num_draw_elements, sizeof(out), R_DrawElementsCmp);
+	g_ptr_array_sort(bsp->draw_elements_opaque, R_DrawElementsCmp);
+	g_ptr_array_sort(bsp->draw_elements_alpha_test, R_DrawElementsCmp);
+	g_ptr_array_sort(bsp->draw_elements_blend, R_DrawElementsCmp);
+	g_ptr_array_sort(bsp->draw_elements_material, R_DrawElementsCmp);
+	g_ptr_array_sort(bsp->draw_elements_warp, R_DrawElementsCmp);
 }
 
 /**

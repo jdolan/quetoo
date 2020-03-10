@@ -220,7 +220,7 @@ static int32_t BrushContents(const brush_t *b) {
 	}
 
 	// if any side is translucent, mark the contents and change solid to window
-	if (surface & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66)) {
+	if (surface & SURF_MASK_TRANSLUCENT) {
 		contents |= CONTENTS_TRANSLUCENT;
 		if (contents & CONTENTS_SOLID) {
 			contents &= ~CONTENTS_SOLID;
@@ -591,7 +591,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			side->surf = td.flags;
 
 			// translucent objects are automatically classified as detail
-			if (side->surf & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66)) {
+			if (side->surf & SURF_MASK_TRANSLUCENT) {
 				side->contents |= CONTENTS_DETAIL;
 			}
 			if (side->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
@@ -656,7 +656,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		}
 
 		// allow water brushes to be removed
-		if (no_water && (brush->contents & MASK_LIQUID)) {
+		if (no_water && (brush->contents & CONTENTS_MASK_LIQUID)) {
 			num_brushes--;
 			return NULL;
 		}

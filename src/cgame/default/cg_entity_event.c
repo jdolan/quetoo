@@ -201,7 +201,7 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 	vec3_t end = start;
 	end.z -= PM_STEP_HEIGHT;
 
-	cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, MASK_SOLID);
+	cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_SOLID);
 
 	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->footsteps) {
 		footsteps = tr.surface->material->footsteps;

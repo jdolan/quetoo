@@ -657,7 +657,7 @@ static void G_DropItem_SetExpiration(g_entity_t *ent) {
 static void G_DropItem_Think(g_entity_t *ent) {
 
 	// continue to think as we drop to the floor
-	if (ent->locals.ground_entity || (gi.PointContents(ent->s.origin) & MASK_LIQUID)) {
+	if (ent->locals.ground_entity || (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID)) {
 		G_DropItem_SetExpiration(ent);
 	} else {
 		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
@@ -757,7 +757,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 		it->s.origin.z -= it->mins.z;
 	}
 
-	tr = gi.Trace(it->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_SOLID);
+	tr = gi.Trace(it->s.origin, it->s.origin, it->mins, it->maxs, ent, CONTENTS_MASK_SOLID);
 
 	it->locals.item = item;
 
@@ -1035,13 +1035,13 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 		ent->locals.move_type = MOVE_TYPE_FLY;
 	}
 
-	tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
+	tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, CONTENTS_MASK_SOLID);
 	if (tr.start_solid) {
 		// try thinner box
 		gi.Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
 		ent->maxs.z /= 2.0;
 
-		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
+		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, CONTENTS_MASK_SOLID);
 		if (tr.start_solid) {
 
 			gi.Debug("%s still can't fit, trying Q2 box..\n", etos(ent));
@@ -1050,7 +1050,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 			ent->maxs = Vec3_Add(ent->maxs, Vec3(-2.f, -2.f, -2.f));
 
 			// try Quake 2 box
-			tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
+			tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, CONTENTS_MASK_SOLID);
 			if (tr.start_solid) {
 
 				gi.Debug("%s trying higher, last attempt..\n", etos(ent));
@@ -1058,7 +1058,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 				ent->s.origin.z += 8.0;
 
 				// make an effort to come up out of the floor (broken maps)
-				tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_SOLID);
+				tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, CONTENTS_MASK_SOLID);
 				if (tr.start_solid) {
 					gi.Warn("%s start_solid\n", etos(ent));
 					G_FreeEntity(ent);

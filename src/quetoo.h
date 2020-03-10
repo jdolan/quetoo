@@ -243,6 +243,17 @@ typedef enum {
 #define CONTENTS_NODE			-1
 
 /**
+ * @brief Contents masks: frequently combined contents flags.
+ */
+#define CONTENTS_MASK_SOLID				(CONTENTS_SOLID | CONTENTS_WINDOW)
+#define CONTENTS_MASK_LIQUID			(CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
+#define CONTENTS_MASK_MEAT				(CONTENTS_MONSTER | CONTENTS_DEAD_MONSTER)
+#define CONTENTS_MASK_CLIP_CORPSE		(CONTENTS_MASK_SOLID | CONTENTS_PLAYER_CLIP)
+#define CONTENTS_MASK_CLIP_PLAYER		(CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER)
+#define CONTENTS_MASK_CLIP_MONSTER		(CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MONSTER_CLIP)
+#define CONTENTS_MASK_CLIP_PROJECTILE	(CONTENTS_MASK_SOLID | CONTENTS_MASK_MEAT)
+
+/**
  * @brief Texinfo flags.
  */
 #define SURF_LIGHT				0x1 // value will hold the light radius
@@ -261,24 +272,25 @@ typedef enum {
 #define SURF_NO_WELD			0x2000 // don't weld (merge vertices) during face creation
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 
-#define SURF_TEXINFO_CMP        ~(SURF_LIGHT | SURF_PHONG | SURF_NO_WELD | SURF_DEBUG_LUXEL)
+/**
+ * @brief Texinfos with these flags should not be considered equal for draw elements merging.
+ */
+#define SURF_MASK_TEXINFO_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_NO_WELD | SURF_DEBUG_LUXEL)
 
 /**
- * @brief Texinfo's with these flags will not have lightmap data.
+ * @brief Texinfos with these flags require transparency.
  */
-#define SURF_NO_LIGHTMAP		(SURF_SKY | SURF_WARP | SURF_NO_DRAW | SURF_HINT | SURF_MATERIAL)
+#define SURF_MASK_BLEND			(SURF_BLEND_33 | SURF_BLEND_66)
 
 /**
- * @brief Contents masks: frequently combined contents flags.
+ * @brief Texinfos with these flags imply translucent contents.
  */
-#define MASK_ALL				(-1)
-#define MASK_SOLID				(CONTENTS_SOLID | CONTENTS_WINDOW)
-#define MASK_LIQUID				(CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
-#define MASK_MEAT				(CONTENTS_MONSTER | CONTENTS_DEAD_MONSTER)
-#define MASK_CLIP_CORPSE		(MASK_SOLID | CONTENTS_PLAYER_CLIP)
-#define MASK_CLIP_PLAYER		(MASK_CLIP_CORPSE | CONTENTS_MONSTER)
-#define MASK_CLIP_MONSTER		(MASK_CLIP_PLAYER | CONTENTS_MONSTER_CLIP)
-#define MASK_CLIP_PROJECTILE	(MASK_SOLID | MASK_MEAT)
+#define SURF_MASK_TRANSLUCENT	(SURF_ALPHA_TEST | SURF_MASK_BLEND)
+
+/**
+ * @brief Texinfos with these flags will not have lightmap data.
+ */
+#define SURF_MASK_NO_LIGHTMAP	(SURF_SKY | SURF_WARP | SURF_NO_DRAW | SURF_HINT | SURF_MATERIAL)
 
 /**
  * @brief Sound attenuation constants.
