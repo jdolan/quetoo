@@ -221,7 +221,9 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 
-		if (out->texinfo->flags & SURF_ALPHA_TEST) {
+		if (out->texinfo->flags & SURF_SKY) {
+			continue;
+		} else if (out->texinfo->flags & SURF_ALPHA_TEST) {
 			g_ptr_array_add(bsp->draw_elements_alpha_test, out);
 		} else if (out->texinfo->flags & SURF_MASK_BLEND) {
 			g_ptr_array_add(bsp->draw_elements_blend, out);
