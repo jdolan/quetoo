@@ -874,7 +874,6 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	}
 
 	// don't emit faces marked as no draw or skip
-	// FIXME: We could actually skip sky faces altogether here, right?
 	if (side->surf & (SURF_NO_DRAW | SURF_SKIP) && !(side->surf & (SURF_SKY | SURF_HINT))) {
 		return NULL;
 	}
