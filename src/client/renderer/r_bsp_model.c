@@ -388,7 +388,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 }
 
 /**
- * @brief
+ * @brief Loads the lightmap layers to a 2D array texture, appending a layer for the stainmap.
  */
 static void R_LoadBspLightmap(r_model_t *mod) {
 	r_bsp_lightmap_t *out;

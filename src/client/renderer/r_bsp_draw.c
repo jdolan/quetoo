@@ -125,7 +125,6 @@ static void R_DrawBspLightgrid(void) {
 	}
 
 	const bsp_lightgrid_t *lg = r_model_state.world->bsp->cm->file.lightgrid;
-
 	if (!lg) {
 		return;
 	}

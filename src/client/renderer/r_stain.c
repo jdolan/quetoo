@@ -152,6 +152,10 @@ void R_UpdateStains(void) {
 		return;
 	}
 
+	if (r_model_state.world->bsp->lightmap == NULL) {
+		return;
+	}
+
 	r_locals.stain_frame++;
 
 	const r_stain_t *stain = r_view.stains;
