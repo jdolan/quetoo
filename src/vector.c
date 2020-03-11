@@ -147,6 +147,13 @@ float Clampf(float f, float min, float max) {
 /**
  * @brief
  */
+float Clampf01(float f) {
+	return Minf(Maxf(f, 0.f), 1.f);
+}
+
+/**
+ * @brief
+ */
 float Degrees(float radians) {
 	return radians * RAD2DEG;
 }
@@ -168,6 +175,23 @@ float Minf(float a, float b) {
 /**
  * @brief
  */
+float Minf3(float a, float b, float c) {
+	float x = a < b ? a : b;
+	return x < c ? x : c;
+}
+
+/**
+ * @brief
+ */
+float Minf4(float a, float b, float c, float d) {
+	float x = a < b ? a : b;
+	float y = c < d ? c : d;
+	return x < y ? x : y;
+}
+
+/**
+ * @brief
+ */
 float Mixf(float a, float b, float mix) {
 	return a * (1.f - mix) + b * mix;
 }
@@ -177,6 +201,23 @@ float Mixf(float a, float b, float mix) {
  */
 float Maxf(float a, float b) {
 	return a > b ? a : b;
+}
+
+/**
+ * @brief
+ */
+float Maxf3(float a, float b, float c) {
+	float x = a > b ? a : b;
+	return x > c ? x : c;
+}
+
+/**
+ * @brief
+ */
+float Maxf4(float a, float b, float c, float d) {
+	float x = a > b ? a : b;
+	float y = c > d ? c : d;
+	return x > y ? x : y;
 }
 
 /**

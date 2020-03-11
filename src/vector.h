@@ -214,6 +214,11 @@ float ClampEuler(float theta);
 float Clampf(float f, float min, float max) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The value `f`, clamped to 0.0 and 1.0.
+ */
+float Clampf01(float f) __attribute__ ((warn_unused_result));
+
+/**
  * @return Radians in degrees.
  */
 float Degrees(float radians) __attribute__ ((warn_unused_result));
@@ -229,6 +234,16 @@ _Bool EqualEpsilonf(float a, float b, float epsilon) __attribute__ ((warn_unused
 float Minf(float a, float b) __attribute__ ((warn_unused_result));
 
 /**
+ * @return
+ */
+float Minf3(float a, float b, float c);
+
+/**
+ * @return
+ */
+float Minf4(float a, float b, float c, float d);
+
+/**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 float Mixf(float a, float b, float mix) __attribute__ ((warn_unused_result));
@@ -237,6 +252,17 @@ float Mixf(float a, float b, float mix) __attribute__ ((warn_unused_result));
  * @return The maximum of `a` and `b`.
  */
 float Maxf(float a, float b) __attribute__ ((warn_unused_result));
+
+/**
+ * @return
+ */
+float Maxf3(float a, float b, float c);
+
+/**
+ * @return
+ */
+float Maxf4(float a, float b, float c, float d);
+
 
 /**
  * @return Degrees in radians.
@@ -534,17 +560,17 @@ vec3_t Vec3_Scale(const vec3_t v, float scale) __attribute__ ((warn_unused_resul
 
 
 /**
- * @brief
+ * @return
  */
 vec3_t Vec3_Clamp(const vec3_t v, vec3_t min, vec3_t max);
 
 /**
- * @brief
+ * @return
  */
 vec3_t Vec3_Clampf(const vec3_t v, float min, float max);
 
 /**
- * @brief
+ * @return
  */
 vec3_t Vec3_Clamp01(const vec3_t v);
 
