@@ -532,6 +532,22 @@ vec3_t Vec3_Random(void);
  */
 vec3_t Vec3_Scale(const vec3_t v, float scale) __attribute__ ((warn_unused_result));
 
+
+/**
+ * @brief
+ */
+vec3_t Vec3_Clamp(const vec3_t v, vec3_t min, vec3_t max);
+
+/**
+ * @brief
+ */
+vec3_t Vec3_Clampf(const vec3_t v, float min, float max);
+
+/**
+ * @brief
+ */
+vec3_t Vec3_Clamp01(const vec3_t v);
+
 /**
  * @return Reflected vector
  */
