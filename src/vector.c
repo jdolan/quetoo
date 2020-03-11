@@ -692,6 +692,36 @@ vec3_t Vec3_Scale(const vec3_t v, float scale) {
 /**
  * @brief
  */
+vec3_t Vec3_Clamp(const vec3_t v, vec3_t min, vec3_t max) {
+	return Vec3(
+		Clampf(v.x, min.x, max.x),
+		Clampf(v.y, min.z, max.y),
+		Clampf(v.z, min.z, max.z));
+}
+
+/**
+ * @brief
+ */
+vec3_t Vec3_Clampf(const vec3_t v, float min, float max) {
+	return Vec3(
+		Clampf(v.x, min, max),
+		Clampf(v.y, min, max),
+		Clampf(v.z, min, max));
+}
+
+/**
+ * @brief
+ */
+vec3_t Vec3_Clamp01(const vec3_t v) {
+	return Vec3(
+		Clampf(v.x, 0.0, 1.0),
+		Clampf(v.y, 0.0, 1.0),
+		Clampf(v.z, 0.0, 1.0));
+}
+
+/**
+ * @brief
+ */
 void Vec3_Tangents(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec3_t *tangent, vec3_t *bitangent) {
 
 	const vec3_t t = sdir;
