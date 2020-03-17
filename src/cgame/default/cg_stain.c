@@ -20,33 +20,3 @@
  */
 
 #include "cg_local.h"
-
-static r_atlas_t *cg_stain_atlas;
-
-/**
- *
- */
-r_media_t *Cg_LoadStain(const char *name, r_image_type_t image_type) {
-
-	if (*name == '@') {
-		return (r_media_t *) cgi.LoadAtlasImage(cg_stain_atlas, name + 1, image_type);
-	} else {
-		return (r_media_t *) cgi.LoadImage(name, image_type);
-	}
-}
-
-/**
- * @brief Initializes stain subsystem
- */
-void Cg_InitStains(void) {
-
-	cg_stain_atlas = cgi.CreateAtlas("cg_stain_atlas");
-}
-
-/**
- * @brief Called when all stain images are done loading.
- */
-void Cg_CompileStainAtlas(void) {
-
-	cgi.CompileAtlas(cg_stain_atlas);
-}

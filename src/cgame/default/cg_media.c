@@ -48,9 +48,7 @@ s_sample_t *cg_sample_underwater;
 s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
 
-r_media_t *cg_stain_explosion;
-r_media_t *cg_stain_lightning;
-r_media_t *cg_stain_blood;
+r_image_t *cg_sprite_smoke;
 
 static GHashTable *cg_footstep_table;
 
@@ -165,8 +163,9 @@ static void Cg_InitFootsteps(void) {
  */
 void Cg_UpdateMedia(void) {
 	char name[MAX_QPATH];
-
+	
 	Cg_FreeParticles();
+	Cg_FreeSprites();
 
 	cgi.FreeTag(MEM_TAG_CGAME);
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
@@ -210,21 +209,17 @@ void Cg_UpdateMedia(void) {
 	}
 
 	Cg_InitFootsteps();
-
+	
 	Cg_FreeParticles();
 
-	Cg_InitStains();
-
-	cg_stain_blood = Cg_LoadStain("@stains/blood", IT_EFFECT);
-	cg_stain_explosion = Cg_LoadStain("@stains/explosion", IT_EFFECT);
-	cg_stain_lightning = Cg_LoadStain("@stains/lightning", IT_EFFECT);
-
-	Cg_CompileStainAtlas();
+	Cg_FreeSprites();
 
 	cg_draw_crosshair->modified = true;
 	cg_draw_crosshair_color->modified = true;
 
 	Cg_LoadEmits();
+
+	cg_sprite_smoke = cgi.LoadImage("particles/smoke", IT_EFFECT);
 
 	Cg_LoadEffects();
 

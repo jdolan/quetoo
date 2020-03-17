@@ -435,6 +435,8 @@ void R_Draw2D(void) {
 		glBindTexture(GL_TEXTURE_2D, draw->texture);
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
+	
+	glBindVertexArray(0);
 
 	glUseProgram(0);
 

@@ -22,7 +22,3 @@
 #pragma once
 
 #include "cg_types.h"
-
-r_media_t *Cg_LoadStain(const char *name, r_image_type_t image_type);
-void Cg_InitStains(void);
-void Cg_CompileStainAtlas(void);

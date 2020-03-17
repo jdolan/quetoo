@@ -657,9 +657,13 @@ vec3_t Net_ReadDir(mem_buf_t *msg) {
  * @brief
  */
 void Net_ReadBounds(mem_buf_t *msg, vec3_t *mins, vec3_t *maxs) {
-
-	*mins = Vec3(Net_ReadShort(msg), Net_ReadShort(msg), Net_ReadShort(msg));
-	*maxs = Vec3(Net_ReadShort(msg), Net_ReadShort(msg), Net_ReadShort(msg));
+	
+	mins->x = Net_ReadShort(msg);
+	mins->y = Net_ReadShort(msg);
+	mins->z = Net_ReadShort(msg);
+	maxs->x = Net_ReadShort(msg);
+	maxs->y = Net_ReadShort(msg);
+	maxs->z = Net_ReadShort(msg);
 }
 
 /**

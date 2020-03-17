@@ -139,6 +139,11 @@ _Bool Color_Parse(const char *s, color_t *color);
 /**
  * @return The value of `a * b`.
  */
+color_t Color_Multiply(const color_t a, const color_t b);
+
+/**
+ * @return The value of `a * b`.
+ */
 color_t Color_Scale(const color_t a, const float b);
 
 /**
