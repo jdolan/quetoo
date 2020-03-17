@@ -124,7 +124,7 @@ static void Cg_DrawVital(r_pixel_t x, r_pixel_t ch, const int16_t value, const i
 
 	if (value < low) {
 		if (cg_draw_vitals_pulse->integer) {
-			pulse.a = Clampf(sinf(cgi.client->unclamped_time / 250.f), 0.75f, 1.f) * 255;
+			pulse.a = Clampf(sinf(cgi.client->unclamped_time / 250.f), 0.75f, 1.f);
 		}
 		color = HUD_COLOR_STAT_LOW;
 	} else if (value < med) {
@@ -250,7 +250,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	}
 
 	color_t pulse = color_white;
-	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
+	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f);
 
 	x = HUD_PIC_HEIGHT / 2;
 	y = cgi.context->height / 2 - HUD_PIC_HEIGHT * 2;
@@ -275,7 +275,7 @@ static void Cg_DrawHeldTech(const player_state_t *ps) {
 	}
 
 	color_t pulse = color_white;
-	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
+	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f);
 
 	x = 4;
 	y = cgi.context->height / 2 - HUD_PIC_HEIGHT * 4;

@@ -668,6 +668,11 @@ typedef struct cg_import_s {
 	 * @brief Adds a particle to the scene for the current frame.
 	 */
 	void (*AddSprite)(const r_sprite_t *p);
+	
+	/**
+	 * @brief Adds a beam to the scene for the current frame.
+	 */
+	void (*AddBeam)(const r_beam_t *p);
 
 	/**
 	 * @brief Add a stain to the scene.

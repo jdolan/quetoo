@@ -25,7 +25,6 @@
  * @brief
  */
 typedef struct {
-
 	vec3_t position;
 	vec2_t diffusemap;
 	color32_t color;
@@ -35,7 +34,6 @@ typedef struct {
  * @brief
  */
 typedef struct {
-
 	r_sprite_vertex_t sprites[MAX_SPRITES * 4];
 
 	GLuint vertex_array;
@@ -75,6 +73,45 @@ static struct {
 	GLint fog_color;
 } r_sprite_program;
 
+static void R_AddSpriteInternal(const color_t color, const r_image_t *image, r_sprite_vertex_t *out) {
+	_Bool is_current_batch = false;
+
+	// FIXME: expand into a function???
+	if (image->media.type == MEDIA_ATLAS_IMAGE) {
+		r_atlas_image_t *atlas_image = (r_atlas_image_t *) image;
+
+		is_current_batch = r_view.num_sprite_images && atlas_image->image.texnum == r_view.sprite_images[r_view.num_sprite_images - 1]->texnum;
+
+		out[0].diffusemap = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
+		out[1].diffusemap = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.y);
+		out[2].diffusemap = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
+		out[3].diffusemap = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.w);
+	} else {
+
+		is_current_batch = r_view.num_sprite_images && image == r_view.sprite_images[r_view.num_sprite_images - 1];
+
+		out[0].diffusemap = Vec2(0, 0);
+		out[1].diffusemap = Vec2(1, 0);
+		out[2].diffusemap = Vec2(1, 1);
+		out[3].diffusemap = Vec2(0, 1);
+	}
+	
+	out[0].color = Color_Color32(color);
+	out[1].color = out[0].color;
+	out[2].color = out[0].color;
+	out[3].color = out[0].color;
+
+	if (is_current_batch) {
+		r_view.sprite_batches[r_view.num_sprite_images - 1]++;
+	} else {
+		r_view.sprite_images[r_view.num_sprite_images] = image;
+		r_view.sprite_batches[r_view.num_sprite_images] = 1;
+		r_view.num_sprite_images++;
+	}
+
+	r_view.num_sprites++;
+}
+
 /**
  * @brief Copies the specified sprite into the view structure, provided it
  * passes a basic visibility test.
@@ -100,42 +137,37 @@ void R_AddSprite(const r_sprite_t *p) {
 	out[2].position = Vec3_Add(Vec3_Add(p->origin, d), r);
 	out[3].position = Vec3_Add(Vec3_Add(p->origin, d), l);
 
-	_Bool is_current_batch = false;
+	R_AddSpriteInternal(p->color, p->image, out);
+}
 
-	// FIXME: expand into a function???
-	if (p->image->type == MEDIA_ATLAS_IMAGE) {
-		r_atlas_image_t *atlas_image = (r_atlas_image_t *) p->image;
+/**
+ * @brief Copies the specified sprite into the view structure, provided it
+ * passes a basic visibility test.
+ */
+void R_AddBeam(const r_beam_t *p) {
 
-		is_current_batch = r_view.num_sprite_images && atlas_image->image.texnum == r_view.sprite_images[r_view.num_sprite_images - 1]->texnum;
-
-		out[0].diffusemap = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
-		out[1].diffusemap = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.y);
-		out[2].diffusemap = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
-		out[3].diffusemap = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.w);
-	} else {
-
-		is_current_batch = r_view.num_sprite_images && p->image == r_view.sprite_images[r_view.num_sprite_images - 1];
-
-		out[0].diffusemap = Vec2(0, 0);
-		out[1].diffusemap = Vec2(1, 0);
-		out[2].diffusemap = Vec2(1, 1);
-		out[3].diffusemap = Vec2(0, 1);
+	if (r_view.num_sprites == MAX_SPRITES) {
+		return;
 	}
+
+	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
+	const float size = p->size * .5f;
+	float length;
+	const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(p->start, p->end), &length),
+		right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view.origin, p->end))), size);
+
+	out[0].position = Vec3_Add(p->start, right);
+	out[1].position = Vec3_Add(p->end, right);
+	out[2].position = Vec3_Subtract(p->end, right);
+	out[3].position = Vec3_Subtract(p->start, right);
+
+	R_AddSpriteInternal(p->color, p->image, out);
 	
-	out[0].color = Color_Color32(p->color);
-	out[1].color = out[0].color;
-	out[2].color = out[0].color;
-	out[3].color = out[0].color;
-
-	if (is_current_batch) {
-		r_view.sprite_batches[r_view.num_sprite_images - 1]++;
-	} else {
-		r_view.sprite_images[r_view.num_sprite_images] = p->image;
-		r_view.sprite_batches[r_view.num_sprite_images] = 1;
-		r_view.num_sprite_images++;
+	if (!(p->image->type & IT_MASK_CLAMP_EDGE)) {
+		length /= p->image->width * (p->size / p->image->height);
+		out[1].diffusemap.x *= length;
+		out[2].diffusemap.x = out[1].diffusemap.x;
 	}
-
-	r_view.num_sprites++;
 }
 
 /**

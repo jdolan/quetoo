@@ -473,7 +473,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
  * @brief
  */
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	vec3_t dir, delta, pos, vel;
+	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(start, end));
 
 	cg_light_t l = {
 		.origin = start,
@@ -483,45 +483,13 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 	Cg_AddLight(&l);
 
-	float dist_total;
-	dir = Vec3_Subtract(start, end);
-	dir = Vec3_NormalizeLength(dir, &dist_total);
-
-	delta = Vec3_Scale(dir, -48.0);
-	pos = start;
-
-	vel = Vec3_Subtract(ent->current.origin, ent->prev.origin);
-
-	float dist = dist_total;
-	int32_t i = 0;
-	while (dist > 0.0) {
-		cg_particle_t *p;
-
-		if (!(p = Cg_AllocParticle())) {
-			break;
-		}
-
-		p->color = Color3b(190, 190, Randomr(190, 210));//cgi.ColorFromPalette(12 + (Randomr(0, 4)));
-
-		p->size = 1.0;
-
-		p->origin = pos;
-
-		if (dist <= 48.0) {
-			delta = Vec3_Scale(dir, -dist);
-		}
-
-		pos = Vec3_Add(pos, delta);
-		p->velocity = vel;
-
-		dist -= 48.0;
-
-		if (dist > 12.0) {
-			l.origin = p->origin;
-			l.radius = 90.0 + RandomRangef(-10.f, 10.f);
-			Cg_AddLight(&l);
-		}
-	}
+	cgi.AddBeam(&(const r_beam_t) {
+		.start = start,
+		.end = end,
+		.color = color_white,
+		.image = cg_beam_lightning,
+		.size = 8.5f
+	});
 
 	l.origin = Vec3_Add(end, Vec3_Scale(dir, 12.0));
 	l.radius = 90.0 + RandomRangef(-10.f, 10.f);
@@ -538,8 +506,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		cm_trace_t tr = cgi.Trace(start, Vec3_Add(end, Vec3_Scale(dir, -128.0)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
 
 		if (tr.surface) {
-
-			pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 1.0));
+			vec3_t pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 1.0));
 
 			cgi.AddStain(&(const r_stain_t) {
 				.origin = pos,
@@ -550,7 +517,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 2.0));
 
 			if ((cgi.PointContents(pos) & CONTENTS_MASK_LIQUID) == 0) {
-				for (i = 0; i < 6; i++) {
+				for (int32_t i = 0; i < 6; i++) {
 
 					if (!(p = Cg_AllocParticle())) {
 						break;
@@ -584,16 +551,16 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
  */
 static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	cg_particle_t *p;
+	vec3_t forward;
+	Vec3_Vectors(ent->angles, &forward, NULL, NULL);
 
-	if ((p = Cg_AllocParticle())) {
-
-		p->origin = start;
-
-		p->color = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_GREEN);
-
-		p->size = 0.35;
-	}
+	cgi.AddBeam(&(const r_beam_t) {
+		.start = start,
+		.end = Vec3_Add(end, Vec3_Scale(forward, -3.f)),
+		.color = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_GREEN),
+		.image = cg_beam_hook,
+		.size = 1.f
+	});
 }
 
 /**

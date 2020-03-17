@@ -485,6 +485,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.decay = 500,
 	});
 
+	// Check for bubble trail
+	Cg_BubbleTrail(NULL, start, end, 16.f);
+
 	const float dist = Vec3_DistanceDir(end, start, &forward);
 	const vec3_t right = Vec3(forward.z, -forward.x, forward.y);
 	const vec3_t up = Vec3_Cross(forward, right);
@@ -525,26 +528,22 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		p->color_acceleration = Vec4_Scale(p->color_acceleration, 1.f / MILLIS_TO_SECONDS(p->lifetime));
 
 		p->size = frac;
-		p->size_velocity = 2.f / MILLIS_TO_SECONDS(p->lifetime);
+		p->size_velocity = 1.f / MILLIS_TO_SECONDS(p->lifetime);
+	}
 
-		if (!(p = Cg_AllocParticle())) {
-			break;
-		}
+	cg_sprite_t *s;
 
-		p->origin = Vec3_Add(start, Vec3_Scale(forward, i));
-		p->velocity = Vec3_Scale(forward, 20.f);
-
-		p->lifetime = RandomRangef(1500.f, 1550.f);
-
-		p->color = Color_Add(color, color_white);
-		p->color.a = .125f;
-		p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
-
-		// Check for bubble trail
-
-		if (cgi.PointContents(p->origin) & CONTENTS_MASK_LIQUID) {
-			Cg_BubbleTrail(NULL, p->origin, p->origin, 16.f);
-		}
+	if ((s = Cg_AllocSprite())) {
+		s->type = SPRITE_BEAM;
+		s->origin = start;
+		s->beam.end = end;
+		s->size = 20.f;
+		s->velocity = Vec3_Scale(forward, 20.f);
+		s->lifetime = RandomRangef(1500.f, 1550.f);
+		s->color = Color_Add(color, color_white);
+		s->color.a = .7f;
+		s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
+		s->image = cg_beam_rail;
 	}
 
 	// Check for explosion effect on solids

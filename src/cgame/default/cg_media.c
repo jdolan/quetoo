@@ -49,6 +49,9 @@ s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
 
 r_image_t *cg_sprite_smoke;
+r_image_t *cg_beam_hook;
+r_image_t *cg_beam_rail;
+r_image_t *cg_beam_lightning;
 
 static GHashTable *cg_footstep_table;
 
@@ -220,6 +223,9 @@ void Cg_UpdateMedia(void) {
 	Cg_LoadEmits();
 
 	cg_sprite_smoke = cgi.LoadImage("particles/smoke", IT_EFFECT);
+	cg_beam_hook = cgi.LoadImage("particles/rope", IT_EFFECT);
+	cg_beam_rail = cgi.LoadImage("particles/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
+	cg_beam_lightning = cgi.LoadImage("particles/lightning", IT_EFFECT);
 
 	Cg_LoadEffects();
 

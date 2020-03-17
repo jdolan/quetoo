@@ -24,6 +24,7 @@
 #include "r_types.h"
 
 void R_AddSprite(const r_sprite_t *p);
+void R_AddBeam(const r_beam_t *p);
 
 #ifdef __R_LOCAL_H__
 void R_DrawSprites(void);

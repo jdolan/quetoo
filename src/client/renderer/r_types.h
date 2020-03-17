@@ -622,6 +622,38 @@ typedef struct {
 
 } r_sprite_t;
 
+/**
+ * @brief Beams are billboarded alpha blended textures.
+ */
+typedef struct {
+
+	/**
+	 * @brief The sprite origin.
+	 */
+	vec3_t start;
+
+	/**
+	 * @brief The sprite origin.
+	 */
+	vec3_t end;
+
+	/**
+	 * @brief The sprite size.
+	 */
+	float size;
+	
+	/**
+	 * @brief The sprite texture.
+	 */
+	r_image_t *image;
+
+	/**
+	 * @brief The sprite color.
+	 */
+	color_t color;
+
+} r_beam_t;
+
 #define MAX_SPRITES		0x800
 
 /**
@@ -868,7 +900,7 @@ typedef struct {
 	/**
 	 * @brief The list of sprite images to render for the current frame.
 	 */
-	r_image_t *sprite_images[MAX_SPRITES];
+	const r_image_t *sprite_images[MAX_SPRITES];
 
 	/**
 	 * @brief The number of sprite images to render for the current frame.

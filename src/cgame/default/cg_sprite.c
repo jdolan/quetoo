@@ -155,20 +155,36 @@ void Cg_AddSprites(void) {
 
 		p->size_velocity += p->size_acceleration * delta;
 		p->size += p->size_velocity * delta;
-		p->rotation += p->rotation_velocity * delta;
 
 		if (p->size <= 0.f) {
 			p = Cg_FreeSprite(p);
 			continue;
 		}
 
-		cgi.AddSprite(&(r_sprite_t) {
-			.origin = p->origin,
-			.size = p->size,
-			.color = p->color,
-			.rotation = p->rotation,
-			.image = p->image
-		});
+		switch (p->type) {
+		case SPRITE_NORMAL:
+			p->rotation += p->rotation_velocity * delta;
+
+			cgi.AddSprite(&(r_sprite_t) {
+				.origin = p->origin,
+				.size = p->size,
+				.color = p->color,
+				.rotation = p->rotation,
+				.image = p->image
+			});
+			break;
+		case SPRITE_BEAM:
+			p->beam.end = Vec3_Add(p->beam.end, Vec3_Scale(p->velocity, delta));
+
+			cgi.AddBeam(&(r_beam_t) {
+				.start = p->origin,
+				.end = p->beam.end,
+				.size = p->size,
+				.image = p->image,
+				.color = p->color
+			});
+			break;
+		}
 		
 		p = p->next;
 	}
