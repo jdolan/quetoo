@@ -302,6 +302,8 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawParticles();
 
+	R_DrawSprites();
+
 	R_Draw3D();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -643,6 +645,8 @@ void R_Init(void) {
 
 	R_InitParticles();
 
+	R_InitSprites();
+
 	R_InitSky();
 
 	R_InitMaterials();
@@ -672,6 +676,8 @@ void R_Shutdown(void) {
 	R_ShutdownModels();
 
 	R_ShutdownParticles();
+
+	R_ShutdownSprites();
 
 	R_ShutdownSky();
 

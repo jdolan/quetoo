@@ -259,6 +259,7 @@ void Cl_InitCgame(void) {
 	import.AddEntity = R_AddEntity;
 	import.AddLight = R_AddLight;
 	import.AddParticle = R_AddParticle;
+	import.AddSprite = R_AddSprite;
 	import.AddStain = R_AddStain;
 
 	import.BindFont = R_BindFont;

@@ -174,6 +174,9 @@
     <ClInclude Include="..\src\cgame\default\cg_stain.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_sprite.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\cgame\default\ui\home\HomeViewController.json">
@@ -317,6 +320,9 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_stain.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_sprite.c">
       <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>

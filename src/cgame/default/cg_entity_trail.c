@@ -141,9 +141,9 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	const float particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 8);
 
 	for (int32_t i = 0; i < particles; i++) {
-		cg_particle_t *p;
+		cg_sprite_t *p;
 
-		if (!(p = Cg_AllocParticle())) {
+		if (!(p = Cg_AllocSprite())) {
 			return;
 		}
 
@@ -157,8 +157,12 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		p->color = Color4f(color, color, color, RandomRangef(.22f, .33f));
 		p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
 
-		p->size = 1.5f;
-		p->size_velocity = 10.f;
+		p->size = 2.5f;
+		p->size_velocity = 15.f;
+
+		p->image = cg_sprite_smoke;
+		p->rotation = RandomRangef(.0f, M_PI);
+		p->rotation_velocity = RandomRangef(.2f, 1.f);
 	}
 }
 

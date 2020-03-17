@@ -192,6 +192,8 @@ void R_Draw3D(void) {
 	for (int32_t i = 0; i < r_draw_3d.num_draw_arrays; i++, draw++) {
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
+	
+	glBindVertexArray(0);
 
 	glUseProgram(0);
 

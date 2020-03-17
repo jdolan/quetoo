@@ -341,6 +341,36 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		}
 	}
 
+	cg_sprite_t *s;
+
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
+		s->origin.z -= 6.f;
+
+		s->lifetime = 2000;
+
+		s->color = Color3b(255, 255, 255);
+		s->color.a = 255 / 255.0;
+	//	s->delta_color.a = -10;
+
+		s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
+
+		s->size = 16.0;
+		s->size_velocity = 64.0;
+	//	s->delta_size = 1.0;
+
+		s->velocity = Vec3_RandomRange(-1.f, 1.f);
+		s->velocity.z += 35.f;
+
+		s->acceleration.z = -8.0;
+
+		s->image = cg_sprite_smoke;
+
+		s->rotation = RandomRangef(0.0f, M_PI);
+
+		s->rotation_velocity = RandomRangef(.1f, .5f);
+	}
+
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
 		.radius = 200.0,

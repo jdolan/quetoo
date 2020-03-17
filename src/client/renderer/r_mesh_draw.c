@@ -104,6 +104,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
 
+	if (e->effects & EF_WEAPON) {
+		glDepthRange(.0f, .1f);
+	}
+
 	glBindVertexArray(mesh->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
@@ -179,6 +183,12 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 		
 		r_view.count_mesh_triangles += face->num_elements / 3;
+	}
+
+	glBindVertexArray(0);
+
+	if (e->effects & EF_WEAPON) {
+		glDepthRange(.0f, 1.f);
 	}
 
 	r_view.count_mesh_models++;

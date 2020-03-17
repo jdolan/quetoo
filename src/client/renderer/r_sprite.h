@@ -19,30 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler2D texture_diffusemap;
+#pragma once
 
-in vertex_data {
-	vec3 position;
-	vec4 color;
-} vertex;
+#include "r_types.h"
 
-out vec4 out_color;
+void R_AddSprite(const r_sprite_t *p);
 
-/**
- * @brief
- */
-void main(void) {
-
-	out_color = vertex.color * texture(texture_diffusemap, gl_PointCoord);
-
-	// maybe move this to the vertex shader?
-	float fogginess = fog_factor(vertex.position);
-	
-	out_color.rgb = mix(out_color.rgb, fog_color, fogginess);
-
-	out_color.a = mix(out_color.a, 0.0, fogginess);
-
-	out_color.rgb = color_filter(out_color.rgb);
-
-	out_color.a *= soft_edges();
-}
+#ifdef __R_LOCAL_H__
+void R_DrawSprites(void);
+void R_ShutdownSprites(void);
+void R_InitSprites(void);
+#endif /* __R_LOCAL_H__ */

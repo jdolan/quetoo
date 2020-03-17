@@ -324,6 +324,8 @@ void R_DrawWorld(void) {
 
 	glDisable(GL_DEPTH_TEST);
 
+	glBindVertexArray(0);
+
 	R_GetError(NULL);
 
 	R_DrawBspNormals();

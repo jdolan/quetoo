@@ -19,30 +19,29 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler2D texture_diffusemap;
+#version 330
 
-in vertex_data {
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec2 in_diffusemap;
+layout (location = 2) in vec4 in_color;
+
+uniform mat4 projection;
+uniform mat4 view;
+
+out vertex_data {
 	vec3 position;
+	vec2 diffusemap;
 	vec4 color;
 } vertex;
-
-out vec4 out_color;
 
 /**
  * @brief
  */
 void main(void) {
 
-	out_color = vertex.color * texture(texture_diffusemap, gl_PointCoord);
+	gl_Position = projection * view * vec4(in_position.xyz, 1.0);
 
-	// maybe move this to the vertex shader?
-	float fogginess = fog_factor(vertex.position);
-	
-	out_color.rgb = mix(out_color.rgb, fog_color, fogginess);
-
-	out_color.a = mix(out_color.a, 0.0, fogginess);
-
-	out_color.rgb = color_filter(out_color.rgb);
-
-	out_color.a *= soft_edges();
+	vertex.position = vec3(view * vec4(in_position.xyz, 1.0));
+	vertex.diffusemap = in_diffusemap;
+	vertex.color = in_color;
 }

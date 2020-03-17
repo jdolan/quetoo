@@ -174,6 +174,8 @@ static void Cl_DrawRendererStats(void) {
 	R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_white);
 	y += ch;
 	R_Draw2DString(x, y, va("%d particles", r_view.num_particles), color_white);
+	y += ch;
+	R_Draw2DString(x, y, va("%d sprites (%d batches)", r_view.num_sprites, r_view.num_sprite_images), color_white);
 
 	R_BindFont(NULL, NULL, NULL);
 }
