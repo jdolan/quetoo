@@ -214,10 +214,12 @@ void R_DrawSprites(void) {
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_attachment);
 
 	glActiveTexture(GL_TEXTURE0);
-	
-	for (uint32_t i = 0, offset = 0; i < r_view.num_sprite_images; i++) {
+
+	ptrdiff_t offset = 0;
+
+	for (uint32_t i = 0; i < r_view.num_sprite_images; i++) {
 		glBindTexture(GL_TEXTURE_2D, r_view.sprite_images[i]->texnum);
-		glDrawElements(GL_TRIANGLES, r_view.sprite_batches[i] * 6, GL_UNSIGNED_SHORT, offset);
+		glDrawElements(GL_TRIANGLES, r_view.sprite_batches[i] * 6, GL_UNSIGNED_SHORT, (GLvoid *) offset);
 		offset += (r_view.sprite_batches[i] * 6) * sizeof(uint16_t);
 	}
 	
