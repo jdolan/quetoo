@@ -29,6 +29,7 @@ noinst_HEADERS = \
 	r_particle.h \
 	r_program.h \
 	r_sky.h \
+	r_sprite.h \
 	r_stain.h \
 	r_types.h \
 	renderer.h
@@ -61,6 +62,7 @@ librenderer_la_SOURCES = \
 	r_particle.c \
 	r_program.c \
 	r_sky.c \
+	r_sprite.c \
 	r_stain.c
 
 librenderer_la_CFLAGS = \

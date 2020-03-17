@@ -44,7 +44,6 @@
 #include "cg_predict.h"
 #include "cg_score.h"
 #include "cg_sprite.h"
-#include "cg_stain.h"
 #include "cg_temp_entity.h"
 #include "cg_types.h"
 #include "cg_ui.h"
