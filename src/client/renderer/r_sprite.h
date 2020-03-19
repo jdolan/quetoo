@@ -21,8 +21,13 @@
 
 #pragma once
 
-#include "cg_types.h"
+#include "r_types.h"
 
-r_media_t *Cg_LoadStain(const char *name, r_image_type_t image_type);
-void Cg_InitStains(void);
-void Cg_CompileStainAtlas(void);
+void R_AddSprite(const r_sprite_t *p);
+void R_AddBeam(const r_beam_t *p);
+
+#ifdef __R_LOCAL_H__
+void R_DrawSprites(void);
+void R_ShutdownSprites(void);
+void R_InitSprites(void);
+#endif /* __R_LOCAL_H__ */

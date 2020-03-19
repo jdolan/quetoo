@@ -82,7 +82,7 @@ static struct {
  */
 void R_AddParticle(const r_particle_t *p) {
 
-	if (r_view.num_particles == lengthof(r_view.particles)) {
+	if (r_view.num_particles == MAX_PARTICLES) {
 		return;
 	}
 
@@ -91,7 +91,7 @@ void R_AddParticle(const r_particle_t *p) {
 	out->position = Vec3_ToVec4(p->origin, p->size);
 	out->color = Color_Color32(p->color);
 
-	r_view.particles[r_view.num_particles++] = *p;
+	r_view.num_particles++;
 }
 
 /**
@@ -143,6 +143,8 @@ void R_DrawParticles(void) {
 	glActiveTexture(GL_TEXTURE0);
 
 	glDrawArrays(GL_POINTS, 0, r_view.num_particles);
+	
+	glBindVertexArray(0);
 
 	glDisable(GL_PROGRAM_POINT_SIZE);
 	glDisable(GL_DEPTH_TEST);
@@ -164,7 +166,7 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "particle_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "particle_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "soft_edges.glsl", "particle_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_particle_program.name);

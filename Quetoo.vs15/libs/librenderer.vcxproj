@@ -43,6 +43,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_particle.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_sprite.c" />
     <ClCompile Include="..\..\src\client\renderer\r_stain.c" />
   </ItemGroup>
   <ItemGroup>
@@ -73,6 +74,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_particle.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_sprite.h" />
     <ClInclude Include="..\..\src\client\renderer\r_stain.h" />
     <ClInclude Include="..\..\src\client\renderer\r_types.h" />
   </ItemGroup>
@@ -93,6 +95,9 @@
     <None Include="..\..\src\client\renderer\shaders\particle_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sky_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\soft_edges.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\sprite_vs.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3B26D4D9-B320-4D6F-B4D1-9A2487BBD0B3}</ProjectGuid>

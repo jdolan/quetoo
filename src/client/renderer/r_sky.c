@@ -116,6 +116,8 @@ void R_DrawSkyBox(void) {
 
 	glBindTexture(GL_TEXTURE_2D, r_sky.images[3]->texnum);
 	glDrawArrays(GL_TRIANGLE_FAN, 20, 4);
+	
+	glBindVertexArray(0);
 
 	glUseProgram(0);
 

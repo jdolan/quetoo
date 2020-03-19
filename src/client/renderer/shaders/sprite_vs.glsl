@@ -19,34 +19,29 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cg_local.h"
+#version 330
 
-static r_atlas_t *cg_stain_atlas;
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec2 in_diffusemap;
+layout (location = 2) in vec4 in_color;
 
-/**
- *
- */
-r_media_t *Cg_LoadStain(const char *name, r_image_type_t image_type) {
+uniform mat4 projection;
+uniform mat4 view;
 
-	if (*name == '@') {
-		return (r_media_t *) cgi.LoadAtlasImage(cg_stain_atlas, name + 1, image_type);
-	} else {
-		return (r_media_t *) cgi.LoadImage(name, image_type);
-	}
-}
-
-/**
- * @brief Initializes stain subsystem
- */
-void Cg_InitStains(void) {
-
-	cg_stain_atlas = cgi.CreateAtlas("cg_stain_atlas");
-}
+out vertex_data {
+	vec3 position;
+	vec2 diffusemap;
+	vec4 color;
+} vertex;
 
 /**
- * @brief Called when all stain images are done loading.
+ * @brief
  */
-void Cg_CompileStainAtlas(void) {
+void main(void) {
 
-	cgi.CompileAtlas(cg_stain_atlas);
+	gl_Position = projection * view * vec4(in_position.xyz, 1.0);
+
+	vertex.position = vec3(view * vec4(in_position.xyz, 1.0));
+	vertex.diffusemap = in_diffusemap;
+	vertex.color = in_color;
 }

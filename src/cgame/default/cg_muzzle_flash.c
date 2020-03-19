@@ -62,7 +62,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
  * @brief
  */
 static void Cg_SmokeFlash(const cl_entity_t *ent) {
-	cg_particle_t *p;
+	cg_sprite_t *p;
 	vec3_t forward, right, org, org2;
 
 	// project the puff just in front of the entity
@@ -80,7 +80,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	}
 
 	// and adjust for ducking
-	org.z += Cg_IsDucking(ent) ? -2.0 : 20.0;
+	org.z += Cg_IsDucking(ent) ? -2.0 : 16.0;
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
@@ -95,7 +95,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle())) {
+	if (!(p = Cg_AllocSprite())) {
 		return;
 	}
 
@@ -107,13 +107,22 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	p->color.a = 200 / 255.0;
 //	p->delta_color.a = -10;
 
+	p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
+
 	p->size = 4.0;
+	p->size_velocity = 16.0;
 //	p->delta_size = 1.0;
 
 	p->velocity = Vec3_RandomRange(-1.f, 1.f);
 	p->velocity.z += 10.f;
 
 	p->acceleration.z = 5.0;
+
+	p->image = cg_sprite_smoke;
+
+	p->rotation = RandomRangef(0.0f, M_PI);
+
+	p->rotation_velocity = RandomRangef(.8f, 1.6f);
 }
 
 /**

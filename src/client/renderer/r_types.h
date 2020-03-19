@@ -567,7 +567,7 @@ typedef struct r_model_s {
 #define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
 
 /**
- * @brief Particles are alhpa blended points.
+ * @brief Particles are alpha blended points.
  */
 typedef struct {
 
@@ -589,6 +589,72 @@ typedef struct {
 } r_particle_t;
 
 #define MAX_PARTICLES		0x7ffe
+
+/**
+ * @brief Sprites are billboarded alpha blended textures.
+ */
+typedef struct {
+
+	/**
+	 * @brief The sprite origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The sprite size.
+	 */
+	float size;
+	
+	/**
+	 * @brief The sprite texture.
+	 */
+	r_image_t *image;
+
+	/**
+	 * @brief The sprite's rotation.
+	 */
+	float rotation;
+
+	/**
+	 * @brief The sprite color.
+	 */
+	color_t color;
+
+} r_sprite_t;
+
+/**
+ * @brief Beams are billboarded alpha blended textures.
+ */
+typedef struct {
+
+	/**
+	 * @brief The sprite origin.
+	 */
+	vec3_t start;
+
+	/**
+	 * @brief The sprite origin.
+	 */
+	vec3_t end;
+
+	/**
+	 * @brief The sprite size.
+	 */
+	float size;
+	
+	/**
+	 * @brief The sprite texture.
+	 */
+	r_image_t *image;
+
+	/**
+	 * @brief The sprite color.
+	 */
+	color_t color;
+
+} r_beam_t;
+
+#define MAX_SPRITES		0x800
 
 /**
  * @brief Stains are low-resolution color effects added to the map's lightmap
@@ -824,8 +890,27 @@ typedef struct {
 	/**
 	 * @brief The particles to render for the current frame.
 	 */
-	r_particle_t particles[MAX_PARTICLES];
 	int32_t num_particles;
+
+	/**
+	 * @brief The sprites to render for the current frame.
+	 */
+	int32_t num_sprites;
+	
+	/**
+	 * @brief The list of sprite images to render for the current frame.
+	 */
+	const r_image_t *sprite_images[MAX_SPRITES];
+
+	/**
+	 * @brief The number of sprite images to render for the current frame.
+	 */
+	uint32_t num_sprite_images;
+
+	/**
+	 * @brief The number of sprites batched by image.
+	 */
+	uint16_t sprite_batches[MAX_SPRITES];
 
 	/**
 	 * @brief The lights to render for the current frame.

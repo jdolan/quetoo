@@ -14,4 +14,7 @@ shaders_DATA = \
 	particle_fs.glsl \
 	particle_vs.glsl \
 	sky_fs.glsl \
-	sky_vs.glsl
+	sky_vs.glsl \
+	soft_edges.glsl \
+	sprite_fs.glsl \
+	sprite_vs.glsl

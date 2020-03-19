@@ -171,9 +171,6 @@ static void R_DrawBspLightgrid(void) {
  */
 static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArray *draw_elements) {
 
-	const r_bsp_model_t *bsp = r_model_state.world->bsp;
-	assert(bsp);
-
 	const r_material_t *material = NULL;
 	GLint textures = 0;
 
@@ -220,7 +217,7 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArra
 			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
 		}
 
-		if (bsp->lightmap) {
+		if (r_model_state.world->bsp->lightmap) {
 			tex |= TEXTURE_MASK_LIGHTMAP;
 		} else {
 			tex &= ~TEXTURE_MASK_LIGHTMAP;
@@ -240,11 +237,25 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArra
 /**
  * @brief
  */
+static void R_DrawBspInlineModel(const r_bsp_inline_model_t *in) {
+
+	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_opaque);
+
+	glEnable(GL_BLEND);
+
+	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_blend);
+
+	glDisable(GL_BLEND);
+}
+
+/**
+ * @brief
+ */
 static void R_DrawBspEntity(const r_entity_t *e) {
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 
-	R_DrawBspDrawElements(e->model->bsp_inline, r_model_state.world->bsp->draw_elements_opaque);
+	R_DrawBspInlineModel(e->model->bsp_inline);
 }
 
 /**
@@ -302,7 +313,7 @@ void R_DrawWorld(void) {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, bsp->lightmap->atlas->texnum);
 	}
 
-	R_DrawBspDrawElements(bsp->inline_models, bsp->draw_elements_opaque);
+	R_DrawBspInlineModel(bsp->inline_models);
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
@@ -323,6 +334,8 @@ void R_DrawWorld(void) {
 	glDisable(GL_CULL_FACE);
 
 	glDisable(GL_DEPTH_TEST);
+
+	glBindVertexArray(0);
 
 	R_GetError(NULL);
 
