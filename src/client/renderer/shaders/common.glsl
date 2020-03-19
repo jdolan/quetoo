@@ -102,12 +102,13 @@ vec3 brdf_phong(vec3 view_dir, vec3 light_dir, vec3 normal,
  * @brief Blinn-Phong BRDF for specular highlights.
  */
 vec3 brdf_blinn(vec3 view_dir, vec3 light_dir, vec3 normal,
-	vec3 light_color, float specular_intensity, float specular_exponent) {
+	vec3 light_color, float glossiness, float specular_exponent) {
 
-	const float exp_scale = 64.0; // roughly matches phong this way
 	vec3 half_angle = normalize(light_dir + view_dir);
 	float n_dot_h = max(dot(normal, half_angle), 0.0);
-	return light_color * specular_intensity * pow(n_dot_h, specular_exponent * exp_scale);
+	float p = specular_exponent * glossiness;
+	float gloss = pow(n_dot_h, p) * (p + 2.0) / 8.0; // energy preserving
+	return light_color * gloss;
 }
 
 /**
@@ -136,10 +137,17 @@ vec3 tonemap(vec3 color) {
 		a /= a + as;
 		b = b / (b + 1.0);
 		return saturate3(a * b * 1.0625);
-	#else
+	#endif
+	#if 1
 		color *= exp(color);
 		color /= color + 0.825;
 		return color;
+	#endif
+	#if 0
+		return sqrt(color * color / (color * color + 1.0));
+	#endif
+	#if 0
+		return saturate3(color);
 	#endif
 }
 

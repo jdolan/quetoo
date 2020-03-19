@@ -32,6 +32,8 @@
 #define TEXTURE_MASK_STAINMAP           (1 << TEXTURE_STAINMAP)
 #define TEXTURE_MASK_ALL                0xff
 
+#define MAX_HARDNESS 16
+
 uniform int textures;
 
 uniform sampler2D texture_diffusemap;
@@ -93,7 +95,9 @@ float auto_glossmap(vec4 normalmap, vec4 diffusemap) {
  * @brief
  */
 void main(void) {
-
+	
+	float _specular = specular * 100.0; // fudge the numbers to match the old specular model... kinda...
+	
 	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 	
 	vec3 light_diffuse = vec3(0.0);
@@ -111,36 +115,51 @@ void main(void) {
 	}
 
 	vec4 normalmap;
+	float toksvig;
 	if ((textures & TEXTURE_MASK_NORMALMAP) == TEXTURE_MASK_NORMALMAP) {
-		normalmap = texture(texture_normalmap, vertex.diffusemap);
-		normalmap.xyz = normalize(normalmap.xyz * 2.0 - 1.0);
-		normalmap.xy *= bump;
+		
+		vec4 normalmap_raw_0, normalmap_raw_1;
+		normalmap_raw_0 = texture(texture_normalmap, vertex.diffusemap);
+		normalmap_raw_0.xyz = normalmap_raw_0.xyz * 2.0 - 1.0;
+		normalmap_raw_1 = texture(texture_normalmap, vertex.diffusemap, 1);
+		normalmap_raw_1.xyz = normalmap_raw_1.xyz * 2.0 - 1.0;
+		
+		normalmap = normalize(normalmap_raw_0) * vec4(bump, bump, 1.0, 1.0);
 		normalmap.xyz = normalize(normalmap.xyz);
+		
+		// take the minimum of 2 mip samples to prevent shimmering / crawlies on detailed textures :|
+		// sadly this looks like arse on some materials, I think using precomputed textures would fix it
+		float toksvig_0 = 1.0 / (1.0 + _specular * ((1.0 / saturate(length(normalmap_raw_0.xyz))) - 1.0));
+		float toksvig_1 = 1.0 / (1.0 + _specular * ((1.0 / saturate(length(normalmap_raw_1.xyz))) - 1.0));
+		toksvig = min(toksvig_0, toksvig_1);
+		
 	} else {
 		normalmap = vec4(0.0, 0.0, 1.0, 0.5);
+		toksvig = 1.0;
 	}
 
 	vec3 normal = normalize(tbn * normalmap.xyz);
 
-	vec4 glossmap;
+	float glossmap;
 	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {
-		glossmap = texture(texture_glossmap, vertex.diffusemap);
+		glossmap = texture(texture_glossmap, vertex.diffusemap).r;
 	} else {
-		glossmap = vec4(auto_glossmap(normalmap, diffusemap));
+		glossmap = auto_glossmap(normalmap, diffusemap);
 	}
 
 	vec3 lightmap, stainmap;
 	if ((textures & TEXTURE_MASK_LIGHTMAP) == TEXTURE_MASK_LIGHTMAP) {
-		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
-		vec3 diffuse = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 1)).rgb * modulate;
-		vec3 radiosity = texture(texture_lightmap, vec3(vertex.lightmap, 2)).rgb * modulate;
+		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
+		vec3 diffuse = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
+		vec3 radiosity = texture(texture_lightmap, vec3(vertex.lightmap, 2)).rgb;
 		
 		vec3 diffuse_dir = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
 		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
 		diffuse_dir = normalize(tbn * diffuse_dir);
 
 		light_diffuse = diffuse * max(dot(diffuse_dir, normal), 0.0) + ambient + radiosity;
-		light_specular = brdf_blinn(normalize(-vertex.position), diffuse_dir, normal, diffuse, glossmap.r * hardness, specular);
+		light_specular = brdf_blinn(normalize(-vertex.position), diffuse_dir, normal, diffuse, glossmap * toksvig, _specular);
+		light_specular = min(light_specular * 0.2 * glossmap * hardness, MAX_HARDNESS);
 
 		stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
 	} else {
@@ -150,10 +169,11 @@ void main(void) {
 
 	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 	
-	out_color = diffusemap + vec4(stainmap, 1.0);
+	out_color = diffusemap;
+	out_color += vec4(stainmap, 1.0);
 
-	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
-	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
+	out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
+	out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
 	
 	// postprocessing
 	
@@ -167,5 +187,13 @@ void main(void) {
 	//out_color.rgb = (normal + 1) * 0.5;
 	// out_color.rgb = vec3(gen_cavity(normalmap));
 	// out_color.rgb = vec3(gen_gloss(diffusemap));
-	// out_color.rgb = vec3(auto_glossmap(normalmap, diffusemap));
+	// out_color.rgb = vec3(min(auto_glossmap(normalmap, diffusemap), toksvig));
+	
+
+	// float power = saturate(glossmap.r * hardness);
+	// float rlen = 1.0 / saturate(length(normalmap.xyz * 2.0 - 1.0));
+	// float gloss = 1.0 / (power * (rlen - 1.0) + 1.0);
+	// out_color.rgb = vec3(length(normalmap.xyz * 2.0 - 1.0) * 0.5 + 0.5);
+	
+	// out_color.rgb = vec3(light_specular);
 }
