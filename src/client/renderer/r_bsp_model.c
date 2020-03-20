@@ -166,6 +166,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->lightmap.st_maxs = in->lightmap.st_maxs;
 
 		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * BSP_LIGHTMAP_BPP, bsp->faces);
+		memset(lm->stainmap, 0xff, lm->w * lm->h * BSP_LIGHTMAP_BPP);
 	}
 }
 
@@ -409,6 +410,7 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 
 	byte *data = Mem_Malloc(out_size);
 	memcpy(data, (byte *) in + sizeof(bsp_lightmap_t), in_size);
+	memset(data + in_size, 0xff, in->width * in->width * BSP_LIGHTMAP_BPP);
 
 	R_UploadImage(out->atlas, GL_RGB, data);
 
