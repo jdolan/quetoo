@@ -97,6 +97,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set s_volume 0"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+map torn"
             isEnabled = "YES">
          </CommandLineArgument>

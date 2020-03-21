@@ -242,9 +242,11 @@ static void R_DrawBspInlineModel(const r_bsp_inline_model_t *in) {
 	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_opaque);
 
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_blend);
 
+	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 }
 
@@ -278,7 +280,7 @@ void R_DrawWorld(void) {
 	glUniformMatrix4fv(r_bsp_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 
-	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
+	glUniform1f(r_bsp_program.alpha_threshold, .125f);
 
 	glUniform1f(r_bsp_program.brightness, r_brightness->value);
 	glUniform1f(r_bsp_program.contrast, r_contrast->value);

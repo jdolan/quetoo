@@ -84,7 +84,6 @@ static void R_FreeModel(r_media_t *self) {
 		glDeleteVertexArrays(1, &mod->bsp->vertex_array);
 
 		g_ptr_array_free(mod->bsp->draw_elements_opaque, 1);
-		g_ptr_array_free(mod->bsp->draw_elements_alpha_test, 1);
 		g_ptr_array_free(mod->bsp->draw_elements_blend, 1);
 		g_ptr_array_free(mod->bsp->draw_elements_material, 1);
 		g_ptr_array_free(mod->bsp->draw_elements_warp, 1);

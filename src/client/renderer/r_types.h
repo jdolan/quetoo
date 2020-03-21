@@ -436,7 +436,6 @@ typedef struct {
 	r_bsp_draw_elements_t *draw_elements;
 
 	GPtrArray *draw_elements_opaque;
-	GPtrArray *draw_elements_alpha_test;
 	GPtrArray *draw_elements_blend;
 	GPtrArray *draw_elements_material;
 	GPtrArray *draw_elements_warp;
