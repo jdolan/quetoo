@@ -101,7 +101,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn"
+            argument = "+map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

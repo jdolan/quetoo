@@ -245,6 +245,7 @@ static void R_DrawBspInlineModel(const r_bsp_inline_model_t *in) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_blend);
+	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_warp);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
