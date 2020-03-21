@@ -488,7 +488,9 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.end = end,
 		.color = color_white,
 		.image = cg_beam_lightning,
-		.size = 8.5f
+		.size = 8.5f,
+		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
+		.stretch = RandomRangef(.2f, .4f)
 	});
 
 	l.origin = Vec3_Add(end, Vec3_Scale(dir, 12.0));

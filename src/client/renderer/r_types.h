@@ -628,30 +628,39 @@ typedef struct {
 typedef struct {
 
 	/**
-	 * @brief The sprite origin.
+	 * @brief The beam start.
 	 */
 	vec3_t start;
 
 	/**
-	 * @brief The sprite origin.
+	 * @brief The beam end.
 	 */
 	vec3_t end;
 
 	/**
-	 * @brief The sprite size.
+	 * @brief The beam size.
 	 */
 	float size;
 	
 	/**
-	 * @brief The sprite texture.
+	 * @brief The beam texture.
 	 */
 	r_image_t *image;
 
 	/**
-	 * @brief The sprite color.
+	 * @brief The beam color.
 	 */
 	color_t color;
-
+	
+	/**
+	 * @brief The beam texture translation.
+	 */
+	float translate;
+			
+	/**
+	 * @brief The beam texture stretch.
+	 */
+	float stretch;
 } r_beam_t;
 
 #define MAX_SPRITES		0x800

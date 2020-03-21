@@ -165,8 +165,19 @@ void R_AddBeam(const r_beam_t *p) {
 	
 	if (!(p->image->type & IT_MASK_CLAMP_EDGE)) {
 		length /= p->image->width * (p->size / p->image->height);
+
+		if (p->stretch) {
+			length *= p->stretch;
+		}
+
 		out[1].diffusemap.x *= length;
 		out[2].diffusemap.x = out[1].diffusemap.x;
+
+		if (p->translate) {
+			for (int32_t i = 0; i < 4; i++) {
+				out[i].diffusemap.x += p->translate;
+			}
+		}
 	}
 }
 
