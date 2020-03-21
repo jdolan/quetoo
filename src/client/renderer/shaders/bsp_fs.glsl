@@ -170,7 +170,7 @@ void main(void) {
 	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 	
 	out_color = diffusemap;
-	out_color += vec4(stainmap, 1.0);
+	out_color *= vec4(stainmap, 1.0);
 
 	out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
 	out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);

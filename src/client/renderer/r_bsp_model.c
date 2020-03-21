@@ -166,6 +166,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->lightmap.st_maxs = in->lightmap.st_maxs;
 
 		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * BSP_LIGHTMAP_BPP, bsp->faces);
+		memset(lm->stainmap, 0xff, lm->w * lm->h * BSP_LIGHTMAP_BPP);
 	}
 }
 
@@ -198,7 +199,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	bsp->draw_elements = out = Mem_LinkMalloc(bsp->num_draw_elements * sizeof(*out), bsp);
 
 	bsp->draw_elements_opaque = g_ptr_array_new();
-	bsp->draw_elements_alpha_test = g_ptr_array_new();
 	bsp->draw_elements_blend = g_ptr_array_new();
 	bsp->draw_elements_material = g_ptr_array_new();
 	bsp->draw_elements_warp = g_ptr_array_new();
@@ -223,8 +223,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 		if (out->texinfo->flags & SURF_SKY) {
 			continue;
-		} else if (out->texinfo->flags & SURF_ALPHA_TEST) {
-			g_ptr_array_add(bsp->draw_elements_alpha_test, out);
 		} else if (out->texinfo->flags & SURF_MASK_BLEND) {
 			g_ptr_array_add(bsp->draw_elements_blend, out);
 		} else if (out->texinfo->flags & SURF_MATERIAL) {
@@ -237,7 +235,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	}
 
 	g_ptr_array_sort(bsp->draw_elements_opaque, R_DrawElementsCmp);
-	g_ptr_array_sort(bsp->draw_elements_alpha_test, R_DrawElementsCmp);
 	g_ptr_array_sort(bsp->draw_elements_blend, R_DrawElementsCmp);
 	g_ptr_array_sort(bsp->draw_elements_material, R_DrawElementsCmp);
 	g_ptr_array_sort(bsp->draw_elements_warp, R_DrawElementsCmp);
@@ -409,6 +406,7 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 
 	byte *data = Mem_Malloc(out_size);
 	memcpy(data, (byte *) in + sizeof(bsp_lightmap_t), in_size);
+	memset(data + in_size, 0xff, in->width * in->width * BSP_LIGHTMAP_BPP);
 
 	R_UploadImage(out->atlas, GL_RGB, data);
 
