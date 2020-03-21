@@ -29,7 +29,7 @@ typedef struct {
 	/**
 	 * @brief The lock governing global thread pool access.
 	 */
-	SDL_mutex *lock;
+	SDL_SpinLock lock;
 
 	/**
 	 * @brief The thread dispatch identifier.
@@ -60,10 +60,17 @@ static ThreadRunFunc ThreadTerminate = (ThreadRunFunc) &ThreadTerminate;
 SDL_threadID thread_main;
 
 /**
+ * @brief The current thread ID.
+ */
+SDL_threadID _Thread_local thread_id;
+
+/**
  * @brief Wrap the user's function in our own for introspection.
  */
 static int32_t Thread_Run(void *data) {
 	thread_t *t = (thread_t *) data;
+
+	thread_id = SDL_ThreadID();
 
 	while (t->Run != ThreadTerminate) {
 
@@ -144,7 +151,7 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread
 
 	// if threads are available, find an idle one and dispatch it
 	if (thread_pool.num_threads) {
-		SDL_LockMutex(thread_pool.lock);
+		SDL_AtomicLock(&thread_pool.lock);
 
 		thread_t *t = thread_pool.threads;
 		for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
@@ -167,7 +174,7 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread
 					SDL_UnlockMutex(t->mutex);
 					SDL_CondSignal(t->cond);
 
-					SDL_UnlockMutex(thread_pool.lock);
+					SDL_AtomicUnlock(&thread_pool.lock);
 					return t;
 				}
 
@@ -175,7 +182,7 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread
 			}
 		}
 
-		SDL_UnlockMutex(thread_pool.lock);
+		SDL_AtomicUnlock(&thread_pool.lock);
 	}
 
 	// if we failed to allocate a thread, run the function in this thread
@@ -219,8 +226,6 @@ void Thread_Init(ssize_t num_threads) {
 
 	memset(&thread_pool, 0, sizeof(thread_pool));
 
-	thread_pool.lock = SDL_CreateMutex();
-
 	Thread_Init_(num_threads);
 
 	thread_main = SDL_ThreadID();
@@ -230,8 +235,6 @@ void Thread_Init(ssize_t num_threads) {
  * @brief Shuts down the thread pool.
  */
 void Thread_Shutdown(void) {
-
-	SDL_DestroyMutex(thread_pool.lock);
 
 	Thread_Shutdown_();
 

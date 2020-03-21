@@ -25,7 +25,8 @@
 
 static SDL_atomic_t c_tjunctions;
 static GPtrArray *faces;
-static SDL_mutex **faces_locks;
+static SDL_SpinLock *faces_locks;
+static size_t largest_winding = 0;
 
 // FIXME/TODO temp fix since we're using old glib
 #if defined(_WIN32)
@@ -52,10 +53,23 @@ g_ptr_array_find(GPtrArray *haystack,
  * @brief
  */
 static void FixTJunctions_(int32_t face_num) {
+	static cm_winding_t _Thread_local *face_winding, *f_winding;
+
+	if (!face_winding) {
+		face_winding = Cm_AllocWinding(largest_winding);
+		f_winding = Cm_AllocWinding(largest_winding);
+	}
 
 	face_t *face = g_ptr_array_index(faces, face_num);
 
-	SDL_mutex *face_lock = faces_locks[face_num];
+	SDL_SpinLock *face_lock = &faces_locks[face_num];
+
+	const plane_t *plane = &planes[face->plane_num];
+
+	// Make a copy of face->w for testing
+	SDL_AtomicLock(face_lock);
+	memcpy(face_winding, face->w, sizeof(cm_winding_t) + (face->w->num_points * sizeof(vec3_t)));
+	SDL_AtomicUnlock(face_lock);
 
 	for (size_t s = 0; s < faces->len; s++) {
 
@@ -64,13 +78,14 @@ static void FixTJunctions_(int32_t face_num) {
 			continue;
 		}
 		
-		SDL_mutex *f_lock = faces_locks[s];
-		SDL_LockMutex(f_lock);
+		SDL_SpinLock *f_lock = &faces_locks[s];
 
-		const plane_t *plane = &planes[face->plane_num];
+		SDL_AtomicLock(f_lock);
+		memcpy(f_winding, f->w, sizeof(cm_winding_t) + (f->w->num_points * sizeof(vec3_t)));
+		SDL_AtomicUnlock(f_lock);
 
-		for (int32_t i = 0; i < f->w->num_points; i++) {
-			const vec3_t v = f->w->points[i];
+		for (int32_t i = 0; i < f_winding->num_points; i++) {
+			const vec3_t v = f_winding->points[i];
 
 			const double d = Vec3_Dot(v, plane->normal) - plane->dist;
 			if (d > ON_EPSILON || d < -ON_EPSILON) {
@@ -79,10 +94,10 @@ static void FixTJunctions_(int32_t face_num) {
 
 			// v is on face's plane, so test it against face's edges
 
-			for (int32_t j = 0; j < face->w->num_points; j++) {
+			for (int32_t j = 0; j < face_winding->num_points; j++) {
 
-				const vec3_t v0 = face->w->points[(j + 0) % face->w->num_points];
-				const vec3_t v1 = face->w->points[(j + 1) % face->w->num_points];
+				const vec3_t v0 = face_winding->points[(j + 0) % face_winding->num_points];
+				const vec3_t v1 = face_winding->points[(j + 1) % face_winding->num_points];
 
 				vec3_t a;
 				const float a_dist = Vec3_DistanceDir(v0, v, &a);
@@ -100,33 +115,32 @@ static void FixTJunctions_(int32_t face_num) {
 				}
 
 				// v sits between v0 and v1, so add it to the face
-
-				cm_winding_t *w = Cm_AllocWinding(face->w->num_points + 1);
-				w->num_points = face->w->num_points + 1;
+				cm_winding_t *w = Cm_AllocWinding(face_winding->num_points + 1);
+				w->num_points = face_winding->num_points + 1;
 
 				for (int32_t k = 0; k < w->num_points; k++) {
 					if (k <= j) {
-						w->points[k] = face->w->points[k];
+						w->points[k] = face_winding->points[k];
 					} else if (k == j + 1) {
 						w->points[k] = v;
 					} else {
-						w->points[k] = face->w->points[k - 1];
+						w->points[k] = face_winding->points[k - 1];
 					}
 				}
 
-				SDL_LockMutex(face_lock);
+				SDL_AtomicLock(face_lock);
 
+				// Copy back to face, and copy to temp winding
 				Cm_FreeWinding(face->w);
 				face->w = w;
+				memcpy(face_winding, face->w, sizeof(cm_winding_t) + (face->w->num_points * sizeof(vec3_t)));
 
-				SDL_UnlockMutex(face_lock);
+				SDL_AtomicUnlock(face_lock);
 
 				SDL_AtomicAdd(&c_tjunctions, 1);
 				break;
 			}
 		}
-
-		SDL_UnlockMutex(f_lock);
 	}
 }
 
@@ -148,6 +162,8 @@ static void FixTJunctions_r(node_t *node) {
 			continue;
 		}
 		g_ptr_array_add(faces, face);
+
+		largest_winding = MAX(largest_winding, face->w->num_points);
 	}
 }
 
@@ -162,19 +178,13 @@ void FixTJunctions(node_t *node) {
 	faces = g_ptr_array_new();
 	FixTJunctions_r(node);
 
-	faces_locks = Mem_Malloc(sizeof(SDL_mutex*) * faces->len);
+	largest_winding = sizeof(cm_winding_t) + (sizeof(vec3_t) * largest_winding);
 
-	for (int32_t i = 0; i < faces->len; i++) {
-		faces_locks[i] = SDL_CreateMutex();
-	}
+	faces_locks = Mem_Malloc(sizeof(SDL_SpinLock) * faces->len);
 
 	Work(entity_num == 0 ? "Fixing t-junctions" : NULL, FixTJunctions_, faces->len);
 
 	Com_Verbose("%5i fixed tjunctions\n", SDL_AtomicGet(&c_tjunctions));
-
-	for (int32_t i = 0; i < faces->len; i++) {
-		SDL_DestroyMutex(faces_locks[i]);
-	}
 
 	Mem_Free(faces_locks);
 	g_ptr_array_free(faces, true);
