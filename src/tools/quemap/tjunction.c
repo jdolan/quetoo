@@ -26,7 +26,7 @@
 static SDL_atomic_t c_tjunctions;
 static GPtrArray *faces;
 static SDL_SpinLock *faces_locks;
-static size_t largest_winding = 0;
+static int32_t largest_winding = 0;
 
 // FIXME/TODO temp fix since we're using old glib
 #if defined(_WIN32)

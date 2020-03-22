@@ -80,6 +80,8 @@ void Cg_ResolveWeather(const char *weather) {
 			// we got all 6 parameters, we're good
 		} else if (n == 3) {
 			cgi.view->fog_parameters = Vec3(FOG_START, FOG_END, FOG_DENSITY);
+		} else if (n == 4) {
+			cgi.view->fog_parameters = Vec3(FOG_START, FOG_END, cgi.view->fog_parameters.z);
 		} else {
 			cgi.Warn("Invalid fog string: %s\n", c);
 
