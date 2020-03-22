@@ -463,7 +463,7 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 			}
 		}
 		if (material->light) {
-			if (td->value == 0.0) {
+			if (td->value == 0) {
 				td->value = material->light;
 			}
 		}
