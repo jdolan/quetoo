@@ -888,10 +888,13 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light specified");
+				m->light = DEFAULT_LIGHT;
 			} else if (m->light < 0.0) {
 				Cm_MaterialWarn(path, &parser, "Invalid light value, must be > 0.0\n");
 				m->light = DEFAULT_LIGHT;
 			}
+
+			m->surface |= SURF_LIGHT;
 		}
 
 		if (!g_strcmp0(token, "footsteps")) {
