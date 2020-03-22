@@ -32,11 +32,11 @@ color_t Cg_ResolveEffectColor(const uint8_t index, const color_t default_color) 
 
 	const color_t color = cgi.client->client_info[index].color;
 
-	if (color.r || color.g || color.b) {
-		return color;
+	if (!color.a) {
+		return default_color;
 	}
 
-	return default_color;
+	return color;
 }
 
 /**
