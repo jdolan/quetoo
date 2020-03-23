@@ -23,13 +23,11 @@
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
 #define TEXTURE_LIGHTMAP                 3
-#define TEXTURE_STAINMAP                 4
 
 #define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
 #define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
 #define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
-#define TEXTURE_MASK_STAINMAP           (1 << TEXTURE_STAINMAP)
 #define TEXTURE_MASK_ALL                0xff
 
 #define MAX_HARDNESS 16
@@ -147,7 +145,7 @@ void main(void) {
 		glossmap = auto_glossmap(normalmap, diffusemap);
 	}
 
-	vec3 lightmap, stainmap;
+	vec3 stainmap;
 	if ((textures & TEXTURE_MASK_LIGHTMAP) == TEXTURE_MASK_LIGHTMAP) {
 		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
 		vec3 diffuse = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
@@ -163,8 +161,8 @@ void main(void) {
 
 		stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
 	} else {
-		lightmap = vec3(1.0);
-		stainmap = vec3(0.0);
+		light_diffuse = vec3(1.0);
+		stainmap = vec3(1.0);
 	}
 
 	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
