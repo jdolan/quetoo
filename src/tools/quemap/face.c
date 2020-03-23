@@ -104,14 +104,36 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
-#define SNAP_TO_INT		(4.0)
-#define SNAP_TO_FLOAT	(1.0 / SNAP_TO_INT)
+#include "tree.h"
+
+#define		WELD_THRESHOLD		1
+
+static int32_t WeldWinding(const cm_winding_t *w, vec3_t *out_verts) {
+	vec3_t *out = out_verts;
+	
+	// see if any written verts are close enough
+	for (int32_t i = 0; i < w->num_points; i++) {
+		vec3_t p = w->points[i];
+
+		for (int32_t x = 0; x < bsp_file.num_vertexes; x++) {
+			vec3_t bsp_pos = bsp_file.vertexes[x].position;
+
+			if (Vec3_Distance(bsp_pos, p) < WELD_THRESHOLD) {
+				p = bsp_pos;
+				break;
+			}
+		}
+
+		*out++ = p;
+	}
+
+	return w->num_points;
+}
 
 /**
  * @brief Emits a vertex array for the given face.
  */
 static int32_t EmitFaceVertexes(const face_t *face) {
-
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
 
 	const vec3_t sdir = Vec4_XYZ(texinfo->vecs[0]);
@@ -122,7 +144,22 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		Com_Warn("Failed to load %s\n", texinfo->texture);
 	}
 
-	for (int32_t i = 0; i < face->w->num_points; i++) {
+	vec3_t welded_verts[face->w->num_points];
+	int32_t num_welded_points = face->w->num_points;
+
+	if (!no_weld) {
+		if (!(texinfo->flags & SURF_NO_WELD)) {
+			num_welded_points = WeldWinding(face->w, welded_verts);
+
+			if (num_welded_points < 3) {
+				return 0;
+			}
+		}
+	} else {
+		memcpy(welded_verts, face->w->points, sizeof(welded_verts));
+	}
+
+	for (int32_t i = 0; i < num_welded_points; i++) {
 
 		if (bsp_file.num_vertexes == MAX_BSP_VERTEXES) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES");
@@ -132,20 +169,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			.texinfo = face->texinfo
 		};
 
-		out.position = face->w->points[i];
-
-		if (!no_weld) {
-			if (!(texinfo->flags & SURF_NO_WELD)) {
-				vec3d_t pos = Vec3_CastVec3d(face->w->points[i]);
-
-				for (int32_t j = 0; j < 3; j++) {
-					pos.xyz[j] = SNAP_TO_FLOAT * floor(pos.xyz[j] * SNAP_TO_INT + 0.5);
-				}
-				
-				face->w->points[i] = out.position = Vec3d_CastVec3(pos);
-			}
-		}
-
+		out.position = welded_verts[i];
 		out.normal = planes[face->plane_num].normal;
 
 		const float s = Vec3_Dot(out.position, sdir) + texinfo->vecs[0].w;
@@ -158,7 +182,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		bsp_file.num_vertexes++;
 	}
 
-	return face->w->num_points;
+	return num_welded_points;
 }
 
 /**
