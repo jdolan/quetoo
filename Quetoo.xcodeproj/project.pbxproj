@@ -3960,6 +3960,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE148DA9242A37BA00B589D8 /* r_animation.h in Headers */,
 				CEA082381DC6EC59001207AA /* r_atlas.h in Headers */,
 				CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */,
 				CED438801D9D34450052BAFA /* r_bsp.h in Headers */,
@@ -3980,7 +3981,6 @@
 				CED438921D9D34450052BAFA /* r_media.h in Headers */,
 				CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */,
 				CED438931D9D34450052BAFA /* r_mesh_draw.h in Headers */,
-				CE148DA9242A37BA00B589D8 /* r_animation.h in Headers */,
 				CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */,
 				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
 				CEAC32BD24212553007E1253 /* r_sprite.h in Headers */,
@@ -5433,6 +5433,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE148DA8242A37BA00B589D8 /* r_animation.c in Sources */,
 				CEA082371DC6EC50001207AA /* r_atlas.c in Sources */,
 				CED438391D9D34450052BAFA /* r_bsp.c in Sources */,
 				CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */,
@@ -5454,7 +5455,6 @@
 				CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */,
 				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
-				CE148DA8242A37BA00B589D8 /* r_animation.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
 				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
 				CED438501D9D34450052BAFA /* r_particle.c in Sources */,
