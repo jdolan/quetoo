@@ -395,7 +395,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		p->origin = Vec3_Mix(trail_start, end, i / particles);
 		p->velocity = Vec3_Scale(dir, RandomRangef(150.f, 200.f));
 		p->acceleration = Vec3_RandomRange(-10.f, 10.f);
-		p->acceleration.z -= PARTICLE_GRAVITY;
+		// p->acceleration.z -= PARTICLE_GRAVITY;
 		p->color = Color4bv(0xffaa22ff);
 		p->size = 2.0;
 		p->size_velocity = -2.f / MILLIS_TO_SECONDS(p->lifetime);
@@ -413,7 +413,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 150.f));
 		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-20.f, 20.f));
 		p->acceleration = Vec3_RandomRange(-10.f, 10.f);
-		p->acceleration.z -= PARTICLE_GRAVITY;
+		// p->acceleration.z -= PARTICLE_GRAVITY;
 		p->color = Color4bv(0xcc9922ff);
 		p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 	}
