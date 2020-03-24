@@ -53,5 +53,5 @@ r_animation_t *R_CreateAnimation(const char *name, uint32_t num_images, const r_
  */
 const r_image_t *R_ResolveAnimation(const r_animation_t *animation, float time) {
 
-	return animation->images[(size_t) (animation->num_images * time)];
+	return animation->images[MIN(animation->num_images - 1, (size_t) (animation->num_images * time))];
 }
