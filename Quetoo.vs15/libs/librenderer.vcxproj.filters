@@ -179,9 +179,6 @@
     <None Include="..\..\src\client\renderer\shaders\bsp_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\color_filter.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
     <None Include="..\..\src\client\renderer\shaders\lights.glsl">
       <Filter>src\shaders</Filter>
     </None>
@@ -228,6 +225,15 @@
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\accum_2d_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\accum_3d_common.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\accum_2d_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
   </ItemGroup>

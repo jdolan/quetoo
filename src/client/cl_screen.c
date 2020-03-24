@@ -323,7 +323,7 @@ void Cl_UpdateScreen(void) {
 
 			Cl_DrawNetGraph();
 			Cl_DrawCounters();
-
+			
 			cls.cgame->UpdateScreen(&cl.frame);
 
 			switch (cls.key_state.dest) {

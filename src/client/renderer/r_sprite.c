@@ -186,11 +186,15 @@ void R_AddBeam(const r_beam_t *p) {
  */
 void R_DrawSprites(void) {
 
+	if (!r_view.num_sprites) {
+		return;
+	}
+	
 	glDepthMask(GL_FALSE);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	
 	glEnable(GL_DEPTH_TEST);
 
 	glUseProgram(r_sprite_program.name);
@@ -245,7 +249,7 @@ void R_DrawSprites(void) {
 	glDisable(GL_BLEND);
 
 	glDepthMask(GL_TRUE);
-
+	
 	R_GetError(NULL);
 }
 
@@ -260,7 +264,7 @@ static void R_InitSpriteProgram(void) {
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "sprite_vs.glsl"),
 			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl",  "soft_edges.glsl", "sprite_fs.glsl"),
 			NULL);
-
+	
 	glUseProgram(r_sprite_program.name);
 	
 	r_sprite_program.in_position = glGetAttribLocation(r_sprite_program.name, "in_position");

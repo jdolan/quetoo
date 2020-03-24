@@ -946,7 +946,7 @@ typedef struct {
 	int32_t count_draw_lines;
 
 	_Bool update; // inform the client of state changes
-	
+
 } r_view_t;
 
 /**

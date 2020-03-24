@@ -136,8 +136,9 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		Cg_BubbleTrail(ent, start, end, 24.0);
 		return;
 	}
-
-	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
+	
+	const vec3_t trail_start = ent->previous_trail_origin;
+	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, trail_start));
 	const float particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 8);
 
 	for (int32_t i = 0; i < particles; i++) {
@@ -147,14 +148,14 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 			return;
 		}
 
-		p->origin = Vec3_Mix(start, end, i / particles + RandomRangef(-.5f, .5f));
+		p->origin = Vec3_Mix(trail_start, end, i / particles + RandomRangef(-.5f, .5f));
 		p->velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f));
 		p->acceleration = Vec3_Scale(dir, -20.f);
 
 		p->lifetime = RandomRangef(1000.f, 1400.f);
 
 		const float color = RandomRangef(.22f, .33f);
-		p->color = Color4f(color, color, color, RandomRangef(.22f, .33f));
+		p->color = Color4f(color, color, color, RandomRangef(.6f, .9f));
 		p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
 
 		p->size = 2.5f;
@@ -242,10 +243,11 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, float target) {
 
 	const float particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, target);
+	const vec3_t trail_start = ent ? ent->previous_trail_origin : start;
 
 	for (int32_t i = 0; i < particles; i++) {
 
-		const vec3_t pos = Vec3_Mix(start, end, i / particles);
+		const vec3_t pos = Vec3_Mix(trail_start, end, i / particles);
 		const int32_t contents = cgi.PointContents(pos);
 		if (!(contents & CONTENTS_MASK_LIQUID)) {
 			continue;
@@ -380,6 +382,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	Cg_SmokeTrail(ent, start, end);
 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
+	const vec3_t trail_start = ent->previous_trail_origin;
 
 	particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 14);
 	for (int32_t i = 0; i < particles; i++) {
@@ -389,7 +392,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		}
 
 		p->lifetime = RandomRangef(75.f, 150.f);
-		p->origin = Vec3_Mix(start, end, i / particles);
+		p->origin = Vec3_Mix(trail_start, end, i / particles);
 		p->velocity = Vec3_Scale(dir, RandomRangef(150.f, 200.f));
 		p->acceleration = Vec3_RandomRange(-10.f, 10.f);
 		p->acceleration.z -= PARTICLE_GRAVITY;
@@ -406,7 +409,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		}
 
 		p->lifetime = RandomRangef(450.f, 650.f);
-		p->origin = Vec3_Mix(start, end, i / particles);
+		p->origin = Vec3_Mix(trail_start, end, i / particles);
 		p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 150.f));
 		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-20.f, 20.f));
 		p->acceleration = Vec3_RandomRange(-10.f, 10.f);
@@ -486,7 +489,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	cgi.AddBeam(&(const r_beam_t) {
 		.start = start,
 		.end = end,
-		.color = color_white,
+		.color = Color4f(1.f, 1.f, 1.f, 1.f),
 		.image = cg_beam_lightning,
 		.size = 8.5f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
@@ -695,6 +698,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	}
 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
+	const vec3_t trail_start = ent->previous_trail_origin;
 
 	const float particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 6);
 	for (int32_t i = 0; i < particles; i++) {
@@ -706,7 +710,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 		p->lifetime = RandomRangef(1000.f, 1500.f);
 
-		p->origin = Vec3_Mix(start, end, i / particles);
+		p->origin = Vec3_Mix(trail_start, end, i / particles);
 		p->velocity = Vec3_Scale(dir, 20.0);
 		p->acceleration.z = -PARTICLE_GRAVITY / 2.0;
 

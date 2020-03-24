@@ -29,14 +29,17 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 	GLuint shader = glCreateShader(desc->type);
 	if (shader) {
 
-		void *source[lengthof(desc->filenames)];
+		void *source[lengthof(desc->filenames) + 1] = {
+			"#version 330",
+			NULL
+		};
 
 		GLsizei count = 0;
 		while (count < (GLsizei) lengthof(desc->filenames)) {
 
 			const char *filename = desc->filenames[count];
 			if (filename) {
-				const ssize_t length = Fs_Load(va("shaders/%s", filename), &source[count]);
+				const ssize_t length = Fs_Load(va("shaders/%s", filename), &source[count + 1]);
 				if (length == -1) {
 					Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
 				}
@@ -45,11 +48,12 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 				break;
 			}
 		}
-
-		glShaderSource(shader, count, (const GLchar **) source, NULL);
+		
+		glShaderSource(shader, count + 1, (const GLchar **) source, NULL);
 
 		while (count--) {
-			Fs_Free(source[count]);
+			Fs_Free(source[count + 1]);
+			source[count + 1] = NULL;
 		}
 		
 		glCompileShader(shader);
