@@ -242,7 +242,7 @@ int32_t EmitFace(const face_t *face) {
  * @brief Populate phong_faces with pointers to all Phong shaded faces referencing the vertex.
  * @return The number of Phong shaded bsp_face_t's referencing the vertex.
  */
-static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t **phong_faces) {
+static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, int32_t value, const bsp_face_t **phong_faces) {
 
 	size_t count = 0;
 
@@ -251,6 +251,10 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
 
 		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
 		if (!(texinfo->flags & SURF_PHONG)) {
+			continue;
+		}
+
+		if (texinfo->value != value) {
 			continue;
 		}
 
@@ -289,7 +293,7 @@ void PhongVertex(int32_t vertex_num) {
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
 	if (texinfo->flags & SURF_PHONG) {
 
-		const size_t count = PhongFacesForVertex(v, phong_faces);
+		const size_t count = PhongFacesForVertex(v, texinfo->value, phong_faces);
 		if (count > 1) {
 
 			v->normal = Vec3_Zero();
