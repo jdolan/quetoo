@@ -28,7 +28,7 @@ uniform mat4 projection;
 uniform mat4 view;
 
 uniform float pixels_per_radian;
-uniform float far_z;
+uniform vec2 depth_range;
 
 out vertex_data {
 	vec3 position;
@@ -44,7 +44,7 @@ void main(void) {
 
 	vertex.position = vec3(view * vec4(in_position.xyz, 1.0));
 
-	float depth = clamp(gl_Position.z / far_z, 0.0, 1.0);
+	float depth = clamp(gl_Position.z / depth_range.y, 0.0, 1.0);
 
 	gl_PointSize = pixels_per_radian * in_position.w  / depth;
 

@@ -60,7 +60,7 @@ static struct {
 	GLint soft_particles;
 	GLint pixels_per_radian;
 	GLint far_z;
-	GLint camera_range;
+	GLint depth_range;
 	GLint inv_viewport_size;
 	GLint transition_size;
 	
@@ -113,8 +113,7 @@ void R_DrawParticles(void) {
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
 	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y) / 2.0));
-	glUniform1f(r_particle_program.far_z, MAX_WORLD_DIST);
-	glUniform2f(r_particle_program.camera_range, 1.0, MAX_WORLD_DIST);
+	glUniform2f(r_particle_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_particle_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
 	glUniform1f(r_particle_program.transition_size, .0016f);
 	glUniform1i(r_particle_program.soft_particles, r_soft_particles->integer);
@@ -178,8 +177,7 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.view = glGetUniformLocation(r_particle_program.name, "view");
 
 	r_particle_program.pixels_per_radian = glGetUniformLocation(r_particle_program.name, "pixels_per_radian");
-	r_particle_program.far_z = glGetUniformLocation(r_particle_program.name, "far_z");
-	r_particle_program.camera_range = glGetUniformLocation(r_particle_program.name, "camera_range");
+	r_particle_program.depth_range = glGetUniformLocation(r_particle_program.name, "depth_range");
 	r_particle_program.inv_viewport_size = glGetUniformLocation(r_particle_program.name, "inv_viewport_size");
 	r_particle_program.transition_size = glGetUniformLocation(r_particle_program.name, "transition_size");
 	r_particle_program.soft_particles = glGetUniformLocation(r_particle_program.name, "soft_particles");

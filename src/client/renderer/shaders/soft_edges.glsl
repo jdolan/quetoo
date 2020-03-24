@@ -21,7 +21,7 @@
 
 uniform bool soft_particles;
 uniform vec2 inv_viewport_size;
-uniform vec2 camera_range;
+uniform vec2 depth_range;
 uniform float transition_size;
 uniform sampler2D depth_attachment;
 
@@ -29,7 +29,7 @@ uniform sampler2D depth_attachment;
  * @brief Reverse depth calculation
  */
 float calc_depth(in float z) {
-	return (2. * camera_range.x) / (camera_range.y + camera_range.x - z * (camera_range.y - camera_range.x));
+	return (2. * depth_range.x) / (depth_range.y + depth_range.x - z * (depth_range.y - depth_range.x));
 }
 
 /**

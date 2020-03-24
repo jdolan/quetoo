@@ -57,7 +57,7 @@ static struct {
 	GLint view;
 
 	GLint soft_particles;
-	GLint camera_range;
+	GLint depth_range;
 	GLint inv_viewport_size;
 	GLint transition_size;
 	
@@ -215,7 +215,7 @@ void R_DrawSprites(void) {
 	glUniformMatrix4fv(r_sprite_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_sprite_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
-	glUniform2f(r_sprite_program.camera_range, 1.0, MAX_WORLD_DIST);
+	glUniform2f(r_sprite_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_sprite_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
 	glUniform1f(r_sprite_program.transition_size, .0064f);
 	glUniform1i(r_sprite_program.soft_particles, r_soft_particles->integer);
@@ -288,7 +288,7 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.projection = glGetUniformLocation(r_sprite_program.name, "projection");
 	r_sprite_program.view = glGetUniformLocation(r_sprite_program.name, "view");
 
-	r_sprite_program.camera_range = glGetUniformLocation(r_sprite_program.name, "camera_range");
+	r_sprite_program.depth_range = glGetUniformLocation(r_sprite_program.name, "depth_range");
 	r_sprite_program.inv_viewport_size = glGetUniformLocation(r_sprite_program.name, "inv_viewport_size");
 	r_sprite_program.transition_size = glGetUniformLocation(r_sprite_program.name, "transition_size");
 	r_sprite_program.soft_particles = glGetUniformLocation(r_sprite_program.name, "soft_particles");
