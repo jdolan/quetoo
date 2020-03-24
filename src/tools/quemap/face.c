@@ -108,15 +108,15 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 
 #define WELD_THRESHOLD (1.f - SIDE_EPSILON)
 
-static int32_t WeldWinding(const cm_winding_t *w, vec3_t *out_verts) {
-	vec3_t *out = out_verts;
+static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
+	vec3_t *out = points;
 	
 	// see if any written verts are close enough
 	for (int32_t i = 0; i < w->num_points; i++) {
 		vec3_t p = w->points[i];
 
 		for (int32_t x = 0; x < bsp_file.num_vertexes; x++) {
-			vec3_t bsp_pos = bsp_file.vertexes[x].position;
+			const vec3_t bsp_pos = bsp_file.vertexes[x].position;
 
 			if (Vec3_DistanceSquared(bsp_pos, p) < WELD_THRESHOLD * WELD_THRESHOLD) {
 				p = bsp_pos;
@@ -144,22 +144,21 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		Com_Warn("Failed to load %s\n", texinfo->texture);
 	}
 
-	vec3_t welded_verts[face->w->num_points];
-	int32_t num_welded_points = face->w->num_points;
+	vec3_t points[face->w->num_points];
+	int32_t num_points = face->w->num_points;
 
-	if (!no_weld) {
-		if (!(texinfo->flags & SURF_NO_WELD)) {
-			num_welded_points = WeldWinding(face->w, welded_verts);
+	if (!no_weld && !(texinfo->flags & SURF_NO_WELD)) {
+		num_points = WeldWinding(face->w, points);
 
-			if (num_welded_points < 3) {
-				return 0;
-			}
+		if (num_points < 3) {
+			Mon_SendWinding(MON_WARN, points, num_points, "Malformed face after welding");
+			return 0;
 		}
 	} else {
-		memcpy(welded_verts, face->w->points, sizeof(welded_verts));
+		memcpy(points, face->w->points, sizeof(points));
 	}
 
-	for (int32_t i = 0; i < num_welded_points; i++) {
+	for (int32_t i = 0; i < num_points; i++) {
 
 		if (bsp_file.num_vertexes == MAX_BSP_VERTEXES) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES");
@@ -169,7 +168,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			.texinfo = face->texinfo
 		};
 
-		out.position = welded_verts[i];
+		out.position = points[i];
 		out.normal = planes[face->plane_num].normal;
 
 		const float s = Vec3_Dot(out.position, sdir) + texinfo->vecs[0].w;
@@ -182,7 +181,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		bsp_file.num_vertexes++;
 	}
 
-	return num_welded_points;
+	return num_points;
 }
 
 /**
