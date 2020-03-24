@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\client\renderer\r_animation.c" />
     <ClCompile Include="..\..\src\client\renderer\r_atlas.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_draw.c" />
@@ -48,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\renderer.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_animation.h" />
     <ClInclude Include="..\..\src\client\renderer\r_atlas.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_draw.h" />

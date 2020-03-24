@@ -40,6 +40,7 @@ typedef enum {
 	MEDIA_IMAGE, // r_image_t
 	MEDIA_ATLAS, // r_atlas_t
 	MEDIA_ATLAS_IMAGE, // r_atlas_image_t
+	MEDIA_ANIMATION, // r_animation_t
 
 	MEDIA_MD3, //
 	MEDIA_OBJ, // r_model_t
@@ -145,6 +146,15 @@ typedef struct {
 	atlas_node_t *node;
 	vec4_t texcoords;
 } r_atlas_image_t;
+
+/**
+ * @brief An animation, castable to r_media_t.
+ */
+typedef struct {
+	r_media_t media;
+	size_t num_images;
+	const r_image_t **images;
+} r_animation_t;
 
 // renderer-specific material stuff
 typedef struct {
@@ -607,10 +617,10 @@ typedef struct {
 	/**
 	 * @brief The sprite texture.
 	 */
-	r_image_t *image;
+	r_media_t *image;
 
 	/**
-	 * @brief The sprite's rotation.
+	 * @brief The sprite's rotation, for non-beam sprites.
 	 */
 	float rotation;
 
@@ -618,6 +628,16 @@ typedef struct {
 	 * @brief The sprite color.
 	 */
 	color_t color;
+	
+	/**
+	 * @brief The sprite's life from 0 to 1.
+	 */
+	float life;
+
+	/**
+	 * @brief Blending operators
+	 */
+	GLenum dst, src;
 
 } r_sprite_t;
 
@@ -660,6 +680,12 @@ typedef struct {
 	 * @brief The beam texture stretch.
 	 */
 	float stretch;
+
+	/**
+	 * @brief Blending operators
+	 */
+	GLenum dst, src;
+
 } r_beam_t;
 
 #define MAX_SPRITES		0x800
@@ -908,7 +934,21 @@ typedef struct {
 	/**
 	 * @brief The list of sprite images to render for the current frame.
 	 */
-	const r_image_t *sprite_images[MAX_SPRITES];
+
+	/**
+	 * @brief Structure used for sprite images, to contain buffered sprites
+	 */
+	struct {
+		/**
+		 * @brief Image
+		 */
+		const r_image_t *image;
+
+		/**
+		 * @brief Blend operation
+		 */
+		GLenum src, dst;
+	} sprite_images[MAX_SPRITES];
 
 	/**
 	 * @brief The number of sprite images to render for the current frame.

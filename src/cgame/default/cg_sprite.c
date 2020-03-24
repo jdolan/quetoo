@@ -87,6 +87,10 @@ cg_sprite_t *Cg_AllocSprite() {
 
 	p->time = p->timestamp = cgi.client->unclamped_time;
 
+	// default additive
+	p->src = GL_SRC_ALPHA;
+	p->dst = GL_ONE;
+
 	Cg_PushSprite(p, &cg_active_sprites);
 
 	return p;
@@ -170,7 +174,10 @@ void Cg_AddSprites(void) {
 				.size = p->size,
 				.color = p->color,
 				.rotation = p->rotation,
-				.image = p->image
+				.image = p->media,
+				.life = (cgi.client->unclamped_time - p->time) / (float)p->lifetime,
+				.dst = p->dst,
+				.src = p->src
 			});
 			break;
 		case SPRITE_BEAM:
@@ -180,8 +187,10 @@ void Cg_AddSprites(void) {
 				.start = p->origin,
 				.end = p->beam.end,
 				.size = p->size,
-				.image = p->image,
-				.color = p->color
+				.image = (r_image_t *) p->image,
+				.color = p->color,
+				.dst = p->dst,
+				.src = p->src
 			});
 			break;
 		}

@@ -52,6 +52,7 @@ r_image_t *cg_sprite_smoke;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
+r_animation_t *cg_fire_1;
 
 static GHashTable *cg_footstep_table;
 
@@ -226,6 +227,15 @@ void Cg_UpdateMedia(void) {
 	cg_beam_hook = cgi.LoadImage("particles/rope", IT_EFFECT);
 	cg_beam_rail = cgi.LoadImage("particles/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning = cgi.LoadImage("particles/lightning", IT_EFFECT);
+
+	const r_image_t *cg_fire_1_images[32];
+
+	for (uint32_t i = 0; i < lengthof(cg_fire_1_images); i++) {
+		g_snprintf(name, sizeof(name), "particles/flame1/flame1_%" PRIu32, i + 1);
+		cg_fire_1_images[i] = cgi.LoadImage(name, IT_EFFECT);
+	}
+
+	cg_fire_1 = cgi.CreateAnimation("particles/flame1/flame_1", lengthof(cg_fire_1_images), cg_fire_1_images);
 
 	Cg_LoadEffects();
 

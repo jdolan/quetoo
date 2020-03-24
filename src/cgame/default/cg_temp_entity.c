@@ -347,7 +347,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		s->origin = org;
 		s->origin.z -= 6.f;
 
-		s->lifetime = 2000;
+		s->lifetime = 1000;
 
 		s->color = Color3b(255, 255, 255);
 		s->color.a = 255 / 255.0;
@@ -355,16 +355,16 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 		s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
 
-		s->size = 16.0;
-		s->size_velocity = 64.0;
+		s->size = 24.0;
+		s->size_velocity = 128.0;
 	//	s->delta_size = 1.0;
 
 		s->velocity = Vec3_RandomRange(-1.f, 1.f);
-		s->velocity.z += 35.f;
+		s->velocity.z += 52.f;
 
 		s->acceleration.z = -8.0;
 
-		s->image = cg_sprite_smoke;
+		s->animation = cg_fire_1;
 
 		s->rotation = RandomRangef(0.0f, M_PI);
 

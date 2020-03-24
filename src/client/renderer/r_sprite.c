@@ -73,28 +73,40 @@ static struct {
 	GLint fog_color;
 } r_sprite_program;
 
-static void R_AddSpriteInternal(const color_t color, const r_image_t *image, r_sprite_vertex_t *out) {
-	_Bool is_current_batch = false;
+static void R_ResolveTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_t *tr, vec2_t *br, vec2_t *bl) {
 
-	// FIXME: expand into a function???
-	if (image->media.type == MEDIA_ATLAS_IMAGE) {
+	if (image->type == MEDIA_ATLAS_IMAGE) {
 		r_atlas_image_t *atlas_image = (r_atlas_image_t *) image;
 
-		is_current_batch = r_view.num_sprite_images && atlas_image->image.texnum == r_view.sprite_images[r_view.num_sprite_images - 1]->texnum;
-
-		out[0].diffusemap = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
-		out[1].diffusemap = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.y);
-		out[2].diffusemap = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
-		out[3].diffusemap = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.w);
+		*tl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
+		*tr = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.y);
+		*br = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
+		*bl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.w);
 	} else {
 
-		is_current_batch = r_view.num_sprite_images && image == r_view.sprite_images[r_view.num_sprite_images - 1];
-
-		out[0].diffusemap = Vec2(0, 0);
-		out[1].diffusemap = Vec2(1, 0);
-		out[2].diffusemap = Vec2(1, 1);
-		out[3].diffusemap = Vec2(0, 1);
+		*tl = Vec2(0, 0);
+		*tr = Vec2(1, 0);
+		*br = Vec2(1, 1);
+		*bl = Vec2(0, 1);
 	}
+}
+
+static void R_AddSpriteInternal(const color_t color, const r_media_t *media, const GLenum src, const GLenum dst, const float life, r_sprite_vertex_t *out) {
+
+	const r_image_t *image;
+
+	if (media->type == MEDIA_ANIMATION) {
+		image = R_ResolveAnimation((r_animation_t *) media, life);
+	} else {
+		image = (r_image_t *) media;
+	}
+
+	const _Bool is_current_batch = r_view.num_sprite_images &&
+		image == r_view.sprite_images[r_view.num_sprite_images - 1].image &&
+		src == r_view.sprite_images[r_view.num_sprite_images - 1].src &&
+		dst == r_view.sprite_images[r_view.num_sprite_images - 1].dst;
+
+	R_ResolveTextureCoordinates(image, &out[0].diffusemap, &out[1].diffusemap, &out[2].diffusemap, &out[3].diffusemap);
 	
 	out[0].color = Color_Color32(color);
 	out[1].color = out[0].color;
@@ -104,7 +116,9 @@ static void R_AddSpriteInternal(const color_t color, const r_image_t *image, r_s
 	if (is_current_batch) {
 		r_view.sprite_batches[r_view.num_sprite_images - 1]++;
 	} else {
-		r_view.sprite_images[r_view.num_sprite_images] = image;
+		r_view.sprite_images[r_view.num_sprite_images].image = image;
+		r_view.sprite_images[r_view.num_sprite_images].src = src;
+		r_view.sprite_images[r_view.num_sprite_images].dst = dst;
 		r_view.sprite_batches[r_view.num_sprite_images] = 1;
 		r_view.num_sprite_images++;
 	}
@@ -137,7 +151,7 @@ void R_AddSprite(const r_sprite_t *p) {
 	out[2].position = Vec3_Add(Vec3_Add(p->origin, d), r);
 	out[3].position = Vec3_Add(Vec3_Add(p->origin, d), l);
 
-	R_AddSpriteInternal(p->color, p->image, out);
+	R_AddSpriteInternal(p->color, p->image, p->src, p->dst, p->life, out);
 }
 
 /**
@@ -161,7 +175,7 @@ void R_AddBeam(const r_beam_t *p) {
 	out[2].position = Vec3_Subtract(p->end, right);
 	out[3].position = Vec3_Subtract(p->start, right);
 
-	R_AddSpriteInternal(p->color, p->image, out);
+	R_AddSpriteInternal(p->color, (r_media_t *) p->image, p->src, p->dst, 0, out);
 	
 	if (!(p->image->type & IT_MASK_CLAMP_EDGE)) {
 		length /= p->image->width * (p->size / p->image->height);
@@ -193,7 +207,6 @@ void R_DrawSprites(void) {
 	glDepthMask(GL_FALSE);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	
 	glEnable(GL_DEPTH_TEST);
 
@@ -233,7 +246,8 @@ void R_DrawSprites(void) {
 	ptrdiff_t offset = 0;
 
 	for (uint32_t i = 0; i < r_view.num_sprite_images; i++) {
-		glBindTexture(GL_TEXTURE_2D, r_view.sprite_images[i]->texnum);
+		glBindTexture(GL_TEXTURE_2D, r_view.sprite_images[i].image->texnum);
+		glBlendFunc(r_view.sprite_images[i].src, r_view.sprite_images[i].dst);
 		glDrawElements(GL_TRIANGLES, r_view.sprite_batches[i] * 6, GL_UNSIGNED_SHORT, (GLvoid *) offset);
 		offset += (r_view.sprite_batches[i] * 6) * sizeof(uint16_t);
 	}

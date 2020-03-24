@@ -615,6 +615,23 @@ typedef struct cg_import_s {
 	void (*CompileAtlas)(r_atlas_t *atlas);
 
 	/**
+	 * @brief Creates an animation.
+	 * @param name The name to give to the animation, e.g. `"cg_flame_1"`
+	 * @param num_images The number of images in the image pointer list.
+	 * @param images The image pointer list.
+	 * @return The animation that has been created.
+	 */
+	r_animation_t *(*CreateAnimation)(const char *name, uint32_t num_images, const r_image_t **images);
+
+	/**
+	 * @brief Resolve an image for an animation & time.
+	 * @param animation The animation
+	 * @param time The time index, between 0 and 1.
+	 * @return The image.
+	 */
+	const r_image_t *(*ResolveAnimation)(const r_animation_t *animation, float time);
+
+	/**
 	 * @brief Loads the material with the given name.
 	 * @param name The material name, e.g. `"objects/rocket/skin"`.
 	 * @param context The asset context, e.g. `ASSET_CONTEXT_PLAYERS`.

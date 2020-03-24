@@ -83,6 +83,9 @@
     <ClCompile Include="..\..\src\client\renderer\r_sprite.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_animation.c">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\r_bsp.h">
@@ -171,6 +174,9 @@
     <ClInclude Include="..\..\src\client\renderer\r_sprite.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_animation.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\client\renderer\shaders\bsp_fs.glsl">
@@ -225,15 +231,6 @@
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\accum_2d_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\accum_3d_common.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\accum_2d_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
   </ItemGroup>

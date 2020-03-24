@@ -87,11 +87,21 @@ typedef struct cg_sprite_s {
 	 * @brief The sprite color.
 	 */
 	color_t color;
+
+	/**
+	 * @brief Blending operators
+	 */
+	GLenum dst, src;
 	
 	/**
 	 * @brief Sprite's image.
 	 */
-	r_image_t *image;
+	union {
+		r_media_t *media;
+		r_image_t *image;
+		r_atlas_image_t *atlas_image;
+		r_animation_t *animation;
+	};
 
 	/**
 	 * @brief The sprite color velocity.
