@@ -182,7 +182,11 @@ void main(void) {
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
-	//out_color.rgb = (normal + 1) * 0.5;
+
+	// out_color.rgb = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
+	// out_color.rgb = (out_color.rgb + 1) * 0.5;
+
+	// out_color.rgb = (normal + 1) * 0.5;
 	// out_color.rgb = vec3(gen_cavity(normalmap));
 	// out_color.rgb = vec3(gen_gloss(diffusemap));
 	// out_color.rgb = vec3(min(auto_glossmap(normalmap, diffusemap), toksvig));
