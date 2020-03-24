@@ -478,9 +478,8 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	l->radiosity = Vec3_Scale(l->radiosity, 1.0 / 255.0);
 	l->radiosity = ColorFilter(l->radiosity);
 
-	if (!Vec3_Equal(l->diffuse_dir, Vec3_Zero())) {
-		l->diffuse_dir = Vec3_Normalize(l->diffuse_dir);
-	}
+	l->diffuse_dir = Vec3_Add(l->diffuse_dir, Vec3_Up());
+	l->diffuse_dir = Vec3_Normalize(l->diffuse_dir);
 }
 
 /**
