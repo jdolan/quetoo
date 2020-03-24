@@ -343,39 +343,48 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cg_sprite_t *s;
 
+	for (int32_t i = 0; i < 4; i++) {
+		if ((s = Cg_AllocSprite())) {
+			s->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
+
+			s->lifetime = RandomRangef(500, 950);
+
+			s->color = Color3b(255, 255, 255);
+			s->color_velocity.w = -1.f / MILLIS_TO_SECONDS(s->lifetime);
+
+			s->size = RandomRangef(22.f, 48.f);
+			s->size_velocity = RandomRangef(10.f, 25.f);
+
+			s->velocity = Vec3_RandomRange(-5.f, 5.f);
+			s->velocity.z += 52.f;
+
+			s->acceleration.z = -8.0;
+
+			s->image = cg_sprite_smoke;
+
+			s->rotation = RandomRangef(0.0f, M_PI);
+
+			s->rotation_velocity = RandomRangef(.1f, .5f);
+
+			s->src = GL_SRC_ALPHA;
+			s->dst = GL_ONE_MINUS_SRC_ALPHA;
+		}
+	}
+
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
-		s->origin.z -= 6.f;
-
-		s->lifetime = 1000;
-
-		s->color = Color3b(255, 255, 255);
-		s->color.a = 255 / 255.0;
-	//	s->delta_color.a = -10;
-
-		s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
-
+		s->lifetime = 800;
+		s->color = color_white;
 		s->size = 24.0;
 		s->size_velocity = 128.0;
-	//	s->delta_size = 1.0;
-
-		s->velocity = Vec3_RandomRange(-1.f, 1.f);
-		s->velocity.z += 52.f;
-
-		s->acceleration.z = -8.0;
-
 		s->animation = cg_fire_1;
-
-		s->rotation = RandomRangef(0.0f, M_PI);
-
-		s->rotation_velocity = RandomRangef(.1f, .5f);
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 200.0,
+		.radius = 100.0,
 		.color = Vec3(0.8, 0.4, 0.2),
-		.decay = 1000
+		.decay = 450
 	});
 
 	cgi.AddStain(&(const r_stain_t) {

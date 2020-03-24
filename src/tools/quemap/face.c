@@ -104,9 +104,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
-#include "tree.h"
-
-#define WELD_THRESHOLD (1.f - SIDE_EPSILON)
+#define WELD_THRESHOLD (.5f - ON_EPSILON)
 
 static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 	vec3_t *out = points;
