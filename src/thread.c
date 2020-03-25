@@ -62,7 +62,7 @@ SDL_threadID thread_main;
 /**
  * @brief The current thread ID.
  */
-SDL_threadID _Thread_local thread_id;
+_Thread_local SDL_threadID thread_id;
 
 /**
  * @brief Wrap the user's function in our own for introspection.

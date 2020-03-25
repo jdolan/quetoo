@@ -53,7 +53,7 @@ g_ptr_array_find(GPtrArray *haystack,
  * @brief
  */
 static void FixTJunctions_(int32_t face_num) {
-	static cm_winding_t _Thread_local *face_winding, *f_winding;
+	static _Thread_local cm_winding_t *face_winding, *f_winding;
 
 	if (!face_winding) {
 		face_winding = Cm_AllocWinding(largest_winding);

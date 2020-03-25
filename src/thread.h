@@ -63,4 +63,4 @@ void Thread_Init(ssize_t num_threads);
 void Thread_Shutdown(void);
 
 extern SDL_threadID thread_main;
-extern SDL_threadID _Thread_local thread_id;
+extern _Thread_local SDL_threadID thread_id;
