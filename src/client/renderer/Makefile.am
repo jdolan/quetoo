@@ -3,6 +3,7 @@ SUBDIRS = \
 	shaders
 
 noinst_HEADERS = \
+	r_animation.h \
 	r_atlas.h \
 	r_bsp.h \
 	r_bsp_draw.h \
@@ -38,6 +39,7 @@ noinst_LTLIBRARIES = \
 	librenderer.la
 
 librenderer_la_SOURCES = \
+	r_animation.c \
 	r_atlas.c \
 	r_bsp.c \
 	r_bsp_draw.c \

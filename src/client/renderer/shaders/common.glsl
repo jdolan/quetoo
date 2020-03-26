@@ -108,7 +108,7 @@ vec3 brdf_blinn(vec3 view_dir, vec3 light_dir, vec3 normal,
 	float n_dot_h = max(dot(normal, half_angle), 0.0);
 	float p = specular_exponent * glossiness;
 	float gloss = pow(n_dot_h, p) * (p + 2.0) / 8.0; // energy preserving
-	return light_color * gloss;
+	return light_color * max(gloss, 0.001);
 }
 
 /**

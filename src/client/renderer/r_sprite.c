@@ -75,7 +75,7 @@ static struct {
 
 static void R_ResolveTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_t *tr, vec2_t *br, vec2_t *bl) {
 
-	if (image->type == MEDIA_ATLAS_IMAGE) {
+	if (image->media.type == MEDIA_ATLAS_IMAGE) {
 		r_atlas_image_t *atlas_image = (r_atlas_image_t *) image;
 
 		*tl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
