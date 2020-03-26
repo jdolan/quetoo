@@ -408,6 +408,14 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		.decay = 825
 	});
 
+	// quick flash... worth it?
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = org,
+		.radius = 300.0,
+		.color = Vec3_Scale(Vec3(0.8, 0.4, 0.2), 0.25),
+		.decay = 250
+	});
+	
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = RandomRangef(38.f, 48.f),
