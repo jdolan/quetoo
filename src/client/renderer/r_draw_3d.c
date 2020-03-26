@@ -217,7 +217,7 @@ static void R_InitDraw3DProgram(void) {
 
 	r_draw_3d_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "draw_3d_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "draw_3d_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "draw_3d_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_draw_3d_program.name);

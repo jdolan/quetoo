@@ -71,7 +71,6 @@ cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
 cvar_t *r_shell;
-cvar_t *r_soft_particles;
 cvar_t *r_specular;
 cvar_t *r_stains;
 cvar_t *r_supersample;
@@ -511,7 +510,6 @@ static void R_InitLocal(void) {
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
 	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE, "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
-	r_soft_particles = Cvar_Add("r_soft_particles", "1", CVAR_ARCHIVE, "Controls soft particles, which are more expensive.");
 	r_specular = Cvar_Add("r_specular", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");
 	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the level of super-sampling. Requires framebuffer extension.");

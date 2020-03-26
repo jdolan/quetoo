@@ -284,7 +284,7 @@ static void R_InitSpriteProgram(void) {
 
 	r_sprite_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "sprite_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common.glsl", "soft_edges.glsl", "sprite_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "soften_fs.glsl", "sprite_fs.glsl"),
 			NULL);
 	
 	glUseProgram(r_sprite_program.name);

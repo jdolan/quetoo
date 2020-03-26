@@ -50,7 +50,6 @@ extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadows;
 extern cvar_t *r_shell;
-extern cvar_t *r_soft_particles;
 extern cvar_t *r_specular;
 extern cvar_t *r_stains;
 extern cvar_t *r_supersample;
