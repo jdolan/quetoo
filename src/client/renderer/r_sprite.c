@@ -91,7 +91,7 @@ static void R_ResolveTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2
 	}
 }
 
-static void R_AddSpriteInternal(const color_t color, const r_media_t *media, const GLenum src, const GLenum dst, const float life, r_sprite_vertex_t *out) {
+static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float life) {
 
 	const r_image_t *image;
 
@@ -100,6 +100,11 @@ static void R_AddSpriteInternal(const color_t color, const r_media_t *media, con
 	} else {
 		image = (r_image_t *) media;
 	}
+
+	return image;
+}
+
+static void R_AddSpriteInternal(const color_t color, const r_image_t *image, const GLenum src, const GLenum dst, r_sprite_vertex_t *out) {
 
 	const _Bool is_current_batch = r_view.num_sprite_images &&
 		image == r_view.sprite_images[r_view.num_sprite_images - 1].image &&
@@ -136,6 +141,8 @@ void R_AddSprite(const r_sprite_t *p) {
 		return;
 	}
 
+	const r_image_t *image = R_ResolveSpriteImage(p->image, p->life);
+	const float aspectRatio = (float) image->width / (float) image->height;
 	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
 	const float size = p->size * .5f;
 	vec3_t dir = Vec3_Normalize(Vec3_Subtract(p->origin, r_view.origin)), right, up;
@@ -144,14 +151,14 @@ void R_AddSprite(const r_sprite_t *p) {
 
 	Vec3_Vectors(dir, NULL, &right, &up);
 
-	const vec3_t u = Vec3_Scale(up, size), d = Vec3_Scale(up, -size), l = Vec3_Scale(right, -size), r = Vec3_Scale(right, size);
+	const vec3_t u = Vec3_Scale(up, size), d = Vec3_Scale(up, -size), l = Vec3_Scale(right, -size * aspectRatio), r = Vec3_Scale(right, size * aspectRatio);
 	
 	out[0].position = Vec3_Add(Vec3_Add(p->origin, u), l);
 	out[1].position = Vec3_Add(Vec3_Add(p->origin, u), r);
 	out[2].position = Vec3_Add(Vec3_Add(p->origin, d), r);
 	out[3].position = Vec3_Add(Vec3_Add(p->origin, d), l);
 
-	R_AddSpriteInternal(p->color, p->image, p->src, p->dst, p->life, out);
+	R_AddSpriteInternal(p->color, image, p->src, p->dst, out);
 }
 
 /**
@@ -163,7 +170,8 @@ void R_AddBeam(const r_beam_t *p) {
 	if (r_view.num_sprites == MAX_SPRITES) {
 		return;
 	}
-
+	
+	const r_image_t *image = R_ResolveSpriteImage((r_media_t *) p->image, 0);
 	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
 	const float size = p->size * .5f;
 	float length;
@@ -175,7 +183,7 @@ void R_AddBeam(const r_beam_t *p) {
 	out[2].position = Vec3_Subtract(p->end, right);
 	out[3].position = Vec3_Subtract(p->start, right);
 
-	R_AddSpriteInternal(p->color, (r_media_t *) p->image, p->src, p->dst, 0, out);
+	R_AddSpriteInternal(p->color, image, p->src, p->dst, out);
 	
 	if (!(p->image->type & IT_MASK_CLAMP_EDGE)) {
 		length /= p->image->width * (p->size / p->image->height);
@@ -217,7 +225,7 @@ void R_DrawSprites(void) {
 
 	glUniform2f(r_sprite_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_sprite_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
-	glUniform1f(r_sprite_program.transition_size, .0064f);
+	glUniform1f(r_sprite_program.transition_size, .0016f);
 	glUniform1i(r_sprite_program.soft_particles, r_soft_particles->integer);
 
 	glUniform1f(r_sprite_program.brightness, r_brightness->value);

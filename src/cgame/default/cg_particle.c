@@ -126,15 +126,7 @@ void Cg_FreeParticles(void) {
  */
 static vec3_t Cg_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce) {
 
-	float backoff = Vec3_Dot(in, normal);
-
-	if (backoff < 0.0) {
-		backoff *= bounce;
-	} else {
-		backoff /= bounce;
-	}
-
-	return Vec3_Subtract(in, Vec3_Scale(normal, backoff));
+	return Vec3_Scale(Vec3_Reflect(in, normal), bounce);
 }
 
 /**

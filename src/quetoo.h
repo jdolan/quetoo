@@ -202,6 +202,8 @@ typedef enum {
 #define SECONDS_TO_MILLIS(t)	((t) * 1000.0)
 #define MILLIS_TO_SECONDS(t)	((t) / 1000.0)
 
+#define FRAMES_TO_SECONDS(t)	(1000.0 / (t))
+
 
 
 // lower bits are stronger, and will eat weaker brushes completely

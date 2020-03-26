@@ -540,7 +540,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 					p->color = ColorHSV(180, RandomRangef(.0f, .7f), RandomRangef(.5f, 1.f));
 
-					p->bounce = 1.15;
+					p->bounce = 0.2f;
 
 					p->size = 1.3 + Randomf() * 0.6;
 

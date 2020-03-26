@@ -48,7 +48,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		p->size = 3.5;
 		p->size_velocity = -p->size / MILLIS_TO_SECONDS(p->lifetime);
 
-		p->bounce = 1.15;
+		p->bounce = 0.6f;
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -113,7 +113,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			p->acceleration = Vec3_RandomRange(-40.f, -40.f);
 			p->acceleration.z -= PARTICLE_GRAVITY;
 
-			p->bounce = 1.5f;
+			p->bounce = 0.6f;
 			p->lifetime = RandomRangef(150.f, 300.f);
 
 			p->color = Color_Add(Color3bv(0xffa050), Color3fv(Vec3_RandomRange(-1.f, .1f)));
@@ -296,7 +296,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->size = 0.6 + Randomf() * 0.2;
 
-		p->bounce = 1.15;
+		p->bounce = 0.6f;
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -324,26 +324,29 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
 
-		for (int32_t i = 0; i < 40; i++) {
+		for (int32_t i = 0; i < 100; i++) {
 			if (!(p = Cg_AllocParticle())) {
 				break;
 			}
 
 			p->origin = Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f));
-			p->velocity = Vec3_RandomRange(-180.f, 180.f);
+			p->velocity = Vec3_RandomRange(-300.f, 300.f);
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
-			p->lifetime = 200 + Randomf() * 300;
+			p->lifetime = 3000 + Randomf() * 300;
 
-			p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20));//cgi.ColorFromPalette(221 + (Randomr(0, 8)));
-			p->color.a = (200 + Randomf() * 55) / 255.f;
+			p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20));
+			p->color.a = 255.f;
+			
+			p->color_velocity.x = p->color_velocity.y = p->color_velocity.z = -1.f / MILLIS_TO_SECONDS(p->lifetime);
+			p->bounce = .2f;
 
-			p->size = 1.0 + Randomf() * 0.4;
+			p->size = .2f + Randomf() * .4f;
 		}
 	}
 
 	cg_sprite_t *s;
 
-	for (int32_t i = 0; i < 4; i++) {
+	/*for (int32_t i = 0; i < 4; i++) {
 		if ((s = Cg_AllocSprite())) {
 			s->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
 
@@ -369,14 +372,16 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			s->src = GL_SRC_ALPHA;
 			s->dst = GL_ONE_MINUS_SRC_ALPHA;
 		}
-	}
+	}*/
 
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
-		s->lifetime = 800;
+		s->lifetime = cg_fire_1->num_images * FRAMES_TO_SECONDS(60);
 		s->color = color_white;
-		s->size = 24.0;
-		s->size_velocity = 128.0;
+		s->size = 175.0;
+		//s->size_velocity = 256.0;
+		//s->src = GL_SRC_ALPHA;
+		//s->dst = GL_ONE_MINUS_SRC_ALPHA;
 		s->animation = cg_fire_1;
 	}
 
@@ -389,8 +394,8 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
-		.radius = 88.0 + (64.0 * Randomc() * 0.15),
-		.color = Color4bv(0x20202080),
+		.radius = RandomRangef(38.f, 48.f),
+		.color = Color4bv(0x202020ff),
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -429,7 +434,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			p->size = 3.5;
 //			p->delta_size = Randomf() / PARTICLE_FRAME;
 
-			p->bounce = 1.15;
+			p->bounce = 0.9f;
 
 			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 		}
