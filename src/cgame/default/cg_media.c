@@ -228,7 +228,7 @@ void Cg_UpdateMedia(void) {
 	cg_beam_rail = cgi.LoadImage("particles/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning = cgi.LoadImage("particles/lightning", IT_EFFECT);
 
-	const r_image_t *cg_fire_1_images[72];
+	const r_image_t *cg_fire_1_images[36];
 
 	for (uint32_t i = 0; i < lengthof(cg_fire_1_images); i++) {
 		g_snprintf(name, sizeof(name), "particles/explosion_01/explosion_01_%02" PRIu32, i + 1);

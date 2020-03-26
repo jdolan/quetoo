@@ -379,7 +379,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
-		s->lifetime = cg_fire_1->num_images * FRAMES_TO_SECONDS(80);
+		s->lifetime = cg_fire_1->num_images * FRAMES_TO_SECONDS(40);
 		s->color = color_white;
 		s->size = 100.0;
 		s->size_velocity = 25.0;
@@ -391,7 +391,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
-		s->lifetime = cg_fire_1->num_images * FRAMES_TO_SECONDS(60);
+		s->lifetime = cg_fire_1->num_images * FRAMES_TO_SECONDS(30);
 		s->color = color_white;
 		s->size = 175.0;
 		s->size_velocity = 25.0;
