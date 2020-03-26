@@ -56,7 +56,6 @@ static struct {
 	GLint projection;
 	GLint view;
 
-	GLint soft_particles;
 	GLint depth_range;
 	GLint inv_viewport_size;
 	GLint transition_size;
@@ -226,7 +225,6 @@ void R_DrawSprites(void) {
 	glUniform2f(r_sprite_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_sprite_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
 	glUniform1f(r_sprite_program.transition_size, .0016f);
-	glUniform1i(r_sprite_program.soft_particles, r_soft_particles->integer);
 
 	glUniform1f(r_sprite_program.brightness, r_brightness->value);
 	glUniform1f(r_sprite_program.contrast, r_contrast->value);
@@ -299,7 +297,6 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.depth_range = glGetUniformLocation(r_sprite_program.name, "depth_range");
 	r_sprite_program.inv_viewport_size = glGetUniformLocation(r_sprite_program.name, "inv_viewport_size");
 	r_sprite_program.transition_size = glGetUniformLocation(r_sprite_program.name, "transition_size");
-	r_sprite_program.soft_particles = glGetUniformLocation(r_sprite_program.name, "soft_particles");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.depth_attachment = glGetUniformLocation(r_sprite_program.name, "depth_attachment");

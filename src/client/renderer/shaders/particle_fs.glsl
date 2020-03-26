@@ -44,5 +44,5 @@ void main(void) {
 
 	out_color.rgb = color_filter(out_color.rgb);
 
-	out_color.a *= soft_edges();
+	out_color.a *= soften_particle();
 }

@@ -19,7 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform bool soft_particles;
 uniform vec2 inv_viewport_size;
 uniform vec2 depth_range;
 uniform float transition_size;
@@ -33,13 +32,15 @@ float calc_depth(in float z) {
 }
 
 /**
- * @brief Calculate the soft edge factor for the specified fragment.
+ * @brief Calculate the soft edge factor for the specified particle fragment.
  */
-float soft_edges() {
-
-	if (!soft_particles) {
-		return 1.0;
-	}
-
+float soften_particle() {
 	return smoothstep(0.0, transition_size, clamp(calc_depth(texture(depth_attachment, gl_FragCoord.xy * inv_viewport_size).r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
+}
+
+/**
+ * @brief Calculate the soft edge factor for the specified sprite fragment.
+ */
+float soften_sprite() {
+	return soften_particle();
 }
