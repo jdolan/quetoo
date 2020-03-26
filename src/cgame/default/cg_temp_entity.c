@@ -321,7 +321,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	cg_particle_t *p;
 
 	// TODO: Bubbles in water?
-
+	
 	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
 
 		for (int32_t i = 0; i < 100; i++) {
@@ -334,11 +334,14 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
 			p->lifetime = 3000 + Randomf() * 300;
 
-			p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20));
+			// p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20));
+			p->color = Color3b(255, 255, 255);
 			p->color.a = 255.f;
 			
-			p->color_velocity.x = p->color_velocity.y = p->color_velocity.z = -1.f / MILLIS_TO_SECONDS(p->lifetime);
-			p->bounce = .2f;
+			p->color_velocity.x = -0.5f / MILLIS_TO_SECONDS(p->lifetime);
+			p->color_velocity.y = -1.5f / MILLIS_TO_SECONDS(p->lifetime);
+			p->color_velocity.z = -3.0f / MILLIS_TO_SECONDS(p->lifetime);
+			p->bounce = .4f;
 
 			p->size = .2f + Randomf() * .4f;
 		}
@@ -376,20 +379,33 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
+		s->lifetime = cg_fire_1->num_images * FRAMES_TO_SECONDS(80);
+		s->color = color_white;
+		s->size = 100.0;
+		s->size_velocity = 25.0;
+		s->src = GL_ONE;
+		s->dst = GL_ONE_MINUS_SRC_ALPHA;
+		s->animation = cg_fire_1;
+		s->rotation = Randomf() * 2.f * M_PI;
+	}
+
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
 		s->lifetime = cg_fire_1->num_images * FRAMES_TO_SECONDS(60);
 		s->color = color_white;
 		s->size = 175.0;
-		//s->size_velocity = 256.0;
-		//s->src = GL_SRC_ALPHA;
-		//s->dst = GL_ONE_MINUS_SRC_ALPHA;
+		s->size_velocity = 25.0;
+		s->rotation = Randomf() * 2.f * M_PI;
+		s->src = GL_ONE;
+		s->dst = GL_ONE;
 		s->animation = cg_fire_1;
 	}
-
+	
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 100.0,
+		.radius = 150.0,
 		.color = Vec3(0.8, 0.4, 0.2),
-		.decay = 450
+		.decay = 825
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
