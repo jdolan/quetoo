@@ -214,6 +214,7 @@
 		CE354F0622087CFA008AE0C2 /* libatlas.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE354EE722073AD6008AE0C2 /* libatlas.a */; };
 		CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3C529221E4DF2500FEDBED /* cm_polylib.h */; };
 		CE3C529521E4DF2500FEDBED /* cm_polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3C529321E4DF2500FEDBED /* cm_polylib.c */; };
+		CE41019C242CE0D900BF482F /* version.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE41019B242CE0B200BF482F /* version.glsl */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
 		CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */; };
 		CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */; };
@@ -1059,6 +1060,7 @@
 				CEAC32C124212626007E1253 /* soft_edges.glsl in CopyFiles */,
 				CEAC32C22421262A007E1253 /* sprite_fs.glsl in CopyFiles */,
 				CEAC32C32421262B007E1253 /* sprite_vs.glsl in CopyFiles */,
+				CE41019C242CE0D900BF482F /* version.glsl in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1677,6 +1679,7 @@
 		CE3C529221E4DF2500FEDBED /* cm_polylib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cm_polylib.h; sourceTree = "<group>"; };
 		CE3C529321E4DF2500FEDBED /* cm_polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cm_polylib.c; sourceTree = "<group>"; };
 		CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.0.1.dylib; path = ../../../../opt/local/lib/libphysfs.3.0.1.dylib; sourceTree = "<group>"; };
+		CE41019B242CE0B200BF482F /* version.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = version.glsl; sourceTree = "<group>"; };
 		CE42657321C3CD7D00F768DD /* map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = map.h; sourceTree = "<group>"; };
 		CE42657421C3EDB400F768DD /* face.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = face.h; sourceTree = "<group>"; };
 		CE42657521C3EE3B00F768DD /* brush.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = brush.h; sourceTree = "<group>"; };
@@ -2960,6 +2963,7 @@
 				CEAC32BE242125ED007E1253 /* soft_edges.glsl */,
 				CEAC32C0242125ED007E1253 /* sprite_fs.glsl */,
 				CEAC32BF242125ED007E1253 /* sprite_vs.glsl */,
+				CE41019B242CE0B200BF482F /* version.glsl */,
 				CE12D5F61C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = shaders;
