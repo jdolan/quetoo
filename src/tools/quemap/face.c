@@ -105,6 +105,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 }
 
 #define WELD_THRESHOLD (.5f - ON_EPSILON)
+#define WELD_THRESHOLD_SQUARED (WELD_THRESHOLD * WELD_THRESHOLD)
 
 static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 	vec3_t *out = points;
@@ -116,7 +117,10 @@ static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 		for (int32_t x = 0; x < bsp_file.num_vertexes; x++) {
 			const vec3_t bsp_pos = bsp_file.vertexes[x].position;
 
-			if (Vec3_DistanceSquared(bsp_pos, p) < WELD_THRESHOLD * WELD_THRESHOLD) {
+			if (fabs(bsp_pos.x - p.x) < WELD_THRESHOLD_SQUARED &&
+				fabs(bsp_pos.y - p.y) < WELD_THRESHOLD_SQUARED &&
+				fabs(bsp_pos.z - p.z) < WELD_THRESHOLD_SQUARED) {
+				//Vec3_DistanceSquared(bsp_pos, p) < WELD_THRESHOLD * WELD_THRESHOLD) {
 				p = bsp_pos;
 				break;
 			}

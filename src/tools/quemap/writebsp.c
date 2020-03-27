@@ -294,10 +294,29 @@ static int32_t EmitNode(node_t *node) {
 	return (int32_t) (ptrdiff_t) (out - bsp_file.nodes);
 }
 
+static uint32_t start;
+
+static void BeginEmit(const char *name) {
+	start = SDL_GetTicks();
+	Com_Print("%-24s ", name);
+}
+
+static void EndEmit(void) {
+	Com_Print(" %d ms\n", SDL_GetTicks() - start);
+}
+
+static void Emit(void (*EmitFunc)(), const char *name) {
+	BeginEmit(name);
+	EmitFunc();
+	EndEmit();
+}
+
 /**
  * @brief
  */
 void EmitNodes(node_t *head_node) {
+
+	BeginEmit("Emitting node");
 
 	c_nofaces = 0;
 	c_facenodes = 0;
@@ -311,6 +330,8 @@ void EmitNodes(node_t *head_node) {
 	Com_Verbose("%5i nodes with faces\n", c_facenodes);
 	Com_Verbose("%5i nodes without faces\n", c_nofaces);
 	Com_Verbose("%5i faces\n", bsp_file.num_faces - old_faces);
+
+	EndEmit();
 }
 
 /**
@@ -450,15 +471,15 @@ void BeginBSPFile(void) {
  * @brief
  */
 void EndBSPFile(void) {
-
-	EmitBrushes();
-	EmitPlanes();
-	EmitAreaPortals();
-	EmitEntities();
+	
+	Emit(EmitBrushes, "Emitting brushes");
+	Emit(EmitPlanes, "Emitting planes");
+	Emit(EmitAreaPortals, "Emitting area portals");
+	Emit(EmitEntities, "Emitting entities");
 
 	Work("Phong shading", PhongVertex, bsp_file.num_vertexes);
-
-	EmitTangents();
+	
+	Emit(EmitTangents, "Emitting tangents");
 }
 
 /**
