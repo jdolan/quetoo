@@ -268,13 +268,12 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float
  * @param scale A scalar applied to both light and direction.
  */
 static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *pvs, float scale) {
+	
+	const light_t *light = (light_t *) lights->data;
 
-	for (const GList *list = lights; list; list = list->next) {
-		const light_t *light = list->data;
+	for (guint i = 0; i < lights->len; i++, light++) {
 
-		if (light->type == LIGHT_INVALID) {
-			continue;
-		}
+		assert(light->type != LIGHT_INVALID);
 
 		if (light->cluster != -1) {
 			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
@@ -489,6 +488,7 @@ void DirectLightmap(int32_t face_num) {
 		Vec3(+1.0, -1.0, 0.077847), Vec3(-1.0, +0.0, 0.123317), Vec3(+1.0, +0.0, 0.123317),
 		Vec3(-1.0, +1.0, 0.077847), Vec3(+0.0, +1.0, 0.123317), Vec3(+1.0, +1.0, 0.07784),
 	};
+	const size_t num_offsets = antialias ? lengthof(offsets) : 1;
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
@@ -504,7 +504,7 @@ void DirectLightmap(int32_t face_num) {
 
 		float contribution = 0.0;
 
-		for (size_t j = 0; j < lengthof(offsets); j++) {
+		for (size_t j = 0; j < num_offsets; j++) {
 
 			const float soffs = offsets[j].x;
 			const float toffs = offsets[j].y;
@@ -517,10 +517,6 @@ void DirectLightmap(int32_t face_num) {
 			contribution += scale;
 
 			LightLuxel(lm, l, pvs, scale);
-
-			if (!antialias) {
-				break;
-			}
 		}
 
 		if (contribution > 0.0 && contribution < 1.0) {

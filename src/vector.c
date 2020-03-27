@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifdef TESTING_INLINE_VECTORS
 #include "vector.h"
 
 #pragma mark - short integer vectors
@@ -1070,3 +1071,4 @@ vec3d_t Vec3d_Subtract(const vec3d_t a, const vec3d_t b) {
 vec3d_t Vec3d_Zero(void) {
 	return Vec3d(0., 0., 0.);
 }
+#endif

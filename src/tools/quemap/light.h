@@ -102,7 +102,7 @@ typedef struct {
 
 } light_t;
 
-extern GList *lights;
+extern GArray *lights;
 
 float ColorNormalize(const vec3_t in, vec3_t *out);
 vec3_t ColorFilter(const vec3_t in);

@@ -193,11 +193,14 @@ static void LightWorld(void) {
 		}
 	}
 
-	g_list_free_full(lights, Mem_Free);
-
 	// finalize it and write it to per-face textures
 	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
 	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
+	
+	if (lights) {
+		g_array_free(lights, true);
+		lights = NULL;
+	}
 
 	// generate atlased lightmaps
 	EmitLightmap();

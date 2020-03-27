@@ -15,6 +15,6 @@
     <LocalDebuggerCommandArguments>-bsp -vis -light --indirect edge.bsp</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-bsp -vis -light torn.bsp</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-bsp -vis -light --indirect torn.bsp</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

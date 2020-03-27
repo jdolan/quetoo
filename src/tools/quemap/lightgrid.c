@@ -175,13 +175,11 @@ size_t BuildLightgrid(void) {
  */
 static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
 
-	for (const GList *list = lights; list; list = list->next) {
+	const light_t *light = (light_t *) lights->data;
 
-		const light_t *light = list->data;
+	for (guint i = 0; i < lights->len; i++, light++) {
 
-		if (light->type == LIGHT_INVALID) {
-			continue;
-		}
+		assert(light->type != LIGHT_INVALID);
 
 		if (light->cluster != -1) {
 			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
@@ -392,12 +390,13 @@ void DirectLightgrid(int32_t luxel_num) {
 		Vec4(-0.25, -0.25, +0.25, 0.075), Vec4(-0.25, +0.25, +0.25, 0.075),
 		Vec4(+0.25, -0.25, +0.25, 0.075), Vec4(+0.25, +0.25, +0.25, 0.075),
 	};
+	const size_t num_offsets = antialias ? lengthof(offsets) : 1;
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
 	float contribution = 0.0;
 
-	for (size_t j = 0; j < lengthof(offsets); j++) {
+	for (size_t j = 0; j < num_offsets; j++) {
 
 		const float soffs = offsets[j].x;
 		const float toffs = offsets[j].y;
@@ -414,10 +413,6 @@ void DirectLightgrid(int32_t luxel_num) {
 		contribution += scale;
 
 		LightLuxel(l, pvs, scale);
-
-		if (!antialias) {
-			break;
-		}
 	}
 
 	if (contribution > 0.0 && contribution < 1.0) {
