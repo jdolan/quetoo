@@ -27,36 +27,47 @@
  */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t color) {
 	cg_particle_t *p;
+	cg_sprite_t *s;
 
-	for (int32_t i = 0; i < 24; i++) {
+#if 1
+	// ring 1
+	s = Cg_AllocSprite();
+	assert(s);
+	s->animation = cg_blast_01_ring;
+	s->lifetime = cg_blast_01_ring->num_images * FRAMES_TO_SECONDS(20);
+	s->origin = org; // Vec3_Add(org, Vec3_Scale(dir, 5.f));
+	s->size = 20.f;
+	s->size_velocity = 100.f;
+#endif
+	
+#if 1
+	// impact sparks
+	for (int32_t i = 0; i < 20; i++) {
 
 		if (!(p = Cg_AllocParticle())) {
 			break;
 		}
 
 		p->origin = Vec3_Add(org, dir);
-
-		p->velocity = Vec3_Scale(dir, 150.0);
-		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-50.0, 50.0));
-		p->acceleration.z = -2.5 * PARTICLE_GRAVITY;
-
-		p->lifetime = RandomRangef(500, 1000);
-
+		p->velocity = Vec3_Normalize(Vec3_Add(dir, Vec3_RandomRange(-1.f, 1.f)));
+		p->velocity = Vec3_Scale(p->velocity, Randomf() * 150.f + 50.f);
+		p->acceleration.z = -2.5f * PARTICLE_GRAVITY;
+		p->lifetime = RandomRangef(1000, 2500);
 		p->color = color;
-		p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
-
-		p->size = 3.5;
+		p->size = 0.55;
 		p->size_velocity = -p->size / MILLIS_TO_SECONDS(p->lifetime);
-
 		p->bounce = 0.6f;
 	}
+#endif
 
+#if 1
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, dir),
-		.radius = 150.0,
+		.radius = 85.f,
 		.color = Color_Vec3(color),
-		.decay = 350
+		.decay = 250.f
 	});
+#endif
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,

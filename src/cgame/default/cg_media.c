@@ -56,6 +56,7 @@ r_animation_t *cg_fire_1;
 r_animation_t *cg_flame_1;
 r_animation_t *cg_smoke_1;
 r_animation_t *cg_smoke_2;
+r_animation_t *cg_blast_01_ring;
 
 static GHashTable *cg_footstep_table;
 
@@ -262,6 +263,14 @@ void Cg_UpdateMedia(void) {
 		cg_smoke_2_images[i] = cgi.LoadImage(name, IT_EFFECT);
 	}
 	cg_smoke_2 = cgi.CreateAnimation("particles/smoke_2", lengthof(cg_smoke_2_images), cg_smoke_2_images);
+
+	// blast ring
+	const r_image_t *cg_blast_01_ring_images[7];
+	for (uint32_t i = 0; i < lengthof(cg_blast_01_ring_images); i++) {
+		g_snprintf(name, sizeof(name), "particles/blast_01/blast_01_ring_%02" PRIu32, i + 1);
+		cg_blast_01_ring_images[i] = cgi.LoadImage(name, IT_EFFECT);
+	}
+	cg_blast_01_ring = cgi.CreateAnimation("particles/blast_01/blast_01_ring", lengthof(cg_blast_01_ring_images), cg_blast_01_ring_images);
 	
 	Cg_LoadEffects();
 
