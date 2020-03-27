@@ -40,7 +40,7 @@ static float Cg_ParticleTrailDensity(cl_entity_t *ent, const vec3_t start, const
 		ent->update_trail_origin = true;
 	}
 
-	return density * frac;
+	return floorf(density * frac);
 }
 
 /**
