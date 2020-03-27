@@ -333,16 +333,10 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->velocity = Vec3_RandomRange(-300.f, 300.f);
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
 			p->lifetime = 3000 + Randomf() * 300;
-
-			// p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20));
 			p->color = Color3b(255, 255, 255);
 			p->color.a = 255.f;
-			
-			p->color_velocity.x = -0.5f / MILLIS_TO_SECONDS(p->lifetime);
-			p->color_velocity.y = -1.5f / MILLIS_TO_SECONDS(p->lifetime);
-			p->color_velocity.z = -3.0f / MILLIS_TO_SECONDS(p->lifetime);
+			p->color_velocity = Vec4_Scale(Vec4(-.5f, -1.5f, -3.f, 1.f), 1.f / MILLIS_TO_SECONDS(p->lifetime));
 			p->bounce = .4f;
-
 			p->size = .2f + Randomf() * .4f;
 		}
 	}

@@ -377,47 +377,80 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
  */
 static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
+	cg_sprite_t *s;
 	float particles;
 
-	Cg_SmokeTrail(ent, start, end);
+	// Cg_SmokeTrail(ent, start, end);
 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 	const vec3_t trail_start = ent->previous_trail_origin;
+	const vec3_t rocket_velocity = Vec3_Subtract(ent->origin, ent->previous_origin);
 
-	particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 14);
+#if 1
+	// add fire
+	particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 8);
 	for (int32_t i = 0; i < particles; i++) {
-
-		if (!(p = Cg_AllocParticle())) {
-			break;
-		}
-
-		p->lifetime = RandomRangef(75.f, 150.f);
-		p->origin = Vec3_Mix(trail_start, end, i / particles);
-		p->velocity = Vec3_Scale(dir, RandomRangef(150.f, 200.f));
-		p->acceleration = Vec3_RandomRange(-10.f, 10.f);
-		// p->acceleration.z -= PARTICLE_GRAVITY;
-		p->color = Color4bv(0xffaa22ff);
-		p->size = 2.0;
-		p->size_velocity = -2.f / MILLIS_TO_SECONDS(p->lifetime);
+		// fire
+		if (!(s = Cg_AllocSprite())) { break; }
+		s->animation = cg_flame_1;
+		s->lifetime = cg_flame_1->num_images * FRAMES_TO_SECONDS(120);
+		s->origin = Vec3_Mix(trail_start, end, (float)i / particles);
+		s->velocity = rocket_velocity;
+		s->rotation = Randomf() * 2.f * M_PI;
+		s->size = 8.f;
+		s->size_velocity = -20.f;
+		s->src = GL_ONE;
+		s->dst = GL_ONE;
 	}
+#endif
+	
+#if 1
+	// add smoke
+	particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 2);
+	float particle_step = 1.f / particles;
+	for (int32_t i = 0; i < particles; i++) {
+		// interlace smoke 1 and 2 for some subtle variety
+		// smoke 1
+		if (!(s = Cg_AllocSprite())) { break; }
+		s->animation = cg_smoke_1;
+		s->lifetime = cg_smoke_1->num_images * FRAMES_TO_SECONDS(60) * (Randomf() * .33f + .66f);
+		s->origin = Vec3_Add(Vec3_Mix(trail_start, end, particle_step * (float)i), Vec3_RandomRange(-2.5f, 2.5f));
+		s->velocity = Vec3_Scale(rocket_velocity, 0.5);
+		s->rotation = Randomf() * 2.f * M_PI;
+		s->size = Randomf() * 5.f + 10.f;
+		s->size_velocity = Randomf() * 5.f + 10.f;
+		s->src = GL_SRC_ALPHA;
+		s->dst = GL_ONE_MINUS_SRC_COLOR;
+		// smoke 2
+		if (!(s = Cg_AllocSprite())) { break; }
+		s->animation = cg_smoke_2;
+		s->lifetime = cg_smoke_2->num_images * FRAMES_TO_SECONDS(60) * (Randomf() * .33f + .66f);
+		s->origin = Vec3_Add(Vec3_Mix(trail_start, end, (particle_step * (float)i) + (particle_step * .5f)), Vec3_RandomRange(-2.5f, 2.5f));
+		s->velocity = Vec3_Scale(rocket_velocity, 0.5);
+		s->rotation = Randomf() * 2.f * M_PI;
+		s->size = Randomf() * 5.f + 10.f;
+		s->size_velocity = Randomf() * 5.f + 10.f;
+		s->src = GL_ONE;
+		s->dst = GL_ONE_MINUS_SRC_COLOR;
+	}
+#endif
 
+#if 1
 	particles = Cg_ParticleTrailDensity(ent, start, end, 16.f, 64.f, 10);
 	for (int32_t i = 0; i < particles; i++) {
-
-		if (!(p = Cg_AllocParticle())) {
-			break;
-		}
-
-		p->lifetime = RandomRangef(450.f, 650.f);
+		// sparks
+		if (!(p = Cg_AllocParticle())) { break; }
+		p->lifetime = RandomRangef(900.f, 1300.f);
 		p->origin = Vec3_Mix(trail_start, end, i / particles);
-		p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 150.f));
-		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-20.f, 20.f));
+		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-10.f, 10.f));
 		p->acceleration = Vec3_RandomRange(-10.f, 10.f);
-		// p->acceleration.z -= PARTICLE_GRAVITY;
-		p->color = Color4bv(0xcc9922ff);
-		p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
+		p->color = Color3b(255, 255, 255);
+		p->color.a = 255.f;
+		p->color_velocity = Vec4_Scale(Vec4(-.5f, -1.5f, -3.f, -1.f), 1.f / MILLIS_TO_SECONDS(p->lifetime));
+		p->size = Randomf() * .2f + .2f;
 	}
-
+#endif
+	
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
 		.radius = 150.f,
