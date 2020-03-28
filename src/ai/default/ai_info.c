@@ -97,12 +97,12 @@ void Ai_GetUserInfo(const g_entity_t *self, char *info) {
 
 	g_strlcpy(info, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
 
-	SetUserInfo(info, "skin", g_array_index(ai_skins, ai_skin_t, Randomr(0, ai_skins->len)));
-	SetUserInfo(info, "color", va("%i", Randomr(0, 360)));
-	SetUserInfo(info, "hand", va("%i", Randomr(0, 3)));
-	SetUserInfo(info, "head", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
-	SetUserInfo(info, "shirt", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
-	SetUserInfo(info, "pants", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
+	SetUserInfo(info, "skin", g_array_index(ai_skins, ai_skin_t, RandomRangeu(0, ai_skins->len)));
+	SetUserInfo(info, "color", va("%u", RandomRangeu(0, 360)));
+	SetUserInfo(info, "hand", va("%u", RandomRangeu(0, 3)));
+	SetUserInfo(info, "head", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
+	SetUserInfo(info, "shirt", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
+	SetUserInfo(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
 	if (ai_name_suffix == 0) {
 		SetUserInfo(info, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));

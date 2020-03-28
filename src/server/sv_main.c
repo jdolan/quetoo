@@ -191,7 +191,7 @@ static void Sv_GetChallenge_f(void) {
 	}
 
 	if (i == MAX_CHALLENGES) { // overwrite the oldest
-		svs.challenges[oldest].challenge = Random();
+		svs.challenges[oldest].challenge = Randomu();
 		svs.challenges[oldest].addr = net_from;
 		svs.challenges[oldest].time = quetoo.ticks;
 		i = oldest;

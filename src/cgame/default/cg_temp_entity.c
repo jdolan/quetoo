@@ -33,8 +33,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		if (!(p = Cg_AllocParticle())) {
 			break;
 		}
-
-		p->origin = Vec3_Add(org, dir);
+		
+		p->size = 3.5;
+		p->origin = Vec3_Add(org, Vec3_Scale(dir, p->size));
 
 		p->velocity = Vec3_Scale(dir, 150.0);
 		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-50.0, 50.0));
@@ -45,10 +46,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		p->color = color;
 		p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 
-		p->size = 3.5;
 		p->size_velocity = -p->size / MILLIS_TO_SECONDS(p->lifetime);
 
-		p->bounce = 0.6f;
+		p->bounce = 0.25f;
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -107,13 +107,13 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	} else {
 		if ((p = Cg_AllocParticle())) {
 
-			p->origin = org;
+			p->origin = Vec3_Add(org, dir);
 			p->velocity = Vec3_Scale(dir, RandomRangef(180.f, 400.f));
 
 			p->acceleration = Vec3_RandomRange(-40.f, -40.f);
 			p->acceleration.z -= PARTICLE_GRAVITY;
 
-			p->bounce = 0.6f;
+			p->bounce = 1.0f;
 			p->lifetime = RandomRangef(150.f, 300.f);
 
 			p->color = Color_Add(Color3bv(0xffa050), Color3fv(Vec3_RandomRange(-1.f, .1f)));
@@ -158,11 +158,11 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		last_ric_time = cgi.client->unclamped_time;
 
 		cgi.AddSample(&(const s_play_sample_t) {
-			.sample = cg_sample_machinegun_hit[Randomr(0, 3)],
+			.sample = cg_sample_machinegun_hit[RandomRangeu(0, 3)],
 			.origin = org,
 			.attenuation = ATTEN_NORM,
 			.flags = S_PLAY_POSITIONED,
-			.pitch = (int16_t) (Randomc() * 8)
+			.pitch = RandomRangei(-8, 9)
 		});
 	}
 }
@@ -222,10 +222,10 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	for (int32_t i = 0; i < count; i++) {
 
 		// set the origin and velocity for each gib stream
-		o = Vec3(Randomc() * 8.0, Randomc() * 8.0, 8.0 + Randomc() * 12.0);
+		o = Vec3(RandomRangef(-8.f, 8.f), RandomRangef(-8.f, 8.f), RandomRangef(-4.f, 20.f));
 		o = Vec3_Add(o, org);
 
-		v = Vec3(Randomc(), Randomc(), 0.2 + Randomf());
+		v = Vec3(RandomRangef(-1.f, 1.f), RandomRangef(-1.f, 1.f), RandomRangef(.2f, 1.2f));
 
 		dist = GIB_STREAM_DIST;
 		tmp = Vec3_Add(o, Vec3_Scale(v, dist));
@@ -291,10 +291,10 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->lifetime = 500 + Randomf() * 250;
 
-		p->color = Color3b(Randomr(190, 255), Randomr(90, 140), Randomr(0, 20)); //cgi.ColorFromPalette(221 + (Randomr(0, 8)));
-		p->color.a = (200 + Randomf() * 55) / 255.f;
+		p->color = Color3b(RandomRangeu(190, 256), RandomRangeu(90, 140), RandomRangeu(0, 20));
+		p->color.a = RandomRangef(.56f, 1.f);
 
-		p->size = 0.6 + Randomf() * 0.2;
+		p->size = RandomRangef(.4f, .8f);
 
 		p->bounce = 0.6f;
 	}
@@ -709,12 +709,12 @@ void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity
 
 	p->origin = org;
 
-	p->lifetime = Randomr(500, 1500) * (viscosity * 0.1);
+	p->lifetime = RandomRangeu(500, 1500) * (viscosity * 0.1);
 
 	p->color = Color4bv(0x8080a0ff);
 //	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
-	p->size = size + Randomc() * 0.5;
+	p->size = size + RandomRangef(-.5f, .5f);
 //	p->delta_size = 3.0 + Randomf() * 0.5 / PARTICLE_FRAME;
 }
 
@@ -735,7 +735,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 
 		p->acceleration = Vec3(0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
 
-		p->lifetime = 250 + Randomc() * 150;
+		p->lifetime = RandomRangeu(100, 400);
 
 		p->color = color_white;
 //		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;

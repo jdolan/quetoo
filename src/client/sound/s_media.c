@@ -220,7 +220,7 @@ void S_BeginLoading(void) {
 	int32_t s;
 
 	do {
-		s = Random();
+		s = Randomi();
 	} while (s == s_media_state.seed);
 
 	s_media_state.seed = s;

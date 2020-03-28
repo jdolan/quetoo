@@ -615,7 +615,7 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 		red_flag = G_AllocEntity_(g_team_red->flag);
 		blue_flag = G_AllocEntity_(g_team_blue->flag);
 
-		const uint8_t r = Randomr(0, 2);
+		const uint8_t r = RandomRangeu(0, 2);
 
 		red_flag->s.origin = reused_spawns[r]->s.origin;
 		blue_flag->s.origin = reused_spawns[r ^ 1]->s.origin;
@@ -806,7 +806,7 @@ void G_SpawnTech(const g_item_t *item) {
 	g_entity_t *spawn = G_SelectTechSpawnPoint();
 	g_entity_t *ent = G_DropItem(spawn, item);
 
-	ent->locals.velocity = Vec3(Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+	ent->locals.velocity = Vec3(RandomRangef(-250.f, 250.f), RandomRangef(-250.f, 250.f), RandomRangef(200.f, 400.f));
 }
 
 /**
@@ -944,9 +944,9 @@ static void G_WorldspawnMusic(void) {
 	int32_t i;
 
 	if (*g_level.music == '\0') {
-		int32_t shuffle = Random();
+		uint32_t shuffle = Randomu();
 		for (i = 0; i < MAX_MUSICS; i++) {
-			gi.SetConfigString(CS_MUSICS + i, va("track%d", ((i + shuffle) % MAX_MUSICS) + 1));
+			gi.SetConfigString(CS_MUSICS + i, va("track%u", ((i + shuffle) % MAX_MUSICS) + 1));
 		}
 		return;
 	}

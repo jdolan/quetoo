@@ -275,9 +275,34 @@ static inline float Radians(float degrees) __attribute__ ((warn_unused_result));
 static inline float RandomRangef(float begin, float end) __attribute__ ((warn_unused_result));
 
 /**
+ * @return A psuedo random integral value between `0` and `UINT_MAX`.
+ */
+static inline uint32_t Randomu(void) __attribute__ ((warn_unused_result));
+
+/**
+ * @return A psuedo random number between `begin` and `end`.
+ */
+static inline uint32_t RandomRangeu(uint32_t begin, uint32_t end) __attribute__ ((warn_unused_result));
+
+/**
+ * @return A psuedo random integral value between `INT_MIN` and `INT_MAX`.
+ */
+static inline int32_t Randomi(void) __attribute__ ((warn_unused_result));
+
+/**
+ * @return A psuedo random number between `begin` and `end`.
+ */
+static inline int32_t RandomRangei(int32_t begin, int32_t end) __attribute__ ((warn_unused_result));
+
+/**
  * @return A psuedo random single precision value between `0.f` and `1.f`.
  */
 static inline float Randomf(void) __attribute__ ((warn_unused_result));
+
+/**
+ * @return A psuedo random boolean.
+ */
+static inline _Bool Randomb(void) __attribute__ ((warn_unused_result));
 
 /**
  * @return The sign of the specified float.

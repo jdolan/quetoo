@@ -80,7 +80,7 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 
 	list = this->servers;
 
-	const uint32_t random_weight = Randomr(0, total_weight);
+	const uint32_t random_weight = RandomRangeu(0, total_weight);
 	uint32_t current_weight = 0;
 
 	while (list != NULL) {

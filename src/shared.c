@@ -36,43 +36,6 @@ int32_t Step(int32_t value, int32_t step) {
 }
 
 /**
- * @brief Returns a pseudo-random positive integer.
- *
- * Uses a Linear Congruence Generator, values kindly borrowed from glibc.
- * Look up the rules required for the constants before just replacing them;
- * performance is dictated by the selection.
- */
-int32_t Random(void) {
-
-	static uint32_t seed;
-	static __thread uint32_t state = 0;
-	static __thread _Bool uninitalized = true;
-
-	if (uninitalized) {
-		seed += (uint32_t) time(NULL);
-		state = seed;
-		uninitalized = false;
-	}
-
-	state = (1103515245 * state + 12345);
-	return state & 0x7fffffff;
-}
-
-/**
- * @brief Returns a pseudo-random float between -1.0 and 1.0.
- */
-float Randomc(void) {
-	return (Random()) * (2.f / 0x7fffffff) - 1.f;
-}
-
-/**
- * @brief Returns a pseudo-random int32_t between min and max.
- */
-int32_t Randomr(const int32_t min, const int32_t max) {
-	return (int32_t) RandomRangef(min, max);
-}
-
-/**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
 static _Bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {

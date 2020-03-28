@@ -382,8 +382,8 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		Vec3_Vectors(angles, &forward, &right, &up);
 
 		end = Vec3_Add(start, Vec3_Scale(forward, MAX_WORLD_DIST));
-		end = Vec3_Add(end, Vec3_Scale(right, Randomc() * hspread));
-		end = Vec3_Add(end, Vec3_Scale(up, Randomc() * vspread));
+		end = Vec3_Add(end, Vec3_Scale(right, RandomRangef(-hspread, hspread)));
+		end = Vec3_Add(end, Vec3_Scale(up, RandomRangef(-vspread, vspread)));
 
 		tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
@@ -529,8 +529,8 @@ void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
 	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
-	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(up, 100.0 + Randomc() * 10.0));
-	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(right, Randomc() * 10.0));
+	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(up, RandomRangef(90.f, 110.f)));
+	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(right, RandomRangef(-10.f, 10.f)));
 
 	G_PlayerProjectile(projectile, 0.33);
 
@@ -539,9 +539,9 @@ void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	}
 
 	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.avelocity.x = -300.0 + 10 * Randomc();
-	projectile->locals.avelocity.y = 50.0 * Randomc();
-	projectile->locals.avelocity.z = 25.0 * Randomc();
+	projectile->locals.avelocity.x = RandomRangef(-310.f, -290.f);
+	projectile->locals.avelocity.y = RandomRangef(-50.f, 50.f);
+	projectile->locals.avelocity.z = RandomRangef(-25.f, 25.f);
 	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
@@ -576,8 +576,8 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
 	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
-	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(up, 200.0 + Randomc() * 10.0));
-	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(right, Randomc() * 10.0));
+	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(up, RandomRangef(190.f, 210.f)));
+	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(right, RandomRangef(-10.f, 10.f)));
 
 	// add some of the player's velocity to the projectile
 	G_PlayerProjectile(projectile, 0.33);
@@ -593,9 +593,9 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 		projectile->locals.spawn_flags |= HAND_GRENADE_HELD;
 	}
 
-	projectile->locals.avelocity.x = -300.0 + 10 * Randomc();
-	projectile->locals.avelocity.y = 50.0 * Randomc();
-	projectile->locals.avelocity.z = 25.0 * Randomc();
+	projectile->locals.avelocity.x = RandomRangef(-310.f, -290.f);
+	projectile->locals.avelocity.y = RandomRangef(-50.f, 50.f);
+	projectile->locals.avelocity.z = RandomRangef(-25.f, 25.f);
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
@@ -852,7 +852,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 
 	end = Vec3_Add(start, Vec3_Scale(forward, g_balance_lightning_length->value)); // resolve end
 	end = Vec3_Add(end, Vec3_Scale(up, 2.0 * sinf(g_level.time / 4.0)));
-	end = Vec3_Add(end, Vec3_Scale(right, 2.0 * Randomc()));
+	end = Vec3_Add(end, Vec3_Scale(right, RandomRangef(-2.f, 2.f)));
 
 	tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 
@@ -1187,7 +1187,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 				self->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
 			}
 
-			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM, (int8_t) (Randomc() * 4.0));
+			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM, RandomRangei(-4, 5));
 
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_HOOK_IMPACT);
@@ -1196,7 +1196,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		} else {
 
-			gi.Sound(self, g_media.sounds.hook_gibhit, ATTEN_DEFAULT, (int8_t) (Randomc() * 4.0));
+			gi.Sound(self, g_media.sounds.hook_gibhit, ATTEN_DEFAULT, RandomRangei(-4, 5));
 
 			/*
 			if (g_hook_auto_refire->integer) {

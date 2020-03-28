@@ -236,13 +236,13 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 		case EV_CLIENT_FOOTSTEP:
 			play.sample = Cg_Footstep(ent);
-			play.pitch = (int16_t) (Randomc() * 12.0);
+			play.pitch = RandomRangei(-12, 13);
 			break;
 		case EV_CLIENT_GURP:
 			Cg_GurpEffect(ent);
 			break;
 		case EV_CLIENT_JUMP:
-			play.sample = cgi.LoadSample(va("*jump_%d", Randomr(1, 5)));
+			play.sample = cgi.LoadSample(va("*jump_%d", RandomRangeu(1, 5)));
 			break;
 		case EV_CLIENT_LAND:
 			play.sample = cgi.LoadSample("*land_1");

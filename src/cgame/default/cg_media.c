@@ -118,8 +118,8 @@ s_sample_t *Cg_GetFootstepSample(const char *footsteps) {
 		return Cg_GetFootstepSample("default"); // this should never recurse
 	}
 
-	static int32_t last_index = -1;
-	int32_t index = Randomr(0, sounds->len);
+	static uint32_t last_index = -1;
+	uint32_t index = RandomRangeu(0, sounds->len);
 
 	if (last_index == index) {
 		index = (index ^ 1) % sounds->len;

@@ -548,7 +548,7 @@ static void Cl_InitLocal(void) {
 	password = Cvar_Add("password", "", CVAR_USER_INFO, "Password to the server you want to connect to");
 	rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");
 
-	qport = Cvar_Add("qport", va("%d", Random() & 0xff), 0, NULL);
+	qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
 
 	rcon_address = Cvar_Add("rcon_address", "", 0, NULL);
 	rcon_password = Cvar_Add("rcon_password", "", 0, NULL);

@@ -305,7 +305,7 @@ static void EndEmit(void) {
 	Com_Print(" %d ms\n", SDL_GetTicks() - start);
 }
 
-static void Emit(void (*EmitFunc)(), const char *name) {
+static void Emit(void (*EmitFunc)(void), const char *name) {
 	BeginEmit(name);
 	EmitFunc();
 	EndEmit();

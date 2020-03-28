@@ -576,16 +576,16 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 
 		if (self->client->ps.pm_state.flags & PMF_DUCKED) {
 
-			if ((Randomr(0, 32)) == 0) { // uncrouch eventually
+			if ((RandomRangeu(0, 32)) == 0) { // uncrouch eventually
 				cmd->up = 0;
 			} else {
 				cmd->up = -PM_SPEED_JUMP;
 			}
 		} else {
 
-			if ((Randomr(0, 32)) == 0) { // randomly crouch
+			if ((RandomRangeu(0, 32)) == 0) { // randomly crouch
 				cmd->up = -PM_SPEED_JUMP;
-			} else if ((Randomr(0, 86)) == 0) { // randomly pop, to confuse our enemies
+			} else if ((RandomRangeu(0, 86)) == 0) { // randomly pop, to confuse our enemies
 				cmd->up = PM_SPEED_JUMP;
 			}
 		}

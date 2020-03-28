@@ -189,12 +189,12 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	p->lifetime = 1500;
 
-	const int32_t r = Random() & 15;
-	p->color = Color3b(224 + r, 180 * r, 40 + r);
-	p->color.a = 200 / 255.f;
+	const uint32_t r = RandomRangeu(0, 16);
+	p->color = Color3b(224 + r, 180 + r, 40 + r);
+	p->color.a = .78f;
 //	p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
 
-	p->size = 10.0 + Randomc();
+	p->size = RandomRangef(-10.f, 10.f);
 
 	// make static flames rise
 	if (ent) {

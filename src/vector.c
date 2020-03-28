@@ -231,21 +231,66 @@ float Radians(float degrees) {
 /**
  * @brief
  */
-float RandomRangef(float begin, float end) {
-	static guint seed;
-	if (seed == 0) {
-		seed = (guint) time(NULL);
-		g_random_set_seed(seed);
+static inline GRand *InitRandom(void) {
+	static _Thread_local GRand *rand;
+
+	if (!rand) {
+		rand = g_rand_new();
 	}
 
-	return (float) g_random_double_range(begin, end);
+	return rand;
+}
+
+/**
+ * @brief
+ */
+float RandomRangef(float begin, float end) {
+	return (float) g_rand_double_range(InitRandom(), begin, end);
+}
+
+/**
+ * @brief
+ */
+uint32_t Randomu(void) {
+	return g_rand_int(InitRandom());
+}
+
+#define INT32_TO_UINT32(x) (uint32_t) ((int64_t) ((x) - INT32_MIN))
+#define UINT32_TO_INT32(x)  (int32_t) ((int64_t) ((x) + INT32_MIN))
+
+/**
+ * @brief
+ */
+uint32_t RandomRangeu(uint32_t begin, uint32_t end) {
+	return INT32_TO_UINT32(g_rand_int_range(InitRandom(), UINT32_TO_INT32(begin), UINT32_TO_INT32(end)));
+}
+
+/**
+ * @brief
+ */
+int32_t Randomi(void) {
+	return UINT32_TO_INT32(g_rand_int(InitRandom()));
+}
+
+/**
+ * @brief
+ */
+int32_t RandomRangei(int32_t begin, int32_t end) {
+	return g_rand_int_range(InitRandom(), begin, end);
 }
 
 /**
  * @brief
  */
 float Randomf(void) {
-	return (float) g_random_double();
+	return (float) g_rand_double(InitRandom());
+}
+
+/**
+ * @brief
+ */
+_Bool Randomb(void) {
+	return !!(g_rand_int(InitRandom()) & 1);
 }
 
 /**
@@ -795,7 +840,7 @@ vec3_t Vec3_Up(void) {
 /**
  * @brief
  */
-static void SinCos(const float rad, float *s, float *c) {
+static inline void SinCos(const float rad, float *s, float *c) {
 	*s = sinf(rad);
 	*c = cosf(rad);
 }

@@ -317,17 +317,17 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		Vec3(8.0, 8.0, 8.0),
 	};
 
-	uint16_t i, count = Randomr(4, 8);
+	uint16_t i, count = RandomRangeu(4, 8);
 
 	for (i = 0; i < count; i++) {
-		int32_t gib_index;
+		uint32_t gib_index;
 
 		if (i == 0) { // 0 is always chest
 			gib_index = (NUM_GIB_MODELS - 1);
 		} else if (i == 1 && !self->client) { // if we're not client, drop a head
 			gib_index = 2;
 		} else { // pick forearm/femur
-			gib_index = Randomr(0, NUM_GIB_MODELS - 2);
+			gib_index = RandomRangeu(0, NUM_GIB_MODELS - 2);
 		}
 
 		g_entity_t *ent = G_AllocEntity();
@@ -346,13 +346,13 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 
 		const int16_t h = Clampf(-5.0 * self->locals.health, 100, 500);
 
-		ent->locals.velocity.x += h * Randomc();
-		ent->locals.velocity.y += h * Randomc();
-		ent->locals.velocity.z += 100.0 + (h * Randomf());
+		ent->locals.velocity.x += RandomRangef(-h, h);
+		ent->locals.velocity.y += RandomRangef(-h, h);
+		ent->locals.velocity.z += RandomRangef(100.f, 100.f + h);
 
 		for (int32_t i = 0; i < 3; ++i) {
-			ent->locals.avelocity.xyz[i] = Randomc() * 100;
-			ent->s.angles.xyz[i] = Randomf() * 360;
+			ent->locals.avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
+			ent->s.angles.xyz[i] = RandomRangef(0, 360.f);
 		}
 
 		ent->locals.clip_mask = CONTENTS_MASK_CLIP_CORPSE;
@@ -377,14 +377,14 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		self->maxs = maxs[2];
 
 		const int16_t h = Clampf(-5.0 * self->locals.health, 100, 500);
-
-		self->locals.velocity.x += h * Randomc();
-		self->locals.velocity.y += h * Randomc();
-		self->locals.velocity.z += 100.0 + (h * Randomf());
+		
+		self->locals.velocity.x += RandomRangef(-h, h);
+		self->locals.velocity.y += RandomRangef(-h, h);
+		self->locals.velocity.z += RandomRangef(100.f, 100.f + h);
 
 		for (int32_t i = 0; i < 3; ++i) {
-			self->locals.avelocity.xyz[i] = Randomc() * 100;
-			self->s.angles.xyz[i] = Randomf() * 360;
+			self->locals.avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
+			self->s.angles.xyz[i] = RandomRangef(0, 360.f);
 		}
 
 		self->locals.Die = NULL;
@@ -764,10 +764,10 @@ static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points
 			return G_SelectRandomSpawnPoint(&g_level.spawn_points);
 		}
 
-		return spawn_points->spots[Randomr(0, spawn_points->count)];
+		return spawn_points->spots[RandomRangeu(0, spawn_points->count)];
 	}
 
-	return spawn_points->spots[empty_spawns[Randomr(0, num_empty_spawns)]];
+	return spawn_points->spots[empty_spawns[RandomRangeu(0, num_empty_spawns)]];
 }
 
 /**

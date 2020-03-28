@@ -275,9 +275,9 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
 				vec3_t sample = points[i];
 
 				// Add some jitter to hide undersampling
-				sample.x += Randomc() * 0.04;
-				sample.y += Randomc() * 0.04;
-				sample.z += Randomc() * 0.04;
+				sample.x += RandomRangef(-.04f, .04f);
+				sample.y += RandomRangef(-.04f, .04f);
+				sample.z += RandomRangef(-.04f, .04f);
 
 				// Scale the sample and move it into position
 				sample = Vec3_Scale(sample, ao_radius);

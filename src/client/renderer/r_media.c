@@ -214,7 +214,7 @@ void R_BeginLoading(void) {
 	int32_t s;
 
 	do {
-		s = Random();
+		s = Randomi();
 	} while (s == r_media_state.seed);
 
 	r_media_state.seed = s;

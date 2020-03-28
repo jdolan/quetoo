@@ -156,7 +156,13 @@ void Cg_AddParticles(void) {
 		p->origin = Vec3_Add(p->origin, Vec3_Scale(p->velocity, delta));
 
 		if (p->bounce && cg_particle_quality->integer) {
-			const cm_trace_t tr = cgi.Trace(old_origin, p->origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
+			
+			cm_trace_t tr = cgi.Trace(old_origin, p->origin, Vec3(-p->size, -p->size, -p->size), Vec3(p->size, p->size, p->size), 0, CONTENTS_MASK_SOLID);
+
+			if (tr.start_solid || tr.all_solid) {
+				tr = cgi.Trace(old_origin, p->origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
+			}
+
 			if (tr.fraction < 1.0) {
 				p->velocity = Cg_ClipVelocity(p->velocity, tr.plane.normal, p->bounce);
 				p->origin = tr.end;

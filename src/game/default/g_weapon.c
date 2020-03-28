@@ -441,7 +441,7 @@ void G_ClientHookDetach(g_entity_t *ent) {
 
 	ent->client->locals.hook_pull = false;
 
-	gi.Sound(ent, g_media.sounds.hook_detach, ATTEN_NORM, (int8_t) (Randomc() * 4.0));
+	gi.Sound(ent, g_media.sounds.hook_detach, ATTEN_NORM, RandomRangei(-4, 5));
 
 	// see if we can backflip for style
 	if (ent->in_use && ent->locals.health > 0) {
@@ -485,7 +485,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent, const _Bool refire) {
 	ent->client->locals.hook_pull = false;
 	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward);
 
-	gi.Sound(ent, g_media.sounds.hook_fire, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), (int8_t) (Randomc() * 4.0));
+	gi.Sound(ent, g_media.sounds.hook_fire, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), RandomRangei(-4, 5));
 	ent->client->locals.hook_think_time = g_level.time;
 }
 

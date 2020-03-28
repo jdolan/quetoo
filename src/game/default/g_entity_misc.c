@@ -192,10 +192,10 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 	ent->locals.velocity = Vec3_Scale(ent->locals.velocity, self->locals.speed);
 
 	for (int32_t i = 0; i < 3; i++) {
-		ent->locals.velocity.xyz[i] += Randomc() * 30.0;
+		ent->locals.velocity.xyz[i] += RandomRangef(-30.f, 30.f);
 	}
 
-	ent->locals.avelocity = Vec3(Randomc() * 10.0, Randomc() * 10.0, Randomc() * 20.0);
+	ent->locals.avelocity = Vec3(RandomRangef(-10.f, 10.f), RandomRangef(-10.f, 10.f), RandomRangef(-20.f, 20.f));
 
 	ent->s.trail = TRAIL_FIREBALL;
 
@@ -216,7 +216,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 		gi.Sound(ent, gi.SoundIndex(va("world/lava_%d", (count++ % 3) + 1)), ATTEN_IDLE, 0);
 	}
 
-	self->locals.next_think = g_level.time + (self->locals.wait * 1000.0) + (self->locals.random * Randomc() * 1000);
+	self->locals.next_think = g_level.time + (self->locals.wait * 1000.0) + (self->locals.random * 1000 * RandomRangef(-1.f, 1.f));
 }
 
 /*QUAKED misc_fireball (1 0.3 0.1) (-6 -6 -6) (6 6 6)

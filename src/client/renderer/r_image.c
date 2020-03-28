@@ -480,10 +480,10 @@ static void R_InitWarpImage(void) {
 
 	for (i = 0; i < WARP_SIZE; i++) {
 		for (j = 0; j < WARP_SIZE; j++) {
-			data[i][j][0] = Randomr(0, 256);
-			data[i][j][1] = Randomr(0, 256);
-			data[i][j][2] = Randomr(0, 48);
-			data[i][j][3] = Randomr(0, 48);
+			data[i][j][0] = RandomRangeu(0, 256);
+			data[i][j][1] = RandomRangeu(0, 256);
+			data[i][j][2] = RandomRangeu(0, 48);
+			data[i][j][3] = RandomRangeu(0, 48);
 		}
 	}
 

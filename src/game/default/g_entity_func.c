@@ -2015,7 +2015,7 @@ static void G_func_timer_Think(g_entity_t *self) {
 	G_UseTargets(self, self->locals.activator);
 
 	const uint32_t wait = self->locals.wait * 1000;
-	const uint32_t rand = self->locals.random * 1000 * Randomc();
+	const uint32_t rand = self->locals.random * 1000 * RandomRangef(-1.f, 1.f);
 
 	self->locals.next_think = g_level.time + wait + rand;
 }
@@ -2071,7 +2071,7 @@ void G_func_timer(g_entity_t *self) {
 
 		const uint32_t delay = self->locals.delay * 1000;
 		const uint32_t wait = self->locals.wait * 1000;
-		const uint32_t rand = self->locals.random * 1000 * Randomc();
+		const uint32_t rand = self->locals.random * 1000 * RandomRangef(-1.f, 1.f);
 
 		self->locals.next_think = g_level.time + delay + wait + rand;
 		self->locals.activator = self;

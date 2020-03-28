@@ -157,57 +157,57 @@ void Cg_ParseMuzzleFlash(void) {
 			c = cgi.ReadByte();
 			sample = cg_sample_blaster_fire;
 			Cg_EnergyFlash(ent, Cg_ResolveEffectColor(c ? c - 1 : 0, EFFECT_COLOR_ORANGE));
-			pitch = (int16_t) (Randomc() * 5.0);
+			pitch = 5;
 			break;
 		case MZ_SHOTGUN:
 			sample = cg_sample_shotgun_fire;
 			Cg_SmokeFlash(ent);
-			pitch = (int16_t) (Randomc() * 3.0);
+			pitch = 3;
 			break;
 		case MZ_SUPER_SHOTGUN:
 			sample = cg_sample_supershotgun_fire;
 			Cg_SmokeFlash(ent);
-			pitch = (int16_t) (Randomc() * 3.0);
+			pitch = 3;
 			break;
 		case MZ_MACHINEGUN:
-			sample = cg_sample_machinegun_fire[Randomr(0, 4)];
-			if (Randomr(0, 2)) {
+			sample = cg_sample_machinegun_fire[RandomRangeu(0, 4)];
+			if (Randomb()) {
 				Cg_SmokeFlash(ent);
 			}
-			pitch = (int16_t) (Randomc() * 5.0);
+			pitch = 5;
 			break;
 		case MZ_ROCKET_LAUNCHER:
 			sample = cg_sample_rocketlauncher_fire;
 			Cg_SmokeFlash(ent);
-			pitch = (int16_t) (Randomc() * 3.0);
+			pitch = 3;
 			break;
 		case MZ_GRENADE_LAUNCHER:
 			sample = cg_sample_grenadelauncher_fire;
 			Cg_SmokeFlash(ent);
-			pitch = (int16_t) (Randomc() * 3.0);
+			pitch = 3;
 			break;
 		case MZ_HYPERBLASTER:
 			sample = cg_sample_hyperblaster_fire;
 			Cg_EnergyFlash(ent, Color3b(191, 123, 111));
-			pitch = (int16_t) (Randomc() * 5.0);
+			pitch = 5;
 			break;
 		case MZ_LIGHTNING:
 			sample = cg_sample_lightning_fire;
-			pitch = (int16_t) (Randomc() * 3.0);
+			pitch = 3;
 			break;
 		case MZ_RAILGUN:
 			sample = cg_sample_railgun_fire;
-			pitch = (int16_t) (Randomc() * 2.0);
+			pitch = 2;
 			break;
 		case MZ_BFG10K:
 			sample = cg_sample_bfg_fire;
 			Cg_EnergyFlash(ent, Color3b(75, 91, 39));
-			pitch = (int16_t) (Randomc() * 2.0);
+			pitch = 2;
 			break;
 		case MZ_LOGOUT:
 			sample = cg_sample_teleport;
 			Cg_LogoutFlash(ent);
-			pitch = (int16_t) (Randomc() * 4.0);
+			pitch = 4;
 			break;
 		default:
 			sample = NULL;
@@ -216,9 +216,9 @@ void Cg_ParseMuzzleFlash(void) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = sample,
-		 .entity = ent_num,
-		  .attenuation = ATTEN_NORM,// | S_SET_Z_ORIGIN_OFFSET(7),
-		   .flags = S_PLAY_ENTITY,
-			.pitch = pitch
+		.entity = ent_num,
+		.attenuation = ATTEN_NORM,// | S_SET_Z_ORIGIN_OFFSET(7),
+		.flags = S_PLAY_ENTITY,
+		.pitch = RandomRangei(-pitch, pitch + 1)
 	});
 }

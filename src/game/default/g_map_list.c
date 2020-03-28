@@ -282,7 +282,7 @@ const g_map_list_map_t *G_MapList_Next(void) {
 	const guint len = g_list_length(g_map_list);
 	if (len) {
 		if (g_random_map->value) {
-			list = g_list_nth(g_map_list, Randomr(0, len));
+			list = g_list_nth(g_map_list, RandomRangeu(0, len));
 		} else {
 			const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
 			if (map) {
