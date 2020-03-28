@@ -387,10 +387,11 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		s->origin = org;
 		s->lifetime = cg_fire_1->num_images * FRAMES_TO_SECONDS(40);
 		s->color = color_white;
+		s->color_transition = NULL;
 		s->size = 100.0;
 		s->size_velocity = 25.0;
-		s->src = GL_ONE;
-		s->dst = GL_ONE_MINUS_SRC_ALPHA;
+		//s->src = GL_ONE;
+		//s->dst = GL_ONE_MINUS_SRC_ALPHA;
 		s->animation = cg_fire_1;
 		s->rotation = Randomf() * 2.f * M_PI;
 	}
@@ -399,11 +400,12 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		s->origin = org;
 		s->lifetime = cg_fire_1->num_images * FRAMES_TO_SECONDS(30);
 		s->color = color_white;
+		s->color_transition = NULL;
 		s->size = 175.0;
 		s->size_velocity = 25.0;
 		s->rotation = Randomf() * 2.f * M_PI;
-		s->src = GL_ONE;
-		s->dst = GL_ONE;
+		//s->src = GL_ONE;
+		//s->dst = GL_ONE;
 		s->animation = cg_fire_1;
 	}
 	
@@ -578,7 +580,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		s->lifetime = RandomRangef(1500.f, 1550.f);
 		s->color = Color_Add(color, color_white);
 		s->color.a = .7f;
-		s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
+		s->end_color = s->color;
+		s->end_color.a = 0;
 		s->image = cg_beam_rail;
 	}
 

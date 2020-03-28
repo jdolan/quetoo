@@ -19,33 +19,39 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+/**
+ * @brief Interpolation type between points
+ */
+typedef enum {
+	LERP_LINEAR,
+	LERP_COSINE,
+	LERP_CUBIC,
+	LERP_HERMITE
+} cg_transition_interpolation_t;
 
-#define __CG_LOCAL_H__
+/**
+ * @brief A structure that defines a spline transition with no extrapolation.
+ */
+typedef struct {
+	/**
+	 * @brief The interpolation point
+	 */
+	vec2_t							point;
 
-#define Debug(...) Debug_(__func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
+	/**
+	 * @brief The interpolation method; note that this doesn't apply to the final point
+	 */
+	cg_transition_interpolation_t	lerp;
 
-#include "cg_client.h"
-#include "cg_effect.h"
-#include "cg_emit.h"
-#include "cg_entity.h"
-#include "cg_entity_effect.h"
-#include "cg_entity_event.h"
-#include "cg_entity_trail.h"
-#include "cg_hud.h"
-#include "cg_input.h"
-#include "cg_light.h"
-#include "cg_main.h"
-#include "cg_media.h"
-#include "cg_muzzle_flash.h"
-#include "cg_particle.h"
-#include "cg_predict.h"
-#include "cg_score.h"
-#include "cg_transition.h"
-#include "cg_sprite.h"
-#include "cg_temp_entity.h"
-#include "cg_types.h"
-#include "cg_ui.h"
-#include "cg_view.h"
+	/**
+	 * @brief Parameters for hermite
+	 */
+	struct {
+		float	tension;
+		float	bias;
+	} hermite;
+} cg_transition_point_t;
+
+extern cg_transition_point_t cg_linear_transition[];
+
+float Cg_ResolveTransition(const cg_transition_point_t *transition, const size_t point_count, float time);

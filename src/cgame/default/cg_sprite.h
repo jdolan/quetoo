@@ -89,6 +89,21 @@ typedef struct cg_sprite_s {
 	color_t color;
 
 	/**
+	 * @brief The sprite's end color.
+	 */
+	color_t end_color;
+
+	/**
+	 * @brief Color transition
+	 */
+	cg_transition_point_t *color_transition;
+
+	/**
+	 * @brief Color transition point count
+	 */
+	size_t color_transition_count;
+
+	/**
 	 * @brief Blending operators
 	 */
 	GLenum dst, src;
@@ -102,16 +117,6 @@ typedef struct cg_sprite_s {
 		r_atlas_image_t *atlas_image;
 		r_animation_t *animation;
 	};
-
-	/**
-	 * @brief The sprite color velocity.
-	 */
-	vec4_t color_velocity;
-
-	/**
-	 * @brief The sprite color acceleration.
-	 */
-	vec4_t color_acceleration;
 
 	/**
 	 * @brief The sprite size, in world units.

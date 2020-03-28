@@ -91,6 +91,9 @@ cg_sprite_t *Cg_AllocSprite() {
 	p->src = GL_SRC_ALPHA;
 	p->dst = GL_ONE;
 
+	p->color_transition = cg_linear_transition;
+	p->color_transition_count = 2;
+
 	Cg_PushSprite(p, &cg_active_sprites);
 
 	return p;
@@ -146,11 +149,18 @@ void Cg_AddSprites(void) {
 			}
 		}
 
+		const float life = (cgi.client->unclamped_time - p->time) / (float)p->lifetime;
+
 		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(p->acceleration, delta));
 		p->origin = Vec3_Add(p->origin, Vec3_Scale(p->velocity, delta));
 
-		p->color_velocity = Vec4_Add(p->color_velocity, Vec4_Scale(p->color_acceleration, delta));
-		p->color = Color4fv(Vec4_Add(Color_Vec4(p->color), Vec4_Scale(p->color_velocity, delta)));
+		color_t color;
+
+		if (p->color_transition) {
+			color = Color_Mix(p->color, p->end_color, Cg_ResolveTransition(p->color_transition, p->color_transition_count, life));
+		} else {
+			color = p->color;
+		}
 
 		if (p->color.a <= 0) {
 			p = Cg_FreeSprite(p);
@@ -172,10 +182,10 @@ void Cg_AddSprites(void) {
 			cgi.AddSprite(&(r_sprite_t) {
 				.origin = p->origin,
 				.size = p->size,
-				.color = p->color,
+				.color = color,
 				.rotation = p->rotation,
 				.image = p->media,
-				.life = (cgi.client->unclamped_time - p->time) / (float)p->lifetime,
+				.life = life,
 				.dst = p->dst,
 				.src = p->src
 			});
@@ -188,7 +198,7 @@ void Cg_AddSprites(void) {
 				.end = p->beam.end,
 				.size = p->size,
 				.image = (r_image_t *) p->image,
-				.color = p->color,
+				.color = color,
 				.dst = p->dst,
 				.src = p->src
 			});

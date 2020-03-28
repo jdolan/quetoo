@@ -39,6 +39,7 @@
     <ClInclude Include="..\src\cgame\default\cg_score.h" />
     <ClInclude Include="..\src\cgame\default\cg_sprite.h" />
     <ClInclude Include="..\src\cgame\default\cg_temp_entity.h" />
+    <ClInclude Include="..\src\cgame\default\cg_transition.h" />
     <ClInclude Include="..\src\cgame\default\cg_types.h" />
     <ClInclude Include="..\src\cgame\default\cg_ui.h" />
     <ClInclude Include="..\src\cgame\default\cg_view.h" />
@@ -91,6 +92,7 @@
     <ClCompile Include="..\src\cgame\default\cg_score.c" />
     <ClCompile Include="..\src\cgame\default\cg_sprite.c" />
     <ClCompile Include="..\src\cgame\default\cg_temp_entity.c" />
+    <ClCompile Include="..\src\cgame\default\cg_transition.c" />
     <ClCompile Include="..\src\cgame\default\cg_ui.c" />
     <ClCompile Include="..\src\cgame\default\cg_view.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\BindTextView.c" />

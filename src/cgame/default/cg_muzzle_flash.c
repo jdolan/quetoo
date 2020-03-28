@@ -104,10 +104,9 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	p->lifetime = 500;
 
 	p->color = Color3b(128, 128, 128);
-	p->color.a = 200 / 255.0;
-//	p->delta_color.a = -10;
-
-	p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
+	p->color.a = .78f;
+	p->end_color = p->color;
+	p->end_color.a = 0;
 
 	p->size = 4.0;
 	p->size_velocity = 16.0;

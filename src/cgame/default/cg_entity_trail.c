@@ -154,9 +154,10 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 		p->lifetime = RandomRangef(1000.f, 1400.f);
 
-		const float color = RandomRangef(.22f, .33f);
+		const float color = RandomRangef(.7f, .9f);
 		p->color = Color4f(color, color, color, RandomRangef(.6f, .9f));
-		p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
+		p->end_color = p->color;
+		p->end_color.a = 0;
 
 		p->size = 2.5f;
 		p->size_velocity = 15.f;
@@ -164,6 +165,9 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		p->image = cg_sprite_smoke;
 		p->rotation = RandomRangef(.0f, M_PI);
 		p->rotation_velocity = RandomRangef(.2f, 1.f);
+
+		p->src = GL_SRC_ALPHA;
+		p->dst = GL_ONE_MINUS_SRC_ALPHA;
 	}
 }
 
@@ -373,7 +377,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	cg_sprite_t *s;
 	float particles;
 
-	// Cg_SmokeTrail(ent, start, end);
+	Cg_SmokeTrail(ent, start, end);
 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 	const vec3_t trail_start = ent->previous_trail_origin;
