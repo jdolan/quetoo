@@ -145,7 +145,6 @@ check_vector_CFLAGS = \
 	-I$(top_srcdir)/src \
 	$(TESTS_CFLAGS)
 check_vector_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/libvector.la
+	$(TESTS_LIBS)
 
 endif

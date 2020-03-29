@@ -77,7 +77,7 @@ cg_transition_point_t cg_linear_transition[] = {
  * @return The factor value
  */
 float Cg_ResolveTransition(const cg_transition_point_t *transition, size_t point_count, float time) {
-	int32_t i;
+	size_t i;
 
 	// If we're beyond the edges, just clamp to the edge.
 	if (time <= transition[0].point.x) {

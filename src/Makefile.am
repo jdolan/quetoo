@@ -41,8 +41,7 @@ noinst_LTLIBRARIES = \
 	libshared.la \
 	libswap.la \
 	libsys.la \
-	libthread.la \
-	libvector.la
+	libthread.la
 
 libatlas_la_SOURCES = \
 	atlas.c
@@ -64,8 +63,7 @@ libcolor_la_CFLAGS = \
 libcolor_la_LDFLAGS = \
 	-shared
 libcolor_la_LIBADD = \
-	libswap.la \
-	libvector.la
+	libswap.la
 
 libcommon_la_SOURCES = \
 	common.c
@@ -194,13 +192,3 @@ libthread_la_LDFLAGS = \
 	-shared
 libthread_la_LIBADD = \
 	libmem.la
-
-libvector_la_SOURCES = \
-	vector.c
-libvector_la_CFLAGS = \
-	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
-libvector_la_LDFLAGS = \
-	-shared
-libvector_la_LIBADD = \
-	@BASE_LIBS@

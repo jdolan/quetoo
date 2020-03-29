@@ -72,7 +72,7 @@ START_TEST(check_Ai_Learn) {
 			}
 		};
 
-		bot.s.origin = Vec3_Add(origin, Vec3_Scale(Vec3_Down(), Randomc() * 16.0));
+		bot.s.origin = Vec3_Add(origin, Vec3_Scale(Vec3_Down(), RandomRangef(-1.f, 1.f) * 16.0));
 
 		vec3_t dir;
 		Ai_Predict(&bot, &dir);

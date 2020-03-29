@@ -20,7 +20,6 @@
 */
 
 #define MAX_LIGHTS 64
-#define FLOAT_MAX 3.40282347e+38f
 
 struct light {
 	vec4 origin;

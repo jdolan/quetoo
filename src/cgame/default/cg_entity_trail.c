@@ -379,7 +379,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 	Cg_SmokeTrail(ent, start, end);
 
-	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 	const vec3_t trail_start = ent->previous_trail_origin;
 	const vec3_t rocket_velocity = Vec3_Subtract(ent->origin, ent->previous_origin);
 

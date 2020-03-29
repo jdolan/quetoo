@@ -795,5 +795,4 @@ static inline vec3d_t Vec3d_Subtract(const vec3d_t a, const vec3d_t b) __attribu
  */
 static inline vec3d_t Vec3d_Zero(void) __attribute__ ((warn_unused_result));
 
-#define TESTING_INLINE_VECTORS
 #include "vector.c"
