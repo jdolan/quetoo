@@ -31,6 +31,10 @@ static cg_light_t cg_lights[MAX_LIGHTS];
 void Cg_AddLight(const cg_light_t *l) {
 	size_t i;
 
+	if (!cg_add_lights->value) {
+		return;
+	}
+
 	for (i = 0; i < lengthof(cg_lights); i++)
 		if (cg_lights[i].radius == 0.0) {
 			break;

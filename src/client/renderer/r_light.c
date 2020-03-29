@@ -26,10 +26,6 @@
  */
 void R_AddLight(const r_light_t *in) {
 
-	if (!r_lights->value) {
-		return;
-	}
-
 	if (r_view.num_lights == MAX_LIGHTS) {
 		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS reached\n");
 		return;
@@ -38,7 +34,7 @@ void R_AddLight(const r_light_t *in) {
 	r_light_t *out = &r_view.lights[r_view.num_lights++];
 	*out = *in;
 
-	out->intensity *= r_lights->value;
+	out->intensity *= r_light_intensity->value;
 }
 
 /**

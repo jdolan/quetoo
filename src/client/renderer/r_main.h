@@ -40,7 +40,7 @@ extern cvar_t *r_get_error;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_lightmap;
-extern cvar_t *r_lights;
+extern cvar_t *r_light_intensity;
 extern cvar_t *r_materials;
 extern cvar_t *r_max_lights;
 extern cvar_t *r_modulate;

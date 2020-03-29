@@ -133,7 +133,7 @@ void Cg_FreeSprites(void) {
  */
 void Cg_AddSprites(void) {
 
-	if (!cg_add_particles->integer) {
+	if (!cg_add_sprites->integer) {
 		return;
 	}
 
