@@ -209,12 +209,10 @@ static void Sv_InitEntities(sv_state_t state) {
 		svs.num_entity_states = sv_max_clients->integer * PACKET_BACKUP * MAX_PACKET_ENTITIES;
 		svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states, MEM_TAG_SERVER);
 
-		svs.spawn_count = Randomu();
-
 		Sv_InitGame();
-	} else {
-		svs.spawn_count++;
 	}
+	
+	svs.spawn_count++;
 }
 
 /**
