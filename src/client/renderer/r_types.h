@@ -639,6 +639,10 @@ typedef struct {
 	 */
 	GLenum dst, src;
 
+	/**
+	 * @brief Interpolation value for animations
+	 */
+	float lerp;
 } r_sprite_t;
 
 /**
@@ -685,7 +689,6 @@ typedef struct {
 	 * @brief Blending operators
 	 */
 	GLenum dst, src;
-
 } r_beam_t;
 
 #define MAX_SPRITES		0x800
@@ -851,6 +854,31 @@ typedef struct r_entity_s {
 #define FOG_DENSITY			1.f
 
 /**
+ * @brief Structure used for sprite images, to contain buffered sprites
+ */
+typedef struct {
+	/**
+	 * @brief Image
+	 */
+	const r_image_t *image;
+
+	/**
+	 * @brief Blend operation
+	 */
+	GLenum src, dst;
+
+	/**
+	 * @brief Animation interpolation next image
+	 */
+	const r_image_t *next_image;
+
+	/**
+	 * @brief Animation interpolation frac
+	 */
+	float lerp;
+} r_buffered_sprite_image_t;
+
+/**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
@@ -938,17 +966,7 @@ typedef struct {
 	/**
 	 * @brief Structure used for sprite images, to contain buffered sprites
 	 */
-	struct {
-		/**
-		 * @brief Image
-		 */
-		const r_image_t *image;
-
-		/**
-		 * @brief Blend operation
-		 */
-		GLenum src, dst;
-	} sprite_images[MAX_SPRITES];
+	r_buffered_sprite_image_t sprite_images[MAX_SPRITES];
 
 	/**
 	 * @brief The number of sprite images to render for the current frame.

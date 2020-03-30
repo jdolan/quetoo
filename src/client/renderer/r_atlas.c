@@ -47,6 +47,7 @@ r_atlas_t *R_CreateAtlas(const char *name) {
 
 	atlas->media.Free = R_FreeAtlas;
 	atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), MEDIA_IMAGE);
+	atlas->image->type = IT_MASK_CLAMP_EDGE;
 
 	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
 

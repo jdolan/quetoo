@@ -62,6 +62,19 @@ typedef struct {
 	float delta_height;
 } cl_entity_step_t;
 
+typedef enum {
+	TRAIL_PRIMARY,
+	TRAIL_SECONDARY,
+	TRAIL_BUBBLE,
+
+	TRAIL_MAX
+} cl_trail_id_t;
+
+typedef struct {
+	vec3_t		last_origin;
+	_Bool		trail_updated;
+} cl_entity_trail_t;
+
 typedef struct {
 	entity_state_t baseline; // delta from this if not from a previous frame
 	entity_state_t current;
@@ -70,8 +83,8 @@ typedef struct {
 	int32_t frame_num; // the last frame in which this entity was seen
 
 	uint32_t timestamp; // for intermittent effects
-	_Bool update_trail_origin;
-	vec3_t previous_trail_origin;
+
+	cl_entity_trail_t trails[TRAIL_MAX];
 
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation

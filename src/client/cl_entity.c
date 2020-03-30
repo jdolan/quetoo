@@ -73,6 +73,18 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 }
 
 /**
+ * @brief Resets all trails to initial values
+ * @param ent Entity to reset trails for
+ */
+static void Cl_ResetTrails(cl_entity_t *ent) {
+
+	for (cl_entity_trail_t *trail = ent->trails; trail < ent->trails + lengthof(ent->trails); trail++) {
+		trail->last_origin = ent->previous_origin;
+		trail->trail_updated = false;
+	}
+}
+
+/**
  * @brief Reads deltas from the given base and adds the resulting entity to the
  * current frame.
  */
@@ -92,8 +104,8 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
 		ent->prev = *to; // copy the current state to the previous
 		ent->animation1.time = ent->animation2.time = 0;
 		ent->animation1.frame = ent->animation2.frame = -1;
-		ent->previous_origin = ent->previous_trail_origin = to->origin;
-		ent->update_trail_origin = false;
+		ent->previous_origin = to->origin;
+		Cl_ResetTrails(ent);
 		ent->legs_yaw = to->angles.y;
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;

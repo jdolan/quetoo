@@ -149,7 +149,8 @@ void Cg_AddSprites(void) {
 			}
 		}
 
-		const float life = (cgi.client->unclamped_time - p->time) / (float)p->lifetime;
+		const uint32_t elapsed_time = (cgi.client->unclamped_time - p->time);
+		const float life = elapsed_time / (float)p->lifetime;
 
 		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(p->acceleration, delta));
 		p->origin = Vec3_Add(p->origin, Vec3_Scale(p->velocity, delta));
@@ -175,6 +176,13 @@ void Cg_AddSprites(void) {
 			continue;
 		}
 
+		float anim_lerp = 0;
+
+		if (p->lerp) {
+			const uint32_t frame_duration = (p->lifetime / p->animation->num_images);
+			anim_lerp = (elapsed_time % frame_duration) / (float)frame_duration;
+		}
+
 		switch (p->type) {
 		case SPRITE_NORMAL:
 			p->rotation += p->rotation_velocity * delta;
@@ -187,7 +195,8 @@ void Cg_AddSprites(void) {
 				.image = p->media,
 				.life = life,
 				.dst = p->dst,
-				.src = p->src
+				.src = p->src,
+				.lerp = anim_lerp
 			});
 			break;
 		case SPRITE_BEAM:

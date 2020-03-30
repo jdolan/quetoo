@@ -394,6 +394,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		//s->dst = GL_ONE_MINUS_SRC_ALPHA;
 		s->animation = cg_fire_1;
 		s->rotation = Randomf() * 2.f * M_PI;
+		s->lerp = true;
 	}
 
 	if ((s = Cg_AllocSprite())) {
@@ -407,6 +408,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		//s->src = GL_ONE;
 		//s->dst = GL_ONE;
 		s->animation = cg_fire_1;
+		s->lerp = true;
 	}
 	
 	Cg_AddLight(&(const cg_light_t) {

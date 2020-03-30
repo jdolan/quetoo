@@ -627,9 +627,10 @@ typedef struct cg_import_s {
 	 * @brief Resolve an image for an animation & time.
 	 * @param animation The animation
 	 * @param time The time index, between 0 and 1.
+	 * @param offset Image offset, clamped.
 	 * @return The image.
 	 */
-	const r_image_t *(*ResolveAnimation)(const r_animation_t *animation, float time);
+	const r_image_t *(*ResolveAnimation)(const r_animation_t *animation, float time, int32_t offset);
 
 	/**
 	 * @brief Loads the material with the given name.

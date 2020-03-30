@@ -24,7 +24,7 @@
 #include "r_types.h"
 
 r_animation_t *R_CreateAnimation(const char *name, uint32_t num_images, const r_image_t **images);
-const r_image_t *R_ResolveAnimation(const r_animation_t *animation, float time);
+const r_image_t *R_ResolveAnimation(const r_animation_t *animation, float time, int32_t offset);
 
 #ifdef __R_LOCAL_H__
 

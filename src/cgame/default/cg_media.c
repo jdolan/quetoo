@@ -227,16 +227,27 @@ void Cg_UpdateMedia(void) {
 
 	Cg_LoadEmits();
 
-	cg_sprite_smoke = cgi.LoadImage("particles/smoke", IT_EFFECT);
 	cg_beam_hook = cgi.LoadImage("particles/rope", IT_EFFECT);
 	cg_beam_rail = cgi.LoadImage("particles/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning = cgi.LoadImage("particles/lightning", IT_EFFECT);
+	
+	r_atlas_t *cg_particles_atlas = cgi.CreateAtlas("particles_atlas");
+
+	cg_sprite_smoke = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, "particles/smoke", IT_EFFECT);
+
+	// blast ring
+	const r_image_t *cg_blast_01_ring_images[7];
+	for (uint32_t i = 0; i < lengthof(cg_blast_01_ring_images); i++) {
+		g_snprintf(name, sizeof(name), "particles/blast_01/blast_01_ring_%02" PRIu32, i + 1);
+		cg_blast_01_ring_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
+	}
+	cg_blast_01_ring = cgi.CreateAnimation("particles/blast_01/blast_01_ring", lengthof(cg_blast_01_ring_images), cg_blast_01_ring_images);
 
 	// explosion
 	const r_image_t *cg_fire_1_images[36];
 	for (uint32_t i = 0; i < lengthof(cg_fire_1_images); i++) {
 		g_snprintf(name, sizeof(name), "particles/explosion_01/explosion_01_%02" PRIu32, i + 1);
-		cg_fire_1_images[i] = cgi.LoadImage(name, IT_EFFECT);
+		cg_fire_1_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
 	}
 	cg_fire_1 = cgi.CreateAnimation("particles/flame1/flame_1", lengthof(cg_fire_1_images), cg_fire_1_images);
 
@@ -244,7 +255,7 @@ void Cg_UpdateMedia(void) {
 	const r_image_t *cg_flame_1_images[29];
 	for (uint32_t i = 0; i < lengthof(cg_flame_1_images); i++) {
 		g_snprintf(name, sizeof(name), "particles/flame_03/flame_03_%02" PRIu32, i + 1);
-		cg_flame_1_images[i] = cgi.LoadImage(name, IT_EFFECT);
+		cg_flame_1_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
 	}
 	cg_flame_1 = cgi.CreateAnimation("particles/flame_01/flame_01", lengthof(cg_flame_1_images), cg_flame_1_images);
 	
@@ -252,7 +263,7 @@ void Cg_UpdateMedia(void) {
 	const r_image_t *cg_smoke_1_images[90];
 	for (uint32_t i = 0; i < lengthof(cg_smoke_1_images); i++) {
 		g_snprintf(name, sizeof(name), "particles/smoke_04/smoke_04_%02" PRIu32, i + 1);
-		cg_smoke_1_images[i] = cgi.LoadImage(name, IT_EFFECT);
+		cg_smoke_1_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
 	}
 	cg_smoke_1 = cgi.CreateAnimation("particles/smoke_1", lengthof(cg_smoke_1_images), cg_smoke_1_images);
 	
@@ -260,18 +271,12 @@ void Cg_UpdateMedia(void) {
 	const r_image_t *cg_smoke_2_images[99];
 	for (uint32_t i = 0; i < lengthof(cg_smoke_2_images); i++) {
 		g_snprintf(name, sizeof(name), "particles/smoke_05/smoke_05_%02" PRIu32, i + 1);
-		cg_smoke_2_images[i] = cgi.LoadImage(name, IT_EFFECT);
+		cg_smoke_2_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
 	}
 	cg_smoke_2 = cgi.CreateAnimation("particles/smoke_2", lengthof(cg_smoke_2_images), cg_smoke_2_images);
 
-	// blast ring
-	const r_image_t *cg_blast_01_ring_images[7];
-	for (uint32_t i = 0; i < lengthof(cg_blast_01_ring_images); i++) {
-		g_snprintf(name, sizeof(name), "particles/blast_01/blast_01_ring_%02" PRIu32, i + 1);
-		cg_blast_01_ring_images[i] = cgi.LoadImage(name, IT_EFFECT);
-	}
-	cg_blast_01_ring = cgi.CreateAnimation("particles/blast_01/blast_01_ring", lengthof(cg_blast_01_ring_images), cg_blast_01_ring_images);
-	
+	cgi.CompileAtlas(cg_particles_atlas);
+
 	Cg_LoadEffects();
 
 	Cg_LoadClients();

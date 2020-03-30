@@ -83,22 +83,22 @@
   <ItemGroup>
     <None Include="..\..\src\client\renderer\shaders\bsp_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\bsp_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\common.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\common_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_2d_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_2d_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_3d_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\lights.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\Makefile.am" />
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sky_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\soft_edges.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\soften_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sprite_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\version.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3B26D4D9-B320-4D6F-B4D1-9A2487BBD0B3}</ProjectGuid>

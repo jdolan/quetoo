@@ -119,6 +119,11 @@ typedef struct cg_sprite_s {
 	};
 
 	/**
+	 * @brief Only for "animation"; whether to lerp between frames or not.
+	 */
+	_Bool lerp;
+
+	/**
 	 * @brief The sprite size, in world units.
 	 */
 	float size;
@@ -148,8 +153,7 @@ typedef struct cg_sprite_s {
 	 */
 	uint32_t timestamp;
 
-	struct cg_sprite_s *prev;
-	struct cg_sprite_s *next;
+	struct cg_sprite_s *next, *prev;
 } cg_sprite_t;
 
 cg_sprite_t *Cg_AllocSprite(void);

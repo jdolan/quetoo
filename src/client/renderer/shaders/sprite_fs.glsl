@@ -18,13 +18,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
+ 
 uniform sampler2D texture_diffusemap;
+uniform sampler2D next_texture_diffusemap;
 
 in vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec4 color;
+	vec2 next_diffusemap;
+	float next_lerp;
 } vertex;
 
 out vec4 out_color;
@@ -34,7 +37,9 @@ out vec4 out_color;
  */
 void main(void) {
 
-	out_color = vertex.color * texture(texture_diffusemap, vertex.diffusemap);
+	vec4 diffuse_color = mix(texture(texture_diffusemap, vertex.diffusemap), texture(next_texture_diffusemap, vertex.next_diffusemap), vertex.next_lerp);
+
+	out_color = vertex.color * diffuse_color;
 
 	// maybe move this to the vertex shader?
 	float fogginess = fog_factor(vertex.position);

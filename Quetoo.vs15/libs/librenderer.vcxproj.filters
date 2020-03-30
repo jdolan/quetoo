@@ -193,10 +193,22 @@
     <None Include="..\..\src\client\renderer\shaders\bsp_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\lights.glsl">
+    <None Include="..\..\src\client\renderer\shaders\common_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\Makefile.am">
+    <None Include="..\..\src\client\renderer\shaders\draw_2d_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\draw_2d_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\draw_3d_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\lights.glsl">
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl">
@@ -217,28 +229,16 @@
     <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\draw_2d_fs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\soften_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\draw_2d_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\draw_3d_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\common.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\soft_edges.glsl">
+    <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\sprite_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\version.glsl">
       <Filter>src\shaders</Filter>
     </None>
   </ItemGroup>
