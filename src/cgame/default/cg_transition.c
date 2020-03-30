@@ -76,8 +76,8 @@ cg_transition_point_t cg_linear_transition[] = {
  * @param time The current time factor
  * @return The factor value
  */
-float Cg_ResolveTransition(const cg_transition_point_t *transition, size_t point_count, float time) {
-	size_t i;
+float Cg_ResolveTransition(const cg_transition_point_t *transition, int32_t point_count, float time) {
+	int32_t i;
 
 	// If we're beyond the edges, just clamp to the edge.
 	if (time <= transition[0].point.x) {
@@ -89,7 +89,7 @@ float Cg_ResolveTransition(const cg_transition_point_t *transition, size_t point
 	// Find the "previous" point.
 	const cg_transition_point_t *point;
 
-	for (i = (int32_t) (point_count) - 1, point = transition + point_count - 1; i >= 0; i--, point--) {
+	for (i = point_count - 1, point = transition + point_count - 1; i >= 0; i--, point--) {
 		if (point->point.x <= time) {
 			break;
 		}

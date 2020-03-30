@@ -36,22 +36,22 @@ typedef struct {
 	/**
 	 * @brief The interpolation point
 	 */
-	vec2_t							point;
+	vec2_t point;
 
 	/**
 	 * @brief The interpolation method; note that this doesn't apply to the final point
 	 */
-	cg_transition_interpolation_t	lerp;
+	cg_transition_interpolation_t lerp;
 
 	/**
 	 * @brief Parameters for hermite
 	 */
 	struct {
-		float	tension;
-		float	bias;
+		float tension;
+		float bias;
 	} hermite;
 } cg_transition_point_t;
 
 extern cg_transition_point_t cg_linear_transition[];
 
-float Cg_ResolveTransition(const cg_transition_point_t *transition, const size_t point_count, float time);
+float Cg_ResolveTransition(const cg_transition_point_t *transition, const int32_t point_count, float time);
