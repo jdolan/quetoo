@@ -30,7 +30,6 @@ noinst_HEADERS = \
 
 noinst_LTLIBRARIES = \
 	libatlas.la \
-	libcolor.la \
 	libcommon.la \
 	libconsole.la \
 	libfilesystem.la \
@@ -54,16 +53,6 @@ libatlas_la_LDFLAGS = \
 libatlas_la_LIBADD = \
 	@GLIB_LIBS@ \
 	@SDL_LIBS@
-
-libcolor_la_SOURCES = \
-	color.c
-libcolor_la_CFLAGS = \
-	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
-libcolor_la_LDFLAGS = \
-	-shared
-libcolor_la_LIBADD = \
-	libswap.la
 
 libcommon_la_SOURCES = \
 	common.c
@@ -112,8 +101,7 @@ libimage_la_CFLAGS = \
 libimage_la_LDFLAGS = \
 	-shared
 libimage_la_LIBADD = \
-	libfilesystem.la \
-	libcolor.la
+	libfilesystem.la
 
 libmatrix_la_SOURCES = \
 	matrix.c
@@ -158,7 +146,7 @@ libshared_la_CFLAGS = \
 libshared_la_LDFLAGS = \
 	-shared
 libshared_la_LIBADD = \
-	libcolor.la \
+	libswap.la \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@
 
