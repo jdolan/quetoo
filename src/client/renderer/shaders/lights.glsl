@@ -40,7 +40,12 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 
 		float radius = lights[i].origin.w;
 		if (radius == 0.0) {
-			break;
+			continue;
+		}
+		
+		float intensity = lights[i].color.w;
+		if (intensity == 0.0) {
+			continue;
 		}
 
 		float dist = distance(lights[i].origin.xyz, position);
@@ -61,7 +66,7 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 				float specular_base = dot(half_dir, normal);
 				float specular = pow(specular_base, specular_exponent);
 				
-				vec3 color = lights[i].color.rgb * lights[i].color.a;
+				vec3 color = lights[i].color.rgb * intensity;
 				
 				diff_light += attenuation * radius * color;
 				spec_light += attenuation * attenuation * radius * specular * color;
