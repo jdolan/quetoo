@@ -79,104 +79,106 @@ typedef union {
 /**
  * @return A color with the specified RGB byte values.
  */
-color_t Color3b(byte r, byte g, byte b);
+static inline color_t Color3b(byte r, byte g, byte b);
 
 /**
  * @return A color with the specified RGB integer, e.g. `0xbbaadd`.
  */
-color_t Color3bv(uint32_t rgb);
+static inline color_t Color3bv(uint32_t rgb);
 
 /**
  * @return A color with the specified RGB floating point values. Note that the resulting color is clamped.
  */
-color_t Color3f(float r, float g, float b);
+static inline color_t Color3f(float r, float g, float b);
 
 /**
  * @return A color with the specified RGB vector. Note that the resulting color is clamped.
  */
-color_t Color3fv(const vec3_t rgb);
+static inline color_t Color3fv(const vec3_t rgb);
 
 /**
  * @return A color with the specified RGBA bytes.
  */
-color_t Color4b(byte r, byte g, byte b, byte a);
+static inline color_t Color4b(byte r, byte g, byte b, byte a);
 
 /**
  * @return A color with the specified RGBA integer, e.g. `0xdeadbeef`.
  */
-color_t Color4bv(uint32_t rgba);
+static inline color_t Color4bv(uint32_t rgba);
 
 /**
  * @return A color with the specified RGBA floating point values. Note that the resulting color is clamped.
  */
-color_t Color4f(float r, float g, float b, float a);
+static inline color_t Color4f(float r, float g, float b, float a);
 
 /**
  * @return A color with the specified RGBA vector. Note that the resulting color is clamped.
  */
-color_t Color4fv(const vec4_t rgba);
+static inline color_t Color4fv(const vec4_t rgba);
 
 /**
  * @return A color with the specified RGB vector converted from HSV.
  */
-color_t ColorHSV(float hue, float saturation, float value);
+static inline color_t ColorHSV(float hue, float saturation, float value);
 
 /**
  * @return The sum of `a + b`.
  */
-color_t Color_Add(const color_t a, const color_t b);
+static inline color_t Color_Add(const color_t a, const color_t b);
 
 /**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
-color_t Color_Mix(const color_t a, const color_t b, float mix);
+static inline color_t Color_Mix(const color_t a, const color_t b, float mix);
 
 /**
  * @return True if the parsing succeeded, false otherwise.
  */
-_Bool Color_Parse(const char *s, color_t *color);
+static inline _Bool Color_Parse(const char *s, color_t *color);
 
 /**
  * @return The value of `a * b`.
  */
-color_t Color_Multiply(const color_t a, const color_t b);
+static inline color_t Color_Multiply(const color_t a, const color_t b);
 
 /**
  * @return The value of `a * b`.
  */
-color_t Color_Scale(const color_t a, const float b);
+static inline color_t Color_Scale(const color_t a, const float b);
 
 /**
  * @return The difference of `a - b`.
  */
-color_t Color_Subtract(const color_t a, const color_t b);
+static inline color_t Color_Subtract(const color_t a, const color_t b);
 
 /**
  * @return A hexadecimal string (`rrggbb[aa]`) of the specified color.
  */
-const char *Color_Unparse(const color_t color);
+static inline const char *Color_Unparse(const color_t color);
 
 /**
  * @return A floating point vector for the specified color;
  */
-vec3_t Color_Vec3(const color_t color);
+static inline vec3_t Color_Vec3(const color_t color);
 
 /**
  * @return A floating point vector for the specified color.
  */
-vec4_t Color_Vec4(const color_t color);
+static inline vec4_t Color_Vec4(const color_t color);
 
 /**
  * @return A 32-bit integer color for the specified color.
  */
-color32_t Color_Color32(const color_t color);
+static inline color32_t Color_Color32(const color_t color);
 
 /**
  * @return A color32_t with the specified RGBA components.
  */
-color32_t Color32(byte r, byte g, byte b, byte a);
+static inline color32_t Color32(byte r, byte g, byte b, byte a);
 
 /**
  * @return A floating point color for the specified 32 bit integer color.
  */
-color_t Color32_Color(const color32_t c);
+static inline color_t Color32_Color(const color32_t c);
+
+#include "color.c"
