@@ -50,20 +50,25 @@ static void Cl_DrawConsole_Background(void) {
 
 		const float x_scale = r_context.width / (float) image->width;
 		const float y_scale = r_context.height / (float) image->height;
-
 		const float scale = Maxf(x_scale, y_scale);
+
+		const float image_width = image->width * scale;
+		const float image_height = image->height * scale;
+		
+		const float x_offset = (r_context.width / 2.f) - (image_width / 2.f);
+
 		r_pixel_t ch;
 
 		R_BindFont("small", NULL, &ch);
 
-		r_pixel_t y = cl_console.height * ch;
+		r_pixel_t y = cl_console.height * (ch + 1);
 
 		const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
 
-		R_Draw2DImage(0,
-					(-image->height * scale) + y + ch * 1.25,
-					r_context.width,
-					r_context.height, image, color);
+		R_Draw2DImage(x_offset,
+					y - image_height,
+					image_width,
+					image_height, image, color);
 	}
 }
 

@@ -146,7 +146,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libvector.lib;libparse.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libparse.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
     </Link>
