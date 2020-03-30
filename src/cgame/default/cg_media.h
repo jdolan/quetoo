@@ -62,6 +62,7 @@ extern r_animation_t *cg_flame_1;
 extern r_animation_t *cg_smoke_1;
 extern r_animation_t *cg_smoke_2;
 extern r_animation_t *cg_blast_01_ring;
+extern r_animation_t *cg_blue_fireball_1;
 
 void Cg_UpdateMedia(void);
 #endif /* __CG_LOCAL_H__ */

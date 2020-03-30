@@ -57,6 +57,7 @@ r_animation_t *cg_flame_1;
 r_animation_t *cg_smoke_1;
 r_animation_t *cg_smoke_2;
 r_animation_t *cg_blast_01_ring;
+r_animation_t *cg_blue_fireball_1;
 
 static GHashTable *cg_footstep_table;
 
@@ -275,6 +276,14 @@ void Cg_UpdateMedia(void) {
 	}
 	cg_smoke_2 = cgi.CreateAnimation("particles/smoke_2", lengthof(cg_smoke_2_images), cg_smoke_2_images);
 
+	// blue fireball 1
+	const r_image_t *cg_blue_fireball_1_images[64];
+	for (uint32_t i = 0; i < lengthof(cg_blue_fireball_1_images); i++) {
+		g_snprintf(name, sizeof(name), "particles/fireball_blue_01/fireball_blue_01_%02" PRIu32, i + 1);
+		cg_blue_fireball_1_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
+	}
+	cg_blue_fireball_1 = cgi.CreateAnimation("particles/blue_fireball_1", lengthof(cg_blue_fireball_1_images), cg_blue_fireball_1_images);
+	
 	cgi.CompileAtlas(cg_particles_atlas);
 
 	Cg_LoadEffects();

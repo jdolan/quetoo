@@ -519,37 +519,21 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  * @brief
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent) {
-
+	cg_sprite_t *s;
+	
 	const float radius = 6.f;
 
-	const float ltime = (ent->current.number + cgi.client->unclamped_time) * .01;
+	// const float ltime = (ent->current.number + cgi.client->unclamped_time) * .01;
 
-	for (int32_t i = 0; i < NUM_APPROXIMATE_NORMALS; i += 2) {
-		cg_particle_t *p;
+	s = Cg_AllocSprite();
 
-		if (!(p = Cg_AllocParticle())) {
-			break;
-		}
-
-		const float pitch = ltime * approximate_normals[i].x;
-		const float sp = sinf(pitch);
-		const float cp = cosf(pitch);
-
-		const float yaw = ltime * approximate_normals[i].y;
-		const float sy = sinf(yaw);
-		const float cy = cosf(yaw);
-
-		const vec3_t forward = Vec3(cp * sy, cy * sy, -sp);
-
-		float dist = sinf(ltime + i) * radius;
-
-		p->origin = ent->origin;
-		p->origin = Vec3_Add(p->origin, Vec3_Scale(approximate_normals[i], dist));
-		p->origin = Vec3_Add(p->origin, Vec3_Scale(forward, radius));
-
-		const float d = dist / radius / 2.f;
-		p->color = Color_Add(Color3bv(0x22aaff), Color3fv(Vec3(d, d, d)));
-	}
+	s->animation = cg_blue_fireball_1;
+	s->lifetime  = cg_blue_fireball_1->num_images * FRAMES_TO_SECONDS(60);
+	s->origin = ent->origin;
+	s->size = 32.f;
+	s->color_transition = NULL;
+	s->src = GL_ONE;
+	s->dst = GL_ONE;
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
