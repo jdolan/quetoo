@@ -347,30 +347,41 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 					break;
 				}
 
-				float scale = 10.f;
+				float scale = 7.f;
 				float power = 3.f;
 				vec3_t pdir = Vec3_Normalize(Vec3_RandomRange(-1.f, 1.f));
 				vec3_t porig = Vec3_Scale(pdir, powf(Randomf(), power) * scale);
 				float pdist = Vec3_Distance(Vec3_Zero(), porig) / scale;
 			
-				p->lifetime = 6000.f;
+				p->lifetime = 4000.f;
 				p->velocity = Vec3_Scale(pdir, pdist * 10.f);
 				p->origin = Vec3_Add(porig, Vec3_Mix(trail_start, end, particle_step * i));
 				p->size = Maxf(.25f, powf(1.f - pdist, power));
-				p->size_velocity = Mixf(-2.5f, -.2f, pdist);
+				p->size_velocity = Mixf(-3.5f, -.2f, pdist);
 				p->size_velocity *= RandomRangef(.66f, 1.f);
 				p->color = Color_Mix(color, Color4fv(Vec4(1.f, 1.f, 1.f, 1.f)), pdist);
 			}
 		}
 	}
 
+#if 0 // glow
 	if ((p = Cg_AllocParticle())) {
 		p->lifetime = 0.f;
 		p->origin = end;
 		p->size = 5.f;
 		p->color = color;
 	}
+#endif
 
+#if 1 // bullet
+	if ((p = Cg_AllocParticle())) {
+		p->lifetime = 0.f;
+		p->origin = end;
+		p->size = 1.f;
+		p->color = color;
+	}
+#endif
+	
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
 		.radius = 100.f,
@@ -533,7 +544,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	s->size = 32.f;
 	s->color_transition = NULL;
 	s->src = GL_ONE;
-	s->dst = GL_ONE;
+	s->dst = GL_ONE_MINUS_SRC_ALPHA;
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
