@@ -79,9 +79,12 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_PULSE) {
+		/* FIXME: temporarily disabled here to see how pickups look without pulse
 		const float pulse = (cosf(cgi.client->unclamped_time * 0.0033f + ent->current.number) + 1.f);
 		const float c = 1.f - (cg_entity_pulse->value * 0.5f * pulse);
 		e->color = Vec4(c, c, c, 1.f);
+		*/
+		e->color = Vec4(1.f, 1.f, 1.f, 1.f);
 	} else {
 		e->color = Vec4(1.f, 1.f, 1.f, 1.f);
 	}
