@@ -640,9 +640,9 @@ typedef struct {
 	GLenum dst, src;
 
 	/**
-	 * @brief Interpolation value for animations
+	 * @brief Whether animations should use texture lerping
 	 */
-	float lerp;
+	_Bool lerp;
 } r_sprite_t;
 
 /**

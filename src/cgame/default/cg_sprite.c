@@ -176,13 +176,6 @@ void Cg_AddSprites(void) {
 			continue;
 		}
 
-		float anim_lerp = 0;
-
-		if (p->lerp) {
-			const uint32_t frame_duration = (p->lifetime / p->animation->num_images);
-			anim_lerp = (elapsed_time % frame_duration) / (float)frame_duration;
-		}
-
 		switch (p->type) {
 		case SPRITE_NORMAL:
 			p->rotation += p->rotation_velocity * delta;
@@ -196,7 +189,7 @@ void Cg_AddSprites(void) {
 				.life = life,
 				.dst = p->dst,
 				.src = p->src,
-				.lerp = anim_lerp
+				.lerp = p->lerp
 			});
 			break;
 		case SPRITE_BEAM:

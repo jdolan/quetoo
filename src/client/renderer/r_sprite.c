@@ -40,6 +40,7 @@ typedef struct {
 
 	GLuint vertex_array;
 	GLuint vertex_buffer;
+	GLuint index_buffer;
 } r_sprites_t;
 
 static r_sprites_t r_sprites;
@@ -114,11 +115,14 @@ static void R_AddSpriteInternal(const r_buffered_sprite_image_t *image, const co
 
 	R_ResolveTextureCoordinates(image->image, &out[0].diffusemap, &out[1].diffusemap, &out[2].diffusemap, &out[3].diffusemap);
 
+	out->next_lerp = 0;
+
 	if (image->next_image) {
 		R_ResolveTextureCoordinates(image->next_image, &out[0].next_diffusemap, &out[1].next_diffusemap, &out[2].next_diffusemap, &out[3].next_diffusemap);
-		out->next_lerp = image->lerp;
-	} else {
-		out->next_lerp = 0;
+
+		if (image->lerp) {
+			out->next_lerp = image->lerp;
+		}
 	}
 
 	out[0].color = out[1].color = out[2].color = out[3].color = Color_Color32(color);
@@ -163,9 +167,19 @@ void R_AddSprite(const r_sprite_t *p) {
 	out[3].position = Vec3_Add(Vec3_Add(p->origin, d), l);
 
 	const r_image_t *next_image = NULL;
+	float lerp = 0;
 
-	if (p->lerp) {
-		next_image = R_ResolveAnimation((r_animation_t *) p->image, p->life, 1);
+	if (p->image->type == MEDIA_ANIMATION) {
+		const r_animation_t *anim = (const r_animation_t *) p->image;
+
+		next_image = R_ResolveAnimation(anim, p->life, 1);
+
+		if (p->lerp) {
+			const float life_to_images = floorf(p->life * anim->num_images);
+			const float cur_frame = life_to_images / anim->num_images;
+			const float next_frame = (life_to_images + 1) / anim->num_images;
+			lerp = (p->life - cur_frame) / (next_frame - cur_frame);
+		}
 	}
 
 	R_AddSpriteInternal(&(const r_buffered_sprite_image_t) {
@@ -173,7 +187,7 @@ void R_AddSprite(const r_sprite_t *p) {
 		.src = p->src,
 		.dst = p->dst,
 		.next_image = next_image,
-		.lerp = p->lerp
+		.lerp = lerp
 	}, p->color, out);
 }
 
@@ -261,6 +275,8 @@ void R_DrawSprites(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, r_view.num_sprites * sizeof(r_sprite_vertex_t) * 4, r_sprites.sprites, GL_DYNAMIC_DRAW);
 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
+	
 	glEnableVertexAttribArray(r_sprite_program.in_position);
 	glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
 	glEnableVertexAttribArray(r_sprite_program.in_color);
@@ -268,9 +284,7 @@ void R_DrawSprites(void) {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_attachment);
 
-	glPrimitiveRestartIndex(4);
-
-	GLint offset = 0;
+	ptrdiff_t offset = 0;
 
 	for (uint32_t i = 0; i < r_view.num_sprite_images; i++) {
 		const r_buffered_sprite_image_t *sprite = &r_view.sprite_images[i];
@@ -288,8 +302,8 @@ void R_DrawSprites(void) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, sprite->image->texnum);
 		glBlendFunc(sprite->src, sprite->dst);
-		glDrawArrays(GL_TRIANGLE_FAN, offset, r_view.sprite_batches[i] * 4);
-		offset += r_view.sprite_batches[i] * 4;
+		glDrawElements(GL_TRIANGLES, r_view.sprite_batches[i] * 6, GL_UNSIGNED_SHORT, (GLvoid *) offset);
+		offset += (r_view.sprite_batches[i] * 6) * sizeof(uint16_t);
 	}
 
 	glActiveTexture(GL_TEXTURE2);
@@ -304,8 +318,7 @@ void R_DrawSprites(void) {
 	glBindVertexArray(0);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glPrimitiveRestartIndex(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glDisable(GL_DEPTH_TEST);
 
@@ -385,7 +398,24 @@ void R_InitSprites(void) {
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_lerp));
 
+	glGenBuffers(1, &r_sprites.index_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
+
+	uint16_t indices[MAX_SPRITES * 6];
+
+	for (uint32_t i = 0, v = 0, e = 0; i < MAX_SPRITES; i++, v += 4, e += 6) {
+		indices[e + 0] = v + 0;
+		indices[e + 1] = v + 1;
+		indices[e + 2] = v + 2;
+		indices[e + 3] = v + 0;
+		indices[e + 4] = v + 2;
+		indices[e + 5] = v + 3;
+	}
+
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
 	R_GetError(NULL);
@@ -410,6 +440,7 @@ void R_ShutdownSprites(void) {
 
 	glDeleteVertexArrays(1, &r_sprites.vertex_array);
 	glDeleteBuffers(1, &r_sprites.vertex_buffer);
+	glDeleteBuffers(1, &r_sprites.index_buffer);
 
 	R_ShutdownSpriteProgram();
 }

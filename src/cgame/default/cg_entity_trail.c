@@ -530,23 +530,25 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  * @brief
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent) {
-	cg_sprite_t *s;
-	
-	const float radius = 6.f;
 
-	// const float ltime = (ent->current.number + cgi.client->unclamped_time) * .01;
+	const float animation_frac = cg_blue_fireball_1->num_images * FRAMES_TO_SECONDS(60);
 
-	s = Cg_AllocSprite();
-
-	s->animation = cg_blue_fireball_1;
-	s->lifetime  = cg_blue_fireball_1->num_images * FRAMES_TO_SECONDS(60);
-	s->origin = ent->origin;
-	s->size = 32.f;
-	s->color_transition = NULL;
-	s->src = GL_ONE;
-	s->dst = GL_ONE_MINUS_SRC_ALPHA;
+	cgi.AddSprite(&(const r_sprite_t) {
+		.origin = ent->origin,
+		.size = 32.f,
+		.image = (r_media_t *) cg_blue_fireball_1,
+		//.rotation = (ent->frame_num * ent->current.number) / 10.f,
+		.rotation = 0,
+		.color = color_white,
+		.life = fmodf((cgi.client->unclamped_time + (ent->current.number * 2048)), animation_frac) / animation_frac,
+		.src = GL_ONE,
+		.dst = GL_ONE,
+		.lerp = true
+	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
+		const float radius = 6.f;
+
 		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
 	}
 

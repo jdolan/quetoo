@@ -243,10 +243,12 @@ static void R_DrawBspInlineModel(const r_bsp_inline_model_t *in) {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthMask(false);
 
 	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_blend);
 	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_warp);
-
+	
+	glDepthMask(true);
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 }
