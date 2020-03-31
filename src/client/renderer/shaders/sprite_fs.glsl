@@ -41,13 +41,10 @@ void main(void) {
 
 	out_color = vertex.color * diffuse_color;
 
-	// maybe move this to the vertex shader?
 	float fogginess = fog_factor(vertex.position);
+
+	out_color = out_color * (1.f - fogginess);
 	
-	out_color.rgb = mix(out_color.rgb, fog_color, fogginess);
-
-	out_color.a = mix(out_color.a, 0.0, fogginess);
-
 	out_color.rgb = color_filter(out_color.rgb);
 
 	out_color.a *= soften_sprite();
