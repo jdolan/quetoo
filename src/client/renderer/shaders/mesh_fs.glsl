@@ -117,9 +117,11 @@ void main(void) {
 		vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
 		diffuse_dir = normalize((view * vec4(diffuse_dir * 2.0 - 1.0, 1.0)).xyz);
 
-		lightgrid = ambient +
-		            diffuse * max(0.0, dot(normal, diffuse_dir)) +
-					radiosity;
+		lightgrid = ambient + radiosity;
+		lightgrid +=
+			0.2 * diffuse * (dot(normal, diffuse_dir) * 0.5 + 0.5) + // softens lighting a bit
+			0.8 * diffuse * max(0.0, dot(normal, diffuse_dir));
+					
 	} else {
 		lightgrid = vec3(1.0);
 	}
@@ -131,8 +133,8 @@ void main(void) {
 	
 	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 
-	out_color.rgb = clamp(out_color.rgb * light_diffuse, 0.0, 32.0);
-	out_color.rgb = clamp(out_color.rgb + light_specular, 0.0, 32.0);
+	out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
+	out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
 
 	// postprocessing
 	
