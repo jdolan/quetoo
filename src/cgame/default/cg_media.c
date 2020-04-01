@@ -168,6 +168,29 @@ static void Cg_InitFootsteps(void) {
 }
 
 /**
+ * @brief
+ */
+ r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, char *seq_num_fmt, uint32_t first_frame, uint32_t last_frame) {
+	assert(last_frame > first_frame);
+	 
+	// TODO: maybe first check if the paths actually exist?
+	
+	char format_path[MAX_QPATH];
+	strncpy(format_path, base_path, MAX_QPATH);
+	strncat(format_path, seq_num_fmt, MAX_QPATH);
+	
+	char name[MAX_QPATH];
+	const uint32_t length = last_frame - first_frame;
+	const r_image_t *images[length];
+	for (uint32_t i = 0; i < length; i++) {
+		g_snprintf(name, MAX_QPATH, format_path, i + first_frame);
+		images[i] = (r_image_t *) cgi.LoadAtlasImage(atlas, name, IT_EFFECT);
+	}
+	
+	return cgi.CreateAnimation(base_path, length, images);
+}
+
+/**
  * @brief Updates all media references for the client game.
  */
 void Cg_UpdateMedia(void) {
@@ -235,54 +258,13 @@ void Cg_UpdateMedia(void) {
 	r_atlas_t *cg_particles_atlas = cgi.CreateAtlas("particles_atlas");
 
 	cg_sprite_smoke = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, "particles/smoke", IT_EFFECT);
-
-	// blast ring
-	const r_image_t *cg_blast_01_ring_images[7];
-	for (uint32_t i = 0; i < lengthof(cg_blast_01_ring_images); i++) {
-		g_snprintf(name, sizeof(name), "particles/blast_01/blast_01_ring_%02" PRIu32, i + 1);
-		cg_blast_01_ring_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
-	}
-	cg_blast_01_ring = cgi.CreateAnimation("particles/blast_01/blast_01_ring", lengthof(cg_blast_01_ring_images), cg_blast_01_ring_images);
-
-	// explosion
-	const r_image_t *cg_fire_1_images[36];
-	for (uint32_t i = 0; i < lengthof(cg_fire_1_images); i++) {
-		g_snprintf(name, sizeof(name), "particles/explosion_01/explosion_01_%02" PRIu32, i + 1);
-		cg_fire_1_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
-	}
-	cg_fire_1 = cgi.CreateAnimation("particles/flame1/flame_1", lengthof(cg_fire_1_images), cg_fire_1_images);
-
-	// flame 1
-	const r_image_t *cg_flame_1_images[29];
-	for (uint32_t i = 0; i < lengthof(cg_flame_1_images); i++) {
-		g_snprintf(name, sizeof(name), "particles/flame_03/flame_03_%02" PRIu32, i + 1);
-		cg_flame_1_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
-	}
-	cg_flame_1 = cgi.CreateAnimation("particles/flame_01/flame_01", lengthof(cg_flame_1_images), cg_flame_1_images);
 	
-	// smoke 1
-	const r_image_t *cg_smoke_1_images[90];
-	for (uint32_t i = 0; i < lengthof(cg_smoke_1_images); i++) {
-		g_snprintf(name, sizeof(name), "particles/smoke_04/smoke_04_%02" PRIu32, i + 1);
-		cg_smoke_1_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
-	}
-	cg_smoke_1 = cgi.CreateAnimation("particles/smoke_1", lengthof(cg_smoke_1_images), cg_smoke_1_images);
-	
-	// smoke 2
-	const r_image_t *cg_smoke_2_images[99];
-	for (uint32_t i = 0; i < lengthof(cg_smoke_2_images); i++) {
-		g_snprintf(name, sizeof(name), "particles/smoke_05/smoke_05_%02" PRIu32, i + 1);
-		cg_smoke_2_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
-	}
-	cg_smoke_2 = cgi.CreateAnimation("particles/smoke_2", lengthof(cg_smoke_2_images), cg_smoke_2_images);
-
-	// blue fireball 1
-	const r_image_t *cg_blue_fireball_1_images[64];
-	for (uint32_t i = 0; i < lengthof(cg_blue_fireball_1_images); i++) {
-		g_snprintf(name, sizeof(name), "particles/fireball_blue_01/fireball_blue_01_%02" PRIu32, i + 1);
-		cg_blue_fireball_1_images[i] = (r_image_t *) cgi.LoadAtlasImage(cg_particles_atlas, name, IT_EFFECT);
-	}
-	cg_blue_fireball_1 = cgi.CreateAnimation("particles/blue_fireball_1", lengthof(cg_blue_fireball_1_images), cg_blue_fireball_1_images);
+	cg_blast_01_ring   = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
+	cg_fire_1          = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
+	cg_flame_1         = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/flame_03/flame_03", "_%02" PRIu32, 1, 29);
+	cg_smoke_1         = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
+	cg_smoke_2         = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
+	cg_blue_fireball_1 = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/fireball_blue_01/fireball_blue_01", "_%02" PRIu32, 1, 64);
 	
 	cgi.CompileAtlas(cg_particles_atlas);
 
