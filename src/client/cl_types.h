@@ -67,7 +67,7 @@ typedef enum {
 	TRAIL_SECONDARY,
 	TRAIL_BUBBLE,
 
-	TRAIL_MAX
+	TRAIL_ID_COUNT
 } cl_trail_id_t;
 
 typedef struct {
@@ -84,7 +84,7 @@ typedef struct {
 
 	uint32_t timestamp; // for intermittent effects
 
-	cl_entity_trail_t trails[TRAIL_MAX];
+	cl_entity_trail_t trails[TRAIL_ID_COUNT];
 
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation
