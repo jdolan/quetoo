@@ -26,10 +26,8 @@
  * @brief
  */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t color) {
-	cg_particle_t *p;
 	cg_sprite_t *s;
 
-#if 1
 	// ring 1
 	s = Cg_AllocSprite();
 	assert(s);
@@ -38,30 +36,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	s->origin = org;
 	s->size = 22.5f;
 	s->size_velocity = 75.f;
-#endif
 
-#if 0
-	// impact sparks
-	for (int32_t i = 0; i < 20; i++) {
-
-		if (!(p = Cg_AllocParticle())) {
-			break;
-		}
-		
-		p->size = .1f;
-		p->origin = Vec3_Add(org, Vec3_Scale(dir, p->size));
-		p->velocity = Vec3_Normalize(Vec3_Add(dir, Vec3_RandomRange(-1.f, 1.f)));
-		p->velocity = Vec3_Scale(p->velocity, Randomf() * 150.f + 50.f);
-		p->acceleration.z = -2.5f * PARTICLE_GRAVITY;
-		p->lifetime = RandomRangef(1000.f, 2500.f);
-		p->color = color;
-		p->size = 3.5f;
-		p->size_velocity = -p->size / MILLIS_TO_SECONDS(p->lifetime);
-		p->bounce = 0.25f;
-	}
-#endif
-
-#if 1
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, dir),
 		.radius = 65.f,
@@ -69,7 +44,6 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		.intensity = .0f,
 		.decay = 350.f
 	});
-#endif
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
@@ -663,37 +637,74 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
  * @brief
  */
 static void Cg_BfgEffect(const vec3_t org) {
+	cg_sprite_t *s;
 	cg_particle_t *p;
+	
+	for (int32_t i = 0; i < 4; i++) {
+		if (!(s = Cg_AllocSprite())) { break; }
+		s->animation = cg_bfg_explosion_2;
+		s->lifetime = cg_bfg_explosion_2->num_images * FRAMES_TO_SECONDS(30);
+		s->size = RandomRangef(200.f, 300.f);
+		s->size_velocity = 100.f;
+		s->size_acceleration = -10.f;
+		s->rotation = RandomRangef(0.f, 2.f * M_PI);
+		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f));
+		s->src = GL_ONE;
+		s->dst = GL_ONE_MINUS_SRC_ALPHA;
+	}
 
-	for (int32_t i = 0; i < 128; i++) {
+	for (int32_t i = 0; i < 4; i++) {
+		if (!(s = Cg_AllocSprite())) { break; }
+		s->animation = cg_bfg_explosion_3;
+		s->lifetime = cg_bfg_explosion_3->num_images * FRAMES_TO_SECONDS(30);
+		s->size = RandomRangef(200.f, 300.f);
+		s->size_velocity = 100.f;
+		s->size_acceleration = -10.f;
+		s->rotation = RandomRangef(0.f, 2.f * M_PI);
+		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f));
+		s->src = GL_ONE;
+		s->dst = GL_ONE_MINUS_SRC_ALPHA;
+	}
+	
+	for (int32_t i = 0; i < 50; i++) {
+		if (!(p = Cg_AllocParticle())) { break; }
+		vec3_t rdir = Vec3_RandomDir();
+		p->lifetime = 3000;
+		p->size = 1.f;
+		p->size_velocity = -p->size / MILLIS_TO_SECONDS(p->lifetime);
+		p->bounce = .5f;
+		p->velocity = Vec3_Scale(rdir, 400.f);
+		p->acceleration = Vec3_Zero();
+		p->acceleration.z -= 3.f * PARTICLE_GRAVITY;
+		p->origin = org;
+		p->color = color_white;
+		p->color_velocity = Vec4(-.5f, 0.f, -.4f, -.1f);
+	}
 
-		if (!(p = Cg_AllocParticle())) {
-			break;
-		}
-
-		p->origin = Vec3_Add(org, Vec3_RandomRange(-24.f, 24.f));
-		p->velocity = Vec3_RandomRange(-256.f, 256.f);
-		p->acceleration = Vec3(0.0, 0.0, -3.0 * PARTICLE_GRAVITY);
-
-		p->lifetime = 750;
-
-		p->color = Color3b(60, 224, 72);
-//		p->delta_color.g = 0x10;
-//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
-
-		p->size = 2.0;
+	for (int32_t i = 0; i < 20; i++) {
+		if (!(p = Cg_AllocParticle())) { break; }
+		vec3_t rdir = Vec3_RandomDir();
+		p->lifetime = 10000;
+		p->size = 0.5f;
+		p->size_velocity = -p->size / MILLIS_TO_SECONDS(p->lifetime);
+		p->bounce = .5f;
+		p->velocity = Vec3_Scale(rdir, 300.f);
+		p->origin = org;
+		p->color = Color_Mix(color_white, color_green, Randomf());
+		p->color_velocity = Vec4_Scale(Vec4(-.5f, 0.f, -.4f, -.1f), RandomRangef(.75f, 1.25f));
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 200.0,
-		.color = Vec3(0.8, 1.0, 0.5),
+		.radius = 200.f,
+		.color = Vec3(.8f, 1.f, .5f),
+		.intensity = .01f,
 		.decay = 1000
 	});
-
+	
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
-		.radius = 96.0,
+		.radius = 96.f,
 		.color = Color3b(40, 200, 60),
 	});
 
