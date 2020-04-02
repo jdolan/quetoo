@@ -757,6 +757,13 @@ vec3_t Vec3_Random(void) {
 /**
  * @brief
  */
+vec3_t Vec3_RandomDir(void) {
+	return Vec3_Normalize(Vec3_RandomRange(-1.f, 1.f));
+}
+
+/**
+ * @brief
+ */
 vec3_t Vec3_Reflect(const vec3_t a, const vec3_t b) {
 	return Vec3_Add(a, Vec3_Scale(b, -2.f * Vec3_Dot(a, b)));
 }

@@ -574,6 +574,11 @@ static inline vec3_t Vec3_Radians(const vec3_t degrees) __attribute__ ((warn_unu
 static inline vec3_t Vec3_RandomRange(float begin, float end);
 
 /**
+ * @return Returns a random vector (positive or negative) with a length of 1.
+ */
+static inline vec3_t Vec3_RandomDir(void);
+
+/**
  * @return A vector with random values between `0` and `1`.
  */
 static inline vec3_t Vec3_Random(void);
