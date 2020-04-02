@@ -58,6 +58,11 @@ r_animation_t *cg_smoke_1;
 r_animation_t *cg_smoke_2;
 r_animation_t *cg_blast_01_ring;
 r_animation_t *cg_blue_fireball_1;
+r_animation_t *cg_bfg_explosion_1;
+r_animation_t *cg_bfg_explosion_2;
+r_animation_t *cg_bfg_explosion_3;
+r_animation_t *cg_bfg_explosion_4;
+r_animation_t *cg_bfg_explosion_5;
 
 static GHashTable *cg_footstep_table;
 
@@ -265,6 +270,11 @@ void Cg_UpdateMedia(void) {
 	cg_smoke_1         = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
 	cg_smoke_2         = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
 	cg_blue_fireball_1 = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/fireball_blue_01/fireball_blue_01", "_%02" PRIu32, 1, 64);
+	cg_bfg_explosion_1 = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/bfg_explosion_01/bfg_explosion_01", "_%02" PRIu32, 10, 57);
+	cg_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
+	cg_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
+	cg_bfg_explosion_4 = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/bfg_explosion_04/bfg_explosion_04", "_%02" PRIu32, 1, 57);
+	cg_bfg_explosion_5 = Cg_LoadAnimatedSprite(cg_particles_atlas, "particles/bfg_explosion_05/bfg_explosion_05", "_%02" PRIu32, 1, 12);
 	
 	cgi.CompileAtlas(cg_particles_atlas);
 
