@@ -31,6 +31,10 @@ void R_AddLight(const r_light_t *in) {
 		return;
 	}
 
+	if (R_CullSphere(in->origin, in->radius)) {
+		return;
+	}
+
 	r_light_t *out = &r_view.lights[r_view.num_lights++];
 	*out = *in;
 
