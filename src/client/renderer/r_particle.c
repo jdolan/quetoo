@@ -85,6 +85,10 @@ void R_AddParticle(const r_particle_t *p) {
 		return;
 	}
 
+	if (R_CullSphere(p->origin, p->size)) {
+		return;
+	}
+
 	r_particle_vertex_t *out = r_particles.particles + r_view.num_particles;
 
 	out->position = Vec3_ToVec4(p->origin, p->size);

@@ -856,11 +856,6 @@ typedef struct {
 	 * @brief Animation interpolation next image
 	 */
 	const r_image_t *next_image;
-
-	/**
-	 * @brief Animation interpolation frac
-	 */
-	float lerp;
 } r_buffered_sprite_image_t;
 
 /**
