@@ -809,7 +809,7 @@ typedef struct r_entity_s {
 	int32_t num_skins;
 
 	/**
-	 * @brief Entity effects (`EF_NO_DRAW`, `EF_WEAPON`, ..).
+	 * @brief The entity effects (`EF_NO_DRAW`, `EF_WEAPON`, ..).
 	 */
 	int32_t effects;
 
@@ -827,6 +827,11 @@ typedef struct r_entity_s {
 	 * @brief Tint maps allow users to customize their player skins.
 	 */
 	vec4_t tints[TINT_TOTAL];
+
+	/**
+	 * @brief The entity light mask for dynamic light sources.
+	 */
+	int32_t lights;
 } r_entity_t;
 
 #define WEATHER_NONE        0x0

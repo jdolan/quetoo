@@ -86,11 +86,22 @@ void R_UpdateLights(void) {
 
 		R_MarkLight(in, r_model_state.world->bsp->nodes);
 
-		const r_entity_t *e = r_view.entities;
+		r_entity_t *e = r_view.entities;
 		for (int32_t j = 0; j < r_view.num_entities; j++, e++) {
 
-			if (e->model && e->model->type == MOD_BSP_INLINE) {
-				R_MarkLight(in, e->model->bsp_inline->head_node);
+			if (e->model) {
+				switch (e->model->type) {
+					case MOD_BSP_INLINE:
+						R_MarkLight(in, e->model->bsp_inline->head_node);
+						break;
+					case MOD_MESH:
+						if (Vec3_Distance(e->origin, in->origin) < in->radius) {
+							e->lights |= (1 << (in - r_view.lights));
+						}
+						break;
+					default:
+						break;
+				}
 			}
 		}
 
