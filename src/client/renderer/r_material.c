@@ -818,6 +818,9 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				normalmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 255, 127));
 			}
 
+			assert(normalmap->w == diffusemap->w);
+			assert(normalmap->h == diffusemap->h);
+
 			if (*cm->heightmap.path) {
 				SDL_Surface *heightmap = NULL;
 				if ((heightmap = Img_LoadImage(cm->heightmap.path))) {
@@ -844,6 +847,9 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			} else {
 				glossmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 127, 127));
 			}
+
+			assert(glossmap->w == diffusemap->w);
+			assert(glossmap->h == diffusemap->h);
 
 			if (*cm->specularmap.path) {
 				SDL_Surface *specularmap = NULL;
@@ -889,6 +895,9 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			} else {
 				tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(0, 0, 0, 0));
 			}
+
+			assert(tintmap->w == diffusemap->w);
+			assert(tintmap->h == diffusemap->h);
 
 			material->texture->depth = 2;
 
