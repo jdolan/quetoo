@@ -333,7 +333,7 @@ typedef struct r_bsp_node_s {
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
 
-	int64_t lights; // TODO: This is not used, but it should be a bitmask of light sources per node.
+	int32_t lights;
 } r_bsp_node_t;
 
 /**
@@ -728,9 +728,9 @@ typedef struct {
 	float intensity;
 } r_light_t;
 
-#define MAX_LIGHTS			0x40
+#define MAX_LIGHTS			0x20
 
-#define MAX_ENTITY_SKINS 8
+#define MAX_ENTITY_SKINS 	0x8
 
 /**
  * @brief Entities provide a means to add model instances to the view. Entity

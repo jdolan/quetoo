@@ -61,6 +61,7 @@ static struct {
 
 	GLint lights_block;
 	GLuint lights_buffer;
+	GLint lights_mask;
 
 	GLint fog_parameters;
 	GLint fog_color;
@@ -159,6 +160,7 @@ static void R_DrawBspLightgrid(void) {
  */
 static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArray *draw_elements) {
 
+	const r_bsp_node_t *node = NULL;
 	const r_material_t *material = NULL;
 
 	for (guint i = 0; i < draw_elements->len; i++) {
@@ -171,6 +173,12 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArra
 
 		if (draw->node->vis_frame != r_locals.vis_frame) {
 			continue;
+		}
+
+		if (draw->node != node) {
+			node = draw->node;
+			
+			glUniform1i(r_bsp_program.lights_mask, node->lights);
 		}
 
 		if (draw->texinfo->material != material) {
@@ -384,6 +392,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
 	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 0);
 	glGenBuffers(1, &r_bsp_program.lights_buffer);
+	r_bsp_program.lights_mask = glGetUniformLocation(r_bsp_program.name, "lights_mask");
 
 	r_bsp_program.fog_parameters = glGetUniformLocation(r_bsp_program.name, "fog_parameters");
 	r_bsp_program.fog_color = glGetUniformLocation(r_bsp_program.name, "fog_color");

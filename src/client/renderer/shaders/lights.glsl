@@ -19,7 +19,7 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#define MAX_LIGHTS 64
+#define MAX_LIGHTS 32
 
 struct light {
 	vec4 origin;
@@ -30,6 +30,8 @@ layout (std140) uniform lights_block {
 	light lights[MAX_LIGHTS];
 };
 
+uniform int lights_mask;
+
 /**
  * @brief
  */
@@ -38,11 +40,15 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
+		if ((lights_mask & (1 << i)) == 0) {
+			continue;
+		}
+
 		float radius = lights[i].origin.w;
 		if (radius == 0.0) {
 			continue;
 		}
-		
+
 		float intensity = lights[i].color.w;
 		if (intensity == 0.0) {
 			continue;

@@ -42,25 +42,60 @@ void R_AddLight(const r_light_t *in) {
 }
 
 /**
- * @brief
+ * @brief Recursively populates light source bit masks for world nodes.
+ */
+void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
+
+	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	if (node->vis_frame != r_locals.vis_frame) {
+		return;
+	}
+
+	const float dist = Cm_DistanceToPlane(l->origin, node->plane);
+
+	if (dist > l->radius) { // front only
+		R_MarkLight(l, node->children[0]);
+		return;
+	}
+
+	if (dist < -l->radius) { // back only
+		R_MarkLight(l, node->children[1]);
+		return;
+	}
+
+	node->lights |= (1 << (l - r_view.lights));
+
+	// now go down both sides
+	R_MarkLight(l, node->children[0]);
+	R_MarkLight(l, node->children[1]);
+}
+
+/**
+ * @brief Marks lights in world space, and transforms them to view space for rendering.
  */
 void R_UpdateLights(void) {
 
 	memset(r_locals.view_lights, 0, sizeof(r_locals.view_lights));
-
-	const r_light_t *in = r_view.lights;
 	r_light_t *out = r_locals.view_lights;
 
-	for (int32_t i = 0; i < r_view.num_lights; i++, in++) {
+	const r_light_t *in = r_view.lights;
+	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
 
-		if (R_CullSphere(in->origin, in->radius)) {
-			continue;
+		R_MarkLight(in, r_model_state.world->bsp->nodes);
+
+		const r_entity_t *e = r_view.entities;
+		for (int32_t j = 0; j < r_view.num_entities; j++, e++) {
+
+			if (e->model && e->model->type == MOD_BSP_INLINE) {
+				R_MarkLight(in, e->model->bsp_inline->head_node);
+			}
 		}
 
 		*out = *in;
 
 		Matrix4x4_Transform(&r_locals.view, in->origin.xyz, out->origin.xyz);
-
-		out++;
 	}
 }
