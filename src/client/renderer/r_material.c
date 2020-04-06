@@ -726,6 +726,25 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 }
 
 /**
+ * @brief Loads the material asset, ensuring it is the specified dimensions for texture layering.
+ */
+static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path) {
+
+	SDL_Surface *surface = Img_LoadImage(path);
+	if (surface) {
+		if (w || h) {
+			if (surface->w != w || surface->h != h) {
+				Com_Warn("Material asset %s is not %dx%d\n", path, w, h);
+				SDL_FreeSurface(surface);
+				surface = NULL;
+			}
+		}
+	}
+
+	return surface;
+}
+
+/**
  * @brief
  */
 static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t color) {
@@ -740,20 +759,17 @@ static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t colo
 /**
  * @brief Merges the average of src's channels into the alpha channel of dest.
  */
-static _Bool R_MergeMaterialSurfaces(SDL_Surface *dest, const SDL_Surface *src) {
+static void R_MergeMaterialSurfaces(SDL_Surface *dest, const SDL_Surface *src) {
 
-	if (dest->w == src->w && dest->h == src->h) {
-		const byte *in = src->pixels;
-		byte *out = dest->pixels;
+	assert(src->w == dest->w);
+	assert(src->h == dest->h);
 
-		const int32_t pixels = dest->w * dest->h;
-		for (int32_t i = 0; i < pixels; i++, in += 4, out += 4) {
-			out[3] = (in[0] + in[1] + in[2]) / 3.0;
-		}
+	const byte *in = src->pixels;
+	byte *out = dest->pixels;
 
-		return true;
-	} else {
-		return false;
+	const int32_t pixels = dest->w * dest->h;
+	for (int32_t i = 0; i < pixels; i++, in += 4, out += 4) {
+		out[3] = (in[0] + in[1] + in[2]) / 3.0;
 	}
 }
 
@@ -797,10 +813,10 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 		diffusemap = R_CreateMaterialSurface(1, 1, Color32(255, 255, 255, 255));
 	}
 
-	material->texture->width = diffusemap->w;
-	material->texture->height = diffusemap->h;
+	const int32_t w = material->texture->width = diffusemap->w;
+	const int32_t h = material->texture->height = diffusemap->h;
 
-	const size_t layer_size = material->texture->width * material->texture->height * 4;
+	const size_t layer_size = w * h * 4;
 
 	switch (context) {
 		case ASSET_CONTEXT_TEXTURES:
@@ -808,28 +824,19 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 			SDL_Surface *normalmap = NULL;
 			if (*cm->normalmap.path) {
-				if ((normalmap = Img_LoadImage(cm->normalmap.path))) {
-					Com_Debug(DEBUG_RENDERER, "Loaded normalmap %s for %s\n", cm->normalmap.path, cm->basename);
-				} else {
+				normalmap = R_LoadMaterialSurface(w, h, cm->normalmap.path);
+				if (normalmap == NULL) {
 					Com_Warn("Failed to load normalmap %s for %s\n", cm->normalmap.path, cm->basename);
-					normalmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 255, 127));
+					normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 127));
 				}
 			} else {
-				normalmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 255, 127));
+				normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 127));
 			}
 
-			//assert(normalmap->w == diffusemap->w);
-			//assert(normalmap->h == diffusemap->h);
-
 			if (*cm->heightmap.path) {
-				SDL_Surface *heightmap = NULL;
-				if ((heightmap = Img_LoadImage(cm->heightmap.path))) {
-					Com_Debug(DEBUG_RENDERER, "Loaded heightmap %s for %s\n", cm->heightmap.path, cm->basename);
-
-					if (!R_MergeMaterialSurfaces(normalmap, heightmap)) {
-						Com_Warn("Failed to merge heightmap %s and normalmap %s (different sizes)\n",
-								 cm->heightmap.path, cm->normalmap.path);
-					}
+				SDL_Surface *heightmap = R_LoadMaterialSurface(w, h, cm->heightmap.path);
+				if (heightmap) {
+					R_MergeMaterialSurfaces(normalmap, heightmap);
 					SDL_FreeSurface(heightmap);
 				} else {
 					Com_Warn("Failed to load heightmap %s for %s\n", cm->heightmap.path, cm->basename);
@@ -838,27 +845,19 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 			SDL_Surface *glossmap = NULL;
 			if (*cm->glossmap.path) {
-				if ((glossmap = Img_LoadImage(cm->glossmap.path))) {
-					Com_Debug(DEBUG_RENDERER, "Loaded glossmap %s for %s\n", cm->glossmap.path, cm->basename);
-				} else {
+				glossmap = R_LoadMaterialSurface(w, h, cm->glossmap.path);
+				if (glossmap == NULL) {
 					Com_Warn("Failed to load glossmap %s for %s\n", cm->glossmap.path, cm->basename);
-					glossmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 127, 127));
+					glossmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 127, 127));
 				}
 			} else {
-				glossmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 127, 127));
+				glossmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 127, 127));
 			}
 
-			//assert(glossmap->w == diffusemap->w);
-			//assert(glossmap->h == diffusemap->h);
-
 			if (*cm->specularmap.path) {
-				SDL_Surface *specularmap = NULL;
-				if ((specularmap = Img_LoadImage(cm->specularmap.path))) {
-					Com_Debug(DEBUG_RENDERER, "Loaded specularmap %s for %s\n", cm->specularmap.path, cm->basename);
-					if (!R_MergeMaterialSurfaces(glossmap, specularmap)) {
-						Com_Warn("Failed to merge specularmap %s and glossmap %s (different sizes)\n",
-								 cm->specularmap.path, cm->glossmap.path);
-					}
+				SDL_Surface *specularmap = R_LoadMaterialSurface(w, h, cm->specularmap.path);
+				if (specularmap) {
+					R_MergeMaterialSurfaces(glossmap, specularmap);
 					SDL_FreeSurface(specularmap);
 				} else {
 					Com_Warn("Failed to load specularmap %s for %s\n", cm->specularmap.path, cm->basename);
@@ -886,18 +885,14 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 			SDL_Surface *tintmap = NULL;
 			if (*cm->tintmap.path) {
-				if ((tintmap = Img_LoadImage(cm->tintmap.path))) {
-					Com_Debug(DEBUG_RENDERER, "Loaded tintmap %s for %s\n", cm->tintmap.path, cm->basename);
-				} else {
+				tintmap = R_LoadMaterialSurface(w, h, cm->tintmap.path);
+				if (tintmap == NULL) {
 					Com_Warn("Failed to load tintmap %s for %s\n", cm->tintmap.path, cm->basename);
 					tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(0, 0, 0, 0));
 				}
 			} else {
 				tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(0, 0, 0, 0));
 			}
-
-			assert(tintmap->w == diffusemap->w);
-			assert(tintmap->h == diffusemap->h);
 
 			material->texture->depth = 2;
 
