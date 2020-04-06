@@ -579,10 +579,9 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
 	 * @param name The image name (e.g. `"pics/ch1"`).
-	 * @param surface The surface pointer to return.
-	 * @return True on success, false on error.
+	 * @return The surface, or `NULL` if it could not be loaded.
 	 */
-	_Bool (*LoadSurface)(const char *name, SDL_Surface **surface);
+	SDL_Surface *(*LoadSurface)(const char *name);
 
 	/**
 	 * @brief Loads the image with the given name and type.

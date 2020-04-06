@@ -21,20 +21,12 @@
 
 #include "r_local.h"
 
-#define TEXTURE_DIFFUSEMAP               0
-#define TEXTURE_NORMALMAP                1
-#define TEXTURE_GLOSSMAP                 2
-#define TEXTURE_LIGHTGRID                3
-#define TEXTURE_LIGHTGRID_AMBIENT        3
-#define TEXTURE_LIGHTGRID_DIFFUSE        4
-#define TEXTURE_LIGHTGRID_RADIOSITY      5
-#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    6
-
-#define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
-#define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
-#define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
-#define TEXTURE_MASK_LIGHTGRID          (1 << TEXTURE_LIGHTGRID)
-#define TEXTURE_MASK_ALL                0xff
+#define TEXTURE_MATERIAL                 0
+#define TEXTURE_LIGHTGRID                1
+#define TEXTURE_LIGHTGRID_AMBIENT        1
+#define TEXTURE_LIGHTGRID_DIFFUSE        2
+#define TEXTURE_LIGHTGRID_RADIOSITY      3
+#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    4
 
 /**
  * @brief The program.
@@ -59,12 +51,7 @@ static struct {
 
 	GLint lerp;
 
-	GLint textures;
-
-	GLint texture_diffusemap;
-	GLint texture_normalmap;
-	GLint texture_glossmap;
-
+	GLint texture_material;
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_radiosity;
@@ -147,37 +134,16 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, tangent));
 		glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, bitangent));
 
-		const r_bsp_lightgrid_t *lg = r_model_state.world->bsp->lightgrid;
-		GLint textures = lg ? TEXTURE_MASK_LIGHTGRID : 0;
-
 		const r_material_t *material = e->skins[i] ?: face->material;
 		if (material) {
+
+			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
 			glUniform1f(r_mesh_program.bump, material->cm->bump * r_bumpmap->value);
 			glUniform1f(r_mesh_program.parallax, material->cm->parallax * r_parallax->value);
 			glUniform1f(r_mesh_program.hardness, material->cm->hardness * r_hardness->value);
 			glUniform1f(r_mesh_program.specular, material->cm->specular * r_specular->value);
-
-			if (material->diffusemap) {
-				textures |= TEXTURE_MASK_DIFFUSEMAP;
-				glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-				glBindTexture(GL_TEXTURE_2D, material->diffusemap->texnum);
-			}
-
-			if (material->normalmap) {
-				textures |= TEXTURE_MASK_NORMALMAP;
-				glActiveTexture(GL_TEXTURE0 + TEXTURE_NORMALMAP);
-				glBindTexture(GL_TEXTURE_2D, material->normalmap->texnum);
-			}
-
-			if (material->glossmap) {
-				textures |= TEXTURE_MASK_GLOSSMAP;
-				glActiveTexture(GL_TEXTURE0 + TEXTURE_GLOSSMAP);
-				glBindTexture(GL_TEXTURE_2D, material->glossmap->texnum);
-			}
 		}
-
-		glUniform1i(r_mesh_program.textures, textures);
 
 		const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
 		glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
@@ -228,6 +194,8 @@ void R_DrawMeshEntities(void) {
 
 		glUniform3fv(r_mesh_program.lightgrid_mins, 1, lg->mins.xyz);
 		glUniform3fv(r_mesh_program.lightgrid_maxs, 1, lg->maxs.xyz);
+
+		glActiveTexture(GL_TEXTURE0);
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
@@ -291,8 +259,6 @@ void R_DrawMeshEntities(void) {
 		glDisable(GL_BLEND);
 	}
 
-	glActiveTexture(GL_TEXTURE0);
-
 	glUseProgram(0);
 
 	if (r_draw_wireframe->value) {
@@ -335,11 +301,7 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
 
-	r_mesh_program.textures = glGetUniformLocation(r_mesh_program.name, "textures");
-	r_mesh_program.texture_diffusemap = glGetUniformLocation(r_mesh_program.name, "texture_diffusemap");
-	r_mesh_program.texture_normalmap = glGetUniformLocation(r_mesh_program.name, "texture_normalmap");
-	r_mesh_program.texture_glossmap = glGetUniformLocation(r_mesh_program.name, "texture_glossmap");
-
+	r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
 	r_mesh_program.texture_lightgrid_ambient = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_ambient");
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
 	r_mesh_program.texture_lightgrid_radiosity = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_radiosity");
@@ -371,10 +333,7 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.caustics = glGetUniformLocation(r_mesh_program.name, "caustics");
 
-	glUniform1i(r_mesh_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-	glUniform1i(r_mesh_program.texture_normalmap, TEXTURE_NORMALMAP);
-	glUniform1i(r_mesh_program.texture_glossmap, TEXTURE_GLOSSMAP);
-
+	glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_radiosity, TEXTURE_LIGHTGRID_RADIOSITY);

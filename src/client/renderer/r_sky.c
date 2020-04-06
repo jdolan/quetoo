@@ -327,7 +327,7 @@ void R_SetSky(const char *name) {
 		char path[MAX_QPATH];
 
 		g_snprintf(path, sizeof(path), "env/%s%s", name, suf[i]);
-		r_sky.images[i] = R_LoadImage(path, IT_SKY);
+		r_sky.images[i] = R_LoadImage(path, IT_MATERIAL);
 
 		if (r_sky.images[i]->type == IT_NULL) { // try unit1_
 			if (g_strcmp0(name, "unit1_")) {

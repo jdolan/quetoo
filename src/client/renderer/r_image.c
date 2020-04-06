@@ -133,41 +133,6 @@ void R_Screenshot_f(void) {
 }
 
 /**
- * @brief Applies any image filtering that can not be done via GLSL.
- */
-void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
-
-	vec3i_t channels = Vec3i_Zero();
-
-	const size_t pixels = image->width * image->height;
-	const size_t stride = format == GL_RGBA ? 4 : 3;
-
-	byte *p = data;
-
-	for (size_t i = 0; i < pixels; i++, p += stride) {
-
-		if ((image->type & IT_MASK_MULTIPLY) && format == GL_RGBA) { // pre-multiplied alpha
-			p[0] *= p[3] / 255.0;
-			p[1] *= p[3] / 255.0;
-			p[2] *= p[3] / 255.0;
-		}
-
-		if (image->type == IT_DIFFUSE) { // accumulate color
-			channels = Vec3i_Add(channels, Vec3i(p[0], p[1], p[2]));
-		}
-	}
-
-	if (image->type == IT_DIFFUSE) { // average accumulated colors, normalize
-		vec3_t rgb = Vec3i_CastVec3(channels);
-
-		rgb = Vec3_Scale(rgb, 1.f / pixels);
-		rgb = Vec3_Scale(rgb, 1.f / 255.f);
-
-		image->color = Color_Vec3(Color3fv(rgb));
-	}
-}
-
-/**
  * @brief Uploads the specified image to the OpenGL implementation. Images that
  * do not have a GL texture reserved (which is most diffusemap textures) will have
  * one generated for them. This flexibility allows for explicitly managed
@@ -175,25 +140,28 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
  */
 void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
-	if (!image) {
-		Com_Error(ERROR_DROP, "NULL image\n");
-	}
+	assert(image);
 
-	if (!image->texnum) {
+	if (image->texnum == 0) {
 		glGenTextures(1, &(image->texnum));
 	}
 
-	GLenum target;
-	switch (image->type) {
-		case IT_LIGHTMAP:
-			target = GL_TEXTURE_2D_ARRAY;
-			break;
-		case IT_LIGHTGRID:
-			target = GL_TEXTURE_3D;
-			break;
-		default:
-			target = GL_TEXTURE_2D;
-			break;
+	GLenum target = GL_TEXTURE_2D;
+
+	if (image->depth) {
+		switch (image->type) {
+			case IT_MATERIAL:
+				target = GL_TEXTURE_2D_ARRAY;
+				break;
+			case IT_LIGHTMAP:
+				target = GL_TEXTURE_2D_ARRAY;
+				break;
+			case IT_LIGHTGRID:
+				target = GL_TEXTURE_3D;
+				break;
+			default:
+				break;
+		}
 	}
 
 	glBindTexture(target, image->texnum);
@@ -216,7 +184,6 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		if (r_image_state.anisotropy) {
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 		}
-
 	} else {
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_mag);
 		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
@@ -243,7 +210,6 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, format, type, data);
 		}
 	} else {
-
 		if (image->depth) {
 			glTexImage3D(target, 0, format, image->width, image->height, image->depth, 0, format, type, data);
 		} else {
@@ -281,49 +247,6 @@ void R_FreeImage(r_media_t *media) {
 }
 
 /**
- * @brief Merges a heightmap texture, if found, into the alpha channel of the
- * given normalmap surface. This is to handle loading of Quake4 texture sets
- * like Q4Power.
- *
- * @param name The diffusemap name.
- * @param surf The normalmap surface.
- */
-static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {
-	char heightmap[MAX_QPATH];
-
-	g_strlcpy(heightmap, name, sizeof(heightmap));
-	char *c = strrchr(heightmap, '_');
-	if (c) {
-		*c = '\0';
-	}
-
-	// FIXME:
-	// This should use the material's heightmap asset, which might be resolved
-	// from multiple potential suffixes. This is a total hack and is incorrect.
-	// Solving this without completely refactoring R_LoadImage is hard.
-
-	SDL_Surface *hsurf;
-	if (Img_LoadImage(va("%s_h", heightmap), &hsurf)) {
-
-		if (hsurf->w == surf->w && hsurf->h == surf->h) {
-			Com_Debug(DEBUG_RENDERER, "Merging heightmap %s\n", heightmap);
-
-			byte *in = hsurf->pixels;
-			byte *out = surf->pixels;
-
-			const size_t len = surf->w * surf->h;
-			for (size_t i = 0; i < len; i++, in += 4, out += 4) {
-				out[3] = (in[0] + in[1] + in[2]) / 3.0;
-			}
-		} else {
-			Com_Warn("Incorrect heightmap resolution for %s\n", name);
-		}
-
-		SDL_FreeSurface(hsurf);
-	}
-}
-
-/**
  * @brief Loads the image by the specified name.
  */
 r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
@@ -338,8 +261,8 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	if (!(image = (r_image_t *) R_FindMedia(key))) {
 
-		SDL_Surface *surf;
-		if (Img_LoadImage(key, &surf)) { // attempt to load the image
+		SDL_Surface *surf = Img_LoadImage(key);
+		if (surf) {
 			image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), MEDIA_IMAGE);
 
 			image->media.Retain = R_RetainImage;
@@ -347,16 +270,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			image->width = surf->w;
 			image->height = surf->h;
-			image->depth = 0;
 			image->type = type;
-
-			if (image->type == IT_NORMALMAP) {
-				R_LoadHeightmap(name, surf);
-			}
-
-			if (image->type & IT_MASK_FILTER) {
-				R_FilterImage(image, GL_RGBA, surf->pixels);
-			}
 
 			R_UploadImage(image, GL_RGBA, surf->pixels);
 
@@ -463,6 +377,7 @@ void R_DumpImages_f(void) {
 static void R_InitNullImage(void) {
 
 	r_image_state.null = (r_image_t *) R_AllocMedia("r_image_state.null", sizeof(r_image_t), MEDIA_IMAGE);
+
 	r_image_state.null->media.Retain = R_RetainImage;
 	r_image_state.null->media.Free = R_FreeImage;
 
@@ -483,6 +398,7 @@ static void R_InitNullImage(void) {
 static void R_InitWarpImage(void) {
 
 	r_image_state.warp = (r_image_t *) R_AllocMedia("r_image_state.warp", sizeof(r_image_t), MEDIA_IMAGE);
+
 	r_image_state.warp->media.Retain = R_RetainImage;
 	r_image_state.warp->media.Free = R_FreeImage;
 
@@ -519,8 +435,6 @@ void R_InitImages(void) {
 	// set up alignment parameters.
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	Img_InitPalette();
 
 	memset(&r_image_state, 0, sizeof(r_image_state));
 

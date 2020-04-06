@@ -47,7 +47,7 @@ r_atlas_t *R_CreateAtlas(const char *name) {
 
 	atlas->media.Free = R_FreeAtlas;
 	atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), MEDIA_IMAGE);
-	atlas->image->type = IT_MASK_CLAMP_EDGE;
+	atlas->image->type = IT_ATLAS;
 
 	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
 
@@ -67,8 +67,8 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 		atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), MEDIA_ATLAS_IMAGE);
 		assert(atlas_image);
 
-		SDL_Surface *surf;
-		if (!Img_LoadImage(name, &surf)) {
+		SDL_Surface *surf = Img_LoadImage(name);
+		if (!surf) {
 			surf = SDL_CreateRGBSurfaceWithFormatFrom(&pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
 		}
 
@@ -78,10 +78,6 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 		atlas_image->image.type = type;
 		atlas_image->image.width = surf->w;
 		atlas_image->image.height = surf->h;
-
-		if (type & IT_MASK_FILTER) {
-			R_FilterImage(&atlas_image->image, GL_RGBA, surf->pixels);
-		}
 
 		R_RegisterDependency((r_media_t *) atlas_image, (r_media_t *) atlas);
 

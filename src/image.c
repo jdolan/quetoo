@@ -21,27 +21,18 @@
 
 #include "image.h"
 
-#define IMG_PALETTE "pics/colormap.pcx"
-
-img_palette_t img_palette;
-static _Bool img_palette_initialized;
-
-// image formats, tried in this order
-static const char *img_formats[] = { "tga", "png", "jpg", "pcx", NULL };
-
 /**
  * @brief Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  */
-static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
-	char path[MAX_QPATH];
-	void *buf;
-	int64_t len;
+static SDL_Surface *Img_LoadTypedImage(const char *name, const char *type) {
+	SDL_Surface *surf = NULL;
 
+	char path[MAX_QPATH];
 	g_snprintf(path, sizeof(path), "%s.%s", name, type);
 
-	*surf = NULL;
-
+	void *buf;
+	int64_t len;
 	if ((len = Fs_Load(path, &buf)) != -1) {
 
 		SDL_RWops *rw;
@@ -50,11 +41,11 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
 			SDL_Surface *s;
 			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
 
-				if (g_strcmp0(path, IMG_PALETTE) && s->format->format != SDL_PIXELFORMAT_RGBA32) {
-					*surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
+				if (s->format->format != SDL_PIXELFORMAT_RGBA32) {
+					surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
 					SDL_FreeSurface(s);
 				} else {
-					*surf = s;
+					surf = s;
 				}
 			}
 			SDL_RWclose(rw);
@@ -62,7 +53,7 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
 		Fs_Free(buf);
 	}
 
-	return *surf != NULL;
+	return surf;
 }
 
 /**
@@ -70,57 +61,20 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
  * the provided SDL_Surface. Image formats are tried in the order they appear
  * in TYPES.
  */
-_Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
+SDL_Surface *Img_LoadImage(const char *name) {
+	const char *img_formats[] = { "tga", "png", "jpg", NULL };
 
 	char basename[MAX_QPATH];
 	StripExtension(name, basename);
 
-	int32_t i = 0;
-	while (img_formats[i]) {
-		if (Img_LoadTypedImage(basename, img_formats[i++], surf)) {
-			return true;
+	for (const char **fmt = img_formats; *fmt; fmt++) {
+		SDL_Surface *surf = Img_LoadTypedImage(basename, *fmt);
+		if (surf) {
+			return surf;
 		}
 	}
 
-	return false;
-}
-
-/**
- * @brief Initializes the 8bit color palette required for .wal texture loading.
- */
-void Img_InitPalette(void) {
-	SDL_Surface *surf;
-
-	if (!Img_LoadTypedImage(IMG_PALETTE, "pcx", &surf)) {
-		return;
-	}
-
-	for (size_t i = 0; i < lengthof(img_palette); i++) {
-		const byte r = surf->format->palette->colors[i].r;
-		const byte g = surf->format->palette->colors[i].g;
-		const byte b = surf->format->palette->colors[i].b;
-
-		const uint32_t v = (255u << 24) + (r << 0) + (g << 8) + (b << 16);
-		img_palette[i] = LittleLong(v);
-	}
-
-	img_palette[lengthof(img_palette) - 1] &= LittleLong(0xffffff); // 255 is transparent
-
-	SDL_FreeSurface(surf);
-
-	img_palette_initialized = true;
-}
-
-/**
- * @brief Returns RGB components of the specified color in the specified result array.
- */
-color_t Img_ColorFromPalette(uint8_t c) {
-
-	if (!img_palette_initialized) {
-		Img_InitPalette();
-	}
-
-	return Color4bv(img_palette[c]);
+	return NULL;
 }
 
 /**

@@ -581,10 +581,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 static void R_RegisterMaterial(r_media_t *self) {
 	r_material_t *mat = (r_material_t *) self;
 
-	R_RegisterDependency(self, (r_media_t *) mat->diffusemap);
-	R_RegisterDependency(self, (r_media_t *) mat->normalmap);
-	R_RegisterDependency(self, (r_media_t *) mat->glossmap);
-	R_RegisterDependency(self, (r_media_t *) mat->tintmap);
+	R_RegisterDependency(self, (r_media_t *) mat->texture);
 
 	r_stage_t *s = mat->stages;
 	while (s) {
@@ -620,7 +617,7 @@ static int32_t R_ResolveStageAnimation(r_stage_t *stage, cm_asset_context_t cont
 
 		cm_asset_t *frame = &stage->cm->anim.frames[i];
 		if (*frame->path) {
-			stage->anim.frames[i] = R_LoadImage(frame->path, IT_DIFFUSE);
+			stage->anim.frames[i] = R_LoadImage(frame->path, IT_MATERIAL);
 			if (stage->anim.frames[i]->type == IT_NULL) {
 				break;
 			}
@@ -644,17 +641,12 @@ static int32_t R_ResolveStage(r_stage_t *stage, cm_asset_context_t context) {
 
 	if (*stage->cm->asset.path) {
 
-		if (stage->cm->flags & STAGE_TEXTURE) {
-			stage->image = R_LoadImage(stage->cm->asset.path, IT_DIFFUSE);
-		} else if (stage->cm->flags & STAGE_ENVMAP) {
-			stage->image = R_LoadImage(stage->cm->asset.path, IT_ENVMAP);
-		} else if (stage->cm->flags & STAGE_FLARE) {
-			stage->image = R_LoadImage(stage->cm->asset.path, IT_FLARE);
-		}
-
-		if (stage->image->type == IT_NULL) {
-			Com_Warn("Failed to resolve stage: %s\n", stage->cm->asset.name);
-			return -1;
+		if (stage->cm->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_FLARE)) {
+			stage->image = R_LoadImage(stage->cm->asset.path, IT_MATERIAL);
+			if (stage->image->type == IT_NULL) {
+				Com_Warn("Failed to resolve stage: %s\n", stage->cm->asset.name);
+				return -1;
+			}
 		}
 
 		if (stage->cm->flags & STAGE_LIGHTING) {
@@ -734,6 +726,38 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 }
 
 /**
+ * @brief
+ */
+static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t color) {
+
+	SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_RGBA32);
+
+	SDL_memset4(surface->pixels, color.rgba, w * h);
+
+	return surface;
+}
+
+/**
+ * @brief Merges the average of src's channels into the alpha channel of dest.
+ */
+static _Bool R_MergeMaterialSurfaces(SDL_Surface *dest, const SDL_Surface *src) {
+
+	if (dest->w == src->w && dest->h == src->h) {
+		const byte *in = src->pixels;
+		byte *out = dest->pixels;
+
+		const int32_t pixels = dest->w * dest->h;
+		for (int32_t i = 0; i < pixels; i++, in += 4, out += 4) {
+			out[3] = (in[0] + in[1] + in[2]) / 3.0;
+		}
+
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/**
  * @brief Resolves all asset references in the specified collision material, yielding a usable
  * renderer material.
  */
@@ -755,36 +779,138 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 	material->media.Register = R_RegisterMaterial;
 	material->media.Free = R_FreeMaterial;
 
-	if (Cm_ResolveMaterial(cm, context)) {
+	material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), MEDIA_IMAGE);
 
-		material->diffusemap = R_LoadImage(cm->diffusemap.path, IT_DIFFUSE);
-		if (material->diffusemap->type == IT_DIFFUSE) {
+	material->texture->type = IT_MATERIAL;
 
-			if (*cm->normalmap.path) {
-				material->normalmap = R_LoadImage(cm->normalmap.path, IT_NORMALMAP);
-				if (material->normalmap->type == IT_NULL) {
-					material->normalmap = NULL;
-				}
-			}
+	Cm_ResolveMaterial(cm, context);
 
-			if (*cm->glossmap.path) {
-				material->glossmap = R_LoadImage(cm->glossmap.path, IT_GLOSSMAP);
-				if (material->glossmap->type == IT_NULL) {
-					material->glossmap = NULL;
-				}
-			}
-
-			if (*cm->tintmap.path) {
-				material->tintmap = R_LoadImage(cm->tintmap.path, IT_TINTMAP);
-				if (material->tintmap->type == IT_NULL) {
-					material->tintmap = NULL;
-				}
-			}
+	SDL_Surface *diffusemap = NULL;
+	if (*cm->diffusemap.path) {
+		if ((diffusemap = Img_LoadImage(cm->diffusemap.path))) {
+			Com_Debug(DEBUG_RENDERER, "Loaded diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
+		} else {
+			Com_Warn("Failed to load diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
+			diffusemap = R_CreateMaterialSurface(1, 1, Color32(255, 255, 255, 255));
 		}
 	} else {
-		material->diffusemap = r_image_state.null;
-		Com_Warn("Failed to resolve %s\n", cm->name);
+		diffusemap = R_CreateMaterialSurface(1, 1, Color32(255, 255, 255, 255));
 	}
+
+	material->texture->width = diffusemap->w;
+	material->texture->height = diffusemap->h;
+
+	const size_t layer_size = material->texture->width * material->texture->height * 4;
+
+	switch (context) {
+		case ASSET_CONTEXT_TEXTURES:
+		case ASSET_CONTEXT_MODELS: {
+
+			SDL_Surface *normalmap = NULL;
+			if (*cm->normalmap.path) {
+				if ((normalmap = Img_LoadImage(cm->normalmap.path))) {
+					Com_Debug(DEBUG_RENDERER, "Loaded normalmap %s for %s\n", cm->normalmap.path, cm->basename);
+				} else {
+					Com_Warn("Failed to load normalmap %s for %s\n", cm->normalmap.path, cm->basename);
+					normalmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 255, 127));
+				}
+			} else {
+				normalmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 255, 127));
+			}
+
+			if (*cm->heightmap.path) {
+				SDL_Surface *heightmap = NULL;
+				if ((heightmap = Img_LoadImage(cm->heightmap.path))) {
+					Com_Debug(DEBUG_RENDERER, "Loaded heightmap %s for %s\n", cm->heightmap.path, cm->basename);
+
+					if (!R_MergeMaterialSurfaces(normalmap, heightmap)) {
+						Com_Warn("Failed to merge heightmap %s and normalmap %s (different sizes)\n",
+								 cm->heightmap.path, cm->normalmap.path);
+					}
+					SDL_FreeSurface(heightmap);
+				} else {
+					Com_Warn("Failed to load heightmap %s for %s\n", cm->heightmap.path, cm->basename);
+				}
+			}
+
+			SDL_Surface *glossmap = NULL;
+			if (*cm->glossmap.path) {
+				if ((glossmap = Img_LoadImage(cm->glossmap.path))) {
+					Com_Debug(DEBUG_RENDERER, "Loaded glossmap %s for %s\n", cm->glossmap.path, cm->basename);
+				} else {
+					Com_Warn("Failed to load glossmap %s for %s\n", cm->glossmap.path, cm->basename);
+					glossmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 127, 127));
+				}
+			} else {
+				glossmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(127, 127, 127, 127));
+			}
+
+			if (*cm->specularmap.path) {
+				SDL_Surface *specularmap = NULL;
+				if ((specularmap = Img_LoadImage(cm->specularmap.path))) {
+					Com_Debug(DEBUG_RENDERER, "Loaded specularmap %s for %s\n", cm->specularmap.path, cm->basename);
+					if (!R_MergeMaterialSurfaces(glossmap, specularmap)) {
+						Com_Warn("Failed to merge specularmap %s and glossmap %s (different sizes)\n",
+								 cm->specularmap.path, cm->glossmap.path);
+					}
+					SDL_FreeSurface(specularmap);
+				} else {
+					Com_Warn("Failed to load specularmap %s for %s\n", cm->specularmap.path, cm->basename);
+				}
+			}
+
+			material->texture->depth = 3;
+
+			byte *data = malloc(layer_size * material->texture->depth);
+
+			memcpy(data + 0 * layer_size, diffusemap->pixels, layer_size);
+			memcpy(data + 1 * layer_size, normalmap->pixels, layer_size);
+			memcpy(data + 2 * layer_size, glossmap->pixels, layer_size);
+
+			R_UploadImage(material->texture, GL_RGBA, data);
+
+			free(data);
+
+			SDL_FreeSurface(normalmap);
+			SDL_FreeSurface(glossmap);
+		}
+			break;
+
+		case ASSET_CONTEXT_PLAYERS: {
+
+			SDL_Surface *tintmap = NULL;
+			if (*cm->tintmap.path) {
+				if ((tintmap = Img_LoadImage(cm->tintmap.path))) {
+					Com_Debug(DEBUG_RENDERER, "Loaded tintmap %s for %s\n", cm->tintmap.path, cm->basename);
+				} else {
+					Com_Warn("Failed to load tintmap %s for %s\n", cm->tintmap.path, cm->basename);
+					tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(0, 0, 0, 0));
+				}
+			} else {
+				tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(0, 0, 0, 0));
+			}
+
+			material->texture->depth = 2;
+
+			byte *data = malloc(layer_size * material->texture->depth);
+
+			memcpy(data + 0 * layer_size, diffusemap->pixels, layer_size);
+			memcpy(data + 1 * layer_size, tintmap->pixels, layer_size);
+
+			R_UploadImage(material->texture, GL_RGBA, data);
+
+			free(data);
+
+			SDL_FreeSurface(tintmap);
+		}
+			break;
+
+		default:
+			R_UploadImage(material->texture, GL_RGBA, diffusemap->pixels);
+			break;
+	}
+
+	SDL_FreeSurface(diffusemap);
 
 	return material;
 }
@@ -794,19 +920,16 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
  */
 static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
 
-	if (material->diffusemap->type == IT_DIFFUSE) {
+	const cm_material_t *cm = material->cm;
+	for (const cm_stage_t *s = cm->stages; s; s = s->next) {
 
-		const cm_material_t *cm = material->cm;
+		r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
+		stage->cm = s;
 
-		for (const cm_stage_t *s = cm->stages; s; s = s->next) {
-			r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
-			stage->cm = s;
-
-			if (R_ResolveStage(stage, context) == -1) {
-				Mem_Free(stage);
-			} else {
-				R_AppendStage(material, stage);
-			}
+		if (R_ResolveStage(stage, context) == -1) {
+			Mem_Free(stage);
+		} else {
+			R_AppendStage(material, stage);
 		}
 	}
 }
@@ -864,10 +987,6 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 
 			r_material_t *material = R_ResolveMaterial(cm, context);
 
-			if (material->diffusemap->type == IT_NULL) {
-				Com_Warn("Failed to resolve %s\n", cm->name);
-			}
-
 			*materials = g_list_prepend(*materials, material);
 		}
 
@@ -876,9 +995,7 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 
 			R_ResolveMaterialStages(material, context);
 
-			if (material->diffusemap->type != IT_NULL) {
-				Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", material->cm->name, material->cm->num_stages);
-			}
+			Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", material->cm->name, material->cm->num_stages);
 
 			R_RegisterMedia((r_media_t *) material);
 		}

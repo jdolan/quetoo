@@ -179,6 +179,11 @@ typedef struct cm_material_s {
 	cm_asset_t glossmap;
 
 	/**
+	 * @brief The specularmap asset.
+	 */
+	cm_asset_t specularmap;
+
+	/**
 	 * @brief The tintmap asset.
 	 */
 	cm_asset_t tintmap;

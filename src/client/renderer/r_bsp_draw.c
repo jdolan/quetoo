@@ -21,16 +21,8 @@
 
 #include "r_local.h"
 
-#define TEXTURE_DIFFUSEMAP               0
-#define TEXTURE_NORMALMAP                1
-#define TEXTURE_GLOSSMAP                 2
-#define TEXTURE_LIGHTMAP                 3
-
-#define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
-#define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
-#define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
-#define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
-#define TEXTURE_MASK_ALL                0xff
+#define TEXTURE_MATERIAL                 0
+#define TEXTURE_LIGHTMAP                 1
 
 /**
  * @brief The program.
@@ -50,11 +42,7 @@ static struct {
 	GLint view;
 	GLint model;
 
-	GLint textures;
-
-	GLint texture_diffusemap;
-	GLint texture_normalmap;
-	GLint texture_glossmap;
+	GLint texture_material;
 	GLint texture_lightmap;
 
 	GLint alpha_threshold;
@@ -172,7 +160,6 @@ static void R_DrawBspLightgrid(void) {
 static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArray *draw_elements) {
 
 	const r_material_t *material = NULL;
-	GLint textures = 0;
 
 	for (guint i = 0; i < draw_elements->len; i++) {
 
@@ -186,46 +173,15 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArra
 			continue;
 		}
 
-		GLint tex = textures;
-
 		if (draw->texinfo->material != material) {
 			material = draw->texinfo->material;
 
-			tex |= TEXTURE_MASK_DIFFUSEMAP;
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-			glBindTexture(GL_TEXTURE_2D, material->diffusemap->texnum);
-
-			if (material->normalmap) {
-				tex |= TEXTURE_MASK_NORMALMAP;
-				glActiveTexture(GL_TEXTURE0 + TEXTURE_NORMALMAP);
-				glBindTexture(GL_TEXTURE_2D, material->normalmap->texnum);
-			} else {
-				tex &= ~TEXTURE_MASK_NORMALMAP;
-			}
-
-			if (material->glossmap) {
-				tex |= TEXTURE_MASK_GLOSSMAP;
-				glActiveTexture(GL_TEXTURE0 + TEXTURE_GLOSSMAP);
-				glBindTexture(GL_TEXTURE_2D, material->glossmap->texnum);
-			} else {
-				tex &= ~TEXTURE_MASK_GLOSSMAP;
-			}
+			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
 			glUniform1f(r_bsp_program.bump, material->cm->bump * r_bumpmap->value);
 			glUniform1f(r_bsp_program.parallax, material->cm->parallax * r_parallax->value);
 			glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
-		}
-
-		if (r_model_state.world->bsp->lightmap) {
-			tex |= TEXTURE_MASK_LIGHTMAP;
-		} else {
-			tex &= ~TEXTURE_MASK_LIGHTMAP;
-		}
-
-		if (tex != textures) {
-			textures = tex;
-			glUniform1i(r_bsp_program.textures, textures);
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
@@ -262,6 +218,44 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 
 	R_DrawBspInlineModel(e->model->bsp_inline);
 }
+
+/**
+ * @brief
+ */
+//static void R_DrawBlendNode(const r_bsp_node_t *node) {
+//
+//	if (node->contents != CONTENTS_NODE) {
+//		return;
+//	}
+//
+//	if (node->vis_frame != r_locals.vis_frame) {
+//		return;
+//	}
+//
+//	const float dist = Cm_DistanceToPlane(r_view.origin, node->plane);
+//	const int32_t side = dist > 0.f ? 0 : 1;
+//
+//	R_DrawBlendNode(node->children[side]);
+//
+//	if (node->children[side]->contents & CONTENTS_TRANSLUCENT) {
+//
+//		//R_DrawParticlesNode(node, side);
+//
+//		const r_material_t *material = NULL;
+//
+//		const r_bsp_draw_elements_t *draw = node->draw_elements;
+//		for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
+//
+//			if (draw->texinfo->flags & SURF_MASK_BLEND) {
+//				//R_DrawBspDrawElement(&material, draw);
+//			}
+//		}
+//
+//		//R_DrawParticlesNode(node, !side);
+//	}
+//
+//	R_DrawBlendNode(node->children[!side]);
+//}
 
 /**
  * @brief
@@ -313,10 +307,9 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
-	if (bsp->lightmap) {
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, bsp->lightmap->atlas->texnum);
-	}
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, bsp->lightmap ? bsp->lightmap->atlas->texnum : 0);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
 	R_DrawBspInlineModel(bsp->inline_models);
 
@@ -326,8 +319,6 @@ void R_DrawWorld(void) {
 			R_DrawBspEntity(e);
 		}
 	}
-
-	glActiveTexture(GL_TEXTURE0);
 
 	glUseProgram(0);
 
@@ -374,10 +365,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.view = glGetUniformLocation(r_bsp_program.name, "view");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 
-	r_bsp_program.textures = glGetUniformLocation(r_bsp_program.name, "textures");
-	r_bsp_program.texture_diffusemap = glGetUniformLocation(r_bsp_program.name, "texture_diffusemap");
-	r_bsp_program.texture_normalmap = glGetUniformLocation(r_bsp_program.name, "texture_normalmap");
-	r_bsp_program.texture_glossmap = glGetUniformLocation(r_bsp_program.name, "texture_glossmap");
+	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
 
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
@@ -402,9 +390,7 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.caustics = glGetUniformLocation(r_bsp_program.name, "caustics");
 
-	glUniform1i(r_bsp_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-	glUniform1i(r_bsp_program.texture_normalmap, TEXTURE_NORMALMAP);
-	glUniform1i(r_bsp_program.texture_glossmap, TEXTURE_GLOSSMAP);
+	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
 
 	R_GetError(NULL);

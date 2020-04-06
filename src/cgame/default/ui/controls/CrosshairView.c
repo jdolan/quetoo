@@ -82,8 +82,8 @@ static void updateBindings(View *self) {
 
 	const int32_t ch = cg_draw_crosshair->value;
 	if (ch) {
-		SDL_Surface *surface;
-		if (cgi.LoadSurface(va("pics/ch%d", ch), &surface)) {
+		SDL_Surface *surface = cgi.LoadSurface(va("pics/ch%d", ch));
+		if (surface) {
 
 			$(this->imageView, setImageWithSurface, surface);
 			SDL_FreeSurface(surface);

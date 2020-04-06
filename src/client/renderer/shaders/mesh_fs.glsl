@@ -19,28 +19,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define TEXTURE_DIFFUSEMAP               0
-#define TEXTURE_NORMALMAP                1
-#define TEXTURE_GLOSSMAP                 2
-#define TEXTURE_LIGHTGRID                3
-#define TEXTURE_LIGHTGRID_AMBIENT        3
-#define TEXTURE_LIGHTGRID_DIFFUSE        4
-#define TEXTURE_LIGHTGRID_RADIOSITY      5
-#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    6
-
-#define TEXTURE_MASK_DIFFUSEMAP         (1 << TEXTURE_DIFFUSEMAP)
-#define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
-#define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
-#define TEXTURE_MASK_LIGHTGRID          (1 << TEXTURE_LIGHTGRID)
-#define TEXTURE_MASK_ALL                0xff
+#define TEXTURE_MATERIAL                 0
+#define TEXTURE_LIGHTGRID                1
+#define TEXTURE_LIGHTGRID_AMBIENT        1
+#define TEXTURE_LIGHTGRID_DIFFUSE        2
+#define TEXTURE_LIGHTGRID_RADIOSITY      3
+#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    4
 
 uniform mat4 view;
 
-uniform int textures;
-
-uniform sampler2D texture_diffusemap;
-uniform sampler2D texture_normalmap;
-uniform sampler2D texture_glossmap;
+uniform sampler2DArray texture_material;
 
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
@@ -76,55 +64,27 @@ out vec4 out_color;
  */
 void main(void) {
 
+	vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
+	vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
+	vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
+
+	diffusemap *= color;
+
+	if (diffusemap.a < alpha_threshold) {
+		discard;
+	}
+
 	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+	vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(bump, bump, 1.0)));
 
-	vec4 diffusemap;
-	if ((textures & TEXTURE_MASK_DIFFUSEMAP) == TEXTURE_MASK_DIFFUSEMAP) {
-		diffusemap = texture(texture_diffusemap, vertex.diffusemap) * color;
+	vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
+	vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
+	vec3 radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
 
-		if (diffusemap.a < alpha_threshold) {
-			discard;
-		}
-	} else {
-		diffusemap = color;
-	}
+	vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
+	diffuse_dir = normalize((view * vec4(diffuse_dir * 2.0 - 1.0, 1.0)).xyz);
 
-	vec4 normalmap;
-	if ((textures & TEXTURE_MASK_NORMALMAP) == TEXTURE_MASK_NORMALMAP) {
-		normalmap = texture(texture_normalmap, vertex.diffusemap);
-		normalmap.xyz = normalize(normalmap.xyz * 2.0 - 1.0);
-		normalmap.xy *= bump;
-		normalmap.xyz = normalize(normalmap.xyz);
-	} else {
-		normalmap = vec4(0.0, 0.0, 1.0, 0.5);
-	}
-
-	vec3 normal = normalize(tbn * normalmap.xyz);
-
-	vec4 glossmap;
-	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {
-		glossmap = texture(texture_glossmap, vertex.diffusemap);
-	} else {
-		glossmap = vec4(1.0);
-	}
-
-	vec3 lightgrid;
-	if ((textures & TEXTURE_MASK_LIGHTGRID) == TEXTURE_MASK_LIGHTGRID) {
-		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
-		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
-		vec3 radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
-
-		vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
-		diffuse_dir = normalize((view * vec4(diffuse_dir * 2.0 - 1.0, 1.0)).xyz);
-
-		lightgrid = ambient + radiosity;
-		lightgrid +=
-			0.2 * diffuse * (dot(normal, diffuse_dir) * 0.5 + 0.5) + // softens lighting a bit
-			0.8 * diffuse * max(0.0, dot(normal, diffuse_dir));
-					
-	} else {
-		lightgrid = vec3(1.0);
-	}
+	vec3 lightgrid = ambient + radiosity + diffuse * max(0.0, dot(normal, diffuse_dir));
 
 	out_color = diffusemap;
 
