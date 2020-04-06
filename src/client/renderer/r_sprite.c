@@ -120,7 +120,10 @@ static _Bool R_CullSprite(r_sprite_vertex_t *out) {
 }
 
 static void R_AddSpriteInternal(const r_buffered_sprite_image_t *image, const float lerp, const color_t color, r_sprite_vertex_t *out) {
-	const _Bool is_current_batch = r_view.num_sprite_images && memcmp(image, &r_view.sprite_images[r_view.num_sprite_images - 1], sizeof(*image)) == 0;
+	const r_buffered_sprite_image_t *current_batch = &r_view.sprite_images[r_view.num_sprite_images - 1];
+	const _Bool is_current_batch = r_view.num_sprite_images &&
+		image->image->texnum == current_batch->image->texnum && ((image->next_image ? image->next_image->texnum : 0) == (current_batch->next_image ? current_batch->next_image->texnum : 0)) &&
+		image->src == current_batch->src && image->dst == current_batch->dst;
 
 	R_ResolveTextureCoordinates(image->image, &out[0].diffusemap, &out[1].diffusemap, &out[2].diffusemap, &out[3].diffusemap);
 
