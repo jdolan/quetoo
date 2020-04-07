@@ -22,10 +22,9 @@
 #include "image.h"
 
 /**
- * @brief Loads the specified image from the game filesystem and populates
- * the provided SDL_Surface.
+ * @brief Loads the specified image from the game filesystem.
  */
-static SDL_Surface *Img_LoadTypedImage(const char *name, const char *type) {
+static SDL_Surface *Img_LoadSurface_(const char *name, const char *type) {
 	SDL_Surface *surf = NULL;
 
 	char path[MAX_QPATH];
@@ -57,9 +56,7 @@ static SDL_Surface *Img_LoadTypedImage(const char *name, const char *type) {
 }
 
 /**
- * @brief Loads the specified image from the game filesystem and populates
- * the provided SDL_Surface. Image formats are tried in the order they appear
- * in TYPES.
+ * @brief Loads the specified image from the game filesystem, trying all supported formats.
  */
 SDL_Surface *Img_LoadSurface(const char *name) {
 	const char *img_formats[] = { "tga", "png", "jpg", NULL };
@@ -68,7 +65,7 @@ SDL_Surface *Img_LoadSurface(const char *name) {
 	StripExtension(name, basename);
 
 	for (const char **fmt = img_formats; *fmt; fmt++) {
-		SDL_Surface *surf = Img_LoadTypedImage(basename, *fmt);
+		SDL_Surface *surf = Img_LoadSurface_(basename, *fmt);
 		if (surf) {
 			return surf;
 		}
