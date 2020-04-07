@@ -730,7 +730,7 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
  */
 static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path) {
 
-	SDL_Surface *surface = Img_LoadImage(path);
+	SDL_Surface *surface = Img_LoadSurface(path);
 	if (surface) {
 		if (w || h) {
 			if (surface->w != w || surface->h != h) {
@@ -803,7 +803,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	SDL_Surface *diffusemap = NULL;
 	if (*cm->diffusemap.path) {
-		if ((diffusemap = Img_LoadImage(cm->diffusemap.path))) {
+		if ((diffusemap = Img_LoadSurface(cm->diffusemap.path))) {
 			Com_Debug(DEBUG_RENDERER, "Loaded diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
 		} else {
 			Com_Warn("Failed to load diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);

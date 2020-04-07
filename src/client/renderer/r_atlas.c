@@ -67,7 +67,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 		atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), MEDIA_ATLAS_IMAGE);
 		assert(atlas_image);
 
-		SDL_Surface *surf = Img_LoadImage(name);
+		SDL_Surface *surf = Img_LoadSurface(name);
 		if (!surf) {
 			surf = SDL_CreateRGBSurfaceWithFormatFrom(&pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
 		}

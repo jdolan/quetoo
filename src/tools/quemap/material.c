@@ -79,7 +79,7 @@ SDL_Surface *LoadAsset(const cm_asset_t *asset) {
 
 	SDL_Surface *surf = g_hash_table_lookup(assets, (void *) asset->path);
 	if (surf == NULL) {
-		surf = Img_LoadImage(asset->path);
+		surf = Img_LoadSurface(asset->path);
 		if (surf) {
 			g_hash_table_insert(assets, (void *) asset->path, surf);
 		}

@@ -61,7 +61,7 @@ static SDL_Surface *Img_LoadTypedImage(const char *name, const char *type) {
  * the provided SDL_Surface. Image formats are tried in the order they appear
  * in TYPES.
  */
-SDL_Surface *Img_LoadImage(const char *name) {
+SDL_Surface *Img_LoadSurface(const char *name) {
 	const char *img_formats[] = { "tga", "png", "jpg", NULL };
 
 	char basename[MAX_QPATH];

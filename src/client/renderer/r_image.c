@@ -261,7 +261,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	if (!(image = (r_image_t *) R_FindMedia(key))) {
 
-		SDL_Surface *surf = Img_LoadImage(key);
+		SDL_Surface *surf = Img_LoadSurface(key);
 		if (surf) {
 			image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), MEDIA_IMAGE);
 

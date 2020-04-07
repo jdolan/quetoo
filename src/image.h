@@ -30,7 +30,7 @@
 /**
  * @brief Loads an image by the specified Quake path to the given surface.
  */
-SDL_Surface *Img_LoadImage(const char *name);
+SDL_Surface *Img_LoadSurface(const char *name);
 
 /**
 * @brief Write pixel data to a PNG file.
