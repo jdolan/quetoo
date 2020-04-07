@@ -146,6 +146,7 @@ void R_UpdateVis(void) {
 
 				if (!R_CullBox(node->mins, node->maxs)) {
 					node->vis_frame = r_locals.vis_frame;
+					node->lights = 0;
 					r_view.count_bsp_nodes++;
 				}
 

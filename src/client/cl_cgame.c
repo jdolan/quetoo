@@ -244,9 +244,7 @@ void Cl_InitCgame(void) {
 	import.CullBox = R_CullBox;
 	import.CullSphere = R_CullSphere;
 
-	import.ColorFromPalette = Img_ColorFromPalette;
-
-	import.LoadSurface = Img_LoadImage;
+	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;
 	import.CreateAtlas = R_CreateAtlas;
 	import.LoadAtlasImage = R_LoadAtlasImage;

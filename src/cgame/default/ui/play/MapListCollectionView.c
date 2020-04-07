@@ -180,8 +180,8 @@ static void enumerateMaps(const char *path, void *data) {
 			if (len) {
 				const char *mapshot = g_list_nth_data(mapshots, RandomRangeu(0, len));
 
-				SDL_Surface *surf;
-				if (cgi.LoadSurface(mapshot, &surf)) {
+				SDL_Surface *surf = cgi.LoadSurface(mapshot);
+				if (surf) {
 					SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
 					info->mapshot = SDL_CreateRGBSurface(0,
 					                                     this->collectionView.itemSize.w * 2,

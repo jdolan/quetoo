@@ -785,6 +785,14 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
+		if (!g_strcmp0(token, "specularmap")) {
+
+			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->specularmap.name, sizeof(m->specularmap.name))) {
+				Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
+				continue;
+			}
+		}
+
 		if (!g_strcmp0(token, "tintmap")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->tintmap.name, sizeof(m->tintmap.name))) {
@@ -1100,7 +1108,8 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 
 	Cm_ResolveMaterialAsset(material, &material->normalmap, context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
 	Cm_ResolveMaterialAsset(material, &material->heightmap, context, (const char *[]) { "_h", "_height", NULL });
-	Cm_ResolveMaterialAsset(material, &material->glossmap, context, (const char *[]) { "_s", "_gloss", "_spec", NULL });
+	Cm_ResolveMaterialAsset(material, &material->glossmap, context, (const char *[]) { "_g", "_gloss", NULL });
+	Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", NULL });
 	Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
 
 	cm_stage_t *stage = material->stages;
@@ -1208,6 +1217,9 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	}
 	if (*material->glossmap.name) {
 		Fs_Print(file, "\tglossmap %s\n", material->glossmap.name);
+	}
+	if (*material->specularmap.name) {
+		Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);
 	}
 	if (*material->tintmap.name) {
 		Fs_Print(file, "\ttintmap %s\n", material->tintmap.name);

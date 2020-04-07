@@ -27,9 +27,10 @@ r_context_t r_context;
  * @brief
  */
 static void R_SetWindowIcon(void) {
-	SDL_Surface *surf;
 
-	if (!Img_LoadImage("icons/quetoo", &surf)) {
+	SDL_Surface *surf = Img_LoadSurface("icons/quetoo");
+
+	if (!surf) {
 		return;
 	}
 

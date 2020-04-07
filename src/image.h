@@ -27,28 +27,10 @@
 
 #include <SDL_image.h>
 
-#define IMG_PALETTE_SIZE 256
-typedef uint32_t img_palette_t[IMG_PALETTE_SIZE];
-
-/**
- * @brief The 8-bit lookup palette, mapping 0-255 to RGB colors.
- */
-extern img_palette_t img_palette;
-
 /**
  * @brief Loads an image by the specified Quake path to the given surface.
  */
-_Bool Img_LoadImage(const char *name, SDL_Surface **surf);
-
-/**
- * @brief Initializes the 8-bit lookup palette.
- */
-void Img_InitPalette(void);
-
-/**
- * @brief Resolves an RGB color value for the given value.
- */
-color_t Img_ColorFromPalette(uint8_t c);
+SDL_Surface *Img_LoadSurface(const char *name);
 
 /**
 * @brief Write pixel data to a PNG file.

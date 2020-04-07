@@ -241,6 +241,29 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 }
 
 /**
+ * @brief Loads all r_bsp_leaf_t for the specified BSP model.
+ */
+static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
+	r_bsp_leaf_t *out;
+
+	const bsp_leaf_t *in = bsp->cm->file.leafs;
+
+	bsp->num_leafs = bsp->cm->file.num_leafs;
+	bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
+
+	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
+
+		out->mins = Vec3s_CastVec3(in->mins);
+		out->maxs = Vec3s_CastVec3(in->maxs);
+
+		out->contents = in->contents;
+
+		out->cluster = in->cluster;
+		out->area = in->area;
+	}
+}
+
+/**
  * @brief Loads all r_bsp_node_t for the specified BSP model.
  */
 static void R_LoadBspNodes(r_bsp_model_t *bsp) {
@@ -275,29 +298,6 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 				out->children[j] = (r_bsp_node_t *) (bsp->leafs + (-1 - c));
 			}
 		}
-	}
-}
-
-/**
- * @brief Loads all r_bsp_leaf_t for the specified BSP model.
- */
-static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
-	r_bsp_leaf_t *out;
-
-	const bsp_leaf_t *in = bsp->cm->file.leafs;
-
-	bsp->num_leafs = bsp->cm->file.num_leafs;
-	bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
-
-	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
-
-		out->mins = Vec3s_CastVec3(in->mins);
-		out->maxs = Vec3s_CastVec3(in->maxs);
-
-		out->contents = in->contents;
-
-		out->cluster = in->cluster;
-		out->area = in->area;
 	}
 }
 
@@ -599,16 +599,16 @@ void R_ExportBsp_f(void) {
 			continue;
 		}
 
-		const r_image_t *diffuse = surf->texinfo->material->diffusemap;
+		const r_image_t *texture = surf->texinfo->material->texture;
 
-		Fs_Print(file, "newmtl %s\n", diffuse->media.name);
-		Fs_Print(file, "map_Ka %s.png\n", diffuse->media.name);
-		Fs_Print(file, "map_Kd %s.png\n\n", diffuse->media.name);
+		Fs_Print(file, "newmtl %s\n", texture->media.name);
+		Fs_Print(file, "map_Ka %s.png\n", texture->media.name);
+		Fs_Print(file, "map_Kd %s.png\n\n", texture->media.name);
 
 		char path[MAX_OS_PATH];
-		g_snprintf(path, sizeof(path), "export/%s.png", diffuse->media.name);
+		g_snprintf(path, sizeof(path), "export/%s.png", texture->media.name);
 
-		R_DumpImage(diffuse, path);
+		R_DumpImage(texture, path);
 
 		g_hash_table_insert(materials, surf->texinfo->material, (gpointer) num_materials);
 		num_materials++;
@@ -643,8 +643,8 @@ void R_ExportBsp_f(void) {
 	while (g_hash_table_iter_next (&iter, &key, NULL)) {
 		const r_material_t *material = (const r_material_t *) key;
 
-		Fs_Print(file, "g %s\n", material->diffusemap->media.name);
-		Fs_Print(file, "usemtl %s\n", material->diffusemap->media.name);
+		Fs_Print(file, "g %s\n", material->texture->media.name);
+		Fs_Print(file, "usemtl %s\n", material->texture->media.name);
 
 		for (int32_t i = 0; i < world->bsp->num_faces; i++) {
 			const r_bsp_face_t *face = &world->bsp->faces[i];

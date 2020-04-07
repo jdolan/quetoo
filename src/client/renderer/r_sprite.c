@@ -110,8 +110,20 @@ static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float
 	return image;
 }
 
-static void R_AddSpriteInternal(const r_buffered_sprite_image_t *image, const color_t color, r_sprite_vertex_t *out) {
-	const _Bool is_current_batch = r_view.num_sprite_images && memcmp(image, &r_view.sprite_images[r_view.num_sprite_images - 1], sizeof(*image)) == 0;
+static _Bool R_CullSprite(r_sprite_vertex_t *out) {
+
+	vec3_t mins, maxs;
+
+	Cm_TraceBounds(out[0].position, out[2].position, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
+
+	return R_CullBox(mins, maxs);
+}
+
+static void R_AddSpriteInternal(const r_buffered_sprite_image_t *image, const float lerp, const color_t color, r_sprite_vertex_t *out) {
+	const r_buffered_sprite_image_t *current_batch = &r_view.sprite_images[r_view.num_sprite_images - 1];
+	const _Bool is_current_batch = r_view.num_sprite_images &&
+		image->image->texnum == current_batch->image->texnum && ((image->next_image ? image->next_image->texnum : 0) == (current_batch->next_image ? current_batch->next_image->texnum : 0)) &&
+		image->src == current_batch->src && image->dst == current_batch->dst;
 
 	R_ResolveTextureCoordinates(image->image, &out[0].diffusemap, &out[1].diffusemap, &out[2].diffusemap, &out[3].diffusemap);
 
@@ -120,8 +132,8 @@ static void R_AddSpriteInternal(const r_buffered_sprite_image_t *image, const co
 	if (image->next_image) {
 		R_ResolveTextureCoordinates(image->next_image, &out[0].next_diffusemap, &out[1].next_diffusemap, &out[2].next_diffusemap, &out[3].next_diffusemap);
 
-		if (image->lerp) {
-			out->next_lerp = image->lerp;
+		if (lerp) {
+			out->next_lerp = lerp;
 		}
 	}
 
@@ -166,6 +178,10 @@ void R_AddSprite(const r_sprite_t *p) {
 	out[2].position = Vec3_Add(Vec3_Add(p->origin, d), r);
 	out[3].position = Vec3_Add(Vec3_Add(p->origin, d), l);
 
+	if (R_CullSprite(out)) {
+		return;
+	}
+
 	const r_image_t *next_image = NULL;
 	float lerp = 0;
 
@@ -186,9 +202,8 @@ void R_AddSprite(const r_sprite_t *p) {
 		.image = image,
 		.src = p->src,
 		.dst = p->dst,
-		.next_image = next_image,
-		.lerp = lerp
-	}, p->color, out);
+		.next_image = next_image
+	}, lerp, p->color, out);
 }
 
 /**
@@ -213,13 +228,16 @@ void R_AddBeam(const r_beam_t *p) {
 	out[2].position = Vec3_Subtract(p->end, right);
 	out[3].position = Vec3_Subtract(p->start, right);
 
+	if (R_CullSprite(out)) {
+		return;
+	}
+
 	R_AddSpriteInternal(&(const r_buffered_sprite_image_t) {
 		.image = image,
 		.src = p->src,
 		.dst = p->dst,
-		.next_image = NULL,
-		.lerp = 0
-	}, p->color, out);
+		.next_image = NULL
+	}, 0, p->color, out);
 	
 	if (!(p->image->type & IT_MASK_CLAMP_EDGE)) {
 		length /= p->image->width * (p->size / p->image->height);

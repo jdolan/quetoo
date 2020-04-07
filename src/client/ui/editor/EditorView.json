@@ -52,7 +52,31 @@
                     "identifier": "normalmap"
                   }
                 },
+				{
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Heightmap texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "heightmap"
+                  }
+                },
                 {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Glossmap texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "glossmap"
+                  }
+                },
+				{
                   "class": "Input",
                   "label": {
                     "text": {
@@ -61,7 +85,7 @@
                   },
                   "control": {
                     "class": "TextView",
-                    "identifier": "glossmap"
+                    "identifier": "specularmap"
                   }
                 },
                 {

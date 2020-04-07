@@ -73,30 +73,21 @@ typedef enum {
 
 // high bits OR'ed with image categories, flags are bits 24..31
 #define IT_MASK_MIPMAP		1 << 24
-#define IT_MASK_FILTER		1 << 25
-#define IT_MASK_MULTIPLY	1 << 26
-#define IT_MASK_CLAMP_EDGE  1 << 27
+#define IT_MASK_CLAMP_EDGE  1 << 25
 #define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY)
 
 // image categories (bits 0..23) + flags are making image types
 typedef enum {
 	IT_NULL =        (1 <<  0),
 	IT_PROGRAM =     (1 <<  1),
-	IT_FONT =        (1 <<  2) + (IT_MASK_FILTER),
-	IT_UI =          (1 <<  3) + (IT_MASK_FILTER),
-	IT_EFFECT =      (1 <<  4) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_DIFFUSE =     (1 <<  5) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_LIGHTMAP =    (1 <<  6) + (IT_MASK_FILTER),
-	IT_LIGHTGRID =   (1 <<  7) + (IT_MASK_FILTER | IT_MASK_CLAMP_EDGE),
-	IT_STAINMAP =    (1 <<  8) + (IT_MASK_FILTER),
-	IT_NORMALMAP =   (1 <<  9) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_GLOSSMAP =    (1 << 10) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_ENVMAP =      (1 << 11) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_FLARE =       (1 << 12) + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
-	IT_SKY =         (1 << 13) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_PIC =         (1 << 14) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_ATLAS =       (1 << 15) + (IT_MASK_MIPMAP),
-	IT_TINTMAP =     (1 << 16) + (IT_MASK_MIPMAP | IT_MASK_FILTER)
+	IT_FONT =        (1 <<  2),
+	IT_UI =          (1 <<  3),
+	IT_EFFECT =      (1 <<  4) + (IT_MASK_MIPMAP),
+	IT_MATERIAL =    (1 <<  5) + (IT_MASK_MIPMAP),
+	IT_PIC =         (1 <<  6) + (IT_MASK_MIPMAP),
+	IT_ATLAS =       (1 <<  7) + (IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE),
+	IT_LIGHTMAP =    (1 <<  8) + (IT_MASK_CLAMP_EDGE),
+	IT_LIGHTGRID =   (1 <<  9) + (IT_MASK_CLAMP_EDGE),
 } r_image_type_t;
 
 /**
@@ -123,10 +114,6 @@ typedef struct {
 	 */
 	GLuint texnum;
 
-	/**
-	 * @brief The average color of the image.
-	 */
-	vec3_t color;
 } r_image_t;
 
 /**
@@ -204,14 +191,12 @@ typedef struct r_material_s {
 	struct cm_material_s *cm; // the parsed material
 
 	// renderer-local stuff parsed from cm
-	r_image_t *diffusemap;
-	r_image_t *normalmap;
-	r_image_t *glossmap;
-	r_image_t *tintmap;
-
-	uint32_t time;
+	r_image_t *texture;
 
 	r_stage_t *stages;
+
+	uint32_t time; // when the material was last animated
+
 } r_material_t;
 
 typedef struct {
@@ -348,7 +333,7 @@ typedef struct r_bsp_node_s {
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
 
-	int64_t lights;
+	int32_t lights;
 } r_bsp_node_t;
 
 /**
@@ -365,7 +350,7 @@ typedef struct {
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
-	struct r_model_s *model;
+	struct r_bsp_inline_model_s *model;
 
 	int32_t vis_frame;
 
@@ -743,9 +728,9 @@ typedef struct {
 	float intensity;
 } r_light_t;
 
-#define MAX_LIGHTS			0x40
+#define MAX_LIGHTS			0x20
 
-#define MAX_ENTITY_SKINS 8
+#define MAX_ENTITY_SKINS 	0x8
 
 /**
  * @brief Entities provide a means to add model instances to the view. Entity
@@ -824,7 +809,7 @@ typedef struct r_entity_s {
 	int32_t num_skins;
 
 	/**
-	 * @brief Entity effects (`EF_NO_DRAW`, `EF_WEAPON`, ..).
+	 * @brief The entity effects (`EF_NO_DRAW`, `EF_WEAPON`, ..).
 	 */
 	int32_t effects;
 
@@ -842,6 +827,11 @@ typedef struct r_entity_s {
 	 * @brief Tint maps allow users to customize their player skins.
 	 */
 	vec4_t tints[TINT_TOTAL];
+
+	/**
+	 * @brief The entity light mask for dynamic light sources.
+	 */
+	int32_t lights;
 } r_entity_t;
 
 #define WEATHER_NONE        0x0
@@ -871,11 +861,6 @@ typedef struct {
 	 * @brief Animation interpolation next image
 	 */
 	const r_image_t *next_image;
-
-	/**
-	 * @brief Animation interpolation frac
-	 */
-	float lerp;
 } r_buffered_sprite_image_t;
 
 /**
