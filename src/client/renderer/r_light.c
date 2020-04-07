@@ -95,7 +95,7 @@ void R_UpdateLights(void) {
 						R_MarkLight(in, e->model->bsp_inline->head_node);
 						break;
 					case MOD_MESH:
-						if (Vec3_Distance(e->origin, in->origin) < in->radius) {
+						if (Vec3_Distance(e->origin, in->origin) < e->model->radius + in->radius) {
 							e->lights |= (1 << (in - r_view.lights));
 						}
 						break;
