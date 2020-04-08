@@ -296,15 +296,24 @@ static int32_t EmitNode(node_t *node) {
 
 static uint32_t start;
 
+/**
+ * @brief
+ */
 static void BeginEmit(const char *name) {
 	start = SDL_GetTicks();
 	Com_Print("%-24s ", name);
 }
 
+/**
+ * @brief
+ */
 static void EndEmit(void) {
 	Com_Print(" %d ms\n", SDL_GetTicks() - start);
 }
 
+/**
+ * @brief
+ */
 static void Emit(void (*EmitFunc)(void), const char *name) {
 	BeginEmit(name);
 	EmitFunc();
@@ -316,7 +325,7 @@ static void Emit(void (*EmitFunc)(void), const char *name) {
  */
 void EmitNodes(node_t *head_node) {
 
-	BeginEmit("Emitting node");
+	BeginEmit("Emitting nodes");
 
 	c_nofaces = 0;
 	c_facenodes = 0;
