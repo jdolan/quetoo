@@ -249,6 +249,7 @@ void Cl_InitCgame(void) {
 	import.CreateAtlas = R_CreateAtlas;
 	import.LoadAtlasImage = R_LoadAtlasImage;
 	import.CompileAtlas = R_CompileAtlas;
+	import.DestroyAtlas = R_DestroyAtlas;
 	import.CreateAnimation = R_CreateAnimation;
 	import.ResolveAnimation = R_ResolveAnimation;
 	import.LoadMaterial = R_LoadMaterial;

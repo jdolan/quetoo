@@ -27,7 +27,7 @@
 static void R_FreeAtlas(r_media_t *media) {
 	r_atlas_t *atlas = (r_atlas_t *) media;
 
-	for (size_t i = 0; i < atlas->atlas->nodes->len; i++) {
+	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
 		atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
 
 		for (int32_t layer = 0; layer < atlas->atlas->layers; layer++) {
@@ -36,6 +36,8 @@ static void R_FreeAtlas(r_media_t *media) {
 	}
 
 	Atlas_Destroy(atlas->atlas);
+
+	R_FreeMedia((r_media_t *) atlas->image);
 }
 
 /**
@@ -44,14 +46,20 @@ static void R_FreeAtlas(r_media_t *media) {
 r_atlas_t *R_CreateAtlas(const char *name) {
 
 	r_atlas_t *atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), MEDIA_ATLAS);
-
 	atlas->media.Free = R_FreeAtlas;
+
 	atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), MEDIA_IMAGE);
+	atlas->image->media.Free = R_FreeImage;
+
 	atlas->image->type = IT_ATLAS;
+
+	R_RegisterMedia((r_media_t *) atlas->image);
+	R_RegisterMedia((r_media_t *) atlas);
 
 	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
 
 	atlas->atlas = Atlas_Create(1);
+
 	return atlas;
 }
 
@@ -59,7 +67,7 @@ r_atlas_t *R_CreateAtlas(const char *name) {
  * @brief Add an image to the list of images for this atlas.
  */
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
-	static int32_t pixels = 0xff0000ff;
+	int32_t pixels = 0xff0000ff;
 
 	r_atlas_image_t *atlas_image = (r_atlas_image_t *) R_FindMedia(name);
 	if (!atlas_image) {
@@ -69,6 +77,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 
 		SDL_Surface *surf = Img_LoadSurface(name);
 		if (!surf) {
+			Com_Warn("Failed to load atlas image %s\n", name);
 			surf = SDL_CreateRGBSurfaceWithFormatFrom(&pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
 		}
 
@@ -79,6 +88,8 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 		atlas_image->image.width = surf->w;
 		atlas_image->image.height = surf->h;
 
+		R_RegisterMedia((r_media_t *) atlas_image);
+
 		R_RegisterDependency((r_media_t *) atlas_image, (r_media_t *) atlas);
 
 		node->data = atlas_image;
@@ -88,7 +99,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 }
 
 /**
- * @brief
+ * @brief GFunc for atlas node compilation.
  */
 static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
 
@@ -112,19 +123,21 @@ static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
  */
 void R_CompileAtlas(r_atlas_t *atlas) {
 
+	R_FreeImage((r_media_t *) atlas->image);
+
 	atlas->image->width = 0;
 
-	for (int32_t w = 1024; atlas->image->width == 0; w <<= 1) {
+	for (int32_t width = 1024; atlas->image->width == 0; width += 256) {
 
-		if (w > r_config.max_texture_size) {
+		if (width > r_config.max_texture_size) {
 			Com_Error(ERROR_DROP, "Atlas exceeds GL_MAX_TEXTURE_SIZE\n");
 		}
 
-		SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormat(0, w, w, 32, SDL_PIXELFORMAT_RGBA32);
+		SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormat(0, width, width, 32, SDL_PIXELFORMAT_RGBA32);
 		if (Atlas_Compile(atlas->atlas, 0, surf) == 0) {
 
-			atlas->image->width = w;
-			atlas->image->height = w;
+			atlas->image->width = width;
+			atlas->image->height = width;
 
 			R_UploadImage(atlas->image, GL_RGBA, surf->pixels);
 
@@ -134,5 +147,23 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 		SDL_FreeSurface(surf);
 	}
 
-	R_RegisterMedia((r_media_t *) atlas);
+	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
+}
+
+/**
+ * @brief
+ */
+void R_DestroyAtlas(r_atlas_t *atlas) {
+
+	if (atlas) {
+		for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
+			atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
+
+			r_atlas_image_t *atlas_image = node->data;
+
+			R_FreeMedia((r_media_t *) atlas_image);
+		}
+
+		R_FreeMedia((r_media_t *) atlas);
+	}
 }

@@ -346,7 +346,7 @@ void R_EndFrame(void) {
 
 		if (r_view.update) {
 			r_view.update = false;
-			R_FreeMedia();
+			R_FreeUnseededMedia();
 		}
 	}
 

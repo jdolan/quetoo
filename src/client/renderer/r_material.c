@@ -585,13 +585,19 @@ static void R_RegisterMaterial(r_media_t *self) {
 
 	r_stage_t *s = mat->stages;
 	while (s) {
-		R_RegisterDependency(self, (r_media_t *) s->image);
+
+		if (s->material) {
+			R_RegisterDependency(self, (r_media_t *) s->material);
+		}
+
+		if (s->image) {
+			R_RegisterDependency(self, (r_media_t *) s->image);
+		}
 
 		for (int32_t i = 0; i < s->cm->anim.num_frames; i++) {
 			R_RegisterDependency(self, (r_media_t *) s->anim.frames[i]);
 		}
 
-		R_RegisterDependency(self, (r_media_t *) s->material);
 		s = s->next;
 	}
 }
@@ -949,13 +955,7 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 
 	R_MaterialKey(mat_name, key, sizeof(key), context);
 
-	r_material_t *material = (r_material_t *) R_FindMedia(key);
-
-	if (material != NULL) {
-		R_RegisterMedia((r_media_t *) material);
-	}
-
-	return material;
+	return (r_material_t *) R_FindMedia(key);
 }
 
 /**

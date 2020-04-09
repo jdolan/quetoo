@@ -243,7 +243,12 @@ _Bool R_RetainImage(r_media_t *self) {
  * @brief Free event listener for images.
  */
 void R_FreeImage(r_media_t *media) {
-	glDeleteTextures(1, &((r_image_t *) media)->texnum);
+
+	r_image_t *image = (r_image_t *) media;
+
+	glDeleteTextures(1, &image->texnum);
+
+	image->texnum = 0;
 }
 
 /**

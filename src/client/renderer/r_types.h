@@ -51,14 +51,43 @@ typedef enum {
 	MEDIA_TOTAL
 } r_media_type_t;
 
-// media handles
+/**
+ * @brief Images, atlases, models, materials, etc. are all managed as media.
+ */
 typedef struct r_media_s {
+	/**
+	 * @brief The media name.
+	 */
 	char name[MAX_QPATH];
+
+	/**
+	 * @brief The media type.
+	 */
 	r_media_type_t type;
+
+	/**
+	 * @brief The media on which this media depends.
+	 */
 	GList *dependencies;
+
+	/**
+	 * @brief The media registration callback.
+	 */
 	void (*Register)(struct r_media_s *self);
+
+	/**
+	 * @brief The media retain callback, to avoid being freed.
+	 */
 	_Bool (*Retain)(struct r_media_s *self);
+
+	/**
+	 * @brief The free callback, to release any system resources.
+	 */
 	void (*Free)(struct r_media_s *self);
+
+	/**
+	 * @brief The media seed, to determine if this media is current.
+	 */
 	int32_t seed;
 } r_media_t;
 
@@ -120,17 +149,39 @@ typedef struct {
  * @brief An image atlas.
  */
 typedef struct {
+	/**
+	 * @brief The media.
+	 */
 	r_media_t media;
-	r_image_t *image;
+
+	/**
+	 * @brief The atlas.
+	 */
 	atlas_t *atlas;
+
+	/**
+	 * @brief The compiled image atlas containing all nodes.
+	 */
+	r_image_t *image;
 } r_atlas_t;
 
 /**
  * @brief An atlas image, castable to r_image_t and r_media_t.
  */
 typedef struct {
+	/**
+	 * @brief The image.
+	 */
 	r_image_t image;
+
+	/**
+	 * @brief The atlas node that created this atlas image.
+	 */
 	atlas_node_t *node;
+
+	/**
+	 * @brief The texture coordinates of this atlas image within the atlas.
+	 */
 	vec4_t texcoords;
 } r_atlas_image_t;
 
