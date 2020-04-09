@@ -552,13 +552,6 @@ typedef struct cg_import_s {
 	void (*AddSample)(const s_play_sample_t *play);
 
 	/**
-	 * @brief Resolves a color from the specified palette index.
-	 * @param c The palette index.
-	 * @return The color result.
-	 */
-	color_t (*ColorFromPalette)(uint8_t c);
-
-	/**
 	 * @brief Query if a box is visible on screen.
 	 * @param mins The min bounds point.
 	 * @param maxs The max bounds point.
@@ -600,15 +593,15 @@ typedef struct cg_import_s {
 	r_atlas_t *(*CreateAtlas)(const char *name);
 
 	/**
-	 * @brief Load an image into an atlas.
+	 * @brief Load an image into an atlas. The atlas must be [re]compiled.
 	 * @param atlas The atlas to add an image to.
 	 * @param image The image to add to the atlas.
-	 * @return The atlas image, or `NULL` if the image could not be loaded.
+	 * @return The atlas image, or a placeholder if the image could not be loaded.
 	 */
 	r_atlas_image_t *(*LoadAtlasImage)(r_atlas_t *atlas, const char *name, r_image_type_t type);
 
 	/**
-	 * @brief Compiles the specified atlas.
+	 * @brief Compiles the specified atlas, preparing all atlas images it contains for rendering.
 	 * @param atlas The atlas to stitch together and produce the image for.
 	 */
 	void (*CompileAtlas)(r_atlas_t *atlas);

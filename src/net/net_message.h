@@ -53,19 +53,20 @@
  * @brief These flags indicate which fields in a given entity_state_t must be
  * written or read for delta compression from one snapshot to the next.
  */
-#define U_ORIGIN				(1 << 0) // origin
-#define U_TERMINATION			(1 << 1) // beams
-#define U_ANGLES				(1 << 2) // angles
-#define U_ANIMATIONS			(1 << 3) // animation frames
-#define U_EVENT					(1 << 4) // single-frame events
-#define U_EFFECTS				(1 << 5) // bit masked effects
-#define U_TRAIL					(1 << 6) // enumerated trails
-#define U_MODELS				(1 << 7) // models (primary and linked)
-#define U_CLIENT				(1 << 8) // offset into client skins array
-#define U_SOUND					(1 << 9) // looped sounds
-#define U_SOLID					(1 << 10) // solid type
-#define U_BOUNDS				(1 << 11) // bounding box mins
-#define U_REMOVE				(1 << 12) // remove this entity, don't add it
+#define U_ORIGIN				(1 << 0)
+#define U_TERMINATION			(1 << 1)
+#define U_ANGLES				(1 << 2)
+#define U_ANIMATIONS			(1 << 3)
+#define U_EVENT					(1 << 4)
+#define U_EFFECTS				(1 << 5)
+#define U_TRAIL					(1 << 6)
+#define U_MODELS				(1 << 7)
+#define U_COLOR					(1 << 8)
+#define U_CLIENT				(1 << 9)
+#define U_SOUND					(1 << 10)
+#define U_SOLID					(1 << 11)
+#define U_BOUNDS				(1 << 12)
+#define U_REMOVE				(1 << 13)
 
 /**
  * @brief These flags indicate which fields a given sound packet will contain. Maximum 8 flags.

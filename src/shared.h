@@ -172,19 +172,65 @@ typedef enum {
  * from the scene as needed.
  */
 typedef struct {
-	uint16_t number; // entity index
+	/**
+	 * @brief The entity number that this state update belongs to.
+	 */
+	uint16_t number;
 
+	/**
+	 * @brief The entity origin.
+	 */
 	vec3_t origin;
-	vec3_t termination; // beams (lightning, grapple, lasers, ..)
+
+	/**
+	 * @brief The entity termination for beams.
+	 */
+	vec3_t termination;
+
+	/**
+	 * @brief The entity angles.
+	 */
 	vec3_t angles;
 
-	uint8_t animation1, animation2; // animations (running, attacking, ..)
-	uint8_t event; // client side events (sounds, blood, ..)
-	uint16_t effects; // pulse, bob, rotate, etc..
-	uint8_t trail; // particle trails, dynamic lights, etc..
-	uint8_t model1, model2, model3, model4; // primary model, linked models
-	uint8_t client; // client info index
-	uint8_t sound; // looped sounds
+	/**
+	 * @brief The entity animation identifiers.
+	 */
+	uint8_t animation1, animation2;
+
+	/**
+	 * @brief The entity event (entity_event_t).
+	 */
+	uint8_t event;
+
+	/**
+	 * @brief The entity effects flags (EF_ROTATE, EF_BOB, etc).
+	 */
+	uint16_t effects;
+
+	/**
+	 * @brief The entity trail effect (entity_trail_t).
+	 */
+	uint8_t trail;
+
+	/**
+	 * @brief The entity model indexes (primary and linked models).
+	 */
+	uint8_t model1, model2, model3, model4;
+
+	/**
+	 * @brief The entity color.
+	 */
+	color32_t color;
+
+	/**
+	 * @brief The entity client info index.
+	 */
+	uint8_t client;
+
+	/**
+	 * @brief The entity ambient sound index.
+	 */
+	uint8_t sound;
 
 	/**
 	 * @brief The solid type. All solid types are sent to the client, but the
@@ -197,8 +243,7 @@ typedef struct {
 	 * client-sided prediction so that players don't e.g. run through each
 	 * other.
 	 */
-	vec3_t mins;
-	vec3_t maxs;
+	vec3_t mins, maxs;
 } entity_state_t;
 
 /**

@@ -264,18 +264,6 @@ typedef enum {
 #define EFFECT_COLOR_PURPLE		Color3b(39, 39, 63)
 
 /**
- * @brief Color palette indexes for the above.
- */
-#define PALETTE_COLOR_RED 232
-#define PALETTE_COLOR_GREEN 201
-#define PALETTE_COLOR_BLUE 119
-#define PALETTE_COLOR_YELLOW 219
-#define PALETTE_COLOR_ORANGE 225
-#define PALETTE_COLOR_WHITE 216
-#define PALETTE_COLOR_PINK 247
-#define PALETTE_COLOR_PURPLE 187
-
-/**
  * @brief Scoreboard background color hues.
  */
 #define TEAM_COLOR_RED			360
@@ -659,19 +647,20 @@ typedef struct {
 	char *time_limit;
 	char *give;
 	char *music;
+	char *noise;
+	char *item;
+	char *colors;
 
 	int32_t lip;
 	int32_t distance;
 	int32_t height;
 	int32_t sounds;
-	char *noise;
-	char *item;
-	char *colors;
+
 } g_spawn_temp_t;
 
-#define EOFS(x) (ptrdiff_t)&(((g_entity_t *) 0)->x)
-#define LOFS(x) (ptrdiff_t)&(((g_entity_t *) 0)->locals.x)
-#define SOFS(x) (ptrdiff_t)&(((g_spawn_temp_t *) 0)->x)
+#define EOFS(x) (ptrdiff_t) &(((g_entity_t *) 0)->x)
+#define LOFS(x) (ptrdiff_t) &(((g_entity_t *) 0)->locals.x)
+#define SOFS(x) (ptrdiff_t) &(((g_spawn_temp_t *) 0)->x)
 
 /**
  * @brief Movement states.
@@ -1180,7 +1169,7 @@ typedef struct {
 	uint16_t noise_index;
 	int16_t attenuation;
 
-	int16_t colors[2];
+	color32_t colors[2];
 
 	float wait;
 	float delay; // before firing targets

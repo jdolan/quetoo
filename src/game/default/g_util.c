@@ -736,43 +736,38 @@ g_client_t *G_ClientByName(char *name) {
 /**
  * @brief
  */
-int32_t G_ColorByName(const char *s, int32_t def) {
+color32_t G_ColorByName(const char *s, color32_t def) {
 
 	if (!s || *s == '\0') {
 		return def;
 	}
 
-	int32_t i = atoi(s);
-	if (i > 0 && i < 255) {
-		return i;
+	color_t color = Color32_Color(def);
+
+	const float hue = atoi(s);
+	if (hue > 0.f && hue <= 360.f) {
+		color = ColorHSV(hue, 1.f, 1.f);
+	} else {
+		if (!g_ascii_strcasecmp(s, "red")) {
+			color = EFFECT_COLOR_RED;
+		} else if (!g_ascii_strcasecmp(s, "green")) {
+			color = EFFECT_COLOR_GREEN;
+		} else if (!g_ascii_strcasecmp(s, "blue")) {
+			color = EFFECT_COLOR_BLUE;
+		} else if (!g_ascii_strcasecmp(s, "yellow")) {
+			color = EFFECT_COLOR_YELLOW;
+		} else if (!g_ascii_strcasecmp(s, "orange")) {
+			color = EFFECT_COLOR_ORANGE;
+		} else if (!g_ascii_strcasecmp(s, "white")) {
+			color = EFFECT_COLOR_WHITE;
+		} else if (!g_ascii_strcasecmp(s, "pink")) {
+			color = EFFECT_COLOR_PINK;
+		} else if (!g_ascii_strcasecmp(s, "purple")) {
+			color = EFFECT_COLOR_PURPLE;
+		}
 	}
 
-	if (!g_ascii_strcasecmp(s, "red")) {
-		return PALETTE_COLOR_RED;
-	}
-	if (!g_ascii_strcasecmp(s, "green")) {
-		return PALETTE_COLOR_GREEN;
-	}
-	if (!g_ascii_strcasecmp(s, "blue")) {
-		return PALETTE_COLOR_BLUE;
-	}
-	if (!g_ascii_strcasecmp(s, "yellow")) {
-		return PALETTE_COLOR_YELLOW;
-	}
-	if (!g_ascii_strcasecmp(s, "orange")) {
-		return PALETTE_COLOR_ORANGE;
-	}
-	if (!g_ascii_strcasecmp(s, "white")) {
-		return PALETTE_COLOR_WHITE;
-	}
-	if (!g_ascii_strcasecmp(s, "pink")) {
-		return PALETTE_COLOR_PINK;
-	}
-	if (!g_ascii_strcasecmp(s, "purple")) {
-		return PALETTE_COLOR_PURPLE;
-	}
-
-	return def;
+	return Color_Color32(color);
 }
 
 /**

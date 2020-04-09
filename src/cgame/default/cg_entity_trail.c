@@ -89,14 +89,9 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 			p->velocity = Vec3_Add(Vec3_Scale(forward, 2.0), Vec3_RandomRange(-5.f, 5.f));
 			p->velocity.z += 6.0;
 			p->acceleration.z = 10.0;
-
 			p->lifetime = 1000 - (Randomf() * 100);
-
 			p->color = Color3b(160, 160, 160);
-//			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
-
 			p->size = 3.0;
-//			p->delta_size = -0.1;
 
 			ent->timestamp = cgi.client->unclamped_time + 3000;
 		}
@@ -107,17 +102,10 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 		}
 
 		p->lifetime = 4000 - (Randomf() * 100);
-
-		p->color = color_white;// cgi.ColorFromPalette(6 + (Randomr(0, 8)));
+		p->color = color_white;
 		p->color.a = 200 / 255.f;
-
-//		p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
-
 		p->size = 1.5;
-//		p->delta_size = 0.1;
-
 		p->origin = pos;
-
 		p->velocity = Vec3_Add(Vec3_Scale(forward, 5.0), Vec3_RandomRange(-2.f, 2.f));
 
 		ent->timestamp = cgi.client->unclamped_time + 3000;
@@ -205,8 +193,6 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	const uint32_t r = RandomRangeu(0, 16);
 	p->color = Color3b(224 + r, 180 + r, 40 + r);
 	p->color.a = .78f;
-//	p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
-
 	p->size = RandomRangef(-10.f, 10.f);
 
 	// make static flames rise
@@ -238,16 +224,10 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 
 	p->origin = org;
 	p->velocity = Vec3_Add(vel, Vec3_RandomRange(-2.f, 2.f));
-
 	p->lifetime = 4500 / (5.0 + Randomf() * 0.5);
-
-	p->color = color_white;//cgi.ColorFromPalette(6 + (Randomr(0, 8)));
+	p->color = color_white;
 	p->color.a = 50 / 255.f;
-
-//	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
-
 	p->size = 8.0;
-//	p->delta_size = 20.0 / p->lifetime / PARTICLE_FRAME;
 }
 
 /**

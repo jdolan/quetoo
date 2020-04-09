@@ -30,10 +30,10 @@
 static void G_target_light_Toggle(g_entity_t *self) {
 
 	if ((self->s.effects & EF_LIGHT) == 0) {
-		self->s.client = self->locals.colors[0];
+		self->s.color = self->locals.colors[0];
 		self->s.effects |= EF_LIGHT;
 	} else {
-		self->s.client = 0;
+		self->s.color = Color32(0, 0, 0, 0);
 		self->s.effects &= ~EF_LIGHT;
 	}
 }
@@ -46,9 +46,9 @@ static void G_target_light_Cycle(g_entity_t *self) {
 	if ((self->s.effects & EF_LIGHT) == 0) {
 		G_target_light_Toggle(self);
 	} else {
-		if (self->s.client == self->locals.colors[0]) {
-			if (self->locals.colors[1]) {
-				self->s.client = self->locals.colors[1];
+		if (self->s.color.rgba == self->locals.colors[0].rgba) {
+			if (self->locals.colors[1].rgba) {
+				self->s.client = self->locals.colors[1].rgba;
 			} else if (self->locals.spawn_flags & LIGHT_TOGGLE) {
 				G_target_light_Toggle(self);
 			}
@@ -56,7 +56,7 @@ static void G_target_light_Cycle(g_entity_t *self) {
 			if (self->locals.spawn_flags & LIGHT_TOGGLE) {
 				G_target_light_Toggle(self);
 			} else {
-				self->s.client = self->locals.colors[0];
+				self->s.color = self->locals.colors[0];
 			}
 		}
 	}
@@ -85,7 +85,7 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
  and also be toggled on and off.
 
  -------- Keys --------
- colors : The color(s) to cycle through (1 - 255 paletted, "red", "green", etc..)
+ colors : The color(s) to cycle through (1 - 360 hue, "red", "green", "blue", etc..)
  delay : The delay before activating, in seconds (default 0).
  dmg : The radius of the light in units.
  targetname : The target name of this entity.
@@ -107,7 +107,7 @@ void G_target_light(g_entity_t *self) {
 
 	char *c = strchr(g_game.spawn.colors, ' ');
 	if (c) {
-		self->locals.colors[1] = G_ColorByName(c + 1, 0);
+		self->locals.colors[1] = G_ColorByName(c + 1, Color32(0, 0, 0, 0));
 		*c = '\0';
 	}
 
@@ -115,7 +115,7 @@ void G_target_light(g_entity_t *self) {
 		self->locals.damage = 300;
 	}
 
-	self->locals.colors[0] = G_ColorByName(g_game.spawn.colors, PALETTE_COLOR_WHITE);
+	self->locals.colors[0] = G_ColorByName(g_game.spawn.colors, Color32(255, 255, 255, 255));
 	self->s.termination.x = self->locals.damage; // radius
 
 	self->locals.Use = G_target_light_Use;

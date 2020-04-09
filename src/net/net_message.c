@@ -394,6 +394,10 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		bits |= U_MODELS;
 	}
 
+	if (to->color.rgba != from->color.rgba) {
+		bits |= U_COLOR;
+	}
+
 	if (to->client != from->client) {
 		bits |= U_CLIENT;
 	}
@@ -453,6 +457,13 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		Net_WriteByte(msg, to->model2);
 		Net_WriteByte(msg, to->model3);
 		Net_WriteByte(msg, to->model4);
+	}
+
+	if (bits & U_COLOR) {
+		Net_WriteByte(msg, to->color.r);
+		Net_WriteByte(msg, to->color.g);
+		Net_WriteByte(msg, to->color.b);
+		Net_WriteByte(msg, to->color.a);
 	}
 
 	if (bits & U_CLIENT) {
@@ -810,6 +821,13 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 		to->model2 = Net_ReadByte(msg);
 		to->model3 = Net_ReadByte(msg);
 		to->model4 = Net_ReadByte(msg);
+	}
+
+	if (bits & U_COLOR) {
+		to->color.r = Net_ReadByte(msg);
+		to->color.g = Net_ReadByte(msg);
+		to->color.b = Net_ReadByte(msg);
+		to->color.a = Net_ReadByte(msg);
 	}
 
 	if (bits & U_CLIENT) {

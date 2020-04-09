@@ -50,7 +50,6 @@
  */
 #define MAX_BSP_LIGHTMAP_WIDTH 4096
 
-
 /**
  * @brief Lightmap atlas bytes per pixel.
  */

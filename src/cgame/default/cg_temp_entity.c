@@ -620,7 +620,7 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 
 		p->lifetime = 50;
 
-		p->color = color_green;//cgi.ColorFromPalette(200 + Randomr(0, 3));
+		p->color = color_green;
 
 		p->size = 6.0;
 	}
