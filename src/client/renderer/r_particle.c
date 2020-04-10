@@ -159,6 +159,8 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 
 	glBindVertexArray(r_particles.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_particles.vertex_buffer);
+
+	// FIXME: Do this once per frame, not every call (node)
 	glBufferData(GL_ARRAY_BUFFER, r_view.num_particles * sizeof(r_particle_vertex_t), r_particles.particles, GL_DYNAMIC_DRAW);
 
 	glEnableVertexAttribArray(r_particle_program.in_position);
