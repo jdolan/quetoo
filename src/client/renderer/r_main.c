@@ -299,7 +299,7 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawEntities();
 
-	R_DrawParticles(NULL);
+//	R_DrawParticles(NULL);
 
 	R_DrawSprites();
 

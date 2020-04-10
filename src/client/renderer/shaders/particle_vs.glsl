@@ -21,6 +21,7 @@
 
 layout (location = 0) in vec4 in_position;
 layout (location = 1) in vec4 in_color;
+layout (location = 2) in int in_node;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -31,6 +32,7 @@ uniform vec2 depth_range;
 out vertex_data {
 	vec3 position;
 	vec4 color;
+	int node;
 } vertex;
 
 /**
@@ -47,4 +49,6 @@ void main(void) {
 	gl_PointSize = pixels_per_radian * in_position.w  / depth;
 
 	vertex.color = in_color;
+	
+	vertex.node = in_node;
 }

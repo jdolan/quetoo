@@ -25,11 +25,24 @@
 #define TEXTURE_DEPTH_ATTACHMENT 1
 
 /**
- * @brief
+ * @brief The particle vertex structure.
  */
 typedef struct {
+	/**
+	 * @brief The particle position. The W component is the particle size.
+	 */
 	vec4_t position;
+
+	/**
+	 * @brief The particle color.
+	 */
 	color32_t color;
+
+	/**
+	 * @brief The alpha blended node in which this particle should be rendered, or -1.
+	 */
+	int32_t node;
+
 } r_particle_vertex_t;
 
 /**
@@ -56,11 +69,12 @@ static struct {
 
 	GLint in_position;
 	GLint in_color;
+	GLint in_node;
 
 	GLint projection;
 	GLint view;
 
-	GLint plane;
+	GLint node;
 
 	GLint depth_range;
 	GLint pixels_per_radian;
@@ -97,13 +111,20 @@ void R_AddParticle(const r_particle_t *p) {
 	out->position = Vec3_ToVec4(p->origin, p->size);
 	out->color = Color_Color32(p->color);
 
+	const r_bsp_node_t *node = R_BlendNodeForPoint(p->origin);
+	if (node) {
+		out->node = (int32_t) (node - r_model_state.world->bsp->nodes);
+	} else {
+		out->node = -1;
+	}
+
 	r_view.num_particles++;
 }
 
 /**
  * @brief
  */
-void R_DrawParticles(const cm_bsp_plane_t *plane) {
+void R_DrawParticles(const r_bsp_node_t *node) {
 
 	glDepthMask(GL_FALSE);
 
@@ -118,13 +139,11 @@ void R_DrawParticles(const cm_bsp_plane_t *plane) {
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
-	vec4_t p;
-	if (plane) {
-		Matrix4x4_TransformQuakePlane(&r_locals.view, plane->normal, plane->dist, &p);
+	if (node) {
+		glUniform1i(r_particle_program.node, (int32_t) (node - r_model_state.world->bsp->nodes));
 	} else {
-		Matrix4x4_TransformQuakePlane(&r_locals.view, Vec3_Up(), MAX_WORLD_COORD, &p);
+		glUniform1i(r_particle_program.node, -1);
 	}
-	glUniform4fv(r_particle_program.plane, 1, p.xyzw);
 
 	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y) / 2.0));
 	glUniform2f(r_particle_program.depth_range, 1.0, MAX_WORLD_DIST);
@@ -185,11 +204,12 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.in_position = glGetAttribLocation(r_particle_program.name, "in_position");
 	r_particle_program.in_color = glGetAttribLocation(r_particle_program.name, "in_color");
+	r_particle_program.in_node = glGetAttribLocation(r_particle_program.name, "in_node");
 
 	r_particle_program.projection = glGetUniformLocation(r_particle_program.name, "projection");
 	r_particle_program.view = glGetUniformLocation(r_particle_program.name, "view");
 
-	r_particle_program.plane = glGetUniformLocation(r_particle_program.name, "plane");
+	r_particle_program.node = glGetUniformLocation(r_particle_program.name, "node");
 
 	r_particle_program.pixels_per_radian = glGetUniformLocation(r_particle_program.name, "pixels_per_radian");
 	r_particle_program.depth_range = glGetUniformLocation(r_particle_program.name, "depth_range");
@@ -229,6 +249,7 @@ void R_InitParticles(void) {
 
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, position));
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, color));
+	glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, node));
 
 	glBindVertexArray(0);
 

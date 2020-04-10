@@ -172,12 +172,12 @@ static void R_DrawBspNodeBlendParticles(const r_bsp_inline_model_t *in, const r_
 	glDisable(GL_CULL_FACE);
 
 	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 
-	R_DrawParticles(node->plane);
-
-	// TODO: Sprites
+	R_DrawParticles(node);
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
@@ -300,7 +300,11 @@ static void R_DrawBspInlineModel(const r_bsp_inline_model_t *in) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	glDepthMask(GL_FALSE);
+
 	R_DrawBspNodeBlend(in, in->head_node);
+
+	glDepthMask(GL_TRUE);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);

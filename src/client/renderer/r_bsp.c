@@ -22,15 +22,46 @@
 #include "r_local.h"
 
 /**
- * @brief Returns the leaf for the specified point.
+ * @return The leaf for the specified point.
  */
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 
-	return &r_model_state.world->bsp->leafs[Cm_PointLeafnum(p, 0)];
+	const int32_t leaf_num = Cm_PointLeafnum(p, 0);
+
+	assert(leaf_num >= 0);
+
+	return &r_model_state.world->bsp->leafs[leaf_num];
 }
 
 /**
- * @brief Returns true if the specified leaf is in the PVS for the current frame.
+ * @return The node behind which the specified point should be rendered for alpha blending.
+ */
+const r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p) {
+
+	const r_bsp_leaf_t *leaf = R_LeafForPoint(p);
+	if (leaf) {
+
+		const float dist = Vec3_Distance(r_view.origin, p);
+
+		const r_bsp_node_t *node = leaf->parent;
+		while (node) {
+
+			if (node->surface_mask & SURF_MASK_TRANSLUCENT) {
+
+				if (Cm_DistanceToPlane(r_view.origin, node->plane) < dist) {
+					return node;
+				}
+			}
+
+			node = node->parent;
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * @return True if the specified leaf is in the PVS for the current frame.
  */
 _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 
@@ -50,7 +81,7 @@ _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 }
 
 /**
- * @brief Returns true if the specified leaf is in the PHS for the current frame.
+ * @return True if the specified leaf is in the PHS for the current frame.
  */
 _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 

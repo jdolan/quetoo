@@ -22,13 +22,12 @@
 layout (points) in;
 layout (points, max_vertices = 1) out;
 
-uniform mat4 view;
-
-uniform vec4 plane;
+uniform int node;
 
 in vertex_data {
 	vec3 position;
 	vec4 color;
+	int node;
 } in_vertex[];
 
 out vertex_data {
@@ -41,7 +40,7 @@ out vertex_data {
  */
 void main() {
 
-	if (dot(plane.xyz, in_vertex[0].position) - plane.w < 0.0) {
+	if (node == -1 || node == in_vertex[0].node) {
 
 		gl_Position = gl_in[0].gl_Position;
 
