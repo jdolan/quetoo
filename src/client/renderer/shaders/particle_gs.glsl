@@ -40,7 +40,7 @@ out vertex_data {
  */
 void main() {
 
-	if (node == -1 || node == in_vertex[0].node) {
+	if (node == in_vertex[0].node) {
 
 		gl_Position = gl_in[0].gl_Position;
 

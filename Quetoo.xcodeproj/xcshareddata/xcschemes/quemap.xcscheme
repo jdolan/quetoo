@@ -114,7 +114,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--indirect"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--antialias "
@@ -125,8 +125,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/lightgrid.map"
-            isEnabled = "NO">
+            argument = "maps/simple.map"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/jgothic.map"
@@ -134,7 +134,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/torn.map"
