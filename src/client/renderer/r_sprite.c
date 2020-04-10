@@ -79,7 +79,10 @@ static struct {
 	GLint texture_lerp;
 } r_sprite_program;
 
-static void R_ResolveTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_t *tr, vec2_t *br, vec2_t *bl) {
+/**
+ * @brief
+ */
+static void R_SpriteTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_t *tr, vec2_t *br, vec2_t *bl) {
 
 	if (image->media.type == MEDIA_ATLAS_IMAGE) {
 		r_atlas_image_t *atlas_image = (r_atlas_image_t *) image;
@@ -97,6 +100,9 @@ static void R_ResolveTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2
 	}
 }
 
+/**
+ * @brief
+ */
 static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float life) {
 
 	const r_image_t *image;
@@ -110,6 +116,9 @@ static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float
 	return image;
 }
 
+/**
+ * @brief
+ */
 static _Bool R_CullSprite(r_sprite_vertex_t *out) {
 
 	vec3_t mins, maxs;
@@ -119,18 +128,21 @@ static _Bool R_CullSprite(r_sprite_vertex_t *out) {
 	return R_CullBox(mins, maxs);
 }
 
-static void R_AddSpriteInternal(const r_buffered_sprite_image_t *image, const float lerp, const color_t color, r_sprite_vertex_t *out) {
+/**
+ * @brief
+ */
+static void R_AddSprite_(const r_buffered_sprite_image_t *image, const float lerp, const color_t color, r_sprite_vertex_t *out) {
 	const r_buffered_sprite_image_t *current_batch = &r_view.sprite_images[r_view.num_sprite_images - 1];
 	const _Bool is_current_batch = r_view.num_sprite_images &&
 		image->image->texnum == current_batch->image->texnum && ((image->next_image ? image->next_image->texnum : 0) == (current_batch->next_image ? current_batch->next_image->texnum : 0)) &&
 		image->src == current_batch->src && image->dst == current_batch->dst;
 
-	R_ResolveTextureCoordinates(image->image, &out[0].diffusemap, &out[1].diffusemap, &out[2].diffusemap, &out[3].diffusemap);
+	R_SpriteTextureCoordinates(image->image, &out[0].diffusemap, &out[1].diffusemap, &out[2].diffusemap, &out[3].diffusemap);
 
 	out->next_lerp = 0;
 
 	if (image->next_image) {
-		R_ResolveTextureCoordinates(image->next_image, &out[0].next_diffusemap, &out[1].next_diffusemap, &out[2].next_diffusemap, &out[3].next_diffusemap);
+		R_SpriteTextureCoordinates(image->next_image, &out[0].next_diffusemap, &out[1].next_diffusemap, &out[2].next_diffusemap, &out[3].next_diffusemap);
 
 		if (lerp) {
 			out->next_lerp = lerp;
@@ -198,7 +210,7 @@ void R_AddSprite(const r_sprite_t *p) {
 		}
 	}
 
-	R_AddSpriteInternal(&(const r_buffered_sprite_image_t) {
+	R_AddSprite_(&(const r_buffered_sprite_image_t) {
 		.image = image,
 		.src = p->src,
 		.dst = p->dst,
@@ -210,48 +222,48 @@ void R_AddSprite(const r_sprite_t *p) {
  * @brief Copies the specified sprite into the view structure, provided it
  * passes a basic visibility test.
  */
-void R_AddBeam(const r_beam_t *p) {
+void R_AddBeam(const r_beam_t *b) {
 
 	if (r_view.num_sprites == MAX_SPRITES) {
 		return;
 	}
 	
-	const r_image_t *image = R_ResolveSpriteImage((r_media_t *) p->image, 0);
+	const r_image_t *image = R_ResolveSpriteImage((r_media_t *) b->image, 0);
 	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
-	const float size = p->size * .5f;
+	const float size = b->size * .5f;
 	float length;
-	const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(p->start, p->end), &length),
-		right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view.origin, p->end))), size);
+	const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length),
+		right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view.origin, b->end))), size);
 
-	out[0].position = Vec3_Add(p->start, right);
-	out[1].position = Vec3_Add(p->end, right);
-	out[2].position = Vec3_Subtract(p->end, right);
-	out[3].position = Vec3_Subtract(p->start, right);
+	out[0].position = Vec3_Add(b->start, right);
+	out[1].position = Vec3_Add(b->end, right);
+	out[2].position = Vec3_Subtract(b->end, right);
+	out[3].position = Vec3_Subtract(b->start, right);
 
 	if (R_CullSprite(out)) {
 		return;
 	}
 
-	R_AddSpriteInternal(&(const r_buffered_sprite_image_t) {
+	R_AddSprite_(&(const r_buffered_sprite_image_t) {
 		.image = image,
-		.src = p->src,
-		.dst = p->dst,
+		.src = b->src,
+		.dst = b->dst,
 		.next_image = NULL
-	}, 0, p->color, out);
+	}, 0, b->color, out);
 	
-	if (!(p->image->type & IT_MASK_CLAMP_EDGE)) {
-		length /= p->image->width * (p->size / p->image->height);
+	if (!(b->image->type & IT_MASK_CLAMP_EDGE)) {
+		length /= b->image->width * (b->size / b->image->height);
 
-		if (p->stretch) {
-			length *= p->stretch;
+		if (b->stretch) {
+			length *= b->stretch;
 		}
 
 		out[1].diffusemap.x *= length;
 		out[2].diffusemap.x = out[1].diffusemap.x;
 
-		if (p->translate) {
+		if (b->translate) {
 			for (int32_t i = 0; i < 4; i++) {
-				out[i].diffusemap.x += p->translate;
+				out[i].diffusemap.x += b->translate;
 			}
 		}
 	}
