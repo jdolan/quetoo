@@ -156,6 +156,98 @@ static void R_DrawBspLightgrid(void) {
 }
 
 /**
+ *@brief Draws alpha blended objects positioned behind the specified node.
+ */
+static void R_DrawBspNodeBlendParticles(const r_bsp_inline_model_t *in, const r_bsp_node_t *node) {
+
+	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
+	if (in != bsp->inline_models) {
+		return;
+	}
+
+	glDisable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ZERO);
+
+	glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
+
+	glDisable(GL_DEPTH_TEST);
+
+	R_DrawParticles(node->plane);
+
+	// TODO: Sprites
+
+	glEnable(GL_DEPTH_TEST);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glUseProgram(r_bsp_program.name);
+
+	glBindVertexArray(bsp->vertex_array);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
+}
+
+/**
+ * @brief Recurses the specified node, drawing alpha blended elements from back to front.
+ */
+static void R_DrawBspNodeBlend(const r_bsp_inline_model_t *in, const r_bsp_node_t *node) {
+
+	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	if (node->vis_frame != r_locals.vis_frame) {
+		return;
+	}
+
+	const float dist = Cm_DistanceToPlane(r_view.origin, node->plane);
+	const int32_t side = dist > 0.f ? 1 : 0;
+
+	R_DrawBspNodeBlend(in, node->children[side]);
+
+	if (node->surface_mask & SURF_MASK_BLEND) {
+
+		R_DrawBspNodeBlendParticles(in, node);
+
+		glUniform1i(r_bsp_program.lights_mask, node->lights);
+
+		const r_material_t *material = NULL;
+
+		const r_bsp_draw_elements_t *draw = node->draw_elements;
+		for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
+
+			if (draw->texinfo->flags & SURF_MASK_BLEND) {
+
+				if (draw->texinfo->material != material) {
+					material = draw->texinfo->material;
+
+					glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+
+					glUniform1f(r_bsp_program.bump, material->cm->bump * r_bumpmap->value);
+					glUniform1f(r_bsp_program.parallax, material->cm->parallax * r_parallax->value);
+					glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
+					glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
+				}
+
+				glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+
+				r_view.count_bsp_draw_elements_blend++;
+			}
+		}
+
+		R_GetError(NULL);
+	}
+
+	R_DrawBspNodeBlend(in, node->children[!side]);
+}
+
+/**
  * @brief
  */
 static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArray *draw_elements) {
@@ -177,7 +269,7 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArra
 
 		if (draw->node != node) {
 			node = draw->node;
-			
+
 			glUniform1i(r_bsp_program.lights_mask, node->lights);
 		}
 
@@ -207,12 +299,9 @@ static void R_DrawBspInlineModel(const r_bsp_inline_model_t *in) {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthMask(false);
 
-	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_blend);
-	R_DrawBspDrawElements(in, r_model_state.world->bsp->draw_elements_warp);
-	
-	glDepthMask(true);
+	R_DrawBspNodeBlend(in, in->head_node);
+
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 }
@@ -226,44 +315,6 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 
 	R_DrawBspInlineModel(e->model->bsp_inline);
 }
-
-/**
- * @brief
- */
-//static void R_DrawBlendNode(const r_bsp_node_t *node) {
-//
-//	if (node->contents != CONTENTS_NODE) {
-//		return;
-//	}
-//
-//	if (node->vis_frame != r_locals.vis_frame) {
-//		return;
-//	}
-//
-//	const float dist = Cm_DistanceToPlane(r_view.origin, node->plane);
-//	const int32_t side = dist > 0.f ? 0 : 1;
-//
-//	R_DrawBlendNode(node->children[side]);
-//
-//	if (node->children[side]->contents & CONTENTS_TRANSLUCENT) {
-//
-//		//R_DrawParticlesNode(node, side);
-//
-//		const r_material_t *material = NULL;
-//
-//		const r_bsp_draw_elements_t *draw = node->draw_elements;
-//		for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
-//
-//			if (draw->texinfo->flags & SURF_MASK_BLEND) {
-//				//R_DrawBspDrawElement(&material, draw);
-//			}
-//		}
-//
-//		//R_DrawParticlesNode(node, !side);
-//	}
-//
-//	R_DrawBlendNode(node->children[!side]);
-//}
 
 /**
  * @brief
@@ -356,7 +407,7 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "bsp_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "lights.glsl", "bsp_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "lights_fs.glsl", "bsp_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_bsp_program.name);

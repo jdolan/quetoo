@@ -201,7 +201,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	bsp->draw_elements_opaque = g_ptr_array_new();
 	bsp->draw_elements_blend = g_ptr_array_new();
 	bsp->draw_elements_material = g_ptr_array_new();
-	bsp->draw_elements_warp = g_ptr_array_new();
 
 	const bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
@@ -227,8 +226,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 			g_ptr_array_add(bsp->draw_elements_blend, out);
 		} else if (out->texinfo->flags & SURF_MATERIAL) {
 			g_ptr_array_add(bsp->draw_elements_material, out);
-		} else if (out->texinfo->flags & SURF_WARP) {
-			g_ptr_array_add(bsp->draw_elements_warp, out);
 		} else {
 			g_ptr_array_add(bsp->draw_elements_opaque, out);
 		}
@@ -237,7 +234,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	g_ptr_array_sort(bsp->draw_elements_opaque, R_DrawElementsCmp);
 	g_ptr_array_sort(bsp->draw_elements_blend, R_DrawElementsCmp);
 	g_ptr_array_sort(bsp->draw_elements_material, R_DrawElementsCmp);
-	g_ptr_array_sort(bsp->draw_elements_warp, R_DrawElementsCmp);
 }
 
 /**
@@ -321,6 +317,7 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 	r_bsp_draw_elements_t *draw = node->draw_elements;
 	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
 		draw->node = node;
+		node->surface_mask |= draw->texinfo->flags;
 	}
 
 	R_SetupBspNode(node->children[0], node, model);

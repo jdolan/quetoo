@@ -19,28 +19,40 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform vec2 depth_range;
-uniform vec2 inv_viewport_size;
-uniform float transition_size;
-uniform sampler2D depth_attachment;
+layout (points) in;
+layout (points, max_vertices = 1) out;
+
+uniform mat4 view;
+
+uniform vec4 plane;
+
+in vertex_data {
+	vec3 position;
+	vec4 color;
+} in_vertex[];
+
+out vertex_data {
+	vec3 position;
+	vec4 color;
+} out_vertex;
 
 /**
- * @brief Reverse depth calculation
+ * @brief
  */
-float calc_depth(in float z) {
-	return (2. * depth_range.x) / (depth_range.y + depth_range.x - z * (depth_range.y - depth_range.x));
-}
+void main() {
 
-/**
- * @brief Calculate the soft edge factor for the specified particle fragment.
- */
-float soften_particle() {
-	return smoothstep(0.0, transition_size, clamp(calc_depth(texture(depth_attachment, gl_FragCoord.xy * inv_viewport_size).r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
-}
+	if (dot(plane.xyz, in_vertex[0].position) - plane.w < 0.0) {
 
-/**
- * @brief Calculate the soft edge factor for the specified sprite fragment.
- */
-float soften_sprite() {
-	return soften_particle();
+		gl_Position = gl_in[0].gl_Position;
+
+		out_vertex.position = in_vertex[0].position;
+
+		gl_PointSize = gl_in[0].gl_PointSize;
+
+		out_vertex.color = in_vertex[0].color;
+
+		EmitVertex();
+	}
+
+    EndPrimitive();
 }

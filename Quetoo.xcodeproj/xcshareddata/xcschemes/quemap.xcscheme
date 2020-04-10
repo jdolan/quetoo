@@ -114,11 +114,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--indirect"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--antialias "
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-zip"
@@ -134,11 +134,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/torn.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/tokays.map"

@@ -21,6 +21,9 @@
 
 #include "r_local.h"
 
+#define TEXTURE_DIFFUSE 0
+#define TEXTURE_DEPTH_ATTACHMENT 1
+
 /**
  * @brief
  */
@@ -57,9 +60,10 @@ static struct {
 	GLint projection;
 	GLint view;
 
-	GLint pixels_per_radian;
-	GLint far_z;
+	GLint plane;
+
 	GLint depth_range;
+	GLint pixels_per_radian;
 	GLint inv_viewport_size;
 	GLint transition_size;
 	
@@ -72,7 +76,6 @@ static struct {
 	GLint gamma;
 
 	GLint fog_parameters;
-	GLint fog_color;
 } r_particle_program;
 
 /**
@@ -100,7 +103,7 @@ void R_AddParticle(const r_particle_t *p) {
 /**
  * @brief
  */
-void R_DrawParticles(void) {
+void R_DrawParticles(const cm_bsp_plane_t *plane) {
 
 	glDepthMask(GL_FALSE);
 
@@ -115,6 +118,14 @@ void R_DrawParticles(void) {
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
+	vec4_t p;
+	if (plane) {
+		Matrix4x4_TransformQuakePlane(&r_locals.view, plane->normal, plane->dist, &p);
+	} else {
+		Matrix4x4_TransformQuakePlane(&r_locals.view, Vec3_Up(), MAX_WORLD_COORD, &p);
+	}
+	glUniform4fv(r_particle_program.plane, 1, p.xyzw);
+
 	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y) / 2.0));
 	glUniform2f(r_particle_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_particle_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
@@ -126,7 +137,6 @@ void R_DrawParticles(void) {
 	glUniform1f(r_particle_program.gamma, r_gamma->value);
 
 	glUniform3fv(r_particle_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
-	glUniform3fv(r_particle_program.fog_color, 1, r_view.fog_color.xyz);
 
 	glBindVertexArray(r_particles.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_particles.vertex_buffer);
@@ -135,10 +145,10 @@ void R_DrawParticles(void) {
 	glEnableVertexAttribArray(r_particle_program.in_position);
 	glEnableVertexAttribArray(r_particle_program.in_color);
 	
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
 	glBindTexture(GL_TEXTURE_2D, r_particles.particle->texnum);
 	
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_attachment);
 	
 	glActiveTexture(GL_TEXTURE0);
@@ -167,6 +177,7 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "particle_vs.glsl"),
+			&MakeShaderDescriptor(GL_GEOMETRY_SHADER, "particle_gs.glsl"),
 			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "soften_fs.glsl", "particle_fs.glsl"),
 			NULL);
 
@@ -177,6 +188,8 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.projection = glGetUniformLocation(r_particle_program.name, "projection");
 	r_particle_program.view = glGetUniformLocation(r_particle_program.name, "view");
+
+	r_particle_program.plane = glGetUniformLocation(r_particle_program.name, "plane");
 
 	r_particle_program.pixels_per_radian = glGetUniformLocation(r_particle_program.name, "pixels_per_radian");
 	r_particle_program.depth_range = glGetUniformLocation(r_particle_program.name, "depth_range");
@@ -192,10 +205,9 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.gamma = glGetUniformLocation(r_particle_program.name, "gamma");
 
 	r_particle_program.fog_parameters = glGetUniformLocation(r_particle_program.name, "fog_parameters");
-	r_particle_program.fog_color = glGetUniformLocation(r_particle_program.name, "fog_color");
-	
-	glUniform1i(r_particle_program.texture_diffusemap, 0);
-	glUniform1i(r_particle_program.depth_attachment, 1);
+
+	glUniform1i(r_particle_program.texture_diffusemap, TEXTURE_DIFFUSE);
+	glUniform1i(r_particle_program.depth_attachment, TEXTURE_DEPTH_ATTACHMENT);
 
 	glUseProgram(0);
 

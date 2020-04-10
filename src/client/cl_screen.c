@@ -144,6 +144,8 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 	R_Draw2DString(x, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_red);
 	y += ch;
+	R_Draw2DString(x, y, va("%d draw elements blend", r_view.count_bsp_draw_elements_blend), color_red);
+	y += ch;
 
 	y += ch;
 	R_Draw2DString(x, y, "Mesh:", color_yellow);

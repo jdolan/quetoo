@@ -534,6 +534,7 @@
 		CE80FFFB1C5E4D1800A21A51 /* writebsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7081C5C58C300CD0B13 /* writebsp.c */; };
 		CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
+		CE85852924409CB6004AB8EC /* particle_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE85852824409C9E004AB8EC /* particle_gs.glsl */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8E2020214837AB00C18C94 /* libparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.a */; };
@@ -564,7 +565,7 @@
 		CE9771AC2145562C00BBD71C /* libgenann.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9771A121454EEB00BBD71C /* libgenann.a */; };
 		CE9771B1214557F500BBD71C /* ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771AF214557F500BBD71C /* ai_info.h */; };
 		CE9771B2214557F500BBD71C /* ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771B0214557F500BBD71C /* ai_info.c */; };
-		CE9CFC8F23E66CDF0009DA65 /* lights.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE9CFC8E23E65EA90009DA65 /* lights.glsl */; };
+		CE9CFC8F23E66CDF0009DA65 /* lights_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE9CFC8E23E65EA90009DA65 /* lights_fs.glsl */; };
 		CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
 		CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
 		CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9423E7A9410009DA65 /* r_mesh.h */; };
@@ -1010,11 +1011,12 @@
 				CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */,
 				CED5BB192407163D00784D93 /* draw_3d_fs.glsl in CopyFiles */,
 				CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */,
-				CE9CFC8F23E66CDF0009DA65 /* lights.glsl in CopyFiles */,
+				CE9CFC8F23E66CDF0009DA65 /* lights_fs.glsl in CopyFiles */,
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
-				CE8FD2F723D69A32002FD074 /* particle_vs.glsl in CopyFiles */,
 				CE8FD2F823D69A32002FD074 /* particle_fs.glsl in CopyFiles */,
+				CE85852924409CB6004AB8EC /* particle_gs.glsl in CopyFiles */,
+				CE8FD2F723D69A32002FD074 /* particle_vs.glsl in CopyFiles */,
 				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
 				CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */,
 				CEAC32C124212626007E1253 /* soften_fs.glsl in CopyFiles */,
@@ -1788,6 +1790,7 @@
 		CE80FF6A1C5E494E00A21A51 /* libclient-null.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-null.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FF7F1C5E49C400A21A51 /* libserver.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libserver.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncurses.6.dylib; path = /opt/local/lib/libncurses.6.dylib; sourceTree = "<absolute>"; };
+		CE85852824409C9E004AB8EC /* particle_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_gs.glsl; sourceTree = "<group>"; };
 		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE89267223EDF85500CF3D33 /* vector.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vector.c; sourceTree = "<group>"; };
@@ -1820,7 +1823,7 @@
 		CE9771A92145519300BBD71C /* ai_ann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_ann.c; sourceTree = "<group>"; };
 		CE9771AF214557F500BBD71C /* ai_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_info.h; sourceTree = "<group>"; };
 		CE9771B0214557F500BBD71C /* ai_info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_info.c; sourceTree = "<group>"; };
-		CE9CFC8E23E65EA90009DA65 /* lights.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = lights.glsl; sourceTree = "<group>"; };
+		CE9CFC8E23E65EA90009DA65 /* lights_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = lights_fs.glsl; sourceTree = "<group>"; };
 		CE9CFC9023E792FE0009DA65 /* cg_light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_light.h; sourceTree = "<group>"; };
 		CE9CFC9123E792FE0009DA65 /* cg_light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_light.c; sourceTree = "<group>"; };
 		CE9CFC9423E7A9410009DA65 /* r_mesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_mesh.h; sourceTree = "<group>"; };
@@ -2870,10 +2873,11 @@
 				CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */,
 				CED5BB182406B74300784D93 /* draw_3d_fs.glsl */,
 				CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */,
-				CE9CFC8E23E65EA90009DA65 /* lights.glsl */,
+				CE9CFC8E23E65EA90009DA65 /* lights_fs.glsl */,
 				CE63992C23E1251A00DB7A2D /* mesh_fs.glsl */,
 				CE63992B23E124F700DB7A2D /* mesh_vs.glsl */,
 				CE8FD2F623D69A1E002FD074 /* particle_fs.glsl */,
+				CE85852824409C9E004AB8EC /* particle_gs.glsl */,
 				CE8FD2F523D69A10002FD074 /* particle_vs.glsl */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,

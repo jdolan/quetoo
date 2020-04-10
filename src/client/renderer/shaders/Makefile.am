@@ -8,10 +8,11 @@ shaders_DATA = \
 	draw_2d_vs.glsl \
 	draw_3d_fs.glsl \
 	draw_3d_vs.glsl \
-	lights.glsl \
+	lights_fs.glsl \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
 	particle_fs.glsl \
+	particle_gs.glsl \
 	particle_vs.glsl \
 	sky_fs.glsl \
 	sky_vs.glsl \

@@ -26,7 +26,7 @@
 void R_AddParticle(const r_particle_t *p);
 
 #ifdef __R_LOCAL_H__
-void R_DrawParticles(void);
+void R_DrawParticles(const cm_bsp_plane_t *plane);
 void R_ShutdownParticles(void);
 void R_InitParticles(void);
 #endif /* __R_LOCAL_H__ */

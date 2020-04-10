@@ -362,7 +362,7 @@ typedef struct {
  *
  * This is the basis for all collision detection and rendering in Quake.
  */
-typedef struct r_bsp_node_s {
+struct r_bsp_node_s {
 	// common with leaf
 	int32_t contents; // -1, to differentiate from leafs
 
@@ -385,15 +385,18 @@ typedef struct r_bsp_node_s {
 	r_bsp_draw_elements_t *draw_elements;
 
 	int32_t lights;
-} r_bsp_node_t;
+	int32_t surface_mask;
+
+} __attribute__((packed));
+
+typedef struct r_bsp_node_s r_bsp_node_t;
 
 /**
- * @brief BSP leafs terminate the branches of the BSP tree and provide grouping
- * for surfaces. If a leaf is found to be in the potentially visible set (PVS)
- * for a given frame, then all surfaces associated to that leaf are flagged for
- * drawing.
+ * @brief BSP leafs terminate the branches of the BSP tree and are grouped into
+ * clusters that are the unit of granularity for the PVS. If a leaf's cluster is
+ * visible, all ancestors of that leaf should be marked as visible.
  */
-typedef struct {
+struct r_bsp_leaf_s {
 	// common with node
 	int32_t contents;
 
@@ -408,9 +411,15 @@ typedef struct {
 	// leaf specific
 	int32_t cluster;
 	int32_t area;
-} r_bsp_leaf_t;
+} __attribute__((packed));
 
-// bsp model memory representation
+typedef struct r_bsp_leaf_s r_bsp_leaf_t;
+
+/**
+ * @brief The BSP is organized into one or more models (trees). The first model is
+ * the world, and typically is the largest. An additional model exist for each entity
+ * that contains brushes. Non-world models can move and rotate.
+ */
 typedef struct r_bsp_inline_model_s {
 	r_bsp_node_t *head_node;
 
@@ -484,7 +493,6 @@ typedef struct {
 	GPtrArray *draw_elements_opaque;
 	GPtrArray *draw_elements_blend;
 	GPtrArray *draw_elements_material;
-	GPtrArray *draw_elements_warp;
 
 	int32_t num_nodes;
 	r_bsp_node_t *nodes;
@@ -1030,6 +1038,7 @@ typedef struct {
 
 	int32_t count_bsp_nodes;
 	int32_t count_bsp_draw_elements;
+	int32_t count_bsp_draw_elements_blend;
 
 	int32_t count_mesh_models;
 	int32_t count_mesh_triangles;

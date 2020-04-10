@@ -299,7 +299,7 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawEntities();
 
-	R_DrawParticles();
+//	R_DrawParticles(NULL);
 
 	R_DrawSprites();
 
@@ -327,6 +327,7 @@ void R_BeginFrame(void) {
 
 	r_view.count_bsp_nodes = 0;
 	r_view.count_bsp_draw_elements = 0;
+	r_view.count_bsp_draw_elements_blend = 0;
 
 	r_view.count_mesh_models = 0;
 	r_view.count_mesh_triangles = 0;

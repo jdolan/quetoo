@@ -88,7 +88,6 @@ static void R_FreeModel(r_media_t *self) {
 		g_ptr_array_free(mod->bsp->draw_elements_opaque, 1);
 		g_ptr_array_free(mod->bsp->draw_elements_blend, 1);
 		g_ptr_array_free(mod->bsp->draw_elements_material, 1);
-		g_ptr_array_free(mod->bsp->draw_elements_warp, 1);
 
 	} else if (IS_MESH_MODEL(mod)) {
 
