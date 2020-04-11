@@ -139,17 +139,7 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
-	const int32_t node_num = node ? (int32_t) (node - r_model_state.world->bsp->nodes) : -1;
-	glUniform1i(r_particle_program.node, node_num);
-
-	int32_t count = 0;
-	const r_particle_vertex_t *v = r_particles.particles;
-	for (int32_t i = 0; i < r_view.num_particles; i++, v++) {
-		if (v->node == node_num) {
-			count++;
-		}
-	}
-	printf("%d particles for %d\n", count, node_num);
+	glUniform1i(r_particle_program.node, node ? (int32_t) (node - r_model_state.world->bsp->nodes) : -1);
 
 	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y) / 2.0));
 	glUniform2f(r_particle_program.depth_range, 1.0, MAX_WORLD_DIST);
@@ -171,7 +161,8 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 
 	glEnableVertexAttribArray(r_particle_program.in_position);
 	glEnableVertexAttribArray(r_particle_program.in_color);
-	
+	glEnableVertexAttribArray(r_particle_program.in_node);
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
 	glBindTexture(GL_TEXTURE_2D, r_particles.particle->texnum);
 	
