@@ -586,16 +586,16 @@ static void R_InitFramebuffer(void) {
 
 	R_GetError("Color attachment");
 	
-	glGenTextures(1, &r_context.depth_attachment);
-	glBindTexture(GL_TEXTURE_2D, r_context.depth_attachment);
+	glGenTextures(1, &r_context.depth_stencil_attachment);
+	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.drawable_width, r_context.drawable_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, r_context.depth_attachment, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, r_context.depth_stencil_attachment, 0);
 
-	R_GetError("Depth attachment");
+	R_GetError("Depth stencil attachment");
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -608,7 +608,7 @@ static void R_ShutdownFramebuffer(void) {
 	
 	glDeleteFramebuffers(1, &r_context.framebuffer);
 	glDeleteTextures(1, &r_context.color_attachment);
-	glDeleteTextures(1, &r_context.depth_attachment);
+	glDeleteTextures(1, &r_context.depth_stencil_attachment);
 
 	R_GetError(NULL);
 }
