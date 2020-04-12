@@ -65,7 +65,7 @@ static struct {
 	GLint transition_size;
 	
 	GLint texture_diffusemap;
-	GLint depth_attachment;
+	GLint depth_stencil_attachment;
 
 	GLint brightness;
 	GLint contrast;
@@ -312,7 +312,7 @@ void R_DrawSprites(void) {
 	glEnableVertexAttribArray(r_sprite_program.in_color);
 	
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, r_context.depth_attachment);
+	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 
 	ptrdiff_t offset = 0;
 
@@ -388,7 +388,7 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.transition_size = glGetUniformLocation(r_sprite_program.name, "transition_size");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
-	r_sprite_program.depth_attachment = glGetUniformLocation(r_sprite_program.name, "depth_attachment");
+	r_sprite_program.depth_stencil_attachment = glGetUniformLocation(r_sprite_program.name, "depth_stencil_attachment");
 
 	r_sprite_program.brightness = glGetUniformLocation(r_sprite_program.name, "brightness");
 	r_sprite_program.contrast = glGetUniformLocation(r_sprite_program.name, "contrast");
@@ -401,7 +401,7 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.next_texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "next_texture_diffusemap");
 	
 	glUniform1i(r_sprite_program.texture_diffusemap, 0);
-	glUniform1i(r_sprite_program.depth_attachment, 1);
+	glUniform1i(r_sprite_program.depth_stencil_attachment, 1);
 	glUniform1i(r_sprite_program.next_texture_diffusemap, 2);
 
 	glUseProgram(0);

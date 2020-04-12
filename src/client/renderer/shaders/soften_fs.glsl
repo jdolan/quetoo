@@ -22,7 +22,7 @@
 uniform vec2 depth_range;
 uniform vec2 inv_viewport_size;
 uniform float transition_size;
-uniform sampler2D depth_attachment;
+uniform sampler2D depth_stencil_attachment;
 
 /**
  * @brief Reverse depth calculation
@@ -35,7 +35,7 @@ float calc_depth(in float z) {
  * @brief Calculate the soft edge factor for the specified particle fragment.
  */
 float soften_particle() {
-	return smoothstep(0.0, transition_size, clamp(calc_depth(texture(depth_attachment, gl_FragCoord.xy * inv_viewport_size).r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
+	return smoothstep(0.0, transition_size, clamp(calc_depth(texture(depth_stencil_attachment, gl_FragCoord.xy * inv_viewport_size).r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
 }
 
 /**

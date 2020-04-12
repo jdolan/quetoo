@@ -21,8 +21,8 @@
 
 #include "r_local.h"
 
-#define TEXTURE_DIFFUSE 0
-#define TEXTURE_DEPTH_ATTACHMENT 1
+#define TEXTURE_DIFFUSEMAP 0
+#define TEXTURE_DEPTH_STENCIL_ATTACHMENT 1
 
 /**
  * @brief The particle vertex structure.
@@ -55,7 +55,9 @@ typedef struct {
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 
-	r_image_t *particle;
+	r_image_t *diffusemap;
+
+	_Bool dirty;
 
 } r_particles_t;
 
@@ -82,7 +84,7 @@ static struct {
 	GLint transition_size;
 	
 	GLint texture_diffusemap;
-	GLint depth_attachment;
+	GLint texture_depth_stencil_attachment;
 
 	GLint brightness;
 	GLint contrast;
@@ -117,6 +119,8 @@ void R_AddParticle(const r_particle_t *p) {
 	} else {
 		out->node = -1;
 	}
+
+	r_particles.dirty = true;
 
 	r_view.num_particles++;
 }
@@ -156,18 +160,19 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 	glBindVertexArray(r_particles.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_particles.vertex_buffer);
 
-	// FIXME: Do this once per frame, not every call (node)
-	glBufferData(GL_ARRAY_BUFFER, r_view.num_particles * sizeof(r_particle_vertex_t), r_particles.particles, GL_DYNAMIC_DRAW);
+	if (r_particles.dirty) {
+		glBufferData(GL_ARRAY_BUFFER, r_view.num_particles * sizeof(r_particle_vertex_t), r_particles.particles, GL_DYNAMIC_DRAW);
 
-	glEnableVertexAttribArray(r_particle_program.in_position);
-	glEnableVertexAttribArray(r_particle_program.in_color);
-	glEnableVertexAttribArray(r_particle_program.in_node);
+		glEnableVertexAttribArray(r_particle_program.in_position);
+		glEnableVertexAttribArray(r_particle_program.in_color);
+		glEnableVertexAttribArray(r_particle_program.in_node);
+	}
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
-	glBindTexture(GL_TEXTURE_2D, r_particles.particle->texnum);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+	glBindTexture(GL_TEXTURE_2D, r_particles.diffusemap->texnum);
 	
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, r_context.depth_attachment);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
+	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 	
 	glActiveTexture(GL_TEXTURE0);
 
@@ -216,7 +221,7 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.transition_size = glGetUniformLocation(r_particle_program.name, "transition_size");
 
 	r_particle_program.texture_diffusemap = glGetUniformLocation(r_particle_program.name, "texture_diffusemap");
-	r_particle_program.depth_attachment = glGetUniformLocation(r_particle_program.name, "depth_attachment");
+	r_particle_program.texture_depth_stencil_attachment = glGetUniformLocation(r_particle_program.name, "depth_stencil_attachment");
 
 	r_particle_program.brightness = glGetUniformLocation(r_particle_program.name, "brightness");
 	r_particle_program.contrast = glGetUniformLocation(r_particle_program.name, "contrast");
@@ -225,8 +230,8 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.fog_parameters = glGetUniformLocation(r_particle_program.name, "fog_parameters");
 
-	glUniform1i(r_particle_program.texture_diffusemap, TEXTURE_DIFFUSE);
-	glUniform1i(r_particle_program.depth_attachment, TEXTURE_DEPTH_ATTACHMENT);
+	glUniform1i(r_particle_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+	glUniform1i(r_particle_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 
 	glUseProgram(0);
 
@@ -254,7 +259,8 @@ void R_InitParticles(void) {
 
 	R_GetError(NULL);
 
-	r_particles.particle = R_LoadImage("particles/particle", IT_PROGRAM);
+	r_particles.diffusemap = R_LoadImage("particles/particle", IT_PROGRAM);
+	r_particles.dirty = true;
 
 	R_InitParticleProgram();
 }

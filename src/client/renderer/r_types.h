@@ -1089,7 +1089,7 @@ typedef struct {
 	/**
 	 * @brief Framebuffer things.
 	 */
-	GLuint framebuffer, color_attachment, depth_attachment;
+	GLuint framebuffer, color_attachment, depth_stencil_attachment;
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
