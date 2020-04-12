@@ -249,9 +249,7 @@ void Cg_UpdateMedia(void) {
 	Cg_FreeParticles();
 	Cg_FreeSprites();
 
-	cgi.DestroyAtlas(cg_particle_atlas);
-
-	cg_particle_atlas = cgi.CreateAtlas("particle atlas");
+	cg_particle_atlas  = cgi.CreateAtlas("particle atlas");
 
 	cg_beam_hook       = cgi.LoadImage("particles/rope", IT_EFFECT);
 	cg_beam_rail       = cgi.LoadImage("particles/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
@@ -264,11 +262,11 @@ void Cg_UpdateMedia(void) {
 	cg_smoke_1         = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
 	cg_smoke_2         = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
 	cg_blue_fireball_1 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/fireball_blue_01/fireball_blue_01", "_%02" PRIu32, 1, 64);
-	cg_bfg_explosion_1 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_01/bfg_explosion_01", "_%02" PRIu32, 10, 57);
+//	cg_bfg_explosion_1 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_01/bfg_explosion_01", "_%02" PRIu32, 10, 57);
 	cg_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
 	cg_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
-	cg_bfg_explosion_4 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_04/bfg_explosion_04", "_%02" PRIu32, 1, 57);
-	cg_bfg_explosion_5 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_05/bfg_explosion_05", "_%02" PRIu32, 1, 12);
+//	cg_bfg_explosion_4 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_04/bfg_explosion_04", "_%02" PRIu32, 1, 57);
+//	cg_bfg_explosion_5 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_05/bfg_explosion_05", "_%02" PRIu32, 1, 12);
 
 	cgi.CompileAtlas(cg_particle_atlas);
 

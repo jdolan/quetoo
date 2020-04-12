@@ -607,12 +607,6 @@ typedef struct cg_import_s {
 	void (*CompileAtlas)(r_atlas_t *atlas);
 
 	/**
-	 * @brief Destroys the specified atlas, freeing all atlas images it contains.
-	 * @param atlas The atlas to destroy.
-	 */
-	void (*DestroyAtlas)(r_atlas_t *atlas);
-
-	/**
 	 * @brief Creates an animation.
 	 * @param name The name to give to the animation, e.g. `"cg_flame_1"`
 	 * @param num_images The number of images in the image pointer list.

@@ -36,8 +36,6 @@ static void R_FreeAtlas(r_media_t *media) {
 	}
 
 	Atlas_Destroy(atlas->atlas);
-
-	R_FreeMedia((r_media_t *) atlas->image);
 }
 
 /**
@@ -64,36 +62,41 @@ r_atlas_t *R_CreateAtlas(const char *name) {
 }
 
 /**
- * @brief Add an image to the list of images for this atlas.
+ * @brief Loads the named image throught he specified atlas. The returned r_atlas_image_t is
+ * not available for rendering until the atlas is recompiled.
  */
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
-	int32_t pixels = 0xff0000ff;
+	const int32_t pixels = 0xff0000ff;
 
-	r_atlas_image_t *atlas_image = (r_atlas_image_t *) R_FindMedia(name);
-	if (!atlas_image) {
+	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
+		atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
 
-		atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), MEDIA_ATLAS_IMAGE);
-		assert(atlas_image);
-
-		SDL_Surface *surf = Img_LoadSurface(name);
-		if (!surf) {
-			Com_Warn("Failed to load atlas image %s\n", name);
-			surf = SDL_CreateRGBSurfaceWithFormatFrom(&pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
+		r_atlas_image_t *atlas_image = node->data;
+		if (!strcmp(name, atlas_image->image.media.name)) {
+			return atlas_image;
 		}
-
-		atlas_node_t *node = Atlas_Insert(atlas->atlas, surf);
-		assert(node);
-
-		atlas_image->image.type = type;
-		atlas_image->image.width = surf->w;
-		atlas_image->image.height = surf->h;
-
-		R_RegisterMedia((r_media_t *) atlas_image);
-
-		R_RegisterDependency((r_media_t *) atlas_image, (r_media_t *) atlas);
-
-		node->data = atlas_image;
 	}
+
+	r_atlas_image_t *atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), MEDIA_ATLAS_IMAGE);
+	assert(atlas_image);
+
+	SDL_Surface *surf = Img_LoadSurface(name);
+	if (!surf) {
+		Com_Warn("Failed to load atlas image %s\n", name);
+
+		surf = SDL_CreateRGBSurfaceWithFormatFrom((void *) &pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
+	}
+
+	atlas_node_t *node = Atlas_Insert(atlas->atlas, surf);
+	assert(node);
+
+	node->data = atlas_image;
+
+	atlas_image->image.type = type;
+	atlas_image->image.width = surf->w;
+	atlas_image->image.height = surf->h;
+
+	R_RegisterMedia((r_media_t *) atlas_image);
 
 	return atlas_image;
 }
@@ -148,22 +151,4 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 	}
 
 	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
-}
-
-/**
- * @brief
- */
-void R_DestroyAtlas(r_atlas_t *atlas) {
-
-	if (atlas) {
-		for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
-			atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
-
-			r_atlas_image_t *atlas_image = node->data;
-
-			R_FreeMedia((r_media_t *) atlas_image);
-		}
-
-		R_FreeMedia((r_media_t *) atlas);
-	}
 }
