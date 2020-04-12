@@ -303,25 +303,6 @@ int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t conten
 }
 
 /**
- * @brief
- */
-static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
-
-	while (num >= 0) {
-		const cm_bsp_node_t *node = cm_bsp.nodes + num;
-		const float dist = Cm_DistanceToPlane(p, node->plane);
-
-		if (dist < 0.0) {
-			num = node->children[1];
-		} else {
-			num = node->children[0];
-		}
-	}
-
-	return -1 - num;
-}
-
-/**
  * @return The leaf number containing the specified point.
  */
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
@@ -330,7 +311,18 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 		return 0;
 	}
 
-	return Cm_PointLeafnum_r(p, head_node);
+	int32_t num = head_node;
+	while (num >= 0) {
+		const cm_bsp_node_t *node = cm_bsp.nodes + num;
+		const float dist = Cm_DistanceToPlane(p, node->plane);
+		if (dist < 0.0) {
+			num = node->children[1];
+		} else {
+			num = node->children[0];
+		}
+	}
+
+	return -1 - num;
 }
 
 /**
