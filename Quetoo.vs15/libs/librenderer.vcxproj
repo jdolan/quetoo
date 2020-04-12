@@ -92,6 +92,7 @@
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\particle_gs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sky_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl" />

@@ -138,7 +138,7 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
-
+	
 	glUniform1i(r_particle_program.node, node ? (int32_t) (node - r_model_state.world->bsp->nodes) : -1);
 
 	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y) / 2.0));
@@ -248,8 +248,8 @@ void R_InitParticles(void) {
 
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, position));
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, color));
-	glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, node));
-
+	glVertexAttribIPointer(2, 1, GL_INT, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, node));
+	
 	glBindVertexArray(0);
 
 	R_GetError(NULL);
