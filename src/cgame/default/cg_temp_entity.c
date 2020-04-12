@@ -720,7 +720,7 @@ static void Cg_BfgEffect(const vec3_t org) {
  * @brief
  */
 void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity) {
-	cg_particle_t *p;
+	/*cg_particle_t *p;
 
 	if (cg_particle_quality->integer == 0) {
 		return;
@@ -738,7 +738,7 @@ void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity
 //	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 	p->size = size + RandomRangef(-.5f, .5f);
-//	p->delta_size = 3.0 + Randomf() * 0.5 / PARTICLE_FRAME;
+//	p->delta_size = 3.0 + Randomf() * 0.5 / PARTICLE_FRAME;*/
 }
 
 /**

@@ -89,7 +89,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map tokays"
+            argument = "+map simple"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
