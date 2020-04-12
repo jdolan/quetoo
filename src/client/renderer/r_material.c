@@ -806,7 +806,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 	material->texture->type = IT_MATERIAL;
 
 	Cm_ResolveMaterial(cm, context);
-
+	
 	SDL_Surface *diffusemap = NULL;
 	if (*cm->diffusemap.path) {
 		if ((diffusemap = Img_LoadSurface(cm->diffusemap.path))) {

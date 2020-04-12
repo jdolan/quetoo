@@ -241,5 +241,8 @@
     <None Include="..\..\src\client\renderer\shaders\version.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\particle_gs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

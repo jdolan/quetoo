@@ -22,7 +22,7 @@
 uniform sampler2D texture_diffusemap;
 
 in vertex_data {
-	vec3 position;
+	vec4 position;
 	vec4 color;
 } vertex;
 
@@ -36,7 +36,7 @@ void main(void) {
 	out_color = vertex.color * texture(texture_diffusemap, gl_PointCoord);
 
 	// maybe move this to the vertex shader?
-	float fogginess = fog_factor(vertex.position);
+	float fogginess = fog_factor(vertex.position.xyz);
 
 	out_color = out_color * (1.f - fogginess);
 

@@ -25,13 +25,13 @@ layout (points, max_vertices = 1) out;
 uniform int node;
 
 in vertex_data {
-	vec3 position;
+	vec4 position;
 	vec4 color;
 	int node;
 } in_vertex[];
 
 out vertex_data {
-	vec3 position;
+	vec4 position;
 	vec4 color;
 } out_vertex;
 
