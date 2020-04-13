@@ -39,24 +39,21 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p) {
 
 	const r_bsp_leaf_t *leaf = R_LeafForPoint(p);
-	if (leaf) {
+	r_bsp_node_t *node = leaf->parent;
+	while (node) {
 
-		r_bsp_node_t *node = leaf->parent;
-		while (node) {
-
-			if (node->vis_frame != r_locals.vis_frame) {
-				break;
-			}
-
-			if (node->surface_mask & SURF_MASK_BLEND) {
-				if (SignOf(Cm_DistanceToPlane(p, node->plane)) !=
-					SignOf(Cm_DistanceToPlane(r_view.origin, node->plane))) {
-					return node;
-				}
-			}
-
-			node = node->parent;
+		if (node->vis_frame != r_locals.vis_frame) {
+			break;
 		}
+
+		if (node->surface_mask & SURF_MASK_BLEND) {
+			if (SignOf(Cm_DistanceToPlane(p, node->plane)) !=
+				SignOf(Cm_DistanceToPlane(r_view.origin, node->plane))) {
+				return node;
+			}
+		}
+
+		node = node->parent;
 	}
 
 	return NULL;

@@ -297,7 +297,7 @@ void R_DrawView(r_view_t *view) {
 
 //	R_AddFlares();
 
-	R_DrawEntities();
+	R_DrawEntities(NULL);
 
 	R_DrawParticles(NULL);
 

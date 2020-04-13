@@ -389,7 +389,7 @@ struct r_bsp_node_s {
 	
 	int32_t num_particles;
 	int32_t num_sprites;
-
+	int32_t num_entities;
 };
 
 typedef struct r_bsp_node_s r_bsp_node_t;
@@ -894,6 +894,11 @@ typedef struct r_entity_s {
 	 * @brief The entity light mask for dynamic light sources.
 	 */
 	int32_t lights;
+
+	/**
+	 * @brief The alpha blended node in which this entity should be rendered, or -1.
+	 */
+	r_bsp_node_t *node;
 } r_entity_t;
 
 #define WEATHER_NONE        0x0

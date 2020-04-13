@@ -114,7 +114,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--indirect"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--antialias "
@@ -126,7 +126,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/sandbox.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/jgothic.map"
@@ -134,7 +134,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/torn.map"
