@@ -18,5 +18,6 @@ shaders_DATA = \
 	sky_vs.glsl \
 	soften_fs.glsl \
 	sprite_fs.glsl \
+	sprite_gs.glsl \
 	sprite_vs.glsl \
 	version.glsl
