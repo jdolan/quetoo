@@ -291,13 +291,13 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateFog();
 
-	R_DrawWorld();
+	R_DrawEntities();
 
 	R_DrawSkyBox();
 
-//	R_AddFlares();
+	R_DrawWorld();
 
-	R_DrawEntities();
+//	R_AddFlares();
 
 	R_DrawParticles(NULL);
 

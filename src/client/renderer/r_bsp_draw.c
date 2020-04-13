@@ -344,6 +344,7 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 void R_DrawWorld(void) {
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
@@ -415,7 +416,8 @@ void R_DrawWorld(void) {
 
 	glCullFace(GL_FRONT);
 	glDisable(GL_CULL_FACE);
-
+	
+	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
 	glBindVertexArray(0);
