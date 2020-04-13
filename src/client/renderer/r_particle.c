@@ -167,6 +167,8 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 		glEnableVertexAttribArray(r_particle_program.in_position);
 		glEnableVertexAttribArray(r_particle_program.in_color);
 		glEnableVertexAttribArray(r_particle_program.in_node);
+
+		r_particles.dirty = false;
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
