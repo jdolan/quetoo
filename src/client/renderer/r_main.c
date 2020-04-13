@@ -291,7 +291,7 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateFog();
 
-	R_DrawEntities();
+	R_DrawEntities(NULL);
 
 	R_DrawSkyBox();
 

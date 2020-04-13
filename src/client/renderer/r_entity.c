@@ -31,25 +31,32 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 		return NULL;
 	}
 
-	r_entity_t *e = &r_view.entities[r_view.num_entities++];
+	r_entity_t *e = &r_view.entities[r_view.num_entities];
 	*e = *ent;
 
 	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
 
-	if (e->parent) {
-		if (IS_MESH_MODEL(e->model)) {
-			if (e->tag) {
-				R_ApplyMeshTag(e);
-			}
-			R_ApplyMeshConfig(e);
+	if (IS_MESH_MODEL(e->model)) {
+
+		if (e->parent && e->tag) {
+			R_ApplyMeshTag(e);
 		}
-	} else {
-		if (IS_MESH_MODEL(e->model)) {
-			R_ApplyMeshConfig(e);
+
+		R_ApplyMeshConfig(e);
+
+		if (R_CullMeshEntity(e)) {
+			return NULL;
+		}
+
+		e->node = R_BlendNodeForPoint(e->origin);
+		if (e->node) {
+			e->node->num_entities++;
 		}
 	}
 
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
+
+	r_view.num_entities++;
 	return e;
 }
 
@@ -184,11 +191,11 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 /**
  * @brief Primary entry point for drawing all entities.
  */
-void R_DrawEntities(void) {
+void R_DrawEntities(const r_bsp_node_t *node) {
 
 //	R_DrawNullModels(&r_sorted_entities.null_entities);
 
-	R_DrawMeshEntities();
+	R_DrawMeshEntities(node);
 
 //	vec4_t yellow = { 0.9, 0.9, 0.0, 1.0 };
 //	R_DrawEntityBounds(&r_sorted_entities.mesh_entities, yellow);

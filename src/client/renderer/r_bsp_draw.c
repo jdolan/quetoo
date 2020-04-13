@@ -163,11 +163,14 @@ static void R_DrawBspLightgrid(void) {
 /**
  *@brief Draws alpha blended objects positioned behind the specified node.
  */
-static void R_DrawBspNodeBlendParticlesAndSprites(const r_bsp_inline_model_t *in, r_bsp_node_t *node) {
+static void R_DrawBspNodeBlendContents(const r_bsp_inline_model_t *in, r_bsp_node_t *node) {
 
 	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
-	if (in != bsp->inline_models ||
-		(!node->num_particles && !node->num_sprites)) {
+	if (in != bsp->inline_models) {
+		return;
+	}
+
+	if (!node->num_particles && !node->num_sprites && !node->num_entities) {
 		return;
 	}
 
@@ -180,6 +183,10 @@ static void R_DrawBspNodeBlendParticlesAndSprites(const r_bsp_inline_model_t *in
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 
+	if (node->num_entities) {
+		R_DrawEntities(node);
+	}
+
 	if (node->num_particles) {
 		R_DrawParticles(node);
 	}
@@ -187,6 +194,8 @@ static void R_DrawBspNodeBlendParticlesAndSprites(const r_bsp_inline_model_t *in
 	if (node->num_sprites) {
 		R_DrawSprites(node);
 	}
+
+	R_GetError(NULL);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
@@ -204,7 +213,11 @@ static void R_DrawBspNodeBlendParticlesAndSprites(const r_bsp_inline_model_t *in
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
-	node->num_particles = node->num_sprites = 0;
+	R_GetError(NULL);
+
+	node->num_particles = 0;
+	node->num_sprites = 0;
+	node->num_entities = 0;
 }
 
 /**
@@ -227,7 +240,7 @@ static void R_DrawBspNodeBlend(const r_bsp_inline_model_t *in, r_bsp_node_t *nod
 
 	if (node->surface_mask & SURF_MASK_BLEND) {
 
-		R_DrawBspNodeBlendParticlesAndSprites(in, node);
+		R_DrawBspNodeBlendContents(in, node);
 
 		glUniform1i(r_bsp_program.lights_mask, node->lights);
 
