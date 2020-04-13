@@ -21,8 +21,9 @@
 
 #include "r_local.h"
 
-#define TEXTURE_MATERIAL                 0
-#define TEXTURE_LIGHTMAP                 1
+#define TEXTURE_MATERIAL 0
+#define TEXTURE_LIGHTMAP 1
+#define TEXTURE_WARP     2
 
 /**
  * @brief The program.
@@ -44,6 +45,7 @@ static struct {
 
 	GLint texture_material;
 	GLint texture_lightmap;
+	GLint texture_warp;
 
 	GLint alpha_threshold;
 
@@ -58,6 +60,7 @@ static struct {
 	GLint parallax;
 	GLint hardness;
 	GLint specular;
+	GLint warp;
 
 	GLint lights_block;
 	GLuint lights_buffer;
@@ -66,7 +69,9 @@ static struct {
 	GLint fog_parameters;
 	GLint fog_color;
 
-	GLint caustics;
+	GLint ticks;
+
+	r_image_t *warp_image;
 } r_bsp_program;
 
 /**
@@ -233,6 +238,7 @@ static void R_DrawBspNodeBlend(const r_bsp_inline_model_t *in, const r_bsp_node_
 					glUniform1f(r_bsp_program.parallax, material->cm->parallax * r_parallax->value);
 					glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
 					glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
+					glUniform1f(r_bsp_program.warp, material->cm->warp * r_warp->value);
 				}
 
 				glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
@@ -282,6 +288,7 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in, const GPtrArra
 			glUniform1f(r_bsp_program.parallax, material->cm->parallax * r_parallax->value);
 			glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
+			glUniform1f(r_bsp_program.warp, material->cm->warp * r_warp->value);
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
@@ -308,6 +315,8 @@ static void R_DrawBspInlineModel(const r_bsp_inline_model_t *in) {
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -355,6 +364,8 @@ void R_DrawWorld(void) {
 	glUniform3fv(r_bsp_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
 	glUniform3fv(r_bsp_program.fog_color, 1, r_view.fog_color.xyz);
 
+	glUniform1i(r_bsp_program.ticks, r_view.ticks);
+
 	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
 
 	glBindVertexArray(bsp->vertex_array);
@@ -372,6 +383,10 @@ void R_DrawWorld(void) {
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, bsp->lightmap ? bsp->lightmap->atlas->texnum : 0);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
+	glBindTexture(GL_TEXTURE_2D, r_bsp_program.warp_image->texnum);
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
 	R_DrawBspInlineModel(bsp->inline_models);
@@ -402,6 +417,8 @@ void R_DrawWorld(void) {
 	R_DrawBspLightgrid();
 }
 
+#define WARP_IMAGE_SIZE 128
+
 /**
  * @brief
  */
@@ -430,6 +447,7 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
+	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
@@ -443,6 +461,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.parallax = glGetUniformLocation(r_bsp_program.name, "parallax");
 	r_bsp_program.hardness = glGetUniformLocation(r_bsp_program.name, "hardness");
 	r_bsp_program.specular = glGetUniformLocation(r_bsp_program.name, "specular");
+	r_bsp_program.warp = glGetUniformLocation(r_bsp_program.name, "warp");
 
 	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
 	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 0);
@@ -452,10 +471,31 @@ void R_InitBspProgram(void) {
 	r_bsp_program.fog_parameters = glGetUniformLocation(r_bsp_program.name, "fog_parameters");
 	r_bsp_program.fog_color = glGetUniformLocation(r_bsp_program.name, "fog_color");
 
-	r_bsp_program.caustics = glGetUniformLocation(r_bsp_program.name, "caustics");
+	r_bsp_program.ticks = glGetUniformLocation(r_bsp_program.name, "ticks");
 
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
+	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
+
+	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), MEDIA_IMAGE);
+	r_bsp_program.warp_image->media.Retain = R_RetainImage;
+	r_bsp_program.warp_image->media.Free = R_FreeImage;
+
+	r_bsp_program.warp_image->width = r_bsp_program.warp_image->height = WARP_IMAGE_SIZE;
+	r_bsp_program.warp_image->type = IT_PROGRAM;
+
+	byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
+
+	for (int32_t i = 0; i < WARP_IMAGE_SIZE; i++) {
+		for (int32_t j = 0; j < WARP_IMAGE_SIZE; j++) {
+			data[i][j][0] = 255;
+			data[i][j][1] = 255;
+			data[i][j][2] = RandomRangeu(0, 48);
+			data[i][j][3] = RandomRangeu(0, 48);
+		}
+	}
+
+	R_UploadImage(r_bsp_program.warp_image, GL_RGBA, (byte *) data);
 
 	R_GetError(NULL);
 }

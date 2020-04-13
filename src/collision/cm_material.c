@@ -905,6 +905,16 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			m->surface |= SURF_LIGHT;
 		}
 
+		if (!g_strcmp0(token, "warp")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->warp, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "Warp value not specified");
+				m->warp = DEFAULT_WARP;
+			}
+
+			m->surface |= SURF_WARP;
+		}
+
 		if (!g_strcmp0(token, "footsteps")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps, sizeof(m->footsteps))) {

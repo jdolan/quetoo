@@ -125,7 +125,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/simple.map"
+            argument = "maps/sandbox.map"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

@@ -19,9 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define TEXTURE_MATERIAL                 0
-#define TEXTURE_LIGHTMAP                 1
-
 #define MAX_HARDNESS 16
 
 uniform sampler2DArray texture_material;
@@ -35,8 +32,6 @@ uniform float bump;
 uniform float parallax;
 uniform float hardness;
 uniform float specular;
-
-uniform vec4 caustics;
 
 in vertex_data {
 	vec3 position;

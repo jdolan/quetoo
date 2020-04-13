@@ -89,14 +89,15 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 		const r_bsp_texinfo_t *texinfo = bsp->texinfo + in->texinfo;
 		switch (texinfo->flags & SURF_MASK_BLEND) {
 			case SURF_BLEND_33:
-				alpha = 0.333;
+				alpha = 0.333f;
 				break;
 			case SURF_BLEND_66:
-				alpha = 0.666;
+				alpha = 0.666f;
 			default:
 				break;
 		}
-		out->color = Color_Color32(Color4f(1.0, 1.0, 1.0, alpha));
+
+		out->color = Color_Color32(Color4f(1.f, 1.f, 1.f, alpha));
 	}
 }
 

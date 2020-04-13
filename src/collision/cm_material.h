@@ -145,6 +145,7 @@ typedef enum {
 #define DEFAULT_HARDNESS 1.0
 #define DEFAULT_SPECULAR 1.0
 #define DEFAULT_LIGHT 300.0
+#define DEFAULT_WARP 1.0
 
 typedef struct cm_material_s {
 
@@ -227,6 +228,11 @@ typedef struct cm_material_s {
 	 * @brief The parallel factor to use for the normal map.
 	 */
 	float parallax;
+
+	/**
+	 * @brief The warp factor to use for water warping.
+	 */
+	float warp;
 
 	/**
 	 * @brief The name for the footstep sounds to query on this surface
