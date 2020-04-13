@@ -375,6 +375,8 @@ struct r_bsp_node_s {
 	int32_t vis_frame;
 
 	// node specific
+	int32_t particle_frame;
+
 	cm_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 

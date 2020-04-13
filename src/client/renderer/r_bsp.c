@@ -36,12 +36,12 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 /**
  * @return The node behind which the specified point should be rendered for alpha blending.
  */
-const r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p) {
+r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p) {
 
 	const r_bsp_leaf_t *leaf = R_LeafForPoint(p);
 	if (leaf) {
 
-		const r_bsp_node_t *node = leaf->parent;
+		r_bsp_node_t *node = leaf->parent;
 		while (node) {
 
 			if (node->vis_frame != r_locals.vis_frame) {

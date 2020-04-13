@@ -44,7 +44,7 @@ void R_AddLight(const r_light_t *in) {
 /**
  * @brief Recursively populates light source bit masks for world nodes.
  */
-void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
+static void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
 		return;

@@ -132,6 +132,11 @@ typedef struct {
 	int32_t stain_frame;
 
 	/**
+	 * @brief The particle frame counter.
+	 */
+	int32_t particle_frame;
+
+	/**
 	 * @brief The light sources for the current view, transformed to view space.
 	 */
 	r_light_t view_lights[MAX_LIGHTS];

@@ -161,7 +161,8 @@ static void R_DrawBspLightgrid(void) {
 static void R_DrawBspNodeBlendParticles(const r_bsp_inline_model_t *in, const r_bsp_node_t *node) {
 
 	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
-	if (in != bsp->inline_models) {
+	if (in != bsp->inline_models ||
+		node->particle_frame != r_locals.particle_frame) {
 		return;
 	}
 
