@@ -375,21 +375,22 @@ struct r_bsp_node_s {
 	int32_t vis_frame;
 
 	// node specific
-	int32_t particle_frame;
-
 	cm_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
-	int32_t num_faces;
 	r_bsp_face_t *faces;
+	int32_t num_faces;
 
-	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
+	int32_t num_draw_elements;
 
 	int32_t lights;
 	int32_t surface_mask;
+	
+	int32_t num_particles;
+	int32_t num_sprites;
 
-} __attribute__((packed));
+};
 
 typedef struct r_bsp_node_s r_bsp_node_t;
 
@@ -413,7 +414,7 @@ struct r_bsp_leaf_s {
 	// leaf specific
 	int32_t cluster;
 	int32_t area;
-} __attribute__((packed));
+};
 
 typedef struct r_bsp_leaf_s r_bsp_leaf_t;
 

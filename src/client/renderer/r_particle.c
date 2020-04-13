@@ -116,7 +116,7 @@ void R_AddParticle(const r_particle_t *p) {
 	r_bsp_node_t *node = R_BlendNodeForPoint(p->origin);
 	if (node) {
 		out->node = (int32_t) (node - r_model_state.world->bsp->nodes);
-		node->particle_frame = r_locals.particle_frame;
+		node->num_particles++;
 	} else {
 		out->node = -1;
 	}
@@ -192,10 +192,6 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 	glDepthMask(GL_TRUE);
 
 	R_GetError(NULL);
-
-	if (node == NULL) {
-		r_locals.particle_frame++;
-	}
 }
 
 /**

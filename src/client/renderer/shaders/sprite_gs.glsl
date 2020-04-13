@@ -19,36 +19,47 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-layout (location = 0) in vec4 in_position;
-layout (location = 1) in vec4 in_color;
-layout (location = 2) in int in_node;
+layout (triangles) in;
+layout (triangle_strip, max_vertices = 3) out;
 
-uniform mat4 projection;
-uniform mat4 view;
+uniform int node;
 
-uniform float pixels_per_radian;
-uniform vec2 depth_range;
+in vertex_data {
+	vec3 position;
+	vec2 diffusemap;
+	vec4 color;
+	vec2 next_diffusemap;
+	float next_lerp;
+	int node;
+} in_vertex[];
 
 out vertex_data {
-	vec4 position;
+	vec3 position;
+	vec2 diffusemap;
 	vec4 color;
-	int node;
-} vertex;
+	vec2 next_diffusemap;
+	float next_lerp;
+} out_vertex;
 
 /**
  * @brief
  */
-void main(void) {
+void main() {
 
-	gl_Position = projection * view * vec4(in_position.xyz, 1.0);
+	if (node == in_vertex[0].node) {
 
-	vertex.position = view * vec4(in_position.xyz, 1.0);
+		out_vertex.next_lerp = in_vertex[0].next_lerp;
 
-	float depth = clamp(gl_Position.z / depth_range.y, 0.0, 1.0);
+		for (int i = 0; i < 3; i++) {
+			gl_Position = gl_in[i].gl_Position;
+			out_vertex.position = in_vertex[i].position;
+			out_vertex.diffusemap = in_vertex[i].diffusemap;
+			out_vertex.color = in_vertex[i].color;
+			out_vertex.next_diffusemap = in_vertex[i].next_diffusemap;
 
-	gl_PointSize = pixels_per_radian * in_position.w  / depth;
+			EmitVertex();
+		}
+	}
 
-	vertex.color = in_color;
-
-	vertex.node = in_node;
+    EndPrimitive();
 }

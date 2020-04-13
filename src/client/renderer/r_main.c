@@ -301,7 +301,7 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawParticles(NULL);
 
-	R_DrawSprites();
+	R_DrawSprites(NULL);
 
 	R_Draw3D();
 

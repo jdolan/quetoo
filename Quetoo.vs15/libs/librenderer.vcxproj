@@ -98,6 +98,7 @@
     <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\soften_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\sprite_gs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sprite_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\version.glsl" />
   </ItemGroup>

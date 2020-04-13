@@ -48,7 +48,7 @@ s_sample_t *cg_sample_underwater;
 s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
 
-r_atlas_t *cg_particle_atlas;
+static r_atlas_t *cg_particle_atlas;
 
 r_image_t *cg_sprite_smoke;
 r_image_t *cg_beam_hook;
@@ -177,7 +177,7 @@ static void Cg_InitFootsteps(void) {
 /**
  * @brief
  */
- r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, char *seq_num_fmt, uint32_t first_frame, uint32_t last_frame) {
+static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, char *seq_num_fmt, uint32_t first_frame, uint32_t last_frame) {
 	assert(last_frame > first_frame);
 	 
 	// TODO: maybe first check if the paths actually exist?
