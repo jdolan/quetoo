@@ -48,7 +48,7 @@ const r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p) {
 				break;
 			}
 
-			if (node->surface_mask & SURF_MASK_TRANSLUCENT) {
+			if (node->surface_mask & SURF_MASK_BLEND) {
 				if (SignOf(Cm_DistanceToPlane(p, node->plane)) !=
 					SignOf(Cm_DistanceToPlane(r_view.origin, node->plane))) {
 					return node;
