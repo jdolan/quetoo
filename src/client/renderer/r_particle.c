@@ -113,9 +113,10 @@ void R_AddParticle(const r_particle_t *p) {
 	out->position = Vec3_ToVec4(p->origin, p->size);
 	out->color = Color_Color32(p->color);
 
-	const r_bsp_node_t *node = R_BlendNodeForPoint(p->origin);
+	r_bsp_node_t *node = R_BlendNodeForPoint(p->origin);
 	if (node) {
 		out->node = (int32_t) (node - r_model_state.world->bsp->nodes);
+		node->particle_frame = r_locals.particle_frame;
 	} else {
 		out->node = -1;
 	}
@@ -166,6 +167,8 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 		glEnableVertexAttribArray(r_particle_program.in_position);
 		glEnableVertexAttribArray(r_particle_program.in_color);
 		glEnableVertexAttribArray(r_particle_program.in_node);
+
+		r_particles.dirty = false;
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
@@ -189,6 +192,10 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 	glDepthMask(GL_TRUE);
 
 	R_GetError(NULL);
+
+	if (node == NULL) {
+		r_locals.particle_frame++;
+	}
 }
 
 /**

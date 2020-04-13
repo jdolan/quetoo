@@ -22,7 +22,7 @@
 #pragma once
 
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p);
-const r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p);
+r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p);
 _Bool R_LeafVisible(const r_bsp_leaf_t *leaf);
 _Bool R_LeafHearable(const r_bsp_leaf_t *leaf);
 
