@@ -30,10 +30,10 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 typedef struct {
 	GLint filter_min;
 	GLint filter_mag;
+
 	GLfloat anisotropy;
 
 	r_image_t *null;
-	r_image_t *warp;
 	r_image_t *shell;
 } r_image_state_t;
 

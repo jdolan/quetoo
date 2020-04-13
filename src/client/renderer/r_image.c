@@ -395,36 +395,6 @@ static void R_InitNullImage(void) {
 	R_UploadImage(r_image_state.null, GL_RGB, data);
 }
 
-#define WARP_SIZE 16
-
-/**
- * @brief Initializes the warp texture, used by r_program_warp.c.
- */
-static void R_InitWarpImage(void) {
-
-	r_image_state.warp = (r_image_t *) R_AllocMedia("r_image_state.warp", sizeof(r_image_t), MEDIA_IMAGE);
-
-	r_image_state.warp->media.Retain = R_RetainImage;
-	r_image_state.warp->media.Free = R_FreeImage;
-
-	r_image_state.warp->width = r_image_state.warp->height = WARP_SIZE;
-	r_image_state.warp->type = IT_PROGRAM;
-
-	byte data[WARP_SIZE][WARP_SIZE][4];
-	r_pixel_t i, j;
-
-	for (i = 0; i < WARP_SIZE; i++) {
-		for (j = 0; j < WARP_SIZE; j++) {
-			data[i][j][0] = RandomRangeu(0, 256);
-			data[i][j][1] = RandomRangeu(0, 256);
-			data[i][j][2] = RandomRangeu(0, 48);
-			data[i][j][3] = RandomRangeu(0, 48);
-		}
-	}
-
-	R_UploadImage(r_image_state.warp, GL_RGBA, (byte *) data);
-}
-
 /**
  * @brief Initializes the mesh shell image.
  */
@@ -446,8 +416,6 @@ void R_InitImages(void) {
 	R_TextureMode();
 
 	R_InitNullImage();
-
-	R_InitWarpImage();
 
 	R_InitShellImage();
 
