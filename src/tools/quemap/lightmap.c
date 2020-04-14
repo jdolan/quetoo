@@ -329,7 +329,6 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			dot = 1.0;
 		} else {
 			dot = Vec3_Dot(dir, luxel->normal);
-			assert(dot <= 1.0001);
 			if (dot <= 0.0) {
 				continue;
 			}
