@@ -175,9 +175,10 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 			break;
 	}
 
+	const _Bool mippable = (image->type & IT_MASK_MIPMAP) && !(image->width == 1 || image->height == 1 || image->depth == 1);
 	const GLenum type = GL_UNSIGNED_BYTE;
 
-	if (image->type & IT_MASK_MIPMAP) {
+	if (mippable) {
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
 		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 
@@ -203,10 +204,10 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		const GLenum internal_format = (format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
 
 		if (image->depth) {
-			glTexStorage3D(target, (image->type & IT_MASK_MIPMAP) ? (floor(log2(MAX(MAX(image->width, image->height), image->depth))) + 1) : 1, internal_format, image->width, image->height, image->depth);
+			glTexStorage3D(target, (mippable) ? (floor(log2(MAX(MAX(image->width, image->height), image->depth))) + 1) : 1, internal_format, image->width, image->height, image->depth);
 			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, format, type, data);
 		} else {
-			glTexStorage2D(target, (image->type & IT_MASK_MIPMAP) ? (floor(log2(MAX(image->width, image->height))) + 1) : 1, internal_format, image->width, image->height);
+			glTexStorage2D(target, (mippable) ? (floor(log2(MAX(image->width, image->height))) + 1) : 1, internal_format, image->width, image->height);
 			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, format, type, data);
 		}
 	} else {
@@ -217,7 +218,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		}
 	}
 
-	if (image->type & IT_MASK_MIPMAP) {
+	if (mippable) {
 		glGenerateMipmap(target);
 	}
 
