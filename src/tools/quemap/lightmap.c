@@ -310,12 +310,9 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			}
 		}
 
-		vec3_t dir; float dist;
-		if (light->type == LIGHT_AMBIENT) {
-			dist = 0.0;
-			dir = Vec3(0.0, 0.0, 1.0);
-		} else if (light->type == LIGHT_SUN) {
-			dist = 0.0;
+		vec3_t dir = Vec3(0.0, 0.0, 1.0);
+		float dist = 0.0;
+		if (light->type == LIGHT_SUN) {
 			dir = Vec3_Negate(light->normal);
 		} else {
 			dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
@@ -332,12 +329,13 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			dot = 1.0;
 		} else {
 			dot = Vec3_Dot(dir, luxel->normal);
+			assert(dot <= 1.0001);
 			if (dot <= 0.0) {
 				continue;
 			}
 		}
 
-		float intensity = Clampf(light->radius * dot, 0.0, LIGHT_RADIUS);
+		float intensity = Clampf(light->radius, 0.0, 1024.0) * dot;
 
 		switch (light->type) {
 			case LIGHT_INVALID:
@@ -347,14 +345,12 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			case LIGHT_SUN:
 				break;
 			case LIGHT_POINT:
-				intensity *= DEFAULT_BSP_PATCH_SIZE;
 				break;
 			case LIGHT_SPOT: {
 				const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 				const float thresh = cosf(light->theta);
 				const float smooth = 0.03;
 				intensity *= Smoothf(cone_dot, thresh - smooth, thresh + smooth);
-				intensity *= DEFAULT_BSP_PATCH_SIZE;
 			}
 				break;
 			case LIGHT_PATCH:
