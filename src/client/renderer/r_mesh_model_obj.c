@@ -200,7 +200,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 					break;
 				}
 
-				R_AppendObjElements(face, c->el, b->el, a->el);
+				R_AppendObjElements(face, a->el, b->el, c->el);
 			}
 		}
 	}

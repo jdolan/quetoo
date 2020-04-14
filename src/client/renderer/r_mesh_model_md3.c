@@ -441,9 +441,9 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 					const d_md3_triangle_t tri = R_SwapMd3Triangle(in_triangle);
 
-					out_triangle[0] = tri.indexes[2];
+					out_triangle[0] = tri.indexes[0];
 					out_triangle[1] = tri.indexes[1];
-					out_triangle[2] = tri.indexes[0];
+					out_triangle[2] = tri.indexes[2];
 				}
 			}
 
