@@ -165,9 +165,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 /**
  * @brief Draws all mesh models for the current frame.
  */
-void R_DrawMeshEntities(void) {
+void R_DrawMeshEntities(const r_bsp_node_t *node) {
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -214,15 +215,15 @@ void R_DrawMeshEntities(void) {
 		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 			if (e->model && e->model->type == MOD_MESH) {
 
+				if (e->node != node) {
+					continue;
+				}
+
 				if (e->effects & EF_NO_DRAW) {
 					continue;
 				}
 
 				if (e->effects & EF_BLEND) {
-					continue;
-				}
-
-				if (R_CullMeshEntity(e)) {
 					continue;
 				}
 
@@ -241,15 +242,15 @@ void R_DrawMeshEntities(void) {
 		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 			if (e->model && e->model->type == MOD_MESH) {
 
+				if (e->node != node) {
+					continue;
+				}
+
 				if (e->effects & EF_NO_DRAW) {
 					continue;
 				}
 
 				if (!(e->effects & EF_BLEND)) {
-					continue;
-				}
-
-				if (R_CullMeshEntity(e)) {
 					continue;
 				}
 
@@ -268,6 +269,7 @@ void R_DrawMeshEntities(void) {
 	}
 
 	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
 
 	R_GetError(NULL);
 }

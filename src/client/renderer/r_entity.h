@@ -26,5 +26,5 @@
 r_entity_t *R_AddEntity(const r_entity_t *e);
 
 #ifdef __R_LOCAL_H__
-void R_DrawEntities(void);
+void R_DrawEntities(const r_bsp_node_t *node);
 #endif /* __R_LOCAL_H__ */
