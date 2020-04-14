@@ -174,14 +174,11 @@ static void R_DrawBspNodeBlendContents(const r_bsp_inline_model_t *in, r_bsp_nod
 		return;
 	}
 
-	glDisable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ZERO);
-
-	glCullFace(GL_BACK);
+	glDisable(GL_BLEND);
+	
 	glDisable(GL_CULL_FACE);
-
 	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
 
 	if (node->num_entities) {
 		R_DrawEntities(node);
@@ -198,10 +195,7 @@ static void R_DrawBspNodeBlendContents(const r_bsp_inline_model_t *in, r_bsp_nod
 	R_GetError(NULL);
 
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -329,11 +323,7 @@ static void R_DrawBspInlineModel(const r_bsp_inline_model_t *in) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glDepthMask(GL_FALSE);
-
 	R_DrawBspNodeBlend(in, in->head_node);
-
-	glDepthMask(GL_TRUE);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
@@ -357,10 +347,7 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 void R_DrawWorld(void) {
 
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -427,10 +414,7 @@ void R_DrawWorld(void) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
-	glCullFace(GL_FRONT);
 	glDisable(GL_CULL_FACE);
-	
-	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
 	glBindVertexArray(0);

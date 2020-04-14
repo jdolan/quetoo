@@ -29,6 +29,45 @@
 static int32_t c_nofaces;
 static int32_t c_facenodes;
 
+static uint32_t start;
+static const char *emit;
+
+/**
+ * @brief
+ */
+static void BeginEmit(const char *name) {
+	start = SDL_GetTicks();
+	emit = name;
+	Com_Print("%-24s ", name);
+}
+
+/**
+ * @brief
+ */
+static void EmitProgress(void) {
+	static char *string = "-\\|/-|";
+	static int32_t index = 0;
+
+	Com_Print("\r%-24s [%c]", emit, string[index]);
+	index = (index + 1) % strlen(string);
+}
+
+/**
+ * @brief
+ */
+static void EndEmit(void) {
+	Com_Print("\r%-24s [100%%] %d ms\n", emit, SDL_GetTicks() - start);
+}
+
+/**
+ * @brief
+ */
+static void Emit(void (*EmitFunc)(void), const char *name) {
+	BeginEmit(name);
+	EmitFunc();
+	EndEmit();
+}
+
 /**
  * @brief
  */
@@ -42,6 +81,8 @@ static void EmitPlanes(void) {
 		bp->dist = p->dist;
 
 		bsp_file.num_planes++;
+
+		EmitProgress();
 	}
 }
 
@@ -260,6 +301,8 @@ static int32_t EmitNode(node_t *node) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_NODES\n");
 	}
 
+	EmitProgress();
+
 	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
 
@@ -292,32 +335,6 @@ static int32_t EmitNode(node_t *node) {
 	}
 
 	return (int32_t) (ptrdiff_t) (out - bsp_file.nodes);
-}
-
-static uint32_t start;
-
-/**
- * @brief
- */
-static void BeginEmit(const char *name) {
-	start = SDL_GetTicks();
-	Com_Print("%-24s ", name);
-}
-
-/**
- * @brief
- */
-static void EndEmit(void) {
-	Com_Print(" %d ms\n", SDL_GetTicks() - start);
-}
-
-/**
- * @brief
- */
-static void Emit(void (*EmitFunc)(void), const char *name) {
-	BeginEmit(name);
-	EmitFunc();
-	EndEmit();
 }
 
 /**
@@ -407,6 +424,8 @@ static void EmitBrushes(void) {
 				}
 			}
 		}
+
+		EmitProgress();
 	}
 }
 

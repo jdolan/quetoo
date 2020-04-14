@@ -192,6 +192,10 @@ void R_InitModels(void) {
 	R_InitBspProgram();
 
 	R_InitMeshProgram();
+
+	glFrontFace(GL_CW);
+
+	R_GetError(NULL);
 }
 
 /**
