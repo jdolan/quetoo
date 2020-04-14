@@ -168,7 +168,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 void R_DrawMeshEntities(const r_bsp_node_t *node) {
 
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -269,7 +268,6 @@ void R_DrawMeshEntities(const r_bsp_node_t *node) {
 	}
 
 	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
 
 	R_GetError(NULL);
 }
