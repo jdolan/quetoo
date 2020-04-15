@@ -177,7 +177,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	const GLenum type = GL_UNSIGNED_BYTE;
 
-	if (image->width < 1 || image->height < 1) {
+	if (image->width <= 1 || image->height <= 1) {
 		image->type &= ~IT_MASK_MIPMAP;
 	}
 
