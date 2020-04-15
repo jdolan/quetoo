@@ -101,8 +101,8 @@ typedef enum {
 } r_model_type_t;
 
 // high bits OR'ed with image categories, flags are bits 24..31
-#define IT_MASK_MIPMAP		1 << 24
-#define IT_MASK_CLAMP_EDGE  1 << 25
+#define IT_MASK_MIPMAP		(1 << 24)
+#define IT_MASK_CLAMP_EDGE  (1 << 25)
 #define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY)
 
 // image categories (bits 0..23) + flags are making image types
@@ -385,7 +385,6 @@ struct r_bsp_node_s {
 	int32_t num_draw_elements;
 
 	int32_t lights;
-	int32_t surface_mask;
 	
 	int32_t num_particles;
 	int32_t num_sprites;
@@ -434,6 +433,17 @@ typedef struct r_bsp_inline_model_s {
 
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
+
+	/**
+	 * @brief The opaque draw elements of this inline model, sorted by material at level load.
+	 */
+	GPtrArray *opaque_draw_elements;
+
+	/**
+	 * @brief The alpha blended draw elements of this inline model, sorted by depth each frame.
+	 */
+	GPtrArray *alpha_blend_draw_elements;
+
 } r_bsp_inline_model_t;
 
 /**
@@ -492,10 +502,6 @@ typedef struct {
 
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
-
-	GPtrArray *draw_elements_opaque;
-	GPtrArray *draw_elements_blend;
-	GPtrArray *draw_elements_material;
 
 	int32_t num_nodes;
 	r_bsp_node_t *nodes;

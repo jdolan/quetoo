@@ -85,10 +85,11 @@ static void R_FreeModel(r_media_t *self) {
 		glDeleteBuffers(1, &mod->bsp->elements_buffer);
 		glDeleteVertexArrays(1, &mod->bsp->vertex_array);
 
-		g_ptr_array_free(mod->bsp->draw_elements_opaque, 1);
-		g_ptr_array_free(mod->bsp->draw_elements_blend, 1);
-		g_ptr_array_free(mod->bsp->draw_elements_material, 1);
+	} else if (IS_BSP_INLINE_MODEL(mod)) {
 
+		g_ptr_array_free(mod->bsp_inline->opaque_draw_elements, 1);
+		g_ptr_array_free(mod->bsp_inline->alpha_blend_draw_elements, 1);
+		
 	} else if (IS_MESH_MODEL(mod)) {
 
 		glDeleteBuffers(1, &mod->mesh->vertex_buffer);

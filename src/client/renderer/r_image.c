@@ -177,12 +177,21 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	const GLenum type = GL_UNSIGNED_BYTE;
 
-	if (image->type & IT_MASK_MIPMAP) {
+	const GLboolean mipmap = (image->type & IT_MASK_MIPMAP) && image->width > 1 && image->height > 1;
+	GLsizei levels = 1;
+
+	if (mipmap) {
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
 		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 
 		if (r_image_state.anisotropy) {
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
+		}
+
+		if (image->depth) {
+			levels = floorf(log2f(MAX(MAX(image->width, image->height), image->depth))) + 1;
+		} else {
+			levels = floorf(log2f(MAX(image->width, image->height))) + 1;
 		}
 	} else {
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_mag);
@@ -201,12 +210,11 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	if (GLAD_GL_ARB_texture_storage) {
 		const GLenum internal_format = (format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
-
 		if (image->depth) {
-			glTexStorage3D(target, (image->type & IT_MASK_MIPMAP) ? (floor(log2(MAX(MAX(image->width, image->height), image->depth))) + 1) : 1, internal_format, image->width, image->height, image->depth);
+			glTexStorage3D(target, levels, internal_format, image->width, image->height, image->depth);
 			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, format, type, data);
 		} else {
-			glTexStorage2D(target, (image->type & IT_MASK_MIPMAP) ? (floor(log2(MAX(image->width, image->height))) + 1) : 1, internal_format, image->width, image->height);
+			glTexStorage2D(target, levels, internal_format, image->width, image->height);
 			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, format, type, data);
 		}
 	} else {
@@ -217,7 +225,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		}
 	}
 
-	if (image->type & IT_MASK_MIPMAP) {
+	if (mipmap) {
 		glGenerateMipmap(target);
 	}
 
