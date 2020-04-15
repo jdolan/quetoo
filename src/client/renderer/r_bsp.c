@@ -35,25 +35,26 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 
 /**
  * @return The node behind which the specified point should be rendered for alpha blending.
+ * FIXME: This is called while the scene is being populated, i.e. before R_UpdateVis.
+ * FIXME: It is therefore operating on slightly out of date PVS, and might fail in corner cases like teleporting.
+ * FIXME: Fixing this will require either a lazy update of particles, sprites, etc, before they are drawn,
+ * FIXME: or adding a separate R_UpdateParticles(), R_UpdateSprites, etc.
  */
 r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p) {
 
-	const r_bsp_leaf_t *leaf = R_LeafForPoint(p);
-	r_bsp_node_t *node = leaf->parent;
-	while (node) {
+	const r_bsp_inline_model_t *in = r_model_state.world->bsp->inline_models;
+	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 
-		if (node->vis_frame != r_locals.vis_frame) {
+		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
+
+		if (draw->node->vis_frame != r_locals.vis_frame) {
 			break;
 		}
 
-		if (node->surface_mask & SURF_MASK_BLEND) {
-			if (SignOf(Cm_DistanceToPlane(p, node->plane)) !=
-				SignOf(Cm_DistanceToPlane(r_view.origin, node->plane))) {
-				return node;
-			}
+		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane)) !=
+			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
+			return draw->node;
 		}
-
-		node = node->parent;
 	}
 
 	return NULL;
@@ -113,6 +114,35 @@ static _Bool R_CullBspEntity(const r_entity_t *e) {
 	}
 
 	return R_CullBox(mins, maxs);
+}
+
+/**
+ * @brief GCompareFunc for sorting draw elements by depth, back to front.
+ */
+static gint R_DrawElementsDepthCmp(gconstpointer a, gconstpointer b) {
+
+	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
+	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
+
+	if (a_draw->node == b_draw->node) {
+		return 0;
+	} else {
+		if (a_draw->node->vis_frame == r_locals.vis_frame) {
+			if (b_draw->node->vis_frame == r_locals.vis_frame) {
+
+				const int32_t a_dist = Cm_DistanceToPlane(r_view.origin, a_draw->node->plane);
+				const int32_t b_dist = Cm_DistanceToPlane(r_view.origin, b_draw->node->plane);
+
+				return SignOf(abs(b_dist) - abs(a_dist));
+			} else {
+				return -1;
+			}
+		} else if (b_draw->node->vis_frame == r_locals.vis_frame) {
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 /**
@@ -185,6 +215,9 @@ void R_UpdateVis(void) {
 		}
 	}
 
+	const r_bsp_inline_model_t *in = r_model_state.world->bsp->inline_models;
+	g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
+
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 		if (e->model && e->model->type == MOD_BSP_INLINE) {
@@ -193,10 +226,14 @@ void R_UpdateVis(void) {
 				continue;
 			}
 
-			const r_bsp_draw_elements_t *draw = e->model->bsp_inline->draw_elements;
-			for (int32_t i = 0; i < e->model->bsp_inline->num_draw_elements; i++, draw++) {
+			in = e->model->bsp_inline;
+
+			const r_bsp_draw_elements_t *draw = in->draw_elements;
+			for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 				draw->node->vis_frame = r_locals.vis_frame;
 			}
+
+			g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
 		}
 	}
 }

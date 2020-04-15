@@ -174,34 +174,11 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static gint R_DrawElementsCmp(gconstpointer a, gconstpointer b) {
-
-	r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
-	r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
-
-	int32_t order = strcmp(a_draw->texinfo->texture, b_draw->texinfo->texture);
-	if (order == 0) {
-		const int32_t a_flags = (a_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
-		const int32_t b_flags = (b_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
-
-		order = a_flags - b_flags;
-	}
-
-	return order;
-}
-
-/**
- * @brief
- */
 static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	r_bsp_draw_elements_t *out;
 
 	bsp->num_draw_elements = bsp->cm->file.num_draw_elements;
 	bsp->draw_elements = out = Mem_LinkMalloc(bsp->num_draw_elements * sizeof(*out), bsp);
-
-	bsp->draw_elements_opaque = g_ptr_array_new();
-	bsp->draw_elements_blend = g_ptr_array_new();
-	bsp->draw_elements_material = g_ptr_array_new();
 
 	const bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
@@ -220,21 +197,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
-
-		if (out->texinfo->flags & SURF_SKY) {
-			continue;
-		} else if (out->texinfo->flags & SURF_MASK_BLEND) {
-			g_ptr_array_add(bsp->draw_elements_blend, out);
-		} else if (out->texinfo->flags & SURF_MATERIAL) {
-			g_ptr_array_add(bsp->draw_elements_material, out);
-		} else {
-			g_ptr_array_add(bsp->draw_elements_opaque, out);
-		}
 	}
-
-	g_ptr_array_sort(bsp->draw_elements_opaque, R_DrawElementsCmp);
-	g_ptr_array_sort(bsp->draw_elements_blend, R_DrawElementsCmp);
-	g_ptr_array_sort(bsp->draw_elements_material, R_DrawElementsCmp);
 }
 
 /**
@@ -318,11 +281,29 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 	r_bsp_draw_elements_t *draw = node->draw_elements;
 	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
 		draw->node = node;
-		node->surface_mask |= draw->texinfo->flags;
 	}
 
 	R_SetupBspNode(node->children[0], node, model);
 	R_SetupBspNode(node->children[1], node, model);
+}
+
+/**
+ * @brief
+ */
+static gint R_DrawElementsCmp(gconstpointer a, gconstpointer b) {
+
+	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
+	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
+
+	gint order = strcmp(a_draw->texinfo->texture, b_draw->texinfo->texture);
+	if (order == 0) {
+		const gint a_flags = (a_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
+		const gint b_flags = (b_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
+
+		order = a_flags - b_flags;
+	}
+
+	return order;
 }
 
 /**
@@ -348,6 +329,29 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
+
+		out->opaque_draw_elements = g_ptr_array_new();
+		out->alpha_blend_draw_elements = g_ptr_array_new();
+
+		r_bsp_draw_elements_t *draw = out->draw_elements;
+		for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
+
+			if (draw->texinfo->flags & SURF_SKY) {
+				continue;
+			}
+
+			if (draw->texinfo->flags & SURF_MATERIAL) {
+				continue;
+			}
+
+			if (draw->texinfo->flags & SURF_MASK_BLEND) {
+				g_ptr_array_add(out->alpha_blend_draw_elements, draw);
+			} else {
+				g_ptr_array_add(out->opaque_draw_elements, draw);
+			}
+		}
+
+		g_ptr_array_sort(out->opaque_draw_elements, R_DrawElementsCmp);
 
 		R_SetupBspNode(out->head_node, NULL, out);
 	}
