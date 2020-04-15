@@ -30,35 +30,6 @@
 lightmap_t *lightmaps;
 
 /**
- * @brief Generates pseudorandom points on a sphere with an even distribution (Hammersley Sequence)
- */
-static void SphereHammersley(vec3_t *result, int n) {
-
-	// https://www.cse.cuhk.edu.hk/~ttwong/papers/udpoint/udpoint.pdf
-
-	float p, t, st, phi, phirad;
-	int k, kk;
-
-	for (k = 0; k < n; k++) {
-
-		t = 0;
-
-		for (p = 0.5, kk = k; kk; p *= 0.5, kk >>= 1) {
-			if (kk & 1) {
-				t += p;
-			}
-		}
-
-		t = 2.0 * t - 1.0;
-		phi = (k + 0.5) / n;
-		phirad = phi * 2.0 * M_PI;
-		st = sqrt(1.0 - t * t);
-
-		result[k] = Vec3(st * cos(phirad), st * sin(phirad), t);
-	}
-}
-
-/**
  * @brief Resolves the texture projection matrices for the given lightmap.
  */
 static void BuildLightmapMatrices(lightmap_t *lm) {
