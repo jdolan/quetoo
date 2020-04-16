@@ -22,11 +22,11 @@
 #include "r_local.h"
 
 #define TEXTURE_MATERIAL                 0
-#define TEXTURE_LIGHTGRID                1
-#define TEXTURE_LIGHTGRID_AMBIENT        1
-#define TEXTURE_LIGHTGRID_DIFFUSE        2
-#define TEXTURE_LIGHTGRID_RADIOSITY      3
-#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    4
+#define TEXTURE_LIGHTGRID                3
+#define TEXTURE_LIGHTGRID_AMBIENT        3
+#define TEXTURE_LIGHTGRID_DIFFUSE        4
+#define TEXTURE_LIGHTGRID_RADIOSITY      5
+#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    6
 
 /**
  * @brief The program.
@@ -197,7 +197,7 @@ void R_DrawMeshEntities(const r_bsp_node_t *node) {
 		glUniform3fv(r_mesh_program.lightgrid_mins, 1, lg->mins.xyz);
 		glUniform3fv(r_mesh_program.lightgrid_maxs, 1, lg->maxs.xyz);
 
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);

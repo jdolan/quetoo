@@ -289,15 +289,15 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateStains();
 
-	R_UpdateFog();
+	//	R_AddFlares();
 
-	R_DrawEntities(NULL);
+	R_UpdateFog();
 
 	R_DrawSky();
 
 	R_DrawWorld();
 
-//	R_AddFlares();
+	R_DrawEntities(NULL);
 
 	R_DrawParticles(NULL);
 

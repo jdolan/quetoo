@@ -319,6 +319,7 @@ typedef struct {
 	byte plane_side;
 
 	r_bsp_texinfo_t *texinfo;
+
 	r_bsp_flare_t *flare;
 
 	r_bsp_face_lightmap_t lightmap;
@@ -336,16 +337,15 @@ typedef struct {
  * @brief
  */
 typedef struct {
-	r_bsp_texinfo_t *texinfo;
-
 	struct r_bsp_node_s *node;
+
+	r_bsp_texinfo_t *texinfo;
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
 
 	GLvoid *elements;
 	int32_t num_elements;
-
 } r_bsp_draw_elements_t;
 
 /**
@@ -385,6 +385,7 @@ struct r_bsp_node_s {
 	int32_t num_draw_elements;
 
 	int32_t lights;
+	int32_t depth;
 	
 	int32_t num_particles;
 	int32_t num_sprites;

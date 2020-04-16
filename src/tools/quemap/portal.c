@@ -878,12 +878,6 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 		return NULL;
 	}
 
-	// don't show insides of windows
-	if ((p->nodes[pside]->contents & CONTENTS_WINDOW) &&
-		VisibleContents(p->nodes[!pside]->contents ^ p->nodes[pside]->contents) == CONTENTS_WINDOW) {
-		return NULL;
-	}
-
 	face_t *f = AllocFace();
 
 	f->texinfo = side->texinfo;

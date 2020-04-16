@@ -161,7 +161,7 @@ static void R_DrawBspLightgrid(void) {
 }
 
 /**
- * @brief
+ * @brief Draws opaque draw elements for the specified inline model, ordered by material.
  */
 static void R_DrawBspInlineModelOpaqueDrawElements(const r_bsp_inline_model_t *in) {
 
@@ -204,11 +204,6 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_bsp_inline_model_t *i
  */
 static void R_DrawBspInlineModelAlphaBlendNodeContents(const r_bsp_inline_model_t *in, r_bsp_node_t *node) {
 
-	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
-	if (in != bsp->inline_models) {
-		return;
-	}
-
 	if (!node->num_particles && !node->num_sprites && !node->num_entities) {
 		return;
 	}
@@ -216,8 +211,8 @@ static void R_DrawBspInlineModelAlphaBlendNodeContents(const r_bsp_inline_model_
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 
-	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 
 	if (node->num_entities) {
 		R_DrawEntities(node);
@@ -234,19 +229,20 @@ static void R_DrawBspInlineModelAlphaBlendNodeContents(const r_bsp_inline_model_
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
 
 	glUseProgram(r_bsp_program.name);
 
+	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
 	glBindVertexArray(bsp->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_GetError(NULL);
 
@@ -256,7 +252,7 @@ static void R_DrawBspInlineModelAlphaBlendNodeContents(const r_bsp_inline_model_
 }
 
 /**
- * @brief
+ * @brief Draws alpha blended draw elements for the specified inline model, ordered back to front.
  */
 static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_t *in) {
 
@@ -280,6 +276,10 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 			R_DrawBspInlineModelAlphaBlendNodeContents(in, draw->node);
 
 			glUniform1i(r_bsp_program.lights_mask, node->lights);
+
+			if (material) {
+				glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+			}
 		}
 
 		if (draw->texinfo->material != material) {

@@ -48,7 +48,7 @@ r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p) {
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
 
 		if (draw->node->vis_frame != r_locals.vis_frame) {
-			break;
+			continue;
 		}
 
 		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane)) !=
@@ -124,25 +124,48 @@ static gint R_DrawElementsDepthCmp(gconstpointer a, gconstpointer b) {
 	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
 	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
 
-	if (a_draw->node == b_draw->node) {
-		return 0;
-	} else {
-		if (a_draw->node->vis_frame == r_locals.vis_frame) {
-			if (b_draw->node->vis_frame == r_locals.vis_frame) {
-
-				const int32_t a_dist = Cm_DistanceToPlane(r_view.origin, a_draw->node->plane);
-				const int32_t b_dist = Cm_DistanceToPlane(r_view.origin, b_draw->node->plane);
-
-				return SignOf(abs(b_dist) - abs(a_dist));
-			} else {
-				return -1;
-			}
-		} else if (b_draw->node->vis_frame == r_locals.vis_frame) {
-			return 1;
-		}
-	}
+	return b_draw->node->depth - a_draw->node->depth;
 
 	return 0;
+}
+
+/**
+ * @brief Recurses the specified node, front to back, resolving each node's depth.
+ */
+static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
+	int32_t side;
+
+	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	if (node->vis_frame != r_locals.vis_frame) {
+		return;
+	}
+
+	if (Cm_DistanceToPlane(r_view.origin, node->plane) > 0.f) {
+		side = 0;
+	} else {
+		side = 1;
+	}
+
+	R_UpdateNodeDepth_r(node->children[side], depth);
+
+	node->depth = *depth = *depth + 1;
+
+	R_UpdateNodeDepth_r(node->children[!side], depth);
+}
+
+/**
+ * @brief Recurses the specified model's tree, sorting nodes from back to front.
+ */
+static void R_UpdateNodeDepth(r_bsp_inline_model_t *in) {
+
+	int32_t depth = 0;
+
+	R_UpdateNodeDepth_r(in->head_node, &depth);
+
+	g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
 }
 
 /**
@@ -167,9 +190,8 @@ void R_UpdateVis(void) {
 		memset(r_locals.vis_data_pvs, 0x00, sizeof(r_locals.vis_data_pvs));
 		memset(r_locals.vis_data_phs, 0x00, sizeof(r_locals.vis_data_phs));
 
-		vec3_t mins, maxs;
-		mins = Vec3_Add(r_view.origin, Vec3(-2.f, -2.f, -4.f));
-		maxs = Vec3_Add(r_view.origin, Vec3( 2.f,  2.f,  4.f));
+		const vec3_t mins = Vec3_Add(r_view.origin, Vec3(-2.f, -2.f, -4.f));
+		const vec3_t maxs = Vec3_Add(r_view.origin, Vec3( 2.f,  2.f,  4.f));
 
 		const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
 		for (size_t i = 0; i < count; i++) {
@@ -199,24 +221,27 @@ void R_UpdateVis(void) {
 
 			r_bsp_node_t *node = (r_bsp_node_t *) leaf;
 			while (node) {
-				
+
 				if (node->vis_frame == r_locals.vis_frame) {
 					break;
 				}
 
-				if (!R_CullBox(node->mins, node->maxs)) {
-					node->vis_frame = r_locals.vis_frame;
-					node->lights = 0;
-					r_view.count_bsp_nodes++;
+				if (R_CullBox(node->mins, node->maxs)) {
+					node = node->parent;
+					continue;
 				}
 
+				node->vis_frame = r_locals.vis_frame;
+				node->lights = 0;
+				node->depth = 0;
+
 				node = node->parent;
+				r_view.count_bsp_nodes++;
 			}
 		}
 	}
 
-	const r_bsp_inline_model_t *in = r_model_state.world->bsp->inline_models;
-	g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
+	R_UpdateNodeDepth(r_model_state.world->bsp->inline_models);
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
@@ -226,14 +251,12 @@ void R_UpdateVis(void) {
 				continue;
 			}
 
-			in = e->model->bsp_inline;
-
-			const r_bsp_draw_elements_t *draw = in->draw_elements;
-			for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
+			const r_bsp_draw_elements_t *draw = e->model->bsp_inline->draw_elements;
+			for (int32_t i = 0; i < e->model->bsp_inline->num_draw_elements; i++, draw++) {
 				draw->node->vis_frame = r_locals.vis_frame;
 			}
 
-			g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
+			R_UpdateNodeDepth(e->model->bsp_inline);
 		}
 	}
 }
