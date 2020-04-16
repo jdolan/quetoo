@@ -67,12 +67,12 @@ void main(void) {
 
 	vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
 	vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
-	vec3 diffuse_dir = texture(texture_lightmap, vec3(vertex.lightmap, 2)).xyz;
+	vec3 direction = texture(texture_lightmap, vec3(vertex.lightmap, 2)).xyz;
 
-	diffuse_dir = normalize(tbn * (diffuse_dir * 2.0 - 1.0));
+	direction = normalize(tbn * (direction * 2.0 - 1.0));
 
-	vec3 light_diffuse = ambient + diffuse * max(0.0, dot(diffuse_dir, normal));
-	vec3 light_specular = brdf_blinn(normalize(-vertex.position), diffuse_dir, normal, diffuse, glossmap.a, _specular);
+	vec3 light_diffuse = ambient + diffuse * max(0.0, dot(direction, normal));
+	vec3 light_specular = brdf_blinn(normalize(-vertex.position), direction, normal, diffuse, glossmap.a, _specular);
 	light_specular = min(light_specular * 0.2 * glossmap.xyz * hardness, MAX_HARDNESS);
 
 	vec3 stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;

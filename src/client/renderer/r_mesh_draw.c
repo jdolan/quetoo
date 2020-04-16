@@ -26,7 +26,7 @@
 #define TEXTURE_LIGHTGRID_AMBIENT        3
 #define TEXTURE_LIGHTGRID_DIFFUSE        4
 #define TEXTURE_LIGHTGRID_RADIOSITY      5
-#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    6
+#define TEXTURE_LIGHTGRID_DIRECTION      6
 
 /**
  * @brief The program.
@@ -54,8 +54,7 @@ static struct {
 	GLint texture_material;
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
-	GLint texture_lightgrid_radiosity;
-	GLint texture_lightgrid_diffuse_dir;
+	GLint texture_lightgrid_direction;
 
 	GLint lightgrid_mins;
 	GLint lightgrid_maxs;
@@ -306,8 +305,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
 	r_mesh_program.texture_lightgrid_ambient = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_ambient");
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
-	r_mesh_program.texture_lightgrid_radiosity = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_radiosity");
-	r_mesh_program.texture_lightgrid_diffuse_dir = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse_dir");
+	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
 
 	r_mesh_program.lightgrid_mins = glGetUniformLocation(r_mesh_program.name, "lightgrid_mins");
 	r_mesh_program.lightgrid_maxs = glGetUniformLocation(r_mesh_program.name, "lightgrid_maxs");
@@ -339,8 +337,7 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
-	glUniform1i(r_mesh_program.texture_lightgrid_radiosity, TEXTURE_LIGHTGRID_RADIOSITY);
-	glUniform1i(r_mesh_program.texture_lightgrid_diffuse_dir, TEXTURE_LIGHTGRID_DIFFUSE_DIR);
+	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 
 	glUseProgram(0);
 	

@@ -367,7 +367,7 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
 				luxel->diffuse = Vec3_Add(luxel->diffuse, Vec3_Scale(light->color, intensity));
-				luxel->diffuse_dir = Vec3_Add(luxel->diffuse_dir, Vec3_Scale(dir, intensity));
+				luxel->direction = Vec3_Add(luxel->direction, Vec3_Scale(dir, intensity));
 				break;
 			case LIGHT_INDIRECT:
 				luxel->ambient = Vec3_Add(luxel->ambient, Vec3_Scale(light->color, intensity));
@@ -416,7 +416,7 @@ void DirectLightgrid(int32_t luxel_num) {
 	if (contribution > 0.0 && contribution < 1.0) {
 		l->ambient = Vec3_Scale(l->ambient, 1.0 / contribution);
 		l->diffuse = Vec3_Scale(l->diffuse, 1.0 / contribution);
-		l->diffuse_dir = Vec3_Scale(l->diffuse_dir, 1.0 / contribution);
+		l->direction = Vec3_Scale(l->direction, 1.0 / contribution);
 	}
 }
 
@@ -468,8 +468,8 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	l->diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
 	l->diffuse = ColorFilter(l->diffuse);
 
-	l->diffuse_dir = Vec3_Add(l->diffuse_dir, Vec3_Up());
-	l->diffuse_dir = Vec3_Normalize(l->diffuse_dir);
+	l->direction = Vec3_Add(l->direction, Vec3_Up());
+	l->direction = Vec3_Normalize(l->direction);
 }
 
 /**
@@ -499,14 +499,14 @@ void EmitLightgrid(void) {
 
 	byte *out_ambient = out + 0 * texture_size;
 	byte *out_diffuse = out + 1 * texture_size;
-	byte *out_diffuse_dir = out + 2 * texture_size;
+	byte *out_direction = out + 2 * texture_size;
 
 	const luxel_t *l = lg.luxels;
 	for (int32_t u = 0; u < lg.size.z; u++) {
 
 		SDL_Surface *ambient = CreateLightgridSurfaceFrom(out_ambient);
 		SDL_Surface *diffuse = CreateLightgridSurfaceFrom(out_diffuse);
-		SDL_Surface *diffuse_dir = CreateLightgridSurfaceFrom(out_diffuse_dir);
+		SDL_Surface *direction = CreateLightgridSurfaceFrom(out_direction);
 
 		for (int32_t t = 0; t < lg.size.y; t++) {
 			for (int32_t s = 0; s < lg.size.x; s++, l++) {
@@ -514,17 +514,17 @@ void EmitLightgrid(void) {
 				for (int32_t i = 0; i < 3; i++) {
 					*out_ambient++ = (byte) Clampf(l->ambient.xyz[i] * 255.0, 0, 255);
 					*out_diffuse++ = (byte) Clampf(l->diffuse.xyz[i] * 255.0, 0, 255);
-					*out_diffuse_dir++ = (byte) Clampf((l->diffuse_dir.xyz[i] + 1.0) * 0.5 * 255.0, 0, 255);
+					*out_direction++ = (byte) Clampf((l->direction.xyz[i] + 1.0) * 0.5 * 255.0, 0, 255);
 				}
 			}
 		}
 
 //		IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
 //		IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
-//		IMG_SavePNG(diffuse_dir, va("/tmp/%s_lg_diffuse_dir_%d.png", map_base, u));
+//		IMG_SavePNG(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
-		SDL_FreeSurface(diffuse_dir);
+		SDL_FreeSurface(direction);
 	}
 }

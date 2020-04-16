@@ -472,7 +472,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
 				luxel->diffuse = Vec3_Add(luxel->diffuse, Vec3_Scale(light->color, intensity));
-				luxel->diffuse_dir = Vec3_Add(luxel->diffuse_dir, Vec3_Scale(dir, intensity));
+				luxel->direction = Vec3_Add(luxel->direction, Vec3_Scale(dir, intensity));
 				break;
 			case LIGHT_INDIRECT:
 				luxel->ambient = Vec3_Add(luxel->ambient, Vec3_Scale(light->color, intensity));
@@ -527,7 +527,7 @@ void DirectLightmap(int32_t face_num) {
 		if (contribution > 0.0 && contribution < 1.0) {
 			l->ambient = Vec3_Scale(l->ambient, 1.0 / contribution);
 			l->diffuse = Vec3_Scale(l->diffuse, 1.0 / contribution);
-			l->diffuse_dir = Vec3_Scale(l->diffuse_dir, 1.0 / contribution);
+			l->direction = Vec3_Scale(l->direction, 1.0 / contribution);
 		}
 	}
 }
@@ -601,8 +601,8 @@ void FinalizeLightmap(int32_t face_num) {
 	lm->diffuse = CreateLightmapSurface(lm->w, lm->h);
 	byte *out_diffuse = lm->diffuse->pixels;
 
-	lm->diffuse_dir = CreateLightmapSurface(lm->w, lm->h);
-	byte *out_diffuse_dir = lm->diffuse_dir->pixels;
+	lm->direction = CreateLightmapSurface(lm->w, lm->h);
+	byte *out_direction = lm->direction->pixels;
 
 	// write it out
 	luxel_t *l = lm->luxels;
@@ -627,7 +627,7 @@ void FinalizeLightmap(int32_t face_num) {
 		ProjectLuxel(lm, l, 0.f, 0.f);
 
 		// write the directional sample data, in tangent space
-		l->diffuse_dir = Vec3_Add(l->diffuse_dir, l->normal);
+		l->direction = Vec3_Add(l->direction, l->normal);
 
 		const vec3_t sdir = Vec4_XYZ(lm->texinfo->vecs[0]);
 		const vec3_t tdir = Vec4_XYZ(lm->texinfo->vecs[1]);
@@ -635,16 +635,16 @@ void FinalizeLightmap(int32_t face_num) {
 		vec3_t tangent, bitangent;
 		Vec3_Tangents(l->normal, sdir, tdir, &tangent, &bitangent);
 
-		vec3_t diffuse_dir;
-		diffuse_dir.x = Vec3_Dot(l->diffuse_dir, tangent);
-		diffuse_dir.y = Vec3_Dot(l->diffuse_dir, bitangent);
-		diffuse_dir.z = Vec3_Dot(l->diffuse_dir, l->normal);
+		vec3_t direction;
+		direction.x = Vec3_Dot(l->direction, tangent);
+		direction.y = Vec3_Dot(l->direction, bitangent);
+		direction.z = Vec3_Dot(l->direction, l->normal);
 
-		diffuse_dir = Vec3_Normalize(diffuse_dir);
+		direction = Vec3_Normalize(direction);
 
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 		for (int32_t j = 0; j < 3; j++) {
-			*out_diffuse_dir++ = (byte) Clampf((diffuse_dir.xyz[j] + 1.0) * 0.5 * 255.0, 0, 255);
+			*out_direction++ = (byte) Clampf((direction.xyz[j] + 1.0) * 0.5 * 255.0, 0, 255);
 		}
 	}
 }
@@ -666,7 +666,7 @@ void EmitLightmap(void) {
 			continue;
 		}
 
-		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->diffuse_dir);
+		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction);
 	}
 
 	int32_t width;
@@ -685,24 +685,24 @@ void EmitLightmap(void) {
 
 		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_size);
 		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_size);
-		SDL_Surface *diffuse_dir = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
+		SDL_Surface *direction = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
 
 		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction) == 0) {
 
 //			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
 //			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
-//			IMG_SavePNG(diffuse_dir, va("/tmp/%s_lm_diffuse_dir.png", map_base));
+//			IMG_SavePNG(direction, va("/tmp/%s_lm_direction.png", map_base));
 
 			SDL_FreeSurface(ambient);
 			SDL_FreeSurface(diffuse);
-			SDL_FreeSurface(diffuse_dir);
+			SDL_FreeSurface(direction);
 
 			break;
 		}
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
-		SDL_FreeSurface(diffuse_dir);
+		SDL_FreeSurface(direction);
 	}
 
 	if (width > MAX_BSP_LIGHTMAP_WIDTH) {
@@ -728,7 +728,7 @@ void EmitLightmap(void) {
 
 		SDL_FreeSurface(lm->ambient);
 		SDL_FreeSurface(lm->diffuse);
-		SDL_FreeSurface(lm->diffuse_dir);
+		SDL_FreeSurface(lm->direction);
 	}
 
 	Atlas_Destroy(atlas);

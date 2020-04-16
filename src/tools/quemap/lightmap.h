@@ -31,7 +31,7 @@ typedef struct {
 	vec3_t normal;
 	vec3_t ambient;
 	vec3_t diffuse;
-	vec3_t diffuse_dir;
+	vec3_t direction;
 } luxel_t;
 
 typedef struct {
@@ -50,7 +50,7 @@ typedef struct {
 	size_t num_luxels;
 	SDL_Surface *ambient;
 	SDL_Surface *diffuse;
-	SDL_Surface *diffuse_dir;
+	SDL_Surface *direction;
 } lightmap_t;
 
 extern lightmap_t *lightmaps;

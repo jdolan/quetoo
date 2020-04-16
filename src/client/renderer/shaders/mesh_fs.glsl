@@ -25,8 +25,7 @@ uniform sampler2DArray texture_material;
 
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_radiosity;
-uniform sampler3D texture_lightgrid_diffuse_dir;
+uniform sampler3D texture_lightgrid_direction;
 
 uniform vec4 color;
 uniform float alpha_threshold;
@@ -73,10 +72,10 @@ void main(void) {
 	vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
 	vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 
-	vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
-	diffuse_dir = normalize((view * vec4(diffuse_dir * 2.0 - 1.0, 1.0)).xyz);
+	vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
+	direction = normalize((view * vec4(direction * 2.0 - 1.0, 1.0)).xyz);
 
-	vec3 lightgrid = ambient + diffuse * max(0.0, dot(normal, diffuse_dir));
+	vec3 lightgrid = ambient + diffuse * max(0.0, dot(normal, direction));
 
 	out_color = diffusemap;
 
