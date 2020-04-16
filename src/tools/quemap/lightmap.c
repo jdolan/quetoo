@@ -687,7 +687,7 @@ void EmitLightmap(void) {
 		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_size);
 		SDL_Surface *diffuse_dir = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
 
-		if (Atlas_Compile(atlas, 0, ambient, diffuse, radiosity, diffuse_dir) == 0) {
+		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction) == 0) {
 
 //			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
 //			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
