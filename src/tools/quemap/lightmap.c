@@ -281,18 +281,28 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			}
 		}
 
-		vec3_t dir = Vec3(0.0, 0.0, 1.0);
-		float dist = 0.0;
-		if (light->type == LIGHT_SUN) {
-			dir = Vec3_Negate(light->normal);
-		} else {
-			dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
+		float dist_squared = 0.0;
+		switch (light->type) {
+			case LIGHT_SUN:
+				break;
+			default:
+				dist_squared = Vec3_DistanceSquared(light->origin, luxel->origin);
+				break;
 		}
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			if (dist > light->radius) {
+			if (dist_squared > light->radius * light->radius) {
 				continue;
 			}
+		}
+
+		const float dist = sqrtf(dist_squared);
+
+		vec3_t dir = Vec3(0.0, 0.0, 1.0);
+		if (light->type == LIGHT_SUN) {
+			dir = Vec3_Negate(light->normal);
+		} else {
+			dir = Vec3_Normalize(Vec3_Subtract(light->origin, luxel->origin));
 		}
 
 		float dot;
@@ -305,7 +315,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			}
 		}
 
-		float intensity = Clampf(light->radius, 0.0, 1024.0) * dot;
+		float intensity = Clampf(light->radius, 0.0, MAX_WORLD_COORD) * dot;
 
 		switch (light->type) {
 			case LIGHT_INVALID:
@@ -465,7 +475,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 				luxel->diffuse_dir = Vec3_Add(luxel->diffuse_dir, Vec3_Scale(dir, intensity));
 				break;
 			case LIGHT_INDIRECT:
-				luxel->radiosity = Vec3_Add(luxel->radiosity, Vec3_Scale(light->color, intensity));
+				luxel->ambient = Vec3_Add(luxel->ambient, Vec3_Scale(light->color, intensity));
 				break;
 		}
 	}
@@ -591,32 +601,26 @@ void FinalizeLightmap(int32_t face_num) {
 	lm->diffuse = CreateLightmapSurface(lm->w, lm->h);
 	byte *out_diffuse = lm->diffuse->pixels;
 
-	lm->radiosity = CreateLightmapSurface(lm->w, lm->h);
-	byte *out_radiosity = lm->radiosity->pixels;
-
 	lm->diffuse_dir = CreateLightmapSurface(lm->w, lm->h);
 	byte *out_diffuse_dir = lm->diffuse_dir->pixels;
 
 	// write it out
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
-		vec3_t ambient, diffuse, radiosity;
+		vec3_t ambient, diffuse;
 
 		// convert to float
 		ambient = Vec3_Scale(l->ambient, 1.0 / 255.0);
 		diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
-		radiosity = Vec3_Scale(l->radiosity, 1.0 / 255.0);
 
 		// apply brightness, saturation and contrast
 		ambient = ColorFilter(ambient);
 		diffuse = ColorFilter(diffuse);
-		radiosity = ColorFilter(radiosity);
 
 		// write the color sample data as bytes
 		for (int32_t j = 0; j < 3; j++) {
 			*out_ambient++ = (byte) Clampf(ambient.xyz[j] * 255.0, 0, 255);
 			*out_diffuse++ = (byte) Clampf(diffuse.xyz[j] * 255.0, 0, 255);
-			*out_radiosity++ = (byte) Clampf(radiosity.xyz[j] * 255.0, 0, 255);
 		}
 
 		// re-project the luxel to calculate its centered normal
@@ -662,7 +666,7 @@ void EmitLightmap(void) {
 			continue;
 		}
 
-		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->radiosity, lm->diffuse_dir);
+		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->diffuse_dir);
 	}
 
 	int32_t width;
@@ -681,19 +685,16 @@ void EmitLightmap(void) {
 
 		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_size);
 		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_size);
-		SDL_Surface *radiosity = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
-		SDL_Surface *diffuse_dir = CreateLightmapSurfaceFrom(width, width, out + 3 * layer_size);
+		SDL_Surface *diffuse_dir = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
 
 		if (Atlas_Compile(atlas, 0, ambient, diffuse, radiosity, diffuse_dir) == 0) {
 
-			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
-			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
-			IMG_SavePNG(radiosity, va("/tmp/%s_lm_radiosity.png", map_base));
-			IMG_SavePNG(diffuse_dir, va("/tmp/%s_lm_diffuse_dir.png", map_base));
+//			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
+//			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
+//			IMG_SavePNG(diffuse_dir, va("/tmp/%s_lm_diffuse_dir.png", map_base));
 
 			SDL_FreeSurface(ambient);
 			SDL_FreeSurface(diffuse);
-			SDL_FreeSurface(radiosity);
 			SDL_FreeSurface(diffuse_dir);
 
 			break;
@@ -701,7 +702,6 @@ void EmitLightmap(void) {
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
-		SDL_FreeSurface(radiosity);
 		SDL_FreeSurface(diffuse_dir);
 	}
 
@@ -728,7 +728,6 @@ void EmitLightmap(void) {
 
 		SDL_FreeSurface(lm->ambient);
 		SDL_FreeSurface(lm->diffuse);
-		SDL_FreeSurface(lm->radiosity);
 		SDL_FreeSurface(lm->diffuse_dir);
 	}
 

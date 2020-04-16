@@ -61,9 +61,9 @@
 #define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
 
 /**
- * @brief Lightmap ambient, diffuse, radiosity, and direction layers.
+ * @brief Lightmap ambient, diffuse, and direction layers.
  */
-#define BSP_LIGHTMAP_LAYERS 4
+#define BSP_LIGHTMAP_LAYERS 3
 
 /**
  * @brief Stainmap layers.
@@ -81,9 +81,9 @@
 #define BSP_LIGHTGRID_BPP 3
 
 /**
- * @brief Lightgrid ambient, diffuse, radiosity and diffuse direction textures.
+ * @brief Lightgrid ambient, diffuse and direction textures.
  */
-#define BSP_LIGHTGRID_TEXTURES 4
+#define BSP_LIGHTGRID_TEXTURES 3
 
 /**
  * @brief Largest lightgrid width in luxels (8192 / 64 = 128).

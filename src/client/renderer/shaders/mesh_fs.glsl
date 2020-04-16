@@ -19,13 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define TEXTURE_MATERIAL                 0
-#define TEXTURE_LIGHTGRID                1
-#define TEXTURE_LIGHTGRID_AMBIENT        1
-#define TEXTURE_LIGHTGRID_DIFFUSE        2
-#define TEXTURE_LIGHTGRID_RADIOSITY      3
-#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    4
-
 uniform mat4 view;
 
 uniform sampler2DArray texture_material;
@@ -77,14 +70,13 @@ void main(void) {
 	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 	vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(bump, bump, 1.0)));
 
-	vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
-	vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
-	vec3 radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
+	vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
+	vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 
 	vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
 	diffuse_dir = normalize((view * vec4(diffuse_dir * 2.0 - 1.0, 1.0)).xyz);
 
-	vec3 lightgrid = ambient + radiosity + diffuse * max(0.0, dot(normal, diffuse_dir));
+	vec3 lightgrid = ambient + diffuse * max(0.0, dot(normal, diffuse_dir));
 
 	out_color = diffusemap;
 
