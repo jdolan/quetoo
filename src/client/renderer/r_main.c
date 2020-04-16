@@ -293,7 +293,7 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawEntities(NULL);
 
-	R_DrawSkyBox();
+	R_DrawSky();
 
 	R_DrawWorld();
 
