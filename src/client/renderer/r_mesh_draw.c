@@ -164,7 +164,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 /**
  * @brief Draws all mesh models for the current frame.
  */
-void R_DrawMeshEntities(const r_bsp_node_t *node) {
+void R_DrawMeshEntities(int32_t blend_depth) {
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -185,19 +185,15 @@ void R_DrawMeshEntities(const r_bsp_node_t *node) {
 	glUniform1f(r_mesh_program.gamma, r_gamma->value);
 	glUniform1f(r_mesh_program.modulate, r_modulate->value);
 
-	const r_bsp_lightgrid_t *lg = r_world_model->bsp->lightgrid;
-	if (lg) {
-
-		for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
-			glBindTexture(GL_TEXTURE_3D, lg->textures[i]->texnum);
-		}
-
-		glUniform3fv(r_mesh_program.lightgrid_mins, 1, lg->mins.xyz);
-		glUniform3fv(r_mesh_program.lightgrid_maxs, 1, lg->maxs.xyz);
-
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
+		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[i]->texnum);
 	}
+
+	glUniform3fv(r_mesh_program.lightgrid_mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
+	glUniform3fv(r_mesh_program.lightgrid_maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
@@ -206,16 +202,13 @@ void R_DrawMeshEntities(const r_bsp_node_t *node) {
 	glUniform3fv(r_mesh_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
 	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
 
-	{
+	if (blend_depth == 0) {
 		glEnable(GL_CULL_FACE);
 
 		const r_entity_t *e = r_view.entities;
 		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-			if (e->model && e->model->type == MOD_MESH) {
 
-				if (e->node != node) {
-					continue;
-				}
+			if (IS_MESH_MODEL(e->model)) {
 
 				if (e->effects & EF_NO_DRAW) {
 					continue;
@@ -230,25 +223,20 @@ void R_DrawMeshEntities(const r_bsp_node_t *node) {
 		}
 
 		glDisable(GL_CULL_FACE);
-	}
-
-	{
+	} else {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		const r_entity_t *e = r_view.entities;
 		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-			if (e->model && e->model->type == MOD_MESH) {
 
-				if (e->node != node) {
-					continue;
-				}
+			if (IS_MESH_MODEL(e->model)) {
 
 				if (e->effects & EF_NO_DRAW) {
 					continue;
 				}
 
-				if (!(e->effects & EF_BLEND)) {
+				if (e->blend_depth != blend_depth) {
 					continue;
 				}
 

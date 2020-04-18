@@ -21,45 +21,45 @@
 
 #include "cg_local.h"
 
-static cg_sprite_t *cg_free_sprites; // list of free sprites
-static cg_sprite_t *cg_active_sprites; // list of active sprites
+static cg_sprite_t *cg_free_sprites;
+static cg_sprite_t *cg_active_sprites;
 
 static cg_sprite_t cg_sprites[MAX_SPRITES];
 
 /**
  * @brief Pushes the sprite onto the head of specified list.
  */
-static void Cg_PushSprite(cg_sprite_t *p, cg_sprite_t **list) {
+static void Cg_PushSprite(cg_sprite_t *s, cg_sprite_t **list) {
 
-	p->prev = NULL;
+	s->prev = NULL;
 
 	if (*list) {
-		(*list)->prev = p;
+		(*list)->prev = s;
 	}
 
-	p->next = *list;
-	*list = p;
+	s->next = *list;
+	*list = s;
 }
 
 /**
  * @brief Pops the sprite from the specified list, repairing the list if it
  * becomes broken.
  */
-static void Cg_PopSprite(cg_sprite_t *p, cg_sprite_t **list) {
+static void Cg_PopSprite(cg_sprite_t *s, cg_sprite_t **list) {
 
-	if (p->prev) {
-		p->prev->next = p->next;
+	if (s->prev) {
+		s->prev->next = s->next;
 	}
 
-	if (p->next) {
-		p->next->prev = p->prev;
+	if (s->next) {
+		s->next->prev = s->prev;
 	}
 
-	if (*list == p) {
-		*list = p->next;
+	if (*list == s) {
+		*list = s->next;
 	}
 
-	p->prev = p->next = NULL;
+	s->prev = s->next = NULL;
 }
 
 /**
@@ -76,39 +76,39 @@ cg_sprite_t *Cg_AllocSprite() {
 		return NULL;
 	}
 
-	cg_sprite_t *p = cg_free_sprites;
+	cg_sprite_t *s = cg_free_sprites;
 
-	Cg_PopSprite(p, &cg_free_sprites);
+	Cg_PopSprite(s, &cg_free_sprites);
 
-	memset(p, 0, sizeof(cg_sprite_t));
+	memset(s, 0, sizeof(cg_sprite_t));
 
-	p->color = color_white;
-	p->size = 1.0;
+	s->color = color_white;
+	s->size = 1.0;
 
-	p->time = p->timestamp = cgi.client->unclamped_time;
+	s->time = s->timestamp = cgi.client->unclamped_time;
 
 	// default additive
-	p->src = GL_SRC_ALPHA;
-	p->dst = GL_ONE;
+	s->src = GL_SRC_ALPHA;
+	s->dst = GL_ONE;
 
-	p->color_transition = cg_linear_transition;
-	p->color_transition_count = 2;
+	s->color_transition = cg_linear_transition;
+	s->color_transition_count = 2;
 
-	Cg_PushSprite(p, &cg_active_sprites);
+	Cg_PushSprite(s, &cg_active_sprites);
 
-	return p;
+	return s;
 }
 
 /**
  * @brief Frees the specified sprite, returning the sprite it was pointing
  * to as a convenience for continued iteration.
  */
-cg_sprite_t *Cg_FreeSprite(cg_sprite_t *p) {
-	cg_sprite_t *next = p->next;
+cg_sprite_t *Cg_FreeSprite(cg_sprite_t *s) {
+	cg_sprite_t *next = s->next;
 
-	Cg_PopSprite(p, &cg_active_sprites);
+	Cg_PopSprite(s, &cg_active_sprites);
 
-	Cg_PushSprite(p, &cg_free_sprites);
+	Cg_PushSprite(s, &cg_free_sprites);
 
 	return next;
 }
@@ -139,74 +139,74 @@ void Cg_AddSprites(void) {
 
 	const float delta = MILLIS_TO_SECONDS(cgi.client->frame_msec);
 
-	cg_sprite_t *p = cg_active_sprites;
-	while (p) {
+	cg_sprite_t *s = cg_active_sprites;
+	while (s) {
 
-		if (p->time != cgi.client->unclamped_time) {
-			if (cgi.client->unclamped_time - p->time > p->lifetime) {
-				p = Cg_FreeSprite(p);
+		if (s->time != cgi.client->unclamped_time) {
+			if (cgi.client->unclamped_time - s->time > s->lifetime) {
+				s = Cg_FreeSprite(s);
 				continue;
 			}
 		}
 
-		const uint32_t elapsed_time = (cgi.client->unclamped_time - p->time);
-		const float life = elapsed_time / (float)p->lifetime;
+		const uint32_t elapsed_time = (cgi.client->unclamped_time - s->time);
+		const float life = elapsed_time / (float)s->lifetime;
 
-		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(p->acceleration, delta));
-		p->origin = Vec3_Add(p->origin, Vec3_Scale(p->velocity, delta));
+		s->velocity = Vec3_Add(s->velocity, Vec3_Scale(s->acceleration, delta));
+		s->origin = Vec3_Add(s->origin, Vec3_Scale(s->velocity, delta));
 
 		color_t color;
 
-		if (p->color_transition) {
-			color = Color_Mix(p->color, p->end_color, Cg_ResolveTransition(p->color_transition, p->color_transition_count, life));
+		if (s->color_transition) {
+			color = Color_Mix(s->color, s->end_color, Cg_ResolveTransition(s->color_transition, s->color_transition_count, life));
 		} else {
-			color = p->color;
+			color = s->color;
 		}
 
-		if (p->color.a <= 0) {
-			p = Cg_FreeSprite(p);
+		if (s->color.a <= 0) {
+			s = Cg_FreeSprite(s);
 			continue;
 		}
 
-		p->size_velocity += p->size_acceleration * delta;
-		p->size += p->size_velocity * delta;
+		s->size_velocity += s->size_acceleration * delta;
+		s->size += s->size_velocity * delta;
 
-		if (p->size <= 0.f) {
-			p = Cg_FreeSprite(p);
+		if (s->size <= 0.f) {
+			s = Cg_FreeSprite(s);
 			continue;
 		}
 
-		switch (p->type) {
+		switch (s->type) {
 		case SPRITE_NORMAL:
-			p->rotation += p->rotation_velocity * delta;
+			s->rotation += s->rotation_velocity * delta;
 
 			cgi.AddSprite(&(r_sprite_t) {
-				.origin = p->origin,
-				.size = p->size,
+				.origin = s->origin,
+				.size = s->size,
 				.color = color,
-				.rotation = p->rotation,
-				.image = p->media,
+				.rotation = s->rotation,
+				.media = s->media,
 				.life = life,
-				.dst = p->dst,
-				.src = p->src,
-				.lerp = p->lerp
+				.dst = s->dst,
+				.src = s->src,
+				.lerp = s->lerp
 			});
 			break;
 		case SPRITE_BEAM:
-			p->beam.end = Vec3_Add(p->beam.end, Vec3_Scale(p->velocity, delta));
+			s->beam.end = Vec3_Add(s->beam.end, Vec3_Scale(s->velocity, delta));
 
 			cgi.AddBeam(&(r_beam_t) {
-				.start = p->origin,
-				.end = p->beam.end,
-				.size = p->size,
-				.image = (r_image_t *) p->image,
+				.start = s->origin,
+				.end = s->beam.end,
+				.size = s->size,
+				.image = (r_image_t *) s->image,
 				.color = color,
-				.dst = p->dst,
-				.src = p->src
+				.dst = s->dst,
+				.src = s->src
 			});
 			break;
 		}
 		
-		p = p->next;
+		s = s->next;
 	}
 }

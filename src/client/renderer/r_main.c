@@ -295,13 +295,13 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawSky();
 
+	R_DrawEntities(0);
+
 	R_DrawWorld();
 
-	R_DrawEntities(NULL);
+	R_DrawParticles(0);
 
-	R_DrawParticles(NULL);
-
-	R_DrawSprites(NULL);
+	R_DrawSprites(0);
 
 	R_Draw3D();
 
@@ -362,6 +362,9 @@ static void R_InitView(void) {
 	memset(&r_view, 0, sizeof(r_view));
 
 	memset(&r_locals, 0, sizeof(r_locals));
+
+	r_locals.vis_frame = 1;
+	r_locals.stain_frame = 1;
 }
 
 /**
@@ -382,10 +385,6 @@ void R_LoadMedia(void) {
 	Cl_LoadingProgress(1, "world");
 
 	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
-
-	//Cl_LoadingProgress(55, "mopping up blood");
-
-//	R_ResetStainmaps(); // clear the stainmap if we have to
 
 	Cl_LoadingProgress(66, "models");
 

@@ -26,7 +26,7 @@
 void R_AddParticle(const r_particle_t *p);
 
 #ifdef __R_LOCAL_H__
-void R_DrawParticles(const r_bsp_node_t *node);
+void R_DrawParticles(int32_t blend_depth);
 void R_ShutdownParticles(void);
 void R_InitParticles(void);
 #endif /* __R_LOCAL_H__ */

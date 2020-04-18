@@ -24,5 +24,4 @@
 #ifdef __R_LOCAL_H__
 void R_ApplyMeshConfig(r_entity_t *e);
 void R_ApplyMeshTag(r_entity_t *e);
-_Bool R_CullMeshEntity(const r_entity_t *e);
 #endif

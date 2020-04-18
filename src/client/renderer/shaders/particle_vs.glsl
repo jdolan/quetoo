@@ -21,7 +21,7 @@
 
 layout (location = 0) in vec4 in_position;
 layout (location = 1) in vec4 in_color;
-layout (location = 2) in int in_node;
+layout (location = 2) in int in_blend_depth;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -32,7 +32,7 @@ uniform vec2 depth_range;
 out vertex_data {
 	vec4 position;
 	vec4 color;
-	int node;
+	int blend_depth;
 } vertex;
 
 /**
@@ -50,5 +50,5 @@ void main(void) {
 
 	vertex.color = in_color;
 
-	vertex.node = in_node;
+	vertex.blend_depth = in_blend_depth;
 }

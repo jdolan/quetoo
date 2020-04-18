@@ -516,7 +516,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	cgi.AddSprite(&(const r_sprite_t) {
 		.origin = ent->origin,
 		.size = 32.f,
-		.image = (r_media_t *) cg_blue_fireball_1,
+		.media = (r_media_t *) cg_blue_fireball_1,
 		//.rotation = (ent->frame_num * ent->current.number) / 10.f,
 		.rotation = 0,
 		.color = color_white,
