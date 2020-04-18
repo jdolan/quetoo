@@ -32,6 +32,7 @@ typedef struct {
 	vec3_t ambient;
 	vec3_t diffuse;
 	vec3_t direction;
+	vec3_t radiosity;
 } luxel_t;
 
 typedef struct {

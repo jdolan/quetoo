@@ -319,8 +319,8 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 			assert(l->s == ds);
 			assert(l->t == dt);
 
-			lightmap = Vec3_Add(lightmap, l->ambient);
 			lightmap = Vec3_Add(lightmap, l->diffuse);
+			lightmap = Vec3_Add(lightmap, l->radiosity);
 		}
 	}
 

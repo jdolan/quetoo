@@ -273,8 +273,6 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 
 	for (guint i = 0; i < lights->len; i++, light++) {
 
-		assert(light->type != LIGHT_INVALID);
-
 		if (light->cluster != -1) {
 			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
 				continue;
@@ -298,7 +296,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 
 		const float dist = sqrtf(dist_squared);
 
-		vec3_t dir = Vec3(0.0, 0.0, 1.0);
+		vec3_t dir;
 		if (light->type == LIGHT_SUN) {
 			dir = Vec3_Negate(light->normal);
 		} else {
@@ -475,7 +473,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 				luxel->direction = Vec3_Add(luxel->direction, Vec3_Scale(dir, intensity));
 				break;
 			case LIGHT_INDIRECT:
-				luxel->ambient = Vec3_Add(luxel->ambient, Vec3_Scale(light->color, intensity));
+				luxel->radiosity = Vec3_Add(luxel->radiosity, Vec3_Scale(light->color, intensity));
 				break;
 		}
 	}
@@ -607,11 +605,10 @@ void FinalizeLightmap(int32_t face_num) {
 	// write it out
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
-		vec3_t ambient, diffuse;
 
-		// convert to float
-		ambient = Vec3_Scale(l->ambient, 1.0 / 255.0);
-		diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
+		// convert to float, munge radiosity with ambient
+		vec3_t ambient = Vec3_Scale(Vec3_Add(l->ambient, l->radiosity), 1.0 / 255.0);
+		vec3_t diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
 
 		// apply brightness, saturation and contrast
 		ambient = ColorFilter(ambient);

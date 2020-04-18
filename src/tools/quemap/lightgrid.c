@@ -179,33 +179,37 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
 
 	for (guint i = 0; i < lights->len; i++, light++) {
 
-		assert(light->type != LIGHT_INVALID);
-
 		if (light->cluster != -1) {
 			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
 				continue;
 			}
 		}
 
-
-		float dist; vec3_t dir;
-		if (light->type == LIGHT_AMBIENT) {
-			dist = 0.0;
-			dir = Vec3(0.0, 0.0, 1.0);
-		} else if (light->type == LIGHT_SUN) {
-			dist = 0.0;
-			dir = Vec3_Negate(light->normal);
-		} else {
-			dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
+		float dist_squared = 0.0;
+		switch (light->type) {
+			case LIGHT_SUN:
+				break;
+			default:
+				dist_squared = Vec3_DistanceSquared(light->origin, luxel->origin);
+				break;
 		}
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			if (dist > light->radius) {
+			if (dist_squared > light->radius * light->radius) {
 				continue;
 			}
 		}
 
-		float intensity = Clampf(light->radius, 0.0, LIGHT_RADIUS);
+		const float dist = sqrtf(dist_squared);
+
+		vec3_t dir;
+		if (light->type == LIGHT_SUN) {
+			dir = Vec3_Negate(light->normal);
+		} else {
+			dir = Vec3_Normalize(Vec3_Subtract(light->origin, luxel->origin));
+		}
+
+		float intensity = Clampf(light->radius, 0.0, MAX_WORLD_COORD);
 
 		switch (light->type) {
 			case LIGHT_INVALID:
@@ -370,7 +374,7 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
 				luxel->direction = Vec3_Add(luxel->direction, Vec3_Scale(dir, intensity));
 				break;
 			case LIGHT_INDIRECT:
-				luxel->ambient = Vec3_Add(luxel->ambient, Vec3_Scale(light->color, intensity));
+				luxel->radiosity = Vec3_Add(luxel->radiosity, Vec3_Scale(light->color, intensity));
 				break;
 		}
 	}
@@ -462,7 +466,7 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	l->ambient = Vec3_Scale(l->ambient, 1.0 / 255.0);
+	l->ambient = Vec3_Scale(Vec3_Add(l->ambient, l->radiosity), 1.0 / 255.0);
 	l->ambient = ColorFilter(l->ambient);
 
 	l->diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
