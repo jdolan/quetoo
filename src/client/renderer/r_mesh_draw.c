@@ -185,7 +185,7 @@ void R_DrawMeshEntities(const r_bsp_node_t *node) {
 	glUniform1f(r_mesh_program.gamma, r_gamma->value);
 	glUniform1f(r_mesh_program.modulate, r_modulate->value);
 
-	const r_bsp_lightgrid_t *lg = r_model_state.world->bsp->lightgrid;
+	const r_bsp_lightgrid_t *lg = r_world_model->bsp->lightgrid;
 	if (lg) {
 
 		for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {

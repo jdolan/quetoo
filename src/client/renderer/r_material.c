@@ -356,7 +356,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_face_t *surf, const r_stag
 		Com_Debug(DEBUG_RENDERER, "Expanded material vertex array to %u\n", r_material_state.vertex_len);
 	}
 
-	const r_bsp_vertex_t *in = r_model_state.world->bsp->vertexes + surf->first_vertex;
+	const r_bsp_vertex_t *in = r_world_model->bsp->vertexes + surf->first_vertex;
 	for (int32_t i = 0; i < surf->num_vertexes; i++, in++) {
 
 		r_material_vertex_t *out = &VERTEX_ARRAY_INDEX(r_material_vertex_count + i);
@@ -1111,12 +1111,12 @@ static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
  */
 static void R_SaveMaterials_f(void) {
 
-	if (!r_model_state.world) {
+	if (!r_world_model) {
 		Com_Print("No map loaded\n");
 		return;
 	}
 
-	R_SaveBspMaterials(r_model_state.world);
+	R_SaveBspMaterials(r_world_model);
 }
 
 /**

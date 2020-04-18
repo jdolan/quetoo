@@ -30,7 +30,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 
 	assert(leaf_num >= 0);
 
-	return &r_model_state.world->bsp->leafs[leaf_num];
+	return &r_world_model->bsp->leafs[leaf_num];
 }
 
 /**
@@ -42,7 +42,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
  */
 r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p) {
 
-	const r_bsp_inline_model_t *in = r_model_state.world->bsp->inline_models;
+	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
@@ -214,8 +214,8 @@ void R_UpdateVis(void) {
 
 	r_locals.vis_frame++;
 
-	r_bsp_leaf_t *leaf = r_model_state.world->bsp->leafs;
-	for (int32_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
+	r_bsp_leaf_t *leaf = r_world_model->bsp->leafs;
+	for (int32_t i = 0; i < r_world_model->bsp->num_leafs; i++, leaf++) {
 
 		if (R_LeafVisible(leaf) || r_locals.leaf->cluster == -1) {
 

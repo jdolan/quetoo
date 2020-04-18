@@ -533,7 +533,7 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
 			}
 		}
 		*bounds_mins = Vec3_Add(origin, Vec3(-max, -max, -max));
-		*bounds_maxs = Vec3_Add(origin, Vec3(max, max, max));
+		*bounds_maxs = Vec3_Add(origin, Vec3( max,  max,  max));
 	} else {
 		*bounds_mins = Vec3_Add(origin, mins);
 		*bounds_maxs = Vec3_Add(origin, maxs);

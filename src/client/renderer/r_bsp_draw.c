@@ -83,7 +83,7 @@ static void R_DrawBspNormals(void) {
 		return;
 	}
 
-	const r_bsp_model_t *bsp = r_model_state.world->bsp;
+	const r_bsp_model_t *bsp = r_world_model->bsp;
 
 	const r_bsp_vertex_t *v = bsp->vertexes;
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
@@ -118,7 +118,7 @@ static void R_DrawBspLightgrid(void) {
 		return;
 	}
 
-	const bsp_lightgrid_t *lg = r_model_state.world->bsp->cm->file.lightgrid;
+	const bsp_lightgrid_t *lg = r_world_model->bsp->cm->file.lightgrid;
 	if (!lg) {
 		return;
 	}
@@ -152,7 +152,7 @@ static void R_DrawBspLightgrid(void) {
 					.color = Color3b(r, g, b),
 				};
 
-				p.origin = Vec3_Add(r_model_state.world->bsp->lightgrid->mins, Vec3_Scale(p.origin, BSP_LIGHTGRID_LUXEL_SIZE));
+				p.origin = Vec3_Add(r_world_model->bsp->lightgrid->mins, Vec3_Scale(p.origin, BSP_LIGHTGRID_LUXEL_SIZE));
 
 				R_AddParticle(&p);
 			}

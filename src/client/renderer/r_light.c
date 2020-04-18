@@ -84,7 +84,7 @@ void R_UpdateLights(void) {
 	const r_light_t *in = r_view.lights;
 	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
 
-		R_MarkLight(in, r_model_state.world->bsp->nodes);
+		R_MarkLight(in, r_world_model->bsp->nodes);
 
 		r_entity_t *e = r_view.entities;
 		for (int32_t j = 0; j < r_view.num_entities; j++, e++) {
