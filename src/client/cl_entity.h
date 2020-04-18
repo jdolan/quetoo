@@ -26,5 +26,4 @@
 #ifdef __CL_LOCAL_H__
 void Cl_ParseFrame(void);
 void Cl_Interpolate(void);
-void Cl_UpdateEntities(void);
 #endif /* __CL_LOCAL_H__ */

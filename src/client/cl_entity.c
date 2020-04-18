@@ -467,13 +467,3 @@ void Cl_Interpolate(void) {
 
 	cl.frame.interpolated = true;
 }
-
-/**
- * @brief Invalidate lighting caches on media load.
- */
-void Cl_UpdateEntities(void) {
-
-	if (r_view.update) {
-
-	}
-}
