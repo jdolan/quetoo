@@ -468,6 +468,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(self->s.origin);
+	gi.WriteDir(Vec3_Up());
 	gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 
 	G_FreeEntity(self);
@@ -635,6 +636,7 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_EXPLOSION);
 			gi.WritePosition(origin);
+			gi.WriteDir(plane->normal);
 			gi.Multicast(origin, MULTICAST_PHS, NULL);
 		}
 	}

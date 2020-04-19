@@ -12,7 +12,7 @@
     <LocalDebuggerCommandArguments>-bsp -vis -light -v --indirect maps/torn.map</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --indirect edge</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --indirect darkzone</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommandArguments>-bsp -vis -light --indirect sandbox.bsp</LocalDebuggerCommandArguments>

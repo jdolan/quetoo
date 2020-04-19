@@ -192,7 +192,15 @@ void R_AddSprite(const r_sprite_t *p) {
 	const float aspectRatio = (float) image->width / (float) image->height;
 	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
 	const float size = p->size * .5f;
-	vec3_t dir = Vec3_Normalize(Vec3_Subtract(p->origin, r_view.origin)), right, up;
+	
+	vec3_t dir, right, up;
+	
+	if (Vec3_Equal(p->dir, Vec3_Zero())) {
+		dir = Vec3_Normalize(Vec3_Subtract(p->origin, r_view.origin));
+	} else {
+		dir = p->dir;
+	}
+
 	dir = Vec3_Euler(dir);
 	dir.z = Degrees(p->rotation);
 

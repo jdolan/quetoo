@@ -304,7 +304,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 /**
  * @brief
  */
-static void Cg_ExplosionEffect(const vec3_t org) {
+static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 	cg_particle_t *p;
 
 	// TODO: Bubbles in water?
@@ -329,34 +329,6 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	}
 
 	cg_sprite_t *s;
-
-	/*for (int32_t i = 0; i < 4; i++) {
-		if ((s = Cg_AllocSprite())) {
-			s->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
-
-			s->lifetime = RandomRangef(500, 950);
-
-			s->color = Color3b(255, 255, 255);
-			s->color_velocity.w = -1.f / MILLIS_TO_SECONDS(s->lifetime);
-
-			s->size = RandomRangef(22.f, 48.f);
-			s->size_velocity = RandomRangef(10.f, 25.f);
-
-			s->velocity = Vec3_RandomRange(-5.f, 5.f);
-			s->velocity.z += 52.f;
-
-			s->acceleration.z = -8.0;
-
-			s->image = cg_sprite_smoke;
-
-			s->rotation = RandomRangef(0.0f, M_PI);
-
-			s->rotation_velocity = RandomRangef(.1f, .5f);
-
-			s->src = GL_SRC_ALPHA;
-			s->dst = GL_ONE_MINUS_SRC_ALPHA;
-		}
-	}*/
 
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
@@ -887,7 +859,8 @@ void Cg_ParseTempEntity(void) {
 
 		case TE_EXPLOSION: // rocket and grenade explosions
 			pos = cgi.ReadPosition();
-			Cg_ExplosionEffect(pos);
+			dir = cgi.ReadDir();
+			Cg_ExplosionEffect(pos, dir);
 			break;
 
 		case TE_BFG_LASER:

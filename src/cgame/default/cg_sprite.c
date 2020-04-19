@@ -189,7 +189,8 @@ void Cg_AddSprites(void) {
 				.life = life,
 				.dst = p->dst,
 				.src = p->src,
-				.lerp = p->lerp
+				.lerp = p->lerp,
+				.dir = p->dir
 			});
 			break;
 		case SPRITE_BEAM:

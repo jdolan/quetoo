@@ -675,7 +675,7 @@ typedef struct cg_import_s {
 	void (*AddParticle)(const r_particle_t *p);
 	
 	/**
-	 * @brief Adds a particle to the scene for the current frame.
+	 * @brief Adds a sprite to the scene for the current frame.
 	 */
 	void (*AddSprite)(const r_sprite_t *p);
 	

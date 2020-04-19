@@ -696,7 +696,24 @@ typedef struct {
 	 * @brief Whether animations should use texture lerping
 	 */
 	_Bool lerp;
+
+	/**
+	 * @brief Direction of the sprite. { 0, 0, 0 } is billboard.
+	 */
+	vec3_t dir;
 } r_sprite_t;
+
+typedef struct {
+	/**
+	 * @brief Sprite base data
+	 */
+	r_sprite_t sprite;
+
+	/**
+	 * @brief Normal of the sprite
+	 */
+	vec3_t dir;
+} r_directional_sprite_t;
 
 /**
  * @brief Beams are billboarded alpha blended textures.
