@@ -94,7 +94,7 @@ typedef struct r_media_s {
 typedef int16_t r_pixel_t;
 
 typedef enum {
-	MOD_BAD,
+	MOD_INVALID,
 	MOD_BSP,
 	MOD_BSP_INLINE,
 	MOD_MESH
@@ -319,6 +319,7 @@ typedef struct {
 	byte plane_side;
 
 	r_bsp_texinfo_t *texinfo;
+
 	r_bsp_flare_t *flare;
 
 	r_bsp_face_lightmap_t lightmap;
@@ -336,16 +337,15 @@ typedef struct {
  * @brief
  */
 typedef struct {
-	r_bsp_texinfo_t *texinfo;
-
 	struct r_bsp_node_s *node;
+
+	r_bsp_texinfo_t *texinfo;
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
 
 	GLvoid *elements;
 	int32_t num_elements;
-
 } r_bsp_draw_elements_t;
 
 /**
@@ -385,10 +385,7 @@ struct r_bsp_node_s {
 	int32_t num_draw_elements;
 
 	int32_t lights;
-	
-	int32_t num_particles;
-	int32_t num_sprites;
-	int32_t num_entities;
+	int32_t blend_depth;
 };
 
 typedef struct r_bsp_node_s r_bsp_node_t;
@@ -668,9 +665,9 @@ typedef struct {
 	float size;
 	
 	/**
-	 * @brief The sprite texture.
+	 * @brief The sprite media (an r_amimation_t, r_image_t, etc).
 	 */
-	r_media_t *image;
+	r_media_t *media;
 
 	/**
 	 * @brief The sprite's rotation, for non-beam sprites.
@@ -919,9 +916,9 @@ typedef struct r_entity_s {
 	int32_t lights;
 
 	/**
-	 * @brief The alpha blended node in which this entity should be rendered, or -1.
+	 * @brief The alpha blended depth in which this entity should be rendered.
 	 */
-	r_bsp_node_t *node;
+	int32_t blend_depth;
 } r_entity_t;
 
 #define WEATHER_NONE        0x0
@@ -1033,10 +1030,6 @@ typedef struct {
 	 * @brief The sprites to render for the current frame.
 	 */
 	int32_t num_sprites;
-	
-	/**
-	 * @brief The list of sprite images to render for the current frame.
-	 */
 
 	/**
 	 * @brief Structure used for sprite images, to contain buffered sprites
@@ -1046,12 +1039,12 @@ typedef struct {
 	/**
 	 * @brief The number of sprite images to render for the current frame.
 	 */
-	uint32_t num_sprite_images;
+	int32_t num_sprite_images;
 
 	/**
 	 * @brief The number of sprites batched by image.
 	 */
-	uint16_t sprite_batches[MAX_SPRITES];
+	int32_t sprite_batches[MAX_SPRITES];
 
 	/**
 	 * @brief The lights to render for the current frame.

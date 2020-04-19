@@ -30,34 +30,30 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 
 	assert(leaf_num >= 0);
 
-	return &r_model_state.world->bsp->leafs[leaf_num];
+	return &r_world_model->bsp->leafs[leaf_num];
 }
 
 /**
  * @return The node behind which the specified point should be rendered for alpha blending.
- * FIXME: This is called while the scene is being populated, i.e. before R_UpdateVis.
- * FIXME: It is therefore operating on slightly out of date PVS, and might fail in corner cases like teleporting.
- * FIXME: Fixing this will require either a lazy update of particles, sprites, etc, before they are drawn,
- * FIXME: or adding a separate R_UpdateParticles(), R_UpdateSprites, etc.
  */
-r_bsp_node_t *R_BlendNodeForPoint(const vec3_t p) {
+int32_t R_BlendDepthForPoint(const vec3_t p) {
 
-	const r_bsp_inline_model_t *in = r_model_state.world->bsp->inline_models;
+	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
 
 		if (draw->node->vis_frame != r_locals.vis_frame) {
-			break;
+			continue;
 		}
 
 		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane)) !=
 			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
-			return draw->node;
+			return draw->node->blend_depth;
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
 /**
@@ -95,25 +91,30 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 }
 
 /**
- * @brief
+ * @brief Recurses the specified node, front to back, resolving each node's depth.
  */
-static _Bool R_CullBspEntity(const r_entity_t *e) {
-	vec3_t mins, maxs;
+static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
+	int32_t side;
 
-	if (!Vec3_Equal(e->angles, Vec3_Zero())) {
-		const vec3_t radius = Vec3(e->model->radius,
-								   e->model->radius,
-								   e->model->radius);
-
-		mins = Vec3_Subtract(e->origin, radius);
-		maxs = Vec3_Add(e->origin, radius);
-
-	} else {
-		mins = Vec3_Add(e->origin, e->model->mins);
-		maxs = Vec3_Add(e->origin, e->model->maxs);
+	if (node->contents != CONTENTS_NODE) {
+		return;
 	}
 
-	return R_CullBox(mins, maxs);
+	if (node->vis_frame != r_locals.vis_frame) {
+		return;
+	}
+
+	if (Cm_DistanceToPlane(r_view.origin, node->plane) > 0.f) {
+		side = 0;
+	} else {
+		side = 1;
+	}
+
+	R_UpdateNodeDepth_r(node->children[side], depth);
+
+	node->blend_depth = *depth = *depth + 1;
+
+	R_UpdateNodeDepth_r(node->children[!side], depth);
 }
 
 /**
@@ -124,25 +125,19 @@ static gint R_DrawElementsDepthCmp(gconstpointer a, gconstpointer b) {
 	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
 	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
 
-	if (a_draw->node == b_draw->node) {
-		return 0;
-	} else {
-		if (a_draw->node->vis_frame == r_locals.vis_frame) {
-			if (b_draw->node->vis_frame == r_locals.vis_frame) {
+	return b_draw->node->blend_depth - a_draw->node->blend_depth;
+}
 
-				const int32_t a_dist = Cm_DistanceToPlane(r_view.origin, a_draw->node->plane);
-				const int32_t b_dist = Cm_DistanceToPlane(r_view.origin, b_draw->node->plane);
+/**
+ * @brief Recurses the specified model's tree, sorting alpha blended draw elements from back to front.
+ */
+static void R_UpdateNodeDepth(r_bsp_inline_model_t *in) {
 
-				return SignOf(abs(b_dist) - abs(a_dist));
-			} else {
-				return -1;
-			}
-		} else if (b_draw->node->vis_frame == r_locals.vis_frame) {
-			return 1;
-		}
-	}
+	int32_t depth = 0;
 
-	return 0;
+	R_UpdateNodeDepth_r(in->head_node, &depth);
+
+	g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
 }
 
 /**
@@ -167,9 +162,8 @@ void R_UpdateVis(void) {
 		memset(r_locals.vis_data_pvs, 0x00, sizeof(r_locals.vis_data_pvs));
 		memset(r_locals.vis_data_phs, 0x00, sizeof(r_locals.vis_data_phs));
 
-		vec3_t mins, maxs;
-		mins = Vec3_Add(r_view.origin, Vec3(-2.f, -2.f, -4.f));
-		maxs = Vec3_Add(r_view.origin, Vec3( 2.f,  2.f,  4.f));
+		const vec3_t mins = Vec3_Add(r_view.origin, Vec3(-2.f, -2.f, -4.f));
+		const vec3_t maxs = Vec3_Add(r_view.origin, Vec3( 2.f,  2.f,  4.f));
 
 		const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
 		for (size_t i = 0; i < count; i++) {
@@ -192,48 +186,48 @@ void R_UpdateVis(void) {
 
 	r_locals.vis_frame++;
 
-	r_bsp_leaf_t *leaf = r_model_state.world->bsp->leafs;
-	for (int32_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
+	r_bsp_leaf_t *leaf = r_world_model->bsp->leafs;
+	for (int32_t i = 0; i < r_world_model->bsp->num_leafs; i++, leaf++) {
 
 		if (R_LeafVisible(leaf) || r_locals.leaf->cluster == -1) {
 
 			r_bsp_node_t *node = (r_bsp_node_t *) leaf;
 			while (node) {
-				
+
 				if (node->vis_frame == r_locals.vis_frame) {
 					break;
 				}
 
-				if (!R_CullBox(node->mins, node->maxs)) {
-					node->vis_frame = r_locals.vis_frame;
-					node->lights = 0;
-					r_view.count_bsp_nodes++;
+				if (R_CullBox(node->mins, node->maxs)) {
+					node = node->parent;
+					continue;
 				}
 
+				node->vis_frame = r_locals.vis_frame;
+				node->lights = 0;
+
 				node = node->parent;
+				r_view.count_bsp_nodes++;
 			}
 		}
 	}
 
-	const r_bsp_inline_model_t *in = r_model_state.world->bsp->inline_models;
-	g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
+	R_UpdateNodeDepth(r_world_model->bsp->inline_models);
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-		if (e->model && e->model->type == MOD_BSP_INLINE) {
+		if (IS_BSP_INLINE_MODEL(e->model)) {
 
-			if (R_CullBspEntity(e)) {
-				continue;
-			}
-
-			in = e->model->bsp_inline;
+			r_bsp_inline_model_t *in = e->model->bsp_inline;
 
 			const r_bsp_draw_elements_t *draw = in->draw_elements;
 			for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
+				
 				draw->node->vis_frame = r_locals.vis_frame;
+				draw->node->lights = 0;
 			}
 
-			g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
+			R_UpdateNodeDepth(in);
 		}
 	}
 }

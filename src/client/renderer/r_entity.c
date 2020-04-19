@@ -22,6 +22,27 @@
 #include "r_local.h"
 
 /**
+ * @brief Sets the entity's culling bounds.
+ */
+void R_SetEntityBounds(r_entity_t *e) {
+
+	e->mins = e->origin;
+	e->maxs = e->origin;
+
+	if (e->model) {
+
+		if (!Vec3_Equal(e->angles, Vec3_Zero())) {
+			const vec3_t maxs = Vec3(e->model->radius, e->model->radius, e->model->radius);
+			e->mins = Vec3_Add(e->origin, Vec3_Scale(maxs, -e->scale));
+			e->maxs = Vec3_Add(e->origin, Vec3_Scale(maxs,  e->scale));
+		} else {
+			e->mins = Vec3_Add(e->origin, Vec3_Scale(e->model->mins, e->scale));
+			e->maxs = Vec3_Add(e->origin, Vec3_Scale(e->model->maxs, e->scale));
+		}
+	}
+}
+
+/**
  * @brief Adds an entity to the view.
  */
 r_entity_t *R_AddEntity(const r_entity_t *ent) {
@@ -44,159 +65,93 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 		R_ApplyMeshConfig(e);
 
-		if (R_CullMeshEntity(e)) {
-			return NULL;
-		}
-
-		e->node = R_BlendNodeForPoint(e->origin);
-		if (e->node) {
-			e->node->num_entities++;
+		if (e->effects & EF_BLEND) {
+			e->blend_depth = R_BlendDepthForPoint(e->origin);
+		} else {
+			e->blend_depth = 0;
 		}
 	}
 
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 
+	R_SetEntityBounds(e);
+
+	if (R_CullBox(e->mins, e->maxs)) {
+		return NULL;
+	}
+
 	r_view.num_entities++;
 	return e;
 }
 
-#if 0
 /**
- * @brief Draws a place-holder "white diamond" prism for the specified entity.
+ * @brief
  */
-static void R_DrawNullModel(const r_entity_t *e) {
+static void R_DrawEntityBounds(const r_entity_t *e) {
 
-	R_BindDiffuseTexture(r_image_state.null->texnum);
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(e->mins.x, e->mins.y, e->mins.z),
+		Vec3(e->maxs.x, e->mins.y, e->mins.z),
+		Vec3(e->maxs.x, e->maxs.y, e->mins.z),
+		Vec3(e->mins.x, e->maxs.y, e->mins.z),
+		Vec3(e->mins.x, e->mins.y, e->mins.z),
+	}, 5, color_yellow);
 
-	R_RotateForEntity(e);
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(e->mins.x, e->mins.y, e->maxs.z),
+		Vec3(e->maxs.x, e->mins.y, e->maxs.z),
+		Vec3(e->maxs.x, e->maxs.y, e->maxs.z),
+		Vec3(e->mins.x, e->maxs.y, e->maxs.z),
+		Vec3(e->mins.x, e->mins.y, e->maxs.z),
+	}, 5, color_yellow);
 
-	R_DrawArrays(GL_TRIANGLES, 0, (GLsizei) r_model_state.null_elements_count);
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(e->mins.x, e->mins.y, e->mins.z),
+		Vec3(e->mins.x, e->mins.y, e->maxs.z),
+	}, 2, color_yellow);
 
-	R_RotateForEntity(NULL);
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(e->mins.x, e->maxs.y, e->mins.z),
+		Vec3(e->mins.x, e->maxs.y, e->maxs.z),
+	}, 2, color_yellow);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(e->maxs.x, e->maxs.y, e->mins.z),
+		Vec3(e->maxs.x, e->maxs.y, e->maxs.z),
+	}, 2, color_yellow);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(e->maxs.x, e->mins.y, e->mins.z),
+		Vec3(e->maxs.x, e->mins.y, e->maxs.z),
+	}, 2, color_yellow);
 }
 
 /**
- * @brief Draws all entities added to the view but missing a model.
+ * @brief Draw all entities at the specified depth value.
  */
-static void R_DrawNullModels(const r_entities_t *ents) {
+void R_DrawEntities(int32_t blend_depth) {
 
-	if (!ents->count) {
-		return;
-	}
-
-	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_model_state.null_vertices);
-	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.null_elements);
-
-	for (size_t i = 0; i < ents->count; i++) {
-		const r_entity_t *e = ents->entities[i];
-
-		if (e->effects & EF_NO_DRAW) {
-			continue;
-		}
-
-		r_view.current_entity = e;
-
-		R_DrawNullModel(e);
-	}
-
-	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
-
-	r_view.current_entity = NULL;
-}
-
-/**
- * @brief Draws bounding boxes for all non-linked entities in `ents`.
- */
-static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
+	R_DrawMeshEntities(blend_depth);
 
 	if (!r_draw_entity_bounds->value) {
 		return;
 	}
 
-	if (ents->count == 0) {
-		return;
-	}
+	const r_entity_t *e = r_view.entities;
+	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 
-	R_BindDiffuseTexture(r_image_state.null->texnum); // TODO: Disable texture instead?
-
-	R_EnableColorArray(true);
-
-	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
-	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
-
-	for (int32_t i = 0; i < 8; i++) {
-		ColorDecompose(color, r_model_state.bound_vertices[i].color);
-	}
-
-	static mat4_t mat, modelview;
-
-	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
-
-	for (size_t i = 0; i < ents->count; i++) {
-		const r_entity_t *e = ents->entities[i];
-
-		if ((e->effects & EF_WEAPON) || !IS_MESH_MODEL(e->model)) {
+		if (e->model == NULL) {
 			continue;
 		}
 
-		r_model_state.bound_vertices[0].position = vec3(e->mins[0], e->mins[1], e->mins[2]);
-		r_model_state.bound_vertices[1].position = vec3(e->maxs[0], e->mins[1], e->mins[2]);
-		r_model_state.bound_vertices[2].position = vec3(e->maxs[0], e->maxs[1], e->mins[2]);
-		r_model_state.bound_vertices[3].position = vec3(e->mins[0], e->maxs[1], e->mins[2]);
-
-		r_model_state.bound_vertices[4].position = vec3(e->mins[0], e->mins[1], e->maxs[2]);
-		r_model_state.bound_vertices[5].position = vec3(e->maxs[0], e->mins[1], e->maxs[2]);
-		r_model_state.bound_vertices[6].position = vec3(e->maxs[0], e->maxs[1], e->maxs[2]);
-		r_model_state.bound_vertices[7].position = vec3(e->mins[0], e->maxs[1], e->maxs[2]);
-
-		R_UploadToBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t) * 8,
-		                 r_model_state.bound_vertices);
-
-		// draw box
-		const float *origin;
-
-		if (e->effects & EF_BOB) {
-			origin = e->termination;
-		} else {
-			origin = e->origin;
+		if (e->parent) {
+			continue;
 		}
 
-		Matrix4x4_CreateFromEntity(&mat, origin, Vec3_Zero().xyz, e->scale);
+		if (e->blend_depth != blend_depth) {
+			continue;
+		}
 
-		Matrix4x4_Concat(&mat, &modelview, &mat);
-
-		R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
-
-		R_DrawArrays(GL_LINES, 0, (GLint) r_model_state.bound_element_count - 6);
-
-		// draw origin
-		Matrix4x4_CreateFromEntity(&mat, origin, e->angles, e->scale);
-
-		Matrix4x4_Concat(&mat, &modelview, &mat);
-
-		R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
-
-		R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 6);
+		R_DrawEntityBounds(e);
 	}
-
-	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
-
-	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
-
-	R_EnableColorArray(false);
-}
-#endif
-
-/**
- * @brief Primary entry point for drawing all entities.
- */
-void R_DrawEntities(const r_bsp_node_t *node) {
-
-//	R_DrawNullModels(&r_sorted_entities.null_entities);
-
-	R_DrawMeshEntities(node);
-
-//	vec4_t yellow = { 0.9, 0.9, 0.0, 1.0 };
-//	R_DrawEntityBounds(&r_sorted_entities.mesh_entities, yellow);
 }

@@ -139,11 +139,7 @@ void Cl_LoadMedia(void) {
 
 	S_LoadMedia();
 
-	Cl_LoadingProgress(88, "entities");
-
-	Cl_UpdateEntities();
-
-	Cl_LoadingProgress(95, "effects");
+	Cl_LoadingProgress(95, "cgame");
 
 	cls.cgame->UpdateMedia();
 
@@ -160,8 +156,6 @@ void Cl_UpdateMedia(void) {
 	if ((r_view.update || s_env.update) && cls.state == CL_ACTIVE) {
 
 		Com_Debug(DEBUG_CLIENT, "%s %s\n", r_view.update ? "view" : "", s_env.update ? "sound" : "");
-
-		Cl_UpdateEntities();
 
 		cls.cgame->UpdateMedia();
 	}

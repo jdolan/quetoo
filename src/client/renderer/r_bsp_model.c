@@ -385,16 +385,16 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
  * @brief Loads the lightmap layers to a 2D array texture, appending a layer for the stainmap.
  */
 static void R_LoadBspLightmap(r_model_t *mod) {
-	r_bsp_lightmap_t *out;
 
 	const bsp_lightmap_t *in = mod->bsp->cm->file.lightmap;
-	if (in == NULL) {
-		return;
+
+	r_bsp_lightmap_t *out = mod->bsp->lightmap = Mem_LinkMalloc(sizeof(*out), mod->bsp);
+
+	if (in) {
+		out->width = in->width;
+	} else {
+		out->width = 1;
 	}
-
-	mod->bsp->lightmap = out = Mem_LinkMalloc(sizeof(*out), mod->bsp);
-
-	out->width = in->width;
 
 	out->atlas = (r_image_t *) R_AllocMedia("lightmap", sizeof(r_image_t), MEDIA_IMAGE);
 	out->atlas->media.Free = R_FreeImage;
@@ -403,12 +403,18 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 	out->atlas->height = out->width;
 	out->atlas->depth = BSP_LIGHTMAP_LAYERS + BSP_STAINMAP_LAYERS;
 
-	const size_t in_size = in->width * in->width * BSP_LIGHTMAP_LAYERS * BSP_LIGHTMAP_BPP;
+	const size_t in_size = out->width * out->width * BSP_LIGHTMAP_LAYERS * BSP_LIGHTMAP_BPP;
 	const size_t out_size = out->atlas->width * out->atlas->height * out->atlas->depth * BSP_LIGHTMAP_BPP;
 
 	byte *data = Mem_Malloc(out_size);
-	memcpy(data, (byte *) in + sizeof(bsp_lightmap_t), in_size);
-	memset(data + in_size, 0xff, in->width * in->width * BSP_LIGHTMAP_BPP);
+
+	if (in) {
+		memcpy(data, (byte *) in + sizeof(bsp_lightmap_t), in_size);
+	} else {
+		memset(data, 0xff, in_size);
+	}
+
+	memset(data + in_size, 0xff, out->width * out->width * BSP_LIGHTMAP_BPP);
 
 	R_UploadImage(out->atlas, GL_RGB, data);
 
@@ -419,16 +425,16 @@ static void R_LoadBspLightmap(r_model_t *mod) {
  * @brief
  */
 static void R_LoadBspLightgrid(r_model_t *mod) {
-	r_bsp_lightgrid_t *out;
 
 	const bsp_lightgrid_t *in = mod->bsp->cm->file.lightgrid;
-	if (in == NULL) {
-		return;
+
+	r_bsp_lightgrid_t *out = mod->bsp->lightgrid = Mem_LinkMalloc(sizeof(*out), mod->bsp);
+
+	if (in) {
+		out->size = in->size;
+	} else {
+		out->size = Vec3i(1, 1, 1);
 	}
-
-	mod->bsp->lightgrid = out = Mem_LinkMalloc(sizeof(*out), mod->bsp);
-
-	out->size = in->size;
 
 	const vec3_t grid_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
 	const vec3_t world_size = Vec3_Subtract(mod->maxs, mod->mins);
@@ -439,7 +445,16 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	const size_t texture_size = out->size.x * out->size.y * out->size.z * BSP_LIGHTGRID_BPP;
 
-	byte *data = (byte *) in + sizeof(bsp_lightgrid_t);
+	byte *data;
+	if (in) {
+		data = (byte *) in + sizeof(bsp_lightgrid_t);
+	} else {
+		data = (byte []) {
+			0xff, 0xff, 0xff,
+			0xff, 0xff, 0xff,
+			0xff, 0xff, 0xff
+		};
+	}
 
 	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++, data += texture_size) {
 
@@ -569,7 +584,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
  * @brief Function for exporting a BSP to an OBJ.
  */
 void R_ExportBsp_f(void) {
-	const r_model_t *world = R_WorldModel();
+	const r_model_t *world = r_world_model;
 
 	if (!world) {
 		return;

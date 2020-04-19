@@ -306,8 +306,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	const int16_t w = patch_maxs.x - patch_mins.x;
 	const int16_t h = patch_maxs.y - patch_mins.y;
 
-	vec3_t lightmap;
-	lightmap = Vec3_Zero();
+	vec3_t lightmap = Vec3_Zero();
 
 	for (int32_t t = 0; t < h; t++) {
 		for (int32_t s = 0; s < w; s++) {

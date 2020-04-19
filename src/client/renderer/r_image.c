@@ -177,13 +177,10 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	const GLenum type = GL_UNSIGNED_BYTE;
 
-	if (image->width <= 1 || image->height <= 1) {
-		image->type &= ~IT_MASK_MIPMAP;
-	}
-
+	const GLboolean mipmap = (image->type & IT_MASK_MIPMAP) && image->width > 1 && image->height > 1;
 	GLsizei levels = 1;
 
-	if (image->type & IT_MASK_MIPMAP) {
+	if (mipmap) {
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
 		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 
@@ -228,7 +225,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		}
 	}
 
-	if (image->type & IT_MASK_MIPMAP) {
+	if (mipmap) {
 		glGenerateMipmap(target);
 	}
 

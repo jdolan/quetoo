@@ -21,6 +21,10 @@
 
 #include "r_local.h"
 
+#define TEXTURE_DIFFUSEMAP 0
+#define TEXTURE_NEXT_DIFFUSEMAP 7
+#define TEXTURE_DEPTH_STENCIL_ATTACHMENT 8
+
 /**
  * @brief
  */
@@ -30,7 +34,7 @@ typedef struct {
 	color32_t color;
 	vec2_t next_diffusemap;
 	float next_lerp;
-	int32_t node;
+	int32_t depth;
 } r_sprite_vertex_t;
 
 /**
@@ -59,16 +63,19 @@ static struct {
 	GLint in_color;
 	GLint in_next_diffusemap;
 	GLint in_next_lerp;
-	GLint in_node;
+	GLint in_blend_depth;
 
 	GLint projection;
 	GLint view;
+
+	GLint blend_depth;
 
 	GLint depth_range;
 	GLint inv_viewport_size;
 	GLint transition_size;
 	
 	GLint texture_diffusemap;
+	GLint texture_next_diffusemap;
 	GLint depth_stencil_attachment;
 
 	GLint brightness;
@@ -78,10 +85,6 @@ static struct {
 
 	GLint fog_parameters;
 	GLint fog_color;
-
-	GLint next_texture_diffusemap;
-
-	GLint node;
 } r_sprite_program;
 
 /**
@@ -138,6 +141,7 @@ static _Bool R_CullSprite(r_sprite_vertex_t *out) {
  */
 static void R_AddSprite_(const r_buffered_sprite_image_t *image, const float lerp, const color_t color, r_sprite_vertex_t *out) {
 	const r_buffered_sprite_image_t *current_batch = &r_view.sprite_images[r_view.num_sprite_images - 1];
+
 	const _Bool is_current_batch = r_view.num_sprite_images &&
 		image->image->texnum == current_batch->image->texnum && ((image->next_image ? image->next_image->texnum : 0) == (current_batch->next_image ? current_batch->next_image->texnum : 0)) &&
 		image->src == current_batch->src && image->dst == current_batch->dst;
@@ -165,13 +169,8 @@ static void R_AddSprite_(const r_buffered_sprite_image_t *image, const float ler
 		r_view.num_sprite_images++;
 	}
 
-	r_bsp_node_t *node = R_BlendNodeForPoint(Vec3_Scale(Vec3_Add(Vec3_Add(Vec3_Add(out[0].position, out[1].position), out[2].position), out[3].position), .25f));
-	if (node) {
-		out[0].node = out[1].node = out[2].node = out[3].node = (int32_t) (node - r_model_state.world->bsp->nodes);
-		node->num_sprites++;
-	} else {
-		out[0].node = out[1].node = out[2].node = out[3].node = -1;
-	}
+	const vec3_t center = Vec3_Scale(Vec3_Add(Vec3_Add(Vec3_Add(out[0].position, out[1].position), out[2].position), out[3].position), .25f);
+	out[0].depth = R_BlendDepthForPoint(center);
 
 	r_sprites.dirty = true;
 
@@ -182,36 +181,35 @@ static void R_AddSprite_(const r_buffered_sprite_image_t *image, const float ler
  * @brief Copies the specified sprite into the view structure, provided it
  * passes a basic visibility test.
  */
-void R_AddSprite(const r_sprite_t *p) {
+void R_AddSprite(const r_sprite_t *s) {
 
 	if (r_view.num_sprites == MAX_SPRITES) {
 		return;
 	}
 
-	const r_image_t *image = R_ResolveSpriteImage(p->image, p->life);
+	const r_image_t *image = R_ResolveSpriteImage(s->media, s->life);
 	const float aspectRatio = (float) image->width / (float) image->height;
 	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
-	const float size = p->size * .5f;
+	const float size = s->size * .5f;
 	
 	vec3_t dir, right, up;
 	
-	if (Vec3_Equal(p->dir, Vec3_Zero())) {
-		dir = Vec3_Normalize(Vec3_Subtract(p->origin, r_view.origin));
+	if (Vec3_Equal(s->dir, Vec3_Zero())) {
+		dir = Vec3_Normalize(Vec3_Subtract(s->origin, r_view.origin));
 	} else {
-		dir = p->dir;
+		dir = s->dir;
 	}
-
 	dir = Vec3_Euler(dir);
-	dir.z = Degrees(p->rotation);
+	dir.z = Degrees(s->rotation);
 
 	Vec3_Vectors(dir, NULL, &right, &up);
 
 	const vec3_t u = Vec3_Scale(up, size), d = Vec3_Scale(up, -size), l = Vec3_Scale(right, -size * aspectRatio), r = Vec3_Scale(right, size * aspectRatio);
 	
-	out[0].position = Vec3_Add(Vec3_Add(p->origin, u), l);
-	out[1].position = Vec3_Add(Vec3_Add(p->origin, u), r);
-	out[2].position = Vec3_Add(Vec3_Add(p->origin, d), r);
-	out[3].position = Vec3_Add(Vec3_Add(p->origin, d), l);
+	out[0].position = Vec3_Add(Vec3_Add(s->origin, u), l);
+	out[1].position = Vec3_Add(Vec3_Add(s->origin, u), r);
+	out[2].position = Vec3_Add(Vec3_Add(s->origin, d), r);
+	out[3].position = Vec3_Add(Vec3_Add(s->origin, d), l);
 
 	if (R_CullSprite(out)) {
 		return;
@@ -220,25 +218,25 @@ void R_AddSprite(const r_sprite_t *p) {
 	const r_image_t *next_image = NULL;
 	float lerp = 0;
 
-	if (p->image->type == MEDIA_ANIMATION) {
-		const r_animation_t *anim = (const r_animation_t *) p->image;
+	if (s->media->type == MEDIA_ANIMATION) {
+		const r_animation_t *anim = (const r_animation_t *) s->media;
 
-		next_image = R_ResolveAnimation(anim, p->life, 1);
+		next_image = R_ResolveAnimation(anim, s->life, 1);
 
-		if (p->lerp) {
-			const float life_to_images = floorf(p->life * anim->num_images);
+		if (s->lerp) {
+			const float life_to_images = floorf(s->life * anim->num_images);
 			const float cur_frame = life_to_images / anim->num_images;
 			const float next_frame = (life_to_images + 1) / anim->num_images;
-			lerp = (p->life - cur_frame) / (next_frame - cur_frame);
+			lerp = (s->life - cur_frame) / (next_frame - cur_frame);
 		}
 	}
 
 	R_AddSprite_(&(const r_buffered_sprite_image_t) {
 		.image = image,
-		.src = p->src,
-		.dst = p->dst,
+		.src = s->src,
+		.dst = s->dst,
 		.next_image = next_image
-	}, lerp, p->color, out);
+	}, lerp, s->color, out);
 }
 
 /**
@@ -255,8 +253,8 @@ void R_AddBeam(const r_beam_t *b) {
 	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
 	const float size = b->size * .5f;
 	float length;
-	const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length),
-		right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view.origin, b->end))), size);
+	const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length);
+	const vec3_t right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view.origin, b->end))), size);
 
 	out[0].position = Vec3_Add(b->start, right);
 	out[1].position = Vec3_Add(b->end, right);
@@ -295,7 +293,7 @@ void R_AddBeam(const r_beam_t *b) {
 /**
  * @brief
  */
-void R_DrawSprites(const r_bsp_node_t *node) {
+void R_DrawSprites(int32_t blend_depth) {
 
 	if (!r_view.num_sprites) {
 		return;
@@ -312,7 +310,7 @@ void R_DrawSprites(const r_bsp_node_t *node) {
 	glUniformMatrix4fv(r_sprite_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_sprite_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 	
-	glUniform1i(r_sprite_program.node, node ? (int32_t) (node - r_model_state.world->bsp->nodes) : -1);
+	glUniform1i(r_sprite_program.blend_depth, blend_depth);
 
 	glUniform2f(r_sprite_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_sprite_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
@@ -335,23 +333,23 @@ void R_DrawSprites(const r_bsp_node_t *node) {
 		glEnableVertexAttribArray(r_sprite_program.in_position);
 		glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
 		glEnableVertexAttribArray(r_sprite_program.in_color);
-		glEnableVertexAttribArray(r_sprite_program.in_node);
+		glEnableVertexAttribArray(r_sprite_program.in_blend_depth);
 
 		r_sprites.dirty = false;
 	}
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
 	
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 
 	ptrdiff_t offset = 0;
 
-	for (uint32_t i = 0; i < r_view.num_sprite_images; i++) {
+	for (int32_t i = 0; i < r_view.num_sprite_images; i++) {
 		const r_buffered_sprite_image_t *sprite = &r_view.sprite_images[i];
 
 		if (sprite->next_image) {
-			glActiveTexture(GL_TEXTURE2);
+			glActiveTexture(GL_TEXTURE0 + TEXTURE_NEXT_DIFFUSEMAP);
 			glBindTexture(GL_TEXTURE_2D, sprite->next_image->texnum);
 			glEnableVertexAttribArray(r_sprite_program.in_next_diffusemap);
 			glEnableVertexAttribArray(r_sprite_program.in_next_lerp);
@@ -360,21 +358,17 @@ void R_DrawSprites(const r_bsp_node_t *node) {
 			glDisableVertexAttribArray(r_sprite_program.in_next_lerp);
 			glVertexAttrib1f(r_sprite_program.in_next_lerp, 0); // FIXME: required every loop?
 		}
-		glActiveTexture(GL_TEXTURE0);
+
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 		glBindTexture(GL_TEXTURE_2D, sprite->image->texnum);
+
 		glBlendFunc(sprite->src, sprite->dst);
-		glDrawElements(GL_TRIANGLES, r_view.sprite_batches[i] * 6, GL_UNSIGNED_SHORT, (GLvoid *) offset);
-		offset += (r_view.sprite_batches[i] * 6) * sizeof(uint16_t);
+
+		glDrawElements(GL_TRIANGLES, r_view.sprite_batches[i] * 6, GL_UNSIGNED_INT, (GLvoid *) offset);
+		offset += (r_view.sprite_batches[i] * 6) * sizeof(GLuint);
 	}
 	
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	glBindVertexArray(0);
 	
@@ -411,10 +405,12 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.in_color = glGetAttribLocation(r_sprite_program.name, "in_color");
 	r_sprite_program.in_next_diffusemap = glGetAttribLocation(r_sprite_program.name, "in_next_diffusemap");
 	r_sprite_program.in_next_lerp = glGetAttribLocation(r_sprite_program.name, "in_next_lerp");
-	r_sprite_program.in_node = glGetAttribLocation(r_sprite_program.name, "in_node");
+	r_sprite_program.in_blend_depth = glGetAttribLocation(r_sprite_program.name, "in_blend_depth");
 
 	r_sprite_program.projection = glGetUniformLocation(r_sprite_program.name, "projection");
 	r_sprite_program.view = glGetUniformLocation(r_sprite_program.name, "view");
+
+	r_sprite_program.blend_depth = glGetUniformLocation(r_sprite_program.name, "blend_depth");
 
 	r_sprite_program.depth_range = glGetUniformLocation(r_sprite_program.name, "depth_range");
 	r_sprite_program.inv_viewport_size = glGetUniformLocation(r_sprite_program.name, "inv_viewport_size");
@@ -431,12 +427,11 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.fog_parameters = glGetUniformLocation(r_sprite_program.name, "fog_parameters");
 	r_sprite_program.fog_color = glGetUniformLocation(r_sprite_program.name, "fog_color");
 	
-	r_sprite_program.next_texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "next_texture_diffusemap");
-	r_sprite_program.node = glGetUniformLocation(r_sprite_program.name, "node");
+	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
 	
-	glUniform1i(r_sprite_program.texture_diffusemap, 0);
-	glUniform1i(r_sprite_program.depth_stencil_attachment, 1);
-	glUniform1i(r_sprite_program.next_texture_diffusemap, 2);
+	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
+	glUniform1i(r_sprite_program.depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 
 	glUseProgram(0);
 
@@ -461,14 +456,14 @@ void R_InitSprites(void) {
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_lerp));
-	glVertexAttribIPointer(5, 1, GL_INT, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, node));
+	glVertexAttribIPointer(5, 1, GL_INT, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, depth));
 
 	glGenBuffers(1, &r_sprites.index_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
 
-	uint16_t indices[MAX_SPRITES * 6];
+	GLuint indices[MAX_SPRITES * 6];
 
-	for (uint32_t i = 0, v = 0, e = 0; i < MAX_SPRITES; i++, v += 4, e += 6) {
+	for (GLuint i = 0, v = 0, e = 0; i < MAX_SPRITES; i++, v += 4, e += 6) {
 		indices[e + 0] = v + 0;
 		indices[e + 1] = v + 1;
 		indices[e + 2] = v + 2;

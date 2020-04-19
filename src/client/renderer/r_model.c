@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-r_model_state_t r_model_state;
+r_model_t *r_world_model;
 
 typedef struct {
 	const char *extension;
@@ -60,9 +60,9 @@ static void R_RegisterModel(r_media_t *self) {
 		}
 
 		// keep a reference to the world model
-		r_model_state.world = mod;
+		r_world_model = mod;
 
-	} else if (IS_MESH_MODEL(mod)) {
+	} else if (mod->type == MOD_MESH) {
 
 		const r_mesh_face_t *face = mod->mesh->faces;
 		for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
@@ -111,7 +111,7 @@ r_model_t *R_LoadModel(const char *name) {
 	}
 
 	if (*name == '*') {
-		g_snprintf(key, sizeof(key), "%s#%s", r_model_state.world->media.name, name + 1);
+		g_snprintf(key, sizeof(key), "%s#%s", r_world_model->media.name, name + 1);
 	} else {
 		StripExtension(name, key);
 	}
@@ -163,10 +163,7 @@ r_model_t *R_LoadModel(const char *name) {
 		Fs_Free(buf);
 
 		// calculate an approximate radius from the bounding box
-		vec3_t size;
-
-		size = Vec3_Subtract(mod->maxs, mod->mins);
-		mod->radius = Vec3_Length(size) / 2.0;
+		mod->radius = Vec3_Distance(mod->maxs, mod->mins) / 2.0;
 
 		R_RegisterMedia((r_media_t *) mod);
 	}
@@ -178,7 +175,7 @@ r_model_t *R_LoadModel(const char *name) {
  * @brief Returns the currently loaded world model (BSP).
  */
 r_model_t *R_WorldModel(void) {
-	return r_model_state.world;
+	return r_world_model;
 }
 
 /**
@@ -186,7 +183,7 @@ r_model_t *R_WorldModel(void) {
  */
 void R_InitModels(void) {
 
-	memset(&r_model_state, 0, sizeof(r_model_state));
+	r_world_model = NULL;
 
 	Cmd_Add("r_export_bsp", R_ExportBsp_f, CMD_RENDERER, "Export the current map to a .obj model.");
 
@@ -203,6 +200,8 @@ void R_InitModels(void) {
  * @brief Shuts down the model facilities.
  */
 void R_ShutdownModels(void) {
+
+	r_world_model = NULL;
 
 	R_ShutdownBspProgram();
 

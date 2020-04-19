@@ -22,7 +22,7 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
-uniform int node;
+uniform int blend_depth;
 
 in vertex_data {
 	vec3 position;
@@ -30,7 +30,7 @@ in vertex_data {
 	vec4 color;
 	vec2 next_diffusemap;
 	float next_lerp;
-	int node;
+	int blend_depth;
 } in_vertex[];
 
 out vertex_data {
@@ -46,7 +46,7 @@ out vertex_data {
  */
 void main() {
 
-	if (node == in_vertex[0].node) {
+	if (blend_depth == in_vertex[0].blend_depth) {
 
 		out_vertex.next_lerp = in_vertex[0].next_lerp;
 

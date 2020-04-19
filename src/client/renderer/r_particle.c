@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 #define TEXTURE_DIFFUSEMAP 0
-#define TEXTURE_DEPTH_STENCIL_ATTACHMENT 1
+#define TEXTURE_DEPTH_STENCIL_ATTACHMENT 8
 
 /**
  * @brief The particle vertex structure.
@@ -39,9 +39,9 @@ typedef struct {
 	color32_t color;
 
 	/**
-	 * @brief The alpha blended node in which this particle should be rendered, or -1.
+	 * @brief The particle blend depth.
 	 */
-	int32_t node;
+	int32_t blend_depth;
 
 } r_particle_vertex_t;
 
@@ -71,12 +71,12 @@ static struct {
 
 	GLint in_position;
 	GLint in_color;
-	GLint in_node;
+	GLint in_depth;
 
 	GLint projection;
 	GLint view;
 
-	GLint node;
+	GLint blend_depth;
 
 	GLint depth_range;
 	GLint pixels_per_radian;
@@ -84,7 +84,7 @@ static struct {
 	GLint transition_size;
 	
 	GLint texture_diffusemap;
-	GLint texture_depth_stencil_attachment;
+	GLint depth_stencil_attachment;
 
 	GLint brightness;
 	GLint contrast;
@@ -112,14 +112,7 @@ void R_AddParticle(const r_particle_t *p) {
 
 	out->position = Vec3_ToVec4(p->origin, p->size);
 	out->color = Color_Color32(p->color);
-
-	r_bsp_node_t *node = R_BlendNodeForPoint(p->origin);
-	if (node) {
-		out->node = (int32_t) (node - r_model_state.world->bsp->nodes);
-		node->num_particles++;
-	} else {
-		out->node = -1;
-	}
+	out->blend_depth = R_BlendDepthForPoint(p->origin);
 
 	r_particles.dirty = true;
 
@@ -129,7 +122,7 @@ void R_AddParticle(const r_particle_t *p) {
 /**
  * @brief
  */
-void R_DrawParticles(const r_bsp_node_t *node) {
+void R_DrawParticles(int32_t blend_depth) {
 
 	glDepthMask(GL_FALSE);
 
@@ -144,7 +137,7 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 	
-	glUniform1i(r_particle_program.node, node ? (int32_t) (node - r_model_state.world->bsp->nodes) : -1);
+	glUniform1i(r_particle_program.blend_depth, blend_depth);
 
 	glUniform1f(r_particle_program.pixels_per_radian, tanf(Radians(r_view.fov.y) / 2.0));
 	glUniform2f(r_particle_program.depth_range, 1.0, MAX_WORLD_DIST);
@@ -166,7 +159,7 @@ void R_DrawParticles(const r_bsp_node_t *node) {
 
 		glEnableVertexAttribArray(r_particle_program.in_position);
 		glEnableVertexAttribArray(r_particle_program.in_color);
-		glEnableVertexAttribArray(r_particle_program.in_node);
+		glEnableVertexAttribArray(r_particle_program.in_depth);
 
 		r_particles.dirty = false;
 	}
@@ -211,12 +204,12 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.in_position = glGetAttribLocation(r_particle_program.name, "in_position");
 	r_particle_program.in_color = glGetAttribLocation(r_particle_program.name, "in_color");
-	r_particle_program.in_node = glGetAttribLocation(r_particle_program.name, "in_node");
+	r_particle_program.in_depth = glGetAttribLocation(r_particle_program.name, "in_blend_depth");
 
 	r_particle_program.projection = glGetUniformLocation(r_particle_program.name, "projection");
 	r_particle_program.view = glGetUniformLocation(r_particle_program.name, "view");
 
-	r_particle_program.node = glGetUniformLocation(r_particle_program.name, "node");
+	r_particle_program.blend_depth = glGetUniformLocation(r_particle_program.name, "blend_depth");
 
 	r_particle_program.pixels_per_radian = glGetUniformLocation(r_particle_program.name, "pixels_per_radian");
 	r_particle_program.depth_range = glGetUniformLocation(r_particle_program.name, "depth_range");
@@ -224,7 +217,7 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.transition_size = glGetUniformLocation(r_particle_program.name, "transition_size");
 
 	r_particle_program.texture_diffusemap = glGetUniformLocation(r_particle_program.name, "texture_diffusemap");
-	r_particle_program.texture_depth_stencil_attachment = glGetUniformLocation(r_particle_program.name, "depth_stencil_attachment");
+	r_particle_program.depth_stencil_attachment = glGetUniformLocation(r_particle_program.name, "depth_stencil_attachment");
 
 	r_particle_program.brightness = glGetUniformLocation(r_particle_program.name, "brightness");
 	r_particle_program.contrast = glGetUniformLocation(r_particle_program.name, "contrast");
@@ -234,7 +227,7 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.fog_parameters = glGetUniformLocation(r_particle_program.name, "fog_parameters");
 
 	glUniform1i(r_particle_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-	glUniform1i(r_particle_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
+	glUniform1i(r_particle_program.depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 
 	glUseProgram(0);
 
@@ -256,7 +249,7 @@ void R_InitParticles(void) {
 
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, position));
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, color));
-	glVertexAttribIPointer(2, 1, GL_INT, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, node));
+	glVertexAttribIPointer(2, 1, GL_INT, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, blend_depth));
 	
 	glBindVertexArray(0);
 

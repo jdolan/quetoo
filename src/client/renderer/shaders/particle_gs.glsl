@@ -22,12 +22,12 @@
 layout (points) in;
 layout (points, max_vertices = 1) out;
 
-uniform int node;
+uniform int blend_depth;
 
 in vertex_data {
 	vec4 position;
 	vec4 color;
-	int node;
+	int blend_depth;
 } in_vertex[];
 
 out vertex_data {
@@ -40,7 +40,7 @@ out vertex_data {
  */
 void main() {
 
-	if (node == in_vertex[0].node) {
+	if (blend_depth == in_vertex[0].blend_depth) {
 
 		gl_Position = gl_in[0].gl_Position;
 

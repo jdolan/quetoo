@@ -37,7 +37,7 @@ static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 	st = Vec2_Add(st, Vec2_Scale(padding, .5f));
 
 	// convert the radius to luxels
-	const float radius = stain->radius / r_model_state.world->bsp->luxel_size;
+	const float radius = stain->radius / r_world_model->bsp->luxel_size;
 
 	// square it to avoid a sqrt per luxe;
 	const float radius_squared = radius * radius;
@@ -152,7 +152,7 @@ void R_UpdateStains(void) {
 		return;
 	}
 
-	if (r_model_state.world->bsp->lightmap == NULL) {
+	if (r_world_model->bsp->lightmap == NULL) {
 		return;
 	}
 
@@ -161,7 +161,7 @@ void R_UpdateStains(void) {
 	const r_stain_t *stain = r_view.stains;
 	for (int32_t i = 0; i < r_view.num_stains; i++, stain++) {
 
-		R_StainNode(stain, r_model_state.world->bsp->nodes);
+		R_StainNode(stain, r_world_model->bsp->nodes);
 
 		const r_entity_t *e = r_view.entities;
 		for (int32_t j = 0; j < r_view.num_entities; j++, e++) {
@@ -175,7 +175,7 @@ void R_UpdateStains(void) {
 		}
 	}
 
-	const r_bsp_model_t *bsp = r_model_state.world->bsp;
+	const r_bsp_model_t *bsp = r_world_model->bsp;
 
 	glBindTexture(GL_TEXTURE_2D_ARRAY, bsp->lightmap->atlas->texnum);
 

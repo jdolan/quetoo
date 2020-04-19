@@ -107,22 +107,3 @@ void R_ApplyMeshTag(r_entity_t *e) {
 
 	e->scale = Matrix4x4_ScaleFromMatrix(&e->matrix);
 }
-
-/**
- * @return True if the specified entity was frustum-culled and can be skipped.
- */
-_Bool R_CullMeshEntity(const r_entity_t *e) {
-
-	assert(IS_MESH_MODEL(e->model));
-
-	if (e->effects & EF_WEAPON) { // never cull the weapon
-		return false;
-	}
-
-	// calculate scaled bounding box in world space
-
-	const vec3_t mins = Vec3_Add(e->origin, Vec3_Scale(e->model->mins, e->scale));
-	const vec3_t maxs = Vec3_Add(e->origin, Vec3_Scale(e->model->maxs, e->scale));
-
-	return R_CullBox(mins, maxs);
-}

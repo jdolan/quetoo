@@ -72,7 +72,7 @@ static struct {
 /**
  * @brief
  */
-void R_DrawSkyBox(void) {
+void R_DrawSky(void) {
 
 	if (r_draw_wireframe->value) {
 		return;

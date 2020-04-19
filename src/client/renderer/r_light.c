@@ -56,19 +56,18 @@ static void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
 
 	const float dist = Cm_DistanceToPlane(l->origin, node->plane);
 
-	if (dist > l->radius) { // front only
+	if (dist > l->radius) {
 		R_MarkLight(l, node->children[0]);
 		return;
 	}
 
-	if (dist < -l->radius) { // back only
+	if (dist < -l->radius) {
 		R_MarkLight(l, node->children[1]);
 		return;
 	}
 
 	node->lights |= (1 << (l - r_view.lights));
 
-	// now go down both sides
 	R_MarkLight(l, node->children[0]);
 	R_MarkLight(l, node->children[1]);
 }
@@ -81,18 +80,21 @@ void R_UpdateLights(void) {
 	memset(r_locals.view_lights, 0, sizeof(r_locals.view_lights));
 	r_light_t *out = r_locals.view_lights;
 
-	const r_light_t *in = r_view.lights;
+	r_light_t *in = r_view.lights;
 	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
 
-		R_MarkLight(in, r_model_state.world->bsp->nodes);
+		R_MarkLight(in, r_world_model->bsp->nodes);
 
 		r_entity_t *e = r_view.entities;
 		for (int32_t j = 0; j < r_view.num_entities; j++, e++) {
 
 			if (e->model) {
+
 				switch (e->model->type) {
 					case MOD_BSP_INLINE:
+						Matrix4x4_Transform(&e->inverse_matrix, in->origin.xyz, in->origin.xyz);
 						R_MarkLight(in, e->model->bsp_inline->head_node);
+						Matrix4x4_Transform(&e->matrix, in->origin.xyz, in->origin.xyz);
 						break;
 					case MOD_MESH:
 						if (Vec3_Distance(e->origin, in->origin) < e->model->radius + in->radius) {

@@ -152,7 +152,7 @@ void R_AddFlareBspFaces(const r_bsp_faces_t *surfs) {
  * @brief
  */
 void R_AddFlares(void) {
-	const r_sorted_bsp_faces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
+	const r_sorted_bsp_faces_t *surfs = r_world_model->bsp->sorted_surfaces;
 
 	R_AddFlareBspFaces(&surfs->flare);
 

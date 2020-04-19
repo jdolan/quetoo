@@ -30,35 +30,6 @@
 lightmap_t *lightmaps;
 
 /**
- * @brief Generates pseudorandom points on a sphere with an even distribution (Hammersley Sequence)
- */
-static void SphereHammersley(vec3_t *result, int n) {
-
-	// https://www.cse.cuhk.edu.hk/~ttwong/papers/udpoint/udpoint.pdf
-
-	float p, t, st, phi, phirad;
-	int k, kk;
-
-	for (k = 0; k < n; k++) {
-
-		t = 0;
-
-		for (p = 0.5, kk = k; kk; p *= 0.5, kk >>= 1) {
-			if (kk & 1) {
-				t += p;
-			}
-		}
-
-		t = 2.0 * t - 1.0;
-		phi = (k + 0.5) / n;
-		phirad = phi * 2.0 * M_PI;
-		st = sqrt(1.0 - t * t);
-
-		result[k] = Vec3(st * cos(phirad), st * sin(phirad), t);
-	}
-}
-
-/**
  * @brief Resolves the texture projection matrices for the given lightmap.
  */
 static void BuildLightmapMatrices(lightmap_t *lm) {
@@ -302,26 +273,34 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 
 	for (guint i = 0; i < lights->len; i++, light++) {
 
-		assert(light->type != LIGHT_INVALID);
-
 		if (light->cluster != -1) {
 			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
 				continue;
 			}
 		}
 
-		vec3_t dir = Vec3(0.0, 0.0, 1.0);
-		float dist = 0.0;
-		if (light->type == LIGHT_SUN) {
-			dir = Vec3_Negate(light->normal);
-		} else {
-			dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
+		float dist_squared = 0.0;
+		switch (light->type) {
+			case LIGHT_SUN:
+				break;
+			default:
+				dist_squared = Vec3_DistanceSquared(light->origin, luxel->origin);
+				break;
 		}
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			if (dist > light->radius) {
+			if (dist_squared > light->radius * light->radius) {
 				continue;
 			}
+		}
+
+		const float dist = sqrtf(dist_squared);
+
+		vec3_t dir;
+		if (light->type == LIGHT_SUN) {
+			dir = Vec3_Negate(light->normal);
+		} else {
+			dir = Vec3_Normalize(Vec3_Subtract(light->origin, luxel->origin));
 		}
 
 		float dot;
@@ -334,7 +313,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			}
 		}
 
-		float intensity = Clampf(light->radius, 0.0, 1024.0) * dot;
+		float intensity = Clampf(light->radius, 0.0, MAX_WORLD_COORD) * dot;
 
 		switch (light->type) {
 			case LIGHT_INVALID:
@@ -491,7 +470,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
 				luxel->diffuse = Vec3_Add(luxel->diffuse, Vec3_Scale(light->color, intensity));
-				luxel->diffuse_dir = Vec3_Add(luxel->diffuse_dir, Vec3_Scale(dir, intensity));
+				luxel->direction = Vec3_Add(luxel->direction, Vec3_Scale(dir, intensity));
 				break;
 			case LIGHT_INDIRECT:
 				luxel->radiosity = Vec3_Add(luxel->radiosity, Vec3_Scale(light->color, intensity));
@@ -546,7 +525,7 @@ void DirectLightmap(int32_t face_num) {
 		if (contribution > 0.0 && contribution < 1.0) {
 			l->ambient = Vec3_Scale(l->ambient, 1.0 / contribution);
 			l->diffuse = Vec3_Scale(l->diffuse, 1.0 / contribution);
-			l->diffuse_dir = Vec3_Scale(l->diffuse_dir, 1.0 / contribution);
+			l->direction = Vec3_Scale(l->direction, 1.0 / contribution);
 		}
 	}
 }
@@ -620,39 +599,32 @@ void FinalizeLightmap(int32_t face_num) {
 	lm->diffuse = CreateLightmapSurface(lm->w, lm->h);
 	byte *out_diffuse = lm->diffuse->pixels;
 
-	lm->radiosity = CreateLightmapSurface(lm->w, lm->h);
-	byte *out_radiosity = lm->radiosity->pixels;
-
-	lm->diffuse_dir = CreateLightmapSurface(lm->w, lm->h);
-	byte *out_diffuse_dir = lm->diffuse_dir->pixels;
+	lm->direction = CreateLightmapSurface(lm->w, lm->h);
+	byte *out_direction = lm->direction->pixels;
 
 	// write it out
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
-		vec3_t ambient, diffuse, radiosity;
 
-		// convert to float
-		ambient = Vec3_Scale(l->ambient, 1.0 / 255.0);
-		diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
-		radiosity = Vec3_Scale(l->radiosity, 1.0 / 255.0);
+		// convert to float, munge radiosity with ambient
+		vec3_t ambient = Vec3_Scale(Vec3_Add(l->ambient, l->radiosity), 1.0 / 255.0);
+		vec3_t diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
 
 		// apply brightness, saturation and contrast
 		ambient = ColorFilter(ambient);
 		diffuse = ColorFilter(diffuse);
-		radiosity = ColorFilter(radiosity);
 
 		// write the color sample data as bytes
 		for (int32_t j = 0; j < 3; j++) {
 			*out_ambient++ = (byte) Clampf(ambient.xyz[j] * 255.0, 0, 255);
 			*out_diffuse++ = (byte) Clampf(diffuse.xyz[j] * 255.0, 0, 255);
-			*out_radiosity++ = (byte) Clampf(radiosity.xyz[j] * 255.0, 0, 255);
 		}
 
 		// re-project the luxel to calculate its centered normal
 		ProjectLuxel(lm, l, 0.f, 0.f);
 
 		// write the directional sample data, in tangent space
-		l->diffuse_dir = Vec3_Add(l->diffuse_dir, l->normal);
+		l->direction = Vec3_Add(l->direction, l->normal);
 
 		const vec3_t sdir = Vec4_XYZ(lm->texinfo->vecs[0]);
 		const vec3_t tdir = Vec4_XYZ(lm->texinfo->vecs[1]);
@@ -660,16 +632,16 @@ void FinalizeLightmap(int32_t face_num) {
 		vec3_t tangent, bitangent;
 		Vec3_Tangents(l->normal, sdir, tdir, &tangent, &bitangent);
 
-		vec3_t diffuse_dir;
-		diffuse_dir.x = Vec3_Dot(l->diffuse_dir, tangent);
-		diffuse_dir.y = Vec3_Dot(l->diffuse_dir, bitangent);
-		diffuse_dir.z = Vec3_Dot(l->diffuse_dir, l->normal);
+		vec3_t direction;
+		direction.x = Vec3_Dot(l->direction, tangent);
+		direction.y = Vec3_Dot(l->direction, bitangent);
+		direction.z = Vec3_Dot(l->direction, l->normal);
 
-		diffuse_dir = Vec3_Normalize(diffuse_dir);
+		direction = Vec3_Normalize(direction);
 
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 		for (int32_t j = 0; j < 3; j++) {
-			*out_diffuse_dir++ = (byte) Clampf((diffuse_dir.xyz[j] + 1.0) * 0.5 * 255.0, 0, 255);
+			*out_direction++ = (byte) Clampf((direction.xyz[j] + 1.0) * 0.5 * 255.0, 0, 255);
 		}
 	}
 }
@@ -691,7 +663,7 @@ void EmitLightmap(void) {
 			continue;
 		}
 
-		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->radiosity, lm->diffuse_dir);
+		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction);
 	}
 
 	int32_t width;
@@ -710,28 +682,24 @@ void EmitLightmap(void) {
 
 		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_size);
 		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_size);
-		SDL_Surface *radiosity = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
-		SDL_Surface *diffuse_dir = CreateLightmapSurfaceFrom(width, width, out + 3 * layer_size);
+		SDL_Surface *direction = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
 
-		if (Atlas_Compile(atlas, 0, ambient, diffuse, radiosity, diffuse_dir) == 0) {
+		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction) == 0) {
 
-			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
-			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
-			IMG_SavePNG(radiosity, va("/tmp/%s_lm_radiosity.png", map_base));
-			IMG_SavePNG(diffuse_dir, va("/tmp/%s_lm_diffuse_dir.png", map_base));
+//			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
+//			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
+//			IMG_SavePNG(direction, va("/tmp/%s_lm_direction.png", map_base));
 
 			SDL_FreeSurface(ambient);
 			SDL_FreeSurface(diffuse);
-			SDL_FreeSurface(radiosity);
-			SDL_FreeSurface(diffuse_dir);
+			SDL_FreeSurface(direction);
 
 			break;
 		}
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
-		SDL_FreeSurface(radiosity);
-		SDL_FreeSurface(diffuse_dir);
+		SDL_FreeSurface(direction);
 	}
 
 	if (width > MAX_BSP_LIGHTMAP_WIDTH) {
@@ -757,8 +725,7 @@ void EmitLightmap(void) {
 
 		SDL_FreeSurface(lm->ambient);
 		SDL_FreeSurface(lm->diffuse);
-		SDL_FreeSurface(lm->radiosity);
-		SDL_FreeSurface(lm->diffuse_dir);
+		SDL_FreeSurface(lm->direction);
 	}
 
 	Atlas_Destroy(atlas);

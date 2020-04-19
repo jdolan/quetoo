@@ -28,16 +28,7 @@ r_model_t *R_WorldModel(void);
 
 #ifdef __R_LOCAL_H__
 
-typedef struct {
-	r_model_t *world;
-
-	GLuint null_vertices;
-	GLuint null_elements;
-	size_t null_elements_count;
-
-} r_model_state_t;
-
-extern r_model_state_t r_model_state;
+extern r_model_t *r_world_model;
 
 void R_InitModels(void);
 void R_ShutdownModels(void);
