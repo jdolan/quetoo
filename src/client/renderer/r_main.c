@@ -283,6 +283,8 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateVis();
 
+	R_UpdateEntities();
+
 	R_UpdateParticles();
 
 	R_UpdateSprites();
@@ -299,9 +301,9 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawSky();
 
-	R_DrawEntities(0);
-
 	R_DrawWorld();
+
+	R_DrawEntities(0);
 
 	R_DrawParticles(0);
 

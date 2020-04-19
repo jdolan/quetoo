@@ -26,5 +26,6 @@
 r_entity_t *R_AddEntity(const r_entity_t *e);
 
 #ifdef __R_LOCAL_H__
+void R_UpdateEntities(void);
 void R_DrawEntities(int32_t blend_depth);
 #endif /* __R_LOCAL_H__ */
