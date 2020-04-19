@@ -248,7 +248,7 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 
 	const r_bsp_node_t *node = NULL;
 	const r_material_t *material = NULL;
-	int32_t depth = -1;
+	int32_t blend_depth = INT32_MAX;
 
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 
@@ -258,10 +258,14 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 			continue;
 		}
 
-		if (draw->node->blend_depth != depth) {
-			depth = draw->node->blend_depth;
+		if (draw->node->blend_depth != blend_depth) {
 
-			R_DrawBspInlineModelAlphaBlendDepth(depth);
+			assert(draw->node->blend_depth);
+			assert(draw->node->blend_depth < blend_depth);
+
+			blend_depth = draw->node->blend_depth;
+
+			R_DrawBspInlineModelAlphaBlendDepth(blend_depth);
 			material = NULL;
 		}
 
@@ -356,7 +360,6 @@ void R_DrawWorld(void) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-
 				R_DrawBspInlineModelOpaqueDrawElements(e->model->bsp_inline);
 			}
 		}
@@ -371,7 +374,7 @@ void R_DrawWorld(void) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-
+				R_DrawBspInlineModelAlphaBlendDrawElements(e->model->bsp_inline);
 				R_DrawBspInlineModelAlphaBlendDrawElements(e->model->bsp_inline);
 			}
 		}

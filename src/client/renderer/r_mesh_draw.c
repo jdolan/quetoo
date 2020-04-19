@@ -95,6 +95,12 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glDepthRange(.0f, .1f);
 	}
 
+	if (e->effects & EF_BLEND) {
+		glEnable(GL_BLEND);
+	} else {
+		glEnable(GL_CULL_FACE);
+	}
+
 	glBindVertexArray(mesh->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
@@ -158,6 +164,12 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glDepthRange(.0f, 1.f);
 	}
 
+	if (e->effects & EF_BLEND) {
+		glDisable(GL_BLEND);
+	} else {
+		glDisable(GL_CULL_FACE);
+	}
+
 	r_view.count_mesh_models++;
 }
 
@@ -202,51 +214,26 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 	glUniform3fv(r_mesh_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
 	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
 
-	if (blend_depth == 0) {
-		glEnable(GL_CULL_FACE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		const r_entity_t *e = r_view.entities;
-		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+	const r_entity_t *e = r_view.entities;
+	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 
-			if (IS_MESH_MODEL(e->model)) {
+		if (IS_MESH_MODEL(e->model)) {
 
-				if (e->effects & EF_NO_DRAW) {
-					continue;
-				}
-
-				if (e->effects & EF_BLEND) {
-					continue;
-				}
-
-				R_DrawMeshEntity(e);
+			if (e->effects & EF_NO_DRAW) {
+				continue;
 			}
-		}
 
-		glDisable(GL_CULL_FACE);
-	} else {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		const r_entity_t *e = r_view.entities;
-		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-
-			if (IS_MESH_MODEL(e->model)) {
-
-				if (e->effects & EF_NO_DRAW) {
-					continue;
-				}
-
-				if (e->blend_depth != blend_depth) {
-					continue;
-				}
-
-				R_DrawMeshEntity(e);
+			if (e->blend_depth != blend_depth) {
+				continue;
 			}
-		}
 
-		glBlendFunc(GL_ONE, GL_ZERO);
-		glDisable(GL_BLEND);
+			R_DrawMeshEntity(e);
+		}
 	}
+
+	glBlendFunc(GL_ONE, GL_ZERO);
 
 	glUseProgram(0);
 

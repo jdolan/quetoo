@@ -64,12 +64,6 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 		}
 
 		R_ApplyMeshConfig(e);
-
-		if (e->effects & EF_BLEND) {
-			e->blend_depth = R_BlendDepthForPoint(e->origin);
-		} else {
-			e->blend_depth = 0;
-		}
 	}
 
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
@@ -82,6 +76,17 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 	r_view.num_entities++;
 	return e;
+}
+
+/**
+ * @brief
+ */
+void R_UpdateEntities(void) {
+
+	r_entity_t *e = r_view.entities;
+	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		e->blend_depth = R_BlendDepthForPoint(e->origin);
+	}
 }
 
 /**

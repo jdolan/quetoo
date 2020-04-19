@@ -96,7 +96,7 @@ static struct {
 
 /**
  * @brief Copies the specified particle into the view structure, provided it
- * passes a basic visibility test.
+ * passes a visibility test.
  */
 void R_AddParticle(const r_particle_t *p) {
 
@@ -112,11 +112,21 @@ void R_AddParticle(const r_particle_t *p) {
 
 	out->position = Vec3_ToVec4(p->origin, p->size);
 	out->color = Color_Color32(p->color);
-	out->blend_depth = R_BlendDepthForPoint(p->origin);
 
 	r_particles.dirty = true;
 
 	r_view.num_particles++;
+}
+
+/**
+ * @brief Resolves blend depth for all particles in the current frame.
+ */
+void R_UpdateParticles(void) {
+
+	r_particle_vertex_t *p = r_particles.particles;
+	for (int32_t i = 0; i < r_view.num_particles; i++, p++) {
+		p->blend_depth = R_BlendDepthForPoint(Vec4_XYZ(p->position));
+	}
 }
 
 /**

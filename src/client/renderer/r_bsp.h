@@ -22,10 +22,10 @@
 #pragma once
 
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p);
-int32_t R_BlendDepthForPoint(const vec3_t p);
 _Bool R_LeafVisible(const r_bsp_leaf_t *leaf);
 _Bool R_LeafHearable(const r_bsp_leaf_t *leaf);
 
 #ifdef __R_LOCAL_H__
+int32_t R_BlendDepthForPoint(const vec3_t p);
 void R_UpdateVis(void);
 #endif /* __R_LOCAL_H__ */

@@ -235,26 +235,63 @@ typedef struct r_stage_s {
 	struct r_stage_s *next;
 } r_stage_t;
 
+/**
+ * @brief Materials define texture, animation and lighting properties for BSP and mesh models.
+ */
 typedef struct r_material_s {
-	// from media
+	/**
+	 * @brief Materials are media.
+	 */
 	r_media_t media;
 
-	struct cm_material_s *cm; // the parsed material
+	/**
+	 * @brief The collision material definition.
+	 */
+	struct cm_material_s *cm;
 
-	// renderer-local stuff parsed from cm
+	/**
+	 * @brief The layered texture containing the diffusemap, normalmap and glossmap.
+	 */
 	r_image_t *texture;
 
+	/**
+	 * @brief Animated stage definitions.
+	 */
 	r_stage_t *stages;
 
-	uint32_t time; // when the material was last animated
-
+	/**
+	 * @brief The time when this material was last animated.
+	 */
+	uint32_t time;
 } r_material_t;
 
+/**
+ * @brief BSP texture information.
+ */
 typedef struct {
+	/**
+	 * @brief The XYZ + W texture vectors in world space.
+	 */
 	vec4_t vecs[2];
+
+	/**
+	 * @brief The surface flags.
+	 */
 	int32_t flags;
+
+	/**
+	 * @brief The surface value, for lights or Phong grouping.
+	 */
 	int32_t value;
+
+	/**
+	 * @brief The diffusemap texture name.
+	 */
 	char texture[32];
+
+	/**
+	 * @brief The material.
+	 */
 	r_material_t *material;
 } r_bsp_texinfo_t;
 
@@ -271,12 +308,30 @@ typedef struct {
 	color32_t color;
 } r_bsp_vertex_t;
 
+/**
+ * @brief BSP flares are stateful sprites.
+ */
 typedef struct {
+
+	/**
+	 * @brief The flare radius.
+	 */
 	float radius;
+
+	/**
+	 * @brief The flare timestamp.
+	 */
 	uint32_t time;
+
+	/**
+	 * @brief The flare alpha, ramped by visibility testing.
+	 */
 	float alpha;
 
-	//r_particle_t particle;
+	/**
+	 * @brief The sprite backing this flare.
+	 */
+//	r_sprite_t *sprite;
 } r_bsp_flare_t;
 
 /**
@@ -334,7 +389,9 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
- * @brief
+ * @brief BSP draw elements, which include one or more faces on a given node.
+ * @remarks Draw elements may span both sides of the node. We rely on back face culling to deal
+ * with that, and avoid the work of testing and marking plane sidedness.
  */
 typedef struct {
 	struct r_bsp_node_s *node;
@@ -420,14 +477,29 @@ typedef struct r_bsp_leaf_s r_bsp_leaf_t;
  * that contains brushes. Non-world models can move and rotate.
  */
 typedef struct r_bsp_inline_model_s {
+	/**
+	 * @brief The head node of this inline model.
+	 * @brief This is a pointer into the BSP model's nodes array.
+	 */
 	r_bsp_node_t *head_node;
 
+	/**
+	 * @brief For frustum culling.
+	 */
 	vec3_t mins;
 	vec3_t maxs;
 
+	/**
+	 * @brief The faces of this inline model.
+	 * @remarks This is a pointer into the BSP model's faces array.
+	 */
 	r_bsp_face_t *faces;
 	int32_t num_faces;
 
+	/**
+	 * @brief The draw elements of this inline model.
+	 * @brief This is a pointer into the BSP model's draw elements array.
+	 */
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
 
