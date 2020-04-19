@@ -277,13 +277,15 @@ void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
 
-	R_Clear();
-
 	R_UpdateProjection();
 
 	R_UpdateFrustum();
 
 	R_UpdateVis();
+
+	R_UpdateParticles();
+
+	R_UpdateSprites();
 	
 	R_UpdateLights();
 
@@ -292,6 +294,8 @@ void R_DrawView(r_view_t *view) {
 	//	R_AddFlares();
 
 	R_UpdateFog();
+
+	R_Clear();
 
 	R_DrawSky();
 

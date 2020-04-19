@@ -34,29 +34,6 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 }
 
 /**
- * @return The node behind which the specified point should be rendered for alpha blending.
- */
-int32_t R_BlendDepthForPoint(const vec3_t p) {
-
-	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
-	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
-
-		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
-
-		if (draw->node->vis_frame != r_locals.vis_frame) {
-			continue;
-		}
-
-		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane)) !=
-			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
-			return draw->node->blend_depth;
-		}
-	}
-
-	return 0;
-}
-
-/**
  * @return True if the specified leaf is in the PVS for the current frame.
  */
 _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
@@ -91,6 +68,53 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 }
 
 /**
+ * @return The node behind which the specified point should be rendered for alpha blending.
+ */
+int32_t R_BlendDepthForPoint(const vec3_t p) {
+
+	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
+	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
+
+		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
+
+		if (draw->node->vis_frame != r_locals.vis_frame) {
+			continue;
+		}
+
+		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane)) !=
+			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
+			return draw->node->blend_depth;
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * @brief GCompareFunc for sorting draw elements by blend depth (desc) and then material (asc).
+ */
+static gint R_DrawElementsDepthCmp(gconstpointer a, gconstpointer b) {
+
+	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
+	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
+
+	gint order = b_draw->node->blend_depth - a_draw->node->blend_depth;
+	if (order == 0) {
+
+		order = strcmp(a_draw->texinfo->texture, b_draw->texinfo->texture);
+		if (order == 0) {
+
+			const gint a_flags = (a_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
+			const gint b_flags = (b_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
+
+			order = a_flags - b_flags;
+		}
+	}
+
+	return order;
+}
+
+/**
  * @brief Recurses the specified node, front to back, resolving each node's depth.
  */
 static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
@@ -118,17 +142,6 @@ static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
 }
 
 /**
- * @brief GCompareFunc for sorting draw elements by depth, back to front.
- */
-static gint R_DrawElementsDepthCmp(gconstpointer a, gconstpointer b) {
-
-	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
-	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
-
-	return b_draw->node->blend_depth - a_draw->node->blend_depth;
-}
-
-/**
  * @brief Recurses the specified model's tree, sorting alpha blended draw elements from back to front.
  */
 static void R_UpdateNodeDepth(r_bsp_inline_model_t *in) {
@@ -138,6 +151,20 @@ static void R_UpdateNodeDepth(r_bsp_inline_model_t *in) {
 	R_UpdateNodeDepth_r(in->head_node, &depth);
 
 	g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
+
+#if 0
+	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
+		const r_bsp_draw_elements_t *a = g_ptr_array_index(in->alpha_blend_draw_elements, i);
+
+		for (guint j = i; j < in->alpha_blend_draw_elements->len; j++) {
+			const r_bsp_draw_elements_t *b = g_ptr_array_index(in->alpha_blend_draw_elements, j);
+
+			if (a->node->plane == b->node->plane) {
+				assert(a->node->blend_depth >= b->node->blend_depth);
+			}
+		}
+	}
+#endif
 }
 
 /**
@@ -204,7 +231,7 @@ void R_UpdateVis(void) {
 				}
 
 				node->vis_frame = r_locals.vis_frame;
-				node->lights = 0;
+				node->lights = node->blend_depth = 0;
 
 				node = node->parent;
 				r_view.count_bsp_nodes++;
@@ -224,7 +251,7 @@ void R_UpdateVis(void) {
 			for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 				
 				draw->node->vis_frame = r_locals.vis_frame;
-				draw->node->lights = 0;
+				draw->node->lights = draw->node->blend_depth = 0;
 			}
 
 			R_UpdateNodeDepth(in);

@@ -27,6 +27,7 @@ void R_AddSprite(const r_sprite_t *p);
 void R_AddBeam(const r_beam_t *p);
 
 #ifdef __R_LOCAL_H__
+void R_UpdateSprites(void);
 void R_DrawSprites(int32_t blend_depth);
 void R_ShutdownSprites(void);
 void R_InitSprites(void);

@@ -34,7 +34,7 @@ typedef struct {
 	color32_t color;
 	vec2_t next_diffusemap;
 	float next_lerp;
-	int32_t depth;
+	int32_t blend_depth;
 } r_sprite_vertex_t;
 
 /**
@@ -169,9 +169,6 @@ static void R_AddSprite_(const r_buffered_sprite_image_t *image, const float ler
 		r_view.num_sprite_images++;
 	}
 
-	const vec3_t center = Vec3_Scale(Vec3_Add(Vec3_Add(Vec3_Add(out[0].position, out[1].position), out[2].position), out[3].position), .25f);
-	out[0].depth = R_BlendDepthForPoint(center);
-
 	r_sprites.dirty = true;
 
 	r_view.num_sprites++;
@@ -280,6 +277,27 @@ void R_AddBeam(const r_beam_t *b) {
 				out[i].diffusemap.x += b->translate;
 			}
 		}
+	}
+}
+
+/**
+ * @brief
+ */
+void R_UpdateSprites(void) {
+
+	r_sprite_vertex_t *out = r_sprites.sprites;
+	for (int32_t i = 0; i < r_view.num_sprites; i++, out += 4) {
+
+		vec3_t center = Vec3_Zero();
+		for (int32_t j = 0; j < 4; j++) {
+			center = Vec3_Add(center, out[j].position);
+		}
+		center = Vec3_Scale(center, .25f);
+
+		out[0].blend_depth =
+		out[1].blend_depth =
+		out[2].blend_depth =
+		out[3].blend_depth = R_BlendDepthForPoint(center);
 	}
 }
 
@@ -449,7 +467,7 @@ void R_InitSprites(void) {
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_lerp));
-	glVertexAttribIPointer(5, 1, GL_INT, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, depth));
+	glVertexAttribIPointer(5, 1, GL_INT, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, blend_depth));
 
 	glGenBuffers(1, &r_sprites.index_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
