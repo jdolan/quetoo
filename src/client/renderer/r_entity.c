@@ -24,7 +24,7 @@
 /**
  * @brief Sets the entity's culling bounds.
  */
-void R_SetEntityBounds(r_entity_t *e) {
+static void R_SetEntityBounds(r_entity_t *e) {
 
 	e->mins = e->origin;
 	e->maxs = e->origin;
