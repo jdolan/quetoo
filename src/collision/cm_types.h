@@ -60,8 +60,8 @@
 typedef struct {
 	vec3_t normal;
 	float dist;
-	uint16_t type; // for fast side tests
-	uint16_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
+	int32_t type; // for fast side tests
+	int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
 } cm_bsp_plane_t;
 
 /**
