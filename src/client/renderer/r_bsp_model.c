@@ -239,8 +239,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 		out->mins = Vec3s_CastVec3(in->mins);
 		out->maxs = Vec3s_CastVec3(in->maxs);
 
-		const int32_t p = in->plane_num;
-		out->plane = bsp->cm->planes + p;
+		out->plane = bsp->cm->planes + in->plane_num;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;

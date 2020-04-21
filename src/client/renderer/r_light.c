@@ -66,7 +66,7 @@ static void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
 		return;
 	}
 
-	node->lights |= (1 << (l - r_view.lights));
+	node->lights_mask |= (1 << (l - r_view.lights));
 
 	R_MarkLight(l, node->children[0]);
 	R_MarkLight(l, node->children[1]);

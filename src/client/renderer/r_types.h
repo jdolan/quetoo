@@ -441,7 +441,7 @@ struct r_bsp_node_s {
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
 
-	int32_t lights;
+	int32_t lights_mask;
 	int32_t blend_depth;
 };
 
@@ -1132,6 +1132,7 @@ typedef struct {
 
 	// counters, reset each frame
 
+	int32_t count_bsp_leafs;
 	int32_t count_bsp_nodes;
 	int32_t count_bsp_draw_elements;
 	int32_t count_bsp_draw_elements_blend;

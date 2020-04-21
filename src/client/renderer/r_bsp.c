@@ -81,6 +81,8 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 			continue;
 		}
 
+		assert(draw->node->blend_depth);
+
 		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane)) !=
 			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
 			return draw->node->blend_depth;
@@ -136,7 +138,7 @@ static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
 
 	R_UpdateNodeDepth_r(node->children[side], depth);
 
-	node->blend_depth = *depth = *depth + 1;
+	node->blend_depth = *depth = (*depth) + 1;
 
 	R_UpdateNodeDepth_r(node->children[!side], depth);
 }
@@ -151,20 +153,6 @@ static void R_UpdateNodeDepth(r_bsp_inline_model_t *in) {
 	R_UpdateNodeDepth_r(in->head_node, &depth);
 
 	g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
-
-#if 0
-	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
-		const r_bsp_draw_elements_t *a = g_ptr_array_index(in->alpha_blend_draw_elements, i);
-
-		for (guint j = i; j < in->alpha_blend_draw_elements->len; j++) {
-			const r_bsp_draw_elements_t *b = g_ptr_array_index(in->alpha_blend_draw_elements, j);
-
-			if (a->node->plane == b->node->plane) {
-				assert(a->node->blend_depth >= b->node->blend_depth);
-			}
-		}
-	}
-#endif
 }
 
 /**
@@ -218,22 +206,26 @@ void R_UpdateVis(void) {
 
 		if (R_LeafVisible(leaf) || r_locals.leaf->cluster == -1) {
 
-			r_bsp_node_t *node = (r_bsp_node_t *) leaf;
-			while (node) {
+			if (R_CullBox(leaf->mins, leaf->maxs)) {
+				continue;
+			}
+
+			leaf->vis_frame = r_locals.vis_frame;
+			r_view.count_bsp_leafs++;
+
+			for (r_bsp_node_t *node = leaf->parent; node; node = node->parent) {
+
+				if (R_CullBox(node->mins, node->maxs)) {
+					continue;
+				}
 
 				if (node->vis_frame == r_locals.vis_frame) {
 					break;
 				}
 
-				if (R_CullBox(node->mins, node->maxs)) {
-					node = node->parent;
-					continue;
-				}
-
 				node->vis_frame = r_locals.vis_frame;
-				node->lights = node->blend_depth = 0;
+				node->lights_mask = node->blend_depth = 0;
 
-				node = node->parent;
 				r_view.count_bsp_nodes++;
 			}
 		}
@@ -249,9 +241,9 @@ void R_UpdateVis(void) {
 
 			const r_bsp_draw_elements_t *draw = in->draw_elements;
 			for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
-				
+
 				draw->node->vis_frame = r_locals.vis_frame;
-				draw->node->lights = draw->node->blend_depth = 0;
+				draw->node->lights_mask = draw->node->blend_depth = 0;
 			}
 
 			R_UpdateNodeDepth(in);
