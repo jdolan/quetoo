@@ -260,8 +260,8 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 
 		if (draw->node->blend_depth != blend_depth) {
 
-			assert(draw->node->blend_depth);
-			assert(draw->node->blend_depth < blend_depth);
+			//assert(draw->node->blend_depth);
+			//assert(draw->node->blend_depth < blend_depth);
 
 			blend_depth = draw->node->blend_depth;
 

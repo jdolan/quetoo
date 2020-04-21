@@ -33,9 +33,10 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	assert(s);
 	s->animation = cg_blast_01_ring;
 	s->lifetime = cg_blast_01_ring->num_images * FRAMES_TO_SECONDS(17.5);
-	s->origin = org;
+	s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.0));
 	s->size = 22.5f;
 	s->size_velocity = 75.f;
+	s->dir = dir;
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, dir),
@@ -692,6 +693,14 @@ static void Cg_BfgEffect(const vec3_t org) {
  * @brief
  */
 void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity) {
+	// ring 1
+	cg_sprite_t *s = Cg_AllocSprite();
+	assert(s);
+	s->animation = cg_poof_01;
+	s->lifetime = cg_poof_01->num_images * FRAMES_TO_SECONDS(17.5) * (viscosity * .1f);
+	s->origin = org;
+	s->size = size * 8;
+	s->dir = Vec3_Up();
 	/*cg_particle_t *p;
 
 	if (cg_particle_quality->integer == 0) {

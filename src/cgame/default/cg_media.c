@@ -65,6 +65,7 @@ r_animation_t *cg_bfg_explosion_2;
 r_animation_t *cg_bfg_explosion_3;
 r_animation_t *cg_bfg_explosion_4;
 r_animation_t *cg_bfg_explosion_5;
+r_animation_t *cg_poof_01;
 
 static GHashTable *cg_footstep_table;
 
@@ -267,6 +268,7 @@ void Cg_UpdateMedia(void) {
 	cg_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
 //	cg_bfg_explosion_4 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_04/bfg_explosion_04", "_%02" PRIu32, 1, 57);
 //	cg_bfg_explosion_5 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_05/bfg_explosion_05", "_%02" PRIu32, 1, 12);
+	cg_poof_01		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_01/poof_01", "_%02" PRIu32, 1, 32);
 
 	cgi.CompileAtlas(cg_particle_atlas);
 
