@@ -68,6 +68,21 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
+	r_bsp_plane_t *out;
+
+	bsp->num_planes = bsp->cm->file.num_planes;
+	bsp->planes = out = Mem_LinkMalloc(bsp->num_planes * sizeof(*out), bsp);
+
+	const cm_bsp_plane_t *in = bsp->cm->planes;
+	for (int32_t i = 0; i < bsp->num_planes; i++, in++, out++) {
+		out->cm = in;
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
 	bsp->num_vertexes = bsp->cm->file.num_vertexes;
@@ -131,7 +146,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 	for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
 		// resolve plane
-		out->plane = bsp->cm->planes + in->plane_num;
+		out->plane = bsp->planes + in->plane_num;
 		out->plane_side = in->plane_num & 1;
 
 		// then texinfo
@@ -239,8 +254,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 		out->mins = Vec3s_CastVec3(in->mins);
 		out->maxs = Vec3s_CastVec3(in->maxs);
 
-		const int32_t p = in->plane_num;
-		out->plane = bsp->cm->planes + p;
+		out->plane = bsp->planes + in->plane_num;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
@@ -531,6 +545,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Cl_LoadingProgress(10, "texinfo");
 	R_LoadBspTexinfo(mod->bsp);
+
+	Cl_LoadingProgress(12, "planes");
+	R_LoadBspPlanes(mod->bsp);
 
 	Cl_LoadingProgress(14, "vertexes");
 	R_LoadBspVertexes(mod->bsp);

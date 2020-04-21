@@ -95,7 +95,7 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 		return;
 	}
 
-	const float dist = Cm_DistanceToPlane(stain->origin, node->plane);
+	const float dist = Cm_DistanceToPlane(stain->origin, node->plane->cm);
 
 	if (dist > stain->radius) { // front only
 		R_StainNode(stain, node->children[0]);
@@ -110,7 +110,7 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 	// project the stain onto the node's plane
 
 	const r_stain_t local = {
-		.origin = Vec3_Add(stain->origin, Vec3_Scale(node->plane->normal, -dist)),
+		.origin = Vec3_Add(stain->origin, Vec3_Scale(node->plane->cm->normal, -dist)),
 		.radius = stain->radius - fabsf(dist),
 		.color = stain->color
 	};

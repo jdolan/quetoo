@@ -178,7 +178,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_bsp_inline_model_t *i
 
 		if (draw->node != node) {
 			node = draw->node;
-			glUniform1i(r_bsp_program.lights_mask, node->lights);
+			glUniform1i(r_bsp_program.lights_mask, node->lights_mask);
 		}
 
 		if (draw->texinfo->material != material) {
@@ -247,9 +247,10 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	const r_bsp_node_t *node = NULL;
+	const r_bsp_plane_t *plane = NULL;
 	const r_material_t *material = NULL;
-	int32_t blend_depth = INT32_MAX;
 
+	printf("draw: ");
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
@@ -258,21 +259,21 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 			continue;
 		}
 
-		if (draw->node->blend_depth != blend_depth) {
+		if (draw->node->plane != plane) {
 
-			assert(draw->node->blend_depth);
-			assert(draw->node->blend_depth < blend_depth);
+			assert(draw->node->plane->blend_depth);
+			assert(draw->node->plane->blend_depth < (plane ? plane->blend_depth : INT32_MAX));
 
-			blend_depth = draw->node->blend_depth;
+			plane = draw->node->plane;
 
-			R_DrawBspInlineModelAlphaBlendDepth(blend_depth);
+			R_DrawBspInlineModelAlphaBlendDepth(plane->blend_depth);
 			material = NULL;
 		}
 
 		if (draw->node != node) {
 			node = draw->node;
 
-			glUniform1i(r_bsp_program.lights_mask, node->lights);
+			glUniform1i(r_bsp_program.lights_mask, node->lights_mask);
 		}
 
 		if (draw->texinfo->material != material) {
@@ -291,6 +292,7 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 
 		r_view.count_bsp_draw_elements_blend++;
 	}
+	printf(":: %d\n", in->alpha_blend_draw_elements->len);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);

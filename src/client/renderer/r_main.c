@@ -331,6 +331,7 @@ void R_BeginFrame(void) {
 
 	R_Clear();
 
+	r_view.count_bsp_leafs = 0;
 	r_view.count_bsp_nodes = 0;
 	r_view.count_bsp_draw_elements = 0;
 	r_view.count_bsp_draw_elements_blend = 0;
@@ -368,9 +369,6 @@ static void R_InitView(void) {
 	memset(&r_view, 0, sizeof(r_view));
 
 	memset(&r_locals, 0, sizeof(r_locals));
-
-	r_locals.vis_frame = 1;
-	r_locals.stain_frame = 1;
 }
 
 /**
