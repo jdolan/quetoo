@@ -261,7 +261,7 @@ void R_UpdateVis(void) {
 				draw->node->lights_mask = draw->node->plane->blend_depth = 0;
 			}
 
-			R_UpdateNodeDepth(in);
+			//R_UpdateNodeDepth(in);
 		}
 	}
 }
