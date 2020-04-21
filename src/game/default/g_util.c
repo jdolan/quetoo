@@ -475,6 +475,7 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius,
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(ent->s.origin);
+	gi.WriteDir(Vec3_Up());
 	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
 
 	G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ?: MOD_EXPLOSIVE);
