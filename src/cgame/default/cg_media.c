@@ -189,7 +189,7 @@ static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, c
 	strncat(format_path, seq_num_fmt, MAX_QPATH);
 
 	char name[MAX_QPATH];
-	const uint32_t length = last_frame - first_frame;
+	const uint32_t length = (last_frame - first_frame) + 1;
 	const r_image_t *images[length];
 	for (uint32_t i = 0; i < length; i++) {
 		g_snprintf(name, MAX_QPATH, format_path, i + first_frame);
@@ -269,8 +269,8 @@ void Cg_UpdateMedia(void) {
 	cg_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
 //	cg_bfg_explosion_4 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_04/bfg_explosion_04", "_%02" PRIu32, 1, 57);
 	cg_bfg_explosion_5 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_05/bfg_explosion_05", "_%02" PRIu32, 1, 12);
-	cg_poof_1		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_01/poof_01", "_%02" PRIu32, 1, 34);
-	cg_poof_2		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_02/poof_02", "_%02" PRIu32, 1, 17);
+	cg_poof_1		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_01/poof_01", "_%02" PRIu32, 1, 32);
+	cg_poof_2		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_02/poof_01", "_%02" PRIu32, 1, 17);
 
 	cgi.CompileAtlas(cg_particle_atlas);
 
