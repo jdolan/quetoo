@@ -71,7 +71,7 @@ static struct {
 
 	GLint in_position;
 	GLint in_color;
-	GLint in_depth;
+	GLint in_blend_depth;
 
 	GLint projection;
 	GLint view;
@@ -169,7 +169,7 @@ void R_DrawParticles(int32_t blend_depth) {
 
 		glEnableVertexAttribArray(r_particle_program.in_position);
 		glEnableVertexAttribArray(r_particle_program.in_color);
-		glEnableVertexAttribArray(r_particle_program.in_depth);
+		glEnableVertexAttribArray(r_particle_program.in_blend_depth);
 
 		r_particles.dirty = false;
 	}
@@ -214,7 +214,7 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.in_position = glGetAttribLocation(r_particle_program.name, "in_position");
 	r_particle_program.in_color = glGetAttribLocation(r_particle_program.name, "in_color");
-	r_particle_program.in_depth = glGetAttribLocation(r_particle_program.name, "in_blend_depth");
+	r_particle_program.in_blend_depth = glGetAttribLocation(r_particle_program.name, "in_blend_depth");
 
 	r_particle_program.projection = glGetUniformLocation(r_particle_program.name, "projection");
 	r_particle_program.view = glGetUniformLocation(r_particle_program.name, "view");
