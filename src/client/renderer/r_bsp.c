@@ -153,21 +153,6 @@ static void R_UpdateNodeDepth(r_bsp_inline_model_t *in) {
 	R_UpdateNodeDepth_r(in->head_node, &depth);
 
 	g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
-
-#if 1
-	printf("update: ");
-	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
-		const r_bsp_draw_elements_t *a = g_ptr_array_index(in->alpha_blend_draw_elements, i);
-		printf("%d ", a->node->plane->blend_depth);
-
-		for (guint j = i; j < in->alpha_blend_draw_elements->len; j++) {
-			const r_bsp_draw_elements_t *b = g_ptr_array_index(in->alpha_blend_draw_elements, j);
-			
-			assert(a->node->plane->blend_depth >= b->node->plane->blend_depth);
-		}
-	}
-	printf(":: %d\n", in->alpha_blend_draw_elements->len);
-#endif
 }
 
 /**
@@ -256,12 +241,10 @@ void R_UpdateVis(void) {
 
 			const r_bsp_draw_elements_t *draw = in->draw_elements;
 			for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
-				
-				draw->node->vis_frame = r_locals.vis_frame;
-				draw->node->lights_mask = draw->node->plane->blend_depth = 0;
-			}
 
-			//R_UpdateNodeDepth(in);
+				draw->node->vis_frame = r_locals.vis_frame;
+				draw->node->lights_mask = 0;
+			}
 		}
 	}
 }

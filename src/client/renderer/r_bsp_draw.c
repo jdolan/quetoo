@@ -250,7 +250,6 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 	const r_bsp_plane_t *plane = NULL;
 	const r_material_t *material = NULL;
 
-	printf("draw: ");
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
@@ -259,11 +258,7 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 			continue;
 		}
 
-		if (draw->node->plane != plane) {
-
-			assert(draw->node->plane->blend_depth);
-			assert(draw->node->plane->blend_depth < (plane ? plane->blend_depth : INT32_MAX));
-
+		if (draw->node->plane != plane && draw->node->plane->blend_depth) {
 			plane = draw->node->plane;
 
 			R_DrawBspInlineModelAlphaBlendDepth(plane->blend_depth);
@@ -292,7 +287,6 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 
 		r_view.count_bsp_draw_elements_blend++;
 	}
-	printf(":: %d\n", in->alpha_blend_draw_elements->len);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
@@ -376,8 +370,7 @@ void R_DrawWorld(void) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-				R_DrawBspInlineModelAlphaBlendDrawElements(e->model->bsp_inline);
-				R_DrawBspInlineModelAlphaBlendDrawElements(e->model->bsp_inline);
+				//R_DrawBspInlineModelAlphaBlendDrawElements(e->model->bsp_inline);
 			}
 		}
 	}
