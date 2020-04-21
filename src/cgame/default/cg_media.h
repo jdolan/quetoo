@@ -62,7 +62,7 @@ extern r_animation_t *cg_flame_1;
 extern r_animation_t *cg_smoke_1;
 extern r_animation_t *cg_smoke_2;
 extern r_animation_t *cg_blast_01_ring;
-extern r_animation_t *cg_blue_fireball_1;
+extern r_animation_t *cg_hyperball_1;
 extern r_animation_t *cg_bfg_explosion_1;
 extern r_animation_t *cg_bfg_explosion_2;
 extern r_animation_t *cg_bfg_explosion_3;

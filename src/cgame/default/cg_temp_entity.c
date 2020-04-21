@@ -28,7 +28,6 @@
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t color) {
 	cg_sprite_t *s;
 
-	// ring 1
 	s = Cg_AllocSprite();
 	assert(s);
 	s->animation = cg_blast_01_ring;
@@ -124,12 +123,12 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		}
 	}
 
-	Cg_AddLight(&(const cg_light_t) {
+	/* Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, dir),
 		.radius = 20.0,
 		.color = Vec3(0.5f, 0.3f, 0.2f),
 		.decay = 250
-	});
+	}); */
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
@@ -445,7 +444,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.origin = Vec3_Add(org, dir),
 		.radius = 80.0,
 		.color = Vec3(0.4, 0.7, 1.0),
-		.decay = 250
+		.decay = 250,
+		.intensity = 0.01
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -570,6 +570,15 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Rail impact sparks
 
+	if ((s = Cg_AllocSprite())) {
+		s->type = SPRITE_NORMAL;
+		s->origin = end;
+		// s->
+	}
+
+
+
+	/*
 	if (cg_particle_quality->integer && (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) == 0) {
 
 		for (int32_t i = 0; i < 24; i++) {
@@ -591,15 +600,16 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			p->size = 1.6 + Randomf() * 0.6;
 		}
 	}
+	*/
 
 	// Impact light
 
-	Cg_AddLight(&(cg_light_t) {
+	/* Cg_AddLight(&(cg_light_t) {
 		.origin = Vec3_Add(end, Vec3_Scale(forward, -12.f)),
 		.radius = 120.f,
 		.color = Color_Vec3(color),
 		.decay = 250
-	});
+	}); */
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = end,
