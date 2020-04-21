@@ -81,9 +81,11 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 			continue;
 		}
 
-		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane->cm)) !=
-			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane->cm))) {
-			return draw->node->plane->blend_depth;
+		assert(draw->node->blend_depth);
+
+		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane)) !=
+			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
+			return draw->node->blend_depth;
 		}
 	}
 
@@ -98,7 +100,7 @@ static gint R_DrawElementsDepthCmp(gconstpointer a, gconstpointer b) {
 	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
 	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
 
-	gint order = b_draw->node->plane->blend_depth - a_draw->node->plane->blend_depth;
+	gint order = b_draw->node->blend_depth - a_draw->node->blend_depth;
 	if (order == 0) {
 
 		order = strcmp(a_draw->texinfo->texture, b_draw->texinfo->texture);
@@ -128,7 +130,7 @@ static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
 		return;
 	}
 
-	if (Cm_DistanceToPlane(r_view.origin, node->plane->cm) > 0.f) {
+	if (Cm_DistanceToPlane(r_view.origin, node->plane) > 0.f) {
 		side = 0;
 	} else {
 		side = 1;
@@ -136,9 +138,7 @@ static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
 
 	R_UpdateNodeDepth_r(node->children[side], depth);
 
-	if (node->plane->blend_depth == 0) {
-		node->plane->blend_depth = *depth = (*depth) + 1;
-	}
+	node->blend_depth = *depth = (*depth) + 1;
 
 	R_UpdateNodeDepth_r(node->children[!side], depth);
 }
@@ -224,7 +224,7 @@ void R_UpdateVis(void) {
 				}
 
 				node->vis_frame = r_locals.vis_frame;
-				node->lights_mask = node->plane->blend_depth = 0;
+				node->lights_mask = node->blend_depth = 0;
 
 				r_view.count_bsp_nodes++;
 			}
@@ -243,8 +243,10 @@ void R_UpdateVis(void) {
 			for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
 				draw->node->vis_frame = r_locals.vis_frame;
-				draw->node->lights_mask = 0;
+				draw->node->lights_mask = draw->node->blend_depth = 0;
 			}
+
+			R_UpdateNodeDepth(in);
 		}
 	}
 }

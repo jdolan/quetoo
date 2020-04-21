@@ -296,22 +296,6 @@ typedef struct {
 } r_bsp_texinfo_t;
 
 /**
- * @brief BSP planes, castable to cm_bsp_plane_t.
- */
-typedef struct {
-
-	/**
-	 * @brief The collision plane.
-	 */
-	const cm_bsp_plane_t *cm;
-
-	/**
-	 * @brief The blend depth of this plane for the current frame.
-	 */
-	int32_t blend_depth;
-} r_bsp_plane_t;
-
-/**
  * @brief BSP vertex structure.
  */
 typedef struct {
@@ -386,7 +370,7 @@ typedef struct {
 typedef struct {
 	struct r_bsp_node_s *node;
 
-	r_bsp_plane_t *plane;
+	cm_bsp_plane_t *plane;
 	byte plane_side;
 
 	r_bsp_texinfo_t *texinfo;
@@ -448,7 +432,7 @@ struct r_bsp_node_s {
 	int32_t vis_frame;
 
 	// node specific
-	r_bsp_plane_t *plane;
+	cm_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	r_bsp_face_t *faces;
@@ -458,6 +442,7 @@ struct r_bsp_node_s {
 	int32_t num_draw_elements;
 
 	int32_t lights_mask;
+	int32_t blend_depth;
 };
 
 typedef struct r_bsp_node_s r_bsp_node_t;
@@ -574,9 +559,6 @@ typedef struct {
 
 	int32_t num_texinfo;
 	r_bsp_texinfo_t *texinfo;
-
-	int32_t num_planes;
-	r_bsp_plane_t *planes;
 
 	int32_t num_vertexes;
 	r_bsp_vertex_t *vertexes;

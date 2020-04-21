@@ -54,7 +54,7 @@ static void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
 		return;
 	}
 
-	const float dist = Cm_DistanceToPlane(l->origin, node->plane->cm);
+	const float dist = Cm_DistanceToPlane(l->origin, node->plane);
 
 	if (dist > l->radius) {
 		R_MarkLight(l, node->children[0]);
