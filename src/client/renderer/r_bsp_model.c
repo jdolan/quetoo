@@ -344,10 +344,10 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 			}
 
 			if (draw->texinfo->flags & SURF_MASK_BLEND) {
-				g_ptr_array_add(out->alpha_blend_draw_elements, draw);
-			} else {
-				g_ptr_array_add(out->opaque_draw_elements, draw);
+				continue;
 			}
+
+			g_ptr_array_add(out->opaque_draw_elements, draw);
 		}
 
 		g_ptr_array_sort(out->opaque_draw_elements, R_DrawElementsCmp);

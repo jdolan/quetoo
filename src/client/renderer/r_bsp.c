@@ -98,31 +98,7 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 }
 
 /**
- * @brief GCompareFunc for sorting draw elements by blend depth (desc) and then material (asc).
- */
-static gint R_DrawElementsDepthCmp(gconstpointer a, gconstpointer b) {
-
-	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
-	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
-
-	gint order = b_draw->node->blend_depth - a_draw->node->blend_depth;
-	if (order == 0) {
-
-		order = strcmp(a_draw->texinfo->texture, b_draw->texinfo->texture);
-		if (order == 0) {
-
-			const gint a_flags = (a_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
-			const gint b_flags = (b_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
-
-			order = a_flags - b_flags;
-		}
-	}
-
-	return order;
-}
-
-/**
- * @brief Recurses the specified node, front to back, resolving each node's depth.
+ * @brief Recurses the specified node, back to front, resolving each node's depth.
  */
 static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
 	int32_t side;
@@ -136,14 +112,22 @@ static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
 	}
 
 	if (Cm_DistanceToPlane(r_view.origin, node->plane) > 0.f) {
-		side = 0;
-	} else {
 		side = 1;
+	} else {
+		side = 0;
 	}
 
 	R_UpdateNodeDepth_r(node->children[side], depth);
 
 	node->blend_depth = *depth = (*depth) + 1;
+
+	r_bsp_draw_elements_t *draw = node->draw_elements;
+	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
+
+		if (draw->texinfo->flags & SURF_MASK_BLEND) {
+			g_ptr_array_add(node->model->alpha_blend_draw_elements, draw);
+		}
+	}
 
 	R_UpdateNodeDepth_r(node->children[!side], depth);
 }
@@ -153,11 +137,11 @@ static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
  */
 static void R_UpdateNodeDepth(r_bsp_inline_model_t *in) {
 
+	g_ptr_array_set_size(in->alpha_blend_draw_elements, 0);
+
 	int32_t depth = 0;
 
 	R_UpdateNodeDepth_r(in->head_node, &depth);
-
-	g_ptr_array_sort(in->alpha_blend_draw_elements, R_DrawElementsDepthCmp);
 }
 
 /**
