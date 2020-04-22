@@ -549,13 +549,11 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	cgi.AddBeam(&(const r_beam_t) {
 		.start = start,
 		.end = end,
-		.color = Color4f(1.f, 1.f, 1.f, 1.f),
+		.color = Color4f(1.f, 1.f, 1.f, 0.f),
 		.image = cg_beam_lightning,
 		.size = 8.5f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
 		.stretch = RandomRangef(.2f, .4f),
-		.src = GL_SRC_ALPHA,
-		.dst = GL_ONE
 	});
 
 	l.origin = Vec3_Add(end, Vec3_Scale(dir, 12.0));
@@ -626,9 +624,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 		.end = Vec3_Add(end, Vec3_Scale(forward, -3.f)),
 		.color = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_GREEN),
 		.image = cg_beam_hook,
-		.size = 1.f,
-		.src = GL_SRC_ALPHA,
-		.dst = GL_ONE_MINUS_SRC_ALPHA
+		.size = 1.f
 	});
 }
 
