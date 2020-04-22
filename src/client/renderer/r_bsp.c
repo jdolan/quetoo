@@ -84,7 +84,10 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 		if (SignOf(Cm_DistanceToPlane(p,draw->node->plane)) !=
 			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
 
-			if (Cm_BoxIntersect(p, p, draw->node->mins, draw->node->maxs)) {
+			vec3_t mins, maxs;
+			Cm_TraceBounds(r_view.origin, p, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
+
+			if (Cm_BoxIntersect(mins, maxs, draw->node->mins, draw->node->maxs)) {
 				return draw->node->blend_depth;
 			}
 		}
