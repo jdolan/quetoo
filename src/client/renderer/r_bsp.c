@@ -72,8 +72,6 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
  */
 int32_t R_BlendDepthForPoint(const vec3_t p) {
 
-	const cm_bsp_plane_t *plane = NULL;
-
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 
@@ -83,12 +81,10 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 			continue;
 		}
 
-		if (draw->node->plane != plane) {
-			plane = draw->node->plane;
+		if (SignOf(Cm_DistanceToPlane(p,draw->node->plane)) !=
+			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
 
-			if (SignOf(Cm_DistanceToPlane(p, plane)) !=
-				SignOf(Cm_DistanceToPlane(r_view.origin, plane))) {
-
+			if (Cm_BoxIntersect(p, p, draw->node->mins, draw->node->maxs)) {
 				return draw->node->blend_depth;
 			}
 		}

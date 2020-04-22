@@ -260,10 +260,8 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 		if (draw->node != node) {
 			node = draw->node;
 
-			if (in == r_world_model->bsp_inline) {
-				R_DrawBspInlineModelAlphaBlendDepth(node->blend_depth);
-				material = NULL;
-			}
+			R_DrawBspInlineModelAlphaBlendDepth(node->blend_depth);
+			material = NULL;
 
 			glUniform1i(r_bsp_program.lights_mask, node->lights_mask);
 		}
