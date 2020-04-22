@@ -579,6 +579,11 @@ static inline vec3_t Vec3_RandomRange(float begin, float end);
 static inline vec3_t Vec3_RandomDir(void);
 
 /**
+ * @return Takes a vector and randomizes its direction where a `random` of 0 yields the original vector and 1 yields a completely random direction.
+ */
+static inline vec3_t Vec3_RandomizeDir(const vec3_t vector, const float random);
+
+/**
  * @return A vector with random values between `0` and `1`.
  */
 static inline vec3_t Vec3_Random(void);

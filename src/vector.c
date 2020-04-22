@@ -764,6 +764,16 @@ vec3_t Vec3_RandomDir(void) {
 /**
  * @brief
  */
+vec3_t Vec3_RandomizeDir(const vec3_t dir, const float randomization) {
+	float length;
+	vec3_t direction = Vec3_NormalizeLength(dir, &length);
+	vec3_t result = Vec3_Mix(direction, Vec3_RandomDir(), Clampf(randomization, 0.f, 1.f));
+	return Vec3_Scale(Vec3_Normalize(result), length);
+}
+
+/**
+ * @brief
+ */
 vec3_t Vec3_Reflect(const vec3_t a, const vec3_t b) {
 	return Vec3_Add(a, Vec3_Scale(b, -2.f * Vec3_Dot(a, b)));
 }

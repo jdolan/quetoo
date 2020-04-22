@@ -26,8 +26,10 @@
  * @brief
  */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t color) {
+	cg_particle_t *p;
 	cg_sprite_t *s;
 
+	// surface aligned blast ring sprite
 	if ((s = Cg_AllocSprite())) {
 		s->animation = cg_blast_01_ring;
 		s->lifetime = cg_blast_01_ring->num_images * FRAMES_TO_SECONDS(17.5);
@@ -35,13 +37,87 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		s->size = 22.5f;
 		s->size_velocity = 75.f;
 		s->dir = dir;
+		s->color = Color_Mix(color, color_white, .2f);
+		s->color.a = 0.f;
+	}
+
+	// radial particles
+	for (int32_t i = 0; i < 32; i++) {
+		if ((p = Cg_AllocParticle())) {
+			p->origin = Vec3_Add(org, Vec3_Scale(dir, 3.0));
+			p->velocity = Vec3_RandomizeDir(Vec3_Scale(dir, 125.f), .6666f);
+			p->size = .5f;
+			p->acceleration = Vec3_Scale(p->velocity, -2.f);
+			p->lifetime = 500;
+			p->color = color;
+			p->color_velocity.w = -1.33f / MILLIS_TO_SECONDS(p->lifetime);
+		}
+	}
+
+	// residual flames
+	for (int32_t i = 0; i < 3; i++) {
+		if ((s = Cg_AllocSprite())) {
+			s->animation = cg_flame_mono_1;
+			s->lifetime = cg_flame_mono_1->num_images * FRAMES_TO_SECONDS(30);
+			s->origin = Vec3_Add(org, Vec3_Scale(dir, 5.f));
+			s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 5.f));
+			s->rotation = Randomf() * M_PI * 2.f;
+			s->rotation_velocity = Randomf() * .1f;
+			s->size = 25.f;
+			s->color = color;
+			s->color.a = 0.f;
+		}
+	}
+
+	// surface flame
+	if ((s = Cg_AllocSprite())) {
+		s->animation = cg_flame_mono_1;
+		s->lifetime = cg_flame_mono_1->num_images * FRAMES_TO_SECONDS(30);
+		s->origin = Vec3_Add(org, Vec3_Scale(dir, 7.5f));
+		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 5.f));
+		s->rotation = Randomf() * M_PI * 2.f;
+		s->rotation_velocity = Randomf() * .1f;
+		s->dir = dir;
+		s->size = 25.f;
+		s->size_velocity = 20.f;
+		s->color = Color_Mix(color, color_white, .2f);
+		s->color.a = 0.f;
+	}
+
+	// surface flame
+	if ((s = Cg_AllocSprite())) {
+		s->animation = cg_flame_mono_1;
+		s->lifetime = cg_flame_mono_1->num_images * FRAMES_TO_SECONDS(30);
+		s->origin = Vec3_Add(org, Vec3_Scale(dir, 7.5f));
+		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 5.f));
+		s->rotation = Randomf() * M_PI * 2.f;
+		s->rotation_velocity = Randomf() * .1f;
+		s->dir = dir;
+		s->size = 25.f;
+		s->size_velocity = 20.f;
+		s->color = Color_Mix(color, color_white, .2f);
+		s->color.a = 0.f;
+	}
+
+	// smouldering hole
+	if ((s = Cg_AllocSprite())) {
+		s->image = cg_flash_1;
+		s->lifetime = 3000;
+		s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.f));
+		s->rotation = Randomf() * M_PI * 2.f;
+		s->dir = dir;
+		s->size = 25.f;
+		s->color = Color_Mix(color, color_white, .3f);
+		s->color.a = 0.f;
+		s->end_color = s->color;
+		s->end_color.a = 0.f;
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
-		.origin = Vec3_Add(org, dir),
-		.radius = 65.f,
+		.origin = Vec3_Add(org, Vec3_Scale(dir, 8.f)),
+		.radius = 100.f,
 		.color = Color_Vec3(color),
-		.intensity = 1.f,
+		.intensity = .125f,
 		.decay = 350.f
 	});
 
@@ -103,7 +179,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 			p->size = .5f;
 
-			p->acceleration = Vec3_RandomRange(-40.f, -40.f);
+			p->acceleration = Vec3_RandomRange(-40.f, 40.f);
 			p->acceleration.z -= PARTICLE_GRAVITY;
 
 			p->lifetime = RandomRangef(150.f, 300.f);
@@ -117,7 +193,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			p->origin = Vec3_Add(org, dir);
 			// p->velocity = Vec3_Scale(dir, RandomRangef(100.f, 200.f));
 
-			// p->acceleration = Vec3_RandomRange(-40.f, -40.f);
+			// p->acceleration = Vec3_RandomRange(-40.f, 40.f);
 			// p->acceleration.z -= PARTICLE_GRAVITY;
 
 			p->lifetime = 1000;
@@ -135,10 +211,11 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 				s->origin = Vec3_Add(org, dir);
 				// s->dir = dir;
-				s->size = 50.f;
+				s->size = 35.f;
 				s->size_velocity = 100.f;
 				s->rotation = Randomf() * M_PI * 2.f;
-
+				s->color = Color4f(1.f, 1.f, 1.f, 0.f);
+				
 			} else {
 
 				s->animation = cg_smoke_2;
@@ -146,8 +223,10 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 				s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.f));
 				s->dir = dir;
-				s->size = 50.f;
+				s->size = 35.f;
 				s->rotation = Randomf() * M_PI * 2.f;
+
+				s->color = Color4f(1.f, 1.f, 1.f, 0.f);
 
 			}
 		}
