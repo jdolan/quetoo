@@ -159,10 +159,12 @@ void Cg_AddSprites(void) {
 			color = s->color;
 		}
 
+		/* uncommented to work with the alpha 0 == additive blending model
 		if (s->color.a <= 0) {
 			s = Cg_FreeSprite(s);
 			continue;
 		}
+		*/
 
 		s->size_velocity += s->size_acceleration * delta;
 		s->size += s->size_velocity * delta;

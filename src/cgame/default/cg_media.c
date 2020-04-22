@@ -54,12 +54,11 @@ r_image_t *cg_sprite_smoke;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
-
-r_image_t *cg_sproite;
-r_image_t *cg_sproite_additive;
+r_image_t *cg_flash_1;
 
 r_animation_t *cg_fire_1;
 r_animation_t *cg_flame_1;
+r_animation_t *cg_flame_mono_1;
 r_animation_t *cg_smoke_1;
 r_animation_t *cg_smoke_2;
 r_animation_t *cg_blast_01_ring;
@@ -260,11 +259,13 @@ void Cg_UpdateMedia(void) {
 	cg_beam_hook       = cgi.LoadImage("particles/rope", IT_EFFECT);
 	cg_beam_rail       = cgi.LoadImage("particles/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning  = cgi.LoadImage("particles/lightning", IT_EFFECT);
+	cg_flash_1         = cgi.LoadImage("particles/blast_01/blast_01_flash", IT_EFFECT);
 	cg_sprite_smoke    = (r_image_t *) cgi.LoadAtlasImage(cg_particle_atlas, "particles/smoke", IT_EFFECT);
 
 	cg_blast_01_ring   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
 	cg_fire_1          = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
 	cg_flame_1         = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/flame_03/flame_03", "_%02" PRIu32, 1, 29);
+	cg_flame_mono_1    = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
 	cg_smoke_1         = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
 	cg_smoke_2         = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
 	cg_hyperball_1     = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
