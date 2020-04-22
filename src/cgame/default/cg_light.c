@@ -76,7 +76,7 @@ void Cg_AddLights(void) {
 		};
 
 		if (l->decay) {
-			out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);
+			out.intensity = (expiration - cgi.client->unclamped_time) / (float) (l->decay);
 		}
 
 		cgi.AddLight(&out);
