@@ -28,7 +28,6 @@ void Cl_ClearView(void) {
 
 	r_view.num_entities = 0;
 	r_view.num_lights = 0;
-	r_view.num_particles = 0;
 	r_view.num_stains = 0;
 	r_view.num_sprites = 0;
 	r_view.num_sprite_images = 0;

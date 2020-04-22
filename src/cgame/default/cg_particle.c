@@ -172,11 +172,6 @@ void Cg_AddParticles(void) {
 		p->color_velocity = Vec4_Add(p->color_velocity, Vec4_Scale(p->color_acceleration, delta));
 		p->color = Color4fv(Vec4_Add(Color_Vec4(p->color), Vec4_Scale(p->color_velocity, delta)));
 
-		if (p->color.a <= 0) {
-			p = Cg_FreeParticle(p);
-			continue;
-		}
-
 		p->size_velocity += p->size_acceleration * delta;
 		p->size += p->size_velocity * delta;
 
@@ -185,10 +180,11 @@ void Cg_AddParticles(void) {
 			continue;
 		}
 
-		cgi.AddParticle(&(r_particle_t) {
+		cgi.AddSprite(&(r_sprite_t) {
 			.origin = p->origin,
-			.size = p->size,
-			.color = p->color
+			.size = p->size * 8,
+			.color = p->color,
+			.media = (r_media_t *) cg_sprite_particle
 		});
 		
 		p = p->next;

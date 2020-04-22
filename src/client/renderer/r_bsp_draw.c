@@ -128,6 +128,8 @@ static void R_DrawBspLightgrid(void) {
 	const byte *textures = (byte *) lg + sizeof(bsp_lightgrid_t);
 	int32_t luxel = 0;
 
+	r_image_t *particle = R_LoadImage("particles/particle", IT_EFFECT);
+
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
 			for (int32_t s = 0; s < lg->size.x; s++, luxel++) {
@@ -146,15 +148,16 @@ static void R_DrawBspLightgrid(void) {
 					}
 				}
 
-				r_particle_t p = {
+				r_sprite_t sprite = {
 					.origin = Vec3(s + 0.5, t + 0.5, u + 0.5),
-					.size = 4.f,
+					.size = 4.f * 8.f,
 					.color = Color3b(r, g, b),
+					.media = (r_media_t *) particle
 				};
 
-				p.origin = Vec3_Add(r_world_model->bsp->lightgrid->mins, Vec3_Scale(p.origin, BSP_LIGHTGRID_LUXEL_SIZE));
+				sprite.origin = Vec3_Add(r_world_model->bsp->lightgrid->mins, Vec3_Scale(sprite.origin, BSP_LIGHTGRID_LUXEL_SIZE));
 
-				R_AddParticle(&p);
+				R_AddSprite(&sprite);
 			}
 		}
 	}
@@ -213,8 +216,6 @@ static void R_DrawBspInlineModelAlphaBlendDepth(int32_t blend_depth) {
 	glDisable(GL_CULL_FACE);
 
 	R_DrawEntities(blend_depth);
-
-	R_DrawParticles(blend_depth);
 
 	R_DrawSprites(blend_depth);
 

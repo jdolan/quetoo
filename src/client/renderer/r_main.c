@@ -285,8 +285,6 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateEntities();
 
-	R_UpdateParticles();
-
 	R_UpdateSprites();
 	
 	R_UpdateLights();
@@ -304,8 +302,6 @@ void R_DrawView(r_view_t *view) {
 	R_DrawWorld();
 
 	R_DrawEntities(0);
-
-	R_DrawParticles(0);
 
 	R_DrawSprites(0);
 
@@ -643,8 +639,6 @@ void R_Init(void) {
 
 	R_InitView();
 
-	R_InitParticles();
-
 	R_InitSprites();
 
 	R_InitSky();
@@ -674,8 +668,6 @@ void R_Shutdown(void) {
 	R_ShutdownDraw3D();
 
 	R_ShutdownModels();
-
-	R_ShutdownParticles();
 
 	R_ShutdownSprites();
 

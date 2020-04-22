@@ -159,15 +159,6 @@ void Cg_AddSprites(void) {
 			color = s->color;
 		}
 
-		if (s->color.a <= 0) {
-			s = Cg_FreeSprite(s);
-			continue;
-		}
-		
-		color.r *= color.a;
-		color.g *= color.a;
-		color.b *= color.a;
-
 		s->size_velocity += s->size_acceleration * delta;
 		s->size += s->size_velocity * delta;
 

@@ -554,12 +554,12 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		p->lifetime = RandomRangef(1500.f, 1550.f);
 
 		p->color = Color_Add(color, Color4fv(Vec4_RandomRange(-.25f, .25f)));
-		p->color.a = .66f;
+		p->color.a = 0;
 
-		p->color_velocity = Vec4(-.125f, -.125f, -.125f, -p->color.a);
+		p->color_velocity = Vec4_Negate(Color_Vec4(p->color));
 		p->color_velocity = Vec4_Scale(p->color_velocity, 1.f / MILLIS_TO_SECONDS(p->lifetime));
 
-		p->color_acceleration = Vec4(-.125f, -.125f, -.125f, -.125f);
+		p->color_acceleration = Vec4(-.125f, -.125f, -.125f, 0);
 		p->color_acceleration = Vec4_Scale(p->color_acceleration, 1.f / MILLIS_TO_SECONDS(p->lifetime));
 
 		p->size = frac;
@@ -576,9 +576,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		s->velocity = Vec3_Scale(forward, 20.f);
 		s->lifetime = RandomRangef(1500.f, 1550.f);
 		s->color = Color_Add(color, color_white);
-		s->color.a = 0.f;
-		s->end_color = s->color;
-		s->end_color.a = 0;
+		s->color.a = 0;
+		s->end_color = Color4f(0, 0, 0, 0);
 		s->image = cg_beam_rail;
 	}
 

@@ -41,7 +41,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_mesh_model_md3.c" />
     <ClCompile Include="..\..\src\client\renderer\r_mesh_model_obj.c" />
     <ClCompile Include="..\..\src\client\renderer\r_model.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_particle.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sprite.c" />
@@ -73,7 +72,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_mesh_model_md3.h" />
     <ClInclude Include="..\..\src\client\renderer\r_mesh_model_obj.h" />
     <ClInclude Include="..\..\src\client\renderer\r_model.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_particle.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sprite.h" />

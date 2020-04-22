@@ -285,6 +285,7 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, floa
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 	color_t color = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_ORANGE);
+	color.a = 0;
 	const vec3_t vel = Vec3_Subtract(end, start);
 	const vec3_t dir = Vec3_Normalize(vel);
 
@@ -307,7 +308,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 				p->origin = Vec3_Mix(trail_start, end, particle_step * i);
 				p->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
 				p->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
-				p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
+				p->color_velocity.x = p->color_velocity.y = p->color_velocity.z = p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
 			}
 		}
 	} else {
@@ -336,7 +337,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 				p->size = Maxf(.25f, powf(1.f - pdist, power));
 				p->size_velocity = Mixf(-3.5f, -.2f, pdist);
 				p->size_velocity *= RandomRangef(.66f, 1.f);
-				p->color = Color_Mix(color, Color4fv(Vec4(1.f, 1.f, 1.f, 1.f)), pdist);
+				p->color = Color_Mix(color, Color4fv(Vec4(1.f, 1.f, 1.f, 0)), pdist);
 			}
 		}
 	}

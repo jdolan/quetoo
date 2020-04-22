@@ -668,11 +668,6 @@ typedef struct cg_import_s {
 	 * @brief Adds an instantaneous light to the scene for the current frame.
 	 */
 	void (*AddLight)(const r_light_t *l);
-
-	/**
-	 * @brief Adds a particle to the scene for the current frame.
-	 */
-	void (*AddParticle)(const r_particle_t *p);
 	
 	/**
 	 * @brief Adds a sprite to the scene for the current frame.

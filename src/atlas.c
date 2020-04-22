@@ -163,10 +163,11 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 			return -1;
 		}
 
+		if (y + node->surfaces[0]->h > surfaces[0]->h) {
+			return i;
+		}
+
 		if (x + node->surfaces[0]->w > surfaces[0]->w) {
-			if (y + node->surfaces[0]->h > surfaces[0]->h) {
-				return i;
-			}
 			x = 0;
 			y += row;
 			row = 0;

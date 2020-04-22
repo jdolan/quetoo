@@ -54,9 +54,7 @@ r_image_t *cg_sprite_smoke;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
-
-r_image_t *cg_sproite;
-r_image_t *cg_sproite_additive;
+r_image_t *cg_sprite_particle;
 
 r_animation_t *cg_fire_1;
 r_animation_t *cg_flame_1;
@@ -261,6 +259,7 @@ void Cg_UpdateMedia(void) {
 	cg_beam_rail       = cgi.LoadImage("particles/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning  = cgi.LoadImage("particles/lightning", IT_EFFECT);
 	cg_sprite_smoke    = (r_image_t *) cgi.LoadAtlasImage(cg_particle_atlas, "particles/smoke", IT_EFFECT);
+	cg_sprite_particle = (r_image_t *) cgi.LoadAtlasImage(cg_particle_atlas, "particles/particle", IT_EFFECT);
 
 	cg_blast_01_ring   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
 	cg_fire_1          = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);

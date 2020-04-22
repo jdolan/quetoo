@@ -265,7 +265,7 @@ void R_InitParticles(void) {
 
 	R_GetError(NULL);
 
-	r_particles.diffusemap = R_LoadImage("particles/particle", IT_PROGRAM);
+	r_particles.diffusemap = R_LoadImage("particles/bubble", IT_PROGRAM);
 	r_particles.dirty = true;
 
 	R_InitParticleProgram();

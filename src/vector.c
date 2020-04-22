@@ -926,6 +926,13 @@ vec4_t Vec4_Multiply(const vec4_t a, const vec4_t b) {
 }
 
 /**
+ * @return The negated vector `v`.
+ */
+vec4_t Vec4_Negate(const vec4_t v) {
+	return Vec4(-v.x, -v.y, -v.z, -v.w);
+}
+
+/**
  * @brief
  */
 _Bool Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) {

@@ -667,6 +667,11 @@ static inline vec4_t Vec4_Subtract(const vec4_t a, const vec4_t b) __attribute__
 static inline vec4_t Vec4_Multiply(const vec4_t a, const vec4_t b) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The negated vector `v`.
+ */
+static inline vec4_t Vec4_Negate(const vec4_t v) __attribute__ ((warn_unused_result));
+
+/**
  * @return True if `a` and `b` are equal using the specified epsilon.
  */
 static inline _Bool Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) __attribute__ ((warn_unused_result));

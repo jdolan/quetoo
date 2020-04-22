@@ -1068,11 +1068,6 @@ typedef struct {
 	int32_t num_entities;
 
 	/**
-	 * @brief The particles to render for the current frame.
-	 */
-	int32_t num_particles;
-
-	/**
 	 * @brief The sprites to render for the current frame.
 	 */
 	int32_t num_sprites;
