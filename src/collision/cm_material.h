@@ -91,7 +91,7 @@ typedef struct cm_stage_s {
 	uint32_t flags;
 	cm_asset_t asset;
 	cm_stage_blend_t blend;
-	vec3_t color;
+	vec3_t color; // FIXME: color_t?
 
 	/**
 	 * @brief Whether the stage will pull color from the mesh model entity being rendered.
@@ -238,11 +238,6 @@ typedef struct cm_material_s {
 	 * @brief The name for the footstep sounds to query on this surface
 	 */
 	char footsteps[MAX_QPATH];
-
-	/**
-	 * @brief Whether only stages should be rendered or the diffusemap should too
-	 */
-	_Bool only_stages;
 
 	/**
 	 * @brief Default tint colors

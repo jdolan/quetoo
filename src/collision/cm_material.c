@@ -922,10 +922,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "stages_only")) {
-			m->only_stages = true;
-		}
-
 		if (*token == '{' && in_material) {
 
 			cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
