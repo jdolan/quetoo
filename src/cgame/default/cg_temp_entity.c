@@ -28,14 +28,14 @@
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t color) {
 	cg_sprite_t *s;
 
-	// ring 1
-	s = Cg_AllocSprite();
-	assert(s);
-	s->animation = cg_blast_01_ring;
-	s->lifetime = cg_blast_01_ring->num_images * FRAMES_TO_SECONDS(17.5);
-	s->origin = org;
-	s->size = 22.5f;
-	s->size_velocity = 75.f;
+	if ((s = Cg_AllocSprite())) {
+		s->animation = cg_blast_01_ring;
+		s->lifetime = cg_blast_01_ring->num_images * FRAMES_TO_SECONDS(17.5);
+		s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.0));
+		s->size = 22.5f;
+		s->size_velocity = 75.f;
+		s->dir = dir;
+	}
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, dir),
@@ -86,21 +86,26 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
 	cg_particle_t *p;
+	cg_sprite_t *s;
 	vec3_t vec;
 
 	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
+
 		vec = Vec3_Add(org, Vec3_Scale(dir, 8.f));
 		Cg_BubbleTrail(NULL, org, vec, 32.0);
+
 	} else {
+
 		if ((p = Cg_AllocParticle())) {
 
 			p->origin = Vec3_Add(org, dir);
-			p->velocity = Vec3_Scale(dir, RandomRangef(180.f, 400.f));
+			p->velocity = Vec3_Scale(dir, RandomRangef(100.f, 200.f));
+
+			p->size = .5f;
 
 			p->acceleration = Vec3_RandomRange(-40.f, -40.f);
 			p->acceleration.z -= PARTICLE_GRAVITY;
 
-			p->bounce = 1.0f;
 			p->lifetime = RandomRangef(150.f, 300.f);
 
 			p->color = Color_Add(Color3bv(0xffa050), Color3fv(Vec3_RandomRange(-1.f, .1f)));
@@ -109,27 +114,77 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 		if ((p = Cg_AllocParticle())) {
 
-			p->origin = org;
-			p->velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f));
-			p->acceleration = Vec3_Scale(dir, -20.f);
-			p->acceleration.z = RandomRangef(20.f, 30.f);
+			p->origin = Vec3_Add(org, dir);
+			// p->velocity = Vec3_Scale(dir, RandomRangef(100.f, 200.f));
 
-			p->lifetime = RandomRangef(600.f, 1000.f);
+			// p->acceleration = Vec3_RandomRange(-40.f, -40.f);
+			// p->acceleration.z -= PARTICLE_GRAVITY;
 
-			p->color = Color_Add(Color3bv(0xa0a0a0), Color3fv(Vec3_RandomRange(-1.f, .1f)));
-			p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
+			p->lifetime = 1000;
 
-			p->size = RandomRangef(1.f, 2.f);
-			p->size_velocity = 1.f;
+			p->color = Color3bv(0xffa050);
+			p->color_velocity.w = -1.f / MILLIS_TO_SECONDS(p->lifetime);
+		}
+
+		if ((s = Cg_AllocSprite())) {
+
+			if (Randomf() < .75f) {
+
+				s->animation = cg_poof_2;
+				s->lifetime = cg_poof_2->num_images * FRAMES_TO_SECONDS(20);
+
+				s->origin = Vec3_Add(org, dir);
+				// s->dir = dir;
+				s->size = 50.f;
+				s->size_velocity = 100.f;
+				s->rotation = Randomf() * M_PI * 2.f;
+
+				s->src = GL_ONE;
+				s->dst = GL_ONE;
+
+			} else {
+
+				s->animation = cg_smoke_2;
+				s->lifetime = cg_smoke_2->num_images * FRAMES_TO_SECONDS(80);
+
+				s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.f));
+				s->dir = dir;
+				s->size = 50.f;
+				s->rotation = Randomf() * M_PI * 2.f;
+
+				s->src = GL_ONE;
+				s->dst = GL_ONE;
+
+			}
 		}
 	}
 
+	/*
+	if ((p = Cg_AllocParticle())) {
+
+		p->origin = org;
+		p->velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f));
+		p->acceleration = Vec3_Scale(dir, -20.f);
+		p->acceleration.z = RandomRangef(20.f, 30.f);
+
+		p->lifetime = RandomRangef(600.f, 1000.f);
+
+		p->color = Color_Add(Color3bv(0xa0a0a0), Color3fv(Vec3_RandomRange(-1.f, .1f)));
+		p->color_velocity.w = -p->color.a / MILLIS_TO_SECONDS(p->lifetime);
+
+		p->size = RandomRangef(1.f, 2.f);
+		p->size_velocity = 1.f;
+	}
+	*/
+
+	/*
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, dir),
 		.radius = 20.0,
 		.color = Vec3(0.5f, 0.3f, 0.2f),
 		.decay = 250
 	});
+	*/
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
@@ -304,7 +359,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 /**
  * @brief
  */
-static void Cg_ExplosionEffect(const vec3_t org) {
+static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 	cg_particle_t *p;
 
 	// TODO: Bubbles in water?
@@ -329,34 +384,6 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	}
 
 	cg_sprite_t *s;
-
-	/*for (int32_t i = 0; i < 4; i++) {
-		if ((s = Cg_AllocSprite())) {
-			s->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
-
-			s->lifetime = RandomRangef(500, 950);
-
-			s->color = Color3b(255, 255, 255);
-			s->color_velocity.w = -1.f / MILLIS_TO_SECONDS(s->lifetime);
-
-			s->size = RandomRangef(22.f, 48.f);
-			s->size_velocity = RandomRangef(10.f, 25.f);
-
-			s->velocity = Vec3_RandomRange(-5.f, 5.f);
-			s->velocity.z += 52.f;
-
-			s->acceleration.z = -8.0;
-
-			s->image = cg_sprite_smoke;
-
-			s->rotation = RandomRangef(0.0f, M_PI);
-
-			s->rotation_velocity = RandomRangef(.1f, .5f);
-
-			s->src = GL_SRC_ALPHA;
-			s->dst = GL_ONE_MINUS_SRC_ALPHA;
-		}
-	}*/
 
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
@@ -445,7 +472,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.origin = Vec3_Add(org, dir),
 		.radius = 80.0,
 		.color = Vec3(0.4, 0.7, 1.0),
-		.decay = 250
+		.decay = 250,
+		.intensity = 0.01
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -568,37 +596,51 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		return;
 	}
 
-	// Rail impact sparks
+	// Rail impact cloud
+
+	for (int32_t i = 0; i < 2; i++) {
+		if (!(s = Cg_AllocSprite())) {
+			break;
+		}
+		s->type = SPRITE_NORMAL;
+		s->origin = Vec3_Add(end, dir);
+		s->animation = cg_poof_1;
+		s->lifetime = cg_poof_1->num_images * FRAMES_TO_SECONDS(30);
+		s->size = 128.f;
+		s->size_velocity = 20.f;
+		s->src = GL_ONE;
+		s->dst = GL_ONE;
+		if (i == 1) {
+			s->dir = dir;
+		}
+	}
 
 	if (cg_particle_quality->integer && (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) == 0) {
 
-		for (int32_t i = 0; i < 24; i++) {
+		for (int32_t i = 0; i < 16; i++) {
 			if (!(p = Cg_AllocParticle())) {
 				break;
 			}
 
 			p->origin = end;
-
-			p->velocity = Vec3_Scale(dir, 400.0 + Randomf() * 200);
-			p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-100.f, 100.f));
-
-			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
-
-			p->lifetime = 50 + Randomf() * 100;
-
+			p->velocity = Vec3_Scale(Vec3_Add(Vec3_RandomDir(), dir), 100.f);
+			p->acceleration.z = -PARTICLE_GRAVITY * 2.f;
+			p->lifetime = 2000;
 			p->color = color;
-
-			p->size = 1.6 + Randomf() * 0.6;
+			p->size = 1.f;
+			p->size_velocity = -p->size / (p->lifetime / 1000);
+			p->bounce = .2f;
 		}
 	}
 
 	// Impact light
 
 	Cg_AddLight(&(cg_light_t) {
-		.origin = Vec3_Add(end, Vec3_Scale(forward, -12.f)),
+		.origin = Vec3_Add(end, Vec3_Scale(dir, 20.f)),
 		.radius = 120.f,
 		.color = Color_Vec3(color),
-		.decay = 250
+		.decay = 250.f,
+		.intensity = 0.0001 // doesn't work???
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -720,6 +762,14 @@ static void Cg_BfgEffect(const vec3_t org) {
  * @brief
  */
 void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity) {
+	// ring 1
+	cg_sprite_t *s = Cg_AllocSprite();
+	assert(s);
+	s->animation = cg_poof_1;
+	s->lifetime = cg_poof_1->num_images * FRAMES_TO_SECONDS(17.5) * (viscosity * .1f);
+	s->origin = org;
+	s->size = size * 8;
+	s->dir = Vec3_Up();
 	/*cg_particle_t *p;
 
 	if (cg_particle_quality->integer == 0) {
@@ -887,7 +937,8 @@ void Cg_ParseTempEntity(void) {
 
 		case TE_EXPLOSION: // rocket and grenade explosions
 			pos = cgi.ReadPosition();
-			Cg_ExplosionEffect(pos);
+			dir = cgi.ReadDir();
+			Cg_ExplosionEffect(pos, dir);
 			break;
 
 		case TE_BFG_LASER:

@@ -188,7 +188,14 @@ void R_AddSprite(const r_sprite_t *s) {
 	const float aspectRatio = (float) image->width / (float) image->height;
 	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
 	const float size = s->size * .5f;
-	vec3_t dir = Vec3_Normalize(Vec3_Subtract(s->origin, r_view.origin)), right, up;
+	
+	vec3_t dir, right, up;
+	
+	if (Vec3_Equal(s->dir, Vec3_Zero())) {
+		dir = Vec3_Normalize(Vec3_Subtract(s->origin, r_view.origin));
+	} else {
+		dir = s->dir;
+	}
 	dir = Vec3_Euler(dir);
 	dir.z = Degrees(s->rotation);
 
@@ -378,7 +385,7 @@ void R_DrawSprites(int32_t blend_depth) {
 		glDrawElements(GL_TRIANGLES, r_view.sprite_batches[i] * 6, GL_UNSIGNED_INT, (GLvoid *) offset);
 		offset += (r_view.sprite_batches[i] * 6) * sizeof(GLuint);
 	}
-
+	
 	glActiveTexture(GL_TEXTURE0);
 	
 	glBindVertexArray(0);
@@ -439,7 +446,7 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.fog_color = glGetUniformLocation(r_sprite_program.name, "fog_color");
 	
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-
+	
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);

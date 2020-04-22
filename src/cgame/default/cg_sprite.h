@@ -27,7 +27,7 @@
 
 typedef enum {
 	/**
-	 * @brief A normal billboard sprite.
+	 * @brief A normal sprite, billboard or directional.
 	 */
 	SPRITE_NORMAL	= 0,
 
@@ -73,6 +73,11 @@ typedef struct cg_sprite_s {
 			 * @brief The sprite rotation velocity.
 			 */
 			float rotation_velocity;
+
+			/**
+			 * @brief Direction of the sprite. { 0, 0, 0 } is billboard.
+			 */
+			vec3_t dir;
 		};
 
 		struct {

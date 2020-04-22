@@ -511,12 +511,12 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 
-	const float animation_frac = cg_blue_fireball_1->num_images * FRAMES_TO_SECONDS(60);
+	const float animation_frac = cg_hyperball_1->num_images * FRAMES_TO_SECONDS(60);
 
 	cgi.AddSprite(&(const r_sprite_t) {
 		.origin = ent->origin,
 		.size = 32.f,
-		.media = (r_media_t *) cg_blue_fireball_1,
+		.media = (r_media_t *) cg_hyperball_1,
 		//.rotation = (ent->frame_num * ent->current.number) / 10.f,
 		.rotation = 0,
 		.color = color_white,
@@ -535,7 +535,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	Cg_AddLight(&(cg_light_t) {
 		.origin = ent->origin,
 		.radius = 100.f,
-		.color = Vec3(.4f, .7f, 1.f)
+		.color = Vec3(.4f, .7f, 1.f),
+		.intensity = 0.1
 	});
 }
 
