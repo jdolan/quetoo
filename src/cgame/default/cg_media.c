@@ -270,7 +270,7 @@ void Cg_UpdateMedia(void) {
 //	cg_bfg_explosion_4 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_04/bfg_explosion_04", "_%02" PRIu32, 1, 57);
 	cg_bfg_explosion_5 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_05/bfg_explosion_05", "_%02" PRIu32, 1, 12);
 	cg_poof_1		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_01/poof_01", "_%02" PRIu32, 1, 32);
-	cg_poof_2		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_02/poof_01", "_%02" PRIu32, 1, 17);
+	cg_poof_2		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_02/poof_02", "_%02" PRIu32, 1, 17);
 
 	cgi.CompileAtlas(cg_particle_atlas);
 
