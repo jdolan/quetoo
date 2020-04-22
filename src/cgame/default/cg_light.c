@@ -77,6 +77,9 @@ void Cg_AddLights(void) {
 
 		if (l->decay) {
 			out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);
+			// out.intensity = Clampf(out.intensity, 0.f, 1000.f);
+			assert(out.intensity >= 0.f);
+			assert(out.intensity <= 1000.f);
 		}
 
 		cgi.AddLight(&out);
