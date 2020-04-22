@@ -87,14 +87,12 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 //		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
 	}
 
-	cg_light_t l;
-	l.origin = org;
-	l.radius = 80.0;
-	l.color = Vec3(0.9, 1.0, 1.0);
-	l.decay = 1000;
-	l.intensity = 0.1;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = org,
+		.radius = 80.0,
+		.color = Vec3(0.9, 1.0, 1.0),
+		.decay = 1000,
+	});
 }
 
 /**

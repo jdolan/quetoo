@@ -44,13 +44,12 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	// and adjust for ducking
 	org.z += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
-	cg_light_t l;
-	l.origin = org;
-	l.radius = 80.0;
-	l.color = Color_Vec3(color);
-	l.decay = 450;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = org,
+		.radius = 80.0,
+		.color = Color_Vec3(color),
+		.decay = 450,
+	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));

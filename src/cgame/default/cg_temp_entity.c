@@ -603,13 +603,14 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			break;
 		}
 		s->type = SPRITE_NORMAL;
-		s->origin = Vec3_Add(end, dir);
+		s->origin = Vec3_Add(end, Vec3_Scale(dir, 8.f));
 		s->animation = cg_poof_1;
 		s->lifetime = cg_poof_1->num_images * FRAMES_TO_SECONDS(30);
 		s->size = 128.f;
 		s->size_velocity = 20.f;
 		s->src = GL_ONE;
 		s->dst = GL_ONE;
+		s->color = color;
 		if (i == 1) {
 			s->dir = dir;
 		}
@@ -618,18 +619,19 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	if (cg_particle_quality->integer && (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) == 0) {
 
 		for (int32_t i = 0; i < 16; i++) {
+
 			if (!(p = Cg_AllocParticle())) {
 				break;
 			}
 
 			p->origin = end;
-			p->velocity = Vec3_Scale(Vec3_Add(Vec3_RandomDir(), dir), 100.f);
-			p->acceleration.z = -PARTICLE_GRAVITY * 2.f;
-			p->lifetime = 2000;
+			const vec3_t rdir = Vec3_RandomDir();
+			p->velocity = Vec3_Scale(Vec3_Add(Vec3_Scale(dir, .5f), rdir), 100.f);
+			p->acceleration = Vec3_Scale(p->velocity, -1.f);
+			p->lifetime = 1000;
 			p->color = color;
 			p->size = 1.f;
 			p->size_velocity = -p->size / (p->lifetime / 1000);
-			p->bounce = .2f;
 		}
 	}
 
@@ -639,7 +641,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.origin = Vec3_Add(end, Vec3_Scale(dir, 20.f)),
 		.radius = 120.f,
 		.color = Color_Vec3(color),
-		.decay = 250.f,
+		.decay = 350.f,
 		.intensity = .1f
 	});
 
@@ -655,7 +657,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
  */
 static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 	cg_particle_t *p;
-	cg_light_t l;
 
 	if ((p = Cg_AllocParticle())) {
 		p->origin = org;
@@ -667,12 +668,12 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 		p->size = 6.0;
 	}
 
-	l.origin = end;
-	l.radius = 80.0;
-	l.color = Vec3(0.8, 1.0, 0.5);
-	l.decay = 50;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = end,
+		.radius = 80.0,
+		.color = Vec3(0.8, 1.0, 0.5),
+		.decay = 50,
+	});
 }
 
 /**
