@@ -47,6 +47,8 @@ void Cg_AddLight(const cg_light_t *l) {
 
 	cg_lights[i] = *l;
 
+	assert(cg_lights[i].decay >= 0.f);
+	assert(cg_lights[i].intensity >= 0.f);
 	if (cg_lights[i].intensity == 0.0) {
 		cg_lights[i].intensity = LIGHT_INTENSITY;
 	}
@@ -76,10 +78,10 @@ void Cg_AddLights(void) {
 		};
 
 		if (l->decay) {
-			out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);
-			// out.intensity = Clampf(out.intensity, 0.f, 1000.f);
+			assert(l->decay >= 0.f);
 			assert(out.intensity >= 0.f);
-			assert(out.intensity <= 1000.f);
+			out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);
+			assert(out.intensity >= 0.f);
 		}
 
 		cgi.AddLight(&out);

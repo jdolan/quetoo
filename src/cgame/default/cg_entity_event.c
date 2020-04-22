@@ -92,6 +92,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 	l.radius = 80.0;
 	l.color = Vec3(0.9, 1.0, 1.0);
 	l.decay = 1000;
+	l.intensity = 0.1;
 
 	Cg_AddLight(&l);
 }

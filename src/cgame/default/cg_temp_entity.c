@@ -640,7 +640,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.radius = 120.f,
 		.color = Color_Vec3(color),
 		.decay = 250.f,
-		.intensity = 0.0001 // doesn't work???
+		.intensity = .1f
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
