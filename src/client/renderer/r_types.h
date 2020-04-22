@@ -309,32 +309,6 @@ typedef struct {
 } r_bsp_vertex_t;
 
 /**
- * @brief BSP flares are stateful sprites.
- */
-typedef struct {
-
-	/**
-	 * @brief The flare radius.
-	 */
-	float radius;
-
-	/**
-	 * @brief The flare timestamp.
-	 */
-	uint32_t time;
-
-	/**
-	 * @brief The flare alpha, ramped by visibility testing.
-	 */
-	float alpha;
-
-	/**
-	 * @brief The sprite backing this flare.
-	 */
-//	r_sprite_t *sprite;
-} r_bsp_flare_t;
-
-/**
  * @brief Indivudual face lightmap information.
  */
 typedef struct {
@@ -375,7 +349,7 @@ typedef struct {
 
 	r_bsp_texinfo_t *texinfo;
 
-	r_bsp_flare_t *flare;
+	struct r_sprite_s *flare;
 
 	r_bsp_face_lightmap_t lightmap;
 
@@ -724,7 +698,7 @@ typedef struct {
 /**
  * @brief Sprites are billboarded alpha blended textures.
  */
-typedef struct {
+typedef struct r_sprite_s {
 
 	/**
 	 * @brief The sprite origin.

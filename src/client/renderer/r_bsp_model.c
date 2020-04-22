@@ -168,6 +168,10 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * BSP_LIGHTMAP_BPP, bsp->faces);
 		memset(lm->stainmap, 0xff, lm->w * lm->h * BSP_LIGHTMAP_BPP);
+
+		if (out->texinfo->material->cm->flags & STAGE_FLARE) {
+			R_LoadFlare(bsp, out);
+		}
 	}
 }
 

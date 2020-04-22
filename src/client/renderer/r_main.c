@@ -293,7 +293,7 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateStains();
 
-	//	R_AddFlares();
+	R_UpdateFlares();
 
 	R_UpdateFog();
 
