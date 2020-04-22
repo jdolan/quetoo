@@ -41,7 +41,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		.origin = Vec3_Add(org, dir),
 		.radius = 65.f,
 		.color = Color_Vec3(color),
-		.intensity = .0f,
+		.intensity = 1.f,
 		.decay = 350.f
 	});
 
