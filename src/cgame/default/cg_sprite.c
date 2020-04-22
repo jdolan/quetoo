@@ -87,10 +87,6 @@ cg_sprite_t *Cg_AllocSprite() {
 
 	s->time = s->timestamp = cgi.client->unclamped_time;
 
-	// default additive
-	s->src = GL_SRC_ALPHA;
-	s->dst = GL_ONE;
-
 	s->color_transition = cg_linear_transition;
 	s->color_transition_count = 2;
 
@@ -187,8 +183,6 @@ void Cg_AddSprites(void) {
 				.rotation = s->rotation,
 				.media = s->media,
 				.life = life,
-				.dst = s->dst,
-				.src = s->src,
 				.lerp = s->lerp,
 				.dir = s->dir
 			});
@@ -202,8 +196,6 @@ void Cg_AddSprites(void) {
 				.size = s->size,
 				.image = (r_image_t *) s->image,
 				.color = color,
-				.dst = s->dst,
-				.src = s->src
 			});
 			break;
 		}

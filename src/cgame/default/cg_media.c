@@ -54,6 +54,10 @@ r_image_t *cg_sprite_smoke;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
+
+r_image_t *cg_sproite;
+r_image_t *cg_sproite_additive;
+
 r_animation_t *cg_fire_1;
 r_animation_t *cg_flame_1;
 r_animation_t *cg_smoke_1;

@@ -107,11 +107,6 @@ typedef struct cg_sprite_s {
 	 * @brief Color transition point count
 	 */
 	int32_t color_transition_count;
-
-	/**
-	 * @brief Blending operators
-	 */
-	GLenum dst, src;
 	
 	/**
 	 * @brief Sprite's image.

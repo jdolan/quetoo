@@ -380,7 +380,7 @@ void R_DrawSprites(int32_t blend_depth) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 		glBindTexture(GL_TEXTURE_2D, sprite->image->texnum);
 
-		glBlendFunc(sprite->src, sprite->dst);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 		glDrawElements(GL_TRIANGLES, r_view.sprite_batches[i] * 6, GL_UNSIGNED_INT, (GLvoid *) offset);
 		offset += (r_view.sprite_batches[i] * 6) * sizeof(GLuint);

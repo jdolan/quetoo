@@ -162,9 +162,6 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		p->image = cg_sprite_smoke;
 		p->rotation = RandomRangef(.0f, M_PI);
 		p->rotation_velocity = RandomRangef(.2f, 1.f);
-
-		p->src = GL_SRC_ALPHA;
-		p->dst = GL_ONE_MINUS_SRC_ALPHA;
 	}
 }
 
@@ -427,8 +424,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			s->rotation = Randomf() * 2.f * M_PI;
 			s->size = 8.f;
 			s->size_velocity = -20.f;
-			s->src = GL_ONE;
-			s->dst = GL_ONE;
 		}
 	}
 #endif
@@ -456,8 +451,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			s->rotation = Randomf() * 2.f * M_PI;
 			s->size = Randomf() * 5.f + 10.f;
 			s->size_velocity = Randomf() * 5.f + 10.f;
-			s->src = GL_SRC_ALPHA;
-			s->dst = GL_ONE_MINUS_SRC_COLOR;
+
 			// smoke 2
 			if (!(s = Cg_AllocSprite())) { break; }
 			s->animation = cg_smoke_2;
@@ -467,8 +461,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			s->rotation = Randomf() * 2.f * M_PI;
 			s->size = Randomf() * 5.f + 10.f;
 			s->size_velocity = Randomf() * 5.f + 10.f;
-			s->src = GL_ONE;
-			s->dst = GL_ONE_MINUS_SRC_COLOR;
 		}
 	}
 #endif

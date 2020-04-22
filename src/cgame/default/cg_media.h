@@ -54,6 +54,10 @@ extern s_sample_t *cg_sample_gib;
 s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
 extern r_image_t *cg_sprite_smoke;
+
+extern r_image_t *cg_sproite;
+extern r_image_t *cg_sproite_additive;
+
 extern r_image_t *cg_beam_hook;
 extern r_image_t *cg_beam_rail;
 extern r_image_t *cg_beam_lightning;

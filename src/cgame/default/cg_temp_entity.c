@@ -139,9 +139,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 				s->size_velocity = 100.f;
 				s->rotation = Randomf() * M_PI * 2.f;
 
-				s->src = GL_ONE;
-				s->dst = GL_ONE;
-
 			} else {
 
 				s->animation = cg_smoke_2;
@@ -151,9 +148,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 				s->dir = dir;
 				s->size = 50.f;
 				s->rotation = Randomf() * M_PI * 2.f;
-
-				s->src = GL_ONE;
-				s->dst = GL_ONE;
 
 			}
 		}
@@ -608,8 +602,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		s->lifetime = cg_poof_1->num_images * FRAMES_TO_SECONDS(30);
 		s->size = 128.f;
 		s->size_velocity = 20.f;
-		s->src = GL_ONE;
-		s->dst = GL_ONE;
 		s->color = color;
 		if (i == 1) {
 			s->dir = dir;
@@ -692,8 +684,6 @@ static void Cg_BfgEffect(const vec3_t org) {
 		s->size_acceleration = -10.f;
 		s->rotation = RandomRangef(0.f, 2.f * M_PI);
 		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f));
-		s->src = GL_ONE;
-		s->dst = GL_ONE_MINUS_SRC_ALPHA;
 	}
 
 	for (int32_t i = 0; i < 4; i++) {
@@ -705,8 +695,6 @@ static void Cg_BfgEffect(const vec3_t org) {
 		s->size_acceleration = -10.f;
 		s->rotation = RandomRangef(0.f, 2.f * M_PI);
 		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f));
-		s->src = GL_ONE;
-		s->dst = GL_ONE_MINUS_SRC_ALPHA;
 	}
 	
 	for (int32_t i = 0; i < 50; i++) {
