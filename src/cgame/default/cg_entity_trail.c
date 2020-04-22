@@ -512,9 +512,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 		//.rotation = (ent->frame_num * ent->current.number) / 10.f,
 		.rotation = 0,
 		.color = color_white,
+		.color.a = 0.f,
 		.life = fmodf((cgi.client->unclamped_time + (ent->current.number * 2048)), animation_frac) / animation_frac,
-		.src = GL_ONE,
-		.dst = GL_ONE,
 		.lerp = true
 	});
 

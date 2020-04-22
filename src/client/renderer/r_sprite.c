@@ -264,8 +264,6 @@ void R_AddBeam(const r_beam_t *b) {
 
 	R_AddSprite_(&(const r_buffered_sprite_image_t) {
 		.image = image,
-		.src = b->src,
-		.dst = b->dst,
 		.next_image = NULL
 	}, 0, b->color, out);
 	

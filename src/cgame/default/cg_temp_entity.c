@@ -386,11 +386,10 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		s->color_transition = NULL;
 		s->size = 100.0;
 		s->size_velocity = 25.0;
-		//s->src = GL_ONE;
-		//s->dst = GL_ONE_MINUS_SRC_ALPHA;
 		s->animation = cg_fire_1;
 		s->rotation = Randomf() * 2.f * M_PI;
 		s->lerp = true;
+		s->color = Color4f(1.f, 1.f, 1.f, .5f);
 	}
 
 	if ((s = Cg_AllocSprite())) {
@@ -401,10 +400,9 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		s->size = 175.0;
 		s->size_velocity = 25.0;
 		s->rotation = Randomf() * 2.f * M_PI;
-		//s->src = GL_ONE;
-		//s->dst = GL_ONE;
 		s->animation = cg_fire_1;
 		s->lerp = true;
+		s->color = Color4f(1.f, 1.f, 1.f, .5f);
 	}
 	
 	Cg_AddLight(&(const cg_light_t) {
@@ -467,7 +465,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.radius = 80.0,
 		.color = Vec3(0.4, 0.7, 1.0),
 		.decay = 250,
-		.intensity = 0.01
+		.intensity = 0.05
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -578,7 +576,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		s->velocity = Vec3_Scale(forward, 20.f);
 		s->lifetime = RandomRangef(1500.f, 1550.f);
 		s->color = Color_Add(color, color_white);
-		s->color.a = .7f;
+		s->color.a = 0.f;
 		s->end_color = s->color;
 		s->end_color.a = 0;
 		s->image = cg_beam_rail;
@@ -591,7 +589,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	}
 
 	// Rail impact cloud
-
+	// TODO: use a different sprite
 	for (int32_t i = 0; i < 2; i++) {
 		if (!(s = Cg_AllocSprite())) {
 			break;
@@ -602,7 +600,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		s->lifetime = cg_poof_1->num_images * FRAMES_TO_SECONDS(30);
 		s->size = 128.f;
 		s->size_velocity = 20.f;
-		s->color = color;
+		s->color = Color_Mix(color, color_white, .25f);
+		s->color.a = 0.5f;
 		if (i == 1) {
 			s->dir = dir;
 		}
