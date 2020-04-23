@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+
 #include "client.h"
 
 /**
@@ -72,62 +73,70 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 /**
  * @brief
  */
+static void R_UpdateBspInlineModelFlares(const r_entity_t *e, const r_bsp_inline_model_t *in) {
+
+	for (guint i = 0; i < in->flare_faces->len; i++) {
+
+		const r_bsp_face_t *face = g_ptr_array_index(in->flare_faces, i);
+
+		if (face->node->vis_frame != r_locals.vis_frame) {
+			continue;
+		}
+
+		r_sprite_t flare = *face->flare;
+
+		if (e) {
+			Matrix4x4_Transform(&e->matrix, flare.origin.xyz, flare.origin.xyz);
+		}
+
+		const cm_trace_t tr = Cl_Trace(r_view.origin, flare.origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
+
+		flare.color.a += (tr.fraction == 1.0) ? 0.03 : -0.15;
+		flare.color.a = Clampf(flare.color.a, 0.0, 1.0);
+
+		vec3_t dir;
+		const float dist = Vec3_DistanceDir(flare.origin, r_view.origin, &dir);
+
+		const float dot = Vec3_Dot(face->plane->normal, dir);
+		if (dot > 0.0) {
+			continue;
+		}
+
+		float alpha = 0.1 + -dot * r_flares->value;
+
+		if (alpha > 1.0) {
+			alpha = 1.0;
+		}
+
+		flare.color.a *= alpha;
+
+		if (flare.color.a <= FLT_EPSILON) {
+			continue;
+		}
+
+		// scale according to distance
+		flare.size = flare.size + (flare.size * dist * .0005);
+
+		R_AddSprite(&flare);
+	}
+}
+
+/**
+ * @brief
+ */
 void R_UpdateFlares(void) {
 
 	if (!r_flares->value || r_draw_wireframe->value) {
 		return;
 	}
 
-	const r_bsp_face_t *face = r_world_model->bsp->faces;
-	for (int32_t i = 0; i < r_world_model->bsp->num_faces; i++, face++) {
+	R_UpdateBspInlineModelFlares(NULL, r_world_model->bsp->inline_models);
 
-		if (face->node->vis_frame != r_locals.vis_frame) {
-			continue;
-		}
+	const r_entity_t *e = r_view.entities;
+	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		if (IS_BSP_INLINE_MODEL(e->model)) {
 
-		if (face->flare) {
-			R_AddSprite(face->flare);
+			R_UpdateBspInlineModelFlares(e, e->model->bsp_inline);
 		}
 	}
-
-		// periodically test visibility to ramp alpha
-//		if (r_view.ticks - f->time > 15) {
-//
-//			if (r_view.ticks - f->time > 500) { // reset old flares
-//				f->alpha = 0.0;
-//			}
-//
-//			cm_trace_t tr = Cl_Trace(r_view.origin, f->particle.org, NULL, NULL, 0, CONTENTS_MASK_CLIP_PROJECTILE);
-//
-//			f->alpha += (tr.fraction == 1.0) ? 0.03 : -0.15; // ramp
-//			f->alpha = clampf(f->alpha, 0.0, 1.0); // clamp
-//
-//			f->time = r_view.ticks;
-//		}
-//
-//		vec3_t view;
-//		view = Vec3_Subtract(f->particle.org, r_view.origin);
-//		const float dist = view = Vec3_Normalize(view);
-//
-//		// fade according to angle
-//		const float cos = vec3_dot(surf->plane->normal, view);
-//		if (cos > 0.0) {
-//			continue;
-//		}
-//
-//		float alpha = 0.1 + -cos * r_flares->value;
-//
-//		if (alpha > 1.0) {
-//			alpha = 1.0;
-//		}
-//
-//		alpha = f->alpha * alpha;
-//
-//		if (alpha <= FLT_EPSILON) {
-//			continue;
-//		}
-//
-//		// scale according to distance
-//		f->particle.scale = f->radius + (f->radius * dist * .0005);
-//		f->particle.color[3] = alpha;
 }

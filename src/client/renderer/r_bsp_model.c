@@ -293,6 +293,17 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 /**
  * @brief
  */
+static gint R_FlareFacesCmp(gconstpointer a, gconstpointer b) {
+
+	const r_bsp_face_t *a_face = *(r_bsp_face_t **) a;
+	const r_bsp_face_t *b_face = *(r_bsp_face_t **) b;
+
+	return strcmp(a_face->flare->media->name, b_face->flare->media->name);
+}
+
+/**
+ * @brief
+ */
 static gint R_DrawElementsCmp(gconstpointer a, gconstpointer b) {
 
 	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
@@ -329,6 +340,18 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
+
+		out->flare_faces = g_ptr_array_new();
+
+		r_bsp_face_t *face = out->faces;
+		for (int32_t i = 0; i < in->num_faces; i++, face++) {
+
+			if (face->texinfo->material->cm->flags & STAGE_FLARE) {
+				g_ptr_array_add(out->flare_faces, face);
+			}
+		}
+
+		g_ptr_array_sort(out->flare_faces, R_FlareFacesCmp);
 
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;

@@ -471,6 +471,11 @@ typedef struct r_bsp_inline_model_s {
 	int32_t num_faces;
 
 	/**
+	 * @brief The faces of this inline model that include flares, sorted by material at level load.
+	 */
+	GPtrArray *flare_faces;
+
+	/**
 	 * @brief The draw elements of this inline model.
 	 * @brief This is a pointer into the BSP model's draw elements array.
 	 */
