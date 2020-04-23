@@ -305,6 +305,11 @@ static inline float Randomf(void) __attribute__ ((warn_unused_result));
 static inline _Bool Randomb(void) __attribute__ ((warn_unused_result));
 
 /**
+ * @brief Returns a random number between 0 and 2 pi.
+ */
+static inline float RandomRadian(void);
+
+/**
  * @return The sign of the specified float.
  */
 static inline int32_t SignOf(float f) __attribute__ ((warn_unused_result));

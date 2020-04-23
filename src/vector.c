@@ -288,6 +288,13 @@ float Randomf(void) {
 /**
  * @brief
  */
+float RandomRadian(void) {
+	return Randomf() * M_PI * 2.f;
+}
+
+/**
+ * @brief
+ */
 _Bool Randomb(void) {
 	return !!(g_rand_int(InitRandom()) & 1);
 }
