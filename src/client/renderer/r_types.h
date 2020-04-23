@@ -1080,7 +1080,7 @@ typedef struct {
 	/**
 	 * @brief The animated sprite instances to render for the current frame.
 	 */
-	r_sprite_instance_t sprites[MAX_SPRITES];
+	r_sprite_instance_t sprite_instances[MAX_SPRITES];
 	int32_t num_sprite_instances;
 
 	/**

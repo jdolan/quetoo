@@ -140,7 +140,7 @@ static _Bool R_CullSprite(r_sprite_vertex_t *out) {
  * @brief
  */
 static void R_AddSpriteInstance(const r_sprite_instance_t *in, float lerp, const color_t color, r_sprite_vertex_t *out) {
-	r_sprite_instance_t *last = &r_view.sprites[r_view.num_sprite_instances - 1];
+	r_sprite_instance_t *last = &r_view.sprite_instances[r_view.num_sprite_instances - 1];
 
 	const _Bool is_current_batch = r_view.num_sprite_instances &&
 		in->diffusemap->texnum == last->diffusemap->texnum &&
@@ -164,8 +164,8 @@ static void R_AddSpriteInstance(const r_sprite_instance_t *in, float lerp, const
 	if (is_current_batch) {
 		last->count++;
 	} else {
-		r_view.sprites[r_view.num_sprite_instances] = *in;
-		r_view.sprites[r_view.num_sprite_instances].count = 1;
+		r_view.sprite_instances[r_view.num_sprite_instances] = *in;
+		r_view.sprite_instances[r_view.num_sprite_instances].count = 1;
 		r_view.num_sprite_instances++;
 	}
 
@@ -364,7 +364,7 @@ void R_DrawSprites(int32_t blend_depth) {
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 	for (int32_t i = 0; i < r_view.num_sprite_instances; i++) {
-		const r_sprite_instance_t *sprite = &r_view.sprites[i];
+		const r_sprite_instance_t *sprite = &r_view.sprite_instances[i];
 
 		if (sprite->next_diffusemap) {
 			glActiveTexture(GL_TEXTURE0 + TEXTURE_NEXT_DIFFUSEMAP);
