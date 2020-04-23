@@ -21,9 +21,9 @@
 
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec2 in_diffusemap;
-layout (location = 2) in vec4 in_color;
-layout (location = 3) in vec2 in_next_diffusemap;
-layout (location = 4) in float in_next_lerp;
+layout (location = 2) in vec2 in_next_diffusemap;
+layout (location = 3) in vec4 in_color;
+layout (location = 4) in float in_lerp;
 layout (location = 5) in int in_blend_depth;
 
 uniform mat4 projection;
@@ -32,9 +32,9 @@ uniform mat4 view;
 out vertex_data {
 	vec3 position;
 	vec2 diffusemap;
-	vec4 color;
 	vec2 next_diffusemap;
-	float next_lerp;
+	vec4 color;
+	float lerp;
 	int blend_depth;
 } vertex;
 
@@ -47,8 +47,8 @@ void main(void) {
 
 	vertex.position = vec3(view * vec4(in_position.xyz, 1.0));
 	vertex.diffusemap = in_diffusemap;
-	vertex.color = in_color;
 	vertex.next_diffusemap = in_next_diffusemap;
-	vertex.next_lerp = in_next_lerp;
+	vertex.color = in_color;
+	vertex.lerp = in_lerp;
 	vertex.blend_depth = in_blend_depth;
 }

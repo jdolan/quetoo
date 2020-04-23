@@ -25,9 +25,9 @@ uniform sampler2D texture_next_diffusemap;
 in vertex_data {
 	vec3 position;
 	vec2 diffusemap;
-	vec4 color;
 	vec2 next_diffusemap;
-	float next_lerp;
+	vec4 color;
+	float lerp;
 } vertex;
 
 out vec4 out_color;
@@ -37,7 +37,7 @@ out vec4 out_color;
  */
 void main(void) {
 
-	vec4 diffuse_color = mix(texture(texture_diffusemap, vertex.diffusemap), texture(texture_next_diffusemap, vertex.next_diffusemap), vertex.next_lerp);
+	vec4 diffuse_color = mix(texture(texture_diffusemap, vertex.diffusemap), texture(texture_next_diffusemap, vertex.next_diffusemap), vertex.lerp);
 
 	out_color = vertex.color * diffuse_color;
 

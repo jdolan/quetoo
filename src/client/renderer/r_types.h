@@ -983,7 +983,12 @@ typedef struct {
 	/**
 	 * @brief Image
 	 */
-	const r_image_t *image;
+	const r_image_t *diffusemap;
+
+	/**
+	 * @brief Animation interpolation next image
+	 */
+	const r_image_t *next_diffusemap;
 
 	/**
 	 * @brief Blend operation
@@ -991,10 +996,10 @@ typedef struct {
 	GLenum src, dst;
 
 	/**
-	 * @brief Animation interpolation next image
+	 * @brief The instance count.
 	 */
-	const r_image_t *next_image;
-} r_buffered_sprite_image_t;
+	int32_t count;
+} r_sprite_instance_t;
 
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
@@ -1073,19 +1078,10 @@ typedef struct {
 	int32_t num_sprites;
 
 	/**
-	 * @brief Structure used for sprite images, to contain buffered sprites
+	 * @brief The animated sprite instances to render for the current frame.
 	 */
-	r_buffered_sprite_image_t sprite_images[MAX_SPRITES];
-
-	/**
-	 * @brief The number of sprite images to render for the current frame.
-	 */
-	int32_t num_sprite_images;
-
-	/**
-	 * @brief The number of sprites batched by image.
-	 */
-	int32_t sprite_batches[MAX_SPRITES];
+	r_sprite_instance_t sprites[MAX_SPRITES];
+	int32_t num_sprite_instances;
 
 	/**
 	 * @brief The lights to render for the current frame.
