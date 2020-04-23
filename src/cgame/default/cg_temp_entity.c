@@ -28,16 +28,21 @@
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t color) {
 	cg_sprite_t *s;
 
-	// surface aligned blast ring sprite
-	if ((s = Cg_AllocSprite())) {
-		s->animation = cg_sprite_blaster_ring;
-		s->lifetime = cg_sprite_blaster_ring->num_images * FRAMES_TO_SECONDS(17.5);
-		s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.0));
-		s->size = 22.5f;
-		s->size_velocity = 75.f;
-		s->dir = dir;
-		s->color = Color_Mix(color, color_white, .2f);
-		s->color.a = 0.f;
+	for (int32_t i = 0; i < 2; i++)
+	{
+		// surface aligned blast ring sprite
+		if ((s = Cg_AllocSprite())) {
+			s->animation = cg_sprite_blaster_ring;
+			s->lifetime = cg_sprite_blaster_ring->num_images * FRAMES_TO_SECONDS(17.5);
+			s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.0));
+			s->size = 22.5f;
+			s->size_velocity = 75.f;
+			if (i == 1) {
+				s->dir = dir;
+			}
+			s->color = Color_Mix(color, color_white, .2f);
+			s->color.a = 0.f;
+		}
 	}
 
 	// radial particles
@@ -50,6 +55,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 			s->acceleration = Vec3_Scale(s->velocity, -2.f);
 			s->lifetime = 500;
 			s->color = color;
+			s->color.a = 0.f;
 		}
 	}
 
@@ -83,21 +89,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		s->color.a = 0.f;
 	}
 
-	// surface flame
-	if ((s = Cg_AllocSprite())) {
-		s->animation = cg_sprite_blaster_flame;
-		s->lifetime = cg_sprite_blaster_flame->num_images * FRAMES_TO_SECONDS(30);
-		s->origin = Vec3_Add(org, Vec3_Scale(dir, 7.5f));
-		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 5.f));
-		s->rotation = Randomf() * M_PI * 2.f;
-		s->rotation_velocity = Randomf() * .1f;
-		s->dir = dir;
-		s->size = 25.f;
-		s->size_velocity = 20.f;
-		s->color = Color_Mix(color, color_white, .2f);
-		s->color.a = 0.f;
-	}
-
+	/*
 	// smouldering hole
 	if ((s = Cg_AllocSprite())) {
 		s->image = cg_sprite_blaster_flash;
@@ -105,10 +97,10 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.f));
 		s->rotation = Randomf() * M_PI * 2.f;
 		s->dir = dir;
-		s->size = 25.f;
+		s->size = 15.f;
 		s->color = Color_Mix(color, color_white, .3f);
 		s->color.a = 0.f;
-	}
+	} */
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, Vec3_Scale(dir, 8.f)),
@@ -271,14 +263,18 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 			break;
 		}
 
-		s->atlas_image = cg_sprite_particle;
+		s->animation = cg_sprite_blood_01;
+		s->lifetime = cg_sprite_blood_01->num_images * FRAMES_TO_SECONDS(30) + Randomf() * 500;
+		s->size = RandomRangef(40.f, 64.f);
+		s->color = Color4bv(0x882200aa);
+		s->rotation = RandomRadian();
+
 		s->origin = Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f));
 		s->origin = Vec3_Add(s->origin, Vec3_Scale(dir, RandomRangef(0.f, 32.f)));
 		s->velocity = Vec3_RandomRange(-30.f, 30.f);
 		s->acceleration.z = -SPRITE_GRAVITY / 2.0;
-		s->lifetime = 100 + Randomf() * 500;
-		s->color = Color4bv(0x882200aa);
-		s->size = RandomRangef(40.f, 64.f);
+
+
 	}
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -327,7 +323,8 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 				break;
 			}
 
-			s->atlas_image = cg_sprite_particle;
+			s->animation = cg_sprite_blood_01;
+			s->lifetime = cg_sprite_blood_01->num_images * FRAMES_TO_SECONDS(30) + Randomf() * 500;
 			s->origin = o;
 			s->velocity = Vec3_Scale(v, dist * ((float)j / GIB_STREAM_COUNT));
 			s->velocity = Vec3_Add(s->velocity, Vec3_RandomRange(-2.f, 2.f));
