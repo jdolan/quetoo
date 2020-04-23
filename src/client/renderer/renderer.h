@@ -47,7 +47,6 @@
 #include "r_mesh_model_obj.h"
 #include "r_mesh.h"
 #include "r_model.h"
-#include "r_particle.h"
 #include "r_program.h"
 #include "r_sky.h"
 #include "r_sprite.h"

@@ -27,7 +27,6 @@ noinst_HEADERS = \
 	r_mesh_model_obj.h \
 	r_mesh.h \
 	r_model.h \
-	r_particle.h \
 	r_program.h \
 	r_sky.h \
 	r_sprite.h \
@@ -61,7 +60,6 @@ librenderer_la_SOURCES = \
 	r_mesh_model_md3.c \
 	r_mesh_model_obj.c \
 	r_model.c \
-	r_particle.c \
 	r_program.c \
 	r_sky.c \
 	r_sprite.c \

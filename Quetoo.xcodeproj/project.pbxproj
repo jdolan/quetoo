@@ -534,7 +534,6 @@
 		CE80FFFB1C5E4D1800A21A51 /* writebsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7081C5C58C300CD0B13 /* writebsp.c */; };
 		CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE85852924409CB6004AB8EC /* particle_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE85852824409C9E004AB8EC /* particle_gs.glsl */; };
 		CE85852B2444B984004AB8EC /* sprite_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE85852A2444B970004AB8EC /* sprite_gs.glsl */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
@@ -549,8 +548,6 @@
 		CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EF23D48AB7002FD074 /* r_stain.h */; };
 		CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8FD2F023D48AB7002FD074 /* r_stain.c */; };
 		CE8FD2F423D611C0002FD074 /* common_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F323D60E7B002FD074 /* common_fs.glsl */; };
-		CE8FD2F723D69A32002FD074 /* particle_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F523D69A10002FD074 /* particle_vs.glsl */; };
-		CE8FD2F823D69A32002FD074 /* particle_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F623D69A1E002FD074 /* particle_fs.glsl */; };
 		CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */; };
 		CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F923D70A11002FD074 /* sky_vs.glsl */; };
 		CE91924D2055731E007AC8FF /* tjunction.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunction.c */; };
@@ -614,7 +611,6 @@
 		CED4384B1D9D34450052BAFA /* r_mesh_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D71C5C58C300CD0B13 /* r_mesh_draw.c */; };
 		CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D91C5C58C300CD0B13 /* r_mesh_model.c */; };
 		CED4384F1D9D34450052BAFA /* r_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5DF1C5C58C300CD0B13 /* r_model.c */; };
-		CED438501D9D34450052BAFA /* r_particle.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5E11C5C58C300CD0B13 /* r_particle.c */; };
 		CED438561D9D34450052BAFA /* r_sky.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5ED1C5C58C300CD0B13 /* r_sky.c */; };
 		CED438801D9D34450052BAFA /* r_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B31C5C58C300CD0B13 /* r_bsp.h */; };
 		CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */; };
@@ -632,7 +628,6 @@
 		CED438931D9D34450052BAFA /* r_mesh_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5D81C5C58C300CD0B13 /* r_mesh_draw.h */; };
 		CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5DA1C5C58C300CD0B13 /* r_mesh_model.h */; };
 		CED438971D9D34450052BAFA /* r_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5E01C5C58C300CD0B13 /* r_model.h */; };
-		CED438981D9D34450052BAFA /* r_particle.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5E21C5C58C300CD0B13 /* r_particle.h */; };
 		CED4389E1D9D34450052BAFA /* r_sky.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5EE1C5C58C300CD0B13 /* r_sky.h */; };
 		CED438A01D9D34450052BAFA /* r_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5F11C5C58C300CD0B13 /* r_types.h */; };
 		CED438A11D9D34450052BAFA /* renderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5F21C5C58C300CD0B13 /* renderer.h */; };
@@ -1015,9 +1010,6 @@
 				CE9CFC8F23E66CDF0009DA65 /* lights_fs.glsl in CopyFiles */,
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
-				CE8FD2F823D69A32002FD074 /* particle_fs.glsl in CopyFiles */,
-				CE85852924409CB6004AB8EC /* particle_gs.glsl in CopyFiles */,
-				CE8FD2F723D69A32002FD074 /* particle_vs.glsl in CopyFiles */,
 				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
 				CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */,
 				CEAC32C124212626007E1253 /* soften_fs.glsl in CopyFiles */,
@@ -1367,8 +1359,6 @@
 		CE12D5DA1C5C58C300CD0B13 /* r_mesh_model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_mesh_model.h; sourceTree = "<group>"; };
 		CE12D5DF1C5C58C300CD0B13 /* r_model.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_model.c; sourceTree = "<group>"; };
 		CE12D5E01C5C58C300CD0B13 /* r_model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_model.h; sourceTree = "<group>"; };
-		CE12D5E11C5C58C300CD0B13 /* r_particle.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = r_particle.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		CE12D5E21C5C58C300CD0B13 /* r_particle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_particle.h; sourceTree = "<group>"; };
 		CE12D5ED1C5C58C300CD0B13 /* r_sky.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_sky.c; sourceTree = "<group>"; };
 		CE12D5EE1C5C58C300CD0B13 /* r_sky.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_sky.h; sourceTree = "<group>"; };
 		CE12D5F11C5C58C300CD0B13 /* r_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_types.h; sourceTree = "<group>"; };
@@ -1792,7 +1782,6 @@
 		CE80FF6A1C5E494E00A21A51 /* libclient-null.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-null.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FF7F1C5E49C400A21A51 /* libserver.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libserver.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncurses.6.dylib; path = /opt/local/lib/libncurses.6.dylib; sourceTree = "<absolute>"; };
-		CE85852824409C9E004AB8EC /* particle_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_gs.glsl; sourceTree = "<group>"; };
 		CE85852A2444B970004AB8EC /* sprite_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_gs.glsl; sourceTree = "<group>"; };
 		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
@@ -1806,8 +1795,6 @@
 		CE8FD2EF23D48AB7002FD074 /* r_stain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_stain.h; sourceTree = "<group>"; };
 		CE8FD2F023D48AB7002FD074 /* r_stain.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_stain.c; sourceTree = "<group>"; };
 		CE8FD2F323D60E7B002FD074 /* common_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = common_fs.glsl; sourceTree = "<group>"; };
-		CE8FD2F523D69A10002FD074 /* particle_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_vs.glsl; sourceTree = "<group>"; };
-		CE8FD2F623D69A1E002FD074 /* particle_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_fs.glsl; sourceTree = "<group>"; };
 		CE8FD2F923D70A11002FD074 /* sky_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sky_vs.glsl; sourceTree = "<group>"; };
 		CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sky_fs.glsl; sourceTree = "<group>"; };
 		CE91924C2055731E007AC8FF /* tjunction.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tjunction.c; sourceTree = "<group>"; };
@@ -2849,8 +2836,6 @@
 				CE5022E723DE3C3600B333CE /* r_mesh_model_obj.c */,
 				CE12D5DF1C5C58C300CD0B13 /* r_model.c */,
 				CE12D5E01C5C58C300CD0B13 /* r_model.h */,
-				CE12D5E11C5C58C300CD0B13 /* r_particle.c */,
-				CE12D5E21C5C58C300CD0B13 /* r_particle.h */,
 				CE8FD2EA23D3E034002FD074 /* r_program.h */,
 				CE8FD2EB23D3E034002FD074 /* r_program.c */,
 				CE12D5ED1C5C58C300CD0B13 /* r_sky.c */,
@@ -2879,9 +2864,6 @@
 				CE9CFC8E23E65EA90009DA65 /* lights_fs.glsl */,
 				CE63992C23E1251A00DB7A2D /* mesh_fs.glsl */,
 				CE63992B23E124F700DB7A2D /* mesh_vs.glsl */,
-				CE8FD2F623D69A1E002FD074 /* particle_fs.glsl */,
-				CE85852824409C9E004AB8EC /* particle_gs.glsl */,
-				CE8FD2F523D69A10002FD074 /* particle_vs.glsl */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
 				CEAC32BE242125ED007E1253 /* soften_fs.glsl */,
@@ -3898,7 +3880,6 @@
 				CEAC32BD24212553007E1253 /* r_sprite.h in Headers */,
 				CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */,
 				CED438971D9D34450052BAFA /* r_model.h in Headers */,
-				CED438981D9D34450052BAFA /* r_particle.h in Headers */,
 				CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */,
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
 				CED438A01D9D34450052BAFA /* r_types.h in Headers */,
@@ -5317,7 +5298,6 @@
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
 				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
-				CED438501D9D34450052BAFA /* r_particle.c in Sources */,
 				CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
 			);
