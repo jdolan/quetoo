@@ -87,9 +87,6 @@ cg_sprite_t *Cg_AllocSprite() {
 
 	s->time = s->timestamp = cgi.client->unclamped_time;
 
-	s->color_transition = cg_linear_transition;
-	s->color_transition_count = 2;
-
 	Cg_PushSprite(s, &cg_active_sprites);
 
 	return s;
@@ -138,6 +135,8 @@ void Cg_AddSprites(void) {
 	cg_sprite_t *s = cg_active_sprites;
 	while (s) {
 
+		assert(s->media);
+		
 		if (s->time != cgi.client->unclamped_time) {
 			if (cgi.client->unclamped_time - s->time > s->lifetime) {
 				s = Cg_FreeSprite(s);
@@ -148,16 +147,27 @@ void Cg_AddSprites(void) {
 		const uint32_t elapsed_time = (cgi.client->unclamped_time - s->time);
 		const float life = elapsed_time / (float)s->lifetime;
 
+		const vec3_t old_origin = s->origin;
+
 		s->velocity = Vec3_Add(s->velocity, Vec3_Scale(s->acceleration, delta));
 		s->origin = Vec3_Add(s->origin, Vec3_Scale(s->velocity, delta));
 
-		color_t color;
+		if (s->bounce && cg_particle_quality->integer) {
 
-		if (s->color_transition) {
-			color = Color_Mix(s->color, s->end_color, Cg_ResolveTransition(s->color_transition, s->color_transition_count, life));
-		} else {
-			color = s->color;
+			cm_trace_t tr = cgi.Trace(old_origin, s->origin, Vec3(-s->size, -s->size, -s->size), Vec3(s->size, s->size, s->size), 0, CONTENTS_MASK_SOLID);
+
+			if (tr.start_solid || tr.all_solid) {
+				tr = cgi.Trace(old_origin, s->origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
+			}
+
+			if (tr.fraction < 1.0) {
+				s->velocity = Vec3_Scale(Vec3_Reflect(s->velocity, tr.plane.normal), s->bounce);
+				s->origin = tr.end;
+			}
 		}
+
+		s->color_velocity = Vec4_Add(s->color_velocity, Vec4_Scale(s->color_acceleration, delta));
+		s->color = Color4fv(Vec4_Add(Color_Vec4(s->color), Vec4_Scale(s->color_velocity, delta)));
 
 		s->size_velocity += s->size_acceleration * delta;
 		s->size += s->size_velocity * delta;
@@ -174,7 +184,7 @@ void Cg_AddSprites(void) {
 			cgi.AddSprite(&(r_sprite_t) {
 				.origin = s->origin,
 				.size = s->size,
-				.color = color,
+				.color = s->color,
 				.rotation = s->rotation,
 				.media = s->media,
 				.life = life,
@@ -183,14 +193,14 @@ void Cg_AddSprites(void) {
 			});
 			break;
 		case SPRITE_BEAM:
-			s->beam.end = Vec3_Add(s->beam.end, Vec3_Scale(s->velocity, delta));
+			s->terminmation = Vec3_Add(s->terminmation, Vec3_Scale(s->velocity, delta));
 
 			cgi.AddBeam(&(r_beam_t) {
 				.start = s->origin,
-				.end = s->beam.end,
+				.end = s->terminmation,
 				.size = s->size,
 				.image = (r_image_t *) s->image,
-				.color = color,
+				.color = s->color,
 			});
 			break;
 		}

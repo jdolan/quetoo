@@ -475,7 +475,7 @@ void Cg_AddEmits(void) {
 
 		if (e->flags & EMIT_CORONA) {
 
-//			cg_particle_t *p = Cg_AllocParticle();
+//			cg_sprite_t *p = Cg_AllocSprite();
 //
 //			if (p) {
 //				p->color = e->color;

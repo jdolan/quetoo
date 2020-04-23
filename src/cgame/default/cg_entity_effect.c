@@ -43,21 +43,22 @@ color_t Cg_ResolveEffectColor(const uint8_t index, const color_t default_color) 
  * @brief
  */
 static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
-	cg_particle_t *p;
+	cg_sprite_t *s;
 
 	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle())) {
+	if (!(s = Cg_AllocSprite())) {
 		return;
 	}
 
-	p->origin = org;
-	p->origin.z += 50.f;
+	s->atlas_image = cg_sprite_inactive;
+	s->origin = org;
+	s->origin.z += 50.f;
 
-	p->color = color_white;
-	p->size = 10.0;
+	s->color = color_white;
+	s->size = 10.0;
 }
 
 /**

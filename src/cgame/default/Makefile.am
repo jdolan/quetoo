@@ -15,7 +15,6 @@ noinst_HEADERS = \
 	cg_main.h \
 	cg_media.h \
 	cg_muzzle_flash.h \
-	cg_particle.h \
 	cg_predict.h \
 	cg_score.h \
 	cg_sprite.h \
@@ -45,7 +44,6 @@ cgame_la_SOURCES = \
 	cg_main.c \
 	cg_media.c \
 	cg_muzzle_flash.c \
-	cg_particle.c \
 	cg_predict.c \
 	cg_score.c \
 	cg_sprite.c \

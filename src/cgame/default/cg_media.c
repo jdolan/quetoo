@@ -48,29 +48,36 @@ s_sample_t *cg_sample_underwater;
 s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
 
-static r_atlas_t *cg_particle_atlas;
+static r_atlas_t *cg_sprite_atlas;
 
-r_image_t *cg_sprite_smoke;
+
+r_atlas_image_t *cg_sprite_particle;
+r_atlas_image_t *cg_sprite_rain;
+r_atlas_image_t *cg_sprite_snow;
+r_atlas_image_t *cg_sprite_bubble;
+r_atlas_image_t *cg_sprite_smoke;
+r_atlas_image_t *cg_sprite_flame;
+r_atlas_image_t *cg_sprite_spark;
+r_atlas_image_t *cg_sprite_inactive;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
-r_image_t *cg_sprite_particle;
-r_image_t *cg_flash_1;
+r_image_t *cg_sprite_blaster_flash;
 
-r_animation_t *cg_fire_1;
-r_animation_t *cg_flame_1;
-r_animation_t *cg_flame_mono_1;
-r_animation_t *cg_smoke_1;
-r_animation_t *cg_smoke_2;
-r_animation_t *cg_blast_01_ring;
-r_animation_t *cg_hyperball_1;
+r_animation_t *cg_sprite_exlosion;
+r_animation_t *cg_sprite_rocket_flame;
+r_animation_t *cg_sprite_blaster_flame;
+r_animation_t *cg_sprite_smoke_04;
+r_animation_t *cg_sprite_smoke_05;
+r_animation_t *cg_sprite_blaster_ring;
+r_animation_t *cg_sprite_hyperblaster;
 r_animation_t *cg_bfg_explosion_1;
-r_animation_t *cg_bfg_explosion_2;
+r_animation_t *cg_sprite_bfg_explosion_2;
+r_animation_t *cg_sprite_bfg_explosion_3;
 r_animation_t *cg_bfg_explosion_3;
 r_animation_t *cg_bfg_explosion_4;
-r_animation_t *cg_bfg_explosion_5;
-r_animation_t *cg_poof_1;
-r_animation_t *cg_poof_2;
+r_animation_t *cg_sprite_poof_01;
+r_animation_t *cg_sprite_poof_02;
 
 static GHashTable *cg_footstep_table;
 
@@ -252,34 +259,36 @@ void Cg_UpdateMedia(void) {
 
 	Cg_InitFootsteps();
 
-	Cg_FreeParticles();
 	Cg_FreeSprites();
 
-	cg_particle_atlas  = cgi.CreateAtlas("particle atlas");
+	cg_sprite_atlas  = cgi.CreateAtlas("particle atlas");
 
-	cg_beam_hook       = cgi.LoadImage("particles/rope", IT_EFFECT);
-	cg_beam_rail       = cgi.LoadImage("particles/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
-	cg_beam_lightning  = cgi.LoadImage("particles/lightning", IT_EFFECT);
-	cg_flash_1         = cgi.LoadImage("particles/blast_01/blast_01_flash", IT_EFFECT);
-	cg_sprite_smoke    = (r_image_t *) cgi.LoadAtlasImage(cg_particle_atlas, "particles/smoke", IT_EFFECT);
-	cg_sprite_particle = (r_image_t *) cgi.LoadAtlasImage(cg_particle_atlas, "particles/particle", IT_EFFECT);
+	cg_sprite_particle        = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IT_EFFECT);
+	cg_sprite_smoke           = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/smoke", IT_EFFECT);
+	cg_sprite_flame           = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flame", IT_EFFECT);
+	cg_sprite_spark           = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/spark", IT_EFFECT);
+	cg_sprite_rain            = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/rain", IT_EFFECT);
+	cg_sprite_snow            = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/snow", IT_EFFECT);
+	cg_sprite_bubble          = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/bubble", IT_EFFECT);
+	cg_sprite_inactive        = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/inactive", IT_EFFECT);
+	cg_beam_hook              = cgi.LoadImage("sprites/rope", IT_EFFECT);
+	cg_beam_rail              = cgi.LoadImage("sprites/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
+	cg_beam_lightning         = cgi.LoadImage("sprites/lightning", IT_EFFECT);
+	cg_sprite_blaster_flash   = cgi.LoadImage("sprites/blast_01/blast_01_flash", IT_EFFECT);
 
-	cg_blast_01_ring   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
-	cg_fire_1          = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
-	cg_flame_1         = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/flame_03/flame_03", "_%02" PRIu32, 1, 29);
-	cg_flame_mono_1    = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
-	cg_smoke_1         = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
-	cg_smoke_2         = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
-	cg_hyperball_1     = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
-//	cg_bfg_explosion_1 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_01/bfg_explosion_01", "_%02" PRIu32, 10, 57);
-	cg_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
-	cg_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
-//	cg_bfg_explosion_4 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_04/bfg_explosion_04", "_%02" PRIu32, 1, 57);
-	cg_bfg_explosion_5 = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/bfg_explosion_05/bfg_explosion_05", "_%02" PRIu32, 1, 12);
-	cg_poof_1		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_01/poof_01", "_%02" PRIu32, 1, 32);
-	cg_poof_2		   = Cg_LoadAnimatedSprite(cg_particle_atlas, "particles/poof_02/poof_02", "_%02" PRIu32, 1, 17);
+	cg_sprite_blaster_ring    = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
+	cg_sprite_exlosion        = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
+	cg_sprite_rocket_flame    = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/flame_03/flame_03", "_%02" PRIu32, 1, 29);
+	cg_sprite_blaster_flame   = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
+	cg_sprite_smoke_04        = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
+	cg_sprite_smoke_05        = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
+	cg_sprite_hyperblaster    = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
+	cg_sprite_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
+	cg_sprite_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
+	cg_sprite_poof_01		  = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 32);
+	cg_sprite_poof_02		  = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
 
-	cgi.CompileAtlas(cg_particle_atlas);
+	cgi.CompileAtlas(cg_sprite_atlas);
 
 	cg_draw_crosshair->modified = true;
 	cg_draw_crosshair_color->modified = true;

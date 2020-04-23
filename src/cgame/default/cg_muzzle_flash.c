@@ -61,7 +61,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
  * @brief
  */
 static void Cg_SmokeFlash(const cl_entity_t *ent) {
-	cg_sprite_t *p;
+	cg_sprite_t *s;
 	vec3_t forward, right, org, org2;
 
 	// project the puff just in front of the entity
@@ -94,40 +94,30 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocSprite())) {
+	if (!(s = Cg_AllocSprite())) {
 		return;
 	}
 
-	p->origin = org;
-
-	p->lifetime = 500;
-
-	p->color = Color3b(128, 128, 128);
-	p->color.a = .78f;
-	p->end_color = p->color;
-	p->end_color.a = 0;
-
-	p->size = 4.0;
-	p->size_velocity = 16.0;
-//	p->delta_size = 1.0;
-
-	p->velocity = Vec3_RandomRange(-1.f, 1.f);
-	p->velocity.z += 10.f;
-
-	p->acceleration.z = 5.0;
-
-	p->image = cg_sprite_smoke;
-
-	p->rotation = RandomRangef(0.0f, M_PI);
-
-	p->rotation_velocity = RandomRangef(.8f, 1.6f);
+	s->origin = org;
+	s->lifetime = 500;
+	s->color = Color3b(128, 128, 128);
+	s->color.a = .78f;
+	s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
+	s->size = 4.0;
+	s->size_velocity = 16.0;
+	s->velocity = Vec3_RandomRange(-1.f, 1.f);
+	s->velocity.z += 10.f;
+	s->acceleration.z = 5.0;
+	s->atlas_image = cg_sprite_smoke;
+	s->rotation = RandomRangef(0.0f, M_PI);
+	s->rotation_velocity = RandomRangef(.8f, 1.6f);
 }
 
 /**
  * @brief
  */
 static void Cg_BlasterFlash(const cl_entity_t *ent, const color_t color) {
-	cg_sprite_t *p;
+	cg_sprite_t *s;
 	vec3_t forward, right, org, org2;
 
 	// project the puff just in front of the entity
@@ -166,36 +156,30 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const color_t color) {
 	const float flashlen = 2.f;
 	for (int32_t i = 0; i < np; i++)
 	{
-		if (!(p = Cg_AllocSprite())) {
+		if (!(s = Cg_AllocSprite())) {
 			break;
 		}
 
-		p->animation = cg_flame_mono_1;
-		p->lifetime = cg_flame_mono_1->num_images * FRAMES_TO_SECONDS(70) + (i / flashlen * 20.f);
-		p->origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen)));
-		p->rotation = Randomf() * M_PI * 2.f;
-
-		p->color = color;
-		p->color.a = 0.f;
-		p->end_color = p->color;
-		p->end_color.a = 0.f;
-
-		p->size = 1.f + 2.f * (np - i / flashlen);
+		s->animation = cg_sprite_blaster_flame;
+		s->lifetime = cg_sprite_blaster_flame->num_images * FRAMES_TO_SECONDS(70) + (i / flashlen * 20.f);
+		s->origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen)));
+		s->rotation = Randomf() * M_PI * 2.f;
+		s->color = color;
+		s->color.a = 0.f;
+		s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
+		s->size = 1.f + 2.f * (np - i / flashlen);
 	}
 
-	if ((p = Cg_AllocSprite())) {
-		p->image = cg_flash_1;
-		p->lifetime = 200.f;
-		p->origin = Vec3_Add(org, Vec3_Scale(forward, 3.f));
-
-		p->size = 30.f;
-		p->size_velocity = 30.f;
-		p->color = color;
-		p->color.a = 0.f;
-		p->end_color = p->color;
-		p->end_color.a = 0.f;
+	if ((s = Cg_AllocSprite())) {
+		s->image = cg_sprite_blaster_flash;
+		s->lifetime = 200.f;
+		s->origin = Vec3_Add(org, Vec3_Scale(forward, 3.f));
+		s->size = 30.f;
+		s->size_velocity = 30.f;
+		s->color = color;
+		s->color.a = 0.f;
+		s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
 	}
-
 }
 
 

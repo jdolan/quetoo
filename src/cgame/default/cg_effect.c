@@ -197,43 +197,45 @@ void Cg_LoadEffects(void) {
 static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 	for (int32_t i = 0; i < e->num_origins; i++) {
-		cg_particle_t *p;
+		cg_sprite_t *s;
 
-		if (!(p = Cg_AllocParticle())) {
+		if (!(s = Cg_AllocSprite())) {
 			break;
 		}
 
 		const vec4_t origin = *(e->origins + i);
 
-		p->origin = Vec3_Add(Vec4_XYZ(origin), Vec3_RandomRange(-16.f, 16.f));
+		s->origin = Vec3_Add(Vec4_XYZ(origin), Vec3_RandomRange(-16.f, 16.f));
 
 		// keep particle z origin relatively close to the view origin
 		if (origin.w < cgi.view->origin.z) {
-			if (p->origin.z - cgi.view->origin.z > 512.0) {
-				p->origin.z = cgi.view->origin.z + 256.0 + Randomf() * 256.0;
+			if (s->origin.z - cgi.view->origin.z > 512.0) {
+				s->origin.z = cgi.view->origin.z + 256.0 + Randomf() * 256.0;
 			}
 		}
 
 		if (cgi.view->weather & WEATHER_RAIN) {
-			p->color = Color4bv(0x90909040);
-			p->size = .5f;
+			s->atlas_image = cg_sprite_rain;
+			s->color = Color4bv(0x90909040);
+			s->size = .5f;
 
-			p->velocity = Vec3_RandomRange(-2.f, 2.f);
-			p->velocity.z -= 600.f;
+			s->velocity = Vec3_RandomRange(-2.f, 2.f);
+			s->velocity.z -= 600.f;
 
-			p->acceleration = Vec3_RandomRange(-2.f, 2.f);
+			s->acceleration = Vec3_RandomRange(-2.f, 2.f);
 		} else {
-			p->color = Color4bv(0xf0f0f090);
-			p->size = 1.f;
+			s->atlas_image = cg_sprite_snow;
+			s->color = Color4bv(0xf0f0f090);
+			s->size = 1.f;
 
-			p->velocity = Vec3_RandomRange(-12.f, 12.f);
-			p->velocity.z -= 120.0;
+			s->velocity = Vec3_RandomRange(-12.f, 12.f);
+			s->velocity.z -= 120.0;
 
-			p->acceleration = Vec3_RandomRange(-12.f, 12.f);
+			s->acceleration = Vec3_RandomRange(-12.f, 12.f);
 		}
 
 		// free the particle roughly when it will reach the floor
-		p->lifetime = 1000 * (p->origin.z - origin.w) / fabsf(p->velocity.z);
+		s->lifetime = 1000 * (s->origin.z - origin.w) / fabsf(s->velocity.z);
 	}
 }
 

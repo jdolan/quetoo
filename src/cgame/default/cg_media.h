@@ -53,27 +53,30 @@ extern s_sample_t *cg_sample_gib;
 
 s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
-extern r_image_t *cg_sprite_smoke;
-extern r_image_t *cg_sprite_particle;
-
+extern r_atlas_image_t *cg_sprite_particle;
+extern r_atlas_image_t *cg_sprite_rain;
+extern r_atlas_image_t *cg_sprite_snow;
+extern r_atlas_image_t *cg_sprite_smoke;
+extern r_atlas_image_t *cg_sprite_flame;
+extern r_atlas_image_t *cg_sprite_spark;
+extern r_atlas_image_t *cg_sprite_bubble;
+extern r_atlas_image_t *cg_sprite_inactive;
 extern r_image_t *cg_beam_hook;
 extern r_image_t *cg_beam_rail;
 extern r_image_t *cg_beam_lightning;
-extern r_image_t *cg_flash_1;
-extern r_animation_t *cg_fire_1;
-extern r_animation_t *cg_flame_1;
-extern r_animation_t *cg_flame_mono_1;
-extern r_animation_t *cg_smoke_1;
-extern r_animation_t *cg_smoke_2;
-extern r_animation_t *cg_blast_01_ring;
-extern r_animation_t *cg_hyperball_1;
+extern r_image_t *cg_sprite_blaster_flash;
+extern r_animation_t *cg_sprite_exlosion;
+extern r_animation_t *cg_sprite_rocket_flame;
+extern r_animation_t *cg_sprite_blaster_flame;
+extern r_animation_t *cg_sprite_smoke_04;
+extern r_animation_t *cg_sprite_smoke_05;
+extern r_animation_t *cg_sprite_blaster_ring;
+extern r_animation_t *cg_sprite_hyperblaster;
 extern r_animation_t *cg_bfg_explosion_1;
-extern r_animation_t *cg_bfg_explosion_2;
-extern r_animation_t *cg_bfg_explosion_3;
-extern r_animation_t *cg_bfg_explosion_4;
-extern r_animation_t *cg_bfg_explosion_5;
-extern r_animation_t *cg_poof_1;
-extern r_animation_t *cg_poof_2;
+extern r_animation_t *cg_sprite_bfg_explosion_2;
+extern r_animation_t *cg_sprite_bfg_explosion_3;
+extern r_animation_t *cg_sprite_poof_01;
+extern r_animation_t *cg_sprite_poof_02;
 
 void Cg_UpdateMedia(void);
 #endif /* __CG_LOCAL_H__ */

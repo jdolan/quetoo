@@ -29,25 +29,22 @@
 static void Cg_ItemRespawnEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 64; i++) {
-		cg_particle_t *p;
+		cg_sprite_t *s;
 
-		if (!(p = Cg_AllocParticle())) {
+		if (!(s = Cg_AllocSprite())) {
 			break;
 		}
 
-		p->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
-		p->origin.z += 8.f;
-
-		p->velocity = Vec3_RandomRange(-24.f, 24.f);
-		p->velocity.z = fabsf(p->velocity.z);
-
-		p->acceleration = Vec3_RandomRange(-24.f, 24.f);
-		p->acceleration.z = RandomRangef(60.f, 90.f);
-
-		p->lifetime = RandomRangef(800.f, 1200.f);
-
-		p->color = Color3f(.3f, .6f, .3f);
-		p->color_velocity = Vec4_Scale(Vec4(.3f, .4f, .3f, -1.f), 1.f / p->lifetime);
+		s->atlas_image = cg_sprite_particle;
+		s->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
+		s->origin.z += 8.f;
+		s->velocity = Vec3_RandomRange(-24.f, 24.f);
+		s->velocity.z = fabsf(s->velocity.z);
+		s->acceleration = Vec3_RandomRange(-24.f, 24.f);
+		s->acceleration.z = RandomRangef(60.f, 90.f);
+		s->lifetime = RandomRangef(800.f, 1200.f);
+		s->color = Color3f(.3f, .6f, .3f);
+		s->color_velocity = Vec4_Scale(Vec4(.3f, .4f, .3f, -1.f), 1.f / s->lifetime);
 	}
 
 	Cg_AddLight(&(cg_light_t) {
@@ -64,27 +61,21 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 static void Cg_ItemPickupEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 32; i++) {
-		cg_particle_t *p;
+		cg_sprite_t *s;
 
-		if (!(p = Cg_AllocParticle())) {
+		if (!(s = Cg_AllocSprite())) {
 			break;
 		}
 
-		p->origin = Vec3_Add(org, Vec3_RandomRange(-8.0, 8.0));
-		p->origin.z += 8.f;
-
-		p->velocity = Vec3_RandomRange(-16.f, 16.f);
-		p->velocity.z += 100.f;
-
-		p->acceleration.z = PARTICLE_GRAVITY * 0.2;
-
-		p->lifetime = 500 + Randomf() * 100;
-
-		p->color = Color3b(224, 224, 224);
-//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
-
-		p->size = 1.0;
-//		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
+		s->atlas_image = cg_sprite_particle;
+		s->origin = Vec3_Add(org, Vec3_RandomRange(-8.0, 8.0));
+		s->origin.z += 8.f;
+		s->velocity = Vec3_RandomRange(-16.f, 16.f);
+		s->velocity.z += 100.f;
+		s->acceleration.z = SPRITE_GRAVITY * 0.2;
+		s->lifetime = 500 + Randomf() * 100;
+		s->color = Color3b(224, 224, 224);
+		s->size = 1.0;
 	}
 
 	Cg_AddLight(&(cg_light_t) {
@@ -101,27 +92,21 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 static void Cg_TeleporterEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 64; i++) {
-		cg_particle_t *p;
+		cg_sprite_t *s;
 
-		if (!(p = Cg_AllocParticle())) {
+		if (!(s = Cg_AllocSprite())) {
 			break;
 		}
 
-		p->origin = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f));
-		p->origin.z += RandomRangef(8.f, 32.f);
-
-		p->velocity = Vec3_RandomRange(-24.f, 24.f);
-		p->velocity.z = RandomRangef(16.f, 48.f);
-
-		p->acceleration.z = -PARTICLE_GRAVITY * 0.1;
-
-		p->lifetime = 500;
-
-		p->color = Color3b(224, 224, 224);
-//		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
-
-		p->size = 1.0;
-//		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
+		s->atlas_image = cg_sprite_particle;
+		s->origin = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f));
+		s->origin.z += RandomRangef(8.f, 32.f);
+		s->velocity = Vec3_RandomRange(-24.f, 24.f);
+		s->velocity.z = RandomRangef(16.f, 48.f);
+		s->acceleration.z = -SPRITE_GRAVITY * 0.1;
+		s->lifetime = 500;
+		s->color = Color3b(224, 224, 224);
+		s->size = 1.0;
 	}
 
 	Cg_AddLight(&(cg_light_t) {

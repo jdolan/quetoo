@@ -53,6 +53,11 @@ typedef struct cg_sprite_s {
 	vec3_t origin;
 
 	/**
+	 * @brief The sprite termination, for beams.
+	 */
+	vec3_t terminmation;
+
+	/**
 	 * @brief The sprite velocity.
 	 */
 	vec3_t velocity;
@@ -62,31 +67,21 @@ typedef struct cg_sprite_s {
 	 */
 	vec3_t acceleration;
 
-	union {
-		struct {
-			/**
-			 * @brief The sprite rotation.
-			 */
-			float rotation;
-	
-			/**
-			 * @brief The sprite rotation velocity.
-			 */
-			float rotation_velocity;
 
-			/**
-			 * @brief Direction of the sprite. { 0, 0, 0 } is billboard.
-			 */
-			vec3_t dir;
-		};
+	/**
+	 * @brief The sprite rotation.
+	 */
+	float rotation;
 
-		struct {
-			/**
-			 * @brief Beam end position.
-			 */
-			vec3_t end;
-		} beam;
-	};
+	/**
+	 * @brief The sprite rotation velocity.
+	 */
+	float rotation_velocity;
+
+	/**
+	 * @brief The sprite direction. { 0, 0, 0 } is billboard.
+	 */
+	vec3_t dir;
 
 	/**
 	 * @brief The sprite color.
@@ -94,34 +89,14 @@ typedef struct cg_sprite_s {
 	color_t color;
 
 	/**
-	 * @brief The sprite's end color.
+	 * @brief The particle color velocity.
 	 */
-	color_t end_color;
+	vec4_t color_velocity;
 
 	/**
-	 * @brief Color transition
+	 * @brief The particle color acceleration.
 	 */
-	cg_transition_point_t *color_transition;
-
-	/**
-	 * @brief Color transition point count
-	 */
-	int32_t color_transition_count;
-	
-	/**
-	 * @brief Sprite's image.
-	 */
-	union {
-		r_media_t *media;
-		r_image_t *image;
-		r_atlas_image_t *atlas_image;
-		r_animation_t *animation;
-	};
-
-	/**
-	 * @brief Only for "animation"; whether to lerp between frames or not.
-	 */
-	_Bool lerp;
+	vec4_t color_acceleration;
 
 	/**
 	 * @brief The sprite size, in world units.
@@ -139,6 +114,11 @@ typedef struct cg_sprite_s {
 	float size_acceleration;
 
 	/**
+	 * @brief The sprite bounce factor.
+	 */
+	float bounce;
+
+	/**
 	 * @brief The client time when the sprite was allocated.
 	 */
 	uint32_t time;
@@ -153,7 +133,23 @@ typedef struct cg_sprite_s {
 	 */
 	uint32_t timestamp;
 
-	struct cg_sprite_s *next, *prev;
+	/**
+	 * @brief The sprite's media.
+	 */
+	union {
+		r_media_t *media;
+		r_image_t *image;
+		r_atlas_image_t *atlas_image;
+		r_animation_t *animation;
+	};
+
+	/**
+	 * @brief Only for "animation"; whether to lerp between frames or not.
+	 */
+	_Bool lerp;
+
+	struct cg_sprite_s *prev;
+	struct cg_sprite_s *next;
 } cg_sprite_t;
 
 cg_sprite_t *Cg_AllocSprite(void);

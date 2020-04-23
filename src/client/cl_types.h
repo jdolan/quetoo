@@ -71,8 +71,8 @@ typedef enum {
 } cl_trail_id_t;
 
 typedef struct {
-	vec3_t		last_origin;
-	_Bool		trail_updated;
+	vec3_t last_origin;
+	_Bool trail_updated;
 } cl_entity_trail_t;
 
 typedef struct {

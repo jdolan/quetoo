@@ -99,7 +99,6 @@
 		CE12D7F71C5C5E0200CD0B13 /* cg_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56F1C5C58C300CD0B13 /* cg_main.c */; };
 		CE12D7F81C5C5E0200CD0B13 /* cg_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5711C5C58C300CD0B13 /* cg_media.c */; };
 		CE12D7F91C5C5E0200CD0B13 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */; };
-		CE12D7FA1C5C5E0200CD0B13 /* cg_particle.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5751C5C58C300CD0B13 /* cg_particle.c */; };
 		CE12D7FB1C5C5E0200CD0B13 /* cg_predict.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5771C5C58C300CD0B13 /* cg_predict.c */; };
 		CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
 		CE12D7FD1C5C5E0200CD0B13 /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */; };
@@ -434,7 +433,6 @@
 		CE80FE9E1C5E445500A21A51 /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5701C5C58C300CD0B13 /* cg_main.h */; };
 		CE80FE9F1C5E445500A21A51 /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
 		CE80FEA01C5E445500A21A51 /* cg_muzzle_flash.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */; };
-		CE80FEA11C5E445500A21A51 /* cg_particle.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5761C5C58C300CD0B13 /* cg_particle.h */; };
 		CE80FEA21C5E445500A21A51 /* cg_predict.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5781C5C58C300CD0B13 /* cg_predict.h */; };
 		CE80FEA31C5E445500A21A51 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57A1C5C58C300CD0B13 /* cg_score.h */; };
 		CE80FEA41C5E445500A21A51 /* cg_temp_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57C1C5C58C300CD0B13 /* cg_temp_entity.h */; };
@@ -591,8 +589,6 @@
 		CEBDB0C6214A02B500A7AC3D /* light.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDB0C5214A02B500A7AC3D /* light.c */; };
 		CEBDB0C9214A037900A7AC3D /* cm_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CEBDB0C7214A037800A7AC3D /* cm_entity.h */; };
 		CEBDB0CA214A037900A7AC3D /* cm_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDB0C8214A037900A7AC3D /* cm_entity.c */; };
-		CEC212CC2430C910009AA456 /* cg_transition.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC212CA2430C90F009AA456 /* cg_transition.c */; };
-		CEC212CD2430C910009AA456 /* cg_transition.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC212CB2430C910009AA456 /* cg_transition.h */; };
 		CEC212CE2430CB4D009AA456 /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
 		CECA8CB01E50B5F1005E97E8 /* material.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* material.c */; };
 		CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
@@ -1276,8 +1272,6 @@
 		CE12D5721C5C58C300CD0B13 /* cg_media.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_media.h; sourceTree = "<group>"; };
 		CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_muzzle_flash.c; sourceTree = "<group>"; };
 		CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_muzzle_flash.h; sourceTree = "<group>"; };
-		CE12D5751C5C58C300CD0B13 /* cg_particle.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_particle.c; sourceTree = "<group>"; };
-		CE12D5761C5C58C300CD0B13 /* cg_particle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_particle.h; sourceTree = "<group>"; };
 		CE12D5771C5C58C300CD0B13 /* cg_predict.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cg_predict.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D5781C5C58C300CD0B13 /* cg_predict.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_predict.h; sourceTree = "<group>"; };
 		CE12D5791C5C58C300CD0B13 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
@@ -1852,8 +1846,6 @@
 		CEBDB0C5214A02B500A7AC3D /* light.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = light.c; sourceTree = "<group>"; };
 		CEBDB0C7214A037800A7AC3D /* cm_entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_entity.h; sourceTree = "<group>"; };
 		CEBDB0C8214A037900A7AC3D /* cm_entity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_entity.c; sourceTree = "<group>"; };
-		CEC212CA2430C90F009AA456 /* cg_transition.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_transition.c; sourceTree = "<group>"; };
-		CEC212CB2430C910009AA456 /* cg_transition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_transition.h; sourceTree = "<group>"; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = /opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<absolute>"; };
 		CECA8CAD1E4EC027005E97E8 /* qmat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qmat.h; sourceTree = "<group>"; };
 		CECA8CAE1E50B5F1005E97E8 /* material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = material.c; sourceTree = "<group>"; };
@@ -2716,8 +2708,6 @@
 				CE12D5721C5C58C300CD0B13 /* cg_media.h */,
 				CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */,
 				CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */,
-				CE12D5751C5C58C300CD0B13 /* cg_particle.c */,
-				CE12D5761C5C58C300CD0B13 /* cg_particle.h */,
 				CE12D5771C5C58C300CD0B13 /* cg_predict.c */,
 				CE12D5781C5C58C300CD0B13 /* cg_predict.h */,
 				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
@@ -2726,8 +2716,6 @@
 				CEAC32B6242124BB007E1253 /* cg_sprite.h */,
 				CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */,
 				CE12D57C1C5C58C300CD0B13 /* cg_temp_entity.h */,
-				CEC212CA2430C90F009AA456 /* cg_transition.c */,
-				CEC212CB2430C910009AA456 /* cg_transition.h */,
 				CE12D57D1C5C58C300CD0B13 /* cg_types.h */,
 				CE6EE40F1F72919800FBC830 /* cg_ui.c */,
 				CE6EE4101F72919800FBC830 /* cg_ui.h */,
@@ -3640,7 +3628,6 @@
 				CE80FE9E1C5E445500A21A51 /* cg_main.h in Headers */,
 				CE80FE9F1C5E445500A21A51 /* cg_media.h in Headers */,
 				CE80FEA01C5E445500A21A51 /* cg_muzzle_flash.h in Headers */,
-				CE80FEA11C5E445500A21A51 /* cg_particle.h in Headers */,
 				CE80FEA21C5E445500A21A51 /* cg_predict.h in Headers */,
 				CE80FEA31C5E445500A21A51 /* cg_score.h in Headers */,
 				CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */,
@@ -3649,7 +3636,6 @@
 				CE80FEA51C5E445500A21A51 /* cg_types.h in Headers */,
 				CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */,
 				CE80FEA61C5E445500A21A51 /* cg_view.h in Headers */,
-				CEC212CD2430C910009AA456 /* cg_transition.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4937,9 +4923,7 @@
 				CE12D7F61C5C5E0200CD0B13 /* cg_hud.c in Sources */,
 				CE12D7F71C5C5E0200CD0B13 /* cg_main.c in Sources */,
 				CE12D7F81C5C5E0200CD0B13 /* cg_media.c in Sources */,
-				CEC212CC2430C910009AA456 /* cg_transition.c in Sources */,
 				CE12D7F91C5C5E0200CD0B13 /* cg_muzzle_flash.c in Sources */,
-				CE12D7FA1C5C5E0200CD0B13 /* cg_particle.c in Sources */,
 				CE12D7FB1C5C5E0200CD0B13 /* cg_predict.c in Sources */,
 				CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */,
 				CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */,
