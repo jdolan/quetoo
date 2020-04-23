@@ -597,7 +597,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	if ((s = Cg_AllocSprite())) {
 		s->type = SPRITE_BEAM;
 		s->origin = start;
-		s->terminmation = end;
+		s->termination = end;
 		s->size = 20.f;
 		s->velocity = Vec3_Scale(forward, 20.f);
 		s->lifetime = RandomRangef(1500.f, 1550.f);

@@ -55,7 +55,7 @@ typedef struct cg_sprite_s {
 	/**
 	 * @brief The sprite termination, for beams.
 	 */
-	vec3_t terminmation;
+	vec3_t termination;
 
 	/**
 	 * @brief The sprite velocity.

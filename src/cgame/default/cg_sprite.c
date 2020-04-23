@@ -136,7 +136,7 @@ void Cg_AddSprites(void) {
 	while (s) {
 
 		assert(s->media);
-		
+
 		if (s->time != cgi.client->unclamped_time) {
 			if (cgi.client->unclamped_time - s->time > s->lifetime) {
 				s = Cg_FreeSprite(s);
@@ -193,11 +193,11 @@ void Cg_AddSprites(void) {
 			});
 			break;
 		case SPRITE_BEAM:
-			s->terminmation = Vec3_Add(s->terminmation, Vec3_Scale(s->velocity, delta));
+			s->termination = Vec3_Add(s->termination, Vec3_Scale(s->velocity, delta));
 
 			cgi.AddBeam(&(r_beam_t) {
 				.start = s->origin,
-				.end = s->terminmation,
+				.end = s->termination,
 				.size = s->size,
 				.image = (r_image_t *) s->image,
 				.color = s->color,
