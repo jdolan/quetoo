@@ -128,7 +128,7 @@ static void R_DrawBspLightgrid(void) {
 	const byte *textures = (byte *) lg + sizeof(bsp_lightgrid_t);
 	int32_t luxel = 0;
 
-	r_image_t *particle = R_LoadImage("particles/particle", IT_EFFECT);
+	r_image_t *particle = R_LoadImage("sprites/particle", IT_EFFECT);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {

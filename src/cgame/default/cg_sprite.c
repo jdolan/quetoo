@@ -147,28 +147,6 @@ void Cg_AddSprites(void) {
 		const uint32_t elapsed_time = (cgi.client->unclamped_time - s->time);
 		const float life = elapsed_time / (float)s->lifetime;
 
-		const vec3_t old_origin = s->origin;
-
-		s->velocity = Vec3_Add(s->velocity, Vec3_Scale(s->acceleration, delta));
-		s->origin = Vec3_Add(s->origin, Vec3_Scale(s->velocity, delta));
-
-		if (s->bounce && cg_particle_quality->integer) {
-
-			cm_trace_t tr = cgi.Trace(old_origin, s->origin, Vec3(-s->size, -s->size, -s->size), Vec3(s->size, s->size, s->size), 0, CONTENTS_MASK_SOLID);
-
-			if (tr.start_solid || tr.all_solid) {
-				tr = cgi.Trace(old_origin, s->origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
-			}
-
-			if (tr.fraction < 1.0) {
-				s->velocity = Vec3_Scale(Vec3_Reflect(s->velocity, tr.plane.normal), s->bounce);
-				s->origin = tr.end;
-			}
-		}
-
-		s->color_velocity = Vec4_Add(s->color_velocity, Vec4_Scale(s->color_acceleration, delta));
-		s->color = Color4fv(Vec4_Add(Color_Vec4(s->color), Vec4_Scale(s->color_velocity, delta)));
-
 		s->size_velocity += s->size_acceleration * delta;
 		s->size += s->size_velocity * delta;
 
@@ -177,6 +155,29 @@ void Cg_AddSprites(void) {
 			continue;
 		}
 
+		const vec3_t old_origin = s->origin;
+
+		s->velocity = Vec3_Add(s->velocity, Vec3_Scale(s->acceleration, delta));
+		s->origin = Vec3_Add(s->origin, Vec3_Scale(s->velocity, delta));
+
+		if (s->bounce && cg_particle_quality->integer) {
+			const float half_size = ceilf(s->size * .5f);
+			cm_trace_t tr = cgi.Trace(old_origin, s->origin, Vec3(-half_size, -half_size, -half_size), Vec3(half_size, half_size, half_size), 0, CONTENTS_MASK_SOLID);
+
+			if ((tr.start_solid || tr.all_solid) && !s->good_position) {
+				tr = cgi.Trace(old_origin, s->origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
+			} else {
+				s->good_position = true;
+			}
+
+			if (tr.fraction < 1.0) {
+				s->velocity = Vec3_Scale(Vec3_Reflect(s->velocity, tr.plane.normal), s->bounce);
+				s->origin = tr.end;
+			}
+		}
+
+		const color_t color = Color4fv(Vec4_Mix(Color_Vec4(s->color), s->end_color, life));
+
 		switch (s->type) {
 		case SPRITE_NORMAL:
 			s->rotation += s->rotation_velocity * delta;
@@ -184,7 +185,7 @@ void Cg_AddSprites(void) {
 			cgi.AddSprite(&(r_sprite_t) {
 				.origin = s->origin,
 				.size = s->size,
-				.color = s->color,
+				.color = color,
 				.rotation = s->rotation,
 				.media = s->media,
 				.life = life,
@@ -200,7 +201,7 @@ void Cg_AddSprites(void) {
 				.end = s->termination,
 				.size = s->size,
 				.image = (r_image_t *) s->image,
-				.color = s->color,
+				.color = color,
 			});
 			break;
 		}

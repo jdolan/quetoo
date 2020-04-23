@@ -85,18 +85,16 @@ typedef struct cg_sprite_s {
 
 	/**
 	 * @brief The sprite color.
+	 * @note For alpha-blended sprites, the colors are used as "normal". For additive sprites,
+	 * alpha *must* be zero at all times.
 	 */
 	color_t color;
 
 	/**
-	 * @brief The particle color velocity.
+	 * @brief The sprite's end color.
+	 * @see color
 	 */
-	vec4_t color_velocity;
-
-	/**
-	 * @brief The particle color acceleration.
-	 */
-	vec4_t color_acceleration;
+	vec4_t end_color;
 
 	/**
 	 * @brief The sprite size, in world units.
@@ -147,6 +145,11 @@ typedef struct cg_sprite_s {
 	 * @brief Only for "animation"; whether to lerp between frames or not.
 	 */
 	_Bool lerp;
+
+	/**
+	 * @brief Internal; used to ensure we don't use size traces until we are ready to bounce
+	 */
+	_Bool good_position;
 
 	struct cg_sprite_s *prev;
 	struct cg_sprite_s *next;

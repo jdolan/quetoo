@@ -102,7 +102,6 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	s->lifetime = 500;
 	s->color = Color3b(128, 128, 128);
 	s->color.a = .78f;
-	s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
 	s->size = 4.0;
 	s->size_velocity = 16.0;
 	s->velocity = Vec3_RandomRange(-1.f, 1.f);
@@ -166,7 +165,6 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const color_t color) {
 		s->rotation = Randomf() * M_PI * 2.f;
 		s->color = color;
 		s->color.a = 0.f;
-		s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
 		s->size = 1.f + 2.f * (np - i / flashlen);
 	}
 
@@ -178,7 +176,6 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const color_t color) {
 		s->size_velocity = 30.f;
 		s->color = color;
 		s->color.a = 0.f;
-		s->color_velocity.w = -s->color.a / MILLIS_TO_SECONDS(s->lifetime);
 	}
 }
 

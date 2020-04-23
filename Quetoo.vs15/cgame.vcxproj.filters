@@ -72,9 +72,6 @@
     <ClInclude Include="..\src\cgame\default\cg_muzzle_flash.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\cg_particle.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\cg_predict.h">
       <Filter>src\default</Filter>
     </ClInclude>
@@ -174,9 +171,6 @@
     <ClInclude Include="..\src\cgame\default\cg_sprite.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\cg_transition.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\cgame\default\ui\home\HomeViewController.json">
@@ -221,9 +215,6 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_muzzle_flash.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\cg_particle.c">
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_predict.c">
@@ -320,9 +311,6 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_sprite.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\cg_transition.c">
       <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>
