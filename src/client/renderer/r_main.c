@@ -285,13 +285,13 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateEntities();
 
+	R_UpdateFlares();
+
 	R_UpdateSprites();
 	
 	R_UpdateLights();
 
 	R_UpdateStains();
-
-	R_UpdateFlares();
 
 	R_UpdateFog();
 
