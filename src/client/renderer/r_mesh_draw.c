@@ -92,7 +92,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	assert(mesh);
 
 	if (e->effects & EF_WEAPON) {
-		glDepthRange(.0f, .1f);
+		glDepthRange(0.f, 0.1f);
 	}
 
 	if (e->effects & EF_BLEND) {
@@ -161,7 +161,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glBindVertexArray(0);
 
 	if (e->effects & EF_WEAPON) {
-		glDepthRange(.0f, 1.f);
+		glDepthRange(0.f, 1.f);
 	}
 
 	if (e->effects & EF_BLEND) {
@@ -189,7 +189,7 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 	glUniformMatrix4fv(r_mesh_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_mesh_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
-	glUniform1f(r_mesh_program.alpha_threshold, 0.f);
+	glUniform1f(r_mesh_program.alpha_threshold, .125f);
 
 	glUniform1f(r_mesh_program.brightness, r_brightness->value);
 	glUniform1f(r_mesh_program.contrast, r_contrast->value);
