@@ -667,6 +667,8 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		Ai_Wander(self, cmd);
 	}
 
+	bool target_enemy = false;
+
 	vec3_t dir, angles, dest;
 	switch (ai->move_target.type) {
 		default: {
@@ -676,12 +678,16 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			}
 			break;
 		case AI_GOAL_ITEM:
+			dest = ai->move_target.ent->s.origin;
+			break;
 		case AI_GOAL_ENEMY:
+			target_enemy = true;
 			dest = ai->move_target.ent->s.origin;
 			break;
 	}
 
 	dir = Vec3_Subtract(dest, self->s.origin);
+	float len = Vec3_Length(dir);
 	dir = Vec3_Normalize(dir);
 
 	vec3_t predicted;
@@ -698,8 +704,15 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
     dir = Vec3_Scale(dir, PM_SPEED_RUN);
 
-    cmd->forward = dir.x;
-    cmd->right = dir.y;
+	// TODO: make bots keep some distance, but maybe less retarded than this
+
+    if (target_enemy && len < 200.0) {
+		cmd->forward = -dir.x;
+		cmd->right = -dir.y;
+	} else {
+		cmd->forward = dir.x;
+		cmd->right = dir.y;
+	}
 
 	predicted = Vec3_Scale(predicted, PM_SPEED_JUMP);
 
