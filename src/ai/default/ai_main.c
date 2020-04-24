@@ -667,7 +667,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		Ai_Wander(self, cmd);
 	}
 
-	bool target_enemy = false;
+	_Bool target_enemy = false;
 
 	vec3_t dir, angles, dest;
 	switch (ai->move_target.type) {
