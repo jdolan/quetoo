@@ -297,11 +297,19 @@ void R_DrawView(r_view_t *view) {
 
 	R_Clear();
 
-	R_DrawSky();
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	} else {
+		R_DrawSky();
+	}
 
 	R_DrawWorld();
 
 	R_DrawEntities(0);
+
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	R_DrawSprites(0);
 

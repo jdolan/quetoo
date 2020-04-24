@@ -222,9 +222,6 @@ static void R_DrawBspInlineModelAlphaBlendDepth(int32_t blend_depth) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
 
 	glUseProgram(r_bsp_program.name);
 
@@ -295,10 +292,6 @@ void R_DrawWorld(void) {
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
 
 	glUseProgram(r_bsp_program.name);
 
@@ -372,10 +365,6 @@ void R_DrawWorld(void) {
 	}
 
 	glUseProgram(0);
-
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);

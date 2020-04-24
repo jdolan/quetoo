@@ -180,10 +180,6 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 
 	glEnable(GL_DEPTH_TEST);
 
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-
 	glUseProgram(r_mesh_program.name);
 
 	glUniformMatrix4fv(r_mesh_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
@@ -236,10 +232,6 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 	glBlendFunc(GL_ONE, GL_ZERO);
 
 	glUseProgram(0);
-
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
 
 	glDisable(GL_DEPTH_TEST);
 

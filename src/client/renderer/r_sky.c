@@ -74,10 +74,6 @@ static struct {
  */
 void R_DrawSky(void) {
 
-	if (r_draw_wireframe->value) {
-		return;
-	}
-
 	glEnable(GL_DEPTH_TEST);
 
 	glUseProgram(r_sky_program.name);
