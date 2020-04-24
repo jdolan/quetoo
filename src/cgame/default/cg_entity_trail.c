@@ -756,7 +756,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
 	vec3_t origin;
-	const int32_t count = Cg_TrailDensity(ent, start, end, 6, TRAIL_PRIMARY, &origin);
+	const int32_t count = Cg_TrailDensity(ent, start, end, 3, TRAIL_PRIMARY, &origin);
 
 	if (!count) {
 		return;

@@ -284,8 +284,8 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	});
 }
 
-#define GIB_STREAM_DIST 180.0
-#define GIB_STREAM_COUNT 24
+#define GIB_STREAM_DIST 220.0
+#define GIB_STREAM_COUNT 12
 
 /**
  * @brief
@@ -330,7 +330,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 			s->velocity = Vec3_Add(s->velocity, Vec3_RandomRange(-2.f, 2.f));
 			s->velocity.z += 100.f;
 			s->acceleration.z = -SPRITE_GRAVITY * 2.0;
-			s->lifetime = 700 + Randomf() * 400;
+			// s->lifetime = 700 + Randomf() * 400;
 			s->color = Color4bv(0x800000f8);
 			s->size = RandomRangef(24.f, 56.f);
 		}
