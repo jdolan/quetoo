@@ -38,7 +38,7 @@ in vertex_data {
 out vec4 out_color;
 
 /**
- * @brief Reverse depth calculation
+ * @brief Reverse depth calculation.
  */
 float calc_depth(in float z) {
 	return (2. * depth_range.x) / (depth_range.y + depth_range.x - z * (depth_range.y - depth_range.x));
