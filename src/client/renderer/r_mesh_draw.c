@@ -86,6 +86,46 @@ static struct {
 /**
  * @brief
  */
+void R_UpdateMeshEntities(void) {
+
+	r_entity_t *e = r_view.entities;
+	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		if (IS_MESH_MODEL(e->model)) {
+			e->blend_depth = R_BlendDepthForPoint(e->origin);
+		}
+	}
+
+	glUseProgram(r_mesh_program.name);
+
+	glUniformMatrix4fv(r_mesh_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
+	glUniformMatrix4fv(r_mesh_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
+
+	glUniform1f(r_mesh_program.alpha_threshold, .125f);
+
+	glUniform1f(r_mesh_program.brightness, r_brightness->value);
+	glUniform1f(r_mesh_program.contrast, r_contrast->value);
+	glUniform1f(r_mesh_program.saturation, r_saturation->value);
+	glUniform1f(r_mesh_program.gamma, r_gamma->value);
+	glUniform1f(r_mesh_program.modulate, r_modulate->value);
+
+	glUniform3fv(r_mesh_program.lightgrid_mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
+	glUniform3fv(r_mesh_program.lightgrid_maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glUniform3fv(r_mesh_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
+	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
+
+	glUseProgram(0);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
 static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	const r_mesh_model_t *mesh = e->model->mesh;
@@ -179,42 +219,23 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 void R_DrawMeshEntities(int32_t blend_depth) {
 
 	glEnable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(r_mesh_program.name);
 
-	glUniformMatrix4fv(r_mesh_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
-	glUniformMatrix4fv(r_mesh_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
+	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_mesh_program.lights_buffer);
 
-	glUniform1f(r_mesh_program.alpha_threshold, .125f);
-
-	glUniform1f(r_mesh_program.brightness, r_brightness->value);
-	glUniform1f(r_mesh_program.contrast, r_contrast->value);
-	glUniform1f(r_mesh_program.saturation, r_saturation->value);
-	glUniform1f(r_mesh_program.gamma, r_gamma->value);
-	glUniform1f(r_mesh_program.modulate, r_modulate->value);
-
+	const r_bsp_model_t *bsp = r_world_model->bsp;
 	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
-		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[i]->texnum);
+		glBindTexture(GL_TEXTURE_3D, bsp->lightgrid->textures[i]->texnum);
 	}
-
-	glUniform3fv(r_mesh_program.lightgrid_mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
-	glUniform3fv(r_mesh_program.lightgrid_maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_mesh_program.lights_buffer);
-
-	glUniform3fv(r_mesh_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
-	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-
 		if (IS_MESH_MODEL(e->model)) {
 
 			if (e->effects & EF_NO_DRAW) {
@@ -229,10 +250,9 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 		}
 	}
 
-	glBlendFunc(GL_ONE, GL_ZERO);
-
 	glUseProgram(0);
 
+	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_DEPTH_TEST);
 
 	R_GetError(NULL);

@@ -47,7 +47,6 @@ typedef struct {
 	GLuint vertex_buffer;
 	GLuint index_buffer;
 
-	_Bool dirty;
 } r_sprites_t;
 
 static r_sprites_t r_sprites;
@@ -84,7 +83,6 @@ static struct {
 	GLint gamma;
 
 	GLint fog_parameters;
-	GLint fog_color;
 } r_sprite_program;
 
 /**
@@ -168,8 +166,6 @@ static void R_AddSpriteInstance(const r_sprite_instance_t *in, float lerp, const
 		r_view.sprite_instances[r_view.num_sprite_instances].count = 1;
 		r_view.num_sprite_instances++;
 	}
-
-	r_sprites.dirty = true;
 
 	r_view.num_sprites++;
 }
@@ -290,6 +286,23 @@ void R_AddBeam(const r_beam_t *b) {
  */
 void R_UpdateSprites(void) {
 
+	glUseProgram(r_sprite_program.name);
+
+	glUniformMatrix4fv(r_sprite_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
+	glUniformMatrix4fv(r_sprite_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
+
+	glUniform2f(r_sprite_program.depth_range, 1.0, MAX_WORLD_DIST);
+	glUniform2f(r_sprite_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
+	glUniform1f(r_sprite_program.transition_size, .0016f);
+
+	glUniform1f(r_sprite_program.brightness, r_brightness->value);
+	glUniform1f(r_sprite_program.contrast, r_contrast->value);
+	glUniform1f(r_sprite_program.saturation, r_saturation->value);
+	glUniform1f(r_sprite_program.gamma, r_gamma->value);
+
+	glUniform3fv(r_sprite_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
+	R_GetError(NULL);
+
 	r_sprite_vertex_t *out = r_sprites.sprites;
 	for (int32_t i = 0; i < r_view.num_sprites; i++, out += 4) {
 
@@ -304,6 +317,13 @@ void R_UpdateSprites(void) {
 		out[2].blend_depth =
 		out[3].blend_depth = R_BlendDepthForPoint(center);
 	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, r_view.num_sprites * sizeof(r_sprite_vertex_t) * 4, r_sprites.sprites, GL_DYNAMIC_DRAW);
+
+	glUseProgram(0);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -318,70 +338,48 @@ void R_DrawSprites(int32_t blend_depth) {
 	glDepthMask(GL_FALSE);
 
 	glEnable(GL_BLEND);
-	
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
 	glEnable(GL_DEPTH_TEST);
 
 	glUseProgram(r_sprite_program.name);
 
-	glUniformMatrix4fv(r_sprite_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
-	glUniformMatrix4fv(r_sprite_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
-	
 	glUniform1i(r_sprite_program.blend_depth, blend_depth);
-
-	glUniform2f(r_sprite_program.depth_range, 1.0, MAX_WORLD_DIST);
-	glUniform2f(r_sprite_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
-	glUniform1f(r_sprite_program.transition_size, .0016f);
-
-	glUniform1f(r_sprite_program.brightness, r_brightness->value);
-	glUniform1f(r_sprite_program.contrast, r_contrast->value);
-	glUniform1f(r_sprite_program.saturation, r_saturation->value);
-	glUniform1f(r_sprite_program.gamma, r_gamma->value);
-
-	glUniform3fv(r_sprite_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
-	glUniform3fv(r_sprite_program.fog_color, 1, r_view.fog_color.xyz);
 
 	glBindVertexArray(r_sprites.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 
-	if (r_sprites.dirty) {
-		glBufferData(GL_ARRAY_BUFFER, r_view.num_sprites * sizeof(r_sprite_vertex_t) * 4, r_sprites.sprites, GL_DYNAMIC_DRAW);
-	
-		glEnableVertexAttribArray(r_sprite_program.in_position);
-		glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
-		glEnableVertexAttribArray(r_sprite_program.in_color);
-		glEnableVertexAttribArray(r_sprite_program.in_blend_depth);
-
-		r_sprites.dirty = false;
-	}
-
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
-	
+
+	glEnableVertexAttribArray(r_sprite_program.in_position);
+	glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
+	glEnableVertexAttribArray(r_sprite_program.in_color);
+	glVertexAttrib1f(r_sprite_program.in_lerp, 0.f);
+	glEnableVertexAttribArray(r_sprite_program.in_blend_depth);
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 
 	ptrdiff_t offset = 0;
+	const r_sprite_instance_t *s = r_view.sprite_instances;
+	for (int32_t i = 0; i < r_view.num_sprite_instances; i++, s++) {
 
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-	for (int32_t i = 0; i < r_view.num_sprite_instances; i++) {
-		const r_sprite_instance_t *sprite = &r_view.sprite_instances[i];
-
-		if (sprite->next_diffusemap) {
+		if (s->next_diffusemap) {
 			glActiveTexture(GL_TEXTURE0 + TEXTURE_NEXT_DIFFUSEMAP);
-			glBindTexture(GL_TEXTURE_2D, sprite->next_diffusemap->texnum);
+			glBindTexture(GL_TEXTURE_2D, s->next_diffusemap->texnum);
+
 			glEnableVertexAttribArray(r_sprite_program.in_next_diffusemap);
 			glEnableVertexAttribArray(r_sprite_program.in_lerp);
 		} else {
 			glDisableVertexAttribArray(r_sprite_program.in_next_diffusemap);
 			glDisableVertexAttribArray(r_sprite_program.in_lerp);
-			glVertexAttrib1f(r_sprite_program.in_lerp, 0); // FIXME: required every loop?
 		}
 
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-		glBindTexture(GL_TEXTURE_2D, sprite->diffusemap->texnum);
+		glBindTexture(GL_TEXTURE_2D, s->diffusemap->texnum);
 
-		glDrawElements(GL_TRIANGLES, sprite->count * 6, GL_UNSIGNED_INT, (GLvoid *) offset);
-		offset += (sprite->count * 6) * sizeof(GLuint);
+		glDrawElements(GL_TRIANGLES, s->count * 6, GL_UNSIGNED_INT, (GLvoid *) offset);
+		offset += (s->count * 6) * sizeof(GLuint);
 	}
 	
 	glActiveTexture(GL_TEXTURE0);
@@ -433,6 +431,7 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.transition_size = glGetUniformLocation(r_sprite_program.name, "transition_size");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
+	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
 	r_sprite_program.depth_stencil_attachment = glGetUniformLocation(r_sprite_program.name, "depth_stencil_attachment");
 
 	r_sprite_program.brightness = glGetUniformLocation(r_sprite_program.name, "brightness");
@@ -441,10 +440,7 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.gamma = glGetUniformLocation(r_sprite_program.name, "gamma");
 
 	r_sprite_program.fog_parameters = glGetUniformLocation(r_sprite_program.name, "fog_parameters");
-	r_sprite_program.fog_color = glGetUniformLocation(r_sprite_program.name, "fog_color");
-	
-	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-	
+
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
@@ -478,7 +474,6 @@ void R_InitSprites(void) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
 
 	GLuint indices[MAX_SPRITES * 6];
-
 	for (GLuint i = 0, v = 0, e = 0; i < MAX_SPRITES; i++, v += 4, e += 6) {
 		indices[e + 0] = v + 0;
 		indices[e + 1] = v + 1;
@@ -492,6 +487,7 @@ void R_InitSprites(void) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
 
 	R_GetError(NULL);

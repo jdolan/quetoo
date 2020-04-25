@@ -83,10 +83,7 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
  */
 void R_UpdateEntities(void) {
 
-	r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-		e->blend_depth = R_BlendDepthForPoint(e->origin);
-	}
+	R_UpdateMeshEntities();
 }
 
 /**

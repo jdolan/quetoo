@@ -222,16 +222,14 @@ static void R_DrawBspInlineModelAlphaBlendDepth(int32_t blend_depth) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(r_bsp_program.name);
-
 	glBindVertexArray(r_world_model->bsp->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_GetError(NULL);
 }
