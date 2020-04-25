@@ -877,7 +877,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
 				Cm_MaterialWarn(path, &parser, "No contents specified\n");
 			} else {
-				m->contents = Cm_ParseContents(token);
+				m->contents |= Cm_ParseContents(token);
 			}
 			continue;
 		}
@@ -887,7 +887,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
 				Cm_MaterialWarn(path, &parser, "No surface flags specified\n");
 			} else {
-				m->surface = Cm_ParseSurface(token);
+				m->surface |= Cm_ParseSurface(token);
 			}
 			continue;
 		}
