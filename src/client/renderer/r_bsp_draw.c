@@ -37,7 +37,6 @@ static struct {
 	GLint in_bitangent;
 	GLint in_diffusemap;
 	GLint in_lightmap;
-	GLint in_color;
 
 	GLint projection;
 	GLint view;
@@ -47,6 +46,7 @@ static struct {
 	GLint texture_lightmap;
 	GLint texture_warp;
 
+	GLint color;
 	GLint alpha_threshold;
 
 	GLint brightness;
@@ -63,7 +63,6 @@ static struct {
 	GLint warp;
 
 	GLint lights_block;
-	GLuint lights_buffer;
 	GLint lights_mask;
 
 	GLint fog_parameters;
@@ -272,6 +271,20 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 			glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
 			glUniform1f(r_bsp_program.warp, material->cm->warp * r_warp->value);
+
+			float alpha = 1.0;
+
+			switch (draw->texinfo->flags & SURF_MASK_BLEND) {
+				case SURF_BLEND_33:
+					alpha = 0.333f;
+					break;
+				case SURF_BLEND_66:
+					alpha = 0.666f;
+				default:
+					break;
+			}
+
+			glUniform4fv(r_bsp_program.color, 1, Color4f(1.f, 1.f, 1.f, alpha).rgba);
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
@@ -296,6 +309,7 @@ void R_DrawWorld(void) {
 	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_bsp_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
+	glUniform4fv(r_bsp_program.color, 1, color_white.rgba);
 	glUniform1f(r_bsp_program.alpha_threshold, .125f);
 
 	glUniform1f(r_bsp_program.brightness, r_brightness->value);
@@ -304,9 +318,7 @@ void R_DrawWorld(void) {
 	glUniform1f(r_bsp_program.gamma, r_gamma->value);
 	glUniform1f(r_bsp_program.modulate, r_modulate->value);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, r_bsp_program.lights_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_bsp_program.lights_buffer);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_lights.uniform_buffer);
 
 	glUniform3fv(r_bsp_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
 	glUniform3fv(r_bsp_program.fog_color, 1, r_view.fog_color.xyz);
@@ -324,7 +336,6 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
 	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
-	glEnableVertexAttribArray(r_bsp_program.in_color);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->atlas->texnum);
@@ -397,7 +408,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.in_bitangent = glGetAttribLocation(r_bsp_program.name, "in_bitangent");
 	r_bsp_program.in_diffusemap = glGetAttribLocation(r_bsp_program.name, "in_diffusemap");
 	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
-	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
 
 	r_bsp_program.projection = glGetUniformLocation(r_bsp_program.name, "projection");
 	r_bsp_program.view = glGetUniformLocation(r_bsp_program.name, "view");
@@ -407,6 +417,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 
+	r_bsp_program.color = glGetUniformLocation(r_bsp_program.name, "color");
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
 	r_bsp_program.brightness = glGetUniformLocation(r_bsp_program.name, "brightness");
@@ -423,7 +434,7 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
 	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 0);
-	glGenBuffers(1, &r_bsp_program.lights_buffer);
+	
 	r_bsp_program.lights_mask = glGetUniformLocation(r_bsp_program.name, "lights_mask");
 
 	r_bsp_program.fog_parameters = glGetUniformLocation(r_bsp_program.name, "fog_parameters");
@@ -462,8 +473,6 @@ void R_InitBspProgram(void) {
  * @brief
  */
 void R_ShutdownBspProgram(void) {
-
-	glDeleteBuffers(1, &r_bsp_program.lights_buffer);
 
 	glDeleteProgram(r_bsp_program.name);
 

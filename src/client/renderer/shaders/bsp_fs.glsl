@@ -24,6 +24,7 @@
 uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
 
+uniform vec4 color;
 uniform float alpha_threshold;
 
 uniform float modulate;
@@ -40,7 +41,6 @@ in vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec2 lightmap;
-	vec4 color;
 } vertex;
 
 out vec4 out_color;
@@ -56,7 +56,7 @@ void main(void) {
 	vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
 	vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
-	diffusemap *= vertex.color;
+	diffusemap *= color;
 
 	if (diffusemap.a < alpha_threshold) {
 		discard;
@@ -94,20 +94,4 @@ void main(void) {
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
-
-	// out_color.rgb = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
-	// out_color.rgb = (out_color.rgb + 1) * 0.5;
-
-	// out_color.rgb = (normal + 1) * 0.5;
-	// out_color.rgb = vec3(gen_cavity(normalmap));
-	// out_color.rgb = vec3(gen_gloss(diffusemap));
-	// out_color.rgb = vec3(min(auto_glossmap(normalmap, diffusemap), toksvig));
-	
-
-	// float power = saturate(glossmap.r * hardness);
-	// float rlen = 1.0 / saturate(length(normalmap.xyz * 2.0 - 1.0));
-	// float gloss = 1.0 / (power * (rlen - 1.0) + 1.0);
-	// out_color.rgb = vec3(length(normalmap.xyz * 2.0 - 1.0) * 0.5 + 0.5);
-	
-	// out_color.rgb = vec3(light_specular);
 }

@@ -60,10 +60,7 @@ cvar_t *r_gamma;
 cvar_t *r_get_error;
 cvar_t *r_hardness;
 cvar_t *r_height;
-cvar_t *r_lightmap;
-cvar_t *r_light_intensity;
 cvar_t *r_materials;
-cvar_t *r_max_lights;
 cvar_t *r_modulate;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
@@ -507,10 +504,7 @@ static void R_InitLocal(void) {
 	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console (developer tool)");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_lightmap = Cvar_Add("r_lightmap", "1", CVAR_ARCHIVE, "Controls lightmap rendering");
-	r_light_intensity = Cvar_Add("r_light_intensity", "1", CVAR_ARCHIVE, "Controls dynamic light intensity");
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
-	r_max_lights = Cvar_Add("r_max_lights", "16", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the maximum number of lights affecting a rendered object");
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects.");
@@ -647,6 +641,8 @@ void R_Init(void) {
 
 	R_InitView();
 
+	R_InitLights();
+
 	R_InitSprites();
 
 	R_InitSky();
@@ -676,6 +672,8 @@ void R_Shutdown(void) {
 	R_ShutdownDraw3D();
 
 	R_ShutdownModels();
+
+	R_ShutdownLights();
 
 	R_ShutdownSprites();
 

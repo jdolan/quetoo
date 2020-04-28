@@ -21,6 +21,8 @@
 
 #include "r_local.h"
 
+r_lights_t r_lights;
+
 /**
  * @brief
  */
@@ -37,8 +39,6 @@ void R_AddLight(const r_light_t *in) {
 
 	r_light_t *out = &r_view.lights[r_view.num_lights++];
 	*out = *in;
-
-	out->intensity *= r_light_intensity->value;
 }
 
 /**
@@ -77,8 +77,8 @@ static void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
  */
 void R_UpdateLights(void) {
 
-	memset(r_locals.view_lights, 0, sizeof(r_locals.view_lights));
-	r_light_t *out = r_locals.view_lights;
+	memset(r_lights.lights, 0, sizeof(r_lights.lights));
+	r_light_t *out = r_lights.lights;
 
 	r_light_t *in = r_view.lights;
 	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
@@ -111,4 +111,22 @@ void R_UpdateLights(void) {
 
 		Matrix4x4_Transform(&r_locals.view, in->origin.xyz, out->origin.xyz);
 	}
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.uniform_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.lights), r_lights.lights, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+/**
+ * @brief
+ */
+void R_InitLights(void) {
+	glGenBuffers(1, &r_lights.uniform_buffer);
+}
+
+/**
+ * @brief
+ */
+void R_ShutdownLights(void) {
+	glDeleteBuffers(1, &r_lights.uniform_buffer);
 }

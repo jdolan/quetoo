@@ -46,7 +46,6 @@ in vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec3 lightgrid;
-	vec3 eye;
 } vertex;
 
 out vec4 out_color;
@@ -71,8 +70,8 @@ void main(void) {
 
 	vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
 	vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
-
 	vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
+	
 	direction = normalize((view * vec4(direction * 2.0 - 1.0, 1.0)).xyz);
 
 	vec3 lightgrid = ambient + diffuse * max(0.0, dot(normal, direction));

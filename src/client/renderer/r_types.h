@@ -305,7 +305,6 @@ typedef struct {
 	vec3_t bitangent;
 	vec2_t diffusemap;
 	vec2_t lightmap;
-	color32_t color;
 } r_bsp_vertex_t;
 
 /**

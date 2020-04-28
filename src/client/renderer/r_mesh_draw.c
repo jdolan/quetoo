@@ -73,7 +73,6 @@ static struct {
 	GLint hardness;
 	GLint specular;
 
-	GLuint lights_buffer;
 	GLuint lights_block;
 	GLint lights_mask;
 
@@ -110,10 +109,6 @@ void R_UpdateMeshEntities(void) {
 
 	glUniform3fv(r_mesh_program.lightgrid_mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
 	glUniform3fv(r_mesh_program.lightgrid_maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
-
-	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glUniform3fv(r_mesh_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
 	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
@@ -223,8 +218,7 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 
 	glUseProgram(r_mesh_program.name);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_mesh_program.lights_buffer);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_lights.uniform_buffer);
 
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
@@ -313,7 +307,6 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
 	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 0);
-	glGenBuffers(1, &r_mesh_program.lights_buffer);
 	r_mesh_program.lights_mask = glGetUniformLocation(r_mesh_program.name, "lights_mask");
 
 	r_mesh_program.fog_parameters = glGetUniformLocation(r_mesh_program.name, "fog_parameters");
