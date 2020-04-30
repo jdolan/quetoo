@@ -22,6 +22,7 @@
 #define MAX_HARDNESS 16
 
 uniform sampler2DArray texture_material;
+uniform sampler2D texture_stage;
 uniform sampler2DArray texture_lightmap;
 
 uniform vec4 color;
@@ -34,6 +35,8 @@ uniform float parallax;
 uniform float hardness;
 uniform float specular;
 
+uniform int stage;
+
 in vertex_data {
 	vec3 position;
 	vec3 normal;
@@ -41,6 +44,7 @@ in vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec2 lightmap;
+	vec2 st;
 } vertex;
 
 out vec4 out_color;
@@ -49,41 +53,53 @@ out vec4 out_color;
  * @brief
  */
 void main(void) {
-	
-	float _specular = specular * 100.0; // fudge the numbers to match the old specular model... kinda...
 
-	vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-	vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
-	vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
+	if (stage == 0) {
+		float _specular = specular * 100.0; // fudge the numbers to match the old specular model... kinda...
 
-	diffusemap *= color;
+		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
+		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
+		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
-	if (diffusemap.a < alpha_threshold) {
-		discard;
+		diffusemap *= color;
+
+		if (diffusemap.a < alpha_threshold) {
+			discard;
+		}
+
+		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(bump, bump, 1.0)));
+
+		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
+		vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
+		vec3 direction = texture(texture_lightmap, vec3(vertex.lightmap, 2)).xyz;
+
+		direction = normalize(tbn * (direction * 2.0 - 1.0));
+
+		vec3 light_diffuse = ambient + diffuse * max(0.0, dot(direction, normal));
+		vec3 light_specular = brdf_blinn(normalize(-vertex.position), direction, normal, diffuse, glossmap.a, _specular);
+		light_specular = min(light_specular * 0.2 * glossmap.xyz * hardness, MAX_HARDNESS);
+
+		vec3 stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
+
+		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
+
+		out_color = diffusemap;
+		out_color *= vec4(stainmap, 1.0);
+
+		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
+		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
+	} else {
+		vec4 stage_texture = texture(texture_stage, vertex.st);
+
+		stage_texture *= color;
+
+		if (stage_texture.a < alpha_threshold) {
+			discard;
+		}
+
+		out_color = stage_texture;
 	}
-
-	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-	vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(bump, bump, 1.0)));
-
-	vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
-	vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
-	vec3 direction = texture(texture_lightmap, vec3(vertex.lightmap, 2)).xyz;
-
-	direction = normalize(tbn * (direction * 2.0 - 1.0));
-
-	vec3 light_diffuse = ambient + diffuse * max(0.0, dot(direction, normal));
-	vec3 light_specular = brdf_blinn(normalize(-vertex.position), direction, normal, diffuse, glossmap.a, _specular);
-	light_specular = min(light_specular * 0.2 * glossmap.xyz * hardness, MAX_HARDNESS);
-
-	vec3 stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
-
-	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
-	
-	out_color = diffusemap;
-	out_color *= vec4(stainmap, 1.0);
-
-	out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
-	out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
 	
 	// postprocessing
 	

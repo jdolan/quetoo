@@ -22,8 +22,9 @@
 #include "r_local.h"
 
 #define TEXTURE_MATERIAL 0
-#define TEXTURE_LIGHTMAP 1
-#define TEXTURE_WARP     2
+#define TEXTURE_STAGE    1
+#define TEXTURE_LIGHTMAP 2
+#define TEXTURE_WARP     3
 
 /**
  * @brief The program.
@@ -41,8 +42,10 @@ static struct {
 	GLint projection;
 	GLint view;
 	GLint model;
+	GLint st;
 
 	GLint texture_material;
+	GLint texture_stage;
 	GLint texture_lightmap;
 	GLint texture_warp;
 
@@ -61,6 +64,8 @@ static struct {
 	GLint hardness;
 	GLint specular;
 	GLint warp;
+
+	GLint stage;
 
 	GLint lights_block;
 	GLint lights_mask;
@@ -163,6 +168,62 @@ static void R_DrawBspLightgrid(void) {
 }
 
 /**
+ * @brief
+ */
+static void R_DrawBspDrawElementsMaterialStages(const r_bsp_draw_elements_t *draw) {
+
+	if (!r_materials->value) {
+		return;
+	}
+
+	if (!(draw->texinfo->material->cm->flags & STAGE_TEXTURE)) {
+		return;
+	}
+
+	glEnable(GL_BLEND);
+	glEnable(GL_POLYGON_OFFSET_FILL);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
+
+	int32_t s = 1;
+	for (r_stage_t *stage = draw->texinfo->material->stages; stage; stage = stage->next, s++) {
+
+		if (!(stage->cm->flags & STAGE_TEXTURE)) {
+			continue;
+		}
+
+		R_UpdateBspMaterialStage(draw, stage);
+
+		glUniform1i(r_bsp_program.stage, s);
+		glUniform4fv(r_bsp_program.color, 1, stage->color.rgba);
+		glUniformMatrix4fv(r_bsp_program.st, 1, GL_FALSE, (GLfloat *) stage->texture_matrix.m);
+
+		glPolygonOffset(-2.f, s);
+
+		glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
+
+		glBindTexture(GL_TEXTURE_2D, stage->texture->texnum);
+
+		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+
+		r_view.count_bsp_triangles += draw->num_elements / 3;
+	}
+
+	glUniform1i(r_bsp_program.stage, 0);
+	glUniform4fv(r_bsp_program.color, 1, color_white.rgba);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+
+	glPolygonOffset(0.f, 0.f);
+	glDisable(GL_POLYGON_OFFSET_FILL);
+
+	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_BLEND);
+
+	R_GetError(NULL);
+}
+
+/**
  * @brief Draws opaque draw elements for the specified inline model, ordered by material.
  */
 static void R_DrawBspInlineModelOpaqueDrawElements(const r_bsp_inline_model_t *in) {
@@ -195,9 +256,13 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_bsp_inline_model_t *i
 			glUniform1f(r_bsp_program.warp, material->cm->warp * r_warp->value);
 		}
 
-		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
+			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+		}
 
-		r_view.count_bsp_draw_elements++;
+		R_DrawBspDrawElementsMaterialStages(draw);
+
+		r_view.count_bsp_triangles += draw->num_elements / 3;
 	}
 }
 
@@ -289,11 +354,13 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 
-		r_view.count_bsp_draw_elements_blend++;
+		r_view.count_bsp_triangles += draw->num_elements / 3;
 	}
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -412,8 +479,10 @@ void R_InitBspProgram(void) {
 	r_bsp_program.projection = glGetUniformLocation(r_bsp_program.name, "projection");
 	r_bsp_program.view = glGetUniformLocation(r_bsp_program.name, "view");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
+	r_bsp_program.st = glGetUniformLocation(r_bsp_program.name, "st");
 
 	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
+	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 
@@ -432,6 +501,8 @@ void R_InitBspProgram(void) {
 	r_bsp_program.specular = glGetUniformLocation(r_bsp_program.name, "specular");
 	r_bsp_program.warp = glGetUniformLocation(r_bsp_program.name, "warp");
 
+	r_bsp_program.stage = glGetUniformLocation(r_bsp_program.name, "stage");
+
 	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
 	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 0);
 	
@@ -443,6 +514,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.ticks = glGetUniformLocation(r_bsp_program.name, "ticks");
 
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
+	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
 

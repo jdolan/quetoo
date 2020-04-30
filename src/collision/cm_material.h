@@ -28,7 +28,6 @@ typedef enum {
 	ASSET_CONTEXT_TEXTURES,
 	ASSET_CONTEXT_MODELS,
 	ASSET_CONTEXT_PLAYERS,
-	ASSET_CONTEXT_ENVMAPS,
 	ASSET_CONTEXT_FLARES,
 } cm_asset_context_t;
 
@@ -91,13 +90,7 @@ typedef struct cm_stage_s {
 	uint32_t flags;
 	cm_asset_t asset;
 	cm_stage_blend_t blend;
-	vec3_t color; // FIXME: color_t?
-
-	/**
-	 * @brief Whether the stage will pull color from the mesh model entity being rendered.
-	 */
-	_Bool mesh_color;
-
+	vec3_t color;
 	cm_stage_pulse_t pulse;
 	cm_stage_stretch_t stretch;
 	cm_stage_rotate_t rotate;
@@ -113,7 +106,6 @@ typedef struct cm_stage_s {
 // up to the material flags to determine render eligibility
 typedef enum {
 	STAGE_TEXTURE			= (1 << 0),
-	STAGE_ENVMAP			= (1 << 1),
 	STAGE_BLEND				= (1 << 2),
 	STAGE_COLOR				= (1 << 3),
 	STAGE_PULSE				= (1 << 4),
@@ -131,13 +123,8 @@ typedef enum {
 	STAGE_FOG				= (1 << 16),
 
 	// set on stages eligible for static, dynamic, and per-pixel lighting
-	STAGE_LIGHTING			= (1 << 30),
+	STAGE_LIGHTING			= (1 << 29),
 
-	// set on stages with valid render passes
-	STAGE_DIFFUSE 			= (int32_t) (1u << 31),
-
-	// composite mask for simplifying state management
-	STAGE_TEXTURE_MATRIX = (STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_SCALE_S | STAGE_SCALE_T)
 } cm_material_flags_t;
 
 #define DEFAULT_BUMP 1.0

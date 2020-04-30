@@ -144,9 +144,7 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 	R_Draw2DString(x, y, va("%d nodes", r_view.count_bsp_nodes), color_red);
 	y += ch;
-	R_Draw2DString(x, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_red);
-	y += ch;
-	R_Draw2DString(x, y, va("%d draw elements blend", r_view.count_bsp_draw_elements_blend), color_red);
+	R_Draw2DString(x, y, va("%d triangles", r_view.count_bsp_triangles), color_red);
 	y += ch;
 
 	y += ch;

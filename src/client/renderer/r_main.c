@@ -334,8 +334,7 @@ void R_BeginFrame(void) {
 
 	r_view.count_bsp_leafs = 0;
 	r_view.count_bsp_nodes = 0;
-	r_view.count_bsp_draw_elements = 0;
-	r_view.count_bsp_draw_elements_blend = 0;
+	r_view.count_bsp_triangles = 0;
 
 	r_view.count_mesh_models = 0;
 	r_view.count_mesh_triangles = 0;
@@ -524,6 +523,7 @@ static void R_InitLocal(void) {
 
 	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool)");
 	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool)");
+	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
 	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");
 	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
 	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
@@ -647,8 +647,6 @@ void R_Init(void) {
 
 	R_InitSky();
 
-	R_InitMaterials();
-
 	R_GetError("Video initialization");
 
 	Com_Print("Video initialized %dx%d (%dx%d) %s\n",
@@ -678,8 +676,6 @@ void R_Shutdown(void) {
 	R_ShutdownSprites();
 
 	R_ShutdownSky();
-
-	R_ShutdownMaterials();
 
 	R_ShutdownFramebuffer();
 

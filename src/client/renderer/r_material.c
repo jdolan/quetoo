@@ -21,560 +21,6 @@
 
 #include "r_local.h"
 
-#if 0
-
-static mat4_t r_texture_matrix;
-
-#define UPDATE_TICKS 16
-
-/**
- * @brief Materials "think" every few milliseconds to advance animations.
- */
-static void R_UpdateMaterialStage(r_material_t *m, r_stage_t *s) {
-
-	if (s->cm->flags & STAGE_PULSE) {
-		s->pulse.dhz = (sinf(r_view.ticks * s->cm->pulse.hz * 0.00628) + 1.0) / 2.0;
-	}
-
-	if (s->cm->flags & STAGE_STRETCH) {
-		s->stretch.dhz = (sinf(r_view.ticks * s->cm->stretch.hz * 0.00628) + 1.0) / 2.0;
-		s->stretch.damp = 1.5 - s->stretch.dhz * s->cm->stretch.amp;
-	}
-
-	if (s->cm->flags & STAGE_ROTATE) {
-		s->rotate.deg = r_view.ticks * s->cm->rotate.hz * 0.360;
-	}
-
-	if (s->cm->flags & STAGE_SCROLL_S) {
-		s->scroll.ds = s->cm->scroll.s * r_view.ticks / 1000.0;
-	}
-
-	if (s->cm->flags & STAGE_SCROLL_T) {
-		s->scroll.dt = s->cm->scroll.t * r_view.ticks / 1000.0;
-	}
-
-	if (s->cm->flags & STAGE_ANIM) {
-		if (s->cm->anim.fps) {
-			if (r_view.ticks >= s->anim.dtime) { // change frames
-				s->anim.dtime = r_view.ticks + (1000 / s->cm->anim.fps);
-				s->image = s->anim.frames[++s->anim.dframe % s->cm->anim.num_frames];
-			}
-		} else if (r_view.current_entity) {
-			s->image = s->anim.frames[r_view.current_entity->frame % s->cm->anim.num_frames];
-		}
-	}
-}
-
-/**
- * @brief Materials "think" every few milliseconds to advance animations.
- */
-static void R_UpdateMaterial(r_material_t *m) {
-
-	if (!r_view.current_entity) {
-		if (r_view.ticks - m->time < UPDATE_TICKS) {
-			return;
-		}
-	}
-
-	m->time = r_view.ticks;
-}
-
-/**
- * @brief Manages state for stages supporting static, dynamic, and per-pixel lighting.
- */
-static void R_StageLighting(const r_bsp_face_t *surf, const r_stage_t *stage) {
-
-	if (!surf) { // mesh materials don't support per-stage lighting
-		return;
-	}
-
-	if (stage->cm->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING)) {
-
-		if (r_lightmap->value) {
-
-			const r_image_t *atlas = surf->lightmap;
-
-			R_EnableTexture(texunit_lightmap, true);
-
-			R_BindLightmapTexture(atlas->lightmaps->texnum);
-
-			if (r_deluxemap->integer) {
-				R_EnableTexture(texunit_deluxemap, true);
-			}
-
-			if (r_stainmaps->value) {
-				if (atlas->framebuffer) {
-					R_EnableTexture(texunit_stainmap, true);
-
-					R_BindStainmapTexture(surf->lightmap.atlas->stainmaps->texnum);
-				}
-			}
-		}
-
-		if (stage->cm->flags & STAGE_LIGHTING) { // hardware lighting
-
-			R_EnableLighting(true);
-
-			if (r_state.lighting_enabled) {
-
-				if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
-					R_EnableLights(surf->light_mask);
-				} else {
-					R_EnableLights(0);
-				}
-			}
-		} else {
-			R_EnableLighting(false);
-		}
-	} else {
-		R_EnableLighting(false);
-
-		R_EnableTexture(texunit_lightmap, false);
-		R_EnableTexture(texunit_deluxemap, false);
-		R_EnableTexture(texunit_stainmap, false);
-	}
-
-	R_UseMaterial(stage->material);
-}
-
-/**
- * @brief Generates a single vertex for the specified stage.
- */
-static void R_StageVertex(const r_bsp_face_t *surf, const r_stage_t *stage, const vec3_t in, vec3_t *out) {
-
-	// TODO: vertex deformation
-	*out = in;
-}
-
-/**
- * @brief Manages texture matrix manipulations for stages supporting rotations,
- * scrolls, and stretches (rotate, translate, scale).
- */
-static void R_StageTextureMatrix(const r_bsp_face_t *surf, const r_stage_t *stage) {
-	static _Bool identity = true;
-	float s, t;
-
-	if (!(stage->cm->flags & STAGE_TEXTURE_MATRIX)) {
-
-		if (!identity) {
-			Matrix4x4_CreateIdentity(&r_texture_matrix);
-		}
-
-		identity = true;
-		return;
-	}
-
-	Matrix4x4_CreateIdentity(&r_texture_matrix);
-
-	if (surf) { // for BSP surfaces, add stretch and rotate
-
-		s = (surf->st_mins[0] + surf->st_maxs[0]) * 0.5;
-		t = (surf->st_mins[1] + surf->st_maxs[1]) * 0.5;
-
-		if (stage->cm->flags & STAGE_STRETCH) {
-			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
-			Matrix4x4_ConcatScale3(&r_texture_matrix, stage->stretch.damp, stage->stretch.damp, 1.0);
-			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
-		}
-
-		if (stage->cm->flags & STAGE_ROTATE) {
-			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
-			Matrix4x4_ConcatRotate(&r_texture_matrix, stage->rotate.deg, 0.0, 0.0, 1.0);
-			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
-		}
-	}
-
-	if (stage->cm->flags & STAGE_SCALE_S) {
-		Matrix4x4_ConcatScale3(&r_texture_matrix, stage->cm->scale.s, 1.0, 1.0);
-	}
-
-	if (stage->cm->flags & STAGE_SCALE_T) {
-		Matrix4x4_ConcatScale3(&r_texture_matrix, 1.0, stage->cm->scale.t, 1.0);
-	}
-
-	if (stage->cm->flags & STAGE_SCROLL_S) {
-		Matrix4x4_ConcatTranslate(&r_texture_matrix, stage->scroll.ds, 0.0, 0.0);
-	}
-
-	if (stage->cm->flags & STAGE_SCROLL_T) {
-		Matrix4x4_ConcatTranslate(&r_texture_matrix, 0.0, stage->scroll.dt, 0.0);
-	}
-
-	identity = false;
-}
-
-/**
- * @brief Generates a single texture coordinate for the specified stage and vertex.
- */
-static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const vec2_t in,
-                                   vec2_t out) {
-
-	vec3_t tmp;
-
-	if (stage->cm->flags & STAGE_ENVMAP) { // generate texcoords
-
-		tmp = Vec3_Subtract(v, r_view.origin);
-		tmp = Vec3_Normalize(tmp);
-
-		out[0] = tmp[0];
-		out[1] = tmp[1];
-	} else { // or use the ones we were given
-		out[0] = in[0];
-		out[1] = in[1];
-	}
-
-	Matrix4x4_Transform2(&r_texture_matrix, out, out);
-}
-
-#define NUM_DIRTMAP_ENTRIES 16
-static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
-	0.6,
-	0.5,
-	0.3,
-	0.4,
-	0.7,
-	0.3,
-	0.0,
-	0.4,
-	0.5,
-	0.2,
-	0.8,
-	0.5,
-	0.3,
-	0.2,
-	0.5,
-	0.3
-};
-
-/**
- * @brief Generates a single color for the specified stage and vertex.
- */
-static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, u8vec4_t color) {
-
-	float a;
-
-	if (stage->cm->flags & STAGE_TERRAIN) {
-
-		if (stage->cm->flags & STAGE_COLOR) { // honor stage color
-			ColorDecompose3(stage->cm->color, color);
-		} else { // or use white
-			color = vec3(255, 255, 255);
-		}
-
-		// resolve alpha for vert based on z axis height
-		if (v[2] < stage->cm->terrain.floor) {
-			a = 0.0;
-		} else if (v[2] > stage->cm->terrain.ceil) {
-			a = 1.0;
-		} else {
-			a = (v[2] - stage->cm->terrain.floor) / stage->cm->terrain.height;
-		}
-
-		color[3] = (u8float) (a * 255.0);
-	} else if (stage->cm->flags & STAGE_DIRTMAP) {
-
-		// resolve dirtmap based on vertex position
-		const int32_t index = (int32_t) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
-		if (stage->cm->flags & STAGE_COLOR) { // honor stage color
-			ColorDecompose3(stage->cm->color, color);
-		} else
-			// or use white
-		{
-			color = vec3(255, 255, 255);
-		}
-
-		color[3] = (u8float) (dirtmap[index] * stage->cm->dirt.intensity);
-	} else { // simply use white
-		color[0] = color[1] = color[2] = color[3] = 255;
-	}
-}
-
-/**
- * @brief Manages all state for the specified surface and stage. The surface will be
- * NULL in the case of mesh stages.
- */
-static void R_SetStageState(const r_bsp_face_t *surf, const r_stage_t *stage) {
-	vec4_t color;
-
-	// bind the texture
-	R_BindDiffuseTexture(stage->image->texnum);
-
-	// resolve all static, dynamic, and per-pixel lighting
-	R_StageLighting(surf, stage);
-
-	// set the blend function, ensuring a sane default
-	if (stage->cm->flags & STAGE_BLEND) {
-		R_BlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
-	} else {
-		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-
-	// for meshes, see if we want to use the mesh color
-	if (stage->cm->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-		// for terrain, enable the color array
-		R_EnableColorArray(true);
-	} else {
-		R_EnableColorArray(false);
-
-		// resolve the shade color
-		if (stage->cm->mesh_color) { // explicit
-			color = r_mesh_state.color;
-		} else if (stage->cm->flags & STAGE_COLOR) { // explicit
-			color = stage->cm->color;
-		} else if (stage->cm->flags & STAGE_ENVMAP) { // implicit
-			color = surf->texinfo->material->diffuse->color;
-		} else {
-			color = vec3(1.0, 1.0, 1.0);
-		}
-
-		// modulate the alpha value for pulses
-		if (stage->cm->flags & STAGE_PULSE) {
-			color[3] = stage->pulse.dhz;
-		} else {
-			color[3] = 1.0;
-		}
-	}
-
-	if (stage->cm->flags & STAGE_FOG) {
-		R_EnableFog(true);
-	} else {
-		R_EnableFog(false);
-	}
-}
-
-static uint32_t r_material_vertex_count;
-
-/**
- * @brief Render the specified stage for the surface.
- */
-static void R_DrawBspSurfaceMaterialStage(const r_bsp_face_t *surf, const r_stage_t *stage) {
-
-	// expand array if we're gonna eat it
-	if (r_material_state.vertex_len <= (r_material_vertex_count + surf->num_vertexes)) {
-		r_material_state.vertex_len *= 2;
-		r_material_state.vertex_array = g_array_set_size(r_material_state.vertex_array, r_material_state.vertex_len);
-		Com_Debug(DEBUG_RENDERER, "Expanded material vertex array to %u\n", r_material_state.vertex_len);
-	}
-
-	const r_bsp_vertex_t *in = r_world_model->bsp->vertexes + surf->first_vertex;
-	for (int32_t i = 0; i < surf->num_vertexes; i++, in++) {
-
-		r_material_vertex_t *out = &VERTEX_ARRAY_INDEX(r_material_vertex_count + i);
-
-		R_StageVertex(surf, stage, in->position, out->position);
-
-		R_StageTexCoord(stage, in->position, in->texcoords.diffuse, out->diffuse);
-
-		if (texunit_lightmap->enabled) { // lightmap texcoords
-			PackTexcoords(in->texcoords.lightmap, out->lightmap);
-		}
-
-		if (r_state.color_array_enabled) { // colors
-			R_StageColor(stage, in->position, out->color);
-		}
-
-		if (r_state.lighting_enabled) { // normals and tangents
-			out->normal = in->normal;
-			out->tangent = in->tangent;
-			out->bitangent = in->bitangent;
-		}
-	}
-
-	r_material_vertex_count += surf->num_vertexes;
-}
-
-/**
- * @brief Iterates the specified surfaces list, updating materials as they are
- * encountered, and rendering all visible stages. State is lazily managed
- * throughout the iteration, so there is a concerted effort to restore the
- * state after all surface stages have been rendered.
- */
-void R_DrawMaterialBspFaces(const r_bsp_faces_t *surfs) {
-
-	if (!r_materials->value || r_draw_wireframe->value) {
-		return;
-	}
-
-	if (!surfs->count) {
-		return;
-	}
-
-	// first pass compiles vertices
-	r_material_vertex_count = 0;
-
-	for (uint32_t i = 0; i < surfs->count; i++) {
-
-		const r_bsp_face_t *surf = surfs->surfaces[i];
-
-		if (surf->frame != r_locals.frame) {
-			continue;
-		}
-
-		r_material_t *m = surf->texinfo->material;
-
-		R_UpdateMaterial(m);
-
-		float j = -10.0;
-		for (r_stage_t *s = m->stages; s; s = s->next, j -= 10.0) {
-
-			if (!(s->cm->flags & STAGE_DIFFUSE)) {
-				continue;
-			}
-
-			R_UpdateMaterialStage(m, s);
-
-			R_StageTextureMatrix(surf, s);
-
-			R_SetStageState(surf, s);
-
-			R_DrawBspSurfaceMaterialStage(surf, s);
-		}
-	}
-
-	if (!r_material_vertex_count) {
-		return;
-	}
-
-	R_EnableTexture(texunit_lightmap, true);
-
-	if (r_deluxemap->integer) {
-		R_EnableTexture(texunit_deluxemap, true);
-	}
-
-	if (r_stainmaps->integer) {
-		R_EnableTexture(texunit_stainmap, true);
-	}
-
-	R_EnableLighting(true);
-
-	R_EnableColorArray(true);
-
-	R_ResetArrayState();
-
-	R_BindAttributeInterleaveBuffer(&r_material_state.vertex_buffer, R_ATTRIB_MASK_ALL);
-
-	R_EnableColorArray(false);
-
-	R_EnableLighting(false);
-
-	R_EnableTexture(texunit_lightmap, false);
-	R_EnableTexture(texunit_deluxemap, false);
-
-	R_EnablePolygonOffset(true);
-
-	R_UploadToSubBuffer(&r_material_state.vertex_buffer, 0,
-	                    r_material_vertex_count * sizeof(r_material_vertex_t),
-	                    r_material_state.vertex_array->data, false);
-
-	// second pass draws
-	for (uint32_t i = 0, index = 0; i < surfs->count; i++) {
-
-		r_bsp_face_t *surf = surfs->surfaces[i];
-
-		if (surf->frame != r_locals.frame) {
-			continue;
-		}
-
-		r_material_t *m = surf->texinfo->material;
-
-		float j = R_OFFSET_UNITS;
-		for (const r_stage_t *s = m->stages; s; s = s->next, j += R_OFFSET_UNITS) {
-
-			if (!(s->cm->flags & STAGE_DIFFUSE)) {
-				continue;
-			}
-
-			R_PolygonOffset(R_OFFSET_FACTOR, j); // increase depth offset for each stage
-
-			R_SetStageState(surf, s);
-
-			R_DrawArrays(GL_TRIANGLE_FAN, index, surf->num_vertexes);
-
-			index += surf->num_vertexes;
-		}
-	}
-
-	R_UnbindAttributeBuffers();
-
-	R_EnablePolygonOffset(false);
-
-	Matrix4x4_CreateIdentity(&r_texture_matrix);
-
-	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	R_EnableColorArray(false);
-
-	R_EnableTexture(texunit_lightmap, false);
-	R_EnableTexture(texunit_deluxemap, false);
-	R_EnableTexture(texunit_stainmap, false);
-
-	R_EnableLighting(true);
-
-	R_EnableLights(0);
-
-	R_UseMaterial(NULL);
-
-	R_EnableLighting(false);
-}
-
-/**
- * @brief Re-draws the currently bound arrays from the given offset to count after
- * setting GL state for the stage.
- */
-void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count) {
-	const _Bool blend = r_state.blend_enabled;
-
-	if (!r_materials->value || r_draw_wireframe->value) {
-		return;
-	}
-
-	if (!(m->cm->flags & STAGE_DIFFUSE)) {
-		return;
-	}
-
-	R_UpdateMaterial(m);
-
-	if (!blend) {
-		R_EnableBlend(true);
-		R_EnableDepthMask(false);
-	}
-
-	R_EnablePolygonOffset(true);
-
-	r_stage_t *s = m->stages;
-	for (float j = R_OFFSET_UNITS; s; s = s->next, j += R_OFFSET_UNITS) {
-
-		if (!(s->cm->flags & STAGE_DIFFUSE)) {
-			continue;
-		}
-
-		R_UpdateMaterialStage(m, s);
-
-		R_PolygonOffset(R_OFFSET_FACTOR, j); // increase depth offset for each stage
-
-		R_SetStageState(NULL, s);
-
-		R_DrawArrays(GL_TRIANGLES, offset, count);
-
-		r_view.num_mesh_tris += count;
-		r_view.num_mesh_models++;
-	}
-
-	R_EnablePolygonOffset(false);
-
-	if (!blend) {
-		R_EnableBlend(false);
-		R_EnableDepthMask(true);
-	}
-
-	Matrix4x4_CreateIdentity(&r_texture_matrix);
-
-	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	R_EnableColorArray(false);
-}
-#endif
-
 /**
  * @brief Register event listener for materials.
  */
@@ -590,8 +36,8 @@ static void R_RegisterMaterial(r_media_t *self) {
 			R_RegisterDependency(self, (r_media_t *) s->material);
 		}
 
-		if (s->image) {
-			R_RegisterDependency(self, (r_media_t *) s->image);
+		if (s->texture) {
+			R_RegisterDependency(self, (r_media_t *) s->texture);
 		}
 
 		for (int32_t i = 0; i < s->cm->anim.num_frames; i++) {
@@ -647,9 +93,9 @@ static int32_t R_ResolveStage(r_stage_t *stage, cm_asset_context_t context) {
 
 	if (*stage->cm->asset.path) {
 
-		if (stage->cm->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_FLARE)) {
-			stage->image = R_LoadImage(stage->cm->asset.path, IT_MATERIAL);
-			if (stage->image->type == IT_NULL) {
+		if (stage->cm->flags & (STAGE_TEXTURE | STAGE_FLARE)) {
+			stage->texture = R_LoadImage(stage->cm->asset.path, IT_MATERIAL);
+			if (stage->texture->type == IT_NULL) {
 				Com_Warn("Failed to resolve stage: %s\n", stage->cm->asset.name);
 				return -1;
 			}
@@ -711,11 +157,6 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 				case ASSET_CONTEXT_PLAYERS:
 					if (!g_str_has_prefix(name, "players/")) {
 						g_strlcat(key, "players/", len);
-					}
-					break;
-				case ASSET_CONTEXT_ENVMAPS:
-					if (!g_str_has_prefix(name, "envmaps/")) {
-						g_strlcat(key, "envmaps/", len);
 					}
 					break;
 				case ASSET_CONTEXT_FLARES:
@@ -1109,7 +550,7 @@ static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
 /**
  * @brief
  */
-static void R_SaveMaterials_f(void) {
+void R_SaveMaterials_f(void) {
 
 	if (!r_world_model) {
 		Com_Print("No map loaded\n");
@@ -1122,31 +563,71 @@ static void R_SaveMaterials_f(void) {
 /**
  * @brief
  */
-void R_InitMaterials(void) {
+void R_UpdateBspMaterialStage(const r_bsp_draw_elements_t *draw, r_stage_t *stage) {
 
-	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to the disk.");
+	stage->texture_matrix = matrix4x4_identity;
+	stage->color = Color3fv(stage->cm->color);
 
-//	r_material_state.vertex_len = INITIAL_VERTEX_COUNT;
-//
-//	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_vertex_t),
-//	                                r_material_state.vertex_len);
-//
-//	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, &(const r_create_interleave_t) {
-//		.struct_size = sizeof(r_material_vertex_t),
-//		.layout = r_material_buffer_layout,
-//		.hint = GL_DYNAMIC_DRAW,
-//		.size = sizeof(r_material_vertex_t) * r_material_state.vertex_len
-//	});
-//
-//	Matrix4x4_CreateIdentity(&r_texture_matrix);
-}
+	if (stage->cm->flags & STAGE_PULSE) {
+		stage->color.a = (sinf(r_view.ticks * stage->cm->pulse.hz * 0.00628) + 1.0) / 2.0;
+	}
 
-/**
- * @brief
- */
-void R_ShutdownMaterials(void) {
+	if (draw) { // for BSP surfaces, add stretch and rotate
 
-//	g_array_free(r_material_state.vertex_array, true);
-//
-//	R_DestroyBuffer(&r_material_state.vertex_buffer);
+		vec2_t st_mins = Vec2_Mins();
+		vec2_t st_maxs = Vec2_Maxs();
+
+		const GLuint *e = ((GLvoid *) r_world_model->bsp->elements) + (ptrdiff_t) draw->elements;
+		for (int32_t i = 0; i < draw->num_elements; i++, e++) {
+			const r_bsp_vertex_t *v = &r_world_model->bsp->vertexes[*e];
+
+			st_mins = Vec2_Minf(st_mins, v->diffusemap);
+			st_maxs = Vec2_Maxf(st_maxs, v->diffusemap);
+		}
+
+		const float s = (st_mins.x + st_maxs.x) * 0.5;
+		const float t = (st_mins.y + st_maxs.y) * 0.5;
+
+		if (stage->cm->flags & STAGE_STRETCH) {
+			const float mod = (sinf(r_view.ticks * stage->cm->stretch.hz * 0.00628) + 1.0) / 2.0;
+			const float amp = 1.5 - mod * stage->cm->stretch.amp;
+			Matrix4x4_ConcatTranslate(&stage->texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatScale3(&stage->texture_matrix, amp, amp, 1.0);
+			Matrix4x4_ConcatTranslate(&stage->texture_matrix, -s, -t, 0.0);
+		}
+
+		if (stage->cm->flags & STAGE_ROTATE) {
+			const float theta = r_view.ticks * stage->cm->rotate.hz * 0.360;
+			Matrix4x4_ConcatTranslate(&stage->texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatRotate(&stage->texture_matrix, theta, 0.0, 0.0, 1.0);
+			Matrix4x4_ConcatTranslate(&stage->texture_matrix, -s, -t, 0.0);
+		}
+	}
+
+	if (stage->cm->flags & STAGE_SCALE_S) {
+		Matrix4x4_ConcatScale3(&stage->texture_matrix, stage->cm->scale.s, 1.0, 1.0);
+	}
+
+	if (stage->cm->flags & STAGE_SCALE_T) {
+		Matrix4x4_ConcatScale3(&stage->texture_matrix, 1.0, stage->cm->scale.t, 1.0);
+	}
+
+	if (stage->cm->flags & STAGE_SCROLL_S) {
+		Matrix4x4_ConcatTranslate(&stage->texture_matrix, stage->cm->scroll.s * r_view.ticks / 1000.0, 0.0, 0.0);
+	}
+
+	if (stage->cm->flags & STAGE_SCROLL_T) {
+		Matrix4x4_ConcatTranslate(&stage->texture_matrix, 0.0, stage->cm->scroll.t * r_view.ticks / 1000.0, 0.0);
+	}
+
+	if (stage->cm->flags & STAGE_ANIM) {
+		if (stage->cm->anim.fps) {
+			if (r_view.ticks >= stage->anim.dtime) { // change frames
+				stage->anim.dtime = r_view.ticks + (1000 / stage->cm->anim.fps);
+				stage->texture = stage->anim.frames[++stage->anim.dframe % stage->cm->anim.num_frames];
+			}
+		}/* else if (r_view.current_entity) {
+			s->image = s->anim.frames[r_view.current_entity->frame % s->cm->anim.num_frames];
+		}*/
+	}
 }

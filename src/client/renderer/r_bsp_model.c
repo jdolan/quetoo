@@ -351,10 +351,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 				continue;
 			}
 
-			if (draw->texinfo->flags & SURF_MATERIAL) {
-				continue;
-			}
-
 			if (draw->texinfo->flags & SURF_MASK_BLEND) {
 				continue;
 			}

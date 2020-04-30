@@ -22,11 +22,12 @@
 #include "r_local.h"
 
 #define TEXTURE_MATERIAL                 0
-#define TEXTURE_LIGHTGRID                3
-#define TEXTURE_LIGHTGRID_AMBIENT        3
-#define TEXTURE_LIGHTGRID_DIFFUSE        4
-#define TEXTURE_LIGHTGRID_RADIOSITY      5
-#define TEXTURE_LIGHTGRID_DIRECTION      6
+#define TEXTURE_STAGE                    1
+#define TEXTURE_LIGHTGRID                4
+#define TEXTURE_LIGHTGRID_AMBIENT        4
+#define TEXTURE_LIGHTGRID_DIFFUSE        5
+#define TEXTURE_LIGHTGRID_RADIOSITY      6
+#define TEXTURE_LIGHTGRID_DIRECTION      7
 
 /**
  * @brief The program.

@@ -313,7 +313,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			break;
 		}
 
-		if (!g_strcmp0(token, "texture") || !g_strcmp0(token, "diffuse")) {
+		if (!g_strcmp0(token, "texture")) {
 
 			if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
 				Cm_MaterialWarn(path, parser, "Missing path or too many characters");
@@ -321,17 +321,6 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			}
 
 			s->flags |= STAGE_TEXTURE;
-			continue;
-		}
-
-		if (!g_strcmp0(token, "envmap")) {
-
-			if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
-				Cm_MaterialWarn(path, parser, "Missing path or too many characters");
-				continue;
-			}
-
-			s->flags |= STAGE_ENVMAP;
 			continue;
 		}
 
@@ -346,6 +335,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 			if (s->blend.src == GL_INVALID_ENUM) {
 				Cm_MaterialWarn(path, parser, "Invalid blend src");
+				s->blend.src = 0;
 			}
 
 			if (!Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token))) {
@@ -357,13 +347,10 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 			if (s->blend.dest == GL_INVALID_ENUM) {
 				Cm_MaterialWarn(path, parser, "Invalid blend dest");
+				s->blend.dest = 0;
 			}
 
-			if (s->blend.src != GL_INVALID_ENUM &&
-				s->blend.dest != GL_INVALID_ENUM) {
-				s->flags |= STAGE_BLEND;
-			}
-
+			s->flags |= STAGE_BLEND;
 			continue;
 		}
 
@@ -592,21 +579,20 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			continue;
 		}
 
-		if (!g_strcmp0(token, "mesh_color")) {
-			s->mesh_color = true;
-			continue;
-		}
-
 		if (*token == '}') {
 
-			// a texture, or envmap means render it
-			if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP)) {
-				s->flags |= STAGE_DIFFUSE;
+			// terrain and dirtmapping use lighting
+			if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+				s->flags |= STAGE_LIGHTING;
+			}
 
-				// a terrain blend or dirtmap means light it
-				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-					s->flags |= STAGE_LIGHTING;
-				}
+			// ensure appropriate blend function defaults
+			if (s->blend.src == 0) {
+				s->blend.src = GL_SRC_ALPHA;
+			}
+
+			if (s->blend.dest == 0) {
+				s->blend.dest = GL_ONE_MINUS_SRC_ALPHA;
 			}
 
 			// a blend dest other than GL_ONE should use fog by default
@@ -742,7 +728,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			continue;
 		}
 
-		if (!g_strcmp0(token, "material")) {
+		if (!g_strcmp0(token, "material") || !g_strcmp0(token, "diffusemap")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, token, MAX_QPATH)) {
 				Cm_MaterialWarn(path, &parser, "Too many characters in path");
@@ -755,7 +741,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			for (const GList *list = *materials; list; list = list->next) {
 				const cm_material_t *mat = list->data;
 				if (!g_strcmp0(m->basename, mat->basename)) {
-					Cm_MaterialWarn(path, &parser, "Redefining material");
+					Cm_MaterialWarn(path, &parser, "Ignoring redefined material");
 					Cm_FreeMaterial(m);
 					m = NULL;
 					break;
@@ -985,13 +971,6 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 					g_snprintf(name, sizeof(name), "players/%s", asset->name);
 				}
 				break;
-			case ASSET_CONTEXT_ENVMAPS:
-				if (asset->index > -1) {
-					g_snprintf(name, sizeof(name), "envmaps/envmap_%s", asset->name);
-				} else if (!g_str_has_prefix(asset->name, "envmaps/")) {
-					g_snprintf(name, sizeof(name), "envmaps/%s", asset->name);
-				}
-				break;
 			case ASSET_CONTEXT_FLARES:
 				if (asset->index > -1) {
 					g_snprintf(name, sizeof(name), "flares/flare_%s", asset->name);
@@ -1058,9 +1037,7 @@ static _Bool Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
 
 	if (*stage->asset.name) {
 
-		if (stage->flags & STAGE_ENVMAP) {
-			context = ASSET_CONTEXT_ENVMAPS;
-		} else if (stage->flags & STAGE_FLARE) {
+		if (stage->flags & STAGE_FLARE) {
 			context = ASSET_CONTEXT_FLARES;
 		}
 
@@ -1138,12 +1115,6 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 
 	if (stage->flags & STAGE_TEXTURE) {
 		Fs_Print(file, "\t\ttexture %s\n", stage->asset.name);
-	} else if (stage->flags & STAGE_ENVMAP) {
-		if (stage->asset.index > -1) {
-			Fs_Print(file, "\t\tenvmap %d\n", stage->asset.index);
-		} else {
-			Fs_Print(file, "\t\tenvmap %s\n", stage->asset.name);
-		}
 	} else if (stage->flags & STAGE_FLARE) {
 		if (stage->asset.index > -1) {
 			Fs_Print(file, "\t\tflare %d\n", stage->asset.index);
