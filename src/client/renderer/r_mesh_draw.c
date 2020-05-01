@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 #define TEXTURE_MATERIAL                 0
-#define TEXTURE_STAGE                    1
+#define TEXTURE_STAGE                    2
 #define TEXTURE_LIGHTGRID                4
 #define TEXTURE_LIGHTGRID_AMBIENT        4
 #define TEXTURE_LIGHTGRID_DIFFUSE        5
@@ -53,6 +53,7 @@ static struct {
 	GLint lerp;
 
 	GLint texture_material;
+	GLint texture_stage;
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_direction;
@@ -74,13 +75,13 @@ static struct {
 	GLint hardness;
 	GLint specular;
 
+	GLint stage;
+
 	GLuint lights_block;
 	GLint lights_mask;
 
 	GLint fog_parameters;
 	GLint fog_color;
-
-	GLint caustics;
 } r_mesh_program;
 
 /**
@@ -99,8 +100,6 @@ void R_UpdateMeshEntities(void) {
 
 	glUniformMatrix4fv(r_mesh_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_mesh_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
-
-	glUniform1f(r_mesh_program.alpha_threshold, .125f);
 
 	glUniform1f(r_mesh_program.brightness, r_brightness->value);
 	glUniform1f(r_mesh_program.contrast, r_contrast->value);
@@ -122,6 +121,92 @@ void R_UpdateMeshEntities(void) {
 /**
  * @brief
  */
+static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face_t *face, r_stage_t *stage) {
+
+	color_t color = Color4fv(e->color);
+
+	if (stage->cm->flags & STAGE_COLOR) {
+		color = Color_Multiply(color, Color3fv(stage->cm->color));
+	}
+
+	if (stage->cm->flags & STAGE_PULSE) {
+		color.a *= (sinf(r_view.ticks * stage->cm->pulse.hz * 0.00628f) + 1.f) / 2.f;
+	}
+
+	glUniform4fv(r_mesh_program.color, 1, color.rgba);
+
+	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
+
+	if (stage->cm->flags & STAGE_ANIM) {
+		if (r_view.ticks >= stage->anim.time) {
+			stage->anim.time = r_view.ticks + (1000 / stage->cm->anim.fps);
+			stage->texture = stage->anim.frames[++stage->anim.frame % stage->cm->anim.num_frames];
+		}
+	}
+
+	glBindTexture(GL_TEXTURE_2D, stage->texture->texnum);
+
+	const GLint base_vertex = (GLint) (face->vertexes - e->model->mesh->vertexes);
+	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
+
+	R_GetError(stage->texture->media.name);
+}
+
+/**
+ * @brief
+ */
+static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
+
+	if (!r_materials->value) {
+		return;
+	}
+
+	if (!(material->cm->flags & STAGE_TEXTURE)) {
+		return;
+	}
+
+	glDepthMask(GL_FALSE);
+
+	glEnable(GL_BLEND);
+	glEnable(GL_POLYGON_OFFSET_FILL);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
+
+	int32_t s = 1;
+	for (r_stage_t *stage = material->stages; stage; stage = stage->next, s++) {
+
+		if (!(stage->cm->flags & STAGE_TEXTURE)) {
+			continue;
+		}
+
+		glUniform1i(r_mesh_program.stage, s);
+
+		glPolygonOffset(-1.f, -s);
+
+		R_DrawMeshEntityMaterialStage(e, face, stage);
+	}
+
+	glUniform1i(r_mesh_program.stage, 0);
+
+	glBindVertexArray(r_world_model->bsp->vertex_array);
+	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+
+	glPolygonOffset(0.f, 0.f);
+	glDisable(GL_POLYGON_OFFSET_FILL);
+
+	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_BLEND);
+
+	glDepthMask(GL_TRUE);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
 static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	const r_mesh_model_t *mesh = e->model->mesh;
@@ -132,8 +217,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	}
 
 	if (e->effects & EF_BLEND) {
+		glUniform1f(r_mesh_program.alpha_threshold, 0.f);
 		glEnable(GL_BLEND);
 	} else {
+		glUniform1f(r_mesh_program.alpha_threshold, .125f);
 		glEnable(GL_CULL_FACE);
 	}
 
@@ -192,6 +279,8 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 		
 		r_view.count_mesh_triangles += face->num_elements / 3;
+
+		R_DrawMeshEntityMaterialStages(e, face, material);
 	}
 
 	glBindVertexArray(0);
@@ -285,6 +374,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
 
 	r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
+	r_mesh_program.texture_stage = glGetUniformLocation(r_mesh_program.name, "texture_stage");
 	r_mesh_program.texture_lightgrid_ambient = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_ambient");
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
 	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
@@ -306,6 +396,8 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.hardness = glGetUniformLocation(r_mesh_program.name, "hardness");
 	r_mesh_program.specular = glGetUniformLocation(r_mesh_program.name, "specular");
 
+	r_mesh_program.stage = glGetUniformLocation(r_mesh_program.name, "stage");
+
 	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
 	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 0);
 	r_mesh_program.lights_mask = glGetUniformLocation(r_mesh_program.name, "lights_mask");
@@ -313,9 +405,8 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.fog_parameters = glGetUniformLocation(r_mesh_program.name, "fog_parameters");
 	r_mesh_program.fog_color = glGetUniformLocation(r_mesh_program.name, "fog_color");
 
-	r_mesh_program.caustics = glGetUniformLocation(r_mesh_program.name, "caustics");
-
 	glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
+	glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);

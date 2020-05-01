@@ -198,9 +198,20 @@ typedef struct {
  * @brief Material stage animations.
  */
 typedef struct {
+	/**
+	 * @brief The images comprising this animation.
+	 */
 	r_image_t **frames;
-	uint32_t dtime;
-	uint32_t dframe;
+
+	/**
+	 * @brief The next frame time.
+	 */
+	uint32_t time;
+
+	/**
+	 * @brief The current frame index.
+	 */
+	uint32_t frame;
 } r_stage_anim_t;
 
 /**
@@ -223,18 +234,13 @@ typedef struct r_stage_s {
 	struct r_material_s *material;
 
 	/**
-	 * @brief The texture matrix, for rotation, stretch, scroll, etc.
+	 * @brief Stages may be animated.
 	 */
-	mat4_t texture_matrix;
-
-	/**
-	 * @brief The interpolated color.
-	 */
-	color_t color;
-
 	r_stage_anim_t anim;
 
-	// next stage
+	/**
+	 * @brief The next stage in the material.
+	 */
 	struct r_stage_s *next;
 } r_stage_t;
 
@@ -308,6 +314,7 @@ typedef struct {
 	vec3_t bitangent;
 	vec2_t diffusemap;
 	vec2_t lightmap;
+	color32_t color;
 } r_bsp_vertex_t;
 
 /**
@@ -626,7 +633,7 @@ typedef struct {
 	r_mesh_vertex_t *vertexes;
 	int32_t num_vertexes;
 
-	int32_t *elements;
+	GLuint *elements;
 	int32_t num_elements;
 
 	r_mesh_frame_t *frames;
@@ -1104,6 +1111,7 @@ typedef struct {
 
 	// counters, reset each frame
 
+	int32_t count_bsp_inline_models;
 	int32_t count_bsp_leafs;
 	int32_t count_bsp_nodes;
 	int32_t count_bsp_triangles;

@@ -30,5 +30,4 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context);
 void R_LoadModelMaterials(r_model_t *mod);
 void R_SaveMaterials_f(void);
-void R_UpdateBspMaterialStage(const r_bsp_draw_elements_t *draw, r_stage_t *stage);
 #endif /* __R_LOCAL_H__ */

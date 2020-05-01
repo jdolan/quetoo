@@ -22,8 +22,8 @@
 #include "r_local.h"
 
 #define TEXTURE_MATERIAL 0
-#define TEXTURE_STAGE    1
-#define TEXTURE_LIGHTMAP 2
+#define TEXTURE_LIGHTMAP 1
+#define TEXTURE_STAGE    2
 #define TEXTURE_WARP     3
 
 /**
@@ -38,18 +38,17 @@ static struct {
 	GLint in_bitangent;
 	GLint in_diffusemap;
 	GLint in_lightmap;
+	GLint in_color;
 
 	GLint projection;
 	GLint view;
 	GLint model;
-	GLint st;
 
 	GLint texture_material;
-	GLint texture_stage;
 	GLint texture_lightmap;
+	GLint texture_stage;
 	GLint texture_warp;
 
-	GLint color;
 	GLint alpha_threshold;
 
 	GLint brightness;
@@ -74,6 +73,9 @@ static struct {
 	GLint fog_color;
 
 	GLint ticks;
+
+	GLuint stage_vertex_array;
+	GLuint stage_vertex_buffer;
 
 	r_image_t *warp_image;
 } r_bsp_program;
@@ -168,6 +170,112 @@ static void R_DrawBspLightgrid(void) {
 }
 
 /**
+ * @return A texture transform matrix for the specified draw elements and stage.
+ */
+static mat4_t R_DrawBspDrawElementsMaterialStageTextureMatrix(const r_bsp_draw_elements_t *draw, r_stage_t *stage) {
+
+	mat4_t m = matrix4x4_identity;
+
+	if (stage->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
+
+		vec2_t st_mins = Vec2_Mins();
+		vec2_t st_maxs = Vec2_Maxs();
+
+		const GLuint *e = ((GLvoid *) r_world_model->bsp->elements) + (ptrdiff_t) draw->elements;
+		for (int32_t i = 0; i < draw->num_elements; i++, e++) {
+			const r_bsp_vertex_t *v = &r_world_model->bsp->vertexes[*e];
+
+			st_mins = Vec2_Minf(st_mins, v->diffusemap);
+			st_maxs = Vec2_Maxf(st_maxs, v->diffusemap);
+		}
+
+		const float s = (st_mins.x + st_maxs.x) * .5f;
+		const float t = (st_mins.y + st_maxs.y) * .5f;
+
+		if (stage->cm->flags & STAGE_STRETCH) {
+			const float mod = (sinf(r_view.ticks * stage->cm->stretch.hz * 0.00628f) + 1.f) / 2.f;
+			const float amp = 1.5f - mod * stage->cm->stretch.amp;
+			Matrix4x4_ConcatTranslate(&m, -s, -t, 0.f);
+			Matrix4x4_ConcatScale3(&m, amp, amp, 1.f);
+			Matrix4x4_ConcatTranslate(&m, -s, -t, 0.f);
+		}
+
+		if (stage->cm->flags & STAGE_ROTATE) {
+			const float angle = r_view.ticks * stage->cm->rotate.hz * 0.36f;
+			Matrix4x4_ConcatTranslate(&m, -s, -t, 0.f);
+			Matrix4x4_ConcatRotate(&m, angle, 0.f, 0.f, 1.f);
+			Matrix4x4_ConcatTranslate(&m, -s, -t, 0.f);
+		}
+	}
+
+	if (stage->cm->flags & STAGE_SCALE_S) {
+		Matrix4x4_ConcatScale3(&m, stage->cm->scale.s, 1.f, 1.f);
+	}
+
+	if (stage->cm->flags & STAGE_SCALE_T) {
+		Matrix4x4_ConcatScale3(&m, 1.f, stage->cm->scale.t, 1.f);
+	}
+
+	if (stage->cm->flags & STAGE_SCROLL_S) {
+		Matrix4x4_ConcatTranslate(&m, stage->cm->scroll.s * r_view.ticks / 1000.f, 0.f, 0.f);
+	}
+
+	if (stage->cm->flags & STAGE_SCROLL_T) {
+		Matrix4x4_ConcatTranslate(&m, 0.f, stage->cm->scroll.t * r_view.ticks / 1000.f, 0.f);
+	}
+
+	return m;
+}
+
+/**
+ * @brief
+ */
+static void R_DrawBspDrawElementsMaterialStage(const r_bsp_draw_elements_t *draw, r_stage_t *stage) {
+
+	const mat4_t m = R_DrawBspDrawElementsMaterialStageTextureMatrix(draw, stage);
+
+	r_bsp_vertex_t vertexes[draw->num_elements];
+	r_bsp_vertex_t *v = vertexes;
+
+	const GLuint *e = r_world_model->bsp->elements + ((ptrdiff_t) draw->elements) / sizeof(GLuint);
+	for (int32_t i = 0; i < draw->num_elements; i++, e++, v++) {
+
+		*v = r_world_model->bsp->vertexes[*e];
+
+		color_t color = Color32_Color(v->color);
+
+		if (stage->cm->flags & STAGE_COLOR) {
+			color = Color_Multiply(color, Color3fv(stage->cm->color));
+		}
+
+		if (stage->cm->flags & STAGE_PULSE) {
+			color.a *= (sinf(r_view.ticks * stage->cm->pulse.hz * 0.00628f) + 1.f) / 2.f;
+		}
+
+		v->color = Color_Color32(color);
+
+		Matrix4x4_Transform2(&m, v->diffusemap.xy, v->diffusemap.xy);
+
+		if (stage->cm->flags & STAGE_ANIM) {
+			if (r_view.ticks >= stage->anim.time) {
+				stage->anim.time = r_view.ticks + (1000 / stage->cm->anim.fps);
+				stage->texture = stage->anim.frames[++stage->anim.frame % stage->cm->anim.num_frames];
+			}
+		}
+	}
+
+	glBufferData(GL_ARRAY_BUFFER, draw->num_elements * sizeof(r_bsp_vertex_t), vertexes, GL_DYNAMIC_DRAW);
+
+	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
+
+	glBindTexture(GL_TEXTURE_2D, stage->texture->texnum);
+
+	glDrawArrays(GL_TRIANGLES, 0, draw->num_elements);
+
+	R_GetError(draw->texinfo->texture);
+}
+
+/**
  * @brief
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_bsp_draw_elements_t *draw) {
@@ -180,8 +288,13 @@ static void R_DrawBspDrawElementsMaterialStages(const r_bsp_draw_elements_t *dra
 		return;
 	}
 
+	glDepthMask(GL_FALSE);
+
 	glEnable(GL_BLEND);
 	glEnable(GL_POLYGON_OFFSET_FILL);
+
+	glBindVertexArray(r_bsp_program.stage_vertex_array);
+	glBindBuffer(GL_ARRAY_BUFFER, r_bsp_program.stage_vertex_buffer);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
 
@@ -192,25 +305,17 @@ static void R_DrawBspDrawElementsMaterialStages(const r_bsp_draw_elements_t *dra
 			continue;
 		}
 
-		R_UpdateBspMaterialStage(draw, stage);
-
 		glUniform1i(r_bsp_program.stage, s);
-		glUniform4fv(r_bsp_program.color, 1, stage->color.rgba);
-		glUniformMatrix4fv(r_bsp_program.st, 1, GL_FALSE, (GLfloat *) stage->texture_matrix.m);
 
-		glPolygonOffset(-2.f, s);
+		glPolygonOffset(-1.f, -s);
 
-		glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
-
-		glBindTexture(GL_TEXTURE_2D, stage->texture->texnum);
-
-		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-
-		r_view.count_bsp_triangles += draw->num_elements / 3;
+		R_DrawBspDrawElementsMaterialStage(draw, stage);
 	}
 
 	glUniform1i(r_bsp_program.stage, 0);
-	glUniform4fv(r_bsp_program.color, 1, color_white.rgba);
+
+	glBindVertexArray(r_world_model->bsp->vertex_array);
+	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -220,6 +325,8 @@ static void R_DrawBspDrawElementsMaterialStages(const r_bsp_draw_elements_t *dra
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 
+	glDepthMask(GL_TRUE);
+
 	R_GetError(NULL);
 }
 
@@ -228,24 +335,17 @@ static void R_DrawBspDrawElementsMaterialStages(const r_bsp_draw_elements_t *dra
  */
 static void R_DrawBspInlineModelOpaqueDrawElements(const r_bsp_inline_model_t *in) {
 
-	const r_bsp_node_t *node = NULL;
-	const r_material_t *material = NULL;
-
 	for (guint i = 0; i < in->opaque_draw_elements->len; i++) {
-
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->opaque_draw_elements, i);
 
 		if (draw->node->vis_frame != r_locals.vis_frame) {
 			continue;
 		}
 
-		if (draw->node != node) {
-			node = draw->node;
-			glUniform1i(r_bsp_program.lights_mask, node->lights_mask);
-		}
+		glUniform1i(r_bsp_program.lights_mask, draw->node->lights_mask);
 
-		if (draw->texinfo->material != material) {
-			material = draw->texinfo->material;
+		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
+			const r_material_t *material = draw->texinfo->material;
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
@@ -254,15 +354,12 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_bsp_inline_model_t *i
 			glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
 			glUniform1f(r_bsp_program.warp, material->cm->warp * r_warp->value);
-		}
 
-		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+			r_view.count_bsp_triangles += draw->num_elements / 3;
 		}
 
 		R_DrawBspDrawElementsMaterialStages(draw);
-
-		r_view.count_bsp_triangles += draw->num_elements / 3;
 	}
 }
 
@@ -303,31 +400,27 @@ static void R_DrawBspInlineModelAlphaBlendDepth(int32_t blend_depth) {
  */
 static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_t *in) {
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	const r_bsp_node_t *node = NULL;
-	const r_material_t *material = NULL;
+	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
-
-		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
+		r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
 
 		if (draw->node->vis_frame != r_locals.vis_frame) {
 			continue;
 		}
 
-		if (draw->node != node) {
-			node = draw->node;
-
-			R_DrawBspInlineModelAlphaBlendDepth(node->blend_depth);
-			material = NULL;
-
-			glUniform1i(r_bsp_program.lights_mask, node->lights_mask);
+		if (draw->node->blend_depth) {
+			R_DrawBspInlineModelAlphaBlendDepth(draw->node->blend_depth);
+			draw->node->blend_depth = 0;
 		}
 
-		if (draw->texinfo->material != material) {
-			material = draw->texinfo->material;
+		glUniform1i(r_bsp_program.lights_mask, draw->node->lights_mask);
+
+		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
+			const r_material_t *material = draw->texinfo->material;
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
@@ -337,24 +430,11 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_bsp_inline_model_
 			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
 			glUniform1f(r_bsp_program.warp, material->cm->warp * r_warp->value);
 
-			float alpha = 1.0;
-
-			switch (draw->texinfo->flags & SURF_MASK_BLEND) {
-				case SURF_BLEND_33:
-					alpha = 0.333f;
-					break;
-				case SURF_BLEND_66:
-					alpha = 0.666f;
-				default:
-					break;
-			}
-
-			glUniform4fv(r_bsp_program.color, 1, Color4f(1.f, 1.f, 1.f, alpha).rgba);
+			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+			r_view.count_bsp_triangles += draw->num_elements / 3;
 		}
 
-		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-
-		r_view.count_bsp_triangles += draw->num_elements / 3;
+		R_DrawBspDrawElementsMaterialStages(draw);
 	}
 
 	glBlendFunc(GL_ONE, GL_ZERO);
@@ -375,9 +455,6 @@ void R_DrawWorld(void) {
 
 	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_bsp_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
-
-	glUniform4fv(r_bsp_program.color, 1, color_white.rgba);
-	glUniform1f(r_bsp_program.alpha_threshold, .125f);
 
 	glUniform1f(r_bsp_program.brightness, r_brightness->value);
 	glUniform1f(r_bsp_program.contrast, r_contrast->value);
@@ -403,6 +480,7 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
 	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
+	glEnableVertexAttribArray(r_bsp_program.in_color);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->atlas->texnum);
@@ -411,6 +489,8 @@ void R_DrawWorld(void) {
 	glBindTexture(GL_TEXTURE_2D, r_bsp_program.warp_image->texnum);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+
+	glUniform1f(r_bsp_program.alpha_threshold, .125f);
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 	R_DrawBspInlineModelOpaqueDrawElements(r_world_model->bsp->inline_models);
@@ -425,6 +505,8 @@ void R_DrawWorld(void) {
 			}
 		}
 	}
+
+	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 	R_DrawBspInlineModelAlphaBlendDrawElements(r_world_model->bsp->inline_models);
@@ -453,7 +535,7 @@ void R_DrawWorld(void) {
 	R_DrawBspLightgrid();
 }
 
-#define WARP_IMAGE_SIZE 128
+#define WARP_IMAGE_SIZE 16
 
 /**
  * @brief
@@ -475,18 +557,17 @@ void R_InitBspProgram(void) {
 	r_bsp_program.in_bitangent = glGetAttribLocation(r_bsp_program.name, "in_bitangent");
 	r_bsp_program.in_diffusemap = glGetAttribLocation(r_bsp_program.name, "in_diffusemap");
 	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
+	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
 
 	r_bsp_program.projection = glGetUniformLocation(r_bsp_program.name, "projection");
 	r_bsp_program.view = glGetUniformLocation(r_bsp_program.name, "view");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
-	r_bsp_program.st = glGetUniformLocation(r_bsp_program.name, "st");
 
 	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
-	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
+	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 
-	r_bsp_program.color = glGetUniformLocation(r_bsp_program.name, "color");
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
 	r_bsp_program.brightness = glGetUniformLocation(r_bsp_program.name, "brightness");
@@ -514,9 +595,34 @@ void R_InitBspProgram(void) {
 	r_bsp_program.ticks = glGetUniformLocation(r_bsp_program.name, "ticks");
 
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
-	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
+	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
+
+	glGenVertexArrays(1, &r_bsp_program.stage_vertex_array);
+	glBindVertexArray(r_bsp_program.stage_vertex_array);
+
+	glGenBuffers(1, &r_bsp_program.stage_vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, r_bsp_program.stage_vertex_buffer);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
+	glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, lightmap));
+	glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
+
+	glEnableVertexAttribArray(r_bsp_program.in_position);
+	glEnableVertexAttribArray(r_bsp_program.in_normal);
+	glEnableVertexAttribArray(r_bsp_program.in_tangent);
+	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
+	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
+	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
+	glEnableVertexAttribArray(r_bsp_program.in_color);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;
@@ -529,10 +635,10 @@ void R_InitBspProgram(void) {
 
 	for (int32_t i = 0; i < WARP_IMAGE_SIZE; i++) {
 		for (int32_t j = 0; j < WARP_IMAGE_SIZE; j++) {
-			data[i][j][0] = 255;
-			data[i][j][1] = 255;
-			data[i][j][2] = RandomRangeu(0, 48);
-			data[i][j][3] = RandomRangeu(0, 48);
+			data[i][j][0] = RandomRangeu(0, 48);
+			data[i][j][1] = RandomRangeu(0, 48);
+			data[i][j][2] = 0;
+			data[i][j][3] = 255;
 		}
 	}
 
@@ -547,6 +653,10 @@ void R_InitBspProgram(void) {
 void R_ShutdownBspProgram(void) {
 
 	glDeleteProgram(r_bsp_program.name);
+
+	glDeleteVertexArrays(1, &r_bsp_program.stage_vertex_array);
+
+	glDeleteBuffers(1, &r_bsp_program.stage_vertex_buffer);
 
 	r_bsp_program.name = 0;
 }

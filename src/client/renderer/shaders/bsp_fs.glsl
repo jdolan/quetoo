@@ -22,10 +22,10 @@
 #define MAX_HARDNESS 16
 
 uniform sampler2DArray texture_material;
-uniform sampler2D texture_stage;
 uniform sampler2DArray texture_lightmap;
+uniform sampler2D texture_stage;
+uniform sampler2D texture_warp;
 
-uniform vec4 color;
 uniform float alpha_threshold;
 
 uniform float modulate;
@@ -34,8 +34,10 @@ uniform float bump;
 uniform float parallax;
 uniform float hardness;
 uniform float specular;
+uniform float warp;
 
 uniform int stage;
+uniform int ticks;
 
 in vertex_data {
 	vec3 position;
@@ -44,7 +46,7 @@ in vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec2 lightmap;
-	vec2 st;
+	vec4 color;
 } vertex;
 
 out vec4 out_color;
@@ -57,11 +59,16 @@ void main(void) {
 	if (stage == 0) {
 		float _specular = specular * 100.0; // fudge the numbers to match the old specular model... kinda...
 
-		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
-		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
+		vec2 vertex_diffusemap = vertex.diffusemap;
+		if (warp != 0.0) {
+			vertex_diffusemap += texture(texture_warp, vertex.diffusemap + vec2(ticks * 0.000125)).xy * warp;
+		}
 
-		diffusemap *= color;
+		vec4 diffusemap = texture(texture_material, vec3(vertex_diffusemap, 0));
+		vec4 normalmap = texture(texture_material, vec3(vertex_diffusemap, 1));
+		vec4 glossmap = texture(texture_material, vec3(vertex_diffusemap, 2));
+
+		diffusemap *= vertex.color;
 
 		if (diffusemap.a < alpha_threshold) {
 			discard;
@@ -90,15 +97,11 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
 	} else {
-		vec4 stage_texture = texture(texture_stage, vertex.st);
+		vec4 diffusemap = texture(texture_stage, vertex.diffusemap);
 
-		stage_texture *= color;
+		diffusemap *= vertex.color;
 
-		if (stage_texture.a < alpha_threshold) {
-			discard;
-		}
-
-		out_color = stage_texture;
+		out_color = diffusemap;
 	}
 	
 	// postprocessing

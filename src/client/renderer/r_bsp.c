@@ -235,6 +235,8 @@ void R_UpdateVis(void) {
 			}
 
 			R_UpdateNodeDepth(in);
+
+			r_view.count_bsp_inline_models++;
 		}
 	}
 }

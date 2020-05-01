@@ -332,6 +332,7 @@ void R_BeginFrame(void) {
 
 	R_Clear();
 
+	r_view.count_bsp_inline_models = 0;
 	r_view.count_bsp_leafs = 0;
 	r_view.count_bsp_nodes = 0;
 	r_view.count_bsp_triangles = 0;
