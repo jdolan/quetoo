@@ -747,11 +747,6 @@ typedef struct r_sprite_s {
 	float life;
 
 	/**
-	 * @brief Blending operators
-	 */
-	GLenum dst, src;
-
-	/**
 	 * @brief Whether animations should use texture lerping
 	 */
 	_Bool lerp;
@@ -813,14 +808,9 @@ typedef struct {
 	 * @brief The beam texture stretch.
 	 */
 	float stretch;
-
-	/**
-	 * @brief Blending operators
-	 */
-	GLenum dst, src;
 } r_beam_t;
 
-#define MAX_SPRITES		0x800
+#define MAX_SPRITES		0x8000
 
 /**
  * @brief Stains are low-resolution color effects added to the map's lightmap
@@ -1005,11 +995,6 @@ typedef struct {
 	 * @brief Animation interpolation next image
 	 */
 	const r_image_t *next_diffusemap;
-
-	/**
-	 * @brief Blend operation
-	 */
-	GLenum src, dst;
 
 	/**
 	 * @brief The instance count.

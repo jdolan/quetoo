@@ -59,13 +59,13 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 		face->flare->color = color_white;
 	}
 
+	face->flare->color.a = 0;
+
 	if (s->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
 		face->flare->size *= (s->cm->scale.s ? s->cm->scale.s : s->cm->scale.t);
 	}
 
 	face->flare->media = (r_media_t *) s->texture;
-	face->flare->src = s->cm->blend.src ?: GL_SRC_ALPHA;
-	face->flare->dst = s->cm->blend.dest ?: GL_ONE_MINUS_SRC_ALPHA;
 }
 
 /**
