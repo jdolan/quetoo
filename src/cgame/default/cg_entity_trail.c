@@ -284,58 +284,34 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	const vec3_t vel = Vec3_Subtract(end, start);
 	const vec3_t dir = Vec3_Normalize(vel);
 
-	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(ent, start, end, 12.0);
+	Cg_BubbleTrail(ent, start, end, 12.0);
 		
-		vec3_t origin;
-		const int32_t count = Cg_TrailDensity(ent, start, end, 8, TRAIL_PRIMARY, &origin);
+	vec3_t origin;
+	const int32_t count = Cg_TrailDensity(ent, start, end, 30, TRAIL_PRIMARY, &origin);
 
-		if (count) {
-			const float step = 1.f / count;
+	if (count) {
+		const float step = 1.f / count;
 
-			for (int32_t i = 0; i < count; i++) {
+		for (int32_t i = 0; i < count; i++) {
 
-				if (!(s = Cg_AllocSprite())) {
-					break;
-				}
-
-				s->atlas_image = cg_sprite_particle;
-				s->lifetime = RandomRangef(250.f, 300.f);
-				s->origin = Vec3_Mix(origin, end, step * i);
-				s->velocity = Vec3_Scale(dir, RandomRangef(50.f, 100.f));
-				s->color = Color_Add(color, Color3fv(Vec3_RandomRange(-.1f, .1f)));
-				s->size = 16.f;
+			if (!(s = Cg_AllocSprite())) {
+				break;
 			}
-		}
-	} else {
-		
-		vec3_t origin;
-		const int32_t count = Cg_TrailDensity(ent, start, end, 30, TRAIL_PRIMARY, &origin);
 
-		if (count) {
-			const float step = 1.f / count;
+			float scale = 7.f;
+			float power = 3.f;
+			vec3_t pdir = Vec3_Normalize(Vec3_RandomRange(-1.f, 1.f));
+			vec3_t porig = Vec3_Scale(pdir, powf(Randomf(), power) * scale);
+			float pdist = Vec3_Distance(Vec3_Zero(), porig) / scale;
 
-			for (int32_t i = 0; i < count; i++) {
-
-				if (!(s = Cg_AllocSprite())) {
-					break;
-				}
-
-				float scale = 7.f;
-				float power = 3.f;
-				vec3_t pdir = Vec3_Normalize(Vec3_RandomRange(-1.f, 1.f));
-				vec3_t porig = Vec3_Scale(pdir, powf(Randomf(), power) * scale);
-				float pdist = Vec3_Distance(Vec3_Zero(), porig) / scale;
-
-				s->atlas_image = cg_sprite_particle;
-				s->lifetime = 1000.f;
-				s->velocity = Vec3_Scale(pdir, pdist * 10.f);
-				s->origin = Vec3_Add(porig, Vec3_Mix(origin, end, step * i));
-				s->size = Maxf(2.f, powf(2.f - pdist, power));
-				s->size_velocity = Mixf(-3.5f, -.2f, pdist);
-				s->size_velocity *= RandomRangef(.66f, 1.f);
-				s->color = Color_Mix(color, Color4fv(Vec4(1.f, 1.f, 1.f, 0.f)), pdist);
-			}
+			s->atlas_image = cg_sprite_particle;
+			s->lifetime = 1000.f;
+			s->velocity = Vec3_Scale(pdir, pdist * 10.f);
+			s->origin = Vec3_Add(porig, Vec3_Mix(origin, end, step * i));
+			s->size = Maxf(2.f, powf(2.f - pdist, power));
+			s->size_velocity = Mixf(-3.5f, -.2f, pdist);
+			s->size_velocity *= RandomRangef(.66f, 1.f);
+			s->color = Color_Mix(color, Color4fv(Vec4(1.f, 1.f, 1.f, 0.f)), pdist);
 		}
 	}
 

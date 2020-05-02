@@ -144,8 +144,7 @@ static void R_AddSpriteInstance(const r_sprite_instance_t *in, float lerp, const
 
 	const _Bool is_current_batch = r_view.num_sprite_instances &&
 		in->diffusemap->texnum == last->diffusemap->texnum &&
-		((in->next_diffusemap ? in->next_diffusemap->texnum : 0) == (last->next_diffusemap ? last->next_diffusemap->texnum : 0)) &&
-		in->src == last->src && in->dst == last->dst;
+		((in->next_diffusemap ? in->next_diffusemap->texnum : 0) == (last->next_diffusemap ? last->next_diffusemap->texnum : 0));
 
 	R_SpriteTextureCoordinates(in->diffusemap, &out[0].diffusemap, &out[1].diffusemap, &out[2].diffusemap, &out[3].diffusemap);
 
@@ -230,11 +229,34 @@ void R_AddSprite(const r_sprite_t *s) {
 
 	R_AddSpriteInstance(&(const r_sprite_instance_t) {
 		.diffusemap = image,
-		.src = s->src,
-		.dst = s->dst,
 		.next_diffusemap = next_image
 	}, lerp, s->color, out);
 }
+
+#define MAX_BEAMS				512
+#define MAX_BEAM_SEGMENTS		32
+
+typedef struct {
+	float start, end;
+	int32_t start_blend_depth;
+} r_beam_segment_t;
+
+static int32_t R_BeamSegmentCompare(const void *a, const void *b) {
+	
+	const r_beam_segment_t *beam_a = (const r_beam_segment_t *) a;
+	const r_beam_segment_t *beam_b = (const r_beam_segment_t *) b;
+
+	assert(beam_a->end && beam_b->end);
+	
+	if (beam_a->start < beam_b->start) {
+		return -1;
+	}
+
+	return 1;
+}
+
+static r_beam_t beams[MAX_BEAMS];
+static int32_t num_beams;
 
 /**
  * @brief Copies the specified sprite into the view structure, provided it
@@ -242,47 +264,119 @@ void R_AddSprite(const r_sprite_t *s) {
  */
 void R_AddBeam(const r_beam_t *b) {
 
-	if (r_view.num_sprites == MAX_SPRITES) {
-		return;
-	}
-	
-	const r_image_t *image = R_ResolveSpriteImage((r_media_t *) b->image, 0);
-	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
-	const float size = b->size * .5f;
-	float length;
-	const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length);
-	const vec3_t right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view.origin, b->end))), size);
-
-	out[0].position = Vec3_Add(b->start, right);
-	out[1].position = Vec3_Add(b->end, right);
-	out[2].position = Vec3_Subtract(b->end, right);
-	out[3].position = Vec3_Subtract(b->start, right);
-
-	if (R_CullSprite(out)) {
+	if (num_beams == MAX_BEAMS) {
 		return;
 	}
 
-	R_AddSpriteInstance(&(const r_sprite_instance_t) {
-		.diffusemap = image,
-		.next_diffusemap = NULL
-	}, 0, b->color, out);
+	vec3_t mins, maxs;
+
+	Cm_TraceBounds(b->start, b->end, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
+
+	if (R_CullBox(mins, maxs)) {
+		return;
+	}
+
+	beams[num_beams] = *b;
+	num_beams++;
+}
+
+/**
+ * @brief
+ */
+static void R_CreateBeams(void) {
+
+	r_beam_t *b = beams;
+
+	for (int32_t i = 0; i < num_beams; i++, b++) {
 	
-	if (!(b->image->type & IT_MASK_CLAMP_EDGE)) {
+		const r_image_t *image = R_ResolveSpriteImage((r_media_t *) b->image, 0);
+		r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
+		const float size = b->size * .5f;
+		float length;
+		const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length);
 		length /= b->image->width * (b->size / b->image->height);
+		const vec3_t right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view.origin, b->end))), size);
 
-		if (b->stretch) {
-			length *= b->stretch;
+		// construct segments
+		r_beam_segment_t segments[MAX_BEAM_SEGMENTS] = {
+			{ .start = 0, .end = 1, .start_blend_depth = R_BlendDepthForPoint(b->start) }
+		}, *free_segment = segments + 1;
+	
+		for (r_beam_segment_t *segment = segments; segment < free_segment && free_segment != segments + MAX_BEAM_SEGMENTS && (r_view.num_sprites + (free_segment - segment)) < MAX_SPRITES; ) {
+
+			const int32_t end_blend_depth = R_BlendDepthForPoint(Vec3_Mix(b->start, b->end, segment->end));
+
+			if (segment->start_blend_depth == end_blend_depth) {
+				segment++;
+				continue;
+			}
+
+			*free_segment = *segment;
+			segment->end *= .5f;
+			free_segment->start = segment->end;
+			free_segment->start_blend_depth = end_blend_depth;
+		
+			free_segment++;
 		}
 
-		out[1].diffusemap.x *= length;
-		out[2].diffusemap.x = out[1].diffusemap.x;
+		// sort segments
+		qsort(segments, (free_segment - segments), sizeof(r_beam_segment_t), R_BeamSegmentCompare);
 
-		if (b->translate) {
-			for (int32_t i = 0; i < 4; i++) {
-				out[i].diffusemap.x += b->translate;
+		vec2_t texcoords[4];
+
+		R_SpriteTextureCoordinates(image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
+	
+		if (!(b->image->type & IT_MASK_CLAMP_EDGE)) {
+
+			if (b->stretch) {
+				length *= b->stretch;
+			}
+
+			texcoords[1].x *= length;
+			texcoords[2].x = texcoords[1].x;
+
+			if (b->translate) {
+				for (int32_t i = 0; i < 4; i++) {
+					texcoords[i].x += b->translate;
+				}
 			}
 		}
+
+		// add segments
+		for (const r_beam_segment_t *segment = segments; segment != free_segment; segment++) {
+	
+			const vec3_t start = Vec3_Mix(b->start, b->end, segment->start);
+			const vec3_t end = Vec3_Mix(b->start, b->end, segment->end);
+
+			out[0].position = Vec3_Add(start, right);
+			out[1].position = Vec3_Add(end, right);
+			out[2].position = Vec3_Subtract(end, right);
+			out[3].position = Vec3_Subtract(start, right);
+
+			if (R_CullSprite(out)) {
+				continue;
+			}
+
+			R_AddSpriteInstance(&(const r_sprite_instance_t) {
+				.diffusemap = image,
+				.next_diffusemap = NULL
+			}, 0, b->color, out);
+		
+			const float start_diffuse = (texcoords[0].x * (1.f - segment->start)) + (texcoords[1].x * segment->start);
+			const float end_diffuse = (texcoords[0].x * (1.f - segment->end)) + (texcoords[1].x * segment->end);
+		
+			out[0].diffusemap.x = start_diffuse;
+			out[1].diffusemap.x = end_diffuse;
+			out[2].diffusemap.x = end_diffuse;
+			out[3].diffusemap.x = start_diffuse;
+
+			out[0].blend_depth = out[1].blend_depth = out[2].blend_depth = out[3].blend_depth = segment->start_blend_depth;
+
+			out += 4;
+		}
 	}
+
+	num_beams = 0;
 }
 
 /**
@@ -304,6 +398,8 @@ void R_UpdateSprites(void) {
 		out[2].blend_depth =
 		out[3].blend_depth = R_BlendDepthForPoint(center);
 	}
+
+	R_CreateBeams();
 }
 
 /**
