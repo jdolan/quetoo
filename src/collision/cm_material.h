@@ -28,6 +28,7 @@ typedef enum {
 	ASSET_CONTEXT_TEXTURES,
 	ASSET_CONTEXT_MODELS,
 	ASSET_CONTEXT_PLAYERS,
+	ASSET_CONTEXT_ENVMAPS,
 	ASSET_CONTEXT_FLARES,
 } cm_asset_context_t;
 
@@ -90,7 +91,7 @@ typedef struct cm_stage_s {
 	uint32_t flags;
 	cm_asset_t asset;
 	cm_stage_blend_t blend;
-	vec3_t color;
+	color_t color;
 	cm_stage_pulse_t pulse;
 	cm_stage_stretch_t stretch;
 	cm_stage_rotate_t rotate;
@@ -119,8 +120,9 @@ typedef enum {
 	STAGE_ANIM				= (1 << 12),
 	STAGE_LIGHTMAP			= (1 << 13),
 	STAGE_DIRTMAP			= (1 << 14),
-	STAGE_FLARE				= (1 << 15),
-	STAGE_FOG				= (1 << 16),
+	STAGE_ENVMAP            = (1 << 15),
+	STAGE_FLARE				= (1 << 16),
+	STAGE_FOG				= (1 << 17),
 
 	// set on stages eligible for static, dynamic, and per-pixel lighting
 	STAGE_LIGHTING			= (1 << 29),

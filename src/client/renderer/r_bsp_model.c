@@ -201,6 +201,22 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+
+		if (out->texinfo->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
+			
+			vec2_t st_mins = Vec2_Mins();
+			vec2_t st_maxs = Vec2_Maxs();
+
+			const GLuint *e = bsp->elements + in->first_element;
+			for (int32_t j = 0; j < out->num_elements; j++, e++) {
+				const r_bsp_vertex_t *v = &bsp->vertexes[*e];
+
+				st_mins = Vec2_Minf(st_mins, v->diffusemap);
+				st_maxs = Vec2_Maxf(st_maxs, v->diffusemap);
+			}
+
+			out->st_origin = Vec2_Scale(Vec2_Add(st_mins, st_maxs), .5f);
+		}
 	}
 }
 

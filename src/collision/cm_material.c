@@ -316,7 +316,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		if (!g_strcmp0(token, "texture")) {
 
 			if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
-				Cm_MaterialWarn(path, parser, "Missing path or too many characters");
+				Cm_MaterialWarn(path, parser, "Missing or invalid path");
 				continue;
 			}
 
@@ -356,14 +356,19 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "color")) {
 
-			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, s->color.xyz, 3) != 3) {
-				Cm_MaterialWarn(path, parser, "Need 3 values for color");
-				continue;
+			const size_t count = Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, s->color.rgba, 4);
+			if (count != 4) {
+				if (count == 3) {
+					s->color.a = 1.f;
+				} else {
+					Cm_MaterialWarn(path, parser, "Need 3 or 4 values for color");
+					continue;
+				}
 			}
 
 			for (int32_t i = 0; i < 3; i++) {
 
-				if (s->color.xyz[i] < 0.0 || s->color.xyz[i] > 1.0) {
+				if (s->color.rgba[i] < 0.0 || s->color.rgba[i] > 1.0) {
 					Cm_MaterialWarn(path, parser, "Invalid value for color, must be between 0.0 and 1.0");
 				}
 			}
@@ -530,6 +535,17 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			continue;
 		}
 
+		if (!g_strcmp0(token, "envmap")) {
+
+			if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
+				Cm_MaterialWarn(path, parser, "Missing invalid path");
+				continue;
+			}
+
+			s->flags |= STAGE_ENVMAP | STAGE_TEXTURE;
+			continue;
+		}
+
 		if (!g_strcmp0(token, "anim")) {
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_UINT16, &s->anim.num_frames, 1) != 1) {
@@ -613,7 +629,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			          "  texture: %s\n"
 			          "   -> material: %s\n"
 			          "  blend: %d %d\n"
-			          "  color: %.1f %.1f %.1f\n"
+			          "  color: %.1f %.1f %.1f %.1f\n"
 			          "  pulse: %.1f\n"
 			          "  stretch: %.1f %.1f\n"
 			          "  rotate: %.1f\n"
@@ -626,7 +642,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			          "  anim.num_frames: %d\n"
 			          "  anim.fps: %.1f\n", s->flags, (*s->asset.name ? s->asset.name : "NULL"),
 			          ((s->flags & STAGE_LIGHTING) ? "true" : "false"), s->blend.src,
-			          s->blend.dest, s->color.x, s->color.y, s->color.z, s->pulse.hz,
+			          s->blend.dest, s->color.r, s->color.g, s->color.b, s->color.a, s->pulse.hz,
 			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
 			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
 			          s->anim.fps);
@@ -971,6 +987,13 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 					g_snprintf(name, sizeof(name), "players/%s", asset->name);
 				}
 				break;
+			case ASSET_CONTEXT_ENVMAPS:
+				if (asset->index > -1) {
+					g_snprintf(name, sizeof(name), "envmaps/envmap_%s", asset->name);
+				} else if (!g_str_has_prefix(asset->name, "envmaps/")) {
+					g_snprintf(name, sizeof(name), "envmaps/%s", asset->name);
+				}
+				break;
 			case ASSET_CONTEXT_FLARES:
 				if (asset->index > -1) {
 					g_snprintf(name, sizeof(name), "flares/flare_%s", asset->name);
@@ -1037,7 +1060,9 @@ static _Bool Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
 
 	if (*stage->asset.name) {
 
-		if (stage->flags & STAGE_FLARE) {
+		if (stage->flags & STAGE_ENVMAP) {
+			context = ASSET_CONTEXT_ENVMAPS;
+		} else if (stage->flags & STAGE_FLARE) {
 			context = ASSET_CONTEXT_FLARES;
 		}
 
@@ -1115,6 +1140,12 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 
 	if (stage->flags & STAGE_TEXTURE) {
 		Fs_Print(file, "\t\ttexture %s\n", stage->asset.name);
+	} else if (stage->flags & STAGE_ENVMAP) {
+		if (stage->asset.index > -1) {
+			Fs_Print(file, "\t\tenvmap %d\n", stage->asset.index);
+		} else {
+			Fs_Print(file, "\t\tenvmap %s\n", stage->asset.name);
+		}
 	} else if (stage->flags & STAGE_FLARE) {
 		if (stage->asset.index > -1) {
 			Fs_Print(file, "\t\tflare %d\n", stage->asset.index);
@@ -1130,7 +1161,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	}
 
 	if (stage->flags & STAGE_COLOR) {
-		Fs_Print(file, "\t\tcolor %g %g %g\n", stage->color.x, stage->color.y, stage->color.z);
+		Fs_Print(file, "\t\tcolor %g %g %g %g\n", stage->color.r, stage->color.g, stage->color.b, stage->color.a);
 	}
 
 	if (stage->flags & STAGE_PULSE) {

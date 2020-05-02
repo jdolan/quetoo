@@ -19,6 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#define STAGE_TEXTURE      (1 << 0)
+#define STAGE_BLEND        (1 << 2)
+#define STAGE_COLOR        (1 << 3)
+#define STAGE_PULSE        (1 << 4)
+#define STAGE_STRETCH      (1 << 5)
+#define STAGE_ROTATE       (1 << 6)
+#define STAGE_SCROLL_S     (1 << 7)
+#define STAGE_SCROLL_T     (1 << 8)
+#define STAGE_SCALE_S      (1 << 9)
+#define STAGE_SCALE_T      (1 << 10)
+#define STAGE_TERRAIN      (1 << 11)
+#define STAGE_ANIM         (1 << 12)
+#define STAGE_LIGHTMAP     (1 << 13)
+#define STAGE_DIRTMAP      (1 << 14)
+#define STAGE_ENVMAP       (1 << 15)
+#define STAGE_FLARE        (1 << 16)
+#define STAGE_FOG          (1 << 17)
+
 uniform mat4 view;
 
 uniform sampler2DArray texture_material;
@@ -39,6 +57,9 @@ uniform float hardness;
 uniform float specular;
 
 uniform int stage;
+uniform float pulse;
+
+uniform int ticks;
 
 in vertex_data {
 	vec3 position;
@@ -90,11 +111,17 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
 
 	} else {
-		vec4 diffusemap = texture(texture_stage, vertex.diffusemap);
+		vec4 effect = texture(texture_stage, vertex.diffusemap);
 
-		diffusemap *= color;
+		if ((stage & STAGE_COLOR) == STAGE_COLOR) {
+			effect *= color;
+		}
 
-		out_color = diffusemap;
+		if ((stage & STAGE_PULSE) == STAGE_PULSE) {
+			effect.a *= (sin(pulse * ticks * 0.00628) + 1.0) / 2.0;
+		}
+
+		out_color = effect;
 	}
 
 	// postprocessing

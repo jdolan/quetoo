@@ -54,7 +54,7 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 	assert(s);
 
 	if (s->cm->flags & STAGE_COLOR) {
-		face->flare->color = Color3fv(s->cm->color);
+		face->flare->color = s->cm->color;
 	} else {
 		face->flare->color = color_white;
 	}

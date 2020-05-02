@@ -271,7 +271,7 @@ typedef struct r_material_s {
 	/**
 	 * @brief The time when this material was last animated.
 	 */
-	uint32_t time;
+	uint32_t ticks;
 } r_material_t;
 
 /**
@@ -386,6 +386,8 @@ typedef struct {
 
 	GLvoid *elements;
 	int32_t num_elements;
+
+	vec2_t st_origin;
 } r_bsp_draw_elements_t;
 
 /**
