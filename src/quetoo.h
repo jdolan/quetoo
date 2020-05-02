@@ -292,7 +292,7 @@ typedef enum {
 /**
  * @brief Texinfos with these flags will not have lightmap data.
  */
-#define SURF_MASK_NO_LIGHTMAP	(SURF_SKY | SURF_WARP | SURF_NO_DRAW | SURF_HINT)
+#define SURF_MASK_NO_LIGHTMAP	(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
 
 /**
  * @brief Sound attenuation constants.

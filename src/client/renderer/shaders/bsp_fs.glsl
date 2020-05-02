@@ -23,6 +23,8 @@
 
 uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
+uniform sampler2D texture_stage;
+uniform sampler2D texture_warp;
 
 uniform float alpha_threshold;
 
@@ -32,6 +34,10 @@ uniform float bump;
 uniform float parallax;
 uniform float hardness;
 uniform float specular;
+uniform float warp;
+
+uniform int stage;
+uniform int ticks;
 
 in vertex_data {
 	vec3 position;
@@ -49,41 +55,54 @@ out vec4 out_color;
  * @brief
  */
 void main(void) {
-	
-	float _specular = specular * 100.0; // fudge the numbers to match the old specular model... kinda...
 
-	vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-	vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
-	vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
+	if (stage == 0) {
+		float _specular = specular * 100.0; // fudge the numbers to match the old specular model... kinda...
 
-	diffusemap *= vertex.color;
+		vec2 vertex_diffusemap = vertex.diffusemap;
+		if (warp != 0.0) {
+			vertex_diffusemap += texture(texture_warp, vertex.diffusemap + vec2(ticks * 0.000125)).xy * warp;
+		}
 
-	if (diffusemap.a < alpha_threshold) {
-		discard;
+		vec4 diffusemap = texture(texture_material, vec3(vertex_diffusemap, 0));
+		vec4 normalmap = texture(texture_material, vec3(vertex_diffusemap, 1));
+		vec4 glossmap = texture(texture_material, vec3(vertex_diffusemap, 2));
+
+		diffusemap *= vertex.color;
+
+		if (diffusemap.a < alpha_threshold) {
+			discard;
+		}
+
+		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(bump, bump, 1.0)));
+
+		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
+		vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
+		vec3 direction = texture(texture_lightmap, vec3(vertex.lightmap, 2)).xyz;
+
+		direction = normalize(tbn * (direction * 2.0 - 1.0));
+
+		vec3 light_diffuse = ambient + diffuse * max(0.0, dot(direction, normal));
+		vec3 light_specular = brdf_blinn(normalize(-vertex.position), direction, normal, diffuse, glossmap.a, _specular);
+		light_specular = min(light_specular * 0.2 * glossmap.xyz * hardness, MAX_HARDNESS);
+
+		vec3 stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
+
+		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
+
+		out_color = diffusemap;
+		out_color *= vec4(stainmap, 1.0);
+
+		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
+		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
+	} else {
+		vec4 diffusemap = texture(texture_stage, vertex.diffusemap);
+
+		diffusemap *= vertex.color;
+
+		out_color = diffusemap;
 	}
-
-	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-	vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(bump, bump, 1.0)));
-
-	vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
-	vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
-	vec3 direction = texture(texture_lightmap, vec3(vertex.lightmap, 2)).xyz;
-
-	direction = normalize(tbn * (direction * 2.0 - 1.0));
-
-	vec3 light_diffuse = ambient + diffuse * max(0.0, dot(direction, normal));
-	vec3 light_specular = brdf_blinn(normalize(-vertex.position), direction, normal, diffuse, glossmap.a, _specular);
-	light_specular = min(light_specular * 0.2 * glossmap.xyz * hardness, MAX_HARDNESS);
-
-	vec3 stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
-
-	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
-	
-	out_color = diffusemap;
-	out_color *= vec4(stainmap, 1.0);
-
-	out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
-	out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
 	
 	// postprocessing
 	
@@ -94,20 +113,4 @@ void main(void) {
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
-
-	// out_color.rgb = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
-	// out_color.rgb = (out_color.rgb + 1) * 0.5;
-
-	// out_color.rgb = (normal + 1) * 0.5;
-	// out_color.rgb = vec3(gen_cavity(normalmap));
-	// out_color.rgb = vec3(gen_gloss(diffusemap));
-	// out_color.rgb = vec3(min(auto_glossmap(normalmap, diffusemap), toksvig));
-	
-
-	// float power = saturate(glossmap.r * hardness);
-	// float rlen = 1.0 / saturate(length(normalmap.xyz * 2.0 - 1.0));
-	// float gloss = 1.0 / (power * (rlen - 1.0) + 1.0);
-	// out_color.rgb = vec3(length(normalmap.xyz * 2.0 - 1.0) * 0.5 + 0.5);
-	
-	// out_color.rgb = vec3(light_specular);
 }

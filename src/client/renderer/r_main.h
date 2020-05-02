@@ -39,10 +39,7 @@ extern cvar_t *r_gamma;
 extern cvar_t *r_get_error;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
-extern cvar_t *r_lightmap;
-extern cvar_t *r_light_intensity;
 extern cvar_t *r_materials;
-extern cvar_t *r_max_lights;
 extern cvar_t *r_modulate;
 extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;
@@ -130,11 +127,6 @@ typedef struct {
 	 * @brief The stain frame counter.
 	 */
 	int32_t stain_frame;
-
-	/**
-	 * @brief The light sources for the current view, transformed to view space.
-	 */
-	r_light_t view_lights[MAX_LIGHTS];
 
 	/**
 	 * @brief The fog parameters, scaled by the renderer.

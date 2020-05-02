@@ -211,7 +211,7 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 	mod->mesh->elements = Mem_LinkMalloc(mod->mesh->num_elements * sizeof(GLuint), mod->mesh);
 
 	r_mesh_vertex_t *vertex = mod->mesh->vertexes;
-	int32_t *elements = mod->mesh->elements;
+	GLuint *elements = mod->mesh->elements;
 
 	{
 		r_mesh_face_t *face = mod->mesh->faces;

@@ -90,12 +90,12 @@ static void R_FreeModel(r_media_t *self) {
 		g_ptr_array_free(mod->bsp_inline->flare_faces, 1);
 		g_ptr_array_free(mod->bsp_inline->opaque_draw_elements, 1);
 		g_ptr_array_free(mod->bsp_inline->alpha_blend_draw_elements, 1);
-		
+
 	} else if (IS_MESH_MODEL(mod)) {
 
 		glDeleteBuffers(1, &mod->mesh->vertex_buffer);
 		glDeleteBuffers(1, &mod->mesh->elements_buffer);
-
+		
 	}
 
 	R_GetError(mod->media.name);

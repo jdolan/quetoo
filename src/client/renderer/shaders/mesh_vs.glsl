@@ -46,7 +46,6 @@ out vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec3 lightgrid;
-	vec3 eye;
 } vertex;
 
 /**
@@ -70,9 +69,5 @@ void main(void) {
 
 	vec3 world_position = vec3(model * lerp_position);
 	vertex.lightgrid = (world_position - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
-
-	vertex.eye.x = -dot(vertex.position, vertex.tangent);
-	vertex.eye.y = -dot(vertex.position, vertex.bitangent);
-	vertex.eye.z = -dot(vertex.position, vertex.normal);
 }
 

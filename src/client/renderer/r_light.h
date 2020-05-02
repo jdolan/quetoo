@@ -26,5 +26,22 @@
 void R_AddLight(const r_light_t *l);
 
 #ifdef __R_LOCAL_H__
+
+typedef struct {
+	/**
+	 * @brief The light sources for the current frame, transformed to view space.
+	 */
+	r_light_t lights[MAX_LIGHTS];
+
+	/**
+	 @brief The uniform buffer containing the transformed light sources.
+	 */
+	GLuint uniform_buffer;
+} r_lights_t;
+
+extern r_lights_t r_lights;
+
 void R_UpdateLights(void);
+void R_InitLights(void);
+void R_ShutdownLights(void);
 #endif /* __R_LOCAL_H__ */

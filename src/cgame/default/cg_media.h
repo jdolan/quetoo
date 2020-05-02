@@ -77,6 +77,7 @@ extern r_animation_t *cg_sprite_bfg_explosion_2;
 extern r_animation_t *cg_sprite_bfg_explosion_3;
 extern r_animation_t *cg_sprite_poof_01;
 extern r_animation_t *cg_sprite_poof_02;
+extern r_animation_t *cg_sprite_blood_01;
 
 void Cg_UpdateMedia(void);
 #endif /* __CG_LOCAL_H__ */

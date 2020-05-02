@@ -27,15 +27,9 @@ layout (location = 4) in vec2 in_diffusemap;
 layout (location = 5) in vec2 in_lightmap;
 layout (location = 6) in vec4 in_color;
 
-uniform sampler2D texture_warp;
-
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-
-uniform float warp;
-
-uniform int ticks;
 
 out vertex_data {
 	vec3 position;
@@ -62,7 +56,4 @@ void main(void) {
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
 	vertex.color = in_color;
-
-	vec4 warpmap = texture(texture_warp, in_diffusemap + vec2(ticks * 0.000005)) * 2.0 - 1.0;
-	vertex.diffusemap += vec2(warpmap.z, warpmap.w) * warp;
 }

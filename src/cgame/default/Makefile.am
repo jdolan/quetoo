@@ -19,7 +19,6 @@ noinst_HEADERS = \
 	cg_score.h \
 	cg_sprite.h \
 	cg_temp_entity.h \
-	cg_transition.h \
 	cg_types.h \
 	cg_ui.h \
 	cg_view.h
@@ -48,7 +47,6 @@ cgame_la_SOURCES = \
 	cg_score.c \
 	cg_sprite.c \
 	cg_temp_entity.c \
-	cg_transition.c \
 	cg_ui.c \
 	cg_view.c
 

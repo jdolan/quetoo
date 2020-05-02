@@ -366,10 +366,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 				continue;
 			}
 
-			if (draw->texinfo->flags & SURF_MATERIAL) {
-				continue;
-			}
-
 			if (draw->texinfo->flags & SURF_MASK_BLEND) {
 				continue;
 			}
@@ -522,6 +518,9 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	R_GetError(mod->media.name);
 
 	glBindVertexArray(0);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 /**

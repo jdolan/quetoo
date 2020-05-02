@@ -60,10 +60,7 @@ cvar_t *r_gamma;
 cvar_t *r_get_error;
 cvar_t *r_hardness;
 cvar_t *r_height;
-cvar_t *r_lightmap;
-cvar_t *r_light_intensity;
 cvar_t *r_materials;
-cvar_t *r_max_lights;
 cvar_t *r_modulate;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
@@ -297,11 +294,19 @@ void R_DrawView(r_view_t *view) {
 
 	R_Clear();
 
-	R_DrawSky();
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	} else {
+		R_DrawSky();
+	}
 
 	R_DrawWorld();
 
 	R_DrawEntities(0);
+
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	R_DrawSprites(0);
 
@@ -327,10 +332,10 @@ void R_BeginFrame(void) {
 
 	R_Clear();
 
+	r_view.count_bsp_inline_models = 0;
 	r_view.count_bsp_leafs = 0;
 	r_view.count_bsp_nodes = 0;
-	r_view.count_bsp_draw_elements = 0;
-	r_view.count_bsp_draw_elements_blend = 0;
+	r_view.count_bsp_triangles = 0;
 
 	r_view.count_mesh_models = 0;
 	r_view.count_mesh_triangles = 0;
@@ -499,10 +504,7 @@ static void R_InitLocal(void) {
 	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console (developer tool)");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_lightmap = Cvar_Add("r_lightmap", "1", CVAR_ARCHIVE, "Controls lightmap rendering");
-	r_light_intensity = Cvar_Add("r_light_intensity", "1", CVAR_ARCHIVE, "Controls dynamic light intensity");
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
-	r_max_lights = Cvar_Add("r_max_lights", "16", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the maximum number of lights affecting a rendered object");
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects.");
@@ -522,6 +524,7 @@ static void R_InitLocal(void) {
 
 	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool)");
 	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool)");
+	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
 	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");
 	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
 	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
@@ -639,11 +642,11 @@ void R_Init(void) {
 
 	R_InitView();
 
+	R_InitLights();
+
 	R_InitSprites();
 
 	R_InitSky();
-
-	R_InitMaterials();
 
 	R_GetError("Video initialization");
 
@@ -669,11 +672,11 @@ void R_Shutdown(void) {
 
 	R_ShutdownModels();
 
+	R_ShutdownLights();
+
 	R_ShutdownSprites();
 
 	R_ShutdownSky();
-
-	R_ShutdownMaterials();
 
 	R_ShutdownFramebuffer();
 

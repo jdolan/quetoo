@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-#include "client.h"
-
 /**
  * @brief Allocates an initializes the flare for the specified surface, if one
  * should be applied. The flare is linked to the provided BSP model and will
@@ -67,7 +65,7 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 		face->flare->size *= (s->cm->scale.s ? s->cm->scale.s : s->cm->scale.t);
 	}
 
-	face->flare->media = (r_media_t *) s->image;
+	face->flare->media = (r_media_t *) s->texture;
 }
 
 /**
@@ -89,33 +87,7 @@ static void R_UpdateBspInlineModelFlares(const r_entity_t *e, const r_bsp_inline
 			Matrix4x4_Transform(&e->matrix, flare.origin.xyz, flare.origin.xyz);
 		}
 
-		const cm_trace_t tr = Cl_Trace(r_view.origin, flare.origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
-
-		flare.color.a += (tr.fraction == 1.0) ? 0.03 : -0.15;
-		flare.color.a = Clampf(flare.color.a, 0.0, 1.0);
-
-		vec3_t dir;
-		const float dist = Vec3_DistanceDir(flare.origin, r_view.origin, &dir);
-
-		const float dot = Vec3_Dot(face->plane->normal, dir);
-		if (dot > 0.0) {
-			continue;
-		}
-
-		float alpha = 0.1 + -dot * r_flares->value;
-
-		if (alpha > 1.0) {
-			alpha = 1.0;
-		}
-
-		flare.color.a *= alpha;
-
-		if (flare.color.a <= FLT_EPSILON) {
-			continue;
-		}
-
-		// scale according to distance
-		flare.size = flare.size + (flare.size * dist * .0005);
+		flare.color.a *= r_flares->value;
 
 		R_AddSprite(&flare);
 	}

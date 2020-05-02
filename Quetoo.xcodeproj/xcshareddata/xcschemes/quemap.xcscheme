@@ -110,11 +110,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--indirect"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--antialias "
@@ -134,7 +134,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/torn.map"
@@ -142,7 +142,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/tokays.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

@@ -22,6 +22,7 @@
 uniform mat4 view;
 
 uniform sampler2DArray texture_material;
+uniform sampler2D texture_stage;
 
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
@@ -37,7 +38,7 @@ uniform float parallax;
 uniform float hardness;
 uniform float specular;
 
-uniform vec4 caustics;
+uniform int stage;
 
 in vertex_data {
 	vec3 position;
@@ -46,7 +47,6 @@ in vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec3 lightgrid;
-	vec3 eye;
 } vertex;
 
 out vec4 out_color;
@@ -56,36 +56,46 @@ out vec4 out_color;
  */
 void main(void) {
 
-	vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-	vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
-	vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
+	if (stage == 0) {
 
-	diffusemap *= color;
+		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
+		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
+		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
-	if (diffusemap.a < alpha_threshold) {
-		discard;
+		diffusemap *= color;
+
+		if (diffusemap.a < alpha_threshold) {
+			discard;
+		}
+
+		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(bump, bump, 1.0)));
+
+		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
+		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
+		vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
+
+		direction = normalize((view * vec4(direction * 2.0 - 1.0, 1.0)).xyz);
+
+		vec3 lightgrid = ambient + diffuse * max(0.0, dot(normal, direction));
+
+		out_color = diffusemap;
+
+		vec3 light_diffuse = lightgrid;
+		vec3 light_specular = vec3(0.0);
+
+		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
+
+		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
+		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
+
+	} else {
+		vec4 diffusemap = texture(texture_stage, vertex.diffusemap);
+
+		diffusemap *= color;
+
+		out_color = diffusemap;
 	}
-
-	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-	vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(bump, bump, 1.0)));
-
-	vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
-	vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
-
-	vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
-	direction = normalize((view * vec4(direction * 2.0 - 1.0, 1.0)).xyz);
-
-	vec3 lightgrid = ambient + diffuse * max(0.0, dot(normal, direction));
-
-	out_color = diffusemap;
-
-	vec3 light_diffuse = lightgrid;
-	vec3 light_specular = vec3(0.0);
-	
-	dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
-
-	out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
-	out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
 
 	// postprocessing
 	

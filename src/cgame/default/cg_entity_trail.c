@@ -308,7 +308,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			s->lifetime = 1000.f;
 			s->velocity = Vec3_Scale(pdir, pdist * 10.f);
 			s->origin = Vec3_Add(porig, Vec3_Mix(origin, end, step * i));
-			s->size = Maxf(2.f, powf(2.f - pdist, power));
+				s->size = Maxf(1.7f, powf(1.7f - pdist, power));
 			s->size_velocity = Mixf(-3.5f, -.2f, pdist);
 			s->size_velocity *= RandomRangef(.66f, 1.f);
 			s->color = Color_Mix(color, Color4fv(Vec4(1.f, 1.f, 1.f, 0.f)), pdist);
@@ -429,6 +429,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			s->rotation = Randomf() * 2.f * M_PI;
 			s->size = Randomf() * 5.f + 10.f;
 			s->size_velocity = Randomf() * 5.f + 10.f;
+			s->color = Color4f(1.f, 1.f, 1.f, .25f);
 
 			// smoke 2
 			if (!(s = Cg_AllocSprite())) {
@@ -441,6 +442,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			s->rotation = Randomf() * 2.f * M_PI;
 			s->size = Randomf() * 5.f + 10.f;
 			s->size_velocity = Randomf() * 5.f + 10.f;
+			s->color = Color4f(1.f, 1.f, 1.f, .25f);
 		}
 	}
 #endif
@@ -465,8 +467,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			s->origin = Vec3_Mix(origin, end, step * i);
 			s->velocity = Vec3_Add(s->velocity, Vec3_RandomRange(-10.f, 10.f));
 			s->acceleration = Vec3_RandomRange(-10.f, 10.f);
-			s->color = Color3b(255, 255, 255);
-			s->color.a = 0.f;
+			s->color = Color4f(1.f, 1.f, 1.f, 0.f);
 			s->end_color = Vec4(0, -1.5f, -3.f, 0);
 			s->size = Randomf() * 1.6f + 1.6f;
 		}
@@ -731,7 +732,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
 	vec3_t origin;
-	const int32_t count = Cg_TrailDensity(ent, start, end, 6, TRAIL_PRIMARY, &origin);
+	const int32_t count = Cg_TrailDensity(ent, start, end, 3, TRAIL_PRIMARY, &origin);
 
 	if (!count) {
 		return;
@@ -746,13 +747,27 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 			break;
 		}
 
-		s->atlas_image = cg_sprite_particle;
+		s->animation = cg_sprite_blood_01;
+		s->lifetime = cg_sprite_blood_01->num_images * FRAMES_TO_SECONDS(30) + Randomf() * 500;
+		s->size = RandomRangef(40.f, 64.f);
+		s->color = Color4bv(0x882200aa);
+		s->rotation = RandomRadian();
+
+		s->origin = Vec3_Mix(origin, end, step * i);
+		s->velocity = Vec3_Scale(dir, 20.0);
+		s->acceleration.z = -SPRITE_GRAVITY / 2.0;
+
+		/*
+
+		s->animation = cg_sprite_blood_01;
 		s->lifetime = RandomRangef(1000.f, 1500.f);
 		s->origin = Vec3_Mix(origin, end, step * i);
 		s->velocity = Vec3_Scale(dir, 20.0);
 		s->acceleration.z = -SPRITE_GRAVITY / 2.0;
 		s->color = Color4bv(0x80000080);
 		s->size = RandomRangef(24.f, 56.f);
+
+		*/
 
 		static uint32_t added = 0;
 		if ((added++ % 3) == 0) {

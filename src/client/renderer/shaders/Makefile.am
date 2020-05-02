@@ -11,12 +11,8 @@ shaders_DATA = \
 	lights_fs.glsl \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
-	particle_fs.glsl \
-	particle_gs.glsl \
-	particle_vs.glsl \
 	sky_fs.glsl \
 	sky_vs.glsl \
-	soften_fs.glsl \
 	sprite_fs.glsl \
 	sprite_gs.glsl \
 	sprite_vs.glsl \

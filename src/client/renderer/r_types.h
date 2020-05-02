@@ -194,44 +194,53 @@ typedef struct {
 	const r_image_t **images;
 } r_animation_t;
 
-// renderer-specific material stuff
+/**
+ * @brief Material stage animations.
+ */
 typedef struct {
-	float dhz;
-} r_stage_pulse_t;
-
-typedef struct {
-	float dhz;
-	float damp;
-} r_stage_stretch_t;
-
-typedef struct {
-	float deg;
-} r_stage_rotate_t;
-
-typedef struct {
-	float ds, dt;
-} r_stage_scroll_t;
-
-// frame based material animation, lerp between consecutive images
-typedef struct {
+	/**
+	 * @brief The images comprising this animation.
+	 */
 	r_image_t **frames;
-	uint32_t dtime;
-	uint32_t dframe;
+
+	/**
+	 * @brief The next frame time.
+	 */
+	uint32_t time;
+
+	/**
+	 * @brief The current frame index.
+	 */
+	uint32_t frame;
 } r_stage_anim_t;
 
+/**
+ * @brief Material stages.
+ */
 typedef struct r_stage_s {
-	const struct cm_stage_s *cm; // link to cm stage
+	/**
+	 * @brief The backing collision material stage.
+	 */
+	const struct cm_stage_s *cm;
 
-	// renderer-local stuff parsed from cm
+	/**
+	 * @brief Stages with a render pass will reference an image.
+	 */
+	r_image_t *texture;
+
+	/**
+	 * @brief Stages with a lighting pass will reference a material.
+	 */
 	struct r_material_s *material;
-	r_image_t *image;
-	r_stage_pulse_t pulse;
-	r_stage_stretch_t stretch;
-	r_stage_rotate_t rotate;
-	r_stage_scroll_t scroll;
+
+	/**
+	 * @brief Stages may be animated.
+	 */
 	r_stage_anim_t anim;
 
-	// next stage
+	/**
+	 * @brief The next stage in the material.
+	 */
 	struct r_stage_s *next;
 } r_stage_t;
 
@@ -624,7 +633,7 @@ typedef struct {
 	r_mesh_vertex_t *vertexes;
 	int32_t num_vertexes;
 
-	int32_t *elements;
+	GLuint *elements;
 	int32_t num_elements;
 
 	r_mesh_frame_t *frames;
@@ -1087,10 +1096,10 @@ typedef struct {
 
 	// counters, reset each frame
 
+	int32_t count_bsp_inline_models;
 	int32_t count_bsp_leafs;
 	int32_t count_bsp_nodes;
-	int32_t count_bsp_draw_elements;
-	int32_t count_bsp_draw_elements_blend;
+	int32_t count_bsp_triangles;
 
 	int32_t count_mesh_models;
 	int32_t count_mesh_triangles;
