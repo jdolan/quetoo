@@ -70,10 +70,12 @@ static struct {
 	GLint gamma;
 	GLint modulate;
 
-	GLint bump;
-	GLint parallax;
-	GLint hardness;
-	GLint specular;
+	struct {
+		GLint bump;
+		GLint parallax;
+		GLint hardness;
+		GLint specular;
+	} material;
 
 	struct {
 		GLint flags;
@@ -284,10 +286,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
-			glUniform1f(r_mesh_program.bump, material->cm->bump * r_bumpmap->value);
-			glUniform1f(r_mesh_program.parallax, material->cm->parallax * r_parallax->value);
-			glUniform1f(r_mesh_program.hardness, material->cm->hardness * r_hardness->value);
-			glUniform1f(r_mesh_program.specular, material->cm->specular * r_specular->value);
+			glUniform1f(r_mesh_program.material.bump, material->cm->bump * r_bumpmap->value);
+			glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
+			glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
+			glUniform1f(r_mesh_program.material.specular, material->cm->specular * r_specular->value);
 		}
 
 		const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
@@ -406,10 +408,10 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.gamma = glGetUniformLocation(r_mesh_program.name, "gamma");
 	r_mesh_program.modulate = glGetUniformLocation(r_mesh_program.name, "modulate");
 
-	r_mesh_program.bump = glGetUniformLocation(r_mesh_program.name, "bump");
-	r_mesh_program.parallax = glGetUniformLocation(r_mesh_program.name, "parallax");
-	r_mesh_program.hardness = glGetUniformLocation(r_mesh_program.name, "hardness");
-	r_mesh_program.specular = glGetUniformLocation(r_mesh_program.name, "specular");
+	r_mesh_program.material.bump = glGetUniformLocation(r_mesh_program.name, "material.bump");
+	r_mesh_program.material.parallax = glGetUniformLocation(r_mesh_program.name, "material.parallax");
+	r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");
+	r_mesh_program.material.specular = glGetUniformLocation(r_mesh_program.name, "material.specular");
 
 	r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
 	r_mesh_program.stage.ticks = glGetUniformLocation(r_mesh_program.name, "stage.ticks");

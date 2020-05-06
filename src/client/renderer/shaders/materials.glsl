@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#define MAX_HARDNESS       16
+
 #define STAGE_TEXTURE      (1 << 0)
 #define STAGE_BLEND        (1 << 2)
 #define STAGE_COLOR        (1 << 3)
@@ -42,6 +44,33 @@
 #define STAGE_MATERIAL     (1 << 29)
 
 const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.000);
+
+/**
+ * @brief The material type.
+ */
+struct material_t {
+	/**
+	 * @brief The material roughness.
+	 */
+	float bump;
+
+	/**
+	 * @brief The material parallax.
+	 */
+	float parallax;
+
+	/**
+	 * @brief The material hardness.
+	 */
+	float hardness;
+
+	/**
+	 * @brief The material specularity.
+	 */
+	float specular;
+};
+
+uniform material_t material;
 
 /**
  * @brief The stage type.

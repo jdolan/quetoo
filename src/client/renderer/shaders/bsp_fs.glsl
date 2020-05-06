@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define MAX_HARDNESS 16
-
 uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stage;
@@ -29,11 +27,6 @@ uniform sampler2D texture_warp;
 uniform float alpha_threshold;
 
 uniform float modulate;
-
-uniform float bump;
-uniform float parallax;
-uniform float hardness;
-uniform float specular;
 
 in vertex_data {
 	vec3 position;
@@ -54,7 +47,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		float _specular = specular * 100.0;
+		float _specular = material.specular * 100.0;
 
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
 		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
@@ -67,7 +60,7 @@ void main(void) {
 		}
 
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(bump, bump, 1.0)));
+		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.bump, material.bump, 1.0)));
 
 		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
 		vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
@@ -77,7 +70,7 @@ void main(void) {
 
 		vec3 light_diffuse = ambient + diffuse * max(0.0, dot(direction, normal));
 		vec3 light_specular = brdf_blinn(normalize(-vertex.position), direction, normal, diffuse, glossmap.a, _specular);
-		light_specular = min(light_specular * 0.2 * glossmap.xyz * hardness, MAX_HARDNESS);
+		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		vec3 stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
 

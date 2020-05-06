@@ -58,10 +58,12 @@ static struct {
 	
 	GLint modulate;
 
-	GLint bump;
-	GLint parallax;
-	GLint hardness;
-	GLint specular;
+	struct {
+		GLint bump;
+		GLint parallax;
+		GLint hardness;
+		GLint specular;
+	} material;
 
 	struct {
 		GLint flags;
@@ -325,10 +327,10 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
-			glUniform1f(r_bsp_program.bump, material->cm->bump * r_bumpmap->value);
-			glUniform1f(r_bsp_program.parallax, material->cm->parallax * r_parallax->value);
-			glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
-			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
+			glUniform1f(r_bsp_program.material.bump, material->cm->bump * r_bumpmap->value);
+			glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
+			glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
+			glUniform1f(r_bsp_program.material.specular, material->cm->specular * r_specular->value);
 
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 			r_view.count_bsp_triangles += draw->num_elements / 3;
@@ -399,10 +401,10 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
-			glUniform1f(r_bsp_program.bump, material->cm->bump * r_bumpmap->value);
-			glUniform1f(r_bsp_program.parallax, material->cm->parallax * r_parallax->value);
-			glUniform1f(r_bsp_program.hardness, material->cm->hardness * r_hardness->value);
-			glUniform1f(r_bsp_program.specular, material->cm->specular * r_specular->value);
+			glUniform1f(r_bsp_program.material.bump, material->cm->bump * r_bumpmap->value);
+			glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
+			glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
+			glUniform1f(r_bsp_program.material.specular, material->cm->specular * r_specular->value);
 
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 			r_view.count_bsp_triangles += draw->num_elements / 3;
@@ -551,10 +553,10 @@ void R_InitBspProgram(void) {
 	r_bsp_program.gamma = glGetUniformLocation(r_bsp_program.name, "gamma");
 	r_bsp_program.modulate = glGetUniformLocation(r_bsp_program.name, "modulate");
 
-	r_bsp_program.bump = glGetUniformLocation(r_bsp_program.name, "bump");
-	r_bsp_program.parallax = glGetUniformLocation(r_bsp_program.name, "parallax");
-	r_bsp_program.hardness = glGetUniformLocation(r_bsp_program.name, "hardness");
-	r_bsp_program.specular = glGetUniformLocation(r_bsp_program.name, "specular");
+	r_bsp_program.material.bump = glGetUniformLocation(r_bsp_program.name, "material.bump");
+	r_bsp_program.material.parallax = glGetUniformLocation(r_bsp_program.name, "material.parallax");
+	r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");
+	r_bsp_program.material.specular = glGetUniformLocation(r_bsp_program.name, "material.specular");
 
 	r_bsp_program.stage.flags = glGetUniformLocation(r_bsp_program.name, "stage.flags");
 	r_bsp_program.stage.ticks = glGetUniformLocation(r_bsp_program.name, "stage.ticks");
