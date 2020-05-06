@@ -305,7 +305,7 @@ static void Cm_MaterialWarn(const char *path, const parser_t *parser, const char
 /**
  * @brief
  */
-static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, const char *path) {
+static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, const char *path) {
 	char token[MAX_TOKEN_CHARS];
 
 	while (true) {
@@ -673,12 +673,12 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->animation.num_frames,
 			          s->animation.fps);
 
-			return 0;
+			return true;
 		}
 	}
 
-	Com_Warn("Malformed stage\n");
-	return -1;
+	Cm_MaterialWarn(path, parser, va("Malformed stage for material %s\n", m->basename));
+	return false;
 }
 
 /**
@@ -700,18 +700,15 @@ void Cm_MaterialBasename(const char *in, char *out, size_t len) {
  */
 static void Cm_AttachStage(cm_material_t *m, cm_stage_t *s) {
 
-	m->num_stages++;
-
-	if (!m->stages) {
+	if (m->stages == NULL) {
 		m->stages = s;
-		return;
+	} else {
+		cm_stage_t *ss = m->stages;
+		while (ss->next) {
+			ss = ss->next;
+		}
+		ss->next = s;
 	}
-
-	cm_stage_t *ss = m->stages;
-	while (ss->next) {
-		ss = ss->next;
-	}
-	ss->next = s;
 }
 
 /**
@@ -873,7 +870,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		if (!g_strcmp0(token, "hardness")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No bump specified");
+				Cm_MaterialWarn(path, &parser, "No hardness specified");
 			} else if (m->hardness < 0.0) {
 				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0\n");
 				m->hardness = DEFAULT_HARDNESS;
@@ -944,7 +941,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
 
-			if (Cm_ParseStage(m, s, &parser, path) == -1) {
+			if (!Cm_ParseStage(m, s, &parser, path)) {
 				Com_Debug(DEBUG_COLLISION, "Couldn't load a stage in %s\n", m->name);
 				Mem_Free(s);
 				continue;
@@ -962,7 +959,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			in_material = false;
 			count++;
 
-			Com_Debug(DEBUG_COLLISION, "Parsed material %s with %d stages\n", m->name, m->num_stages);
+			Com_Debug(DEBUG_COLLISION, "Parsed material %s\n", m->name);
 
 			m = NULL;
 		}

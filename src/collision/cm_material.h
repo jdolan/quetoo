@@ -23,6 +23,9 @@
 
 #include "cm_types.h"
 
+/**
+ * @brief Asset contexts are paths (and conventions) for locating and loading material assets.
+ */
 typedef enum {
 	ASSET_CONTEXT_NONE,
 	ASSET_CONTEXT_TEXTURES,
@@ -92,25 +95,9 @@ typedef enum {
 	TINT_TOTAL // cannot be increased past 3
 } cm_stage_tint_src_t;
 
-typedef struct cm_stage_s {
-	uint32_t flags;
-	cm_asset_t asset;
-	cm_stage_blend_t blend;
-	color_t color;
-	cm_stage_pulse_t pulse;
-	cm_stage_stretch_t stretch;
-	cm_stage_rotate_t rotate;
-	cm_stage_scroll_t scroll;
-	cm_stage_scale_t scale;
-	cm_stage_terrain_t terrain;
-	cm_stage_dirtmap_t dirtmap;
-	cm_stage_warp_t warp;
-	cm_stage_animation_t animation;
-	struct cm_stage_s *next;
-} cm_stage_t;
-
-// stage flags will persist on the stage structures but may also bubble
-// up to the material flags to determine render eligibility
+/**
+ * @brief Stage flags indicate what assets and effects a material or stage may include.
+ */
 typedef enum {
 	STAGE_TEXTURE			= (1 << 0),
 	STAGE_BLEND				= (1 << 2),
@@ -134,7 +121,82 @@ typedef enum {
 	STAGE_DRAW 				= (1 << 28),
 	STAGE_MATERIAL			= (1 << 29),
 
-} cm_material_flags_t;
+} cm_stage_flags_t;
+
+/**
+ * @brief Stages are ordered layers of visual effects rendered on top of their material.
+ */
+typedef struct cm_stage_s {
+	/**
+	 * @brief The stage flags.
+	 */
+	cm_stage_flags_t flags;
+
+	/**
+	 * @brief The stage asset.
+	 */
+	cm_asset_t asset;
+
+	/**
+	 * @brief The stage alpha blend function.
+	 */
+	cm_stage_blend_t blend;
+
+	/**
+	 * @brief The stage color.
+	 */
+	color_t color;
+
+	/**
+	 * @brief The stage pulse effect.
+	 */
+	cm_stage_pulse_t pulse;
+
+	/**
+	 * @brief The stage stretch effect.
+	 */
+	cm_stage_stretch_t stretch;
+
+	/**
+	 * @brief The stage rotate effect.
+	 */
+	cm_stage_rotate_t rotate;
+
+	/**
+	 * @brief The stage scroll effect.
+	 */
+	cm_stage_scroll_t scroll;
+
+	/**
+	 * @brief The stage scale effect.
+	 */
+	cm_stage_scale_t scale;
+
+	/**
+	 * @brief The stage terrain effect.
+	 */
+	cm_stage_terrain_t terrain;
+
+	/**
+	 * @brief The stage dirtmap effect.
+	 */
+	cm_stage_dirtmap_t dirtmap;
+
+	/**
+	 * @brief The stage warp effect.
+	 */
+	cm_stage_warp_t warp;
+
+	/**
+	 * @brief The stage animation effect.
+	 */
+	cm_stage_animation_t animation;
+
+	/**
+	 * @brief The next stage, or NULL.
+	 */
+	struct cm_stage_s *next;
+} cm_stage_t;
 
 #define DEFAULT_ROUGHNESS 1.0
 #define DEFAULT_PARALLAX 1.0
@@ -142,6 +204,9 @@ typedef enum {
 #define DEFAULT_SPECULARITY 1.0
 #define DEFAULT_LIGHT 300.0
 
+/**
+ * @brief Materials define the rendering attributes of texinfos.
+ */
 typedef struct cm_material_s {
 
 	/**
@@ -187,17 +252,22 @@ typedef struct cm_material_s {
 	/**
 	 * @brief Flags for the material.
 	 */
-	cm_material_flags_t flags;
+	cm_stage_flags_t flags;
+
+	/**
+	 * @brief The material stages, if any.
+	 */
+	cm_stage_t *stages;
 
 	/**
 	 * @brief Contents flags applied to brush sides referencing this material.
 	 */
-	uint32_t contents;
+	int32_t contents;
 
 	/**
 	 * @brief Surface flags applied to surfaces referencing this material.
 	 */
-	uint32_t surface;
+	int32_t surface;
 
 	/**
 	 * @brief Light emission applied to surfaces referencing this material.
@@ -234,16 +304,6 @@ typedef struct cm_material_s {
 	 */
 	vec4_t tintmap_defaults[TINT_TOTAL];
 
-	/**
-	 * @brief Pointer to the first stage in the stage list. NOT an array;
-	 * be sure to use ->next to traverse.
-	 */
-	cm_stage_t *stages;
-
-	/**
-	 * @brief The total number of stages in the "stages" list.
-	 */
-	uint16_t num_stages;
 } cm_material_t;
 
 cm_material_t *Cm_AllocMaterial(const char *name);
@@ -252,7 +312,6 @@ void Cm_FreeMaterials(GList *materials, _Bool full);
 ssize_t Cm_LoadMaterials(const char *path, GList **materials);
 _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
 ssize_t Cm_WriteMaterials(const char *path, GList *materials);
-
 void Cm_MaterialBasename(const char *in, char *out, size_t len);
 
 #ifdef __CM_LOCAL_H__

@@ -183,9 +183,10 @@ static void R_MergeMaterialSurfaces(SDL_Surface *dest, const SDL_Surface *src) {
  * @brief Resolves all asset references in the specified render material's stages
  */
 static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
+	int32_t num_stages = 0;
 
 	const cm_material_t *cm = material->cm;
-	for (const cm_stage_t *cs = cm->stages; cs; cs = cs->next) {
+	for (const cm_stage_t *cs = cm->stages; cs; cs = cs->next, num_stages++) {
 
 		r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
 		stage->cm = cs;
@@ -207,7 +208,7 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 		R_RegisterDependency((r_media_t *) material, stage->media);
 	}
 
-	Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", material->cm->name, material->cm->num_stages);
+	Com_Debug(DEBUG_RENDERER, "Resolved material %s with %d stages\n", material->cm->name, num_stages);
 }
 
 /**

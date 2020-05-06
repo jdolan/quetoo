@@ -237,7 +237,7 @@ typedef struct r_material_s {
 	/**
 	 * @brief The collision material definition.
 	 */
-	struct cm_material_s *cm;
+	cm_material_t *cm;
 
 	/**
 	 * @brief The layered texture containing the diffusemap, normalmap and glossmap.
