@@ -37,8 +37,6 @@ uniform float parallax;
 uniform float hardness;
 uniform float specular;
 
-uniform stage_t stage;
-
 in vertex_data {
 	vec3 position;
 	vec3 normal;

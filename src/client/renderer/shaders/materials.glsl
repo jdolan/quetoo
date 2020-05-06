@@ -53,6 +53,11 @@ struct stage_t {
 	int flags;
 
 	/**
+	 * @brief The stage ticks.
+	 */
+	int ticks;
+
+	/**
 	 * @brief The stage color.
 	 */
 	vec4 color;
@@ -102,3 +107,64 @@ struct stage_t {
 	 */
 	vec2 warp;
 };
+
+uniform stage_t stage;
+
+/**
+ * @brief
+ */
+void stage_vertex(in mat4 view, in vec3 position, inout vec4 color, inout vec2 diffusemap) {
+
+	if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
+		color *= stage.color;
+	}
+
+	if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
+		color.a *= (sin(stage.pulse * stage.ticks * 0.00628) + 1.0) / 2.0;
+	}
+
+	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
+		float hz = (sin(stage.ticks * stage.stretch.x * 0.00628f) + 1.0) / 2.0;
+		float amp = 1.5 - hz * stage.stretch.y;
+
+		diffusemap = diffusemap - stage.st_origin;
+		diffusemap = mat2(amp, 0, 0, amp) * diffusemap;
+		diffusemap = diffusemap + stage.st_origin;
+	}
+
+	if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
+		float theta = stage.ticks * stage.rotate * 0.36;
+
+		diffusemap = diffusemap - stage.st_origin;
+		diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * diffusemap;
+		diffusemap = diffusemap + stage.st_origin;
+	}
+
+	if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+		diffusemap.s += stage.scroll.s * stage.ticks / 1000.0;
+	}
+
+	if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+		diffusemap.t += stage.scroll.t * stage.ticks / 1000.0;
+	}
+
+	if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
+		diffusemap.s *= stage.scale.s;
+	}
+
+	if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
+		diffusemap.t *= stage.scale.t;
+	}
+
+	if ((stage.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
+		diffusemap = normalize((view * vec4(position, 1.0)).xyz).xy;
+	}
+
+	if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
+		color.a *= clamp((position.z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x), 0.0, 1.0);
+	}
+
+	if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
+		color.a *= DIRTMAP[int(abs(position.x + position.y)) % DIRTMAP.length()] * stage.dirtmap;
+	}
+}

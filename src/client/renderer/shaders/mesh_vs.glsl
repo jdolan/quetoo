@@ -41,9 +41,6 @@ uniform vec3 lightgrid_maxs;
 
 uniform vec4 color;
 
-uniform stage_t stage;
-uniform int ticks;
-
 out vertex_data {
 	vec3 position;
 	vec3 normal;
@@ -76,34 +73,6 @@ void main(void) {
 	vec3 world_position = vec3(model * lerp_position);
 	vertex.lightgrid = (world_position - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
 
-	{
-		if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
-			vertex.color *= stage.color;
-		}
-
-		if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-			vertex.color.a *= (sin(stage.pulse * ticks * 0.00628) + 1.0) / 2.0;
-		}
-
-		if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-			vertex.diffusemap.s += stage.scroll.s * ticks / 1000.0;
-		}
-
-		if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-			vertex.diffusemap.t += stage.scroll.t * ticks / 1000.0;
-		}
-
-		if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
-			vertex.diffusemap.s *= stage.scale.s;
-		}
-
-		if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
-			vertex.diffusemap.t *= stage.scale.t;
-		}
-
-		if ((stage.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
-			vertex.diffusemap = normalize(vertex.position).xy;
-		}
-	}
+	stage_vertex(view, in_position, vertex.color, vertex.diffusemap);
 }
 

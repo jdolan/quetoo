@@ -35,10 +35,6 @@ uniform float parallax;
 uniform float hardness;
 uniform float specular;
 
-uniform stage_t stage;
-
-uniform int ticks;
-
 in vertex_data {
 	vec3 position;
 	vec3 normal;
@@ -97,7 +93,7 @@ void main(void) {
 		vec2 texcoord = vertex.diffusemap;
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-			texcoord += texture(texture_warp, texcoord + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
+			texcoord += texture(texture_warp, texcoord + vec2(stage.ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
 		}
 
 		vec4 effect = texture(texture_stage, texcoord);

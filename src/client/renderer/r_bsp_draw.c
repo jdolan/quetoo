@@ -65,6 +65,7 @@ static struct {
 
 	struct {
 		GLint flags;
+		GLint ticks;
 		GLint color;
 		GLint pulse;
 		GLint st_origin;
@@ -82,8 +83,6 @@ static struct {
 
 	GLint fog_parameters;
 	GLint fog_color;
-
-	GLint ticks;
 
 	r_image_t *warp_image;
 } r_bsp_program;
@@ -443,7 +442,7 @@ void R_DrawWorld(void) {
 	glUniform3fv(r_bsp_program.fog_color, 1, r_view.fog_color.xyz);
 
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
-	glUniform1i(r_bsp_program.ticks, r_view.ticks);
+	glUniform1i(r_bsp_program.stage.ticks, r_view.ticks);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
 
@@ -558,6 +557,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.specular = glGetUniformLocation(r_bsp_program.name, "specular");
 
 	r_bsp_program.stage.flags = glGetUniformLocation(r_bsp_program.name, "stage.flags");
+	r_bsp_program.stage.ticks = glGetUniformLocation(r_bsp_program.name, "stage.ticks");
 	r_bsp_program.stage.color = glGetUniformLocation(r_bsp_program.name, "stage.color");
 	r_bsp_program.stage.pulse = glGetUniformLocation(r_bsp_program.name, "stage.pulse");
 	r_bsp_program.stage.st_origin = glGetUniformLocation(r_bsp_program.name, "stage.st_origin");
@@ -577,7 +577,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.fog_parameters = glGetUniformLocation(r_bsp_program.name, "fog_parameters");
 	r_bsp_program.fog_color = glGetUniformLocation(r_bsp_program.name, "fog_color");
 
-	r_bsp_program.ticks = glGetUniformLocation(r_bsp_program.name, "ticks");
 
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);

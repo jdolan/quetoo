@@ -77,6 +77,7 @@ static struct {
 
 	struct {
 		GLint flags;
+		GLint ticks;
 		GLint color;
 		GLint pulse;
 		GLint scroll;
@@ -122,7 +123,7 @@ void R_UpdateMeshEntities(void) {
 	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
-	glUniform1i(r_mesh_program.ticks, r_view.ticks);
+	glUniform1i(r_mesh_program.stage.ticks, r_view.ticks);
 
 	glUseProgram(0);
 
@@ -411,6 +412,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.specular = glGetUniformLocation(r_mesh_program.name, "specular");
 
 	r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
+	r_mesh_program.stage.ticks = glGetUniformLocation(r_mesh_program.name, "stage.ticks");
 	r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");
 	r_mesh_program.stage.pulse = glGetUniformLocation(r_mesh_program.name, "stage.pulse");
 	r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
@@ -422,8 +424,6 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.fog_parameters = glGetUniformLocation(r_mesh_program.name, "fog_parameters");
 	r_mesh_program.fog_color = glGetUniformLocation(r_mesh_program.name, "fog_color");
-
-	r_mesh_program.ticks = glGetUniformLocation(r_mesh_program.name, "ticks");
 
 	glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
