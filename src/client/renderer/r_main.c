@@ -73,7 +73,6 @@ cvar_t *r_stains;
 cvar_t *r_supersample;
 cvar_t *r_texture_mode;
 cvar_t *r_swap_interval;
-cvar_t *r_warp;
 cvar_t *r_width;
 
 extern cl_client_t cl;
@@ -517,7 +516,6 @@ static void R_InitLocal(void) {
 	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the level of super-sampling. Requires framebuffer extension.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
-	r_warp = Cvar_Add("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
 	Cvar_ClearAll(CVAR_R_MASK);

@@ -130,7 +130,16 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
-	glBindTexture(GL_TEXTURE_2D, stage->texture->texnum);
+	switch (stage->media->type) {
+		case MEDIA_IMAGE:
+		case MEDIA_ATLAS_IMAGE: {
+			const r_image_t *image = (r_image_t *) stage->media;
+			glBindTexture(GL_TEXTURE_2D, image->texnum);
+		}
+			break;
+		default:
+			break;
+	}
 
 	if (stage->cm->flags & STAGE_COLOR) {
 		glUniform4fv(r_mesh_program.color, 1, stage->cm->color.rgba);
@@ -147,7 +156,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 		glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
 	}
 
-	R_GetError(stage->texture->media.name);
+	R_GetError(stage->media->name);
 }
 
 /**
@@ -348,8 +357,8 @@ void R_InitMeshProgram(void) {
 	memset(&r_mesh_program, 0, sizeof(r_mesh_program));
 
 	r_mesh_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "mesh_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "lights_fs.glsl", "mesh_fs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "materials.glsl", "mesh_vs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "materials.glsl", "common_fs.glsl", "lights_fs.glsl", "mesh_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_mesh_program.name);

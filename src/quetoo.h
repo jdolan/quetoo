@@ -259,9 +259,9 @@ typedef enum {
  * @brief Texinfo flags.
  */
 #define SURF_LIGHT				0x1 // value will hold the light radius
-#define SURF_SLICK				0x2 // effects game physics
+#define SURF_SLICK				0x2 // affects game physics
 #define SURF_SKY				0x4 // don't draw, but add to skybox
-#define SURF_WARP				0x8 // turbulent water warp
+#define SURF_LIQUID				0x8 // water, lava, slime, etc.
 #define SURF_BLEND_33			0x10 // 0.33 alpha blending
 #define SURF_BLEND_66			0x20 // 0.66 alpha blending
 #define SURF_FLOWING			0x40 // scroll towards angle, no longer supported

@@ -25,26 +25,12 @@
  * @brief Register event listener for materials.
  */
 static void R_RegisterMaterial(r_media_t *self) {
-	r_material_t *mat = (r_material_t *) self;
+	r_material_t *material = (r_material_t *) self;
 
-	R_RegisterDependency(self, (r_media_t *) mat->texture);
-
-	r_stage_t *s = mat->stages;
-	while (s) {
-
-		if (s->material) {
-			R_RegisterDependency(self, (r_media_t *) s->material);
+	for (r_stage_t *stage = material->stages; stage; stage = stage->next) {
+		if (stage->media) {
+			R_RegisterDependency(self, stage->media);
 		}
-
-		if (s->texture) {
-			R_RegisterDependency(self, (r_media_t *) s->texture);
-		}
-
-		for (int32_t i = 0; i < s->cm->anim.num_frames; i++) {
-			R_RegisterDependency(self, (r_media_t *) s->anim.frames[i]);
-		}
-
-		s = s->next;
 	}
 }
 
@@ -59,58 +45,26 @@ static void R_FreeMaterial(r_media_t *self) {
 /**
  * @return The number of frames resolved, or -1 on error.
  */
-static int32_t R_ResolveStageAnimation(r_stage_t *stage, cm_asset_context_t context) {
+static r_animation_t *R_LoadStageAnimation(r_stage_t *stage, cm_asset_context_t context) {
 
-	const size_t size = sizeof(r_image_t *) * stage->cm->anim.num_frames;
-	stage->anim.frames = Mem_LinkMalloc(size, stage);
+	const r_image_t *images[stage->cm->animation.num_frames];
+	const r_image_t **out = images;
 
-	int32_t i;
-	for (i = 0; i < stage->cm->anim.num_frames; i++) {
+	for (int32_t i = 0; i < stage->cm->animation.num_frames; i++, out++) {
 
-		cm_asset_t *frame = &stage->cm->anim.frames[i];
+		cm_asset_t *frame = &stage->cm->animation.frames[i];
 		if (*frame->path) {
-			stage->anim.frames[i] = R_LoadImage(frame->path, IT_MATERIAL);
-			if (stage->anim.frames[i]->type == IT_NULL) {
-				break;
-			}
+			*out = R_LoadImage(frame->path, IT_MATERIAL);
 		} else {
-			break;
+			*out = r_image_state.null;
+		}
+
+		if ((*out)->type == IT_NULL) {
+			Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->cm->asset.name);
 		}
 	}
 
-	if (i < stage->cm->anim.num_frames) {
-		Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->cm->asset.name);
-		return -1;
-	}
-
-	return stage->cm->anim.num_frames;
-}
-
-/**
- * @brief Resolves assets for the specified stage, within the given context.
- */
-static int32_t R_ResolveStage(r_stage_t *stage, cm_asset_context_t context) {
-
-	if (*stage->cm->asset.path) {
-
-		if (stage->cm->flags & (STAGE_TEXTURE | STAGE_FLARE)) {
-			stage->texture = R_LoadImage(stage->cm->asset.path, IT_MATERIAL);
-			if (stage->texture->type == IT_NULL) {
-				Com_Warn("Failed to resolve stage: %s\n", stage->cm->asset.name);
-				return -1;
-			}
-		}
-
-		if (stage->cm->flags & STAGE_LIGHTING) {
-			stage->material = R_LoadMaterial(stage->cm->asset.name, context);
-		}
-
-		if (stage->cm->flags & STAGE_ANIM) {
-			return R_ResolveStageAnimation(stage, context);
-		}
-	}
-	
-	return 0;
+	return R_CreateAnimation(va("%s_animation", stage->cm->asset.name), stage->cm->animation.num_frames, images);
 }
 
 /**
@@ -226,6 +180,37 @@ static void R_MergeMaterialSurfaces(SDL_Surface *dest, const SDL_Surface *src) {
 }
 
 /**
+ * @brief Resolves all asset references in the specified render material's stages
+ */
+static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
+
+	const cm_material_t *cm = material->cm;
+	for (const cm_stage_t *cs = cm->stages; cs; cs = cs->next) {
+
+		r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
+		stage->cm = cs;
+
+		if (*stage->cm->asset.path) {
+			if (stage->cm->flags & STAGE_ANIMATION) {
+				stage->media = (r_media_t *) R_LoadStageAnimation(stage, context);
+			} else if (stage->cm->flags & STAGE_MATERIAL) {
+				stage->media = (r_media_t *) R_LoadMaterial(stage->cm->asset.name, context);
+			} else {
+				stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IT_MATERIAL);
+			}
+
+			assert(stage->media);
+		}
+
+		R_AppendStage(material, stage);
+
+		R_RegisterDependency((r_media_t *) material, stage->media);
+	}
+
+	Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", material->cm->name, material->cm->num_stages);
+}
+
+/**
  * @brief Resolves all asset references in the specified collision material, yielding a usable
  * renderer material.
  */
@@ -234,22 +219,18 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	R_MaterialKey(cm->name, key, sizeof(key), context);
 
-	r_material_t *material = (r_material_t *) R_FindMedia(key);
-	
-	if (material) {
-		Cm_FreeMaterial(cm);
-		return material;
-	}
-
-	material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
+	r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
 	material->cm = cm;
 
 	material->media.Register = R_RegisterMaterial;
 	material->media.Free = R_FreeMaterial;
 
-	material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), MEDIA_IMAGE);
+	R_RegisterMedia((r_media_t *) material);
 
+	material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), MEDIA_IMAGE);
 	material->texture->type = IT_MATERIAL;
+
+	R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 
 	Cm_ResolveMaterial(cm, context);
 	
@@ -368,26 +349,9 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	SDL_FreeSurface(diffusemap);
 
+	R_ResolveMaterialStages(material, context);
+
 	return material;
-}
-
-/**
- * @brief Resolves all asset references in the specified render material's stages
- */
-static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
-
-	const cm_material_t *cm = material->cm;
-	for (const cm_stage_t *s = cm->stages; s; s = s->next) {
-
-		r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
-		stage->cm = s;
-
-		if (R_ResolveStage(stage, context) == -1) {
-			Mem_Free(stage);
-		} else {
-			R_AppendStage(material, stage);
-		}
-	}
 }
 
 /**
@@ -395,11 +359,10 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
  */
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 	char key[MAX_QPATH];
-	char mat_name[MAX_QPATH];
+	char basename[MAX_QPATH];
 	
-	StripExtension(name, mat_name);
-
-	R_MaterialKey(mat_name, key, sizeof(key), context);
+	StripExtension(name, basename);
+	R_MaterialKey(basename, key, sizeof(key), context);
 
 	return (r_material_t *) R_FindMedia(key);
 }
@@ -408,16 +371,10 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
  * @brief Loads the r_material_t from the specified texture.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
+
 	r_material_t *material = R_FindMaterial(name, context);
-
 	if (material == NULL) {
-		cm_material_t *mat = Cm_AllocMaterial(name);
-
-		material = R_ResolveMaterial(mat, context);
-
-		R_ResolveMaterialStages(material, context);
-
-		R_RegisterMedia((r_media_t *) material);
+		material = R_ResolveMaterial(Cm_AllocMaterial(name), context);
 	}
 
 	return material;
@@ -435,19 +392,12 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 		for (GList *list = source; list; list = list->next) {
 			cm_material_t *cm = (cm_material_t *) list->data;
 
-			r_material_t *material = R_ResolveMaterial(cm, context);
+			r_material_t *material = R_FindMaterial(cm->basename, context);
+			if (material == NULL) {
+				material = R_ResolveMaterial(cm, context);
+			}
 
 			*materials = g_list_prepend(*materials, material);
-		}
-
-		for (GList *list = *materials; list; list = list->next) {
-			r_material_t *material = (r_material_t *) list->data;
-
-			R_ResolveMaterialStages(material, context);
-
-			Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", material->cm->name, material->cm->num_stages);
-
-			R_RegisterMedia((r_media_t *) material);
 		}
 	}
 

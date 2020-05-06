@@ -21,24 +21,6 @@
 
 #define MAX_HARDNESS 16
 
-#define STAGE_TEXTURE      (1 << 0)
-#define STAGE_BLEND        (1 << 2)
-#define STAGE_COLOR        (1 << 3)
-#define STAGE_PULSE        (1 << 4)
-#define STAGE_STRETCH      (1 << 5)
-#define STAGE_ROTATE       (1 << 6)
-#define STAGE_SCROLL_S     (1 << 7)
-#define STAGE_SCROLL_T     (1 << 8)
-#define STAGE_SCALE_S      (1 << 9)
-#define STAGE_SCALE_T      (1 << 10)
-#define STAGE_TERRAIN      (1 << 11)
-#define STAGE_ANIM         (1 << 12)
-#define STAGE_LIGHTMAP     (1 << 13)
-#define STAGE_DIRTMAP      (1 << 14)
-#define STAGE_ENVMAP       (1 << 15)
-#define STAGE_FLARE        (1 << 16)
-#define STAGE_FOG          (1 << 17)
-
 uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stage;
@@ -52,7 +34,6 @@ uniform float bump;
 uniform float parallax;
 uniform float hardness;
 uniform float specular;
-uniform float warp;
 
 uniform int stage;
 uniform vec4 color;
@@ -62,8 +43,7 @@ uniform vec2 stretch;
 uniform float rotate;
 uniform vec2 scroll;
 uniform vec2 scale;
-uniform vec2 terrain;
-uniform vec2 dirtmap;
+uniform vec2 warp;
 
 uniform int ticks;
 
@@ -84,17 +64,13 @@ out vec4 out_color;
  */
 void main(void) {
 
-	if (stage == 0) {
-		float _specular = specular * 100.0; // fudge the numbers to match the old specular model... kinda...
+	if ((stage & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		vec2 vertex_diffusemap = vertex.diffusemap;
-		if (warp != 0.0) {
-			vertex_diffusemap += texture(texture_warp, vertex.diffusemap + vec2(ticks * 0.000125)).xy * warp;
-		}
+		float _specular = specular * 100.0;
 
-		vec4 diffusemap = texture(texture_material, vec3(vertex_diffusemap, 0));
-		vec4 normalmap = texture(texture_material, vec3(vertex_diffusemap, 1));
-		vec4 glossmap = texture(texture_material, vec3(vertex_diffusemap, 2));
+		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
+		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
+		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
 		diffusemap *= vertex.color;
 
@@ -124,13 +100,9 @@ void main(void) {
 
 		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
+
 	} else {
-
 		vec2 texcoord = vertex.diffusemap;
-
-		if ((stage & STAGE_ENVMAP) == STAGE_ENVMAP) {
-			texcoord = normalize(vertex.position).xy;
-		}
 
 		if ((stage & STAGE_STRETCH) == STAGE_STRETCH) {
 			float hz = (sin(ticks * stretch.x * 0.00628f) + 1.0) / 2.0;
@@ -157,12 +129,20 @@ void main(void) {
 			texcoord.t += scroll.t * ticks / 1000.0;
 		}
 
+		if ((stage & STAGE_ENVMAP) == STAGE_ENVMAP) {
+			texcoord = normalize(vertex.position).xy;
+		}
+
+		if ((stage & STAGE_WARP) == STAGE_WARP) {
+			texcoord += texture(texture_warp, texcoord + vec2(ticks * warp.x * 0.000125)).xy * warp.y;
+		}
+
 		vec4 effect = texture(texture_stage, texcoord);
 
 		if ((stage & STAGE_COLOR) == STAGE_COLOR) {
 			effect *= color;
 		}
-		
+
 		if ((stage & STAGE_PULSE) == STAGE_PULSE) {
 			effect.a *= (sin(pulse * ticks * 0.00628) + 1.0) / 2.0;
 		}
@@ -178,7 +158,7 @@ void main(void) {
 
 		out_color = effect;
 	}
-	
+
 	// postprocessing
 	
 	out_color.rgb = tonemap(out_color.rgb);

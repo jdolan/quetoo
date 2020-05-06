@@ -85,11 +85,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
+            argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1 "
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn"
+            argument = "+map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

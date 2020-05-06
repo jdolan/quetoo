@@ -189,30 +189,21 @@ typedef struct {
  * @brief An animation, castable to r_media_t.
  */
 typedef struct {
+	/**
+	 * @brief The media.
+	 */
 	r_media_t media;
-	size_t num_images;
-	const r_image_t **images;
+
+	/**
+	 * @brief The number of frames in this animation.
+	 */
+	int32_t num_frames;
+
+	/**
+	 * @brief The frames in this animation.
+	 */
+	const r_image_t **frames;
 } r_animation_t;
-
-/**
- * @brief Material stage animations.
- */
-typedef struct {
-	/**
-	 * @brief The images comprising this animation.
-	 */
-	r_image_t **frames;
-
-	/**
-	 * @brief The next frame time.
-	 */
-	uint32_t time;
-
-	/**
-	 * @brief The current frame index.
-	 */
-	uint32_t frame;
-} r_stage_anim_t;
 
 /**
  * @brief Material stages.
@@ -224,19 +215,9 @@ typedef struct r_stage_s {
 	const struct cm_stage_s *cm;
 
 	/**
-	 * @brief Stages with a render pass will reference an image.
+	 * @brief Stages with a render pass will reference an image, atlas image, material, animation, etc.
 	 */
-	r_image_t *texture;
-
-	/**
-	 * @brief Stages with a lighting pass will reference a material.
-	 */
-	struct r_material_s *material;
-
-	/**
-	 * @brief Stages may be animated.
-	 */
-	r_stage_anim_t anim;
+	r_media_t *media;
 
 	/**
 	 * @brief The next stage in the material.
@@ -357,6 +338,7 @@ typedef struct {
 	byte plane_side;
 
 	r_bsp_texinfo_t *texinfo;
+	int32_t contents;
 
 	struct r_sprite_s *flare;
 
@@ -380,6 +362,7 @@ typedef struct {
 	struct r_bsp_node_s *node;
 
 	r_bsp_texinfo_t *texinfo;
+	int32_t contents;
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;

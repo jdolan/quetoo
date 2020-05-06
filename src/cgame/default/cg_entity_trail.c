@@ -281,8 +281,8 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	color_t color = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_ORANGE);
 	color.a = 0;
 
-	const vec3_t vel = Vec3_Subtract(end, start);
-	const vec3_t dir = Vec3_Normalize(vel);
+//	const vec3_t vel = Vec3_Subtract(end, start);
+//	const vec3_t dir = Vec3_Normalize(vel);
 
 	Cg_BubbleTrail(ent, start, end, 12.0);
 		
@@ -395,7 +395,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 				break;
 			}
 			s->animation = cg_sprite_rocket_flame;
-			s->lifetime = cg_sprite_rocket_flame->num_images * FRAMES_TO_SECONDS(120) * particle_life_frac;
+			s->lifetime = cg_sprite_rocket_flame->num_frames * FRAMES_TO_SECONDS(120) * particle_life_frac;
 			s->origin = Vec3_Mix(origin, end, step * i);
 			s->velocity = rocket_velocity;
 			s->rotation = Randomf() * 2.f * M_PI;
@@ -423,7 +423,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 				break;
 			}
 			s->animation = cg_sprite_smoke_04;
-			s->lifetime = cg_sprite_smoke_04->num_images * FRAMES_TO_SECONDS(60) * particle_life_frac;
+			s->lifetime = cg_sprite_smoke_04->num_frames * FRAMES_TO_SECONDS(60) * particle_life_frac;
 			s->origin = Vec3_Add(Vec3_Mix(origin, end, step * i), Vec3_RandomRange(-2.5f, 2.5f));
 			s->velocity = Vec3_Scale(rocket_velocity, 0.5);
 			s->rotation = Randomf() * 2.f * M_PI;
@@ -436,7 +436,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 				break;
 			}
 			s->animation = cg_sprite_smoke_05;
-			s->lifetime = cg_sprite_smoke_05->num_images * FRAMES_TO_SECONDS(60) * particle_life_frac;
+			s->lifetime = cg_sprite_smoke_05->num_frames * FRAMES_TO_SECONDS(60) * particle_life_frac;
 			s->origin = Vec3_Add(Vec3_Mix(origin, end, (step * i) + (step * .5f)), Vec3_RandomRange(-2.5f, 2.5f));
 			s->velocity = Vec3_Scale(rocket_velocity, 0.5);
 			s->rotation = Randomf() * 2.f * M_PI;
@@ -486,7 +486,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 
-	const float animation_frac = cg_sprite_hyperblaster->num_images * FRAMES_TO_SECONDS(60);
+	const float animation_frac = cg_sprite_hyperblaster->num_frames * FRAMES_TO_SECONDS(60);
 
 	cgi.AddSprite(&(const r_sprite_t) {
 		.origin = ent->origin,
@@ -748,7 +748,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		}
 
 		s->animation = cg_sprite_blood_01;
-		s->lifetime = cg_sprite_blood_01->num_images * FRAMES_TO_SECONDS(30) + Randomf() * 500;
+		s->lifetime = cg_sprite_blood_01->num_frames * FRAMES_TO_SECONDS(30) + Randomf() * 500;
 		s->size = RandomRangef(40.f, 64.f);
 		s->color = Color4bv(0x882200aa);
 		s->rotation = RandomRadian();

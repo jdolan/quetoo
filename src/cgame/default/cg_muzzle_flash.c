@@ -160,7 +160,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const color_t color) {
 		}
 
 		s->animation = cg_sprite_blaster_flame;
-		s->lifetime = cg_sprite_blaster_flame->num_images * FRAMES_TO_SECONDS(70) + (i / flashlen * 20.f);
+		s->lifetime = cg_sprite_blaster_flame->num_frames * FRAMES_TO_SECONDS(70) + (i / flashlen * 20.f);
 		s->origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen)));
 		s->rotation = Randomf() * M_PI * 2.f;
 		s->color = color;

@@ -52,7 +52,6 @@ extern cvar_t *r_stains;
 extern cvar_t *r_supersample;
 extern cvar_t *r_texture_mode;
 extern cvar_t *r_swap_interval;
-extern cvar_t *r_warp;
 extern cvar_t *r_width;
 
 extern r_view_t r_view;

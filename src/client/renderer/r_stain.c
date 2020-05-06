@@ -127,7 +127,7 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 			continue;
 		}
 
-		if (face->texinfo->flags & SURF_WARP) {
+		if (face->contents & SURF_LIQUID) {
 			continue;
 		}
 

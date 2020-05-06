@@ -19,12 +19,26 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#define STAGE_TEXTURE      (1 << 0)
+#define STAGE_BLEND        (1 << 2)
+#define STAGE_COLOR        (1 << 3)
+#define STAGE_PULSE        (1 << 4)
+#define STAGE_STRETCH      (1 << 5)
+#define STAGE_ROTATE       (1 << 6)
+#define STAGE_SCROLL_S     (1 << 7)
+#define STAGE_SCROLL_T     (1 << 8)
+#define STAGE_SCALE_S      (1 << 9)
+#define STAGE_SCALE_T      (1 << 10)
+#define STAGE_TERRAIN      (1 << 11)
+#define STAGE_ANIM         (1 << 12)
+#define STAGE_LIGHTMAP     (1 << 13)
+#define STAGE_DIRTMAP      (1 << 14)
+#define STAGE_ENVMAP       (1 << 15)
+#define STAGE_WARP         (1 << 16)
+#define STAGE_FLARE        (1 << 17)
+#define STAGE_FOG          (1 << 18)
 
-#include "r_types.h"
+#define STAGE_DRAW         (1 << 28)
+#define STAGE_MATERIAL     (1 << 29)
 
-r_animation_t *R_CreateAnimation(const char *name, int32_t num_images, const r_image_t **images);
-
-#ifdef __R_LOCAL_H__
-const r_image_t *R_ResolveAnimation(const r_animation_t *animation, float time, int32_t offset);
-#endif /* __R_LOCAL_H__ */
+const float DIRTMAP[10] = float[](0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);

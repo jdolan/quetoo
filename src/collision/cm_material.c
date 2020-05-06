@@ -20,6 +20,7 @@
  */
 
 #include <SDL_opengl.h>
+
 #include "cm_local.h"
 #include "parse.h"
 
@@ -126,8 +127,8 @@ static int32_t Cm_ParseSurface(const char *c) {
 		surface |= SURF_SKY;
 	}
 
-	if (strstr(c, "warp")) {
-		surface |= SURF_WARP;
+	if (strstr(c, "liquid")) {
+		surface |= SURF_LIQUID;
 	}
 
 	if (strstr(c, "blend_33")) {
@@ -192,8 +193,8 @@ static char *Cm_UnparseSurface(int32_t surface) {
 		g_strlcat(s, "sky ", sizeof(s));
 	}
 
-	if (surface & SURF_WARP) {
-		g_strlcat(s, "warp ", sizeof(s));
+	if (surface & SURF_LIQUID) {
+		g_strlcat(s, "liquid ", sizeof(s));
 	}
 
 	if (surface & SURF_BLEND_33) {
@@ -380,7 +381,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		if (!g_strcmp0(token, "pulse")) {
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->pulse.hz, 1) != 1) {
-				Cm_MaterialWarn(path, parser, "Need a value for pulse");
+				Cm_MaterialWarn(path, parser, "No value provided for pulse");
 				continue;
 			}
 
@@ -396,7 +397,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		if (!g_strcmp0(token, "stretch")) {
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amp, 1) != 1) {
-				Cm_MaterialWarn(path, parser, "Need a value for amplitude");
+				Cm_MaterialWarn(path, parser, "No value provided for amplitude");
 				continue;
 			}
 
@@ -405,7 +406,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			}
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.hz, 1) != 1) {
-				Cm_MaterialWarn(path, parser, "Need a value for frequency");
+				Cm_MaterialWarn(path, parser, "No value provided for frequency");
 				continue;
 			}
 
@@ -424,7 +425,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		if (!g_strcmp0(token, "rotate")) {
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->rotate.hz, 1) != 1) {
-				Cm_MaterialWarn(path, parser, "Need a value for rotate");
+				Cm_MaterialWarn(path, parser, "No value provided for rotate");
 				continue;
 			}
 
@@ -440,7 +441,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		if (!g_strcmp0(token, "scroll.s")) {
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scroll.s, 1) != 1) {
-				Cm_MaterialWarn(path, parser, "Need a value for scroll.s");
+				Cm_MaterialWarn(path, parser, "No value provided for scroll.s");
 				continue;
 			}
 
@@ -456,7 +457,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		if (!g_strcmp0(token, "scroll.t")) {
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scroll.t, 1) != 1) {
-				Cm_MaterialWarn(path, parser, "Need a value for scroll.t");
+				Cm_MaterialWarn(path, parser, "No value provided for scroll.t");
 				continue;
 			}
 
@@ -472,7 +473,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		if (!g_strcmp0(token, "scale.s")) {
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scale.s, 1) != 1) {
-				Cm_MaterialWarn(path, parser, "Need a value for scale.s");
+				Cm_MaterialWarn(path, parser, "No value provided for scale.s");
 				continue;
 			}
 
@@ -488,7 +489,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		if (!g_strcmp0(token, "scale.t")) {
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scale.t, 1) != 1) {
-				Cm_MaterialWarn(path, parser, "Need a value for scale.t");
+				Cm_MaterialWarn(path, parser, "No value provided for scale.t");
 				continue;
 			}
 
@@ -521,13 +522,13 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "dirtmap")) {
 
-			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->dirt.intensity, 1) != 1) {
-				Cm_MaterialWarn(path, parser, "Need a value for dirtmap");
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->dirtmap.intensity, 1) != 1) {
+				Cm_MaterialWarn(path, parser, "No value provided for dirtmap");
 				continue;
 			}
 
-			if (s->dirt.intensity <= 0.0 || s->dirt.intensity > 1.0) {
-				Cm_MaterialWarn(path, parser, "Dirt intensity must be between 0.0 and 1.0");
+			if (s->dirtmap.intensity <= 0.0 || s->dirtmap.intensity > 1.0) {
+				Cm_MaterialWarn(path, parser, "Dirtmap intensity must be between 0.0 and 1.0");
 			} else {
 				s->flags |= STAGE_DIRTMAP;
 			}
@@ -538,37 +539,52 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		if (!g_strcmp0(token, "envmap")) {
 
 			if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
-				Cm_MaterialWarn(path, parser, "Missing invalid path");
+				Cm_MaterialWarn(path, parser, "Missing envmap asset or index");
 				continue;
 			}
 
-			s->flags |= STAGE_ENVMAP | STAGE_TEXTURE;
+			s->flags |= STAGE_ENVMAP;
 			continue;
+		}
+
+		if (!g_strcmp0(token, "warp")) {
+
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->warp.hz, 1) != 1) {
+				Cm_MaterialWarn(path, parser, "No value provided for warp hz");
+				continue;
+			}
+
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->warp.amplitude, 1) != 1) {
+				Cm_MaterialWarn(path, parser, "No value provided for warp amplitude");
+				continue;
+			}
+
+			s->flags |= STAGE_WARP;
 		}
 
 		if (!g_strcmp0(token, "anim")) {
 
-			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_UINT16, &s->anim.num_frames, 1) != 1) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_UINT16, &s->animation.num_frames, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need number of frames");
 				continue;
 			}
 
-			if (s->anim.num_frames < 1) {
+			if (s->animation.num_frames < 1) {
 				Cm_MaterialWarn(path, parser, "Invalid number of frames");
 			}
 
-			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->anim.fps, 1) != 1) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->animation.fps, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need FPS value");
 				continue;
 			}
 
-			if (s->anim.fps < 0.0) {
+			if (s->animation.fps < 0.0) {
 				Cm_MaterialWarn(path, parser, "Invalid FPS value, must be >= 0.0");
 			}
 
 			// the frame images are loaded once the stage is parsed completely
-			if (s->anim.num_frames && s->anim.fps >= 0.0) {
-				s->flags |= STAGE_ANIM;
+			if (s->animation.num_frames && s->animation.fps >= 0.0) {
+				s->flags |= STAGE_ANIMATION;
 			}
 
 			continue;
@@ -597,9 +613,19 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (*token == '}') {
 
-			// terrain and dirtmapping use lighting
-			if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-				s->flags |= STAGE_LIGHTING;
+			// a warp stage with no texture will use the material texture
+			if ((s->flags & STAGE_WARP) && !(s->flags & STAGE_TEXTURE)) {
+				s->asset = m->diffusemap;
+			}
+
+			// a texture or envmap mean draw it
+			if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_WARP)) {
+				s->flags |= STAGE_DRAW;
+
+				// terrain and dirtmapping use lighting
+				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+					s->flags |= STAGE_MATERIAL;
+				}
 			}
 
 			// ensure appropriate blend function defaults
@@ -641,11 +667,11 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			          "  terrain.ceil: %.1f\n"
 			          "  anim.num_frames: %d\n"
 			          "  anim.fps: %.1f\n", s->flags, (*s->asset.name ? s->asset.name : "NULL"),
-			          ((s->flags & STAGE_LIGHTING) ? "true" : "false"), s->blend.src,
+			          ((s->flags & STAGE_MATERIAL) ? "true" : "false"), s->blend.src,
 			          s->blend.dest, s->color.r, s->color.g, s->color.b, s->color.a, s->pulse.hz,
 			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
-			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
-			          s->anim.fps);
+			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->animation.num_frames,
+			          s->animation.fps);
 
 			return 0;
 		}
@@ -907,16 +933,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			m->surface |= SURF_LIGHT;
 		}
 
-		if (!g_strcmp0(token, "warp")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->warp, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "Warp value not specified");
-				m->warp = DEFAULT_WARP;
-			}
-
-			m->surface |= SURF_WARP;
-		}
-
 		if (!g_strcmp0(token, "footsteps")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps, sizeof(m->footsteps))) {
@@ -1023,8 +1039,8 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
  */
 static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type) {
 
-	const size_t size = sizeof(cm_asset_t) * stage->anim.num_frames;
-	stage->anim.frames = Mem_LinkMalloc(size, stage);
+	const size_t size = sizeof(cm_asset_t) * stage->animation.num_frames;
+	stage->animation.frames = Mem_LinkMalloc(size, stage);
 
 	char base[MAX_QPATH];
 	g_strlcpy(base, stage->asset.name, sizeof(base));
@@ -1039,9 +1055,9 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type
 	int32_t start = (int32_t) strtol(c, NULL, 10);
 	*c = '\0';
 
-	for (uint16_t i = 0; i < stage->anim.num_frames; i++) {
+	for (uint16_t i = 0; i < stage->animation.num_frames; i++) {
 
-		cm_asset_t *frame = &stage->anim.frames[i];
+		cm_asset_t *frame = &stage->animation.frames[i];
 		g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
 		if (!Cm_ResolveAsset(frame, type)) {
@@ -1067,7 +1083,7 @@ static _Bool Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
 		}
 
 		if (Cm_ResolveAsset(&stage->asset, context)) {
-			if (stage->flags & STAGE_ANIM) {
+			if (stage->flags & STAGE_ANIMATION) {
 				return Cm_ResolveStageAnimation(stage, context);
 			} else {
 				return true;
@@ -1140,20 +1156,6 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 
 	if (stage->flags & STAGE_TEXTURE) {
 		Fs_Print(file, "\t\ttexture %s\n", stage->asset.name);
-	} else if (stage->flags & STAGE_ENVMAP) {
-		if (stage->asset.index > -1) {
-			Fs_Print(file, "\t\tenvmap %d\n", stage->asset.index);
-		} else {
-			Fs_Print(file, "\t\tenvmap %s\n", stage->asset.name);
-		}
-	} else if (stage->flags & STAGE_FLARE) {
-		if (stage->asset.index > -1) {
-			Fs_Print(file, "\t\tflare %d\n", stage->asset.index);
-		} else {
-			Fs_Print(file, "\t\tflare %s\n", stage->asset.name);
-		}
-	} else {
-		Com_Warn("Material %s has a stage with no image?\n", material->diffusemap.name);
 	}
 
 	if (stage->flags & STAGE_BLEND) {
@@ -1197,11 +1199,31 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	}
 
 	if (stage->flags & STAGE_DIRTMAP) {
-		Fs_Print(file, "\t\tdirtmap %g\n", stage->dirt.intensity);
+		Fs_Print(file, "\t\tdirtmap %g\n", stage->dirtmap.intensity);
 	}
 
-	if (stage->flags & STAGE_ANIM) {
-		Fs_Print(file, "\t\tanim %u %g\n", stage->anim.num_frames, stage->anim.fps);
+	if (stage->flags & STAGE_ENVMAP) {
+		if (stage->asset.index > -1) {
+			Fs_Print(file, "\t\tenvmap %d\n", stage->asset.index);
+		} else {
+			Fs_Print(file, "\t\tenvmap %s\n", stage->asset.name);
+		}
+	}
+
+	if (stage->flags & STAGE_WARP) {
+		Fs_Print(file, "\t\twarp %g %g\n", stage->warp.hz, stage->warp.amplitude);
+	}
+
+	if (stage->flags & STAGE_FLARE) {
+	   if (stage->asset.index > -1) {
+		   Fs_Print(file, "\t\tflare %d\n", stage->asset.index);
+	   } else {
+		   Fs_Print(file, "\t\tflare %s\n", stage->asset.name);
+	   }
+   }
+
+	if (stage->flags & STAGE_ANIMATION) {
+		Fs_Print(file, "\t\tanim %u %g\n", stage->animation.num_frames, stage->animation.fps);
 	}
 
 	if (stage->flags & STAGE_LIGHTMAP) {
@@ -1248,10 +1270,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 	if (material->light) {
 		Fs_Print(file, "\tlight %g\n", material->light);
-	}
-
-	if (material->warp) {
-		Fs_Print(file, "\twarp %g\n", material->warp);
 	}
 
 	// if not empty/default, write footsteps

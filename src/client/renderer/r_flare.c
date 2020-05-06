@@ -65,7 +65,7 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 		face->flare->size *= (s->cm->scale.s ? s->cm->scale.s : s->cm->scale.t);
 	}
 
-	face->flare->media = (r_media_t *) s->texture;
+	face->flare->media = s->media;
 }
 
 /**

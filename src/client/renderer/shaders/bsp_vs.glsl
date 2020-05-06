@@ -31,6 +31,10 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
 
+uniform int stage;
+uniform vec2 terrain;
+uniform float dirtmap;
+
 out vertex_data {
 	vec3 position;
 	vec3 normal;
@@ -56,4 +60,12 @@ void main(void) {
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
 	vertex.color = in_color;
+
+	if ((stage & STAGE_TERRAIN) == STAGE_TERRAIN) {
+		vertex.color.a *= clamp((in_position.z - terrain.x) / (terrain.y - terrain.x), 0.0, 1.0);
+	}
+
+	if ((stage & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
+		vertex.color.a *= DIRTMAP[int(abs(in_position.x + in_position.y)) % DIRTMAP.length()] * dirtmap;
+	}
 }

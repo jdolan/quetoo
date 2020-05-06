@@ -216,9 +216,9 @@ void R_AddSprite(const r_sprite_t *s) {
 		next_image = R_ResolveAnimation(anim, s->life, 1);
 
 		if (s->lerp) {
-			const float life_to_images = floorf(s->life * anim->num_images);
-			const float cur_frame = life_to_images / anim->num_images;
-			const float next_frame = (life_to_images + 1) / anim->num_images;
+			const float life_to_images = floorf(s->life * anim->num_frames);
+			const float cur_frame = life_to_images / anim->num_frames;
+			const float next_frame = (life_to_images + 1) / anim->num_frames;
 			lerp = (s->life - cur_frame) / (next_frame - cur_frame);
 		}
 	}

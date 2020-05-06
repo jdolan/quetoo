@@ -588,6 +588,11 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			// resolve material-based surface and contents flags
 			SetMaterialFlags(side, &td);
 
+			// if the brush is liquid, any faces it emits should also be marked as liquid
+			if (side->contents & CONTENTS_MASK_LIQUID) {
+				td.flags |= SURF_LIQUID;
+			}
+
 			side->surf = td.flags;
 
 			// translucent objects are automatically classified as detail

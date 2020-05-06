@@ -162,6 +162,7 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 		const bsp_face_t *a = faces + i;
 
 		out->texinfo = a->texinfo;
+		out->contents = a->contents;
 
 		out->first_face = node->first_face + i;
 		out->first_element = bsp_file.num_elements;
@@ -171,6 +172,10 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 			const bsp_face_t *b = faces + j;
 
 			if (TexinfoCmp(a->texinfo, b->texinfo)) {
+				break;
+			}
+
+			if (a->contents != b->contents) {
 				break;
 			}
 

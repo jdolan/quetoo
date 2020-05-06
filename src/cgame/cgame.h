@@ -613,16 +613,7 @@ typedef struct cg_import_s {
 	 * @param images The image pointer list.
 	 * @return The animation that has been created.
 	 */
-	r_animation_t *(*CreateAnimation)(const char *name, uint32_t num_images, const r_image_t **images);
-
-	/**
-	 * @brief Resolve an image for an animation & time.
-	 * @param animation The animation
-	 * @param time The time index, between 0 and 1.
-	 * @param offset Image offset, clamped.
-	 * @return The image.
-	 */
-	const r_image_t *(*ResolveAnimation)(const r_animation_t *animation, float time, int32_t offset);
+	r_animation_t *(*CreateAnimation)(const char *name, int32_t num_images, const r_image_t **images);
 
 	/**
 	 * @brief Loads the material with the given name.

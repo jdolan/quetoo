@@ -25,23 +25,25 @@
  * @brief Free event listener for animations.
  */
 static void R_FreeAnimation(r_media_t *media) {
+
 	r_animation_t *animation = (r_animation_t *) media;
-	Mem_Free(animation->images);
+
+	Mem_Free(animation->frames);
 }
 
 /**
- * @brief Create animation image
+ * @brief Load animation image with the specified base name and number of images.
  */
-r_animation_t *R_CreateAnimation(const char *name, uint32_t num_images, const r_image_t **images) {
+r_animation_t *R_CreateAnimation(const char *name, int32_t num_images, const r_image_t **images) {
 
 	r_animation_t *animation = (r_animation_t *) R_AllocMedia(name, sizeof(r_animation_t), MEDIA_ANIMATION);
 
 	animation->media.Free = R_FreeAnimation;
-	animation->num_images = num_images;
-	animation->images = Mem_TagMalloc(sizeof(r_image_t *) * num_images, MEM_TAG_RENDERER);
-	memcpy(animation->images, images, sizeof(r_image_t *) * num_images);
+	animation->num_frames = num_images;
+	animation->frames = Mem_TagMalloc(sizeof(r_image_t *) * num_images, MEM_TAG_RENDERER);
+	memcpy(animation->frames, images, sizeof(r_image_t *) * num_images);
 
-	for (uint32_t i = 0; i < num_images; i++) {
+	for (int32_t i = 0; i < num_images; i++) {
 		R_RegisterDependency((r_media_t *) animation, (r_media_t *) images[i]);
 	}
 
@@ -53,5 +55,5 @@ r_animation_t *R_CreateAnimation(const char *name, uint32_t num_images, const r_
  */
 const r_image_t *R_ResolveAnimation(const r_animation_t *animation, float time, int32_t offset) {
 
-	return animation->images[MIN(animation->num_images - 1, (size_t) ((animation->num_images * time) + offset))];
+	return animation->frames[MIN(animation->num_frames - 1, (int32_t) ((animation->num_frames * time) + offset))];
 }

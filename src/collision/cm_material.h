@@ -70,14 +70,19 @@ typedef struct {
 
 typedef struct {
 	float intensity;
-} cm_stage_dirt_t;
+} cm_stage_dirtmap_t;
+
+typedef struct {
+	float hz;
+	float amplitude;
+} cm_stage_warp_t;
 
 // frame based material animation, lerp between consecutive images
 typedef struct {
 	int32_t num_frames;
 	cm_asset_t *frames;
 	float fps;
-} cm_stage_anim_t;
+} cm_stage_animation_t;
 
 typedef enum {
 	TINT_R,
@@ -98,8 +103,9 @@ typedef struct cm_stage_s {
 	cm_stage_scroll_t scroll;
 	cm_stage_scale_t scale;
 	cm_stage_terrain_t terrain;
-	cm_stage_dirt_t dirt;
-	cm_stage_anim_t anim;
+	cm_stage_dirtmap_t dirtmap;
+	cm_stage_warp_t warp;
+	cm_stage_animation_t animation;
 	struct cm_stage_s *next;
 } cm_stage_t;
 
@@ -117,15 +123,16 @@ typedef enum {
 	STAGE_SCALE_S			= (1 << 9),
 	STAGE_SCALE_T			= (1 << 10),
 	STAGE_TERRAIN			= (1 << 11),
-	STAGE_ANIM				= (1 << 12),
+	STAGE_ANIMATION			= (1 << 12),
 	STAGE_LIGHTMAP			= (1 << 13),
 	STAGE_DIRTMAP			= (1 << 14),
 	STAGE_ENVMAP            = (1 << 15),
-	STAGE_FLARE				= (1 << 16),
-	STAGE_FOG				= (1 << 17),
+	STAGE_WARP				= (1 << 16),
+	STAGE_FLARE				= (1 << 17),
+	STAGE_FOG				= (1 << 18),
 
-	// set on stages eligible for static, dynamic, and per-pixel lighting
-	STAGE_LIGHTING			= (1 << 29),
+	STAGE_DRAW 				= (1 << 28),
+	STAGE_MATERIAL			= (1 << 29),
 
 } cm_material_flags_t;
 
@@ -134,7 +141,6 @@ typedef enum {
 #define DEFAULT_HARDNESS 1.0
 #define DEFAULT_SPECULAR 1.0
 #define DEFAULT_LIGHT 300.0
-#define DEFAULT_WARP 1.0
 
 typedef struct cm_material_s {
 
@@ -217,11 +223,6 @@ typedef struct cm_material_s {
 	 * @brief The parallel factor to use for the normal map.
 	 */
 	float parallax;
-
-	/**
-	 * @brief The warp factor to use for water warping.
-	 */
-	float warp;
 
 	/**
 	 * @brief The name for the footstep sounds to query on this surface

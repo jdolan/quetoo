@@ -223,6 +223,7 @@ int32_t EmitFace(const face_t *face) {
 
 	out->plane_num = face->plane_num;
 	out->texinfo = face->texinfo;
+	out->contents = face->contents;
 
 	out->first_vertex = bsp_file.num_vertexes;
 	out->num_vertexes = EmitFaceVertexes(face);

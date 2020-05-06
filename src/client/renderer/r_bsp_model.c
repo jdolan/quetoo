@@ -133,6 +133,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		// resolve plane
 		out->plane = bsp->cm->planes + in->plane_num;
 		out->plane_side = in->plane_num & 1;
+		out->contents = in->contents;
 
 		// then texinfo
 		if (in->texinfo > -1) {
@@ -196,6 +197,8 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 			out->texinfo = &null_texinfo;
 		}
 
+		out->contents = in->contents;
+
 		out->num_faces = in->num_faces;
 		out->faces = bsp->faces + in->first_face;
 
@@ -203,7 +206,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 
 		if (out->texinfo->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
-			
+
 			vec2_t st_mins = Vec2_Mins();
 			vec2_t st_maxs = Vec2_Maxs();
 

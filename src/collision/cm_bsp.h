@@ -193,6 +193,7 @@ typedef struct {
 typedef struct {
 	int32_t plane_num;
 	int32_t texinfo;
+	int32_t contents;
 
 	int32_t first_vertex; // vertex array for polygon or triangle fan
 	int32_t num_vertexes;
@@ -208,6 +209,7 @@ typedef struct {
  */
 typedef struct {
 	int32_t texinfo;
+	int32_t contents;
 
 	int32_t first_face;
 	int32_t num_faces;

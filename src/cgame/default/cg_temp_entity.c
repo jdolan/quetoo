@@ -33,7 +33,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		// surface aligned blast ring sprite
 		if ((s = Cg_AllocSprite())) {
 			s->animation = cg_sprite_blaster_ring;
-			s->lifetime = cg_sprite_blaster_ring->num_images * FRAMES_TO_SECONDS(17.5);
+			s->lifetime = cg_sprite_blaster_ring->num_frames * FRAMES_TO_SECONDS(17.5);
 			s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.0));
 			s->size = 22.5f;
 			s->size_velocity = 75.f;
@@ -63,7 +63,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	for (int32_t i = 0; i < 3; i++) {
 		if ((s = Cg_AllocSprite())) {
 			s->animation = cg_sprite_blaster_flame;
-			s->lifetime = cg_sprite_blaster_flame->num_images * FRAMES_TO_SECONDS(30);
+			s->lifetime = cg_sprite_blaster_flame->num_frames * FRAMES_TO_SECONDS(30);
 			s->origin = Vec3_Add(org, Vec3_Scale(dir, 5.f));
 			s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 5.f));
 			s->rotation = Randomf() * M_PI * 2.f;
@@ -77,7 +77,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	// surface flame
 	if ((s = Cg_AllocSprite())) {
 		s->animation = cg_sprite_blaster_flame;
-		s->lifetime = cg_sprite_blaster_flame->num_images * FRAMES_TO_SECONDS(30);
+		s->lifetime = cg_sprite_blaster_flame->num_frames * FRAMES_TO_SECONDS(30);
 		s->origin = Vec3_Add(org, Vec3_Scale(dir, 7.5f));
 		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 5.f));
 		s->rotation = Randomf() * M_PI * 2.f;
@@ -182,7 +182,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		if ((s = Cg_AllocSprite())) {
 			if (Randomf() < .75f) {
 				s->animation = cg_sprite_poof_02;
-				s->lifetime = cg_sprite_poof_02->num_images * FRAMES_TO_SECONDS(20);
+				s->lifetime = cg_sprite_poof_02->num_frames * FRAMES_TO_SECONDS(20);
 				s->origin = Vec3_Add(org, dir);
 				// s->dir = dir;
 				s->size = 35.f;
@@ -191,7 +191,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 				s->color = Color4f(1.f, 1.f, 1.f, 0.f);
 			} else {
 				s->animation = cg_sprite_smoke_05;
-				s->lifetime = cg_sprite_smoke_05->num_images * FRAMES_TO_SECONDS(80);
+				s->lifetime = cg_sprite_smoke_05->num_frames * FRAMES_TO_SECONDS(80);
 				s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.f));
 				s->dir = dir;
 				s->size = 35.f;
@@ -264,7 +264,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		}
 
 		s->animation = cg_sprite_blood_01;
-		s->lifetime = cg_sprite_blood_01->num_images * FRAMES_TO_SECONDS(30) + Randomf() * 500;
+		s->lifetime = cg_sprite_blood_01->num_frames * FRAMES_TO_SECONDS(30) + Randomf() * 500;
 		s->size = RandomRangef(40.f, 64.f);
 		s->color = Color4bv(0x882200aa);
 		s->rotation = RandomRadian();
@@ -324,7 +324,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 			}
 
 			s->animation = cg_sprite_blood_01;
-			s->lifetime = cg_sprite_blood_01->num_images * FRAMES_TO_SECONDS(30) + Randomf() * 500;
+			s->lifetime = cg_sprite_blood_01->num_frames * FRAMES_TO_SECONDS(30) + Randomf() * 500;
 			s->origin = o;
 			s->velocity = Vec3_Scale(v, dist * ((float)j / GIB_STREAM_COUNT));
 			s->velocity = Vec3_Add(s->velocity, Vec3_RandomRange(-2.f, 2.f));
@@ -418,7 +418,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
-		s->lifetime = cg_sprite_exlosion->num_images * FRAMES_TO_SECONDS(40);
+		s->lifetime = cg_sprite_exlosion->num_frames * FRAMES_TO_SECONDS(40);
 		s->color = color_white;
 		s->size = 100.0;
 		s->size_velocity = 25.0;
@@ -430,7 +430,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
-		s->lifetime = cg_sprite_exlosion->num_images * FRAMES_TO_SECONDS(30);
+		s->lifetime = cg_sprite_exlosion->num_frames * FRAMES_TO_SECONDS(30);
 		s->color = color_white;
 		s->size = 175.0;
 		s->size_velocity = 25.0;
@@ -609,7 +609,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		s->type = SPRITE_NORMAL;
 		s->origin = Vec3_Add(end, Vec3_Scale(dir, 8.f));
 		s->animation = cg_sprite_poof_01;
-		s->lifetime = cg_sprite_poof_01->num_images * FRAMES_TO_SECONDS(30);
+		s->lifetime = cg_sprite_poof_01->num_frames * FRAMES_TO_SECONDS(30);
 		s->size = 128.f;
 		s->size_velocity = 20.f;
 		s->color = Color_Mix(color, color_white, .25f);
@@ -690,7 +690,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 			break;
 		}
 		s->animation = cg_sprite_bfg_explosion_2;
-		s->lifetime = cg_sprite_bfg_explosion_2->num_images * FRAMES_TO_SECONDS(30);
+		s->lifetime = cg_sprite_bfg_explosion_2->num_frames * FRAMES_TO_SECONDS(30);
 		s->size = RandomRangef(200.f, 300.f);
 		s->size_velocity = 100.f;
 		s->size_acceleration = -10.f;
@@ -703,7 +703,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 			break;
 		}
 		s->animation = cg_sprite_bfg_explosion_3;
-		s->lifetime = cg_sprite_bfg_explosion_3->num_images * FRAMES_TO_SECONDS(30);
+		s->lifetime = cg_sprite_bfg_explosion_3->num_frames * FRAMES_TO_SECONDS(30);
 		s->size = RandomRangef(200.f, 300.f);
 		s->size_velocity = 100.f;
 		s->size_acceleration = -10.f;
@@ -777,7 +777,7 @@ void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity
 		return;
 	}
 	s->animation = cg_sprite_poof_01;
-	s->lifetime = cg_sprite_poof_01->num_images * FRAMES_TO_SECONDS(17.5) * (viscosity * .1f);
+	s->lifetime = cg_sprite_poof_01->num_frames * FRAMES_TO_SECONDS(17.5) * (viscosity * .1f);
 	s->origin = org;
 	s->size = size * 8;
 	s->dir = Vec3_Up();
