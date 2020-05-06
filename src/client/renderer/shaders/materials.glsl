@@ -52,12 +52,7 @@ struct material_t {
 	/**
 	 * @brief The material roughness.
 	 */
-	float bump;
-
-	/**
-	 * @brief The material parallax.
-	 */
-	float parallax;
+	float roughness;
 
 	/**
 	 * @brief The material hardness.
@@ -67,7 +62,12 @@ struct material_t {
 	/**
 	 * @brief The material specularity.
 	 */
-	float specular;
+	float specularity;
+
+	/**
+	 * @brief The material parallax.
+	 */
+	float parallax;
 };
 
 uniform material_t material;

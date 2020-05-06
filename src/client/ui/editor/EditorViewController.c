@@ -48,12 +48,12 @@ static void didSetValue(Slider *slider, double value) {
 		return;
 	}
 
-	if (slider == view->bump) {
-		view->material->cm->bump = view->bump->value;
+	if (slider == view->roughness) {
+		view->material->cm->roughness = view->roughness->value;
 	} else if (slider == view->hardness) {
 		view->material->cm->hardness = view->hardness->value;
-	} else if (slider == view->specular) {
-		view->material->cm->specular = view->specular->value;
+	} else if (slider == view->specularity) {
+		view->material->cm->specularity = view->specularity->value;
 	} else if (slider == view->parallax) {
 		view->material->cm->parallax = view->parallax->value;
 	} else {
@@ -73,14 +73,14 @@ static void loadView(ViewController *self) {
 	EditorView *view = $(alloc(EditorView), initWithFrame, NULL);
 	assert(view);
 
-	view->bump->delegate.self = self;
-	view->bump->delegate.didSetValue = didSetValue;
+	view->roughness->delegate.self = self;
+	view->roughness->delegate.didSetValue = didSetValue;
 
 	view->hardness->delegate.self = self;
 	view->hardness->delegate.didSetValue = didSetValue;
 
-	view->specular->delegate.self = self;
-	view->specular->delegate.didSetValue = didSetValue;
+	view->specularity->delegate.self = self;
+	view->specularity->delegate.didSetValue = didSetValue;
 
 	view->parallax->delegate.self = self;
 	view->parallax->delegate.didSetValue = didSetValue;

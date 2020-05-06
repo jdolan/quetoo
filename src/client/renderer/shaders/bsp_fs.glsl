@@ -47,7 +47,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		float _specular = material.specular * 100.0;
+		float _specularity = material.specularity * 100.0;
 
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
 		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
@@ -60,7 +60,7 @@ void main(void) {
 		}
 
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.bump, material.bump, 1.0)));
+		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
 		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
 		vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
@@ -69,7 +69,7 @@ void main(void) {
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
 
 		vec3 light_diffuse = ambient + diffuse * max(0.0, dot(direction, normal));
-		vec3 light_specular = brdf_blinn(normalize(-vertex.position), direction, normal, diffuse, glossmap.a, _specular);
+		vec3 light_specular = brdf_blinn(normalize(-vertex.position), direction, normal, diffuse, glossmap.a, _specularity);
 		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		vec3 stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;

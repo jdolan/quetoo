@@ -87,9 +87,9 @@ struct EditorView {
 	TextView *specularmap;
 
 	/**
-	 * @brief The bump slider.
+	 * @brief The roughness slider.
 	 */
-	Slider *bump;
+	Slider *roughness;
 
 	/**
 	 * @brief The hardness slider.
@@ -97,9 +97,9 @@ struct EditorView {
 	Slider *hardness;
 
 	/**
-	 * @brief The specular slider.
+	 * @brief The specularity slider.
 	 */
-	Slider *specular;
+	Slider *specularity;
 
 	/**
 	 * @brief The parallax slider.

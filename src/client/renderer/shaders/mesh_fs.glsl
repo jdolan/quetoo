@@ -62,7 +62,7 @@ void main(void) {
 		}
 
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.bump, material.bump, 1.0)));
+		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
 		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
 		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;

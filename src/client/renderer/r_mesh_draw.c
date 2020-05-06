@@ -71,10 +71,10 @@ static struct {
 	GLint modulate;
 
 	struct {
-		GLint bump;
-		GLint parallax;
+		GLint roughness;
 		GLint hardness;
-		GLint specular;
+		GLint specularity;
+		GLint parallax;
 	} material;
 
 	struct {
@@ -286,10 +286,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
-			glUniform1f(r_mesh_program.material.bump, material->cm->bump * r_bumpmap->value);
-			glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
+			glUniform1f(r_mesh_program.material.roughness, material->cm->roughness * r_roughness->value);
 			glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
-			glUniform1f(r_mesh_program.material.specular, material->cm->specular * r_specular->value);
+			glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
+			glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
 		}
 
 		const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
@@ -408,10 +408,10 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.gamma = glGetUniformLocation(r_mesh_program.name, "gamma");
 	r_mesh_program.modulate = glGetUniformLocation(r_mesh_program.name, "modulate");
 
-	r_mesh_program.material.bump = glGetUniformLocation(r_mesh_program.name, "material.bump");
-	r_mesh_program.material.parallax = glGetUniformLocation(r_mesh_program.name, "material.parallax");
+	r_mesh_program.material.roughness = glGetUniformLocation(r_mesh_program.name, "material.roughness");
 	r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");
-	r_mesh_program.material.specular = glGetUniformLocation(r_mesh_program.name, "material.specular");
+	r_mesh_program.material.specularity = glGetUniformLocation(r_mesh_program.name, "material.specularity");
+	r_mesh_program.material.parallax = glGetUniformLocation(r_mesh_program.name, "material.parallax");
 
 	r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
 	r_mesh_program.stage.ticks = glGetUniformLocation(r_mesh_program.name, "stage.ticks");

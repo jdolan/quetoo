@@ -729,10 +729,10 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 
 	Cm_MaterialBasename(mat->name, mat->basename, sizeof(mat->basename));
 
-	mat->bump = DEFAULT_BUMP;
+	mat->roughness = DEFAULT_ROUGHNESS;
 	mat->hardness = DEFAULT_HARDNESS;
 	mat->parallax = DEFAULT_PARALLAX;
-	mat->specular = DEFAULT_SPECULAR;
+	mat->specularity = DEFAULT_SPECULARITY;
 
 	return mat;
 }
@@ -860,23 +860,13 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			continue;
 		}
 
-		if (!g_strcmp0(token, "bump")) {
+		if (!g_strcmp0(token, "roughness")) {
 
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->bump, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No bump specified");
-			} else if (m->bump < 0.0) {
-				Cm_MaterialWarn(path, &parser, "Invalid bump value, must be > 0.0\n");
-				m->bump = DEFAULT_BUMP;
-			}
-		}
-
-		if (!g_strcmp0(token, "parallax")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No bump specified");
-			} else if (m->parallax < 0.0) {
-				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be > 0.0\n");
-				m->parallax = DEFAULT_PARALLAX;
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->roughness, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No roughness specified");
+			} else if (m->roughness < 0.0) {
+				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0\n");
+				m->roughness = DEFAULT_ROUGHNESS;
 			}
 		}
 
@@ -890,13 +880,23 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "specular")) {
+		if (!g_strcmp0(token, "specularity")) {
 
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specular, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No bump specified");
-			} else if (m->specular < 0.0) {
-				Cm_MaterialWarn(path, &parser, "Invalid specular value, must be > 0.0\n");
-				m->specular = DEFAULT_HARDNESS;
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specularity, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No specularity specified");
+			} else if (m->specularity < 0.0) {
+				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be > 0.0\n");
+				m->specularity = DEFAULT_HARDNESS;
+			}
+		}
+
+		if (!g_strcmp0(token, "parallax")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No parallax specified");
+			} else if (m->parallax < 0.0) {
+				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be > 0.0\n");
+				m->parallax = DEFAULT_PARALLAX;
 			}
 		}
 
@@ -1255,9 +1255,9 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\ttintmap %s\n", material->tintmap.name);
 	}
 
-	Fs_Print(file, "\tbump %g\n", material->bump);
+	Fs_Print(file, "\tbump %g\n", material->roughness);
 	Fs_Print(file, "\thardness %g\n", material->hardness);
-	Fs_Print(file, "\tspecular %g\n", material->specular);
+	Fs_Print(file, "\tspecular %g\n", material->specularity);
 	Fs_Print(file, "\tparallax %g\n", material->parallax);
 
 	if (material->contents) {

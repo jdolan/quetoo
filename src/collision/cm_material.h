@@ -136,10 +136,10 @@ typedef enum {
 
 } cm_material_flags_t;
 
-#define DEFAULT_BUMP 1.0
+#define DEFAULT_ROUGHNESS 1.0
 #define DEFAULT_PARALLAX 1.0
 #define DEFAULT_HARDNESS 1.0
-#define DEFAULT_SPECULAR 1.0
+#define DEFAULT_SPECULARITY 1.0
 #define DEFAULT_LIGHT 300.0
 
 typedef struct cm_material_s {
@@ -205,9 +205,9 @@ typedef struct cm_material_s {
 	float light;
 
 	/**
-	 * @brief The bump factor to use for the normal map.
+	 * @brief The roughness factor to use for the normal map.
 	 */
-	float bump;
+	float roughness;
 
 	/**
 	 * @brief The hardness factor to use for the normal map.
@@ -217,7 +217,7 @@ typedef struct cm_material_s {
 	/**
 	 * @brief The specular factor to use for the specular map.
 	 */
-	float specular;
+	float specularity;
 
 	/**
 	 * @brief The parallel factor to use for the normal map.
