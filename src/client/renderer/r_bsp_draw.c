@@ -522,8 +522,8 @@ void R_InitBspProgram(void) {
 	memset(&r_bsp_program, 0, sizeof(r_bsp_program));
 
 	r_bsp_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "materials.glsl", "bsp_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "materials.glsl", "common_fs.glsl", "lights_fs.glsl", "bsp_fs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "bsp_vs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "common_fs.glsl", "lights_fs.glsl", "bsp_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_bsp_program.name);

@@ -9,7 +9,7 @@ shaders_DATA = \
 	draw_3d_fs.glsl \
 	draw_3d_vs.glsl \
 	lights_fs.glsl \
-	materials.glsl \
+	material.glsl \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
 	sky_fs.glsl \
