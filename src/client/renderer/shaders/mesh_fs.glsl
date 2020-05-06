@@ -28,7 +28,6 @@ uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
 
-uniform vec4 color;
 uniform float alpha_threshold;
 
 uniform float modulate;
@@ -38,10 +37,7 @@ uniform float parallax;
 uniform float hardness;
 uniform float specular;
 
-uniform int stage;
-uniform float pulse;
-
-uniform int ticks;
+uniform stage_t stage;
 
 in vertex_data {
 	vec3 position;
@@ -50,6 +46,7 @@ in vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec3 lightgrid;
+	vec4 color;
 } vertex;
 
 out vec4 out_color;
@@ -59,13 +56,13 @@ out vec4 out_color;
  */
 void main(void) {
 
-	if (stage == 0) {
+	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
 		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
 		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
-		diffusemap *= color;
+		diffusemap *= vertex.color;
 
 		if (diffusemap.a < alpha_threshold) {
 			discard;
@@ -95,13 +92,7 @@ void main(void) {
 	} else {
 		vec4 effect = texture(texture_stage, vertex.diffusemap);
 
-		if ((stage & STAGE_COLOR) == STAGE_COLOR) {
-			effect *= color;
-		}
-
-		if ((stage & STAGE_PULSE) == STAGE_PULSE) {
-			effect.a *= (sin(pulse * ticks * 0.00628) + 1.0) / 2.0;
-		}
+		effect *= vertex.color;
 
 		out_color = effect;
 	}

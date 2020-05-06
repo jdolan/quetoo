@@ -75,8 +75,13 @@ static struct {
 	GLint hardness;
 	GLint specular;
 
-	GLint stage;
-	GLint pulse;
+	struct {
+		GLint flags;
+		GLint color;
+		GLint pulse;
+		GLint scroll;
+		GLint scale;
+	} stage;
 
 	GLuint lights_block;
 	GLint lights_mask;
@@ -116,6 +121,7 @@ void R_UpdateMeshEntities(void) {
 	glUniform3fv(r_mesh_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
 	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
 
+	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 	glUniform1i(r_mesh_program.ticks, r_view.ticks);
 
 	glUseProgram(0);
@@ -127,6 +133,24 @@ void R_UpdateMeshEntities(void) {
  * @brief
  */
 static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face_t *face, const r_stage_t *stage) {
+
+	glUniform1i(r_mesh_program.stage.flags, stage->cm->flags);
+
+	if (stage->cm->flags & STAGE_COLOR) {
+		glUniform4fv(r_mesh_program.stage.color, 1, stage->cm->color.rgba);
+	}
+
+	if (stage->cm->flags & STAGE_PULSE) {
+		glUniform1f(r_mesh_program.stage.pulse, stage->cm->pulse.hz);
+	}
+
+	if (stage->cm->flags & (STAGE_SCROLL_S | STAGE_SCROLL_T)) {
+		glUniform2f(r_mesh_program.stage.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
+	}
+
+	if (stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
+		glUniform2f(r_mesh_program.stage.scale, stage->cm->scale.s, stage->cm->scale.t);
+	}
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
@@ -141,20 +165,8 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 			break;
 	}
 
-	if (stage->cm->flags & STAGE_COLOR) {
-		glUniform4fv(r_mesh_program.color, 1, stage->cm->color.rgba);
-	}
-
-	if (stage->cm->flags & STAGE_PULSE) {
-		glUniform1f(r_mesh_program.pulse, stage->cm->pulse.hz);
-	}
-
 	const GLint base_vertex = (GLint) (face->vertexes - e->model->mesh->vertexes);
 	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
-
-	if (stage->cm->flags & STAGE_COLOR) {
-		glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
-	}
 
 	R_GetError(stage->media->name);
 }
@@ -168,7 +180,7 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 		return;
 	}
 
-	if (!(material->cm->flags & STAGE_TEXTURE)) {
+	if (!(material->cm->flags & STAGE_DRAW)) {
 		return;
 	}
 
@@ -182,21 +194,16 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 	int32_t s = 1;
 	for (const r_stage_t *stage = material->stages; stage; stage = stage->next, s++) {
 
-		if (!(stage->cm->flags & STAGE_TEXTURE)) {
+		if (!(stage->cm->flags & STAGE_DRAW)) {
 			continue;
 		}
-
-		glUniform1i(r_mesh_program.stage, stage->cm->flags);
 
 		glPolygonOffset(-1.f, -s);
 
 		R_DrawMeshEntityMaterialStage(e, face, stage);
 	}
 
-	glUniform1i(r_mesh_program.stage, 0);
-
-	glBindVertexArray(r_world_model->bsp->vertex_array);
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
+	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -403,8 +410,11 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.hardness = glGetUniformLocation(r_mesh_program.name, "hardness");
 	r_mesh_program.specular = glGetUniformLocation(r_mesh_program.name, "specular");
 
-	r_mesh_program.stage = glGetUniformLocation(r_mesh_program.name, "stage");
-	r_mesh_program.pulse = glGetUniformLocation(r_mesh_program.name, "pulse");
+	r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
+	r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");
+	r_mesh_program.stage.pulse = glGetUniformLocation(r_mesh_program.name, "stage.pulse");
+	r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
+	r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
 
 	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
 	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 0);

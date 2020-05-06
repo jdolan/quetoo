@@ -41,4 +41,64 @@
 #define STAGE_DRAW         (1 << 28)
 #define STAGE_MATERIAL     (1 << 29)
 
-const float DIRTMAP[10] = float[](0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
+const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.000);
+
+/**
+ * @brief The stage type.
+ */
+struct stage_t {
+	/**
+	 * @brief The stage flags.
+	 */
+	int flags;
+
+	/**
+	 * @brief The stage color.
+	 */
+	vec4 color;
+
+	/**
+	 * @brief The stage alpha pulse.
+	 */
+	float pulse;
+
+	/**
+	 * @brief The stage texture coordinate origin for rotations and stretches.
+	 */
+	vec2 st_origin;
+
+	/**
+	 * @brief The stage stretch amplitude and frequency.
+	 */
+	vec2 stretch;
+
+	/**
+	 * @brief The stage rotation rate in radians per second.
+	 */
+	float rotate;
+
+	/**
+	 * @brief The stage scroll rate.
+	 */
+	vec2 scroll;
+
+	/**
+	 * @brief The stage scale factor.
+	 */
+	vec2 scale;
+
+	/**
+	 * @brief The stage terrain blending floor and ceiling.
+	 */
+	vec2 terrain;
+
+	/**
+	 * @brief The stage dirtmap intensity.
+	 */
+	float dirtmap;
+
+	/**
+	 * @brief The stage warp rate and intensity.
+	 */
+	vec2 warp;
+};

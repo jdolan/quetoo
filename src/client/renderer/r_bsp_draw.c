@@ -63,17 +63,19 @@ static struct {
 	GLint hardness;
 	GLint specular;
 
-	GLint stage;
-	GLint color;
-	GLint pulse;
-	GLint st_origin;
-	GLint stretch;
-	GLint rotate;
-	GLint scroll;
-	GLint scale;
-	GLint terrain;
-	GLint dirtmap;
-	GLint warp;
+	struct {
+		GLint flags;
+		GLint color;
+		GLint pulse;
+		GLint st_origin;
+		GLint stretch;
+		GLint rotate;
+		GLint scroll;
+		GLint scale;
+		GLint terrain;
+		GLint dirtmap;
+		GLint warp;
+	} stage;
 
 	GLint lights_block;
 	GLint lights_mask;
@@ -180,46 +182,46 @@ static void R_DrawBspLightgrid(void) {
  */
 static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_draw_elements_t *draw, const r_stage_t *stage) {
 
-	glUniform1i(r_bsp_program.stage, stage->cm->flags);
+	glUniform1i(r_bsp_program.stage.flags, stage->cm->flags);
 
 	if (stage->cm->flags & STAGE_COLOR) {
-		glUniform4fv(r_bsp_program.color, 1, stage->cm->color.rgba);
+		glUniform4fv(r_bsp_program.stage.color, 1, stage->cm->color.rgba);
 	}
 
 	if (stage->cm->flags & STAGE_PULSE) {
-		glUniform1f(r_bsp_program.pulse, stage->cm->pulse.hz);
+		glUniform1f(r_bsp_program.stage.pulse, stage->cm->pulse.hz);
 	}
 
 	if (stage->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
-		glUniform2fv(r_bsp_program.st_origin, 1, draw->st_origin.xy);
+		glUniform2fv(r_bsp_program.stage.st_origin, 1, draw->st_origin.xy);
 	}
 
 	if (stage->cm->flags & STAGE_STRETCH) {
-		glUniform2f(r_bsp_program.stretch, stage->cm->stretch.amp, stage->cm->stretch.hz);
+		glUniform2f(r_bsp_program.stage.stretch, stage->cm->stretch.amp, stage->cm->stretch.hz);
 	}
 
 	if (stage->cm->flags & STAGE_ROTATE) {
-		glUniform1f(r_bsp_program.rotate, stage->cm->rotate.hz);
+		glUniform1f(r_bsp_program.stage.rotate, stage->cm->rotate.hz);
 	}
 
 	if (stage->cm->flags & (STAGE_SCROLL_S | STAGE_SCROLL_T)) {
-		glUniform2f(r_bsp_program.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
+		glUniform2f(r_bsp_program.stage.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
 	}
 
 	if (stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-		glUniform2f(r_bsp_program.scale, stage->cm->scale.s, stage->cm->scale.t);
+		glUniform2f(r_bsp_program.stage.scale, stage->cm->scale.s, stage->cm->scale.t);
 	}
 
 	if (stage->cm->flags & STAGE_TERRAIN) {
-		glUniform2f(r_bsp_program.terrain, stage->cm->terrain.floor, stage->cm->terrain.ceil);
+		glUniform2f(r_bsp_program.stage.terrain, stage->cm->terrain.floor, stage->cm->terrain.ceil);
 	}
 
 	if (stage->cm->flags & STAGE_DIRTMAP) {
-		glUniform1f(r_bsp_program.dirtmap, stage->cm->dirtmap.intensity);
+		glUniform1f(r_bsp_program.stage.dirtmap, stage->cm->dirtmap.intensity);
 	}
 
 	if (stage->cm->flags & STAGE_WARP) {
-		glUniform2f(r_bsp_program.warp, stage->cm->warp.hz, stage->cm->warp.amplitude);
+		glUniform2f(r_bsp_program.stage.warp, stage->cm->warp.hz, stage->cm->warp.amplitude);
 	}
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
@@ -290,7 +292,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp
 		R_DrawBspDrawElementsMaterialStage(e, draw, stage);
 	}
 
-	glUniform1i(r_bsp_program.stage, STAGE_MATERIAL);
+	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -440,7 +442,7 @@ void R_DrawWorld(void) {
 	glUniform3fv(r_bsp_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
 	glUniform3fv(r_bsp_program.fog_color, 1, r_view.fog_color.xyz);
 
-	glUniform1i(r_bsp_program.stage, STAGE_MATERIAL);
+	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 	glUniform1i(r_bsp_program.ticks, r_view.ticks);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
@@ -555,17 +557,17 @@ void R_InitBspProgram(void) {
 	r_bsp_program.hardness = glGetUniformLocation(r_bsp_program.name, "hardness");
 	r_bsp_program.specular = glGetUniformLocation(r_bsp_program.name, "specular");
 
-	r_bsp_program.stage = glGetUniformLocation(r_bsp_program.name, "stage");
-	r_bsp_program.color = glGetUniformLocation(r_bsp_program.name, "color");
-	r_bsp_program.pulse = glGetUniformLocation(r_bsp_program.name, "pulse");
-	r_bsp_program.st_origin = glGetUniformLocation(r_bsp_program.name, "st_origin");
-	r_bsp_program.stretch = glGetUniformLocation(r_bsp_program.name, "stretch");
-	r_bsp_program.rotate = glGetUniformLocation(r_bsp_program.name, "rotate");
-	r_bsp_program.scroll = glGetUniformLocation(r_bsp_program.name, "scroll");
-	r_bsp_program.scale = glGetUniformLocation(r_bsp_program.name, "scale");
-	r_bsp_program.terrain = glGetUniformLocation(r_bsp_program.name, "terrain");
-	r_bsp_program.dirtmap = glGetUniformLocation(r_bsp_program.name, "dirtmap");
-	r_bsp_program.warp = glGetUniformLocation(r_bsp_program.name, "warp");
+	r_bsp_program.stage.flags = glGetUniformLocation(r_bsp_program.name, "stage.flags");
+	r_bsp_program.stage.color = glGetUniformLocation(r_bsp_program.name, "stage.color");
+	r_bsp_program.stage.pulse = glGetUniformLocation(r_bsp_program.name, "stage.pulse");
+	r_bsp_program.stage.st_origin = glGetUniformLocation(r_bsp_program.name, "stage.st_origin");
+	r_bsp_program.stage.stretch = glGetUniformLocation(r_bsp_program.name, "stage.stretch");
+	r_bsp_program.stage.rotate = glGetUniformLocation(r_bsp_program.name, "stage.rotate");
+	r_bsp_program.stage.scroll = glGetUniformLocation(r_bsp_program.name, "stage.scroll");
+	r_bsp_program.stage.scale = glGetUniformLocation(r_bsp_program.name, "stage.scale");
+	r_bsp_program.stage.terrain = glGetUniformLocation(r_bsp_program.name, "stage.terrain");
+	r_bsp_program.stage.dirtmap = glGetUniformLocation(r_bsp_program.name, "stage.dirtmap");
+	r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
 
 	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
 	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 0);

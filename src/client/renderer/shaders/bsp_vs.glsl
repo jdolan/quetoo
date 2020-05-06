@@ -31,9 +31,9 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
 
-uniform int stage;
-uniform vec2 terrain;
-uniform float dirtmap;
+uniform stage_t stage;
+
+uniform int ticks;
 
 out vertex_data {
 	vec3 position;
@@ -61,11 +61,58 @@ void main(void) {
 	vertex.lightmap = in_lightmap;
 	vertex.color = in_color;
 
-	if ((stage & STAGE_TERRAIN) == STAGE_TERRAIN) {
-		vertex.color.a *= clamp((in_position.z - terrain.x) / (terrain.y - terrain.x), 0.0, 1.0);
-	}
+	{
+		if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
+			vertex.color *= stage.color;
+		}
 
-	if ((stage & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
-		vertex.color.a *= DIRTMAP[int(abs(in_position.x + in_position.y)) % DIRTMAP.length()] * dirtmap;
+		if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
+			vertex.color.a *= (sin(stage.pulse * ticks * 0.00628) + 1.0) / 2.0;
+		}
+
+		if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
+			float hz = (sin(ticks * stage.stretch.x * 0.00628f) + 1.0) / 2.0;
+			float amp = 1.5 - hz * stage.stretch.y;
+
+			vertex.diffusemap = vertex.diffusemap - stage.st_origin;
+			vertex.diffusemap = mat2(amp, 0, 0, amp) * vertex.diffusemap;
+			vertex.diffusemap = vertex.diffusemap + stage.st_origin;
+		}
+
+		if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
+			float theta = ticks * stage.rotate * 0.36;
+
+			vertex.diffusemap = vertex.diffusemap - stage.st_origin;
+			vertex.diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * vertex.diffusemap;
+			vertex.diffusemap = vertex.diffusemap + stage.st_origin;
+		}
+
+		if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+			vertex.diffusemap.s += stage.scroll.s * ticks / 1000.0;
+		}
+
+		if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+			vertex.diffusemap.t += stage.scroll.t * ticks / 1000.0;
+		}
+
+		if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
+			vertex.diffusemap.s *= stage.scale.s;
+		}
+
+		if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
+			vertex.diffusemap.t *= stage.scale.t;
+		}
+
+		if ((stage.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
+			vertex.diffusemap = normalize(vertex.position).xy;
+		}
+
+		if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
+			vertex.color.a *= clamp((in_position.z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x), 0.0, 1.0);
+		}
+
+		if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
+			vertex.color.a *= DIRTMAP[int(abs(in_position.x + in_position.y)) % DIRTMAP.length()] * stage.dirtmap;
+		}
 	}
 }

@@ -35,15 +35,7 @@ uniform float parallax;
 uniform float hardness;
 uniform float specular;
 
-uniform int stage;
-uniform vec4 color;
-uniform float pulse;
-uniform vec2 st_origin;
-uniform vec2 stretch;
-uniform float rotate;
-uniform vec2 scroll;
-uniform vec2 scale;
-uniform vec2 warp;
+uniform stage_t stage;
 
 uniform int ticks;
 
@@ -64,7 +56,7 @@ out vec4 out_color;
  */
 void main(void) {
 
-	if ((stage & STAGE_MATERIAL) == STAGE_MATERIAL) {
+	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		float _specular = specular * 100.0;
 
@@ -104,52 +96,15 @@ void main(void) {
 	} else {
 		vec2 texcoord = vertex.diffusemap;
 
-		if ((stage & STAGE_STRETCH) == STAGE_STRETCH) {
-			float hz = (sin(ticks * stretch.x * 0.00628f) + 1.0) / 2.0;
-			float amp = 1.5 - hz * stretch.y;
-
-			texcoord = texcoord - st_origin;
-			texcoord = mat2(amp, 0, 0, amp) * texcoord;
-			texcoord = texcoord + st_origin;
-		}
-
-		if ((stage & STAGE_ROTATE) == STAGE_ROTATE) {
-			float theta = ticks * rotate * 0.36;
-
-			texcoord = texcoord - st_origin;
-			texcoord = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * texcoord;
-			texcoord = texcoord + st_origin;
-		}
-
-		if ((stage & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-			texcoord.s += scroll.s * ticks / 1000.0;
-		}
-
-		if ((stage & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-			texcoord.t += scroll.t * ticks / 1000.0;
-		}
-
-		if ((stage & STAGE_ENVMAP) == STAGE_ENVMAP) {
-			texcoord = normalize(vertex.position).xy;
-		}
-
-		if ((stage & STAGE_WARP) == STAGE_WARP) {
-			texcoord += texture(texture_warp, texcoord + vec2(ticks * warp.x * 0.000125)).xy * warp.y;
+		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
+			texcoord += texture(texture_warp, texcoord + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
 		}
 
 		vec4 effect = texture(texture_stage, texcoord);
 
-		if ((stage & STAGE_COLOR) == STAGE_COLOR) {
-			effect *= color;
-		}
-
-		if ((stage & STAGE_PULSE) == STAGE_PULSE) {
-			effect.a *= (sin(pulse * ticks * 0.00628) + 1.0) / 2.0;
-		}
-
 		effect *= vertex.color;
 
-		if ((stage & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
+		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
 			vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
 			vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
 
