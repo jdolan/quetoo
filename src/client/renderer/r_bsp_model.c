@@ -346,7 +346,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		r_bsp_face_t *face = out->faces;
 		for (int32_t i = 0; i < in->num_faces; i++, face++) {
 
-			if (face->texinfo->material->cm->flags & STAGE_FLARE) {
+			if (face->flare) {
 				g_ptr_array_add(out->flare_faces, face);
 			}
 		}
