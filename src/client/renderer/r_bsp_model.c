@@ -115,8 +115,6 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 	}
 }
 
-static r_bsp_texinfo_t null_texinfo;
-
 /**
  * @brief Loads all r_bsp_face_t for the specified BSP model.
  */
@@ -130,20 +128,11 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
-		// resolve plane
 		out->plane = bsp->cm->planes + in->plane_num;
 		out->plane_side = in->plane_num & 1;
-		out->contents = in->contents;
 
-		// then texinfo
-		if (in->texinfo > -1) {
-			if (in->texinfo >= bsp->num_texinfo) {
-				Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", in->texinfo);
-			}
-			out->texinfo = bsp->texinfo + in->texinfo;
-		} else {
-			out->texinfo = &null_texinfo;
-		}
+		out->texinfo = bsp->texinfo + in->texinfo;
+		out->contents = in->contents;
 
 		out->vertexes = bsp->vertexes + in->first_vertex;
 		out->num_vertexes = in->num_vertexes;
@@ -188,15 +177,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	const bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
-		if (in->texinfo > -1) {
-			if (in->texinfo >= bsp->num_texinfo) {
-				Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", in->texinfo);
-			}
-			out->texinfo = bsp->texinfo + in->texinfo;
-		} else {
-			out->texinfo = &null_texinfo;
-		}
-
+		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
 
 		out->num_faces = in->num_faces;
