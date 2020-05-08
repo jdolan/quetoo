@@ -304,7 +304,7 @@ void MakeNodePortal(node_t *node) {
 			Com_Error(ERROR_FATAL, "Mis-linked portal\n");
 		}
 
-		Cm_ClipWinding(&w, normal, dist, 0.1);
+		Cm_ClipWinding(&w, normal, dist, ON_EPSILON);
 	}
 
 	if (!w) {
