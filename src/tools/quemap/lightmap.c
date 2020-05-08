@@ -335,7 +335,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 				break;
 			case LIGHT_PATCH:
 			case LIGHT_INDIRECT:
-				intensity *= patch_size / DEFAULT_BSP_PATCH_SIZE;
+				intensity *= (patch_size * patch_size) / (DEFAULT_BSP_PATCH_SIZE * DEFAULT_BSP_PATCH_SIZE);
 				break;
 		}
 
