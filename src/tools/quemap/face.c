@@ -257,14 +257,14 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, int32_t value, con
 		}
 
 		const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
-		if (Vec3_Dot(vertex->normal, plane->normal) <= SIDE_EPSILON) {
+		if (Vec3_Dot(vertex->normal, plane->normal) < SIDE_EPSILON) {
 			continue;
 		}
 
 		const bsp_vertex_t *v = &bsp_file.vertexes[face->first_vertex];
 		for (int32_t j = 0; j < face->num_vertexes; j++, v++) {
 
-			if (Vec3_Distance(vertex->position, v->position) <= ON_EPSILON) {
+			if (Vec3_Distance(vertex->position, v->position) < ON_EPSILON) {
 				phong_faces[count++] = face;
 				break;
 			}
