@@ -230,8 +230,15 @@ void R_UpdateVis(void) {
 			const r_bsp_draw_elements_t *draw = in->draw_elements;
 			for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
 
-				draw->node->vis_frame = r_locals.vis_frame;
-				draw->node->lights_mask = draw->node->blend_depth = 0;
+				for (r_bsp_node_t *node = draw->node; node; node = node->parent) {
+
+					if (node->vis_frame == r_locals.vis_frame) {
+						break;
+					}
+
+					node->vis_frame = r_locals.vis_frame;
+					node->lights_mask = node->blend_depth = 0;
+				}
 			}
 
 			R_UpdateNodeDepth(in);
