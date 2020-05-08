@@ -85,16 +85,16 @@ void R_UpdateLights(void) {
 
 		R_MarkLight(in, r_world_model->bsp->nodes);
 
+		const vec3_t origin = in->origin;
+
 		r_entity_t *e = r_view.entities;
 		for (int32_t j = 0; j < r_view.num_entities; j++, e++) {
 
 			if (e->model) {
-				const vec3_t origin = in->origin;
 				switch (e->model->type) {
 					case MOD_BSP_INLINE:
-						Matrix4x4_Transform(&e->inverse_matrix, in->origin.xyz, in->origin.xyz);
+						Matrix4x4_Transform(&e->inverse_matrix, origin.xyz, in->origin.xyz);
 						R_MarkLight(in, e->model->bsp_inline->head_node);
-						in->origin = origin;
 						break;
 					case MOD_MESH:
 						if (Vec3_Distance(e->origin, in->origin) < e->model->radius + in->radius) {
@@ -105,6 +105,8 @@ void R_UpdateLights(void) {
 						break;
 				}
 			}
+
+			in->origin = origin;
 		}
 
 		*out = *in;
