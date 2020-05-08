@@ -228,7 +228,7 @@ void R_UpdateVis(void) {
 			r_bsp_inline_model_t *in = e->model->bsp_inline;
 
 			const r_bsp_draw_elements_t *draw = in->draw_elements;
-			for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
+			for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
 
 				draw->node->vis_frame = r_locals.vis_frame;
 				draw->node->lights_mask = draw->node->blend_depth = 0;
