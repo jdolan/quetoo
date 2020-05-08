@@ -475,7 +475,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 				luxel->direction = Vec3_Add(luxel->direction, Vec3_Scale(dir, intensity));
 				break;
 			case LIGHT_INDIRECT:
-				luxel->radiosity = Vec3_Add(luxel->radiosity, Vec3_Scale(light->color, intensity));
+				luxel->radiosity[bounce] = Vec3_Add(luxel->radiosity[bounce], Vec3_Scale(light->color, intensity));
 				break;
 		}
 	}
@@ -608,8 +608,14 @@ void FinalizeLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
+		// add up radiosity
+		vec3_t radiosity = Vec3_Zero();
+		for (int32_t i = 0; i < num_bounces; i++) {
+			radiosity = Vec3_Add(radiosity, l->radiosity[i]);
+		}
+
 		// convert to float, munge radiosity with ambient
-		vec3_t ambient = Vec3_Scale(Vec3_Add(l->ambient, l->radiosity), 1.0 / 255.0);
+		vec3_t ambient = Vec3_Scale(Vec3_Add(l->ambient, radiosity), 1.0 / 255.0);
 		vec3_t diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
 
 		// apply brightness, saturation and contrast

@@ -319,8 +319,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 			assert(l->s == ds);
 			assert(l->t == dt);
 
-			lightmap = Vec3_Add(lightmap, l->diffuse);
-			lightmap = Vec3_Add(lightmap, l->radiosity);
+			lightmap = Vec3_Add(lightmap, bounce ? l->radiosity[bounce - 1] : l->diffuse);
 		}
 	}
 
@@ -361,7 +360,7 @@ void BuildIndirectLights(void) {
 
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & (SURF_LIGHT | SURF_SKY)) {
+		if (lm->texinfo->flags & (SURF_LIGHT | SURF_MASK_NO_LIGHTMAP)) {
 			continue;
 		}
 

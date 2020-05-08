@@ -376,7 +376,7 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
 				luxel->direction = Vec3_Add(luxel->direction, Vec3_Scale(dir, intensity));
 				break;
 			case LIGHT_INDIRECT:
-				luxel->radiosity = Vec3_Add(luxel->radiosity, Vec3_Scale(light->color, intensity));
+				luxel->radiosity[bounce] = Vec3_Add(luxel->radiosity[bounce], Vec3_Scale(light->color, intensity));
 				break;
 		}
 	}
@@ -468,7 +468,12 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	l->ambient = Vec3_Scale(Vec3_Add(l->ambient, l->radiosity), 1.0 / 255.0);
+	vec3_t radiosity = Vec3_Zero();
+	for (int32_t i = 0; i < num_bounces; i++) {
+		radiosity = Vec3_Add(radiosity, l->radiosity[i]);
+	}
+	
+	l->ambient = Vec3_Scale(Vec3_Add(l->ambient, radiosity), 1.0 / 255.0);
 	l->ambient = ColorFilter(l->ambient);
 
 	l->diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);

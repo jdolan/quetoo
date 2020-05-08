@@ -36,11 +36,12 @@ extern float brightness;
 extern float saturation;
 extern float contrast;
 
-extern int16_t luxel_size;
-extern int16_t patch_size;
+extern int32_t luxel_size;
+extern int32_t patch_size;
 
 extern float radiosity;
 extern int32_t num_bounces;
+extern int32_t bounce;
 
 int32_t Light_ClusterPVS(const int32_t cluster, byte *pvs);
 int32_t Light_PointPVS(const vec3_t p, int32_t head_node, byte *pvs);

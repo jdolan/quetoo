@@ -270,7 +270,7 @@ static void Check_LIGHT_Options(int32_t argc) {
 			Com_Verbose("radiosity: %g\n", radiosity);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--bounce")) {
-			num_bounces = (int32_t) strtol(Com_Argv(i + 1), NULL, 10) ? : 1;
+			num_bounces = (int32_t) CLAMP(strtol(Com_Argv(i + 1), NULL, 10), 1, MAX_BOUNCES);
 			Com_Verbose("bounces: %d\n", num_bounces);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--brightness")) {
@@ -286,11 +286,11 @@ static void Check_LIGHT_Options(int32_t argc) {
 			Com_Verbose("contrast: %g\n", contrast);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--luxel-size")) {
-			luxel_size = strtol(Com_Argv(i + 1), NULL, 10);
+			luxel_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
 			Com_Verbose("luxel size: %d\n", luxel_size);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--patch-size")) {
-			patch_size = strtol(Com_Argv(i + 1), NULL, 10);
+			patch_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
 			Com_Verbose("patch size: %d\n", patch_size);
 			i++;
 		} else {

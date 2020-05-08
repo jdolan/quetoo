@@ -28,11 +28,12 @@ float brightness = 1.0;
 float saturation = 1.0;
 float contrast = 1.0;
 
-int16_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
-int16_t patch_size = DEFAULT_BSP_PATCH_SIZE;
+int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
+int32_t patch_size = DEFAULT_BSP_PATCH_SIZE;
 
 float radiosity = LIGHT_RADIOSITY;
 int32_t num_bounces = 1;
+int32_t bounce = 0;
 
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
@@ -182,7 +183,7 @@ static void LightWorld(void) {
 	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
 	if (indirect) {
-		for (int32_t i = 0; i < num_bounces; i++) {
+		for (bounce = 0; bounce < num_bounces; bounce++) {
 
 			// build indirect lights from lightmapped patches
 			BuildIndirectLights();
