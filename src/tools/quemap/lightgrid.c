@@ -226,6 +226,7 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
 				const float thresh = cosf(light->theta);
 				const float smooth = 0.03;
 				intensity *= Smoothf(thresh - smooth, thresh + smooth, cone_dot);
+				intensity *= DEFAULT_BSP_PATCH_SIZE;
 			}
 				break;
 			case LIGHT_PATCH:
