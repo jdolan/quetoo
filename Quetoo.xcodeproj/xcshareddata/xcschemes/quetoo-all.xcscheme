@@ -89,7 +89,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+map pits"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
