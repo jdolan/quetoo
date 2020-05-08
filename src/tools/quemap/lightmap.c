@@ -323,12 +323,14 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			case LIGHT_SUN:
 				break;
 			case LIGHT_POINT:
+				intensity *= DEFAULT_BSP_PATCH_SIZE;
 				break;
 			case LIGHT_SPOT: {
 				const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 				const float thresh = cosf(light->theta);
 				const float smooth = 0.03;
 				intensity *= Smoothf(cone_dot, thresh - smooth, thresh + smooth);
+				intensity *= DEFAULT_BSP_PATCH_SIZE;
 			}
 				break;
 			case LIGHT_PATCH:
