@@ -134,7 +134,7 @@ static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
 /**
  * @brief Recurses the specified model's tree, sorting alpha blended draw elements from back to front.
  */
-static void R_UpdateNodeDepth(r_bsp_inline_model_t *in) {
+static void R_UpdateNodeDepth(const r_bsp_inline_model_t *in) {
 
 	g_ptr_array_set_size(in->alpha_blend_draw_elements, 0);
 
@@ -225,7 +225,7 @@ void R_UpdateVis(void) {
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 
-			r_bsp_inline_model_t *in = e->model->bsp_inline;
+			const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
 			const r_bsp_draw_elements_t *draw = in->draw_elements;
 			for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
