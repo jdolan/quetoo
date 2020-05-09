@@ -104,21 +104,20 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
-#define WELD_THRESHOLD (.5f - ON_EPSILON)
-#define WELD_THRESHOLD_SQUARED (WELD_THRESHOLD * WELD_THRESHOLD)
-
+/**
+ * @brief
+ */
 static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 	vec3_t *out = points;
 	
-	// see if any written verts are close enough
 	for (int32_t i = 0; i < w->num_points; i++) {
 		vec3_t p = w->points[i];
 
 		for (int32_t x = 0; x < bsp_file.num_vertexes; x++) {
-			const vec3_t bsp_pos = bsp_file.vertexes[x].position;
+			const vec3_t pos = bsp_file.vertexes[x].position;
 
-			if (Vec3_DistanceSquared(bsp_pos, p) < WELD_THRESHOLD_SQUARED) {
-				p = bsp_pos;
+			if (Vec3_DistanceSquared(pos, p) < VERTEX_EPSILON * VERTEX_EPSILON) {
+				p = pos;
 				break;
 			}
 		}
@@ -264,7 +263,7 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, int32_t value, con
 		const bsp_vertex_t *v = &bsp_file.vertexes[face->first_vertex];
 		for (int32_t j = 0; j < face->num_vertexes; j++, v++) {
 
-			if (Vec3_Distance(vertex->position, v->position) < ON_EPSILON) {
+			if (Vec3_Distance(vertex->position, v->position) < VERTEX_EPSILON) {
 				phong_faces[count++] = face;
 				break;
 			}

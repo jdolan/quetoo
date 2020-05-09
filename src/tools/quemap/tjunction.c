@@ -105,7 +105,7 @@ static void FixTJunctions_(int32_t face_num) {
 				vec3_t b;
 				const float b_dist = Vec3_DistanceDir(v1, v, &b);
 
-				if (a_dist < ON_EPSILON || b_dist < ON_EPSILON) {
+				if (a_dist < VERTEX_EPSILON || b_dist < VERTEX_EPSILON) {
 					break; // face already includes v
 				}
 

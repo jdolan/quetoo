@@ -34,6 +34,11 @@
 #define ON_EPSILON				0.125
 
 /**
+ * @brief Vertex equality epsilon.
+ */
+#define VERTEX_EPSILON			0.375
+
+/**
  * @brief Plane side constants used for BSP recursion.
  */
 #define	SIDE_FRONT				1
