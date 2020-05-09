@@ -24,12 +24,12 @@
 #include "quetoo.h"
 
 /**
- * @brief Plane side epsilon value.
+ * @brief Plane side epsilon.
  */
-#define	SIDE_EPSILON			0.001
+#define SIDE_EPSILON			0.001
 
 /**
- * @brief Point equality epsilon value.
+ * @brief Point equality epsilon.
  */
 #define ON_EPSILON				0.125
 
