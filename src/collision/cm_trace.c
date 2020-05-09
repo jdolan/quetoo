@@ -22,11 +22,6 @@
 #include "cm_local.h"
 
 /**
- * @brief Plane side epsilon (1.0 / 32.0) to keep floating point happy.
- */
-#define DIST_EPSILON 0.03125
-
-/**
  * @brief Box trace data encapsulation and context management.
  */
 typedef struct {
@@ -110,7 +105,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 
 		// crosses face
 		if (d1 > d2) { // enter
-			const float f = (d1 - DIST_EPSILON) / (d1 - d2);
+			const float f = (d1 - SIDE_EPSILON) / (d1 - d2);
 
 			if (f > enter_fraction) {
 				enter_fraction = f;
@@ -118,7 +113,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 				clip_side = side;
 			}
 		} else { // leave
-			const float f = (d1 + DIST_EPSILON) / (d1 - d2);
+			const float f = (d1 + SIDE_EPSILON) / (d1 - d2);
 
 			if (f < leave_fraction) {
 				leave_fraction = f;
@@ -302,13 +297,13 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	if (d1 < d2) {
 		const float idist = 1.0 / (d1 - d2);
 		side = 1;
-		frac2 = (d1 + offset + DIST_EPSILON) * idist;
-		frac1 = (d1 - offset + DIST_EPSILON) * idist;
+		frac2 = (d1 + offset + SIDE_EPSILON) * idist;
+		frac1 = (d1 - offset + SIDE_EPSILON) * idist;
 	} else if (d1 > d2) {
 		const float idist = 1.0 / (d1 - d2);
 		side = 0;
-		frac2 = (d1 - offset - DIST_EPSILON) * idist;
-		frac1 = (d1 + offset + DIST_EPSILON) * idist;
+		frac2 = (d1 - offset - SIDE_EPSILON) * idist;
+		frac1 = (d1 + offset + SIDE_EPSILON) * idist;
 	} else {
 		side = 0;
 		frac1 = 1.0;
