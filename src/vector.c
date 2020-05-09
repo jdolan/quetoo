@@ -781,6 +781,13 @@ vec3_t Vec3_RandomizeDir(const vec3_t dir, const float randomization) {
 /**
  * @brief
  */
+vec3_t Vec3_Roundf(const vec3_t v) {
+	return Vec3(roundf(v.x), roundf(v.y), roundf(v.z));
+}
+
+/**
+ * @brief
+ */
 vec3_t Vec3_Reflect(const vec3_t a, const vec3_t b) {
 	return Vec3_Add(a, Vec3_Scale(b, -2.f * Vec3_Dot(a, b)));
 }

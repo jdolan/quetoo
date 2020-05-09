@@ -574,6 +574,11 @@ static inline vec3_t Vec3_One(void) __attribute__ ((warn_unused_result));
 static inline vec3_t Vec3_Radians(const vec3_t degrees) __attribute__ ((warn_unused_result));
 
 /**
+ * @return A vector with random values between `0` and `1`.
+ */
+static inline vec3_t Vec3_Random(void);
+
+/**
  * @return A vector with random values between `begin` and `end`.
  */
 static inline vec3_t Vec3_RandomRange(float begin, float end);
@@ -589,15 +594,14 @@ static inline vec3_t Vec3_RandomDir(void);
 static inline vec3_t Vec3_RandomizeDir(const vec3_t vector, const float random);
 
 /**
- * @return A vector with random values between `0` and `1`.
+ * @return The vector `v` rounded to the nearest integer values.
  */
-static inline vec3_t Vec3_Random(void);
+static inline vec3_t Vec3_Roundf(const vec3_t v);
 
 /**
  * @return The vector `v` scaled by `scale`.
  */
 static inline vec3_t Vec3_Scale(const vec3_t v, float scale) __attribute__ ((warn_unused_result));
-
 
 /**
  * @return
