@@ -26,24 +26,25 @@
  */
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
 
-	if (normal.x == 1.0 || normal.x == -1.0) {
+	const float x = fabsf(normal.x);
+	if (x > 1.f - SIDE_EPSILON) {
 		return PLANE_X;
 	}
-	if (normal.y == 1.0 || normal.y == -1.0) {
+
+	const float y = fabsf(normal.y);
+	if (y > 1.f - SIDE_EPSILON) {
 		return PLANE_Y;
 	}
-	if (normal.z == 1.0 || normal.z == -1.0) {
+
+	const float z = fabsf(normal.z);
+	if (z > 1.f - SIDE_EPSILON) {
 		return PLANE_Z;
 	}
 
-	const float ax = fabsf(normal.x);
-	const float ay = fabsf(normal.y);
-	const float az = fabsf(normal.z);
-
-	if (ax >= ay && ax >= az) {
+	if (x >= y && x >= z) {
 		return PLANE_ANY_X;
 	}
-	if (ay >= ax && ay >= az) {
+	if (y >= x && y >= z) {
 		return PLANE_ANY_Y;
 	}
 
