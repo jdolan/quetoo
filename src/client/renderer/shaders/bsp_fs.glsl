@@ -20,13 +20,17 @@
  */
 
 uniform sampler2DArray texture_material;
-uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stage;
+
+uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_warp;
 
 uniform float alpha_threshold;
 
 uniform float modulate;
+
+uniform material_t material;
+uniform stage_t stage;
 
 in vertex_data {
 	vec3 position;

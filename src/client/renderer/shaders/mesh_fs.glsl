@@ -32,6 +32,9 @@ uniform float alpha_threshold;
 
 uniform float modulate;
 
+uniform material_t material;
+uniform stage_t stage;
+
 in vertex_data {
 	vec3 position;
 	vec3 normal;

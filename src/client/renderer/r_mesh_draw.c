@@ -84,6 +84,7 @@ static struct {
 		GLint pulse;
 		GLint scroll;
 		GLint scale;
+		GLint shell;
 	} stage;
 
 	GLuint lights_block;
@@ -93,6 +94,8 @@ static struct {
 	GLint fog_color;
 
 	GLint ticks;
+
+	r_media_t *shell;
 } r_mesh_program;
 
 /**
@@ -155,6 +158,10 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 		glUniform2f(r_mesh_program.stage.scale, stage->cm->scale.s, stage->cm->scale.t);
 	}
 
+	if (stage->cm->flags & STAGE_SHELL) {
+		glUniform1f(r_mesh_program.stage.shell, stage->cm->shell.radius);
+	}
+
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
 	switch (stage->media->type) {
@@ -177,13 +184,42 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 /**
  * @brief
  */
+static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t *face) {
+
+	if (!(e->effects & EF_SHELL)) {
+		return;
+	}
+
+	if (!(e->effects & EF_BLEND)) {
+		glDisable(GL_CULL_FACE);
+	}
+
+	R_DrawMeshEntityMaterialStage(e, face, &(const r_stage_t) {
+		.cm = &(const cm_stage_t) {
+			.flags = STAGE_COLOR | STAGE_SHELL | STAGE_SCROLL_S | STAGE_SCROLL_T,
+			.color = Color3fv(e->shell),
+			.blend = { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA },
+			.scroll = { 0.25f, 0.25f },
+			.shell = { (e->effects & EF_WEAPON) ? 0.125f : 1.f }
+		},
+		.media = r_mesh_program.shell
+	});
+
+	if (!(e->effects & EF_BLEND)) {
+		glEnable(GL_CULL_FACE);
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
 
 	if (!r_materials->value) {
 		return;
 	}
 
-	if (!(material->cm->flags & STAGE_DRAW)) {
+	if (!(material->cm->flags & STAGE_DRAW) && !(e->effects & EF_SHELL)) {
 		return;
 	}
 
@@ -205,6 +241,8 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 
 		R_DrawMeshEntityMaterialStage(e, face, stage);
 	}
+
+	R_DrawMeshEntityShellEffect(e, face);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
@@ -419,6 +457,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.stage.pulse = glGetUniformLocation(r_mesh_program.name, "stage.pulse");
 	r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
 	r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
+	r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
 
 	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
 	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 0);
@@ -436,6 +475,8 @@ void R_InitMeshProgram(void) {
 	glUseProgram(0);
 	
 	R_GetError(NULL);
+
+	r_mesh_program.shell = (r_media_t *) R_LoadImage("envmaps/envmap_1", IT_PROGRAM);
 }
 
 /**

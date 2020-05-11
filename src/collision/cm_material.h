@@ -80,6 +80,10 @@ typedef struct {
 	float amplitude;
 } cm_stage_warp_t;
 
+typedef struct {
+	float radius;
+} cm_stage_shell_t;
+
 // frame based material animation, lerp between consecutive images
 typedef struct {
 	int32_t num_frames;
@@ -117,6 +121,7 @@ typedef enum {
 	STAGE_WARP				= (1 << 16),
 	STAGE_FLARE				= (1 << 17),
 	STAGE_FOG				= (1 << 18),
+	STAGE_SHELL				= (1 << 19),
 
 	STAGE_DRAW 				= (1 << 28),
 	STAGE_MATERIAL			= (1 << 29),
@@ -186,6 +191,11 @@ typedef struct cm_stage_s {
 	 * @brief The stage warp effect.
 	 */
 	cm_stage_warp_t warp;
+
+	/**
+	 * @brief The stage shell effect.
+	 */
+	cm_stage_shell_t shell;
 
 	/**
 	 * @brief The stage animation effect.

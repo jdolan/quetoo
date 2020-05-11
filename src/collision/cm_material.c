@@ -562,6 +562,17 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 			s->flags |= STAGE_WARP;
 		}
 
+		if (!g_strcmp0(token, "shell")) {
+
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->shell.radius, 1) != 1) {
+				Cm_MaterialWarn(path, parser, "No value provided for shell radius");
+				continue;
+			}
+
+			s->flags |= STAGE_SHELL;
+			continue;
+		}
+
 		if (!g_strcmp0(token, "anim")) {
 
 			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_UINT16, &s->animation.num_frames, 1) != 1) {
@@ -619,7 +630,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 			}
 
 			// a texture or envmap mean draw it
-			if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_WARP)) {
+			if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_WARP | STAGE_SHELL)) {
 				s->flags |= STAGE_DRAW;
 
 				// terrain and dirtmapping use lighting
@@ -1209,6 +1220,10 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 
 	if (stage->flags & STAGE_WARP) {
 		Fs_Print(file, "\t\twarp %g %g\n", stage->warp.hz, stage->warp.amplitude);
+	}
+
+	if (stage->flags & STAGE_SHELL) {
+		Fs_Print(file, "\t\tshell %g\n", stage->shell.radius);
 	}
 
 	if (stage->flags & STAGE_FLARE) {

@@ -212,7 +212,7 @@ typedef struct r_stage_s {
 	/**
 	 * @brief The backing collision material stage.
 	 */
-	const struct cm_stage_s *cm;
+	const cm_stage_t *cm;
 
 	/**
 	 * @brief Stages with a render pass will reference an image, atlas image, material, animation, etc.

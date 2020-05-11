@@ -39,6 +39,7 @@
 #define STAGE_WARP         (1 << 16)
 #define STAGE_FLARE        (1 << 17)
 #define STAGE_FOG          (1 << 18)
+#define STAGE_SHELL        (1 << 19)
 
 #define STAGE_DRAW         (1 << 28)
 #define STAGE_MATERIAL     (1 << 29)
@@ -69,8 +70,6 @@ struct material_t {
 	 */
 	float parallax;
 };
-
-uniform material_t material;
 
 /**
  * @brief The stage type.
@@ -135,22 +134,27 @@ struct stage_t {
 	 * @brief The stage warp rate and intensity.
 	 */
 	vec2 warp;
-};
 
-uniform stage_t stage;
+	/**
+	 * @brief The stage shell radius.
+	 */
+	float shell;
+};
 
 /**
  * @brief
  */
-void stage_vertex(in mat4 view, in vec3 position, inout vec4 color, inout vec2 diffusemap) {
+void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
 
-	if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
-		color *= stage.color;
+	if ((stage.flags & STAGE_SHELL) == STAGE_SHELL) {
+		position += normal * stage.shell;
 	}
+}
 
-	if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-		color.a *= (sin(stage.pulse * stage.ticks * 0.00628) + 1.0) / 2.0;
-	}
+/**
+ * @brief
+ */
+void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout vec2 diffusemap, inout vec4 color) {
 
 	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
 		float hz = (sin(stage.ticks * stage.stretch.x * 0.00628f) + 1.0) / 2.0;
@@ -186,14 +190,22 @@ void stage_vertex(in mat4 view, in vec3 position, inout vec4 color, inout vec2 d
 	}
 
 	if ((stage.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
-		diffusemap = normalize((view * vec4(position, 1.0)).xyz).xy;
+		diffusemap *= normalize(position).xy;
+	}
+
+	if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
+		color *= stage.color;
+	}
+
+	if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
+		color.a *= (sin(stage.pulse * stage.ticks * 0.00628) + 1.0) / 2.0;
 	}
 
 	if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
-		color.a *= clamp((position.z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x), 0.0, 1.0);
+		color.a *= clamp((in_position.z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x), 0.0, 1.0);
 	}
 
 	if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
-		color.a *= DIRTMAP[int(abs(position.x + position.y)) % DIRTMAP.length()] * stage.dirtmap;
+		color.a *= DIRTMAP[int(abs(in_position.x + in_position.y)) % DIRTMAP.length()] * stage.dirtmap;
 	}
 }

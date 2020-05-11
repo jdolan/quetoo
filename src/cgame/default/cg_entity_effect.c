@@ -97,6 +97,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		e->shell = Vec3_Add(e->shell, Vec3_Scale(color, 0.5));
 	}
 
+	e->shell = Vec3(.5, .5, 1);
 	if (e->effects & EF_QUAD) {
 		const cg_light_t l = {
 			.origin = e->origin,

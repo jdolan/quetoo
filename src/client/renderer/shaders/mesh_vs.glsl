@@ -41,6 +41,8 @@ uniform vec3 lightgrid_maxs;
 
 uniform vec4 color;
 
+uniform stage_t stage;
+
 out vertex_data {
 	vec3 position;
 	vec3 normal;
@@ -56,23 +58,24 @@ out vertex_data {
  */
 void main(void) {
 
-	vec4 lerp_position = vec4(mix(in_position, in_next_position, lerp), 1.0);
-	vec4 lerp_normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
-	vec4 lerp_tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
-	vec4 lerp_bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
+	vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
+	vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
+	vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
+	vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
 
-	gl_Position = projection * view * model * lerp_position;
+	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	vertex.position = vec3(view * model * lerp_position);
-	vertex.normal = normalize(vec3(view * model * lerp_normal));
-	vertex.tangent = normalize(vec3(view * model * lerp_tangent));
-	vertex.bitangent = normalize(vec3(view * model * lerp_bitangent));
+	vertex.position = vec3(view * model * position);
+	vertex.normal = normalize(vec3(view * model * normal));
+	vertex.tangent = normalize(vec3(view * model * tangent));
+	vertex.bitangent = normalize(vec3(view * model * bitangent));
+
 	vertex.diffusemap = in_diffusemap;
+	vertex.lightgrid = (vec3(model * position) - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
 	vertex.color = color;
 
-	vec3 world_position = vec3(model * lerp_position);
-	vertex.lightgrid = (world_position - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
+	gl_Position = projection * vec4(vertex.position, 1.0);
 
-	stage_vertex(view, in_position, vertex.color, vertex.diffusemap);
+	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }
 

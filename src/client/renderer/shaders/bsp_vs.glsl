@@ -31,6 +31,8 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
 
+uniform stage_t stage;
+
 out vertex_data {
 	vec3 position;
 	vec3 normal;
@@ -46,16 +48,23 @@ out vertex_data {
  */
 void main(void) {
 
-	gl_Position = projection * view * model * vec4(in_position, 1.0);
+	vec4 position = vec4(in_position, 1.0);
+	vec4 normal = vec4(in_normal, 0.0);
+	vec4 tangent = vec4(in_tangent, 0.0);
+	vec4 bitangent = vec4(in_bitangent, 0.0);
 
-	vertex.position = (view * model * vec4(in_position, 1.0)).xyz;
-	vertex.normal = normalize(vec3(view * model * vec4(in_normal, 0.0)).xyz);
-	vertex.tangent = normalize(vec3(view * model * vec4(in_tangent, 0.0)).xyz);
-	vertex.bitangent = normalize(vec3(view * model * vec4(in_bitangent, 0.0)).xyz);
+	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+
+	vertex.position = vec3(view * model * position);
+	vertex.normal = normalize(vec3(view * model * normal));
+	vertex.tangent = normalize(vec3(view * model * tangent));
+	vertex.bitangent = normalize(vec3(view * model * bitangent));
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
 	vertex.color = in_color;
 
-	stage_vertex(view, in_position, vertex.color, vertex.diffusemap);
+	gl_Position = projection * vec4(vertex.position, 1.0);
+
+	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }
