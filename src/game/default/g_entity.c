@@ -370,7 +370,7 @@ static void G_ParseEntity(parser_t *parser, g_entity_t *ent) {
 		}
 
 		// parse value
-		if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_NO_WRAP, value, sizeof(value))) {
+		if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_NO_WRAP | PARSE_ALLOW_OVERRUN, value, sizeof(value))) {
 			gi.Error("EOF in entity definition\n");
 		}
 
