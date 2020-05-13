@@ -586,11 +586,11 @@ typedef struct cg_import_s {
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
 
 	/**
-	 * @brief Creates an image atlas.
+	 * @brief Loads or creates an image atlas.
 	 * @param name The name to give to the atlas, e.g. `"cg_particle_atlas"`
 	 * @return The atlas that has been created.
 	 */
-	r_atlas_t *(*CreateAtlas)(const char *name);
+	r_atlas_t *(*LoadAtlas)(const char *name);
 
 	/**
 	 * @brief Load an image into an atlas. The atlas must be [re]compiled.

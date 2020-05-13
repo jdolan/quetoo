@@ -39,12 +39,13 @@ static void R_FreeAtlas(r_media_t *media) {
 }
 
 /**
- * @brief Creates a blank state for an atlas and returns it.
+ * @brief Loads an existing atlas from memory, or creates a new one.
  */
-r_atlas_t *R_CreateAtlas(const char *name) {
+r_atlas_t *R_LoadAtlas(const char *name) {
 
 	r_atlas_t *atlas = (r_atlas_t *) R_FindMedia(name);
 	if (atlas == NULL) {
+
 		atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), MEDIA_ATLAS);
 		atlas->media.Free = R_FreeAtlas;
 
@@ -102,6 +103,8 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 
 	R_RegisterMedia((r_media_t *) atlas_image);
 
+	atlas->dirty = true;
+
 	return atlas_image;
 }
 
@@ -130,6 +133,10 @@ static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
  */
 void R_CompileAtlas(r_atlas_t *atlas) {
 
+	if (!atlas->dirty) {
+		return;
+	}
+
 	R_FreeImage((r_media_t *) atlas->image);
 
 	atlas->image->width = 0;
@@ -152,9 +159,9 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 		}
 
 		SDL_FreeSurface(surf);
-	}
 
-	R_RegisterMedia((r_media_t *) atlas);
+		atlas->dirty = false;
+	}
 
 	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
 }

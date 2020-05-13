@@ -163,6 +163,11 @@ typedef struct {
 	 * @brief The compiled image atlas containing all nodes.
 	 */
 	r_image_t *image;
+
+	/**
+	 * @brief True if this at atlas should be recompiled.
+	 */
+	_Bool dirty;
 } r_atlas_t;
 
 /**
