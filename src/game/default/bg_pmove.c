@@ -614,15 +614,13 @@ static void Pm_SnapToWalls(void) {
 		Vec3( 0.0, -1.0,  0.0 )
 	};
 
-	for (uint32_t i = 0; i < lengthof(dirs); i++) {
+	for (size_t i = 0; i < lengthof(dirs); i++) {
 
-		vec3_t end;
-		end = Vec3_Add(pm->s.origin, Vec3_Scale(dirs[i], PM_SNAP_DISTANCE));
+		vec3_t end = Vec3_Add(pm->s.origin, Vec3_Scale(dirs[i], PM_SNAP_DISTANCE));
 
 		const cm_trace_t tr = pm->Trace(pm->s.origin, end, pm->mins, pm->maxs);
 		if (tr.fraction < 1.0) {
-			if (tr.plane.normal.z < PM_STEP_NORMAL &&
-			        tr.plane.normal.z > -PM_STEP_NORMAL) {
+			if (tr.plane.normal.z < PM_STEP_NORMAL && tr.plane.normal.z > -PM_STEP_NORMAL) {
 				pm->s.origin = Vec3_Add(tr.end, Vec3_Scale(dirs[i], -PM_SNAP_DISTANCE));
 			}
 		}
@@ -1282,7 +1280,6 @@ static void Pm_AirMove(void) {
 	vel = Vec3_Zero();
 	vel = Vec3_Add(vel, Vec3_Scale(pml.forward_xy, pm->cmd.forward));
 	vel = Vec3_Add(vel, Vec3_Scale(pml.right_xy, pm->cmd.right));
-
 	vel.z = 0.0;
 
 	dir = Vec3_NormalizeLength(vel, &speed);
