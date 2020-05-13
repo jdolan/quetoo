@@ -268,7 +268,7 @@ void Cg_UpdateMedia(void) {
 	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IT_EFFECT);
 	cg_sprite_blaster_flash = cgi.LoadImage("sprites/blast_01/blast_01_flash", IT_EFFECT);
 
-	cg_sprite_atlas = cgi.CreateAtlas("cg_sprite_atlas");
+	cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");
 
 	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IT_EFFECT);
 	cg_sprite_smoke = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/smoke", IT_EFFECT);

@@ -246,7 +246,7 @@ void Cl_InitCgame(void) {
 
 	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;
-	import.CreateAtlas = R_CreateAtlas;
+	import.LoadAtlas = R_LoadAtlas;
 	import.LoadAtlasImage = R_LoadAtlasImage;
 	import.CompileAtlas = R_CompileAtlas;
 	import.CreateAnimation = R_CreateAnimation;
