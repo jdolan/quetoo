@@ -162,46 +162,49 @@ void BuildPatches(const GList *entities) {
  * @brief
  */
 static void SubdividePatch_r(patch_t *patch) {
-	cm_winding_t *w, *o1, *o2;
-	vec3_t mins, maxs;
-	vec3_t split;
-	float dist;
-	patch_t *newp;
 
-	w = patch->winding;
+	const cm_winding_t *w = patch->winding;
+
+	vec3_t mins, maxs;
 	Cm_WindingBounds(w, &mins, &maxs);
 
-	split = Vec3_Zero();
+	vec3_t normal = Vec3_Zero();
 
 	int32_t i;
 	for (i = 0; i < 3; i++) {
 		if (floorf((mins.xyz[i] + 1.0) / patch_size) < floorf((maxs.xyz[i] - 1.0) / patch_size)) {
-			split.xyz[i] = 1.0;
+			normal.xyz[i] = 1.0;
 			break;
 		}
 	}
 
-	if (i == 3) { // no splitting needed
+	if (i == 3) {
 		return;
 	}
 
-	dist = patch_size * (1.0 + floorf((mins.xyz[i] + 1.0) / patch_size));
-	Cm_SplitWinding(w, split, dist, ON_EPSILON, &o1, &o2);
+	const float dist = patch_size * (1.0 + floorf((mins.xyz[i] + 1.0) / patch_size));
+
+	cm_winding_t *front, *back;
+	Cm_SplitWinding(w, normal, dist, ON_EPSILON, &front, &back);
+
+	if (!front || !back) {
+		return;
+	}
 
 	// create a new patch
-	newp = (patch_t *) Mem_TagMalloc(sizeof(*newp), MEM_TAG_PATCH);
-	newp->face = patch->face;
+	patch_t *p = (patch_t *) Mem_TagMalloc(sizeof(*p), MEM_TAG_PATCH);
+	p->face = patch->face;
 
-	newp->origin = patch->origin;
+	p->origin = patch->origin;
 
-	patch->winding = o1;
-	newp->winding = o2;
+	patch->winding = front;
+	p->winding = back;
 
-	newp->next = patch->next;
-	patch->next = newp;
+	p->next = patch->next;
+	patch->next = p;
 
 	SubdividePatch_r(patch);
-	SubdividePatch_r(newp);
+	SubdividePatch_r(p);
 }
 
 /**
