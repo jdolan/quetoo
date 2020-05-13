@@ -43,20 +43,23 @@ static void R_FreeAtlas(r_media_t *media) {
  */
 r_atlas_t *R_CreateAtlas(const char *name) {
 
-	r_atlas_t *atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), MEDIA_ATLAS);
-	atlas->media.Free = R_FreeAtlas;
+	r_atlas_t *atlas = (r_atlas_t *) R_FindMedia(name);
+	if (atlas == NULL) {
+		atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), MEDIA_ATLAS);
+		atlas->media.Free = R_FreeAtlas;
 
-	atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), MEDIA_IMAGE);
-	atlas->image->media.Free = R_FreeImage;
+		atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), MEDIA_IMAGE);
+		atlas->image->media.Free = R_FreeImage;
 
-	atlas->image->type = IT_ATLAS;
+		atlas->image->type = IT_ATLAS;
 
-	R_RegisterMedia((r_media_t *) atlas->image);
-	R_RegisterMedia((r_media_t *) atlas);
+		R_RegisterMedia((r_media_t *) atlas->image);
+		R_RegisterMedia((r_media_t *) atlas);
 
-	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
+		R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
 
-	atlas->atlas = Atlas_Create(1);
+		atlas->atlas = Atlas_Create(1);
+	}
 
 	return atlas;
 }
@@ -73,6 +76,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 
 		r_atlas_image_t *atlas_image = node->data;
 		if (!strcmp(name, atlas_image->image.media.name)) {
+			R_RegisterMedia((r_media_t *) atlas_image);
 			return atlas_image;
 		}
 	}
@@ -130,7 +134,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	atlas->image->width = 0;
 
-	for (int32_t width = 1024; atlas->image->width == 0; width += 256) {
+	for (int32_t width = 2048; atlas->image->width == 0; width += 1024) {
 
 		if (width > r_config.max_texture_size) {
 			Com_Error(ERROR_DROP, "Atlas exceeds GL_MAX_TEXTURE_SIZE\n");
@@ -149,6 +153,8 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 		SDL_FreeSurface(surf);
 	}
+
+	R_RegisterMedia((r_media_t *) atlas);
 
 	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
 }
