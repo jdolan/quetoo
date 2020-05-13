@@ -294,8 +294,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 
 	for (int32_t i = 0; i < in->num_points; i++) {
 
-		vec3_t p1, p2, mid;
-		p1 = in->points[i];
+		const vec3_t p1 = in->points[i];
 
 		if (sides[i] == SIDE_BOTH) {
 			f->points[f->num_points] = p1;
@@ -321,9 +320,9 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 			continue;
 		}
 
-		// generate a split point
-		p2 = in->points[(i + 1) % in->num_points];
+		const vec3_t p2 = in->points[(i + 1) % in->num_points];
 
+		vec3d_t mid;
 		const double dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
 			if (normal.xyz[j] == 1.f) {
@@ -335,10 +334,10 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 			}
 		}
 
-		f->points[f->num_points] = mid;
+		f->points[f->num_points] = Vec3d_CastVec3(mid);
 		f->num_points++;
 
-		b->points[b->num_points] = mid;
+		b->points[b->num_points] = Vec3d_CastVec3(mid);
 		b->num_points++;
 
 		if (f->num_points == max_points || b->num_points == max_points) {
@@ -397,8 +396,7 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
 
 	for (int32_t i = 0; i < in->num_points; i++) {
 
-		vec3_t p1, p2, mid;
-		p1 = in->points[i];
+		const vec3_t p1 = in->points[i];
 
 		if (sides[i] == SIDE_BOTH) {
 			f->points[f->num_points] = p1;
@@ -415,9 +413,8 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
 			continue;
 		}
 
-		// generate a split point
-		p2 = in->points[(i + 1) % in->num_points];
 
+		vec3d_t mid;
 		const double dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
 			if (normal.xyz[j] == 1.0) {
@@ -429,7 +426,7 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
 			}
 		}
 
-		f->points[f->num_points] = mid;
+		f->points[f->num_points] = Vec3d_CastVec3(mid);
 		f->num_points++;
 
 		if (f->num_points == max_points) {
