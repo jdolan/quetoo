@@ -221,6 +221,33 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 /**
  * @brief
  */
+static cm_winding_t *Cm_FixWinding(cm_winding_t *w) {
+
+	for (int32_t i = 0; i < w->num_points; i++) {
+		const vec3_t a = w->points[(i + 0) % w->num_points];
+		const vec3_t b = w->points[(i + 1) % w->num_points];
+
+		if (Vec3_EqualEpsilon(a, b, FLT_EPSILON)) {
+
+			for (int32_t j = i + 1; j < w->num_points; j++) {
+				w->points[j] = w->points[(j + 1) % w->num_points];
+			}
+
+			w->num_points--;
+		}
+	}
+
+	if (w->num_points < 3) {
+		Cm_FreeWinding(w);
+		return NULL;
+	}
+
+	return w;
+}
+
+/**
+ * @brief
+ */
 void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, double epsilon,
 						cm_winding_t **front, cm_winding_t **back) {
 
@@ -319,8 +346,8 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 		}
 	}
 
-	*front = f;
-	*back = b;
+	*front = Cm_FixWinding(f);
+	*back = Cm_FixWinding(b);
 }
 
 /**
@@ -411,7 +438,7 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
 	}
 
 	Cm_FreeWinding(in);
-	*in_out = f;
+	*in_out = Cm_FixWinding(f);
 }
 
 /**
@@ -507,7 +534,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 		merged->num_points++;
 	}
 
-	return merged;
+	return Cm_FixWinding(merged);
 }
 
 /**
