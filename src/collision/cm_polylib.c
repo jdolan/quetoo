@@ -325,9 +325,9 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 		vec3d_t mid;
 		const double dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
-			if (normal.xyz[j] == 1.f) {
+			if (normal.xyz[j] > 1.f - FLT_EPSILON) {
 				mid.xyz[j] = dist;
-			} else if (normal.xyz[j] == -1.f) {
+			} else if (normal.xyz[j] < -1.f + FLT_EPSILON) {
 				mid.xyz[j] = -dist;
 			} else {
 				mid.xyz[j] = p1.xyz[j] + dot * (p2.xyz[j] - p1.xyz[j]);
@@ -413,13 +413,14 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
 			continue;
 		}
 
+		const vec3_t p2 = in->points[(i + 1) % in->num_points];
 
 		vec3d_t mid;
 		const double dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
-			if (normal.xyz[j] == 1.0) {
+			if (normal.xyz[j] > 1.f - FLT_EPSILON) {
 				mid.xyz[j] = dist;
-			} else if (normal.xyz[j] == -1.0) {
+			} else if (normal.xyz[j] < -1.f + FLT_EPSILON) {
 				mid.xyz[j] = -dist;
 			} else {
 				mid.xyz[j] = p1.xyz[j] + dot * (p2.xyz[j] - p1.xyz[j]);
