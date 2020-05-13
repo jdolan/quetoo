@@ -319,7 +319,7 @@ static void Pm_StepSlideMove(void) {
 
 	// don't step up if we still have upward velocity, and there's no ground
 
-	down = vec3_add(org, Vec3_Scale(vec3_down(), PM_STEP_HEIGHT + PM_GROUND_DIST));
+	down = Vec3_Add(org, Vec3_Scale(Vec3_Down(), PM_STEP_HEIGHT + PM_GROUND_DIST));
 	cm_trace_t trace = pm->Trace(org, down, pm->mins, pm->maxs);
 	if (pm->s.velocity.z > PM_SPEED_UP && (trace.ent == NULL || trace.plane.normal.z < PM_STEP_NORMAL)) {
 		return;
@@ -327,7 +327,7 @@ static void Pm_StepSlideMove(void) {
 
 	// try to step up
 
-	up = vec3_add(org, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT));
+	up = Vec3_Add(org, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT));
 	trace = pm->Trace(org, up, pm->mins, pm->maxs);
 	if (trace.all_solid) {
 		return;
@@ -340,7 +340,7 @@ static void Pm_StepSlideMove(void) {
 
 	// settle to the new ground
 
-	down = vec3_add(pm->s.origin, Vec3_Scale(vec3_down(), PM_STEP_HEIGHT + PM_GROUND_DIST));
+	down = Vec3_Add(pm->s.origin, Vec3_Scale(Vec3_Down(), PM_STEP_HEIGHT + PM_GROUND_DIST));
 	trace = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
 	if (!trace.all_solid) {
 		pm->s.origin = trace.end;
