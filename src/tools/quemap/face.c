@@ -105,7 +105,12 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 }
 
 /**
- * @brief
+ * @brief Welds the specified winding, writing its welded points to the given array.
+ * @remarks This attempts to fix hairline cracks in (usually) intricate brushes. Note
+ * that the weld threshold here is significantly larger than that of WindingIsTiny.
+ * This allows for small windings that act as "caulk" to not be collapsed, but instead
+ * be welded to other geometry. We do not weld the points to each other; only to those
+ * of other brushes.
  */
 static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 	vec3_t *out = points;
