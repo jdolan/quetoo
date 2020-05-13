@@ -58,6 +58,7 @@ r_atlas_image_t *cg_sprite_bubble;
 r_atlas_image_t *cg_sprite_smoke;
 r_atlas_image_t *cg_sprite_flame;
 r_atlas_image_t *cg_sprite_spark;
+r_atlas_image_t *cg_sprite_steam;
 r_atlas_image_t *cg_sprite_inactive;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_rail;
@@ -284,6 +285,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_smoke_04        = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
 	cg_sprite_smoke_05        = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
 	cg_sprite_hyperblaster    = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
+	cg_sprite_steam = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/steam", IT_EFFECT);
 	cg_sprite_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
 	cg_sprite_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
 	cg_sprite_poof_01		  = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 32);

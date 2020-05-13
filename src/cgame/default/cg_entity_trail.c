@@ -212,6 +212,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 		return;
 	}
 
+	s->media = (r_media_t *) cg_sprite_steam;
 	s->origin = org;
 	s->velocity = Vec3_Add(vel, Vec3_RandomRange(-2.f, 2.f));
 	s->lifetime = 4500 / (5.0 + Randomf() * 0.5);

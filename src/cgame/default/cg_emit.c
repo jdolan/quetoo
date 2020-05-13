@@ -39,7 +39,7 @@
 #define EMIT_PVS (EMIT_LIGHT | EMIT_SPARKS | EMIT_STEAM | EMIT_FLAME | EMIT_CORONA | EMIT_MODEL)
 #define EMIT_PHS (EMIT_PVS | EMIT_SOUND)
 
-typedef struct cl_emit_s {
+typedef struct {
 	int32_t flags;
 	vec3_t org;
 	vec3_t angles; // for model orientation
