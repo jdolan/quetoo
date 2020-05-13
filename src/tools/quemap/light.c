@@ -298,10 +298,10 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		patch_maxs = Vec2_Maxf(patch_maxs, Vec3_XY(st));
 	}
 
-	assert(patch_mins.x >= lm->st_mins.x - SIDE_EPSILON);
-	assert(patch_mins.y >= lm->st_mins.y - SIDE_EPSILON);
-	assert(patch_maxs.x <= lm->st_maxs.x + SIDE_EPSILON);
-	assert(patch_maxs.y <= lm->st_maxs.y + SIDE_EPSILON);
+	assert(patch_mins.x >= lm->st_mins.x - 0.001);
+	assert(patch_mins.y >= lm->st_mins.y - 0.001);
+	assert(patch_maxs.x <= lm->st_maxs.x + 0.001);
+	assert(patch_maxs.y <= lm->st_maxs.y + 0.001);
 
 	const int16_t w = patch_maxs.x - patch_mins.x;
 	const int16_t h = patch_maxs.y - patch_mins.y;
