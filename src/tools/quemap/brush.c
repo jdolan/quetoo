@@ -219,23 +219,20 @@ float BrushVolume(csg_brush_t *brush) {
  * @return SIDE_FRONT, SIDE_BACK, or SIDE_BOTH
  */
 static int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const plane_t *plane) {
-	int32_t side = 0;
 
-	// axial planes are easy
 	if (AXIAL(plane)) {
-		if (plane->dist - SIDE_EPSILON <= mins.xyz[plane->type]) {
+		if (plane->dist - SIDE_EPSILON < mins.xyz[plane->type]) {
 			return SIDE_FRONT;
 		}
-		if (plane->dist + SIDE_EPSILON >= maxs.xyz[plane->type]) {
+		if (plane->dist + SIDE_EPSILON > maxs.xyz[plane->type]) {
 			return SIDE_BACK;
 		}
 		return SIDE_BOTH;
 	}
-	// create the proper leading and trailing verts for the box
 
 	vec3_t corners[2];
 	for (int32_t i = 0; i < 3; i++) {
-		if (plane->normal.xyz[i] < 0) {
+		if (plane->normal.xyz[i] < 0.f) {
 			corners[0].xyz[i] = mins.xyz[i];
 			corners[1].xyz[i] = maxs.xyz[i];
 		} else {
@@ -247,7 +244,8 @@ static int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const plane_
 	const double dist1 = Vec3_Dot(plane->normal, corners[0]) - plane->dist;
 	const double dist2 = Vec3_Dot(plane->normal, corners[1]) - plane->dist;
 
-	if (dist1 >= SIDE_EPSILON) {
+	int32_t side = 0;
+	if (dist1 > -SIDE_EPSILON) {
 		side |= SIDE_FRONT;
 	}
 	if (dist2 < SIDE_EPSILON) {

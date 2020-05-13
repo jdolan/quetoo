@@ -112,9 +112,7 @@ int32_t Cm_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmi
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
 int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *p) {
-	float dist1, dist2;
 
-	// axial planes
 	if (AXIAL(p)) {
 		if (p->dist - SIDE_EPSILON < mins.xyz[p->type]) {
 			return SIDE_FRONT;
@@ -125,7 +123,7 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 		return SIDE_BOTH;
 	}
 
-	// general case
+	float dist1, dist2;
 	switch (p->sign_bits) {
 		case 0:
 			dist1 = Vec3_Dot(p->normal, maxs);
@@ -164,16 +162,18 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 			break;
 	}
 
-	int32_t sides = 0;
+	dist1 -= p->dist;
+	dist2 -= p->dist;
 
-	if (dist1 > p->dist) {
-		sides = SIDE_FRONT;
+	int32_t side = 0;
+	if (dist1 > -SIDE_EPSILON) {
+		side = SIDE_FRONT;
 	}
-	if (dist2 < p->dist) {
-		sides |= SIDE_BACK;
+	if (dist2 < SIDE_EPSILON) {
+		side |= SIDE_BACK;
 	}
 
-	return sides;
+	return side;
 }
 
 /**
