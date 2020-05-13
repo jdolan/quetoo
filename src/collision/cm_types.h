@@ -26,17 +26,17 @@
 /**
  * @brief Plane side epsilon.
  */
-#define SIDE_EPSILON			0.001
+#define SIDE_EPSILON			FLT_EPSILON
 
 /**
  * @brief Point equality epsilon.
  */
-#define ON_EPSILON				0.125
+#define ON_EPSILON				.125f
 
 /**
  * @brief Vertex equality epsilon.
  */
-#define VERTEX_EPSILON			0.375
+#define VERTEX_EPSILON			.375f
 
 /**
  * @brief Plane side constants used for BSP recursion.
