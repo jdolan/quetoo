@@ -776,8 +776,11 @@ static entity_t *ParseEntity(parser_t *parser) {
 			} else {
 				entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), MEM_TAG_EPAIR);
 
-				Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key));
-				Parse_Token(parser, PARSE_DEFAULT, e->value, sizeof(e->value));
+				if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
+					Com_Error(ERROR_FATAL, "Invalid entity key\n");
+				}
+
+				Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, e->value, sizeof(e->value));
 				
 				e->next = entity->values;
 				entity->values = e;

@@ -220,17 +220,20 @@ static _Bool Parse_SkipComments(parser_t *parser) {
  * @brief Handles the appending routine for output. Returns false if the added character would overflow the
  * output buffer.
  */
-static _Bool Parse_AppendOutputChar(parser_t *parser, const char c, size_t *output_position, char *output, const size_t output_len) {
+static _Bool Parse_AppendOutputChar(parser_t *parser, const parse_flags_t flags, const char c, size_t *output_position, char *output, const size_t output_len) {
 
 	if (!output) {
 		return true;
 	}
 
-	if (*output_position >= output_len - 1) {
-		return false; // buffer overrun
+	if (*output_position >= output_len - 1) { // buffer overrun
+		if (!(flags & PARSE_ALLOW_OVERRUN)) {
+			return false;
+		}
+	} else {
+		output[(*output_position)++] = c;
 	}
 
-	output[(*output_position)++] = c;
 	return true;
 }
 
@@ -245,7 +248,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 	}
 
 	if (flags & PARSE_RETAIN_QUOTES) {
-		if (!Parse_AppendOutputChar(parser, '"', output_position, output, output_len)) {
+		if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
 			return false;
 		}
 	}
@@ -285,7 +288,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 				if (escaped != '\0') {
 
 					// copy it in
-					if (!Parse_AppendOutputChar(parser, escaped, output_position, output, output_len)) {
+					if (!Parse_AppendOutputChar(parser, flags, escaped, output_position, output, output_len)) {
 						return false;
 					}
 
@@ -296,8 +299,8 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 			}
 
 			// if we reached here, we're copying them literally or was an invalid escape sequence.
-			if (!Parse_AppendOutputChar(parser, c, output_position, output, output_len) ||
-				!Parse_AppendOutputChar(parser, c = *(++parser->position.ptr), output_position, output, output_len)) {
+			if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len) ||
+				!Parse_AppendOutputChar(parser, flags, c = *(++parser->position.ptr), output_position, output, output_len)) {
 				return false;
 			}
 
@@ -313,13 +316,13 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 		}
 
 		// regular char, just append
-		if (!Parse_AppendOutputChar(parser, c, output_position, output, output_len)) {
+		if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len)) {
 			return false;
 		}
 	}
 
 	if (flags & PARSE_RETAIN_QUOTES) {
-		if (!Parse_AppendOutputChar(parser, '"', output_position, output, output_len)) {
+		if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
 			return false;
 		}
 	}
@@ -383,7 +386,7 @@ _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, con
 		// regular token
 		while (c > 32) {
 
-			if (!Parse_AppendOutputChar(parser, c, &i, output, output_len)) {
+			if (!Parse_AppendOutputChar(parser, flags, c, &i, output, output_len)) {
 				return false;
 			}
 
@@ -392,7 +395,7 @@ _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, con
 		}
 	}
 
-	if (!Parse_AppendOutputChar(parser, '\0', &i, output, output_len)) {
+	if (!Parse_AppendOutputChar(parser, flags, '\0', &i, output, output_len)) {
 		return false;
 	}
 
