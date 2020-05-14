@@ -123,9 +123,9 @@ static chain_winding_t *ClipChainWinding(chain_t *chain, chain_winding_t *in, co
 	for (int32_t i = 0; i < in->num_points; i++) {
 		const double dot = Vec3_Dot(in->points[i], plane->normal) - plane->dist;
 		dists[i] = dot;
-		if (dot > ON_EPSILON) {
+		if (dot > SIDE_EPSILON) {
 			sides[i] = SIDE_FRONT;
-		} else if (dot < -ON_EPSILON) {
+		} else if (dot < -SIDE_EPSILON) {
 			sides[i] = SIDE_BACK;
 		} else {
 			sides[i] = SIDE_BOTH;
@@ -247,11 +247,11 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 						   plane.normal.y * plane.normal.y +
 						   plane.normal.z * plane.normal.z;
 
-			if (length <= ON_EPSILON) {
+			if (length < .1f) {
 				continue;
 			}
 
-			length = 1.0 / sqrtf(length);
+			length = 1.f / sqrtf(length);
 
 			plane.normal.x *= length;
 			plane.normal.y *= length;
@@ -269,11 +269,11 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 					continue;
 				}
 				const double d = Vec3_Dot(source->points[k], plane.normal) - plane.dist;
-				if (d < -ON_EPSILON) { // source is on the negative side, so we want all
+				if (d < -SIDE_EPSILON) { // source is on the negative side, so we want all
 					// pass and target on the positive side
 					flip_test = false;
 					break;
-				} else if (d > ON_EPSILON) { // source is on the positive side, so we want all
+				} else if (d > SIDE_EPSILON) { // source is on the positive side, so we want all
 					// pass and target on the negative side
 					flip_test = true;
 					break;
@@ -299,9 +299,9 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 					continue;
 				}
 				const double d = Vec3_Dot(pass->points[k], plane.normal) - plane.dist;
-				if (d < -ON_EPSILON) {
+				if (d < -SIDE_EPSILON) {
 					break;
-				} else if (d > ON_EPSILON) {
+				} else if (d > SIDE_EPSILON) {
 					counts[0]++;
 				} else {
 					counts[2]++;
@@ -524,7 +524,7 @@ void BaseVis(int32_t portal_num) {
 		const cm_winding_t *w = p->winding;
 		for (j = 0; j < w->num_points; j++) {
 			const double d = Vec3_Dot(w->points[j], portal->plane.normal) - portal->plane.dist;
-			if (d > ON_EPSILON) {
+			if (d > SIDE_EPSILON) {
 				break;
 			}
 		}
@@ -536,7 +536,7 @@ void BaseVis(int32_t portal_num) {
 		w = portal->winding;
 		for (j = 0; j < w->num_points; j++) {
 			const double d = Vec3_Dot(w->points[j], p->plane.normal) - p->plane.dist;
-			if (d < -ON_EPSILON) {
+			if (d < -SIDE_EPSILON) {
 				break;
 			}
 		}
