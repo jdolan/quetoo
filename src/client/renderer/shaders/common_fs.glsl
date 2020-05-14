@@ -260,3 +260,22 @@ vec4 texture_bicubic(sampler2DArray sampler, vec3 coords) {
 float grayscale(vec3 color) {
 	return dot(color, vec3(0.299, 0.587, 0.114));
 }
+
+/**
+ * @brief Clamp value t to range [a,b] and map [a,b] to [0,1].
+ */
+float linearstep(float a, float b, float t) {
+	return clamp((t - a) / (b - a), 0.0, 1.0);
+}
+
+/**
+ * @brief Get (approximate) mipmap level.
+ */
+float mipmap_level(vec2 uv)
+{
+    vec2  dx = dFdx(uv);
+    vec2  dy = dFdy(uv);
+    float delta_max_sqr = max(dot(dx, dx), dot(dy, dy));
+
+    return 0.5 * log2(delta_max_sqr); // == log2(sqrt(delta_max_sqr));
+}
