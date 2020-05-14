@@ -280,7 +280,6 @@ static _Bool Pm_CheckStep(const cm_trace_t *trace) {
 static void Pm_StepDown(const cm_trace_t *trace) {
 
 	pm->s.origin = trace->end;
-	pm->s.origin.z += PM_GROUND_DIST;
 
 	pm->step = pm->s.origin.z - pml.previous_origin.z;
 
@@ -848,7 +847,6 @@ static void Pm_CheckGround(void) {
 		// and sink down to it if not trick jumping
 		if (!(pm->s.flags & PMF_TIME_TRICK_JUMP)) {
 			pm->s.origin = trace.end;
-			pm->s.origin.z += PM_GROUND_DIST;
 
 			pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, PM_CLIP_BOUNCE);
 		}

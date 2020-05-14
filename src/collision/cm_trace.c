@@ -86,26 +86,26 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		const float d1 = Vec3_Dot(data->start, plane->normal) - dist;
 		const float d2 = Vec3_Dot(data->end, plane->normal) - dist;
 
-		if (d2 > 0.0) {
-			end_outside = true; // end point is not in solid
-		}
-		if (d1 > 0.0) {
+		if (d1 > 0.f) {
 			start_outside = true;
+		}
+		if (d2 > 0.f) {
+			end_outside = true;
 		}
 
 		// if completely in front of face, no intersection with entire brush
-		if (d1 > 0.0 && d2 >= d1) {
+		if (d1 > 0.f && (d2 > TRACE_EPSILON || d2 >= d1)) {
 			return;
 		}
 
 		// if completely behind plane, no intersection
-		if (d1 <= 0.0 && d2 <= 0.0) {
+		if (d1 < 0.f && d2 < 0.f) {
 			continue;
 		}
 
 		// crosses face
 		if (d1 > d2) { // enter
-			const float f = (d1 - SIDE_EPSILON) / (d1 - d2);
+			const float f = (d1 - TRACE_EPSILON) / (d1 - d2);
 
 			if (f > enter_fraction) {
 				enter_fraction = f;
@@ -113,7 +113,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 				clip_side = side;
 			}
 		} else { // leave
-			const float f = (d1 + SIDE_EPSILON) / (d1 - d2);
+			const float f = (d1 + TRACE_EPSILON) / (d1 - d2);
 
 			if (f < leave_fraction) {
 				leave_fraction = f;
@@ -297,13 +297,13 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	if (d1 < d2) {
 		const float idist = 1.0 / (d1 - d2);
 		side = 1;
-		frac2 = (d1 + offset + SIDE_EPSILON) * idist;
-		frac1 = (d1 - offset + SIDE_EPSILON) * idist;
+		frac2 = (d1 + offset + TRACE_EPSILON) * idist;
+		frac1 = (d1 - offset + TRACE_EPSILON) * idist;
 	} else if (d1 > d2) {
 		const float idist = 1.0 / (d1 - d2);
 		side = 0;
-		frac2 = (d1 - offset - SIDE_EPSILON) * idist;
-		frac1 = (d1 + offset + SIDE_EPSILON) * idist;
+		frac2 = (d1 - offset - TRACE_EPSILON) * idist;
+		frac1 = (d1 + offset + TRACE_EPSILON) * idist;
 	} else {
 		side = 0;
 		frac1 = 1.0;

@@ -57,7 +57,7 @@
 /**
  * @brief Distances traced when seeking ground.
  */
-#define PM_GROUND_DIST			0.25f
+#define PM_GROUND_DIST			.25f
 #define PM_GROUND_DIST_TRICK	16.f
 
 /**

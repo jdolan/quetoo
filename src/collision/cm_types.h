@@ -49,6 +49,11 @@
 #define VERTEX_EPSILON			.375f
 
 /**
+ * @brief Trace collision epsilon.
+ */
+#define TRACE_EPSILON			.125f
+
+/**
  * @brief Plane side constants used for BSP recursion.
  */
 #define	SIDE_FRONT				1
