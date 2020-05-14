@@ -29,6 +29,16 @@
 #define SIDE_EPSILON			FLT_EPSILON
 
 /**
+ * @brief Winding clipping and splitting epsilon.
+ */
+#define CLIP_EPSILON			DBL_EPSILON
+
+/**
+ * @brief Colinear points dot product epsilon.
+ */
+#define COLINEAR_EPSILON		.00001f
+
+/**
  * @brief Point equality epsilon.
  */
 #define ON_EPSILON				.125f

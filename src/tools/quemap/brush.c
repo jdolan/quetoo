@@ -42,6 +42,8 @@ csg_brush_t *AllocBrush(int32_t num_sides) {
  */
 void FreeBrush(csg_brush_t *brush) {
 
+	assert(brush);
+
 	SDL_AtomicAdd(&c_active_brushes, -1);
 	
 	for (int32_t i = 0; i < brush->num_sides; i++) {
@@ -139,7 +141,7 @@ static void CreateBrushWindings(csg_brush_t *brush) {
 				continue;
 			}
 			plane = &planes[brush->sides[j].plane_num ^ 1];
-			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.0); //ON_EPSILON);
+			Cm_ClipWinding(&w, plane->normal, plane->dist, CLIP_EPSILON);
 		}
 
 		side->winding = w;
@@ -258,8 +260,7 @@ static int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const plane_
 /**
  * @brief
  */
-int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_splits,
-                                   _Bool *hint_split, int32_t *epsilon_brush) {
+int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_splits, _Bool *hint_split, int32_t *epsilon_brush) {
 
 	*num_splits = 0;
 	*hint_split = false;
@@ -311,10 +312,10 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 				d_back = d;
 			}
 
-			if (d > SIDE_EPSILON) { // PLANESIDE_EPSILON)
+			if (d > SIDE_EPSILON) {
 				front = 1;
 			}
-			if (d < -SIDE_EPSILON) { // PLANESIDE_EPSILON)
+			if (d < -SIDE_EPSILON) {
 				back = 1;
 			}
 		}
@@ -383,21 +384,19 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 		}
 		for (int32_t j = 0; j < w->num_points; j++) {
 			const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
-			if (d > 0.0 && d > d_front) {
+			if (d > d_front) {
 				d_front = d;
 			}
-			if (d < 0.0 && d < d_back) {
+			if (d < d_back) {
 				d_back = d;
 			}
 		}
 	}
-	if (d_front < ON_EPSILON) { // PLANESIDE_EPSILON)
-		// only on back
+	if (d_front < ON_EPSILON) {
 		*back = CopyBrush(brush);
 		return;
 	}
-	if (d_back > -ON_EPSILON) { // PLANESIDE_EPSILON)
-		// only on front
+	if (d_back > -ON_EPSILON) {
 		*front = CopyBrush(brush);
 		return;
 	}
@@ -408,7 +407,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 
 	for (int32_t i = 0; i < brush->num_sides && w; i++) {
 		plane_t *plane2 = &planes[brush->sides[i].plane_num ^ 1];
-		Cm_ClipWinding(&w, plane2->normal, plane2->dist, 0.0); // PLANESIDE_EPSILON);
+		Cm_ClipWinding(&w, plane2->normal, plane2->dist, CLIP_EPSILON);
 	}
 
 	if (!w || WindingIsSmall(w)) { // the brush isn't really split
@@ -444,7 +443,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 		if (!w) {
 			continue;
 		}
-		Cm_SplitWinding(w, plane->normal, plane->dist, 0.0 /*PLANESIDE_EPSILON */, &cw[0], &cw[1]);
+		Cm_SplitWinding(w, plane->normal, plane->dist, CLIP_EPSILON, &cw[0], &cw[1]);
 		for (int32_t j = 0; j < 2; j++) {
 			if (!cw[j]) {
 				continue;
@@ -465,7 +464,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 		int32_t j;
 		for (j = 0; j < 3; j++) {
 			if (cb[i]->mins.xyz[j] < MIN_WORLD_COORD || cb[i]->maxs.xyz[j] > MAX_WORLD_COORD) {
-				Com_Debug(DEBUG_ALL, "bogus brush after clip\n");
+				Com_Debug(DEBUG_ALL, "Invalid brush after clip\n");
 				break;
 			}
 		}
@@ -478,9 +477,9 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 
 	if (!(cb[0] && cb[1])) {
 		if (!cb[0] && !cb[1]) {
-			Com_Debug(DEBUG_ALL, "split removed brush\n");
+			Com_Debug(DEBUG_ALL, "Split removed brush\n");
 		} else {
-			Com_Debug(DEBUG_ALL, "split not on both sides\n");
+			Com_Debug(DEBUG_ALL, "Split not on both sides\n");
 		}
 		if (cb[0]) {
 			FreeBrush(cb[0]);
@@ -514,7 +513,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 		if (v1 < 1.0) {
 			FreeBrush(cb[i]);
 			cb[i] = NULL;
-			Com_Debug(DEBUG_ALL, "tiny volume after clip\n");
+			Com_Debug(DEBUG_ALL, "Tiny volume after clip\n");
 		}
 	}
 

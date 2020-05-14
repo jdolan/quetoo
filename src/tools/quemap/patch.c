@@ -185,7 +185,7 @@ static void SubdividePatch_r(patch_t *patch) {
 	const float dist = patch_size * (1.0 + floorf((mins.xyz[i] + 1.0) / patch_size));
 
 	cm_winding_t *front, *back;
-	Cm_SplitWinding(w, normal, dist, ON_EPSILON, &front, &back);
+	Cm_SplitWinding(w, normal, dist, CLIP_EPSILON, &front, &back);
 
 	if (!front || !back) {
 		return;

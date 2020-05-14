@@ -110,7 +110,7 @@ static void FixTJunctions_(int32_t face_num) {
 				}
 
 				const float d = Vec3_Dot(a, b);
-				if (d > -1.0 + SIDE_EPSILON) {
+				if (d > -1.0 + COLINEAR_EPSILON) {
 					continue; // v is not on the edge v0 <-> v1
 				}
 

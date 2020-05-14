@@ -199,10 +199,10 @@ void RemovePortalFromNode(portal_t *portal, node_t *node) {
 	}
 }
 
-#define	SIDESPACE 8
+#define	SIDESPACE 8.f
 
 /**
- * @brief The created portals will face the global outside_node
+ * @brief The created portals will face the global outside node.
  */
 void MakeHeadnodePortals(tree_t *tree) {
 	vec3_t bounds[2];
@@ -210,8 +210,8 @@ void MakeHeadnodePortals(tree_t *tree) {
 
 	// pad with some space so there will never be null volume leafs
 	for (int32_t i = 0; i < 3; i++) {
-		bounds[0].xyz[i] = tree->mins.xyz[i] - SIDESPACE;
-		bounds[1].xyz[i] = tree->maxs.xyz[i] + SIDESPACE;
+		bounds[0].xyz[i] = floorf(tree->mins.xyz[i]) - SIDESPACE;
+		bounds[1].xyz[i] = ceilf(tree->maxs.xyz[i]) + SIDESPACE;
 	}
 
 	tree->outside_node.plane_num = PLANE_NUM_LEAF;
@@ -246,13 +246,10 @@ void MakeHeadnodePortals(tree_t *tree) {
 				continue;
 			}
 			const plane_t *plane = &portals[j]->plane;
-			Cm_ClipWinding(&portals[i]->winding, plane->normal, plane->dist, ON_EPSILON);
+			Cm_ClipWinding(&portals[i]->winding, plane->normal, plane->dist, CLIP_EPSILON);
 		}
 	}
 }
-
-#define	BASE_WINDING_EPSILON	0.001
-#define	SPLIT_WINDING_EPSILON	0.001
 
 /**
  * @brief
@@ -267,10 +264,10 @@ static cm_winding_t *BaseWindingForNode(const node_t *node) {
 		plane = &planes[n->plane_num];
 
 		if (n->children[0] == node) { // take front
-			Cm_ClipWinding(&w, plane->normal, plane->dist, BASE_WINDING_EPSILON);
+			Cm_ClipWinding(&w, plane->normal, plane->dist, CLIP_EPSILON);
 		} else { // take back
 			const vec3_t normal = Vec3_Negate(plane->normal);
-			Cm_ClipWinding(&w, normal, -plane->dist, BASE_WINDING_EPSILON);
+			Cm_ClipWinding(&w, normal, -plane->dist, CLIP_EPSILON);
 		}
 		node = n;
 		n = n->parent;
@@ -304,7 +301,7 @@ void MakeNodePortal(node_t *node) {
 			Com_Error(ERROR_FATAL, "Mis-linked portal\n");
 		}
 
-		Cm_ClipWinding(&w, normal, dist, ON_EPSILON);
+		Cm_ClipWinding(&w, normal, dist, CLIP_EPSILON);
 	}
 
 	if (!w) {
@@ -351,8 +348,7 @@ void SplitNodePortals(node_t *node) {
 		// cut the portal into two portals, one on each side of the cut plane
 
 		cm_winding_t *front_winding, *back_winding;
-		Cm_SplitWinding(p->winding, plane->normal, plane->dist, SPLIT_WINDING_EPSILON,
-		                   &front_winding, &back_winding);
+		Cm_SplitWinding(p->winding, plane->normal, plane->dist, CLIP_EPSILON, &front_winding, &back_winding);
 
 		if (front_winding && WindingIsSmall(front_winding)) {
 			Cm_FreeWinding(front_winding);
@@ -739,7 +735,6 @@ static void FillOutside_r(node_t *node) {
 	} else {
 		c_inside++;
 	}
-
 }
 
 /**

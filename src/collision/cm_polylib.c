@@ -210,7 +210,7 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 		a = Vec3_Normalize(a);
 		b = Vec3_Normalize(b);
 
-		if (Vec3_Dot(a, b) > 1.0 - SIDE_EPSILON) { // skip v1
+		if (Vec3_Dot(a, b) > 1.0 - COLINEAR_EPSILON) { // skip v1
 			i++;
 		}
 	}
@@ -492,10 +492,10 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 	back = b->points[(j + 2) % b->num_points];
 	delta = Vec3_Subtract(back, p1);
 	dot = Vec3_Dot(delta, cross);
-	if (dot > SIDE_EPSILON) {
+	if (dot > COLINEAR_EPSILON) {
 		return NULL; // not a convex polygon
 	}
-	const _Bool keep1 = dot < -SIDE_EPSILON;
+	const _Bool keep1 = dot < -COLINEAR_EPSILON;
 
 	back = a->points[(i + 2) % a->num_points];
 	delta = Vec3_Subtract(back, p2);
@@ -505,10 +505,10 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 	back = b->points[(j + b->num_points - 1) % b->num_points];
 	delta = Vec3_Subtract(back, p2);
 	dot = Vec3_Dot(delta, cross);
-	if (dot > SIDE_EPSILON) {
+	if (dot > COLINEAR_EPSILON) {
 		return NULL; // not a convex polygon
 	}
-	const _Bool keep2 = dot < -SIDE_EPSILON;
+	const _Bool keep2 = dot < -COLINEAR_EPSILON;
 
 	// build the new polygon
 	cm_winding_t *merged = Cm_AllocWinding(a->num_points + b->num_points);
@@ -575,7 +575,7 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			const vec3_t ba = Vec3_Normalize(Vec3_Subtract(b->position, a->position));
 			const vec3_t cb = Vec3_Normalize(Vec3_Subtract(c->position, b->position));
 
-			if (Vec3_Dot(ba, cb) > 1.0 - FLT_EPSILON) {
+			if (Vec3_Dot(ba, cb) > 1.0 - COLINEAR_EPSILON) {
 				b->corner = 0;
 			} else {
 				b->corner = ++num_corners;
