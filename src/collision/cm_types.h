@@ -41,7 +41,7 @@
 /**
  * @brief Point equality epsilon.
  */
-#define ON_EPSILON				.125f
+#define ON_EPSILON				.1f
 
 /**
  * @brief Vertex equality epsilon.
