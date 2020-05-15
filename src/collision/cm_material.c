@@ -1257,6 +1257,9 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	if (*material->normalmap.name) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
 	}
+	if (*material->heightmap.name) {
+		Fs_Print(file, "\theightmap %s\n", material->heightmap.name);
+	}
 	if (*material->glossmap.name) {
 		Fs_Print(file, "\tglossmap %s\n", material->glossmap.name);
 	}
@@ -1267,9 +1270,9 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\ttintmap %s\n", material->tintmap.name);
 	}
 
-	Fs_Print(file, "\tbump %g\n", material->roughness);
+	Fs_Print(file, "\troughness %g\n", material->roughness);
 	Fs_Print(file, "\thardness %g\n", material->hardness);
-	Fs_Print(file, "\tspecular %g\n", material->specularity);
+	Fs_Print(file, "\tspecularity %g\n", material->specularity);
 	Fs_Print(file, "\tparallax %g\n", material->parallax);
 
 	if (material->contents) {
