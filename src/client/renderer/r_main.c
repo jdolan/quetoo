@@ -283,6 +283,8 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateFlares();
 
+	R_DrawBspLightgrid();
+
 	R_UpdateSprites();
 	
 	R_UpdateLights();

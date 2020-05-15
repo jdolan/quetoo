@@ -127,7 +127,7 @@ static void R_DrawBspNormals(void) {
 /**
  * @brief
  */
-static void R_DrawBspLightgrid(void) {
+void R_DrawBspLightgrid(void) {
 
 	if (!r_draw_bsp_lightgrid->value) {
 		return;
@@ -165,12 +165,15 @@ static void R_DrawBspLightgrid(void) {
 
 				r_sprite_t sprite = {
 					.origin = Vec3(s + 0.5, t + 0.5, u + 0.5),
-					.size = 4.f * 8.f,
+					.size = 8.f,
 					.color = Color3b(r, g, b),
 					.media = (r_media_t *) particle
 				};
 
 				sprite.origin = Vec3_Add(r_world_model->bsp->lightgrid->mins, Vec3_Scale(sprite.origin, BSP_LIGHTGRID_LUXEL_SIZE));
+
+				if (Vec3_DistanceSquared(r_view.origin, sprite.origin) > 512 * 512)
+					continue;
 
 				R_AddSprite(&sprite);
 			}
@@ -509,7 +512,6 @@ void R_DrawWorld(void) {
 	R_GetError(NULL);
 
 	R_DrawBspNormals();
-	R_DrawBspLightgrid();
 }
 
 #define WARP_IMAGE_SIZE 16
