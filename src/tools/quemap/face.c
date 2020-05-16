@@ -105,29 +105,31 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 }
 
 static GHashTable* welding_spatial_hash;
+static GArray* welding_hash_keys;
 
 /**
  * @brief 
  */
-static void WeldingSpatialHashValueDestroyFunc(GArray *ptr) {
+static void WeldingSpatialHashValueDestroyFunc(GHashTable *ptr) {
 
-	g_array_free(ptr, true);
-}
-
-#define MAX_WELDED_COORD	(MAX_WORLD_COORD * VERTEX_EPSILON)
-
-static vec3s_t GetWeldingPoint(const vec3_t p) {
-
-	return Vec3s(roundf(p.x * VERTEX_EPSILON), roundf(p.y * VERTEX_EPSILON), roundf(p.z * VERTEX_EPSILON));
+	g_hash_table_destroy(ptr);
 }
 
 /**
  * @brief
  */
-static guint WeldingSpatialHashFunc(const vec3s_t* ptr) {
-	const uint16_t x = roundf((MAX_WELDED_COORD + ptr->x) * .5f);
-	const uint16_t y = roundf((MAX_WELDED_COORD + ptr->y) * .5f);
-	const uint16_t z = roundf((MAX_WELDED_COORD + ptr->z) * .25f);
+static vec3i_t GetWeldingPoint(const vec3_t p) {
+
+	return Vec3i(roundf(p.x), roundf(p.y), roundf(p.z));
+}
+
+/**
+ * @brief
+ */
+static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
+	const uint16_t x = roundf((MAX_WORLD_COORD + ptr->x) * .5f);
+	const uint16_t y = roundf((MAX_WORLD_COORD + ptr->y) * .5f);
+	const uint16_t z = roundf((MAX_WORLD_COORD + ptr->z) * .25f);
 
 	return x | (y << 11) | (z << 22);
 }
@@ -135,9 +137,9 @@ static guint WeldingSpatialHashFunc(const vec3s_t* ptr) {
 /**
  * @brief
  */
-static gboolean WeldingSpatialHashEqualFunc (const vec3s_t* a, const vec3s_t* b) {
+static gboolean WeldingSpatialHashEqualFunc (const vec3i_t* a, const vec3i_t* b) {
 
-	return Vec3s_Equal(*a, *b);
+	return a->x == b->x && a->y == b->y && a->z == b->z;
 }
 
 /**
@@ -147,8 +149,10 @@ void ClearWeldingSpatialHash(void) {
 	
 	if (welding_spatial_hash) {
 		g_hash_table_remove_all(welding_spatial_hash);
+		g_array_set_size(welding_hash_keys, 0);
 	} else {
 		welding_spatial_hash = g_hash_table_new_full((GHashFunc) WeldingSpatialHashFunc, (GEqualFunc) WeldingSpatialHashEqualFunc, NULL, (GDestroyNotify) WeldingSpatialHashValueDestroyFunc);
+		welding_hash_keys = g_array_new(false, false, sizeof(vec3i_t));
 	}
 }
 
@@ -156,22 +160,24 @@ void ClearWeldingSpatialHash(void) {
  * @brief
  */
 static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
-	const vec3s_t spatial = GetWeldingPoint(v);
-	GArray *array = g_hash_table_lookup(welding_spatial_hash, &spatial);
+	const vec3i_t spatial = GetWeldingPoint(v);
+	GHashTable *array = g_hash_table_lookup(welding_spatial_hash, &spatial);
 
 	if (!array) {
-		array = g_array_new(false, false, sizeof(int32_t));
-		g_hash_table_insert(welding_spatial_hash, (gpointer) &spatial, array);
+		array = g_hash_table_new(g_direct_hash, g_direct_equal);
+
+		const int32_t key_index = welding_hash_keys->len;
+		g_array_append_val(welding_hash_keys, spatial);
+
+		g_hash_table_insert(welding_spatial_hash, &g_array_index(welding_hash_keys, vec3i_t, key_index), array);
 	}
 
-	for (int32_t i = 0, *p = (int32_t*) array->data; i < array->len; i++, p++) {
-		if (*p == index) {
-			return;
-		}
+	if (!g_hash_table_contains(array, GINT_TO_POINTER(index))) {
+		g_hash_table_add(array, GINT_TO_POINTER(index));
 	}
-
-	g_array_append_val(array, index);
 }
+
+int num_welds = 0;
 
 static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
 
@@ -180,28 +186,36 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
 
 		if (Vec3_DistanceSquared(pos, in) < VERTEX_EPSILON * VERTEX_EPSILON) {
 			*out = pos;
+			num_welds++;
 			return;
 		}
-	}*/
+	}
 
-	const vec3s_t s = GetWeldingPoint(in);
+	*out = in;
+	return;*/
+
 	static const int32_t offsets[] = { 0, 1, -1 };
 	
 	for (int32_t z = 0; z < lengthof(offsets); z++) {
 		for (int32_t y = 0; y < lengthof(offsets); y++) {
 			for (int32_t x = 0; x < lengthof(offsets); x++) {
-				const vec3s_t key = Vec3s(s.x + offsets[x], s.y + offsets[y], s.z + offsets[z]);
-				const GArray *array = g_hash_table_lookup(welding_spatial_hash, &key);
+				const vec3i_t key = GetWeldingPoint(Vec3(in.x + offsets[x], in.y + offsets[y], in.z + offsets[z]));
+				GHashTable *array = g_hash_table_lookup(welding_spatial_hash, &key);
 
 				if (!array) {
 					continue;
 				}
+				
+				GHashTableIter iter;
+				gpointer iter_key;
+				g_hash_table_iter_init(&iter, array);
 
-				for (int32_t p = 0, *px = (int32_t*) array->data; p < array->len; p++, px++) {
-					const vec3_t pos = bsp_file.vertexes[*px].position;
+				while (g_hash_table_iter_next (&iter, &iter_key, NULL)) {
+					const vec3_t pos = bsp_file.vertexes[GPOINTER_TO_INT(iter_key)].position;
 
 					if (Vec3_DistanceSquared(pos, in) < VERTEX_EPSILON * VERTEX_EPSILON) {
 						*out = pos;
+						num_welds++;
 						return;
 					}
 				}

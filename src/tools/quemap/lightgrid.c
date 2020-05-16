@@ -287,9 +287,9 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 				vec3_t point;
 				Matrix4x4_Transform(&lg.inverse_matrix, sample.xyz, point.xyz);
 
-				const cm_trace_t trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
+				//const cm_trace_t trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
 
-				occlusion += sample_fraction * trace.fraction;
+				occlusion += sample_fraction/* * trace.fraction*/;
 			}
 
 			intensity *= 1.0 - (1.0 - occlusion) * (1.0 - occlusion);
@@ -388,7 +388,6 @@ void DirectLightgrid(int32_t luxel_num) {
 		Vec3(-0.25, -0.25, +0.25), Vec3(-0.25, +0.25, +0.25),
 		Vec3(+0.25, -0.25, +0.25), Vec3(+0.25, +0.25, +0.25),
 	};
-	const size_t num_offsets = lengthof(offsets);
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
@@ -407,7 +406,7 @@ void DirectLightgrid(int32_t luxel_num) {
 		LightLuxel(lights, l, radiosity);
 		break;
 	}
-	}
+}
 
 /**
  * @brief

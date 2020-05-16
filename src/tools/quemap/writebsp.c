@@ -115,6 +115,8 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
 	return TexinfoCmp(a_face->texinfo, b_face->texinfo);
 }
 
+extern int num_welds;
+
 /**
  * @brief
  */
@@ -123,8 +125,6 @@ static int32_t EmitFaces(const node_t *node) {
 	int32_t num_faces = bsp_file.num_faces;
 
 	GPtrArray *faces = g_ptr_array_new();
-
-	ClearWeldingSpatialHash();
 
 	for (face_t *face = node->faces; face; face = face->next) {
 		if (!face->merged) {
@@ -358,11 +358,15 @@ void EmitNodes(node_t *head_node) {
 
 	const int32_t old_faces = bsp_file.num_faces;
 
+	num_welds = 0;
+	ClearWeldingSpatialHash();
+
 	bsp_file.models[bsp_file.num_models].head_node = EmitNode(head_node);
 
 	Com_Verbose("%5i nodes with faces\n", c_facenodes);
 	Com_Verbose("%5i nodes without faces\n", c_nofaces);
 	Com_Verbose("%5i faces\n", bsp_file.num_faces - old_faces);
+	Com_Verbose("%5i welded vertices\n", num_welds);
 
 	EndEmit();
 }
