@@ -93,7 +93,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_cheats 1 +give all "
+            argument = "+set g_cheats 1 +give all +set cg_add_emits 0"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

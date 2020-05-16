@@ -141,58 +141,13 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
  * is likely slightly different than what we think it is.
  */
 static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
-	int32_t leafs[MAX_ENT_LEAFS];
-	int32_t clusters[MAX_ENT_CLUSTERS];
-	size_t num_clusters = 0;
 
 	// spread the bounds to account for view offset
 	const vec3_t mins = Vec3_Add(org, Vec3(-16.f, -16.f, -16.f));
 	const vec3_t maxs = Vec3_Add(org, Vec3( 16.f,  16.f,  16.f));
 
-	const size_t len = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
-	if (len == 0) {
-		Com_Error(ERROR_DROP, "Bad leaf count for client @ %s\n", vtos(org));
-	} else if (len == lengthof(leafs)) {
-		Com_Warn("MAX_ENT_LEAFS for client @ %s\n", vtos(org));
-	}
-
-	memset(pvs, 0, MAX_BSP_LEAFS >> 3);
-	memset(phs, 0, MAX_BSP_LEAFS >> 3);
-
-	// convert leafs to clusters and combine their visibility data
-	for (size_t i = 0; i < len; i++) {
-
-		const int32_t cluster = Cm_LeafCluster(leafs[i]);
-
-		size_t j;
-		for (j = 0; j < num_clusters; j++) {
-			if (clusters[j] == cluster) {
-				break;
-			}
-		}
-
-		if (j < num_clusters) { // already got it
-			continue;
-		}
-
-		clusters[num_clusters++] = cluster;
-
-		byte cluster_pvs[MAX_BSP_LEAFS >> 3];
-		byte cluster_phs[MAX_BSP_LEAFS >> 3];
-
-		Cm_ClusterPVS(cluster, cluster_pvs);
-		Cm_ClusterPHS(cluster, cluster_phs);
-
-		for (size_t n = 0; n < sizeof(cluster_pvs); n++) {
-			pvs[n] |= cluster_pvs[n];
-			phs[n] |= cluster_phs[n];
-		}
-
-		if (num_clusters == lengthof(clusters)) {
-			Com_Warn("MAX_ENT_CLUSTERS for client @ %s\n", vtos(org));
-			break;
-		}
-	}
+	Cm_BoxPVS(mins, maxs, pvs);
+	Cm_BoxPHS(mins, maxs, phs);
 }
 
 /**

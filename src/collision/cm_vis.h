@@ -25,7 +25,10 @@
 
 int32_t Cm_ClusterPVS(const int32_t cluster, byte *pvs);
 int32_t Cm_ClusterPHS(const int32_t cluster, byte *phs);
-
+int32_t Cm_PointPVS(const vec3_t point, byte *pvs);
+int32_t Cm_PointPHS(const vec3_t point, byte *phs);
+int32_t Cm_BoxPVS(const vec3_t mins, const vec3_t maxs, byte *pvs);
+int32_t Cm_BoxPHS(const vec3_t mins, const vec3_t maxs, byte *pvs);
 
 void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open);
 _Bool Cm_AreasConnected(const int32_t area1, const int32_t area2);
