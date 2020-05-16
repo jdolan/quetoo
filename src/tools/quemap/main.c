@@ -165,11 +165,6 @@ static void Shutdown(const char *msg) {
 	SDL_Quit();
 
 #if defined(_WIN32)
-	if (!is_monitor) {
-		puts("\nPress any key to close..\n");
-		getchar();
-	}
-
 	FreeConsole();
 #endif
 }

@@ -104,6 +104,114 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
+static GHashTable* welding_spatial_hash;
+
+/**
+ * @brief 
+ */
+static void WeldingSpatialHashValueDestroyFunc(GArray *ptr) {
+
+	g_array_free(ptr, true);
+}
+
+#define MAX_WELDED_COORD	(MAX_WORLD_COORD * VERTEX_EPSILON)
+
+static vec3s_t GetWeldingPoint(const vec3_t p) {
+
+	return Vec3s(roundf(p.x * VERTEX_EPSILON), roundf(p.y * VERTEX_EPSILON), roundf(p.z * VERTEX_EPSILON));
+}
+
+/**
+ * @brief
+ */
+static guint WeldingSpatialHashFunc(const vec3s_t* ptr) {
+	const uint16_t x = roundf((MAX_WELDED_COORD + ptr->x) * .5f);
+	const uint16_t y = roundf((MAX_WELDED_COORD + ptr->y) * .5f);
+	const uint16_t z = roundf((MAX_WELDED_COORD + ptr->z) * .25f);
+
+	return x | (y << 11) | (z << 22);
+}
+
+/**
+ * @brief
+ */
+static gboolean WeldingSpatialHashEqualFunc (const vec3s_t* a, const vec3s_t* b) {
+
+	return Vec3s_Equal(*a, *b);
+}
+
+/**
+ * @brief
+ */
+void ClearWeldingSpatialHash(void) {
+	
+	if (welding_spatial_hash) {
+		g_hash_table_remove_all(welding_spatial_hash);
+	} else {
+		welding_spatial_hash = g_hash_table_new_full((GHashFunc) WeldingSpatialHashFunc, (GEqualFunc) WeldingSpatialHashEqualFunc, NULL, (GDestroyNotify) WeldingSpatialHashValueDestroyFunc);
+	}
+}
+
+/**
+ * @brief
+ */
+static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
+	const vec3s_t spatial = GetWeldingPoint(v);
+	GArray *array = g_hash_table_lookup(welding_spatial_hash, &spatial);
+
+	if (!array) {
+		array = g_array_new(false, false, sizeof(int32_t));
+		g_hash_table_insert(welding_spatial_hash, (gpointer) &spatial, array);
+	}
+
+	for (int32_t i = 0, *p = (int32_t*) array->data; i < array->len; i++, p++) {
+		if (*p == index) {
+			return;
+		}
+	}
+
+	g_array_append_val(array, index);
+}
+
+static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
+
+	/*for (int32_t x = 0; x < bsp_file.num_vertexes; x++) {
+		const vec3_t pos = bsp_file.vertexes[x].position;
+
+		if (Vec3_DistanceSquared(pos, in) < VERTEX_EPSILON * VERTEX_EPSILON) {
+			*out = pos;
+			return;
+		}
+	}*/
+
+	const vec3s_t s = GetWeldingPoint(in);
+	static const int32_t offsets[] = { 0, 1, -1 };
+	
+	for (int32_t z = 0; z < lengthof(offsets); z++) {
+		for (int32_t y = 0; y < lengthof(offsets); y++) {
+			for (int32_t x = 0; x < lengthof(offsets); x++) {
+				const vec3s_t key = Vec3s(s.x + offsets[x], s.y + offsets[y], s.z + offsets[z]);
+				const GArray *array = g_hash_table_lookup(welding_spatial_hash, &key);
+
+				if (!array) {
+					continue;
+				}
+
+				for (int32_t p = 0, *px = (int32_t*) array->data; p < array->len; p++, px++) {
+					const vec3_t pos = bsp_file.vertexes[*px].position;
+
+					if (Vec3_DistanceSquared(pos, in) < VERTEX_EPSILON * VERTEX_EPSILON) {
+						*out = pos;
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	*out = in;
+}
+
 /**
  * @brief Welds the specified winding, writing its welded points to the given array.
  * @remarks This attempts to fix hairline cracks in (usually) intricate brushes. Note
@@ -115,19 +223,8 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 	vec3_t *out = points;
 	
-	for (int32_t i = 0; i < w->num_points; i++) {
-		vec3_t p = w->points[i];
-
-		for (int32_t x = 0; x < bsp_file.num_vertexes; x++) {
-			const vec3_t pos = bsp_file.vertexes[x].position;
-
-			if (Vec3_DistanceSquared(pos, p) < VERTEX_EPSILON * VERTEX_EPSILON) {
-				p = pos;
-				break;
-			}
-		}
-
-		*out++ = p;
+	for (int32_t i = 0; i < w->num_points; i++, out++) {
+		FindWeldingSpatialHashPoint(w->points[i], out);
 	}
 
 	return w->num_points;
@@ -180,6 +277,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		out.diffusemap.y = t / (diffuse ? diffuse->h : 1.0);
 
 		bsp_file.vertexes[bsp_file.num_vertexes] = out;
+		AddVertexToWeldingSpatialHash(out.position, bsp_file.num_vertexes);
 		bsp_file.num_vertexes++;
 	}
 

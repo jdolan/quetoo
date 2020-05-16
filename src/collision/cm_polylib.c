@@ -582,7 +582,7 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			}
 		}
 
-		assert(num_corners > 2);
+		//assert(num_corners > 2);
 
 		// chip away at edges with collinear points first
 

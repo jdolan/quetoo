@@ -124,6 +124,8 @@ static int32_t EmitFaces(const node_t *node) {
 
 	GPtrArray *faces = g_ptr_array_new();
 
+	ClearWeldingSpatialHash();
+
 	for (face_t *face = node->faces; face; face = face->next) {
 		if (!face->merged) {
 			g_ptr_array_add(faces, face);

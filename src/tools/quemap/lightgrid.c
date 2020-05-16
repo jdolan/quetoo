@@ -394,7 +394,7 @@ void DirectLightgrid(int32_t luxel_num) {
 		Vec4(-0.25, -0.25, +0.25, 0.075), Vec4(-0.25, +0.25, +0.25, 0.075),
 		Vec4(+0.25, -0.25, +0.25, 0.075), Vec4(+0.25, +0.25, +0.25, 0.075),
 	};
-	const size_t num_offsets = antialias ? lengthof(offsets) : 1;
+	const size_t num_offsets = lengthof(offsets);
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
