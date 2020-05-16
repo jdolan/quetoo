@@ -168,22 +168,16 @@ size_t BuildLightgrid(void) {
 }
 
 /**
- * @brief Iterates all lights, accumulating color and directional samples to the specified buffers.
+ * @brief Iterates the specified lights, accumulating color and direction to the appropriate buffers.
+ * @param lights The lights to iterate.
  * @param luxel The luxel to light.
- * @param pvs The PVS for the luxel's origin.
  * @param scale A scalar applied to both light and direction.
  */
-static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
+static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 
-	const light_t *light = (light_t *) lights->data;
+	for (guint i = 0; i < lights->len; i++) {
 
-	for (guint i = 0; i < lights->len; i++, light++) {
-
-		if (light->cluster != -1) {
-			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
-				continue;
-			}
-		}
+		const light_t *light = g_ptr_array_index(lights, i);
 
 		float dist_squared = 0.0;
 		switch (light->type) {
@@ -387,64 +381,15 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
  */
 void DirectLightgrid(int32_t luxel_num) {
 
-	const vec4_t offsets[] = {
-		Vec4(+0.00, +0.00, +0.00, 0.400),
-		Vec4(-0.25, -0.25, -0.25, 0.075), Vec4(-0.25, +0.25, -0.25, 0.075),
-		Vec4(+0.25, -0.25, -0.25, 0.075), Vec4(+0.25, +0.25, -0.25, 0.075),
-		Vec4(-0.25, -0.25, +0.25, 0.075), Vec4(-0.25, +0.25, +0.25, 0.075),
-		Vec4(+0.25, -0.25, +0.25, 0.075), Vec4(+0.25, +0.25, +0.25, 0.075),
-	};
-	const size_t num_offsets = antialias ? lengthof(offsets) : 1;
-
-	luxel_t *l = &lg.luxels[luxel_num];
-
-	float contribution = 0.0;
-
-	for (size_t j = 0; j < num_offsets; j++) {
-
-		const float soffs = offsets[j].x;
-		const float toffs = offsets[j].y;
-		const float uoffs = offsets[j].z;
-		const float scale = offsets[j].w;
-
-		if (ProjectLightgridLuxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
-			continue;
-		}
-
-		byte pvs[MAX_BSP_LEAFS >> 3];
-		Light_PointPVS(l->origin, 0, pvs);
-
-		contribution += scale;
-
-		LightLuxel(l, pvs, scale);
-	}
-
-	if (contribution > 0.0 && contribution < 1.0) {
-		l->ambient = Vec3_Scale(l->ambient, 1.0 / contribution);
-		l->diffuse = Vec3_Scale(l->diffuse, 1.0 / contribution);
-		l->direction = Vec3_Scale(l->direction, 1.0 / contribution);
-	}
-}
-
-/**
- * @brief
- */
-void IndirectLightgrid(int32_t luxel_num) {
-
 	const vec3_t offsets[] = {
-		Vec3(+0.000, +0.000, +0.000),
-		Vec3(-0.125, -0.125, -0.125), Vec3(-0.125, +0.125, -0.125),
-		Vec3(+0.125, -0.125, -0.125), Vec3(+0.125, +0.125, -0.125),
-		Vec3(-0.125, -0.125, +0.125), Vec3(-0.125, +0.125, +0.125),
-		Vec3(+0.125, -0.125, +0.125), Vec3(+0.125, +0.125, +0.125),
+		Vec3(+0.00, +0.00, +0.00),
+		Vec3(-0.25, -0.25, -0.25), Vec3(-0.25, +0.25, -0.25),
+		Vec3(+0.25, -0.25, -0.25), Vec3(+0.25, +0.25, -0.25),
+		Vec3(-0.25, -0.25, +0.25), Vec3(-0.25, +0.25, +0.25),
+		Vec3(+0.25, -0.25, +0.25), Vec3(+0.25, +0.25, +0.25),
 	};
 
 	luxel_t *l = &lg.luxels[luxel_num];
-
-	byte pvs[MAX_BSP_LEAFS >> 3];
-
-	ProjectLightgridLuxel(l, 0.0, 0.0, 0.0);
-	Light_PointPVS(l->origin, 0, pvs);
 
 	for (size_t j = 0; j < lengthof(offsets); j++) {
 
@@ -456,7 +401,41 @@ void IndirectLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		LightLuxel(l, pvs, radiosity);
+		const GPtrArray *lights = leaf_lights[Cm_PointLeafnum(l->origin, 0)];
+
+		LightLuxel(lights, l, radiosity);
+		break;
+	}
+}
+
+/**
+ * @brief
+ */
+void IndirectLightgrid(int32_t luxel_num) {
+
+	const vec3_t offsets[] = {
+		Vec3(+0.00, +0.00, +0.00),
+		Vec3(-0.25, -0.25, -0.25), Vec3(-0.25, +0.25, -0.25),
+		Vec3(+0.25, -0.25, -0.25), Vec3(+0.25, +0.25, -0.25),
+		Vec3(-0.25, -0.25, +0.25), Vec3(-0.25, +0.25, +0.25),
+		Vec3(+0.25, -0.25, +0.25), Vec3(+0.25, +0.25, +0.25),
+	};
+
+	luxel_t *l = &lg.luxels[luxel_num];
+
+	for (size_t j = 0; j < lengthof(offsets); j++) {
+
+		const float soffs = offsets[j].x;
+		const float toffs = offsets[j].y;
+		const float uoffs = offsets[j].z;
+
+		if (ProjectLightgridLuxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
+			continue;
+		}
+
+		const GPtrArray *lights = leaf_lights[Cm_PointLeafnum(l->origin, 0)];
+
+		LightLuxel(lights, l, radiosity);
 		break;
 	}
 }

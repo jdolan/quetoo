@@ -24,6 +24,9 @@
 
 GArray *lights = NULL;
 
+GPtrArray *node_lights[MAX_BSP_NODES];
+GPtrArray *leaf_lights[MAX_BSP_LEAFS];
+
 /**
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
  * down if necessary.
@@ -248,12 +251,100 @@ static void LightForPatch(const patch_t *patch) {
 /**
  * @brief
  */
+static void FreeLights(void) {
+
+	if (!lights) {
+		return;
+	}
+
+	g_array_free(lights, true);
+	lights = NULL;
+
+	for (int32_t i = 0; i < bsp_file.num_nodes; i++) {
+		if (node_lights[i]) {
+			g_ptr_array_free(node_lights[i], true);
+			node_lights[i] = NULL;
+		}
+	}
+
+	for (int32_t i = 0; i < bsp_file.num_leafs; i++) {
+		if (leaf_lights[i]) {
+			g_ptr_array_free(leaf_lights[i], true);
+			leaf_lights[i] = NULL;
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+static GPtrArray *BoxLights(const vec3_t box_mins, const vec3_t box_maxs) {
+
+	byte pvs[MAX_BSP_LEAFS >> 3];
+	Cm_BoxPVS(box_mins, box_maxs, pvs);
+
+	GPtrArray *box_lights = g_ptr_array_new();
+
+	const light_t *light = (light_t *) lights->data;
+	for (guint i = 0; i < lights->len; i++, light++) {
+
+		if (light->cluster != -1) {
+			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
+				continue;
+			}
+		}
+
+		if (light->atten != LIGHT_ATTEN_NONE) {
+			const vec3_t radius = Vec3(light->radius, light->radius, light->radius);
+			const vec3_t mins = Vec3_Add(light->origin, Vec3_Scale(radius, -1.f));
+			const vec3_t maxs = Vec3_Add(light->origin, Vec3_Scale(radius,  1.f));
+			if (!Cm_BoxIntersect(box_mins, box_maxs, mins, maxs)) {
+				continue;
+			}
+		}
+
+		g_ptr_array_add(box_lights, (gpointer) light);
+	}
+
+	return box_lights;
+}
+
+/**
+ * @brief Hashes all light sources into bins by node and leaf.
+ */
+static void HashLights(void) {
+
+	assert(lights);
+
+	const bsp_node_t *node = bsp_file.nodes;
+	for (int32_t i = 0; i < bsp_file.num_nodes; i++, node++) {
+
+		if (node->num_faces == 0) {
+			continue;
+		}
+
+		const vec3_t node_mins = Vec3s_CastVec3(node->mins);
+		const vec3_t node_maxs = Vec3s_CastVec3(node->maxs);
+
+		node_lights[i] = BoxLights(node_mins, node_maxs);
+	}
+
+	const bsp_leaf_t *leaf = bsp_file.leafs;
+	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
+
+		const vec3_t leaf_mins = Vec3s_CastVec3(leaf->mins);
+		const vec3_t leaf_maxs = Vec3s_CastVec3(leaf->maxs);
+
+		leaf_lights[i] = BoxLights(leaf_mins, leaf_maxs);
+	}
+}
+
+/**
+ * @brief
+ */
 void BuildDirectLights(const GList *entities) {
 
-	if (lights) {
-		g_array_free(lights, true);
-		lights = NULL;
-	}
+	FreeLights();
 
 	lights = g_array_new(false, false, sizeof(light_t));
 
@@ -273,6 +364,8 @@ void BuildDirectLights(const GList *entities) {
 			}
 		}
 	}
+
+	HashLights();
 
 	Com_Verbose("Direct lighting for %d lights\n", lights->len);
 }
@@ -349,10 +442,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
  */
 void BuildIndirectLights(void) {
 
-	if (lights) {
-		g_array_free(lights, true);
-		lights = NULL;
-	}
+	FreeLights();
 
 	lights = g_array_new(false, false, sizeof(light_t));
 
@@ -368,6 +458,8 @@ void BuildIndirectLights(void) {
 			LightForLightmappedPatch(lm, patch);
 		}
 	}
+
+	HashLights();
 
 	Com_Verbose("Indirect lighting for %d patches\n", lights->len);
 }

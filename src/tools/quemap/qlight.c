@@ -41,28 +41,6 @@ static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
 /**
  * @brief
  */
-int32_t Light_ClusterPVS(const int32_t cluster, byte *pvs) {
-
-	if (Cm_NumClusters() == 0) {
-		return Cm_ClusterPVS(0, pvs);
-	}
-
-	return Cm_ClusterPVS(cluster, pvs);
-}
-
-/**
- * @brief
- */
-int32_t Light_PointPVS(const vec3_t p, int32_t head_node, byte *pvs) {
-
-	const int32_t leaf = Cm_PointLeafnum(p, head_node);
-
-	return Cm_ClusterPVS(bsp_file.leafs[leaf].cluster, pvs);
-}
-
-/**
- * @brief
- */
 int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
 
 	int32_t contents = Cm_PointContents(p, 0);
