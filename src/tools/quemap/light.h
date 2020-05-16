@@ -104,6 +104,9 @@ typedef struct {
 
 extern GArray *lights;
 
+extern GPtrArray *node_lights[MAX_BSP_NODES];
+extern GPtrArray *leaf_lights[MAX_BSP_LEAFS];
+
 float ColorNormalize(const vec3_t in, vec3_t *out);
 vec3_t ColorFilter(const vec3_t in);
 

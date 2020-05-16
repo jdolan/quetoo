@@ -154,11 +154,10 @@ void BuildLightmaps(void) {
 
 	lightmaps = Mem_TagMalloc(sizeof(lightmap_t) * bsp_file.num_faces, MEM_TAG_LIGHTMAP);
 
-	const bsp_leaf_t *leaf = bsp_file.leafs;
-	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
-		const int32_t *leaf_face = bsp_file.leaf_faces + leaf->first_leaf_face;
-		for (int32_t j = 0; j < leaf->num_leaf_faces; j++, leaf_face++) {
-			lightmaps[*leaf_face].leaf = leaf;
+	const bsp_node_t *node = bsp_file.nodes;
+	for (int32_t i = 0; i < bsp_file.num_nodes; i++, node++) {
+		for (int32_t j = 0; j < node->num_faces; j++) {
+			lightmaps[node->first_face + j].node = node;
 		}
 	}
 
@@ -174,8 +173,9 @@ void BuildLightmaps(void) {
 
 		lightmap_t *lm = &lightmaps[i];
 
-		assert(lm->leaf);
-
+		assert(lm->node);
+		assert(lm->model);
+		
 		lm->face = &bsp_file.faces[i];
 		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
 		lm->plane = &bsp_file.planes[lm->face->plane_num];
@@ -261,23 +261,17 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float
 }
 
 /**
- * @brief Iterates all lights, accumulating color and direction to the appropriate buffers.
+ * @brief Iterates the specified lights, accumulating color and direction to the appropriate buffers.
+ * @param lights The light sources to iterate.
  * @param lightmap The lightmap containing the luxel.
  * @param luxel The luxel to light.
- * @param pvs The PVS for the luxel's origin.
  * @param scale A scalar applied to both light and direction.
  */
-static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *pvs, float scale) {
-	
-	const light_t *light = (light_t *) lights->data;
+static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
-	for (guint i = 0; i < lights->len; i++, light++) {
+	for (guint i = 0; i < lights->len; i++) {
 
-		if (light->cluster != -1) {
-			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
-				continue;
-			}
-		}
+		const light_t *light = g_ptr_array_index(lights, i);
 
 		float dist_squared = 0.0;
 		switch (light->type) {
@@ -501,8 +495,7 @@ void DirectLightmap(int32_t face_num) {
 		return;
 	}
 
-	byte pvs[MAX_BSP_LEAFS >> 3];
-	Light_ClusterPVS(lm->leaf->cluster, pvs);
+	const GPtrArray *lights = node_lights[lm->node - bsp_file.nodes];
 
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
@@ -513,15 +506,15 @@ void DirectLightmap(int32_t face_num) {
 
 			const float soffs = offsets[j].x;
 			const float toffs = offsets[j].y;
-			const float scale = offsets[j].z;
+			const float weight = offsets[j].z;
 
 			if (ProjectLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
 				continue;
 			}
 
-			contribution += scale;
+			contribution += weight;
 
-			LightLuxel(lm, l, pvs, scale);
+			LightLuxel(lights, lm, l, weight);
 		}
 
 		if (contribution > 0.0 && contribution < 1.0) {
@@ -549,8 +542,7 @@ void IndirectLightmap(int32_t face_num) {
 		return;
 	}
 
-	byte pvs[MAX_BSP_LEAFS >> 3];
-	Light_ClusterPVS(lm->leaf->cluster, pvs);
+	const GPtrArray *lights = node_lights[lm->node - bsp_file.nodes];
 
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
@@ -564,7 +556,7 @@ void IndirectLightmap(int32_t face_num) {
 				continue;
 			}
 
-			LightLuxel(lm, l, pvs, radiosity);
+			LightLuxel(lights, lm, l, 1.f);
 			break;
 		}
 	}

@@ -44,6 +44,8 @@ in vertex_data {
 
 out vec4 out_color;
 
+vec4 out_color_debug;
+
 /**
  * @brief Returns texture coordinates offset via parallax occlusion mapping.
  */
@@ -54,7 +56,7 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 	// TODO: unrolling to 4 iterations per loop supposedly more performant?
 
 	// TODO: do this outside the fragment shader
-	#if 0
+	#if 1
 	float tex_lod; {
 
 		// this shader eats through texture bandwidth like crazy,
@@ -82,7 +84,7 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 
 	// TODO: do this outside the fragment shader
 	float samplecount = 32;
-	#if 0
+	#if 1
 	{
 		float min_samples = 8;
 
@@ -135,20 +137,25 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
  */
 void main(void) {
 
-	vec3 viewdir = normalize(-vertex.position);
+	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+
 	float fragdist = length(vertex.position);
-	vec2 uv = vertex.diffusemap;
+
+	vec3 viewdir = normalize(-vertex.position);
+	vec3 viewdir_tangentspace = viewdir * tbn;
+
+	vec2 texcoord_material = vertex.diffusemap;
+	vec2 texcoord_lightmap = vertex.lightmap;
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		// FIXME: borked / warps with viewdirection
-		// uv = parallax(texture_material, vec3(uv, 1), viewdir, fragdist, material.parallax * 0.04);
+		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1), viewdir_tangentspace, fragdist, material.parallax * 0.04);
 
 		float _specularity = material.specularity * 100.0;
 
-		vec4 diffusemap = texture(texture_material, vec3(uv, 0));
-		vec4 normalmap = texture(texture_material, vec3(uv, 1));
-		vec4 glossmap = texture(texture_material, vec3(uv, 2));
+		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
+		vec4 normalmap  = texture(texture_material, vec3(texcoord_material, 1));
+		vec4 glossmap   = texture(texture_material, vec3(texcoord_material, 2));
 
 		diffusemap *= vertex.color;
 
@@ -156,12 +163,11 @@ void main(void) {
 			discard;
 		}
 
-		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
-		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
-		vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
-		vec3 direction = texture(texture_lightmap, vec3(vertex.lightmap, 2)).xyz;
+		vec3 ambient   = texture(texture_lightmap, vec3(texcoord_lightmap, 0)).rgb;
+		vec3 diffuse   = texture(texture_lightmap, vec3(texcoord_lightmap, 1)).rgb;
+		vec3 direction = texture(texture_lightmap, vec3(texcoord_lightmap, 2)).xyz;
 
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
 
@@ -169,7 +175,7 @@ void main(void) {
 		vec3 light_specular = brdf_blinn(normalize(viewdir), direction, normal, diffuse, glossmap.a, _specularity);
 		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
-		vec3 stainmap = texture_bicubic(texture_lightmap, vec3(vertex.lightmap, 4)).rgb;
+		vec3 stainmap = texture_bicubic(texture_lightmap, vec3(texcoord_lightmap, 4)).rgb;
 
 		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 
@@ -182,16 +188,16 @@ void main(void) {
 	} else {
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-			uv += texture(texture_warp, uv + vec2(stage.ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
+			texcoord_material += texture(texture_warp, texcoord_material + vec2(stage.ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
 		}
 
-		vec4 effect = texture(texture_stage, uv);
+		vec4 effect = texture(texture_stage, texcoord_material);
 
 		effect *= vertex.color;
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
-			vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb;
-			vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb;
+			vec3 ambient = texture(texture_lightmap, vec3(texcoord_lightmap, 0)).rgb;
+			vec3 diffuse = texture(texture_lightmap, vec3(texcoord_lightmap, 1)).rgb;
 
 			effect.rgb *= (ambient + diffuse) * modulate;
 		}
@@ -208,4 +214,6 @@ void main(void) {
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
+
+	// out_color.rgb = out_color_debug.rgb;
 }

@@ -68,6 +68,47 @@ int32_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
 }
 
 /**
+ * @breif
+ */
+static int32_t Cm_BoxVis(const vec3_t mins, const vec3_t maxs, byte *out, int32_t set) {
+	int32_t leafs[cm_bsp.file.num_leafs];
+	int32_t len = 0;
+
+	memset(out, 0, MAX_BSP_LEAFS >> 3);
+
+	const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, cm_bsp.file.num_leafs, NULL, 0);
+	for (size_t i = 0; i < count; i++) {
+
+		const int32_t cluster = Cm_LeafCluster(leafs[i]);
+		if (cluster != -1) {
+
+			byte custer_out[MAX_BSP_LEAFS >> 3];
+			len = MAX(len, Cm_DecompressVis(cluster, custer_out, set));
+
+			for (int32_t j = 0; j < len; j++) {
+				out[j] |= custer_out[j];
+			}
+		}
+	}
+
+	return len;
+}
+
+/**
+ * @brief
+ */
+int32_t Cm_BoxPVS(const vec3_t mins, const vec3_t maxs, byte *pvs) {
+	return Cm_BoxVis(mins, maxs, pvs, VIS_PVS);
+}
+
+/**
+ * @brief
+ */
+int32_t Cm_BoxPHS(const vec3_t mins, const vec3_t maxs, byte *phs) {
+	return Cm_BoxVis(mins, maxs, phs, VIS_PHS);
+}
+
+/**
  * @brief Recurse over the area portals, marking adjacent ones as flooded.
  */
 static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {

@@ -147,7 +147,6 @@ static void R_UpdateNodeDepth(const r_bsp_inline_model_t *in) {
  * @brief Resolve the current leaf, PVS and PHS for the view origin.
  */
 void R_UpdateVis(void) {
-	int32_t leafs[MAX_BSP_LEAFS];
 
 	if (r_lock_vis->value) {
 		return;
@@ -168,23 +167,8 @@ void R_UpdateVis(void) {
 		const vec3_t mins = Vec3_Add(r_view.origin, Vec3(-2.f, -2.f, -4.f));
 		const vec3_t maxs = Vec3_Add(r_view.origin, Vec3( 2.f,  2.f,  4.f));
 
-		const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
-		for (size_t i = 0; i < count; i++) {
-
-			const int32_t cluster = Cm_LeafCluster(leafs[i]);
-			if (cluster != -1) {
-				byte pvs[MAX_BSP_LEAFS >> 3];
-				byte phs[MAX_BSP_LEAFS >> 3];
-
-				Cm_ClusterPVS(cluster, pvs);
-				Cm_ClusterPHS(cluster, phs);
-
-				for (size_t i = 0; i < sizeof(r_locals.vis_data_pvs); i++) {
-					r_locals.vis_data_pvs[i] |= pvs[i];
-					r_locals.vis_data_phs[i] |= phs[i];
-				}
-			}
-		}
+		Cm_BoxPVS(mins, maxs, r_locals.vis_data_pvs);
+		Cm_BoxPHS(mins, maxs, r_locals.vis_data_phs);
 	}
 
 	r_locals.vis_frame++;

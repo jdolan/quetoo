@@ -43,8 +43,6 @@ extern float radiosity;
 extern int32_t num_bounces;
 extern int32_t bounce;
 
-int32_t Light_ClusterPVS(const int32_t cluster, byte *pvs);
-int32_t Light_PointPVS(const vec3_t p, int32_t head_node, byte *pvs);
 int32_t Light_PointContents(const vec3_t p, int32_t head_node);
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask);
 

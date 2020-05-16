@@ -213,7 +213,6 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 	byte phs[MAX_BSP_LEAFS >> 3];
 
 	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
-
 	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
 
 	const int32_t area1 = Cm_LeafArea(leaf1);
