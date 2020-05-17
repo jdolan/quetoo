@@ -223,9 +223,9 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
 
 	static const int32_t offsets[] = { 0, 1, -1 };
 	
-	for (int32_t z = 0; z < lengthof(offsets); z++) {
-		for (int32_t y = 0; y < lengthof(offsets); y++) {
-			for (int32_t x = 0; x < lengthof(offsets); x++) {
+	for (int32_t z = 0; z < (int32_t)lengthof(offsets); z++) {
+		for (int32_t y = 0; y < (int32_t)lengthof(offsets); y++) {
+			for (int32_t x = 0; x < (int32_t)lengthof(offsets); x++) {
 				const vec3i_t key = GetWeldingPoint(Vec3(in.x + offsets[x], in.y + offsets[y], in.z + offsets[z]));
 				GHashTable *array = g_hash_table_lookup(welding_spatial_hash, &key);
 
