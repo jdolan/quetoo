@@ -86,7 +86,7 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 	float samplecount = 32;
 	#if 1
 	{
-		float min_samples = 8;
+		float min_samples = 1;
 
 		#if 1 // fade out at a distance.
 		float dist = 1.0 - linearstep(200.0, 500.0, dist);
@@ -94,7 +94,7 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 		scale *= dist;
 		#endif
 
-		#if 1 // do less work on surfaces orthogonal to the view -- might give subtle peeling artifacts.
+		#if 0 // do less work on surfaces orthogonal to the view -- might give subtle peeling artifacts.
 		float orthogonality = saturate(dot(viewdir, vec3(0.0, 0.0, 1.0)));
 		samplecount = mix(min_samples, samplecount, 1.0 - orthogonality * orthogonality);
 		#endif
