@@ -105,7 +105,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 }
 
 static GHashTable* welding_spatial_hash;
-static GArray* welding_hash_keys;
+static GSList* welding_hash_keys;
 
 /**
  * @brief 
@@ -149,11 +149,37 @@ void ClearWeldingSpatialHash(void) {
 	
 	if (welding_spatial_hash) {
 		g_hash_table_remove_all(welding_spatial_hash);
-		g_array_set_size(welding_hash_keys, 0);
+		g_slist_free_full(welding_hash_keys, Mem_Free);
+		welding_hash_keys = NULL;
 	} else {
 		welding_spatial_hash = g_hash_table_new_full((GHashFunc) WeldingSpatialHashFunc, (GEqualFunc) WeldingSpatialHashEqualFunc, NULL, (GDestroyNotify) WeldingSpatialHashValueDestroyFunc);
-		welding_hash_keys = g_array_new(false, false, sizeof(vec3i_t));
+		welding_hash_keys = g_slist_alloc();
 	}
+}
+
+/**
+ * @brief
+ */
+static gboolean WeldingHashKeyEquals(gconstpointer a, gconstpointer b) {
+	const int32_t key_a = GPOINTER_TO_INT(a);
+	const int32_t key_b = GPOINTER_TO_INT(b);
+
+	if (key_a == key_b) {
+		return true;
+	}
+
+	return Vec3_Equal(bsp_file.vertexes[key_a].position, bsp_file.vertexes[key_b].position);
+}
+
+static guint WeldingHashKeyHash(gconstpointer a) {
+	const int32_t key_a = GPOINTER_TO_INT(a);
+	const vec3_t *v = &bsp_file.vertexes[key_a].position;
+
+	return WeldingSpatialHashFunc(&(const vec3i_t) {
+		.x = v->x * VERTEX_EPSILON,
+		.y = v->y * VERTEX_EPSILON,
+		.z = v->z * VERTEX_EPSILON
+	});
 }
 
 /**
@@ -164,12 +190,13 @@ static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
 	GHashTable *array = g_hash_table_lookup(welding_spatial_hash, &spatial);
 
 	if (!array) {
-		array = g_hash_table_new(g_direct_hash, g_direct_equal);
+		array = g_hash_table_new(WeldingHashKeyHash, WeldingHashKeyEquals);
 
-		const int32_t key_index = welding_hash_keys->len;
-		g_array_append_val(welding_hash_keys, spatial);
+		gpointer key_copy = Mem_Malloc(sizeof(spatial));
+		memcpy(key_copy, &spatial, sizeof(spatial));
 
-		g_hash_table_insert(welding_spatial_hash, &g_array_index(welding_hash_keys, vec3i_t, key_index), array);
+		welding_hash_keys = g_slist_prepend(welding_hash_keys, key_copy);
+		g_hash_table_insert(welding_spatial_hash, key_copy, array);
 	}
 
 	if (!g_hash_table_contains(array, GINT_TO_POINTER(index))) {
