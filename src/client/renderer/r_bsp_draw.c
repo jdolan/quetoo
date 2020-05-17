@@ -58,6 +58,9 @@ static struct {
 	
 	GLint modulate;
 
+	GLint bicubic;
+	GLint parallax_samples;
+
 	struct {
 		GLint roughness;
 		GLint hardness;
@@ -85,8 +88,6 @@ static struct {
 
 	GLint fog_parameters;
 	GLint fog_color;
-
-	GLint bicubic;
 
 	r_image_t *warp_image;
 } r_bsp_program;
@@ -444,6 +445,7 @@ void R_DrawWorld(void) {
 	glUniform1f(r_bsp_program.modulate, r_modulate->value);
 
 	glUniform1i(r_bsp_program.bicubic, r_bicubic->value);
+	glUniform1i(r_bsp_program.parallax_samples, CLAMP(r_parallax_samples->value, 1, 128));
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_lights.uniform_buffer);
 
@@ -559,6 +561,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.gamma = glGetUniformLocation(r_bsp_program.name, "gamma");
 	r_bsp_program.modulate = glGetUniformLocation(r_bsp_program.name, "modulate");
 	r_bsp_program.bicubic = glGetUniformLocation(r_bsp_program.name, "bicubic");
+	r_bsp_program.parallax_samples = glGetUniformLocation(r_bsp_program.name, "parallax_samples");
 
 	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
 	r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");

@@ -64,6 +64,7 @@ cvar_t *r_materials;
 cvar_t *r_modulate;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
+cvar_t *r_parallax_samples;
 cvar_t *r_roughness;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
@@ -510,6 +511,7 @@ static void R_InitLocal(void) {
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects.");
+	r_parallax_samples = Cvar_Add("r_parallax_samples", "32", CVAR_ARCHIVE, "Controls the number of steps for parallax mapping.");
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects");
 	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");

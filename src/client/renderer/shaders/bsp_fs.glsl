@@ -31,6 +31,8 @@ uniform float modulate;
 
 uniform int bicubic;
 
+uniform int parallax_samples;
+
 uniform material_t material;
 uniform stage_t stage;
 
@@ -96,7 +98,7 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 	#endif
 
 	// TODO: do this outside the fragment shader
-	float samplecount = 32;
+	float samplecount = parallax_samples;
 	#if 1
 	{
 		float min_samples = 1;
