@@ -29,6 +29,8 @@ uniform float alpha_threshold;
 
 uniform float modulate;
 
+uniform int bicubic;
+
 uniform material_t material;
 uniform stage_t stage;
 
@@ -45,6 +47,17 @@ in vertex_data {
 out vec4 out_color;
 
 vec4 out_color_debug;
+
+/**
+ * @brief Samples the lightmap and stainmap with either bilinear or bicubic sampling.
+ */
+vec4 sample_lightmap(int index) {
+	if (bicubic > 0) {
+		return texture_bicubic(texture_lightmap, vec3(vertex.lightmap, index));
+	} else {
+		return texture(texture_lightmap, vec3(vertex.lightmap, index));
+	}
+}
 
 /**
  * @brief Returns texture coordinates offset via parallax occlusion mapping.
@@ -165,9 +178,9 @@ void main(void) {
 
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
-		vec3 ambient   = texture(texture_lightmap, vec3(texcoord_lightmap, 0)).rgb;
-		vec3 diffuse   = texture(texture_lightmap, vec3(texcoord_lightmap, 1)).rgb;
-		vec3 direction = texture(texture_lightmap, vec3(texcoord_lightmap, 2)).xyz;
+		vec3 ambient   = sample_lightmap(0).rgb;
+		vec3 diffuse   = sample_lightmap(1).rgb;
+		vec3 direction = sample_lightmap(2).xyz;
 
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
 
@@ -175,7 +188,7 @@ void main(void) {
 		vec3 light_specular = brdf_blinn(normalize(viewdir), direction, normal, diffuse, glossmap.a, _specularity);
 		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
-		vec3 stainmap = texture_bicubic(texture_lightmap, vec3(texcoord_lightmap, 4)).rgb;
+		vec3 stainmap = sample_lightmap(4).rgb;
 
 		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 
@@ -196,8 +209,8 @@ void main(void) {
 		effect *= vertex.color;
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
-			vec3 ambient = texture(texture_lightmap, vec3(texcoord_lightmap, 0)).rgb;
-			vec3 diffuse = texture(texture_lightmap, vec3(texcoord_lightmap, 1)).rgb;
+			vec3 ambient = sample_lightmap(0).rgb;
+			vec3 diffuse = sample_lightmap(1).rgb;
 
 			effect.rgb *= (ambient + diffuse) * modulate;
 		}
