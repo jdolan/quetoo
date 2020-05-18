@@ -68,30 +68,62 @@ int32_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
 }
 
 /**
- * @breif
+ * @return The unique clusters of all leafs that intersect with the given bounding box.
  */
-static int32_t Cm_BoxVis(const vec3_t mins, const vec3_t maxs, byte *out, int32_t set) {
+static size_t Cm_BoxClusters(const vec3_t mins, const vec3_t maxs, int32_t *clusters, size_t len) {
+
 	int32_t leafs[cm_bsp.file.num_leafs];
-	int32_t len = 0;
+	size_t count = Cm_BoxLeafnums(mins, maxs, leafs, cm_bsp.file.num_leafs, NULL, 0);
 
-	memset(out, 0, MAX_BSP_LEAFS >> 3);
-
-	const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, cm_bsp.file.num_leafs, NULL, 0);
+	size_t num_clusters = 0;
 	for (size_t i = 0; i < count; i++) {
 
 		const int32_t cluster = Cm_LeafCluster(leafs[i]);
-		if (cluster != -1) {
+		if (cluster == -1) {
+			continue;
+		}
 
-			byte custer_out[MAX_BSP_LEAFS >> 3];
-			len = MAX(len, Cm_DecompressVis(cluster, custer_out, set));
-
-			for (int32_t j = 0; j < len; j++) {
-				out[j] |= custer_out[j];
+		size_t c;
+		for (c = 0; c < num_clusters; c++) {
+			if (clusters[c] == cluster) {
+				break;
 			}
 		}
+
+		if (c < num_clusters) {
+			continue;
+		}
+
+		clusters[num_clusters++] = cluster;
 	}
 
-	return len;
+	return num_clusters;
+}
+
+/**
+ * @breif
+ */
+static int32_t Cm_BoxVis(const vec3_t mins, const vec3_t maxs, byte *out, int32_t set) {
+
+	memset(out, 0, MAX_BSP_LEAFS >> 3);
+
+	int32_t clusters[cm_bsp.file.num_leafs];
+	int32_t box_len = 0;
+
+	const size_t count = Cm_BoxClusters(mins, maxs, clusters, cm_bsp.file.num_leafs);
+	for (size_t i = 0; i < count; i++) {
+
+		byte custer_out[MAX_BSP_LEAFS >> 3];
+		const int32_t cluster_len = Cm_DecompressVis(clusters[i], custer_out, set);
+
+		for (int32_t j = 0; j < cluster_len; j++) {
+			out[j] |= custer_out[j];
+		}
+
+		box_len = MAX(box_len, cluster_len);
+	}
+
+	return box_len;
 }
 
 /**
