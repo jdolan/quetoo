@@ -157,14 +157,13 @@ void main(void) {
 	float fragdist = length(vertex.position);
 
 	vec3 viewdir = normalize(-vertex.position);
-	vec3 viewdir_tangentspace = viewdir * tbn;
 
 	vec2 texcoord_material = vertex.diffusemap;
 	vec2 texcoord_lightmap = vertex.lightmap;
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1), viewdir_tangentspace, fragdist, material.parallax * 0.04);
+		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1), viewdir * tbn, fragdist, material.parallax * 0.04);
 
 		float _specularity = material.specularity * 100.0;
 
