@@ -445,7 +445,7 @@ void R_DrawWorld(void) {
 	glUniform1f(r_bsp_program.modulate, r_modulate->value);
 
 	glUniform1i(r_bsp_program.bicubic, r_bicubic->value);
-	glUniform1i(r_bsp_program.parallax_samples, CLAMP(r_parallax_samples->value, 1, 128));
+	glUniform1i(r_bsp_program.parallax_samples, r_parallax_samples->value);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_lights.uniform_buffer);
 

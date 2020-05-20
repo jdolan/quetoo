@@ -290,7 +290,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 			SDL_FreeSurface(surf);
 		} else {
 			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
-			image = r_image_state.null;
+			image = r_image_state.notex;
 		}
 	}
 
@@ -411,6 +411,13 @@ static void R_InitShellImage(void) {
 }
 
 /**
+ * @brief Initializes the notex image.
+ */
+static void R_InitNoTexImage(void) {
+	r_image_state.notex = R_LoadImage("textures/common/notex", IT_PROGRAM);
+}
+
+/**
  * @brief Initializes the images facilities, which includes generation of
  */
 void R_InitImages(void) {
@@ -426,6 +433,8 @@ void R_InitImages(void) {
 	R_InitNullImage();
 
 	R_InitShellImage();
+
+	R_InitNoTexImage();
 
 	R_GetError(NULL);
 	

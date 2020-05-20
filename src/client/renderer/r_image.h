@@ -35,6 +35,7 @@ typedef struct {
 
 	r_image_t *null;
 	r_image_t *shell;
+	r_image_t *notex;
 } r_image_state_t;
 
 extern r_image_state_t r_image_state;

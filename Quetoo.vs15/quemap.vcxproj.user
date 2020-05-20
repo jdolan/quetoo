@@ -12,9 +12,9 @@
     <LocalDebuggerCommandArguments>-bsp -vis -light -v --indirect maps/torn.map</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light torn</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --indirect jgothic</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp --verbose -vis -light --indirect torn</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light jgothic </LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

@@ -282,6 +282,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 
 	const SDL_Surface *diffuse = LoadDiffuseTexture(texinfo->texture);
 	if (diffuse == NULL) {
+		diffuse = LoadDiffuseTexture("textures/common/notex");
 		Com_Warn("Failed to load %s\n", texinfo->texture);
 	}
 

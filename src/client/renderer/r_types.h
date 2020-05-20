@@ -116,7 +116,7 @@ typedef enum {
 	IT_PIC =         (1 <<  6) + (IT_MASK_MIPMAP),
 	IT_ATLAS =       (1 <<  7) + (IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE),
 	IT_LIGHTMAP =    (1 <<  8) + (IT_MASK_CLAMP_EDGE),
-	IT_LIGHTGRID =   (1 <<  9) + (IT_MASK_CLAMP_EDGE),
+	IT_LIGHTGRID =   (1 <<  9) + (IT_MASK_CLAMP_EDGE)
 } r_image_type_t;
 
 /**

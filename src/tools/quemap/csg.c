@@ -287,8 +287,7 @@ static inline _Bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
  */
 csg_brush_t *ChopBrushes(csg_brush_t *head) {
 
-	Com_Verbose("---- ChopBrushes ----\n");
-	Com_Verbose("original brushes: %zi\n", CountBrushes(head));
+	size_t head_count = CountBrushes(head);
 
 	csg_brush_t *keep = NULL;
 
@@ -381,6 +380,6 @@ newlist:
 		}
 	}
 
-	Com_Verbose("output brushes: %zi\n", CountBrushes(keep));
+	Com_Verbose("ChopBrushes: %zi / %zi\n", head_count, CountBrushes(keep));
 	return keep;
 }
