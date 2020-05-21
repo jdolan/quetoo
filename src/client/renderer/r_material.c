@@ -56,7 +56,7 @@ static r_animation_t *R_LoadStageAnimation(r_stage_t *stage, cm_asset_context_t 
 		if (*frame->path) {
 			*out = R_LoadImage(frame->path, IT_MATERIAL);
 		} else {
-			*out = r_image_state.null;
+			*out = r_image_state.notex;
 		}
 
 		if ((*out)->type == IT_NULL) {
@@ -241,10 +241,10 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			Com_Debug(DEBUG_RENDERER, "Loaded diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
 		} else {
 			Com_Warn("Failed to load diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
-			diffusemap = R_CreateMaterialSurface(1, 1, Color32(255, 255, 255, 255));
+			diffusemap = Img_LoadSurface("textures/common/notex");
 		}
 	} else {
-		diffusemap = R_CreateMaterialSurface(1, 1, Color32(255, 255, 255, 255));
+		diffusemap = Img_LoadSurface("textures/common/notex");
 	}
 
 	const int32_t w = material->texture->width = diffusemap->w;
