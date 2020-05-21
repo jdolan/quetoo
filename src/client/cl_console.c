@@ -46,7 +46,7 @@ static void Cl_DrawConsole_Background(void) {
 	}
 
 	const r_image_t *image = R_LoadImage("ui/conback", IT_UI);
-	if (image->type != IT_NULL) {
+	if (image) {
 
 		const float x_scale = r_context.width / (float) image->width;
 		const float y_scale = r_context.height / (float) image->height;

@@ -56,10 +56,7 @@ static r_animation_t *R_LoadStageAnimation(r_stage_t *stage, cm_asset_context_t 
 		if (*frame->path) {
 			*out = R_LoadImage(frame->path, IT_MATERIAL);
 		} else {
-			*out = r_image_state.notex;
-		}
-
-		if ((*out)->type == IT_NULL) {
+			*out = R_LoadImage("textures/common/notex", IT_MATERIAL);
 			Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->cm->asset.name);
 		}
 	}

@@ -107,7 +107,6 @@ typedef enum {
 
 // image categories (bits 0..23) + flags are making image types
 typedef enum {
-	IT_NULL =        (1 <<  0),
 	IT_PROGRAM =     (1 <<  1),
 	IT_FONT =        (1 <<  2),
 	IT_UI =          (1 <<  3),

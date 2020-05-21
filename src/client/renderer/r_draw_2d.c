@@ -72,6 +72,9 @@ static struct {
 	// active font
 	r_font_t *font;
 
+	// the null texture
+	r_image_t *null_texture;
+
 	// accumulated draw arrays to draw for this frame
 	r_draw_2d_arrays_t draw_arrays[MAX_DRAW_2D_ARRAYS];
 	int32_t num_draw_arrays;
@@ -346,7 +349,7 @@ void R_Draw2DFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const colo
 
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_TRIANGLES,
-		.texture = r_image_state.null->texnum,
+		.texture = r_draw_2d.null_texture->texnum,
 		.first_vertex = r_draw_2d.num_vertexes,
 		.num_vertexes = 6
 	};
@@ -376,7 +379,7 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
 
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_LINE_STRIP,
-		.texture = r_image_state.null->texnum,
+		.texture = r_draw_2d.null_texture->texnum,
 		.first_vertex = r_draw_2d.num_vertexes,
 		.num_vertexes = (GLsizei) count
 	};
@@ -525,6 +528,9 @@ void R_InitDraw2D(void) {
 
 	R_BindFont(NULL, NULL, NULL);
 
+	r_draw_2d.null_texture = R_LoadImage("textures/common/white", IT_PROGRAM);
+	assert(r_draw_2d.null_texture);
+	
 	glGenVertexArrays(1, &r_draw_2d.vertex_array);
 	glBindVertexArray(r_draw_2d.vertex_array);
 

@@ -317,19 +317,16 @@ void R_ShutdownSky(void) {
  */
 void R_SetSky(const char *name) {
 	const char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
-	uint32_t i;
 
-	for (i = 0; i < lengthof(suf); i++) {
+	r_image_t **out = r_sky.images;
+	for (size_t i = 0; i < lengthof(suf); i++, out++) {
 		char path[MAX_QPATH];
 
 		g_snprintf(path, sizeof(path), "env/%s%s", name, suf[i]);
-		r_sky.images[i] = R_LoadImage(path, IT_MATERIAL);
+		*out = R_LoadImage(path, IT_MATERIAL);
 
-		if (r_sky.images[i]->type == IT_NULL) { // try unit1_
-			if (g_strcmp0(name, "unit1_")) {
-				R_SetSky("unit1_");
-				return;
-			}
+		if (*out == NULL) {
+			*out = R_LoadImage("textures/common/notex", IT_MATERIAL);
 		}
 	}
 }

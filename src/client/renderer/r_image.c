@@ -21,14 +21,38 @@
 
 #include "r_local.h"
 
-r_image_state_t r_image_state;
-
+/**
+ * @brief Texture sampling modes.
+ */
 typedef struct {
+	/**
+	 * @brief The mode name for setting from the console.
+	 */
 	const char *name;
+
+	/**
+	 * @brief The minification and magnification sampling constants.
+	 */
 	GLenum minify, magnify;
 } r_texture_mode_t;
 
-static r_texture_mode_t r_texture_modes[] = { // specifies mipmapping (texture quality)
+static struct {
+	/**
+	 * @brief The texture sampling mode.
+	 */
+	r_texture_mode_t texture_mode;
+
+	/**
+	 * @brief The texture sampling anisotropy level.
+	 */
+	GLfloat anisotropy;
+
+} r_image_state;
+
+/**
+ * @brief Texture sampling modes.
+ */
+static const r_texture_mode_t r_texture_modes[] = {
 	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
 	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
 	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
@@ -42,6 +66,7 @@ static void R_TextureMode(void) {
 
 	for (i = 0; i < lengthof(r_texture_modes); i++) {
 		if (!g_ascii_strcasecmp(r_texture_modes[i].name, r_texture_mode->string)) {
+			r_image_state.texture_mode = r_texture_modes[i];
 			break;
 		}
 	}
@@ -50,9 +75,6 @@ static void R_TextureMode(void) {
 		Com_Warn("Bad filter name: %s\n", r_texture_mode->string);
 		return;
 	}
-
-	r_image_state.filter_min = r_texture_modes[i].minify;
-	r_image_state.filter_mag = r_texture_modes[i].magnify;
 
 	if (r_anisotropy->value) {
 		if (GLAD_GL_EXT_texture_filter_anisotropic) {
@@ -177,13 +199,12 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	const GLenum type = GL_UNSIGNED_BYTE;
 
-	const GLboolean mipmap = (image->type & IT_MASK_MIPMAP) && image->width > 1 && image->height > 1;
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
+	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
+
 	GLsizei levels = 1;
 
-	if (mipmap) {
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
-
+	if (image->type & IT_MASK_MIPMAP) {
 		if (r_image_state.anisotropy) {
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 		}
@@ -193,9 +214,6 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		} else {
 			levels = floorf(log2f(MAX(image->width, image->height))) + 1;
 		}
-	} else {
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_mag);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 	}
 
 	if (image->type & IT_MASK_CLAMP_EDGE) {
@@ -225,7 +243,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		}
 	}
 
-	if (mipmap) {
+	if (image->type & IT_MASK_MIPMAP) {
 		glGenerateMipmap(target);
 	}
 
@@ -238,13 +256,15 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
  * @brief Retain event listener for images.
  */
 _Bool R_RetainImage(r_media_t *self) {
-	const r_image_type_t type = ((r_image_t *) self)->type;
 
-	if (type == IT_NULL || type == IT_PROGRAM || type == IT_FONT || type == IT_UI) {
-		return true;
+	switch (((r_image_t *) self)->type) {
+		case IT_PROGRAM:
+		case IT_FONT:
+		case IT_UI:
+			return true;
+		default:
+			return false;
 	}
-
-	return false;
 }
 
 /**
@@ -290,7 +310,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 			SDL_FreeSurface(surf);
 		} else {
 			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
-			image = r_image_state.notex;
 		}
 	}
 
@@ -384,40 +403,6 @@ void R_DumpImages_f(void) {
 }
 
 /**
- * @brief Initializes the null (default) image, used when the desired texture
- * is not available.
- */
-static void R_InitNullImage(void) {
-
-	r_image_state.null = (r_image_t *) R_AllocMedia("r_image_state.null", sizeof(r_image_t), MEDIA_IMAGE);
-
-	r_image_state.null->media.Retain = R_RetainImage;
-	r_image_state.null->media.Free = R_FreeImage;
-
-	r_image_state.null->width = r_image_state.null->height = 1;
-	r_image_state.null->type = IT_NULL;
-
-	byte data[1 * 1 * 3];
-	memset(&data, 0xff, sizeof(data));
-
-	R_UploadImage(r_image_state.null, GL_RGB, data);
-}
-
-/**
- * @brief Initializes the mesh shell image.
- */
-static void R_InitShellImage(void) {
-	r_image_state.shell = R_LoadImage("envmaps/envmap_3", IT_PROGRAM);
-}
-
-/**
- * @brief Initializes the notex image.
- */
-static void R_InitNoTexImage(void) {
-	r_image_state.notex = R_LoadImage("textures/common/notex", IT_PROGRAM);
-}
-
-/**
  * @brief Initializes the images facilities, which includes generation of
  */
 void R_InitImages(void) {
@@ -429,12 +414,6 @@ void R_InitImages(void) {
 	memset(&r_image_state, 0, sizeof(r_image_state));
 
 	R_TextureMode();
-
-	R_InitNullImage();
-
-	R_InitShellImage();
-
-	R_InitNoTexImage();
 
 	R_GetError(NULL);
 	

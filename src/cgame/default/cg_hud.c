@@ -621,13 +621,13 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IT_PIC);
 
-		if (crosshair.image->type == IT_NULL) {
+		if (crosshair.image == NULL) {
 			cgi.Print("Couldn't load pics/ch%d.\n", cg_draw_crosshair->integer);
 			return;
 		}
 	}
 
-	if (crosshair.image->type == IT_NULL) { // not found
+	if (crosshair.image == NULL) { // not found
 		return;
 	}
 
