@@ -185,7 +185,9 @@ void main(void) {
 
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
 
-		vec3 light_diffuse = ambient + diffuse * max(0.0, dot(direction, normal));
+		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
+		vec3 light_diffuse = ambient + diffuse * 2.0 * bump_shading;
+
 		vec3 light_specular = brdf_blinn(normalize(viewdir), direction, normal, diffuse, glossmap.a, _specularity);
 		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
