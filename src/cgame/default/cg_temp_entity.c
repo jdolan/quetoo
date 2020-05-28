@@ -396,7 +396,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 	cg_sprite_t *s;
 
 	// TODO: Bubbles in water?
-	
+
 	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
 
 		for (int32_t i = 0; i < 100; i++) {
@@ -416,30 +416,86 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		}
 	}
 
+	// billboard explosion 1
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
-		s->lifetime = cg_sprite_exlosion->num_frames * FRAMES_TO_SECONDS(40);
+		s->lifetime = cg_sprite_explosion->num_frames * FRAMES_TO_SECONDS(40);
 		s->color = color_white;
 		s->size = 100.0;
 		s->size_velocity = 25.0;
-		s->animation = cg_sprite_exlosion;
+		s->animation = cg_sprite_explosion;
 		s->rotation = Randomf() * 2.f * M_PI;
 		s->lerp = true;
 		s->color = Color4f(1.f, 1.f, 1.f, .5f);
 	}
 
+	// billboard explosion 2
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
-		s->lifetime = cg_sprite_exlosion->num_frames * FRAMES_TO_SECONDS(30);
+		s->lifetime = cg_sprite_explosion->num_frames * FRAMES_TO_SECONDS(30);
 		s->color = color_white;
 		s->size = 175.0;
 		s->size_velocity = 25.0;
 		s->rotation = Randomf() * 2.f * M_PI;
-		s->animation = cg_sprite_exlosion;
+		s->animation = cg_sprite_explosion;
 		s->lerp = true;
 		s->color = Color4f(1.f, 1.f, 1.f, .5f);
 	}
-	
+
+	// decal explosion
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
+		s->lifetime = cg_sprite_explosion->num_frames * FRAMES_TO_SECONDS(30);
+		s->color = color_white;
+		s->size = 175.0;
+		s->size_velocity = 25.0;
+		s->rotation = Randomf() * 2.f * M_PI;
+		s->animation = cg_sprite_explosion;
+		s->lerp = true;
+		s->color = Color4f(1.f, 1.f, 1.f, .5f);
+		s->dir = dir;
+	}
+
+	// decal blast ring
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
+		s->lifetime = cg_sprite_explosion_ring_02->num_frames * FRAMES_TO_SECONDS(20);
+		s->color = color_white;
+		s->size = 65.0;
+		s->size_velocity = 500.0;
+		s->size_acceleration = -500.0;
+		s->rotation = Randomf() * 2.f * M_PI;
+		s->animation = cg_sprite_explosion_ring_02;
+		s->lerp = true;
+		s->color = Color4f(1.f, 1.f, 1.f, 0.f);
+		s->dir = dir;
+	}
+
+	// decal blast ring
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
+		s->lifetime = cg_sprite_explosion_ring_02->num_frames * FRAMES_TO_SECONDS(20);
+		s->color = color_white;
+		s->size = 65.0;
+		s->size_velocity = 500.0;
+		s->size_acceleration = -500.0;
+		s->rotation = Randomf() * 2.f * M_PI;
+		s->animation = cg_sprite_explosion_ring_02;
+		s->lerp = true;
+		s->color = Color4f(1.f, 1.f, 1.f, 0.f);
+		s->dir = dir;
+	}
+
+	// blast glow
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
+		s->lifetime = 325;
+		s->size = 200.f;
+		s->rotation = Randomf() * 2.f * M_PI;
+		s->atlas_image = cg_sprite_explosion_glow;
+		s->color = Color4f(1.f, 1.f, 1.f, 1.f);
+	}
+
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
 		.radius = 150.0,

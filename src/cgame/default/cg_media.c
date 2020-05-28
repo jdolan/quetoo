@@ -57,6 +57,8 @@ r_atlas_image_t *cg_sprite_snow;
 r_atlas_image_t *cg_sprite_bubble;
 r_atlas_image_t *cg_sprite_smoke;
 r_atlas_image_t *cg_sprite_flame;
+r_atlas_image_t *cg_sprite_explosion_glow;
+r_atlas_image_t *cg_sprite_explosion_flash;
 r_atlas_image_t *cg_sprite_spark;
 r_atlas_image_t *cg_sprite_steam;
 r_atlas_image_t *cg_sprite_inactive;
@@ -65,7 +67,8 @@ r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
 r_image_t *cg_sprite_blaster_flash;
 
-r_animation_t *cg_sprite_exlosion;
+r_animation_t *cg_sprite_explosion;
+r_animation_t *cg_sprite_explosion_ring_02;
 r_animation_t *cg_sprite_rocket_flame;
 r_animation_t *cg_sprite_blaster_flame;
 r_animation_t *cg_sprite_smoke_04;
@@ -273,6 +276,8 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IT_EFFECT);
 	cg_sprite_smoke = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/smoke", IT_EFFECT);
 	cg_sprite_flame = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flame", IT_EFFECT);
+	cg_sprite_explosion_glow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_glow", IT_EFFECT);
+	cg_sprite_explosion_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_flash", IT_EFFECT);
 	cg_sprite_spark = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/spark", IT_EFFECT);
 	cg_sprite_rain = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/rain", IT_EFFECT);
 	cg_sprite_snow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/snow", IT_EFFECT);
@@ -281,7 +286,8 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_inactive = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/inactive", IT_EFFECT);
 
 	cg_sprite_blaster_ring = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
-	cg_sprite_exlosion = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
+	cg_sprite_explosion = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
+	cg_sprite_explosion_ring_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_ring_02/explosion_ring_02", "_%02" PRIu32, 1, 7);
 	cg_sprite_rocket_flame = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/flame_03/flame_03", "_%02" PRIu32, 1, 29);
 	cg_sprite_blaster_flame = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
 	cg_sprite_smoke_04 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
