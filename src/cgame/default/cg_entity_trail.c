@@ -349,9 +349,42 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
  */
 static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
+	float pulse1 = sinf(cgi.client->unclamped_time * .02f)  * .5f + .5f;
+	float pulse2 = sinf(cgi.client->unclamped_time * .04f)  * .5f + .5f;
+	// vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
+
+	cg_sprite_t *s;
+
+	if ((s = Cg_AllocSprite())) {
+		s->atlas_image = cg_sprite_ring;
+		s->lifetime = 1;
+		s->origin = ent->origin;
+		s->size = pulse1 * 10.f + 20.f;
+		s->color = Color4bv(0x00660000);
+	}
+
+	if ((s = Cg_AllocSprite())) {
+		s->atlas_image = cg_sprite_aniso_flare_01;
+		s->lifetime = 1;
+		s->origin = ent->origin;
+		s->size = pulse2 * 10.f + 10.f;
+		s->color = Color4f(0.f, .5f + pulse2 * .5f, 0.f, 0.f);
+	}
+
+	for (int32_t i = 0; i < 2; i++) {
+		if ((s = Cg_AllocSprite())) {
+			s->atlas_image = cg_sprite_flash;
+			s->lifetime = 1;
+			s->origin = ent->origin;
+			s->size = 40.f;
+			s->color = Color4f(0.f, 0.33f, 0.f, 0.f);
+			s->rotation = sinf(cgi.client->unclamped_time * (i == 0 ? .002f : -.001f));
+		}
+	}
+
 	Cg_AddLight(&(cg_light_t) {
-		.origin = end,
-		.radius = 24.f + 12.f * sinf(cgi.client->unclamped_time * 0.01),
+		.origin = end, // TODO: find a way to nudge this away from the surface a bit
+		.radius = 40.f + 20.f * pulse1,
 		.color = Color_Vec3(color_green)
 	});
 }
@@ -373,8 +406,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	cg_sprite_t *s;
 	int32_t count;
 	vec3_t origin;
-
-	//Cg_SmokeTrail(ent, start, end);
 
 	const vec3_t rocket_velocity = Vec3_Subtract(ent->current.origin, ent->prev.origin);
 	const float rocket_speed = Vec3_Length(rocket_velocity) / QUETOO_TICK_SECONDS;
