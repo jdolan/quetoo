@@ -404,7 +404,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 				break;
 			}
 
-			s->atlas_image = cg_sprite_particle;
+			s->atlas_image = cg_sprite_particle2;
 			s->origin = Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f));
 			s->velocity = Vec3_RandomRange(-300.f, 300.f);
 			s->acceleration.z = -SPRITE_GRAVITY * 2.0;
@@ -412,7 +412,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 			s->color = Color4b(255, 255, 255, 0);
 			s->end_color = Vec4(-.5f, -1.5f, -3.f, 0.f);
 			s->bounce = .4f;
-			s->size = 1.6f + Randomf() * 3.2f;
+			s->size = 1.0f + Randomf() * 2.0f;
 		}
 	}
 
@@ -523,7 +523,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	cg_sprite_t *s;
 
-	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
+	/*if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
 		for (int32_t i = 0; i < 6; i++) {
 
 			if (!(s = Cg_AllocSprite())) {
@@ -540,6 +540,33 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			s->size = 12.f;
 			s->bounce = 0.9f;
 		}
+	}*/
+
+	// impact splash
+	for (uint32_t i = 0; i < 6; i++) {
+		if ((s = Cg_AllocSprite())) {
+			s->origin = org;
+			s->lifetime = cg_sprite_electro_01->num_frames * FRAMES_TO_SECONDS(20);
+			s->color = Color4f(.4f, .7f, .9f, .0f);
+			s->size = 50.f;
+			s->size_velocity = 400.f;
+			s->animation = cg_sprite_electro_01;
+			s->rotation = Randomf() * 2.f * M_PI;
+			s->lerp = true;
+			s->dir = Vec3_RandomRange(-1.f, 1.f);
+		}
+	}
+
+	if ((s = Cg_AllocSprite())) {
+			s->origin = org;
+			s->lifetime = cg_sprite_electro_01->num_frames * FRAMES_TO_SECONDS(8);
+			s->color = Color4f(.4f, .7f, .9f, .0f);
+			s->size = 100.f;
+			s->size_velocity = 25.f;
+			s->animation = cg_sprite_electro_01;
+			s->rotation = Randomf() * 2.f * M_PI;
+			s->lerp = true;
+			s->dir = dir;
 	}
 
 	Cg_AddLight(&(const cg_light_t) {

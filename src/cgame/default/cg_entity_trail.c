@@ -487,18 +487,46 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 
+	#if 0
 	const float animation_frac = cg_sprite_hyperblaster->num_frames * FRAMES_TO_SECONDS(60);
 
 	cgi.AddSprite(&(const r_sprite_t) {
 		.origin = ent->origin,
 		.size = 32.f,
 		.media = (r_media_t *) cg_sprite_hyperblaster,
-		//.rotation = (ent->frame_num * ent->current.number) / 10.f,
+		.rotation = (ent->frame_num * ent->current.number) / 10.f,
 		.rotation = 0,
 		.color = Color4bv(0xffffff00),
 		.life = fmodf((cgi.client->unclamped_time + (ent->current.number * 2048)), animation_frac) / animation_frac,
 		.lerp = true
 	});
+	#else
+	cg_sprite_t *s;
+	r_atlas_image_t *variation[] = {
+		cg_sprite_plasma_var01,
+		cg_sprite_plasma_var02,
+		cg_sprite_plasma_var03
+	};
+	for (int32_t i = 0; i < 3; i++)
+	{
+		if ((s = Cg_AllocSprite())) {
+			s->origin = ent->origin;
+			s->size = RandomRangef(15.f, 20.f);
+			s->color = Color4f(.4f, .7f, .9f, .0f);
+			s->atlas_image = variation[i];
+			s->rotation = RandomRadian();
+			s->lifetime = 50.f;
+		}
+	}
+	if ((s = Cg_AllocSprite())) {
+		s->origin = ent->origin;
+		s->size = RandomRangef(15.f, 20.f);
+		s->color = Color4f(.4f, .7f, .9f, .0f);
+		s->atlas_image = cg_sprite_blob_01;
+		s->rotation = RandomRadian();
+		s->lifetime = 20.f;
+	}
+	#endif
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		const float radius = 6.f;

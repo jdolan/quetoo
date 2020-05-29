@@ -52,16 +52,20 @@ static r_atlas_t *cg_sprite_atlas;
 
 
 r_atlas_image_t *cg_sprite_particle;
+r_atlas_image_t *cg_sprite_particle2;
 r_atlas_image_t *cg_sprite_rain;
 r_atlas_image_t *cg_sprite_snow;
 r_atlas_image_t *cg_sprite_bubble;
 r_atlas_image_t *cg_sprite_smoke;
 r_atlas_image_t *cg_sprite_flame;
 r_atlas_image_t *cg_sprite_explosion_glow;
-r_atlas_image_t *cg_sprite_explosion_flash;
 r_atlas_image_t *cg_sprite_spark;
 r_atlas_image_t *cg_sprite_steam;
 r_atlas_image_t *cg_sprite_inactive;
+r_atlas_image_t *cg_sprite_plasma_var01;
+r_atlas_image_t *cg_sprite_plasma_var02;
+r_atlas_image_t *cg_sprite_plasma_var03;
+r_atlas_image_t *cg_sprite_blob_01;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
@@ -83,6 +87,7 @@ r_animation_t *cg_bfg_explosion_4;
 r_animation_t *cg_sprite_poof_01;
 r_animation_t *cg_sprite_poof_02;
 r_animation_t *cg_sprite_blood_01;
+r_animation_t *cg_sprite_electro_01;
 
 static GHashTable *cg_footstep_table;
 
@@ -274,16 +279,20 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");
 
 	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IT_EFFECT);
+	cg_sprite_particle2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle2", IT_EFFECT);
 	cg_sprite_smoke = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/smoke", IT_EFFECT);
 	cg_sprite_flame = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flame", IT_EFFECT);
 	cg_sprite_explosion_glow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_glow", IT_EFFECT);
-	cg_sprite_explosion_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_flash", IT_EFFECT);
 	cg_sprite_spark = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/spark", IT_EFFECT);
 	cg_sprite_rain = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/rain", IT_EFFECT);
 	cg_sprite_snow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/snow", IT_EFFECT);
 	cg_sprite_steam = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/steam", IT_EFFECT);
 	cg_sprite_bubble = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/bubble", IT_EFFECT);
 	cg_sprite_inactive = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/inactive", IT_EFFECT);
+	cg_sprite_plasma_var01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var01", IT_EFFECT);
+	cg_sprite_plasma_var02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var02", IT_EFFECT);
+	cg_sprite_plasma_var03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var03", IT_EFFECT);
+	cg_sprite_blob_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/blob_01", IT_EFFECT);
 
 	cg_sprite_blaster_ring = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
 	cg_sprite_explosion = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
@@ -298,6 +307,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_poof_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 32);
 	cg_sprite_poof_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
 	cg_sprite_blood_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
+	cg_sprite_electro_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
 
 	cgi.CompileAtlas(cg_sprite_atlas);
 

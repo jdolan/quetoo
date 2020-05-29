@@ -54,6 +54,7 @@ extern s_sample_t *cg_sample_gib;
 s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
 extern r_atlas_image_t *cg_sprite_particle;
+extern r_atlas_image_t *cg_sprite_particle2;
 extern r_atlas_image_t *cg_sprite_rain;
 extern r_atlas_image_t *cg_sprite_snow;
 extern r_atlas_image_t *cg_sprite_smoke;
@@ -62,13 +63,16 @@ extern r_atlas_image_t *cg_sprite_spark;
 extern r_atlas_image_t *cg_sprite_bubble;
 extern r_atlas_image_t *cg_sprite_steam;
 extern r_atlas_image_t *cg_sprite_inactive;
+extern r_atlas_image_t *cg_sprite_plasma_var01;
+extern r_atlas_image_t *cg_sprite_plasma_var02;
+extern r_atlas_image_t *cg_sprite_plasma_var03;
+extern r_atlas_image_t *cg_sprite_blob_01;
 extern r_image_t *cg_beam_hook;
 extern r_image_t *cg_beam_rail;
 extern r_image_t *cg_beam_lightning;
 extern r_image_t *cg_sprite_blaster_flash;
 extern r_animation_t *cg_sprite_explosion;
 extern r_atlas_image_t *cg_sprite_explosion_glow;
-extern r_atlas_image_t *cg_sprite_explosion_flash;
 extern r_animation_t *cg_sprite_explosion_ring_02;
 extern r_animation_t *cg_sprite_rocket_flame;
 extern r_animation_t *cg_sprite_blaster_flame;
@@ -82,6 +86,7 @@ extern r_animation_t *cg_sprite_bfg_explosion_3;
 extern r_animation_t *cg_sprite_poof_01;
 extern r_animation_t *cg_sprite_poof_02;
 extern r_animation_t *cg_sprite_blood_01;
+extern r_animation_t *cg_sprite_electro_01;
 
 void Cg_UpdateMedia(void);
 #endif /* __CG_LOCAL_H__ */
