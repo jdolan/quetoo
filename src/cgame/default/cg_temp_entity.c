@@ -397,13 +397,12 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
 	// TODO: Bubbles in water?
 
+	// ember sparks
 	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
-
 		for (int32_t i = 0; i < 100; i++) {
 			if (!(s = Cg_AllocSprite())) {
 				break;
 			}
-
 			s->atlas_image = cg_sprite_particle2;
 			s->origin = Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f));
 			s->velocity = Vec3_RandomRange(-300.f, 300.f);
@@ -471,21 +470,6 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		s->dir = dir;
 	}
 
-	// decal blast ring
-	if ((s = Cg_AllocSprite())) {
-		s->origin = org;
-		s->lifetime = cg_sprite_explosion_ring_02->num_frames * FRAMES_TO_SECONDS(20);
-		s->color = color_white;
-		s->size = 65.0;
-		s->size_velocity = 500.0;
-		s->size_acceleration = -500.0;
-		s->rotation = Randomf() * 2.f * M_PI;
-		s->animation = cg_sprite_explosion_ring_02;
-		s->lerp = true;
-		s->color = Color4f(1.f, 1.f, 1.f, 0.f);
-		s->dir = dir;
-	}
-
 	// blast glow
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
@@ -495,6 +479,21 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		s->atlas_image = cg_sprite_explosion_glow;
 		s->color = Color4f(1.f, 1.f, 1.f, 1.f);
 	}
+
+	/*
+	// blast spikes... yay/nay?
+	for (uint32_t i = 0; i < 2; i++) {
+		if ((s = Cg_AllocSprite())) {
+			s->origin = org;
+			s->lifetime = 150;
+			s->color = Color4bv(0xFFFFFF00);
+			s->size = RandomRangef(200, 250);
+			s->rotation = RandomRadian();
+			s->rotation_velocity = i == 0 ? .66f : -.66f;
+			s->atlas_image = cg_sprite_explosion_flash;
+		}
+	}
+	*/
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
@@ -556,7 +555,6 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			s->dir = Vec3_RandomRange(-1.f, 1.f);
 		}
 	}
-
 	if ((s = Cg_AllocSprite())) {
 			s->origin = org;
 			s->lifetime = cg_sprite_electro_01->num_frames * FRAMES_TO_SECONDS(8);
@@ -567,6 +565,19 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			s->rotation = Randomf() * 2.f * M_PI;
 			s->lerp = true;
 			s->dir = dir;
+	}
+
+	// impact flash
+	for (uint32_t i = 0; i < 2; i++) {
+		if ((s = Cg_AllocSprite())) {
+			s->origin = org;
+			s->lifetime = 150;
+			s->color = Color4f(.4f, .7f, .9f, .0f);
+			s->size = RandomRangef(75, 100);
+			s->rotation = RandomRadian();
+			s->rotation_velocity = i == 0 ? .66f : -.66f;
+			s->atlas_image = cg_sprite_flash;
+		}
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
