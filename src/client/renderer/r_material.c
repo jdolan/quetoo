@@ -202,6 +202,12 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 
 		R_AppendStage(material, stage);
 
+		// FIXME: *stage->cm->asset.path gets set to \0 on invalid path, but that's also treated the same
+		// as a stage with no texture?
+		if (!stage->media) {
+			stage->media = (r_media_t *) R_LoadImage("textures/common/notex", IT_MATERIAL);
+		}
+
 		R_RegisterDependency((r_media_t *) material, stage->media);
 	}
 

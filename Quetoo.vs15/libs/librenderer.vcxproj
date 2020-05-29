@@ -40,6 +40,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_mesh_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_mesh_model_md3.c" />
     <ClCompile Include="..\..\src\client\renderer\r_mesh_model_obj.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_mesh_shadow_draw.c" />
     <ClCompile Include="..\..\src\client\renderer\r_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
@@ -71,6 +72,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_mesh_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_mesh_model_md3.h" />
     <ClInclude Include="..\..\src\client\renderer\r_mesh_model_obj.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_mesh_shadow_draw.h" />
     <ClInclude Include="..\..\src\client\renderer\r_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
@@ -87,7 +89,12 @@
     <None Include="..\..\src\client\renderer\shaders\draw_3d_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\lights.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\material.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_2d_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_2d_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_3d_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_3d_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\particle_gs.glsl" />

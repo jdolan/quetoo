@@ -82,8 +82,10 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
  * @brief
  */
 void R_UpdateEntities(void) {
-
+	
 	R_UpdateMeshEntities();
+
+	R_UpdateMeshEntityShadows();
 }
 
 /**
@@ -132,8 +134,10 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
  * @brief Draw all entities at the specified depth value.
  */
 void R_DrawEntities(int32_t blend_depth) {
-
+	
 	R_DrawMeshEntities(blend_depth);
+
+	R_DrawMeshEntityShadows(blend_depth);
 
 	if (!r_draw_entity_bounds->value) {
 		return;
