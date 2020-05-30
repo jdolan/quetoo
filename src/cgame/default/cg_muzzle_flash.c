@@ -21,13 +21,13 @@
 
 #include "cg_local.h"
 
+// FIXME: up/down positioning is messed up, roughly right though.
+
 /**
  * @brief
  */
 static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	vec3_t forward, right, org, org2;
-
-	// FIXME: positioning is messed up, roughly right though.
 
 	// project the flash just in front of the entity
 	Vec3_Vectors(ent->angles, &forward, &right, NULL );
@@ -46,12 +46,13 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	// and adjust for ducking
 	org.z += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
+	#if 0 // looks mediocre
 	cg_sprite_t *s;
 	for (uint32_t i = 0; i < 2; i++) {
 		if ((s = Cg_AllocSprite())) {
 			s->origin = org;
 			s->lifetime = 66;
-			s->color = Color4f(.2f, .9f, .9f, .0f);
+			s->color = Color4f(.1f, .45f, .45f, .0f);
 			s->size = RandomRangef(20, 35);
 			s->rotation = RandomRadian();
 			s->rotation_velocity = i == 0 ? .66f : -.66f;
@@ -60,12 +61,13 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	}
 
 	if ((s = Cg_AllocSprite())) {
+		s->atlas_image = cg_sprite_particle;
 		s->origin = org;
 		s->lifetime = 100;
 		s->color = Color4f(.4f, .7f, .9f, .0f);
 		s->size = 10;
-		s->atlas_image = cg_sprite_particle;
 	}
+	#endif
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,

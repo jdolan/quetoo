@@ -355,29 +355,35 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	cg_sprite_t *s;
 
+	// ring
 	if ((s = Cg_AllocSprite())) {
 		s->atlas_image = cg_sprite_ring;
 		s->lifetime = 1;
 		s->origin = ent->origin;
 		s->size = pulse1 * 10.f + 20.f;
-		s->color = Color4bv(0x00660000);
+		// s->color = Color4bv(0x00660000);
+		s->color = Color4f(0.f, .2f, 0.f, 0.f);
 	}
 
+	// streak
 	if ((s = Cg_AllocSprite())) {
 		s->atlas_image = cg_sprite_aniso_flare_01;
 		s->lifetime = 1;
 		s->origin = ent->origin;
 		s->size = pulse2 * 10.f + 10.f;
-		s->color = Color4f(0.f, .5f + pulse2 * .5f, 0.f, 0.f);
+		// s->color = Color4f(0.f, .5f + pulse2 * .5f, 0.f, 0.f);
+		s->color = Color4f(0.f, .33f + pulse2 * .33f, 0.f, 0.f);
 	}
 
+	// glow
 	for (int32_t i = 0; i < 2; i++) {
 		if ((s = Cg_AllocSprite())) {
 			s->atlas_image = cg_sprite_flash;
 			s->lifetime = 1;
 			s->origin = ent->origin;
 			s->size = 40.f;
-			s->color = Color4f(0.f, 0.33f, 0.f, 0.f);
+			// s->color = Color4f(0.f, 0.33f, 0.f, 0.f);
+			s->color = Color4f(0.f, 0.22f, 0.f, 0.f);
 			s->rotation = sinf(cgi.client->unclamped_time * (i == 0 ? .002f : -.001f));
 		}
 	}
@@ -407,10 +413,25 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	int32_t count;
 	vec3_t origin;
 
+	float sine = sinf(cgi.client->unclamped_time * .001f) * M_PI;
+
 	const vec3_t rocket_velocity = Vec3_Subtract(ent->current.origin, ent->prev.origin);
+	const vec3_t rocket_direction = Vec3_Normalize(rocket_velocity);
 	const float rocket_speed = Vec3_Length(rocket_velocity) / QUETOO_TICK_SECONDS;
 
-	// add fire
+	// exhaust flare
+	for (int32_t i = 0; i < 2; i++) {
+		if ((s = Cg_AllocSprite())) {
+			s->atlas_image = cg_sprite_explosion_flash;
+			s->lifetime = 1;
+			s->origin = Vec3_Add(ent->origin, Vec3_Scale(rocket_direction, -20.f));
+			s->size = 30.f;
+			s->color = Color4f(.5f, .5f, .5f, 0.f);
+			s->rotation = (i == 0 ? sine : -sine);
+		}
+	}
+
+	// exhaust flames
 	count = Cg_TrailDensity(ent, start, end, 8, TRAIL_PRIMARY, &origin);
 	if (count) {
 		float step = 1.f / count;
@@ -436,7 +457,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		}
 	}
 
-	// add smoke
+	// smoke trail
 	count = Cg_TrailDensity(ent, start, end, 2, TRAIL_SECONDARY, &origin);
 	if (count) {
 		float step = 1.f / count;
@@ -476,7 +497,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		}
 	}
 
-	// add fireflies
+	// firefly trail
 	count = Cg_TrailDensity(ent, start, end, 10, TRAIL_BUBBLE, &origin);
 	if (count) {
 		float step = 1.f / count;
@@ -514,21 +535,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 
-	/*
-	const float animation_frac = cg_sprite_hyperblaster->num_frames * FRAMES_TO_SECONDS(60);
-
-	cgi.AddSprite(&(const r_sprite_t) {
-		.origin = ent->origin,
-		.size = 32.f,
-		.media = (r_media_t *) cg_sprite_hyperblaster,
-		.rotation = (ent->frame_num * ent->current.number) / 10.f,
-		.rotation = 0,
-		.color = Color4bv(0xffffff00),
-		.life = fmodf((cgi.client->unclamped_time + (ent->current.number * 2048)), animation_frac) / animation_frac,
-		.lerp = true
-	});
-	*/
-
 	cg_sprite_t *s;
 	r_atlas_image_t *variation[] = {
 		cg_sprite_plasma_var01,
@@ -542,7 +548,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 		if ((s = Cg_AllocSprite())) {
 			s->origin = ent->origin;
 			s->size = RandomRangef(15.f, 20.f);
-			s->color = Color4f(.4f, .7f, .9f, .0f);
+			s->color = Color4f(.2f, .35f, .45f, .0f);
+			// s->color = Color4f(.4f, .7f, .9f, .0f);
 			s->atlas_image = variation[i];
 			s->rotation = RandomRadian();
 			s->lifetime = 50.f;
@@ -553,7 +560,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	if ((s = Cg_AllocSprite())) {
 		s->origin = ent->origin;
 		s->size = RandomRangef(15.f, 20.f);
-		s->color = Color4f(.4f, .7f, .9f, .0f);
+		s->color = Color4f(.2f, .35f, .45f, .0f);
 		s->atlas_image = cg_sprite_blob_01;
 		s->rotation = RandomRadian();
 		s->lifetime = 20.f;
@@ -563,7 +570,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	if ((s = Cg_AllocSprite())) {
 		s->origin = ent->origin;
 		s->size = RandomRangef(6.f, 9.f);
-		s->color = Color4f(.4f, .7f, .9f, .0f);
+		s->color = Color4f(.2f, .35f, .45f, .0f);
 		s->atlas_image = cg_sprite_particle;
 		s->rotation = RandomRadian();
 		s->lifetime = 20.f;
@@ -694,10 +701,13 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
  */
 static void Cg_BfgTrail(cl_entity_t *ent) {
 
-	const float radius = 48.f;
+	// FIXME
 
-	const float ltime = cgi.client->unclamped_time * .001f;
+	// const float radius = 48.f;
 
+	// const float ltime = cgi.client->unclamped_time * .001f;
+
+	/*
 	for (int32_t i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
 		cg_sprite_t *s;
 
@@ -736,6 +746,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 		.radius = 160.f + 48.f * mod,
 		.color = Vec3(.4f, 1.f, .4f)
 	});
+	*/
 }
 
 /**
@@ -770,7 +781,8 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color) {
 		s->acceleration.z = 20.f;
 		s->lifetime = 450;
 		s->color = color;
-		s->size = 16.f;
+		s->color.a = 0.f;
+		s->size = 10.f;
 	}
 }
 
@@ -835,6 +847,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		s->origin = Vec3_Mix(origin, end, step * i);
 		s->velocity = Vec3_Scale(dir, 20.0);
 		s->acceleration.z = -SPRITE_GRAVITY / 2.0;
+		s->lerp = true;
 
 		/*
 
