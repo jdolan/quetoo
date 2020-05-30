@@ -426,6 +426,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 				break;
 			}
 			s->animation = cg_sprite_rocket_flame;
+			s->color = Color4bv(0xFFFFFF00);
 			s->lifetime = cg_sprite_rocket_flame->num_frames * FRAMES_TO_SECONDS(120) * particle_life_frac;
 			s->origin = Vec3_Mix(origin, end, step * i);
 			s->velocity = rocket_velocity;
