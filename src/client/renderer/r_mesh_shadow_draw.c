@@ -362,7 +362,7 @@ void R_InitMeshShadowProgram(void) {
 	r_mesh_shadow_blur_program.resolution = glGetUniformLocation(r_mesh_shadow_blur_program.name, "resolution");
 	r_mesh_shadow_blur_program.direction = glGetUniformLocation(r_mesh_shadow_blur_program.name, "direction");
 
-	Matrix4x4_FromOrtho(&r_locals.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+	Matrix4x4_FromOrtho(&r_locals.projection2D, 0.0, r_context.drawable_width, r_context.drawable_height, 0.0, -1.0, 1.0);
 	
 	glUniformMatrix4fv(r_mesh_shadow_blur_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection2D.m);
 
