@@ -229,9 +229,6 @@
     <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\soften_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
     <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
@@ -250,16 +247,16 @@
     <None Include="..\..\src\client\renderer\shaders\material.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_2d_fs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_2d_vs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_3d_fs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\draw_2d_blur_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_3d_vs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\draw_2d_blur_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
   </ItemGroup>

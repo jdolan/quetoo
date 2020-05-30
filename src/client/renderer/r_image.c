@@ -230,10 +230,16 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		const GLenum internal_format = (format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
 		if (image->depth) {
 			glTexStorage3D(target, levels, internal_format, image->width, image->height, image->depth);
-			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, format, type, data);
+
+			if (data) {
+				glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, format, type, data);
+			}
 		} else {
 			glTexStorage2D(target, levels, internal_format, image->width, image->height);
-			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, format, type, data);
+			
+			if (data) {
+				glTexSubImage2D(target, 0, 0, 0, image->width, image->height, format, type, data);
+			}
 		}
 	} else {
 		if (image->depth) {
@@ -257,7 +263,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
  */
 _Bool R_RetainImage(r_media_t *self) {
 
-	switch (((r_image_t *) self)->type) {
+	switch (((r_image_t *) self)->type & ~IT_MASK_FLAGS) {
 		case IT_PROGRAM:
 		case IT_FONT:
 		case IT_UI:
@@ -280,9 +286,9 @@ void R_FreeImage(r_media_t *media) {
 }
 
 /**
- * @brief Loads the image by the specified name.
+ * @brief Create an image by the specified name.
  */
-r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
+_Bool R_CreateImage(r_image_t **out, const char *name, const int32_t width, const int32_t height, r_image_type_t type) {
 	r_image_t *image;
 	char key[MAX_QPATH];
 
@@ -294,24 +300,55 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	if (!(image = (r_image_t *) R_FindMedia(key))) {
 
-		SDL_Surface *surf = Img_LoadSurface(key);
-		if (surf) {
-			image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), MEDIA_IMAGE);
+		image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), MEDIA_IMAGE);
 
-			image->media.Retain = R_RetainImage;
-			image->media.Free = R_FreeImage;
+		image->media.Retain = R_RetainImage;
+		image->media.Free = R_FreeImage;
 
-			image->width = surf->w;
-			image->height = surf->h;
-			image->type = type;
-
-			R_UploadImage(image, GL_RGBA, surf->pixels);
-
-			SDL_FreeSurface(surf);
-		} else {
-			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
-		}
+		image->width = width;
+		image->height = height;
+		image->type = type;
+		
+		*out = image;
+		return true;
 	}
+
+	*out = image;
+	return false;
+}
+
+/**
+ * @brief Loads the image by the specified name.
+ */
+r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
+	char key[MAX_QPATH];
+
+	if (!name || !name[0]) {
+		Com_Error(ERROR_DROP, "NULL name\n");
+	}
+
+	StripExtension(name, key);
+
+	SDL_Surface *surf = Img_LoadSurface(key);
+	if (!surf) {
+
+		Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
+		return NULL;
+	}
+
+	r_image_t *image;
+	
+	if (!R_CreateImage(&image, name, surf->w, surf->h, type)) {
+		return image;
+	}
+
+	image->width = surf->w;
+	image->height = surf->h;
+	image->type = type;
+
+	R_UploadImage(image, GL_RGBA, surf->pixels);
+
+	SDL_FreeSurface(surf);
 
 	return image;
 }

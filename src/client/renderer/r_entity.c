@@ -84,8 +84,8 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 void R_UpdateEntities(void) {
 	
 	R_UpdateMeshEntities();
-
-	R_UpdateMeshEntityShadows();
+	
+	R_UpdateMeshShadowEntities();
 }
 
 /**
@@ -137,7 +137,7 @@ void R_DrawEntities(int32_t blend_depth) {
 	
 	R_DrawMeshEntities(blend_depth);
 
-	R_DrawMeshEntityShadows(blend_depth);
+	R_DrawMeshShadowEntities(blend_depth);
 
 	if (!r_draw_entity_bounds->value) {
 		return;

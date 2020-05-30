@@ -447,11 +447,11 @@ void R_DrawSprites(int32_t blend_depth) {
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
 	
-		glEnableVertexAttribArray(r_sprite_program.in_position);
-		glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
-		glEnableVertexAttribArray(r_sprite_program.in_color);
+	glEnableVertexAttribArray(r_sprite_program.in_position);
+	glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
+	glEnableVertexAttribArray(r_sprite_program.in_color);
 	glVertexAttrib1f(r_sprite_program.in_lerp, 0.f);
-		glEnableVertexAttribArray(r_sprite_program.in_blend_depth);
+	glEnableVertexAttribArray(r_sprite_program.in_blend_depth);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);

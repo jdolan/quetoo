@@ -23,18 +23,9 @@
 
 #include "r_types.h"
 
-r_image_t *R_LoadImage(const char *name, r_image_type_t type);
-
 #ifdef __R_LOCAL_H__
-_Bool R_CreateImage(r_image_t **out, const char *name, const int32_t width, const int32_t height, r_image_type_t type);
-void R_FilterImage(r_image_t *image, GLenum format, byte *data);
-void R_UploadImage(r_image_t *image, GLenum format, byte *data);
-void R_Screenshot_f(void);
-void R_DumpImage(const r_image_t *image, const char *output);
-void R_DumpImages_f(void);
-void R_InitImages(void);
-
-void R_FreeImage(r_media_t *media);
-_Bool R_RetainImage(r_media_t *self);
-
+void R_UpdateMeshShadowEntities(void);
+void R_DrawMeshShadowEntities(int32_t blend_depth);
+void R_InitMeshShadowProgram(void);
+void R_ShutdownMeshShadowProgram(void);
 #endif /* __R_LOCAL_H__ */

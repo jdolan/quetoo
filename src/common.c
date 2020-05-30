@@ -216,6 +216,8 @@ void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
 	va_end(args);
 }
 
+#include <SDL_assert.h>
+
 /**
  * @brief An error condition has occurred. This function does not return.
  */
@@ -238,6 +240,10 @@ void Com_Errorv_(err_t err, const char *func, const char *fmt, va_list args) {
 	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
 
 	Com_LogString(msg);
+
+	if (err == ERROR_FATAL) {
+		SDL_TriggerBreakpoint();
+	}
 
 	if (quetoo.Error) {
 		quetoo.Error(err, msg);

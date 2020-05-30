@@ -19,22 +19,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+layout (location = 0) in vec2 in_position;
+layout (location = 1) in vec2 in_diffusemap;
 
-#include "r_types.h"
+uniform mat4 projection;
 
-r_image_t *R_LoadImage(const char *name, r_image_type_t type);
+out vertex_data {
+	vec2 diffusemap;
+} vertex;
 
-#ifdef __R_LOCAL_H__
-_Bool R_CreateImage(r_image_t **out, const char *name, const int32_t width, const int32_t height, r_image_type_t type);
-void R_FilterImage(r_image_t *image, GLenum format, byte *data);
-void R_UploadImage(r_image_t *image, GLenum format, byte *data);
-void R_Screenshot_f(void);
-void R_DumpImage(const r_image_t *image, const char *output);
-void R_DumpImages_f(void);
-void R_InitImages(void);
+/**
+ * @brief
+ */
+void main(void) {
 
-void R_FreeImage(r_media_t *media);
-_Bool R_RetainImage(r_media_t *self);
+	gl_Position = projection * vec4(in_position, 0.0, 1.0);
 
-#endif /* __R_LOCAL_H__ */
+	vertex.diffusemap = in_diffusemap;
+}
