@@ -12,6 +12,8 @@ shaders_DATA = \
 	material.glsl \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
+	mesh_shadow_fs.glsl \
+	mesh_shadow_vs.glsl \
 	sky_fs.glsl \
 	sky_vs.glsl \
 	sprite_fs.glsl \
