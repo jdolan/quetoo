@@ -126,28 +126,49 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
 
 	for (root = e; root->parent; root = root->parent) ;
 
-	const cm_trace_t tr = Cm_BoxTrace(root->origin, Vec3_Add(root->origin, Vec3(0, 0, -MAX_WORLD_DIST)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
-	
-	glUniform1f(r_mesh_shadow_program.z, tr.end.z);
+	const vec3_t offsets[] = {
+		{ .x = 0, .y = 0, .z = 0 },
+		{ .x = 32, .y = 0, .z = 0 },
+		{ .x = 0, .y = 32, .z = 0 },
+		{ .x = -32, .y = 0, .z = 0 },
+		{ .x = 0, .y = -32, .z = 0 },
+		{ .x = 32, .y = 32, .z = 0 },
+		{ .x = -32, .y = 32, .z = 0 },
+		{ .x = -32, .y = -32, .z = 0 },
+		{ .x = 32, .y = -32, .z = 0 }
+	};
+
 	glUniform1f(r_mesh_shadow_program.min_z, e->model->mins.z);
 	glUniform1f(r_mesh_shadow_program.max_z, e->model->maxs.z);
-	glUniform1f(r_mesh_shadow_program.dist, Vec3_Distance(e->origin, tr.end));
 
-	const r_mesh_face_t *face = mesh->faces;
-	for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+	const cm_trace_t zero_tr = Cm_BoxTrace(root->origin, Vec3_Add(root->origin, Vec3(0, 0, -MAX_WORLD_DIST)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
 
-		const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+	for (int32_t i = 0; i < ((r_shadows->value > 1) ? lengthof(offsets) : 1); i++) {
+		const cm_trace_t tr = (i == 0) ? zero_tr : Cm_BoxTrace(Vec3_Add(root->origin, offsets[i]), Vec3_Add(Vec3_Add(root->origin, offsets[i]), Vec3(0, 0, -MAX_WORLD_DIST)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, position));
+		if (i != 0 && fabsf(tr.end.z - zero_tr.end.z) < TRACE_EPSILON) {
+			continue;
+		}
 
-		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+		glUniform1f(r_mesh_shadow_program.z, tr.end.z);
+		glUniform1f(r_mesh_shadow_program.dist, Vec3_Distance(e->origin, tr.end));
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, position));
+		const r_mesh_face_t *face = mesh->faces;
+		for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-		const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
-		glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
+			const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, position));
+
+			const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, position));
+
+			const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
+			glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 		
-		r_view.count_mesh_triangles += face->num_elements / 3;
+			r_view.count_mesh_triangles += face->num_elements / 3;
+		}
 	}
 
 	glBindVertexArray(0);
@@ -159,23 +180,9 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
  * @brief Draws the actual 3d piece projected onto the ground to the main color
  * attachment of the shadow framebuffer
  */
-static void R_DrawMeshShadowEntitiesProjected(int32_t blend_depth) {
+static _Bool R_DrawMeshShadowEntitiesProjected(int32_t blend_depth) {
 
-	glEnable(GL_DEPTH_TEST);
-
-	glColorMask(false, false, false, true);
-
-	glDepthMask(false);
-
-	glEnable(GL_BLEND);
-
-	glBlendEquation(GL_MAX);
-
-	glUseProgram(r_mesh_shadow_program.name);
-
-	glActiveTexture(GL_TEXTURE0);
-
-	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
+	_Bool any_rendered = false;
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
@@ -188,24 +195,57 @@ static void R_DrawMeshShadowEntitiesProjected(int32_t blend_depth) {
 			if (e->blend_depth != blend_depth) {
 				continue;
 			}
+
+			if (!any_rendered) {
+	
+				glBindFramebuffer(GL_FRAMEBUFFER, r_mesh_shadow_program.framebuffer);
+
+				glDrawBuffers(2, (const GLenum[]) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+
+				glClear(GL_COLOR_BUFFER_BIT);
+	
+				glDrawBuffers(1, (const GLenum[]) { GL_COLOR_ATTACHMENT0 });
+
+				glEnable(GL_DEPTH_TEST);
+
+				glColorMask(false, false, false, true);
+
+				glDepthMask(false);
+
+				glEnable(GL_BLEND);
+
+				glBlendEquation(GL_MAX);
+
+				glUseProgram(r_mesh_shadow_program.name);
+
+				glActiveTexture(GL_TEXTURE0);
+
+				glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
+
+				any_rendered = true;
+			}
 			
 			R_DrawMeshShadowEntity(e);
 		}
 	}
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	if (any_rendered) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	glDepthMask(true);
+		glDepthMask(true);
 
-	glColorMask(true, true, true, true);
+		glColorMask(true, true, true, true);
 
-	glDisable(GL_BLEND);
+		glDisable(GL_BLEND);
 
-	glBlendEquation(GL_FUNC_ADD);
+		glBlendEquation(GL_FUNC_ADD);
 
-	glDisable(GL_DEPTH_TEST);
+		glDisable(GL_DEPTH_TEST);
 	
-	R_GetError(NULL);
+		R_GetError(NULL);
+	}
+
+	return any_rendered;
 }
 
 /**
@@ -235,16 +275,10 @@ void R_DrawMeshShadowEntities(int32_t blend_depth) {
 	if (!r_shadows->value) {
 		return;
 	}
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, r_mesh_shadow_program.framebuffer);
 
-	glDrawBuffers(2, (const GLenum[]) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
-
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	glDrawBuffers(1, (const GLenum[]) { GL_COLOR_ATTACHMENT0 });
-
-	R_DrawMeshShadowEntitiesProjected(blend_depth);
+	if (!R_DrawMeshShadowEntitiesProjected(blend_depth)) {
+		return;
+	}
 	
 	glUseProgram(r_mesh_shadow_blur_program.name);
 
@@ -376,12 +410,12 @@ void R_InitMeshShadowProgram(void) {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_2d_blur_vertex_t), (void *) offsetof(r_mesh_2d_blur_vertex_t, diffusemap));
 
 	r_mesh_2d_blur_vertex_t quad[4];
-
+	
 	quad[0].position = Vec2s(0, 0);
 	quad[1].position = Vec2s(r_context.drawable_width, 0);
 	quad[2].position = Vec2s(r_context.drawable_width, r_context.drawable_height);
 	quad[3].position = Vec2s(0, r_context.drawable_height);
-
+	
 	quad[0].diffusemap = Vec2(0, 0);
 	quad[1].diffusemap = Vec2(1, 0);
 	quad[2].diffusemap = Vec2(1, 1);

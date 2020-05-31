@@ -93,7 +93,6 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 				break;
 			case SURF_BLEND_66:
 				alpha = 0.666f;
-			default:
 				break;
 		}
 
