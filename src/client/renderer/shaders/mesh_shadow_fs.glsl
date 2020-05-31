@@ -23,7 +23,6 @@ uniform mat4 view;
 
 in vertex_data {
 	vec3 position;
-	float dist_to_ground;
 } vertex;
 
 out vec4 out_color;

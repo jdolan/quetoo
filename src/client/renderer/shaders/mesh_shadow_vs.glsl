@@ -34,7 +34,6 @@ uniform float min_z, max_z;
 
 out vertex_data {
 	vec3 position;
-	float dist_to_ground;
 } vertex;
 
 /**
@@ -44,9 +43,7 @@ void main(void) {
 
 	vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
 
-	vertex.dist_to_ground = (16.f + ((position.z - min_z) + dist)) / 1024.f;
-	
-	position.xy *= 1.f + (vertex.dist_to_ground * 2.f);
+	position.xy *= 1.f + ((16.f + ((position.z - min_z) + dist)) * max_z);
 
 	position = model * position;
 	position.z *= 0;

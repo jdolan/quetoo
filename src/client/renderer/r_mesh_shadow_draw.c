@@ -147,7 +147,6 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
 	};
 
 	glUniform1f(r_mesh_shadow_program.min_z, e->model->mins.z);
-	glUniform1f(r_mesh_shadow_program.max_z, e->model->maxs.z);
 
 	const cm_trace_t zero_tr = Cm_BoxTrace(root->origin, Vec3_Add(root->origin, Vec3(0, 0, -MAX_WORLD_DIST)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
 
@@ -355,6 +354,8 @@ void R_InitMeshShadowProgram(void) {
 	r_mesh_shadow_program.inv_viewport_size = glGetUniformLocation(r_mesh_shadow_program.name, "inv_viewport_size");
 	r_mesh_shadow_program.transition_size = glGetUniformLocation(r_mesh_shadow_program.name, "transition_size");
 	
+	glUniform1f(r_mesh_shadow_program.max_z, 1.f / 512.f);
+
 	glUniform2f(r_mesh_shadow_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_mesh_shadow_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
 	glUniform1f(r_mesh_shadow_program.transition_size, 0.0016f);
