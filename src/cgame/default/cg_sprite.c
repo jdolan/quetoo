@@ -176,7 +176,7 @@ void Cg_AddSprites(void) {
 			}
 		}
 
-		const color_t color = Color4fv(Vec4_Mix(Color_Vec4(s->color), s->end_color, life));
+		const color_t color = Color_Mix(s->color, s->end_color, life);
 
 		switch (s->type) {
 		case SPRITE_NORMAL:
@@ -189,7 +189,7 @@ void Cg_AddSprites(void) {
 				.rotation = s->rotation,
 				.media = s->media,
 				.life = life,
-				.flags = s->flags,
+				.flags = (r_sprite_flags_t)s->flags,
 				.dir = s->dir
 			});
 			break;

@@ -408,7 +408,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 			s->acceleration.z = -SPRITE_GRAVITY * 2.0;
 			s->lifetime = 3000 + Randomf() * 300;
 			s->color = Color4b(255, 255, 255, 0);
-			s->end_color = Vec4(-.5f, -1.5f, -3.f, 0.f);
+			s->end_color = Color4f(-.5f, -1.5f, -3.f, 0.f);
 			s->bounce = .4f;
 			s->size = 1.0f + Randomf() * 2.0f;
 		}
@@ -759,32 +759,39 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 static void Cg_BfgEffect(const vec3_t org) {
 	cg_sprite_t *s;
 
+	// explosion 1
 	for (int32_t i = 0; i < 4; i++) {
 		if (!(s = Cg_AllocSprite())) {
 			break;
 		}
+		s->color = Color4f(1.f, 1.f, 1.f, .15f);
 		s->animation = cg_sprite_bfg_explosion_2;
-		s->lifetime = cg_sprite_bfg_explosion_2->num_frames * FRAMES_TO_SECONDS(30);
+		s->lifetime = cg_sprite_bfg_explosion_2->num_frames * FRAMES_TO_SECONDS(15);
 		s->size = RandomRangef(200.f, 300.f);
 		s->size_velocity = 100.f;
 		s->size_acceleration = -10.f;
 		s->rotation = RandomRangef(0.f, 2.f * M_PI);
 		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f));
+		s->flags |= SPRITE_LERP;
 	}
 
+	// explosion 2
 	for (int32_t i = 0; i < 4; i++) {
 		if (!(s = Cg_AllocSprite())) {
 			break;
 		}
+		s->color = Color4f(1.f, 1.f, 1.f, .15f);
 		s->animation = cg_sprite_bfg_explosion_3;
-		s->lifetime = cg_sprite_bfg_explosion_3->num_frames * FRAMES_TO_SECONDS(30);
+		s->lifetime = cg_sprite_bfg_explosion_3->num_frames * FRAMES_TO_SECONDS(15);
 		s->size = RandomRangef(200.f, 300.f);
 		s->size_velocity = 100.f;
 		s->size_acceleration = -10.f;
 		s->rotation = RandomRangef(0.f, 2.f * M_PI);
 		s->origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f));
+		s->flags |= SPRITE_LERP;
 	}
-	
+
+	// particles 1
 	for (int32_t i = 0; i < 50; i++) {
 		if (!(s = Cg_AllocSprite())) {
 			break;
@@ -800,9 +807,10 @@ static void Cg_BfgEffect(const vec3_t org) {
 		s->acceleration.z -= 3.f * SPRITE_GRAVITY;
 		s->origin = org;
 		s->color = color_white;
-		s->end_color = Vec4(-.5f, 0.f, -.4f, 0.f);
+		s->end_color = Color4f(-.5f, 0.f, -.4f, 0.f);
 	}
 
+	// particles 2
 	for (int32_t i = 0; i < 20; i++) {
 		if (!(s = Cg_AllocSprite())) {
 			break;
@@ -816,21 +824,54 @@ static void Cg_BfgEffect(const vec3_t org) {
 		s->velocity = Vec3_Scale(rdir, 300.f);
 		s->origin = org;
 		s->color = Color_Mix(color_white, color_green, Randomf());
-		s->end_color = Vec4(-.5f, 0.f, -.4f, RandomRangef(.75f, 1.25f));
+		s->end_color = Color4f(-.5f, 0.f, -.4f, RandomRangef(.75f, 1.25f));
+	}
+
+	// impact flash 1
+	for (uint32_t i = 0; i < 4; i++) {
+		if ((s = Cg_AllocSprite())) {
+			s->origin = org;
+			s->lifetime = 600;
+			s->color = Color4f(.8f, 1.f, .5f, 0.f);
+			s->size = RandomRangef(300, 400);
+			s->rotation = RandomRadian();
+			s->dir = Vec3_Random();
+			s->atlas_image = cg_sprite_flash;
+		}
+	}
+
+	// impact flash 2
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
+		s->lifetime = 600;
+		s->color = Color4f(.8f, 1.f, .5f, 0.f);
+		s->size = 400;
+		s->rotation = RandomRadian();
+		s->atlas_image = cg_sprite_flash;
+	}
+
+	// glow
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
+		s->lifetime = 1000;
+		s->color = Color4f(.8f, 1.f, .5f, 0.f);
+		s->size = 600.f;
+		s->rotation = RandomRadian();
+		s->atlas_image = cg_sprite_particle;
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
 		.radius = 200.f,
 		.color = Vec3(.8f, 1.f, .5f),
-		.intensity = .01f,
-		.decay = 1000
+		.intensity = .1f,
+		.decay = 1500
 	});
 	
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
-		.radius = 96.f,
-		.color = Color3b(40, 200, 60),
+		.radius = 45.f,
+		.color = Color4f(.8f, 1.f, .5f, .5f),
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
