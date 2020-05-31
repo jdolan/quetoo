@@ -716,6 +716,7 @@
 		F55238A82482D55500BE8B36 /* mesh_shadow_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F55238A42482D42B00BE8B36 /* mesh_shadow_vs.glsl */; };
 		F55238A92482D71F00BE8B36 /* draw_2d_blur_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F55238A32482D42B00BE8B36 /* draw_2d_blur_fs.glsl */; };
 		F55238AA2482D71F00BE8B36 /* draw_2d_blur_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F55238A12482D42B00BE8B36 /* draw_2d_blur_vs.glsl */; };
+		F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1019,6 +1020,7 @@
 				F55238A82482D55500BE8B36 /* mesh_shadow_vs.glsl in CopyFiles */,
 				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
 				CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */,
+				F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */,
 				CE85852B2444B984004AB8EC /* sprite_gs.glsl in CopyFiles */,
 				CEAC32C22421262A007E1253 /* sprite_fs.glsl in CopyFiles */,
 				CEAC32C32421262B007E1253 /* sprite_vs.glsl in CopyFiles */,
@@ -1885,6 +1887,7 @@
 		F55238A22482D42B00BE8B36 /* mesh_shadow_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mesh_shadow_fs.glsl; sourceTree = "<group>"; };
 		F55238A32482D42B00BE8B36 /* draw_2d_blur_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = draw_2d_blur_fs.glsl; sourceTree = "<group>"; };
 		F55238A42482D42B00BE8B36 /* mesh_shadow_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mesh_shadow_vs.glsl; sourceTree = "<group>"; };
+		F57902A124843E730023101D /* soften_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soften_fs.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2877,6 +2880,7 @@
 				F55238A42482D42B00BE8B36 /* mesh_shadow_vs.glsl */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
+				F57902A124843E730023101D /* soften_fs.glsl */,
 				CE85852A2444B970004AB8EC /* sprite_gs.glsl */,
 				CEAC32C0242125ED007E1253 /* sprite_fs.glsl */,
 				CEAC32BF242125ED007E1253 /* sprite_vs.glsl */,
