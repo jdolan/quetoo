@@ -273,8 +273,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		s->origin = Vec3_Add(s->origin, Vec3_Scale(dir, RandomRangef(0.f, 32.f)));
 		s->velocity = Vec3_RandomRange(-30.f, 30.f);
 		s->acceleration.z = -SPRITE_GRAVITY / 2.0;
-
-
+		s->lerp = true;
 	}
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -522,26 +521,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	cg_sprite_t *s;
 
-	/*if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
-		for (int32_t i = 0; i < 6; i++) {
-
-			if (!(s = Cg_AllocSprite())) {
-				break;
-			}
-
-			s->atlas_image = cg_sprite_spark;
-			s->origin = org;
-			s->velocity = Vec3_Multiply(dir, Vec3_RandomRange(20.f, 140.f));
-			s->velocity = Vec3_Add(s->velocity, Vec3_RandomRange(-16.f, 16.f));
-			s->acceleration.z = -SPRITE_GRAVITY * 2.0;
-			s->lifetime = 200 + Randomf() * 500;
-			s->color = Color4bv(0x22aaff00);
-			s->size = 12.f;
-			s->bounce = 0.9f;
-		}
-	}*/
-
-	// impact splash
+	// impact "splash"
 	for (uint32_t i = 0; i < 6; i++) {
 		if ((s = Cg_AllocSprite())) {
 			s->origin = org;
