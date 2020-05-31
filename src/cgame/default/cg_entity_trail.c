@@ -282,9 +282,6 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	color_t color = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_ORANGE);
 	color.a = 0;
 
-//	const vec3_t vel = Vec3_Subtract(end, start);
-//	const vec3_t dir = Vec3_Normalize(vel);
-
 	Cg_BubbleTrail(ent, start, end, 12.0);
 		
 	vec3_t origin;
@@ -316,17 +313,6 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		}
 	}
 
-#if 0 // glow
-	if ((s = Cg_AllocSprite())) {
-		s->atlas_image = cg_sprite_particle;
-		s->lifetime = 0.f;
-		s->origin = end;
-		s->size = 4.f;
-		s->color = color;
-	}
-#endif
-
-#if 1 // bullet
 	if ((s = Cg_AllocSprite())) {
 		s->atlas_image = cg_sprite_particle;
 		s->lifetime = 0.f;
@@ -334,7 +320,6 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		s->size = 8.f;
 		s->color = color;
 	}
-#endif
 	
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
