@@ -273,7 +273,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		s->origin = Vec3_Add(s->origin, Vec3_Scale(dir, RandomRangef(0.f, 32.f)));
 		s->velocity = Vec3_RandomRange(-30.f, 30.f);
 		s->acceleration.z = -SPRITE_GRAVITY / 2.0;
-		s->lerp = true;
+		s->flags |= SPRITE_LERP;
 	}
 
 	cgi.AddStain(&(const r_stain_t) {
