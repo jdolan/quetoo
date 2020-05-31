@@ -225,7 +225,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
  * @brief
  */
 void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, float target) {
-	
+
 	vec3_t origin;
 	const int32_t count = Cg_TrailDensity(ent, start, end, target, TRAIL_SECONDARY, &origin);
 
@@ -283,7 +283,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	color.a = 0;
 
 	Cg_BubbleTrail(ent, start, end, 12.0);
-		
+
 	vec3_t origin;
 	const int32_t count = Cg_TrailDensity(ent, start, end, 30, TRAIL_PRIMARY, &origin);
 
@@ -320,7 +320,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		s->size = 8.f;
 		s->color = color;
 	}
-	
+
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
 		.radius = 100.f,
@@ -503,7 +503,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			s->velocity = Vec3_Add(s->velocity, Vec3_RandomRange(-10.f, 10.f));
 			s->acceleration = Vec3_RandomRange(-10.f, 10.f);
 			s->color = Color4f(1.f, 1.f, 1.f, 0.f);
-			s->end_color = Vec4(0, -1.5f, -3.f, 0);
+			s->end_color = Color4f(0, -1.5f, -3.f, 0);
 			s->size = Randomf() * 1.6f + 1.6f;
 		}
 	}
@@ -652,8 +652,8 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 					s->velocity = Vec3_Scale(Vec3_Add(tr.plane.normal, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200));
 					s->acceleration.z = -SPRITE_GRAVITY * 3.0;
 					s->lifetime = 600 + Randomf() * 300;
-					s->color = Color4bv(0xFFFFFFFF);
-					s->end_color = Vec4(.5f, .75f, 1.f, 0.f);
+					s->color = Color4f(1.f, 1.f, 1.f, 0.f);
+					s->end_color = Color4f(.5f, .75f, 1.f, 0.f);
 					s->bounce = 0.2f;
 					s->size = 2.f + RandomRangef(.5f, 2.f);
 				}
@@ -685,53 +685,74 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
  * @brief
  */
 static void Cg_BfgTrail(cl_entity_t *ent) {
+	cg_sprite_t *s;
 
-	// FIXME
+	vec3_t delta = Vec3_Subtract(ent->origin, ent->previous_origin);
+	float mod = sinf(cgi.client->unclamped_time >> 5) * 0.5 + 0.5;
 
-	// const float radius = 48.f;
-
-	// const float ltime = cgi.client->unclamped_time * .001f;
-
-	/*
-	for (int32_t i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
-		cg_sprite_t *s;
-
-		if (!(s = Cg_AllocSprite())) {
-			break;
-		}
-
-		const float pitch = ltime * approximate_normals[i].x;
-		const float sp = sinf(pitch);
-		const float cp = cosf(pitch);
-
-		const float yaw = ltime * approximate_normals[i].y;
-		const float sy = sinf(yaw);
-		const float cy = cosf(yaw);
-
-		const vec3_t forward = Vec3(cp * sy, cy * sy, -sp);
-
-		s->atlas_image = cg_sprite_particle;
+	// projectile glow
+	if ((s = Cg_AllocSprite())) {
 		s->origin = ent->origin;
-		s->origin = Vec3_Add(s->origin, Vec3_Scale(approximate_normals[i], radius));
-		s->origin = Vec3_Add(s->origin, Vec3_Scale(forward, radius));
+		s->size = 20.f * mod + 30.f;
+		s->color = Color4f(.4f, 1.f, .4f, .0f);
+		s->atlas_image = cg_sprite_particle;
+		s->lifetime = 20.f;
+	}
 
-		s->color = Color3bv(0x22ff44);
+	// big trail
+	{
+		float len = Vec3_Length(delta);
+		vec3_t dir = Vec3_Scale(delta, 1.f / len);
 
-		s->size = 20.f;
+		int32_t count = Cg_TrailDensity(ent, ent->previous_origin, ent->origin, 5, TRAIL_PRIMARY, &ent->origin);
+		float step = 1.f / count;
+		float life_start, life_frac;
+
+
+		if (count) {
+			Cg_ParticleTrailLifeOffset(ent->origin, ent->previous_origin, len / QUETOO_TICK_SECONDS, step, &life_start, &life_frac);
+			for (int32_t i = 0; i < count; i++) {
+
+				const float particle_life_frac = life_start + (life_frac * (i + 1));
+
+				if (!(s = Cg_AllocSprite())) {
+					break;
+				}
+
+				s->color = Color4f(1.f, 1.f, 1.f, .33f);
+				s->animation = cg_sprite_bfg_explosion_2;
+				s->lifetime = cg_sprite_bfg_explosion_2->num_frames * FRAMES_TO_SECONDS(30) * particle_life_frac;
+
+				s->origin = Vec3_Add(Vec3_Mix(ent->origin, ent->previous_origin, step * i), Vec3_Scale(dir, 50.f));
+				s->velocity = delta;
+				s->rotation = Randomf() * 2.f * M_PI;
+				s->size = 40.f;
+				s->size_velocity = -40.f;
+			}
+		}
+	}
+
+	// projectile core
+	if ((s = Cg_AllocSprite())) {
+		s->origin = ent->origin;
+		s->size = RandomRangef(10.f, 12.5f);
+		s->color     = Color4f(1.f, 1.f, 1.f, .0f);
+		s->end_color = Color4f(1.f, 1.f, 1.f, .0f);
+		s->atlas_image = cg_sprite_blob_01;
+		s->rotation = RandomRadian();
+		s->lifetime = 1; // FIXME: flickering
+		s->velocity = delta;
 	}
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
+		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, 4.0);
 	}
-
-	const float mod = sinf(cgi.client->unclamped_time >> 5);
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = ent->origin,
-		.radius = 160.f + 48.f * mod,
-		.color = Vec3(.4f, 1.f, .4f)
+		.radius = 160.f,
+		.color = Vec3_Scale(Vec3(.4f, 1.f, .4f), mod * .6f + .4f)
 	});
-	*/
 }
 
 /**

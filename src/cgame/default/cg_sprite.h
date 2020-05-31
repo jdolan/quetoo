@@ -102,7 +102,7 @@ typedef struct cg_sprite_s {
 	 * @brief The sprite's end color.
 	 * @see color
 	 */
-	vec4_t end_color;
+	color_t end_color;
 
 	/**
 	 * @brief The sprite size, in world units.
