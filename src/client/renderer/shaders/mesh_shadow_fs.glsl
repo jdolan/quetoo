@@ -20,8 +20,6 @@
  */
 
 uniform mat4 view;
-uniform vec2 inv_viewport_size;
-uniform sampler2D depth_stencil_attachment;
 
 in vertex_data {
 	vec3 position;
@@ -30,31 +28,12 @@ in vertex_data {
 
 out vec4 out_color;
 
-vec2 depth_range = vec2(1.0, 11586.0);
-float transition_size = .0016f;
-
-/**
- * @brief Reverse depth calculation.
- */
-float calc_depth(in float z) {
-	return (2. * depth_range.x) / (depth_range.y + depth_range.x - z * (depth_range.y - depth_range.x));
-}
-
-/**
- * @brief Calculate the soft edge factor for the current fragment.
- */
-float soften() {
-	return smoothstep(0.0, transition_size, clamp(calc_depth(texture(depth_stencil_attachment, gl_FragCoord.xy * inv_viewport_size).r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
-}
-
 /**
  * @brief
  */
 void main(void) {
 
-	float alpha = 1.0 - vertex.dist_to_ground;
-	
-	alpha = (alpha * alpha * alpha * alpha) * (1.0 - soften());
+	float alpha = (1.0 - soften());
 
 	if (alpha <= 0.0) {
 		discard;

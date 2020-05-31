@@ -230,7 +230,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 			s->velocity = Vec3_RandomRange(-12.f, 12.f);
 			s->velocity.z -= 120.0;
-
+			
 			s->acceleration = Vec3_RandomRange(-12.f, 12.f);
 		}
 
