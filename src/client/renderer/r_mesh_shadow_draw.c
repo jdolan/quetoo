@@ -46,6 +46,7 @@ static struct {
 	GLint depth_stencil_attachment;
 	
 	GLint dist;
+	GLint normal;
 
 	GLint fog_parameters;
 	GLint fog_color;
@@ -125,8 +126,6 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
 	glEnableVertexAttribArray(r_mesh_shadow_program.in_position);
 
 	glEnableVertexAttribArray(r_mesh_shadow_program.in_next_position);
-
-	glUniformMatrix4fv(r_mesh_shadow_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 	
 	glUniform1f(r_mesh_shadow_program.lerp, e->lerp);
 
@@ -148,6 +147,8 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
 
 	glUniform1f(r_mesh_shadow_program.min_z, e->model->mins.z);
 
+	mat4_t model;
+
 	const cm_trace_t zero_tr = Cm_BoxTrace(root->origin, Vec3_Add(root->origin, Vec3(0, 0, -MAX_WORLD_DIST)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
 
 	for (int32_t i = 0; i < ((r_shadows->value > 1) ? lengthof(offsets) : 1); i++) {
@@ -157,9 +158,20 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
 			continue;
 		}
 
-		glUniform1f(r_mesh_shadow_program.z, tr.end.z);
-		glUniform1f(r_mesh_shadow_program.dist, Vec3_Distance(e->origin, tr.end));
+		Matrix4x4_CreateIdentity(&model);
 
+		Matrix4x4_ConcatTranslate(&model, e->origin.x, e->origin.y, tr.end.z);
+
+		Matrix4x4_ConcatScale3(&model, 1.f, 1.f, 0.f);
+
+		Matrix4x4_ConcatTranslate(&model, -e->origin.x, -e->origin.y, -tr.end.z);
+
+		Matrix4x4_Concat(&model, &model, &e->matrix);
+
+		glUniformMatrix4fv(r_mesh_shadow_program.model, 1, GL_FALSE, (GLfloat *) model.m);
+		
+		glUniform1f(r_mesh_shadow_program.dist, Vec3_Distance(e->origin, tr.end));
+	
 		const r_mesh_face_t *face = mesh->faces;
 		for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
@@ -219,9 +231,9 @@ static _Bool R_DrawMeshShadowEntitiesProjected(int32_t blend_depth) {
 
 				glDepthMask(false);
 
-				//glEnable(GL_BLEND);
+				glEnable(GL_BLEND);
 
-				//glBlendEquation(GL_MAX);
+				glBlendEquation(GL_MAX);
 
 				glUseProgram(r_mesh_shadow_program.name);
 
@@ -243,9 +255,9 @@ static _Bool R_DrawMeshShadowEntitiesProjected(int32_t blend_depth) {
 
 		glColorMask(true, true, true, true);
 
-		//glDisable(GL_BLEND);
+		glDisable(GL_BLEND);
 
-		//glBlendEquation(GL_FUNC_ADD);
+		glBlendEquation(GL_FUNC_ADD);
 
 		glDisable(GL_DEPTH_TEST);
 	
@@ -363,6 +375,7 @@ void R_InitMeshShadowProgram(void) {
 	glUniform1i(r_mesh_shadow_program.depth_stencil_attachment, 0);
 	
 	r_mesh_shadow_program.dist = glGetUniformLocation(r_mesh_shadow_program.name, "dist");
+	r_mesh_shadow_program.normal = glGetUniformLocation(r_mesh_shadow_program.name, "normal");
 
 	r_mesh_shadow_program.fog_parameters = glGetUniformLocation(r_mesh_shadow_program.name, "fog_parameters");
 	r_mesh_shadow_program.fog_color = glGetUniformLocation(r_mesh_shadow_program.name, "fog_color");

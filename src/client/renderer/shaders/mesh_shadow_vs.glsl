@@ -29,7 +29,6 @@ uniform mat4 model;
 uniform float lerp;
 
 uniform float dist;
-uniform float z;
 uniform float min_z, max_z;
 
 out vertex_data {
@@ -41,15 +40,13 @@ out vertex_data {
  */
 void main(void) {
 
-	vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
+	vec3 model_position = mix(in_position, in_next_position, lerp);
 
-	position.xy *= 1.f + ((16.f + ((position.z - min_z) + dist)) * max_z);
+	model_position *= 1.f + ((16.f + ((model_position.z - min_z) + dist)) * max_z);
 
-	position = model * position;
-	position.z *= 0;
-	position.z += z;
+	vec4 position = vec4(model_position, 1.0);
 
-	vertex.position = vec3(view * position);
+	vertex.position = vec3(view * model * position);
 
 	gl_Position = projection * vec4(vertex.position, 1.0);
 }
