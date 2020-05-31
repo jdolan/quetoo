@@ -61,6 +61,6 @@ vec4 blur13(sampler2D image, vec2 uv, vec2 resolution, vec2 direction)
  */
 void main(void) {
 
-	out_color = blur5(texture_diffusemap, vertex.diffusemap, resolution, direction);
+	out_color = blur13(texture_diffusemap, vertex.diffusemap, resolution, direction * (1.0 + calc_depth(texture(depth_stencil_attachment, gl_FragCoord.xy * inv_viewport_size).r)) * 2.f);
 
 }
