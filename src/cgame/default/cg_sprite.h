@@ -37,6 +37,14 @@ typedef enum {
 	SPRITE_BEAM		= 1
 } cg_sprite_type_t;
 
+typedef enum {
+
+	/**
+	 * @brief 
+	 */
+	SPRITE_GOOD_POSITION = SPRITE_CGAME << 0
+} cg_sprite_flags_t;
+
 /**
  * @brief Client game sprites can persist over multiple frames.
  */
@@ -142,14 +150,9 @@ typedef struct cg_sprite_s {
 	};
 
 	/**
-	 * @brief Only for "animation"; whether to lerp between frames or not.
+	 * @brief Sprite flags.
 	 */
-	_Bool lerp;
-
-	/**
-	 * @brief Internal; used to ensure we don't use size traces until we are ready to bounce
-	 */
-	_Bool good_position;
+	cg_sprite_flags_t flags;
 
 	struct cg_sprite_s *prev;
 	struct cg_sprite_s *next;

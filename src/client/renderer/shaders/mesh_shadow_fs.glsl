@@ -52,27 +52,14 @@ float soften() {
  */
 void main(void) {
 
-	vec3 shadow_base = vec3(0, 0, 0);
 	float alpha = 1.0 - vertex.dist_to_ground;
+	
+	alpha = (alpha * alpha * alpha * alpha) * (1.0 - soften());
 
 	if (alpha <= 0.0) {
 		discard;
 	}
 
-	vec4 effect = vec4(shadow_base, alpha);
-
-	out_color = effect;
-
-	// postprocessing
-	
-	//out_color.rgb = tonemap(out_color.rgb);
-
-	out_color.rgb = fog(vertex.position, out_color.rgb);
-
-	out_color.a *= 1.0 - soften();
-
-	//out_color.rgb = color_filter(out_color.rgb);
-
-	//out_color.rgb = dither(out_color.rgb);
+	out_color = vec4(fog(vertex.position, vec3(0)), alpha);
 }
 

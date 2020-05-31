@@ -40,16 +40,49 @@ typedef struct {
 /**
  * @brief
  */
-typedef struct {
+static struct {
 	r_sprite_vertex_t sprites[MAX_SPRITES * 4];
 
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint index_buffer;
 
-} r_sprites_t;
+	uint64_t *blend_depth_bitset;
+} r_sprites;
 
-static r_sprites_t r_sprites;
+// FIXME: is there a better calc for this? is a hashtable a better idea?
+#define BLEND_DEPTH_BITSET_SIZE			65536u / 64u
+
+static void R_InitSpriteBitSet(void) {
+	r_sprites.blend_depth_bitset = Mem_Malloc(BLEND_DEPTH_BITSET_SIZE * sizeof(uint64_t));
+}
+
+static void R_DestroySpriteBitSet(void) {
+	Mem_Free(r_sprites.blend_depth_bitset);
+	r_sprites.blend_depth_bitset = NULL;
+}
+
+static void R_ClearSpriteBitSet(void) {
+	memset(r_sprites.blend_depth_bitset, 0, BLEND_DEPTH_BITSET_SIZE * sizeof(uint64_t));
+}
+
+static void R_MarkSpriteBlendDepth(const int32_t blend_depth) {
+
+	const uint64_t shiftedi = blend_depth >> 6;
+
+	assert(shiftedi < BLEND_DEPTH_BITSET_SIZE);
+
+	r_sprites.blend_depth_bitset[shiftedi] |= ((uint64_t)1) << (blend_depth % 64);
+}
+
+static _Bool R_IsSpriteBlendDepthSet(const int32_t blend_depth) {
+
+	const uint64_t shiftedi = blend_depth >> 6;
+
+	assert(shiftedi < BLEND_DEPTH_BITSET_SIZE);
+
+	return (r_sprites.blend_depth_bitset[shiftedi] & (((uint64_t)1) << (blend_depth % 64))) != 0;
+}
 
 /**
  * @brief The draw program.
@@ -137,7 +170,7 @@ static _Bool R_CullSprite(r_sprite_vertex_t *out) {
 /**
  * @brief
  */
-static void R_AddSpriteInstance(const r_sprite_instance_t *in, float lerp, const color_t color, r_sprite_vertex_t *out) {
+static void R_AddSpriteInstance(const r_sprite_instance_t *in, const r_sprite_flags_t flags, float lerp, const color_t color, r_sprite_vertex_t *out) {
 	r_sprite_instance_t *last = &r_view.sprite_instances[r_view.num_sprite_instances - 1];
 
 	const _Bool is_current_batch = r_view.num_sprite_instances &&
@@ -157,6 +190,7 @@ static void R_AddSpriteInstance(const r_sprite_instance_t *in, float lerp, const
 
 	out[0].color = out[1].color = out[2].color = out[3].color = Color_Color32(color);
 	out[1].lerp = out[2].lerp = out[3].lerp = out[0].lerp;
+	out[0].blend_depth = out[1].blend_depth = out[2].blend_depth = out[3].blend_depth = (flags & SPRITE_NO_BLEND) ? 0 : -1;
 
 	if (is_current_batch) {
 		last->count++;
@@ -215,7 +249,7 @@ void R_AddSprite(const r_sprite_t *s) {
 
 		next_image = R_ResolveAnimation(anim, s->life, 1);
 
-		if (s->lerp) {
+		if (s->flags & SPRITE_LERP) {
 			const float life_to_images = floorf(s->life * anim->num_frames);
 			const float cur_frame = life_to_images / anim->num_frames;
 			const float next_frame = (life_to_images + 1) / anim->num_frames;
@@ -225,8 +259,8 @@ void R_AddSprite(const r_sprite_t *s) {
 
 	R_AddSpriteInstance(&(const r_sprite_instance_t) {
 		.diffusemap = image,
-		.next_diffusemap = next_image
-	}, lerp, s->color, out);
+		.next_diffusemap = next_image,
+	}, s->flags, lerp, s->color, out);
 }
 
 #define MAX_BEAMS				512
@@ -356,7 +390,7 @@ static void R_CreateBeams(void) {
 			R_AddSpriteInstance(&(const r_sprite_instance_t) {
 				.diffusemap = image,
 				.next_diffusemap = NULL
-			}, 0, b->color, out);
+			}, 0, 0, b->color, out);
 		
 			const float start_diffuse = (texcoords[0].x * (1.f - segment->start)) + (texcoords[1].x * segment->start);
 			const float end_diffuse = (texcoords[0].x * (1.f - segment->end)) + (texcoords[1].x * segment->end);
@@ -397,8 +431,15 @@ void R_UpdateSprites(void) {
 	glUniform3fv(r_sprite_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
 	R_GetError(NULL);
 
+	R_ClearSpriteBitSet();
+
 	r_sprite_vertex_t *out = r_sprites.sprites;
 	for (int32_t i = 0; i < r_view.num_sprites; i++, out += 4) {
+
+		if (out[0].blend_depth != -1) {
+			R_MarkSpriteBlendDepth(out[0].blend_depth);
+			continue;
+		}
 
 		vec3_t center = Vec3_Zero();
 		for (int32_t j = 0; j < 4; j++) {
@@ -410,6 +451,7 @@ void R_UpdateSprites(void) {
 		out[1].blend_depth =
 		out[2].blend_depth =
 		out[3].blend_depth = R_BlendDepthForPoint(center);
+		R_MarkSpriteBlendDepth(out[0].blend_depth);
 	}
 
 	R_CreateBeams();
@@ -427,7 +469,7 @@ void R_UpdateSprites(void) {
  */
 void R_DrawSprites(int32_t blend_depth) {
 
-	if (!r_view.num_sprites) {
+	if (!r_view.num_sprites || !R_IsSpriteBlendDepthSet(blend_depth)) {
 		return;
 	}
 	
@@ -589,6 +631,8 @@ void R_InitSprites(void) {
 	R_GetError(NULL);
 
 	R_InitSpriteProgram();
+
+	R_InitSpriteBitSet();
 }
 
 /**
@@ -611,4 +655,6 @@ void R_ShutdownSprites(void) {
 	glDeleteBuffers(1, &r_sprites.index_buffer);
 
 	R_ShutdownSpriteProgram();
+
+	R_DestroySpriteBitSet();
 }

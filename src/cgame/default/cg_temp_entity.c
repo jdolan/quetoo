@@ -424,7 +424,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		s->size_velocity = 25.0;
 		s->animation = cg_sprite_explosion;
 		s->rotation = Randomf() * 2.f * M_PI;
-		s->lerp = true;
+		s->flags |= SPRITE_LERP;
 		s->color = Color4f(1.f, 1.f, 1.f, .5f);
 	}
 
@@ -437,7 +437,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		s->size_velocity = 25.0;
 		s->rotation = Randomf() * 2.f * M_PI;
 		s->animation = cg_sprite_explosion;
-		s->lerp = true;
+		s->flags |= SPRITE_LERP;
 		s->color = Color4f(1.f, 1.f, 1.f, .5f);
 	}
 
@@ -450,7 +450,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		s->size_velocity = 25.0;
 		s->rotation = Randomf() * 2.f * M_PI;
 		s->animation = cg_sprite_explosion;
-		s->lerp = true;
+		s->flags |= SPRITE_LERP;
 		s->color = Color4f(1.f, 1.f, 1.f, .5f);
 		s->dir = dir;
 	}
@@ -465,7 +465,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		s->size_acceleration = -500.0;
 		s->rotation = Randomf() * 2.f * M_PI;
 		s->animation = cg_sprite_explosion_ring_02;
-		s->lerp = true;
+		s->flags |= SPRITE_LERP;
 		s->color = Color4f(1.f, 1.f, 1.f, 0.f);
 		s->dir = dir;
 	}
@@ -551,20 +551,20 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			s->size_velocity = 400.f;
 			s->animation = cg_sprite_electro_01;
 			s->rotation = Randomf() * 2.f * M_PI;
-			s->lerp = true;
+			s->flags |= SPRITE_LERP;
 			s->dir = Vec3_RandomRange(-1.f, 1.f);
 		}
 	}
 	if ((s = Cg_AllocSprite())) {
-			s->origin = org;
-			s->lifetime = cg_sprite_electro_01->num_frames * FRAMES_TO_SECONDS(8);
-			s->color = Color4f(.4f, .7f, .9f, .0f);
-			s->size = 100.f;
-			s->size_velocity = 25.f;
-			s->animation = cg_sprite_electro_01;
-			s->rotation = Randomf() * 2.f * M_PI;
-			s->lerp = true;
-			s->dir = dir;
+		s->origin = org;
+		s->lifetime = cg_sprite_electro_01->num_frames * FRAMES_TO_SECONDS(8);
+		s->color = Color4f(.4f, .7f, .9f, .0f);
+		s->size = 100.f;
+		s->size_velocity = 25.f;
+		s->animation = cg_sprite_electro_01;
+		s->rotation = Randomf() * 2.f * M_PI;
+		s->flags |= SPRITE_LERP;
+		s->dir = dir;
 	}
 
 	// impact flash

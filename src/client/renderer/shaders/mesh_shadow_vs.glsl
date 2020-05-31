@@ -44,10 +44,9 @@ void main(void) {
 
 	vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
 
-	vertex.dist_to_ground = (16.f + ((position.z - min_z) + dist)) / 512.f;
+	vertex.dist_to_ground = (16.f + ((position.z - min_z) + dist)) / 1024.f;
 	
-	position.x *= 1.0 + (vertex.dist_to_ground * 2);
-	position.y *= 1.0 + (vertex.dist_to_ground * 2);
+	position.xy *= 1.f + (vertex.dist_to_ground * 2.f);
 
 	position = model * position;
 	position.z *= 0;

@@ -675,28 +675,24 @@ typedef struct r_model_s {
 #define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
 
 /**
- * @brief Particles are alpha blended points.
+ * @brief
  */
-typedef struct {
+typedef enum {
+	/**
+	 * @brief If set, sprite does not attempt to check blend depth.
+	 */
+	SPRITE_NO_BLEND		= 1 << 0,
 
 	/**
-	 * @brief The particle origin.
+	 * @brief If set, animation interpolates
 	 */
-	vec3_t origin;
+	SPRITE_LERP			= 1 << 1,
 
 	/**
-	 * @brief The particle size.
+	 * @brief Beginning of flags reserved for cgame
 	 */
-	float size;
-
-	/**
-	 * @brief The particle color.
-	 */
-	color_t color;
-
-} r_particle_t;
-
-#define MAX_PARTICLES		0x7ffe
+	SPRITE_CGAME		= 1 << 16
+} r_sprite_flags_t;
 
 /**
  * @brief Sprites are billboarded alpha blended textures.
@@ -734,14 +730,14 @@ typedef struct r_sprite_s {
 	float life;
 
 	/**
-	 * @brief Whether animations should use texture lerping
-	 */
-	_Bool lerp;
-
-	/**
 	 * @brief Direction of the sprite. { 0, 0, 0 } is billboard.
 	 */
 	vec3_t dir;
+
+	/**
+	 * @brief Sprite flags
+	 */
+	r_sprite_flags_t flags;
 } r_sprite_t;
 
 typedef struct {

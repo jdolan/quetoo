@@ -234,6 +234,8 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			s->acceleration = Vec3_RandomRange(-12.f, 12.f);
 		}
 
+		s->flags |= SPRITE_NO_BLEND;
+
 		// free the particle roughly when it will reach the floor
 		s->lifetime = 1000 * (s->origin.z - origin.w) / fabsf(s->velocity.z);
 	}
