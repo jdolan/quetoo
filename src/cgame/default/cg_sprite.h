@@ -45,6 +45,8 @@ typedef enum {
 	SPRITE_GOOD_POSITION = SPRITE_CGAME << 0
 } cg_sprite_flags_t;
 
+typedef float (*cg_easing_function_t) (float life);
+
 /**
  * @brief Client game sprites can persist over multiple frames.
  */
@@ -138,6 +140,11 @@ typedef struct cg_sprite_s {
 	 * @brief The time when this sprite was last updated.
 	 */
 	uint32_t timestamp;
+
+	/**
+	 * @brief Easing function for life time
+	 */
+	cg_easing_function_t life_easing;
 
 	/**
 	 * @brief The sprite's media.

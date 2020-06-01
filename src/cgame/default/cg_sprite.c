@@ -145,7 +145,10 @@ void Cg_AddSprites(void) {
 		}
 
 		const uint32_t elapsed_time = (cgi.client->unclamped_time - s->time);
-		const float life = elapsed_time / (float)s->lifetime;
+		float life = elapsed_time / (float)s->lifetime;
+
+		if (s->life_easing)
+			life = s->life_easing(life);
 
 		s->size_velocity += s->size_acceleration * delta;
 		s->size += s->size_velocity * delta;
