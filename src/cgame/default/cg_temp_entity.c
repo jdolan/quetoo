@@ -392,12 +392,13 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 			s->atlas_image = cg_sprite_particle2;
 			s->origin = Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f));
 			s->velocity = Vec3_RandomRange(-300.f, 300.f);
-			s->acceleration.z = -SPRITE_GRAVITY * 2.0;
+			s->acceleration.z = -SPRITE_GRAVITY * 2.f;
 			s->lifetime = 3000 + Randomf() * 300;
-			s->color = Color4b(255, 255, 255, 0);
-			s->end_color = Color4f(-.5f, -1.5f, -3.f, 0.f);
+			s->color = Color4f(1.f, .7f, .1f, 0.f);
+			s->end_color = Color4f(.75f, .0f, .0f, 0.f);
+			s->size = 1.f + Randomf() * 2.f;
+			s->size_velocity = -s->size / MILLIS_TO_SECONDS(s->lifetime);
 			s->bounce = .4f;
-			s->size = 1.0f + Randomf() * 2.0f;
 		}
 	}
 
@@ -465,21 +466,6 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		s->atlas_image = cg_sprite_explosion_glow;
 		s->color = Color4f(1.f, 1.f, 1.f, 1.f);
 	}
-
-	/*
-	// blast spikes... yay/nay?
-	for (uint32_t i = 0; i < 2; i++) {
-		if ((s = Cg_AllocSprite())) {
-			s->origin = org;
-			s->lifetime = 150;
-			s->color = Color4bv(0xFFFFFF00);
-			s->size = RandomRangef(200, 250);
-			s->rotation = RandomRadian();
-			s->rotation_velocity = i == 0 ? .66f : -.66f;
-			s->atlas_image = cg_sprite_explosion_flash;
-		}
-	}
-	*/
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
@@ -549,7 +535,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, dir),
-		.radius = 80.0,
+		.radius = 80.f,
 		.color = Vec3(0.4, 0.7, 1.0),
 		.decay = 250,
 		.intensity = 0.05
@@ -557,7 +543,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
-		.radius = 16.0,
+		.radius = 16.f,
 		.color = Color4f(.4f, .7f, 1.f, .33f),
 	});
 
@@ -580,8 +566,8 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 160.0,
-		.color = Vec3(0.6, 0.6, 1.0),
+		.radius = 160.f,
+		.color = Vec3(.6f, .6f, 1.f),
 		.decay = 750
 	});
 

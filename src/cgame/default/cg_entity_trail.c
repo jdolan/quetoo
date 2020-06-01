@@ -26,6 +26,9 @@
  * @brief
  */
 static int32_t Cg_TrailDensity(cl_entity_t *ent, const vec3_t start, const vec3_t end, float density, cl_trail_id_t trail, vec3_t *origin) {
+
+	// warning: don't blindly pass &entity->origin to the origin parameter or it'll stutter
+
 	const float min_length = 16.f, max_length = 64.f;
 
 	// first we have to reach up to min_length before we decide to start spawning
@@ -44,6 +47,14 @@ static int32_t Cg_TrailDensity(cl_entity_t *ent, const vec3_t start, const vec3_
 	}
 
 	return (int32_t) ceilf(density * frac);
+}
+
+/**
+ * @brief
+ */
+static inline void Cg_ParticleTrailLifeOffset(vec3_t start, vec3_t end, float speed, float step, float *life_start, float *life_frac) {
+	*life_start = (speed - Vec3_Distance(start, end)) / 1000;
+	*life_frac = (1.0 - *life_start) * step;
 }
 
 /**
@@ -346,7 +357,6 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		s->lifetime = 1;
 		s->origin = ent->origin;
 		s->size = pulse1 * 10.f + 20.f;
-		// s->color = Color4bv(0x00660000);
 		s->color = Color4f(.05f, .2f, .05f, 0.f);
 	}
 
@@ -356,7 +366,6 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		s->lifetime = 1;
 		s->origin = ent->origin;
 		s->size = pulse2 * 10.f + 10.f;
-		// s->color = Color4f(0.f, .5f + pulse2 * .5f, 0.f, 0.f);
 		s->color = Color4f(.05f, .33f + pulse2 * .33f, .05f, 0.f);
 	}
 
@@ -367,7 +376,6 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			s->lifetime = 1;
 			s->origin = ent->origin;
 			s->size = 40.f;
-			// s->color = Color4f(0.f, 0.33f, 0.f, 0.f);
 			s->color = Color4f(0.f, 0.22f, 0.f, 0.f);
 			s->rotation = sinf(cgi.client->unclamped_time * (i == 0 ? .002f : -.001f));
 		}
@@ -376,18 +384,9 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end, // TODO: find a way to nudge this away from the surface a bit
 		.radius = 40.f + 20.f * pulse1,
-		.color = Color_Vec3(color_green)
+		.color = Vec3(.05f, .5f, .05f),
+		// .intensity = .05f
 	});
-}
-
-static inline void Cg_ParticleTrailLifeOffset(vec3_t start, vec3_t end, float speed, float step, float *life_start, float *life_frac) {
-
-	const float trail_distance = Vec3_Distance(start, end);
-	*life_start = (speed - trail_distance) / 1000;
-	*life_frac = (1.0 - *life_start) * step;
-
-	*life_start = 1;
-	*life_frac = 0;
 }
 
 /**
@@ -526,7 +525,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 /**
  * @brief
  */
-static void Cg_HyperblasterTrail(cl_entity_t *ent) {
+static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 
 	cg_sprite_t *s;
 	r_atlas_image_t *variation[] = {
@@ -692,8 +691,11 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 /**
  * @brief
  */
-static void Cg_BfgTrail(cl_entity_t *ent) {
+static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+
 	cg_sprite_t *s;
+
+	vec3_t origin = ent->origin;
 
 	vec3_t delta = Vec3_Subtract(ent->origin, ent->previous_origin);
 	float mod = sinf(cgi.client->unclamped_time >> 5) * 0.5 + 0.5;
@@ -712,31 +714,21 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 		float len = Vec3_Length(delta);
 		vec3_t dir = Vec3_Scale(delta, 1.f / len);
 
-		int32_t count = Cg_TrailDensity(ent, ent->previous_origin, ent->origin, 5, TRAIL_PRIMARY, &ent->origin);
-		float step = 1.f / count;
-		float life_start, life_frac;
+		int32_t count = Cg_TrailDensity(ent, ent->previous_origin, ent->origin, 4, TRAIL_PRIMARY, &origin);
 
-
-		if (count) {
-			Cg_ParticleTrailLifeOffset(ent->origin, ent->previous_origin, len / QUETOO_TICK_SECONDS, step, &life_start, &life_frac);
-			for (int32_t i = 0; i < count; i++) {
-
-				const float particle_life_frac = life_start + (life_frac * (i + 1));
-
-				if (!(s = Cg_AllocSprite())) {
-					break;
-				}
-
-				s->color = Color4f(1.f, 1.f, 1.f, .33f);
-				s->animation = cg_sprite_bfg_explosion_2;
-				s->lifetime = cg_sprite_bfg_explosion_2->num_frames * FRAMES_TO_SECONDS(30) * particle_life_frac;
-
-				s->origin = Vec3_Add(Vec3_Mix(ent->origin, ent->previous_origin, step * i), Vec3_Scale(dir, 50.f));
-				s->velocity = delta;
-				s->rotation = Randomf() * 2.f * M_PI;
-				s->size = 40.f;
-				s->size_velocity = -40.f;
+		for (int32_t i = 0; i < count; i++) {
+			if (!(s = Cg_AllocSprite())) {
+				break;
 			}
+
+			s->color = Color4f(1.f, 1.f, 1.f, .33f);
+			s->atlas_image = cg_sprite_particle;
+			s->lifetime = cg_sprite_bfg_explosion_2->num_frames * FRAMES_TO_SECONDS(15);
+
+			s->origin = Vec3_Mix(ent->previous_origin, ent->origin, 1.f / count * i);
+			s->rotation = RandomRadian();
+			s->size = 5.f;
+			// s->size_velocity = -s->size / MILLIS_TO_SECONDS(s->lifetime);
 		}
 	}
 
@@ -964,7 +956,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			Cg_RocketTrail(ent, start, end);
 			break;
 		case TRAIL_HYPERBLASTER:
-			Cg_HyperblasterTrail(ent);
+			Cg_HyperblasterTrail(ent, start, end);
 			break;
 		case TRAIL_LIGHTNING:
 			Cg_LightningTrail(ent, start, end);
@@ -973,7 +965,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			Cg_HookTrail(ent, start, end);
 			break;
 		case TRAIL_BFG:
-			Cg_BfgTrail(ent);
+			Cg_BfgTrail(ent, start, end);
 			break;
 		case TRAIL_TELEPORTER:
 			Cg_TeleporterTrail(ent, Color3b(255, 255, 211));

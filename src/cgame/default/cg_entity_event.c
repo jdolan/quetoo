@@ -34,7 +34,7 @@ static vec3_t Cg_FibonacciLatticeDir(int32_t count, int32_t index) {
 /**
  * @brief
  */
-static void Cg_ItemRespawnEffect(const vec3_t org) {
+static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 
 	cg_sprite_t *s;
 
@@ -83,7 +83,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_ItemPickupEffect(const vec3_t org) {
+static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 
 	cg_sprite_t *s;
 	// float z_offset = 20.f;
@@ -283,10 +283,10 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 		case EV_ITEM_RESPAWN:
 			play.sample = cg_sample_respawn;
 			play.attenuation = ATTEN_IDLE;
-			Cg_ItemRespawnEffect(s->origin);
+			Cg_ItemRespawnEffect(s->origin, color_white); //TODO: wire up colors, white is placeholder
 			break;
 		case EV_ITEM_PICKUP:
-			Cg_ItemPickupEffect(s->origin);
+			Cg_ItemPickupEffect(s->origin, color_white); // TODO: wire up colors, white is placeholder
 			break;
 
 		default:
