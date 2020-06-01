@@ -23,34 +23,59 @@
 #include "game/default/bg_pmove.h"
 #include "collision/collision.h"
 
+static vec3_t Cg_FibonacciLatticeDir(int32_t count, int32_t index) {
+	// source: http://extremelearning.com.au/evenly-distributing-points-on-a-sphere/
+	float phi = acosf(1.f - 2.f * index / count);
+	float golden_ratio = (1.f + pow(5.f, .5f)) * .5f;
+	float theta = 2.f * M_PI * index / golden_ratio;
+	return Vec3(cosf(theta) * sinf(phi), sinf(theta) * sinf(phi), cosf(phi));
+}
+
 /**
  * @brief
  */
 static void Cg_ItemRespawnEffect(const vec3_t org) {
 
-	for (int32_t i = 0; i < 64; i++) {
-		cg_sprite_t *s;
+	cg_sprite_t *s;
+
+	int32_t particle_count = 256;
+	float z_offset = 20.f;
+
+	// sphere particles
+	for (int32_t i = 0; i < particle_count; i++) {
 
 		if (!(s = Cg_AllocSprite())) {
 			break;
 		}
 
+		s->atlas_image = cg_sprite_particle2;
+
+		s->lifetime = 1000.f;
+		s->origin = org;
+		s->origin.z += z_offset;
+		s->velocity = Vec3_Scale(Cg_FibonacciLatticeDir(particle_count, i + 1), 55.f);
+		s->acceleration = Vec3_Scale(s->velocity, -1.f);
+
+		s->color = Color4f(1.f, 1.f, 1.f, 0.f);
+		s->end_color = Color4f(.1f, .6f, .3f, 0.f);
+		s->size = 5.f;
+		s->size_velocity = -s->size / MILLIS_TO_SECONDS(s->lifetime);
+	}
+
+	// glow
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
+		s->origin.z += z_offset;
+		s->lifetime = 1000;
+		s->size = 200.f;
 		s->atlas_image = cg_sprite_particle;
-		s->size = 8.f;
-		s->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
-		s->origin.z += 8.f;
-		s->velocity = Vec3_RandomRange(-24.f, 24.f);
-		s->velocity.z = fabsf(s->velocity.z);
-		s->acceleration = Vec3_RandomRange(-24.f, 24.f);
-		s->acceleration.z = RandomRangef(60.f, 90.f);
-		s->lifetime = RandomRangef(800.f, 1200.f);
-		s->color = Color3f(.3f, .6f, .3f);
+		s->color = Color4f(1.f, 1.f, 1.f, 0.f);
 	}
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
 		.radius = 80.f,
-		.color = Vec3(.9f, 1.f, .9f),
+		.color = Vec3(.1f, .6f, .3f),
 		.decay = 1000
 	});
 }
@@ -60,30 +85,38 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
  */
 static void Cg_ItemPickupEffect(const vec3_t org) {
 
-	for (int32_t i = 0; i < 32; i++) {
-		cg_sprite_t *s;
+	cg_sprite_t *s;
+	// float z_offset = 20.f;
 
-		if (!(s = Cg_AllocSprite())) {
-			break;
-		}
+	// ring
+	if ((s = Cg_AllocSprite())) {
 
+		s->lifetime = 400;
+		s->origin = org;
+		// s->origin.z += z_offset;
+		s->size = 10.f;
+		s->size_velocity = 50.f / MILLIS_TO_SECONDS(s->lifetime);
+		s->atlas_image = cg_sprite_ring;
+		s->color = Color4f(.2f, .4f, .3f, 0.f);
+		s->dir = Vec3(0.f, 0.f, 1.f);
+
+	}
+
+	// glow
+	if ((s = Cg_AllocSprite())) {
+		s->origin = org;
+		// s->origin.z += z_offset;
+		s->lifetime = 1000;
+		s->size = 200.f;
 		s->atlas_image = cg_sprite_particle;
-		s->size = 8.f;
-		s->origin = Vec3_Add(org, Vec3_RandomRange(-8.0, 8.0));
-		s->origin.z += 8.f;
-		s->velocity = Vec3_RandomRange(-16.f, 16.f);
-		s->velocity.z += 100.f;
-		s->acceleration.z = SPRITE_GRAVITY * 0.2;
-		s->lifetime = 500 + Randomf() * 100;
-		s->color = Color3b(224, 224, 224);
-		s->size = 8.f;
+		s->color = Color4f(.2f, .4f, .3f, 0.f);
 	}
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
-		.radius = 80.0,
-		.color = Vec3(0.9, 1.0, 1.0),
-		.decay = 1000,
+		.radius = 80.f,
+		.color = Vec3(.2f, .4f, .3f),
+		.decay = 1000
 	});
 }
 
