@@ -389,6 +389,11 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	});
 }
 
+static void Cg_FireFlyTrail_Think(cg_sprite_t *sprite, float life, float delta) {
+
+	sprite->velocity = Vec3_Add(sprite->velocity, Vec3_Scale(Vec3_RandomDir(), delta * 1000.f));
+}
+
 /**
  * @brief
  */
@@ -512,6 +517,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			s->acceleration = Vec3_RandomRange(-10.f, 10.f);
 			s->color = Color4f(1.f, .5f, .25f, 0.f);
 			s->size = Randomf() * 1.6f + 1.6f;
+			s->think = Cg_FireFlyTrail_Think;
 		}
 	}
 

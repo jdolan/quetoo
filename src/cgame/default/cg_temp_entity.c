@@ -580,6 +580,13 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 }
 
 /**
+ * @brief  
+ */
+static float Cg_EaseInExpo(float life) {
+	return life == 0 ? 0 : powf(2, 10 * life - 10);
+}
+
+/**
  * @brief
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const color_t color) {
@@ -627,6 +634,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		s->color.a = 0;
 		s->size = frac * 8.f;
 		s->size_velocity = 1.f / MILLIS_TO_SECONDS(s->lifetime);
+		s->life_easing = Cg_EaseInExpo;
 	}
 
 	if ((s = Cg_AllocSprite())) {
