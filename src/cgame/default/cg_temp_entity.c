@@ -89,19 +89,6 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		s->color.a = 0.f;
 	}
 
-	/*
-	// smouldering hole
-	if ((s = Cg_AllocSprite())) {
-		s->image = cg_sprite_blaster_flash;
-		s->lifetime = 3000;
-		s->origin = Vec3_Add(org, Vec3_Scale(dir, 3.f));
-		s->rotation = Randomf() * M_PI * 2.f;
-		s->dir = dir;
-		s->size = 15.f;
-		s->color = Color_Mix(color, color_white, .3f);
-		s->color.a = 0.f;
-	} */
-
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, Vec3_Scale(dir, 8.f)),
 		.radius = 100.f,
