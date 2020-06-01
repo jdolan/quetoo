@@ -47,6 +47,10 @@ typedef enum {
 
 typedef float (*cg_easing_function_t) (float life);
 
+typedef struct cg_sprite_s cg_sprite_t;
+
+typedef void (*cg_sprite_think_t) (cg_sprite_t *sprite, float life, float delta);
+
 /**
  * @brief Client game sprites can persist over multiple frames.
  */
@@ -147,6 +151,11 @@ typedef struct cg_sprite_s {
 	cg_easing_function_t life_easing;
 
 	/**
+	 * @brief Think function for particle.
+	 */
+	cg_sprite_think_t think;
+
+	/**
 	 * @brief The sprite's media.
 	 */
 	union {
@@ -161,8 +170,8 @@ typedef struct cg_sprite_s {
 	 */
 	cg_sprite_flags_t flags;
 
-	struct cg_sprite_s *prev;
-	struct cg_sprite_s *next;
+	cg_sprite_t *prev;
+	cg_sprite_t *next;
 } cg_sprite_t;
 
 cg_sprite_t *Cg_AllocSprite(void);

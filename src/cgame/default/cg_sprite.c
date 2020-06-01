@@ -209,6 +209,9 @@ void Cg_AddSprites(void) {
 			break;
 		}
 		
+		if (s->think)
+			s->think(s, life, delta);
+		
 		s = s->next;
 	}
 }
