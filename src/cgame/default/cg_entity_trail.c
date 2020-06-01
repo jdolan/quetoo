@@ -385,9 +385,6 @@ static inline void Cg_ParticleTrailLifeOffset(vec3_t start, vec3_t end, float sp
 	const float trail_distance = Vec3_Distance(start, end);
 	*life_start = (speed - trail_distance) / 1000;
 	*life_frac = (1.0 - *life_start) * step;
-
-	*life_start = 1;
-	*life_frac = 0;
 }
 
 /**

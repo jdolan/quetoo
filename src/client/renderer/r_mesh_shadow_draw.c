@@ -160,11 +160,11 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
 
 		Matrix4x4_CreateIdentity(&model);
 
-		Matrix4x4_ConcatTranslate(&model, e->origin.x, e->origin.y, tr.end.z);
+		Matrix4x4_ConcatTranslate(&model, tr.end.x, tr.end.y, tr.end.z);
 
 		Matrix4x4_ConcatScale3(&model, 1.f, 1.f, 0.f);
-
-		Matrix4x4_ConcatTranslate(&model, -e->origin.x, -e->origin.y, -tr.end.z);
+		
+		Matrix4x4_ConcatTranslate(&model, -tr.end.x, -tr.end.y, -tr.end.z);
 
 		Matrix4x4_Concat(&model, &model, &e->matrix);
 
