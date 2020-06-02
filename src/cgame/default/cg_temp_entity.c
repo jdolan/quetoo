@@ -817,7 +817,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 		if ((s = Cg_AllocSprite())) {
 			s->origin = org;
 			s->lifetime = 600;
-			Cg_SetSpriteColors(s, 326.f, .87f, .80f, .0f, -1.f, -1.f, .0f, .0f);
+			Cg_SetSpriteColors(s, 120.f, .87f, .80f, .0f, -1.f, -1.f, .0f, .0f);
 			s->size = RandomRangef(300, 400);
 			s->rotation = RandomRadian();
 			s->dir = Vec3_Random();
@@ -829,7 +829,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
 		s->lifetime = 600;
-		Cg_SetSpriteColors(s, 326.f, .87f, .80f, .0f, -1.f, -1.f, .0f, .0f);
+		Cg_SetSpriteColors(s, 120.f, .87f, .80f, .0f, -1.f, -1.f, .0f, .0f);
 		s->size = 400;
 		s->rotation = RandomRadian();
 		s->atlas_image = cg_sprite_flash;
@@ -839,7 +839,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
 		s->lifetime = 1000;
-		Cg_SetSpriteColors(s, 326.f, .87f, .80f, .0f, -1.f, -1.f, .0f, .0f);
+		Cg_SetSpriteColors(s, 120.f, .87f, .80f, .0f, -1.f, -1.f, .0f, .0f);
 		s->size = 600.f;
 		s->rotation = RandomRadian();
 		s->atlas_image = cg_sprite_particle;
