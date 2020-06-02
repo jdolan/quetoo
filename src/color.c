@@ -159,6 +159,15 @@ color_t ColorHSV(float hue, float saturation, float value) {
 /**
  * @brief
  */
+color_t ColorHSVA(float hue, float saturation, float value, float alpha) {
+	color_t color = ColorHSV(hue, saturation, value);
+	color.a = alpha;
+	return color;
+}
+
+/**
+ * @brief
+ */
 color_t Color_Add(const color_t a, const color_t b) {
 	return Color4fv(Vec4_Add(Color_Vec4(a), Color_Vec4(b)));
 }

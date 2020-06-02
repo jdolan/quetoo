@@ -82,7 +82,7 @@ cg_sprite_t *Cg_AllocSprite() {
 
 	memset(s, 0, sizeof(cg_sprite_t));
 
-	s->color = color_white;
+	s->color = Vec4(0.f, 0.f, 1.f, 1.f);
 	s->size = 1.0;
 
 	s->time = s->timestamp = cgi.client->unclamped_time;
@@ -179,7 +179,8 @@ void Cg_AddSprites(void) {
 			}
 		}
 
-		const color_t color = Color_Mix(s->color, s->end_color, life);
+		const vec4_t lerped_color = Vec4_Mix(s->color, s->end_color, life);
+		const color32_t color = Color_Color32(ColorHSVA(lerped_color.x, lerped_color.y, lerped_color.z, lerped_color.w));
 
 		switch (s->type) {
 		case SPRITE_NORMAL:

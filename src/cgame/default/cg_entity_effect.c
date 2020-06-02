@@ -22,21 +22,21 @@
 #include "cg_local.h"
 
 /**
- * @brief Resolve a client color from the entity index given in the effect
+ * @brief Resolve a client hue from the entity index given in the effect
  */
-color_t Cg_ResolveEffectColor(const uint8_t index, const color_t default_color) {
+float Cg_ResolveEffectHue(const uint8_t index, const float default_hue) {
 
 	if (index >= MAX_CLIENTS) {
-		return default_color;
+		return default_hue;
 	}
 
-	const color_t color = cgi.client->client_info[index].color;
+	const float hue = cgi.client->client_info[index].hue;
 
-	if (!color.a) {
-		return default_color;
+	if (hue < 0) {
+		return default_hue;
 	}
 
-	return color;
+	return hue;
 }
 
 /**
@@ -49,6 +49,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 		return;
 	}
 
+	// FIXME: use cgi.AddSprite directly
 	if (!(s = Cg_AllocSprite())) {
 		return;
 	}
@@ -56,8 +57,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 	s->atlas_image = cg_sprite_inactive;
 	s->origin = org;
 	s->origin.z += 50.f;
-
-	s->color = color_white;
+	Cg_SetSpriteColors(s, 0.f, 0.f, 1.f, 1.f, -1.f, -1.f, -1.f, -1.f);
 	s->size = 10.0;
 }
 

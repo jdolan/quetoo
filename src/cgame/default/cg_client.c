@@ -237,9 +237,9 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 		const int16_t hue = atoi(info[5]);
 		if (hue >= 0) {
-			ci->color = ColorHSV(hue, 1.0, 1.0);
+			ci->hue = hue;
 		} else {
-			ci->color.a = 0;
+			ci->hue = -1;
 		}
 
 		// ensure we were able to load everything

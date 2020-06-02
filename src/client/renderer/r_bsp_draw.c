@@ -169,7 +169,7 @@ void R_DrawBspLightgrid(void) {
 				r_sprite_t sprite = {
 					.origin = Vec3(s + 0.5, t + 0.5, u + 0.5),
 					.size = 8.f,
-					.color = Color3b(r, g, b),
+					.color = Color32(r, g, b, 255),
 					.media = (r_media_t *) particle
 				};
 

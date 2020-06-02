@@ -125,8 +125,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 
 	s->origin = org;
 	s->lifetime = 500;
-	s->color = Color3b(128, 128, 128);
-	s->color.a = .78f;
+	Cg_SetSpriteColors(s, 0.f, 0.f, .7f, .78f, -1.f, -1.f, -1.f, 0.f);
 	s->size = 4.0;
 	s->size_velocity = 16.0;
 	s->velocity = Vec3_RandomRange(-1.f, 1.f);
@@ -140,7 +139,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 /**
  * @brief
  */
-static void Cg_BlasterFlash(const cl_entity_t *ent, const color_t color) {
+static void Cg_BlasterFlash(const cl_entity_t *ent, const float hue) {
 	cg_sprite_t *s;
 	vec3_t forward, right, org, org2;
 
@@ -164,7 +163,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const color_t color) {
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
 		.radius = 120.0,
-		.color = Vec3(0.8, 0.7, 0.5),
+		.color = Color_Vec3(ColorHSV(hue, .5f, 1.f)),
 		.decay = 300
 	});
 
@@ -188,8 +187,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const color_t color) {
 		s->lifetime = cg_sprite_blaster_flame->num_frames * FRAMES_TO_SECONDS(70) + (i / flashlen * 20.f);
 		s->origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen)));
 		s->rotation = Randomf() * M_PI * 2.f;
-		s->color = color;
-		s->color.a = 0.f;
+		Cg_SetSpriteColors(s, hue, 1.f, 1.f, 0.f, -1.f, -1.f, 0.f, 0.f);
 		s->size = 1.f + 2.f * (np - i / flashlen);
 	}
 
@@ -199,8 +197,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const color_t color) {
 		s->origin = Vec3_Add(org, Vec3_Scale(forward, 3.f));
 		s->size = 30.f;
 		s->size_velocity = 30.f;
-		s->color = color;
-		s->color.a = 0.f;
+		Cg_SetSpriteColors(s, hue, 1.f, 1.f, 0.f, -1.f, -1.f, 0.f, 0.f);
 	}
 }
 
@@ -236,8 +233,7 @@ void Cg_ParseMuzzleFlash(void) {
 		case MZ_BLASTER:
 			c = cgi.ReadByte();
 			sample = cg_sample_blaster_fire;
- 			// Cg_EnergyFlash(ent, Cg_ResolveEffectColor(c ? c - 1 : 0, EFFECT_COLOR_ORANGE));
- 			Cg_BlasterFlash(ent, Cg_ResolveEffectColor(c ? c - 1 : 0, EFFECT_COLOR_ORANGE));
+ 			Cg_BlasterFlash(ent, Cg_ResolveEffectHue(c ? c - 1 : 0, color_hue_orange));
 			pitch = 5;
 			break;
 		case MZ_SHOTGUN:

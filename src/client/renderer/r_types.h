@@ -722,7 +722,7 @@ typedef struct r_sprite_s {
 	/**
 	 * @brief The sprite color.
 	 */
-	color_t color;
+	color32_t color;
 	
 	/**
 	 * @brief The sprite's life from 0 to 1.
@@ -780,7 +780,7 @@ typedef struct {
 	/**
 	 * @brief The beam color.
 	 */
-	color_t color;
+	color32_t color;
 	
 	/**
 	 * @brief The beam texture translation.

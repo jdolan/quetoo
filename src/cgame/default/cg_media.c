@@ -87,8 +87,6 @@ r_animation_t *cg_sprite_hyperblaster;
 r_animation_t *cg_bfg_explosion_1;
 r_animation_t *cg_sprite_bfg_explosion_2;
 r_animation_t *cg_sprite_bfg_explosion_3;
-r_animation_t *cg_bfg_explosion_3;
-r_animation_t *cg_bfg_explosion_4;
 r_animation_t *cg_sprite_poof_01;
 r_animation_t *cg_sprite_poof_02;
 r_animation_t *cg_sprite_blood_01;

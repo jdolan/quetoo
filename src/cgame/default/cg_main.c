@@ -386,8 +386,7 @@ static void Cg_ParseTeamInfo(const char *s) {
 
 		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
 
-		const int16_t hue = atoi(info[i + 1]);
-		team->color = ColorHSV(hue, 1.0, 1.0);
+		team->hue = atoi(info[i + 1]);
 	}
 
 	g_strfreev(info);

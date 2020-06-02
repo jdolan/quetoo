@@ -216,7 +216,8 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 		if (cgi.view->weather & WEATHER_RAIN) {
 			s->atlas_image = cg_sprite_rain;
-			s->color = Color4bv(0x90909040);
+			s->color = Vec4(0.f, 0.f, .4f, .8f);
+			s->end_color = Vec4(0.f, 0.f, .87f, .0f);
 			s->size = 4.f;
 
 			s->velocity = Vec3_RandomRange(-2.f, 2.f);
@@ -225,7 +226,8 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			s->acceleration = Vec3_RandomRange(-2.f, 2.f);
 		} else {
 			s->atlas_image = cg_sprite_snow;
-			s->color = Color4bv(0xf0f0f090);
+			s->color = Vec4(0.f, 0.f, .87f, .4f);
+			s->end_color = Vec4(0.f, 0.f, .87f, .0f);
 			s->size = 8.f;
 
 			s->velocity = Vec3_RandomRange(-12.f, 12.f);

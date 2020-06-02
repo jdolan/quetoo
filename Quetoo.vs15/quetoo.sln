@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2005
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.128
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quetoo", "quetoo.vcxproj", "{A05CAC53-F8F2-4A14-9C81-8A34F4EA9085}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -133,7 +133,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quetoo-dedicated", "quetoo-
 		{07DA2CEA-0340-40C6-B389-357B69130815} = {07DA2CEA-0340-40C6-B389-357B69130815}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{50EF9685-9FDC-4747-ADC8-C449B6FFC04D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Items", "Items", "{50EF9685-9FDC-4747-ADC8-C449B6FFC04D}"
 	ProjectSection(SolutionItems) = preProject
 		build_settings.props = build_settings.props
 	EndProjectSection

@@ -170,7 +170,7 @@ static _Bool R_CullSprite(r_sprite_vertex_t *out) {
 /**
  * @brief
  */
-static void R_AddSpriteInstance(const r_sprite_instance_t *in, const r_sprite_flags_t flags, float lerp, const color_t color, r_sprite_vertex_t *out) {
+static void R_AddSpriteInstance(const r_sprite_instance_t *in, const r_sprite_flags_t flags, float lerp, const color32_t color, r_sprite_vertex_t *out) {
 	r_sprite_instance_t *last = &r_view.sprite_instances[r_view.num_sprite_instances - 1];
 
 	const _Bool is_current_batch = r_view.num_sprite_instances &&
@@ -188,7 +188,7 @@ static void R_AddSpriteInstance(const r_sprite_instance_t *in, const r_sprite_fl
 		}
 	}
 
-	out[0].color = out[1].color = out[2].color = out[3].color = Color_Color32(color);
+	out[0].color = out[1].color = out[2].color = out[3].color = color;
 	out[1].lerp = out[2].lerp = out[3].lerp = out[0].lerp;
 	out[0].blend_depth = out[1].blend_depth = out[2].blend_depth = out[3].blend_depth = (flags & SPRITE_NO_BLEND) ? 0 : -1;
 

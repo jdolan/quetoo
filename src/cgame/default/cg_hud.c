@@ -571,8 +571,7 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
 		return;
 	}
 
-	color_t color = cg_team_info[team].color;
-	color.a = 38;
+	const color_t color = ColorHSVA(cg_team_info[team].hue, 1.f, 1.f, .14f);
 
 	x = 0;
 	y = cgi.context->height - 64;
