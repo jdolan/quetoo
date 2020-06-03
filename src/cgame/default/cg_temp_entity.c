@@ -404,15 +404,15 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 			s->acceleration.z = -SPRITE_GRAVITY * 2.f;
 			s->lifetime = 3000 + Randomf() * 300;
 
-			Cg_SetSpriteColors(s, 300.f, .3f, 1.f, 0.f, 360.f, 1.f, .75f, 0.f);
-			
-			s->size = 1.f + Randomf() * 2.f;
+			Cg_SetSpriteColors(s, RandomRangef(10.f, 50.f), 1.f, 1.f, 8.f, -1.f, -1.f, -0.7f, 0.f);
+		
+			s->size = 2.f + Randomf() * 2.f;
 			s->size_velocity = -s->size / MILLIS_TO_SECONDS(s->lifetime);
 			s->bounce = .4f;
 		}
 	}
 
-	// billboard explosion 1
+	// billboard explosion 16
 	if ((s = Cg_AllocSprite())) {
 		s->origin = org;
 		s->lifetime = cg_sprite_explosion->num_frames * FRAMES_TO_SECONDS(40);

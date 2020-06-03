@@ -647,9 +647,9 @@ void R_ExportBsp_f(void) {
 		Fs_Print(file, "map_Kd %s.png\n\n", texture->media.name);
 
 		char path[MAX_OS_PATH];
-		g_snprintf(path, sizeof(path), "export/%s.png", texture->media.name);
+		g_snprintf(path, sizeof(path), "export/%s", texture->media.name);
 
-		R_DumpImage(texture, path);
+		R_DumpImage(texture, path, false);
 
 		g_hash_table_insert(materials, surf->texinfo->material, (gpointer) num_materials);
 		num_materials++;

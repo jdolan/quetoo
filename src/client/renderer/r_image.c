@@ -155,38 +155,11 @@ void R_Screenshot_f(void) {
 }
 
 /**
- * @brief Uploads the specified image to the OpenGL implementation. Images that
- * do not have a GL texture reserved (which is most diffusemap textures) will have
- * one generated for them. This flexibility allows for explicitly managed
- * textures (such as lightmaps) to be here as well.
+ * @brief Creates the base image state for the image.
  */
-void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
-
+void R_SetupImage(r_image_t *image, GLenum target, GLenum format, GLsizei levels, GLenum type, byte *data) {
+	
 	assert(image);
-
-	if (image->texnum == 0) {
-		glGenTextures(1, &(image->texnum));
-	}
-
-	GLenum target = GL_TEXTURE_2D;
-
-	if (image->depth) {
-		switch (image->type) {
-			case IT_MATERIAL:
-				target = GL_TEXTURE_2D_ARRAY;
-				break;
-			case IT_LIGHTMAP:
-				target = GL_TEXTURE_2D_ARRAY;
-				break;
-			case IT_LIGHTGRID:
-				target = GL_TEXTURE_3D;
-				break;
-			default:
-				break;
-		}
-	}
-
-	glBindTexture(target, image->texnum);
 
 	switch (format) {
 		case GL_RGB:
@@ -197,22 +170,18 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 			break;
 	}
 
-	const GLenum type = GL_UNSIGNED_BYTE;
+	if (image->texnum == 0) {
+		glGenTextures(1, &(image->texnum));
+	}
+
+	glBindTexture(target, image->texnum);
 
 	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
 	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
-
-	GLsizei levels = 1;
-
+	
 	if (image->type & IT_MASK_MIPMAP) {
 		if (r_image_state.anisotropy) {
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
-		}
-
-		if (image->depth) {
-			levels = floorf(log2f(MAX(MAX(image->width, image->height), image->depth))) + 1;
-		} else {
-			levels = floorf(log2f(MAX(image->width, image->height))) + 1;
 		}
 	}
 
@@ -249,13 +218,52 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		}
 	}
 
-	if (image->type & IT_MASK_MIPMAP) {
+	if ((image->type & IT_MASK_MIPMAP) && data) {
 		glGenerateMipmap(target);
 	}
 
 	R_RegisterMedia((r_media_t *) image);
 
 	R_GetError(image->media.name);
+}
+
+/**
+ * @brief Uploads the specified image to the OpenGL implementation. Images that
+ * do not have a GL texture reserved (which is most diffusemap textures) will have
+ * one generated for them. This flexibility allows for explicitly managed
+ * textures (such as lightmaps) to be here as well.
+ */
+void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
+
+	assert(image);
+
+	GLenum target = GL_TEXTURE_2D;
+
+	if (image->depth) {
+		switch (image->type) {
+			case IT_MATERIAL:
+			case IT_LIGHTMAP:
+				target = GL_TEXTURE_2D_ARRAY;
+				break;
+			case IT_LIGHTGRID:
+				target = GL_TEXTURE_3D;
+				break;
+			default:
+				break;
+		}
+	}
+	
+	GLsizei levels = 1;
+
+	if (image->type & IT_MASK_MIPMAP) {
+		if (image->depth) {
+			levels = floorf(log2f(MAX(MAX(image->width, image->height), image->depth))) + 1;
+		} else {
+			levels = floorf(log2f(MAX(image->width, image->height))) + 1;
+		}
+	}
+
+	R_SetupImage(image, target, format, levels, GL_UNSIGNED_BYTE, data);
 }
 
 /**
@@ -361,17 +369,11 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 /**
  * @brief Dump the image to the specified output file (must be .png)
  */
-void R_DumpImage(const r_image_t *image, const char *output) {
+void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 
-	const char *real_path = Fs_RealPath(output);
-	char real_dir[MAX_QPATH];
+	char real_dir[MAX_OS_PATH], path_name[MAX_OS_PATH];
 	Dirname(output, real_dir);
 	Fs_Mkdir(real_dir);
-
-	SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
-	if (!f) {
-		return;
-	}
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -380,7 +382,8 @@ void R_DumpImage(const r_image_t *image, const char *output) {
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 	GLenum target;
-	switch (image->type) {
+	switch (image->type & ~IT_MASK_FLAGS) {
+		case IT_MATERIAL:
 		case IT_LIGHTMAP:
 			target = GL_TEXTURE_2D_ARRAY;
 			break;
@@ -400,16 +403,58 @@ void R_DumpImage(const r_image_t *image, const char *output) {
 	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_HEIGHT, &height);
 	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_DEPTH, &depth);
 
+	R_GetError("");
+
 	GLubyte *pixels = Mem_Malloc(width * height * depth * 4);
 
-	glGetTexImage(target, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	for (int32_t level = 0; ; level++) {
 
-	SDL_Surface *surf = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
-	IMG_SavePNG_RW(surf, f, 0);
-	SDL_FreeSurface(surf);
+		glGetTexImage(target, level, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+		if (glGetError() != GL_NO_ERROR) {
+			break;
+		}
+
+		int32_t scaled_width = width >> level;
+		int32_t scaled_height = height >> level;
+
+		if (scaled_width < 0 || scaled_height < 0) {
+			break;
+		}
+
+		for (int32_t d = 0; d < depth; d++) {
+
+			g_strlcpy(path_name, output, sizeof(path_name));
+
+			if (d != 0) {
+				g_strlcat(path_name, va(" layer %i", d), sizeof(path_name));
+			}
+
+			if (level != 0) {
+				g_strlcat(path_name, va(" mip %i", level), sizeof(path_name));
+			}
+
+			g_strlcat(path_name, ".png", sizeof(path_name));
+		
+			const char *real_path = Fs_RealPath(path_name);
+			SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
+			if (!f) {
+				return;
+			}
+
+			SDL_Surface *surf = SDL_CreateRGBSurfaceFrom(pixels + (scaled_width * scaled_height * 4 * d), scaled_width, scaled_height, 32, scaled_width * 4, RMASK, GMASK, BMASK, AMASK);
+			IMG_SavePNG_RW(surf, f, 0);
+			SDL_FreeSurface(surf);
+
+			SDL_RWclose(f);
+		}
+
+		if (!mipmap) {
+			break;
+		}
+	}
 
 	Mem_Free(pixels);
-	SDL_RWclose(f);
 }
 
 /**
@@ -421,9 +466,9 @@ static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
 		const r_image_t *image = (const r_image_t *) media;
 		char path[MAX_OS_PATH];
 
-		g_snprintf(path, sizeof(path), "imgdmp/%s %i.png", media->name, image->texnum);
+		g_snprintf(path, sizeof(path), "imgdmp/%s %i", media->name, image->texnum, true);
 
-		R_DumpImage(image, path);
+		R_DumpImage(image, path, true);
 	}
 }
 

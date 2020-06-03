@@ -66,7 +66,7 @@ r_atlas_t *R_LoadAtlas(const char *name) {
 }
 
 /**
- * @brief Loads the named image throught he specified atlas. The returned r_atlas_image_t is
+ * @brief Loads the named image through the specified atlas. The returned r_atlas_image_t is
  * not available for rendering until the atlas is recompiled.
  */
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
@@ -141,6 +141,17 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	atlas->image->width = 0;
 
+	// calculate number of mip levels; basically we just take the smallest possible
+	// mip size. larger textures get kinda shafted...
+	GLsizei levels = INT32_MAX;
+
+	for (int32_t i = 0; i < atlas->atlas->nodes->len; i++) {
+		const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
+		const r_atlas_image_t *atlas_image = node->data;
+
+		levels = MIN(levels, floorf(log2f(MAX(atlas_image->image.width, atlas_image->image.height)) + 1));
+	}
+
 	for (int32_t width = 2048; atlas->image->width == 0; width += 1024) {
 
 		if (width > r_config.max_texture_size) {
@@ -153,7 +164,30 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 			atlas->image->width = width;
 			atlas->image->height = width;
 
-			R_UploadImage(atlas->image, GL_RGBA, surf->pixels);
+			R_SetupImage(atlas->image, GL_TEXTURE_2D, GL_RGBA, levels, GL_UNSIGNED_BYTE, NULL);
+
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
+			
+			for (GLsizei i = 1; i < levels; i++) {
+				SDL_Surface *mip_surf = SDL_CreateRGBSurfaceWithFormat(0, width >> i, width >> i, 32, SDL_PIXELFORMAT_RGBA32);
+
+				for (int32_t l = 0; l < atlas->atlas->nodes->len; l++) {
+					const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, l);
+					const r_atlas_image_t *atlas_image = node->data;
+
+					SDL_BlitScaled(surf, &(const SDL_Rect) {
+						.x = node->x, .y = node->y, .w = atlas_image->image.width, .h = atlas_image->image.height
+					}, mip_surf, &(SDL_Rect) {
+						.x = node->x >> i, .y = node->y >> i, .w = atlas_image->image.width >> i, .h = atlas_image->image.height >> i
+					});
+				}
+
+				glTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mip_surf->w, mip_surf->h, GL_RGBA, GL_UNSIGNED_BYTE, mip_surf->pixels);
+
+				R_GetError("");
+
+				SDL_FreeSurface(mip_surf);
+			}
 
 			g_ptr_array_foreach(atlas->atlas->nodes, R_CompileAtlas_Node, atlas);
 		}
