@@ -33,7 +33,7 @@ typedef struct {
 	/**
 	 * @brief The minification and magnification sampling constants.
 	 */
-	GLenum minify, magnify;
+	GLenum minify, magnify, minify_no_mip;
 } r_texture_mode_t;
 
 static struct {
@@ -53,9 +53,9 @@ static struct {
  * @brief Texture sampling modes.
  */
 static const r_texture_mode_t r_texture_modes[] = {
-	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
-	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
+	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR, GL_LINEAR },
+	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_LINEAR }
 };
 
 /**
@@ -175,14 +175,17 @@ void R_SetupImage(r_image_t *image, GLenum target, GLenum format, GLsizei levels
 	}
 
 	glBindTexture(target, image->texnum);
-
-	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
-	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
 	
 	if (image->type & IT_MASK_MIPMAP) {
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
+
 		if (r_image_state.anisotropy) {
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 		}
+	} else {
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify_no_mip);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
 	}
 
 	if (image->type & IT_MASK_CLAMP_EDGE) {
@@ -381,18 +384,18 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-	GLenum target;
-	switch (image->type) {
-		case IT_MATERIAL:
-		case IT_LIGHTMAP:
-			target = GL_TEXTURE_2D_ARRAY;
-			break;
-		case IT_LIGHTGRID:
-			target = GL_TEXTURE_3D;
-			break;
-		default:
-			target = GL_TEXTURE_2D;
-			break;
+	GLenum target = GL_TEXTURE_2D;
+
+	if (image->depth) {
+		switch (image->type) {
+			case IT_MATERIAL:
+			case IT_LIGHTMAP:
+				target = GL_TEXTURE_2D_ARRAY;
+				break;
+			case IT_LIGHTGRID:
+				target = GL_TEXTURE_3D;
+				break;
+		}
 	}
 
 	glBindTexture(target, image->texnum);
@@ -402,7 +405,12 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_WIDTH, &width);
 	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_HEIGHT, &height);
 	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_DEPTH, &depth);
-	glGetTexParameteriv(target, GL_TEXTURE_MAX_LEVEL, &mips);
+
+	if (image->type & IT_MASK_MIPMAP) {
+		glGetTexParameteriv(target, GL_TEXTURE_MAX_LEVEL, &mips);
+	} else {
+		mips = 0;
+	}
 
 	R_GetError("");
 
@@ -427,11 +435,11 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 
 			g_strlcpy(path_name, output, sizeof(path_name));
 
-			if (d != 0) {
+			if (depth > 1) {
 				g_strlcat(path_name, va(" layer %i", d), sizeof(path_name));
 			}
 
-			if (level != 0) {
+			if (mips > 0) {
 				g_strlcat(path_name, va(" mip %i", level), sizeof(path_name));
 			}
 
