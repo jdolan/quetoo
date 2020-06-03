@@ -419,7 +419,7 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 		int32_t scaled_width = width >> level;
 		int32_t scaled_height = height >> level;
 
-		if (scaled_width < 0 || scaled_height < 0) {
+		if (scaled_width <= 0 || scaled_height <= 0) {
 			break;
 		}
 
