@@ -121,11 +121,12 @@ static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
 	atlas_image->image.texnum = atlas->image->texnum;
 
 	const float w = atlas->image->width, h = atlas->image->height;
+	const float texel = (1.f / atlas->image->width) * .5f;
 
-	atlas_image->texcoords.x = node->x / w;
-	atlas_image->texcoords.y = node->y / h;
-	atlas_image->texcoords.z = (node->x + atlas_image->image.width) / w;
-	atlas_image->texcoords.w = (node->y + atlas_image->image.height) / h;
+	atlas_image->texcoords.x = (node->x / w) + texel;
+	atlas_image->texcoords.y = (node->y / h) + texel;
+	atlas_image->texcoords.z = ((node->x + atlas_image->image.width) / w) - (texel * 2);
+	atlas_image->texcoords.w = ((node->y + atlas_image->image.height) / h) - (texel * 2);
 }
 
 /**
@@ -165,6 +166,8 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 			atlas->image->height = width;
 
 			R_SetupImage(atlas->image, GL_TEXTURE_2D, GL_RGBA, levels, GL_UNSIGNED_BYTE, NULL);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
 
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
 			

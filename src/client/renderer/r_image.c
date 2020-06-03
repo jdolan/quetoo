@@ -382,7 +382,7 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 	GLenum target;
-	switch (image->type & ~IT_MASK_FLAGS) {
+	switch (image->type) {
 		case IT_MATERIAL:
 		case IT_LIGHTMAP:
 			target = GL_TEXTURE_2D_ARRAY;
@@ -397,17 +397,18 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 
 	glBindTexture(target, image->texnum);
 
-	int32_t width, height, depth;
+	int32_t width, height, depth, mips;
 
 	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_WIDTH, &width);
 	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_HEIGHT, &height);
 	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_DEPTH, &depth);
+	glGetTexParameteriv(target, GL_TEXTURE_MAX_LEVEL, &mips);
 
 	R_GetError("");
 
 	GLubyte *pixels = Mem_Malloc(width * height * depth * 4);
 
-	for (int32_t level = 0; ; level++) {
+	for (int32_t level = 0; level <= mips; level++) {
 
 		glGetTexImage(target, level, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
