@@ -388,7 +388,7 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 	GLenum target = GL_TEXTURE_2D;
-
+	
 	if (image->depth) {
 		switch (image->type) {
 			case IT_MATERIAL:
@@ -397,6 +397,8 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 				break;
 			case IT_LIGHTGRID:
 				target = GL_TEXTURE_3D;
+				break;
+			default:
 				break;
 		}
 	}

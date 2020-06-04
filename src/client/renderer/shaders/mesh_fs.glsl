@@ -46,6 +46,7 @@ in vertex_data {
 } vertex;
 
 out vec4 out_color;
+vec3 out_color_debug;
 
 /**
  * @brief
@@ -80,7 +81,8 @@ void main(void) {
 		vec3 light_diffuse = lightgrid;
 		vec3 light_specular = vec3(0.0);
 
-		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
+		// debuggery: assuming it goes wrong here
+		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular, out_color_debug);
 
 		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
@@ -102,5 +104,7 @@ void main(void) {
 	out_color.rgb = color_filter(out_color.rgb);
 
 	out_color.rgb = dither(out_color.rgb);
+
+	// out_color.rgb = out_color_debug; // debuggery
 }
 
