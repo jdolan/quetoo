@@ -141,30 +141,12 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 		.color = Vec3(.9f, .9f, .9f),
 		.decay = 1000
 	});
-
-	const s_play_sample_t play = {
-		.sample = cg_sample_respawn,
-		.origin = org,
-		.attenuation = ATTEN_IDLE,
-		.flags = S_PLAY_POSITIONED
-	};
-
-	cgi.AddSample(&play);
 }
 
 /**
  * @brief A player is gasping for air under water.
  */
 static void Cg_GurpEffect(cl_entity_t *ent) {
-
-	const s_play_sample_t play = {
-		.sample = cgi.LoadSample("*gurp_1"),
-		.entity = ent->current.number,
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_ENTITY
-	};
-
-	cgi.AddSample(&play);
 
 	vec3_t start = ent->current.origin;
 	start.z += 16.0;
@@ -179,15 +161,6 @@ static void Cg_GurpEffect(cl_entity_t *ent) {
  * @brief A player has drowned.
  */
 static void Cg_DrownEffect(cl_entity_t *ent) {
-
-	const s_play_sample_t play = {
-		.sample = cgi.LoadSample("*drown_1"),
-		.entity = ent->current.number,
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_ENTITY
-	};
-
-	cgi.AddSample(&play);
 
 	vec3_t start = ent->current.origin;
 	start.z += 16.0;
@@ -236,6 +209,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 
 	switch (s->event) {
 		case EV_CLIENT_DROWN:
+			play.sample = cgi.LoadSample("*drown_1");
 			Cg_DrownEffect(ent);
 			break;
 		case EV_CLIENT_FALL:
@@ -249,6 +223,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			play.pitch = RandomRangei(-12, 13);
 			break;
 		case EV_CLIENT_GURP:
+			play.sample = cgi.LoadSample("*gurp_1");
 			Cg_GurpEffect(ent);
 			break;
 		case EV_CLIENT_JUMP:

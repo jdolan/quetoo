@@ -65,36 +65,6 @@ static void Cg_PopSprite(cg_sprite_t *s, cg_sprite_t **list) {
 /**
  * @brief Allocates a free sprite.
  */
-cg_sprite_t *Cg_AllocSprite(void) {
-
-	if (!cg_add_particles->integer) {
-		return NULL;
-	}
-
-	if (!cg_free_sprites) {
-		cgi.Debug("No free sprites\n");
-		return NULL;
-	}
-
-	cg_sprite_t *s = cg_free_sprites;
-
-	Cg_PopSprite(s, &cg_free_sprites);
-
-	memset(s, 0, sizeof(cg_sprite_t));
-
-	s->color = Vec4(0.f, 0.f, 1.f, 1.f);
-	s->size = 1.0;
-
-	s->time = s->timestamp = cgi.client->unclamped_time;
-
-	Cg_PushSprite(s, &cg_active_sprites);
-
-	return s;
-}
-
-/**
- * @brief Allocates a free sprite.
- */
 cg_sprite_t *Cg_AddSprite(const cg_sprite_t in_s) {
 
 	if (!cg_add_particles->integer) {

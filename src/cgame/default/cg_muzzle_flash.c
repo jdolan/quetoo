@@ -86,7 +86,6 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
  * @brief
  */
 static void Cg_SmokeFlash(const cl_entity_t *ent) {
-	cg_sprite_t *s;
 	vec3_t forward, right, org, org2;
 
 	// project the puff just in front of the entity
@@ -119,21 +118,19 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(s = Cg_AllocSprite())) {
-		return;
-	}
-
-	s->origin = org;
-	s->lifetime = 500;
-	Cg_SetSpriteColors(s, 0.f, 0.f, .7f, .78f, -1.f, -1.f, -1.f, 0.f);
-	s->size = 4.0;
-	s->size_velocity = 16.0;
-	s->velocity = Vec3_RandomRange(-1.f, 1.f);
-	s->velocity.z += 10.f;
-	s->acceleration.z = 5.0;
-	s->atlas_image = cg_sprite_smoke;
-	s->rotation = RandomRangef(0.0f, M_PI);
-	s->rotation_velocity = RandomRangef(.8f, 1.6f);
+	Cg_AddSprite((cg_sprite_t) {
+		.origin = org,
+		.lifetime = 500,
+		.size = 4.f,
+		.size_velocity = 16.f,
+		.velocity = Vec3_Add(Vec3_RandomRange(-1.f, 1.f), Vec3(0.f, 0.f, 10.f)),
+		.acceleration.z = 5.f,
+		.atlas_image = cg_sprite_smoke,
+		.rotation = RandomRangef(0.0f, M_PI),
+		.rotation_velocity = RandomRangef(.8f, 1.6f),
+		.color = Vec4(0.f, 0.f, .7f, .78f),
+		.end_color = Vec4(0.f, 0.f, .7f, 0.f)
+	});
 }
 
 /**
@@ -177,28 +174,29 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const float hue) {
 
 	const int32_t np = 5;
 	const float flashlen = 2.f;
-	for (int32_t i = 0; i < np; i++)
-	{
-		if (!(s = Cg_AllocSprite())) {
-			break;
-		}
 
-		s->animation = cg_sprite_blaster_flame;
-		s->lifetime = cg_sprite_blaster_flame->num_frames * FRAMES_TO_SECONDS(70) + (i / flashlen * 20.f);
-		s->origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen)));
-		s->rotation = Randomf() * M_PI * 2.f;
-		Cg_SetSpriteColors(s, hue, 1.f, 1.f, 0.f, -1.f, -1.f, 0.f, 0.f);
-		s->size = 1.f + 2.f * (np - i / flashlen);
+	for (int32_t i = 0; i < np; i++){
+
+		Cg_AddSprite((cg_sprite_t) {
+			.animation = cg_sprite_blaster_flame,
+			.lifetime = cg_sprite_blaster_flame->num_frames * FRAMES_TO_SECONDS(70) + (i / flashlen * 20.f),
+			.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen))),
+			.rotation = Randomf() * M_PI * 2.f,
+			.size = 1.f + 2.f * (np - i / flashlen),
+			.color = Vec4(hue, 1.f, 1.f, 0.f),
+			.end_color = Vec4(hue, 1.f, 0.f, 0.f)
+		});
 	}
 
-	if ((s = Cg_AllocSprite())) {
-		s->image = cg_sprite_blaster_flash;
-		s->lifetime = 200.f;
-		s->origin = Vec3_Add(org, Vec3_Scale(forward, 3.f));
-		s->size = 30.f;
-		s->size_velocity = 30.f;
-		Cg_SetSpriteColors(s, hue, 1.f, 1.f, 0.f, -1.f, -1.f, 0.f, 0.f);
-	}
+	Cg_AddSprite((cg_sprite_t) {
+		.image = cg_sprite_blaster_flash,
+		.lifetime = 200,
+		.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f)),
+		.size = 30.f,
+		.size_velocity = 30.f,
+		.color = Vec4(hue, 1.f, 1.f, 0.f),
+		.end_color = Vec4(hue, 1.f, 0.f, 0.f)
+	});
 }
 
 

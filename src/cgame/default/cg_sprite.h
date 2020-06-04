@@ -174,14 +174,6 @@ typedef struct cg_sprite_s {
 	cg_sprite_t *next;
 } cg_sprite_t;
 
-// This is to more easily manage end_color. Use -1 in end_xxx values to specify a copy from start values
-static inline void Cg_SetSpriteColors(cg_sprite_t *sprite, float hue, float sat, float val, float alpha, float end_hue, float end_sat, float end_val, float end_alpha) {
-
-	sprite->color = Vec4(hue, sat, val, alpha);
-	sprite->end_color = Vec4(end_hue == -1 ? hue : end_hue, end_sat == -1 ? sat : end_sat, end_val == -1 ? val : end_val, end_alpha == -1 ? alpha : end_alpha);
-}
-
-cg_sprite_t *Cg_AllocSprite(void);
 cg_sprite_t *Cg_AddSprite(const cg_sprite_t in_s);
 cg_sprite_t *Cg_FreeSprite(cg_sprite_t *p);
 void Cg_FreeSprites(void);
