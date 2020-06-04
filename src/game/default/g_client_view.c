@@ -132,23 +132,23 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	// check for sizzle damage
 	if (water_level && (ent->locals.water_type & (CONTENTS_LAVA | CONTENTS_SLIME))) {
 		if (client->locals.sizzle_time <= g_level.time) {
-			client->locals.sizzle_time = g_level.time + 1000;
+			client->locals.sizzle_time = g_level.time + 100;
 
-			if (ent->locals.dead == false && ent->locals.water_type & CONTENTS_LAVA) {
+			if (ent->locals.dead == false && (ent->locals.water_type & CONTENTS_LAVA) && client->locals.pain_time <= g_level.time) {
 
 				// play a sizzle sound instead of a normal pain sound
 				ent->s.event = EV_CLIENT_SIZZLE;
 
 				// suppress normal pain sound
-				client->locals.pain_time = g_level.time;
+				client->locals.pain_time = g_level.time + 1000;
 			}
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 12 * water_level, 0, DMG_NO_ARMOR, MOD_LAVA);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 2 * water_level, 0, DMG_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 6 * water_level, 0, DMG_NO_ARMOR, MOD_SLIME);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), water_level, 0, 0, MOD_SLIME);
 			}
 		}
 	}
