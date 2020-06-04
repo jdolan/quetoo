@@ -39,39 +39,37 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 	cg_sprite_t *s;
 
 	int32_t particle_count = 256;
-	float z_offset = 20.f;
+	vec3_t z_offset = org;
+	z_offset.z += 20.f;
 
 	// sphere particles
 	for (int32_t i = 0; i < particle_count; i++) {
 
-		if (!(s = Cg_AllocSprite())) {
+		if (!(s = Cg_AddSprite((const cg_sprite_t) {
+				.atlas_image = cg_sprite_particle2,
+				.lifetime = 1000,
+				.origin = z_offset,
+				.velocity = Vec3_Scale(Cg_FibonacciLatticeDir(particle_count, i + 1), 55.f),
+				.color = Vec4(144.f, 0.f, 1.f, 0.f),
+				.end_color = Vec4(144.f, .83f, .6f, 0.f),
+				.size = 5.f
+			}))) {
 			break;
 		}
 
-		s->atlas_image = cg_sprite_particle2;
-
-		s->lifetime = 1000.f;
-		s->origin = org;
-		s->origin.z += z_offset;
-		s->velocity = Vec3_Scale(Cg_FibonacciLatticeDir(particle_count, i + 1), 55.f);
 		s->acceleration = Vec3_Scale(s->velocity, -1.f);
-
-		s->color = Vec4(144.f, 0.f, 1.f, 0.f);
-		s->end_color = Vec4(144.f, .83f, .6f, 0.f);
-		s->size = 5.f;
 		s->size_velocity = -s->size / MILLIS_TO_SECONDS(s->lifetime);
 	}
 
 	// glow
-	if ((s = Cg_AllocSprite())) {
-		s->origin = org;
-		s->origin.z += z_offset;
-		s->lifetime = 1000;
-		s->size = 200.f;
-		s->atlas_image = cg_sprite_particle;
-		s->color = Vec4(0.f, 0.f, 1.f, 0.f);
-		s->end_color = Vec4(0.f, 0.f, 0.f, 0.f);
-	}
+	Cg_AddSprite((const cg_sprite_t) {
+		.origin = z_offset,
+		.lifetime = 1000,
+		.size = 200.f,
+		.atlas_image = cg_sprite_particle,
+		.color = Vec4(0.f, 0.f, 1.f, 0.f),
+		.end_color = Vec4(0.f, 0.f, 0.f, 0.f)
+	});
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
@@ -87,33 +85,29 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 
 	cg_sprite_t *s;
-	// float z_offset = 20.f;
 
 	// ring
-	if ((s = Cg_AllocSprite())) {
-
-		s->lifetime = 400;
-		s->origin = org;
-		// s->origin.z += z_offset;
-		s->size = 10.f;
+	if ((s = Cg_AddSprite((const cg_sprite_t) {
+			.origin = org,
+			.lifetime = 400,
+			.size = 10.f,
+			.atlas_image = cg_sprite_ring,
+			.color = Vec4(150.f, .5f, .4f, 0.f),
+			.end_color = Vec4(150.f, .5f, 0.f, 0.f),
+			.dir = Vec3(0.f, 0.f, 1.f)
+		}))) {
 		s->size_velocity = 50.f / MILLIS_TO_SECONDS(s->lifetime);
-		s->atlas_image = cg_sprite_ring;
-		s->color = Vec4(150.f, .5f, .4f, 0.f);
-		s->end_color = Vec4(150.f, .5f, 0.f, 0.f);
-		s->dir = Vec3(0.f, 0.f, 1.f);
-
 	}
 
 	// glow
-	if ((s = Cg_AllocSprite())) {
-		s->origin = org;
-		// s->origin.z += z_offset;
-		s->lifetime = 1000;
-		s->size = 200.f;
-		s->atlas_image = cg_sprite_particle;
-		s->color = Vec4(150.f, .5f, .4f, 0.f);
-		s->end_color = Vec4(150.f, .5f, 0.f, 0.f);
-	}
+	Cg_AddSprite((const cg_sprite_t) {
+		.origin = org,
+		.lifetime = 1000,
+		.size = 200.f,
+		.atlas_image = cg_sprite_particle,
+		.color = Vec4(150.f, .5f, .4f, 0.f),
+		.end_color = Vec4(150.f, .5f, 0.f, 0.f)
+	});
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
@@ -129,22 +123,16 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 static void Cg_TeleporterEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 64; i++) {
-		cg_sprite_t *s;
 
-		if (!(s = Cg_AllocSprite())) {
-			break;
-		}
-
-		s->atlas_image = cg_sprite_particle;
-		s->size = 8.f;
-		s->origin = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f));
-		s->origin.z += RandomRangef(8.f, 32.f);
-		s->velocity = Vec3_RandomRange(-24.f, 24.f);
-		s->velocity.z = RandomRangef(16.f, 48.f);
-		s->acceleration.z = -SPRITE_GRAVITY * 0.1;
-		s->lifetime = 500;
-		s->color = Vec4(0.f, 0.f, .87f, 0.f);
-		s->size = 8.f;
+		Cg_AddSprite((const cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.size = 8.f,
+			.origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f)), Vec3(0.f, 0.f, RandomRangef(8.f, 32.f))),
+			.velocity = Vec3_Add(Vec3_RandomRange(-24.f, 24.f), Vec3(0.f, 0.f, RandomRangef(16.f, 48.f))),
+			.acceleration.z = -SPRITE_GRAVITY * .1f,
+			.lifetime = 500,
+			.color = Vec4(0.f, 0.f, .87f, 0.f)
+		});
 	}
 
 	Cg_AddLight(&(cg_light_t) {

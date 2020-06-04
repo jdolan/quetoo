@@ -106,11 +106,13 @@ cg_sprite_t *Cg_AddSprite(const cg_sprite_t in_s) {
 		return NULL;
 	}
 
+	assert(in_s.media);
+
 	cg_sprite_t *s = cg_free_sprites;
 
 	Cg_PopSprite(s, &cg_free_sprites);
 
-	memcpy(s, &in_s, sizeof(in_s));
+	*s = in_s;
 
 	s->time = s->timestamp = cgi.client->unclamped_time;
 
