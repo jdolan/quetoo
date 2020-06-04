@@ -125,6 +125,16 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 		return;
 	}
 
+	if (r_draw_2d.num_draw_arrays) {
+		r_draw_2d_arrays_t *last_draw = &r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays - 1];
+
+		if (last_draw->mode == draw->mode && last_draw->texture == draw->texture) {
+
+			last_draw->num_vertexes += draw->num_vertexes;
+			return;
+		}
+	}
+
 	r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays] = *draw;
 	r_draw_2d.num_draw_arrays++;
 }
@@ -406,6 +416,8 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
  * @brief Draw all 2D geometry accumulated for the current frame.
  */
 void R_Draw2D(void) {
+	
+	r_view.count_draw_calls = r_draw_2d.num_draw_arrays;
 
 	if (r_draw_2d.num_draw_arrays == 0) {
 		return;
@@ -442,7 +454,7 @@ void R_Draw2D(void) {
 	glBindVertexArray(0);
 
 	glUseProgram(0);
-
+	
 	r_draw_2d.num_draw_arrays = 0;
 	r_draw_2d.num_vertexes = 0;
 

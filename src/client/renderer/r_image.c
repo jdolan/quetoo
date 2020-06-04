@@ -333,6 +333,7 @@ _Bool R_CreateImage(r_image_t **out, const char *name, const int32_t width, cons
  */
 r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	char key[MAX_QPATH];
+	r_image_t *image;
 
 	if (!name || !name[0]) {
 		Com_Error(ERROR_DROP, "NULL name\n");
@@ -340,14 +341,16 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	StripExtension(name, key);
 
+	if ((image = (r_image_t *) R_FindMedia(key))) {
+		return image;
+	}
+
 	SDL_Surface *surf = Img_LoadSurface(key);
 	if (!surf) {
 
 		Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
 		return NULL;
 	}
-
-	r_image_t *image;
 	
 	if (!R_CreateImage(&image, name, surf->w, surf->h, type)) {
 		return image;

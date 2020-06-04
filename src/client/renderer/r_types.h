@@ -1093,6 +1093,7 @@ typedef struct {
 	int32_t count_draw_fills;
 	int32_t count_draw_images;
 	int32_t count_draw_lines;
+	int32_t count_draw_calls;
 
 	_Bool update; // inform the client of state changes
 

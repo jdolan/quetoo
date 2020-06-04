@@ -45,6 +45,7 @@ static void Cl_DrawConsole_Background(void) {
 		return;
 	}
 
+	// FIXME: cache
 	const r_image_t *image = R_LoadImage("ui/conback", IT_UI);
 	if (image) {
 
@@ -127,13 +128,18 @@ static void Cl_DrawConsole_Input(void) {
 /**
  * @brief
  */
-void Cl_DrawConsole(void) {
+r_pixel_t Cl_GetConsoleHeight(void) {
+	return r_context.height * (cls.state == CL_ACTIVE ? Clampf(cl_console_height->value, 0.1, 1.0) : 1.0);
+}
 
-	r_pixel_t cw, ch, height;
+/**
+ * @brief
+ */
+void Cl_DrawConsole(void) {
+	r_pixel_t cw, ch;
+	const r_pixel_t height = Cl_GetConsoleHeight();
 
 	R_BindFont("small", &cw, &ch);
-
-	height = r_context.height * (cls.state == CL_ACTIVE ? Clampf(cl_console_height->value, 0.1, 1.0) : 1.0);
 
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;

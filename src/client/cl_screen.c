@@ -133,7 +133,7 @@ static void Cl_DrawRendererStats(void) {
 	}
 
 	if (cls.key_state.dest != KEY_GAME) {
-		return;
+		y = Cl_GetConsoleHeight();
 	}
 
 	R_BindFont("small", NULL, &ch);
@@ -169,6 +169,8 @@ static void Cl_DrawRendererStats(void) {
 	R_Draw2DString(x, y, va("%d images", r_view.count_draw_images), color_green);
 	y += ch;
 	R_Draw2DString(x, y, va("%d lines", r_view.count_draw_lines), color_green);
+	y += ch;
+	R_Draw2DString(x, y, va("%d arrays", r_view.count_draw_calls), color_green);
 	y += ch;
 
 	y += ch;
@@ -337,12 +339,15 @@ void Cl_UpdateScreen(void) {
 					break;
 				case KEY_GAME:
 					Cl_DrawNotify();
-					Cl_DrawRendererStats();
-					Cl_DrawSoundStats();
 					break;
 				case KEY_CHAT:
 					Cl_DrawChat();
 					break;
+			}
+
+			if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_GAME) {
+				Cl_DrawRendererStats();
+				Cl_DrawSoundStats();
 			}
 			break;
 	}
