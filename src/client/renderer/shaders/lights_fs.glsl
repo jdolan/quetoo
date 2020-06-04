@@ -36,7 +36,8 @@ uniform int lights_mask;
  * @brief
  */
 void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
-				   inout vec3 diff_light, inout vec3 spec_light) {
+				   inout vec3 diff_light, inout vec3 spec_light,
+				   inout vec3 debug) {
 
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
@@ -58,7 +59,9 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 		if (dist < radius) {
 
 			vec3 light_dir = normalize(lights[i].origin.xyz - position);
+			// debug.rgb = light_dir; // debuggery
 			float angle_atten = dot(light_dir, normal);
+			// debug.rgb = vec3(angle_atten); // debuggery
 			if (angle_atten > 0.0) {
 				
 				float dist_atten;
@@ -68,14 +71,21 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 				float attenuation = dist_atten * angle_atten;
 				
 				vec3 view_dir = normalize(-position);
+				// debug.rgb = view_dir; // debuggery
 				vec3 half_dir = normalize(light_dir + view_dir);
+				// debug.rgb = half_dir; // debuggery
 				float specular_base = dot(half_dir, normal);
+				// debug.rgb = vec3(specular_base); // debuggery
 				float specular = pow(specular_base, specular_exponent);
+				// debug.rgb = vec3(specular); // debuggery
 				
 				vec3 color = lights[i].color.rgb * intensity;
+				// debug.rgb = color; // debuggery
 				
 				diff_light += attenuation * radius * color;
+				// debug.rgb = diff_light; // debuggery
 				spec_light += attenuation * attenuation * radius * specular * color;
+				// debug.rgb = spec_light; // debuggery
 			}
 		}
 	}
