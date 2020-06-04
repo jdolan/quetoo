@@ -146,7 +146,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 	// mip size. larger textures get kinda shafted...
 	GLsizei levels = INT32_MAX;
 
-	for (int32_t i = 0; i < atlas->atlas->nodes->len; i++) {
+	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
 		const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
 		const r_atlas_image_t *atlas_image = node->data;
 

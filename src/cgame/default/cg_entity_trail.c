@@ -713,7 +713,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 	// big trail
 	{
-		float len = Vec3_Length(delta);
+//		float len = Vec3_Length(delta);
 		//vec3_t dir = Vec3_Scale(delta, 1.f / len);
 
 		int32_t count = Cg_TrailDensity(ent, ent->previous_origin, ent->origin, 4, TRAIL_PRIMARY, &origin);
