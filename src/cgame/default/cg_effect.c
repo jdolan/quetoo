@@ -197,49 +197,49 @@ void Cg_LoadEffects(void) {
 static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 	for (int32_t i = 0; i < e->num_origins; i++) {
-		cg_sprite_t *s;
-
-		if (!(s = Cg_AllocSprite())) {
-			break;
-		}
-
 		const vec4_t origin = *(e->origins + i);
 
-		s->origin = Vec3_Add(Vec4_XYZ(origin), Vec3_RandomRange(-16.f, 16.f));
+		vec3_t sprite_origin = Vec3_Add(Vec4_XYZ(origin), Vec3_RandomRange(-16.f, 16.f));
 
 		// keep particle z origin relatively close to the view origin
 		if (origin.w < cgi.view->origin.z) {
-			if (s->origin.z - cgi.view->origin.z > 512.0) {
-				s->origin.z = cgi.view->origin.z + 256.0 + Randomf() * 256.0;
+			if (sprite_origin.z - cgi.view->origin.z > 512.0) {
+				sprite_origin.z = cgi.view->origin.z + 256.0 + Randomf() * 256.0;
 			}
 		}
 
+		// free the particle roughly when it will reach the floor
+		cg_sprite_t *s;
+
 		if (cgi.view->weather & WEATHER_RAIN) {
-			s->atlas_image = cg_sprite_rain;
-			s->color = Vec4(0.f, 0.f, .4f, .8f);
-			s->end_color = Vec4(0.f, 0.f, .87f, .0f);
-			s->size = 4.f;
-
-			s->velocity = Vec3_RandomRange(-2.f, 2.f);
-			s->velocity.z -= 600.f;
-
-			s->acceleration = Vec3_RandomRange(-2.f, 2.f);
+			s = Cg_AddSprite((const cg_sprite_t) {
+				.origin = sprite_origin,
+				.atlas_image = cg_sprite_rain,
+				.color = Vec4(0.f, 0.f, .87f, .8f),
+				.end_color = Vec4(0.f, 0.f, .87f, .0f),
+				.size = 4.f,
+				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 600.f)),
+				.acceleration = Vec3_RandomRange(-2.f, 2.f),
+				.flags = SPRITE_NO_BLEND
+			});
 		} else {
-			s->atlas_image = cg_sprite_snow;
-			s->color = Vec4(0.f, 0.f, .87f, .4f);
-			s->end_color = Vec4(0.f, 0.f, .87f, .0f);
-			s->size = 8.f;
-
-			s->velocity = Vec3_RandomRange(-12.f, 12.f);
-			s->velocity.z -= 120.0;
-			
-			s->acceleration = Vec3_RandomRange(-12.f, 12.f);
+			s = Cg_AddSprite((const cg_sprite_t) {
+				.origin = sprite_origin,
+				.atlas_image = cg_sprite_snow,
+				.color = Vec4(0.f, 0.f, .87f, .4f),
+				.end_color = Vec4(0.f, 0.f, .87f, .0f),
+				.size = 8.f,
+				.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f)),
+				.acceleration = Vec3_RandomRange(-12.f, 12.f),
+				.flags = SPRITE_NO_BLEND
+			});
 		}
 
-		s->flags |= SPRITE_NO_BLEND;
+		if (!s) {
+			return;
+		}
 
-		// free the particle roughly when it will reach the floor
-		s->lifetime = 1000 * (s->origin.z - origin.w) / fabsf(s->velocity.z);
+		s->lifetime = 1000 * (sprite_origin.z - origin.w) / fabsf(s->velocity.z);
 	}
 }
 

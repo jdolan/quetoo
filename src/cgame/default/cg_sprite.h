@@ -182,6 +182,7 @@ static inline void Cg_SetSpriteColors(cg_sprite_t *sprite, float hue, float sat,
 }
 
 cg_sprite_t *Cg_AllocSprite(void);
+cg_sprite_t *Cg_AddSprite(const cg_sprite_t in_s);
 cg_sprite_t *Cg_FreeSprite(cg_sprite_t *p);
 void Cg_FreeSprites(void);
 void Cg_AddSprites(void);

@@ -43,22 +43,17 @@ float Cg_ResolveEffectHue(const uint8_t index, const float default_hue) {
  * @brief
  */
 static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
-	cg_sprite_t *s;
 
 	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 		return;
 	}
 
-	// FIXME: use cgi.AddSprite directly
-	if (!(s = Cg_AllocSprite())) {
-		return;
-	}
-
-	s->atlas_image = cg_sprite_inactive;
-	s->origin = org;
-	s->origin.z += 50.f;
-	Cg_SetSpriteColors(s, 0.f, 0.f, 1.f, 1.f, -1.f, -1.f, -1.f, -1.f);
-	s->size = 10.0;
+	cgi.AddSprite(&(const r_sprite_t) {
+		.origin = Vec3_Add(org, Vec3(0.f, 0.f, 50.f)),
+		.color = Color_Color32(color_white),
+		.media = (r_media_t *) cg_sprite_inactive,
+		.size = 32.f
+	});
 }
 
 /**
