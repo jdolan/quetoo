@@ -90,7 +90,7 @@
     <None Include="..\..\src\client\renderer\shaders\draw_2d_blur_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_3d_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\lights.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\lights_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\material.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_shadow_fs.glsl" />

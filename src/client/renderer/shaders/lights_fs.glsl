@@ -70,7 +70,7 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 				
 				float attenuation = dist_atten * angle_atten;
 				
-				vec3 view_dir = normalize(-position);
+				vec3 view_dir = normal;//normalize(-position);
 				// debug.rgb = view_dir; // debuggery
 				vec3 half_dir = normalize(light_dir + view_dir);
 				// debug.rgb = half_dir; // debuggery

@@ -105,6 +105,6 @@ void main(void) {
 
 	out_color.rgb = dither(out_color.rgb);
 
-	// out_color.rgb = out_color_debug; // debuggery
+	//out_color.rgb = out_color_debug; // debuggery
 }
 
