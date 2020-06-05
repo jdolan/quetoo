@@ -125,7 +125,7 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 		return;
 	}
 
-	if (r_draw_2d.num_draw_arrays) {
+	if (r_draw_2d.num_draw_arrays && (draw->mode == GL_LINES || draw->mode == GL_TRIANGLES || draw->mode == GL_POINTS)) {
 		r_draw_2d_arrays_t *last_draw = &r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays - 1];
 
 		if (last_draw->mode == draw->mode && last_draw->texture == draw->texture) {

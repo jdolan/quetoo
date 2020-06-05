@@ -45,7 +45,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 	// sphere particles
 	for (int32_t i = 0; i < particle_count; i++) {
 
-		if (!(s = Cg_AddSprite((const cg_sprite_t) {
+		if (!(s = Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_particle2,
 				.lifetime = 1000,
 				.origin = z_offset,
@@ -62,7 +62,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 	}
 
 	// glow
-	Cg_AddSprite((const cg_sprite_t) {
+	Cg_AddSprite(&(cg_sprite_t) {
 		.origin = z_offset,
 		.lifetime = 1000,
 		.size = 200.f,
@@ -87,7 +87,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 	cg_sprite_t *s;
 
 	// ring
-	if ((s = Cg_AddSprite((const cg_sprite_t) {
+	if ((s = Cg_AddSprite(&(cg_sprite_t) {
 			.origin = org,
 			.lifetime = 400,
 			.size = 10.f,
@@ -100,7 +100,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 	}
 
 	// glow
-	Cg_AddSprite((const cg_sprite_t) {
+	Cg_AddSprite(&(cg_sprite_t) {
 		.origin = org,
 		.lifetime = 1000,
 		.size = 200.f,
@@ -124,7 +124,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 64; i++) {
 
-		Cg_AddSprite((const cg_sprite_t) {
+		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle,
 			.size = 8.f,
 			.origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f)), Vec3(0.f, 0.f, RandomRangef(8.f, 32.f))),

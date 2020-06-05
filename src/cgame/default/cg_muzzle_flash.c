@@ -118,7 +118,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		return;
 	}
 
-	Cg_AddSprite((cg_sprite_t) {
+	Cg_AddSprite(&(cg_sprite_t) {
 		.origin = org,
 		.lifetime = 500,
 		.size = 4.f,
@@ -137,7 +137,6 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
  * @brief
  */
 static void Cg_BlasterFlash(const cl_entity_t *ent, const float hue) {
-	cg_sprite_t *s;
 	vec3_t forward, right, org, org2;
 
 	// project the puff just in front of the entity
@@ -177,9 +176,9 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const float hue) {
 
 	for (int32_t i = 0; i < np; i++){
 
-		Cg_AddSprite((cg_sprite_t) {
+		Cg_AddSprite(&(cg_sprite_t) {
 			.animation = cg_sprite_blaster_flame,
-			.lifetime = cg_sprite_blaster_flame->num_frames * FRAMES_TO_SECONDS(70) + (i / flashlen * 20.f),
+			.lifetime = Cg_AnimationLifetime(cg_sprite_blaster_flame, 70) + (i / flashlen * 20.f),
 			.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen))),
 			.rotation = Randomf() * M_PI * 2.f,
 			.size = 1.f + 2.f * (np - i / flashlen),
@@ -188,7 +187,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const float hue) {
 		});
 	}
 
-	Cg_AddSprite((cg_sprite_t) {
+	Cg_AddSprite(&(cg_sprite_t) {
 		.image = cg_sprite_blaster_flash,
 		.lifetime = 200,
 		.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f)),
