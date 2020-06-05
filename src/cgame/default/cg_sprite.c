@@ -65,7 +65,7 @@ static void Cg_PopSprite(cg_sprite_t *s, cg_sprite_t **list) {
 /**
  * @brief Allocates a free sprite.
  */
-cg_sprite_t *Cg_AddSprite(const cg_sprite_t in_s) {
+cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
 
 	if (!cg_add_particles->integer) {
 		return NULL;
@@ -76,13 +76,13 @@ cg_sprite_t *Cg_AddSprite(const cg_sprite_t in_s) {
 		return NULL;
 	}
 
-	assert(in_s.media);
+	assert(in_s->media);
 
 	cg_sprite_t *s = cg_free_sprites;
 
 	Cg_PopSprite(s, &cg_free_sprites);
 
-	*s = in_s;
+	*s = *in_s;
 
 	s->time = s->timestamp = cgi.client->unclamped_time;
 

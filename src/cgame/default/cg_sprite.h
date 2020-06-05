@@ -174,7 +174,14 @@ typedef struct cg_sprite_s {
 	cg_sprite_t *next;
 } cg_sprite_t;
 
-cg_sprite_t *Cg_AddSprite(const cg_sprite_t in_s);
+/**
+ * @brief Calculate a lifetime value that causes the animation to run at a specified framerate.
+ */
+static inline uint32_t Cg_AnimationLifetime(const r_animation_t *animation, const float fps) {
+	return animation->num_frames * FRAMES_TO_SECONDS(fps);
+}
+
+cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s);
 cg_sprite_t *Cg_FreeSprite(cg_sprite_t *p);
 void Cg_FreeSprites(void);
 void Cg_AddSprites(void);

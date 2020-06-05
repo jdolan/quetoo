@@ -212,7 +212,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 		cg_sprite_t *s;
 
 		if (cgi.view->weather & WEATHER_RAIN) {
-			s = Cg_AddSprite((const cg_sprite_t) {
+			s = Cg_AddSprite(&(cg_sprite_t) {
 				.origin = sprite_origin,
 				.atlas_image = cg_sprite_rain,
 				.color = Vec4(0.f, 0.f, .87f, .8f),
@@ -223,7 +223,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.flags = SPRITE_NO_BLEND
 			});
 		} else {
-			s = Cg_AddSprite((const cg_sprite_t) {
+			s = Cg_AddSprite(&(cg_sprite_t) {
 				.origin = sprite_origin,
 				.atlas_image = cg_sprite_snow,
 				.color = Vec4(0.f, 0.f, .87f, .4f),
