@@ -81,7 +81,6 @@ void main(void) {
 		vec3 light_diffuse = lightgrid;
 		vec3 light_specular = vec3(0.0);
 
-		// debuggery: assuming it goes wrong here
 		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular, out_color_debug);
 
 		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
