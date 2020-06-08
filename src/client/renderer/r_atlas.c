@@ -174,7 +174,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 			for (GLsizei i = 1; i < levels; i++) {
 				SDL_Surface *mip_surf = SDL_CreateRGBSurfaceWithFormat(0, width >> i, width >> i, 32, SDL_PIXELFORMAT_RGBA32);
 
-				for (int32_t l = 0; l < atlas->atlas->nodes->len; l++) {
+				for (guint l = 0; l < atlas->atlas->nodes->len; l++) {
 					const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, l);
 					const r_atlas_image_t *atlas_image = node->data;
 
