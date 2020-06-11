@@ -33,38 +33,40 @@ void Cm_FreeMaterial(cm_material_t *material) {
 }
 
 /**
+ * @brief Just a tuple for string-int
+ */
+typedef struct {
+	const char		*keyword;
+	union {
+		const int32_t	flag;
+		const GLenum	enumVal;
+	};
+} cm_dictionary_t;
+
+/**
+ * @brief Content flags
+ */
+static cm_dictionary_t cm_contentsList[] = {
+	{ .keyword = "window", .flag = CONTENTS_WINDOW },
+	{ .keyword = "lava", .flag = CONTENTS_LAVA },
+	{ .keyword = "slime", .flag = CONTENTS_SLIME },
+	{ .keyword = "water", .flag = CONTENTS_WATER },
+	{ .keyword = "mist", .flag = CONTENTS_MIST },
+	{ .keyword = "detail", .flag = CONTENTS_DETAIL },
+	{ .keyword = "ladder", .flag = CONTENTS_LADDER }
+};
+
+/**
  * @brief
  */
 static int32_t Cm_ParseContents(const char *c) {
 
 	int32_t contents = 0;
 
-	if (strstr(c, "window")) {
-		contents |= CONTENTS_WINDOW;
-	}
-
-	if (strstr(c, "lava")) {
-		contents |= CONTENTS_LAVA;
-	}
-
-	if (strstr(c, "slime")) {
-		contents |= CONTENTS_SLIME;
-	}
-
-	if (strstr(c, "water")) {
-		contents |= CONTENTS_WATER;
-	}
-
-	if (strstr(c, "mist")) {
-		contents |= CONTENTS_MIST;
-	}
-
-	if (strstr(c, "detail")) {
-		contents |= CONTENTS_DETAIL;
-	}
-
-	if (strstr(c, "ladder")) {
-		contents |= CONTENTS_LADDER;
+	for (cm_dictionary_t *list = cm_contentsList; list < cm_contentsList + lengthof(cm_contentsList); list++) {
+		if (strstr(c, list->keyword)) {
+			contents |= list->flag;
+		}
 	}
 
 	return contents;
@@ -77,36 +79,34 @@ static char *Cm_UnparseContents(int32_t contents) {
 	static char s[MAX_STRING_CHARS];
 	*s = '\0';
 
-	if (contents & CONTENTS_WINDOW) {
-		g_strlcat(s, "window ", sizeof(s));
-	}
-
-	if (contents & CONTENTS_LAVA) {
-		g_strlcat(s, "lava ", sizeof(s));
-	}
-
-	if (contents & CONTENTS_SLIME) {
-		g_strlcat(s, "slime ", sizeof(s));
-	}
-
-	if (contents & CONTENTS_WATER) {
-		g_strlcat(s, "water ", sizeof(s));
-	}
-
-	if (contents & CONTENTS_MIST) {
-		g_strlcat(s, "mist ", sizeof(s));
-	}
-
-	if (contents & CONTENTS_DETAIL) {
-		g_strlcat(s, "detail ", sizeof(s));
-	}
-
-	if (contents & CONTENTS_LADDER) {
-		g_strlcat(s, "ladder ", sizeof(s));
+	for (cm_dictionary_t *list = cm_contentsList; list < cm_contentsList + lengthof(cm_contentsList); list++) {
+		if (contents & list->flag) {
+			g_strlcat(s, va("%s ", list->keyword), sizeof(s));
+		}
 	}
 
 	return g_strchomp(s);
 }
+
+/**
+ * @brief Surface flags
+ */
+static cm_dictionary_t cm_surfaceList[] = {
+	{ .keyword = "light", .flag = SURF_LIGHT },
+	{ .keyword = "slick", .flag = SURF_SLICK },
+	{ .keyword = "sky", .flag = SURF_SKY },
+	{ .keyword = "liquid", .flag = SURF_LIQUID },
+	{ .keyword = "blend_33", .flag = SURF_BLEND_33 },
+	{ .keyword = "blend_66", .flag = SURF_BLEND_66 },
+	{ .keyword = "no_draw", .flag = SURF_NO_DRAW },
+	{ .keyword = "hint", .flag = SURF_HINT },
+	{ .keyword = "skip", .flag = SURF_SKIP },
+	{ .keyword = "alpha_test", .flag = SURF_ALPHA_TEST },
+	{ .keyword = "phong", .flag = SURF_PHONG },
+	{ .keyword = "material", .flag = SURF_MATERIAL },
+	{ .keyword = "no_weld", .flag = SURF_NO_WELD },
+	{ .keyword = "debug_luxel", .flag = SURF_DEBUG_LUXEL }
+};
 
 /**
  * @brief
@@ -115,60 +115,10 @@ static int32_t Cm_ParseSurface(const char *c) {
 
 	int32_t surface = 0;
 
-	if (strstr(c, "light")) {
-		surface |= SURF_LIGHT;
-	}
-
-	if (strstr(c, "slick")) {
-		surface |= SURF_SLICK;
-	}
-
-	if (strstr(c, "sky")) {
-		surface |= SURF_SKY;
-	}
-
-	if (strstr(c, "liquid")) {
-		surface |= SURF_LIQUID;
-	}
-
-	if (strstr(c, "blend_33")) {
-		surface |= SURF_BLEND_33;
-	}
-
-	if (strstr(c, "blend_66")) {
-		surface |= SURF_BLEND_66;
-	}
-
-	if (strstr(c, "no_draw")) {
-		surface |= SURF_NO_DRAW;
-	}
-
-	if (strstr(c, "hint")) {
-		surface |= SURF_HINT;
-	}
-
-	if (strstr(c, "skip")) {
-		surface |= SURF_SKIP;
-	}
-
-	if (strstr(c, "alpha_test")) {
-		surface |= SURF_ALPHA_TEST;
-	}
-
-	if (strstr(c, "phong")) {
-		surface |= SURF_PHONG;
-	}
-
-	if (strstr(c, "material")) {
-		surface |= SURF_MATERIAL;
-	}
-
-	if (strstr(c, "no_weld")) {
-		surface |= SURF_NO_WELD;
-	}
-
-	if (strstr(c, "debug_luxel")) {
-		surface |= SURF_DEBUG_LUXEL;
+	for (cm_dictionary_t *list = cm_surfaceList; list < cm_surfaceList + lengthof(cm_surfaceList); list++) {
+		if (strstr(c, list->keyword)) {
+			surface |= list->flag;
+		}
 	}
 
 	return surface;
@@ -181,82 +131,37 @@ static char *Cm_UnparseSurface(int32_t surface) {
 	static char s[MAX_STRING_CHARS];
 	*s = '\0';
 
-	if (surface & SURF_LIGHT) {
-		g_strlcat(s, "light ", sizeof(s));
-	}
-
-	if (surface & SURF_SLICK) {
-		g_strlcat(s, "slick ", sizeof(s));
-	}
-
-	if (surface & SURF_SKY) {
-		g_strlcat(s, "sky ", sizeof(s));
-	}
-
-	if (surface & SURF_LIQUID) {
-		g_strlcat(s, "liquid ", sizeof(s));
-	}
-
-	if (surface & SURF_BLEND_33) {
-		g_strlcat(s, "blend_33 ", sizeof(s));
-	}
-
-	if (surface & SURF_BLEND_66) {
-		g_strlcat(s, "blend_66 ", sizeof(s));
-	}
-
-	if (surface & SURF_NO_DRAW) {
-		g_strlcat(s, "no_draw ", sizeof(s));
-	}
-
-	if (surface & SURF_HINT) {
-		g_strlcat(s, "hint ", sizeof(s));
-	}
-
-	if (surface & SURF_SKIP) {
-		g_strlcat(s, "skip ", sizeof(s));
-	}
-
-	if (surface & SURF_ALPHA_TEST) {
-		g_strlcat(s, "alpha_test ", sizeof(s));
-	}
-
-	if (surface & SURF_PHONG) {
-		g_strlcat(s, "phong ", sizeof(s));
-	}
-
-	if (surface & SURF_MATERIAL) {
-		g_strlcat(s, "material ", sizeof(s));
+	for (cm_dictionary_t *list = cm_surfaceList; list < cm_surfaceList + lengthof(cm_surfaceList); list++) {
+		if (surface & list->flag) {
+			g_strlcat(s, va("%s ", list->keyword), sizeof(s));
+		}
 	}
 
 	return g_strchomp(s);
 }
 
 /**
+ * @brief Blend consts
+ */
+static cm_dictionary_t cm_blendConstList[] = {
+	{ .keyword = "GL_ONE", .enumVal = GL_ONE },
+	{ .keyword = "GL_ZERO", .enumVal = GL_ZERO },
+	{ .keyword = "GL_SRC_ALPHA", .enumVal = GL_SRC_ALPHA },
+	{ .keyword = "GL_ONE_MINUS_SRC_ALPHA", .enumVal = GL_ONE_MINUS_SRC_ALPHA },
+	{ .keyword = "GL_SRC_COLOR", .enumVal = GL_SRC_COLOR },
+	{ .keyword = "GL_DST_COLOR", .enumVal = GL_DST_COLOR },
+	{ .keyword = "GL_ONE_MINUS_SRC_COLOR", .enumVal = GL_ONE_MINUS_SRC_COLOR }
+};
+
+/**
  * @brief
  */
 static inline GLenum Cm_BlendConstByName(const char *c) {
-
-	if (!g_strcmp0(c, "GL_ONE")) {
-		return GL_ONE;
-	}
-	if (!g_strcmp0(c, "GL_ZERO")) {
-		return GL_ZERO;
-	}
-	if (!g_strcmp0(c, "GL_SRC_ALPHA")) {
-		return GL_SRC_ALPHA;
-	}
-	if (!g_strcmp0(c, "GL_ONE_MINUS_SRC_ALPHA")) {
-		return GL_ONE_MINUS_SRC_ALPHA;
-	}
-	if (!g_strcmp0(c, "GL_SRC_COLOR")) {
-		return GL_SRC_COLOR;
-	}
-	if (!g_strcmp0(c, "GL_DST_COLOR")) {
-		return GL_DST_COLOR;
-	}
-	if (!g_strcmp0(c, "GL_ONE_MINUS_SRC_COLOR")) {
-		return GL_ONE_MINUS_SRC_COLOR;
+	
+	for (cm_dictionary_t *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
+		if (!g_strcmp0(c, list->keyword)) {
+			return list->enumVal;
+		}
 	}
 
 	// ...
@@ -268,22 +173,11 @@ static inline GLenum Cm_BlendConstByName(const char *c) {
  * @brief
  */
 static inline const char *Cm_BlendNameByConst(const GLenum c) {
-
-	switch (c) {
-		case GL_ONE:
-			return "GL_ONE";
-		case GL_ZERO:
-			return "GL_ZERO";
-		case GL_SRC_ALPHA:
-			return "GL_SRC_ALPHA";
-		case GL_ONE_MINUS_SRC_ALPHA:
-			return "GL_ONE_MINUS_SRC_ALPHA";
-		case GL_SRC_COLOR:
-			return "GL_SRC_COLOR";
-		case GL_DST_COLOR:
-			return "GL_DST_COLOR";
-		case GL_ONE_MINUS_SRC_COLOR:
-			return "GL_ONE_MINUS_SRC_COLOR";
+	
+	for (cm_dictionary_t *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
+		if (c == list->enumVal) {
+			return list->keyword;
+		}
 	}
 
 	// ...
