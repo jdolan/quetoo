@@ -207,7 +207,7 @@ static vec3_t PhongLuxel(const lightmap_t *lm, const vec3_t origin) {
 	float best = FLT_MAX;
 
 	const int32_t *e = bsp_file.elements + lm->face->first_element;
-	for (int32_t i = 0; i < lm->face->num_elements; i++, e += 3) {
+	for (int32_t i = 0; i < lm->face->num_elements / 3; i++, e += 3) {
 
 		const bsp_vertex_t *a = bsp_file.vertexes + e[0];
 		const bsp_vertex_t *b = bsp_file.vertexes + e[1];
