@@ -732,28 +732,29 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		}
 
 		if (!strncmp(token, "tintmap.", strlen("tintmap."))) {
-			vec4_t color = Vec4_One();
+			static vec4_t unused_color;
+			vec4_t *color = &unused_color;
 
 			if (!g_strcmp0(token, "tintmap.tint_r_default")) {
-				color = m->tintmap_defaults[TINT_R];
+				color = &m->tintmap_defaults[TINT_R];
 			} else if (!g_strcmp0(token, "tintmap.tint_g_default")) {
-				color = m->tintmap_defaults[TINT_G];
+				color = &m->tintmap_defaults[TINT_G];
 			} else if (!g_strcmp0(token, "tintmap.tint_b_default")) {
-				color = m->tintmap_defaults[TINT_B];
+				color = &m->tintmap_defaults[TINT_B];
 			} else {
 				Cm_MaterialWarn(path, &parser, va("Invalid token \"%s\"", token));
 			}
 
-			const size_t num_parsed = Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, color.xyzw, 4);
+			const size_t num_parsed = Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, color->xyzw, 4);
 			if (num_parsed < 3 || num_parsed > 4) {
 				Cm_MaterialWarn(path, &parser, "Invalid color (must be 3 or 4 components)");
 			} else {
 				if (num_parsed != 4) {
-					color.w = 1.0;
+					color->w = 1.0;
 				}
 
 				for (size_t i = 0; i < num_parsed; i++) {
-					if (color.xyzw[i] < 0.0 || color.xyzw[i] > 1.0) {
+					if (color->xyzw[i] < 0.0 || color->xyzw[i] > 1.0) {
 						Cm_MaterialWarn(path, &parser, "Color number out of range (must be between 0.0 and 1.0)");
 					}
 				}

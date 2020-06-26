@@ -48,6 +48,18 @@ in vertex_data {
 out vec4 out_color;
 vec3 out_color_debug;
 
+uniform vec4 tint_colors[3];
+
+vec3 do_tintmap(vec3 diffuse, vec4 tintmap)
+{
+	diffuse.rgb *= 1.0 - tintmap.a;
+	
+	for (int i = 0; i < 3; i++)
+		diffuse.rgb += (tint_colors[i] * tintmap[i]).rgb * tintmap.a;
+
+	return diffuse.rgb;
+}
+
 /**
  * @brief
  */
@@ -56,14 +68,18 @@ void main(void) {
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
-		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
 		diffusemap *= vertex.color;
 
 		if (diffusemap.a < alpha_threshold) {
 			discard;
 		}
+
+		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
+		diffusemap.rgb = do_tintmap(diffusemap.rgb, tintmap);
+
+		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
+		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));

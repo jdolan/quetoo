@@ -257,7 +257,8 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	switch (context) {
 		case ASSET_CONTEXT_TEXTURES:
-		case ASSET_CONTEXT_MODELS: {
+		case ASSET_CONTEXT_MODELS:
+		case ASSET_CONTEXT_PLAYERS: {
 
 			SDL_Surface *normalmap = NULL;
 			if (*cm->normalmap.path) {
@@ -300,26 +301,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 					Com_Warn("Failed to load specularmap %s for %s\n", cm->specularmap.path, cm->basename);
 				}
 			}
-
-			material->texture->depth = 3;
-
-			byte *data = malloc(layer_size * material->texture->depth);
-
-			memcpy(data + 0 * layer_size, diffusemap->pixels, layer_size);
-			memcpy(data + 1 * layer_size, normalmap->pixels, layer_size);
-			memcpy(data + 2 * layer_size, glossmap->pixels, layer_size);
-
-			R_UploadImage(material->texture, GL_RGBA, data);
-
-			free(data);
-
-			SDL_FreeSurface(normalmap);
-			SDL_FreeSurface(glossmap);
-		}
-			break;
-
-		case ASSET_CONTEXT_PLAYERS: {
-
+			
 			SDL_Surface *tintmap = NULL;
 			if (*cm->tintmap.path) {
 				tintmap = R_LoadMaterialSurface(w, h, cm->tintmap.path);
@@ -331,18 +313,21 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, Color32(0, 0, 0, 0));
 			}
 
-			material->texture->depth = 2;
+			material->texture->depth = 4;
 
 			byte *data = malloc(layer_size * material->texture->depth);
 
 			memcpy(data + 0 * layer_size, diffusemap->pixels, layer_size);
-			memcpy(data + 1 * layer_size, tintmap->pixels, layer_size);
+			memcpy(data + 1 * layer_size, normalmap->pixels, layer_size);
+			memcpy(data + 2 * layer_size, glossmap->pixels, layer_size);
+			memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
 			R_UploadImage(material->texture, GL_RGBA, data);
 
 			free(data);
 
-			SDL_FreeSurface(tintmap);
+			SDL_FreeSurface(normalmap);
+			SDL_FreeSurface(glossmap);
 		}
 			break;
 

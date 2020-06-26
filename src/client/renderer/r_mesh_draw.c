@@ -94,6 +94,8 @@ static struct {
 
 	GLint ticks;
 
+	GLint tint_colors;
+
 	r_media_t *shell;
 } r_mesh_program;
 
@@ -327,6 +329,20 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 			glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
 			glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
 			glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
+		
+			if (*material->cm->tintmap.path) {
+				vec4_t tints[3];
+
+				memcpy(tints, e->tints, sizeof(tints));
+
+				for (int32_t i = 0; i < lengthof(tints); i++) {
+					if (!e->tints[i].w) {
+						tints[i] = material->cm->tintmap_defaults[i];
+					}
+				}
+
+				glUniform4fv(r_mesh_program.tint_colors, 3, tints[0].xyzw);
+			}
 		}
 
 		const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
@@ -480,6 +496,8 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
+
+	r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
 
 	glUseProgram(0);
 	
