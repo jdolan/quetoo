@@ -25,6 +25,9 @@
 
 #define SPRITE_GRAVITY 180.f
 
+/**
+ * @brief Sprite types.
+ */
 typedef enum {
 	/**
 	 * @brief A normal sprite, billboard or directional.
@@ -36,14 +39,6 @@ typedef enum {
 	 */
 	SPRITE_BEAM		= 1
 } cg_sprite_type_t;
-
-typedef enum {
-
-	/**
-	 * @brief 
-	 */
-	SPRITE_GOOD_POSITION = SPRITE_CGAME << 0
-} cg_sprite_flags_t;
 
 typedef float (*cg_easing_function_t) (float life);
 
@@ -168,7 +163,7 @@ typedef struct cg_sprite_s {
 	/**
 	 * @brief Sprite flags.
 	 */
-	cg_sprite_flags_t flags;
+	r_sprite_flags_t flags;
 
 	cg_sprite_t *prev;
 	cg_sprite_t *next;

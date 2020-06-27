@@ -166,10 +166,8 @@ void Cg_AddSprites(void) {
 			const float half_size = ceilf(s->size * .5f);
 			cm_trace_t tr = cgi.Trace(old_origin, s->origin, Vec3(-half_size, -half_size, -half_size), Vec3(half_size, half_size, half_size), 0, CONTENTS_MASK_SOLID);
 
-			if ((tr.start_solid || tr.all_solid) && !(s->flags & SPRITE_GOOD_POSITION)) {
+			if (tr.start_solid || tr.all_solid) {
 				tr = cgi.Trace(old_origin, s->origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
-			} else {
-				s->flags |= SPRITE_GOOD_POSITION;
 			}
 
 			if (tr.fraction < 1.0) {
