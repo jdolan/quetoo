@@ -1151,8 +1151,8 @@ typedef struct {
 
 	g_entity_t *enemy;
 	g_entity_t *activator;
-	g_entity_t *team_chain;
 	g_entity_t *team_master;
+	g_entity_t *team_next;
 
 	uint16_t noise_index;
 	int16_t attenuation;

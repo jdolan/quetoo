@@ -43,24 +43,20 @@ static void G_target_light_Toggle(g_entity_t *self) {
  */
 static void G_target_light_Cycle(g_entity_t *self) {
 
-	if (!self->locals.enemy) {
-		self->locals.enemy = self->locals.team_master;
-	} else {
-		G_target_light_Toggle(self->locals.enemy);
+	G_target_light_Toggle(self);
 
-		self->locals.enemy = self->locals.enemy->locals.team_chain;
-
-		if (!self->locals.enemy) {
-			if (self->locals.spawn_flags & LIGHT_TOGGLE) {
-				self->locals.enemy = NULL;
-				return;
-			} else {
-				self->locals.enemy = self->locals.team_master;
-			}
+	g_entity_t *master = self->locals.team_master ?: self;
+	g_entity_t *next = self->locals.team_next;
+	
+	if (next == NULL) {
+		if (!(master->locals.spawn_flags & LIGHT_TOGGLE)) {
+			next = master;
 		}
 	}
 
-	G_target_light_Toggle(self->locals.enemy);
+	if (next) {
+		G_target_light_Toggle(next);
+	}
 }
 
 /**

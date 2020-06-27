@@ -1010,7 +1010,7 @@ static void G_func_door_Use(g_entity_t *self, g_entity_t *other, g_entity_t *act
 		if (self->locals.move_info.state == MOVE_STATE_GOING_UP
 		        || self->locals.move_info.state == MOVE_STATE_TOP) {
 			// trigger all paired doors
-			for (ent = self; ent; ent = ent->locals.team_chain) {
+			for (ent = self; ent; ent = ent->locals.team_next) {
 				ent->locals.message = NULL;
 				ent->locals.Touch = NULL;
 				G_func_door_GoingDown(ent);
@@ -1020,7 +1020,7 @@ static void G_func_door_Use(g_entity_t *self, g_entity_t *other, g_entity_t *act
 	}
 
 	// trigger all paired doors
-	for (ent = self; ent; ent = ent->locals.team_chain) {
+	for (ent = self; ent; ent = ent->locals.team_next) {
 		ent->locals.message = NULL;
 		ent->locals.Touch = NULL;
 		G_func_door_GoingUp(ent, activator);
@@ -1063,7 +1063,7 @@ static void G_func_door_CalculateMove(g_entity_t *self) {
 
 	// find the smallest distance any member of the team will be moving
 	float min = fabsf(self->locals.move_info.distance);
-	for (ent = self->locals.team_chain; ent; ent = ent->locals.team_chain) {
+	for (ent = self->locals.team_next; ent; ent = ent->locals.team_next) {
 		float dist = fabsf(ent->locals.move_info.distance);
 		if (dist < min) {
 			min = dist;
@@ -1073,7 +1073,7 @@ static void G_func_door_CalculateMove(g_entity_t *self) {
 	const float time = min / self->locals.move_info.speed;
 
 	// adjust speeds so they will all complete at the same time
-	for (ent = self; ent; ent = ent->locals.team_chain) {
+	for (ent = self; ent; ent = ent->locals.team_next) {
 		const float new_speed = fabsf(ent->locals.move_info.distance) / time;
 		const float ratio = new_speed / ent->locals.move_info.speed;
 		if (ent->locals.move_info.accel == ent->locals.move_info.speed) {
@@ -1104,7 +1104,7 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 	mins = ent->abs_mins;
 	maxs = ent->abs_maxs;
 
-	for (trigger = ent->locals.team_chain; trigger; trigger = trigger->locals.team_chain) {
+	for (trigger = ent->locals.team_next; trigger; trigger = trigger->locals.team_next) {
 		mins = Vec3_Minf(mins, trigger->abs_mins);
 		maxs = Vec3_Maxf(maxs, trigger->abs_maxs);
 	}
@@ -1143,11 +1143,11 @@ static void G_func_door_Blocked(g_entity_t *self, g_entity_t *other) {
 	if (self->locals.move_info.wait >= 0) {
 		g_entity_t *ent;
 		if (self->locals.move_info.state == MOVE_STATE_GOING_DOWN) {
-			for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain) {
+			for (ent = self->locals.team_master; ent; ent = ent->locals.team_next) {
 				G_func_door_GoingUp(ent, ent->locals.activator);
 			}
 		} else {
-			for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain) {
+			for (ent = self->locals.team_master; ent; ent = ent->locals.team_next) {
 				G_func_door_GoingDown(ent);
 			}
 		}
@@ -1161,7 +1161,7 @@ static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod
 
 	g_entity_t *ent;
 
-	for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain) {
+	for (ent = self->locals.team_master; ent; ent = ent->locals.team_next) {
 		ent->locals.health = ent->locals.max_health;
 		ent->locals.take_damage = false;
 	}
