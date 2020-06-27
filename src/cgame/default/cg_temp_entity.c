@@ -216,7 +216,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = 1.f,
-		.color = Color4bv(0x202020bb),
+		.color = Color4bv(0xbb202020),
 	});
 
 	if (cgi.client->unclamped_time < last_ric_time) {
@@ -462,7 +462,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = RandomRangef(32.f, 48.f),
-		.color = Color4bv(0x202020aa),
+		.color = Color4bv(0xaa202020),
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {

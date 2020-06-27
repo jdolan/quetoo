@@ -598,7 +598,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			cgi.AddStain(&(const r_stain_t) {
 				.origin = pos,
 				.radius = 8.0 + Randomf() * 4.0,
-				.color = Color4bv(0x00000040),
+				.color = Color4bv(0x40000000),
 			});
 
 			pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 2.0));

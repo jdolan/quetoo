@@ -33,7 +33,7 @@ color_t Color3b(byte r, byte g, byte b) {
  * @brief
  */
 color_t Color3bv(uint32_t rgb) {
-	return Color4bv((rgb << 8) | 0x000000ff);
+	return Color4bv(rgb | 0xff000000);
 }
 
 /**
@@ -67,7 +67,7 @@ color_t Color4b(byte r, byte g, byte b, byte a) {
  */
 color_t Color4bv(uint32_t rgba) {
 	const color32_t c = {
-		.rgba = BigLong(rgba)
+		.rgba = LittleLong(rgba)
 	};
 
 	return Color4b(c.r, c.g, c.b, c.a);
@@ -205,7 +205,7 @@ color_t Color_Mix(const color_t a, const color_t b, float mix) {
 }
 
 /**
- * @brief Attempt to convert a hexadecimal value to its string representation.
+ * @brief Attempt to convert a big endian hexadecimal value to its string representation.
  */
 _Bool Color_Parse(const char *s, color_t *color) {
 
@@ -226,7 +226,7 @@ _Bool Color_Parse(const char *s, color_t *color) {
 		return false;
 	}
 
-	*color = Color4bv(rgba);
+	*color = Color4bv(BigLong(rgba));
 	return true;
 }
 
