@@ -735,43 +735,6 @@ g_client_t *G_ClientByName(char *name) {
 }
 
 /**
- * @brief
- */
-color32_t G_ColorByName(const char *s, color32_t def) {
-
-	if (!s || *s == '\0') {
-		return def;
-	}
-
-	color_t color = Color32_Color(def);
-
-	const float hue = atoi(s);
-	if (hue > 0.f && hue <= 360.f) {
-		color = ColorHSV(hue, 1.f, 1.f);
-	} else {
-		if (!g_ascii_strcasecmp(s, "red")) {
-			color = EFFECT_COLOR_RED;
-		} else if (!g_ascii_strcasecmp(s, "green")) {
-			color = EFFECT_COLOR_GREEN;
-		} else if (!g_ascii_strcasecmp(s, "blue")) {
-			color = EFFECT_COLOR_BLUE;
-		} else if (!g_ascii_strcasecmp(s, "yellow")) {
-			color = EFFECT_COLOR_YELLOW;
-		} else if (!g_ascii_strcasecmp(s, "orange")) {
-			color = EFFECT_COLOR_ORANGE;
-		} else if (!g_ascii_strcasecmp(s, "white")) {
-			color = EFFECT_COLOR_WHITE;
-		} else if (!g_ascii_strcasecmp(s, "pink")) {
-			color = EFFECT_COLOR_PINK;
-		} else if (!g_ascii_strcasecmp(s, "purple")) {
-			color = EFFECT_COLOR_PURPLE;
-		}
-	}
-
-	return Color_Color32(color);
-}
-
-/**
  * @return Get the g_hook_style_t this string describes.
  */
 g_hook_style_t G_HookStyleByName(const char *s) {
