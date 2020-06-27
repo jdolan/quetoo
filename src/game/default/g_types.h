@@ -649,13 +649,13 @@ typedef struct {
 	char *music;
 	char *noise;
 	char *item;
-	char *colors;
 
 	int32_t lip;
 	int32_t distance;
 	int32_t height;
 	int32_t sounds;
 
+	vec3_t	color;
 } g_spawn_temp_t;
 
 #define EOFS(x) (ptrdiff_t) &(((g_entity_t *) 0)->x)
@@ -1169,7 +1169,7 @@ typedef struct {
 	uint16_t noise_index;
 	int16_t attenuation;
 
-	color32_t colors[2];
+	color32_t color;
 
 	float wait;
 	float delay; // before firing targets

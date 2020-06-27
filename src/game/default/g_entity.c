@@ -272,7 +272,7 @@ static const g_field_t fields[] = {
 	{ "sounds", SOFS(sounds), F_INT, FFL_SPAWN_TEMP },
 	{ "noise", SOFS(noise), F_STRING, FFL_SPAWN_TEMP },
 	{ "item", SOFS(item), F_STRING, FFL_SPAWN_TEMP },
-	{ "colors", SOFS(colors), F_STRING, FFL_SPAWN_TEMP },
+	{ "color", SOFS(color), F_VECTOR, FFL_SPAWN_TEMP },
 
 	// world vars, we use strings to differentiate between 0 and unset
 	{ "sky", SOFS(sky), F_STRING, FFL_SPAWN_TEMP },

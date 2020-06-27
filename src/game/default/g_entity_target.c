@@ -30,12 +30,12 @@
 static void G_target_light_Toggle(g_entity_t *self) {
 
 	if ((self->s.effects & EF_LIGHT) == 0) {
-		self->s.color = self->locals.colors[0];
-		self->s.effects |= EF_LIGHT;
+		self->s.color = self->locals.color;
 	} else {
 		self->s.color = Color32(0, 0, 0, 0);
-		self->s.effects &= ~EF_LIGHT;
 	}
+
+	self->s.effects ^= EF_LIGHT;
 }
 
 /**
@@ -43,23 +43,24 @@ static void G_target_light_Toggle(g_entity_t *self) {
  */
 static void G_target_light_Cycle(g_entity_t *self) {
 
-	if ((self->s.effects & EF_LIGHT) == 0) {
-		G_target_light_Toggle(self);
+	if (!self->locals.enemy) {
+		self->locals.enemy = self->locals.team_master;
 	} else {
-		if (self->s.color.rgba == self->locals.colors[0].rgba) {
-			if (self->locals.colors[1].rgba) {
-				self->s.client = self->locals.colors[1].rgba;
-			} else if (self->locals.spawn_flags & LIGHT_TOGGLE) {
-				G_target_light_Toggle(self);
-			}
-		} else {
+		G_target_light_Toggle(self->locals.enemy);
+
+		self->locals.enemy = self->locals.enemy->locals.team_chain;
+
+		if (!self->locals.enemy) {
 			if (self->locals.spawn_flags & LIGHT_TOGGLE) {
-				G_target_light_Toggle(self);
+				self->locals.enemy = NULL;
+				return;
 			} else {
-				self->s.color = self->locals.colors[0];
+				self->locals.enemy = self->locals.team_master;
 			}
 		}
 	}
+
+	G_target_light_Toggle(self->locals.enemy);
 }
 
 /**
@@ -81,11 +82,10 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
 }
 
 /*QUAKED target_light (0 1 0) (-8 -8 -8) (8 8 8) start_on toggle
- Emits a user-defined light when used. Lights can cycle between two colors,
- and also be toggled on and off.
+ Emits a user-defined light when used. Lights can be chained with teams.
 
  -------- Keys --------
- colors : The color(s) to cycle through (1 - 360 hue, "red", "green", "blue", etc..)
+ color : The color of this particular light
  delay : The delay before activating, in seconds (default 0).
  dmg : The radius of the light in units.
  targetname : The target name of this entity.
@@ -101,21 +101,15 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
 */
 void G_target_light(g_entity_t *self) {
 
-	if (!g_game.spawn.colors) {
-		g_game.spawn.colors = "white";
-	}
-
-	char *c = strchr(g_game.spawn.colors, ' ');
-	if (c) {
-		self->locals.colors[1] = G_ColorByName(c + 1, Color32(0, 0, 0, 0));
-		*c = '\0';
+	if (Vec3_Equal(g_game.spawn.color, Vec3_Zero())) {
+		g_game.spawn.color = Vec3_One();
 	}
 
 	if (!self->locals.damage) {
 		self->locals.damage = 300;
 	}
 
-	self->locals.colors[0] = G_ColorByName(g_game.spawn.colors, Color32(255, 255, 255, 255));
+	self->locals.color = Color_Color32(Color3fv(g_game.spawn.color));
 	self->s.termination.x = self->locals.damage; // radius
 
 	self->locals.Use = G_target_light_Use;
