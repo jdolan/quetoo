@@ -81,7 +81,7 @@ static void G_UpdateScore(const g_entity_t *ent, g_score_t *s) {
 			}
 		}
 		if (g_level.ctf) {
-			if (ent->s.effects & EF_CTF_MASK) {
+			if (ent->s.effects & EF_CTF_CARRY) {
 				s->flags |= SCORE_CTF_FLAG;
 			}
 		}

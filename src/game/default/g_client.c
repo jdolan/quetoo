@@ -1184,7 +1184,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		if (strlen(s) && strcmp(s, "default")) { // not default
 			const int32_t hue = atoi(s);
 			if (hue >= 0) {
-				cl->locals.persistent.color = Minf(hue, 360);
+				cl->locals.persistent.color = Minf(hue, 361);
 			}
 		}
 	}

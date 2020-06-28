@@ -266,7 +266,7 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, floa
  * @brief
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	const float hue = Cg_ResolveEffectHue(ent->current.client, color_hue_orange);
+	const vec3_t effect_color = Cg_ResolveEntityEffectHSV(ent->current.client, color_hue_orange);
 
 	Cg_BubbleTrail(ent, start, end, 12.0);
 
@@ -290,8 +290,8 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 				.origin = Vec3_Add(porig, Vec3_Mix(origin, end, step * i)),
 				.size = Maxf(1.7f, powf(1.7f - pdist, power)),
 				.size_velocity = Mixf(-3.5f, -.2f, pdist) * RandomRangef(.66f, 1.f),
-				.color = Vec4(hue, 1.f, 1.f, pdist),
-				.end_color = Vec4(hue, 1.f, 0.f, 0.f)
+				.color = Vec4(effect_color.x, effect_color.y, effect_color.z, pdist),
+				.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
 			})) {
 				break;
 			}
@@ -302,13 +302,13 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.media = (r_media_t *) cg_sprite_particle,
 		.origin = end,
 		.size = 8.f,
-		.color = Color_Color32(ColorHSV(hue, 1.f, 1.f))
+		.color = Color_Color32(ColorHSV(effect_color.x, effect_color.y, effect_color.z))
 	});
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
 		.radius = 100.f,
-		.color = Color_Vec3(ColorHSV(hue, 1.f, 1.f)),
+		.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
 		.intensity = .025f,
 	});
 }
@@ -648,10 +648,12 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 	vec3_t forward;
 	Vec3_Vectors(ent->angles, &forward, NULL, NULL);
 
+	const vec3_t effect_color = Cg_ResolveEntityEffectHSV(ent->current.client, color_hue_green);
+
 	cgi.AddBeam(&(const r_beam_t) {
 		.start = start,
 		.end = Vec3_Add(end, Vec3_Scale(forward, -3.f)),
-		.color = Color_Color32(ColorHSV(Cg_ResolveEffectHue(ent->current.client, color_hue_green), 1.f, 1.f)),
+		.color = Color_Color32(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
 		.image = cg_beam_hook,
 		.size = 1.f
 	});

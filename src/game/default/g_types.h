@@ -233,6 +233,7 @@ typedef enum {
 
 #define EF_CTF_CARRY_BITS		(EF_CTF_CARRY_A | EF_CTF_CARRY_B)
 #define EF_CTF_CARRY_OFFSET		10 // FIXME: any way to calculate this at compile time from EF_CTF_CARRY_A? has to be the bit index. no constexpr in C :((((
+#define EF_CTF_MASK				(EF_CTF_CARRY | EF_CTF_CARRY_BITS)
 
 /**
  * @brief Game-specific entity state trails.
@@ -911,11 +912,6 @@ typedef enum {
 } g_vote_t;
 
 /**
- * @brief Team name and team skin changes are throttled.
- */
-#define TEAM_CHANGE_TIME 5000
-
-/**
  * @brief The name for the CTF skin used in team games.
  */
 #define DEFAULT_TEAM_SKIN "ctf"
@@ -933,14 +929,13 @@ typedef struct {
 
 	color_t shirt, pants, helmet;
 
-	int16_t color; // scoreboard colors
-	int16_t effect; // weapon effect colors
+	int16_t color; // team color hue
+
+	uint32_t effect; // flag effect
 
 	// dynamic info, valid for all teams
 	int16_t score;
 	int16_t captures;
-	uint32_t name_time;
-	uint32_t skin_time;
 	g_spawn_points_t spawn_points;
 	g_entity_t *flag_entity;
 } g_team_t;

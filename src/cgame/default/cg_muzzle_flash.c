@@ -136,7 +136,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 /**
  * @brief
  */
-static void Cg_BlasterFlash(const cl_entity_t *ent, const float hue) {
+static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 	vec3_t forward, right, org, org2;
 
 	// project the puff just in front of the entity
@@ -159,7 +159,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const float hue) {
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
 		.radius = 120.0,
-		.color = Color_Vec3(ColorHSV(hue, .5f, 1.f)),
+		.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y * 0.5f, effect_color.z)),
 		.decay = 300
 	});
 
@@ -182,8 +182,8 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const float hue) {
 			.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen))),
 			.rotation = Randomf() * M_PI * 2.f,
 			.size = 1.f + 2.f * (np - i / flashlen),
-			.color = Vec4(hue, 1.f, 1.f, 0.f),
-			.end_color = Vec4(hue, 1.f, 0.f, 0.f)
+			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
+			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
 		});
 	}
 
@@ -193,8 +193,8 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const float hue) {
 		.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f)),
 		.size = 30.f,
 		.size_velocity = 30.f,
-		.color = Vec4(hue, 1.f, 1.f, 0.f),
-		.end_color = Vec4(hue, 1.f, 0.f, 0.f)
+		.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
+		.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
 	});
 }
 
@@ -230,7 +230,7 @@ void Cg_ParseMuzzleFlash(void) {
 		case MZ_BLASTER:
 			c = cgi.ReadByte();
 			sample = cg_sample_blaster_fire;
- 			Cg_BlasterFlash(ent, Cg_ResolveEffectHue(c ? c - 1 : 0, color_hue_orange));
+ 			Cg_BlasterFlash(ent, Cg_ResolveEntityEffectHSV(c ? c - 1 : 0, color_hue_orange));
 			pitch = 5;
 			break;
 		case MZ_SHOTGUN:

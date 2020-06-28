@@ -993,105 +993,6 @@ static void G_Team_f(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_Teamname_f(g_entity_t *ent) {
-	g_team_t *t;
-
-	if (gi.Argc() != 2) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <name>\n", gi.Argv(0));
-		return;
-	}
-
-	if (!ent->client->locals.persistent.team) {
-		gi.ClientPrint(ent, PRINT_HIGH, "You're not on a team\n");
-		return;
-	}
-
-	t = ent->client->locals.persistent.team;
-
-	if (g_level.time - t->name_time < TEAM_CHANGE_TIME) {
-		return; // prevent change spamming
-	}
-
-	const char *s = gi.Argv(1);
-
-	if (*s != '\0' &&
-		strlen(s) < MAX_TEAM_NAME &&
-		!strchr(s, '|')) { // something valid-ish was provided
-		g_strlcpy(t->name, s, sizeof(t->name));
-	} else {
-		strcpy(t->name, G_TeamDefaults(t)->name);
-	}
-
-	t->name_time = g_level.time;
-
-	G_SetTeamNames();
-
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n",
-	                  ent->client->locals.persistent.net_name, t->name);
-}
-
-/**
- * @brief
- */
-static void G_Teamskin_f(g_entity_t *ent) {
-	int32_t i;
-	g_client_t *cl;
-	g_team_t *t;
-
-	if (gi.Argc() != 2) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <skin>\n", gi.Argv(0));
-		return;
-	}
-
-	if (!ent->client->locals.persistent.team) {
-		gi.ClientPrint(ent, PRINT_HIGH, "You're not on a team\n");
-		return;
-	}
-
-	t = ent->client->locals.persistent.team;
-
-	if (g_level.time - t->skin_time < TEAM_CHANGE_TIME) {
-		return; // prevent change spamming
-	}
-
-	const char *s = gi.Argv(1);
-
-	if (*s != '\0' &&
-		!strchr(s, '/')) { // something valid-ish was provided
-		g_strlcpy(t->skin, s, sizeof(t->skin));
-	} else {
-		strcpy(t->skin, G_TeamDefaults(t)->skin);
-	}
-
-	s = t->skin;
-
-	t->skin_time = g_level.time;
-
-	for (i = 0; i < sv_max_clients->integer; i++) { // update skins
-		cl = g_game.clients + i;
-
-		if (!cl->locals.persistent.team || cl->locals.persistent.team != t) {
-			continue;
-		}
-
-		char *skin_start = strchr(cl->locals.persistent.skin, '/');
-		*skin_start = 0;
-
-		const char *new_model = va("%s/%s", cl->locals.persistent.skin, s);
-
-		g_strlcpy(cl->locals.persistent.skin, new_model, sizeof(cl->locals.persistent.skin));
-
-		gi.SetConfigString(CS_CLIENTS + i,
-		                   va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
-	}
-
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_skin to %s\n",
-	                  ent->client->locals.persistent.net_name, t->skin);
-}
-
-/**
- * @brief
- */
 static void G_Unready_f(g_entity_t *ent) {
 
 	if (!g_level.match) {
@@ -1401,10 +1302,6 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Spectate_f(ent);
 	} else if (g_strcmp0(cmd, "team") == 0 || g_strcmp0(cmd, "join") == 0) {
 		G_Team_f(ent);
-	} else if (g_strcmp0(cmd, "team_name") == 0) {
-		G_Teamname_f(ent);
-	} else if (g_strcmp0(cmd, "team_skin") == 0) {
-		G_Teamskin_f(ent);
 	} else if (g_strcmp0(cmd, "ready") == 0) {
 		G_Ready_f(ent);
 	} else if (g_strcmp0(cmd, "unready") == 0) {

@@ -141,13 +141,13 @@ static struct {
 	cvar_t		*g_team_name;
 	cvar_t		*g_team_shirt;
 	cvar_t		*g_team_color;
-} team_cvars[MAX_TEAMS];
+} g_team_cvars[MAX_TEAMS];
 
 static const struct {
 	const char	*name;
 	const char	*shirt;
-	uint8_t		color;
-} default_team_values[MAX_TEAMS] = {
+	uint16_t	color;
+} g_default_team_values[MAX_TEAMS] = {
 	{ "Red", "ff0000", TEAM_COLOR_RED },
 	{ "Blue", "0000ff", TEAM_COLOR_BLUE },
 	{ "Yellow", "ffff00", TEAM_COLOR_YELLOW },
@@ -160,7 +160,7 @@ static const struct {
 static void G_InitTeam(const g_team_id_t id, const char *name,
 					   const char *tint,
 					   const int16_t color,
-					   const int16_t effect) {
+					   const uint32_t effect) {
 
 	g_team_t *team = &g_teamlist[id];
 
@@ -174,7 +174,8 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
 	team->pants = team->helmet = team->shirt;
 
 	// FIXME: enforcing "ctf" skin is kinda dumb if we have tints. it should just enforce
-	// that the skin has tints, and if it doesn't, use "ctf" or "default"
+	// that the skin has tints (on client side), and if it doesn't, fall back to "ctf", "team" or "default", whichever
+	// first has tints
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 
 	team->effect = effect;
@@ -191,7 +192,7 @@ void G_ResetTeams(void) {
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
-		G_InitTeam(i, team_cvars->g_team_name->string, team_cvars->g_team_shirt->string, team_cvars->g_team_color->integer, i << EF_CTF_CARRY_OFFSET);
+		G_InitTeam(i, g_team_cvars[i].g_team_name->string, g_team_cvars[i].g_team_shirt->string, g_team_cvars[i].g_team_color->integer, i << EF_CTF_CARRY_OFFSET);
 	}
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
@@ -1257,6 +1258,73 @@ static void G_CheckRules(void) {
 		}
 	}
 
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
+		_Bool changed = false, reset_userinfo = false;
+
+		if (g_team_cvars[i].g_team_name->modified) {
+			g_team_cvars[i].g_team_name->modified = false;
+		
+			if (strlen(g_team_cvars[i].g_team_name->string) > 1 && strlen(g_team_cvars[i].g_team_name->string) < lengthof(g_teamlist[i].name) - 1 &&
+				!strstr(g_team_cvars[i].g_team_name->string, "\\") && strcmp(g_team_cvars[i].g_team_name->string, g_teamlist[i].name)) {
+
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s name has been changed to \"%s\"\n", g_teamlist[i].name, g_team_cvars[i].g_team_name->string);
+				strcpy(g_teamlist[i].name, g_team_cvars[i].g_team_name->string);
+				changed = true;
+			}
+		}
+
+		if (g_team_cvars[i].g_team_shirt->modified) {
+			g_team_cvars[i].g_team_shirt->modified = false;
+
+			color_t shirt;
+
+			if (Color_Parse(g_team_cvars[i].g_team_shirt->string, &shirt) && Color_Color32(shirt).rgba != Color_Color32(g_teamlist[i].shirt).rgba) {
+
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s shirt color has been changed to \"%s\"\n", g_teamlist[i].name, g_team_cvars[i].g_team_shirt->string);
+				g_teamlist[i].shirt = g_teamlist[i].helmet = g_teamlist[i].pants = shirt;
+				changed = true;
+				reset_userinfo = true;
+			}
+		}
+
+		if (g_team_cvars[i].g_team_color->modified) {
+			g_team_cvars[i].g_team_color->modified = false;
+			char *end_point;
+
+			int16_t hue = strtol(g_team_cvars[i].g_team_color->string, &end_point, 10);
+
+			if (end_point && hue >= 0 && hue <= 361 && hue != g_teamlist[i].color) {
+
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s effect color has been changed to \"%i\"\n", g_teamlist[i].name, hue);
+				g_teamlist[i].color = hue;
+				changed = true;
+				reset_userinfo = true;
+			}
+		}
+
+		if (changed) {
+			G_SetTeamNames();
+		}
+
+		if (reset_userinfo) {
+
+			for (uint16_t i = 1; i < sv_max_clients->integer; i++) {
+
+				g_entity_t *ent = &g_game.entities[i];
+
+				if (!ent->in_use) {
+					continue;
+				}
+
+				if (!ent->client->locals.persistent.team) {
+					continue;
+				}
+
+				G_ClientUserInfoChanged(ent, ent->client->locals.persistent.user_info);
+			}
+		}
+	}
+
 	if (restart) {
 		G_RestartGame(true);	// reset all clients
 	}
@@ -1520,7 +1588,9 @@ void G_Init(void) {
 	dedicated = gi.GetCvar("dedicated");
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
-		team_cvars[i].g_team_name = gi.GetCvar(va("g_team_%i_name", ))
+		g_team_cvars[i].g_team_name = gi.AddCvar(va("g_team_%i_name", i + 1), g_default_team_values[i].name, 0, NULL);
+		g_team_cvars[i].g_team_shirt = gi.AddCvar(va("g_team_%i_shirt", i + 1), g_default_team_values[i].shirt, 0, NULL);
+		g_team_cvars[i].g_team_color = gi.AddCvar(va("g_team_%i_color", i + 1), va("%i", g_default_team_values[i].color), 0, NULL);
 	}
 
 	G_InitVote();

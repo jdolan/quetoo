@@ -125,11 +125,11 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 			case TEAM_BLUE:
 				color_id = ESC_COLOR_BLUE;
 				break;
-			case TEAM_GREEN:
-				color_id = ESC_COLOR_GREEN;
-				break;
-			case TEAM_ORANGE:
+			case TEAM_YELLOW:
 				color_id = ESC_COLOR_YELLOW;
+				break;
+			case TEAM_WHITE:
+				color_id = ESC_COLOR_WHITE;
 				break;
 			}
 

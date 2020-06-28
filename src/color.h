@@ -27,12 +27,12 @@
  * @brief Color constants.
  */
 #define color_black			Color3bv(0x000000)
-#define color_red			Color3bv(0xff0000)
+#define color_red			Color3bv(0x0000ff)
 #define color_green			Color3bv(0x00ff00)
-#define color_yellow		Color3bv(0xffff00)
-#define color_blue			Color3bv(0x0000ff)
+#define color_yellow		Color3bv(0x00ffff)
+#define color_blue			Color3bv(0xff0000)
 #define color_magenta		Color3bv(0xff00ff)
-#define color_cyan			Color3bv(0x00ffff)
+#define color_cyan			Color3bv(0xffff00)
 #define color_white			Color3bv(0xffffff)
 #define color_transparent	Color4bv(0);
 

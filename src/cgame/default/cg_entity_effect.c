@@ -22,21 +22,29 @@
 #include "cg_local.h"
 
 /**
- * @brief Resolve a client hue from the entity index given in the effect
+ * @brief Resolve HSV from the given hue value
  */
-float Cg_ResolveEffectHue(const uint8_t index, const float default_hue) {
-
-	if (index >= MAX_CLIENTS) {
-		return default_hue;
-	}
-
-	const float hue = cgi.client->client_info[index].hue;
+vec3_t Cg_ResolveEffectHSV(const float hue, const float default_hue) {
 
 	if (hue < 0) {
-		return default_hue;
+		return Vec3(default_hue, 1.f, 1.f);
+	} else if (hue > 360.f) {
+		return Vec3(0.f, 0.f, 1.f);
 	}
 
-	return hue;
+	return Vec3(hue, 1.f, 1.f);
+}
+
+/**
+ * @brief Resolve a client hue from the entity index given in the effect
+ */
+vec3_t Cg_ResolveEntityEffectHSV(const uint8_t index, const float default_hue) {
+
+	if (index >= MAX_CLIENTS) {
+		return Vec3(default_hue, 1.f, 1.f);
+	}
+
+	return Cg_ResolveEffectHSV(cgi.client->client_info[index].hue, default_hue);
 }
 
 /**
@@ -104,47 +112,14 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
-	if (e->effects & EF_CTF_RED) {
+	if (e->effects & EF_CTF_CARRY) {
+		const uint8_t team = (e->effects & EF_CTF_CARRY_BITS) >> EF_CTF_CARRY_OFFSET;
+		const vec3_t effect_color = Cg_ResolveEffectHSV(cg_team_info[team].hue, 0.f);
+
 		const cg_light_t l = {
 			.origin = e->origin,
 			.radius = 80.f,
-			.color = Vec3(1.f, .3f, .3f)
-		};
-
-		Cg_AddLight(&l);
-
-		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
-	}
-
-	if (e->effects & EF_CTF_BLUE) {
-		const cg_light_t l = {
-			.origin = e->origin,
-			.radius = 80.0,
-			.color = Vec3(0.3f, 0.3f, 1.f)
-		};
-
-		Cg_AddLight(&l);
-
-		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
-	}
-
-	if (e->effects & EF_CTF_GREEN) {
-		const cg_light_t l = {
-			.origin =  e->origin,
-			.radius = 80.0,
-			.color = Vec3(0.3f, 1.0f, 0.3f)
-		};
-
-		Cg_AddLight(&l);
-
-		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
-	}
-
-	if (e->effects & EF_CTF_ORANGE) {
-		const cg_light_t l = {
-			.origin = e->origin,
-			.radius = 80.0,
-			.color = Vec3(1.f, 0.7f, 0.1f)
+			.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z))
 		};
 
 		Cg_AddLight(&l);

@@ -580,7 +580,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
 	                  other->client->locals.persistent.net_name, t->name);
 
-	other->s.effects |= G_EffectForTeam(t);
+	other->s.effects |= EF_CTF_CARRY | G_EffectForTeam(t);
 	return true;
 }
 
@@ -2221,7 +2221,7 @@ static g_item_t g_items[] = {
 		.quantity = 0,
 		.ammo = NULL,
 		.type = ITEM_FLAG,
-		.tag = TEAM_GREEN,
+		.tag = TEAM_YELLOW,
 		.priority = 0.75,
 		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},
@@ -2250,7 +2250,7 @@ static g_item_t g_items[] = {
 		.quantity = 0,
 		.ammo = NULL,
 		.type = ITEM_FLAG,
-		.tag = TEAM_ORANGE,
+		.tag = TEAM_WHITE,
 		.priority = 0.75,
 		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},

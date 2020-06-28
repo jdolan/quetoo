@@ -25,9 +25,8 @@
 /**
  * @brief
  */
-static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const float hue) {
-	const vec4_t color = Vec4(hue, 1.f, 1.f, 1.f);
-	const color_t color_rgb = ColorHSVA(color.x, color.y, color.z, color.w);
+static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t effect_color) {
+	const color_t color_rgb = ColorHSVA(effect_color.x, effect_color.y, effect_color.z, 1.f);
 
 	for (int32_t i = 0; i < 2; i++)
 	{
@@ -41,8 +40,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const float hue
 			.size = 22.5f,
 			.size_velocity = 75.f,
 			.dir = (i == 1) ? dir : Vec3_Zero(),
-			.color = Vec4(hue, saturation, 1.f, 0.f),
-			.end_color = Vec4(hue, saturation, 0.f, 0.f)
+			.color = Vec4(effect_color.x, effect_color.y * saturation, effect_color.z, 0.f),
+			.end_color = Vec4(effect_color.x, effect_color.y * saturation, 0.f, 0.f)
 		});
 	}
 
@@ -58,8 +57,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const float hue
 			.size = 4.f,
 			.acceleration = Vec3_Scale(velocity, -2.f),
 			.lifetime = 500,
-			.color = Vec4(hue, 1.f, 1.f, 0.f),
-			.end_color = Vec4(hue, 1.f, 0.f, 0.f)
+			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
+			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
 		});
 	}
 
@@ -73,8 +72,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const float hue
 			.rotation = Randomf() * M_PI * 2.f,
 			.rotation_velocity = Randomf() * .1f,
 			.size = 25.f,
-			.color = Vec4(hue, 1.f, 1.f, 0.f),
-			.end_color = Vec4(hue, 1.f, 0.f, 0.f)
+			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
+			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
 		});
 	}
 
@@ -90,8 +89,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const float hue
 		.dir = dir,
 		.size = 25.f,
 		.size_velocity = 20.f,
-		.color = Vec4(hue, flame_sat, 1.f, 0.f),
-		.end_color = Vec4(hue, flame_sat, 0.f, 0.f),
+		.color = Vec4(effect_color.x, effect_color.y * flame_sat, effect_color.z, 0.f),
+		.end_color = Vec4(effect_color.x, effect_color.y * flame_sat, 0.f, 0.f),
 	});
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -578,10 +577,9 @@ static float Cg_EaseInExpo(float life) {
 /**
  * @brief
  */
-static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const float hue) {
+static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const vec3_t effect_color) {
 	vec3_t forward;
-	vec4_t color = Vec4(hue, 1.f, 1.f, 1.f);
-	color_t color_rgb = ColorHSVA(color.x, color.y, color.z, color.w);
+	color_t color_rgb = ColorHSVA(effect_color.x, effect_color.y, effect_color.z, 1.f);
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = start,
@@ -613,8 +611,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			.size = frac * 8.f,
 			.size_velocity = 1.f / MILLIS_TO_SECONDS(lifetime),
 			.life_easing = Cg_EaseInExpo,
-			.color = Vec4(hue, sat, RandomRangef(.8f, 1.f), 0.f),
-			.end_color = Vec4(hue, sat, 0.f, 0.f)
+			.color = Vec4(effect_color.x, effect_color.y, effect_color.z * RandomRangef(.8f, 1.f), 0.f),
+			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
 		});
 	}
 
@@ -662,7 +660,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 				.velocity = velocity,
 				.acceleration = Vec3_Scale(velocity, -1.f),
 				.lifetime = 1000,
-				.color = color,
+				.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 1.f),
 				.size = 8.f,
 				.size_velocity = -8.f
 			});
@@ -926,7 +924,7 @@ void Cg_ParseTempEntity(void) {
 			pos = cgi.ReadPosition();
 			dir = cgi.ReadDir();
 			i = cgi.ReadByte();
-			Cg_BlasterEffect(pos, dir, Cg_ResolveEffectHue(i ? i - 1 : 0, color_hue_orange));
+			Cg_BlasterEffect(pos, dir, Cg_ResolveEntityEffectHSV(i ? i - 1 : 0, color_hue_orange));
 			break;
 
 		case TE_TRACER:
@@ -975,7 +973,7 @@ void Cg_ParseTempEntity(void) {
 			dir = cgi.ReadDir();
 			i = cgi.ReadLong();
 			j = cgi.ReadByte();
-			Cg_RailEffect(pos, pos2, dir, i, Cg_ResolveEffectHue(j ? j - 1 : 0, color_hue_cyan));
+			Cg_RailEffect(pos, pos2, dir, i, Cg_ResolveEntityEffectHSV(j ? j - 1 : 0, color_hue_cyan));
 			break;
 
 		case TE_EXPLOSION: // rocket and grenade explosions
