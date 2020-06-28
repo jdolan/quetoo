@@ -166,10 +166,8 @@ void Cg_AddSprites(void) {
 			const float half_size = ceilf(s->size * .5f);
 			cm_trace_t tr = cgi.Trace(old_origin, s->origin, Vec3(-half_size, -half_size, -half_size), Vec3(half_size, half_size, half_size), 0, CONTENTS_MASK_SOLID);
 
-			if ((tr.start_solid || tr.all_solid) && !(s->flags & SPRITE_GOOD_POSITION)) {
+			if (tr.start_solid || tr.all_solid) {
 				tr = cgi.Trace(old_origin, s->origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
-			} else {
-				s->flags |= SPRITE_GOOD_POSITION;
 			}
 
 			if (tr.fraction < 1.0) {
@@ -182,31 +180,31 @@ void Cg_AddSprites(void) {
 		const color32_t color = Color_Color32(ColorHSVA(lerped_color.x, lerped_color.y, lerped_color.z, lerped_color.w));
 
 		switch (s->type) {
-		case SPRITE_NORMAL:
-			s->rotation += s->rotation_velocity * delta;
+			case SPRITE_NORMAL:
+				s->rotation += s->rotation_velocity * delta;
 
-			cgi.AddSprite(&(r_sprite_t) {
-				.origin = s->origin,
-				.size = s->size,
-				.color = color,
-				.rotation = s->rotation,
-				.media = s->media,
-				.life = life,
-				.flags = (r_sprite_flags_t)s->flags,
-				.dir = s->dir
-			});
-			break;
-		case SPRITE_BEAM:
-			s->termination = Vec3_Add(s->termination, Vec3_Scale(s->velocity, delta));
+				cgi.AddSprite(&(r_sprite_t) {
+					.origin = s->origin,
+					.size = s->size,
+					.color = color,
+					.rotation = s->rotation,
+					.media = s->media,
+					.life = life,
+					.flags = (r_sprite_flags_t)s->flags,
+					.dir = s->dir
+				});
+				break;
+			case SPRITE_BEAM:
+				s->termination = Vec3_Add(s->termination, Vec3_Scale(s->velocity, delta));
 
-			cgi.AddBeam(&(r_beam_t) {
-				.start = s->origin,
-				.end = s->termination,
-				.size = s->size,
-				.image = (r_image_t *) s->image,
-				.color = color,
-			});
-			break;
+				cgi.AddBeam(&(r_beam_t) {
+					.start = s->origin,
+					.end = s->termination,
+					.size = s->size,
+					.image = (r_image_t *) s->image,
+					.color = color,
+				});
+				break;
 		}
 		
 		if (s->think)

@@ -97,8 +97,8 @@ const g_item_t *G_ClientArmor(const g_entity_t *ent) {
 static void G_ItemRespawn(g_entity_t *ent) {
 
 	if (ent->locals.team) {
-		if (ent->locals.team_chain) {
-			ent = ent->locals.team_chain;
+		if (ent->locals.team_next) {
+			ent = ent->locals.team_next;
 		} else {
 			ent = ent->locals.team_master;
 		}

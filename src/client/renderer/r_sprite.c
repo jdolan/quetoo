@@ -190,7 +190,7 @@ static void R_AddSpriteInstance(const r_sprite_instance_t *in, const r_sprite_fl
 
 	out[0].color = out[1].color = out[2].color = out[3].color = color;
 	out[1].lerp = out[2].lerp = out[3].lerp = out[0].lerp;
-	out[0].blend_depth = out[1].blend_depth = out[2].blend_depth = out[3].blend_depth = (flags & SPRITE_NO_BLEND) ? 0 : -1;
+	out[0].blend_depth = out[1].blend_depth = out[2].blend_depth = out[3].blend_depth = (flags & SPRITE_NO_BLEND_DEPTH) ? 0 : -1;
 
 	if (is_current_batch) {
 		last->count++;

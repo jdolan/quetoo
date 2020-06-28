@@ -681,17 +681,17 @@ typedef enum {
 	/**
 	 * @brief If set, sprite does not attempt to check blend depth.
 	 */
-	SPRITE_NO_BLEND		= 1 << 0,
+	SPRITE_NO_BLEND_DEPTH	= 1 << 0,
 
 	/**
 	 * @brief If set, animation interpolates
 	 */
-	SPRITE_LERP			= 1 << 1,
+	SPRITE_LERP				= 1 << 1,
 
 	/**
 	 * @brief Beginning of flags reserved for cgame
 	 */
-	SPRITE_CGAME		= 1 << 16
+	SPRITE_CGAME			= 1 << 16
 } r_sprite_flags_t;
 
 /**

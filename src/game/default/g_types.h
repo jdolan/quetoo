@@ -252,18 +252,6 @@ typedef enum {
 } g_entity_trail_t;
 
 /**
- * @brief Effect colors for particle trails and dynamic light flashes.
- */
-#define EFFECT_COLOR_RED		Color3b(155, 31, 10)
-#define EFFECT_COLOR_GREEN		Color3b(75, 91, 39)
-#define EFFECT_COLOR_BLUE		Color3b(11, 63, 83)
-#define EFFECT_COLOR_YELLOW		Color3b(255, 255, 83)
-#define EFFECT_COLOR_ORANGE		Color3b(255, 147, 10)
-#define EFFECT_COLOR_WHITE		Color3b(255, 255, 211)
-#define EFFECT_COLOR_PINK		Color3b(235, 151, 127)
-#define EFFECT_COLOR_PURPLE		Color3b(39, 39, 63)
-
-/**
  * @brief Scoreboard background color hues.
  */
 #define TEAM_COLOR_RED			360
@@ -1163,8 +1151,8 @@ typedef struct {
 
 	g_entity_t *enemy;
 	g_entity_t *activator;
-	g_entity_t *team_chain;
 	g_entity_t *team_master;
+	g_entity_t *team_next;
 
 	uint16_t noise_index;
 	int16_t attenuation;

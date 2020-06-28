@@ -335,7 +335,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 				memcpy(tints, e->tints, sizeof(tints));
 
-				for (int32_t i = 0; i < lengthof(tints); i++) {
+				for (size_t i = 0; i < lengthof(tints); i++) {
 					if (!e->tints[i].w) {
 						tints[i] = material->cm->tintmap_defaults[i];
 					}

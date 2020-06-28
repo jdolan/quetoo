@@ -647,7 +647,7 @@ static void G_Physics_Push(g_entity_t *ent) {
 	g_push_p = g_pushes;
 
 	// make sure all team slaves can move before committing any moves
-	for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
+	for (g_entity_t *part = ent; part; part = part->locals.team_next) {
 		if (!Vec3_Equal(part->locals.velocity, Vec3_Zero()) ||
 				!Vec3_Equal(part->locals.avelocity, Vec3_Zero())) { // object is moving
 			vec3_t move, amove;
@@ -662,13 +662,13 @@ static void G_Physics_Push(g_entity_t *ent) {
 	}
 
 	if (obstacle) { // blocked, let's try again next frame
-		for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
+		for (g_entity_t *part = ent; part; part = part->locals.team_next) {
 			if (part->locals.next_think) {
 				part->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 			}
 		}
 	} else { // the move succeeded, so call all think functions
-		for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
+		for (g_entity_t *part = ent; part; part = part->locals.team_next) {
 			G_RunThink(part);
 		}
 	}

@@ -401,51 +401,52 @@ static void G_ParseEntity(parser_t *parser, g_entity_t *ent) {
  * All but the last will have the team_chain field set to the next one.
  */
 static void G_InitEntityTeams(void) {
-	g_entity_t *e, *e2;
-	uint16_t i, j;
 
-	uint16_t teams = 0, team_entities = 0;
-	for (i = 1, e = g_game.entities + i; i < ge.num_entities; i++, e++) {
+	int32_t teams = 0, team_entities = 0;
 
-		if (!e->in_use) {
+	g_entity_t *master = g_game.entities + 1;
+	for (int32_t i = 1; i < ge.num_entities; i++, master++) {
+
+		if (!master->in_use) {
 			continue;
 		}
 
-		if (!e->locals.team) {
+		if (!master->locals.team) {
 			continue;
 		}
 
-		if (e->locals.flags & FL_TEAM_SLAVE) {
+		if (master->locals.flags & FL_TEAM_SLAVE) {
 			continue;
 		}
 
-		g_entity_t *chain = e;
-		e->locals.team_master = e;
+		g_entity_t *team = master;
+		master->locals.team_master = master;
 
 		teams++;
 		team_entities++;
 
-		for (j = i + 1, e2 = e + 1; j < ge.num_entities; j++, e2++) {
+		g_entity_t *next = master + 1;
+		for (int32_t j = i + 1; j < ge.num_entities; j++, next++) {
 
-			if (!e2->in_use) {
+			if (!next->in_use) {
 				continue;
 			}
 
-			if (!e2->locals.team) {
+			if (!next->locals.team) {
 				continue;
 			}
 
-			if (e2->locals.flags & FL_TEAM_SLAVE) {
+			if (next->locals.flags & FL_TEAM_SLAVE) {
 				continue;
 			}
 
-			if (!g_strcmp0(e->locals.team, e2->locals.team)) {
+			if (!g_strcmp0(master->locals.team, next->locals.team)) {
 
-				e2->locals.team_master = e;
-				e2->locals.flags |= FL_TEAM_SLAVE;
+				next->locals.team_master = master;
+				next->locals.flags |= FL_TEAM_SLAVE;
 
-				chain->locals.team_chain = e2;
-				chain = e2;
+				team->locals.team_next = next;
+				team = next;
 
 				team_entities++;
 			}
