@@ -225,14 +225,14 @@ typedef enum {
 #define EF_CORPSE			(EF_GAME << 1) // to differentiate own corpse from self
 #define EF_RESPAWN			(EF_GAME << 2) // yellow shell
 #define EF_QUAD				(EF_GAME << 3) // green shell
-#define EF_CTF_RED			(EF_GAME << 4) // carrying red flag
-#define EF_CTF_BLUE			(EF_GAME << 5) // carrying blue flag
-#define EF_CTF_GREEN		(EF_GAME << 6) // carrying green flag
-#define EF_CTF_ORANGE		(EF_GAME << 7) // carrying orange flag
-#define EF_DESPAWN			(EF_GAME << 8) // translucent
-#define EF_LIGHT			(EF_GAME << 9) // colored light
+#define EF_CTF_CARRY		(EF_GAME << 4) // carrying a flag
+#define EF_CTF_CARRY_A		(EF_GAME << 5) // these two bits define which flag we're carrying
+#define EF_CTF_CARRY_B		(EF_GAME << 6) // 
+#define EF_DESPAWN			(EF_GAME << 7) // translucent
+#define EF_LIGHT			(EF_GAME << 8) // colored light
 
-#define EF_CTF_MASK			(EF_CTF_RED | EF_CTF_BLUE | EF_CTF_GREEN | EF_CTF_ORANGE)
+#define EF_CTF_CARRY_BITS		(EF_CTF_CARRY_A | EF_CTF_CARRY_B)
+#define EF_CTF_CARRY_OFFSET		10 // FIXME: any way to calculate this at compile time from EF_CTF_CARRY_A? has to be the bit index. no constexpr in C :((((
 
 /**
  * @brief Game-specific entity state trails.
@@ -268,8 +268,8 @@ typedef enum {
  */
 #define TEAM_COLOR_RED			360
 #define TEAM_COLOR_BLUE			240
-#define TEAM_COLOR_GREEN		120
-#define TEAM_COLOR_ORANGE		30
+#define TEAM_COLOR_YELLOW		60
+#define TEAM_COLOR_WHITE		361
 
 /**
  * @brief Team ID
@@ -277,8 +277,8 @@ typedef enum {
 typedef enum {
 	TEAM_RED,
 	TEAM_BLUE,
-	TEAM_GREEN,
-	TEAM_ORANGE,
+	TEAM_YELLOW,
+	TEAM_WHITE,
 
 	MAX_TEAMS
 } g_team_id_t;

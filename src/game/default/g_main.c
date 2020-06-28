@@ -137,6 +137,23 @@ cvar_t *dedicated;
 g_team_t g_teamlist[MAX_TEAMS];
 static g_team_t g_teamlist_default[MAX_TEAMS];
 
+static struct {
+	cvar_t		*g_team_name;
+	cvar_t		*g_team_shirt;
+	cvar_t		*g_team_color;
+} team_cvars[MAX_TEAMS];
+
+static const struct {
+	const char	*name;
+	const char	*shirt;
+	uint8_t		color;
+} default_team_values[MAX_TEAMS] = {
+	{ "Red", "ff0000", TEAM_COLOR_RED },
+	{ "Blue", "0000ff", TEAM_COLOR_BLUE },
+	{ "Yellow", "ffff00", TEAM_COLOR_YELLOW },
+	{ "White", "ffffff", TEAM_COLOR_WHITE }
+};
+
 /**
  * @brief
  */
@@ -154,9 +171,10 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
 	team->color = color;
 
 	Color_Parse(tint, &team->shirt);
-	Color_Parse(tint, &team->pants);
-	Color_Parse(tint, &team->helmet);
+	team->pants = team->helmet = team->shirt;
 
+	// FIXME: enforcing "ctf" skin is kinda dumb if we have tints. it should just enforce
+	// that the skin has tints, and if it doesn't, use "ctf" or "default"
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 
 	team->effect = effect;
@@ -172,10 +190,9 @@ void G_ResetTeams(void) {
 
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 
-	G_InitTeam(TEAM_RED, "Red", "ff0000", TEAM_COLOR_RED, EF_CTF_RED);
-	G_InitTeam(TEAM_BLUE, "Blue", "0000ff", TEAM_COLOR_BLUE, EF_CTF_BLUE);
-	G_InitTeam(TEAM_GREEN, "Green", "00ff00", TEAM_COLOR_GREEN, EF_CTF_GREEN);
-	G_InitTeam(TEAM_ORANGE, "Orange", "aa6600", TEAM_COLOR_ORANGE, EF_CTF_ORANGE);
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
+		G_InitTeam(i, team_cvars->g_team_name->string, team_cvars->g_team_shirt->string, team_cvars->g_team_color->integer, i << EF_CTF_CARRY_OFFSET);
+	}
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
 
@@ -519,7 +536,7 @@ static void G_BeginIntermission(const char *map) {
 	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NONE, 0);
 
 	// stay on same level if not provided
-	g_level.next_map = map ? : g_level.name;
+	g_level.next_map = map ?: g_level.name;
 }
 
 /**
@@ -1501,6 +1518,10 @@ void G_Init(void) {
 	sv_hostname = gi.GetCvar("sv_hostname");
 
 	dedicated = gi.GetCvar("dedicated");
+
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
+		team_cvars[i].g_team_name = gi.GetCvar(va("g_team_%i_name", ))
+	}
 
 	G_InitVote();
 
