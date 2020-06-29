@@ -761,7 +761,6 @@ static void G_InitSpawnPoints(void) {
 		}
 	}
 
-	// if we have team spawns, copy them over
 	if (!g_team_red->spawn_points.count) {
 
 		// none in the map, let's make some!

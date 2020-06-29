@@ -304,6 +304,7 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 
 		case ANIM_LEGS_LAND1:
 		case ANIM_LEGS_LAND2:
+		case ANIM_LEGS_TURN:
 			return ANIM_LEGS_IDLE;
 
 		default:

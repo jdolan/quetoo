@@ -32,6 +32,7 @@
 typedef struct {
 	char team_name[MAX_USER_INFO_KEY];
 	float hue;
+	color_t color;
 } cg_team_info_t;
 
 extern cg_team_info_t cg_team_info[MAX_TEAMS];

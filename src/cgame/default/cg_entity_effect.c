@@ -143,7 +143,6 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_LIGHT) {
-
 		const color_t color = Color32_Color(ent->current.color);
 
 		const cg_light_t l = {
@@ -153,6 +152,16 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		};
 
 		Cg_AddLight(&l);
+	}
+
+	if (e->effects & EF_TEAM_TINT) {
+		const uint8_t team = ent->current.animation1;
+
+		e->tints[0] = Vec4(cg_team_info[team].color.r, cg_team_info[team].color.g, cg_team_info[team].color.b, 1.f);
+
+		for (int32_t i = 1; i < 3; i++) {
+			e->tints[i] = e->tints[0];
+		}
 	}
 
 	if (ent->current.trail == TRAIL_ROCKET) {

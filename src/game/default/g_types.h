@@ -230,6 +230,7 @@ typedef enum {
 #define EF_CTF_CARRY_B		(EF_GAME << 6) // 
 #define EF_DESPAWN			(EF_GAME << 7) // translucent
 #define EF_LIGHT			(EF_GAME << 8) // colored light
+#define EF_TEAM_TINT		(EF_GAME << 9) // tint by the team color provided
 
 #define EF_CTF_CARRY_BITS		(EF_CTF_CARRY_A | EF_CTF_CARRY_B)
 #define EF_CTF_CARRY_OFFSET		10 // FIXME: any way to calculate this at compile time from EF_CTF_CARRY_A? has to be the bit index. no constexpr in C :((((

@@ -163,7 +163,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 static void G_ClientWorldAngles(g_entity_t *ent) {
 
 	if (ent->locals.dead) { // just lay there like a lump
-		ent->s.angles.x = 0.0;
+		ent->s.angles.x = ent->s.angles.z = 0.0;
 		return;
 	}
 
@@ -328,7 +328,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 
 		entity_animation_t anim = ANIM_LEGS_RUN;
 
-		if (cl->speed < 200.0) {
+		if (cl->speed < 300.0) {
 			anim = ANIM_LEGS_WALK;
 
 			if (backwards) {

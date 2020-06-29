@@ -62,7 +62,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 
 	// resolve the projectile origin
 	vec3_t ent_forward, ent_right, ent_up;
-	Vec3_Vectors(ent->s.angles, &ent_forward, &ent_right, &ent_up);
+	Vec3_Vectors(ent->client->locals.angles, &ent_forward, &ent_right, &ent_up);
 
 	*org = Vec3_Add(start, Vec3_Scale(ent_forward, 12.0));
 

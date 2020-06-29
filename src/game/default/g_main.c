@@ -215,6 +215,8 @@ void G_SetTeamNames(void) {
 		g_strlcat(team_info, g_teamlist[t].name, sizeof(team_info));
 		g_strlcat(team_info, "\\", sizeof(team_info));
 		g_strlcat(team_info, va("%i", g_teamlist[t].color), sizeof(team_info));
+		g_strlcat(team_info, "\\", sizeof(team_info));
+		g_strlcat(team_info, Color_Unparse(g_teamlist[t].shirt), sizeof(team_info));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);

@@ -106,7 +106,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
 		ent->animation1.frame = ent->animation2.frame = -1;
 		ent->previous_origin = to->origin;
 		Cl_ResetTrails(ent);
-		ent->legs_yaw = to->angles.y;
+		ent->legs_current_yaw = to->angles.y;
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;
 	}

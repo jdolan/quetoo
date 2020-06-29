@@ -1174,6 +1174,9 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 		} else {
 			ent->locals.health = 0;
 		}
+	} else if (ent->locals.item->type == ITEM_FLAG) {
+		// pass flag tint over
+		ent->s.animation1 = item->tag;
 	}
 
 	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS * 2;
@@ -2147,7 +2150,7 @@ static g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/ctf/flag1/tris.obj"
+	 model="models/ctf/flag/tris.obj"
 	 */
 	{
 		.class_name = "item_flag_team1",
@@ -2156,8 +2159,8 @@ static g_item_t g_items[] = {
 		.Drop = G_DropFlag,
 		.Think = NULL,
 		.pickup_sound = NULL,
-		.model = "models/ctf/flag1/tris.obj",
-		.effects = EF_BOB | EF_ROTATE,
+		.model = "models/ctf/flag/tris.obj",
+		.effects = EF_BOB | EF_ROTATE | EF_TEAM_TINT,
 		.icon = "pics/i_flag1",
 		.name = "Enemy Flag",
 		.quantity = 0,
@@ -2176,7 +2179,7 @@ static g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/ctf/flag2/tris.obj"
+	 model="models/ctf/flag/tris.obj"
 	 */
 	{
 		.class_name = "item_flag_team2",
@@ -2185,8 +2188,8 @@ static g_item_t g_items[] = {
 		.Drop = G_DropFlag,
 		.Think = NULL,
 		.pickup_sound = NULL,
-		.model = "models/ctf/flag2/tris.obj",
-		.effects = EF_BOB | EF_ROTATE,
+		.model = "models/ctf/flag/tris.obj",
+		.effects = EF_BOB | EF_ROTATE | EF_TEAM_TINT,
 		.icon = "pics/i_flag2",
 		.name = "Enemy Flag",
 		.quantity = 0,
@@ -2205,7 +2208,7 @@ static g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/ctf/flag3/tris.obj"
+	 model="models/ctf/flag/tris.obj"
 	 */
 	{
 		.class_name = "item_flag_team3",
@@ -2214,8 +2217,8 @@ static g_item_t g_items[] = {
 		.Drop = G_DropFlag,
 		.Think = NULL,
 		.pickup_sound = NULL,
-		.model = "models/ctf/flag3/tris.obj",
-		.effects = EF_BOB | EF_ROTATE,
+		.model = "models/ctf/flag/tris.obj",
+		.effects = EF_BOB | EF_ROTATE | EF_TEAM_TINT,
 		.icon = "pics/i_flag3",
 		.name = "Enemy Flag",
 		.quantity = 0,
@@ -2234,7 +2237,7 @@ static g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/ctf/flag4/tris.obj"
+	 model="models/ctf/flag/tris.obj"
 	 */
 	{
 		.class_name = "item_flag_team4",
@@ -2243,8 +2246,8 @@ static g_item_t g_items[] = {
 		.Drop = G_DropFlag,
 		.Think = NULL,
 		.pickup_sound = NULL,
-		.model = "models/ctf/flag4/tris.obj",
-		.effects = EF_BOB | EF_ROTATE,
+		.model = "models/ctf/flag/tris.obj",
+		.effects = EF_BOB | EF_ROTATE | EF_TEAM_TINT,
 		.icon = "pics/i_flag4",
 		.name = "Enemy Flag",
 		.quantity = 0,

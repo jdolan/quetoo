@@ -879,6 +879,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 
 	// and calculate delta angles
 	ent->s.angles = Vec3_Zero();
+	ent->client->locals.angles = spawn->s.angles;
 	delta_angles = Vec3_Subtract(spawn->s.angles, cmd_angles);
 
 	// pack the new origin and delta angles into the player state
