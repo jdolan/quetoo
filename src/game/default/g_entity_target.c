@@ -81,14 +81,15 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
  Emits a user-defined light when used. Lights can be chained with teams.
 
  -------- Keys --------
- color : The color of this particular light
+ color : The light color (default 1.0 1.0 1.0).
  delay : The delay before activating, in seconds (default 0).
- dmg : The radius of the light in units.
+ dmg : The radius of the light in units (default 300).
  targetname : The target name of this entity.
+ team : The team name for alternating lights.
  wait : If specified, an additional cycle will fire after this interval.
 
  -------- Spawn flags --------
- start_on : The light starts on, with the first configured color.
+ start_on : The light will start on.
  toggle : The light will include an off state in its cycle.
 
  -------- Notes --------
