@@ -328,7 +328,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 
 		entity_animation_t anim = ANIM_LEGS_RUN;
 
-		if (cl->speed < 300.0) {
+		if (cl->speed < 290.0) {
 			anim = ANIM_LEGS_WALK;
 
 			if (backwards) {
