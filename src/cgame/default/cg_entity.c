@@ -155,20 +155,32 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 #define CLIENT_LEGS_YAW_MAX				65.f
 
 /**
+ * @brief Clamp angle
+ */
+#define CLIENT_LEGS_CLAMP				(CLIENT_LEGS_YAW_MAX * 1.5f)
+
+/**
  * @brief The speed that the legs will catch up to the current leg yaw.
  */
 #define CLIENT_LEGS_YAW_LERP_SPEED		240.f
 
-static inline float AngleMod(const float a) {
-	return (360.0 / 65536) * ((int32_t) (a * (65536 / 360.0)) & 65535);
+static inline float AngleMod(float a) {
+	a = fmodf(a, 360.f);// (360.0 / 65536) * ((int32_t) (a * (65536 / 360.0)) & 65535);
+
+	if (a < 0) {
+		return a + (((int32_t)(a / 360.f) + 1) * 360.f);
+	}
+
+	return a;
 }
 
 static inline float SmallestAngleBetween(const float x, const float y) {
 	return min(360.f - fabsf(x - y), fabsf(x - y));
 }
 
-static inline float Cg_CalculateAngle(const float speed, float current, const float ideal) {
+static inline float Cg_CalculateAngle(const float speed, float current, float ideal) {
 	current = AngleMod(current);
+	ideal = AngleMod(ideal);
 
 	if (current == ideal) {
 		return current;
@@ -269,8 +281,10 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			}
 		} else {
 
-			// if we're too far beyond max, snap us
-			if (SmallestAngleBetween(ent->legs_yaw, ent->angles.y) > CLIENT_LEGS_YAW_MAX) {
+			const float angle_diff = SmallestAngleBetween(ent->legs_yaw, ent->angles.y);
+
+			if (ent->animation2.animation == ANIM_LEGS_TURN ||
+				fabsf(angle_diff) > CLIENT_LEGS_YAW_MAX) {
 
 				ent->legs_yaw = ent->angles.y;
 
@@ -285,7 +299,11 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 		ent->legs_current_yaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->frame_msec), ent->legs_current_yaw, ent->legs_yaw);
 
-		if (fabs(SmallestAngleBetween(ent->legs_yaw, ent->legs_current_yaw)) > 1) {
+		const float angle_delta = AngleMod(ent->legs_current_yaw - ent->legs_yaw + 180.0f) - 180.0f;
+
+		ent->legs_current_yaw = AngleMod(ent->legs_yaw + clamp(angle_delta, -CLIENT_LEGS_CLAMP, CLIENT_LEGS_CLAMP));
+
+		if (fabsf(SmallestAngleBetween(ent->legs_yaw, ent->legs_current_yaw)) > 1) {
 			if (ent->animation2.animation == ANIM_LEGS_IDLE) {
 				ent->animation2.time = cgi.client->unclamped_time;
 				ent->animation2.animation = ANIM_LEGS_TURN;
