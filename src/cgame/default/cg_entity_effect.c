@@ -144,10 +144,9 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_LIGHT) {
 		const color_t color = Color32_Color(ent->current.color);
-
 		const cg_light_t l = {
 			.origin = e->origin,
-			.radius = ent->current.termination.x,
+			.radius = e->termination.x,
 			.color = Color_Vec3(color)
 		};
 

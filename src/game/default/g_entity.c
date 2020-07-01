@@ -218,18 +218,17 @@ static char *G_NewString(const char *string) {
 
 // fields are needed for spawning from the entity string
 #define FFL_SPAWN_TEMP		1
-#define FFL_NO_SPAWN		2
 
-typedef enum g_field_type_s {
+typedef enum {
 	F_SHORT,
 	F_INT,
 	F_FLOAT,
 	F_STRING, // string on disk, pointer in memory, TAG_LEVEL
-	F_VECTOR,
+	F_VEC3,
 	F_ANGLE
 } g_field_type_t;
 
-typedef struct g_field_s {
+typedef struct {
 	char *name;
 	ptrdiff_t ofs;
 	g_field_type_t type;
@@ -261,9 +260,11 @@ static const g_field_t fields[] = {
 	{ "dmg", LOFS(damage), F_SHORT, 0 },
 	{ "mass", LOFS(mass), F_FLOAT, 0 },
 	{ "attenuation", LOFS(attenuation), F_SHORT, 0 },
-	{ "origin", EOFS(s.origin), F_VECTOR, 0 },
-	{ "angles", EOFS(s.angles), F_VECTOR, 0 },
+	{ "origin", EOFS(s.origin), F_VEC3, 0 },
+	{ "angles", EOFS(s.angles), F_VEC3, 0 },
 	{ "angle", EOFS(s.angles), F_ANGLE, 0 },
+	{ "_color", LOFS(color), F_VEC3, 0 },
+	{ "light", LOFS(light), F_FLOAT, 0 },
 
 	// temp spawn vars -- only valid when the spawn function is called
 	{ "lip", SOFS(lip), F_INT, FFL_SPAWN_TEMP },
@@ -272,7 +273,6 @@ static const g_field_t fields[] = {
 	{ "sounds", SOFS(sounds), F_INT, FFL_SPAWN_TEMP },
 	{ "noise", SOFS(noise), F_STRING, FFL_SPAWN_TEMP },
 	{ "item", SOFS(item), F_STRING, FFL_SPAWN_TEMP },
-	{ "color", SOFS(color), F_VECTOR, FFL_SPAWN_TEMP },
 
 	// world vars, we use strings to differentiate between 0 and unset
 	{ "sky", SOFS(sky), F_STRING, FFL_SPAWN_TEMP },
@@ -304,7 +304,7 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 
 	for (f = fields; f->name; f++) {
 
-		if (!(f->flags & FFL_NO_SPAWN) && !g_ascii_strcasecmp(f->name, key)) { // found it
+		if (!g_ascii_strcasecmp(f->name, key)) { // found it
 
 			if (f->flags & FFL_SPAWN_TEMP) {
 				b = (byte *) &g_game.spawn;
@@ -325,7 +325,7 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 				case F_STRING:
 					*(char **) (b + f->ofs) = G_NewString(value);
 					break;
-				case F_VECTOR:
+				case F_VEC3:
 					sscanf(value, "%f %f %f", &vec.x, &vec.y, &vec.z);
 					((float *) (b + f->ofs))[0] = vec.x;
 					((float *) (b + f->ofs))[1] = vec.y;
@@ -380,12 +380,6 @@ static void G_ParseEntity(parser_t *parser, g_entity_t *ent) {
 
 		init = true;
 
-		// keys with a leading underscore are used for utility comments,
-		// and are immediately discarded by quake
-		if (key[0] == '_') {
-			continue;
-		}
-
 		G_ParseField(key, value, ent);
 	}
 
@@ -398,55 +392,55 @@ static void G_ParseEntity(parser_t *parser, g_entity_t *ent) {
  * @brief Chain together all entities with a matching team field.
  *
  * All but the first will have the FL_TEAM_SLAVE flag set.
- * All but the last will have the team_chain field set to the next one.
+ * All but the last will have the team_next field set to the next one.
  */
 static void G_InitEntityTeams(void) {
 
 	int32_t teams = 0, team_entities = 0;
 
-	g_entity_t *master = g_game.entities + 1;
-	for (int32_t i = 1; i < ge.num_entities; i++, master++) {
+	g_entity_t *m = g_game.entities;
+	for (int32_t i = 0; i < ge.num_entities; i++, m++) {
 
-		if (!master->in_use) {
+		if (!m->in_use) {
 			continue;
 		}
 
-		if (!master->locals.team) {
+		if (!m->locals.team) {
 			continue;
 		}
 
-		if (master->locals.flags & FL_TEAM_SLAVE) {
+		if (m->locals.flags & FL_TEAM_SLAVE) {
 			continue;
 		}
 
-		g_entity_t *team = master;
-		master->locals.team_master = master;
+		g_entity_t *team = m;
+		m->locals.team_master = m;
 
 		teams++;
 		team_entities++;
 
-		g_entity_t *next = master + 1;
-		for (int32_t j = i + 1; j < ge.num_entities; j++, next++) {
+		g_entity_t *n = m + 1;
+		for (int32_t j = i + 1; j < ge.num_entities; j++, n++) {
 
-			if (!next->in_use) {
+			if (!n->in_use) {
 				continue;
 			}
 
-			if (!next->locals.team) {
+			if (!n->locals.team) {
 				continue;
 			}
 
-			if (next->locals.flags & FL_TEAM_SLAVE) {
+			if (n->locals.flags & FL_TEAM_SLAVE) {
 				continue;
 			}
 
-			if (!g_strcmp0(master->locals.team, next->locals.team)) {
+			if (!g_strcmp0(m->locals.team, n->locals.team)) {
 
-				next->locals.team_master = master;
-				next->locals.flags |= FL_TEAM_SLAVE;
+				n->locals.team_master = m;
+				n->locals.flags |= FL_TEAM_SLAVE;
 
-				team->locals.team_next = next;
-				team = next;
+				team->locals.team_next = n;
+				team = n;
 
 				team_entities++;
 			}

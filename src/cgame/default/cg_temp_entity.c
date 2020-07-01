@@ -600,7 +600,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		const float sini = sinf(i * 0.1f);
 		const float frac = (1.0 - (i / dist));
 		const uint32_t lifetime = RandomRangeu(1500, 1550);
-		const float sat = RandomRangef(.8f, 1.f);
+//		const float sat = RandomRangef(.8f, 1.f);
 
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle,

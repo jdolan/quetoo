@@ -22,40 +22,26 @@
 #include "g_local.h"
 
 #define LIGHT_START_ON 1
-#define LIGHT_TOGGLE 2
 
 /**
- * @brief
- */
-static void G_target_light_Toggle(g_entity_t *self) {
-
-	if ((self->s.effects & EF_LIGHT) == 0) {
-		self->s.color = self->locals.color;
-	} else {
-		self->s.color = Color32(0, 0, 0, 0);
-	}
-
-	self->s.effects ^= EF_LIGHT;
-}
-
-/**
- * @brief Cycles through state and colors for the given light entity.
+ * @brief For singular lights, simply toggle them. For teamed lights,
+ * advance through the team, toggling two at a time.
  */
 static void G_target_light_Cycle(g_entity_t *self) {
 
-	G_target_light_Toggle(self);
+	g_entity_t *master = self->locals.team_master;
+	if (master) {
 
-	g_entity_t *master = self->locals.team_master ?: self;
-	g_entity_t *next = self->locals.team_next;
-	
-	if (next == NULL) {
-		if (!(master->locals.spawn_flags & LIGHT_TOGGLE)) {
-			next = master;
+		master->locals.enemy->s.effects ^= EF_LIGHT;
+		master->locals.enemy = master->locals.enemy->locals.team_next;
+
+		if (master->locals.enemy == NULL) {
+			master->locals.enemy = master;
 		}
-	}
 
-	if (next) {
-		G_target_light_Toggle(next);
+		master->locals.enemy->s.effects ^= EF_LIGHT;
+	} else {
+		self->s.effects ^= EF_LIGHT;
 	}
 }
 
@@ -77,20 +63,19 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
 	}
 }
 
-/*QUAKED target_light (0 1 0) (-8 -8 -8) (8 8 8) start_on toggle
+/*QUAKED target_light (1 1 1) (-4 -4 -4) (4 4 4) start_on toggle
  Emits a user-defined light when used. Lights can be chained with teams.
 
  -------- Keys --------
- color : The light color (default 1.0 1.0 1.0).
+ _color : The light color (default 1.0 1.0 1.0).
+ light : The radius of the light in units (default 300).
  delay : The delay before activating, in seconds (default 0).
- dmg : The radius of the light in units (default 300).
  targetname : The target name of this entity.
  team : The team name for alternating lights.
  wait : If specified, an additional cycle will fire after this interval.
 
  -------- Spawn flags --------
  start_on : The light will start on.
- toggle : The light will include an off state in its cycle.
 
  -------- Notes --------
  Use this entity to add switched lights (toggle). Use the wait key to synchronize
@@ -98,22 +83,21 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
 */
 void G_target_light(g_entity_t *self) {
 
-	if (Vec3_Equal(g_game.spawn.color, Vec3_Zero())) {
-		g_game.spawn.color = Vec3_One();
+	if (Vec3_Equal(self->locals.color, Vec3_Zero())) {
+		self->locals.color = Vec3_One();
 	}
 
-	if (!self->locals.damage) {
-		self->locals.damage = 300;
-	}
+	self->locals.light = self->locals.light ?: 300.f;
 
-	self->locals.color = Color_Color32(Color3fv(g_game.spawn.color));
-	self->s.termination.x = self->locals.damage; // radius
-
-	self->locals.Use = G_target_light_Use;
+	self->s.color = Color_Color32(Color3fv(self->locals.color));
+	self->s.termination.x = self->locals.light;
 
 	if (self->locals.spawn_flags & LIGHT_START_ON) {
-		G_target_light_Cycle(self);
+		self->s.effects |= EF_LIGHT;
 	}
+
+	self->locals.enemy = self;
+	self->locals.Use = G_target_light_Use;
 
 	gi.LinkEntity(self);
 }
