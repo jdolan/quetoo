@@ -313,23 +313,29 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 			case LIGHT_INVALID:
 				break;
 			case LIGHT_AMBIENT:
+				intensity *= lightscale_ambient;
 				break;
 			case LIGHT_SUN:
+				intensity *= lightscale_sun;
 				break;
 			case LIGHT_POINT:
-				intensity *= DEFAULT_BSP_PATCH_SIZE;
+				intensity *= lightscale_point;
 				break;
 			case LIGHT_SPOT: {
 				const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 				const float thresh = cosf(light->theta);
 				const float smooth = 0.03;
 				intensity *= Smoothf(cone_dot, thresh - smooth, thresh + smooth);
-				intensity *= DEFAULT_BSP_PATCH_SIZE;
+				intensity *= lightscale_point;
 			}
 				break;
 			case LIGHT_PATCH:
+				intensity *= (patch_size * patch_size) / (DEFAULT_BSP_PATCH_SIZE * DEFAULT_BSP_PATCH_SIZE);
+				intensity *= lightscale_patch;
+				break;
 			case LIGHT_INDIRECT:
 				intensity *= (patch_size * patch_size) / (DEFAULT_BSP_PATCH_SIZE * DEFAULT_BSP_PATCH_SIZE);
+				intensity *= lightscale_patch;
 				break;
 		}
 
