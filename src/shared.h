@@ -131,6 +131,7 @@ typedef enum {
 #define EF_PULSE			(1 << 2) // pulsing light effect
 #define EF_INACTIVE			(1 << 3) // inactive icon for when input is not going to game
 #define EF_GAME				(1 << 4) // the game may extend from here
+#define EF_AMBIENT			(1 << 5) // ambient light to spot dimly lit entities easier
 
 /**
  * @brief The 16 high bits of the effects mask are not transmitted by the

@@ -31,6 +31,7 @@ uniform sampler3D texture_lightgrid_direction;
 uniform float alpha_threshold;
 
 uniform float modulate;
+uniform float entity_ambient;
 
 uniform material_t material;
 uniform stage_t stage;
@@ -84,17 +85,15 @@ void main(void) {
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
-		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
+		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb + vec3(entity_ambient);
 		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 		vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
 
 		direction = normalize((view * vec4(direction * 2.0 - 1.0, 1.0)).xyz);
 
-		vec3 lightgrid = ambient + diffuse * max(0.0, dot(normal, direction));
-
 		out_color = diffusemap;
 
-		vec3 light_diffuse = lightgrid;
+		vec3 light_diffuse = ambient + diffuse * max(0.0, dot(normal, direction));
 		vec3 light_specular = vec3(0.0);
 
 		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular, out_color_debug);

@@ -936,6 +936,11 @@ typedef struct r_entity_s {
 	vec4_t color;
 
 	/**
+	 * @brief The entity ambient lighting.
+	 */
+	float ambient;
+
+	/**
 	 * @brief The entity shell color for flag carriers, etc.
 	 */
 	vec3_t shell;
