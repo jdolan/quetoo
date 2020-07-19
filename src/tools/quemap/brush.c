@@ -410,7 +410,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 
 	for (int32_t i = 0; i < brush->num_sides && w; i++) {
 		plane_t *plane2 = &planes[brush->sides[i].plane_num ^ 1];
-		Cm_ClipWinding(&w, plane2->normal, plane2->dist, CLIP_EPSILON);
+		Cm_ClipWinding(&w, plane2->normal, plane2->dist, 0.f);
 	}
 
 	if (!w || WindingIsSmall(w)) { // the brush isn't really split
@@ -446,7 +446,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 		if (!w) {
 			continue;
 		}
-		Cm_SplitWinding(w, plane->normal, plane->dist, CLIP_EPSILON, &cw[0], &cw[1]);
+		Cm_SplitWinding(w, plane->normal, plane->dist, 0.f, &cw[0], &cw[1]);
 		for (int32_t j = 0; j < 2; j++) {
 			if (!cw[j]) {
 				continue;
