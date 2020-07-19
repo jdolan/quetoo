@@ -406,15 +406,14 @@ static _Bool MakeBrushWindings(brush_t *ob) {
 			if (i == j) {
 				continue;
 			}
-			// back side clipaway
 			if (ob->original_sides[j].plane_num == (ob->original_sides[j].plane_num ^ 1)) {
-				continue;
+				continue; // back side clipaway
 			}
 			if (ob->original_sides[j].bevel) {
 				continue;
 			}
 			plane = &planes[ob->original_sides[j].plane_num ^ 1];
-			Cm_ClipWinding(&w, plane->normal, plane->dist, CLIP_EPSILON);
+			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.f);
 		}
 
 		brush_side_t *side = &ob->original_sides[i];
