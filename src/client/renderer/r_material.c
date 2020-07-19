@@ -137,9 +137,13 @@ static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path
 	if (surface) {
 		if (w || h) {
 			if (surface->w != w || surface->h != h) {
-				Com_Warn("Material asset %s is not %dx%d\n", path, w, h);
+				Com_Warn("Material asset %s is not %dx%d, resizing..\n", path, w, h);
+
+				SDL_Surface *scaled = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_RGBA32);
+				SDL_BlitScaled(surface, NULL, scaled, NULL);
+
 				SDL_FreeSurface(surface);
-				surface = NULL;
+				surface = scaled;
 			}
 		}
 	}
