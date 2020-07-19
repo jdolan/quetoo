@@ -128,23 +128,27 @@ static void CreateBrushWindings(csg_brush_t *brush) {
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		brush_side_t *side = &brush->sides[i];
+
 		const plane_t *plane = &planes[side->plane_num];
 		cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
+
 		for (int32_t j = 0; j < brush->num_sides; j++) {
-			if (!w) {
-				break;
-			}
 			if (i == j) {
+				continue;
+			}
+			if (brush->sides[j].plane_num == (brush->sides[i].plane_num ^ 1)) {
 				continue;
 			}
 			if (brush->sides[j].bevel) {
 				continue;
 			}
 			plane = &planes[brush->sides[j].plane_num ^ 1];
-			Cm_ClipWinding(&w, plane->normal, plane->dist, CLIP_EPSILON);
+
+			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.f);
 		}
 
 		side->winding = w;
+		assert(side->winding);
 	}
 
 	SetBrushBounds(brush);
@@ -159,13 +163,12 @@ csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs) {
 	b->num_sides = 6;
 
 	for (int32_t i = 0; i < 3; i++) {
-		vec3_t normal;
-		normal = Vec3_Zero();
+		vec3_t normal = Vec3_Zero();
 
-		normal.xyz[i] = 1;
+		normal.xyz[i] = 1.f;
 		b->sides[i].plane_num = FindPlane(normal, maxs.xyz[i]);
 
-		normal.xyz[i] = -1;
+		normal.xyz[i] = -1.f;
 		b->sides[3 + i].plane_num = FindPlane(normal, -mins.xyz[i]);
 	}
 
