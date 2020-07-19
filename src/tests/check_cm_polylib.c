@@ -72,6 +72,10 @@ START_TEST(check_Cm_ClipWinding_front) {
 	for (int32_t i = 0; i < a->num_points; i++) {
 		ck_assert(Vec3_Equal(b->points[i], a->points[i]));
 	}
+
+	Cm_FreeWinding(a);
+	Cm_FreeWinding(b);
+
 } END_TEST
 
 START_TEST(check_Cm_ClipWinding_back) {
@@ -112,6 +116,10 @@ START_TEST(check_Cm_ClipWinding_both) {
 	for (int32_t i = 0; i < a->num_points; i++) {
 		ck_assert(Vec3_Equal(b->points[i], a->points[i]));
 	}
+
+	Cm_FreeWinding(a);
+	Cm_FreeWinding(b);
+
 } END_TEST
 
 START_TEST(check_Cm_ClipWinding_facing) {
@@ -141,6 +149,9 @@ START_TEST(check_Cm_ClipWinding_facing) {
 	for (int32_t i = 0; i < a->num_points; i++) {
 		ck_assert(Vec3_Equal(b->points[i], a->points[i]));
 	}
+
+	Cm_FreeWinding(a);
+	Cm_FreeWinding(b);
 
 } END_TEST
 
