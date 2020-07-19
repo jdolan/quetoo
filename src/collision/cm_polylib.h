@@ -38,6 +38,26 @@ typedef struct {
 	vec3_t points[0];
 } cm_winding_t;
 
+/**
+ * @brief A winding point, clipped against a specific plane.
+ */
+typedef struct {
+	/**
+	 * @brief The clipped point.
+	 */
+	vec3_t point;
+
+	/**
+	 * @brief The distance from the plane.
+	 */
+	double dist;
+
+	/**
+	 * @brief The plane side.
+	 */
+	int32_t side;
+} cm_clip_point_t;
+
 cm_winding_t *Cm_AllocWinding(int32_t num_points);
 void Cm_FreeWinding(cm_winding_t *w);
 cm_winding_t *Cm_CopyWinding(const cm_winding_t *w);
