@@ -520,7 +520,7 @@ void Cl_InitKeys(void) {
 
 	cl_key_names = Mem_TagMalloc(SDL_NUM_SCANCODES * sizeof(char *), MEM_TAG_CLIENT);
 
-	for (SDL_Scancode k = SDLK_UNKNOWN; k <= SDL_SCANCODE_APP2; k++) {
+	for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
 		const char *name = SDL_GetScancodeName(k);
 		if (strlen(name)) {
 			cl_key_names[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), cl_key_names);
