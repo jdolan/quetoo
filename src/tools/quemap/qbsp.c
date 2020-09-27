@@ -45,184 +45,47 @@ _Bool no_tjunc = false;
 _Bool leak_test = false;
 _Bool leaked = false;
 
-int32_t block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
-
 int32_t entity_num;
 
-static node_t *block_nodes[10][10];
-
 /**
  * @brief
  */
-static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
-	node_t *node;
-	vec3_t normal;
-	float dist;
-	int32_t mid;
+static void ProcessWorldModel(void) {
 
-	if (xl == xh && yl == yh) {
-		node = block_nodes[xl + 5][yl + 5];
-		if (!node) { // return an empty leaf
-			node = AllocNode();
-			node->plane_num = PLANE_NUM_LEAF;
-			node->contents = 0; //CONTENTS_SOLID;
-			return node;
-		}
-		return node;
-	}
-	// create a separator along the largest axis
-	node = AllocNode();
+	const entity_t *e = &entities[entity_num];
 
-	if (xh - xl > yh - yl) { // split x axis
-		mid = xl + (xh - xl) / 2 + 1;
-		normal.x = 1;
-		normal.y = 0;
-		normal.z = 0;
-		dist = mid * 1024;
-		node->plane_num = FindPlane(normal, dist);
-		node->children[0] = BlockTree(mid, yl, xh, yh);
-		node->children[1] = BlockTree(xl, yl, mid - 1, yh);
-	} else {
-		mid = yl + (yh - yl) / 2 + 1;
-		normal.x = 0;
-		normal.y = 1;
-		normal.z = 0;
-		dist = mid * 1024;
-		node->plane_num = FindPlane(normal, dist);
-		node->children[0] = BlockTree(xl, mid, xh, yh);
-		node->children[1] = BlockTree(xl, yl, xh, mid - 1);
-	}
+	const int32_t start = e->first_brush;
+	const int32_t end = start + e->num_brushes;
 
-	return node;
-}
+	const vec3_t mins = Vec3(MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);
+	const vec3_t maxs = Vec3(MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD);
 
-static int32_t brush_start, brush_end;
-
-/**
- * @brief
- */
-static void ProcessBlock_Work(int32_t blocknum) {
-	vec3_t mins, maxs;
-
-	const int32_t yblock = block_yl + blocknum / (block_xh - block_xl + 1);
-	const int32_t xblock = block_xl + blocknum % (block_xh - block_xl + 1);
-
-	Com_Verbose("############### block %2i,%2i ###############\n", xblock, yblock);
-
-	mins.x = xblock * 1024;
-	mins.y = yblock * 1024;
-	mins.z = MIN_WORLD_COORD;
-	maxs.x = (xblock + 1) * 1024;
-	maxs.y = (yblock + 1) * 1024;
-	maxs.z = MAX_WORLD_COORD;
-
-	// the brushes and chopbrushes could be cached between the passes...
-	csg_brush_t *brushes = MakeBrushes(brush_start, brush_end, mins, maxs);
-	if (!brushes) {
-		node_t *node = AllocNode();
-		node->plane_num = PLANE_NUM_LEAF;
-		node->contents = CONTENTS_SOLID;
-		block_nodes[xblock + 5][yblock + 5] = node;
-		return;
-	}
-
+	csg_brush_t *brushes = MakeBrushes(start, end, mins, maxs);
 	if (!no_csg) {
 		brushes = ChopBrushes(brushes);
 	}
 
 	tree_t *tree = BuildTree(brushes, mins, maxs);
 
-	block_nodes[xblock + 5][yblock + 5] = tree->head_node;
-}
+	MakeTreePortals(tree);
 
-/**
- * @brief
- */
-static void ProcessWorldModel(void) {
-	tree_t *tree = NULL;
+	if (FloodEntities(tree)) {
+		FillOutside(tree->head_node);
+	} else {
+		Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
+		leaked = true;
 
-	const entity_t *e = &entities[entity_num];
+		LeakFile(tree);
 
-	brush_start = e->first_brush;
-	brush_end = brush_start + e->num_brushes;
-
-	// perform per-block operations
-	if (block_xh * 1024 > map_maxs.x) {
-		block_xh = floor(map_maxs.x / 1024.0);
-	}
-	if ((block_xl + 1) * 1024 < map_mins.x) {
-		block_xl = floor(map_mins.x / 1024.0);
-	}
-	if (block_yh * 1024 > map_maxs.y) {
-		block_yh = floor(map_maxs.y / 1024.0);
-	}
-	if ((block_yl + 1) * 1024 < map_mins.y) {
-		block_yl = floor(map_mins.y / 1024.0);
-	}
-
-	if (block_xl < -4) {
-		block_xl = -4;
-	}
-	if (block_yl < -4) {
-		block_yl = -4;
-	}
-	if (block_xh > 3) {
-		block_xh = 3;
-	}
-	if (block_yh > 3) {
-		block_yh = 3;
-	}
-
-	for (int32_t optimize = 0; optimize <= 1; optimize++) {
-		Com_Verbose("--------------------------------------------\n");
-
-		const int32_t count = (block_xh - block_xl + 1) * (block_yh - block_yl + 1);
-
-		Work(optimize ? "Optimizing tree" : "Creating tree", ProcessBlock_Work, count);
-
-		// build the division tree
-		// oversizing the blocks guarantees that all the boundaries
-		// will also get nodes.
-
-		Com_Verbose("--------------------------------------------\n");
-
-		tree = AllocTree();
-		tree->head_node = BlockTree(block_xl - 1, block_yl - 1, block_xh + 1, block_yh + 1);
-
-		tree->mins.x = (block_xl) * 1024;
-		tree->mins.y = (block_yl) * 1024;
-		tree->mins.z = map_mins.z - 8;
-
-		tree->maxs.x = (block_xh + 1) * 1024;
-		tree->maxs.y = (block_yh + 1) * 1024;
-		tree->maxs.z = map_maxs.z + 8;
-
-		// perform the global operations
-		MakeTreePortals(tree);
-
-		if (FloodEntities(tree)) {
-			FillOutside(tree->head_node);
-		} else {
-			Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
-			leaked = true;
-
-			LeakFile(tree);
-
-			if (leak_test) {
-				Com_Error(ERROR_FATAL, "Leak test failed");
-			}
-		}
-
-		MarkVisibleSides(tree, brush_start, brush_end);
-		if (leaked) {
-			break;
-		}
-		if (!optimize) {
-			FreeTree(tree);
+		if (leak_test) {
+			Com_Error(ERROR_FATAL, "Leak test failed");
 		}
 	}
+
+	MarkVisibleSides(tree, start, end);
 
 	FloodAreas(tree);
+
 	MakeTreeFaces(tree);
 
 	if (!no_prune) {
@@ -252,10 +115,8 @@ static void ProcessInlineModel(void) {
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
-	vec3_t mins, maxs;
-
-	mins.x = mins.y = mins.z = MIN_WORLD_COORD;
-	maxs.x = maxs.y = maxs.z = MAX_WORLD_COORD;
+	const vec3_t mins = Vec3(MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);
+	const vec3_t maxs = Vec3(MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD);
 
 	csg_brush_t *brushes = MakeBrushes(start, end, mins, maxs);
 	if (!no_csg) {

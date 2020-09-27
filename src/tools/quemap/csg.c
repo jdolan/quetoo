@@ -170,36 +170,26 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const ve
 		box_planes[i + 3] = FindPlane(normal, maxs.xyz[i]);
 	}
 
-	int32_t c_faces = 0;
-	int32_t c_brushes = 0;
+	int32_t percent = 0;
 
 	for (int32_t i = start; i < end; i++) {
 		brush_t *b = &brushes[i];
 
+		const int32_t p = 100.f * (i - start) / (end - start);
+		if (p != percent) {
+			percent = p;
+			Com_Print("\rProcessing models        [%3d%%]", percent);
+		}
+
 		if (!b->num_sides) {
 			continue;
 		}
-		// make sure the brush has at least one face showing
-		int32_t vis = 0;
-		for (int32_t j = 0; j < b->num_sides; j++)
-			if (b->original_sides[j].visible && b->original_sides[j].winding) {
-				vis++;
-			}
-#if 0
-		if (!vis) {
-			continue;    // no faces at all
-		}
-#endif
+
 		// if the brush is outside the clip area, skip it
-		int32_t j;
-		for (j = 0; j < 3; j++)
-			if (b->mins.xyz[j] >= maxs.xyz[j] || b->maxs.xyz[j] <= mins.xyz[j]) {
-				break;
-			}
-		if (j != 3) {
+		if (!Vec3_BoxIntersect(mins, maxs, b->mins, b->maxs)) {
 			continue;
 		}
-
+		
 		// create a csg_brush_t for the brush_t
 		csg_brush_t *brush = AllocBrush(b->num_sides);
 		brush->original = b;
@@ -222,12 +212,10 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const ve
 			continue;
 		}
 
-		c_faces += vis;
-		c_brushes++;
-
 		brush->next = list;
 		list = brush;
 	}
+	Com_Print("\n");
 
 	return list;
 }

@@ -212,18 +212,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "--leak-test")) {
 			Com_Verbose("leak-test = true\n");
 			leak_test = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--block")) {
-			block_xl = block_xh = atoi(Com_Argv(i + 1));
-			block_yl = block_yh = atoi(Com_Argv(i + 2));
-			Com_Verbose("block: %i,%i\n", block_xl, block_yl);
-			i += 2;
-		} else if (!g_strcmp0(Com_Argv(i), "--blocks")) {
-			block_xl = atoi(Com_Argv(i + 1));
-			block_yl = atoi(Com_Argv(i + 2));
-			block_xh = atoi(Com_Argv(i + 3));
-			block_yh = atoi(Com_Argv(i + 4));
-			Com_Verbose("blocks: %i,%i to %i,%i\n", block_xl, block_yl, block_xh, block_yh);
-			i += 4;
 		} else {
 			break;
 		}

@@ -36,8 +36,6 @@ extern _Bool no_tjunc;
 extern _Bool leak_test;
 extern _Bool leaked;
 
-extern int32_t block_xl, block_xh, block_yl, block_yh;
-
 extern float micro_volume;
 
 extern int32_t entity_num;
