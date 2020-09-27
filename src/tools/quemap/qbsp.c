@@ -62,7 +62,7 @@ static void ProcessWorldModel(void) {
 
 	csg_brush_t *brushes = MakeBrushes(start, end, mins, maxs);
 	if (!no_csg) {
-		brushes = ChopBrushes(brushes);
+		brushes = SubtractBrushes(brushes);
 	}
 
 	tree_t *tree = BuildTree(brushes, mins, maxs);
@@ -120,7 +120,7 @@ static void ProcessInlineModel(void) {
 
 	csg_brush_t *brushes = MakeBrushes(start, end, mins, maxs);
 	if (!no_csg) {
-		brushes = ChopBrushes(brushes);
+		brushes = SubtractBrushes(brushes);
 	}
 
 	tree_t *tree = BuildTree(brushes, mins, maxs);

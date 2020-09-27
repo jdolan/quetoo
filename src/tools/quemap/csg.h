@@ -36,4 +36,4 @@ typedef struct csg_brush_s {
 } csg_brush_t;
 
 csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const vec3_t maxs);
-csg_brush_t *ChopBrushes(csg_brush_t *head);
+csg_brush_t *SubtractBrushes(csg_brush_t *head);

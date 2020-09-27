@@ -175,7 +175,7 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const ve
 	for (int32_t i = start; i < end; i++) {
 		brush_t *b = &brushes[i];
 
-		const int32_t p = 100.f * (i - start) / (end - start);
+		const int32_t p = 100.f * i / num_brushes;
 		if (p != percent) {
 			percent = p;
 			Com_Print("\rProcessing models        [%3d%%]", percent);
@@ -215,7 +215,7 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const ve
 		brush->next = list;
 		list = brush;
 	}
-	Com_Print("\n");
+	Com_Print("\rProcessing models        [100%%]\n");
 
 	return list;
 }
@@ -273,7 +273,7 @@ static inline _Bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
  * @brief Carves any intersecting solid brushes into the minimum number
  * of non-intersecting brushes.
  */
-csg_brush_t *ChopBrushes(csg_brush_t *head) {
+csg_brush_t *SubtractBrushes(csg_brush_t *head) {
 
 	size_t head_count = CountBrushes(head);
 
