@@ -26,7 +26,6 @@
 #include "qbsp.h"
 
 int32_t c_merge;
-static int32_t c_faces;
 
 /**
  * @brief
@@ -34,7 +33,6 @@ static int32_t c_faces;
 face_t *AllocFace(void) {
 
 	face_t *f = Mem_TagMalloc(sizeof(*f), MEM_TAG_FACE);
-	c_faces++;
 
 	f->face_num = -1;
 
@@ -63,7 +61,6 @@ void FreeFace(face_t *f) {
 	}
 
 	Mem_Free(f);
-	c_faces--;
 }
 
 
