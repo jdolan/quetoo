@@ -221,46 +221,6 @@ float BrushVolume(csg_brush_t *brush) {
 }
 
 /**
- * @return SIDE_FRONT, SIDE_BACK, or SIDE_BOTH
- */
-static int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const plane_t *plane) {
-
-	if (AXIAL(plane)) {
-		if (plane->dist - SIDE_EPSILON < mins.xyz[plane->type]) {
-			return SIDE_FRONT;
-		}
-		if (plane->dist + SIDE_EPSILON > maxs.xyz[plane->type]) {
-			return SIDE_BACK;
-		}
-		return SIDE_BOTH;
-	}
-
-	vec3_t corners[2];
-	for (int32_t i = 0; i < 3; i++) {
-		if (plane->normal.xyz[i] < 0.f) {
-			corners[0].xyz[i] = mins.xyz[i];
-			corners[1].xyz[i] = maxs.xyz[i];
-		} else {
-			corners[1].xyz[i] = mins.xyz[i];
-			corners[0].xyz[i] = maxs.xyz[i];
-		}
-	}
-
-	const double dist1 = Vec3_Dot(plane->normal, corners[0]) - plane->dist;
-	const double dist2 = Vec3_Dot(plane->normal, corners[1]) - plane->dist;
-
-	int32_t side = 0;
-	if (dist1 > -SIDE_EPSILON) {
-		side |= SIDE_FRONT;
-	}
-	if (dist2 < SIDE_EPSILON) {
-		side |= SIDE_BACK;
-	}
-
-	return side;
-}
-
-/**
  * @brief
  */
 int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_splits, _Bool *hint_split, int32_t *epsilon_brush) {
@@ -282,8 +242,17 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 	}
 
 	// box on plane side
-	plane_t *plane = &planes[plane_num];
-	const int32_t s = BoxOnPlaneSide(brush->mins, brush->maxs, plane);
+	const plane_t *plane = &planes[plane_num];
+
+	cm_bsp_plane_t p = {
+		.normal = plane->normal,
+		.dist = plane->dist,
+		.type = plane->type
+	};
+
+	p.sign_bits = Cm_SignBitsForPlane(&p);
+
+	const int32_t s = Cm_BoxOnPlaneSide(brush->mins, brush->maxs, &p);
 
 	if (s != SIDE_BOTH) {
 		return s;
@@ -294,10 +263,10 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		if (brush->sides[i].texinfo == TEXINFO_NODE) {
-			continue;    // on node, don't worry about splits
+			continue; // on node, don't worry about splits
 		}
 		if (!brush->sides[i].visible) {
-			continue;    // we don't care about non-visible
+			continue; // we don't care about non-visible
 		}
 		const cm_winding_t *w = brush->sides[i].winding;
 		if (!w) {
