@@ -113,7 +113,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			continue;
 		}
 
-		if (!Cm_BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box_mins, trace->box_maxs)) {
+		if (!Vec3_BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box_mins, trace->box_maxs)) {
 			continue;
 		}
 

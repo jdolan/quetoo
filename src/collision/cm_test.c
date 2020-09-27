@@ -92,22 +92,6 @@ float Cm_DistanceToFace(const vec3_t point, const cm_bsp_plane_t *plane, int32_t
 }
 
 /**
- * @return Non-zero if the bounding boxes intersect, zero otherwise.
- */
-int32_t Cm_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
-
-	if (amins.x >= bmaxs.x || amins.y >= bmaxs.y || amins.z >= bmaxs.z) {
-		return 0;
-	}
-
-	if (amaxs.x <= bmins.x || amaxs.y <= bmins.y || amaxs.z <= bmins.z) {
-		return 0;
-	}
-
-	return 1;
-}
-
-/**
  * @return The sidedness of the given bounds relative to the specified plane.
  * If the box straddles the plane, SIDE_BOTH is returned.
  */

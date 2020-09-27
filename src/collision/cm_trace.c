@@ -64,7 +64,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		return;
 	}
 
-	if (!Cm_BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
+	if (!Vec3_BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
 		return;
 	}
 
@@ -149,7 +149,7 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 		return;
 	}
 
-	if (!Cm_BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
+	if (!Vec3_BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
 		return;
 	}
 

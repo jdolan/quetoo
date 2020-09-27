@@ -426,7 +426,7 @@ static inline vec3_t Vec3_Add(const vec3_t a, const vec3_t b) __attribute__ ((wa
 /**
  * @return True if the specified boxes intersect, false otherwise.
  */
-static inline _Bool Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) __attribute__ ((warn_unused_result));
+static inline int32_t Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `v` cast to `vec3d_t`.

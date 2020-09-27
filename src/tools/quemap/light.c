@@ -298,7 +298,7 @@ static GPtrArray *BoxLights(const vec3_t box_mins, const vec3_t box_maxs) {
 			const vec3_t radius = Vec3(light->radius, light->radius, light->radius);
 			const vec3_t mins = Vec3_Add(light->origin, Vec3_Scale(radius, -1.f));
 			const vec3_t maxs = Vec3_Add(light->origin, Vec3_Scale(radius,  1.f));
-			if (!Cm_BoxIntersect(box_mins, box_maxs, mins, maxs)) {
+			if (!Vec3_BoxIntersect(box_mins, box_maxs, mins, maxs)) {
 				continue;
 			}
 		}
