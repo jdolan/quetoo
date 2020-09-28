@@ -38,6 +38,4 @@ extern _Bool leaked;
 
 extern float micro_volume;
 
-extern int32_t entity_num;
-
 int32_t BSP_Main(void);

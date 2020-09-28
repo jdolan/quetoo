@@ -45,14 +45,10 @@ _Bool no_tjunc = false;
 _Bool leak_test = false;
 _Bool leaked = false;
 
-int32_t entity_num;
-
 /**
  * @brief
  */
-static void ProcessWorldModel(void) {
-
-	const entity_t *e = &entities[entity_num];
+static void ProcessWorldModel(const entity_t *e) {
 
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
@@ -108,9 +104,7 @@ static void ProcessWorldModel(void) {
 /**
  * @brief
  */
-static void ProcessInlineModel(void) {
-
-	const entity_t *e = &entities[entity_num];
+static void ProcessInlineModel(const entity_t *e) {
 
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
@@ -146,18 +140,19 @@ static void ProcessInlineModel(void) {
  */
 static void ProcessModels(void) {
 
-	for (entity_num = 0; entity_num < num_entities; entity_num++) {
+	for (int32_t i = 0; i < num_entities; i++) {
+		const entity_t *e = entities + i;
 
-		if (!entities[entity_num].num_brushes) {
+		if (!e->num_brushes) {
 			continue;
 		}
 
 		Com_Verbose("############### model %i ###############\n", bsp_file.num_models);
-		BeginModel();
-		if (entity_num == 0) {
-			ProcessWorldModel();
+		BeginModel(e);
+		if (i == 0) {
+			ProcessWorldModel(e);
 		} else {
-			ProcessInlineModel();
+			ProcessInlineModel(e);
 		}
 		EndModel();
 	}

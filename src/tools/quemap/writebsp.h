@@ -27,5 +27,5 @@ void EmitEntities(void);
 void EmitNodes(node_t *head_node);
 void BeginBSPFile(void);
 void EndBSPFile(void);
-void BeginModel(void);
+void BeginModel(const entity_t *e);
 void EndModel(void);

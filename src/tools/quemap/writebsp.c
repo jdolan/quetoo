@@ -524,7 +524,7 @@ void EndBSPFile(void) {
 /**
  * @brief
  */
-void BeginModel(void) {
+void BeginModel(const entity_t *e) {
 
 	if (bsp_file.num_models == MAX_BSP_MODELS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_MODELS\n");
@@ -536,8 +536,6 @@ void BeginModel(void) {
 	mod->first_draw_elements = bsp_file.num_draw_elements;
 
 	// bound the brushes
-	const entity_t *e = &entities[entity_num];
-
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
