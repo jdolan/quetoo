@@ -187,9 +187,9 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "--no-tjunc")) {
 			Com_Verbose("no_tjunc = true\n");
 			no_tjunc = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-water")) {
-			Com_Verbose("no_water = true\n");
-			no_water = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-liquid")) {
+			Com_Verbose("no_liquid = true\n");
+			no_liquid = true;
 		} else if (!g_strcmp0(Com_Argv(i), "--no-prune")) {
 			Com_Verbose("no_prune = true\n");
 			no_prune = true;

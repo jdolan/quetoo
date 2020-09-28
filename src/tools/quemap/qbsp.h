@@ -28,7 +28,7 @@ extern _Bool no_detail;
 extern _Bool all_structural;
 extern _Bool only_ents;
 extern _Bool no_merge;
-extern _Bool no_water;
+extern _Bool no_liquid;
 extern _Bool no_csg;
 extern _Bool no_weld;
 extern _Bool no_share;

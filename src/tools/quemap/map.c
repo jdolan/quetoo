@@ -660,7 +660,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		}
 
 		// allow water brushes to be removed
-		if (no_water && (brush->contents & CONTENTS_MASK_LIQUID)) {
+		if (no_liquid && (brush->contents & CONTENTS_MASK_LIQUID)) {
 			num_brushes--;
 			return NULL;
 		}
