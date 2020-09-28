@@ -106,88 +106,25 @@ static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 }
 
 /**
- * @brief Any planes shared with the box edge will be set to TEXINFO_NODE.
- */
-static csg_brush_t *ClipBrushToBox(csg_brush_t *brush, const vec3_t mins, const vec3_t maxs, int32_t box_planes[6]) {
-
-	csg_brush_t *front = NULL, *back = NULL;
-
-	for (int32_t i = 0; i < 2; i++) {
-		if (brush->maxs.xyz[i] > maxs.xyz[i]) {
-			SplitBrush(brush, box_planes[i + 3], &front, &back);
-			FreeBrush(brush);
-			if (front) {
-				FreeBrush(front);
-			}
-			brush = back;
-			if (!brush) {
-				return NULL;
-			}
-		}
-		if (brush->mins.xyz[i] < mins.xyz[i]) {
-			SplitBrush(brush, box_planes[i], &front, &back);
-			FreeBrush(brush);
-			if (back) {
-				FreeBrush(back);
-			}
-			brush = front;
-			if (!brush) {
-				return NULL;
-			}
-		}
-	}
-
-	// remove any colinear faces
-
-	for (int32_t i = 0; i < brush->num_sides; i++) {
-		const int32_t plane_num = brush->sides[i].plane_num & ~1;
-		for (int32_t j = 0; j < 6; j++) {
-			if (plane_num == box_planes[j]) {
-				brush->sides[i].texinfo = TEXINFO_NODE;
-				brush->sides[i].visible = false;
-				break;
-			}
-		}
-	}
-
-	return brush;
-}
-
-/**
  * @brief Create a list of csg_brush_t of the brush_t occupying, and optionally
  * clipped to, the given bounding box.
  */
-csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const vec3_t maxs) {
+csg_brush_t *MakeBrushes(int32_t start, int32_t end) {
 	csg_brush_t *list = NULL;
-
-	int32_t box_planes[6];
-
-	for (int32_t i = 0; i < 3; i++) {
-		vec3_t normal;
-		normal = Vec3_Zero();
-		normal.xyz[i] = 1.0;
-		box_planes[i] = FindPlane(normal, mins.xyz[i]);
-		box_planes[i + 3] = FindPlane(normal, maxs.xyz[i]);
-	}
 
 	int32_t percent = 0;
 
 	for (int32_t i = start; i < end; i++) {
+
 		brush_t *b = &brushes[i];
+		if (!b->num_sides) {
+			continue;
+		}
 
 		const int32_t p = 100.f * i / num_brushes;
 		if (p != percent) {
 			percent = p;
 			Com_Print("\rProcessing models        [%3d%%]", percent);
-		}
-
-		if (!b->num_sides) {
-			continue;
-		}
-
-		// if the brush is outside the clip area, skip it
-		if (!Vec3_BoxIntersect(mins, maxs, b->mins, b->maxs)) {
-			continue;
 		}
 		
 		// create a csg_brush_t for the brush_t
@@ -205,13 +142,6 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const ve
 		}
 		brush->mins = b->mins;
 		brush->maxs = b->maxs;
-
-		// carve off anything outside the clip box
-		brush = ClipBrushToBox(brush, mins, maxs, box_planes);
-		if (!brush) {
-			continue;
-		}
-
 		brush->next = list;
 		list = brush;
 	}

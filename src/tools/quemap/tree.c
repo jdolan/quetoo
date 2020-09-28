@@ -426,7 +426,7 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
  * @brief
  * @remark The incoming list will be freed before exiting
  */
-tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
+tree_t *BuildTree(csg_brush_t *brushes) {
 
 	Com_Debug(DEBUG_ALL, "--- BuildTree ---\n");
 
@@ -451,7 +451,7 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 			if (b->sides[i].bevel) {
 				continue;
 			}
-			if (!b->sides[i].winding) {
+			if (b->sides[i].winding == NULL) {
 				continue;
 			}
 			if (b->sides[i].texinfo == TEXINFO_NODE) {
@@ -473,7 +473,7 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 	Com_Debug(DEBUG_ALL, "%5i nonvisible faces\n", c_non_vis_faces);
 
 	tree->head_node = AllocNode();
-	tree->head_node->volume = BrushFromBounds(mins, maxs);
+	tree->head_node->volume = BrushFromBounds(tree->mins, tree->maxs);
 
 	BuildTree_r(tree->head_node, brushes);
 

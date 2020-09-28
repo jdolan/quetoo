@@ -53,15 +53,12 @@ static void ProcessWorldModel(const entity_t *e) {
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
-	const vec3_t mins = Vec3(MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);
-	const vec3_t maxs = Vec3(MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD);
-
-	csg_brush_t *brushes = MakeBrushes(start, end, mins, maxs);
+	csg_brush_t *brushes = MakeBrushes(start, end);
 	if (!no_csg) {
 		brushes = SubtractBrushes(brushes);
 	}
 
-	tree_t *tree = BuildTree(brushes, mins, maxs);
+	tree_t *tree = BuildTree(brushes);
 
 	MakeTreePortals(tree);
 
@@ -109,15 +106,12 @@ static void ProcessInlineModel(const entity_t *e) {
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
-	const vec3_t mins = Vec3(MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);
-	const vec3_t maxs = Vec3(MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD);
-
-	csg_brush_t *brushes = MakeBrushes(start, end, mins, maxs);
+	csg_brush_t *brushes = MakeBrushes(start, end);
 	if (!no_csg) {
 		brushes = SubtractBrushes(brushes);
 	}
 
-	tree_t *tree = BuildTree(brushes, mins, maxs);
+	tree_t *tree = BuildTree(brushes);
 
 	MakeTreePortals(tree);
 	MarkVisibleSides(tree, start, end);
