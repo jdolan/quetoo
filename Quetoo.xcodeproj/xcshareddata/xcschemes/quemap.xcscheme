@@ -85,11 +85,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--no-prune"
-            isEnabled = "NO">
+            argument = "--no-csg"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--no-tjunc"
+            argument = "--no-detail"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -97,7 +97,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--no-detail"
+            argument = "--no-prune"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--no-tjunc"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -114,11 +118,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--indirect"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--antialias "
@@ -162,7 +166,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/pits.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lavapoop.map"
@@ -174,6 +178,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/torn.map"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/test.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
