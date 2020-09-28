@@ -628,14 +628,11 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 * @return The area of the triangle defined by a, b and c.
 */
 float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c) {
-   vec3_t ba;
-   vec3_t ca;
-   vec3_t cross;
 
-   ba = Vec3_Subtract(b, a);
-   ca = Vec3_Subtract(c, a);
+   const vec3_t ba = Vec3_Subtract(b, a);
+   const vec3_t ca = Vec3_Subtract(c, a);
+   const vec3_t cross = Vec3_Cross(ba, ca);
 
-   cross = Vec3_Cross(ba, ca);
    return Vec3_Length(cross) * 0.5;
 }
 
