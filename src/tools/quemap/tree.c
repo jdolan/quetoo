@@ -179,7 +179,7 @@ static _Bool CheckPlaneAgainstVolume(int32_t plane_num, node_t *node) {
  * to partition the brushes with.
  * Returns NULL if there are no valid planes to split with..
  */
-static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
+static brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 	int32_t value, best_value;
 	csg_brush_t *brush, *test;
 	brush_side_t *side, *best_side;
@@ -389,7 +389,7 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	csg_brush_t *children[2];
 
 	// find the best plane to use as a splitter
-	brush_side_t *split_side = SelectSplitSide(brushes, node);
+	brush_side_t *split_side = SelectSplitSide(node, brushes);
 	if (!split_side) {
 		// leaf node
 		node->side = NULL;
