@@ -158,10 +158,14 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
 		}
 
+		const bsp_face_t *a = faces + i;
+
+		if (bsp_file.texinfo[a->texinfo].flags & (SURF_NO_DRAW | SURF_SKY)) {
+			continue;
+		}
+		
 		bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
 		bsp_file.num_draw_elements++;
-
-		const bsp_face_t *a = faces + i;
 
 		out->texinfo = a->texinfo;
 		out->contents = a->contents;
