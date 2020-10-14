@@ -132,3 +132,22 @@ void Work(const char *name, WorkFunc func, int32_t count) {
 		Com_Print(" %d ms\n", end - start);
 	}
 }
+
+/**
+ * @brief
+ */
+void Progress(const char *progress, int32_t percent) {
+	static char *string = "-\\|/-|";
+	static int32_t index = 0;
+	static int32_t last_percent;
+
+	if (percent == -1) {
+		Com_Print("\r%-24s [%c]", progress, string[index]);
+		index = (index + 1) % strlen(string);
+	} else {
+		if (percent != last_percent) {
+			Com_Print("\r%-24s [%3d%%]", progress, percent);
+			last_percent = percent;
+		}
+	}
+}

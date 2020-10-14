@@ -120,12 +120,6 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end) {
 		if (!b->num_sides) {
 			continue;
 		}
-
-		const int32_t p = 100.f * i / num_brushes;
-		if (p != percent) {
-			percent = p;
-			Com_Print("\rProcessing models        [%3d%%]", percent);
-		}
 		
 		// create a csg_brush_t for the brush_t
 		csg_brush_t *brush = AllocBrush(b->num_sides);
@@ -145,7 +139,6 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end) {
 		brush->next = list;
 		list = brush;
 	}
-	Com_Print("\rProcessing models        [100%%]\n");
 
 	return list;
 }

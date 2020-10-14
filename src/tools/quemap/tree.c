@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL_timer.h>
+
 #include "tree.h"
 #include "portal.h"
 #include "qbsp.h"
@@ -128,10 +130,11 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
 		// if the brush is solid and all of its sides are on nodes, it eats everything
 		if (b->original->contents & CONTENTS_SOLID) {
 			int32_t i;
-			for (i = 0; i < b->num_sides; i++)
+			for (i = 0; i < b->num_sides; i++) {
 				if (b->sides[i].texinfo != TEXINFO_NODE) {
 					break;
 				}
+			}
 			if (i == b->num_sides) {
 				node->contents = CONTENTS_SOLID;
 				break;
@@ -141,6 +144,8 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
 	}
 
 	node->brushes = brushes;
+
+	Progress("Building tree", -1);
 }
 
 /**
@@ -428,7 +433,11 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
  */
 tree_t *BuildTree(csg_brush_t *brushes) {
 
+	assert(brushes);
+
 	Com_Debug(DEBUG_ALL, "--- BuildTree ---\n");
+
+	const uint32_t start = SDL_GetTicks();
 
 	tree_t *tree = AllocTree();
 
@@ -436,8 +445,8 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	tree->maxs = Vec3_Maxs();
 
 	int32_t c_brushes = 0;
-	int32_t c_vis_faces = 0;
-	int32_t c_non_vis_faces = 0;
+	int32_t c_vis_sides = 0;
+	int32_t c_non_vis_sides = 0;
 
 	for (csg_brush_t *b = brushes; b; b = b->next) {
 		c_brushes++;
@@ -458,9 +467,9 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 				continue;
 			}
 			if (b->sides[i].visible) {
-				c_vis_faces++;
+				c_vis_sides++;
 			} else {
-				c_non_vis_faces++;
+				c_non_vis_sides++;
 			}
 		}
 
@@ -469,13 +478,15 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	}
 
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", c_brushes);
-	Com_Debug(DEBUG_ALL, "%5i visible faces\n", c_vis_faces);
-	Com_Debug(DEBUG_ALL, "%5i nonvisible faces\n", c_non_vis_faces);
+	Com_Debug(DEBUG_ALL, "%5i visible sides\n", c_vis_sides);
+	Com_Debug(DEBUG_ALL, "%5i nonvisible sides\n", c_non_vis_sides);
 
 	tree->head_node = AllocNode();
 	tree->head_node->volume = BrushFromBounds(tree->mins, tree->maxs);
 
 	BuildTree_r(tree->head_node, brushes);
+
+	Com_Print("\r%-24s [100%%] %d ms\n", "Building tree", SDL_GetTicks() - start);
 
 	return tree;
 }

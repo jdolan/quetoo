@@ -141,7 +141,9 @@ static void ProcessModels(void) {
 			continue;
 		}
 
-		Com_Verbose("############### model %i ###############\n", bsp_file.num_models);
+		const vec3_t origin = VectorForKey(e, "origin", Vec3_Zero());
+		Com_Print("%s @ %s\n", ValueForKey(e, "classname", "Unknown"), vtos(origin));
+
 		BeginModel(e);
 		if (i == 0) {
 			ProcessWorldModel(e);
@@ -149,6 +151,8 @@ static void ProcessModels(void) {
 			ProcessInlineModel(e);
 		}
 		EndModel();
+
+		Com_Print("\n");
 	}
 }
 
