@@ -507,7 +507,7 @@ void BeginModel(const entity_t *e) {
 	}
 
 	mod->mins = Vec3_CastVec3s(mins);
-	mod->maxs = Vec3_CastVec3s(maxs);;
+	mod->maxs = Vec3_CastVec3s(maxs);
 }
 
 /**

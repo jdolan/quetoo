@@ -757,9 +757,7 @@ void FillOutside(tree_t *tree) {
 /**
  * @brief Finds a brush side to use for texturing the given portal
  */
-static void FindPortalSide(portal_t *portal) {
-
-	portal->side_found = true;
+static void FindPortalBrushSide(portal_t *portal) {
 
 	// decide which content change is strongest, solid > lava > water, etc
 	const int32_t c = VisibleContents(portal->nodes[0]->contents ^ portal->nodes[1]->contents);
@@ -807,7 +805,7 @@ static void FindPortalSide(portal_t *portal) {
 
 	if (!portal->side && !leaked) {
 		Mon_SendWinding(MON_WARN, portal->winding->points, portal->winding->num_points,
-						"Side not found for portal");
+						"Brush side not found for portal");
 	}
 }
 
@@ -822,6 +820,7 @@ static void MarkVisibleSides_r(const node_t *node) {
 		MarkVisibleSides_r(node->children[1]);
 		return;
 	}
+
 	// empty leafs are never boundary leafs
 	if (!node->contents) {
 		return;
@@ -833,9 +832,7 @@ static void MarkVisibleSides_r(const node_t *node) {
 		if (!p->on_node) {
 			continue; // edge of world
 		}
-		if (!p->side_found) {
-			FindPortalSide(p);
-		}
+		FindPortalBrushSide(p);
 		if (p->side) {
 			p->side->visible = true;
 		}
