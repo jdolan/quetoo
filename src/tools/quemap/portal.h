@@ -44,7 +44,7 @@ _Bool Portal_VisFlood(const portal_t *p);
 void RemovePortalFromNode(portal_t *portal, node_t *l);
 
 _Bool FloodEntities(tree_t *tree);
-void FillOutside(node_t *head_node);
+void FillOutside(tree_t *tree);
 void FloodAreas(tree_t *tree);
 void MarkVisibleSides(tree_t *tree, int32_t start, int32_t count);
 void FreePortal(portal_t *p);

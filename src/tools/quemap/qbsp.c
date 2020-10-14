@@ -60,7 +60,7 @@ static void ProcessWorldModel(const entity_t *e) {
 	MakeTreePortals(tree);
 
 	if (FloodEntities(tree)) {
-		FillOutside(tree->head_node);
+		FillOutside(tree);
 	} else {
 		Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
 		leaked = true;

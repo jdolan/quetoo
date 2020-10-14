@@ -211,7 +211,7 @@ void MakeHeadnodePortals(tree_t *tree) {
 	// pad with some space so there will never be null volume leafs
 	for (int32_t i = 0; i < 3; i++) {
 		bounds[0].xyz[i] = floorf(tree->mins.xyz[i]) - SIDESPACE;
-		bounds[1].xyz[i] = ceilf(tree->maxs.xyz[i]) + SIDESPACE;
+		bounds[1].xyz[i] =  ceilf(tree->maxs.xyz[i]) + SIDESPACE;
 	}
 
 	tree->outside_node.plane_num = PLANE_NUM_LEAF;
@@ -555,8 +555,7 @@ static void FloodAreas_r(node_t *node) {
 		const csg_brush_t *b = node->brushes;
 		entity_t *e = &entities[b->original->entity_num];
 
-		// if the current area has already touched this
-		// portal, we are done
+		// if the current area has already touched this portal, we are done
 		if (e->portal_areas[0] == c_areas || e->portal_areas[1] == c_areas) {
 			return;
 		}
@@ -740,12 +739,16 @@ static void FillOutside_r(node_t *node) {
 /**
  * @brief Fill all nodes that can't be reached by entities.
  */
-void FillOutside(node_t *head_node) {
+void FillOutside(tree_t *tree) {
+
 	c_outside = 0;
 	c_inside = 0;
 	c_solid = 0;
+
 	Com_Verbose("--- FillOutside ---\n");
-	FillOutside_r(head_node);
+
+	FillOutside_r(tree->head_node);
+	
 	Com_Verbose("%5i solid leafs\n", c_solid);
 	Com_Verbose("%5i leafs filled\n", c_outside);
 	Com_Verbose("%5i inside leafs\n", c_inside);
