@@ -224,15 +224,6 @@ static int32_t BrushContents(const brush_t *b) {
 		}
 	}
 
-	// if any side is translucent, mark the contents and change solid to window
-	if (surface & SURF_MASK_TRANSLUCENT) {
-		contents |= CONTENTS_TRANSLUCENT;
-		if (contents & CONTENTS_SOLID) {
-			contents &= ~CONTENTS_SOLID;
-			contents |= CONTENTS_WINDOW;
-		}
-	}
-
 	return contents;
 }
 
@@ -497,6 +488,10 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 		side->contents |= CONTENTS_DETAIL | CONTENTS_WINDOW;
 		td->flags |= SURF_NO_DRAW;
 	}
+
+	if (side->contents & CONTENTS_MASK_LIQUID) {
+		td->flags |= SURF_LIQUID;
+	}
 }
 
 /**
@@ -592,31 +587,40 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			// resolve material-based surface and contents flags
 			SetMaterialFlags(side, &td);
 
-			// if the brush is liquid, any faces it emits should also be marked as liquid
-			if (side->contents & CONTENTS_MASK_LIQUID) {
-				td.flags |= SURF_LIQUID;
-			}
-
 			side->surf = td.flags;
 
-			// translucent objects are automatically classified as detail
+			// translucent brushes are inherently details beacuse they can not occlude
 			if (side->surf & SURF_MASK_TRANSLUCENT) {
-				side->contents |= CONTENTS_DETAIL;
+				side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
+
+				// and translucent solids are actually windows
+				if (side->contents & CONTENTS_SOLID) {
+					side->contents &= ~CONTENTS_SOLID;
+					side->contents |= CONTENTS_WINDOW;
+				}
 			}
+
+			// clip brushes, similarly, are not drawn and therefore can not occlude
 			if (side->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
 				side->contents |= CONTENTS_DETAIL;
 			}
+
 			if (all_structural) {
 				side->contents &= ~CONTENTS_DETAIL;
 			}
-			if (!(side->contents & ((LAST_VISIBLE_CONTENTS - 1) | CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP | CONTENTS_MIST))) {
-				side->contents |= CONTENTS_SOLID;
+
+			// brushes with no specified contents default to solid
+			if (!(side->contents & CONTENTS_MASK_VISIBLE)) {
+				if (!(side->contents & (CONTENTS_AREA_PORTAL | CONTENTS_ORIGIN | CONTENTS_MASK_CLIP))) {
+					side->contents |= CONTENTS_SOLID;
+				}
 			}
 
-			// hints and skips are never detail, and have no content
-			if (side->surf & (SURF_HINT | SURF_SKIP)) {
-				side->contents = 0;
+			// hints are never detail, are visible, and have no content
+			if (side->surf & SURF_HINT) {
 				side->surf &= ~CONTENTS_DETAIL;
+				side->visible = true;
+				side->contents = 0;
 			}
 
 			// find the plane number

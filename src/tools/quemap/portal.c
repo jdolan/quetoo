@@ -871,8 +871,7 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 		return NULL; // portal does not bridge different visible contents
 	}
 
-	// don't emit faces marked as no draw or skip
-	if (side->surf & (SURF_NO_DRAW | SURF_SKIP) && !(side->surf & (SURF_SKY | SURF_HINT))) {
+	if (side->surf & SURF_SKIP) {
 		return NULL;
 	}
 
