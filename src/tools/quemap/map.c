@@ -205,7 +205,7 @@ static int32_t PlaneFromPoints(const vec3d_t p0, const vec3d_t p1, const vec3d_t
  */
 static int32_t BrushContents(const brush_t *b) {
 
-	const brush_side_t *s = &b->original_sides[0];
+	const brush_side_t *s = &b->sides[0];
 
 	int32_t contents = s->contents;
 	int32_t surface = bsp_file.texinfo[s->texinfo].flags;
@@ -252,7 +252,7 @@ static void AddBrushBevels(brush_t *b) {
 	for (axis = 0; axis < 3; axis++) {
 		for (dir = -1; dir <= 1; dir += 2, order++) {
 			// see if the plane is already present
-			for (i = 0, s = b->original_sides; i < b->num_sides; i++, s++) {
+			for (i = 0, s = b->sides; i < b->num_sides; i++, s++) {
 				if (planes[s->plane_num].normal.xyz[axis] == dir) {
 					break;
 				}
@@ -272,18 +272,18 @@ static void AddBrushBevels(brush_t *b) {
 					dist = -b->mins.xyz[axis];
 				}
 				s->plane_num = FindPlane(normal, dist);
-				s->texinfo = b->original_sides[0].texinfo;
-				s->contents = b->original_sides[0].contents;
+				s->texinfo = b->sides[0].texinfo;
+				s->contents = b->sides[0].contents;
 				s->bevel = true;
 				c_box_bevels++;
 			}
 			// if the plane is not in it canonical order, swap it
 			if (i != order) {
-				sidetemp = b->original_sides[order];
-				b->original_sides[order] = b->original_sides[i];
-				b->original_sides[i] = sidetemp;
+				sidetemp = b->sides[order];
+				b->sides[order] = b->sides[i];
+				b->sides[i] = sidetemp;
 
-				j = (int32_t) (ptrdiff_t) (b->original_sides - brush_sides);
+				j = (int32_t) (ptrdiff_t) (b->sides - brush_sides);
 				tdtemp = brush_textures[j + order];
 				brush_textures[j + order] = brush_textures[j + i];
 				brush_textures[j + i] = tdtemp;
@@ -298,7 +298,7 @@ static void AddBrushBevels(brush_t *b) {
 
 	// test the non-axial plane edges
 	for (i = 6; i < b->num_sides; i++) {
-		s = b->original_sides + i;
+		s = b->sides + i;
 		w = s->winding;
 		if (!w) {
 			continue;
@@ -340,11 +340,11 @@ static void AddBrushBevels(brush_t *b) {
 						float minBack;
 
 						// if this plane has already been used, skip it
-						if (PlaneEqual(&planes[b->original_sides[k].plane_num], normal, dist)) {
+						if (PlaneEqual(&planes[b->sides[k].plane_num], normal, dist)) {
 							break;
 						}
 
-						w2 = b->original_sides[k].winding;
+						w2 = b->sides[k].winding;
 						if (!w2) {
 							continue;
 						}
@@ -377,10 +377,10 @@ static void AddBrushBevels(brush_t *b) {
 						Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 					}
 
-					s2 = &b->original_sides[b->num_sides++];
+					s2 = &b->sides[b->num_sides++];
 					s2->plane_num = FindPlane(normal, dist);
-					s2->texinfo = b->original_sides[0].texinfo;
-					s2->contents = b->original_sides[0].contents;
+					s2->texinfo = b->sides[0].texinfo;
+					s2->contents = b->sides[0].contents;
 					s2->bevel = true;
 
 					num_brush_sides++;
@@ -400,23 +400,23 @@ static _Bool MakeBrushWindings(brush_t *ob) {
 	ob->maxs = Vec3_Maxs();
 
 	for (int32_t i = 0; i < ob->num_sides; i++) {
-		const plane_t *plane = &planes[ob->original_sides[i].plane_num];
+		const plane_t *plane = &planes[ob->sides[i].plane_num];
 		cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
 		for (int32_t j = 0; j < ob->num_sides && w; j++) {
 			if (i == j) {
 				continue;
 			}
-			if (ob->original_sides[j].plane_num == (ob->original_sides[j].plane_num ^ 1)) {
+			if (ob->sides[j].plane_num == (ob->sides[j].plane_num ^ 1)) {
 				continue; // back side clipaway
 			}
-			if (ob->original_sides[j].bevel) {
+			if (ob->sides[j].bevel) {
 				continue;
 			}
-			plane = &planes[ob->original_sides[j].plane_num ^ 1];
+			plane = &planes[ob->sides[j].plane_num ^ 1];
 			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.f);
 		}
 
-		brush_side_t *side = &ob->original_sides[i];
+		brush_side_t *side = &ob->sides[i];
 		side->winding = w;
 		if (w) {
 			side->visible = true;
@@ -519,7 +519,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 		memset(brush, 0, sizeof(*brush));
 
-		brush->original_sides = &brush_sides[num_brush_sides];
+		brush->sides = &brush_sides[num_brush_sides];
 		brush->entity_num = num_entities - 1;
 		brush->brush_num = num_brushes - 1 - entity->first_brush;
 
@@ -624,7 +624,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			// see if the plane has been used already
 			int32_t i;
 			for (i = 0; i < brush->num_sides; i++) {
-				brush_side_t *side = brush->original_sides + i;
+				brush_side_t *side = brush->sides + i;
 				if (side->plane_num == plane_num) {
 					Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Duplicate plane");
 					break;
@@ -639,7 +639,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 
 			// keep this side
-			side = brush->original_sides + brush->num_sides;
+			side = brush->sides + brush->num_sides;
 			side->plane_num = plane_num;
 			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, Vec3_Zero());
 
@@ -672,7 +672,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		if (brush->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
 			c_clip_brushes++;
 			for (int32_t i = 0; i < brush->num_sides; i++) {
-				brush->original_sides[i].texinfo = TEXINFO_NODE;
+				brush->sides[i].texinfo = TEXINFO_NODE;
 			}
 		}
 
@@ -794,7 +794,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 				brush_t *b = &brushes[entity->first_brush + i];
 				for (int32_t j = 0; j < b->num_sides; j++) {
 
-					brush_side_t *s = &b->original_sides[j];
+					brush_side_t *s = &b->sides[j];
 					plane_t *p = &planes[s->plane_num];
 
 					const double dist = p->dist - Vec3_Dot(p->normal, origin);

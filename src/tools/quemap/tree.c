@@ -394,9 +394,8 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	csg_brush_t *children[2];
 
 	// find the best plane to use as a splitter
-	brush_side_t *split_side = SelectSplitSide(node, brushes);
-	if (!split_side) {
-		// leaf node
+	brush_side_t *side = SelectSplitSide(node, brushes);
+	if (!side) { // leaf node
 		node->side = NULL;
 		node->plane_num = PLANE_NUM_LEAF;
 		LeafNode(node, brushes);
@@ -404,17 +403,16 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	}
 
 	// this is a split-plane node
-	node->side = split_side;
-	node->plane_num = split_side->plane_num & ~1; // always use positive facing
+	node->side = side;
+	node->plane_num = side->plane_num & ~1; // always use positive facing
 
 	SplitBrushes(brushes, node, &children[0], &children[1]);
 	FreeBrushes(brushes);
 
 	// allocate children before recursing
 	for (int32_t i = 0; i < 2; i++) {
-		node_t *child = AllocNode();
-		child->parent = node;
-		node->children[i] = child;
+		node->children[i] = AllocNode();
+		node->children[i]->parent = node;
 	}
 
 	SplitBrush(node->volume, node->plane_num, &node->children[0]->volume, &node->children[1]->volume);

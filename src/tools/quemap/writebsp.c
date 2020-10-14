@@ -349,8 +349,8 @@ static void EmitBrushes(void) {
 			bsp_brush_side_t *bs = &bsp_file.brush_sides[bsp_file.num_brush_sides];
 			bsp_file.num_brush_sides++;
 
-			bs->plane_num = b->original_sides[j].plane_num;
-			bs->texinfo = b->original_sides[j].texinfo;
+			bs->plane_num = b->sides[j].plane_num;
+			bs->texinfo = b->sides[j].texinfo;
 		}
 
 		// add any axis planes not contained in the brush to bevel off corners
@@ -371,7 +371,7 @@ static void EmitBrushes(void) {
 
 				int32_t j;
 				for (j = 0; j < b->num_sides; j++) {
-					if (b->original_sides[j].plane_num == plane_num) {
+					if (b->sides[j].plane_num == plane_num) {
 						break;
 					}
 				}

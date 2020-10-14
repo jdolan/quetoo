@@ -785,7 +785,7 @@ static void FindPortalSide(portal_t *portal) {
 					continue; // non-visible
 				}
 				if ((side->plane_num & ~1) == portal->on_node->plane_num) { // exact match
-					portal->side = &brush->original_sides[i];
+					portal->side = &brush->sides[i];
 					return;
 				}
 
@@ -850,7 +850,7 @@ void MarkVisibleSides(tree_t *tree, int32_t start, int32_t end) {
 	for (int32_t i = start; i < end; i++) {
 		brush_t *brush = &brushes[i];
 		for (int32_t j = 0; j < brush->num_sides; j++) {
-			brush->original_sides[j].visible = false;
+			brush->sides[j].visible = false;
 		}
 	}
 
