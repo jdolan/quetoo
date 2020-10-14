@@ -842,12 +842,12 @@ static void MarkVisibleSides_r(const node_t *node) {
 /**
  * @brief
  */
-void MarkVisibleSides(tree_t *tree, int32_t start, int32_t end) {
+void MarkVisibleSides(tree_t *tree, int32_t start, int32_t count) {
 
 	Com_Verbose("--- MarkVisibleSides ---\n");
 
 	// clear all the visible flags
-	for (int32_t i = start; i < end; i++) {
+	for (int32_t i = start; i < start + count; i++) {
 		brush_t *brush = &brushes[i];
 		for (int32_t j = 0; j < brush->num_sides; j++) {
 			brush->sides[j].visible = false;

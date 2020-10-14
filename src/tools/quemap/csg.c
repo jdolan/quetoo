@@ -106,36 +106,35 @@ static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 }
 
 /**
- * @brief Create a list of csg_brush_t of the brush_t occupying, and optionally
- * clipped to, the given bounding box.
+ * @brief Create a list of csg_brush_t for the brush_t between start and start + count.
  */
-csg_brush_t *MakeBrushes(int32_t start, int32_t end) {
+csg_brush_t *MakeBrushes(int32_t start, int32_t count) {
+
 	csg_brush_t *list = NULL;
 
-	int32_t percent = 0;
+	for (int32_t i = start; i < start + count; i++) {
 
-	for (int32_t i = start; i < end; i++) {
-
-		brush_t *b = &brushes[i];
+		const brush_t *b = &brushes[i];
 		if (!b->num_sides) {
 			continue;
 		}
 		
-		// create a csg_brush_t for the brush_t
 		csg_brush_t *brush = AllocBrush(b->num_sides);
+
 		brush->original = b;
 		brush->num_sides = b->num_sides;
-		memcpy(brush->sides, b->original_sides, brush->num_sides * sizeof(brush_side_t));
+
+		memcpy(brush->sides, b->sides, brush->num_sides * sizeof(brush_side_t));
+
 		for (int32_t j = 0; j < b->num_sides; j++) {
 			if (brush->sides[j].winding) {
 				brush->sides[j].winding = Cm_CopyWinding(brush->sides[j].winding);
 			}
-			if (brush->sides[j].surf & SURF_HINT) {
-				brush->sides[j].visible = true; // hints are always visible
-			}
 		}
+		
 		brush->mins = b->mins;
 		brush->maxs = b->maxs;
+
 		brush->next = list;
 		list = brush;
 	}

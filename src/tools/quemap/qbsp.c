@@ -50,10 +50,7 @@ _Bool leaked = false;
  */
 static void ProcessWorldModel(const entity_t *e) {
 
-	const int32_t start = e->first_brush;
-	const int32_t end = start + e->num_brushes;
-
-	csg_brush_t *brushes = MakeBrushes(start, end);
+	csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
 	if (!no_csg) {
 		brushes = SubtractBrushes(brushes);
 	}
@@ -75,7 +72,7 @@ static void ProcessWorldModel(const entity_t *e) {
 		}
 	}
 
-	MarkVisibleSides(tree, start, end);
+	MarkVisibleSides(tree, e->first_brush, e->num_brushes);
 
 	FloodAreas(tree);
 
@@ -103,10 +100,7 @@ static void ProcessWorldModel(const entity_t *e) {
  */
 static void ProcessInlineModel(const entity_t *e) {
 
-	const int32_t start = e->first_brush;
-	const int32_t end = start + e->num_brushes;
-
-	csg_brush_t *brushes = MakeBrushes(start, end);
+	csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
 	if (!no_csg) {
 		brushes = SubtractBrushes(brushes);
 	}
@@ -114,7 +108,9 @@ static void ProcessInlineModel(const entity_t *e) {
 	tree_t *tree = BuildTree(brushes);
 
 	MakeTreePortals(tree);
-	MarkVisibleSides(tree, start, end);
+
+	MarkVisibleSides(tree, e->first_brush, e->num_brushes);
+
 	MakeTreeFaces(tree);
 
 	if (!no_prune) {

@@ -30,6 +30,7 @@ static SDL_atomic_t c_active_brushes;
 csg_brush_t *AllocBrush(int32_t num_sides) {
 
 	csg_brush_t *brush = Mem_TagMalloc(sizeof(csg_brush_t), MEM_TAG_BRUSH);
+
 	brush->sides = Mem_LinkMalloc(sizeof(brush_side_t) * num_sides, brush);
 
 	SDL_AtomicAdd(&c_active_brushes, 1);
@@ -80,21 +81,24 @@ size_t CountBrushes(csg_brush_t *brushes) {
 }
 
 /**
- * @brief Duplicates the brush, the sides, and the windings
+ * @brief Duplicates the brush, the sides, and the windings.
  */
 csg_brush_t *CopyBrush(const csg_brush_t *brush) {
 
 	csg_brush_t *copy = AllocBrush(brush->num_sides);
 
-	brush_side_t *sides = copy->sides;
-	memcpy(copy, brush, sizeof(csg_brush_t));
+	copy->mins = brush->mins;
+	copy->maxs = brush->maxs;
+	copy->side = brush->side;
+	copy->test_side = brush->test_side;
+	copy->original = brush->original;
+	copy->num_sides = brush->num_sides;
 
-	copy->sides = sides;
-	memcpy(copy->sides, brush->sides, sizeof(brush_side_t) * copy->num_sides);
+	memcpy(copy->sides, brush->sides, sizeof(brush_side_t) * brush->num_sides);
 
-	for (int32_t i = 0; i < copy->num_sides; i++) {
-		if (copy->sides[i].winding) {
-			copy->sides[i].winding = Cm_CopyWinding(copy->sides[i].winding);
+	for (int32_t i = 0; i < brush->num_sides; i++) {
+		if (brush->sides[i].winding) {
+			copy->sides[i].winding = Cm_CopyWinding(brush->sides[i].winding);
 		}
 	}
 
