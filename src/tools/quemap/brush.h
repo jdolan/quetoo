@@ -69,7 +69,7 @@ typedef struct brush_s {
 	vec3_t mins, maxs;
 
 	int32_t num_sides;
-	brush_side_t *original_sides;
+	brush_side_t *sides;
 } brush_t;
 
 csg_brush_t *AllocBrush(int32_t num_sides);

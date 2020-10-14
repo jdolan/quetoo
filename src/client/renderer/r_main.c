@@ -224,8 +224,8 @@ static void R_UpdateFrustum(void) {
 
 	for (int32_t i = 0; i < 4; i++) {
 		p[i].type = PLANE_ANY_Z;
-		p[i].dist = Vec3_Dot (r_view.origin, p[i].normal);
-		p[i].sign_bits = Cm_SignBitsForPlane(&p[i]);
+		p[i].dist = Vec3_Dot(r_view.origin, p[i].normal);
+		p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
 	}
 }
 

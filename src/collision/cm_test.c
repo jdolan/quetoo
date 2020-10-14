@@ -22,6 +22,19 @@
 #include "cm_local.h"
 
 /**
+ * @brief
+ */
+cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
+
+	return (cm_bsp_plane_t) {
+		.normal = normal,
+		.dist = dist,
+		.type = Cm_PlaneTypeForNormal(normal),
+		.sign_bits = Cm_SignBitsForNormal(normal)
+	};
+}
+
+/**
  * @return The PLANE_ type for the given normal vector.
  */
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
@@ -55,11 +68,11 @@ int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
  * @return A bit mask hinting at the sign of each normal vector component. This
  * can be used to optimize plane side tests.
  */
-int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
+int32_t Cm_SignBitsForNormal(const vec3_t normal) {
 	int32_t bits = 0;
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (p->normal.xyz[i] < 0.0) {
+		if (normal.xyz[i] < 0.0) {
 			bits |= 1 << i;
 		}
 	}
@@ -233,13 +246,13 @@ void Cm_InitBoxHull(void) {
 		plane->type = i >> 1;
 		plane->normal = Vec3_Zero();
 		plane->normal.xyz[i >> 1] = 1.0;
-		plane->sign_bits = Cm_SignBitsForPlane(plane);
+		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
 		plane->normal = Vec3_Zero();
 		plane->normal.xyz[i >> 1] = -1.0;
-		plane->sign_bits = Cm_SignBitsForPlane(plane);
+		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
 
 		const int32_t side = i & 1;
 

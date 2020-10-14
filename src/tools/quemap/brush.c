@@ -244,14 +244,8 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 	// box on plane side
 	const plane_t *plane = &planes[plane_num];
 
-	cm_bsp_plane_t p = {
-		.normal = plane->normal,
-		.dist = plane->dist,
-		.type = plane->type
-	};
-
-	p.sign_bits = Cm_SignBitsForPlane(&p);
-
+	const cm_bsp_plane_t p = Cm_Plane(plane->normal, plane->dist);
+	
 	const int32_t s = Cm_BoxOnPlaneSide(brush->mins, brush->maxs, &p);
 
 	if (s != SIDE_BOTH) {
