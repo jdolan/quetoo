@@ -777,7 +777,7 @@ static void FindPortalSide(portal_t *portal) {
 			}
 
 			for (int32_t i = 0; i < brush->num_sides; i++) {
-				brush_side_t *side = &brush->original_sides[i];
+				brush_side_t *side = &brush->sides[i];
 				if (side->bevel) {
 					continue;
 				}
