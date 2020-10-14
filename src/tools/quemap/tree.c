@@ -240,9 +240,6 @@ static brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 				if (!side->visible && pass < 2) {
 					continue;    // prefer visible sides on the first two passes
 				}
-				if (side->contents & CONTENTS_DETAIL && have_structural) {
-					continue;    // never split structural by detail
-				}
 
 				plane_num = side->plane_num;
 				plane_num &= ~1; // always use positive facing plane
@@ -407,6 +404,7 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	node->plane_num = side->plane_num & ~1; // always use positive facing
 
 	SplitBrushes(brushes, node, &children[0], &children[1]);
+
 	FreeBrushes(brushes);
 
 	// allocate children before recursing
@@ -442,12 +440,12 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	tree->mins = Vec3_Mins();
 	tree->maxs = Vec3_Maxs();
 
-	int32_t c_brushes = 0;
-	int32_t c_vis_sides = 0;
-	int32_t c_non_vis_sides = 0;
+	int32_t num_brushes = 0;
+	int32_t num_vis_sides = 0;
+	int32_t num_non_vis_sides = 0;
 
 	for (csg_brush_t *b = brushes; b; b = b->next) {
-		c_brushes++;
+		num_brushes++;
 
 		const float volume = BrushVolume(b);
 		if (volume < micro_volume) {
@@ -465,9 +463,9 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 				continue;
 			}
 			if (b->sides[i].visible) {
-				c_vis_sides++;
+				num_vis_sides++;
 			} else {
-				c_non_vis_sides++;
+				num_non_vis_sides++;
 			}
 		}
 
@@ -475,9 +473,9 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 		tree->maxs = Vec3_Maxf(tree->maxs, b->maxs);
 	}
 
-	Com_Debug(DEBUG_ALL, "%5i brushes\n", c_brushes);
-	Com_Debug(DEBUG_ALL, "%5i visible sides\n", c_vis_sides);
-	Com_Debug(DEBUG_ALL, "%5i nonvisible sides\n", c_non_vis_sides);
+	Com_Debug(DEBUG_ALL, "%5i brushes\n", num_brushes);
+	Com_Debug(DEBUG_ALL, "%5i visible sides\n", num_vis_sides);
+	Com_Debug(DEBUG_ALL, "%5i nonvisible sides\n", num_non_vis_sides);
 
 	tree->head_node = AllocNode();
 	tree->head_node->volume = BrushFromBounds(tree->mins, tree->maxs);
