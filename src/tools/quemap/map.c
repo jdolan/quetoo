@@ -212,9 +212,14 @@ static int32_t BrushContents(const brush_t *b) {
 
 	for (int32_t i = 1; i < b->num_sides; i++, s++) {
 		surface |= bsp_file.texinfo[s->texinfo].flags;
-		if (s->contents != contents) {
+		if ((s->contents & CONTENTS_MASK_VISIBLE) != (contents & CONTENTS_MASK_VISIBLE)) {
+			char bits[33], bobs[33];
+
+			SDL_itoa(s->contents & CONTENTS_MASK_VISIBLE, bits, 2);
+			SDL_itoa(contents & CONTENTS_MASK_VISIBLE, bobs, 2);
+
 			Mon_SendSelect(MON_WARN, b->entity_num, b->brush_num,
-						   va("Mixed face contents: %#x expected %#x", s->contents, contents));
+						   va("Mixed face contents: %s expected %s", bits, bobs));
 			break;
 		}
 	}
