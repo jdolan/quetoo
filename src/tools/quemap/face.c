@@ -358,7 +358,8 @@ static int32_t EmitFaceElements(const face_t *face, int32_t first_vertex) {
  */
 int32_t EmitFace(const face_t *face) {
 
-	assert(!face->merged);
+	assert(face->merged == NULL);
+	assert(face->texinfo != -1);
 	assert(face->w->num_points > 2);
 
 	if (bsp_file.num_faces == MAX_BSP_FACES) {
