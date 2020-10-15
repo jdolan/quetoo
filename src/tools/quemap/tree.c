@@ -478,7 +478,9 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	Com_Debug(DEBUG_ALL, "%5i nonvisible sides\n", num_non_vis_sides);
 
 	tree->head_node = AllocNode();
-	tree->head_node->volume = BrushFromBounds(tree->mins, tree->maxs);
+	const vec3_t mins = Vec3(MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);
+	const vec3_t maxs = Vec3(MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD);
+	tree->head_node->volume = BrushFromBounds(mins, maxs);
 
 	BuildTree_r(tree->head_node, brushes);
 
