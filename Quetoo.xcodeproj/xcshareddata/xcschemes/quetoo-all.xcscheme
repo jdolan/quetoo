@@ -78,7 +78,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_wireframe 1 +set r_clear 1 +set cl_draw_renderer_stats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set ai_ann 1 +g_ai_add +debug ai"
@@ -89,7 +89,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn"
+            argument = "+map lighttest"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
