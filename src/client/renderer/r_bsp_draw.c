@@ -318,6 +318,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp
  * @brief Draws opaque draw elements for the specified inline model, ordered by material.
  */
 static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_bsp_inline_model_t *in) {
+	const r_material_t *material = NULL;
 
 	for (guint i = 0; i < in->opaque_draw_elements->len; i++) {
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->opaque_draw_elements, i);
@@ -329,14 +330,17 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
 		glUniform1i(r_bsp_program.lights_mask, draw->node->lights_mask);
 
 		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
-			const r_material_t *material = draw->texinfo->material;
 
-			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+			if (material != draw->texinfo->material) {
+				material = draw->texinfo->material;
 
-			glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
-			glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
-			glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
-			glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
+				glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+
+				glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
+				glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
+				glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
+				glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
+			}
 
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 			r_view.count_bsp_triangles += draw->num_elements / 3;
@@ -383,6 +387,8 @@ static void R_DrawBspInlineModelAlphaBlendDepth(int32_t blend_depth) {
  */
 static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, const r_bsp_inline_model_t *in) {
 
+	const r_material_t *material = NULL;
+
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
@@ -400,17 +406,20 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 		glUniform1i(r_bsp_program.lights_mask, draw->node->lights_mask);
 
 		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
-			const r_material_t *material = draw->texinfo->material;
+
+			if (material != draw->texinfo->material) {
+				material = draw->texinfo->material;
+
+				glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+
+				glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
+				glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
+				glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
+				glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
+			}
 
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
-
-			glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
-			glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
-			glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
-			glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
 
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 			r_view.count_bsp_triangles += draw->num_elements / 3;
