@@ -862,7 +862,7 @@ void MarkVisibleSides(tree_t *tree, int32_t start, int32_t count) {
  */
 static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 
-	brush_side_t *side = p->side;
+	const brush_side_t *side = p->side;
 	if (!side) {
 		return NULL; // portal does not bridge different visible contents
 	}
