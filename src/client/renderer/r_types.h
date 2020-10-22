@@ -1089,6 +1089,7 @@ typedef struct {
 	int32_t count_bsp_inline_models;
 	int32_t count_bsp_leafs;
 	int32_t count_bsp_nodes;
+	int32_t count_bsp_draw_elements;
 	int32_t count_bsp_triangles;
 
 	int32_t count_mesh_models;

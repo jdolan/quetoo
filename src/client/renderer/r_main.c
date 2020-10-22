@@ -338,6 +338,7 @@ void R_BeginFrame(void) {
 	r_view.count_bsp_inline_models = 0;
 	r_view.count_bsp_leafs = 0;
 	r_view.count_bsp_nodes = 0;
+	r_view.count_bsp_draw_elements = 0;
 	r_view.count_bsp_triangles = 0;
 
 	r_view.count_mesh_models = 0;

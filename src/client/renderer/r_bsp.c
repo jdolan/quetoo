@@ -198,7 +198,9 @@ void R_UpdateVis(void) {
 				node->vis_frame = r_locals.vis_frame;
 				node->lights_mask = node->blend_depth = 0;
 
-				r_view.count_bsp_nodes++;
+				if (node->num_draw_elements) {
+					r_view.count_bsp_nodes++;
+				}
 			}
 		}
 	}

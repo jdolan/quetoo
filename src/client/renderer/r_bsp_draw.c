@@ -344,6 +344,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
 
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 			r_view.count_bsp_triangles += draw->num_elements / 3;
+			r_view.count_bsp_draw_elements++;
 		}
 
 		R_DrawBspDrawElementsMaterialStages(e, draw, draw->texinfo->material);
@@ -423,6 +424,7 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 			r_view.count_bsp_triangles += draw->num_elements / 3;
+			r_view.count_bsp_draw_elements++;
 		}
 
 		R_DrawBspDrawElementsMaterialStages(e, draw, draw->texinfo->material);
