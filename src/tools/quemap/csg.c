@@ -112,9 +112,9 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t count) {
 
 	csg_brush_t *list = NULL;
 
-	for (int32_t i = start; i < start + count; i++) {
+	const brush_t *b = &brushes[start];
+	for (int32_t i = 0; i < count; i++, b++) {
 
-		const brush_t *b = &brushes[i];
 		if (!b->num_sides) {
 			continue;
 		}
