@@ -770,23 +770,24 @@ static void FindPortalBrushSide(portal_t *portal) {
 	for (int32_t j = 0; j < 2; j++) {
 		const node_t *n = portal->nodes[j];
 
-		for (const csg_brush_t *b = n->brushes; b; b = b->next) {
-			const brush_t *brush = b->original;
+		for (const csg_brush_t *brush = n->brushes; brush; brush = brush->next) {
+			const brush_t *original = brush->original;
 
-			if (!(brush->contents & c)) {
+			if (!(original->contents & c)) {
 				continue;
 			}
 
-			for (int32_t i = 0; i < brush->num_sides; i++) {
-				brush_side_t *side = &brush->sides[i];
+			for (int32_t i = 0; i < original->num_sides; i++) {
+				brush_side_t *side = &original->sides[i];
 				if (side->bevel) {
 					continue;
 				}
 				if (side->texinfo == TEXINFO_NODE) {
 					continue; // non-visible
 				}
+
 				if ((side->plane_num & ~1) == portal->on_node->plane_num) { // exact match
-					portal->side = &brush->sides[i];
+					portal->side = &original->sides[i];
 					return;
 				}
 
