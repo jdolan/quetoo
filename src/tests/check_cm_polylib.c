@@ -38,6 +38,139 @@ void teardown(void) {
 	Mem_Shutdown();
 }
 
+/**
+ * @brief
+ */
+static void __attribute__((unused)) PrintWinding(const char *name, const cm_winding_t *w) {
+
+	if (w) {
+		printf("%s: %p has %d points\n", name, w, w->num_points);
+		for (int32_t i = 0; i < w->num_points; i++) {
+			printf("(%08.3f, %08.3f, %08.3f)\n", w->points[i].x, w->points[i].y, w->points[i].z);
+		}
+	} else {
+		printf("%s: NULL\n", name);
+	}
+}
+
+START_TEST(check_Cm_ClipWinding_front) {
+
+	cm_winding_t *a = Cm_AllocWinding(4);
+	a->num_points = 4;
+
+	a->points[0] = Vec3(0,    0,   0);
+	a->points[1] = Vec3(1024, 0,   0);
+	a->points[2] = Vec3(1024, 0, 512);
+	a->points[3] = Vec3(0,    0, 512);
+
+	cm_winding_t *b = Cm_CopyWinding(a);
+
+	Cm_ClipWinding(&a, Vec3(1, 0, 0), -1, CLIP_EPSILON);
+
+	ck_assert_int_eq(b->num_points, a->num_points);
+
+	for (int32_t i = 0; i < a->num_points; i++) {
+		ck_assert(Vec3_Equal(b->points[i], a->points[i]));
+	}
+
+	Cm_FreeWinding(a);
+	Cm_FreeWinding(b);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWinding_back) {
+
+	cm_winding_t *a = Cm_AllocWinding(4);
+	a->num_points = 4;
+
+	a->points[0] = Vec3(0,    0,   0);
+	a->points[1] = Vec3(1024, 0,   0);
+	a->points[2] = Vec3(1024, 0, 512);
+	a->points[3] = Vec3(0,    0, 512);
+
+	Cm_ClipWinding(&a, Vec3(1, 0, 0), 1024 + CLIP_EPSILON, CLIP_EPSILON);
+
+	ck_assert_ptr_eq(NULL, a);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWinding_both) {
+
+	cm_winding_t *a = Cm_AllocWinding(4);
+	a->num_points = 4;
+
+	a->points[0] = Vec3(0,    0,   0);
+	a->points[1] = Vec3(1024, 0,   0);
+	a->points[2] = Vec3(1024, 0, 512);
+	a->points[3] = Vec3(0,    0, 512);
+
+	cm_winding_t *b = Cm_CopyWinding(a);
+
+	b->points[0] = Vec3(512,  0,   0);
+	b->points[3] = Vec3(512,  0, 512);
+
+	Cm_ClipWinding(&a, Vec3(1, 0, 0), 512, CLIP_EPSILON);
+
+	ck_assert_int_eq(b->num_points, a->num_points);
+
+	for (int32_t i = 0; i < a->num_points; i++) {
+		ck_assert(Vec3_Equal(b->points[i], a->points[i]));
+	}
+
+	Cm_FreeWinding(a);
+	Cm_FreeWinding(b);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWinding_facing) {
+
+	cm_winding_t *a = Cm_AllocWinding(4);
+	a->num_points = 4;
+
+	a->points[0] = Vec3(0,    0,   0);
+	a->points[1] = Vec3(1024, 0,   0);
+	a->points[2] = Vec3(1024, 0, 512);
+	a->points[3] = Vec3(0,    0, 512);
+
+	cm_winding_t *b = Cm_CopyWinding(a);
+
+	Cm_ClipWinding(&a, Vec3(1, 0, 0), 0, CLIP_EPSILON);
+
+	ck_assert_int_eq(b->num_points, a->num_points);
+
+	for (int32_t i = 0; i < a->num_points; i++) {
+		ck_assert(Vec3_Equal(b->points[i], a->points[i]));
+	}
+
+	Cm_ClipWinding(&a, Vec3(-1, 0, 0), -1024, CLIP_EPSILON);
+
+	ck_assert_int_eq(b->num_points, a->num_points);
+
+	for (int32_t i = 0; i < a->num_points; i++) {
+		ck_assert(Vec3_Equal(b->points[i], a->points[i]));
+	}
+
+	Cm_FreeWinding(a);
+	Cm_FreeWinding(b);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWinding_on) {
+
+	cm_winding_t *a = Cm_AllocWinding(4);
+	a->num_points = 4;
+
+	a->points[0] = Vec3(0,    0,   0);
+	a->points[1] = Vec3(1024, 0,   0);
+	a->points[2] = Vec3(1024, 0, 512);
+	a->points[3] = Vec3(0,    0, 512);
+
+	Cm_ClipWinding(&a, Vec3(0, 1, 0), 0, CLIP_EPSILON);
+
+	ck_assert_ptr_eq(NULL, a);
+
+} END_TEST
+
 START_TEST(check_Cm_ElementsForWinding_triangle) {
 
 	cm_winding_t *w = Cm_AllocWinding(3);
@@ -225,24 +358,38 @@ int32_t main(int32_t argc, char **argv) {
 
 	Suite *suite = suite_create("check_cm_polylib");
 
-	TCase *tcase = tcase_create("Cm_ElementsForWinding");
-	tcase_add_checked_fixture(tcase, setup, teardown);
+	{
+		TCase *tcase = tcase_create("Cm_ClipWinding");
+		tcase_add_checked_fixture(tcase, setup, teardown);
+		tcase_add_test(tcase, check_Cm_ClipWinding_front);
+		tcase_add_test(tcase, check_Cm_ClipWinding_back);
+		tcase_add_test(tcase, check_Cm_ClipWinding_both);
+		tcase_add_test(tcase, check_Cm_ClipWinding_facing);
+		tcase_add_test(tcase, check_Cm_ClipWinding_on);
+		suite_add_tcase(suite, tcase);
+	}
 
-	tcase_add_test(tcase, check_Cm_ElementsForWinding_triangle);
-	tcase_add_test(tcase, check_Cm_ElementsForWinding_quad);
-	tcase_add_test(tcase, check_Cm_ElementsForWinding_skinnyQuad);
-	tcase_add_test(tcase, check_Cm_ElementsForWinding_collinearQuad);
-	tcase_add_test(tcase, check_Cm_ElementsForWinding_cornerCase);
+	{
+		TCase *tcase = tcase_create("Cm_ElementsForWinding");
+		tcase_add_checked_fixture(tcase, setup, teardown);
+		tcase_add_test(tcase, check_Cm_ElementsForWinding_triangle);
+		tcase_add_test(tcase, check_Cm_ElementsForWinding_quad);
+		tcase_add_test(tcase, check_Cm_ElementsForWinding_skinnyQuad);
+		tcase_add_test(tcase, check_Cm_ElementsForWinding_collinearQuad);
+		tcase_add_test(tcase, check_Cm_ElementsForWinding_cornerCase);
+		suite_add_tcase(suite, tcase);
+	}
 
-	suite_add_tcase(suite, tcase);
+	{
+		TCase *tcase = tcase_create("Cm_TriangleArea");
+		tcase_add_test(tcase, check_Cm_TriangleArea);
+		suite_add_tcase(suite, tcase);
+	}
 
-	tcase = tcase_create("Cm_TriangleArea");
-	tcase_add_test(tcase, check_Cm_TriangleArea);
-
-	suite_add_tcase(suite, tcase);
-
-	tcase = tcase_create("Cm_Barycentric");
-	tcase_add_test(tcase, check_Cm_Barycentric);
+	{
+		TCase *tcase = tcase_create("Cm_Barycentric");
+		tcase_add_test(tcase, check_Cm_Barycentric);
+	}
 
 	int32_t failed = Test_Run(suite);
 

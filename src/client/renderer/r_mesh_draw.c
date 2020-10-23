@@ -96,6 +96,8 @@ static struct {
 
 	GLint tint_colors;
 
+	GLint ambient;
+
 	r_media_t *shell;
 } r_mesh_program;
 
@@ -278,6 +280,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	} else {
 		glUniform1f(r_mesh_program.alpha_threshold, .125f);
 		glEnable(GL_CULL_FACE);
+	}
+
+	if (e->effects & EF_AMBIENT) {
+		glUniform1f(r_mesh_program.ambient, .15f);
 	}
 
 	glBindVertexArray(mesh->vertex_array);
@@ -487,6 +493,8 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
 	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 0);
 	r_mesh_program.lights_mask = glGetUniformLocation(r_mesh_program.name, "lights_mask");
+
+	r_mesh_program.ambient = glGetUniformLocation(r_mesh_program.name, "entity_ambient");
 
 	r_mesh_program.fog_parameters = glGetUniformLocation(r_mesh_program.name, "fog_parameters");
 	r_mesh_program.fog_color = glGetUniformLocation(r_mesh_program.name, "fog_color");

@@ -182,7 +182,7 @@ void FixTJunctions(node_t *node) {
 
 	faces_locks = Mem_Malloc(sizeof(SDL_SpinLock) * faces->len);
 
-	Work(entity_num == 0 ? "Fixing t-junctions" : NULL, FixTJunctions_, faces->len);
+	Work("Fixing t-junctions", FixTJunctions_, faces->len);
 
 	Com_Verbose("%5i fixed tjunctions\n", SDL_AtomicGet(&c_tjunctions));
 

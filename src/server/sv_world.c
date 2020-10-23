@@ -288,7 +288,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 
 		if (Sv_BoxEntities_Filter(ent)) {
 
-			if (Cm_BoxIntersect(ent->abs_mins, ent->abs_maxs, sv_world.box_mins, sv_world.box_maxs)) {
+			if (Vec3_BoxIntersect(ent->abs_mins, ent->abs_maxs, sv_world.box_mins, sv_world.box_maxs)) {
 
 				sv_world.box_entities[sv_world.num_box_entities] = ent;
 				sv_world.num_box_entities++;

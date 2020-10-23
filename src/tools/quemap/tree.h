@@ -66,5 +66,5 @@ void FreeTreePortals_r(node_t *node);
 void PruneNodes_r(node_t *node);
 void PruneNodes(node_t *node);
 
-tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs);
+tree_t *BuildTree(csg_brush_t *brushes);
 void MergeNodeFaces(node_t *node);

@@ -26,48 +26,6 @@
 #include "qbsp.h"
 #include "writebsp.h"
 
-static int32_t c_nofaces;
-static int32_t c_facenodes;
-
-static uint32_t start;
-static const char *emit;
-
-/**
- * @brief
- */
-static void BeginEmit(const char *name) {
-	start = SDL_GetTicks();
-	emit = name;
-	Com_Print("%-24s ", name);
-}
-
-/**
- * @brief
- */
-static void EmitProgress(void) {
-	static char *string = "-\\|/-|";
-	static int32_t index = 0;
-
-	Com_Print("\r%-24s [%c]", emit, string[index]);
-	index = (index + 1) % strlen(string);
-}
-
-/**
- * @brief
- */
-static void EndEmit(void) {
-	Com_Print("\r%-24s [100%%] %d ms\n", emit, SDL_GetTicks() - start);
-}
-
-/**
- * @brief
- */
-static void Emit(void (*EmitFunc)(void), const char *name) {
-	BeginEmit(name);
-	EmitFunc();
-	EndEmit();
-}
-
 /**
  * @brief
  */
@@ -82,7 +40,7 @@ static void EmitPlanes(void) {
 
 		bsp_file.num_planes++;
 
-		EmitProgress();
+		Progress("Emitting planes", 100.f * i / num_planes);
 	}
 }
 
@@ -158,10 +116,14 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
 		}
 
+		const bsp_face_t *a = faces + i;
+
+		if (bsp_file.texinfo[a->texinfo].flags & (SURF_NO_DRAW | SURF_SKY)) {
+			continue;
+		}
+		
 		bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
 		bsp_file.num_draw_elements++;
-
-		const bsp_face_t *a = faces + i;
 
 		out->texinfo = a->texinfo;
 		out->contents = a->contents;
@@ -308,7 +270,7 @@ static int32_t EmitNode(node_t *node) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_NODES\n");
 	}
 
-	EmitProgress();
+	Progress("Emitting nodes", -1);
 
 	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
@@ -324,10 +286,6 @@ static int32_t EmitNode(node_t *node) {
 
 		out->first_draw_elements = bsp_file.num_draw_elements;
 		out->num_draw_elements = EmitDrawElements(out);
-
-		c_facenodes++;
-	} else {
-		c_nofaces++;
 	}
 
 	// recursively output the other nodes
@@ -349,10 +307,7 @@ static int32_t EmitNode(node_t *node) {
  */
 void EmitNodes(node_t *head_node) {
 
-	BeginEmit("Emitting nodes");
-
-	c_nofaces = 0;
-	c_facenodes = 0;
+	const uint32_t start = SDL_GetTicks();
 
 	Com_Verbose("--- WriteBSP ---\n");
 
@@ -363,12 +318,10 @@ void EmitNodes(node_t *head_node) {
 
 	bsp_file.models[bsp_file.num_models].head_node = EmitNode(head_node);
 
-	Com_Verbose("%5i nodes with faces\n", c_facenodes);
-	Com_Verbose("%5i nodes without faces\n", c_nofaces);
 	Com_Verbose("%5i faces\n", bsp_file.num_faces - old_faces);
 	Com_Verbose("%5i welded vertices\n", num_welds);
 
-	EndEmit();
+	Com_Print("\r%-24s [100%%] %d ms\n", "Emitting nodes", SDL_GetTicks() - start);
 }
 
 /**
@@ -396,8 +349,8 @@ static void EmitBrushes(void) {
 			bsp_brush_side_t *bs = &bsp_file.brush_sides[bsp_file.num_brush_sides];
 			bsp_file.num_brush_sides++;
 
-			bs->plane_num = b->original_sides[j].plane_num;
-			bs->texinfo = b->original_sides[j].texinfo;
+			bs->plane_num = b->sides[j].plane_num;
+			bs->texinfo = b->sides[j].texinfo;
 		}
 
 		// add any axis planes not contained in the brush to bevel off corners
@@ -418,7 +371,7 @@ static void EmitBrushes(void) {
 
 				int32_t j;
 				for (j = 0; j < b->num_sides; j++) {
-					if (b->original_sides[j].plane_num == plane_num) {
+					if (b->sides[j].plane_num == plane_num) {
 						break;
 					}
 				}
@@ -436,7 +389,7 @@ static void EmitBrushes(void) {
 			}
 		}
 
-		EmitProgress();
+		Progress("Emitting brushes", 100.f * i / num_brushes);
 	}
 }
 
@@ -460,6 +413,8 @@ void EmitEntities(void) {
 			}
 			g_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
 		}
+
+		Progress("Emitting entities", 100.f * i / num_entities);
 	}
 
 	const size_t len = strlen(out);
@@ -511,20 +466,20 @@ void BeginBSPFile(void) {
  */
 void EndBSPFile(void) {
 	
-	Emit(EmitBrushes, "Emitting brushes");
-	Emit(EmitPlanes, "Emitting planes");
-	Emit(EmitAreaPortals, "Emitting area portals");
-	Emit(EmitEntities, "Emitting entities");
+	EmitBrushes();
+	EmitPlanes();
+	EmitAreaPortals();
+	EmitEntities();
 
 	Work("Phong shading", PhongVertex, bsp_file.num_vertexes);
 	
-	Emit(EmitTangents, "Emitting tangents");
+	EmitTangents();
 }
 
 /**
  * @brief
  */
-void BeginModel(void) {
+void BeginModel(const entity_t *e) {
 
 	if (bsp_file.num_models == MAX_BSP_MODELS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_MODELS\n");
@@ -536,8 +491,6 @@ void BeginModel(void) {
 	mod->first_draw_elements = bsp_file.num_draw_elements;
 
 	// bound the brushes
-	const entity_t *e = &entities[entity_num];
-
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
@@ -554,7 +507,7 @@ void BeginModel(void) {
 	}
 
 	mod->mins = Vec3_CastVec3s(mins);
-	mod->maxs = Vec3_CastVec3s(maxs);;
+	mod->maxs = Vec3_CastVec3s(maxs);
 }
 
 /**

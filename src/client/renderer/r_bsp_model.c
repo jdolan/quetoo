@@ -361,10 +361,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		r_bsp_draw_elements_t *draw = out->draw_elements;
 		for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
 
-			if (draw->texinfo->flags & SURF_SKY) {
-				continue;
-			}
-
 			if (draw->texinfo->flags & SURF_MASK_BLEND) {
 				continue;
 			}

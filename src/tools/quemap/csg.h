@@ -30,10 +30,10 @@ typedef struct csg_brush_s {
 	struct csg_brush_s *next;
 	vec3_t mins, maxs;
 	int32_t side, test_side; // side of node during construction
-	struct brush_s *original;
+	const struct brush_s *original;
 	int32_t num_sides;
 	struct brush_side_s *sides;
 } csg_brush_t;
 
-csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const vec3_t maxs);
-csg_brush_t *ChopBrushes(csg_brush_t *head);
+csg_brush_t *MakeBrushes(int32_t start, int32_t count);
+csg_brush_t *SubtractBrushes(csg_brush_t *head);

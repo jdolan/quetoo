@@ -31,7 +31,7 @@
 /**
  * @brief Winding clipping and splitting epsilon.
  */
-#define CLIP_EPSILON			DBL_EPSILON
+#define CLIP_EPSILON			0.001f
 
 /**
  * @brief Colinear points dot product epsilon.

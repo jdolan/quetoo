@@ -211,7 +211,7 @@ void MakeHeadnodePortals(tree_t *tree) {
 	// pad with some space so there will never be null volume leafs
 	for (int32_t i = 0; i < 3; i++) {
 		bounds[0].xyz[i] = floorf(tree->mins.xyz[i]) - SIDESPACE;
-		bounds[1].xyz[i] = ceilf(tree->maxs.xyz[i]) + SIDESPACE;
+		bounds[1].xyz[i] =  ceilf(tree->maxs.xyz[i]) + SIDESPACE;
 	}
 
 	tree->outside_node.plane_num = PLANE_NUM_LEAF;
@@ -555,8 +555,7 @@ static void FloodAreas_r(node_t *node) {
 		const csg_brush_t *b = node->brushes;
 		entity_t *e = &entities[b->original->entity_num];
 
-		// if the current area has already touched this
-		// portal, we are done
+		// if the current area has already touched this portal, we are done
 		if (e->portal_areas[0] == c_areas || e->portal_areas[1] == c_areas) {
 			return;
 		}
@@ -740,12 +739,16 @@ static void FillOutside_r(node_t *node) {
 /**
  * @brief Fill all nodes that can't be reached by entities.
  */
-void FillOutside(node_t *head_node) {
+void FillOutside(tree_t *tree) {
+
 	c_outside = 0;
 	c_inside = 0;
 	c_solid = 0;
+
 	Com_Verbose("--- FillOutside ---\n");
-	FillOutside_r(head_node);
+
+	FillOutside_r(tree->head_node);
+	
 	Com_Verbose("%5i solid leafs\n", c_solid);
 	Com_Verbose("%5i leafs filled\n", c_outside);
 	Com_Verbose("%5i inside leafs\n", c_inside);
@@ -754,9 +757,7 @@ void FillOutside(node_t *head_node) {
 /**
  * @brief Finds a brush side to use for texturing the given portal
  */
-static void FindPortalSide(portal_t *portal) {
-
-	portal->side_found = true;
+static void FindPortalBrushSide(portal_t *portal) {
 
 	// decide which content change is strongest, solid > lava > water, etc
 	const int32_t c = VisibleContents(portal->nodes[0]->contents ^ portal->nodes[1]->contents);
@@ -769,23 +770,24 @@ static void FindPortalSide(portal_t *portal) {
 	for (int32_t j = 0; j < 2; j++) {
 		const node_t *n = portal->nodes[j];
 
-		for (const csg_brush_t *b = n->brushes; b; b = b->next) {
-			const brush_t *brush = b->original;
+		for (const csg_brush_t *brush = n->brushes; brush; brush = brush->next) {
+			const brush_t *original = brush->original;
 
-			if (!(brush->contents & c)) {
+			if (!(original->contents & c)) {
 				continue;
 			}
 
-			for (int32_t i = 0; i < brush->num_sides; i++) {
-				brush_side_t *side = &brush->original_sides[i];
+			for (int32_t i = 0; i < original->num_sides; i++) {
+				brush_side_t *side = &original->sides[i];
 				if (side->bevel) {
 					continue;
 				}
 				if (side->texinfo == TEXINFO_NODE) {
 					continue; // non-visible
 				}
+
 				if ((side->plane_num & ~1) == portal->on_node->plane_num) { // exact match
-					portal->side = &brush->original_sides[i];
+					portal->side = &original->sides[i];
 					return;
 				}
 
@@ -804,7 +806,7 @@ static void FindPortalSide(portal_t *portal) {
 
 	if (!portal->side && !leaked) {
 		Mon_SendWinding(MON_WARN, portal->winding->points, portal->winding->num_points,
-						"Side not found for portal");
+						"Brush side not found for portal");
 	}
 }
 
@@ -819,6 +821,7 @@ static void MarkVisibleSides_r(const node_t *node) {
 		MarkVisibleSides_r(node->children[1]);
 		return;
 	}
+
 	// empty leafs are never boundary leafs
 	if (!node->contents) {
 		return;
@@ -830,9 +833,7 @@ static void MarkVisibleSides_r(const node_t *node) {
 		if (!p->on_node) {
 			continue; // edge of world
 		}
-		if (!p->side_found) {
-			FindPortalSide(p);
-		}
+		FindPortalBrushSide(p);
 		if (p->side) {
 			p->side->visible = true;
 		}
@@ -842,15 +843,14 @@ static void MarkVisibleSides_r(const node_t *node) {
 /**
  * @brief
  */
-void MarkVisibleSides(tree_t *tree, int32_t start, int32_t end) {
+void MarkVisibleSides(tree_t *tree, int32_t start, int32_t count) {
 
 	Com_Verbose("--- MarkVisibleSides ---\n");
 
-	// clear all the visible flags
-	for (int32_t i = start; i < end; i++) {
-		brush_t *brush = &brushes[i];
-		for (int32_t j = 0; j < brush->num_sides; j++) {
-			brush->original_sides[j].visible = false;
+	brush_t *b = &brushes[start];
+	for (int32_t i = 0; i < count; i++, b++) {
+		for (int32_t j = 0; j < b->num_sides; j++) {
+			b->sides[j].visible = false;
 		}
 	}
 
@@ -863,14 +863,16 @@ void MarkVisibleSides(tree_t *tree, int32_t start, int32_t end) {
  */
 static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 
-	brush_side_t *side = p->side;
+	const brush_side_t *side = p->side;
 	if (!side) {
 		return NULL; // portal does not bridge different visible contents
 	}
 
-	// don't emit faces marked as no draw or skip
-	if (side->surf & (SURF_NO_DRAW | SURF_SKIP) && !(side->surf & (SURF_SKY | SURF_HINT))) {
-		return NULL;
+	if (side->surf & SURF_SKIP) {
+		return NULL; // there is no spoon
+	}
+	if (side->surf & SURF_NO_DRAW) {
+		return NULL; // caulked
 	}
 
 	face_t *f = AllocFace();

@@ -106,124 +106,34 @@ static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 }
 
 /**
- * @brief Any planes shared with the box edge will be set to TEXINFO_NODE.
+ * @brief Create a list of csg_brush_t for the brush_t between start and start + count.
  */
-static csg_brush_t *ClipBrushToBox(csg_brush_t *brush, const vec3_t mins, const vec3_t maxs, int32_t box_planes[6]) {
+csg_brush_t *MakeBrushes(int32_t start, int32_t count) {
 
-	csg_brush_t *front = NULL, *back = NULL;
-
-	for (int32_t i = 0; i < 2; i++) {
-		if (brush->maxs.xyz[i] > maxs.xyz[i]) {
-			SplitBrush(brush, box_planes[i + 3], &front, &back);
-			FreeBrush(brush);
-			if (front) {
-				FreeBrush(front);
-			}
-			brush = back;
-			if (!brush) {
-				return NULL;
-			}
-		}
-		if (brush->mins.xyz[i] < mins.xyz[i]) {
-			SplitBrush(brush, box_planes[i], &front, &back);
-			FreeBrush(brush);
-			if (back) {
-				FreeBrush(back);
-			}
-			brush = front;
-			if (!brush) {
-				return NULL;
-			}
-		}
-	}
-
-	// remove any colinear faces
-
-	for (int32_t i = 0; i < brush->num_sides; i++) {
-		const int32_t plane_num = brush->sides[i].plane_num & ~1;
-		for (int32_t j = 0; j < 6; j++) {
-			if (plane_num == box_planes[j]) {
-				brush->sides[i].texinfo = TEXINFO_NODE;
-				brush->sides[i].visible = false;
-				break;
-			}
-		}
-	}
-
-	return brush;
-}
-
-/**
- * @brief Create a list of csg_brush_t of the brush_t occupying, and optionally
- * clipped to, the given bounding box.
- */
-csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const vec3_t maxs) {
 	csg_brush_t *list = NULL;
 
-	int32_t box_planes[6];
-
-	for (int32_t i = 0; i < 3; i++) {
-		vec3_t normal;
-		normal = Vec3_Zero();
-		normal.xyz[i] = 1.0;
-		box_planes[i] = FindPlane(normal, mins.xyz[i]);
-		box_planes[i + 3] = FindPlane(normal, maxs.xyz[i]);
-	}
-
-	int32_t c_faces = 0;
-	int32_t c_brushes = 0;
-
-	for (int32_t i = start; i < end; i++) {
-		brush_t *b = &brushes[i];
+	const brush_t *b = &brushes[start];
+	for (int32_t i = 0; i < count; i++, b++) {
 
 		if (!b->num_sides) {
 			continue;
 		}
-		// make sure the brush has at least one face showing
-		int32_t vis = 0;
-		for (int32_t j = 0; j < b->num_sides; j++)
-			if (b->original_sides[j].visible && b->original_sides[j].winding) {
-				vis++;
-			}
-#if 0
-		if (!vis) {
-			continue;    // no faces at all
-		}
-#endif
-		// if the brush is outside the clip area, skip it
-		int32_t j;
-		for (j = 0; j < 3; j++)
-			if (b->mins.xyz[j] >= maxs.xyz[j] || b->maxs.xyz[j] <= mins.xyz[j]) {
-				break;
-			}
-		if (j != 3) {
-			continue;
-		}
-
-		// create a csg_brush_t for the brush_t
+		
 		csg_brush_t *brush = AllocBrush(b->num_sides);
+
 		brush->original = b;
 		brush->num_sides = b->num_sides;
-		memcpy(brush->sides, b->original_sides, brush->num_sides * sizeof(brush_side_t));
+
+		memcpy(brush->sides, b->sides, brush->num_sides * sizeof(brush_side_t));
+
 		for (int32_t j = 0; j < b->num_sides; j++) {
 			if (brush->sides[j].winding) {
 				brush->sides[j].winding = Cm_CopyWinding(brush->sides[j].winding);
 			}
-			if (brush->sides[j].surf & SURF_HINT) {
-				brush->sides[j].visible = true; // hints are always visible
-			}
 		}
+		
 		brush->mins = b->mins;
 		brush->maxs = b->maxs;
-
-		// carve off anything outside the clip box
-		brush = ClipBrushToBox(brush, mins, maxs, box_planes);
-		if (!brush) {
-			continue;
-		}
-
-		c_faces += vis;
-		c_brushes++;
 
 		brush->next = list;
 		list = brush;
@@ -285,7 +195,7 @@ static inline _Bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
  * @brief Carves any intersecting solid brushes into the minimum number
  * of non-intersecting brushes.
  */
-csg_brush_t *ChopBrushes(csg_brush_t *head) {
+csg_brush_t *SubtractBrushes(csg_brush_t *head) {
 
 	size_t head_count = CountBrushes(head);
 

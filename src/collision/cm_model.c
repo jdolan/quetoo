@@ -83,11 +83,7 @@ static void Cm_LoadBspPlanes(void) {
 	                                      MEM_TAG_COLLISION); // extra for box hull
 
 	for (int32_t i = 0; i < num_planes; i++, in++, out++) {
-
-		out->normal = in->normal;
-		out->dist = in->dist;
-		out->type = Cm_PlaneTypeForNormal(out->normal);
-		out->sign_bits = Cm_SignBitsForPlane(out);
+		*out = Cm_Plane(in->normal, in->dist);
 	}
 }
 

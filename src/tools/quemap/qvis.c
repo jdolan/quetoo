@@ -110,7 +110,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 	int32_t visible = LeafVectorFromPortalVector(vector, uncompressed);
 
 	if (uncompressed[leaf_num >> 3] & (1 << (leaf_num & 7))) {
-		Com_Warn("Leaf portals saw into leaf\n");
+		Com_Debug(DEBUG_ALL, "Leaf %4d: portals saw into leaf\n", leaf_num);
 	}
 
 	uncompressed[leaf_num >> 3] |= (1 << (leaf_num & 7));
@@ -120,7 +120,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 	memcpy(map_vis.uncompressed + leaf_num * map_vis.leaf_bytes, uncompressed, map_vis.leaf_bytes);
 
 	// compress the bit string
-	Com_Debug(DEBUG_ALL, "Cluster %4d : %4d visible\n", leaf_num, visible);
+	Com_Debug(DEBUG_ALL, "Leaf %4d : %4d visible\n", leaf_num, visible);
 	c_vis_clusters += visible;
 
 	const int32_t len = Bsp_CompressVis(&bsp_file, uncompressed, compressed);

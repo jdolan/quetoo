@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1130"
+   LastUpgradeVersion = "1200"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -65,7 +65,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1920 +set r_height 1080 +set r_display 1"
+            argument = "+set r_fullscreen 0 +set r_width 1440 +set r_height 900 +set r_display 1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -93,7 +93,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_cheats 1 +give all +set cg_add_emits 0"
+            argument = "+set g_cheats 1 +give all"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

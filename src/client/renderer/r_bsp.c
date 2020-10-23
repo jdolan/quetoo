@@ -87,7 +87,7 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 			vec3_t mins, maxs;
 			Cm_TraceBounds(r_view.origin, p, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
 
-			if (Cm_BoxIntersect(mins, maxs, draw->node->mins, draw->node->maxs)) {
+			if (Vec3_BoxIntersect(mins, maxs, draw->node->mins, draw->node->maxs)) {
 				return draw->node->blend_depth;
 			}
 		}
@@ -198,7 +198,9 @@ void R_UpdateVis(void) {
 				node->vis_frame = r_locals.vis_frame;
 				node->lights_mask = node->blend_depth = 0;
 
-				r_view.count_bsp_nodes++;
+				if (node->num_draw_elements) {
+					r_view.count_bsp_nodes++;
+				}
 			}
 		}
 	}

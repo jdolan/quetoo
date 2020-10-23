@@ -462,17 +462,17 @@ vec3_t Vec3_Add(const vec3_t a, const vec3_t b) {
 /**
  * @brief
  */
-_Bool Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
+int32_t Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
 
 	if (amins.x >= bmaxs.x || amins.y >= bmaxs.y || amins.z >= bmaxs.z) {
-		return false;
+		return 0;
 	}
 
 	if (amaxs.x <= bmins.x || amaxs.y <= bmins.y || amaxs.z <= bmins.z) {
-		return false;
+		return 0;
 	}
 
-	return true;
+	return 1;
 }
 
 /**

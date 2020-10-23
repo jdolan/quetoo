@@ -29,7 +29,6 @@ typedef struct portal_s {
 	node_t *nodes[2]; // [0] = front side of plane
 	struct portal_s *next[2];
 	cm_winding_t *winding;
-	_Bool side_found; // false if ->side hasn't been checked
 	brush_side_t *side; // NULL = non-visible
 	face_t *face[2]; // output face in bsp file
 } portal_t;
@@ -44,9 +43,9 @@ _Bool Portal_VisFlood(const portal_t *p);
 void RemovePortalFromNode(portal_t *portal, node_t *l);
 
 _Bool FloodEntities(tree_t *tree);
-void FillOutside(node_t *head_node);
+void FillOutside(tree_t *tree);
 void FloodAreas(tree_t *tree);
-void MarkVisibleSides(tree_t *tree, int32_t start, int32_t end);
+void MarkVisibleSides(tree_t *tree, int32_t start, int32_t count);
 void FreePortal(portal_t *p);
 void EmitAreaPortals(void);
 

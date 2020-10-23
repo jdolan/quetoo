@@ -254,36 +254,34 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 	assert(in->num_points);
 	const int32_t max_points = in->num_points + 4;
 
-	double dists[max_points];
-	int32_t sides[max_points];
+	cm_clip_point_t clip_points[max_points];
+	memset(&clip_points, 0, max_points * sizeof(cm_clip_point_t));
 
-	int32_t counts[SIDE_BOTH + 1];
-	memset(counts, 0, sizeof(counts));
+	int32_t side_front = 0, side_back = 0, side_both = 0;
 
-	// determine sides for each point
-	for (int32_t i = 0; i < in->num_points; i++) {
-		const double dot = Vec3_Dot(in->points[i], normal) - dist;
-		dists[i] = dot;
-		if (dot > epsilon) {
-			sides[i] = SIDE_FRONT;
-		} else if (dot < -epsilon) {
-			sides[i] = SIDE_BACK;
+	cm_clip_point_t *c = clip_points;
+	for (int32_t i = 0; i < in->num_points; i++, c++) {
+		c->point = in->points[i];
+		c->dist = Vec3_Dot(c->point, normal) - dist;
+		if (c->dist > epsilon) {
+			c->side = SIDE_FRONT;
+			side_front++;
+		} else if (c->dist < -epsilon) {
+			c->side = SIDE_BACK;
+			side_back++;
 		} else {
-			sides[i] = SIDE_BOTH;
+			c->side = SIDE_BOTH;
+			side_both++;
 		}
-		counts[sides[i]]++;
 	}
 
-	sides[in->num_points] = sides[0];
-	dists[in->num_points] = dists[0];
-
-	if (!counts[SIDE_FRONT]) {
+	if (side_front == 0) {
 		*front = NULL;
 		*back = Cm_CopyWinding(in);
 		return;
 	}
 
-	if (!counts[SIDE_BACK]) {
+	if (side_back == 0) {
 		*front = Cm_CopyWinding(in);
 		*back = NULL;
 		return;
@@ -293,44 +291,43 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 	cm_winding_t *b = Cm_AllocWinding(max_points);
 
 	for (int32_t i = 0; i < in->num_points; i++) {
+		const cm_clip_point_t *c = clip_points + i;
 
-		const vec3_t p1 = in->points[i];
-
-		if (sides[i] == SIDE_BOTH) {
-			f->points[f->num_points] = p1;
+		if (c->side == SIDE_BOTH) {
+			f->points[f->num_points] = c->point;
 			f->num_points++;
 
-			b->points[b->num_points] = p1;
+			b->points[b->num_points] = c->point;
 			b->num_points++;
 
 			continue;
 		}
 
-		if (sides[i] == SIDE_FRONT) {
-			f->points[f->num_points] = p1;
+		if (c->side == SIDE_FRONT) {
+			f->points[f->num_points] = c->point;
 			f->num_points++;
 		}
 
-		if (sides[i] == SIDE_BACK) {
-			b->points[b->num_points] = p1;
+		if (c->side == SIDE_BACK) {
+			b->points[b->num_points] = c->point;
 			b->num_points++;
 		}
 
-		if (sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i]) {
+		const cm_clip_point_t *d = clip_points + ((i + 1) % in->num_points);
+
+		if (d->side == SIDE_BOTH || d->side == c->side) {
 			continue;
 		}
-
-		const vec3_t p2 = in->points[(i + 1) % in->num_points];
 
 		vec3d_t mid;
-		const double dot = dists[i] / (dists[i] - dists[i + 1]);
+		const double dot = c->dist / (c->dist - d->dist);
 		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
 			if (normal.xyz[j] > 1.f - FLT_EPSILON) {
 				mid.xyz[j] = dist;
 			} else if (normal.xyz[j] < -1.f + FLT_EPSILON) {
 				mid.xyz[j] = -dist;
 			} else {
-				mid.xyz[j] = p1.xyz[j] + dot * (p2.xyz[j] - p1.xyz[j]);
+				mid.xyz[j] = c->point.xyz[j] + dot * (d->point.xyz[j] - c->point.xyz[j]);
 			}
 		}
 
@@ -359,84 +356,81 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
 	assert(in->num_points);
 	const int32_t max_points = in->num_points + 4;
 
-	double dists[max_points];
-	int32_t sides[max_points];
+	cm_clip_point_t clip_points[max_points];
+	memset(clip_points, 0, max_points * sizeof(cm_clip_point_t));
 
-	int32_t counts[SIDE_BOTH + 1];
-	memset(counts, 0, sizeof(counts));
+	int32_t side_front = 0, side_back = 0, side_both = 0;
 
-	// determine sides for each point
-	for (int32_t i = 0; i < in->num_points; i++) {
-		const double dot = Vec3_Dot(in->points[i], normal) - dist;
-		dists[i] = dot;
-		if (dot > epsilon) {
-			sides[i] = SIDE_FRONT;
-		} else if (dot < -epsilon) {
-			sides[i] = SIDE_BACK;
+	cm_clip_point_t *c = clip_points;
+	for (int32_t i = 0; i < in->num_points; i++, c++) {
+		c->point = in->points[i];
+		c->dist = Vec3_Dot(c->point, normal) - dist;
+		if (c->dist > epsilon) {
+			c->side = SIDE_FRONT;
+			side_front++;
+		} else if (c->dist < -epsilon) {
+			c->side = SIDE_BACK;
+			side_back++;
 		} else {
-			sides[i] = SIDE_BOTH;
+			c->side = SIDE_BOTH;
+			side_both++;
 		}
-		counts[sides[i]]++;
 	}
 
-	sides[in->num_points] = sides[0];
-	dists[in->num_points] = dists[0];
-
-	if (!counts[SIDE_FRONT]) {
+	if (side_front == 0) {
 		Cm_FreeWinding(in);
 		*in_out = NULL;
 		return;
 	}
 
-	if (!counts[SIDE_BACK]) {
+	if (side_back == 0) {
 		return;
 	}
 
-	cm_winding_t *f = Cm_AllocWinding(max_points);
+	cm_winding_t *out = Cm_AllocWinding(max_points);
 
 	for (int32_t i = 0; i < in->num_points; i++) {
+		const cm_clip_point_t *c = clip_points + i;
 
-		const vec3_t p1 = in->points[i];
-
-		if (sides[i] == SIDE_BOTH) {
-			f->points[f->num_points] = p1;
-			f->num_points++;
+		if (c->side == SIDE_BOTH) {
+			out->points[out->num_points] = c->point;
+			out->num_points++;
 			continue;
 		}
 
-		if (sides[i] == SIDE_FRONT) {
-			f->points[f->num_points] = p1;
-			f->num_points++;
+		if (c->side == SIDE_FRONT) {
+			out->points[out->num_points] = c->point;
+			out->num_points++;
 		}
 
-		if (sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i]) {
+		const cm_clip_point_t *d = clip_points + ((i + 1) % in->num_points);
+
+		if (d->side == SIDE_BOTH || d->side == c->side) {
 			continue;
 		}
-
-		const vec3_t p2 = in->points[(i + 1) % in->num_points];
 
 		vec3d_t mid;
-		const double dot = dists[i] / (dists[i] - dists[i + 1]);
+		const double dot = c->dist / (c->dist - d->dist);
 		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
 			if (normal.xyz[j] > 1.f - FLT_EPSILON) {
 				mid.xyz[j] = dist;
 			} else if (normal.xyz[j] < -1.f + FLT_EPSILON) {
 				mid.xyz[j] = -dist;
 			} else {
-				mid.xyz[j] = p1.xyz[j] + dot * (p2.xyz[j] - p1.xyz[j]);
+				mid.xyz[j] = c->point.xyz[j] + dot * (d->point.xyz[j] - c->point.xyz[j]);
 			}
 		}
 
-		f->points[f->num_points] = Vec3d_CastVec3(mid);
-		f->num_points++;
+		out->points[out->num_points] = Vec3d_CastVec3(mid);
+		out->num_points++;
 
-		if (f->num_points == max_points) {
+		if (out->num_points == max_points) {
 			Com_Error(ERROR_FATAL, "Points exceeded estimate\n");
 		}
 	}
 
 	Cm_FreeWinding(in);
-	*in_out = Cm_FixWinding(f);
+	*in_out = Cm_FixWinding(out);
 }
 
 /**
@@ -634,14 +628,11 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 * @return The area of the triangle defined by a, b and c.
 */
 float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c) {
-   vec3_t ba;
-   vec3_t ca;
-   vec3_t cross;
 
-   ba = Vec3_Subtract(b, a);
-   ca = Vec3_Subtract(c, a);
+   const vec3_t ba = Vec3_Subtract(b, a);
+   const vec3_t ca = Vec3_Subtract(c, a);
+   const vec3_t cross = Vec3_Cross(ba, ca);
 
-   cross = Vec3_Cross(ba, ca);
    return Vec3_Length(cross) * 0.5;
 }
 

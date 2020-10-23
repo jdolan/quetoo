@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL_timer.h>
+
 #include "tree.h"
 #include "portal.h"
 #include "qbsp.h"
@@ -128,10 +130,11 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
 		// if the brush is solid and all of its sides are on nodes, it eats everything
 		if (b->original->contents & CONTENTS_SOLID) {
 			int32_t i;
-			for (i = 0; i < b->num_sides; i++)
+			for (i = 0; i < b->num_sides; i++) {
 				if (b->sides[i].texinfo != TEXINFO_NODE) {
 					break;
 				}
+			}
 			if (i == b->num_sides) {
 				node->contents = CONTENTS_SOLID;
 				break;
@@ -141,6 +144,8 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
 	}
 
 	node->brushes = brushes;
+
+	Progress("Building tree", -1);
 }
 
 /**
@@ -179,7 +184,7 @@ static _Bool CheckPlaneAgainstVolume(int32_t plane_num, node_t *node) {
  * to partition the brushes with.
  * Returns NULL if there are no valid planes to split with..
  */
-static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
+static brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 	int32_t value, best_value;
 	csg_brush_t *brush, *test;
 	brush_side_t *side, *best_side;
@@ -234,9 +239,6 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 				}
 				if (!side->visible && pass < 2) {
 					continue;    // prefer visible sides on the first two passes
-				}
-				if (side->contents & CONTENTS_DETAIL && have_structural) {
-					continue;    // never split structural by detail
 				}
 
 				plane_num = side->plane_num;
@@ -389,9 +391,8 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	csg_brush_t *children[2];
 
 	// find the best plane to use as a splitter
-	brush_side_t *split_side = SelectSplitSide(brushes, node);
-	if (!split_side) {
-		// leaf node
+	brush_side_t *side = SelectSplitSide(node, brushes);
+	if (!side) { // leaf node
 		node->side = NULL;
 		node->plane_num = PLANE_NUM_LEAF;
 		LeafNode(node, brushes);
@@ -399,17 +400,17 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	}
 
 	// this is a split-plane node
-	node->side = split_side;
-	node->plane_num = split_side->plane_num & ~1; // always use positive facing
+	node->side = side;
+	node->plane_num = side->plane_num & ~1; // always use positive facing
 
 	SplitBrushes(brushes, node, &children[0], &children[1]);
+
 	FreeBrushes(brushes);
 
 	// allocate children before recursing
 	for (int32_t i = 0; i < 2; i++) {
-		node_t *child = AllocNode();
-		child->parent = node;
-		node->children[i] = child;
+		node->children[i] = AllocNode();
+		node->children[i]->parent = node;
 	}
 
 	SplitBrush(node->volume, node->plane_num, &node->children[0]->volume, &node->children[1]->volume);
@@ -426,21 +427,25 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
  * @brief
  * @remark The incoming list will be freed before exiting
  */
-tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
+tree_t *BuildTree(csg_brush_t *brushes) {
+
+	assert(brushes);
 
 	Com_Debug(DEBUG_ALL, "--- BuildTree ---\n");
+
+	const uint32_t start = SDL_GetTicks();
 
 	tree_t *tree = AllocTree();
 
 	tree->mins = Vec3_Mins();
 	tree->maxs = Vec3_Maxs();
 
-	int32_t c_brushes = 0;
-	int32_t c_vis_faces = 0;
-	int32_t c_non_vis_faces = 0;
+	int32_t num_brushes = 0;
+	int32_t num_vis_sides = 0;
+	int32_t num_non_vis_sides = 0;
 
 	for (csg_brush_t *b = brushes; b; b = b->next) {
-		c_brushes++;
+		num_brushes++;
 
 		const float volume = BrushVolume(b);
 		if (volume < micro_volume) {
@@ -451,16 +456,16 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 			if (b->sides[i].bevel) {
 				continue;
 			}
-			if (!b->sides[i].winding) {
+			if (b->sides[i].winding == NULL) {
 				continue;
 			}
 			if (b->sides[i].texinfo == TEXINFO_NODE) {
 				continue;
 			}
 			if (b->sides[i].visible) {
-				c_vis_faces++;
+				num_vis_sides++;
 			} else {
-				c_non_vis_faces++;
+				num_non_vis_sides++;
 			}
 		}
 
@@ -468,14 +473,18 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 		tree->maxs = Vec3_Maxf(tree->maxs, b->maxs);
 	}
 
-	Com_Debug(DEBUG_ALL, "%5i brushes\n", c_brushes);
-	Com_Debug(DEBUG_ALL, "%5i visible faces\n", c_vis_faces);
-	Com_Debug(DEBUG_ALL, "%5i nonvisible faces\n", c_non_vis_faces);
+	Com_Debug(DEBUG_ALL, "%5i brushes\n", num_brushes);
+	Com_Debug(DEBUG_ALL, "%5i visible sides\n", num_vis_sides);
+	Com_Debug(DEBUG_ALL, "%5i nonvisible sides\n", num_non_vis_sides);
 
 	tree->head_node = AllocNode();
+	const vec3_t mins = Vec3(MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);
+	const vec3_t maxs = Vec3(MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD);
 	tree->head_node->volume = BrushFromBounds(mins, maxs);
 
 	BuildTree_r(tree->head_node, brushes);
+
+	Com_Print("\r%-24s [100%%] %d ms\n", "Building tree", SDL_GetTicks() - start);
 
 	return tree;
 }
