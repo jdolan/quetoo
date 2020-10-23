@@ -40,6 +40,97 @@ static void R_SetWindowIcon(void) {
 }
 
 /**
+ * @brief Convert error source into a string
+*/
+static const char *R_Debug_Source(const GLenum source) {
+	switch(source) {
+		case GL_DEBUG_SOURCE_API:
+			return "API";
+		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+			return "Window System";
+		case GL_DEBUG_SOURCE_SHADER_COMPILER:
+			return "Shader Compiler";
+		case GL_DEBUG_SOURCE_THIRD_PARTY:
+			return "Third Party";
+		case GL_DEBUG_SOURCE_APPLICATION:
+			return "Application";
+		case GL_DEBUG_SOURCE_OTHER:
+		default:
+			return "Other";
+	}
+}
+
+/**
+ * @brief Convert error type into a string
+*/
+static const char *R_Debug_Type(const GLenum type) {
+	switch(type) {
+		case GL_DEBUG_TYPE_ERROR:
+			return "Error";
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+			return "Deprecated Behaviour";
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+			return "Undefined Behaviour";
+		case GL_DEBUG_TYPE_PORTABILITY:
+			return "Portability";
+		case GL_DEBUG_TYPE_PERFORMANCE:
+			return "Performance";
+		case GL_DEBUG_TYPE_MARKER:
+			return "Marker";
+		case GL_DEBUG_TYPE_PUSH_GROUP:
+			return "Push Group";
+		case GL_DEBUG_TYPE_POP_GROUP:
+			return "Pop Group";
+		case GL_DEBUG_TYPE_OTHER:
+		default:
+			return "Other";
+	}
+}
+
+/**
+ * @brief Convert error severity into a string
+*/
+static const char *R_Debug_Severity(const GLenum severity) {
+	switch(severity) {
+		case GL_DEBUG_SEVERITY_HIGH:
+			return "High";
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			return "Medium";
+		case GL_DEBUG_SEVERITY_LOW:
+			return "Low";
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+		default:
+			return "Notification";
+	}
+}
+
+/**
+ * @brief Callback for OpenGL's debug system.
+*/
+static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei length, const GLchar *message, const void *userParam) {
+	
+	char temp[length + 1];
+
+	if (length > 0) {
+		strncpy(temp, message, length);
+		temp[length] = 0;
+		message = temp;
+	} else if (!length) {
+		message = "";
+	}
+
+	if (type == GL_DEBUG_TYPE_ERROR) {
+		Com_Warn("^1OpenGL (%s; %s) %s [id %i]: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message);
+	} else {
+		Com_Warn("OpenGL (%s; %s) %s [id %i]: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message);
+	}
+
+	if (r_get_error_break->integer) {
+		SDL_TriggerBreakpoint();
+	}
+}
+
+/**
  * @brief Initialize the OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
@@ -112,7 +203,14 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+
+	SDL_GLcontextFlag gl_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+
+	if (r_get_error->integer) {
+		gl_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
+	}
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, gl_flags);
 
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
@@ -178,6 +276,13 @@ void R_InitContext(void) {
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
 	gladLoadGL();
+	
+	if (r_get_error->integer) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+		glDebugMessageCallback(R_Debug_Callback, NULL);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+	}
 
 	R_SetWindowIcon();
 }

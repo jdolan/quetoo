@@ -354,7 +354,7 @@ typedef enum {
 	WF_EXPLOSIVE		= (1 << 3), // fires explosive shots (might hurt self),
 	WF_SHORT_RANGE		= (1 << 4), // weapon works at close range
 	WF_MED_RANGE		= (1 << 5), // weapon works at medium range
-	WF_LONG_RANGE		= (1 << 6), // weapon works at long range
+	WF_LONG_RANGE		= (1 << 6)  // weapon works at long range
 } g_weapon_flags_t;
 
 /**
@@ -1067,6 +1067,7 @@ typedef struct {
 	g_entity_t *held_grenade; // the grenade we're holding onto
 
 	uint32_t pickup_msg_time; // display message until time > this
+	const g_item_t *last_pickup; // last item we picked up
 	uint32_t chat_time; // can chat when time > this
 
 	uint32_t quad_damage_time; // has quad when time < this

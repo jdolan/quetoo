@@ -84,7 +84,7 @@ _Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
 	} else if (ITEM_DATA(item, type) == ITEM_WEAPON) {
 
 		if (inventory[ITEM_DATA(item, index)]) {
-			const g_item_t *ammo = ITEM_DATA(item, ammo);
+			const g_item_t *ammo = aim.G_FindItem(ITEM_DATA(item, ammo));
 			if (ammo) {
 				return inventory[ITEM_DATA(ammo, index)] < ITEM_DATA(ammo, max);
 			}

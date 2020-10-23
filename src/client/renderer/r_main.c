@@ -58,6 +58,7 @@ cvar_t *r_fog;
 cvar_t *r_fullscreen;
 cvar_t *r_gamma;
 cvar_t *r_get_error;
+cvar_t *r_get_error_break;
 cvar_t *r_hardness;
 cvar_t *r_height;
 cvar_t *r_materials;
@@ -89,8 +90,11 @@ void R_GetError_(const char *function, const char *msg) {
 		return;
 	}
 
-	while (true) {
+	if (GLAD_GL_KHR_debug) {
+		return;
+	}
 
+	while (true) {
 		const GLenum err = glGetError();
 		const char *s;
 
@@ -116,7 +120,7 @@ void R_GetError_(const char *function, const char *msg) {
 
 		Com_Warn("%s threw %s: %s.\n", function, s, msg);
 
-		if (r_get_error->integer >= 2) {
+		if (r_get_error_break->integer) {
 			SDL_TriggerBreakpoint();
 		}
 	}
@@ -504,7 +508,8 @@ static void R_InitLocal(void) {
 	r_fog = Cvar_Add("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
 	r_gamma = Cvar_Add("r_gamma", "1", CVAR_ARCHIVE, "Controls video gamma (brightness)");
-	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console (developer tool)");
+	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL errors to the console (developer tool)");
+	r_get_error_break = Cvar_Add("r_get_error_break", "0", CVAR_DEVELOPER, "If a GL error occurs, break execution");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
