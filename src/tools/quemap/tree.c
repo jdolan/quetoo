@@ -300,18 +300,17 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	csg_brush_t *children[2];
 
 	// find the best plane to use as a splitter
-	const brush_side_t *side = SelectSplitSide(node, brushes);
-	if (!side) { // leaf node
-		node->side = NULL;
+	const brush_side_t *split_side = SelectSplitSide(node, brushes);
+	if (!split_side) { // leaf node
+		node->split_side = NULL;
 		node->plane_num = PLANE_NUM_LEAF;
 		LeafNode(node, brushes);
 		return node;
 	}
 
 	// this is a split-plane node
-	node->side = side;
-	node->plane_num = side->plane_num & ~1; // always use positive facing
-	node->detail_separator = side->contents & CONTENTS_DETAIL;
+	node->split_side = split_side->original;
+	node->plane_num = split_side->plane_num & ~1; // always use positive facing
 
 	SplitBrushes(brushes, node, &children[0], &children[1]);
 
@@ -427,7 +426,7 @@ void PruneNodes_r(node_t *node) {
 
 		node->plane_num = PLANE_NUM_LEAF;
 		node->contents = CONTENTS_SOLID;
-		node->detail_separator = false;
+		node->split_side = NULL;
 
 		if (node->brushes) {
 			Com_Error(ERROR_FATAL, "Node still references brushes\n");

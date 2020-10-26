@@ -35,8 +35,7 @@ typedef struct node_s {
 	csg_brush_t *volume; // one for each leaf/node
 
 	// nodes only
-	_Bool detail_separator; // a detail brush caused the split
-	const brush_side_t *side; // the side that created the node
+	const brush_side_t *split_side; // the side that created the node
 	struct node_s *children[2];
 	face_t *faces;
 
