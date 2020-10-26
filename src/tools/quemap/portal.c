@@ -456,7 +456,9 @@ static void MakeTreePortals_r(node_t *node) {
  * @brief
  */
 void MakeTreePortals(tree_t *tree) {
+
 	MakeHeadnodePortals(tree);
+
 	MakeTreePortals_r(tree->head_node);
 }
 

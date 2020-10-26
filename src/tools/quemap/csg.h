@@ -27,12 +27,11 @@
  * @brief Brushes defined in the map file are carved via CSG before being sorted into the tree.
  */
 typedef struct csg_brush_s {
-	struct csg_brush_s *next;
-	vec3_t mins, maxs;
-	int32_t side, test_side; // side of node during construction
 	const struct brush_s *original;
-	int32_t num_sides;
 	struct brush_side_s *sides;
+	int32_t num_sides;
+	vec3_t mins, maxs;
+	struct csg_brush_s *next;
 } csg_brush_t;
 
 csg_brush_t *MakeBrushes(int32_t start, int32_t count);

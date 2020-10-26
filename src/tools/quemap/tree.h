@@ -36,7 +36,7 @@ typedef struct node_s {
 
 	// nodes only
 	_Bool detail_separator; // a detail brush caused the split
-	brush_side_t *side; // the side that created the node
+	const brush_side_t *side; // the side that created the node
 	struct node_s *children[2];
 	face_t *faces;
 

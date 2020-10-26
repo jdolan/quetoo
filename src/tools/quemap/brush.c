@@ -89,8 +89,6 @@ csg_brush_t *CopyBrush(const csg_brush_t *brush) {
 
 	copy->mins = brush->mins;
 	copy->maxs = brush->maxs;
-	copy->side = brush->side;
-	copy->test_side = brush->test_side;
 	copy->original = brush->original;
 	copy->num_sides = brush->num_sides;
 
@@ -227,10 +225,9 @@ float BrushVolume(csg_brush_t *brush) {
 /**
  * @brief
  */
-int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_splits, _Bool *hint_split, int32_t *epsilon_brush) {
+int32_t TestBrushToPlane(const csg_brush_t *brush, int32_t plane_num, int32_t *num_split_sides) {
 
-	*num_splits = 0;
-	*hint_split = false;
+	*num_split_sides = 0;
 
 	// if the brush actually uses the plane_num, we can tell the side for sure
 	for (int32_t i = 0; i < brush->num_sides; i++) {
@@ -245,62 +242,47 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 		}
 	}
 
-	// box on plane side
-	const plane_t *plane = &planes[plane_num];
+	const cm_bsp_plane_t plane = Cm_Plane(planes[plane_num].normal, planes[plane_num].dist);
 
-	const cm_bsp_plane_t p = Cm_Plane(plane->normal, plane->dist);
-	
-	const int32_t s = Cm_BoxOnPlaneSide(brush->mins, brush->maxs, &p);
+	const int32_t s = Cm_BoxOnPlaneSide(brush->mins, brush->maxs, &plane);
 
 	if (s != SIDE_BOTH) {
 		return s;
 	}
 
-	// if both sides, count the visible faces split
-	double d_front = 0.0, d_back = 0.0;
+	const brush_side_t *side = brush->sides;
+	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
-	for (int32_t i = 0; i < brush->num_sides; i++) {
-		if (brush->sides[i].texinfo == TEXINFO_NODE) {
-			continue; // on node, don't worry about splits
+		if (side->texinfo == TEXINFO_NODE) {
+			continue;
 		}
-		if (!brush->sides[i].visible) {
-			continue; // we don't care about non-visible
+		if (!side->visible) {
+			continue;
 		}
-		const cm_winding_t *w = brush->sides[i].winding;
-		if (!w) {
+		if (!side->winding) {
+			continue;
+		}
+		if (side->surf & SURF_SKIP) {
 			continue;
 		}
 
 		int32_t front = 0, back = 0;
+		const cm_winding_t *w = side->winding;
 
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
-			if (d > d_front) {
-				d_front = d;
-			}
-			if (d < d_back) {
-				d_back = d;
-			}
+			const double d = Vec3_Dot(w->points[j], plane.normal) - plane.dist;
 
 			if (d > SIDE_EPSILON) {
-				front = 1;
+				front++;
 			}
 			if (d < -SIDE_EPSILON) {
-				back = 1;
+				back++;
 			}
 		}
-		if (front && back) {
-			if (!(brush->sides[i].surf & SURF_SKIP)) {
-				(*num_splits)++;
-				if (brush->sides[i].surf & SURF_HINT) {
-					*hint_split = true;
-				}
-			}
-		}
-	}
 
-	if ((d_front > 0.0 && d_front < 1.0) || (d_back < 0.0 && d_back > -1.0)) {
-		(*epsilon_brush)++;
+		if (front && back) {
+			(*num_split_sides)++;
+		}
 	}
 
 	return s;
@@ -309,7 +291,7 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 /**
  * @brief
  */
-static int32_t BrushMostlyOnSide(csg_brush_t *brush, plane_t *plane) {
+static int32_t BrushMostlyOnSide(const csg_brush_t *brush, plane_t *plane) {
 
 	double max = 0.0;
 	int32_t side = SIDE_FRONT;
@@ -337,7 +319,7 @@ static int32_t BrushMostlyOnSide(csg_brush_t *brush, plane_t *plane) {
 /**
  * @brief Generates two new brushes, leaving the original unchanged.
  */
-void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_brush_t **back) {
+void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_brush_t **back) {
 
 	csg_brush_t *cb[2];
 	cm_winding_t *cw[2];
