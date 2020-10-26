@@ -96,7 +96,7 @@ typedef struct {
 	/**
 	 * @brief Run an AI frame.
 	 */
-	void (*Frame)();
+	void (*Frame)(void);
 
 	/**
 	 * @brief Generate the user info for the specified bot.
