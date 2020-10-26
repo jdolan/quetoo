@@ -414,7 +414,9 @@ struct r_bsp_node_s {
 	int32_t num_draw_elements;
 
 	int32_t lights_mask;
+	
 	int32_t blend_depth;
+	int32_t blend_depth_count;
 };
 
 typedef struct r_bsp_node_s r_bsp_node_t;

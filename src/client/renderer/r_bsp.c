@@ -81,13 +81,15 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 			continue;
 		}
 
-		if (SignOf(Cm_DistanceToPlane(p,draw->node->plane)) !=
+		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane)) !=
 			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
 
 			vec3_t mins, maxs;
 			Cm_TraceBounds(r_view.origin, p, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
 
 			if (Vec3_BoxIntersect(mins, maxs, draw->node->mins, draw->node->maxs)) {
+				draw->node->blend_depth_count++;
+				
 				return draw->node->blend_depth;
 			}
 		}
@@ -99,7 +101,7 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 /**
  * @brief Recurses the specified node, back to front, resolving each node's depth.
  */
-static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
+static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *depth) {
 	int32_t side;
 
 	if (node->contents != CONTENTS_NODE) {
@@ -116,7 +118,7 @@ static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
 		side = 0;
 	}
 
-	R_UpdateNodeDepth_r(node->children[side], depth);
+	R_UpdateNodeBlendDepth_r(node->children[side], depth);
 
 	node->blend_depth = *depth = (*depth) + 1;
 
@@ -128,19 +130,19 @@ static void R_UpdateNodeDepth_r(r_bsp_node_t *node, int32_t *depth) {
 		}
 	}
 
-	R_UpdateNodeDepth_r(node->children[!side], depth);
+	R_UpdateNodeBlendDepth_r(node->children[!side], depth);
 }
 
 /**
  * @brief Recurses the specified model's tree, sorting alpha blended draw elements from back to front.
  */
-static void R_UpdateNodeDepth(const r_bsp_inline_model_t *in) {
+static void R_UpdateNodeBlendDepth(const r_bsp_inline_model_t *in) {
 
 	g_ptr_array_set_size(in->alpha_blend_draw_elements, 0);
 
 	int32_t depth = 0;
 
-	R_UpdateNodeDepth_r(in->head_node, &depth);
+	R_UpdateNodeBlendDepth_r(in->head_node, &depth);
 }
 
 /**
@@ -196,7 +198,9 @@ void R_UpdateVis(void) {
 				}
 
 				node->vis_frame = r_locals.vis_frame;
-				node->lights_mask = node->blend_depth = 0;
+				node->lights_mask = 0;
+				node->blend_depth = 0;
+				node->blend_depth_count = 0;
 
 				if (node->num_draw_elements) {
 					r_view.count_bsp_nodes++;
@@ -205,15 +209,16 @@ void R_UpdateVis(void) {
 		}
 	}
 
-	R_UpdateNodeDepth(r_world_model->bsp->inline_models);
+	R_UpdateNodeBlendDepth(r_world_model->bsp->inline_models);
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 
 			const r_bsp_inline_model_t *in = e->model->bsp_inline;
-
 			const r_bsp_draw_elements_t *draw = in->draw_elements;
+			
 			for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
 
 				for (r_bsp_node_t *node = draw->node; node; node = node->parent) {
@@ -223,11 +228,13 @@ void R_UpdateVis(void) {
 					}
 
 					node->vis_frame = r_locals.vis_frame;
-					node->lights_mask = node->blend_depth = 0;
+					node->lights_mask = 0;
+					node->blend_depth = 0;
+					node->blend_depth_count = 0;
 				}
 			}
 
-			R_UpdateNodeDepth(in);
+			R_UpdateNodeBlendDepth(in);
 
 			r_view.count_bsp_inline_models++;
 		}

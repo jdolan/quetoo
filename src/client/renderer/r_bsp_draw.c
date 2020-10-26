@@ -356,31 +356,39 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
  *
  *@see R_NodeDepthForPoint
  */
-static void R_DrawBspInlineModelAlphaBlendDepth(int32_t blend_depth) {
+static int32_t R_DrawBspInlineModelAlphaBlendNode(r_bsp_node_t *node) {
 
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
+	const int32_t blend_depth_count = node->blend_depth_count;
+	if (blend_depth_count) {
 
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
+		glBlendFunc(GL_ONE, GL_ZERO);
+		glDisable(GL_BLEND);
 
-	R_DrawEntities(blend_depth);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
 
-	R_DrawSprites(blend_depth);
+		R_DrawEntities(node->blend_depth);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+		R_DrawSprites(node->blend_depth);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
 
-	glUseProgram(r_bsp_program.name);
-	glBindVertexArray(r_world_model->bsp->vertex_array);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+		glUseProgram(r_bsp_program.name);
+		glBindVertexArray(r_world_model->bsp->vertex_array);
 
-	R_GetError(NULL);
+		glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+
+		R_GetError(NULL);
+
+		node->blend_depth_count = 0;
+	}
+
+	return blend_depth_count;
 }
 
 /**
@@ -399,9 +407,8 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 			continue;
 		}
 
-		if (!e && draw->node->blend_depth) {
-			R_DrawBspInlineModelAlphaBlendDepth(draw->node->blend_depth);
-			draw->node->blend_depth = 0;
+		if (R_DrawBspInlineModelAlphaBlendNode(draw->node)) {
+			material = NULL;
 		}
 
 		glUniform1i(r_bsp_program.lights_mask, draw->node->lights_mask);
