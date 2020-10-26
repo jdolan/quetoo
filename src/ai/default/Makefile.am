@@ -1,7 +1,6 @@
 ailibdir = @PKGLIBDIR@/default
 
 noinst_HEADERS = \
-	ai_ann.h \
 	ai_goal.h \
 	ai_info.h \
 	ai_item.h \
@@ -13,7 +12,6 @@ noinst_LTLIBRARIES = \
 	libai.la
 
 libai_la_SOURCES = \
-	ai_ann.c \
 	ai_goal.c \
 	ai_info.c \
 	ai_item.c \
