@@ -56,7 +56,6 @@ typedef struct brush_side_s {
 	int32_t contents;
 	int32_t surf;
 	_Bool visible; // choose visible planes first
-	_Bool tested; // this side already checked as a split
 	_Bool bevel; // don't use for bsp splitting
 } brush_side_t;
 

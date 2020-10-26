@@ -406,7 +406,6 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front
 			*cs = *s;
 
 			cs->winding = cw[j];
-			cs->tested = false;
 		}
 	}
 
@@ -452,7 +451,6 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front
 		cs->plane_num = plane_num ^ i ^ 1;
 		cs->texinfo = TEXINFO_NODE;
 		cs->visible = false;
-		cs->tested = false;
 		if (i == 0) {
 			cs->winding = Cm_CopyWinding(mid_winding);
 		} else {
