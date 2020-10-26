@@ -52,7 +52,7 @@ typedef struct brush_side_s {
 	int32_t plane_num;
 	int32_t texinfo;
 	cm_winding_t *winding;
-	struct brush_side_s *original;
+	const struct brush_side_s *original;
 	int32_t contents;
 	int32_t surf;
 	_Bool visible; // choose visible planes first
