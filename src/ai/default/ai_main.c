@@ -565,14 +565,12 @@ static uint32_t Ai_FuncGoal_Weaponry(g_entity_t *self, pm_cmd_t *cmd) {
 	if (ai->aim_target.type == AI_GOAL_ENEMY) {
 		if (ai->lock_on_time < ai_level.time) {
 
-			const uint32_t hand_nade_time = CLIENT_DATA(self->client, grenade_hold_time);
-
-			if (hand_nade_time) {
-				if ((ai_level.time - hand_nade_time) < RandomRangei(1500, 2500)) {
+			const uint32_t grenade_hold_time = CLIENT_DATA(self->client, grenade_hold_time);
+			if (grenade_hold_time) {
+				if (ai_level.time - grenade_hold_time < RandomRangeu(1500, 2500)) {
 					cmd->buttons |= BUTTON_ATTACK;
 				}
-			}
-			else {
+			} else {
 				cmd->buttons |= BUTTON_ATTACK;
 			}
 		}
