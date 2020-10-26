@@ -309,6 +309,8 @@ void G_Ai_Frame(void) {
 		return;
 	}
 
+	aix->State(g_level.frame_num);
+
 	if (g_ai_max_clients->modified) {
 		g_ai_max_clients->modified = false;
 
@@ -408,6 +410,7 @@ static void G_Ai_SetDataPointers(void) {
 	CLIENT_PTR_OFFSET(max_armor);
 	CLIENT_PTR_OFFSET(weapon);
 	CLIENT_PERSISTENT_PTR_OFFSET(team);
+	CLIENT_PTR_OFFSET(grenade_hold_time);
 
 	ITEM_PTR_OFFSET(class_name);
 	ITEM_PTR_OFFSET(index);
@@ -436,6 +439,7 @@ void G_Ai_Init(void) {
 	import.ge = &ge;
 
 	import.OnSameTeam = G_OnSameTeam;
+	import.G_FindItem = G_FindItem;
 
 	aix = gi.LoadAi(&import);
 

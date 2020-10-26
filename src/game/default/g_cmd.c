@@ -223,7 +223,13 @@ static void G_Use_f(g_entity_t *ent) {
 	}
 
 	const char *s = gi.Args();
-	const g_item_t *it = G_FindItem(s);
+	const g_item_t *it;
+	
+	if (s && *s) {
+		it = G_FindItem(s);
+	} else {
+		it = ent->client->locals.last_pickup;
+	}
 	if (!it) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Unknown item: %s\n", s);
 		return;

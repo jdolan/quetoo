@@ -21,7 +21,7 @@
 
 #pragma once
 
-#define AI_API_VERSION 5
+#define AI_API_VERSION 6
 
 /**
  * @brief Forward declaration of entity type, since
@@ -47,6 +47,11 @@ typedef struct {
 	 * @brief Query if two entities are on the same team.
 	 */
 	_Bool (*OnSameTeam)(const g_entity_t *self, const g_entity_t *other);
+	
+	/**
+	 * @brief
+	 */
+	const g_item_t *(*G_FindItem)(const char *name);
 	
 } ai_import_t;
 
@@ -82,11 +87,16 @@ typedef struct {
 	 * @brief Called once by game to setup its data pointers
 	 */
 	void (*SetDataPointers)(ai_entity_data_t *entity, ai_client_data_t *client, ai_item_data_t *item);
+	
+	/**
+	 * @brief Set shared state info.
+	 */
+	void (*State)(uint32_t frame_num);
 
 	/**
 	 * @brief Run an AI frame.
 	 */
-	void (*Frame)(void);
+	void (*Frame)();
 
 	/**
 	 * @brief Generate the user info for the specified bot.
@@ -107,11 +117,6 @@ typedef struct {
 	 * @brief Called to think for an AI. Returns the movement command for the bot.
 	 */
 	void (*Think)(g_entity_t *self, pm_cmd_t *cmd);
-
-	/**
-	 * @brief Called when a human client has a command that the AI can learn from.
-	 */
-	void (*Learn)(const g_entity_t *self, const pm_cmd_t *cmd);
 
 	/**
 	 * @brief Register an item on the AI system

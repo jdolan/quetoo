@@ -68,7 +68,7 @@ typedef struct ai_item_data_s {
 	/**
 	 * @brief The ammo item, if any.
 	 */
-	const g_item_t *const *ammo;
+	const char *const *ammo;
 
 	/**
 	 * @brief The quantity, provided or used, depending on the item type.
@@ -162,6 +162,11 @@ typedef struct ai_client_data_s {
 	 * @brief Offset to team id
 	 */
 	const g_team_id_t *team;
+	
+	/**
+	 * @brief Offset to grenade hold time
+	 */
+	const uint32_t *grenade_hold_time;
 
 } ai_client_data_t;
 
@@ -230,6 +235,17 @@ typedef struct {
 #define MAX_AI_FUNCGOALS	12
 
 /**
+ * @brief Bot combat styles
+ */
+typedef enum {
+	AI_COMBAT_CLOSE,
+	AI_COMBAT_FLANK,
+	AI_COMBAT_WANDER,
+
+	AI_COMBAT_TOTAL
+} ai_combat_type_t;
+
+/**
  * @brief AI-specific locals
  */
 typedef struct ai_locals_s {
@@ -245,6 +261,8 @@ typedef struct ai_locals_s {
 	// the state of the bot.
 	ai_goal_t aim_target;
 	ai_goal_t move_target;
+	ai_combat_type_t combat_type;
+	uint32_t lock_on_time;
 
 	float wander_angle;
 	vec3_t ghost_position;
@@ -252,5 +270,6 @@ typedef struct ai_locals_s {
 	uint32_t weapon_check_time;
 
 	uint32_t no_movement_frames;
+	uint32_t reacquire_time;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */

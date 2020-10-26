@@ -31,7 +31,6 @@ extern ai_entity_data_t ai_entity_data;
 extern ai_client_data_t ai_client_data;
 
 extern cvar_t *sv_max_clients;
-extern cvar_t *ai_ann;
 extern cvar_t *ai_no_target;
 
 /**

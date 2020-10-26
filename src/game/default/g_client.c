@@ -1385,9 +1385,6 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	// copy the current gravity in
 	cl->ps.pm_state.gravity = g_level.gravity;
 
-	// share the command with the bot library so that it can learn
-	aix->Learn(ent, cmd);
-
 	memset(&pm, 0, sizeof(pm));
 	pm.s = cl->ps.pm_state;
 

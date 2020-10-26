@@ -39,8 +39,8 @@ ai_entity_data_t ai_entity_data;
 ai_client_data_t ai_client_data;
 
 cvar_t *sv_max_clients;
-cvar_t *ai_ann;
 cvar_t *ai_no_target;
+cvar_t *ai_node_dev;
 
 /**
  * @brief Ptr to AI locals that are hooked to bot entities.
@@ -192,6 +192,11 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 	ai_locals_t *ai = Ai_GetLocals(self);
 
+	// if we got stuck, don't hunt for items for a little bit
+	if (ai->reacquire_time > ai_level.time) {
+		return ai->reacquire_time - ai_level.time; 
+	}
+
 	// see if we're already hunting
 	if (ai->move_target.type == AI_GOAL_ENEMY) {
 		return QUETOO_TICK_MILLIS * 5;
@@ -212,7 +217,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 			}
 
 			Ai_ClearGoal(&ai->move_target);
-		} else if (ai->aim_target.type <= AI_GOAL_GHOST) { // aim towards item so it doesn't look like we're a feckin' cheater
+		} else if (ai->aim_target.type <= AI_GOAL_GHOST || Randomf() < 0.3f) { // aim towards item sometimes so it doesn't look like we're a feckin' cheater
 			Ai_CopyGoal(&ai->move_target, &ai->aim_target);
 		}
 	}
@@ -288,6 +293,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
  * @brief Range constants.
  */
 typedef enum {
+	RANGE_DONT_CARE = 0,
 	RANGE_MELEE = 32,
 	RANGE_SHORT = 128,
 	RANGE_MED = 512,
@@ -315,14 +321,15 @@ static ai_range_t Ai_GetRange(const float distance) {
 static void Ai_PickBestWeapon(g_entity_t *self) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 
-	ai->weapon_check_time = ai_level.time + 500; // don't try again for a bit
+	ai->weapon_check_time = ai_level.time + 250; // don't try again for a bit
 
-	if (ai->aim_target.type != AI_GOAL_ENEMY) {
-		return;
+	ai_range_t targ_range;
+
+	if (ai->aim_target.type == AI_GOAL_ENEMY) {
+		targ_range = Ai_GetRange(Vec3_Distance(self->s.origin, ai->aim_target.ent->s.origin));
+	} else {
+		targ_range = RANGE_DONT_CARE;
 	}
-
-	const float targ_dist = Vec3_Distance(self->s.origin, ai->aim_target.ent->s.origin);
-	const ai_range_t targ_range = Ai_GetRange(targ_dist);
 
 	ai_item_pick_t weapons[ai_num_weapons];
 	uint16_t num_weapons = 0;
@@ -340,9 +347,11 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 			continue;
 		}
 
-		const g_item_t *ammo = ITEM_DATA(item, ammo);
+		const g_item_t *ammo = aim.G_FindItem(ITEM_DATA(item, ammo));
 		if (ammo) {
-			if (inventory[ITEM_DATA(ammo, index)] < ITEM_DATA(item, quantity)) {
+			const int32_t ammo_have = inventory[ITEM_DATA(ammo, index)];
+			const int32_t ammo_need = ITEM_DATA(item, quantity);
+			if (ammo_have < ammo_need) {
 				continue;
 			}
 		}
@@ -351,6 +360,8 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 		float weight = ITEM_DATA(item, priority);
 
 		switch (targ_range) { // range bonus
+			case RANGE_DONT_CARE:
+				break;
 			case RANGE_MELEE:
 			case RANGE_SHORT:
 				if (ITEM_DATA(item, flags) & WF_SHORT_RANGE) {
@@ -375,9 +386,11 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 				break;
 		}
 
-		if ((ENTITY_DATA(ai->aim_target.ent, health) < 25) &&
-		        (ITEM_DATA(item, flags) & WF_EXPLOSIVE)) { // bonus for explosive at low enemy health
-			weight *= 1.5;
+		if (ai->aim_target.type == AI_GOAL_ENEMY) {
+			if ((ENTITY_DATA(ai->aim_target.ent, health) < 25) &&
+					(ITEM_DATA(item, flags) & WF_EXPLOSIVE)) { // bonus for explosive at low enemy health
+				weight *= 1.5;
+			}
 		}
 
 		// additional penalty for long range + projectile unless explicitly long range
@@ -388,7 +401,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
 		// penalty for explosive weapons at short range
 		if ((ITEM_DATA(item, flags) & WF_EXPLOSIVE) &&
-		        targ_range <= RANGE_SHORT) {
+		        (targ_range != RANGE_DONT_CARE && targ_range <= RANGE_SHORT)) {
 			weight /= 2.0;
 		}
 
@@ -398,12 +411,11 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 			weight /= 2.0;
 		}
 
-		weight *= ITEM_DATA(item, priority); // FIXME: Isn't this redundant?
-
 		weapons[num_weapons++] = (ai_item_pick_t) {
 			.item = item,
-			 .weight = weight
+			.weight = weight
 		};
+		aim.gi->Debug("weapon choice: %s -> %f\n", ITEM_DATA(item, class_name), weight);
 	}
 
 	if (num_weapons <= 1) { // if we only have 1 here, we're already using it
@@ -419,7 +431,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 	}
 
 	Ai_Command(self, va("use %s", ITEM_DATA(best_weapon->item, name)));
-	ai->weapon_check_time = ai_level.time + 3000; // don't try again for a bit
+	ai->weapon_check_time = ai_level.time + 300; // don't try again for a bit
 }
 
 /**
@@ -491,10 +503,6 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 	// still have an enemy
 	if (ai->aim_target.type == AI_GOAL_ENEMY) {
 
-		if (ai->weapon_check_time < ai_level.time) { // check for a new weapon every once in a while
-			Ai_PickBestWeapon(self);
-		}
-
 		return QUETOO_TICK_MILLIS * 3;
 	}
 
@@ -519,6 +527,13 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 		Ai_PickBestWeapon(self);
 
+		ai->combat_type = RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
+		ai->lock_on_time = ai_level.time + RandomRangeu(250, 1000);
+
+		if (ai->combat_type == AI_COMBAT_FLANK) {
+			ai->wander_angle = Randomb() ? -90 : 90;
+		}
+
 		// re-run hunt with the new target
 		return Ai_FuncGoal_Hunt(self, cmd);
 	}
@@ -542,15 +557,25 @@ static uint32_t Ai_FuncGoal_Weaponry(g_entity_t *self, pm_cmd_t *cmd) {
 
 	ai_locals_t *ai = Ai_GetLocals(self);
 
-	// TODO: pick the best weapon that we can hold here based on
-	// our current aim_target & move_target situation
+	if (ai->weapon_check_time < ai_level.time) { // check for a new weapon every once in a while
+		Ai_PickBestWeapon(self);
+	}
 
 	// we're alive - if we're aiming at an enemy, start-a-firin
 	if (ai->aim_target.type == AI_GOAL_ENEMY) {
+		if (ai->lock_on_time < ai_level.time) {
 
-		// TODO: obviously there are some cases where we may not want to attack
-		// so we need to do these here.. also handnades, etc.
-		cmd->buttons |= BUTTON_ATTACK;
+			const uint32_t hand_nade_time = CLIENT_DATA(self->client, grenade_hold_time);
+
+			if (hand_nade_time) {
+				if ((ai_level.time - hand_nade_time) < RandomRangei(1500, 2500)) {
+					cmd->buttons |= BUTTON_ATTACK;
+				}
+			}
+			else {
+				cmd->buttons |= BUTTON_ATTACK;
+			}
+		}
 	}
 
 	return QUETOO_TICK_MILLIS;
@@ -612,29 +637,16 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 
 	if (tr.fraction < 1.0) { // hit a wall
 		float angle = 45 + Randomf() * 45;
-
-		ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
-	}
-
-	vec3_t move_dir;
-	move_dir = Vec3_Subtract(ai->last_origin, self->s.origin);
-	move_dir.z = 0.0;
-	float move_len = Vec3_Length(move_dir);
-
-	if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 8.0) {
-		ai->no_movement_frames++;
-
-		if (ai->no_movement_frames >= QUETOO_TICK_RATE) { // just turn around
-			float angle = 45 + Randomf() * 45;
-
-			ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
-
-			ai->no_movement_frames = 0;
-		} else if (ai->no_movement_frames >= QUETOO_TICK_RATE / 2.0) { // try a jump first
-			cmd->up = PM_SPEED_JUMP;
+			
+		if (ai->combat_type == AI_COMBAT_FLANK && Randomb()) {
+			ai->combat_type = Randomb() ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
 		}
-	} else {
-		ai->no_movement_frames = 0;
+
+		if (ai->combat_type == AI_COMBAT_FLANK) {
+			ai->wander_angle = -ai->wander_angle;
+		} else {
+			ai->wander_angle += Randomb() ? -angle : angle;
+		}
 	}
 }
 
@@ -662,40 +674,47 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	ai_locals_t *ai = Ai_GetLocals(self);
 
-	// TODO: node navigation.
-	if (ai->move_target.type <= AI_GOAL_NAV) {
-		Ai_Wander(self, cmd);
-	}
-
 	_Bool target_enemy = false;
 
-	vec3_t dir, angles, dest;
+	vec3_t dir, angles, dest = Vec3_Zero();
+	_Bool move_wander = false;
+
 	switch (ai->move_target.type) {
-		default: {
-				angles = Vec3(0.0, ai->wander_angle, 0.0);
-				Vec3_Vectors(angles, &dir, NULL, NULL);
-				dest = Vec3_Add(self->s.origin, Vec3_Scale(dir, 1.0));
-			}
+		default:
+			move_wander = true;
 			break;
 		case AI_GOAL_ITEM:
 			dest = ai->move_target.ent->s.origin;
 			break;
 		case AI_GOAL_ENEMY:
 			target_enemy = true;
-			dest = ai->move_target.ent->s.origin;
+
+			switch (ai->combat_type) {
+			case AI_COMBAT_CLOSE:
+			default:
+				dest = ai->move_target.ent->s.origin;
+				break;
+			case AI_COMBAT_FLANK:
+			case AI_COMBAT_WANDER:
+				move_wander = true;
+				break;
+			}
+
 			break;
+	}
+	
+	// TODO: node navigation.
+	if (move_wander) {
+		Ai_Wander(self, cmd);
+
+		angles = Vec3(0.0, ai->wander_angle, 0.0);
+		Vec3_Vectors(angles, &dir, NULL, NULL);
+		dest = Vec3_Add(self->s.origin, Vec3_Scale(dir, 1.0));
 	}
 
 	dir = Vec3_Subtract(dest, self->s.origin);
 	float len = Vec3_Length(dir);
 	dir = Vec3_Normalize(dir);
-
-	vec3_t predicted;
-	Ai_Predict(self, &predicted);
-	if (Vec3_Length(predicted)) {
-		dir = Vec3_Add(dir, predicted);
-		dir = Vec3_Normalize(dir);
-	}
 
     angles = Vec3_Euler(dir);
 
@@ -704,19 +723,15 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
     dir = Vec3_Scale(dir, PM_SPEED_RUN);
 
-	// TODO: make bots keep some distance, but maybe less retarded than this
-
     if (target_enemy && len < 200.0) {
-		cmd->forward = -dir.x;
-		cmd->right = -dir.y;
-	} else {
-		cmd->forward = dir.x;
-		cmd->right = dir.y;
+		// switch to flank/wander, this helps us recover from being up close to enemies
+		if (ai->combat_type == AI_COMBAT_CLOSE && Randomb()) {
+			ai->combat_type = Randomf() > 0.5f ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
+		}
 	}
 
-	predicted = Vec3_Scale(predicted, PM_SPEED_JUMP);
-
-	cmd->up = predicted.z;
+	cmd->forward = dir.x;
+	cmd->right = dir.y;
 
     if (ENTITY_DATA(self, water_level) >= WATER_WAIST) {
         cmd->up = PM_SPEED_JUMP;
@@ -759,23 +774,53 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
         Pm_Move(&pm);
     }
 
-    if (ENTITY_DATA(self, ground_entity) && !pm.ground_entity) { // predicted ground is gone
-        if (ai->move_target.type <= AI_GOAL_NAV) {
+	// we weren't trying to jump and predicted ground is gone
+    if (pm.cmd.up <= 0 && ENTITY_DATA(self, ground_entity) && !pm.ground_entity) {
+        if (move_wander) {
             float angle = 45 + Randomf() * 45;
 
+			ai->combat_type = Randomf() > 0.5f ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
             ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
         } else {
             cmd->forward = cmd->right = 0; // stop for now
         }
     }
+	
+	// check for getting stuck
+	vec3_t move_dir;
+	move_dir = Vec3_Subtract(ai->last_origin, self->s.origin);
+	move_dir.z = 0.0;
+	float move_len = Vec3_Length(move_dir);
+
+	if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 8.0) {
+		ai->no_movement_frames++;
+		ai->reacquire_time = ai_level.time + 1000;
+
+		if (ai->no_movement_frames >= QUETOO_TICK_RATE) { // just turn around
+			float angle = 45 + Randomf() * 45;
+			
+			if (ai->combat_type == AI_COMBAT_FLANK) {
+				ai->combat_type = Randomb() ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
+			}
+
+			ai->wander_angle += Randomb() ? -angle : angle;
+
+			ai->no_movement_frames = 0;
+		} else if (ai->no_movement_frames >= QUETOO_TICK_RATE / 2.0) { // try a jump first
+			cmd->up = PM_SPEED_JUMP;
+		}
+	} else {
+		ai->no_movement_frames = 0;
+	}
 }
 
 static float AngleMod(const float a) {
 	return (360.0 / 65536) * ((int32_t) (a * (65536 / 360.0)) & 65535);
 }
 
-static float Ai_CalculateAngle(g_entity_t *self, const float speed, float current, const float ideal) {
+static float Ai_CalculateAngle(g_entity_t *self, const float speed, float current, float ideal) {
 	current = AngleMod(current);
+	ideal = AngleMod(ideal);
 
 	if (current == ideal) {
 		return current;
@@ -816,7 +861,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t ideal_angles;
 
 	// TODO: node navigation
-	if (aim_target->type <= AI_GOAL_NAV) {
+	if (aim_target->type <= AI_GOAL_NAV || aim_target->type == AI_GOAL_ITEM) {
 		ideal_angles = Vec3(0.0, ai->wander_angle, 0.0);
 	} else {
 		vec3_t aim_direction;
@@ -824,7 +869,22 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		if (aim_target->type == AI_GOAL_GHOST) {
 			aim_direction = Vec3_Subtract(ai->ghost_position, self->s.origin);
 		} else {
+			
 			aim_direction = Vec3_Subtract(aim_target->ent->s.origin, self->s.origin);
+
+			const g_item_t *const weapon = CLIENT_DATA(self->client, weapon);
+
+			if (ITEM_DATA(weapon, flags) & WF_PROJECTILE) {
+				const float dist = Vec3_Length(aim_direction);
+				// FIXME: *real* projectile speed generally factors into this...
+				const float speed = RandomRangef(900, 1200);
+				const float time = dist / speed;
+				const vec3_t target_velocity = ENTITY_DATA(aim_target->ent, velocity);
+				const vec3_t target_pos = Vec3_Add(aim_target->ent->s.origin, Vec3_Scale(target_velocity, time));
+				aim_direction = Vec3_Subtract(target_pos, self->s.origin);
+			} else {
+				aim_direction = Vec3_Subtract(aim_target->ent->s.origin, self->s.origin);
+			}
 		}
 
 		aim_direction = Vec3_Normalize(aim_direction);
@@ -914,18 +974,16 @@ static void Ai_Spawn(g_entity_t *self) {
 static void Ai_Begin(g_entity_t *self) {
 }
 
+static void Ai_State(uint32_t frame_num) {
+	ai_level.frame_num = frame_num;
+	ai_level.time = ai_level.frame_num * QUETOO_TICK_MILLIS;
+}
+
 /**
  * @brief Advance the bot simulation one frame.
  */
 static void Ai_Frame(void) {
 
-	ai_level.frame_num++;
-	ai_level.time = ai_level.frame_num * QUETOO_TICK_MILLIS;
-
-	if (ai_ann->modified) {
-		Ai_ShutdownAnn();
-		Ai_InitAnn();
-	}
 }
 
 /**
@@ -956,6 +1014,7 @@ static void Ai_Init(void) {
 
 	aim.gi->Print("Ai module initialization...\n");
 	aim.gi->Mkdir("ai");
+	aim.gi->Mkdir("ai_nav");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
 	cvar_t *ai_version = aim.gi->AddCvar("ai_version", s, CVAR_NO_SET, NULL);
@@ -964,14 +1023,14 @@ static void Ai_Init(void) {
 
 	sv_max_clients = aim.gi->GetCvar("sv_max_clients");
 
-	ai_ann = aim.gi->AddCvar("ai_ann", "0", CVAR_DEVELOPER, "Enables training bots using an artificial neural network");
 	ai_no_target = aim.gi->AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
+
+	ai_node_dev = aim.gi->AddCvar("ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode");
 
 	ai_locals = (ai_locals_t *) aim.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitItems();
 	Ai_InitSkins();
-	Ai_InitAnn();
 
 	aim.gi->Print("Ai module initialized\n");
 }
@@ -985,7 +1044,6 @@ static void Ai_Shutdown(void) {
 
 	Ai_ShutdownItems();
 	Ai_ShutdownSkins();
-	Ai_ShutdownAnn();
 
 	aim.gi->FreeTag(MEM_TAG_AI);
 }
@@ -1002,13 +1060,13 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	aix.Init = Ai_Init;
 	aix.Shutdown = Ai_Shutdown;
 
+	aix.State = Ai_State;
 	aix.Frame = Ai_Frame;
 
 	aix.GetUserInfo = Ai_GetUserInfo;
 	aix.Begin = Ai_Begin;
 	aix.Spawn = Ai_Spawn;
 	aix.Think = Ai_Think;
-	aix.Learn = Ai_Learn;
 
 	aix.GameRestarted = Ai_GameStarted;
 

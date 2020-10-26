@@ -709,7 +709,8 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 
 		other->client->ps.stats[STAT_PICKUP_ICON] = icon;
 		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ent->locals.item->index;
-
+		
+		other->client->locals.last_pickup = ent->locals.item;
 		other->client->locals.pickup_msg_time = g_level.time + 3000;
 
 		if (ent->locals.item->pickup_sound) { // play pickup sound
