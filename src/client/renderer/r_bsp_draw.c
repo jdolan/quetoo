@@ -282,8 +282,6 @@ static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp
 		return;
 	}
 
-	glDepthMask(GL_FALSE);
-
 	glEnable(GL_BLEND);
 	glEnable(GL_POLYGON_OFFSET_FILL);
 
@@ -310,8 +308,6 @@ static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
-
-	glDepthMask(GL_TRUE);
 
 	R_GetError(NULL);
 }
