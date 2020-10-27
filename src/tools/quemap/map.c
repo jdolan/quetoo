@@ -693,15 +693,15 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		if (brush->contents & CONTENTS_ORIGIN) {
 
 			if (brush->entity_num == 0) {
-				Mon_SendSelect(MON_ERROR, brush->entity_num, brush->brush_num, "Origin brush in world");
-				return NULL;
+				Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Origin brush in world");
+			} else {
+				vec3_t origin;
+				origin = Vec3_Add(brush->mins, brush->maxs);
+				origin = Vec3_Scale(origin, 0.5);
+
+				SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 			}
 
-			vec3_t origin;
-			origin = Vec3_Add(brush->mins, brush->maxs);
-			origin = Vec3_Scale(origin, 0.5);
-
-			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 			num_brushes--;
 			return NULL;
 		}
