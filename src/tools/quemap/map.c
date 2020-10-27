@@ -592,7 +592,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
 
 				// and translucent solids are actually windows
-				if (!(side->contents & CONTENTS_MASK_LIQUID)) {
+				if (!(side->contents & CONTENTS_MIST) && !(side->contents & CONTENTS_MASK_LIQUID)) {
 					side->contents |= CONTENTS_WINDOW;
 				}
 			}
