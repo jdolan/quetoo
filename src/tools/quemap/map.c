@@ -390,31 +390,38 @@ static void AddBrushBevels(brush_t *b) {
 /**
  * @brief Makes basewindigs for sides and mins / maxs for the brush
  */
-static _Bool MakeBrushWindings(brush_t *ob) {
+static void MakeBrushWindings(brush_t *ob) {
 
 	ob->mins = Vec3_Mins();
 	ob->maxs = Vec3_Maxs();
 
-	for (int32_t i = 0; i < ob->num_sides; i++) {
-		const plane_t *plane = &planes[ob->sides[i].plane_num];
+	brush_side_t *side = ob->sides;
+	for (int32_t i = 0; i < ob->num_sides; i++, side++) {
+
+		const plane_t *plane = &planes[side->plane_num];
 		cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
-		for (int32_t j = 0; j < ob->num_sides && w; j++) {
+
+		for (int32_t j = 0; j < ob->num_sides; j++) {
 			if (i == j) {
 				continue;
 			}
-			if (ob->sides[j].plane_num == (ob->sides[j].plane_num ^ 1)) {
+			if (ob->sides[j].plane_num == (side->plane_num ^ 1)) {
 				continue; // back side clipaway
 			}
 			if (ob->sides[j].bevel) {
 				continue;
 			}
-			plane = &planes[ob->sides[j].plane_num ^ 1];
+			const plane_t *plane = &planes[ob->sides[j].plane_num ^ 1];
 			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.f);
+
+			if (w == NULL) {
+				break;
+			}
 		}
 
-		brush_side_t *side = &ob->sides[i];
 		side->winding = w;
-		if (w) {
+
+		if (side->winding) {
 			side->visible = true;
 			for (int32_t j = 0; j < w->num_points; j++) {
 				ob->mins = Vec3_Minf(ob->mins, w->points[j]);
@@ -436,8 +443,6 @@ static _Bool MakeBrushWindings(brush_t *ob) {
 			break;
 		}
 	}
-
-	return true;
 }
 
 /**
@@ -706,6 +711,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			return NULL;
 		}
 
+		// add brush bevels, which are required for collision
 		AddBrushBevels(brush);
 	}
 
