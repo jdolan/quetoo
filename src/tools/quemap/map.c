@@ -613,9 +613,15 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				}
 			}
 
-			// hints are never detail, are visible, and have no content
+			// hints are never detail, are visible, and have no contents
 			if (side->surf & SURF_HINT) {
 				side->visible = true;
+				side->contents = 0;
+			}
+
+			// skips are never visible and have no contents
+			if (side->surf & SURF_SKIP) {
+				side->visible = false;
 				side->contents = 0;
 			}
 
