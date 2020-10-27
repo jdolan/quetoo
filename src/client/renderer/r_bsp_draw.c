@@ -400,6 +400,9 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 		r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
 
@@ -425,9 +428,6 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 				glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
 				glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
 			}
-
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 			r_view.count_bsp_triangles += draw->num_elements / 3;
