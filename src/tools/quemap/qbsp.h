@@ -25,15 +25,13 @@
 
 extern _Bool no_prune;
 extern _Bool no_detail;
-extern _Bool all_structural;
-extern _Bool only_ents;
 extern _Bool no_merge;
 extern _Bool no_liquid;
 extern _Bool no_csg;
 extern _Bool no_weld;
 extern _Bool no_share;
 extern _Bool no_tjunc;
-extern _Bool leak_test;
+extern _Bool only_ents;
 extern _Bool leaked;
 
 extern float micro_volume;

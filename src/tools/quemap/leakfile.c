@@ -27,7 +27,7 @@
  * @brief Finds the shortest possible chain of portals that leads from the
  * outside leaf to a specifically occupied leaf.
  */
-void LeakFile(tree_t *tree) {
+void WriteLeakFile(const tree_t *tree) {
 	vec3_t point;
 
 	char path[MAX_OS_PATH];

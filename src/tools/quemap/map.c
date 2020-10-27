@@ -607,9 +607,6 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				side->contents |= CONTENTS_DETAIL;
 			}
 
-			if (all_structural) {
-				side->contents &= ~CONTENTS_DETAIL;
-			}
 
 			// brushes with no visible or specific contents default to solid
 			if (!(side->contents & CONTENTS_MASK_VISIBLE)) {
