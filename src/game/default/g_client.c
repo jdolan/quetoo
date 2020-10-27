@@ -1665,6 +1665,12 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			G_ClientChaseThink(other);
 		}
 	}
+
+	// if we're the first player in a game, send our client over
+	// to the AI system in case it needs to make nodes
+	if (aix && ent->s.number == 1) {
+		aix->PlayerRoam(ent, cmd);
+	}
 }
 
 /**

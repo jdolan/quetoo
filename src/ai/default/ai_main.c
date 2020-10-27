@@ -1073,6 +1073,9 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	aix.RegisterItem = Ai_RegisterItem;
 
 	aix.SetDataPointers = Ai_SetDataPointers;
+	
+	aix.PlayerRoam = Ai_Node_PlayerRoam;
+	aix.Render = Ai_Node_Render;
 
 	return &aix;
 }

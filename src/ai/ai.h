@@ -122,4 +122,15 @@ typedef struct {
 	 * @brief Register an item on the AI system
 	 */
 	void (*RegisterItem)(const g_item_t *item);
+
+	/**
+	 * @brief Pass a player's movement over to the node system. Used for creating
+	 * navigation routes.
+	 */
+	void (*PlayerRoam)(const g_entity_t *player, const pm_cmd_t *cmd);
+	
+	/**
+	 * @brief Render a debug view to the specified player.
+	 */
+	void (*Render)(const g_entity_t *player);
 } ai_export_t;

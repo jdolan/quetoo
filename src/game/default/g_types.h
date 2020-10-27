@@ -176,6 +176,8 @@ typedef enum {
 	TE_GIB,
 	TE_RIPPLE,
 	TE_HOOK_IMPACT,
+	TE_AI_NODE,
+	TE_AI_NODE_LINK
 } g_temp_entity_t;
 
 /**

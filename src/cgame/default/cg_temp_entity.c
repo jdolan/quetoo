@@ -137,6 +137,91 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 /**
  * @brief
  */
+static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color) {
+	const float hue = color ? color_hue_yellow : color_hue_orange;
+
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_particle,
+		.origin = start,
+		.lifetime = QUETOO_TICK_MILLIS,
+		.size = 8.f,
+		.color = Vec4(hue, 1.f, 1.f, 1.f),
+		.end_color = Vec4(hue, 1.f, 1.f, 1.f)
+	});
+}
+
+/**
+ * @brief
+ */
+static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint8_t bits) {
+
+	// both sides connected
+	if (bits == 3) {
+		Cg_AddSprite(&(cg_sprite_t) {
+			.type = SPRITE_BEAM,
+			.image = cg_beam_hook,
+			.origin = start,
+			.termination = end,
+			.size = 2.f,
+			.lifetime = QUETOO_TICK_MILLIS,
+			.color = Vec4(color_hue_blue, 1.f, 1.f, 0.f),
+			.end_color = Vec4(color_hue_blue, 1.f, 1.f, 0.f)
+		});
+	} else {
+		const vec3_t center = Vec3_Scale(Vec3_Add(start, end), 0.5f);
+		
+		// only end connected
+		if (bits == 2) {
+			Cg_AddSprite(&(cg_sprite_t) {
+				.type = SPRITE_BEAM,
+				.image = cg_beam_hook,
+				.origin = end,
+				.termination = center,
+				.size = 2.f,
+				.lifetime = QUETOO_TICK_MILLIS,
+				.color = Vec4(color_hue_blue, 1.f, 1.f, 0.f),
+				.end_color = Vec4(color_hue_blue, 1.f, 1.f, 0.f)
+			});
+
+			Cg_AddSprite(&(cg_sprite_t) {
+				.type = SPRITE_BEAM,
+				.image = cg_beam_hook,
+				.origin = center,
+				.termination = start,
+				.size = 2.f,
+				.lifetime = QUETOO_TICK_MILLIS,
+				.color = Vec4(color_hue_red, 1.f, 1.f, 0.f),
+				.end_color = Vec4(color_hue_red, 1.f, 1.f, 0.f)
+			});
+		} else {
+			Cg_AddSprite(&(cg_sprite_t) {
+				.type = SPRITE_BEAM,
+				.image = cg_beam_hook,
+				.origin = end,
+				.termination = center,
+				.size = 2.f,
+				.lifetime = QUETOO_TICK_MILLIS,
+				.color = Vec4(color_hue_red, 1.f, 1.f, 0.f),
+				.end_color = Vec4(color_hue_red, 1.f, 1.f, 0.f)
+			});
+
+			Cg_AddSprite(&(cg_sprite_t) {
+				.type = SPRITE_BEAM,
+				.image = cg_beam_hook,
+				.origin = center,
+				.termination = start,
+				.size = 2.f,
+				.lifetime = QUETOO_TICK_MILLIS,
+				.color = Vec4(color_hue_blue, 1.f, 1.f, 0.f),
+				.end_color = Vec4(color_hue_blue, 1.f, 1.f, 0.f)
+			});
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
 
@@ -1014,6 +1099,19 @@ void Cg_ParseTempEntity(void) {
 			pos = cgi.ReadPosition();
 			dir = cgi.ReadDir();
 			Cg_HookImpactEffect(pos, dir);
+			break;
+
+		case TE_AI_NODE: // AI node debug
+			pos = cgi.ReadPosition();
+			i = cgi.ReadByte();
+			Cg_AiNodeEffect(pos, i);
+			break;
+
+		case TE_AI_NODE_LINK: // AI node debug
+			pos = cgi.ReadPosition();
+			pos2 = cgi.ReadPosition();
+			i = cgi.ReadByte();
+			Cg_AiNodeLinkEffect(pos, pos2, i);
 			break;
 
 		default:

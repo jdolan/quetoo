@@ -33,4 +33,5 @@
 #include "ai_info.h"
 #include "ai_item.h"
 #include "ai_main.h"
+#include "ai_nodes.h"
 #include "ai_types.h"
