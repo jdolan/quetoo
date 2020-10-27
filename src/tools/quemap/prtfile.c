@@ -24,8 +24,8 @@
 #include "prtfile.h"
 
 static file_t *prtfile;
-static int32_t num_visclusters; /* clusters the player can be in */
-static int32_t num_visportals;
+static int32_t num_vis_clusters; /* clusters the player can be in */
+static int32_t num_vis_portals;
 
 /**
  * @brief
@@ -127,14 +127,14 @@ static void NumberLeafs_r(node_t *node) {
 		return;
 	}
 
-	FillLeafNumbers_r(node, num_visclusters);
-	num_visclusters++;
+	FillLeafNumbers_r(node, num_vis_clusters);
+	num_vis_clusters++;
 
 	// count the portals
 	for (const portal_t *p = node->portals; p;) {
 		if (p->nodes[0] == node) { // only write out from first leaf
 			if (Portal_VisFlood(p)) {
-				num_visportals++;
+				num_vis_portals++;
 			}
 			p = p->next[0];
 		} else {
@@ -183,8 +183,8 @@ void WritePortalFile(tree_t *tree) {
 
 	Com_Verbose("--- WritePortalFile ---\n");
 
-	num_visclusters = 0;
-	num_visportals = 0;
+	num_vis_clusters = 0;
+	num_vis_portals = 0;
 
 	FreeTreePortals_r(tree->head_node);
 
@@ -203,11 +203,11 @@ void WritePortalFile(tree_t *tree) {
 	}
 
 	Fs_Print(prtfile, "%s\n", PORTALFILE);
-	Fs_Print(prtfile, "%i\n", num_visclusters);
-	Fs_Print(prtfile, "%i\n", num_visportals);
+	Fs_Print(prtfile, "%i\n", num_vis_clusters);
+	Fs_Print(prtfile, "%i\n", num_vis_portals);
 
-	Com_Verbose("%5i visclusters\n", num_visclusters);
-	Com_Verbose("%5i visportals\n", num_visportals);
+	Com_Verbose("%5i vis clusters\n", num_vis_clusters);
+	Com_Verbose("%5i vis portals\n", num_vis_portals);
 
 	WritePortalFile_r(tree->head_node);
 
