@@ -390,28 +390,28 @@ static void AddBrushBevels(brush_t *b) {
 /**
  * @brief Makes basewindigs for sides and mins / maxs for the brush
  */
-static void MakeBrushWindings(brush_t *ob) {
+static void MakeBrushWindings(brush_t *brush) {
 
-	ob->mins = Vec3_Mins();
-	ob->maxs = Vec3_Maxs();
+	brush->mins = Vec3_Mins();
+	brush->maxs = Vec3_Maxs();
 
-	brush_side_t *side = ob->sides;
-	for (int32_t i = 0; i < ob->num_sides; i++, side++) {
+	brush_side_t *side = brush->sides;
+	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
 		const plane_t *plane = &planes[side->plane_num];
 		cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
 
-		for (int32_t j = 0; j < ob->num_sides; j++) {
+		for (int32_t j = 0; j < brush->num_sides; j++) {
 			if (i == j) {
 				continue;
 			}
-			if (ob->sides[j].plane_num == (side->plane_num ^ 1)) {
+			if (brush->sides[j].plane_num == (side->plane_num ^ 1)) {
 				continue; // back side clipaway
 			}
-			if (ob->sides[j].bevel) {
+			if (brush->sides[j].bevel) {
 				continue;
 			}
-			const plane_t *plane = &planes[ob->sides[j].plane_num ^ 1];
+			const plane_t *plane = &planes[brush->sides[j].plane_num ^ 1];
 			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.f);
 
 			if (w == NULL) {
@@ -424,22 +424,22 @@ static void MakeBrushWindings(brush_t *ob) {
 		if (side->winding) {
 			side->visible = true;
 			for (int32_t j = 0; j < w->num_points; j++) {
-				ob->mins = Vec3_Minf(ob->mins, w->points[j]);
-				ob->maxs = Vec3_Maxf(ob->maxs, w->points[j]);
+				brush->mins = Vec3_Minf(brush->mins, w->points[j]);
+				brush->maxs = Vec3_Maxf(brush->maxs, w->points[j]);
 			}
 		}
 	}
 
 	for (int32_t i = 0; i < 3; i++) {
 		//IDBUG: all the indexes into the mins and maxs were zero (not using i)
-		if (ob->mins.xyz[i] < MIN_WORLD_COORD || ob->maxs.xyz[i] > MAX_WORLD_COORD) {
-			Mon_SendSelect(MON_WARN, ob->entity_num, ob->brush_num, "Brush bounds out of range");
-			ob->num_sides = 0;
+		if (brush->mins.xyz[i] < MIN_WORLD_COORD || brush->maxs.xyz[i] > MAX_WORLD_COORD) {
+			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Brush bounds out of range");
+			brush->num_sides = 0;
 			break;
 		}
-		if (ob->mins.xyz[i] > MAX_WORLD_COORD || ob->maxs.xyz[i] < MIN_WORLD_COORD) {
-			Mon_SendSelect(MON_WARN, ob->entity_num, ob->brush_num, "No visible sides on brush");
-			ob->num_sides = 0;
+		if (brush->mins.xyz[i] > MAX_WORLD_COORD || brush->maxs.xyz[i] < MIN_WORLD_COORD) {
+			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "No visible sides on brush");
+			brush->num_sides = 0;
 			break;
 		}
 	}
