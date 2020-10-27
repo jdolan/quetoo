@@ -590,7 +590,6 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			// translucent brushes are inherently details beacuse they can not occlude
 			if (side->surf & SURF_MASK_TRANSLUCENT) {
 				side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
-				side->contents &= ~CONTENTS_SOLID;
 
 				// and translucent solids are actually windows
 				if (!(side->contents & CONTENTS_MASK_LIQUID)) {
@@ -607,7 +606,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				side->contents &= ~CONTENTS_DETAIL;
 			}
 
-			// brushes with no specified contents default to solid
+			// brushes with no visible or specific contents default to solid
 			if (!(side->contents & CONTENTS_MASK_VISIBLE)) {
 				if (!(side->contents & (CONTENTS_AREA_PORTAL | CONTENTS_ORIGIN | CONTENTS_MASK_CLIP))) {
 					side->contents |= CONTENTS_SOLID;
@@ -616,7 +615,6 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 			// hints are never detail, are visible, and have no content
 			if (side->surf & SURF_HINT) {
-				side->surf &= ~CONTENTS_DETAIL;
 				side->visible = true;
 				side->contents = 0;
 			}
