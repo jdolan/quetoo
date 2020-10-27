@@ -592,10 +592,10 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			// translucent brushes are inherently details beacuse they can not occlude
 			if (side->surf & SURF_MASK_TRANSLUCENT) {
 				side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
+				side->contents &= ~CONTENTS_SOLID;
 
 				// and translucent solids are actually windows
-				if (side->contents & CONTENTS_SOLID) {
-					side->contents &= ~CONTENTS_SOLID;
+				if (!(side->contents & CONTENTS_MASK_LIQUID)) {
 					side->contents |= CONTENTS_WINDOW;
 				}
 			}
