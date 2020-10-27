@@ -873,6 +873,7 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	if (side->surf & SURF_SKIP) {
 		return NULL; // there is no spoon
 	}
+
 	if (side->surf & SURF_NO_DRAW) {
 		return NULL; // caulked
 	}
