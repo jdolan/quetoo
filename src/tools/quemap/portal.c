@@ -789,7 +789,7 @@ static void FindPortalBrushSide(portal_t *portal) {
 				}
 
 				if ((side->plane_num & ~1) == portal->on_node->plane_num) { // exact match
-					portal->side = &original->sides[i];
+					portal->side = side;
 					return;
 				}
 
