@@ -540,7 +540,6 @@
 		CE8E2021214837AB00C18C94 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CE8E2022214837AB00C18C94 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE8E202B214837C200C18C94 /* check_ai_ann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8E2016214836C800C18C94 /* check_ai_ann.c */; };
-		CE8E202C214837D900C18C94 /* libgenann.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9771A121454EEB00BBD71C /* libgenann.a */; };
 		CE8E202D214838E900C18C94 /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
 		CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8FD2EB23D3E034002FD074 /* r_program.c */; };
@@ -555,11 +554,6 @@
 		CE948B1D2235652600D961FA /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE948B232235655700D961FA /* check_shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE948B0F223564E900D961FA /* check_shared.c */; };
 		CE948B2E2235699300D961FA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CE9771A521454F0F00BBD71C /* genann.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771A321454F0F00BBD71C /* genann.h */; };
-		CE9771A621454F0F00BBD71C /* genann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771A421454F0F00BBD71C /* genann.c */; };
-		CE9771AA2145519300BBD71C /* ai_ann.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771A82145519300BBD71C /* ai_ann.h */; };
-		CE9771AB2145519300BBD71C /* ai_ann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771A92145519300BBD71C /* ai_ann.c */; };
-		CE9771AC2145562C00BBD71C /* libgenann.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9771A121454EEB00BBD71C /* libgenann.a */; };
 		CE9771B1214557F500BBD71C /* ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771AF214557F500BBD71C /* ai_info.h */; };
 		CE9771B2214557F500BBD71C /* ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771B0214557F500BBD71C /* ai_info.c */; };
 		CE9CFC8F23E66CDF0009DA65 /* lights_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE9CFC8E23E65EA90009DA65 /* lights_fs.glsl */; };
@@ -1812,12 +1806,6 @@
 		CE948B0D222C130600D961FA /* libopenal.1.15.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.15.1.dylib; path = ../../../../opt/local/lib/libopenal.1.15.1.dylib; sourceTree = "<group>"; };
 		CE948B0F223564E900D961FA /* check_shared.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_shared.c; sourceTree = "<group>"; };
 		CE948B222235652600D961FA /* check_shared */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_shared; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE9771A121454EEB00BBD71C /* libgenann.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libgenann.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE9771A321454F0F00BBD71C /* genann.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = genann.h; sourceTree = "<group>"; };
-		CE9771A421454F0F00BBD71C /* genann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = genann.c; sourceTree = "<group>"; };
-		CE9771A721454F5E00BBD71C /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE9771A82145519300BBD71C /* ai_ann.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_ann.h; sourceTree = "<group>"; };
-		CE9771A92145519300BBD71C /* ai_ann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_ann.c; sourceTree = "<group>"; };
 		CE9771AF214557F500BBD71C /* ai_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_info.h; sourceTree = "<group>"; };
 		CE9771B0214557F500BBD71C /* ai_info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_info.c; sourceTree = "<group>"; };
 		CE9CFC8E23E65EA90009DA65 /* lights_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = lights_fs.glsl; sourceTree = "<group>"; };
@@ -2222,7 +2210,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE6EE3B71F70BE8300FBC830 /* libgame-pmove.a in Frameworks */,
-				CE9771AC2145562C00BBD71C /* libgenann.a in Frameworks */,
 				CE6EE3C71F7147CE00FBC830 /* libshared.a in Frameworks */,
 				CE2B081F23F9EAC1007C77B6 /* libswap.a in Frameworks */,
 				CE6EE3C61F7147B700FBC830 /* libglib-2.0.0.dylib in Frameworks */,
@@ -2255,7 +2242,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE8E202D214838E900C18C94 /* ai.so in Frameworks */,
-				CE8E202C214837D900C18C94 /* libgenann.a in Frameworks */,
 				CE8E2020214837AB00C18C94 /* libparse.a in Frameworks */,
 				CE8E2021214837AB00C18C94 /* libcheck.0.dylib in Frameworks */,
 				CE8E2022214837AB00C18C94 /* libglib-2.0.0.dylib in Frameworks */,
@@ -2270,13 +2256,6 @@
 				CE948B1B2235652600D961FA /* libcheck.0.dylib in Frameworks */,
 				CE948B1C2235652600D961FA /* libglib-2.0.0.dylib in Frameworks */,
 				CE948B1D2235652600D961FA /* libSDL2-2.0.0.dylib in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE97719921454EEB00BBD71C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2435,7 +2414,6 @@
 		CE12D4A91C5C58C300CD0B13 /* deps */ = {
 			isa = PBXGroup;
 			children = (
-				CE9771A221454F0100BBD71C /* genann */,
 				CE12D5011C5C58C300CD0B13 /* minizip */,
 				CE12D4FF1C5C58C300CD0B13 /* Makefile.am */,
 			);
@@ -3321,7 +3299,6 @@
 				CE67EFAC1E351A95009C2819 /* quetoo-update */,
 				CE5530991E5A939F0009A127 /* libparse.a */,
 				CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */,
-				CE9771A121454EEB00BBD71C /* libgenann.a */,
 				CE51FB8A214819B000ABE14F /* check_r_media */,
 				CE51FBAF21481DD300ABE14F /* check_cmd */,
 				CE51FBC421481F2500ABE14F /* check_cvar */,
@@ -3531,8 +3508,6 @@
 		CE67EF631E3500C0009C2819 /* default */ = {
 			isa = PBXGroup;
 			children = (
-				CE9771A82145519300BBD71C /* ai_ann.h */,
-				CE9771A92145519300BBD71C /* ai_ann.c */,
 				CE67EF641E3500C0009C2819 /* ai_goal.c */,
 				CE67EF651E3500C0009C2819 /* ai_goal.h */,
 				CE9771B0214557F500BBD71C /* ai_info.c */,
@@ -3591,16 +3566,6 @@
 				CE7D2C13202F690A004BC58E /* Makefile.am */,
 			);
 			path = home;
-			sourceTree = "<group>";
-		};
-		CE9771A221454F0100BBD71C /* genann */ = {
-			isa = PBXGroup;
-			children = (
-				CE9771A421454F0F00BBD71C /* genann.c */,
-				CE9771A321454F0F00BBD71C /* genann.h */,
-				CE9771A721454F5E00BBD71C /* Makefile.am */,
-			);
-			path = genann;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -3789,7 +3754,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE9771AA2145519300BBD71C /* ai_ann.h in Headers */,
 				CE67EF851E35023B009C2819 /* ai.h in Headers */,
 				CE67EF7E1E3501F9009C2819 /* ai_goal.h in Headers */,
 				CE67EF801E3501F9009C2819 /* ai_item.h in Headers */,
@@ -3851,14 +3815,6 @@
 				CE80FFBC1C5E4A3200A21A51 /* sv_send.h in Headers */,
 				CE80FFBD1C5E4A3200A21A51 /* sv_types.h in Headers */,
 				CE80FFBE1C5E4A3200A21A51 /* sv_world.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE97719A21454EEB00BBD71C /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE9771A521454F0F00BBD71C /* genann.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4507,23 +4463,6 @@
 			productReference = CE948B222235652600D961FA /* check_shared */;
 			productType = "com.apple.product-type.tool";
 		};
-		CE97719421454EEB00BBD71C /* genann */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CE97719E21454EEB00BBD71C /* Build configuration list for PBXNativeTarget "genann" */;
-			buildPhases = (
-				CE97719521454EEB00BBD71C /* Sources */,
-				CE97719921454EEB00BBD71C /* Frameworks */,
-				CE97719A21454EEB00BBD71C /* Headers */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = genann;
-			productName = minizip;
-			productReference = CE9771A121454EEB00BBD71C /* libgenann.a */;
-			productType = "com.apple.product-type.library.static";
-		};
 		CE9CFC9E23EB3D020009DA65 /* check_vector */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE9CFCAC23EB3D020009DA65 /* Build configuration list for PBXNativeTarget "check_vector" */;
@@ -4814,7 +4753,6 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CE97719421454EEB00BBD71C /* genann */,
 				CE12D8101C5C5EF000CD0B13 /* minizip */,
 				CE354EDB22073AD6008AE0C2 /* atlas */,
 				CE80FDD91C5E3E1100A21A51 /* common */,
@@ -5185,7 +5123,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE9771AB2145519300BBD71C /* ai_ann.c in Sources */,
 				CE67EF771E3501E8009C2819 /* ai_goal.c in Sources */,
 				CE9771B2214557F500BBD71C /* ai_info.c in Sources */,
 				CE67EF7F1E3501F9009C2819 /* ai_item.c in Sources */,
@@ -5254,14 +5191,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE948B232235655700D961FA /* check_shared.c in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE97719521454EEB00BBD71C /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE9771A621454F0F00BBD71C /* genann.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6145,22 +6074,6 @@
 			};
 			name = Release;
 		};
-		CE97719F21454EEB00BBD71C /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		CE9771A021454EEB00BBD71C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		CE9CFCAD23EB3D020009DA65 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -6671,15 +6584,6 @@
 			buildConfigurations = (
 				CE948B202235652600D961FA /* Debug */,
 				CE948B212235652600D961FA /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		CE97719E21454EEB00BBD71C /* Build configuration list for PBXNativeTarget "genann" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CE97719F21454EEB00BBD71C /* Debug */,
-				CE9771A021454EEB00BBD71C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

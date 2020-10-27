@@ -233,33 +233,35 @@ static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
-	switch (stage->media->type) {
-		case MEDIA_IMAGE:
-		case MEDIA_ATLAS_IMAGE: {
-			const r_image_t *image = (r_image_t *) stage->media;
-			glBindTexture(GL_TEXTURE_2D, image->texnum);
-		}
-			break;
-		case MEDIA_ANIMATION: {
-			const r_animation_t *animation = (r_animation_t *) stage->media;
-			int32_t frame;
-			if (stage->cm->animation.fps == 0.f && e != NULL) {
-				frame = e->frame;
-			} else {
-				frame = r_view.ticks / 1000.f * stage->cm->animation.fps;
+	if (stage->media) {
+		switch (stage->media->type) {
+			case MEDIA_IMAGE:
+			case MEDIA_ATLAS_IMAGE: {
+				const r_image_t *image = (r_image_t *) stage->media;
+				glBindTexture(GL_TEXTURE_2D, image->texnum);
 			}
-			glBindTexture(GL_TEXTURE_2D, animation->frames[frame % animation->num_frames]->texnum);
+				break;
+			case MEDIA_ANIMATION: {
+				const r_animation_t *animation = (r_animation_t *) stage->media;
+				int32_t frame;
+				if (stage->cm->animation.fps == 0.f && e != NULL) {
+					frame = e->frame;
+				} else {
+					frame = r_view.ticks / 1000.f * stage->cm->animation.fps;
+				}
+				glBindTexture(GL_TEXTURE_2D, animation->frames[frame % animation->num_frames]->texnum);
+			}
+				break;
+			case MEDIA_MATERIAL: {
+				const r_material_t *material = (r_material_t *) stage->media;
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+				glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
+			}
+				break;
+			default:
+				break;
 		}
-			break;
-		case MEDIA_MATERIAL: {
-			const r_material_t *material = (r_material_t *) stage->media;
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
-		}
-			break;
-		default:
-			break;
 	}
 
 	glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
@@ -279,8 +281,6 @@ static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp
 	if (!(material->cm->flags & STAGE_DRAW)) {
 		return;
 	}
-
-	glDepthMask(GL_FALSE);
 
 	glEnable(GL_BLEND);
 	glEnable(GL_POLYGON_OFFSET_FILL);
@@ -308,8 +308,6 @@ static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
-
-	glDepthMask(GL_TRUE);
 
 	R_GetError(NULL);
 }
@@ -356,31 +354,39 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
  *
  *@see R_NodeDepthForPoint
  */
-static void R_DrawBspInlineModelAlphaBlendDepth(int32_t blend_depth) {
+static int32_t R_DrawBspInlineModelAlphaBlendNode(r_bsp_node_t *node) {
 
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
+	const int32_t blend_depth_count = node->blend_depth_count;
+	if (blend_depth_count) {
 
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
+		glBlendFunc(GL_ONE, GL_ZERO);
+		glDisable(GL_BLEND);
 
-	R_DrawEntities(blend_depth);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
 
-	R_DrawSprites(blend_depth);
+		R_DrawEntities(node->blend_depth);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+		R_DrawSprites(node->blend_depth);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
 
-	glUseProgram(r_bsp_program.name);
-	glBindVertexArray(r_world_model->bsp->vertex_array);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+		glUseProgram(r_bsp_program.name);
+		glBindVertexArray(r_world_model->bsp->vertex_array);
 
-	R_GetError(NULL);
+		glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+
+		R_GetError(NULL);
+
+		node->blend_depth_count = 0;
+	}
+
+	return blend_depth_count;
 }
 
 /**
@@ -399,12 +405,14 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 			continue;
 		}
 
-		if (!e && draw->node->blend_depth) {
-			R_DrawBspInlineModelAlphaBlendDepth(draw->node->blend_depth);
-			draw->node->blend_depth = 0;
+		if (R_DrawBspInlineModelAlphaBlendNode(draw->node)) {
+			material = NULL;
 		}
 
 		glUniform1i(r_bsp_program.lights_mask, draw->node->lights_mask);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
 
@@ -418,9 +426,6 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 				glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
 				glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
 			}
-
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 			r_view.count_bsp_triangles += draw->num_elements / 3;

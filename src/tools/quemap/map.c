@@ -476,8 +476,7 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 	} else if (!g_strcmp0(td->name, "common/hint")) {
 		td->flags |= SURF_HINT;
 	} else if (!g_strcmp0(td->name, "common/ladder")) {
-		side->contents |= CONTENTS_LADDER | CONTENTS_DETAIL | CONTENTS_WINDOW;
-		td->flags |= SURF_NO_DRAW;
+		side->contents |= CONTENTS_LADDER | CONTENTS_PLAYER_CLIP;
 	} else if (!g_strcmp0(td->name, "common/origin")) {
 		side->contents |= CONTENTS_ORIGIN;
 	} else if (!g_strcmp0(td->name, "common/skip")) {
@@ -485,8 +484,7 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 	} else if (!g_strcmp0(td->name, "common/sky")) {
 		td->flags |= SURF_SKY;
 	} else if (!g_strcmp0(td->name, "common/trigger")) {
-		side->contents |= CONTENTS_DETAIL | CONTENTS_WINDOW;
-		td->flags |= SURF_NO_DRAW;
+		side->contents |= CONTENTS_PLAYER_CLIP;
 	}
 
 	if (side->contents & CONTENTS_MASK_LIQUID) {
@@ -594,8 +592,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
 
 				// and translucent solids are actually windows
-				if (side->contents & CONTENTS_SOLID) {
-					side->contents &= ~CONTENTS_SOLID;
+				if (!(side->contents & CONTENTS_MASK_LIQUID)) {
 					side->contents |= CONTENTS_WINDOW;
 				}
 			}
@@ -609,17 +606,22 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				side->contents &= ~CONTENTS_DETAIL;
 			}
 
-			// brushes with no specified contents default to solid
+			// brushes with no visible or specific contents default to solid
 			if (!(side->contents & CONTENTS_MASK_VISIBLE)) {
 				if (!(side->contents & (CONTENTS_AREA_PORTAL | CONTENTS_ORIGIN | CONTENTS_MASK_CLIP))) {
 					side->contents |= CONTENTS_SOLID;
 				}
 			}
 
-			// hints are never detail, are visible, and have no content
+			// hints are never detail, are visible, and have no contents
 			if (side->surf & SURF_HINT) {
-				side->surf &= ~CONTENTS_DETAIL;
 				side->visible = true;
+				side->contents = 0;
+			}
+
+			// skips are never visible and have no contents
+			if (side->surf & SURF_SKIP) {
+				side->visible = false;
 				side->contents = 0;
 			}
 

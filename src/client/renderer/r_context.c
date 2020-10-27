@@ -278,10 +278,12 @@ void R_InitContext(void) {
 	gladLoadGL();
 	
 	if (r_get_error->integer) {
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
-		glDebugMessageCallback(R_Debug_Callback, NULL);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+		if (GLAD_GL_KHR_debug) {
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(R_Debug_Callback, NULL);
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+		}
 	}
 
 	R_SetWindowIcon();

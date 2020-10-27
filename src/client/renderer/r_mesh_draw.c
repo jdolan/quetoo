@@ -167,15 +167,17 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
-	switch (stage->media->type) {
-		case MEDIA_IMAGE:
-		case MEDIA_ATLAS_IMAGE: {
-			const r_image_t *image = (r_image_t *) stage->media;
-			glBindTexture(GL_TEXTURE_2D, image->texnum);
+	if (stage->media) {
+		switch (stage->media->type) {
+			case MEDIA_IMAGE:
+			case MEDIA_ATLAS_IMAGE: {
+				const r_image_t *image = (r_image_t *) stage->media;
+				glBindTexture(GL_TEXTURE_2D, image->texnum);
+			}
+				break;
+			default:
+				break;
 		}
-			break;
-		default:
-			break;
 	}
 
 	const GLint base_vertex = (GLint) (face->vertexes - e->model->mesh->vertexes);
@@ -375,11 +377,39 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 }
 
 /**
- * @brief Draws all mesh models for the current frame.
+ * @brief Draws mesh entities at the specified blend depth.
  */
 void R_DrawMeshEntities(int32_t blend_depth) {
 
-	_Bool any_rendered = false;
+	int32_t i;
+	for (i = 0; i < r_view.num_entities; i++) {
+		if (IS_MESH_MODEL(r_view.entities[i].model)) {
+			if (r_view.entities[i].blend_depth == blend_depth) {
+				break;
+			}
+		}
+	}
+
+	if (i == r_view.num_entities) {
+		return;
+	}
+
+	glEnable(GL_DEPTH_TEST);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glUseProgram(r_mesh_program.name);
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_lights.uniform_buffer);
+
+	const r_bsp_model_t *bsp = r_world_model->bsp;
+	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
+		glBindTexture(GL_TEXTURE_3D, bsp->lightgrid->textures[i]->texnum);
+	}
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
@@ -393,36 +423,15 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 				continue;
 			}
 
-			if (!any_rendered) {
-				any_rendered = true;
-
-				glEnable(GL_DEPTH_TEST);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-				glUseProgram(r_mesh_program.name);
-
-				glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_lights.uniform_buffer);
-
-				const r_bsp_model_t *bsp = r_world_model->bsp;
-				for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
-					glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
-					glBindTexture(GL_TEXTURE_3D, bsp->lightgrid->textures[i]->texnum);
-				}
-
-				glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-			}
-
 			R_DrawMeshEntity(e);
 		}
-	}
-
-	if (!any_rendered) {
-		return;
 	}
 
 	glUseProgram(0);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_BLEND);
+	
 	glDisable(GL_DEPTH_TEST);
 
 	R_GetError(NULL);

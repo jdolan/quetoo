@@ -126,7 +126,9 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t count) {
 
 		memcpy(brush->sides, b->sides, brush->num_sides * sizeof(brush_side_t));
 
-		for (int32_t j = 0; j < b->num_sides; j++) {
+		for (int32_t j = 0; j < brush->num_sides; j++) {
+			brush->sides[j].original = &b->sides[j];
+
 			if (brush->sides[j].winding) {
 				brush->sides[j].winding = Cm_CopyWinding(brush->sides[j].winding);
 			}

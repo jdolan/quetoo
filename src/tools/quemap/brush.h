@@ -52,11 +52,10 @@ typedef struct brush_side_s {
 	int32_t plane_num;
 	int32_t texinfo;
 	cm_winding_t *winding;
-	struct brush_side_s *original;
+	const struct brush_side_s *original;
 	int32_t contents;
 	int32_t surf;
 	_Bool visible; // choose visible planes first
-	_Bool tested; // this side already checked as a split
 	_Bool bevel; // don't use for bsp splitting
 } brush_side_t;
 
@@ -79,5 +78,5 @@ size_t CountBrushes(csg_brush_t *brushes);
 csg_brush_t *CopyBrush(const csg_brush_t *brush);
 float BrushVolume(csg_brush_t *brush);
 csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs);
-int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_splits, _Bool *hint_split, int32_t *epsilon_brush);
-void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_brush_t **back);
+int32_t TestBrushToPlane(const csg_brush_t *brush, int32_t plane_num, int32_t *num_splits);
+void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_brush_t **back);

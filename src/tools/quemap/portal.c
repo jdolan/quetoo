@@ -456,7 +456,9 @@ static void MakeTreePortals_r(node_t *node) {
  * @brief
  */
 void MakeTreePortals(tree_t *tree) {
+
 	MakeHeadnodePortals(tree);
+
 	MakeTreePortals_r(tree->head_node);
 }
 
@@ -871,6 +873,7 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	if (side->surf & SURF_SKIP) {
 		return NULL; // there is no spoon
 	}
+
 	if (side->surf & SURF_NO_DRAW) {
 		return NULL; // caulked
 	}

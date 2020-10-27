@@ -149,186 +149,95 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
 }
 
 /**
- * @brief
+ * @return A heuristic value for splitting the
  */
-static void CheckPlaneAgainstParents(int32_t plane_num, node_t *node) {
+static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brush_t *brushes) {
 
-	for (node_t *p = node->parent; p; p = p->parent) {
-		if (p->plane_num == plane_num) {
-			Com_Error(ERROR_FATAL, "Tried parent\n");
+	const int32_t plane_num = side->plane_num & ~1;
+
+	int32_t front = 0, back = 0, facing = 0, num_split_sides = 0;
+
+	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
+
+		int32_t i;
+		const int32_t s = TestBrushToPlane(brush, plane_num, &i);
+
+		if (s & SIDE_FRONT) {
+			front++;
 		}
+		if (s & SIDE_BACK) {
+			back++;
+		}
+		if (s & SIDE_FACING) {
+			facing++;
+		}
+
+		num_split_sides += i;
 	}
+
+	// give a value estimate for using this plane
+
+	int32_t value = 5 * facing - 5 * num_split_sides - abs(front - back);
+
+	if (AXIAL(&planes[plane_num])) {
+		value += 5;
+	}
+
+	if (side->contents & CONTENTS_DETAIL) {
+		value -= 5;
+	}
+
+	if (side->surf & SURF_HINT) {
+		value = INT32_MAX;
+	}
+
+	return value;
 }
 
 /**
- * @brief
+ * @return The brush side from brushes with the highest heuristic value.
  */
-static _Bool CheckPlaneAgainstVolume(int32_t plane_num, node_t *node) {
-	csg_brush_t *front, *back;
+static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 
-	SplitBrush(node->volume, plane_num, &front, &back);
+	const brush_side_t *best_side = NULL;
+	int32_t best_value = INT32_MIN;
 
-	const _Bool good = (front && back);
-	if (front) {
-		FreeBrush(front);
-	}
-	if (back) {
-		FreeBrush(back);
-	}
+	GPtrArray *cache = g_ptr_array_new();
 
-	return good;
-}
+	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 
-/**
- * @brief Using a heuristic, chooses one of the sides out of the brush list
- * to partition the brushes with.
- * Returns NULL if there are no valid planes to split with..
- */
-static brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
-	int32_t value, best_value;
-	csg_brush_t *brush, *test;
-	brush_side_t *side, *best_side;
-	int32_t i, j, pass, num_passes;
-	int32_t plane_num;
-	int32_t s;
-	int32_t front, back, both, facing, splits;
-	int32_t bsplits;
-	int32_t epsilon_brush;
-	_Bool hint_split;
+		const brush_side_t *side = brush->sides;
+		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
-	best_side = NULL;
-	best_value = INT32_MIN;
-
-	_Bool have_structural = false;
-	for (brush = brushes; brush; brush = brush->next) {
-		if (brush->original->contents == CONTENTS_SOLID) {
-			have_structural = true;
-			break;
-		}
-	}
-
-	// the search order goes: visible-structural, visible-detail,
-	// nonvisible-structural, nonvisible-detail.
-	// If any valid plane is available in a pass, no further
-	// passes will be tried.
-	num_passes = 4;
-	for (pass = 0; pass < num_passes; pass++) {
-		for (brush = brushes; brush; brush = brush->next) {
-			if ((pass & 1) && !(brush->original->contents & CONTENTS_DETAIL)) {
+			if (side->bevel) {
 				continue;
 			}
-			if (!(pass & 1) && (brush->original->contents & CONTENTS_DETAIL)) {
+			if (!side->winding) {
 				continue;
 			}
-			for (i = 0; i < brush->num_sides; i++) {
-				side = brush->sides + i;
-				if (side->bevel) {
-					continue;    // never use a bevel as a splitter
-				}
-				if (!side->winding) {
-					continue;    // nothing visible, so it can't split
-				}
-				if (side->texinfo == TEXINFO_NODE) {
-					continue;    // already a node splitter
-				}
-				if (side->tested) {
-					continue;    // we already have metrics for this plane
-				}
-				if (side->surf & SURF_SKIP) {
-					continue;    // skip surfaces are never chosen
-				}
-				if (!side->visible && pass < 2) {
-					continue;    // prefer visible sides on the first two passes
-				}
-
-				plane_num = side->plane_num;
-				plane_num &= ~1; // always use positive facing plane
-
-				CheckPlaneAgainstParents(plane_num, node);
-
-				if (!CheckPlaneAgainstVolume(plane_num, node)) {
-					continue; // would produce a tiny volume
-				}
-
-				front = 0;
-				back = 0;
-				both = 0;
-				facing = 0;
-				splits = 0;
-				epsilon_brush = 0;
-				hint_split = false;
-
-				for (test = brushes; test; test = test->next) {
-					s = TestBrushToPlane(test, plane_num, &bsplits, &hint_split, &epsilon_brush);
-
-					splits += bsplits;
-					if (bsplits && (s & SIDE_FACING)) {
-						Com_Error(ERROR_FATAL, "SIDE_FACING with splits\n");
-					}
-
-					test->test_side = s;
-					// if the brush shares this face, don't bother
-					// testing that facenum as a splitter again
-					if (s & SIDE_FACING) {
-						facing++;
-						for (j = 0; j < test->num_sides; j++) {
-							if ((test->sides[j].plane_num & ~1) == plane_num) {
-								test->sides[j].tested = true;
-							}
-						}
-					}
-					if (s & SIDE_FRONT) {
-						front++;
-					}
-					if (s & SIDE_BACK) {
-						back++;
-					}
-					if (s == SIDE_BOTH) {
-						both++;
-					}
-				}
-
-				// give a value estimate for using this plane
-
-				value = 5 * facing - 5 * splits - abs(front - back);
-				if (AXIAL(&planes[plane_num])) {
-					value += 5;    // axial is better
-				}
-				value -= epsilon_brush * 1000; // avoid!
-
-				// never split a hint side except with another hint
-				if (hint_split && !(side->surf & SURF_HINT)) {
-					value = INT32_MIN;
-				}
-
-				// save off the side test so we don't need
-				// to recalculate it when we actually separate
-				// the brushes
-				if (value > best_value) {
-					best_value = value;
-					best_side = side;
-					for (test = brushes; test; test = test->next) {
-						test->side = test->test_side;
-					}
-				}
+			if (side->texinfo == TEXINFO_NODE) {
+				continue;
 			}
-		}
-
-		// if we found a good plane, don't bother trying any other passes
-		if (best_side) {
-			if (pass > 0) {
-				node->detail_separator = true;    // not needed for vis
+			if (side->surf & SURF_SKIP) {
+				continue;
 			}
-			break;
+
+			const intptr_t plane_num = side->plane_num ^ 1;
+			if (g_ptr_array_find(cache, (gconstpointer) plane_num, NULL)) {
+				continue;
+			}
+
+			const int32_t value = SelectSplitSideHeuristic(side, brushes);
+			if (value > best_value) {
+				best_side = side;
+				best_value = value;
+			}
+
+			g_ptr_array_add(cache, (gpointer) plane_num);
 		}
 	}
 
-	// clear all the tested flags we set
-	for (brush = brushes; brush; brush = brush->next) {
-		for (i = 0; i < brush->num_sides; i++) {
-			brush->sides[i].tested = false;
-		}
-	}
+	g_ptr_array_free(cache, true);
 
 	return best_side;
 }
@@ -336,16 +245,16 @@ static brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 /**
  * @brief
  */
-static void SplitBrushes(csg_brush_t *brushes, node_t *node, csg_brush_t **front, csg_brush_t **back) {
-	csg_brush_t *brush, *front_brush, *back_brush;
-	brush_side_t *side;
+static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t **front, csg_brush_t **back) {
 
 	*front = *back = NULL;
 
-	for (brush = brushes; brush; brush = brush->next) {
+	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 
-		const int32_t sides = brush->side;
-		if (sides == SIDE_BOTH) { // split into two brushes
+		int32_t i;
+		const int32_t s = TestBrushToPlane(brush, node->plane_num, &i);
+		if (s == SIDE_BOTH) {
+			csg_brush_t *front_brush, *back_brush;
 			SplitBrush(brush, node->plane_num, &front_brush, &back_brush);
 			if (front_brush) {
 				front_brush->next = *front;
@@ -362,21 +271,21 @@ static void SplitBrushes(csg_brush_t *brushes, node_t *node, csg_brush_t **front
 
 		// if the plane_num is actualy a part of the brush
 		// find the plane and flag it as used so it won't be tried as a splitter again
-		if (sides & SIDE_FACING) {
+		if (s & SIDE_FACING) {
 			for (int32_t i = 0; i < new_brush->num_sides; i++) {
-				side = new_brush->sides + i;
+				brush_side_t *side = new_brush->sides + i;
 				if ((side->plane_num & ~1) == node->plane_num) {
 					side->texinfo = TEXINFO_NODE;
 				}
 			}
 		}
 
-		if (sides & SIDE_FRONT) {
+		if (s & SIDE_FRONT) {
 			new_brush->next = *front;
 			*front = new_brush;
 			continue;
 		}
-		if (sides & SIDE_BACK) {
+		if (s & SIDE_BACK) {
 			new_brush->next = *back;
 			*back = new_brush;
 			continue;
@@ -391,17 +300,17 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	csg_brush_t *children[2];
 
 	// find the best plane to use as a splitter
-	brush_side_t *side = SelectSplitSide(node, brushes);
-	if (!side) { // leaf node
-		node->side = NULL;
+	const brush_side_t *split_side = SelectSplitSide(node, brushes);
+	if (!split_side) { // leaf node
+		node->split_side = NULL;
 		node->plane_num = PLANE_NUM_LEAF;
 		LeafNode(node, brushes);
 		return node;
 	}
 
 	// this is a split-plane node
-	node->side = side;
-	node->plane_num = side->plane_num & ~1; // always use positive facing
+	node->split_side = split_side->original;
+	node->plane_num = split_side->plane_num & ~1; // always use positive facing
 
 	SplitBrushes(brushes, node, &children[0], &children[1]);
 
@@ -517,7 +426,7 @@ void PruneNodes_r(node_t *node) {
 
 		node->plane_num = PLANE_NUM_LEAF;
 		node->contents = CONTENTS_SOLID;
-		node->detail_separator = false;
+		node->split_side = NULL;
 
 		if (node->brushes) {
 			Com_Error(ERROR_FATAL, "Node still references brushes\n");
