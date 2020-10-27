@@ -167,15 +167,17 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
-	switch (stage->media->type) {
-		case MEDIA_IMAGE:
-		case MEDIA_ATLAS_IMAGE: {
-			const r_image_t *image = (r_image_t *) stage->media;
-			glBindTexture(GL_TEXTURE_2D, image->texnum);
+	if (stage->media) {
+		switch (stage->media->type) {
+			case MEDIA_IMAGE:
+			case MEDIA_ATLAS_IMAGE: {
+				const r_image_t *image = (r_image_t *) stage->media;
+				glBindTexture(GL_TEXTURE_2D, image->texnum);
+			}
+				break;
+			default:
+				break;
 		}
-			break;
-		default:
-			break;
 	}
 
 	const GLint base_vertex = (GLint) (face->vertexes - e->model->mesh->vertexes);

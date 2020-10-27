@@ -233,33 +233,35 @@ static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
-	switch (stage->media->type) {
-		case MEDIA_IMAGE:
-		case MEDIA_ATLAS_IMAGE: {
-			const r_image_t *image = (r_image_t *) stage->media;
-			glBindTexture(GL_TEXTURE_2D, image->texnum);
-		}
-			break;
-		case MEDIA_ANIMATION: {
-			const r_animation_t *animation = (r_animation_t *) stage->media;
-			int32_t frame;
-			if (stage->cm->animation.fps == 0.f && e != NULL) {
-				frame = e->frame;
-			} else {
-				frame = r_view.ticks / 1000.f * stage->cm->animation.fps;
+	if (stage->media) {
+		switch (stage->media->type) {
+			case MEDIA_IMAGE:
+			case MEDIA_ATLAS_IMAGE: {
+				const r_image_t *image = (r_image_t *) stage->media;
+				glBindTexture(GL_TEXTURE_2D, image->texnum);
 			}
-			glBindTexture(GL_TEXTURE_2D, animation->frames[frame % animation->num_frames]->texnum);
+				break;
+			case MEDIA_ANIMATION: {
+				const r_animation_t *animation = (r_animation_t *) stage->media;
+				int32_t frame;
+				if (stage->cm->animation.fps == 0.f && e != NULL) {
+					frame = e->frame;
+				} else {
+					frame = r_view.ticks / 1000.f * stage->cm->animation.fps;
+				}
+				glBindTexture(GL_TEXTURE_2D, animation->frames[frame % animation->num_frames]->texnum);
+			}
+				break;
+			case MEDIA_MATERIAL: {
+				const r_material_t *material = (r_material_t *) stage->media;
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+				glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
+			}
+				break;
+			default:
+				break;
 		}
-			break;
-		case MEDIA_MATERIAL: {
-			const r_material_t *material = (r_material_t *) stage->media;
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
-		}
-			break;
-		default:
-			break;
 	}
 
 	glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
