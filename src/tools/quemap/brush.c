@@ -126,29 +126,23 @@ static void SetBrushBounds(csg_brush_t *brush) {
 /**
  * @brief
  */
-static void CreateBrushWindings(csg_brush_t *brush) {
+static void MakeBrushWindings(csg_brush_t *brush) {
 
-	for (int32_t i = 0; i < brush->num_sides; i++) {
-		brush_side_t *side = &brush->sides[i];
+	brush_side_t *side = brush->sides;
+	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
 		const plane_t *plane = &planes[side->plane_num];
-		cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
+		side->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 
-		for (int32_t j = 0; j < brush->num_sides; j++) {
-			if (i == j) {
+		const brush_side_t *s = brush->sides;
+		for (int32_t j = 0; j < brush->num_sides; j++, s++) {
+			if (side == s) {
 				continue;
 			}
-			if (brush->sides[j].plane_num == (side->plane_num ^ 1)) {
-				continue;
-			}
-			if (brush->sides[j].bevel) {
-				continue;
-			}
-			const plane_t *plane = &planes[brush->sides[j].plane_num ^ 1];
-			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.f);
+			const plane_t *p = &planes[s->plane_num ^ 1];
+			Cm_ClipWinding(&side->winding, p->normal, p->dist, 0.f);
 		}
 
-		side->winding = w;
 		assert(side->winding);
 	}
 
@@ -173,7 +167,7 @@ csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs) {
 		b->sides[3 + i].plane_num = FindPlane(normal, -mins.xyz[i]);
 	}
 
-	CreateBrushWindings(b);
+	MakeBrushWindings(b);
 	return b;
 }
 

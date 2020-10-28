@@ -395,15 +395,15 @@ static void MakeBrushWindings(brush_t *brush) {
 		const plane_t *plane = &planes[side->plane_num];
 		side->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 
-		const brush_side_t *other = brush->sides;
-		for (int32_t j = 0; j < brush->num_sides; j++, other++) {
-			if (side == other) {
+		const brush_side_t *s = brush->sides;
+		for (int32_t j = 0; j < brush->num_sides; j++, s++) {
+			if (side == s) {
 				continue;
 			}
-			if (other->plane_num == (side->plane_num ^ 1)) {
+			if (s->bevel) {
 				continue;
 			}
-			const plane_t *p = &planes[other->plane_num ^ 1];
+			const plane_t *p = &planes[s->plane_num ^ 1];
 			Cm_ClipWinding(&side->winding, p->normal, p->dist, 0.f);
 
 			if (side->winding == NULL) {
