@@ -349,8 +349,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	tree->maxs = Vec3_Maxs();
 
 	int32_t num_brushes = 0;
-	int32_t num_vis_sides = 0;
-	int32_t num_non_vis_sides = 0;
+	int32_t num_brush_sides = 0;
 
 	for (csg_brush_t *b = brushes; b; b = b->next) {
 		num_brushes++;
@@ -370,11 +369,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 			if (b->sides[i].texinfo == TEXINFO_NODE) {
 				continue;
 			}
-			if (b->sides[i].visible) {
-				num_vis_sides++;
-			} else {
-				num_non_vis_sides++;
-			}
+			num_brush_sides++;
 		}
 
 		tree->mins = Vec3_Minf(tree->mins, b->mins);
@@ -382,8 +377,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	}
 
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", num_brushes);
-	Com_Debug(DEBUG_ALL, "%5i visible sides\n", num_vis_sides);
-	Com_Debug(DEBUG_ALL, "%5i nonvisible sides\n", num_non_vis_sides);
+	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
 	const vec3_t mins = Vec3(MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);
