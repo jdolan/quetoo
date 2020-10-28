@@ -112,33 +112,33 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t count) {
 
 	csg_brush_t *list = NULL;
 
-	const brush_t *b = &brushes[start];
-	for (int32_t i = 0; i < count; i++, b++) {
+	const brush_t *in = &brushes[start];
+	for (int32_t i = 0; i < count; i++, in++) {
 
-		if (!b->num_sides) {
+		if (!in->num_sides) {
 			continue;
 		}
 		
-		csg_brush_t *brush = AllocBrush(b->num_sides);
+		csg_brush_t *out = AllocBrush(in->num_sides);
 
-		brush->original = b;
-		brush->num_sides = b->num_sides;
+		out->original = in;
+		out->num_sides = in->num_sides;
 
-		memcpy(brush->sides, b->sides, brush->num_sides * sizeof(brush_side_t));
+		for (int32_t j = 0; j < out->num_sides; j++) {
 
-		for (int32_t j = 0; j < brush->num_sides; j++) {
-			brush->sides[j].original = &b->sides[j];
+			out->sides[j] = in->sides[j];
+			out->sides[j].original = &in->sides[j];
 
-			if (brush->sides[j].winding) {
-				brush->sides[j].winding = Cm_CopyWinding(brush->sides[j].winding);
+			if (in->sides[j].winding) {
+				out->sides[j].winding = Cm_CopyWinding(in->sides[j].winding);
 			}
 		}
 		
-		brush->mins = b->mins;
-		brush->maxs = b->maxs;
+		out->mins = in->mins;
+		out->maxs = in->maxs;
 
-		brush->next = list;
-		list = brush;
+		out->next = list;
+		list = out;
 	}
 
 	return list;
