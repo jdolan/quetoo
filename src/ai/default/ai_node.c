@@ -36,7 +36,7 @@ static struct {
 
 	button_state_t latched_buttons, old_buttons, buttons;
 } ai_player_roam = {
-	.position = { MAX_WORLD_DIST, MAX_WORLD_DIST, MAX_WORLD_DIST },
+	.position.xyz = { MAX_WORLD_DIST, MAX_WORLD_DIST, MAX_WORLD_DIST },
 	.last_nodes = { NODE_INVALID, NODE_INVALID },
 	.await_landing = true
 };
