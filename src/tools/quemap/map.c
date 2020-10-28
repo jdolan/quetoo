@@ -593,11 +593,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			// translucent brushes are inherently details beacuse they can not occlude
 			if (side->surf & SURF_MASK_TRANSLUCENT) {
 				side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
-
-				// and translucent solids are actually windows
-				if (!(side->contents & CONTENTS_MIST) && !(side->contents & CONTENTS_MASK_LIQUID)) {
-					side->contents |= CONTENTS_WINDOW;
-				}
+				side->contents &= ~CONTENTS_SOLID;
 			}
 
 			// clip brushes, similarly, are not drawn and therefore can not occlude
