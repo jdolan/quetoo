@@ -25,7 +25,7 @@
 #include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 9
+#define GAME_API_VERSION 10
 
 /**
  * @brief Server flags for g_entity_t.
@@ -201,6 +201,59 @@ typedef struct g_import_s {
 	void *(*LinkMalloc)(size_t size, void *parent);
 	void (*Free)(void *p);
 	void (*FreeTag)(mem_tag_t tag);
+
+	/**
+	 * @brief Opens the specified file for reading.
+	 * @param path The file path (e.g. `"maps/torn.bsp"`).
+	 */
+	file_t *(*OpenFile)(const char *path);
+
+	/**
+	 * @brief Seeks to the specified offset.
+	 * @param file The file.
+	 * @param offset The offset.
+	 * @return True on success, false on error.
+	 */
+	_Bool (*SeekFile)(file_t *file, size_t offset);
+
+	/**
+	 * @brief Reads from the specified file.
+	 * @param file The file.
+	 * @param buffer The buffer into which to read.
+	 * @param size The size of the objects to read.
+	 * @param count The count of the objects to read.
+	 * @return The number of objects read, or -1 on failure.
+	 */
+	int64_t (*ReadFile)(file_t *file, void *buffer, size_t size, size_t count);
+
+	/**
+	 * @brief Opens the specified file for writing.
+	 * @param path The file path (e.g. `"maps.ui.list"`).
+	 */
+	file_t *(*OpenFileWrite)(const char *path);
+
+	/**
+	 * @brief Writes `count` objects of size `size` from `buffer` to `file`.
+	 * @param file The file.
+	 * @param buffer The buffer to write from.
+	 * @param size The size of the objects to write.
+	 * @param count The count of the objecst to write.
+	 * @return The number of objects written, or `-1` on error.
+	 */
+	int64_t (*WriteFile)(file_t *file, const void *buffer, size_t size, size_t count);
+
+	/**
+	 * @brief Closes the specified file.
+	 * @param file The file.
+	 * @return True on success, false on error.
+	 */
+	_Bool (*CloseFile)(file_t *file);
+
+	/**
+	 * @brief Check if a file exists or not.
+	 * @return True if the specified filename exists on the search path.
+	 */
+	_Bool (*FileExists)(const char *path);
 
 	/**
 	 * @brief Loads the specified file into the given buffer.

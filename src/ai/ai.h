@@ -84,6 +84,11 @@ typedef struct {
 	void (*Shutdown)(void);
 
 	/**
+	 * @brief Load map-related content.
+	 */
+	void (*Load)(const char *mapname);
+
+	/**
 	 * @brief Called once by game to setup its data pointers
 	 */
 	void (*SetDataPointers)(ai_entity_data_t *entity, ai_client_data_t *client, ai_item_data_t *item);

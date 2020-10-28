@@ -850,6 +850,9 @@ void G_SpawnEntities(const char *name, const char *entities) {
 				}
 			}
 		}
+
+		// load nav data
+		G_Ai_Load(name);
 	}
 	
 	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));

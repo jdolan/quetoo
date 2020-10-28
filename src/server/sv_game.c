@@ -335,6 +335,13 @@ void Sv_InitGame(void) {
 	import.Free = Mem_Free;
 	import.FreeTag = Mem_FreeTag;
 
+	import.OpenFile = Fs_OpenRead;
+	import.SeekFile = Fs_Seek;
+	import.ReadFile = Fs_Read;
+	import.OpenFileWrite = Fs_OpenWrite;
+	import.WriteFile = Fs_Write;
+	import.CloseFile = Fs_Close;
+	import.FileExists = Fs_Exists;
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
 	import.Mkdir = Fs_Mkdir;

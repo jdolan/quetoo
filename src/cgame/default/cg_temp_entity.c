@@ -138,7 +138,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
  * @brief
  */
 static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color) {
-	const float hue = color ? color_hue_yellow : color_hue_orange;
+	const float hue = color == 3 ? color_hue_red : color == 2 ? color_hue_rose : color == 1 ? color_hue_yellow : color_hue_orange;
 
 	Cg_AddSprite(&(cg_sprite_t) {
 		.atlas_image = cg_sprite_particle,

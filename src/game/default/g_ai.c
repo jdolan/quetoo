@@ -458,3 +458,13 @@ void G_Ai_Init(void) {
 void G_Ai_Shutdown(void) {
 
 }
+
+/**
+ * @brief
+ */
+void G_Ai_Load(const char *mapname) {
+
+	if (aix) {
+		aix->Load(mapname);
+	}
+}

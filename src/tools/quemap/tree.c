@@ -194,6 +194,24 @@ static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brus
 	return value;
 }
 
+// FIXME temporary
+#ifdef _MSC_VER
+static _Bool g_ptr_array_find(GPtrArray *p, gconstpointer v, guint *index) {
+	
+	for (guint i = 0; i < p->len; i++) {
+		if (g_ptr_array_index(p, i) == v) {
+			if (index) {
+				*index = i;
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+#endif
+
 /**
  * @return The brush side from brushes with the highest heuristic value.
  */
