@@ -119,7 +119,7 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 
 		const bsp_face_t *a = faces + i;
 
-		if (bsp_file.texinfo[a->texinfo].flags & (SURF_NO_DRAW | SURF_SKY)) {
+		if (bsp_file.texinfo[a->texinfo].flags & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
 		
