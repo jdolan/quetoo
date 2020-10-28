@@ -605,11 +605,14 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				side->contents |= CONTENTS_DETAIL;
 			}
 
-
-			// brushes with no visible or specific contents default to solid
+			// brushes with no visible or functional contents default to solid or window
 			if (!(side->contents & CONTENTS_MASK_VISIBLE)) {
-				if (!(side->contents & (CONTENTS_AREA_PORTAL | CONTENTS_ORIGIN | CONTENTS_MASK_CLIP))) {
-					side->contents |= CONTENTS_SOLID;
+				if (!(side->contents & CONTENTS_MASK_FUNCTIONAL)) {
+					if (side->contents & CONTENTS_TRANSLUCENT) {
+						side->contents |= CONTENTS_WINDOW;
+					} else {
+						side->contents |= CONTENTS_SOLID;
+					}
 				}
 			}
 
