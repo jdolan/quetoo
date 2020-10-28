@@ -650,7 +650,6 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 
 			// keep this side
-			side = brush->sides + brush->num_sides;
 			side->plane_num = plane_num;
 			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, Vec3_Zero());
 
@@ -670,7 +669,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			return NULL;
 		}
 
-		// allow water brushes to be removed
+		// allow liquid brushes to be removed
 		if (no_liquid && (brush->contents & CONTENTS_MASK_LIQUID)) {
 			num_brushes--;
 			return NULL;
@@ -678,14 +677,6 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 		// create windings for sides and bounds for brush
 		MakeBrushWindings(brush);
-
-		// brushes that will not be visible at all will never be used as bsp splitters
-		if (brush->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
-			c_clip_brushes++;
-			for (int32_t i = 0; i < brush->num_sides; i++) {
-				brush->sides[i].texinfo = TEXINFO_NODE;
-			}
-		}
 
 		// origin brushes are removed, but they set the rotation origin for the rest of the brushes
 		// in the entity. After the entire entity is parsed, the plane_nums and texinfos will be adjusted for
@@ -704,6 +695,14 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 			num_brushes--;
 			return NULL;
+		}
+
+		// brushes that will not be visible at all will never be used as bsp splitters
+		if (brush->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
+			c_clip_brushes++;
+			for (int32_t i = 0; i < brush->num_sides; i++) {
+				brush->sides[i].texinfo = TEXINFO_NODE;
+			}
 		}
 
 		// add brush bevels, which are required for collision
