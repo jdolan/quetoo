@@ -208,10 +208,9 @@ static int32_t BrushContents(const brush_t *b) {
 	const brush_side_t *s = &b->sides[0];
 
 	int32_t contents = s->contents;
-	int32_t surface = bsp_file.texinfo[s->texinfo].flags;
 
 	for (int32_t i = 1; i < b->num_sides; i++, s++) {
-		surface |= bsp_file.texinfo[s->texinfo].flags;
+
 		if ((s->contents & CONTENTS_MASK_VISIBLE) != (contents & CONTENTS_MASK_VISIBLE)) {
 			char bits[33], bobs[33];
 
@@ -388,7 +387,7 @@ static void AddBrushBevels(brush_t *b) {
 }
 
 /**
- * @brief Makes basewindigs for sides and mins / maxs for the brush
+ * @brief Makes windings for sides and mins / maxs for the brush
  */
 static void MakeBrushWindings(brush_t *brush) {
 
@@ -399,34 +398,33 @@ static void MakeBrushWindings(brush_t *brush) {
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
 		const plane_t *plane = &planes[side->plane_num];
-		cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
+		side->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 
-		for (int32_t j = 0; j < brush->num_sides; j++) {
-			if (i == j) {
+		const brush_side_t *other = brush->sides;
+		for (int32_t j = 0; j < brush->num_sides; j++, other++) {
+			if (side == other) {
 				continue;
 			}
-			if (brush->sides[j].plane_num == (side->plane_num ^ 1)) {
-				continue; // back side clipaway
-			}
-			if (brush->sides[j].bevel) {
+			if (other->plane_num == (side->plane_num ^ 1)) {
 				continue;
 			}
-			const plane_t *plane = &planes[brush->sides[j].plane_num ^ 1];
-			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.f);
+			const plane_t *plane = &planes[other->plane_num ^ 1];
+			Cm_ClipWinding(&side->winding, plane->normal, plane->dist, 0.f);
 
-			if (w == NULL) {
+			if (side->winding == NULL) {
 				break;
 			}
 		}
 
-		side->winding = w;
-
 		if (side->winding) {
-			side->visible = true;
-			for (int32_t j = 0; j < w->num_points; j++) {
-				brush->mins = Vec3_Minf(brush->mins, w->points[j]);
-				brush->maxs = Vec3_Maxf(brush->maxs, w->points[j]);
+			for (int32_t j = 0; j < side->winding->num_points; j++) {
+				brush->mins = Vec3_Minf(brush->mins, side->winding->points[j]);
+				brush->maxs = Vec3_Maxf(brush->maxs, side->winding->points[j]);
 			}
+		} else {
+			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Malformed brush");
+			brush->num_sides = 0;
+			break;
 		}
 	}
 
