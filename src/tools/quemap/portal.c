@@ -757,7 +757,7 @@ void FillOutside(tree_t *tree) {
 }
 
 /**
- * @brief Finds a brush side to use for texturing the given portal
+ * @brief Finds an original brush side to use for texturing the given portal.
  */
 static void FindPortalBrushSide(portal_t *portal) {
 
@@ -785,7 +785,7 @@ static void FindPortalBrushSide(portal_t *portal) {
 					continue;
 				}
 				if (side->texinfo == TEXINFO_NODE) {
-					continue; // non-visible
+					continue;
 				}
 
 				if ((side->plane_num & ~1) == portal->on_node->plane_num) { // exact match
@@ -825,7 +825,7 @@ static void MarkVisibleSides_r(const node_t *node) {
 	}
 
 	// empty leafs are never boundary leafs
-	if (!node->contents) {
+	if (node->contents == CONTENTS_NONE) {
 		return;
 	}
 
