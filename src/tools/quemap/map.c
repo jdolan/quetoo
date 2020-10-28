@@ -45,10 +45,7 @@ static plane_t *plane_hash[PLANE_HASHES];
 
 vec3_t map_mins, map_maxs;
 
-static int32_t c_box_bevels;
-static int32_t c_edge_bevels;
 static int32_t c_area_portals;
-static int32_t c_clip_brushes;
 
 #define	NORMAL_EPSILON	0.00001
 #define	DIST_EPSILON	0.005
@@ -270,7 +267,6 @@ static void AddBrushBevels(brush_t *b) {
 				s->texinfo = b->sides[0].texinfo;
 				s->contents = b->sides[0].contents;
 				s->bevel = true;
-				c_box_bevels++;
 			}
 			// if the plane is not in it canonical order, swap it
 			if (i != order) {
@@ -365,7 +361,7 @@ static void AddBrushBevels(brush_t *b) {
 					}
 
 					if (k != b->num_sides) {
-						continue;    // wasn't part of the outer hull
+						continue; // wasn't part of the outer hull
 					}
 					// add this plane
 					if (num_brush_sides == MAX_BSP_BRUSH_SIDES) {
@@ -379,7 +375,6 @@ static void AddBrushBevels(brush_t *b) {
 					s2->bevel = true;
 
 					num_brush_sides++;
-					c_edge_bevels++;
 				}
 			}
 		}
@@ -617,11 +612,6 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				side->contents = CONTENTS_NONE;
 			}
 
-			// caulk is never visible
-			if (side->surf & (SURF_NO_DRAW | SURF_SKIP)) {
-				side->texinfo = TEXINFO_NODE;
-			}
-
 			// find the plane number
 			int32_t plane_num = PlaneFromPoints(points[0], points[1], points[2]);
 			if (plane_num == -1) {
@@ -643,11 +633,13 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				}
 			}
 			if (i != brush->num_sides) {
-				continue; // duplicated
+				continue;
 			}
 
 			// keep this side
 			side->plane_num = plane_num;
+
+			// find the texinfo
 			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, Vec3_Zero());
 
 			// save the td off in case there is an origin brush and we have to recalculate the texinfo
@@ -694,10 +686,14 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			return NULL;
 		}
 
-		// brushes that will not be visible at all will never be used as bsp splitters
-		if (brush->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
-			c_clip_brushes++;
-			for (int32_t i = 0; i < brush->num_sides; i++) {
+		// sides that will not be visible at all will never be used as bsp splitters
+		for (int32_t i = 0; i < brush->num_sides; i++) {
+
+			if (brush->contents & CONTENTS_MASK_CLIP) {
+				brush->sides[i].texinfo = TEXINFO_NODE;
+			}
+
+			if (brush->sides[i].surf & (SURF_NO_DRAW | SURF_SKIP)) {
 				brush->sides[i].texinfo = TEXINFO_NODE;
 			}
 		}
@@ -897,10 +893,7 @@ void LoadMapFile(const char *filename) {
 	}
 
 	Com_Verbose("%5i brushes\n", num_brushes);
-	Com_Verbose("%5i clip brushes\n", c_clip_brushes);
 	Com_Verbose("%5i total sides\n", num_brush_sides);
-	Com_Verbose("%5i box bevels\n", c_box_bevels);
-	Com_Verbose("%5i edge bevels\n", c_edge_bevels);
 	Com_Verbose("%5i entities\n", num_entities);
 	Com_Verbose("%5i planes\n", num_planes);
 	Com_Verbose("%5i area portals\n", c_area_portals);
