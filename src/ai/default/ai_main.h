@@ -32,6 +32,7 @@ extern ai_client_data_t ai_client_data;
 
 extern cvar_t *sv_max_clients;
 extern cvar_t *ai_no_target;
+extern cvar_t *ai_node_dev;
 
 /**
  * @brief Resolve the entity at the given index.

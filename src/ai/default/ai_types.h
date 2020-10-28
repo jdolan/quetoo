@@ -185,6 +185,7 @@ typedef struct {
 	_Bool teams;
 	_Bool ctf;
 	_Bool match;
+	char mapname[MAX_QPATH];
 } ai_level_t;
 
 /**
@@ -205,8 +206,17 @@ typedef struct {
 	ai_goal_type_t type;
 	float priority;
 	uint32_t time; // time this goal was set
-	const g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY/TEAMMATE
-	uint16_t ent_id; // FOR AI_GOAL_ITEM/ENEMY/TEAMMATE
+	
+	// for AI_GOAL_ITEM/ENEMY/TEAMMATE
+
+	const g_entity_t *ent;
+	uint16_t ent_id;
+
+	// for AI_GOAL_NAV
+
+	GArray *path;
+	guint path_index;
+	vec3_t path_position;
 } ai_goal_t;
 
 /**
@@ -271,5 +281,8 @@ typedef struct ai_locals_s {
 
 	uint32_t no_movement_frames;
 	uint32_t reacquire_time;
+
+	uint32_t goal_distress;
+	float goal_distance;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */

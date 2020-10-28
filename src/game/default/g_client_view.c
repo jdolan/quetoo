@@ -394,6 +394,11 @@ void G_ClientEndFrame(g_entity_t *ent) {
 	if (ent->client->locals.show_scores) {
 		G_ClientScores(ent);
 	}
+
+	// render the nodes to the clients
+	if (aix) {
+		aix->Render(ent);
+	}
 }
 
 /**

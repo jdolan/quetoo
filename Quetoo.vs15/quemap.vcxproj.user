@@ -6,7 +6,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommandArguments>-bsp -vis -light -v --indirect --threads 1 maps/torn.map</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-bsp -vis -light --indirect maps/torn.map</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommandArguments>-bsp -vis -light -v --indirect maps/torn.map</LocalDebuggerCommandArguments>

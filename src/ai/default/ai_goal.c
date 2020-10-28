@@ -68,6 +68,8 @@ void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func) {
  */
 void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, float priority, const g_entity_t *entity) {
 
+	Ai_ClearGoal(goal);
+
 	aim.gi->Debug("New goal: %s (%f priority)\n", etos(entity), priority);
 
 	goal->type = type;
@@ -75,6 +77,23 @@ void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, float priority, cons
 	goal->priority = priority;
 	goal->ent = entity;
 	goal->ent_id = entity->spawn_id;
+}
+
+/**
+ * @brief Setup entity goal for the specified target.
+ */
+void Ai_SetPathGoal(ai_goal_t *goal, ai_goal_type_t type, float priority, GArray *path) {
+
+	Ai_ClearGoal(goal);
+
+	aim.gi->Debug("New goal: path from %u -> %u (%f priority)\n", g_array_index(path, ai_node_id_t, 0), g_array_index(path, ai_node_id_t, path->len - 1), priority);
+
+	goal->type = type;
+	goal->time = ai_level.time;
+	goal->priority = priority;
+	goal->path = g_array_ref(path);
+	goal->path_index = 0;
+	goal->path_position = Ai_Node_GetPosition(g_array_index(path, ai_node_id_t, goal->path_index));
 }
 
 /**
@@ -90,15 +109,26 @@ _Bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent) {
  */
 void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
 
+	Ai_ClearGoal(to);
+
 	memcpy(to, from, sizeof(ai_goal_t));
 	to->time = ai_level.time;
+
+	if (from->path) {
+		to->path = g_array_ref(from->path);
+	}
 }
 
 /**
  * @brief Clear a goal
  */
 void Ai_ClearGoal(ai_goal_t *goal) {
+	
+	if (goal->path) {
+		g_array_unref(goal->path);
+	}
 
 	memset(goal, 0, sizeof(ai_goal_t));
 	goal->time = ai_level.time;
+	goal->path_index = NODE_INVALID;
 }
