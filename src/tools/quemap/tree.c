@@ -160,7 +160,7 @@ static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brus
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 
 		int32_t i;
-		const int32_t s = TestBrushToPlane(brush, plane_num, &i);
+		const int32_t s = BrushOnPlaneSideSplits(brush, plane_num, &i);
 
 		if (s & SIDE_FRONT) {
 			front++;
@@ -212,13 +212,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 			if (side->bevel) {
 				continue;
 			}
-			if (!side->winding) {
-				continue;
-			}
 			if (side->texinfo == TEXINFO_NODE) {
-				continue;
-			}
-			if (side->surf & SURF_SKIP) {
 				continue;
 			}
 
@@ -361,9 +355,6 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 
 		for (int32_t i = 0; i < b->num_sides; i++) {
 			if (b->sides[i].bevel) {
-				continue;
-			}
-			if (b->sides[i].winding == NULL) {
 				continue;
 			}
 			if (b->sides[i].texinfo == TEXINFO_NODE) {
