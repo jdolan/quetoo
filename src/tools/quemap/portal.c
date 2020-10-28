@@ -891,7 +891,7 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	return f;
 }
 
-static int32_t c_nodefaces;
+static int32_t c_faces;
 
 /**
  * @brief If a portal will make a visible face, mark the side that originally created it.
@@ -929,7 +929,7 @@ static void MakeFaces_r(node_t *node) {
 			f->next = p->on_node->faces;
 			p->on_node->faces = f;
 			p->face[s] = f;
-			c_nodefaces++;
+			c_faces++;
 		}
 	}
 }
@@ -939,11 +939,12 @@ static void MakeFaces_r(node_t *node) {
  */
 void MakeTreeFaces(tree_t *tree) {
 	Com_Verbose("--- MakeFaces ---\n");
-	c_merge = 0;
-	c_nodefaces = 0;
+
+	c_merged = 0;
+	c_faces = 0;
 
 	MakeFaces_r(tree->head_node);
 
-	Com_Verbose("%5i node faces\n", c_nodefaces);
-	Com_Verbose("%5i merged\n", c_merge);
+	Com_Verbose("%5i faces\n", c_faces);
+	Com_Verbose("%5i merged\n", c_merged);
 }

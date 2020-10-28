@@ -25,7 +25,7 @@
 #include "material.h"
 #include "qbsp.h"
 
-int32_t c_merge;
+int32_t c_merged;
 
 /**
  * @brief
@@ -91,7 +91,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 		return NULL;
 	}
 
-	c_merge++;
+	c_merged++;
 	face_t *newf = NewFaceFromFace(f1);
 	newf->w = nw;
 
