@@ -612,16 +612,14 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				}
 			}
 
-			// hints are never detail, are visible, and have no contents
-			if (side->surf & SURF_HINT) {
-				side->visible = true;
-				side->contents = 0;
+			// hints and skips have no contents
+			if (side->surf & (SURF_HINT | SURF_SKIP)) {
+				side->contents = CONTENTS_NONE;
 			}
 
-			// skips are never visible and have no contents
-			if (side->surf & SURF_SKIP) {
-				side->visible = false;
-				side->contents = 0;
+			// caulk is never visible
+			if (side->surf & (SURF_NO_DRAW | SURF_SKIP)) {
+				side->texinfo = TEXINFO_NODE;
 			}
 
 			// find the plane number
