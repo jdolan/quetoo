@@ -474,7 +474,8 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 	} else if (!g_strcmp0(td->name, "common/hint")) {
 		td->flags |= SURF_HINT;
 	} else if (!g_strcmp0(td->name, "common/ladder")) {
-		side->contents |= CONTENTS_LADDER | CONTENTS_PLAYER_CLIP;
+		side->contents |= CONTENTS_LADDER | CONTENTS_WINDOW;
+		side->surf |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(td->name, "common/origin")) {
 		side->contents |= CONTENTS_ORIGIN;
 	} else if (!g_strcmp0(td->name, "common/skip")) {
@@ -482,7 +483,8 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 	} else if (!g_strcmp0(td->name, "common/sky")) {
 		td->flags |= SURF_SKY;
 	} else if (!g_strcmp0(td->name, "common/trigger")) {
-		side->contents |= CONTENTS_PLAYER_CLIP;
+		side->contents |= CONTENTS_WINDOW;
+		side->surf |= SURF_NO_DRAW;
 	}
 
 	if (side->contents & CONTENTS_MASK_LIQUID) {
