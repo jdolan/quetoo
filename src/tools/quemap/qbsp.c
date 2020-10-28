@@ -35,14 +35,12 @@ float micro_volume = 0.125;
 _Bool no_prune = false;
 _Bool no_merge = false;
 _Bool no_detail = false;
-_Bool all_structural = false;
-_Bool only_ents = false;
 _Bool no_liquid = false;
 _Bool no_csg = false;
 _Bool no_weld = false;
 _Bool no_share = false;
 _Bool no_tjunc = false;
-_Bool leak_test = false;
+_Bool only_ents = false;
 _Bool leaked = false;
 
 /**
@@ -65,11 +63,7 @@ static void ProcessWorldModel(const entity_t *e) {
 		Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
 		leaked = true;
 
-		LeakFile(tree);
-
-		if (leak_test) {
-			Com_Error(ERROR_FATAL, "Leak test failed");
-		}
+		WriteLeakFile(tree);
 	}
 
 	MarkVisibleSides(tree, e->first_brush, e->num_brushes);

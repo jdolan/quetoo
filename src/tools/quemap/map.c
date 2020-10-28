@@ -45,10 +45,7 @@ static plane_t *plane_hash[PLANE_HASHES];
 
 vec3_t map_mins, map_maxs;
 
-static int32_t c_box_bevels;
-static int32_t c_edge_bevels;
 static int32_t c_area_portals;
-static int32_t c_clip_brushes;
 
 #define	NORMAL_EPSILON	0.00001
 #define	DIST_EPSILON	0.005
@@ -208,10 +205,9 @@ static int32_t BrushContents(const brush_t *b) {
 	const brush_side_t *s = &b->sides[0];
 
 	int32_t contents = s->contents;
-	int32_t surface = bsp_file.texinfo[s->texinfo].flags;
 
 	for (int32_t i = 1; i < b->num_sides; i++, s++) {
-		surface |= bsp_file.texinfo[s->texinfo].flags;
+
 		if ((s->contents & CONTENTS_MASK_VISIBLE) != (contents & CONTENTS_MASK_VISIBLE)) {
 			char bits[33], bobs[33];
 
@@ -243,6 +239,10 @@ static void AddBrushBevels(brush_t *b) {
 	vec3_t vec, vec2;
 	float d;
 
+	if (b->num_sides == 0) {
+		return;
+	}
+
 	// add the axial planes
 	order = 0;
 	for (axis = 0; axis < 3; axis++) {
@@ -271,7 +271,6 @@ static void AddBrushBevels(brush_t *b) {
 				s->texinfo = b->sides[0].texinfo;
 				s->contents = b->sides[0].contents;
 				s->bevel = true;
-				c_box_bevels++;
 			}
 			// if the plane is not in it canonical order, swap it
 			if (i != order) {
@@ -366,7 +365,7 @@ static void AddBrushBevels(brush_t *b) {
 					}
 
 					if (k != b->num_sides) {
-						continue;    // wasn't part of the outer hull
+						continue; // wasn't part of the outer hull
 					}
 					// add this plane
 					if (num_brush_sides == MAX_BSP_BRUSH_SIDES) {
@@ -380,7 +379,6 @@ static void AddBrushBevels(brush_t *b) {
 					s2->bevel = true;
 
 					num_brush_sides++;
-					c_edge_bevels++;
 				}
 			}
 		}
@@ -388,56 +386,60 @@ static void AddBrushBevels(brush_t *b) {
 }
 
 /**
- * @brief Makes basewindigs for sides and mins / maxs for the brush
+ * @brief Makes windings for sides and mins / maxs for the brush
  */
-static _Bool MakeBrushWindings(brush_t *ob) {
+static void MakeBrushWindings(brush_t *brush) {
 
-	ob->mins = Vec3_Mins();
-	ob->maxs = Vec3_Maxs();
+	brush->mins = Vec3_Mins();
+	brush->maxs = Vec3_Maxs();
 
-	for (int32_t i = 0; i < ob->num_sides; i++) {
-		const plane_t *plane = &planes[ob->sides[i].plane_num];
-		cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
-		for (int32_t j = 0; j < ob->num_sides && w; j++) {
-			if (i == j) {
+	brush_side_t *side = brush->sides;
+	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+
+		const plane_t *plane = &planes[side->plane_num];
+		side->winding = Cm_WindingForPlane(plane->normal, plane->dist);
+
+		const brush_side_t *s = brush->sides;
+		for (int32_t j = 0; j < brush->num_sides; j++, s++) {
+			if (side == s) {
 				continue;
 			}
-			if (ob->sides[j].plane_num == (ob->sides[j].plane_num ^ 1)) {
-				continue; // back side clipaway
-			}
-			if (ob->sides[j].bevel) {
+			if (s->bevel) {
 				continue;
 			}
-			plane = &planes[ob->sides[j].plane_num ^ 1];
-			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.f);
+			const plane_t *p = &planes[s->plane_num ^ 1];
+			Cm_ClipWinding(&side->winding, p->normal, p->dist, 0.f);
+
+			if (side->winding == NULL) {
+				break;
+			}
 		}
 
-		brush_side_t *side = &ob->sides[i];
-		side->winding = w;
-		if (w) {
-			side->visible = true;
-			for (int32_t j = 0; j < w->num_points; j++) {
-				ob->mins = Vec3_Minf(ob->mins, w->points[j]);
-				ob->maxs = Vec3_Maxf(ob->maxs, w->points[j]);
+		if (side->winding) {
+			for (int32_t j = 0; j < side->winding->num_points; j++) {
+				brush->mins = Vec3_Minf(brush->mins, side->winding->points[j]);
+				brush->maxs = Vec3_Maxf(brush->maxs, side->winding->points[j]);
 			}
+		} else {
+			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Malformed brush");
+			brush->num_sides = 0;
+			break;
 		}
 	}
 
 	for (int32_t i = 0; i < 3; i++) {
 		//IDBUG: all the indexes into the mins and maxs were zero (not using i)
-		if (ob->mins.xyz[i] < MIN_WORLD_COORD || ob->maxs.xyz[i] > MAX_WORLD_COORD) {
-			Mon_SendSelect(MON_WARN, ob->entity_num, ob->brush_num, "Brush bounds out of range");
-			ob->num_sides = 0;
+		if (brush->mins.xyz[i] < MIN_WORLD_COORD || brush->maxs.xyz[i] > MAX_WORLD_COORD) {
+			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Brush bounds out of range");
+			brush->num_sides = 0;
 			break;
 		}
-		if (ob->mins.xyz[i] > MAX_WORLD_COORD || ob->maxs.xyz[i] < MIN_WORLD_COORD) {
-			Mon_SendSelect(MON_WARN, ob->entity_num, ob->brush_num, "No visible sides on brush");
-			ob->num_sides = 0;
+		if (brush->mins.xyz[i] > MAX_WORLD_COORD || brush->maxs.xyz[i] < MIN_WORLD_COORD) {
+			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "No visible sides on brush");
+			brush->num_sides = 0;
 			break;
 		}
 	}
-
-	return true;
 }
 
 /**
@@ -476,7 +478,8 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 	} else if (!g_strcmp0(td->name, "common/hint")) {
 		td->flags |= SURF_HINT;
 	} else if (!g_strcmp0(td->name, "common/ladder")) {
-		side->contents |= CONTENTS_LADDER | CONTENTS_PLAYER_CLIP;
+		side->contents |= CONTENTS_LADDER | CONTENTS_WINDOW;
+		side->surf |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(td->name, "common/origin")) {
 		side->contents |= CONTENTS_ORIGIN;
 	} else if (!g_strcmp0(td->name, "common/skip")) {
@@ -484,7 +487,8 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 	} else if (!g_strcmp0(td->name, "common/sky")) {
 		td->flags |= SURF_SKY;
 	} else if (!g_strcmp0(td->name, "common/trigger")) {
-		side->contents |= CONTENTS_PLAYER_CLIP;
+		side->contents |= CONTENTS_WINDOW;
+		side->surf |= SURF_NO_DRAW;
 	}
 
 	if (side->contents & CONTENTS_MASK_LIQUID) {
@@ -587,14 +591,10 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 			side->surf = td.flags;
 
-			// translucent brushes are inherently details beacuse they can not occlude
+			// translucent faces are inherently details beacuse they can not occlude
 			if (side->surf & SURF_MASK_TRANSLUCENT) {
 				side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
-
-				// and translucent solids are actually windows
-				if (!(side->contents & CONTENTS_MASK_LIQUID)) {
-					side->contents |= CONTENTS_WINDOW;
-				}
+				side->contents &= ~CONTENTS_SOLID;
 			}
 
 			// clip brushes, similarly, are not drawn and therefore can not occlude
@@ -602,27 +602,20 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				side->contents |= CONTENTS_DETAIL;
 			}
 
-			if (all_structural) {
-				side->contents &= ~CONTENTS_DETAIL;
-			}
-
-			// brushes with no visible or specific contents default to solid
+			// brushes with no visible or functional contents default to solid or window
 			if (!(side->contents & CONTENTS_MASK_VISIBLE)) {
-				if (!(side->contents & (CONTENTS_AREA_PORTAL | CONTENTS_ORIGIN | CONTENTS_MASK_CLIP))) {
-					side->contents |= CONTENTS_SOLID;
+				if (!(side->contents & CONTENTS_MASK_FUNCTIONAL)) {
+					if (side->contents & CONTENTS_TRANSLUCENT) {
+						side->contents |= CONTENTS_WINDOW;
+					} else {
+						side->contents |= CONTENTS_SOLID;
+					}
 				}
 			}
 
-			// hints are never detail, are visible, and have no contents
-			if (side->surf & SURF_HINT) {
-				side->visible = true;
-				side->contents = 0;
-			}
-
-			// skips are never visible and have no contents
-			if (side->surf & SURF_SKIP) {
-				side->visible = false;
-				side->contents = 0;
+			// hints and skips have no contents
+			if (side->surf & (SURF_HINT | SURF_SKIP)) {
+				side->contents = CONTENTS_NONE;
 			}
 
 			// find the plane number
@@ -646,12 +639,13 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				}
 			}
 			if (i != brush->num_sides) {
-				continue; // duplicated
+				continue;
 			}
 
 			// keep this side
-			side = brush->sides + brush->num_sides;
 			side->plane_num = plane_num;
+
+			// find the texinfo
 			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, Vec3_Zero());
 
 			// save the td off in case there is an origin brush and we have to recalculate the texinfo
@@ -670,7 +664,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			return NULL;
 		}
 
-		// allow water brushes to be removed
+		// allow liquid brushes to be removed
 		if (no_liquid && (brush->contents & CONTENTS_MASK_LIQUID)) {
 			num_brushes--;
 			return NULL;
@@ -679,33 +673,38 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		// create windings for sides and bounds for brush
 		MakeBrushWindings(brush);
 
-		// brushes that will not be visible at all will never be used as bsp splitters
-		if (brush->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
-			c_clip_brushes++;
-			for (int32_t i = 0; i < brush->num_sides; i++) {
-				brush->sides[i].texinfo = TEXINFO_NODE;
-			}
-		}
-
 		// origin brushes are removed, but they set the rotation origin for the rest of the brushes
 		// in the entity. After the entire entity is parsed, the plane_nums and texinfos will be adjusted for
 		// the origin brush
 		if (brush->contents & CONTENTS_ORIGIN) {
 
 			if (brush->entity_num == 0) {
-				Mon_SendSelect(MON_ERROR, brush->entity_num, brush->brush_num, "Origin brush in world");
-				return NULL;
+				Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Origin brush in world");
+			} else {
+				vec3_t origin;
+				origin = Vec3_Add(brush->mins, brush->maxs);
+				origin = Vec3_Scale(origin, 0.5);
+
+				SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 			}
 
-			vec3_t origin;
-			origin = Vec3_Add(brush->mins, brush->maxs);
-			origin = Vec3_Scale(origin, 0.5);
-
-			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 			num_brushes--;
 			return NULL;
 		}
 
+		// sides that will not be visible at all will never be used as bsp splitters
+		for (int32_t i = 0; i < brush->num_sides; i++) {
+
+			if (brush->contents & CONTENTS_MASK_CLIP) {
+				brush->sides[i].texinfo = TEXINFO_NODE;
+			}
+
+			if (brush->sides[i].surf & SURF_SKIP) {
+				brush->sides[i].texinfo = TEXINFO_NODE;
+			}
+		}
+
+		// add brush bevels, which are required for collision
 		AddBrushBevels(brush);
 	}
 
@@ -900,10 +899,7 @@ void LoadMapFile(const char *filename) {
 	}
 
 	Com_Verbose("%5i brushes\n", num_brushes);
-	Com_Verbose("%5i clip brushes\n", c_clip_brushes);
 	Com_Verbose("%5i total sides\n", num_brush_sides);
-	Com_Verbose("%5i box bevels\n", c_box_bevels);
-	Com_Verbose("%5i edge bevels\n", c_edge_bevels);
 	Com_Verbose("%5i entities\n", num_entities);
 	Com_Verbose("%5i planes\n", num_planes);
 	Com_Verbose("%5i area portals\n", c_area_portals);

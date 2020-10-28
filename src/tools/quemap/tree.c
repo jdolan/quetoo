@@ -160,7 +160,7 @@ static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brus
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 
 		int32_t i;
-		const int32_t s = TestBrushToPlane(brush, plane_num, &i);
+		const int32_t s = BrushOnPlaneSideSplits(brush, plane_num, &i);
 
 		if (s & SIDE_FRONT) {
 			front++;
@@ -230,15 +230,11 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 			if (side->bevel) {
 				continue;
 			}
-			if (!side->winding) {
-				continue;
-			}
 			if (side->texinfo == TEXINFO_NODE) {
 				continue;
 			}
-			if (side->surf & SURF_SKIP) {
-				continue;
-			}
+
+			assert(side->winding);
 
 			const intptr_t plane_num = side->plane_num ^ 1;
 			if (g_ptr_array_find(cache, (gconstpointer) plane_num, NULL)) {
@@ -269,8 +265,7 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 
-		int32_t i;
-		const int32_t s = TestBrushToPlane(brush, node->plane_num, &i);
+		const int32_t s = BrushOnPlaneSide(brush, node->plane_num);
 		if (s == SIDE_BOTH) {
 			csg_brush_t *front_brush, *back_brush;
 			SplitBrush(brush, node->plane_num, &front_brush, &back_brush);
@@ -368,8 +363,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	tree->maxs = Vec3_Maxs();
 
 	int32_t num_brushes = 0;
-	int32_t num_vis_sides = 0;
-	int32_t num_non_vis_sides = 0;
+	int32_t num_brush_sides = 0;
 
 	for (csg_brush_t *b = brushes; b; b = b->next) {
 		num_brushes++;
@@ -383,17 +377,10 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 			if (b->sides[i].bevel) {
 				continue;
 			}
-			if (b->sides[i].winding == NULL) {
-				continue;
-			}
 			if (b->sides[i].texinfo == TEXINFO_NODE) {
 				continue;
 			}
-			if (b->sides[i].visible) {
-				num_vis_sides++;
-			} else {
-				num_non_vis_sides++;
-			}
+			num_brush_sides++;
 		}
 
 		tree->mins = Vec3_Minf(tree->mins, b->mins);
@@ -401,8 +388,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	}
 
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", num_brushes);
-	Com_Debug(DEBUG_ALL, "%5i visible sides\n", num_vis_sides);
-	Com_Debug(DEBUG_ALL, "%5i nonvisible sides\n", num_non_vis_sides);
+	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
 	const vec3_t mins = Vec3(MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);

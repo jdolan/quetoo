@@ -207,6 +207,7 @@ typedef enum {
 
 
 // lower bits are stronger, and will eat weaker brushes completely
+#define CONTENTS_NONE			0x0 // brush sides may have no contents (skip, hint)
 #define CONTENTS_SOLID			0x1 // an eye is never valid in a solid
 #define CONTENTS_WINDOW			0x2 // translucent, but not watery
 #define CONTENTS_AUX			0x4 // not used at the moment
@@ -252,6 +253,7 @@ typedef enum {
 #define CONTENTS_MASK_VISIBLE			(CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID | CONTENTS_MIST)
 #define CONTENTS_MASK_CLIP				(CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)
 #define CONTENTS_MASK_MEAT				(CONTENTS_MONSTER | CONTENTS_DEAD_MONSTER)
+#define CONTENTS_MASK_FUNCTIONAL		(CONTENTS_AREA_PORTAL | CONTENTS_MASK_CLIP | CONTENTS_ORIGIN)
 #define CONTENTS_MASK_CLIP_CORPSE		(CONTENTS_MASK_SOLID | CONTENTS_PLAYER_CLIP)
 #define CONTENTS_MASK_CLIP_PLAYER		(CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER)
 #define CONTENTS_MASK_CLIP_MONSTER		(CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MONSTER_CLIP)

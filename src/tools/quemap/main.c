@@ -199,19 +199,13 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "--no-detail")) {
 			Com_Verbose("no_detail = true\n");
 			no_detail = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--all-detail")) {
-			Com_Verbose("all_structural = true\n");
-			all_structural = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
+		}else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
 			Com_Verbose("only_ents = true\n");
 			only_ents = true;
 		} else if (!g_strcmp0(Com_Argv(i), "--micro-volume")) {
 			micro_volume = atof(Com_Argv(i + 1));
 			Com_Verbose("micro_volume = %f\n", micro_volume);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--leak-test")) {
-			Com_Verbose("leak-test = true\n");
-			leak_test = true;
 		} else {
 			break;
 		}
@@ -313,21 +307,15 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 
 	Com_Print("-bsp               BSP stage options:\n");
-	Com_Print(" --block <int> <int>\n");
-	Com_Print(" --blocks <int> <int> <int> <int>\n");
-	Com_Print(" --full-detail - don't treat details (and trans surfaces) as details\n");
-	Com_Print(" --leak-test\n");
-	Com_Print(" --micro <float>\n");
-	Com_Print(" --no-csg\n");
+	Com_Print(" --micro_volume <float>\n");
+	Com_Print(" --no-csg - don't subtract brushes\n");
 	Com_Print(" --no-detail - skip detail brushes\n");
 	Com_Print(" --no-merge - skip node face merging\n");
-	Com_Print(" --no-opt - don't optimize by merging final faces\n");
-	Com_Print(" --no-prune - don't prune (or cut) nodes\n");
-	Com_Print(" --no-share\n");
-	Com_Print(" --no-tjunc\n");
-	Com_Print(" --no-water - skip water brushes\n");
-	Com_Print(" --no-weld\n");
-	Com_Print(" --only-ents - modify existing bsp file with entities from map file\n");
+	Com_Print(" --no-prune - don't prune unused nodes\n");
+	Com_Print(" --no-tjunc - don't fix T-junctions\n");
+	Com_Print(" --no-liquid - skip liquid brushes\n");
+	Com_Print(" --no-weld - don't weld vertices\n");
+	Com_Print(" --only-ents - only update the entity string from the .map\n");
 	Com_Print("\n");
 
 	Com_Print("-vis               VIS stage options:\n");
