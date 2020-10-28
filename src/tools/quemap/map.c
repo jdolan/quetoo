@@ -239,6 +239,10 @@ static void AddBrushBevels(brush_t *b) {
 	vec3_t vec, vec2;
 	float d;
 
+	if (b->num_sides == 0) {
+		return;
+	}
+
 	// add the axial planes
 	order = 0;
 	for (axis = 0; axis < 3; axis++) {
