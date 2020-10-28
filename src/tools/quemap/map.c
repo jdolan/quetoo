@@ -403,8 +403,8 @@ static void MakeBrushWindings(brush_t *brush) {
 			if (other->plane_num == (side->plane_num ^ 1)) {
 				continue;
 			}
-			const plane_t *plane = &planes[other->plane_num ^ 1];
-			Cm_ClipWinding(&side->winding, plane->normal, plane->dist, 0.f);
+			const plane_t *p = &planes[other->plane_num ^ 1];
+			Cm_ClipWinding(&side->winding, p->normal, p->dist, 0.f);
 
 			if (side->winding == NULL) {
 				break;
