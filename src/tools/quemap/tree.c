@@ -251,8 +251,7 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 
-		int32_t i;
-		const int32_t s = TestBrushToPlane(brush, node->plane_num, &i);
+		const int32_t s = BrushOnPlaneSide(brush, node->plane_num);
 		if (s == SIDE_BOTH) {
 			csg_brush_t *front_brush, *back_brush;
 			SplitBrush(brush, node->plane_num, &front_brush, &back_brush);

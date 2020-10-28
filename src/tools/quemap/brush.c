@@ -138,14 +138,13 @@ static void CreateBrushWindings(csg_brush_t *brush) {
 			if (i == j) {
 				continue;
 			}
-			if (brush->sides[j].plane_num == (brush->sides[i].plane_num ^ 1)) {
+			if (brush->sides[j].plane_num == (side->plane_num ^ 1)) {
 				continue;
 			}
 			if (brush->sides[j].bevel) {
 				continue;
 			}
-			plane = &planes[brush->sides[j].plane_num ^ 1];
-
+			const plane_t *plane = &planes[brush->sides[j].plane_num ^ 1];
 			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.f);
 		}
 
@@ -225,9 +224,7 @@ float BrushVolume(csg_brush_t *brush) {
 /**
  * @brief
  */
-int32_t TestBrushToPlane(const csg_brush_t *brush, int32_t plane_num, int32_t *num_split_sides) {
-
-	*num_split_sides = 0;
+int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane_num) {
 
 	// if the brush actually uses the plane_num, we can tell the side for sure
 	for (int32_t i = 0; i < brush->num_sides; i++) {
@@ -244,25 +241,30 @@ int32_t TestBrushToPlane(const csg_brush_t *brush, int32_t plane_num, int32_t *n
 
 	const cm_bsp_plane_t plane = Cm_Plane(planes[plane_num].normal, planes[plane_num].dist);
 
-	const int32_t s = Cm_BoxOnPlaneSide(brush->mins, brush->maxs, &plane);
+	return Cm_BoxOnPlaneSide(brush->mins, brush->maxs, &plane);
+}
+
+/**
+ * @brief
+ */
+int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane_num, int32_t *num_split_sides) {
+
+	*num_split_sides = 0;
+
+	int32_t s = BrushOnPlaneSide(brush, plane_num);
 
 	if (s != SIDE_BOTH) {
 		return s;
 	}
 
+	const plane_t *plane = planes + plane_num;
 	const brush_side_t *side = brush->sides;
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
+		if (side->bevel) {
+			continue;
+		}
 		if (side->texinfo == TEXINFO_NODE) {
-			continue;
-		}
-		if (!side->visible) {
-			continue;
-		}
-		if (!side->winding) {
-			continue;
-		}
-		if (side->surf & SURF_SKIP) {
 			continue;
 		}
 
@@ -270,7 +272,7 @@ int32_t TestBrushToPlane(const csg_brush_t *brush, int32_t plane_num, int32_t *n
 		const cm_winding_t *w = side->winding;
 
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const double d = Vec3_Dot(w->points[j], plane.normal) - plane.dist;
+			const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
 
 			if (d > SIDE_EPSILON) {
 				front++;
