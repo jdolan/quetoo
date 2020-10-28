@@ -870,6 +870,10 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 		return NULL; // portal does not bridge different visible contents
 	}
 
+	if (side->surf & SURF_NO_DRAW) {
+		return NULL;
+	}
+
 	face_t *f = AllocFace();
 
 	f->texinfo = side->texinfo;

@@ -591,7 +591,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 			side->surf = td.flags;
 
-			// translucent brushes are inherently details beacuse they can not occlude
+			// translucent faces are inherently details beacuse they can not occlude
 			if (side->surf & SURF_MASK_TRANSLUCENT) {
 				side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
 				side->contents &= ~CONTENTS_SOLID;
@@ -699,7 +699,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				brush->sides[i].texinfo = TEXINFO_NODE;
 			}
 
-			if (brush->sides[i].surf & (SURF_NO_DRAW | SURF_SKIP)) {
+			if (brush->sides[i].surf & SURF_SKIP) {
 				brush->sides[i].texinfo = TEXINFO_NODE;
 			}
 		}
