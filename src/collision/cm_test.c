@@ -224,7 +224,7 @@ void Cm_InitBoxHull(void) {
 	// brush
 	cm_box.brush = &cm_bsp.brushes[cm_bsp.file.num_brushes];
 	cm_box.brush->num_sides = 6;
-	cm_box.brush->first_brush_side = cm_bsp.file.num_brush_sides;
+	cm_box.brush->sides = cm_bsp.brush_sides + cm_bsp.file.num_brush_sides;
 	cm_box.brush->contents = CONTENTS_MONSTER;
 
 	for (int32_t i = 0; i < 6; i++) {

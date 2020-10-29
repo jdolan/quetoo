@@ -150,25 +150,6 @@ static void Cm_LoadBspLeafBrushes(void) {
 /**
  * @brief
  */
-static void Cm_LoadBspBrushes(void) {
-
-	const int32_t num_brushes = cm_bsp.file.num_brushes;
-	const bsp_brush_t *in = cm_bsp.file.brushes;
-
-	cm_bsp_brush_t *out = cm_bsp.brushes = Mem_TagMalloc(sizeof(cm_bsp_brush_t) * (num_brushes + 1),
-	                                       MEM_TAG_COLLISION); // extra for box hull
-
-	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
-
-		out->first_brush_side = in->first_brush_side;
-		out->num_sides = in->num_sides;
-		out->contents = in->contents;
-	}
-}
-
-/**
- * @brief
- */
 static void Cm_LoadBspBrushSides(void) {
 
 	static cm_bsp_texinfo_t null_texinfo;
@@ -202,13 +183,32 @@ static void Cm_LoadBspBrushSides(void) {
 }
 
 /**
+ * @brief
+ */
+static void Cm_LoadBspBrushes(void) {
+
+	const int32_t num_brushes = cm_bsp.file.num_brushes;
+	const bsp_brush_t *in = cm_bsp.file.brushes;
+
+	cm_bsp_brush_t *out = cm_bsp.brushes = Mem_TagMalloc(sizeof(cm_bsp_brush_t) * (num_brushes + 1),
+										   MEM_TAG_COLLISION); // extra for box hull
+
+	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
+
+		out->sides = cm_bsp.brush_sides + in->first_brush_side;
+		out->num_sides = in->num_sides;
+		out->contents = in->contents;
+	}
+}
+
+/**
  * @brief Sets brush bounds for fast trace tests.
  */
 static void Cm_SetupBspBrushes(void) {
 	cm_bsp_brush_t *b = cm_bsp.brushes;
 
 	for (int32_t i = 0; i < cm_bsp.file.num_brushes; i++, b++) {
-		const cm_bsp_brush_side_t *bs = cm_bsp.brush_sides + b->first_brush_side;
+		const cm_bsp_brush_side_t *bs = b->sides;
 
 		b->mins.x = -bs[0].plane->dist;
 		b->mins.y = -bs[2].plane->dist;
@@ -407,8 +407,8 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspNodes();
 	Cm_LoadBspLeafs();
 	Cm_LoadBspLeafBrushes();
-	Cm_LoadBspBrushes();
 	Cm_LoadBspBrushSides();
+	Cm_LoadBspBrushes();
 	Cm_LoadBspInlineModels();
 	Cm_LoadBspAreaPortals();
 	Cm_LoadBspAreas();
