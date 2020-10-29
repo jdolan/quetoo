@@ -679,16 +679,9 @@ static void MarkVisibleSides_r(const node_t *node) {
 /**
  * @brief
  */
-void MarkVisibleSides(tree_t *tree, int32_t index, int32_t count) {
+void MarkVisibleSides(tree_t *tree) {
 
 	Com_Verbose("--- MarkVisibleSides ---\n");
-
-	brush_t *b = &brushes[index];
-	for (int32_t i = 0; i < count; i++, b++) {
-		for (int32_t j = 0; j < b->num_sides; j++) {
-			b->sides[j].visible = false;
-		}
-	}
 
 	// set visible flags on the sides that are used by portals
 	MarkVisibleSides_r(tree->head_node);
