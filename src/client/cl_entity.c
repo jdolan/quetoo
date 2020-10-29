@@ -295,9 +295,6 @@ void Cl_ParseFrame(void) {
 
 	cl.frame.valid = true;
 
-	const size_t len = Net_ReadByte(&net_message); // read area_bits
-	Net_ReadData(&net_message, &cl.frame.area_bits, len);
-
 	Cl_ParsePlayerState(cl.delta_frame, &cl.frame);
 
 	Cl_ParseEntities(cl.delta_frame, &cl.frame);

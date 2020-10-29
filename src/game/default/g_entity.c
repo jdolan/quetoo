@@ -90,7 +90,6 @@ static void G_weapon_chaingun(g_entity_t *ent) {
 }
 
 static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn functions
-	{ "func_areaportal", G_func_areaportal },
 	{ "func_button", G_func_button },
 	{ "func_conveyor", G_func_conveyor },
 	{ "func_door", G_func_door },
@@ -253,8 +252,6 @@ static const g_field_t fields[] = {
 	{ "wait", LOFS(wait), F_FLOAT, 0 },
 	{ "delay", LOFS(delay), F_FLOAT, 0 },
 	{ "random", LOFS(random), F_FLOAT, 0 },
-	{ "style", LOFS(area_portal), F_INT, 0 }, // HACK, this was always overloaded
-	{ "areaportal", LOFS(area_portal), F_INT, 0 },
 	{ "count", LOFS(count), F_INT, 0 },
 	{ "health", LOFS(health), F_SHORT, 0 },
 	{ "dmg", LOFS(damage), F_SHORT, 0 },

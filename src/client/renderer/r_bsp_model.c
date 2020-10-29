@@ -220,9 +220,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 		out->maxs = Vec3s_CastVec3(in->maxs);
 
 		out->contents = in->contents;
-
 		out->cluster = in->cluster;
-		out->area = in->area;
 	}
 }
 

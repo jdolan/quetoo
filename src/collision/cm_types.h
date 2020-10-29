@@ -254,11 +254,6 @@ typedef struct {
 	int32_t cluster;
 
 	/**
-	 * @brief The leaf area, if area portals are in use.
-	 */
-	int32_t area;
-
-	/**
 	 * @brief The index of the first leaf-brush reference.
 	 */
 	int32_t first_leaf_brush;
@@ -284,34 +279,3 @@ typedef struct {
 	 */
 	int32_t children[2];
 } cm_bsp_node_t;
-
-/**
- * @brief True if the area portal is open.
- */
-typedef _Bool cm_bsp_area_portal_t;
-
-/**
- * @brief Areas are used to partition large levels that are separated by e.g. doors.
- * @details Areas are delineated by area portal entities.
- */
-typedef struct {
-	/**
-	 * @brief The number of portals targeting this area.
-	 */
-	int32_t num_area_portals;
-
-	/**
-	 * @brief The first area portal targeting this area.
-	 */
-	int32_t first_area_portal;
-
-	/**
-	 * @brief The area flood identifier. Areas with the same identifier are connected.
-	 */
-	int32_t flood_num;
-
-	/**
-	 * @brief 
-	 */
-	int32_t flood_valid;
-} cm_bsp_area_t;

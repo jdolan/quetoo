@@ -24,30 +24,6 @@
 /**
  * @brief
  */
-static void G_func_areaportal_Use(g_entity_t *ent, g_entity_t *other,
-                                  g_entity_t *activator) {
-
-	ent->locals.count ^= 1; // toggle state
-
-	gi.SetAreaPortalState(ent->locals.area_portal, ent->locals.count);
-}
-
-/*QUAKED func_areaportal (0 0 0) ?
- A non-visible object indicating disjoint areas in the world that should be combined when this entity is used. These are typically enclosed inside door brushes to toggle visibility of the rooms they separate.
-
- -------- Keys --------
- targetname : The target name of this entity if it is to be triggered.
- */
-void G_func_areaportal(g_entity_t *ent) {
-
-	ent->locals.Use = G_func_areaportal_Use;
-
-	ent->locals.count = 0; // always start closed;
-}
-
-/**
- * @brief
- */
 static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 
 	ent->locals.velocity = Vec3_Zero();
@@ -877,23 +853,6 @@ void G_func_button(g_entity_t *ent) {
 #define DOOR_X_AXIS			0x40
 #define DOOR_Y_AXIS			0x80
 
-/**
- * @brief
- */
-static void G_func_door_UseAreaPortals(g_entity_t *self, _Bool open) {
-	g_entity_t *t = NULL;
-
-	if (!self->locals.target) {
-		return;
-	}
-
-	while ((t = G_Find(t, LOFS(target_name), self->locals.target))) {
-		if (g_ascii_strcasecmp(t->class_name, "func_areaportal") == 0) {
-			gi.SetAreaPortalState(t->locals.area_portal, open);
-		}
-	}
-}
-
 static void G_func_door_GoingDown(g_entity_t *self);
 
 /**
@@ -937,7 +896,6 @@ static void G_func_door_Bottom(g_entity_t *self) {
 	}
 
 	self->locals.move_info.state = MOVE_STATE_BOTTOM;
-	G_func_door_UseAreaPortals(self, false);
 }
 
 /**
@@ -993,7 +951,6 @@ static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
 	}
 
 	G_UseTargets(self, activator);
-	G_func_door_UseAreaPortals(self, true);
 }
 
 /**
@@ -1123,10 +1080,6 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 	trigger->locals.move_type = MOVE_TYPE_NONE;
 	trigger->locals.Touch = G_func_door_TouchTrigger;
 	gi.LinkEntity(trigger);
-
-	if (ent->locals.spawn_flags & DOOR_START_OPEN) {
-		G_func_door_UseAreaPortals(ent, true);
-	}
 
 	G_func_door_CalculateMove(ent);
 }
@@ -1470,8 +1423,6 @@ static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
 
 	G_MoveInfo_Linear_Init(self, self->locals.pos1, G_func_door_secret_Move1);
 
-	G_func_door_UseAreaPortals(self, true);
-
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_start) {
@@ -1552,8 +1503,6 @@ static void G_func_door_secret_Done(g_entity_t *self) {
 
 		self->s.sound = 0;
 	}
-
-	G_func_door_UseAreaPortals(self, false);
 }
 
 static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {

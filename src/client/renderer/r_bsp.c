@@ -44,12 +44,6 @@ _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 		return false;
 	}
 
-	if (r_view.area_bits) {
-		if (!(r_view.area_bits[leaf->area >> 3] & (1 << (leaf->area & 7)))) {
-			return false;
-		}
-	}
-
 	return r_locals.vis_data_pvs[cluster >> 3] & (1 << (cluster & 7));
 }
 

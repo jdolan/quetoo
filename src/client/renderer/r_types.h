@@ -440,7 +440,6 @@ struct r_bsp_leaf_s {
 
 	// leaf specific
 	int32_t cluster;
-	int32_t area;
 };
 
 typedef struct r_bsp_leaf_s r_bsp_leaf_t;
@@ -1036,11 +1035,6 @@ typedef struct {
 	 * @brief The contents mask at the view origin.
 	 */
 	int32_t contents;
-
-	/**
-	 * @brief If not NULL, only BSP areas matching the corresponding bits will be drawn.
-	 */
-	byte *area_bits;
 
 	/**
 	 * @brief A bitmask of weather effects.

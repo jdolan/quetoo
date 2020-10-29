@@ -30,17 +30,10 @@ int32_t Cm_PointPHS(const vec3_t point, byte *phs);
 int32_t Cm_BoxPVS(const vec3_t mins, const vec3_t maxs, byte *pvs);
 int32_t Cm_BoxPHS(const vec3_t mins, const vec3_t maxs, byte *pvs);
 
-void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open);
-_Bool Cm_AreasConnected(const int32_t area1, const int32_t area2);
-
-int32_t Cm_WriteAreaBits(const int32_t area, byte *out);
-
 _Bool Cm_ClusterVisible(const int32_t cluster, const byte *vis);
 _Bool Cm_HeadnodeVisible(const int32_t head_node, const byte *vis);
 
-extern _Bool cm_no_areas;
 extern _Bool cm_no_vis;
 
 #ifdef __CM_LOCAL_H__
-void Cm_FloodAreas(void);
 #endif /* __CM_LOCAL_H__ */

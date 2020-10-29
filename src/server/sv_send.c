@@ -179,7 +179,6 @@ void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
  */
 void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) {
 	byte vis[MAX_BSP_LEAFS >> 3];
-	int32_t area;
 
 	_Bool reliable = false;
 
@@ -189,7 +188,6 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
                         /* FALLTHRU */
 		case MULTICAST_ALL:
 			memset(vis, 0xff, sizeof(vis));
-			area = 0;
 			break;
 
 		case MULTICAST_PHS_R:
@@ -199,7 +197,6 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 				const int32_t leaf = Cm_PointLeafnum(origin, 0);
 				const int32_t cluster = Cm_LeafCluster(leaf);
 				Cm_ClusterPHS(cluster, vis);
-				area = Cm_LeafArea(leaf);
 			}
 
 			break;
@@ -211,7 +208,6 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 				const int32_t leaf = Cm_PointLeafnum(origin, 0);
 				const int32_t cluster = Cm_LeafCluster(leaf);
 				Cm_ClusterPVS(cluster, vis);
-				area = Cm_LeafArea(leaf);
 			}
 			break;
 
@@ -243,11 +239,6 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 			const vec3_t org = Vec3_Add(pm->origin, pm->view_offset);
 
 			const int32_t leaf = Cm_PointLeafnum(org, 0);
-			const int32_t client_area = Cm_LeafArea(leaf);
-			if (!Cm_AreasConnected(area, client_area)) {
-				continue;
-			}
-
 			const int32_t cluster = Cm_LeafCluster(leaf);
 			if (!(vis[cluster >> 3] & (1 << (cluster & 7)))) {
 				continue;

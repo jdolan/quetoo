@@ -124,10 +124,6 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 	Net_WriteByte(msg, client->suppress_count); // rate dropped packets
 	client->suppress_count = 0;
 
-	// send over the area bits
-	Net_WriteByte(msg, frame->area_bytes);
-	Net_WriteData(msg, frame->area_bits, frame->area_bytes);
-
 	// delta encode the player state
 	Sv_WritePlayerState(delta_frame, frame, msg);
 
@@ -152,7 +148,7 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 
 /**
  * @brief Decides which entities are going to be visible to the client, and
- * copies off the player state and area_bits.
+ * copies off the player state.
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
 
@@ -172,12 +168,6 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	const pm_state_t *pm = &cent->client->ps.pm_state;
 
 	const vec3_t org = Vec3_Add(pm->origin, pm->view_offset);
-
-	const int32_t leaf = Cm_PointLeafnum(org, 0);
-	const int32_t area = Cm_LeafArea(leaf);
-
-	// calculate the visible areas
-	frame->area_bytes = Cm_WriteAreaBits(area, frame->area_bits);
 
 	// resolve the visibility data
 	byte pvs[MAX_BSP_LEAFS >> 3], phs[MAX_BSP_LEAFS >> 3];
@@ -204,13 +194,6 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		if (ent != cent) {
 			const sv_entity_t *sent = &sv.entities[e];
 
-			// by first checking area
-			if (!Cm_AreasConnected(area, sent->areas[0])) {
-				if (!sent->areas[1] || !Cm_AreasConnected(area, sent->areas[1])) {
-					continue;
-				}
-			}
-
 			const byte *vis = ent->s.sound || ent->s.event ? phs : pvs;
 
 			if (sent->num_clusters < 1) { // use top_node
@@ -226,7 +209,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 					}
 				}
 				if (i == sent->num_clusters) {
-					continue;    // not visible
+					continue; // not visible
 				}
 			}
 		}

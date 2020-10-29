@@ -179,20 +179,13 @@ static void Sv_WriteAngles(const vec3_t angles) {
 }
 
 /**
- * @brief Also checks areas so that doors block sight.
+ * @brief
  */
 static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
 	byte pvs[MAX_BSP_LEAFS >> 3];
 
 	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
 	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
-
-	const int32_t area1 = Cm_LeafArea(leaf1);
-	const int32_t area2 = Cm_LeafArea(leaf2);
-
-	if (!Cm_AreasConnected(area1, area2)) {
-		return false;    // a door blocks sight
-	}
 
 	const int32_t cluster1 = Cm_LeafCluster(leaf1);
 	const int32_t cluster2 = Cm_LeafCluster(leaf2);
@@ -207,20 +200,13 @@ static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
 }
 
 /**
- * @brief Also checks areas so that doors block sound.
+ * @brief
  */
 static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 	byte phs[MAX_BSP_LEAFS >> 3];
 
 	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
 	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
-
-	const int32_t area1 = Cm_LeafArea(leaf1);
-	const int32_t area2 = Cm_LeafArea(leaf2);
-
-	if (!Cm_AreasConnected(area1, area2)) {
-		return false;    // a door blocks hearing
-	}
 
 	const int32_t cluster1 = Cm_LeafCluster(leaf1);
 	const int32_t cluster2 = Cm_LeafCluster(leaf2);
@@ -379,8 +365,6 @@ void Sv_InitGame(void) {
 	import.PointContents = Sv_PointContents;
 	import.inPVS = Sv_InPVS;
 	import.inPHS = Sv_InPHS;
-	import.SetAreaPortalState = Cm_SetAreaPortalState;
-	import.AreasConnected = Cm_AreasConnected;
 
 	import.LinkEntity = Sv_LinkEntity;
 	import.UnlinkEntity = Sv_UnlinkEntity;

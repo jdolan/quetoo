@@ -68,8 +68,6 @@ static void ProcessWorldModel(const entity_t *e) {
 
 	MarkVisibleSides(tree, e->first_brush, e->num_brushes);
 
-	FloodAreas(tree);
-
 	MakeTreeFaces(tree);
 
 	if (!no_prune) {

@@ -22,11 +22,6 @@
 #include "cm_local.h"
 
 /**
- * @brief If true, BSP area culling is skipped.
- */
-_Bool cm_no_areas = false;
-
-/**
  * @brief If true, PVS culling is skipped.
  */
 _Bool cm_no_vis = false;
@@ -140,113 +135,10 @@ int32_t Cm_BoxPHS(const vec3_t mins, const vec3_t maxs, byte *phs) {
 	return Cm_BoxVis(mins, maxs, phs, VIS_PHS);
 }
 
-/**
- * @brief Recurse over the area portals, marking adjacent ones as flooded.
- */
-static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {
-
-	if (area->flood_valid == cm_bsp.flood_valid) {
-		if (area->flood_num == flood_num) {
-			return;
-		}
-
-		Com_Error(ERROR_DROP, "Re-flooded\n");
-	}
-
-	area->flood_num = flood_num;
-	area->flood_valid = cm_bsp.flood_valid;
-
-	const bsp_area_portal_t *p = &cm_bsp.file.area_portals[area->first_area_portal];
-
-	for (int32_t i = 0; i < area->num_area_portals; i++, p++) {
-		if (cm_bsp.area_portals[p->portal_num]) {
-			Cm_FloodArea(&cm_bsp.areas[p->other_area], flood_num);
-		}
-	}
-}
 
 /**
- * @brief
+ * @return True if the specified cluster is marked visible in the given visibilty vector.
  */
-void Cm_FloodAreas(void) {
-	int32_t flood_num;
-
-	// all current floods are now invalid
-	cm_bsp.flood_valid++;
-
-	// area 0 is not used
-	for (int32_t i = flood_num = 1; i < cm_bsp.file.num_areas; i++) {
-		cm_bsp_area_t *area = &cm_bsp.areas[i];
-
-		if (area->flood_valid == cm_bsp.flood_valid) {
-			continue;  // already flooded into
-		}
-
-		Cm_FloodArea(area, flood_num++);
-	}
-}
-
-/**
- * @brief Sets the state of the specified area portal and re-floods all area
- * connections, updating their flood counts such that Cm_WriteAreaBits
- * will return the correct information.
- */
-void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
-
-	if (portal_num > cm_bsp.file.num_area_portals) {
-		Com_Error(ERROR_DROP, "Portal %d > num_area_portals", portal_num);
-	}
-
-	cm_bsp.area_portals[portal_num] = open;
-	Cm_FloodAreas();
-}
-
-/**
- * @brief Returns true if the specified areas are connected.
- */
-_Bool Cm_AreasConnected(const int32_t area1, const int32_t area2) {
-
-	if (cm_no_areas) {
-		return true;
-	}
-
-	if (area1 > cm_bsp.file.num_areas || area2 > cm_bsp.file.num_areas) {
-		Com_Error(ERROR_DROP, "Area %d > cm.num_areas\n", area1 > area2 ? area1 : area2);
-	}
-
-	if (cm_bsp.areas[area1].flood_num == cm_bsp.areas[area2].flood_num) {
-		return true;
-	}
-
-	return false;
-}
-
-/**
- * @brief Writes a bit vector of all the areas that are in the same flood as the
- * specified area. Returns the length of the bit vector in bytes.
- *
- * This is used by the client view to cull visibility.
- */
-int32_t Cm_WriteAreaBits(const int32_t area, byte *out) {
-
-	const int32_t bytes = (cm_bsp.file.num_areas + 7) >> 3;
-
-	if (cm_no_areas) { // for debugging, send everything
-		memset(out, 0xff, bytes);
-	} else {
-		const int32_t flood_num = cm_bsp.areas[area].flood_num;
-		memset(out, 0, bytes);
-
-		for (int32_t i = 0; i < cm_bsp.file.num_areas; i++) {
-			if (cm_bsp.areas[i].flood_num == flood_num || !area) {
-				out[i >> 3] |= 1 << (i & 7);
-			}
-		}
-	}
-
-	return bytes;
-}
-
 _Bool Cm_ClusterVisible(const int32_t cluster, const byte *vis) {
 
 	if (cluster == -1) {

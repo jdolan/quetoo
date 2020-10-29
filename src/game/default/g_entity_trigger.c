@@ -61,8 +61,7 @@ static void G_trigger_multiple_Think(g_entity_t *ent) {
 	if (ent->locals.wait > 0) {
 		ent->locals.Think = G_trigger_multiple_Wait;
 		ent->locals.next_think = g_level.time + ent->locals.wait * 1000;
-	} else { // we can't just remove (self) here, because this is a touch function
-		// called while looping through area links...
+	} else {
 		ent->locals.Touch = NULL;
 		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		ent->locals.Think = G_FreeEntity;

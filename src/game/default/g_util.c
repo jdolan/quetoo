@@ -171,9 +171,7 @@ g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match) {
 }
 
 /**
- * @brief Returns entities that have origins within a spherical area
- *
- * G_FindRadius(origin, radius)
+ * @brief Returns entities that have origins within a spherical radius.
  */
 g_entity_t *G_FindRadius(g_entity_t *from, const vec3_t org, float rad) {
 
@@ -305,17 +303,10 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		}
 	}
 
-	// doors fire area portals in a specific way
-	const _Bool is_door = g_str_has_prefix(ent->class_name, "func_door");
-
 	// fire targets
 	if (ent->locals.target) {
 		t = NULL;
 		while ((t = G_Find(t, LOFS(target_name), ent->locals.target))) {
-
-			if (is_door && !g_strcmp0(t->class_name, "func_areaportal")) {
-				continue;
-			}
 
 			if (t == ent) {
 				gi.Debug("%s tried to use itself\n", etos(ent));

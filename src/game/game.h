@@ -450,13 +450,6 @@ typedef struct g_import_s {
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
 
 	/**
-	 * @brief Area portal management, for doors and other entities that
-	 * manipulate BSP visibility.
-	 */
-	void (*SetAreaPortalState)(int32_t portal_num, _Bool open);
-	_Bool (*AreasConnected)(int32_t area1, int32_t area2);
-
-	/**
 	 * @brief All solid and trigger entities must be linked when they are
 	 * initialized or moved. Linking resolves their absolute bounding box and
 	 * makes them eligible for physics interactions.
@@ -472,8 +465,8 @@ typedef struct g_import_s {
 	 * @brief Populates a list of entities occupying the specified bounding
 	 * box, filtered by the given type (BOX_SOLID, BOX_TRIGGER, ..).
 	 *
-	 * @param mins The area bounds in world space.
-	 * @param maxs The area bounds in world space.
+	 * @param mins The box bounds in world space.
+	 * @param maxs The box bounds in world space.
 	 * @param list The list of entities to populate.
 	 * @param len The maximum number of entities to return (lengthof(list)).
 	 * @param type The entity type to return (BOX_SOLID, BOX_TRIGGER, ..).

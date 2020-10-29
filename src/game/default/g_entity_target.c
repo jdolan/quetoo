@@ -172,8 +172,7 @@ void G_target_speaker(g_entity_t *ent) {
 
 	ent->locals.Use = G_target_speaker_Use;
 
-	// must link the entity so we get areas and clusters so
-	// the server can determine who to send updates to
+	// link the entity so the server can determine who to send updates to
 	gi.LinkEntity(ent);
 }
 

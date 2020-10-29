@@ -42,8 +42,6 @@ typedef struct {
 	int32_t first_brush;
 	int32_t num_brushes;
 
-	int32_t area_portal_num;
-	int32_t portal_areas[2];
 } entity_t;
 
 void SetValueForKey(entity_t *ent, const char *key, const char *value);
