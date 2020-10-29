@@ -25,7 +25,6 @@
 
 cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist);
 float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane);
-float Cm_DistanceToFace(const vec3_t point, const cm_bsp_plane_t *plane, int32_t plane_side);
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal);
 int32_t Cm_SignBitsForNormal(const vec3_t normal);
 int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *plane);

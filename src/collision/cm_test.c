@@ -93,18 +93,6 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 }
 
 /**
- * @return The distance from `point` to `plane` from the specified side.
- */
-float Cm_DistanceToFace(const vec3_t point, const cm_bsp_plane_t *plane, int32_t plane_side) {
-
-	if (plane_side) {
-		return -Cm_DistanceToPlane(point, plane);
-	} else {
-		return Cm_DistanceToPlane(point, plane);
-	}
-}
-
-/**
  * @return The sidedness of the given bounds relative to the specified plane.
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
