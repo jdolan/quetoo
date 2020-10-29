@@ -233,21 +233,20 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 			assert(side->winding);
 
 			const int32_t plane_num = side->plane_num ^ 1;
+			if (g_ptr_array_find(cache, (gconstpointer) (intptr_t) plane_num, NULL)) {
+				continue;
+			}
 
-			/*csg_brush_t *front, *back;
+			csg_brush_t *front, *back;
 			SplitBrush(node->volume, plane_num, &front, &back);
-			const _Bool good = (front && back);
+			const _Bool valid_split = (front && back);
 			if (front) {
 				FreeBrush(front);
 			}
 			if (back) {
 				FreeBrush(back);
 			}
-			if (!good) {
-				continue;
-			}*/
-
-			if (g_ptr_array_find(cache, (gconstpointer) (intptr_t) plane_num, NULL)) {
+			if (!valid_split) {
 				continue;
 			}
 
