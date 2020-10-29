@@ -44,7 +44,7 @@ void RemovePortalFromNode(portal_t *portal, node_t *l);
 
 _Bool FloodEntities(tree_t *tree);
 void FillOutside(tree_t *tree);
-void MarkVisibleSides(tree_t *tree, int32_t start, int32_t count);
+void MarkVisibleSides(tree_t *tree, int32_t index, int32_t count);
 void FreePortal(portal_t *p);
 
 void MakeTreePortals(tree_t *tree);

@@ -34,5 +34,5 @@ typedef struct csg_brush_s {
 	struct csg_brush_s *next;
 } csg_brush_t;
 
-csg_brush_t *MakeBrushes(int32_t start, int32_t count);
+csg_brush_t *MakeBrushes(int32_t index, int32_t count);
 csg_brush_t *SubtractBrushes(csg_brush_t *head);
