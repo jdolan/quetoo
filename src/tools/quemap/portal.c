@@ -93,7 +93,7 @@ static int32_t ClusterContents(const node_t *node) {
 _Bool Portal_VisFlood(const portal_t *p) {
 
 	if (!p->on_node) {
-		return false;    // to global outsideleaf
+		return false; // to global outsideleaf
 	}
 
 	int32_t c1 = ClusterContents(p->nodes[0]);
