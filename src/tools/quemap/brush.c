@@ -354,8 +354,8 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front
 	cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
 
 	for (int32_t i = 0; i < brush->num_sides && w; i++) {
-		plane_t *plane2 = &planes[brush->sides[i].plane_num ^ 1];
-		Cm_ClipWinding(&w, plane2->normal, plane2->dist, 0.f);
+		const plane_t *p = &planes[brush->sides[i].plane_num ^ 1];
+		Cm_ClipWinding(&w, p->normal, p->dist, 0.f);
 	}
 
 	if (!w || WindingIsSmall(w)) { // the brush isn't really split
