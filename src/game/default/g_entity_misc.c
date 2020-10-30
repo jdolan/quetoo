@@ -84,6 +84,36 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
 	gi.LinkEntity(other);
 }
 
+/**
+ * @brief Creates bot node links
+ */
+static void G_misc_teleporter_Think(g_entity_t *ent) {
+	const g_entity_t *dest = G_Find(NULL, LOFS(target_name), ent->locals.target);
+
+	if (!dest) {
+		gi.Warn("Couldn't find destination\n");
+		return;
+	}
+
+	// find nodes closest to src and dst
+	const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true);
+	const ai_node_id_t dst_node = aix->FindClosestNode(dest->s.origin, 512.f, true);
+
+	if (src_node != NODE_INVALID && dst_node != NODE_INVALID) {
+
+		// make a new node on top of src so we touch the teleporter, connect
+		// it to dst with a small cost
+
+		const ai_node_id_t new_node = aix->CreateNode(ent->s.origin);
+
+		// use default cost for the entrance
+		aix->CreateLink(src_node, new_node, Vec3_Distance(aix->GetNodePosition(src_node), ent->s.origin));
+
+		// small cost for teleport node
+		aix->CreateLink(new_node, dst_node, 1.f);
+	}
+}
+
 /*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) ? ? no_effects
  Warps players who touch this entity to the targeted misc_teleporter_dest entity.
 
@@ -122,6 +152,12 @@ void G_misc_teleporter(g_entity_t *ent) {
 	}
 
 	ent->locals.Touch = G_misc_teleporter_Touch;
+	
+	// create link to destination
+	if (aix && !aix->IsDeveloperMode()) {
+		ent->locals.Think = G_misc_teleporter_Think;
+		ent->locals.next_think = g_level.time + 1;
+	}
 
 	gi.LinkEntity(ent);
 }

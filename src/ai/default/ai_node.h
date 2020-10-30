@@ -3,12 +3,17 @@
 /**
  * @brief
  */
-typedef uint16_t ai_node_id_t;
+guint Ai_Node_Count(void);
 
 /**
  * @brief
  */
-#define NODE_INVALID	((ai_node_id_t)-1)
+ai_node_id_t Ai_Node_CreateNode(const vec3_t position);
+
+/**
+ * @brief
+ */
+vec3_t Ai_Node_GetPosition(const ai_node_id_t node);
 
 /**
  * @brief
@@ -18,7 +23,7 @@ ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance
 /**
  * @brief
  */
-guint Ai_Node_Count(void);
+void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float cost);
 
 /**
  * @brief
@@ -38,6 +43,11 @@ void Ai_InitNodes(const char *mapname);
 /**
  * @brief
  */
+void Ai_NodesReady(void);
+
+/**
+ * @brief
+ */
 void Ai_SaveNodes(void);
 
 /**
@@ -48,25 +58,20 @@ void Ai_ShutdownNodes(void);
 /**
  * @brief
  */
-vec3_t Ai_Node_GetPosition(const ai_node_id_t node);
+typedef float (*Ai_NodeCost_Func) (const ai_node_id_t a, const ai_node_id_t b);
 
 /**
  * @brief
  */
-typedef float (*Ai_NodeCost_Func) (const ai_node_id_t a, const ai_node_id_t b);
-
-/**
- * @brief The length of space that couldn't be logically travelled by regular means.
- */
-static inline float Ai_Node_DefaultHeuristic(const ai_node_id_t a, const ai_node_id_t b) {
-	const vec3_t av = Ai_Node_GetPosition(a);
-	const vec3_t bv = Ai_Node_GetPosition(b);
+static inline float Ai_Node_DefaultHeuristic(const ai_node_id_t link, const ai_node_id_t end) {
+	const vec3_t av = Ai_Node_GetPosition(link);
+	const vec3_t bv = Ai_Node_GetPosition(end);
 
 	return fabs(av.x - bv.x) + fabs(av.y - bv.y) + fabs(av.z - bv.z);
 }
 
 /**
- * @brief The length of space that couldn't be logically travelled by regular means.
+ * @brief
  */
 static inline float Ai_Node_DefaultCost(const ai_node_id_t a, const ai_node_id_t b) {
 	const vec3_t av = Ai_Node_GetPosition(a);
@@ -78,4 +83,9 @@ static inline float Ai_Node_DefaultCost(const ai_node_id_t a, const ai_node_id_t
 /**
  * @brief
  */
-GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const Ai_NodeCost_Func heuristic, const Ai_NodeCost_Func cost);
+GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const Ai_NodeCost_Func heuristic);
+
+/**
+ * @brief
+ */
+void Ai_Node_TestPath(void);

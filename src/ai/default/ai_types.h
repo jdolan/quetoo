@@ -185,6 +185,7 @@ typedef struct {
 	_Bool teams;
 	_Bool ctf;
 	_Bool match;
+	_Bool load_finished;
 	char mapname[MAX_QPATH];
 } ai_level_t;
 
