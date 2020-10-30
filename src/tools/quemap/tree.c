@@ -218,7 +218,23 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 
 	GPtrArray *cache = g_ptr_array_new();
 
+	_Bool have_structural = false;
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
+		if (!(brush->original->contents & CONTENTS_DETAIL)) {
+			if (brush->original->contents & CONTENTS_MASK_VISIBLE) {
+				have_structural = true;
+				break;
+			}
+		}
+	}
+
+	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
+
+		if (brush->original->contents & CONTENTS_DETAIL) {
+			if (have_structural) {
+				continue;
+			}
+		}
 
 		const brush_side_t *side = brush->sides;
 		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
