@@ -153,6 +153,10 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
  */
 static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brush_t *brushes) {
 
+	if (side->surf & SURF_HINT) {
+		return INT32_MAX;
+	}
+
 	const int32_t plane_num = side->plane_num & ~1;
 
 	int32_t front = 0, back = 0, facing = 0, num_split_sides = 0;
@@ -183,14 +187,6 @@ static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brus
 		value += 5;
 	}
 
-	if (side->contents & CONTENTS_DETAIL) {
-		value -= 5;
-	}
-
-	if (side->surf & SURF_HINT) {
-		value = INT32_MAX;
-	}
-
 	return value;
 }
 
@@ -213,7 +209,7 @@ static _Bool g_ptr_array_find(GPtrArray *p, gconstpointer v, guint *index) {
 #endif
 
 /**
- * @return The brush side from brushes with the highest heuristic value.
+ * @return The original brush side from brushes with the highest heuristic value.
  */
 static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 
@@ -236,18 +232,31 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 
 			assert(side->winding);
 
-			const intptr_t plane_num = side->plane_num ^ 1;
-			if (g_ptr_array_find(cache, (gconstpointer) plane_num, NULL)) {
+			const int32_t plane_num = side->plane_num ^ 1;
+			if (g_ptr_array_find(cache, (gconstpointer) (intptr_t) plane_num, NULL)) {
+				continue;
+			}
+
+			csg_brush_t *front, *back;
+			SplitBrush(node->volume, plane_num, &front, &back);
+			const _Bool valid_split = (front && back);
+			if (front) {
+				FreeBrush(front);
+			}
+			if (back) {
+				FreeBrush(back);
+			}
+			if (!valid_split) {
 				continue;
 			}
 
 			const int32_t value = SelectSplitSideHeuristic(side, brushes);
 			if (value > best_value) {
-				best_side = side;
+				best_side = side->original;
 				best_value = value;
 			}
 
-			g_ptr_array_add(cache, (gpointer) plane_num);
+			g_ptr_array_add(cache, (gpointer) (intptr_t) plane_num);
 		}
 	}
 
@@ -312,18 +321,15 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	csg_brush_t *children[2];
 
-	// find the best plane to use as a splitter
-	const brush_side_t *split_side = SelectSplitSide(node, brushes);
-	if (!split_side) { // leaf node
-		node->split_side = NULL;
+	node->split_side = SelectSplitSide(node, brushes);
+	if (!node->split_side) {
 		node->plane_num = PLANE_NUM_LEAF;
 		LeafNode(node, brushes);
 		return node;
 	}
 
-	// this is a split-plane node
-	node->split_side = split_side->original;
-	node->plane_num = split_side->plane_num & ~1; // always use positive facing
+	// this is a decision node, reference the positive plane
+	node->plane_num = node->split_side->plane_num & ~1;
 
 	SplitBrushes(brushes, node, &children[0], &children[1]);
 

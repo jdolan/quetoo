@@ -39,7 +39,6 @@ void Cl_ClearView(void) {
 void Cl_UpdateView(void) {
 
 	r_view.ticks = cl.unclamped_time;
-	r_view.area_bits = cl.frame.area_bits;
 
 	cls.cgame->UpdateView(&cl.frame);
 }

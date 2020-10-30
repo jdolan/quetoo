@@ -45,8 +45,6 @@ static plane_t *plane_hash[PLANE_HASHES];
 
 vec3_t map_mins, map_maxs;
 
-static int32_t c_area_portals;
-
 #define	NORMAL_EPSILON	0.00001
 #define	DIST_EPSILON	0.005
 
@@ -466,10 +464,7 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 		}
 	}
 
-	if (!g_strcmp0(td->name, "common/areaportal")) {
-		side->contents |= CONTENTS_AREA_PORTAL;
-		td->flags |= SURF_NO_DRAW;
-	} else if (!g_strcmp0(td->name, "common/monsterclip") || !g_strcmp0(td->name, "common/botclip")) {
+	if (!g_strcmp0(td->name, "common/monsterclip") || !g_strcmp0(td->name, "common/botclip")) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
 	} else if (!g_strcmp0(td->name, "common/caulk") || !g_strcmp0(td->name, "common/nodraw")) {
 		td->flags |= SURF_NO_DRAW;
@@ -712,7 +707,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 }
 
 /**
- * @brief Some entities are merged into the world, e.g. func_group and func_areaportal.
+ * @brief Some entities are merged into the world, e.g. func_group.
  */
 static void MoveBrushesToWorld(entity_t *ent) {
 
@@ -822,23 +817,6 @@ static entity_t *ParseEntity(parser_t *parser) {
 			MoveBrushesToWorld(entity);
 			entity->num_brushes = 0;
 		}
-
-		// areaportal entities move their brushes into the world, but don't eliminate the entity
-		if (!g_strcmp0("func_areaportal", classname)) {
-
-			if (entity->num_brushes != 1) {
-				Mon_SendSelect(MON_ERROR, num_entities - 1, 1, "func_areaportal must be a single brush");
-				Com_Error(ERROR_FATAL, "%i func_areaportal must be a single brush\n", num_entities - 1);
-			}
-
-			brush_t *b = &brushes[num_brushes - 1];
-			b->contents = CONTENTS_AREA_PORTAL;
-			c_area_portals++;
-			entity->area_portal_num = c_area_portals;
-
-			SetValueForKey(entity, "areaportal", va("%d", entity->area_portal_num));
-			MoveBrushesToWorld(entity);
-		}
 	}
 
 	return entity;
@@ -899,10 +877,9 @@ void LoadMapFile(const char *filename) {
 	}
 
 	Com_Verbose("%5i brushes\n", num_brushes);
-	Com_Verbose("%5i total sides\n", num_brush_sides);
+	Com_Verbose("%5i brush sides\n", num_brush_sides);
 	Com_Verbose("%5i entities\n", num_entities);
 	Com_Verbose("%5i planes\n", num_planes);
-	Com_Verbose("%5i area portals\n", c_area_portals);
 	Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",
 				map_mins.x, map_mins.y, map_mins.z, map_maxs.x, map_maxs.y, map_maxs.z);
 

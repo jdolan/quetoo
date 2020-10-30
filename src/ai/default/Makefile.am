@@ -6,6 +6,7 @@ noinst_HEADERS = \
 	ai_item.h \
 	ai_local.h \
 	ai_main.h \
+	ai_node.h \
 	ai_types.h
 
 noinst_LTLIBRARIES = \
@@ -15,7 +16,8 @@ libai_la_SOURCES = \
 	ai_goal.c \
 	ai_info.c \
 	ai_item.c \
-	ai_main.c
+	ai_main.c \
+	ai_node.c
 
 libai_la_CFLAGS = \
 	-I$(top_srcdir)/src \

@@ -572,6 +572,8 @@
 		CEA082381DC6EC59001207AA /* r_atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA082341DC6EBB7001207AA /* r_atlas.h */; };
 		CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA3B4851E057569004A6CF3 /* cm_material.c */; };
 		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
+		CEA5FA24254A269500C924FA /* ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA5FA22254A269500C924FA /* ai_node.h */; };
+		CEA5FA25254A269500C924FA /* ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA5FA23254A269500C924FA /* ai_node.c */; };
 		CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32B6242124BB007E1253 /* cg_sprite.h */; };
 		CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		CEAC32BC24212553007E1253 /* r_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32BA24212553007E1253 /* r_sprite.c */; };
@@ -1824,6 +1826,8 @@
 		CEA082341DC6EBB7001207AA /* r_atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_atlas.h; sourceTree = "<group>"; };
 		CEA3B4851E057569004A6CF3 /* cm_material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_material.c; sourceTree = "<group>"; };
 		CEA3B4861E057569004A6CF3 /* cm_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_material.h; sourceTree = "<group>"; };
+		CEA5FA22254A269500C924FA /* ai_node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_node.h; sourceTree = "<group>"; };
+		CEA5FA23254A269500C924FA /* ai_node.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ai_node.c; sourceTree = "<group>"; };
 		CEAC32B6242124BB007E1253 /* cg_sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_sprite.h; sourceTree = "<group>"; };
 		CEAC32B7242124BB007E1253 /* cg_sprite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_sprite.c; sourceTree = "<group>"; };
 		CEAC32BA24212553007E1253 /* r_sprite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_sprite.c; sourceTree = "<group>"; };
@@ -3517,6 +3521,8 @@
 				CE67EF681E3500C0009C2819 /* ai_local.h */,
 				CE67EF691E3500C0009C2819 /* ai_main.c */,
 				CE67EF6A1E3500C0009C2819 /* ai_main.h */,
+				CEA5FA23254A269500C924FA /* ai_node.c */,
+				CEA5FA22254A269500C924FA /* ai_node.h */,
 				CE67EF6B1E3500C0009C2819 /* ai_types.h */,
 				CE67EF741E3500E8009C2819 /* Makefile.am */,
 			);
@@ -3756,6 +3762,7 @@
 			files = (
 				CE67EF851E35023B009C2819 /* ai.h in Headers */,
 				CE67EF7E1E3501F9009C2819 /* ai_goal.h in Headers */,
+				CEA5FA24254A269500C924FA /* ai_node.h in Headers */,
 				CE67EF801E3501F9009C2819 /* ai_item.h in Headers */,
 				CE9771B1214557F500BBD71C /* ai_info.h in Headers */,
 				CE67EF811E3501F9009C2819 /* ai_local.h in Headers */,
@@ -5127,6 +5134,7 @@
 				CE9771B2214557F500BBD71C /* ai_info.c in Sources */,
 				CE67EF7F1E3501F9009C2819 /* ai_item.c in Sources */,
 				CE67EF821E3501F9009C2819 /* ai_main.c in Sources */,
+				CEA5FA25254A269500C924FA /* ai_node.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

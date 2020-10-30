@@ -1169,8 +1169,6 @@ typedef struct {
 	int32_t water_type;
 	pm_water_level_t water_level;
 
-	int32_t area_portal; // the area portal to toggle
-
 	const g_item_t *item; // for bonus items
 } g_entity_locals_t;
 

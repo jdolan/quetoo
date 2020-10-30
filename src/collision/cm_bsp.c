@@ -46,8 +46,6 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(leaf_faces, MAX_BSP_LEAF_FACES),
 	BSP_LUMP_NUM_STRUCT(leafs, MAX_BSP_LEAFS),
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
-	BSP_LUMP_NUM_STRUCT(area_portals, MAX_BSP_AREA_PORTALS),
-	BSP_LUMP_NUM_STRUCT(areas, MAX_BSP_AREAS),
 	BSP_LUMP_SIZE_STRUCT(vis, MAX_BSP_VIS_SIZE),
 	BSP_LUMP_SIZE_STRUCT(lightmap, MAX_BSP_LIGHTMAP_SIZE),
 	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID_SIZE)
@@ -270,7 +268,6 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 
 		leaf->contents = LittleLong(leaf->contents);
 		leaf->cluster = LittleLong(leaf->cluster);
-		leaf->area = LittleLong(leaf->area);
 
 		leaf->mins = LittleVec3s(leaf->mins);
 		leaf->maxs = LittleVec3s(leaf->maxs);
@@ -303,38 +300,6 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 		model->num_faces = LittleLong(model->num_faces);
 
 		model++;
-	}
-}
-
-/**
- * @brief Swap function.
- */
-static void Bsp_SwapAreaPortals(void *lump, const int32_t num) {
-
-	bsp_area_portal_t *area_portal = (bsp_area_portal_t *) lump;
-
-	for (int32_t i = 0; i < num; i++) {
-
-		area_portal->portal_num = LittleLong(area_portal->portal_num);
-		area_portal->other_area = LittleLong(area_portal->other_area);
-
-		area_portal++;
-	}
-}
-
-/**
- * @brief Swap function.
- */
-static void Bsp_SwapAreas(void *lump, const int32_t num) {
-
-	bsp_area_t *area = (bsp_area_t *) lump;
-
-	for (int32_t i = 0; i < num; i++) {
-
-		area->num_area_portals = LittleLong(area->num_area_portals);
-		area->first_area_portal = LittleLong(area->first_area_portal);
-
-		area++;
 	}
 }
 
@@ -397,8 +362,6 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
 		Bsp_SwapLeafFaces,
 		Bsp_SwapLeafs,
 		Bsp_SwapModels,
-		Bsp_SwapAreaPortals,
-		Bsp_SwapAreas,
 		Bsp_SwapVis,
 		Bsp_SwapLightmap,
 		Bsp_SwapLightgrid,

@@ -93,18 +93,6 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 }
 
 /**
- * @return The distance from `point` to `plane` from the specified side.
- */
-float Cm_DistanceToFace(const vec3_t point, const cm_bsp_plane_t *plane, int32_t plane_side) {
-
-	if (plane_side) {
-		return -Cm_DistanceToPlane(point, plane);
-	} else {
-		return Cm_DistanceToPlane(point, plane);
-	}
-}
-
-/**
  * @return The sidedness of the given bounds relative to the specified plane.
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
@@ -236,7 +224,7 @@ void Cm_InitBoxHull(void) {
 	// brush
 	cm_box.brush = &cm_bsp.brushes[cm_bsp.file.num_brushes];
 	cm_box.brush->num_sides = 6;
-	cm_box.brush->first_brush_side = cm_bsp.file.num_brush_sides;
+	cm_box.brush->sides = cm_bsp.brush_sides + cm_bsp.file.num_brush_sides;
 	cm_box.brush->contents = CONTENTS_MONSTER;
 
 	for (int32_t i = 0; i < 6; i++) {

@@ -34,7 +34,6 @@ cm_entity_t *Cm_Worldspawn(void);
 
 int32_t Cm_LeafContents(const int32_t leaf_num);
 int32_t Cm_LeafCluster(const int32_t leaf_num);
-int32_t Cm_LeafArea(const int32_t leaf_num);
 
 typedef struct {
 	char name[MAX_QPATH];
@@ -52,10 +51,6 @@ typedef struct {
 	cm_bsp_brush_t *brushes;
 	cm_bsp_brush_side_t *brush_sides;
 	cm_bsp_model_t *models;
-	cm_bsp_area_portal_t *area_portals;
-	cm_bsp_area_t *areas;
-
-	int32_t flood_valid;
 
 	size_t num_entities;
 	cm_entity_t **entities;

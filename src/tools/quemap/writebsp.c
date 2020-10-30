@@ -119,7 +119,7 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 
 		const bsp_face_t *a = faces + i;
 
-		if (bsp_file.texinfo[a->texinfo].flags & (SURF_NO_DRAW | SURF_SKY)) {
+		if (bsp_file.texinfo[a->texinfo].flags & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
 		
@@ -178,7 +178,6 @@ static int32_t EmitLeaf(node_t *node) {
 
 	out->contents = node->contents;
 	out->cluster = node->cluster;
-	out->area = node->area;
 
 	out->mins = Vec3_CastVec3s(node->mins);
 	out->maxs = Vec3_CastVec3s(node->maxs);
@@ -447,8 +446,6 @@ void BeginBSPFile(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_FACES, MAX_BSP_LEAF_FACES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAFS, MAX_BSP_LEAFS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_MODELS, MAX_BSP_MODELS);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREA_PORTALS, MAX_BSP_AREA_PORTALS);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREAS, MAX_BSP_AREAS);
 
 	/*
 	 * jdolan 2019-01-01
@@ -469,7 +466,6 @@ void EndBSPFile(void) {
 	
 	EmitBrushes();
 	EmitPlanes();
-	EmitAreaPortals();
 	EmitEntities();
 
 	Work("Phong shading", PhongVertex, bsp_file.num_vertexes);

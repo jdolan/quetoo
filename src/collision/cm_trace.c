@@ -76,9 +76,9 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 
 	_Bool end_outside = false, start_outside = false;
 
-	const cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[brush->first_brush_side];
-
+	const cm_bsp_brush_side_t *side = brush->sides;
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+
 		const cm_bsp_plane_t *plane = side->plane;
 
 		const float dist = plane->dist - Vec3_Dot(data->offsets[plane->sign_bits], plane->normal);
@@ -153,9 +153,9 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 		return;
 	}
 
-	const cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[brush->first_brush_side];
-
+	const cm_bsp_brush_side_t *side = brush->sides;
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+
 		const cm_bsp_plane_t *plane = side->plane;
 
 		const float dist = plane->dist - Vec3_Dot(data->offsets[plane->sign_bits], plane->normal);

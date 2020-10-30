@@ -91,7 +91,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const vec3_t mins, const vec3
 }
 
 /**
- * @brief Resolve our area nodes for a newly loaded level. This is called prior to
+ * @brief Resolve our sectors for a newly loaded level. This is called prior to
  * linking any entities.
  */
 void Sv_InitWorld(void) {
@@ -166,25 +166,9 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
 	// link to PVS leafs
 	sent->num_clusters = 0;
-	sent->areas[0] = sent->areas[1] = 0;
 
 	// get all leafs, including solids
 	const size_t len = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs), &top_node, 0);
-
-	// set areas, allowing entities (doors) to occupy up to two
-	for (size_t i = 0; i < len; i++) {
-		const int32_t area = Cm_LeafArea(leafs[i]);
-		if (area) {
-			if (sent->areas[0] && sent->areas[0] != area) {
-				if (sent->areas[1] && sent->areas[1] != area && sv.state == SV_LOADING) {
-					Com_Warn("%s touching 3 areas at %s\n", etos(ent), vtos(ent->abs_mins));
-				}
-				sent->areas[1] = area;
-			} else {
-				sent->areas[0] = area;
-			}
-		}
-	}
 
 	if (len == MAX_ENT_LEAFS) { // use top_node
 		sent->num_clusters = -1;
@@ -319,8 +303,8 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 
 /**
  * @brief Populates an array of entities with those which have bounding boxes
- * that intersect the given area. It is possible for a non-axial BSP model to
- * be returned that doesn't actually intersect the area.
+ * that intersect the given box. It is possible for a non-axial BSP model to
+ * be returned that doesn't actually intersect the box.
  *
  * @return The number of entities found.
  */
@@ -388,7 +372,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 	// as well as contents from all intersected entities
 	const size_t len = Sv_BoxEntities(point, point, entities, lengthof(entities), BOX_COLLIDE);
 
-	// iterate the area entities, checking each one for an intersection
+	// iterate the box entities, checking each one for an intersection
 	for (size_t i = 0; i < len; i++) {
 		const g_entity_t *ent = entities[i];
 
@@ -414,7 +398,7 @@ typedef struct {
 } sv_trace_t;
 
 /**
- * @brief Clips the specified trace to other entities in its area. This is the basis of all
+ * @brief Clips the specified trace to other entities in its bounds. This is the basis of all
  * collision and interaction for the server. Tread carefully.
  */
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {

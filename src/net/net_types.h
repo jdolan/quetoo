@@ -99,7 +99,6 @@ typedef struct {
 	uint32_t reliable_incoming; // single bit
 	uint32_t reliable_outgoing; // outgoing sequence number of last reliable
 
-	// reliable staging and holding areas
 	mem_buf_t message; // writing buffer to send to server
 	byte message_buffer[MAX_MSG_SIZE - 10]; // leave space for header
 

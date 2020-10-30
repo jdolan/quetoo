@@ -45,7 +45,6 @@ typedef struct node_s {
 	int32_t occupied; // 1 or greater can reach entity
 	const entity_t *occupant; // for leak file testing
 	int32_t cluster; // for portal file writing
-	int32_t area; // for area portals
 	struct portal_s *portals; // also on nodes during construction
 } node_t;
 

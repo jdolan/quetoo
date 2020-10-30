@@ -28,8 +28,6 @@
 #define MAX_BSP_LEAF_FACES		0x20000
 #define MAX_BSP_LEAFS			0x20000
 #define MAX_BSP_MODELS			0x400
-#define MAX_BSP_AREA_PORTALS	0x400
-#define MAX_BSP_AREAS			0x100
 #define MAX_BSP_PORTALS			0x20000
 #define MAX_BSP_VIS_SIZE		0x200000
 #define MAX_BSP_LIGHTMAP_SIZE	0x60000000
@@ -114,8 +112,6 @@ typedef enum {
 	BSP_LUMP_LEAF_FACES,
 	BSP_LUMP_LEAFS,
 	BSP_LUMP_MODELS,
-	BSP_LUMP_AREA_PORTALS,
-	BSP_LUMP_AREAS,
 	BSP_LUMP_VIS,
 	BSP_LUMP_LIGHTMAP,
 	BSP_LUMP_LIGHTGRID,
@@ -233,10 +229,8 @@ typedef struct {
 } bsp_node_t;
 
 typedef struct {
-	int32_t contents; // OR of all brushes (not needed?)
-
+	int32_t contents; // OR of all brushes
 	int32_t cluster;
-	int32_t area;
 
 	vec3s_t mins; // for frustum culling
 	vec3s_t maxs;
@@ -260,19 +254,6 @@ typedef struct {
 	int32_t first_draw_elements;
 	int32_t num_draw_elements;
 } bsp_model_t;
-
-// each area has a list of portals that lead into other areas
-// when portals are closed, other areas may not be visible or
-// hearable even if the vis info says that it should be
-typedef struct {
-	int32_t portal_num;
-	int32_t other_area;
-} bsp_area_portal_t;
-
-typedef struct {
-	int32_t num_area_portals;
-	int32_t first_area_portal;
-} bsp_area_t;
 
 // the visibility lump consists of a header with a count, then
 // byte offsets for the PVS and PHS of each cluster, then the raw
@@ -352,12 +333,6 @@ typedef struct {
 
 	int32_t num_models;
 	bsp_model_t *models;
-
-	int32_t num_area_portals;
-	bsp_area_portal_t *area_portals;
-
-	int32_t num_areas;
-	bsp_area_t *areas;
 
 	int32_t vis_size;
 	bsp_vis_t *vis;

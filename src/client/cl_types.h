@@ -35,7 +35,6 @@ typedef struct {
 typedef struct {
 	int32_t frame_num; // sequential identifier, used for delta
 	int32_t delta_frame_num; // negatives indicate no delta
-	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps; // the player state
 	int32_t num_entities; // the number of entities in the frame
 	uint32_t entity_state; // non-masked index into cl.entity_states array

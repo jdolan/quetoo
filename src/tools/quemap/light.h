@@ -31,7 +31,7 @@
 #define LIGHT_CONE 22.5
 #define LIGHT_SIZE_SUN 256.0
 #define LIGHT_SIZE_STEP 16.0
-#define LIGHT_RADIOSITY 0.125
+#define LIGHT_RADIOSITY 0.0625
 
 typedef enum {
 	LIGHT_INVALID = -1,

@@ -124,7 +124,6 @@ static void Cm_LoadBspLeafs(void) {
 
 		out->contents = in->contents;
 		out->cluster = in->cluster;
-		out->area = in->area;
 		out->first_leaf_brush = in->first_leaf_brush;
 		out->num_leaf_brushes = in->num_leaf_brushes;
 	}
@@ -144,25 +143,6 @@ static void Cm_LoadBspLeafBrushes(void) {
 	for (int32_t i = 0; i < num_leaf_brushes; i++, in++, out++) {
 
 		*out = *in;
-	}
-}
-
-/**
- * @brief
- */
-static void Cm_LoadBspBrushes(void) {
-
-	const int32_t num_brushes = cm_bsp.file.num_brushes;
-	const bsp_brush_t *in = cm_bsp.file.brushes;
-
-	cm_bsp_brush_t *out = cm_bsp.brushes = Mem_TagMalloc(sizeof(cm_bsp_brush_t) * (num_brushes + 1),
-	                                       MEM_TAG_COLLISION); // extra for box hull
-
-	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
-
-		out->first_brush_side = in->first_brush_side;
-		out->num_sides = in->num_sides;
-		out->contents = in->contents;
 	}
 }
 
@@ -202,13 +182,32 @@ static void Cm_LoadBspBrushSides(void) {
 }
 
 /**
+ * @brief
+ */
+static void Cm_LoadBspBrushes(void) {
+
+	const int32_t num_brushes = cm_bsp.file.num_brushes;
+	const bsp_brush_t *in = cm_bsp.file.brushes;
+
+	cm_bsp_brush_t *out = cm_bsp.brushes = Mem_TagMalloc(sizeof(cm_bsp_brush_t) * (num_brushes + 1),
+										   MEM_TAG_COLLISION); // extra for box hull
+
+	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
+
+		out->sides = cm_bsp.brush_sides + in->first_brush_side;
+		out->num_sides = in->num_sides;
+		out->contents = in->contents;
+	}
+}
+
+/**
  * @brief Sets brush bounds for fast trace tests.
  */
 static void Cm_SetupBspBrushes(void) {
 	cm_bsp_brush_t *b = cm_bsp.brushes;
 
 	for (int32_t i = 0; i < cm_bsp.file.num_brushes; i++, b++) {
-		const cm_bsp_brush_side_t *bs = cm_bsp.brush_sides + b->first_brush_side;
+		const cm_bsp_brush_side_t *bs = b->sides;
 
 		b->mins.x = -bs[0].plane->dist;
 		b->mins.y = -bs[2].plane->dist;
@@ -236,35 +235,6 @@ static void Cm_LoadBspInlineModels(void) {
 
 		out->mins = Vec3s_CastVec3(in->mins);
 		out->maxs = Vec3s_CastVec3(in->maxs);
-	}
-}
-
-/**
- * @brief
- */
-static void Cm_LoadBspAreaPortals(void) {
-
-	const int32_t num_area_portals = cm_bsp.file.num_area_portals;
-
-	cm_bsp.area_portals = Mem_TagMalloc(sizeof(bool) * num_area_portals, MEM_TAG_COLLISION);
-}
-
-/**
- * @brief
- */
-static void Cm_LoadBspAreas(void) {
-
-	const int32_t num_areas = cm_bsp.file.num_areas;
-	const bsp_area_t *in = cm_bsp.file.areas;
-
-	cm_bsp_area_t *out = cm_bsp.areas = Mem_TagMalloc(sizeof(cm_bsp_area_t) * num_areas, MEM_TAG_COLLISION);
-
-	for (int32_t i = 0; i < num_areas; i++, in++, out++) {
-
-		out->num_area_portals = in->num_area_portals;
-		out->first_area_portal = in->first_area_portal;
-		out->flood_valid = 0;
-		out->flood_num = 0;
 	}
 }
 
@@ -323,8 +293,6 @@ static void Cm_LoadBspMaterials(const char *name) {
 	(1 << BSP_LUMP_BRUSHES) | \
 	(1 << BSP_LUMP_BRUSH_SIDES) | \
 	(1 << BSP_LUMP_MODELS) | \
-	(1 << BSP_LUMP_AREA_PORTALS) | \
-	(1 << BSP_LUMP_AREAS) | \
 	(1 << BSP_LUMP_VIS)
 
 /**
@@ -355,9 +323,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Mem_Free(cm_bsp.brushes);
 	Mem_Free(cm_bsp.brush_sides);
 	Mem_Free(cm_bsp.models);
-	Mem_Free(cm_bsp.area_portals);
-	Mem_Free(cm_bsp.areas);
-
 	Mem_Free(cm_bsp.entities);
 	Mem_Free(cm_bsp.materials);
 
@@ -407,17 +372,13 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspNodes();
 	Cm_LoadBspLeafs();
 	Cm_LoadBspLeafBrushes();
-	Cm_LoadBspBrushes();
 	Cm_LoadBspBrushSides();
+	Cm_LoadBspBrushes();
 	Cm_LoadBspInlineModels();
-	Cm_LoadBspAreaPortals();
-	Cm_LoadBspAreas();
 
 	Cm_SetupBspBrushes();
 
 	Cm_InitBoxHull();
-
-	Cm_FloodAreas();
 
 	return &cm_bsp.models[0];
 }
@@ -495,18 +456,6 @@ int32_t Cm_LeafCluster(const int32_t leaf_num) {
 	}
 
 	return cm_bsp.leafs[leaf_num].cluster;
-}
-
-/**
- * @brief
- */
-int32_t Cm_LeafArea(const int32_t leaf_num) {
-
-	if (leaf_num < 0 || leaf_num >= cm_bsp.file.num_leafs) {
-		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
-	}
-
-	return cm_bsp.leafs[leaf_num].area;
 }
 
 /**

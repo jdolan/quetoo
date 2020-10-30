@@ -90,12 +90,27 @@ typedef struct {
 #define AXIAL(p) ((p)->type < PLANE_ANY_X)
 
 /**
- * @brief BSP surfaces describe a material applied to a plane.
+ * @brief Texinfos describe a material applied to a winding or plane.
  */
 typedef struct {
+	/**
+	 * @brief The texture name.
+	 */
 	char name[32];
+
+	/**
+	 * @brief SURF_* flags.
+	 */
 	int32_t flags;
+
+	/**
+	 * @brief The surface value (e.g. light radius).
+	 */
 	int32_t value;
+
+	/**
+	 * @brief The material definition.
+	 */
 	struct cm_material_s *material;
 } cm_bsp_texinfo_t;
 
@@ -104,7 +119,14 @@ typedef struct {
  * They are treated as their own sub-trees and recursed separately.
  */
 typedef struct {
+	/**
+	 * @brief The index of the head node in the BSP file.
+	 */
 	int32_t head_node;
+
+	/**
+	 * @brief The model bounds.
+	 */
 	vec3_t mins, maxs;
 } cm_bsp_model_t;
 
@@ -178,39 +200,82 @@ typedef struct {
 	struct g_entity_s *ent; // not set by Cm_*() functions
 } cm_trace_t;
 
-typedef struct {
-	cm_bsp_plane_t *plane;
-	int32_t children[2]; // negative numbers are leafs
-} cm_bsp_node_t;
-
+/**
+ * @brief Brush sides refefence the planes and textures of a given brush.
+ * @remarks Brush sides are not clipped windings, or faces. They are used for collision,
+ * not for rendering.
+ */
 typedef struct {
 	cm_bsp_plane_t *plane;
 	cm_bsp_texinfo_t *surface;
 } cm_bsp_brush_side_t;
 
+/**
+ * @brief Brushes are convex volumes defined by the clipping planes of their sides.
+ */
 typedef struct {
+	/**
+	 * @brief The brush contents (CONTENTS_*).
+	 */
 	int32_t contents;
-	int32_t cluster;
-	int32_t area;
-	uint16_t first_leaf_brush;
-	uint16_t num_leaf_brushes;
-} cm_bsp_leaf_t;
 
-typedef struct {
-	int32_t contents;
+	/**
+	 * @brief The brush sides.
+	 */
+	cm_bsp_brush_side_t *sides;
+
+	/**
+	 * @brief The number of sides.
+	 */
 	int32_t num_sides;
-	int32_t first_brush_side;
+
+	/**
+	 * @brief The brush bounds.
+	 */
 	vec3_t mins, maxs;
 } cm_bsp_brush_t;
 
 /**
- * @brief True if the area portal is open.
+ * @brief Leafs are the terminating nodes of the BSP tree.
+ * @details When a node has been partitioned until no brush sides occupy its bounds,
+ * it becomes a leaf. The leaf brushes are those brushes which bound the leaf. Leafs
+ * with non-solid contents comprise the parts of the world the player may occupy.
  */
-typedef _Bool cm_bsp_area_portal_t;
-
 typedef struct {
-	int32_t num_area_portals;
-	int32_t first_area_portal;
-	int32_t flood_num; // if two areas have equal flood_nums, they are connected
-	int32_t flood_valid;
-} cm_bsp_area_t;
+	/**
+	 * @brief The leaf CONTENTS_*.
+	 */
+	int32_t contents;
+
+	/**
+	 * @brief The visibility cluster. Sibling leafs, and their parent node, share the
+	 * same visibility cluster.
+	 */
+	int32_t cluster;
+
+	/**
+	 * @brief The index of the first leaf-brush reference.
+	 */
+	int32_t first_leaf_brush;
+
+	/**
+	 * @brief The number of leaf-brush references for this leaf.
+	 */
+	int32_t num_leaf_brushes;
+} cm_bsp_leaf_t;
+
+/**
+ * @brief The BSP node structure.
+ */
+typedef struct {
+	/**
+	 * @brief The positive plane that separates this node's children.
+	 */
+	cm_bsp_plane_t *plane;
+
+	/**
+	 * @brief The child node indexes, where positive values are nodes, and negative are leafs.
+	 * @remarks Because 0 can not be negated, the BSP is padded with an empty first leaf.
+	 */
+	int32_t children[2];
+} cm_bsp_node_t;
