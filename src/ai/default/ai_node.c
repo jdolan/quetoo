@@ -853,7 +853,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
 				g_hash_table_add(costs_started, link_node);
 
 				link_node->cost = new_cost;
-				const float priority = new_cost + heuristic(link, end);
+				const float priority = new_cost + heuristic(link->id, end);
 
 				if (!queue->len) {
 					g_array_insert_vals(queue, 0, &(ai_node_priority_t) {

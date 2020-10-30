@@ -58,7 +58,7 @@ void Ai_ShutdownNodes(void);
 /**
  * @brief
  */
-typedef float (*Ai_NodeCost_Func) (const ai_node_id_t a, const ai_node_id_t b);
+typedef float (*Ai_NodeCost_Func)(const ai_node_id_t a, const ai_node_id_t b);
 
 /**
  * @brief
