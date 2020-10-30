@@ -105,7 +105,7 @@ static void Ai_Command(g_entity_t *self, const char *command) {
 /**
  * @brief The max distance we'll try to hunt an item at.
  */
-#define AI_MAX_ITEM_DISTANCE 512
+#define AI_MAX_ITEM_DISTANCE 200
 
 /**
  * @brief
@@ -671,24 +671,34 @@ static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, cons
 }
 
 /**
+ * @brief Increase our path pointer.
+ */
+static _Bool Ai_TryNextNodeInPath(g_entity_t *self, ai_goal_t *goal) {
+	ai_locals_t *ai = Ai_GetLocals(self);
+
+	goal->path_index++;
+
+	// we're done with this path
+	if (goal->path_index == goal->path->len) {
+		return false;
+	}
+
+	goal->path_position = Ai_Node_GetPosition(g_array_index(goal->path, ai_node_id_t, goal->path_index));
+	ai->goal_distress = 0;
+	ai->goal_distance = Vec3_Distance(self->s.origin, goal->path_position);
+
+	return true;
+}
+
+/**
  * @brief See if we're in a good spot to keep going towards our node goal.
  */
 static _Bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
-	ai_locals_t *ai = Ai_GetLocals(self);
 
 	// if we're touching our nav goal, we can go next
 	if (Vec3_BoxIntersect(goal->path_position, goal->path_position, self->abs_mins, self->abs_maxs)) {
 
-		goal->path_index++;
-
-		// we're done with this path
-		if (goal->path_index == goal->path->len) {
-			return false;
-		}
-
-		goal->path_position = Ai_Node_GetPosition(g_array_index(goal->path, ai_node_id_t, goal->path_index));
-		ai->goal_distress = 0;
-		ai->goal_distance = Vec3_Distance(self->s.origin, goal->path_position);
+		return Ai_TryNextNodeInPath(self, goal);
 	}
 
 	return true;
@@ -861,10 +871,8 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
     }
 	
 	// check for getting stuck
-	vec3_t move_dir;
-	move_dir = Vec3_Subtract(ai->last_origin, self->s.origin);
-	move_dir.z = 0.0;
-	float move_len = Vec3_Length(move_dir);
+	const vec3_t move_dir = Vec3_Subtract(ai->last_origin, self->s.origin);
+	const float move_len = Vec3_Length(move_dir);
 
 	if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 8.0) {
 		ai->no_movement_frames++;
@@ -883,7 +891,13 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		} else if (ai->no_movement_frames >= QUETOO_TICK_RATE / 2.0) { // try a jump first
 			cmd->up = PM_SPEED_JUMP;
 		}
-	} else {
+	// check for teleport
+	} else if (move_len > 64.f) {
+		if (ai->move_target.type == AI_GOAL_NAV) {
+			if (!Ai_TryNextNodeInPath(self, &ai->move_target)) {
+				Ai_ClearGoal(&ai->move_target);
+			}
+		}
 		ai->no_movement_frames = 0;
 	}
 }
@@ -1009,7 +1023,7 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 				// got a close node, let's find a path somewhere else
 				// in the map
 				const ai_node_id_t random_node = RandomRangeu(0, Ai_Node_Count());
-				GArray *path = Ai_Node_FindPath(closest, random_node, Ai_Node_DefaultHeuristic, Ai_Node_DefaultCost);
+				GArray *path = Ai_Node_FindPath(closest, random_node, Ai_Node_DefaultHeuristic);
 
 				if (path) {
 					Ai_SetPathGoal(&ai->move_target, AI_GOAL_NAV, 0.7f, path);
@@ -1068,7 +1082,7 @@ static void Ai_Spawn(g_entity_t *self) {
 	Ai_AddFuncGoal(self, Ai_FuncGoal_Hunt, 0);
 	Ai_AddFuncGoal(self, Ai_FuncGoal_Weaponry, 0);
 	Ai_AddFuncGoal(self, Ai_FuncGoal_Acrobatics, 0);
-	Ai_AddFuncGoal(self, Ai_FuncGoal_FindItems, 0);
+	//Ai_AddFuncGoal(self, Ai_FuncGoal_FindItems, 0);
 }
 
 /**
@@ -1086,6 +1100,12 @@ static void Ai_State(uint32_t frame_num) {
  * @brief Advance the bot simulation one frame.
  */
 static void Ai_Frame(void) {
+
+	if (!ai_level.load_finished) {
+
+		Ai_NodesReady();
+		ai_level.load_finished = true;
+	}
 
 }
 
@@ -1119,6 +1139,14 @@ static void Ai_SaveNodes_f(void) {
 }
 
 /**
+ * @brief 
+ */
+static void Ai_TestPath_f(void) {
+
+	Ai_Node_TestPath();
+}
+
+/**
  * @brief Initializes the AI subsystem.
  */
 static void Ai_Init(void) {
@@ -1135,11 +1163,13 @@ static void Ai_Init(void) {
 
 	ai_no_target = aim.gi->AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
 
-	ai_node_dev = aim.gi->AddCvar("ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode");
+	ai_node_dev = aim.gi->AddCvar("ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
 
 	ai_locals = (ai_locals_t *) aim.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	aim.gi->AddCmd("ai_save_nodes", Ai_SaveNodes_f, CMD_AI, "Save current node data");
+
+	aim.gi->AddCmd("ai_test_path", Ai_TestPath_f, CMD_AI, "Save current node data");
 
 	Ai_InitItems();
 	Ai_InitSkins();
@@ -1167,6 +1197,14 @@ static void Ai_Shutdown(void) {
 	Ai_ShutdownNodes();
 
 	aim.gi->FreeTag(MEM_TAG_AI);
+}
+
+/**
+ * @brief 
+ */
+static _Bool Ai_Node_DevMode(void) {
+
+	return ai_node_dev->integer == 1;
 }
 
 /**
@@ -1198,6 +1236,11 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	
 	aix.PlayerRoam = Ai_Node_PlayerRoam;
 	aix.Render = Ai_Node_Render;
+	aix.IsDeveloperMode = Ai_Node_DevMode;
+	aix.CreateNode = Ai_Node_CreateNode;
+	aix.GetNodePosition = Ai_Node_GetPosition;
+	aix.FindClosestNode = Ai_Node_FindClosest;
+	aix.CreateLink = Ai_Node_CreateLink;
 
 	return &aix;
 }

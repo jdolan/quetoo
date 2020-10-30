@@ -63,6 +63,16 @@ typedef struct ai_client_data_s ai_client_data_t;
 typedef struct ai_item_data_s ai_item_data_t;
 
 /**
+ * @brief
+ */
+typedef uint16_t ai_node_id_t;
+
+/**
+ * @brief
+ */
+#define NODE_INVALID	((ai_node_id_t)-1)
+
+/**
  * @brief Functions and the like that the AI system exports to the game.
  */
 typedef struct {
@@ -138,4 +148,29 @@ typedef struct {
 	 * @brief Render a debug view to the specified player.
 	 */
 	void (*Render)(const g_entity_t *player);
+	
+	/**
+	 * @brief
+	 */
+	_Bool (*IsDeveloperMode)(void);
+
+	/**
+	 * @brief
+	 */
+	ai_node_id_t (*CreateNode)(const vec3_t position);
+
+	/**
+	 * @brief
+	 */
+	vec3_t (*GetNodePosition)(const ai_node_id_t node);
+
+	/**
+	 * @brief
+	 */
+	ai_node_id_t (*FindClosestNode)(const vec3_t position, const float max_distance, const bool only_visible);
+
+	/**
+	 * @brief
+	 */
+	void (*CreateLink)(const ai_node_id_t a, const ai_node_id_t b, const float cost);
 } ai_export_t;

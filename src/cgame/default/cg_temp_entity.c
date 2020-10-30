@@ -155,8 +155,13 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color) {
  */
 static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint8_t bits) {
 
+	const float color_intensity = (bits & 4) ? 0.2f : 1.0f;
+	const vec4_t both_color = Vec4(color_hue_green, color_intensity, color_intensity, 0.f);
+	const vec4_t a_color = Vec4(color_hue_blue, color_intensity, color_intensity, 0.f);
+	const vec4_t b_color = Vec4(color_hue_red, color_intensity, color_intensity, 0.f);
+
 	// both sides connected
-	if (bits == 3) {
+	if ((bits & 3) == 3) {
 		Cg_AddSprite(&(cg_sprite_t) {
 			.type = SPRITE_BEAM,
 			.image = cg_beam_hook,
@@ -164,14 +169,16 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 			.termination = end,
 			.size = 2.f,
 			.lifetime = QUETOO_TICK_MILLIS,
-			.color = Vec4(color_hue_blue, 1.f, 1.f, 0.f),
-			.end_color = Vec4(color_hue_blue, 1.f, 1.f, 0.f)
+			.color = both_color,
+			.end_color = both_color
 		});
+
+		return;
 	} else {
 		const vec3_t center = Vec3_Scale(Vec3_Add(start, end), 0.5f);
 		
 		// only end connected
-		if (bits == 2) {
+		if (bits & 2) {
 			Cg_AddSprite(&(cg_sprite_t) {
 				.type = SPRITE_BEAM,
 				.image = cg_beam_hook,
@@ -179,8 +186,8 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 				.termination = center,
 				.size = 2.f,
 				.lifetime = QUETOO_TICK_MILLIS,
-				.color = Vec4(color_hue_blue, 1.f, 1.f, 0.f),
-				.end_color = Vec4(color_hue_blue, 1.f, 1.f, 0.f)
+				.color = a_color,
+				.end_color = a_color
 			});
 
 			Cg_AddSprite(&(cg_sprite_t) {
@@ -190,8 +197,8 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 				.termination = start,
 				.size = 2.f,
 				.lifetime = QUETOO_TICK_MILLIS,
-				.color = Vec4(color_hue_red, 1.f, 1.f, 0.f),
-				.end_color = Vec4(color_hue_red, 1.f, 1.f, 0.f)
+				.color = b_color,
+				.end_color = b_color
 			});
 		} else {
 			Cg_AddSprite(&(cg_sprite_t) {
@@ -201,8 +208,8 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 				.termination = center,
 				.size = 2.f,
 				.lifetime = QUETOO_TICK_MILLIS,
-				.color = Vec4(color_hue_red, 1.f, 1.f, 0.f),
-				.end_color = Vec4(color_hue_red, 1.f, 1.f, 0.f)
+				.color = b_color,
+				.end_color = b_color
 			});
 
 			Cg_AddSprite(&(cg_sprite_t) {
@@ -212,8 +219,8 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 				.termination = start,
 				.size = 2.f,
 				.lifetime = QUETOO_TICK_MILLIS,
-				.color = Vec4(color_hue_blue, 1.f, 1.f, 0.f),
-				.end_color = Vec4(color_hue_blue, 1.f, 1.f, 0.f)
+				.color = a_color,
+				.end_color = a_color
 			});
 		}
 	}
