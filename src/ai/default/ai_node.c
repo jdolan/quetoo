@@ -728,6 +728,10 @@ void Ai_InitNodes(const char *mapname) {
  */
 void Ai_NodesReady(void) {
 
+	if (!ai_nodes) {
+		return;
+	}
+	
 	const guint added_nodes = ai_nodes->len - ai_player_roam.file_nodes;
 	guint added_links = 0;
 
