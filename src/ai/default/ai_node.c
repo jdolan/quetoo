@@ -731,7 +731,7 @@ void Ai_NodesReady(void) {
 	if (!ai_nodes) {
 		return;
 	}
-	
+
 	const guint added_nodes = ai_nodes->len - ai_player_roam.file_nodes;
 	guint added_links = 0;
 
@@ -749,7 +749,7 @@ void Ai_NodesReady(void) {
  */
 void Ai_SaveNodes(void) {
 
-	if (ai_node_dev->integer == 1) {
+	if (ai_node_dev->integer != 1) {
 		aim.gi->Warn("This command only works with `ai_node_dev` set to 1.\n");
 		return;
 	}
