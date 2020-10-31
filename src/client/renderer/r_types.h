@@ -36,19 +36,17 @@
  * @brief Media identifier type
  */
 typedef enum {
-	MEDIA_GENERIC, // unknown/generic type
-	MEDIA_IMAGE, // r_image_t
-	MEDIA_ATLAS, // r_atlas_t
-	MEDIA_ATLAS_IMAGE, // r_atlas_image_t
-	MEDIA_ANIMATION, // r_animation_t
+	R_MEDIA_GENERIC, // unknown/generic type
+	R_MEDIA_IMAGE, // r_image_t
+	R_MEDIA_ATLAS, // r_atlas_t
+	R_MEDIA_ATLAS_IMAGE, // r_atlas_image_t
+	R_MEDIA_ANIMATION, // r_animation_t
 
-	MEDIA_MD3, //
-	MEDIA_OBJ, // r_model_t
-	MEDIA_BSP, //
+	R_MEDIA_MODEL, // r_model_t
 
-	MEDIA_MATERIAL, // r_material_t
+	R_MEDIA_MATERIAL, // r_material_t
 
-	MEDIA_TOTAL
+	R_MEDIA_TOTAL
 } r_media_type_t;
 
 /**

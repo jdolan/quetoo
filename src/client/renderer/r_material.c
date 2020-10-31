@@ -221,7 +221,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	R_MaterialKey(cm->name, key, sizeof(key), context);
 
-	r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
+	r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), R_MEDIA_MATERIAL);
 	material->cm = cm;
 
 	material->media.Register = R_RegisterMaterial;
@@ -229,7 +229,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	R_RegisterMedia((r_media_t *) material);
 
-	material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), MEDIA_IMAGE);
+	material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), R_MEDIA_IMAGE);
 	material->texture->type = IT_MATERIAL;
 
 	R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
@@ -351,7 +351,7 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 	StripExtension(name, basename);
 	R_MaterialKey(basename, key, sizeof(key), context);
 
-	return (r_material_t *) R_FindMedia(key);
+	return (r_material_t *) R_FindMedia(key, R_MEDIA_MATERIAL);
 }
 
 /**

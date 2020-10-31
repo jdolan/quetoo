@@ -36,7 +36,7 @@ static void R_FreeAnimation(r_media_t *media) {
  */
 r_animation_t *R_CreateAnimation(const char *name, int32_t num_images, const r_image_t **images) {
 
-	r_animation_t *animation = (r_animation_t *) R_AllocMedia(name, sizeof(r_animation_t), MEDIA_ANIMATION);
+	r_animation_t *animation = (r_animation_t *) R_AllocMedia(name, sizeof(r_animation_t), R_MEDIA_ANIMATION);
 
 	animation->media.Free = R_FreeAnimation;
 	animation->num_frames = num_images;

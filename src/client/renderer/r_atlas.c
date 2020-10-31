@@ -43,13 +43,13 @@ static void R_FreeAtlas(r_media_t *media) {
  */
 r_atlas_t *R_LoadAtlas(const char *name) {
 
-	r_atlas_t *atlas = (r_atlas_t *) R_FindMedia(name);
+	r_atlas_t *atlas = (r_atlas_t *) R_FindMedia(name, R_MEDIA_ATLAS);
 	if (atlas == NULL) {
 
-		atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), MEDIA_ATLAS);
+		atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), R_MEDIA_ATLAS);
 		atlas->media.Free = R_FreeAtlas;
 
-		atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), MEDIA_IMAGE);
+		atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), R_MEDIA_IMAGE);
 		atlas->image->media.Free = R_FreeImage;
 
 		atlas->image->type = IT_ATLAS;
@@ -82,7 +82,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 		}
 	}
 
-	r_atlas_image_t *atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), MEDIA_ATLAS_IMAGE);
+	r_atlas_image_t *atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), R_MEDIA_ATLAS_IMAGE);
 	assert(atlas_image);
 
 	SDL_Surface *surf = Img_LoadSurface(name);

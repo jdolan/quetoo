@@ -146,13 +146,18 @@ void S_RegisterMedia(s_media_t *media) {
 /**
  * @brief Resolves the specified media if it is already known. The returned
  * media is re-registered for convenience.
- *
  * @return s_media_t The media, or `NULL`.
  */
-s_media_t *S_FindMedia(const char *name) {
-	s_media_t *media;
+s_media_t *S_FindMedia(const char *name, s_media_type_t type) {
 
-	if ((media = g_hash_table_lookup(s_media_state.media, name))) {
+	s_media_t lookup = {
+		.type = type
+	};
+
+	g_strlcpy(lookup.name, name, sizeof(lookup.name));
+
+	s_media_t *media = g_hash_table_lookup(s_media_state.media, &lookup);
+	if (media) {
 		S_RegisterMedia(media);
 	}
 
@@ -161,12 +166,11 @@ s_media_t *S_FindMedia(const char *name) {
 
 /**
  * @brief Returns a newly allocated s_media_t with the specified name.
- *
  * @param size_t size The number of bytes to allocate for the media.
- *
+ * @param type The media type.
  * @return The newly initialized media.
  */
-s_media_t *S_AllocMedia(const char *name, size_t size) {
+s_media_t *S_AllocMedia(const char *name, size_t size, s_media_type_t type) {
 
 	if (!name || !*name) {
 		Com_Error(ERROR_DROP, "NULL name\n");
@@ -175,6 +179,7 @@ s_media_t *S_AllocMedia(const char *name, size_t size) {
 	s_media_t *media = Mem_TagMalloc(size, MEM_TAG_SOUND);
 
 	g_strlcpy(media->name, name, sizeof(media->name));
+	media->type = type;
 
 	return media;
 }
@@ -227,13 +232,35 @@ void S_BeginLoading(void) {
 }
 
 /**
+ * @brief
+ */
+static guint S_MediaHash(gconstpointer key) {
+	const s_media_t *media = key;
+
+	return g_str_hash(media->name) + media->type;
+}
+
+/**
+ * @brief
+ */
+static gboolean S_MediaEqual(gconstpointer a, gconstpointer b) {
+	const s_media_t *_a = a, *_b = b;
+
+	if (_a->type == _b->type) {
+		return g_str_equal(_a->name, _b->name);
+	}
+
+	return false;
+}
+
+/**
  * @brief Initializes the media pool.
  */
 void S_InitMedia(void) {
 
 	memset(&s_media_state, 0, sizeof(s_media_state));
 
-	s_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+	s_media_state.media = g_hash_table_new_full(S_MediaHash, S_MediaEqual, NULL, Mem_Free);
 
 	S_BeginLoading();
 }

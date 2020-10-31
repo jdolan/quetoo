@@ -117,10 +117,15 @@ r_media_t *R_RegisterMedia(r_media_t *media) {
 /**
  * @return The named media if it is already known, re-registering it for convenience.
  */
-r_media_t *R_FindMedia(const char *name) {
+r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
 
-	r_media_t *media = g_hash_table_lookup(r_media_state.media, name);
+	r_media_t lookup = {
+		.type = type
+	};
+	
+	g_strlcpy(lookup.name, name, sizeof(lookup.name));
 
+	r_media_t *media = g_hash_table_lookup(r_media_state.media, &lookup);
 	if (media) {
 		R_RegisterMedia(media);
 	}
@@ -205,13 +210,35 @@ void R_BeginLoading(void) {
 }
 
 /**
+ * @brief
+ */
+static guint R_MediaHash(gconstpointer key) {
+	const r_media_t *media = key;
+
+	return g_str_hash(media->name) + media->type;
+}
+
+/**
+ * @brief
+ */
+static gboolean R_MediaEqual(gconstpointer a, gconstpointer b) {
+	const r_media_t *_a = a, *_b = b;
+
+	if (_a->type == _b->type) {
+		return g_str_equal(_a->name, _b->name);
+	}
+
+	return false;
+}
+
+/**
  * @brief Initializes the media pool.
  */
 void R_InitMedia(void) {
 
 	memset(&r_media_state, 0, sizeof(r_media_state));
 
-	r_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+	r_media_state.media = g_hash_table_new_full(R_MediaHash, R_MediaEqual, NULL, Mem_Free);
 
 	R_BeginLoading();
 }

@@ -126,10 +126,10 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 			light.atten = LIGHT_ATTEN_NONE;
 		} else if (!g_strcmp0(classname, "light_spot") || targetname) {
 			light.type = LIGHT_SPOT;
-			light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
+			light.atten = LIGHT_ATTEN_LINEAR;
 		} else {
 			light.type = LIGHT_POINT;
-			light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
+			light.atten = LIGHT_ATTEN_LINEAR;
 		}
 
 		Cm_EntityVector(entity, "origin", light.origin.xyz, 3);
