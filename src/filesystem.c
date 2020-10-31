@@ -220,7 +220,7 @@ _Bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 /**
  * @brief Seeks to the specified offset.
  */
-_Bool Fs_Seek(file_t *file, size_t offset) {
+_Bool Fs_Seek(file_t *file, int64_t offset) {
 	return PHYSFS_seek((PHYSFS_File *) file, offset) ? true : false;
 }
 

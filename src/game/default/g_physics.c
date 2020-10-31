@@ -497,7 +497,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 	G_Physics_Push_Impact(self);
 
 	// calculate bounds for the entire move
-	vec3_t total_mins, total_maxs;
+	vec3_t total_mins = Vec3_Zero(), total_maxs = Vec3_Zero();
 
 	if (!Vec3_Equal(self->s.angles, Vec3_Zero()) || !Vec3_Equal(amove, Vec3_Zero())) {
 		const float radius = Vec3_Distance(self->mins, self->maxs) * 0.5;

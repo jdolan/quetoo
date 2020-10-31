@@ -713,7 +713,7 @@ static _Bool Ai_CheckDistress(g_entity_t *self, ai_locals_t *ai, const vec3_t de
 	// closing in
 	if (path_dist < ai->goal_distance) {
 		ai->goal_distance = path_dist;
-		ai->goal_distress *= 0.5f;
+		ai->goal_distress /= 2;
 	// getting further away
 	} else {
 		ai->goal_distress++;

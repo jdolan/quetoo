@@ -110,6 +110,10 @@ static int32_t Atlas_DefaultComparator(const atlas_node_t *a, const atlas_node_t
 	return b->surfaces[0]->h - a->surfaces[0]->h;
 }
 
+typedef struct {
+	AtlasNodeComparator func;
+} atlas_comparator_t;
+
 /**
  * @brief GCompareDataFunc for node sorting. Note that g_ptr_array_sort provides pointers to pointers.
  */
@@ -118,9 +122,9 @@ static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b, gpointer data
 	const atlas_node_t *a_node = *(atlas_node_t **) a;
 	const atlas_node_t *b_node = *(atlas_node_t **) b;
 
-	AtlasNodeComparator comparator = (AtlasNodeComparator) data;
+	atlas_comparator_t *comparator = (atlas_comparator_t *) data;
 
-	return comparator(a_node, b_node);
+	return comparator->func(a_node, b_node);
 }
 
 /**
@@ -151,7 +155,9 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 
 	atlas->tag++;
 
-	g_ptr_array_sort_with_data(atlas->nodes, Atlas_NodeComparator, atlas->comparator ?: Atlas_DefaultComparator);
+	atlas_comparator_t comparator = { .func = atlas->comparator ?: Atlas_DefaultComparator };
+
+	g_ptr_array_sort_with_data(atlas->nodes, Atlas_NodeComparator, &comparator);
 
 	int32_t x = 0, y = 0, row = 0;
 

@@ -73,8 +73,6 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
 	return TexinfoCmp(a_face->texinfo, b_face->texinfo);
 }
 
-extern int num_welds;
-
 /**
  * @brief
  */

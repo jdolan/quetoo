@@ -32,7 +32,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 20
+#define CGAME_API_VERSION 21
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -165,7 +165,7 @@ typedef struct cg_import_s {
 	 * @param offset The offset.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*SeekFile)(file_t *file, size_t offset);
+	_Bool (*SeekFile)(file_t *file, int64_t offset);
 
 	/**
 	 * @brief Reads from the specified file.
