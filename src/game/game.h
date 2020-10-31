@@ -25,7 +25,7 @@
 #include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 10
+#define GAME_API_VERSION 11
 
 /**
  * @brief Server flags for g_entity_t.
@@ -214,7 +214,7 @@ typedef struct g_import_s {
 	 * @param offset The offset.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*SeekFile)(file_t *file, size_t offset);
+	_Bool (*SeekFile)(file_t *file, int64_t offset);
 
 	/**
 	 * @brief Reads from the specified file.

@@ -57,7 +57,7 @@ file_t *Fs_OpenWrite(const char *filename);
 int64_t Fs_Print(file_t *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count);
 _Bool Fs_ReadLine(file_t *file, char *buffer, size_t len);
-_Bool Fs_Seek(file_t *file, size_t offset);
+_Bool Fs_Seek(file_t *file, int64_t offset);
 int64_t Fs_FileLength(file_t *file);
 int64_t Fs_Tell(file_t *file);
 int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count);

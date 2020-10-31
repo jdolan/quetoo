@@ -451,7 +451,7 @@ static _Bool Sv_RateDrop(sv_client_t *cl) {
  */
 static size_t Sv_GetDemoMessage(byte *buffer) {
 	int32_t size;
-	size_t r;
+	int64_t r;
 
 	r = Fs_Read(sv.demo_file, &size, sizeof(size), 1);
 

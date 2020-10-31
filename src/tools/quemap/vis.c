@@ -149,7 +149,7 @@ static chain_winding_t *ClipChainWinding(chain_t *chain, chain_winding_t *in, co
 
 	for (int32_t i = 0; i < in->num_points; i++) {
 
-		vec3_t p1, p2, mid;
+		vec3_t p1, p2, mid = Vec3_Zero();
 		p1 = in->points[i];
 
 		if (out->num_points == MAX_POINTS_ON_CHAIN_WINDING) {

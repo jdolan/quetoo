@@ -207,23 +207,9 @@ static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
 	}
 }
 
-int num_welds = 0;
+int32_t num_welds = 0;
 
 static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
-
-	/*for (int32_t x = 0; x < bsp_file.num_vertexes; x++) {
-		const vec3_t pos = bsp_file.vertexes[x].position;
-
-		if (Vec3_DistanceSquared(pos, in) < VERTEX_EPSILON * VERTEX_EPSILON) {
-			*out = pos;
-			num_welds++;
-			return;
-		}
-	}
-
-	*out = in;
-	return;*/
-
 	static const int32_t offsets[] = { 0, 1, -1 };
 	
 	for (int32_t z = 0; z < (int32_t) lengthof(offsets); z++) {

@@ -36,7 +36,7 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 
 			const char *filename = desc->filenames[count];
 			if (filename) {
-				const ssize_t length = Fs_Load(va("shaders/%s", filename), &source[count]);
+				const int64_t length = Fs_Load(va("shaders/%s", filename), &source[count]);
 				if (length == -1) {
 					Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
 				}

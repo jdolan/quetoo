@@ -45,6 +45,7 @@ typedef struct face_s {
 } face_t;
 
 extern int32_t c_merged;
+extern int32_t num_welds;
 
 face_t *AllocFace(void);
 void FreeFace(face_t *f);
