@@ -124,14 +124,14 @@ s_music_t *S_LoadMusic(const char *name) {
 
 	StripExtension(name, key);
 
-	if (!(music = (s_music_t *) S_FindMedia(key))) {
+	if (!(music = (s_music_t *) S_FindMedia(key, S_MEDIA_MUSIC))) {
 		SF_INFO info;
 		SNDFILE *snd;
 		file_t *file;
 
 		if (S_LoadMusicFile(key, &info, &snd, &file)) {
 
-			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t));
+			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t), S_MEDIA_MUSIC);
 
 			music->media.type = S_MEDIA_MUSIC;
 

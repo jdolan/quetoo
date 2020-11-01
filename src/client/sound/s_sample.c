@@ -222,11 +222,11 @@ s_sample_t *S_LoadSample(const char *name) {
 
 	StripExtension(name, key);
 
-	if (!(sample = (s_sample_t *) S_FindMedia(key))) {
-		sample = (s_sample_t *) S_AllocMedia(key, sizeof(s_sample_t));
+	if (!(sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE))) {
+
+		sample = (s_sample_t *) S_AllocMedia(key, sizeof(s_sample_t), S_MEDIA_SAMPLE);
 
 		sample->media.type = S_MEDIA_SAMPLE;
-
 		sample->media.Free = S_FreeSample;
 
 		S_LoadSampleChunk(sample);
@@ -243,7 +243,7 @@ s_sample_t *S_LoadSample(const char *name) {
  */
 static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 
-	s_sample_t *s = (s_sample_t *) S_AllocMedia(alias, sizeof(s_sample_t));
+	s_sample_t *s = (s_sample_t *) S_AllocMedia(alias, sizeof(s_sample_t), S_MEDIA_SAMPLE);
 
 	sample->media.type = S_MEDIA_SAMPLE;
 
@@ -276,14 +276,14 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 
 	// see if we already know of the model-specific sound
 	g_snprintf(alias, sizeof(path), "#players/%s/%s", model, name + 1);
-	sample = (s_sample_t *) S_FindMedia(alias);
 
+	sample = (s_sample_t *) S_FindMedia(alias, S_MEDIA_SAMPLE);
 	if (sample) {
 		return sample;
 	}
 
 	// we don't, see if we already have this alias loaded
-	if (S_FindMedia(alias)) {
+	if (S_FindMedia(alias, S_MEDIA_SAMPLE)) {
 
 		sample = S_LoadSample(alias);
 

@@ -123,7 +123,7 @@ static struct {
  */
 static void R_SpriteTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_t *tr, vec2_t *br, vec2_t *bl) {
 
-	if (image->media.type == MEDIA_ATLAS_IMAGE) {
+	if (image->media.type == R_MEDIA_ATLAS_IMAGE) {
 		r_atlas_image_t *atlas_image = (r_atlas_image_t *) image;
 
 		*tl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
@@ -146,7 +146,7 @@ static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float
 
 	const r_image_t *image;
 
-	if (media->type == MEDIA_ANIMATION) {
+	if (media->type == R_MEDIA_ANIMATION) {
 		image = R_ResolveAnimation((r_animation_t *) media, life, 0);
 	} else {
 		image = (r_image_t *) media;
@@ -244,7 +244,7 @@ void R_AddSprite(const r_sprite_t *s) {
 	const r_image_t *next_image = NULL;
 	float lerp = 0.f;
 
-	if (s->media->type == MEDIA_ANIMATION) {
+	if (s->media->type == R_MEDIA_ANIMATION) {
 		const r_animation_t *anim = (const r_animation_t *) s->media;
 
 		next_image = R_ResolveAnimation(anim, s->life, 1);

@@ -380,9 +380,11 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 	r_bsp_inline_model_t *in = mod->bsp->inline_models;
 	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 
-		r_model_t *out = Mem_TagMalloc(sizeof(r_model_t), MEM_TAG_RENDERER);
+		char name[MAX_QPATH];
+		g_snprintf(name, sizeof(name), "%s#%d", mod->media.name, i);
 
-		g_snprintf(out->media.name, sizeof(mod->media.name), "%s#%d", mod->media.name, i);
+		r_model_t *out = (r_model_t *) R_AllocMedia(name, sizeof(r_model_t), R_MEDIA_MODEL);
+
 		out->type = MOD_BSP_INLINE;
 		out->bsp_inline = in;
 
@@ -411,7 +413,7 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 		out->width = 1;
 	}
 
-	out->atlas = (r_image_t *) R_AllocMedia("lightmap", sizeof(r_image_t), MEDIA_IMAGE);
+	out->atlas = (r_image_t *) R_AllocMedia("lightmap", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->atlas->media.Free = R_FreeImage;
 	out->atlas->type = IT_LIGHTMAP;
 	out->atlas->width = out->width;
@@ -473,7 +475,7 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++, data += texture_size) {
 
-		out->textures[i] = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), MEDIA_IMAGE);
+		out->textures[i] = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), R_MEDIA_IMAGE);
 		out->textures[i]->media.Free = R_FreeImage;
 		out->textures[i]->type = IT_LIGHTGRID;
 		out->textures[i]->width = out->size.x;

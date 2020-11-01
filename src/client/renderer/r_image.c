@@ -309,9 +309,9 @@ _Bool R_CreateImage(r_image_t **out, const char *name, const int32_t width, cons
 
 	StripExtension(name, key);
 
-	if (!(image = (r_image_t *) R_FindMedia(key))) {
+	if (!(image = (r_image_t *) R_FindMedia(key, R_MEDIA_IMAGE))) {
 
-		image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), MEDIA_IMAGE);
+		image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), R_MEDIA_IMAGE);
 
 		image->media.Retain = R_RetainImage;
 		image->media.Free = R_FreeImage;
@@ -341,7 +341,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	StripExtension(name, key);
 
-	if ((image = (r_image_t *) R_FindMedia(key))) {
+	if ((image = (r_image_t *) R_FindMedia(key, R_MEDIA_IMAGE))) {
 		return image;
 	}
 
@@ -476,7 +476,7 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
  */
 static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
 
-	if (media->type == MEDIA_IMAGE) {
+	if (media->type == R_MEDIA_IMAGE) {
 		const r_image_t *image = (const r_image_t *) media;
 		char path[MAX_OS_PATH];
 

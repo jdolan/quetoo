@@ -235,13 +235,13 @@ static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_
 
 	if (stage->media) {
 		switch (stage->media->type) {
-			case MEDIA_IMAGE:
-			case MEDIA_ATLAS_IMAGE: {
+			case R_MEDIA_IMAGE:
+			case R_MEDIA_ATLAS_IMAGE: {
 				const r_image_t *image = (r_image_t *) stage->media;
 				glBindTexture(GL_TEXTURE_2D, image->texnum);
 			}
 				break;
-			case MEDIA_ANIMATION: {
+			case R_MEDIA_ANIMATION: {
 				const r_animation_t *animation = (r_animation_t *) stage->media;
 				int32_t frame;
 				if (stage->cm->animation.fps == 0.f && e != NULL) {
@@ -252,7 +252,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_
 				glBindTexture(GL_TEXTURE_2D, animation->frames[frame % animation->num_frames]->texnum);
 			}
 				break;
-			case MEDIA_MATERIAL: {
+			case R_MEDIA_MATERIAL: {
 				const r_material_t *material = (r_material_t *) stage->media;
 				glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 				glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
@@ -610,7 +610,7 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
 
-	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), MEDIA_IMAGE);
+	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;
 	r_bsp_program.warp_image->media.Free = R_FreeImage;
 
