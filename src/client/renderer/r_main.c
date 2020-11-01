@@ -268,7 +268,6 @@ static void R_Clear(void) {
 		bits |= GL_COLOR_BUFFER_BIT;
 	}
 
-	glClearColor(1, 1, 1, 1);
 	glClear(bits);
 	R_GetError(NULL);
 }
