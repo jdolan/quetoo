@@ -388,6 +388,9 @@ static void AddBrushBevels(brush_t *b) {
  */
 static void MakeBrushWindings(brush_t *brush) {
 
+	assert(brush);
+	assert(brush->num_sides);
+
 	brush->mins = Vec3_Mins();
 	brush->maxs = Vec3_Maxs();
 
@@ -797,6 +800,9 @@ static entity_t *ParseEntity(parser_t *parser) {
 		if (!Vec3_Equal(origin, Vec3_Zero())) {
 			for (int32_t i = 0; i < entity->num_brushes; i++) {
 				brush_t *b = &brushes[entity->first_brush + i];
+				if (!b->num_sides) {
+					continue;
+				}
 				for (int32_t j = 0; j < b->num_sides; j++) {
 
 					brush_side_t *s = &b->sides[j];
