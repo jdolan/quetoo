@@ -777,22 +777,24 @@ static entity_t *ParseEntity(parser_t *parser) {
 
 		// if there was an origin brush, offset all of the planes and texinfo
 		if (!Vec3_Equal(origin, Vec3_Zero())) {
-			for (int32_t i = 0; i < entity->num_brushes; i++) {
-				brush_t *b = &brushes[entity->first_brush + i];
-				if (!b->num_sides) {
+
+			brush_t *brush = brushes + entity->first_brush;
+			for (int32_t i = 0; i < entity->num_brushes; i++, brush++) {
+
+				if (!brush->num_sides) {
 					continue;
 				}
-				for (int32_t j = 0; j < b->num_sides; j++) {
 
-					brush_side_t *s = &b->sides[j];
-					plane_t *p = &planes[s->plane_num];
+				brush_side_t *side = brush->sides;
+				for (int32_t j = 0; j < brush->num_sides; j++, side++) {
 
-					const double dist = p->dist - Vec3_Dot(p->normal, origin);
+					const plane_t *plane = &planes[side->plane_num];
+					const double dist = plane->dist - Vec3_Dot(plane->normal, origin);
 
-					s->plane_num = FindPlane(p->normal, dist);
-					s->texinfo = TexinfoForBrushSide(s, origin);
+					side->plane_num = FindPlane(plane->normal, dist);
+					side->texinfo = TexinfoForBrushSide(side, origin);
 				}
-				MakeBrushWindings(b);
+				MakeBrushWindings(brush);
 			}
 		}
 
