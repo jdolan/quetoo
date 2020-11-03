@@ -130,7 +130,7 @@ static void Mon_Stdio(mon_level_t level, const char *msg) {
 /**
  * @brief Sends a brush selection to GtkRadiant.
  */
-void Mon_SendSelect_(const char *func, mon_level_t level, uint16_t e, uint16_t b, const char *msg) {
+void Mon_SendSelect_(const char *func, mon_level_t level, int32_t e, int32_t b, const char *msg) {
 
 	xmlNodePtr select = xmlNewNode(NULL, xmlString("select"));
 	xmlNodeSetContent(select, xmlStringf("%s: Entity %u, Brush %u: %s", func, e, b, msg));
@@ -166,7 +166,7 @@ void Mon_SendPoint_(const char *func, mon_level_t level, const vec3_t p, const c
 /**
  * @brief Sends a winding to GtkRadiant.
  */
-void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], uint16_t n, const char *msg) {
+void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], int32_t n, const char *msg) {
 
 	xmlNodePtr winding_msg = xmlNewNode(NULL, xmlString("windingmsg"));
 	xmlNodeSetContent(winding_msg, xmlStringf("%s: %s", func, msg));
