@@ -104,7 +104,7 @@ static int32_t FindTexinfo(bsp_texinfo_t *tx) {
 /**
  * @brief
  */
-int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t origin) {
+int32_t TexinfoForBrushTexture(const plane_t *plane, brush_texture_t *bt, const vec3_t origin) {
 	float sinv, cosv;
 
 	if (!bt->name[0]) {

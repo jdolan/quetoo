@@ -23,4 +23,4 @@
 
 #include "map.h"
 
-int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t origin);
+int32_t TexinfoForBrushTexture(const plane_t *plane, brush_texture_t *bt, const vec3_t origin);
