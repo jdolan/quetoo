@@ -417,7 +417,7 @@ static void MakeBrushWindings(brush_t *brush) {
 		} else {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Malformed brush");
 			brush->num_sides = 0;
-			break;
+			return;
 		}
 	}
 
@@ -426,12 +426,12 @@ static void MakeBrushWindings(brush_t *brush) {
 		if (brush->mins.xyz[i] < MIN_WORLD_COORD || brush->maxs.xyz[i] > MAX_WORLD_COORD) {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Brush bounds out of range");
 			brush->num_sides = 0;
-			break;
+			return;
 		}
 		if (brush->mins.xyz[i] > MAX_WORLD_COORD || brush->maxs.xyz[i] < MIN_WORLD_COORD) {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "No visible sides on brush");
 			brush->num_sides = 0;
-			break;
+			return;
 		}
 	}
 }
