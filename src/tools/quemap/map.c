@@ -35,7 +35,6 @@ brush_t brushes[MAX_BSP_BRUSHES];
 
 static int32_t num_brush_sides;
 static brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
-static brush_texture_t brush_textures[MAX_BSP_BRUSH_SIDES];
 
 int32_t num_planes;
 plane_t planes[MAX_BSP_PLANES];
@@ -229,7 +228,6 @@ static void AddBrushBevels(brush_t *b) {
 	int32_t axis, dir;
 	int32_t i, j, k, l, order;
 	brush_side_t sidetemp;
-	brush_texture_t tdtemp;
 	brush_side_t *s, *s2;
 	vec3_t normal;
 	double dist;
@@ -275,11 +273,6 @@ static void AddBrushBevels(brush_t *b) {
 				sidetemp = b->sides[order];
 				b->sides[order] = b->sides[i];
 				b->sides[i] = sidetemp;
-
-				j = (int32_t) (ptrdiff_t) (b->sides - brush_sides);
-				tdtemp = brush_textures[j + order];
-				brush_textures[j + order] = brush_textures[j + i];
-				brush_textures[j + i] = tdtemp;
 			}
 		}
 	}
@@ -446,9 +439,9 @@ static void MakeBrushWindings(brush_t *brush) {
 /**
  * @brief
  */
-static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
+static void SetMaterialFlags(brush_side_t *side) {
 
-	const cm_material_t *material = LoadMaterial(td->name, ASSET_CONTEXT_TEXTURES);
+	const cm_material_t *material = LoadMaterial(side->texture, ASSET_CONTEXT_TEXTURES);
 	if (material) {
 		if (material->contents) {
 			if (side->contents == 0) {
@@ -456,41 +449,43 @@ static void SetMaterialFlags(brush_side_t *side, brush_texture_t *td) {
 			}
 		}
 		if (material->surface) {
-			if (td->flags == 0) {
-				td->flags = material->surface;
+			if (side->surf == 0) {
+				side->surf = material->surface;
 			}
 		}
 		if (material->light) {
-			if (td->value == 0) {
-				td->value = material->light;
+			if (side->value == 0) {
+				side->value = material->light;
 			}
 		}
 	}
 
-	if (!g_strcmp0(td->name, "common/monsterclip") || !g_strcmp0(td->name, "common/botclip")) {
+	if (!g_strcmp0(side->texture, "common/botclip")) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
-	} else if (!g_strcmp0(td->name, "common/caulk") || !g_strcmp0(td->name, "common/nodraw")) {
-		td->flags |= SURF_NO_DRAW;
-	} else if (!g_strcmp0(td->name, "common/clip")) {
+	} else if (!g_strcmp0(side->texture, "common/caulk")) {
+		side->surf |= SURF_NO_DRAW;
+	} else if (!g_strcmp0(side->texture, "common/clip")) {
 		side->contents |= CONTENTS_PLAYER_CLIP;
-	} else if (!g_strcmp0(td->name, "common/hint")) {
-		td->flags |= SURF_HINT;
-	} else if (!g_strcmp0(td->name, "common/ladder")) {
+	} else if (!g_strcmp0(side->texture, "common/hint")) {
+		side->surf |= SURF_HINT;
+	} else if (!g_strcmp0(side->texture, "common/ladder")) {
 		side->contents |= CONTENTS_LADDER | CONTENTS_WINDOW;
 		side->surf |= SURF_NO_DRAW;
-	} else if (!g_strcmp0(td->name, "common/origin")) {
+	} else if (!g_strcmp0(side->texture, "common/nodraw")) {
+		side->surf |= SURF_NO_DRAW;
+	} else if (!g_strcmp0(side->texture, "common/origin")) {
 		side->contents |= CONTENTS_ORIGIN;
-	} else if (!g_strcmp0(td->name, "common/skip")) {
-		td->flags |= SURF_SKIP;
-	} else if (!g_strcmp0(td->name, "common/sky")) {
-		td->flags |= SURF_SKY;
-	} else if (!g_strcmp0(td->name, "common/trigger")) {
+	} else if (!g_strcmp0(side->texture, "common/skip")) {
+		side->surf |= SURF_SKIP;
+	} else if (!g_strcmp0(side->texture, "common/sky")) {
+		side->surf |= SURF_SKY;
+	} else if (!g_strcmp0(side->texture, "common/trigger")) {
 		side->contents |= CONTENTS_WINDOW;
 		side->surf |= SURF_NO_DRAW;
 	}
 
 	if (side->contents & CONTENTS_MASK_LIQUID) {
-		td->flags |= SURF_LIQUID;
+		side->surf |= SURF_LIQUID;
 	}
 }
 
@@ -561,34 +556,29 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 		}
 
-		brush_texture_t td;
-		memset(&td, 0, sizeof(td));
-
 		// read the texturedef
 		Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
-		if (strlen(token) > sizeof(td.name) - 1) {
+		if (strlen(token) > sizeof(side->texture) - 1) {
 			Com_Error(ERROR_FATAL, "Texture name \"%s\" is too long.\n", token);
 		}
 
-		g_strlcpy(td.name, token, sizeof(td.name));
+		g_strlcpy(side->texture, token, sizeof(side->texture));
 
-		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.shift.x, 1);
-		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.shift.y, 1);
-		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.rotate, 1);
-		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.scale.x, 1);
-		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.scale.y, 1);
+		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.x, 1);
+		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.y, 1);
+		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
+		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.x, 1);
+		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.y, 1);
 
 		if (!Parse_IsEOL(parser)) {
 			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->contents, 1);
-			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &td.flags, 1);
-			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &td.value, 1);
+			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->surf, 1);
+			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->value, 1);
 		}
 
 		// resolve material-based surface and contents flags
-		SetMaterialFlags(side, &td);
-
-		side->surf = td.flags;
+		SetMaterialFlags(side);
 
 		// translucent faces are inherently details beacuse they can not occlude
 		if (side->surf & SURF_MASK_TRANSLUCENT) {
@@ -641,14 +631,11 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 		}
 
-		// find the texinfo
-		side->texinfo = TexinfoForBrushTexture(&planes[side->plane_num], &td, Vec3_Zero());
+		// resolve the texinfo
+		side->texinfo = TexinfoForBrushSide(side, Vec3_Zero());
 
-		// save the td off in case there is an origin brush and we have to recalculate the texinfo
-		brush_textures[num_brush_sides] = td;
-
-		num_brush_sides++;
 		brush->num_sides++;
+		num_brush_sides++;
 	}
 
 	// get the content for the entire brush
@@ -803,7 +790,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 					const double dist = p->dist - Vec3_Dot(p->normal, origin);
 
 					s->plane_num = FindPlane(p->normal, dist);
-					s->texinfo = TexinfoForBrushTexture(p, &brush_textures[s - brush_sides], origin);
+					s->texinfo = TexinfoForBrushSide(s, origin);
 				}
 				MakeBrushWindings(b);
 			}
@@ -835,8 +822,6 @@ void LoadMapFile(const char *filename) {
 
 	memset(brush_sides, 0, sizeof(brush_sides));
 	num_brush_sides = 0;
-
-	memset(brush_textures, 0, sizeof(brush_textures));
 
 	memset(planes, 0, sizeof(planes));
 	num_planes = 0;

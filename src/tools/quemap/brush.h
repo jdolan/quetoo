@@ -24,53 +24,6 @@
 #include "csg.h"
 #include "polylib.h"
 
-/**
- * @brief The map file representation of a plane.
- */
-typedef struct plane_s {
-	vec3_t normal;
-	double dist;
-	int32_t type;
-	struct plane_s *hash_chain;
-} plane_t;
-
-/**
- * @brief The map file representation of texture attributes.
- */
-typedef struct {
-	vec2_t shift;
-	float rotate;
-	vec2_t scale;
-	char name[32];
-	int32_t flags;
-	int32_t value;
-} brush_texture_t;
-
-#define	TEXINFO_NODE -1
-
-typedef struct brush_side_s {
-	int32_t plane_num;
-	int32_t texinfo;
-	cm_winding_t *winding;
-	const struct brush_side_s *original;
-	int32_t contents;
-	int32_t surf;
-	_Bool visible; // choose visible planes first
-	_Bool bevel; // don't use for bsp splitting
-} brush_side_t;
-
-typedef struct brush_s {
-	int32_t entity_num;
-	int32_t brush_num;
-
-	int32_t contents;
-
-	vec3_t mins, maxs;
-
-	int32_t num_sides;
-	brush_side_t *sides;
-} brush_t;
-
 csg_brush_t *AllocBrush(int32_t num_sides);
 void FreeBrush(csg_brush_t *brush);
 void FreeBrushes(csg_brush_t *brushes);
