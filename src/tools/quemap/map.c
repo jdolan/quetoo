@@ -390,6 +390,10 @@ static void MakeBrushWindings(brush_t *brush) {
 	brush_side_t *side = brush->sides;
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
+		if (side->bevel) {
+			continue;
+		}
+
 		const plane_t *plane = &planes[side->plane_num];
 		side->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 
