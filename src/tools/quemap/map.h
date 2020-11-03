@@ -49,6 +49,7 @@ typedef struct plane_s {
 } plane_t;
 
 /**
+ * @brief Sentinel texinfo identifier for BSP decision nodes.
  */
 #define TEXINFO_NODE -1
 
