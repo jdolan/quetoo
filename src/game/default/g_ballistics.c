@@ -781,7 +781,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 	g_entity_t *ent = g_game.entities;
 
 	// and ruin the pool party for everyone else too
-	for (int32_t i = 0; i < g_max_entities->integer; i++, ent++) {
+	for (int32_t i = 0; i < ge.num_entities; i++, ent++) {
 
 		if (ent == self->owner) {
 			continue;

@@ -234,6 +234,11 @@ static inline _Bool EqualEpsilonf(float a, float b, float epsilon) __attribute__
 static inline float Minf(float a, float b) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The minimim of `a` and `b`.
+ */
+static inline int32_t Mini(int32_t a, int32_t b) __attribute__ ((warn_unused_result));
+
+/**
  * @return
  */
 static inline float Minf3(float a, float b, float c);
@@ -252,6 +257,11 @@ static inline float Mixf(float a, float b, float mix) __attribute__ ((warn_unuse
  * @return The maximum of `a` and `b`.
  */
 static inline float Maxf(float a, float b) __attribute__ ((warn_unused_result));
+
+/**
+ * @return The maximum of `a` and `b`.
+ */
+static inline int32_t Maxi(int32_t a, int32_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return

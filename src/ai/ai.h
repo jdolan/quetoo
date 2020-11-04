@@ -147,7 +147,7 @@ typedef struct {
 	/**
 	 * @brief Render a debug view to the specified player.
 	 */
-	void (*Render)(const g_entity_t *player);
+	void (*Render)(void);
 	
 	/**
 	 * @brief

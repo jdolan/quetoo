@@ -175,6 +175,13 @@ float Minf(float a, float b) {
 /**
  * @brief
  */
+int32_t Mini(int32_t a, int32_t b) {
+	return a < b ? a : b;
+}
+
+/**
+ * @brief
+ */
 float Minf3(float a, float b, float c) {
 	float x = a < b ? a : b;
 	return x < c ? x : c;
@@ -200,6 +207,13 @@ float Mixf(float a, float b, float mix) {
  * @brief
  */
 float Maxf(float a, float b) {
+	return a > b ? a : b;
+}
+
+/**
+ * @brief
+ */
+int32_t Maxi(int32_t a, int32_t b) {
 	return a > b ? a : b;
 }
 

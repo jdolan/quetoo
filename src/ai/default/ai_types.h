@@ -97,6 +97,11 @@ typedef struct ai_item_data_s {
 typedef struct ai_entity_data_s {
 
 	/**
+	 * @brief Offset to entity class name.
+	 */
+	const char *const *class_name;
+
+	/**
 	 * @brief Offset to ground entity
 	 */
 	g_entity_t *const *ground_entity;
@@ -131,7 +136,7 @@ typedef struct ai_entity_data_s {
  * @brief Resolve the entity data ptr for the specified member
  */
 #define ENTITY_DATA(ent, m) \
-	(*MEMBER_DATA(&ent->locals, ai_entity_data.m))
+	(*MEMBER_DATA(ent, ai_entity_data.m))
 
 /**
  * @brief Struct of parameters from g_client_t that the bot
@@ -194,34 +199,127 @@ typedef struct {
  */
 #define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\qforcer/default"
 
+/**
+ * @brief The type of goal we're after. This controls which variant in ai_goal_t
+ * we can access.
+ */
 typedef enum {
+	/**
+	 * @brief This goal is empty. This is still technically a valid goal type, just
+	 * very low priority generally.
+	 */
 	AI_GOAL_NONE,
-	AI_GOAL_NAV,
-	AI_GOAL_GHOST,
-	AI_GOAL_ITEM,
-	AI_GOAL_ENEMY,
-	AI_GOAL_TEAMMATE
+
+	/**
+	 * @brief This goal is a positional goal. It only has a known position
+	 * in the world.
+	 */
+	AI_GOAL_POSITION,
+
+	/**
+	 * @brief This goal is an entity goal. It is attached to an entity's existence.
+	 */
+	AI_GOAL_ENTITY,
+	
+	/**
+	 * @brief This goal is a path goal. It stores a whole path of connected nodes
+	 * to reach a destination.
+	 */
+	AI_GOAL_PATH
 } ai_goal_type_t;
 
+/**
+ * @brief Bot combat styles.
+ */
+typedef enum {
+	AI_COMBAT_NONE,
+
+	AI_COMBAT_CLOSE,
+	AI_COMBAT_FLANK,
+	AI_COMBAT_WANDER,
+
+	AI_COMBAT_TOTAL
+} ai_combat_type_t;
+
+/**
+ * @brief Bot trick jump timing.
+ */
+typedef enum {
+	TRICK_JUMP_NONE,
+	TRICK_JUMP_START,
+	TRICK_JUMP_WAITING,
+	TRICK_JUMP_TURNING
+} ai_trick_jump_t;
+
+/**
+ * @brief The variant structure of a goal.
+ */
 typedef struct {
+	/**
+	 * @brief The type of goal we hold.
+	 */
 	ai_goal_type_t type;
+
+	/**
+	 * @brief The priority of this goal. This can be used, for instance, to find a more suitable
+	 * target while we're actively heading for a particular goal, and replacing it.
+	 */
 	float priority;
-	uint32_t time; // time this goal was set
+
+	/**
+	 * @brief The time this goal was set at.
+	 */
+	uint32_t time;
+
+	/**
+	 * @brief Distress counter; if we reach a threshold, this goal will be abandoned.
+	 */
+	uint32_t distress;
+
+	/**
+	 * @brief Last distance we recorded to our goal.
+	 */
+	float last_distance;
+
+	/**
+	 * @brief extends the time from 1s to 10s+ FIXME: change to a fixed # that can be added to distress timeout
+	 */
+	_Bool distress_extension;
 	
-	// for AI_GOAL_ITEM/ENEMY/TEAMMATE
+	union {
+		struct {
+			float angle;
+		} wander;
 
-	const g_entity_t *ent;
-	uint16_t ent_id;
+		struct {
+			vec3_t pos;
+		} position;
 
-	// for AI_GOAL_NAV
+		struct {
+			const g_entity_t *ent;
+			uint16_t spawn_id;
 
-	GArray *path;
-	guint path_index;
-	vec3_t path_position;
+			// specific to combat goal
+
+			ai_combat_type_t combat_type;
+			uint32_t lock_on_time;
+			float flank_angle;
+		} entity;
+
+		struct {
+			GArray *path;
+			guint path_index;
+			vec3_t path_position, next_path_position;
+			ai_trick_jump_t trick_jump;
+			vec3_t trick_position;
+			const g_entity_t *path_target;
+			uint16_t path_target_spawn_id;
+		} path;
+	};
 } ai_goal_t;
 
 /**
- * @brief A G_AIGoalFunc can return this if the goal is finished.
+ * @brief An Ai_GoalFunc can return this if the goal is finished.
  */
 #define AI_GOAL_COMPLETE	0
 
@@ -246,17 +344,6 @@ typedef struct {
 #define MAX_AI_FUNCGOALS	12
 
 /**
- * @brief Bot combat styles
- */
-typedef enum {
-	AI_COMBAT_CLOSE,
-	AI_COMBAT_FLANK,
-	AI_COMBAT_WANDER,
-
-	AI_COMBAT_TOTAL
-} ai_combat_type_t;
-
-/**
  * @brief AI-specific locals
  */
 typedef struct ai_locals_s {
@@ -266,24 +353,12 @@ typedef struct ai_locals_s {
 	vec3_t aim_forward; // calculated at start of thinking
 	vec3_t eye_origin; //  ^^^
 
-	// the AI can have two distinct targets: one it's aiming at,
-	// and one it's moving towards. These aren't pointers because
-	// the priority of an item/enemy might be different depending on
-	// the state of the bot.
-	ai_goal_t aim_target;
 	ai_goal_t move_target;
-	ai_combat_type_t combat_type;
-	uint32_t lock_on_time;
-
-	float wander_angle;
-	vec3_t ghost_position;
+	ai_goal_t combat_target;
 
 	uint32_t weapon_check_time;
 
 	uint32_t no_movement_frames;
 	uint32_t reacquire_time;
-
-	uint32_t goal_distress;
-	float goal_distance;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */
