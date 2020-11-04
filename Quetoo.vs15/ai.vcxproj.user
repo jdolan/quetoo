@@ -10,7 +10,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommand>$(QUETOO_HOME)\bin\quetoo.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>+set ai_node_dev 2 +map edge</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>+set ai_node_dev 2 +map tokays</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommandArguments>+set ai_node_dev 1 +map torn</LocalDebuggerCommandArguments>

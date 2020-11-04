@@ -370,7 +370,7 @@ static void Ai_Node_RecalculateCosts(const ai_node_id_t id) {
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
 
-		if (!node->links->len) {
+		if (!node->links || !node->links->len) {
 			continue;
 		}
 

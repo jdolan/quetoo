@@ -704,6 +704,9 @@ static inline float Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 				float angle_change = 45 + Randomf() * 45;
 				*angle += Randomb() ? -angle_change : angle_change;
 			}
+		} else {
+			float angle_change = 45 + Randomf() * 45;
+			*angle += Randomb() ? -angle_change : angle_change;
 		}
 	}
 
@@ -780,7 +783,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 		goal->last_distance = path_dist;
 		goal->distress /= 2;
 	// getting further away
-	} else {
+	} else if (!(self->client->ps.pm_state.flags & PMF_UNDER_WATER) || !(ai_level.frame_num % 3)) {
 		goal->distress++;
 	}
 		
@@ -920,6 +923,21 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		// run full speed towards the target
 		} else {
 			dir = Vec3_Scale(dir, PM_SPEED_RUN);
+		}
+
+		// if we're swimming, node is above us and we're "sticky feet", jump
+		if (swimming && ENTITY_DATA(self, ground_entity)) {
+			cmd->up = PM_SPEED_JUMP;
+		// if we're on a ladder and the node is a bbox below us, crouch to get down,
+		// otherwise hold jump
+		} else if (self->client->ps.pm_state.flags & PMF_ON_LADDER) {
+
+			if ((ai->move_target.path.path_position.z - self->s.origin.z) < -(PM_MAXS.z - PM_MINS.z)) {
+				cmd->up = -PM_SPEED_DUCKED;
+			} else {
+				cmd->up = PM_SPEED_JUMP;
+			}
+
 		}
 	// run full speed towards the target
 	} else {
@@ -1123,7 +1141,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 					aim_target = ai->move_target.path.trick_position;
 				// if we're above ground & on-land, and our next path is bidirectional, assume it's normal
 				// pathing; aim towards our *next* target to look a bit more natural.
-				} else if ((ENTITY_DATA(self, water_level) < WATER_WAIST || !(aim.gi->PointContents(ai->move_target.path.path_position) & CONTENTS_MASK_LIQUID)) &&
+				} else if (((ENTITY_DATA(self, water_level) < WATER_WAIST && !(self->client->ps.pm_state.flags & PMF_ON_LADDER)) || !(aim.gi->PointContents(ai->move_target.path.path_position) & CONTENTS_MASK_LIQUID)) &&
 					Ai_Path_IsLinked(ai->move_target.path.path, ai->move_target.path.path_index, ai->move_target.path.path_index - 1)) {
 					aim_target = ai->move_target.path.next_path_position;
 				} else {
@@ -1141,9 +1159,19 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			ideal_angles = Vec3_Euler(aim_direction);
 			ideal_angles.z = 0.f;
 
-			// if underwater we have to directly face our target, otherwise
+			// if underwater or in air we have to directly face our target, otherwise
 			// just yaw us.
-			if (ENTITY_DATA(self, water_level) < WATER_WAIST) {
+			// FIXME: bug in PMove prevents this from working for *all* in air situations
+			// (you get less forward momentum on a jump if you are looking up/down)
+			// so for now this is hardcoded to ladders
+			if (self->client->ps.pm_state.flags & PMF_ON_LADDER) {
+				if ((ai->move_target.path.path_position.z - self->s.origin.z) < -(PM_MAXS.z - PM_MINS.z)) {
+					ideal_angles.x = Clampf(ideal_angles.x, -10.f, -180.f);
+				} else {
+					ideal_angles.x = Clampf(ideal_angles.x, 10.f, 180.f);
+				}
+				aim.gi->Debug("Clamping X to %f\n", ideal_angles.x);
+			} else if (ENTITY_DATA(self, water_level) < WATER_WAIST) {
 				ideal_angles.x = 0.f;
 			}
 		}
