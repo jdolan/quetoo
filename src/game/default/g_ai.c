@@ -408,6 +408,7 @@ static void G_Ai_SetDataPointers(void) {
 	ENTITY_LOCALS_PTR_OFFSET(health);
 	ENTITY_LOCALS_PTR_OFFSET(max_health);
 	ENTITY_LOCALS_PTR_OFFSET(water_level);
+	ENTITY_LOCALS_PTR_OFFSET(node);
 
 	CLIENT_PTR_OFFSET(angles);
 	CLIENT_PTR_OFFSET(inventory);

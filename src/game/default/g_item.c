@@ -1026,12 +1026,14 @@ void G_ResetItem(g_entity_t *ent) {
 static void G_ItemDropToFloor(g_entity_t *ent) {
 	cm_trace_t tr;
 	vec3_t dest;
+	_Bool drop_node = false;
 
 	ent->locals.velocity = Vec3_Zero();
 	dest = ent->s.origin;
 
 	if (!(ent->locals.spawn_flags & SF_ITEM_HOVER)) {
 		ent->locals.move_type = MOVE_TYPE_BOUNCE;
+		drop_node = true;
 	} else {
 		ent->locals.move_type = MOVE_TYPE_FLY;
 	}
@@ -1070,6 +1072,24 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 	}
 
 	G_ResetItem(ent);
+
+	if (drop_node && aix && !aix->IsDeveloperMode()) {
+		// find node closest to us
+		const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true);
+
+		if (src_node != NODE_INVALID) {
+
+			// make a new node on the item
+
+			const ai_node_id_t new_node = aix->CreateNode(ent->s.origin);
+			const float dist = Vec3_Distance(aix->GetNodePosition(src_node), ent->s.origin);
+
+			aix->CreateLink(src_node, new_node, dist);
+			aix->CreateLink(new_node, src_node, dist);
+
+			ent->locals.node = new_node;
+		}
+	}
 }
 
 /**

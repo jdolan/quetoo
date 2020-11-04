@@ -130,6 +130,11 @@ typedef struct ai_entity_data_s {
 	 * @brief Offset to water level
 	 */
 	const pm_water_level_t *water_level;
+
+	/**
+	 * @brief Offset to node dropped by this entity
+	 */
+	const ai_node_id_t *node;
 } ai_entity_data_t;
 
 /**

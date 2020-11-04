@@ -65,11 +65,6 @@ typedef struct ai_item_data_s ai_item_data_t;
 /**
  * @brief
  */
-typedef uint16_t ai_node_id_t;
-
-/**
- * @brief
- */
 #define NODE_INVALID	((ai_node_id_t)-1)
 
 /**
