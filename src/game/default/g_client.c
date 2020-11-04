@@ -1015,7 +1015,7 @@ void G_ClientBegin(g_entity_t *ent) {
 	if (g_level.match || g_level.rounds) {
 		ent->client->locals.persistent.spectator = true;
 	} else if (g_level.teams || g_level.ctf) {
-		if (g_auto_join->value) {
+		if (g_auto_join->value || ent->client->ai) {
 			G_AddClientToTeam(ent, G_SmallestTeam()->name);
 		} else {
 			ent->client->locals.persistent.spectator = true;

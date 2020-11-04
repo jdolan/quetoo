@@ -111,6 +111,8 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
 
 		// small cost for teleport node
 		aix->CreateLink(new_node, dst_node, 1.f);
+
+		ent->locals.node = src_node;
 	}
 }
 

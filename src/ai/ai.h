@@ -65,11 +65,6 @@ typedef struct ai_item_data_s ai_item_data_t;
 /**
  * @brief
  */
-typedef uint16_t ai_node_id_t;
-
-/**
- * @brief
- */
 #define NODE_INVALID	((ai_node_id_t)-1)
 
 /**
@@ -132,6 +127,11 @@ typedef struct {
 	 * @brief Called to think for an AI. Returns the movement command for the bot.
 	 */
 	void (*Think)(g_entity_t *self, pm_cmd_t *cmd);
+	
+	/**
+	 * @brief Called just as a bot is being removed.
+	 */
+	void (*Disconnect)(g_entity_t *self);
 
 	/**
 	 * @brief Register an item on the AI system
@@ -147,7 +147,7 @@ typedef struct {
 	/**
 	 * @brief Render a debug view to the specified player.
 	 */
-	void (*Render)(const g_entity_t *player);
+	void (*Render)(void);
 	
 	/**
 	 * @brief
@@ -173,4 +173,14 @@ typedef struct {
 	 * @brief
 	 */
 	void (*CreateLink)(const ai_node_id_t a, const ai_node_id_t b, const float cost);
+
+	/**
+	 * @brief
+	 */
+	GArray *(*GetNodeLinks)(const ai_node_id_t a);
+	
+	/**
+	 * @brief
+	 */
+	_Bool (*IsLinked)(const ai_node_id_t a, const ai_node_id_t b);
 } ai_export_t;

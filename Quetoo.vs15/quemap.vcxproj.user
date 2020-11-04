@@ -9,7 +9,7 @@
     <LocalDebuggerCommandArguments>-bsp -vis -light --indirect maps/torn.map</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommandArguments>-bsp -vis -light -v --indirect maps/torn.map</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --indirect maps/edge.map</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --indirect edge</LocalDebuggerCommandArguments>

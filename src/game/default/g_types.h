@@ -1170,6 +1170,7 @@ typedef struct {
 	pm_water_level_t water_level;
 
 	const g_item_t *item; // for bonus items
+	ai_node_id_t node; // for item paths
 } g_entity_locals_t;
 
 #include "game/game.h"

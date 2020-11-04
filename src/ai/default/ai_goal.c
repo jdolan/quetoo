@@ -63,37 +63,57 @@ void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func) {
 	}
 }
 
-/**
- * @brief Setup entity goal for the specified target.
- */
-void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, float priority, const g_entity_t *entity) {
+static inline void Ai_SetGoalBase(const g_entity_t *self, ai_goal_t *goal, ai_goal_type_t type, float priority) {
 
 	Ai_ClearGoal(goal);
 
-	aim.gi->Debug("New goal: %s (%f priority)\n", etos(entity), priority);
-
 	goal->type = type;
-	goal->time = ai_level.time;
 	goal->priority = priority;
-	goal->ent = entity;
-	goal->ent_id = entity->spawn_id;
 }
 
 /**
  * @brief Setup entity goal for the specified target.
  */
-void Ai_SetPathGoal(ai_goal_t *goal, ai_goal_type_t type, float priority, GArray *path) {
+void Ai_SetPositionalGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const vec3_t pos) {
 
-	Ai_ClearGoal(goal);
+	Ai_SetGoalBase(self, goal, AI_GOAL_POSITION, priority);
 
-	aim.gi->Debug("New goal: path from %u -> %u (%f priority)\n", g_array_index(path, ai_node_id_t, 0), g_array_index(path, ai_node_id_t, path->len - 1), priority);
+	goal->position.pos = pos;
 
-	goal->type = type;
-	goal->time = ai_level.time;
-	goal->priority = priority;
-	goal->path = g_array_ref(path);
-	goal->path_index = 0;
-	goal->path_position = Ai_Node_GetPosition(g_array_index(path, ai_node_id_t, goal->path_index));
+	aim.gi->Debug("New goal: %s (%f priority)\n", vtos(pos), priority);
+}
+
+/**
+ * @brief Setup entity goal for the specified target.
+ */
+void Ai_SetEntityGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const g_entity_t *entity) {
+
+	Ai_SetGoalBase(self, goal, AI_GOAL_ENTITY, priority);
+	
+	goal->entity.ent = entity;
+	goal->entity.spawn_id = entity->spawn_id;
+
+	aim.gi->Debug("New goal: %s (%f priority)\n", etos(entity), priority);
+}
+
+/**
+ * @brief Setup entity goal for the specified target.
+ */
+void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GArray *path, const g_entity_t *path_target) {
+
+	Ai_SetGoalBase(self, goal, AI_GOAL_PATH, priority);
+	
+	goal->path.path = g_array_ref(path);
+	goal->path.path_index = 0;
+	goal->path.path_position = Ai_Node_GetPosition(g_array_index(path, ai_node_id_t, goal->path.path_index));
+	goal->path.next_path_position = Ai_Node_GetPosition(g_array_index(path, ai_node_id_t, Mini(path->len - 1, goal->path.path_index + 1)));
+	goal->path.path_target = path_target;
+
+	if (path_target) {
+		goal->path.path_target_spawn_id = path_target->spawn_id;
+	}
+
+	aim.gi->Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", g_array_index(path, ai_node_id_t, 0), g_array_index(path, ai_node_id_t, path->len - 1), priority, etos(path_target));
 }
 
 /**
@@ -101,7 +121,8 @@ void Ai_SetPathGoal(ai_goal_t *goal, ai_goal_type_t type, float priority, GArray
  */
 _Bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent) {
 
-	return goal->ent == ent && goal->ent_id == ent->spawn_id;
+	return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawn_id == ent->spawn_id) ||
+		(goal->type == AI_GOAL_PATH && goal->path.path_target == ent && goal->path.path_target_spawn_id == ent->spawn_id);;
 }
 
 /**
@@ -112,10 +133,15 @@ void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
 	Ai_ClearGoal(to);
 
 	memcpy(to, from, sizeof(ai_goal_t));
-	to->time = ai_level.time;
 
-	if (from->path) {
-		to->path = g_array_ref(from->path);
+	// reset state-dependent objects
+	to->time = ai_level.time;
+	to->last_distance = FLT_MAX;
+	to->distress = 0;
+	to->distress_extension = false;
+
+	if (from->type == AI_GOAL_PATH) {
+		to->path.path = g_array_ref(from->path.path);
 	}
 }
 
@@ -124,11 +150,11 @@ void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
  */
 void Ai_ClearGoal(ai_goal_t *goal) {
 	
-	if (goal->path) {
-		g_array_unref(goal->path);
+	if (goal->type == AI_GOAL_PATH) {
+		g_array_unref(goal->path.path);
 	}
 
 	memset(goal, 0, sizeof(ai_goal_t));
 	goal->time = ai_level.time;
-	goal->path_index = NODE_INVALID;
+	goal->last_distance = FLT_MAX;
 }

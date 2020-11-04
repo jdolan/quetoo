@@ -531,3 +531,8 @@ _Bool ValidateUserInfo(const char *s);
 
 gboolean g_stri_equal (gconstpointer v1, gconstpointer v2);
 guint g_stri_hash (gconstpointer v);
+
+/**
+ * @brief The type of an AI node.
+ */
+typedef uint16_t ai_node_id_t;

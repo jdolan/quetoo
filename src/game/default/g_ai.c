@@ -279,7 +279,7 @@ void G_Ai_ClientConnect(const g_entity_t *ent) {
 /**
  * @brief
  */
-void G_Ai_ClientDisconnect(const g_entity_t *ent) {
+void G_Ai_ClientDisconnect(g_entity_t *ent) {
 
 	if (!aix) {
 		return;
@@ -293,6 +293,8 @@ void G_Ai_ClientDisconnect(const g_entity_t *ent) {
 			g_game.ai_left_to_spawn++;
 		}
 	}
+
+	aix->Disconnect(ent);
 }
 
 /**
@@ -379,7 +381,10 @@ void G_Ai_RegisterItems(void) {
 }
 
 #define ENTITY_PTR_OFFSET(m) \
-	entity.m = (typeof(entity.m)) offsetof(g_entity_locals_t, m)
+	entity.m = (typeof(entity.m)) offsetof(g_entity_t, m)
+
+#define ENTITY_LOCALS_PTR_OFFSET(m) \
+	entity.m = (typeof(entity.m)) offsetof(g_entity_t, locals.m)
 
 #define CLIENT_PTR_OFFSET(m) \
 	client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
@@ -397,13 +402,15 @@ static void G_Ai_SetDataPointers(void) {
 	static ai_entity_data_t entity;
 	static ai_client_data_t client;
 	static ai_item_data_t item;
-
-	ENTITY_PTR_OFFSET(ground_entity);
-	ENTITY_PTR_OFFSET(item);
-	ENTITY_PTR_OFFSET(velocity);
-	ENTITY_PTR_OFFSET(health);
-	ENTITY_PTR_OFFSET(max_health);
-	ENTITY_PTR_OFFSET(water_level);
+	
+	ENTITY_PTR_OFFSET(class_name);
+	ENTITY_LOCALS_PTR_OFFSET(ground_entity);
+	ENTITY_LOCALS_PTR_OFFSET(item);
+	ENTITY_LOCALS_PTR_OFFSET(velocity);
+	ENTITY_LOCALS_PTR_OFFSET(health);
+	ENTITY_LOCALS_PTR_OFFSET(max_health);
+	ENTITY_LOCALS_PTR_OFFSET(water_level);
+	ENTITY_LOCALS_PTR_OFFSET(node);
 
 	CLIENT_PTR_OFFSET(angles);
 	CLIENT_PTR_OFFSET(inventory);
