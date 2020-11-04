@@ -104,47 +104,44 @@ static int32_t FindTexinfo(bsp_texinfo_t *tx) {
 /**
  * @brief
  */
-int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t origin) {
+int32_t TexinfoForBrushSide(const brush_side_t *side, const vec3_t origin) {
 	float sinv, cosv;
 
-	if (!bt->name[0]) {
+	if (!side->texture[0]) {
 		return 0;
 	}
 
 	bsp_texinfo_t tx;
 	memset(&tx, 0, sizeof(tx));
-	strcpy(tx.texture, bt->name);
+	g_strlcpy(tx.texture, side->texture, sizeof(tx.texture));
 
 	vec3_t vecs[2];
-	TextureAxisFromPlane(plane, &vecs[0], &vecs[1]);
+	TextureAxisFromPlane(&planes[side->plane_num], &vecs[0], &vecs[1]);
 
-	vec2_t shift;
-	shift.x = Vec3_Dot(origin, vecs[0]);
-	shift.y = Vec3_Dot(origin, vecs[1]);
+	vec2_t offset;
+	offset.x = Vec3_Dot(origin, vecs[0]);
+	offset.y = Vec3_Dot(origin, vecs[1]);
 
-	if (!bt->scale.x) {
-		bt->scale.x = 1.0;
-	}
-	if (!bt->scale.y) {
-		bt->scale.y = 1.0;
-	}
+	vec2_t scale;
+	scale.x = side->scale.x ?: 1.0;
+	scale.y = side->scale.y ?: 1.0;
 
 	// rotate axis
-	if (bt->rotate == 0.0) {
+	if (side->rotate == 0.0) {
 		sinv = 0.0;
 		cosv = 1.0;
-	} else if (bt->rotate == 90.0) {
+	} else if (side->rotate == 90.0) {
 		sinv = 1.0;
 		cosv = 0.0;
-	} else if (bt->rotate == 180.0) {
+	} else if (side->rotate == 180.0) {
 		sinv = 0.0;
 		cosv = -1.0;
-	} else if (bt->rotate == 270.0) {
+	} else if (side->rotate == 270.0) {
 		sinv = -1.0;
 		cosv = 0.0;
 	} else {
-		sinv = sinf(Radians(bt->rotate));
-		cosv = cosf(Radians(bt->rotate));
+		sinv = sinf(Radians(side->rotate));
+		cosv = cosf(Radians(side->rotate));
 	}
 
 	int32_t sv;
@@ -174,13 +171,13 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 
 	for (int32_t i = 0; i < 2; i++)
 		for (int32_t j = 0; j < 3; j++) {
-			tx.vecs[i].xyzw[j] = vecs[i].xyz[j] / bt->scale.xy[i];
+			tx.vecs[i].xyzw[j] = vecs[i].xyz[j] / scale.xy[i];
 		}
 
-	tx.vecs[0].w = bt->shift.x + shift.x;
-	tx.vecs[1].w = bt->shift.y + shift.y;
-	tx.flags = bt->flags;
-	tx.value = bt->value;
+	tx.vecs[0].w = side->shift.x + offset.x;
+	tx.vecs[1].w = side->shift.y + offset.y;
+	tx.flags = side->surf;
+	tx.value = side->value;
 
 	return FindTexinfo(&tx);
 }
