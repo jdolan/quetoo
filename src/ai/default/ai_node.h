@@ -18,6 +18,11 @@ _Bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
 /**
  * @brief
  */
+GArray *Ai_Node_GetLinks(const ai_node_id_t a);
+
+/**
+ * @brief
+ */
 vec3_t Ai_Node_GetPosition(const ai_node_id_t node);
 
 /**
@@ -93,7 +98,7 @@ static inline float Ai_Node_DefaultCost(const ai_node_id_t a, const ai_node_id_t
 /**
  * @brief
  */
-GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const Ai_NodeCost_Func heuristic);
+GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const Ai_NodeCost_Func heuristic, float *length);
 
 /**
  * @brief

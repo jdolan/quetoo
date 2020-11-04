@@ -63,7 +63,7 @@ void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func) {
 	}
 }
 
-static inline void Ai_SetGoalBase(g_entity_t *self, ai_goal_t *goal, ai_goal_type_t type, float priority) {
+static inline void Ai_SetGoalBase(const g_entity_t *self, ai_goal_t *goal, ai_goal_type_t type, float priority) {
 
 	Ai_ClearGoal(goal);
 
@@ -74,7 +74,7 @@ static inline void Ai_SetGoalBase(g_entity_t *self, ai_goal_t *goal, ai_goal_typ
 /**
  * @brief Setup entity goal for the specified target.
  */
-void Ai_SetPositionalGoal(g_entity_t *self, ai_goal_t *goal, float priority, const vec3_t pos) {
+void Ai_SetPositionalGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const vec3_t pos) {
 
 	Ai_SetGoalBase(self, goal, AI_GOAL_POSITION, priority);
 
@@ -86,7 +86,7 @@ void Ai_SetPositionalGoal(g_entity_t *self, ai_goal_t *goal, float priority, con
 /**
  * @brief Setup entity goal for the specified target.
  */
-void Ai_SetEntityGoal(g_entity_t *self, ai_goal_t *goal, float priority, const g_entity_t *entity) {
+void Ai_SetEntityGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const g_entity_t *entity) {
 
 	Ai_SetGoalBase(self, goal, AI_GOAL_ENTITY, priority);
 	
@@ -99,7 +99,7 @@ void Ai_SetEntityGoal(g_entity_t *self, ai_goal_t *goal, float priority, const g
 /**
  * @brief Setup entity goal for the specified target.
  */
-void Ai_SetPathGoal(g_entity_t *self, ai_goal_t *goal, float priority, GArray *path, const g_entity_t *path_target) {
+void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GArray *path, const g_entity_t *path_target) {
 
 	Ai_SetGoalBase(self, goal, AI_GOAL_PATH, priority);
 	
@@ -121,7 +121,8 @@ void Ai_SetPathGoal(g_entity_t *self, ai_goal_t *goal, float priority, GArray *p
  */
 _Bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent) {
 
-	return goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawn_id == ent->spawn_id;
+	return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawn_id == ent->spawn_id) ||
+		(goal->type == AI_GOAL_PATH && goal->path.path_target == ent && goal->path.path_target_spawn_id == ent->spawn_id);;
 }
 
 /**

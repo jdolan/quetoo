@@ -279,7 +279,7 @@ void G_Ai_ClientConnect(const g_entity_t *ent) {
 /**
  * @brief
  */
-void G_Ai_ClientDisconnect(const g_entity_t *ent) {
+void G_Ai_ClientDisconnect(g_entity_t *ent) {
 
 	if (!aix) {
 		return;
@@ -293,6 +293,8 @@ void G_Ai_ClientDisconnect(const g_entity_t *ent) {
 			g_game.ai_left_to_spawn++;
 		}
 	}
+
+	aix->Disconnect(ent);
 }
 
 /**

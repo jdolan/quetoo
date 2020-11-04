@@ -66,7 +66,7 @@ GArray *Ai_Node_TestPath(void) {
 		return NULL;
 	}
 
-	return ai_player_roam.test_path = Ai_Node_FindPath(ai_player_roam.last_nodes[1], ai_player_roam.last_nodes[0], Ai_Node_DefaultHeuristic);
+	return ai_player_roam.test_path = Ai_Node_FindPath(ai_player_roam.last_nodes[1], ai_player_roam.last_nodes[0], Ai_Node_DefaultHeuristic, NULL);
 }
 
 /**
@@ -186,6 +186,27 @@ _Bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
 	}
 
 	return false;
+}
+
+/**
+ * @brief
+ */
+GArray *Ai_Node_GetLinks(const ai_node_id_t a) {
+	const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, a);
+
+	if (!node_a->links) {
+		return NULL;
+	}
+
+	GArray *node_copy = g_array_sized_new(false, false, sizeof(ai_node_id_t), node_a->links->len);
+	g_array_set_size(node_copy, node_a->links->len);
+
+	for (guint i = 0; i < node_a->links->len; i++) {
+		const ai_link_t *link = &g_array_index(node_a->links, ai_link_t, i);
+		*(((ai_node_id_t *)node_copy->data) + i) = link->id;
+	}
+
+	return node_copy;
 }
 
 /**
@@ -1000,10 +1021,31 @@ typedef struct {
 	float priority;
 } ai_node_priority_t;
 
+static inline float Ai_Link_Cost(const ai_node_id_t a, const ai_node_id_t b) {
+	const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, a);
+
+	assert(node->links);
+
+	for (guint i = 0; i < node->links->len; i++) {
+		const ai_link_t *link = &g_array_index(node->links, ai_link_t, i);
+
+		if (link->id == b) {
+			return link->cost;
+		}
+	}
+
+	assert(false);
+	return -1;
+}
+
 /**
  * @brief
  */
-GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const Ai_NodeCost_Func heuristic) {
+GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const Ai_NodeCost_Func heuristic, float *length) {
+	
+	if (length) {
+		*length = 0;
+	}
 
 	// sanity
 	if (start == NODE_INVALID || end == NODE_INVALID) {
@@ -1101,6 +1143,15 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
 
 				if (from == start) {
 					break;
+				}
+			}
+
+			if (length) {
+				for (guint i = 0; i < return_path->len - 1; i++) {
+					const ai_node_id_t a = g_array_index(return_path, ai_node_id_t, i);
+					const ai_node_id_t b = g_array_index(return_path, ai_node_id_t, i + 1);
+
+					*length += Ai_Link_Cost(a, b);
 				}
 			}
 		}

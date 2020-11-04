@@ -83,14 +83,18 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 /**
  * @brief
  */
-static _Bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
+static inline _Bool Ai_IsTargetable(const g_entity_t *self, const g_entity_t *other) {
 
-	if (other == self || !other->in_use || other->solid == SOLID_DEAD || other->solid == SOLID_NOT ||
-			(other->sv_flags & SVF_NO_CLIENT) || (other->client && aim.OnSameTeam(self, other))) {
-		return false;
-	}
+	return !(other == self || !other->in_use || other->solid == SOLID_DEAD || other->solid == SOLID_NOT ||
+			(other->sv_flags & SVF_NO_CLIENT) || (other->client && aim.OnSameTeam(self, other)));
+}
 
-	return Ai_CanSee(self, other);
+/**
+ * @brief
+ */
+static inline _Bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
+
+	return Ai_IsTargetable(self, other) && Ai_CanSee(self, other);
 }
 
 /**
@@ -105,7 +109,7 @@ static void Ai_Command(g_entity_t *self, const char *command) {
 /**
  * @brief The max distance we'll try to hunt an item at.
  */
-#define AI_MAX_ITEM_DISTANCE 128.f
+#define AI_MAX_ITEM_DISTANCE 768.f
 
 /**
  * @brief
@@ -143,6 +147,38 @@ static float Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 	return dist;
 }
 
+static inline void Ai_BackupMainPath(ai_locals_t *ai) {
+
+	if (!ai->backup_move_target.type && ai->move_target.type == AI_GOAL_PATH) {
+		Ai_CopyGoal(&ai->move_target, &ai->backup_move_target);
+		aim.gi->Debug("Backing up main path; new temporary path incoming\n");
+	}
+}
+
+static inline void Ai_RestoreMainPath(const g_entity_t *self, ai_locals_t *ai) {
+
+	if (ai->backup_move_target.type == AI_GOAL_PATH) {
+		// generate a new path to the old target, because we might have gotten a bit out
+		// of sync with moving to the item
+		const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true);
+		const ai_node_id_t dest = g_array_index(ai->backup_move_target.path.path, ai_node_id_t, ai->backup_move_target.path.path->len - 1);
+		GArray *path = Ai_Node_FindPath(src, dest, Ai_Node_DefaultHeuristic, NULL);
+
+		if (!path) {
+			Ai_ClearGoal(&ai->move_target);
+		} else {
+			Ai_SetPathGoal(self, &ai->move_target, ai->backup_move_target.priority, path, ai->backup_move_target.path.path_target);
+			g_array_unref(path);
+		}
+	} else {
+		Ai_ClearGoal(&ai->move_target);
+		aim.gi->Debug("No main path?\n");
+	}
+
+	Ai_ClearGoal(&ai->backup_move_target);
+	aim.gi->Debug("Returning to main path\n");
+}
+
 /**
  * @brief Seek for items if we're not doing anything better.
  */
@@ -159,24 +195,35 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		return ai->reacquire_time - ai_level.time; 
 	}
 
-	// see if we're already hunting something
-	if (ai->combat_target.type) {
+	// see if we're already hunting something.
+	// early exit if we're under water or in air; we have a goal already
+	// in that case.
+	if (ai->combat_target.type || !ENTITY_DATA(self, ground_entity)) {
 		return QUETOO_TICK_MILLIS * 5;
 	}
 	
 	// we're not attacking, so we probably care about items.
-	if (ai->move_target.type == AI_GOAL_ENTITY) {
+	if (ai->move_target.type == AI_GOAL_ENTITY || ai->move_target.type == AI_GOAL_PATH) {
+		const g_entity_t *target = (ai->move_target.type == AI_GOAL_ENTITY) ? ai->move_target.entity.ent : ai->move_target.path.path_target;
 
-		// check to see if the thing we are moving to has gone out of our line of sight
-		if (!Ai_GoalHasEntity(&ai->move_target, ai->move_target.entity.ent) || // item picked up and changed into something else
-			!Ai_CanTarget(self, ai->move_target.entity.ent) ||
-			(ENTITY_DATA(ai->move_target.entity.ent, item) && (
-				!Ai_CanPickupItem(self, ai->move_target.entity.ent) ||
-				Ai_ItemReachable(self, ai->move_target.entity.ent) == AI_ITEM_UNREACHABLE)
-			)) {
+		// check to see if the thing we are moving to has been taken
+		if (target && ENTITY_DATA(target, item)) {
+
+			if (!Ai_IsTargetable(self, target) ||
+				!Ai_CanPickupItem(self, target)) {
 
 				Ai_ClearGoal(&ai->move_target);
+
+				// if we had a backup, return to it now
+				if (ai->backup_move_target.type) {
+
+					Ai_RestoreMainPath(self, ai);
+				}
+			// still a good goal
+			} else {
+				return QUETOO_TICK_MILLIS * 5;
 			}
+		}
 	}
 
 	// we have nothing to do, start looking for a new one
@@ -200,6 +247,15 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 			continue;
 		}
 
+		if (!aim.gi->inPVS(self->s.origin, ent->s.origin)) {
+			continue;
+		}
+
+		// we're already pathing to this item, so ignore it in our short range goal finding
+		if (ai->move_target.type == AI_GOAL_PATH && ai->move_target.path.path_target == ent && ai->move_target.path.path_target_spawn_id == ent->spawn_id) {
+			continue;
+		}
+
 		// most likely an item!
 		float distance;
 
@@ -210,11 +266,6 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		}
 
 		float weight = (AI_MAX_ITEM_DISTANCE - distance) * ITEM_DATA(item, priority);
-
-		if (ai->move_target.type == AI_GOAL_PATH && ai->move_target.path.path_target == ent && ai->move_target.path.path_target_spawn_id == ent->spawn_id) {
-
-			weight *= 3.f;
-		}
 
 		g_array_append_vals(items_visible, &(const ai_item_pick_t) {
 			.entity = ent,
@@ -230,16 +281,50 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 			g_array_sort(items_visible, Ai_ItemPick_Compare);
 		}
 
-		const float weight = g_array_index(items_visible, ai_item_pick_t, 0).weight;
-		const _Bool found = weight > ai->move_target.priority;
+		for (guint i = 0; i < items_visible->len; i++) {
+			const ai_item_pick_t pick = g_array_index(items_visible, ai_item_pick_t, 0);
+			const _Bool found = pick.weight > ai->move_target.priority;
 
-		if (found) {
-			Ai_SetEntityGoal(self, &ai->move_target, g_array_index(items_visible, ai_item_pick_t, 0).weight, g_array_index(items_visible, ai_item_pick_t, 0).entity);	
+			if (!found) {
+				continue;
+			}
+
+			_Bool path_found = false;
+
+			if (ENTITY_DATA(pick.entity, node) != NODE_INVALID) {
+
+				const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true);
+				const ai_node_id_t dest = ENTITY_DATA(pick.entity, node);
+
+				if (src != NODE_INVALID) {
+					float length;
+					GArray *path = Ai_Node_FindPath(src, dest, Ai_Node_DefaultHeuristic, &length);
+
+					// item is too far or not pathable despite dropping a node
+					if (!path || length > AI_MAX_ITEM_DISTANCE) {
+						g_array_unref(path);
+						continue;
+					}
+
+					Ai_BackupMainPath(ai);
+					Ai_SetPathGoal(self, &ai->move_target, pick.weight, path, pick.entity);	
+					g_array_unref(path);
+
+					path_found = true;
+				}
+			}
+
+			if (!path_found) {
+
+				Ai_BackupMainPath(ai);
+				Ai_SetEntityGoal(self, &ai->move_target, pick.weight, pick.entity);
+			}
+
+			break;
 		}
 	}
 
 	g_array_free(items_visible, true);
-
 	return QUETOO_TICK_MILLIS * 5;
 }
 
@@ -448,7 +533,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 				
 				const ai_node_id_t closest = Ai_Node_FindClosest(self->s.origin, 128.f, true);
 				const ai_node_id_t closest_to_target = Ai_Node_FindClosest(where_to, 128.f, true);
-				GArray *path = Ai_Node_FindPath(closest, closest_to_target, Ai_Node_DefaultHeuristic);
+				GArray *path = Ai_Node_FindPath(closest, closest_to_target, Ai_Node_DefaultHeuristic, NULL);
 
 				if (path) {
 					Ai_SetPathGoal(self, &ai->move_target, 0.7f, path, ai->combat_target.entity.ent);
@@ -694,23 +779,24 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 	if (path_dist < goal->last_distance) {
 		goal->last_distance = path_dist;
 		goal->distress /= 2;
-
-		aim.gi->Debug("Distress: %u\n", goal->distress);
 	// getting further away
 	} else {
 		goal->distress++;
-
+	}
+		
+	if (goal->last_distress != goal->distress) {
 		aim.gi->Debug("Distress: %u\n", goal->distress);
+		goal->last_distress = goal->distress;
+	}
 
-		if (goal->distress > (goal->distress_extension ? (QUETOO_TICK_RATE * 15) : QUETOO_TICK_RATE)) {
-			goal->distress = 0;
-			goal->last_distance = 0;
-			goal->distress_extension = false;
-			ai->reacquire_time = ai_level.time + 1000;
+	if (goal->distress > (goal->distress_extension ? (QUETOO_TICK_RATE * 15) : QUETOO_TICK_RATE)) {
+		goal->distress = 0;
+		goal->last_distance = 0;
+		goal->distress_extension = false;
+		ai->reacquire_time = ai_level.time + 1000;
 			
-			aim.gi->Debug("Distress threshold reached\n");
-			return false;
-		}
+		aim.gi->Debug("Distress threshold reached\n");
+		return false;
 	}
 
 	return true;
@@ -762,7 +848,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			break;
 		case AI_GOAL_PATH:
 			if (!Ai_CheckNodeNav(self, &ai->move_target)) {
-				Ai_ClearGoal(&ai->move_target);
+				Ai_RestoreMainPath(self, ai);
 				Ai_MoveToTarget(self, cmd);
 				return;
 			}
@@ -939,7 +1025,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	if (move_len > 64.f) {
 		if (ai->move_target.type == AI_GOAL_PATH) {
 			if (!Ai_TryNextNodeInPath(self, &ai->move_target)) {
-				Ai_ClearGoal(&ai->move_target);
+				Ai_RestoreMainPath(self, ai);
 			}
 		}
 		ai->no_movement_frames = 0;
@@ -1100,6 +1186,20 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 }
 
 /**
+ * @brief Called just before an AI leaves this mortal plane.
+ */
+static void Ai_Disconnect(g_entity_t *self) {
+	ai_locals_t *ai = Ai_GetLocals(self);
+
+	// clear any dynamic memory
+	Ai_ClearGoal(&ai->combat_target);
+	Ai_ClearGoal(&ai->move_target);
+	Ai_ClearGoal(&ai->backup_move_target);
+
+	memset(ai, 0, sizeof(*ai));
+}
+
+/**
  * @brief Called every frame for every AI.
  */
 static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
@@ -1109,6 +1209,7 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 	if (self->solid == SOLID_DEAD) {
 		Ai_ClearGoal(&ai->combat_target);
 		Ai_ClearGoal(&ai->move_target);
+		Ai_ClearGoal(&ai->backup_move_target);
 	} else {
 		Vec3_Vectors(CLIENT_DATA(self->client, angles), &ai->aim_forward, NULL, NULL);
 		ai->eye_origin = Vec3_Add(self->s.origin, self->client->ps.pm_state.view_offset);
@@ -1122,7 +1223,7 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 				// got a close node, let's find a path somewhere else
 				// in the map
 				const ai_node_id_t random_node = RandomRangeu(0, Ai_Node_Count());
-				GArray *path = Ai_Node_FindPath(closest, random_node, Ai_Node_DefaultHeuristic);
+				GArray *path = Ai_Node_FindPath(closest, random_node, Ai_Node_DefaultHeuristic, NULL);
 
 				if (path) {
 					Ai_SetPathGoal(self, &ai->move_target, 0.7f, path, NULL);
@@ -1168,8 +1269,9 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
  * @brief Called every time an AI spawns
  */
 static void Ai_Spawn(g_entity_t *self) {
-	ai_locals_t *ai = Ai_GetLocals(self);
-	memset(ai, 0, sizeof(*ai));
+
+	// clean up state
+	Ai_Disconnect(self);
 
 	if (self->solid == SOLID_NOT) { // intermission, spectator, etc
 		return;
@@ -1257,7 +1359,7 @@ static void Ai_TestPath_f(void) {
 				continue;
 			}
 
-			GArray *path_to_start = Ai_Node_FindPath(closest_to_player, g_array_index(path, ai_node_id_t, 0), Ai_Node_DefaultHeuristic);
+			GArray *path_to_start = Ai_Node_FindPath(closest_to_player, g_array_index(path, ai_node_id_t, 0), Ai_Node_DefaultHeuristic, NULL);
 
 			if (path_to_start == NULL) {
 				aim.gi->Debug("Can't find a path to the test path\n");
@@ -1352,6 +1454,7 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	aix.Begin = Ai_Begin;
 	aix.Spawn = Ai_Spawn;
 	aix.Think = Ai_Think;
+	aix.Disconnect = Ai_Disconnect;
 
 	aix.GameRestarted = Ai_GameStarted;
 
@@ -1366,6 +1469,8 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	aix.GetNodePosition = Ai_Node_GetPosition;
 	aix.FindClosestNode = Ai_Node_FindClosest;
 	aix.CreateLink = Ai_Node_CreateLink;
+	aix.GetNodeLinks = Ai_Node_GetLinks;
+	aix.IsLinked = Ai_Node_IsLinked;
 
 	return &aix;
 }

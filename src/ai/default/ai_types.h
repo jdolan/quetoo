@@ -282,6 +282,11 @@ typedef struct {
 	uint32_t distress;
 
 	/**
+	 * @brief Just used for debugging.
+	 */
+	uint32_t last_distress;
+
+	/**
 	 * @brief Last distance we recorded to our goal.
 	 */
 	float last_distance;
@@ -358,7 +363,7 @@ typedef struct ai_locals_s {
 	vec3_t aim_forward; // calculated at start of thinking
 	vec3_t eye_origin; //  ^^^
 
-	ai_goal_t move_target;
+	ai_goal_t move_target, backup_move_target;
 	ai_goal_t combat_target;
 
 	uint32_t weapon_check_time;
