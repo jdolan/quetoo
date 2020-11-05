@@ -14,7 +14,6 @@
 				CE052A9E21483387003446C9 /* ShellScript */,
 			);
 			dependencies = (
-				CE948B272235660C00D961FA /* PBXTargetDependency */,
 				CE948B292235660C00D961FA /* PBXTargetDependency */,
 				CE948B2B2235660C00D961FA /* PBXTargetDependency */,
 				CE052A9121483352003446C9 /* PBXTargetDependency */,
@@ -536,11 +535,6 @@
 		CE85852B2444B984004AB8EC /* sprite_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE85852A2444B970004AB8EC /* sprite_gs.glsl */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
-		CE8E2020214837AB00C18C94 /* libparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.a */; };
-		CE8E2021214837AB00C18C94 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
-		CE8E2022214837AB00C18C94 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CE8E202B214837C200C18C94 /* check_ai_ann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8E2016214836C800C18C94 /* check_ai_ann.c */; };
-		CE8E202D214838E900C18C94 /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
 		CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8FD2EB23D3E034002FD074 /* r_program.c */; };
 		CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EF23D48AB7002FD074 /* r_stain.h */; };
@@ -856,26 +850,12 @@
 			remoteGlobalIDString = CE80FF6D1C5E49C400A21A51;
 			remoteInfo = server;
 		};
-		CE8E2029214837B700C18C94 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FEAB1C5E44E800A21A51;
-			remoteInfo = ai;
-		};
 		CE948B24223565C400D961FA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = CE80FDB41C5E3D4E00A21A51;
 			remoteInfo = shared;
-		};
-		CE948B262235660C00D961FA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE8E2017214837AB00C18C94;
-			remoteInfo = check_ai_ann;
 		};
 		CE948B282235660C00D961FA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1169,15 +1149,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		CE80FD851C5E3B6F00A21A51 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE8E2024214837AB00C18C94 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -1791,8 +1762,6 @@
 		CE89267223EDF85500CF3D33 /* vector.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vector.c; sourceTree = "<group>"; };
 		CE89268723EE0F7300CF3D33 /* color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
 		CE89268823EE0F7300CF3D33 /* color.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = color.c; sourceTree = "<group>"; };
-		CE8E2016214836C800C18C94 /* check_ai_ann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_ai_ann.c; sourceTree = "<group>"; };
-		CE8E2028214837AB00C18C94 /* check_ai_ann */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_ai_ann; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE8FD2EA23D3E034002FD074 /* r_program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_program.h; sourceTree = "<group>"; };
 		CE8FD2EB23D3E034002FD074 /* r_program.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_program.c; sourceTree = "<group>"; };
 		CE8FD2EF23D48AB7002FD074 /* r_stain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_stain.h; sourceTree = "<group>"; };
@@ -2238,17 +2207,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE8E201D214837AB00C18C94 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE8E202D214838E900C18C94 /* ai.so in Frameworks */,
-				CE8E2020214837AB00C18C94 /* libparse.a in Frameworks */,
-				CE8E2021214837AB00C18C94 /* libcheck.0.dylib in Frameworks */,
-				CE8E2022214837AB00C18C94 /* libglib-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3052,7 +3010,6 @@
 		CE12D6BE1C5C58C300CD0B13 /* tests */ = {
 			isa = PBXGroup;
 			children = (
-				CE8E2016214836C800C18C94 /* check_ai_ann.c */,
 				CE354EEE22075054008AE0C2 /* check_atlas.c */,
 				CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */,
 				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
@@ -3310,7 +3267,6 @@
 				CE51FBF72148207700ABE14F /* check_master */,
 				CE052A6E214831FE003446C9 /* check_mem */,
 				CE052A8421483255003446C9 /* check_thread */,
-				CE8E2028214837AB00C18C94 /* check_ai_ann */,
 				CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */,
 				CE354EE722073AD6008AE0C2 /* libatlas.a */,
 				CE354EFE22075132008AE0C2 /* check_atlas */,
@@ -4434,24 +4390,6 @@
 			productReference = CE80FF7F1C5E49C400A21A51 /* libserver.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		CE8E2017214837AB00C18C94 /* check_ai_ann */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CE8E2025214837AB00C18C94 /* Build configuration list for PBXNativeTarget "check_ai_ann" */;
-			buildPhases = (
-				CE8E201A214837AB00C18C94 /* Sources */,
-				CE8E201D214837AB00C18C94 /* Frameworks */,
-				CE8E2024214837AB00C18C94 /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				CE8E202A214837B700C18C94 /* PBXTargetDependency */,
-			);
-			name = check_ai_ann;
-			productName = "test-r_media";
-			productReference = CE8E2028214837AB00C18C94 /* check_ai_ann */;
-			productType = "com.apple.product-type.tool";
-		};
 		CE948B102235652600D961FA /* check_shared */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE948B1F2235652600D961FA /* Build configuration list for PBXNativeTarget "check_shared" */;
@@ -4792,7 +4730,6 @@
 				CE67EF9C1E351A95009C2819 /* quetoo-update */,
 				CE80FD861C5E3B6F00A21A51 /* quemap */,
 				CEA029B31C5E545B00341079 /* quetoo-all */,
-				CE8E2017214837AB00C18C94 /* check_ai_ann */,
 				CE354EEF22075132008AE0C2 /* check_atlas */,
 				CE51FB9D21481DD300ABE14F /* check_cmd */,
 				CEE3A0F021EE2B3F0070FD3E /* check_cm_polylib */,
@@ -4821,7 +4758,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#$BUILT_PRODUCTS_DIR/check_ai_ann &&\n$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread\n";
+			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -5186,14 +5123,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE8E201A214837AB00C18C94 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE8E202B214837C200C18C94 /* check_ai_ann.c in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE948B132235652600D961FA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -5452,20 +5381,10 @@
 			target = CE80FF6D1C5E49C400A21A51 /* server */;
 			targetProxy = CE80FFD71C5E4BFA00A21A51 /* PBXContainerItemProxy */;
 		};
-		CE8E202A214837B700C18C94 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FEAB1C5E44E800A21A51 /* ai */;
-			targetProxy = CE8E2029214837B700C18C94 /* PBXContainerItemProxy */;
-		};
 		CE948B25223565C400D961FA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE80FDB41C5E3D4E00A21A51 /* shared */;
 			targetProxy = CE948B24223565C400D961FA /* PBXContainerItemProxy */;
-		};
-		CE948B272235660C00D961FA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE8E2017214837AB00C18C94 /* check_ai_ann */;
-			targetProxy = CE948B262235660C00D961FA /* PBXContainerItemProxy */;
 		};
 		CE948B292235660C00D961FA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -6054,20 +5973,6 @@
 			};
 			name = Release;
 		};
-		CE8E2026214837AB00C18C94 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		CE8E2027214837AB00C18C94 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		CE948B202235652600D961FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -6574,15 +6479,6 @@
 			buildConfigurations = (
 				CE80FF7D1C5E49C400A21A51 /* Debug */,
 				CE80FF7E1C5E49C400A21A51 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		CE8E2025214837AB00C18C94 /* Build configuration list for PBXNativeTarget "check_ai_ann" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CE8E2026214837AB00C18C94 /* Debug */,
-				CE8E2027214837AB00C18C94 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

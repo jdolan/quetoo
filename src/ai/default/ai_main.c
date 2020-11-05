@@ -752,18 +752,21 @@ static _Bool Ai_TryNextNodeInPath(g_entity_t *self, ai_goal_t *goal) {
 }
 
 /**
- * @brief The AI's bbox is expanded for collision checks. This is so
- * nodes on ledges don't cause the bot to misjudge a jump as much.
- */
-static const vec3_t ai_expand_bbox = { .x = 8.f, .y = 8.f, .z = 0.f };
-
-/**
  * @brief See if we're in a good spot to keep going towards our node goal.
  */
 static _Bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
 
+	/*
+	 * The AI's bbox is expanded for collision checks. This is so
+	 * nodes on ledges don't cause the bot to misjudge a jump as much.
+	 */
+	const vec3_t padding = { .x = 8.f, .y = 8.f, .z = 0.f };
+
 	// if we're touching our nav goal, we can go next
-	if (Vec3_BoxIntersect(goal->path.path_position, goal->path.path_position, Vec3_Subtract(self->abs_mins, ai_expand_bbox), Vec3_Add(self->abs_maxs, ai_expand_bbox))) {
+	if (Vec3_BoxIntersect(goal->path.path_position,
+						  goal->path.path_position,
+						  Vec3_Subtract(self->abs_mins, padding),
+						  Vec3_Add(self->abs_maxs, padding))) {
 
 		return Ai_TryNextNodeInPath(self, goal);
 	}
