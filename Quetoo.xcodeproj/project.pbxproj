@@ -937,42 +937,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		CE052A6A214831FE003446C9 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE052A8021483255003446C9 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE12D8F01C5CF86600CD0B13 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE354EFA22075132008AE0C2 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		CE4A25571FA2030900A539E7 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1073,60 +1037,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE51FB88214819B000ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE51FBAB21481DD300ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE51FBC021481F2500ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE51FBDB21481FC100ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE51FBF32148207700ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE67EFA81E351A95009C2819 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		CE69DCA4202D4E9500E5C8B1 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1147,51 +1057,6 @@
 				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE80FD851C5E3B6F00A21A51 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE948B1E2235652600D961FA /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE9CFCAB23EB3D020009DA65 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CEA029F01C5E558100341079 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CEE3A0FD21EE2B3F0070FD3E /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -3718,11 +3583,11 @@
 			files = (
 				CE67EF851E35023B009C2819 /* ai.h in Headers */,
 				CE67EF7E1E3501F9009C2819 /* ai_goal.h in Headers */,
-				CEA5FA24254A269500C924FA /* ai_node.h in Headers */,
 				CE67EF801E3501F9009C2819 /* ai_item.h in Headers */,
 				CE9771B1214557F500BBD71C /* ai_info.h in Headers */,
 				CE67EF811E3501F9009C2819 /* ai_local.h in Headers */,
 				CE67EF831E3501F9009C2819 /* ai_main.h in Headers */,
+				CEA5FA24254A269500C924FA /* ai_node.h in Headers */,
 				CE67EF841E3501F9009C2819 /* ai_types.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3785,10 +3650,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F55238A02482D40F00BE8B36 /* r_mesh_shadow_draw.h in Headers */,
 				CE148DA9242A37BA00B589D8 /* r_animation.h in Headers */,
 				CEA082381DC6EC59001207AA /* r_atlas.h in Headers */,
-				CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */,
 				CED438801D9D34450052BAFA /* r_bsp.h in Headers */,
 				CED438831D9D34450052BAFA /* r_bsp_draw.h in Headers */,
 				CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */,
@@ -3808,12 +3671,14 @@
 				CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */,
 				CED438931D9D34450052BAFA /* r_mesh_draw.h in Headers */,
 				CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */,
-				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
-				CEAC32BD24212553007E1253 /* r_sprite.h in Headers */,
 				CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */,
+				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
+				F55238A02482D40F00BE8B36 /* r_mesh_shadow_draw.h in Headers */,
 				CED438971D9D34450052BAFA /* r_model.h in Headers */,
 				CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */,
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
+				CEAC32BD24212553007E1253 /* r_sprite.h in Headers */,
+				CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */,
 				CED438A01D9D34450052BAFA /* r_types.h in Headers */,
 				CED438A11D9D34450052BAFA /* renderer.h in Headers */,
 			);
@@ -3919,7 +3784,6 @@
 			buildPhases = (
 				CE052A5E214831FE003446C9 /* Sources */,
 				CE052A61214831FE003446C9 /* Frameworks */,
-				CE052A6A214831FE003446C9 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -3937,7 +3801,6 @@
 			buildPhases = (
 				CE052A7621483255003446C9 /* Sources */,
 				CE052A7921483255003446C9 /* Frameworks */,
-				CE052A8021483255003446C9 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4024,7 +3887,6 @@
 			buildPhases = (
 				CE12D87E1C5CF86600CD0B13 /* Sources */,
 				CE12D8E21C5CF86600CD0B13 /* Frameworks */,
-				CE12D8F01C5CF86600CD0B13 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4060,7 +3922,6 @@
 			buildPhases = (
 				CE354EF222075132008AE0C2 /* Sources */,
 				CE354EF522075132008AE0C2 /* Frameworks */,
-				CE354EFA22075132008AE0C2 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4078,7 +3939,6 @@
 			buildPhases = (
 				CE51FB86214819B000ABE14F /* Sources */,
 				CE51FB87214819B000ABE14F /* Frameworks */,
-				CE51FB88214819B000ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4096,7 +3956,6 @@
 			buildPhases = (
 				CE51FB9E21481DD300ABE14F /* Sources */,
 				CE51FBA221481DD300ABE14F /* Frameworks */,
-				CE51FBAB21481DD300ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4114,7 +3973,6 @@
 			buildPhases = (
 				CE51FBB421481F2500ABE14F /* Sources */,
 				CE51FBB721481F2500ABE14F /* Frameworks */,
-				CE51FBC021481F2500ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4132,7 +3990,6 @@
 			buildPhases = (
 				CE51FBCF21481FC100ABE14F /* Sources */,
 				CE51FBD221481FC100ABE14F /* Frameworks */,
-				CE51FBDB21481FC100ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4150,7 +4007,6 @@
 			buildPhases = (
 				CE51FBE72148207700ABE14F /* Sources */,
 				CE51FBEA2148207700ABE14F /* Frameworks */,
-				CE51FBF32148207700ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4203,7 +4059,6 @@
 			buildPhases = (
 				CE67EF9F1E351A95009C2819 /* Sources */,
 				CE67EFA11E351A95009C2819 /* Frameworks */,
-				CE67EFA81E351A95009C2819 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4243,7 +4098,6 @@
 			buildPhases = (
 				CE80FD831C5E3B6F00A21A51 /* Sources */,
 				CE80FD841C5E3B6F00A21A51 /* Frameworks */,
-				CE80FD851C5E3B6F00A21A51 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4396,7 +4250,6 @@
 			buildPhases = (
 				CE948B132235652600D961FA /* Sources */,
 				CE948B162235652600D961FA /* Frameworks */,
-				CE948B1E2235652600D961FA /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4414,7 +4267,6 @@
 			buildPhases = (
 				CE9CFCA123EB3D020009DA65 /* Sources */,
 				CE9CFCA423EB3D020009DA65 /* Frameworks */,
-				CE9CFCAB23EB3D020009DA65 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4431,7 +4283,6 @@
 			buildPhases = (
 				CEA029CC1C5E558100341079 /* Sources */,
 				CEA029E61C5E558100341079 /* Frameworks */,
-				CEA029F01C5E558100341079 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4484,7 +4335,6 @@
 			buildPhases = (
 				CEE3A0F321EE2B3F0070FD3E /* Sources */,
 				CEE3A0F621EE2B3F0070FD3E /* Frameworks */,
-				CEE3A0FD21EE2B3F0070FD3E /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -5155,14 +5005,11 @@
 				CEA082371DC6EC50001207AA /* r_atlas.c in Sources */,
 				CED438391D9D34450052BAFA /* r_bsp.c in Sources */,
 				CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */,
-				CEAC32BC24212553007E1253 /* r_sprite.c in Sources */,
 				CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */,
 				CED4383D1D9D34450052BAFA /* r_context.c in Sources */,
 				CED4383F1D9D34450052BAFA /* r_draw_2d.c in Sources */,
-				F552389E2482D3DF00BE8B36 /* r_mesh_shadow_draw.c in Sources */,
 				CED5BB162406A95800784D93 /* r_draw_3d.c in Sources */,
 				CED438411D9D34450052BAFA /* r_entity.c in Sources */,
-				CE9CFC9823E7A9410009DA65 /* r_mesh.c in Sources */,
 				CED438421D9D34450052BAFA /* r_flare.c in Sources */,
 				CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */,
 				CED438441D9D34450052BAFA /* r_image.c in Sources */,
@@ -5170,14 +5017,17 @@
 				CED438481D9D34450052BAFA /* r_main.c in Sources */,
 				CED438491D9D34450052BAFA /* r_material.c in Sources */,
 				CED4384A1D9D34450052BAFA /* r_media.c in Sources */,
+				CE9CFC9823E7A9410009DA65 /* r_mesh.c in Sources */,
 				CED4384B1D9D34450052BAFA /* r_mesh_draw.c in Sources */,
 				CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */,
 				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
+				F552389E2482D3DF00BE8B36 /* r_mesh_shadow_draw.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
-				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
 				CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
+				CEAC32BC24212553007E1253 /* r_sprite.c in Sources */,
+				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
