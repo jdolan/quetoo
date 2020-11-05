@@ -755,7 +755,7 @@ static _Bool Ai_TryNextNodeInPath(g_entity_t *self, ai_goal_t *goal) {
  * @brief The AI's bbox is expanded for collision checks. This is so
  * nodes on ledges don't cause the bot to misjudge a jump as much.
  */
-static const vec3_t ai_expand_bbox = { 8.f, 8.f, 0.f };
+static const vec3_t ai_expand_bbox = { .x = 8.f, .y = 8.f, .z = 0.f };
 
 /**
  * @brief See if we're in a good spot to keep going towards our node goal.
