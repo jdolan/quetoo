@@ -159,6 +159,23 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 	const vec4_t both_color = Vec4(color_hue_green, color_intensity, color_intensity, 0.f);
 	const vec4_t a_color = Vec4(color_hue_blue, color_intensity, color_intensity, 0.f);
 	const vec4_t b_color = Vec4(color_hue_red, color_intensity, color_intensity, 0.f);
+	const vec4_t mover_color = Vec4(color_hue_cyan, color_intensity, color_intensity, 0.f);
+
+	// mover connection
+	if (bits & 8) {
+		Cg_AddSprite(&(cg_sprite_t) {
+			.type = SPRITE_BEAM,
+			.image = cg_beam_hook,
+			.origin = start,
+			.termination = end,
+			.size = 2.f,
+			.lifetime = QUETOO_TICK_MILLIS,
+			.color = mover_color,
+			.end_color = mover_color
+		});
+
+		return;
+	}
 
 	// both sides connected
 	if ((bits & 3) == 3) {

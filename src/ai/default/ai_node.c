@@ -402,9 +402,13 @@ _Bool Ai_Path_CanPathTo(const GArray *path, const guint index) {
 		}
 
 		// check if the mover is in place
-		const cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 32)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID);
+		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), PM_MINS, PM_MAXS, NULL, CONTENTS_MASK_SOLID);
 
-		if (tr.ent == node->mover && tr.fraction > 0.7f && !tr.start_solid && !tr.all_solid) {
+		if (!tr.ent || tr.ent != node->mover || tr.start_solid || tr.all_solid) {
+			tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID);
+		}
+
+		if (tr.ent == node->mover && !tr.start_solid && !tr.all_solid) {
 			return true;
 		}
 
@@ -753,6 +757,16 @@ void Ai_Node_Render(void) {
 				}
 			}
 		}
+
+		if (node->mover) {
+
+			aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
+			aim.gi->WriteByte(TE_AI_NODE_LINK);
+			aim.gi->WritePosition(node->position);
+			aim.gi->WritePosition(Vec3_Mix(node->mover->abs_mins, node->mover->abs_maxs, 0.5));
+			aim.gi->WriteByte(8);
+			aim.gi->Multicast(node->position, MULTICAST_PVS, NULL);
+		}
 	}
 
 	g_hash_table_foreach(unique_links, Ai_Node_RenderLinks, NULL);
@@ -887,6 +901,11 @@ static guint Ai_Node_FloodFillEntity(const ai_node_t *node) {
 
 		head = g_list_delete_link(head, head);
 
+		// flood fill nodes should only have one link
+		if (check->links->len > 1) {
+			continue;
+		}
+
 		// already have a mover, we're fine
 		if (check->mover) {
 			continue;
@@ -935,14 +954,20 @@ void Ai_NodesReady(void) {
 	// link up movers with nodes that need them
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
-		const cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 32)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID);
+		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), PM_MINS, PM_MAXS, NULL, CONTENTS_MASK_SOLID);
 
-		if (tr.ent && tr.ent->s.number != 0) {
-			linked_movers++;
-			node->mover = tr.ent;
-
-			linked_movers += Ai_Node_FloodFillEntity(node);
+		if (!tr.ent || tr.ent->s.number == 0) {
+			tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID);
 		}
+
+		if (!tr.ent || tr.ent->s.number == 0) {
+			continue;
+		}
+
+		linked_movers++;
+		node->mover = tr.ent;
+
+		linked_movers += Ai_Node_FloodFillEntity(node);
 	}
 
 	aim.gi->Print("  Linked %u movers to navigation graph.\n", linked_movers);

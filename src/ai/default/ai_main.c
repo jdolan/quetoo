@@ -1004,10 +1004,11 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 		if (ai->move_target.type == AI_GOAL_PATH) {
 
-			// if the node is above us step-wise or it's across a big distance, we gotta jump
-			if ((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT ||
+			// if the node is above us step-wise and it's across a big distance, we gotta jump
+			if ((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT &&
 				Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) >= PM_STEP_HEIGHT * 8.f) {
 				cmd->up = PM_SPEED_JUMP;
+
 			}
 			// else we drop
 
@@ -1137,6 +1138,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 			if (ai->move_target.type == AI_GOAL_PATH) {
 
+				// if we're trick-jumping, aim towards where we intend to land
 				if (ai->move_target.path.trick_jump) {
 					aim_target = ai->move_target.path.trick_position;
 				// if we're above ground & on-land, and our next path is bidirectional, assume it's normal
@@ -1144,6 +1146,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 				} else if (((ENTITY_DATA(self, water_level) < WATER_WAIST && !(self->client->ps.pm_state.flags & PMF_ON_LADDER)) || !(aim.gi->PointContents(ai->move_target.path.path_position) & CONTENTS_MASK_LIQUID)) &&
 					Ai_Path_IsLinked(ai->move_target.path.path, ai->move_target.path.path_index, ai->move_target.path.path_index - 1)) {
 					aim_target = ai->move_target.path.next_path_position;
+				// otherwise, aim directly at the next position
 				} else {
 					aim_target = ai->move_target.path.path_position;
 				}
