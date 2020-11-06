@@ -954,7 +954,8 @@ void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity
 		.origin = org,
 		.size = size * 8.f,
 		.dir = Vec3_Up(),
-		.flags = SPRITE_LERP
+		.flags = SPRITE_LERP,
+		.color = Vec4(0.f, 0.f, 1.f, .25f)
 	});
 }
 
@@ -965,7 +966,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 
 	for (int32_t i = 0; i < 10; i++) {
 		if (!Cg_AddSprite(&(cg_sprite_t) {
-				.atlas_image = cg_sprite_particle,
+				.atlas_image = cg_sprite_bubble,
 				.origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f)),
 				.velocity = Vec3_Add(Vec3_RandomRange(-64.f, 64.f), Vec3(0.f, 0.f, 36.f)),
 				.acceleration = Vec3(0.f, 0.f, -SPRITE_GRAVITY / 2.f),
@@ -978,7 +979,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 	}
 
 	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_particle,
+		.atlas_image = cg_sprite_bubble,
 		.origin = org,
 		.velocity = Vec3_Add(Vec3_Scale(dir, 70.f + Randomf() * 30.f), Vec3_RandomRange(-8.f, 8.f)),
 		.acceleration = Vec3(0.f, 0.f, -SPRITE_GRAVITY / 2.f),

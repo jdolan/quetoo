@@ -1163,6 +1163,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 			} else { // or ask them to pick
 				gi.ClientPrint(ent, PRINT_HIGH, "Use team <team name> to join the game\n");
+				return;
 			}
 		}
 	} else { // they wish to spectate

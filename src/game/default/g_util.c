@@ -607,7 +607,7 @@ uint32_t G_EffectForTeam(const g_team_t *t) {
 		return 0;
 	}
 
-	return t->effect;
+	return EF_CTF_CARRY | t->effect;
 }
 
 /**

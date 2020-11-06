@@ -279,12 +279,12 @@ typedef struct {
 	/**
 	 * @brief Distress counter; if we reach a threshold, this goal will be abandoned.
 	 */
-	uint32_t distress;
+	float distress;
 
 	/**
 	 * @brief Just used for debugging.
 	 */
-	uint32_t last_distress;
+	float last_distress;
 
 	/**
 	 * @brief Last distance we recorded to our goal.
@@ -329,35 +329,31 @@ typedef struct {
 } ai_goal_t;
 
 /**
- * @brief An Ai_GoalFunc can return this if the goal is finished.
- */
-#define AI_GOAL_COMPLETE	0
-
-/**
  * @brief A functional AI goal. It returns the amount of time to wait
  * until the goal should be run again.
  */
 typedef uint32_t (*Ai_GoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
 
 /**
- * @brief A functional AI goal.
+ * @brief Functional AI goal IDs.
  */
-typedef struct {
-	Ai_GoalFunc think;
-	uint32_t nextthink;
-	uint32_t time; // time this funcgoal was added
-} ai_funcgoal_t;
+typedef enum {
+	AI_FUNCGOAL_LONGRANGE,
+	AI_FUNCGOAL_HUNT,
+	AI_FUNCGOAL_WEAPONRY,
+	AI_FUNCGOAL_ACROBATICS,
+	AI_FUNCGOAL_FINDITEMS,
+	AI_FUNCGOAL_MOVE,
+	AI_FUNCGOAL_TURN,
 
-/**
- * @brief The total number of functional goals the AI may have at once.
- */
-#define MAX_AI_FUNCGOALS	12
+	AI_FUNCGOAL_TOTAL
+} ai_funcgoal_t;
 
 /**
  * @brief AI-specific locals
  */
 typedef struct ai_locals_s {
-	ai_funcgoal_t funcgoals[MAX_AI_FUNCGOALS];
+	uint32_t funcgoal_nextthinks[AI_FUNCGOAL_TOTAL];
 
 	vec3_t last_origin;
 	vec3_t aim_forward; // calculated at start of thinking
@@ -367,8 +363,6 @@ typedef struct ai_locals_s {
 	ai_goal_t combat_target;
 
 	uint32_t weapon_check_time;
-
-	uint32_t no_movement_frames;
 	uint32_t reacquire_time;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */

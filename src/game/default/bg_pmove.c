@@ -610,16 +610,17 @@ static void Pm_SnapToWalls(void) {
 		Vec3( 1.0,  0.0,  0.0 ),
 		Vec3(-1.0,  0.0,  0.0 ),
 		Vec3( 0.0,  1.0,  0.0 ),
-		Vec3( 0.0, -1.0,  0.0 )
+		Vec3( 0.0, -1.0,  0.0 ),
+		Vec3( 0.0, 0.0,   1.0 )
 	};
 
 	for (size_t i = 0; i < lengthof(dirs); i++) {
-
 		vec3_t end = Vec3_Add(pm->s.origin, Vec3_Scale(dirs[i], PM_SNAP_DISTANCE));
 
 		const cm_trace_t tr = pm->Trace(pm->s.origin, end, pm->mins, pm->maxs);
 		if (tr.fraction < 1.0) {
-			if (tr.plane.normal.z < PM_STEP_NORMAL && tr.plane.normal.z > -PM_STEP_NORMAL) {
+			if ((i < 4 && tr.plane.normal.z < PM_STEP_NORMAL && tr.plane.normal.z > -PM_STEP_NORMAL) ||
+				(i == 4 && tr.plane.normal.z == -1.0f)) {
 				pm->s.origin = Vec3_Add(tr.end, Vec3_Scale(dirs[i], -PM_SNAP_DISTANCE));
 			}
 		}
@@ -636,14 +637,15 @@ static void Pm_CorrectPosition(void) {
 
 		Pm_Debug("all solid %s\n", vtos(pm->s.origin));
 
-		for (int32_t i = -1; i <= 1; i++) {
-			for (int32_t j = -1; j <= 1; j++) {
-				for (int32_t k = -1; k <= 1; k++) {
-					vec3_t pos;
-					pos = pm->s.origin;
+		static const int32_t offsets[] = { 0, 1, -1 };
 
-					pos.x += i * PM_NUDGE_DIST;
-					pos.y += j * PM_NUDGE_DIST;
+		for (int32_t k = -1; k <= 1; k++) {
+			for (int32_t j = 0; j < lengthof(offsets); j++) {
+				for (int32_t i = 0; i < lengthof(offsets); i++) {
+					vec3_t pos = pm->s.origin;
+
+					pos.x += offsets[i] * PM_NUDGE_DIST;
+					pos.y += offsets[j] * PM_NUDGE_DIST;
 					pos.z += k * PM_NUDGE_DIST;
 
 					tr = pm->Trace(pml.previous_origin, pos, pm->mins, pm->maxs);

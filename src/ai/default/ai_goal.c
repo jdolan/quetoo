@@ -22,47 +22,8 @@
 #include "ai_local.h"
 
 /**
- * @brief Add the specified goal function to the bot, and run it at the specified
- * time offset.
+ * @brief Setup base entity goal for the specified target.
  */
-void Ai_AddFuncGoal(g_entity_t *ent, Ai_GoalFunc func, uint32_t time_offset) {
-	ai_locals_t *ai = Ai_GetLocals(ent);
-
-	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
-		ai_funcgoal_t *funcgoal = &ai->funcgoals[i];
-
-		if (funcgoal->think) {
-			continue;
-		}
-
-		funcgoal->think = func;
-		funcgoal->nextthink = ai_level.time + time_offset;
-		funcgoal->time = ai_level.time;
-		return;
-	}
-
-	aim.gi->Warn("Bot ran out of empty goal slots\n");
-}
-
-/**
- * @brief Remove the specified goal function from the bot.
- */
-void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func) {
-	ai_locals_t *ai = Ai_GetLocals(ent);
-
-	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
-		ai_funcgoal_t *funcgoal = &ai->funcgoals[i];
-
-		if (funcgoal->think != func) {
-			continue;
-		}
-
-		funcgoal->think = NULL;
-		funcgoal->nextthink = 0;
-		return;
-	}
-}
-
 static inline void Ai_SetGoalBase(const g_entity_t *self, ai_goal_t *goal, ai_goal_type_t type, float priority) {
 
 	Ai_ClearGoal(goal);

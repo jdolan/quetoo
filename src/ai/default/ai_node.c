@@ -389,6 +389,11 @@ static void Ai_Node_RecalculateCosts(const ai_node_id_t id) {
  */
 _Bool Ai_Path_CanPathTo(const GArray *path, const guint index) {
 
+	// sanity
+	if (index >= path->len) {
+		return true;
+	}
+
 	// if we're heading onto a mover node, only allow us to go forth
 	// if the mover is there
 	const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, g_array_index(path, ai_node_id_t, index));
@@ -581,12 +586,32 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 			ai_player_roam.last_nodes[0] = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE * 2.5f, true);
 		}
 		ai_player_roam.latched_buttons &= ~BUTTON_HOOK;
-	// score destroys link between 0 and 1
+	// score adjusts link connections
 	} else if ((allow_adjustments) && (ai_player_roam.latched_buttons & BUTTON_SCORE)) {
-		if (ai_player_roam.last_nodes[1] != NODE_INVALID) {
+
+		if (ai_player_roam.last_nodes[1] != NODE_INVALID && ai_player_roam.last_nodes[0] != NODE_INVALID) {
+			uint8_t bits = 0;
+
+			if (Ai_Node_IsLinked(ai_player_roam.last_nodes[0], ai_player_roam.last_nodes[1])) {
+				bits |= 1;
+			}
+			if (Ai_Node_IsLinked(ai_player_roam.last_nodes[1], ai_player_roam.last_nodes[0])) {
+				bits |= 2;
+			}
+
+			bits = (bits + 1) % 4;
+
 			Ai_Node_DestroyLink(ai_player_roam.last_nodes[0], ai_player_roam.last_nodes[1]);
 			Ai_Node_DestroyLink(ai_player_roam.last_nodes[1], ai_player_roam.last_nodes[0]);
+			
+			if (bits & 1) {
+				Ai_Node_CreateDefaultLink(ai_player_roam.last_nodes[0], ai_player_roam.last_nodes[1], false);
+			}
+			if (bits & 2) {
+				Ai_Node_CreateDefaultLink(ai_player_roam.last_nodes[1], ai_player_roam.last_nodes[0], false);
+			}
 		}
+		
 		ai_player_roam.latched_buttons &= ~BUTTON_SCORE;
 	// we're stepping on/off a mover; connect us one-way
 	} else if (on_mover != ai_player_roam.on_mover) {
@@ -772,6 +797,27 @@ void Ai_Node_Render(void) {
 	g_hash_table_foreach(unique_links, Ai_Node_RenderLinks, NULL);
 
 	g_hash_table_destroy(unique_links);
+
+	for (uint32_t i = 1; i <= sv_max_clients->integer; i++) {
+		const g_entity_t *ent = ENTITY_FOR_NUM(i);
+
+		if (!ent->in_use || !ent->client->ai) {
+			continue;
+		}
+
+		const ai_locals_t *ai = Ai_GetLocals(ent);
+
+		if (ai->move_target.type != AI_GOAL_PATH) {
+			continue;
+		}
+		
+		aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
+		aim.gi->WriteByte(TE_AI_NODE_LINK);
+		aim.gi->WritePosition(ent->s.origin);
+		aim.gi->WritePosition(ai->move_target.path.path_position);
+		aim.gi->WriteByte(8);
+		aim.gi->Multicast(ent->s.origin, MULTICAST_PVS, NULL);
+	}
 }
 
 #define AI_NODE_MAGIC ('Q' | '2' << 8 | 'N' << 16 | 'S' << 24)
@@ -912,7 +958,7 @@ static guint Ai_Node_FloodFillEntity(const ai_node_t *node) {
 		}
 
 		// check that we're in the air
-		const cm_trace_t tr = aim.gi->Trace(check->position, Vec3_Subtract(check->position, Vec3(0, 0, PM_GROUND_DIST)), PM_MINS, PM_MAXS, NULL, CONTENTS_MASK_SOLID);
+		const cm_trace_t tr = aim.gi->Trace(check->position, Vec3_Subtract(check->position, Vec3(0, 0, PM_GROUND_DIST * 2)), Vec3_Scale(PM_MINS, 0.5f), Vec3_Scale(PM_MAXS, 0.5f), NULL, CONTENTS_MASK_SOLID);
 
 		// touched something, so we shouldn't consider this node part of a mover
 		if (tr.fraction < 1.0) {
