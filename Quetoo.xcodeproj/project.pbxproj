@@ -14,7 +14,6 @@
 				CE052A9E21483387003446C9 /* ShellScript */,
 			);
 			dependencies = (
-				CE948B272235660C00D961FA /* PBXTargetDependency */,
 				CE948B292235660C00D961FA /* PBXTargetDependency */,
 				CE948B2B2235660C00D961FA /* PBXTargetDependency */,
 				CE052A9121483352003446C9 /* PBXTargetDependency */,
@@ -536,11 +535,6 @@
 		CE85852B2444B984004AB8EC /* sprite_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE85852A2444B970004AB8EC /* sprite_gs.glsl */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
-		CE8E2020214837AB00C18C94 /* libparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.a */; };
-		CE8E2021214837AB00C18C94 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
-		CE8E2022214837AB00C18C94 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CE8E202B214837C200C18C94 /* check_ai_ann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8E2016214836C800C18C94 /* check_ai_ann.c */; };
-		CE8E202D214838E900C18C94 /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
 		CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8FD2EB23D3E034002FD074 /* r_program.c */; };
 		CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EF23D48AB7002FD074 /* r_stain.h */; };
@@ -856,26 +850,12 @@
 			remoteGlobalIDString = CE80FF6D1C5E49C400A21A51;
 			remoteInfo = server;
 		};
-		CE8E2029214837B700C18C94 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FEAB1C5E44E800A21A51;
-			remoteInfo = ai;
-		};
 		CE948B24223565C400D961FA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = CE80FDB41C5E3D4E00A21A51;
 			remoteInfo = shared;
-		};
-		CE948B262235660C00D961FA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE8E2017214837AB00C18C94;
-			remoteInfo = check_ai_ann;
 		};
 		CE948B282235660C00D961FA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -957,42 +937,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		CE052A6A214831FE003446C9 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE052A8021483255003446C9 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE12D8F01C5CF86600CD0B13 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE354EFA22075132008AE0C2 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		CE4A25571FA2030900A539E7 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1093,60 +1037,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE51FB88214819B000ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE51FBAB21481DD300ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE51FBC021481F2500ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE51FBDB21481FC100ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE51FBF32148207700ABE14F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE67EFA81E351A95009C2819 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		CE69DCA4202D4E9500E5C8B1 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1167,60 +1057,6 @@
 				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE80FD851C5E3B6F00A21A51 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE8E2024214837AB00C18C94 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE948B1E2235652600D961FA /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CE9CFCAB23EB3D020009DA65 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CEA029F01C5E558100341079 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		CEE3A0FD21EE2B3F0070FD3E /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -1791,8 +1627,6 @@
 		CE89267223EDF85500CF3D33 /* vector.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vector.c; sourceTree = "<group>"; };
 		CE89268723EE0F7300CF3D33 /* color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
 		CE89268823EE0F7300CF3D33 /* color.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = color.c; sourceTree = "<group>"; };
-		CE8E2016214836C800C18C94 /* check_ai_ann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_ai_ann.c; sourceTree = "<group>"; };
-		CE8E2028214837AB00C18C94 /* check_ai_ann */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_ai_ann; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE8FD2EA23D3E034002FD074 /* r_program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_program.h; sourceTree = "<group>"; };
 		CE8FD2EB23D3E034002FD074 /* r_program.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_program.c; sourceTree = "<group>"; };
 		CE8FD2EF23D48AB7002FD074 /* r_stain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_stain.h; sourceTree = "<group>"; };
@@ -2238,17 +2072,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE8E201D214837AB00C18C94 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE8E202D214838E900C18C94 /* ai.so in Frameworks */,
-				CE8E2020214837AB00C18C94 /* libparse.a in Frameworks */,
-				CE8E2021214837AB00C18C94 /* libcheck.0.dylib in Frameworks */,
-				CE8E2022214837AB00C18C94 /* libglib-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3052,7 +2875,6 @@
 		CE12D6BE1C5C58C300CD0B13 /* tests */ = {
 			isa = PBXGroup;
 			children = (
-				CE8E2016214836C800C18C94 /* check_ai_ann.c */,
 				CE354EEE22075054008AE0C2 /* check_atlas.c */,
 				CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */,
 				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
@@ -3310,7 +3132,6 @@
 				CE51FBF72148207700ABE14F /* check_master */,
 				CE052A6E214831FE003446C9 /* check_mem */,
 				CE052A8421483255003446C9 /* check_thread */,
-				CE8E2028214837AB00C18C94 /* check_ai_ann */,
 				CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */,
 				CE354EE722073AD6008AE0C2 /* libatlas.a */,
 				CE354EFE22075132008AE0C2 /* check_atlas */,
@@ -3762,11 +3583,11 @@
 			files = (
 				CE67EF851E35023B009C2819 /* ai.h in Headers */,
 				CE67EF7E1E3501F9009C2819 /* ai_goal.h in Headers */,
-				CEA5FA24254A269500C924FA /* ai_node.h in Headers */,
 				CE67EF801E3501F9009C2819 /* ai_item.h in Headers */,
 				CE9771B1214557F500BBD71C /* ai_info.h in Headers */,
 				CE67EF811E3501F9009C2819 /* ai_local.h in Headers */,
 				CE67EF831E3501F9009C2819 /* ai_main.h in Headers */,
+				CEA5FA24254A269500C924FA /* ai_node.h in Headers */,
 				CE67EF841E3501F9009C2819 /* ai_types.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3829,10 +3650,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F55238A02482D40F00BE8B36 /* r_mesh_shadow_draw.h in Headers */,
 				CE148DA9242A37BA00B589D8 /* r_animation.h in Headers */,
 				CEA082381DC6EC59001207AA /* r_atlas.h in Headers */,
-				CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */,
 				CED438801D9D34450052BAFA /* r_bsp.h in Headers */,
 				CED438831D9D34450052BAFA /* r_bsp_draw.h in Headers */,
 				CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */,
@@ -3852,12 +3671,14 @@
 				CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */,
 				CED438931D9D34450052BAFA /* r_mesh_draw.h in Headers */,
 				CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */,
-				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
-				CEAC32BD24212553007E1253 /* r_sprite.h in Headers */,
 				CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */,
+				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
+				F55238A02482D40F00BE8B36 /* r_mesh_shadow_draw.h in Headers */,
 				CED438971D9D34450052BAFA /* r_model.h in Headers */,
 				CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */,
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
+				CEAC32BD24212553007E1253 /* r_sprite.h in Headers */,
+				CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */,
 				CED438A01D9D34450052BAFA /* r_types.h in Headers */,
 				CED438A11D9D34450052BAFA /* renderer.h in Headers */,
 			);
@@ -3963,7 +3784,6 @@
 			buildPhases = (
 				CE052A5E214831FE003446C9 /* Sources */,
 				CE052A61214831FE003446C9 /* Frameworks */,
-				CE052A6A214831FE003446C9 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -3981,7 +3801,6 @@
 			buildPhases = (
 				CE052A7621483255003446C9 /* Sources */,
 				CE052A7921483255003446C9 /* Frameworks */,
-				CE052A8021483255003446C9 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4068,7 +3887,6 @@
 			buildPhases = (
 				CE12D87E1C5CF86600CD0B13 /* Sources */,
 				CE12D8E21C5CF86600CD0B13 /* Frameworks */,
-				CE12D8F01C5CF86600CD0B13 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4104,7 +3922,6 @@
 			buildPhases = (
 				CE354EF222075132008AE0C2 /* Sources */,
 				CE354EF522075132008AE0C2 /* Frameworks */,
-				CE354EFA22075132008AE0C2 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4122,7 +3939,6 @@
 			buildPhases = (
 				CE51FB86214819B000ABE14F /* Sources */,
 				CE51FB87214819B000ABE14F /* Frameworks */,
-				CE51FB88214819B000ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4140,7 +3956,6 @@
 			buildPhases = (
 				CE51FB9E21481DD300ABE14F /* Sources */,
 				CE51FBA221481DD300ABE14F /* Frameworks */,
-				CE51FBAB21481DD300ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4158,7 +3973,6 @@
 			buildPhases = (
 				CE51FBB421481F2500ABE14F /* Sources */,
 				CE51FBB721481F2500ABE14F /* Frameworks */,
-				CE51FBC021481F2500ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4176,7 +3990,6 @@
 			buildPhases = (
 				CE51FBCF21481FC100ABE14F /* Sources */,
 				CE51FBD221481FC100ABE14F /* Frameworks */,
-				CE51FBDB21481FC100ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4194,7 +4007,6 @@
 			buildPhases = (
 				CE51FBE72148207700ABE14F /* Sources */,
 				CE51FBEA2148207700ABE14F /* Frameworks */,
-				CE51FBF32148207700ABE14F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4247,7 +4059,6 @@
 			buildPhases = (
 				CE67EF9F1E351A95009C2819 /* Sources */,
 				CE67EFA11E351A95009C2819 /* Frameworks */,
-				CE67EFA81E351A95009C2819 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4287,7 +4098,6 @@
 			buildPhases = (
 				CE80FD831C5E3B6F00A21A51 /* Sources */,
 				CE80FD841C5E3B6F00A21A51 /* Frameworks */,
-				CE80FD851C5E3B6F00A21A51 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4434,31 +4244,12 @@
 			productReference = CE80FF7F1C5E49C400A21A51 /* libserver.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		CE8E2017214837AB00C18C94 /* check_ai_ann */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CE8E2025214837AB00C18C94 /* Build configuration list for PBXNativeTarget "check_ai_ann" */;
-			buildPhases = (
-				CE8E201A214837AB00C18C94 /* Sources */,
-				CE8E201D214837AB00C18C94 /* Frameworks */,
-				CE8E2024214837AB00C18C94 /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				CE8E202A214837B700C18C94 /* PBXTargetDependency */,
-			);
-			name = check_ai_ann;
-			productName = "test-r_media";
-			productReference = CE8E2028214837AB00C18C94 /* check_ai_ann */;
-			productType = "com.apple.product-type.tool";
-		};
 		CE948B102235652600D961FA /* check_shared */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE948B1F2235652600D961FA /* Build configuration list for PBXNativeTarget "check_shared" */;
 			buildPhases = (
 				CE948B132235652600D961FA /* Sources */,
 				CE948B162235652600D961FA /* Frameworks */,
-				CE948B1E2235652600D961FA /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4476,7 +4267,6 @@
 			buildPhases = (
 				CE9CFCA123EB3D020009DA65 /* Sources */,
 				CE9CFCA423EB3D020009DA65 /* Frameworks */,
-				CE9CFCAB23EB3D020009DA65 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4493,7 +4283,6 @@
 			buildPhases = (
 				CEA029CC1C5E558100341079 /* Sources */,
 				CEA029E61C5E558100341079 /* Frameworks */,
-				CEA029F01C5E558100341079 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4546,7 +4335,6 @@
 			buildPhases = (
 				CEE3A0F321EE2B3F0070FD3E /* Sources */,
 				CEE3A0F621EE2B3F0070FD3E /* Frameworks */,
-				CEE3A0FD21EE2B3F0070FD3E /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4792,7 +4580,6 @@
 				CE67EF9C1E351A95009C2819 /* quetoo-update */,
 				CE80FD861C5E3B6F00A21A51 /* quemap */,
 				CEA029B31C5E545B00341079 /* quetoo-all */,
-				CE8E2017214837AB00C18C94 /* check_ai_ann */,
 				CE354EEF22075132008AE0C2 /* check_atlas */,
 				CE51FB9D21481DD300ABE14F /* check_cmd */,
 				CEE3A0F021EE2B3F0070FD3E /* check_cm_polylib */,
@@ -4821,7 +4608,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#$BUILT_PRODUCTS_DIR/check_ai_ann &&\n$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread\n";
+			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -5186,14 +4973,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE8E201A214837AB00C18C94 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE8E202B214837C200C18C94 /* check_ai_ann.c in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE948B132235652600D961FA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -5226,14 +5005,11 @@
 				CEA082371DC6EC50001207AA /* r_atlas.c in Sources */,
 				CED438391D9D34450052BAFA /* r_bsp.c in Sources */,
 				CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */,
-				CEAC32BC24212553007E1253 /* r_sprite.c in Sources */,
 				CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */,
 				CED4383D1D9D34450052BAFA /* r_context.c in Sources */,
 				CED4383F1D9D34450052BAFA /* r_draw_2d.c in Sources */,
-				F552389E2482D3DF00BE8B36 /* r_mesh_shadow_draw.c in Sources */,
 				CED5BB162406A95800784D93 /* r_draw_3d.c in Sources */,
 				CED438411D9D34450052BAFA /* r_entity.c in Sources */,
-				CE9CFC9823E7A9410009DA65 /* r_mesh.c in Sources */,
 				CED438421D9D34450052BAFA /* r_flare.c in Sources */,
 				CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */,
 				CED438441D9D34450052BAFA /* r_image.c in Sources */,
@@ -5241,14 +5017,17 @@
 				CED438481D9D34450052BAFA /* r_main.c in Sources */,
 				CED438491D9D34450052BAFA /* r_material.c in Sources */,
 				CED4384A1D9D34450052BAFA /* r_media.c in Sources */,
+				CE9CFC9823E7A9410009DA65 /* r_mesh.c in Sources */,
 				CED4384B1D9D34450052BAFA /* r_mesh_draw.c in Sources */,
 				CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */,
 				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
+				F552389E2482D3DF00BE8B36 /* r_mesh_shadow_draw.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
-				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
 				CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
+				CEAC32BC24212553007E1253 /* r_sprite.c in Sources */,
+				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5452,20 +5231,10 @@
 			target = CE80FF6D1C5E49C400A21A51 /* server */;
 			targetProxy = CE80FFD71C5E4BFA00A21A51 /* PBXContainerItemProxy */;
 		};
-		CE8E202A214837B700C18C94 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FEAB1C5E44E800A21A51 /* ai */;
-			targetProxy = CE8E2029214837B700C18C94 /* PBXContainerItemProxy */;
-		};
 		CE948B25223565C400D961FA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE80FDB41C5E3D4E00A21A51 /* shared */;
 			targetProxy = CE948B24223565C400D961FA /* PBXContainerItemProxy */;
-		};
-		CE948B272235660C00D961FA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE8E2017214837AB00C18C94 /* check_ai_ann */;
-			targetProxy = CE948B262235660C00D961FA /* PBXContainerItemProxy */;
 		};
 		CE948B292235660C00D961FA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -6054,20 +5823,6 @@
 			};
 			name = Release;
 		};
-		CE8E2026214837AB00C18C94 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		CE8E2027214837AB00C18C94 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		CE948B202235652600D961FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -6574,15 +6329,6 @@
 			buildConfigurations = (
 				CE80FF7D1C5E49C400A21A51 /* Debug */,
 				CE80FF7E1C5E49C400A21A51 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		CE8E2025214837AB00C18C94 /* Build configuration list for PBXNativeTarget "check_ai_ann" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CE8E2026214837AB00C18C94 /* Debug */,
-				CE8E2027214837AB00C18C94 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -30,7 +30,6 @@ libtests_la_LIBADD = \
 	$(top_builddir)/src/libcommon.la
 
 TESTS = \
-	check_ai_ann \
 	check_atlas \
 	check_cm_polylib \
 	check_cmd \
@@ -44,15 +43,6 @@ TESTS = \
 	check_vector
 
 noinst_PROGRAMS = $(TESTS)
-
-check_ai_ann_SOURCES = \
-	check_ai_ann.c
-check_ai_ann_CFLAGS = \
-	-I$(top_srcdir)/src/ai/default \
-	$(TESTS_CFLAGS)
-check_ai_ann_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/ai/default/libai.la
 
 check_atlas_SOURCES = \
 	check_atlas.c
