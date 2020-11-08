@@ -1585,6 +1585,8 @@ static void Ai_Init(void) {
  */
 static void Ai_Load(const char *mapname) {
 
+	ai_level.load_finished = false;
+
 	Ai_InitNodes(mapname);
 }
 

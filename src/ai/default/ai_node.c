@@ -41,11 +41,7 @@ static struct {
 	guint file_nodes, file_links;
 
 	_Bool do_noding;
-} ai_player_roam = {
-	.position.xyz = { MAX_WORLD_DIST, MAX_WORLD_DIST, MAX_WORLD_DIST },
-	.last_nodes = { NODE_INVALID, NODE_INVALID },
-	.await_landing = true
-};
+} ai_player_roam;
 
 /**
  * @brief
@@ -322,7 +318,7 @@ static void Ai_Node_AdjustConnections(const ai_node_id_t id) {
 		for (guint l = 0; l < node->links->len; l++) {
 			ai_link_t *link = &g_array_index(node->links, ai_link_t, l);
 
-			if (link->id > id) {
+			if (link->id >= id) {
 				link->id--;
 			}
 		}
@@ -820,6 +816,144 @@ void Ai_Node_Render(void) {
 	}
 }
 
+/**
+ * @brief Only used for Ai_OptimizeNodes; adds links to node a to table
+ */
+static void Ai_Node_GetLinksTo(const ai_node_id_t a, GHashTable *table) {
+
+	for (guint i = 0; i < ai_nodes->len; i++) {
+		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+
+		if (!node->links) {
+			continue;
+		}
+
+		for (guint l = 0; l < node->links->len; l++) {
+			const ai_link_t *link = &g_array_index(node->links, ai_link_t, l);
+
+			if (link->id == a) {
+
+				g_hash_table_add(table, GINT_TO_POINTER((gint)i));
+			}
+		}
+	}
+}
+
+/**
+ * @brief 
+ */
+static vec3_t Ai_Node_GetDirection(const ai_node_id_t a, const ai_node_id_t b) {
+
+	return Vec3_Normalize(Vec3_Subtract(Ai_Node_GetPosition(a), Ai_Node_GetPosition(b)));
+}
+
+/**
+ * @brief
+ */
+static uint8_t Ai_Node_LinkType(const ai_node_id_t a, const ai_node_id_t b) {
+	uint8_t bits = 0;
+	
+	if (Ai_Node_IsLinked(a, b)) {
+		bits |= 1;
+	}
+
+	if (Ai_Node_IsLinked(b, a)) {
+		bits |= 2;
+	}
+
+	return bits;
+}
+
+/**
+ * @brief Optimizes graph by removing long chains of nodes with very little deviation from direction
+ */
+static uint32_t Ai_OptimizeNodes(void) {
+
+	uint32_t total = 0;
+	GHashTable *links = g_hash_table_new(g_direct_hash, g_direct_equal);
+
+	for (;;) {
+		uint32_t count = 0;
+
+		for (guint i = 0; i < ai_nodes->len; i++) {
+			ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+
+			// we have no links, or more than two links, so we can't optimize this node
+			if (!node->links || node->links->len > 2) {
+				continue;
+			}
+
+			// find the two nodes that are between node
+
+			for (guint l = 0; l < node->links->len; l++) {
+				const ai_link_t *link = &g_array_index(node->links, ai_link_t, l);
+				g_hash_table_add(links, GINT_TO_POINTER((gint)link->id));
+			}
+
+			Ai_Node_GetLinksTo(i, links);
+
+			// too many links; need two total
+			if (g_hash_table_size(links) != 2) {
+				g_hash_table_remove_all(links);
+				continue;
+			}
+
+			// convert links to array for simplicity
+			gpointer *keys = g_hash_table_get_keys_as_array(links, NULL);
+			ai_node_id_t links[2] = {
+				(ai_node_id_t)GPOINTER_TO_INT(keys[0]),
+				(ai_node_id_t)GPOINTER_TO_INT(keys[1])
+			};
+			g_free(keys);
+
+			uint8_t link_type;
+
+			// need to be same link type to work properly
+			if ((link_type = Ai_Node_LinkType(links[0], i)) != Ai_Node_LinkType(i, links[1])) {
+				continue;
+			}
+
+			// check that we're in a fairly straight-ish line
+			const vec3_t dir_a = Ai_Node_GetDirection(links[0], i);
+			const vec3_t dir_b = Ai_Node_GetDirection(i, links[1]);
+			const float dot = Vec3_Dot(dir_a, dir_b);
+
+			if (dot < 0.9) {
+				continue;
+			}
+
+			// good 2 go
+			Ai_Node_Destroy(i);
+			
+			if (links[0] >= i) {
+				links[0]--;
+			}
+			if (links[1] >= i) {
+				links[1]--;
+			}
+
+			i--;
+
+			if (link_type & 1) {
+				Ai_Node_CreateDefaultLink(links[0], links[1], false);
+			}
+			if (link_type & 2) {
+				Ai_Node_CreateDefaultLink(links[1], links[0], false);
+			}
+
+			count++;
+		}
+
+		if (!count)
+			break;
+
+		total += count;
+	}
+
+	g_hash_table_destroy(links);
+	return total;
+}
+
 #define AI_NODE_MAGIC ('Q' | '2' << 8 | 'N' << 16 | 'S' << 24)
 #define AI_NODE_VERSION 2
 
@@ -827,6 +961,10 @@ void Ai_Node_Render(void) {
  * @brief 
  */
 void Ai_InitNodes(const char *mapname) {
+
+	ai_player_roam.position = Vec3(MAX_WORLD_DIST, MAX_WORLD_DIST, MAX_WORLD_DIST);
+	ai_player_roam.last_nodes[0] = ai_player_roam.last_nodes[1] = NODE_INVALID;
+	ai_player_roam.await_landing = true;
 
 	g_strlcpy(ai_level.mapname, mapname, sizeof(ai_level.mapname));
 
@@ -872,7 +1010,7 @@ void Ai_InitNodes(const char *mapname) {
 		aim.gi->ReadFile(file, &node->position, sizeof(node->position), 1);
 
 		guint num_links;
-
+	
 		aim.gi->ReadFile(file, &num_links, sizeof(num_links), 1);
 
 		if (num_links) {
@@ -902,6 +1040,11 @@ static void Ai_CheckNodes(void) {
 		g_entity_t *ent = ENTITY_FOR_NUM(i);
 
 		if (!ent->in_use) {
+			continue;
+		}
+
+		// only warn for item nodes
+		if (!ENTITY_DATA(ent, item)) {
 			continue;
 		}
 
@@ -1018,7 +1161,12 @@ void Ai_NodesReady(void) {
 
 	aim.gi->Print("  Linked %u movers to navigation graph.\n", linked_movers);
 
-	Ai_CheckNodes();
+	const guint optimized = Ai_OptimizeNodes();
+	aim.gi->Print("  %u nodes optimized\n", optimized);
+
+	if (ai_node_dev->integer) {
+		Ai_CheckNodes();
+	}
 }
 
 /**
