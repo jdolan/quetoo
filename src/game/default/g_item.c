@@ -580,7 +580,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
 	                  other->client->locals.persistent.net_name, t->name);
 
-	other->s.effects |= EF_CTF_CARRY | G_EffectForTeam(t);
+	other->s.effects |= G_EffectForTeam(t);
 	return true;
 }
 

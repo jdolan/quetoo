@@ -64,6 +64,7 @@ extern r_atlas_image_t *cg_sprite_smoke;
 extern r_atlas_image_t *cg_sprite_flame;
 extern r_atlas_image_t *cg_sprite_spark;
 extern r_atlas_image_t *cg_sprite_bubble;
+extern r_atlas_image_t *cg_sprite_teleport;
 extern r_atlas_image_t *cg_sprite_steam;
 extern r_atlas_image_t *cg_sprite_inactive;
 extern r_atlas_image_t *cg_sprite_plasma_var01;

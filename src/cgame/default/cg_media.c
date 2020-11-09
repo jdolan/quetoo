@@ -59,6 +59,7 @@ r_atlas_image_t *cg_sprite_aniso_flare_01;
 r_atlas_image_t *cg_sprite_rain;
 r_atlas_image_t *cg_sprite_snow;
 r_atlas_image_t *cg_sprite_bubble;
+r_atlas_image_t *cg_sprite_teleport;
 r_atlas_image_t *cg_sprite_smoke;
 r_atlas_image_t *cg_sprite_flame;
 r_atlas_image_t *cg_sprite_explosion_glow;
@@ -301,6 +302,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_plasma_var03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var03", IT_EFFECT);
 	cg_sprite_blob_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/blob_01", IT_EFFECT);
 	cg_sprite_electro_02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/electro_02/electro_02", IT_EFFECT);
+	cg_sprite_teleport = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/bubble", IT_EFFECT);
 
 	cg_sprite_blaster_ring = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
 	cg_sprite_explosion = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
