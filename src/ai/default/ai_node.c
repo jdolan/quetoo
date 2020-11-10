@@ -794,7 +794,7 @@ void Ai_Node_Render(void) {
 
 	g_hash_table_destroy(unique_links);
 
-	for (uint32_t i = 1; i <= sv_max_clients->integer; i++) {
+	for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
 		const g_entity_t *ent = ENTITY_FOR_NUM(i);
 
 		if (!ent->in_use || !ent->client->ai) {

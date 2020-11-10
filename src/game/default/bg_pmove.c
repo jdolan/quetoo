@@ -640,8 +640,8 @@ static void Pm_CorrectPosition(void) {
 		static const int32_t offsets[] = { 0, 1, -1 };
 
 		for (int32_t k = -1; k <= 1; k++) {
-			for (int32_t j = 0; j < lengthof(offsets); j++) {
-				for (int32_t i = 0; i < lengthof(offsets); i++) {
+			for (size_t j = 0; j < lengthof(offsets); j++) {
+				for (size_t i = 0; i < lengthof(offsets); i++) {
 					vec3_t pos = pm->s.origin;
 
 					pos.x += offsets[i] * PM_NUDGE_DIST;
