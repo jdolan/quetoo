@@ -970,7 +970,7 @@ void Ai_InitNodes(const char *mapname) {
 
 	char filename[MAX_OS_PATH];
 
-	g_snprintf(filename, sizeof(filename), "ai/%s.nav", ai_level.mapname);
+	g_snprintf(filename, sizeof(filename), "maps/%s.nav", ai_level.mapname);
 
 	if (!aim.gi->FileExists(filename)) {
 		aim.gi->Warn("No navigation file exists for this map; bots will be dumb!\nUse `ai_node_dev` to set up nodes.\n");
@@ -1181,7 +1181,7 @@ void Ai_SaveNodes(void) {
 
 	char filename[MAX_OS_PATH];
 
-	g_snprintf(filename, sizeof(filename), "ai/%s.nav", ai_level.mapname);
+	g_snprintf(filename, sizeof(filename), "maps/%s.nav", ai_level.mapname);
 
 	if (!ai_nodes) {
 		aim.gi->Warn("No nodes to write.\n");

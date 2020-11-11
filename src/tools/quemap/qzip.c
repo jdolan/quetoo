@@ -248,6 +248,13 @@ static void AddEntities(void) {
 /**
  * @brief
  */
+static void AddNavigation(void) {
+	AddPath(va("maps/%s.nav", map_base), false);
+}
+
+/**
+ * @brief
+ */
 static void AddLocation(void) {
 	AddPath(va("maps/%s.loc", map_base), false);
 }
@@ -356,7 +363,8 @@ int32_t ZIP_Main(void) {
 	// add the sounds, models, sky, ..
 	AddEntities();
 
-	// add location, docs and mapshots
+	// add navigation, location, docs and mapshots
+	AddNavigation();
 	AddLocation();
 	AddDocumentation();
 	AddMapshots();
