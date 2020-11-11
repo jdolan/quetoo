@@ -245,7 +245,7 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
 /**
  * @brief Welds the specified winding, writing its welded points to the given array.
  * @remarks This attempts to fix hairline cracks in (usually) intricate brushes. Note
- * that the weld threshold here is significantly larger than that of WindingIsTiny.
+ * that the weld threshold here is significantly larger than that of WindingIsSmall.
  * This allows for small windings that act as "caulk" to not be collapsed, but instead
  * be welded to other geometry. We do not weld the points to each other; only to those
  * of other brushes.

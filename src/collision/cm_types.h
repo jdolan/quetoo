@@ -46,7 +46,7 @@
 /**
  * @brief Vertex equality epsilon.
  */
-#define VERTEX_EPSILON			.375f
+#define VERTEX_EPSILON			.875f
 
 /**
  * @brief Trace collision epsilon.
