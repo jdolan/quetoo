@@ -67,7 +67,7 @@ static void TextureAxisFromPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
  * @brief Resolve the texinfo with identical properties to the one specified, or
  * allocate a new one.
  */
-static int32_t FindTexinfo(bsp_texinfo_t *tx) {
+static int32_t FindTexinfo(const bsp_texinfo_t *tx) {
 	int32_t i;
 	bsp_texinfo_t *tc = bsp_file.texinfo;
 
@@ -105,7 +105,6 @@ static int32_t FindTexinfo(bsp_texinfo_t *tx) {
  * @brief
  */
 int32_t TexinfoForBrushSide(const brush_side_t *side, const vec3_t origin) {
-	float sinv, cosv;
 
 	if (!side->texture[0]) {
 		return 0;
@@ -113,6 +112,7 @@ int32_t TexinfoForBrushSide(const brush_side_t *side, const vec3_t origin) {
 
 	bsp_texinfo_t tx;
 	memset(&tx, 0, sizeof(tx));
+
 	g_strlcpy(tx.texture, side->texture, sizeof(tx.texture));
 
 	vec3_t vecs[2];
@@ -127,6 +127,7 @@ int32_t TexinfoForBrushSide(const brush_side_t *side, const vec3_t origin) {
 	scale.y = side->scale.y ?: 1.0;
 
 	// rotate axis
+	float sinv, cosv;
 	if (side->rotate == 0.0) {
 		sinv = 0.0;
 		cosv = 1.0;
@@ -176,6 +177,7 @@ int32_t TexinfoForBrushSide(const brush_side_t *side, const vec3_t origin) {
 
 	tx.vecs[0].w = side->shift.x + offset.x;
 	tx.vecs[1].w = side->shift.y + offset.y;
+	
 	tx.flags = side->surf;
 	tx.value = side->value;
 
