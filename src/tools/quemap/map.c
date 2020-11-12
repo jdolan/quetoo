@@ -78,7 +78,7 @@ static int32_t CreatePlane(const vec3_t normal, double dist) {
 
 	// bad plane
 	if (Vec3_Length(normal) < 0.5) {
-		return -1;
+		Com_Error(ERROR_FATAL, "Malformed plane\n");
 	}
 
 	// create a new plane
