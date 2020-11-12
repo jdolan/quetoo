@@ -147,66 +147,66 @@ typedef union {
 /**
  * @return A `vec2s_t` with the specified components.
  */
-static inline vec2s_t Vec2s(int16_t x, int16_t y);
+static inline vec2s_t Vec2s(int16_t x, int16_t y) __attribute__ ((warn_unused_result));
 
 /**
  * @return The Vector `v` scaled by `scale`.
  */
-static inline vec2s_t Vec2s_Scale(const vec2s_t v, float scale);
+static inline vec2s_t Vec2s_Scale(const vec2s_t v, float scale) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `(0, 0)`.
  */
-static inline vec2s_t Vec2s_Zero(void);
+static inline vec2s_t Vec2s_Zero(void) __attribute__ ((warn_unused_result));
 
 /**
  * @return A `s16vec3_t` with the specified components.
  */
-static inline vec3s_t Vec3s(int16_t x, int16_t y, int16_t z);
+static inline vec3s_t Vec3s(int16_t x, int16_t y, int16_t z) __attribute__ ((warn_unused_result));
 
 /**
  * @return The integer vector `v` cast to `vec3_t`.
  */
-static inline vec3_t Vec3s_CastVec3(const vec3s_t v);
+static inline vec3_t Vec3s_CastVec3(const vec3s_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool Vec3s_Equal(const vec3s_t a, vec3s_t b);
+static inline _Bool Vec3s_Equal(const vec3s_t a, vec3s_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `(0, 0, 0)`.
  */
-static inline vec3s_t Vec3s_Zero(void);
+static inline vec3s_t Vec3s_Zero(void) __attribute__ ((warn_unused_result));
 
 #pragma mark - integer vectors
 
 /**
  * @return A `s32vec3_t` with the specified components.
  */
-static inline vec3i_t Vec3i(int32_t x, int32_t y, int32_t z);
+static inline vec3i_t Vec3i(int32_t x, int32_t y, int32_t z) __attribute__ ((warn_unused_result));
 
 /**
  * @return The sum of `a + b`.
  */
-static inline vec3i_t Vec3i_Add(const vec3i_t a, const vec3i_t b);
+static inline vec3i_t Vec3i_Add(const vec3i_t a, const vec3i_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `v` cast to `vec3_t`.
  */
-static inline vec3_t Vec3i_CastVec3(const vec3i_t v);
+static inline vec3_t Vec3i_CastVec3(const vec3i_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `(0, 0, 0)`.
  */
-static inline vec3i_t Vec3i_Zero(void);
+static inline vec3i_t Vec3i_Zero(void) __attribute__ ((warn_unused_result));
 
 #pragma mark - single precision
 
 /**
  * @return The angle `theta` circularly clamped.
  */
-static inline float ClampEuler(float theta);
+static inline float ClampEuler(float theta) __attribute__ ((warn_unused_result));
 
 /**
  * @return The value `f`, clamped to the specified `min` and `max`.
@@ -239,14 +239,14 @@ static inline float Minf(float a, float b) __attribute__ ((warn_unused_result));
 static inline int32_t Mini(int32_t a, int32_t b) __attribute__ ((warn_unused_result));
 
 /**
- * @return
+ * @return The minimum of `a`, `b`, and `c`.
  */
-static inline float Minf3(float a, float b, float c);
+static inline float Minf3(float a, float b, float c) __attribute__ ((warn_unused_result));
 
 /**
- * @return
+ * @return The minimum of `a`, `b`, `c`, and `d`.
  */
-static inline float Minf4(float a, float b, float c, float d);
+static inline float Minf4(float a, float b, float c, float d) __attribute__ ((warn_unused_result));
 
 /**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
@@ -264,15 +264,14 @@ static inline float Maxf(float a, float b) __attribute__ ((warn_unused_result));
 static inline int32_t Maxi(int32_t a, int32_t b) __attribute__ ((warn_unused_result));
 
 /**
- * @return
+ * @return The maximum of `a`, `b`, and `c`.
  */
-static inline float Maxf3(float a, float b, float c);
+static inline float Maxf3(float a, float b, float c) __attribute__ ((warn_unused_result));
 
 /**
- * @return
+ * @return The maximum of `a`, `b`, `c`, and `d`.
  */
-static inline float Maxf4(float a, float b, float c, float d);
-
+static inline float Maxf4(float a, float b, float c, float d) __attribute__ ((warn_unused_result));
 
 /**
  * @return Degrees in radians.
@@ -317,7 +316,7 @@ static inline _Bool Randomb(void) __attribute__ ((warn_unused_result));
 /**
  * @brief Returns a random number between 0 and 2 pi.
  */
-static inline float RandomRadian(void);
+static inline float RandomRadian(void) __attribute__ ((warn_unused_result));
 
 /**
  * @return The sign of the specified float.
@@ -586,27 +585,27 @@ static inline vec3_t Vec3_Radians(const vec3_t degrees) __attribute__ ((warn_unu
 /**
  * @return A vector with random values between `0` and `1`.
  */
-static inline vec3_t Vec3_Random(void);
+static inline vec3_t Vec3_Random(void) __attribute__ ((warn_unused_result));
 
 /**
  * @return A vector with random values between `begin` and `end`.
  */
-static inline vec3_t Vec3_RandomRange(float begin, float end);
+static inline vec3_t Vec3_RandomRange(float begin, float end) __attribute__ ((warn_unused_result));
 
 /**
  * @return Returns a random vector (positive or negative) with a length of 1.
  */
-static inline vec3_t Vec3_RandomDir(void);
+static inline vec3_t Vec3_RandomDir(void) __attribute__ ((warn_unused_result));
 
 /**
  * @return Takes a vector and randomizes its direction where a `random` of 0 yields the original vector and 1 yields a completely random direction.
  */
-static inline vec3_t Vec3_RandomizeDir(const vec3_t vector, const float random);
+static inline vec3_t Vec3_RandomizeDir(const vec3_t vector, const float random) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `v` rounded to the nearest integer values.
  */
-static inline vec3_t Vec3_Roundf(const vec3_t v);
+static inline vec3_t Vec3_Roundf(const vec3_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `v` scaled by `scale`.
@@ -616,22 +615,22 @@ static inline vec3_t Vec3_Scale(const vec3_t v, float scale) __attribute__ ((war
 /**
  * @return
  */
-static inline vec3_t Vec3_Clamp(const vec3_t v, vec3_t min, vec3_t max);
+static inline vec3_t Vec3_Clamp(const vec3_t v, vec3_t min, vec3_t max) __attribute__ ((warn_unused_result));
 
 /**
  * @return
  */
-static inline vec3_t Vec3_Clampf(const vec3_t v, float min, float max);
+static inline vec3_t Vec3_Clampf(const vec3_t v, float min, float max) __attribute__ ((warn_unused_result));
 
 /**
  * @return
  */
-static inline vec3_t Vec3_Clamp01(const vec3_t v);
+static inline vec3_t Vec3_Clamp01(const vec3_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return Reflected vector
  */
-static inline vec3_t Vec3_Reflect(const vec3_t a, const vec3_t b);
+static inline vec3_t Vec3_Reflect(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The difference of `a - b`.
@@ -646,7 +645,7 @@ static inline void Vec3_Tangents(const vec3_t normal, const vec3_t sdir, const v
 /**
  * @return A `vec4_t` comprised of the specified `vec3_t` and `w`.
  */
-static inline vec4_t Vec3_ToVec4(const vec3_t v, float w);
+static inline vec4_t Vec3_ToVec4(const vec3_t v, float w) __attribute__ ((warn_unused_result));
 
 /**
  * @return The up vector `(0.f, 0.f, 1.f)`.
