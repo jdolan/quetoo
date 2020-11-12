@@ -154,6 +154,38 @@ float Clampf01(float f) {
 /**
  * @brief
  */
+int32_t Comparef(float a, float b) {
+	int32_t ia, ib;
+
+	if (a == b) {
+		return 0;
+	}
+
+	if (isnan(a) || isnan(b)) {
+		return INT32_MAX;
+	}
+
+	if (isinf(a) || isinf(b)) {
+		return INT32_MAX;
+	}
+
+	if (SignOf(a) != SignOf(b)) {
+		return INT32_MAX;
+	}
+
+	memcpy(&ia, &a, sizeof(ia));
+	memcpy(&ib, &b, sizeof(ib));
+
+	if (ia < 0 != ib < 0) {
+		return INT32_MAX;
+	}
+
+	return abs(ia - ib);
+}
+
+/**
+ * @brief
+ */
 float Degrees(float radians) {
 	return radians * RAD2DEG;
 }
@@ -1040,6 +1072,34 @@ vec4_t Vec4_Zero(void) {
 }
 
 #pragma mark - double precision
+
+/**
+ * @brief
+ */
+int64_t Compared(double a, double b) {
+	int64_t ia, ib;
+
+	if (a == b) {
+		return 0;
+	}
+
+	if (isnan(a) || isnan(b)) {
+		return INT64_MAX;
+	}
+
+	if (isinf(a) || isinf(b)) {
+		return INT64_MAX;
+	}
+
+	if (SignOf(a) != SignOf(b)) {
+		return INT64_MAX;
+	}
+
+	memcpy(&ia, &a, sizeof(ia));
+	memcpy(&ib, &b, sizeof(ib));
+
+	return labs(ia - ib);
+}
 
 /**
  * @brief

@@ -219,6 +219,11 @@ static inline float Clampf(float f, float min, float max) __attribute__ ((warn_u
 static inline float Clampf01(float f) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The Units of Least Precision (ULP) between a and b.
+ */
+static inline int32_t Comparef(float a, float b) __attribute__ ((warn_unused_result));
+
+/**
  * @return Radians in degrees.
  */
 static inline float Degrees(float radians) __attribute__ ((warn_unused_result));
@@ -745,6 +750,11 @@ static inline vec3_t Vec4_XYZ(const vec4_t v) __attribute__ ((warn_unused_result
 static inline vec4_t Vec4_Zero(void) __attribute__ ((warn_unused_result));
 
 #pragma mark - double precision
+
+/**
+ * @return The Units of Least Precision (ULP) between a and b.
+ */
+static inline int64_t Compared(double a, double b) __attribute__ ((warn_unused_result));
 
 /**
  * @return True if `fabs(a - b) <= epsilon`.
