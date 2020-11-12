@@ -219,11 +219,6 @@ static inline float Clampf(float f, float min, float max) __attribute__ ((warn_u
 static inline float Clampf01(float f) __attribute__ ((warn_unused_result));
 
 /**
- * @return The Units of Least Precision (ULP) between a and b.
- */
-static inline int32_t Comparef(float a, float b) __attribute__ ((warn_unused_result));
-
-/**
  * @return Radians in degrees.
  */
 static inline float Degrees(float radians) __attribute__ ((warn_unused_result));
@@ -239,21 +234,6 @@ static inline _Bool EqualEpsilonf(float a, float b, float epsilon) __attribute__
 static inline float Minf(float a, float b) __attribute__ ((warn_unused_result));
 
 /**
- * @return The minimim of `a` and `b`.
- */
-static inline int32_t Mini(int32_t a, int32_t b) __attribute__ ((warn_unused_result));
-
-/**
- * @return The minimum of `a`, `b`, and `c`.
- */
-static inline float Minf3(float a, float b, float c) __attribute__ ((warn_unused_result));
-
-/**
- * @return The minimum of `a`, `b`, `c`, and `d`.
- */
-static inline float Minf4(float a, float b, float c, float d) __attribute__ ((warn_unused_result));
-
-/**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline float Mixf(float a, float b, float mix) __attribute__ ((warn_unused_result));
@@ -264,19 +244,14 @@ static inline float Mixf(float a, float b, float mix) __attribute__ ((warn_unuse
 static inline float Maxf(float a, float b) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The minimim of `a` and `b`.
+ */
+static inline int32_t Mini(int32_t a, int32_t b) __attribute__ ((warn_unused_result));
+
+/**
  * @return The maximum of `a` and `b`.
  */
 static inline int32_t Maxi(int32_t a, int32_t b) __attribute__ ((warn_unused_result));
-
-/**
- * @return The maximum of `a`, `b`, and `c`.
- */
-static inline float Maxf3(float a, float b, float c) __attribute__ ((warn_unused_result));
-
-/**
- * @return The maximum of `a`, `b`, `c`, and `d`.
- */
-static inline float Maxf4(float a, float b, float c, float d) __attribute__ ((warn_unused_result));
 
 /**
  * @return Degrees in radians.
@@ -750,11 +725,6 @@ static inline vec3_t Vec4_XYZ(const vec4_t v) __attribute__ ((warn_unused_result
 static inline vec4_t Vec4_Zero(void) __attribute__ ((warn_unused_result));
 
 #pragma mark - double precision
-
-/**
- * @return The Units of Least Precision (ULP) between a and b.
- */
-static inline int64_t Compared(double a, double b) __attribute__ ((warn_unused_result));
 
 /**
  * @return True if `fabs(a - b) <= epsilon`.
