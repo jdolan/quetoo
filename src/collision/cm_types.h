@@ -24,14 +24,10 @@
 #include "quetoo.h"
 
 /**
- * @brief Plane side epsilon.
+ * @brief Plane side epsilon. Because plane side tests scrutinize values around
+ * and across zero, FLT_EPSILON is appropriate and accurate.
  */
 #define SIDE_EPSILON			FLT_EPSILON
-
-/**
- * @brief Winding clipping and splitting epsilon.
- */
-#define CLIP_EPSILON			0.001f
 
 /**
  * @brief Colinear points dot product epsilon.

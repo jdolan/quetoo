@@ -140,7 +140,7 @@ static void MakeBrushWindings(csg_brush_t *brush) {
 				continue;
 			}
 			const plane_t *p = &planes[s->plane_num ^ 1];
-			Cm_ClipWinding(&side->winding, p->normal, p->dist, 0.f);
+			Cm_ClipWinding(&side->winding, p->normal, p->dist, SIDE_EPSILON);
 		}
 
 		assert(side->winding);
@@ -353,7 +353,7 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front
 
 	for (int32_t i = 0; i < brush->num_sides && w; i++) {
 		const plane_t *p = &planes[brush->sides[i].plane_num ^ 1];
-		Cm_ClipWinding(&w, p->normal, p->dist, 0.f);
+		Cm_ClipWinding(&w, p->normal, p->dist, SIDE_EPSILON);
 	}
 
 	if (!w || WindingIsSmall(w)) { // the brush isn't really split
@@ -389,7 +389,7 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front
 		if (!w) {
 			continue;
 		}
-		Cm_SplitWinding(w, plane->normal, plane->dist, 0.f, &cw[0], &cw[1]);
+		Cm_SplitWinding(w, plane->normal, plane->dist, SIDE_EPSILON, &cw[0], &cw[1]);
 		for (int32_t j = 0; j < 2; j++) {
 			if (!cw[j]) {
 				continue;

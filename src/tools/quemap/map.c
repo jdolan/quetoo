@@ -406,7 +406,7 @@ static void MakeBrushWindings(brush_t *brush) {
 				continue;
 			}
 			const plane_t *p = &planes[s->plane_num ^ 1];
-			Cm_ClipWinding(&side->winding, p->normal, p->dist, 0.f);
+			Cm_ClipWinding(&side->winding, p->normal, p->dist, SIDE_EPSILON);
 
 			if (side->winding == NULL) {
 				break;

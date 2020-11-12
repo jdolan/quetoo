@@ -144,7 +144,7 @@ static _Bool Portal_EntityFlood(const portal_t *p) {
 	return true;
 }
 
-static int32_t c_tinyportals;
+static int32_t c_small_portals;
 
 /**
  * @brief
@@ -246,7 +246,7 @@ void MakeHeadnodePortals(tree_t *tree) {
 				continue;
 			}
 			const plane_t *plane = &portals[j]->plane;
-			Cm_ClipWinding(&portals[i]->winding, plane->normal, plane->dist, CLIP_EPSILON);
+			Cm_ClipWinding(&portals[i]->winding, plane->normal, plane->dist, SIDE_EPSILON);
 		}
 	}
 }
@@ -264,10 +264,10 @@ static cm_winding_t *BaseWindingForNode(const node_t *node) {
 		plane = &planes[n->plane_num];
 
 		if (n->children[0] == node) { // take front
-			Cm_ClipWinding(&w, plane->normal, plane->dist, CLIP_EPSILON);
+			Cm_ClipWinding(&w, plane->normal, plane->dist, SIDE_EPSILON);
 		} else { // take back
 			const vec3_t normal = Vec3_Negate(plane->normal);
-			Cm_ClipWinding(&w, normal, -plane->dist, CLIP_EPSILON);
+			Cm_ClipWinding(&w, normal, -plane->dist, SIDE_EPSILON);
 		}
 		node = n;
 		n = n->parent;
@@ -301,7 +301,7 @@ void MakeNodePortal(node_t *node) {
 			Com_Error(ERROR_FATAL, "Mis-linked portal\n");
 		}
 
-		Cm_ClipWinding(&w, normal, dist, CLIP_EPSILON);
+		Cm_ClipWinding(&w, normal, dist, SIDE_EPSILON);
 	}
 
 	if (!w) {
@@ -309,7 +309,7 @@ void MakeNodePortal(node_t *node) {
 	}
 
 	if (WindingIsSmall(w)) {
-		c_tinyportals++;
+		c_small_portals++;
 		Cm_FreeWinding(w);
 		return;
 	}
@@ -348,18 +348,18 @@ void SplitNodePortals(node_t *node) {
 		// cut the portal into two portals, one on each side of the cut plane
 
 		cm_winding_t *front_winding, *back_winding;
-		Cm_SplitWinding(p->winding, plane->normal, plane->dist, CLIP_EPSILON, &front_winding, &back_winding);
+		Cm_SplitWinding(p->winding, plane->normal, plane->dist, SIDE_EPSILON, &front_winding, &back_winding);
 
 		if (front_winding && WindingIsSmall(front_winding)) {
 			Cm_FreeWinding(front_winding);
 			front_winding = NULL;
-			c_tinyportals++;
+			c_small_portals++;
 		}
 
 		if (back_winding && WindingIsSmall(back_winding)) {
 			Cm_FreeWinding(back_winding);
 			back_winding = NULL;
-			c_tinyportals++;
+			c_small_portals++;
 		}
 
 		if (!front_winding && !back_winding) { // tiny windings on both sides
