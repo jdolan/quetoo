@@ -45,14 +45,14 @@ static plane_t *plane_hash[PLANE_HASHES];
 vec3_t map_mins, map_maxs;
 
 #define	NORMAL_EPSILON	0.00001
-#define	DIST_EPSILON	0.005
+#define	DIST_EPSILON	0.00005
 
 /**
  * @brief
  */
 static _Bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
 
-	if ((EqualEpsilon(p->dist, dist, DIST_EPSILON)) &&
+	if (EqualEpsilon(p->dist, dist, DIST_EPSILON) &&
 		Vec3_EqualEpsilon(p->normal, normal, NORMAL_EPSILON)) {
 		return true;
 	}
