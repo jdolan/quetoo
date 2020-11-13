@@ -304,7 +304,7 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 			const vec3_t sun_origin = Vec3_Add(luxel->origin, Vec3_Scale(light->normal, -MAX_WORLD_DIST));
 
 			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, 0, CONTENTS_SOLID);
-			if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
+			if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
 				float exposure = 0.0;
 
 				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
@@ -316,7 +316,7 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 						const vec3_t point = Vec3_Add(sun_origin, Vec3_Scale(points[j], i * LIGHT_SIZE_STEP));
 
 						trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
-						if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
+						if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
 							continue;
 						}
 

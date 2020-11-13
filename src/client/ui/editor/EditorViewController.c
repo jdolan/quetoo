@@ -105,8 +105,8 @@ static void viewWillAppear(ViewController *self) {
 
 	const int32_t contents = CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID | CONTENTS_MIST;
 	const cm_trace_t tr = Cl_Trace(r_view.origin, end, Vec3_Zero(), Vec3_Zero(), 0, contents);
-	if (tr.surface && tr.surface->material) {
-		material = R_LoadMaterial(tr.surface->name, ASSET_CONTEXT_TEXTURES);
+	if (tr.texinfo && tr.texinfo->material) {
+		material = R_LoadMaterial(tr.texinfo->name, ASSET_CONTEXT_TEXTURES);
 	}
 
 	$(view, setMaterial, material);

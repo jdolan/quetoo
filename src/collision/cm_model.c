@@ -170,13 +170,13 @@ static void Cm_LoadBspBrushSides(void) {
 		out->plane = &cm_bsp.planes[p];
 
 		if (in->texinfo == -1) {
-			out->surface = &null_texinfo;
+			out->texinfo = &null_texinfo;
 		} else {
 			if (in->texinfo >= cm_bsp.file.num_texinfo) {
 				Com_Error(ERROR_DROP, "Brush side %d has invalid texinfo %d\n", i, in->texinfo);
 			}
 
-			out->surface = &cm_bsp.texinfos[in->texinfo];
+			out->texinfo = &cm_bsp.texinfos[in->texinfo];
 		}
 	}
 }

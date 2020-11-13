@@ -180,7 +180,7 @@ static cm_box_t cm_box;
  * just beyond the parsed size of the map.
  */
 void Cm_InitBoxHull(void) {
-	static cm_bsp_texinfo_t null_surface;
+	static cm_bsp_texinfo_t null_texinfo;
 
 	if (cm_bsp.file.num_planes + 12 > MAX_BSP_PLANES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
@@ -242,22 +242,22 @@ void Cm_InitBoxHull(void) {
 		plane->normal.xyz[i >> 1] = -1.0;
 		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
 
-		const int32_t side = i & 1;
+		const int32_t s = i & 1;
 
 		// fill in nodes, one per side
 		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
 		node->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2);
-		node->children[side] = -1 - cm_bsp.file.num_leafs;
+		node->children[s] = -1 - cm_bsp.file.num_leafs;
 		if (i != 5) {
-			node->children[side ^ 1] = cm_box.head_node + i + 1;
+			node->children[s ^ 1] = cm_box.head_node + i + 1;
 		} else {
-			node->children[side ^ 1] = -1 - cm_bsp.file.num_leafs;
+			node->children[s ^ 1] = -1 - cm_bsp.file.num_leafs;
 		}
 
 		// fill in brush sides, one per side
-		cm_bsp_brush_side_t *bside = &cm_bsp.brush_sides[cm_bsp.file.num_brush_sides + i];
-		bside->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2 + side);
-		bside->surface = &null_surface;
+		cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[cm_bsp.file.num_brush_sides + i];
+		side->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2 + s);
+		side->texinfo = &null_texinfo;
 	}
 }
 

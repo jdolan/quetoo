@@ -46,7 +46,7 @@ static void G_CheckGround(g_entity_t *ent) {
 			}
 			ent->locals.ground_entity = trace.ent;
 			ent->locals.ground_plane = trace.plane;
-			ent->locals.ground_surface = trace.surface;
+			ent->locals.ground_texinfo = trace.texinfo;
 			ent->locals.ground_contents = trace.contents;
 		} else {
 			if (ent->locals.ground_entity) {
@@ -244,8 +244,8 @@ static void G_Friction(g_entity_t *ent) {
 	float friction = 0.0;
 
 	if (ent->locals.ground_entity) {
-		const cm_bsp_texinfo_t *surf = ent->locals.ground_surface;
-		if (surf && (surf->flags & SURF_SLICK)) {
+		const cm_bsp_texinfo_t *texinfo = ent->locals.ground_texinfo;
+		if (texinfo && (texinfo->flags & SURF_SLICK)) {
 			friction = PM_FRICT_GROUND_SLICK;
 		} else {
 			friction = PM_FRICT_GROUND;
@@ -702,7 +702,7 @@ static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 
 	if (ent->locals.Touch) {
 		gi.Debug("%s touching %s\n", etos(ent), etos(trace->ent));
-		ent->locals.Touch(ent, trace->ent, &trace->plane, trace->surface);
+		ent->locals.Touch(ent, trace->ent, &trace->plane, trace->texinfo);
 	}
 
 	if (ent->in_use && trace->ent->in_use) {

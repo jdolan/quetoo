@@ -446,7 +446,7 @@ void PhongVertex(int32_t vertex_num) {
 }
 
 /**
- * @brief Emits tangent and bitangent vectors to the face's vertexes.
+ * @brief Emits tangent and bitangent vectors to the BSP vertexes.
  */
 void EmitTangents(void) {
 

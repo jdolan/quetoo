@@ -134,7 +134,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		if (enter_fraction > -1.0 && enter_fraction < data->trace.fraction) {
 			data->trace.fraction = Maxf(0.0, enter_fraction);
 			data->trace.plane = *clip_plane;
-			data->trace.surface = clip_side->surface;
+			data->trace.texinfo = clip_side->texinfo;
 			data->trace.contents = brush->contents;
 		}
 	}
