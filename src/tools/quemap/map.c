@@ -124,7 +124,7 @@ static vec3_t SnapNormal(const vec3_t normal) {
 	_Bool snap = false;
 	for (int32_t i = 0; i < 3; i++) {
 		if (snapped.xyz[i] != 0.0) {
-			if (snapped.xyz[i] > -NORMAL_EPSILON && snapped.xyz[i] < NORMAL_EPSILON) {
+			if (fabsf(snapped.xyz[i]) < NORMAL_EPSILON) {
 				snapped.xyz[i] = 0.0;
 				snap = true;
 			}
