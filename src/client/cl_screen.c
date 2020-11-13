@@ -182,6 +182,23 @@ static void Cl_DrawRendererStats(void) {
 	R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_white);
 	y += ch;
 	R_Draw2DString(x, y, va("%d sprites (%d instances)", r_view.num_sprites, r_view.num_sprite_instances), color_white);
+	y += ch;
+
+	const vec3_t forward = Vec3_Add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST));
+	const cm_trace_t tr = Cl_Trace(r_view.origin, forward, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+	if (tr.fraction < 1.f) {
+		y += ch;
+
+		const int32_t texinfo = tr.texinfo ? (int32_t) (ptrdiff_t) (tr.texinfo - Cm_Bsp()->texinfos) : -1;
+		R_Draw2DString(x, y, va("%s %d (%g %g %g) %g",
+								tr.texinfo->name,
+								texinfo,
+								tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z,
+								tr.plane.dist
+								), color_white);
+		y += ch;
+	}
+
 
 	R_BindFont(NULL, NULL, NULL);
 }
