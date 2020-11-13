@@ -44,8 +44,8 @@ static plane_t *plane_hash[PLANE_HASHES];
 
 vec3_t map_mins, map_maxs;
 
-#define	NORMAL_EPSILON	0.00001
-#define	DIST_EPSILON	0.00005
+#define	NORMAL_EPSILON	0.0001
+#define	DIST_EPSILON	0.005
 
 /**
  * @brief
