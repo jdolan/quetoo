@@ -232,4 +232,5 @@ void main(void) {
 	out_color.rgb = dither(out_color.rgb);
 
 	// out_color.rgb = out_color_debug.rgb;
+//	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
 }
