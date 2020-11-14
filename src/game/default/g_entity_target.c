@@ -31,6 +31,7 @@ static void G_target_light_Cycle(g_entity_t *self) {
 
 	g_entity_t *master = self->locals.team_master;
 	if (master) {
+		gi.Debug("Cycling %s\n", etos(master->locals.enemy));
 
 		master->locals.enemy->s.effects ^= EF_LIGHT;
 		master->locals.enemy = master->locals.enemy->locals.team_next;
