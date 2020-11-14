@@ -119,12 +119,13 @@ float Cm_WindingArea(const cm_winding_t *w) {
  * @brief
  */
 void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
-	vec3_t v1, v2;
 
-	v1 = Vec3_Subtract(w->points[1], w->points[0]);
-	v2 = Vec3_Subtract(w->points[2], w->points[0]);
-	*normal = Vec3_Cross(v2, v1);
+	const vec3_t e1 = Vec3_Subtract(w->points[1], w->points[0]);
+	const vec3_t e2 = Vec3_Subtract(w->points[2], w->points[0]);
+
+	*normal = Vec3_Cross(e2, e1);
 	*normal = Vec3_Normalize(*normal);
+	
 	*dist = Vec3_Dot(w->points[0], *normal);
 }
 
