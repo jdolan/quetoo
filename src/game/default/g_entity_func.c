@@ -797,7 +797,7 @@ void G_func_button(g_entity_t *ent) {
 	float dist;
 
 	G_SetMoveDir(ent);
-	ent->locals.move_type = MOVE_TYPE_STOP;
+	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
