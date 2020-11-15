@@ -157,7 +157,7 @@ void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, i
 void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout vec2 diffusemap, inout vec4 color) {
 
 	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
-		float hz = (sin(stage.ticks * stage.stretch.x * 0.00628f) + 1.0) / 2.0;
+		float hz = (sin(stage.ticks * stage.stretch.x * 0.00628) + 1.0) / 2.0;
 		float amp = 1.5 - hz * stage.stretch.y;
 
 		diffusemap = diffusemap - stage.st_origin;
@@ -166,7 +166,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	}
 
 	if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-		float theta = stage.ticks * stage.rotate * 0.36;
+		float theta = stage.ticks * stage.rotate * 0.00628;
 
 		diffusemap = diffusemap - stage.st_origin;
 		diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * diffusemap;
