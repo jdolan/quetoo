@@ -160,9 +160,9 @@ void R_DrawBspLightgrid(void) {
 						const byte *texture = textures + i * texture_size;
 						const byte *color = texture + luxel * BSP_LIGHTGRID_BPP;
 
-						r += color[0];
-						g += color[1];
-						b += color[2];
+						r = Mini(r + color[0], 255);
+						g = Mini(g + color[1], 255);
+						b = Mini(b + color[2], 255);
 					}
 				}
 
@@ -175,8 +175,9 @@ void R_DrawBspLightgrid(void) {
 
 				sprite.origin = Vec3_Add(r_world_model->bsp->lightgrid->mins, Vec3_Scale(sprite.origin, BSP_LIGHTGRID_LUXEL_SIZE));
 
-				if (Vec3_DistanceSquared(r_view.origin, sprite.origin) > 512 * 512)
+				if (Vec3_DistanceSquared(r_view.origin, sprite.origin) > 512 * 512) {
 					continue;
+				}
 
 				R_AddSprite(&sprite);
 			}
