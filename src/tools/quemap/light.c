@@ -227,6 +227,7 @@ static void LightForPatch(const patch_t *patch) {
 
 	light.type = LIGHT_PATCH;
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
+	light.size = patch_size;
 
 	light.origin = Cm_WindingCenter(patch->winding);
 
@@ -386,6 +387,8 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	light.type = LIGHT_INDIRECT;
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
+	light.size = patch_size;
+
 	light.origin = Cm_WindingCenter(patch->winding);
 	light.origin = Vec3_Add(light.origin, Vec3_Scale(lm->plane->normal, 4.0));
 
