@@ -164,7 +164,6 @@ static inline GLenum Cm_BlendConstByName(const char *c) {
 		}
 	}
 
-	// ...
 	Com_Warn("Failed to resolve: %s\n", c);
 	return GL_INVALID_ENUM;
 }
@@ -180,7 +179,6 @@ static inline const char *Cm_BlendNameByConst(const GLenum c) {
 		}
 	}
 
-	// ...
 	Com_Warn("Failed to resolve: %u\n", c);
 	return "GL_INVALID_ENUM";
 }
@@ -617,6 +615,21 @@ static void Cm_AttachStage(cm_material_t *m, cm_stage_t *s) {
 }
 
 /**
+ * @brief
+ */
+static int32_t Cm_StageIndex(const cm_material_t *m, const cm_stage_t *stage) {
+	int32_t i = 0;
+
+	for (const cm_stage_t *s = m->stages; s; s = s->next, i++) {
+		if (s == stage) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/**
  * @brief Allocates a material, setting up the diffuse stage.
  */
 cm_material_t *Cm_AllocMaterial(const char *name) {
@@ -975,7 +988,7 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type
 /**
  * @brief
  */
-static _Bool Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
+static _Bool Cm_ResolveStage(cm_material_t *material, cm_stage_t *stage, cm_asset_context_t context) {
 
 	if (*stage->asset.name) {
 
@@ -992,10 +1005,12 @@ static _Bool Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
 				return true;
 			}
 		} else {
-			Com_Warn("Failed to resolve asset %s for stage\n", stage->asset.name);
+			Com_Warn("Material %s stage %d: Failed to resolve asset %s\n",
+					 material->basename, Cm_StageIndex(material, stage), stage->asset.name);
 		}
 	} else {
-		Com_Warn("Stage does not specify an asset\n");
+		Com_Warn("Material %s stage %d: Stage does not specify an asset\n",
+				 material->basename, Cm_StageIndex(material, stage));
 	}
 
 	return false;
@@ -1041,7 +1056,7 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 
 	cm_stage_t *stage = material->stages;
 	while (stage) {
-		if (Cm_ResolveStage(stage, context)) {
+		if (Cm_ResolveStage(material, stage, context)) {
 			stage = stage->next;
 		} else {
 			return false;
