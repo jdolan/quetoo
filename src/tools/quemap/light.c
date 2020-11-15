@@ -335,11 +335,12 @@ static void HashLights(void) {
 	const bsp_leaf_t *leaf = bsp_file.leafs;
 	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
 
-		const vec3_t leaf_mins = Vec3s_CastVec3(leaf->mins);
-		const vec3_t leaf_maxs = Vec3s_CastVec3(leaf->maxs);
 		if (leaf->cluster == 0) {
 			continue;
 		}
+
+		const vec3_t leaf_mins = Vec3_Add(Vec3s_CastVec3(leaf->mins), Vec3(-1, -1, -1));
+		const vec3_t leaf_maxs = Vec3_Add(Vec3s_CastVec3(leaf->maxs), Vec3( 1,  1,  1));
 
 		leaf_lights[i] = BoxLights(leaf_mins, leaf_maxs);
 	}
