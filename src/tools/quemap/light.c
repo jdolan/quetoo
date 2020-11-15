@@ -233,6 +233,11 @@ static void LightForPatch(const patch_t *patch) {
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
 	light.origin = Vec3_Add(light.origin, Vec3_Scale(plane->normal, 4.0));
 
+	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
+	if (light.cluster == -1) {
+		return;
+	}
+
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[patch->face->texinfo];
 
 	light.color = GetTextureColor(texinfo->texture);
@@ -242,8 +247,6 @@ static void LightForPatch(const patch_t *patch) {
 	}
 
 	light.radius = texinfo->value ?: DEFAULT_LIGHT;
-
-	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
 
 	g_array_append_val(lights, light);
 }
@@ -377,6 +380,16 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	light_t light;
 
+	light.type = LIGHT_INDIRECT;
+	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
+	light.origin = Cm_WindingCenter(patch->winding);
+	light.origin = Vec3_Add(light.origin, Vec3_Scale(lm->plane->normal, 4.0));
+
+	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
+	if (light.cluster == -1) {
+		return;
+	}
+
 	vec2_t patch_mins = Vec2_Mins();
 	vec2_t patch_maxs = Vec2_Maxs();
 
@@ -420,19 +433,11 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		return;
 	}
 
-	light.type = LIGHT_INDIRECT;
-	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
-
-	light.origin = Cm_WindingCenter(patch->winding);
-	light.origin = Vec3_Add(light.origin, Vec3_Scale(lm->plane->normal, 4.0));
-
 	lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
 	light.radius = ColorNormalize(lightmap, &lightmap);
 
 	const vec3_t diffuse = GetTextureColor(lm->texinfo->texture);
 	light.color = Vec3_Multiply(lightmap, diffuse);
-
-	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
 
 	g_array_append_val(lights, light);
 }
