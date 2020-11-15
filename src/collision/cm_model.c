@@ -451,7 +451,7 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
  */
 int32_t Cm_LeafCluster(const int32_t leaf_num) {
 
-	if (leaf_num < 0 || leaf_num >= cm_bsp.file.num_leafs) {
+	if (leaf_num < 1 || leaf_num >= cm_bsp.file.num_leafs) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
