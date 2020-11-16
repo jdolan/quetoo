@@ -273,8 +273,8 @@ static int32_t EmitNode(node_t *node) {
 	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
 
-	out->mins = Vec3_CastVec3s(node->mins);
-	out->maxs = Vec3_CastVec3s(node->maxs);
+	out->mins = Vec3_CastVec3s(Vec3_Floorf(node->mins));
+	out->maxs = Vec3_CastVec3s(Vec3_Ceilf(node->maxs));
 
 	out->plane_num = node->plane_num;
 

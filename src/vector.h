@@ -433,6 +433,11 @@ static inline vec3s_t Vec3_CastVec3s(const vec3_t v) __attribute__ ((warn_unused
 static inline vec3i_t Vec3_CastVec3i(const vec3_t v) __attribute__ ((warn_unused_result));
 
 /**
+ * @brief A vector containing the components of `v`, rounded to the nearest higher integer.
+ */
+static inline vec3_t Vec3_Ceilf(const vec3_t v) __attribute__ ((warn_unused_result));
+
+/**
  * @return The specified Euler angles circularly clamped to `0.f - 360.f`.
  */
 static inline vec3_t Vec3_ClampEuler(const vec3_t euler) __attribute__ ((warn_unused_result));
@@ -486,6 +491,11 @@ static inline _Bool Vec3_Equal(const vec3_t a, const vec3_t b) __attribute__ ((w
  * @return The euler angles, in radians, for the directional vector `dir`.
  */
 static inline vec3_t Vec3_Euler(const vec3_t dir) __attribute__ ((warn_unused_result));
+
+/**
+ * @brief A vector containing the components of `v`, rounded to the nearest lower integer.
+ */
+static inline vec3_t Vec3_Floorf(const vec3_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return The squared length (magnitude) of `v`.
