@@ -523,10 +523,25 @@ void DirectLightmap(int32_t face_num) {
 			LightLuxel(lights, lm, l, weight);
 		}
 
-		if (contribution > 0.0 && contribution < 1.0) {
-			l->ambient = Vec3_Scale(l->ambient, 1.0 / contribution);
-			l->diffuse = Vec3_Scale(l->diffuse, 1.0 / contribution);
-			l->direction = Vec3_Scale(l->direction, 1.0 / contribution);
+		if (contribution < 1.0) {
+			if (contribution > 0.0) {
+				l->ambient = Vec3_Scale(l->ambient, 1.0 / contribution);
+				l->diffuse = Vec3_Scale(l->diffuse, 1.0 / contribution);
+				l->direction = Vec3_Scale(l->direction, 1.0 / contribution);
+			} else if (lm->model != bsp_file.models) {
+
+				// For inline models, always add ambient light sources, even if the sample resides
+				// in solid. This prevents completely unlit tops of doors, bottoms of plats, etc.
+
+				const light_t *light = (light_t *) lights->pdata;
+				for (guint j = 0; j < lights->len; j++, light++) {
+					
+					if (light->type == LIGHT_AMBIENT) {
+						const float intensity = light->radius * lightscale_ambient;
+						l->ambient = Vec3_Add(l->ambient, Vec3_Scale(light->color, intensity));
+					}
+				}
+			}
 		}
 	}
 }
