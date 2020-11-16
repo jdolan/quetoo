@@ -280,23 +280,14 @@ static void FreeLights(void) {
 }
 
 /**
- * @brief
+ * @return A GPtrArray of all light sources that intersect the specified bounds.
  */
 static GPtrArray *BoxLights(const vec3_t box_mins, const vec3_t box_maxs) {
-
-	byte pvs[MAX_BSP_LEAFS >> 3];
-	Cm_BoxPVS(box_mins, box_maxs, pvs);
 
 	GPtrArray *box_lights = g_ptr_array_new();
 
 	const light_t *light = (light_t *) lights->data;
 	for (guint i = 0; i < lights->len; i++, light++) {
-
-		if (light->cluster != -1) {
-			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
-				continue;
-			}
-		}
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
 			const vec3_t radius = Vec3(light->radius + light->size,
