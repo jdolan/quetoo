@@ -407,6 +407,9 @@ void DirectLightgrid(int32_t luxel_num) {
 		}
 
 		const GPtrArray *lights = leaf_lights[Cm_PointLeafnum(l->origin, 0)];
+		if (!lights) {
+			continue;
+		}
 
 		LightLuxel(lights, l, 1.f);
 		break;
@@ -439,6 +442,9 @@ void IndirectLightgrid(int32_t luxel_num) {
 		}
 
 		const GPtrArray *lights = leaf_lights[Cm_PointLeafnum(l->origin, 0)];
+		if (!lights) {
+			continue;
+		}
 
 		LightLuxel(lights, l, radiosity);
 		break;
