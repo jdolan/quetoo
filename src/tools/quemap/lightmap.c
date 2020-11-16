@@ -236,7 +236,6 @@ static vec3_t PhongLuxel(const lightmap_t *lm, const vec3_t origin) {
  * @param l The luxel.
  * @param soffs The S offset in texture space, for antialiasing.
  * @param toffs The T offset in texture space, for antialiasing.
- * @param pvs A pointer to receive the PVS data for the projected luxel origin.
  * @return The contents mask at the projected luxel origin.
  */
 static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs) {
@@ -483,8 +482,8 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 /**
  * @brief Calculates direct lighting for the given face. Luxels are projected into world space.
- * We then query the light sources that are in PVS for each luxel, and accumulate their diffuse
- * and directional contributions as non-normalized floating point.
+ * We then query the light sources that intersect the lightmap's node, and accumulate their ambient,
+ * diffuse and directional contributions as non-normalized floating point.
  */
 void DirectLightmap(int32_t face_num) {
 
