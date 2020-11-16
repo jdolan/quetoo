@@ -143,28 +143,19 @@ void R_DrawBspLightgrid(void) {
 
 	const size_t texture_size = lg->size.x * lg->size.y * lg->size.z * BSP_LIGHTGRID_BPP;
 
-	const byte *textures = (byte *) lg + sizeof(bsp_lightgrid_t);
-	int32_t luxel = 0;
+	const byte *ambient = (byte *) lg + sizeof(bsp_lightgrid_t);
+	const byte *diffuse = ambient + texture_size;
+	const byte *direction = diffuse + texture_size;
 
 	r_image_t *particle = R_LoadImage("sprites/particle", IT_EFFECT);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, luxel++) {
+			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3) {
 
-				byte r = 0, g = 0, b = 0;
-
-				for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
-					if (r_draw_bsp_lightgrid->integer & (1 << i)) {
-
-						const byte *texture = textures + i * texture_size;
-						const byte *color = texture + luxel * BSP_LIGHTGRID_BPP;
-
-						r = Mini(r + color[0], 255);
-						g = Mini(g + color[1], 255);
-						b = Mini(b + color[2], 255);
-					}
-				}
+				const byte r = Mini(ambient[0] + diffuse[0], 255);
+				const byte g = Mini(ambient[1] + diffuse[1], 255);
+				const byte b = Mini(ambient[2] + diffuse[2], 255);
 
 				r_sprite_t sprite = {
 					.origin = Vec3(s + 0.5, t + 0.5, u + 0.5),
@@ -180,6 +171,15 @@ void R_DrawBspLightgrid(void) {
 				}
 
 				R_AddSprite(&sprite);
+
+				const float x = direction[0] / 255.f * 2.f - 1.f;
+				const float y = direction[1] / 255.f * 2.f - 1.f;
+				const float z = direction[2] / 255.f * 2.f - 1.f;
+
+				const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
+				const vec3_t end = Vec3_Add(sprite.origin, Vec3_Scale(dir, 16.f));
+
+				R_Draw3DLines((vec3_t []) { sprite.origin, end }, 2, Color3b(r, g, b));
 			}
 		}
 	}
