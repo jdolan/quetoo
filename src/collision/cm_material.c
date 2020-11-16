@@ -971,7 +971,7 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type
 	int32_t start = (int32_t) strtol(c, NULL, 10);
 	*c = '\0';
 
-	for (uint16_t i = 0; i < stage->animation.num_frames; i++) {
+	for (int32_t i = 0; i < stage->animation.num_frames; i++) {
 
 		cm_asset_t *frame = &stage->animation.frames[i];
 		g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);

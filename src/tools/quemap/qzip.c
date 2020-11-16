@@ -150,6 +150,9 @@ static void AddMaterial(const cm_material_t *material) {
 
 		for (const cm_stage_t *stage = material->stages; stage; stage = stage->next) {
 			AddAsset(&stage->asset);
+			for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+				AddAsset(stage->animation.frames + i);
+			}
 		}
 	} else {
 		Com_Warn("Failed to resolve %s\n", material->name);
