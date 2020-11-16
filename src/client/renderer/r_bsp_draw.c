@@ -153,8 +153,6 @@ void R_DrawBspLightgrid(void) {
 			for (int32_t s = 0; s < lg->size.x; s++, luxel++) {
 
 				byte r = 0, g = 0, b = 0;
-				vec3_t dir = Vec3_Zero();
-				int32_t count = 1;
 
 				for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
 					if (r_draw_bsp_lightgrid->integer & (1 << i)) {
@@ -165,42 +163,23 @@ void R_DrawBspLightgrid(void) {
 						r = Mini(r + color[0], 255);
 						g = Mini(g + color[1], 255);
 						b = Mini(b + color[2], 255);
-
-						dir.x = ((float)r / 255.0f - 0.5) * 2.0;
-						dir.y = ((float)g / 255.0f - 0.5) * 2.0;
-						dir.z = ((float)b / 255.0f - 0.5) * 2.0;
-						dir = Vec3_Normalize(dir);
-
-						count = 4;
 					}
 				}
 
-				r_sprite_t sprites[count];
-				for (int32_t i = 0; i < count; i++) {
-					sprites[i] = (r_sprite_t) {
-						.origin = Vec3(s + 0.5, t + 0.5, u + 0.5),
-						.size = 8.f,
-						.color = Color32(r, g, b, 255),
-						.media = (r_media_t *) particle
-					};
+				r_sprite_t sprite = {
+					.origin = Vec3(s + 0.5, t + 0.5, u + 0.5),
+					.size = 8.f,
+					.color = Color32(r, g, b, 255),
+					.media = (r_media_t *) particle
+				};
 
-					sprites[i].origin = Vec3_Add(
-						r_world_model->bsp->lightgrid->mins,
-						Vec3_Scale(sprites[i].origin, BSP_LIGHTGRID_LUXEL_SIZE));
+				sprite.origin = Vec3_Add(r_world_model->bsp->lightgrid->mins, Vec3_Scale(sprite.origin, BSP_LIGHTGRID_LUXEL_SIZE));
 
-					if (i > 0) {
-						vec3_t d = Vec3_Scale(dir, 4.0 * (float)i);
-						sprites[i].origin = Vec3_Add(sprites[i].origin, d);
-					}
-
-					if (Vec3_DistanceSquared(r_view.origin, sprites[i].origin) > 512 * 512) {
-						goto next;
-					}
-
-					R_AddSprite(&sprites[i]);
+				if (Vec3_DistanceSquared(r_view.origin, sprite.origin) > 512 * 512) {
+					continue;
 				}
 
-				next: continue;
+				R_AddSprite(&sprite);
 			}
 		}
 	}
