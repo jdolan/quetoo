@@ -335,8 +335,8 @@ static void HashLights(void) {
 			continue;
 		}
 
-		const vec3_t leaf_mins = Vec3_Add(Vec3s_CastVec3(leaf->mins), Vec3(-1.f, -1.f, -1.f));
-		const vec3_t leaf_maxs = Vec3_Add(Vec3s_CastVec3(leaf->maxs), Vec3( 1.f,  1.f,  1.f));
+		const vec3_t leaf_mins = Vec3s_CastVec3(leaf->mins);
+		const vec3_t leaf_maxs = Vec3s_CastVec3(leaf->maxs);
 
 		leaf_lights[i] = BoxLights(leaf_mins, leaf_maxs);
 	}
