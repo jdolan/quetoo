@@ -291,7 +291,7 @@ typedef enum {
 /**
  * @brief Texinfos with these flags imply translucent contents.
  */
-#define SURF_MASK_TRANSLUCENT	(SURF_ALPHA_TEST | SURF_MASK_BLEND)
+#define SURF_MASK_TRANSLUCENT	(SURF_ALPHA_TEST | SURF_MASK_BLEND | SURF_MATERIAL)
 
 /**
  * @brief Texinfos with these flags will not have lightmap data.
