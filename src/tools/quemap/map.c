@@ -611,7 +611,6 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			side->contents = CONTENTS_NONE;
 		}
 
-
 		// find the plane number
 		side->plane_num = PlaneFromPoints(points[0], points[1], points[2]);
 		if (side->plane_num == -1) {
