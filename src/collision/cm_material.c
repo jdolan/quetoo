@@ -259,7 +259,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 				}
 			}
 
-			for (int32_t i = 0; i < 3; i++) {
+			for (int32_t i = 0; i < 4; i++) {
 
 				if (s->color.rgba[i] < 0.0 || s->color.rgba[i] > 1.0) {
 					Cm_MaterialWarn(path, parser, "Invalid value for color, must be between 0.0 and 1.0");
