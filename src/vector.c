@@ -182,23 +182,6 @@ int32_t Mini(int32_t a, int32_t b) {
 /**
  * @brief
  */
-float Minf3(float a, float b, float c) {
-	float x = a < b ? a : b;
-	return x < c ? x : c;
-}
-
-/**
- * @brief
- */
-float Minf4(float a, float b, float c, float d) {
-	float x = a < b ? a : b;
-	float y = c < d ? c : d;
-	return x < y ? x : y;
-}
-
-/**
- * @brief
- */
 float Mixf(float a, float b, float mix) {
 	return a * (1.f - mix) + b * mix;
 }
@@ -215,23 +198,6 @@ float Maxf(float a, float b) {
  */
 int32_t Maxi(int32_t a, int32_t b) {
 	return a > b ? a : b;
-}
-
-/**
- * @brief
- */
-float Maxf3(float a, float b, float c) {
-	float x = a > b ? a : b;
-	return x > c ? x : c;
-}
-
-/**
- * @brief
- */
-float Maxf4(float a, float b, float c, float d) {
-	float x = a > b ? a : b;
-	float y = c > d ? c : d;
-	return x > y ? x : y;
 }
 
 /**
@@ -522,6 +488,18 @@ vec3i_t Vec3_CastVec3i(const vec3_t v) {
 	};
 }
 
+/**
+ * @brief
+ */
+vec3_t Vec3_Ceilf(const vec3_t v) {
+	return Vec3(ceilf(v.x),
+				ceilf(v.y),
+				ceilf(v.z));
+}
+
+/**
+ * @brief
+ */
 vec3_t Vec3_ClampEuler(const vec3_t euler) {
 	return Vec3(ClampEuler(euler.x),
 				ClampEuler(euler.y),
@@ -634,6 +612,15 @@ vec3_t Vec3_Euler(const vec3_t dir) {
 	}
 
 	return Vec3(-pitch, yaw, 0);
+}
+
+/**
+ * @brief
+ */
+vec3_t Vec3_Floorf(const vec3_t v) {
+	return Vec3(floorf(v.x),
+				floorf(v.y),
+				floorf(v.z));
 }
 
 /**

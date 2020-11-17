@@ -170,13 +170,13 @@ static void Cm_LoadBspBrushSides(void) {
 		out->plane = &cm_bsp.planes[p];
 
 		if (in->texinfo == -1) {
-			out->surface = &null_texinfo;
+			out->texinfo = &null_texinfo;
 		} else {
 			if (in->texinfo >= cm_bsp.file.num_texinfo) {
 				Com_Error(ERROR_DROP, "Brush side %d has invalid texinfo %d\n", i, in->texinfo);
 			}
 
-			out->surface = &cm_bsp.texinfos[in->texinfo];
+			out->texinfo = &cm_bsp.texinfos[in->texinfo];
 		}
 	}
 }
@@ -451,7 +451,7 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
  */
 int32_t Cm_LeafCluster(const int32_t leaf_num) {
 
-	if (leaf_num < 0 || leaf_num >= cm_bsp.file.num_leafs) {
+	if (leaf_num < 1 || leaf_num >= cm_bsp.file.num_leafs) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 

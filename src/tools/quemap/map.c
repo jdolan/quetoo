@@ -44,7 +44,7 @@ static plane_t *plane_hash[PLANE_HASHES];
 
 vec3_t map_mins, map_maxs;
 
-#define	NORMAL_EPSILON	0.00001
+#define	NORMAL_EPSILON	0.0001
 #define	DIST_EPSILON	0.005
 
 /**
@@ -52,7 +52,7 @@ vec3_t map_mins, map_maxs;
  */
 static _Bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
 
-	if ((EqualEpsilon(p->dist, dist, DIST_EPSILON)) &&
+	if (EqualEpsilon(p->dist, dist, DIST_EPSILON) &&
 		Vec3_EqualEpsilon(p->normal, normal, NORMAL_EPSILON)) {
 		return true;
 	}
@@ -78,7 +78,7 @@ static int32_t CreatePlane(const vec3_t normal, double dist) {
 
 	// bad plane
 	if (Vec3_Length(normal) < 0.5) {
-		return -1;
+		Com_Error(ERROR_FATAL, "Malformed plane\n");
 	}
 
 	// create a new plane
@@ -124,7 +124,7 @@ static vec3_t SnapNormal(const vec3_t normal) {
 	_Bool snap = false;
 	for (int32_t i = 0; i < 3; i++) {
 		if (snapped.xyz[i] != 0.0) {
-			if (snapped.xyz[i] > -NORMAL_EPSILON && snapped.xyz[i] < NORMAL_EPSILON) {
+			if (fabsf(snapped.xyz[i]) < NORMAL_EPSILON) {
 				snapped.xyz[i] = 0.0;
 				snap = true;
 			}
@@ -406,7 +406,7 @@ static void MakeBrushWindings(brush_t *brush) {
 				continue;
 			}
 			const plane_t *p = &planes[s->plane_num ^ 1];
-			Cm_ClipWinding(&side->winding, p->normal, p->dist, 0.f);
+			Cm_ClipWinding(&side->winding, p->normal, p->dist, SIDE_EPSILON);
 
 			if (side->winding == NULL) {
 				break;
@@ -610,7 +610,6 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		if (side->surf & (SURF_HINT | SURF_SKIP)) {
 			side->contents = CONTENTS_NONE;
 		}
-
 
 		// find the plane number
 		side->plane_num = PlaneFromPoints(points[0], points[1], points[2]);

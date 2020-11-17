@@ -31,6 +31,7 @@ static void G_target_light_Cycle(g_entity_t *self) {
 
 	g_entity_t *master = self->locals.team_master;
 	if (master) {
+		gi.Debug("Cycling %s\n", etos(master->locals.enemy));
 
 		master->locals.enemy->s.effects ^= EF_LIGHT;
 		master->locals.enemy = master->locals.enemy->locals.team_next;
@@ -63,7 +64,7 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
 	}
 }
 
-/*QUAKED target_light (1 1 1) (-4 -4 -4) (4 4 4) start_on toggle
+/*QUAKED target_light (1 1 1) (-4 -4 -4) (4 4 4) start_on
  Emits a user-defined light when used. Lights can be chained with teams.
 
  -------- Keys --------
@@ -78,7 +79,7 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
  start_on : The light will start on.
 
  -------- Notes --------
- Use this entity to add switched lights (toggle). Use the wait key to synchronize
+ Use this entity to add switched lights. Use the wait key to synchronize
  color cycles with other entities.
 */
 void G_target_light(g_entity_t *self) {

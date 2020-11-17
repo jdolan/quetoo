@@ -72,9 +72,9 @@ START_TEST(_Vec3_Equal) {
 
 START_TEST(_Vec3_Euler) {
 	assert_vec3_eq(Vec3(0, 0, 0), Vec3_Euler(Vec3(1, 0, 0)));
-	assert_vec3_eq(Vec3(0, 180, 0), Vec3_Euler(Vec3(-1, 0, 0)));
 	assert_vec3_eq(Vec3(0, 90, 0), Vec3_Euler(Vec3(0, 1, 0)));
-	assert_vec3_eq(Vec3(0, -90, 0), Vec3_Euler(Vec3(0, -1, 0)));
+	assert_vec3_eq(Vec3(0, 180, 0), Vec3_Euler(Vec3(-1, 0, 0)));
+	assert_vec3_eq(Vec3(0, 270, 0), Vec3_Euler(Vec3(0, -1, 0)));
 } END_TEST
 
 START_TEST(_Vec3_Length) {

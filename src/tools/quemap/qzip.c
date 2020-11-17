@@ -150,6 +150,9 @@ static void AddMaterial(const cm_material_t *material) {
 
 		for (const cm_stage_t *stage = material->stages; stage; stage = stage->next) {
 			AddAsset(&stage->asset);
+			for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+				AddAsset(stage->animation.frames + i);
+			}
 		}
 	} else {
 		Com_Warn("Failed to resolve %s\n", material->name);
@@ -243,6 +246,13 @@ static void AddEntities(void) {
 	}
 
 	g_list_free_full(entities, Mem_Free);
+}
+
+/**
+ * @brief
+ */
+static void AddNavigation(void) {
+	AddPath(va("maps/%s.nav", map_base), false);
 }
 
 /**
@@ -356,7 +366,8 @@ int32_t ZIP_Main(void) {
 	// add the sounds, models, sky, ..
 	AddEntities();
 
-	// add location, docs and mapshots
+	// add navigation, location, docs and mapshots
+	AddNavigation();
 	AddLocation();
 	AddDocumentation();
 	AddMapshots();

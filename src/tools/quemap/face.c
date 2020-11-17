@@ -245,7 +245,7 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
 /**
  * @brief Welds the specified winding, writing its welded points to the given array.
  * @remarks This attempts to fix hairline cracks in (usually) intricate brushes. Note
- * that the weld threshold here is significantly larger than that of WindingIsTiny.
+ * that the weld threshold here is significantly larger than that of WindingIsSmall.
  * This allows for small windings that act as "caulk" to not be collapsed, but instead
  * be welded to other geometry. We do not weld the points to each other; only to those
  * of other brushes.
@@ -301,8 +301,14 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		out.position = points[i];
 		out.normal = planes[face->plane_num].normal;
 
-		const float s = Vec3_Dot(out.position, sdir) + texinfo->vecs[0].w;
-		const float t = Vec3_Dot(out.position, tdir) + texinfo->vecs[1].w;
+		/*
+		 * Texcoords are derived from the original winding point, not the welded vertex position.
+		 * This produces WYSIWYG texture mapping, and avoids unsightly specular artifacts
+		 * introduced by moving the vertex in order to weld cracks.
+		 */
+
+		const float s = Vec3_Dot(face->w->points[i], sdir) + texinfo->vecs[0].w;
+		const float t = Vec3_Dot(face->w->points[i], tdir) + texinfo->vecs[1].w;
 
 		out.diffusemap.x = s / (diffuse ? diffuse->w : 1.0);
 		out.diffusemap.y = t / (diffuse ? diffuse->h : 1.0);
@@ -446,7 +452,7 @@ void PhongVertex(int32_t vertex_num) {
 }
 
 /**
- * @brief Emits tangent and bitangent vectors to the face's vertexes.
+ * @brief Emits tangent and bitangent vectors to the BSP vertexes.
  */
 void EmitTangents(void) {
 

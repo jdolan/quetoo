@@ -592,7 +592,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	if (ent->timestamp < cgi.client->unclamped_time) {
 		const cm_trace_t tr = cgi.Trace(start, Vec3_Add(end, Vec3_Scale(dir, -128.0)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
 
-		if (tr.surface) {
+		if (tr.texinfo) {
 			vec3_t pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 1.0));
 
 			cgi.AddStain(&(const r_stain_t) {

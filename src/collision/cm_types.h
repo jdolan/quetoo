@@ -24,14 +24,10 @@
 #include "quetoo.h"
 
 /**
- * @brief Plane side epsilon.
+ * @brief Plane side epsilon. Because plane side tests scrutinize values around
+ * and across zero, FLT_EPSILON is appropriate and accurate.
  */
 #define SIDE_EPSILON			FLT_EPSILON
-
-/**
- * @brief Winding clipping and splitting epsilon.
- */
-#define CLIP_EPSILON			0.001f
 
 /**
  * @brief Colinear points dot product epsilon.
@@ -46,7 +42,7 @@
 /**
  * @brief Vertex equality epsilon.
  */
-#define VERTEX_EPSILON			.375f
+#define VERTEX_EPSILON			.875f
 
 /**
  * @brief Trace collision epsilon.
@@ -179,15 +175,15 @@ typedef struct {
 	/**
 	 * @brief The impacted plane, or empty. Note that a copy of the plane is
 	 * returned, rather than a pointer. This is because the plane may belong to
-	 * an inline BSP or the box hull of a solid entity, in which case it must
+	 * an inline BSP model or the box hull of a solid entity, in which case it must
 	 * be transformed by the entity's current position.
 	 */
 	cm_bsp_plane_t plane;
 
 	/**
-	 * @brief The impacted surface, or `NULL`.
+	 * @brief The impacted texinfo, or `NULL`.
 	 */
-	cm_bsp_texinfo_t *surface;
+	cm_bsp_texinfo_t *texinfo;
 
 	/**
 	 * @brief The contents mask of the impacted brush, or 0.
@@ -206,8 +202,15 @@ typedef struct {
  * not for rendering.
  */
 typedef struct {
+	/**
+	 * @brief The plane.
+	 */
 	cm_bsp_plane_t *plane;
-	cm_bsp_texinfo_t *surface;
+
+	/**
+	 * @brief The texinfo.
+	 */
+	cm_bsp_texinfo_t *texinfo;
 } cm_bsp_brush_side_t;
 
 /**

@@ -224,13 +224,13 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
  * @brief Play a sloppy sound when impacting the world.
  */
 static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
-                                 const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf) {
+                                 const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo) {
 
-	if (surf && (surf->flags & SURF_SKY)) {
+	if (texinfo && (texinfo->flags & SURF_SKY)) {
 		G_FreeEntity(self);
 	} else {
 		const float speed = Vec3_Length(self->locals.velocity);
-		if (speed > 40.0 && G_IsStructural(other, surf)) {
+		if (speed > 40.0 && G_IsStructural(other, texinfo)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
 				gi.Sound(self, self->locals.noise_index, ATTEN_IDLE, 0);

@@ -260,21 +260,20 @@ static void G_UseTargets_Delay(g_entity_t *ent) {
  * if set, to the activator.
  */
 void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
-	g_entity_t *t;
 
 	// check for a delay
 	if (ent->locals.delay) {
-		// create a temp object to fire at a later time
-		t = G_AllocEntity();
-		t->locals.next_think = g_level.time + ent->locals.delay * 1000;
-		t->locals.Think = G_UseTargets_Delay;
-		t->locals.activator = activator;
+		// create a temp entity to fire at a later time
+		g_entity_t *temp = G_AllocEntity();
+		temp->locals.next_think = g_level.time + ent->locals.delay * 1000;
+		temp->locals.Think = G_UseTargets_Delay;
+		temp->locals.activator = activator;
 		if (!activator) {
 			gi.Debug("No activator for %s\n", etos(ent));
 		}
-		t->locals.message = ent->locals.message;
-		t->locals.target = ent->locals.target;
-		t->locals.kill_target = ent->locals.kill_target;
+		temp->locals.message = ent->locals.message;
+		temp->locals.target = ent->locals.target;
+		temp->locals.kill_target = ent->locals.kill_target;
 		return;
 	}
 
@@ -293,9 +292,9 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 
 	// kill kill_targets
 	if (ent->locals.kill_target) {
-		t = NULL;
-		while ((t = G_Find(t, LOFS(target_name), ent->locals.kill_target))) {
-			G_FreeEntity(t);
+		g_entity_t *target = NULL;
+		while ((target = G_Find(target, LOFS(target_name), ent->locals.kill_target))) {
+			G_FreeEntity(target);
 			if (!ent->in_use) {
 				gi.Debug("%s was removed while using kill_targets\n", etos(ent));
 				return;
@@ -305,16 +304,16 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 
 	// fire targets
 	if (ent->locals.target) {
-		t = NULL;
-		while ((t = G_Find(t, LOFS(target_name), ent->locals.target))) {
+		g_entity_t *target = NULL;
+		while ((target = G_Find(target, LOFS(target_name), ent->locals.target))) {
 
-			if (t == ent) {
+			if (target == ent) {
 				gi.Debug("%s tried to use itself\n", etos(ent));
 				continue;
 			}
 
-			if (t->locals.Use) {
-				t->locals.Use(t, ent, activator);
+			if (target->locals.Use) {
+				target->locals.Use(target, ent, activator);
 				if (!ent->in_use) { // see if our target freed us
 					gi.Debug("%s was removed while using targets\n", etos(ent));
 					break;
@@ -784,12 +783,12 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 /**
  * @return True if the specified entity and surface are structural.
  */
-_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *surf) {
+_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *texinfo) {
 
 	if (ent) {
 		if (ent->solid == SOLID_BSP) {
 
-			if (!surf || (surf->flags & SURF_SKY)) {
+			if (!texinfo || (texinfo->flags & SURF_SKY)) {
 				return false;
 			}
 
@@ -803,9 +802,9 @@ _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *surf) {
 /**
  * @return True if the specified entity and surface are sky.
  */
-_Bool G_IsSky(const cm_bsp_texinfo_t *surf) {
+_Bool G_IsSky(const cm_bsp_texinfo_t *texinfo) {
 
-	if (surf && (surf->flags & SURF_SKY)) {
+	if (texinfo && (texinfo->flags & SURF_SKY)) {
 		return true;
 	}
 

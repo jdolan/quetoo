@@ -48,8 +48,6 @@ in vertex_data {
 
 out vec4 out_color;
 
-vec3 out_color_debug;
-
 /**
  * @brief Samples the lightmap and stainmap with either bilinear or bicubic sampling.
  */
@@ -193,7 +191,7 @@ void main(void) {
 
 		vec3 stainmap = sample_lightmap(4).rgb;
 
-		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular, out_color_debug);
+		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
 
 		out_color = diffusemap;
 		out_color *= vec4(stainmap, 1.0);
@@ -231,5 +229,5 @@ void main(void) {
 	
 	out_color.rgb = dither(out_color.rgb);
 
-	// out_color.rgb = out_color_debug.rgb;
+//	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
 }

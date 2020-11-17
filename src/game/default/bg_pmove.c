@@ -40,32 +40,56 @@ static pm_move_t *pm;
 /**
  * @brief A structure containing full floating point precision copies of all
  * movement variables. This is initialized with the player's last movement
- * at each call to PM_Move (this is obviously not thread-safe).
+ * at each call to Pm_Move (this is obviously not thread-safe).
  */
-typedef struct {
+static struct {
 
-	// previous origin, in case movement fails
+	/**
+	 * @brief Previous (incoming) origin, in case movement fails and must be reverted.
+	 */
 	vec3_t previous_origin;
 
-	// previous velocity, for detecting landings
+	/**
+	 * @brief Previous (incoming) velocity, used for detecting landings.
+	 */
 	vec3_t previous_velocity;
 
-	// directional vectors based on command angles
+	/**
+	 * @brief Directional vectors based on command angles, with Z component.
+	 */
 	vec3_t forward, right, up;
 
-	// directional vectors without Z component
+	/**
+	 * @brief Directional vectors without Z component, for air and ground movement.
+	 */
 	vec3_t forward_xy, right_xy;
 
-	float time; // the command duration in seconds
+	/**
+	 * @brief The current movement command duration, in seconds.
+	 */
+	float time;
 
-	// ground interactions
-	cm_bsp_texinfo_t *ground_surface;
-	cm_bsp_plane_t ground_plane;
-	int32_t ground_contents;
+	/**
+	 * @brief The player's ground interaction, copied from a trace.
+	 */
+	struct {
+		/**
+		 * @brief The ground plane.
+		 */
+		cm_bsp_plane_t plane;
 
-} pm_locals_t;
+		/**
+		 * @brief The ground texinfo.
+		 */
+		cm_bsp_texinfo_t *texinfo;
 
-static pm_locals_t pml;
+		/**
+		 * @brief The ground contents.
+		 */
+		int32_t contents;
+	} ground;
+
+} pm_locals;
 
 #define Pm_Debug(...) pm->Debug(__func__, __VA_ARGS__)
 
@@ -133,12 +157,12 @@ static _Bool Pm_SlideMove(void) {
 	vec3_t planes[MAX_CLIP_PLANES];
 	int32_t bump, num_bumps = MAX_CLIP_PLANES - 2;
 
-	float time_remaining = pml.time;
+	float time_remaining = pm_locals.time;
 	int32_t num_planes = 0;
 
 	// never turn against our ground plane
 	if (pm->s.flags & PMF_ON_GROUND) {
-		planes[num_planes] = pml.ground_plane.normal;
+		planes[num_planes] = pm_locals.ground.plane.normal;
 		num_planes++;
 	}
 
@@ -265,7 +289,7 @@ static _Bool Pm_CheckStep(const cm_trace_t *trace) {
 
 	if (!trace->all_solid) {
 		if (trace->ent && trace->plane.normal.z >= PM_STEP_NORMAL) {
-			if (trace->ent != pm->ground_entity || trace->plane.dist != pml.ground_plane.dist) {
+			if (trace->ent != pm->ground_entity || trace->plane.dist != pm_locals.ground.plane.dist) {
 				return true;
 			}
 		}
@@ -281,7 +305,7 @@ static void Pm_StepDown(const cm_trace_t *trace) {
 
 	pm->s.origin = trace->end;
 
-	pm->step = pm->s.origin.z - pml.previous_origin.z;
+	pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
 
 	if (pm->step >= PM_STEP_HEIGHT_MIN) {
 		Pm_Debug("step up %3.2f\n", pm->step);
@@ -408,7 +432,7 @@ static void Pm_StepSlideMove(void) {
 			if ((pm->s.flags & PMF_ON_GROUND) || vel0.z < PM_SPEED_UP) {
 				Pm_StepDown(&step_down);
 			} else {
-				pm->step = pm->s.origin.z - pml.previous_origin.z;
+				pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
 				pm->s.flags |= PMF_ON_STAIRS;
 			}
 
@@ -456,7 +480,7 @@ static void Pm_Friction(void) {
 				friction = PM_FRICT_WATER;
 			} else {
 				if (pm->s.flags & PMF_ON_GROUND) {
-					if (pml.ground_surface && (pml.ground_surface->flags & SURF_SLICK)) {
+					if (pm_locals.ground.texinfo && (pm_locals.ground.texinfo->flags & SURF_SLICK)) {
 						friction = PM_FRICT_GROUND_SLICK;
 					} else {
 						friction = PM_FRICT_GROUND;
@@ -469,7 +493,7 @@ static void Pm_Friction(void) {
 	}
 
 	// scale the velocity, taking care to not reverse direction
-	float scale = Maxf(0.0, speed - (friction * control * pml.time)) / speed;
+	float scale = Maxf(0.0, speed - (friction * control * pm_locals.time)) / speed;
 
 	pm->s.velocity = Vec3_Scale(pm->s.velocity, scale);
 }
@@ -486,7 +510,7 @@ static void Pm_Accelerate(const vec3_t dir, float speed, float accel) {
 		return;
 	}
 
-	float accel_speed = accel * pml.time * speed;
+	float accel_speed = accel * pm_locals.time * speed;
 
 	if (accel_speed > add_speed) {
 		accel_speed = add_speed;
@@ -510,7 +534,7 @@ static void Pm_Gravity(void) {
 		gravity *= PM_GRAVITY_WATER;
 	}
 
-	pm->s.velocity.z -= gravity * pml.time;
+	pm->s.velocity.z -= gravity * pm_locals.time;
 }
 
 /**
@@ -543,22 +567,22 @@ static void Pm_Currents(void) {
 
 	// add conveyer belt velocities
 	if (pm->ground_entity) {
-		if (pml.ground_contents & CONTENTS_CURRENT_0) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_0) {
 			current.x += 1.0;
 		}
-		if (pml.ground_contents & CONTENTS_CURRENT_90) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_90) {
 			current.y += 1.0;
 		}
-		if (pml.ground_contents & CONTENTS_CURRENT_180) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_180) {
 			current.x -= 1.0;
 		}
-		if (pml.ground_contents & CONTENTS_CURRENT_270) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_270) {
 			current.y -= 1.0;
 		}
-		if (pml.ground_contents & CONTENTS_CURRENT_UP) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_UP) {
 			current.z += 1.0;
 		}
-		if (pml.ground_contents & CONTENTS_CURRENT_DOWN) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_DOWN) {
 			current.z -= 1.0;
 		}
 	}
@@ -580,7 +604,7 @@ static _Bool Pm_CheckTrickJump(void) {
 		return false;
 	}
 
-	if (pml.previous_velocity.z < PM_SPEED_UP) {
+	if (pm_locals.previous_velocity.z < PM_SPEED_UP) {
 		return false;
 	}
 
@@ -640,15 +664,15 @@ static void Pm_CorrectPosition(void) {
 		static const int32_t offsets[] = { 0, 1, -1 };
 
 		for (int32_t k = -1; k <= 1; k++) {
-			for (int32_t j = 0; j < lengthof(offsets); j++) {
-				for (int32_t i = 0; i < lengthof(offsets); i++) {
+			for (size_t j = 0; j < lengthof(offsets); j++) {
+				for (size_t i = 0; i < lengthof(offsets); i++) {
 					vec3_t pos = pm->s.origin;
 
 					pos.x += offsets[i] * PM_NUDGE_DIST;
 					pos.y += offsets[j] * PM_NUDGE_DIST;
 					pos.z += k * PM_NUDGE_DIST;
 
-					tr = pm->Trace(pml.previous_origin, pos, pm->mins, pm->maxs);
+					tr = pm->Trace(pm_locals.previous_origin, pos, pm->mins, pm->maxs);
 					if (tr.fraction == 1.0) {
 						pm->s.origin = pos;
 						Pm_Debug("corrected %s\n", vtos(pm->s.origin));
@@ -658,7 +682,7 @@ static void Pm_CorrectPosition(void) {
 			}
 		}
 
-		pm->s.origin = pml.previous_origin;
+		pm->s.origin = pm_locals.previous_origin;
 
 		Pm_Debug("still solid, reverted to %s\n", vtos(pm->s.origin));
 	}
@@ -727,7 +751,7 @@ static void Pm_CheckHook(void) {
 			}
 		}
 
-		const float hook_rate = (pm->hook_pull_speed / 1.5) * pml.time;
+		const float hook_rate = (pm->hook_pull_speed / 1.5) * pm_locals.time;
 
 		// chain physics
 		// grow/shrink chain based on input
@@ -796,7 +820,7 @@ static void Pm_CheckGround(void) {
 	// seek ground eagerly if the player wishes to trick jump
 	const _Bool trick_jump = Pm_CheckTrickJump();
 	if (trick_jump) {
-		pos = Vec3_Add(pm->s.origin, Vec3_Scale(pm->s.velocity, pml.time));
+		pos = Vec3_Add(pm->s.origin, Vec3_Scale(pm->s.velocity, pm_locals.time));
 		pos.z -= PM_GROUND_DIST_TRICK;
 	} else {
 		pos = pm->s.origin;
@@ -806,9 +830,9 @@ static void Pm_CheckGround(void) {
 	// seek the ground
 	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
-	pml.ground_plane = trace.plane;
-	pml.ground_surface = trace.surface;
-	pml.ground_contents = trace.contents;
+	pm_locals.ground.plane = trace.plane;
+	pm_locals.ground.texinfo = trace.texinfo;
+	pm_locals.ground.contents = trace.contents;
 
 	// if we hit an upward facing plane, make it our ground
 	if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
@@ -823,14 +847,14 @@ static void Pm_CheckGround(void) {
 			}
 
 			// hard landings disable jumping briefly
-			if (pml.previous_velocity.z <= PM_SPEED_LAND) {
+			if (pm_locals.previous_velocity.z <= PM_SPEED_LAND) {
 				pm->s.flags |= PMF_TIME_LAND;
 				pm->s.time = 1;
 
-				if (pml.previous_velocity.z <= PM_SPEED_FALL) {
+				if (pm_locals.previous_velocity.z <= PM_SPEED_FALL) {
 					pm->s.time = 16;
 
-					if (pml.previous_velocity.z <= PM_SPEED_FALL_FAR) {
+					if (pm_locals.previous_velocity.z <= PM_SPEED_FALL_FAR) {
 						pm->s.time = 256;
 					}
 				}
@@ -935,7 +959,7 @@ static void Pm_CheckDuck(void) {
 			float target = pm->mins.z + height * 0.5;
 
 			if (pm->s.view_offset.z > target) { // go down
-				pm->s.view_offset.z -= pml.time * PM_SPEED_DUCK_STAND;
+				pm->s.view_offset.z -= pm_locals.time * PM_SPEED_DUCK_STAND;
 			}
 
 			if (pm->s.view_offset.z < target) {
@@ -948,7 +972,7 @@ static void Pm_CheckDuck(void) {
 			const float target = pm->mins.z + height * 0.9;
 
 			if (pm->s.view_offset.z < target) { // go up
-				pm->s.view_offset.z += pml.time * PM_SPEED_DUCK_STAND;
+				pm->s.view_offset.z += pm_locals.time * PM_SPEED_DUCK_STAND;
 			}
 
 			if (pm->s.view_offset.z > target) {
@@ -1038,7 +1062,7 @@ static void Pm_CheckLadder(void) {
 		return;
 	}
 
-	pos = Vec3_Add(pm->s.origin, Vec3_Scale(pml.forward_xy, 4.0));
+	pos = Vec3_Add(pm->s.origin, Vec3_Scale(pm_locals.forward_xy, 4.0));
 
 	const cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
@@ -1076,7 +1100,7 @@ static _Bool Pm_CheckWaterJump(void) {
 		return false;
 	}
 
-	pos = Vec3_Add(pm->s.origin, Vec3_Scale(pml.forward, 16.0));
+	pos = Vec3_Add(pm->s.origin, Vec3_Scale(pm_locals.forward, 16.0));
 
 	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
@@ -1126,8 +1150,8 @@ static void Pm_LadderMove(void) {
 
 	// user intentions in X/Y
 	vel = Vec3_Zero();
-	vel = Vec3_Add(vel, Vec3_Scale(pml.forward_xy, pm->cmd.forward));
-	vel = Vec3_Add(vel, Vec3_Scale(pml.right_xy, pm->cmd.right));
+	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.forward_xy, pm->cmd.forward));
+	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.right_xy, pm->cmd.right));
 
 	const float s = PM_SPEED_LADDER * 0.125;
 
@@ -1183,7 +1207,7 @@ static void Pm_WaterJumpMove(void) {
 	Pm_Gravity();
 
 	// check for a usable spot directly in front of us
-	pos = Vec3_Add(pm->s.origin, Vec3_Scale(pml.forward_xy, 30.0));
+	pos = Vec3_Add(pm->s.origin, Vec3_Scale(pm_locals.forward_xy, 30.0));
 
 	// if we've reached a usable spot, clamp the jump to avoid launching
 	if (pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs).fraction == 1.0) {
@@ -1231,8 +1255,8 @@ static void Pm_WaterMove(void) {
 	Pm_Currents();
 
 	// user intentions on X/Y/Z
-	vel = Vec3_Add(vel, Vec3_Scale(pml.forward, pm->cmd.forward));
-	vel = Vec3_Add(vel, Vec3_Scale(pml.right, pm->cmd.right));
+	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.forward, pm->cmd.forward));
+	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.right, pm->cmd.right));
 
 	// add explicit Z
 	vel.z += pm->cmd.up;
@@ -1278,8 +1302,8 @@ static void Pm_AirMove(void) {
 	Pm_Gravity();
 
 	vel = Vec3_Zero();
-	vel = Vec3_Add(vel, Vec3_Scale(pml.forward_xy, pm->cmd.forward));
-	vel = Vec3_Add(vel, Vec3_Scale(pml.right_xy, pm->cmd.right));
+	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.forward_xy, pm->cmd.forward));
+	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.right_xy, pm->cmd.right));
 	vel.z = 0.0;
 
 	dir = Vec3_NormalizeLength(vel, &speed);
@@ -1332,8 +1356,8 @@ static void Pm_WalkMove(void) {
 
 	// project the desired movement into the X/Y plane
 
-	forward = Pm_ClipVelocity(pml.forward_xy, pml.ground_plane.normal, PM_CLIP_BOUNCE);
-	right = Pm_ClipVelocity(pml.right_xy, pml.ground_plane.normal, PM_CLIP_BOUNCE);
+	forward = Pm_ClipVelocity(pm_locals.forward_xy, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE);
+	right = Pm_ClipVelocity(pm_locals.right_xy, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE);
 
 	forward = Vec3_Normalize(forward);
 	right = Vec3_Normalize(right);
@@ -1366,7 +1390,7 @@ static void Pm_WalkMove(void) {
 	}
 
 	// accelerate based on slickness of ground surface
-	accel = (pml.ground_surface->flags & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
+	accel = (pm_locals.ground.texinfo->flags & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
 
 	Pm_Accelerate(dir, speed, accel);
 
@@ -1374,7 +1398,7 @@ static void Pm_WalkMove(void) {
 	speed = Vec3_Length(pm->s.velocity);
 
 	// clip to the ground
-	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pml.ground_plane.normal, PM_CLIP_BOUNCE);
+	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE);
 
 	// and now scale by the speed to avoid slowing down on slopes
 	pm->s.velocity = Vec3_Normalize(pm->s.velocity);
@@ -1397,8 +1421,8 @@ static void Pm_SpectatorMove(void) {
 
 	// user intentions on X/Y/Z
 	vel = Vec3_Zero();
-	vel = Vec3_Add(vel, Vec3_Scale(pml.forward, pm->cmd.forward));
-	vel = Vec3_Add(vel, Vec3_Scale(pml.right, pm->cmd.right));
+	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.forward, pm->cmd.forward));
+	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.right, pm->cmd.right));
 
 	// add explicit Z
 	vel.z += pm->cmd.up;
@@ -1414,7 +1438,7 @@ static void Pm_SpectatorMove(void) {
 	Pm_Accelerate(vel, speed, PM_ACCEL_SPECTATOR);
 
 	// do the move
-	pm->s.origin = Vec3_Add(pm->s.origin, Vec3_Scale(pm->s.velocity, pml.time));
+	pm->s.origin = Vec3_Add(pm->s.origin, Vec3_Scale(pm->s.velocity, pm_locals.time));
 }
 
 /**
@@ -1496,20 +1520,20 @@ static void Pm_ClampAngles(void) {
  */
 static void Pm_InitLocal(void) {
 
-	memset(&pml, 0, sizeof(pml));
+	memset(&pm_locals, 0, sizeof(pm_locals));
 
 	// save previous values in case move fails, and to detect landings
-	pml.previous_origin = pm->s.origin;
-	pml.previous_velocity = pm->s.velocity;
+	pm_locals.previous_origin = pm->s.origin;
+	pm_locals.previous_velocity = pm->s.velocity;
 
 	// convert from milliseconds to seconds
-	pml.time = pm->cmd.msec * 0.001;
+	pm_locals.time = pm->cmd.msec * 0.001;
 
 	// calculate the directional vectors for this move
-	Vec3_Vectors(pm->angles, &pml.forward, &pml.right, &pml.up);
+	Vec3_Vectors(pm->angles, &pm_locals.forward, &pm_locals.right, &pm_locals.up);
 
 	// and calculate the directional vectors in the XY plane
-	Vec3_Vectors(Vec3(0.f, pm->angles.y, 0.f), &pml.forward_xy, &pml.right_xy, NULL);
+	Vec3_Vectors(Vec3(0.f, pm->angles.y, 0.f), &pm_locals.forward_xy, &pm_locals.right_xy, NULL);
 }
 
 /**

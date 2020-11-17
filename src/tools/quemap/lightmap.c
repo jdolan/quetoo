@@ -236,7 +236,6 @@ static vec3_t PhongLuxel(const lightmap_t *lm, const vec3_t origin) {
  * @param l The luxel.
  * @param soffs The S offset in texture space, for antialiasing.
  * @param toffs The T offset in texture space, for antialiasing.
- * @param pvs A pointer to receive the PVS data for the projected luxel origin.
  * @return The contents mask at the projected luxel origin.
  */
 static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs) {
@@ -404,7 +403,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 			const vec3_t sun_origin = Vec3_Add(luxel->origin, Vec3_Scale(light->normal, -MAX_WORLD_DIST));
 
 			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, head_node, CONTENTS_SOLID);
-			if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
+			if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
 				float exposure = 0.0;
 
 				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
@@ -416,7 +415,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 						const vec3_t point = Vec3_Add(sun_origin, Vec3_Scale(points[j], i * LIGHT_SIZE_STEP));
 
 						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
-						if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
+						if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
 							continue;
 						}
 
@@ -483,8 +482,8 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 /**
  * @brief Calculates direct lighting for the given face. Luxels are projected into world space.
- * We then query the light sources that are in PVS for each luxel, and accumulate their diffuse
- * and directional contributions as non-normalized floating point.
+ * We then query the light sources that intersect the lightmap's node, and accumulate their ambient,
+ * diffuse and directional contributions as non-normalized floating point.
  */
 void DirectLightmap(int32_t face_num) {
 
@@ -523,10 +522,26 @@ void DirectLightmap(int32_t face_num) {
 			LightLuxel(lights, lm, l, weight);
 		}
 
-		if (contribution > 0.0 && contribution < 1.0) {
+		// Normalize samples by their weighted contribution
+
+		if (contribution > 0.0) {
 			l->ambient = Vec3_Scale(l->ambient, 1.0 / contribution);
 			l->diffuse = Vec3_Scale(l->diffuse, 1.0 / contribution);
 			l->direction = Vec3_Scale(l->direction, 1.0 / contribution);
+		} else if (lm->model != bsp_file.models) {
+
+			// For inline models, always add ambient light sources, even if the sample resides
+			// in solid. This prevents completely unlit tops of doors, bottoms of plats, etc.
+
+			for (guint j = 0; j < lights->len; j++) {
+
+				const light_t *light = g_ptr_array_index(lights, j);
+
+				if (light->type == LIGHT_AMBIENT) {
+					const float intensity = light->radius * lightscale_ambient;
+					l->ambient = Vec3_Add(l->ambient, Vec3_Scale(light->color, intensity));
+				}
+			}
 		}
 	}
 }

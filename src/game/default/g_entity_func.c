@@ -430,7 +430,7 @@ static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other,
  */
 static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other,
                               const cm_bsp_plane_t *plane,
-                              const cm_bsp_texinfo_t *surf) {
+                              const cm_bsp_texinfo_t *texinfo) {
 
 	if (!other->client) {
 		return;
@@ -592,7 +592,7 @@ void G_func_plat(g_entity_t *ent) {
  */
 static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
                                   const cm_bsp_plane_t *plane,
-                                  const cm_bsp_texinfo_t *surf) {
+                                  const cm_bsp_texinfo_t *texinfo) {
 
 	if (self->locals.damage) {
 		if (!Vec3_Equal(self->locals.avelocity, Vec3_Zero())) {
@@ -752,7 +752,7 @@ static void G_func_button_Use(g_entity_t *self, g_entity_t *other,
  */
 static void G_func_button_Touch(g_entity_t *self, g_entity_t *other,
                                 const cm_bsp_plane_t *plane,
-                                const cm_bsp_texinfo_t *surf) {
+                                const cm_bsp_texinfo_t *texinfo) {
 
 	if (!other->client) {
 		return;
@@ -797,7 +797,7 @@ void G_func_button(g_entity_t *ent) {
 	float dist;
 
 	G_SetMoveDir(ent);
-	ent->locals.move_type = MOVE_TYPE_STOP;
+	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
@@ -847,11 +847,11 @@ void G_func_button(g_entity_t *ent) {
 	ent->locals.move_info.end_angles = ent->s.angles;
 }
 
-#define DOOR_START_OPEN		0x1
-#define DOOR_REVERSE		0x2
-#define DOOR_TOGGLE			0x20
-#define DOOR_X_AXIS			0x40
-#define DOOR_Y_AXIS			0x80
+#define DOOR_START_OPEN        0x1
+#define DOOR_TOGGLE            0x2
+#define DOOR_ROTATING_REVERSE  0x4
+#define DOOR_ROTATING_X_AXIS   0x8
+#define DOOR_ROTATING_Y_AXIS   0x10
 
 static void G_func_door_GoingDown(g_entity_t *self);
 
@@ -989,7 +989,7 @@ static void G_func_door_Use(g_entity_t *self, g_entity_t *other, g_entity_t *act
  */
 static void G_func_door_TouchTrigger(g_entity_t *self, g_entity_t *other,
                                      const cm_bsp_plane_t *plane,
-                                     const cm_bsp_texinfo_t *surf) {
+                                     const cm_bsp_texinfo_t *texinfo) {
 
 	if (other->locals.health <= 0) {
 		return;
@@ -1127,7 +1127,7 @@ static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod
  */
 static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
                               const cm_bsp_plane_t *plane,
-                              const cm_bsp_texinfo_t *surf) {
+                              const cm_bsp_texinfo_t *texinfo) {
 
 	if (!other->client) {
 		return;
@@ -1148,7 +1148,7 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
 	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTEN_NORM, 0);
 }
 
-/*QUAKED func_door (0 .5 .8) ? start_open reverse x x x toggle
+/*QUAKED func_door (0 .5 .8) ? start_open x x x toggle
  A sliding door. By default, doors open when a player walks close to them.
 
  -------- Keys --------
@@ -1259,7 +1259,7 @@ void G_func_door(g_entity_t *ent) {
 	}
 }
 
-/*QUAKED func_door_rotating (0 .5 .8) ? start_open reverse x x x toggle x_axis y_axis
+/*QUAKED func_door_rotating (0 .5 .8) ? start_open reverse toggle x_axis y_axis
  A door which rotates about an origin on its Z axis. By default, doors open when a player walks close to them.
 
  -------- Keys --------
@@ -1284,16 +1284,16 @@ void G_func_door_rotating(g_entity_t *ent) {
 
 	// set the axis of rotation
 	ent->locals.move_dir = Vec3_Zero();
-	if (ent->locals.spawn_flags & DOOR_X_AXIS) {
+	if (ent->locals.spawn_flags & DOOR_ROTATING_X_AXIS) {
 		ent->locals.move_dir.z = 1.0;
-	} else if (ent->locals.spawn_flags & DOOR_Y_AXIS) {
+	} else if (ent->locals.spawn_flags & DOOR_ROTATING_Y_AXIS) {
 		ent->locals.move_dir.x = 1.0;
 	} else {
 		ent->locals.move_dir.y = 1.0;
 	}
 
 	// check for reverse rotation
-	if (ent->locals.spawn_flags & DOOR_REVERSE) {
+	if (ent->locals.spawn_flags & DOOR_ROTATING_REVERSE) {
 		ent->locals.move_dir = Vec3_Negate(ent->locals.move_dir);
 	}
 
@@ -1380,27 +1380,6 @@ void G_func_door_rotating(g_entity_t *ent) {
 	}
 }
 
-/*QUAKED func_door_secret (0 .5 .8) ? always_shoot 1st_left 1st_down
- A secret door which opens when shot, or when targeted. The door first slides
- back, and then to the side.
-
- -------- Keys --------
- angle : The angle at which the door opens.
- message : An optional string printed when the door is first touched.
- health : If set, door must take damage to open.
- speed : The speed with which the door opens (default 100).
- wait : wait before returning (3 default, -1 = never return).
- lip : The lip remaining at end of move (default 8 units).
- sounds : The sound set for the door (0 default, 1 stone, -1 silent).
- dmg : The damage inflicted on players who block the door as it closes (default 2).
- targetname : The target name of this entity if it is to be triggered.
-
- -------- Spawn flags --------
-always_shoot : The door will open when shot, even if it is targeted.
-first_left : The door will first slide to the left.
-first_down : The door will first slide down.
-*/
-
 #define SECRET_ALWAYS_SHOOT		1
 #define SECRET_FIRST_LEFT		2
 #define SECRET_FIRST_DOWN		4
@@ -1413,6 +1392,9 @@ static void G_func_door_secret_Move5(g_entity_t *self);
 static void G_func_door_secret_Move6(g_entity_t *self);
 static void G_func_door_secret_Done(g_entity_t *self);
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
                                    g_entity_t *activator) {
 
@@ -1433,17 +1415,26 @@ static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
 	}
 }
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Move1(g_entity_t *self) {
 
 	self->locals.next_think = g_level.time + 1000;
 	self->locals.Think = G_func_door_secret_Move2;
 }
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Move2(g_entity_t *self) {
 
 	G_MoveInfo_Linear_Init(self, self->locals.pos2, G_func_door_secret_Move3);
 }
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Move3(g_entity_t *self) {
 
 	if (self->locals.wait == -1.0) {
@@ -1463,6 +1454,9 @@ static void G_func_door_secret_Move3(g_entity_t *self) {
 	self->locals.Think = G_func_door_secret_Move4;
 }
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Move4(g_entity_t *self) {
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
@@ -1477,17 +1471,26 @@ static void G_func_door_secret_Move4(g_entity_t *self) {
 	G_MoveInfo_Linear_Init(self, self->locals.pos1, G_func_door_secret_Move5);
 }
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Move5(g_entity_t *self) {
 
 	self->locals.next_think = g_level.time + 1000;
 	self->locals.Think = G_func_door_secret_Move6;
 }
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Move6(g_entity_t *self) {
 
 	G_MoveInfo_Linear_Init(self, Vec3_Zero(), G_func_door_secret_Done);
 }
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Done(g_entity_t *self) {
 
 	if (!(self->locals.target_name) || (self->locals.spawn_flags & SECRET_ALWAYS_SHOOT)) {
@@ -1505,6 +1508,9 @@ static void G_func_door_secret_Done(g_entity_t *self) {
 	}
 }
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
 
 	if (!other->client) {
@@ -1520,12 +1526,35 @@ static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
 	G_Damage(other, self, self, Vec3_Zero(), other->s.origin, Vec3_Zero(), self->locals.damage, 1, 0, MOD_CRUSH);
 }
 
+/**
+ * @brief
+ */
 static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	self->locals.take_damage = false;
 	G_func_door_secret_Use(self, attacker, attacker);
 }
 
+/*QUAKED func_door_secret (0 .5 .8) ? always_shoot 1st_left 1st_down
+ A secret door which opens when shot, or when targeted. The door first slides
+ back, and then to the side.
+
+ -------- Keys --------
+ angle : The angle at which the door opens.
+ message : An optional string printed when the door is first touched.
+ health : If set, door must take damage to open.
+ speed : The speed with which the door opens (default 100).
+ wait : wait before returning (3 default, -1 = never return).
+ lip : The lip remaining at end of move (default 8 units).
+ sounds : The sound set for the door (0 default, 1 stone, -1 silent).
+ dmg : The damage inflicted on players who block the door as it closes (default 2).
+ targetname : The target name of this entity if it is to be triggered.
+
+ -------- Spawn flags --------
+always_shoot : The door will open when shot, even if it is targeted.
+first_left : The door will first slide to the left.
+first_down : The door will first slide down.
+*/
 void G_func_door_secret(g_entity_t *ent) {
 	vec3_t forward, right, up;
 

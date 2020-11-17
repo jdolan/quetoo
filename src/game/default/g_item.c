@@ -669,7 +669,7 @@ static void G_DropItem_Think(g_entity_t *ent) {
  */
 void G_TouchItem(g_entity_t *ent, g_entity_t *other,
                  const cm_bsp_plane_t *plane,
-                 const cm_bsp_texinfo_t *surf) {
+                 const cm_bsp_texinfo_t *texinfo) {
 
 	if (other == ent->owner) {
 		if (ent->locals.touch_time > g_level.time) {

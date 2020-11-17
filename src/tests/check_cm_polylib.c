@@ -65,7 +65,7 @@ START_TEST(check_Cm_ClipWinding_front) {
 
 	cm_winding_t *b = Cm_CopyWinding(a);
 
-	Cm_ClipWinding(&a, Vec3(1, 0, 0), -1, CLIP_EPSILON);
+	Cm_ClipWinding(&a, Vec3(1, 0, 0), -1, SIDE_EPSILON);
 
 	ck_assert_int_eq(b->num_points, a->num_points);
 
@@ -88,7 +88,7 @@ START_TEST(check_Cm_ClipWinding_back) {
 	a->points[2] = Vec3(1024, 0, 512);
 	a->points[3] = Vec3(0,    0, 512);
 
-	Cm_ClipWinding(&a, Vec3(1, 0, 0), 1024 + CLIP_EPSILON, CLIP_EPSILON);
+	Cm_ClipWinding(&a, Vec3(1, 0, 0), 1024 + SIDE_EPSILON, SIDE_EPSILON);
 
 	ck_assert_ptr_eq(NULL, a);
 
@@ -109,7 +109,7 @@ START_TEST(check_Cm_ClipWinding_both) {
 	b->points[0] = Vec3(512,  0,   0);
 	b->points[3] = Vec3(512,  0, 512);
 
-	Cm_ClipWinding(&a, Vec3(1, 0, 0), 512, CLIP_EPSILON);
+	Cm_ClipWinding(&a, Vec3(1, 0, 0), 512, SIDE_EPSILON);
 
 	ck_assert_int_eq(b->num_points, a->num_points);
 
@@ -134,7 +134,7 @@ START_TEST(check_Cm_ClipWinding_facing) {
 
 	cm_winding_t *b = Cm_CopyWinding(a);
 
-	Cm_ClipWinding(&a, Vec3(1, 0, 0), 0, CLIP_EPSILON);
+	Cm_ClipWinding(&a, Vec3(1, 0, 0), 0, SIDE_EPSILON);
 
 	ck_assert_int_eq(b->num_points, a->num_points);
 
@@ -142,7 +142,7 @@ START_TEST(check_Cm_ClipWinding_facing) {
 		ck_assert(Vec3_Equal(b->points[i], a->points[i]));
 	}
 
-	Cm_ClipWinding(&a, Vec3(-1, 0, 0), -1024, CLIP_EPSILON);
+	Cm_ClipWinding(&a, Vec3(-1, 0, 0), -1024, SIDE_EPSILON);
 
 	ck_assert_int_eq(b->num_points, a->num_points);
 
@@ -165,7 +165,7 @@ START_TEST(check_Cm_ClipWinding_on) {
 	a->points[2] = Vec3(1024, 0, 512);
 	a->points[3] = Vec3(0,    0, 512);
 
-	Cm_ClipWinding(&a, Vec3(0, 1, 0), 0, CLIP_EPSILON);
+	Cm_ClipWinding(&a, Vec3(0, 1, 0), 0, SIDE_EPSILON);
 
 	ck_assert_ptr_eq(NULL, a);
 

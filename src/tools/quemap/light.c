@@ -227,11 +227,17 @@ static void LightForPatch(const patch_t *patch) {
 
 	light.type = LIGHT_PATCH;
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
+	light.size = patch_size;
 
 	light.origin = Cm_WindingCenter(patch->winding);
 
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
 	light.origin = Vec3_Add(light.origin, Vec3_Scale(plane->normal, 4.0));
+
+	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
+	if (light.cluster == -1) {
+		return;
+	}
 
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[patch->face->texinfo];
 
@@ -242,8 +248,6 @@ static void LightForPatch(const patch_t *patch) {
 	}
 
 	light.radius = texinfo->value ?: DEFAULT_LIGHT;
-
-	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
 
 	g_array_append_val(lights, light);
 }
@@ -276,28 +280,23 @@ static void FreeLights(void) {
 }
 
 /**
- * @brief
+ * @return A GPtrArray of all light sources that intersect the specified bounds.
  */
 static GPtrArray *BoxLights(const vec3_t box_mins, const vec3_t box_maxs) {
-
-	byte pvs[MAX_BSP_LEAFS >> 3];
-	Cm_BoxPVS(box_mins, box_maxs, pvs);
 
 	GPtrArray *box_lights = g_ptr_array_new();
 
 	const light_t *light = (light_t *) lights->data;
 	for (guint i = 0; i < lights->len; i++, light++) {
 
-		if (light->cluster != -1) {
-			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
-				continue;
-			}
-		}
-
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			const vec3_t radius = Vec3(light->radius, light->radius, light->radius);
+			const vec3_t radius = Vec3(light->radius + light->size,
+									   light->radius + light->size,
+									   light->radius + light->size);
+
 			const vec3_t mins = Vec3_Add(light->origin, Vec3_Scale(radius, -1.f));
 			const vec3_t maxs = Vec3_Add(light->origin, Vec3_Scale(radius,  1.f));
+
 			if (!Vec3_BoxIntersect(box_mins, box_maxs, mins, maxs)) {
 				continue;
 			}
@@ -331,6 +330,10 @@ static void HashLights(void) {
 
 	const bsp_leaf_t *leaf = bsp_file.leafs;
 	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
+
+		if (leaf->cluster == 0) {
+			continue;
+		}
 
 		const vec3_t leaf_mins = Vec3s_CastVec3(leaf->mins);
 		const vec3_t leaf_maxs = Vec3s_CastVec3(leaf->maxs);
@@ -377,6 +380,18 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	light_t light;
 
+	light.type = LIGHT_INDIRECT;
+	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
+	light.size = patch_size;
+
+	light.origin = Cm_WindingCenter(patch->winding);
+	light.origin = Vec3_Add(light.origin, Vec3_Scale(lm->plane->normal, 4.0));
+
+	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
+	if (light.cluster == -1) {
+		return;
+	}
+
 	vec2_t patch_mins = Vec2_Mins();
 	vec2_t patch_maxs = Vec2_Maxs();
 
@@ -420,19 +435,11 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		return;
 	}
 
-	light.type = LIGHT_INDIRECT;
-	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
-
-	light.origin = Cm_WindingCenter(patch->winding);
-	light.origin = Vec3_Add(light.origin, Vec3_Scale(lm->plane->normal, 4.0));
-
 	lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
 	light.radius = ColorNormalize(lightmap, &lightmap);
 
 	const vec3_t diffuse = GetTextureColor(lm->texinfo->texture);
 	light.color = Vec3_Multiply(lightmap, diffuse);
-
-	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
 
 	g_array_append_val(lights, light);
 }

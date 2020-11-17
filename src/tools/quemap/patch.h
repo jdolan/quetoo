@@ -24,7 +24,7 @@
 #include "bsp.h"
 #include "polylib.h"
 
-#define DEFAULT_BSP_PATCH_SIZE 16
+#define DEFAULT_BSP_PATCH_SIZE 32
 
 typedef struct patch_s {
 	const bsp_face_t *face;

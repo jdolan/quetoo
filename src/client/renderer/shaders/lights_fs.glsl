@@ -36,8 +36,7 @@ uniform int lights_mask;
  * @brief
  */
 void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
-				   inout vec3 diff_light, inout vec3 spec_light,
-				   inout vec3 debug) {
+				   inout vec3 diff_light, inout vec3 spec_light) {
 
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
