@@ -273,11 +273,11 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	assert(mesh);
 
 	if (e->effects & EF_WEAPON) {
-		glDepthRange(0.f, 0.1f);
+		glDepthRange(.0f, 0.1f);
 	}
 
 	if (e->effects & EF_BLEND) {
-		glUniform1f(r_mesh_program.alpha_threshold, 0.f);
+		glUniform1f(r_mesh_program.alpha_threshold, .0f);
 		glEnable(GL_BLEND);
 	} else {
 		glUniform1f(r_mesh_program.alpha_threshold, .125f);
@@ -285,7 +285,9 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	}
 
 	if (e->effects & EF_AMBIENT) {
-		glUniform1f(r_mesh_program.ambient, .15f);
+		glUniform1f(r_mesh_program.ambient, .125f);
+	} else {
+		glUniform1f(r_mesh_program.ambient, .0f);
 	}
 
 	glBindVertexArray(mesh->vertex_array);
@@ -503,7 +505,7 @@ void R_InitMeshProgram(void) {
 	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 0);
 	r_mesh_program.lights_mask = glGetUniformLocation(r_mesh_program.name, "lights_mask");
 
-	r_mesh_program.ambient = glGetUniformLocation(r_mesh_program.name, "entity_ambient");
+	r_mesh_program.ambient = glGetUniformLocation(r_mesh_program.name, "ambient");
 
 	r_mesh_program.fog_parameters = glGetUniformLocation(r_mesh_program.name, "fog_parameters");
 	r_mesh_program.fog_color = glGetUniformLocation(r_mesh_program.name, "fog_color");
