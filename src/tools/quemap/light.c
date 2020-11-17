@@ -196,6 +196,8 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		} else {
 			if (light.type == LIGHT_SUN) {
 				light.size = LIGHT_SIZE_SUN;
+			} else {
+				light.size = LIGHT_SIZE_STEP;
 			}
 		}
 
