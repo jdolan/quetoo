@@ -99,10 +99,10 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *p) {
 
 	if (AXIAL(p)) {
-		if (p->dist - SIDE_EPSILON < mins.xyz[p->type]) {
+		if (p->dist <= mins.xyz[p->type]) {
 			return SIDE_FRONT;
 		}
-		if (p->dist + SIDE_EPSILON > maxs.xyz[p->type]) {
+		if (p->dist >= maxs.xyz[p->type]) {
 			return SIDE_BACK;
 		}
 		return SIDE_BOTH;
@@ -147,14 +147,11 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 			break;
 	}
 
-	dist1 -= p->dist;
-	dist2 -= p->dist;
-
 	int32_t side = 0;
-	if (dist1 > -SIDE_EPSILON) {
+	if (dist1 >= p->dist) {
 		side = SIDE_FRONT;
 	}
-	if (dist2 < SIDE_EPSILON) {
+	if (dist2 < p->dist) {
 		side |= SIDE_BACK;
 	}
 
