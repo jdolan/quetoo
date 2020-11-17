@@ -179,14 +179,12 @@ static void Error(err_t err, const char *msg) {
 			Cl_Drop(msg);
 			quetoo.recursive_error = false;
 			longjmp(env, err);
-			break;
 
 		case ERROR_FATAL:
 		default:
 			Sys_Backtrace(msg);
 			Shutdown(msg);
 			exit(err);
-			break;
 	}
 }
 
@@ -477,6 +475,4 @@ int32_t main(int32_t argc, char *argv[]) {
 
 		old_time = quetoo.ticks;
 	}
-
-	return 0;
 }

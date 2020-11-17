@@ -131,8 +131,8 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 			data->trace.contents = brush->contents;
 		}
 	} else if (enter_fraction < leave_fraction) { // pierced brush
-		if (enter_fraction > -1.0 && enter_fraction < data->trace.fraction) {
-			data->trace.fraction = Maxf(0.0, enter_fraction);
+		if (enter_fraction > -1.0f && enter_fraction < data->trace.fraction) {
+			data->trace.fraction = Maxf(0.0f, enter_fraction);
 			data->trace.plane = *clip_plane;
 			data->trace.texinfo = clip_side->texinfo;
 			data->trace.contents = brush->contents;
@@ -163,14 +163,14 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 		const float d1 = Vec3_Dot(data->start, plane->normal) - dist;
 
 		// if completely in front of face, no intersection
-		if (d1 > 0.0) {
+		if (d1 > 0.0f) {
 			return;
 		}
 	}
 
 	// inside this brush
 	data->trace.start_solid = data->trace.all_solid = true;
-	data->trace.fraction = 0.0;
+	data->trace.fraction = 0.0f;
 	data->trace.contents = brush->contents;
 }
 
@@ -295,12 +295,12 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	float frac1, frac2;
 
 	if (d1 < d2) {
-		const float idist = 1.0 / (d1 - d2);
+		const float idist = 1.0f / (d1 - d2);
 		side = 1;
 		frac2 = (d1 + offset + TRACE_EPSILON) * idist;
 		frac1 = (d1 - offset + TRACE_EPSILON) * idist;
 	} else if (d1 > d2) {
-		const float idist = 1.0 / (d1 - d2);
+		const float idist = 1.0f / (d1 - d2);
 		side = 0;
 		frac2 = (d1 - offset - TRACE_EPSILON) * idist;
 		frac1 = (d1 + offset + TRACE_EPSILON) * idist;
@@ -373,9 +373,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 		data.extents.z = -mins.z > maxs.z ? -mins.z : maxs.z;
 
 		// offsets provide sign bit lookups for fast plane tests
-		data.offsets[0].x = mins.x;
-		data.offsets[0].y = mins.y;
-		data.offsets[0].z = mins.z;
+		data.offsets[0] = mins;
 
 		data.offsets[1].x = maxs.x;
 		data.offsets[1].y = mins.y;
@@ -401,20 +399,10 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 		data.offsets[6].y = maxs.y;
 		data.offsets[6].z = maxs.z;
 
-		data.offsets[7].x = maxs.x;
-		data.offsets[7].y = maxs.y;
-		data.offsets[7].z = maxs.z;
+		data.offsets[7] = maxs;
 	}
 
-	for (int32_t i = 0; i < 3; i++) {
-		if (start.xyz[i] < end.xyz[i]) {
-			data.box_mins.xyz[i] = start.xyz[i] + mins.xyz[i] - 1.0;
-			data.box_maxs.xyz[i] = end.xyz[i] + maxs.xyz[i] + 1.0;
-		} else {
-			data.box_mins.xyz[i] = end.xyz[i] + mins.xyz[i] - 1.0;
-			data.box_maxs.xyz[i] = start.xyz[i] + maxs.xyz[i] + 1.0;
-		}
-	}
+	Cm_TraceBounds(start, end, mins, maxs, &data.box_mins, &data.box_maxs);
 
 	// check for position test special case
 	if (Vec3_Equal(start, end)) {
@@ -440,9 +428,9 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 
 	Cm_TraceToNode(&data, head_node, 0.0, 1.0, start, end);
 
-	if (data.trace.fraction == 0.0) {
+	if (data.trace.fraction == 0.0f) {
 		data.trace.end = start;
-	} else if (data.trace.fraction == 1.0) {
+	} else if (data.trace.fraction == 1.0f) {
 		data.trace.end = end;
 	} else {
 		data.trace.end = Vec3_Mix(start, end, data.trace.fraction);
@@ -482,7 +470,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 	// sweep the box through the model
 	cm_trace_t trace = Cm_BoxTrace(start0, end0, mins, maxs, head_node, contents);
 
-	if (trace.fraction < 1.0) { // transform the impacted plane
+	if (trace.fraction < 1.0f) { // transform the impacted plane
 		vec4_t plane;
 
 		const cm_bsp_plane_t *p = &trace.plane;
@@ -559,11 +547,11 @@ void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, con
 
 	for (int32_t i = 0; i < 3; i++) {
 		if (end.xyz[i] > start.xyz[i]) {
-			bounds_mins->xyz[i] = start.xyz[i] + mins.xyz[i] - 1.0;
-			bounds_maxs->xyz[i] = end.xyz[i] + maxs.xyz[i] + 1.0;
+			bounds_mins->xyz[i] = start.xyz[i] + mins.xyz[i] - 1.0f;
+			bounds_maxs->xyz[i] = end.xyz[i] + maxs.xyz[i] + 1.0f;
 		} else {
-			bounds_mins->xyz[i] = end.xyz[i] + mins.xyz[i] - 1.0;
-			bounds_maxs->xyz[i] = start.xyz[i] + maxs.xyz[i] + 1.0;
+			bounds_mins->xyz[i] = end.xyz[i] + mins.xyz[i] - 1.0f;
+			bounds_maxs->xyz[i] = start.xyz[i] + maxs.xyz[i] + 1.0f;
 		}
 	}
 }

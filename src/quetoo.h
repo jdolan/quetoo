@@ -196,13 +196,13 @@ typedef enum {
  * @brief The server, game and player movement frame rate.
  */
 #define QUETOO_TICK_RATE	40
-#define QUETOO_TICK_SECONDS	(1.0 / QUETOO_TICK_RATE)
+#define QUETOO_TICK_SECONDS	(1.0f / QUETOO_TICK_RATE)
 #define QUETOO_TICK_MILLIS	(1000 / QUETOO_TICK_RATE)
 
-#define SECONDS_TO_MILLIS(t)	((t) * 1000.0)
-#define MILLIS_TO_SECONDS(t)	((t) / 1000.0)
+#define SECONDS_TO_MILLIS(t)	((t) * 1000.0f)
+#define MILLIS_TO_SECONDS(t)	((t) / 1000.0f)
 
-#define FRAMES_TO_SECONDS(t)	(1000.0 / (t))
+#define FRAMES_TO_SECONDS(t)	(1000.0f / (t))
 
 
 

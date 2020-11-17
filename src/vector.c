@@ -121,8 +121,8 @@ vec3i_t Vec3i_Zero(void) {
 
 #pragma mark - single precision
 
-#define RAD2DEG (float) (180.f / M_PI)
-#define DEG2RAD (float) (M_PI / 180.f)
+#define RAD2DEG ((float) (180.0 / M_PI))
+#define DEG2RAD ((float) (M_PI / 180.0))
 
 /**
  * @brief
@@ -224,7 +224,7 @@ static inline GRand *InitRandom(void) {
  * @brief
  */
 float RandomRangef(float begin, float end) {
-	return (float) g_rand_double_range(InitRandom(), begin, end);
+	return (float) g_rand_double_range(InitRandom(), (gdouble) begin, (gdouble) end);
 }
 
 /**
@@ -269,7 +269,7 @@ float Randomf(void) {
  * @brief
  */
 float RandomRadian(void) {
-	return Randomf() * M_PI * 2.f;
+	return Randomf() * (float) (M_PI * 2.0);
 }
 
 /**

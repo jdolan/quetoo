@@ -38,7 +38,7 @@ static SDL_Surface *Img_LoadSurface_(const char *name, const char *type) {
 		if ((rw = SDL_RWFromConstMem(buf, (int32_t) len))) {
 
 			SDL_Surface *s;
-			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
+			if ((s = IMG_LoadTyped_RW(rw, 0, type))) {
 
 				if (s->format->format != SDL_PIXELFORMAT_RGBA32) {
 					surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
@@ -194,7 +194,7 @@ _Bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height
 	const float *buffer_float_in = (float *)data;
 	float *buffer_float_out = (float *)buffer;
 
-	uint8_t *chunk = NULL;
+	const uint8_t *chunk = NULL;
 	
 	// swap to big endian and flip pixels vertically (if needed)
 	for (size_t i = 0; i < height; i++) {
@@ -207,7 +207,7 @@ _Bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height
 				buffer_uint8_out[index_out] = buffer_uint8_in[index_in];
 				break;
 			case 2:
-				chunk = (uint8_t *)(&buffer_uint16_in[index_in]);
+				chunk = (const uint8_t *)(&buffer_uint16_in[index_in]);
 				buffer_uint16_out[index_out] = (chunk[1] << 0) | (chunk[0] << 8);
 				break;
 			case 4:

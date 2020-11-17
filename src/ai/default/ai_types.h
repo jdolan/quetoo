@@ -28,7 +28,7 @@
  * @brief Resolve typed data from a structure using offsets.
  */
 #define MEMBER_DATA(from, member) \
-	((typeof(member)) ((byte *) (from) + ((ptrdiff_t) member)))
+	((typeof(member)) ((intptr_t) (from) + ((ptrdiff_t) member)))
 
 /**
  * @brief Typed offsets into g_item_t, populated by the game module.

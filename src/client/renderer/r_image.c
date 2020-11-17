@@ -167,7 +167,6 @@ void R_SetupImage(r_image_t *image, GLenum target, GLenum format, GLsizei levels
 			break;
 		default:
 			Com_Error(ERROR_DROP, "Unsupported format %d\n", format);
-			break;
 	}
 
 	if (image->texnum == 0) {

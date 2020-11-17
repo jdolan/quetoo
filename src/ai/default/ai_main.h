@@ -38,7 +38,7 @@ extern cvar_t *ai_node_dev;
  * @brief Resolve the entity at the given index.
  */
 #define ENTITY_FOR_NUM(n) \
-	((g_entity_t *) ((byte *) aim.ge->entities + aim.ge->entity_size * (n)))
+	((g_entity_t *) (((intptr_t) aim.ge->entities) + aim.ge->entity_size * (n)))
 
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
 ai_export_t *Ai_LoadAi(ai_import_t *import);

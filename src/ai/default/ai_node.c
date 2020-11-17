@@ -134,7 +134,7 @@ ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
 
 		// don't find nodes a few steps above us.
-		if (fabs(position.z - node->position.z) > PM_STEP_HEIGHT * 2.f) {
+		if (fabsf(position.z - node->position.z) > PM_STEP_HEIGHT * 2.f) {
 			continue;
 		}
 
@@ -485,7 +485,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 						bidirectional = true;
 						aim.gi->Debug("Most likely waterjump; connecting both ends\n");
 					} else if (ai_player_roam.is_jumping || in_water) {
-						const float z_diff = (float)fabs(Ai_Node_GetPosition(ai_player_roam.last_nodes[0]).z - Ai_Node_GetPosition(landed_near_node).z);
+						const float z_diff = fabsf(Ai_Node_GetPosition(ai_player_roam.last_nodes[0]).z - Ai_Node_GetPosition(landed_near_node).z);
 
 						if (z_diff < PM_STEP_HEIGHT || (in_water && z_diff < PM_STEP_HEIGHT * 3.f)) {
 							bidirectional = true;
@@ -918,7 +918,7 @@ static uint32_t Ai_OptimizeNodes(void) {
 			const vec3_t dir_b = Ai_Node_GetDirection(i, links[1]);
 			const float dot = Vec3_Dot(dir_a, dir_b);
 
-			if (dot < 0.9) {
+			if (dot < 0.9f) {
 				continue;
 			}
 
@@ -1104,7 +1104,7 @@ static guint Ai_Node_FloodFillEntity(const ai_node_t *node) {
 		const cm_trace_t tr = aim.gi->Trace(check->position, Vec3_Subtract(check->position, Vec3(0, 0, PM_GROUND_DIST * 2)), Vec3_Scale(PM_MINS, 0.5f), Vec3_Scale(PM_MAXS, 0.5f), NULL, CONTENTS_MASK_SOLID);
 
 		// touched something, so we shouldn't consider this node part of a mover
-		if (tr.fraction < 1.0) {
+		if (tr.fraction < 1.0f) {
 			continue;
 		}
 

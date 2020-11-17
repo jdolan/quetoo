@@ -44,7 +44,7 @@ static void zoomAction(Control *control, const SDL_Event *event, ident sender, i
 
 	PlayerModelView *this = (PlayerModelView *) sender;
 
-	this->zoom = Clampf(this->zoom + event->wheel.y * 0.0125, 0.0, 1.0);
+	this->zoom = Clampf(this->zoom + event->wheel.y * 0.0125f, 0.0f, 1.0f);
 }
 
 #pragma mark - Object
@@ -318,7 +318,7 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
 	e->frame = a->frame;
 	e->old_frame = a->old_frame;
 	e->lerp = a->lerp;
-	e->back_lerp = 1.0 - a->lerp;
+	e->back_lerp = 1.0f - a->lerp;
 }
 
 /**

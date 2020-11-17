@@ -76,7 +76,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const vec3_t mins, const vec3
 		sector->axis = 1;
 	}
 
-	sector->dist = 0.5 * (maxs.xyz[sector->axis] + mins.xyz[sector->axis]);
+	sector->dist = 0.5f * (maxs.xyz[sector->axis] + mins.xyz[sector->axis]);
 	mins1 = mins;
 	mins2 = mins;
 	maxs1 = maxs;
@@ -478,7 +478,7 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
-	if (trace.trace.fraction < 1.0) {
+	if (trace.trace.fraction < 1.0f) {
 		trace.trace.ent = svs.game->entities;
 
 		if (trace.trace.start_solid) { // blocked entirely

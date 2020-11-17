@@ -277,6 +277,6 @@ typedef struct {
  * negotiating the edicts array based on the reported size of g_entity_t.
  */
 #define NUM_FOR_ENTITY(e) \
-	( ((byte *)(e) - (byte *) svs.game->entities) / svs.game->entity_size )
+	( ((intptr_t)(e) - (intptr_t) svs.game->entities) / svs.game->entity_size )
 
 #endif /* __SV_LOCAL_H__ */
