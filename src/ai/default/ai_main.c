@@ -66,7 +66,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 
 	float dot = Vec3_Dot(ai->aim_forward, dir);
 
-	if (dot < 0.5) {
+	if (dot < 0.5f) {
 		return false;
 	}
 
@@ -264,7 +264,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 		if (!Ai_CanTarget(self, ent) ||
 			!Ai_CanPickupItem(self, ent) ||
-			(distance = Ai_ItemReachable(self, ent)) == AI_ITEM_UNREACHABLE) {
+			(distance = Ai_ItemReachable(self, ent)) <= AI_ITEM_UNREACHABLE) {
 			continue;
 		}
 
@@ -690,11 +690,11 @@ static inline float Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t forward;
 	Vec3_Vectors(Vec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
-	vec3_t end = Vec3_Add(self->s.origin, Vec3_Scale(forward, (self->maxs.x - self->mins.x) * 2.0));
+	vec3_t end = Vec3_Add(self->s.origin, Vec3_Scale(forward, (self->maxs.x - self->mins.x) * 2.0f));
 
 	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
 
-	if (tr.fraction < 1.0) { // hit a wall
+	if (tr.fraction < 1.0f) { // hit a wall
 	
 		if (ai->combat_target.type == AI_GOAL_ENTITY) {
 			if (ai->combat_target.entity.combat_type == AI_COMBAT_FLANK && Randomb()) {
@@ -815,7 +815,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 		// something is blocking our destination
 		const cm_trace_t tr = aim.gi->Trace(ai->eye_origin, dest, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_SOLID);
 
-		if (tr.fraction < 1.0) {
+		if (tr.fraction < 1.0f) {
 			goal->distress += 0.25f;
 		}
 	}
@@ -915,7 +915,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	dir = Vec3_Subtract(dest, self->s.origin);
 	const float len = Vec3_Length(dir);
 
-	if (target_enemy && len < 200.0) {
+	if (target_enemy && len < 200.0f) {
 		// switch to flank/wander, this helps us recover from being up close to enemies
 		if (ai->combat_target.entity.combat_type == AI_COMBAT_CLOSE && Randomb()) {
 			ai->combat_target.entity.combat_type = Randomf() > 0.5f ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
@@ -1062,10 +1062,10 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			float angle = 45 + Randomf() * 45;
 
 			if (target_enemy) {
-				ai->move_target.entity.combat_type = Randomf() > 0.5f ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
-				ai->move_target.entity.flank_angle += (Randomf() < 0.5) ? -angle : angle;
+				ai->move_target.entity.combat_type = Randomb() ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
+				ai->move_target.entity.flank_angle += Randomb() ? -angle : angle;
 			} else {
-				ai->move_target.wander.angle += (Randomf() < 0.5) ? -angle : angle;
+				ai->move_target.wander.angle += Randomb() ? -angle : angle;
 			}
 		} else {
 			cmd->forward = cmd->right = 0; // stop for now
@@ -1100,7 +1100,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		!wait_politely && (!ENTITY_DATA(self, ground_entity) || ENTITY_DATA(self, ground_entity)->s.number == 0)) {
 
 		// we'll be pushed up against something
-		if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 6.0) {
+		if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 6.0f) {
 
 			// if we're navving, node is above us, and we're on ground, jump; we're probably trying
 			// to trick-jump or something
@@ -1143,7 +1143,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 }
 
 static float AngleMod(const float a) {
-	return (360.0 / 65536) * ((int32_t) (a * (65536 / 360.0)) & 65535);
+	return (360.0f / 65536) * ((int32_t) (a * (65536 / 360.0f)) & 65535);
 }
 
 static float Ai_CalculateAngle(g_entity_t *self, const float speed, float current, float ideal) {
@@ -1157,12 +1157,12 @@ static float Ai_CalculateAngle(g_entity_t *self, const float speed, float curren
 	float move = ideal - current;
 
 	if (ideal > current) {
-		if (move >= 180.0) {
-			move = move - 360.0;
+		if (move >= 180.0f) {
+			move = move - 360.0f;
 		}
 	} else {
-		if (move <= -180.0) {
-			move = move + 360.0;
+		if (move <= -180.0f) {
+			move = move + 360.0f;
 		}
 	}
 
@@ -1257,8 +1257,8 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		ideal_angles = Vec3_Euler(aim_direction);
 
 		// fuzzy angle
-		ideal_angles.x += sinf(ai_level.time / 128.0) * 4.3;
-		ideal_angles.y += cosf(ai_level.time / 164.0) * 4.0;
+		ideal_angles.x += sinf(ai_level.time / 128.0f) * 4.3f;
+		ideal_angles.y += cosf(ai_level.time / 164.0f) * 4.0f;
 	}
 
 	const vec3_t view_angles = CLIENT_DATA(self->client, angles);

@@ -1001,7 +1001,7 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 				.atlas_image = cg_sprite_particle,
 				.origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f)),
 				.velocity = Vec3_Add(Vec3_Scale(dir, 9.f), Vec3_RandomRange(-90.f, 90.f)),
-				.acceleration = Vec3_Add(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, -0.5 * SPRITE_GRAVITY)),
+				.acceleration = Vec3_Add(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, -0.5f * SPRITE_GRAVITY)),
 				.lifetime = 100 + (Randomf() * 150),
 				.color = Vec4(53.f, .83f, .97f, RandomRangef(.8f, 1.f)),
 				.end_color = Vec4(53.f, .83f, 0.f, 0.f),

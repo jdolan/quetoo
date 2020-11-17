@@ -37,7 +37,7 @@
  */
 static size_t numberOfItems(const CollectionView *collectionView) {
 
-	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
+	const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
 
 	return ((Array *) this->maps)->count;
 }
@@ -47,7 +47,7 @@ static size_t numberOfItems(const CollectionView *collectionView) {
  */
 static ident objectForItemAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
+	const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
 
 	const size_t index = $(indexPath, indexAtPosition, 0);
 
@@ -61,7 +61,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
  */
 static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
+	const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
 	const size_t index = $(indexPath, indexAtPosition, 0);
 
 	Value *value = $((Array *) this->maps, objectAtIndex, index);
@@ -301,7 +301,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
  */
 static Array *selectedMaps(const MapListCollectionView *self) {
 
-	CollectionView *this = (CollectionView *) self;
+	const CollectionView *this = (const CollectionView *) self;
 
 	MutableArray *selectedMaps = $$(MutableArray, array);
 

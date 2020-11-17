@@ -261,7 +261,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 
 			for (int32_t i = 0; i < 4; i++) {
 
-				if (s->color.rgba[i] < 0.0 || s->color.rgba[i] > 1.0) {
+				if (s->color.rgba[i] < 0.0f || s->color.rgba[i] > 1.0f) {
 					Cm_MaterialWarn(path, parser, "Invalid value for color, must be between 0.0 and 1.0");
 				}
 			}
@@ -277,7 +277,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 				continue;
 			}
 
-			if (s->pulse.hz == 0.0) {
+			if (s->pulse.hz == 0.0f) {
 				Cm_MaterialWarn(path, parser, "Frequency must not be zero");
 			} else {
 				s->flags |= STAGE_PULSE;
@@ -293,7 +293,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 				continue;
 			}
 
-			if (s->stretch.amp == 0.0) {
+			if (s->stretch.amp == 0.0f) {
 				Cm_MaterialWarn(path, parser, "Amplitude must not be zero");
 			}
 
@@ -302,12 +302,12 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 				continue;
 			}
 
-			if (s->stretch.hz == 0.0) {
+			if (s->stretch.hz == 0.0f) {
 				Cm_MaterialWarn(path, parser, "Frequency must not be zero");
 			}
 
-			if (s->stretch.amp != 0.0 &&
-				s->stretch.hz != 0.0) {
+			if (s->stretch.amp != 0.0f &&
+				s->stretch.hz != 0.0f) {
 				s->flags |= STAGE_STRETCH;
 			}
 
@@ -321,7 +321,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 				continue;
 			}
 
-			if (s->rotate.hz == 0.0) {
+			if (s->rotate.hz == 0.0f) {
 				Cm_MaterialWarn(path, parser, "Frequency must not be zero");
 			} else {
 				s->flags |= STAGE_ROTATE;
@@ -337,7 +337,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 				continue;
 			}
 
-			if (s->scroll.s == 0.0) {
+			if (s->scroll.s == 0.0f) {
 				Cm_MaterialWarn(path, parser, "scroll.s must not be zero");
 			} else {
 				s->flags |= STAGE_SCROLL_S;

@@ -417,12 +417,12 @@ static void Bsp_GetLumpPosition(const bsp_header_t *file, const bsp_lump_id_t lu
 /**
  * @brief Set if the lump is valid but the ptrs do not exist.
  */
-#define LUMP_SKIPPED (int32_t *) (ptrdiff_t) -1u
+#define LUMP_SKIPPED (int32_t *) ((ptrdiff_t) -1u)
 
 /**
  * @brief Convenience to calculate bsp_file offset in bytes.
  */
-#define BSP_BYTE_OFFSET(bsp, bytes) (((byte *) bsp) + bytes)
+#define BSP_BYTE_OFFSET(bsp, bytes) (((intptr_t) bsp) + bytes)
 
 /**
  * @brief Get the lump offset data for the specified lump. Returns false if the
@@ -554,7 +554,7 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 
 		// blit the data into memory
 		if (lump.file_ofs && lump.file_len) {
-			const byte *src = ((byte *) file) + lump.file_ofs;
+			const byte *src = ((const byte *) file) + lump.file_ofs;
 
 			memcpy(*lump_data, src, lump.file_len);
 

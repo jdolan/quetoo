@@ -326,8 +326,6 @@ static int S_MusicThread(void *data) {
 		// sleep a bit, so music thread doesn't eat cycles
 		SDL_Delay(QUETOO_TICK_MILLIS);
 	}
-
-	return 0;
 }
 
 /**

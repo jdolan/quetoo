@@ -469,7 +469,6 @@ void Cl_ParseServerMessage(void) {
 
 			case SV_CMD_DROP:
 				Com_Error(ERROR_DROP, "Server dropped connection\n");
-				break;
 
 			case SV_CMD_FRAME:
 				Cl_ParseFrame();

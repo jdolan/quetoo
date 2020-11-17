@@ -82,7 +82,7 @@ static inline float Ai_Node_DefaultHeuristic(const ai_node_id_t link, const ai_n
 	const vec3_t av = Ai_Node_GetPosition(link);
 	const vec3_t bv = Ai_Node_GetPosition(end);
 
-	return fabs(av.x - bv.x) + fabs(av.y - bv.y) + fabs(av.z - bv.z);
+	return fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
 }
 
 /**

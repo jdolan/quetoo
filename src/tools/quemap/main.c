@@ -507,6 +507,4 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Print("\n%s finished in %dms\n", Com_Argv(0), end - start);
 
 	Com_Shutdown(NULL);
-
-	return 0;
 }
