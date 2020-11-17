@@ -292,9 +292,9 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 				vec3_t point;
 				Matrix4x4_Transform(&lg.inverse_matrix, sample.xyz, point.xyz);
 
-				//const cm_trace_t trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
+				const cm_trace_t trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
 
-				occlusion += sample_fraction/* * trace.fraction*/;
+				occlusion += sample_fraction * trace.fraction;
 			}
 
 			intensity *= 1.0 - (1.0 - occlusion) * (1.0 - occlusion);
