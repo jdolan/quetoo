@@ -59,7 +59,7 @@ void Cl_KeyDown(button_t *b) {
 		k = SDL_NUM_SCANCODES; // typed manually at the console for continuous down
 	}
 
-	if (k == (SDL_Keycode) b->keys[0] || k == (SDL_Keycode) b->keys[1]) {
+	if (k == b->keys[0] || k == b->keys[1]) {
 		return; // repeating key
 	}
 
@@ -95,9 +95,9 @@ void Cl_KeyUp(button_t *b) {
 
 	const SDL_Scancode k = atoi(Cmd_Argv(1));
 
-	if ((SDL_Keycode) b->keys[0] == k) {
+	if (b->keys[0] == k) {
 		b->keys[0] = SDL_SCANCODE_UNKNOWN;
-	} else if ((SDL_Keycode) b->keys[1] == k) {
+	} else if (b->keys[1] == k) {
 		b->keys[1] = SDL_SCANCODE_UNKNOWN;
 	} else {
 		return; // key up without corresponding down
