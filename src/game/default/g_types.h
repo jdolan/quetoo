@@ -1069,7 +1069,7 @@ typedef struct {
 	g_entity_t *held_grenade; // the grenade we're holding onto
 
 	uint32_t pickup_msg_time; // display message until time > this
-	const g_item_t *last_pickup; // last item we picked up
+	const g_item_t *last_pickup; // last usable item we picked up
 	uint32_t chat_time; // can chat when time > this
 
 	uint32_t quad_damage_time; // has quad when time < this

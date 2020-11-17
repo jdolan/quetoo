@@ -77,6 +77,7 @@ extern r_atlas_image_t *cg_sprite_explosion_glow;
 extern r_image_t *cg_beam_hook;
 extern r_image_t *cg_beam_rail;
 extern r_image_t *cg_beam_lightning;
+extern r_image_t *cg_beam_tracer;
 extern r_image_t *cg_sprite_blaster_flash;
 extern r_animation_t *cg_sprite_explosion;
 extern r_animation_t *cg_sprite_explosion_ring_02;
