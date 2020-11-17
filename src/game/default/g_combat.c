@@ -415,9 +415,9 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 
 		if (ent == attacker) { // reduce self damage
 			if (mod == MOD_BFG_BLAST) {
-				d = d * 0.25;
+				d *= 0.25;
 			} else {
-				d = d * 0.5;
+				d *= 0.5;
 			}
 		}
 
@@ -425,6 +425,13 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 			continue;
 		}
 
-		G_Damage(ent, inflictor, attacker, dir, Vec3_Zero(), Vec3_Zero(), d, k, DMG_RADIUS, mod);
+		// find closest point to inflictor
+		vec3_t point = inflictor->s.origin;
+
+		for (int32_t i = 0; i < 3; i++) {
+			point.xyz[i] = Clampf(point.xyz[i], ent->abs_mins.xyz[i], ent->abs_maxs.xyz[i]);
+		}
+
+		G_Damage(ent, inflictor, attacker, dir, point, dir, d, k, DMG_RADIUS, mod);
 	}
 }

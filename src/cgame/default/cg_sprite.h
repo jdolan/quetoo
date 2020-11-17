@@ -46,6 +46,19 @@ typedef struct cg_sprite_s cg_sprite_t;
 
 typedef void (*cg_sprite_think_t) (cg_sprite_t *sprite, float life, float delta);
 
+
+/**
+ * @brief CGame-specific sprite flags
+ */
+enum {
+	/**
+	 * @brief Beam's velocity does not affect the end point
+	 */
+	SPRITE_BEAM_VELOCITY_NO_END = SPRITE_CGAME
+};
+
+typedef uint32_t cg_r_sprite_flags_t;
+
 /**
  * @brief Client game sprites can persist over multiple frames.
  */
@@ -163,7 +176,7 @@ typedef struct cg_sprite_s {
 	/**
 	 * @brief Sprite flags.
 	 */
-	r_sprite_flags_t flags;
+	cg_r_sprite_flags_t flags;
 
 	cg_sprite_t *prev;
 	cg_sprite_t *next;
