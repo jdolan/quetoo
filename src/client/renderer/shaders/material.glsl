@@ -169,9 +169,11 @@ void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, i
 void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout vec2 diffusemap, inout vec4 color) {
 
 	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
-		diffusemap = diffusemap - stage.st_origin;
-		diffusemap *= osc(stage, stage.stretch.x, stage.stretch.y);
-		diffusemap = diffusemap + stage.st_origin;
+		vec2 uv0 = diffusemap - stage.st_origin;
+		vec2 uv1 = uv0 * (1.0 / stage.stretch.x);
+		float t = osc(stage, stage.stretch.y, 1.0);
+		diffusemap = mix(uv0, uv1, t); // lerp
+		diffusemap += stage.st_origin;
 	}
 
 	if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
