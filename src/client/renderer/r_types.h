@@ -676,7 +676,7 @@ typedef struct r_model_s {
 /**
  * @brief
  */
-typedef enum {
+enum {
 	/**
 	 * @brief If set, sprite does not attempt to check blend depth.
 	 */
@@ -691,7 +691,9 @@ typedef enum {
 	 * @brief Beginning of flags reserved for cgame
 	 */
 	SPRITE_CGAME			= 1 << 16
-} r_sprite_flags_t;
+};
+
+typedef uint32_t r_sprite_flags_t;
 
 /**
  * @brief Sprites are billboarded alpha blended textures.

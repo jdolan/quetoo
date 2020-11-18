@@ -119,10 +119,10 @@ typedef struct {
  */
 static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b, gpointer data) {
 
-	const atlas_node_t *a_node = *(atlas_node_t **) a;
-	const atlas_node_t *b_node = *(atlas_node_t **) b;
+	const atlas_node_t *a_node = *(const atlas_node_t * const*) a;
+	const atlas_node_t *b_node = *(const atlas_node_t * const*) b;
 
-	atlas_comparator_t *comparator = (atlas_comparator_t *) data;
+	const atlas_comparator_t *comparator = (const atlas_comparator_t *) data;
 
 	return comparator->func(a_node, b_node);
 }

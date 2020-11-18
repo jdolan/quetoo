@@ -100,7 +100,7 @@ static vec3_t Pm_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce
 
 	float backoff = Vec3_Dot(in, normal);
 
-	if (backoff < 0.0) {
+	if (backoff < 0.0f) {
 		backoff *= bounce;
 	} else {
 		backoff /= bounce;
@@ -139,7 +139,7 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
 static _Bool Pm_ImpactPlane(vec3_t *planes, int32_t num_planes, const vec3_t plane) {
 
 	for (int32_t i = 0 ; i < num_planes; i++) {
-		if (Vec3_Dot(plane, planes[i]) > 1.0 - PM_STOP_EPSILON) {
+		if (Vec3_Dot(plane, planes[i]) > 1.0f - PM_STOP_EPSILON) {
 			return false;
 		}
 	}
@@ -173,7 +173,7 @@ static _Bool Pm_SlideMove(void) {
 	for (bump = 0; bump < num_bumps; bump++) {
 		vec3_t pos;
 
-		if (time_remaining <= 0.0) { // out of time
+		if (time_remaining <= 0.0f) { // out of time
 			break;
 		}
 
@@ -185,17 +185,17 @@ static _Bool Pm_SlideMove(void) {
 
 		// if the player is trapped in a solid, don't build up Z
 		if (trace.all_solid) {
-			pm->s.velocity.z = 0.0;
+			pm->s.velocity.z = 0.0f;
 			return true;
 		}
 
 		// if the trace succeeded, move some distance
-		if (trace.fraction > 0.0) {
+		if (trace.fraction > 0.0f) {
 
 			pm->s.origin = trace.end;
 
 			// if the trace didn't hit anything, we're done
-			if (trace.fraction == 1.0) {
+			if (trace.fraction == 1.0f) {
 				break;
 			}
 
@@ -221,7 +221,7 @@ static _Bool Pm_SlideMove(void) {
 			vec3_t vel;
 
 			// if velocity doesn't impact this plane, skip it
-			if (Vec3_Dot(pm->s.velocity, planes[i]) >= 0.0) {
+			if (Vec3_Dot(pm->s.velocity, planes[i]) >= 0.0f) {
 				continue;
 			}
 
@@ -237,7 +237,7 @@ static _Bool Pm_SlideMove(void) {
 				}
 
 				// if the clipped velocity doesn't impact this plane, skip it
-				if (Vec3_Dot(vel, planes[j]) >= 0.0) {
+				if (Vec3_Dot(vel, planes[j]) >= 0.0f) {
 					continue;
 				}
 
@@ -245,7 +245,7 @@ static _Bool Pm_SlideMove(void) {
 				vel = Pm_ClipVelocity(vel, planes[j], PM_CLIP_BOUNCE);
 
 				// but if we clip against it without being deflected back, we're okay
-				if (Vec3_Dot(vel, planes[i]) >= 0.0) {
+				if (Vec3_Dot(vel, planes[i]) >= 0.0f) {
 					continue;
 				}
 
@@ -263,7 +263,7 @@ static _Bool Pm_SlideMove(void) {
 						continue;
 					}
 
-					if (Vec3_Dot(vel, planes[k]) >= 0.0) {
+					if (Vec3_Dot(vel, planes[k]) >= 0.0f) {
 						continue;
 					}
 
@@ -460,9 +460,8 @@ static void Pm_Friction(void) {
 
 	const float speed = Vec3_Length(vel);
 
-	if (speed < 1.0) {
-		pm->s.velocity.x = 0.0;
-		pm->s.velocity.y = 0.0;
+	if (speed < 1.0f) {
+		pm->s.velocity.x = pm->s.velocity.y = 0.0f;
 		return;
 	}
 
@@ -506,7 +505,7 @@ static void Pm_Accelerate(const vec3_t dir, float speed, float accel) {
 	const float current_speed = Vec3_Dot(pm->s.velocity, dir);
 	const float add_speed = speed - current_speed;
 
-	if (add_speed <= 0.0) {
+	if (add_speed <= 0.0f) {
 		return;
 	}
 
@@ -642,7 +641,7 @@ static void Pm_SnapToWalls(void) {
 		vec3_t end = Vec3_Add(pm->s.origin, Vec3_Scale(dirs[i], PM_SNAP_DISTANCE));
 
 		const cm_trace_t tr = pm->Trace(pm->s.origin, end, pm->mins, pm->maxs);
-		if (tr.fraction < 1.0) {
+		if (tr.fraction < 1.0f) {
 			if ((i < 4 && tr.plane.normal.z < PM_STEP_NORMAL && tr.plane.normal.z > -PM_STEP_NORMAL) ||
 				(i == 4 && tr.plane.normal.z == -1.0f)) {
 				pm->s.origin = Vec3_Add(tr.end, Vec3_Scale(dirs[i], -PM_SNAP_DISTANCE));
@@ -673,7 +672,7 @@ static void Pm_CorrectPosition(void) {
 					pos.z += k * PM_NUDGE_DIST;
 
 					tr = pm->Trace(pm_locals.previous_origin, pos, pm->mins, pm->maxs);
-					if (tr.fraction == 1.0) {
+					if (tr.fraction == 1.0f) {
 						pm->s.origin = pos;
 						Pm_Debug("corrected %s\n", vtos(pm->s.origin));
 						return;
@@ -693,7 +692,7 @@ static void Pm_CorrectPosition(void) {
  */
 static bool Pm_CheckHookJump(void) {
 
-	if ((pm->s.type == PM_HOOK_PULL || pm->s.type == PM_HOOK_SWING) && pm->s.velocity.z > 4.0) {
+	if ((pm->s.type == PM_HOOK_PULL || pm->s.type == PM_HOOK_SWING) && pm->s.velocity.z > 4.0f) {
 
 		pm->s.flags &= ~PMF_ON_GROUND;
 		pm->ground_entity = NULL;
@@ -728,7 +727,7 @@ static void Pm_CheckHook(void) {
 
 		// pull physics
 		const float dist = Vec3_DistanceDir(pm->s.hook_position, pm->s.origin, &pm->s.velocity);
-		if (dist > 8.0 && !Pm_CheckHookJump()) {
+		if (dist > 8.0f && !Pm_CheckHookJump()) {
 			pm->s.velocity = Vec3_Scale(pm->s.velocity, pm->hook_pull_speed);
 		} else {
 			pm->s.velocity = Vec3_Zero();
@@ -751,7 +750,7 @@ static void Pm_CheckHook(void) {
 			}
 		}
 
-		const float hook_rate = (pm->hook_pull_speed / 1.5) * pm_locals.time;
+		const float hook_rate = (pm->hook_pull_speed / 1.5f) * pm_locals.time;
 
 		// chain physics
 		// grow/shrink chain based on input
@@ -762,7 +761,7 @@ static void Pm_CheckHook(void) {
 		}
 
 		vec3_t chain_vec;
-		float chain_len, force = 0.0;
+		float chain_len, force = 0.0f;
 
 		chain_vec = Vec3_Subtract(pm->s.hook_position, pm->s.origin);
 		chain_len = Vec3_Length(chain_vec);
@@ -775,13 +774,13 @@ static void Pm_CheckHook(void) {
 			vel_part = Vec3_Scale(chain_vec, Vec3_Dot(pm->s.velocity, chain_vec) / Vec3_Dot(chain_vec, chain_vec));
 
 			// restrainment default force
-			force = (chain_len - pm->s.hook_length) * 5.0;
+			force = (chain_len - pm->s.hook_length) * 5.0f;
 
 			// if player's velocity heading is away from the hook
-			if (Vec3_Dot(pm->s.velocity, chain_vec) < 0.0) {
+			if (Vec3_Dot(pm->s.velocity, chain_vec) < 0.0f) {
 
 				// if chain has streched for 24 units
-				if (chain_len > pm->s.hook_length + 24.0) {
+				if (chain_len > pm->s.hook_length + 24.0f) {
 
 					// remove player's velocity component moving away from hook
 					pm->s.velocity = Vec3_Subtract(pm->s.velocity, vel_part);
@@ -791,7 +790,7 @@ static void Pm_CheckHook(void) {
 				if (Vec3_Length(vel_part) < force) {
 					force -= Vec3_Length(vel_part);
 				} else {
-					force = 0.0;
+					force = 0.0f;
 				}
 			}
 		}
@@ -912,7 +911,7 @@ static void Pm_CheckWater(void) {
 			pm->water_type |= contents;
 			pm->water_level = WATER_WAIST;
 
-			pos.z = pm->s.origin.z + pm->s.view_offset.z + 1.0;
+			pos.z = pm->s.origin.z + pm->s.view_offset.z + 1.0f;
 
 			contents = pm->PointContents(pos);
 
@@ -934,9 +933,9 @@ static void Pm_CheckDuck(void) {
 
 	if (pm->s.type == PM_DEAD) {
 		if (pm->s.flags & PMF_GIBLET) {
-			pm->s.view_offset.z = 0.0;
+			pm->s.view_offset.z = 0.0f;
 		} else {
-			pm->s.view_offset.z = -16.0;
+			pm->s.view_offset.z = -16.0f;
 		}
 	} else {
 
@@ -956,7 +955,7 @@ static void Pm_CheckDuck(void) {
 		const float height = pm->maxs.z - pm->mins.z;
 
 		if (pm->s.flags & PMF_DUCKED) { // ducked, reduce height
-			float target = pm->mins.z + height * 0.5;
+			float target = pm->mins.z + height * 0.5f;
 
 			if (pm->s.view_offset.z > target) { // go down
 				pm->s.view_offset.z -= pm_locals.time * PM_SPEED_DUCK_STAND;
@@ -967,9 +966,9 @@ static void Pm_CheckDuck(void) {
 			}
 
 			// change the bounding box to reflect ducking
-			pm->maxs.z = pm->maxs.z + pm->mins.z * 0.5;
+			pm->maxs.z = pm->maxs.z + pm->mins.z * 0.5f;
 		} else {
-			const float target = pm->mins.z + height * 0.9;
+			const float target = pm->mins.z + height * 0.9f;
 
 			if (pm->s.view_offset.z < target) { // go up
 				pm->s.view_offset.z += pm_locals.time * PM_SPEED_DUCK_STAND;
@@ -1030,7 +1029,7 @@ static _Bool Pm_CheckJump(void) {
 		Pm_Debug("Jump: %d\n", pm->cmd.up);
 	}
 
-	if (pm->s.velocity.z < 0.0) {
+	if (pm->s.velocity.z < 0.0f) {
 		pm->s.velocity.z = jump;
 	} else {
 		pm->s.velocity.z += jump;
@@ -1066,7 +1065,7 @@ static void Pm_CheckLadder(void) {
 
 	const cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
-	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_LADDER)) {
+	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_LADDER)) {
 		pm->s.flags |= PMF_ON_LADDER;
 
 		pm->ground_entity = NULL;
@@ -1104,7 +1103,7 @@ static _Bool Pm_CheckWaterJump(void) {
 
 	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
-	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_MASK_SOLID)) {
+	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_MASK_SOLID)) {
 
 		pos.z += PM_STEP_HEIGHT + pm->maxs.z - pm->mins.z;
 
@@ -1153,7 +1152,7 @@ static void Pm_LadderMove(void) {
 	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.forward_xy, pm->cmd.forward));
 	vel = Vec3_Add(vel, Vec3_Scale(pm_locals.right_xy, pm->cmd.right));
 
-	const float s = PM_SPEED_LADDER * 0.125;
+	const float s = PM_SPEED_LADDER * 0.125f;
 
 	// limit horizontal speed when on a ladder
 	vel.x = Clampf(vel.x, -s, s);
@@ -1163,9 +1162,9 @@ static void Pm_LadderMove(void) {
 	// handle Z intentions differently
 	if (fabsf(pm->s.velocity.z) < PM_SPEED_LADDER) {
 
-		if ((pm->angles.x <= -15.0) && (pm->cmd.forward > 0)) {
+		if ((pm->angles.x <= -15.0f) && (pm->cmd.forward > 0)) {
 			vel.z = PM_SPEED_LADDER;
-		} else if ((pm->angles.x >= 15.0) && (pm->cmd.forward > 0)) {
+		} else if ((pm->angles.x >= 15.0f) && (pm->cmd.forward > 0)) {
 			vel.z = -PM_SPEED_LADDER;
 		} else if (pm->cmd.up > 0) {
 			vel.z = PM_SPEED_LADDER;
@@ -1210,12 +1209,12 @@ static void Pm_WaterJumpMove(void) {
 	pos = Vec3_Add(pm->s.origin, Vec3_Scale(pm_locals.forward_xy, 30.0));
 
 	// if we've reached a usable spot, clamp the jump to avoid launching
-	if (pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs).fraction == 1.0) {
+	if (pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs).fraction == 1.0f) {
 		pm->s.velocity.z = Clampf(pm->s.velocity.z, 0.0, PM_SPEED_JUMP);
 	}
 
 	// if we're falling back down, clear the timer to regain control
-	if (pm->s.velocity.z <= 0.0) {
+	if (pm->s.velocity.z <= 0.0f) {
 		pm->s.flags &= ~PMF_TIME_MASK;
 		pm->s.time = 0;
 	}
@@ -1508,10 +1507,10 @@ static void Pm_ClampAngles(void) {
 	pm->angles = Vec3_Add(pm->cmd.angles, pm->s.delta_angles);
 
 	// clamp pitch to prevent the player from looking up or down more than 90º
-	if (pm->angles.x > 90.0 && pm->angles.x < 270.0) {
-		pm->angles.x = 90.0;
-	} else if (pm->angles.x <= 360.0 && pm->angles.x >= 270.0) {
-		pm->angles.x -= 360.0;
+	if (pm->angles.x > 90.0f && pm->angles.x < 270.0f) {
+		pm->angles.x = 90.0f;
+	} else if (pm->angles.x <= 360.0f && pm->angles.x >= 270.0f) {
+		pm->angles.x -= 360.0f;
 	}
 }
 

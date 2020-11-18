@@ -72,7 +72,7 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
 	int32_t bits = 0;
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (normal.xyz[i] < 0.0) {
+		if (normal.xyz[i] < 0.0f) {
 			bits |= 1 << i;
 		}
 	}
@@ -298,7 +298,7 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 	while (num >= 0) {
 		const cm_bsp_node_t *node = cm_bsp.nodes + num;
 		const float dist = Cm_DistanceToPlane(p, node->plane);
-		if (dist < 0.0) {
+		if (dist < 0.0f) {
 			num = node->children[1];
 		} else {
 			num = node->children[0];

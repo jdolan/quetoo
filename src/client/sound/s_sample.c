@@ -69,7 +69,7 @@ void S_ConvertSamples(const float *input_samples, const sf_count_t num_samples, 
 	}
 
 	for (sf_count_t i = 0; i < num_samples; i++) {
-		(*out_samples)[i] = (int16_t) Clampf(input_samples[i] * 32768.0, INT16_MIN, INT16_MAX);
+		(*out_samples)[i] = (int16_t) Clampf(input_samples[i] * 32768.0f, INT16_MIN, INT16_MAX);
 	}
 }
 

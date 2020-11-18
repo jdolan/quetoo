@@ -124,9 +124,14 @@ typedef struct {
 	void (*Spawn)(g_entity_t *self);
 
 	/**
-	 * @brief Called to think for an AI. Returns the movement command for the bot.
+	 * @brief Called to think for an AI.
 	 */
 	void (*Think)(g_entity_t *self, pm_cmd_t *cmd);
+
+	/**
+	 * @brief Called after an AI has successfully thonked.
+	 */
+	void (*PostThink)(g_entity_t *self, const pm_cmd_t *cmd);
 	
 	/**
 	 * @brief Called just as a bot is being removed.

@@ -143,17 +143,17 @@ int32_t Matrix4x4_Invert_Full (mat4_t *out, const mat4_t *in1) {
 	                in1->m[0][1] * in1->m[2][2] + in1->m[1][0] * in1->m[0][2] * in1->m[2][1] + in1->m[2][0] * in1->m[0][1] * in1->m[1][2] -
 	                in1->m[2][0] * in1->m[0][2] * in1->m[1][1];
 
-	det = in1->m[0][0] * temp.m[0][0] + in1->m[1][0] * temp.m[0][1] + in1->m[2][0] * temp.m[0][2] + in1->m[3][0] *
-	      temp.m[0][3];
-	if (det == 0.0f) {
+	det = (double) (in1->m[0][0] * temp.m[0][0] + in1->m[1][0] * temp.m[0][1] + in1->m[2][0] * temp.m[0][2] + in1->m[3][0] *
+	      temp.m[0][3]);
+	if (det == 0.0) {
 		return 0;
 	}
 
-	det = 1.0f / det;
+	det = 1.0 / det;
 
 	for (i = 0; i < 4; i++)
 		for (j = 0; j < 4; j++) {
-			out->m[i][j] = temp.m[i][j] * det;
+			out->m[i][j] = (double) temp.m[i][j] * det;
 		}
 
 	return 1;
@@ -165,9 +165,9 @@ void Matrix4x4_Invert_Simple (mat4_t *out, const mat4_t *in1) {
 	// this means multiplying by the inverse scale twice - squaring it, which
 	// makes the sqrt a waste of time)
 #if 1
-	double scale = 1.0 / (in1->m[0][0] * in1->m[0][0] + in1->m[0][1] * in1->m[0][1] + in1->m[0][2] * in1->m[0][2]);
+	double scale = 1.0 / (double) (in1->m[0][0] * in1->m[0][0] + in1->m[0][1] * in1->m[0][1] + in1->m[0][2] * in1->m[0][2]);
 #else
-	double scale = 3.0 / sqrt
+	double scale = 3.0 / (double) sqrtf
 	               (in1->m[0][0] * in1->m[0][0] + in1->m[0][1] * in1->m[0][1] + in1->m[0][2] * in1->m[0][2]
 	                + in1->m[1][0] * in1->m[1][0] + in1->m[1][1] * in1->m[1][1] + in1->m[1][2] * in1->m[1][2]
 	                + in1->m[2][0] * in1->m[2][0] + in1->m[2][1] * in1->m[2][1] + in1->m[2][2] * in1->m[2][2]);
@@ -176,15 +176,15 @@ void Matrix4x4_Invert_Simple (mat4_t *out, const mat4_t *in1) {
 
 	// invert the rotation by transposing and multiplying by the squared
 	// recipricol of the input matrix scale as described above
-	out->m[0][0] = in1->m[0][0] * scale;
-	out->m[0][1] = in1->m[1][0] * scale;
-	out->m[0][2] = in1->m[2][0] * scale;
-	out->m[1][0] = in1->m[0][1] * scale;
-	out->m[1][1] = in1->m[1][1] * scale;
-	out->m[1][2] = in1->m[2][1] * scale;
-	out->m[2][0] = in1->m[0][2] * scale;
-	out->m[2][1] = in1->m[1][2] * scale;
-	out->m[2][2] = in1->m[2][2] * scale;
+	out->m[0][0] = (double) in1->m[0][0] * scale;
+	out->m[0][1] = (double) in1->m[1][0] * scale;
+	out->m[0][2] = (double) in1->m[2][0] * scale;
+	out->m[1][0] = (double) in1->m[0][1] * scale;
+	out->m[1][1] = (double) in1->m[1][1] * scale;
+	out->m[1][2] = (double) in1->m[2][1] * scale;
+	out->m[2][0] = (double) in1->m[0][2] * scale;
+	out->m[2][1] = (double) in1->m[1][2] * scale;
+	out->m[2][2] = (double) in1->m[2][2] * scale;
 
 	// invert the translate
 	out->m[3][0] = -(in1->m[3][0] * out->m[0][0] + in1->m[3][1] * out->m[1][0] + in1->m[3][2] * out->m[2][0]);
@@ -202,14 +202,14 @@ void Matrix4x4_Interpolate (mat4_t *out, const mat4_t *in1, const mat4_t *in2, d
 	int32_t i, j;
 	for (i = 0; i < 4; i++)
 		for (j = 0; j < 4; j++) {
-			out->m[i][j] = in1->m[i][j] + frac * (in2->m[i][j] - in1->m[i][j]);
+			out->m[i][j] = (double) in1->m[i][j] + frac * (double) (in2->m[i][j] - in1->m[i][j]);
 		}
 }
 
 void Matrix4x4_Normalize (mat4_t *out, const mat4_t *in1) {
 	// scale rotation matrix vectors to a length of 1
 	// note: this is only designed to undo uniform scaling
-	double scale = 1.0 / sqrt(in1->m[0][0] * in1->m[0][0] + in1->m[0][1] * in1->m[0][1] + in1->m[0][2] * in1->m[0][2]);
+	double scale = 1.0 / (double) sqrtf(in1->m[0][0] * in1->m[0][0] + in1->m[0][1] * in1->m[0][1] + in1->m[0][2] * in1->m[0][2]);
 	*out = *in1;
 	Matrix4x4_Scale(out, scale, 1);
 }
@@ -256,8 +256,8 @@ void Matrix4x4_CreateRotate (mat4_t *out, double angle, double x, double y, doub
 	double len, c, s;
 
 	len = x * x + y * y + z * z;
-	if (len != 0.0f) {
-		len = 1.0f / sqrt(len);
+	if (len != 0.0) {
+		len = 1.0 / sqrt(len);
 	}
 	x *= len;
 	y *= len;
@@ -417,9 +417,9 @@ void Matrix4x4_CreateFromQuakeEntity(mat4_t *out, double x, double y, double z, 
 }
 
 void Matrix4x4_CreateFromEntity(mat4_t *out, const vec3_t origin, const vec3_t angles, float scale) {
-	Matrix4x4_CreateFromQuakeEntity(out, origin.x, origin.y, origin.z,
-										 angles.x, angles.y, angles.z,
-										 scale);
+	Matrix4x4_CreateFromQuakeEntity(out, (double) origin.x, (double) origin.y, (double) origin.z,
+										 (double) angles.x, (double) angles.y, (double) angles.z,
+										 (double) scale);
 }
 
 void Matrix4x4_ToVectors(const mat4_t *in, float vx[3], float vy[3], float vz[3], float t[3]) {
@@ -472,7 +472,7 @@ void Matrix4x4_Transform (const mat4_t *in, const float v[3], float out[3]) {
 }
 
 void Matrix4x4_TransformPositivePlane(const mat4_t *in, float x, float y, float z, float d, float *o) {
-	float scale = sqrt(in->m[0][0] * in->m[0][0] + in->m[0][1] * in->m[0][1] + in->m[0][2] * in->m[0][2]);
+	float scale = sqrtf(in->m[0][0] * in->m[0][0] + in->m[0][1] * in->m[0][1] + in->m[0][2] * in->m[0][2]);
 	float iscale = 1.0f / scale;
 	o[0] = (x * in->m[0][0] + y * in->m[1][0] + z * in->m[2][0]) * iscale;
 	o[1] = (x * in->m[0][1] + y * in->m[1][1] + z * in->m[2][1]) * iscale;
@@ -518,7 +518,7 @@ void Matrix4x4_ConcatScale3 (mat4_t *out, double x, double y, double z) {
 
 double Matrix4x4_ScaleFromMatrix (const mat4_t *in) {
 	// we only support uniform scaling, so assume the first row is enough
-	return sqrt(in->m[0][0] * in->m[0][0] + in->m[0][1] * in->m[0][1] + in->m[0][2] * in->m[0][2]);
+	return (double) sqrtf(in->m[0][0] * in->m[0][0] + in->m[0][1] * in->m[0][1] + in->m[0][2] * in->m[0][2]);
 }
 
 void Matrix4x4_Scale (mat4_t *out, double rotatescale, double originscale) {

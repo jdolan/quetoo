@@ -89,6 +89,7 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 
 	aix->Think(self, &cmd);
 	G_ClientThink(self, &cmd);
+	aix->PostThink(self, &cmd);
 
 	// see if we're in a match and need to join
 	if (self->client->locals.persistent.spectator) {

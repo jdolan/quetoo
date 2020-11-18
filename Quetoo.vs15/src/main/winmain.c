@@ -91,8 +91,6 @@ static HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh) {
 
 	MessageBox(NULL, "Quetoo has encountered an unrecoverable error. Please go to http://quetoo.org and file an issue report. Check the bin folder for a .dmp file, this will be instrumental to figuring out the problem. Thank you!", "Crash!", MB_OK | MB_ICONERROR);
 	exit(error);
-
-	return error;
 }
 #endif
 

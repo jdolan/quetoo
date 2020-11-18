@@ -244,7 +244,7 @@ void Cmd_TokenizeString(const char *text) {
 
 		// expand console variables
 		if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
-			char *c = (char *) Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
+			const char *c = Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
 			g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
 		}
 
@@ -389,7 +389,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 	cmd->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CMD), cmd);
 	cmd->commands = Mem_Link(Mem_TagCopyString(commands, MEM_TAG_CMD), cmd);
 
-	gpointer *key = (gpointer *) cmd->name;
+	gpointer key = (gpointer) cmd->name;
 
 	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
 
@@ -592,7 +592,7 @@ static void Cmd_Alias_f(void) {
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
 	GSList **list = (GSList **) data;
-	const gchar *str = g_strdup(Cmd_Stringify(cmd));
+	gchar *str = g_strdup(Cmd_Stringify(cmd));
 
 	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrColorCmp);
 }

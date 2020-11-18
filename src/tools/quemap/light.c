@@ -196,6 +196,8 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		} else {
 			if (light.type == LIGHT_SUN) {
 				light.size = LIGHT_SIZE_SUN;
+			} else {
+				light.size = LIGHT_SIZE_STEP;
 			}
 		}
 
@@ -290,9 +292,9 @@ static GPtrArray *BoxLights(const vec3_t box_mins, const vec3_t box_maxs) {
 	for (guint i = 0; i < lights->len; i++, light++) {
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			const vec3_t radius = Vec3(light->radius + light->size,
-									   light->radius + light->size,
-									   light->radius + light->size);
+			const vec3_t radius = Vec3(light->radius + light->size * .5f,
+									   light->radius + light->size * .5f,
+									   light->radius + light->size * .5f);
 
 			const vec3_t mins = Vec3_Add(light->origin, Vec3_Scale(radius, -1.f));
 			const vec3_t maxs = Vec3_Add(light->origin, Vec3_Scale(radius,  1.f));

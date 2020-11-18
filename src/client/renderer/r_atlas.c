@@ -89,7 +89,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 	if (!surf) {
 		Com_Warn("Failed to load atlas image %s\n", name);
 
-		surf = SDL_CreateRGBSurfaceWithFormatFrom((void *) &pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
+		surf = SDL_CreateRGBSurfaceWithFormatFrom((void *) (intptr_t) &pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
 	}
 
 	atlas_node_t *node = Atlas_Insert(atlas->atlas, surf);

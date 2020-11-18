@@ -122,7 +122,7 @@ void Net_WriteAngle(mem_buf_t *msg, float angle) {
 		angle -= 360.f;
 	}
 
-	Net_WriteShort(msg, (int16_t) ((angle / 360.0) * UINT16_MAX));
+	Net_WriteShort(msg, (int16_t) ((angle / 360.0f) * UINT16_MAX));
 }
 
 /**

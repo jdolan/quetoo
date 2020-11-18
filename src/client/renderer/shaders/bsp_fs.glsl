@@ -230,4 +230,5 @@ void main(void) {
 	out_color.rgb = dither(out_color.rgb);
 
 //	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
+//	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
 }

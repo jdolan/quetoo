@@ -142,11 +142,11 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 				}
 
 				r_obj_face_vertex_t *fv = &face.fv[i++];
-				fv->v = (int) strtol(token + 1, &token, 10);
+				fv->v = (uint32_t) strtoul(token + 1, &token, 10);
 				if (*token == '/') {
-					fv->vt = (int) strtol(token + 1, &token, 10);
+					fv->vt = (uint32_t) strtoul(token + 1, &token, 10);
 					if (*token == '/') {
-						fv->vn = (int) strtol(token + 1, &token, 10);
+						fv->vn = (uint32_t) strtoul(token + 1, &token, 10);
 					}
 				} else if (fv->v == 0) {
 					break;

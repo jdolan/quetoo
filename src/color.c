@@ -108,7 +108,7 @@ color_t ColorHSV(float hue, float saturation, float value) {
 
 	value = CLAMP(value, 0.f, 1.f);
 
-    if (saturation <= 0.0) {
+    if (saturation <= 0.0f) {
 		return Color3f(value, value, value);
     }
 
@@ -117,12 +117,12 @@ color_t ColorHSV(float hue, float saturation, float value) {
 	hue = ClampEuler(hue) / 60.f;
 	color_t color = { .a = 1.f };
 
-	const double h = fabs(hue);
+	const float h = fabsf(hue);
 	const int i = (int) h;
-	const double f = h - i;
-	const double p = value * (1.0 - saturation);
-	const double q = value * (1.0 - (saturation * f));
-	const double t = value * (1.0 - (saturation * (1.0 - f)));
+	const float f = h - i;
+	const float p = value * (1.0f - saturation);
+	const float q = value * (1.0f - (saturation * f));
+	const float t = value * (1.0f - (saturation * (1.0f - f)));
 
 	switch (i) {
 		case 0:

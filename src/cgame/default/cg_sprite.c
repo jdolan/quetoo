@@ -195,7 +195,9 @@ void Cg_AddSprites(void) {
 				});
 				break;
 			case SPRITE_BEAM:
-				s->termination = Vec3_Add(s->termination, Vec3_Scale(s->velocity, delta));
+				if (!(s->flags & SPRITE_BEAM_VELOCITY_NO_END)) {
+					s->termination = Vec3_Add(s->termination, Vec3_Scale(s->velocity, delta));
+				}
 
 				cgi.AddBeam(&(r_beam_t) {
 					.start = s->origin,
