@@ -142,6 +142,15 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 			light.radius = LIGHT_RADIUS;
 		}
 
+		switch (light.type) {
+			case LIGHT_POINT:
+			case LIGHT_SPOT:
+				light.radius *= lightscale_point;
+				break;
+			default:
+				break;
+		}
+
 		if (targetname) {
 			cm_entity_t *target = NULL;
 			for (const GList *e = entities; e; e = e->next) {
@@ -248,7 +257,7 @@ static void LightForPatch(const patch_t *patch) {
 		light.color = Vec3_Scale(light.color, 1.0 / brightness);
 	}
 
-	light.radius = texinfo->value ?: DEFAULT_LIGHT;
+	light.radius = (texinfo->value ?: DEFAULT_LIGHT) * lightscale_patch;
 
 	g_array_append_val(lights, light);
 }

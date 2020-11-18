@@ -309,30 +309,14 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 		float intensity = Clampf(light->radius, 0.0, MAX_WORLD_COORD) * dot;
 
 		switch (light->type) {
-			case LIGHT_INVALID:
-				break;
-			case LIGHT_AMBIENT:
-				intensity *= lightscale_ambient;
-				break;
-			case LIGHT_SUN:
-				intensity *= lightscale_sun;
-				break;
-			case LIGHT_POINT:
-				intensity *= lightscale_point;
-				break;
 			case LIGHT_SPOT: {
 				const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 				const float thresh = cosf(light->theta);
 				const float smooth = 0.03;
 				intensity *= Smoothf(cone_dot, thresh - smooth, thresh + smooth);
-				intensity *= lightscale_point;
 			}
 				break;
-			case LIGHT_PATCH:
-				intensity *= lightscale_patch;
-				break;
-			case LIGHT_INDIRECT:
-				intensity *= lightscale_indirect;
+			default:
 				break;
 		}
 
@@ -536,8 +520,7 @@ void DirectLightmap(int32_t face_num) {
 				const light_t *light = g_ptr_array_index(lights, j);
 
 				if (light->type == LIGHT_AMBIENT) {
-					const float intensity = light->radius * lightscale_ambient;
-					l->ambient = Vec3_Add(l->ambient, Vec3_Scale(light->color, intensity));
+					l->ambient = Vec3_Add(l->ambient, Vec3_Scale(light->color, light->radius));
 				}
 			}
 		}

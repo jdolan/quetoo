@@ -37,9 +37,6 @@ int32_t bounce = 0;
 
 float lightscale_point = 1.0;
 float lightscale_patch = 1.0;
-float lightscale_ambient = 1.0;
-float lightscale_indirect = 1.0;
-float lightscale_sun = 1.0;
 
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
@@ -156,28 +153,6 @@ static void LightWorld(void) {
 			Com_Verbose("Patchlight intensity scale: 1.0\n");
 		}
 	}
-
-	if (lightscale_ambient == 1.f) {
-		float v;
-		if (Cm_EntityVector(e, "lightscale_ambient", &v, 1) == 1) {
-			Com_Verbose("Ambient light intensity scale: 1.0\n");
-		}
-	}
-
-	if (lightscale_indirect == 1.f) {
-		float v;
-		if (Cm_EntityVector(e, "lightscale_indirect", &v, 1) == 1) {
-			Com_Verbose("Indirect light intensity scale: 1.0\n");
-		}
-	}
-
-	if (lightscale_sun == 1.f) {
-		float v;
-		if (Cm_EntityVector(e, "lightscale_sun", &v, 1) == 1) {
-			Com_Verbose("Sunlight intensity scale: 1.0\n");
-		}
-	}
-
 
 	// build patches
 	BuildPatches(entities);

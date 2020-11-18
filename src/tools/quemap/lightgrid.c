@@ -206,30 +206,14 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 		float intensity = Clampf(light->radius, 0.0, MAX_WORLD_COORD);
 
 		switch (light->type) {
-			case LIGHT_INVALID:
-				break;
-			case LIGHT_AMBIENT:
-				intensity *= lightscale_ambient;
-				break;
-			case LIGHT_SUN:
-				intensity *= lightscale_sun;
-				break;
-			case LIGHT_POINT:
-				intensity *= lightscale_point;
-				break;
 			case LIGHT_SPOT: {
 				const float cone_dot = Vec3_Dot(dir, light->normal);
 				const float thresh = cosf(light->theta);
 				const float smooth = 0.03;
 				intensity *= Smoothf(thresh - smooth, thresh + smooth, cone_dot);
-				intensity *= lightscale_point;
 			}
 				break;
-			case LIGHT_PATCH:
-				intensity *= lightscale_patch;
-				break;
-			case LIGHT_INDIRECT:
-				intensity *= lightscale_indirect;
+			default:
 				break;
 		}
 
