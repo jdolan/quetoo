@@ -724,8 +724,6 @@ static inline float Cg_Oscillate(const float freq, const float amplitude, const 
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
 
-	cgi.Print("%f\n", Cg_Oscillate(1.0f, 1.0f, 0.5f, 0.0f));
-	
 	const byte color = 191 + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * 64;
 	
 	cgi.AddSprite(&(r_sprite_t) {

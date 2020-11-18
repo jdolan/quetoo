@@ -702,22 +702,22 @@ typedef enum {
 	/**
 	 * @brief 
 	 */
-	SPRITE_AXIS_ALL,
+	SPRITE_AXIS_ALL = 0,
 	
 	/**
 	 * @brief 
 	 */
-	SPRITE_AXIS_X,
+	SPRITE_AXIS_X = 1,
 	
 	/**
 	 * @brief 
 	 */
-	SPRITE_AXIS_Y,
+	SPRITE_AXIS_Y = 2,
 	
 	/**
 	 * @brief 
 	 */
-	SPRITE_AXIS_Z
+	SPRITE_AXIS_Z = 4
 } r_sprite_billboard_axis_t;
 
 /**
