@@ -696,6 +696,31 @@ enum {
 typedef uint32_t r_sprite_flags_t;
 
 /**
+ * @brief 
+ */
+typedef enum {
+	/**
+	 * @brief 
+	 */
+	SPRITE_AXIS_ALL = 0,
+	
+	/**
+	 * @brief 
+	 */
+	SPRITE_AXIS_X = 1,
+	
+	/**
+	 * @brief 
+	 */
+	SPRITE_AXIS_Y = 2,
+	
+	/**
+	 * @brief 
+	 */
+	SPRITE_AXIS_Z = 4
+} r_sprite_billboard_axis_t;
+
+/**
  * @brief Sprites are billboarded alpha blended textures.
  */
 typedef struct r_sprite_s {
@@ -734,6 +759,11 @@ typedef struct r_sprite_s {
 	 * @brief Direction of the sprite. { 0, 0, 0 } is billboard.
 	 */
 	vec3_t dir;
+	
+	/**
+	 * @brief Axis modifier for billboard sprites.
+	 */
+	r_sprite_billboard_axis_t axis;
 
 	/**
 	 * @brief Sprite flags

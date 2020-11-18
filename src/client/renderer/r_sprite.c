@@ -221,7 +221,20 @@ void R_AddSprite(const r_sprite_t *s) {
 	vec3_t dir, right, up;
 	
 	if (Vec3_Equal(s->dir, Vec3_Zero())) {
-		dir = Vec3_Normalize(Vec3_Subtract(s->origin, r_view.origin));
+
+		if (!s->axis || s->axis & (SPRITE_AXIS_X | SPRITE_AXIS_Y | SPRITE_AXIS_Z)) {
+			dir = Vec3_Normalize(Vec3_Subtract(s->origin, r_view.origin));
+		} else {
+			dir = Vec3_Zero();
+
+			for (int32_t i = 0; i < 3; i++) {
+				if (s->axis & (1 << i)) {
+					dir.xyz[i] = s->origin.xyz[i] - r_view.origin.xyz[i];
+				}
+			}
+
+			dir = Vec3_Normalize(dir);
+		}
 	} else {
 		dir = s->dir;
 	}

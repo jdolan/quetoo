@@ -44,6 +44,9 @@
 #define STAGE_DRAW         (1 << 28)
 #define STAGE_MATERIAL     (1 << 29)
 
+const float PI = 3.141592653589793115997963468544185161590576171875;
+const float TWO_PI = PI * 2.0;
+
 const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.000);
 
 /**
@@ -141,6 +144,15 @@ struct stage_t {
 	float shell;
 };
 
+
+/**
+ * @brief
+ */
+float osc(in stage_t stage, in float freq, in float amplitude, in float base, in float phase) {
+	float seconds = stage.ticks * 0.001;
+	return base + sin((phase + seconds * 2 * freq * 2)) * (amplitude * 0.5);
+}
+
 /**
  * @brief
  */
@@ -157,16 +169,24 @@ void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, i
 void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout vec2 diffusemap, inout vec4 color) {
 
 	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
-		float hz = (sin(stage.ticks * stage.stretch.x * 0.00628) + 1.0) / 2.0;
-		float amp = 1.5 - hz * stage.stretch.y;
+		float p = osc(stage, stage.stretch.y, stage.stretch.x, 1.0, 0.0);
 
-		diffusemap = diffusemap - stage.st_origin;
-		diffusemap = mat2(amp, 0, 0, amp) * diffusemap;
-		diffusemap = diffusemap + stage.st_origin;
+		mat2 matrix;
+		vec2 translate;
+		matrix[0][0] = p;
+		matrix[1][0] = 0;
+		translate[0] = stage.st_origin.x - stage.st_origin.x * p;
+
+		matrix[0][1] = 0;
+		matrix[1][1] = p;
+		translate[1] = stage.st_origin.y - stage.st_origin.y * p;
+
+		diffusemap[0] = diffusemap[0] * matrix[0][0] + diffusemap[1] * matrix[1][0] + translate[0];
+		diffusemap[1] = diffusemap[0] * matrix[0][1] + diffusemap[1] * matrix[1][1] + translate[1];
 	}
 
 	if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-		float theta = stage.ticks * stage.rotate * 0.00628;
+		float theta = stage.ticks * 0.001 * stage.rotate * TWO_PI;
 
 		diffusemap = diffusemap - stage.st_origin;
 		diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * diffusemap;
@@ -174,11 +194,11 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	}
 
 	if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-		diffusemap.s += stage.scroll.s * stage.ticks / 1000.0;
+		diffusemap.s += stage.scroll.s * stage.ticks * 0.001;
 	}
 
 	if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-		diffusemap.t += stage.scroll.t * stage.ticks / 1000.0;
+		diffusemap.t += stage.scroll.t * stage.ticks * 0.001;
 	}
 
 	if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
@@ -198,7 +218,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	}
 
 	if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-		color.a *= (sin(stage.pulse * stage.ticks * 0.00628) + 1.0) / 2.0;
+		color.a *= osc(stage, stage.stretch.x * 2, 1.0, 0.5, PI);
 	}
 
 	if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {

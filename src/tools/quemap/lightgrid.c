@@ -393,7 +393,11 @@ void DirectLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		LightLuxel(lights, l, 1.f);
+		// FIXME
+		if (lights) {
+			LightLuxel(lights, l, 1.f);
+		}
+
 		break;
 	}
 }

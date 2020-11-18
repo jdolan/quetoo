@@ -118,47 +118,23 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
 /**
  * @brief
  */
-static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
-	/*vec3_t velocity;
-	const float dist = Vec3_DistanceDir(end, start, &velocity);
-
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_particle,
-		.origin = start,
-		.velocity = Vec3_Scale(velocity, 8000.f),
-		.acceleration.z = -SPRITE_GRAVITY * 3.f,
-		.lifetime = SECONDS_TO_MILLIS(dist / 8000.f),
-		.size = 8.f,
-		.color = Vec4(27.f, .68f, 1.f, 1.f),
-		.end_color = Vec4(27.f, .68f, 0.f, 0.f)
-	});*/
+static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
+	const float tracer_speed = 4800.f;
+	const float tracer_length = 80.f;
 	float len;
 	vec3_t velocity = Vec3_NormalizeLength(Vec3_Subtract(end, start), &len);
-	const uint32_t lifetime = RandomRangeu(140, 200);
+	const uint32_t lifetime = SECONDS_TO_MILLIS((len - tracer_length) / tracer_speed);
 
 	Cg_AddSprite(&(cg_sprite_t) {
 		.type = SPRITE_BEAM,
-		.flags = SPRITE_BEAM_VELOCITY_NO_END,
 		.image = cg_beam_tracer,
 		.origin = start,
-		.termination = end,
-		.size = 6.f,
-		.lifetime = RandomRangeu(180, 260),
-		.color = Vec4(0, 0, 0.3f, 0),
-		.end_color = Vec4(0, 0, 0.f, 0)
-	});
-
-	Cg_AddSprite(&(cg_sprite_t) {
-		.type = SPRITE_BEAM,
-		.flags = SPRITE_BEAM_VELOCITY_NO_END,
-		.image = cg_beam_tracer,
-		.origin = start,
-		.termination = end,
+		.termination = Vec3_Add(start, Vec3_Scale(velocity, tracer_length)),
 		.size = 3.f,
-		.velocity = Vec3_Scale(velocity, len / MILLIS_TO_SECONDS(lifetime)),
+		.velocity = Vec3_Scale(velocity, tracer_speed),
 		.lifetime = lifetime,
-		.color = Vec4(color_hue_orange, 0.25f, 0.7f, 0),
-		.end_color = Vec4(color_hue_orange, 0.25f, 0.f, 0)
+		.color = Vec4(color_hue_orange, 0.3f, 1.f, 0),
+		.end_color = Vec4(color_hue_orange, 0.3f, 1.f, 0)
 	});
 }
 
