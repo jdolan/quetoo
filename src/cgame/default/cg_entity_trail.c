@@ -714,10 +714,9 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 /**
  * @brief 
  */
-static inline float Cg_Oscillate(const float hz, const float amp) {
-
+static inline float Cg_Oscillate(const float freq, const float amplitude, const float base, const float phase) {
 	const float seconds = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
-	return sin(seconds * hz * M_PI * 2) * amp;
+	return base + sinf((phase + seconds * 2 * freq * 2)) * (amplitude * 0.5);
 }
 
 /**
@@ -725,7 +724,7 @@ static inline float Cg_Oscillate(const float hz, const float amp) {
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
 
-	cgi.Print("%f\n", Cg_Oscillate(0.5f, 1.0f));
+	cgi.Print("%f\n", Cg_Oscillate(1.0f, 1.0f, 0.5f, 0.0f));
 	
 	const byte color = 191 + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * 64;
 	
@@ -739,7 +738,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 
 	if (ent->timestamp <= cgi.client->unclamped_time) {
 		ent->timestamp = cgi.client->unclamped_time + 100;
-
+		
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_ring,
 			.dir = Vec3_Up(),

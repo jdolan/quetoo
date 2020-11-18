@@ -148,9 +148,9 @@ struct stage_t {
 /**
  * @brief
  */
-float osc(in stage_t stage, in float hz, in float amp) {
+float osc(in stage_t stage, in float freq, in float amplitude, in float base, in float phase) {
 	float seconds = stage.ticks * 0.001;
-	return sin(seconds * hz * TWO_PI) * amp;
+	return base + sin((phase + seconds * 2 * freq * 2)) * (amplitude * 0.5);
 }
 
 /**
@@ -169,11 +169,20 @@ void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, i
 void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout vec2 diffusemap, inout vec4 color) {
 
 	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
-		vec2 uv0 = diffusemap - stage.st_origin;
-		vec2 uv1 = uv0 / stage.stretch.x;
-		float t = osc(stage, stage.stretch.y, 1.0);
-		diffusemap = mix(uv0, uv1, t); // lerp
-		diffusemap += stage.st_origin;
+		float p = osc(stage, stage.stretch.y, stage.stretch.x, 1.0, 0.0);
+
+		mat2 matrix;
+		vec2 translate;
+		matrix[0][0] = p;
+		matrix[1][0] = 0;
+		translate[0] = stage.st_origin.x - stage.st_origin.x * p;
+
+		matrix[0][1] = 0;
+		matrix[1][1] = p;
+		translate[1] = stage.st_origin.y - stage.st_origin.y * p;
+
+		diffusemap[0] = diffusemap[0] * matrix[0][0] + diffusemap[1] * matrix[1][0] + translate[0];
+		diffusemap[1] = diffusemap[0] * matrix[0][1] + diffusemap[1] * matrix[1][1] + translate[1];
 	}
 
 	if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
@@ -209,8 +218,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	}
 
 	if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-		// color.a *= osc(stage, stage.pulse, 1.0);
-		color.a *= osc(stage, stage.stretch.x, 1.0);
+		color.a *= osc(stage, stage.stretch.x * 2, 1.0, 0.5, PI);
 	}
 
 	if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
