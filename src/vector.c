@@ -810,6 +810,13 @@ vec3_t Vec3_Scale(const vec3_t v, float scale) {
 /**
  * @brief
  */
+vec3_t Vec3_FMA(const vec3_t v, float multiply, const vec3_t add) {
+	return Vec3(fmaf(add.x, multiply, v.x), fmaf(add.y, multiply, v.y), fmaf(add.z, multiply, v.z));
+}
+
+/**
+ * @brief
+ */
 vec3_t Vec3_Clamp(const vec3_t v, vec3_t min, vec3_t max) {
 	return Vec3(
 		Clampf(v.x, min.x, max.x),

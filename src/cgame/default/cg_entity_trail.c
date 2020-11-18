@@ -712,34 +712,44 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 }
 
 /**
- * @brief
+ * @brief 
+ */
+static inline float Cg_Oscillate(const float hz, const float amp) {
+
+	const float seconds = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
+	return sin(seconds * hz * M_PI * 2) * amp;
+}
+
+/**
+ * @brief 
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
 
-//	cgi.AddSample(&(const s_play_sample_t) {
-//		.sample = cg_sample_respawn,
-//			.entity = ent->current.number,
-//			.attenuation = ATTEN_IDLE,
-//			.flags = S_PLAY_ENTITY
-//	});
+	cgi.Print("%f\n", Cg_Oscillate(0.5f, 1.0f));
+	
+	const byte color = 191 + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * 64;
+	
+	cgi.AddSprite(&(r_sprite_t) {
+		.media = (r_media_t *) cg_sprite_splash_02_03,
+		.origin = Vec3_FMA(ent->origin, 8.f, Vec3_Up()),
+		.size = 64.f,
+		.color = Color32(color, color, color, 0),
+		.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
+	});
 
-	if (ent->timestamp > cgi.client->unclamped_time) {
-		return;
-	}
-
-	ent->timestamp = cgi.client->unclamped_time + 16;
-
-	for (int32_t i = 0; i < 8; i++) {
+	if (ent->timestamp <= cgi.client->unclamped_time) {
+		ent->timestamp = cgi.client->unclamped_time + 100;
 
 		Cg_AddSprite(&(cg_sprite_t) {
-			.atlas_image = cg_sprite_particle,
-			.origin = Vec3_Add(ent->origin, Vec3_RandomRange(-32.0f, 32.0f)),
+			.atlas_image = cg_sprite_ring,
+			.dir = Vec3_Up(),
+			.origin = Vec3_FMA(ent->origin, 16.f, Vec3_Down()),
 			.velocity.z = RandomRangef(80.f, 120.f),
-			.acceleration = Vec3(RandomRangef(-80.f, 80.f), RandomRangef(-80.f, 80.f), 20.f),
 			.lifetime = 450,
-			.size = 10.f,
-			.color = Vec4(60.f, .17f, 1.f, 0.f),
-			.end_color = Vec4(60.f, .17f, 0.f, 0.f)
+			.size = 64.f,
+			.size_velocity = 48.f,
+			.color = Vec4(0.f, 0.f, 1.f, 0.f),
+			.end_color = Vec4(0.f, 0.f, 0.f, 0.f)
 		});
 	}
 }
@@ -748,21 +758,13 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
  * @brief
  */
 static void Cg_SpawnPointTrail(cl_entity_t *ent, const float hue) {
+	const vec4_t color = (hue < 0) ? Vec4(0.f, 0.f, 1.f, 1.f) : Vec4(hue, 1.f, 1.f, 1.f);
 
-	if (ent->timestamp > cgi.client->unclamped_time) {
-		return;
-	}
-
-	ent->timestamp = cgi.client->unclamped_time + 1000;
-
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_particle,
-		.origin = Vec3_Subtract(ent->origin, Vec3(0.f, 0.f, 20.f)),
-		.velocity.z = 2.f,
-		.lifetime = 450,
-		.size = 16.f,
-		.color = (hue < 0) ? Vec4(0.f, 0.f, 1.f, 1.f) : Vec4(hue, 1.f, 1.f, 1.f),
-		.end_color = (hue < 0) ? Vec4(0.f, 0.f, 0.f, 0.f) : Vec4(hue, 1.f, 1.f, 0.f),
+	cgi.AddSprite(&(r_sprite_t) {
+		.media = (r_media_t *) cg_sprite_ring,
+		.origin = ent->origin,
+		.size = 48.f,
+		.color = Color_Color32(ColorHSVA(color.x, color.y, color.z, color.w))
 	});
 }
 

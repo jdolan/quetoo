@@ -150,7 +150,7 @@ struct stage_t {
  */
 float osc(in stage_t stage, in float hz, in float amp) {
 	float seconds = stage.ticks * 0.001;
-	return (1.0 - cos(seconds * hz * TWO_PI)) * 0.5 * amp;
+	return sin(seconds * hz * TWO_PI) * amp;
 }
 
 /**

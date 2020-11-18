@@ -603,6 +603,11 @@ static inline vec3_t Vec3_Roundf(const vec3_t v) __attribute__ ((warn_unused_res
 static inline vec3_t Vec3_Scale(const vec3_t v, float scale) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The vector `v` + (`add` * `multiply`).
+ */
+static inline vec3_t Vec3_FMA(const vec3_t v, float multiply, const vec3_t add) __attribute__ ((warn_unused_result));
+
+/**
  * @return
  */
 static inline vec3_t Vec3_Clamp(const vec3_t v, vec3_t min, vec3_t max) __attribute__ ((warn_unused_result));
