@@ -170,7 +170,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 
 	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
 		vec2 uv0 = diffusemap - stage.st_origin;
-		vec2 uv1 = uv0 * (1.0 / stage.stretch.x);
+		vec2 uv1 = uv0 / stage.stretch.x;
 		float t = osc(stage, stage.stretch.y, 1.0);
 		diffusemap = mix(uv0, uv1, t); // lerp
 		diffusemap += stage.st_origin;
