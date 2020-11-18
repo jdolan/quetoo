@@ -98,10 +98,6 @@ static void LightWorld(void) {
 		bsp_models[i] = Cm_Model(va("*%d", i));
 	}
 
-	if (Cm_NumClusters() == 0) {
-		Com_Warn("No VIS information, expect longer compile time\n");
-	}
-
 	// resolve global lighting parameters from worldspawn
 
 	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
