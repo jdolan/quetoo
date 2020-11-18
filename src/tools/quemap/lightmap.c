@@ -329,11 +329,9 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 			}
 				break;
 			case LIGHT_PATCH:
-				intensity *= (patch_size * patch_size) / (DEFAULT_BSP_PATCH_SIZE * DEFAULT_BSP_PATCH_SIZE);
 				intensity *= lightscale_patch;
 				break;
 			case LIGHT_INDIRECT:
-				intensity *= (patch_size * patch_size) / (DEFAULT_BSP_PATCH_SIZE * DEFAULT_BSP_PATCH_SIZE);
 				intensity *= lightscale_indirect;
 				break;
 		}

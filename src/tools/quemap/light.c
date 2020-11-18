@@ -225,15 +225,14 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
  */
 static void LightForPatch(const patch_t *patch) {
 
+	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
+
 	light_t light;
 
 	light.type = LIGHT_PATCH;
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
-	light.size = patch_size;
-
+	light.size = sqrtf(Cm_WindingArea(patch->winding));
 	light.origin = Cm_WindingCenter(patch->winding);
-
-	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
 	light.origin = Vec3_Add(light.origin, Vec3_Scale(plane->normal, 4.0));
 
 	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
@@ -384,8 +383,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	light.type = LIGHT_INDIRECT;
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
-	light.size = patch_size;
-
+	light.size = sqrtf(Cm_WindingArea(patch->winding));
 	light.origin = Cm_WindingCenter(patch->winding);
 	light.origin = Vec3_Add(light.origin, Vec3_Scale(lm->plane->normal, 4.0));
 
@@ -438,7 +436,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	}
 
 	lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
-	light.radius = ColorNormalize(lightmap, &lightmap);
+	light.radius = ColorNormalize(lightmap, &lightmap) * radiosity;
 
 	const vec3_t diffuse = GetTextureColor(lm->texinfo->texture);
 	light.color = Vec3_Multiply(lightmap, diffuse);

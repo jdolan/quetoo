@@ -226,11 +226,9 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 			}
 				break;
 			case LIGHT_PATCH:
-				intensity *= (patch_size * patch_size) / (DEFAULT_BSP_PATCH_SIZE * DEFAULT_BSP_PATCH_SIZE);
 				intensity *= lightscale_patch;
 				break;
 			case LIGHT_INDIRECT:
-				intensity *= (patch_size * patch_size) / (DEFAULT_BSP_PATCH_SIZE * DEFAULT_BSP_PATCH_SIZE);
 				intensity *= lightscale_indirect;
 				break;
 		}
@@ -446,7 +444,7 @@ void IndirectLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		LightLuxel(lights, l, radiosity);
+		LightLuxel(lights, l, 1.f);
 		break;
 	}
 }
