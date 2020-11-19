@@ -218,7 +218,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	}
 
 	if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-		color.a *= osc(stage, stage.stretch.x * 2, 1.0, 0.5, PI);
+		color.a *= osc(stage, stage.pulse, 1.0, 0.5, PI);
 	}
 
 	if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
