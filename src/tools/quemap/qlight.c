@@ -21,8 +21,8 @@
 
 #include "qlight.h"
 
+_Bool indirect = true;
 _Bool antialias = false;
-_Bool indirect = false;
 
 float brightness = 1.0;
 float saturation = 1.0;
@@ -173,7 +173,7 @@ static void LightWorld(void) {
 	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
 	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
-	if (indirect) {
+	if (indirect && radiosity > 0.f) {
 		for (bounce = 0; bounce < num_bounces; bounce++) {
 
 			// build indirect lights from lightmapped patches
