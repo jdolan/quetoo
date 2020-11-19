@@ -31,15 +31,12 @@ float contrast = 1.0;
 int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 int32_t patch_size = DEFAULT_BSP_PATCH_SIZE;
 
-float radiosity = LIGHT_RADIOSITY;
+float radiosity = 1.0;
 int32_t num_bounces = 1;
 int32_t bounce = 0;
 
 float lightscale_point = 1.0;
 float lightscale_patch = 1.0;
-float lightscale_ambient = 1.0;
-float lightscale_indirect = 1.0;
-float lightscale_sun = 1.0;
 
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
@@ -98,34 +95,30 @@ static void LightWorld(void) {
 		bsp_models[i] = Cm_Model(va("*%d", i));
 	}
 
-	if (Cm_NumClusters() == 0) {
-		Com_Warn("No VIS information, expect longer compile time\n");
-	}
-
 	// resolve global lighting parameters from worldspawn
 
 	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
 	const cm_entity_t *e = entities->data;
 
-	if (radiosity == LIGHT_RADIOSITY) {
+	if (radiosity == 1.f) {
 		if (Cm_EntityVector(e, "radiosity", &radiosity, 1) == 1) {
 			Com_Verbose("Radiosity: %g\n", radiosity);
 		}
 	}
 
-	if (brightness == 1.0) {
+	if (brightness == 1.f) {
 		if (Cm_EntityVector(e, "brightness", &brightness, 1) == 1) {
 			Com_Verbose("Brightness: %g\n", brightness);
 		}
 	}
 
-	if (saturation == 1.0) {
+	if (saturation == 1.f) {
 		if (Cm_EntityVector(e, "saturation", &saturation, 1) == 1) {
 			Com_Verbose("Saturation: %g\n", saturation);
 		}
 	}
 
-	if (contrast == 1.0) {
+	if (contrast == 1.f) {
 		if (Cm_EntityVector(e, "contrast", &contrast, 1) == 1) {
 			Com_Verbose("Contrast: %g\n", contrast);
 		}
@@ -147,41 +140,19 @@ static void LightWorld(void) {
 		}
 	}
 
-	if (lightscale_point == 1.0) {
+	if (lightscale_point == 1.f) {
 		float v;
 		if (Cm_EntityVector(e, "lightscale_point", &v, 1) == 1) {
 			Com_Verbose("Pointlight intensity scale: 1.0\n");
 		}
 	}
 
-	if (lightscale_patch == 1.0) {
+	if (lightscale_patch == 1.f) {
 		float v;
 		if (Cm_EntityVector(e, "lightscale_patch", &v, 1) == 1) {
 			Com_Verbose("Patchlight intensity scale: 1.0\n");
 		}
 	}
-
-	if (lightscale_ambient == 1.0) {
-		float v;
-		if (Cm_EntityVector(e, "lightscale_ambient", &v, 1) == 1) {
-			Com_Verbose("Ambient light intensity scale: 1.0\n");
-		}
-	}
-
-	if (lightscale_indirect == 1.0) {
-		float v;
-		if (Cm_EntityVector(e, "lightscale_indirect", &v, 1) == 1) {
-			Com_Verbose("Indirect light intensity scale: 1.0\n");
-		}
-	}
-
-	if (lightscale_sun == 1.0) {
-		float v;
-		if (Cm_EntityVector(e, "lightscale_sun", &v, 1) == 1) {
-			Com_Verbose("Sunlight intensity scale: 1.0\n");
-		}
-	}
-
 
 	// build patches
 	BuildPatches(entities);

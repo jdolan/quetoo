@@ -59,8 +59,6 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 		face->flare->color = Color_Color32(color_white);
 	}
 
-	face->flare->color.a = 0;
-
 	if (s->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
 		face->flare->size *= (s->cm->scale.s ? s->cm->scale.s : s->cm->scale.t);
 	}
@@ -87,7 +85,7 @@ static void R_UpdateBspInlineModelFlares(const r_entity_t *e, const r_bsp_inline
 			Matrix4x4_Transform(&e->matrix, flare.origin.xyz, flare.origin.xyz);
 		}
 
-		flare.color.a *= r_flares->value;
+		flare.color.a = (byte) Clampf(flare.color.a * r_flares->value, 0.f, 255.f);
 
 		R_AddSprite(&flare);
 	}

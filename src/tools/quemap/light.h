@@ -23,15 +23,14 @@
 
 #include "bsp.h"
 
-#define LIGHT_COLOR (vec3_t) { 1.0, 1.0, 1.0 }
+#define LIGHT_COLOR (vec3_t) { 1.f, 1.f, 1.f }
 #define LIGHT_RADIUS DEFAULT_LIGHT
-#define LIGHT_RADIUS_AMBIENT 255.0
-#define LIGHT_ANGLE_UP -1.0
-#define LIGHT_ANGLE_DOWN -2.0
-#define LIGHT_CONE 22.5
-#define LIGHT_SIZE_SUN 256.0
-#define LIGHT_SIZE_STEP 16.0
-#define LIGHT_RADIOSITY 0.0625
+#define LIGHT_RADIUS_AMBIENT 255.f
+#define LIGHT_ANGLE_UP -1.f
+#define LIGHT_ANGLE_DOWN -2.f
+#define LIGHT_CONE 22.5f
+#define LIGHT_SIZE_SUN 256.f
+#define LIGHT_SIZE_STEP 16.f
 
 typedef enum {
 	LIGHT_INVALID = -1,
