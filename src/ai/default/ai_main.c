@@ -845,7 +845,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 	}
 
 	if (goal->last_distress != goal->distress) {
-		aim.gi->Debug("Distress: %f\n", goal->distress);
+		//aim.gi->Debug("Distress: %f\n", goal->distress);
 		goal->last_distress = goal->distress;
 	}
 
@@ -871,11 +871,20 @@ static inline _Bool Ai_Path_IsLinked(const GArray *path, const guint a, const gu
 }
 
 /**
- * @brief c can be PI (for radians) or 180.0 (for degrees);
+ * @brief 
  */
-static inline float getAbsoluteDiff2Angles(const float x, const float y, const float c)
-{
-    return c - fabsf(fmodf(fabsf(x - y), 2 * c) - c);
+static _Bool Ai_FacingTarget(const g_entity_t *self, const vec3_t target) {
+	vec3_t sub = Vec3_Subtract(target, self->s.origin);
+	sub.z = 0;
+
+	sub = Vec3_Normalize(sub);
+
+	vec3_t fwd;
+	Vec3_Vectors(Vec3(0, self->s.angles.y, 0), &fwd, NULL, NULL);
+
+	const float dot = Vec3_Dot(sub, fwd);
+
+	return dot > 0.8f;
 }
 
 /**
@@ -1070,13 +1079,14 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		//aim.gi->Debug("Lacking ground entity. In 5 frames: %s, in 1 frame: %s\n", pm_ahead.ground_entity ? "no" : "yes", pm.ground_entity ? "no" : "yes");
 
 		if (ai->move_target.type == AI_GOAL_PATH) {
+			const float xy_dist = Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin));
 			
 			// we're most likely on a mover; if we'll be falling in a few frames, stop us early
 			if (ENTITY_DATA(self, ground_entity)->s.number != 0 && !pm_ahead.ground_entity) {
 				cmd->forward = cmd->right = 0; // stop for now
 			// if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
-			} else if (((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT &&
-				Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) >= PM_STEP_HEIGHT * 6.f) && !pm.ground_entity) {
+			} else if (((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT ||
+				(xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground_entity) {
 				cmd->up = PM_SPEED_JUMP;
 			}
 		} else if (move_wander) {
@@ -1089,8 +1099,10 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 				ai->move_target.wander.angle += Randomb() ? -angle : angle;
 			}
 		} else {
+			const float xy_dist = Vec2_Distance(Vec3_XY(dest), Vec3_XY(self->s.origin));
+
 			if (((dest.z - self->s.origin.z) > -PM_STEP_HEIGHT &&
-				Vec2_Distance(Vec3_XY(dest), Vec3_XY(self->s.origin)) >= PM_STEP_HEIGHT * 6.f) && !pm.ground_entity) {
+				(xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground_entity) {
 				cmd->up = PM_SPEED_JUMP;
 			}
 		}
@@ -1126,7 +1138,6 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 		// we'll be pushed up against something
 		if (move_len < (PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec))) {
-			const vec3_t view_angles = CLIENT_DATA(self->client, angles);
 			
 			if (ai->distress_jump_offset <= ai_level.time) {
 				// if we're navving, node is above us, and we're on ground, jump; we're probably trying
@@ -1141,7 +1152,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 						aim.gi->Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
 					} else if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT &&
 						Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) < PM_STEP_HEIGHT * 6.f &&
-						getAbsoluteDiff2Angles(view_angles.y, ai->ideal_angles.y, 180.f) < 2.f) {
+						Ai_FacingTarget(self, ai->move_target.path.path_position)) {
 
 						cmd->up = PM_SPEED_JUMP;
 						aim.gi->Debug("Node above us & close, and we're probably stuck; regular jump\n");
