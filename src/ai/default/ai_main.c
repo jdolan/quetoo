@@ -72,12 +72,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 
 	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 
-	if (!Vec3_BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs)) {
-		return false; // something was in the way of our trace
-	}
-
-	// got it!
-	return true;
+	return Vec3_BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs);
 }
 
 /**
@@ -295,7 +290,6 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 			_Bool path_found = false;
 
 			if (ENTITY_DATA(pick.entity, node) != NODE_INVALID) {
-
 				const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true);
 				const ai_node_id_t dest = ENTITY_DATA(pick.entity, node);
 
@@ -317,10 +311,16 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 				}
 			}
 
+			if (!path_found && ai_node_dev->integer) {
+				aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
+				aim.gi->WriteByte(TE_TRACER);
+				aim.gi->WritePosition(self->s.origin);
+				aim.gi->WritePosition(pick.entity->s.origin);
+				aim.gi->Multicast(self->s.origin, MULTICAST_PHS, NULL);
+			}
+
 			// if we can't find a path to the item, don't try to get it.
 			// entity goals are too finnicky for this to work properly.
-
-			break;
 		}
 	}
 
@@ -845,7 +845,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 	}
 
 	if (goal->last_distress != goal->distress) {
-		//aim.gi->Debug("Distress: %f\n", goal->distress);
+		aim.gi->Debug("Distress: %f\n", goal->distress);
 		goal->last_distress = goal->distress;
 	}
 
@@ -1074,8 +1074,8 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			// we're most likely on a mover; if we'll be falling in a few frames, stop us early
 			if (ENTITY_DATA(self, ground_entity)->s.number != 0 && !pm_ahead.ground_entity) {
 				cmd->forward = cmd->right = 0; // stop for now
-			// if the node is above us step-wise OR it's across a big distance, we gotta jump
-			} else if (((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT ||
+			// if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
+			} else if (((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT &&
 				Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) >= PM_STEP_HEIGHT * 6.f) && !pm.ground_entity) {
 				cmd->up = PM_SPEED_JUMP;
 			}
@@ -1089,7 +1089,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 				ai->move_target.wander.angle += Randomb() ? -angle : angle;
 			}
 		} else {
-			if (((dest.z - self->s.origin.z) > -PM_STEP_HEIGHT ||
+			if (((dest.z - self->s.origin.z) > -PM_STEP_HEIGHT &&
 				Vec2_Distance(Vec3_XY(dest), Vec3_XY(self->s.origin)) >= PM_STEP_HEIGHT * 6.f) && !pm.ground_entity) {
 				cmd->up = PM_SPEED_JUMP;
 			}
