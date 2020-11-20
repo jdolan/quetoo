@@ -236,12 +236,12 @@ static void Check_VIS_Options(int32_t argc) {
 static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "--antialias") || !g_strcmp0(Com_Argv(i), "--extra")) {
+		if (!g_strcmp0(Com_Argv(i), "--no-indirect")) {
+			indirect = false;
+			Com_Verbose("indirect: false\n");
+		} else if (!g_strcmp0(Com_Argv(i), "--antialias")) {
 			antialias = true;
 			Com_Verbose("antialias: true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--indirect")) {
-			indirect = true;
-			Com_Verbose("indirect: true\n");
 		} else if (!g_strcmp0(Com_Argv(i), "--radiosity")) {
 			radiosity = atof(Com_Argv(i + 1));
 			Com_Verbose("radiosity: %g\n", radiosity);

@@ -714,14 +714,6 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 /**
  * @brief Oscillate value, from material.glsl
  */
-static inline float Cg_Oscillate(const float freq, const float amplitude, const float base, const float phase) {
-	const float seconds = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
-	return base + sinf((phase + seconds * 2 * freq * 2)) * (amplitude * 0.5);
-}
-
-/**
- * @brief 
- */
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
 	const byte color = 191 + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * 64;
 	
