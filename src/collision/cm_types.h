@@ -55,7 +55,7 @@
 #define	SIDE_FRONT				1
 #define	SIDE_BACK				2
 #define	SIDE_BOTH				3
-#define	SIDE_FACING				4
+#define	SIDE_ON					4
 
 /**
  * @brief Plane type constants for axial plane optimizations.

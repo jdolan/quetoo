@@ -122,7 +122,7 @@ START_TEST(check_Cm_ClipWinding_both) {
 
 } END_TEST
 
-START_TEST(check_Cm_ClipWinding_facing) {
+START_TEST(check_Cm_ClipWinding_on) {
 
 	cm_winding_t *a = Cm_AllocWinding(4);
 	a->num_points = 4;
@@ -152,22 +152,6 @@ START_TEST(check_Cm_ClipWinding_facing) {
 
 	Cm_FreeWinding(a);
 	Cm_FreeWinding(b);
-
-} END_TEST
-
-START_TEST(check_Cm_ClipWinding_on) {
-
-	cm_winding_t *a = Cm_AllocWinding(4);
-	a->num_points = 4;
-
-	a->points[0] = Vec3(0,    0,   0);
-	a->points[1] = Vec3(1024, 0,   0);
-	a->points[2] = Vec3(1024, 0, 512);
-	a->points[3] = Vec3(0,    0, 512);
-
-	Cm_ClipWinding(&a, Vec3(0, 1, 0), 0, SIDE_EPSILON);
-
-	ck_assert_ptr_eq(NULL, a);
 
 } END_TEST
 
@@ -364,7 +348,6 @@ int32_t main(int32_t argc, char **argv) {
 		tcase_add_test(tcase, check_Cm_ClipWinding_front);
 		tcase_add_test(tcase, check_Cm_ClipWinding_back);
 		tcase_add_test(tcase, check_Cm_ClipWinding_both);
-		tcase_add_test(tcase, check_Cm_ClipWinding_facing);
 		tcase_add_test(tcase, check_Cm_ClipWinding_on);
 		suite_add_tcase(suite, tcase);
 	}

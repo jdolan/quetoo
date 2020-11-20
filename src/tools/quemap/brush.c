@@ -223,13 +223,11 @@ int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane_num) {
 	// if the brush actually uses the plane_num, we can tell the side for sure
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		const int32_t num = brush->sides[i].plane_num;
-		assert(num < num_planes);
-
 		if (num == plane_num) {
-			return SIDE_BACK | SIDE_FACING;
+			return SIDE_BACK | SIDE_ON;
 		}
 		if (num == (plane_num ^ 1)) {
-			return SIDE_FRONT | SIDE_FACING;
+			return SIDE_FRONT | SIDE_ON;
 		}
 	}
 
