@@ -83,13 +83,19 @@ static uint8_t G_Ai_NumberOfClients(void) {
  */
 static void G_Ai_ClientThink(g_entity_t *self) {
 	pm_cmd_t cmd;
+	const int32_t num_runs = 3;
+	uint8_t msec_left = QUETOO_TICK_MILLIS;
 
-	memset(&cmd, 0, sizeof(cmd));
-	cmd.msec = QUETOO_TICK_MILLIS;
+	for (int32_t i = 0; i < num_runs; i++) {
+		memset(&cmd, 0, sizeof(cmd));
+		cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
 
-	aix->Think(self, &cmd);
-	G_ClientThink(self, &cmd);
-	aix->PostThink(self, &cmd);
+		aix->Think(self, &cmd);
+		G_ClientThink(self, &cmd);
+		aix->PostThink(self, &cmd);
+
+		msec_left -= cmd.msec;
+	}
 
 	// see if we're in a match and need to join
 	if (self->client->locals.persistent.spectator) {

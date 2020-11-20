@@ -1042,6 +1042,10 @@ static _Bool Pm_CheckJump(void) {
 	pm->s.flags &= ~PMF_ON_GROUND;
 	pm->ground_entity = NULL;
 
+	// we can trick jump soon
+	pm->s.flags |= PMF_TIME_TRICK_START;
+	pm->s.time = 100;
+
 	return true;
 }
 

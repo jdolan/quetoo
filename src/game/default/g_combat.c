@@ -126,15 +126,15 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 		return;
 	}
 
-	int16_t count = Clampf(damage / 50, 1, 4);
-
-	while (count--) {
-		gi.WriteByte(SV_CMD_TEMP_ENTITY);
-		gi.WriteByte(type);
-		gi.WritePosition(pos);
-		gi.WriteDir(normal);
-		gi.Multicast(pos, MULTICAST_PVS, NULL);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(type);
+	gi.WritePosition(pos);
+	gi.WriteDir(normal);
+	if (type == TE_BLOOD || type == TE_SPARKS) {
+		const int8_t count = Clampf(damage / 50, 1, 4);
+		gi.WriteByte(count);
 	}
+	gi.Multicast(pos, MULTICAST_PVS, NULL);
 }
 
 /**

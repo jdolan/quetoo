@@ -1056,7 +1056,8 @@ void Cg_ParseTempEntity(void) {
 		case TE_BLOOD: // projectile hitting flesh
 			pos = cgi.ReadPosition();
 			dir = cgi.ReadDir();
-			Cg_BloodEffect(pos, dir, 12);
+			i = cgi.ReadByte();
+			Cg_BloodEffect(pos, dir, 12 * i);
 			break;
 
 		case TE_GIB: // player over-death
@@ -1064,10 +1065,11 @@ void Cg_ParseTempEntity(void) {
 			Cg_GibEffect(pos, 12);
 			break;
 
-		case TE_SPARKS: // colored sparks
+		case TE_SPARKS: // player damage sparks
 			pos = cgi.ReadPosition();
 			dir = cgi.ReadDir();
-			Cg_SparksEffect(pos, dir, 12);
+			i = cgi.ReadByte();
+			Cg_SparksEffect(pos, dir, 12 * i);
 			break;
 
 		case TE_HYPERBLASTER: // hyperblaster hitting wall
