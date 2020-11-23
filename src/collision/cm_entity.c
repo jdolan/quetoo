@@ -50,7 +50,32 @@ GList *Cm_LoadEntities(const char *entity_string) {
 				cm_entity_t *pair = Mem_TagMalloc(sizeof(*pair), MEM_TAG_COLLISION);
 
 				Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key));
-				Parse_Token(&parser, PARSE_DEFAULT, pair->value, sizeof(pair->value));
+				Parse_Token(&parser, PARSE_DEFAULT, pair->string, sizeof(pair->string));
+
+				if (strlen(pair->string)) {
+					pair->parsed |= ENTITY_STRING;
+				}
+
+				if (sscanf(pair->string, "%d", &pair->integer) == 1) {
+					pair->parsed |= ENTITY_INTEGER;
+				}
+
+				const int32_t count = sscanf(pair->string, "%f %f %f %f",
+											 &pair->vec4.x,
+											 &pair->vec4.y,
+											 &pair->vec4.z,
+											 &pair->vec4.w);
+				switch (count) {
+					case 1:
+						pair->parsed |= ENTITY_FLOAT;
+						break;
+					case 3:
+						pair->parsed |= ENTITY_VEC3;
+						break;
+					case 4:
+						pair->parsed |= ENTITY_VEC4;
+						break;
+				}
 
 				pair->next = entity;
 				entity = pair;
@@ -74,24 +99,14 @@ GList *Cm_LoadEntities(const char *entity_string) {
 /**
  * @brief
  */
-const char *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
+const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
+	static cm_entity_t null_entity;
 
 	for (const cm_entity_t *e = entity; e; e = e->next) {
 		if (!g_strcmp0(e->key, key)) {
-			return e->value;
+			return e;
 		}
 	}
 
-	return NULL;
-}
-
-/**
- * @brief
- */
-size_t Cm_EntityVector(const cm_entity_t *entity, const char *key, float *out, size_t count) {
-
-	parser_t parser;
-	Parse_Init(&parser, Cm_EntityValue(entity, key), PARSER_DEFAULT);
-
-	return Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, out, count);
+	return &null_entity;
 }

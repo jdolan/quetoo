@@ -176,8 +176,8 @@ void Cg_AddSprites(void) {
 			}
 		}
 
-		const vec4_t lerped_color = Vec4_Mix(s->color, s->end_color, life);
-		const color32_t color = Color_Color32(ColorHSVA(lerped_color.x, lerped_color.y, lerped_color.z, lerped_color.w));
+		const vec4_t c = Vec4_Mix(s->color, s->end_color, life);
+		const color32_t color = Color_Color32(ColorHSVA(c.x, c.y, c.z, c.w));
 
 		switch (s->type) {
 			case SPRITE_NORMAL:

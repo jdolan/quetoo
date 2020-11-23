@@ -26,17 +26,13 @@
  * @brief
  */
 static void R_LoadBspEntities(r_bsp_model_t *bsp) {
-	const char *c;
 
-	bsp->luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
-
-	if ((c = Cm_EntityValue(Cm_Worldspawn(), "luxel_size"))) {
-		bsp->luxel_size = atoi(c);
-		if (bsp->luxel_size <= 0) {
-			bsp->luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
-		}
-		Com_Debug(DEBUG_RENDERER, "Resolved luxel_size: %d\n", bsp->luxel_size);
+	bsp->luxel_size = Cm_EntityValue(Cm_Worldspawn(), "luxel_size")->integer;
+	if (bsp->luxel_size <= 0) {
+		bsp->luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 	}
+
+	Com_Debug(DEBUG_RENDERER, "Resolved luxel_size: %d\n", bsp->luxel_size);
 }
 
 /**

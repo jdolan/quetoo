@@ -98,33 +98,30 @@ vec3_t ColorFilter(const vec3_t in) {
  */
 static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 
-	const char *classname = Cm_EntityValue(entity, "classname");
-	if (!g_strcmp0(classname, "worldspawn")) {
+	const char *class_name = Cm_EntityValue(entity, "classname")->string;
+	if (!g_strcmp0(class_name, "worldspawn")) {
 
-		vec3_t v;
-		if (Cm_EntityVector(entity, "ambient", v.xyz, 3) == 3) {
+		const vec3_t ambient = Cm_EntityValue(entity, "ambient")->vec3;
+		if (!Vec3_Equal(ambient, Vec3_Zero())) {
 
 			light_t light;
 			light.type = LIGHT_AMBIENT;
 			light.atten = LIGHT_ATTEN_NONE;
+			light.color = ambient;
 			light.radius = LIGHT_RADIUS_AMBIENT;
-			light.cluster = -1;
 
-			light.color = v;
 			g_array_append_val(lights, light);
 		}
-	} else if (!g_strcmp0(classname, "light") ||
-		!g_strcmp0(classname, "light_spot") ||
-		!g_strcmp0(classname, "light_sun")) {
+	} else if (!g_strcmp0(class_name, "light") ||
+		!g_strcmp0(class_name, "light_spot") ||
+		!g_strcmp0(class_name, "light_sun")) {
 
 		light_t light;
 
-		const char *targetname = Cm_EntityValue(entity, "target");
-
-		if (!g_strcmp0(classname, "light_sun")) {
+		if (!g_strcmp0(class_name, "light_sun")) {
 			light.type = LIGHT_SUN;
 			light.atten = LIGHT_ATTEN_NONE;
-		} else if (!g_strcmp0(classname, "light_spot") || targetname) {
+		} else if (!g_strcmp0(class_name, "light_spot")) {
 			light.type = LIGHT_SPOT;
 			light.atten = LIGHT_ATTEN_LINEAR;
 		} else {
@@ -132,13 +129,16 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 			light.atten = LIGHT_ATTEN_LINEAR;
 		}
 
-		Cm_EntityVector(entity, "origin", light.origin.xyz, 3);
+		light.origin = Cm_EntityValue(entity, "origin")->vec3;
 
-		if (Cm_EntityVector(entity, "_color", light.color.xyz, 3) != 3) {
-			light.color = Vec3(1.0, 1.0, 1.0);
+		if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
+			light.color = Cm_EntityValue(entity, "_color")->vec3;
+		} else {
+			light.color = Vec3(1.f, 1.f, 1.f);
 		}
 
-		if (Cm_EntityVector(entity, "light", &light.radius, 1) != 1) {
+		light.radius = Cm_EntityValue(entity, "light")->value;
+		if (light.radius == 0.f) {
 			light.radius = LIGHT_RADIUS;
 		}
 
@@ -151,33 +151,33 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 				break;
 		}
 
-		if (targetname) {
+		if (Cm_EntityValue(entity, "target")->parsed & ENTITY_STRING) {
+			const char *targetname = Cm_EntityValue(entity, "target")->string;
 			cm_entity_t *target = NULL;
 			for (const GList *e = entities; e; e = e->next) {
-				if (!g_strcmp0(targetname, Cm_EntityValue(e->data, "targetname"))) {
+				if (!g_strcmp0(targetname, Cm_EntityValue(e->data, "targetname")->string)) {
 					target = e->data;
 					break;
 				}
 			}
 			if (target) {
-				vec3_t target_origin;
-				Cm_EntityVector(target, "origin", target_origin.xyz, 3);
+				const vec3_t target_origin = Cm_EntityValue(target, "origin")->vec3;
 				light.normal = Vec3_Subtract(target_origin, light.origin);
 			} else {
 				const int32_t i = g_list_index((GList *) entities, entity);
-				Mon_SendSelect(MON_WARN, i, 0, va("%s at %s missing target", classname, vtos(light.origin)));
+				Mon_SendSelect(MON_WARN, i, 0, va("%s at %s missing target", class_name, vtos(light.origin)));
 				light.normal = Vec3_Down();
 			}
 		} else {
 			if (light.type == LIGHT_SPOT) {
-				vec3_t angles = Vec3_Zero();
-				if (Cm_EntityVector(entity, "_angle", &angles.y, 1) == 1) {
-					if (angles.y == LIGHT_ANGLE_UP) {
+				if (Cm_EntityValue(entity, "_angle")->parsed & ENTITY_INTEGER) {
+					const int32_t angle = Cm_EntityValue(entity, "_angle")->integer;
+					if (angle == LIGHT_ANGLE_UP) {
 						light.normal = Vec3_Up();
-					} else if (angles.y == LIGHT_ANGLE_DOWN) {
+					} else if (angle == LIGHT_ANGLE_DOWN) {
 						light.normal = Vec3_Down();
 					} else {
-						Vec3_Vectors(angles, &light.normal, NULL, NULL);
+						Vec3_Vectors(Vec3(0.f, angle, 0.f), &light.normal, NULL, NULL);
 					}
 				} else {
 					light.normal = Vec3_Down();
@@ -190,19 +190,16 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		light.normal = Vec3_Normalize(light.normal);
 
 		if (light.type == LIGHT_SPOT) {
-			if (Cm_EntityVector(entity, "_cone", &light.theta, 1) == 1) {
-				light.theta = Maxf(1.0, light.theta);
+			if (Cm_EntityValue(entity, "_cone")->parsed & ENTITY_FLOAT) {
+				light.theta = Cm_EntityValue(entity, "_cone")->value;
 			} else {
 				light.theta = LIGHT_CONE;
 			}
 			light.theta = Radians(light.theta);
 		}
 
-		if (Cm_EntityVector(entity, "_size", &light.size, 1) == 1) {
-			if (light.size) {
-				light.size = Maxf(LIGHT_SIZE_STEP, light.size);
-			}
-		} else {
+		light.size = Cm_EntityValue(entity, "_size")->value;
+		if (light.size == 0.f) {
 			if (light.type == LIGHT_SUN) {
 				light.size = LIGHT_SIZE_SUN;
 			} else {
@@ -210,19 +207,8 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 			}
 		}
 
-		if (light.type != LIGHT_SUN) {
-			light.radius += light.size;
-		}
-
-		const char *atten = Cm_EntityValue(entity, "atten") ?: Cm_EntityValue(entity, "attenuation");
-		if (atten) {
-			light.atten = (light_atten_t) strtol(atten, NULL, 10);
-		}
-
-		if (light.atten == LIGHT_ATTEN_NONE) {
-			light.cluster = -1;
-		} else {
-			light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
+		if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
+			light.atten = Cm_EntityValue(entity, "atten")->integer;
 		}
 
 		g_array_append_val(lights, light);
@@ -236,7 +222,7 @@ static void LightForPatch(const patch_t *patch) {
 
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
 
-	light_t light;
+	light_t light = {};
 
 	light.type = LIGHT_PATCH;
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
@@ -244,8 +230,7 @@ static void LightForPatch(const patch_t *patch) {
 	light.origin = Cm_WindingCenter(patch->winding);
 	light.origin = Vec3_Add(light.origin, Vec3_Scale(plane->normal, 4.0));
 
-	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
-	if (light.cluster == -1) {
+	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;
 	}
 
@@ -388,7 +373,7 @@ void BuildDirectLights(const GList *entities) {
  */
 static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
-	light_t light;
+	light_t light = {};
 
 	light.type = LIGHT_INDIRECT;
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
@@ -396,8 +381,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	light.origin = Cm_WindingCenter(patch->winding);
 	light.origin = Vec3_Add(light.origin, Vec3_Scale(lm->plane->normal, 4.0));
 
-	light.cluster = Cm_LeafCluster(Cm_PointLeafnum(light.origin, 0));
-	if (light.cluster == -1) {
+	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;
 	}
 

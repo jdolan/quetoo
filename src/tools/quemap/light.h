@@ -55,11 +55,6 @@ typedef enum {
 typedef struct {
 
 	/**
-	 * @brief The cluster containing this light, or -1 for directional lights.
-	 */
-	int32_t cluster;
-
-	/**
 	 * @brief The type.
 	 */
 	light_type_t type;

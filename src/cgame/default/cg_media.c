@@ -42,6 +42,9 @@ s_sample_t *cg_sample_explosion;
 s_sample_t *cg_sample_teleport;
 s_sample_t *cg_sample_respawn;
 s_sample_t *cg_sample_sparks;
+s_sample_t *cg_sample_fire;
+s_sample_t *cg_sample_steam;
+
 s_sample_t *cg_sample_rain;
 s_sample_t *cg_sample_snow;
 s_sample_t *cg_sample_underwater;
@@ -253,6 +256,8 @@ void Cg_UpdateMedia(void) {
 	cg_sample_teleport = cgi.LoadSample("world/teleport");
 	cg_sample_respawn = cgi.LoadSample("world/respawn");
 	cg_sample_sparks = cgi.LoadSample("world/sparks");
+	cg_sample_fire = cgi.LoadSample("world/fire");
+	cg_sample_steam = cgi.LoadSample("world/steam");
 	cg_sample_rain = cgi.LoadSample("world/rain");
 	cg_sample_snow = cgi.LoadSample("world/snow");
 	cg_sample_underwater = cgi.LoadSample("world/underwater");

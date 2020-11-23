@@ -24,5 +24,4 @@
 #include "cm_types.h"
 
 GList *Cm_LoadEntities(const char *entity_string);
-const char *Cm_EntityValue(const cm_entity_t *entity, const char *key);
-size_t Cm_EntityVector(const cm_entity_t *entity, const char *key, float *out, size_t count);
+const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key);

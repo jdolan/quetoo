@@ -116,12 +116,12 @@ static cm_entity_t *EntityForModel(const GList *entities, int32_t num) {
 	g_snprintf(model, sizeof(model), "*%d", num);
 
 	for (const GList *e = entities; e; e = e->next) {
-		if (!g_strcmp0(Cm_EntityValue(e->data, "model"), model)) {
+		if (!g_strcmp0(Cm_EntityValue(e->data, "model")->string, model)) {
 			return e->data;
 		}
 	}
 
-	return entities->data;
+	return entities ? entities->data : NULL;
 }
 
 /**
@@ -137,10 +137,7 @@ void BuildPatches(const GList *entities) {
 		const cm_entity_t *ent = EntityForModel(entities, i);
 
 		// inline models need to be offset into their in-use position
-		vec3_t origin;
-		if (Cm_EntityVector(ent, "origin", origin.xyz, 3) != 3) {
-			origin = Vec3_Zero();
-		}
+		const vec3_t origin = Cm_EntityValue(ent, "origin")->vec3;
 
 		for (int32_t j = 0; j < mod->num_faces; j++) {
 

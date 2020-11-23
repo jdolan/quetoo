@@ -71,8 +71,8 @@ typedef struct s_play_sample_s {
 	vec3_t origin;
 	int32_t entity;
 	int32_t attenuation;
-	int16_t flags;
-	int16_t pitch; // pitch offset; 0 is no adjustment, TONES_PER_OCTAVE is +1 octave, -TONES_PER_OCTAVE is -1 octave, etc.
+	int32_t flags;
+	int32_t pitch; // pitch offset; 0 is no adjustment, TONES_PER_OCTAVE is +1 octave, -TONES_PER_OCTAVE is -1 octave, etc.
 } s_play_sample_t;
 
 typedef struct s_channel_s {

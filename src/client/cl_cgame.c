@@ -224,8 +224,7 @@ void Cl_InitCgame(void) {
 	import.ReadAngle = Cl_ReadAngle;
 	import.ReadAngles = Cl_ReadAngles;
 
-	import.EntityString = Cm_EntityString;
-
+	import.EntityValue = Cm_EntityValue;
 	import.PointContents = Cl_PointContents;
 	import.Trace = Cl_Trace;
 

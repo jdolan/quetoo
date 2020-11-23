@@ -44,6 +44,8 @@ extern s_sample_t *cg_sample_explosion;
 extern s_sample_t *cg_sample_teleport;
 extern s_sample_t *cg_sample_respawn;
 extern s_sample_t *cg_sample_sparks;
+extern s_sample_t *cg_sample_fire;
+extern s_sample_t *cg_sample_steam;
 
 extern s_sample_t *cg_sample_rain;
 extern s_sample_t *cg_sample_snow;
