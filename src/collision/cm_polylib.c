@@ -271,8 +271,8 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 			c->side = SIDE_BACK;
 			side_back++;
 		} else {
-			c->side = SIDE_BOTH;
-			side_both++;
+			c->side = SIDE_ON;
+			side_on++;
 		}
 	}
 
