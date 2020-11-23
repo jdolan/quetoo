@@ -133,12 +133,10 @@ ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
 
-		// don't find nodes a few steps above us.
-		if (fabsf(position.z - node->position.z) > PM_STEP_HEIGHT * 2.f) {
-			continue;
-		}
-
-		float dist = Vec3_DistanceSquared(position, node->position);
+		// weigh the Z axis more heavily
+		vec3_t dir = Vec3_Subtract(position, node->position);
+		dir.z *= 4.0f;
+		const float dist = Vec3_LengthSquared(dir);
 
 		if (dist < dist_squared && (closest == NODE_INVALID || dist < closest_dist) && (!only_visible || Ai_Node_Visible(position, i))) {
 			closest = i;
@@ -296,7 +294,7 @@ static void Ai_Node_DestroyLinks(const ai_node_id_t id) {
 	for (guint i = node->links->len - 1; ; i--) {
 		Ai_Node_DestroyLink(id, g_array_index(node->links, ai_link_t, i).id);
 		
-		if (i == 0) {
+		if (i == 0 || !node->links) {
 			break;
 		}
 	}
@@ -918,21 +916,14 @@ static uint32_t Ai_OptimizeNodes(void) {
 			const vec3_t dir_b = Ai_Node_GetDirection(i, links[1]);
 			const float dot = Vec3_Dot(dir_a, dir_b);
 
-			if (dot < 0.9f) {
+			if (dot < 0.95f) {
 				continue;
 			}
 
 			// good 2 go
-			Ai_Node_Destroy(i);
-			
-			if (links[0] >= i) {
-				links[0]--;
-			}
-			if (links[1] >= i) {
-				links[1]--;
-			}
-
-			i--;
+			// this doesn't destroy the node itself so that node #s aren't
+			// messed up in game code
+			Ai_Node_DestroyLinks(i);
 
 			if (link_type & 1) {
 				Ai_Node_CreateDefaultLink(links[0], links[1], false);
@@ -1161,8 +1152,10 @@ void Ai_NodesReady(void) {
 
 	aim.gi->Print("  Linked %u movers to navigation graph.\n", linked_movers);
 
-	const guint optimized = Ai_OptimizeNodes();
-	aim.gi->Print("  %u nodes optimized\n", optimized);
+	if (ai_node_dev->integer != 1) {
+		const guint optimized = Ai_OptimizeNodes();
+		aim.gi->Print("  %u nodes optimized\n", optimized);
+	}
 
 	if (ai_node_dev->integer) {
 		Ai_CheckNodes();
@@ -1296,7 +1289,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
 
 		ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, current.id);
 
-		if (!node->links->len) {
+		if (!node->links || !node->links->len) {
 			continue;
 		}
 

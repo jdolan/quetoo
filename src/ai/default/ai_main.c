@@ -66,18 +66,13 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 
 	float dot = Vec3_Dot(ai->aim_forward, dir);
 
-	if (dot < 0.5f) {
+	if (dot < 0.1f) {
 		return false;
 	}
 
 	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 
-	if (!Vec3_BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs)) {
-		return false; // something was in the way of our trace
-	}
-
-	// got it!
-	return true;
+	return Vec3_BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs);
 }
 
 /**
@@ -295,7 +290,6 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 			_Bool path_found = false;
 
 			if (ENTITY_DATA(pick.entity, node) != NODE_INVALID) {
-
 				const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true);
 				const ai_node_id_t dest = ENTITY_DATA(pick.entity, node);
 
@@ -317,13 +311,16 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 				}
 			}
 
-			if (!path_found) {
-
-				Ai_BackupMainPath(ai);
-				Ai_SetEntityGoal(self, &ai->move_target, pick.weight, pick.entity);
+			if (!path_found && ai_node_dev->integer) {
+				aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
+				aim.gi->WriteByte(TE_TRACER);
+				aim.gi->WritePosition(self->s.origin);
+				aim.gi->WritePosition(pick.entity->s.origin);
+				aim.gi->Multicast(self->s.origin, MULTICAST_PHS, NULL);
 			}
 
-			break;
+			// if we can't find a path to the item, don't try to get it.
+			// entity goals are too finnicky for this to work properly.
 		}
 	}
 
@@ -496,7 +493,32 @@ static _Bool Ai_ShouldChaseEnemy(const g_entity_t *self, const g_entity_t *targe
 		return false;
 	}
 
-	return false;
+	// base chance is our weapon's weight
+	const g_item_t *const weapon = CLIENT_DATA(self->client, weapon);
+	float chance = ITEM_DATA(weapon, priority);
+
+	// if they're low health, higher chance
+	if (ENTITY_DATA(target, health) < 50) {
+		chance *= 1.5f;
+	}
+
+	// if they have a flag, higher chance
+	const int16_t *inventory = &CLIENT_DATA(target->client, inventory);
+
+	for (uint16_t i = 0; i < ai_num_items; i++) {
+		const g_item_t *item = ai_items[i];
+
+		if (ITEM_DATA(item, type) != ITEM_FLAG) { // not flag
+			continue;
+		} else if (!inventory[i]) {
+			continue;
+		}
+
+		chance *= 2.0f;
+		break;
+	}
+
+	return Randomf() < chance;
 }
 
 /**
@@ -541,6 +563,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 				if (path) {
 					Ai_SetPathGoal(self, &ai->move_target, 0.7f, path, ai->combat_target.entity.ent);
 					g_array_unref(path);
+					aim.gi->Debug("Enemy out of sight & chasing\n");
 				}
 			}
 			
@@ -558,6 +581,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 	// we have somebody to kill; go get'em!
 	if (ai->combat_target.type == AI_GOAL_ENTITY && !Ai_GoalHasEntity(&ai->move_target, ai->combat_target.entity.ent) && Ai_ShouldChaseEnemy(self, ai->combat_target.entity.ent)) {
 		Ai_CopyGoal(&ai->combat_target, &ai->move_target);
+		aim.gi->Debug("Decided to chase/close in on enemy\n");
 	}
 
 	// still have an enemy
@@ -847,6 +871,23 @@ static inline _Bool Ai_Path_IsLinked(const GArray *path, const guint a, const gu
 }
 
 /**
+ * @brief 
+ */
+static _Bool Ai_FacingTarget(const g_entity_t *self, const vec3_t target) {
+	vec3_t sub = Vec3_Subtract(target, self->s.origin);
+	sub.z = 0;
+
+	sub = Vec3_Normalize(sub);
+
+	vec3_t fwd;
+	Vec3_Vectors(Vec3(0, self->s.angles.y, 0), &fwd, NULL, NULL);
+
+	const float dot = Vec3_Dot(sub, fwd);
+
+	return dot > 0.8f;
+}
+
+/**
  * @brief Move towards our current target
  */
 static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
@@ -918,7 +959,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	if (target_enemy && len < 200.0f) {
 		// switch to flank/wander, this helps us recover from being up close to enemies
 		if (ai->combat_target.entity.combat_type == AI_COMBAT_CLOSE && Randomb()) {
-			ai->combat_target.entity.combat_type = Randomf() > 0.5f ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
+			ai->combat_target.entity.combat_type = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
 		}
 	}
 
@@ -944,11 +985,13 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			} else {
 				dir = Vec3_Scale(dir, Clampf(len * 2.f, 10.f, PM_SPEED_RUN));
 			}
-		// if we aren't underwater, have no ground entity & falling, we're probably in the air;
-		// rather than full-blasting, pull us towards what we're trying to drop on
+		// if we aren't underwater, have no ground entity & falling downwards, we're probably in the air;
+		// rather than full-blasting, pull us towards what we're trying to drop on.
 		} else if (!swimming && !ENTITY_DATA(self, ground_entity) && ENTITY_DATA(self, velocity).z < 0 &&
+			Vec3_Dot(Vec3_Subtract(self->s.origin, ai->move_target.path.path_position), Vec3_Down()) > 0.7f &&
 			(ai->move_target.path.path_position.z - self->s.origin.z) <= -PM_STEP_HEIGHT) {
 			dir = Vec3_Scale(dir, Clampf(len, 10.f, PM_SPEED_RUN));
+			aim.gi->Debug("Trying to land on target\n");
 		// we're navigating on land, and our next target is below us & a drop node (one-way connection); rather than full-blast
 		// running off the edge, transition to walking so we don't overshoot targets beneath us
 		} else if (!swimming &&
@@ -1033,20 +1076,19 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	// we weren't trying to jump and predicted ground is gone
 	if (cmd->up <= 0 && ENTITY_DATA(self, ground_entity) && (!pm_ahead.ground_entity || !pm.ground_entity)) {
 
-		aim.gi->Debug("Lacking ground entity. In 5 frames: %s, in 1 frame: %s\n", pm_ahead.ground_entity ? "no" : "yes", pm.ground_entity ? "no" : "yes");
+		//aim.gi->Debug("Lacking ground entity. In 5 frames: %s, in 1 frame: %s\n", pm_ahead.ground_entity ? "no" : "yes", pm.ground_entity ? "no" : "yes");
 
 		if (ai->move_target.type == AI_GOAL_PATH) {
+			const float xy_dist = Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin));
 			
 			// we're most likely on a mover; if we'll be falling in a few frames, stop us early
 			if (ENTITY_DATA(self, ground_entity)->s.number != 0 && !pm_ahead.ground_entity) {
 				cmd->forward = cmd->right = 0; // stop for now
-			// if the node is above us step-wise and it's across a big distance, we gotta jump
-			} else if (((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT &&
-				Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) >= PM_STEP_HEIGHT * 6.f) && !pm.ground_entity) {
+			// if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
+			} else if (((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT ||
+				(xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground_entity) {
 				cmd->up = PM_SPEED_JUMP;
 			}
-
-			// else we drop
 		} else if (move_wander) {
 			const float angle = 45 + Randomf() * 45;
 
@@ -1057,7 +1099,12 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 				ai->move_target.wander.angle += Randomb() ? -angle : angle;
 			}
 		} else {
-			cmd->forward = cmd->right = 0; // stop for now
+			const float xy_dist = Vec2_Distance(Vec3_XY(dest), Vec3_XY(self->s.origin));
+
+			if (((dest.z - self->s.origin.z) > -PM_STEP_HEIGHT &&
+				(xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground_entity) {
+				cmd->up = PM_SPEED_JUMP;
+			}
 		}
 	// trick jump code
 	} else if (ai->move_target.type == AI_GOAL_PATH) {
@@ -1090,38 +1137,49 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		!wait_politely && (!ENTITY_DATA(self, ground_entity) || ENTITY_DATA(self, ground_entity)->s.number == 0)) {
 
 		// we'll be pushed up against something
-		if (move_len < (PM_SPEED_RUN * PM_SPEED_MOD_WALK * QUETOO_TICK_SECONDS)) {
+		if (move_len < (PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec))) {
+			
+			if (ai->distress_jump_offset <= ai_level.time) {
+				// if we're navving, node is above us, and we're on ground, jump; we're probably trying
+				// to trick-jump or something
+				if (ai->move_target.type == AI_GOAL_PATH && ENTITY_DATA(self, ground_entity) && pm.ground_entity) {
+					if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT * 6.f) {
 
-			// if we're navving, node is above us, and we're on ground, jump; we're probably trying
-			// to trick-jump or something
-			if (ai->move_target.type == AI_GOAL_PATH && ENTITY_DATA(self, ground_entity) && pm.ground_entity) {
-				if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT * 6.f) {
+						ai->move_target.path.trick_jump = TRICK_JUMP_START;
+						ai->move_target.path.trick_position = ai->move_target.path.path_position;
+						cmd->up = PM_SPEED_JUMP;
 
-					ai->move_target.path.trick_jump = TRICK_JUMP_START;
-					ai->move_target.path.trick_position = ai->move_target.path.path_position;
-					cmd->up = PM_SPEED_JUMP;
+						aim.gi->Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
+					} else if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT &&
+						Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) < PM_STEP_HEIGHT * 6.f &&
+						Ai_FacingTarget(self, ai->move_target.path.path_position)) {
 
-					aim.gi->Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
+						cmd->up = PM_SPEED_JUMP;
+						aim.gi->Debug("Node above us & close, and we're probably stuck; regular jump\n");
+					}
 				}
 			}
 
 			// if we're on a mover, distress differently so we don't unexpectedly
 			// jump off of it
 			if (ENTITY_DATA(self, ground_entity) && ENTITY_DATA(self, ground_entity)->s.number != 0) {
-				ai->move_target.distress += 0.05f;
+				ai->move_target.distress += 0.02f;
 			} else {
 				ai->move_target.distress += 0.2f;
-				ai->reacquire_time = ai_level.time + 1000;
 
-				// start to freak out
-				if (ai->move_target.distress > 20.f) {
-					ai->move_target.distress += 0.75f;
-				// try a jump first
-				} else if (ai->move_target.distress > 18.f) {
+				// try moving left/right if we weren't already trying this
+				if (ai->move_target.distress > 8.f && !cmd->right) {
+					cmd->right = cmd->forward;
+
+					if (ai->move_target.time & 1) {
+						cmd->right = -cmd->right;
+					}
+				// try a jump
+				} else if (ai->move_target.distress > 12.f) {
 					cmd->up = PM_SPEED_JUMP;
 				}
 			}
-		// we're making some distance, so don't distress as much
+		// we're making some distance, reduce our distress
 		} else {
 			if (ai->move_target.distress > 0) {
 				ai->move_target.distress -= 0.2f;
@@ -1129,10 +1187,10 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		}
 	}
 
-	return 1;
+	return 0;
 }
 
-static float AngleMod(const float a) {
+static inline float AngleMod(const float a) {
 	return (360.0f / 65536) * ((int32_t) (a * (65536 / 360.0f)) & 65535);
 }
 
@@ -1254,15 +1312,16 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	const vec3_t view_angles = CLIENT_DATA(self->client, angles);
 
 	for (int32_t i = 0; i < 2; ++i) {
-		ideal_angles.xyz[i] = Ai_CalculateAngle(self, 12.5, view_angles.xyz[i], ideal_angles.xyz[i]);
+		ideal_angles.xyz[i] = Ai_CalculateAngle(self, 12.5f * (cmd->msec / (float)QUETOO_TICK_MILLIS), view_angles.xyz[i], ideal_angles.xyz[i]);
 	}
 
 	if (ai->move_target.type == AI_GOAL_PATH && ai->move_target.path.trick_jump == TRICK_JUMP_TURNING && view_angles.y == ideal_angles.y) {
 		ai->move_target.path.trick_jump = TRICK_JUMP_NONE;
 	}
 
+	ai->ideal_angles = ideal_angles;
 	cmd->angles = Vec3_Subtract(ideal_angles, self->client->ps.pm_state.delta_angles);
-	return 1;
+	return 0;
 }
 
 /**
@@ -1288,7 +1347,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 	// if we already have a long range goal, try again later.
 	// TODO: we know what entity we're heading towards, so we can
 	// give up a goal if the entity is gone, but it should be logical
-	// (for stuff that's "far" we can give up if the item appears to 
+	// (for stuff that's "close" we can give up if the item appears to 
 	// be visually missing; for flags, we can give up if the flag was taken
 	// so we can switch to hunting the taker, or trying to support the carrier)
 	if (ai->move_target.type != AI_GOAL_NONE) {
@@ -1420,7 +1479,7 @@ static void Ai_PostThink(g_entity_t *self, const pm_cmd_t *cmd) {
 	// can't trick jump when we hit the ground.
 	if (ai->move_target.type == AI_GOAL_PATH && ENTITY_DATA(self, ground_entity) && ai->move_target.path.trick_jump) {
 
-		if (Vec3_Distance(ai->move_target.path.trick_position, self->s.origin) < 32.f) {
+		if (Vec3_Distance(ai->move_target.path.trick_position, self->s.origin) < 24.f) {
 			ai->move_target.path.trick_jump = TRICK_JUMP_TURNING;
 			aim.gi->Debug("Trick jump: mission accomplished\n");
 		} else {

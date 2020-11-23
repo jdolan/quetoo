@@ -691,10 +691,9 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 }
 
 /**
- * @brief 
+ * @brief Oscillate value, from material.glsl
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
-
 	const byte color = 191 + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * 64;
 	
 	cgi.AddSprite(&(r_sprite_t) {
@@ -725,14 +724,23 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 /**
  * @brief
  */
+static inline float Cg_Oscillate(const float freq, const float amplitude, const float base, const float phase) {
+	const float seconds = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
+	return base + sinf((phase + seconds * 2 * freq * 2)) * (amplitude * 0.5);
+}
+
+/**
+ * @brief
+ */
 static void Cg_SpawnPointTrail(cl_entity_t *ent, const float hue) {
-	const vec4_t color = (hue < 0) ? Vec4(0.f, 0.f, 1.f, 1.f) : Vec4(hue, 1.f, 1.f, 1.f);
+	const vec4_t color = (hue < 0 || hue > 360) ? Vec4(0.f, 0.f, 1.f, 0.f) : Vec4(hue, 1.f, 1.f, 0.f);
 
 	cgi.AddSprite(&(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_ring,
-		.origin = ent->origin,
-		.size = 48.f,
-		.color = Color_Color32(ColorHSVA(color.x, color.y, color.z, color.w))
+		.origin = Vec3_FMA(ent->origin, 16.f, Vec3_Down()),
+		.size = 48.f + Cg_Oscillate(1, 12.f, 1.f, 0.f),
+		.color = Color_Color32(ColorHSVA(color.x, color.y, color.z, color.w)),
+		.dir = Vec3_Up()
 	});
 }
 

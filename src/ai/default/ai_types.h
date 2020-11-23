@@ -364,5 +364,7 @@ typedef struct ai_locals_s {
 
 	uint32_t weapon_check_time;
 	uint32_t reacquire_time;
+	uint32_t distress_jump_offset;
+	vec3_t ideal_angles;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */
