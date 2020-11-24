@@ -382,7 +382,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
  * @brief Runs the animation sequences for the specified entity, setting the frame
  * indexes and interpolation fractions for the specified renderer entities.
  */
-void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
+static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
 
 	const cl_client_info_t *ci = &cgi.client->client_info[ent->current.client];
 
@@ -402,5 +402,244 @@ void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *leg
 		legs->old_frame = ent->animation2.old_frame;
 		legs->lerp = ent->animation2.lerp;
 		legs->back_lerp = 1.0 - ent->animation2.lerp;
+	}
+}
+
+/**
+ * @brief The min velocity we should apply leg rotation on.
+ */
+#define CLIENT_LEGS_SPEED_EPSILON		.5f
+
+/**
+ * @brief The max yaw that we'll rotate the legs by when moving left/right.
+ */
+#define CLIENT_LEGS_YAW_MAX				65.f
+
+/**
+ * @brief Clamp angle
+ */
+#define CLIENT_LEGS_CLAMP				(CLIENT_LEGS_YAW_MAX * 1.5f)
+
+/**
+ * @brief The speed that the legs will catch up to the current leg yaw.
+ */
+#define CLIENT_LEGS_YAW_LERP_SPEED		240.f
+
+/**
+ * @brief
+ */
+static inline float AngleMod(float a) {
+	a = fmodf(a, 360.f);// (360.0 / 65536) * ((int32_t) (a * (65536 / 360.0)) & 65535);
+
+	if (a < 0) {
+		return a + (((int32_t)(a / 360.f) + 1) * 360.f);
+	}
+
+	return a;
+}
+
+/**
+ * @brief
+ */
+static inline float SmallestAngleBetween(const float x, const float y) {
+	return min(360.f - fabsf(x - y), fabsf(x - y));
+}
+
+/**
+ * @brief
+ */
+static inline float Cg_CalculateAngle(const float speed, float current, float ideal) {
+	current = AngleMod(current);
+	ideal = AngleMod(ideal);
+
+	if (current == ideal) {
+		return current;
+	}
+
+	float move = ideal - current;
+
+	if (ideal > current) {
+		if (move >= 180.0) {
+			move = move - 360.0;
+		}
+	} else {
+		if (move <= -180.0) {
+			move = move + 360.0;
+		}
+	}
+
+	if (move > 0) {
+		if (move > speed) {
+			move = speed;
+		}
+	} else {
+		if (move < -speed) {
+			move = -speed;
+		}
+	}
+
+	return AngleMod(current + move);
+}
+
+/**
+ * @brief Adds the numerous render entities which comprise a given client (player)
+ * entity: head, torso, legs, weapon, flags, etc.
+ */
+void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
+	const entity_state_t *s = &ent->current;
+
+	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
+	if (!ci->head || !ci->torso || !ci->legs) {
+		cgi.Debug("Invalid client info: %d\n", s->client);
+		return;
+	}
+
+	const _Bool self_no_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
+
+	// don't draw ourselves unless third person is set
+	if (self_no_draw) {
+
+		e->effects |= EF_NO_DRAW;
+
+		// keep our shadow underneath us using the predicted origin
+		e->origin.x = cgi.view->origin.x;
+		e->origin.y = cgi.view->origin.y;
+	} else {
+		Cg_BreathTrail(ent);
+	}
+
+	// set tints
+	if (ci->shirt.a) {
+		e->tints[0] = Color_Vec4(ci->shirt);
+	}
+
+	if (ci->pants.a) {
+		e->tints[1] = Color_Vec4(ci->pants);
+	}
+
+	if (ci->helmet.a) {
+		e->tints[2] = Color_Vec4(ci->helmet);
+	}
+
+	r_entity_t head, torso, legs;
+
+	// copy the specified entity to all body segments
+	head = torso = legs = *e;
+
+	if ((ent->current.effects & EF_CORPSE) == 0) {
+		vec3_t right;
+		Vec3_Vectors(legs.angles, NULL, &right, NULL);
+
+		vec3_t move_dir;
+		move_dir = Vec3_Subtract(ent->prev.origin, ent->current.origin);
+		move_dir.z = 0.f; // don't care about z, just x/y
+
+		if (ent->animation2.animation < ANIM_LEGS_SWIM) {
+			if (Vec3_Length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
+				move_dir = Vec3_Normalize(move_dir);
+				float legs_yaw = Vec3_Dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+
+				if (ent->animation2.animation == ANIM_LEGS_BACK ||
+					ent->animation2.reverse) {
+					legs_yaw = -legs_yaw;
+				}
+
+				ent->legs_yaw = ent->angles.y + legs_yaw;
+			} else {
+
+				ent->legs_yaw = ent->angles.y;
+			}
+		} else {
+
+			const float angle_diff = SmallestAngleBetween(ent->legs_yaw, ent->angles.y);
+
+			if (ent->animation2.animation == ANIM_LEGS_TURN ||
+				fabsf(angle_diff) > CLIENT_LEGS_YAW_MAX) {
+
+				ent->legs_yaw = ent->angles.y;
+
+				// change animation as well
+				if (ent->animation2.animation == ANIM_LEGS_IDLE) {
+					ent->animation2.time = cgi.client->unclamped_time;
+					ent->animation2.frame = ent->animation2.old_frame = -1;
+					ent->animation2.lerp = ent->animation2.fraction = 0;
+				}
+			}
+		}
+
+		ent->legs_current_yaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->frame_msec), ent->legs_current_yaw, ent->legs_yaw);
+
+		const float angle_delta = AngleMod(ent->legs_current_yaw - ent->legs_yaw + 180.0f) - 180.0f;
+
+		ent->legs_current_yaw = AngleMod(ent->legs_yaw + clamp(angle_delta, -CLIENT_LEGS_CLAMP, CLIENT_LEGS_CLAMP));
+
+		if (fabsf(SmallestAngleBetween(ent->legs_yaw, ent->legs_current_yaw)) > 1) {
+			if (ent->animation2.animation == ANIM_LEGS_IDLE) {
+				ent->animation2.time = cgi.client->unclamped_time;
+				ent->animation2.animation = ANIM_LEGS_TURN;
+			}
+		} else {
+			if (ent->animation2.animation == ANIM_LEGS_TURN) {
+				ent->animation2.time = cgi.client->unclamped_time;
+				ent->animation2.animation = ANIM_LEGS_IDLE;
+			}
+		}
+	}
+
+	legs.model = ci->legs;
+	legs.angles.y = ent->legs_current_yaw;
+	legs.angles.x = legs.angles.z = 0.0; // legs only use yaw
+	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
+
+	torso.model = ci->torso;
+	torso.origin = Vec3_Zero();
+	torso.angles.y = ent->angles.y - legs.angles.y; // legs twisted already, we just need to pitch/roll
+	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
+
+	head.model = ci->head;
+	head.origin = Vec3_Zero();
+	head.angles.y = 0.0;
+	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
+
+	Cg_AnimateClientEntity(ent, &torso, &legs);
+
+	r_entity_t *r_legs = cgi.AddEntity(&legs);
+
+	torso.parent = r_legs;
+	torso.tag = "tag_torso";
+
+	r_entity_t *r_torso = cgi.AddEntity(&torso);
+
+	head.parent = r_torso;
+	head.tag = "tag_head";
+
+	cgi.AddEntity(&head);
+
+	if (s->model2) {
+		cgi.AddEntity(&(const r_entity_t) {
+			.parent = r_torso,
+			.tag = "tag_weapon",
+			.scale = e->scale,
+			.model = cgi.client->model_precache[s->model2],
+			.effects = e->effects,
+			.color = e->color,
+			.shell = e->shell,
+		});
+	}
+
+	if (s->model3) {
+		cgi.AddEntity(&(const r_entity_t) {
+			.parent = r_torso,
+			.tag = "tag_head",
+			.scale = e->scale,
+			.model = cgi.client->model_precache[s->model3],
+			.effects = e->effects,
+			.color = e->color,
+			.shell = e->shell,
+		});
+	}
+
+	if (s->model4) {
+		cgi.Warn("Unsupported model_index4\n");
 	}
 }

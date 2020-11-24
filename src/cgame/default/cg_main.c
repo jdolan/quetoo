@@ -360,7 +360,7 @@ static void Cg_ClearState(void) {
 
 	Cg_ClearInput();
 
-	Cg_FreeEmits();
+	Cg_FreeEntities();
 
 	Cg_ClearHud();
 }

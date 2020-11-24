@@ -328,8 +328,6 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 
 	Cg_AddEntities(frame);
 
-	Cg_AddEmits();
-
 	Cg_AddEffects();
 
 	Cg_AddSprites();

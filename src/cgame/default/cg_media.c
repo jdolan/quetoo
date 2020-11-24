@@ -333,7 +333,7 @@ void Cg_UpdateMedia(void) {
 	cg_draw_crosshair->modified = true;
 	cg_draw_crosshair_color->modified = true;
 
-	Cg_LoadEmits();
+	Cg_LoadEntities();
 
 	Cg_LoadEffects();
 

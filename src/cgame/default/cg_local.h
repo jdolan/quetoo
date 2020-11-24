@@ -29,10 +29,10 @@
 
 #include "cg_client.h"
 #include "cg_effect.h"
-#include "cg_emit.h"
 #include "cg_entity.h"
 #include "cg_entity_effect.h"
 #include "cg_entity_event.h"
+#include "cg_entity_misc.h"
 #include "cg_entity_trail.h"
 #include "cg_hud.h"
 #include "cg_input.h"
@@ -47,3 +47,4 @@
 #include "cg_types.h"
 #include "cg_ui.h"
 #include "cg_view.h"
+#include "cg_weapon.h"
