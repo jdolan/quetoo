@@ -101,57 +101,43 @@ static void LightWorld(void) {
 	const cm_entity_t *e = entities->data;
 
 	if (radiosity == 1.f) {
-		if (Cm_EntityVector(e, "radiosity", &radiosity, 1) == 1) {
-			Com_Verbose("Radiosity: %g\n", radiosity);
-		}
+		radiosity = Cm_EntityValue(e, "radiosity")->value ?: radiosity;
+		Com_Verbose("Radiosity: %g\n", radiosity);
 	}
 
 	if (brightness == 1.f) {
-		if (Cm_EntityVector(e, "brightness", &brightness, 1) == 1) {
-			Com_Verbose("Brightness: %g\n", brightness);
-		}
+		brightness = Cm_EntityValue(e, "brightness")->value ?: brightness;
+		Com_Verbose("Brightness: %g\n", brightness);
 	}
 
 	if (saturation == 1.f) {
-		if (Cm_EntityVector(e, "saturation", &saturation, 1) == 1) {
-			Com_Verbose("Saturation: %g\n", saturation);
-		}
+		saturation = Cm_EntityValue(e, "saturation")->value ?: saturation;
+		Com_Verbose("Saturation: %g\n", saturation);
 	}
 
 	if (contrast == 1.f) {
-		if (Cm_EntityVector(e, "contrast", &contrast, 1) == 1) {
-			Com_Verbose("Contrast: %g\n", contrast);
-		}
+		contrast = Cm_EntityValue(e, "contrast")->value ?: contrast;
+		Com_Verbose("Contrast: %g\n", contrast);
 	}
 
 	if (luxel_size == BSP_LIGHTMAP_LUXEL_SIZE) {
-		float v;
-		if (Cm_EntityVector(e, "luxel_size", &v, 1) == 1) {
-			luxel_size = v;
-			Com_Verbose("Luxel size: %d\n", luxel_size);
-		}
+		luxel_size = Cm_EntityValue(e, "luxel_size")->integer ?: luxel_size;
+		Com_Verbose("Luxel size: %d\n", luxel_size);
 	}
 
 	if (patch_size == DEFAULT_BSP_PATCH_SIZE) {
-		float v;
-		if (Cm_EntityVector(e, "patch_size", &v, 1) == 1) {
-			patch_size = v;
-			Com_Verbose("Patch size: %d\n", patch_size);
-		}
+		patch_size = Cm_EntityValue(e, "patch_size")->integer ?: patch_size;
+		Com_Verbose("Patch size: %d\n", patch_size);
 	}
 
 	if (lightscale_point == 1.f) {
-		float v;
-		if (Cm_EntityVector(e, "lightscale_point", &v, 1) == 1) {
-			Com_Verbose("Pointlight intensity scale: 1.0\n");
-		}
+		lightscale_point = Cm_EntityValue(e, "lightscale_point")->value ?: lightscale_point;
+		Com_Verbose("Point light intensity scale: 1.0\n");
 	}
 
 	if (lightscale_patch == 1.f) {
-		float v;
-		if (Cm_EntityVector(e, "lightscale_patch", &v, 1) == 1) {
-			Com_Verbose("Patchlight intensity scale: 1.0\n");
-		}
+		lightscale_patch = Cm_EntityValue(e, "lightscale_patch")->value ?: lightscale_patch;
+		Com_Verbose("Patch light intensity scale: 1.0\n");
 	}
 
 	// build patches

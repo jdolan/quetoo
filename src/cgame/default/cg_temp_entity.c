@@ -950,7 +950,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity) {
+void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 
 	Cg_AddSprite(&(cg_sprite_t) {
 		.animation = cg_sprite_poof_01,

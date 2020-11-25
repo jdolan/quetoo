@@ -234,11 +234,11 @@ static void AddEntities(void) {
 		while (e) {
 
 			if (!g_strcmp0(e->key, "noise") || !g_strcmp0(e->key, "sound")) {
-				AddSound(e->value);
+				AddSound(e->string);
 			} else if (!g_strcmp0(e->key, "model")) {
-				AddModel(e->value);
+				AddModel(e->string);
 			} else if (!g_strcmp0(e->key, "sky")) {
-				AddSky(e->value);
+				AddSky(e->string);
 			}
 
 			e = e->next;

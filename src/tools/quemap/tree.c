@@ -159,7 +159,7 @@ static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brus
 
 	const int32_t plane_num = side->plane_num & ~1;
 
-	int32_t front = 0, back = 0, facing = 0, num_split_sides = 0;
+	int32_t front = 0, back = 0, on = 0, num_split_sides = 0;
 
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 
@@ -172,8 +172,8 @@ static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brus
 		if (s & SIDE_BACK) {
 			back++;
 		}
-		if (s & SIDE_FACING) {
-			facing++;
+		if (s & SIDE_ON) {
+			on++;
 		}
 
 		num_split_sides += i;
@@ -181,7 +181,7 @@ static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brus
 
 	// give a value estimate for using this plane
 
-	int32_t value = 5 * facing - 5 * num_split_sides - abs(front - back);
+	int32_t value = 5 * on - 5 * num_split_sides - abs(front - back);
 
 	if (AXIAL(&planes[plane_num])) {
 		value += 5;
@@ -309,7 +309,7 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 
 		// if the plane_num is actualy a part of the brush
 		// find the plane and flag it as used so it won't be tried as a splitter again
-		if (s & SIDE_FACING) {
+		if (s & SIDE_ON) {
 			for (int32_t i = 0; i < new_brush->num_sides; i++) {
 				brush_side_t *side = new_brush->sides + i;
 				if ((side->plane_num & ~1) == node->plane_num) {

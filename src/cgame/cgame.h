@@ -469,14 +469,19 @@ typedef struct cg_import_s {
 	 */
 
 	/**
-	 * @return The entities string for the currently loaded level.
-	 */
-	const char *(*EntityString)(void);
-
-	/**
 	 * @defgroup collision Collision model
 	 * @{
 	 */
+
+	/**
+	 * @brief Finds the key-value pair for the specified key within entity.
+	 * @param entity The entity.
+	 * @param key The entity key.
+	 * @return The key-value pair for the specified key within entity.
+	 * @remarks This function will always return non-NULL for convenience. Check the
+	 * parsed types on the returned pair to differentiate "not present" from "0."
+	 */
+	const cm_entity_t *(*EntityValue)(const cm_entity_t *entity, const char *key);
 
 	/**
 	 * @return The contents mask at the specified point.

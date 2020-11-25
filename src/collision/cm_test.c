@@ -40,17 +40,17 @@ cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
 
 	const float x = fabsf(normal.x);
-	if (x > 1.f - SIDE_EPSILON) {
+	if (x > 1.f - FLT_EPSILON) {
 		return PLANE_X;
 	}
 
 	const float y = fabsf(normal.y);
-	if (y > 1.f - SIDE_EPSILON) {
+	if (y > 1.f - FLT_EPSILON) {
 		return PLANE_Y;
 	}
 
 	const float z = fabsf(normal.z);
-	if (z > 1.f - SIDE_EPSILON) {
+	if (z > 1.f - FLT_EPSILON) {
 		return PLANE_Z;
 	}
 
@@ -99,10 +99,10 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *p) {
 
 	if (AXIAL(p)) {
-		if (p->dist <= mins.xyz[p->type]) {
+		if (p->dist - SIDE_EPSILON < mins.xyz[p->type]) {
 			return SIDE_FRONT;
 		}
-		if (p->dist >= maxs.xyz[p->type]) {
+		if (p->dist + SIDE_EPSILON > maxs.xyz[p->type]) {
 			return SIDE_BACK;
 		}
 		return SIDE_BOTH;
@@ -147,11 +147,14 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 			break;
 	}
 
+	dist1 -= p->dist;
+	dist2 -= p->dist;
+
 	int32_t side = 0;
-	if (dist1 >= p->dist) {
+	if (dist1 > -SIDE_EPSILON) {
 		side = SIDE_FRONT;
 	}
-	if (dist2 < p->dist) {
+	if (dist2 < SIDE_EPSILON) {
 		side |= SIDE_BACK;
 	}
 

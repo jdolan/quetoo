@@ -49,6 +49,7 @@ void Cg_AddLight(const cg_light_t *l) {
 
 	assert(cg_lights[i].decay >= 0.f);
 	assert(cg_lights[i].intensity >= 0.f);
+	
 	if (cg_lights[i].intensity == 0.0) {
 		cg_lights[i].intensity = LIGHT_INTENSITY;
 	}

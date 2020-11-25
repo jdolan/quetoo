@@ -258,7 +258,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 	cm_clip_point_t clip_points[max_points];
 	memset(&clip_points, 0, max_points * sizeof(cm_clip_point_t));
 
-	int32_t side_front = 0, side_back = 0, side_both = 0;
+	int32_t side_front = 0, side_back = 0, side_on = 0;
 
 	cm_clip_point_t *c = clip_points;
 	for (int32_t i = 0; i < in->num_points; i++, c++) {
@@ -271,8 +271,8 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 			c->side = SIDE_BACK;
 			side_back++;
 		} else {
-			c->side = SIDE_BOTH;
-			side_both++;
+			c->side = SIDE_ON;
+			side_on++;
 		}
 	}
 
@@ -294,7 +294,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 	for (int32_t i = 0; i < in->num_points; i++) {
 		const cm_clip_point_t *c = clip_points + i;
 
-		if (c->side == SIDE_BOTH) {
+		if (c->side == SIDE_ON) {
 			f->points[f->num_points] = c->point;
 			f->num_points++;
 
@@ -316,7 +316,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 
 		const cm_clip_point_t *d = clip_points + ((i + 1) % in->num_points);
 
-		if (d->side == SIDE_BOTH || d->side == c->side) {
+		if (d->side == SIDE_ON || d->side == c->side) {
 			continue;
 		}
 

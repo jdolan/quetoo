@@ -300,7 +300,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 
 			// if we reached here, we're copying them literally or was an invalid escape sequence.
 			if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len) ||
-				!Parse_AppendOutputChar(parser, flags, c = *(++parser->position.ptr), output_position, output, output_len)) {
+				!Parse_AppendOutputChar(parser, flags, *(++parser->position.ptr), output_position, output, output_len)) {
 				return false;
 			}
 

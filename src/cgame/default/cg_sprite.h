@@ -89,7 +89,6 @@ typedef struct cg_sprite_s {
 	 */
 	vec3_t acceleration;
 
-
 	/**
 	 * @brief The sprite rotation.
 	 */
@@ -107,7 +106,7 @@ typedef struct cg_sprite_s {
 
 	/**
 	 * @brief The sprite color, in HSVA.
-	 * @note For alpha-blended sprites, the colors are used as "normal". For additive sprites,
+	 * @details For alpha-blended sprites, the colors are used as "normal". For additive sprites,
 	 * alpha *must* be zero at all times.
 	 */
 	vec4_t color;
@@ -154,7 +153,7 @@ typedef struct cg_sprite_s {
 	uint32_t timestamp;
 
 	/**
-	 * @brief Easing function for life time
+	 * @brief Easing function for life time.
 	 */
 	cg_easing_function_t life_easing;
 

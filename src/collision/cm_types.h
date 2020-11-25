@@ -55,7 +55,7 @@
 #define	SIDE_FRONT				1
 #define	SIDE_BACK				2
 #define	SIDE_BOTH				3
-#define	SIDE_FACING				4
+#define	SIDE_ON					4
 
 /**
  * @brief Plane type constants for axial plane optimizations.
@@ -137,11 +137,84 @@ typedef struct {
 #define MAX_BSP_ENTITY_VALUE	256
 
 /**
+ * @brief Entity key-value pair parsed types.
+ */
+typedef enum {
+	/**
+	 * @brief A value of one or more characters is available.
+	 */
+	ENTITY_STRING = 0x1,
+
+	/**
+	 * @brief An integer value is available.
+	 */
+	ENTITY_INTEGER = 0x2,
+
+	/**
+	 * @brief A float value is available.
+	 */
+	ENTITY_FLOAT = 0x4,
+
+	/**
+	 * @brief A three component vector value is available.
+	 */
+	ENTITY_VEC3 = 0x8,
+
+	/**
+	 * @brief A four component vector is available.
+	 */
+	ENTITY_VEC4 = 0x10,
+
+} cm_entity_parsed_t;
+
+/**
  * @brief Entities are, essentially, linked lists of key-value pairs.
  */
 typedef struct cm_entity_s {
+
+	/**
+	 * @brief A bitmask of entity pair parsed types.
+	 */
+	cm_entity_parsed_t parsed;
+
+	/**
+	 * @brief The entity pair key.
+	 */
 	char key[MAX_BSP_ENTITY_KEY];
-	char value[MAX_BSP_ENTITY_VALUE];
+
+	/**
+	 * @brief The entity pair value, as a string.
+	 */
+	char string[MAX_BSP_ENTITY_VALUE];
+
+	/**
+	 * @brief The entity pair value, as an integer.
+	 */
+	int32_t integer;
+
+	/**
+	 * @brief Floating point values.
+	 */
+	union {
+		/**
+		 * @brief The entity pair value, as a float.
+		 */
+		float value;
+
+		/**
+		 * @brief The entity pair value, as a three component vector.
+		 */
+		vec3_t vec3;
+
+		/**
+		 * @brief The entity pair value, as a four component vector.
+		 */
+		vec4_t vec4;
+	};
+
+	/**
+	 * @brief The next entity pair in this entity, or `NULL`.
+	 */
 	struct cm_entity_s *next;
 } cm_entity_t;
 

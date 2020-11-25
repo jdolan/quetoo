@@ -24,7 +24,11 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_LoadEmits(void);
-void Cg_FreeEmits(void);
-void Cg_AddEmits(void);
+extern const cg_entity_class_t cg_misc_flame;
+extern const cg_entity_class_t cg_misc_light;
+extern const cg_entity_class_t cg_misc_model;
+extern const cg_entity_class_t cg_misc_sound;
+extern const cg_entity_class_t cg_misc_sparks;
+extern const cg_entity_class_t cg_misc_sprite;
+extern const cg_entity_class_t cg_misc_steam;
 #endif /* __CG_LOCAL_H__ */

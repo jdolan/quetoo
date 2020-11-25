@@ -173,10 +173,10 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_sprite_t *s = Cg_AddSprite(&(cg_sprite_t) {
 		.atlas_image = cg_sprite_flame,
 		.origin = end,
-		.velocity = Vec3_RandomRange(-1.5f, 1.5f),
+		.velocity = Vec3_RandomRange(-4.f, 4.f),
 		.acceleration.z = 15.f,
-		.lifetime = 1500,
-		.size = RandomRangef(-10.f, 10.f),
+		.lifetime = 500 + Randomf() * 250,
+		.size = RandomRangef(4.f, 12.f),
 		.color = Vec4(hue, .82f, .87f, .78f),
 		.end_color = Vec4(hue, .82f, 0.f, 0.f)
 	});
@@ -188,27 +188,6 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 			s->acceleration.z = 20.f;
 		}
 	}
-}
-
-/**
- * @brief
- */
-void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
-	const vec3_t end = Vec3_Add(org, vel);
-
-	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(ent, org, end, 10.f);
-		return;
-	}
-
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_steam,
-		.origin = org,
-		.velocity = Vec3_Add(vel, Vec3_RandomRange(-2.f, 2.f)),
-		.lifetime = 4500 / (5.f + Randomf() * .5f),
-		.size = 8.f,
-		.color = Vec4(0.f, 0.f, 1.f, .19f)
-	});
 }
 
 /**
