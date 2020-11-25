@@ -256,7 +256,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 		return;
 	}
 
-	// resolve any models, animations, interpolations, rotations, bobbing, etc..
+	// add server side entities
 	for (int32_t i = 0; i < frame->num_entities; i++) {
 
 		const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
@@ -269,7 +269,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 		Cg_AddEntity(ent);
 	}
 
-	// then add any client-side entities as well
+	// and client-side entities too
 	cg_entity_t *e = (cg_entity_t *) cg_entities->data;
 	for (guint i = 0; i < cg_entities->len; i++, e++) {
 
