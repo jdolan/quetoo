@@ -22,10 +22,10 @@
     <ClInclude Include="..\src\cgame\cgame.h" />
     <ClInclude Include="..\src\cgame\default\cg_client.h" />
     <ClInclude Include="..\src\cgame\default\cg_effect.h" />
-    <ClInclude Include="..\src\cgame\default\cg_emit.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_effect.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_event.h" />
+    <ClInclude Include="..\src\cgame\default\cg_entity_misc.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_trail.h" />
     <ClInclude Include="..\src\cgame\default\cg_hud.h" />
     <ClInclude Include="..\src\cgame\default\cg_input.h" />
@@ -41,6 +41,7 @@
     <ClInclude Include="..\src\cgame\default\cg_types.h" />
     <ClInclude Include="..\src\cgame\default\cg_ui.h" />
     <ClInclude Include="..\src\cgame\default\cg_view.h" />
+    <ClInclude Include="..\src\cgame\default\cg_weapon.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\BindTextView.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\CvarCheckbox.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\CvarSelect.h" />
@@ -74,10 +75,10 @@
   <ItemGroup>
     <ClCompile Include="..\src\cgame\default\cg_client.c" />
     <ClCompile Include="..\src\cgame\default\cg_effect.c" />
-    <ClCompile Include="..\src\cgame\default\cg_emit.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity_effect.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity_event.c" />
+    <ClCompile Include="..\src\cgame\default\cg_entity_misc.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity_trail.c" />
     <ClCompile Include="..\src\cgame\default\cg_hud.c" />
     <ClCompile Include="..\src\cgame\default\cg_input.c" />
@@ -91,6 +92,7 @@
     <ClCompile Include="..\src\cgame\default\cg_temp_entity.c" />
     <ClCompile Include="..\src\cgame\default\cg_ui.c" />
     <ClCompile Include="..\src\cgame\default\cg_view.c" />
+    <ClCompile Include="..\src\cgame\default\cg_weapon.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\BindTextView.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\CvarCheckbox.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\CvarSelect.c" />
