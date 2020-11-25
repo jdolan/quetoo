@@ -72,7 +72,7 @@ cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
 	}
 
 	if (!cg_free_sprites) {
-		cgi.Debug("No free sprites\n");
+		Cg_Debug("No free sprites\n");
 		return NULL;
 	}
 

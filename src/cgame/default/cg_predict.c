@@ -73,7 +73,9 @@ void Cg_PredictMovement(const GList *cmds) {
 	pm.PointContents = cgi.PointContents;
 	pm.Trace = Cg_PredictMovement_Trace;
 
-	pm.Debug = cgi.PmDebug;
+	pm.Debug = cgi.Debug_;
+	pm.DebugMask = cgi.DebugMask;
+	pm.debug_mask = DEBUG_PMOVE_CLIENT;
 
 	const GList *e = cmds;
 

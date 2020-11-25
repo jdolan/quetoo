@@ -128,7 +128,7 @@ void G_misc_teleporter(g_entity_t *ent) {
 	vec3_t v;
 
 	if (!ent->locals.target) {
-		gi.Debug("No target specified\n");
+		G_Debug("No target specified\n");
 		G_FreeEntity(ent);
 		return;
 	}

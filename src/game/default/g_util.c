@@ -218,7 +218,7 @@ g_entity_t *G_PickTarget(char *target_name) {
 	uint32_t num_choices = 0;
 
 	if (!target_name) {
-		gi.Debug("NULL target_name\n");
+		G_Debug("NULL target_name\n");
 		return NULL;
 	}
 
@@ -239,7 +239,7 @@ g_entity_t *G_PickTarget(char *target_name) {
 	}
 
 	if (!num_choices) {
-		gi.Debug("Target %s not found\n", target_name);
+		G_Debug("Target %s not found\n", target_name);
 		return NULL;
 	}
 
@@ -269,7 +269,7 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		temp->locals.Think = G_UseTargets_Delay;
 		temp->locals.activator = activator;
 		if (!activator) {
-			gi.Debug("No activator for %s\n", etos(ent));
+			G_Debug("No activator for %s\n", etos(ent));
 		}
 		temp->locals.message = ent->locals.message;
 		temp->locals.target = ent->locals.target;
@@ -296,7 +296,7 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		while ((target = G_Find(target, LOFS(target_name), ent->locals.kill_target))) {
 			G_FreeEntity(target);
 			if (!ent->in_use) {
-				gi.Debug("%s was removed while using kill_targets\n", etos(ent));
+				G_Debug("%s was removed while using kill_targets\n", etos(ent));
 				return;
 			}
 		}
@@ -308,14 +308,14 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		while ((target = G_Find(target, LOFS(target_name), ent->locals.target))) {
 
 			if (target == ent) {
-				gi.Debug("%s tried to use itself\n", etos(ent));
+				G_Debug("%s tried to use itself\n", etos(ent));
 				continue;
 			}
 
 			if (target->locals.Use) {
 				target->locals.Use(target, ent, activator);
 				if (!ent->in_use) { // see if our target freed us
-					gi.Debug("%s was removed while using targets\n", etos(ent));
+					G_Debug("%s was removed while using targets\n", etos(ent));
 					break;
 				}
 			}

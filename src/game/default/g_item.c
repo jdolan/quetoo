@@ -447,7 +447,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 				G_SetItemRespawn(ent, 40000);
 				break;
 			default:
-				gi.Debug("Invalid armor tag: %d\n", new_armor->tag);
+				G_Debug("Invalid armor tag: %d\n", new_armor->tag);
 				break;
 		}
 	}
@@ -1043,13 +1043,13 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 	tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, CONTENTS_MASK_SOLID);
 	if (tr.start_solid) {
 		// try thinner box
-		gi.Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
+		G_Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
 		ent->maxs.z /= 2.0;
 
 		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, CONTENTS_MASK_SOLID);
 		if (tr.start_solid) {
 
-			gi.Debug("%s still can't fit, trying Q2 box..\n", etos(ent));
+			G_Debug("%s still can't fit, trying Q2 box..\n", etos(ent));
 
 			ent->mins = Vec3_Add(ent->mins, Vec3(2.f, 2.f, 2.f));
 			ent->maxs = Vec3_Add(ent->maxs, Vec3(-2.f, -2.f, -2.f));
@@ -1058,7 +1058,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 			tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, CONTENTS_MASK_SOLID);
 			if (tr.start_solid) {
 
-				gi.Debug("%s trying higher, last attempt..\n", etos(ent));
+				G_Debug("%s trying higher, last attempt..\n", etos(ent));
 
 				ent->s.origin.z += 8.0;
 

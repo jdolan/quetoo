@@ -206,7 +206,7 @@ g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item) {
 			G_AddAmmo(ent, ammo, -dropped->locals.health);
 		}
 	} else {
-		gi.Debug("Failed to drop %s\n", item->name);
+		G_Debug("Failed to drop %s\n", item->name);
 	}
 
 	return dropped;

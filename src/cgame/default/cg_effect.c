@@ -42,7 +42,7 @@ static cg_weather_state_t cg_weather_state;
 void Cg_ResolveWeather(const char *weather) {
 	char *c;
 
-	cgi.Debug("%s\n", weather);
+	Cg_Debug("%s\n", weather);
 
 	cgi.view->weather = WEATHER_NONE;
 
@@ -148,7 +148,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 	e->next = cg_weather_state.emits;
 	cg_weather_state.emits = e;
 
-	cgi.Debug("%s: %d origins\n", vtos(center), e->num_origins);
+	Cg_Debug("%s: %d origins\n", vtos(center), e->num_origins);
 }
 
 /**
@@ -180,7 +180,7 @@ static void Cg_LoadWeather(void) {
 		}
 	}
 
-	cgi.Debug("%d emits\n", j);
+	Cg_Debug("%d emits\n", j);
 }
 
 /**

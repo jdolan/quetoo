@@ -42,7 +42,7 @@ static void G_CheckGround(g_entity_t *ent) {
 
 		if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
 			if (ent->locals.ground_entity == NULL) {
-				gi.Debug("%s meeting ground %s\n", etos(ent), etos(trace.ent));
+				G_Debug("%s meeting ground %s\n", etos(ent), etos(trace.ent));
 			}
 			ent->locals.ground_entity = trace.ent;
 			ent->locals.ground_plane = trace.plane;
@@ -50,7 +50,7 @@ static void G_CheckGround(g_entity_t *ent) {
 			ent->locals.ground_contents = trace.contents;
 		} else {
 			if (ent->locals.ground_entity) {
-				gi.Debug("%s leaving ground %s\n", etos(ent), etos(ent->locals.ground_entity));
+				G_Debug("%s leaving ground %s\n", etos(ent), etos(ent->locals.ground_entity));
 			}
 			ent->locals.ground_entity = NULL;
 		}
@@ -178,7 +178,7 @@ static _Bool G_CorrectPosition(g_entity_t *ent) {
 		}
 
 		ent->s.origin = pos;
-		gi.Debug("still solid, reverting %s\n", etos(ent));
+		G_Debug("still solid, reverting %s\n", etos(ent));
 
 		return false;
 	}
@@ -400,7 +400,7 @@ void G_TouchOccupy(g_entity_t *ent) {
 				.dist = 0.0,
 				.type = PLANE_Z
 			};
-			gi.Debug("%s occupying %s\n", etos(ent), etos(occupied));
+			G_Debug("%s occupying %s\n", etos(ent), etos(occupied));
 			occupied->locals.Touch(occupied, ent, &plane, NULL);
 		}
 
@@ -602,7 +602,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 			}
 		}
 
-		gi.Debug("%s blocked by %s\n", etos(self), etos(ent));
+		G_Debug("%s blocked by %s\n", etos(self), etos(ent));
 
 		// if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
 		// blocked: revert any moves we may have made and return our obstacle
@@ -701,14 +701,14 @@ static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 	// run the interaction
 
 	if (ent->locals.Touch) {
-		gi.Debug("%s touching %s\n", etos(ent), etos(trace->ent));
+		G_Debug("%s touching %s\n", etos(ent), etos(trace->ent));
 		ent->locals.Touch(ent, trace->ent, &trace->plane, trace->texinfo);
 	}
 
 	if (ent->in_use && trace->ent->in_use) {
 
 		if (trace->ent->locals.Touch) {
-			gi.Debug("%s touching %s\n", etos(trace->ent), etos(ent));
+			G_Debug("%s touching %s\n", etos(trace->ent), etos(ent));
 			trace->ent->locals.Touch(trace->ent, ent, NULL, NULL);
 		}
 	}
@@ -835,7 +835,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 	}
 
 	if (!G_CorrectPosition(ent)) {
-		gi.Debug("reverting %s\n", etos(ent));
+		G_Debug("reverting %s\n", etos(ent));
 
 		ent->s.origin = origin;
 		ent->s.angles = angles;

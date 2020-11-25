@@ -146,7 +146,7 @@ static inline void Ai_BackupMainPath(ai_locals_t *ai) {
 
 	if (!ai->backup_move_target.type && ai->move_target.type == AI_GOAL_PATH) {
 		Ai_CopyGoal(&ai->move_target, &ai->backup_move_target);
-		aim.gi->Debug("Backing up main path; new temporary path incoming\n");
+		Ai_Debug("Backing up main path; new temporary path incoming\n");
 	}
 }
 
@@ -167,11 +167,11 @@ static inline void Ai_RestoreMainPath(const g_entity_t *self, ai_locals_t *ai) {
 		}
 	} else {
 		Ai_ClearGoal(&ai->move_target);
-		aim.gi->Debug("No main path?\n");
+		Ai_Debug("No main path?\n");
 	}
 
 	Ai_ClearGoal(&ai->backup_move_target);
-	aim.gi->Debug("Returning to main path\n");
+	Ai_Debug("Returning to main path\n");
 
 	// no matter what, clear long range func goal so we can try it immediately
 	ai->funcgoal_nextthinks[AI_FUNCGOAL_LONGRANGE] = 0;
@@ -470,7 +470,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
 	Ai_Command(self, va("use %s", ITEM_DATA(best_weapon->item, name)));
 	ai->weapon_check_time = ai_level.time + 300; // don't try again for a bit
-	aim.gi->Debug("weapon choice: %s (%u choices)\n", ITEM_DATA(best_weapon->item, name), num_weapons);
+	Ai_Debug("weapon choice: %s (%u choices)\n", ITEM_DATA(best_weapon->item, name), num_weapons);
 }
 
 /**
@@ -563,7 +563,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 				if (path) {
 					Ai_SetPathGoal(self, &ai->move_target, 0.7f, path, ai->combat_target.entity.ent);
 					g_array_unref(path);
-					aim.gi->Debug("Enemy out of sight & chasing\n");
+					Ai_Debug("Enemy out of sight & chasing\n");
 				}
 			}
 			
@@ -581,7 +581,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 	// we have somebody to kill; go get'em!
 	if (ai->combat_target.type == AI_GOAL_ENTITY && !Ai_GoalHasEntity(&ai->move_target, ai->combat_target.entity.ent) && Ai_ShouldChaseEnemy(self, ai->combat_target.entity.ent)) {
 		Ai_CopyGoal(&ai->combat_target, &ai->move_target);
-		aim.gi->Debug("Decided to chase/close in on enemy\n");
+		Ai_Debug("Decided to chase/close in on enemy\n");
 	}
 
 	// still have an enemy
@@ -845,7 +845,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 	}
 
 	if (goal->last_distress != goal->distress) {
-		//aim.gi->Debug("Distress: %f\n", goal->distress);
+		//Ai_Debug("Distress: %f\n", goal->distress);
 		goal->last_distress = goal->distress;
 	}
 
@@ -855,7 +855,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 		goal->distress_extension = false;
 		ai->reacquire_time = ai_level.time + 1000;
 			
-		aim.gi->Debug("Distress threshold reached\n");
+		Ai_Debug("Distress threshold reached\n");
 		return false;
 	}
 
@@ -991,7 +991,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			Vec3_Dot(Vec3_Subtract(self->s.origin, ai->move_target.path.path_position), Vec3_Down()) > 0.7f &&
 			(ai->move_target.path.path_position.z - self->s.origin.z) <= -PM_STEP_HEIGHT) {
 			dir = Vec3_Scale(dir, Clampf(len, 10.f, PM_SPEED_RUN));
-			aim.gi->Debug("Trying to land on target\n");
+			Ai_Debug("Trying to land on target\n");
 		// we're navigating on land, and our next target is below us & a drop node (one-way connection); rather than full-blast
 		// running off the edge, transition to walking so we don't overshoot targets beneath us
 		} else if (!swimming &&
@@ -1061,7 +1061,9 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	pm.PointContents = aim.gi->PointContents;
 	pm.Trace = Ai_ClientMove_Trace;
 
-	pm.Debug = aim.gi->PmDebug_;
+	pm.Debug = aim.gi->Debug_;
+	pm.DebugMask = aim.gi->DebugMask;
+	pm.debug_mask = DEBUG_PMOVE_SERVER;
 
 	// perform a move; predict our next frame
 	Pm_Move(&pm);
@@ -1076,7 +1078,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	// we weren't trying to jump and predicted ground is gone
 	if (cmd->up <= 0 && ENTITY_DATA(self, ground_entity) && (!pm_ahead.ground_entity || !pm.ground_entity)) {
 
-		//aim.gi->Debug("Lacking ground entity. In 5 frames: %s, in 1 frame: %s\n", pm_ahead.ground_entity ? "no" : "yes", pm.ground_entity ? "no" : "yes");
+		//Ai_Debug("Lacking ground entity. In 5 frames: %s, in 1 frame: %s\n", pm_ahead.ground_entity ? "no" : "yes", pm.ground_entity ? "no" : "yes");
 
 		if (ai->move_target.type == AI_GOAL_PATH) {
 			const float xy_dist = Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin));
@@ -1112,10 +1114,10 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		if (ai->move_target.path.trick_jump == TRICK_JUMP_START) {
 			ai->move_target.path.trick_jump++;
 			cmd->up = 0;
-			aim.gi->Debug("Trick jump: letting go for a frame\n");
+			Ai_Debug("Trick jump: letting go for a frame\n");
 		} else if (ai->move_target.path.trick_jump == TRICK_JUMP_WAITING) {
 			cmd->up = PM_SPEED_JUMP;
-			aim.gi->Debug("Trick jump: holding jump again!!\n");
+			Ai_Debug("Trick jump: holding jump again!!\n");
 		}
 	}
 	
@@ -1149,13 +1151,13 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 						ai->move_target.path.trick_position = ai->move_target.path.path_position;
 						cmd->up = PM_SPEED_JUMP;
 
-						aim.gi->Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
+						Ai_Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
 					} else if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT &&
 						Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) < PM_STEP_HEIGHT * 6.f &&
 						Ai_FacingTarget(self, ai->move_target.path.path_position)) {
 
 						cmd->up = PM_SPEED_JUMP;
-						aim.gi->Debug("Node above us & close, and we're probably stuck; regular jump\n");
+						Ai_Debug("Node above us & close, and we're probably stuck; regular jump\n");
 					}
 				}
 			}
@@ -1279,7 +1281,7 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 				} else {
 					ideal_angles.x = Clampf(ideal_angles.x, 10.f, 180.f);
 				}
-				aim.gi->Debug("Clamping X to %f\n", ideal_angles.x);
+				Ai_Debug("Clamping X to %f\n", ideal_angles.x);
 			} else if (ENTITY_DATA(self, water_level) < WATER_WAIST) {
 				ideal_angles.x = 0.f;
 			}
@@ -1481,10 +1483,10 @@ static void Ai_PostThink(g_entity_t *self, const pm_cmd_t *cmd) {
 
 		if (Vec3_Distance(ai->move_target.path.trick_position, self->s.origin) < 24.f) {
 			ai->move_target.path.trick_jump = TRICK_JUMP_TURNING;
-			aim.gi->Debug("Trick jump: mission accomplished\n");
+			Ai_Debug("Trick jump: mission accomplished\n");
 		} else {
 			ai->move_target.path.trick_jump = TRICK_JUMP_NONE;
-			aim.gi->Debug("Trick jump: mission accomplished\n");
+			Ai_Debug("Trick jump: mission accomplished\n");
 		}
 	}
 }
@@ -1573,14 +1575,14 @@ static void Ai_TestPath_f(void) {
 			const ai_node_id_t closest_to_player = Ai_Node_FindClosest(ent->s.origin, 256.f, true);
 
 			if (closest_to_player == NODE_INVALID) {
-				aim.gi->Debug("Can't find a node near this bot\n");
+				Ai_Debug("Can't find a node near this bot\n");
 				continue;
 			}
 
 			GArray *path_to_start = Ai_Node_FindPath(closest_to_player, g_array_index(path, ai_node_id_t, 0), Ai_Node_DefaultHeuristic, NULL);
 
 			if (path_to_start == NULL) {
-				aim.gi->Debug("Can't find a path to the test path\n");
+				Ai_Debug("Can't find a path to the test path\n");
 				continue;
 			}
 

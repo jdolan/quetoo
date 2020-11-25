@@ -91,7 +91,7 @@ static struct {
 
 } pm_locals;
 
-#define Pm_Debug(...) pm->Debug(__func__, __VA_ARGS__)
+#define Pm_Debug(...) ({ if (pm->DebugMask() & pm->debug_mask) { pm->Debug(pm->debug_mask, __func__, __VA_ARGS__); } })
 
 /**
  * @brief Slide off of the impacted plane.

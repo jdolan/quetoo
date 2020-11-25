@@ -31,7 +31,7 @@ static void G_target_light_Cycle(g_entity_t *self) {
 
 	g_entity_t *master = self->locals.team_master;
 	if (master) {
-		gi.Debug("Cycling %s\n", etos(master->locals.enemy));
+		G_Debug("Cycling %s\n", etos(master->locals.enemy));
 
 		master->locals.enemy->s.effects ^= EF_LIGHT;
 		master->locals.enemy = master->locals.enemy->locals.team_next;
@@ -148,7 +148,7 @@ void G_target_speaker(g_entity_t *ent) {
 	char buffer[MAX_QPATH];
 
 	if (!g_game.spawn.noise) {
-		gi.Debug("No noise at %s\n", vtos(ent->s.origin));
+		G_Debug("No noise at %s\n", vtos(ent->s.origin));
 		return;
 	}
 

@@ -32,7 +32,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 21
+#define CGAME_API_VERSION 22
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -70,16 +70,15 @@ typedef struct cg_import_s {
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 	/**
+	 * @brief Fetch the currently active debug mask.
+	 */
+	debug_t (*DebugMask)(void);
+
+	/**
 	 * @brief Prints a formatted debug message to the configured consoles.
 	 * @remarks If the `debug` cvar is unset, this function will simply return.
 	 */
-	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-
-	/**
-	 * @brief Prints a formatted player movement debug message to the configured consoles.
-	 * @remarks If the `debug` cvar is unset, this function will simply return.
-	 */
-	void (*PmDebug)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	/**
 	 * @brief Prints a formatted warning message to the configured consoles.

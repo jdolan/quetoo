@@ -160,7 +160,7 @@ static void G_Ai_ClientBegin(g_entity_t *self) {
 
 	aix->Begin(self);
 
-	gi.Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
+	G_Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
 
 	self->locals.Think = G_Ai_ClientThink;
 	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;

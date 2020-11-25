@@ -41,7 +41,7 @@ void Ai_SetPositionalGoal(const g_entity_t *self, ai_goal_t *goal, float priorit
 
 	goal->position.pos = pos;
 
-	aim.gi->Debug("New goal: %s (%f priority)\n", vtos(pos), priority);
+	Ai_Debug("New goal: %s (%f priority)\n", vtos(pos), priority);
 }
 
 /**
@@ -54,7 +54,7 @@ void Ai_SetEntityGoal(const g_entity_t *self, ai_goal_t *goal, float priority, c
 	goal->entity.ent = entity;
 	goal->entity.spawn_id = entity->spawn_id;
 
-	aim.gi->Debug("New goal: %s (%f priority)\n", etos(entity), priority);
+	Ai_Debug("New goal: %s (%f priority)\n", etos(entity), priority);
 }
 
 /**
@@ -74,7 +74,7 @@ void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GAr
 		goal->path.path_target_spawn_id = path_target->spawn_id;
 	}
 
-	aim.gi->Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", g_array_index(path, ai_node_id_t, 0), g_array_index(path, ai_node_id_t, path->len - 1), priority, etos(path_target));
+	Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", g_array_index(path, ai_node_id_t, 0), g_array_index(path, ai_node_id_t, path->len - 1), priority, etos(path_target));
 }
 
 /**

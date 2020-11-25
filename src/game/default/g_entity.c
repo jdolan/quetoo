@@ -155,7 +155,7 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 static _Bool G_SpawnEntity(g_entity_t *ent) {
 
 	if (!ent->class_name) {
-		gi.Debug("NULL classname\n");
+		G_Debug("NULL classname\n");
 		return false;
 	}
 
@@ -341,7 +341,7 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 		}
 	}
 
-	//gi.Debug("%s is not a field\n", key);
+	//G_Debug("%s is not a field\n", key);
 }
 
 /**
@@ -444,7 +444,7 @@ static void G_InitEntityTeams(void) {
 		}
 	}
 
-	gi.Debug("%i teams with %i entities\n", teams, team_entities);
+	G_Debug("%i teams with %i entities\n", teams, team_entities);
 }
 
 /**
@@ -909,7 +909,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	g_strfreev(inhibit);
 
-	gi.Debug("%i entities inhibited\n", inhibited);
+	G_Debug("%i entities inhibited\n", inhibited);
 
 	G_InitMedia();
 

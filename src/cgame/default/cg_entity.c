@@ -220,7 +220,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
 	if (!ci->head || !ci->torso || !ci->legs) {
-		cgi.Debug("Invalid client info: %d\n", s->client);
+		Cg_Debug("Invalid client info: %d\n", s->client);
 		return;
 	}
 

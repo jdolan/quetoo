@@ -481,13 +481,13 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 
 					if (ai_player_roam.is_water_jump) {
 						bidirectional = true;
-						aim.gi->Debug("Most likely waterjump; connecting both ends\n");
+						Ai_Debug("Most likely waterjump; connecting both ends\n");
 					} else if (ai_player_roam.is_jumping || in_water) {
 						const float z_diff = fabsf(Ai_Node_GetPosition(ai_player_roam.last_nodes[0]).z - Ai_Node_GetPosition(landed_near_node).z);
 
 						if (z_diff < PM_STEP_HEIGHT || (in_water && z_diff < PM_STEP_HEIGHT * 3.f)) {
 							bidirectional = true;
-							aim.gi->Debug("Most likely jump or drop-into-water link; connecting both ends\n");
+							Ai_Debug("Most likely jump or drop-into-water link; connecting both ends\n");
 						}
 					}
 
@@ -497,7 +497,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 				ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
 				ai_player_roam.last_nodes[0] = landed_near_node;
 				ai_player_roam.is_water_jump = false;
-				aim.gi->Debug("%s A->B node\n", dropped_node ? "Dropped new" : "Connected existing");
+				Ai_Debug("%s A->B node\n", dropped_node ? "Dropped new" : "Connected existing");
 			}
 
 			return;
@@ -510,7 +510,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 			ai_player_roam.position = player->s.origin;
 			ai_player_roam.await_landing = true;
 
-			aim.gi->Debug("Teleport detected; awaiting landing...\n");
+			Ai_Debug("Teleport detected; awaiting landing...\n");
 			return;
 		}
 
@@ -529,14 +529,14 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 			
 				ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
 				ai_player_roam.last_nodes[0] = id;
-				aim.gi->Debug("Dropped new A<->B node\n");
+				Ai_Debug("Dropped new A<->B node\n");
 			} else {
 				
 				if (ai_player_roam.last_nodes[0] != NODE_INVALID) {
 
 					Ai_Node_CreateDefaultLink(ai_player_roam.last_nodes[0], jumped_near_node, true);
 
-					aim.gi->Debug("Connected existing A<->B node\n");
+					Ai_Debug("Connected existing A<->B node\n");
 				}
 			
 				ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
@@ -551,7 +551,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 				ai_player_roam.is_water_jump = false;
 			}
 
-			aim.gi->Debug("Left ground; jumping? %s\n", is_jump ? "yes" : "nop");
+			Ai_Debug("Left ground; jumping? %s\n", is_jump ? "yes" : "nop");
 			return;
 		}
 	}
@@ -626,7 +626,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		
 			ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
 			ai_player_roam.last_nodes[0] = id;
-			aim.gi->Debug("Dropped mover A->B node\n");
+			Ai_Debug("Dropped mover A->B node\n");
 		}
 
 	// if we touched another node and had another node lit up; connect us if we aren't already
@@ -635,7 +635,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		if (do_noding && ai_player_roam.last_nodes[0] != NODE_INVALID) {
 
 			Ai_Node_CreateDefaultLink(ai_player_roam.last_nodes[0], closest_node, !ai_player_roam.on_mover);
-			aim.gi->Debug("Connected existing A<->B node\n");
+			Ai_Debug("Connected existing A<->B node\n");
 		}
 		
 		ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
@@ -657,7 +657,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		
 			ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
 			ai_player_roam.last_nodes[0] = id;
-			aim.gi->Debug("Dropped new A<->B node\n");
+			Ai_Debug("Dropped new A<->B node\n");
 		}
 	}
 
@@ -1339,7 +1339,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
 	GArray *return_path = NULL;
 
 	if (finished) {
-		aim.gi->Debug("Found path from %u -> %u with %u nodes visited\n", start, end, g_hash_table_size(costs_started));
+		Ai_Debug("Found path from %u -> %u with %u nodes visited\n", start, end, g_hash_table_size(costs_started));
 
 		return_path = g_array_sized_new(false, false, sizeof(ai_node_id_t), g_hash_table_size(costs_started));
 
@@ -1368,7 +1368,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
 			}
 		}
 	} else {
-		aim.gi->Debug("Couldn't find path from %u -> %u\n", start, end);
+		Ai_Debug("Couldn't find path from %u -> %u\n", start, end);
 	}
 
 	g_array_free(queue, true);

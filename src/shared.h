@@ -536,3 +536,44 @@ guint g_stri_hash (gconstpointer v);
  * @brief The type of an AI node.
  */
 typedef uint16_t ai_node_id_t;
+
+/**
+ * @brief Default filesystem initialization flags.
+ */
+#define FS_NONE					0x0
+
+/**
+ * @brief If set, supported archives (.pk3, .pak) in search paths will be
+ * automatically loaded. Set this to false for tools that require the write
+ * directory, but not read access to the Quake file system (e.g quetoo-master).
+ */
+#define FS_AUTO_LOAD_ARCHIVES   0x1
+
+typedef struct {
+	void *opaque;
+} file_t;
+
+typedef void (*Fs_Enumerator)(const char *path, void *data);
+
+/**
+ * @brief Debug cateogories.
+ */
+typedef enum {
+	DEBUG_AI			= 1 << 0,
+	DEBUG_CGAME			= 1 << 1,
+	DEBUG_CLIENT		= 1 << 2,
+	DEBUG_COLLISION		= 1 << 3,
+	DEBUG_CONSOLE		= 1 << 4,
+	DEBUG_FILESYSTEM	= 1 << 5,
+	DEBUG_GAME			= 1 << 6,
+	DEBUG_NET			= 1 << 7,
+	DEBUG_PMOVE_CLIENT	= 1 << 8,
+	DEBUG_PMOVE_SERVER  = 1 << 9,
+	DEBUG_RENDERER		= 1 << 10,
+	DEBUG_SERVER		= 1 << 11,
+	DEBUG_SOUND			= 1 << 12,
+	DEBUG_UI			= 1 << 13,
+
+	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
+	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),
+} debug_t;

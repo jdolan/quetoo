@@ -22,10 +22,9 @@
 #pragma once
 
 #include "shared.h"
-#include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 11
+#define GAME_API_VERSION 12
 
 /**
  * @brief Server flags for g_entity_t.
@@ -188,8 +187,8 @@ typedef struct g_import_s {
 	 * @brief Console logging facilities.
 	 */
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+	debug_t (*DebugMask)(void);
 	void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-	void (*PmDebug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 

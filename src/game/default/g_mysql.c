@@ -46,7 +46,7 @@ static void G_MySQL_Query(const char *fmt, ...) {
 	if (error) {
 		gi.Warn("%s -> %d", query, error);
 	} else {
-		gi.Debug("%s", query);
+		G_Debug("%s", query);
 	}
 }
 

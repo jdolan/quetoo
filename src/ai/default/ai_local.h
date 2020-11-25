@@ -25,7 +25,7 @@
 
 #define AI_NAME "default"
 
-#define Debug(...) Debug_(DEBUG_AI, __func__, __VA_ARGS__)
+#define Ai_Debug(...) ({ if (aim.gi->DebugMask() & DEBUG_AI) { aim.gi->Debug_(DEBUG_AI, __func__, __VA_ARGS__); } })
 #define Error(...) Error_(__func__, __VA_ARGS__)
 #define Warn(...) Warn_(__func__, __VA_ARGS__)
 

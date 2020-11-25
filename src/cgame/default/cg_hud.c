@@ -965,7 +965,7 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
  */
 void Cg_ParseWeaponInfo(const char *s) {
 
-	cgi.Debug("Received weapon info from server: %s\n", s);
+	Cg_Debug("Received weapon info from server: %s\n", s);
 
 	gchar **info = g_strsplit(s, "\\", 0);
 	const size_t num_info = g_strv_length(info);

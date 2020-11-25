@@ -597,7 +597,7 @@ static void G_Say_f(g_entity_t *ent) {
 static void G_PlayerList_f(g_entity_t *ent) {
 	int32_t i, seconds;
 	char st[80];
-	char text[1400];
+	char text[MAX_PRINT_MSG];
 	g_entity_t *e2;
 
 	memset(text, 0, sizeof(text));

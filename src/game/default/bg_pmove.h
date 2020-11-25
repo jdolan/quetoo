@@ -207,7 +207,9 @@ typedef struct {
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);
 
 	// print debug messages for development
-	void (*Debug)(const char *func, const char *fmt, ...);
+	debug_t (*DebugMask)(void);
+	void (*Debug)(const debug_t debug, const char *func, const char *fmt, ...);
+	debug_t debug_mask;
 } pm_move_t;
 
 /**

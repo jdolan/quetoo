@@ -336,7 +336,7 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
 			}
 		}
 
-		gi.Debug("%s\n", etos(other));
+		G_Debug("%s\n", etos(other));
 		return;
 	}
 
@@ -431,7 +431,7 @@ static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other,
 void G_trigger_exec(g_entity_t *self) {
 
 	if (!self->locals.command && !self->locals.script) {
-		gi.Debug("No command or script at %s", vtos(self->s.origin));
+		G_Debug("No command or script at %s", vtos(self->s.origin));
 		G_FreeEntity(self);
 		return;
 	}

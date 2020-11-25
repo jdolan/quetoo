@@ -41,7 +41,7 @@ void Cg_AddLight(const cg_light_t *l) {
 		}
 
 	if (i == lengthof(cg_lights)) {
-		cgi.Debug("MAX_LIGHTS\n");
+		Cg_Debug("MAX_LIGHTS\n");
 		return;
 	}
 

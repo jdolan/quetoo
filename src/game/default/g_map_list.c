@@ -225,7 +225,7 @@ static GList *G_MapList_Parse(const char *filename) {
 
 		if (*token == '}') { // wrap it up, B
 
-			gi.Debug("Loaded map %s:\n"
+			G_Debug("Loaded map %s:\n"
 			         "message: %s\n"
 			         "sky: %s\n"
 			         "weather: %s\n"

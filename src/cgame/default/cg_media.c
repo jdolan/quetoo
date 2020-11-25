@@ -336,5 +336,5 @@ void Cg_UpdateMedia(void) {
 
 	Cg_LoadHudMedia();
 
-	cgi.Debug("Complete\n");
+	Cg_Debug("Complete\n");
 }

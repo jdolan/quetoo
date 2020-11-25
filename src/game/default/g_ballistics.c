@@ -30,7 +30,7 @@ static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
 		const float s = scale * g_player_projectile->value;
 		ent->locals.velocity = Vec3_Add(ent->locals.velocity, Vec3_Scale(ent->owner->locals.velocity, s));
 	} else {
-		gi.Debug("No owner for %s\n", etos(ent));
+		G_Debug("No owner for %s\n", etos(ent));
 	}
 }
 
@@ -153,7 +153,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 
 	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_LIQUID);
 	if (tr.start_solid || tr.fraction == 1.0) {
-		gi.Debug("%s failed to resolve water\n", etos(ent));
+		G_Debug("%s failed to resolve water\n", etos(ent));
 		return;
 	}
 
@@ -166,7 +166,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 	} else if (tr.contents & CONTENTS_WATER) {
 		viscosity = 10.0;
 	} else {
-		gi.Debug("%s failed to resolve water type\n", etos(ent));
+		G_Debug("%s failed to resolve water type\n", etos(ent));
 		return;
 	}
 

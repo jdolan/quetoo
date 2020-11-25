@@ -24,29 +24,22 @@
 static void *cgame_handle;
 
 /**
- * @brief
+ * @brief Fetch the active debug mask.
  */
-static void Cl_CgameDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Cl_CgameDebug(const char *func, const char *fmt, ...) {
-
-	va_list args;
-	va_start(args, fmt);
-
-	Com_Debugv_(DEBUG_CGAME, func, fmt, args);
-
-	va_end(args);
+static debug_t Cl_CgameDebugMask(void) {
+	return quetoo.debug_mask;
 }
 
 /**
  * @brief
  */
-static void Cl_CgamePmDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Cl_CgamePmDebug(const char *func, const char *fmt, ...) {
+static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
 
 	va_list args;
 	va_start(args, fmt);
 
-	Com_Debugv_(DEBUG_PMOVE_CLIENT, func, fmt, args);
+	Com_Debugv_(debug, func, fmt, args);
 
 	va_end(args);
 }
@@ -156,7 +149,7 @@ void Cl_InitCgame(void) {
 
 	import.Print = Com_Print;
 	import.Debug_ = Cl_CgameDebug;
-	import.PmDebug = Cl_CgamePmDebug;
+	import.DebugMask = Cl_CgameDebugMask;
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Cl_CgameError;
 

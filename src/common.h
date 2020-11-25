@@ -36,11 +36,6 @@
 #define DEFAULT_AI			"default"
 
 /**
- * @brief The max length of any given output message (stdio).
- */
-#define MAX_PRINT_MSG		2048
-
-/**
  * @brief Quake net protocol version; this must be changed when the structure
  * of core net messages or serialized data types change. The game and client
  * game maintain PROTOCOL_MINOR as well.
@@ -96,29 +91,6 @@
 #define IS_INVALID_DOWNLOAD(f) (\
                                 !*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
                                )
-
-/**
- * @brief Debug cateogories.
- */
-typedef enum {
-	DEBUG_AI			= 1 << 0,
-	DEBUG_CGAME			= 1 << 1,
-	DEBUG_CLIENT		= 1 << 2,
-	DEBUG_COLLISION		= 1 << 3,
-	DEBUG_CONSOLE		= 1 << 4,
-	DEBUG_FILESYSTEM	= 1 << 5,
-	DEBUG_GAME			= 1 << 6,
-	DEBUG_NET			= 1 << 7,
-	DEBUG_PMOVE_CLIENT	= 1 << 8,
-	DEBUG_PMOVE_SERVER  = 1 << 9,
-	DEBUG_RENDERER		= 1 << 10,
-	DEBUG_SERVER		= 1 << 11,
-	DEBUG_SOUND			= 1 << 12,
-	DEBUG_UI			= 1 << 13,
-
-	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
-	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),
-} debug_t;
 
 /**
  * @brief Error categories.

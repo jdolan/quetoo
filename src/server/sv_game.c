@@ -22,30 +22,22 @@
 #include "sv_local.h"
 
 /**
+ * @brief Fetch the active debug mask.
+ */
+static debug_t Sv_DebugMask(void) {
+	return quetoo.debug_mask;
+}
+
+/**
  * @brief
  */
-static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3,
-        4)));
+static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
 
 	va_list args;
 	va_start(args, fmt);
 
 	Com_Debugv_(debug, func, fmt, args);
-
-	va_end(args);
-}
-
-/**
- * @brief
- */
-static void Sv_GamePmDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Sv_GamePmDebug(const char *func, const char *fmt, ...) {
-
-	va_list args;
-	va_start(args, fmt);
-
-	Com_Debugv_(DEBUG_PMOVE_SERVER, func, fmt, args);
 
 	va_end(args);
 }
@@ -311,8 +303,8 @@ void Sv_InitGame(void) {
 	memset(&import, 0, sizeof(import));
 
 	import.Print = Com_Print;
+	import.DebugMask = Sv_DebugMask;
 	import.Debug_ = Sv_GameDebug;
-	import.PmDebug_ = Sv_GamePmDebug;
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Sv_GameError;
 

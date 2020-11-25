@@ -28,8 +28,7 @@
 	#define GAME_NAME "default"
 #endif
 
-#define Debug(...) Debug_(DEBUG_GAME, __func__, __VA_ARGS__)
-#define PmDebug(...) PmDebug_(__func__, __VA_ARGS__)
+#define G_Debug(...) ({ if (gi.DebugMask() & DEBUG_GAME) { gi.Debug_(DEBUG_GAME, __func__, __VA_ARGS__); } })
 #define Warn(...) Warn_(__func__, __VA_ARGS__)
 #define Error(...) Error_(__func__, __VA_ARGS__)
 

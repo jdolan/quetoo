@@ -230,7 +230,7 @@ void Cg_LoadEmits(void) {
 					e->flags &= ~EMIT_LIGHT;
 				}
 
-				cgi.Debug("Added %d emit at %s\n", e->flags, vtos(e->org));
+				Cg_Debug("Added %d emit at %s\n", e->flags, vtos(e->org));
 
 				cg_num_emits++;
 

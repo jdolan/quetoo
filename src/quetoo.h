@@ -126,6 +126,11 @@
 #define MAX_GENERAL			256 // general config strings
 
 /**
+ * @brief The max length of any given output message (stdio).
+ */
+#define MAX_PRINT_MSG		2048
+
+/**
  * @brief Print message levels, for filtering.
  */
 #define PRINT_LOW			0x1

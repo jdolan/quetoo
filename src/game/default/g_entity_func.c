@@ -104,7 +104,7 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 		float decel_distance = avg_speed * decel_time;
 
 		if (accel_distance + decel_distance > distance) {
-			gi.Debug("Clamping acceleration for %s\n", etos(ent));
+			G_Debug("Clamping acceleration for %s\n", etos(ent));
 
 			const float scale = distance / (accel_distance + decel_distance);
 
@@ -301,7 +301,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 		} else if (other->solid == SOLID_BOX) {
 			G_Damage(other, self, NULL, dir, Vec3_Zero(), Vec3_Up(), self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
 		} else {
-			gi.Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
+			G_Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
 		}
 	} else {
 		G_Damage(other, self, NULL, dir, Vec3_Zero(), Vec3_Up(), 999, 0, 0, MOD_CRUSH);
@@ -1298,7 +1298,7 @@ void G_func_door_rotating(g_entity_t *ent) {
 	}
 
 	if (!g_game.spawn.distance) {
-		gi.Debug("%s at %s with no distance\n", ent->class_name, vtos(ent->s.origin));
+		G_Debug("%s at %s with no distance\n", ent->class_name, vtos(ent->s.origin));
 		g_game.spawn.distance = 90.0;
 	}
 
@@ -1822,7 +1822,7 @@ again:
 
 	ent = G_PickTarget(self->locals.target);
 	if (!ent) {
-		gi.Debug("%s has invalid target %s\n", etos(self), self->locals.target);
+		G_Debug("%s has invalid target %s\n", etos(self), self->locals.target);
 		return;
 	}
 
@@ -1831,7 +1831,7 @@ again:
 	// check for a teleport path_corner
 	if (ent->locals.spawn_flags & 1) {
 		if (!first) {
-			gi.Debug("%s has teleport path_corner %s\n", etos(self), etos(ent));
+			G_Debug("%s has teleport path_corner %s\n", etos(self), etos(ent));
 			return;
 		}
 		first = false;
@@ -1883,12 +1883,12 @@ static void G_func_train_Find(g_entity_t *self) {
 	g_entity_t *ent;
 
 	if (!self->locals.target) {
-		gi.Debug("No target specified\n");
+		G_Debug("No target specified\n");
 		return;
 	}
 	ent = G_PickTarget(self->locals.target);
 	if (!ent) {
-		gi.Debug("Target \"%s\" not found\n", self->locals.target);
+		G_Debug("Target \"%s\" not found\n", self->locals.target);
 		return;
 	}
 	self->locals.target = ent->locals.target;
@@ -1981,7 +1981,7 @@ void G_func_train(g_entity_t *self) {
 		self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		self->locals.Think = G_func_train_Find;
 	} else {
-		gi.Debug("No target: %s\n", vtos(self->s.origin));
+		G_Debug("No target: %s\n", vtos(self->s.origin));
 	}
 }
 
@@ -2042,7 +2042,7 @@ void G_func_timer(g_entity_t *self) {
 
 	if (self->locals.random >= self->locals.wait) {
 		self->locals.random = self->locals.wait - QUETOO_TICK_SECONDS;
-		gi.Debug("random >= wait: %s\n", vtos(self->s.origin));
+		G_Debug("random >= wait: %s\n", vtos(self->s.origin));
 	}
 
 	if (self->locals.spawn_flags & 1) {

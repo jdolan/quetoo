@@ -74,7 +74,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 	g_snprintf(path, sizeof(path), "%s_%s.skin", mod->media.name, skin);
 
 	if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
-		cgi.Debug("%s not found\n", path);
+		Cg_Debug("%s not found\n", path);
 
 		skins[0] = NULL;
 		return false;
@@ -104,7 +104,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 	for (i = 0; i < model->num_faces; i++, face++) {
 
 		if (!skins[i]) {
-			cgi.Debug("%s: %s has no skin\n", path, face->name);
+			Cg_Debug("%s: %s has no skin\n", path, face->name);
 
 			skins[0] = NULL;
 			break;
@@ -163,7 +163,7 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
 		}
 	}
 
-	cgi.Debug("Could not load client model %s/%s\n", model, skin);
+	Cg_Debug("Could not load client model %s/%s\n", model, skin);
 
 	// if we reach here, something up above didn't load
 	return false;
@@ -178,7 +178,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	char *v = NULL;
 	int32_t i;
 
-	cgi.Debug("%s\n", s);
+	Cg_Debug("%s\n", s);
 
 	// copy the entire string
 	g_strlcpy(ci->info, s, sizeof(ci->info));

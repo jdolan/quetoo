@@ -353,7 +353,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 			if (target->locals.Die) {
 				target->locals.Die(target, attacker, mod);
 			} else {
-				gi.Debug("No die function for %s\n", target->class_name);
+				G_Debug("No die function for %s\n", target->class_name);
 			}
 
 			return;

@@ -746,7 +746,6 @@ static _Bool G_WouldTelefrag(const vec3_t spot) {
  * @brief
  */
 static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points) {
-
 	uint32_t empty_spawns[spawn_points->count];
 	uint32_t num_empty_spawns = 0;
 
@@ -1105,7 +1104,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	const size_t len = strlen(user_info);
 	memmove(ent->client->locals.persistent.user_info, user_info, len + 1);
 
-	gi.Debug("%s\n", user_info);
+	G_Debug("%s\n", user_info);
 
 	// set name, use a temp buffer to compute length and crutch up bad names
 	const char *s = GetUserInfo(user_info, "name");
@@ -1408,7 +1407,9 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	pm.PointContents = gi.PointContents;
 	pm.Trace = G_ClientMove_Trace;
 
-	pm.Debug = gi.PmDebug_;
+	pm.Debug = gi.Debug_;
+	pm.DebugMask = gi.DebugMask;
+	pm.debug_mask = DEBUG_PMOVE_SERVER;
 
 	// perform a move
 	Pm_Move(&pm);
