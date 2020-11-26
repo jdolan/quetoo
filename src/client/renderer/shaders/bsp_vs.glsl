@@ -84,7 +84,7 @@ void main(void) {
 		vec3 end = (position.xyz - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
 
 		float step_dist = 32.0f;
-		int step_count = int(floor(length(position.xyz - view_origin) / step_dist));
+		int step_count = max(1, int(floor(length(position.xyz - view_origin) / step_dist)));
 
 		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 		for (int i = 1; i < step_count; i++) {
