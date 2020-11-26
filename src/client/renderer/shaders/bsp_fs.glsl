@@ -44,8 +44,17 @@ in vertex_data {
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec4 color;
-	vec4 fog;
+	vec3 grid;
 } vertex;
+
+uniform vec3 view_origin;
+
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_direction;
+
+uniform vec3 lightgrid_mins;
+uniform vec3 lightgrid_maxs;
 
 out vec4 out_color;
 
@@ -160,7 +169,7 @@ void main(void) {
 	vec2 texcoord_material = vertex.diffusemap;
 	vec2 texcoord_lightmap = vertex.lightmap;
 
-	#if 1 // set to 0 to see only vertex fog
+	#if 0 // set to 0 to see only vertex fog
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
@@ -237,8 +246,29 @@ void main(void) {
 
 	#else
 
-	// FIXME: temporary crappy fog test:
-	out_color.rgb = vertex.fog.rgb;
+	vec3 fog_color = vec3(0.0, 0.0, 0.0);
+
+
+
+	{
+		// raymarch lightgrid to accumulate fog
+
+		vec3 begin = (view_origin - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
+		vec3 end = vertex.grid;
+
+		float step_dist = 32.0f;
+		int step_count = max(1, int(floor(length(vertex.grid - view_origin) / step_dist)));
+
+		for (int i = 1; i < step_count; i++) {
+			float t = float(i) / float(step_count);
+			vec3 coordinate = mix(begin, end, t);
+			fog_color += texture(texture_lightgrid_diffuse, coordinate).rgb;
+		}
+
+		fog_color /= float(step_count);
+	}
+
+	out_color.rgb = fog_color;
 	out_color.a = 1.0;
 
 	#endif

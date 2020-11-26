@@ -31,13 +31,7 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
 
-uniform vec3 view_origin;
-
 uniform stage_t stage;
-
-uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
 
 uniform vec3 lightgrid_mins;
 uniform vec3 lightgrid_maxs;
@@ -50,7 +44,7 @@ out vertex_data {
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec4 color;
-	vec4 fog;
+	vec3 grid;
 } vertex;
 
 /**
@@ -67,7 +61,6 @@ void main(void) {
 
 	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	// fun fact: position doesn't actually need a model matrix
 	vertex.position = vec3(model_view * position);
 	vertex.normal = vec3(model_view * normal);
 	vertex.tangent = vec3(model_view * tangent);
@@ -77,6 +70,9 @@ void main(void) {
 	vertex.lightmap = in_lightmap;
 	vertex.color = in_color;
 
+	vertex.grid = (position.xyz - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
+
+	/*
 	{
 		// raymarch lightgrid to accumulate fog
 
@@ -94,6 +90,7 @@ void main(void) {
 		}
 		vertex.fog.rgb /= float(step_count);
 	}
+	*/
 
 	gl_Position = projection * vec4(vertex.position, 1.0);
 
