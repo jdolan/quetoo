@@ -40,6 +40,7 @@ src/tests/*.trs
 src/tests/check_ai_ann
 src/tests/check_atlas
 src/tests/check_cm_polylib
+src/tests/check_cm_test
 src/tests/check_cmd
 src/tests/check_cvar
 src/tests/check_filesystem
