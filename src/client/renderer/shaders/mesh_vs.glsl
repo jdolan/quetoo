@@ -73,9 +73,9 @@ void main(void) {
 	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
 	vertex.position = vec3(model_view * position);
-	vertex.normal = vec3(model_view * normal));
-	vertex.tangent = vec3(model_view * tangent));
-	vertex.bitangent = vec3(model_view * bitangent));
+	vertex.normal = vec3(model_view * normal);
+	vertex.tangent = vec3(model_view * tangent);
+	vertex.bitangent = vec3(model_view * bitangent);
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightgrid = (vec3(model * position) - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
