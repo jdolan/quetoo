@@ -155,6 +155,30 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 	return result;
 }
 
+
+vec4 volumetric_fog(void) {
+
+	// TODO: put density in alpha channel.
+
+	vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
+
+	vec3 begin = (view_origin - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
+	vec3 end = vertex.grid;
+
+	float step_dist = 32.0f;
+	int step_count = max(1, int(floor(length(vertex.grid - view_origin) / step_dist)));
+
+	for (int i = 1; i < step_count; i++) {
+		float t = float(i) / float(step_count);
+		vec3 coordinate = mix(begin, end, t);
+		result.rgb += texture(texture_lightgrid_diffuse, coordinate).rgb;
+	}
+
+	result.rgb /= float(step_count);
+
+	return result;
+}
+
 /**
  * @brief
  */
@@ -168,8 +192,6 @@ void main(void) {
 
 	vec2 texcoord_material = vertex.diffusemap;
 	vec2 texcoord_lightmap = vertex.lightmap;
-
-	#if 0 // set to 0 to see only vertex fog
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
@@ -236,42 +258,13 @@ void main(void) {
 	out_color.rgb = tonemap(out_color.rgb);
 
 	// FIXME: temporary crappy fog test:
-	float foggyness = clamp(length(vertex.position.xyz) / 1024.0, 0.0, 1.0);
-	out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, foggyness);
 	// out_color.rgb = fog(vertex.position, out_color.rgb);
+	float foggyness = clamp(length(vertex.position.xyz) / 1024.0, 0.0, 1.0);
+	out_color.rgb = mix(out_color.rgb, volumetric_fog().rgb, foggyness);
 	
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
-
-	#else
-
-	vec3 fog_color = vec3(0.0, 0.0, 0.0);
-
-
-
-	{
-		// raymarch lightgrid to accumulate fog
-
-		vec3 begin = (view_origin - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
-		vec3 end = vertex.grid;
-
-		float step_dist = 32.0f;
-		int step_count = max(1, int(floor(length(vertex.grid - view_origin) / step_dist)));
-
-		for (int i = 1; i < step_count; i++) {
-			float t = float(i) / float(step_count);
-			vec3 coordinate = mix(begin, end, t);
-			fog_color += texture(texture_lightgrid_diffuse, coordinate).rgb;
-		}
-
-		fog_color /= float(step_count);
-	}
-
-	out_color.rgb = fog_color;
-	out_color.a = 1.0;
-
-	#endif
 
 //	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
 //	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
