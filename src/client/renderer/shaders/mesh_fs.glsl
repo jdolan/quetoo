@@ -44,6 +44,7 @@ in vertex_data {
 	vec2 diffusemap;
 	vec3 lightgrid;
 	vec4 color;
+	vec4 fog;
 } vertex;
 
 out vec4 out_color;

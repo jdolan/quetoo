@@ -43,6 +43,10 @@ uniform vec4 color;
 
 uniform stage_t stage;
 
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_direction;
+
 out vertex_data {
 	vec3 position;
 	vec3 normal;
@@ -51,12 +55,15 @@ out vertex_data {
 	vec2 diffusemap;
 	vec3 lightgrid;
 	vec4 color;
+	vec4 fog;
 } vertex;
 
 /**
  * @brief
  */
 void main(void) {
+
+	mat4 model_view = view * model;
 
 	vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
 	vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
@@ -65,10 +72,10 @@ void main(void) {
 
 	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	vertex.position = vec3(view * model * position);
-	vertex.normal = normalize(vec3(view * model * normal));
-	vertex.tangent = normalize(vec3(view * model * tangent));
-	vertex.bitangent = normalize(vec3(view * model * bitangent));
+	vertex.position = vec3(model_view * position);
+	vertex.normal = vec3(model_view * normal));
+	vertex.tangent = vec3(model_view * tangent));
+	vertex.bitangent = vec3(model_view * bitangent));
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightgrid = (vec3(model * position) - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);

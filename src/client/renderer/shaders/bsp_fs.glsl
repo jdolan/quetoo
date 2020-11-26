@@ -44,6 +44,7 @@ in vertex_data {
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec4 color;
+	vec4 fog;
 } vertex;
 
 out vec4 out_color;
@@ -159,6 +160,8 @@ void main(void) {
 	vec2 texcoord_material = vertex.diffusemap;
 	vec2 texcoord_lightmap = vertex.lightmap;
 
+	#if 1 // set to 0 to see only vertex fog
+
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1), viewdir * tbn, fragdist, material.parallax * 0.04);
@@ -166,8 +169,8 @@ void main(void) {
 		float _specularity = material.specularity * 100.0;
 
 		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
-		vec4 normalmap  = texture(texture_material, vec3(texcoord_material, 1));
-		vec4 glossmap   = texture(texture_material, vec3(texcoord_material, 2));
+		vec4 normalmap = texture(texture_material, vec3(texcoord_material, 1));
+		vec4 glossmap = texture(texture_material, vec3(texcoord_material, 2));
 
 		diffusemap *= vertex.color;
 
@@ -177,8 +180,8 @@ void main(void) {
 
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
-		vec3 ambient   = sample_lightmap(0).rgb;
-		vec3 diffuse   = sample_lightmap(1).rgb;
+		vec3 ambient = sample_lightmap(0).rgb;
+		vec3 diffuse = sample_lightmap(1).rgb;
 		vec3 direction = sample_lightmap(2).xyz;
 
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
@@ -222,12 +225,23 @@ void main(void) {
 	// postprocessing
 	
 	out_color.rgb = tonemap(out_color.rgb);
-	
-	out_color.rgb = fog(vertex.position, out_color.rgb);
+
+	// FIXME: temporary crappy fog test:
+	float foggyness = clamp(length(vertex.position.xyz) / 1024.0, 0.0, 1.0);
+	out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, foggyness);
+	// out_color.rgb = fog(vertex.position, out_color.rgb);
 	
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
+
+	#else
+
+	// FIXME: temporary crappy fog test:
+	out_color.rgb = vertex.fog.rgb;
+	out_color.a = 1.0;
+
+	#endif
 
 //	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
 //	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
