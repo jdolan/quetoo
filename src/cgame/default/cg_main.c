@@ -30,7 +30,6 @@ typedef struct {
 
 static cg_state_t cg_state;
 
-cvar_t *cg_add_emits;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_lights;
 cvar_t *cg_add_particles;
@@ -119,7 +118,6 @@ static void Cg_Init(void) {
 
 	Cg_InitInput();
 
-	cg_add_emits = cgi.AddCvar("cg_add_emits", "1", 0, "Toggles adding client-side entities to the scene.");
 	cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
 	cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
 	cg_add_particles = cgi.AddCvar("cg_add_particles", "1", 0, "Toggles adding particles to the scene.");

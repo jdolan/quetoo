@@ -20,9 +20,8 @@
  */
 
 #include "cm_local.h"
-#include "parse.h"
 
-cm_bsp_t cm_bsp;
+cm_bsp_t cm_bsp = {};
 
 /**
  * @brief
