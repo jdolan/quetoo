@@ -221,7 +221,7 @@ void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Errorv_(err_t err, const char *func, const char *fmt, va_list args) {
+void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
 
 	if (quetoo.recursive_error) {
 
@@ -230,7 +230,7 @@ void Com_Errorv_(err_t err, const char *func, const char *fmt, va_list args) {
 		} else {
 			fputs("Recursive error\n", stderr);
 			fflush(stderr);
-			exit(err);
+			exit(error);
 		}
 	} else {
 		quetoo.recursive_error = true;
@@ -241,16 +241,16 @@ void Com_Errorv_(err_t err, const char *func, const char *fmt, va_list args) {
 
 	Com_LogString(msg);
 
-	if (err == ERROR_FATAL) {
+	if (error == ERROR_FATAL) {
 		SDL_TriggerBreakpoint();
 	}
 
 	if (quetoo.Error) {
-		quetoo.Error(err, msg);
+		quetoo.Error(error, msg);
 	} else {
 		fputs(msg, stderr);
 		fflush(stderr);
-		exit(err);
+		exit(error);
 	}
 
 	quetoo.recursive_error = false;
