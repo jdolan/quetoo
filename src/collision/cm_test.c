@@ -93,6 +93,22 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 }
 
 /**
+ * @return `1` if `point` resides inside `brush`, `0` otherwise.
+ */
+int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
+
+	cm_bsp_brush_side_t *side = brush->sides;
+	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+
+		if (Cm_DistanceToPlane(point, side->plane) > -SIDE_EPSILON) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+/**
  * @return The sidedness of the given bounds relative to the specified plane.
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
