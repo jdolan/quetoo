@@ -215,7 +215,7 @@ typedef enum {
 #define CONTENTS_NONE			0x0 // brush sides may have no contents (skip, hint)
 #define CONTENTS_SOLID			0x1 // an eye is never valid in a solid
 #define CONTENTS_WINDOW			0x2 // translucent, but not watery
-#define CONTENTS_AUX			0x4 // not used at the moment
+#define CONTENTS_AUX			0x4
 #define CONTENTS_LAVA			0x8
 #define CONTENTS_SLIME			0x10
 #define CONTENTS_WATER			0x20
@@ -224,7 +224,6 @@ typedef enum {
 #define LAST_VISIBLE_CONTENTS	CONTENTS_MIST
 
 // remaining contents are non-visible, and don't eat brushes
-#define CONTENTS_AREA_PORTAL	0x8000 // no longer supported
 #define CONTENTS_PLAYER_CLIP	0x10000
 #define CONTENTS_MONSTER_CLIP	0x20000
 
@@ -255,7 +254,8 @@ typedef enum {
  */
 #define CONTENTS_MASK_SOLID				(CONTENTS_SOLID | CONTENTS_WINDOW)
 #define CONTENTS_MASK_LIQUID			(CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
-#define CONTENTS_MASK_VISIBLE			(CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID | CONTENTS_MIST)
+#define CONTENTS_MASK_ATMOSPHERIC		(CONTENTS_MIST)
+#define CONTENTS_MASK_VISIBLE			(CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID | CONTENTS_MASK_ATMOSPHERIC)
 #define CONTENTS_MASK_CLIP				(CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)
 #define CONTENTS_MASK_MEAT				(CONTENTS_MONSTER | CONTENTS_DEAD_MONSTER)
 #define CONTENTS_MASK_FUNCTIONAL		(CONTENTS_MASK_CLIP | CONTENTS_ORIGIN)
@@ -273,7 +273,7 @@ typedef enum {
 #define SURF_LIQUID				0x8 // water, lava, slime, etc.
 #define SURF_BLEND_33			0x10 // 0.33 alpha blending
 #define SURF_BLEND_66			0x20 // 0.66 alpha blending
-#define SURF_FLOWING			0x40 // scroll towards angle, no longer supported
+#define SURF_BLEND_100			0x40 // texture-defined alpha blending
 #define SURF_NO_DRAW			0x80 // don't bother referencing the texture
 #define SURF_HINT				0x100 // make a primary bsp splitter
 #define SURF_SKIP				0x200 // completely skip, allowing non-closed brushes
@@ -291,7 +291,7 @@ typedef enum {
 /**
  * @brief Texinfos with these flags require transparency.
  */
-#define SURF_MASK_BLEND			(SURF_BLEND_33 | SURF_BLEND_66)
+#define SURF_MASK_BLEND			(SURF_BLEND_33 | SURF_BLEND_66 | SURF_BLEND_100)
 
 /**
  * @brief Texinfos with these flags imply translucent contents.
