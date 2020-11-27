@@ -115,10 +115,10 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 	bsp_brush_t *brush = (bsp_brush_t *) lump;
 
 	for (int32_t i = 0; i < num; i++) {
-
+		brush->entity_num = LittleLong(brush->entity_num);
+		brush->contents = LittleLong(brush->contents);
 		brush->first_brush_side = LittleLong(brush->first_brush_side);
 		brush->num_sides = LittleLong(brush->num_sides);
-		brush->contents = LittleLong(brush->contents);
 
 		brush++;
 	}

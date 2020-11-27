@@ -157,9 +157,10 @@ typedef struct {
 } bsp_brush_side_t;
 
 typedef struct {
+	int32_t entity_num; // the entity that defined this brush
+	int32_t contents;
 	int32_t first_brush_side;
 	int32_t num_sides;
-	int32_t contents;
 } bsp_brush_t;
 
 typedef struct {

@@ -334,6 +334,7 @@ static void EmitBrushes(void) {
 		brush_t *b = &brushes[i];
 		bsp_brush_t *out = &bsp_file.brushes[i];
 
+		out->entity_num = b->entity_num;
 		out->contents = b->contents;
 		out->first_brush_side = bsp_file.num_brush_sides;
 		out->num_sides = b->num_sides;

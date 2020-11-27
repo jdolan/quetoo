@@ -193,9 +193,10 @@ static void Cm_LoadBspBrushes(void) {
 
 	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
 
+		out->entity = cm_bsp.entities[in->entity_num];
+		out->contents = in->contents;
 		out->sides = cm_bsp.brush_sides + in->first_brush_side;
 		out->num_sides = in->num_sides;
-		out->contents = in->contents;
 	}
 }
 
