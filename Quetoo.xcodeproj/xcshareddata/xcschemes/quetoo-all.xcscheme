@@ -81,8 +81,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set ai_ann 1 +g_ai_add +debug ai"
-            isEnabled = "NO">
+            argument = "+set r_draw_bsp_lightgrid 2"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1 "

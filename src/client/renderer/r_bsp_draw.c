@@ -151,61 +151,69 @@ void R_DrawBspLightgrid(void) {
 		return;
 	}
 
-	const bsp_lightgrid_t *lg = r_world_model->bsp->cm->file.lightgrid;
-	if (!lg) {
+	const byte *in = (byte *) r_world_model->bsp->cm->file.lightgrid;
+	if (!in) {
 		return;
 	}
 
-	const size_t texture_size = lg->size.x * lg->size.y * lg->size.z * BSP_LIGHTGRID_BPP;
+	const r_bsp_lightgrid_t *lg = r_world_model->bsp->lightgrid;
 
-	const byte *ambient = (byte *) lg + sizeof(bsp_lightgrid_t);
-	const byte *diffuse = ambient + texture_size;
-	const byte *direction = diffuse + texture_size;
-	const byte *fog = direction + texture_size;
+	const size_t luxels = lg->size.x * lg->size.y * lg->size.z;
+
+	const byte *ambient = in + sizeof(bsp_lightgrid_t);
+	const byte *diffuse = ambient + luxels * BSP_LIGHTGRID_BPP;
+	const byte *direction = diffuse + luxels * BSP_LIGHTGRID_BPP;
+	const byte *fog = direction + luxels * BSP_LIGHTGRID_BPP;
 
 	r_image_t *particle = R_LoadImage("sprites/particle", IT_EFFECT);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, fog += 3) {
+			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, fog += 4) {
 
-				byte r, g, b;
-				switch (r_draw_bsp_lightgrid->integer) {
-					case 2:
-						r = Mini(fog[0], 255);
-						g = Mini(fog[1], 255);
-						b = Mini(fog[2], 255);
-						break;
-					default :
-						r = Mini(ambient[0] + diffuse[0], 255);
-						g = Mini(ambient[1] + diffuse[1], 255);
-						b = Mini(ambient[2] + diffuse[2], 255);
-						break;
-				}
+				const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
+				const vec3_t origin = Vec3_Add(lg->mins, Vec3_Scale(position, BSP_LIGHTGRID_LUXEL_SIZE));
 
-				r_sprite_t sprite = {
-					.origin = Vec3(s + 0.5, t + 0.5, u + 0.5),
-					.size = 8.f,
-					.color = Color32(r, g, b, 255),
-					.media = (r_media_t *) particle
-				};
-
-				sprite.origin = Vec3_Add(r_world_model->bsp->lightgrid->mins, Vec3_Scale(sprite.origin, BSP_LIGHTGRID_LUXEL_SIZE));
-
-				if (Vec3_DistanceSquared(r_view.origin, sprite.origin) > 512 * 512) {
+				if (Vec3_DistanceSquared(r_view.origin, origin) > 512.f * 512.f) {
 					continue;
 				}
 
-				R_AddSprite(&sprite);
+				if (r_draw_bsp_lightgrid->integer == 1) {
 
-				const float x = direction[0] / 255.f * 2.f - 1.f;
-				const float y = direction[1] / 255.f * 2.f - 1.f;
-				const float z = direction[2] / 255.f * 2.f - 1.f;
+					const byte r = Mini(ambient[0] + diffuse[0], 255);
+					const byte g = Mini(ambient[1] + diffuse[1], 255);
+					const byte b = Mini(ambient[2] + diffuse[2], 255);
 
-				const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
-				const vec3_t end = Vec3_Add(sprite.origin, Vec3_Scale(dir, 16.f));
+					R_AddSprite(&(r_sprite_t) {
+						.origin = origin,
+						.size = 8.f,
+						.color = Color32(r, g, b, 255),
+						.media = (r_media_t *) particle
+					});
 
-				R_Draw3DLines((vec3_t []) { sprite.origin, end }, 2, Color3b(r, g, b));
+					const float x = direction[0] / 255.f * 2.f - 1.f;
+					const float y = direction[1] / 255.f * 2.f - 1.f;
+					const float z = direction[2] / 255.f * 2.f - 1.f;
+
+					const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
+					const vec3_t end = Vec3_Add(origin, Vec3_Scale(dir, 16.f));
+
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, Color3b(r, g, b));
+
+				} else if (r_draw_bsp_lightgrid->integer == 2) {
+
+					const byte r = Mini(fog[0], 255);
+					const byte g = Mini(fog[1], 255);
+					const byte b = Mini(fog[2], 255);
+					const byte a = Mini(fog[3], 255);
+
+					R_AddSprite(&(r_sprite_t) {
+						.origin = origin,
+						.size = 8.f,
+						.color = Color32(r, g, b, a),
+						.media = (r_media_t *) particle
+					});
+				}
 			}
 		}
 	}
@@ -514,7 +522,7 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
 	const r_bsp_model_t *bsp = r_world_model->bsp;
-	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
+	for (int32_t i = 0; i < (int32_t) lengthof(bsp->lightgrid->textures); i++) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
 		glBindTexture(GL_TEXTURE_3D, bsp->lightgrid->textures[i]->texnum);
 	}

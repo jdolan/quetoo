@@ -27,10 +27,31 @@
 #define FOG_DENSITY 1.f
 
 /**
- * @brief Fog volumes come from brush entities that are merged into worldspawn.
- * @details Fog is baked into the lightgrid as an additional RGB 3D texture.
+ * @brief Fog types.
+ */
+typedef enum {
+	FOG_INVALID = -1,
+
+	/**
+	 * @brief Global fog comes from worldspawn.
+	 */
+	FOG_GLOBAL,
+
+	/**
+	 * @brief Fog volumes come from brush entities that are merged into worldspawn.
+	 */
+	FOG_VOLUME
+} fog_type_t;
+
+/**
+ * @details Fog is baked into the lightgrid as an additional RGBA 3D texture.
  */
 typedef struct {
+
+	/**
+	 * @brief The fog type.
+	 */
+	fog_type_t type;
 
 	/**
 	 * @brief The entity definition.

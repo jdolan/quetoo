@@ -58,29 +58,29 @@ float ColorNormalize(const vec3_t in, vec3_t *out) {
  * @brief Applies brightness, saturation and contrast to the specified input color.
  */
 vec3_t ColorFilter(const vec3_t in) {
-	const vec3_t luminosity = Vec3(0.2125, 0.7154, 0.0721);
+	const vec3_t luminosity = Vec3(0.2125f, 0.7154f, 0.0721f);
 
 	vec3_t out;
 	ColorNormalize(in, &out);
 
-	if (brightness != 1.0) { // apply brightness
+	if (brightness != 1.f) { // apply brightness
 		out = Vec3_Scale(out, brightness);
 
 		ColorNormalize(out, &out);
 	}
 
-	if (contrast != 1.0) { // apply contrast
+	if (contrast != 1.f) { // apply contrast
 
 		for (int32_t i = 0; i < 3; i++) {
-			out.xyz[i] -= 0.5; // normalize to -0.5 through 0.5
+			out.xyz[i] -= 0.5f; // normalize to -0.5 through 0.5
 			out.xyz[i] *= contrast; // scale
-			out.xyz[i] += 0.5;
+			out.xyz[i] += 0.5f;
 		}
 
 		ColorNormalize(out, &out);
 	}
 
-	if (saturation != 1.0) { // apply saturation
+	if (saturation != 1.f) { // apply saturation
 		const float d = Vec3_Dot(out, luminosity);
 		vec3_t intensity;
 

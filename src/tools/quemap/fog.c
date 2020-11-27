@@ -59,6 +59,53 @@ void FreeFog(void) {
 /**
  * @brief
  */
+static void FogForEntity(const cm_entity_t *entity) {
+
+	const char *class_name = Cm_EntityValue(entity, "classname")->string;
+	if (!g_strcmp0(class_name, "worldspawn")) {
+
+		const vec3_t color = Cm_EntityValue(entity, "fog_color")->vec3;
+		if (!Vec3_Equal(color, Vec3_Zero())) {
+
+			fog_t fog = {};
+			fog.type = FOG_GLOBAL;
+			fog.entity = entity;
+			fog.color = color;
+			fog.density = Cm_EntityValue(entity, "fog_density")->value ?: FOG_DENSITY;
+
+			g_array_append_val(fogs, fog);
+		}
+	} else if (!g_strcmp0(class_name, "misc_fog")) {
+
+		fog_t fog = {};
+		fog.type = FOG_VOLUME;
+		fog.entity = entity;
+		fog.brushes = Cm_EntityBrushes(entity);
+		fog.mins = Vec3_Mins();
+		fog.maxs = Vec3_Maxs();
+
+		if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
+			fog.color = Cm_EntityValue(entity, "_color")->vec3;
+		} else {
+			fog.color = FOG_COLOR;
+		}
+
+		fog.density = Cm_EntityValue(entity, "density")->value ?: FOG_DENSITY;
+
+		for (guint i = 0; i < fog.brushes->len; i++) {
+			const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);
+
+			fog.mins = Vec3_Minf(fog.mins, brush->mins);
+			fog.maxs = Vec3_Maxf(fog.maxs, brush->maxs);
+		}
+
+		g_array_append_val(fogs, fog);
+	}
+}
+
+/**
+ * @brief
+ */
 void BuildFog(void) {
 
 	FreeFog();
@@ -67,33 +114,8 @@ void BuildFog(void) {
 
 	cm_entity_t **entity = Cm_Bsp()->entities;
 	for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
-
-		const char *class_name = Cm_EntityValue(*entity, "classname")->string;
-		if (!g_strcmp0(class_name, "misc_fog")) {
-
-			fog_t fog = {
-				.entity = *entity,
-				.brushes = Cm_EntityBrushes(*entity),
-				.mins = Vec3_Mins(),
-				.maxs = Vec3_Maxs(),
-			};
-
-			if (Cm_EntityValue(*entity, "_color")->parsed & ENTITY_VEC3) {
-				fog.color = Cm_EntityValue(*entity, "_color")->vec3;
-			} else {
-				fog.color = FOG_COLOR;
-			}
-
-			fog.density = Cm_EntityValue(*entity, "density")->value ?: FOG_DENSITY;
-
-			for (guint i = 0; i < fog.brushes->len; i++) {
-				const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);
-
-				fog.mins = Vec3_Minf(fog.mins, brush->mins);
-				fog.maxs = Vec3_Maxf(fog.maxs, brush->maxs);
-			}
-
-			g_array_append_val(fogs, fog);
-		}
+		FogForEntity(*entity);
 	}
+
+	Com_Verbose("Fog lighting for %d sources\n", fogs->len);
 }

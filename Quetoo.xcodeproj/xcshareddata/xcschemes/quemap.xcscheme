@@ -121,7 +121,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--indirect"
+            argument = "--no-indirect"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

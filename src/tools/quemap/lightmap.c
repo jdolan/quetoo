@@ -602,14 +602,13 @@ void FinalizeLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		// add up radiosity
-		vec3_t radiosity = Vec3_Zero();
+		// accumulate radiosity in ambient
 		for (int32_t i = 0; i < num_bounces; i++) {
-			radiosity = Vec3_Add(radiosity, l->radiosity[i]);
+			l->ambient = Vec3_Add(l->ambient, l->radiosity[i]);
 		}
 
-		// convert to float, munge radiosity with ambient
-		vec3_t ambient = Vec3_Scale(Vec3_Add(l->ambient, radiosity), 1.f / 255.f);
+		// convert to float
+		vec3_t ambient = Vec3_Scale(l->ambient, 1.f / 255.f);
 		vec3_t diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
 
 		// apply brightness, saturation and contrast
@@ -671,9 +670,9 @@ void EmitLightmap(void) {
 	int32_t width;
 	for (width = MIN_BSP_LIGHTMAP_WIDTH; width <= MAX_BSP_LIGHTMAP_WIDTH; width += 256) {
 
-		const int32_t layer_size = width * width * BSP_LIGHTMAP_BPP;
+		const int32_t layer_bytes = width * width * BSP_LIGHTMAP_BPP;
 
-		bsp_file.lightmap_size = sizeof(bsp_lightmap_t) + layer_size * BSP_LIGHTMAP_LAYERS;
+		bsp_file.lightmap_size = sizeof(bsp_lightmap_t) + layer_bytes * BSP_LIGHTMAP_LAYERS;
 
 		Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAP, bsp_file.lightmap_size);
  		memset(bsp_file.lightmap, 0, bsp_file.lightmap_size);
@@ -682,9 +681,9 @@ void EmitLightmap(void) {
 
 		byte *out = (byte *) bsp_file.lightmap + sizeof(bsp_lightmap_t);
 
-		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_size);
-		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_size);
-		SDL_Surface *direction = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
+		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_bytes);
+		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_bytes);
+		SDL_Surface *direction = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_bytes);
 
 		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction) == 0) {
 

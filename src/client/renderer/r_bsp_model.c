@@ -456,7 +456,7 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->mins = Vec3_Subtract(mod->mins, padding);
 	out->maxs = Vec3_Add(mod->maxs, padding);
 
-	const size_t texture_size = out->size.x * out->size.y * out->size.z * BSP_LIGHTGRID_BPP;
+	const size_t luxels = out->size.x * out->size.y * out->size.z;
 
 	byte *data;
 	if (in) {
@@ -465,11 +465,12 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 		data = (byte []) {
 			0xff, 0xff, 0xff,
 			0xff, 0xff, 0xff,
-			0xff, 0xff, 0xff
+			0xff, 0xff, 0xff,
+			0x00, 0x00, 0x00, 0x00
 		};
 	}
 
-	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++, data += texture_size) {
+	for (int32_t i = 0; i < (int32_t) lengthof(out->textures); i++) {
 
 		out->textures[i] = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), R_MEDIA_IMAGE);
 		out->textures[i]->media.Free = R_FreeImage;
@@ -478,7 +479,13 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 		out->textures[i]->height = out->size.y;
 		out->textures[i]->depth = out->size.z;
 
-		R_UploadImage(out->textures[i], GL_RGB, data);
+		if (i < BSP_LIGHTGRID_TEXTURES) {
+			R_UploadImage(out->textures[i], GL_RGB, data);
+			data += luxels * BSP_LIGHTGRID_BPP;
+		} else {
+			R_UploadImage(out->textures[i], GL_RGBA, data);
+			data += luxels * BSP_FOG_BPP;
+		}
 	}
 }
 

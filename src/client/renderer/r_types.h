@@ -523,7 +523,7 @@ typedef struct {
 	/**
 	 * @brief The lightgrid textures (ambient, diffuse, etc..).
 	 */
-	r_image_t *textures[BSP_LIGHTGRID_TEXTURES];
+	r_image_t *textures[BSP_LIGHTGRID_TEXTURES + BSP_FOG_TEXTURES];
 } r_bsp_lightgrid_t;
 
 /**

@@ -44,7 +44,7 @@ out vertex_data {
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec4 color;
-	vec3 grid;
+	vec3 lightgrid;
 } vertex;
 
 /**
@@ -70,7 +70,7 @@ void main(void) {
 	vertex.lightmap = in_lightmap;
 	vertex.color = in_color;
 
-	vertex.grid = (position.xyz - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
+	vertex.lightgrid = (position.xyz - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
 
 	/*
 	{

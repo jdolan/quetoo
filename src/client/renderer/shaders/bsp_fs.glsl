@@ -44,7 +44,7 @@ in vertex_data {
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec4 color;
-	vec3 grid;
+	vec3 lightgrid;
 } vertex;
 
 uniform vec3 view_origin;
@@ -157,25 +157,26 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 }
 
 
+/**
+ * @brief Ray marches from the view origin to the fragment, sampling the fog texture at
+ * each iteration, accumulating the result.
+ */
 vec4 volumetric_fog(void) {
 
-	// TODO: put density in alpha channel.
+	vec4 result = vec4(0.0);
 
-	vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
+	vec3 view_lightgrid = (view_origin - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
 
-	vec3 begin = (view_origin - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
-	vec3 end = vertex.grid;
+	int iterations = max(1, int(length(vertex.position) / 16.0));
 
-	float step_dist = 32.0f;
-	int step_count = max(1, int(floor(length(vertex.grid - view_origin) / step_dist)));
-
-	for (int i = 1; i < step_count; i++) {
-		float t = float(i) / float(step_count);
-		vec3 coordinate = mix(begin, end, t);
-		result.rgb += texture(texture_lightgrid_fog, coordinate).rgb;
+	for (int i = 0; i < iterations; i++) {
+		float fraction = float(i) / float(iterations);
+		vec3 coord = mix(view_lightgrid, vertex.lightgrid, fraction);
+		vec4 fog = texture(texture_lightgrid_fog, coord);
+		result += fog * fog.a;
 	}
 
-	result.rgb /= float(step_count);
+	result /= float(iterations);
 
 	return result;
 }

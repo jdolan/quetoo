@@ -438,27 +438,33 @@ void IndirectLightgrid(int32_t luxel_num) {
  */
 static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
 
-	int32_t count = 0;
-
 	const fog_t *fog = (fog_t *) fogs->data;
 	for (guint i = 0; i < fogs->len; i++, fog++) {
 
-		float intensity = fog->density * scale;
-		
+		float intensity = 1.f;
+
+		switch (fog->type) {
+			case FOG_VOLUME:
+				if (!PointInsideFog(l->origin, fog)) {
+					intensity = 0.f;
+				}
+				break;
+			default:
+				break;
+		}
+
 		if (intensity <= 0.f) {
 			continue;
 		}
 
-		if (!PointInsideFog(l->origin, fog)) {
-			continue;
+		switch (fog->type) {
+			case FOG_INVALID:
+				break;
+			case FOG_GLOBAL:
+			case FOG_VOLUME:
+				l->fog = Vec4_Add(l->fog, Vec3_ToVec4(fog->color, fog->density));
+				break;
 		}
-
-		l->fog = Vec3_Add(l->fog, Vec3_Scale(fog->color, intensity));
-		count++;
-	}
-
-	if (count) {
-		l->fog = Vec3_Scale(l->fog, 1.f / count);
 	}
 }
 
@@ -499,29 +505,34 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	vec3_t radiosity = Vec3_Zero();
 	for (int32_t i = 0; i < num_bounces; i++) {
-		radiosity = Vec3_Add(radiosity, l->radiosity[i]);
+		l->ambient = Vec3_Add(l->ambient, l->radiosity[i]);
 	}
-	
-	l->ambient = Vec3_Scale(Vec3_Add(l->ambient, radiosity), 1.0 / 255.0);
+
+	l->ambient = Vec3_Scale(l->ambient, 1.f / 255.f);
 	l->ambient = ColorFilter(l->ambient);
 
-	l->diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
+	l->diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
 	l->diffuse = ColorFilter(l->diffuse);
 
 	l->direction = Vec3_Add(l->direction, Vec3_Up());
 	l->direction = Vec3_Normalize(l->direction);
+
+	l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));
 }
 
 /**
  * @brief
  */
-static SDL_Surface *CreateLightgridSurfaceFrom(void *pixels) {
-
-	const int32_t w = lg.size.x, h = lg.size.y;
-
+static SDL_Surface *CreateLightgridSurfaceFrom(void *pixels, int32_t w, int32_t h) {
 	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 24, w * BSP_LIGHTMAP_BPP, SDL_PIXELFORMAT_RGB24);
+}
+
+/**
+ * @brief
+ */
+static SDL_Surface *CreateFogSurfaceFrom(void *pixels, int32_t w, int32_t h) {
+	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 32, w * BSP_FOG_BPP, SDL_PIXELFORMAT_RGBA32);
 }
 
 /**
@@ -529,9 +540,10 @@ static SDL_Surface *CreateLightgridSurfaceFrom(void *pixels) {
  */
 void EmitLightgrid(void) {
 
-	const size_t texture_size = lg.num_luxels * BSP_LIGHTGRID_BPP;
+	const size_t lightgrid_bytes = lg.num_luxels * BSP_LIGHTGRID_TEXTURES * BSP_LIGHTGRID_BPP;
+	const size_t fog_bytes = lg.num_luxels * BSP_FOG_TEXTURES * BSP_FOG_BPP;
 
-	bsp_file.lightgrid_size = (int32_t) (sizeof(bsp_lightgrid_t) + texture_size * BSP_LIGHTGRID_TEXTURES);
+	bsp_file.lightgrid_size = (int32_t) (sizeof(bsp_lightgrid_t) + lightgrid_bytes + fog_bytes);
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTGRID, bsp_file.lightgrid_size);
 
@@ -539,27 +551,30 @@ void EmitLightgrid(void) {
 
 	byte *out = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
 
-	byte *out_ambient = out + 0 * texture_size;
-	byte *out_diffuse = out + 1 * texture_size;
-	byte *out_direction = out + 2 * texture_size;
-	byte *out_fog = out + 3 * texture_size;
+	byte *out_ambient = out + 0 * lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_diffuse = out + 1 * lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_direction = out + 2 * lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_fog = out + 3 * lg.num_luxels * BSP_LIGHTGRID_BPP;
 
 	const luxel_t *l = lg.luxels;
 	for (int32_t u = 0; u < lg.size.z; u++) {
 
-		SDL_Surface *ambient = CreateLightgridSurfaceFrom(out_ambient);
-		SDL_Surface *diffuse = CreateLightgridSurfaceFrom(out_diffuse);
-		SDL_Surface *direction = CreateLightgridSurfaceFrom(out_direction);
-		SDL_Surface *fog = CreateLightgridSurfaceFrom(out_fog);
+		SDL_Surface *ambient = CreateLightgridSurfaceFrom(out_ambient, lg.size.x, lg.size.y);
+		SDL_Surface *diffuse = CreateLightgridSurfaceFrom(out_diffuse, lg.size.x, lg.size.y);
+		SDL_Surface *direction = CreateLightgridSurfaceFrom(out_direction, lg.size.x, lg.size.y);
+		SDL_Surface *fog = CreateFogSurfaceFrom(out_fog, lg.size.x, lg.size.y);
 
 		for (int32_t t = 0; t < lg.size.y; t++) {
 			for (int32_t s = 0; s < lg.size.x; s++, l++) {
 
-				for (int32_t i = 0; i < 3; i++) {
+				for (int32_t i = 0; i < BSP_LIGHTGRID_BPP; i++) {
 					*out_ambient++ = (byte) Clampf(l->ambient.xyz[i] * 255.f, 0.f, 255.f);
 					*out_diffuse++ = (byte) Clampf(l->diffuse.xyz[i] * 255.f, 0.f, 255.f);
 					*out_direction++ = (byte) Clampf((l->direction.xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
-					*out_fog++ = (byte) Clampf(l->fog.xyz[i] * 255.f, 0.f, 255.f);
+				}
+
+				for (int32_t i = 0; i < BSP_FOG_BPP; i++) {
+					*out_fog++ = (byte) Clampf(l->fog.xyzw[i] * 255.f, 0.f, 255.f);
 				}
 			}
 		}
