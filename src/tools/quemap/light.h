@@ -23,7 +23,7 @@
 
 #include "bsp.h"
 
-#define LIGHT_COLOR (vec3_t) { 1.f, 1.f, 1.f }
+#define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
 #define LIGHT_RADIUS DEFAULT_LIGHT
 #define LIGHT_RADIUS_AMBIENT 255.f
 #define LIGHT_ANGLE_UP -1.f
@@ -96,13 +96,12 @@ typedef struct {
 
 } light_t;
 
-extern GArray *lights;
-
 extern GPtrArray *node_lights[MAX_BSP_NODES];
 extern GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 
 float ColorNormalize(const vec3_t in, vec3_t *out);
 vec3_t ColorFilter(const vec3_t in);
 
-void BuildDirectLights(const GList *entities);
+void FreeLights(void);
+void BuildDirectLights(void);
 void BuildIndirectLights(void);

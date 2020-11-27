@@ -52,6 +52,7 @@ uniform vec3 view_origin;
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
+uniform sampler3D texture_lightgrid_fog;
 
 uniform vec3 lightgrid_mins;
 uniform vec3 lightgrid_maxs;
@@ -171,7 +172,7 @@ vec4 volumetric_fog(void) {
 	for (int i = 1; i < step_count; i++) {
 		float t = float(i) / float(step_count);
 		vec3 coordinate = mix(begin, end, t);
-		result.rgb += texture(texture_lightgrid_diffuse, coordinate).rgb;
+		result.rgb += texture(texture_lightgrid_fog, coordinate).rgb;
 	}
 
 	result.rgb /= float(step_count);
@@ -257,10 +258,7 @@ void main(void) {
 	
 	out_color.rgb = tonemap(out_color.rgb);
 
-	// FIXME: temporary crappy fog test:
-	// out_color.rgb = fog(vertex.position, out_color.rgb);
-	float foggyness = clamp(length(vertex.position.xyz) / 1024.0, 0.0, 1.0);
-	out_color.rgb = mix(out_color.rgb, volumetric_fog().rgb, foggyness);
+	out_color.rgb += volumetric_fog().rgb;
 	
 	out_color.rgb = color_filter(out_color.rgb);
 	

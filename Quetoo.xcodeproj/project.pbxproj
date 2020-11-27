@@ -673,6 +673,7 @@
 		CEE818951E280DFC003C66DD /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
 		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEF18C3F23F43DB600B85FD8 /* libmatrix.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A831D9CB5C9000FA6B2 /* libmatrix.a */; };
+		CEF3C9462570732300BA332E /* fog.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF3C9452570732300BA332E /* fog.c */; };
 		CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEFC79A51D9CB1EE000FA6B2 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CEFC79B31D9CB22E000FA6B2 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6BA1C5C58C300CD0B13 /* swap.c */; };
@@ -1727,6 +1728,8 @@
 		CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_polylib.c; sourceTree = "<group>"; };
 		CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_polylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = /opt/local/lib/libz.1.2.11.dylib; sourceTree = "<absolute>"; };
+		CEF3C9442570732300BA332E /* fog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fog.h; sourceTree = "<group>"; };
+		CEF3C9452570732300BA332E /* fog.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fog.c; sourceTree = "<group>"; };
 		CEFC79D01D9CB22E000FA6B2 /* libswap.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libswap.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFC79DC1D9CB287000FA6B2 /* libmem.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libmem.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFC79EE1D9CB2D2000FA6B2 /* libthread.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libthread.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2978,6 +2981,8 @@
 				CE34098E21C2D52500989FC9 /* entity.h */,
 				CE12D6EA1C5C58C300CD0B13 /* face.c */,
 				CE42657421C3EDB400F768DD /* face.h */,
+				CEF3C9452570732300BA332E /* fog.c */,
+				CEF3C9442570732300BA332E /* fog.h */,
 				CE12D6EC1C5C58C300CD0B13 /* leakfile.c */,
 				CEBCE0C521CFC6CE00976E76 /* leakfile.h */,
 				CEBDB0C5214A02B500A7AC3D /* light.c */,
@@ -4930,6 +4935,7 @@
 				CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */,
 				CEBDB0C6214A02B500A7AC3D /* light.c in Sources */,
 				CEB112B022544B3900CE65F6 /* lightgrid.c in Sources */,
+				CEF3C9462570732300BA332E /* fog.c in Sources */,
 				CE80FFE91C5E4D1800A21A51 /* lightmap.c in Sources */,
 				CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */,
 				CE80FFEB1C5E4D1800A21A51 /* map.c in Sources */,

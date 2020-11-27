@@ -116,12 +116,10 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
 	}
 }
 
-/*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) ? ? no_effects
+/*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) no_effects
  Warps players who touch this entity to the targeted misc_teleporter_dest entity.
 
  -------- Spawn flags --------
- ?
- ?
  no_effects : Suppress the default teleporter particle effects.
  */
 void G_misc_teleporter(g_entity_t *ent) {
@@ -147,7 +145,7 @@ void G_misc_teleporter(g_entity_t *ent) {
 		v.z -= 16.0;
 
 		// add effect if ent is not buried and effect is not inhibited
-		if (!gi.PointContents(v) && !(ent->locals.spawn_flags & 4)) {
+		if (!gi.PointContents(v) && !(ent->locals.spawn_flags & 1)) {
 			ent->s.sound = gi.SoundIndex("world/teleport_hum");
 			ent->s.trail = TRAIL_TELEPORTER;
 		}

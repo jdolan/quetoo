@@ -97,8 +97,7 @@ static void LightWorld(void) {
 
 	// resolve global lighting parameters from worldspawn
 
-	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
-	const cm_entity_t *e = entities->data;
+	const cm_entity_t *e = Cm_Bsp()->entities[0];
 
 	if (radiosity == 1.f) {
 		radiosity = Cm_EntityValue(e, "radiosity")->value ?: radiosity;
@@ -141,7 +140,7 @@ static void LightWorld(void) {
 	}
 
 	// build patches
-	BuildPatches(entities);
+	BuildPatches();
 
 	// subdivide patches to the desired resolution
 	Work("Building patches", SubdividePatch, bsp_file.num_faces);
@@ -153,7 +152,7 @@ static void LightWorld(void) {
 	const size_t num_lightgrid = BuildLightgrid();
 
 	// build lights out of patches and entities
-	BuildDirectLights(entities);
+	BuildDirectLights();
 
 	// ambient and diffuse lighting
 	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
@@ -171,14 +170,19 @@ static void LightWorld(void) {
 		}
 	}
 
+	// free the light sources
+	FreeLights();
+
+	// bake fog volumes into the lightgrid
+	BuildFog();
+
+	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
+
+	FreeFog();
+
 	// finalize it and write it to per-face textures
 	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
 	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
-	
-	if (lights) {
-		g_array_free(lights, true);
-		lights = NULL;
-	}
 
 	// generate atlased lightmaps
 	EmitLightmap();
@@ -188,8 +192,6 @@ static void LightWorld(void) {
 
 	// and lightgrid
 	EmitLightgrid();
-
-	g_list_free_full(entities, Mem_Free);
 
 	// free the lightmaps
 	Mem_FreeTag(MEM_TAG_LIGHTMAP);

@@ -27,6 +27,7 @@
 #define TEXTURE_LIGHTGRID_AMBIENT        4
 #define TEXTURE_LIGHTGRID_DIFFUSE        5
 #define TEXTURE_LIGHTGRID_DIRECTION      6
+#define TEXTURE_LIGHTGRID_FOG            7
 
 /**
  * @brief The program.

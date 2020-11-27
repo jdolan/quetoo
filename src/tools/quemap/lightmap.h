@@ -25,7 +25,7 @@
 #include "atlas.h"
 #include "matrix.h"
 
-#define MAX_BOUNCES 8
+#define MAX_BOUNCES 3
 
 typedef struct {
 	int32_t s, t, u;
@@ -35,6 +35,7 @@ typedef struct {
 	vec3_t diffuse;
 	vec3_t direction;
 	vec3_t radiosity[MAX_BOUNCES];
+	vec3_t fog;
 } luxel_t;
 
 typedef struct {

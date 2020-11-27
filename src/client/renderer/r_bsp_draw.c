@@ -29,6 +29,7 @@
 #define TEXTURE_LIGHTGRID_AMBIENT   4
 #define TEXTURE_LIGHTGRID_DIFFUSE   5
 #define TEXTURE_LIGHTGRID_DIRECTION 6
+#define TEXTURE_LIGHTGRID_FOG       7
 
 /**
  * @brief The program.
@@ -92,6 +93,7 @@ static struct {
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_direction;
+	GLint texture_lightgrid_fog;
 
 	GLint lightgrid_mins;
 	GLint lightgrid_maxs;
@@ -159,16 +161,27 @@ void R_DrawBspLightgrid(void) {
 	const byte *ambient = (byte *) lg + sizeof(bsp_lightgrid_t);
 	const byte *diffuse = ambient + texture_size;
 	const byte *direction = diffuse + texture_size;
+	const byte *fog = direction + texture_size;
 
 	r_image_t *particle = R_LoadImage("sprites/particle", IT_EFFECT);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3) {
+			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, fog += 3) {
 
-				const byte r = Mini(ambient[0] + diffuse[0], 255);
-				const byte g = Mini(ambient[1] + diffuse[1], 255);
-				const byte b = Mini(ambient[2] + diffuse[2], 255);
+				byte r, g, b;
+				switch (r_draw_bsp_lightgrid->integer) {
+					case 2:
+						r = Mini(fog[0], 255);
+						g = Mini(fog[1], 255);
+						b = Mini(fog[2], 255);
+						break;
+					default :
+						r = Mini(ambient[0] + diffuse[0], 255);
+						g = Mini(ambient[1] + diffuse[1], 255);
+						b = Mini(ambient[2] + diffuse[2], 255);
+						break;
+				}
 
 				r_sprite_t sprite = {
 					.origin = Vec3(s + 0.5, t + 0.5, u + 0.5),
@@ -506,7 +519,6 @@ void R_DrawWorld(void) {
 		glBindTexture(GL_TEXTURE_3D, bsp->lightgrid->textures[i]->texnum);
 	}
 
-	// These two could probably be in init, but r_world_model isn't ready by then (I think?).
 	glUniform3fv(r_bsp_program.lightgrid_mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
 	glUniform3fv(r_bsp_program.lightgrid_maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
 
@@ -615,6 +627,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
 	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
 	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
+	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
 	r_bsp_program.lightgrid_mins = glGetUniformLocation(r_bsp_program.name, "lightgrid_mins");
 	r_bsp_program.lightgrid_maxs = glGetUniformLocation(r_bsp_program.name, "lightgrid_maxs");
@@ -648,6 +661,7 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
+	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;

@@ -22,7 +22,7 @@
 #include "light.h"
 #include "qlight.h"
 
-GArray *lights = NULL;
+static GArray *lights = NULL;
 
 GPtrArray *node_lights[MAX_BSP_NODES];
 GPtrArray *leaf_lights[MAX_BSP_LEAFS];
@@ -96,7 +96,7 @@ vec3_t ColorFilter(const vec3_t in) {
 /**
  * @brief
  */
-static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
+static void LightForEntity(const cm_entity_t *entity) {
 
 	const char *class_name = Cm_EntityValue(entity, "classname")->string;
 	if (!g_strcmp0(class_name, "worldspawn")) {
@@ -134,7 +134,7 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
 			light.color = Cm_EntityValue(entity, "_color")->vec3;
 		} else {
-			light.color = Vec3(1.f, 1.f, 1.f);
+			light.color = LIGHT_COLOR;
 		}
 
 		light.radius = Cm_EntityValue(entity, "light")->value;
@@ -154,9 +154,10 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		if (Cm_EntityValue(entity, "target")->parsed & ENTITY_STRING) {
 			const char *targetname = Cm_EntityValue(entity, "target")->string;
 			cm_entity_t *target = NULL;
-			for (const GList *e = entities; e; e = e->next) {
-				if (!g_strcmp0(targetname, Cm_EntityValue(e->data, "targetname")->string)) {
-					target = e->data;
+			cm_entity_t **e = Cm_Bsp()->entities;
+			for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
+				if (!g_strcmp0(targetname, Cm_EntityValue(*e, "targetname")->string)) {
+					target = *e;
 					break;
 				}
 			}
@@ -164,8 +165,8 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 				const vec3_t target_origin = Cm_EntityValue(target, "origin")->vec3;
 				light.normal = Vec3_Subtract(target_origin, light.origin);
 			} else {
-				const int32_t i = g_list_index((GList *) entities, entity);
-				Mon_SendSelect(MON_WARN, i, 0, va("%s at %s missing target", class_name, vtos(light.origin)));
+				Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0,
+							   va("%s at %s missing target", class_name, vtos(light.origin)));
 				light.normal = Vec3_Down();
 			}
 		} else {
@@ -250,7 +251,7 @@ static void LightForPatch(const patch_t *patch) {
 /**
  * @brief
  */
-static void FreeLights(void) {
+void FreeLights(void) {
 
 	if (!lights) {
 		return;
@@ -340,14 +341,15 @@ static void HashLights(void) {
 /**
  * @brief
  */
-void BuildDirectLights(const GList *entities) {
+void BuildDirectLights(void) {
 
 	FreeLights();
 
 	lights = g_array_new(false, false, sizeof(light_t));
 
-	for (const GList *e = entities; e; e = e->next) {
-		LightForEntity(entities, e->data);
+	cm_entity_t **entity = Cm_Bsp()->entities;
+	for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
+		LightForEntity(*entity);
 	}
 
 	const bsp_face_t *face = bsp_file.faces;

@@ -79,9 +79,9 @@
 #define BSP_LIGHTGRID_BPP 3
 
 /**
- * @brief Lightgrid ambient, diffuse and direction textures.
+ * @brief Lightgrid ambient, diffuse and direction textures, followed by fog.
  */
-#define BSP_LIGHTGRID_TEXTURES 3
+#define BSP_LIGHTGRID_TEXTURES 4
 
 /**
  * @brief Largest lightgrid width in luxels (8192 / 64 = 128).

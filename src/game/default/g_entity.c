@@ -143,7 +143,9 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 	{ "light", G_FreeEntity },
 	{ "light_spot", G_FreeEntity },
 	{ "light_sun", G_FreeEntity },
-	{ "misc_emit", G_FreeEntity },
+	{ "misc_flame", G_FreeEntity },
+	{ "misc_flame", G_FreeEntity },
+
 	{ "misc_model", G_FreeEntity },
 
 	{ NULL, NULL }

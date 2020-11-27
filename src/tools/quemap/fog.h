@@ -21,33 +21,45 @@
 
 #pragma once
 
-#include "fog.h"
-#include "light.h"
-#include "lightgrid.h"
-#include "lightmap.h"
-#include "material.h"
-#include "patch.h"
-#include "quemap.h"
-#include "writebsp.h"
+#include "bsp.h"
 
-extern _Bool antialias;
-extern _Bool indirect;
+#define FOG_COLOR Vec3(1.f, 1.f, 1.f)
+#define FOG_DENSITY 1.f
 
-extern float brightness;
-extern float saturation;
-extern float contrast;
+/**
+ * @brief Fog volumes come from brush entities that are merged into worldspawn.
+ * @details Fog is baked into the lightgrid as an additional RGB 3D texture.
+ */
+typedef struct {
 
-extern int32_t luxel_size;
-extern int32_t patch_size;
+	/**
+	 * @brief The entity definition.
+	 */
+	const cm_entity_t *entity;
 
-extern float radiosity;
-extern int32_t num_bounces;
-extern int32_t bounce;
+	/**
+	 * @brief The brushes originally belonging to this fog entity.
+	 */
+	GPtrArray *brushes;
 
-extern float lightscale_point;
-extern float lightscale_patch;
+	/**
+	 * @brief The fog color.
+	 */
+	vec3_t color;
 
-int32_t Light_PointContents(const vec3_t p, int32_t head_node);
-cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask);
+	/**
+	 * @brief The fog density.
+	 */
+	float density;
 
-int32_t LIGHT_Main(void);
+	/**
+	 * @brief The bounds of all brushes in this fog entity.
+	 */
+	vec3_t mins, maxs;
+} fog_t;
+
+extern GArray *fogs;
+
+int32_t PointInsideFog(const vec3_t point, const fog_t *fog);
+void FreeFog(void);
+void BuildFog(void);
