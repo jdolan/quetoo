@@ -33,8 +33,7 @@ uniform mat4 model;
 
 uniform stage_t stage;
 
-uniform vec3 lightgrid_mins;
-uniform vec3 lightgrid_maxs;
+uniform lightgrid_t lightgrid;
 
 out vertex_data {
 	vec3 position;
@@ -43,8 +42,8 @@ out vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec2 lightmap;
-	vec4 color;
 	vec3 lightgrid;
+	vec4 color;
 } vertex;
 
 /**
@@ -68,29 +67,8 @@ void main(void) {
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
+	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
 	vertex.color = in_color;
-
-	vertex.lightgrid = (position.xyz - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
-
-	/*
-	{
-		// raymarch lightgrid to accumulate fog
-
-		vec3 begin = (view_origin  - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
-		vec3 end = (position.xyz - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
-
-		float step_dist = 32.0f;
-		int step_count = max(1, int(floor(length(position.xyz - view_origin) / step_dist)));
-
-		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
-		for (int i = 1; i < step_count; i++) {
-			float t = float(i) / float(step_count);
-			vec3 coordinate = mix(begin, end, t);
-			vertex.fog.rgb += texture(texture_lightgrid_diffuse, coordinate).rgb;
-		}
-		vertex.fog.rgb /= float(step_count);
-	}
-	*/
 
 	gl_Position = projection * vec4(vertex.position, 1.0);
 

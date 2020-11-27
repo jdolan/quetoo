@@ -21,10 +21,6 @@
 
 #include "r_local.h"
 
-#define TEXTURE_DIFFUSEMAP 0
-#define TEXTURE_NEXT_DIFFUSEMAP 7
-#define TEXTURE_DEPTH_STENCIL_ATTACHMENT 8
-
 /**
  * @brief
  */
@@ -107,6 +103,7 @@ static struct {
 	GLint transition_size;
 	
 	GLint texture_diffusemap;
+	GLint texture_lightgrid_fog;
 	GLint texture_next_diffusemap;
 	GLint depth_stencil_attachment;
 
@@ -115,7 +112,13 @@ static struct {
 	GLint saturation;
 	GLint gamma;
 
-	GLint fog_parameters;
+	struct {
+		GLint mins;
+		GLint maxs;
+		GLint view_coordinate;
+	} lightgrid;
+
+	GLint fog;
 } r_sprite_program;
 
 /**
@@ -441,7 +444,16 @@ void R_UpdateSprites(void) {
 	glUniform1f(r_sprite_program.saturation, r_saturation->value);
 	glUniform1f(r_sprite_program.gamma, r_gamma->value);
 
-	glUniform3fv(r_sprite_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
+	glUniform3fv(r_sprite_program.lightgrid.mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
+	glUniform3fv(r_sprite_program.lightgrid.maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
+
+	const vec3_t view = Vec3_Subtract(r_view.origin, r_world_model->bsp->lightgrid->mins);
+	const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
+
+	glUniform3fv(r_sprite_program.lightgrid.view_coordinate, 1, Vec3_Divide(view, size).xyz);
+
+	glUniform1f(r_sprite_program.fog, r_fog->value);
+
 	R_GetError(NULL);
 
 	R_ClearSpriteBitSet();
@@ -508,6 +520,9 @@ void R_DrawSprites(int32_t blend_depth) {
 	glVertexAttrib1f(r_sprite_program.in_lerp, 0.f);
 	glEnableVertexAttribArray(r_sprite_program.in_blend_depth);
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
+	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 
@@ -558,9 +573,9 @@ static void R_InitSpriteProgram(void) {
 	memset(&r_sprite_program, 0, sizeof(r_sprite_program));
 
 	r_sprite_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "sprite_vs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "sprite_vs.glsl"),
 			&MakeShaderDescriptor(GL_GEOMETRY_SHADER, "sprite_gs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "soften_fs.glsl", "sprite_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "lightgrid.glsl", "soften_fs.glsl", "sprite_fs.glsl"),
 			NULL);
 	
 	glUseProgram(r_sprite_program.name);
@@ -582,6 +597,7 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.transition_size = glGetUniformLocation(r_sprite_program.name, "transition_size");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
+	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
 	r_sprite_program.depth_stencil_attachment = glGetUniformLocation(r_sprite_program.name, "depth_stencil_attachment");
 
@@ -590,9 +606,14 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.saturation = glGetUniformLocation(r_sprite_program.name, "saturation");
 	r_sprite_program.gamma = glGetUniformLocation(r_sprite_program.name, "gamma");
 
-	r_sprite_program.fog_parameters = glGetUniformLocation(r_sprite_program.name, "fog_parameters");
-	
+	r_sprite_program.lightgrid.mins = glGetUniformLocation(r_sprite_program.name, "lightgrid.mins");
+	r_sprite_program.lightgrid.maxs = glGetUniformLocation(r_sprite_program.name, "lightgrid.maxs");
+	r_sprite_program.lightgrid.view_coordinate = glGetUniformLocation(r_sprite_program.name, "lightgrid.view_coordinate");
+
+	r_sprite_program.fog = glGetUniformLocation(r_sprite_program.name, "fog");
+
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+	glUniform1i(r_sprite_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 

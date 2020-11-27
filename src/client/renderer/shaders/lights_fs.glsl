@@ -21,13 +21,13 @@
 
 #define MAX_LIGHTS 32
 
-struct light {
+struct light_t {
 	vec4 origin;
 	vec4 color;
 };
 
 layout (std140) uniform lights_block {
-	light lights[MAX_LIGHTS];
+	light_t lights[MAX_LIGHTS];
 };
 
 uniform int lights_mask;

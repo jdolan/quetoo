@@ -21,8 +21,13 @@
 
 uniform mat4 view;
 
+uniform sampler3D texture_lightgrid_fog;
+
+uniform lightgrid_t lightgrid;
+
 in vertex_data {
 	vec3 position;
+	vec3 lightgrid;
 } vertex;
 
 out vec4 out_color;
@@ -38,6 +43,8 @@ void main(void) {
 		discard;
 	}
 
-	out_color = vec4(fog(vertex.position, vec3(0)), alpha);
+	out_color = vec4(0.0, 0.0, 0.0, alpha);
+	
+	out_color.rgb = lightgrid_fog(lightgrid, texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
 }
 

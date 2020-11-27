@@ -188,6 +188,7 @@
 		CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3C529221E4DF2500FEDBED /* cm_polylib.h */; };
 		CE3C529521E4DF2500FEDBED /* cm_polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3C529321E4DF2500FEDBED /* cm_polylib.c */; };
 		CE41019C242CE0D900BF482F /* version.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE41019B242CE0B200BF482F /* version.glsl */; };
+		CE45F49825718B42004DEFED /* lightgrid.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE45F43D25716DAE004DEFED /* lightgrid.glsl */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
 		CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */; };
 		CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */; };
@@ -977,6 +978,7 @@
 				F55238AA2482D71F00BE8B36 /* draw_2d_blur_vs.glsl in CopyFiles */,
 				CED5BB192407163D00784D93 /* draw_3d_fs.glsl in CopyFiles */,
 				CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */,
+				CE45F49825718B42004DEFED /* lightgrid.glsl in CopyFiles */,
 				CE9CFC8F23E66CDF0009DA65 /* lights_fs.glsl in CopyFiles */,
 				CE57E13D2462572900F8902F /* material.glsl in CopyFiles */,
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
@@ -1502,6 +1504,7 @@
 		CE42657521C3EE3B00F768DD /* brush.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = brush.h; sourceTree = "<group>"; };
 		CE42657621C3EF0500F768DD /* csg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = csg.h; sourceTree = "<group>"; };
 		CE42657721C3EF7500F768DD /* portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = portal.h; sourceTree = "<group>"; };
+		CE45F43D25716DAE004DEFED /* lightgrid.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = lightgrid.glsl; sourceTree = "<group>"; };
 		CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../usr/local/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
 		CE4DCF04256DCCA100FECAFC /* cg_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_weapon.h; sourceTree = "<group>"; };
 		CE4DCF05256DCCA100FECAFC /* cg_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_weapon.c; sourceTree = "<group>"; };
@@ -2731,6 +2734,7 @@
 				CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */,
 				F55238A32482D42B00BE8B36 /* draw_2d_blur_fs.glsl */,
 				F55238A12482D42B00BE8B36 /* draw_2d_blur_vs.glsl */,
+				CE45F43D25716DAE004DEFED /* lightgrid.glsl */,
 				CE9CFC8E23E65EA90009DA65 /* lights_fs.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CE63992C23E1251A00DB7A2D /* mesh_fs.glsl */,

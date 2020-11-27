@@ -468,6 +468,11 @@ static inline float Vec3_DistanceSquared(const vec3_t a, const vec3_t b) __attri
 static inline float Vec3_Distance(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The quotient of `a / b`.
+ */
+static inline vec3_t Vec3_Divide(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_result));
+
+/**
  * @return The dot product of `a · b`.
  */
 static inline float Vec3_Dot(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_result));
@@ -496,6 +501,11 @@ static inline vec3_t Vec3_Euler(const vec3_t dir) __attribute__ ((warn_unused_re
  * @brief A vector containing the components of `v`, rounded to the nearest lower integer.
  */
 static inline vec3_t Vec3_Floorf(const vec3_t v) __attribute__ ((warn_unused_result));
+
+/**
+ * @return The vector `v` + (`add` * `multiply`).
+ */
+static inline vec3_t Vec3_Fmaf(const vec3_t v, float multiply, const vec3_t add) __attribute__ ((warn_unused_result));
 
 /**
  * @return The squared length (magnitude) of `v`.
@@ -601,11 +611,6 @@ static inline vec3_t Vec3_Roundf(const vec3_t v) __attribute__ ((warn_unused_res
  * @return The vector `v` scaled by `scale`.
  */
 static inline vec3_t Vec3_Scale(const vec3_t v, float scale) __attribute__ ((warn_unused_result));
-
-/**
- * @return The vector `v` + (`add` * `multiply`).
- */
-static inline vec3_t Vec3_FMA(const vec3_t v, float multiply, const vec3_t add) __attribute__ ((warn_unused_result));
 
 /**
  * @return

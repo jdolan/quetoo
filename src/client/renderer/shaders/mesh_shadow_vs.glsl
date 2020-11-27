@@ -31,8 +31,11 @@ uniform float lerp;
 uniform float dist;
 uniform float min_z, max_z;
 
+uniform lightgrid_t lightgrid;
+
 out vertex_data {
 	vec3 position;
+	vec3 lightgrid;
 } vertex;
 
 /**
@@ -47,6 +50,7 @@ void main(void) {
 	vec4 position = vec4(model_position, 1.0);
 
 	vertex.position = vec3(view * model * position);
+	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
 
 	gl_Position = projection * vec4(vertex.position, 1.0);
 }

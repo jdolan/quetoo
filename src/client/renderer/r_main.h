@@ -130,11 +130,6 @@ typedef struct {
 	 */
 	int32_t stain_frame;
 
-	/**
-	 * @brief The fog parameters, scaled by the renderer.
-	 */
-	vec3_t fog_parameters;
-
 } r_locals_t;
 
 extern r_locals_t r_locals;

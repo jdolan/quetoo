@@ -21,14 +21,6 @@
 
 #include "r_local.h"
 
-#define TEXTURE_MATERIAL                 0
-#define TEXTURE_STAGE                    2
-#define TEXTURE_LIGHTGRID                4
-#define TEXTURE_LIGHTGRID_AMBIENT        4
-#define TEXTURE_LIGHTGRID_DIFFUSE        5
-#define TEXTURE_LIGHTGRID_DIRECTION      6
-#define TEXTURE_LIGHTGRID_FOG            7
-
 /**
  * @brief The program.
  */
@@ -57,9 +49,7 @@ static struct {
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_direction;
-
-	GLint lightgrid_mins;
-	GLint lightgrid_maxs;
+	GLint texture_lightgrid_fog;
 
 	GLint color;
 	GLint alpha_threshold;
@@ -87,11 +77,16 @@ static struct {
 		GLint shell;
 	} stage;
 
+	struct {
+		GLint mins;
+		GLint maxs;
+		GLint view_coordinate;
+	} lightgrid;
+
+	GLint fog;
+
 	GLuint lights_block;
 	GLint lights_mask;
-
-	GLint fog_parameters;
-	GLint fog_color;
 
 	GLint ticks;
 
@@ -125,11 +120,15 @@ void R_UpdateMeshEntities(void) {
 	glUniform1f(r_mesh_program.gamma, r_gamma->value);
 	glUniform1f(r_mesh_program.modulate, r_modulate->value);
 
-	glUniform3fv(r_mesh_program.lightgrid_mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
-	glUniform3fv(r_mesh_program.lightgrid_maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
+	glUniform3fv(r_mesh_program.lightgrid.mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
+	glUniform3fv(r_mesh_program.lightgrid.maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
 
-	glUniform3fv(r_mesh_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
-	glUniform3fv(r_mesh_program.fog_color, 1, r_view.fog_color.xyz);
+	const vec3_t view = Vec3_Subtract(r_view.origin, r_world_model->bsp->lightgrid->mins);
+	const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
+
+	glUniform3fv(r_mesh_program.lightgrid.view_coordinate, 1, Vec3_Divide(view, size).xyz);
+
+	glUniform1f(r_mesh_program.fog, r_fog->value);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 	glUniform1i(r_mesh_program.stage.ticks, r_view.ticks);
@@ -406,10 +405,9 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_lights.uniform_buffer);
 
-	const r_bsp_model_t *bsp = r_world_model->bsp;
-	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
+	for (int32_t i = 0; i < (int32_t) lengthof(r_world_model->bsp->lightgrid->textures); i++) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
-		glBindTexture(GL_TEXTURE_3D, bsp->lightgrid->textures[i]->texnum);
+		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[i]->texnum);
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
@@ -448,8 +446,8 @@ void R_InitMeshProgram(void) {
 	memset(&r_mesh_program, 0, sizeof(r_mesh_program));
 
 	r_mesh_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "mesh_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "common_fs.glsl", "lights_fs.glsl", "mesh_fs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "mesh_vs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "common_fs.glsl", "lights_fs.glsl", "mesh_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_mesh_program.name);
@@ -476,9 +474,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_lightgrid_ambient = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_ambient");
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
 	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
-
-	r_mesh_program.lightgrid_mins = glGetUniformLocation(r_mesh_program.name, "lightgrid_mins");
-	r_mesh_program.lightgrid_maxs = glGetUniformLocation(r_mesh_program.name, "lightgrid_maxs");
+	r_mesh_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_fog");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 	r_mesh_program.alpha_threshold = glGetUniformLocation(r_mesh_program.name, "alpha_threshold");
@@ -502,22 +498,26 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
 	r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
 
+	r_mesh_program.lightgrid.mins = glGetUniformLocation(r_mesh_program.name, "lightgrid.mins");
+	r_mesh_program.lightgrid.maxs = glGetUniformLocation(r_mesh_program.name, "lightgrid.maxs");
+	r_mesh_program.lightgrid.view_coordinate = glGetUniformLocation(r_mesh_program.name, "lightgrid.view_coordinate");
+
+	r_mesh_program.fog = glGetUniformLocation(r_mesh_program.name, "fog");
+
 	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
 	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 0);
 	r_mesh_program.lights_mask = glGetUniformLocation(r_mesh_program.name, "lights_mask");
 
 	r_mesh_program.ambient = glGetUniformLocation(r_mesh_program.name, "ambient");
 
-	r_mesh_program.fog_parameters = glGetUniformLocation(r_mesh_program.name, "fog_parameters");
-	r_mesh_program.fog_color = glGetUniformLocation(r_mesh_program.name, "fog_color");
+	r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
 
 	glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
-
-	r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
+	glUniform1i(r_mesh_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 
 	glUseProgram(0);
 	
@@ -536,4 +536,3 @@ void R_ShutdownMeshProgram(void) {
 
 	r_mesh_program.name = 0;
 }
-

@@ -28,6 +28,7 @@ in vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec2 next_diffusemap;
+	vec3 lightgrid;
 	vec4 color;
 	float lerp;
 	int blend_depth;
@@ -37,6 +38,7 @@ out vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec2 next_diffusemap;
+	vec3 lightgrid;
 	vec4 color;
 	float lerp;
 } out_vertex;
@@ -48,12 +50,12 @@ void main() {
 
 	if (blend_depth == in_vertex[0].blend_depth) {
 
-
 		for (int i = 0; i < 3; i++) {
 			gl_Position = gl_in[i].gl_Position;
 			out_vertex.position = in_vertex[i].position;
 			out_vertex.diffusemap = in_vertex[i].diffusemap;
 			out_vertex.next_diffusemap = in_vertex[i].next_diffusemap;
+			out_vertex.lightgrid = in_vertex[i].lightgrid;
 			out_vertex.color = in_vertex[i].color;
 			out_vertex.lerp = in_vertex[i].lerp;
 

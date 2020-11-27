@@ -698,7 +698,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 	
 	cgi.AddSprite(&(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_splash_02_03,
-		.origin = Vec3_FMA(ent->origin, 8.f, Vec3_Up()),
+		.origin = Vec3_Fmaf(ent->origin, 8.f, Vec3_Up()),
 		.size = 64.f,
 		.color = Color32(color, color, color, 0),
 		.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
@@ -710,7 +710,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_ring,
 			.dir = Vec3_Up(),
-			.origin = Vec3_FMA(ent->origin, 16.f, Vec3_Down()),
+			.origin = Vec3_Fmaf(ent->origin, 16.f, Vec3_Down()),
 			.velocity.z = RandomRangef(80.f, 120.f),
 			.lifetime = 450,
 			.size = 64.f,
@@ -737,7 +737,7 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const float hue) {
 
 	cgi.AddSprite(&(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_ring,
-		.origin = Vec3_FMA(ent->origin, 16.f, Vec3_Down()),
+		.origin = Vec3_Fmaf(ent->origin, 16.f, Vec3_Down()),
 		.size = 48.f + Cg_Oscillate(1, 12.f, 1.f, 0.f),
 		.color = Color_Color32(ColorHSVA(color.x, color.y, color.z, color.w)),
 		.dir = Vec3_Up()

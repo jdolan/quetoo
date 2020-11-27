@@ -20,21 +20,22 @@
  */
 
 uniform sampler2DArray texture_material;
-uniform sampler2D texture_stage;
-
 uniform sampler2DArray texture_lightmap;
+uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
+uniform sampler3D texture_lightgrid_fog;
 
 uniform float alpha_threshold;
 
 uniform float modulate;
 
 uniform int bicubic;
-
 uniform int parallax_samples;
 
 uniform material_t material;
 uniform stage_t stage;
+
+uniform lightgrid_t lightgrid;
 
 in vertex_data {
 	vec3 position;
@@ -43,19 +44,9 @@ in vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec2 lightmap;
-	vec4 color;
 	vec3 lightgrid;
+	vec4 color;
 } vertex;
-
-uniform vec3 view_origin;
-
-uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
-uniform sampler3D texture_lightgrid_fog;
-
-uniform vec3 lightgrid_mins;
-uniform vec3 lightgrid_maxs;
 
 out vec4 out_color;
 
@@ -156,31 +147,6 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 	return result;
 }
 
-
-/**
- * @brief Ray marches from the view origin to the fragment, sampling the fog texture at
- * each iteration, accumulating the result.
- */
-vec4 volumetric_fog(void) {
-
-	vec4 result = vec4(0.0);
-
-	vec3 view_lightgrid = (view_origin - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
-
-	int iterations = max(1, int(length(vertex.position) / 16.0));
-
-	for (int i = 0; i < iterations; i++) {
-		float fraction = float(i) / float(iterations);
-		vec3 coord = mix(view_lightgrid, vertex.lightgrid, fraction);
-		vec4 fog = texture(texture_lightgrid_fog, coord);
-		result += fog * fog.a;
-	}
-
-	result /= float(iterations);
-
-	return result;
-}
-
 /**
  * @brief
  */
@@ -256,11 +222,11 @@ void main(void) {
 	}
 
 	// postprocessing
-	
+
+	out_color.rgb = lightgrid_fog(lightgrid, texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
+
 	out_color.rgb = tonemap(out_color.rgb);
 
-	out_color.rgb += volumetric_fog().rgb;
-	
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);

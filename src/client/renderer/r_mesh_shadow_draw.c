@@ -37,6 +37,9 @@ static struct {
 	GLint view;
 	
 	GLint lerp;
+
+	GLint texture_lightgrid_fog;
+
 	GLint z;
 	GLint min_z;
 	GLint max_z;
@@ -49,10 +52,16 @@ static struct {
 	GLint dist;
 	GLint normal;
 
-	GLint fog_parameters;
-	GLint fog_color;
+	struct {
+		GLint mins;
+		GLint maxs;
+		GLint view_coordinate;
+	} lightgrid;
+
+	GLint fog;
 
 	GLuint framebuffer;
+
 	r_image_t *color_attachment;
 	r_image_t *color_attachment1;
 } r_mesh_shadow_program;
@@ -102,8 +111,7 @@ void R_UpdateMeshShadowEntities(void) {
 	glUniformMatrix4fv(r_mesh_shadow_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_mesh_shadow_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
-	glUniform3fv(r_mesh_shadow_program.fog_parameters, 1, r_locals.fog_parameters.xyz);
-	glUniform3fv(r_mesh_shadow_program.fog_color, 1, r_view.fog_color.xyz);
+	glUniform1f(r_mesh_shadow_program.fog, r_fog->value);
 
 	glUseProgram(0);
 
@@ -238,8 +246,10 @@ static _Bool R_DrawMeshShadowEntitiesProjected(int32_t blend_depth) {
 
 				glUseProgram(r_mesh_shadow_program.name);
 
-				glActiveTexture(GL_TEXTURE0);
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
+				glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
 
+				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 
 				any_rendered = true;
@@ -344,8 +354,8 @@ void R_InitMeshShadowProgram(void) {
 	memset(&r_mesh_shadow_program, 0, sizeof(r_mesh_shadow_program));
 
 	r_mesh_shadow_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "mesh_shadow_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "soften_fs.glsl", "mesh_shadow_fs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "mesh_shadow_vs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "lightgrid.glsl", "soften_fs.glsl", "mesh_shadow_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_mesh_shadow_program.name);
@@ -359,6 +369,9 @@ void R_InitMeshShadowProgram(void) {
 	r_mesh_shadow_program.model = glGetUniformLocation(r_mesh_shadow_program.name, "model");
 	
 	r_mesh_shadow_program.lerp = glGetUniformLocation(r_mesh_shadow_program.name, "lerp");
+
+	r_mesh_shadow_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_shadow_program.name, "texture_lightgrid_fog");
+
 	r_mesh_shadow_program.z = glGetUniformLocation(r_mesh_shadow_program.name, "z");
 	r_mesh_shadow_program.min_z = glGetUniformLocation(r_mesh_shadow_program.name, "min_z");
 	r_mesh_shadow_program.max_z = glGetUniformLocation(r_mesh_shadow_program.name, "max_z");
@@ -367,20 +380,25 @@ void R_InitMeshShadowProgram(void) {
 	r_mesh_shadow_program.inv_viewport_size = glGetUniformLocation(r_mesh_shadow_program.name, "inv_viewport_size");
 	r_mesh_shadow_program.transition_size = glGetUniformLocation(r_mesh_shadow_program.name, "transition_size");
 	
+	r_mesh_shadow_program.dist = glGetUniformLocation(r_mesh_shadow_program.name, "dist");
+	r_mesh_shadow_program.normal = glGetUniformLocation(r_mesh_shadow_program.name, "normal");
+
+	r_mesh_shadow_program.lightgrid.mins = glGetUniformLocation(r_mesh_shadow_program.name, "lightgrid.mins");
+	r_mesh_shadow_program.lightgrid.maxs = glGetUniformLocation(r_mesh_shadow_program.name, "lightgrid.maxs");
+	r_mesh_shadow_program.lightgrid.view_coordinate = glGetUniformLocation(r_mesh_shadow_program.name, "lightgrid.view_coordinate");
+
+	r_mesh_shadow_program.fog = glGetUniformLocation(r_mesh_shadow_program.name, "fog");
+
 	glUniform1f(r_mesh_shadow_program.max_z, 1.f / 512.f);
 
 	glUniform2f(r_mesh_shadow_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_mesh_shadow_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
 	glUniform1f(r_mesh_shadow_program.transition_size, 0.0016f);
-	
-	glUniform1i(r_mesh_shadow_program.depth_stencil_attachment, 0);
-	
-	r_mesh_shadow_program.dist = glGetUniformLocation(r_mesh_shadow_program.name, "dist");
-	r_mesh_shadow_program.normal = glGetUniformLocation(r_mesh_shadow_program.name, "normal");
 
-	r_mesh_shadow_program.fog_parameters = glGetUniformLocation(r_mesh_shadow_program.name, "fog_parameters");
-	r_mesh_shadow_program.fog_color = glGetUniformLocation(r_mesh_shadow_program.name, "fog_color");
-	
+	glUniform1i(r_mesh_shadow_program.depth_stencil_attachment, 0);
+
+	glUniform1i(r_mesh_shadow_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+
 	glUseProgram(0);
 
 	glGenFramebuffers(1, &r_mesh_shadow_program.framebuffer);
@@ -433,7 +451,7 @@ void R_InitMeshShadowProgram(void) {
 	r_mesh_shadow_blur_program.depth_range = glGetUniformLocation(r_mesh_shadow_blur_program.name, "depth_range");
 	r_mesh_shadow_blur_program.inv_viewport_size = glGetUniformLocation(r_mesh_shadow_blur_program.name, "inv_viewport_size");
 	r_mesh_shadow_blur_program.transition_size = glGetUniformLocation(r_mesh_shadow_blur_program.name, "transition_size");
-	
+
 	glUniform2f(r_mesh_shadow_blur_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_mesh_shadow_blur_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
 	glUniform1f(r_mesh_shadow_blur_program.transition_size, 0.0016f);

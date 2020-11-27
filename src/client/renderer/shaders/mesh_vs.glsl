@@ -36,16 +36,11 @@ uniform mat4 model;
 
 uniform float lerp;
 
-uniform vec3 lightgrid_mins;
-uniform vec3 lightgrid_maxs;
-
 uniform vec4 color;
 
 uniform stage_t stage;
 
-uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
+uniform lightgrid_t lightgrid;
 
 out vertex_data {
 	vec3 position;
@@ -55,7 +50,6 @@ out vertex_data {
 	vec2 diffusemap;
 	vec3 lightgrid;
 	vec4 color;
-	vec4 fog;
 } vertex;
 
 /**
@@ -78,7 +72,7 @@ void main(void) {
 	vertex.bitangent = vec3(model_view * bitangent);
 
 	vertex.diffusemap = in_diffusemap;
-	vertex.lightgrid = (vec3(model * position) - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
+	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
 	vertex.color = color;
 
 	gl_Position = projection * vec4(vertex.position, 1.0);

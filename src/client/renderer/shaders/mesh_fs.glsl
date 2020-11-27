@@ -27,6 +27,7 @@ uniform sampler2D texture_stage;
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
+uniform sampler3D texture_lightgrid_fog;
 
 uniform float alpha_threshold;
 
@@ -36,6 +37,8 @@ uniform float ambient;
 uniform material_t material;
 uniform stage_t stage;
 
+uniform lightgrid_t lightgrid;
+
 in vertex_data {
 	vec3 position;
 	vec3 normal;
@@ -44,7 +47,6 @@ in vertex_data {
 	vec2 diffusemap;
 	vec3 lightgrid;
 	vec4 color;
-	vec4 fog;
 } vertex;
 
 out vec4 out_color;
@@ -113,15 +115,14 @@ void main(void) {
 	}
 
 	// postprocessing
-	
+
 	out_color.rgb = tonemap(out_color.rgb);
 
 	out_color.rgb = sqrt(out_color.rgb); // gamma hack
 
-	out_color.rgb = fog(vertex.position, out_color.rgb);
+	out_color.rgb = lightgrid_fog(lightgrid, texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
 
 	out_color.rgb = color_filter(out_color.rgb);
 
 	out_color.rgb = dither(out_color.rgb);
 }
-
