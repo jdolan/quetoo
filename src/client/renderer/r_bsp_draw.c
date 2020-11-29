@@ -458,6 +458,9 @@ void R_DrawWorld(void) {
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
+	glUniform1i(r_bsp_program.bicubic, r_bicubic->integer);
+	glUniform1i(r_bsp_program.parallax_samples, r_parallax_samples->integer);
+
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 	glUniform1i(r_bsp_program.stage.ticks, r_view.ticks);
 

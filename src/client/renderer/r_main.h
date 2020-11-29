@@ -214,7 +214,6 @@ typedef struct {
 		 * @brief The fog scalar.
 		 */
 		float fog;
-
 	} block;
 
 } r_uniforms_t;
