@@ -27,15 +27,13 @@ uniform sampler3D texture_lightgrid_fog;
 
 uniform float alpha_threshold;
 
-uniform float modulate;
-
 uniform int bicubic;
 uniform int parallax_samples;
 
 uniform material_t material;
 uniform stage_t stage;
 
-uniform lightgrid_t lightgrid;
+uniform int lights_mask;
 
 in vertex_data {
 	vec3 position;
@@ -163,7 +161,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1), viewdir * tbn, fragdist, material.parallax * 0.04);
+		//texcoord_material = parallax(texture_material, vec3(texcoord_material, 1.0), viewdir * tbn, fragdist, material.parallax * 0.04);
 
 		float _specularity = material.specularity * 100.0;
 
@@ -193,7 +191,7 @@ void main(void) {
 
 		vec3 stainmap = sample_lightmap(4).rgb;
 
-		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
+		dynamic_light(lights_mask, vertex.position, normal, 64, light_diffuse, light_specular);
 
 		out_color = diffusemap;
 		out_color *= vec4(stainmap, 1.0);
@@ -223,7 +221,7 @@ void main(void) {
 
 	// postprocessing
 
-	out_color.rgb = lightgrid_fog(lightgrid, texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
+	out_color.rgb = fog_fragment(texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
 
 	out_color.rgb = tonemap(out_color.rgb);
 

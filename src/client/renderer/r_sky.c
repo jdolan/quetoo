@@ -52,27 +52,13 @@ static struct {
 static struct {
 	GLuint name;
 
+	GLuint uniforms;
+
 	GLint in_position;
 	GLint in_diffusemap;
 
-	GLint projection;
-	GLint view;
-
 	GLint texture_diffusemap;
 	GLint texture_lightgrid_fog;
-
-	GLint brightness;
-	GLint contrast;
-	GLint saturation;
-	GLint gamma;
-
-	struct {
-		GLint mins;
-		GLint maxs;
-		GLint view_coordinate;
-	} lightgrid;
-
-	GLint fog;
 } r_sky_program;
 
 /**
@@ -84,23 +70,7 @@ void R_DrawSky(void) {
 
 	glUseProgram(r_sky_program.name);
 
-	glUniformMatrix4fv(r_sky_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
-	glUniformMatrix4fv(r_sky_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
-
-	glUniform1f(r_sky_program.brightness, r_brightness->value);
-	glUniform1f(r_sky_program.contrast, r_contrast->value);
-	glUniform1f(r_sky_program.saturation, r_saturation->value);
-	glUniform1f(r_sky_program.gamma, r_gamma->value);
-
-	glUniform3fv(r_sky_program.lightgrid.mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
-	glUniform3fv(r_sky_program.lightgrid.maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
-
-	const vec3_t view = Vec3_Subtract(r_view.origin, r_world_model->bsp->lightgrid->mins);
-	const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
-
-	glUniform3fv(r_sky_program.lightgrid.view_coordinate, 1, Vec3_Divide(view, size).xyz);
-
-	glUniform1f(r_sky_program.fog, r_fog->value);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_sky.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_sky.vertex_buffer);
@@ -146,31 +116,20 @@ static void R_InitSkyProgram(void) {
 	memset(&r_sky_program, 0, sizeof(r_sky_program));
 
 	r_sky_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "sky_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "lightgrid.glsl", "sky_fs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "common_vs.glsl", "sky_vs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "sky_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_sky_program.name);
 
+	r_sky_program.uniforms = glGetUniformBlockIndex(r_sky_program.name, "uniforms");
+	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms, 0);
+
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
 	r_sky_program.in_diffusemap = glGetAttribLocation(r_sky_program.name, "in_diffusemap");
 
-	r_sky_program.projection = glGetUniformLocation(r_sky_program.name, "projection");
-	r_sky_program.view = glGetUniformLocation(r_sky_program.name, "view");
-
 	r_sky_program.texture_diffusemap = glGetUniformLocation(r_sky_program.name, "texture_diffusemap");
 	r_sky_program.texture_lightgrid_fog = glGetUniformLocation(r_sky_program.name, "texture_lightgrid_fog");
-
-	r_sky_program.brightness = glGetUniformLocation(r_sky_program.name, "brightness");
-	r_sky_program.contrast = glGetUniformLocation(r_sky_program.name, "contrast");
-	r_sky_program.saturation = glGetUniformLocation(r_sky_program.name, "saturation");
-	r_sky_program.gamma = glGetUniformLocation(r_sky_program.name, "gamma");
-
-	r_sky_program.lightgrid.mins = glGetUniformLocation(r_sky_program.name, "lightgrid.mins");
-	r_sky_program.lightgrid.maxs = glGetUniformLocation(r_sky_program.name, "lightgrid.maxs");
-	r_sky_program.lightgrid.view_coordinate = glGetUniformLocation(r_sky_program.name, "lightgrid.view_coordinate");
-
-	r_sky_program.fog = glGetUniformLocation(r_sky_program.name, "fog");
 
 	glUniform1i(r_sky_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sky_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);

@@ -4,14 +4,13 @@ shaders_DATA = \
 	bsp_fs.glsl \
 	bsp_vs.glsl \
 	common_fs.glsl \
+	common_vs.glsl \
 	draw_2d_blur_fs.glsl \
 	draw_2d_blur_vs.glsl \
 	draw_2d_fs.glsl \
 	draw_2d_vs.glsl \
 	draw_3d_fs.glsl \
 	draw_3d_vs.glsl \
-	lightgrid.glsl \
-	lights_fs.glsl \
 	material.glsl \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
@@ -23,4 +22,5 @@ shaders_DATA = \
 	sprite_fs.glsl \
 	sprite_gs.glsl \
 	sprite_vs.glsl \
+	uniforms.glsl \
 	version.glsl

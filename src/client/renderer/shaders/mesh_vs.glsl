@@ -30,8 +30,6 @@ layout (location = 6) in vec3 in_next_normal;
 layout (location = 7) in vec3 in_next_tangent;
 layout (location = 8) in vec3 in_next_bitangent;
 
-uniform mat4 projection;
-uniform mat4 view;
 uniform mat4 model;
 
 uniform float lerp;
@@ -39,8 +37,6 @@ uniform float lerp;
 uniform vec4 color;
 
 uniform stage_t stage;
-
-uniform lightgrid_t lightgrid;
 
 out vertex_data {
 	vec3 position;
@@ -75,8 +71,7 @@ void main(void) {
 	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
 	vertex.color = color;
 
-	gl_Position = projection * vec4(vertex.position, 1.0);
+	gl_Position = projection3D * vec4(vertex.position, 1.0);
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }
-

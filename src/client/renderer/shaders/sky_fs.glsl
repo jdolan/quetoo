@@ -20,10 +20,7 @@
  */
 
 uniform sampler2D texture_diffusemap;
-
 uniform sampler3D texture_lightgrid_fog;
-
-uniform lightgrid_t lightgrid;
 
 in vertex_data {
 	vec3 position;
@@ -42,7 +39,7 @@ void main(void) {
 
 	// postprocessing
 	
-	out_color.rgb = lightgrid_fog(lightgrid, texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
+	out_color.rgb = fog_fragment(texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
 
 	out_color.rgb = color_filter(out_color.rgb);
 }

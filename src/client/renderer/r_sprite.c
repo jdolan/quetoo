@@ -85,6 +85,8 @@ static _Bool R_IsSpriteBlendDepthSet(const int32_t blend_depth) {
  */
 static struct {
 	GLuint name;
+
+	GLuint uniforms;
 	
 	GLint in_position;
 	GLint in_diffusemap;
@@ -92,9 +94,6 @@ static struct {
 	GLint in_color;
 	GLint in_lerp;
 	GLint in_blend_depth;
-
-	GLint projection;
-	GLint view;
 
 	GLint blend_depth;
 
@@ -107,18 +106,6 @@ static struct {
 	GLint texture_next_diffusemap;
 	GLint depth_stencil_attachment;
 
-	GLint brightness;
-	GLint contrast;
-	GLint saturation;
-	GLint gamma;
-
-	struct {
-		GLint mins;
-		GLint maxs;
-		GLint view_coordinate;
-	} lightgrid;
-
-	GLint fog;
 } r_sprite_program;
 
 /**
@@ -432,27 +419,9 @@ void R_UpdateSprites(void) {
 
 	glUseProgram(r_sprite_program.name);
 
-	glUniformMatrix4fv(r_sprite_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
-	glUniformMatrix4fv(r_sprite_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
-
 	glUniform2f(r_sprite_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_sprite_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
 	glUniform1f(r_sprite_program.transition_size, .0016f);
-
-	glUniform1f(r_sprite_program.brightness, r_brightness->value);
-	glUniform1f(r_sprite_program.contrast, r_contrast->value);
-	glUniform1f(r_sprite_program.saturation, r_saturation->value);
-	glUniform1f(r_sprite_program.gamma, r_gamma->value);
-
-	glUniform3fv(r_sprite_program.lightgrid.mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
-	glUniform3fv(r_sprite_program.lightgrid.maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
-
-	const vec3_t view = Vec3_Subtract(r_view.origin, r_world_model->bsp->lightgrid->mins);
-	const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
-
-	glUniform3fv(r_sprite_program.lightgrid.view_coordinate, 1, Vec3_Divide(view, size).xyz);
-
-	glUniform1f(r_sprite_program.fog, r_fog->value);
 
 	R_GetError(NULL);
 
@@ -506,6 +475,8 @@ void R_DrawSprites(int32_t blend_depth) {
 	glEnable(GL_DEPTH_TEST);
 
 	glUseProgram(r_sprite_program.name);
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glUniform1i(r_sprite_program.blend_depth, blend_depth);
 
@@ -573,12 +544,15 @@ static void R_InitSpriteProgram(void) {
 	memset(&r_sprite_program, 0, sizeof(r_sprite_program));
 
 	r_sprite_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "sprite_vs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "common_vs.glsl", "sprite_vs.glsl"),
 			&MakeShaderDescriptor(GL_GEOMETRY_SHADER, "sprite_gs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "lightgrid.glsl", "soften_fs.glsl", "sprite_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "soften_fs.glsl", "sprite_fs.glsl"),
 			NULL);
 	
 	glUseProgram(r_sprite_program.name);
+
+	r_sprite_program.uniforms = glGetUniformBlockIndex(r_sprite_program.name, "uniforms");
+	glUniformBlockBinding(r_sprite_program.name, r_sprite_program.uniforms, 0);
 	
 	r_sprite_program.in_position = glGetAttribLocation(r_sprite_program.name, "in_position");
 	r_sprite_program.in_diffusemap = glGetAttribLocation(r_sprite_program.name, "in_diffusemap");
@@ -586,9 +560,6 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.in_color = glGetAttribLocation(r_sprite_program.name, "in_color");
 	r_sprite_program.in_lerp = glGetAttribLocation(r_sprite_program.name, "in_lerp");
 	r_sprite_program.in_blend_depth = glGetAttribLocation(r_sprite_program.name, "in_blend_depth");
-
-	r_sprite_program.projection = glGetUniformLocation(r_sprite_program.name, "projection");
-	r_sprite_program.view = glGetUniformLocation(r_sprite_program.name, "view");
 
 	r_sprite_program.blend_depth = glGetUniformLocation(r_sprite_program.name, "blend_depth");
 
@@ -600,17 +571,6 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
 	r_sprite_program.depth_stencil_attachment = glGetUniformLocation(r_sprite_program.name, "depth_stencil_attachment");
-
-	r_sprite_program.brightness = glGetUniformLocation(r_sprite_program.name, "brightness");
-	r_sprite_program.contrast = glGetUniformLocation(r_sprite_program.name, "contrast");
-	r_sprite_program.saturation = glGetUniformLocation(r_sprite_program.name, "saturation");
-	r_sprite_program.gamma = glGetUniformLocation(r_sprite_program.name, "gamma");
-
-	r_sprite_program.lightgrid.mins = glGetUniformLocation(r_sprite_program.name, "lightgrid.mins");
-	r_sprite_program.lightgrid.maxs = glGetUniformLocation(r_sprite_program.name, "lightgrid.maxs");
-	r_sprite_program.lightgrid.view_coordinate = glGetUniformLocation(r_sprite_program.name, "lightgrid.view_coordinate");
-
-	r_sprite_program.fog = glGetUniformLocation(r_sprite_program.name, "fog");
 
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);

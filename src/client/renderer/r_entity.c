@@ -85,7 +85,7 @@ void R_UpdateEntities(void) {
 	
 	R_UpdateMeshEntities();
 	
-	R_UpdateMeshShadowEntities();
+	R_UpdateMeshEntitiesShadows();
 }
 
 /**
@@ -137,7 +137,7 @@ void R_DrawEntities(int32_t blend_depth) {
 	
 	R_DrawMeshEntities(blend_depth);
 
-	R_DrawMeshShadowEntities(blend_depth);
+	R_DrawMeshEntitiesShadows(blend_depth);
 
 	if (!r_draw_entity_bounds->value) {
 		return;

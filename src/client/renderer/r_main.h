@@ -85,24 +85,10 @@ typedef struct {
 
 extern r_config_t r_config;
 
-// private renderer structure
+/**
+ * @brief Private renderer data type.
+ */
 typedef struct {
-
-	/**
-	 * @brief The 3D projection matrix.
-	 */
-	mat4_t projection3D;
-
-	/**
-	 * @brief The 2D projection matrix.
-	 */
-	mat4_t projection2D;
-
-	/**
-	 * @brief The view matrix.
-	 */
-	mat4_t view;
-
 	/**
 	 * @brief The view frustum, for box and sphere culling.
 	 */
@@ -133,6 +119,110 @@ typedef struct {
 } r_locals_t;
 
 extern r_locals_t r_locals;
+
+/**
+ * @brief The lightgrid uniform struct.
+ * @remarks This struct is vec4 aligned.
+ */
+typedef struct {
+	/**
+	 * @brief The lightgrid mins, in world space.
+	 */
+	vec4_t mins;
+
+	/**
+	 * @brief The lightgrid maxs, in world space.
+	 */
+	vec4_t maxs;
+
+	/**
+	 * @brief The view origin, in lightgrid space.
+	 */
+	vec4_t view_coordinate;
+} r_lightgrid_t;
+
+/**
+ * @brief The uniforms block type.
+ */
+typedef struct {
+	/**
+	 * @brief The name of the r_uniforms buffer.
+	 */
+	GLuint buffer;
+
+	/**
+	 * @brief The uniform block struct.
+	 * @remarks This struct is vec4 aligned.
+	 */
+	struct {
+		/**
+		 * @brief The 3D projection matrix.
+		 */
+		mat4_t projection3D;
+
+		/**
+		 * @brief The 2D projection matrix.
+		 */
+		mat4_t projection2D;
+
+		/**
+		 * @brief The 2D projection matrix for the framebuffer object.
+		 */
+		mat4_t projection2D_FBO;
+
+		/**
+		 * @brief The view matrix.
+		 */
+		mat4_t view;
+
+		/**
+		 * @brief The lightgrid uniforms.
+		 */
+		r_lightgrid_t lightgrid;
+
+		/**
+		 * @brief The light sources for the current frame, transformed to view space.
+		 */
+		r_light_t lights[MAX_LIGHTS];
+
+		/**
+		 * @brief The brightness scalar.
+		 */
+		float brightness;
+
+		/**
+		 * @brief The contrast scalar.
+		 */
+		float contrast;
+
+		/**
+		 * @brief The saturation scalar.
+		 */
+		float saturation;
+
+		/**
+		 * @brief The gamma scalar.
+		 */
+		float gamma;
+
+		/**
+		 * @brief The modulate scalar.
+		 */
+		float modulate;
+
+		/**
+		 * @brief The fog scalar.
+		 */
+		float fog;
+
+	} block;
+
+} r_uniforms_t;
+
+/**
+ * @brief The uniform variables block, updated once per frame and common to all programs.
+ */
+extern r_uniforms_t r_uniforms;
 
 // development tools
 extern cvar_t *r_blend;

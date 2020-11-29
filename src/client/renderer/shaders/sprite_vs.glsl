@@ -26,11 +26,6 @@ layout (location = 3) in vec4 in_color;
 layout (location = 4) in float in_lerp;
 layout (location = 5) in int in_blend_depth;
 
-uniform mat4 projection;
-uniform mat4 view;
-
-uniform lightgrid_t lightgrid;
-
 out vertex_data {
 	vec3 position;
 	vec2 diffusemap;
@@ -56,5 +51,5 @@ void main(void) {
 	vertex.lerp = in_lerp;
 	vertex.blend_depth = in_blend_depth;
 
-	gl_Position = projection * view * position;
+	gl_Position = projection3D * view * position;
 }

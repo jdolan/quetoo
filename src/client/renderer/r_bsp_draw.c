@@ -27,6 +27,8 @@
 static struct {
 	GLuint name;
 
+	GLuint uniforms;
+
 	GLint in_position;
 	GLint in_normal;
 	GLint in_tangent;
@@ -35,8 +37,6 @@ static struct {
 	GLint in_lightmap;
 	GLint in_color;
 
-	GLint projection;
-	GLint view;
 	GLint model;
 
 	GLint texture_material;
@@ -46,12 +46,6 @@ static struct {
 	GLint texture_lightgrid_fog;
 
 	GLint alpha_threshold;
-
-	GLint brightness;
-	GLint contrast;
-	GLint saturation;
-	GLint gamma;
-	GLint modulate;
 
 	GLint bicubic;
 	GLint parallax_samples;
@@ -78,15 +72,6 @@ static struct {
 		GLint warp;
 	} stage;
 
-	struct {
-		GLint mins;
-		GLint maxs;
-		GLint view_coordinate;
-	} lightgrid;
-
-	GLint fog;
-
-	GLint lights_block;
 	GLint lights_mask;
 
 	r_image_t *warp_image;
@@ -471,21 +456,7 @@ void R_DrawWorld(void) {
 
 	glUseProgram(r_bsp_program.name);
 
-	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
-	glUniformMatrix4fv(r_bsp_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
-
-	glUniform1f(r_bsp_program.brightness, r_brightness->value);
-	glUniform1f(r_bsp_program.contrast, r_contrast->value);
-	glUniform1f(r_bsp_program.saturation, r_saturation->value);
-	glUniform1f(r_bsp_program.gamma, r_gamma->value);
-	glUniform1f(r_bsp_program.modulate, r_modulate->value);
-
-	glUniform1i(r_bsp_program.bicubic, r_bicubic->value);
-	glUniform1i(r_bsp_program.parallax_samples, r_parallax_samples->value);
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_lights.uniform_buffer);
-
-	glUniform1f(r_bsp_program.fog, r_fog->value);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 	glUniform1i(r_bsp_program.stage.ticks, r_view.ticks);
@@ -505,14 +476,6 @@ void R_DrawWorld(void) {
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
 	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
-
-	glUniform3fv(r_bsp_program.lightgrid.mins, 1, r_world_model->bsp->lightgrid->mins.xyz);
-	glUniform3fv(r_bsp_program.lightgrid.maxs, 1, r_world_model->bsp->lightgrid->maxs.xyz);
-
-	const vec3_t view = Vec3_Subtract(r_view.origin, r_world_model->bsp->lightgrid->mins);
-	const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
-
-	glUniform3fv(r_bsp_program.lightgrid.view_coordinate, 1, Vec3_Divide(view, size).xyz);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->atlas->texnum);
@@ -576,11 +539,14 @@ void R_InitBspProgram(void) {
 	memset(&r_bsp_program, 0, sizeof(r_bsp_program));
 
 	r_bsp_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "bsp_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "common_fs.glsl", "lights_fs.glsl", "bsp_fs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "common_vs.glsl", "material.glsl", "bsp_vs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "material.glsl", "bsp_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_bsp_program.name);
+
+	r_bsp_program.uniforms = glGetUniformBlockIndex(r_bsp_program.name, "uniforms");
+	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.uniforms, 0);
 
 	r_bsp_program.in_position = glGetAttribLocation(r_bsp_program.name, "in_position");
 	r_bsp_program.in_normal = glGetAttribLocation(r_bsp_program.name, "in_normal");
@@ -590,8 +556,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
 	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
 
-	r_bsp_program.projection = glGetUniformLocation(r_bsp_program.name, "projection");
-	r_bsp_program.view = glGetUniformLocation(r_bsp_program.name, "view");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 
 	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
@@ -601,12 +565,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
-
-	r_bsp_program.brightness = glGetUniformLocation(r_bsp_program.name, "brightness");
-	r_bsp_program.contrast = glGetUniformLocation(r_bsp_program.name, "contrast");
-	r_bsp_program.saturation = glGetUniformLocation(r_bsp_program.name, "saturation");
-	r_bsp_program.gamma = glGetUniformLocation(r_bsp_program.name, "gamma");
-	r_bsp_program.modulate = glGetUniformLocation(r_bsp_program.name, "modulate");
 
 	r_bsp_program.bicubic = glGetUniformLocation(r_bsp_program.name, "bicubic");
 	r_bsp_program.parallax_samples = glGetUniformLocation(r_bsp_program.name, "parallax_samples");
@@ -629,16 +587,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.stage.dirtmap = glGetUniformLocation(r_bsp_program.name, "stage.dirtmap");
 	r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
 
-	r_bsp_program.lightgrid.mins = glGetUniformLocation(r_bsp_program.name, "lightgrid.mins");
-	r_bsp_program.lightgrid.maxs = glGetUniformLocation(r_bsp_program.name, "lightgrid.maxs");
-	r_bsp_program.lightgrid.view_coordinate = glGetUniformLocation(r_bsp_program.name, "lightgrid.view_coordinate");
-
-	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
-	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 0);
-	
 	r_bsp_program.lights_mask = glGetUniformLocation(r_bsp_program.name, "lights_mask");
-
-	r_bsp_program.fog = glGetUniformLocation(r_bsp_program.name, "fog");
 
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);

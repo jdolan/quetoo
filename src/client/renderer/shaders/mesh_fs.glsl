@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform mat4 view;
-
 uniform sampler2DArray texture_material;
 uniform sampler2D texture_stage;
 
@@ -30,14 +28,12 @@ uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_fog;
 
 uniform float alpha_threshold;
-
-uniform float modulate;
 uniform float ambient;
 
 uniform material_t material;
 uniform stage_t stage;
 
-uniform lightgrid_t lightgrid;
+uniform int lights_mask;
 
 in vertex_data {
 	vec3 position;
@@ -97,7 +93,7 @@ void main(void) {
 		vec3 light_diffuse = lightgrid_diffuse * max(0.0, dot(normal, lightgrid_direction)) + light_ambient;
 		vec3 light_specular = vec3(0.0);
 
-		dynamic_light(vertex.position, normal, 64.0, light_diffuse, light_specular);
+		dynamic_light(lights_mask, vertex.position, normal, 64.0, light_diffuse, light_specular);
 
 		out_color = diffusemap * diffusemap; // gamma hack
 
@@ -120,7 +116,7 @@ void main(void) {
 
 	out_color.rgb = sqrt(out_color.rgb); // gamma hack
 
-	out_color.rgb = lightgrid_fog(lightgrid, texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
+	out_color.rgb = fog_fragment(texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
 
 	out_color.rgb = color_filter(out_color.rgb);
 

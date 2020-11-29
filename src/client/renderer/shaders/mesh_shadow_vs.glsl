@@ -22,16 +22,12 @@
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_next_position;
 
-uniform mat4 projection;
-uniform mat4 view;
 uniform mat4 model;
 
 uniform float lerp;
 
 uniform float dist;
 uniform float min_z, max_z;
-
-uniform lightgrid_t lightgrid;
 
 out vertex_data {
 	vec3 position;
@@ -52,6 +48,6 @@ void main(void) {
 	vertex.position = vec3(view * model * position);
 	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
 
-	gl_Position = projection * vec4(vertex.position, 1.0);
+	gl_Position = projection3D * vec4(vertex.position, 1.0);
 }
 

@@ -97,18 +97,13 @@ static struct {
 static struct {
 	GLuint name;
 
+	GLuint uniforms;
+
 	GLint in_position;
 	GLint in_diffusemap;
 	GLint in_color;
 
-	GLint projection;
-
 	GLint texture_diffusemap;
-
-	GLint brightness;
-	GLint contrast;
-	GLint saturation;
-	GLint gamma;
 } r_draw_2d_program;
 
 /**
@@ -423,19 +418,12 @@ void R_Draw2D(void) {
 		return;
 	}
 
-	Matrix4x4_FromOrtho(&r_locals.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(r_draw_2d_program.name);
 
-	glUniformMatrix4fv(r_draw_2d_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection2D.m);
-
-	glUniform1f(r_draw_2d_program.brightness, r_brightness->value);
-	glUniform1f(r_draw_2d_program.contrast, r_contrast->value);
-	glUniform1f(r_draw_2d_program.saturation, r_saturation->value);
-	glUniform1f(r_draw_2d_program.gamma, r_gamma->value);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_draw_2d.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
@@ -502,26 +490,22 @@ static void R_InitDraw2DProgram(void) {
 	memset(&r_draw_2d_program, 0, sizeof(r_draw_2d_program));
 
 	r_draw_2d_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "draw_2d_vs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "common_vs.glsl", "draw_2d_vs.glsl"),
 			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "draw_2d_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_draw_2d_program.name);
 
+	r_draw_2d_program.uniforms = glGetUniformBlockIndex(r_draw_2d_program.name, "uniforms");
+	glUniformBlockBinding(r_draw_2d_program.name, r_draw_2d_program.uniforms, 0);
+
 	r_draw_2d_program.in_position = glGetAttribLocation(r_draw_2d_program.name, "in_position");
 	r_draw_2d_program.in_diffusemap = glGetAttribLocation(r_draw_2d_program.name, "in_diffusemap");
 	r_draw_2d_program.in_color = glGetAttribLocation(r_draw_2d_program.name, "in_color");
 
-	r_draw_2d_program.projection = glGetUniformLocation(r_draw_2d_program.name, "projection");
-
 	r_draw_2d_program.texture_diffusemap = glGetUniformLocation(r_draw_2d_program.name, "texture_diffusemap");
 
-	r_draw_2d_program.brightness = glGetUniformLocation(r_draw_2d_program.name, "brightness");
-	r_draw_2d_program.contrast = glGetUniformLocation(r_draw_2d_program.name, "contrast");
-	r_draw_2d_program.saturation = glGetUniformLocation(r_draw_2d_program.name, "saturation");
-	r_draw_2d_program.gamma = glGetUniformLocation(r_draw_2d_program.name, "gamma");
-
-	glUniform1i(r_draw_2d_program.texture_diffusemap, 0);
+	glUniform1i(r_draw_2d_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 
 	R_GetError(NULL);
 }

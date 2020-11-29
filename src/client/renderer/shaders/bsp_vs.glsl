@@ -27,13 +27,9 @@ layout (location = 4) in vec2 in_diffusemap;
 layout (location = 5) in vec2 in_lightmap;
 layout (location = 6) in vec4 in_color;
 
-uniform mat4 projection;
-uniform mat4 view;
 uniform mat4 model;
 
 uniform stage_t stage;
-
-uniform lightgrid_t lightgrid;
 
 out vertex_data {
 	vec3 position;
@@ -70,7 +66,7 @@ void main(void) {
 	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
 	vertex.color = in_color;
 
-	gl_Position = projection * vec4(vertex.position, 1.0);
+	gl_Position = projection3D * vec4(vertex.position, 1.0);
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }

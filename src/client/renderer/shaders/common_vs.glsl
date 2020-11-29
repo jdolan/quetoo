@@ -19,19 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-layout (location = 0) in vec2 in_position;
-layout (location = 1) in vec2 in_diffusemap;
-
-out vertex_data {
-	vec2 diffusemap;
-} vertex;
-
 /**
- * @brief
+ * @param lightgrid The lightgrid struct instance.
+ * @param position The vertex position in world space.
+ * @return The lightgrid sample coordinate for the specified vertex.
  */
-void main(void) {
-
-	gl_Position = projection2D_FBO * vec4(in_position, 0.0, 1.0);
-
-	vertex.diffusemap = in_diffusemap;
+vec3 lightgrid_vertex(in lightgrid_t lightgrid, in vec3 position) {
+	return (position - lightgrid.mins.xyz) / (lightgrid.maxs.xyz - lightgrid.mins.xyz);
 }

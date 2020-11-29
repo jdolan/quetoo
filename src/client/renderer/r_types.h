@@ -876,8 +876,14 @@ typedef struct {
 	float intensity;
 } r_light_t;
 
+/**
+ * @brief 32 dynamic light sources per scene.
+ */
 #define MAX_LIGHTS			0x20
 
+/**
+ * @brief Entity sub-mesh skins.
+ */
 #define MAX_ENTITY_SKINS 	0x8
 
 /**
