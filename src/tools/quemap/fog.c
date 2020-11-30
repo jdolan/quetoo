@@ -33,7 +33,6 @@ int32_t PointInsideFog(const vec3_t point, const fog_t *fog) {
 
 		for (guint i = 0; i < fog->brushes->len; i++) {
 			const cm_bsp_brush_t *brush = g_ptr_array_index(fog->brushes, i);
-
 			if (Cm_PointInsideBrush(point, brush)) {
 				return 1;
 			}

@@ -312,6 +312,11 @@ typedef struct {
 	int32_t num_sides;
 
 	/**
+	 * @brief The number of sides defined in the .map file, before beveling.
+	 */
+	int32_t num_original_sides;
+
+	/**
 	 * @brief The brush bounds.
 	 */
 	vec3_t mins, maxs;

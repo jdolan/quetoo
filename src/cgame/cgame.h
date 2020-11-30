@@ -474,7 +474,7 @@ typedef struct cg_import_s {
 	 */
 
 	/**
-	 * @brief Finds the key-value pair for the specified key within entity.
+	 * @brief Finds the key-value pair for `key` within the specifed entity.
 	 * @param entity The entity.
 	 * @param key The entity key.
 	 * @return The key-value pair for the specified key within entity.
@@ -484,10 +484,30 @@ typedef struct cg_import_s {
 	const cm_entity_t *(*EntityValue)(const cm_entity_t *entity, const char *key);
 
 	/**
+	 * @brief Finds all brushes within the specified entity.
+	 * @param entity The entity.
+	 * @return A pointer array of brushes originally defined within `entity`.
+	 * @remarks This function returns the brushes within an entity as it was defined
+	 * in the source .map file. Even `func_group` and other entities which have their
+	 * contents merged into `worldspawn` during the compilation step are fully supported.
+	 */
+	GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
+
+	/**
 	 * @return The contents mask at the specified point.
+	 * @param point The point to test.
 	 * @remarks This checks the world model and all known solid entities.
 	 */
 	int32_t (*PointContents)(const vec3_t point);
+
+	/**
+	 * @return 1 if `point` resides inside `brush`, `0` otherwise.
+	 * @param point The point to test.
+	 * @param brush The brush to test against.
+	 * @remarks This function is useful for testing points against non-solid brushes
+	 * from brush entities. For general purpose collision detection, use PointContents.
+	 */
+	int32_t (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.

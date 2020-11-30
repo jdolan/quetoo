@@ -97,11 +97,11 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
  */
 int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
-	cm_bsp_brush_side_t *side = brush->sides;
-	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
 		if (Cm_DistanceToPlane(point, side->plane) > -SIDE_EPSILON) {
 			return 1;
+	const cm_bsp_brush_side_t *side = brush->sides;
+	for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
 		}
 	}
 
