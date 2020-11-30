@@ -318,10 +318,7 @@ static void HashLights(void) {
 			continue;
 		}
 
-		const vec3_t node_mins = Vec3s_CastVec3(node->mins);
-		const vec3_t node_maxs = Vec3s_CastVec3(node->maxs);
-
-		node_lights[i] = BoxLights(node_mins, node_maxs);
+		node_lights[i] = BoxLights(node->mins, node->maxs);
 	}
 
 	const bsp_leaf_t *leaf = bsp_file.leafs;
@@ -331,10 +328,7 @@ static void HashLights(void) {
 			continue;
 		}
 
-		const vec3_t leaf_mins = Vec3s_CastVec3(leaf->mins);
-		const vec3_t leaf_maxs = Vec3s_CastVec3(leaf->maxs);
-
-		leaf_lights[i] = BoxLights(leaf_mins, leaf_maxs);
+		leaf_lights[i] = BoxLights(leaf->mins, leaf->maxs);
 	}
 }
 

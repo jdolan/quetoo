@@ -212,10 +212,11 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
 
-		out->mins = Vec3s_CastVec3(in->mins);
-		out->maxs = Vec3s_CastVec3(in->maxs);
-
 		out->contents = in->contents;
+
+		out->mins = in->mins;
+		out->maxs = in->maxs;
+
 		out->cluster = in->cluster;
 	}
 }
@@ -233,8 +234,10 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
 
-		out->mins = Vec3s_CastVec3(in->mins);
-		out->maxs = Vec3s_CastVec3(in->maxs);
+		out->contents = CONTENTS_NODE; // differentiate from leafs
+
+		out->mins = in->mins;
+		out->maxs = in->maxs;
 
 		out->plane = bsp->cm->planes + in->plane_num;
 
@@ -243,8 +246,6 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
-
-		out->contents = CONTENTS_NODE; // differentiate from leafs
 
 		for (int32_t j = 0; j < 2; j++) {
 			const int32_t c = in->children[j];
@@ -328,8 +329,8 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		out->head_node = bsp->nodes + in->head_node;
 
-		out->mins = Vec3s_CastVec3(in->mins);
-		out->maxs = Vec3s_CastVec3(in->maxs);
+		out->mins = in->mins;
+		out->maxs = in->maxs;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;

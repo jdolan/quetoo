@@ -198,6 +198,8 @@ static void Cm_LoadBspBrushes(void) {
 		out->sides = cm_bsp.brush_sides + in->first_brush_side;
 		out->num_sides = in->num_sides;
 		out->num_original_sides = in->num_original_sides;
+		out->mins = in->mins;
+		out->maxs = in->maxs;
 	}
 }
 
@@ -212,7 +214,7 @@ static void Cm_LoadBspInlineModels(void) {
 	cm_bsp_model_t *out = cm_bsp.models = Mem_TagMalloc(sizeof(cm_bsp_model_t) * num_models, MEM_TAG_COLLISION);
 
 	for (int32_t i = 0; i < num_models; i++, in++, out++) {
-
+		
 		out->head_node = in->head_node;
 		out->mins = in->mins;
 		out->maxs = in->maxs;
@@ -356,8 +358,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspBrushSides();
 	Cm_LoadBspBrushes();
 	Cm_LoadBspInlineModels();
-
-	Cm_SetupBspBrushes();
 
 	Cm_InitBoxHull();
 
