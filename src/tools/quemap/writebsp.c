@@ -33,10 +33,10 @@ static void EmitPlanes(void) {
 
 	const plane_t *p = planes;
 	for (int32_t i = 0; i < num_planes; i++, p++) {
-		bsp_plane_t *bp = &bsp_file.planes[bsp_file.num_planes];
+		bsp_plane_t *out = &bsp_file.planes[bsp_file.num_planes];
 
-		bp->normal = p->normal;
-		bp->dist = p->dist;
+		out->normal = p->normal;
+		out->dist = (float) p->dist;
 
 		bsp_file.num_planes++;
 
