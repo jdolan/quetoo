@@ -466,9 +466,9 @@ void BeginBSPFile(void) {
  * @brief
  */
 void EndBSPFile(void) {
-	
-	EmitBrushes();
+
 	EmitPlanes();
+	EmitBrushes();
 	EmitEntities();
 
 	Work("Phong shading", PhongVertex, bsp_file.num_vertexes);
