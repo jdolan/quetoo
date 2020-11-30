@@ -216,6 +216,7 @@ static void Cm_SetupBspBrushes(void) {
 		b->maxs.x = bs[1].plane->dist;
 		b->maxs.y = bs[3].plane->dist;
 		b->maxs.z = bs[5].plane->dist;
+		out->num_original_sides = in->num_original_sides;
 	}
 }
 
