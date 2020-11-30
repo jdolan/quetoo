@@ -221,7 +221,7 @@ void main(void) {
 
 	// postprocessing
 
-	out_color.rgb = fog_fragment(texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
+	fog_fragment(out_color, texture_lightgrid_fog, vertex.lightgrid);
 
 	out_color.rgb = tonemap(out_color.rgb);
 

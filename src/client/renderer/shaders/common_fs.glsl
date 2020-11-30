@@ -19,6 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+vec3 blend_screen(vec3 a, vec3 b)
+{
+	return vec3(1.0) - (vec3(1.0) - a) * (vec3(1.0) - b);
+}
+
 /**
  * @brief Clamps to [0.0, 1.0], like in HLSL.
  */
@@ -314,18 +319,14 @@ void dynamic_light(in int lights_mask, in vec3 position, in vec3 normal, in floa
  * @param frag_color The intermediate fragment color.
  * @return The fog color.
  */
-vec3 fog_fragment(in sampler3D fog_texture, in vec3 frag_position, in vec3 frag_coordinate, in vec4 frag_color) {
+void fog_fragment(inout vec4 color, in sampler3D fog_tex, in vec3 frag_uvw) {
 
-	vec3 fog_color = vec3(0.0);
+	vec4 result = vec4(0.0);
 
-	int iterations = max(1, int(length(frag_position) / 32.0));
-
-	for (int i = 0; i < iterations; i++) {
-		vec3 coordinate = mix(lightgrid.view_coordinate.xyz, frag_coordinate, float(i) / float(iterations));
-		vec4 fog_sample = texture(fog_texture, coordinate);
-		fog_color += fog_sample.rgb * fog_sample.a;
+	int steps = 8;
+	for (int i = 0; i < steps; i++) {
+		vec3 uvw = mix(frag_uvw, lightgrid.view_coordinate.xyz, float(i) / float(steps));
+		vec4 sample = texture(fog_tex, uvw);
+		color.rgb = mix(color.rgb, sample.rgb, sample.a * color.a * fog);
 	}
-
-	fog_color = frag_color.a * fog * fog_color / float(iterations);
-	return frag_color.rgb + fog_color;
 }
