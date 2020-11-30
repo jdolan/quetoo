@@ -41,6 +41,6 @@ void main(void) {
 
 	out_color = vec4(0.0, 0.0, 0.0, alpha);
 	
-	out_color.rgb = fog_fragment(texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
+	fog_fragment(out_color, texture_lightgrid_fog, vertex.lightgrid);
 }
 

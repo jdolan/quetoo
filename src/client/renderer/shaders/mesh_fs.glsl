@@ -116,7 +116,7 @@ void main(void) {
 
 	out_color.rgb = sqrt(out_color.rgb); // gamma hack
 
-	out_color.rgb = fog_fragment(texture_lightgrid_fog, vertex.position, vertex.lightgrid, out_color);
+	fog_fragment(out_color, texture_lightgrid_fog, vertex.lightgrid);
 
 	out_color.rgb = color_filter(out_color.rgb);
 
