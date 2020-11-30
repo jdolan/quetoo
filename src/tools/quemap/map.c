@@ -77,7 +77,7 @@ static inline void AddPlaneToHash(plane_t *p) {
 static int32_t CreatePlane(const vec3_t normal, double dist) {
 
 	// bad plane
-	if (Vec3_Length(normal) < 0.5) {
+	if (Vec3_Length(normal) < 1.f - FLT_EPSILON) {
 		Com_Error(ERROR_FATAL, "Malformed plane\n");
 	}
 
@@ -98,7 +98,7 @@ static int32_t CreatePlane(const vec3_t normal, double dist) {
 
 	// always put axial planes facing positive first
 	if (AXIAL(a)) {
-		if (a->normal.x < 0.0 || a->normal.y < 0.0 || a->normal.z < 0.0) {
+		if (a->normal.x < 0.f || a->normal.y < 0.f || a->normal.z < 0.f) {
 			plane_t temp = *a;
 			*a = *b;
 			*b = temp;
