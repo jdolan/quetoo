@@ -84,11 +84,6 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
  * @return The distance from `point` to `plane`.
  */
 float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
-
-	if (AXIAL(plane)) {
-		return point.xyz[plane->type] - plane->dist;
-	}
-
 	return Vec3_Dot(point, plane->normal) - plane->dist;
 }
 
@@ -97,15 +92,14 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
  */
 int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
-
-		if (Cm_DistanceToPlane(point, side->plane) > -SIDE_EPSILON) {
-			return 1;
 	const cm_bsp_brush_side_t *side = brush->sides;
 	for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
+		if (Cm_DistanceToPlane(point, side->plane) > -SIDE_EPSILON) {
+			return 0;
 		}
 	}
 
-	return 0;
+	return 1;
 }
 
 /**
