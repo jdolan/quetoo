@@ -29,20 +29,19 @@ static GArray *cg_entities;
  * @remarks This should be called once per map load, after the precache routine.
  */
 void Cg_LoadEntities(void) {
+	 const cg_entity_class_t *classes[] = {
+		&cg_misc_flame,
+		&cg_misc_light,
+		&cg_misc_model,
+		&cg_misc_sound,
+		&cg_misc_sparks,
+		&cg_misc_sprite,
+		&cg_misc_steam
+	};
 
 	Cg_FreeEntities();
 
 	cg_entities = g_array_new(false, false, sizeof(cg_entity_t));
-
-	const cg_entity_class_t classes[] = {
-		cg_misc_flame,
-		cg_misc_light,
-		cg_misc_model,
-		cg_misc_sound,
-		cg_misc_sparks,
-		cg_misc_sprite,
-		cg_misc_steam
-	};
 
 	const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
 	for (size_t i = 0; i < bsp->num_entities; i++) {
@@ -50,12 +49,12 @@ void Cg_LoadEntities(void) {
 		const cm_entity_t *def = bsp->entities[i];
 		const char *class_name = cgi.EntityValue(def, "classname")->string;
 
-		const cg_entity_class_t *clazz = classes;
+		const cg_entity_class_t **clazz = classes;
 		for (size_t j = 0; j < lengthof(classes); j++, clazz++) {
-			if (!g_strcmp0(class_name, clazz->class_name)) {
+			if (!g_strcmp0(class_name, (*clazz)->class_name)) {
 
 				cg_entity_t e = {
-					.clazz = clazz,
+					.clazz = *clazz,
 					.def = def
 				};
 
