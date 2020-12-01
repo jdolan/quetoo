@@ -29,10 +29,9 @@
 #include "client.h"
 
 r_view_t r_view;
-
 r_locals_t r_locals;
-
 r_config_t r_config;
+r_uniforms_t r_uniforms;
 
 cvar_t *r_blend;
 cvar_t *r_clear;
@@ -169,28 +168,64 @@ _Bool R_CullSphere(const vec3_t point, const float radius) {
 /**
  * @brief
  */
-static void R_UpdateProjection(void) {
+static void R_UpdateUniforms(void) {
 
-	const float aspect = (float) r_context.width / (float) r_context.height;
+	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
 
-	const float ymax = tanf(Radians(r_view.fov.y));
-	const float ymin = -ymax;
+	{
+		const float aspect = (float) r_context.width / (float) r_context.height;
 
-	const float xmin = ymin * aspect;
-	const float xmax = ymax * aspect;
+		const float ymax = tanf(Radians(r_view.fov.y));
+		const float ymin = -ymax;
 
-	Matrix4x4_FromFrustum(&r_locals.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
+		const float xmin = ymin * aspect;
+		const float xmax = ymax * aspect;
 
-	Matrix4x4_CreateIdentity(&r_locals.view);
+		Matrix4x4_FromFrustum(&r_uniforms.block.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
+	}
 
-	Matrix4x4_ConcatRotate(&r_locals.view, -90.0, 1.0, 0.0, 0.0); // put Z going up
-	Matrix4x4_ConcatRotate(&r_locals.view,  90.0, 0.0, 0.0, 1.0); // put Z going up
+	{
+		Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+		Matrix4x4_FromOrtho(&r_uniforms.block.projection2D_FBO, 0.0, r_context.drawable_width, r_context.drawable_height, 0.0, -1.0, 1.0);
+	}
 
-	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles.z, 1.0, 0.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles.x, 0.0, 1.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles.y, 0.0, 0.0, 1.0);
+	{
+		Matrix4x4_CreateIdentity(&r_uniforms.block.view);
 
-	Matrix4x4_ConcatTranslate(&r_locals.view, -r_view.origin.x, -r_view.origin.y, -r_view.origin.z);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -90.0, 1.0, 0.0, 0.0); // put Z going up
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view,  90.0, 0.0, 0.0, 1.0); // put Z going up
+
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view.angles.z, 1.0, 0.0, 0.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view.angles.x, 0.0, 1.0, 0.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view.angles.y, 0.0, 0.0, 1.0);
+
+		Matrix4x4_ConcatTranslate(&r_uniforms.block.view, -r_view.origin.x, -r_view.origin.y, -r_view.origin.z);
+	}
+
+	{
+		r_uniforms.block.brightness = r_brightness->value;
+		r_uniforms.block.contrast = r_contrast->value;
+		r_uniforms.block.saturation = r_saturation->value;
+		r_uniforms.block.gamma = r_gamma->value;
+		r_uniforms.block.modulate = r_modulate->value;
+		r_uniforms.block.fog = r_fog->value;
+	}
+
+	if (r_world_model) {
+		r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->mins, 0.f);
+		r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->maxs, 0.f);
+
+		const vec3_t view = Vec3_Subtract(r_view.origin, r_world_model->bsp->lightgrid->mins);
+		const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
+
+		r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(view, size), 0.f);
+	}
+
+	R_UpdateLights();
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), &r_uniforms.block, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 /**
@@ -235,14 +270,6 @@ static void R_UpdateFrustum(void) {
 /**
  * @brief
  */
-static void R_UpdateFog(void) {
-
-	r_locals.fog_parameters = Vec3_Multiply(r_view.fog_parameters, Vec3(1.f, 1.f, r_fog->value));
-}
-
-/**
- * @brief
- */
 static void R_Clear(void) {
 
 	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
@@ -278,8 +305,6 @@ void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
 
-	R_UpdateProjection();
-
 	R_UpdateFrustum();
 
 	R_UpdateVis();
@@ -296,7 +321,7 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateStains();
 
-	R_UpdateFog();
+	R_UpdateUniforms();
 
 	R_Clear();
 
@@ -611,6 +636,25 @@ static void R_InitFramebuffer(void) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+
+/**
+ * @brief
+ */
+static void R_InitUniforms(void) {
+
+	glGenBuffers(1, &r_uniforms.buffer);
+
+	R_UpdateUniforms();
+}
+
+/**
+ * @brief
+ */
+static void R_ShutdownUniforms(void) {
+
+	glDeleteBuffers(1, &r_uniforms.buffer);
+}
+
 /**
  * @brief Destroys the default 3d framebuffer.
  */
@@ -638,6 +682,8 @@ void R_Init(void) {
 
 	R_InitFramebuffer();
 
+	R_InitUniforms();
+
 	R_InitMedia();
 
 	R_InitImages();
@@ -649,8 +695,6 @@ void R_Init(void) {
 	R_InitModels();
 
 	R_InitView();
-
-	R_InitLights();
 
 	R_InitSprites();
 
@@ -680,11 +724,11 @@ void R_Shutdown(void) {
 
 	R_ShutdownModels();
 
-	R_ShutdownLights();
-
 	R_ShutdownSprites();
 
 	R_ShutdownSky();
+
+	R_ShutdownUniforms();
 
 	R_ShutdownFramebuffer();
 

@@ -22,12 +22,10 @@
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec2 in_diffusemap;
 
-uniform mat4 projection;
-uniform mat4 view;
-
 out vertex_data {
 	vec3 position;
 	vec2 diffusemap;
+	vec3 lightgrid;
 } vertex;
 
 /**
@@ -35,10 +33,11 @@ out vertex_data {
  */
 void main(void) {
 
-	gl_Position = projection * view * vec4(in_position, 1.0);
+	vec4 position = vec4(in_position, 1.0);
 
-	vertex.position = vec3(view * vec4(in_position, 1.0));
-
+	vertex.position = vec3(view * position);
 	vertex.diffusemap = in_diffusemap;
-}
+	vertex.lightgrid = lightgrid_vertex(lightgrid, in_position);
 
+	gl_Position = projection3D * view * position;
+}

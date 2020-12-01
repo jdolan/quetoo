@@ -36,17 +36,18 @@ void Cm_FreeMaterial(cm_material_t *material) {
  * @brief Just a tuple for string-int
  */
 typedef struct {
-	const char		*keyword;
+	const char *keyword;
 	union {
-		const int32_t	flag;
-		const GLenum	enumVal;
+		const int32_t flag;
+		const GLenum enumVal;
 	};
 } cm_dictionary_t;
 
 /**
  * @brief Content flags
  */
-static cm_dictionary_t cm_contentsList[] = {
+static cm_dictionary_t cm_contents_dict[] = {
+	{ .keyword = "solid", .flag = CONTENTS_SOLID },
 	{ .keyword = "window", .flag = CONTENTS_WINDOW },
 	{ .keyword = "lava", .flag = CONTENTS_LAVA },
 	{ .keyword = "slime", .flag = CONTENTS_SLIME },
@@ -63,9 +64,9 @@ static int32_t Cm_ParseContents(const char *c) {
 
 	int32_t contents = 0;
 
-	for (cm_dictionary_t *list = cm_contentsList; list < cm_contentsList + lengthof(cm_contentsList); list++) {
-		if (strstr(c, list->keyword)) {
-			contents |= list->flag;
+	for (cm_dictionary_t *dict = cm_contents_dict; dict < cm_contents_dict + lengthof(cm_contents_dict); dict++) {
+		if (strstr(c, dict->keyword)) {
+			contents |= dict->flag;
 		}
 	}
 
@@ -79,9 +80,9 @@ static char *Cm_UnparseContents(int32_t contents) {
 	static char s[MAX_STRING_CHARS];
 	*s = '\0';
 
-	for (cm_dictionary_t *list = cm_contentsList; list < cm_contentsList + lengthof(cm_contentsList); list++) {
-		if (contents & list->flag) {
-			g_strlcat(s, va("%s ", list->keyword), sizeof(s));
+	for (cm_dictionary_t *dict = cm_contents_dict; dict < cm_contents_dict + lengthof(cm_contents_dict); dict++) {
+		if (contents & dict->flag) {
+			g_strlcat(s, va("%s ", dict->keyword), sizeof(s));
 		}
 	}
 
@@ -98,6 +99,7 @@ static cm_dictionary_t cm_surfaceList[] = {
 	{ .keyword = "liquid", .flag = SURF_LIQUID },
 	{ .keyword = "blend_33", .flag = SURF_BLEND_33 },
 	{ .keyword = "blend_66", .flag = SURF_BLEND_66 },
+	{ .keyword = "blend_100", .flag = SURF_BLEND_100 },
 	{ .keyword = "no_draw", .flag = SURF_NO_DRAW },
 	{ .keyword = "hint", .flag = SURF_HINT },
 	{ .keyword = "skip", .flag = SURF_SKIP },

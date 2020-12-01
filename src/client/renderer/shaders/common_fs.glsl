@@ -19,6 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+vec3 blend_screen(vec3 a, vec3 b)
+{
+	return vec3(1.0) - (vec3(1.0) - a) * (vec3(1.0) - b);
+}
+
 /**
  * @brief Clamps to [0.0, 1.0], like in HLSL.
  */
@@ -36,11 +41,6 @@ vec3 saturate3(vec3 v) {
 	return v;
 }
 
-uniform float brightness;
-uniform float contrast;
-uniform float saturation;
-uniform float gamma;
-
 /**
  * @brief Brightness, contrast, saturation and gamma.
  */
@@ -54,35 +54,6 @@ vec3 color_filter(vec3 color) {
 	color = mix(bias, mix(vec3(dot(luminance, scaled)), scaled, saturation), contrast);
 
 	return color;
-}
-
-uniform vec3 fog_parameters;
-uniform vec3 fog_color;
-
-/**
- * @brief Global fog.
- */
-vec3 fog(in vec3 position, in vec3 color) {
-
-	float near = fog_parameters.x;
-	float far = fog_parameters.y;
-	float density = fog_parameters.z;
-
-	float strength = density * ((length(position) - near) / (far - near));
-	return mix(color.rgb, fog_color, saturate(strength));
-}
-
-/**
- * @brief Global fog.
- */
-float fog_factor(in vec3 position) {
-
-	float near = fog_parameters.x;
-	float far = fog_parameters.y;
-	float density = fog_parameters.z;
-
-	float strength = density * ((length(position) - near) / (far - near));
-	return saturate(strength);
 }
 
 /**
@@ -150,7 +121,7 @@ vec3 tonemap(vec3 color) {
 }
 
 /**
- * Converts uniform distribution into triangle-shaped distribution. Used for dithering.
+ * @brief Converts uniform distribution into triangle-shaped distribution. Used for dithering.
  */
 float remap_triangular(float v) {
 	
@@ -167,14 +138,14 @@ float remap_triangular(float v) {
 }
 
 /**
- * Converts uniform distribution into triangle-shaped distribution for vec3. Used for dithering.
+ * @brief Converts uniform distribution into triangle-shaped distribution for vec3. Used for dithering.
  */
 vec3 remap_triangular_3(vec3 c) {
     return vec3(remap_triangular(c.r), remap_triangular(c.g), remap_triangular(c.b));
 }
 
 /**
- * Applies dithering before quantizing to 8-bit values to remove color banding.
+ * @brief Applies dithering before quantizing to 8-bit values to remove color banding.
  */
 vec3 dither(vec3 color) {
 
@@ -199,6 +170,9 @@ vec3 dither(vec3 color) {
 	return saturate3(color + pattern);
 }
 
+/**
+ * @brief
+ */
 vec3 pow3(vec3 v, float exponent) {
 	v.x = pow(v.x, exponent);
 	v.y = pow(v.y, exponent);
@@ -206,6 +180,9 @@ vec3 pow3(vec3 v, float exponent) {
 	return v;
 }
 
+/**
+ * @brief
+ */
 vec4 cubic(float v) {
 	vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
 	vec4 s = n * n * n;
@@ -216,6 +193,9 @@ vec4 cubic(float v) {
 	return vec4(x, y, z, w) * (1.0/6.0);
 }
 
+/**
+ * @brief
+ */
 vec4 texture_bicubic(sampler2DArray sampler, vec3 coords) {
 
 	// source: http://www.java-gaming.org/index.php?topic=35123.0
@@ -278,4 +258,75 @@ float mipmap_level(vec2 uv)
     float delta_max_sqr = max(dot(dx, dx), dot(dy, dy));
 
     return 0.5 * log2(delta_max_sqr); // == log2(sqrt(delta_max_sqr));
+}
+
+/**
+ * @brief
+ */
+void dynamic_light(in int lights_mask, in vec3 position, in vec3 normal, in float specular_exponent,
+				   inout vec3 diff_light, inout vec3 spec_light) {
+
+	for (int i = 0; i < MAX_LIGHTS; i++) {
+
+		if ((lights_mask & (1 << i)) == 0) {
+			continue;
+		}
+
+		float radius = lights[i].origin.w;
+		if (radius == 0.0) {
+			continue;
+		}
+
+		float intensity = lights[i].color.w;
+		if (intensity == 0.0) {
+			continue;
+		}
+
+		float dist = distance(lights[i].origin.xyz, position);
+		if (dist < radius) {
+
+			vec3 light_dir = normalize(lights[i].origin.xyz - position);
+			float angle_atten = dot(light_dir, normal);
+			if (angle_atten > 0.0) {
+
+				float dist_atten;
+				dist_atten = 1.0 - dist / radius;
+				dist_atten *= dist_atten; // for looks, not for correctness
+
+				float attenuation = dist_atten * angle_atten;
+
+				vec3 view_dir = normalize(-position);
+				vec3 half_dir = normalize(light_dir + view_dir);
+
+				float specular_base = max(dot(half_dir, normal), 0.0);
+				float specular = pow(specular_base, specular_exponent);
+
+				vec3 color = lights[i].color.rgb * intensity;
+
+				diff_light += attenuation * radius * color;
+				spec_light += attenuation * attenuation * radius * specular * color;
+			}
+		}
+	}
+}
+
+/**
+ * @brief Ray marches the fragment, sampling the fog texture at each iteration, accumulating the result.
+ * @param lightgrid The lightgrid instance.
+ * @param fog_texture The lightgrid fog texture sampler.
+ * @param frag_position The fragment position in view space.
+ * @param frag_coordinate The fragment lightgrid texture coordinate.
+ * @param frag_color The intermediate fragment color.
+ * @return The fog color.
+ */
+void fog_fragment(inout vec4 color, in sampler3D fog_tex, in vec3 frag_uvw) {
+
+	vec4 result = vec4(0.0);
+
+	int steps = 8;
+	for (int i = 0; i < steps; i++) {
+		vec3 uvw = mix(frag_uvw, lightgrid.view_coordinate.xyz, float(i) / float(steps));
+		vec4 sample = texture(fog_tex, uvw);
+		color.rgb = mix(color.rgb, sample.rgb, sample.a * color.a * fog / float(steps));
+	}
 }

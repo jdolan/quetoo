@@ -22,10 +22,13 @@
 uniform sampler2D texture_diffusemap;
 uniform sampler2D texture_next_diffusemap;
 
+uniform sampler3D texture_lightgrid_fog;
+
 in vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec2 next_diffusemap;
+	vec3 lightgrid;
 	vec4 color;
 	float lerp;
 } vertex;
@@ -41,10 +44,8 @@ void main(void) {
 
 	out_color = vertex.color * diffuse_color;
 
-	float fogginess = fog_factor(vertex.position);
+	fog_fragment(out_color, texture_lightgrid_fog, vertex.lightgrid);
 
-	out_color = out_color * (1.f - fogginess);
-	
 	out_color.rgb = color_filter(out_color.rgb);
 
 	out_color *= soften();

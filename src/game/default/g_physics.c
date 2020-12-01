@@ -74,7 +74,8 @@ static void G_CheckWater(g_entity_t *ent) {
 	}
 
 	// check for water interaction
-	const uint8_t old_water_level = ent->locals.water_level;
+	const pm_water_level_t old_water_level = ent->locals.water_level;
+	const int32_t old_water_type = ent->locals.water_type;
 
 	if (ent->solid == SOLID_BSP) {
 		pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
@@ -98,7 +99,11 @@ static void G_CheckWater(g_entity_t *ent) {
 		}
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-			gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE, 0);
+			if (ent->locals.water_type & (CONTENTS_LAVA | CONTENTS_SLIME)) {
+				gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_STATIC, -32);
+			} else {
+				gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_STATIC,  0);
+			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 				G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, true);
@@ -108,7 +113,11 @@ static void G_CheckWater(g_entity_t *ent) {
 	} else if (old_water_level == WATER_UNDER && ent->locals.water_level == WATER_NONE) {
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-			gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE, 0);
+			if (old_water_type & (CONTENTS_LAVA | CONTENTS_SLIME)) {
+				gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_STATIC, -32);
+			} else {
+				gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_STATIC,  0);
+			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 				G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, false);

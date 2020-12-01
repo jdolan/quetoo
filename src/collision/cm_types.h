@@ -171,7 +171,6 @@ typedef enum {
  * @brief Entities are, essentially, linked lists of key-value pairs.
  */
 typedef struct cm_entity_s {
-
 	/**
 	 * @brief A bitmask of entity pair parsed types.
 	 */
@@ -291,6 +290,13 @@ typedef struct {
  */
 typedef struct {
 	/**
+	 * @brief The entity this brush belongs to.
+	 * @remarks Brushes may reside within the world model's BSP tree, but may have been
+	 * defined in a different entity (func_group, misc_fog, etc).
+	 */
+	cm_entity_t *entity;
+
+	/**
 	 * @brief The brush contents (CONTENTS_*).
 	 */
 	int32_t contents;
@@ -304,6 +310,11 @@ typedef struct {
 	 * @brief The number of sides.
 	 */
 	int32_t num_sides;
+
+	/**
+	 * @brief The number of sides defined in the .map file, before beveling.
+	 */
+	int32_t num_original_sides;
 
 	/**
 	 * @brief The brush bounds.

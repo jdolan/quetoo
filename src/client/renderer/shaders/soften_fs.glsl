@@ -20,8 +20,10 @@
  */
 
 uniform sampler2D depth_stencil_attachment;
+
 uniform vec2 depth_range;
 uniform vec2 inv_viewport_size;
+
 uniform float transition_size;
 
 /**

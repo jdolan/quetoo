@@ -144,7 +144,6 @@ struct stage_t {
 	float shell;
 };
 
-
 /**
  * @brief
  */

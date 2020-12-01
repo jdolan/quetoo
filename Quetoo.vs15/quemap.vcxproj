@@ -27,6 +27,7 @@
     <ClCompile Include="..\src\tools\quemap\csg.c" />
     <ClCompile Include="..\src\tools\quemap\entity.c" />
     <ClCompile Include="..\src\tools\quemap\face.c" />
+    <ClCompile Include="..\src\tools\quemap\fog.c" />
     <ClCompile Include="..\src\tools\quemap\leakfile.c" />
     <ClCompile Include="..\src\tools\quemap\light.c" />
     <ClCompile Include="..\src\tools\quemap\lightgrid.c" />
@@ -61,6 +62,7 @@
     <ClInclude Include="..\src\tools\quemap\csg.h" />
     <ClInclude Include="..\src\tools\quemap\entity.h" />
     <ClInclude Include="..\src\tools\quemap\face.h" />
+    <ClInclude Include="..\src\tools\quemap\fog.h" />
     <ClInclude Include="..\src\tools\quemap\leakfile.h" />
     <ClInclude Include="..\src\tools\quemap\light.h" />
     <ClInclude Include="..\src\tools\quemap\lightgrid.h" />

@@ -84,6 +84,16 @@
 #define BSP_LIGHTGRID_TEXTURES 3
 
 /**
+ * @brief Fog color and density textures.
+ */
+#define BSP_FOG_TEXTURES 1
+
+/**
+ * @brief Fog bytes per pixel.
+ */
+#define BSP_FOG_BPP 4
+
+/**
  * @brief Largest lightgrid width in luxels (8192 / 64 = 128).
  */
 #define MAX_BSP_LIGHTGRID_WIDTH (MAX_WORLD_AXIAL / BSP_LIGHTGRID_LUXEL_SIZE)
@@ -157,9 +167,13 @@ typedef struct {
 } bsp_brush_side_t;
 
 typedef struct {
-	int32_t first_brush_side;
-	int32_t num_sides;
+	int32_t entity_num; // the entity that defined this brush
 	int32_t contents;
+	int32_t first_brush_side;
+	int32_t num_sides; // the number of total brush sides, including bevel sides
+	int32_t num_original_sides; // the number of brush sides in the .map file, before beveling
+	vec3_t mins;
+	vec3_t maxs;
 } bsp_brush_t;
 
 typedef struct {
@@ -218,8 +232,8 @@ typedef struct {
 	int32_t plane_num;
 	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
 
-	vec3s_t mins; // for frustum culling
-	vec3s_t maxs;
+	vec3_t mins; // for frustum culling
+	vec3_t maxs;
 
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
@@ -232,8 +246,8 @@ typedef struct {
 	int32_t contents; // OR of all brushes
 	int32_t cluster;
 
-	vec3s_t mins; // for frustum culling
-	vec3s_t maxs;
+	vec3_t mins; // for frustum culling
+	vec3_t maxs;
 
 	int32_t first_leaf_face;
 	int32_t num_leaf_faces;
@@ -245,8 +259,8 @@ typedef struct {
 typedef struct {
 	int32_t head_node;
 
-	vec3s_t mins;
-	vec3s_t maxs;
+	vec3_t mins;
+	vec3_t maxs;
 
 	int32_t first_face;
 	int32_t num_faces;

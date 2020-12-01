@@ -19,10 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform mat4 view;
+uniform sampler3D texture_lightgrid_fog;
 
 in vertex_data {
 	vec3 position;
+	vec3 lightgrid;
 } vertex;
 
 out vec4 out_color;
@@ -38,6 +39,8 @@ void main(void) {
 		discard;
 	}
 
-	out_color = vec4(fog(vertex.position, vec3(0)), alpha);
+	out_color = vec4(0.0, 0.0, 0.0, alpha);
+	
+	fog_fragment(out_color, texture_lightgrid_fog, vertex.lightgrid);
 }
 

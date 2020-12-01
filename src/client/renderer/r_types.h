@@ -523,7 +523,7 @@ typedef struct {
 	/**
 	 * @brief The lightgrid textures (ambient, diffuse, etc..).
 	 */
-	r_image_t *textures[BSP_LIGHTGRID_TEXTURES];
+	r_image_t *textures[BSP_LIGHTGRID_TEXTURES + BSP_FOG_TEXTURES];
 } r_bsp_lightgrid_t;
 
 /**
@@ -876,8 +876,14 @@ typedef struct {
 	float intensity;
 } r_light_t;
 
+/**
+ * @brief 32 dynamic light sources per scene.
+ */
 #define MAX_LIGHTS			0x20
 
+/**
+ * @brief Entity sub-mesh skins.
+ */
 #define MAX_ENTITY_SKINS 	0x8
 
 /**
@@ -1072,16 +1078,6 @@ typedef struct {
 	int32_t weather;
 
 	/**
-	 * @brief The fog color.
-	 */
-	vec3_t fog_color;
-
-	/**
-	 * @brief The fog start, end and density.
-	 */
-	vec3_t fog_parameters;
-
-	/**
 	 * @brief The entities to render for the current frame.
 	 */
 	r_entity_t entities[MAX_ENTITIES];
@@ -1172,4 +1168,42 @@ typedef struct {
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
+
+/**
+ * @brief OpenGL texture unit reservations.
+ */
+typedef enum {
+	/**
+	 * @brief The base texture.
+	 */
+	TEXTURE_DIFFUSEMAP = 0,
+
+	/**
+	 * @brief Material specific textures.
+	 */
+	TEXTURE_MATERIAL = TEXTURE_DIFFUSEMAP,
+	TEXTURE_STAGE,
+	TEXTURE_WARP,
+
+	/**
+	 * @brief The lightmap texture, used by the BSP program.
+	 */
+	TEXTURE_LIGHTMAP,
+
+	/**
+	 * @brief The lightgrid textures, used for mesh lighting, and universally for fog.
+	 */
+	TEXTURE_LIGHTGRID,
+	TEXTURE_LIGHTGRID_AMBIENT = TEXTURE_LIGHTGRID,
+	TEXTURE_LIGHTGRID_DIFFUSE,
+	TEXTURE_LIGHTGRID_DIRECTION,
+	TEXTURE_LIGHTGRID_FOG,
+
+	/**
+	 * @brief Sprite specific textures.
+	 */
+	TEXTURE_NEXT_DIFFUSEMAP,
+	TEXTURE_DEPTH_STENCIL_ATTACHMENT,
+} r_texture_t;
+
 #endif /* __R_LOCAL_H__ */

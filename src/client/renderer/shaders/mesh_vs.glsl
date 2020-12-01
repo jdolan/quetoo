@@ -30,14 +30,9 @@ layout (location = 6) in vec3 in_next_normal;
 layout (location = 7) in vec3 in_next_tangent;
 layout (location = 8) in vec3 in_next_bitangent;
 
-uniform mat4 projection;
-uniform mat4 view;
 uniform mat4 model;
 
 uniform float lerp;
-
-uniform vec3 lightgrid_mins;
-uniform vec3 lightgrid_maxs;
 
 uniform vec4 color;
 
@@ -58,6 +53,8 @@ out vertex_data {
  */
 void main(void) {
 
+	mat4 model_view = view * model;
+
 	vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
 	vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
 	vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
@@ -65,17 +62,16 @@ void main(void) {
 
 	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	vertex.position = vec3(view * model * position);
-	vertex.normal = normalize(vec3(view * model * normal));
-	vertex.tangent = normalize(vec3(view * model * tangent));
-	vertex.bitangent = normalize(vec3(view * model * bitangent));
+	vertex.position = vec3(model_view * position);
+	vertex.normal = vec3(model_view * normal);
+	vertex.tangent = vec3(model_view * tangent);
+	vertex.bitangent = vec3(model_view * bitangent);
 
 	vertex.diffusemap = in_diffusemap;
-	vertex.lightgrid = (vec3(model * position) - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
+	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
 	vertex.color = color;
 
-	gl_Position = projection * vec4(vertex.position, 1.0);
+	gl_Position = projection3D * vec4(vertex.position, 1.0);
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }
-

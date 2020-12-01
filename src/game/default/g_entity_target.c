@@ -142,7 +142,7 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 
  -------- Notes --------
  Use this entity only when a sound must be triggered by another entity. For
- all other ambient sounds, use misc_emit.
+ all other ambient sounds, use misc_sound.
 */
 void G_target_speaker(g_entity_t *ent) {
 	char buffer[MAX_QPATH];

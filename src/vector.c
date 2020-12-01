@@ -550,6 +550,13 @@ float Vec3_Distance(const vec3_t a, const vec3_t b) {
 /**
  * @brief
  */
+vec3_t Vec3_Divide(const vec3_t a, const vec3_t b) {
+	return Vec3(a.x / b.x, a.y / b.y, a.z / b.z);
+}
+
+/**
+ * @brief
+ */
 float Vec3_Dot(const vec3_t a, const vec3_t b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
@@ -621,6 +628,13 @@ vec3_t Vec3_Floorf(const vec3_t v) {
 	return Vec3(floorf(v.x),
 				floorf(v.y),
 				floorf(v.z));
+}
+
+/**
+ * @brief
+ */
+vec3_t Vec3_Fmaf(const vec3_t v, float multiply, const vec3_t add) {
+	return Vec3(fmaf(add.x, multiply, v.x), fmaf(add.y, multiply, v.y), fmaf(add.z, multiply, v.z));
 }
 
 /**
@@ -805,13 +819,6 @@ vec3_t Vec3_Subtract(const vec3_t a, const vec3_t b) {
  */
 vec3_t Vec3_Scale(const vec3_t v, float scale) {
 	return Vec3(v.x * scale, v.y * scale, v.z * scale);
-}
-
-/**
- * @brief
- */
-vec3_t Vec3_FMA(const vec3_t v, float multiply, const vec3_t add) {
-	return Vec3(fmaf(add.x, multiply, v.x), fmaf(add.y, multiply, v.y), fmaf(add.z, multiply, v.z));
 }
 
 /**

@@ -218,7 +218,9 @@ void Cl_InitCgame(void) {
 	import.ReadAngles = Cl_ReadAngles;
 
 	import.EntityValue = Cm_EntityValue;
+	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Cl_PointContents;
+	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Cl_Trace;
 
 	import.LeafForPoint = R_LeafForPoint;

@@ -87,17 +87,10 @@ static struct {
 static struct {
 	GLuint name;
 
+	GLuint uniforms;
+
 	GLint in_position;
 	GLint in_color;
-
-	GLint projection;
-	GLint model;
-	GLint view;
-
-	GLint brightness;
-	GLint contrast;
-	GLint saturation;
-	GLint gamma;
 } r_draw_3d_program;
 
 /**
@@ -172,16 +165,10 @@ void R_Draw3D(void) {
 
 	glUseProgram(r_draw_3d_program.name);
 
-	glUniform1f(r_draw_3d_program.brightness, r_brightness->value);
-	glUniform1f(r_draw_3d_program.contrast, r_contrast->value);
-	glUniform1f(r_draw_3d_program.saturation, r_saturation->value);
-	glUniform1f(r_draw_3d_program.gamma, r_gamma->value);
-
-	glUniformMatrix4fv(r_draw_3d_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
-	glUniformMatrix4fv(r_draw_3d_program.model, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
-	glUniformMatrix4fv(r_draw_3d_program.view, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_draw_3d.vertex_array);
+
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_3d.vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, r_draw_3d.num_vertexes * sizeof(r_draw_3d_vertex_t), r_draw_3d.vertexes, GL_DYNAMIC_DRAW);
 
@@ -216,23 +203,19 @@ static void R_InitDraw3DProgram(void) {
 	memset(&r_draw_3d_program, 0, sizeof(r_draw_3d_program));
 
 	r_draw_3d_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "draw_3d_vs.glsl"),
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "common_vs.glsl", "draw_3d_vs.glsl"),
 			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "draw_3d_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_draw_3d_program.name);
 
+	r_draw_3d_program.uniforms = glGetUniformBlockIndex(r_draw_3d_program.name, "uniforms");
+	glUniformBlockBinding(r_draw_3d_program.name, r_draw_3d_program.uniforms, 0);
+
 	r_draw_3d_program.in_position = glGetAttribLocation(r_draw_3d_program.name, "in_position");
 	r_draw_3d_program.in_color = glGetAttribLocation(r_draw_3d_program.name, "in_color");
 
-	r_draw_3d_program.projection = glGetUniformLocation(r_draw_3d_program.name, "projection");
-	r_draw_3d_program.view = glGetUniformLocation(r_draw_3d_program.name, "view");
-	r_draw_3d_program.model = glGetUniformLocation(r_draw_3d_program.name, "model");
-
-	r_draw_3d_program.brightness = glGetUniformLocation(r_draw_3d_program.name, "brightness");
-	r_draw_3d_program.contrast = glGetUniformLocation(r_draw_3d_program.name, "contrast");
-	r_draw_3d_program.saturation = glGetUniformLocation(r_draw_3d_program.name, "saturation");
-	r_draw_3d_program.gamma = glGetUniformLocation(r_draw_3d_program.name, "gamma");
+	glUseProgram(0);
 
 	R_GetError(NULL);
 }

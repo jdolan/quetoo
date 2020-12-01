@@ -84,12 +84,22 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
  * @return The distance from `point` to `plane`.
  */
 float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
+	return Vec3_Dot(point, plane->normal) - plane->dist;
+}
 
-	if (AXIAL(plane)) {
-		return point.xyz[plane->type] - plane->dist;
+/**
+ * @return `1` if `point` resides inside `brush`, `0` otherwise.
+ */
+int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
+
+	const cm_bsp_brush_side_t *side = brush->sides;
+	for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
+		if (Cm_DistanceToPlane(point, side->plane) > -SIDE_EPSILON) {
+			return 0;
+		}
 	}
 
-	return Vec3_Dot(point, plane->normal) - plane->dist;
+	return 1;
 }
 
 /**
@@ -231,13 +241,13 @@ void Cm_InitBoxHull(void) {
 		cm_bsp_plane_t *plane = &cm_box.planes[i * 2];
 		plane->type = i >> 1;
 		plane->normal = Vec3_Zero();
-		plane->normal.xyz[i >> 1] = 1.0;
+		plane->normal.xyz[i >> 1] = 1.f;
 		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
 		plane->normal = Vec3_Zero();
-		plane->normal.xyz[i >> 1] = -1.0;
+		plane->normal.xyz[i >> 1] = -1.f;
 		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
 
 		const int32_t s = i & 1;
@@ -299,7 +309,7 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 	while (num >= 0) {
 		const cm_bsp_node_t *node = cm_bsp.nodes + num;
 		const float dist = Cm_DistanceToPlane(p, node->plane);
-		if (dist < 0.0f) {
+		if (dist < 0.f) {
 			num = node->children[1];
 		} else {
 			num = node->children[0];

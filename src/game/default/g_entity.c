@@ -29,66 +29,6 @@ typedef struct {
 
 static void G_worldspawn(g_entity_t *ent);
 
-/**
- * @brief Actually does the magic
- */
-static void G_weapon_chaingun_Think(g_entity_t *ent) {
-
-	g_entity_t *cg = NULL;
-	
-	while ((cg = G_Find(cg, EOFS(class_name), "weapon_chaingun"))) {
-
-		// spawn a lightning gun where we are
-		g_entity_t *lg = G_AllocEntity_(g_media.items.weapons[WEAPON_LIGHTNING]->class_name);
-		lg->s.origin = cg->s.origin;
-		lg->s.angles = cg->s.angles;
-		lg->locals.spawn_flags = cg->locals.spawn_flags;
-
-		G_SpawnItem(lg, g_media.items.weapons[WEAPON_LIGHTNING]);
-
-		// replace nearby bullets with bolts
-		g_entity_t *ammo = NULL;
-
-		while ((ammo = G_FindRadius(ammo, lg->s.origin, 128.0))) {
-			if (ammo->locals.item && ammo->locals.item == g_media.items.ammo[AMMO_BULLETS]) {
-
-				// hello bolts
-				g_entity_t *bolts = G_AllocEntity_(g_media.items.ammo[AMMO_BOLTS]->class_name);
-				bolts->s.origin = ammo->s.origin;
-				bolts->s.angles = ammo->s.angles;
-				bolts->locals.spawn_flags = ammo->locals.spawn_flags;
-
-				G_SpawnItem(bolts, g_media.items.ammo[AMMO_BOLTS]);
-
-				// byebye bullets
-				G_FreeEntity(ammo);
-			}
-		}
-
-		// byebye chaingun
-		G_FreeEntity(cg);
-	}
-}
-
-/**
- * @brief Support function to allow chaingun maps to work nicely
- */
-static void G_weapon_chaingun(g_entity_t *ent) {
-
-	// see if we already have one ready, this is just to keep this BS self-contained
-	g_entity_t *cg = NULL;
-	
-	while ((cg = G_Find(cg, EOFS(class_name), "weapon_chaingun"))) {
-		if (cg->locals.Think) {
-			return; // think will destroy us later
-		}
-	}
-
-	ent->locals.Think = G_weapon_chaingun_Think;
-	ent->locals.next_think = g_level.time + 1; // do it after spawnentities
-	ent->locals.move_type = MOVE_TYPE_THINK;
-}
-
 static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn functions
 	{ "func_button", G_func_button },
 	{ "func_conveyor", G_func_conveyor },
@@ -133,18 +73,22 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 
 	{ "worldspawn", G_worldspawn },
 
-	// compatibility-only entities
-	{ "weapon_chaingun", G_weapon_chaingun },
-
 	// lastly, these are entities which we intentionally suppress
 
 	{ "func_group", G_FreeEntity },
 	{ "info_null", G_FreeEntity },
+
 	{ "light", G_FreeEntity },
 	{ "light_spot", G_FreeEntity },
 	{ "light_sun", G_FreeEntity },
-	{ "misc_emit", G_FreeEntity },
+
+	{ "misc_flame", G_FreeEntity },
+	{ "misc_fog", G_FreeEntity },
 	{ "misc_model", G_FreeEntity },
+	{ "misc_sound", G_FreeEntity },
+	{ "misc_sparks", G_FreeEntity },
+	{ "misc_sprite", G_FreeEntity },
+	{ "misc_steam", G_FreeEntity },
 
 	{ NULL, NULL }
 };

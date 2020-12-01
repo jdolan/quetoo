@@ -116,9 +116,13 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
+		brush->entity_num = LittleLong(brush->entity_num);
+		brush->contents = LittleLong(brush->contents);
 		brush->first_brush_side = LittleLong(brush->first_brush_side);
 		brush->num_sides = LittleLong(brush->num_sides);
-		brush->contents = LittleLong(brush->contents);
+		brush->num_original_sides = LittleLong(brush->num_original_sides);
+		brush->mins = LittleVec3(brush->mins);
+		brush->maxs = LittleVec3(brush->maxs);
 
 		brush++;
 	}
@@ -137,10 +141,8 @@ static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 		vertex->normal = LittleVec3(vertex->normal);
 		vertex->tangent = LittleVec3(vertex->tangent);
 		vertex->bitangent = LittleVec3(vertex->bitangent);
-
 		vertex->diffusemap = LittleVec2(vertex->diffusemap);
 		vertex->lightmap = LittleVec2(vertex->diffusemap);
-
 		vertex->texinfo = LittleLong(vertex->texinfo);
 
 		vertex++;
@@ -223,8 +225,8 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 		node->children[0] = LittleLong(node->children[0]);
 		node->children[1] = LittleLong(node->children[1]);
 
-		node->mins = LittleVec3s(node->mins);
-		node->maxs = LittleVec3s(node->maxs);
+		node->mins = LittleVec3(node->mins);
+		node->maxs = LittleVec3(node->maxs);
 
 		node->first_face = LittleLong(node->first_face);
 		node->num_faces = LittleLong(node->num_faces);
@@ -269,8 +271,8 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 		leaf->contents = LittleLong(leaf->contents);
 		leaf->cluster = LittleLong(leaf->cluster);
 
-		leaf->mins = LittleVec3s(leaf->mins);
-		leaf->maxs = LittleVec3s(leaf->maxs);
+		leaf->mins = LittleVec3(leaf->mins);
+		leaf->maxs = LittleVec3(leaf->maxs);
 
 		leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
 		leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
@@ -293,8 +295,8 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 		model->head_node = LittleLong(model->head_node);
 
-		model->mins = LittleVec3s(model->mins);
-		model->maxs = LittleVec3s(model->maxs);
+		model->mins = LittleVec3(model->mins);
+		model->maxs = LittleVec3(model->maxs);
 
 		model->first_face = LittleLong(model->first_face);
 		model->num_faces = LittleLong(model->num_faces);

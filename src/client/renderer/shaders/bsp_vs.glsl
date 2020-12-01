@@ -27,8 +27,6 @@ layout (location = 4) in vec2 in_diffusemap;
 layout (location = 5) in vec2 in_lightmap;
 layout (location = 6) in vec4 in_color;
 
-uniform mat4 projection;
-uniform mat4 view;
 uniform mat4 model;
 
 uniform stage_t stage;
@@ -40,6 +38,7 @@ out vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec2 lightmap;
+	vec3 lightgrid;
 	vec4 color;
 } vertex;
 
@@ -48,6 +47,8 @@ out vertex_data {
  */
 void main(void) {
 
+	mat4 model_view = view * model;
+
 	vec4 position = vec4(in_position, 1.0);
 	vec4 normal = vec4(in_normal, 0.0);
 	vec4 tangent = vec4(in_tangent, 0.0);
@@ -55,16 +56,17 @@ void main(void) {
 
 	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	vertex.position = vec3(view * model * position);
-	vertex.normal = normalize(vec3(view * model * normal));
-	vertex.tangent = normalize(vec3(view * model * tangent));
-	vertex.bitangent = normalize(vec3(view * model * bitangent));
+	vertex.position = vec3(model_view * position);
+	vertex.normal = vec3(model_view * normal);
+	vertex.tangent = vec3(model_view * tangent);
+	vertex.bitangent = vec3(model_view * bitangent);
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
+	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
 	vertex.color = in_color;
 
-	gl_Position = projection * vec4(vertex.position, 1.0);
+	gl_Position = projection3D * vec4(vertex.position, 1.0);
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }

@@ -272,7 +272,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 		const light_t *light = g_ptr_array_index(lights, i);
 
-		float dist_squared = 0.0;
+		float dist_squared = 0.f;
 		switch (light->type) {
 			case LIGHT_SUN:
 				break;
@@ -298,21 +298,21 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 		float dot;
 		if (light->type == LIGHT_AMBIENT) {
-			dot = 1.0;
+			dot = 1.f;
 		} else {
 			dot = Vec3_Dot(dir, luxel->normal);
-			if (dot <= 0.0) {
+			if (dot <= 0.f) {
 				continue;
 			}
 		}
 
-		float intensity = Clampf(light->radius, 0.0, MAX_WORLD_COORD) * dot;
+		float intensity = Clampf(light->radius, 0.f, MAX_WORLD_COORD) * dot;
 
 		switch (light->type) {
 			case LIGHT_SPOT: {
 				const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 				const float thresh = cosf(light->theta);
-				const float smooth = 0.03;
+				const float smooth = 0.03f;
 				intensity *= Smoothf(cone_dot, thresh - smooth, thresh + smooth);
 			}
 				break;
@@ -320,23 +320,23 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 				break;
 		}
 
-		float atten = 1.0;
+		float atten = 1.f;
 
 		switch (light->atten) {
 			case LIGHT_ATTEN_NONE:
 				break;
 			case LIGHT_ATTEN_LINEAR:
-				atten = Clampf(1.0 - dist / light->radius, 0.0, 1.0);
+				atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
 				break;
 			case LIGHT_ATTEN_INVERSE_SQUARE:
-				atten = Clampf(1.0 - dist / light->radius, 0.0, 1.0);
+				atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
 				atten *= atten;
 				break;
 		}
 
 		intensity *= atten;
 
-		if (intensity <= 0.0) {
+		if (intensity <= 0.f) {
 			continue;
 		}
 
@@ -344,17 +344,17 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 		if (light->type == LIGHT_AMBIENT) {
 
-			const float padding_s = ((lightmap->st_maxs.x - lightmap->st_mins.x) - lightmap->w) * 0.5;
-			const float padding_t = ((lightmap->st_maxs.y - lightmap->st_mins.y) - lightmap->h) * 0.5;
+			const float padding_s = ((lightmap->st_maxs.x - lightmap->st_mins.x) - lightmap->w) * 0.5f;
+			const float padding_t = ((lightmap->st_maxs.y - lightmap->st_mins.y) - lightmap->h) * 0.5f;
 
-			const float s = lightmap->st_mins.x + padding_s + luxel->s + 0.5;
-			const float t = lightmap->st_mins.y + padding_t + luxel->t + 0.5;
+			const float s = lightmap->st_mins.x + padding_s + luxel->s + 0.5f;
+			const float t = lightmap->st_mins.y + padding_t + luxel->t + 0.5f;
 
 			const vec3_t points[] = DOME_COSINE_36X;
-			const float ao_radius = 64.0;
+			const float ao_radius = 64.f;
 
-			float occlusion = 0.0;
-			float sample_fraction = 1.0 / lengthof(points);
+			float occlusion = 0.f;
+			float sample_fraction = 1.f / lengthof(points);
 
 			for (size_t i = 0; i < lengthof(points); i++) {
 
@@ -378,7 +378,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 				occlusion += sample_fraction * trace.fraction;
 			}
 
-			intensity *= 1.0 - (1.0 - occlusion) * (1.0 - occlusion);
+			intensity *= 1.f - (1.f - occlusion) * (1.f - occlusion);
 
 		} else if (light->type == LIGHT_SUN) {
 
@@ -386,7 +386,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, head_node, CONTENTS_SOLID);
 			if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
-				float exposure = 0.0;
+				float exposure = 0.f;
 
 				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
 				for (int32_t i = 0; i < num_samples; i++) {
@@ -401,7 +401,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 							continue;
 						}
 
-						exposure += 1.0 / num_samples;
+						exposure += 1.f / num_samples;
 						break;
 					}
 				}
@@ -411,8 +411,8 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 		} else {
 			cm_trace_t trace = Light_Trace(luxel->origin, light->origin, head_node, CONTENTS_SOLID);
-			if (trace.fraction < 1.0) {
-				float exposure = 0.0;
+			if (trace.fraction < 1.f) {
+				float exposure = 0.f;
 
 				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
 				for (int32_t i = 0; i < num_samples; i++) {
@@ -423,11 +423,11 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 						const vec3_t point = Vec3_Add(light->origin, Vec3_Scale(points[j], (i + 1) * LIGHT_SIZE_STEP));
 
 						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
-						if (trace.fraction < 1.0) {
+						if (trace.fraction < 1.f) {
 							continue;
 						}
 
-						exposure += 1.0 / num_samples;
+						exposure += 1.f / num_samples;
 						break;
 					}
 				}
@@ -438,7 +438,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 		intensity *= scale;
 
-		if (intensity <= 0.0) {
+		if (intensity <= 0.f) {
 			continue;
 		}
 
@@ -602,15 +602,14 @@ void FinalizeLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		// add up radiosity
-		vec3_t radiosity = Vec3_Zero();
+		// accumulate radiosity in ambient
 		for (int32_t i = 0; i < num_bounces; i++) {
-			radiosity = Vec3_Add(radiosity, l->radiosity[i]);
+			l->ambient = Vec3_Add(l->ambient, l->radiosity[i]);
 		}
 
-		// convert to float, munge radiosity with ambient
-		vec3_t ambient = Vec3_Scale(Vec3_Add(l->ambient, radiosity), 1.0 / 255.0);
-		vec3_t diffuse = Vec3_Scale(l->diffuse, 1.0 / 255.0);
+		// convert to float
+		vec3_t ambient = Vec3_Scale(l->ambient, 1.f / 255.f);
+		vec3_t diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
 
 		// apply brightness, saturation and contrast
 		ambient = ColorFilter(ambient);
@@ -618,8 +617,8 @@ void FinalizeLightmap(int32_t face_num) {
 
 		// write the color sample data as bytes
 		for (int32_t j = 0; j < 3; j++) {
-			*out_ambient++ = (byte) Clampf(ambient.xyz[j] * 255.0, 0, 255);
-			*out_diffuse++ = (byte) Clampf(diffuse.xyz[j] * 255.0, 0, 255);
+			*out_ambient++ = (byte) Clampf(ambient.xyz[j] * 255.f, 0.f, 255.f);
+			*out_diffuse++ = (byte) Clampf(diffuse.xyz[j] * 255.f, 0.f, 255.f);
 		}
 
 		// re-project the luxel to calculate its centered normal
@@ -643,7 +642,7 @@ void FinalizeLightmap(int32_t face_num) {
 
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 		for (int32_t j = 0; j < 3; j++) {
-			*out_direction++ = (byte) Clampf((direction.xyz[j] + 1.0) * 0.5 * 255.0, 0, 255);
+			*out_direction++ = (byte) Clampf((direction.xyz[j] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
 		}
 	}
 }
@@ -671,9 +670,9 @@ void EmitLightmap(void) {
 	int32_t width;
 	for (width = MIN_BSP_LIGHTMAP_WIDTH; width <= MAX_BSP_LIGHTMAP_WIDTH; width += 256) {
 
-		const int32_t layer_size = width * width * BSP_LIGHTMAP_BPP;
+		const int32_t layer_bytes = width * width * BSP_LIGHTMAP_BPP;
 
-		bsp_file.lightmap_size = sizeof(bsp_lightmap_t) + layer_size * BSP_LIGHTMAP_LAYERS;
+		bsp_file.lightmap_size = sizeof(bsp_lightmap_t) + layer_bytes * BSP_LIGHTMAP_LAYERS;
 
 		Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAP, bsp_file.lightmap_size);
  		memset(bsp_file.lightmap, 0, bsp_file.lightmap_size);
@@ -682,9 +681,9 @@ void EmitLightmap(void) {
 
 		byte *out = (byte *) bsp_file.lightmap + sizeof(bsp_lightmap_t);
 
-		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_size);
-		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_size);
-		SDL_Surface *direction = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
+		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_bytes);
+		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_bytes);
+		SDL_Surface *direction = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_bytes);
 
 		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction) == 0) {
 

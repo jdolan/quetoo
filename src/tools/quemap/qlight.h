@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "fog.h"
 #include "light.h"
 #include "lightgrid.h"
 #include "lightmap.h"

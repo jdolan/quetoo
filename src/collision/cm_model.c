@@ -193,28 +193,13 @@ static void Cm_LoadBspBrushes(void) {
 
 	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
 
+		out->entity = cm_bsp.entities[in->entity_num];
+		out->contents = in->contents;
 		out->sides = cm_bsp.brush_sides + in->first_brush_side;
 		out->num_sides = in->num_sides;
-		out->contents = in->contents;
-	}
-}
-
-/**
- * @brief Sets brush bounds for fast trace tests.
- */
-static void Cm_SetupBspBrushes(void) {
-	cm_bsp_brush_t *b = cm_bsp.brushes;
-
-	for (int32_t i = 0; i < cm_bsp.file.num_brushes; i++, b++) {
-		const cm_bsp_brush_side_t *bs = b->sides;
-
-		b->mins.x = -bs[0].plane->dist;
-		b->mins.y = -bs[2].plane->dist;
-		b->mins.z = -bs[4].plane->dist;
-
-		b->maxs.x = bs[1].plane->dist;
-		b->maxs.y = bs[3].plane->dist;
-		b->maxs.z = bs[5].plane->dist;
+		out->num_original_sides = in->num_original_sides;
+		out->mins = in->mins;
+		out->maxs = in->maxs;
 	}
 }
 
@@ -229,11 +214,10 @@ static void Cm_LoadBspInlineModels(void) {
 	cm_bsp_model_t *out = cm_bsp.models = Mem_TagMalloc(sizeof(cm_bsp_model_t) * num_models, MEM_TAG_COLLISION);
 
 	for (int32_t i = 0; i < num_models; i++, in++, out++) {
-
+		
 		out->head_node = in->head_node;
-
-		out->mins = Vec3s_CastVec3(in->mins);
-		out->maxs = Vec3s_CastVec3(in->maxs);
+		out->mins = in->mins;
+		out->maxs = in->maxs;
 	}
 }
 
@@ -374,8 +358,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspBrushSides();
 	Cm_LoadBspBrushes();
 	Cm_LoadBspInlineModels();
-
-	Cm_SetupBspBrushes();
 
 	Cm_InitBoxHull();
 

@@ -110,31 +110,36 @@ static patch_t *BuildPatch(const bsp_face_t *face, const vec3_t origin, cm_windi
 /**
  * @brief
  */
-static cm_entity_t *EntityForModel(const GList *entities, int32_t num) {
-	char model[16];
+static const cm_entity_t *EntityForModel(int32_t num) {
 
+	if (num == 0) {
+		return Cm_Bsp()->entities[0];
+	}
+
+	char model[16];
 	g_snprintf(model, sizeof(model), "*%d", num);
 
-	for (const GList *e = entities; e; e = e->next) {
-		if (!g_strcmp0(Cm_EntityValue(e->data, "model")->string, model)) {
-			return e->data;
+	cm_entity_t **e = Cm_Bsp()->entities;
+	for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
+		if (!g_strcmp0(Cm_EntityValue(*e, "model")->string, model)) {
+			return *e;
 		}
 	}
 
-	return entities ? entities->data : NULL;
+	Com_Error(ERROR_FATAL, "No entity for inline model %s", model);
 }
 
 /**
  * @brief Create surface fragments for emissive lights and radiosity.
  */
-void BuildPatches(const GList *entities) {
+void BuildPatches(void) {
 
 	patches = Mem_TagMalloc(bsp_file.num_faces * sizeof(patch_t), MEM_TAG_PATCH);
 
 	for (int32_t i = 0; i < bsp_file.num_models; i++) {
 
 		const bsp_model_t *mod = &bsp_file.models[i];
-		const cm_entity_t *ent = EntityForModel(entities, i);
+		const cm_entity_t *ent = EntityForModel(i);
 
 		// inline models need to be offset into their in-use position
 		const vec3_t origin = Cm_EntityValue(ent, "origin")->vec3;

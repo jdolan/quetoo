@@ -33,10 +33,10 @@ static void EmitPlanes(void) {
 
 	const plane_t *p = planes;
 	for (int32_t i = 0; i < num_planes; i++, p++) {
-		bsp_plane_t *bp = &bsp_file.planes[bsp_file.num_planes];
+		bsp_plane_t *out = &bsp_file.planes[bsp_file.num_planes];
 
-		bp->normal = p->normal;
-		bp->dist = p->dist;
+		out->normal = p->normal;
+		out->dist = (float) p->dist;
 
 		bsp_file.num_planes++;
 
@@ -177,8 +177,8 @@ static int32_t EmitLeaf(node_t *node) {
 	out->contents = node->contents;
 	out->cluster = node->cluster;
 
-	out->mins = Vec3_CastVec3s(node->mins);
-	out->maxs = Vec3_CastVec3s(node->maxs);
+	out->mins = node->mins;
+	out->maxs = node->maxs;
 
 	// write the leaf_brushes
 	out->first_leaf_brush = bsp_file.num_leaf_brushes;
@@ -273,8 +273,8 @@ static int32_t EmitNode(node_t *node) {
 	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
 
-	out->mins = Vec3_CastVec3s(Vec3_Floorf(node->mins));
-	out->maxs = Vec3_CastVec3s(Vec3_Ceilf(node->maxs));
+	out->mins = node->mins;
+	out->maxs = node->maxs;
 
 	out->plane_num = node->plane_num;
 
@@ -334,9 +334,13 @@ static void EmitBrushes(void) {
 		brush_t *b = &brushes[i];
 		bsp_brush_t *out = &bsp_file.brushes[i];
 
+		out->entity_num = b->entity_num;
 		out->contents = b->contents;
 		out->first_brush_side = bsp_file.num_brush_sides;
 		out->num_sides = b->num_sides;
+
+		out->mins = b->mins;
+		out->maxs = b->maxs;
 
 		for (int32_t j = 0; j < b->num_sides; j++) {
 
@@ -349,6 +353,10 @@ static void EmitBrushes(void) {
 
 			bs->plane_num = b->sides[j].plane_num;
 			bs->texinfo = b->sides[j].texinfo;
+
+			if (!b->sides[j].bevel) {
+				out->num_original_sides++;
+			}
 		}
 
 		// add any axis planes not contained in the brush to bevel off corners
@@ -461,9 +469,9 @@ void BeginBSPFile(void) {
  * @brief
  */
 void EndBSPFile(void) {
-	
-	EmitBrushes();
+
 	EmitPlanes();
+	EmitBrushes();
 	EmitEntities();
 
 	Work("Phong shading", PhongVertex, bsp_file.num_vertexes);
@@ -489,20 +497,17 @@ void BeginModel(const entity_t *e) {
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
-	vec3_t mins = Vec3_Mins();
-	vec3_t maxs = Vec3_Maxs();
+	mod->mins = Vec3_Mins();
+	mod->maxs = Vec3_Maxs();
 
 	for (int32_t j = start; j < end; j++) {
 		const brush_t *b = &brushes[j];
 		if (!b->num_sides) {
 			continue; // not a real brush (origin brush)
 		}
-		mins = Vec3_Minf(mins, b->mins);
-		maxs = Vec3_Maxf(maxs, b->maxs);
+		mod->mins = Vec3_Minf(mod->mins, b->mins);
+		mod->maxs = Vec3_Maxf(mod->maxs, b->maxs);
 	}
-
-	mod->mins = Vec3_CastVec3s(mins);
-	mod->maxs = Vec3_CastVec3s(maxs);
 }
 
 /**

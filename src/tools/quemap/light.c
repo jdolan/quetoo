@@ -22,7 +22,7 @@
 #include "light.h"
 #include "qlight.h"
 
-GArray *lights = NULL;
+static GArray *lights = NULL;
 
 GPtrArray *node_lights[MAX_BSP_NODES];
 GPtrArray *leaf_lights[MAX_BSP_LEAFS];
@@ -58,29 +58,29 @@ float ColorNormalize(const vec3_t in, vec3_t *out) {
  * @brief Applies brightness, saturation and contrast to the specified input color.
  */
 vec3_t ColorFilter(const vec3_t in) {
-	const vec3_t luminosity = Vec3(0.2125, 0.7154, 0.0721);
+	const vec3_t luminosity = Vec3(0.2125f, 0.7154f, 0.0721f);
 
 	vec3_t out;
 	ColorNormalize(in, &out);
 
-	if (brightness != 1.0) { // apply brightness
+	if (brightness != 1.f) { // apply brightness
 		out = Vec3_Scale(out, brightness);
 
 		ColorNormalize(out, &out);
 	}
 
-	if (contrast != 1.0) { // apply contrast
+	if (contrast != 1.f) { // apply contrast
 
 		for (int32_t i = 0; i < 3; i++) {
-			out.xyz[i] -= 0.5; // normalize to -0.5 through 0.5
+			out.xyz[i] -= 0.5f; // normalize to -0.5 through 0.5
 			out.xyz[i] *= contrast; // scale
-			out.xyz[i] += 0.5;
+			out.xyz[i] += 0.5f;
 		}
 
 		ColorNormalize(out, &out);
 	}
 
-	if (saturation != 1.0) { // apply saturation
+	if (saturation != 1.f) { // apply saturation
 		const float d = Vec3_Dot(out, luminosity);
 		vec3_t intensity;
 
@@ -96,7 +96,7 @@ vec3_t ColorFilter(const vec3_t in) {
 /**
  * @brief
  */
-static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
+static void LightForEntity(const cm_entity_t *entity) {
 
 	const char *class_name = Cm_EntityValue(entity, "classname")->string;
 	if (!g_strcmp0(class_name, "worldspawn")) {
@@ -134,7 +134,7 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
 			light.color = Cm_EntityValue(entity, "_color")->vec3;
 		} else {
-			light.color = Vec3(1.f, 1.f, 1.f);
+			light.color = LIGHT_COLOR;
 		}
 
 		light.radius = Cm_EntityValue(entity, "light")->value;
@@ -154,9 +154,10 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		if (Cm_EntityValue(entity, "target")->parsed & ENTITY_STRING) {
 			const char *targetname = Cm_EntityValue(entity, "target")->string;
 			cm_entity_t *target = NULL;
-			for (const GList *e = entities; e; e = e->next) {
-				if (!g_strcmp0(targetname, Cm_EntityValue(e->data, "targetname")->string)) {
-					target = e->data;
+			cm_entity_t **e = Cm_Bsp()->entities;
+			for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
+				if (!g_strcmp0(targetname, Cm_EntityValue(*e, "targetname")->string)) {
+					target = *e;
 					break;
 				}
 			}
@@ -164,8 +165,8 @@ static void LightForEntity(const GList *entities, const cm_entity_t *entity) {
 				const vec3_t target_origin = Cm_EntityValue(target, "origin")->vec3;
 				light.normal = Vec3_Subtract(target_origin, light.origin);
 			} else {
-				const int32_t i = g_list_index((GList *) entities, entity);
-				Mon_SendSelect(MON_WARN, i, 0, va("%s at %s missing target", class_name, vtos(light.origin)));
+				Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0,
+							   va("%s at %s missing target", class_name, vtos(light.origin)));
 				light.normal = Vec3_Down();
 			}
 		} else {
@@ -250,7 +251,7 @@ static void LightForPatch(const patch_t *patch) {
 /**
  * @brief
  */
-static void FreeLights(void) {
+void FreeLights(void) {
 
 	if (!lights) {
 		return;
@@ -317,10 +318,7 @@ static void HashLights(void) {
 			continue;
 		}
 
-		const vec3_t node_mins = Vec3s_CastVec3(node->mins);
-		const vec3_t node_maxs = Vec3s_CastVec3(node->maxs);
-
-		node_lights[i] = BoxLights(node_mins, node_maxs);
+		node_lights[i] = BoxLights(node->mins, node->maxs);
 	}
 
 	const bsp_leaf_t *leaf = bsp_file.leafs;
@@ -330,24 +328,22 @@ static void HashLights(void) {
 			continue;
 		}
 
-		const vec3_t leaf_mins = Vec3s_CastVec3(leaf->mins);
-		const vec3_t leaf_maxs = Vec3s_CastVec3(leaf->maxs);
-
-		leaf_lights[i] = BoxLights(leaf_mins, leaf_maxs);
+		leaf_lights[i] = BoxLights(leaf->mins, leaf->maxs);
 	}
 }
 
 /**
  * @brief
  */
-void BuildDirectLights(const GList *entities) {
+void BuildDirectLights(void) {
 
 	FreeLights();
 
 	lights = g_array_new(false, false, sizeof(light_t));
 
-	for (const GList *e = entities; e; e = e->next) {
-		LightForEntity(entities, e->data);
+	cm_entity_t **entity = Cm_Bsp()->entities;
+	for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
+		LightForEntity(*entity);
 	}
 
 	const bsp_face_t *face = bsp_file.faces;

@@ -20,21 +20,20 @@
  */
 
 uniform sampler2DArray texture_material;
-uniform sampler2D texture_stage;
-
 uniform sampler2DArray texture_lightmap;
+uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
+uniform sampler3D texture_lightgrid_fog;
 
 uniform float alpha_threshold;
 
-uniform float modulate;
-
 uniform int bicubic;
-
 uniform int parallax_samples;
 
 uniform material_t material;
 uniform stage_t stage;
+
+uniform int lights_mask;
 
 in vertex_data {
 	vec3 position;
@@ -43,6 +42,7 @@ in vertex_data {
 	vec3 bitangent;
 	vec2 diffusemap;
 	vec2 lightmap;
+	vec3 lightgrid;
 	vec4 color;
 } vertex;
 
@@ -161,13 +161,13 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1), viewdir * tbn, fragdist, material.parallax * 0.04);
+		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1.0), viewdir * tbn, fragdist, material.parallax * 0.04);
 
 		float _specularity = material.specularity * 100.0;
 
 		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
-		vec4 normalmap  = texture(texture_material, vec3(texcoord_material, 1));
-		vec4 glossmap   = texture(texture_material, vec3(texcoord_material, 2));
+		vec4 normalmap = texture(texture_material, vec3(texcoord_material, 1));
+		vec4 glossmap = texture(texture_material, vec3(texcoord_material, 2));
 
 		diffusemap *= vertex.color;
 
@@ -177,8 +177,8 @@ void main(void) {
 
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
-		vec3 ambient   = sample_lightmap(0).rgb;
-		vec3 diffuse   = sample_lightmap(1).rgb;
+		vec3 ambient = sample_lightmap(0).rgb;
+		vec3 diffuse = sample_lightmap(1).rgb;
 		vec3 direction = sample_lightmap(2).xyz;
 
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
@@ -191,7 +191,7 @@ void main(void) {
 
 		vec3 stainmap = sample_lightmap(4).rgb;
 
-		dynamic_light(vertex.position, normal, 64, light_diffuse, light_specular);
+		dynamic_light(lights_mask, vertex.position, normal, 64, light_diffuse, light_specular);
 
 		out_color = diffusemap;
 		out_color *= vec4(stainmap, 1.0);
@@ -220,11 +220,11 @@ void main(void) {
 	}
 
 	// postprocessing
-	
+
+	fog_fragment(out_color, texture_lightgrid_fog, vertex.lightgrid);
+
 	out_color.rgb = tonemap(out_color.rgb);
-	
-	out_color.rgb = fog(vertex.position, out_color.rgb);
-	
+
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);

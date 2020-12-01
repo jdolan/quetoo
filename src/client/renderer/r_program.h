@@ -41,7 +41,7 @@ typedef struct {
 #define MakeShaderDescriptor(_type, ...) \
 	(r_shader_descriptor_t) { \
 		.type = _type, \
-		.filenames = { "version.glsl", __VA_ARGS__, NULL } \
+		.filenames = { "version.glsl", "uniforms.glsl", __VA_ARGS__, NULL } \
 	}
 
 GLuint R_LoadShader(const r_shader_descriptor_t *desc);

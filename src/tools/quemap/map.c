@@ -77,7 +77,7 @@ static inline void AddPlaneToHash(plane_t *p) {
 static int32_t CreatePlane(const vec3_t normal, double dist) {
 
 	// bad plane
-	if (Vec3_Length(normal) < 0.5) {
+	if (Vec3_Length(normal) < 1.f - FLT_EPSILON) {
 		Com_Error(ERROR_FATAL, "Malformed plane\n");
 	}
 
@@ -98,7 +98,7 @@ static int32_t CreatePlane(const vec3_t normal, double dist) {
 
 	// always put axial planes facing positive first
 	if (AXIAL(a)) {
-		if (a->normal.x < 0.0 || a->normal.y < 0.0 || a->normal.z < 0.0) {
+		if (a->normal.x < 0.f || a->normal.y < 0.f || a->normal.z < 0.f) {
 			plane_t temp = *a;
 			*a = *b;
 			*b = temp;
@@ -464,17 +464,23 @@ static void SetMaterialFlags(brush_side_t *side) {
 		}
 	}
 
-	if (!g_strcmp0(side->texture, "common/botclip")) {
-		side->contents |= CONTENTS_MONSTER_CLIP;
-	} else if (!g_strcmp0(side->texture, "common/caulk")) {
+	if (!g_strcmp0(side->texture, "common/caulk")) {
 		side->surf |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(side->texture, "common/clip")) {
 		side->contents |= CONTENTS_PLAYER_CLIP;
+	} else if (!g_strcmp0(side->texture, "common/dust")) {
+		side->contents |= CONTENTS_MIST;
+		side->surf |= SURF_NO_DRAW;
+	} else if (!g_strcmp0(side->texture, "common/fog")) {
+		side->contents |= CONTENTS_MIST;
+		side->surf |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(side->texture, "common/hint")) {
 		side->surf |= SURF_HINT;
 	} else if (!g_strcmp0(side->texture, "common/ladder")) {
 		side->contents |= CONTENTS_LADDER | CONTENTS_WINDOW;
 		side->surf |= SURF_NO_DRAW;
+	} if (!g_strcmp0(side->texture, "common/monsterclip")) {
+		side->contents |= CONTENTS_MONSTER_CLIP;
 	} else if (!g_strcmp0(side->texture, "common/nodraw")) {
 		side->surf |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(side->texture, "common/origin")) {
@@ -587,7 +593,6 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		// translucent faces are inherently details beacuse they can not occlude
 		if (side->surf & SURF_MASK_TRANSLUCENT) {
 			side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
-			side->contents &= ~CONTENTS_SOLID;
 		}
 
 		// clip brushes, similarly, are not drawn and therefore can not occlude
@@ -595,11 +600,17 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			side->contents |= CONTENTS_DETAIL;
 		}
 
+		// atmospheric brushes like dust, fog and mist are always detail
+		if (side->contents & CONTENTS_MASK_ATMOSPHERIC) {
+			side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
+		}
+
 		// brushes with no visible or functional contents default to solid or window
 		if (!(side->contents & CONTENTS_MASK_VISIBLE)) {
 			if (!(side->contents & CONTENTS_MASK_FUNCTIONAL)) {
 				if (side->contents & CONTENTS_TRANSLUCENT) {
 					side->contents |= CONTENTS_WINDOW;
+					side->contents &= ~CONTENTS_SOLID;
 				} else {
 					side->contents |= CONTENTS_SOLID;
 				}
@@ -703,8 +714,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
 	const int32_t world_brushes = entities[0].num_brushes;
 
 	brush_t *temp = Mem_TagMalloc(new_brushes * sizeof(brush_t), MEM_TAG_BRUSH);
-	memcpy(temp, brushes + ent->first_brush,
-	       new_brushes * sizeof(brush_t));
+	memcpy(temp, brushes + ent->first_brush, new_brushes * sizeof(brush_t));
 
 	// make space to move the brushes (overlapped copy)
 	memmove(brushes + world_brushes + new_brushes,
@@ -801,11 +811,15 @@ static entity_t *ParseEntity(parser_t *parser) {
 			}
 		}
 
-		// group entities are just for editor convenience, move all brushes into the world
-		const char *classname = ValueForKey(entity, "classname", NULL);
-		if (!g_strcmp0("func_group", classname)) {
+		// jdolan: Some entities have their brushes merged into the world so that they are
+		// CSG subtracted and included in the world's BSP tree. However, these brushes will
+		// maintain a reference to their entity definition, so that any key-value pairs
+		// associated with them will still be available.
+		const char *class_name = ValueForKey(entity, "classname", NULL);
+		if (!g_strcmp0(class_name, "func_group") ||
+			!g_strcmp0(class_name, "misc_fog") ||
+			!g_strcmp0(class_name, "misc_sprite")) {
 			MoveBrushesToWorld(entity);
-			entity->num_brushes = 0;
 		}
 	}
 
