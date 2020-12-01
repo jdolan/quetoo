@@ -185,15 +185,12 @@ static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 		return;
 	}
 
-	// reset the brushes cache for this leaf
-	memset(data->brushes, 0xff, sizeof(data->brushes));
-
 	// trace line against all brushes in the leaf
 	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
 		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
 		if (Cm_BrushAlreadyTested(data, brush_num)) {
-			continue;    // already checked this brush in another leaf
+			continue; // already checked this brush in another leaf
 		}
 
 		const cm_bsp_brush_t *b = &cm_bsp.brushes[brush_num];
@@ -356,6 +353,8 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 			.fraction = 1.f
 		}
 	};
+
+	memset(data.brushes, 0xff, sizeof(data.brushes));
 
 	if (!cm_bsp.file.num_nodes) { // map not loaded
 		return data.trace;
