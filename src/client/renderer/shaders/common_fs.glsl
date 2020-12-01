@@ -19,11 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-vec3 blend_screen(vec3 a, vec3 b)
-{
-	return vec3(1.0) - (vec3(1.0) - a) * (vec3(1.0) - b);
-}
-
 /**
  * @brief Clamps to [0.0, 1.0], like in HLSL.
  */
@@ -98,26 +93,54 @@ vec3 brdf_halflambert(vec3 light_dir, vec3 normal, vec3 light_color) {
  * @brief Prevents surfaces from becoming overexposed by lights (looks bad).
  */
 vec3 tonemap(vec3 color) {
-	#if 0
-		// const float as = 2.71828, bs = 1.0; // 1.6 -> 0.5, 16.0 -> 1.0
-		const float as = 0.825, bs =  0.5; // 0.95 -> 0.5, 8.0 -> 1.0
-		vec3 a = color, b = color;
-		a *= exp(a);
-		a /= a + as;
-		b = b / (b + 1.0);
-		return saturate3(a * b * 1.0625);
-	#endif
 	#if 1
-		color *= exp(color);
-		color /= color + 0.825;
-		return color;
+	color *= exp(color);
+	color /= color + 0.825;
+	return color;
+	#else
+	color = color * color;
+	return sqrt(color / (color + 0.75));
 	#endif
-	#if 0
-		return sqrt(color * color / (color * color + 1.0));
-	#endif
-	#if 0
-		return saturate3(color);
-	#endif
+}
+
+
+// Noise functions borrowed from "Frozen wasteland" Shadertoy by Dave Hoskins
+// https://www.shadertoy.com/view/Xls3D2
+
+float tri(float x) {
+	return abs(fract(x) - 0.5);
+}
+
+vec3 tri3(vec3 p) {
+	return vec3(
+		tri(p.z + tri(p.y)),
+		tri(p.z + tri(p.x)),
+		tri(p.y + tri(p.x)));
+}
+
+/**
+ * @brief Generates 3d noise.
+ */
+float noise_3d(vec3 p)
+{
+    float z = 1.4;
+	float rz = 0.0;
+    vec3 bp = p;
+	
+	for (float i = 0.0; i <= 2.0; i++)
+	{
+        vec3 dg = tri3(bp);
+        p += (dg);
+
+        bp *= 2.0;
+		z  *= 1.5;
+		p  *= 1.3;
+        
+        rz += (tri(p.z + tri(p.x + tri(p.y)))) / z;
+        bp += 0.14;
+	}
+
+	return rz;
 }
 
 /**
@@ -323,10 +346,14 @@ void fog_fragment(inout vec4 color, in sampler3D fog_tex, in vec3 frag_uvw) {
 
 	vec4 result = vec4(0.0);
 
-	int steps = 8;
+	const int steps = 8;
+	float alpha = color.a * fog / float(steps);
+
 	for (int i = 0; i < steps; i++) {
 		vec3 uvw = mix(frag_uvw, lightgrid.view_coordinate.xyz, float(i) / float(steps));
 		vec4 sample = texture(fog_tex, uvw);
-		color.rgb = mix(color.rgb, sample.rgb, sample.a * color.a * fog / float(steps));
+		// using frag_uvw is nonsense but gives a bit more texture.
+		float noise = sample.a * smoothstep(0.0, sample.a, noise_3d(uvw + frag_uvw));
+		color.rgb = mix(color.rgb, sample.rgb, noise * alpha * sample.a);
 	}
 }
