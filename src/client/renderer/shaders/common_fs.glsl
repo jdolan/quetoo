@@ -327,6 +327,6 @@ void fog_fragment(inout vec4 color, in sampler3D fog_tex, in vec3 frag_uvw) {
 	for (int i = 0; i < steps; i++) {
 		vec3 uvw = mix(frag_uvw, lightgrid.view_coordinate.xyz, float(i) / float(steps));
 		vec4 sample = texture(fog_tex, uvw);
-		color.rgb = mix(color.rgb, sample.rgb, sample.a * color.a * fog);
+		color.rgb = mix(color.rgb, sample.rgb, sample.a * color.a * fog / float(steps));
 	}
 }
