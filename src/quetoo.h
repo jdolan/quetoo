@@ -209,9 +209,10 @@ typedef enum {
 
 #define FRAMES_TO_SECONDS(t)	(1000.0f / (t))
 
-
-
-// lower bits are stronger, and will eat weaker brushes completely
+/**
+ * @brief Brush contents bitmasks.
+ * @details Lower bits are stronger, and will eat weaker brushes completely.
+ */
 #define CONTENTS_NONE			0x0 // brush sides may have no contents (skip, hint)
 #define CONTENTS_SOLID			0x1 // an eye is never valid in a solid
 #define CONTENTS_WINDOW			0x2 // translucent, but not watery
