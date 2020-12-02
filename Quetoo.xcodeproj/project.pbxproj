@@ -16,6 +16,7 @@
 			dependencies = (
 				CE948B292235660C00D961FA /* PBXTargetDependency */,
 				CE948B2B2235660C00D961FA /* PBXTargetDependency */,
+				CE45F550257733B8004DEFED /* PBXTargetDependency */,
 				CE052A9121483352003446C9 /* PBXTargetDependency */,
 				CE052A9321483352003446C9 /* PBXTargetDependency */,
 				CE052A9521483352003446C9 /* PBXTargetDependency */,
@@ -798,6 +799,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE354EDB22073AD6008AE0C2;
 			remoteInfo = atlas;
+		};
+		CE45F54F257733B8004DEFED /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE4DCF8C256F0DAD00FECAFC;
+			remoteInfo = check_cm_test;
 		};
 		CE4DCF8E256F0DAD00FECAFC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -5273,6 +5281,11 @@
 			isa = PBXTargetDependency;
 			target = CE354EDB22073AD6008AE0C2 /* atlas */;
 			targetProxy = CE354EFF22075145008AE0C2 /* PBXContainerItemProxy */;
+		};
+		CE45F550257733B8004DEFED /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE4DCF8C256F0DAD00FECAFC /* check_cm_test */;
+			targetProxy = CE45F54F257733B8004DEFED /* PBXContainerItemProxy */;
 		};
 		CE4DCF8D256F0DAD00FECAFC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

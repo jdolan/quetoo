@@ -94,7 +94,7 @@ int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
 	const cm_bsp_brush_side_t *side = brush->sides;
 	for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
-		if (Cm_DistanceToPlane(point, side->plane) > -SIDE_EPSILON) {
+		if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
 			return 0;
 		}
 	}
@@ -109,10 +109,10 @@ int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *p) {
 
 	if (AXIAL(p)) {
-		if (mins.xyz[p->type] - p->dist > -SIDE_EPSILON) {
+		if (mins.xyz[p->type] - p->dist >= 0.f) {
 			return SIDE_FRONT;
 		}
-		if (maxs.xyz[p->type] - p->dist < SIDE_EPSILON) {
+		if (maxs.xyz[p->type] - p->dist <  0.f) {
 			return SIDE_BACK;
 		}
 		return SIDE_BOTH;
@@ -159,10 +159,10 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 
 	int32_t side = 0;
 
-	if (dist1 - p->dist > -SIDE_EPSILON) {
+	if (dist1 - p->dist >= 0.f) {
 		side = SIDE_FRONT;
 	}
-	if (dist2 - p->dist < SIDE_EPSILON) {
+	if (dist2 - p->dist <  0.f) {
 		side |= SIDE_BACK;
 	}
 

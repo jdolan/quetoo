@@ -43,8 +43,8 @@ START_TEST(check_Cm_BoxOnPlaneSide_axial_front) {
 	for (float i = -MAX_WORLD_AXIAL; i <= MAX_WORLD_AXIAL; i += 1.f) {
 		const cm_bsp_plane_t plane = Cm_Plane(Vec3_Up(), i);
 
-		const vec3_t mins = Vec3(0.f, 0.f, i + SIDE_EPSILON);
-		const vec3_t maxs = Vec3(0.f, 0.f, i + SIDE_EPSILON + 1.f);
+		const vec3_t mins = Vec3(0.f, 0.f, i);
+		const vec3_t maxs = Vec3(0.f, 0.f, i + 1.f);
 
 		ck_assert_int_eq(SIDE_FRONT, Cm_BoxOnPlaneSide(mins, maxs, &plane));
 	}
@@ -56,8 +56,8 @@ START_TEST(check_Cm_BoxOnPlaneSide_axial_back) {
 	for (float i = -MAX_WORLD_AXIAL; i <= MAX_WORLD_AXIAL; i += 1.f) {
 		const cm_bsp_plane_t plane = Cm_Plane(Vec3_Up(), i);
 
-		const vec3_t mins = Vec3(0.f, 0.f, i - SIDE_EPSILON - 1.f);
-		const vec3_t maxs = Vec3(0.f, 0.f, i - SIDE_EPSILON);
+		const vec3_t mins = Vec3(0.f, 0.f, i - 1.f);
+		const vec3_t maxs = Vec3(0.f, 0.f, i - ON_EPSILON);
 
 		ck_assert_int_eq(SIDE_BACK, Cm_BoxOnPlaneSide(mins, maxs, &plane));
 	}
