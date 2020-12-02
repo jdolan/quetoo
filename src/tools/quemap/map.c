@@ -98,7 +98,7 @@ static int32_t CreatePlane(const vec3_t normal, double dist) {
 
 	// always put axial planes facing positive first
 	if (AXIAL(a)) {
-		if (a->normal.x < 0.f || a->normal.y < 0.f || a->normal.z < 0.f) {
+		if (Cm_SignBitsForNormal(a->normal)) {
 			plane_t temp = *a;
 			*a = *b;
 			*b = temp;
