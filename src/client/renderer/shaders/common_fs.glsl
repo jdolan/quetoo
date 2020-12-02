@@ -333,6 +333,24 @@ void dynamic_light(in int lights_mask, in vec3 position, in vec3 normal, in floa
 	}
 }
 
+
+/**
+ * @brief screen blend mode
+ */
+float blend_screen(float a, float b) {
+	return 1.0 - (1.0 - a) * (1.0 - b);
+}
+
+
+/**
+ * @brief overlay blend mode
+ */
+float blend_overlay(float a, float b) {
+	return (a < 0.5)
+		? 2.0 * a * b
+		: 1.0 - 2.0 * (1.0 - a) * (1.0 - b);
+}
+
 /**
  * @brief Ray marches the fragment, sampling the fog texture at each iteration, accumulating the result.
  * @param lightgrid The lightgrid instance.
@@ -344,16 +362,47 @@ void dynamic_light(in int lights_mask, in vec3 position, in vec3 normal, in floa
  */
 void fog_fragment(inout vec4 color, in sampler3D fog_tex, in vec3 frag_uvw) {
 
-	vec4 result = vec4(0.0);
+	// TODO: jittering for variable steps
+	
+	// #define VARIABLE_STEPS
+	#define FIXED_STEPS
 
-	const int steps = 8;
-	float alpha = color.a * fog / float(steps);
+	float distance = length(frag_uvw - lightgrid.view_coordinate.xyz);
+
+	#ifdef VARIABLE_STEPS
+	const int max_steps = 20;
+	float stepsize = 1.0 / float(max_steps);
+	int steps = int(distance / stepsize);
+	#endif
+
+	#ifdef FIXED_STEPS
+	const int steps = 20;
+	#endif
+
+	float alpha;
+	alpha = color.a; // texture alpha
+	alpha *= fog; // global fog strength
+	alpha *= smoothstep(0.01, 0.2, distance); // fade-out around the player
+
+	#ifdef VARIABLE_STEPS
+	alpha /= float(max_steps); // make alpha irrespective of steps taken... sorta
+	#else
+	alpha /= float(steps);
+	#endif
+
+	// ray march fog back-to-front (from surface towards viewpoint)
+	// at each point blending the local value on top of the old one
 
 	for (int i = 0; i < steps; i++) {
 		vec3 uvw = mix(frag_uvw, lightgrid.view_coordinate.xyz, float(i) / float(steps));
 		vec4 sample = texture(fog_tex, uvw);
-		// using frag_uvw is nonsense but gives a bit more texture.
-		float noise = sample.a * smoothstep(0.0, sample.a, noise_3d(uvw + frag_uvw));
-		color.rgb = mix(color.rgb, sample.rgb, noise * alpha * sample.a);
+		
+		#if 0
+		// add noise at each step
+		// using frag_uvw is nonsense but gives a bit more texture
+		sample.a = blend_overlay(sample.a, noise_3d(uvw + frag_uvw));
+		#endif
+
+		color.rgb = mix(color.rgb, sample.rgb, saturate(alpha * sample.a));
 	}
 }
