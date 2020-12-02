@@ -142,10 +142,10 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
 
 	mat4_t model;
 
-	const cm_trace_t zero_tr = Cl_Trace(root->origin, Vec3_Add(root->origin, Vec3(0, 0, -MAX_WORLD_DIST)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
+	const cm_trace_t zero_tr = Cl_Trace(root->origin, Vec3_Add(root->origin, Vec3(0, 0, -MAX_WORLD_DIST)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
 	for (uint64_t i = 0; i < ((r_shadows->value > 1) ? lengthof(offsets) : 1); i++) {
-		const cm_trace_t tr = (i == 0) ? zero_tr : Cl_Trace(Vec3_Add(root->origin, offsets[i]), Vec3_Add(Vec3_Add(root->origin, offsets[i]), Vec3(0, 0, -MAX_WORLD_DIST)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
+		const cm_trace_t tr = (i == 0) ? zero_tr : Cl_Trace(Vec3_Add(root->origin, offsets[i]), Vec3_Add(Vec3_Add(root->origin, offsets[i]), Vec3(0, 0, -MAX_WORLD_DIST)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
 		if (i != 0 && fabsf(tr.end.z - zero_tr.end.z) < TRACE_EPSILON) {
 			continue;
