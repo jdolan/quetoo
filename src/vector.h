@@ -403,11 +403,6 @@ static inline vec2_t Vec2_Zero(void) __attribute__ ((warn_unused_result));
 static inline vec3_t Vec3(float x, float y, float z) __attribute__ ((warn_unused_result));
 
 /**
- * @return A vector containing the absolute values of `v`.
- */
-static inline vec3_t Vec3_Absf(const vec3_t v) __attribute__ ((warn_unused_result));
-
-/**
  * @return The vector sum of `a + b`.
  */
 static inline vec3_t Vec3_Add(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_result));
@@ -496,6 +491,11 @@ static inline _Bool Vec3_Equal(const vec3_t a, const vec3_t b) __attribute__ ((w
  * @return The euler angles, in radians, for the directional vector `dir`.
  */
 static inline vec3_t Vec3_Euler(const vec3_t dir) __attribute__ ((warn_unused_result));
+
+/**
+ * @return A vector containing the absolute values of `v`.
+ */
+static inline vec3_t Vec3_Fabsf(const vec3_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @brief A vector containing the components of `v`, rounded to the nearest lower integer.

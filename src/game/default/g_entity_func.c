@@ -1203,7 +1203,7 @@ void G_func_door(g_entity_t *ent) {
 
 	// calculate second position
 	ent->locals.pos1 = ent->s.origin;
-	abs_move_dir = Vec3_Absf(ent->locals.move_dir);
+	abs_move_dir = Vec3_Fabsf(ent->locals.move_dir);
 	ent->locals.move_info.distance = abs_move_dir.x * ent->size.x +
 	                                 abs_move_dir.y * ent->size.y +
 	                                 abs_move_dir.z * ent->size.z - g_game.spawn.lip;
@@ -1718,7 +1718,7 @@ void G_func_water(g_entity_t *self) {
 
 	// calculate second position
 	self->locals.pos1 = self->s.origin;
-	abs_move_dir = Vec3_Absf(self->locals.move_dir);
+	abs_move_dir = Vec3_Fabsf(self->locals.move_dir);
 	self->locals.move_info.distance = abs_move_dir.x * self->size.x +
 									  abs_move_dir.y * self->size.y +
 									  abs_move_dir.z * self->size.z - g_game.spawn.lip;

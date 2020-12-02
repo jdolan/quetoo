@@ -422,14 +422,7 @@ vec2_t Vec2_Zero(void) {
  * @brief
  */
 vec3_t Vec3(float x, float y, float z) {
-	return (vec3_t) { .x = x, .y = y, .z = z};
-}
-
-/**
- * @brief
- */
-vec3_t Vec3_Absf(const vec3_t v) {
-	return Vec3(fabsf(v.x), fabsf(v.y), fabsf(v.z));
+	return (vec3_t) { .x = x, .y = y, .z = z };
 }
 
 /**
@@ -619,6 +612,13 @@ vec3_t Vec3_Euler(const vec3_t dir) {
 	}
 
 	return Vec3(-pitch, yaw, 0);
+}
+
+/**
+ * @brief
+ */
+vec3_t Vec3_Fabsf(const vec3_t v) {
+	return Vec3(fabsf(v.x), fabsf(v.y), fabsf(v.z));
 }
 
 /**
