@@ -123,9 +123,9 @@ static vec3_t SnapNormal(const vec3_t normal) {
 
 	_Bool snap = false;
 	for (int32_t i = 0; i < 3; i++) {
-		if (snapped.xyz[i] != 0.0) {
+		if (snapped.xyz[i] != 0.f) {
 			if (fabsf(snapped.xyz[i]) < NORMAL_EPSILON) {
-				snapped.xyz[i] = 0.0;
+				snapped.xyz[i] = 0.f;
 				snap = true;
 			}
 		}
@@ -139,7 +139,8 @@ static vec3_t SnapNormal(const vec3_t normal) {
 }
 
 /**
- * @brief
+ * @brief Snaps normals within NORMAL_EPSILON to axial, and snaps axial plane
+ * distances to integers, rounding towards the origin.
  */
 static void SnapPlane(vec3_t *normal, double *dist) {
 
@@ -147,9 +148,9 @@ static void SnapPlane(vec3_t *normal, double *dist) {
 
 	// snap axial planes to integer distances
 	if (Cm_PlaneTypeForNormal(*normal) <= PLANE_Z) {
-		const float f = floor(*dist + 0.5);
-		if (fabs(*dist - f) < DIST_EPSILON) {
-			*dist = f;
+		const double d = floor(*dist + 0.5);
+		if (fabs(*dist - d) < DIST_EPSILON) {
+			*dist = d;
 		}
 	}
 }
