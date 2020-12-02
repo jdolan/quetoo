@@ -293,29 +293,11 @@ void dynamic_light(in int lights_mask, in vec3 position, in vec3 normal, in floa
 	}
 }
 
-
-/**
- * @brief screen blend mode
- */
-float blend_screen(float a, float b) {
-	return 1.0 - (1.0 - a) * (1.0 - b);
-}
-
-
-/**
- * @brief overlay blend mode
- */
-float blend_overlay(float a, float b) {
-	return mix(
-		2.0 * a * b,
-		1.0 - 2.0 * (1.0 - a) * (1.0 - b),
-		step(0.5, a));
-}
-
 /**
  * @brief Ray marches the fragment, sampling the fog texture at each iteration.
  * @param color The input and output fragment color.
  * @param fog_sampler The lightgrid fog texture sampler.
+ * @param frag_position The fragment position in view space.
  * @param frag_uvw The fragment lightgrid texture coordinate.
  */
 void fog_fragment(inout vec4 color, in sampler3D fog_sampler, in vec3 frag_position, in vec3 frag_uvw) {
@@ -323,9 +305,6 @@ void fog_fragment(inout vec4 color, in sampler3D fog_sampler, in vec3 frag_posit
 	if (fog_density == 0.0) {
 		return;
 	}
-
-	// ray march fog back-to-front (from surface towards viewpoint)
-	// at each point blending the local value on top of the old one
 
 	vec3 fog = vec3(0.0);
 
