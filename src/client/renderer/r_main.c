@@ -52,7 +52,8 @@ cvar_t *r_contrast;
 cvar_t *r_display;
 cvar_t *r_draw_buffer;
 cvar_t *r_flares;
-cvar_t *r_fog;
+cvar_t *r_fog_density;
+cvar_t *r_fog_samples;
 cvar_t *r_fullscreen;
 cvar_t *r_gamma;
 cvar_t *r_get_error;
@@ -208,7 +209,8 @@ static void R_UpdateUniforms(void) {
 		r_uniforms.block.saturation = r_saturation->value;
 		r_uniforms.block.gamma = r_gamma->value;
 		r_uniforms.block.modulate = r_modulate->value;
-		r_uniforms.block.fog = r_fog->value;
+		r_uniforms.block.fog_density = r_fog_density->value;
+		r_uniforms.block.fog_samples = r_fog_samples->integer;
 	}
 
 	if (r_world_model) {
@@ -530,7 +532,8 @@ static void R_InitLocal(void) {
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_draw_buffer = Cvar_Add("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
 	r_flares = Cvar_Add("r_flares", "1", CVAR_ARCHIVE, "Controls the rendering of light source flares");
-	r_fog = Cvar_Add("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
+	r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
+	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
 	r_gamma = Cvar_Add("r_gamma", "1", CVAR_ARCHIVE, "Controls video gamma (brightness)");
 	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL errors to the console (developer tool)");

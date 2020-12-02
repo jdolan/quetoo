@@ -33,7 +33,8 @@ extern cvar_t *r_contrast;
 extern cvar_t *r_display;
 extern cvar_t *r_draw_buffer;
 extern cvar_t *r_flares;
-extern cvar_t *r_fog;
+extern cvar_t *r_fog_density;
+extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_gamma;
 extern cvar_t *r_get_error;
@@ -211,9 +212,14 @@ typedef struct {
 		float modulate;
 
 		/**
-		 * @brief The fog scalar.
+		 * @brief The fog density scalar.
 		 */
-		float fog;
+		float fog_density;
+
+		/**
+		 * @brief The number of fog samples per fragment (quality).
+		 */
+		int fog_samples;
 	} block;
 
 } r_uniforms_t;

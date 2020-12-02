@@ -117,7 +117,12 @@ layout (std140) uniform uniforms {
 	float modulate;
 
 	/**
-	 * @brief The fog scalar.
+	 * @brief The fog density scalar.
 	 */
-	float fog;
+	float fog_density;
+
+	/**
+	 * @brief The number of fog samples per fragment (quality).
+	 */
+	int fog_samples;
 };

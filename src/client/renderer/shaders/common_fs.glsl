@@ -103,46 +103,6 @@ vec3 tonemap(vec3 color) {
 	#endif
 }
 
-
-// Noise functions borrowed from "Frozen wasteland" Shadertoy by Dave Hoskins
-// https://www.shadertoy.com/view/Xls3D2
-
-float tri(float x) {
-	return abs(fract(x) - 0.5);
-}
-
-vec3 tri3(vec3 p) {
-	return vec3(
-		tri(p.z + tri(p.y)),
-		tri(p.z + tri(p.x)),
-		tri(p.y + tri(p.x)));
-}
-
-/**
- * @brief Generates 3d noise.
- */
-float noise_3d(vec3 p)
-{
-    float z = 1.4;
-	float rz = 0.0;
-    vec3 bp = p;
-	
-	for (float i = 0.0; i <= 2.0; i++)
-	{
-        vec3 dg = tri3(bp);
-        p += (dg);
-
-        bp *= 2.0;
-		z  *= 1.5;
-		p  *= 1.3;
-        
-        rz += (tri(p.z + tri(p.x + tri(p.y)))) / z;
-        bp += 0.14;
-	}
-
-	return rz;
-}
-
 /**
  * @brief Converts uniform distribution into triangle-shaped distribution. Used for dithering.
  */
@@ -353,57 +313,30 @@ float blend_overlay(float a, float b) {
 }
 
 /**
- * @brief Ray marches the fragment, sampling the fog texture at each iteration, accumulating the result.
- * @param lightgrid The lightgrid instance.
- * @param fog_texture The lightgrid fog texture sampler.
- * @param frag_position The fragment position in view space.
- * @param frag_coordinate The fragment lightgrid texture coordinate.
- * @param frag_color The intermediate fragment color.
- * @return The fog color.
+ * @brief Ray marches the fragment, sampling the fog texture at each iteration.
+ * @param color The input and output fragment color.
+ * @param fog_sampler The lightgrid fog texture sampler.
+ * @param frag_uvw The fragment lightgrid texture coordinate.
  */
-void fog_fragment(inout vec4 color, in sampler3D fog_tex, in vec3 frag_uvw) {
+void fog_fragment(inout vec4 color, in sampler3D fog_sampler, in vec3 frag_position, in vec3 frag_uvw) {
 
-	// TODO: jittering for variable steps
-	
-	// #define VARIABLE_STEPS
-	#define FIXED_STEPS
-
-	float distance = length(frag_uvw - lightgrid.view_coordinate.xyz);
-
-	#ifdef VARIABLE_STEPS
-	const int max_steps = 20;
-	float stepsize = 1.0 / float(max_steps);
-	int steps = int(distance / stepsize);
-	#endif
-
-	#ifdef FIXED_STEPS
-	const int steps = 20;
-	#endif
-
-	float alpha;
-	alpha = color.a; // texture alpha
-	alpha *= fog; // global fog strength
-	alpha *= smoothstep(0.01, 0.2, distance); // fade-out around the player
-
-	#ifdef VARIABLE_STEPS
-	alpha /= float(max_steps); // make alpha irrespective of steps taken... sorta
-	#else
-	alpha /= float(steps);
-	#endif
+	if (fog_density == 0.0) {
+		return;
+	}
 
 	// ray march fog back-to-front (from surface towards viewpoint)
 	// at each point blending the local value on top of the old one
 
-	for (int i = 0; i < steps; i++) {
-		vec3 uvw = mix(frag_uvw, lightgrid.view_coordinate.xyz, float(i) / float(steps));
-		vec4 sample = texture(fog_tex, uvw);
-		
-		#if 0
-		// add noise at each step
-		// using frag_uvw is nonsense but gives a bit more texture
-		sample.a = blend_overlay(sample.a, noise_3d(uvw + frag_uvw));
-		#endif
+	vec3 fog = vec3(0.0);
 
-		color.rgb = mix(color.rgb, sample.rgb, saturate(alpha * sample.a));
+	int num_samples = int(clamp(length(frag_position) / 16.0, 1, fog_samples));
+	float sample_weight = 1.0 / num_samples;
+
+	for (int i = 0; i < num_samples; i++) {
+		vec3 uvw = mix(frag_uvw, lightgrid.view_coordinate.xyz, i * sample_weight);
+		vec4 fog_sample = texture(fog_sampler, uvw);
+		fog += fog_sample.rgb * fog_sample.a * fog_density * sample_weight;
 	}
+
+	color.rgb += fog * color.a;
 }
