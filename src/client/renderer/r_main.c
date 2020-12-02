@@ -260,9 +260,10 @@ static void R_UpdateFrustum(void) {
 	p[3].normal = Vec3_Scale(r_view.forward, xs);
 	p[3].normal = Vec3_Add(p[3].normal, Vec3_Scale(r_view.up, -xc));
 
-	for (int32_t i = 0; i < 4; i++) {
-		p[i].type = PLANE_ANY_Z;
+	for (size_t i = 0; i < lengthof(r_locals.frustum); i++) {
+		p[i].normal = Vec3_Normalize(p[i].normal);
 		p[i].dist = Vec3_Dot(r_view.origin, p[i].normal);
+		p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
 		p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
 	}
 }
