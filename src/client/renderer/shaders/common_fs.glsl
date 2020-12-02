@@ -346,9 +346,10 @@ float blend_screen(float a, float b) {
  * @brief overlay blend mode
  */
 float blend_overlay(float a, float b) {
-	return (a < 0.5)
-		? 2.0 * a * b
-		: 1.0 - 2.0 * (1.0 - a) * (1.0 - b);
+	return mix(
+		2.0 * a * b,
+		1.0 - 2.0 * (1.0 - a) * (1.0 - b),
+		step(0.5, a));
 }
 
 /**
