@@ -168,7 +168,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		return;
 	}
 
-	const float hue = RandomRangef(-20.f, 20.f);
+	const float hue = RandomRangef(50.f, 60.f);
 
 	cg_sprite_t *s = Cg_AddSprite(&(cg_sprite_t) {
 		.atlas_image = cg_sprite_flame,
@@ -177,8 +177,8 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		.acceleration.z = 15.f,
 		.lifetime = 500 + Randomf() * 250,
 		.size = RandomRangef(4.f, 12.f),
-		.color = Vec4(hue, .82f, .87f, .78f),
-		.end_color = Vec4(hue, .82f, 0.f, 0.f)
+		.color = Vec4(hue, 1.f, 1.f, 1.f),
+		.end_color = Vec4(hue - 50.f, 1.f, 0.f, 0.f)
 	});
 
 	// make static flames rise
