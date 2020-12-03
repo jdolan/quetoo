@@ -49,12 +49,15 @@ out vec4 out_color;
 
 uniform vec4 tint_colors[3];
 
-vec3 do_tintmap(vec3 diffuse, vec4 tintmap)
-{
+/**
+ * @brief
+ */
+vec3 tint_fragment(vec3 diffuse, vec4 tintmap) {
 	diffuse.rgb *= 1.0 - tintmap.a;
 	
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++) {
 		diffuse.rgb += (tint_colors[i] * tintmap[i]).rgb * tintmap.a;
+	}
 
 	return diffuse.rgb;
 }
@@ -75,7 +78,7 @@ void main(void) {
 		}
 
 		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
-		diffusemap.rgb = do_tintmap(diffusemap.rgb, tintmap);
+		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
 
 		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
 		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
