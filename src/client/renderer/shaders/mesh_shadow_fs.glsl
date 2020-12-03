@@ -33,7 +33,7 @@ out vec4 out_color;
  */
 void main(void) {
 
-	float alpha = (1.0 - soften());
+	float alpha = (0.6 - soften());
 
 	if (alpha <= 0.0) {
 		discard;
