@@ -22,27 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief Sets the entity's culling bounds.
- */
-static void R_SetEntityBounds(r_entity_t *e) {
-
-	e->mins = e->origin;
-	e->maxs = e->origin;
-
-	if (e->model) {
-
-		if (!Vec3_Equal(e->angles, Vec3_Zero())) {
-			const vec3_t maxs = Vec3(e->model->radius, e->model->radius, e->model->radius);
-			e->mins = Vec3_Add(e->origin, Vec3_Scale(maxs, -e->scale));
-			e->maxs = Vec3_Add(e->origin, Vec3_Scale(maxs,  e->scale));
-		} else {
-			e->mins = Vec3_Add(e->origin, Vec3_Scale(e->model->mins, e->scale));
-			e->maxs = Vec3_Add(e->origin, Vec3_Scale(e->model->maxs, e->scale));
-		}
-	}
-}
-
-/**
  * @brief Adds an entity to the view.
  */
 r_entity_t *R_AddEntity(const r_entity_t *ent) {
@@ -68,9 +47,7 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 
-	R_SetEntityBounds(e);
-
-	if (R_CullBox(e->mins, e->maxs)) {
+	if (R_CullBox(e->abs_mins, e->abs_maxs)) {
 		return NULL;
 	}
 
@@ -94,39 +71,39 @@ void R_UpdateEntities(void) {
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->mins.x, e->mins.y, e->mins.z),
-		Vec3(e->maxs.x, e->mins.y, e->mins.z),
-		Vec3(e->maxs.x, e->maxs.y, e->mins.z),
-		Vec3(e->mins.x, e->maxs.y, e->mins.z),
-		Vec3(e->mins.x, e->mins.y, e->mins.z),
+		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_mins.z),
+		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_mins.z),
+		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_mins.z),
+		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_mins.z),
+		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_mins.z),
 	}, 5, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->mins.x, e->mins.y, e->maxs.z),
-		Vec3(e->maxs.x, e->mins.y, e->maxs.z),
-		Vec3(e->maxs.x, e->maxs.y, e->maxs.z),
-		Vec3(e->mins.x, e->maxs.y, e->maxs.z),
-		Vec3(e->mins.x, e->mins.y, e->maxs.z),
+		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_maxs.z),
+		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_maxs.z),
+		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_maxs.z),
+		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_maxs.z),
+		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_maxs.z),
 	}, 5, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->mins.x, e->mins.y, e->mins.z),
-		Vec3(e->mins.x, e->mins.y, e->maxs.z),
+		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_mins.z),
+		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_maxs.z),
 	}, 2, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->mins.x, e->maxs.y, e->mins.z),
-		Vec3(e->mins.x, e->maxs.y, e->maxs.z),
+		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_mins.z),
+		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_maxs.z),
 	}, 2, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->maxs.x, e->maxs.y, e->mins.z),
-		Vec3(e->maxs.x, e->maxs.y, e->maxs.z),
+		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_mins.z),
+		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_maxs.z),
 	}, 2, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->maxs.x, e->mins.y, e->mins.z),
-		Vec3(e->maxs.x, e->mins.y, e->maxs.z),
+		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_mins.z),
+		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_maxs.z),
 	}, 2, color_yellow);
 }
 

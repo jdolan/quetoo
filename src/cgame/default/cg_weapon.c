@@ -139,23 +139,13 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	memset(&w, 0, sizeof(w));
 
-	// Weapon offset
-
-	Cg_WeaponOffset(ent, &offset, &angles);
-
 	w.origin = cgi.view->origin;
 
-	// Weapon bob
-
+	Cg_WeaponOffset(ent, &offset, &angles);
 	Cg_WeaponBob(ps, &offset, &angles);
-
-	// Velocity swaying
-
 	Cg_SpeedModulus(ps, &velocity);
 
 	w.origin = Vec3_Add(w.origin, velocity);
-
-	// Hand
 
 	switch (cg_hand->integer) {
 		case HAND_LEFT:
@@ -174,8 +164,6 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	w.angles = Vec3_Add(cgi.view->angles, angles);
 
-	// Copy state over to render entity
-
 	w.effects = EF_WEAPON | EF_NO_SHADOW;
 
 	w.color = Vec4(1.0, 1.0, 1.0, 1.0);
@@ -189,6 +177,9 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	w.shell = self->shell;
 
 	w.model = cgi.client->model_precache[ps->stats[STAT_WEAPON]];
+
+	w.abs_mins = Vec3_Add(cgi.view->origin, Vec3(-8.f, -8.f, -8.f));
+	w.abs_maxs = Vec3_Add(cgi.view->origin, Vec3( 8.f,  8.f,  8.f));
 
 	w.lerp = w.scale = 1.0;
 

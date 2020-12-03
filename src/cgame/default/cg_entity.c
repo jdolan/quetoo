@@ -203,8 +203,10 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 		.termination = ent->termination,
 		.angles = ent->angles,
 		.scale = 1.f,
-		.mins = ent->current.mins,
-		.maxs = ent->current.maxs
+		.mins = ent->mins,
+		.maxs = ent->maxs,
+		.abs_mins = ent->abs_mins,
+		.abs_maxs = ent->abs_maxs,
 	};
 
 	// add effects, augmenting the renderer entity
@@ -242,7 +244,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 }
 
 /**
- * @brief Iterate all entities in the current frame, adding models, particles,
+ * @brief Iterate all entities in the current frame, adding models, sprites,
  * lights, and anything else associated with them.
  *
  * The correlation of client entities to renderer entities is not 1:1; some

@@ -423,45 +423,42 @@ void Cl_Interpolate(void) {
 			ent->current.sound = 0;
 		}
 
-		if (ent->current.solid > SOLID_DEAD) {
-			vec3_t angles;
+		vec3_t angles;
+		if (ent->current.solid == SOLID_BSP) {
+			angles = ent->angles;
 
-			// FIXME
-			//
-			// Currently, the entity's collision state is snapped to the most recently received
-			// server frame, rather than its interpolated state. This works well with the prediction
-			// code, but has certain side effects, such as shadows flickering while riding platforms
-			// etc. Ideally, we would create the clipping matrix from ent->origin and ent->angles,
-			// but this introduces prediction error issues. Need to understand why the prediction
-			// code doesn't play well with the more accurate collision simulation.
+			const r_model_t *mod = cl.model_precache[ent->current.model1];
 
-			if (ent->current.solid == SOLID_BSP) {
-				angles = ent->current.angles;
+			assert(mod);
+			assert(mod->bsp_inline);
 
-				const r_model_t *mod = cl.model_precache[ent->current.model1];
+			ent->mins = mod->bsp_inline->mins;
+			ent->maxs = mod->bsp_inline->maxs;
+		} else {
+			angles = Vec3_Zero();
 
-				assert(mod);
-				assert(mod->bsp_inline);
-
-				ent->mins = mod->bsp_inline->mins;
-				ent->maxs = mod->bsp_inline->maxs;
-			} else {
-				angles = Vec3_Zero();
-				
-				ent->mins = ent->current.mins;
-				ent->maxs = ent->current.maxs;
-			}
-
-			Cm_EntityBounds(ent->current.solid, ent->current.origin,
-							angles,
-							ent->mins,
-							ent->maxs,
-			                &ent->abs_mins,
-							&ent->abs_maxs);
-
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.f);
-			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			ent->mins = ent->current.mins;
+			ent->maxs = ent->current.maxs;
 		}
+
+		// FIXME
+		//
+		// Currently, the entity's collision state is snapped to the most recently received
+		// server frame, rather than its interpolated state. This works well with the prediction
+		// code, but has certain side effects, such as shadows flickering while riding platforms
+		// etc. Ideally, we would create the clipping matrix from ent->origin and ent->angles,
+		// but this introduces prediction error issues. Need to understand why the prediction
+		// code doesn't play well with the more accurate collision simulation.
+
+		Cm_EntityBounds(ent->current.solid, ent->current.origin,
+						angles,
+						ent->mins,
+						ent->maxs,
+						&ent->abs_mins,
+						&ent->abs_maxs);
+
+		Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.f);
+		Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 	}
 
 	cls.cgame->Interpolate(&cl.frame);
