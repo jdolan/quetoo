@@ -213,8 +213,8 @@ float Radians(float degrees) {
 static inline GRand *InitRandom(void) {
 	static _Thread_local GRand *rand;
 
-	if (!rand) {
-		rand = g_rand_new_with_seed((guint32)time(NULL));
+	if (rand == NULL) {
+		rand = g_rand_new_with_seed((guint32) time(NULL));
 	}
 
 	return rand;
