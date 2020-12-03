@@ -223,7 +223,7 @@ void Cl_CheckPredictionError(void) {
 		// calculate the last cl_cmd_t we sent that the server has processed
 		const uint32_t cmd = cls.net_chan.incoming_acknowledged & CMD_MASK;
 
-		// subtract what the server returned with what we had predicted it to be
+		// subtract what the server returned from our predicted origin for that frame
 		pr->error = Vec3_Subtract(pr->origins[cmd], cl.frame.ps.pm_state.origin);
 
 		// if the error is too large, it was likely a teleport or respawn, so ignore it
