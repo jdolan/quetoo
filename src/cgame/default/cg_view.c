@@ -226,7 +226,7 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
 		const cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
 		cgi.view->origin = Vec3_Add(pr->view.origin, pr->view.offset);
-		cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(pr->error, -(1.0 - cgi.client->lerp)));
+		cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(pr->error, 1.f - cgi.client->lerp));
 
 		Cg_InterpolateStep(&cgi.client->predicted_state.step);
 		cgi.view->origin.z -= cgi.client->predicted_state.step.delta_height;
