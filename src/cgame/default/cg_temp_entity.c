@@ -119,8 +119,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
  * @brief
  */
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
-	const float tracer_speed = 4800.f;
-	const float tracer_length = 80.f;
+	const float tracer_speed = 4000.f;
+	const float tracer_length = 120.f;
 	float len;
 	vec3_t velocity = Vec3_NormalizeLength(Vec3_Subtract(end, start), &len);
 	const uint32_t lifetime = SECONDS_TO_MILLIS((len - tracer_length) / tracer_speed);
@@ -130,11 +130,11 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
 		.image = cg_beam_tracer,
 		.origin = start,
 		.termination = Vec3_Add(start, Vec3_Scale(velocity, tracer_length)),
-		.size = 3.f,
+		.size = 5.f,
 		.velocity = Vec3_Scale(velocity, tracer_speed),
 		.lifetime = lifetime,
-		.color = Vec4(color_hue_orange, 0.3f, 1.f, 0),
-		.end_color = Vec4(color_hue_orange, 0.3f, 1.f, 0)
+		.color = Vec4(45, 0.0f, 2.f, 0),
+		.end_color = Vec4(30, 0.2f, 1.f, 0)
 	});
 }
 
@@ -721,7 +721,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			.velocity = Vec3_Add(Vec3_Add(Vec3_Scale(forward, 20.f), Vec3_Scale(right, cosi * frac)), Vec3_Scale(up, sini * frac)),
 			.acceleration = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 8.f), Vec3_Scale(up, sini * 8.f)), Vec3(0.f, 0.f, 1.f)),
 			.lifetime = lifetime,
-			.size = frac * 8.f,
+			.size = frac * 5.f,
 			.size_velocity = 1.f / MILLIS_TO_SECONDS(lifetime),
 			.life_easing = Cg_EaseInExpo,
 			.color = Vec4(effect_color.x, effect_color.y, effect_color.z * RandomRangef(.8f, 1.f), 0.f),
@@ -734,7 +734,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.image = cg_beam_rail,
 		.origin = start,
 		.termination = end,
-		.size = 20.f,
+		.size = 12.f,
 		.velocity = Vec3_Scale(forward, 20.f),
 		.lifetime = RandomRangeu(1500, 1550),
 		.color = Vec4(0.f, 0.f, 1.f, 0.f)
