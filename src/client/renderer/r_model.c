@@ -53,7 +53,7 @@ static void R_RegisterModel(r_media_t *self) {
 		}
 
 		if (mod->bsp->lightgrid) {
-			for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
+			for (size_t i = 0; i < lengthof(mod->bsp->lightgrid->textures); i++) {
 				R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->textures[i]);
 			}
 		}
