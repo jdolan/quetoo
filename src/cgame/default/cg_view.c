@@ -223,10 +223,11 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1) {
 
 	if (Cg_UsePrediction()) {
-		const cl_predicted_state_t *pr = &cgi.client->predicted_state;
-
+		cl_predicted_state_t *pr = &cgi.client->predicted_state;
 		cgi.view->origin = Vec3_Add(pr->view.origin, pr->view.offset);
-		cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(pr->error, 1.f - cgi.client->lerp));
+
+		const vec3_t error = Vec3_Scale(pr->error, 1.f - cgi.client->lerp);
+		cgi.view->origin = Vec3_Add(cgi.view->origin, error);
 
 		Cg_InterpolateStep(&cgi.client->predicted_state.step);
 		cgi.view->origin.z -= cgi.client->predicted_state.step.delta_height;

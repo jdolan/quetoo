@@ -434,14 +434,9 @@ void Cl_Interpolate(void) {
 			ent->maxs = ent->current.maxs;
 		}
 
-		// FIXME
-		//
-		// Currently, the entity's collision state is snapped to the most recently received
-		// server frame, rather than its interpolated state. This works well with the prediction
-		// code, but has certain side effects, such as shadows flickering while riding platforms
-		// etc. Ideally, we would create the clipping matrix from ent->origin and ent->angles,
-		// but this introduces prediction error issues. Need to understand why the prediction
-		// code doesn't play well with the more accurate collision simulation.
+		// jdolan: Note that we use the latest snapshot origin, not the interpolated origin.
+		// This is so client side prediction can work, and the client and server are working
+		// with the same entity positions at their respective intervals.
 
 		Cm_EntityBounds(ent->current.solid, ent->current.origin,
 						angles,
