@@ -773,7 +773,7 @@ typedef struct cg_export_s {
 	void (*Move)(pm_cmd_t *cmd);
 	void (*Interpolate)(const cl_frame_t *frame);
 	_Bool (*UsePrediction)(void);
-	void (*PredictMovement)(const GList *cmds);
+	void (*PredictMovement)(const GPtrArray *cmds);
 	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame);
