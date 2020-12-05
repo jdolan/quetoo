@@ -430,6 +430,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 			case CL_CMD_MOVE:
 
 				if (++moves_issued > CMD_MAX_MOVES) {
+					Com_Warn("CMD_MAX_MOVES exceeded for %s\n", Sv_NetaddrToString(cl));
 					return; // someone is trying to cheat
 				}
 
