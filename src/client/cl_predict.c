@@ -195,15 +195,17 @@ void Cl_PredictMovement(void) {
 		return;
 	}
 
-	GList *cmds = NULL;
+	GPtrArray *cmds = g_ptr_array_new();
 
 	while (++ack <= last) {
-		cmds = g_list_append(cmds, &cl.cmds[ack & CMD_MASK]);
+		g_ptr_array_add(cmds, &cl.cmds[ack & CMD_MASK]);
 	}
 
-	cls.cgame->PredictMovement(cmds);
+	if (cmds->len) {
+		cls.cgame->PredictMovement(cmds);
+	}
 
-	g_list_free(cmds);
+	g_ptr_array_free(cmds, true);
 }
 
 /**

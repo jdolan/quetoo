@@ -25,5 +25,5 @@
 
 #ifdef __CG_LOCAL_H__
 _Bool Cg_UsePrediction(void);
-void Cg_PredictMovement(const GList *cmds);
+void Cg_PredictMovement(const GPtrArray *cmds);
 #endif /* __CG_LOCAL_H__ */

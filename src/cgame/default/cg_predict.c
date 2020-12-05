@@ -58,8 +58,10 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
  * @brief Run recent movement commands through the player movement code locally, storing the
  * resulting state so that it may be interpolated to and reconciled later.
  */
-void Cg_PredictMovement(const GList *cmds) {
-	static pm_move_t pm;
+void Cg_PredictMovement(const GPtrArray *cmds) {
+
+	assert(cmds);
+	assert(cmds->len);
 
 	cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
@@ -77,11 +79,9 @@ void Cg_PredictMovement(const GList *cmds) {
 	pm.DebugMask = cgi.DebugMask;
 	pm.debug_mask = DEBUG_PMOVE_CLIENT;
 
-	const GList *e = cmds;
-
 	// run the commands
-	while (e) {
-		const cl_cmd_t *cmd = (cl_cmd_t *) e->data;
+	for (guint i = 0; i < cmds->len; i++) {
+		cl_cmd_t *cmd = g_ptr_array_index(cmds, i);
 
 		if (cmd->cmd.msec) { // if the command has time, simulate the movement
 
@@ -102,7 +102,6 @@ void Cg_PredictMovement(const GList *cmds) {
 		const uint32_t frame = (uint32_t) (uintptr_t) (cmd - cgi.client->cmds);
 		pr->origins[frame] = pm.s.origin;
 
-		e = e->next;
 	}
 
 	// copy results out for rendering
