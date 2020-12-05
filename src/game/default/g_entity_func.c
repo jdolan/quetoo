@@ -85,15 +85,13 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
 
 	if (move->current_speed == 0.0) { // starting or restarting after being blocked
-		vec3_t delta;
 
 		// http://www.ajdesigner.com/constantacceleration/cavelocitya.php
 
-		delta = Vec3_Subtract(move->dest, ent->s.origin);
-		const float distance = Vec3_Length(delta);
+		const float distance = Vec3_Distance(move->dest, ent->s.origin);
 
-		const float accel_time = move->speed / move->accel;
-		const float decel_time = move->speed / move->decel;
+		const float accel_time = move->speed / move->accel + QUETOO_TICK_SECONDS;
+		const float decel_time = move->speed / move->decel + QUETOO_TICK_SECONDS;
 
 		move->accel_frames = accel_time * QUETOO_TICK_RATE;
 		move->decel_frames = decel_time * QUETOO_TICK_RATE;

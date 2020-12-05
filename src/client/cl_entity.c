@@ -326,12 +326,10 @@ static void Cl_UpdateLerp(void) {
 
 	_Bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
 
-	if (no_lerp == false && cl.previous_frame) {
-		vec3_t delta;
-
-		delta = Vec3_Subtract(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
-		if (Vec3_Length(delta) > MAX_DELTA_ORIGIN) {
-			Com_Debug(DEBUG_CLIENT, "%d No lerp\n", cl.frame.frame_num);
+	if (cl.previous_frame) {
+		const float dist = Vec3_Distance(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
+		if (dist > MAX_DELTA_ORIGIN) {
+			Com_Debug(DEBUG_CLIENT, "MAX_ORIGIN_DELTA: %.2f\n", dist);
 			no_lerp = true;
 		}
 	}
