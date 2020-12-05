@@ -25,8 +25,8 @@ ai_item_data_t ai_item_data;
 
 g_item_t const *ai_items[MAX_ITEMS];
 
-uint16_t ai_num_items;
-uint16_t ai_num_weapons;
+size_t ai_num_items;
+size_t ai_num_weapons;
 
 /**
  * @brief
@@ -96,7 +96,7 @@ _Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
 	} else if (ITEM_DATA(item, type) == ITEM_TECH) {
 
 		const g_item_t **it = ai_items;
-		for (int32_t i = 0; i < ai_num_items; i++, it++) {
+		for (size_t i = 0; i < ai_num_items; i++, it++) {
 			if (ITEM_DATA(*it, type) == ITEM_TECH) {
 				if (inventory[ITEM_DATA(*it, index)]) {
 					return false;

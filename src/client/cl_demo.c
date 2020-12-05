@@ -35,8 +35,8 @@ static void Cl_WriteDemoHeader(void) {
 
 	// write the server data
 	Net_WriteByte(&msg, SV_CMD_SERVER_DATA);
-	Net_WriteShort(&msg, PROTOCOL_MAJOR);
-	Net_WriteShort(&msg, cls.cgame->protocol);
+	Net_WriteLong(&msg, PROTOCOL_MAJOR);
+	Net_WriteLong(&msg, cls.cgame->protocol);
 	Net_WriteByte(&msg, 1); // demo_server byte
 	Net_WriteString(&msg, Cvar_GetString("game"));
 	Net_WriteShort(&msg, cl.client_num);

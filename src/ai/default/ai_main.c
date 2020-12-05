@@ -371,11 +371,11 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 	}
 
 	ai_item_pick_t weapons[ai_num_weapons];
-	uint16_t num_weapons = 0;
+	size_t num_weapons = 0;
 
 	const int16_t *inventory = &CLIENT_DATA(self->client, inventory);
 
-	for (uint16_t i = 0; i < ai_num_items; i++) {
+	for (size_t i = 0; i < ai_num_items; i++) {
 		const g_item_t *item = ai_items[i];
 
 		if (ITEM_DATA(item, type) != ITEM_WEAPON) { // not weapon
@@ -470,7 +470,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
 	Ai_Command(self, va("use %s", ITEM_DATA(best_weapon->item, name)));
 	ai->weapon_check_time = ai_level.time + 300; // don't try again for a bit
-	Ai_Debug("weapon choice: %s (%u choices)\n", ITEM_DATA(best_weapon->item, name), num_weapons);
+	Ai_Debug("weapon choice: %s (%d choices)\n", ITEM_DATA(best_weapon->item, name), (int32_t) num_weapons);
 }
 
 /**
@@ -505,7 +505,7 @@ static _Bool Ai_ShouldChaseEnemy(const g_entity_t *self, const g_entity_t *targe
 	// if they have a flag, higher chance
 	const int16_t *inventory = &CLIENT_DATA(target->client, inventory);
 
-	for (uint16_t i = 0; i < ai_num_items; i++) {
+	for (size_t i = 0; i < ai_num_items; i++) {
 		const g_item_t *item = ai_items[i];
 
 		if (ITEM_DATA(item, type) != ITEM_FLAG) { // not flag

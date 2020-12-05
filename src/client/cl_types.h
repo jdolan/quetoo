@@ -209,7 +209,7 @@ typedef struct {
 	_Bool third_person; // we're viewing third person camera
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
-	uint16_t precache_check;
+	int32_t precache_check;
 
 	// for client side prediction clipping
 	cm_bsp_model_t *cm_models[MAX_MODELS];

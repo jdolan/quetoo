@@ -85,7 +85,7 @@ typedef struct {
 	vec3_t mins, maxs;
 	vec3_t box_mins, box_maxs;
 	cm_trace_t trace;
-	uint16_t skip;
+	int32_t skip;
 	int32_t contents;
 } cl_trace_t;
 
@@ -141,7 +141,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  * 0 for none, because entity 0 is the world, which we always test.
  */
 cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-                    const uint16_t skip, const int32_t contents) {
+                    const int32_t skip, const int32_t contents) {
 
 	cl_trace_t trace;
 

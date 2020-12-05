@@ -235,7 +235,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			ci->helmet.a = 0;
 		}
 
-		const int16_t hue = atoi(info[5]);
+		const int32_t hue = atoi(info[5]);
 		if (hue >= 0) {
 			ci->hue = hue;
 		} else {

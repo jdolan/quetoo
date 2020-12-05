@@ -272,8 +272,8 @@ static void Cl_ParseServerData(void) {
 	Cl_SetKeyDest(KEY_CONSOLE);
 
 	// parse protocol version number
-	const uint16_t major = Net_ReadShort(&net_message);
-	const uint16_t minor = Net_ReadShort(&net_message);
+	const int32_t major = Net_ReadLong(&net_message);
+	const int32_t minor = Net_ReadLong(&net_message);
 
 	// ensure protocol major matches
 	if (major != PROTOCOL_MAJOR) {

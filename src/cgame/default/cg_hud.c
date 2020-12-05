@@ -102,7 +102,7 @@ static cg_hud_locals_t cg_hud_locals;
 /**
  * @brief Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
-static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const uint16_t icon, const color_t color) {
+static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const int16_t icon, const color_t color) {
 
 	const r_image_t *image = cgi.client->image_precache[icon];
 	if (!image) {
@@ -1017,11 +1017,11 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
 	}
 
 	// nope, so pick the closest one we have
-	for (size_t i = 2; i < MAX_STAT_BITS * 2; i++) {
+	for (int32_t i = 2; i < MAX_STAT_BITS * 2; i++) {
 		int32_t offset = (int32_t) (((i & 1) ? -i : i) / 2);
 		int32_t id = cg_hud_locals.weapon.tag + offset;
 
-		if (id < 0 || id >= (int32_t) MAX_STAT_BITS) {
+		if (id < 0 || id >= MAX_STAT_BITS) {
 			continue;
 		}
 
@@ -1057,13 +1057,13 @@ static void Cg_SelectWeapon(const int8_t dir) {
 
 	Cg_ValidateSelectedWeapon(ps);
 
-	for (int16_t i = 0; i < (int16_t) MAX_STAT_BITS; i++) {
+	for (int32_t i = 0; i < MAX_STAT_BITS; i++) {
 
 		cg_hud_locals.weapon.tag += dir;
 
 		if (cg_hud_locals.weapon.tag < 0) {
 			cg_hud_locals.weapon.tag = MAX_STAT_BITS - 1;
-		} else if (cg_hud_locals.weapon.tag >= (int16_t) MAX_STAT_BITS) {
+		} else if (cg_hud_locals.weapon.tag >= MAX_STAT_BITS) {
 			cg_hud_locals.weapon.tag = 0;
 		}
 
@@ -1121,7 +1121,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 		cg_hud_locals.weapon.bits = ps->stats[STAT_WEAPONS];
 		cg_hud_locals.weapon.num = 0;
 
-		for (int32_t i = 0; i < (int32_t) MAX_STAT_BITS; i++) {
+		for (int32_t i = 0; i < MAX_STAT_BITS; i++) {
 			cg_hud_locals.weapon.has[i] = !!(cg_hud_locals.weapon.bits & (1 << i));
 
 			if (cg_hud_locals.weapon.has[i])
@@ -1136,7 +1136,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 		return;
 	}
 
-	int16_t switching = ((ps->stats[STAT_WEAPON_TAG] >> 8) & 0xFF);
+	const int16_t switching = ((ps->stats[STAT_WEAPON_TAG] >> 8) & 0xFF);
 
 	if (cg_hud_locals.weapon.used_tag != switching) {
 		cg_hud_locals.weapon.used_tag = switching;
@@ -1167,7 +1167,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	r_pixel_t ch;
 	cgi.BindFont("medium", NULL, &ch);
 
-	for (int16_t i = 0; i < (int16_t) MAX_STAT_BITS; i++) {
+	for (int32_t i = 0; i < MAX_STAT_BITS; i++) {
 
 		if (!cg_hud_locals.weapon.has[i]) {
 			continue;

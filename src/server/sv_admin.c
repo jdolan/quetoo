@@ -232,14 +232,13 @@ static void Sv_Status_f(void) {
  * @brief Lists all entities currently in use.
  */
 static void Sv_ListEntities_f(void) {
-	uint16_t i;
 
 	if (!svs.initialized) {
 		Com_Print("No server running\n");
 		return;
 	}
 
-	for (i = 0; i < svs.game->num_entities; i++) {
+	for (int32_t i = 0; i < svs.game->num_entities; i++) {
 		const g_entity_t *e = ENTITY_FOR_NUM(i);
 
 		if (Cmd_Argc() > 1) {
@@ -257,7 +256,6 @@ static void Sv_ListEntities_f(void) {
  */
 static void Sv_Say_f(void) {
 	char text[MAX_STRING_CHARS];
-	int32_t i;
 
 	if (Cmd_Argc() < 2) {
 		return;
@@ -277,7 +275,7 @@ static void Sv_Say_f(void) {
 	}
 
 	const sv_client_t *client = svs.clients;
-	for (i = 0; i < sv_max_clients->integer; i++, client++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++, client++) {
 
 		if (client->state != SV_CLIENT_ACTIVE) {
 			continue;

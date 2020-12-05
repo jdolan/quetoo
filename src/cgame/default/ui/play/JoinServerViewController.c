@@ -55,14 +55,14 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 	while (list != NULL) {
 		const cl_server_info_t *server = list->data;
 
-		int16_t weight = 1;
+		int32_t weight = 1;
 
 		if (!(server->clients < min_clients || server->clients >= server->max_clients)) {
 			// more weight for more populated servers
-			weight += ((int16_t) (server->clients - min_clients)) * 5;
+			weight += (server->clients - min_clients) * 5;
 
 			// more weight for lower ping servers
-			weight += ((int16_t) (max_ping - server->ping)) / 10;
+			weight += (max_ping - server->ping) / 10;
 
 			if (server->ping > max_ping) { // one third weight for high ping servers
 				weight /= 3;
@@ -86,7 +86,7 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 	while (list != NULL) {
 		const cl_server_info_t *server = list->data;
 
-		uint32_t weight = 1;
+		int32_t weight = 1;
 
 		if (server->ping > max_ping ||
 			server->clients < min_clients ||
@@ -98,7 +98,7 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 			weight += server->clients - min_clients;
 
 			// more weight for lower ping servers
-			weight += ((uint32_t) (max_ping - server->ping)) / 20;
+			weight += (max_ping - server->ping) / 20;
 		}
 
 		current_weight += weight;

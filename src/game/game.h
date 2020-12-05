@@ -130,7 +130,7 @@ struct g_entity_s {
 	 * may be catastrophic. This ID is a second line of defense, as if this ID changes, the entity
 	 * is no longer the same entity it used to reference, and is more accurate than referencing classnames
 	 */
-	uint16_t spawn_id;
+	uint32_t spawn_id;
 
 	/**
 	 * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
@@ -514,12 +514,12 @@ typedef struct g_export_s {
 	 * @brief Game API version, in case the game module was compiled for a
 	 * different version than the engine provides.
 	 */
-	uint16_t api_version;
+	int32_t api_version;
 
 	/**
 	 * @brief Minor protocol version.
 	 */
-	uint16_t protocol;
+	int32_t protocol;
 
 	/**
 	 * @brief The g_entity_t array, which must be allocated by the game due to
@@ -536,12 +536,12 @@ typedef struct g_export_s {
 	/**
 	 * @brief The current number of allocated (in use) g_entity_t.
 	 */
-	uint16_t num_entities;
+	int32_t num_entities;
 
 	/**
 	 * @brief The total number of allocated g_entity_t (MAX_ENTITIES).
 	 */
-	uint16_t max_entities;
+	int32_t max_entities;
 
 	/**
 	 * @brief Called only when the game module is first loaded. Persistent

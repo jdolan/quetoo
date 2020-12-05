@@ -150,17 +150,17 @@ typedef struct {
 	/**
 	 * @brief Console width in characters.
 	 */
-	uint16_t width;
+	size_t width;
 
 	/**
 	 * @brief Console height in characters.
 	 */
-	uint16_t height;
+	size_t height;
 
 	/**
 	 * @brief The scroll offset in lines.
 	 */
-	uint16_t scroll;
+	size_t scroll;
 
 	/**
 	 * @brief The minimum timestamp for tail operations.

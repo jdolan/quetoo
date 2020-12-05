@@ -120,7 +120,7 @@ vec3_t G_GetOrigin(const g_entity_t *ent) {
  * @brief
  */
 static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal,
-                          int16_t damage) {
+                          int32_t damage) {
 
 	if (damage < 1) {
 		return;
@@ -201,7 +201,7 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  */
 void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 			  const vec3_t dir, const vec3_t pos, const vec3_t normal,
-			  int16_t damage, int16_t knockback, uint32_t dflags, g_mod_t mod) {
+			  int32_t damage, int32_t knockback, int32_t dflags, g_mod_t mod) {
 
 	if (!target || !target->locals.take_damage) {
 		return;
@@ -388,8 +388,8 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 /**
  * @brief
  */
-void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int16_t damage,
-                    int16_t knockback, float radius, g_mod_t mod) {
+void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int32_t damage,
+                    int32_t knockback, float radius, g_mod_t mod) {
 
 	g_entity_t *ent = NULL;
 

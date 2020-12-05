@@ -71,6 +71,10 @@ typedef struct ai_item_data_s ai_item_data_t;
  * @brief Functions and the like that the AI system exports to the game.
  */
 typedef struct {
+
+	/**
+	 * @brief The AI module API version number, to ensure compatibility with the server.
+	 */
 	int32_t	api_version;
 
 	/**

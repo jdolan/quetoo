@@ -519,8 +519,7 @@ typedef struct cg_import_s {
 	 * @param contents Solids matching this mask will clip the returned trace.
 	 * @return A trace result.
 	 */
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, const uint16_t skip,
-	                    const int32_t contents);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, const int32_t skip, const int32_t contents);
 
 	/**
 	 * @param p The point to check.

@@ -345,13 +345,6 @@ void G_SetMoveDir(g_entity_t *ent) {
 }
 
 /**
- * @brief A unique value that wraps around that represents the spawn ID
- * of this entity.
- * @see g_entity_t.spawn_id
- */
-static uint16_t g_spawn_id;
-
-/**
  * @brief Clear an entity's local data to empty. This function
  * retains any data that the entity client should always keep.
  */
@@ -369,6 +362,7 @@ void G_ClearEntity(g_entity_t *ent) {
  * that need to be there for entity system to work (number, etc) and marks it as in_use.
  */
 void G_InitEntity(g_entity_t *ent, const char *class_name) {
+	static uint32_t g_spawn_id;
 
 	G_ClearEntity(ent);
 

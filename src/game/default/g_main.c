@@ -726,10 +726,6 @@ static void G_CheckRoundLimit() {
  * @brief
  */
 static void G_CheckRoundEnd(void) {
-	uint32_t i, clients;
-	int32_t j;
-	g_entity_t *winner;
-	g_client_t *cl;
 
 	if (!g_level.rounds) {
 		return;
@@ -739,18 +735,18 @@ static void G_CheckRoundEnd(void) {
 		return; // no round currently running
 	}
 
-	winner = NULL;
-	clients = 0;
+	g_entity_t *winner = NULL;
+	int32_t clients = 0;
 
 	uint8_t teams_count[MAX_TEAMS];
 	memset(teams_count, 0, sizeof(teams_count));
 
-	for (j = 0; j < sv_max_clients->integer; j++) {
+	for (int32_t j = 0; j < sv_max_clients->integer; j++) {
 		if (!g_game.entities[j + 1].in_use) {
 			continue;
 		}
 
-		cl = g_game.entities[j + 1].client;
+		g_client_t *cl = g_game.entities[j + 1].client;
 
 		if (cl->locals.persistent.spectator) { // true spectator, or dead
 			continue;
@@ -787,7 +783,7 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	// allow enemy projectiles to expire before declaring a winner
-	for (i = 0; i < ge.num_entities; i++) {
+	for (int32_t i = 0; i < ge.num_entities; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
@@ -796,7 +792,9 @@ static void G_CheckRoundEnd(void) {
 			continue;
 		}
 
-		if (!(cl = g_game.entities[i + 1].owner->client)) {
+		g_client_t *cl = g_game.entities[i + 1].owner->client;
+
+		if (!cl) {
 			continue;
 		}
 

@@ -336,7 +336,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
  * @brief
  */
 void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-                         int16_t damage, int16_t knockback) {
+                         int32_t damage, int32_t knockback) {
 
 	const vec3_t mins = Vec3(-1.0, -1.0, -1.0);
 	const vec3_t maxs = Vec3( 1.0,  1.0,  1.0);
@@ -371,8 +371,8 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 /**
  * @brief
  */
-void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
-                        int16_t knockback, uint16_t hspread, uint16_t vspread, uint32_t mod) {
+void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
+                        int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 
 	cm_trace_t tr = gi.Trace(ent->s.origin, start, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 	if (tr.fraction == 1.0) {
@@ -412,8 +412,8 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 /**
  * @brief
  */
-void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
-                          int16_t knockback, int32_t hspread, int32_t vspread, int32_t count, uint32_t mod) {
+void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
+						  int32_t knockback, int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
 
 	for (int32_t i = 0; i < count; i++) {
 		G_BulletProjectile(ent, start, dir, damage, knockback, hspread, vspread, mod);
@@ -427,28 +427,24 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
  * @brief
  */
 static void G_GrenadeProjectile_Explode(g_entity_t *self) {
-	uint32_t mod;
+	int32_t mod;
 
 	if (self->locals.enemy) { // direct hit
 
-		float d, k, dist;
-		vec3_t v, dir;
-
+		vec3_t v;
 		v = Vec3_Add(self->locals.enemy->mins, self->locals.enemy->maxs);
 		v = Vec3_Add(self->locals.enemy->s.origin, Vec3_Scale(v, 0.5));
 		v = Vec3_Subtract(self->s.origin, v);
 
-		dist = Vec3_Length(v);
-		d = self->locals.damage - 0.5 * dist;
-		k = self->locals.knockback - 0.5 * dist;
+		const float dist = Vec3_Length(v);
+		const int32_t d = self->locals.damage - 0.5 * dist;
+		const int32_t k = self->locals.knockback - 0.5 * dist;
 
-		dir = Vec3_Subtract(self->locals.enemy->s.origin, self->s.origin);
+		const vec3_t dir = Vec3_Subtract(self->locals.enemy->s.origin, self->s.origin);
 
 		mod = self->locals.spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
 
-		G_Damage(self->locals.enemy, self, self->owner,
-				 dir, self->s.origin, Vec3_Zero(),
-		         (int16_t) d, (int16_t) k, DMG_RADIUS, mod);
+		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, Vec3_Zero(), d, k, DMG_RADIUS, mod);
 	}
 
 	if (self->locals.spawn_flags & HAND_GRENADE) {
@@ -512,7 +508,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
  * @brief
  */
 void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-                         int16_t damage, int16_t knockback, float damage_radius, uint32_t timer) {
+						 int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
 
 	const vec3_t mins = Vec3(-3.0, -3.0, -3.0);
 	const vec3_t maxs = Vec3( 3.0,  3.0,  3.0);
@@ -561,8 +557,8 @@ void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 // tossing a hand grenade
 void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
-                             vec3_t const start, const vec3_t dir, int32_t speed, int16_t damage,
-                             int16_t knockback, float damage_radius, uint32_t timer) {
+                             vec3_t const start, const vec3_t dir, int32_t speed, int32_t damage,
+							 int32_t knockback, float damage_radius, uint32_t timer) {
 
 	const vec3_t mins = Vec3(-2.0, -2.0, -2.0);
 	const vec3_t maxs = Vec3( 2.0,  2.0,  2.0);
@@ -648,7 +644,7 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
  * @brief
  */
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-                        int16_t damage, int16_t knockback, float damage_radius) {
+						int32_t damage, int32_t knockback, float damage_radius) {
 
 	const vec3_t mins = Vec3(-2.0, -2.0, -2.0);
 	const vec3_t maxs = Vec3( 2.0,  2.0,  2.0);
@@ -736,7 +732,7 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
  * @brief
  */
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-                              int16_t damage, int16_t knockback) {
+							  int32_t damage, int32_t knockback) {
 
 	const vec3_t mins = Vec3(-3.0, -3.0, -3.0);
 	const vec3_t maxs = Vec3( 3.0,  3.0,  3.0);
@@ -794,7 +790,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 		if (gi.inPVS(self->s.origin, ent->s.origin)) {
 
 			if (ent->locals.water_level) {
-				const int16_t dmg = 50 * ent->locals.water_level;
+				const int32_t dmg = 50 * ent->locals.water_level;
 
 				G_Damage(ent, self, self->owner, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(),
 						 dmg, 100, DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
@@ -907,8 +903,8 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 /**
  * @brief
  */
-void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
-                           int16_t knockback) {
+void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
+						   int32_t knockback) {
 
 	g_entity_t *projectile = NULL;
 
@@ -953,8 +949,8 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 /**
  * @brief
  */
-void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
-                         int16_t knockback) {
+void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
+						 int32_t knockback) {
 	vec3_t pos, end;
 
 	pos = start;
@@ -1075,8 +1071,8 @@ static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_
  */
 static void G_BfgProjectile_Think(g_entity_t *self) {
 
-	const int16_t frame_damage = self->locals.damage * QUETOO_TICK_SECONDS;
-	const int16_t frame_knockback = self->locals.knockback * QUETOO_TICK_SECONDS;
+	const int32_t frame_damage = self->locals.damage * QUETOO_TICK_SECONDS;
+	const int32_t frame_knockback = self->locals.knockback * QUETOO_TICK_SECONDS;
 
 	g_entity_t *ent = NULL;
 	while ((ent = G_FindRadius(ent, self->s.origin, self->locals.damage_radius)) != NULL) {
@@ -1117,7 +1113,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
  * @brief
  */
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-                     int16_t damage, int16_t knockback, float damage_radius) {
+					 int32_t damage, int32_t knockback, float damage_radius) {
 
 	const vec3_t mins = Vec3(-4.0, -4.0, -4.0);
 	const vec3_t maxs = Vec3( 4.0,  4.0,  4.0);

@@ -28,8 +28,8 @@ extern ai_item_data_t ai_item_data;
 
 extern g_item_t const *ai_items[];
 
-extern uint16_t ai_num_items;
-extern uint16_t ai_num_weapons;
+extern size_t ai_num_items;
+extern size_t ai_num_weapons;
 
 void Ai_RegisterItem(const g_item_t *item);
 _Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other);

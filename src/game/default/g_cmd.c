@@ -292,7 +292,7 @@ static void G_Drop_f(g_entity_t *ent) {
 		return;
 	}
 
-	uint16_t drop_quantity;
+	int32_t drop_quantity;
 
 	if (it->type == ITEM_AMMO) {
 		drop_quantity = it->quantity;

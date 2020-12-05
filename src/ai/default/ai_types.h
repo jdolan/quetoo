@@ -87,8 +87,7 @@ typedef struct ai_item_data_s {
 
 } ai_item_data_t;
 
-#define ITEM_DATA(item, m) \
-	(*MEMBER_DATA(item, ai_item_data.m))
+#define ITEM_DATA(item, m) (*MEMBER_DATA(item, ai_item_data.m))
 
 /**
  * @brief Struct of parameters from g_entity_t that the bot
@@ -307,7 +306,7 @@ typedef struct {
 
 		struct {
 			const g_entity_t *ent;
-			uint16_t spawn_id;
+			uint32_t spawn_id;
 
 			// specific to combat goal
 
@@ -323,7 +322,7 @@ typedef struct {
 			ai_trick_jump_t trick_jump;
 			vec3_t trick_position;
 			const g_entity_t *path_target;
-			uint16_t path_target_spawn_id;
+			uint32_t path_target_spawn_id;
 		} path;
 	};
 } ai_goal_t;

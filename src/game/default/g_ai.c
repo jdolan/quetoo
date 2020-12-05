@@ -382,7 +382,7 @@ void G_Ai_RegisterItems(void) {
 		return;
 	}
 
-	for (uint16_t i = 0; i < g_num_items; i++) {
+	for (size_t i = 0; i < g_num_items; i++) {
 		aix->RegisterItem(G_ItemByIndex(i));
 	}
 }

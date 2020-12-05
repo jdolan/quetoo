@@ -216,8 +216,7 @@ static void Sv_Connect_f(void) {
 
 	// resolve protocol
 	if (version != PROTOCOL_MAJOR) {
-		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n",
-		                       PROTOCOL_MAJOR);
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL_MAJOR);
 		return;
 	}
 

@@ -250,7 +250,7 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 
 	if (self->s.model1 == MODEL_CLIENT) {
 		if (age > 6000) {
-			const int16_t dmg = self->locals.health;
+			const int32_t dmg = self->locals.health;
 
 			if (self->locals.water_type & CONTENTS_LAVA) {
 				G_Damage(self, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
@@ -317,17 +317,16 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		Vec3(8.0, 8.0, 8.0),
 	};
 
-	uint16_t i, count = RandomRangeu(4, 8);
+	const int32_t count = RandomRangei(4, 8);
+	for (int32_t i = 0; i < count; i++) {
 
-	for (i = 0; i < count; i++) {
-		uint32_t gib_index;
-
+		int32_t gib_index;
 		if (i == 0) { // 0 is always chest
 			gib_index = (NUM_GIB_MODELS - 1);
 		} else if (i == 1 && !self->client) { // if we're not client, drop a head
 			gib_index = 2;
 		} else { // pick forearm/femur
-			gib_index = RandomRangeu(0, NUM_GIB_MODELS - 2);
+			gib_index = RandomRangei(0, NUM_GIB_MODELS - 2);
 		}
 
 		g_entity_t *ent = G_AllocEntity();
@@ -344,7 +343,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 
 		ent->locals.velocity = self->locals.velocity;
 
-		const int16_t h = Clampf(-5.0 * self->locals.health, 100, 500);
+		const int32_t h = Clampf(-5.0 * self->locals.health, 100, 500);
 
 		ent->locals.velocity.x += RandomRangef(-h, h);
 		ent->locals.velocity.y += RandomRangef(-h, h);
@@ -376,7 +375,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		self->mins = mins[2];
 		self->maxs = maxs[2];
 
-		const int16_t h = Clampf(-5.0 * self->locals.health, 100, 500);
+		const int32_t h = Clampf(-5.0 * self->locals.health, 100, 500);
 		
 		self->locals.velocity.x += RandomRangef(-h, h);
 		self->locals.velocity.y += RandomRangef(-h, h);
@@ -1485,7 +1484,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				}
 
 				if (old_velocity.z <= PM_SPEED_FALL) { // player will take damage
-					int16_t damage = ((int16_t) - ((old_velocity.z - PM_SPEED_FALL) * 0.05));
+					int32_t damage = ((int32_t) - ((old_velocity.z - PM_SPEED_FALL) * 0.05));
 
 					damage >>= pm.water_level; // water breaks the fall
 
@@ -1538,7 +1537,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	// touch every object we collided with objects
 	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 
-		for (uint16_t i = 0; i < pm.num_touch_ents; i++) {
+		for (int32_t i = 0; i < pm.num_touch_ents; i++) {
 			g_entity_t *other = pm.touch_ents[i];
 
 			if (!other->locals.Touch) {
