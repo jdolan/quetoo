@@ -350,14 +350,14 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 	float sine = sinf(cgi.client->unclamped_time * .001f) * M_PI;
 
-	const vec3_t rocket_velocity = Vec3_Subtract(ent->current.origin, ent->prev.origin);
-	const vec3_t rocket_direction = Vec3_Normalize(rocket_velocity);
-	const float rocket_speed = Vec3_Length(rocket_velocity) / QUETOO_TICK_SECONDS;
+	const vec3_t velocity = Vec3_Subtract(ent->current.origin, ent->prev.origin);
+	const vec3_t direction = Vec3_Normalize(velocity);
+	const float speed = Vec3_Length(velocity) / QUETOO_TICK_SECONDS;
 
 	// exhaust glow
 	cgi.AddSprite(&(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_explosion_glow,
-		.origin = Vec3_Add(ent->origin, Vec3_Scale(rocket_direction, -20.f)),
+		.origin = Vec3_Add(ent->origin, Vec3_Scale(direction, -20.f)),
 		.size = 50.f,
 		.color = Color_Color32(ColorHSVA(29.f, .57f, .34f, 0.f))
 	});
@@ -366,7 +366,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	for (int32_t i = 0; i < 2; i++) {
 		cgi.AddSprite(&(r_sprite_t) {
 			.media = (r_media_t *) cg_sprite_explosion_flash,
-			.origin = Vec3_Add(ent->origin, Vec3_Scale(rocket_direction, -20.f)),
+			.origin = Vec3_Add(ent->origin, Vec3_Scale(direction, -20.f)),
 			.size = 35.f,
 			.color = Color_Color32(ColorHSVA(0.f, 0.f, .50f, 0.f)),
 			.rotation = (i == 0 ? sine : -sine)
@@ -379,7 +379,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		const float step = 1.f / count;
 		float life_start, life_frac;
 
-		Cg_ParticleTrailLifeOffset(origin, end, rocket_speed, step, &life_start, &life_frac);
+		Cg_ParticleTrailLifeOffset(origin, end, speed, step, &life_start, &life_frac);
 
 		for (int32_t i = 0; i < count; i++) {
 			const float particle_life_frac = life_start + (life_frac * (i + 1));
@@ -389,7 +389,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 					.animation = cg_sprite_rocket_flame,
 					.lifetime = Cg_AnimationLifetime(cg_sprite_rocket_flame, 90) * particle_life_frac,
 					.origin = Vec3_Mix(origin, end, step * i),
-					.velocity = rocket_velocity,
+					.velocity = velocity,
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = 10.f,
 					.size_velocity = -20.f,
@@ -406,7 +406,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		const float step = 1.f / count;
 		float life_start, life_frac;
 
-		Cg_ParticleTrailLifeOffset(origin, end, rocket_speed, step, &life_start, &life_frac);
+		Cg_ParticleTrailLifeOffset(origin, end, speed, step, &life_start, &life_frac);
 
 		for (int32_t i = 0; i < count; i++) {
 			const float particle_life_frac = life_start + (life_frac * (i + 1));
@@ -417,7 +417,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 					.animation = cg_sprite_smoke_04,
 					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_04, 60) * particle_life_frac,
 					.origin = Vec3_Add(Vec3_Mix(origin, end, step * i), Vec3_RandomRange(-2.5f, 2.5f)),
-					.velocity = Vec3_Scale(rocket_velocity, 0.5),
+					.velocity = Vec3_Scale(velocity, 0.5),
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = Randomf() * 5.f + 10.f,
 					.size_velocity = Randomf() * 5.f + 10.f,
@@ -431,7 +431,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 					.animation = cg_sprite_smoke_05,
 					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 60) * particle_life_frac,
 					.origin = Vec3_Add(Vec3_Mix(origin, end, (step * i) + (step * .5f)), Vec3_RandomRange(-2.5f, 2.5f)),
-					.velocity = Vec3_Scale(rocket_velocity, 0.5),
+					.velocity = Vec3_Scale(velocity, 0.5),
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = Randomf() * 5.f + 10.f,
 					.size_velocity = Randomf() * 5.f + 10.f,
@@ -448,7 +448,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		const float step = 1.f / count;
 		float life_start, life_frac;
 
-		Cg_ParticleTrailLifeOffset(origin, end, rocket_speed, step, &life_start, &life_frac);
+		Cg_ParticleTrailLifeOffset(origin, end, speed, step, &life_start, &life_frac);
 
 		for (int32_t i = 0; i < count; i++) {
 			const float particle_life_frac = life_start + (life_frac * (i + 1));
@@ -524,7 +524,6 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		const float radius = 6.f;
-
 		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
 	}
 
