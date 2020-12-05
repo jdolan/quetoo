@@ -84,11 +84,6 @@ struct stage_t {
 	int flags;
 
 	/**
-	 * @brief The stage ticks.
-	 */
-	int ticks;
-
-	/**
 	 * @brief The stage color.
 	 */
 	vec4 color;
@@ -148,7 +143,7 @@ struct stage_t {
  * @brief
  */
 float osc(in stage_t stage, in float freq, in float amplitude, in float base, in float phase) {
-	float seconds = stage.ticks * 0.001;
+	float seconds = ticks * 0.001;
 	return base + sin((phase + seconds * 2 * freq * 2)) * (amplitude * 0.5);
 }
 
@@ -185,7 +180,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	}
 
 	if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-		float theta = stage.ticks * 0.001 * stage.rotate * TWO_PI;
+		float theta = ticks * 0.001 * stage.rotate * TWO_PI;
 
 		diffusemap = diffusemap - stage.st_origin;
 		diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * diffusemap;
@@ -193,11 +188,11 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	}
 
 	if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-		diffusemap.s += stage.scroll.s * stage.ticks * 0.001;
+		diffusemap.s += stage.scroll.s * ticks * 0.001;
 	}
 
 	if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-		diffusemap.t += stage.scroll.t * stage.ticks * 0.001;
+		diffusemap.t += stage.scroll.t * ticks * 0.001;
 	}
 
 	if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {

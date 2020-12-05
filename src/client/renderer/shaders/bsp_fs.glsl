@@ -202,7 +202,7 @@ void main(void) {
 	} else {
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-			texcoord_material += texture(texture_warp, texcoord_material + vec2(stage.ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
+			texcoord_material += texture(texture_warp, texcoord_material + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
 		}
 
 		vec4 effect = texture(texture_stage, texcoord_material);

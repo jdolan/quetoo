@@ -92,6 +92,11 @@ layout (std140) uniform uniforms {
 	light_t lights[MAX_LIGHTS];
 
 	/**
+	 * @brief The renderer time, in milliseconds.
+	 */
+	int ticks;
+
+	/**
 	 * @brief The brightness scalar.
 	 */
 	float brightness;

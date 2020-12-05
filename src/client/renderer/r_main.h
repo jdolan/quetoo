@@ -187,6 +187,11 @@ typedef struct {
 		r_light_t lights[MAX_LIGHTS];
 
 		/**
+		 * @brief The renderer time, in milliseconds.
+		 */
+		int32_t ticks;
+
+		/**
 		 * @brief The brightness scalar.
 		 */
 		float brightness;

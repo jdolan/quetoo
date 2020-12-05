@@ -59,7 +59,6 @@ static struct {
 
 	struct {
 		GLint flags;
-		GLint ticks;
 		GLint color;
 		GLint pulse;
 		GLint st_origin;
@@ -462,7 +461,6 @@ void R_DrawWorld(void) {
 	glUniform1i(r_bsp_program.parallax_samples, r_parallax_samples->integer);
 
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
-	glUniform1i(r_bsp_program.stage.ticks, r_view.ticks);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
 
@@ -578,7 +576,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.material.parallax = glGetUniformLocation(r_bsp_program.name, "material.parallax");
 
 	r_bsp_program.stage.flags = glGetUniformLocation(r_bsp_program.name, "stage.flags");
-	r_bsp_program.stage.ticks = glGetUniformLocation(r_bsp_program.name, "stage.ticks");
 	r_bsp_program.stage.color = glGetUniformLocation(r_bsp_program.name, "stage.color");
 	r_bsp_program.stage.pulse = glGetUniformLocation(r_bsp_program.name, "stage.pulse");
 	r_bsp_program.stage.st_origin = glGetUniformLocation(r_bsp_program.name, "stage.st_origin");

@@ -63,7 +63,6 @@ static struct {
 
 	struct {
 		GLint flags;
-		GLint ticks;
 		GLint color;
 		GLint pulse;
 		GLint scroll;
@@ -95,7 +94,6 @@ void R_UpdateMeshEntities(void) {
 	glUseProgram(r_mesh_program.name);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
-	glUniform1i(r_mesh_program.stage.ticks, r_view.ticks);
 
 	glUseProgram(0);
 
@@ -450,7 +448,6 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.material.parallax = glGetUniformLocation(r_mesh_program.name, "material.parallax");
 
 	r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
-	r_mesh_program.stage.ticks = glGetUniformLocation(r_mesh_program.name, "stage.ticks");
 	r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");
 	r_mesh_program.stage.pulse = glGetUniformLocation(r_mesh_program.name, "stage.pulse");
 	r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
