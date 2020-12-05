@@ -148,7 +148,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
  */
 static void Cg_GurpEffect(cl_entity_t *ent) {
 
-	vec3_t start = ent->current.origin;
+	vec3_t start = ent->origin;
 	start.z += 16.0;
 
 	vec3_t end = start;
@@ -162,7 +162,7 @@ static void Cg_GurpEffect(cl_entity_t *ent) {
  */
 static void Cg_DrownEffect(cl_entity_t *ent) {
 
-	vec3_t start = ent->current.origin;
+	vec3_t start = ent->origin;
 	start.z += 16.0;
 
 	vec3_t end = start;
@@ -178,7 +178,7 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
 	const char *footsteps = "default";
 
-	vec3_t start = ent->current.origin;
+	vec3_t start = ent->origin;
 	start.z += ent->current.mins.z;
 
 	vec3_t end = start;
