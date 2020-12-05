@@ -202,6 +202,7 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 	s_play_sample_t *sound = self->data;
 
 	sound->sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
+	sound->origin = self->origin;
 
 	if (cgi.EntityValue(self->def, "atten")->parsed & ENTITY_INTEGER) {
 		sound->attenuation = cgi.EntityValue(self->def, "atten")->integer;
@@ -310,6 +311,8 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 
 	cg_sprite_t *sprite = self->data;
 
+	sprite->origin = self->origin;
+	
 	const cm_entity_t *target = Cg_EntityTarget(self);
 	if (target) {
 		const vec3_t target_origin = cgi.EntityValue(target, "origin")->vec3;
