@@ -287,10 +287,9 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
 
 	const r_mesh_animation_t *anim = &model->animations[a->animation];
 
-	const uint32_t frameTime = 1500 / anim->hz;
-	const uint32_t animationTime = anim->num_frames * frameTime;
-	const uint32_t elapsedTime = cgi.client->unclamped_time - a->time;
-	uint16_t frame = elapsedTime / frameTime;
+	const int32_t frameTime = 1500 / anim->hz;
+	const int32_t animationTime = anim->num_frames * frameTime;
+	const int32_t elapsedTime = cgi.client->unclamped_time - a->time;
 
 	if (elapsedTime >= animationTime) {
 
@@ -300,6 +299,7 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
 		return;
 	}
 
+	int32_t frame = elapsedTime / frameTime;
 	frame = anim->first_frame + frame;
 
 	if (frame != a->frame) {

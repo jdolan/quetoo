@@ -1365,7 +1365,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 
 	GArray *goal_possibilities = g_array_new(false, false, sizeof(ai_item_pick_t));
 
-	for (uint32_t i = sv_max_clients->integer; i < aim.ge->num_entities; i++) {
+	for (int32_t i = sv_max_clients->integer; i < aim.ge->num_entities; i++) {
 		g_entity_t *ent = ENTITY_FOR_NUM(i);
 
 		// not in use, dead/invisible, and/or clients can't be long term goals

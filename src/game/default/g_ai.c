@@ -359,7 +359,7 @@ void G_Ai_Frame(void) {
 
 	// run AI think functions
 	g_entity_t *ent = &g_game.entities[1];
-	for (uint16_t i = 1; i <= sv_max_clients->integer; i++, ent++) {
+	for (int32_t i = 1; i <= sv_max_clients->integer; i++, ent++) {
 
 		if (!ent->client->connected) {
 			continue;

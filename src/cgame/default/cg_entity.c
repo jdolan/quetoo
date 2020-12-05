@@ -87,7 +87,7 @@ void Cg_FreeEntities(void) {
  */
 cl_entity_t *Cg_Self(void) {
 
-	uint16_t index = cgi.client->client_num;
+	int32_t index = cgi.client->client_num;
 
 	if (cgi.client->frame.ps.stats[STAT_CHASE]) {
 		index = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
@@ -175,7 +175,7 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 
 	cgi.client->entity = Cg_Self();
 
-	for (uint16_t i = 0; i < frame->num_entities; i++) {
+	for (int32_t i = 0; i < frame->num_entities; i++) {
 
 		const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cgi.client->entity_states[snum];

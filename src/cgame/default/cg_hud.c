@@ -46,7 +46,7 @@ static cg_crosshair_t crosshair;
 #define CENTER_PRINT_LINES 8
 typedef struct cg_center_print_s {
 	char lines[CENTER_PRINT_LINES][MAX_STRING_CHARS];
-	uint16_t num_lines;
+	int32_t num_lines;
 	uint32_t time;
 } cg_center_print_t;
 

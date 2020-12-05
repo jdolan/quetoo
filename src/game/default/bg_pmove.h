@@ -190,7 +190,7 @@ typedef struct {
 	float hook_pull_speed; // hook pull speed (in)
 
 	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS]; // entities touched (out)
-	uint16_t num_touch_ents;
+	int32_t num_touch_ents;
 
 	vec3_t angles; // clamped, and including kick and delta (out)
 	vec3_t mins, maxs; // bounding box size (out)

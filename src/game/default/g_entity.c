@@ -104,7 +104,7 @@ static _Bool G_SpawnEntity(g_entity_t *ent) {
 	}
 
 	// check item spawn functions
-	for (int32_t i = 0; i < g_num_items; i++) {
+	for (size_t i = 0; i < g_num_items; i++) {
 
 		const g_item_t *item = G_ItemByIndex(i);
 

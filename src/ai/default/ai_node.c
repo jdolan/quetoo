@@ -1026,7 +1026,7 @@ void Ai_InitNodes(const char *mapname) {
  */
 static void Ai_CheckNodes(void) {
 
-	for (size_t i = sv_max_clients->value; i < aim.ge->num_entities; i++) {
+	for (int32_t i = sv_max_clients->integer; i < aim.ge->num_entities; i++) {
 		
 		g_entity_t *ent = ENTITY_FOR_NUM(i);
 

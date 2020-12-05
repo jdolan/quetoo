@@ -177,7 +177,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	frame->num_entities = 0;
 	frame->entity_state = svs.next_entity_state;
 
-	for (uint16_t e = 1; e < svs.game->num_entities; e++) {
+	for (int32_t e = 1; e < svs.game->num_entities; e++) {
 		g_entity_t *ent = ENTITY_FOR_NUM(e);
 
 		// ignore entities that are local to the server

@@ -41,7 +41,7 @@ typedef struct cmd_state_s {
 
 	_Bool wait; // commands may be deferred one frame
 
-	uint16_t alias_loop_count;
+	int32_t alias_loop_count;
 } cmd_state_t;
 
 static cmd_state_t cmd_state;

@@ -32,7 +32,7 @@ const vec3_t ITEM_MAXS = { {  16.0,  16.0,  32.0 } };
  */
 const g_item_t *G_FindItemByClassName(const char *class_name) {
 
-	for (int32_t i = 0; i < g_num_items; i++) {
+	for (size_t i = 0; i < g_num_items; i++) {
 		const g_item_t *it = G_ItemByIndex(i);
 
 		if (!it->class_name) {
@@ -56,7 +56,7 @@ const g_item_t *G_FindItem(const char *name) {
 		return NULL;
 	}
 
-	for (int32_t i = 0; i < g_num_items; i++) {
+	for (size_t i = 0; i < g_num_items; i++) {
 		const g_item_t *it = G_ItemByIndex(i);
 
 		if (!it->name) {
@@ -2454,7 +2454,7 @@ static g_item_t g_items[] = {
 /**
  * @brief The total number of items in the item list.
  */
-const uint16_t g_num_items = lengthof(g_items);
+const size_t g_num_items = lengthof(g_items);
 
 /**
  * @brief Fetch the item list.

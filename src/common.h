@@ -88,9 +88,7 @@
 /**
  * @brief Disallow dangerous downloads for both the client and server.
  */
-#define IS_INVALID_DOWNLOAD(f) (\
-                                !*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
-                               )
+#define IS_INVALID_DOWNLOAD(f) (!*f || *f == '/' || strstr(f, "..") || strchr(f, ' '))
 
 /**
  * @brief Error categories.

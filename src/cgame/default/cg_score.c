@@ -27,7 +27,7 @@
 
 typedef struct {
 	g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
-	uint16_t num_scores;
+	size_t num_scores;
 
 	int32_t teams;
 	_Bool ctf;

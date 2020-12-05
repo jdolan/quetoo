@@ -761,8 +761,8 @@ typedef struct cg_import_s {
  */
 typedef struct cg_export_s {
 
-	uint16_t api_version;
-	uint16_t protocol;
+	int32_t api_version;
+	int32_t protocol;
 
 	void (*Init)(void);
 	void (*Shutdown)(void);
