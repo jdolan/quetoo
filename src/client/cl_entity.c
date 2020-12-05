@@ -21,8 +21,6 @@
 
 #include "cl_local.h"
 
-#define MAX_DELTA_ORIGIN 64.0 // MAX_SPEED * QUETOO_TICK_SECONDS = 60.0
-
 /**
  * @brief Parse the player_state_t for the current frame from the server, using delta
  * compression for all fields where possible.
@@ -47,7 +45,6 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
  */
 static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
                                  const entity_state_t *from, const entity_state_t *to) {
-	vec3_t delta;
 
 	if (frame->delta_frame_num == -1) {
 		return false;
@@ -63,9 +60,7 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 		return false;
 	}
 
-	delta = Vec3_Subtract(ent->current.origin, to->origin);
-
-	if (Vec3_Length(delta) > MAX_DELTA_ORIGIN) {
+	if (Vec3_Distance(ent->current.origin, to->origin) > MAX_DELTA_ORIGIN) {
 		return false;
 	}
 

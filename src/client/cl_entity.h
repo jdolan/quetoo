@@ -24,6 +24,13 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
+
+/**
+ * @brief For delta compression to be valid, the player's origin must be within
+ * this distance from the previous frame. This is MAX_SPEED for one tick.
+ */
+#define MAX_DELTA_ORIGIN (2400.f * QUETOO_TICK_SECONDS)
+
 void Cl_ParseFrame(void);
 void Cl_Interpolate(void);
 #endif /* __CL_LOCAL_H__ */
