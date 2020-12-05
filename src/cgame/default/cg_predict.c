@@ -39,6 +39,10 @@ _Bool Cg_UsePrediction(void) {
 		return false;
 	}
 
+	if (cgi.client->delta_frame == NULL) {
+		return false;
+	}
+
 	if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
 		return false;
 	}
