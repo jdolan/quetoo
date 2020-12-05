@@ -126,7 +126,7 @@ static _Bool G_SpawnEntity(g_entity_t *ent) {
 		}
 	}
 
-	gi.Warn("%s doesn't have a spawn function\n", ent->class_name);
+	gi.Warn("%s doesn't have a spawn function\n", etos(ent));
 	return false;
 }
 
