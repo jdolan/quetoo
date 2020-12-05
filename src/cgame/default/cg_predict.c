@@ -70,7 +70,7 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 	cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
 	// copy current state to into the move
-	memset(&pm, 0, sizeof(pm));
+	pm_move_t pm = {};
 	pm.s = cgi.client->frame.ps.pm_state;
 
 	pm.ground_entity = pr->ground_entity;
