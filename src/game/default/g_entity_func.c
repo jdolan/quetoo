@@ -47,9 +47,7 @@ static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
 		return;
 	}
 
-	ent->locals.velocity = Vec3_Scale(dir, distance / QUETOO_TICK_SECONDS);
-
-	ent->locals.Think = G_MoveInfo_Linear_Done;
+	ent->locals.Think = G_MoveInfo_Linear_Final;
 	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
@@ -59,19 +57,11 @@ static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
  */
 static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
-	vec3_t delta;
 
-	delta = Vec3_Subtract(move->dest, ent->s.origin);
-	const float distance = Vec3_Length(delta);
-
-	if ((move->speed * QUETOO_TICK_SECONDS) >= distance) {
-		G_MoveInfo_Linear_Final(ent);
-		return;
-	}
+	const float distance = Vec3_Distance(move->dest, ent->s.origin);
+	move->const_frames = distance / move->speed * QUETOO_TICK_RATE;
 
 	ent->locals.velocity = Vec3_Scale(move->dir, move->speed);
-
-	move->const_frames = distance / move->speed * QUETOO_TICK_RATE;
 
 	ent->locals.next_think = g_level.time + move->const_frames * QUETOO_TICK_MILLIS;
 	ent->locals.Think = G_MoveInfo_Linear_Final;
@@ -90,8 +80,8 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 
 		const float distance = Vec3_Distance(move->dest, ent->s.origin);
 
-		const float accel_time = move->speed / move->accel + QUETOO_TICK_SECONDS;
-		const float decel_time = move->speed / move->decel + QUETOO_TICK_SECONDS;
+		const float accel_time = move->speed / move->accel;
+		const float decel_time = move->speed / move->decel;
 
 		move->accel_frames = accel_time * QUETOO_TICK_RATE;
 		move->decel_frames = decel_time * QUETOO_TICK_RATE;
@@ -137,7 +127,7 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 	// decelerate
 	else if (move->decel_frames) {
 		move->current_speed -= move->decel * QUETOO_TICK_SECONDS;
-		if (move->current_speed <= sqrtf(move->speed)) {
+		if (move->current_speed < sqrtf(move->speed)) {
 			move->current_speed = sqrtf(move->speed);
 		}
 		move->decel_frames--;
