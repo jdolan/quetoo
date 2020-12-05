@@ -71,6 +71,7 @@ static void FogForEntity(const cm_entity_t *entity) {
 			fog.entity = entity;
 			fog.color = color;
 			fog.density = Cm_EntityValue(entity, "fog_density")->value ?: FOG_DENSITY;
+			fog.noise = Cm_EntityValue(entity, "fog_noise")->value ?: FOG_NOISE;
 
 			g_array_append_val(fogs, fog);
 		}
@@ -90,6 +91,7 @@ static void FogForEntity(const cm_entity_t *entity) {
 		}
 
 		fog.density = Cm_EntityValue(entity, "density")->value ?: FOG_DENSITY;
+		fog.noise = Cm_EntityValue(entity, "noise")->value ?: FOG_NOISE;
 
 		for (guint i = 0; i < fog.brushes->len; i++) {
 			const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);

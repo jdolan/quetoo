@@ -25,6 +25,7 @@
 
 #define FOG_COLOR Vec3(1.f, 1.f, 1.f)
 #define FOG_DENSITY 1.f
+#define FOG_NOISE 0.f
 
 /**
  * @brief Fog types.
@@ -72,6 +73,11 @@ typedef struct {
 	 * @brief The fog density.
 	 */
 	float density;
+
+	/**
+	 * @brief The fog noise.
+	 */
+	float noise;
 
 	/**
 	 * @brief The bounds of all brushes in this fog entity.

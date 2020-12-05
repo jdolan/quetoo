@@ -457,12 +457,16 @@ static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
+		intensity *= fog->density + RandomRangef(-fog->noise, fog->noise);
+
+		intensity = Clampf(intensity, 0.f, 1.f);
+
 		switch (fog->type) {
 			case FOG_INVALID:
 				break;
 			case FOG_GLOBAL:
 			case FOG_VOLUME:
-				l->fog = Vec4_Add(l->fog, Vec3_ToVec4(fog->color, fog->density));
+				l->fog = Vec4_Add(l->fog, Vec3_ToVec4(fog->color, intensity));
 				break;
 		}
 	}
