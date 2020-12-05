@@ -30,6 +30,11 @@ typedef struct {
 	pm_cmd_t cmd; // the movement command
 	uint32_t time; // simulation time when the command was sent
 	uint32_t timestamp; // system time when the command was sent
+	struct {
+		uint32_t time; // the simulation time when prediction was run
+		vec3_t origin; // the predicted origin for this command
+		vec3_t error; // the prediction error for this command
+	} prediction;
 } cl_cmd_t;
 
 typedef struct {
@@ -150,8 +155,6 @@ typedef struct {
 	cl_entity_step_t step; // the predicted step
 
 	struct g_entity_s *ground_entity;
-
-	vec3_t origins[CMD_BACKUP]; // for reconciling with the server
 
 	vec3_t error; // the prediction error, interpolated over the current server frame
 } cl_predicted_state_t;

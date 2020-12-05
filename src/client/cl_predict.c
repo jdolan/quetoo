@@ -214,37 +214,41 @@ void Cl_PredictMovement(void) {
  */
 void Cl_CheckPredictionError(void) {
 
-	if (!cls.cgame->UsePrediction()) {
+	const pm_state_t *in = &cl.frame.ps.pm_state;
+
+	cl_predicted_state_t *out = &cl.predicted_state;
+
+	// calculate the last cl_cmd_t we sent that the server has processed
+	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.incoming_acknowledged & CMD_MASK];
+
+	// if prediction was not run (just spawned), don't sweat it
+	if (cmd->prediction.time == 0) {
+
+		out->view.origin = in->origin;
+		out->view.offset = in->view_offset;
+		out->view.angles = in->view_angles;
+
+		out->error = Vec3_Zero();
 		return;
 	}
 
-	cl_predicted_state_t *pr = &cl.predicted_state;
+	// subtract what the server returned from our predicted origin for that frame
+	out->error = cmd->prediction.error = Vec3_Subtract(cmd->prediction.origin, in->origin);
 
-	if (cl.delta_frame) {
+	// if the error is too large, it was likely a teleport or respawn, so ignore it
+	const float len = Vec3_Length(out->error);
+	if (len > .1f) {
+		if (len > MAX_DELTA_ORIGIN) {
+			Com_Debug(DEBUG_CLIENT, "MAX_DELTA_ORIGIN: %s\n", vtos(out->error));
 
-		// calculate the last cl_cmd_t we sent that the server has processed
-		const uint32_t cmd = cls.net_chan.incoming_acknowledged & CMD_MASK;
+			out->view.origin = in->origin;
+			out->view.offset = in->view_offset;
+			out->view.angles = in->view_angles;
 
-		// subtract what the server returned from our predicted origin for that frame
-		pr->error = Vec3_Subtract(pr->origins[cmd], cl.frame.ps.pm_state.origin);
-
-		// if the error is too large, it was likely a teleport or respawn, so ignore it
-		const float len = Vec3_Length(pr->error);
-		if (len > 64.0) {
-			Com_Debug(DEBUG_CLIENT, "Clear %s\n", vtos(pr->error));
-			pr->error = Vec3_Zero();
-		} else if (len > 0.1) {
-			Com_Debug(DEBUG_CLIENT, "Error %s\n", vtos(pr->error));
+			out->error = Vec3_Zero();
+		} else {
+			Com_Debug(DEBUG_CLIENT, "%s\n", vtos(out->error));
 		}
-
-	} else {
-		Com_Debug(DEBUG_CLIENT, "No delta\n");
-
-		pr->view.origin = cl.frame.ps.pm_state.origin;
-		pr->view.offset = cl.frame.ps.pm_state.view_offset;
-		pr->view.angles = cl.frame.ps.pm_state.view_angles;
-		
-		pr->error = Vec3_Zero();
 	}
 }
 

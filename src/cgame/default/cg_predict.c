@@ -53,8 +53,7 @@ _Bool Cg_UsePrediction(void) {
 /**
  * @brief Trace wrapper for Pm_Move.
  */
-static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
-        const vec3_t maxs) {
+static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs) {
 	return cgi.Trace(start, end, mins, maxs, 0, CONTENTS_MASK_CLIP_PLAYER);
 }
 
@@ -87,8 +86,12 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 	for (guint i = 0; i < cmds->len; i++) {
 		cl_cmd_t *cmd = g_ptr_array_index(cmds, i);
 
-		if (cmd->cmd.msec) { // if the command has time, simulate the movement
+		if (cmd->cmd.msec) { // if the command has time, run it
 
+			// timestamp it so the client knows we have valid results
+			cmd->prediction.time = cgi.client->time;
+
+			// simulate the movement
 			pm.cmd = cmd->cmd;
 			Pm_Move(&pm);
 
@@ -103,12 +106,10 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 		}
 
 		// save for error detection
-		const uint32_t frame = (uint32_t) (uintptr_t) (cmd - cgi.client->cmds);
-		pr->origins[frame] = pm.s.origin;
-
+		cmd->prediction.origin = pm.s.origin;
 	}
 
-	// copy results out for rendering
+	// save for rendering
 	pr->view.origin = pm.s.origin;
 	pr->view.offset = pm.s.view_offset;
 	pr->view.angles = pm.cmd.angles;
