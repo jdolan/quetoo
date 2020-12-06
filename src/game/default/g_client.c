@@ -233,7 +233,7 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
 		if (speed > 40.0 && G_IsStructural(other, texinfo)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
-				gi.Sound(self, self->locals.sound, ATTEN_IDLE, 0);
+				gi.Sound(self, self->locals.sound, SOUND_ATTEN_SQUARE, 0);
 				self->locals.touch_time = g_level.time;
 			}
 		}
@@ -484,7 +484,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) {
 		G_ClientCorpse_Die(self, attacker, mod);
 	} else {
-		gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM, 0);
+		gi.Sound(self, gi.SoundIndex("*death_1"), SOUND_ATTEN_LINEAR, 0);
 
 		const float r = Randomf();
 		if (r < 0.33) {
@@ -1559,7 +1559,7 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
 
 		if (ent->client->locals.quad_countdown_time && ent->client->locals.quad_countdown_time < g_level.time) { // play the countdown sound
-			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM, 0);
+			gi.Sound(ent, g_media.sounds.quad_expire, SOUND_ATTEN_LINEAR, 0);
 			ent->client->locals.quad_countdown_time += 1000;
 		}
 

@@ -305,13 +305,14 @@ typedef enum {
 #define SURF_MASK_NO_LIGHTMAP	(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
 
 /**
- * @brief Sound attenuation constants.
+ * @brief Sound attenuation levels.
  */
-#define ATTEN_NONE  		0 // full volume the entire level
-#define ATTEN_NORM  		1 // normal linear attenuation
-#define ATTEN_IDLE  		2 // exponential decay
-#define ATTEN_STATIC  		3 // high exponential decay
-#define ATTEN_DEFAULT		ATTEN_NORM
+typedef enum {
+	SOUND_ATTEN_NONE,
+	SOUND_ATTEN_LINEAR,
+	SOUND_ATTEN_SQUARE,
+	SOUND_ATTEN_CUBIC,
+} sound_atten_t;
 
 /**
  * @brief The absolute world bounds is +/- 4096. This is the largest box we can

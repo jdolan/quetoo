@@ -284,9 +284,9 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		gi.Unicast(activator, true);
 
 		if (ent->locals.sound) {
-			gi.Sound(activator, ent->locals.sound, ATTEN_NORM, 0);
+			gi.Sound(activator, ent->locals.sound, SOUND_ATTEN_LINEAR, 0);
 		} else {
-			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTEN_NORM, 0);
+			gi.Sound(activator, gi.SoundIndex("misc/chat"), SOUND_ATTEN_LINEAR, 0);
 		}
 	}
 

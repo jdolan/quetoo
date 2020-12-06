@@ -262,21 +262,13 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 }
 
 /**
- * @brief An attenuation of 0 will play full volume everywhere in the level.
- * Larger attenuation will drop off (max 4 attenuation).
- *
- * If origin is NULL, the origin is determined from the entity origin
+ * @brief Plays a sound from an entity's position.
+ * @details If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for BSP sub-models.
  */
-void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch) {
+void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch) {
 
 	uint32_t flags = 0;
-
-	uint16_t at = atten;
-	if ((at & 0x0f) > ATTEN_STATIC) {
-		Com_Warn("Bad attenuation %d\n", at & 0x0f);
-		at = ((at & 0xf0) | ATTEN_DEFAULT);
-	}
 
 	if (ent) {
 		flags |= S_ENTITY;
@@ -297,7 +289,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 	Net_WriteByte(&sv.multicast, flags);
 	Net_WriteByte(&sv.multicast, index);
 
-	Net_WriteByte(&sv.multicast, at);
+	Net_WriteByte(&sv.multicast, atten);
 
 	if (flags & S_ENTITY) {
 		Net_WriteShort(&sv.multicast, (int32_t) NUM_FOR_ENTITY(ent));
@@ -311,7 +303,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		Net_WriteByte(&sv.multicast, pitch);
 	}
 
-	if ((atten & 0x0f) != ATTEN_NONE) {
+	if (atten != SOUND_ATTEN_NONE) {
 		Sv_Multicast(origin, MULTICAST_PHS, NULL);
 	} else {
 		Sv_Multicast(origin, MULTICAST_ALL, NULL);

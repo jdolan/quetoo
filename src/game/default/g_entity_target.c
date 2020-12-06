@@ -158,7 +158,7 @@ void G_target_speaker(g_entity_t *ent) {
 	if (atten->parsed & ENTITY_INTEGER) {
 		ent->locals.atten = atten->integer;
 	} else {
-		ent->locals.atten = ATTEN_NORM;
+		ent->locals.atten = SOUND_ATTEN_LINEAR;
 	}
 
 	const int32_t spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;

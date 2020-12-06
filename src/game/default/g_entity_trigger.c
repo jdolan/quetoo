@@ -242,7 +242,7 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
 
 		if (other->locals.push_time < g_level.time) {
 			other->locals.push_time = g_level.time + 1500;
-			gi.Sound(other, self->locals.move_info.sound_start, ATTEN_NORM, 0);
+			gi.Sound(other, self->locals.move_info.sound_start, SOUND_ATTEN_LINEAR, 0);
 		}
 	}
 

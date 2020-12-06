@@ -311,7 +311,7 @@ static void G_func_plat_Top(g_entity_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (ent->locals.move_info.sound_end) {
-			gi.Sound(ent, ent->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.Sound(ent, ent->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		ent->s.sound = 0;
@@ -336,7 +336,7 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
 			pos.z = ent->abs_maxs.z;
 
-			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		ent->s.sound = 0;
@@ -353,7 +353,7 @@ static void G_func_plat_GoingDown(g_entity_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (ent->locals.move_info.sound_start) {
-			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(ent, ent->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		ent->s.sound = ent->locals.move_info.sound_middle;
@@ -376,7 +376,7 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
 			pos.z = ent->abs_maxs.z;
 
-			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		ent->s.sound = ent->locals.move_info.sound_middle;
@@ -720,7 +720,7 @@ static void G_func_button_Activate(g_entity_t *self) {
 	move->state = MOVE_STATE_GOING_UP;
 
 	if (move->sound_start && !(self->locals.flags & FL_TEAM_SLAVE)) {
-		gi.Sound(self, move->sound_start, ATTEN_IDLE, 0);
+		gi.Sound(self, move->sound_start, SOUND_ATTEN_SQUARE, 0);
 	}
 
 	G_MoveInfo_Linear_Init(self, move->end_origin, G_func_button_Wait);
@@ -852,7 +852,7 @@ static void G_func_door_Top(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		self->s.sound = 0;
@@ -878,7 +878,7 @@ static void G_func_door_Bottom(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		self->s.sound = 0;
@@ -893,7 +893,7 @@ static void G_func_door_Bottom(g_entity_t *self) {
 static void G_func_door_GoingDown(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
@@ -928,7 +928,7 @@ static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
@@ -1134,7 +1134,7 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
 		gi.Unicast(other, true);
 	}
 
-	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTEN_NORM, 0);
+	gi.Sound(other, gi.SoundIndex("misc/chat"), SOUND_ATTEN_LINEAR, 0);
 }
 
 /*QUAKED func_door (0 .5 .8) ? start_open x x x toggle
@@ -1394,7 +1394,7 @@ static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		self->s.sound = self->locals.move_info.sound_middle;
@@ -1430,7 +1430,7 @@ static void G_func_door_secret_Move3(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		self->s.sound = 0;
@@ -1448,7 +1448,7 @@ static void G_func_door_secret_Move4(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		self->s.sound = self->locals.move_info.sound_middle;
@@ -1487,7 +1487,7 @@ static void G_func_door_secret_Done(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		self->s.sound = 0;
@@ -1783,7 +1783,7 @@ static void G_func_train_Wait(g_entity_t *self) {
 
 		if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 			if (self->locals.move_info.sound_end) {
-				gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
+				gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 			}
 			self->s.sound = 0;
 		}
@@ -1832,7 +1832,7 @@ again:
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 		self->s.sound = self->locals.move_info.sound_middle;
 	}

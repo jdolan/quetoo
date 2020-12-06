@@ -87,27 +87,25 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	}
 
 	ch->position = org;
-//  	ch->position = vec3_add(ch->position, Vec3_Scale(Vec3_Up().xyz, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0);
 
 	const float dist = Vec3_DistanceDir(org, r_view.origin, &delta);
 
-	float attenuation;
-	switch (ch->play.attenuation & 0x0f) {
-		case ATTEN_NORM:
-			attenuation = 1.0;
+	float atten;
+	switch (ch->play.atten) {
+		case SOUND_ATTEN_NONE:
+			atten = 0.f;
+		case SOUND_ATTEN_LINEAR:
+			atten = 1.f;
 			break;
-		case ATTEN_IDLE:
-			attenuation = 2.0;
+		case SOUND_ATTEN_SQUARE:
+			atten = 2.f;
 			break;
-		case ATTEN_STATIC:
-			attenuation = 4.0;
-			break;
-		default:
-			attenuation = 0.0;
+		case SOUND_ATTEN_CUBIC:
+			atten = 4.f;
 			break;
 	}
 
-	const float frac = dist * attenuation / SOUND_MAX_DISTANCE;
+	const float frac = dist * atten / SOUND_MAX_DISTANCE;
 
 	ch->gain = 1.0 - frac;
 
@@ -341,8 +339,7 @@ void S_AddSample(const s_play_sample_t *play) {
 	// warn on spatialized stereo samples
 
 	if (play->sample->stereo) {
-		const _Bool has_atten = (play->attenuation & 0x0f) != ATTEN_NONE;
-		if (has_atten || (has_atten && play->entity != -1 && &cl.entities[play->entity] != cl.entity)) {
+		if (play->atten) {
 			Com_Warn("%s is a stereo sound sample and is being spatialized\n", play->sample->media.name);
 		}
 	}

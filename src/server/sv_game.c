@@ -215,7 +215,7 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 /**
  * @brief
  */
-static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch) {
+static void Sv_Sound(const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch) {
 
 	assert(ent);
 

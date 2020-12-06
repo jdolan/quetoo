@@ -410,7 +410,7 @@ void Cl_Interpolate(void) {
 			S_AddSample(&(const s_play_sample_t) {
 				.sample = cl.sound_precache[ent->current.sound],
 				.entity = ent->current.number,
-				.attenuation = ATTEN_IDLE,
+				.atten = SOUND_ATTEN_SQUARE,
 				.flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
 			});
 			ent->current.sound = 0;
