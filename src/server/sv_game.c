@@ -215,7 +215,7 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 /**
  * @brief
  */
-static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch) {
+static void Sv_Sound(const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch) {
 
 	assert(ent);
 
@@ -339,25 +339,26 @@ void Sv_InitGame(void) {
 	import.Argv = Cmd_Argv;
 	import.Args = Cmd_Args;
 	import.TokenizeString = Cmd_TokenizeString;
-
 	import.Cbuf = Cbuf_AddText;
 
 	import.SetConfigString = Sv_SetConfigString;
 	import.GetConfigString = Sv_GetConfigString;
-
 	import.ModelIndex = Sv_ModelIndex;
 	import.SoundIndex = Sv_SoundIndex;
 	import.ImageIndex = Sv_ImageIndex;
 
 	import.SetModel = Sv_SetModel;
+
 	import.Sound = Sv_Sound;
 	import.PositionedSound = Sv_PositionedSound;
 
-	import.Trace = Sv_Trace;
+	import.EntityValue = Cm_EntityValue;
+	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Sv_PointContents;
+	import.PointInsideBrush = Cm_PointInsideBrush;
+	import.Trace = Sv_Trace;
 	import.inPVS = Sv_InPVS;
 	import.inPHS = Sv_InPHS;
-
 	import.LinkEntity = Sv_LinkEntity;
 	import.UnlinkEntity = Sv_UnlinkEntity;
 	import.BoxEntities = Sv_BoxEntities;

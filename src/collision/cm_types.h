@@ -183,8 +183,15 @@ typedef struct cm_entity_s {
 
 	/**
 	 * @brief The entity pair value, as a string.
+	 * @remarks This will always be a null-termianted C string.
 	 */
 	char string[MAX_BSP_ENTITY_VALUE];
+
+	/**
+	 * @brief The entity pair value, as a nullable string pointer.
+	 * @remarks This will be `NULL` if no string was present.
+	 */
+	char *nullable_string;
 
 	/**
 	 * @brief The entity pair value, as an integer.

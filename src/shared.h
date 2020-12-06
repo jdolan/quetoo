@@ -445,13 +445,6 @@ typedef enum {
 
 #define NearestMultiple(n, align)	((n) == 0 ? 0 : ((n) - 1 - ((n) - 1) % (align) + (align)))
 
-/*
- * @brief Z origin offset for sounds; has a 4x multiplier at sound spatialization time
- *  Uses the upper 4 bits of the attenuation byte
- */
-#define S_GET_Z_ORIGIN_OFFSET(atten) (((atten & 0xf0) >> 4) - 8)
-#define S_SET_Z_ORIGIN_OFFSET(offset) ((offset + 8) << 4)
-
 /**
  * @brief Math and trigonometry functions.
  */

@@ -33,7 +33,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match);
 g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match);
 g_entity_t *G_FindRadius(g_entity_t *from, const vec3_t org, float rad);
-g_entity_t *G_PickTarget(char *target_name);
+g_entity_t *G_PickTarget(const char *target_name);
 void G_UseTargets(g_entity_t *ent, g_entity_t *activator);
 void G_SetMoveDir(g_entity_t *ent);
 char *G_GameplayName(int32_t g);

@@ -203,7 +203,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 
 	s_play_sample_t play = {
 		.entity = s->number,
-		.attenuation = ATTEN_NORM,
+		.atten = SOUND_ATTEN_LINEAR,
 		.flags = S_PLAY_ENTITY,
 	};
 
@@ -242,13 +242,13 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 		case EV_CLIENT_TELEPORT:
 			play.sample = cg_sample_teleport;
-			play.attenuation = ATTEN_IDLE;
+			play.atten = SOUND_ATTEN_SQUARE;
 			Cg_TeleporterEffect(s->origin);
 			break;
 
 		case EV_ITEM_RESPAWN:
 			play.sample = cg_sample_respawn;
-			play.attenuation = ATTEN_IDLE;
+			play.atten = SOUND_ATTEN_SQUARE;
 			Cg_ItemRespawnEffect(s->origin, color_white); //TODO: wire up colors, white is placeholder
 			break;
 		case EV_ITEM_PICKUP:

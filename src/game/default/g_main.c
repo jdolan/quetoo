@@ -298,12 +298,9 @@ void G_CheckHook(void) {
 	} else if (g_level.hook_map != -1) { // check maps.lst
 		g_level.hook_allowed = (g_level.hook_map == -1) ? g_level.ctf : !!g_level.hook_map;
 	} else { // check worldspawn
-		if (g_game.spawn.hook && *g_game.spawn.hook) {
-			if (g_strcmp0(g_game.spawn.hook, "default")) {
-				g_level.hook_allowed = !!atoi(g_game.spawn.hook);
-			} else {
-				g_level.hook_allowed = g_level.ctf;
-			}
+		const cm_entity_t *hook = gi.EntityValue(g_game.entities->def, "hook");
+		if (hook->parsed & ENTITY_INTEGER) {
+			g_level.hook_allowed = hook->integer;
 		} else {
 			g_level.hook_allowed = g_level.ctf;
 		}
@@ -325,12 +322,9 @@ void G_CheckTechs(void) {
 	} else if (g_level.techs_map != -1) { // check maps.lst
 		g_level.techs = (g_level.techs_map == -1) ? g_level.ctf : !!g_level.techs_map;
 	} else { // check worldspawn
-		if (g_game.spawn.techs && *g_game.spawn.techs) {
-			if (g_strcmp0(g_game.spawn.techs, "default")) {
-				g_level.techs = !!atoi(g_game.spawn.techs);
-			} else {
-				g_level.techs = g_level.ctf;
-			}
+		const cm_entity_t *techs = gi.EntityValue(g_game.entities->def, "techs");
+		if (techs->parsed & ENTITY_INTEGER) {
+			g_level.techs = techs->integer;
 		} else {
 			g_level.techs = g_level.ctf;
 		}
@@ -470,7 +464,7 @@ static void G_RestartGame(_Bool teamz) {
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
-	gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE, 0);
+	gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
 }
 
 /**
@@ -536,7 +530,7 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NONE, 0);
+	gi.Sound(g_game.entities, g_media.sounds.roar, SOUND_ATTEN_NONE, 0);
 
 	// stay on same level if not provided
 	g_level.next_map = map ?: g_level.name;
@@ -933,7 +927,7 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE, 0);
+		gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
@@ -949,7 +943,7 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE, 0);
+		gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
@@ -1739,7 +1733,7 @@ void G_RunTimers(void) {
 			if (j <= 5) {
 
 				if (j > 0) {
-					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE, 0);
+					gi.Sound(g_game.entities, g_media.sounds.countdown[j], SOUND_ATTEN_NONE, 0);
 				}
 
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
@@ -1758,7 +1752,7 @@ void G_RunTimers(void) {
 			if (j <= 10) {
 
 				if (j > 0) {
-					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE, 0);
+					gi.Sound(g_game.entities, g_media.sounds.countdown[j], SOUND_ATTEN_NONE, 0);
 				} else {
 					G_CallTimeIn();
 				}

@@ -47,7 +47,7 @@ static void G_ClientDamage(g_entity_t *ent) {
 
 			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
-			gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), ATTEN_NORM, 0);
+			gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), SOUND_ATTEN_LINEAR, 0);
 		}
 	}
 
@@ -73,12 +73,12 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 	// if just entered a water volume, play a sound
 	if (old_water_level <= WATER_NONE && water_level >= WATER_FEET) {
-		gi.Sound(ent, g_media.sounds.water_in, ATTEN_NORM, 0);
+		gi.Sound(ent, g_media.sounds.water_in, SOUND_ATTEN_LINEAR, 0);
 	}
 
 	// completely exited the water
 	if (old_water_level >= WATER_FEET && water_level == WATER_NONE) {
-		gi.Sound(ent, g_media.sounds.water_out, ATTEN_NORM, 0);
+		gi.Sound(ent, g_media.sounds.water_out, SOUND_ATTEN_LINEAR, 0);
 	}
 
 	// same water level, head out of water
@@ -95,7 +95,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
-			gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), ATTEN_NORM, 0);
+			gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), SOUND_ATTEN_LINEAR, 0);
 		}
 
 		// check for drowning

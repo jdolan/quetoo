@@ -106,7 +106,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_fire,
 		.origin = self->origin,
-		.attenuation = ATTEN_STATIC,
+		.atten = SOUND_ATTEN_CUBIC,
 		.flags = S_PLAY_POSITIONED
 	});
 }
@@ -205,14 +205,14 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 	sound->origin = self->origin;
 
 	if (cgi.EntityValue(self->def, "atten")->parsed & ENTITY_INTEGER) {
-		sound->attenuation = cgi.EntityValue(self->def, "atten")->integer;
+		sound->atten = cgi.EntityValue(self->def, "atten")->integer;
 	} else {
-		sound->attenuation = ATTEN_IDLE;
+		sound->atten = SOUND_ATTEN_SQUARE;
 	}
 
 	sound->flags = S_PLAY_AMBIENT;
 
-	if (sound->attenuation != ATTEN_NONE) {
+	if (sound->atten != SOUND_ATTEN_NONE) {
 		sound->flags |= S_PLAY_POSITIONED;
 	}
 
@@ -312,7 +312,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 	cg_sprite_t *sprite = self->data;
 
 	sprite->origin = self->origin;
-	
+
 	const cm_entity_t *target = Cg_EntityTarget(self);
 	if (target) {
 		const vec3_t target_origin = cgi.EntityValue(target, "origin")->vec3;
@@ -407,7 +407,7 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_steam,
 		.origin = org,
-		.attenuation = ATTEN_STATIC,
+		.attenuation = SOUND_ATTEN_CUBIC,
 		.flags = S_PLAY_POSITIONED
 	});*/
 }

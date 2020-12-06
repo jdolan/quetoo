@@ -54,6 +54,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
 				if (strlen(pair->string)) {
 					pair->parsed |= ENTITY_STRING;
+					pair->nullable_string = pair->string;
 				}
 
 				if (sscanf(pair->string, "%d", &pair->integer) == 1) {

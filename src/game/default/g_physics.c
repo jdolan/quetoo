@@ -100,9 +100,9 @@ static void G_CheckWater(g_entity_t *ent) {
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
 			if (ent->locals.water_type & (CONTENTS_LAVA | CONTENTS_SLIME)) {
-				gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_STATIC, -32);
+				gi.PositionedSound(pos, ent, g_media.sounds.water_in, SOUND_ATTEN_CUBIC, -32);
 			} else {
-				gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_STATIC,  0);
+				gi.PositionedSound(pos, ent, g_media.sounds.water_in, SOUND_ATTEN_CUBIC,  0);
 			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
@@ -114,9 +114,9 @@ static void G_CheckWater(g_entity_t *ent) {
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
 			if (old_water_type & (CONTENTS_LAVA | CONTENTS_SLIME)) {
-				gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_STATIC, -32);
+				gi.PositionedSound(pos, ent, g_media.sounds.water_out, SOUND_ATTEN_CUBIC, -32);
 			} else {
-				gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_STATIC,  0);
+				gi.PositionedSound(pos, ent, g_media.sounds.water_out, SOUND_ATTEN_CUBIC,  0);
 			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {

@@ -215,7 +215,7 @@ g_entity_t *G_FindRadius(g_entity_t *from, const vec3_t org, float rad) {
  * Searches beginning at the entity after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
  */
-g_entity_t *G_PickTarget(char *target_name) {
+g_entity_t *G_PickTarget(const char *target_name) {
 	g_entity_t *choice[MAX_TARGETS];
 	uint32_t num_choices = 0;
 
@@ -285,10 +285,10 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		gi.WriteString(ent->locals.message);
 		gi.Unicast(activator, true);
 
-		if (ent->locals.noise_index) {
-			gi.Sound(activator, ent->locals.noise_index, ATTEN_NORM, 0);
+		if (ent->locals.sound) {
+			gi.Sound(activator, ent->locals.sound, SOUND_ATTEN_LINEAR, 0);
 		} else {
-			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTEN_NORM, 0);
+			gi.Sound(activator, gi.SoundIndex("misc/chat"), SOUND_ATTEN_LINEAR, 0);
 		}
 	}
 

@@ -489,7 +489,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		if (G_IsStructural(other, texinfo)) {
 			if (g_level.time - self->locals.touch_time > 200) {
 				if (Vec3_Length(self->locals.velocity) > 40.0) {
-					gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM, (int8_t) (Randomf() * 5.0));
+					gi.Sound(self, g_media.sounds.grenade_hit, SOUND_ATTEN_LINEAR, (int8_t) (Randomf() * 5.0));
 					self->locals.touch_time = g_level.time;
 				}
 			}
@@ -858,7 +858,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		water_start = tr.end;
 
 		if (!self->locals.water_level) {
-			gi.PositionedSound(water_start, NULL, g_media.sounds.water_in, ATTEN_NORM, 0);
+			gi.PositionedSound(water_start, NULL, g_media.sounds.water_in, SOUND_ATTEN_LINEAR, 0);
 			self->locals.water_level = WATER_FEET;
 		}
 
@@ -868,7 +868,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		G_Ripple(NULL, start, end, 16.0, true);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
-			gi.PositionedSound(start, NULL, g_media.sounds.water_out, ATTEN_NORM, 0);
+			gi.PositionedSound(start, NULL, g_media.sounds.water_out, SOUND_ATTEN_LINEAR, 0);
 			self->locals.water_level = WATER_NONE;
 		}
 	}
@@ -985,7 +985,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 			content_mask &= ~CONTENTS_MASK_LIQUID;
 			liquid = true;
 
-			gi.PositionedSound(tr.end, NULL, g_media.sounds.water_in, ATTEN_NORM, 0);
+			gi.PositionedSound(tr.end, NULL, g_media.sounds.water_in, SOUND_ATTEN_LINEAR, 0);
 
 			ignore = ent;
 			continue;
@@ -1185,7 +1185,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 				self->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
 			}
 
-			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM, RandomRangei(-4, 5));
+			gi.Sound(self, g_media.sounds.hook_hit, SOUND_ATTEN_LINEAR, RandomRangei(-4, 5));
 
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_HOOK_IMPACT);
@@ -1194,7 +1194,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		} else {
 
-			gi.Sound(self, g_media.sounds.hook_gibhit, ATTEN_DEFAULT, RandomRangei(-4, 5));
+			gi.Sound(self, g_media.sounds.hook_gibhit, SOUND_ATTEN_LINEAR, RandomRangei(-4, 5));
 
 			/*
 			if (g_hook_auto_refire->integer) {

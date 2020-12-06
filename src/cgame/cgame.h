@@ -70,13 +70,13 @@ typedef struct cg_import_s {
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 	/**
-	 * @brief Fetch the currently active debug mask.
+	 * @return The active debug mask.
 	 */
 	debug_t (*DebugMask)(void);
 
 	/**
 	 * @brief Prints a formatted debug message to the configured consoles.
-	 * @remarks If the `debug` cvar is unset, this function will simply return.
+	 * @details If the proivided `debug` mask is inactive, the message will not be printed.
 	 */
 	void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
@@ -229,7 +229,6 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
-	 *
 	 * @defgroup console-variables Console variables & commands
 	 * @{
 	 */

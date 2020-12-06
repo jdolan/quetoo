@@ -70,7 +70,7 @@ typedef struct s_play_sample_s {
 	const s_sample_t *sample;
 	vec3_t origin;
 	int32_t entity;
-	int32_t attenuation;
+	sound_atten_t atten;
 	int32_t flags;
 	int32_t pitch; // pitch offset; 0 is no adjustment, TONES_PER_OCTAVE is +1 octave, -TONES_PER_OCTAVE is -1 octave, etc.
 } s_play_sample_t;

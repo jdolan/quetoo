@@ -615,42 +615,8 @@ typedef struct g_item_s {
 	uint16_t pickup_sound_index;
 } g_item_t;
 
-/**
- * @brief A singleton container used to hold entity information that is set
- * in the editor (and thus the entities string) but that does not map directly
- * to a field in g_entity_t.
- */
-typedef struct {
-	// world vars, we use strings to avoid ambiguity between 0 and unset
-	char *sky;
-	char *weather;
-	char *gravity;
-	char *gameplay;
-	char *hook;
-	char *teams;
-	char *num_teams;
-	char *techs;
-	char *ctf;
-	char *match;
-	char *rounds;
-	char *frag_limit;
-	char *round_limit;
-	char *capture_limit;
-	char *time_limit;
-	char *give;
-	char *music;
-	char *noise;
-	char *item;
-
-	int32_t lip;
-	int32_t distance;
-	int32_t height;
-	int32_t sounds;
-} g_spawn_temp_t;
-
 #define EOFS(x) (ptrdiff_t) &(((g_entity_t *) 0)->x)
 #define LOFS(x) (ptrdiff_t) &(((g_entity_t *) 0)->locals.x)
-#define SOFS(x) (ptrdiff_t) &(((g_spawn_temp_t *) 0)->x)
 
 /**
  * @brief Movement states.
@@ -702,8 +668,6 @@ typedef struct {
 typedef struct {
 	g_entity_t *entities; // [g_max_entities]
 	g_client_t *clients; // [sv_max_clients]
-
-	g_spawn_temp_t spawn;
 
 	_Bool ai_loaded; // whether the AI is loaded or not
 	uint8_t ai_fill_slots; // total number of empty slots the AI should fill
@@ -1103,20 +1067,21 @@ typedef struct {
 
 	uint32_t timestamp;
 
-	char *target;
-	char *target_name;
-	char *path_target;
-	char *kill_target;
-	char *message;
-	char *team;
-	char *command;
-	char *script;
+	const char *target;
+	const char *target_name;
+	const char *path_target;
+	const char *kill_target;
+	const char *message;
+	const char *team;
+	const char *command;
+	const char *script;
 
 	g_entity_t *target_ent;
 
 	float speed, accel, decel;
 	vec3_t move_dir;
 	vec3_t pos1, pos2;
+	float lip;
 
 	vec3_t velocity;
 	vec3_t avelocity;
@@ -1154,8 +1119,8 @@ typedef struct {
 	g_entity_t *team_master;
 	g_entity_t *team_next;
 
-	uint16_t noise_index;
-	int16_t attenuation;
+	uint16_t sound;
+	int16_t atten;
 
 	float wait;
 	float delay; // before firing targets
