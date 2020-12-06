@@ -28,7 +28,7 @@
 static struct {
 	vec3_t position;
 
-	vec3_t last_good_position;
+	vec3_t floor_position;
 
 	ai_node_id_t last_nodes[2];
 
@@ -87,7 +87,6 @@ typedef struct {
 
 	float cost;
 	ai_node_id_t came_from;
-	g_entity_t *mover;
 } ai_node_t;
 
 /**
@@ -381,7 +380,7 @@ static void Ai_Node_RecalculateCosts(const ai_node_id_t id) {
 /**
  * @brief Check if the node we want to move towards is currently pathable.
  */
-_Bool Ai_Path_CanPathTo(const GArray *path, const guint index) {
+_Bool Ai_Path_CanPathTo(const g_entity_t *self, const GArray *path, const guint index) {
 
 	// sanity
 	if (index >= path->len) {
@@ -392,26 +391,27 @@ _Bool Ai_Path_CanPathTo(const GArray *path, const guint index) {
 	// if the mover is there
 	const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, g_array_index(path, ai_node_id_t, index));
 
-	if (node->mover) {
+	if (!(aim.gi->PointContents(self->s.origin) & CONTENTS_MASK_LIQUID)) {
+		// check if the destination has ground
+		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Vec3(PM_MINS.x - 1.f, PM_MINS.y - 1.f, PM_MINS.z), Vec3(PM_MAXS.x + 1.f, PM_MAXS.y + 1.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
-		// if we're the first in the list somehow, or the prior node
-		// was also a mover node, we're good to go.
-		if (index == 0 || g_array_index(ai_nodes, ai_node_t, g_array_index(path, ai_node_id_t, index - 1)).mover != NULL) {
-			return true;
+		// bad ground
+		_Bool stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
+
+		if (tr.fraction == 1.0 || stuck_in_mover) {
+
+			// check with a thinner box; it might be a button press or rotating thing
+			if (stuck_in_mover) {
+				tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Vec3(-4.f, -4.f, PM_MINS.z), Vec3(4.f, 4.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+				stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
+
+				if (!stuck_in_mover) {
+					return true;
+				}
+			}
+
+			return false;
 		}
-
-		// check if the mover is in place
-		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), PM_MINS, PM_MAXS, NULL, CONTENTS_MASK_CLIP_CORPSE);
-
-		if (!tr.ent || tr.ent != node->mover || tr.start_solid || tr.all_solid) {
-			tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_CLIP_CORPSE);
-		}
-
-		if (tr.ent == node->mover && !tr.start_solid && !tr.all_solid) {
-			return true;
-		}
-
-		return false;
 	}
 
 	return true;
@@ -450,11 +450,16 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 
 		ai_player_roam.position = player->s.origin;
 		ai_player_roam.last_nodes[0] = ai_player_roam.last_nodes[1] = NODE_INVALID;
+		ai_player_roam.await_landing = true;
 	}
 
 	const _Bool in_water = aim.gi->PointContents(player->s.origin) & (CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA);
 	const float last_node_distance_compare = ai_player_roam.last_nodes[0] == NODE_INVALID ? FLT_MAX : Vec3_Distance(player->s.origin, Ai_Node_GetPosition(ai_player_roam.last_nodes[0]));
 	const float player_distance_compare = Vec3_Distance(player->s.origin, ai_player_roam.position);
+
+	if (Ai_Node_PlayerIsOnFloor(player)) {
+		ai_player_roam.floor_position = player->s.origin;
+	}
 
 	if (do_noding) {
 		// we're waiting to land to drop a node; we jumped, fell, got sent by a jump pad, something like that.
@@ -516,11 +521,11 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 
 		// we just left the floor (or water); drop a node here
 		if (!Ai_Node_PlayerIsOnFloor(player) && !in_water) {
-			const ai_node_id_t jumped_near_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 2, true);
+			const ai_node_id_t jumped_near_node = Ai_Node_FindClosest(ai_player_roam.floor_position, WALKING_DISTANCE / 2, true);
 			const _Bool is_jump = player->client->ps.pm_state.velocity.z > 0;
 
 			if (jumped_near_node == NODE_INVALID) {
-				const ai_node_id_t id = Ai_Node_CreateNode(player->s.origin);
+				const ai_node_id_t id = Ai_Node_CreateNode(ai_player_roam.floor_position);
 
 				if (ai_player_roam.last_nodes[0] != NODE_INVALID) {
 
@@ -775,16 +780,6 @@ void Ai_Node_Render(void) {
 					g_hash_table_replace(unique_links, GINT_TO_POINTER(ulink.v), GINT_TO_POINTER(existing_bit | bit));
 				}
 			}
-		}
-
-		if (node->mover) {
-
-			aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
-			aim.gi->WriteByte(TE_AI_NODE_LINK);
-			aim.gi->WritePosition(node->position);
-			aim.gi->WritePosition(Vec3_Mix(node->mover->abs_mins, node->mover->abs_maxs, 0.5));
-			aim.gi->WriteByte(8);
-			aim.gi->Multicast(node->position, MULTICAST_PVS, NULL);
 		}
 	}
 
@@ -1048,68 +1043,6 @@ static void Ai_CheckNodes(void) {
 }
 
 /**
- * @brief Adds all nodes that are directly connected to this node (whether one-way or not).
- */
-static GList *Ai_Node_FindAttachedNodes(const ai_node_t *node, GList *list) {
-
-	for (guint i = 0; i < ai_nodes->len; i++) {
-		ai_node_t *check = &g_array_index(ai_nodes, ai_node_t, i);
-
-		if (Ai_Node_IsLinked(Ai_Node_Index(node), Ai_Node_Index(check)) ||
-			Ai_Node_IsLinked(Ai_Node_Index(check), Ai_Node_Index(node))) {
-			list = g_list_prepend(list, check);
-		}
-	}
-
-	return list;
-}
-
-/**
- * @brief This function links any floating nodes connected to a mover to that mover.
- * In theory, these should only be dropped if the mover moved us onto these spots.
- */
-static guint Ai_Node_FloodFillEntity(const ai_node_t *node) {
-
-	guint count = 0;
-	GList *head = NULL;
-
-	// add seed nodes
-	head = Ai_Node_FindAttachedNodes(node, head);
-
-	while (head != NULL) {
-		ai_node_t *check = (ai_node_t *)head->data;
-
-		head = g_list_delete_link(head, head);
-
-		// flood fill nodes should only have one link
-		if (check->links->len > 1) {
-			continue;
-		}
-
-		// already have a mover, we're fine
-		if (check->mover) {
-			continue;
-		}
-
-		// check that we're in the air
-		const cm_trace_t tr = aim.gi->Trace(check->position, Vec3_Subtract(check->position, Vec3(0, 0, PM_GROUND_DIST * 2)), Vec3_Scale(PM_MINS, 0.5f), Vec3_Scale(PM_MAXS, 0.5f), NULL, CONTENTS_MASK_CLIP_CORPSE);
-
-		// touched something, so we shouldn't consider this node part of a mover
-		if (tr.fraction < 1.0f) {
-			continue;
-		}
-
-		// link us!
-		check->mover = node->mover;
-		count++;
-
-		head = Ai_Node_FindAttachedNodes(check, head);
-	}
-
-	return count;
-}
-
-/**
  * @brief 
  */
 void Ai_NodesReady(void) {
@@ -1131,29 +1064,6 @@ void Ai_NodesReady(void) {
 
 	added_links -= ai_player_roam.file_links;
 	aim.gi->Print("  Game loaded %u additional nodes with %u new links.\n", added_nodes, added_links);
-
-	guint linked_movers = 0;
-
-	// link up movers with nodes that need them
-	for (guint i = 0; i < ai_nodes->len; i++) {
-		ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
-		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), PM_MINS, PM_MAXS, NULL, CONTENTS_MASK_CLIP_CORPSE);
-
-		if (!tr.ent || tr.ent->s.number == 0) {
-			tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_CLIP_CORPSE);
-		}
-
-		if (!tr.ent || tr.ent->s.number == 0) {
-			continue;
-		}
-
-		linked_movers++;
-		node->mover = tr.ent;
-
-		linked_movers += Ai_Node_FloodFillEntity(node);
-	}
-
-	aim.gi->Print("  Linked %u movers to navigation graph.\n", linked_movers);
 
 	if (ai_node_dev->integer != 1) {
 		const guint optimized = Ai_OptimizeNodes();

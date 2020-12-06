@@ -183,7 +183,7 @@ static inline void Ai_RestoreMainPath(const g_entity_t *self, ai_locals_t *ai) {
 static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 	if (self->solid == SOLID_DEAD) {
-		return QUETOO_TICK_MILLIS;
+		return 1;
 	}
 
 	ai_locals_t *ai = Ai_GetLocals(self);
@@ -197,7 +197,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 	// early exit if we're under water or in air; we have a goal already
 	// in that case.
 	if (ai->combat_target.type || !ENTITY_DATA(self, ground_entity)) {
-		return QUETOO_TICK_MILLIS * 5;
+		return 5;
 	}
 	
 	// we're not attacking, so we probably care about items.
@@ -219,7 +219,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 				}
 			// still a good goal
 			} else {
-				return QUETOO_TICK_MILLIS * 5;
+				return 5;
 			}
 		}
 	}
@@ -325,7 +325,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	g_array_free(items_visible, true);
-	return QUETOO_TICK_MILLIS * 5;
+	return 5;
 }
 
 /**
@@ -527,7 +527,7 @@ static _Bool Ai_ShouldChaseEnemy(const g_entity_t *self, const g_entity_t *targe
 static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 	if (self->solid == SOLID_DEAD) {
-		return QUETOO_TICK_MILLIS;
+		return 1;
 	}
 
 	ai_locals_t *ai = Ai_GetLocals(self);
@@ -542,7 +542,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 			Ai_ClearGoal(&ai->move_target);
 		}
 
-		return QUETOO_TICK_MILLIS;
+		return 1;
 	}
 
 	// see if we're already hunting
@@ -587,7 +587,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 	// still have an enemy
 	if (ai->combat_target.type == AI_GOAL_ENTITY) {
 
-		return QUETOO_TICK_MILLIS * 3;
+		return 3;
 	}
 
 	// we lost our enemy, start looking for a new one
@@ -622,7 +622,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 		return Ai_FuncGoal_Hunt(self, cmd);
 	}
 
-	return QUETOO_TICK_MILLIS * 5;
+	return 5;
 }
 
 /**
@@ -636,7 +636,7 @@ static uint32_t Ai_FuncGoal_Weaponry(g_entity_t *self, pm_cmd_t *cmd) {
 		if (ai_level.frame_num & 1) {
 			cmd->buttons = BUTTON_ATTACK;
 		}
-		return QUETOO_TICK_MILLIS;
+		return 1;
 	}
 
 	ai_locals_t *ai = Ai_GetLocals(self);
@@ -660,7 +660,7 @@ static uint32_t Ai_FuncGoal_Weaponry(g_entity_t *self, pm_cmd_t *cmd) {
 		}
 	}
 
-	return QUETOO_TICK_MILLIS;
+	return 1;
 }
 
 /**
@@ -669,13 +669,13 @@ static uint32_t Ai_FuncGoal_Weaponry(g_entity_t *self, pm_cmd_t *cmd) {
 static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 
 	if (self->solid == SOLID_DEAD) {
-		return QUETOO_TICK_MILLIS;
+		return 1;
 	}
 
 	ai_locals_t *ai = Ai_GetLocals(self);
 
 	if (ai->combat_target.type != AI_GOAL_ENTITY) {
-		return QUETOO_TICK_MILLIS * 5;
+		return 200;
 	}
 
 	// do some acrobatics
@@ -701,7 +701,7 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 		cmd->up = 0;
 	}
 
-	return QUETOO_TICK_MILLIS;
+	return 1;
 }
 
 /**
@@ -816,7 +816,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 			goal->distress /= 2;
 		// getting further away
 		} else {
-			goal->distress += 0.25f;
+			goal->distress += (aim.gi->PointContents(self->s.origin) & CONTENTS_MASK_LIQUID ? 0.05f : 0.25f);
 		}
 
 		vec3_t dest = Vec3_Zero();
@@ -974,8 +974,8 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	if (ai->move_target.type == AI_GOAL_PATH) {
 		// the next step(s) will be onto a mover, so if we can't move yet, we wait.
-		if (!Ai_Path_CanPathTo(ai->move_target.path.path, ai->move_target.path.path_index)) {
-			dir = Vec3_Zero();
+		if (!Ai_Path_CanPathTo(self, ai->move_target.path.path, ai->move_target.path.path_index)) {
+			dir = Vec3_Scale(dir, PM_SPEED_RUN);
 			wait_politely = true;
 			ai->move_target.distress_extension = true;
 		// trick-jumping requires a bit of finesse
@@ -1071,9 +1071,8 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	// predict a few frames ahead, for timely stoppage
 	pm_move_t pm_ahead = pm;
 
-	for (int32_t i = 0; i < 5; i++) {
-		Pm_Move(&pm_ahead);
-	}
+	pm_ahead.cmd.msec = 100;
+	Pm_Move(&pm_ahead);
 
 	// we weren't trying to jump and predicted ground is gone
 	if (cmd->up <= 0 && ENTITY_DATA(self, ground_entity) && (!pm_ahead.ground_entity || !pm.ground_entity)) {
@@ -1083,9 +1082,11 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		if (ai->move_target.type == AI_GOAL_PATH) {
 			const float xy_dist = Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin));
 			
-			// we're most likely on a mover; if we'll be falling in a few frames, stop us early
-			if (ENTITY_DATA(self, ground_entity)->s.number != 0 && !pm_ahead.ground_entity) {
-				cmd->forward = cmd->right = 0; // stop for now
+			// we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
+			if (!Ai_Path_CanPathTo(self, ai->move_target.path.path, ai->move_target.path.path_index)) {
+				cmd->forward = -cmd->forward;
+				cmd->right = -cmd->right; // stop for now
+				Ai_Debug("Stopping early to prevent mover issues\n");
 			// if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
 			} else if (((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT ||
 				(xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground_entity) {
@@ -1139,7 +1140,13 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		!wait_politely && (!ENTITY_DATA(self, ground_entity) || ENTITY_DATA(self, ground_entity)->s.number == 0)) {
 
 		// we'll be pushed up against something
-		if (move_len < (PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec))) {
+		float smol_dist = PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec);
+
+		if (aim.gi->PointContents(self->s.origin) & CONTENTS_MASK_LIQUID) {
+			smol_dist *= 0.1f;
+		}
+
+		if (move_len < smol_dist) {
 			
 			if (ai->distress_jump_offset <= ai_level.time) {
 				// if we're navving, node is above us, and we're on ground, jump; we're probably trying
@@ -1353,14 +1360,14 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 	// be visually missing; for flags, we can give up if the flag was taken
 	// so we can switch to hunting the taker, or trying to support the carrier)
 	if (ai->move_target.type != AI_GOAL_NONE) {
-		return QUETOO_TICK_MILLIS * 200;
+		return 200;
 	}
 
 	// check to be sure we're in a navicable spot
 	const ai_node_id_t closest = Ai_Node_FindClosest(self->s.origin, 256.f, true);
 
 	if (closest == NODE_INVALID) {
-		return QUETOO_TICK_MILLIS * 200;
+		return 200;
 	}
 
 	GArray *goal_possibilities = g_array_new(false, false, sizeof(ai_item_pick_t));
@@ -1430,7 +1437,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 	g_array_free(goal_possibilities, true);
 
 	// got one; don't try again for a while.
-	return QUETOO_TICK_MILLIS * 1000;
+	return 1000;
 }
 
 /**

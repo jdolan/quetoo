@@ -33,7 +33,7 @@ ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance
 /**
  * @brief Check if the node we want to move towards is currently pathable.
  */
-_Bool Ai_Path_CanPathTo(const GArray *path, const guint index);
+_Bool Ai_Path_CanPathTo(const g_entity_t *self, const GArray *path, const guint index);
 
 /**
  * @brief
