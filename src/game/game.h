@@ -24,7 +24,7 @@
 #include "shared.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 12
+#define GAME_API_VERSION 13
 
 /**
  * @brief Server flags for g_entity_t.
@@ -184,22 +184,69 @@ typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 typedef struct g_import_s {
 
 	/**
+	 * @defgroup console-appending Console appending
+	 * @{
+	 */
+
+	/**
 	 * @brief Console logging facilities.
 	 */
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+	/**
+	 * @return The active debug mask.
+	 */
 	debug_t (*DebugMask)(void);
+
+	/**
+	 * @brief Prints a formatted debug message to the configured consoles.
+	 * @details If the proivided `debug` mask is inactive, the message will not be printed.
+	 */
 	void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+
+	/**
+	 * @brief Prints a formatted warning message to the configured consoles.
+	 */
 	void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
+
+	/**
+	 * @brief Prints a formattet error message to the configured consoles.
+	 */
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
 	/**
-	 * @brief Memory management. The game module should use MEM_TAG_GAME and
-	 * MEM_TAG_GAME_LEVEL for any allocations it makes.
+	 * @}
+	 * @defgroup memory-management Memory management
+	 * @{
+	 */
+
+	/**
+	 * @param tag The tag to associate the managed block with (e.g. MEM_TAG_GAME_LEVEL).
+	 * @return A newly allocated block of managed memory under the given `tag`.
 	 */
 	void *(*Malloc)(size_t size, mem_tag_t tag);
+
+	/**
+	 * @return A newly allocated block of managed memory, linked to `parent`.
+	 * @remarks The returned memory will be freed automatically when `parent` is freed.
+	 */
 	void *(*LinkMalloc)(size_t size, void *parent);
+
+	/**
+	 * @brief Frees the specified managed memory.
+	 */
 	void (*Free)(void *p);
+
+	/**
+	 * @brief Frees all managed memory allocated with the given `tag`.
+	 */
 	void (*FreeTag)(mem_tag_t tag);
+
+	/**
+	 * @}
+	 * @defgroup filesystem Filesystem
+	 * @{
+	 */
 
 	/**
 	 * @brief Opens the specified file for reading.
@@ -287,6 +334,12 @@ typedef struct g_import_s {
 	 */
 	void (*EnumerateFiles)(const char *pattern, Fs_Enumerator enumerator, void *data);
 
+	/*
+	 * @}
+	 * @defgroup console-variables Console variables & commands
+	 * @{
+	 */
+
 	/**
 	 * @brief Resolves a console variable, creating it if not found.
 	 * @param name The variable name.
@@ -364,34 +417,88 @@ typedef struct g_import_s {
 	 */
 	cmd_t *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
 
+	/**
+	 * @return The argument count for the currently executing command.
+	 * @remarks This should only be called from within `CmdExecuteFunc`.
+	 */
 	int32_t (*Argc)(void);
+
+	/**
+	 * @return The nth argument for the currently executing command.
+	 * @param arg The argument index. Pass `0` for the command name itself.
+	 * @remarks This should only be called from within `CmdExecuteFunc`.
+	 */
 	const char *(*Argv)(int32_t arg);
+
+	/**
+	 * @return The arguments vector for the currently executing command.
+	 * @remarks This should only be called from within `CmdExecuteFunc`.
+	 */
 	const char *(*Args)(void);
+
+	/**
+	 * @brief Tokenizes `text`, setting up the arguments vector for `CmdExecuteFunc`.
+	 * @param text The user command to tokenize.
+	 * @remarks This can be useful if dispatching commands to another subsystem (e.g. AI).
+	 */
 	void (*TokenizeString)(const char *text);
 
 	/**
-	 * @brief Console command buffer interaction.
+	 * @brief Appends `text` to the pending command buffer for execution.
+	 * @param text The user command to execute.
+	 * @remarks This can be useful for "command stuffing" client or server commands.
 	 */
 	void (*Cbuf)(const char *text);
 
 	/**
-	 * @brief Configuration strings are used to transmit arbitrary tokens such
+	 * @}
+	 * @defgroup configstrings Configuration strings
+	 * @details Configuration strings are used to transmit arbitrary tokens such
 	 * as model names, skin names, team names and weather effects. See CS_GAME.
+	 * @{
+	 */
+
+	/**
+	 * @brief Sets the configuration string at index to the specified string.
+	 * @param index The index.
+	 * @param string The string.
 	 */
 	void (*SetConfigString)(const uint16_t index, const char *string);
+
+	/**
+	 @param index The index.
+	 @return The configuration string at `index`.
+	 */
 	const char *(*GetConfigString)(const uint16_t index);
 
 	/**
-	 * @brief Returns the configuration string index for the given asset,
-	 * inserting it within the appropriate range if it is not present.
+	 * @brief Finds or inserts a string in the appropriate range for the given model name.
+	 * @param name The asset name, e.g. `models/weapons/rocketlauncher/tris`.
+	 * @return The configuration string index.
 	 */
 	uint16_t (*ModelIndex)(const char *name);
+
+	/**
+	 * @brief Finds or inserts a string in the appropriate range for the given sound name.
+	 * @param name The asset name, e.g. `sounds/weapons/rocketlauncher/fire`.
+	 * @return The configuration string index.
+	 */
 	uint16_t (*SoundIndex)(const char *name);
+
+	/**
+	 * @brief Finds or inserts a string in the appropriate range for the given image name.
+	 * @param name The asset name, e.g. `pics/items/health_i`.
+	 * @return The configuration string index.
+	 */
 	uint16_t (*ImageIndex)(const char *name);
 
 	/**
-	 * @brief Set the model of a given entity by name. For inline BSP models,
-	 * the bounding box is also set and the entity linked.
+	 * @}
+	 */
+
+	/**
+	 * @brief Set the model of a given entity by name.
+	 * @details For inline BSP models, the bounding box is also set and the entity linked.
 	 */
 	void (*SetModel)(g_entity_t *ent, const char *name);
 
@@ -419,10 +526,44 @@ typedef struct g_import_s {
 	                        const uint16_t atten, const int8_t pitch);
 
 	/**
+	 * @defgroup collision Collision model
+	 * @{
+	 */
+
+	/**
+	 * @brief Finds the key-value pair for `key` within the specifed entity.
+	 * @param entity The entity.
+	 * @param key The entity key.
+	 * @return The key-value pair for the specified key within entity.
+	 * @remarks This function will always return non-NULL for convenience. Check the
+	 * parsed types on the returned pair to differentiate "not present" from "0."
+	 */
+	const cm_entity_t *(*EntityValue)(const cm_entity_t *entity, const char *key);
+
+	/**
+	 * @brief Finds all brushes within the specified entity.
+	 * @param entity The entity.
+	 * @return A pointer array of brushes originally defined within `entity`.
+	 * @remarks This function returns the brushes within an entity as it was defined
+	 * in the source .map file. Even `func_group` and other entities which have their
+	 * contents merged into `worldspawn` during the compilation step are fully supported.
+	 */
+	GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
+
+	/**
 	 * @return The contents mask at the specific point. The point is tested
 	 * against the world as well as all solid entities.
 	 */
 	int32_t (*PointContents)(const vec3_t point);
+
+	/**
+	 * @return 1 if `point` resides inside `brush`, `0` otherwise.
+	 * @param point The point to test.
+	 * @param brush The brush to test against.
+	 * @remarks This function is useful for testing points against non-solid brushes
+	 * from brush entities. For general purpose collision detection, use PointContents.
+	 */
+	int32_t (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Collision detection. Traces between the two endpoints, impacting
@@ -476,8 +617,10 @@ typedef struct g_import_s {
 	                      const uint32_t type);
 
 	/**
-	 * @brief Network messaging facilities.
+	 * @}
+	 * @defgroup network Network messaging.
 	 */
+
 	void (*Multicast)(const vec3_t org, multicast_t to, EntityFilterFunc filter);
 	void (*Unicast)(const g_entity_t *ent, const _Bool reliable);
 	void (*WriteData)(const void *data, size_t len);
@@ -498,6 +641,10 @@ typedef struct g_import_s {
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3,
 	        4)));
+
+	/**
+	 * @}
+	 */
 
 	/**
 	 * @brief Load AI functions
