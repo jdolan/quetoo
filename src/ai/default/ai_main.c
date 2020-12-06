@@ -837,7 +837,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 		}
 
 		// something is blocking our destination
-		const cm_trace_t tr = aim.gi->Trace(ai->eye_origin, dest, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_SOLID);
+		const cm_trace_t tr = aim.gi->Trace(ai->eye_origin, dest, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_CORPSE);
 
 		if (tr.fraction < 1.0f) {
 			goal->distress += 0.25f;
@@ -1145,7 +1145,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 				// if we're navving, node is above us, and we're on ground, jump; we're probably trying
 				// to trick-jump or something
 				if (ai->move_target.type == AI_GOAL_PATH && ENTITY_DATA(self, ground_entity) && pm.ground_entity) {
-					if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT * 6.f) {
+					if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT * 7.f) {
 
 						ai->move_target.path.trick_jump = TRICK_JUMP_START;
 						ai->move_target.path.trick_position = ai->move_target.path.path_position;
@@ -1153,7 +1153,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 						Ai_Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
 					} else if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT &&
-						Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) < PM_STEP_HEIGHT * 6.f &&
+						Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) < PM_STEP_HEIGHT * 7.f &&
 						Ai_FacingTarget(self, ai->move_target.path.path_position)) {
 
 						cmd->up = PM_SPEED_JUMP;

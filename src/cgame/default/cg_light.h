@@ -64,5 +64,6 @@ typedef struct {
 
 void Cg_AddLight(const cg_light_t *s);
 void Cg_AddLights(void);
+void Cg_InitLights(void);
 
 #endif /* __CG_LOCAL_H__ */

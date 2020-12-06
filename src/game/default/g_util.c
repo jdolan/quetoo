@@ -48,6 +48,8 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 
 	Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
 	ent->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(forward, fwd));
+
+	G_Ai_DropItemLikeNode(ent);
 }
 
 /**
@@ -433,7 +435,7 @@ void G_KillBox(g_entity_t *ent) {
 
 		if (G_IsMeat(ents[i])) {
 
-			G_Damage(ents[i], NULL, ent, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
+			G_Damage(ents[i], NULL, ent, Vec3_Zero(), ents[i]->s.origin, Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
 
 			if (ents[i]->in_use && !ents[i]->locals.dead) {
 				break;
@@ -445,7 +447,7 @@ void G_KillBox(g_entity_t *ent) {
 
 	if (i < len) {
 		if (G_IsMeat(ent)) {
-			G_Damage(ent, NULL, ents[i], Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
+			G_Damage(ent, NULL, ents[i], Vec3_Zero(), ent->s.origin, Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
 		}
 	}
 }

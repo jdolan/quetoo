@@ -358,7 +358,7 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
 		dflags = DMG_NO_GOD;
 	}
 
-	G_Damage(other, self, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), d, d, dflags, MOD_TRIGGER_HURT);
+	G_Damage(other, self, NULL, Vec3_Zero(), other->s.origin, Vec3_Zero(), d, d, dflags, MOD_TRIGGER_HURT);
 }
 
 /*QUAKED trigger_hurt (.5 .5 .5) ? start_off toggle ? no_protection slow

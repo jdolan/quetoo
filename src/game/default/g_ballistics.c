@@ -792,7 +792,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 			if (ent->locals.water_level) {
 				const int32_t dmg = 50 * ent->locals.water_level;
 
-				G_Damage(ent, self, self->owner, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(),
+				G_Damage(ent, self, self->owner, Vec3_Zero(), ent->s.origin, Vec3_Zero(),
 						 dmg, 100, DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
 			}
 		}
@@ -1096,7 +1096,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 
 		const float f = 1.0 - dist / self->locals.damage_radius;
 
-		G_Damage(ent, self, self->owner, dir, Vec3_Zero(), normal,
+		G_Damage(ent, self, self->owner, dir, ent->s.origin, normal,
 				 frame_damage * f, frame_knockback * f, DMG_RADIUS, MOD_BFG_LASER);
 
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);

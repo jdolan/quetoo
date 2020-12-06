@@ -282,6 +282,8 @@ void Cg_UpdateMedia(void) {
 
 	Cg_FreeSprites();
 
+	Cg_InitLights();
+
 	cg_beam_hook = cgi.LoadImage("sprites/rope", IT_EFFECT);
 	cg_beam_rail = cgi.LoadImage("sprites/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IT_EFFECT);

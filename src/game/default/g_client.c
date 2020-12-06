@@ -253,11 +253,11 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 			const int32_t dmg = self->locals.health;
 
 			if (self->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(self, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
+				G_Damage(self, NULL, NULL, Vec3_Zero(), self->s.origin, Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (self->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(self, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_SLIME);
+				G_Damage(self, NULL, NULL, Vec3_Zero(), self->s.origin, Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	} else {
@@ -1499,8 +1499,9 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 					}
 
 					cl->locals.pain_time = g_level.time; // suppress pain sound
-
-					G_Damage(ent, NULL, NULL, Vec3_Up(), Vec3_Zero(), Vec3_Zero(), damage, 0, DMG_NO_ARMOR, MOD_FALLING);
+					
+					// TODO: get normal from what we've landed on
+					G_Damage(ent, NULL, NULL, Vec3_Up(), ent->s.origin, Vec3_Zero(), damage, 0, DMG_NO_ARMOR, MOD_FALLING);
 				}
 
 				ent->s.event = event;

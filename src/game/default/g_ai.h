@@ -34,4 +34,5 @@ void G_Ai_Init(void);
 void G_Ai_Shutdown(void);
 void G_Ai_Load(const char *mapname);
 void G_Ai_Frame(void);
+bool G_Ai_DropItemLikeNode(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
