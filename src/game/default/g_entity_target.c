@@ -117,10 +117,10 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 		if (ent->s.sound) {
 			ent->s.sound = 0;
 		} else {
-			ent->s.sound = ent->locals.noise_index;
+			ent->s.sound = ent->locals.sound;
 		}
 	} else { // intermittent sound
-		gi.PositionedSound(ent->s.origin, ent, ent->locals.noise_index, ent->locals.attenuation, 0);
+		gi.PositionedSound(ent->s.origin, ent, ent->locals.sound, ent->locals.atten, 0);
 	}
 }
 
@@ -128,9 +128,9 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
  Plays a sound each time it is used, or in loop if requested.
 
  -------- Keys --------
- noise : The name of the sample to play, e.g. voices/haunting.
- attenuation : The attenuation level; higher levels drop off more quickly (default 1):
-   -1 : No attenuation, send the sound to the entire level.
+ sound : The name of the sample to play, e.g. voices/haunting.
+ atten : The attenuation level; higher levels drop off more quickly (default 1):
+    0 : No attenuation, send the sound to the entire level.
     1 : Normal attenuation, hearable to all those in PHS of entity.
     2 : Idle attenuation, hearable only by those near to entity.
     3 : Static attenuation, hearable only by those very close to entity.
@@ -142,33 +142,30 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 
  -------- Notes --------
  Use this entity only when a sound must be triggered by another entity. For
- all other ambient sounds, use misc_sound.
+ ambient sounds, use the client-side version, misc_sound.
 */
 void G_target_speaker(g_entity_t *ent) {
-	char buffer[MAX_QPATH];
 
-	if (!g_game.spawn.noise) {
-		G_Debug("No noise at %s\n", vtos(ent->s.origin));
+	const char *sound = gi.EntityValue(ent->def, "sound")->string;
+	if (!strlen(sound)) {
+		gi.Warn("No sound specified for %s\n", etos(ent));
 		return;
 	}
 
-	if (!strstr(g_game.spawn.noise, "")) {
-		g_snprintf(buffer, sizeof(buffer), "%s", g_game.spawn.noise);
+	ent->locals.sound = gi.SoundIndex(sound);
+
+	const cm_entity_t *atten = gi.EntityValue(ent->def, "atten");
+	if (atten->parsed & ENTITY_INTEGER) {
+		ent->locals.atten = atten->integer;
 	} else {
-		g_strlcpy(buffer, g_game.spawn.noise, sizeof(buffer));
+		ent->locals.atten = ATTEN_NORM;
 	}
 
-	ent->locals.noise_index = gi.SoundIndex(buffer);
-
-	if (!ent->locals.attenuation) {
-		ent->locals.attenuation = ATTEN_NORM;
-	} else if (ent->locals.attenuation == -1) { // use -1 so 0 defaults to 1
-		ent->locals.attenuation = ATTEN_NONE;
-	}
+	const int32_t spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
 
 	// check for looping sound
-	if (ent->locals.spawn_flags & SPEAKER_LOOP_ON) {
-		ent->s.sound = ent->locals.noise_index;
+	if (spawn_flags & SPEAKER_LOOP_ON) {
+		ent->s.sound = ent->locals.sound;
 	}
 
 	ent->locals.Use = G_target_speaker_Use;

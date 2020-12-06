@@ -98,6 +98,12 @@ struct g_client_s {
  * through g_entity_locals_t.
  */
 struct g_entity_s {
+
+	/**
+	 * @brief The entity definition from the BSP file.
+	 */
+	const cm_entity_t *def;
+
 	/**
 	 * @brief The class name provides basic identification and taxonomy for
 	 * the entity. This is guaranteed to be set through G_Spawn.
@@ -704,7 +710,7 @@ typedef struct g_export_s {
 	/**
 	 * @brief Called at the start of a new level.
 	 */
-	void (*SpawnEntities)(const char *name, const char *entities);
+	void (*SpawnEntities)(const char *name, cm_entity_t *const *entities, size_t num_entities);
 
 	/**
 	 * @brief Called when a client connects with valid user information.

@@ -298,12 +298,9 @@ void G_CheckHook(void) {
 	} else if (g_level.hook_map != -1) { // check maps.lst
 		g_level.hook_allowed = (g_level.hook_map == -1) ? g_level.ctf : !!g_level.hook_map;
 	} else { // check worldspawn
-		if (g_game.spawn.hook && *g_game.spawn.hook) {
-			if (g_strcmp0(g_game.spawn.hook, "default")) {
-				g_level.hook_allowed = !!atoi(g_game.spawn.hook);
-			} else {
-				g_level.hook_allowed = g_level.ctf;
-			}
+		const cm_entity_t *hook = gi.EntityValue(g_game.entities->def, "hook");
+		if (hook->parsed & ENTITY_INTEGER) {
+			g_level.hook_allowed = hook->integer;
 		} else {
 			g_level.hook_allowed = g_level.ctf;
 		}
@@ -325,12 +322,9 @@ void G_CheckTechs(void) {
 	} else if (g_level.techs_map != -1) { // check maps.lst
 		g_level.techs = (g_level.techs_map == -1) ? g_level.ctf : !!g_level.techs_map;
 	} else { // check worldspawn
-		if (g_game.spawn.techs && *g_game.spawn.techs) {
-			if (g_strcmp0(g_game.spawn.techs, "default")) {
-				g_level.techs = !!atoi(g_game.spawn.techs);
-			} else {
-				g_level.techs = g_level.ctf;
-			}
+		const cm_entity_t *techs = gi.EntityValue(g_game.entities->def, "techs");
+		if (techs->parsed & ENTITY_INTEGER) {
+			g_level.techs = techs->integer;
 		} else {
 			g_level.techs = g_level.ctf;
 		}

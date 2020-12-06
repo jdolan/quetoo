@@ -136,7 +136,7 @@ static void G_trigger_multiple_Enable(g_entity_t *self, g_entity_t *other,
  */
 void G_trigger_multiple(g_entity_t *ent) {
 
-	ent->locals.noise_index = gi.SoundIndex("misc/chat");
+	ent->locals.sound = gi.SoundIndex("misc/chat");
 
 	if (!ent->locals.wait) {
 		ent->locals.wait = 0.2;
@@ -272,7 +272,7 @@ static void G_trigger_push_Effect(g_entity_t *self) {
 
  -------- Keys --------
  angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).
- noise : The sound effect to play when the player is pushed (default "world/jumppad").
+ sound : The sound effect to play when the player is pushed (default "world/jumppad").
  speed : The speed with which to push the player (default 100).
 
  -------- Spawn flags --------
@@ -285,8 +285,12 @@ void G_trigger_push(g_entity_t *self) {
 
 	self->locals.Touch = G_trigger_push_Touch;
 
-	const char *noise = g_game.spawn.noise ?: "world/jumppad";
-	self->locals.move_info.sound_start = gi.SoundIndex(noise);
+	const cm_entity_t *sound = gi.EntityValue(self->def, "sound");
+	if (sound->parsed & ENTITY_STRING) {
+		self->locals.move_info.sound_start = gi.SoundIndex(sound->string);
+	} else {
+		self->locals.move_info.sound_start = gi.SoundIndex("world/jumppad");
+	}
 
 	if (!self->locals.speed) {
 		self->locals.speed = 100;

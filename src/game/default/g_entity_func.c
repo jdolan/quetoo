@@ -459,7 +459,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
 	tmax.y = ent->maxs.y - 25;
 	tmax.z = ent->maxs.z + 8;
 
-	tmin.z = tmax.z - (ent->locals.pos1.z - ent->locals.pos2.z + g_game.spawn.lip);
+	tmin.z = tmax.z - (ent->locals.pos1.z - ent->locals.pos2.z + ent->locals.lip);
 
 	if (ent->locals.spawn_flags & PLAT_LOW_TRIGGER) {
 		tmax.z = tmin.z + 8.0;
@@ -521,20 +521,21 @@ void G_func_plat(g_entity_t *ent) {
 		ent->locals.damage = 2;
 	}
 
-	if (!g_game.spawn.lip) {
-		g_game.spawn.lip = 8.0;
+	if (!ent->locals.lip) {
+		ent->locals.lip = 8.0;
 	}
 
 	// pos1 is the top position, pos2 is the bottom
 	ent->locals.pos1 = ent->s.origin;
 	ent->locals.pos2 = ent->s.origin;
 
-	if (g_game.spawn.height) { // use the specified height
-		ent->locals.pos2.z -= g_game.spawn.height;
+	const cm_entity_t *height = gi.EntityValue(ent->def, "height");
+	if (height->parsed & ENTITY_INTEGER) { // use the specified height
+		ent->locals.pos2.z -= height->integer;
 	} else
 		// or derive it from the model height
 	{
-		ent->locals.pos2.z -= (ent->maxs.z - ent->mins.z) - g_game.spawn.lip;
+		ent->locals.pos2.z -= (ent->maxs.z - ent->mins.z) - ent->locals.lip;
 	}
 
 	ent->locals.Use = G_func_plat_Use;
@@ -560,7 +561,7 @@ void G_func_plat(g_entity_t *ent) {
 	ent->locals.move_info.end_origin = ent->locals.pos2;
 	ent->locals.move_info.end_angles = ent->s.angles;
 
-	const int32_t s = g_game.spawn.sounds;
+	const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
 	if (s != -1) {
 		ent->locals.move_info.sound_start = gi.SoundIndex(va("world/plat_start_%d", s + 1));
 		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/plat_middle_%d", s + 1));
@@ -791,7 +792,7 @@ void G_func_button(g_entity_t *ent) {
 
 	gi.LinkEntity(ent);
 
-	if (g_game.spawn.sounds != -1) {
+	if (gi.EntityValue(ent->def, "sounds")->integer != -1) {
 		ent->locals.move_info.sound_start = gi.SoundIndex("world/switch");
 	}
 
@@ -803,8 +804,8 @@ void G_func_button(g_entity_t *ent) {
 		ent->locals.wait = 3.0;
 	}
 
-	if (!g_game.spawn.lip) {
-		g_game.spawn.lip = 4.0;
+	if (!ent->locals.lip) {
+		ent->locals.lip = 4.0;
 	}
 
 	ent->locals.pos1 = ent->s.origin;
@@ -812,7 +813,7 @@ void G_func_button(g_entity_t *ent) {
 	abs_move_dir.y = fabsf(ent->locals.move_dir.y);
 	abs_move_dir.z = fabsf(ent->locals.move_dir.z);
 	dist = abs_move_dir.x * ent->size.x + abs_move_dir.y * ent->size.y
-	       + abs_move_dir.z * ent->size.z - g_game.spawn.lip;
+	       + abs_move_dir.z * ent->size.z - ent->locals.lip;
 	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(ent->locals.move_dir, dist));
 
 	ent->locals.Use = G_func_button_Use;
@@ -1181,8 +1182,8 @@ void G_func_door(g_entity_t *ent) {
 		ent->locals.wait = 3.0;
 	}
 
-	if (!g_game.spawn.lip) {
-		g_game.spawn.lip = 8.0;
+	if (!ent->locals.lip) {
+		ent->locals.lip = 8.0;
 	}
 
 	if (!ent->locals.damage) {
@@ -1194,7 +1195,7 @@ void G_func_door(g_entity_t *ent) {
 	abs_move_dir = Vec3_Fabsf(ent->locals.move_dir);
 	ent->locals.move_info.distance = abs_move_dir.x * ent->size.x +
 	                                 abs_move_dir.y * ent->size.y +
-	                                 abs_move_dir.z * ent->size.z - g_game.spawn.lip;
+	                                 abs_move_dir.z * ent->size.z - ent->locals.lip;
 
 	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(ent->locals.move_dir, ent->locals.move_info.distance));
 
@@ -1227,7 +1228,7 @@ void G_func_door(g_entity_t *ent) {
 	ent->locals.move_info.end_origin = ent->locals.pos2;
 	ent->locals.move_info.end_angles = ent->s.angles;
 
-	const int32_t s = g_game.spawn.sounds;
+	const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
 	if (s != -1) {
 		ent->locals.move_info.sound_start = gi.SoundIndex(va("world/door_start_%d", s + 1));
 		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/door_middle_%d", s + 1));
@@ -1254,8 +1255,8 @@ void G_func_door(g_entity_t *ent) {
  message : An optional string printed when the door is first touched.
  health : If set, door must take damage to open.
  speed : The speed with which the door opens (default 100).
+ rotation : The rotation the door will open, in degrees (default 90).
  wait : wait before returning (3 default, -1 = never return).
- lip : The lip remaining at end of move (default 8 units).
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
@@ -1285,14 +1286,11 @@ void G_func_door_rotating(g_entity_t *ent) {
 		ent->locals.move_dir = Vec3_Negate(ent->locals.move_dir);
 	}
 
-	if (!g_game.spawn.distance) {
-		G_Debug("%s at %s with no distance\n", ent->class_name, vtos(ent->s.origin));
-		g_game.spawn.distance = 90.0;
-	}
+	const float rotation = gi.EntityValue(ent->def, "rotation")->value ?: 90.f;
 
 	ent->locals.pos1 = ent->s.angles;
-	ent->locals.pos2 = Vec3_Add(ent->s.angles, Vec3_Scale(ent->locals.move_dir, g_game.spawn.distance));
-	ent->locals.move_info.distance = g_game.spawn.distance;
+	ent->locals.pos2 = Vec3_Add(ent->s.angles, Vec3_Scale(ent->locals.move_dir, rotation));
+	ent->locals.move_info.distance = rotation;
 
 	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
@@ -1348,7 +1346,7 @@ void G_func_door_rotating(g_entity_t *ent) {
 	ent->locals.move_info.end_origin = ent->s.origin;
 	ent->locals.move_info.end_angles = ent->locals.pos2;
 
-	const int32_t s = g_game.spawn.sounds;
+	const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
 	if (s != -1) {
 		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/door_middle_%d", s + 1));
 	}
@@ -1573,7 +1571,7 @@ void G_func_door_secret(g_entity_t *ent) {
 
 	ent->locals.move_info.speed = ent->locals.speed;
 
-	const int32_t s = g_game.spawn.sounds;
+	const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
 	if (s != -1) {
 		ent->locals.move_info.sound_start = gi.SoundIndex(va("world/door_start_%d", s + 1));
 		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/door_middle_%d", s + 1));
@@ -1709,7 +1707,7 @@ void G_func_water(g_entity_t *self) {
 	abs_move_dir = Vec3_Fabsf(self->locals.move_dir);
 	self->locals.move_info.distance = abs_move_dir.x * self->size.x +
 									  abs_move_dir.y * self->size.y +
-									  abs_move_dir.z * self->size.z - g_game.spawn.lip;
+									  abs_move_dir.z * self->size.z - self->locals.lip;
 
 	self->locals.pos2 = Vec3_Add(self->locals.pos1, Vec3_Scale(self->locals.move_dir, self->locals.move_info.distance));
 
@@ -1761,10 +1759,10 @@ static void G_func_train_Wait(g_entity_t *self) {
 
 	if (self->locals.target_ent->locals.path_target) {
 		g_entity_t *ent = self->locals.target_ent;
-		char *savetarget = ent->locals.target;
+		const char *target = ent->locals.target;
 		ent->locals.target = ent->locals.path_target;
 		G_UseTargets(ent, self->locals.activator);
-		ent->locals.target = savetarget;
+		ent->locals.target = target;
 
 		// make sure we didn't get killed by a killtarget
 		if (!self->in_use) {
@@ -1920,12 +1918,14 @@ static void G_func_train_Use(g_entity_t *self, g_entity_t *other,
 }
 
 /*QUAKED func_train (0 .5 .8) ? start_on toggle block_stops
- Trains are moving solids that players can ride along a series of path_corners. The origin of each corner specifies the lower bounding point of the train at that corner. If the train is the target of a button or trigger, it will not begin moving until activated.
+ Trains are moving solids that players can ride along a series of path_corners. The origin of
+ each corner specifies the lower bounding point of the train at that corner. If the train is
+ the target of a button or trigger, it will not begin moving until activated.
 
  -------- Keys --------
  speed : The speed with which the train moves (default 100).
  dmg : The damage inflicted on players who block the train (default 2).
- noise : The looping sound to play while the train is in motion.
+ sound : The looping sound to play while the train is in motion.
  targetname : The target name of this entity if it is to be triggered.
 
  -------- Spawn flags --------
@@ -1948,8 +1948,9 @@ void G_func_train(g_entity_t *self) {
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);
 
-	if (g_game.spawn.noise) {
-		self->locals.move_info.sound_middle = gi.SoundIndex(g_game.spawn.noise);
+	const char *sound = gi.EntityValue(self->def, "sound")->string;
+	if (*sound) {
+		self->locals.move_info.sound_middle = gi.SoundIndex(sound);
 	}
 
 	if (!self->locals.speed) {

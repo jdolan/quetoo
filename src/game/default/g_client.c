@@ -233,7 +233,7 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
 		if (speed > 40.0 && G_IsStructural(other, texinfo)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
-				gi.Sound(self, self->locals.noise_index, ATTEN_IDLE, 0);
+				gi.Sound(self, self->locals.sound, ATTEN_IDLE, 0);
 				self->locals.touch_time = g_level.time;
 			}
 		}
@@ -339,7 +339,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		ent->solid = SOLID_DEAD;
 
 		ent->s.model1 = g_media.models.gibs[gib_index];
-		ent->locals.noise_index = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
+		ent->locals.sound = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
 
 		ent->locals.velocity = self->locals.velocity;
 

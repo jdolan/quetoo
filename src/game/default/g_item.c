@@ -1223,7 +1223,6 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 	if (ent->model) {
 		ent->s.model1 = gi.ModelIndex(ent->model);
 	} else {
-
 		G_InitItem((g_item_t *) ent->locals.item);
 		ent->s.model1 = ent->locals.item->model_index;
 	}

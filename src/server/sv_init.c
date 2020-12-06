@@ -282,7 +282,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Sv_InitWorld();
 
-		svs.game->SpawnEntities(sv.name, Cm_EntityString());
+		svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
 
 		/*
 		 * Run a few game frames for entities to settle down. Failure to do
