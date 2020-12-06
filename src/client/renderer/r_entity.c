@@ -47,7 +47,7 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 
-	if (R_CullBox(e->abs_mins, e->abs_maxs)) {
+	if (!ent->tag && R_CullBox(e->abs_mins, e->abs_maxs)) {
 		return NULL;
 	}
 

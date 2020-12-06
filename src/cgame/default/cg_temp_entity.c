@@ -413,7 +413,8 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 					.velocity = Vec3_Add(Vec3_Add(Vec3_Scale(v, dist * ((float)j / GIB_STREAM_COUNT)), Vec3_RandomRange(-2.f, 2.f)), Vec3(0.f, 0.f, 100.f)),
 					.acceleration.z = -SPRITE_GRAVITY * 2.0,
 					.size = RandomRangef(24.f, 56.f),
-					.color = Vec4(0.f, 1.f, .5f, .97f)
+					.color = Vec4(0.f, 1.f, .5f, .97f),
+					.flags = SPRITE_LERP
 				})) {
 				break;
 			}

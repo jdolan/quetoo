@@ -86,3 +86,11 @@ void Cg_AddLights(void) {
 		cgi.AddLight(&out);
 	}
 }
+
+/**
+ * @brief 
+ */
+void Cg_InitLights(void) {
+
+	memset(cg_lights, 0, sizeof(cg_lights));
+}

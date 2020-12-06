@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "bg_pmove.h"
 
 const vec3_t ITEM_MINS = { { -16.0, -16.0, -16.0 } };
 const vec3_t ITEM_MAXS = { {  16.0,  16.0,  32.0 } };
@@ -1075,63 +1074,8 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 
 	G_ResetItem(ent);
 
-	if (drop_node && aix && !aix->IsDeveloperMode()) {
-		// find node closest to us
-		const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true);
-
-		if (src_node != NODE_INVALID) {
-
-			// make a new node on the item
-			cm_trace_t down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, Vec3(0, 0, 64.f)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID);
-			vec3_t pos;
-
-			if (down.fraction == 1.0) {
-				pos = ent->s.origin;
-			} else {
-				pos = Vec3_Subtract(down.end, Vec3(0, 0, PM_MINS.z));
-			}
-
-			// grab all the links of the node that brought us here
-			GArray *src_links = aix->GetNodeLinks(src_node);
-
-			const ai_node_id_t new_node = aix->CreateNode(pos);
-			const float dist = Vec3_Distance(aix->GetNodePosition(src_node), ent->s.origin);
-
-			// bidirectionally connect us to source
-			aix->CreateLink(src_node, new_node, dist);
-			aix->CreateLink(new_node, src_node, dist);
-
-			// if we had source links, link any connected bi-directional nodes
-			// to the item as well
-			if (src_links) {
-
-				for (guint i = 0; i < src_links->len; i++) {
-					ai_node_id_t src_link = g_array_index(src_links, ai_node_id_t, i);
-
-					// not bidirectional
-					if (!aix->IsLinked(src_link, src_node)) {
-						continue;
-					}
-
-					const vec3_t link_pos = aix->GetNodePosition(src_link);
-
-					// can't see 
-					if (gi.Trace(ent->s.origin, link_pos, Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
-						continue;
-					}
-
-					const float dist = Vec3_Distance(link_pos, ent->s.origin);
-
-					// bidirectionally connect us to source
-					aix->CreateLink(src_link, new_node, dist);
-					aix->CreateLink(new_node, src_link, dist);
-				}
-
-				g_array_free(src_links, true);
-			}
-
-			ent->locals.node = new_node;
-		}
+	if (drop_node) {
+		G_Ai_DropItemLikeNode(ent);
 	}
 }
 

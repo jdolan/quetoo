@@ -343,7 +343,7 @@ static void Ai_Node_Destroy(const ai_node_id_t id) {
  * @brief
  */
 static _Bool Ai_Node_PlayerIsOnFloor(const g_entity_t *player) {
-	const cm_trace_t tr = aim.gi->Trace(player->s.origin, Vec3_Add(player->s.origin, Vec3(0, 0, -PM_GROUND_DIST)), player->s.mins, player->s.maxs, NULL, CONTENTS_MASK_SOLID);
+	const cm_trace_t tr = aim.gi->Trace(player->s.origin, Vec3_Add(player->s.origin, Vec3(0, 0, -PM_GROUND_DIST)), player->s.mins, player->s.maxs, NULL, CONTENTS_MASK_CLIP_CORPSE);
 
 	return tr.fraction < 1.0f && tr.plane.normal.z > PM_STEP_NORMAL;
 }
@@ -401,10 +401,10 @@ _Bool Ai_Path_CanPathTo(const GArray *path, const guint index) {
 		}
 
 		// check if the mover is in place
-		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), PM_MINS, PM_MAXS, NULL, CONTENTS_MASK_SOLID);
+		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), PM_MINS, PM_MAXS, NULL, CONTENTS_MASK_CLIP_CORPSE);
 
 		if (!tr.ent || tr.ent != node->mover || tr.start_solid || tr.all_solid) {
-			tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID);
+			tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_CLIP_CORPSE);
 		}
 
 		if (tr.ent == node->mover && !tr.start_solid && !tr.all_solid) {
@@ -1092,7 +1092,7 @@ static guint Ai_Node_FloodFillEntity(const ai_node_t *node) {
 		}
 
 		// check that we're in the air
-		const cm_trace_t tr = aim.gi->Trace(check->position, Vec3_Subtract(check->position, Vec3(0, 0, PM_GROUND_DIST * 2)), Vec3_Scale(PM_MINS, 0.5f), Vec3_Scale(PM_MAXS, 0.5f), NULL, CONTENTS_MASK_SOLID);
+		const cm_trace_t tr = aim.gi->Trace(check->position, Vec3_Subtract(check->position, Vec3(0, 0, PM_GROUND_DIST * 2)), Vec3_Scale(PM_MINS, 0.5f), Vec3_Scale(PM_MAXS, 0.5f), NULL, CONTENTS_MASK_CLIP_CORPSE);
 
 		// touched something, so we shouldn't consider this node part of a mover
 		if (tr.fraction < 1.0f) {
@@ -1123,7 +1123,10 @@ void Ai_NodesReady(void) {
 
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
-		added_links += node->links->len;
+
+		if (node->links) {
+			added_links += node->links->len;
+		}
 	}
 
 	added_links -= ai_player_roam.file_links;
@@ -1134,10 +1137,10 @@ void Ai_NodesReady(void) {
 	// link up movers with nodes that need them
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
-		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), PM_MINS, PM_MAXS, NULL, CONTENTS_MASK_SOLID);
+		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), PM_MINS, PM_MAXS, NULL, CONTENTS_MASK_CLIP_CORPSE);
 
 		if (!tr.ent || tr.ent->s.number == 0) {
-			tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID);
+			tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, 128.f)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_CLIP_CORPSE);
 		}
 
 		if (!tr.ent || tr.ent->s.number == 0) {

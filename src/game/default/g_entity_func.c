@@ -273,7 +273,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 	if (G_IsMeat(other)) {
 
 		if (other->solid == SOLID_DEAD) {
-			G_Damage(other, self, NULL, dir, Vec3_Zero(), Vec3_Up(), 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
+			G_Damage(other, self, NULL, dir, other->s.origin, Vec3_Up(), 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
 			if (other->in_use) {
 				if (other->client) {
 					gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -287,12 +287,12 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 				}
 			}
 		} else if (other->solid == SOLID_BOX) {
-			G_Damage(other, self, NULL, dir, Vec3_Zero(), Vec3_Up(), self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
+			G_Damage(other, self, NULL, dir, other->s.origin, Vec3_Up(), self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
 		} else {
 			G_Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
 		}
 	} else {
-		G_Damage(other, self, NULL, dir, Vec3_Zero(), Vec3_Up(), 999, 0, 0, MOD_CRUSH);
+		G_Damage(other, self, NULL, dir, other->s.origin, Vec3_Up(), 999, 0, 0, MOD_CRUSH);
 		if (other->in_use) {
 			G_Explode(other, 60, 60, 80.0, 0);
 		}
@@ -585,7 +585,7 @@ static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
 
 	if (self->locals.damage) {
 		if (!Vec3_Equal(self->locals.avelocity, Vec3_Zero())) {
-			G_Damage(other, self, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), self->locals.damage, 1, 0, MOD_CRUSH);
+			G_Damage(other, self, NULL, Vec3_Zero(), other->s.origin, Vec3_Zero(), self->locals.damage, 1, 0, MOD_CRUSH);
 		}
 	}
 }

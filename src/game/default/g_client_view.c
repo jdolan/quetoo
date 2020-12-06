@@ -124,7 +124,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 				client->locals.pain_time = g_level.time;
 
 				// and apply the damage
-				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), ent->locals.damage, 0, DMG_NO_ARMOR, MOD_WATER);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), ent->locals.damage, 0, DMG_NO_ARMOR, MOD_WATER);
 			}
 		}
 	}
@@ -144,11 +144,11 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 			}
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 2 * water_level, 0, DMG_NO_ARMOR, MOD_LAVA);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), 2 * water_level, 0, DMG_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), water_level, 0, 0, MOD_SLIME);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), water_level, 0, 0, MOD_SLIME);
 			}
 		}
 	}
