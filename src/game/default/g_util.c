@@ -48,8 +48,10 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 
 	Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
 	ent->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(forward, fwd));
-
-	G_Ai_DropItemLikeNode(ent);
+	
+	if (strstr(ent->class_name, "_intermission") == NULL) {
+		G_Ai_DropItemLikeNode(ent);
+	}
 }
 
 /**
