@@ -490,8 +490,8 @@ static void R_InitDraw2DProgram(void) {
 	memset(&r_draw_2d_program, 0, sizeof(r_draw_2d_program));
 
 	r_draw_2d_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "common_vs.glsl", "draw_2d_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "draw_2d_fs.glsl"),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "draw_2d_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "draw_2d_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_draw_2d_program.name);

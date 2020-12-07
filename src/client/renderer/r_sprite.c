@@ -544,9 +544,9 @@ static void R_InitSpriteProgram(void) {
 	memset(&r_sprite_program, 0, sizeof(r_sprite_program));
 
 	r_sprite_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "common_vs.glsl", "sprite_vs.glsl"),
-			&MakeShaderDescriptor(GL_GEOMETRY_SHADER, "sprite_gs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "soften_fs.glsl", "sprite_fs.glsl"),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "sprite_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "sprite_gs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "sprite_fs.glsl", NULL),
 			NULL);
 	
 	glUseProgram(r_sprite_program.name);

@@ -32,18 +32,10 @@
  */
 typedef struct {
 	GLenum type;
-	const char *filenames[MAX_SHADER_DESCRIPTOR_FILENAMES + 1];
+	const char *filenames[MAX_SHADER_DESCRIPTOR_FILENAMES];
 } r_shader_descriptor_t;
 
-/**
- * @brief Constructs a shader descriptor with the given type and filenames.
- */
-#define MakeShaderDescriptor(_type, ...) \
-	(r_shader_descriptor_t) { \
-		.type = _type, \
-		.filenames = { "version.glsl", "uniforms.glsl", __VA_ARGS__, NULL } \
-	}
-
+r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) __attribute__((sentinel));
 GLuint R_LoadShader(const r_shader_descriptor_t *desc);
-GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...);
+GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) __attribute__((sentinel));
 #endif /* __R_LOCAL_H__ */
