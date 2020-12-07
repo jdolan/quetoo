@@ -340,8 +340,8 @@ void R_InitMeshShadowProgram(void) {
 	memset(&r_mesh_shadow_program, 0, sizeof(r_mesh_shadow_program));
 
 	r_mesh_shadow_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "common_vs.glsl", "mesh_shadow_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "soften_fs.glsl", "mesh_shadow_fs.glsl"),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "mesh_shadow_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "mesh_shadow_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_mesh_shadow_program.name);
@@ -413,8 +413,8 @@ void R_InitMeshShadowProgram(void) {
 	memset(&r_mesh_shadow_blur_program, 0, sizeof(r_mesh_shadow_blur_program));
 
 	r_mesh_shadow_blur_program.name = R_LoadProgram(
-			&MakeShaderDescriptor(GL_VERTEX_SHADER, "common_vs.glsl", "draw_2d_blur_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "common_fs.glsl", "soften_fs.glsl", "draw_2d_blur_fs.glsl"),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "draw_2d_blur_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "draw_2d_blur_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_mesh_shadow_blur_program.name);

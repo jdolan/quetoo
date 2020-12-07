@@ -46,7 +46,7 @@ void main(void) {
 	vertex.position = vec3(view * vec4(in_position.xyz, 1.0));
 	vertex.diffusemap = in_diffusemap;
 	vertex.next_diffusemap = in_next_diffusemap;
-	vertex.lightgrid = lightgrid_vertex(lightgrid, in_position);
+	vertex.lightgrid = lightgrid_uvw(in_position);
 	vertex.color = in_color;
 	vertex.lerp = in_lerp;
 	vertex.blend_depth = in_blend_depth;

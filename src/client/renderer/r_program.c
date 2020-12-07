@@ -24,6 +24,49 @@
 /**
  * @brief
  */
+r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) {
+
+	r_shader_descriptor_t *desc = Mem_TagMalloc(sizeof(*desc), MEM_TAG_RENDERER);
+
+	desc->type = type;
+
+	size_t i = 0;
+
+	desc->filenames[i++] = "version.glsl";
+	desc->filenames[i++] = "uniforms.glsl";
+
+	switch (type) {
+		case GL_VERTEX_SHADER:
+			desc->filenames[i++] = "common_vs.glsl";
+			break;
+		case GL_FRAGMENT_SHADER:
+			desc->filenames[i++] = "common_fs.glsl";
+		default:
+			break;
+	}
+
+	desc->filenames[i++] = "lightgrid.glsl";
+
+	va_list args;
+	va_start(args, type);
+
+	while (i < lengthof(desc->filenames)) {
+
+		const char *source = va_arg(args, const char *);
+		if (source) {
+			desc->filenames[i++] = source;
+		} else {
+			break;
+		}
+	}
+
+	va_end(args);
+	return desc;
+}
+
+/**
+ * @brief
+ */
 GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 
 	GLuint shader = glCreateShader(desc->type);

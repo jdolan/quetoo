@@ -30,6 +30,11 @@ layout (location = 6) in vec3 in_next_normal;
 layout (location = 7) in vec3 in_next_tangent;
 layout (location = 8) in vec3 in_next_bitangent;
 
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_direction;
+uniform sampler3D texture_lightgrid_fog;
+
 uniform mat4 model;
 
 uniform float lerp;
@@ -44,8 +49,11 @@ out vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
-	vec3 lightgrid;
 	vec4 color;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 direction;
+	vec4 fog;
 } vertex;
 
 /**
@@ -68,8 +76,17 @@ void main(void) {
 	vertex.bitangent = vec3(model_view * bitangent);
 
 	vertex.diffusemap = in_diffusemap;
-	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
 	vertex.color = color;
+
+	vec3 lightgrid_uvw = lightgrid_uvw(vec3(model * position));
+
+	vertex.ambient = texture(texture_lightgrid_ambient, lightgrid_uvw).rgb;
+	vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
+	vertex.direction = texture(texture_lightgrid_direction, lightgrid_uvw).xyz;
+	vertex.direction = normalize((view * vec4(vertex.direction * 2.0 - 1.0, 0.0)).xyz);
+
+	vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
+	lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
 
 	gl_Position = projection3D * vec4(vertex.position, 1.0);
 

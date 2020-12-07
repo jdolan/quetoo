@@ -37,7 +37,7 @@ void main(void) {
 
 	vertex.position = vec3(view * position);
 	vertex.diffusemap = in_diffusemap;
-	vertex.lightgrid = lightgrid_vertex(lightgrid, in_position);
+	vertex.lightgrid = lightgrid_uvw(in_position);
 
 	gl_Position = projection3D * view * position;
 }
