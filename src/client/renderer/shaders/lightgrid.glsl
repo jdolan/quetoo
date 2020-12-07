@@ -20,6 +20,14 @@
  */
 
 /**
+ * @brief Returns amount of linear fog based on distance.
+ */
+float fog_factor(vec3 viewspace_position, float near, float far) {
+	float distance = length(viewspace_position);
+	return (distance - near) / (far - near);
+}
+
+/**
  * @brief Resolves the lightgrid coordinate for the specified position in world space.
  * @param lightgrid The lightgrid struct instance.
  * @param position The position in world space.
@@ -53,5 +61,5 @@ void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler, in vec3
 		fog += fog_sample.rgb * fog_sample.a * fog_density * sample_weight;
 	}
 
-	color.rgb += fog * color.a;
+	color.rgb += fog * color.a * fog_factor(position, 50.0, 150.0);
 }
