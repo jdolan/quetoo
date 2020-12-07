@@ -50,16 +50,21 @@ void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler, in vec3
 		return;
 	}
 
-	vec3 fog = vec3(0.0);
+	vec4 fog = vec4(0.0);
 
 	int num_samples = int(clamp(length(position) / 16.0, 1, fog_samples));
-	float sample_weight = 1.0 / num_samples;
-
+	float num_samples_rcp = 1.0 / float(num_samples);
+	
 	for (int i = 0; i < num_samples; i++) {
-		vec3 uvw = mix(lightgrid_uvw, lightgrid.view_coordinate.xyz, i * sample_weight);
-		vec4 fog_sample = texture(lightgrid_fog_sampler, uvw);
-		fog += fog_sample.rgb * fog_sample.a * fog_density * sample_weight;
+		vec3 uvw = mix(lightgrid_uvw, lightgrid.view_coordinate.xyz, float(i) * num_samples_rcp);
+		fog += texture(lightgrid_fog_sampler, uvw);
 	}
 
-	color.rgb += fog * color.a * clamp(fog_factor(position, 10.0, 110.0), 0.0, 1.0);
+	fog *= num_samples_rcp;
+
+	float strength;
+	strength  = clamp(fog.a * fog_density, 0.0, 1.0);
+	strength *= clamp(fog_factor(position, 10.0, 110.0), 0.0, 1.0);
+
+	color.rgb = mix(color.rgb, fog.rgb, color.a * strength);
 }
