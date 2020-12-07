@@ -61,5 +61,5 @@ void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler, in vec3
 		fog += fog_sample.rgb * fog_sample.a * fog_density * sample_weight;
 	}
 
-	color.rgb += fog * color.a * fog_factor(position, 50.0, 150.0);
+	color.rgb += fog * color.a * clamp(fog_factor(position, 10.0, 110.0), 0.0, 1.0);
 }
