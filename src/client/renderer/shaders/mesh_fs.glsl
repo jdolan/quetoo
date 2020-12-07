@@ -22,11 +22,6 @@
 uniform sampler2DArray texture_material;
 uniform sampler2D texture_stage;
 
-uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
-uniform sampler3D texture_lightgrid_fog;
-
 uniform float alpha_threshold;
 uniform float ambient;
 
@@ -41,8 +36,11 @@ in vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
-	vec3 lightgrid;
 	vec4 color;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 direction;
+	vec4 fog;
 } vertex;
 
 out vec4 out_color;
@@ -86,14 +84,8 @@ void main(void) {
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
-		vec3 lightgrid_ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
-		vec3 lightgrid_diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
-		vec3 lightgrid_direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
-
-		lightgrid_direction = normalize((view * vec4(lightgrid_direction * 2.0 - 1.0, 0.0)).xyz);
-
-		vec3 light_ambient = max(lightgrid_ambient, ambient);
-		vec3 light_diffuse = lightgrid_diffuse * max(0.0, dot(normal, lightgrid_direction)) + light_ambient;
+		vec3 light_ambient = max(vertex.ambient, ambient);
+		vec3 light_diffuse = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + light_ambient;
 		vec3 light_specular = vec3(0.0);
 
 		dynamic_light(lights_mask, vertex.position, normal, 64.0, light_diffuse, light_specular);
@@ -115,11 +107,10 @@ void main(void) {
 
 	// postprocessing
 
-	out_color.rgb = tonemap(out_color.rgb);
-
 	out_color.rgb = sqrt(out_color.rgb); // gamma hack
+	out_color.rgb += vertex.fog.rgb;
 
-	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
+	out_color.rgb = tonemap(out_color.rgb);
 
 	out_color.rgb = color_filter(out_color.rgb);
 
