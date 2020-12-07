@@ -90,7 +90,7 @@ void main(void) {
 
 		dynamic_light(lights_mask, vertex.position, normal, 64.0, light_diffuse, light_specular);
 
-		out_color = diffusemap * diffusemap; // gamma hack
+		out_color = diffusemap;
 
 		out_color.rgb = clamp(out_color.rgb * (light_diffuse * modulate), 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + (light_specular * modulate), 0.0, 32.0);
@@ -107,7 +107,6 @@ void main(void) {
 
 	// postprocessing
 
-	out_color.rgb = sqrt(out_color.rgb); // gamma hack
 	out_color.rgb += vertex.fog.rgb;
 
 	out_color.rgb = tonemap(out_color.rgb);
