@@ -206,20 +206,21 @@ void R_AddSprite(const r_sprite_t *s) {
 	const r_image_t *image = R_ResolveSpriteImage(s->media, s->life);
 	const float aspectRatio = (float) image->width / (float) image->height;
 	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
-	const float size = s->size * .5f;
+	const float width = (s->size ?: s->width) * .5f;
+	const float height = (s->size ?: s->height) * .5f;
 	
 	vec3_t dir, right, up;
 	
 	if (Vec3_Equal(s->dir, Vec3_Zero())) {
 
-		if (!s->axis || s->axis & (SPRITE_AXIS_X | SPRITE_AXIS_Y | SPRITE_AXIS_Z)) {
+		if (!s->axis || s->axis == (SPRITE_AXIS_X | SPRITE_AXIS_Y | SPRITE_AXIS_Z)) {
 			dir = Vec3_Normalize(Vec3_Subtract(s->origin, r_view.origin));
 		} else {
 			dir = Vec3_Zero();
 
 			for (int32_t i = 0; i < 3; i++) {
 				if (s->axis & (1 << i)) {
-					dir.xyz[i] = s->origin.xyz[i] - r_view.origin.xyz[i];
+					dir.xyz[i] = r_view.forward.xyz[i];//s->origin.xyz[i] - r_view.origin.xyz[i];
 				}
 			}
 
@@ -233,7 +234,7 @@ void R_AddSprite(const r_sprite_t *s) {
 
 	Vec3_Vectors(dir, NULL, &right, &up);
 
-	const vec3_t u = Vec3_Scale(up, size), d = Vec3_Scale(up, -size), l = Vec3_Scale(right, -size * aspectRatio), r = Vec3_Scale(right, size * aspectRatio);
+	const vec3_t u = Vec3_Scale(up, height), d = Vec3_Scale(up, -height), l = Vec3_Scale(right, -width * aspectRatio), r = Vec3_Scale(right, width * aspectRatio);
 	
 	out[0].position = Vec3_Add(Vec3_Add(s->origin, u), l);
 	out[1].position = Vec3_Add(Vec3_Add(s->origin, u), r);
@@ -332,28 +333,31 @@ static void R_CreateBeams(void) {
 
 		// construct segments
 		r_beam_segment_t segments[MAX_BEAM_SEGMENTS] = {
-			{ .start = 0, .end = 1, .start_blend_depth = R_BlendDepthForPoint(b->start) }
+			{ .start = 0, .end = 1, .start_blend_depth = (b->flags & SPRITE_NO_BLEND_DEPTH) ? 0 : R_BlendDepthForPoint(b->start) }
 		}, *free_segment = segments + 1;
 	
-		for (r_beam_segment_t *segment = segments; segment < free_segment && free_segment != segments + MAX_BEAM_SEGMENTS && (r_view.num_sprites + (free_segment - segment)) < MAX_SPRITES; ) {
+		if (!(b->flags & SPRITE_NO_BLEND_DEPTH)) {
 
-			const int32_t end_blend_depth = R_BlendDepthForPoint(Vec3_Mix(b->start, b->end, segment->end));
+			for (r_beam_segment_t *segment = segments; segment < free_segment && free_segment != segments + MAX_BEAM_SEGMENTS && (r_view.num_sprites + (free_segment - segment)) < MAX_SPRITES; ) {
 
-			if (segment->start_blend_depth == end_blend_depth) {
-				segment++;
-				continue;
+				const int32_t end_blend_depth = R_BlendDepthForPoint(Vec3_Mix(b->start, b->end, segment->end));
+
+				if (segment->start_blend_depth == end_blend_depth) {
+					segment++;
+					continue;
+				}
+
+				*free_segment = *segment;
+				segment->end *= .5f;
+				free_segment->start = segment->end;
+				free_segment->start_blend_depth = end_blend_depth;
+		
+				free_segment++;
 			}
 
-			*free_segment = *segment;
-			segment->end *= .5f;
-			free_segment->start = segment->end;
-			free_segment->start_blend_depth = end_blend_depth;
-		
-			free_segment++;
+			// sort segments
+			qsort(segments, (free_segment - segments), sizeof(r_beam_segment_t), R_BeamSegmentCompare);
 		}
-
-		// sort segments
-		qsort(segments, (free_segment - segments), sizeof(r_beam_segment_t), R_BeamSegmentCompare);
 
 		vec2_t texcoords[4];
 

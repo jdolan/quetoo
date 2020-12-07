@@ -207,7 +207,7 @@ GArray *Ai_Node_GetLinks(const ai_node_id_t a) {
  */
 void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float cost) {
 
-	if (Ai_Node_IsLinked(a, b)) {
+	if (a == b || Ai_Node_IsLinked(a, b)) {
 		return;
 	}
 
@@ -227,6 +227,10 @@ void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float 
  * @brief
  */
 static inline void Ai_Node_CreateDefaultLink(const ai_node_id_t a, const ai_node_id_t b, const _Bool bidirectional) {
+
+	if (a == b) {
+		return;
+	}
 
 	Ai_Node_CreateLink(a, b, Ai_Node_DefaultCost(a, b));
 
@@ -744,6 +748,11 @@ void Ai_Node_Render(void) {
 
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+
+		if (!node->links) {
+			continue;
+		}
+
 		const _Bool in_path = Ai_NodeInPath(ai_player_roam.test_path, i);
 
 		aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
@@ -773,6 +782,10 @@ void Ai_Node_Render(void) {
 					bit |= 4;
 				}
 
+				if (Ai_ShouldSlowDrop(i, link->id)) {
+					bit |= 16;
+				}
+
 				if (!g_hash_table_contains(unique_links, GINT_TO_POINTER(ulink.v))) {
 					g_hash_table_insert(unique_links, GINT_TO_POINTER(ulink.v), GINT_TO_POINTER(bit));
 				} else {
@@ -787,6 +800,7 @@ void Ai_Node_Render(void) {
 
 	g_hash_table_destroy(unique_links);
 
+	// draw the bots' targets
 	for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
 		const g_entity_t *ent = ENTITY_FOR_NUM(i);
 
@@ -807,137 +821,6 @@ void Ai_Node_Render(void) {
 		aim.gi->WriteByte(8);
 		aim.gi->Multicast(ent->s.origin, MULTICAST_PVS, NULL);
 	}
-}
-
-/**
- * @brief Only used for Ai_OptimizeNodes; adds links to node a to table
- */
-static void Ai_Node_GetLinksTo(const ai_node_id_t a, GHashTable *table) {
-
-	for (guint i = 0; i < ai_nodes->len; i++) {
-		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
-
-		if (!node->links) {
-			continue;
-		}
-
-		for (guint l = 0; l < node->links->len; l++) {
-			const ai_link_t *link = &g_array_index(node->links, ai_link_t, l);
-
-			if (link->id == a) {
-
-				g_hash_table_add(table, GINT_TO_POINTER((gint)i));
-			}
-		}
-	}
-}
-
-/**
- * @brief 
- */
-static vec3_t Ai_Node_GetDirection(const ai_node_id_t a, const ai_node_id_t b) {
-
-	return Vec3_Normalize(Vec3_Subtract(Ai_Node_GetPosition(a), Ai_Node_GetPosition(b)));
-}
-
-/**
- * @brief
- */
-static uint8_t Ai_Node_LinkType(const ai_node_id_t a, const ai_node_id_t b) {
-	uint8_t bits = 0;
-	
-	if (Ai_Node_IsLinked(a, b)) {
-		bits |= 1;
-	}
-
-	if (Ai_Node_IsLinked(b, a)) {
-		bits |= 2;
-	}
-
-	return bits;
-}
-
-/**
- * @brief Optimizes graph by removing long chains of nodes with very little deviation from direction
- */
-static uint32_t Ai_OptimizeNodes(void) {
-
-	uint32_t total = 0;
-	GHashTable *links = g_hash_table_new(g_direct_hash, g_direct_equal);
-
-	for (;;) {
-		uint32_t count = 0;
-
-		for (guint i = 0; i < ai_nodes->len; i++) {
-			ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
-
-			// we have no links, or more than two links, so we can't optimize this node
-			if (!node->links || node->links->len > 2) {
-				continue;
-			}
-
-			// find the two nodes that are between node
-
-			for (guint l = 0; l < node->links->len; l++) {
-				const ai_link_t *link = &g_array_index(node->links, ai_link_t, l);
-				g_hash_table_add(links, GINT_TO_POINTER((gint)link->id));
-			}
-
-			Ai_Node_GetLinksTo(i, links);
-
-			// too many links; need two total
-			if (g_hash_table_size(links) != 2) {
-				g_hash_table_remove_all(links);
-				continue;
-			}
-
-			// convert links to array for simplicity
-			gpointer *keys = g_hash_table_get_keys_as_array(links, NULL);
-			ai_node_id_t links[2] = {
-				(ai_node_id_t)GPOINTER_TO_INT(keys[0]),
-				(ai_node_id_t)GPOINTER_TO_INT(keys[1])
-			};
-			g_free(keys);
-
-			uint8_t link_type;
-
-			// need to be same link type to work properly
-			if ((link_type = Ai_Node_LinkType(links[0], i)) != Ai_Node_LinkType(i, links[1])) {
-				continue;
-			}
-
-			// check that we're in a fairly straight-ish line
-			const vec3_t dir_a = Ai_Node_GetDirection(links[0], i);
-			const vec3_t dir_b = Ai_Node_GetDirection(i, links[1]);
-			const float dot = Vec3_Dot(dir_a, dir_b);
-
-			if (dot < 0.95f) {
-				continue;
-			}
-
-			// good 2 go
-			// this doesn't destroy the node itself so that node #s aren't
-			// messed up in game code
-			Ai_Node_DestroyLinks(i);
-
-			if (link_type & 1) {
-				Ai_Node_CreateDefaultLink(links[0], links[1], false);
-			}
-			if (link_type & 2) {
-				Ai_Node_CreateDefaultLink(links[1], links[0], false);
-			}
-
-			count++;
-		}
-
-		if (!count)
-			break;
-
-		total += count;
-	}
-
-	g_hash_table_destroy(links);
-	return total;
 }
 
 #define AI_NODE_MAGIC ('Q' | '2' << 8 | 'N' << 16 | 'S' << 24)
@@ -1004,6 +887,8 @@ void Ai_InitNodes(const char *mapname) {
 			g_array_set_size(node->links, num_links);
 			aim.gi->ReadFile(file, node->links->data, sizeof(ai_link_t), num_links);
 			total_links += num_links;
+
+			Ai_Node_DestroyLink(i, i);
 		} else {
 			node->links = NULL;
 		}
@@ -1065,10 +950,10 @@ void Ai_NodesReady(void) {
 	added_links -= ai_player_roam.file_links;
 	aim.gi->Print("  Game loaded %u additional nodes with %u new links.\n", added_nodes, added_links);
 
-	if (ai_node_dev->integer != 1) {
+	/*if (ai_node_dev->integer != 1) {
 		const guint optimized = Ai_OptimizeNodes();
 		aim.gi->Print("  %u nodes optimized\n", optimized);
-	}
+	}*/
 
 	if (ai_node_dev->integer) {
 		Ai_CheckNodes();
