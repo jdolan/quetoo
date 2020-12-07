@@ -18,12 +18,3 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
-/**
- * @param lightgrid The lightgrid struct instance.
- * @param position The vertex position in world space.
- * @return The lightgrid sample coordinate for the specified vertex.
- */
-vec3 lightgrid_vertex(in lightgrid_t lightgrid, in vec3 position) {
-	return (position - lightgrid.mins.xyz) / (lightgrid.maxs.xyz - lightgrid.mins.xyz);
-}

@@ -234,8 +234,7 @@ float linearstep(float a, float b, float t) {
 /**
  * @brief Get (approximate) mipmap level.
  */
-float mipmap_level(vec2 uv)
-{
+float mipmap_level(vec2 uv) {
     vec2  dx = dFdx(uv);
     vec2  dy = dFdy(uv);
     float delta_max_sqr = max(dot(dx, dx), dot(dy, dy));
@@ -247,7 +246,7 @@ float mipmap_level(vec2 uv)
  * @brief
  */
 void dynamic_light(in int lights_mask, in vec3 position, in vec3 normal, in float specular_exponent,
-				   inout vec3 diff_light, inout vec3 spec_light) {
+				   inout vec3 diffuse_light, inout vec3 specular_light) {
 
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
@@ -286,36 +285,9 @@ void dynamic_light(in int lights_mask, in vec3 position, in vec3 normal, in floa
 
 				vec3 color = lights[i].color.rgb * intensity;
 
-				diff_light += attenuation * radius * color;
-				spec_light += attenuation * attenuation * radius * specular * color;
+				diffuse_light += attenuation * radius * color;
+				specular_light += attenuation * attenuation * radius * specular * color;
 			}
 		}
 	}
-}
-
-/**
- * @brief Ray marches the fragment, sampling the fog texture at each iteration.
- * @param color The input and output fragment color.
- * @param fog_sampler The lightgrid fog texture sampler.
- * @param frag_position The fragment position in view space.
- * @param frag_uvw The fragment lightgrid texture coordinate.
- */
-void fog_fragment(inout vec4 color, in sampler3D fog_sampler, in vec3 frag_position, in vec3 frag_uvw) {
-
-	if (fog_density == 0.0) {
-		return;
-	}
-
-	vec3 fog = vec3(0.0);
-
-	int num_samples = int(clamp(length(frag_position) / 16.0, 1, fog_samples));
-	float sample_weight = 1.0 / num_samples;
-
-	for (int i = 0; i < num_samples; i++) {
-		vec3 uvw = mix(frag_uvw, lightgrid.view_coordinate.xyz, i * sample_weight);
-		vec4 fog_sample = texture(fog_sampler, uvw);
-		fog += fog_sample.rgb * fog_sample.a * fog_density * sample_weight;
-	}
-
-	color.rgb += fog * color.a;
 }

@@ -45,6 +45,8 @@ r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) {
 			break;
 	}
 
+	desc->filenames[i++] = "lightgrid.glsl";
+
 	va_list args;
 	va_start(args, type);
 

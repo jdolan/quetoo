@@ -68,7 +68,7 @@ void main(void) {
 	vertex.bitangent = vec3(model_view * bitangent);
 
 	vertex.diffusemap = in_diffusemap;
-	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
+	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
 	vertex.color = color;
 
 	gl_Position = projection3D * vec4(vertex.position, 1.0);

@@ -63,7 +63,7 @@ void main(void) {
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
-	vertex.lightgrid = lightgrid_vertex(lightgrid, vec3(model * position));
+	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
 	vertex.color = in_color;
 
 	gl_Position = projection3D * vec4(vertex.position, 1.0);

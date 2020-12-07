@@ -599,6 +599,7 @@
 		CEBDB0C9214A037900A7AC3D /* cm_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CEBDB0C7214A037800A7AC3D /* cm_entity.h */; };
 		CEBDB0CA214A037900A7AC3D /* cm_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDB0C8214A037900A7AC3D /* cm_entity.c */; };
 		CEC212CE2430CB4D009AA456 /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CEC59522257DD26E00DC7908 /* lightgrid.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEC594C7257DC69300DC7908 /* lightgrid.glsl */; };
 		CECA8CB01E50B5F1005E97E8 /* material.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* material.c */; };
 		CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
 		CED438391D9D34450052BAFA /* r_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B21C5C58C300CD0B13 /* r_bsp.c */; };
@@ -987,6 +988,7 @@
 				F55238AA2482D71F00BE8B36 /* draw_2d_blur_vs.glsl in CopyFiles */,
 				CED5BB192407163D00784D93 /* draw_3d_fs.glsl in CopyFiles */,
 				CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */,
+				CEC59522257DD26E00DC7908 /* lightgrid.glsl in CopyFiles */,
 				CE57E13D2462572900F8902F /* material.glsl in CopyFiles */,
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
@@ -1725,6 +1727,7 @@
 		CEBDB0C5214A02B500A7AC3D /* light.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = light.c; sourceTree = "<group>"; };
 		CEBDB0C7214A037800A7AC3D /* cm_entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_entity.h; sourceTree = "<group>"; };
 		CEBDB0C8214A037900A7AC3D /* cm_entity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_entity.c; sourceTree = "<group>"; };
+		CEC594C7257DC69300DC7908 /* lightgrid.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = lightgrid.glsl; sourceTree = "<group>"; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = /opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<absolute>"; };
 		CECA8CAD1E4EC027005E97E8 /* qmat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qmat.h; sourceTree = "<group>"; };
 		CECA8CAE1E50B5F1005E97E8 /* material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = material.c; sourceTree = "<group>"; };
@@ -2743,6 +2746,7 @@
 				CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */,
 				F55238A32482D42B00BE8B36 /* draw_2d_blur_fs.glsl */,
 				F55238A12482D42B00BE8B36 /* draw_2d_blur_vs.glsl */,
+				CEC594C7257DC69300DC7908 /* lightgrid.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CE63992C23E1251A00DB7A2D /* mesh_fs.glsl */,
 				CE63992B23E124F700DB7A2D /* mesh_vs.glsl */,
