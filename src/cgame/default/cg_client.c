@@ -546,7 +546,6 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 				ent->legs_yaw = ent->angles.y + legs_yaw;
 			} else {
-
 				ent->legs_yaw = ent->angles.y;
 			}
 		} else {
@@ -604,11 +603,15 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 
 	r_entity_t *r_legs = cgi.AddEntity(&legs);
+	if (!r_legs) {
+		return; // if the legs were culled, we're done
+	}
 
 	torso.parent = r_legs;
 	torso.tag = "tag_torso";
 
 	r_entity_t *r_torso = cgi.AddEntity(&torso);
+	assert(r_torso);
 
 	head.parent = r_torso;
 	head.tag = "tag_head";
