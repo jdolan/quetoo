@@ -27,7 +27,7 @@
 csg_brush_t *AllocBrush(int32_t num_sides);
 void FreeBrush(csg_brush_t *brush);
 void FreeBrushes(csg_brush_t *brushes);
-size_t CountBrushes(csg_brush_t *brushes);
+size_t CountBrushes(const csg_brush_t *brushes);
 csg_brush_t *CopyBrush(const csg_brush_t *brush);
 float BrushVolume(csg_brush_t *brush);
 csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs);
