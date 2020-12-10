@@ -85,7 +85,8 @@ static int32_t FindTexinfo(const bsp_texinfo_t *tx) {
 			continue;
 		}
 
-		if (memcmp((char *) (tc->vecs), (char *) (tx->vecs), sizeof(tx->vecs))) {
+		if (!Vec4_EqualEpsilon(tc->vecs[0], tx->vecs[1], .01f) ||
+			!Vec4_EqualEpsilon(tc->vecs[1], tx->vecs[1], .01f)) {
 			continue;
 		}
 
