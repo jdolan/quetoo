@@ -157,6 +157,11 @@ typedef struct {
 	 */
 	struct {
 		/**
+		 * @brief The viewport (x, y, w, h) in device pixels.
+		 */
+		vec4_t viewport;
+
+		/**
 		 * @brief The 3D projection matrix.
 		 */
 		mat4_t projection3D;

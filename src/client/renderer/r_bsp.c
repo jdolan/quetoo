@@ -167,34 +167,6 @@ void R_UpdateVis(void) {
 
 	r_locals.vis_frame++;
 
-	r_bsp_leaf_t *leaf = r_world_model->bsp->leafs;
-	for (int32_t i = 0; i < r_world_model->bsp->num_leafs; i++, leaf++) {
-
-		if (R_LeafVisible(leaf) || r_locals.leaf->cluster == -1) {
-
-			if (R_CullBox(leaf->mins, leaf->maxs)) {
-				continue;
-			}
-
-			leaf->vis_frame = r_locals.vis_frame;
-
-			for (r_bsp_node_t *node = leaf->parent; node; node = node->parent) {
-
-				if (R_CullBox(node->mins, node->maxs)) {
-					continue;
-				}
-
-				if (node->vis_frame == r_locals.vis_frame) {
-					break;
-				}
-
-				node->vis_frame = r_locals.vis_frame;
-//				node->blend_depth = 0;
-//				node->blend_depth_count = 0;
-			}
-		}
-	}
-
 	R_UpdateNodeBlendDepth(r_world_model->bsp->inline_models);
 
 	const r_entity_t *e = r_view.entities;
@@ -203,7 +175,7 @@ void R_UpdateVis(void) {
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 
 			const r_bsp_inline_model_t *in = e->model->bsp_inline;
-			const r_bsp_draw_elements_t *draw = in->draw_elements;
+//			const r_bsp_draw_elements_t *draw = in->draw_elements;
 			
 //			for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
 //

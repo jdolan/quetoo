@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief The program.
+ * @brief The BSP program.
  */
 static struct {
 	GLuint name;
@@ -44,6 +44,7 @@ static struct {
 	GLint texture_stage;
 	GLint texture_warp;
 	GLint texture_lightgrid_fog;
+	GLint texture_depth_stencil_attachment;
 
 	GLint alpha_threshold;
 
@@ -472,6 +473,9 @@ void R_DrawWorld(void) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
 	glBindTexture(GL_TEXTURE_2D, r_bsp_program.warp_image->texnum);
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
+	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
 	glUniform1f(r_bsp_program.alpha_threshold, .125f);
@@ -552,6 +556,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
+	r_bsp_program.texture_depth_stencil_attachment = glGetUniformLocation(r_bsp_program.name, "texture_depth_stencil_attachment");
 
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
@@ -580,6 +585,7 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+	glUniform1i(r_bsp_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;

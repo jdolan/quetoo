@@ -174,6 +174,10 @@ static void R_UpdateUniforms(void) {
 	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
 
 	{
+		r_uniforms.block.viewport = Vec4(0.f, 0.f, r_context.drawable_width, r_context.drawable_height);
+	}
+
+	{
 		const float aspect = (float) r_context.width / (float) r_context.height;
 
 		const float ymax = tanf(Radians(r_view.fov.y));
@@ -311,6 +315,8 @@ void R_DrawView(r_view_t *view) {
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
 
 	R_UpdateFrustum();
+
+	R_DrawDepthPass();
 
 	R_UpdateVis();
 
@@ -623,8 +629,14 @@ static void R_InitFramebuffer(void) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_context.color_attachment, 0);
 
-	R_GetError("Color attachment");
-	
+	{
+		const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			Com_Error(ERROR_FATAL, "Color attachment incomplete: %d\n", status);
+		}
+		R_GetError("Color attachment");
+	}
+
 	glGenTextures(1, &r_context.depth_stencil_attachment);
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.drawable_width, r_context.drawable_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
@@ -634,8 +646,14 @@ static void R_InitFramebuffer(void) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, r_context.depth_stencil_attachment, 0);
 
-	R_GetError("Depth stencil attachment");
-	
+	{
+		const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			Com_Error(ERROR_FATAL, "Depth stencil attachment incomplete: %d\n", status);
+		}
+		R_GetError("Depth stencil attachment");
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -691,6 +709,8 @@ void R_Init(void) {
 	R_InitMedia();
 
 	R_InitImages();
+
+	R_InitDepthPass();
 
 	R_InitDraw2D();
 

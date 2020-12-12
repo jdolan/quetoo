@@ -62,6 +62,11 @@ struct light_t {
  */
 layout (std140) uniform uniforms {
 	/**
+	 * @brief The viewport (x, y, w, h) in device pixels.
+	 */
+	vec4 viewport;
+
+	/**
 	 * @brief The 3D projection matrix.
 	 */
 	mat4 projection3D;

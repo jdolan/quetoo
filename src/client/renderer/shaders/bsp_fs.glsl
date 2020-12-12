@@ -24,6 +24,7 @@ uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
 uniform sampler3D texture_lightgrid_fog;
+uniform sampler2D texture_depth_stencil_attachment;
 
 uniform float alpha_threshold;
 
@@ -229,4 +230,5 @@ void main(void) {
 
 //	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
 //	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
+//	out_color = texture(texture_depth_stencil_attachment, gl_FragCoord.xy / viewport.zw);
 }

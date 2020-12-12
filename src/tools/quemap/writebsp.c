@@ -222,6 +222,15 @@ void EmitNodes(node_t *head_node) {
  */
 static int32_t TexinfoCmp(const bsp_texinfo_t *a, const bsp_texinfo_t *b) {
 
+	const int32_t a_trans = a->flags & SURF_MASK_TRANSLUCENT;
+	const int32_t b_trans = a->flags & SURF_MASK_TRANSLUCENT;
+	if (a_trans != b_trans) {
+		if (a_trans) {
+			return 1;
+		}
+		return -1;
+	}
+
 	int32_t order = strcmp(a->texture, b->texture);
 	if (order == 0) {
 		const int32_t a_flags = (a->flags & SURF_MASK_TEXINFO_CMP);
@@ -245,8 +254,8 @@ static int32_t ContentsCmp(const bsp_face_t *a, const bsp_face_t *b) {
 
 /**
  * @brief Draw elements comparator to sort model faces by material.
- * @details Translucent faces will always emit their own draw elements so that
- * they may be depth sorted, and support stretch and rotate animations.
+ * @details Opaque faces are packed first. Translucent faces will always emit
+ * their own draw elements so that they may be depth sorted.
  */
 static int32_t FaceCmp(const void *a, const void *b) {
 

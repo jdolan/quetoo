@@ -104,7 +104,7 @@ static struct {
 	GLint texture_diffusemap;
 	GLint texture_lightgrid_fog;
 	GLint texture_next_diffusemap;
-	GLint depth_stencil_attachment;
+	GLint texture_depth_stencil_attachment;
 
 } r_sprite_program;
 
@@ -570,12 +570,12 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-	r_sprite_program.depth_stencil_attachment = glGetUniformLocation(r_sprite_program.name, "depth_stencil_attachment");
+	r_sprite_program.texture_depth_stencil_attachment = glGetUniformLocation(r_sprite_program.name, "texture_depth_stencil_attachment");
 
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
-	glUniform1i(r_sprite_program.depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
+	glUniform1i(r_sprite_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 
 	glUseProgram(0);
 

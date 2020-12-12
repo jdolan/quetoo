@@ -9,6 +9,7 @@ noinst_HEADERS = \
 	r_bsp_draw.h \
 	r_bsp_model.h \
 	r_context.h \
+	r_depth_pass.h \
 	r_draw_2d.h \
 	r_draw_3d.h \
 	r_entity.h \
@@ -45,6 +46,7 @@ librenderer_la_SOURCES = \
 	r_bsp_draw.c \
 	r_bsp_model.c \
 	r_context.c \
+	r_depth_pass.c \
 	r_draw_2d.c \
 	r_draw_3d.c \
 	r_entity.c \
