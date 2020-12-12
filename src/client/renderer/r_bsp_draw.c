@@ -352,9 +352,9 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
  *
  *@see R_NodeDepthForPoint
  */
-static int32_t R_DrawBspInlineModelAlphaBlendNode(r_bsp_node_t *node) {
+static int32_t R_DrawBspInlineModelBlendDepth(r_bsp_draw_elements_t *draw) {
 
-	const int32_t blend_depth_count = node->blend_depth_count;
+	const int32_t blend_depth_count = draw->blend_depth_count;
 	if (blend_depth_count) {
 
 		glBlendFunc(GL_ONE, GL_ZERO);
@@ -363,9 +363,9 @@ static int32_t R_DrawBspInlineModelAlphaBlendNode(r_bsp_node_t *node) {
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 
-		R_DrawEntities(node->blend_depth);
+		R_DrawEntities(draw->blend_depth);
 
-		R_DrawSprites(node->blend_depth);
+		R_DrawSprites(draw->blend_depth);
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
@@ -381,7 +381,7 @@ static int32_t R_DrawBspInlineModelAlphaBlendNode(r_bsp_node_t *node) {
 
 		R_GetError(NULL);
 
-		node->blend_depth_count = 0;
+		draw->blend_depth_count = 0;
 	}
 
 	return blend_depth_count;
@@ -399,11 +399,9 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 		r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
 
-		if (draw->node->vis_frame != r_locals.vis_frame) {
-			continue;
-		}
+		// TODO: Box cull the transformed mins and maxs?
 
-		if (R_DrawBspInlineModelAlphaBlendNode(draw->node)) {
+		if (R_DrawBspInlineModelBlendDepth(draw)) {
 			material = NULL;
 		}
 

@@ -129,6 +129,9 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
 
+		out->mins = in->mins;
+		out->maxs = in->maxs;
+
 		out->vertexes = bsp->vertexes + in->first_vertex;
 		out->num_vertexes = in->num_vertexes;
 
@@ -174,6 +177,9 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
+
+		out->mins = in->mins;
+		out->maxs = in->maxs;
 
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));

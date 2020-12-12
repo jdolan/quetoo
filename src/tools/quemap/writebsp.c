@@ -298,6 +298,9 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 		out->texinfo = a->texinfo;
 		out->contents = a->contents;
 
+		out->mins = Vec3_Mins();
+		out->maxs = Vec3_Maxs();
+
 		out->first_element = bsp_file.num_elements;
 
 		for (int32_t j = i; j < mod->num_faces; j++) {
@@ -318,6 +321,10 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 
 			bsp_file.num_elements += b->num_elements;
 			out->num_elements += b->num_elements;
+
+			out->mins = Vec3_Minf(out->mins, b->mins);
+			out->maxs = Vec3_Maxf(out->maxs, b->maxs);
+			
 			i = j;
 		}
 

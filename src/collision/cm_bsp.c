@@ -174,6 +174,9 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 		face->texinfo = LittleLong(face->texinfo);
 		face->contents = LittleLong(face->contents);
 
+		face->mins = LittleVec3(face->mins);
+		face->maxs = LittleVec3(face->maxs);
+
 		face->first_vertex = LittleLong(face->first_vertex);
 		face->num_vertexes = LittleLong(face->num_vertexes);
 
@@ -205,6 +208,10 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 
 		draw->texinfo = LittleLong(draw->texinfo);
 		draw->contents = LittleLong(draw->contents);
+
+		draw->mins = LittleVec3(draw->mins);
+		draw->maxs = LittleVec3(draw->maxs);
+
 		draw->first_element = LittleLong(draw->first_element);
 		draw->num_elements = LittleLong(draw->num_elements);
 

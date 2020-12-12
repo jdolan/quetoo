@@ -205,10 +205,13 @@ typedef struct {
 	int32_t texinfo;
 	int32_t contents;
 
-	int32_t first_vertex; // vertex array for polygon or triangle fan
+	vec3_t mins;
+	vec3_t maxs;
+
+	int32_t first_vertex;
 	int32_t num_vertexes;
 
-	int32_t first_element; // element array for triangles
+	int32_t first_element;
 	int32_t num_elements;
 
 	bsp_face_lightmap_t lightmap;
@@ -246,6 +249,9 @@ typedef struct {
 typedef struct {
 	int32_t texinfo;
 	int32_t contents;
+
+	vec3_t mins;
+	vec3_t maxs;
 
 	int32_t first_element;
 	int32_t num_elements;

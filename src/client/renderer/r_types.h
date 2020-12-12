@@ -342,6 +342,9 @@ typedef struct {
 	r_bsp_texinfo_t *texinfo;
 	int32_t contents;
 
+	vec3_t mins;
+	vec3_t maxs;
+
 	struct r_sprite_s *flare;
 
 	r_bsp_face_lightmap_t lightmap;
@@ -362,16 +365,17 @@ typedef struct {
  * used to minimize overdraw.
  */
 typedef struct {
-	struct r_bsp_node_s *node;
-
 	r_bsp_texinfo_t *texinfo;
 	int32_t contents;
 
-	r_bsp_face_t *faces;
-	int32_t num_faces;
+	vec3_t mins;
+	vec3_t maxs;
 
 	GLvoid *elements;
 	int32_t num_elements;
+
+	int32_t blend_depth;
+	int32_t blend_depth_count;
 
 	vec2_t st_origin;
 } r_bsp_draw_elements_t;
@@ -397,9 +401,6 @@ struct r_bsp_node_s {
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
-
-	int32_t blend_depth;
-	int32_t blend_depth_count;
 };
 
 typedef struct r_bsp_node_s r_bsp_node_t;

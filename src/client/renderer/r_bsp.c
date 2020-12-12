@@ -66,14 +66,12 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
  */
 int32_t R_BlendDepthForPoint(const vec3_t p) {
 
-	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
+	/*const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
 
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
 
-		if (draw->node->vis_frame != r_locals.vis_frame) {
-			continue;
-		}
+		// TODO: Box cull transformed bounds?
 
 		if (SignOf(Cm_DistanceToPlane(p, draw->node->plane)) !=
 			SignOf(Cm_DistanceToPlane(r_view.origin, draw->node->plane))) {
@@ -87,7 +85,7 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 				return draw->node->blend_depth;
 			}
 		}
-	}
+	}*/
 
 	return 0;
 }
@@ -114,7 +112,7 @@ static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *depth) {
 
 	R_UpdateNodeBlendDepth_r(node->children[side], depth);
 
-	node->blend_depth = *depth = (*depth) + 1;
+//	node->blend_depth = *depth = (*depth) + 1;
 
 //	r_bsp_draw_elements_t *draw = node->draw_elements;
 //	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
@@ -191,8 +189,8 @@ void R_UpdateVis(void) {
 				}
 
 				node->vis_frame = r_locals.vis_frame;
-				node->blend_depth = 0;
-				node->blend_depth_count = 0;
+//				node->blend_depth = 0;
+//				node->blend_depth_count = 0;
 			}
 		}
 	}
@@ -207,19 +205,19 @@ void R_UpdateVis(void) {
 			const r_bsp_inline_model_t *in = e->model->bsp_inline;
 			const r_bsp_draw_elements_t *draw = in->draw_elements;
 			
-			for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
-
-				for (r_bsp_node_t *node = draw->node; node; node = node->parent) {
-
-					if (node->vis_frame == r_locals.vis_frame) {
-						break;
-					}
-
-					node->vis_frame = r_locals.vis_frame;
-					node->blend_depth = 0;
-					node->blend_depth_count = 0;
-				}
-			}
+//			for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
+//
+//				for (r_bsp_node_t *node = draw->node; node; node = node->parent) {
+//
+//					if (node->vis_frame == r_locals.vis_frame) {
+//						break;
+//					}
+//
+//					node->vis_frame = r_locals.vis_frame;
+//					node->blend_depth = 0;
+//					node->blend_depth_count = 0;
+//				}
+//			}
 
 			R_UpdateNodeBlendDepth(in);
 
