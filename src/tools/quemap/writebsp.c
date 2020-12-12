@@ -201,20 +201,20 @@ static int32_t EmitNode(node_t *node) {
 /**
  * @brief
  */
-void EmitNodes(node_t *head_node) {
+int32_t EmitNodes(node_t *head_node) {
 
 	const uint32_t start = SDL_GetTicks();
-	const int32_t old_faces = bsp_file.num_faces;
 
 	num_welds = 0;
 	ClearWeldingSpatialHash();
 
-	bsp_file.models[bsp_file.num_models].head_node = EmitNode(head_node);
+	const int32_t node = EmitNode(head_node);
 
-	Com_Verbose("%5i faces\n", bsp_file.num_faces - old_faces);
 	Com_Verbose("%5i welded vertices\n", num_welds);
 
 	Com_Print("\r%-24s [100%%] %d ms\n", "Emitting nodes", SDL_GetTicks() - start);
+
+	return node;
 }
 
 /**

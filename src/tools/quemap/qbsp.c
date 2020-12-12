@@ -46,7 +46,7 @@ _Bool leaked = false;
 /**
  * @brief
  */
-static void ProcessWorldModel(const entity_t *e) {
+static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 
 	csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
 	if (!no_csg) {
@@ -79,7 +79,7 @@ static void ProcessWorldModel(const entity_t *e) {
 		FixTJunctions(tree->head_node);
 	}
 
-	EmitNodes(tree->head_node);
+	out->head_node = EmitNodes(tree->head_node);
 
 	if (!leaked) {
 		WritePortalFile(tree);
@@ -91,7 +91,7 @@ static void ProcessWorldModel(const entity_t *e) {
 /**
  * @brief
  */
-static void ProcessInlineModel(const entity_t *e) {
+static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 
 	csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
 	if (!no_csg) {
@@ -135,9 +135,9 @@ static void ProcessModels(void) {
 
 		bsp_model_t *mod = BeginModel(e);
 		if (i == 0) {
-			ProcessWorldModel(e);
+			ProcessWorldModel(e, mod);
 		} else {
-			ProcessInlineModel(e);
+			ProcessInlineModel(e, mod);
 		}
 		EndModel(mod);
 
