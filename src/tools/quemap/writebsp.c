@@ -270,15 +270,11 @@ static int32_t FaceCmp(const void *a, const void *b) {
 
 /**
  * @brief Sorts all faces in the given model by material, and emits glDrawElements
- * commands for each unique material. The backing face ordering is not modified,
- * as this would break the references that the nodes hold to them.
+ * commands for each unique material. The BSP face ordering is not modified, as this
+ * would break the references that the nodes hold to them.
  * @return The number of draw elements commands emitted for the model.
  */
 static int32_t EmitDrawElements(const bsp_model_t *mod) {
-
-	Progress("Emitting draw elements", 0);
-
-	const uint32_t start = SDL_GetTicks();
 
 	const int32_t num_draw_elements = bsp_file.num_draw_elements;
 
@@ -289,9 +285,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 
 	for (int32_t i = 0; i < mod->num_faces; i++) {
 
-		Progress("Emitting draw elements", i * 100.f / mod->num_faces);
-
-		if (bsp_file.num_draw_elements >= MAX_BSP_DRAW_ELEMENTS) {
+		if (bsp_file.num_draw_elements == MAX_BSP_DRAW_ELEMENTS) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
 		}
 
@@ -341,8 +335,6 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 	}
 
 	free(model_faces);
-
-	Com_Print("\r%-24s [100%%] %d ms\n", "Emitting draw elements", SDL_GetTicks() - start);
 
 	return bsp_file.num_draw_elements - num_draw_elements;
 }
