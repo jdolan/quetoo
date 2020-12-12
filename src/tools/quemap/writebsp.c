@@ -233,7 +233,20 @@ static int32_t TexinfoCmp(const bsp_texinfo_t *a, const bsp_texinfo_t *b) {
 }
 
 /**
+ * @brief Draw elements comparator to sort contents.
+ */
+static int32_t ContentsCmp(const bsp_face_t *a, const bsp_face_t *b) {
+
+	const int32_t a_contents = a->contents & CONTENTS_MASK_FACE_CMP;
+	const int32_t b_contents = b->contents & CONTENTS_MASK_FACE_CMP;
+
+	return a_contents - b_contents;
+}
+
+/**
  * @brief Draw elements comparator to sort model faces by material.
+ * @details Translucent faces will always emit their own draw elements so that
+ * they may be depth sorted, and support stretch and rotate animations.
  */
 static int32_t FaceCmp(const void *a, const void *b) {
 
@@ -243,17 +256,13 @@ static int32_t FaceCmp(const void *a, const void *b) {
 	const bsp_texinfo_t *a_texinfo = bsp_file.texinfo + a_face->texinfo;
 	const bsp_texinfo_t *b_texinfo = bsp_file.texinfo + b_face->texinfo;
 
-	// translucent faces shoud always emit their own draw elements so that
-	// they may be depth-sorted
-	if (a_texinfo->flags & SURF_MASK_TRANSLUCENT) {
-		return (int32_t) (ptrdiff_t) (a_face - b_face);
-	}
-
 	int32_t order = TexinfoCmp(a_texinfo, b_texinfo);
 	if (order == 0) {
-		const int32_t a_contents = a_face->contents & CONTENTS_MASK_FACE_CMP;
-		const int32_t b_contents = b_face->contents & CONTENTS_MASK_FACE_CMP;
-		order = a_contents - b_contents;
+		if (a_texinfo->flags & SURF_MASK_TRANSLUCENT) {
+			order = (int32_t) (ptrdiff_t) (a_face - b_face);
+		} else {
+			order = ContentsCmp(a_face, b_face);
+		}
 	}
 
 	return order;

@@ -293,25 +293,6 @@ static gint R_FlareFacesCmp(gconstpointer a, gconstpointer b) {
 /**
  * @brief
  */
-static gint R_DrawElementsCmp(gconstpointer a, gconstpointer b) {
-
-	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
-	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
-
-	gint order = strcmp(a_draw->texinfo->texture, b_draw->texinfo->texture);
-	if (order == 0) {
-		const gint a_flags = (a_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
-		const gint b_flags = (b_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
-
-		order = a_flags - b_flags;
-	}
-
-	return order;
-}
-
-/**
- * @brief
- */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 	r_bsp_inline_model_t *out;
 
@@ -357,8 +338,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 			g_ptr_array_add(out->opaque_draw_elements, draw);
 		}
-
-		g_ptr_array_sort(out->opaque_draw_elements, R_DrawElementsCmp);
 
 		R_SetupBspNode(out->head_node, NULL, out);
 	}
