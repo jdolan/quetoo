@@ -114,7 +114,8 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 		FixTJunctions(tree->head_node);
 	}
 
-	EmitNodes(tree->head_node);
+	out->head_node = EmitNodes(tree->head_node);
+
 	FreeTree(tree);
 }
 
