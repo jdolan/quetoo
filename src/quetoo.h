@@ -266,6 +266,12 @@ typedef enum {
 #define CONTENTS_MASK_CLIP_PROJECTILE	(CONTENTS_MASK_SOLID | CONTENTS_MASK_MEAT)
 
 /**
+ * @brief Faces with differing contents after applying this mask should not be considered equal
+ * for face or draw elements merging.
+ */
+#define CONTENTS_MASK_FACE_CMP (CONTENTS_MASK_LIQUID)
+
+/**
  * @brief Texinfo flags.
  */
 #define SURF_LIGHT				0x1 // value will hold the light radius
@@ -285,7 +291,8 @@ typedef enum {
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 
 /**
- * @brief Texinfos with these flags should not be considered equal for draw elements merging.
+ * @brief Texinfos with differing flags after applying this mask should not be considered
+ * equal for face or draw elements merging.
  */
 #define SURF_MASK_TEXINFO_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_NO_WELD | SURF_DEBUG_LUXEL)
 
@@ -303,6 +310,11 @@ typedef enum {
  * @brief Texinfos with these flags will not have lightmap data.
  */
 #define SURF_MASK_NO_LIGHTMAP	(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
+
+/**
+ * @brief Texinfos with these flags will emit no draw elements.
+ */
+#define SURF_MASK_NO_DRAW_ELEMENTS SURF_MASK_NO_LIGHTMAP
 
 /**
  * @brief Sound attenuation levels.

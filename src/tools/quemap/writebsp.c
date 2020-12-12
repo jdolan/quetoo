@@ -70,7 +70,14 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
 	const face_t *a_face = *(face_t **) a;
 	const face_t *b_face = *(face_t **) b;
 
-	return TexinfoCmp(a_face->texinfo, b_face->texinfo);
+	int32_t order = TexinfoCmp(a_face->texinfo, b_face->texinfo);
+	if (order == 0) {
+		const int32_t a_contents = a_face->contents & CONTENTS_MASK_FACE_CMP;
+		const int32_t b_contents = b_face->contents & CONTENTS_MASK_FACE_CMP;
+		order = a_contents - b_contents;
+	}
+
+	return order;
 }
 
 /**
@@ -134,11 +141,7 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 
 			const bsp_face_t *b = faces + j;
 
-			if (TexinfoCmp(a->texinfo, b->texinfo)) {
-				break;
-			}
-
-			if (a->contents != b->contents) {
+			if (FaceCmp(a, b)) {
 				break;
 			}
 
