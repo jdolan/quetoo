@@ -301,6 +301,9 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 		model->first_face = LittleLong(model->first_face);
 		model->num_faces = LittleLong(model->num_faces);
 
+		model->first_draw_elements = LittleLong(model->first_draw_elements);
+		model->num_draw_elements = LittleLong(model->num_draw_elements);
+
 		model++;
 	}
 }

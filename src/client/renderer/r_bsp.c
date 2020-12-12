@@ -116,13 +116,13 @@ static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *depth) {
 
 	node->blend_depth = *depth = (*depth) + 1;
 
-	r_bsp_draw_elements_t *draw = node->draw_elements;
-	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
-
-		if (draw->texinfo->flags & SURF_MASK_BLEND) {
-			g_ptr_array_add(node->model->alpha_blend_draw_elements, draw);
-		}
-	}
+//	r_bsp_draw_elements_t *draw = node->draw_elements;
+//	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
+//
+//		if (draw->texinfo->flags & SURF_MASK_BLEND) {
+//			g_ptr_array_add(node->model->alpha_blend_draw_elements, draw);
+//		}
+//	}
 
 	R_UpdateNodeBlendDepth_r(node->children[!side], depth);
 }
@@ -179,7 +179,6 @@ void R_UpdateVis(void) {
 			}
 
 			leaf->vis_frame = r_locals.vis_frame;
-			r_view.count_bsp_leafs++;
 
 			for (r_bsp_node_t *node = leaf->parent; node; node = node->parent) {
 
@@ -192,13 +191,8 @@ void R_UpdateVis(void) {
 				}
 
 				node->vis_frame = r_locals.vis_frame;
-				node->lights_mask = 0;
 				node->blend_depth = 0;
 				node->blend_depth_count = 0;
-
-				if (node->num_draw_elements) {
-					r_view.count_bsp_nodes++;
-				}
 			}
 		}
 	}
@@ -222,7 +216,6 @@ void R_UpdateVis(void) {
 					}
 
 					node->vis_frame = r_locals.vis_frame;
-					node->lights_mask = 0;
 					node->blend_depth = 0;
 					node->blend_depth_count = 0;
 				}

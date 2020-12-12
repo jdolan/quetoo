@@ -142,10 +142,6 @@ static void Cl_DrawRendererStats(void) {
 
 	R_Draw2DString(x, y, va("%d inline models", r_view.count_bsp_inline_models), color_red);
 	y += ch;
-	R_Draw2DString(x, y, va("%d leafs", r_view.count_bsp_leafs), color_red);
-	y += ch;
-	R_Draw2DString(x, y, va("%d nodes", r_view.count_bsp_nodes), color_red);
-	y += ch;
 	R_Draw2DString(x, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_red);
 	y += ch;
 	R_Draw2DString(x, y, va("%d triangles", r_view.count_bsp_triangles), color_red);

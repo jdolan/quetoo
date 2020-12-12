@@ -126,20 +126,20 @@ static void ProcessModels(void) {
 	for (int32_t i = 0; i < num_entities; i++) {
 		const entity_t *e = entities + i;
 
-		if (!e->num_brushes) {
+		if (!e->num_brushes) { 
 			continue;
 		}
 
 		const vec3_t origin = VectorForKey(e, "origin", Vec3_Zero());
 		Com_Print("%s @ %s\n", ValueForKey(e, "classname", "Unknown"), vtos(origin));
 
-		BeginModel(e);
+		bsp_model_t *mod = BeginModel(e);
 		if (i == 0) {
 			ProcessWorldModel(e);
 		} else {
 			ProcessInlineModel(e);
 		}
-		EndModel();
+		EndModel(mod);
 
 		Com_Print("\n");
 	}

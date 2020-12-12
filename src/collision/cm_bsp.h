@@ -214,20 +214,6 @@ typedef struct {
 	bsp_face_lightmap_t lightmap;
 } bsp_face_t;
 
-/**
- * @brief Faces within each node are grouped by texture and merged into draw elements.
- */
-typedef struct {
-	int32_t texinfo;
-	int32_t contents;
-
-	int32_t first_face;
-	int32_t num_faces;
-
-	int32_t first_element;
-	int32_t num_elements;
-} bsp_draw_elements_t;
-
 typedef struct {
 	int32_t plane_num;
 	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
@@ -238,8 +224,6 @@ typedef struct {
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
 
-	int32_t first_draw_elements;
-	int32_t num_draw_elements;
 } bsp_node_t;
 
 typedef struct {
@@ -255,6 +239,17 @@ typedef struct {
 	int32_t first_leaf_brush;
 	int32_t num_leaf_brushes;
 } bsp_leaf_t;
+
+/**
+ * @brief Faces within each model are grouped by texture and merged into draw elements.
+ */
+typedef struct {
+	int32_t texinfo;
+	int32_t contents;
+
+	int32_t first_element;
+	int32_t num_elements;
+} bsp_draw_elements_t;
 
 typedef struct {
 	int32_t head_node;

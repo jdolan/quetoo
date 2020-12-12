@@ -356,9 +356,10 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
- * @brief BSP draw elements, which include one or more faces on a given node.
- * @remarks Draw elements may span both sides of the node. We rely on back face culling to deal
- * with that, and avoid the work of testing and marking plane sidedness.
+ * @brief BSP draw elements, which include all faces of a given material
+ * within a particular inline model. These are drawn in (ideally large)
+ * glDrawElements calls. A depth-only pre-pass and back-face culling are
+ * used to minimize overdraw.
  */
 typedef struct {
 	struct r_bsp_node_s *node;
@@ -376,18 +377,7 @@ typedef struct {
 } r_bsp_draw_elements_t;
 
 /**
- * @brief BSP nodes comprise the tree representation of the world. At compile
- * time, the map is divided into convex volumes that fall along brushes
- * (walls). These volumes become nodes. The planes these divisions create
- * provide a basis for testing all other nodes in the world for sidedness
- * using the dot-product check: DOT(point, plane.normal) - plane.dist.
- * Starting from the origin, this information is gathered into a tree structure
- * with which a simple recursion can quickly determine:
- *
- *  a. Which nodes are in front of my view vector from my current origin?
- *  b. Of those, which nodes are facing me?
- *
- * This is the basis for all collision detection and rendering in Quake.
+ * @brief BSP nodes comprise the tree representation of the world.
  */
 struct r_bsp_node_s {
 	// common with leaf
@@ -408,11 +398,6 @@ struct r_bsp_node_s {
 	r_bsp_face_t *faces;
 	int32_t num_faces;
 
-	r_bsp_draw_elements_t *draw_elements;
-	int32_t num_draw_elements;
-
-	int32_t lights_mask;
-	
 	int32_t blend_depth;
 	int32_t blend_depth_count;
 };
@@ -1114,8 +1099,6 @@ typedef struct {
 	// counters, reset each frame
 
 	int32_t count_bsp_inline_models;
-	int32_t count_bsp_leafs;
-	int32_t count_bsp_nodes;
 	int32_t count_bsp_draw_elements;
 	int32_t count_bsp_triangles;
 

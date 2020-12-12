@@ -175,9 +175,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
 
-		out->num_faces = in->num_faces;
-		out->faces = bsp->faces + in->first_face;
-
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 
@@ -244,9 +241,6 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
 
-		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
-		out->num_draw_elements = in->num_draw_elements;
-
 		for (int32_t j = 0; j < 2; j++) {
 			const int32_t c = in->children[j];
 			if (c >= 0) {
@@ -273,11 +267,6 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 	r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 		face->node = node;
-	}
-
-	r_bsp_draw_elements_t *draw = node->draw_elements;
-	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
-		draw->node = node;
 	}
 
 	R_SetupBspNode(node->children[0], node, model);

@@ -325,12 +325,6 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
 	for (guint i = 0; i < in->opaque_draw_elements->len; i++) {
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->opaque_draw_elements, i);
 
-		if (draw->node->vis_frame != r_locals.vis_frame) {
-			continue;
-		}
-
-		glUniform1i(r_bsp_program.lights_mask, draw->node->lights_mask);
-
 		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
 
 			if (material != draw->texinfo->material) {
@@ -412,8 +406,6 @@ static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, cons
 		if (R_DrawBspInlineModelAlphaBlendNode(draw->node)) {
 			material = NULL;
 		}
-
-		glUniform1i(r_bsp_program.lights_mask, draw->node->lights_mask);
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

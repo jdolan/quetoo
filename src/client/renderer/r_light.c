@@ -39,36 +39,6 @@ void R_AddLight(const r_light_t *in) {
 	*out = *in;
 }
 
-/**
- * @brief Recursively populates light source bit masks for world nodes.
- */
-static void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
-
-	if (node->contents != CONTENTS_NODE) {
-		return;
-	}
-
-	if (node->vis_frame != r_locals.vis_frame) {
-		return;
-	}
-
-	const float dist = Cm_DistanceToPlane(l->origin, node->plane);
-
-	if (dist > l->radius) {
-		R_MarkLight(l, node->children[0]);
-		return;
-	}
-
-	if (dist < -l->radius) {
-		R_MarkLight(l, node->children[1]);
-		return;
-	}
-
-	node->lights_mask |= (1 << (l - r_view.lights));
-
-	R_MarkLight(l, node->children[0]);
-	R_MarkLight(l, node->children[1]);
-}
 
 /**
  * @brief Marks lights in world space, and transforms them to view space for rendering.
@@ -81,8 +51,6 @@ void R_UpdateLights(void) {
 	r_light_t *in = r_view.lights;
 	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
 
-		R_MarkLight(in, r_world_model->bsp->nodes);
-
 		const vec3_t origin = in->origin;
 
 		r_entity_t *e = r_view.entities;
@@ -90,10 +58,6 @@ void R_UpdateLights(void) {
 
 			if (e->model) {
 				switch (e->model->type) {
-					case MOD_BSP_INLINE:
-						Matrix4x4_Transform(&e->inverse_matrix, origin.xyz, in->origin.xyz);
-						R_MarkLight(in, e->model->bsp_inline->head_node);
-						break;
 					case MOD_MESH:
 						if (Vec3_Distance(e->origin, in->origin) < e->model->radius + in->radius) {
 							e->lights |= (1 << (in - r_view.lights));
