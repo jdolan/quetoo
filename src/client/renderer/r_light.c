@@ -41,35 +41,15 @@ void R_AddLight(const r_light_t *in) {
 
 
 /**
- * @brief Marks lights in world space, and transforms them to view space for rendering.
+ * @brief Transforms all active light sources to view space for rendering.
  */
 void R_UpdateLights(void) {
 
 	memset(r_uniforms.block.lights, 0, sizeof(r_uniforms.block.lights));
 	r_light_t *out = r_uniforms.block.lights;
 
-	r_light_t *in = r_view.lights;
+	const r_light_t *in = r_view.lights;
 	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
-
-		const vec3_t origin = in->origin;
-
-		r_entity_t *e = r_view.entities;
-		for (int32_t j = 0; j < r_view.num_entities; j++, e++) {
-
-			if (e->model) {
-				switch (e->model->type) {
-					case MOD_MESH:
-						if (Vec3_Distance(e->origin, in->origin) < e->model->radius + in->radius) {
-							e->lights |= (1 << (in - r_view.lights));
-						}
-						break;
-					default:
-						break;
-				}
-			}
-
-			in->origin = origin;
-		}
 
 		*out = *in;
 

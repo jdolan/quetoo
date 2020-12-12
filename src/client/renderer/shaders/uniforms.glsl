@@ -92,6 +92,11 @@ layout (std140) uniform uniforms {
 	light_t lights[MAX_LIGHTS];
 
 	/**
+	 * @brief The number of active light sources.
+	 */
+	int num_lights;
+
+	/**
 	 * @brief The renderer time, in milliseconds.
 	 */
 	int ticks;

@@ -70,8 +70,6 @@ static struct {
 		GLint shell;
 	} stage;
 
-	GLint lights_mask;
-
 	GLint tint_colors;
 
 	GLint ambient;
@@ -272,7 +270,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
-	glUniform1i(r_mesh_program.lights_mask, e->lights);
 
 	const r_mesh_face_t *face = mesh->faces;
 	for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
@@ -453,8 +450,6 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
 	r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
 	r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
-
-	r_mesh_program.lights_mask = glGetUniformLocation(r_mesh_program.name, "lights_mask");
 
 	r_mesh_program.ambient = glGetUniformLocation(r_mesh_program.name, "ambient");
 

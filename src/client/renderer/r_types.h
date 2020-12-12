@@ -979,11 +979,6 @@ typedef struct r_entity_s {
 	vec4_t tints[TINT_TOTAL];
 
 	/**
-	 * @brief The entity light mask for dynamic light sources.
-	 */
-	int32_t lights;
-
-	/**
 	 * @brief The alpha blended depth in which this entity should be rendered.
 	 */
 	int32_t blend_depth;

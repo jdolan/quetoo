@@ -71,8 +71,6 @@ static struct {
 		GLint warp;
 	} stage;
 
-	GLint lights_mask;
-
 	r_image_t *warp_image;
 } r_bsp_program;
 
@@ -576,8 +574,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.stage.terrain = glGetUniformLocation(r_bsp_program.name, "stage.terrain");
 	r_bsp_program.stage.dirtmap = glGetUniformLocation(r_bsp_program.name, "stage.dirtmap");
 	r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
-
-	r_bsp_program.lights_mask = glGetUniformLocation(r_bsp_program.name, "lights_mask");
 
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
