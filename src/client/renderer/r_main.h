@@ -233,7 +233,7 @@ typedef struct {
 extern r_uniforms_t r_uniforms;
 
 // development tools
-extern cvar_t *r_blend;
+extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;
 extern cvar_t *r_draw_bsp_lightgrid;

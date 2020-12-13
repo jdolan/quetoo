@@ -38,20 +38,23 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
  */
 int32_t R_BlendDepthForPoint(const vec3_t p) {
 
-	vec3_t mins, maxs;
-	Cm_TraceBounds(r_view.origin, p, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
+	if (r_blend_depth_sorting->value) {
 
-	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
-	for (guint i = 0; i < in->blend_nodes->len; i++) {
+		vec3_t mins, maxs;
+		Cm_TraceBounds(r_view.origin, p, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
 
-		r_bsp_node_t *node = g_ptr_array_index(in->blend_nodes, i);
+		const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
+		for (guint i = 0; i < in->blend_nodes->len; i++) {
 
-		if (SignOf(Cm_DistanceToPlane(p, node->plane)) !=
-			SignOf(Cm_DistanceToPlane(r_view.origin, node->plane))) {
+			r_bsp_node_t *node = g_ptr_array_index(in->blend_nodes, i);
 
-			if (Vec3_BoxIntersect(mins, maxs, node->mins, node->maxs)) {
-				node->blend_depth_count++;
-				return node->blend_depth;
+			if (SignOf(Cm_DistanceToPlane(p, node->plane)) !=
+				SignOf(Cm_DistanceToPlane(r_view.origin, node->plane))) {
+
+				if (Vec3_BoxIntersect(mins, maxs, node->mins, node->maxs)) {
+					node->blend_depth_count++;
+					return node->blend_depth;
+				}
 			}
 		}
 	}

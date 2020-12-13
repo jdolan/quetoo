@@ -33,7 +33,7 @@ r_locals_t r_locals;
 r_config_t r_config;
 r_uniforms_t r_uniforms;
 
-cvar_t *r_blend;
+cvar_t *r_blend_depth_sorting;
 cvar_t *r_clear;
 cvar_t *r_cull;
 cvar_t *r_draw_bsp_lightgrid;
@@ -518,7 +518,7 @@ static void R_ToggleFullscreen_f(void) {
 static void R_InitLocal(void) {
 
 	// development tools
-	r_blend = Cvar_Add("r_blend", "1", CVAR_DEVELOPER, "Controls alpha blending operations (developer tool)");
+	r_blend_depth_sorting = Cvar_Add("r_blend_depth_sorting", "1", CVAR_DEVELOPER, "Controls alpha blending sorting (developer tool)");
 	r_clear = Cvar_Add("r_clear", "0", CVAR_DEVELOPER, "Controls buffer clearing (developer tool)");
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
