@@ -465,7 +465,9 @@ void R_DrawWorld(void) {
 
 	glUniform1f(r_bsp_program.alpha_threshold, .125f);
 
-	glDepthMask(GL_FALSE);
+	if (r_draw_depth_pass->value) {
+		glDepthMask(GL_FALSE);
+	}
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 	R_DrawBspInlineModelDrawElements(NULL, r_world_model->bsp->inline_models);
@@ -481,7 +483,9 @@ void R_DrawWorld(void) {
 		}
 	}
 
-	glDepthMask(GL_TRUE);
+	if (r_draw_depth_pass->value) {
+		glDepthMask(GL_TRUE);
+	}
 
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 

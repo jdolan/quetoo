@@ -38,6 +38,7 @@ cvar_t *r_clear;
 cvar_t *r_cull;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_normals;
+cvar_t *r_draw_depth_pass;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
 
@@ -522,6 +523,7 @@ static void R_InitLocal(void) {
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
+	r_draw_depth_pass = Cvar_Add("r_draw_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth optimization pass (developer tool");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 

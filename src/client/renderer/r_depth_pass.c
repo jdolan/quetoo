@@ -51,6 +51,10 @@ static void R_DrawBspInlineModelDepthPass(const r_entity_t *e, const r_bsp_inlin
  */
 void R_DrawDepthPass(void) {
 
+	if (!r_draw_depth_pass->value) {
+		return;
+	}
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
