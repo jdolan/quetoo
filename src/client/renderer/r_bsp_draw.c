@@ -370,16 +370,21 @@ static void R_DrawBspInlineModelBlendFaces(const r_entity_t *e, const r_bsp_inli
 	for (guint i = 0; i < in->blend_nodes->len; i++) {
 		r_bsp_node_t *node = g_ptr_array_index(in->blend_nodes, i);
 
-		if (node->blend_depth_count) {
+		if (node->blend_depth_types) {
+
 			glBlendFunc(GL_ONE, GL_ZERO);
 			glDisable(GL_BLEND);
 
 			glDisable(GL_DEPTH_TEST);
 			glDisable(GL_CULL_FACE);
 
-			R_DrawEntities(node->blend_depth);
+			if (node->blend_depth_types & BLEND_DEPTH_ENTITY) {
+				R_DrawEntities(node->blend_depth);
+			}
 
-			R_DrawSprites(node->blend_depth);
+			if (node->blend_depth_types & BLEND_DEPTH_SPRITE) {
+				R_DrawSprites(node->blend_depth);
+			}
 
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_CULL_FACE);
@@ -393,7 +398,7 @@ static void R_DrawBspInlineModelBlendFaces(const r_entity_t *e, const r_bsp_inli
 			glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
 
-			node->blend_depth_count = 0;
+			node->blend_depth_types = BLEND_DEPTH_NONE;
 			material = NULL;
 		}
 

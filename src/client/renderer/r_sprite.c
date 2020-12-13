@@ -43,42 +43,7 @@ static struct {
 	GLuint vertex_buffer;
 	GLuint index_buffer;
 
-	uint64_t *blend_depth_bitset;
 } r_sprites;
-
-// FIXME: is there a better calc for this? is a hashtable a better idea?
-#define BLEND_DEPTH_BITSET_SIZE			65536u / 64u
-
-static void R_InitSpriteBitSet(void) {
-	r_sprites.blend_depth_bitset = Mem_Malloc(BLEND_DEPTH_BITSET_SIZE * sizeof(uint64_t));
-}
-
-static void R_DestroySpriteBitSet(void) {
-	Mem_Free(r_sprites.blend_depth_bitset);
-	r_sprites.blend_depth_bitset = NULL;
-}
-
-static void R_ClearSpriteBitSet(void) {
-	memset(r_sprites.blend_depth_bitset, 0, BLEND_DEPTH_BITSET_SIZE * sizeof(uint64_t));
-}
-
-static void R_MarkSpriteBlendDepth(const int32_t blend_depth) {
-
-	const uint64_t shiftedi = blend_depth >> 6;
-
-	assert(shiftedi < BLEND_DEPTH_BITSET_SIZE);
-
-	r_sprites.blend_depth_bitset[shiftedi] |= ((uint64_t)1) << (blend_depth % 64);
-}
-
-static _Bool R_IsSpriteBlendDepthSet(const int32_t blend_depth) {
-
-	const uint64_t shiftedi = blend_depth >> 6;
-
-	assert(shiftedi < BLEND_DEPTH_BITSET_SIZE);
-
-	return (r_sprites.blend_depth_bitset[shiftedi] & (((uint64_t)1) << (blend_depth % 64))) != 0;
-}
 
 /**
  * @brief The draw program.
@@ -204,7 +169,7 @@ void R_AddSprite(const r_sprite_t *s) {
 	}
 
 	const r_image_t *image = R_ResolveSpriteImage(s->media, s->life);
-	const float aspectRatio = (float) image->width / (float) image->height;
+	const float aspect_ratio = (float) image->width / (float) image->height;
 	r_sprite_vertex_t *out = r_sprites.sprites + (r_view.num_sprites * 4);
 	const float size = s->size * .5f;
 	
@@ -233,7 +198,7 @@ void R_AddSprite(const r_sprite_t *s) {
 
 	Vec3_Vectors(dir, NULL, &right, &up);
 
-	const vec3_t u = Vec3_Scale(up, size), d = Vec3_Scale(up, -size), l = Vec3_Scale(right, -size * aspectRatio), r = Vec3_Scale(right, size * aspectRatio);
+	const vec3_t u = Vec3_Scale(up, size), d = Vec3_Scale(up, -size), l = Vec3_Scale(right, -size * aspect_ratio), r = Vec3_Scale(right, size * aspect_ratio);
 	
 	out[0].position = Vec3_Add(Vec3_Add(s->origin, u), l);
 	out[1].position = Vec3_Add(Vec3_Add(s->origin, u), r);
@@ -274,6 +239,9 @@ typedef struct {
 	int32_t start_blend_depth;
 } r_beam_segment_t;
 
+/**
+ * @brief
+ */
 static int32_t R_BeamSegmentCompare(const void *a, const void *b) {
 	
 	const r_beam_segment_t *beam_a = (const r_beam_segment_t *) a;
@@ -302,7 +270,6 @@ void R_AddBeam(const r_beam_t *b) {
 	}
 
 	vec3_t mins, maxs;
-
 	Cm_TraceBounds(b->start, b->end, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
 
 	if (R_CullBox(mins, maxs)) {
@@ -332,12 +299,12 @@ static void R_CreateBeams(void) {
 
 		// construct segments
 		r_beam_segment_t segments[MAX_BEAM_SEGMENTS] = {
-			{ .start = 0, .end = 1, .start_blend_depth = R_BlendDepthForPoint(b->start) }
+			{ .start = 0, .end = 1, .start_blend_depth = R_BlendDepthForPoint(b->start, BLEND_DEPTH_SPRITE) }
 		}, *free_segment = segments + 1;
 	
 		for (r_beam_segment_t *segment = segments; segment < free_segment && free_segment != segments + MAX_BEAM_SEGMENTS && (r_view.num_sprites + (free_segment - segment)) < MAX_SPRITES; ) {
 
-			const int32_t end_blend_depth = R_BlendDepthForPoint(Vec3_Mix(b->start, b->end, segment->end));
+			const int32_t end_blend_depth = R_BlendDepthForPoint(Vec3_Mix(b->start, b->end, segment->end), BLEND_DEPTH_SPRITE);
 
 			if (segment->start_blend_depth == end_blend_depth) {
 				segment++;
@@ -425,15 +392,8 @@ void R_UpdateSprites(void) {
 
 	R_GetError(NULL);
 
-	R_ClearSpriteBitSet();
-
 	r_sprite_vertex_t *out = r_sprites.sprites;
 	for (int32_t i = 0; i < r_view.num_sprites; i++, out += 4) {
-
-		if (out[0].blend_depth != -1) {
-			R_MarkSpriteBlendDepth(out[0].blend_depth);
-			continue;
-		}
 
 		vec3_t center = Vec3_Zero();
 		for (int32_t j = 0; j < 4; j++) {
@@ -444,8 +404,7 @@ void R_UpdateSprites(void) {
 		out[0].blend_depth =
 		out[1].blend_depth =
 		out[2].blend_depth =
-		out[3].blend_depth = R_BlendDepthForPoint(center);
-		R_MarkSpriteBlendDepth(out[0].blend_depth);
+		out[3].blend_depth = R_BlendDepthForPoint(center, BLEND_DEPTH_SPRITE);
 	}
 
 	R_CreateBeams();
@@ -463,7 +422,7 @@ void R_UpdateSprites(void) {
  */
 void R_DrawSprites(int32_t blend_depth) {
 
-	if (!r_view.num_sprites || !R_IsSpriteBlendDepthSet(blend_depth)) {
+	if (!r_view.num_sprites) {
 		return;
 	}
 	
@@ -625,8 +584,6 @@ void R_InitSprites(void) {
 	R_GetError(NULL);
 
 	R_InitSpriteProgram();
-
-	R_InitSpriteBitSet();
 }
 
 /**
@@ -649,6 +606,4 @@ void R_ShutdownSprites(void) {
 	glDeleteBuffers(1, &r_sprites.index_buffer);
 
 	R_ShutdownSpriteProgram();
-
-	R_DestroySpriteBitSet();
 }

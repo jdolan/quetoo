@@ -24,6 +24,13 @@
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p);
 
 #ifdef __R_LOCAL_H__
-int32_t R_BlendDepthForPoint(const vec3_t p);
+
+typedef enum {
+	BLEND_DEPTH_NONE   = 0x0,
+	BLEND_DEPTH_ENTITY = 0x1,
+	BLEND_DEPTH_SPRITE = 0x2
+} r_blend_depth_type_t;
+
+int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t);
 void R_UpdateVisibility(void);
 #endif /* __R_LOCAL_H__ */

@@ -394,10 +394,11 @@ struct r_bsp_node_s {
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
+	
 	int32_t num_blend_faces;
 
 	int32_t blend_depth;
-	int32_t blend_depth_count;
+	int32_t blend_depth_types;
 };
 
 typedef struct r_bsp_node_s r_bsp_node_t;

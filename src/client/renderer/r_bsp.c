@@ -34,9 +34,9 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 }
 
 /**
- * @return The node behind which the specified point should be rendered for alpha blending.
+ * @return The blend depth at which the specified point should be rendered for alpha blending.
  */
-int32_t R_BlendDepthForPoint(const vec3_t p) {
+int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t type) {
 
 	if (r_blend_depth_sorting->value) {
 
@@ -52,7 +52,7 @@ int32_t R_BlendDepthForPoint(const vec3_t p) {
 				SignOf(Cm_DistanceToPlane(r_view.origin, node->plane))) {
 
 				if (Vec3_BoxIntersect(mins, maxs, node->mins, node->maxs)) {
-					node->blend_depth_count++;
+					node->blend_depth_types |= type;
 					return node->blend_depth;
 				}
 			}
@@ -86,6 +86,8 @@ static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *blend_depth) {
 
 	if (node->num_blend_faces) {
 		node->blend_depth = *blend_depth = (*blend_depth) + 1;
+		node->blend_depth_types = BLEND_DEPTH_NONE;
+
 		g_ptr_array_add(node->model->blend_nodes, node);
 	}
 

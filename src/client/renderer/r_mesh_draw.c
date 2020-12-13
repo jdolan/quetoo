@@ -85,7 +85,7 @@ void R_UpdateMeshEntities(void) {
 	r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 		if (IS_MESH_MODEL(e->model)) {
-			e->blend_depth = R_BlendDepthForPoint(e->origin);
+			e->blend_depth = R_BlendDepthForPoint(e->origin, BLEND_DEPTH_ENTITY);
 		}
 	}
 
@@ -342,16 +342,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
  */
 void R_DrawMeshEntities(int32_t blend_depth) {
 
-	int32_t i;
-	for (i = 0; i < r_view.num_entities; i++) {
-		if (IS_MESH_MODEL(r_view.entities[i].model)) {
-			if (r_view.entities[i].blend_depth == blend_depth) {
-				break;
-			}
-		}
-	}
-
-	if (i == r_view.num_entities) {
+	if (!r_view.num_entities) {
 		return;
 	}
 
