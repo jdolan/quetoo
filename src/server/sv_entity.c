@@ -132,21 +132,6 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 }
 
 /**
- * @brief Resolve the visibility data for the bounding box around the client. The
- * bounding box provides some leniency because the client's actual view origin
- * is likely slightly different than what we think it is.
- */
-static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
-
-	// spread the bounds to account for view offset
-	const vec3_t mins = Vec3_Add(org, Vec3(-16.f, -16.f, -16.f));
-	const vec3_t maxs = Vec3_Add(org, Vec3( 16.f,  16.f,  16.f));
-
-	Cm_BoxPVS(mins, maxs, pvs);
-	Cm_BoxPHS(mins, maxs, phs);
-}
-
-/**
  * @brief Decides which entities are going to be visible to the client, and
  * copies off the player state.
  */
@@ -164,15 +149,6 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	// grab the current player_state_t
 	frame->ps = cent->client->ps;
 
-	// find the client's PVS
-	const pm_state_t *pm = &cent->client->ps.pm_state;
-
-	const vec3_t org = Vec3_Add(pm->origin, pm->view_offset);
-
-	// resolve the visibility data
-	byte pvs[MAX_BSP_LEAFS >> 3], phs[MAX_BSP_LEAFS >> 3];
-	Sv_ClientVisibility(org, pvs, phs);
-
 	// build up the list of relevant entities
 	frame->num_entities = 0;
 	frame->entity_state = svs.next_entity_state;
@@ -188,30 +164,6 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		// ignore entities without visible presence unless they have an effect
 		if (!ent->s.event && !ent->s.effects && !ent->s.trail && !ent->s.model1 && !ent->s.sound) {
 			continue;
-		}
-
-		// ignore entities not in PVS / PHS
-		if (ent != cent) {
-			const sv_entity_t *sent = &sv.entities[e];
-
-			const byte *vis = ent->s.sound || ent->s.event ? phs : pvs;
-
-			if (sent->num_clusters < 1) { // use top_node
-				if (!Cm_HeadnodeVisible(sent->top_node, vis)) {
-					continue;
-				}
-			} else { // or check individual leafs
-				int32_t i;
-				for (i = 0; i < sent->num_clusters; i++) {
-					const int32_t c = sent->clusters[i];
-					if (vis[c >> 3] & (1 << (c & 7))) {
-						break;
-					}
-				}
-				if (i == sent->num_clusters) {
-					continue; // not visible
-				}
-			}
 		}
 
 		// copy it to the circular entity_state_t array

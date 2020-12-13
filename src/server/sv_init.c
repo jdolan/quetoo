@@ -157,8 +157,6 @@ static void Sv_UpdateLatchedVars(void) {
 	Cvar_UpdateLatched();
 
 	sv_max_clients->integer = Clampf(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
-
-	cm_no_vis = sv_no_vis->integer;
 }
 
 /**

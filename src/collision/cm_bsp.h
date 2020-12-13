@@ -29,7 +29,6 @@
 #define MAX_BSP_LEAFS			0x20000
 #define MAX_BSP_MODELS			0x400
 #define MAX_BSP_PORTALS			0x20000
-#define MAX_BSP_VIS_SIZE		0x200000
 #define MAX_BSP_LIGHTMAP_SIZE	0x60000000
 #define MAX_BSP_LIGHTGRID_SIZE	0x1200000
 
@@ -122,7 +121,6 @@ typedef enum {
 	BSP_LUMP_LEAF_FACES,
 	BSP_LUMP_LEAFS,
 	BSP_LUMP_MODELS,
-	BSP_LUMP_VIS,
 	BSP_LUMP_LIGHTMAP,
 	BSP_LUMP_LIGHTGRID,
 	BSP_LUMP_LAST
@@ -269,17 +267,6 @@ typedef struct {
 	int32_t num_draw_elements;
 } bsp_model_t;
 
-// the visibility lump consists of a header with a count, then
-// byte offsets for the PVS and PHS of each cluster, then the raw
-// compressed bit vectors
-#define VIS_PVS	0
-#define VIS_PHS	1
-
-typedef struct {
-	int32_t num_clusters;
-	int32_t bit_offsets[8][2]; // bit_offsets[num_clusters][2]
-} bsp_vis_t;
-
 /**
  * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
  * @details The first layer contains diffuse light color, while the second layer contains
@@ -347,9 +334,6 @@ typedef struct {
 
 	int32_t num_models;
 	bsp_model_t *models;
-
-	int32_t vis_size;
-	bsp_vis_t *vis;
 
 	int32_t lightmap_size;
 	bsp_lightmap_t *lightmap;

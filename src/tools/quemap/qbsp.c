@@ -185,7 +185,7 @@ int32_t BSP_Main(void) {
 
 	FreeWindings();
 
-	for (int32_t tag = MEM_TAG_QBSP; tag < MEM_TAG_QVIS; tag++) {
+	for (int32_t tag = MEM_TAG_QBSP; tag < MEM_TAG_QLIGHT; tag++) {
 		Mem_FreeTag(tag);
 	}
 

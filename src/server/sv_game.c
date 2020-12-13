@@ -174,19 +174,8 @@ static void Sv_WriteAngles(const vec3_t angles) {
  * @brief
  */
 static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
-	byte pvs[MAX_BSP_LEAFS >> 3];
 
-	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
-	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
-
-	const int32_t cluster1 = Cm_LeafCluster(leaf1);
-	const int32_t cluster2 = Cm_LeafCluster(leaf2);
-
-	Cm_ClusterPVS(cluster1, pvs);
-
-	if ((pvs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
-		return false;
-	}
+	// TODO: Traces?
 
 	return true;
 }
@@ -195,19 +184,8 @@ static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
  * @brief
  */
 static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
-	byte phs[MAX_BSP_LEAFS >> 3];
 
-	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
-	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
-
-	const int32_t cluster1 = Cm_LeafCluster(leaf1);
-	const int32_t cluster2 = Cm_LeafCluster(leaf2);
-
-	Cm_ClusterPHS(cluster1, phs);
-
-	if ((phs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
-		return false;
-	}
+	// TODO: Distance threshold?
 
 	return true;
 }

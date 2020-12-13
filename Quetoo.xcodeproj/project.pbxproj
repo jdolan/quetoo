@@ -400,7 +400,6 @@
 		CE80FE3B1C5E424300A21A51 /* cm_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62A1C5C58C300CD0B13 /* cm_model.c */; };
 		CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62C1C5C58C300CD0B13 /* cm_test.c */; };
 		CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62E1C5C58C300CD0B13 /* cm_trace.c */; };
-		CE80FE3E1C5E424300A21A51 /* cm_vis.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6311C5C58C300CD0B13 /* cm_vis.c */; };
 		CE80FE671C5E433F00A21A51 /* net.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6901C5C58C300CD0B13 /* net.c */; };
 		CE80FE681C5E433F00A21A51 /* net_chan.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6921C5C58C300CD0B13 /* net_chan.c */; };
 		CE80FE691C5E433F00A21A51 /* net_message.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6941C5C58C300CD0B13 /* net_message.c */; };
@@ -417,7 +416,6 @@
 		CE80FE741C5E437F00A21A51 /* cm_test.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D62D1C5C58C300CD0B13 /* cm_test.h */; };
 		CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D62F1C5C58C300CD0B13 /* cm_trace.h */; };
 		CE80FE761C5E437F00A21A51 /* cm_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6301C5C58C300CD0B13 /* cm_types.h */; };
-		CE80FE771C5E437F00A21A51 /* cm_vis.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6321C5C58C300CD0B13 /* cm_vis.h */; };
 		CE80FE781C5E439200A21A51 /* shared.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B91C5C58C300CD0B13 /* shared.h */; };
 		CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5031C5C58C300CD0B13 /* ioapi.h */; };
 		CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5081C5C58C300CD0B13 /* zip.h */; };
@@ -535,7 +533,6 @@
 		CE80FFE41C5E4D1800A21A51 /* bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6E71C5C58C300CD0B13 /* bsp.c */; };
 		CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6E91C5C58C300CD0B13 /* csg.c */; };
 		CE80FFE61C5E4D1800A21A51 /* face.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EA1C5C58C300CD0B13 /* face.c */; };
-		CE80FFE71C5E4D1800A21A51 /* vis.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EB1C5C58C300CD0B13 /* vis.c */; };
 		CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EC1C5C58C300CD0B13 /* leakfile.c */; };
 		CE80FFE91C5E4D1800A21A51 /* lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6ED1C5C58C300CD0B13 /* lightmap.c */; };
 		CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EE1C5C58C300CD0B13 /* main.c */; };
@@ -548,7 +545,6 @@
 		CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FA1C5C58C300CD0B13 /* qbsp.c */; };
 		CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FC1C5C58C300CD0B13 /* qlight.c */; };
 		CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FE1C5C58C300CD0B13 /* qmat.c */; };
-		CE80FFF51C5E4D1800A21A51 /* qvis.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7001C5C58C300CD0B13 /* qvis.c */; };
 		CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7021C5C58C300CD0B13 /* qzip.c */; };
 		CE80FFF81C5E4D1800A21A51 /* texinfo.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7051C5C58C300CD0B13 /* texinfo.c */; };
 		CE80FFF91C5E4D1800A21A51 /* work.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7061C5C58C300CD0B13 /* work.c */; };
@@ -1271,8 +1267,6 @@
 		CE12D62E1C5C58C300CD0B13 /* cm_trace.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cm_trace.c; sourceTree = "<group>"; };
 		CE12D62F1C5C58C300CD0B13 /* cm_trace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cm_trace.h; sourceTree = "<group>"; };
 		CE12D6301C5C58C300CD0B13 /* cm_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cm_types.h; sourceTree = "<group>"; };
-		CE12D6311C5C58C300CD0B13 /* cm_vis.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cm_vis.c; sourceTree = "<group>"; };
-		CE12D6321C5C58C300CD0B13 /* cm_vis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cm_vis.h; sourceTree = "<group>"; };
 		CE12D6331C5C58C300CD0B13 /* collision.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = collision.h; sourceTree = "<group>"; };
 		CE12D6341C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D6361C5C58C300CD0B13 /* common.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = common.c; sourceTree = "<group>"; };
@@ -1409,7 +1403,6 @@
 		CE12D6E81C5C58C300CD0B13 /* bsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bsp.h; sourceTree = "<group>"; };
 		CE12D6E91C5C58C300CD0B13 /* csg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = csg.c; sourceTree = "<group>"; };
 		CE12D6EA1C5C58C300CD0B13 /* face.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = face.c; sourceTree = "<group>"; };
-		CE12D6EB1C5C58C300CD0B13 /* vis.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vis.c; sourceTree = "<group>"; };
 		CE12D6EC1C5C58C300CD0B13 /* leakfile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = leakfile.c; sourceTree = "<group>"; };
 		CE12D6ED1C5C58C300CD0B13 /* lightmap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = lightmap.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6EE1C5C58C300CD0B13 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -1428,8 +1421,6 @@
 		CE12D6FD1C5C58C300CD0B13 /* qlight.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qlight.h; sourceTree = "<group>"; };
 		CE12D6FE1C5C58C300CD0B13 /* qmat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qmat.c; sourceTree = "<group>"; };
 		CE12D6FF1C5C58C300CD0B13 /* quemap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = quemap.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		CE12D7001C5C58C300CD0B13 /* qvis.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qvis.c; sourceTree = "<group>"; };
-		CE12D7011C5C58C300CD0B13 /* qvis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qvis.h; sourceTree = "<group>"; };
 		CE12D7021C5C58C300CD0B13 /* qzip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qzip.c; sourceTree = "<group>"; };
 		CE12D7051C5C58C300CD0B13 /* texinfo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = texinfo.c; sourceTree = "<group>"; };
 		CE12D7061C5C58C300CD0B13 /* work.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = work.c; sourceTree = "<group>"; };
@@ -1727,7 +1718,6 @@
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
 		CEB8D6231E00B72100043814 /* cg_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_input.c; sourceTree = "<group>"; };
 		CEB8D6241E00B72100043814 /* cg_input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_input.h; sourceTree = "<group>"; };
-		CEBCE0C421CFC6AF00976E76 /* vis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vis.h; sourceTree = "<group>"; };
 		CEBCE0C521CFC6CE00976E76 /* leakfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = leakfile.h; sourceTree = "<group>"; };
 		CEBCE0C621CFD43500976E76 /* work.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = work.h; sourceTree = "<group>"; };
 		CEBCE0C721CFDD1600976E76 /* texinfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texinfo.h; sourceTree = "<group>"; };
@@ -2821,8 +2811,6 @@
 				CE12D62E1C5C58C300CD0B13 /* cm_trace.c */,
 				CE12D62F1C5C58C300CD0B13 /* cm_trace.h */,
 				CE12D6301C5C58C300CD0B13 /* cm_types.h */,
-				CE12D6311C5C58C300CD0B13 /* cm_vis.c */,
-				CE12D6321C5C58C300CD0B13 /* cm_vis.h */,
 				CE12D6331C5C58C300CD0B13 /* collision.h */,
 				CE12D6341C5C58C300CD0B13 /* Makefile.am */,
 			);
@@ -3046,8 +3034,6 @@
 				CE92B3A91D2FF72200E9153A /* quemap-icon.rc */,
 				CE12D6FF1C5C58C300CD0B13 /* quemap.h */,
 				CE92B3AA1D2FF77800E9153A /* quemap.ico */,
-				CE12D7001C5C58C300CD0B13 /* qvis.c */,
-				CE12D7011C5C58C300CD0B13 /* qvis.h */,
 				CE12D7021C5C58C300CD0B13 /* qzip.c */,
 				CE6FF29C1E9E6FBA00F3C160 /* qzip.h */,
 				CE12D7051C5C58C300CD0B13 /* texinfo.c */,
@@ -3056,8 +3042,6 @@
 				CE2E374421CABB8C00DB4648 /* tjunction.h */,
 				CE12D7071C5C58C300CD0B13 /* tree.c */,
 				CE2E374321CAB82800DB4648 /* tree.h */,
-				CE12D6EB1C5C58C300CD0B13 /* vis.c */,
-				CEBCE0C421CFC6AF00976E76 /* vis.h */,
 				CE12D7061C5C58C300CD0B13 /* work.c */,
 				CEBCE0C621CFD43500976E76 /* work.h */,
 				CE12D7081C5C58C300CD0B13 /* writebsp.c */,
@@ -3650,7 +3634,6 @@
 				CE80FE741C5E437F00A21A51 /* cm_test.h in Headers */,
 				CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */,
 				CE80FE761C5E437F00A21A51 /* cm_types.h in Headers */,
-				CE80FE771C5E437F00A21A51 /* cm_vis.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4978,12 +4961,10 @@
 				CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */,
 				CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */,
 				CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */,
-				CE80FFF51C5E4D1800A21A51 /* qvis.c in Sources */,
 				CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */,
 				CE80FFF81C5E4D1800A21A51 /* texinfo.c in Sources */,
 				CE91924D2055731E007AC8FF /* tjunction.c in Sources */,
 				CE80FFFA1C5E4D1800A21A51 /* tree.c in Sources */,
-				CE80FFE71C5E4D1800A21A51 /* vis.c in Sources */,
 				CE80FFF91C5E4D1800A21A51 /* work.c in Sources */,
 				CE80FFFB1C5E4D1800A21A51 /* writebsp.c in Sources */,
 			);
@@ -5016,7 +4997,6 @@
 				CE80FE3B1C5E424300A21A51 /* cm_model.c in Sources */,
 				CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */,
 				CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */,
-				CE80FE3E1C5E424300A21A51 /* cm_vis.c in Sources */,
 				CE3C529521E4DF2500FEDBED /* cm_polylib.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

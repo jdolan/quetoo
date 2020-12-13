@@ -164,7 +164,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
 	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
-	// link to PVS leafs
+	// link to leafs
 	sent->num_clusters = 0;
 
 	// get all leafs, including solids
