@@ -101,18 +101,6 @@ typedef struct {
 	const r_bsp_leaf_t *leaf; // the leaf at the view origin
 
 	/**
-	 * @brief The PVS and PHS data at the view origin.
-	 */
-	byte vis_data_pvs[MAX_BSP_LEAFS >> 3];
-	byte vis_data_phs[MAX_BSP_LEAFS >> 3];
-
-	/**
-	 * @brief The PVS frame counter. World elements must reference the current
-	 * frame in order to be drawn.
-	 */
-	int32_t vis_frame;
-
-	/**
 	 * @brief The stain frame counter.
 	 */
 	int32_t stain_frame;
@@ -248,8 +236,6 @@ extern r_uniforms_t r_uniforms;
 extern cvar_t *r_blend;
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;
-extern cvar_t *r_lock_vis;
-extern cvar_t *r_no_vis;
 extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;

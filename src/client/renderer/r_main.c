@@ -36,8 +36,6 @@ r_uniforms_t r_uniforms;
 cvar_t *r_blend;
 cvar_t *r_clear;
 cvar_t *r_cull;
-cvar_t *r_lock_vis;
-cvar_t *r_no_vis;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_entity_bounds;
@@ -314,11 +312,13 @@ void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
 
+	R_Clear();
+
 	R_UpdateFrustum();
 
-	R_DrawDepthPass();
+	R_UpdateVisibility();
 
-	R_UpdateVis();
+	R_DrawDepthPass();
 
 	R_UpdateEntities();
 
@@ -333,8 +333,6 @@ void R_DrawView(r_view_t *view) {
 	R_UpdateStains();
 
 	R_UpdateUniforms();
-
-	R_Clear();
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -376,6 +374,7 @@ void R_BeginFrame(void) {
 
 	r_view.count_bsp_inline_models = 0;
 	r_view.count_bsp_draw_elements = 0;
+	r_view.count_bsp_blend_nodes = 0;
 	r_view.count_bsp_triangles = 0;
 
 	r_view.count_mesh_models = 0;
@@ -521,8 +520,6 @@ static void R_InitLocal(void) {
 	r_blend = Cvar_Add("r_blend", "1", CVAR_DEVELOPER, "Controls alpha blending operations (developer tool)");
 	r_clear = Cvar_Add("r_clear", "0", CVAR_DEVELOPER, "Controls buffer clearing (developer tool)");
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
-	r_lock_vis = Cvar_Add("r_lock_vis", "0", CVAR_DEVELOPER, "Temporarily locks the PVS lookup for world surfaces (developer tool)");
-	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_DEVELOPER, "Disables PVS refresh and lookup for world surfaces (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
@@ -751,6 +748,8 @@ void R_Shutdown(void) {
 	R_ShutdownSprites();
 
 	R_ShutdownSky();
+
+	R_ShutdownDepthPass();
 
 	R_ShutdownUniforms();
 

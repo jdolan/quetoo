@@ -44,7 +44,6 @@ static struct {
 	GLint texture_stage;
 	GLint texture_warp;
 	GLint texture_lightgrid_fog;
-	GLint texture_depth_stencil_attachment;
 
 	GLint alpha_threshold;
 
@@ -316,116 +315,105 @@ static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp
 }
 
 /**
- * @brief Draws opaque draw elements for the specified inline model, ordered by material.
+ * @brief Draws the specified draw elements for the given entity.
+ * @param e The entity, or NULL for the world model.
+ * @param draw The draw elements command.
+ * @param material The currently bound material.
  */
-static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_bsp_inline_model_t *in) {
-	const r_material_t *material = NULL;
+static inline void R_DrawBspDrawElements(const r_entity_t *e, const r_bsp_draw_elements_t *draw, const r_material_t **material) {
 
-	for (guint i = 0; i < in->opaque_draw_elements->len; i++) {
-		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->opaque_draw_elements, i);
+	if (!(draw->texinfo->flags & SURF_MATERIAL)) {
 
-		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
+		if (*material != draw->texinfo->material) {
+			*material = draw->texinfo->material;
 
-			if (material != draw->texinfo->material) {
-				material = draw->texinfo->material;
+			glBindTexture(GL_TEXTURE_2D_ARRAY, (*material)->texture->texnum);
 
-				glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
-
-				glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
-				glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
-				glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
-				glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
-			}
-
-			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-			r_view.count_bsp_triangles += draw->num_elements / 3;
-			r_view.count_bsp_draw_elements++;
+			glUniform1f(r_bsp_program.material.roughness, (*material)->cm->roughness * r_roughness->value);
+			glUniform1f(r_bsp_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
+			glUniform1f(r_bsp_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
+			glUniform1f(r_bsp_program.material.parallax, (*material)->cm->parallax * r_parallax->value);
 		}
 
-		R_DrawBspDrawElementsMaterialStages(e, draw, draw->texinfo->material);
+		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+		r_view.count_bsp_triangles += draw->num_elements / 3;
+	}
+
+	R_DrawBspDrawElementsMaterialStages(e, draw, *material);
+}
+
+/**
+ * @brief Draws opaque draw elements for the specified inline model, ordered by material.
+ */
+static void R_DrawBspInlineModelDrawElements(const r_entity_t *e, const r_bsp_inline_model_t *in) {
+
+	const r_material_t *material = NULL;
+
+	const r_bsp_draw_elements_t *draw = in->draw_elements;
+	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
+		
+		R_DrawBspDrawElements(e, draw, &material);
+
+		r_view.count_bsp_draw_elements++;
 	}
 }
 
 /**
- *@brief Draws alpha blended objects with the specified node depth.
- *
- *@see R_NodeDepthForPoint
+ * @brief Draws alpha blended faces for the specified inline model, ordered back to front.
  */
-static int32_t R_DrawBspInlineModelBlendDepth(r_bsp_draw_elements_t *draw) {
-
-	const int32_t blend_depth_count = draw->blend_depth_count;
-	if (blend_depth_count) {
-
-		glBlendFunc(GL_ONE, GL_ZERO);
-		glDisable(GL_BLEND);
-
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-
-		R_DrawEntities(draw->blend_depth);
-
-		R_DrawSprites(draw->blend_depth);
-
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glUseProgram(r_bsp_program.name);
-		glBindVertexArray(r_world_model->bsp->vertex_array);
-
-		glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
-
-		R_GetError(NULL);
-
-		draw->blend_depth_count = 0;
-	}
-
-	return blend_depth_count;
-}
-
-/**
- * @brief Draws alpha blended draw elements for the specified inline model, ordered back to front.
- */
-static void R_DrawBspInlineModelAlphaBlendDrawElements(const r_entity_t *e, const r_bsp_inline_model_t *in) {
+static void R_DrawBspInlineModelBlendFaces(const r_entity_t *e, const r_bsp_inline_model_t *in) {
 
 	const r_material_t *material = NULL;
 
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
-	for (guint i = 0; i < in->alpha_blend_draw_elements->len; i++) {
-		r_bsp_draw_elements_t *draw = g_ptr_array_index(in->alpha_blend_draw_elements, i);
+	for (guint i = 0; i < in->blend_nodes->len; i++) {
+		r_bsp_node_t *node = g_ptr_array_index(in->blend_nodes, i);
 
-		// TODO: Box cull the transformed mins and maxs?
+		if (node->blend_depth_count) {
+			glBlendFunc(GL_ONE, GL_ZERO);
+			glDisable(GL_BLEND);
 
-		if (R_DrawBspInlineModelBlendDepth(draw)) {
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_CULL_FACE);
+
+			R_DrawEntities(node->blend_depth);
+
+			R_DrawSprites(node->blend_depth);
+
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_CULL_FACE);
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glUseProgram(r_bsp_program.name);
+			glBindVertexArray(r_world_model->bsp->vertex_array);
+
+			glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+
+			node->blend_depth_count = 0;
 			material = NULL;
 		}
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		if (!(draw->texinfo->flags & SURF_MATERIAL)) {
+		const r_bsp_face_t *face = node->faces;
+		for (int32_t j = 0; j < node->num_faces; j++, face++) {
 
-			if (material != draw->texinfo->material) {
-				material = draw->texinfo->material;
+			if (face->texinfo->flags & SURF_MASK_BLEND) {
+				const r_bsp_draw_elements_t draw = {
+					.texinfo = face->texinfo,
+					.contents = face->contents,
+					.elements = face->elements,
+					.num_elements = face->num_elements,
+				};
 
-				glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
-
-				glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
-				glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
-				glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
-				glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
+				R_DrawBspDrawElements(e, &draw, &material);
 			}
-
-			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-			r_view.count_bsp_triangles += draw->num_elements / 3;
-			r_view.count_bsp_draw_elements++;
 		}
-
-		R_DrawBspDrawElementsMaterialStages(e, draw, draw->texinfo->material);
 	}
 
 	glBlendFunc(GL_ONE, GL_ZERO);
@@ -473,15 +461,14 @@ void R_DrawWorld(void) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
 	glBindTexture(GL_TEXTURE_2D, r_bsp_program.warp_image->texnum);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
-
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
 	glUniform1f(r_bsp_program.alpha_threshold, .125f);
 
+	glDepthMask(GL_FALSE);
+
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
-	R_DrawBspInlineModelOpaqueDrawElements(NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineModelDrawElements(NULL, r_world_model->bsp->inline_models);
 
 	{
 		const r_entity_t *e = r_view.entities;
@@ -489,15 +476,17 @@ void R_DrawWorld(void) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-				R_DrawBspInlineModelOpaqueDrawElements(e, e->model->bsp_inline);
+				R_DrawBspInlineModelDrawElements(e, e->model->bsp_inline);
 			}
 		}
 	}
 
+	glDepthMask(GL_TRUE);
+
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
-	R_DrawBspInlineModelAlphaBlendDrawElements(NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineModelBlendFaces(NULL, r_world_model->bsp->inline_models);
 
 	{
 		const r_entity_t *e = r_view.entities;
@@ -505,7 +494,7 @@ void R_DrawWorld(void) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-				R_DrawBspInlineModelAlphaBlendDrawElements(e, e->model->bsp_inline);
+				R_DrawBspInlineModelBlendFaces(e, e->model->bsp_inline);
 			}
 		}
 	}
@@ -556,7 +545,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
-	r_bsp_program.texture_depth_stencil_attachment = glGetUniformLocation(r_bsp_program.name, "texture_depth_stencil_attachment");
 
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
@@ -585,7 +573,6 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
-	glUniform1i(r_bsp_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;

@@ -245,7 +245,7 @@ static void Cg_AddWeather(void) {
 	const cg_weather_emit_t *e = cg_weather_state.emits;
 
 	while (e) {
-		if (cgi.LeafHearable(e->leaf)) {
+		if (!cgi.CullBox(e->leaf->mins, e->leaf->maxs)) {
 			Cg_AddWeather_(e);
 		}
 		e = e->next;

@@ -146,9 +146,7 @@ static void Cg_misc_light_Init(cg_entity_t *self) {
  */
 static void Cg_misc_light_Think(cg_entity_t *self) {
 
-	if (cgi.LeafVisible(self->leaf)) {
-		Cg_AddLight((cg_light_t *) self->data);
-	}
+	Cg_AddLight((cg_light_t *) self->data);
 }
 
 /**
@@ -179,9 +177,7 @@ static void Cg_misc_model_Init(cg_entity_t *self) {
  */
 static void Cg_misc_model_Think(cg_entity_t *self) {
 
-	if (cgi.LeafVisible(self->leaf)) {
-		cgi.AddEntity((r_entity_t *) self->data);
-	}
+	cgi.AddEntity((r_entity_t *) self->data);
 }
 
 /**
@@ -226,9 +222,9 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
  */
 static void Cg_misc_sound_Think(cg_entity_t *self) {
 
-	if (cgi.LeafHearable(self->leaf)) {
-		cgi.AddSample((s_play_sample_t *) self->data);
-	}
+	const s_play_sample_t *sample = self->data;
+
+	cgi.AddSample(sample);
 }
 
 /**
@@ -287,11 +283,9 @@ static void Cg_misc_sparks_Init(cg_entity_t *self) {
  */
 static void Cg_misc_sparks_Think(cg_entity_t *self) {
 
-	cg_sparks_t *sparks = self->data;
+	const cg_sparks_t *sparks = self->data;
 
-	if (cgi.LeafHearable(self->leaf)) {
-		Cg_SparksEffect(self->origin, sparks->dir, sparks->count);
-	}
+	Cg_SparksEffect(self->origin, sparks->dir, sparks->count);
 }
 
 /**
@@ -351,9 +345,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
  */
 static void Cg_misc_sprite_Think(cg_entity_t *self) {
 
-	if (cgi.LeafVisible(self->leaf)) {
-		Cg_AddSprite((cg_sprite_t *) self->data);
-	}
+	Cg_AddSprite((cg_sprite_t *) self->data);
 }
 
 /**

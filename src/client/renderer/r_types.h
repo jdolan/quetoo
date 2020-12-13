@@ -359,10 +359,8 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
- * @brief BSP draw elements, which include all faces of a given material
- * within a particular inline model. These are drawn in (ideally large)
- * glDrawElements calls. A depth-only pre-pass and back-face culling are
- * used to minimize overdraw.
+ * @brief BSP draw elements, which include all opaque faces of a given material
+ * within a particular inline model.
  */
 typedef struct {
 	r_bsp_texinfo_t *texinfo;
@@ -373,9 +371,6 @@ typedef struct {
 
 	GLvoid *elements;
 	int32_t num_elements;
-
-	int32_t blend_depth;
-	int32_t blend_depth_count;
 
 	vec2_t st_origin;
 } r_bsp_draw_elements_t;
@@ -393,14 +388,16 @@ struct r_bsp_node_s {
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
 
-	int32_t vis_frame;
-
 	// node specific
 	cm_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
+	int32_t num_blend_faces;
+
+	int32_t blend_depth;
+	int32_t blend_depth_count;
 };
 
 typedef struct r_bsp_node_s r_bsp_node_t;
@@ -419,8 +416,6 @@ struct r_bsp_leaf_s {
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
-
-	int32_t vis_frame;
 
 	// leaf specific
 	int32_t cluster;
@@ -454,6 +449,11 @@ typedef struct r_bsp_inline_model_s {
 	int32_t num_faces;
 
 	/**
+	 * @brief The alpha blended nodes of this inline model, sorted by depth each frame.
+	 */
+	GPtrArray *blend_nodes;
+
+	/**
 	 * @brief The faces of this inline model that include flares, sorted by material at level load.
 	 */
 	GPtrArray *flare_faces;
@@ -464,16 +464,6 @@ typedef struct r_bsp_inline_model_s {
 	 */
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
-
-	/**
-	 * @brief The opaque draw elements of this inline model, sorted by material at level load.
-	 */
-	GPtrArray *opaque_draw_elements;
-
-	/**
-	 * @brief The alpha blended draw elements of this inline model, sorted by depth each frame.
-	 */
-	GPtrArray *alpha_blend_draw_elements;
 
 } r_bsp_inline_model_t;
 
@@ -1096,6 +1086,7 @@ typedef struct {
 
 	int32_t count_bsp_inline_models;
 	int32_t count_bsp_draw_elements;
+	int32_t count_bsp_blend_nodes;
 	int32_t count_bsp_triangles;
 
 	int32_t count_mesh_models;
@@ -1105,7 +1096,7 @@ typedef struct {
 	int32_t count_draw_fills;
 	int32_t count_draw_images;
 	int32_t count_draw_lines;
-	int32_t count_draw_calls;
+	int32_t count_draw_arrays;
 
 	_Bool update; // inform the client of state changes
 

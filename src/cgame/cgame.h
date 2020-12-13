@@ -527,16 +527,6 @@ typedef struct cg_import_s {
 	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p);
 
 	/**
-	 * @return True if `leaf` is in the potentially hearable set for the current frame.
-	 */
-	_Bool (*LeafHearable)(const r_bsp_leaf_t *leaf);
-
-	/**
-	 * @return True if `leaf` is in the potentially visible set for the current frame.
-	 */
-	_Bool (*LeafVisible)(const r_bsp_leaf_t *leaf);
-
-	/**
 	 * @}
 	 */
 

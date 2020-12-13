@@ -86,9 +86,8 @@ static void R_FreeModel(r_media_t *self) {
 
 	} else if (IS_BSP_INLINE_MODEL(mod)) {
 
+		g_ptr_array_free(mod->bsp_inline->blend_nodes, 1);
 		g_ptr_array_free(mod->bsp_inline->flare_faces, 1);
-		g_ptr_array_free(mod->bsp_inline->opaque_draw_elements, 1);
-		g_ptr_array_free(mod->bsp_inline->alpha_blend_draw_elements, 1);
 
 	} else if (IS_MESH_MODEL(mod)) {
 

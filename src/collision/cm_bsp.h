@@ -226,7 +226,6 @@ typedef struct {
 
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
-
 } bsp_node_t;
 
 typedef struct {
@@ -244,7 +243,7 @@ typedef struct {
 } bsp_leaf_t;
 
 /**
- * @brief Faces within each model are grouped by texture and merged into draw elements.
+ * @brief Opaque faces within each model are grouped by material and merged into draw elements.
  */
 typedef struct {
 	int32_t texinfo;

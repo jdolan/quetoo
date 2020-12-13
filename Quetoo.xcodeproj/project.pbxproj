@@ -176,6 +176,7 @@
 		CE2CEB9325852E110001E599 /* r_depth_pass.h in Headers */ = {isa = PBXBuildFile; fileRef = CE2CEB9125852E110001E599 /* r_depth_pass.h */; };
 		CE2CEB9425852E110001E599 /* r_depth_pass.c in Sources */ = {isa = PBXBuildFile; fileRef = CE2CEB9225852E110001E599 /* r_depth_pass.c */; };
 		CE2CEC4C25852FF80001E599 /* depth_pass_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */; };
+		CE2CECA82585B9CD0001E599 /* depth_pass_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */; };
 		CE312F48256F1278001A62A5 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE32529D1F760D3F00512523 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		CE32529E1F760D3F00512523 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE32529C1F760D3F00512523 /* BindTextView.h */; };
@@ -985,6 +986,7 @@
 				CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */,
 				CE8FD2F423D611C0002FD074 /* common_fs.glsl in CopyFiles */,
 				CE45F49825718B42004DEFED /* common_vs.glsl in CopyFiles */,
+				CE2CECA82585B9CD0001E599 /* depth_pass_fs.glsl in CopyFiles */,
 				CE2CEC4C25852FF80001E599 /* depth_pass_vs.glsl in CopyFiles */,
 				CE4A255C1FA2032700A539E7 /* draw_2d_fs.glsl in CopyFiles */,
 				CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */,
@@ -1495,6 +1497,7 @@
 		CE2CEB9125852E110001E599 /* r_depth_pass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_depth_pass.h; sourceTree = "<group>"; };
 		CE2CEB9225852E110001E599 /* r_depth_pass.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_depth_pass.c; sourceTree = "<group>"; };
 		CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = depth_pass_vs.glsl; sourceTree = "<group>"; };
+		CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = depth_pass_fs.glsl; sourceTree = "<group>"; };
 		CE2E374321CAB82800DB4648 /* tree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tree.h; sourceTree = "<group>"; };
 		CE2E374421CABB8C00DB4648 /* tjunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tjunction.h; sourceTree = "<group>"; };
 		CE2E374521CAC14400DB4648 /* prtfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prtfile.h; sourceTree = "<group>"; };
@@ -2749,6 +2752,7 @@
 				CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */,
 				CE8FD2F323D60E7B002FD074 /* common_fs.glsl */,
 				CE45F43D25716DAE004DEFED /* common_vs.glsl */,
+				CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */,
 				CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */,
 				CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */,

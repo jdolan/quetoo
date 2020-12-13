@@ -373,8 +373,9 @@ int32_t EmitFace(const face_t *face) {
 
 	const bsp_vertex_t *v = bsp_file.vertexes + out->first_vertex;
 	for (int32_t i = 0; i < out->num_vertexes; i++, v++) {
+
 		out->mins = Vec3_Minf(out->mins, v->position);
-		out->maxs = Vec3_Minf(out->maxs, v->position);
+		out->maxs = Vec3_Maxf(out->maxs, v->position);
 	}
 
 	out->first_element = bsp_file.num_elements;

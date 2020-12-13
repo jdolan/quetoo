@@ -91,10 +91,6 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 		return;
 	}
 
-	if (node->vis_frame != r_locals.vis_frame) {
-		return;
-	}
-
 	const float dist = Cm_DistanceToPlane(stain->origin, node->plane);
 
 	if (dist > stain->radius) {

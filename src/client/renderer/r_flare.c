@@ -75,10 +75,6 @@ static void R_UpdateBspInlineModelFlares(const r_entity_t *e, const r_bsp_inline
 
 		const r_bsp_face_t *face = g_ptr_array_index(in->flare_faces, i);
 
-		if (face->node->vis_frame != r_locals.vis_frame) {
-			continue;
-		}
-
 		r_sprite_t flare = *face->flare;
 
 		if (e) {

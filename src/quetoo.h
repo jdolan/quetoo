@@ -312,9 +312,9 @@ typedef enum {
 #define SURF_MASK_NO_LIGHTMAP	(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
 
 /**
- * @brief Texinfos with these flags will emit no draw elements.
+ * @brief Texinfos with these flags will not emit draw elements.
  */
-#define SURF_MASK_NO_DRAW_ELEMENTS SURF_MASK_NO_LIGHTMAP
+#define SURF_MASK_NO_DRAW_ELEMENTS (SURF_MASK_BLEND | SURF_MASK_NO_LIGHTMAP)
 
 /**
  * @brief Sound attenuation levels.

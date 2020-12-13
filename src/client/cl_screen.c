@@ -144,6 +144,8 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 	R_Draw2DString(x, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_red);
 	y += ch;
+	R_Draw2DString(x, y, va("%d blend nodes", r_view.count_bsp_blend_nodes), color_red);
+	y += ch;
 	R_Draw2DString(x, y, va("%d triangles", r_view.count_bsp_triangles), color_red);
 	y += ch;
 
@@ -168,7 +170,7 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 	R_Draw2DString(x, y, va("%d lines", r_view.count_draw_lines), color_green);
 	y += ch;
-	R_Draw2DString(x, y, va("%d arrays", r_view.count_draw_calls), color_green);
+	R_Draw2DString(x, y, va("%d arrays", r_view.count_draw_arrays), color_green);
 	y += ch;
 
 	y += ch;

@@ -273,6 +273,12 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 	r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 		face->node = node;
+
+		if (face->texinfo->flags & SURF_MASK_BLEND) {
+			if (!(face->texinfo->flags & SURF_NO_DRAW)) {
+				node->num_blend_faces++;
+			}
+		}
 	}
 
 	R_SetupBspNode(node->children[0], node, model);
@@ -311,11 +317,11 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
 
+		out->blend_nodes = g_ptr_array_new();
 		out->flare_faces = g_ptr_array_new();
 
 		r_bsp_face_t *face = out->faces;
 		for (int32_t i = 0; i < in->num_faces; i++, face++) {
-
 			if (face->flare) {
 				g_ptr_array_add(out->flare_faces, face);
 			}
@@ -325,19 +331,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
-
-		out->opaque_draw_elements = g_ptr_array_new();
-		out->alpha_blend_draw_elements = g_ptr_array_new();
-
-		r_bsp_draw_elements_t *draw = out->draw_elements;
-		for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
-
-			if (draw->texinfo->flags & SURF_MASK_BLEND) {
-				continue;
-			}
-
-			g_ptr_array_add(out->opaque_draw_elements, draw);
-		}
 
 		R_SetupBspNode(out->head_node, NULL, out);
 	}

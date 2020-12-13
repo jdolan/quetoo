@@ -19,11 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+out vec4 out_color;
 
-const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p);
+/**
+ * @brief
+ */
+void main(void) {
 
-#ifdef __R_LOCAL_H__
-int32_t R_BlendDepthForPoint(const vec3_t p);
-void R_UpdateVisibility(void);
-#endif /* __R_LOCAL_H__ */
+	out_color = vec4(1, 0, 0, 1);
+}

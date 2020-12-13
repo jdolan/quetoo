@@ -412,7 +412,7 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
  */
 void R_Draw2D(void) {
 	
-	r_view.count_draw_calls = r_draw_2d.num_draw_arrays;
+	r_view.count_draw_arrays = r_draw_2d.num_draw_arrays;
 
 	if (r_draw_2d.num_draw_arrays == 0) {
 		return;

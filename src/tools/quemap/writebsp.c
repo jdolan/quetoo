@@ -222,15 +222,6 @@ int32_t EmitNodes(node_t *head_node) {
  */
 static int32_t TexinfoCmp(const bsp_texinfo_t *a, const bsp_texinfo_t *b) {
 
-	const int32_t a_trans = a->flags & SURF_MASK_TRANSLUCENT;
-	const int32_t b_trans = a->flags & SURF_MASK_TRANSLUCENT;
-	if (a_trans != b_trans) {
-		if (a_trans) {
-			return 1;
-		}
-		return -1;
-	}
-
 	int32_t order = strcmp(a->texture, b->texture);
 	if (order == 0) {
 		const int32_t a_flags = (a->flags & SURF_MASK_TEXINFO_CMP);
@@ -254,8 +245,6 @@ static int32_t ContentsCmp(const bsp_face_t *a, const bsp_face_t *b) {
 
 /**
  * @brief Draw elements comparator to sort model faces by material.
- * @details Opaque faces are packed first. Translucent faces will always emit
- * their own draw elements so that they may be depth sorted.
  */
 static int32_t FaceCmp(const void *a, const void *b) {
 
@@ -267,18 +256,14 @@ static int32_t FaceCmp(const void *a, const void *b) {
 
 	int32_t order = TexinfoCmp(a_texinfo, b_texinfo);
 	if (order == 0) {
-		if (a_texinfo->flags & SURF_MASK_TRANSLUCENT) {
-			order = (int32_t) (ptrdiff_t) (a_face - b_face);
-		} else {
-			order = ContentsCmp(a_face, b_face);
-		}
+		order = ContentsCmp(a_face, b_face);
 	}
 
 	return order;
 }
 
 /**
- * @brief Sorts all faces in the given model by material, and emits glDrawElements
+ * @brief Sorts opaque faces in the given model by material, and emits glDrawElements
  * commands for each unique material. The BSP face ordering is not modified, as this
  * would break the references that the nodes hold to them.
  * @return The number of draw elements commands emitted for the model.
