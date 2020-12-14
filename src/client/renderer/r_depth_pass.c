@@ -59,7 +59,7 @@ void R_DrawDepthPass(void) {
 	glEnable(GL_CULL_FACE);
 
 	glEnable(GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset(8.f, 1.f);
+	glPolygonOffset(1.f, 1.f);
 
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
