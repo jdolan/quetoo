@@ -698,10 +698,9 @@ typedef enum {
 } r_sprite_billboard_axis_t;
 
 /**
- * @brief Sprites are billboarded alpha blended textures.
+ * @brief Sprites are billboarded alpha blended quads, optionally animated.
  */
 typedef struct r_sprite_s {
-
 	/**
 	 * @brief The sprite origin.
 	 */
@@ -748,23 +747,12 @@ typedef struct r_sprite_s {
 	r_sprite_flags_t flags;
 } r_sprite_t;
 
-typedef struct {
-	/**
-	 * @brief Sprite base data
-	 */
-	r_sprite_t sprite;
-
-	/**
-	 * @brief Normal of the sprite
-	 */
-	vec3_t dir;
-} r_directional_sprite_t;
+#define MAX_SPRITES		0x8000
 
 /**
- * @brief Beams are billboarded alpha blended textures.
+ * @brief Beams are segmented sprites.
  */
 typedef struct {
-
 	/**
 	 * @brief The beam start.
 	 */
@@ -801,7 +789,7 @@ typedef struct {
 	float stretch;
 } r_beam_t;
 
-#define MAX_SPRITES		0x8000
+#define MAX_BEAMS 0x200
 
 /**
  * @brief Stains are low-resolution color effects added to the map's lightmap
@@ -985,26 +973,6 @@ typedef struct r_entity_s {
 #define FOG_DENSITY			1.f
 
 /**
- * @brief Structure used for sprite images, to contain buffered sprites
- */
-typedef struct {
-	/**
-	 * @brief Image
-	 */
-	const r_image_t *diffusemap;
-
-	/**
-	 * @brief Animation interpolation next image
-	 */
-	const r_image_t *next_diffusemap;
-
-	/**
-	 * @brief The instance count.
-	 */
-	int32_t count;
-} r_sprite_instance_t;
-
-/**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
@@ -1063,13 +1031,14 @@ typedef struct {
 	/**
 	 * @brief The sprites to render for the current frame.
 	 */
+	r_sprite_t sprites[MAX_SPRITES];
 	int32_t num_sprites;
 
 	/**
-	 * @brief The animated sprite instances to render for the current frame.
+	 * @brief The beams to render for the current frame.
 	 */
-	r_sprite_instance_t sprite_instances[MAX_SPRITES];
-	int32_t num_sprite_instances;
+	r_beam_t beams[MAX_BEAMS];
+	int32_t num_beams;
 
 	/**
 	 * @brief The lights to render for the current frame.

@@ -552,7 +552,6 @@
 		CE80FFFB1C5E4D1800A21A51 /* writebsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7081C5C58C300CD0B13 /* writebsp.c */; };
 		CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE85852B2444B984004AB8EC /* sprite_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE85852A2444B970004AB8EC /* sprite_gs.glsl */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
@@ -999,7 +998,6 @@
 				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
 				CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */,
 				F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */,
-				CE85852B2444B984004AB8EC /* sprite_gs.glsl in CopyFiles */,
 				CEAC32C22421262A007E1253 /* sprite_fs.glsl in CopyFiles */,
 				CEAC32C32421262B007E1253 /* sprite_vs.glsl in CopyFiles */,
 				CE45F4F425733768004DEFED /* uniforms.glsl in CopyFiles */,
@@ -1666,7 +1664,6 @@
 		CE80FF6A1C5E494E00A21A51 /* libclient-null.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-null.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FF7F1C5E49C400A21A51 /* libserver.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libserver.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncurses.6.dylib; path = /opt/local/lib/libncurses.6.dylib; sourceTree = "<absolute>"; };
-		CE85852A2444B970004AB8EC /* sprite_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_gs.glsl; sourceTree = "<group>"; };
 		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE89267223EDF85500CF3D33 /* vector.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vector.c; sourceTree = "<group>"; };
@@ -2760,7 +2757,6 @@
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
 				F57902A124843E730023101D /* soften_fs.glsl */,
 				CEAC32C0242125ED007E1253 /* sprite_fs.glsl */,
-				CE85852A2444B970004AB8EC /* sprite_gs.glsl */,
 				CEAC32BF242125ED007E1253 /* sprite_vs.glsl */,
 				CE45F4C625728264004DEFED /* uniforms.glsl */,
 				CE41019B242CE0B200BF482F /* version.glsl */,

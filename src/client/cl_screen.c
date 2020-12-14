@@ -179,7 +179,10 @@ static void Cl_DrawRendererStats(void) {
 
 	R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_white);
 	y += ch;
-	R_Draw2DString(x, y, va("%d sprites (%d instances)", r_view.num_sprites, r_view.num_sprite_instances), color_white);
+	R_Draw2DString(x, y, va("%d sprites", r_view.num_sprites), color_white);
+	y += ch;
+	R_Draw2DString(x, y, va("%d beams", r_view.num_beams), color_white);
+	y += ch;
 	y += ch;
 
 	const vec3_t forward = Vec3_Add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST));
