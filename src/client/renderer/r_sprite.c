@@ -120,6 +120,11 @@ void R_AddSprite(const r_sprite_t *s) {
 		return;
 	}
 
+	if (r_view.num_sprite_instances == MAX_SPRITE_INSTANCES) {
+		Com_Debug(DEBUG_RENDERER, "MAX_SPRITE_INSTANCES\n");
+		return;
+	}
+
 	r_sprite_instance_t *out = &r_view.sprite_instances[r_view.num_sprite_instances];
 
 	r_view.sprites[r_view.num_sprites] = *s;
@@ -220,6 +225,11 @@ void R_AddBeam(const r_beam_t *b) {
 
 	if (r_view.num_beams == MAX_BEAMS) {
 		Com_Debug(DEBUG_RENDERER, "MAX_BEAMS\n");
+		return;
+	}
+
+	if (r_view.num_sprite_instances == MAX_SPRITE_INSTANCES) {
+		Com_Debug(DEBUG_RENDERER, "MAX_SPRITE_INSTANCES\n");
 		return;
 	}
 
