@@ -137,16 +137,16 @@ static void Cl_DrawRendererStats(void) {
 	}
 
 	R_BindFont("small", NULL, &ch);
-	R_Draw2DString(x, y, "BSP:", color_red);
+	R_Draw2DString(x, y, "World:", color_yellow);
 	y += ch;
 
-	R_Draw2DString(x, y, va("%d inline models", r_view.count_bsp_inline_models), color_red);
+	R_Draw2DString(x, y, va("%d inline models", r_view.count_bsp_inline_models), color_yellow);
 	y += ch;
-	R_Draw2DString(x, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_red);
+	R_Draw2DString(x, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_yellow);
 	y += ch;
-	R_Draw2DString(x, y, va("%d blend nodes", r_view.count_bsp_blend_nodes), color_red);
+	R_Draw2DString(x, y, va("%d blend nodes", r_view.count_bsp_blend_nodes), color_yellow);
 	y += ch;
-	R_Draw2DString(x, y, va("%d triangles", r_view.count_bsp_triangles), color_red);
+	R_Draw2DString(x, y, va("%d triangles", r_view.count_bsp_triangles), color_yellow);
 	y += ch;
 
 	y += ch;
@@ -159,30 +159,37 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	y += ch;
-	R_Draw2DString(x, y, "2D:", color_green);
+	R_Draw2DString(x, y, "Sprites:", color_yellow);
 	y += ch;
 
-	R_Draw2DString(x, y, va("%d chars", r_view.count_draw_chars), color_green);
+	R_Draw2DString(x, y, va("%d sprites", r_view.num_sprites), color_yellow);
 	y += ch;
-	R_Draw2DString(x, y, va("%d fills", r_view.count_draw_fills), color_green);
+	R_Draw2DString(x, y, va("%d beams", r_view.num_beams), color_yellow);
 	y += ch;
-	R_Draw2DString(x, y, va("%d images", r_view.count_draw_images), color_green);
+	R_Draw2DString(x, y, va("%d instances", r_view.num_sprite_instances), color_yellow);
 	y += ch;
-	R_Draw2DString(x, y, va("%d lines", r_view.count_draw_lines), color_green);
+	R_Draw2DString(x, y, va("%d draw elements", r_view.count_sprite_draw_elements), color_yellow);
+
 	y += ch;
-	R_Draw2DString(x, y, va("%d arrays", r_view.count_draw_arrays), color_green);
+	R_Draw2DString(x, y, "2D:", color_yellow);
+	y += ch;
+
+	R_Draw2DString(x, y, va("%d chars", r_view.count_draw_chars), color_yellow);
+	y += ch;
+	R_Draw2DString(x, y, va("%d fills", r_view.count_draw_fills), color_yellow);
+	y += ch;
+	R_Draw2DString(x, y, va("%d images", r_view.count_draw_images), color_yellow);
+	y += ch;
+	R_Draw2DString(x, y, va("%d lines", r_view.count_draw_lines), color_yellow);
+	y += ch;
+	R_Draw2DString(x, y, va("%d arrays", r_view.count_draw_arrays), color_yellow);
 	y += ch;
 
 	y += ch;
-	R_Draw2DString(x, y, "Other:", color_white);
+	R_Draw2DString(x, y, "Other:", color_yellow);
 	y += ch;
 
-	R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_white);
-	y += ch;
-	R_Draw2DString(x, y, va("%d sprites", r_view.num_sprites), color_white);
-	y += ch;
-	R_Draw2DString(x, y, va("%d beams", r_view.num_beams), color_white);
-	y += ch;
+	R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_yellow);
 	y += ch;
 
 	const vec3_t forward = Vec3_Add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST));
@@ -208,7 +215,7 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-	r_pixel_t ch, x = 1, y = cl_draw_renderer_stats->value ? 400 : 64;
+	r_pixel_t ch, x = 1, y = cl_draw_renderer_stats->value ? 512 : 64;
 
 	if (!cl_draw_sound_stats->value) {
 		return;

@@ -31,6 +31,7 @@ void Cl_ClearView(void) {
 	r_view.num_stains = 0;
 	r_view.num_sprites = 0;
 	r_view.num_beams = 0;
+	r_view.num_sprite_instances = 0;
 }
 
 /**

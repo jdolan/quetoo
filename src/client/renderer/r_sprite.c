@@ -21,76 +21,12 @@
 
 #include "r_local.h"
 
-/**
- * @brief The sprite vertex structure.
- */
-typedef struct {
-	vec3_t position;
-	vec2_t diffusemap;
-	vec2_t next_diffusemap;
-	color32_t color;
-	float lerp;
-} r_sprite_vertex_t;
-
-/**
- * @brief An instance of a renderable sprite.
- */
-typedef struct r_sprite_instance_s {
-
-	/**
-	 * @brief The backing sprite definition.
-	 */
-	const r_sprite_t *sprite;
-
-	/**
-	 * @brief The backing beam definition.
-	 */
-	const r_beam_t *beam;
-
-	/**
-	 * @brief The diffusemap texture.
-	 */
-	const r_image_t *diffusemap;
-
-	/**
-	 * @brief The next diffusemap texture for frame interpolation.
-	 */
-	const r_image_t *next_diffusemap;
-
-	/**
-	 * @brief The frame interpolation.
-	 */
-	float lerp;
-
-	/**
-	 * @brief The sprite vertexes.
-	 */
-	r_sprite_vertex_t vertexes[4];
-
-	/**
-	 * @brief The vertex offset into the shared array.
-	 */
-	ptrdiff_t offset;
-
-	/**
-	 * @brief The blend depth at which this sprite should be rendered.
-	 */
-	int32_t blend_depth;
-
-	/**
-	 * @brief The next sprite instance to be rendered at the same blend depth.
-	 */
-	struct r_sprite_instance_s *blend_chain;
-
-} r_sprite_instance_t;
 
 /**
  * @brief
  */
 static struct {
-	r_sprite_instance_t sprite_instances[MAX_SPRITES + MAX_BEAMS];
-
-	r_sprite_vertex_t vertexes[(MAX_SPRITES + MAX_BEAMS) * 4];
+	r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
 
 	GLuint vertex_array;
 	GLuint vertex_buffer;
@@ -184,7 +120,7 @@ void R_AddSprite(const r_sprite_t *s) {
 		return;
 	}
 
-	r_sprite_instance_t *out = &r_sprites.sprite_instances[r_view.num_sprites + r_view.num_beams];
+	r_sprite_instance_t *out = &r_view.sprite_instances[r_view.num_sprite_instances];
 
 	r_view.sprites[r_view.num_sprites] = *s;
 
@@ -272,6 +208,7 @@ void R_AddSprite(const r_sprite_t *s) {
 	out->vertexes[2].lerp =
 	out->vertexes[3].lerp = out->lerp;
 
+	r_view.num_sprite_instances++;
 	r_view.num_sprites++;
 }
 
@@ -286,7 +223,7 @@ void R_AddBeam(const r_beam_t *b) {
 		return;
 	}
 
-	r_sprite_instance_t *in = &r_sprites.sprite_instances[r_view.num_sprites + r_view.num_beams];
+	r_sprite_instance_t *in = &r_view.sprite_instances[r_view.num_sprite_instances];
 
 	r_view.beams[r_view.num_beams] = *b;
 
@@ -346,6 +283,7 @@ void R_AddBeam(const r_beam_t *b) {
 	in->vertexes[2].lerp =
 	in->vertexes[3].lerp = in->lerp;
 
+	r_view.num_sprite_instances++;
 	r_view.num_beams++;
 }
 
@@ -362,12 +300,10 @@ void R_UpdateSprites(void) {
 
 	R_GetError(NULL);
 
-	r_sprite_instance_t *in = r_sprites.sprite_instances;
+	r_sprite_instance_t *in = r_view.sprite_instances;
 	r_sprite_vertex_t *out = r_sprites.vertexes;
 
-	const int32_t num_sprite_instances = r_view.num_sprites + r_view.num_beams;
-
-	for (int32_t i = 0; i < num_sprite_instances; i++, in++, out += 4) {
+	for (int32_t i = 0; i < r_view.num_sprite_instances; i++, in++, out += 4) {
 
 		assert(in->sprite || in->beam);
 		assert(in->diffusemap);
@@ -399,7 +335,7 @@ void R_UpdateSprites(void) {
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, num_sprite_instances * sizeof(in->vertexes), r_sprites.vertexes, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, r_view.num_sprite_instances * sizeof(in->vertexes), r_sprites.vertexes, GL_DYNAMIC_DRAW);
 
 	glUseProgram(0);
 
