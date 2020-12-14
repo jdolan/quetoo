@@ -43,7 +43,7 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bo
 	}
 
 	if (i == max) {
-		Com_Warn("Max index for %s reached\n", name);
+		Com_Warn("Max index for %s\n", name);
 		return 0;
 	}
 
