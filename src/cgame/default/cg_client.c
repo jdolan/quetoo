@@ -494,12 +494,6 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		return;
 	}
 
-	// FIXME: is this right? it might cut off too early. would it be better to
-	// cull all four components separately and check if they're actually all culled?
-	if (cgi.CullBox(ent->abs_mins, ent->abs_maxs)) {
-		return;
-	}
-
 	const _Bool self_no_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
 
 	// don't draw ourselves unless third person is set
@@ -552,7 +546,6 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 				ent->legs_yaw = ent->angles.y + legs_yaw;
 			} else {
-
 				ent->legs_yaw = ent->angles.y;
 			}
 		} else {
@@ -610,11 +603,15 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 
 	r_entity_t *r_legs = cgi.AddEntity(&legs);
+	if (!r_legs) {
+		return; // if the legs were culled, we're done
+	}
 
 	torso.parent = r_legs;
 	torso.tag = "tag_torso";
 
 	r_entity_t *r_torso = cgi.AddEntity(&torso);
+	assert(r_torso);
 
 	head.parent = r_torso;
 	head.tag = "tag_head";

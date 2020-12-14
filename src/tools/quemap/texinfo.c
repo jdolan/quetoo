@@ -68,10 +68,9 @@ static void TextureAxisFromPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
  * allocate a new one.
  */
 static int32_t FindTexinfo(const bsp_texinfo_t *tx) {
-	int32_t i;
-	bsp_texinfo_t *tc = bsp_file.texinfo;
 
-	for (i = 0; i < bsp_file.num_texinfo; i++, tc++) {
+	const bsp_texinfo_t *tc = bsp_file.texinfo;
+	for (int32_t i = 0; i < bsp_file.num_texinfo; i++, tc++) {
 
 		if (tc->flags != tx->flags) {
 			continue;
@@ -85,20 +84,22 @@ static int32_t FindTexinfo(const bsp_texinfo_t *tx) {
 			continue;
 		}
 
-		if (memcmp((char *) (tc->vecs), (char *) (tx->vecs), sizeof(tx->vecs))) {
+		if (!Vec4_EqualEpsilon(tc->vecs[0], tx->vecs[0], .01f) ||
+			!Vec4_EqualEpsilon(tc->vecs[1], tx->vecs[1], .01f)) {
 			continue;
 		}
 
 		return i;
 	}
 
-	if (i == MAX_BSP_TEXINFO) {
+	if (bsp_file.num_texinfo == MAX_BSP_TEXINFO) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_TEXINFO\n");
 	}
 
-	*tc = *tx;
+	bsp_file.texinfo[bsp_file.num_texinfo] = *tx;
 	bsp_file.num_texinfo++;
-	return i;
+
+	return bsp_file.num_texinfo - 1;
 }
 
 /**

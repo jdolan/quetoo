@@ -241,10 +241,6 @@ void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
 
 	Com_LogString(msg);
 
-	if (error == ERROR_FATAL) {
-		SDL_TriggerBreakpoint();
-	}
-
 	if (quetoo.Error) {
 		quetoo.Error(error, msg);
 	} else {

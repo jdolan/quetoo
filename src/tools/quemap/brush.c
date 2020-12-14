@@ -71,7 +71,7 @@ void FreeBrushes(csg_brush_t *brushes) {
 /**
  * @brief
  */
-size_t CountBrushes(csg_brush_t *brushes) {
+size_t CountBrushes(const csg_brush_t *brushes) {
 
 	size_t i = 0;
 	for (; brushes; brushes = brushes->next) {
