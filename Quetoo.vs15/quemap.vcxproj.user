@@ -6,7 +6,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommandArguments>-bsp -vis -light --indirect maps/torn.map</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --antialias maps/pits.map</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --antialias maps/pits.map</LocalDebuggerCommandArguments>
@@ -15,6 +15,6 @@
     <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --indirect edge</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --indirect pits</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis --fast -light edge</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
