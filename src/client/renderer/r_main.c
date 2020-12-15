@@ -319,8 +319,6 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateVisibility();
 
-	R_DrawDepthPass();
-
 	R_UpdateEntities();
 
 	R_UpdateFlares();
@@ -334,6 +332,8 @@ void R_DrawView(r_view_t *view) {
 	R_UpdateStains();
 
 	R_UpdateUniforms();
+
+	R_DrawDepthPass();
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
