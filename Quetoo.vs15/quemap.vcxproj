@@ -43,12 +43,10 @@
     <ClCompile Include="..\src\tools\quemap\qbsp.c" />
     <ClCompile Include="..\src\tools\quemap\qlight.c" />
     <ClCompile Include="..\src\tools\quemap\qmat.c" />
-    <ClCompile Include="..\src\tools\quemap\qvis.c" />
     <ClCompile Include="..\src\tools\quemap\qzip.c" />
     <ClCompile Include="..\src\tools\quemap\texinfo.c" />
     <ClCompile Include="..\src\tools\quemap\tjunction.c" />
     <ClCompile Include="..\src\tools\quemap\tree.c" />
-    <ClCompile Include="..\src\tools\quemap\vis.c" />
     <ClCompile Include="..\src\tools\quemap\work.c" />
     <ClCompile Include="..\src\tools\quemap\writebsp.c" />
     <ClCompile Include="src\main\winmain.c" />
@@ -79,12 +77,10 @@
     <ClInclude Include="..\src\tools\quemap\qlight.h" />
     <ClInclude Include="..\src\tools\quemap\qmat.h" />
     <ClInclude Include="..\src\tools\quemap\quemap.h" />
-    <ClInclude Include="..\src\tools\quemap\qvis.h" />
     <ClInclude Include="..\src\tools\quemap\qzip.h" />
     <ClInclude Include="..\src\tools\quemap\texinfo.h" />
     <ClInclude Include="..\src\tools\quemap\tjunction.h" />
     <ClInclude Include="..\src\tools\quemap\tree.h" />
-    <ClInclude Include="..\src\tools\quemap\vis.h" />
     <ClInclude Include="..\src\tools\quemap\work.h" />
     <ClInclude Include="..\src\tools\quemap\writebsp.h" />
   </ItemGroup>
