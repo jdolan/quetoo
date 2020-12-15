@@ -381,6 +381,8 @@ void R_BeginFrame(void) {
 	r_view.count_mesh_models = 0;
 	r_view.count_mesh_triangles = 0;
 
+	r_view.count_sprite_draw_elements = 0;
+
 	r_view.count_draw_chars = 0;
 	r_view.count_draw_fills = 0;
 	r_view.count_draw_images = 0;

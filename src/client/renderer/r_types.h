@@ -698,10 +698,9 @@ typedef enum {
 } r_sprite_billboard_axis_t;
 
 /**
- * @brief Sprites are billboarded alpha blended textures.
+ * @brief Sprites are billboarded alpha blended quads, optionally animated.
  */
 typedef struct r_sprite_s {
-
 	/**
 	 * @brief The sprite origin.
 	 */
@@ -748,23 +747,12 @@ typedef struct r_sprite_s {
 	r_sprite_flags_t flags;
 } r_sprite_t;
 
-typedef struct {
-	/**
-	 * @brief Sprite base data
-	 */
-	r_sprite_t sprite;
-
-	/**
-	 * @brief Normal of the sprite
-	 */
-	vec3_t dir;
-} r_directional_sprite_t;
+#define MAX_SPRITES		0x8000
 
 /**
- * @brief Beams are billboarded alpha blended textures.
+ * @brief Beams are segmented sprites.
  */
 typedef struct {
-
 	/**
 	 * @brief The beam start.
 	 */
@@ -801,7 +789,56 @@ typedef struct {
 	float stretch;
 } r_beam_t;
 
-#define MAX_SPRITES		0x8000
+#define MAX_BEAMS 0x200
+
+/**
+ * @brief The sprite instance vertex structure.
+ */
+typedef struct {
+	vec3_t position;
+	vec2_t diffusemap;
+	vec2_t next_diffusemap;
+	color32_t color;
+	float lerp;
+} r_sprite_vertex_t;
+
+/**
+ * @brief An instance of a renderable sprite.
+ */
+typedef struct r_sprite_instance_s {
+	/**
+	 * @brief The diffusemap texture.
+	 */
+	const r_image_t *diffusemap;
+
+	/**
+	 * @brief The next diffusemap texture for frame interpolation.
+	 */
+	const r_image_t *next_diffusemap;
+
+	/**
+	 * @brief The sprite vertexes in the shared array.
+	 */
+	r_sprite_vertex_t *vertexes;
+
+	/**
+	 * @brief The element offset in the shared array.
+	 */
+	ptrdiff_t offset;
+
+	/**
+	 * @brief The blend depth at which this sprite should be rendered.
+	 */
+	int32_t blend_depth;
+
+	/**
+	 * @brief The next sprite instance to be rendered at the same blend depth.
+	 */
+	struct r_sprite_instance_s *blend_chain;
+
+} r_sprite_instance_t;
+
+#define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
 
 /**
  * @brief Stains are low-resolution color effects added to the map's lightmap
@@ -831,7 +868,6 @@ typedef struct {
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-
 	/**
 	 * @brief The light origin.
 	 */
@@ -985,30 +1021,9 @@ typedef struct r_entity_s {
 #define FOG_DENSITY			1.f
 
 /**
- * @brief Structure used for sprite images, to contain buffered sprites
- */
-typedef struct {
-	/**
-	 * @brief Image
-	 */
-	const r_image_t *diffusemap;
-
-	/**
-	 * @brief Animation interpolation next image
-	 */
-	const r_image_t *next_diffusemap;
-
-	/**
-	 * @brief The instance count.
-	 */
-	int32_t count;
-} r_sprite_instance_t;
-
-/**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
-
 	/**
 	 * @brief The unclamped simulation time, in millis.
 	 */
@@ -1063,12 +1078,20 @@ typedef struct {
 	/**
 	 * @brief The sprites to render for the current frame.
 	 */
+	r_sprite_t sprites[MAX_SPRITES];
 	int32_t num_sprites;
 
 	/**
-	 * @brief The animated sprite instances to render for the current frame.
+	 * @brief The beams to render for the current frame.
 	 */
-	r_sprite_instance_t sprite_instances[MAX_SPRITES];
+	r_beam_t beams[MAX_BEAMS];
+	int32_t num_beams;
+
+	/**
+	 * @brief The sprite instances (sprites and beams) for the current frame.
+	 * @remarks This array is populated by the renderer from sprites and beams.
+	 */
+	r_sprite_instance_t sprite_instances[MAX_SPRITE_INSTANCES];
 	int32_t num_sprite_instances;
 
 	/**
@@ -1092,6 +1115,8 @@ typedef struct {
 
 	int32_t count_mesh_models;
 	int32_t count_mesh_triangles;
+
+	int32_t count_sprite_draw_elements;
 
 	int32_t count_draw_chars;
 	int32_t count_draw_fills;

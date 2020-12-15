@@ -278,7 +278,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 				sv_world.num_box_entities++;
 
 				if (sv_world.num_box_entities == sv_world.max_box_entities) {
-					Com_Warn("sv_world.max_box_entities reached\n");
+					Com_Warn("sv_world.max_box_entities\n");
 					return;
 				}
 			}

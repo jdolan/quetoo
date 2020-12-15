@@ -27,7 +27,7 @@
 void R_AddLight(const r_light_t *in) {
 
 	if (r_view.num_lights == MAX_LIGHTS) {
-		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS reached\n");
+		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS\n");
 		return;
 	}
 
