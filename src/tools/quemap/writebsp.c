@@ -245,6 +245,8 @@ static int32_t ContentsCmp(const bsp_face_t *a, const bsp_face_t *b) {
 
 /**
  * @brief Draw elements comparator to sort model faces by material.
+ * @details SURF_MATERIAL faces will always emit a unique draw elements command so
+ * that their texture matrices are correct.
  */
 static int32_t FaceCmp(const void *a, const void *b) {
 
@@ -256,16 +258,23 @@ static int32_t FaceCmp(const void *a, const void *b) {
 
 	int32_t order = TexinfoCmp(a_texinfo, b_texinfo);
 	if (order == 0) {
+		
 		order = ContentsCmp(a_face, b_face);
+		if (order == 0) {
+
+			if ((a_texinfo->flags & SURF_MATERIAL) || (b_texinfo->flags & SURF_MATERIAL)) {
+				return (int32_t) (ptrdiff_t) (a_face - b_face);
+			}
+		}
 	}
 
 	return order;
 }
 
 /**
- * @brief Sorts opaque faces in the given model by material, and emits glDrawElements
- * commands for each unique material. The BSP face ordering is not modified, as this
- * would break the references that the nodes hold to them.
+ * @brief Sorts opaque and alpha test faces in the given model by material, and emits
+ * glDrawElements commands for each unique material. The BSP face ordering is not modified,
+ * as this would break the references that the nodes hold to them.
  * @return The number of draw elements commands emitted for the model.
  */
 static int32_t EmitDrawElements(const bsp_model_t *mod) {

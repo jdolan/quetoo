@@ -275,9 +275,7 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 		face->node = node;
 
 		if (face->texinfo->flags & SURF_MASK_BLEND) {
-			if (!(face->texinfo->flags & SURF_NO_DRAW)) {
-				node->num_blend_faces++;
-			}
+			node->num_blend_faces++;
 		}
 	}
 

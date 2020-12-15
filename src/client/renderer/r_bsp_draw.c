@@ -339,7 +339,7 @@ static inline void R_DrawBspDrawElements(const r_entity_t *e, const r_bsp_draw_e
 		r_view.count_bsp_triangles += draw->num_elements / 3;
 	}
 
-	R_DrawBspDrawElementsMaterialStages(e, draw, *material);
+	R_DrawBspDrawElementsMaterialStages(e, draw, draw->texinfo->material);
 }
 
 /**

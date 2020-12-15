@@ -34,14 +34,14 @@ static struct {
 } r_depth_pass_program;
 
 /**
- * @brief
+ * @brief Draws all opaque world geometry, writing to the depth buffer.
  */
 static void R_DrawBspInlineModelDepthPass(const r_entity_t *e, const r_bsp_inline_model_t *in) {
 
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (draw->texinfo->flags & SURF_MASK_NO_DEPTH_PASS) {
+		if (draw->texinfo->flags & SURF_MASK_TRANSLUCENT) {
 			continue;
 		}
 		

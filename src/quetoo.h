@@ -304,7 +304,7 @@ typedef enum {
 /**
  * @brief Texinfos with these flags imply translucent contents.
  */
-#define SURF_MASK_TRANSLUCENT	(SURF_ALPHA_TEST | SURF_MASK_BLEND | SURF_MATERIAL)
+#define SURF_MASK_TRANSLUCENT	(SURF_MASK_BLEND | SURF_ALPHA_TEST | SURF_MATERIAL)
 
 /**
  * @brief Texinfos with these flags will not have lightmap data.
@@ -315,11 +315,6 @@ typedef enum {
  * @brief Texinfos with these flags will not emit draw elements.
  */
 #define SURF_MASK_NO_DRAW_ELEMENTS (SURF_MASK_NO_LIGHTMAP | SURF_MASK_BLEND)
-
-/**
- * @brief Texinfos with these flags will emit draw elements, but not be included in the depth pass.
- */
-#define SURF_MASK_NO_DEPTH_PASS (SURF_ALPHA_TEST | SURF_MATERIAL)
 
 /**
  * @brief Sound attenuation levels.
