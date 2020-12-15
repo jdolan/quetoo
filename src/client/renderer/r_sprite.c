@@ -82,7 +82,6 @@ static void R_SpriteTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_
 	}
 }
 
-
 /**
  * @brief
  */
@@ -257,34 +256,19 @@ static void R_UpdateSprite(const r_sprite_t *s) {
 }
 
 /**
- * @brief
+ * @brief Break the beam into segments based on blend depth transitions.
  */
 void R_UpdateBeam(const r_beam_t *b) {
-
-	r_sprite_instance_t *in = R_AllocSpriteInstance();
-	if (!in) {
-		return;
-	}
-
-	in->diffusemap = b->image;
-
-	const float half_size = b->size * .5f;
-
 	float length;
+
 	const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length);
 	length /= b->image->width * (b->size / b->image->height);
 
+	const float half_size = b->size * .5f;
 	const vec3_t right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view.origin, b->end))), half_size);
 
-	in->vertexes[0].position = Vec3_Add(b->start, right);
-	in->vertexes[1].position = Vec3_Add(b->end, right);
-	in->vertexes[2].position = Vec3_Subtract(b->end, right);
-	in->vertexes[3].position = Vec3_Subtract(b->start, right);
-
-	R_SpriteTextureCoordinates(in->diffusemap, &in->vertexes[0].diffusemap,
-											   &in->vertexes[1].diffusemap,
-											   &in->vertexes[2].diffusemap,
-											   &in->vertexes[3].diffusemap);
+	vec2_t texcoords[4];
+	R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
 
 	if (!(b->image->type & IT_MASK_CLAMP_EDGE)) {
 
@@ -292,27 +276,72 @@ void R_UpdateBeam(const r_beam_t *b) {
 			length *= b->stretch;
 		}
 
-		in->vertexes[1].diffusemap.x *= length;
-		in->vertexes[2].diffusemap.x = in->vertexes[1].diffusemap.x;
+		texcoords[1].x *= length;
+		texcoords[2].x = texcoords[1].x;
 
 		if (b->translate) {
 			for (int32_t i = 0; i < 4; i++) {
-				in->vertexes[i].diffusemap.x += b->translate;
+				texcoords[i].x += b->translate;
 			}
 		}
 	}
 
-	in->vertexes[0].color =
-	in->vertexes[1].color =
-	in->vertexes[2].color =
-	in->vertexes[3].color = b->color;
+	float step = 1.f;
+	for (float frac = 0.f; frac < 1.f; ) {
 
-	in->vertexes[0].lerp =
-	in->vertexes[1].lerp =
-	in->vertexes[2].lerp =
-	in->vertexes[3].lerp = 0.f;
+		const vec3_t x = Vec3_Mix(b->start, b->end, frac);
+		const vec3_t y = Vec3_Mix(b->start, b->end, frac + step);
 
-	in->blend_depth = R_BlendDepthForPoint(b->start, BLEND_DEPTH_SPRITE);
+		const int32_t x_depth = R_BlendDepthForPoint(x, BLEND_DEPTH_SPRITE);
+		const int32_t y_depth = R_BlendDepthForPoint(y, BLEND_DEPTH_SPRITE);
+
+		if (x_depth != y_depth) {
+			if (step > .0625f) {
+				step *= .5f;
+				continue;
+			}
+		}
+
+		r_sprite_instance_t *in = R_AllocSpriteInstance();
+		if (!in) {
+			return;
+		}
+
+		in->diffusemap = b->image;
+
+		in->vertexes[0].position = Vec3_Add(x, right);
+		in->vertexes[1].position = Vec3_Add(y, right);
+		in->vertexes[2].position = Vec3_Subtract(x, right);
+		in->vertexes[3].position = Vec3_Subtract(y, right);
+
+		R_SpriteTextureCoordinates(in->diffusemap, &in->vertexes[0].diffusemap,
+												   &in->vertexes[1].diffusemap,
+												   &in->vertexes[2].diffusemap,
+												   &in->vertexes[3].diffusemap);
+
+		/*const float xs = (texcoords[0].x * (1.f - frac)) + (texcoords[1].x * frac);
+		const float ys = (texcoords[0].x * (1.f - (frac + step))) + (texcoords[1].x * (frac + step));
+
+		in->vertexes[0].diffusemap.x = xs;
+		in->vertexes[1].diffusemap.x = ys;
+		in->vertexes[2].diffusemap.x = ys;
+		in->vertexes[3].diffusemap.x = xs;*/
+
+		in->vertexes[0].color =
+		in->vertexes[1].color =
+		in->vertexes[2].color =
+		in->vertexes[3].color = b->color;
+
+		in->vertexes[0].lerp =
+		in->vertexes[1].lerp =
+		in->vertexes[2].lerp =
+		in->vertexes[3].lerp = 0.f;
+
+		in->blend_depth = x_depth;
+
+		frac += step;
+		step = 1.f - frac;
+	}
 }
 
 /**
@@ -333,8 +362,9 @@ void R_UpdateSprites(void) {
 		R_UpdateSprite(s);
 	}
 
-	const r_beam_t *b = r_view.beams;
+	/*const*/ r_beam_t *b = r_view.beams;
 	for (int32_t i = 0; i < r_view.num_beams; i++, b++) {
+		b->image = R_LoadImage("textures/common/notex", IT_MATERIAL);
 		R_UpdateBeam(b);
 	}
 
@@ -429,7 +459,7 @@ void R_DrawSprites(int32_t blend_depth) {
 		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) in->offset);
 		r_view.count_sprite_draw_elements++;
 
-		for (int32_t i = 0; i < count; i++) {
+		while (count--) {
 			in = in->blend_chain;
 		}
 	}
