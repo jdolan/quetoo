@@ -314,10 +314,10 @@ void R_UpdateBeam(const r_beam_t *b) {
 		in->vertexes[2].position = Vec3_Subtract(x, right);
 		in->vertexes[3].position = Vec3_Subtract(y, right);
 
-		R_SpriteTextureCoordinates(in->diffusemap, &in->vertexes[0].diffusemap,
-												   &in->vertexes[1].diffusemap,
-												   &in->vertexes[2].diffusemap,
-												   &in->vertexes[3].diffusemap);
+		in->vertexes[0].diffusemap = texcoords[0];
+		in->vertexes[1].diffusemap = texcoords[1];
+		in->vertexes[2].diffusemap = texcoords[2];
+		in->vertexes[3].diffusemap = texcoords[3];
 
 		/*const float xs = (texcoords[0].x * (1.f - frac)) + (texcoords[1].x * frac);
 		const float ys = (texcoords[0].x * (1.f - (frac + step))) + (texcoords[1].x * (frac + step));
