@@ -41,7 +41,7 @@ static void R_DrawBspInlineModelDepthPass(const r_entity_t *e, const r_bsp_inlin
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (draw->texinfo->flags & SURF_ALPHA_TEST) {
+		if (draw->texinfo->flags & SURF_MASK_NO_DEPTH_PASS) {
 			continue;
 		}
 		
