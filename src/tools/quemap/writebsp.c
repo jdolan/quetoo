@@ -258,7 +258,7 @@ static int32_t FaceCmp(const void *a, const void *b) {
 
 	int32_t order = TexinfoCmp(a_texinfo, b_texinfo);
 	if (order == 0) {
-		
+
 		order = ContentsCmp(a_face, b_face);
 		if (order == 0) {
 
