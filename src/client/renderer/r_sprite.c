@@ -75,12 +75,13 @@ static void R_SpriteTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_
 		*bl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.w);
 	} else {
 
-		*tl = Vec2(0, 0);
-		*tr = Vec2(1, 0);
-		*br = Vec2(1, 1);
-		*bl = Vec2(0, 1);
+		*tl = Vec2(0.f, 0.f);
+		*tr = Vec2(1.f, 0.f);
+		*br = Vec2(1.f, 1.f);
+		*bl = Vec2(0.f, 1.f);
 	}
 }
+
 
 /**
  * @brief
@@ -99,17 +100,6 @@ static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float
 }
 
 /**
- * @brief
- */
-static _Bool R_CullSprite(const r_sprite_instance_t *s) {
-	vec3_t mins, maxs;
-
-	Cm_TraceBounds(s->vertexes[0].position, s->vertexes[2].position, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
-
-	return R_CullBox(mins, maxs);
-}
-
-/**
  * @brief Copies the specified sprite into the view structure, provided it
  * passes a basic visibility test.
  */
@@ -120,25 +110,76 @@ void R_AddSprite(const r_sprite_t *s) {
 		return;
 	}
 
-	if (r_view.num_sprite_instances == MAX_SPRITE_INSTANCES) {
-		Com_Debug(DEBUG_RENDERER, "MAX_SPRITE_INSTANCES\n");
+	if (R_CullSphere(s->origin, s->size * .5f)) {
 		return;
 	}
 
-	r_sprite_instance_t *out = &r_view.sprite_instances[r_view.num_sprite_instances];
-
 	r_view.sprites[r_view.num_sprites] = *s;
+	r_view.num_sprites++;
+}
 
-	out->sprite = &r_view.sprites[r_view.num_sprites];
-	out->beam = NULL;
+/**
+ * @brief Copies the specified sprite into the view structure, provided it
+ * passes a basic visibility test.
+ */
+void R_AddBeam(const r_beam_t *b) {
 
-	out->diffusemap = R_ResolveSpriteImage(s->media, s->life);
+	if (r_view.num_beams == MAX_BEAMS) {
+		Com_Debug(DEBUG_RENDERER, "MAX_BEAMS\n");
+		return;
+	}
 
-	const float aspect_ratio = (float) out->diffusemap->width / (float) out->diffusemap->height;
+	vec3_t box_mins, box_maxs;
+	Cm_TraceBounds(b->start, b->end,
+				   Vec3(-b->size * .5f, -b->size * .5f, -b->size * .5f),
+				   Vec3( b->size * .5f,  b->size * .5f,  b->size * .5f),
+				   &box_mins, &box_maxs);
+
+	if (R_CullBox(box_mins, box_maxs)) {
+		return;
+	}
+
+	r_view.beams[r_view.num_beams] = *b;
+	r_view.num_beams++;
+}
+
+/**
+ * @brief
+ */
+static r_sprite_instance_t *R_AllocSpriteInstance(void) {
+
+	if (r_view.num_sprite_instances == MAX_SPRITE_INSTANCES) {
+		Com_Debug(DEBUG_RENDERER, "MAX_SPRITE_INSTANCES\n");
+		return NULL;
+	}
+
+	r_sprite_instance_t *in = &r_view.sprite_instances[r_view.num_sprite_instances];
+	memset(in, 0, sizeof(*in));
+
+	in->vertexes = r_sprites.vertexes + 4 * r_view.num_sprite_instances;
+	in->offset = r_view.num_sprite_instances * 6 * sizeof(GLuint);
+
+	r_view.num_sprite_instances++;
+	return in;
+}
+
+/**
+ * @brief
+ */
+static void R_UpdateSprite(const r_sprite_t *s) {
+
+	r_sprite_instance_t *in = R_AllocSpriteInstance();
+	if (!in) {
+		return;
+	}
+
+	in->diffusemap = R_ResolveSpriteImage(s->media, s->life);
+
+	const float aspect_ratio = (float) in->diffusemap->width / (float) in->diffusemap->height;
 	const float half_size = s->size * .5f;
 
 	vec3_t dir, right, up;
-	
+
 	if (Vec3_Equal(s->dir, Vec3_Zero())) {
 
 		if (!s->axis || s->axis & (SPRITE_AXIS_X | SPRITE_AXIS_Y | SPRITE_AXIS_Z)) {
@@ -164,86 +205,68 @@ void R_AddSprite(const r_sprite_t *s) {
 	Vec3_Vectors(dir, NULL, &right, &up);
 
 	const vec3_t u = Vec3_Scale(up, half_size),
-	             d = Vec3_Scale(up, -half_size),
-	             l = Vec3_Scale(right, -half_size * aspect_ratio),
-	             r = Vec3_Scale(right, half_size * aspect_ratio);
-	
-	out->vertexes[0].position = Vec3_Add(Vec3_Add(s->origin, u), l);
-	out->vertexes[1].position = Vec3_Add(Vec3_Add(s->origin, u), r);
-	out->vertexes[2].position = Vec3_Add(Vec3_Add(s->origin, d), r);
-	out->vertexes[3].position = Vec3_Add(Vec3_Add(s->origin, d), l);
+				 d = Vec3_Scale(up, -half_size),
+				 l = Vec3_Scale(right, -half_size * aspect_ratio),
+				 r = Vec3_Scale(right, half_size * aspect_ratio);
 
-	if (R_CullSprite(out)) {
-		return;
-	}
+	in->vertexes[0].position = Vec3_Add(Vec3_Add(s->origin, u), l);
+	in->vertexes[1].position = Vec3_Add(Vec3_Add(s->origin, u), r);
+	in->vertexes[2].position = Vec3_Add(Vec3_Add(s->origin, d), r);
+	in->vertexes[3].position = Vec3_Add(Vec3_Add(s->origin, d), l);
 
-	R_SpriteTextureCoordinates(out->diffusemap, &out->vertexes[0].diffusemap,
-												&out->vertexes[1].diffusemap,
-												&out->vertexes[2].diffusemap,
-												&out->vertexes[3].diffusemap);
+	R_SpriteTextureCoordinates(in->diffusemap, &in->vertexes[0].diffusemap,
+											   &in->vertexes[1].diffusemap,
+											   &in->vertexes[2].diffusemap,
+											   &in->vertexes[3].diffusemap);
 
-	out->next_diffusemap = NULL;
-	out->lerp = 0.f;
+	float lerp = 0.f;
 
 	if (s->media->type == R_MEDIA_ANIMATION) {
 		const r_animation_t *anim = (const r_animation_t *) s->media;
 
-		out->next_diffusemap = R_ResolveAnimation(anim, s->life, 1);
+		in->next_diffusemap = R_ResolveAnimation(anim, s->life, 1);
 
-		R_SpriteTextureCoordinates(out->next_diffusemap, &out->vertexes[0].next_diffusemap,
-														 &out->vertexes[1].next_diffusemap,
-														 &out->vertexes[2].next_diffusemap,
-														 &out->vertexes[3].next_diffusemap);
+		R_SpriteTextureCoordinates(in->next_diffusemap, &in->vertexes[0].next_diffusemap,
+														&in->vertexes[1].next_diffusemap,
+														&in->vertexes[2].next_diffusemap,
+														&in->vertexes[3].next_diffusemap);
 
 		if (s->flags & SPRITE_LERP) {
 			const float life_to_images = floorf(s->life * anim->num_frames);
 			const float cur_frame = life_to_images / anim->num_frames;
 			const float next_frame = (life_to_images + 1) / anim->num_frames;
-			out->lerp = (s->life - cur_frame) / (next_frame - cur_frame);
+			lerp = (s->life - cur_frame) / (next_frame - cur_frame);
 		}
 	}
 
-	out->vertexes[0].color =
-	out->vertexes[1].color =
-	out->vertexes[2].color =
-	out->vertexes[3].color = s->color;
+	in->vertexes[0].color =
+	in->vertexes[1].color =
+	in->vertexes[2].color =
+	in->vertexes[3].color = s->color;
 
-	out->vertexes[0].lerp =
-	out->vertexes[1].lerp =
-	out->vertexes[2].lerp =
-	out->vertexes[3].lerp = out->lerp;
+	in->vertexes[0].lerp =
+	in->vertexes[1].lerp =
+	in->vertexes[2].lerp =
+	in->vertexes[3].lerp = lerp;
 
-	r_view.num_sprite_instances++;
-	r_view.num_sprites++;
+	if (s->flags & SPRITE_NO_BLEND_DEPTH) {
+		in->blend_depth = 0;
+	} else {
+		in->blend_depth = R_BlendDepthForPoint(s->origin, BLEND_DEPTH_SPRITE);
+	}
 }
 
 /**
- * @brief Copies the specified sprite into the view structure, provided it
- * passes a basic visibility test.
+ * @brief
  */
-void R_AddBeam(const r_beam_t *b) {
+void R_UpdateBeam(const r_beam_t *b) {
 
-	if (r_view.num_beams == MAX_BEAMS) {
-		Com_Debug(DEBUG_RENDERER, "MAX_BEAMS\n");
+	r_sprite_instance_t *in = R_AllocSpriteInstance();
+	if (!in) {
 		return;
 	}
 
-	if (r_view.num_sprite_instances == MAX_SPRITE_INSTANCES) {
-		Com_Debug(DEBUG_RENDERER, "MAX_SPRITE_INSTANCES\n");
-		return;
-	}
-
-	r_sprite_instance_t *in = &r_view.sprite_instances[r_view.num_sprite_instances];
-
-	r_view.beams[r_view.num_beams] = *b;
-
-	in->beam = &r_view.beams[r_view.num_beams];
-	in->sprite = NULL;
-
-	in->diffusemap = R_ResolveSpriteImage((r_media_t *) b->image, 0);
-	in->next_diffusemap = NULL;
-
-	in->lerp = 0.f;
+	in->diffusemap = b->image;
 
 	const float half_size = b->size * .5f;
 
@@ -257,10 +280,6 @@ void R_AddBeam(const r_beam_t *b) {
 	in->vertexes[1].position = Vec3_Add(b->end, right);
 	in->vertexes[2].position = Vec3_Subtract(b->end, right);
 	in->vertexes[3].position = Vec3_Subtract(b->start, right);
-
-	if (R_CullSprite(in)) {
-		return;
-	}
 
 	R_SpriteTextureCoordinates(in->diffusemap, &in->vertexes[0].diffusemap,
 											   &in->vertexes[1].diffusemap,
@@ -291,14 +310,13 @@ void R_AddBeam(const r_beam_t *b) {
 	in->vertexes[0].lerp =
 	in->vertexes[1].lerp =
 	in->vertexes[2].lerp =
-	in->vertexes[3].lerp = in->lerp;
+	in->vertexes[3].lerp = 0.f;
 
-	r_view.num_sprite_instances++;
-	r_view.num_beams++;
+	in->blend_depth = R_BlendDepthForPoint(b->start, BLEND_DEPTH_SPRITE);
 }
 
 /**
- * @brief
+ * @brief Generate sprite instances from sprites and beams, and update the vertex array.
  */
 void R_UpdateSprites(void) {
 
@@ -310,25 +328,20 @@ void R_UpdateSprites(void) {
 
 	R_GetError(NULL);
 
+	const r_sprite_t *s = r_view.sprites;
+	for (int32_t i = 0; i < r_view.num_sprites; i++, s++) {
+		R_UpdateSprite(s);
+	}
+
+	const r_beam_t *b = r_view.beams;
+	for (int32_t i = 0; i < r_view.num_beams; i++, b++) {
+		R_UpdateBeam(b);
+	}
+
+	g_hash_table_remove_all(r_sprites.blend_depth_hash);
+
 	r_sprite_instance_t *in = r_view.sprite_instances;
-	r_sprite_vertex_t *out = r_sprites.vertexes;
-
-	for (int32_t i = 0; i < r_view.num_sprite_instances; i++, in++, out += 4) {
-
-		assert(in->sprite || in->beam);
-		assert(in->diffusemap);
-
-		if (in->sprite) {
-			if (in->sprite->flags & SPRITE_NO_BLEND_DEPTH) {
-				in->blend_depth = 0;
-			} else {
-				in->blend_depth = R_BlendDepthForPoint(in->sprite->origin, BLEND_DEPTH_SPRITE);
-			}
-		} else {
-			in->blend_depth = R_BlendDepthForPoint(in->beam->start, BLEND_DEPTH_SPRITE);
-		}
-
-		in->blend_chain = NULL;
+	for (int32_t i = 0; i < r_view.num_sprite_instances; i++, in++) {
 
 		r_sprite_instance_t *chain = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth));
 		if (chain == NULL) {
@@ -339,13 +352,12 @@ void R_UpdateSprites(void) {
 			}
 			chain->blend_chain = in;
 		}
-
-		memcpy(out, in->vertexes, sizeof(in->vertexes));
-		in->offset = i * 6 * sizeof(GLuint);
 	}
 
+	const size_t vertex_data_size = r_view.num_sprite_instances * sizeof(r_sprite_vertex_t) * 4;
+
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, r_view.num_sprite_instances * sizeof(in->vertexes), r_sprites.vertexes, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertex_data_size, r_sprites.vertexes, GL_DYNAMIC_DRAW);
 
 	glUseProgram(0);
 
@@ -356,10 +368,6 @@ void R_UpdateSprites(void) {
  * @brief
  */
 void R_DrawSprites(int32_t blend_depth) {
-
-	if (!r_view.num_sprites) {
-		return;
-	}
 	
 	glDepthMask(GL_FALSE);
 
@@ -408,10 +416,10 @@ void R_DrawSprites(int32_t blend_depth) {
 		const ptrdiff_t stride = 6 * (ptrdiff_t) sizeof(GLuint);
 
 		int32_t count = 0;
-		for (r_sprite_instance_t *s = in; s; s = s->blend_chain) {
-			if (s->offset == in->offset + count * stride &&
-				s->diffusemap == in->diffusemap &&
-				s->next_diffusemap == in->next_diffusemap) {
+		for (r_sprite_instance_t *chain = in; chain; chain = chain->blend_chain) {
+			if (chain->offset == in->offset + count * stride &&
+				chain->diffusemap == in->diffusemap &&
+				chain->next_diffusemap == in->next_diffusemap) {
 				count++;
 			} else {
 				break;
@@ -426,8 +434,6 @@ void R_DrawSprites(int32_t blend_depth) {
 		}
 	}
 
-	g_hash_table_remove(r_sprites.blend_depth_hash, GINT_TO_POINTER(blend_depth));
-	
 	glActiveTexture(GL_TEXTURE0);
 	
 	glBindVertexArray(0);

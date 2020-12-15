@@ -270,7 +270,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 				.size = Maxf(1.7f, powf(1.7f - pdist, power)),
 				.size_velocity = Mixf(-3.5f, -.2f, pdist) * RandomRangef(.66f, 1.f),
 				.color = Vec4(effect_color.x, effect_color.y, effect_color.z, pdist),
-				.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
+				.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
 			})) {
 				break;
 			}

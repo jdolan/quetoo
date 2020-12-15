@@ -807,16 +807,6 @@ typedef struct {
  */
 typedef struct r_sprite_instance_s {
 	/**
-	 * @brief The backing sprite definition.
-	 */
-	const r_sprite_t *sprite;
-
-	/**
-	 * @brief The backing beam definition.
-	 */
-	const r_beam_t *beam;
-
-	/**
 	 * @brief The diffusemap texture.
 	 */
 	const r_image_t *diffusemap;
@@ -827,17 +817,12 @@ typedef struct r_sprite_instance_s {
 	const r_image_t *next_diffusemap;
 
 	/**
-	 * @brief The frame interpolation.
+	 * @brief The sprite vertexes in the shared array.
 	 */
-	float lerp;
+	r_sprite_vertex_t *vertexes;
 
 	/**
-	 * @brief The sprite vertexes.
-	 */
-	r_sprite_vertex_t vertexes[4];
-
-	/**
-	 * @brief The vertex offset into the shared array.
+	 * @brief The element offset in the shared array.
 	 */
 	ptrdiff_t offset;
 
