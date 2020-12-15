@@ -206,8 +206,8 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 
 	cg_misc_sound_t *sound = self->data;
 
-	sound->hz = cgi.EntityValue(self->def, "hz")->value ?: .5f;
-	sound->drift = cgi.EntityValue(self->def, "drift")->value ?: .1f;
+	sound->hz = cgi.EntityValue(self->def, "hz")->value ?: 0.f;
+	sound->drift = cgi.EntityValue(self->def, "drift")->value ?: .3f;
 
 	sound->play.sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
 	sound->play.origin = self->origin;
