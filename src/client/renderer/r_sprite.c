@@ -178,25 +178,32 @@ void R_AddSprite(const r_sprite_t *s) {
 	if (Vec3_Equal(s->dir, Vec3_Zero())) {
 
 		if (!s->axis || s->axis & (SPRITE_AXIS_X | SPRITE_AXIS_Y | SPRITE_AXIS_Z)) {
-			dir = Vec3_Normalize(Vec3_Subtract(s->origin, r_view.origin));
+			if (s->rotation) {
+				dir = r_view.angles;
+				dir.z = Degrees(s->rotation);
+				Vec3_Vectors(dir, NULL, &right, &up);
+			} else {
+				right = r_view.right;
+				up = r_view.up;
+			}
 		} else {
 			dir = Vec3_Zero();
 
 			for (int32_t i = 0; i < 3; i++) {
 				if (s->axis & (1 << i)) {
-					dir.xyz[i] = s->origin.xyz[i] - r_view.origin.xyz[i];
+					dir.xyz[i] = r_view.forward.xyz[i];
 				}
 			}
 
-			dir = Vec3_Normalize(dir);
+			dir = Vec3_Euler(dir);
+			dir.z = Degrees(s->rotation);
+			Vec3_Vectors(dir, NULL, &right, &up);
 		}
 	} else {
-		dir = s->dir;
+		dir = Vec3_Euler(s->dir);
+		dir.z = Degrees(s->rotation);
+		Vec3_Vectors(dir, NULL, &right, &up);
 	}
-	dir = Vec3_Euler(dir);
-	dir.z = Degrees(s->rotation);
-
-	Vec3_Vectors(dir, NULL, &right, &up);
 
 	const vec3_t u = Vec3_Scale(up, size), d = Vec3_Scale(up, -size), l = Vec3_Scale(right, -size * aspect_ratio), r = Vec3_Scale(right, size * aspect_ratio);
 	
