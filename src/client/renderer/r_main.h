@@ -241,5 +241,6 @@ extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_depth_pass;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_wireframe;
+extern cvar_t *r_occlusion_query;
 
 #endif /* __R_LOCAL_H__ */

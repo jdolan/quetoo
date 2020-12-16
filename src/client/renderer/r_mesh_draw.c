@@ -250,6 +250,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glUniform1f(r_mesh_program.ambient, .0f);
 	}
 
+	if (e->occlusion_query) {
+		glBeginConditionalRender(e->occlusion_query->name, GL_QUERY_NO_WAIT);
+	}
+
 	glBindVertexArray(mesh->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
@@ -323,6 +327,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	}
 
 	glBindVertexArray(0);
+
+	if (e->occlusion_query) {
+		glEndConditionalRender();
+	}
 
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(0.f, 1.f);
