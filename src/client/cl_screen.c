@@ -191,6 +191,8 @@ static void Cl_DrawRendererStats(void) {
 
 	R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_yellow);
 	y += ch;
+	R_Draw2DString(x, y, va("%d occlusion queries", r_view.num_occlusion_queries), color_yellow);
+	y += ch;
 
 	const vec3_t forward = Vec3_Add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST));
 	const cm_trace_t tr = Cl_Trace(r_view.origin, forward, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
