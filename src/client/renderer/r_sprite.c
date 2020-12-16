@@ -30,7 +30,7 @@ static struct {
 
 	GLuint vertex_array;
 	GLuint vertex_buffer;
-	GLuint index_buffer;
+	GLuint elements_buffer;
 
 	GHashTable *blend_depth_hash;
 
@@ -390,10 +390,8 @@ void R_UpdateSprites(void) {
 		}
 	}
 
-	const size_t vertex_data_size = r_view.num_sprite_instances * sizeof(r_sprite_vertex_t) * 4;
-
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, vertex_data_size, r_sprites.vertexes, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, r_view.num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes, GL_DYNAMIC_DRAW);
 
 	glUseProgram(0);
 
@@ -419,7 +417,7 @@ void R_DrawSprites(int32_t blend_depth) {
 	glBindVertexArray(r_sprites.vertex_array);
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
 	
 	glEnableVertexAttribArray(r_sprite_program.in_position);
 	glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
@@ -548,20 +546,20 @@ void R_InitSprites(void) {
 	glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
 
-	glGenBuffers(1, &r_sprites.index_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.index_buffer);
+	glGenBuffers(1, &r_sprites.elements_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
 
-	GLuint indices[MAX_SPRITES * 6];
+	GLuint elements[MAX_SPRITES * 6];
 	for (GLuint i = 0, v = 0, e = 0; i < MAX_SPRITES; i++, v += 4, e += 6) {
-		indices[e + 0] = v + 0;
-		indices[e + 1] = v + 1;
-		indices[e + 2] = v + 2;
-		indices[e + 3] = v + 0;
-		indices[e + 4] = v + 2;
-		indices[e + 5] = v + 3;
+		elements[e + 0] = v + 0;
+		elements[e + 1] = v + 1;
+		elements[e + 2] = v + 2;
+		elements[e + 3] = v + 0;
+		elements[e + 4] = v + 2;
+		elements[e + 5] = v + 3;
 	}
 
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -592,7 +590,7 @@ void R_ShutdownSprites(void) {
 
 	glDeleteVertexArrays(1, &r_sprites.vertex_array);
 	glDeleteBuffers(1, &r_sprites.vertex_buffer);
-	glDeleteBuffers(1, &r_sprites.index_buffer);
+	glDeleteBuffers(1, &r_sprites.elements_buffer);
 
 	g_hash_table_destroy(r_sprites.blend_depth_hash);
 

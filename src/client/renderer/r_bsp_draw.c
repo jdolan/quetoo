@@ -339,11 +339,11 @@ static inline void R_DrawBspDrawElements(const r_entity_t *e, const r_bsp_draw_e
 		r_view.count_bsp_triangles += draw->num_elements / 3;
 	}
 
-	R_DrawBspDrawElementsMaterialStages(e, draw, *material);
+	R_DrawBspDrawElementsMaterialStages(e, draw, draw->texinfo->material);
 }
 
 /**
- * @brief Draws opaque draw elements for the specified inline model, ordered by material.
+ * @brief Draws opaque and alpha test draw elements for the specified inline model.
  */
 static void R_DrawBspInlineModelDrawElements(const r_entity_t *e, const r_bsp_inline_model_t *in) {
 
@@ -351,8 +351,20 @@ static void R_DrawBspInlineModelDrawElements(const r_entity_t *e, const r_bsp_in
 
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
-		
+
+		if (r_draw_depth_pass->value) {
+			if (draw->texinfo->flags & SURF_ALPHA_TEST) {
+				glDepthMask(GL_TRUE);
+			}
+		}
+
 		R_DrawBspDrawElements(e, draw, &material);
+
+		if (r_draw_depth_pass->value) {
+			if (draw->texinfo->flags & SURF_ALPHA_TEST) {
+				glDepthMask(GL_FALSE);
+			}
+		}
 
 		r_view.count_bsp_draw_elements++;
 	}

@@ -41,6 +41,7 @@ cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_depth_pass;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
+cvar_t *r_occlusion_query;
 
 cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
@@ -335,6 +336,8 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawDepthPass();
 
+	R_ExecuteOcclusionQueries();
+
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	} else {
@@ -528,6 +531,7 @@ static void R_InitLocal(void) {
 	r_draw_depth_pass = Cvar_Add("r_draw_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth optimization pass (developer tool");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
+	r_occlusion_query = Cvar_Add("r_occlusion_query", "1", CVAR_DEVELOPER, "Controls occlusion query execution (developer tool)");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");

@@ -539,9 +539,9 @@ typedef struct {
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
 
+	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
-	GLuint vertex_array;
 
 } r_bsp_model_t;
 
@@ -649,6 +649,28 @@ typedef struct r_model_s {
 #define IS_BSP_MODEL(m) (m && m->type == MOD_BSP)
 #define IS_BSP_INLINE_MODEL(m) (m && m->type == MOD_BSP_INLINE)
 #define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
+
+/**
+ * @brief Occlusion queries are bounded boxes, tested against the depth pass.
+ */
+typedef struct {
+	/**
+	 * @brief The query object name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The query mins.
+	 */
+	vec3_t mins;
+
+	/**
+	 * @brief The query maxs.
+	 */
+	vec3_t maxs;
+} r_occlusion_query_t;
+
+#define MAX_OCCLUSION_QUERIES 0x200
 
 /**
  * @brief
@@ -1006,6 +1028,11 @@ typedef struct r_entity_s {
 	vec4_t tints[TINT_TOTAL];
 
 	/**
+	 * @brief The occlusion query for this entity, if any.
+	 */
+	r_occlusion_query_t *occlusion_query;
+
+	/**
 	 * @brief The alpha blended depth in which this entity should be rendered.
 	 */
 	int32_t blend_depth;
@@ -1105,6 +1132,13 @@ typedef struct {
 	 */
 	r_stain_t stains[MAX_STAINS];
 	int32_t num_stains;
+
+	/**
+	 * @brief The occlusion queries to execute for the current frame.
+	 * @remarks This array is populated by the renderer from entities and sprites.
+	 */
+	r_occlusion_query_t occlusion_queries[MAX_OCCLUSION_QUERIES];
+	int32_t num_occlusion_queries;
 
 	// counters, reset each frame
 

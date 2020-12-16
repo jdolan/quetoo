@@ -51,6 +51,10 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 		return NULL;
 	}
 
+	if (e->parent == NULL && !(e->effects & EF_WEAPON)) {
+		e->occlusion_query = R_OcclusionQuery(e->abs_mins, e->abs_maxs);
+	}
+
 	r_view.num_entities++;
 	return e;
 }
