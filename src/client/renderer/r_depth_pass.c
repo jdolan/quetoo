@@ -135,6 +135,10 @@ r_occlusion_query_t *R_OcclusionQuery(const vec3_t mins, const vec3_t maxs) {
 		return NULL;
 	}
 
+	if (Vec3_BoxIntersect(r_view.origin, r_view.origin, mins, maxs)) {
+		return NULL;
+	}
+
 	r_occlusion_query_t *q = &r_view.occlusion_queries[r_view.num_occlusion_queries];
 
 	q->name = r_occlusion_queries.names[r_view.num_occlusion_queries];

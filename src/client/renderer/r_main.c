@@ -135,8 +135,13 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		return false;
 	}
 
+	if (Vec3_BoxIntersect(r_view.origin, r_view.origin, mins, maxs)) {
+		return false;
+	}
+
 	for (size_t i = 0; i < lengthof(r_locals.frustum); i++) {
-		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK) {
+
+		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) == SIDE_FRONT) {
 			return false;
 		}
 	}
