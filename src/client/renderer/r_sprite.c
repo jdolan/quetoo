@@ -317,21 +317,21 @@ void R_UpdateBeam(const r_beam_t *b) {
 
 		in->vertexes[0].position = Vec3_Add(x, right);
 		in->vertexes[1].position = Vec3_Add(y, right);
-		in->vertexes[2].position = Vec3_Subtract(x, right);
-		in->vertexes[3].position = Vec3_Subtract(y, right);
+		in->vertexes[2].position = Vec3_Subtract(y, right);
+		in->vertexes[3].position = Vec3_Subtract(x, right);
 
 		in->vertexes[0].diffusemap = texcoords[0];
 		in->vertexes[1].diffusemap = texcoords[1];
 		in->vertexes[2].diffusemap = texcoords[2];
 		in->vertexes[3].diffusemap = texcoords[3];
 
-		/*const float xs = (texcoords[0].x * (1.f - frac)) + (texcoords[1].x * frac);
+		const float xs = (texcoords[0].x * (1.f - frac)) + (texcoords[1].x * frac);
 		const float ys = (texcoords[0].x * (1.f - (frac + step))) + (texcoords[1].x * (frac + step));
 
 		in->vertexes[0].diffusemap.x = xs;
 		in->vertexes[1].diffusemap.x = ys;
 		in->vertexes[2].diffusemap.x = ys;
-		in->vertexes[3].diffusemap.x = xs;*/
+		in->vertexes[3].diffusemap.x = xs;
 
 		in->vertexes[0].color =
 		in->vertexes[1].color =
@@ -370,7 +370,6 @@ void R_UpdateSprites(void) {
 
 	/*const*/ r_beam_t *b = r_view.beams;
 	for (int32_t i = 0; i < r_view.num_beams; i++, b++) {
-		b->image = R_LoadImage("textures/common/notex", IT_MATERIAL);
 		R_UpdateBeam(b);
 	}
 
