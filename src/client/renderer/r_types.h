@@ -1172,7 +1172,7 @@ typedef struct {
 	SDL_Window *window;
 
 	/**
-	 * @brief The OpenGL 2.1 context.
+	 * @brief The OpenGL 3.3 context.
 	 */
 	SDL_GLContext *context;
 
@@ -1185,6 +1185,11 @@ typedef struct {
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
 	 */
 	r_pixel_t width, height;
+
+	/**
+	 * @brief The display vertical refresh rate, in Hz.
+	 */
+	float refresh_rate;
 
 	/**
 	 * @brief Greater than 1.0 if High DPI mode is enabled.
