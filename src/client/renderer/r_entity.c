@@ -22,6 +22,21 @@
 #include "r_local.h"
 
 /**
+ * @brief
+ */
+static _Bool R_CullEntity(const r_entity_t *e) {
+
+	if (e->parent) {
+		return false;
+	}
+
+	if (e->effects & (EF_SELF | EF_WEAPON)) {
+		return false;
+	}
+
+	return R_CullBox(e->abs_model_mins, e->abs_model_maxs);
+}
+/**
  * @brief Adds an entity to the view.
  */
 r_entity_t *R_AddEntity(const r_entity_t *ent) {
@@ -70,11 +85,8 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 		e->abs_model_maxs = Vec3_Maxf(e->abs_model_maxs, corner);
 	}
 
-	if (!(e->effects & (EF_SELF | EF_WEAPON))) {
-
-		if (R_CullBox(e->abs_model_mins, e->abs_model_maxs)) {
-			return NULL;
-		}
+	if (R_CullEntity(e)) {
+		return NULL;
 	}
 
 	r_view.num_entities++;
