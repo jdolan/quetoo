@@ -958,14 +958,19 @@ typedef struct r_entity_s {
 	float scale;
 
 	/**
-	 * @brief The relative entity bounds.
+	 * @brief The relative entity bounds, as known by the client.
 	 */
 	vec3_t mins, maxs;
 
 	/**
-	 * @brief The absolute entity bounds, for frustum culling.
+	 * @brief The absolute entity bounds, as known by the client.
 	 */
 	vec3_t abs_mins, abs_maxs;
+
+	/**
+	 * @brief The visual model bounds, in world space, for frustum culling.
+	 */
+	vec3_t abs_model_mins, abs_model_maxs;
 
 	/**
 	 * @brief The model matrix.

@@ -174,8 +174,8 @@ void R_ExecuteOcclusionQueries(void) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	//glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	//glDepthMask(GL_FALSE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
 
 	glUseProgram(r_depth_pass_program.name);
 
@@ -208,8 +208,8 @@ void R_ExecuteOcclusionQueries(void) {
 
 	glUseProgram(0);
 
-	//glDepthMask(GL_TRUE);
-	//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);

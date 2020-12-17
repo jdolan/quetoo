@@ -89,6 +89,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+map torn"
             isEnabled = "YES">
          </CommandLineArgument>

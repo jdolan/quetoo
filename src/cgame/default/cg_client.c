@@ -494,10 +494,12 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		return;
 	}
 
-	const _Bool self_no_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
+	if (Cg_IsSelf(ent)) {
+		e->effects |= EF_SELF;
+	}
 
 	// don't draw ourselves unless third person is set
-	if (self_no_draw) {
+	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 
 		e->effects |= EF_NO_DRAW;
 

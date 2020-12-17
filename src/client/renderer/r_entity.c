@@ -47,12 +47,14 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 
-	if (R_CullBox(e->abs_mins, e->abs_maxs)) {
-		return NULL;
-	}
+	Matrix4x4_Transform(&e->matrix, e->model->mins.xyz, e->abs_model_mins.xyz);
+	Matrix4x4_Transform(&e->matrix, e->model->maxs.xyz, e->abs_model_maxs.xyz);
 
-	if (e->parent == NULL && !(e->effects & EF_WEAPON)) {
-		e->occlusion_query = R_OcclusionQuery(e->abs_mins, e->abs_maxs);
+	if (!(e->effects & (EF_SELF | EF_WEAPON))) {
+
+		if (R_CullBox(e->abs_model_mins, e->abs_model_maxs)) {
+			return NULL;
+		}
 	}
 
 	r_view.num_entities++;
@@ -74,40 +76,49 @@ void R_UpdateEntities(void) {
  */
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
+	vec3_t mins, maxs;
+	if (r_draw_entity_bounds->integer == 2) {
+		mins = e->abs_model_mins;
+		maxs = e->abs_model_maxs;
+	} else {
+		mins = e->abs_mins;
+		maxs = e->abs_maxs;
+	}
+
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_mins.z),
-		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_mins.z),
-		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_mins.z),
-		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_mins.z),
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_mins.z),
+		Vec3(mins.x, mins.y, mins.z),
+		Vec3(maxs.x, mins.y, mins.z),
+		Vec3(maxs.x, maxs.y, mins.z),
+		Vec3(mins.x, maxs.y, mins.z),
+		Vec3(mins.x, mins.y, mins.z),
 	}, 5, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_maxs.z),
-		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_maxs.z),
-		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_maxs.z),
-		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_maxs.z),
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_maxs.z),
+		Vec3(mins.x, mins.y, maxs.z),
+		Vec3(maxs.x, mins.y, maxs.z),
+		Vec3(maxs.x, maxs.y, maxs.z),
+		Vec3(mins.x, maxs.y, maxs.z),
+		Vec3(mins.x, mins.y, maxs.z),
 	}, 5, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_mins.z),
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_maxs.z),
+		Vec3(mins.x, mins.y, mins.z),
+		Vec3(mins.x, mins.y, maxs.z),
 	}, 2, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_mins.z),
-		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_maxs.z),
+		Vec3(mins.x, maxs.y, mins.z),
+		Vec3(mins.x, maxs.y, maxs.z),
 	}, 2, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_mins.z),
-		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_maxs.z),
+		Vec3(maxs.x, maxs.y, mins.z),
+		Vec3(maxs.x, maxs.y, maxs.z),
 	}, 2, color_yellow);
 
 	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_mins.z),
-		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_maxs.z),
+		Vec3(maxs.x, mins.y, mins.z),
+		Vec3(maxs.x, mins.y, maxs.z),
 	}, 2, color_yellow);
 }
 
@@ -132,6 +143,10 @@ void R_DrawEntities(int32_t blend_depth) {
 		}
 
 		if (e->parent) {
+			continue;
+		}
+
+		if (e->effects & (EF_SELF | EF_WEAPON)) {
 			continue;
 		}
 

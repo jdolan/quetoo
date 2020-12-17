@@ -84,8 +84,13 @@ void R_UpdateMeshEntities(void) {
 
 	r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+
 		if (IS_MESH_MODEL(e->model)) {
 			e->blend_depth = R_BlendDepthForPoint(e->origin, BLEND_DEPTH_ENTITY);
+
+			if (!(e->effects & (EF_SELF | EF_WEAPON))) {
+				e->occlusion_query = R_OcclusionQuery(e->abs_model_mins, e->abs_model_maxs);
+			}
 		}
 	}
 
