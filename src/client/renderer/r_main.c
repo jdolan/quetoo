@@ -135,18 +135,35 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		return false;
 	}
 
-	if (Vec3_BoxIntersect(r_view.origin, r_view.origin, mins, maxs)) {
-		return false;
-	}
+    for (size_t i = 0; i < lengthof(r_locals.frustum); i++) {
+		_Bool front = false, back = false;
 
-	for (size_t i = 0; i < lengthof(r_locals.frustum); i++) {
+		for (size_t j = 0; j < 8; j++) {
+			const vec3_t transformed = Vec3(
+				((j & 1) ? maxs : mins).x,
+				(((j >> 1) & 1) ? maxs : mins).y,
+				(((j >> 2) & 1) ? maxs : mins).z
+			);
 
-		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) == SIDE_FRONT) {
-			return false;
+			const float dist = Vec3_Dot(transformed, r_locals.frustum[i].normal);
+
+			if (dist > r_locals.frustum[i].dist) {
+				front = true;
+
+				if (back) {
+					break;
+				}
+			} else {
+				back = true;
+			}
 		}
-	}
 
-	return true;
+		if (!front) {
+			return true;
+		}
+    }
+
+    return false;
 }
 
 /**
