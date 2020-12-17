@@ -613,15 +613,13 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	torso.tag = "tag_torso";
 
 	r_entity_t *r_torso = cgi.AddEntity(&torso);
-
-	if (!r_torso) {
-		return;
-	}
+	assert(r_torso);
 
 	head.parent = r_torso;
 	head.tag = "tag_head";
 
-	cgi.AddEntity(&head);
+	r_entity_t *r_head = cgi.AddEntity(&head);
+	assert(r_head);
 
 	if (s->model2) {
 		cgi.AddEntity(&(const r_entity_t) {
