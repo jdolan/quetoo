@@ -420,7 +420,8 @@ static void R_DrawBspInlineModelBlendFaces(const r_entity_t *e, const r_bsp_inli
 		const r_bsp_face_t *face = node->faces;
 		for (int32_t j = 0; j < node->num_faces; j++, face++) {
 
-			if (face->texinfo->flags & SURF_MASK_BLEND) {
+			if (face->texinfo->flags & SURF_MASK_BLEND &&
+				!(face->texinfo->flags & SURF_NO_DRAW)) {
 				const r_bsp_draw_elements_t draw = {
 					.texinfo = face->texinfo,
 					.contents = face->contents,
