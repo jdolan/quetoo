@@ -340,14 +340,6 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateFrustum();
 
-	R_UpdateLights();
-
-	R_UpdateUniforms();
-
-	R_DrawDepthPass();
-
-	R_ExecuteOcclusionQueries();
-
 	R_UpdateVisibility();
 
 	R_UpdateEntities();
@@ -357,8 +349,16 @@ void R_DrawView(r_view_t *view) {
 	R_DrawBspLightgrid();
 
 	R_UpdateSprites();
+	
+	R_UpdateLights();
 
 	R_UpdateStains();
+
+	R_UpdateUniforms();
+
+	R_DrawDepthPass();
+
+	R_ExecuteOcclusionQueries();
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

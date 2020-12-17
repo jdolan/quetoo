@@ -75,8 +75,6 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 		if (R_CullBox(e->abs_model_mins, e->abs_model_maxs)) {
 			return NULL;
 		}
-
-		e->occlusion_query = R_OcclusionQuery(e->abs_model_mins, e->abs_model_maxs);
 	}
 
 	r_view.num_entities++;
