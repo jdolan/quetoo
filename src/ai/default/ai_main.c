@@ -1259,7 +1259,7 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 				// if we're above ground & on-land, and our next path is bidirectional, assume it's normal
 				// pathing; aim towards our *next* target to look a bit more natural.
 				} else if (((ENTITY_DATA(self, water_level) < WATER_WAIST && !(self->client->ps.pm_state.flags & PMF_ON_LADDER)) || !(aim.gi->PointContents(ai->move_target.path.path_position) & CONTENTS_MASK_LIQUID)) &&
-					Ai_Path_IsLinked(ai->move_target.path.path, ai->move_target.path.path_index, ai->move_target.path.path_index - 1)) {
+					ai->move_target.path.path_index && Ai_Path_IsLinked(ai->move_target.path.path, ai->move_target.path.path_index, ai->move_target.path.path_index - 1)) {
 					aim_target = ai->move_target.path.next_path_position;
 				// otherwise, aim directly at the next position
 				} else {

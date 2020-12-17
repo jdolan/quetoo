@@ -131,8 +131,8 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 	gi.WritePosition(pos);
 	gi.WriteDir(normal);
 	if (type == TE_BLOOD || type == TE_SPARKS) {
-		const int8_t count = Clampf(damage / 50, 1, 4);
-		gi.WriteByte(count);
+		const int8_t size = Clampf(damage, 16, 48);
+		gi.WriteByte(size);
 	}
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 }

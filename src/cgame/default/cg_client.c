@@ -613,7 +613,10 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	torso.tag = "tag_torso";
 
 	r_entity_t *r_torso = cgi.AddEntity(&torso);
-	assert(r_torso);
+
+	if (!r_torso) {
+		return;
+	}
 
 	head.parent = r_torso;
 	head.tag = "tag_head";
