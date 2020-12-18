@@ -693,14 +693,14 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
  * @brief Oscillate value, from material.glsl
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
-	const byte color = 191 + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * 64;
+	const float value = .7f + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * .3f;
 	
-	cgi.AddSprite(&(r_sprite_t) {
-		.media = (r_media_t *) cg_sprite_splash_02_03,
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_splash_02_03,
 		.origin = Vec3_Fmaf(ent->origin, 8.f, Vec3_Up()),
 		.size = 64.f,
-		.color = Color32(color, color, color, 0),
-		.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
+		.color = Vec4(0.f, 0.f, value, 0),
+		.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
 	});
 
 	if (ent->timestamp <= cgi.client->unclamped_time) {
