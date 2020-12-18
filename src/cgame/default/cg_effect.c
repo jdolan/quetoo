@@ -158,7 +158,7 @@ void Cg_LoadEffects(void) {
 }
 
 /**
- * @brief Adds weather particles for the specified emitter. The number of particles
+ * @brief Adds weather sprites for the specified emitter. The number of sprites
  * added is dependent on the size of the surface associated with the emitter.
  */
 static void Cg_AddWeather_(const cg_weather_emit_t *e) {
@@ -168,14 +168,14 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 		vec3_t sprite_origin = Vec3_Add(Vec4_XYZ(origin), Vec3_RandomRange(-16.f, 16.f));
 
-		// keep particle z origin relatively close to the view origin
+		// keep sprite z origin relatively close to the view origin
 		if (origin.w < cgi.view->origin.z) {
 			if (sprite_origin.z - cgi.view->origin.z > 512.0) {
 				sprite_origin.z = cgi.view->origin.z + 256.0 + Randomf() * 256.0;
 			}
 		}
 
-		// free the particle roughly when it will reach the floor
+		// free the sprite roughly when it will reach the floor
 		cg_sprite_t *s;
 
 		if (cgi.view->weather & WEATHER_RAIN) {
@@ -184,10 +184,11 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.atlas_image = cg_sprite_rain,
 				.color = Vec4(0.f, 0.f, .87f, .8f),
 				.end_color = Vec4(0.f, 0.f, .87f, .0f),
-				.size = 4.f,
+				.size = 8.f,
 				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 600.f)),
 				.acceleration = Vec3_RandomRange(-2.f, 2.f),
-				.flags = SPRITE_NO_BLEND_DEPTH
+				.flags = SPRITE_NO_BLEND_DEPTH,
+				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
 			});
 		} else {
 			s = Cg_AddSprite(&(cg_sprite_t) {

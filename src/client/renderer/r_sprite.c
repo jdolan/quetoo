@@ -181,7 +181,7 @@ static void R_UpdateSprite(const r_sprite_t *s) {
 
 	if (Vec3_Equal(s->dir, Vec3_Zero())) {
 
-		if (!s->axis || s->axis & (SPRITE_AXIS_X | SPRITE_AXIS_Y | SPRITE_AXIS_Z)) {
+		if (s->axis == SPRITE_AXIS_ALL) {
 			if (s->rotation) {
 				dir = r_view.angles;
 				dir.z = Degrees(s->rotation);
