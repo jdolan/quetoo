@@ -158,20 +158,35 @@ static void Cl_DrawRendererStats(void) {
 	R_Draw2DString(x, y, va("%d triangles", r_view.count_mesh_triangles), color_yellow);
 	y += ch;
 
-	y += ch;
-	R_Draw2DString(x, y, "Sprites:", color_yellow);
-	y += ch;
+	{
+		y += ch;
+		R_Draw2DString(x, y, "Sprites:", color_yellow);
+		y += ch;
 
-	R_Draw2DString(x, y, va("%d sprites", r_view.num_sprites), color_yellow);
-	y += ch;
-	R_Draw2DString(x, y, va("%d beams", r_view.num_beams), color_yellow);
-	y += ch;
-	R_Draw2DString(x, y, va("%d instances", r_view.num_sprite_instances), color_yellow);
-	y += ch;
-	R_Draw2DString(x, y, va("%d draw elements", r_view.count_sprite_draw_elements), color_yellow);
+		static char sprites[64], beams[64], instances[64], draw_elements[64];
+		static uint32_t sprite_time;
+
+		if (quetoo.ticks - sprite_time > 100) {
+			sprite_time = quetoo.ticks;
+
+			g_snprintf(sprites, sizeof(sprites), "%d sprites", r_view.num_sprites);
+			g_snprintf(beams, sizeof(beams), "%d beams", r_view.num_beams);
+			g_snprintf(instances, sizeof(instances), "%d instances", r_view.num_sprite_instances);
+			g_snprintf(draw_elements, sizeof(draw_elements), "%d draw elements", r_view.count_sprite_draw_elements);
+		}
+
+		R_Draw2DString(x, y, sprites, color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, beams, color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, instances, color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, draw_elements, color_yellow);
+		y += ch;
+	}
 
 	y += ch;
-	R_Draw2DString(x, y, "2D:", color_yellow);
+	R_Draw2DString(x, y, "Draw 2D:", color_yellow);
 	y += ch;
 
 	R_Draw2DString(x, y, va("%d chars", r_view.count_draw_chars), color_yellow);
