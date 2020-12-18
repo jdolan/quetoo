@@ -67,7 +67,7 @@ static void Cg_PopSprite(cg_sprite_t *s, cg_sprite_t **list) {
  */
 cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
 
-	if (!cg_add_particles->integer) {
+	if (!cg_add_sprites->integer) {
 		return NULL;
 	}
 
