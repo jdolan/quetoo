@@ -148,6 +148,9 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 	R_Draw2DString(x, y, va("%d triangles", r_view.count_bsp_triangles), color_yellow);
 	y += ch;
+	R_Draw2DString(x, y, va("%d occlusion queries (%d passed)", r_view.count_bsp_occlusion_queries,
+							r_view.count_bsp_occlusion_queries_passed), color_yellow);
+	y += ch;
 
 	y += ch;
 	R_Draw2DString(x, y, "Mesh:", color_yellow);
@@ -205,8 +208,6 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_yellow);
-	y += ch;
-	R_Draw2DString(x, y, va("%d occlusion queries", r_view.num_occlusion_queries), color_yellow);
 	y += ch;
 
 	const vec3_t forward = Vec3_Add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST));

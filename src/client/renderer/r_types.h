@@ -376,6 +376,22 @@ typedef struct {
 } r_bsp_draw_elements_t;
 
 /**
+ * @brief BSP occlusion queries are defined by brushes with CONTENTS_OCCLUSION_QUERY.
+ * @remarks Occlusion queries are processed once per frame. Objects residing completely
+ * within such a brush may be culled if the occlusion query produces no visible samples.
+ */
+typedef struct {
+	GLuint name;
+
+	vec3_t mins;
+	vec3_t maxs;
+
+	int32_t vis_frame;
+
+	GLint result;
+} r_bsp_occlusion_query_t;
+
+/**
  * @brief BSP nodes comprise the tree representation of the world.
  */
 struct r_bsp_node_s {
@@ -387,6 +403,8 @@ struct r_bsp_node_s {
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
+
+	int32_t vis_frame;
 
 	// node specific
 	cm_bsp_plane_t *plane;
@@ -417,6 +435,8 @@ struct r_bsp_leaf_s {
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
+
+	int32_t vis_frame;
 
 	// leaf specific
 	int32_t cluster;
@@ -524,6 +544,9 @@ typedef struct {
 
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
+
+	int32_t num_occlusion_queries;
+	r_bsp_occlusion_query_t *occlusion_queries;
 
 	int32_t num_nodes;
 	r_bsp_node_t *nodes;
@@ -649,28 +672,6 @@ typedef struct r_model_s {
 #define IS_BSP_MODEL(m) (m && m->type == MOD_BSP)
 #define IS_BSP_INLINE_MODEL(m) (m && m->type == MOD_BSP_INLINE)
 #define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
-
-/**
- * @brief Occlusion queries are bounded boxes, tested against the depth pass.
- */
-typedef struct {
-	/**
-	 * @brief The query object name.
-	 */
-	GLuint name;
-
-	/**
-	 * @brief The query mins.
-	 */
-	vec3_t mins;
-
-	/**
-	 * @brief The query maxs.
-	 */
-	vec3_t maxs;
-} r_occlusion_query_t;
-
-#define MAX_OCCLUSION_QUERIES 0x200
 
 /**
  * @brief
@@ -1033,11 +1034,6 @@ typedef struct r_entity_s {
 	vec4_t tints[TINT_TOTAL];
 
 	/**
-	 * @brief The occlusion query for this entity, if any.
-	 */
-	r_occlusion_query_t *occlusion_query;
-
-	/**
 	 * @brief The alpha blended depth in which this entity should be rendered.
 	 */
 	int32_t blend_depth;
@@ -1138,19 +1134,14 @@ typedef struct {
 	r_stain_t stains[MAX_STAINS];
 	int32_t num_stains;
 
-	/**
-	 * @brief The occlusion queries to execute for the current frame.
-	 * @remarks This array is populated by the renderer from entities and sprites.
-	 */
-	r_occlusion_query_t occlusion_queries[MAX_OCCLUSION_QUERIES];
-	int32_t num_occlusion_queries;
-
 	// counters, reset each frame
 
 	int32_t count_bsp_inline_models;
 	int32_t count_bsp_draw_elements;
 	int32_t count_bsp_blend_nodes;
 	int32_t count_bsp_triangles;
+	int32_t count_bsp_occlusion_queries;
+	int32_t count_bsp_occlusion_queries_passed;
 
 	int32_t count_mesh_models;
 	int32_t count_mesh_triangles;

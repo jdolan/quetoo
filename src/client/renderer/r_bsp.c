@@ -63,16 +63,18 @@ int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t type) {
 }
 
 /**
- * @brief Recurses the specified node, back to front, resolving blend depth.
+ * @brief Recurses the specified node, back to front, sorting alpha blended faces.
  */
 static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *blend_depth) {
 	int32_t side;
 
-	if (node->contents != CONTENTS_NODE) {
+	if (R_CullBox(node->mins, node->maxs)) {
 		return;
 	}
 
-	if (R_CullBox(node->mins, node->maxs)) {
+	node->vis_frame = r_locals.vis_frame;
+
+	if (node->contents != CONTENTS_NODE) {
 		return;
 	}
 
@@ -95,7 +97,7 @@ static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *blend_depth) {
 }
 
 /**
- * @brief Recurses the specified model's tree, sorting alpha blended draw elements from back to front.
+ * @brief Recurses the specified model's tree, sorting alpha blended faces from back to front.
  */
 static void R_UpdateNodeBlendDepth(const r_bsp_inline_model_t *in) {
 
@@ -106,11 +108,13 @@ static void R_UpdateNodeBlendDepth(const r_bsp_inline_model_t *in) {
 }
 
 /**
- * @brief Resolve the current leaf, and node depth for all blended faces.
+ * @brief Resolve the current leaf, and blend depth for nodes containing alpha blend faces.
  */
 void R_UpdateVisibility(void) {
 
 	r_locals.leaf = R_LeafForPoint(r_view.origin);
+
+	r_locals.vis_frame++;
 
 	R_UpdateNodeBlendDepth(r_world_model->bsp->inline_models);
 

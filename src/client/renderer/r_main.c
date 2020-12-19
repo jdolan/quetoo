@@ -140,7 +140,7 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 
 		for (size_t j = 0; j < 8; j++) {
 			const vec3_t transformed = Vec3(
-				((j & 1) ? maxs : mins).x,
+				(((j >> 0) & 1) ? maxs : mins).x,
 				(((j >> 1) & 1) ? maxs : mins).y,
 				(((j >> 2) & 1) ? maxs : mins).z
 			);
@@ -230,7 +230,11 @@ static void R_UpdateUniforms(void) {
 	}
 
 	{
+		R_UpdateLights();
 		r_uniforms.block.num_lights = r_view.num_lights;
+	}
+
+	{
 		r_uniforms.block.ticks = r_view.ticks;
 		r_uniforms.block.brightness = r_brightness->value;
 		r_uniforms.block.contrast = r_contrast->value;
@@ -250,8 +254,6 @@ static void R_UpdateUniforms(void) {
 
 		r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(view, size), 0.f);
 	}
-
-	R_UpdateLights();
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), &r_uniforms.block, GL_DYNAMIC_DRAW);
@@ -342,6 +344,12 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateVisibility();
 
+	R_UpdateUniforms();
+
+	R_DrawDepthPass();
+
+	R_ExecuteOcclusionQueries();
+
 	R_UpdateEntities();
 
 	R_UpdateFlares();
@@ -349,16 +357,8 @@ void R_DrawView(r_view_t *view) {
 	R_DrawBspLightgrid();
 
 	R_UpdateSprites();
-	
-	R_UpdateLights();
 
 	R_UpdateStains();
-
-	R_UpdateUniforms();
-
-	R_DrawDepthPass();
-
-	R_ExecuteOcclusionQueries();
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -402,6 +402,8 @@ void R_BeginFrame(void) {
 	r_view.count_bsp_draw_elements = 0;
 	r_view.count_bsp_blend_nodes = 0;
 	r_view.count_bsp_triangles = 0;
+	r_view.count_bsp_occlusion_queries = 0;
+	r_view.count_bsp_occlusion_queries_passed = 0;
 
 	r_view.count_mesh_models = 0;
 	r_view.count_mesh_triangles = 0;

@@ -25,8 +25,8 @@
 
 #ifdef __R_LOCAL_H__
 void R_DrawDepthPass(void);
-r_occlusion_query_t *R_OcclusionQuery(const vec3_t mins, const vec3_t maxs);
 void R_ExecuteOcclusionQueries(void);
+_Bool R_OccludeBox(const vec3_t mins, const vec3_t maxs);
 void R_InitDepthPass(void);
 void R_ShutdownDepthPass(void);
 #endif /* __R_LOCAL_H__ */

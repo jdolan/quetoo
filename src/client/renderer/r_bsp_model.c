@@ -458,6 +458,40 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 /**
  * @brief
  */
+static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
+
+	const cm_bsp_brush_t *in = bsp->cm->brushes;
+	r_bsp_occlusion_query_t *out = NULL;
+
+	for (int32_t i = 0; i < bsp->cm->file.num_brushes; i++, in++) {
+		if (in->contents & CONTENTS_OCCLUSION_QUERY) {
+
+			if (bsp->num_occlusion_queries == MAX_BSP_OCCLUSION_QUERIES) {
+				Com_Error(ERROR_DROP, "MAX_BSP_OCCLUSION_QUERIES");
+			}
+			
+			bsp->occlusion_queries = Mem_Realloc(bsp->occlusion_queries, (bsp->num_occlusion_queries + 1) * sizeof(*out));
+			out = bsp->occlusion_queries + bsp->num_occlusion_queries;
+
+			glGenQueries(1, &out->name);
+
+			out->mins = in->mins;
+			out->maxs = in->maxs;
+
+			bsp->num_occlusion_queries++;
+		}
+	}
+
+	if (out) {
+		Mem_Link(bsp, bsp->occlusion_queries);
+	}
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspVertexArray(r_model_t *mod) {
 
 	glGenVertexArrays(1, &mod->bsp->vertex_array);
@@ -553,6 +587,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Cl_LoadingProgress(-4, "lightgrid");
 	R_LoadBspLightgrid(mod);
+
+	Cl_LoadingProgress(-4, "occlusion queries");
+	R_LoadBspOcclusionQueries(mod->bsp);
 
 	if (r_draw_bsp_lightgrid->value) {
 		Bsp_UnloadLumps(&mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_LIGHTGRID));

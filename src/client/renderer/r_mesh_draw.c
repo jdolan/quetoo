@@ -87,10 +87,6 @@ void R_UpdateMeshEntities(void) {
 
 		if (IS_MESH_MODEL(e->model)) {
 			e->blend_depth = R_BlendDepthForPoint(e->origin, BLEND_DEPTH_ENTITY);
-
-			if (!(e->effects & (EF_SELF | EF_WEAPON))) {
-				e->occlusion_query = R_OcclusionQuery(e->abs_model_mins, e->abs_model_maxs);
-			}
 		}
 	}
 
@@ -237,6 +233,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
 
+	if (R_OccludeBox(e->abs_model_mins, e->abs_model_maxs)) {
+		return;
+	}
+
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(.0f, 0.1f);
 	}
@@ -253,10 +253,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glUniform1f(r_mesh_program.ambient, .125f);
 	} else {
 		glUniform1f(r_mesh_program.ambient, .0f);
-	}
-
-	if (e->occlusion_query) {
-		glBeginConditionalRender(e->occlusion_query->name, GL_QUERY_NO_WAIT);
 	}
 
 	glBindVertexArray(mesh->vertex_array);
@@ -332,10 +328,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	}
 
 	glBindVertexArray(0);
-
-	if (e->occlusion_query) {
-		glEndConditionalRender();
-	}
 
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(0.f, 1.f);

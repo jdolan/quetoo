@@ -84,6 +84,10 @@ static void R_FreeModel(r_media_t *self) {
 		glDeleteBuffers(1, &mod->bsp->elements_buffer);
 		glDeleteVertexArrays(1, &mod->bsp->vertex_array);
 
+		for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++) {
+			glDeleteQueries(1, &mod->bsp->occlusion_queries[i].name);
+		}
+
 	} else if (IS_BSP_INLINE_MODEL(mod)) {
 
 		g_ptr_array_free(mod->bsp_inline->blend_nodes, 1);
