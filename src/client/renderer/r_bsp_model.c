@@ -512,46 +512,46 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// load in lumps that the renderer needs
 	Bsp_LoadLumps(file, &mod->bsp->cm->file, R_BSP_LUMPS);
 
-	Cl_LoadingProgress(2, "materials");
+	Cl_LoadingProgress(-4, "materials");
 	R_LoadModelMaterials(mod);
 
-	Cl_LoadingProgress(6, "entities");
+	Cl_LoadingProgress(-4, "entities");
 	R_LoadBspEntities(mod->bsp);
 
-	Cl_LoadingProgress(10, "texinfo");
+	Cl_LoadingProgress(-4, "texinfo");
 	R_LoadBspTexinfo(mod->bsp);
 
-	Cl_LoadingProgress(14, "vertexes");
+	Cl_LoadingProgress(-4, "vertexes");
 	R_LoadBspVertexes(mod->bsp);
 
-	Cl_LoadingProgress(18, "elements");
+	Cl_LoadingProgress(-4, "elements");
 	R_LoadBspElements(mod->bsp);
 
-	Cl_LoadingProgress(22, "faces");
+	Cl_LoadingProgress(-4, "faces");
 	R_LoadBspFaces(mod->bsp);
 
-	Cl_LoadingProgress(26, "draw elements");
+	Cl_LoadingProgress(-4, "draw elements");
 	R_LoadBspDrawElements(mod->bsp);
 
-	Cl_LoadingProgress(34, "leafs");
+	Cl_LoadingProgress(-4, "leafs");
 	R_LoadBspLeafs(mod->bsp);
 
-	Cl_LoadingProgress(38, "nodes");
+	Cl_LoadingProgress(-4, "nodes");
 	R_LoadBspNodes(mod->bsp);
 
-	Cl_LoadingProgress(46, "inline models");
+	Cl_LoadingProgress(-4, "inline models");
 	R_LoadBspInlineModels(mod->bsp);
 
-	Cl_LoadingProgress(50, "inline models");
+	Cl_LoadingProgress(-4, "inline models");
 	R_SetupBspInlineModels(mod);
 
-	Cl_LoadingProgress(54, "arrays");
+	Cl_LoadingProgress(-4, "arrays");
 	R_LoadBspVertexArray(mod);
 
-	Cl_LoadingProgress(58, "lightmap");
+	Cl_LoadingProgress(-4, "lightmap");
 	R_LoadBspLightmap(mod);
 
-	Cl_LoadingProgress(62, "lightgrid");
+	Cl_LoadingProgress(-4, "lightgrid");
 	R_LoadBspLightgrid(mod);
 
 	if (r_draw_bsp_lightgrid->value) {

@@ -455,30 +455,30 @@ void R_LoadMedia(void) {
 
 	R_BeginLoading();
 
-	Cl_LoadingProgress(1, "world");
+	Cl_LoadingProgress(-1, "world");
 
 	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
 
-	Cl_LoadingProgress(66, "models");
+	Cl_LoadingProgress(-1, "models");
 
 	// load all other models
-	for (uint32_t i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
+	for (int32_t i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
 
-		if (i <= 30) { // bump loading progress
-			Cl_LoadingProgress(60 + (i / 3), cl.config_strings[CS_MODELS + i]);
+		if (i & 1) {
+			Cl_LoadingProgress(-1, cl.config_strings[CS_MODELS + i]);
 		}
 
 		cl.model_precache[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
 	}
 
-	Cl_LoadingProgress(75, "images");
+	Cl_LoadingProgress(-1, "images");
 
 	// load all known images
-	for (uint32_t i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
+	for (int32_t i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
 		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC); // FIXME: Atlas?
 	}
 
-	Cl_LoadingProgress(77, "sky");
+	Cl_LoadingProgress(-1, "sky");
 
 	// sky environment map
 	R_SetSky(cl.config_strings[CS_SKY]);
