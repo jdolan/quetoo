@@ -526,6 +526,9 @@ void R_DrawWorld(void) {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 
 	R_GetError(NULL);

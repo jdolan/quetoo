@@ -252,6 +252,9 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 
 	R_GetError(mod->media.name);
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 }
 

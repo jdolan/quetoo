@@ -184,6 +184,9 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
 		}
 	}
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
 
 	r_view.count_mesh_models++;
@@ -309,7 +312,6 @@ void R_DrawMeshEntitiesShadows(int32_t blend_depth) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_mesh_shadow_blur_program.vertex_buffer);
 
 	glEnableVertexAttribArray(r_mesh_shadow_blur_program.in_position);
-	
 	glEnableVertexAttribArray(r_mesh_shadow_blur_program.in_diffusemap);
 
 	glEnable(GL_BLEND);
@@ -327,6 +329,10 @@ void R_DrawMeshEntitiesShadows(int32_t blend_depth) {
 	glDisable(GL_BLEND);
 
 	glActiveTexture(GL_TEXTURE0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
 	
 	glUseProgram(0);
 	
@@ -467,6 +473,8 @@ void R_InitMeshShadowProgram(void) {
 	glUniform2f(r_mesh_shadow_blur_program.resolution, r_context.drawable_width, r_context.drawable_height);
 	glUniform1i(r_mesh_shadow_blur_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_mesh_shadow_blur_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 	

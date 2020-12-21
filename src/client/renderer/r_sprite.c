@@ -357,6 +357,7 @@ void R_UpdateSprites(void) {
 
 	glUseProgram(r_sprite_program.name);
 
+	// TODO: Move these uniforms to r_uniforms_t and don't bind the program here
 	glUniform2f(r_sprite_program.depth_range, 1.0, MAX_WORLD_DIST);
 	glUniform2f(r_sprite_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
 	glUniform1f(r_sprite_program.transition_size, .0016f);
@@ -391,6 +392,7 @@ void R_UpdateSprites(void) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, r_view.num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glUseProgram(0);
 
@@ -414,8 +416,8 @@ void R_DrawSprites(int32_t blend_depth) {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_sprites.vertex_array);
-	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 
+	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
 	
 	glEnableVertexAttribArray(r_sprite_program.in_position);
@@ -468,11 +470,11 @@ void R_DrawSprites(int32_t blend_depth) {
 	}
 
 	glActiveTexture(GL_TEXTURE0);
-	
-	glBindVertexArray(0);
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
 
 	glDisable(GL_DEPTH_TEST);
 

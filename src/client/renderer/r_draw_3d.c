@@ -179,7 +179,9 @@ void R_Draw3D(void) {
 	for (int32_t i = 0; i < r_draw_3d.num_draw_arrays; i++, draw++) {
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
-	
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -236,6 +238,8 @@ void R_InitDraw3D(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_draw_3d_vertex_t), (void *) offsetof(r_draw_3d_vertex_t, position));
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_3d_vertex_t), (void *) offsetof(r_draw_3d_vertex_t, color));
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 
 	R_GetError(NULL);

@@ -438,7 +438,9 @@ void R_Draw2D(void) {
 		glBindTexture(GL_TEXTURE_2D, draw->texture);
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
-	
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -536,6 +538,8 @@ void R_InitDraw2D(void) {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, diffusemap));
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, color));
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 
 	R_GetError(NULL);

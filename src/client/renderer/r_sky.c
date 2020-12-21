@@ -100,7 +100,9 @@ void R_DrawSky(void) {
 
 	glBindTexture(GL_TEXTURE_2D, r_sky.images[3]->texnum);
 	glDrawArrays(GL_TRIANGLE_FAN, 20, 4);
-	
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -267,6 +269,8 @@ void R_InitSky(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sky_vertex_t), (void *) offsetof(r_sky_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sky_vertex_t), (void *) offsetof(r_sky_vertex_t, diffusemap));
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 
 	R_InitSkyProgram();
