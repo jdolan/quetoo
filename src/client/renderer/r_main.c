@@ -126,8 +126,7 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /**
- * @brief Returns true if the specified bounding box is completely culled by the
- * view frustum, false otherwise.
+ * @return True if the specified bounding box is culled by the view frustum, false otherwise.
  */
 _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 
@@ -135,21 +134,25 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		return false;
 	}
 
-    for (size_t i = 0; i < lengthof(r_locals.frustum); i++) {
+	const vec3_t corners[] = {
+		Vec3(mins.x, mins.y, mins.z),
+		Vec3(maxs.x, mins.y, mins.z),
+		Vec3(maxs.x, maxs.y, mins.z),
+		Vec3(mins.x, maxs.y, mins.z),
+		Vec3(mins.x, mins.y, maxs.z),
+		Vec3(maxs.x, mins.y, maxs.z),
+		Vec3(maxs.x, maxs.y, maxs.z),
+		Vec3(mins.x, maxs.y, maxs.z),
+	};
+
+	const cm_bsp_plane_t *p = r_locals.frustum;
+    for (size_t i = 0; i < lengthof(r_locals.frustum); i++, p++) {
 		_Bool front = false, back = false;
 
-		for (size_t j = 0; j < 8; j++) {
-			const vec3_t transformed = Vec3(
-				(((j >> 0) & 1) ? maxs : mins).x,
-				(((j >> 1) & 1) ? maxs : mins).y,
-				(((j >> 2) & 1) ? maxs : mins).z
-			);
-
-			const float dist = Vec3_Dot(transformed, r_locals.frustum[i].normal);
-
-			if (dist > r_locals.frustum[i].dist) {
+		for (size_t j = 0; j < lengthof(corners); j++) {
+			const float dist = Vec3_Dot(corners[j], p->normal) - p->dist;
+			if (dist >= 0.f) {
 				front = true;
-
 				if (back) {
 					break;
 				}
@@ -167,8 +170,7 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 }
 
 /**
- * @brief Returns true if the specified sphere (point and radius) is completely culled by the
- * view frustum, false otherwise.
+ * @return True if the specified sphere is culled by the view frustum, false otherwise.
  */
 _Bool R_CullSphere(const vec3_t point, const float radius) {
 
@@ -176,10 +178,9 @@ _Bool R_CullSphere(const vec3_t point, const float radius) {
 		return false;
 	}
 
-	for (size_t i = 0 ; i < lengthof(r_locals.frustum) ; i++)  {
-		const cm_bsp_plane_t *p = &r_locals.frustum[i];
+	const cm_bsp_plane_t *p = r_locals.frustum;
+	for (size_t i = 0 ; i < lengthof(r_locals.frustum) ; i++, p++)  {
 		const float dist = Vec3_Dot(point, p->normal) - p->dist;
-
 		if (dist < -radius) {
 			return true;
 		}
