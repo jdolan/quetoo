@@ -368,7 +368,7 @@ void R_UpdateSprites(void) {
 		R_UpdateSprite(s);
 	}
 
-	/*const*/ r_beam_t *b = r_view.beams;
+	const r_beam_t *b = r_view.beams;
 	for (int32_t i = 0; i < r_view.num_beams; i++, b++) {
 		R_UpdateBeam(b);
 	}
