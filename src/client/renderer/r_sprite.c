@@ -219,6 +219,11 @@ static void R_UpdateSprite(const r_sprite_t *s) {
 	in->vertexes[2].position = Vec3_Add(Vec3_Add(s->origin, d), r);
 	in->vertexes[3].position = Vec3_Add(Vec3_Add(s->origin, d), l);
 
+	if (R_OccludeBox(in->vertexes[1].position, in->vertexes[3].position)) {
+		r_view.num_sprite_instances--;
+		return;
+	}
+
 	R_SpriteTextureCoordinates(in->diffusemap, &in->vertexes[0].diffusemap,
 											   &in->vertexes[1].diffusemap,
 											   &in->vertexes[2].diffusemap,
@@ -319,6 +324,11 @@ void R_UpdateBeam(const r_beam_t *b) {
 		in->vertexes[1].position = Vec3_Add(y, right);
 		in->vertexes[2].position = Vec3_Subtract(y, right);
 		in->vertexes[3].position = Vec3_Subtract(x, right);
+
+		if (R_OccludeBox(in->vertexes[1].position, in->vertexes[3].position)) {
+			r_view.num_sprite_instances--;
+			return;
+		}
 
 		in->vertexes[0].diffusemap = texcoords[0];
 		in->vertexes[1].diffusemap = texcoords[1];
