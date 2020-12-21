@@ -112,8 +112,6 @@ static void R_UpdateNodeBlendDepth(const r_bsp_inline_model_t *in) {
  */
 void R_UpdateVisibility(void) {
 
-	r_locals.leaf = R_LeafForPoint(r_view.origin);
-
 	r_locals.vis_frame++;
 
 	R_UpdateNodeBlendDepth(r_world_model->bsp->inline_models);

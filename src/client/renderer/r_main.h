@@ -96,11 +96,6 @@ typedef struct {
 	cm_bsp_plane_t frustum[4];
 
 	/**
-	 * @brief The leaf in which the view origin resides.
-	 */
-	const r_bsp_leaf_t *leaf; // the leaf at the view origin
-
-	/**
 	 * @brief The visibility frame counter, for frustum culling world nodes.
 	 */
 	int32_t vis_frame;
