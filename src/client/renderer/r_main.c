@@ -349,8 +349,6 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawDepthPass();
 
-	R_ExecuteOcclusionQueries();
-
 	R_UpdateEntities();
 
 	R_UpdateFlares();

@@ -102,93 +102,67 @@ void R_DrawDepthPass(void) {
 
 	glBindVertexArray(0);
 
-	glUseProgram(0);
-
 	glPolygonOffset(0.f, 0.f);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	if (r_occlusion_query->value) {
+		glDepthMask(GL_FALSE);
 
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+		glBindVertexArray(r_occlusion_queries.vertex_array);
 
-	R_GetError(NULL);
-}
+		glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
 
-/**
- * @brief Executes all occlusion queries that pass the frustum cull.
- */
-void R_ExecuteOcclusionQueries(void) {
+		glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
-	if (!r_occlusion_query->value) {
-		return;
-	}
+		glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 
-	if (!r_world_model->bsp->num_occlusion_queries) {
-		return;
-	}
+		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
+		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+			if (Vec3_BoxIntersect(r_view.origin, r_view.origin, q->mins, q->maxs)) {
+				continue;
+			}
 
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glDepthMask(GL_FALSE);
+			if (R_CullBox(q->mins, q->maxs)) {
+				continue;
+			}
 
-	glUseProgram(r_depth_pass_program.name);
+			q->vis_frame = r_locals.vis_frame;
+			q->result = -1;
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
+			const vec3_t vertexes[] = {
+				Vec3(q->mins.x, q->mins.y, q->mins.z),
+				Vec3(q->maxs.x, q->mins.y, q->mins.z),
+				Vec3(q->maxs.x, q->maxs.y, q->mins.z),
+				Vec3(q->mins.x, q->maxs.y, q->mins.z),
+				Vec3(q->mins.x, q->mins.y, q->maxs.z),
+				Vec3(q->maxs.x, q->mins.y, q->maxs.z),
+				Vec3(q->maxs.x, q->maxs.y, q->maxs.z),
+				Vec3(q->mins.x, q->maxs.y, q->maxs.z),
+			};
 
-	glBindVertexArray(r_occlusion_queries.vertex_array);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes), vertexes, GL_DYNAMIC_DRAW);
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
+			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
+			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
 
-	glEnableVertexAttribArray(r_depth_pass_program.in_position);
+			glEndQuery(GL_ANY_SAMPLES_PASSED);
 
-	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
-
-	r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
-	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
-
-		if (Vec3_BoxIntersect(r_view.origin, r_view.origin, q->mins, q->maxs)) {
-			continue;
+			r_view.count_bsp_occlusion_queries++;
 		}
 
-		if (R_CullBox(q->mins, q->maxs)) {
-			continue;
-		}
-
-		q->vis_frame = r_locals.vis_frame;
-		q->result = -1;
-
-		const vec3_t vertexes[] = {
-			Vec3(q->mins.x, q->mins.y, q->mins.z),
-			Vec3(q->maxs.x, q->mins.y, q->mins.z),
-			Vec3(q->maxs.x, q->maxs.y, q->mins.z),
-			Vec3(q->mins.x, q->maxs.y, q->mins.z),
-			Vec3(q->mins.x, q->mins.y, q->maxs.z),
-			Vec3(q->maxs.x, q->mins.y, q->maxs.z),
-			Vec3(q->maxs.x, q->maxs.y, q->maxs.z),
-			Vec3(q->mins.x, q->maxs.y, q->maxs.z),
-		};
-
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes), vertexes, GL_DYNAMIC_DRAW);
-
-		glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
-
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
-
-		glEndQuery(GL_ANY_SAMPLES_PASSED);
-
-		r_view.count_bsp_occlusion_queries++;
+		glDepthMask(GL_TRUE);
 	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 
 	glUseProgram(0);
 
-	glDepthMask(GL_TRUE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 	glDisable(GL_CULL_FACE);
