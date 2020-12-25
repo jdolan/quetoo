@@ -92,14 +92,19 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
  */
 int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
-	const cm_bsp_brush_side_t *side = brush->sides;
-	for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
-		if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
-			return 0;
+	if (Vec3_BoxIntersect(point, point, brush->mins, brush->maxs)) {
+
+		const cm_bsp_brush_side_t *side = brush->sides;
+		for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
+			if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
+				return 0;
+			}
 		}
+
+		return 1;
 	}
 
-	return 1;
+	return 0;
 }
 
 /**
