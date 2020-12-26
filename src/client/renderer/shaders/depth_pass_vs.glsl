@@ -21,12 +21,10 @@
 
 layout (location = 0) in vec3 in_position;
 
-uniform mat4 model;
-
 /**
  * @brief
  */
 void main(void) {
 
-	gl_Position = projection3D * view * model * vec4(in_position, 1.0);
+	gl_Position = projection3D * view * vec4(in_position, 1.0);
 }

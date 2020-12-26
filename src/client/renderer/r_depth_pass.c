@@ -29,8 +29,6 @@ static struct {
 	GLuint uniforms;
 
 	GLint in_position;
-
-	GLint model;
 } r_depth_pass_program;
 
 /**
@@ -88,17 +86,7 @@ void R_DrawDepthPass(void) {
 
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
-	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 	R_DrawBspInlineModelDepthPass(NULL, r_world_model->bsp->inline_models);
-
-	const r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-		if (IS_BSP_INLINE_MODEL(e->model)) {
-
-			glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-			R_DrawBspInlineModelDepthPass(e, e->model->bsp_inline);
-		}
-	}
 
 	glPolygonOffset(0.f, 0.f);
 	glDisable(GL_POLYGON_OFFSET_FILL);
@@ -112,8 +100,6 @@ void R_DrawDepthPass(void) {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
 
 		glEnableVertexAttribArray(r_depth_pass_program.in_position);
-
-		glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 
 		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
@@ -227,8 +213,6 @@ static void R_InitDepthPassProgram(void) {
 	glUniformBlockBinding(r_depth_pass_program.name, r_depth_pass_program.uniforms, 0);
 
 	r_depth_pass_program.in_position = glGetAttribLocation(r_depth_pass_program.name, "in_position");
-
-	r_depth_pass_program.model = glGetUniformLocation(r_depth_pass_program.name, "model");
 
 	R_GetError(NULL);
 }

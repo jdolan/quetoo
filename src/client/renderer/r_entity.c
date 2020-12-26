@@ -24,6 +24,35 @@
 /**
  * @brief
  */
+static void R_SetEntityBounds(r_entity_t *e) {
+
+	e->abs_model_mins = Vec3_Mins();
+	e->abs_model_maxs = Vec3_Maxs();
+
+	const vec3_t corners[] = {
+		Vec3(e->model->mins.x, e->model->mins.y, e->model->mins.z),
+		Vec3(e->model->maxs.x, e->model->mins.y, e->model->mins.z),
+		Vec3(e->model->maxs.x, e->model->maxs.y, e->model->mins.z),
+		Vec3(e->model->mins.x, e->model->maxs.y, e->model->mins.z),
+		Vec3(e->model->mins.x, e->model->mins.y, e->model->maxs.z),
+		Vec3(e->model->maxs.x, e->model->mins.y, e->model->maxs.z),
+		Vec3(e->model->maxs.x, e->model->maxs.y, e->model->maxs.z),
+		Vec3(e->model->mins.x, e->model->maxs.y, e->model->maxs.z),
+	};
+
+	for (size_t i = 0; i < lengthof(corners); i++) {
+
+		vec3_t corner;
+		Matrix4x4_Transform(&e->matrix, corners[i].xyz, corner.xyz);
+
+		e->abs_model_mins = Vec3_Minf(e->abs_model_mins, corner);
+		e->abs_model_maxs = Vec3_Maxf(e->abs_model_maxs, corner);
+	}
+}
+
+/**
+ * @brief
+ */
 static _Bool R_CullEntity(const r_entity_t *e) {
 
 	if (e->parent) {
@@ -46,11 +75,12 @@ static _Bool R_CullEntity(const r_entity_t *e) {
 }
 
 /**
- * @brief Adds an entity to the view.
+ * @brief Adds an entity to the view if it passes frustum culling and occlusion tests.
+ * @return The renderer copy of the entity, if any. This is to enable linked entities.
  */
 r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
-	if (r_view.num_entities == lengthof(r_view.entities)) {
+	if (r_view.num_entities == MAX_ENTITIES) {
 		Com_Warn("MAX_ENTITIES\n");
 		return NULL;
 	}
@@ -71,28 +101,7 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 
-	const vec3_t corners[] = {
-		Vec3(e->model->mins.x, e->model->mins.y, e->model->mins.z),
-		Vec3(e->model->maxs.x, e->model->mins.y, e->model->mins.z),
-		Vec3(e->model->maxs.x, e->model->maxs.y, e->model->mins.z),
-		Vec3(e->model->mins.x, e->model->maxs.y, e->model->mins.z),
-		Vec3(e->model->mins.x, e->model->mins.y, e->model->maxs.z),
-		Vec3(e->model->maxs.x, e->model->mins.y, e->model->maxs.z),
-		Vec3(e->model->maxs.x, e->model->maxs.y, e->model->maxs.z),
-		Vec3(e->model->mins.x, e->model->maxs.y, e->model->maxs.z),
-	};
-
-	e->abs_model_mins = Vec3_Mins();
-	e->abs_model_maxs = Vec3_Maxs();
-
-	for (size_t i = 0; i < lengthof(corners); i++) {
-
-		vec3_t corner;
-		Matrix4x4_Transform(&e->matrix, corners[i].xyz, corner.xyz);
-
-		e->abs_model_mins = Vec3_Minf(e->abs_model_mins, corner);
-		e->abs_model_maxs = Vec3_Maxf(e->abs_model_maxs, corner);
-	}
+	R_SetEntityBounds(e);
 
 	if (R_CullEntity(e)) {
 		return NULL;

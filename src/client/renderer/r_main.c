@@ -322,6 +322,7 @@ static void R_Clear(void) {
 	}
 
 	glClear(bits);
+
 	R_GetError(NULL);
 }
 

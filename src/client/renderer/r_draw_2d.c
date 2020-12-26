@@ -425,6 +425,7 @@ void R_Draw2D(void) {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_draw_2d.vertex_array);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, r_draw_2d.num_vertexes * sizeof(r_draw_2d_vertex_t), r_draw_2d.vertexes, GL_DYNAMIC_DRAW);
 
