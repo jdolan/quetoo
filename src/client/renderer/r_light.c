@@ -60,6 +60,8 @@ void R_UpdateLights(void) {
 		Matrix4x4_Transform(&r_uniforms.block.view, in->origin.xyz, out->origin.xyz);
 	}
 
+	r_uniforms.block.num_lights = r_view.num_lights;
+
 	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), &r_uniforms.block, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
