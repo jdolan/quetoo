@@ -41,7 +41,6 @@ extern cvar_t *r_get_error;
 extern cvar_t *r_get_error_break;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
-extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
 extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;
@@ -236,6 +235,7 @@ extern cvar_t *r_depth_pass;
 extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
+extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_occlude;
 

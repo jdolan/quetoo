@@ -40,6 +40,7 @@ cvar_t *r_depth_pass;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_entity_bounds;
+cvar_t *r_draw_material_stages;
 cvar_t *r_draw_wireframe;
 cvar_t *r_occlude;
 
@@ -60,7 +61,6 @@ cvar_t *r_get_error;
 cvar_t *r_get_error_break;
 cvar_t *r_hardness;
 cvar_t *r_height;
-cvar_t *r_materials;
 cvar_t *r_modulate;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
@@ -545,6 +545,7 @@ static void R_InitLocal(void) {
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
+	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
 	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
@@ -567,7 +568,6 @@ static void R_InitLocal(void) {
 	r_get_error_break = Cvar_Add("r_get_error_break", "0", CVAR_DEVELOPER, "If a GL error occurs, break execution");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects.");

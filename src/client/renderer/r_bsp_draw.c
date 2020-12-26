@@ -276,7 +276,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp_draw_elements_t *draw, const r_material_t *material) {
 
-	if (!r_materials->value) {
+	if (!r_draw_material_stages->value) {
 		return;
 	}
 

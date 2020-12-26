@@ -181,7 +181,7 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
  */
 static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
 
-	if (!r_materials->value) {
+	if (!r_draw_material_stages->value) {
 		return;
 	}
 
