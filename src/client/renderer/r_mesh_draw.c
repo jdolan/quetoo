@@ -90,14 +90,6 @@ void R_UpdateMeshEntities(void) {
 			e->blend_depth = R_BlendDepthForPoint(e->origin, BLEND_DEPTH_ENTITY);
 		}
 	}
-
-	glUseProgram(r_mesh_program.name);
-
-	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
-
-	glUseProgram(0);
-
-	R_GetError(NULL);
 }
 
 /**
@@ -461,6 +453,8 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_mesh_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+
+	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
 	glUseProgram(0);
 	
