@@ -34,8 +34,17 @@ static _Bool R_CullEntity(const r_entity_t *e) {
 		return false;
 	}
 
-	return R_CullBox(e->abs_model_mins, e->abs_model_maxs);
+	if (R_CullBox(e->abs_model_mins, e->abs_model_maxs)) {
+		return true;
+	}
+
+	if (R_OccludeBox(e->abs_model_mins, e->abs_model_maxs)) {
+		return true;
+	}
+
+	return false;
 }
+
 /**
  * @brief Adds an entity to the view.
  */

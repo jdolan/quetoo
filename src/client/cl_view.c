@@ -22,31 +22,17 @@
 #include "cl_local.h"
 
 /**
- * @brief Clears all volatile view members so that a new scene may be populated.
+ * @brief
  */
-void Cl_ClearView(void) {
-
-	r_view.num_entities = 0;
-	r_view.num_lights = 0;
-	r_view.num_stains = 0;
-	r_view.num_sprites = 0;
-	r_view.num_beams = 0;
-	r_view.num_sprite_instances = 0;
-}
-
-/**
- * @brief Updates the view definition for the pending render frame.
- */
-void Cl_UpdateView(void) {
+void Cl_DrawView(void) {
 
 	r_view.ticks = cl.unclamped_time;
 
 	cls.cgame->UpdateView(&cl.frame);
-}
 
-/**
- * @brief
- */
-void Cl_InitView(void) {
+	R_DrawViewDepth(&r_view);
 
+	cls.cgame->PopulateView(&cl.frame);
+
+	R_DrawView(&r_view);
 }

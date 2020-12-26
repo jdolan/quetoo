@@ -36,12 +36,12 @@ r_uniforms_t r_uniforms;
 cvar_t *r_blend_depth_sorting;
 cvar_t *r_clear;
 cvar_t *r_cull;
+cvar_t *r_depth_pass;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_normals;
-cvar_t *r_draw_depth_pass;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
-cvar_t *r_occlusion_query;
+cvar_t *r_occlude;
 
 cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
@@ -308,11 +308,6 @@ static void R_Clear(void) {
 
 	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
 
-	// clear the stencil bit if shadows are enabled
-	if (r_shadows->value) {
-		bits |= GL_STENCIL_BUFFER_BIT;
-	}
-
 	// clear the color buffer if requested
 	if (r_clear->value || r_draw_wireframe->value) {
 		bits |= GL_COLOR_BUFFER_BIT;
@@ -333,9 +328,17 @@ static void R_Clear(void) {
 }
 
 /**
- * @brief Main entry point for drawing the 3D view.
+ * @brief Called at the beginning of each render frame.
  */
-void R_DrawView(r_view_t *view) {
+void R_BeginFrame(void) {
+
+	R_Clear();
+}
+
+/**
+ * @brief
+ */
+void R_DrawViewDepth(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
 
@@ -343,21 +346,33 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateFrustum();
 
-	R_UpdateVisibility();
-
 	R_UpdateUniforms();
 
 	R_DrawDepthPass();
+
+	R_UpdateBlendDepth();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief Main entry point for drawing the 3D view.
+ */
+void R_DrawView(r_view_t *view) {
+
+	R_DrawBspLightgrid();
 
 	R_UpdateEntities();
 
 	R_UpdateFlares();
 
-	R_DrawBspLightgrid();
-
 	R_UpdateSprites();
 
 	R_UpdateStains();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -391,41 +406,19 @@ void R_DrawView(r_view_t *view) {
 }
 
 /**
- * @brief Called at the beginning of each render frame.
- */
-void R_BeginFrame(void) {
-
-	R_Clear();
-
-	r_view.count_bsp_inline_models = 0;
-	r_view.count_bsp_draw_elements = 0;
-	r_view.count_bsp_blend_nodes = 0;
-	r_view.count_bsp_triangles = 0;
-	r_view.count_bsp_occlusion_queries = 0;
-	r_view.count_bsp_occlusion_queries_passed = 0;
-
-	r_view.count_mesh_models = 0;
-	r_view.count_mesh_triangles = 0;
-
-	r_view.count_sprite_draw_elements = 0;
-
-	r_view.count_draw_chars = 0;
-	r_view.count_draw_fills = 0;
-	r_view.count_draw_images = 0;
-	r_view.count_draw_lines = 0;
-}
-
-/**
  * @brief Called at the end of each render frame.
  */
 void R_EndFrame(void) {
 
+	R_Draw2D();
+
 	if (cls.state == CL_ACTIVE) {
 
 		if (r_view.update) {
-			r_view.update = false;
 			R_FreeUnseededMedia();
 		}
+
+		memset(&r_view, 0, sizeof(r_view));
 	}
 
 	SDL_GL_SwapWindow(r_context.window);
@@ -551,10 +544,10 @@ static void R_InitLocal(void) {
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
-	r_draw_depth_pass = Cvar_Add("r_draw_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth optimization pass (developer tool");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
-	r_occlusion_query = Cvar_Add("r_occlusion_query", "1", CVAR_DEVELOPER, "Controls occlusion query execution (developer tool)");
+	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
+	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");

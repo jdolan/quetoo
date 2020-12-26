@@ -620,6 +620,8 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_HandleEvents();
 
+	R_BeginFrame();
+
 	if (cls.state == CL_ACTIVE) {
 
 		Cl_UpdateMovementCommand(cl.frame_msec);
@@ -630,12 +632,14 @@ void Cl_Frame(const uint32_t msec) {
 
 		Cl_PredictMovement();
 
-		Cl_UpdateView();
+		Cl_DrawView();
 	} else {
 		Cl_SendCommands();
 	}
 
 	Cl_UpdateScreen();
+
+	R_EndFrame();
 
 	S_Frame();
 
@@ -671,8 +675,6 @@ void Cl_Init(void) {
 	R_Init();
 
 	Ui_Init();
-
-	Cl_InitView();
 
 	Cl_InitInput();
 

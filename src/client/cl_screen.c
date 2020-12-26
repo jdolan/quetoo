@@ -335,16 +335,10 @@ static void Cl_DrawCounters(void) {
 }
 
 /**
- * @brief
- */
-
-/**
  * @brief This is called every frame, and can also be called explicitly to flush
  * text to the screen.
  */
 void Cl_UpdateScreen(void) {
-
-	R_BeginFrame();
 
 	switch (cls.state) {
 		case CL_UNINITIALIZED:
@@ -368,11 +362,9 @@ void Cl_UpdateScreen(void) {
 			break;
 
 		case CL_ACTIVE:
-			R_DrawView(&r_view);
-
 			Cl_DrawNetGraph();
 			Cl_DrawCounters();
-			
+
 			cls.cgame->UpdateScreen(&cl.frame);
 
 			switch (cls.key_state.dest) {
@@ -384,22 +376,13 @@ void Cl_UpdateScreen(void) {
 					break;
 				case KEY_GAME:
 					Cl_DrawNotify();
+					Cl_DrawRendererStats();
+					Cl_DrawSoundStats();
 					break;
 				case KEY_CHAT:
 					Cl_DrawChat();
 					break;
 			}
-
-			if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_GAME) {
-				Cl_DrawRendererStats();
-				Cl_DrawSoundStats();
-			}
 			break;
 	}
-
-	R_Draw2D();
-
-	R_EndFrame();
-
-	Cl_ClearView();
 }

@@ -233,10 +233,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
 
-	if (R_OccludeBox(e->abs_model_mins, e->abs_model_maxs)) {
-		return;
-	}
-
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(.0f, 0.1f);
 	}

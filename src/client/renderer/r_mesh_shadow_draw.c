@@ -107,7 +107,7 @@ void R_UpdateMeshEntitiesShadows(void) {
 /**
  * @brief
  */
-static void R_DrawMeshShadowEntity(const r_entity_t *e) {
+static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
@@ -243,7 +243,7 @@ static _Bool R_DrawMeshEntitiesShadowsProjected(int32_t blend_depth) {
 				any_rendered = true;
 			}
 			
-			R_DrawMeshShadowEntity(e);
+			R_DrawMeshEntityShadow(e);
 		}
 	}
 

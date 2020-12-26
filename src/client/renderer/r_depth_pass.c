@@ -65,7 +65,7 @@ static void R_DrawBspInlineModelDepthPass(const r_entity_t *e, const r_bsp_inlin
  */
 void R_DrawDepthPass(void) {
 
-	if (!r_draw_depth_pass->value) {
+	if (!r_depth_pass->value) {
 		return;
 	}
 
@@ -100,12 +100,10 @@ void R_DrawDepthPass(void) {
 		}
 	}
 
-	glBindVertexArray(0);
-
 	glPolygonOffset(0.f, 0.f);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
-	if (r_occlusion_query->value) {
+	if (r_occlude->value) {
 		glDepthMask(GL_FALSE);
 
 		glBindVertexArray(r_occlusion_queries.vertex_array);
@@ -120,6 +118,8 @@ void R_DrawDepthPass(void) {
 		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
+			q->result = -1;
+
 			if (Vec3_BoxIntersect(r_view.origin, r_view.origin, q->mins, q->maxs)) {
 				continue;
 			}
@@ -128,21 +128,8 @@ void R_DrawDepthPass(void) {
 				continue;
 			}
 
-			q->vis_frame = r_locals.vis_frame;
-			q->result = -1;
 
-			const vec3_t vertexes[] = {
-				Vec3(q->mins.x, q->mins.y, q->mins.z),
-				Vec3(q->maxs.x, q->mins.y, q->mins.z),
-				Vec3(q->maxs.x, q->maxs.y, q->mins.z),
-				Vec3(q->mins.x, q->maxs.y, q->mins.z),
-				Vec3(q->mins.x, q->mins.y, q->maxs.z),
-				Vec3(q->maxs.x, q->mins.y, q->maxs.z),
-				Vec3(q->maxs.x, q->maxs.y, q->maxs.z),
-				Vec3(q->mins.x, q->maxs.y, q->maxs.z),
-			};
-
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes), vertexes, GL_DYNAMIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(q->vertexes), q->vertexes, GL_DYNAMIC_DRAW);
 
 			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
 
@@ -151,6 +138,12 @@ void R_DrawDepthPass(void) {
 			glEndQuery(GL_ANY_SAMPLES_PASSED);
 
 			r_view.count_bsp_occlusion_queries++;
+
+			glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
+
+			if (q->result) {
+				r_view.count_bsp_occlusion_queries_passed++;
+			}
 		}
 
 		glDepthMask(GL_TRUE);
@@ -176,10 +169,14 @@ void R_DrawDepthPass(void) {
  */
 _Bool R_OccludeBox(const vec3_t mins, const vec3_t maxs) {
 
-	r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
+	if (!r_occlude->value) {
+		return false;
+	}
+
+	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-		if (q->vis_frame != r_locals.vis_frame) {
+		if (q->result == -1) {
 			continue;
 		}
 
@@ -194,20 +191,22 @@ _Bool R_OccludeBox(const vec3_t mins, const vec3_t maxs) {
 			continue;
 		}
 
-		if (q->result == -1) {
-			glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
-
-			if (q->result) {
-				r_view.count_bsp_occlusion_queries_passed++;
-			}
-		}
-
 		if (q->result == 0) {
 			return true;
 		}
 	}
 
 	return false;
+}
+
+/**
+ * @brief
+ */
+_Bool R_OccludeSphere(const vec3_t origin, float radius) {
+
+	const vec3_t size = Vec3(radius, radius, radius);
+
+	return R_OccludeBox(Vec3_Subtract(origin, size), Vec3_Add(origin, size));
 }
 
 /**

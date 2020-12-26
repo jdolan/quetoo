@@ -352,7 +352,7 @@ static void R_DrawBspInlineModelDrawElements(const r_entity_t *e, const r_bsp_in
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (r_draw_depth_pass->value) {
+		if (r_depth_pass->value) {
 			if (draw->texinfo->flags & SURF_ALPHA_TEST) {
 				glDepthMask(GL_TRUE);
 			}
@@ -360,7 +360,7 @@ static void R_DrawBspInlineModelDrawElements(const r_entity_t *e, const r_bsp_in
 
 		R_DrawBspDrawElements(e, draw, &material);
 
-		if (r_draw_depth_pass->value) {
+		if (r_depth_pass->value) {
 			if (draw->texinfo->flags & SURF_ALPHA_TEST) {
 				glDepthMask(GL_FALSE);
 			}
@@ -483,7 +483,7 @@ void R_DrawWorld(void) {
 
 	glUniform1f(r_bsp_program.alpha_threshold, .125f);
 
-	if (r_draw_depth_pass->value) {
+	if (r_depth_pass->value) {
 		glDepthMask(GL_FALSE);
 	}
 
@@ -501,7 +501,7 @@ void R_DrawWorld(void) {
 		}
 	}
 
-	if (r_draw_depth_pass->value) {
+	if (r_depth_pass->value) {
 		glDepthMask(GL_TRUE);
 	}
 

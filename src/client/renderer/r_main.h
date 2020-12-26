@@ -69,6 +69,7 @@ void R_Init(void);
 void R_Shutdown(void);
 void R_LoadMedia(void);
 void R_BeginFrame(void);
+void R_DrawViewDepth(r_view_t *view);
 void R_DrawView(r_view_t *view);
 void R_EndFrame(void);
 
@@ -94,11 +95,6 @@ typedef struct {
 	 * @brief The view frustum, for box and sphere culling.
 	 */
 	cm_bsp_plane_t frustum[4];
-
-	/**
-	 * @brief The visibility frame counter, for frustum culling world nodes.
-	 */
-	int32_t vis_frame;
 
 	/**
 	 * @brief The stain frame counter.
@@ -236,11 +232,11 @@ extern r_uniforms_t r_uniforms;
 extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;
+extern cvar_t *r_depth_pass;
 extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_normals;
-extern cvar_t *r_draw_depth_pass;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_wireframe;
-extern cvar_t *r_occlusion_query;
+extern cvar_t *r_occlude;
 
 #endif /* __R_LOCAL_H__ */

@@ -35,6 +35,10 @@ void R_AddLight(const r_light_t *in) {
 		return;
 	}
 
+	if (R_OccludeSphere(in->origin, in->radius)) {
+		return;
+	}
+
 	r_light_t *out = &r_view.lights[r_view.num_lights++];
 	*out = *in;
 }
@@ -55,4 +59,8 @@ void R_UpdateLights(void) {
 
 		Matrix4x4_Transform(&r_uniforms.block.view, in->origin.xyz, out->origin.xyz);
 	}
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), &r_uniforms.block, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

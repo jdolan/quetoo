@@ -386,7 +386,7 @@ typedef struct {
 	vec3_t mins;
 	vec3_t maxs;
 
-	int32_t vis_frame;
+	vec3_t vertexes[8];
 
 	GLint result;
 } r_bsp_occlusion_query_t;
@@ -403,8 +403,6 @@ struct r_bsp_node_s {
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
-
-	int32_t vis_frame;
 
 	// node specific
 	cm_bsp_plane_t *plane;
@@ -435,8 +433,6 @@ struct r_bsp_leaf_s {
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
-
-	int32_t vis_frame;
 
 	// leaf specific
 	int32_t cluster;

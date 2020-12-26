@@ -451,6 +451,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.PredictMovement = Cg_PredictMovement;
 	cge.UpdateLoading = Cg_UpdateLoading;
 	cge.UpdateView = Cg_UpdateView;
+	cge.PopulateView = Cg_PopulateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
 
 	return &cge;

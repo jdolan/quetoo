@@ -765,6 +765,7 @@ typedef struct cg_export_s {
 	void (*PredictMovement)(const GPtrArray *cmds);
 	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
+	void (*PopulateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame);
 
 } cg_export_t;

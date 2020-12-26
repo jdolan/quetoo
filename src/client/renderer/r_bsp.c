@@ -72,7 +72,9 @@ static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *blend_depth) {
 		return;
 	}
 
-	node->vis_frame = r_locals.vis_frame;
+	if (R_OccludeBox(node->mins, node->maxs)) {
+		return;
+	}
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
@@ -108,15 +110,15 @@ static void R_UpdateNodeBlendDepth(const r_bsp_inline_model_t *in) {
 }
 
 /**
- * @brief Resolve the current leaf, and blend depth for nodes containing alpha blend faces.
+ * @brief
  */
-void R_UpdateVisibility(void) {
+void R_UpdateBlendDepth(void) {
 
-	r_locals.vis_frame++;
+	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 
-	R_UpdateNodeBlendDepth(r_world_model->bsp->inline_models);
+	R_UpdateNodeBlendDepth(in);
 
-	r_view.count_bsp_blend_nodes = r_world_model->bsp_inline->blend_nodes->len;
+	r_view.count_bsp_blend_nodes = in->blend_nodes->len;
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {

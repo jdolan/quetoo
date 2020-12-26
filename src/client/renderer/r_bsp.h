@@ -32,5 +32,5 @@ typedef enum {
 } r_blend_depth_type_t;
 
 int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t);
-void R_UpdateVisibility(void);
+void R_UpdateBlendDepth(void);
 #endif /* __R_LOCAL_H__ */

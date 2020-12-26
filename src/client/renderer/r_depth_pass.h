@@ -26,6 +26,7 @@
 #ifdef __R_LOCAL_H__
 void R_DrawDepthPass(void);
 _Bool R_OccludeBox(const vec3_t mins, const vec3_t maxs);
+_Bool R_OccludeSphere(const vec3_t origin, float radius);
 void R_InitDepthPass(void);
 void R_ShutdownDepthPass(void);
 #endif /* __R_LOCAL_H__ */

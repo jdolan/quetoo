@@ -113,6 +113,10 @@ void R_AddSprite(const r_sprite_t *s) {
 		return;
 	}
 
+	if (R_OccludeSphere(s->origin, s->size * .5f)) {
+		return;
+	}
+
 	r_view.sprites[r_view.num_sprites] = *s;
 	r_view.num_sprites++;
 }
@@ -135,6 +139,10 @@ void R_AddBeam(const r_beam_t *b) {
 				   &box_mins, &box_maxs);
 
 	if (R_CullBox(box_mins, box_maxs)) {
+		return;
+	}
+
+	if (R_OccludeBox(box_mins, box_maxs)) {
 		return;
 	}
 
@@ -218,11 +226,6 @@ static void R_UpdateSprite(const r_sprite_t *s) {
 	in->vertexes[1].position = Vec3_Add(Vec3_Add(s->origin, u), r);
 	in->vertexes[2].position = Vec3_Add(Vec3_Add(s->origin, d), r);
 	in->vertexes[3].position = Vec3_Add(Vec3_Add(s->origin, d), l);
-
-	if (R_OccludeBox(in->vertexes[1].position, in->vertexes[3].position)) {
-		r_view.num_sprite_instances--;
-		return;
-	}
 
 	R_SpriteTextureCoordinates(in->diffusemap, &in->vertexes[0].diffusemap,
 											   &in->vertexes[1].diffusemap,
@@ -324,11 +327,6 @@ void R_UpdateBeam(const r_beam_t *b) {
 		in->vertexes[1].position = Vec3_Add(y, right);
 		in->vertexes[2].position = Vec3_Subtract(y, right);
 		in->vertexes[3].position = Vec3_Subtract(x, right);
-
-		if (R_OccludeBox(in->vertexes[1].position, in->vertexes[3].position)) {
-			r_view.num_sprite_instances--;
-			return;
-		}
 
 		in->vertexes[0].diffusemap = texcoords[0];
 		in->vertexes[1].diffusemap = texcoords[1];
