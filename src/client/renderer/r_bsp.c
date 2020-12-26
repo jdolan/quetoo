@@ -64,15 +64,26 @@ int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t type) {
 
 /**
  * @brief Recurses the specified node, back to front, sorting alpha blended faces.
+ * @details The node is transformed by the matrix of the entity to which it belongs,
+ * if any, to ensure that alpha blended faces on inline models are sorted correctly.
  */
-static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *blend_depth) {
+static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, r_bsp_node_t *node, int32_t *blend_depth) {
 	int32_t side;
 
-	if (R_CullBox(node->mins, node->maxs)) {
+	vec3_t mins, maxs;
+	if (e) {
+		Matrix4x4_Transform(&e->matrix, node->mins.xyz, mins.xyz);
+		Matrix4x4_Transform(&e->matrix, node->maxs.xyz, maxs.xyz);
+	} else {
+		mins = node->mins;
+		maxs = node->maxs;
+	}
+
+	if (R_CullBox(mins, maxs)) {
 		return;
 	}
 
-	if (R_OccludeBox(node->mins, node->maxs)) {
+	if (R_OccludeBox(mins, maxs)) {
 		return;
 	}
 
@@ -80,13 +91,22 @@ static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *blend_depth) {
 		return;
 	}
 
-	if (Cm_DistanceToPlane(r_view.origin, node->plane) > 0.f) {
+	cm_bsp_plane_t plane;
+	if (e) {
+		vec4_t out;
+		Matrix4x4_TransformQuakePlane(&e->matrix, node->plane->normal, node->plane->dist, &out);
+		plane = Cm_Plane(Vec4_XYZ(out), out.w);
+	} else {
+		plane = *node->plane;
+	}
+
+	if (Cm_DistanceToPlane(r_view.origin, &plane) > 0.f) {
 		side = 1;
 	} else {
 		side = 0;
 	}
 
-	R_UpdateNodeBlendDepth_r(node->children[side], blend_depth);
+	R_UpdateBspInlineModelBlendDepth_r(e, node->children[side], blend_depth);
 
 	if (node->num_blend_faces) {
 		node->blend_depth = *blend_depth = (*blend_depth) + 1;
@@ -95,40 +115,35 @@ static void R_UpdateNodeBlendDepth_r(r_bsp_node_t *node, int32_t *blend_depth) {
 		g_ptr_array_add(node->model->blend_nodes, node);
 	}
 
-	R_UpdateNodeBlendDepth_r(node->children[!side], blend_depth);
+	R_UpdateBspInlineModelBlendDepth_r(e, node->children[!side], blend_depth);
 }
 
 /**
  * @brief Recurses the specified model's tree, sorting alpha blended faces from back to front.
  */
-static void R_UpdateNodeBlendDepth(const r_bsp_inline_model_t *in) {
+static void R_UpdateBspInlineModelBlendDepth(const r_entity_t *e, const r_bsp_inline_model_t *in) {
 
 	g_ptr_array_set_size(in->blend_nodes, 0);
 
 	int32_t blend_depth = 1;
-	R_UpdateNodeBlendDepth_r(in->head_node, &blend_depth);
+	R_UpdateBspInlineModelBlendDepth_r(e, in->head_node, &blend_depth);
 }
 
 /**
  * @brief
  */
-void R_UpdateBlendDepth(void) {
+void R_UpdateBspInlineEntities(void) {
 
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 
-	R_UpdateNodeBlendDepth(in);
-
+	R_UpdateBspInlineModelBlendDepth(NULL, in);
 	r_view.count_bsp_blend_nodes = in->blend_nodes->len;
 
-	const r_entity_t *e = r_view.entities;
+	r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 
 		if (IS_BSP_INLINE_MODEL(e->model)) {
-
-			const r_bsp_inline_model_t *in = e->model->bsp_inline;
-
-			R_UpdateNodeBlendDepth(in);
-
+			R_UpdateBspInlineModelBlendDepth(e, e->model->bsp_inline);
 			r_view.count_bsp_inline_models++;
 		}
 	}

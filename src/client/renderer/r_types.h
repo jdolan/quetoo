@@ -439,8 +439,8 @@ typedef struct r_bsp_leaf_s r_bsp_leaf_t;
 
 /**
  * @brief The BSP is organized into one or more models (trees). The first model is
- * the world, and typically is the largest. An additional model exist for each entity
- * that contains brushes. Non-world models can move and rotate.
+ * the worldspawn model, and typically is the largest. An additional model exists
+ * for each entity that contains brushes. Non-worldspawn models can move and rotate.
  */
 typedef struct r_bsp_inline_model_s {
 	/**
@@ -478,7 +478,6 @@ typedef struct r_bsp_inline_model_s {
 	 */
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
-
 } r_bsp_inline_model_t;
 
 /**

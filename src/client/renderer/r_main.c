@@ -349,8 +349,6 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	R_DrawDepthPass();
 
-	R_UpdateBlendDepth();
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	R_GetError(NULL);
