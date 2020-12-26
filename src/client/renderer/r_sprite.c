@@ -21,7 +21,6 @@
 
 #include "r_local.h"
 
-
 /**
  * @brief
  */
@@ -49,10 +48,6 @@ static struct {
 	GLint in_next_diffusemap;
 	GLint in_color;
 	GLint in_lerp;
-
-	GLint depth_range;
-	GLint inv_viewport_size;
-	GLint transition_size;
 	
 	GLint texture_diffusemap;
 	GLint texture_lightgrid_fog;
@@ -363,15 +358,6 @@ void R_UpdateBeam(const r_beam_t *b) {
  */
 void R_UpdateSprites(void) {
 
-	glUseProgram(r_sprite_program.name);
-
-	// TODO: Move these uniforms to r_uniforms_t and don't bind the program here
-	glUniform2f(r_sprite_program.depth_range, 1.0, MAX_WORLD_DIST);
-	glUniform2f(r_sprite_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
-	glUniform1f(r_sprite_program.transition_size, .0016f);
-
-	R_GetError(NULL);
-
 	const r_sprite_t *s = r_view.sprites;
 	for (int32_t i = 0; i < r_view.num_sprites; i++, s++) {
 		R_UpdateSprite(s);
@@ -401,8 +387,6 @@ void R_UpdateSprites(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, r_view.num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glUseProgram(0);
 
 	R_GetError(NULL);
 }
@@ -484,6 +468,8 @@ void R_DrawSprites(int32_t blend_depth) {
 
 	glBindVertexArray(0);
 
+	glUseProgram(0);
+
 	glDisable(GL_DEPTH_TEST);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
@@ -516,10 +502,6 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.in_next_diffusemap = glGetAttribLocation(r_sprite_program.name, "in_next_diffusemap");
 	r_sprite_program.in_color = glGetAttribLocation(r_sprite_program.name, "in_color");
 	r_sprite_program.in_lerp = glGetAttribLocation(r_sprite_program.name, "in_lerp");
-
-	r_sprite_program.depth_range = glGetUniformLocation(r_sprite_program.name, "depth_range");
-	r_sprite_program.inv_viewport_size = glGetUniformLocation(r_sprite_program.name, "inv_viewport_size");
-	r_sprite_program.transition_size = glGetUniformLocation(r_sprite_program.name, "transition_size");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");

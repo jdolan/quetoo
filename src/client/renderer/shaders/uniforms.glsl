@@ -75,6 +75,11 @@ layout (std140) uniform uniforms_block {
 	lightgrid_t lightgrid;
 
 	/**
+	 * @brief The depth range, in world units.
+	 */
+	vec2 depth_range;
+
+	/**
 	 * @brief The renderer time, in milliseconds.
 	 */
 	int ticks;

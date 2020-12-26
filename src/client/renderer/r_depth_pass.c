@@ -214,6 +214,8 @@ static void R_InitDepthPassProgram(void) {
 
 	r_depth_pass_program.in_position = glGetAttribLocation(r_depth_pass_program.name, "in_position");
 
+	glUseProgram(0);
+
 	R_GetError(NULL);
 }
 

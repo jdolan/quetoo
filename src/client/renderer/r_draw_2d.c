@@ -509,6 +509,8 @@ static void R_InitDraw2DProgram(void) {
 
 	glUniform1i(r_draw_2d_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 
+	glUseProgram(0);
+
 	R_GetError(NULL);
 }
 

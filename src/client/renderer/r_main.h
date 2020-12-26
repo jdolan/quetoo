@@ -168,6 +168,11 @@ typedef struct {
 		r_lightgrid_t lightgrid;
 
 		/**
+		 * @brief The depth range, in world units.
+		 */
+		vec2_t depth_range;
+
+		/**
 		 * @brief The renderer time, in milliseconds.
 		 */
 		int32_t ticks;

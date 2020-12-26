@@ -229,6 +229,11 @@ static void R_UpdateUniforms(void) {
 	}
 
 	{
+		r_uniforms.block.depth_range.x = 1.f;
+		r_uniforms.block.depth_range.y = MAX_WORLD_DIST;
+	}
+
+	{
 		r_uniforms.block.ticks = r_view.ticks;
 		r_uniforms.block.brightness = r_brightness->value;
 		r_uniforms.block.contrast = r_contrast->value;

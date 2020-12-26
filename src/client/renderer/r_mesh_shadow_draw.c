@@ -45,10 +45,6 @@ static struct {
 	GLint min_z;
 	GLint max_z;
 
-	GLint depth_range;
-	GLint inv_viewport_size;
-	GLint transition_size;
-
 	GLint dist;
 	GLint normal;
 
@@ -75,10 +71,6 @@ static struct {
 	GLint resolution;
 	GLint direction;
 
-	GLint depth_range;
-	GLint inv_viewport_size;
-	GLint transition_size;
-
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 } r_mesh_shadow_blur_program;
@@ -99,10 +91,7 @@ void R_UpdateMeshEntitiesShadows(void) {
 	if (!r_shadows->value) {
 		return;
 	}
-
-	R_GetError(NULL);
 }
-
 
 /**
  * @brief
@@ -371,18 +360,12 @@ void R_InitMeshShadowProgram(void) {
 	r_mesh_shadow_program.z = glGetUniformLocation(r_mesh_shadow_program.name, "z");
 	r_mesh_shadow_program.min_z = glGetUniformLocation(r_mesh_shadow_program.name, "min_z");
 	r_mesh_shadow_program.max_z = glGetUniformLocation(r_mesh_shadow_program.name, "max_z");
-	r_mesh_shadow_program.depth_range = glGetUniformLocation(r_mesh_shadow_program.name, "depth_range");
-	r_mesh_shadow_program.inv_viewport_size = glGetUniformLocation(r_mesh_shadow_program.name, "inv_viewport_size");
-	r_mesh_shadow_program.transition_size = glGetUniformLocation(r_mesh_shadow_program.name, "transition_size");
+
 	
 	r_mesh_shadow_program.dist = glGetUniformLocation(r_mesh_shadow_program.name, "dist");
 	r_mesh_shadow_program.normal = glGetUniformLocation(r_mesh_shadow_program.name, "normal");
 
 	glUniform1f(r_mesh_shadow_program.max_z, 1.f / 512.f);
-
-	glUniform2f(r_mesh_shadow_program.depth_range, 1.0, MAX_WORLD_DIST);
-	glUniform2f(r_mesh_shadow_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
-	glUniform1f(r_mesh_shadow_program.transition_size, 0.0016f);
 
 	glUniform1i(r_mesh_shadow_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_mesh_shadow_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
@@ -438,14 +421,6 @@ void R_InitMeshShadowProgram(void) {
 
 	r_mesh_shadow_blur_program.resolution = glGetUniformLocation(r_mesh_shadow_blur_program.name, "resolution");
 	r_mesh_shadow_blur_program.direction = glGetUniformLocation(r_mesh_shadow_blur_program.name, "direction");
-
-	r_mesh_shadow_blur_program.depth_range = glGetUniformLocation(r_mesh_shadow_blur_program.name, "depth_range");
-	r_mesh_shadow_blur_program.inv_viewport_size = glGetUniformLocation(r_mesh_shadow_blur_program.name, "inv_viewport_size");
-	r_mesh_shadow_blur_program.transition_size = glGetUniformLocation(r_mesh_shadow_blur_program.name, "transition_size");
-
-	glUniform2f(r_mesh_shadow_blur_program.depth_range, 1.0, MAX_WORLD_DIST);
-	glUniform2f(r_mesh_shadow_blur_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
-	glUniform1f(r_mesh_shadow_blur_program.transition_size, 0.0016f);
 
 	glGenVertexArrays(1, &r_mesh_shadow_blur_program.vertex_array);
 	glBindVertexArray(r_mesh_shadow_blur_program.vertex_array);
