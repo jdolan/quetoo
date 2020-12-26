@@ -27,7 +27,8 @@
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
+	GLuint lights_block;
 
 	GLint in_position;
 	GLint in_normal;
@@ -451,6 +452,7 @@ void R_DrawWorld(void) {
 	glUseProgram(r_bsp_program.name);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
 
 	glUniform1i(r_bsp_program.bicubic, r_bicubic->integer);
 	glUniform1i(r_bsp_program.parallax_samples, r_parallax_samples->integer);
@@ -552,8 +554,11 @@ void R_InitBspProgram(void) {
 
 	glUseProgram(r_bsp_program.name);
 
-	r_bsp_program.uniforms = glGetUniformBlockIndex(r_bsp_program.name, "uniforms");
-	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.uniforms, 0);
+	r_bsp_program.uniforms_block = glGetUniformBlockIndex(r_bsp_program.name, "uniforms_block");
+	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.uniforms_block, 0);
+
+	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
+	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 1);
 
 	r_bsp_program.in_position = glGetAttribLocation(r_bsp_program.name, "in_position");
 	r_bsp_program.in_normal = glGetAttribLocation(r_bsp_program.name, "in_normal");

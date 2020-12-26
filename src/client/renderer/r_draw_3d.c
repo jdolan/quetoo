@@ -87,7 +87,7 @@ static struct {
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 	GLint in_color;
@@ -211,8 +211,8 @@ static void R_InitDraw3DProgram(void) {
 
 	glUseProgram(r_draw_3d_program.name);
 
-	r_draw_3d_program.uniforms = glGetUniformBlockIndex(r_draw_3d_program.name, "uniforms");
-	glUniformBlockBinding(r_draw_3d_program.name, r_draw_3d_program.uniforms, 0);
+	r_draw_3d_program.uniforms_block = glGetUniformBlockIndex(r_draw_3d_program.name, "uniforms_block");
+	glUniformBlockBinding(r_draw_3d_program.name, r_draw_3d_program.uniforms_block, 0);
 
 	r_draw_3d_program.in_position = glGetAttribLocation(r_draw_3d_program.name, "in_position");
 	r_draw_3d_program.in_color = glGetAttribLocation(r_draw_3d_program.name, "in_color");

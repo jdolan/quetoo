@@ -27,7 +27,8 @@
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
+	GLuint lights_block;
 
 	GLint in_position;
 	GLint in_normal;
@@ -358,6 +359,7 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 	glUseProgram(r_mesh_program.name);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
 
 	for (int32_t i = 0; i < (int32_t) lengthof(r_world_model->bsp->lightgrid->textures); i++) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
@@ -406,8 +408,11 @@ void R_InitMeshProgram(void) {
 
 	glUseProgram(r_mesh_program.name);
 
-	r_mesh_program.uniforms = glGetUniformBlockIndex(r_mesh_program.name, "uniforms");
-	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.uniforms, 0);
+	r_mesh_program.uniforms_block = glGetUniformBlockIndex(r_mesh_program.name, "uniforms_block");
+	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.uniforms_block, 0);
+
+	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
+	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 1);
 
 	r_mesh_program.in_position = glGetAttribLocation(r_mesh_program.name, "in_position");
 	r_mesh_program.in_normal = glGetAttribLocation(r_mesh_program.name, "in_normal");

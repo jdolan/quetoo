@@ -26,7 +26,7 @@
  */
 static struct {
 	GLuint name;
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 } r_depth_pass_program;
@@ -209,8 +209,8 @@ static void R_InitDepthPassProgram(void) {
 
 	glUseProgram(r_depth_pass_program.name);
 
-	r_depth_pass_program.uniforms = glGetUniformBlockIndex(r_depth_pass_program.name, "uniforms");
-	glUniformBlockBinding(r_depth_pass_program.name, r_depth_pass_program.uniforms, 0);
+	r_depth_pass_program.uniforms_block = glGetUniformBlockIndex(r_depth_pass_program.name, "uniforms_block");
+	glUniformBlockBinding(r_depth_pass_program.name, r_depth_pass_program.uniforms_block, 0);
 
 	r_depth_pass_program.in_position = glGetAttribLocation(r_depth_pass_program.name, "in_position");
 

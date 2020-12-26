@@ -52,7 +52,7 @@ static struct {
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 	GLint in_diffusemap;
@@ -124,8 +124,8 @@ static void R_InitSkyProgram(void) {
 
 	glUseProgram(r_sky_program.name);
 
-	r_sky_program.uniforms = glGetUniformBlockIndex(r_sky_program.name, "uniforms");
-	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms, 0);
+	r_sky_program.uniforms_block = glGetUniformBlockIndex(r_sky_program.name, "uniforms_block");
+	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
 
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
 	r_sky_program.in_diffusemap = glGetAttribLocation(r_sky_program.name, "in_diffusemap");

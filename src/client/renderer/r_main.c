@@ -737,6 +737,8 @@ void R_Init(void) {
 
 	R_InitSprites();
 
+	R_InitLights();
+
 	R_InitSky();
 
 	R_GetError("Video initialization");
@@ -762,6 +764,8 @@ void R_Shutdown(void) {
 	R_ShutdownDraw3D();
 
 	R_ShutdownModels();
+
+	R_ShutdownLights();
 
 	R_ShutdownSprites();
 

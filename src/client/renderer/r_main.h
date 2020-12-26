@@ -128,7 +128,7 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The name of the r_uniforms buffer.
+	 * @brief The name of the uniform buffer.
 	 */
 	GLuint buffer;
 
@@ -166,16 +166,6 @@ typedef struct {
 		 * @brief The lightgrid uniforms.
 		 */
 		r_lightgrid_t lightgrid;
-
-		/**
-		 * @brief The light sources for the current frame, transformed to view space.
-		 */
-		r_light_t lights[MAX_LIGHTS];
-
-		/**
-		 * @brief The number of active light sources.
-		 */
-		int32_t num_lights;
 
 		/**
 		 * @brief The renderer time, in milliseconds.

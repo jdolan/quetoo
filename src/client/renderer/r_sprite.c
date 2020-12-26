@@ -42,7 +42,7 @@ static struct {
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 	
 	GLint in_position;
 	GLint in_diffusemap;
@@ -508,8 +508,8 @@ static void R_InitSpriteProgram(void) {
 	
 	glUseProgram(r_sprite_program.name);
 
-	r_sprite_program.uniforms = glGetUniformBlockIndex(r_sprite_program.name, "uniforms");
-	glUniformBlockBinding(r_sprite_program.name, r_sprite_program.uniforms, 0);
+	r_sprite_program.uniforms_block = glGetUniformBlockIndex(r_sprite_program.name, "uniforms_block");
+	glUniformBlockBinding(r_sprite_program.name, r_sprite_program.uniforms_block, 0);
 	
 	r_sprite_program.in_position = glGetAttribLocation(r_sprite_program.name, "in_position");
 	r_sprite_program.in_diffusemap = glGetAttribLocation(r_sprite_program.name, "in_diffusemap");

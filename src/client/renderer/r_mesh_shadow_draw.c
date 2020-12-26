@@ -28,7 +28,7 @@
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 
@@ -64,7 +64,7 @@ static struct {
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 	GLint in_diffusemap;
@@ -355,8 +355,8 @@ void R_InitMeshShadowProgram(void) {
 
 	glUseProgram(r_mesh_shadow_program.name);
 
-	r_mesh_shadow_program.uniforms = glGetUniformBlockIndex(r_mesh_shadow_program.name, "uniforms");
-	glUniformBlockBinding(r_mesh_shadow_program.name, r_mesh_shadow_program.uniforms, 0);
+	r_mesh_shadow_program.uniforms_block = glGetUniformBlockIndex(r_mesh_shadow_program.name, "uniforms_block");
+	glUniformBlockBinding(r_mesh_shadow_program.name, r_mesh_shadow_program.uniforms_block, 0);
 
 	r_mesh_shadow_program.in_position = glGetAttribLocation(r_mesh_shadow_program.name, "in_position");
 	r_mesh_shadow_program.in_next_position = glGetAttribLocation(r_mesh_shadow_program.name, "in_next_position");
@@ -427,8 +427,8 @@ void R_InitMeshShadowProgram(void) {
 
 	glUseProgram(r_mesh_shadow_blur_program.name);
 
-	r_mesh_shadow_blur_program.uniforms = glGetUniformBlockIndex(r_mesh_shadow_blur_program.name, "uniforms");
-	glUniformBlockBinding(r_mesh_shadow_blur_program.name, r_mesh_shadow_blur_program.uniforms, 0);
+	r_mesh_shadow_blur_program.uniforms_block = glGetUniformBlockIndex(r_mesh_shadow_blur_program.name, "uniforms_block");
+	glUniformBlockBinding(r_mesh_shadow_blur_program.name, r_mesh_shadow_blur_program.uniforms_block, 0);
 	
 	r_mesh_shadow_blur_program.in_position = glGetAttribLocation(r_mesh_shadow_blur_program.name, "in_position");
 	r_mesh_shadow_blur_program.in_diffusemap = glGetAttribLocation(r_mesh_shadow_blur_program.name, "in_diffusemap");
