@@ -219,8 +219,6 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 		out->mins = in->mins;
 		out->maxs = in->maxs;
-
-		out->cluster = in->cluster;
 	}
 }
 

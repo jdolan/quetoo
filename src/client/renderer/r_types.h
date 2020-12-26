@@ -433,9 +433,6 @@ struct r_bsp_leaf_s {
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
-
-	// leaf specific
-	int32_t cluster;
 };
 
 typedef struct r_bsp_leaf_s r_bsp_leaf_t;
