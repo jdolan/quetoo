@@ -288,6 +288,21 @@ typedef struct {
 } r_bsp_texinfo_t;
 
 /**
+ * @brief BSP plane structure.
+ */
+typedef struct {
+	/**
+	 * @brief The collision plane.
+	 */
+	const cm_bsp_plane_t *cm;
+
+	/**
+	 * @brief The alpha blended draw elements referencing this plane.
+	 */
+	GPtrArray *blend_elements;
+} r_bsp_plane_t;
+
+/**
  * @brief BSP vertex structure.
  */
 typedef struct {
@@ -336,7 +351,7 @@ typedef struct {
 typedef struct {
 	struct r_bsp_node_s *node;
 
-	cm_bsp_plane_t *plane;
+	r_bsp_plane_t *plane;
 	byte plane_side;
 
 	r_bsp_texinfo_t *texinfo;
@@ -363,6 +378,9 @@ typedef struct {
  * within a particular inline model.
  */
 typedef struct {
+	r_bsp_plane_t *plane;
+	byte plane_side;
+
 	r_bsp_texinfo_t *texinfo;
 	int32_t contents;
 
@@ -373,6 +391,8 @@ typedef struct {
 	int32_t num_elements;
 
 	vec2_t st_origin;
+
+	int32_t blend_depth_types;
 } r_bsp_draw_elements_t;
 
 /**
@@ -405,19 +425,11 @@ struct r_bsp_node_s {
 	struct r_bsp_inline_model_s *model;
 
 	// node specific
-	cm_bsp_plane_t *plane;
+	r_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
-	
-	int32_t num_blend_faces;
-	
-	vec3_t blend_mins;
-	vec3_t blend_maxs;
-
-	int32_t blend_depth;
-	int32_t blend_depth_types;
 };
 
 typedef struct r_bsp_node_s r_bsp_node_t;
@@ -464,9 +476,9 @@ typedef struct r_bsp_inline_model_s {
 	int32_t num_faces;
 
 	/**
-	 * @brief The alpha blended nodes of this inline model, sorted by depth each frame.
+	 * @brief The alpha blended draw elements of this inline model, sorted by depth each frame.
 	 */
-	GPtrArray *blend_nodes;
+	GPtrArray *blend_elements;
 
 	/**
 	 * @brief The faces of this inline model that include flares, sorted by material at level load.
@@ -522,6 +534,9 @@ typedef struct {
 typedef struct {
 
 	cm_bsp_t *cm;
+
+	int32_t num_planes;
+	r_bsp_plane_t *planes;
 
 	int32_t num_texinfo;
 	r_bsp_texinfo_t *texinfo;
@@ -1027,7 +1042,7 @@ typedef struct r_entity_s {
 	vec4_t tints[TINT_TOTAL];
 
 	/**
-	 * @brief The alpha blended depth in which this entity should be rendered.
+	 * @brief The alpha blended element behind which this entity should be rendered.
 	 */
 	int32_t blend_depth;
 } r_entity_t;
@@ -1131,7 +1146,7 @@ typedef struct {
 
 	int32_t count_bsp_inline_models;
 	int32_t count_bsp_draw_elements;
-	int32_t count_bsp_blend_nodes;
+	int32_t count_bsp_draw_elements_blend;
 	int32_t count_bsp_triangles;
 	int32_t count_bsp_occlusion_queries;
 	int32_t count_bsp_occlusion_queries_passed;

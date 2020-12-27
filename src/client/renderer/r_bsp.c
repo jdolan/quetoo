@@ -44,16 +44,16 @@ int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t type) {
 		Cm_TraceBounds(r_view.origin, p, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
 
 		const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
-		for (guint i = 0; i < in->blend_nodes->len; i++) {
+		for (guint i = 0; i < in->blend_elements->len; i++) {
 
-			r_bsp_node_t *node = g_ptr_array_index(in->blend_nodes, i);
+			r_bsp_draw_elements_t *draw = g_ptr_array_index(in->blend_elements, i);
 
-			if (SignOf(Cm_DistanceToPlane(p, node->plane)) !=
-				SignOf(Cm_DistanceToPlane(r_view.origin, node->plane))) {
+			if (SignOf(Cm_DistanceToPlane(p, draw->plane->cm)) !=
+				SignOf(Cm_DistanceToPlane(r_view.origin, draw->plane->cm))) {
 
-				if (Vec3_BoxIntersect(mins, maxs, node->mins, node->maxs)) {
-					node->blend_depth_types |= type;
-					return node->blend_depth;
+				if (Vec3_BoxIntersect(mins, maxs, draw->mins, draw->maxs)) {
+					draw->blend_depth_types |= type;
+					return (int32_t) (draw - r_world_model->bsp->draw_elements);
 				}
 			}
 		}
@@ -63,43 +63,54 @@ int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t type) {
 }
 
 /**
- * @brief Recurses the specified node, back to front, sorting alpha blended faces.
+ * @brief Recurses the specified node, back to front, sorting alpha blended draw elements.
  * @details The node is transformed by the matrix of the entity to which it belongs,
- * if any, to ensure that alpha blended faces on inline models are sorted correctly.
+ * if any, to ensure that alpha blended elements on inline models are sorted correctly.
  */
-static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, r_bsp_node_t *node, int32_t *blend_depth) {
-	int32_t side;
+static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, const r_bsp_inline_model_t *in, r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
 	}
 
+	r_bsp_plane_t *plane = node->plane;
+
 	cm_bsp_plane_t transformed_plane;
 	if (e) {
-		vec4_t out;
-		Matrix4x4_TransformQuakePlane(&e->matrix, node->plane->normal, node->plane->dist, &out);
-		transformed_plane = Cm_Plane(Vec4_XYZ(out), out.w);
+		transformed_plane = Cm_TransformPlane(&e->matrix, plane->cm);
 	} else {
-		transformed_plane = *node->plane;
+		transformed_plane = *plane->cm;
 	}
 
+	int32_t side;
 	if (Cm_DistanceToPlane(r_view.origin, &transformed_plane) > 0.f) {
 		side = 1;
 	} else {
 		side = 0;
 	}
 
-	R_UpdateBspInlineModelBlendDepth_r(e, node->children[side], blend_depth);
+	R_UpdateBspInlineModelBlendDepth_r(e, in, node->children[side]);
 
-	if (node->num_blend_faces && !R_OccludeBox(node->blend_mins, node->blend_maxs)) {
+	if (plane->blend_elements->len) {
 
-		node->blend_depth = *blend_depth = (*blend_depth) + 1;
-		node->blend_depth_types = BLEND_DEPTH_NONE;
+		for (guint i = 0; i < plane->blend_elements->len; i++) {
+			r_bsp_draw_elements_t *draw = g_ptr_array_index(plane->blend_elements, i);
 
-		g_ptr_array_add(node->model->blend_nodes, node);
+			if (R_CullBox(draw->mins, draw->maxs)) {
+				continue;
+			}
+
+			if (R_OccludeBox(draw->mins, draw->maxs)) {
+				continue;
+			}
+
+			draw->blend_depth_types = BLEND_DEPTH_NONE;
+
+			g_ptr_array_add(in->blend_elements, draw);
+		}
 	}
 
-	R_UpdateBspInlineModelBlendDepth_r(e, node->children[!side], blend_depth);
+	R_UpdateBspInlineModelBlendDepth_r(e, in, node->children[!side]);
 }
 
 /**
@@ -107,10 +118,9 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, r_bsp_node_t
  */
 static void R_UpdateBspInlineModelBlendDepth(const r_entity_t *e, const r_bsp_inline_model_t *in) {
 
-	g_ptr_array_set_size(in->blend_nodes, 0);
+	g_ptr_array_set_size(in->blend_elements, 0);
 
-	int32_t blend_depth = 1;
-	R_UpdateBspInlineModelBlendDepth_r(e, in->head_node, &blend_depth);
+	R_UpdateBspInlineModelBlendDepth_r(e, in, in->head_node);
 }
 
 /**
@@ -121,7 +131,6 @@ void R_UpdateBspInlineEntities(void) {
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 
 	R_UpdateBspInlineModelBlendDepth(NULL, in);
-	r_view.count_bsp_blend_nodes = in->blend_nodes->len;
 
 	r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {

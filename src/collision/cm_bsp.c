@@ -205,6 +205,7 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
+		draw->plane_num = LittleLong(draw->plane_num);
 		draw->texinfo = LittleLong(draw->texinfo);
 		draw->contents = LittleLong(draw->contents);
 

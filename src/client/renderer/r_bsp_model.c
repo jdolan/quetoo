@@ -36,8 +36,24 @@ static void R_LoadBspEntities(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all r_bsp_texinfo_t for the specified BSP model. Texinfo's
- * are shared by one or more r_bsp_face_t.
+ * @brief
+ */
+static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
+	r_bsp_plane_t *out;
+
+	const cm_bsp_plane_t *in = bsp->cm->planes;
+
+	bsp->num_planes = bsp->cm->file.num_planes;
+	bsp->planes = out = Mem_LinkMalloc(bsp->num_planes * sizeof(*out), bsp);
+
+	for (int32_t i = 0; i < bsp->num_planes; i++, out++) {
+		out->cm = in;
+		out->blend_elements = g_ptr_array_new();
+	}
+}
+
+/**
+ * @brief
  */
 static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 	r_bsp_texinfo_t *out;
@@ -123,7 +139,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
-		out->plane = bsp->cm->planes + in->plane_num;
+		out->plane = bsp->planes + in->plane_num;
 		out->plane_side = in->plane_num & 1;
 
 		out->texinfo = bsp->texinfo + in->texinfo;
@@ -175,6 +191,9 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	const bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
+		out->plane = bsp->planes + in->plane_num;
+		out->plane_side = in->plane_num & 1;
+
 		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
 
@@ -183,6 +202,18 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+
+		if (out->texinfo->flags & SURF_MASK_BLEND) {
+
+			r_bsp_plane_t *plane;
+			if (out->plane_side) {
+				plane = out->plane - 1;
+			} else {
+				plane = out->plane;
+			}
+
+			g_ptr_array_add(plane->blend_elements, out);
+		}
 
 		if (out->texinfo->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
 
@@ -240,7 +271,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 		out->mins = in->mins;
 		out->maxs = in->maxs;
 
-		out->plane = bsp->cm->planes + in->plane_num;
+		out->plane = bsp->planes + in->plane_num;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
@@ -268,20 +299,9 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 		return;
 	}
 
-	node->blend_mins = Vec3_Mins();
-	node->blend_maxs = Vec3_Maxs();
-
 	r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 		face->node = node;
-
-		if (face->texinfo->flags & SURF_MASK_BLEND) {
-
-			node->blend_mins = Vec3_Minf(node->blend_mins, face->mins);
-			node->blend_maxs = Vec3_Maxf(node->blend_maxs, face->maxs);
-			
-			node->num_blend_faces++;
-		}
 	}
 
 	R_SetupBspNode(node->children[0], node, model);
@@ -320,7 +340,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
 
-		out->blend_nodes = g_ptr_array_new();
+		out->blend_elements = g_ptr_array_new();
 		out->flare_faces = g_ptr_array_new();
 
 		r_bsp_face_t *face = out->faces;
@@ -565,6 +585,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Cl_LoadingProgress(-4, "entities");
 	R_LoadBspEntities(mod->bsp);
+
+	Cl_LoadingProgress(-4, "planes");
+	R_LoadBspPlanes(mod->bsp);
 
 	Cl_LoadingProgress(-4, "texinfo");
 	R_LoadBspTexinfo(mod->bsp);

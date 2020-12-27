@@ -114,7 +114,6 @@ void R_DrawDepthPass(void) {
 				continue;
 			}
 
-
 			glBufferData(GL_ARRAY_BUFFER, sizeof(q->vertexes), q->vertexes, GL_DYNAMIC_DRAW);
 
 			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);

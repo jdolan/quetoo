@@ -245,8 +245,9 @@ static int32_t ContentsCmp(const bsp_face_t *a, const bsp_face_t *b) {
 
 /**
  * @brief Draw elements comparator to sort model faces by material.
- * @details SURF_MATERIAL faces will always emit a unique draw elements command so
- * that their texture matrices are correct.
+ * @details Opaque faces are equal if they share texinfo and contents.
+ * @details Blend faces are equal if they share opaque equality and plane.
+ * @details Material faces are never equal, to preserve their texture matrices.
  */
 static int32_t FaceCmp(const void *a, const void *b) {
 
@@ -262,7 +263,11 @@ static int32_t FaceCmp(const void *a, const void *b) {
 		order = ContentsCmp(a_face, b_face);
 		if (order == 0) {
 
-			if ((a_texinfo->flags & SURF_MATERIAL) || (b_texinfo->flags & SURF_MATERIAL)) {
+			if (a_texinfo->flags & SURF_MASK_BLEND) {
+				return a_face->plane_num - b_face->plane_num;
+			}
+
+			if (a_texinfo->flags & SURF_MATERIAL) {
 				return (int32_t) (ptrdiff_t) (a_face - b_face);
 			}
 		}
@@ -301,6 +306,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 		bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
 		bsp_file.num_draw_elements++;
 
+		out->plane_num = a->plane_num;
 		out->texinfo = a->texinfo;
 		out->contents = a->contents;
 

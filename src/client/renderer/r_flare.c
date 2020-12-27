@@ -40,7 +40,7 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 	}
 
 	face->flare->origin = Vec3_Scale(Vec3_Add(maxs, mins), .5f);
-	face->flare->origin = Vec3_Add(face->flare->origin, Vec3_Scale(face->plane->normal, 2.f));
+	face->flare->origin = Vec3_Add(face->flare->origin, Vec3_Scale(face->plane->cm->normal, 2.f));
 
 	face->flare->size = Vec3_Distance(maxs, mins);
 

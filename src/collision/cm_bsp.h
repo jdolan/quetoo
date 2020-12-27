@@ -242,9 +242,13 @@ typedef struct {
 } bsp_leaf_t;
 
 /**
- * @brief Opaque faces within each model are grouped by material and merged into draw elements.
+ * @brief Draw elements are OpenGL draw commands, serialized directly within the BSP.
+ * @details For each model, all opaque faces sharing texinfo and contents are grouped
+ * into a single draw elements. All blend faces sharing plane, texinfo and contents
+ * are also grouped.
  */
 typedef struct {
+	int32_t plane_num;
 	int32_t texinfo;
 	int32_t contents;
 
