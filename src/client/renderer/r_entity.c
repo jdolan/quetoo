@@ -128,50 +128,11 @@ void R_UpdateEntities(void) {
  */
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
-	vec3_t mins, maxs;
 	if (r_draw_entity_bounds->integer == 2) {
-		mins = e->abs_model_mins;
-		maxs = e->abs_model_maxs;
+		R_Draw3DBox(e->abs_model_mins, e->abs_model_maxs, color_yellow);
 	} else {
-		mins = e->abs_mins;
-		maxs = e->abs_maxs;
+		R_Draw3DBox(e->abs_mins, e->abs_maxs, color_yellow);
 	}
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(mins.x, mins.y, mins.z),
-		Vec3(maxs.x, mins.y, mins.z),
-		Vec3(maxs.x, maxs.y, mins.z),
-		Vec3(mins.x, maxs.y, mins.z),
-		Vec3(mins.x, mins.y, mins.z),
-	}, 5, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(mins.x, mins.y, maxs.z),
-		Vec3(maxs.x, mins.y, maxs.z),
-		Vec3(maxs.x, maxs.y, maxs.z),
-		Vec3(mins.x, maxs.y, maxs.z),
-		Vec3(mins.x, mins.y, maxs.z),
-	}, 5, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(mins.x, mins.y, mins.z),
-		Vec3(mins.x, mins.y, maxs.z),
-	}, 2, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(mins.x, maxs.y, mins.z),
-		Vec3(mins.x, maxs.y, maxs.z),
-	}, 2, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(maxs.x, maxs.y, mins.z),
-		Vec3(maxs.x, maxs.y, maxs.z),
-	}, 2, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(maxs.x, mins.y, mins.z),
-		Vec3(maxs.x, mins.y, maxs.z),
-	}, 2, color_yellow);
 }
 
 /**
