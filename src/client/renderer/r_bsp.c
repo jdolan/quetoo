@@ -108,7 +108,8 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, r_bsp_node_t
 
 	R_UpdateBspInlineModelBlendDepth_r(e, node->children[side], blend_depth);
 
-	if (node->num_blend_faces) {
+	if (node->num_blend_faces && !R_OccludeBox(node->blend_mins, node->blend_maxs)) {
+
 		node->blend_depth = *blend_depth = (*blend_depth) + 1;
 		node->blend_depth_types = BLEND_DEPTH_NONE;
 

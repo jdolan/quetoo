@@ -398,7 +398,7 @@ struct r_bsp_node_s {
 	// common with leaf
 	int32_t contents; // -1, to differentiate from leafs
 
-	vec3_t mins; // for frustum culling
+	vec3_t mins;
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
@@ -412,6 +412,9 @@ struct r_bsp_node_s {
 	int32_t num_faces;
 	
 	int32_t num_blend_faces;
+	
+	vec3_t blend_mins;
+	vec3_t blend_maxs;
 
 	int32_t blend_depth;
 	int32_t blend_depth_types;
@@ -420,15 +423,13 @@ struct r_bsp_node_s {
 typedef struct r_bsp_node_s r_bsp_node_t;
 
 /**
- * @brief BSP leafs terminate the branches of the BSP tree and are grouped into
- * clusters that are the unit of granularity for the PVS. If a leaf's cluster is
- * visible, all ancestors of that leaf should be marked as visible.
+ * @brief BSP leafs terminate the branches of the BSP tree.
  */
 struct r_bsp_leaf_s {
 	// common with node
 	int32_t contents;
 
-	vec3_t mins; // for frustum culling
+	vec3_t mins;
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;

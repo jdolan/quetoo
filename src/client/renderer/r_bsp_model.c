@@ -268,11 +268,18 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 		return;
 	}
 
+	node->blend_mins = Vec3_Mins();
+	node->blend_maxs = Vec3_Maxs();
+
 	r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 		face->node = node;
 
 		if (face->texinfo->flags & SURF_MASK_BLEND) {
+
+			node->blend_mins = Vec3_Minf(node->blend_mins, face->mins);
+			node->blend_maxs = Vec3_Maxf(node->blend_maxs, face->maxs);
+			
 			node->num_blend_faces++;
 		}
 	}
