@@ -145,6 +145,7 @@ _Bool R_CullPoint(const vec3_t point) {
 
 /**
  * @return True if the specified bounding box is culled by the view frustum, false otherwise.
+ * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
  */
 _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 
@@ -152,7 +153,7 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		return false;
 	}
 
-	const vec3_t corners[] = {
+	const vec3_t points[] = {
 		Vec3(mins.x, mins.y, mins.z),
 		Vec3(maxs.x, mins.y, mins.z),
 		Vec3(maxs.x, maxs.y, mins.z),
@@ -163,28 +164,23 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		Vec3(mins.x, maxs.y, maxs.z),
 	};
 
-	const cm_bsp_plane_t *p = r_locals.frustum;
-    for (size_t i = 0; i < lengthof(r_locals.frustum); i++, p++) {
-		_Bool front = false, back = false;
+	const cm_bsp_plane_t *plane = r_locals.frustum;
+	for (size_t i = 0; i < lengthof(r_locals.frustum); i++, plane++) {
 
-		for (size_t j = 0; j < lengthof(corners); j++) {
-			const float dist = Vec3_Dot(corners[j], p->normal) - p->dist;
+		size_t j;
+		for (j = 0; j < lengthof(points); j++) {
+			const float dist = Cm_DistanceToPlane(points[j], plane);
 			if (dist >= 0.f) {
-				front = true;
-				if (back) {
-					break;
-				}
-			} else {
-				back = true;
+				break;
 			}
 		}
 
-		if (!front) {
+		if (j == lengthof(points)) {
 			return true;
 		}
     }
 
-    return false;
+	return false;
 }
 
 /**
@@ -196,9 +192,9 @@ _Bool R_CullSphere(const vec3_t point, const float radius) {
 		return false;
 	}
 
-	const cm_bsp_plane_t *p = r_locals.frustum;
-	for (size_t i = 0 ; i < lengthof(r_locals.frustum) ; i++, p++)  {
-		const float dist = Vec3_Dot(point, p->normal) - p->dist;
+	const cm_bsp_plane_t *plane = r_locals.frustum;
+	for (size_t i = 0 ; i < lengthof(r_locals.frustum) ; i++, plane++)  {
+		const float dist = Cm_DistanceToPlane(point, plane);
 		if (dist < -radius) {
 			return true;
 		}
@@ -280,8 +276,9 @@ static void R_UpdateUniforms(void) {
 }
 
 /**
- * @brief Updates the clipping planes for the view frustum based on the origin
- * and angles for this frame.
+ * @brief Updates the clipping planes for the view frustum for the current frame.
+ * @details The frustum planes are outward facing. Thus, any object that appears
+ * partially behind any of the frustum planes should be visible.
  */
 static void R_UpdateFrustum(void) {
 
