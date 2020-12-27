@@ -150,6 +150,48 @@ void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color) {
 }
 
 /**
+ * @brief Draws the bounding box using line strips in 3D space.
+ */
+void R_Draw3DBox(const vec3_t mins, const vec3_t maxs, const color_t color) {
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(mins.x, mins.y, mins.z),
+		Vec3(maxs.x, mins.y, mins.z),
+		Vec3(maxs.x, maxs.y, mins.z),
+		Vec3(mins.x, maxs.y, mins.z),
+		Vec3(mins.x, mins.y, mins.z),
+	}, 5, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(mins.x, mins.y, maxs.z),
+		Vec3(maxs.x, mins.y, maxs.z),
+		Vec3(maxs.x, maxs.y, maxs.z),
+		Vec3(mins.x, maxs.y, maxs.z),
+		Vec3(mins.x, mins.y, maxs.z),
+	}, 5, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(mins.x, mins.y, mins.z),
+		Vec3(mins.x, mins.y, maxs.z),
+	}, 2, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(mins.x, maxs.y, mins.z),
+		Vec3(mins.x, maxs.y, maxs.z),
+	}, 2, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(maxs.x, maxs.y, mins.z),
+		Vec3(maxs.x, maxs.y, maxs.z),
+	}, 2, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(maxs.x, mins.y, mins.z),
+		Vec3(maxs.x, mins.y, maxs.z),
+	}, 2, color);
+}
+
+/**
  * @brief Draw all geometry accumulated for the current frame.
  */
 void R_Draw3D(void) {
