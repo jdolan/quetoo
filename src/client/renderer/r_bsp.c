@@ -70,37 +70,20 @@ int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t type) {
 static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, r_bsp_node_t *node, int32_t *blend_depth) {
 	int32_t side;
 
-	vec3_t mins, maxs;
-	if (e) {
-		Matrix4x4_Transform(&e->matrix, node->mins.xyz, mins.xyz);
-		Matrix4x4_Transform(&e->matrix, node->maxs.xyz, maxs.xyz);
-	} else {
-		mins = node->mins;
-		maxs = node->maxs;
-	}
-
-	if (R_CullBox(mins, maxs)) {
-		return;
-	}
-
-	if (R_OccludeBox(mins, maxs)) {
-		return;
-	}
-
 	if (node->contents != CONTENTS_NODE) {
 		return;
 	}
 
-	cm_bsp_plane_t plane;
+	cm_bsp_plane_t transformed_plane;
 	if (e) {
 		vec4_t out;
 		Matrix4x4_TransformQuakePlane(&e->matrix, node->plane->normal, node->plane->dist, &out);
-		plane = Cm_Plane(Vec4_XYZ(out), out.w);
+		transformed_plane = Cm_Plane(Vec4_XYZ(out), out.w);
 	} else {
-		plane = *node->plane;
+		transformed_plane = *node->plane;
 	}
 
-	if (Cm_DistanceToPlane(r_view.origin, &plane) > 0.f) {
+	if (Cm_DistanceToPlane(r_view.origin, &transformed_plane) > 0.f) {
 		side = 1;
 	} else {
 		side = 0;
