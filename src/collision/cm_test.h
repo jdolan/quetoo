@@ -27,6 +27,7 @@ cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist);
 float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane);
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal);
 int32_t Cm_SignBitsForNormal(const vec3_t normal);
+cm_bsp_plane_t Cm_TransformPlane(const mat4_t *matrix, const cm_bsp_plane_t *plane);
 int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *plane);
 int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush);
 int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t contents);

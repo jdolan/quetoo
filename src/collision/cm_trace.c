@@ -470,15 +470,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 	cm_trace_t trace = Cm_BoxTrace(start0, end0, mins, maxs, head_node, contents);
 
 	if (trace.fraction < 1.0f) { // transform the impacted plane
-		vec4_t plane;
-
-		const cm_bsp_plane_t *p = &trace.plane;
-		const vec3_t n = p->normal;
-
-		Matrix4x4_TransformQuakePlane(matrix, n, p->dist, &plane);
-
-		trace.plane.normal = Vec4_XYZ(plane);
-		trace.plane.dist = plane.w;
+		trace.plane = Cm_TransformPlane(matrix, &trace.plane);
 	}
 
 	// and calculate the final end point

@@ -88,6 +88,17 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 }
 
 /**
+ * @brief
+ */
+cm_bsp_plane_t Cm_TransformPlane(const mat4_t *matrix, const cm_bsp_plane_t *plane) {
+
+	vec4_t out;
+	Matrix4x4_TransformQuakePlane(matrix, plane->normal, plane->dist, &out);
+
+	return Cm_Plane(Vec4_XYZ(out), out.w);
+}
+
+/**
  * @return `1` if `point` resides inside `brush`, `0` otherwise.
  */
 int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
