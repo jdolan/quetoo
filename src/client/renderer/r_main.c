@@ -124,6 +124,26 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /**
+ * @return True if the specified point is culled by the view frustum, false otherwise.
+ */
+_Bool R_CullPoint(const vec3_t point) {
+
+	if (!r_cull->value) {
+		return false;
+	}
+
+	const cm_bsp_plane_t *plane = r_locals.frustum;
+	for (size_t i = 0; i< lengthof(r_locals.frustum); i++, plane++) {
+		const float dist = Cm_DistanceToPlane(point, plane);
+		if (dist > 0.f) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * @return True if the specified bounding box is culled by the view frustum, false otherwise.
  */
 _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {

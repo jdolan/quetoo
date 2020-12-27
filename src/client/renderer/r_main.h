@@ -60,6 +60,7 @@ extern r_view_t r_view;
 void R_GetError_(const char *function, const char *msg);
 #define R_GetError(msg) R_GetError_(__func__, msg)
 
+_Bool R_CullPoint(const vec3_t point);
 _Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
 _Bool R_CullSphere(const vec3_t point, const float radius);
 void R_Init(void);
