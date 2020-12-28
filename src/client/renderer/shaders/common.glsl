@@ -20,6 +20,48 @@
  */
 
 /**
+ * @brief Horizontal maximum, returns the maximum component of a vector.
+ */
+float hmax(vec2 v) {
+	return max(v.x, v.y);
+}
+
+/**
+ * @brief Horizontal maximum, returns the maximum component of a vector.
+ */
+float hmax(vec3 v) {
+	return max(max(v.x, v.y), v.z);
+}
+
+/**
+ * @brief Horizontal maximum, returns the maximum component of a vector.
+ */
+float hmax(vec4 v) {
+	return max(max(v.x, v.y), max(v.z, v.w));
+}
+
+/**
+ * @brief Horizontal minimum, returns the minimum component of a vector.
+ */
+float hmin(vec2 v) {
+	return min(v.x, v.y);
+}
+
+/**
+ * @brief Horizontal minimum, returns the minimum component of a vector.
+ */
+float hmin(vec3 v) {
+	return min(min(v.x, v.y), v.z);
+}
+
+/**
+ * @brief Horizontal minimum, returns the minimum component of a vector.
+ */
+float hmin(vec4 v) {
+	return min(min(v.x, v.y), min(v.z, v.w));
+}
+
+/**
  * @brief Clamps to [0.0, 1.0], like in HLSL.
  */
 float saturate(float x) {
@@ -139,6 +181,8 @@ vec3 dither(vec3 color) {
 	// https://www.shadertoy.com/view/4dcSRX
 	// modification with triangular distribution by Hornet (loopit.dk):
 	// https://www.shadertoy.com/view/Md3XRf
+
+	// FIXME: replace gl_FragCoord (deprecated) with a varying
 
 	vec3 pattern;
 	// generate dithering pattern

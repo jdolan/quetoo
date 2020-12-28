@@ -34,17 +34,7 @@ r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) {
 
 	desc->filenames[i++] = "version.glsl";
 	desc->filenames[i++] = "uniforms.glsl";
-
-	switch (type) {
-		case GL_VERTEX_SHADER:
-			desc->filenames[i++] = "common_vs.glsl";
-			break;
-		case GL_FRAGMENT_SHADER:
-			desc->filenames[i++] = "common_fs.glsl";
-		default:
-			break;
-	}
-
+	desc->filenames[i++] = "common.glsl";
 	desc->filenames[i++] = "lightgrid.glsl";
 
 	va_list args;
@@ -76,7 +66,6 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 
 		GLsizei count = 0;
 		while (count < (GLsizei) lengthof(desc->filenames)) {
-
 			const char *filename = desc->filenames[count];
 			if (filename) {
 				const int64_t length = Fs_Load(va("shaders/%s", filename), &source[count]);
