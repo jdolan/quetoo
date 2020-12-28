@@ -46,7 +46,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 	bsp->num_planes = bsp->cm->file.num_planes;
 	bsp->planes = out = Mem_LinkMalloc(bsp->num_planes * sizeof(*out), bsp);
 
-	for (int32_t i = 0; i < bsp->num_planes; i++, out++) {
+	for (int32_t i = 0; i < bsp->num_planes; i++, out++, in++) {
 		out->cm = in;
 		out->blend_elements = g_ptr_array_new();
 	}
