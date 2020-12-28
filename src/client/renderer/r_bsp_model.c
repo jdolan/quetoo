@@ -205,14 +205,14 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 		if (out->texinfo->flags & SURF_MASK_BLEND) {
 
-			r_bsp_plane_t *plane;
+			r_bsp_plane_t *blend_plane;
 			if (out->plane_side) {
-				plane = out->plane - 1;
+				blend_plane = out->plane - 1;
 			} else {
-				plane = out->plane;
+				blend_plane = out->plane;
 			}
 
-			g_ptr_array_add(plane->blend_elements, out);
+			g_ptr_array_add(blend_plane->blend_elements, out);
 		}
 
 		if (out->texinfo->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {

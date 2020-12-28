@@ -218,7 +218,7 @@ typedef struct {
 
 typedef struct {
 	int32_t plane_num;
-	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
+	int32_t children[2]; // negative numbers are -(leafs + 1), not nodes
 
 	vec3_t mins; // for frustum culling
 	vec3_t maxs;

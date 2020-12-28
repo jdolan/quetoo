@@ -378,6 +378,8 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawBspLightgrid();
 
+	R_UpdateBlendDepth();
+
 	R_UpdateEntities();
 
 	R_UpdateLights();
@@ -398,13 +400,13 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawWorld();
 
-	R_DrawEntities(0);
+	R_DrawEntities(-1);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
-	R_DrawSprites(0);
+	R_DrawSprites(-1);
 
 	R_Draw3D();
 

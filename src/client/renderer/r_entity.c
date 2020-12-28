@@ -116,8 +116,6 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
  */
 void R_UpdateEntities(void) {
 
-	R_UpdateBspInlineEntities();
-
 	R_UpdateMeshEntities();
 	
 	R_UpdateMeshEntitiesShadows();

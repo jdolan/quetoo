@@ -372,6 +372,8 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
 			r_view.count_bsp_draw_elements++;
 		}
 	}
+
+	r_view.count_bsp_inline_models++;
 }
 
 /**

@@ -258,7 +258,7 @@ static void R_UpdateSprite(const r_sprite_t *s) {
 	in->vertexes[3].lerp = lerp;
 
 	if (s->flags & SPRITE_NO_BLEND_DEPTH) {
-		in->blend_depth = 0;
+		in->blend_depth = -1;
 	} else {
 		in->blend_depth = R_BlendDepthForPoint(s->origin, BLEND_DEPTH_SPRITE);
 	}

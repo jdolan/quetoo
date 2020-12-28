@@ -300,6 +300,11 @@ typedef struct {
 	 * @brief The alpha blended draw elements referencing this plane.
 	 */
 	GPtrArray *blend_elements;
+
+	/**
+	 * @brief The blend depth frame, to ensure each plane is only visited once per frame.
+	 */
+	int32_t blend_frame;
 } r_bsp_plane_t;
 
 /**

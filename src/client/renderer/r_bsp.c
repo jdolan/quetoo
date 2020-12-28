@@ -48,28 +48,45 @@ int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t type) {
 
 			r_bsp_draw_elements_t *draw = g_ptr_array_index(in->blend_elements, i);
 
-			if (SignOf(Cm_DistanceToPlane(p, draw->plane->cm)) !=
-				SignOf(Cm_DistanceToPlane(r_view.origin, draw->plane->cm))) {
+			if (Vec3_BoxIntersect(mins, maxs, draw->mins, draw->maxs)) {
+				if (Cm_DistanceToPlane(p, draw->plane->cm) < 0.f) {
 
-				if (Vec3_BoxIntersect(mins, maxs, draw->mins, draw->maxs)) {
 					draw->blend_depth_types |= type;
+
 					return (int32_t) (draw - r_world_model->bsp->draw_elements);
 				}
 			}
 		}
 	}
 
-	return 0;
+	return -1;
 }
 
 /**
  * @brief Recurses the specified node, back to front, sorting alpha blended draw elements.
- * @details The node is transformed by the matrix of the entity to which it belongs,
- * if any, to ensure that alpha blended elements on inline models are sorted correctly.
+ * @details The node is transformed by the matrix of the entity to which it belongs, if any,
+ * to ensure that alpha blended elements on inline models are visible, and sorted correctly.
  */
 static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, const r_bsp_inline_model_t *in, r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	vec3_t transformed_mins, transformed_maxs;
+	if (e) {
+		Matrix4x4_Transform(&e->matrix, node->mins.xyz, transformed_mins.xyz);
+		Matrix4x4_Transform(&e->matrix, node->maxs.xyz, transformed_maxs.xyz);
+	} else {
+		transformed_mins = node->mins;
+		transformed_maxs = node->maxs;
+	}
+
+	if (R_CullBox(transformed_mins, transformed_maxs)) {
+		return;
+	}
+
+	if (R_OccludeBox(transformed_mins, transformed_maxs)) {
 		return;
 	}
 
@@ -82,35 +99,31 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, const r_bsp_
 		transformed_plane = *plane->cm;
 	}
 
-	int32_t side;
+	int32_t back_side;
 	if (Cm_DistanceToPlane(r_view.origin, &transformed_plane) > 0.f) {
-		side = 1;
+		back_side = 1;
 	} else {
-		side = 0;
+		back_side = 0;
 	}
 
-	R_UpdateBspInlineModelBlendDepth_r(e, in, node->children[side]);
+	R_UpdateBspInlineModelBlendDepth_r(e, in, node->children[back_side]);
 
-	if (plane->blend_elements->len) {
+	if (plane->blend_frame != r_locals.blend_frame) {
+		plane->blend_frame = r_locals.blend_frame;
 
 		for (guint i = 0; i < plane->blend_elements->len; i++) {
 			r_bsp_draw_elements_t *draw = g_ptr_array_index(plane->blend_elements, i);
 
-			if (R_CullBox(draw->mins, draw->maxs)) {
-				continue;
-			}
-
-			if (R_OccludeBox(draw->mins, draw->maxs)) {
+			if (draw->plane_side == back_side) {
 				continue;
 			}
 
 			draw->blend_depth_types = BLEND_DEPTH_NONE;
-
 			g_ptr_array_add(in->blend_elements, draw);
 		}
 	}
 
-	R_UpdateBspInlineModelBlendDepth_r(e, in, node->children[!side]);
+	R_UpdateBspInlineModelBlendDepth_r(e, in, node->children[!back_side]);
 }
 
 /**
@@ -126,7 +139,9 @@ static void R_UpdateBspInlineModelBlendDepth(const r_entity_t *e, const r_bsp_in
 /**
  * @brief
  */
-void R_UpdateBspInlineEntities(void) {
+void R_UpdateBlendDepth(void) {
+
+	r_locals.blend_frame++;
 
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 
@@ -134,10 +149,8 @@ void R_UpdateBspInlineEntities(void) {
 
 	r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 			R_UpdateBspInlineModelBlendDepth(e, e->model->bsp_inline);
-			r_view.count_bsp_inline_models++;
 		}
 	}
 }
