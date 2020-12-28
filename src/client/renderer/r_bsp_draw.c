@@ -378,6 +378,8 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
 
 /**
  * @brief Draws alpha blended faces for the specified inline model, ordered back to front.
+ * @details In order to ensure correct blend ordering, sprites and mesh entities may be dispatched
+ * here, to be drawn immediately behind (before) any draw elements that may occlude them.
  */
 static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_bsp_inline_model_t *in) {
 
@@ -386,7 +388,6 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_b
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -403,7 +404,6 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_b
 			glDisable(GL_BLEND);
 
 			glDisable(GL_DEPTH_TEST);
-			glDisable(GL_CULL_FACE);
 
 			if (draw->blend_depth_types & BLEND_DEPTH_ENTITY) {
 				R_DrawEntities(blend_depth);
@@ -414,7 +414,6 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_b
 			}
 
 			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
 
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -430,8 +429,6 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_b
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		R_Draw3DBox(draw->mins, draw->maxs, color_green);
 
 		R_DrawBspDrawElements(e, draw, &material);
 
