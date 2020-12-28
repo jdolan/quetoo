@@ -104,13 +104,6 @@ typedef enum {
 } entity_animation_t;
 
 /**
- * @brief Constants for animation1 that the lightning gun uses for
- * its hit detection routines.
- */
-#define LIGHTNING_NO_HIT		0
-#define LIGHTNING_SOLID_HIT		1
-
-/**
  * @brief Entity events are instantaneous, transpiring at an entity's origin
  * for precisely one frame. The game module can define custom events as well
  * (8 bits).
