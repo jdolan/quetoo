@@ -48,6 +48,10 @@ int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t type) {
 
 			r_bsp_draw_elements_t *draw = g_ptr_array_index(in->blend_elements, i);
 
+			if (draw->texinfo->flags & SURF_DECAL) {
+				continue;
+			}
+
 			if (Vec3_BoxIntersect(mins, maxs, draw->mins, draw->maxs)) {
 				if (Cm_DistanceToPlane(p, draw->plane->cm) < 0.f) {
 

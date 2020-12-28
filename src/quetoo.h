@@ -290,14 +290,14 @@ typedef enum {
 #define SURF_ALPHA_TEST			0x400 // alpha test (grates, foliage, etc..)
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL			0x1000 // retain the geometry, but don't draw diffuse pass
-#define SURF_NO_WELD			0x2000 // don't weld (merge vertices) during face creation
+#define SURF_DECAL				0x2000 // draw diffuse pass, but don't use for alpha blend sorting
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 
 /**
  * @brief Texinfos with differing flags after applying this mask should not be considered
  * equal for face or draw elements merging.
  */
-#define SURF_MASK_TEXINFO_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_NO_WELD | SURF_DEBUG_LUXEL)
+#define SURF_MASK_TEXINFO_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_DEBUG_LUXEL)
 
 /**
  * @brief Texinfos with these flags require transparency.

@@ -278,14 +278,14 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 	vec3_t points[face->w->num_points];
 	int32_t num_points = face->w->num_points;
 
-	if (!no_weld && !(texinfo->flags & SURF_NO_WELD)) {
+	if (no_weld) {
+		memcpy(points, face->w->points, face->w->num_points * sizeof(face->w->points[0]));
+	} else {
 		num_points = WeldWinding(face->w, points);
 		if (num_points < 3) {
 			Mon_SendWinding(MON_WARN, points, num_points, "Malformed face after welding");
 			return 0;
 		}
-	} else {
-		memcpy(points, face->w->points, face->w->num_points * sizeof(face->w->points[0]));
 	}
 
 	for (int32_t i = 0; i < num_points; i++) {
