@@ -23,7 +23,7 @@
 
 // weather emitters are bound to downward-facing sky surfaces
 typedef struct cg_weather_emit_s {
-	const r_bsp_leaf_t *leaf;
+	const r_bsp_face_t *face;
 	int32_t num_origins; // the number of origins
 	vec4_t *origins; // the origins for particle spawns
 	struct cg_weather_emit_s *next;
@@ -37,25 +37,21 @@ typedef struct {
 static cg_weather_state_t cg_weather_state;
 
 /**
- * @brief Parses CS_WEATHER for weather and fog parameters, e.g. "rain fog 0.8 0.75 0.65 [128.0 2048.0 1.0]".
+ * @brief Parses CS_WEATHER for weather, e.g. "rain," "snow."
  */
-void Cg_ResolveWeather(const char *weather) {
+int32_t Cg_ParseWeather(const char *string) {
 
-	Cg_Debug("%s\n", weather);
+	int32_t weather = WEATHER_NONE;
 
-	cgi.view->weather = WEATHER_NONE;
-
-	if (!weather || *weather == '\0') {
-		return;
+	if (strstr(string, "rain")) {
+		weather |= WEATHER_RAIN;
 	}
 
-	if (strstr(weather, "rain")) {
-		cgi.view->weather |= WEATHER_RAIN;
+	if (strstr(string, "snow")) {
+		weather |= WEATHER_SNOW;
 	}
 
-	if (strstr(weather, "snow")) {
-		cgi.view->weather |= WEATHER_SNOW;
-	}
+	return weather;
 }
 
 /**
@@ -68,23 +64,13 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 	// resolve the leaf for the point just in front of the surface
 
-	vec3_t mins = Vec3_Mins();
-	vec3_t maxs = Vec3_Maxs();
+	vec3_t center = Vec3_Mix(face->mins, face->maxs, .5f);
+	center = Vec3_Add(center, Vec3_Scale(face->plane->cm->normal, 1.f));
 
-	const r_bsp_vertex_t *v = face->vertexes;
-	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
-		mins = Vec3_Minf(mins, v->position);
-		maxs = Vec3_Maxf(maxs, v->position);
-	}
-
-	vec3_t center = Vec3_Mix(mins, maxs, 0.5);
-	center = Vec3_Add(center, Vec3_Scale(face->plane->cm->normal, 1.0));
-
-	e->leaf = cgi.LeafForPoint(center);
+	e->face = face;
 
 	// resolve the number of origins based on surface area
-	vec3_t delta = Vec3_Subtract(maxs, mins);
-	e->num_origins = Vec3_Length(delta) / 32.0;
+	e->num_origins = Vec3_Length(Vec3_Subtract(face->maxs, face->mins)) / 32.f;
 	e->num_origins = Clampf(e->num_origins, 1, 128);
 
 	e->origins = cgi.Malloc(sizeof(vec4_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
@@ -97,7 +83,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 		// randomize the origin over the surface
 
-		const vec3_t org = Vec3_Add(Vec3_Mix3(mins, maxs, Vec3_Random()), face->plane->cm->normal);
+		const vec3_t org = Vec3_Add(Vec3_Mix3(face->mins, face->maxs, Vec3_Random()), face->plane->cm->normal);
 
 		vec3_t end = org;
 		end.z -= MAX_WORLD_DIST;
@@ -128,9 +114,9 @@ static void Cg_LoadWeather(void) {
 	cg_weather_state.emits = NULL;
 	cg_weather_state.time = 0;
 
-	Cg_ResolveWeather(cgi.ConfigString(CS_WEATHER));
+	cg_state.weather = Cg_ParseWeather(cgi.ConfigString(CS_WEATHER));
 
-	if (!(cgi.view->weather & (WEATHER_RAIN | WEATHER_SNOW))) {
+	if (!cg_state.weather) {
 		return;
 	}
 
@@ -178,7 +164,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 		// free the sprite roughly when it will reach the floor
 		cg_sprite_t *s;
 
-		if (cgi.view->weather & WEATHER_RAIN) {
+		if (cg_state.weather & WEATHER_RAIN) {
 			s = Cg_AddSprite(&(cg_sprite_t) {
 				.origin = sprite_origin,
 				.atlas_image = cg_sprite_rain,
@@ -220,13 +206,13 @@ static void Cg_AddWeather(void) {
 		return;
 	}
 
-	if (!(cgi.view->weather & (WEATHER_RAIN | WEATHER_SNOW))) {
+	if (cg_state.weather == WEATHER_NONE) {
 		return;
 	}
 
 	const s_sample_t *sample; // add an appropriate looping sound
 
-	if (cgi.view->weather & WEATHER_RAIN) {
+	if (cg_state.weather & WEATHER_RAIN) {
 		sample = cg_sample_rain;
 	} else {
 		sample = cg_sample_snow;
@@ -246,9 +232,7 @@ static void Cg_AddWeather(void) {
 	const cg_weather_emit_t *e = cg_weather_state.emits;
 
 	while (e) {
-		if (!cgi.CullBox(e->leaf->mins, e->leaf->maxs)) {
-			Cg_AddWeather_(e);
-		}
+		Cg_AddWeather_(e);
 		e = e->next;
 	}
 }

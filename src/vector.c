@@ -773,7 +773,7 @@ vec3_t Vec3_RandomRange(float begin, float end) {
  * @brief
  */
 vec3_t Vec3_Random(void) {
-	return Vec3_RandomRange(0., 1.);
+	return Vec3_RandomRange(0.f, 1.f);
 }
 
 /**

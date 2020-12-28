@@ -21,14 +21,7 @@
 
 #include "cg_local.h"
 
-/**
- * @brief Local state to the cgame per server.
- */
-typedef struct {
-	float hook_pull_speed;
-} cg_state_t;
-
-static cg_state_t cg_state;
+cg_state_t cg_state;
 
 cvar_t *cg_add_entities;
 cvar_t *cg_add_lights;
@@ -400,7 +393,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 
 	switch (i) {
 		case CS_WEATHER:
-			Cg_ResolveWeather(s);
+			cg_state.weather = Cg_ParseWeather(s);
 			return;
 		case CS_HOOK_PULL_SPEED:
 			cg_state.hook_pull_speed = strtof(s, NULL);

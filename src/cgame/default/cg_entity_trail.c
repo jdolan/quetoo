@@ -100,7 +100,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 
 			ent->timestamp = cgi.client->unclamped_time + 3000;
 		}
-	} else if (cgi.view->weather & WEATHER_RAIN || cgi.view->weather & WEATHER_SNOW) {
+	} else if (cg_state.weather) {
 
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_smoke,

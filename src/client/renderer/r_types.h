@@ -1052,15 +1052,6 @@ typedef struct r_entity_s {
 	int32_t blend_depth;
 } r_entity_t;
 
-#define WEATHER_NONE        0x0
-#define WEATHER_RAIN        0x1
-#define WEATHER_SNOW        0x2
-#define WEATHER_FOG         0x4
-
-#define FOG_START			0.f
-#define FOG_END				MAX_WORLD_AXIAL
-#define FOG_DENSITY			1.f
-
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
@@ -1104,11 +1095,6 @@ typedef struct {
 	 * @brief The contents mask at the view origin.
 	 */
 	int32_t contents;
-
-	/**
-	 * @brief A bitmask of weather effects.
-	 */
-	int32_t weather;
 
 	/**
 	 * @brief The entities to render for the current frame.
