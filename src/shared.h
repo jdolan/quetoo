@@ -169,6 +169,16 @@ typedef enum {
 } solid_t;
 
 /**
+ * @brief Sound attenuation levels.
+ */
+typedef enum {
+	SOUND_ATTEN_NONE,
+	SOUND_ATTEN_LINEAR,
+	SOUND_ATTEN_SQUARE,
+	SOUND_ATTEN_CUBIC,
+} sound_atten_t;
+
+/**
  * @brief Entity states are transmitted by the server to the client using delta
  * compression. The client parses these states and adds or removes entities
  * from the scene as needed.
