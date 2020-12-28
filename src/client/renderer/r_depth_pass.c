@@ -106,7 +106,8 @@ void R_DrawDepthPass(void) {
 
 			q->result = -1;
 
-			if (Vec3_BoxIntersect(r_view.origin, r_view.origin, q->mins, q->maxs)) {
+			if (r_view.origin.x >= q->mins.x && r_view.origin.y >= q->mins.y && r_view.origin.z >= q->mins.z &&
+				r_view.origin.x <= q->maxs.x && r_view.origin.y <= q->maxs.y && r_view.origin.z <= q->maxs.z) {
 				continue;
 			}
 
