@@ -60,9 +60,6 @@ extern r_view_t r_view;
 void R_GetError_(const char *function, const char *msg);
 #define R_GetError(msg) R_GetError_(__func__, msg)
 
-_Bool R_CullPoint(const vec3_t point);
-_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
-_Bool R_CullSphere(const vec3_t point, const float radius);
 void R_Init(void);
 void R_Shutdown(void);
 void R_LoadMedia(void);
@@ -73,7 +70,9 @@ void R_EndFrame(void);
 
 #ifdef __R_LOCAL_H__
 
-// private hardware configuration information
+/**
+ * @brief OpenGL driver information.
+ */
 typedef struct {
 	const char *renderer;
 	const char *vendor;
@@ -226,7 +225,7 @@ typedef struct {
  */
 extern r_uniforms_t r_uniforms;
 
-// development tools
+// developer tools
 extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;
@@ -237,5 +236,9 @@ extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_occlude;
+
+_Bool R_CullPoint(const vec3_t point);
+_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
+_Bool R_CullSphere(const vec3_t point, const float radius);
 
 #endif /* __R_LOCAL_H__ */

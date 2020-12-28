@@ -564,24 +564,6 @@ typedef struct cg_import_s {
 	void (*AddSample)(const s_play_sample_t *play);
 
 	/**
-	 * @brief Query if a box is visible on screen.
-	 * @param mins The min bounds point.
-	 * @param maxs The max bounds point.
-	 * @return Returns true if the specified bounding box is completely culled by the
-	 * view frustum, false otherwise.
-	 */
-	_Bool (*CullBox)(const vec3_t mins, const vec3_t maxs);
-
-	/**
-	 * @brief Query if a sphere is visible on screen.
-	 * @param point The central point of the sphere.
-	 * @param radius The radius of the sphere.
-	 * @return Returns true if the specified sphere is completely culled by the
-	 * view frustum, false otherwise.
-	 */
-	_Bool (*CullSphere)(const vec3_t point, const float radius);
-
-	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
 	 * @param name The image name (e.g. `"pics/ch1"`).
 	 * @return The surface, or `NULL` if it could not be loaded.

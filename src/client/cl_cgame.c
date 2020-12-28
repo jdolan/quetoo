@@ -233,9 +233,6 @@ void Cl_InitCgame(void) {
 	import.LoadClientSamples = S_LoadClientSamples;
 	import.AddSample = S_AddSample;
 
-	import.CullBox = R_CullBox;
-	import.CullSphere = R_CullSphere;
-
 	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;
 	import.LoadAtlas = R_LoadAtlas;
