@@ -320,16 +320,6 @@ typedef enum {
 #define SURF_MASK_NO_DRAW_ELEMENTS SURF_MASK_NO_LIGHTMAP
 
 /**
- * @brief Sound attenuation levels.
- */
-typedef enum {
-	SOUND_ATTEN_NONE,
-	SOUND_ATTEN_LINEAR,
-	SOUND_ATTEN_SQUARE,
-	SOUND_ATTEN_CUBIC,
-} sound_atten_t;
-
-/**
  * @brief The absolute world bounds is +/- 4096. This is the largest box we can
  * safely encode using 16 bit integers (float * 8.0).
  */
