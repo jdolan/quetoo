@@ -226,16 +226,15 @@ typedef enum {
 #define EF_CORPSE			(EF_GAME << 1) // to differentiate own corpse from self
 #define EF_RESPAWN			(EF_GAME << 2) // yellow shell
 #define EF_QUAD				(EF_GAME << 3) // green shell
-#define EF_CTF_CARRY		(EF_GAME << 4) // carrying a flag
-#define EF_CTF_CARRY_A		(EF_GAME << 5) // these two bits define which flag we're carrying
-#define EF_CTF_CARRY_B		(EF_GAME << 6) // 
-#define EF_DESPAWN			(EF_GAME << 7) // translucent
-#define EF_LIGHT			(EF_GAME << 8) // colored light
-#define EF_TEAM_TINT		(EF_GAME << 9) // tint by the team color provided
+#define EF_CTF_RED			(EF_GAME << 4) // carrying the red flag
+#define EF_CTF_BLUE			(EF_GAME << 5) // carrying the blue flag
+#define EF_CTF_YELLOW		(EF_GAME << 6) // carrying the yellow flag
+#define EF_CTF_WHITE		(EF_GAME << 7) // carrying the white flag
+#define EF_DESPAWN			(EF_GAME << 8) // translucent
+#define EF_LIGHT			(EF_GAME << 9) // colored light
+#define EF_TEAM_TINT		(EF_GAME << 10) // tint by the team color provided
 
-#define EF_CTF_CARRY_BITS		(EF_CTF_CARRY_A | EF_CTF_CARRY_B)
-#define EF_CTF_CARRY_OFFSET		10 // FIXME: any way to calculate this at compile time from EF_CTF_CARRY_A? has to be the bit index. no constexpr in C :((((
-#define EF_CTF_MASK				(EF_CTF_CARRY | EF_CTF_CARRY_BITS)
+#define EF_CTF_MASK			(EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_WHITE)
 
 /**
  * @brief The lightning gun overrides animation1 to inform the client what
