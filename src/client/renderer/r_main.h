@@ -94,11 +94,6 @@ typedef struct {
 	cm_bsp_plane_t frustum[4];
 
 	/**
-	 * @brief The blend depth frame counter.
-	 */
-	int32_t blend_frame;
-
-	/**
 	 * @brief The stain frame counter.
 	 */
 	int32_t stain_frame;

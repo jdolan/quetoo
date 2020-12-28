@@ -438,6 +438,8 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_b
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 
+	glDisable(GL_DEPTH_TEST);
+
 	R_GetError(NULL);
 }
 

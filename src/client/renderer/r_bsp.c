@@ -112,19 +112,23 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, const r_bsp_
 
 	R_UpdateBspInlineModelBlendDepth_r(e, in, node->children[back_side]);
 
-	if (plane->blend_frame != r_locals.blend_frame) {
-		plane->blend_frame = r_locals.blend_frame;
+	for (guint i = 0; i < plane->blend_elements->len; i++) {
+		r_bsp_draw_elements_t *draw = g_ptr_array_index(plane->blend_elements, i);
 
-		for (guint i = 0; i < plane->blend_elements->len; i++) {
-			r_bsp_draw_elements_t *draw = g_ptr_array_index(plane->blend_elements, i);
-
-			if (draw->plane_side == back_side) {
-				continue;
-			}
-
-			draw->blend_depth_types = BLEND_DEPTH_NONE;
-			g_ptr_array_add(in->blend_elements, draw);
+		if (draw->plane_side == back_side) {
+			continue;
 		}
+
+		if (!Vec3_BoxIntersect(draw->mins, draw->maxs, node->mins, node->maxs)) {
+			continue;
+		}
+
+		if (g_ptr_array_find(in->blend_elements, draw, NULL)) {
+			continue;
+		}
+
+		draw->blend_depth_types = BLEND_DEPTH_NONE;
+		g_ptr_array_add(in->blend_elements, draw);
 	}
 
 	R_UpdateBspInlineModelBlendDepth_r(e, in, node->children[!back_side]);
@@ -144,8 +148,6 @@ static void R_UpdateBspInlineModelBlendDepth(const r_entity_t *e, const r_bsp_in
  * @brief
  */
 void R_UpdateBlendDepth(void) {
-
-	r_locals.blend_frame++;
 
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 
