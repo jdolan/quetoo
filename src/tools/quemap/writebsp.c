@@ -263,12 +263,12 @@ static int32_t FaceCmp(const void *a, const void *b) {
 		order = ContentsCmp(a_face, b_face);
 		if (order == 0) {
 
-			if (a_texinfo->flags & SURF_MASK_BLEND) {
-				return a_face->plane_num - b_face->plane_num;
-			}
-
 			if (a_texinfo->flags & SURF_MATERIAL) {
 				return (int32_t) (ptrdiff_t) (a_face - b_face);
+			}
+
+			if (a_texinfo->flags & SURF_MASK_BLEND) {
+				return a_face->plane_num - b_face->plane_num;
 			}
 		}
 	}
