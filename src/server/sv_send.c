@@ -124,9 +124,14 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
  */
 static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 
-	if (len > MAX_MSG_SIZE) {
-		Com_Error(ERROR_DROP, "Single datagram message exceeded MAX_MSG_LEN\n");
+	if (len > MAX_MSG_SIZE_UDP) {
+		Com_Debug(DEBUG_SERVER, "Single datagram message exceeds MAX_MSG_SIZE_UDP\n");
+
+		if (len > MAX_MSG_SIZE) {
+			Com_Error(ERROR_DROP, "Single datagram message exceeded MAX_MSG_SIZE\n");
+		}
 	}
+
 
 	sv_client_message_t *msg = g_malloc0(sizeof(*msg));
 

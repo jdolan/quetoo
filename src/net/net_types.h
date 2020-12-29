@@ -49,7 +49,12 @@
  * this length. However, large server messages can be split into multiple
  * messages and sent in series. See Sv_SendClientDatagram.
  */
-#define MAX_MSG_SIZE 1400
+#define MAX_MSG_SIZE		16384
+
+/**
+ * @brief The max UDP message size, bounded by Windows MTU. Warn if we exceed this.
+ */
+#define MAX_MSG_SIZE_UDP	1450
 
 // A typedef for net_sockaddr, to reduce "struct" everywhere and silence Windows warning.
 typedef struct sockaddr_in net_sockaddr;
