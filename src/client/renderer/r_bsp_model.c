@@ -512,8 +512,8 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 			out->vertexes[6] = Vec3(out->maxs.x, out->maxs.y, out->maxs.z);
 			out->vertexes[7] = Vec3(out->mins.x, out->maxs.y, out->maxs.z);
 
-			out->result = -1;
-			out->defer = false;
+			out->pending = false;
+			out->result = 1;
 
 			bsp->num_occlusion_queries++;
 		}

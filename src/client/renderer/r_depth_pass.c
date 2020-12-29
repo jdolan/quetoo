@@ -91,8 +91,7 @@ void R_DrawDepthPass(void) {
 	glPolygonOffset(0.f, 0.f);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
-	if (r_occlude->integer == 1) {
-		GLint available;
+	if (r_occlude->value) {
 
 		glDepthMask(GL_FALSE);
 
@@ -108,48 +107,44 @@ void R_DrawDepthPass(void) {
 
 			if (r_view.origin.x >= q->mins.x && r_view.origin.y >= q->mins.y && r_view.origin.z >= q->mins.z &&
 				r_view.origin.x <= q->maxs.x && r_view.origin.y <= q->maxs.y && r_view.origin.z <= q->maxs.z) {
+				q->pending = false;
 				q->result = 1;
 				continue;
 			}
 
 			if (R_CullBox(q->mins, q->maxs)) {
+				q->pending = false;
 				q->result = 0;
 				continue;
 			}
 
-			_Bool run = false;
+			if (q->pending) {
 
-			// pull in the result from the last frame
-			if (q->defer) {
+				GLint available;
 				glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
 
-				if (available != GL_FALSE) {
+				if (available == GL_TRUE || r_occlude->integer == 2) {
 					glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
 
 					if (q->result) {
 						r_view.count_bsp_occlusion_queries_passed++;
 					}
-
-					run = true;
+				} else {
+					continue;
 				}
-			} else {
-				q->result = -1;
-				run = true;
 			}
 
-			if (run) {
-				glBufferData(GL_ARRAY_BUFFER, sizeof(q->vertexes), q->vertexes, GL_DYNAMIC_DRAW);
+			q->pending = true;
 
-				glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(q->vertexes), q->vertexes, GL_DYNAMIC_DRAW);
 
-				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
+			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
 
-				glEndQuery(GL_ANY_SAMPLES_PASSED);
-			}
+			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
+
+			glEndQuery(GL_ANY_SAMPLES_PASSED);
 
 			r_view.count_bsp_occlusion_queries++;
-
-			q->defer = true;
 		}
 
 		glDepthMask(GL_TRUE);
@@ -182,10 +177,6 @@ _Bool R_OccludeBox(const vec3_t mins, const vec3_t maxs) {
 	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-		if (q->result == -1) {
-			continue;
-		}
-
 		int32_t j;
 		for (j = 0; j < 3; j++) {
 			if (mins.xyz[j] < q->mins.xyz[j] || maxs.xyz[j] > q->maxs.xyz[j]) {
@@ -197,9 +188,7 @@ _Bool R_OccludeBox(const vec3_t mins, const vec3_t maxs) {
 			continue;
 		}
 
-		if (q->result == 0) {
-			return true;
-		}
+		return q->result == 0;
 	}
 
 	return false;
