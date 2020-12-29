@@ -20,8 +20,8 @@
  */
 
 #ifdef _WIN32
-	#include <WinSock2.h>
-	#include <WS2tcpip.h>
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
 #endif
 
 #include "net_tcp.h"

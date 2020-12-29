@@ -29,7 +29,6 @@ libai_la_LDFLAGS = \
 	-shared
 
 libai_la_LIBADD = \
-	$(top_builddir)/deps/genann/libgenann.la \
 	$(top_builddir)/src/game/default/libpmove.la \
 	@GLIB_LIBS@
 
