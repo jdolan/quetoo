@@ -21,7 +21,6 @@
 
 uniform sampler2D texture_diffusemap;
 
-uniform vec2 resolution;
 uniform vec2 direction;
 
 in vertex_data {

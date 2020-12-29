@@ -214,6 +214,11 @@ static void R_UpdateUniforms(void) {
 		r_uniforms.block.fog_samples = r_fog_samples->integer;
 	}
 
+	{
+		r_uniforms.block.resolution.x = r_context.width;
+		r_uniforms.block.resolution.y = r_context.height;
+	}
+
 	if (r_world_model) {
 		r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->mins, 0.f);
 		r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->maxs, 0.f);

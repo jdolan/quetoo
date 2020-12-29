@@ -70,7 +70,6 @@ static struct {
 	GLint in_diffusemap;
 	
 	GLint texture_diffusemap;
-	GLint resolution;
 	GLint direction;
 
 	GLint depth_range;
@@ -426,7 +425,6 @@ void R_InitMeshShadowProgram(void) {
 	r_mesh_shadow_blur_program.in_diffusemap = glGetAttribLocation(r_mesh_shadow_blur_program.name, "in_diffusemap");
 	
 	r_mesh_shadow_blur_program.texture_diffusemap = glGetUniformLocation(r_mesh_shadow_blur_program.name, "texture_diffusemap");
-	r_mesh_shadow_blur_program.resolution = glGetUniformLocation(r_mesh_shadow_blur_program.name, "resolution");
 	r_mesh_shadow_blur_program.direction = glGetUniformLocation(r_mesh_shadow_blur_program.name, "direction");
 
 	r_mesh_shadow_blur_program.depth_stencil_attachment = glGetUniformLocation(r_mesh_shadow_blur_program.name, "depth_stencil_attachment");
@@ -461,7 +459,6 @@ void R_InitMeshShadowProgram(void) {
 
 	glBufferData(GL_ARRAY_BUFFER, lengthof(quad) * sizeof(r_mesh_2d_blur_vertex_t), quad, GL_STATIC_DRAW);
 
-	glUniform2f(r_mesh_shadow_blur_program.resolution, r_context.drawable_width, r_context.drawable_height);
 	glUniform1i(r_mesh_shadow_blur_program.texture_diffusemap, 0);
 	glUniform1i(r_mesh_shadow_blur_program.depth_stencil_attachment, 1);
 

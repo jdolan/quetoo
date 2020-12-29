@@ -130,4 +130,9 @@ layout (std140) uniform uniforms {
 	 * @brief The number of fog samples per fragment (quality).
 	 */
 	int fog_samples;
+
+	/**
+	 * @brief The pixel dimensions of the framebuffer.
+	 */
+	vec2 resolution;
 };
