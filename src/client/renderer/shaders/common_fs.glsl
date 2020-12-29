@@ -20,6 +20,13 @@
  */
 
 /**
+ * @brief Shim for OpenGL 4.5's fwidth.
+ */
+vec2 fwidth(vec2 p) {
+	return abs(dFdx(p)) + abs(dFdy(p));
+}
+
+/**
  * @brief Get (approximate) mipmap level.
  */
 float mipmap_level(vec2 uv) {

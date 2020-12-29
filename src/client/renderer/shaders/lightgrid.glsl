@@ -32,19 +32,19 @@ float soft_clip_fog(float x)
 /**
  * @brief Draws the boundaries of the lightgrid voxels;
  */
-vec4 lightgrid_raster(vec3 uvw)
+vec4 lightgrid_raster(vec3 uvw, float distance)
 {
-	vec3 dims = (lightgrid.maxs.xyz - lightgrid.mins.xyz) / 128.0;
+	float alpha = 1.0 - clamp(distance / 1024.0, 0.0, 1.0);
 	vec4 c = vec4(1.0);
-	c.rgb = fract(uvw * dims);
+	c.rgb = fract(uvw * lightgrid.resolution.xyz);
 	c.rgb = abs(c.rgb * 2.0 - 1.0);
-	float t = 0.95;
+	float t = 0.7 + (0.25 * alpha);
 	float m = max(max(c.r, c.g), c.b);
 	return vec4(
 		smoothstep(t, 1.0, c.r),
 		smoothstep(t, 1.0, c.g),
 		smoothstep(t, 1.0, c.b),
-		smoothstep(t, 1.0, m));
+		smoothstep(t, 1.0, m) * alpha);
 }
 
 /**
@@ -67,40 +67,42 @@ vec3 lightgrid_uvw(in vec3 position) {
 void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler,
 	in vec3 position, in vec3 lightgrid_uvw) {
 
-	const float max_trace_distance = 0.25; // TODO: move to parameter and fixup calls
-
 	// TODO: reintroduce classic fog
 	// then only draw this expensive fog on top of that, near the player.
 
-	// const float color_scale = 5.0;
+	float max_trace_distance = 64.0; // worldspace units
+	float uvw_max_trace_distance = max_trace_distance / hmax(lightgrid.resolution);
+	// float uvw_max_trace_distance = 0.25;
 
-	// vec3  rayvec = lightgrid_uvw - lightgrid.view_coordinate.xyz;
-	// float raylen = length(rayvec);
-	// vec3  raydir = rayvec / raylen;
-	// raylen = min(raylen, max_trace_distance);
+	const float color_scale = 5.0;
 
-	// float steplen = max_trace_distance / fog_samples;
-	// vec3  stepvec = raydir * steplen;
+	vec3  rayvec = lightgrid_uvw - lightgrid.view_coordinate.xyz;
+	float raylen = length(rayvec);
+	vec3  raydir = rayvec / raylen;
+	raylen = min(raylen, uvw_max_trace_distance);
 
-	// float steps = raylen / steplen;
+	float steplen = uvw_max_trace_distance / fog_samples;
+	vec3  stepvec = raydir * steplen;
 
-	// vec3 coord = lightgrid.view_coordinate.xyz;
-	// vec4 fog_0 = vec4(0.0);
-	// for (int i = 0, n = int(floor(steps)); i < n; i++) {
-	// 	vec4 samp = texture(lightgrid_fog_sampler, coord);
-	// 	fog_0.rgb += samp.rgb * color_scale * samp.a;
-	// 	fog_0.a += samp.a;
-	// 	coord += stepvec;
-	// }
-	// vec4 samp = texture(lightgrid_fog_sampler, coord);
-	// vec4 fog_1;
-	// fog_1.rgb = fog_0.rgb + samp.rgb * color_scale * samp.a;
-	// fog_1.a = fog_0.a + samp.a;
+	float steps = raylen / steplen;
 
-	// vec4 fog = mix(fog_0, fog_1, fract(steps));
-	// fog /= steps;
-	// fog.a *= raylen;
-	// fog.a = soft_clip_fog(fog.a * fog_density);
+	vec3 coord = lightgrid.view_coordinate.xyz;
+	vec4 fog_0 = vec4(0.0);
+	for (int i = 0, n = int(floor(steps)); i < n; i++) {
+		vec4 samp = texture(lightgrid_fog_sampler, coord);
+		fog_0.rgb += samp.rgb * color_scale * samp.a;
+		fog_0.a += samp.a;
+		coord += stepvec;
+	}
+	vec4 samp = texture(lightgrid_fog_sampler, coord);
+	vec4 fog_1;
+	fog_1.rgb = fog_0.rgb + samp.rgb * color_scale * samp.a;
+	fog_1.a = fog_0.a + samp.a;
 
-	// color.rgb = mix(vec3(0.0), fog.rgb, fog.a);
+	vec4 fog = mix(fog_0, fog_1, fract(steps));
+	fog /= steps;
+	fog.a *= raylen;
+	fog.a = soft_clip_fog(fog.a * fog_density);
+
+	color.rgb = mix(color.rgb, fog.rgb, color.a * fog.a);
 }

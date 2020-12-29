@@ -231,9 +231,9 @@ void main(void) {
 
 	// debugging
 
-	#if 1
+	#if 0
 	// draw lightgrid texel borders
-	vec4 raster = lightgrid_raster(vertex.lightgrid.xyz);
+	vec4 raster = lightgrid_raster(vertex.lightgrid.xyz, length(vertex.position));
 	out_color.rgb = mix(out_color.rgb, raster.rgb, raster.a * 0.5);
 	#endif
 
