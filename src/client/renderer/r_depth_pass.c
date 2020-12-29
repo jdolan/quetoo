@@ -108,6 +108,7 @@ void R_DrawDepthPass(void) {
 
 			if (r_view.origin.x >= q->mins.x && r_view.origin.y >= q->mins.y && r_view.origin.z >= q->mins.z &&
 				r_view.origin.x <= q->maxs.x && r_view.origin.y <= q->maxs.y && r_view.origin.z <= q->maxs.z) {
+				q->result = 1;
 				continue;
 			}
 
