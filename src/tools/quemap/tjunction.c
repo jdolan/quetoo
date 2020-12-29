@@ -30,6 +30,7 @@ static int32_t largest_winding = 0;
 
 // FIXME/TODO temp fix since we're using old glib
 #if defined(_WIN32)
+#ifndef __MINGW32__
 static gboolean
 g_ptr_array_find(GPtrArray *haystack,
 				 gconstpointer needle,
@@ -47,6 +48,7 @@ g_ptr_array_find(GPtrArray *haystack,
 
 	return false;
 }
+#endif
 #endif
 
 /**
