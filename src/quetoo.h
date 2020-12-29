@@ -83,6 +83,7 @@
 		#endif
 	#endif
 
+#ifndef __MINGW32__
 // FIXME temporary
 static inline _Bool g_ptr_array_find(GPtrArray *p, gconstpointer v, guint *index) {
 	
@@ -98,6 +99,7 @@ static inline _Bool g_ptr_array_find(GPtrArray *p, gconstpointer v, guint *index
 
 	return false;
 }
+#endif
 #endif
 
 #ifndef byte
