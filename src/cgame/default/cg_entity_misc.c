@@ -221,10 +221,11 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 	sound->drift = cgi.EntityValue(self->def, "drift")->value ?: .3f;
 
 	if (cgi.EntityValue(self->def, "sound")->parsed & ENTITY_STRING) {
-		cgi.Warn("%s @ %s has no sound specified\n", self->clazz->class_name, vtos(self->origin));
-	} else {
 		sound->play.sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
+	} else {
+		cgi.Warn("%s @ %s has no sound specified\n", self->clazz->class_name, vtos(self->origin));
 	}
+
 	sound->play.origin = self->origin;
 
 	if (cgi.EntityValue(self->def, "atten")->parsed & ENTITY_INTEGER) {
