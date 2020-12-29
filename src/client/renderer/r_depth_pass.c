@@ -91,7 +91,9 @@ void R_DrawDepthPass(void) {
 	glPolygonOffset(0.f, 0.f);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
-	if (r_occlude->value) {
+	if (r_occlude->integer == 1) {
+		GLint available;
+
 		glDepthMask(GL_FALSE);
 
 		glBindVertexArray(r_occlusion_queries.vertex_array);
@@ -112,7 +114,21 @@ void R_DrawDepthPass(void) {
 			}
 
 			if (R_CullBox(q->mins, q->maxs)) {
+				q->result = 0;
 				continue;
+			}
+
+			// pull in the result from the last frame
+			if (q->defer) {
+				glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
+
+				if (available != GL_FALSE) {
+					glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
+
+					if (q->result) {
+						r_view.count_bsp_occlusion_queries_passed++;
+					}
+				}
 			}
 
 			glBufferData(GL_ARRAY_BUFFER, sizeof(q->vertexes), q->vertexes, GL_DYNAMIC_DRAW);
@@ -125,11 +141,7 @@ void R_DrawDepthPass(void) {
 
 			r_view.count_bsp_occlusion_queries++;
 
-			glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
-
-			if (q->result) {
-				r_view.count_bsp_occlusion_queries_passed++;
-			}
+			q->defer = true;
 		}
 
 		glDepthMask(GL_TRUE);

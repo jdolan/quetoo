@@ -86,11 +86,11 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, const r_bsp_
 		transformed_maxs = node->maxs;
 	}
 
-	if (R_CullBox(transformed_mins, transformed_maxs)) {
+	if (R_OccludeBox(transformed_mins, transformed_maxs)) {
 		return;
 	}
 
-	if (R_OccludeBox(transformed_mins, transformed_maxs)) {
+	if (R_CullBox(transformed_mins, transformed_maxs)) {
 		return;
 	}
 

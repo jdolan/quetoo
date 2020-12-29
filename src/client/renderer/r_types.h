@@ -409,6 +409,7 @@ typedef struct {
 	vec3_t vertexes[8];
 
 	GLint result;
+	_Bool defer;
 } r_bsp_occlusion_query_t;
 
 /**

@@ -63,11 +63,11 @@ static _Bool R_CullEntity(const r_entity_t *e) {
 		return false;
 	}
 
-	if (R_CullBox(e->abs_model_mins, e->abs_model_maxs)) {
+	if (R_OccludeBox(e->abs_model_mins, e->abs_model_maxs)) {
 		return true;
 	}
 
-	if (R_OccludeBox(e->abs_model_mins, e->abs_model_maxs)) {
+	if (R_CullBox(e->abs_model_mins, e->abs_model_maxs)) {
 		return true;
 	}
 

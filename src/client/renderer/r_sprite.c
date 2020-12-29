@@ -133,11 +133,11 @@ void R_AddBeam(const r_beam_t *b) {
 				   Vec3( b->size * .5f,  b->size * .5f,  b->size * .5f),
 				   &box_mins, &box_maxs);
 
-	if (R_CullBox(box_mins, box_maxs)) {
+	if (R_OccludeBox(box_mins, box_maxs)) {
 		return;
 	}
 
-	if (R_OccludeBox(box_mins, box_maxs)) {
+	if (R_CullBox(box_mins, box_maxs)) {
 		return;
 	}
 

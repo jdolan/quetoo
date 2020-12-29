@@ -81,13 +81,6 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
 }
 
 /**
- * @return The distance from `point` to `plane`.
- */
-float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
-	return Vec3_Dot(point, plane->normal) - plane->dist;
-}
-
-/**
  * @brief
  */
 cm_bsp_plane_t Cm_TransformPlane(const mat4_t *matrix, const cm_bsp_plane_t *plane) {
