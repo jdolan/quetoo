@@ -352,6 +352,8 @@ static void Cg_ClearState(void) {
 	Cg_FreeEntities();
 
 	Cg_ClearHud();
+
+	Cg_ClearUi();
 }
 
 cg_team_info_t cg_team_info[MAX_TEAMS];
