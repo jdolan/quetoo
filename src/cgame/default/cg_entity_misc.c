@@ -166,19 +166,30 @@ const cg_entity_class_t cg_misc_light = {
  */
 static void Cg_misc_model_Init(cg_entity_t *self) {
 
-	r_entity_t *model = self->data;
+	r_entity_t *entity = self->data;
 
-	model->origin = self->origin;
-	model->angles = cgi.EntityValue(self->def, "angles")->vec3;
-	model->scale = cgi.EntityValue(self->def, "scale")->value ?: 1.f;
-	model->lerp = 1.f;
+	entity->origin = self->origin;
+	entity->angles = cgi.EntityValue(self->def, "angles")->vec3;
+	entity->scale = cgi.EntityValue(self->def, "scale")->value ?: 1.f;
+	entity->lerp = 1.f;
+
+	if (cgi.EntityValue(self->def, "model")->parsed & ENTITY_STRING) {
+		entity->model = cgi.LoadModel(cgi.EntityValue(self->def, "model")->string);
+	} else {
+		cgi.Warn("%s @ %s has no sound specified\n", self->clazz->class_name, vtos(self->origin));
+	}
 }
 
 /**
  * @brief
  */
 static void Cg_misc_model_Think(cg_entity_t *self) {
-	cgi.AddEntity((r_entity_t *) self->data);
+
+	const r_entity_t *entity = self->data;
+
+	if (entity->model) {
+		cgi.AddEntity(entity);
+	}
 }
 
 /**
@@ -209,7 +220,11 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 	sound->hz = cgi.EntityValue(self->def, "hz")->value ?: 0.f;
 	sound->drift = cgi.EntityValue(self->def, "drift")->value ?: .3f;
 
-	sound->play.sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
+	if (cgi.EntityValue(self->def, "sound")->parsed & ENTITY_STRING) {
+		cgi.Warn("%s @ %s has no sound specified\n", self->clazz->class_name, vtos(self->origin));
+	} else {
+		sound->play.sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
+	}
 	sound->play.origin = self->origin;
 
 	if (cgi.EntityValue(self->def, "atten")->parsed & ENTITY_INTEGER) {
@@ -236,7 +251,9 @@ static void Cg_misc_sound_Think(cg_entity_t *self) {
 
 	const cg_misc_sound_t *sound = self->data;
 
-	cgi.AddSample(&sound->play);
+	if (sound->play.sample) {
+		cgi.AddSample(&sound->play);
+	}
 
 	self->next_think += 1000.f / sound->hz + 1000.f * sound->drift * Randomf();
 }
