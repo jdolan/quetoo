@@ -28,7 +28,7 @@
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 
@@ -39,16 +39,12 @@ static struct {
 	GLint lerp;
 
 	GLint texture_lightgrid_fog;
+	GLint texture_depth_stencil_attachment;
 
 	GLint z;
 	GLint min_z;
 	GLint max_z;
 
-	GLint depth_range;
-	GLint inv_viewport_size;
-	GLint transition_size;
-	GLint depth_stencil_attachment;
-	
 	GLint dist;
 	GLint normal;
 
@@ -64,19 +60,16 @@ static struct {
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 	GLint in_diffusemap;
 	
 	GLint texture_diffusemap;
+	GLint texture_depth_stencil_attachment;
+
 	GLint resolution;
 	GLint direction;
-
-	GLint depth_range;
-	GLint inv_viewport_size;
-	GLint transition_size;
-	GLint depth_stencil_attachment;
 
 	GLuint vertex_array;
 	GLuint vertex_buffer;
@@ -98,15 +91,12 @@ void R_UpdateMeshEntitiesShadows(void) {
 	if (!r_shadows->value) {
 		return;
 	}
-
-	R_GetError(NULL);
 }
-
 
 /**
  * @brief
  */
-static void R_DrawMeshShadowEntity(const r_entity_t *e) {
+static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
@@ -183,6 +173,9 @@ static void R_DrawMeshShadowEntity(const r_entity_t *e) {
 		}
 	}
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
 
 	r_view.count_mesh_models++;
@@ -220,9 +213,9 @@ static _Bool R_DrawMeshEntitiesShadowsProjected(int32_t blend_depth) {
 
 				glEnable(GL_DEPTH_TEST);
 
-				glColorMask(false, false, false, true);
+				glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 
-				glDepthMask(false);
+				glDepthMask(GL_FALSE);
 
 				glEnable(GL_BLEND);
 
@@ -233,22 +226,22 @@ static _Bool R_DrawMeshEntitiesShadowsProjected(int32_t blend_depth) {
 				glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
 				glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
 
-				glActiveTexture(GL_TEXTURE0);
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 				glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 
 				any_rendered = true;
 			}
 			
-			R_DrawMeshShadowEntity(e);
+			R_DrawMeshEntityShadow(e);
 		}
 	}
 
 	if (any_rendered) {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		glDepthMask(true);
+		glDepthMask(GL_TRUE);
 
-		glColorMask(true, true, true, true);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 		glDisable(GL_BLEND);
 
@@ -268,18 +261,20 @@ static _Bool R_DrawMeshEntitiesShadowsProjected(int32_t blend_depth) {
 static void R_DrawMeshShadowBlit(GLuint in_texture_id, GLenum out_attachment_id, vec2_t direction) {
 
 	glDrawBuffers(1, &out_attachment_id);
-	glActiveTexture(GL_TEXTURE0);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 	glBindTexture(GL_TEXTURE_2D, in_texture_id);
-	glActiveTexture(GL_TEXTURE0 + 1);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 	
 	glUniform2f(r_mesh_shadow_blur_program.direction, direction.x, direction.y);
 
-	glDepthMask(false);
+	glDepthMask(GL_FALSE);
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	glDepthMask(true);
+	glDepthMask(GL_TRUE);
 	
 	R_GetError(NULL);
 }
@@ -306,7 +301,6 @@ void R_DrawMeshEntitiesShadows(int32_t blend_depth) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_mesh_shadow_blur_program.vertex_buffer);
 
 	glEnableVertexAttribArray(r_mesh_shadow_blur_program.in_position);
-	
 	glEnableVertexAttribArray(r_mesh_shadow_blur_program.in_diffusemap);
 
 	glEnable(GL_BLEND);
@@ -324,6 +318,10 @@ void R_DrawMeshEntitiesShadows(int32_t blend_depth) {
 	glDisable(GL_BLEND);
 
 	glActiveTexture(GL_TEXTURE0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
 	
 	glUseProgram(0);
 	
@@ -346,8 +344,8 @@ void R_InitMeshShadowProgram(void) {
 
 	glUseProgram(r_mesh_shadow_program.name);
 
-	r_mesh_shadow_program.uniforms = glGetUniformBlockIndex(r_mesh_shadow_program.name, "uniforms");
-	glUniformBlockBinding(r_mesh_shadow_program.name, r_mesh_shadow_program.uniforms, 0);
+	r_mesh_shadow_program.uniforms_block = glGetUniformBlockIndex(r_mesh_shadow_program.name, "uniforms_block");
+	glUniformBlockBinding(r_mesh_shadow_program.name, r_mesh_shadow_program.uniforms_block, 0);
 
 	r_mesh_shadow_program.in_position = glGetAttribLocation(r_mesh_shadow_program.name, "in_position");
 	r_mesh_shadow_program.in_next_position = glGetAttribLocation(r_mesh_shadow_program.name, "in_next_position");
@@ -357,27 +355,20 @@ void R_InitMeshShadowProgram(void) {
 	r_mesh_shadow_program.lerp = glGetUniformLocation(r_mesh_shadow_program.name, "lerp");
 
 	r_mesh_shadow_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_shadow_program.name, "texture_lightgrid_fog");
+	r_mesh_shadow_program.texture_depth_stencil_attachment = glGetUniformLocation(r_mesh_shadow_program.name, "texture_depth_stencil_attachment");
 
 	r_mesh_shadow_program.z = glGetUniformLocation(r_mesh_shadow_program.name, "z");
 	r_mesh_shadow_program.min_z = glGetUniformLocation(r_mesh_shadow_program.name, "min_z");
 	r_mesh_shadow_program.max_z = glGetUniformLocation(r_mesh_shadow_program.name, "max_z");
-	r_mesh_shadow_program.depth_stencil_attachment = glGetUniformLocation(r_mesh_shadow_program.name, "depth_stencil_attachment");
-	r_mesh_shadow_program.depth_range = glGetUniformLocation(r_mesh_shadow_program.name, "depth_range");
-	r_mesh_shadow_program.inv_viewport_size = glGetUniformLocation(r_mesh_shadow_program.name, "inv_viewport_size");
-	r_mesh_shadow_program.transition_size = glGetUniformLocation(r_mesh_shadow_program.name, "transition_size");
+
 	
 	r_mesh_shadow_program.dist = glGetUniformLocation(r_mesh_shadow_program.name, "dist");
 	r_mesh_shadow_program.normal = glGetUniformLocation(r_mesh_shadow_program.name, "normal");
 
 	glUniform1f(r_mesh_shadow_program.max_z, 1.f / 512.f);
 
-	glUniform2f(r_mesh_shadow_program.depth_range, 1.0, MAX_WORLD_DIST);
-	glUniform2f(r_mesh_shadow_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
-	glUniform1f(r_mesh_shadow_program.transition_size, 0.0016f);
-
-	glUniform1i(r_mesh_shadow_program.depth_stencil_attachment, 0);
-
 	glUniform1i(r_mesh_shadow_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+	glUniform1i(r_mesh_shadow_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 
 	glUseProgram(0);
 
@@ -419,24 +410,17 @@ void R_InitMeshShadowProgram(void) {
 
 	glUseProgram(r_mesh_shadow_blur_program.name);
 
-	r_mesh_shadow_blur_program.uniforms = glGetUniformBlockIndex(r_mesh_shadow_blur_program.name, "uniforms");
-	glUniformBlockBinding(r_mesh_shadow_blur_program.name, r_mesh_shadow_blur_program.uniforms, 0);
+	r_mesh_shadow_blur_program.uniforms_block = glGetUniformBlockIndex(r_mesh_shadow_blur_program.name, "uniforms_block");
+	glUniformBlockBinding(r_mesh_shadow_blur_program.name, r_mesh_shadow_blur_program.uniforms_block, 0);
 	
 	r_mesh_shadow_blur_program.in_position = glGetAttribLocation(r_mesh_shadow_blur_program.name, "in_position");
 	r_mesh_shadow_blur_program.in_diffusemap = glGetAttribLocation(r_mesh_shadow_blur_program.name, "in_diffusemap");
 	
 	r_mesh_shadow_blur_program.texture_diffusemap = glGetUniformLocation(r_mesh_shadow_blur_program.name, "texture_diffusemap");
+	r_mesh_shadow_blur_program.texture_depth_stencil_attachment = glGetUniformLocation(r_mesh_shadow_blur_program.name, "texture_depth_stencil_attachment");
+
 	r_mesh_shadow_blur_program.resolution = glGetUniformLocation(r_mesh_shadow_blur_program.name, "resolution");
 	r_mesh_shadow_blur_program.direction = glGetUniformLocation(r_mesh_shadow_blur_program.name, "direction");
-
-	r_mesh_shadow_blur_program.depth_stencil_attachment = glGetUniformLocation(r_mesh_shadow_blur_program.name, "depth_stencil_attachment");
-	r_mesh_shadow_blur_program.depth_range = glGetUniformLocation(r_mesh_shadow_blur_program.name, "depth_range");
-	r_mesh_shadow_blur_program.inv_viewport_size = glGetUniformLocation(r_mesh_shadow_blur_program.name, "inv_viewport_size");
-	r_mesh_shadow_blur_program.transition_size = glGetUniformLocation(r_mesh_shadow_blur_program.name, "transition_size");
-
-	glUniform2f(r_mesh_shadow_blur_program.depth_range, 1.0, MAX_WORLD_DIST);
-	glUniform2f(r_mesh_shadow_blur_program.inv_viewport_size, 1.0 / r_context.drawable_width, 1.0 / r_context.drawable_height);
-	glUniform1f(r_mesh_shadow_blur_program.transition_size, 0.0016f);
 
 	glGenVertexArrays(1, &r_mesh_shadow_blur_program.vertex_array);
 	glBindVertexArray(r_mesh_shadow_blur_program.vertex_array);
@@ -462,8 +446,10 @@ void R_InitMeshShadowProgram(void) {
 	glBufferData(GL_ARRAY_BUFFER, lengthof(quad) * sizeof(r_mesh_2d_blur_vertex_t), quad, GL_STATIC_DRAW);
 
 	glUniform2f(r_mesh_shadow_blur_program.resolution, r_context.drawable_width, r_context.drawable_height);
-	glUniform1i(r_mesh_shadow_blur_program.texture_diffusemap, 0);
-	glUniform1i(r_mesh_shadow_blur_program.depth_stencil_attachment, 1);
+	glUniform1i(r_mesh_shadow_blur_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+	glUniform1i(r_mesh_shadow_blur_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 	

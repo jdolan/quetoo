@@ -88,14 +88,14 @@ r_media_t *R_RegisterMedia(r_media_t *media) {
 
 	if (media->seed != r_media_state.seed) {
 
-		if (g_hash_table_contains(r_media_state.media, media->name)) {
-			r_media_t *other = g_hash_table_lookup(r_media_state.media, media->name);
+		if (g_hash_table_contains(r_media_state.media, media)) {
+			r_media_t *other = g_hash_table_lookup(r_media_state.media, media);
 			if (other != media) {
 				R_FreeMedia(other);
-				g_hash_table_insert(r_media_state.media, media->name, media);
+				g_hash_table_insert(r_media_state.media, media, media);
 			}
 		} else {
-			g_hash_table_insert(r_media_state.media, media->name, media);
+			g_hash_table_insert(r_media_state.media, media, media);
 		}
 
 		media->seed = r_media_state.seed;

@@ -275,8 +275,7 @@ static void Cm_LoadBspMaterials(const char *name) {
 	(1 << BSP_LUMP_LEAF_BRUSHES) | \
 	(1 << BSP_LUMP_BRUSHES) | \
 	(1 << BSP_LUMP_BRUSH_SIDES) | \
-	(1 << BSP_LUMP_MODELS) | \
-	(1 << BSP_LUMP_VIS)
+	(1 << BSP_LUMP_MODELS)
 
 /**
  * @brief Loads in the BSP and all sub-models for collision detection. This
@@ -380,18 +379,6 @@ cm_bsp_model_t *Cm_Model(const char *name) {
 	}
 
 	return &cm_bsp.models[num];
-}
-
-/**
- * @brief
- */
-int32_t Cm_NumClusters(void) {
-
-	if (cm_bsp.file.vis) {
-		return cm_bsp.file.vis->num_clusters;
-	}
-	
-	return 0;
 }
 
 /**

@@ -22,11 +22,65 @@
 #include "r_local.h"
 
 /**
- * @brief Adds an entity to the view.
+ * @brief
+ */
+static void R_SetEntityBounds(r_entity_t *e) {
+
+	e->abs_model_mins = Vec3_Mins();
+	e->abs_model_maxs = Vec3_Maxs();
+
+	const vec3_t corners[] = {
+		Vec3(e->model->mins.x, e->model->mins.y, e->model->mins.z),
+		Vec3(e->model->maxs.x, e->model->mins.y, e->model->mins.z),
+		Vec3(e->model->maxs.x, e->model->maxs.y, e->model->mins.z),
+		Vec3(e->model->mins.x, e->model->maxs.y, e->model->mins.z),
+		Vec3(e->model->mins.x, e->model->mins.y, e->model->maxs.z),
+		Vec3(e->model->maxs.x, e->model->mins.y, e->model->maxs.z),
+		Vec3(e->model->maxs.x, e->model->maxs.y, e->model->maxs.z),
+		Vec3(e->model->mins.x, e->model->maxs.y, e->model->maxs.z),
+	};
+
+	for (size_t i = 0; i < lengthof(corners); i++) {
+
+		vec3_t corner;
+		Matrix4x4_Transform(&e->matrix, corners[i].xyz, corner.xyz);
+
+		e->abs_model_mins = Vec3_Minf(e->abs_model_mins, corner);
+		e->abs_model_maxs = Vec3_Maxf(e->abs_model_maxs, corner);
+	}
+}
+
+/**
+ * @brief
+ */
+static _Bool R_CullEntity(const r_entity_t *e) {
+
+	if (e->parent) {
+		return false;
+	}
+
+	if (e->effects & (EF_SELF | EF_WEAPON)) {
+		return false;
+	}
+
+	if (R_OccludeBox(e->abs_model_mins, e->abs_model_maxs)) {
+		return true;
+	}
+
+	if (R_CullBox(e->abs_model_mins, e->abs_model_maxs)) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * @brief Adds an entity to the view if it passes frustum culling and occlusion tests.
+ * @return The renderer copy of the entity, if any. This is to enable linked entities.
  */
 r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
-	if (r_view.num_entities == lengthof(r_view.entities)) {
+	if (r_view.num_entities == MAX_ENTITIES) {
 		Com_Warn("MAX_ENTITIES\n");
 		return NULL;
 	}
@@ -47,7 +101,9 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 
-	if (R_CullBox(e->abs_mins, e->abs_maxs)) {
+	R_SetEntityBounds(e);
+
+	if (R_CullEntity(e)) {
 		return NULL;
 	}
 
@@ -59,7 +115,7 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
  * @brief
  */
 void R_UpdateEntities(void) {
-	
+
 	R_UpdateMeshEntities();
 	
 	R_UpdateMeshEntitiesShadows();
@@ -70,41 +126,11 @@ void R_UpdateEntities(void) {
  */
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_mins.z),
-		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_mins.z),
-		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_mins.z),
-		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_mins.z),
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_mins.z),
-	}, 5, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_maxs.z),
-		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_maxs.z),
-		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_maxs.z),
-		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_maxs.z),
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_maxs.z),
-	}, 5, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_mins.z),
-		Vec3(e->abs_mins.x, e->abs_mins.y, e->abs_maxs.z),
-	}, 2, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_mins.z),
-		Vec3(e->abs_mins.x, e->abs_maxs.y, e->abs_maxs.z),
-	}, 2, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_mins.z),
-		Vec3(e->abs_maxs.x, e->abs_maxs.y, e->abs_maxs.z),
-	}, 2, color_yellow);
-
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_mins.z),
-		Vec3(e->abs_maxs.x, e->abs_mins.y, e->abs_maxs.z),
-	}, 2, color_yellow);
+	if (r_draw_entity_bounds->integer == 2) {
+		R_Draw3DBox(e->abs_model_mins, e->abs_model_maxs, color_yellow);
+	} else {
+		R_Draw3DBox(e->abs_mins, e->abs_maxs, color_yellow);
+	}
 }
 
 /**
@@ -128,6 +154,10 @@ void R_DrawEntities(int32_t blend_depth) {
 		}
 
 		if (e->parent) {
+			continue;
+		}
+
+		if (e->effects & (EF_SELF | EF_WEAPON)) {
 			continue;
 		}
 

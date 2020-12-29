@@ -34,7 +34,6 @@ cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
 cvar_t *sv_hostname;
 cvar_t *sv_max_clients;
-cvar_t *sv_no_vis;
 cvar_t *sv_public;
 cvar_t *sv_rcon_password; // password for remote server commands
 cvar_t *sv_timeout;
@@ -819,8 +818,6 @@ static void Sv_InitLocal(void) {
 	                       "The server hostname, visible in the server browser");
 	sv_max_clients = Cvar_Add("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH,
 	                          "The maximum number of clients the server will allow");
-	sv_no_vis = Cvar_Add("sv_no_vis", "0", CVAR_LATCH | CVAR_DEVELOPER,
-						   "Disable server-side PVS culling (developer tool)");
 	sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO,
 	                     "Set to 1 to to advertise this server via the master server");
 	sv_rcon_password = Cvar_Add("rcon_password", "", 0,

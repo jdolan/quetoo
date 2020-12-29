@@ -503,7 +503,6 @@ dnl -----------------------------------------------------------
 AC_CONFIG_FILES([
 	Makefile
 	deps/Makefile
-	deps/genann/Makefile
 	deps/minizip/Makefile
 	src/Makefile
 	src/ai/Makefile

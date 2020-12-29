@@ -81,7 +81,23 @@
 			#define SCNuPTR SCNu32
 			#define SCNxPTR SCNx32
 		#endif
-#endif
+	#endif
+
+// FIXME temporary
+static inline _Bool g_ptr_array_find(GPtrArray *p, gconstpointer v, guint *index) {
+	
+	for (guint i = 0; i < p->len; i++) {
+		if (g_ptr_array_index(p, i) == v) {
+			if (index) {
+				*index = i;
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
 #endif
 
 #ifndef byte
@@ -213,36 +229,39 @@ typedef enum {
  * @brief Brush contents bitmasks.
  * @details Lower bits are stronger, and will eat weaker brushes completely.
  */
-#define CONTENTS_NONE			0x0 // brush sides may have no contents (skip, hint)
-#define CONTENTS_SOLID			0x1 // an eye is never valid in a solid
-#define CONTENTS_WINDOW			0x2 // translucent, but not watery
-#define CONTENTS_AUX			0x4
-#define CONTENTS_LAVA			0x8
-#define CONTENTS_SLIME			0x10
-#define CONTENTS_WATER			0x20
-#define CONTENTS_MIST			0x40
+#define CONTENTS_NONE				0x0 // brush sides may have no contents (skip, hint)
+#define CONTENTS_SOLID				0x1 // an eye is never valid in a solid
+#define CONTENTS_WINDOW				0x2 // translucent, but not watery
+#define CONTENTS_AUX				0x4
+#define CONTENTS_LAVA				0x8
+#define CONTENTS_SLIME				0x10
+#define CONTENTS_WATER				0x20
+#define CONTENTS_MIST				0x40
 
-#define LAST_VISIBLE_CONTENTS	CONTENTS_MIST
+#define LAST_VISIBLE_CONTENTS		CONTENTS_MIST
 
 // remaining contents are non-visible, and don't eat brushes
-#define CONTENTS_PLAYER_CLIP	0x10000
-#define CONTENTS_MONSTER_CLIP	0x20000
 
-// currents can be added to any other contents, and may be mixed
-#define CONTENTS_CURRENT_0		0x40000
-#define CONTENTS_CURRENT_90		0x80000
-#define CONTENTS_CURRENT_180	0x100000
-#define CONTENTS_CURRENT_270	0x200000
-#define CONTENTS_CURRENT_UP		0x400000
-#define CONTENTS_CURRENT_DOWN	0x800000
+#define CONTENTS_OCCLUSION_QUERY	0x8000 // shares value with CONTENTS_AREAPORTAL in other engines
 
-#define CONTENTS_ORIGIN			0x1000000 // removed during BSP compilation
-#define CONTENTS_MONSTER		0x2000000 // should never be on a brush, only in game
-#define CONTENTS_DEAD_MONSTER	0x4000000
+#define CONTENTS_PLAYER_CLIP		0x10000
+#define CONTENTS_MONSTER_CLIP		0x20000
 
-#define CONTENTS_DETAIL			0x8000000 // brushes to be added after vis leafs
-#define CONTENTS_TRANSLUCENT	0x10000000 // auto set if any surface has trans
-#define CONTENTS_LADDER			0x20000000
+// currents can be added to any 	other contents, and may be mixed
+#define CONTENTS_CURRENT_0			0x40000
+#define CONTENTS_CURRENT_90			0x80000
+#define CONTENTS_CURRENT_180		0x100000
+#define CONTENTS_CURRENT_270		0x200000
+#define CONTENTS_CURRENT_UP			0x400000
+#define CONTENTS_CURRENT_DOWN		0x800000
+
+#define CONTENTS_ORIGIN				0x1000000 // removed during BSP compilation
+#define CONTENTS_MONSTER			0x2000000 // should never be on a brush, only in game
+#define CONTENTS_DEAD_MONSTER		0x4000000
+
+#define CONTENTS_DETAIL				0x8000000 // brushes to be added after vis leafs
+#define CONTENTS_TRANSLUCENT		0x10000000 // auto set if any surface has trans
+#define CONTENTS_LADDER				0x20000000
 
 /**
  * @brief Leafs will have some combination of the above flags; nodes will
@@ -259,11 +278,17 @@ typedef enum {
 #define CONTENTS_MASK_VISIBLE			(CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID | CONTENTS_MASK_ATMOSPHERIC)
 #define CONTENTS_MASK_CLIP				(CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)
 #define CONTENTS_MASK_MEAT				(CONTENTS_MONSTER | CONTENTS_DEAD_MONSTER)
-#define CONTENTS_MASK_FUNCTIONAL		(CONTENTS_MASK_CLIP | CONTENTS_ORIGIN)
+#define CONTENTS_MASK_FUNCTIONAL		(CONTENTS_MASK_CLIP | CONTENTS_ORIGIN | CONTENTS_OCCLUSION_QUERY)
 #define CONTENTS_MASK_CLIP_CORPSE		(CONTENTS_MASK_SOLID | CONTENTS_PLAYER_CLIP)
 #define CONTENTS_MASK_CLIP_PLAYER		(CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER)
 #define CONTENTS_MASK_CLIP_MONSTER		(CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MONSTER_CLIP)
 #define CONTENTS_MASK_CLIP_PROJECTILE	(CONTENTS_MASK_SOLID | CONTENTS_MASK_MEAT)
+
+/**
+ * @brief Faces with differing contents after applying this mask should not be considered equal
+ * for face or draw elements merging.
+ */
+#define CONTENTS_MASK_FACE_CMP (CONTENTS_MASK_LIQUID)
 
 /**
  * @brief Texinfo flags.
@@ -281,13 +306,14 @@ typedef enum {
 #define SURF_ALPHA_TEST			0x400 // alpha test (grates, foliage, etc..)
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL			0x1000 // retain the geometry, but don't draw diffuse pass
-#define SURF_NO_WELD			0x2000 // don't weld (merge vertices) during face creation
+#define SURF_DECAL				0x2000 // draw diffuse pass, but don't use for alpha blend sorting
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 
 /**
- * @brief Texinfos with these flags should not be considered equal for draw elements merging.
+ * @brief Texinfos with differing flags after applying this mask should not be considered
+ * equal for face or draw elements merging.
  */
-#define SURF_MASK_TEXINFO_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_NO_WELD | SURF_DEBUG_LUXEL)
+#define SURF_MASK_TEXINFO_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_DEBUG_LUXEL)
 
 /**
  * @brief Texinfos with these flags require transparency.
@@ -297,7 +323,7 @@ typedef enum {
 /**
  * @brief Texinfos with these flags imply translucent contents.
  */
-#define SURF_MASK_TRANSLUCENT	(SURF_ALPHA_TEST | SURF_MASK_BLEND | SURF_MATERIAL)
+#define SURF_MASK_TRANSLUCENT	(SURF_MASK_BLEND | SURF_ALPHA_TEST | SURF_MATERIAL)
 
 /**
  * @brief Texinfos with these flags will not have lightmap data.
@@ -305,14 +331,9 @@ typedef enum {
 #define SURF_MASK_NO_LIGHTMAP	(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
 
 /**
- * @brief Sound attenuation levels.
+ * @brief Texinfos with these flags will not emit draw elements.
  */
-typedef enum {
-	SOUND_ATTEN_NONE,
-	SOUND_ATTEN_LINEAR,
-	SOUND_ATTEN_SQUARE,
-	SOUND_ATTEN_CUBIC,
-} sound_atten_t;
+#define SURF_MASK_NO_DRAW_ELEMENTS SURF_MASK_NO_LIGHTMAP
 
 /**
  * @brief The absolute world bounds is +/- 4096. This is the largest box we can

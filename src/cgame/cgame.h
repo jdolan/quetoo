@@ -527,16 +527,6 @@ typedef struct cg_import_s {
 	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p);
 
 	/**
-	 * @return True if `leaf` is in the potentially hearable set for the current frame.
-	 */
-	_Bool (*LeafHearable)(const r_bsp_leaf_t *leaf);
-
-	/**
-	 * @return True if `leaf` is in the potentially visible set for the current frame.
-	 */
-	_Bool (*LeafVisible)(const r_bsp_leaf_t *leaf);
-
-	/**
 	 * @}
 	 */
 
@@ -572,24 +562,6 @@ typedef struct cg_import_s {
 	 * @param play The play sample.
 	 */
 	void (*AddSample)(const s_play_sample_t *play);
-
-	/**
-	 * @brief Query if a box is visible on screen.
-	 * @param mins The min bounds point.
-	 * @param maxs The max bounds point.
-	 * @return Returns true if the specified bounding box is completely culled by the
-	 * view frustum, false otherwise.
-	 */
-	_Bool (*CullBox)(const vec3_t mins, const vec3_t maxs);
-
-	/**
-	 * @brief Query if a sphere is visible on screen.
-	 * @param point The central point of the sphere.
-	 * @param radius The radius of the sphere.
-	 * @return Returns true if the specified sphere is completely culled by the
-	 * view frustum, false otherwise.
-	 */
-	_Bool (*CullSphere)(const vec3_t point, const float radius);
 
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
@@ -775,6 +747,7 @@ typedef struct cg_export_s {
 	void (*PredictMovement)(const GPtrArray *cmds);
 	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
+	void (*PopulateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame);
 
 } cg_export_t;

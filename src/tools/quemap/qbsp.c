@@ -46,7 +46,7 @@ _Bool leaked = false;
 /**
  * @brief
  */
-static void ProcessWorldModel(const entity_t *e) {
+static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 
 	csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
 	if (!no_csg) {
@@ -79,7 +79,7 @@ static void ProcessWorldModel(const entity_t *e) {
 		FixTJunctions(tree->head_node);
 	}
 
-	EmitNodes(tree->head_node);
+	out->head_node = EmitNodes(tree->head_node);
 
 	if (!leaked) {
 		WritePortalFile(tree);
@@ -91,7 +91,7 @@ static void ProcessWorldModel(const entity_t *e) {
 /**
  * @brief
  */
-static void ProcessInlineModel(const entity_t *e) {
+static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 
 	csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
 	if (!no_csg) {
@@ -114,7 +114,8 @@ static void ProcessInlineModel(const entity_t *e) {
 		FixTJunctions(tree->head_node);
 	}
 
-	EmitNodes(tree->head_node);
+	out->head_node = EmitNodes(tree->head_node);
+
 	FreeTree(tree);
 }
 
@@ -126,20 +127,20 @@ static void ProcessModels(void) {
 	for (int32_t i = 0; i < num_entities; i++) {
 		const entity_t *e = entities + i;
 
-		if (!e->num_brushes) {
+		if (!e->num_brushes) { 
 			continue;
 		}
 
 		const vec3_t origin = VectorForKey(e, "origin", Vec3_Zero());
 		Com_Print("%s @ %s\n", ValueForKey(e, "classname", "Unknown"), vtos(origin));
 
-		BeginModel(e);
+		bsp_model_t *mod = BeginModel(e);
 		if (i == 0) {
-			ProcessWorldModel(e);
+			ProcessWorldModel(e, mod);
 		} else {
-			ProcessInlineModel(e);
+			ProcessInlineModel(e, mod);
 		}
-		EndModel();
+		EndModel(mod);
 
 		Com_Print("\n");
 	}
@@ -184,7 +185,7 @@ int32_t BSP_Main(void) {
 
 	FreeWindings();
 
-	for (int32_t tag = MEM_TAG_QBSP; tag < MEM_TAG_QVIS; tag++) {
+	for (int32_t tag = MEM_TAG_QBSP; tag < MEM_TAG_QLIGHT; tag++) {
 		Mem_FreeTag(tag);
 	}
 

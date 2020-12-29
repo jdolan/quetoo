@@ -387,27 +387,22 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
  */
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
-	for (int32_t i = 0; i < count; i++) {
-
-		if (!Cg_AddSprite(&(cg_sprite_t) {
-				.animation = cg_sprite_blood_01,
-				.lifetime = Cg_AnimationLifetime(cg_sprite_blood_01, 30) + Randomf() * 500,
-				.size = RandomRangef(40.f, 64.f),
-				.rotation = RandomRadian(),
-				.origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f)), Vec3_Scale(dir, RandomRangef(0.f, 32.f))),
-				.velocity = Vec3_RandomRange(-30.f, 30.f),
-				.acceleration.z = -SPRITE_GRAVITY / 2.0,
-				.flags = SPRITE_LERP,
-				.color = Vec4(0.f, 1.f, .5f, .66f),
-				.end_color = Vec4(0.f, 1.f, 0.f, 0.f)
-			})) {
-			break;
-		}
-	}
+	Cg_AddSprite(&(cg_sprite_t) {
+		.animation = cg_sprite_blood_01,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_blood_01, 30) + Randomf() * 500,
+		.size = RandomRangef(1.f, 2.f) + count,
+		.rotation = RandomRadian(),
+		.origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-1.f, 1.f)), Vec3_Scale(dir, RandomRangef(0.f, 4.f))),
+		.velocity = Vec3_Scale(dir, RandomRangef(1.f, 4.f)),
+		.acceleration.z = -SPRITE_GRAVITY / 2.0,
+		.flags = SPRITE_LERP,
+		.color = Vec4(0.f, 1.f, .5f, .66f),
+		.end_color = Vec4(0.f, 1.f, 0.f, 0.f)
+	});
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = org,
-		.radius = count * 6.0,
+		.radius = 1 + count,
 		.color = Color4bv(0xAA2222AA),
 	});
 }
@@ -1092,7 +1087,7 @@ void Cg_ParseTempEntity(void) {
 			pos = cgi.ReadPosition();
 			dir = cgi.ReadDir();
 			i = cgi.ReadByte();
-			Cg_BloodEffect(pos, dir, 12 * i);
+			Cg_BloodEffect(pos, dir, i);
 			break;
 
 		case TE_GIB: // player over-death

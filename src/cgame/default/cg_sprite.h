@@ -63,7 +63,6 @@ typedef uint32_t cg_r_sprite_flags_t;
  * @brief Client game sprites can persist over multiple frames.
  */
 typedef struct cg_sprite_s {
-
 	/**
 	 * @brief Type of sprite.
 	 */
@@ -103,6 +102,11 @@ typedef struct cg_sprite_s {
 	 * @brief The sprite direction. { 0, 0, 0 } is billboard.
 	 */
 	vec3_t dir;
+
+	/**
+	 * @brief The sprite billboard axis.
+	 */
+	r_sprite_billboard_axis_t axis;
 
 	/**
 	 * @brief The sprite color, in HSVA.

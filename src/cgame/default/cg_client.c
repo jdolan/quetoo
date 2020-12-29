@@ -494,10 +494,12 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		return;
 	}
 
-	const _Bool self_no_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
+	if (Cg_IsSelf(ent)) {
+		e->effects |= EF_SELF;
+	}
 
 	// don't draw ourselves unless third person is set
-	if (self_no_draw) {
+	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 
 		e->effects |= EF_NO_DRAW;
 
@@ -616,7 +618,8 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	head.parent = r_torso;
 	head.tag = "tag_head";
 
-	cgi.AddEntity(&head);
+	r_entity_t *r_head = cgi.AddEntity(&head);
+	assert(r_head);
 
 	if (s->model2) {
 		cgi.AddEntity(&(const r_entity_t) {

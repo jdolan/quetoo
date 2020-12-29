@@ -164,7 +164,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
 	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
-	// link to PVS leafs
+	// link to leafs
 	sent->num_clusters = 0;
 
 	// get all leafs, including solids
@@ -278,7 +278,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 				sv_world.num_box_entities++;
 
 				if (sv_world.num_box_entities == sv_world.max_box_entities) {
-					Com_Warn("sv_world.max_box_entities reached\n");
+					Com_Warn("sv_world.max_box_entities\n");
 					return;
 				}
 			}

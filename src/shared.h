@@ -104,13 +104,6 @@ typedef enum {
 } entity_animation_t;
 
 /**
- * @brief Constants for animation1 that the lightning gun uses for
- * its hit detection routines.
- */
-#define LIGHTNING_NO_HIT		0
-#define LIGHTNING_SOLID_HIT		1
-
-/**
  * @brief Entity events are instantaneous, transpiring at an entity's origin
  * for precisely one frame. The game module can define custom events as well
  * (8 bits).
@@ -130,13 +123,14 @@ typedef enum {
 #define EF_BOB				(1 << 1) // bob on z
 #define EF_PULSE			(1 << 2) // pulsing light effect
 #define EF_INACTIVE			(1 << 3) // inactive icon for when input is not going to game
-#define EF_GAME				(1 << 4) // the game may extend from here
-#define EF_AMBIENT			(1 << 5) // ambient light to spot dimly lit entities easier
+#define EF_AMBIENT			(1 << 4) // ambient light to spot dimly lit entities easier
+#define EF_GAME				(1 << 5) // the game may extend from here
 
 /**
  * @brief The 16 high bits of the effects mask are not transmitted by the
  * protocol. Rather, they are reserved for the renderer.
  */
+#define EF_SELF             (1 << 24) // client's entity model
 #define EF_WEAPON			(1 << 25) // view weapon
 #define EF_SHELL			(1 << 26) // colored shell
 #define EF_ALPHATEST		(1 << 27) // alpha test
@@ -166,6 +160,16 @@ typedef enum {
 	SOLID_BOX, // boxes collide with the world and other boxes
 	SOLID_BSP, // inline models interact just like the static world
 } solid_t;
+
+/**
+ * @brief Sound attenuation levels.
+ */
+typedef enum {
+	SOUND_ATTEN_NONE,
+	SOUND_ATTEN_LINEAR,
+	SOUND_ATTEN_SQUARE,
+	SOUND_ATTEN_CUBIC,
+} sound_atten_t;
 
 /**
  * @brief Entity states are transmitted by the server to the client using delta

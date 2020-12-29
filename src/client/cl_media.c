@@ -94,10 +94,18 @@ GList *Cl_Mapshots(const char *mapname) {
 /**
  * @brief Update the loading progress, handle events and update the screen.
  * This should be called periodically while loading media.
+ * @param percent The percent. Positive values for absolute, negative for relative increment.
  */
 void Cl_LoadingProgress(int32_t percent, const char *status) {
 
-	cls.loading.percent = percent;
+	if (percent < 0) {
+		cls.loading.percent -= percent;
+	} else {
+		cls.loading.percent = percent;
+	}
+
+	cls.loading.percent = Mini(Maxi(0, cls.loading.percent), 100);
+
 	cls.loading.status = status;
 
 	Cl_HandleEvents();
@@ -106,7 +114,11 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	cls.cgame->UpdateLoading(cls.loading);
 
+	R_BeginFrame();
+
 	Cl_UpdateScreen();
+
+	R_EndFrame();
 
 	quetoo.ticks = SDL_GetTicks();
 }
@@ -139,7 +151,7 @@ void Cl_LoadMedia(void) {
 
 	S_LoadMedia();
 
-	Cl_LoadingProgress(95, "cgame");
+	Cl_LoadingProgress(-1, "cgame");
 
 	cls.cgame->UpdateMedia();
 

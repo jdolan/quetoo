@@ -52,7 +52,7 @@ static struct {
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 	GLint in_diffusemap;
@@ -100,7 +100,9 @@ void R_DrawSky(void) {
 
 	glBindTexture(GL_TEXTURE_2D, r_sky.images[3]->texnum);
 	glDrawArrays(GL_TRIANGLE_FAN, 20, 4);
-	
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -122,8 +124,8 @@ static void R_InitSkyProgram(void) {
 
 	glUseProgram(r_sky_program.name);
 
-	r_sky_program.uniforms = glGetUniformBlockIndex(r_sky_program.name, "uniforms");
-	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms, 0);
+	r_sky_program.uniforms_block = glGetUniformBlockIndex(r_sky_program.name, "uniforms_block");
+	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
 
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
 	r_sky_program.in_diffusemap = glGetAttribLocation(r_sky_program.name, "in_diffusemap");
@@ -267,6 +269,8 @@ void R_InitSky(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sky_vertex_t), (void *) offsetof(r_sky_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sky_vertex_t), (void *) offsetof(r_sky_vertex_t, diffusemap));
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 
 	R_InitSkyProgram();

@@ -21,18 +21,10 @@
 
 #include "cg_local.h"
 
-/**
- * @brief Local state to the cgame per server.
- */
-typedef struct {
-	float hook_pull_speed;
-} cg_state_t;
-
-static cg_state_t cg_state;
+cg_state_t cg_state;
 
 cvar_t *cg_add_entities;
 cvar_t *cg_add_lights;
-cvar_t *cg_add_particles;
 cvar_t *cg_add_sprites;
 cvar_t *cg_add_weather;
 cvar_t *cg_auto_switch;
@@ -120,7 +112,6 @@ static void Cg_Init(void) {
 
 	cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
 	cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
-	cg_add_particles = cgi.AddCvar("cg_add_particles", "1", 0, "Toggles adding particles to the scene.");
 	cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
 	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE, "Control the intensity of atmospheric effects.");
 
@@ -402,7 +393,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 
 	switch (i) {
 		case CS_WEATHER:
-			Cg_ResolveWeather(s);
+			cg_state.weather = Cg_ParseWeather(s);
 			return;
 		case CS_HOOK_PULL_SPEED:
 			cg_state.hook_pull_speed = strtof(s, NULL);
@@ -453,6 +444,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.PredictMovement = Cg_PredictMovement;
 	cge.UpdateLoading = Cg_UpdateLoading;
 	cge.UpdateView = Cg_UpdateView;
+	cge.PopulateView = Cg_PopulateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
 
 	return &cge;

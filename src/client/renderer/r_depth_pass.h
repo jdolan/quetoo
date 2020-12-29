@@ -21,9 +21,12 @@
 
 #pragma once
 
-#include "quemap.h"
+#include "r_types.h"
 
-extern _Bool fast_vis;
-extern _Bool no_sort;
-
-int32_t VIS_Main(void);
+#ifdef __R_LOCAL_H__
+void R_DrawDepthPass(void);
+_Bool R_OccludeBox(const vec3_t mins, const vec3_t maxs);
+_Bool R_OccludeSphere(const vec3_t origin, float radius);
+void R_InitDepthPass(void);
+void R_ShutdownDepthPass(void);
+#endif /* __R_LOCAL_H__ */

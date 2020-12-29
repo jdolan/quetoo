@@ -41,26 +41,14 @@ struct lightgrid_t {
 };
 
 /**
- * @brief The light struct.
- */
-struct light_t {
-	/**
-	 * @brief The light origin and radius.
-	 */
-	vec4 origin;
-
-	/**
-	 * @brief The light color and intensity.
-	 */
-	vec4 color;
-};
-
-#define MAX_LIGHTS 0x20
-
-/**
  * @brief The uniforms block.
  */
-layout (std140) uniform uniforms {
+layout (std140) uniform uniforms_block {
+	/**
+	 * @brief The viewport (x, y, w, h) in device pixels.
+	 */
+	vec4 viewport;
+
 	/**
 	 * @brief The 3D projection matrix.
 	 */
@@ -87,9 +75,9 @@ layout (std140) uniform uniforms {
 	lightgrid_t lightgrid;
 
 	/**
-	 * @brief The light sources for the current frame, transformed to view space.
+	 * @brief The depth range, in world units.
 	 */
-	light_t lights[MAX_LIGHTS];
+	vec2 depth_range;
 
 	/**
 	 * @brief The renderer time, in milliseconds.
@@ -130,4 +118,36 @@ layout (std140) uniform uniforms {
 	 * @brief The number of fog samples per fragment (quality).
 	 */
 	int fog_samples;
+};
+
+/**
+ * @brief The light struct.
+ */
+struct light_t {
+	/**
+	 * @brief The light origin and radius.
+	 */
+	vec4 origin;
+
+	/**
+	 * @brief The light color and intensity.
+	 */
+	vec4 color;
+};
+
+#define MAX_LIGHTS 0x20
+
+/**
+ * @brief The lights uniform block.
+ */
+layout (std140) uniform lights_block {
+	/**
+	 * @brief The light sources for the current frame, transformed to view space.
+	 */
+	light_t lights[MAX_LIGHTS];
+
+	/**
+	 * @brief The number of active light sources.
+	 */
+	int num_lights;
 };

@@ -31,7 +31,6 @@ extern cvar_t *r_bicubic;
 extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
 extern cvar_t *r_display;
-extern cvar_t *r_draw_buffer;
 extern cvar_t *r_flares;
 extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
@@ -41,7 +40,6 @@ extern cvar_t *r_get_error;
 extern cvar_t *r_get_error_break;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
-extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
 extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;
@@ -53,7 +51,6 @@ extern cvar_t *r_shadows;
 extern cvar_t *r_shell;
 extern cvar_t *r_specularity;
 extern cvar_t *r_stains;
-extern cvar_t *r_supersample;
 extern cvar_t *r_texture_mode;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_width;
@@ -63,18 +60,19 @@ extern r_view_t r_view;
 void R_GetError_(const char *function, const char *msg);
 #define R_GetError(msg) R_GetError_(__func__, msg)
 
-_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
-_Bool R_CullSphere(const vec3_t point, const float radius);
 void R_Init(void);
 void R_Shutdown(void);
 void R_LoadMedia(void);
 void R_BeginFrame(void);
+void R_DrawViewDepth(r_view_t *view);
 void R_DrawView(r_view_t *view);
 void R_EndFrame(void);
 
 #ifdef __R_LOCAL_H__
 
-// private hardware configuration information
+/**
+ * @brief OpenGL driver information.
+ */
 typedef struct {
 	const char *renderer;
 	const char *vendor;
@@ -94,23 +92,6 @@ typedef struct {
 	 * @brief The view frustum, for box and sphere culling.
 	 */
 	cm_bsp_plane_t frustum[4];
-
-	/**
-	 * @brief The leaf in which the view origin resides.
-	 */
-	const r_bsp_leaf_t *leaf; // the leaf at the view origin
-
-	/**
-	 * @brief The PVS and PHS data at the view origin.
-	 */
-	byte vis_data_pvs[MAX_BSP_LEAFS >> 3];
-	byte vis_data_phs[MAX_BSP_LEAFS >> 3];
-
-	/**
-	 * @brief The PVS frame counter. World elements must reference the current
-	 * frame in order to be drawn.
-	 */
-	int32_t vis_frame;
 
 	/**
 	 * @brief The stain frame counter.
@@ -147,7 +128,7 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The name of the r_uniforms buffer.
+	 * @brief The name of the uniform buffer.
 	 */
 	GLuint buffer;
 
@@ -156,6 +137,11 @@ typedef struct {
 	 * @remarks This struct is vec4 aligned.
 	 */
 	struct {
+		/**
+		 * @brief The viewport (x, y, w, h) in device pixels.
+		 */
+		vec4_t viewport;
+
 		/**
 		 * @brief The 3D projection matrix.
 		 */
@@ -182,9 +168,9 @@ typedef struct {
 		r_lightgrid_t lightgrid;
 
 		/**
-		 * @brief The light sources for the current frame, transformed to view space.
+		 * @brief The depth range, in world units.
 		 */
-		r_light_t lights[MAX_LIGHTS];
+		vec2_t depth_range;
 
 		/**
 		 * @brief The renderer time, in milliseconds.
@@ -234,15 +220,20 @@ typedef struct {
  */
 extern r_uniforms_t r_uniforms;
 
-// development tools
-extern cvar_t *r_blend;
+// developer tools
+extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;
-extern cvar_t *r_lock_vis;
-extern cvar_t *r_no_vis;
+extern cvar_t *r_depth_pass;
 extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
+extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
+extern cvar_t *r_occlude;
+
+_Bool R_CullPoint(const vec3_t point);
+_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
+_Bool R_CullSphere(const vec3_t point, const float radius);
 
 #endif /* __R_LOCAL_H__ */

@@ -19,21 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+layout (location = 0) in vec3 in_position;
 
-#include "cm_types.h"
+/**
+ * @brief
+ */
+void main(void) {
 
-int32_t Cm_ClusterPVS(const int32_t cluster, byte *pvs);
-int32_t Cm_ClusterPHS(const int32_t cluster, byte *phs);
-int32_t Cm_PointPVS(const vec3_t point, byte *pvs);
-int32_t Cm_PointPHS(const vec3_t point, byte *phs);
-int32_t Cm_BoxPVS(const vec3_t mins, const vec3_t maxs, byte *pvs);
-int32_t Cm_BoxPHS(const vec3_t mins, const vec3_t maxs, byte *pvs);
-
-_Bool Cm_ClusterVisible(const int32_t cluster, const byte *vis);
-_Bool Cm_HeadnodeVisible(const int32_t head_node, const byte *vis);
-
-extern _Bool cm_no_vis;
-
-#ifdef __CM_LOCAL_H__
-#endif /* __CM_LOCAL_H__ */
+	gl_Position = projection3D * view * vec4(in_position, 1.0);
+}

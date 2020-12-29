@@ -178,7 +178,6 @@ void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
  * then clears sv.multicast.
  */
 void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) {
-	byte vis[MAX_BSP_LEAFS >> 3];
 
 	_Bool reliable = false;
 
@@ -187,28 +186,18 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 			reliable = true;
 			__attribute__((fallthrough));
 		case MULTICAST_ALL:
-			memset(vis, 0xff, sizeof(vis));
 			break;
 
 		case MULTICAST_PHS_R:
 			reliable = true;
 			__attribute__((fallthrough));
-		case MULTICAST_PHS: {
-				const int32_t leaf = Cm_PointLeafnum(origin, 0);
-				const int32_t cluster = Cm_LeafCluster(leaf);
-				Cm_ClusterPHS(cluster, vis);
-			}
-
+		case MULTICAST_PHS:
 			break;
 
 		case MULTICAST_PVS_R:
 			reliable = true;
 			__attribute__((fallthrough));
-		case MULTICAST_PVS: {
-				const int32_t leaf = Cm_PointLeafnum(origin, 0);
-				const int32_t cluster = Cm_LeafCluster(leaf);
-				Cm_ClusterPVS(cluster, vis);
-			}
+		case MULTICAST_PVS:
 			break;
 
 		default:
@@ -234,15 +223,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 		}
 
 		if (to != MULTICAST_ALL && to != MULTICAST_ALL_R) {
-			const pm_state_t *pm = &cl->entity->client->ps.pm_state;
-
-			const vec3_t org = Vec3_Add(pm->origin, pm->view_offset);
-
-			const int32_t leaf = Cm_PointLeafnum(org, 0);
-			const int32_t cluster = Cm_LeafCluster(leaf);
-			if (!(vis[cluster >> 3] & (1 << (cluster & 7)))) {
-				continue;
-			}
+			// TODO: Some basic tracing or just distance attenuation?
 		}
 
 		if (filter) { // allow the game module to filter the recipients

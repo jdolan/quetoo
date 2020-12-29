@@ -59,7 +59,6 @@ void Cg_LoadEntities(void) {
 				};
 
 				e.origin = cgi.EntityValue(def, "origin")->vec3;
-				e.leaf = cgi.LeafForPoint(e.origin);
 
 				e.data = cgi.Malloc(e.clazz->data_size, MEM_TAG_CGAME_LEVEL);
 
@@ -279,7 +278,5 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 		}
 
 		e->clazz->Think(e);
-
-		e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
 	}
 }

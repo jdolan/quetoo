@@ -54,6 +54,7 @@ static const cm_entity_t *Cg_EntityTarget(const cg_entity_t *self) {
  * @brief
  */
 typedef struct {
+	float hz, drift;
 	float radius;
 } cg_flame_t;
 
@@ -62,10 +63,10 @@ typedef struct {
  */
 static void Cg_misc_flame_Init(cg_entity_t *self) {
 
-	self->hz = self->hz ?: 5.f;
-	self->drift = self->drift ?: .1f;
-
 	cg_flame_t *flame = self->data;
+
+	flame->hz = cgi.EntityValue(self->def, "hz")->value ?: 5.f;
+	flame->drift = cgi.EntityValue(self->def, "drift")->value ?: .1f;
 
 	flame->radius = cgi.EntityValue(self->def, "radius")->value ?: 16.f;
 }
@@ -109,6 +110,8 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 		.atten = SOUND_ATTEN_CUBIC,
 		.flags = S_PLAY_POSITIONED
 	});
+
+	self->next_think += 1000.f / flame->hz + 1000.f * flame->drift * Randomf();
 }
 
 /**
@@ -145,10 +148,7 @@ static void Cg_misc_light_Init(cg_entity_t *self) {
  * @brief
  */
 static void Cg_misc_light_Think(cg_entity_t *self) {
-
-	if (cgi.LeafVisible(self->leaf)) {
-		Cg_AddLight((cg_light_t *) self->data);
-	}
+	Cg_AddLight((cg_light_t *) self->data);
 }
 
 /**
@@ -178,10 +178,7 @@ static void Cg_misc_model_Init(cg_entity_t *self) {
  * @brief
  */
 static void Cg_misc_model_Think(cg_entity_t *self) {
-
-	if (cgi.LeafVisible(self->leaf)) {
-		cgi.AddEntity((r_entity_t *) self->data);
-	}
+	cgi.AddEntity((r_entity_t *) self->data);
 }
 
 /**
@@ -197,27 +194,38 @@ const cg_entity_class_t cg_misc_model = {
 /**
  * @brief
  */
+typedef struct {
+	s_play_sample_t play;
+	float hz, drift;
+} cg_misc_sound_t;
+
+/**
+ * @brief
+ */
 static void Cg_misc_sound_Init(cg_entity_t *self) {
 
-	s_play_sample_t *sound = self->data;
+	cg_misc_sound_t *sound = self->data;
 
-	sound->sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
-	sound->origin = self->origin;
+	sound->hz = cgi.EntityValue(self->def, "hz")->value ?: 0.f;
+	sound->drift = cgi.EntityValue(self->def, "drift")->value ?: .3f;
+
+	sound->play.sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
+	sound->play.origin = self->origin;
 
 	if (cgi.EntityValue(self->def, "atten")->parsed & ENTITY_INTEGER) {
-		sound->atten = cgi.EntityValue(self->def, "atten")->integer;
+		sound->play.atten = cgi.EntityValue(self->def, "atten")->integer;
 	} else {
-		sound->atten = SOUND_ATTEN_SQUARE;
+		sound->play.atten = SOUND_ATTEN_SQUARE;
 	}
 
-	sound->flags = S_PLAY_AMBIENT;
+	sound->play.flags = S_PLAY_AMBIENT;
 
-	if (sound->atten != SOUND_ATTEN_NONE) {
-		sound->flags |= S_PLAY_POSITIONED;
+	if (sound->play.atten != SOUND_ATTEN_NONE) {
+		sound->play.flags |= S_PLAY_POSITIONED;
 	}
 
-	if (self->hz == 0.f) {
-		sound->flags |= S_PLAY_LOOP | S_PLAY_FRAME;
+	if (sound->hz == 0.f) {
+		sound->play.flags |= S_PLAY_LOOP | S_PLAY_FRAME;
 	}
 }
 
@@ -226,9 +234,11 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
  */
 static void Cg_misc_sound_Think(cg_entity_t *self) {
 
-	if (cgi.LeafHearable(self->leaf)) {
-		cgi.AddSample((s_play_sample_t *) self->data);
-	}
+	const cg_misc_sound_t *sound = self->data;
+
+	cgi.AddSample(&sound->play);
+
+	self->next_think += 1000.f / sound->hz + 1000.f * sound->drift * Randomf();
 }
 
 /**
@@ -238,7 +248,7 @@ const cg_entity_class_t cg_misc_sound = {
 	.class_name = "misc_sound",
 	.Init = Cg_misc_sound_Init,
 	.Think = Cg_misc_sound_Think,
-	.data_size = sizeof(s_play_sample_t)
+	.data_size = sizeof(cg_misc_sound_t)
 };
 
 /**
@@ -248,14 +258,14 @@ typedef struct {
 	float hz, drift;
 	vec3_t dir;
 	int32_t count;
-} cg_sparks_t;
+} cg_misc_sparks_t;
 
 /**
  * @brief
  */
 static void Cg_misc_sparks_Init(cg_entity_t *self) {
 
-	cg_sparks_t *sparks = self->data;
+	cg_misc_sparks_t *sparks = self->data;
 
 	sparks->hz = cgi.EntityValue(self->def, "hz")->value ?: .5f;
 	sparks->drift = cgi.EntityValue(self->def, "drift")->value ?: 3.f;
@@ -287,11 +297,11 @@ static void Cg_misc_sparks_Init(cg_entity_t *self) {
  */
 static void Cg_misc_sparks_Think(cg_entity_t *self) {
 
-	cg_sparks_t *sparks = self->data;
+	const cg_misc_sparks_t *sparks = self->data;
 
-	if (cgi.LeafHearable(self->leaf)) {
-		Cg_SparksEffect(self->origin, sparks->dir, sparks->count);
-	}
+	Cg_SparksEffect(self->origin, sparks->dir, sparks->count);
+
+	self->next_think += 1000.f / sparks->hz + 1000.f * sparks->drift * Randomf();
 }
 
 /**
@@ -301,49 +311,60 @@ const cg_entity_class_t cg_misc_sparks = {
 	.class_name = "misc_sparks",
 	.Init = Cg_misc_sparks_Init,
 	.Think = Cg_misc_sparks_Think,
-	.data_size = sizeof(cg_sparks_t)
+	.data_size = sizeof(cg_misc_sparks_t)
 };
+
+/**
+ * @brief
+ */
+typedef struct {
+	cg_sprite_t sprite;
+	float hz, drift;
+} cg_misc_sprite_t;
 
 /**
  * @brief
  */
 static void Cg_misc_sprite_Init(cg_entity_t *self) {
 
-	cg_sprite_t *sprite = self->data;
+	cg_misc_sprite_t *sprite = self->data;
 
-	sprite->origin = self->origin;
+	sprite->sprite.origin = self->origin;
 
 	const cm_entity_t *target = Cg_EntityTarget(self);
 	if (target) {
 		const vec3_t target_origin = cgi.EntityValue(target, "origin")->vec3;
-		sprite->velocity = Vec3_Subtract(target_origin, self->origin);
+		sprite->sprite.velocity = Vec3_Subtract(target_origin, self->origin);
 	} else {
-		sprite->velocity = cgi.EntityValue(self->def, "velocity")->vec3;
+		sprite->sprite.velocity = cgi.EntityValue(self->def, "velocity")->vec3;
 	}
 
-	sprite->acceleration = cgi.EntityValue(self->def, "acceleration")->vec3;
-	sprite->rotation = cgi.EntityValue(self->def, "rotation")->value;
-	sprite->rotation_velocity = cgi.EntityValue(self->def, "rotation_velocity")->value;
-	sprite->dir = Vec3_Normalize(cgi.EntityValue(self->def, "dir")->vec3);
+	sprite->sprite.acceleration = cgi.EntityValue(self->def, "acceleration")->vec3;
+	sprite->sprite.rotation = cgi.EntityValue(self->def, "rotation")->value;
+	sprite->sprite.rotation_velocity = cgi.EntityValue(self->def, "rotation_velocity")->value;
+	sprite->sprite.dir = Vec3_Normalize(cgi.EntityValue(self->def, "dir")->vec3);
 
 	const cm_entity_t *color = cgi.EntityValue(self->def, "_color");
 	if (color->parsed & ENTITY_VEC4) {
-		sprite->color = color->vec4;
+		sprite->sprite.color = color->vec4;
 	} else if (color->parsed & ENTITY_VEC3) {
-		sprite->color = Vec3_ToVec4(color->vec3, 1.f);
+		sprite->sprite.color = Vec3_ToVec4(color->vec3, 1.f);
 	}
 
 	const cm_entity_t *end_color = cgi.EntityValue(self->def, "_end_color");
 	if (end_color->parsed & ENTITY_VEC4) {
-		sprite->end_color = end_color->vec4;
+		sprite->sprite.end_color = end_color->vec4;
 	} else if (end_color->parsed & ENTITY_VEC3) {
-		sprite->end_color = Vec3_ToVec4(end_color->vec3, 1.f);
+		sprite->sprite.end_color = Vec3_ToVec4(end_color->vec3, 1.f);
 	}
 
-	sprite->size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
-	sprite->size_velocity = cgi.EntityValue(self->def, "size")->value;
-	sprite->size_acceleration = cgi.EntityValue(self->def, "size_acceleration")->value;
-	sprite->bounce = cgi.EntityValue(self->def, "bounce")->value;
+	sprite->sprite.size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
+	sprite->sprite.size_velocity = cgi.EntityValue(self->def, "size_velocity")->value;
+	sprite->sprite.size_acceleration = cgi.EntityValue(self->def, "size_acceleration")->value;
+	sprite->sprite.bounce = cgi.EntityValue(self->def, "bounce")->value;
+
+	sprite->hz = cgi.EntityValue(self->def, "hz")->value ?: .5f;
+	sprite->drift = cgi.EntityValue(self->def, "drift")->value ?: 3.f;
 }
 
 /**
@@ -351,9 +372,11 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
  */
 static void Cg_misc_sprite_Think(cg_entity_t *self) {
 
-	if (cgi.LeafVisible(self->leaf)) {
-		Cg_AddSprite((cg_sprite_t *) self->data);
-	}
+	const cg_misc_sprite_t *sprite = self->data;
+
+	Cg_AddSprite(&sprite->sprite);
+
+	self->next_think += 1000.f / sprite->hz + 1000.f * sprite->drift * Randomf();
 }
 
 /**
@@ -371,14 +394,14 @@ const cg_entity_class_t cg_misc_sprite = {
  */
 typedef struct {
 	float hz, drift;
-} cg_steam_t;
+} cg_misc_steam_t;
 
 /**
  * @brief
  */
 static void Cg_misc_steam_Init(cg_entity_t *self) {
 
-	cg_steam_t *steam = self->data;
+	cg_misc_steam_t *steam = self->data;
 
 	steam->hz = cgi.EntityValue(self->def, "hz")->value ?: .3f;
 	steam->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;

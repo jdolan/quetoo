@@ -84,11 +84,19 @@ static void R_FreeModel(r_media_t *self) {
 		glDeleteBuffers(1, &mod->bsp->elements_buffer);
 		glDeleteVertexArrays(1, &mod->bsp->vertex_array);
 
+		for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++) {
+			glDeleteQueries(1, &mod->bsp->occlusion_queries[i].name);
+		}
+
+		r_bsp_plane_t *plane = mod->bsp->planes;
+		for (int32_t i = 0; i < mod->bsp->num_planes; i++, plane++) {
+			g_ptr_array_free(plane->blend_elements, 1);
+		}
+
 	} else if (IS_BSP_INLINE_MODEL(mod)) {
 
+		g_ptr_array_free(mod->bsp_inline->blend_elements, 1);
 		g_ptr_array_free(mod->bsp_inline->flare_faces, 1);
-		g_ptr_array_free(mod->bsp_inline->opaque_draw_elements, 1);
-		g_ptr_array_free(mod->bsp_inline->alpha_blend_draw_elements, 1);
 
 	} else if (IS_MESH_MODEL(mod)) {
 

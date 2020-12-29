@@ -46,7 +46,6 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(leaf_faces, MAX_BSP_LEAF_FACES),
 	BSP_LUMP_NUM_STRUCT(leafs, MAX_BSP_LEAFS),
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
-	BSP_LUMP_SIZE_STRUCT(vis, MAX_BSP_VIS_SIZE),
 	BSP_LUMP_SIZE_STRUCT(lightmap, MAX_BSP_LIGHTMAP_SIZE),
 	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID_SIZE)
 };
@@ -174,6 +173,9 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 		face->texinfo = LittleLong(face->texinfo);
 		face->contents = LittleLong(face->contents);
 
+		face->mins = LittleVec3(face->mins);
+		face->maxs = LittleVec3(face->maxs);
+
 		face->first_vertex = LittleLong(face->first_vertex);
 		face->num_vertexes = LittleLong(face->num_vertexes);
 
@@ -203,8 +205,13 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
+		draw->plane_num = LittleLong(draw->plane_num);
 		draw->texinfo = LittleLong(draw->texinfo);
 		draw->contents = LittleLong(draw->contents);
+
+		draw->mins = LittleVec3(draw->mins);
+		draw->maxs = LittleVec3(draw->maxs);
+
 		draw->first_element = LittleLong(draw->first_element);
 		draw->num_elements = LittleLong(draw->num_elements);
 
@@ -301,26 +308,10 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 		model->first_face = LittleLong(model->first_face);
 		model->num_faces = LittleLong(model->num_faces);
 
+		model->first_draw_elements = LittleLong(model->first_draw_elements);
+		model->num_draw_elements = LittleLong(model->num_draw_elements);
+
 		model++;
-	}
-}
-
-/**
- * @brief Swap function.
- */
-static void Bsp_SwapVis(void *lump, const int32_t num) {
-
-	bsp_vis_t *vis = (bsp_vis_t *) lump;
-
-	// visibility
-	int32_t j = vis->num_clusters;
-
-	vis->num_clusters = LittleLong(vis->num_clusters);
-
-	for (int32_t i = 0; i < j; i++) {
-
-		vis->bit_offsets[i][0] = LittleLong(vis->bit_offsets[i][0]);
-		vis->bit_offsets[i][1] = LittleLong(vis->bit_offsets[i][1]);
 	}
 }
 
@@ -364,7 +355,6 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
 		Bsp_SwapLeafFaces,
 		Bsp_SwapLeafs,
 		Bsp_SwapModels,
-		Bsp_SwapVis,
 		Bsp_SwapLightmap,
 		Bsp_SwapLightgrid,
 	};
@@ -685,61 +675,4 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp) {
 
 	// return to where we were
 	Fs_Seek(file, current_position);
-}
-
-/**
- * @brief
- */
-int32_t Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
-
-	const int32_t row = (bsp->vis->num_clusters + 7) >> 3;
-	byte *out_p = out;
-
-	do {
-		if (*in) {
-			*out_p++ = *in++;
-			continue;
-		}
-
-		int32_t c = in[1];
-		in += 2;
-		if ((out_p - out) + c > row) {
-			c = (int32_t) (row - (out_p - out));
-			Com_Warn("Overrun\n");
-		}
-		while (c) {
-			*out_p++ = 0;
-			c--;
-		}
-	} while (out_p - out < row);
-
-	return (int32_t) (ptrdiff_t) (out_p - out);
-}
-
-/**
- * @brief
- */
-int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
-
-	const int32_t row = (bsp->vis->num_clusters + 7) >> 3;
-	byte *out_p = out;
-
-	for (int32_t j = 0; j < row; j++) {
-		*out_p++ = in[j];
-		if (in[j]) {
-			continue;
-		}
-
-		int32_t rep = 1;
-		for (j++; j < row; j++)
-			if (in[j] || rep == 0xff) {
-				break;
-			} else {
-				rep++;
-			}
-		*out_p++ = rep;
-		j--;
-	}
-
-	return (int32_t) (ptrdiff_t) (out_p - out);
 }

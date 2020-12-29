@@ -87,7 +87,7 @@ static struct {
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 	GLint in_color;
@@ -150,6 +150,48 @@ void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color) {
 }
 
 /**
+ * @brief Draws the bounding box using line strips in 3D space.
+ */
+void R_Draw3DBox(const vec3_t mins, const vec3_t maxs, const color_t color) {
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(mins.x, mins.y, mins.z),
+		Vec3(maxs.x, mins.y, mins.z),
+		Vec3(maxs.x, maxs.y, mins.z),
+		Vec3(mins.x, maxs.y, mins.z),
+		Vec3(mins.x, mins.y, mins.z),
+	}, 5, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(mins.x, mins.y, maxs.z),
+		Vec3(maxs.x, mins.y, maxs.z),
+		Vec3(maxs.x, maxs.y, maxs.z),
+		Vec3(mins.x, maxs.y, maxs.z),
+		Vec3(mins.x, mins.y, maxs.z),
+	}, 5, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(mins.x, mins.y, mins.z),
+		Vec3(mins.x, mins.y, maxs.z),
+	}, 2, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(mins.x, maxs.y, mins.z),
+		Vec3(mins.x, maxs.y, maxs.z),
+	}, 2, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(maxs.x, maxs.y, mins.z),
+		Vec3(maxs.x, maxs.y, maxs.z),
+	}, 2, color);
+
+	R_Draw3DLines((const vec3_t []) {
+		Vec3(maxs.x, mins.y, mins.z),
+		Vec3(maxs.x, mins.y, maxs.z),
+	}, 2, color);
+}
+
+/**
  * @brief Draw all geometry accumulated for the current frame.
  */
 void R_Draw3D(void) {
@@ -179,7 +221,9 @@ void R_Draw3D(void) {
 	for (int32_t i = 0; i < r_draw_3d.num_draw_arrays; i++, draw++) {
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
-	
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -209,8 +253,8 @@ static void R_InitDraw3DProgram(void) {
 
 	glUseProgram(r_draw_3d_program.name);
 
-	r_draw_3d_program.uniforms = glGetUniformBlockIndex(r_draw_3d_program.name, "uniforms");
-	glUniformBlockBinding(r_draw_3d_program.name, r_draw_3d_program.uniforms, 0);
+	r_draw_3d_program.uniforms_block = glGetUniformBlockIndex(r_draw_3d_program.name, "uniforms_block");
+	glUniformBlockBinding(r_draw_3d_program.name, r_draw_3d_program.uniforms_block, 0);
 
 	r_draw_3d_program.in_position = glGetAttribLocation(r_draw_3d_program.name, "in_position");
 	r_draw_3d_program.in_color = glGetAttribLocation(r_draw_3d_program.name, "in_color");
@@ -236,6 +280,8 @@ void R_InitDraw3D(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_draw_3d_vertex_t), (void *) offsetof(r_draw_3d_vertex_t, position));
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_3d_vertex_t), (void *) offsetof(r_draw_3d_vertex_t, color));
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 
 	R_GetError(NULL);

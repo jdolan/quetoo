@@ -20,7 +20,6 @@
  */
 
 #include "qbsp.h"
-#include "qvis.h"
 #include "qlight.h"
 #include "qmat.h"
 #include "qzip.h"
@@ -30,7 +29,7 @@
 	 #define SDL_MAIN_HANDLED
 	#endif
 
-	#include <Windows.h>
+	#include <windows.h>
 #endif
 
 #include <SDL.h>
@@ -215,24 +214,6 @@ static void Check_BSP_Options(int32_t argc) {
 /**
  * @brief
  */
-static void Check_VIS_Options(int32_t argc) {
-
-	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "--fast")) {
-			Com_Verbose("fast_vis = true\n");
-			fast_vis = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-sort")) {
-			Com_Verbose("no-sort = true\n");
-			no_sort = true;
-		} else {
-			break;
-		}
-	}
-}
-
-/**
- * @brief
- */
 static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
@@ -318,11 +299,6 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --only-ents - only update the entity string from the .map\n");
 	Com_Print("\n");
 
-	Com_Print("-vis               VIS stage options:\n");
-	Com_Print(" --fast\n");
-	Com_Print(" --no-sort\n");
-	Com_Print("\n");
-
 	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" --antialias - calculate extra lighting samples and average them\n");
 	Com_Print(" --indirect - calculate indirect lighting\n");
@@ -342,10 +318,10 @@ static void PrintHelpMessage(void) {
 	Com_Print("Examples:\n");
 	Com_Print("Materials file generation:\n"
 			  " quemap -mat maps/my.map\n");
-	Com_Print("Fast compile rough lighting:\n"
-			  " quemap -bsp -vis --fast -light maps/my.map\n");
+	Com_Print("Development compile with rough lighting:\n"
+			  " quemap -bsp -light maps/my.map\n");
 	Com_Print("Final compile with expensive lighting:\n"
-	          " quemap -bsp -vis -light --antialias --indirect maps/my.map\n");
+	          " quemap -bsp -light --antialias maps/my.map\n");
 	Com_Print("Zip file generation:\n"
 			  " quemap -zip maps/my.bsp\n");
 	Com_Print("\n");
@@ -358,7 +334,6 @@ int32_t main(int32_t argc, char **argv) {
 	int32_t num_threads = 0;
 	_Bool do_mat = false;
 	_Bool do_bsp = false;
-	_Bool do_vis = false;
 	_Bool do_light = false;
 	_Bool do_zip = false;
 
@@ -431,11 +406,6 @@ int32_t main(int32_t argc, char **argv) {
 			Check_BSP_Options(i + 1);
 		}
 
-		if (!g_strcmp0(Com_Argv(i), "-vis")) {
-			do_vis = true;
-			Check_VIS_Options(i + 1);
-		}
-
 		if (!g_strcmp0(Com_Argv(i), "-light")) {
 			do_light = true;
 			Check_LIGHT_Options(i + 1);
@@ -447,7 +417,7 @@ int32_t main(int32_t argc, char **argv) {
 		}
 	}
 
-	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
+	if (!do_bsp && !do_light && !do_mat && !do_zip) {
 		Com_Error(ERROR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
 	}
 
@@ -491,9 +461,6 @@ int32_t main(int32_t argc, char **argv) {
 	}
 	if (do_bsp) {
 		BSP_Main();
-	}
-	if (do_vis) {
-		VIS_Main();
 	}
 	if (do_light) {
 		LIGHT_Main();

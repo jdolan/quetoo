@@ -288,6 +288,21 @@ typedef struct {
 } r_bsp_texinfo_t;
 
 /**
+ * @brief BSP plane structure.
+ */
+typedef struct {
+	/**
+	 * @brief The collision plane.
+	 */
+	const cm_bsp_plane_t *cm;
+
+	/**
+	 * @brief The alpha blended draw elements referencing this plane.
+	 */
+	GPtrArray *blend_elements;
+} r_bsp_plane_t;
+
+/**
  * @brief BSP vertex structure.
  */
 typedef struct {
@@ -336,11 +351,14 @@ typedef struct {
 typedef struct {
 	struct r_bsp_node_s *node;
 
-	cm_bsp_plane_t *plane;
+	r_bsp_plane_t *plane;
 	byte plane_side;
 
 	r_bsp_texinfo_t *texinfo;
 	int32_t contents;
+
+	vec3_t mins;
+	vec3_t maxs;
 
 	struct r_sprite_s *flare;
 
@@ -356,96 +374,87 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
- * @brief BSP draw elements, which include one or more faces on a given node.
- * @remarks Draw elements may span both sides of the node. We rely on back face culling to deal
- * with that, and avoid the work of testing and marking plane sidedness.
+ * @brief BSP draw elements, which include all opaque faces of a given material
+ * within a particular inline model.
  */
 typedef struct {
-	struct r_bsp_node_s *node;
+	r_bsp_plane_t *plane;
+	byte plane_side;
 
 	r_bsp_texinfo_t *texinfo;
 	int32_t contents;
 
-	r_bsp_face_t *faces;
-	int32_t num_faces;
+	vec3_t mins;
+	vec3_t maxs;
 
 	GLvoid *elements;
 	int32_t num_elements;
 
 	vec2_t st_origin;
+
+	int32_t blend_depth_types;
 } r_bsp_draw_elements_t;
 
 /**
- * @brief BSP nodes comprise the tree representation of the world. At compile
- * time, the map is divided into convex volumes that fall along brushes
- * (walls). These volumes become nodes. The planes these divisions create
- * provide a basis for testing all other nodes in the world for sidedness
- * using the dot-product check: DOT(point, plane.normal) - plane.dist.
- * Starting from the origin, this information is gathered into a tree structure
- * with which a simple recursion can quickly determine:
- *
- *  a. Which nodes are in front of my view vector from my current origin?
- *  b. Of those, which nodes are facing me?
- *
- * This is the basis for all collision detection and rendering in Quake.
+ * @brief BSP occlusion queries are defined by brushes with CONTENTS_OCCLUSION_QUERY.
+ * @remarks Occlusion queries are processed once per frame. Objects residing completely
+ * within such a brush may be culled if the occlusion query produces no visible samples.
+ */
+typedef struct {
+	GLuint name;
+
+	vec3_t mins;
+	vec3_t maxs;
+
+	vec3_t vertexes[8];
+
+	GLint result;
+	_Bool defer;
+} r_bsp_occlusion_query_t;
+
+/**
+ * @brief BSP nodes comprise the tree representation of the world.
  */
 struct r_bsp_node_s {
 	// common with leaf
 	int32_t contents; // -1, to differentiate from leafs
 
-	vec3_t mins; // for frustum culling
+	vec3_t mins;
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
 
-	int32_t vis_frame;
-
 	// node specific
-	cm_bsp_plane_t *plane;
+	r_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
-
-	r_bsp_draw_elements_t *draw_elements;
-	int32_t num_draw_elements;
-
-	int32_t lights_mask;
-	
-	int32_t blend_depth;
-	int32_t blend_depth_count;
 };
 
 typedef struct r_bsp_node_s r_bsp_node_t;
 
 /**
- * @brief BSP leafs terminate the branches of the BSP tree and are grouped into
- * clusters that are the unit of granularity for the PVS. If a leaf's cluster is
- * visible, all ancestors of that leaf should be marked as visible.
+ * @brief BSP leafs terminate the branches of the BSP tree.
  */
 struct r_bsp_leaf_s {
 	// common with node
 	int32_t contents;
 
-	vec3_t mins; // for frustum culling
+	vec3_t mins;
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
-
-	int32_t vis_frame;
-
-	// leaf specific
-	int32_t cluster;
 };
 
 typedef struct r_bsp_leaf_s r_bsp_leaf_t;
 
 /**
  * @brief The BSP is organized into one or more models (trees). The first model is
- * the world, and typically is the largest. An additional model exist for each entity
- * that contains brushes. Non-world models can move and rotate.
+ * the worldspawn model, and typically is the largest. An additional model exists
+ * for each entity that contains brushes. Non-worldspawn models can move and rotate.
  */
 typedef struct r_bsp_inline_model_s {
 	/**
@@ -468,6 +477,11 @@ typedef struct r_bsp_inline_model_s {
 	int32_t num_faces;
 
 	/**
+	 * @brief The alpha blended draw elements of this inline model, sorted by depth each frame.
+	 */
+	GPtrArray *blend_elements;
+
+	/**
 	 * @brief The faces of this inline model that include flares, sorted by material at level load.
 	 */
 	GPtrArray *flare_faces;
@@ -478,17 +492,6 @@ typedef struct r_bsp_inline_model_s {
 	 */
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
-
-	/**
-	 * @brief The opaque draw elements of this inline model, sorted by material at level load.
-	 */
-	GPtrArray *opaque_draw_elements;
-
-	/**
-	 * @brief The alpha blended draw elements of this inline model, sorted by depth each frame.
-	 */
-	GPtrArray *alpha_blend_draw_elements;
-
 } r_bsp_inline_model_t;
 
 /**
@@ -533,6 +536,9 @@ typedef struct {
 
 	cm_bsp_t *cm;
 
+	int32_t num_planes;
+	r_bsp_plane_t *planes;
+
 	int32_t num_texinfo;
 	r_bsp_texinfo_t *texinfo;
 
@@ -548,6 +554,9 @@ typedef struct {
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
 
+	int32_t num_occlusion_queries;
+	r_bsp_occlusion_query_t *occlusion_queries;
+
 	int32_t num_nodes;
 	r_bsp_node_t *nodes;
 
@@ -562,9 +571,9 @@ typedef struct {
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
 
+	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
-	GLuint vertex_array;
 
 } r_bsp_model_t;
 
@@ -721,10 +730,9 @@ typedef enum {
 } r_sprite_billboard_axis_t;
 
 /**
- * @brief Sprites are billboarded alpha blended textures.
+ * @brief Sprites are billboarded alpha blended quads, optionally animated.
  */
 typedef struct r_sprite_s {
-
 	/**
 	 * @brief The sprite origin.
 	 */
@@ -781,23 +789,12 @@ typedef struct r_sprite_s {
 	r_sprite_flags_t flags;
 } r_sprite_t;
 
-typedef struct {
-	/**
-	 * @brief Sprite base data
-	 */
-	r_sprite_t sprite;
-
-	/**
-	 * @brief Normal of the sprite
-	 */
-	vec3_t dir;
-} r_directional_sprite_t;
+#define MAX_SPRITES		0x8000
 
 /**
- * @brief Beams are billboarded alpha blended textures.
+ * @brief Beams are segmented sprites.
  */
 typedef struct {
-
 	/**
 	 * @brief The beam start.
 	 */
@@ -839,7 +836,56 @@ typedef struct {
 	r_sprite_flags_t flags;
 } r_beam_t;
 
-#define MAX_SPRITES		0x8000
+#define MAX_BEAMS 0x200
+
+/**
+ * @brief The sprite instance vertex structure.
+ */
+typedef struct {
+	vec3_t position;
+	vec2_t diffusemap;
+	vec2_t next_diffusemap;
+	color32_t color;
+	float lerp;
+} r_sprite_vertex_t;
+
+/**
+ * @brief An instance of a renderable sprite.
+ */
+typedef struct r_sprite_instance_s {
+	/**
+	 * @brief The diffusemap texture.
+	 */
+	const r_image_t *diffusemap;
+
+	/**
+	 * @brief The next diffusemap texture for frame interpolation.
+	 */
+	const r_image_t *next_diffusemap;
+
+	/**
+	 * @brief The sprite vertexes in the shared array.
+	 */
+	r_sprite_vertex_t *vertexes;
+
+	/**
+	 * @brief The element offset in the shared array.
+	 */
+	ptrdiff_t offset;
+
+	/**
+	 * @brief The blend depth at which this sprite should be rendered.
+	 */
+	int32_t blend_depth;
+
+	/**
+	 * @brief The next sprite instance to be rendered at the same blend depth.
+	 */
+	struct r_sprite_instance_s *blend_chain;
+
+} r_sprite_instance_t;
+
+#define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
 
 /**
  * @brief Stains are low-resolution color effects added to the map's lightmap
@@ -869,7 +915,6 @@ typedef struct {
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-
 	/**
 	 * @brief The light origin.
 	 */
@@ -938,14 +983,19 @@ typedef struct r_entity_s {
 	float scale;
 
 	/**
-	 * @brief The relative entity bounds.
+	 * @brief The relative entity bounds, as known by the client.
 	 */
 	vec3_t mins, maxs;
 
 	/**
-	 * @brief The absolute entity bounds, for frustum culling.
+	 * @brief The absolute entity bounds, as known by the client.
 	 */
 	vec3_t abs_mins, abs_maxs;
+
+	/**
+	 * @brief The visual model bounds, in world space, for frustum culling.
+	 */
+	vec3_t abs_model_mins, abs_model_maxs;
 
 	/**
 	 * @brief The model matrix.
@@ -1008,50 +1058,15 @@ typedef struct r_entity_s {
 	vec4_t tints[TINT_TOTAL];
 
 	/**
-	 * @brief The entity light mask for dynamic light sources.
-	 */
-	int32_t lights;
-
-	/**
-	 * @brief The alpha blended depth in which this entity should be rendered.
+	 * @brief The alpha blended element behind which this entity should be rendered.
 	 */
 	int32_t blend_depth;
 } r_entity_t;
-
-#define WEATHER_NONE        0x0
-#define WEATHER_RAIN        0x1
-#define WEATHER_SNOW        0x2
-#define WEATHER_FOG         0x4
-
-#define FOG_START			0.f
-#define FOG_END				MAX_WORLD_AXIAL
-#define FOG_DENSITY			1.f
-
-/**
- * @brief Structure used for sprite images, to contain buffered sprites
- */
-typedef struct {
-	/**
-	 * @brief Image
-	 */
-	const r_image_t *diffusemap;
-
-	/**
-	 * @brief Animation interpolation next image
-	 */
-	const r_image_t *next_diffusemap;
-
-	/**
-	 * @brief The instance count.
-	 */
-	int32_t count;
-} r_sprite_instance_t;
 
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
-
 	/**
 	 * @brief The unclamped simulation time, in millis.
 	 */
@@ -1093,11 +1108,6 @@ typedef struct {
 	int32_t contents;
 
 	/**
-	 * @brief A bitmask of weather effects.
-	 */
-	int32_t weather;
-
-	/**
 	 * @brief The entities to render for the current frame.
 	 */
 	r_entity_t entities[MAX_ENTITIES];
@@ -1106,12 +1116,20 @@ typedef struct {
 	/**
 	 * @brief The sprites to render for the current frame.
 	 */
+	r_sprite_t sprites[MAX_SPRITES];
 	int32_t num_sprites;
 
 	/**
-	 * @brief The animated sprite instances to render for the current frame.
+	 * @brief The beams to render for the current frame.
 	 */
-	r_sprite_instance_t sprite_instances[MAX_SPRITES];
+	r_beam_t beams[MAX_BEAMS];
+	int32_t num_beams;
+
+	/**
+	 * @brief The sprite instances (sprites and beams) for the current frame.
+	 * @remarks This array is populated by the renderer from sprites and beams.
+	 */
+	r_sprite_instance_t sprite_instances[MAX_SPRITE_INSTANCES];
 	int32_t num_sprite_instances;
 
 	/**
@@ -1129,19 +1147,22 @@ typedef struct {
 	// counters, reset each frame
 
 	int32_t count_bsp_inline_models;
-	int32_t count_bsp_leafs;
-	int32_t count_bsp_nodes;
 	int32_t count_bsp_draw_elements;
+	int32_t count_bsp_draw_elements_blend;
 	int32_t count_bsp_triangles;
+	int32_t count_bsp_occlusion_queries;
+	int32_t count_bsp_occlusion_queries_passed;
 
 	int32_t count_mesh_models;
 	int32_t count_mesh_triangles;
+
+	int32_t count_sprite_draw_elements;
 
 	int32_t count_draw_chars;
 	int32_t count_draw_fills;
 	int32_t count_draw_images;
 	int32_t count_draw_lines;
-	int32_t count_draw_calls;
+	int32_t count_draw_arrays;
 
 	_Bool update; // inform the client of state changes
 
@@ -1157,7 +1178,7 @@ typedef struct {
 	SDL_Window *window;
 
 	/**
-	 * @brief The OpenGL 2.1 context.
+	 * @brief The OpenGL 3.3 context.
 	 */
 	SDL_GLContext *context;
 
@@ -1170,6 +1191,11 @@ typedef struct {
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
 	 */
 	r_pixel_t width, height;
+
+	/**
+	 * @brief The display vertical refresh rate, in Hz.
+	 */
+	float refresh_rate;
 
 	/**
 	 * @brief Greater than 1.0 if High DPI mode is enabled.

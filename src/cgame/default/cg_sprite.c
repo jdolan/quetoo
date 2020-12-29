@@ -67,7 +67,7 @@ static void Cg_PopSprite(cg_sprite_t *s, cg_sprite_t **list) {
  */
 cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
 
-	if (!cg_add_particles->integer) {
+	if (!cg_add_sprites->integer) {
 		return NULL;
 	}
 
@@ -144,10 +144,10 @@ void Cg_AddSprites(void) {
 		}
 
 		const uint32_t elapsed_time = (cgi.client->unclamped_time - s->time);
-		float life = elapsed_time / (float)s->lifetime;
-
-		if (s->life_easing)
+		float life = elapsed_time / (float) (s->lifetime ?: 1);
+		if (s->life_easing) {
 			life = s->life_easing(life);
+		}
 
 		s->size_velocity += s->size_acceleration * delta;
 
@@ -224,8 +224,9 @@ void Cg_AddSprites(void) {
 				break;
 		}
 		
-		if (s->think)
+		if (s->think) {
 			s->think(s, life, delta);
+		}
 		
 		s = s->next;
 	}

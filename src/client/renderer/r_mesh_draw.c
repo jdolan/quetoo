@@ -27,7 +27,8 @@
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
+	GLuint lights_block;
 
 	GLint in_position;
 	GLint in_normal;
@@ -70,8 +71,6 @@ static struct {
 		GLint shell;
 	} stage;
 
-	GLint lights_mask;
-
 	GLint tint_colors;
 
 	GLint ambient;
@@ -86,18 +85,11 @@ void R_UpdateMeshEntities(void) {
 
 	r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+
 		if (IS_MESH_MODEL(e->model)) {
-			e->blend_depth = R_BlendDepthForPoint(e->origin);
+			e->blend_depth = R_BlendDepthForPoint(e->origin, BLEND_DEPTH_ENTITY);
 		}
 	}
-
-	glUseProgram(r_mesh_program.name);
-
-	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
-
-	glUseProgram(0);
-
-	R_GetError(NULL);
 }
 
 /**
@@ -182,7 +174,7 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
  */
 static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
 
-	if (!r_materials->value) {
+	if (!r_draw_material_stages->value) {
 		return;
 	}
 
@@ -272,7 +264,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
-	glUniform1i(r_mesh_program.lights_mask, e->lights);
 
 	const r_mesh_face_t *face = mesh->faces;
 	for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
@@ -325,6 +316,9 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		R_DrawMeshEntityMaterialStages(e, face, material);
 	}
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 
 	if (e->effects & EF_WEAPON) {
@@ -345,16 +339,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
  */
 void R_DrawMeshEntities(int32_t blend_depth) {
 
-	int32_t i;
-	for (i = 0; i < r_view.num_entities; i++) {
-		if (IS_MESH_MODEL(r_view.entities[i].model)) {
-			if (r_view.entities[i].blend_depth == blend_depth) {
-				break;
-			}
-		}
-	}
-
-	if (i == r_view.num_entities) {
+	if (!r_view.num_entities) {
 		return;
 	}
 
@@ -366,6 +351,7 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 	glUseProgram(r_mesh_program.name);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
 
 	for (int32_t i = 0; i < (int32_t) lengthof(r_world_model->bsp->lightgrid->textures); i++) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
@@ -414,8 +400,11 @@ void R_InitMeshProgram(void) {
 
 	glUseProgram(r_mesh_program.name);
 
-	r_mesh_program.uniforms = glGetUniformBlockIndex(r_mesh_program.name, "uniforms");
-	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.uniforms, 0);
+	r_mesh_program.uniforms_block = glGetUniformBlockIndex(r_mesh_program.name, "uniforms_block");
+	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.uniforms_block, 0);
+
+	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
+	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 1);
 
 	r_mesh_program.in_position = glGetAttribLocation(r_mesh_program.name, "in_position");
 	r_mesh_program.in_normal = glGetAttribLocation(r_mesh_program.name, "in_normal");
@@ -454,8 +443,6 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
 	r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
 
-	r_mesh_program.lights_mask = glGetUniformLocation(r_mesh_program.name, "lights_mask");
-
 	r_mesh_program.ambient = glGetUniformLocation(r_mesh_program.name, "ambient");
 
 	r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
@@ -466,6 +453,8 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_mesh_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+
+	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
 	glUseProgram(0);
 	

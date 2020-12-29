@@ -137,52 +137,87 @@ static void Cl_DrawRendererStats(void) {
 	}
 
 	R_BindFont("small", NULL, &ch);
-	R_Draw2DString(x, y, "BSP:", color_red);
-	y += ch;
 
-	R_Draw2DString(x, y, va("%d inline models", r_view.count_bsp_inline_models), color_red);
-	y += ch;
-	R_Draw2DString(x, y, va("%d leafs", r_view.count_bsp_leafs), color_red);
-	y += ch;
-	R_Draw2DString(x, y, va("%d nodes", r_view.count_bsp_nodes), color_red);
-	y += ch;
-	R_Draw2DString(x, y, va("%d draw elements", r_view.count_bsp_draw_elements), color_red);
-	y += ch;
-	R_Draw2DString(x, y, va("%d triangles", r_view.count_bsp_triangles), color_red);
-	y += ch;
-
-	y += ch;
-	R_Draw2DString(x, y, "Mesh:", color_yellow);
-	y += ch;
-
-	R_Draw2DString(x, y, va("%d models", r_view.count_mesh_models), color_yellow);
-	y += ch;
-	R_Draw2DString(x, y, va("%d triangles", r_view.count_mesh_triangles), color_yellow);
-	y += ch;
+	{
+		R_Draw2DString(x, y, "BSP:", color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d inline models", r_view.count_bsp_inline_models), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d draw elements", r_view.count_bsp_draw_elements), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d blend elements", r_view.count_bsp_draw_elements_blend), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d triangles", r_view.count_bsp_triangles), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d occlusion queries (%d passed)", r_view.count_bsp_occlusion_queries,
+								r_view.count_bsp_occlusion_queries_passed), color_yellow);
+		y += ch;
+	}
 
 	y += ch;
-	R_Draw2DString(x, y, "2D:", color_green);
-	y += ch;
 
-	R_Draw2DString(x, y, va("%d chars", r_view.count_draw_chars), color_green);
-	y += ch;
-	R_Draw2DString(x, y, va("%d fills", r_view.count_draw_fills), color_green);
-	y += ch;
-	R_Draw2DString(x, y, va("%d images", r_view.count_draw_images), color_green);
-	y += ch;
-	R_Draw2DString(x, y, va("%d lines", r_view.count_draw_lines), color_green);
-	y += ch;
-	R_Draw2DString(x, y, va("%d arrays", r_view.count_draw_calls), color_green);
-	y += ch;
+	{
+		R_Draw2DString(x, y, "Mesh:", color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d models", r_view.count_mesh_models), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d triangles", r_view.count_mesh_triangles), color_yellow);
+		y += ch;
+	}
 
 	y += ch;
-	R_Draw2DString(x, y, "Other:", color_white);
+
+	{
+		R_Draw2DString(x, y, "Sprites:", color_yellow);
+		y += ch;
+
+		static char sprites[64], beams[64], instances[64], draw_elements[64];
+		static uint32_t sprite_time;
+
+		if (quetoo.ticks - sprite_time > 100) {
+			sprite_time = quetoo.ticks;
+
+			g_snprintf(sprites, sizeof(sprites),      " %d sprites", r_view.num_sprites);
+			g_snprintf(beams, sizeof(beams),          " %d beams", r_view.num_beams);
+			g_snprintf(instances, sizeof(instances),  " %d instances", r_view.num_sprite_instances);
+			g_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_view.count_sprite_draw_elements);
+		}
+
+		R_Draw2DString(x, y, sprites, color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, beams, color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, instances, color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, draw_elements, color_yellow);
+		y += ch;
+	}
+
 	y += ch;
 
-	R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_white);
+	{
+		R_Draw2DString(x, y, "Draw 2D:", color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va("%d chars", r_view.count_draw_chars), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va("%d fills", r_view.count_draw_fills), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va("%d images", r_view.count_draw_images), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va("%d lines", r_view.count_draw_lines), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va("%d arrays", r_view.count_draw_arrays), color_yellow);
+		y += ch;
+	}
+
 	y += ch;
-	R_Draw2DString(x, y, va("%d sprites (%d instances)", r_view.num_sprites, r_view.num_sprite_instances), color_white);
-	y += ch;
+
+	{
+		R_Draw2DString(x, y, "Other:", color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_yellow);
+		y += ch;
+	}
 
 	const vec3_t forward = Vec3_Add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST));
 	const cm_trace_t tr = Cl_Trace(r_view.origin, forward, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
@@ -199,7 +234,6 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 	}
 
-
 	R_BindFont(NULL, NULL, NULL);
 }
 
@@ -207,7 +241,7 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-	r_pixel_t ch, x = 1, y = cl_draw_renderer_stats->value ? 400 : 64;
+	r_pixel_t ch, x = 1, y = cl_draw_renderer_stats->value ? 512 : 64;
 
 	if (!cl_draw_sound_stats->value) {
 		return;
@@ -279,10 +313,10 @@ static void Cl_DrawCounters(void) {
 		last_speed_time = quetoo.ticks;
 	}
 
-	if (quetoo.ticks - last_draw_time >= 1000) {
+	if (quetoo.ticks - last_draw_time >= 100) {
 
-		g_snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter);
-		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter);
+		g_snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter * 10);
+		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter * 10);
 
 		last_draw_time = quetoo.ticks;
 
@@ -309,16 +343,10 @@ static void Cl_DrawCounters(void) {
 }
 
 /**
- * @brief
- */
-
-/**
  * @brief This is called every frame, and can also be called explicitly to flush
  * text to the screen.
  */
 void Cl_UpdateScreen(void) {
-
-	R_BeginFrame();
 
 	switch (cls.state) {
 		case CL_UNINITIALIZED:
@@ -342,11 +370,9 @@ void Cl_UpdateScreen(void) {
 			break;
 
 		case CL_ACTIVE:
-			R_DrawView(&r_view);
-
 			Cl_DrawNetGraph();
 			Cl_DrawCounters();
-			
+
 			cls.cgame->UpdateScreen(&cl.frame);
 
 			switch (cls.key_state.dest) {
@@ -358,22 +384,13 @@ void Cl_UpdateScreen(void) {
 					break;
 				case KEY_GAME:
 					Cl_DrawNotify();
+					Cl_DrawRendererStats();
+					Cl_DrawSoundStats();
 					break;
 				case KEY_CHAT:
 					Cl_DrawChat();
 					break;
 			}
-
-			if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_GAME) {
-				Cl_DrawRendererStats();
-				Cl_DrawSoundStats();
-			}
 			break;
 	}
-
-	R_Draw2D();
-
-	R_EndFrame();
-
-	Cl_ClearView();
 }
