@@ -38,6 +38,11 @@ struct lightgrid_t {
 	 * @brief The view origin, in lightgrid space.
 	 */
 	vec4 view_coordinate;
+
+	/**
+	 * @brief The lightgrid texel resolution per dimension.
+	 */
+	vec3 resolution;
 };
 
 /**

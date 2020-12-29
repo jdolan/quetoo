@@ -140,6 +140,11 @@ typedef struct {
 	 * @brief The view origin, in lightgrid space.
 	 */
 	vec4_t view_coordinate;
+
+	/**
+	 * @brief The lightgrid texel dimensions.
+	 */
+	vec4_t resolution;
 } r_lightgrid_t;
 
 /**

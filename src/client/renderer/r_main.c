@@ -226,6 +226,7 @@ static void R_UpdateUniforms(void) {
 		const vec3_t view = Vec3_Subtract(r_view.origin, r_world_model->bsp->lightgrid->mins);
 		const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
 
+		r_uniforms.block.lightgrid.resolution = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 		r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(view, size), 0.f);
 	}
 
