@@ -41,6 +41,7 @@ r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) {
 		break;
 	case GL_FRAGMENT_SHADER:
 		desc->filenames[i++] = "common_fs.glsl";
+		break;
 	default:
 		break;
 	}
