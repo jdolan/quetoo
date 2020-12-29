@@ -117,6 +117,8 @@ void R_DrawDepthPass(void) {
 				continue;
 			}
 
+			_Bool run = false;
+
 			// pull in the result from the last frame
 			if (q->defer) {
 				glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
@@ -127,18 +129,23 @@ void R_DrawDepthPass(void) {
 					if (q->result) {
 						r_view.count_bsp_occlusion_queries_passed++;
 					}
+
+					run = true;
 				}
 			} else {
 				q->result = -1;
+				run = true;
 			}
 
-			glBufferData(GL_ARRAY_BUFFER, sizeof(q->vertexes), q->vertexes, GL_DYNAMIC_DRAW);
+			if (run) {
+				glBufferData(GL_ARRAY_BUFFER, sizeof(q->vertexes), q->vertexes, GL_DYNAMIC_DRAW);
 
-			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
+				glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
 
-			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
+				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
 
-			glEndQuery(GL_ANY_SAMPLES_PASSED);
+				glEndQuery(GL_ANY_SAMPLES_PASSED);
+			}
 
 			r_view.count_bsp_occlusion_queries++;
 
