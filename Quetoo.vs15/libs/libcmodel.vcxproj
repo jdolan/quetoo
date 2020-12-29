@@ -28,7 +28,6 @@
     <ClInclude Include="..\..\src\collision\cm_test.h" />
     <ClInclude Include="..\..\src\collision\cm_trace.h" />
     <ClInclude Include="..\..\src\collision\cm_types.h" />
-    <ClInclude Include="..\..\src\collision\cm_vis.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\collision\cm_bsp.c" />
@@ -38,7 +37,6 @@
     <ClCompile Include="..\..\src\collision\cm_polylib.c" />
     <ClCompile Include="..\..\src\collision\cm_test.c" />
     <ClCompile Include="..\..\src\collision\cm_trace.c" />
-    <ClCompile Include="..\..\src\collision\cm_vis.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{76EBD445-3535-4652-BE8B-7DE4F03591CE}</ProjectGuid>

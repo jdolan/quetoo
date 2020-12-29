@@ -19,12 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler2D depth_stencil_attachment;
+uniform sampler2D texture_depth_stencil_attachment;
 
-uniform vec2 depth_range;
-uniform vec2 inv_viewport_size;
-
-uniform float transition_size;
+#define TRANSITION_SIZE .0016
 
 /**
  * @brief Reverse depth calculation.
@@ -37,5 +34,8 @@ float calc_depth(in float z) {
  * @brief Calculate the soft edge factor for the current fragment.
  */
 float soften() {
-	return smoothstep(0.0, transition_size, clamp(calc_depth(texture(depth_stencil_attachment, gl_FragCoord.xy * inv_viewport_size).r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
+
+	vec4 depth_sample = texture(texture_depth_stencil_attachment, gl_FragCoord.xy / viewport.zw);
+
+	return smoothstep(0.0, TRANSITION_SIZE, clamp(calc_depth(depth_sample.r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
 }

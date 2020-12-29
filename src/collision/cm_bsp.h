@@ -13,25 +13,25 @@
 /**
  * @brief BSP file format limits.
  */
-#define MAX_BSP_ENTITIES_SIZE	0x40000
-#define MAX_BSP_ENTITIES		0x800
-#define MAX_BSP_TEXINFO			0x4000
-#define MAX_BSP_PLANES			0x20000
-#define MAX_BSP_BRUSH_SIDES		0x20000
-#define MAX_BSP_BRUSHES			0x8000
-#define MAX_BSP_VERTEXES		0x80000
-#define MAX_BSP_ELEMENTS		0x200000
-#define MAX_BSP_FACES			0x20000
-#define MAX_BSP_DRAW_ELEMENTS	0x20000
-#define MAX_BSP_NODES			0x20000
-#define MAX_BSP_LEAF_BRUSHES 	0x20000
-#define MAX_BSP_LEAF_FACES		0x20000
-#define MAX_BSP_LEAFS			0x20000
-#define MAX_BSP_MODELS			0x400
-#define MAX_BSP_PORTALS			0x20000
-#define MAX_BSP_VIS_SIZE		0x200000
-#define MAX_BSP_LIGHTMAP_SIZE	0x60000000
-#define MAX_BSP_LIGHTGRID_SIZE	0x1200000
+#define MAX_BSP_ENTITIES_SIZE		0x40000
+#define MAX_BSP_ENTITIES			0x800
+#define MAX_BSP_TEXINFO				0x4000
+#define MAX_BSP_PLANES				0x20000
+#define MAX_BSP_BRUSH_SIDES			0x20000
+#define MAX_BSP_BRUSHES				0x8000
+#define MAX_BSP_VERTEXES			0x80000
+#define MAX_BSP_ELEMENTS			0x200000
+#define MAX_BSP_FACES				0x20000
+#define MAX_BSP_DRAW_ELEMENTS		0x20000
+#define MAX_BSP_NODES				0x20000
+#define MAX_BSP_LEAF_BRUSHES 		0x20000
+#define MAX_BSP_LEAF_FACES			0x20000
+#define MAX_BSP_LEAFS				0x20000
+#define MAX_BSP_MODELS				0x400
+#define MAX_BSP_PORTALS				0x20000
+#define MAX_BSP_LIGHTMAP_SIZE		0x60000000
+#define MAX_BSP_LIGHTGRID_SIZE		0x1200000
+#define MAX_BSP_OCCLUSION_QUERIES	0x40
 
 /**
  * @brief Lightmap luxel size in world units.
@@ -122,7 +122,6 @@ typedef enum {
 	BSP_LUMP_LEAF_FACES,
 	BSP_LUMP_LEAFS,
 	BSP_LUMP_MODELS,
-	BSP_LUMP_VIS,
 	BSP_LUMP_LIGHTMAP,
 	BSP_LUMP_LIGHTGRID,
 	BSP_LUMP_LAST
@@ -205,41 +204,27 @@ typedef struct {
 	int32_t texinfo;
 	int32_t contents;
 
-	int32_t first_vertex; // vertex array for polygon or triangle fan
+	vec3_t mins;
+	vec3_t maxs;
+
+	int32_t first_vertex;
 	int32_t num_vertexes;
 
-	int32_t first_element; // element array for triangles
+	int32_t first_element;
 	int32_t num_elements;
 
 	bsp_face_lightmap_t lightmap;
 } bsp_face_t;
 
-/**
- * @brief Faces within each node are grouped by texture and merged into draw elements.
- */
-typedef struct {
-	int32_t texinfo;
-	int32_t contents;
-
-	int32_t first_face;
-	int32_t num_faces;
-
-	int32_t first_element;
-	int32_t num_elements;
-} bsp_draw_elements_t;
-
 typedef struct {
 	int32_t plane_num;
-	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
+	int32_t children[2]; // negative numbers are -(leafs + 1), not nodes
 
 	vec3_t mins; // for frustum culling
 	vec3_t maxs;
 
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
-
-	int32_t first_draw_elements;
-	int32_t num_draw_elements;
 } bsp_node_t;
 
 typedef struct {
@@ -256,6 +241,24 @@ typedef struct {
 	int32_t num_leaf_brushes;
 } bsp_leaf_t;
 
+/**
+ * @brief Draw elements are OpenGL draw commands, serialized directly within the BSP.
+ * @details For each model, all opaque faces sharing texinfo and contents are grouped
+ * into a single draw elements. All blend faces sharing plane, texinfo and contents
+ * are also grouped.
+ */
+typedef struct {
+	int32_t plane_num;
+	int32_t texinfo;
+	int32_t contents;
+
+	vec3_t mins;
+	vec3_t maxs;
+
+	int32_t first_element;
+	int32_t num_elements;
+} bsp_draw_elements_t;
+
 typedef struct {
 	int32_t head_node;
 
@@ -268,17 +271,6 @@ typedef struct {
 	int32_t first_draw_elements;
 	int32_t num_draw_elements;
 } bsp_model_t;
-
-// the visibility lump consists of a header with a count, then
-// byte offsets for the PVS and PHS of each cluster, then the raw
-// compressed bit vectors
-#define VIS_PVS	0
-#define VIS_PHS	1
-
-typedef struct {
-	int32_t num_clusters;
-	int32_t bit_offsets[8][2]; // bit_offsets[num_clusters][2]
-} bsp_vis_t;
 
 /**
  * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
@@ -347,9 +339,6 @@ typedef struct {
 
 	int32_t num_models;
 	bsp_model_t *models;
-
-	int32_t vis_size;
-	bsp_vis_t *vis;
 
 	int32_t lightmap_size;
 	bsp_lightmap_t *lightmap;

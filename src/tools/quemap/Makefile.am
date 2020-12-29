@@ -23,12 +23,10 @@ noinst_HEADERS = \
 	qlight.h \
 	qmat.h \
 	quemap.h \
-	qvis.h \
 	qzip.h \
 	texinfo.h \
 	tjunction.h \
 	tree.h \
-	vis.h \
 	work.h \
 	writebsp.h
 
@@ -54,12 +52,10 @@ quemap_SOURCES = \
 	qbsp.c \
 	qmat.c \
 	qlight.c \
-	qvis.c \
 	qzip.c \
 	texinfo.c \
 	tjunction.c \
 	tree.c \
-	vis.c \
 	work.c \
 	writebsp.c
 

@@ -24,8 +24,8 @@
 #include "tree.h"
 
 void EmitEntities(void);
-void EmitNodes(node_t *head_node);
+int32_t EmitNodes(node_t *head_node);
 void BeginBSPFile(void);
 void EndBSPFile(void);
-void BeginModel(const entity_t *e);
-void EndModel(void);
+bsp_model_t *BeginModel(const entity_t *e);
+void EndModel(bsp_model_t *mod);

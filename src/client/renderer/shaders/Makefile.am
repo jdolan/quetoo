@@ -5,6 +5,8 @@ shaders_DATA = \
 	bsp_vs.glsl \
 	common_fs.glsl \
 	common_vs.glsl \
+	depth_pass_fs.glsl \
+	depth_pass_vs.glsl \
 	draw_2d_blur_fs.glsl \
 	draw_2d_blur_vs.glsl \
 	draw_2d_fs.glsl \
@@ -21,7 +23,6 @@ shaders_DATA = \
 	sky_vs.glsl \
 	soften_fs.glsl \
 	sprite_fs.glsl \
-	sprite_gs.glsl \
 	sprite_vs.glsl \
 	uniforms.glsl \
 	version.glsl

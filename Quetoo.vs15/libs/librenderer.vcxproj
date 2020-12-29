@@ -25,6 +25,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_bsp_draw.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_context.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_depth_pass.c" />
     <ClCompile Include="..\..\src\client\renderer\r_draw_2d.c" />
     <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c" />
     <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
@@ -55,6 +56,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_bsp_draw.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_context.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_depth_pass.h" />
     <ClInclude Include="..\..\src\client\renderer\r_draw_2d.h" />
     <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h" />
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />

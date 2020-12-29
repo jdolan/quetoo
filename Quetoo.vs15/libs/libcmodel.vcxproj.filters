@@ -24,9 +24,6 @@
     <ClInclude Include="..\..\src\collision\cm_types.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_vis.h">
-      <Filter>src\collision</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\collision\cm_material.h">
       <Filter>src\collision</Filter>
     </ClInclude>
@@ -48,9 +45,6 @@
       <Filter>src\collision</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\collision\cm_trace.c">
-      <Filter>src\collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_vis.c">
       <Filter>src\collision</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\collision\cm_material.c">

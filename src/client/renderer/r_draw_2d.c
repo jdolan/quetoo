@@ -97,7 +97,7 @@ static struct {
 static struct {
 	GLuint name;
 
-	GLuint uniforms;
+	GLuint uniforms_block;
 
 	GLint in_position;
 	GLint in_diffusemap;
@@ -124,7 +124,6 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 		r_draw_2d_arrays_t *last_draw = &r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays - 1];
 
 		if (last_draw->mode == draw->mode && last_draw->texture == draw->texture) {
-
 			last_draw->num_vertexes += draw->num_vertexes;
 			return;
 		}
@@ -412,7 +411,7 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
  */
 void R_Draw2D(void) {
 	
-	r_view.count_draw_calls = r_draw_2d.num_draw_arrays;
+	r_view.count_draw_arrays = r_draw_2d.num_draw_arrays;
 
 	if (r_draw_2d.num_draw_arrays == 0) {
 		return;
@@ -426,6 +425,7 @@ void R_Draw2D(void) {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_draw_2d.vertex_array);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, r_draw_2d.num_vertexes * sizeof(r_draw_2d_vertex_t), r_draw_2d.vertexes, GL_DYNAMIC_DRAW);
 
@@ -438,7 +438,9 @@ void R_Draw2D(void) {
 		glBindTexture(GL_TEXTURE_2D, draw->texture);
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
-	
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -496,8 +498,8 @@ static void R_InitDraw2DProgram(void) {
 
 	glUseProgram(r_draw_2d_program.name);
 
-	r_draw_2d_program.uniforms = glGetUniformBlockIndex(r_draw_2d_program.name, "uniforms");
-	glUniformBlockBinding(r_draw_2d_program.name, r_draw_2d_program.uniforms, 0);
+	r_draw_2d_program.uniforms_block = glGetUniformBlockIndex(r_draw_2d_program.name, "uniforms_block");
+	glUniformBlockBinding(r_draw_2d_program.name, r_draw_2d_program.uniforms_block, 0);
 
 	r_draw_2d_program.in_position = glGetAttribLocation(r_draw_2d_program.name, "in_position");
 	r_draw_2d_program.in_diffusemap = glGetAttribLocation(r_draw_2d_program.name, "in_diffusemap");
@@ -506,6 +508,8 @@ static void R_InitDraw2DProgram(void) {
 	r_draw_2d_program.texture_diffusemap = glGetUniformLocation(r_draw_2d_program.name, "texture_diffusemap");
 
 	glUniform1i(r_draw_2d_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+
+	glUseProgram(0);
 
 	R_GetError(NULL);
 }
@@ -536,6 +540,8 @@ void R_InitDraw2D(void) {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, diffusemap));
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, color));
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 
 	R_GetError(NULL);

@@ -518,7 +518,7 @@ void Cmd_ExecuteString(const char *text) {
 			cmd->Execute();
 		} else if (cmd->commands) {
 			if (++cmd_state.alias_loop_count == MAX_ALIAS_LOOP_COUNT) {
-				Com_Warn("ALIAS_LOOP_COUNT reached\n");
+				Com_Warn("ALIAS_LOOP_COUNT\n");
 			} else {
 				Cbuf_AddText(cmd->commands);
 			}

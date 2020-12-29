@@ -224,8 +224,6 @@ void Cl_InitCgame(void) {
 	import.Trace = Cl_Trace;
 
 	import.LeafForPoint = R_LeafForPoint;
-	import.LeafHearable = R_LeafHearable;
-	import.LeafVisible = R_LeafVisible;
 
 	import.KeyDown = Cl_KeyDown;
 	import.KeyUp = Cl_KeyUp;
@@ -234,9 +232,6 @@ void Cl_InitCgame(void) {
 	import.LoadSample = S_LoadSample;
 	import.LoadClientSamples = S_LoadClientSamples;
 	import.AddSample = S_AddSample;
-
-	import.CullBox = R_CullBox;
-	import.CullSphere = R_CullSphere;
 
 	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;

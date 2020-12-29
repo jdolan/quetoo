@@ -222,7 +222,7 @@ void S_LoadMedia(void) {
 
 	S_BeginLoading();
 
-	Cl_LoadingProgress(80, "sounds");
+	Cl_LoadingProgress(-1, "sounds");
 
 	if (*cl_chat_sound->string) {
 		S_LoadSample(cl_chat_sound->string);
@@ -252,7 +252,7 @@ void S_LoadMedia(void) {
 
 	S_NextTrack_f();
 
-	Cl_LoadingProgress(85, "music");
+	Cl_LoadingProgress(-3, "music");
 
 	s_env.update = true;
 }

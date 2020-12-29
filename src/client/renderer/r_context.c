@@ -259,6 +259,11 @@ void R_InitContext(void) {
 		Com_Warn("Failed to set gamma %1.1f: %s\n", r_gamma->value, SDL_GetError());
 	}
 
+	SDL_DisplayMode mode;
+	SDL_GetWindowDisplayMode(r_context.window, &mode);
+
+	r_context.refresh_rate = mode.refresh_rate;
+
 	int32_t dw, dh;
 	SDL_GL_GetDrawableSize(r_context.window, &dw, &dh);
 

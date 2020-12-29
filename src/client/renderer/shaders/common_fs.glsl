@@ -245,14 +245,10 @@ float mipmap_level(vec2 uv) {
 /**
  * @brief
  */
-void dynamic_light(in int lights_mask, in vec3 position, in vec3 normal, in float specular_exponent,
+void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 				   inout vec3 diffuse_light, inout vec3 specular_light) {
 
-	for (int i = 0; i < MAX_LIGHTS; i++) {
-
-		if ((lights_mask & (1 << i)) == 0) {
-			continue;
-		}
+	for (int i = 0; i < num_lights; i++) {
 
 		float radius = lights[i].origin.w;
 		if (radius == 0.0) {

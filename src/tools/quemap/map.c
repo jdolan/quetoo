@@ -200,23 +200,44 @@ static int32_t PlaneFromPoints(const vec3d_t p0, const vec3d_t p1, const vec3d_t
  */
 static int32_t BrushContents(const brush_t *b) {
 
-	const brush_side_t *s = &b->sides[0];
+	int32_t contents = 0;
 
-	int32_t contents = s->contents;
-
-	for (int32_t i = 1; i < b->num_sides; i++, s++) {
-
-		if ((s->contents & CONTENTS_MASK_VISIBLE) != (contents & CONTENTS_MASK_VISIBLE)) {
-			char bits[33], bobs[33];
-
-			SDL_itoa(s->contents & CONTENTS_MASK_VISIBLE, bits, 2);
-			SDL_itoa(contents & CONTENTS_MASK_VISIBLE, bobs, 2);
-
-			Mon_SendSelect(MON_WARN, b->entity_num, b->brush_num,
-						   va("Mixed face contents: %s expected %s", bits, bobs));
-			break;
+	{
+		const brush_side_t *s = b->sides;
+		for (int32_t i = 1; i < b->num_sides; i++, s++) {
+			contents |= s->contents;
 		}
 	}
+
+	// if we have a mix of solid and window, window wins
+	if ((contents & CONTENTS_SOLID) && (contents & CONTENTS_WINDOW)) {
+		brush_side_t *s = b->sides;
+		for (int32_t i = 1; i < b->num_sides; i++, s++) {
+			s->contents |= CONTENTS_WINDOW;
+			s->contents &= ~CONTENTS_SOLID;
+		}
+	}
+
+
+	{
+		const brush_side_t *s = b->sides;
+		contents = s->contents;
+
+		for (int32_t i = 1; i < b->num_sides; i++, s++) {
+
+			if ((s->contents & CONTENTS_MASK_VISIBLE) != (contents & CONTENTS_MASK_VISIBLE)) {
+				char bits[33], bobs[33];
+
+				SDL_itoa(s->contents & CONTENTS_MASK_VISIBLE, bits, 2);
+				SDL_itoa(contents & CONTENTS_MASK_VISIBLE, bobs, 2);
+
+				Mon_SendSelect(MON_WARN, b->entity_num, b->brush_num,
+							   va("Mixed face contents: %s expected %s", bits, bobs));
+				break;
+			}
+		}
+	}
+
 
 	return contents;
 }
@@ -484,6 +505,9 @@ static void SetMaterialFlags(brush_side_t *side) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
 	} else if (!g_strcmp0(side->texture, "common/nodraw")) {
 		side->surf |= SURF_NO_DRAW;
+	} else if (!g_strcmp0(side->texture, "common/occlude")) {
+		side->contents |= CONTENTS_OCCLUSION_QUERY;
+		side->surf |= SURF_SKIP;
 	} else if (!g_strcmp0(side->texture, "common/origin")) {
 		side->contents |= CONTENTS_ORIGIN;
 	} else if (!g_strcmp0(side->texture, "common/skip")) {
@@ -592,7 +616,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		SetMaterialFlags(side);
 
 		// translucent faces are inherently details beacuse they can not occlude
-		if (side->surf & SURF_MASK_TRANSLUCENT) {
+		if ((side->surf & SURF_MASK_TRANSLUCENT) || (side->contents & CONTENTS_WINDOW)) {
 			side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
 		}
 
@@ -618,9 +642,11 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 		}
 
-		// hints and skips have no contents
+			// hints and skips have no contents
 		if (side->surf & (SURF_HINT | SURF_SKIP)) {
-			side->contents = CONTENTS_NONE;
+			if (!(side->contents & CONTENTS_OCCLUSION_QUERY)) {
+				side->contents = CONTENTS_NONE;
+			}
 		}
 
 		// find the plane number

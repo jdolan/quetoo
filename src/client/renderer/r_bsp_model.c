@@ -36,8 +36,24 @@ static void R_LoadBspEntities(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all r_bsp_texinfo_t for the specified BSP model. Texinfo's
- * are shared by one or more r_bsp_face_t.
+ * @brief
+ */
+static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
+	r_bsp_plane_t *out;
+
+	const cm_bsp_plane_t *in = bsp->cm->planes;
+
+	bsp->num_planes = bsp->cm->file.num_planes;
+	bsp->planes = out = Mem_LinkMalloc(bsp->num_planes * sizeof(*out), bsp);
+
+	for (int32_t i = 0; i < bsp->num_planes; i++, out++, in++) {
+		out->cm = in;
+		out->blend_elements = g_ptr_array_new();
+	}
+}
+
+/**
+ * @brief
  */
 static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 	r_bsp_texinfo_t *out;
@@ -123,11 +139,14 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
-		out->plane = bsp->cm->planes + in->plane_num;
+		out->plane = bsp->planes + in->plane_num;
 		out->plane_side = in->plane_num & 1;
 
 		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
+
+		out->mins = in->mins;
+		out->maxs = in->maxs;
 
 		out->vertexes = bsp->vertexes + in->first_vertex;
 		out->num_vertexes = in->num_vertexes;
@@ -172,14 +191,29 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	const bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
+		out->plane = bsp->planes + in->plane_num;
+		out->plane_side = in->plane_num & 1;
+
 		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
 
-		out->num_faces = in->num_faces;
-		out->faces = bsp->faces + in->first_face;
+		out->mins = in->mins;
+		out->maxs = in->maxs;
 
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+
+		if (out->texinfo->flags & SURF_MASK_BLEND) {
+
+			r_bsp_plane_t *blend_plane;
+			if (out->plane_side) {
+				blend_plane = out->plane - 1;
+			} else {
+				blend_plane = out->plane;
+			}
+
+			g_ptr_array_add(blend_plane->blend_elements, out);
+		}
 
 		if (out->texinfo->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
 
@@ -216,8 +250,6 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 		out->mins = in->mins;
 		out->maxs = in->maxs;
-
-		out->cluster = in->cluster;
 	}
 }
 
@@ -239,13 +271,10 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 		out->mins = in->mins;
 		out->maxs = in->maxs;
 
-		out->plane = bsp->cm->planes + in->plane_num;
+		out->plane = bsp->planes + in->plane_num;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
-
-		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
-		out->num_draw_elements = in->num_draw_elements;
 
 		for (int32_t j = 0; j < 2; j++) {
 			const int32_t c = in->children[j];
@@ -275,11 +304,6 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 		face->node = node;
 	}
 
-	r_bsp_draw_elements_t *draw = node->draw_elements;
-	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
-		draw->node = node;
-	}
-
 	R_SetupBspNode(node->children[0], node, model);
 	R_SetupBspNode(node->children[1], node, model);
 }
@@ -293,25 +317,6 @@ static gint R_FlareFacesCmp(gconstpointer a, gconstpointer b) {
 	const r_bsp_face_t *b_face = *(r_bsp_face_t **) b;
 
 	return strcmp(a_face->flare->media->name, b_face->flare->media->name);
-}
-
-/**
- * @brief
- */
-static gint R_DrawElementsCmp(gconstpointer a, gconstpointer b) {
-
-	const r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
-	const r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
-
-	gint order = strcmp(a_draw->texinfo->texture, b_draw->texinfo->texture);
-	if (order == 0) {
-		const gint a_flags = (a_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
-		const gint b_flags = (b_draw->texinfo->flags & SURF_MASK_TEXINFO_CMP);
-
-		order = a_flags - b_flags;
-	}
-
-	return order;
 }
 
 /**
@@ -335,11 +340,11 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
 
+		out->blend_elements = g_ptr_array_new();
 		out->flare_faces = g_ptr_array_new();
 
 		r_bsp_face_t *face = out->faces;
 		for (int32_t i = 0; i < in->num_faces; i++, face++) {
-
 			if (face->flare) {
 				g_ptr_array_add(out->flare_faces, face);
 			}
@@ -349,21 +354,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
-
-		out->opaque_draw_elements = g_ptr_array_new();
-		out->alpha_blend_draw_elements = g_ptr_array_new();
-
-		r_bsp_draw_elements_t *draw = out->draw_elements;
-		for (int32_t j = 0; j < in->num_draw_elements; j++, draw++) {
-
-			if (draw->texinfo->flags & SURF_MASK_BLEND) {
-				continue;
-			}
-
-			g_ptr_array_add(out->opaque_draw_elements, draw);
-		}
-
-		g_ptr_array_sort(out->opaque_draw_elements, R_DrawElementsCmp);
 
 		R_SetupBspNode(out->head_node, NULL, out);
 	}
@@ -493,6 +483,52 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 /**
  * @brief
  */
+static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
+
+	const cm_bsp_brush_t *in = bsp->cm->brushes;
+	r_bsp_occlusion_query_t *out = NULL;
+
+	for (int32_t i = 0; i < bsp->cm->file.num_brushes; i++, in++) {
+		if (in->contents & CONTENTS_OCCLUSION_QUERY) {
+
+			if (bsp->num_occlusion_queries == MAX_BSP_OCCLUSION_QUERIES) {
+				Com_Error(ERROR_DROP, "MAX_BSP_OCCLUSION_QUERIES");
+			}
+			
+			bsp->occlusion_queries = Mem_Realloc(bsp->occlusion_queries, (bsp->num_occlusion_queries + 1) * sizeof(*out));
+			out = bsp->occlusion_queries + bsp->num_occlusion_queries;
+
+			glGenQueries(1, &out->name);
+
+			out->mins = in->mins;
+			out->maxs = in->maxs;
+
+			out->vertexes[0] = Vec3(out->mins.x, out->mins.y, out->mins.z);
+			out->vertexes[1] = Vec3(out->maxs.x, out->mins.y, out->mins.z);
+			out->vertexes[2] = Vec3(out->maxs.x, out->maxs.y, out->mins.z);
+			out->vertexes[3] = Vec3(out->mins.x, out->maxs.y, out->mins.z);
+			out->vertexes[4] = Vec3(out->mins.x, out->mins.y, out->maxs.z);
+			out->vertexes[5] = Vec3(out->maxs.x, out->mins.y, out->maxs.z);
+			out->vertexes[6] = Vec3(out->maxs.x, out->maxs.y, out->maxs.z);
+			out->vertexes[7] = Vec3(out->mins.x, out->maxs.y, out->maxs.z);
+
+			out->result = -1;
+			out->defer = false;
+
+			bsp->num_occlusion_queries++;
+		}
+	}
+
+	if (out) {
+		Mem_Link(bsp, bsp->occlusion_queries);
+	}
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspVertexArray(r_model_t *mod) {
 
 	glGenVertexArrays(1, &mod->bsp->vertex_array);
@@ -547,47 +583,53 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// load in lumps that the renderer needs
 	Bsp_LoadLumps(file, &mod->bsp->cm->file, R_BSP_LUMPS);
 
-	Cl_LoadingProgress(2, "materials");
+	Cl_LoadingProgress(-4, "materials");
 	R_LoadModelMaterials(mod);
 
-	Cl_LoadingProgress(6, "entities");
+	Cl_LoadingProgress(-4, "entities");
 	R_LoadBspEntities(mod->bsp);
 
-	Cl_LoadingProgress(10, "texinfo");
+	Cl_LoadingProgress(-4, "planes");
+	R_LoadBspPlanes(mod->bsp);
+
+	Cl_LoadingProgress(-4, "texinfo");
 	R_LoadBspTexinfo(mod->bsp);
 
-	Cl_LoadingProgress(14, "vertexes");
+	Cl_LoadingProgress(-4, "vertexes");
 	R_LoadBspVertexes(mod->bsp);
 
-	Cl_LoadingProgress(18, "elements");
+	Cl_LoadingProgress(-4, "elements");
 	R_LoadBspElements(mod->bsp);
 
-	Cl_LoadingProgress(22, "faces");
+	Cl_LoadingProgress(-4, "faces");
 	R_LoadBspFaces(mod->bsp);
 
-	Cl_LoadingProgress(26, "draw elements");
+	Cl_LoadingProgress(-4, "draw elements");
 	R_LoadBspDrawElements(mod->bsp);
 
-	Cl_LoadingProgress(34, "leafs");
+	Cl_LoadingProgress(-4, "leafs");
 	R_LoadBspLeafs(mod->bsp);
 
-	Cl_LoadingProgress(38, "nodes");
+	Cl_LoadingProgress(-4, "nodes");
 	R_LoadBspNodes(mod->bsp);
 
-	Cl_LoadingProgress(46, "inline models");
+	Cl_LoadingProgress(-4, "inline models");
 	R_LoadBspInlineModels(mod->bsp);
 
-	Cl_LoadingProgress(50, "inline models");
+	Cl_LoadingProgress(-4, "inline models");
 	R_SetupBspInlineModels(mod);
 
-	Cl_LoadingProgress(54, "arrays");
+	Cl_LoadingProgress(-4, "arrays");
 	R_LoadBspVertexArray(mod);
 
-	Cl_LoadingProgress(58, "lightmap");
+	Cl_LoadingProgress(-4, "lightmap");
 	R_LoadBspLightmap(mod);
 
-	Cl_LoadingProgress(62, "lightgrid");
+	Cl_LoadingProgress(-4, "lightgrid");
 	R_LoadBspLightgrid(mod);
+
+	Cl_LoadingProgress(-4, "occlusion queries");
+	R_LoadBspOcclusionQueries(mod->bsp);
 
 	if (r_draw_bsp_lightgrid->value) {
 		Bsp_UnloadLumps(&mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_LIGHTGRID));

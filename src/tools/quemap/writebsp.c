@@ -45,121 +45,22 @@ static void EmitPlanes(void) {
 }
 
 /**
- * @brief Draw elements comparator to sort texinfo.
- */
-static int32_t TexinfoCmp(const int32_t a, const int32_t b) {
-
-	const bsp_texinfo_t *a_tex = bsp_file.texinfo + a;
-	const bsp_texinfo_t *b_tex = bsp_file.texinfo + b;
-
-	int32_t order = strcmp(a_tex->texture, b_tex->texture);
-	if (order == 0) {
-		const int32_t a_flags = (a_tex->flags & SURF_MASK_TEXINFO_CMP);
-		const int32_t b_flags = (b_tex->flags & SURF_MASK_TEXINFO_CMP);
-		order = a_flags - b_flags;
-	}
-
-	return order;
-}
-
-/**
- * @brief GCompareFunc comparator to sort face_t * by texinfo.
- */
-static gint FaceCmp(gconstpointer a, gconstpointer b) {
-
-	const face_t *a_face = *(face_t **) a;
-	const face_t *b_face = *(face_t **) b;
-
-	return TexinfoCmp(a_face->texinfo, b_face->texinfo);
-}
-
-/**
  * @brief
  */
 static int32_t EmitFaces(const node_t *node) {
 
-	int32_t num_faces = bsp_file.num_faces;
-
-	GPtrArray *faces = g_ptr_array_new();
+	const int32_t num_faces = bsp_file.num_faces;
 
 	for (face_t *face = node->faces; face; face = face->next) {
+
 		if (face->merged) {
 			continue;
 		}
-		g_ptr_array_add(faces, face);
-	}
 
-	g_ptr_array_sort(faces, FaceCmp);
-
-	for (guint i = 0; i < faces->len; i++) {
-		face_t *face = g_ptr_array_index(faces, i);
 		face->face_num = EmitFace(face);
 	}
 
-	g_ptr_array_free(faces, 1);
-
 	return bsp_file.num_faces - num_faces;
-}
-
-/**
- * @brief
- */
-static int32_t EmitDrawElements(const bsp_node_t *node) {
-
-	int32_t num_draw_elements = bsp_file.num_draw_elements;
-
-	const bsp_face_t *faces = bsp_file.faces + node->first_face;
-	for (int32_t i = 0; i < node->num_faces; i++) {
-
-		if (bsp_file.num_draw_elements >= MAX_BSP_DRAW_ELEMENTS) {
-			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
-		}
-
-		const bsp_face_t *a = faces + i;
-
-		if (bsp_file.texinfo[a->texinfo].flags & SURF_MASK_NO_LIGHTMAP) {
-			continue;
-		}
-		
-		bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
-		bsp_file.num_draw_elements++;
-
-		out->texinfo = a->texinfo;
-		out->contents = a->contents;
-
-		out->first_face = node->first_face + i;
-		out->first_element = bsp_file.num_elements;
-
-		for (int32_t j = i; j < node->num_faces; j++) {
-
-			const bsp_face_t *b = faces + j;
-
-			if (TexinfoCmp(a->texinfo, b->texinfo)) {
-				break;
-			}
-
-			if (a->contents != b->contents) {
-				break;
-			}
-
-			if (bsp_file.num_elements + b->num_elements >= MAX_BSP_ELEMENTS) {
-				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
-			}
-
-			memcpy(bsp_file.elements + bsp_file.num_elements,
-				   bsp_file.elements + b->first_element,
-				   sizeof(int32_t) * b->num_elements);
-
-			bsp_file.num_elements += b->num_elements;
-			out->num_elements += b->num_elements;
-			out->num_faces++;
-			i = j;
-		}
-
-		assert(out->num_elements);
-	}
-
-	return bsp_file.num_draw_elements - num_draw_elements;
 }
 
 /**
@@ -281,9 +182,6 @@ static int32_t EmitNode(node_t *node) {
 	if (node->faces) {
 		out->first_face = bsp_file.num_faces;
 		out->num_faces = EmitFaces(node);
-
-		out->first_draw_elements = bsp_file.num_draw_elements;
-		out->num_draw_elements = EmitDrawElements(out);
 	}
 
 	// recursively output the other nodes
@@ -303,23 +201,151 @@ static int32_t EmitNode(node_t *node) {
 /**
  * @brief
  */
-void EmitNodes(node_t *head_node) {
+int32_t EmitNodes(node_t *head_node) {
 
 	const uint32_t start = SDL_GetTicks();
-
-	Com_Verbose("--- WriteBSP ---\n");
-
-	const int32_t old_faces = bsp_file.num_faces;
 
 	num_welds = 0;
 	ClearWeldingSpatialHash();
 
-	bsp_file.models[bsp_file.num_models].head_node = EmitNode(head_node);
+	const int32_t node = EmitNode(head_node);
 
-	Com_Verbose("%5i faces\n", bsp_file.num_faces - old_faces);
 	Com_Verbose("%5i welded vertices\n", num_welds);
 
 	Com_Print("\r%-24s [100%%] %d ms\n", "Emitting nodes", SDL_GetTicks() - start);
+
+	return node;
+}
+
+/**
+ * @brief Draw elements comparator to sort texinfo.
+ */
+static int32_t TexinfoCmp(const bsp_texinfo_t *a, const bsp_texinfo_t *b) {
+
+	int32_t order = strcmp(a->texture, b->texture);
+	if (order == 0) {
+		const int32_t a_flags = (a->flags & SURF_MASK_TEXINFO_CMP);
+		const int32_t b_flags = (b->flags & SURF_MASK_TEXINFO_CMP);
+		order = a_flags - b_flags;
+	}
+
+	return order;
+}
+
+/**
+ * @brief Draw elements comparator to sort contents.
+ */
+static int32_t ContentsCmp(const bsp_face_t *a, const bsp_face_t *b) {
+
+	const int32_t a_contents = a->contents & CONTENTS_MASK_FACE_CMP;
+	const int32_t b_contents = b->contents & CONTENTS_MASK_FACE_CMP;
+
+	return a_contents - b_contents;
+}
+
+/**
+ * @brief Draw elements comparator to sort model faces by material.
+ * @details Opaque faces are equal if they share texinfo and contents.
+ * @details Blend faces are equal if they share opaque equality and plane.
+ * @details Material faces are never equal, to preserve their texture matrices.
+ */
+static int32_t FaceCmp(const void *a, const void *b) {
+
+	const bsp_face_t *a_face = a;
+	const bsp_face_t *b_face = b;
+
+	const bsp_texinfo_t *a_texinfo = bsp_file.texinfo + a_face->texinfo;
+	const bsp_texinfo_t *b_texinfo = bsp_file.texinfo + b_face->texinfo;
+
+	int32_t order = TexinfoCmp(a_texinfo, b_texinfo);
+	if (order == 0) {
+
+		order = ContentsCmp(a_face, b_face);
+		if (order == 0) {
+
+			if (a_texinfo->flags & SURF_MATERIAL) {
+				return (int32_t) (ptrdiff_t) (a_face - b_face);
+			}
+
+			if (a_texinfo->flags & SURF_MASK_BLEND) {
+				return a_face->plane_num - b_face->plane_num;
+			}
+		}
+	}
+
+	return order;
+}
+
+/**
+ * @brief Sorts opaque and alpha test faces in the given model by material, and emits
+ * glDrawElements commands for each unique material. The BSP face ordering is not modified,
+ * as this would break the references that the nodes hold to them.
+ * @return The number of draw elements commands emitted for the model.
+ */
+static int32_t EmitDrawElements(const bsp_model_t *mod) {
+
+	const int32_t num_draw_elements = bsp_file.num_draw_elements;
+
+	bsp_face_t *model_faces = calloc(mod->num_faces, sizeof(bsp_face_t));
+	memcpy(model_faces, bsp_file.faces + mod->first_face, mod->num_faces * sizeof(bsp_face_t));
+
+	qsort(model_faces, mod->num_faces, sizeof(bsp_face_t), FaceCmp);
+
+	for (int32_t i = 0; i < mod->num_faces; i++) {
+
+		if (bsp_file.num_draw_elements == MAX_BSP_DRAW_ELEMENTS) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
+		}
+
+		const bsp_face_t *a = model_faces + i;
+
+		if (bsp_file.texinfo[a->texinfo].flags & SURF_MASK_NO_DRAW_ELEMENTS) {
+			continue;
+		}
+
+		bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
+		bsp_file.num_draw_elements++;
+
+		out->plane_num = a->plane_num;
+		out->texinfo = a->texinfo;
+		out->contents = a->contents;
+
+		out->mins = Vec3_Mins();
+		out->maxs = Vec3_Maxs();
+
+		out->first_element = bsp_file.num_elements;
+
+		for (int32_t j = i; j < mod->num_faces; j++) {
+
+			const bsp_face_t *b = model_faces + j;
+
+			if (FaceCmp(a, b)) {
+				break;
+			}
+
+			if (bsp_file.num_elements + b->num_elements >= MAX_BSP_ELEMENTS) {
+				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+			}
+
+			memcpy(bsp_file.elements + bsp_file.num_elements,
+				   bsp_file.elements + b->first_element,
+				   sizeof(int32_t) * b->num_elements);
+
+			bsp_file.num_elements += b->num_elements;
+			out->num_elements += b->num_elements;
+
+			out->mins = Vec3_Minf(out->mins, b->mins);
+			out->maxs = Vec3_Maxf(out->maxs, b->maxs);
+			
+			i = j;
+		}
+
+		assert(out->num_elements);
+	}
+
+	free(model_faces);
+
+	return bsp_file.num_draw_elements - num_draw_elements;
 }
 
 /**
@@ -482,13 +508,14 @@ void EndBSPFile(void) {
 /**
  * @brief
  */
-void BeginModel(const entity_t *e) {
+bsp_model_t *BeginModel(const entity_t *e) {
 
 	if (bsp_file.num_models == MAX_BSP_MODELS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_MODELS\n");
 	}
 
 	bsp_model_t *mod = &bsp_file.models[bsp_file.num_models];
+	bsp_file.num_models++;
 
 	mod->first_face = bsp_file.num_faces;
 	mod->first_draw_elements = bsp_file.num_draw_elements;
@@ -508,16 +535,15 @@ void BeginModel(const entity_t *e) {
 		mod->mins = Vec3_Minf(mod->mins, b->mins);
 		mod->maxs = Vec3_Maxf(mod->maxs, b->maxs);
 	}
+
+	return mod;
 }
 
 /**
  * @brief
  */
-void EndModel(void) {
-	bsp_model_t *mod = &bsp_file.models[bsp_file.num_models];
+void EndModel(bsp_model_t *mod) {
 
 	mod->num_faces = bsp_file.num_faces - mod->first_face;
-	mod->num_draw_elements = bsp_file.num_draw_elements - mod->first_draw_elements;
-
-	bsp_file.num_models++;
+	mod->num_draw_elements = EmitDrawElements(mod);
 }

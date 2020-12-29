@@ -81,10 +81,14 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
 }
 
 /**
- * @return The distance from `point` to `plane`.
+ * @brief
  */
-float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
-	return Vec3_Dot(point, plane->normal) - plane->dist;
+cm_bsp_plane_t Cm_TransformPlane(const mat4_t *matrix, const cm_bsp_plane_t *plane) {
+
+	vec4_t out;
+	Matrix4x4_TransformQuakePlane(matrix, plane->normal, plane->dist, &out);
+
+	return Cm_Plane(Vec4_XYZ(out), out.w);
 }
 
 /**
@@ -92,14 +96,19 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
  */
 int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
-	const cm_bsp_brush_side_t *side = brush->sides;
-	for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
-		if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
-			return 0;
+	if (Vec3_BoxIntersect(point, point, brush->mins, brush->maxs)) {
+
+		const cm_bsp_brush_side_t *side = brush->sides;
+		for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
+			if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
+				return 0;
+			}
 		}
+
+		return 1;
 	}
 
-	return 1;
+	return 0;
 }
 
 /**

@@ -112,19 +112,23 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
-	if (e->effects & EF_CTF_CARRY) {
-		const uint8_t team = (e->effects & EF_CTF_CARRY_BITS) >> EF_CTF_CARRY_OFFSET;
-		const vec3_t effect_color = Cg_ResolveEffectHSV(cg_team_info[team].hue, 0.f);
+	if (e->effects & EF_CTF_MASK) {
 
-		const cg_light_t l = {
-			.origin = e->origin,
-			.radius = 80.f,
-			.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z))
-		};
+		for (int32_t team = 0; team < MAX_TEAMS; team++) {
+			if (e->effects & (EF_CTF_RED << team)) {
+				const vec3_t effect_color = Cg_ResolveEffectHSV(cg_team_info[team].hue, 0.f);
 
-		Cg_AddLight(&l);
+				const cg_light_t l = {
+					.origin = e->origin,
+					.radius = 80.f,
+					.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z))
+				};
 
-		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
+				Cg_AddLight(&l);
+
+				e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
+			}
+		}
 	}
 
 	if (Vec3_Length(e->shell) > 0.0) {

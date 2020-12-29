@@ -26,7 +26,6 @@
 cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size);
 cm_bsp_model_t *Cm_Model(const char *name); // *1, *2, etc
 
-int32_t Cm_NumClusters(void);
 int32_t Cm_NumModels(void);
 
 const char *Cm_EntityString(void);

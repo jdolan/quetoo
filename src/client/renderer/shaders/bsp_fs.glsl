@@ -33,8 +33,6 @@ uniform int parallax_samples;
 uniform material_t material;
 uniform stage_t stage;
 
-uniform int lights_mask;
-
 in vertex_data {
 	vec3 position;
 	vec3 normal;
@@ -191,7 +189,7 @@ void main(void) {
 
 		vec3 stainmap = sample_lightmap(4).rgb;
 
-		dynamic_light(lights_mask, vertex.position, normal, 64.0, light_diffuse, light_specular);
+		dynamic_light(vertex.position, normal, 64.0, light_diffuse, light_specular);
 
 		out_color = diffusemap;
 		out_color *= vec4(stainmap, 1.0);

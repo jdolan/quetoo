@@ -26,6 +26,27 @@
 
 #ifdef __CG_LOCAL_H__
 
+#define WEATHER_NONE        0x0
+#define WEATHER_RAIN        0x1
+#define WEATHER_SNOW        0x2
+
+/**
+ * @brief Client game state.
+ */
+typedef struct {
+	/**
+	 * @brief Grapple hook speed, for client side prediction.
+	 */
+	float hook_pull_speed;
+
+	/**
+	 * @brief The current weather bitmask.
+	 */
+	int32_t weather;
+} cg_state_t;
+
+extern cg_state_t cg_state;
+
 /**
  * @brief Stores info related to teams on the server.
  */

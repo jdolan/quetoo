@@ -535,7 +535,7 @@ static void Cl_InitLocal(void) {
 	cl_draw_net_graph = Cvar_Add("cl_draw_net_graph", "1", CVAR_ARCHIVE, "Draw the net graph at the bottom-right");
 	cl_editor = Cvar_Add("cl_editor", "0", CVAR_DEVELOPER, "Activate the in-game editor");
 	cl_ignore = Cvar_Add("cl_ignore", "", 0, "A list of patterns that will be matched against incoming messages and ignored by your client");
-	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at");
+	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
 	cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
 	cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
 	cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server");
@@ -601,9 +601,12 @@ void Cl_Frame(const uint32_t msec) {
 			cl.time_demo_start = quetoo.ticks;
 		}
 		cl.time_demo_frames++;
-	} else if (cl_max_fps->value > 0.0) { // cap render frame rate
-		if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / cl_max_fps->value) {
-			return;
+	} else {
+		float target_fps = cl_max_fps->value ?: r_context.refresh_rate;
+		if (target_fps > 0.f) { // cap render frame rate
+			if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / target_fps) {
+				return;
+			}
 		}
 	}
 
@@ -617,6 +620,8 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_HandleEvents();
 
+	R_BeginFrame();
+
 	if (cls.state == CL_ACTIVE) {
 
 		Cl_UpdateMovementCommand(cl.frame_msec);
@@ -627,12 +632,14 @@ void Cl_Frame(const uint32_t msec) {
 
 		Cl_PredictMovement();
 
-		Cl_UpdateView();
+		Cl_DrawView();
 	} else {
 		Cl_SendCommands();
 	}
 
 	Cl_UpdateScreen();
+
+	R_EndFrame();
 
 	S_Frame();
 
@@ -668,8 +675,6 @@ void Cl_Init(void) {
 	R_Init();
 
 	Ui_Init();
-
-	Cl_InitView();
 
 	Cl_InitInput();
 

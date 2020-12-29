@@ -60,7 +60,6 @@ typedef struct {
  * @brief The entity instance type.
  */
 struct cg_entity_s {
-
 	/**
 	 * @brief The entity class.
 	 */
@@ -75,16 +74,6 @@ struct cg_entity_s {
 	 * @brief The entity origin.
 	 */
 	vec3_t origin;
-
-	/**
-	 * @brief For PVS and PHS culling.
-	 */
-	const r_bsp_leaf_t *leaf;
-
-	/**
-	 * @brief The entity frequency and randomness.
-	 */
-	float hz, drift;
 
 	/**
 	 * @brief Timestamp for next emission.

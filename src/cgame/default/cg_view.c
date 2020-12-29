@@ -30,10 +30,6 @@ cg_view_t cg_view;
  */
 static void Cg_UpdateFov(void) {
 
-	if (!cg_fov->modified && !cgi.view->update) {
-		return;
-	}
-
 	cg_fov->value = Clampf(cg_fov->value, 10.0, 160.0);
 	cg_fov_interpolate->value = Clampf(cg_fov_interpolate->value, 0.0, 10.0);
 
@@ -294,12 +290,12 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 	} else if (ps1->pm_state.type == PM_FREEZE) {
 		cgi.client->angles = cgi.view->angles;
 	}
+
+	Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
 }
 
 /**
- * @brief Updates the view definition. The camera origin, view angles, and field of view are each
- * calculated here. Other modifications can be made at your own risk. This is called potentially
- * several times per client frame by the engine to prepare the view for frame interpolation.
+ * @brief Updates the view origin, angles, and field of view.
  */
 void Cg_UpdateView(const cl_frame_t *frame) {
 
@@ -323,9 +319,13 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 
 	Cg_UpdateBob(ps1);
 
-	Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
-
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
+}
+
+/**
+ * @brief Populates the view with entities, effects, etc.. for the current frame.
+ */
+void Cg_PopulateView(const cl_frame_t *frame) {
 
 	Cg_AddEntities(frame);
 

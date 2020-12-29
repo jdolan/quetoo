@@ -19,49 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-layout (triangles) in;
-layout (triangle_strip, max_vertices = 3) out;
-
-uniform int blend_depth;
-
-in vertex_data {
-	vec3 position;
-	vec2 diffusemap;
-	vec2 next_diffusemap;
-	vec3 lightgrid;
-	vec4 color;
-	float lerp;
-	int blend_depth;
-} in_vertex[];
-
-out vertex_data {
-	vec3 position;
-	vec2 diffusemap;
-	vec2 next_diffusemap;
-	vec3 lightgrid;
-	vec4 color;
-	float lerp;
-} out_vertex;
+out vec4 out_color;
 
 /**
  * @brief
  */
-void main() {
+void main(void) {
 
-	if (blend_depth == in_vertex[0].blend_depth) {
-
-		for (int i = 0; i < 3; i++) {
-			gl_Position = gl_in[i].gl_Position;
-			out_vertex.position = in_vertex[i].position;
-			out_vertex.diffusemap = in_vertex[i].diffusemap;
-			out_vertex.next_diffusemap = in_vertex[i].next_diffusemap;
-			out_vertex.lightgrid = in_vertex[i].lightgrid;
-			out_vertex.color = in_vertex[i].color;
-			out_vertex.lerp = in_vertex[i].lerp;
-
-			EmitVertex();
-		}
-	}
-
-    EndPrimitive();
+	out_color = vec4(1, 0, 0, 1);
 }

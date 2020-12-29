@@ -40,7 +40,7 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 	}
 
 	face->flare->origin = Vec3_Scale(Vec3_Add(maxs, mins), .5f);
-	face->flare->origin = Vec3_Add(face->flare->origin, Vec3_Scale(face->plane->normal, 2.f));
+	face->flare->origin = Vec3_Add(face->flare->origin, Vec3_Scale(face->plane->cm->normal, 2.f));
 
 	face->flare->size = Vec3_Distance(maxs, mins);
 
@@ -74,10 +74,6 @@ static void R_UpdateBspInlineModelFlares(const r_entity_t *e, const r_bsp_inline
 	for (guint i = 0; i < in->flare_faces->len; i++) {
 
 		const r_bsp_face_t *face = g_ptr_array_index(in->flare_faces, i);
-
-		if (face->node->vis_frame != r_locals.vis_frame) {
-			continue;
-		}
 
 		r_sprite_t flare = *face->flare;
 

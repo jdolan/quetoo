@@ -32,6 +32,7 @@
 #include "r_bsp_draw.h"
 #include "r_bsp_model.h"
 #include "r_context.h"
+#include "r_depth_pass.h"
 #include "r_draw_2d.h"
 #include "r_draw_3d.h"
 #include "r_entity.h"

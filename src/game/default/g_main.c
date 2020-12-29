@@ -192,7 +192,11 @@ void G_ResetTeams(void) {
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
-		G_InitTeam(i, g_team_cvars[i].g_team_name->string, g_team_cvars[i].g_team_shirt->string, g_team_cvars[i].g_team_color->integer, i << EF_CTF_CARRY_OFFSET);
+		G_InitTeam(i,
+				   g_team_cvars[i].g_team_name->string,
+				   g_team_cvars[i].g_team_shirt->string,
+				   g_team_cvars[i].g_team_color->integer,
+				   EF_CTF_RED << i);
 	}
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));

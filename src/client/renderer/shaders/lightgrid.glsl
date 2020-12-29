@@ -32,7 +32,7 @@ vec3 lightgrid_uvw(in vec3 position) {
 /**
  * @brief Ray marches the point, sampling the fog texture at each iteration.
  * @param color The input and output fragment color.
- * @param fog_sampler The lightgrid fog texture sampler.
+ * @param lightgrid_fog_sampler The lightgrid fog texture sampler.
  * @param position The position in view space.
  * @param lightgrid_uvw The lightgrid texture coordinate.
  */
