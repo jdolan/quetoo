@@ -106,8 +106,6 @@ void R_DrawDepthPass(void) {
 		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-			q->result = -1;
-
 			if (r_view.origin.x >= q->mins.x && r_view.origin.y >= q->mins.y && r_view.origin.z >= q->mins.z &&
 				r_view.origin.x <= q->maxs.x && r_view.origin.y <= q->maxs.y && r_view.origin.z <= q->maxs.z) {
 				continue;
@@ -129,6 +127,8 @@ void R_DrawDepthPass(void) {
 						r_view.count_bsp_occlusion_queries_passed++;
 					}
 				}
+			} else {
+				q->result = -1;
 			}
 
 			glBufferData(GL_ARRAY_BUFFER, sizeof(q->vertexes), q->vertexes, GL_DYNAMIC_DRAW);

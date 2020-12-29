@@ -97,6 +97,7 @@ r_animation_t *cg_sprite_poof_01;
 r_animation_t *cg_sprite_poof_02;
 r_animation_t *cg_sprite_blood_01;
 r_animation_t *cg_sprite_electro_01;
+r_animation_t *cg_sprite_fireball_01;
 
 r_atlas_image_t cg_sprite_font[16 * 8];
 
@@ -333,6 +334,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_poof_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
 	cg_sprite_blood_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
 	cg_sprite_electro_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
+	cg_sprite_fireball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/fireball_01/fireball_01", "_%02" PRIu32, 0, 63);
 
 	cgi.CompileAtlas(cg_sprite_atlas);
 

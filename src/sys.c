@@ -26,8 +26,8 @@
 #include <signal.h>
 
 #if defined(_WIN32)
-	#include <windows.h>
-	#include <shlobj.h>
+	#include <Windows.h>
+	#include <ShlObj.h>
 #endif
 
 #if defined(__APPLE__)

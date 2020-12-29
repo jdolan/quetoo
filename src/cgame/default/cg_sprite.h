@@ -104,11 +104,6 @@ typedef struct cg_sprite_s {
 	vec3_t dir;
 
 	/**
-	 * @brief The sprite billboard axis.
-	 */
-	r_sprite_billboard_axis_t axis;
-
-	/**
 	 * @brief The sprite color, in HSVA.
 	 * @details For alpha-blended sprites, the colors are used as "normal". For additive sprites,
 	 * alpha *must* be zero at all times.

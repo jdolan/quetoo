@@ -831,14 +831,23 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
  */
 static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 
-	// FIXME: beam
+	cgi.AddBeam(&(r_beam_t) {
+		.image = cg_beam_rail,
+		.start = org,
+		.end = end,
+		.size = 5.f,
+		.color = Color32(0, 255, 0, 0)
+	});
+
 	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_particle,
+		.type = SPRITE_BEAM,
+		.image = cg_beam_rail,
 		.origin = org,
-		.lifetime = 50,
-		.size = 48.f,
-		.color = Vec4(color_hue_green, .0f, 1.f, 1.f),
-		.end_color = Vec4(color_hue_green, .0f, 1.f, 1.f)
+		.termination = end,
+		.size = 5.f,
+		.lifetime = QUETOO_TICK_MILLIS,
+		.color = Vec4(color_hue_green, 1.f, 1.f, 0),
+		.end_color = Vec4(color_hue_green, 1.f, 1.f, 0)
 	});
 
 	Cg_AddLight(&(cg_light_t) {
