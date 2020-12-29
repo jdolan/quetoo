@@ -41,4 +41,5 @@ void Mon_SendPoint_(const char *func, mon_level_t level, const vec3_t p, const c
 
 void Mon_Init(void);
 _Bool Mon_Connect(const char *host);
+_Bool Mon_IsConnected(void);
 void Mon_Shutdown(const char *msg);

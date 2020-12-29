@@ -229,6 +229,13 @@ _Bool Mon_Connect(const char *host) {
 }
 
 /**
+ * @brief
+ */
+_Bool Mon_IsConnected(void) {
+	return mon_state.socket != 0;
+}
+
+/**
  * @brief Initialize BSP monitoring facilities (XML over TCP).
  */
 void Mon_Init(void) {

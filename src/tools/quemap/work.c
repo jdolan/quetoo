@@ -134,12 +134,22 @@ void Work(const char *name, WorkFunc func, int32_t count) {
 }
 
 /**
- * @brief
+ * @brief Outputs progress to the console or XML monitor.
+ * @details In the case of the XML monitor, progress output is throttled because of
+ * poor GtkRadiant console performance.
  */
 void Progress(const char *progress, int32_t percent) {
 	static char *string = "-\\|/-|";
 	static int32_t index = 0;
 	static int32_t last_percent;
+
+	if (Mon_IsConnected() && percent != 0 && percent != 100) {
+		static uint32_t last_ticks;
+		if (SDL_GetTicks() - last_ticks < 200) {
+			return;
+		}
+		last_ticks = SDL_GetTicks();
+	}
 
 	if (percent == -1) {
 		Com_Print("\r%-24s [%c]", progress, string[index]);
