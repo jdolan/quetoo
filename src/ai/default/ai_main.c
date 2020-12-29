@@ -888,6 +888,27 @@ static _Bool Ai_FacingTarget(const g_entity_t *self, const vec3_t target) {
 }
 
 /**
+ * @brief A slow-drop occurs when a connection is mono-directional, not far horizontally
+ * but far vertically.
+ */
+_Bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node) {
+
+	if (from_node <= 0 || to_node <= 0) {
+		return false;
+	}
+
+	if (Ai_Node_IsLinked(to_node, from_node)) {
+		return false;
+	}
+	
+	const vec3_t from = Ai_Node_GetPosition(from_node);
+	const vec3_t to = Ai_Node_GetPosition(to_node);
+
+	return (to.z - from.z) <= -PM_STEP_HEIGHT &&
+		Vec2_Distance(Vec3_XY(to), Vec3_XY(from)) < PM_STEP_HEIGHT * 8.f;
+}
+
+/**
  * @brief Move towards our current target
  */
 static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
@@ -994,10 +1015,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			Ai_Debug("Trying to land on target\n");
 		// we're navigating on land, and our next target is below us & a drop node (one-way connection); rather than full-blast
 		// running off the edge, transition to walking so we don't overshoot targets beneath us
-		} else if (!swimming &&
-				(ai->move_target.path.path_position.z - self->s.origin.z) <= -PM_STEP_HEIGHT &&
-				Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) < PM_STEP_HEIGHT * 8.f &&
-				ai->move_target.path.path_index && !Ai_Path_IsLinked(ai->move_target.path.path, ai->move_target.path.path_index, ai->move_target.path.path_index - 1)) {
+		} else if (!swimming && Ai_ShouldSlowDrop(ai->move_target.path.path_index, ai->move_target.path.path_index - 1)) {
 			dir = Vec3_Scale(dir, PM_SPEED_RUN * 0.5f);
 		// run full speed towards the target
 		} else {

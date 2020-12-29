@@ -641,41 +641,15 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
  * @brief
  */
 static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	vec3_t origin = ent->origin;
-	const float mod = sinf(cgi.client->unclamped_time >> 5) * 0.5 + 0.5;
-
-	// projectile glow
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_particle,
-		.origin = ent->origin,
-		.size = 20.f * mod + 30.f,
-		.lifetime = 20,
-		.color = Vec4(120.f, 6.f, 1.f, 0.f),
-		.end_color = Vec4(120.f, 6.f, 0.f, 0.f)
-	});
-
-	// big trail
-	const int32_t count = Cg_TrailDensity(ent, ent->previous_origin, ent->origin, 4, TRAIL_PRIMARY, &origin);
-
-	for (int32_t i = 0; i < count; i++) {
-
-		Cg_AddSprite(&(cg_sprite_t) {
-			.atlas_image = cg_sprite_particle,
-			.lifetime = Cg_AnimationLifetime(cg_sprite_bfg_explosion_2, 15),
-			.origin = Vec3_Mix(ent->previous_origin, ent->origin, 1.f / count * i),
-			.rotation = RandomRadian(),
-			.size = 5.f,
-			.color = Vec4(0.f, 0.f, 1.f, .33f)
-		});
-	}
+	const float mod = sinf(cgi.client->unclamped_time / 16.f) * 0.5 + 0.5;
 
 	// projectile core
 	cgi.AddSprite(&(r_sprite_t) {
 		.origin = ent->origin,
-		.size = RandomRangef(10.f, 12.5f),
-		.media = (r_media_t *) cg_sprite_blob_01,
-		.rotation = RandomRadian(),
-		.color = Color_Color32(ColorHSVA(0.f, 0.f, 1.f, .0f))
+		.size = (50.f * mod) + 180.f,
+		.media = (r_media_t *) cg_sprite_fireball_01,
+		.color = Color32(8, 255, 8, 0),
+		.life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f)
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {

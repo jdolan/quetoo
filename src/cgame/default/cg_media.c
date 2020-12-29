@@ -97,6 +97,11 @@ r_animation_t *cg_sprite_poof_01;
 r_animation_t *cg_sprite_poof_02;
 r_animation_t *cg_sprite_blood_01;
 r_animation_t *cg_sprite_electro_01;
+r_animation_t *cg_sprite_fireball_01;
+
+r_atlas_image_t cg_sprite_font[16 * 8];
+
+int32_t cg_sprite_font_width, cg_sprite_font_height;
 
 static GHashTable *cg_footstep_table;
 
@@ -329,8 +334,36 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_poof_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
 	cg_sprite_blood_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
 	cg_sprite_electro_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
+	cg_sprite_fireball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/fireball_01/fireball_01", "_%02" PRIu32, 0, 63);
 
 	cgi.CompileAtlas(cg_sprite_atlas);
+
+	// font sprite, used for debugging
+	const r_image_t *font_image = cgi.LoadImage("fonts/medium", IT_FONT);
+	const float texel = (1.f / font_image->width) * .5f;
+
+	for (uint32_t i = 0; i < lengthof(cg_sprite_font); i++) {
+		r_atlas_image_t *atlas = &cg_sprite_font[i];
+
+		const uint32_t row = (uint32_t) i >> 4;
+		const uint32_t col = (uint32_t) i & 15;
+
+		const float s0 = col * 0.0625;
+		const float t0 = row * 0.1250;
+		const float s1 = (col + 1) * 0.0625;
+		const float t1 = (row + 1) * 0.1250;
+
+		atlas->image = *font_image;
+		atlas->image.media.type = R_MEDIA_ATLAS_IMAGE;
+		atlas->node = NULL;
+		atlas->texcoords = Vec4(
+			s0 + texel, t0 + texel,
+			s1 - texel, t1 - texel
+		);
+	}
+
+	cg_sprite_font_width = font_image->width / 16;
+	cg_sprite_font_height = font_image->height / 8;
 
 	cg_draw_crosshair->modified = true;
 	cg_draw_crosshair_color->modified = true;

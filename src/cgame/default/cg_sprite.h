@@ -104,11 +104,6 @@ typedef struct cg_sprite_s {
 	vec3_t dir;
 
 	/**
-	 * @brief The sprite billboard axis.
-	 */
-	r_sprite_billboard_axis_t axis;
-
-	/**
 	 * @brief The sprite color, in HSVA.
 	 * @details For alpha-blended sprites, the colors are used as "normal". For additive sprites,
 	 * alpha *must* be zero at all times.
@@ -122,9 +117,19 @@ typedef struct cg_sprite_s {
 	vec4_t end_color;
 
 	/**
-	 * @brief The sprite size, in world units.
+	 * @brief The sprite size, in world units. If this is specified, width/height are not used.
 	 */
 	float size;
+
+	/**
+	 * @brief The sprite width, in world units.
+	 */
+	float width;
+
+	/**
+	 * @brief The sprite height, in world units.
+	 */
+	float height;
 
 	/**
 	 * @brief The sprite size velocity.
@@ -180,6 +185,11 @@ typedef struct cg_sprite_s {
 	 * @brief Sprite flags.
 	 */
 	cg_r_sprite_flags_t flags;
+
+	/**
+	 * @brief Sprite billboard axis.
+	 */
+	r_sprite_billboard_axis_t axis;
 
 	cg_sprite_t *prev;
 	cg_sprite_t *next;

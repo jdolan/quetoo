@@ -42,4 +42,7 @@ extern cvar_t *ai_node_dev;
 
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
 ai_export_t *Ai_LoadAi(ai_import_t *import);
+
+_Bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node);
+
 #endif /* __AI_LOCAL_H__ */

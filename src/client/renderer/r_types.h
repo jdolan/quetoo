@@ -739,9 +739,19 @@ typedef struct r_sprite_s {
 	vec3_t origin;
 
 	/**
-	 * @brief The sprite size.
+	 * @brief The sprite size; if set, this is used for both width & height, otherwise width/height are used.
 	 */
 	float size;
+
+	/**
+	 * @brief The sprite width.
+	 */
+	float width;
+
+	/**
+	 * @brief The sprite width.
+	 */
+	float height;
 	
 	/**
 	 * @brief The sprite media (an r_amimation_t, r_image_t, etc).
@@ -819,6 +829,11 @@ typedef struct {
 	 * @brief The beam texture stretch.
 	 */
 	float stretch;
+			
+	/**
+	 * @brief The beam flags.
+	 */
+	r_sprite_flags_t flags;
 } r_beam_t;
 
 #define MAX_BEAMS 0x200

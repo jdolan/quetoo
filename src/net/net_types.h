@@ -49,7 +49,7 @@
  * this length. However, large server messages can be split into multiple
  * messages and sent in series. See Sv_SendClientDatagram.
  */
-#define MAX_MSG_SIZE 4096 * 8
+#define MAX_MSG_SIZE 1400
 
 // A typedef for net_sockaddr, to reduce "struct" everywhere and silence Windows warning.
 typedef struct sockaddr_in net_sockaddr;

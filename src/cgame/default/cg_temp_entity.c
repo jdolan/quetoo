@@ -154,6 +154,28 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color) {
 	});
 }
 
+static void Cg_DrawFloatingStringLine(vec3_t position, const char *string, const float size) {
+
+	position = Vec3_Fmaf(position, -(size * strlen(string)) * 0.5f, cgi.view->right);
+
+	for (const char *c = string; *c; c++) {
+
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = &cg_sprite_font[(int32_t) *c],
+			.origin = position,
+			.lifetime = QUETOO_TICK_MILLIS,
+			.width = size,
+			.height = size * 2.f,
+			.color = Vec4(0.f, 0.f, 1.f, 1.f),
+			.end_color = Vec4(0.f, 0.f, 1.f, 1.f),
+			.flags = SPRITE_NO_BLEND_DEPTH,
+			.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
+		});
+
+		position = Vec3_Fmaf(position, size, cgi.view->right);
+	}
+}
+
 /**
  * @brief
  */
@@ -181,6 +203,20 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 		return;
 	}
 
+	vec3_t center = Vec3_Scale(Vec3_Add(start, end), 0.5f);
+	const vec3_t euler = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(start, end)));
+	vec3_t up;
+	Vec3_Vectors(euler, NULL, NULL, &up);
+	vec3_t text_center = center;
+	text_center.z += 8.f;
+
+	Cg_DrawFloatingStringLine(text_center, va("%.1f", Vec3_Distance(start, end)), 1.f);
+
+	if (bits & 16) {
+		text_center.z -= 2;
+		Cg_DrawFloatingStringLine(text_center, "Slow-drop", 1.f);
+	}
+
 	// both sides connected
 	if ((bits & 3) == 3) {
 		Cg_AddSprite(&(cg_sprite_t) {
@@ -194,9 +230,7 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 			.end_color = both_color
 		});
 
-		return;
 	} else {
-		const vec3_t center = Vec3_Scale(Vec3_Add(start, end), 0.5f);
 		
 		// only end connected
 		if (bits & 2) {
@@ -797,14 +831,23 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
  */
 static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 
-	// FIXME: beam
+	cgi.AddBeam(&(r_beam_t) {
+		.image = cg_beam_rail,
+		.start = org,
+		.end = end,
+		.size = 5.f,
+		.color = Color32(0, 255, 0, 0)
+	});
+
 	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_particle,
+		.type = SPRITE_BEAM,
+		.image = cg_beam_rail,
 		.origin = org,
-		.lifetime = 50,
-		.size = 48.f,
-		.color = Vec4(color_hue_green, .0f, 1.f, 1.f),
-		.end_color = Vec4(color_hue_green, .0f, 1.f, 1.f)
+		.termination = end,
+		.size = 5.f,
+		.lifetime = QUETOO_TICK_MILLIS,
+		.color = Vec4(color_hue_green, 1.f, 1.f, 0),
+		.end_color = Vec4(color_hue_green, 1.f, 1.f, 0)
 	});
 
 	Cg_AddLight(&(cg_light_t) {

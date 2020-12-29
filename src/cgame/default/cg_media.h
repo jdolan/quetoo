@@ -97,6 +97,11 @@ extern r_animation_t *cg_sprite_poof_01;
 extern r_animation_t *cg_sprite_poof_02;
 extern r_animation_t *cg_sprite_blood_01;
 extern r_animation_t *cg_sprite_electro_01;
+extern r_animation_t *cg_sprite_fireball_01;
+
+extern r_atlas_image_t cg_sprite_font[16 * 8];
+
+extern int32_t cg_sprite_font_width, cg_sprite_font_height;
 
 void Cg_UpdateMedia(void);
 #endif /* __CG_LOCAL_H__ */

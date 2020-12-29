@@ -150,11 +150,22 @@ void Cg_AddSprites(void) {
 		}
 
 		s->size_velocity += s->size_acceleration * delta;
-		s->size += s->size_velocity * delta;
 
-		if (s->size <= 0.f) {
-			s = Cg_FreeSprite(s);
-			continue;
+		if (s->size) {
+			s->size += s->size_velocity * delta;
+
+			if (s->size <= 0.f) {
+				s = Cg_FreeSprite(s);
+				continue;
+			}
+		} else {
+			s->width += s->size_velocity * delta;
+			s->height += s->size_velocity * delta;
+
+			if (s->width <= 0.f || s->height <= 0.f) {
+				s = Cg_FreeSprite(s);
+				continue;
+			}
 		}
 
 		const vec3_t old_origin = s->origin;
@@ -163,7 +174,7 @@ void Cg_AddSprites(void) {
 		s->origin = Vec3_Add(s->origin, Vec3_Scale(s->velocity, delta));
 
 		if (s->bounce && cg_particle_quality->integer) {
-			const float half_size = ceilf(s->size * .5f);
+			const float half_size = ceilf((s->size ?: max(s->height, s->width)) * .5f);
 			cm_trace_t tr = cgi.Trace(old_origin, s->origin, Vec3(-half_size, -half_size, -half_size), Vec3(half_size, half_size, half_size), 0, CONTENTS_MASK_SOLID);
 
 			if (tr.start_solid || tr.all_solid) {
@@ -186,11 +197,13 @@ void Cg_AddSprites(void) {
 				cgi.AddSprite(&(r_sprite_t) {
 					.origin = s->origin,
 					.size = s->size,
+					.width = s->width,
+					.height = s->height,
 					.color = color,
 					.rotation = s->rotation,
 					.media = s->media,
 					.life = life,
-					.flags = (r_sprite_flags_t) s->flags,
+					.flags = (r_sprite_flags_t)s->flags,
 					.dir = s->dir,
 					.axis = s->axis
 				});
@@ -206,6 +219,7 @@ void Cg_AddSprites(void) {
 					.size = s->size,
 					.image = (r_image_t *) s->image,
 					.color = color,
+					.flags = s->flags
 				});
 				break;
 		}
@@ -213,7 +227,7 @@ void Cg_AddSprites(void) {
 		if (s->think) {
 			s->think(s, life, delta);
 		}
-
+		
 		s = s->next;
 	}
 }
