@@ -32,11 +32,17 @@ if MINGW
 
 .rc.o:
 	@WINDRES@ $^ -o $@
-        
+
 quetoo_SOURCES += \
 	quetoo-icon.rc
+
+quetoo_LDFLAGS = \
+	-mwindows
 
 quetoo_dedicated_SOURCES += \
 	quetoo-dedicated-icon.rc
 
+quetoo_dedicated_LDFLAGS = \
+	-mwindows
+	
 endif
