@@ -217,12 +217,9 @@ AC_CHECK_HEADER(AL/al.h,
 HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
-AC_CHECK_LIB(OpenAL32,
-	HOST_OPENAL_LIBS="-lOpenAL32",
-	AC_CHECK_LIB(openal,
-		HOST_OPENAL_LIBS="-lopenal",
-		[AC_MSG_ERROR([Could not find -lOpenAL32 or -lopenal, please install OpenAL])]
-	)
+AC_SEARCH_LIBS(alGetError, [OpenAL32, openal],
+	HOST_OPENAL_LIBS="$ac_cv_search_function_alGetError",
+	[AC_MSG_ERROR([Could not find library containing alGetError(), please install OpenAL])]
 )
 
 AC_SUBST(HOST_OPENAL_CFLAGS)
