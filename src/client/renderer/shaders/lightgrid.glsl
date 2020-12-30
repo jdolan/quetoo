@@ -19,11 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#define BSP_LIGHTGRID_LUXEL_SIZE 64
+
 /**
  * @brief Clamps softly to 1.0 for values up to 1.5, to prevent an unsightly hard cutoff.
  */
-float soft_clip_fog(float x)
-{
+float soft_clip_fog(float x) {
 	x = clamp(x, 0.0, 1.5);
 	float x3 = x * x * x;
 	return 0.5 * (2.0 * x - x3 / 3.375);
@@ -32,8 +33,7 @@ float soft_clip_fog(float x)
 /**
  * @brief Draws the boundaries of the lightgrid voxels;
  */
-vec4 lightgrid_raster(vec3 uvw, float distance)
-{
+vec4 lightgrid_raster(vec3 uvw, float distance) {
 	float alpha = 1.0 - clamp(distance / 1024.0, 0.0, 1.0);
 	vec4 c = vec4(1.0);
 	c.rgb = fract(uvw * lightgrid.resolution.xyz);
@@ -66,13 +66,13 @@ vec3 lightgrid_uvw(in vec3 position) {
  */
 void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler,
 	in vec3 position, in vec3 lightgrid_uvw) {
-
+	
 	// TODO: reintroduce classic fog
 	// then only draw this expensive fog on top of that, near the player.
 
-	float max_trace_distance = 64.0; // worldspace units
-	float uvw_max_trace_distance = max_trace_distance / hmax(lightgrid.resolution);
-	// float uvw_max_trace_distance = 0.25;
+	const float world_trace_distance = 1024.0;
+	float lightgrid_dimensions = hmax(lightgrid.resolution) * BSP_LIGHTGRID_LUXEL_SIZE;
+	float uvw_max_trace_distance = world_trace_distance / lightgrid_dimensions;
 
 	const float color_scale = 5.0;
 
