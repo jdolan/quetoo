@@ -73,9 +73,8 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
  */
 static void Cl_ResetTrails(cl_entity_t *ent) {
 
-	for (cl_entity_trail_t *trail = ent->trails; trail < ent->trails + lengthof(ent->trails); trail++) {
-		trail->last_origin = ent->previous_origin;
-		trail->trail_updated = false;
+	for (vec3_t *trail = ent->trail_origins; trail < ent->trail_origins + lengthof(ent->trail_origins); trail++) {
+		*trail = ent->previous_origin;
 	}
 }
 

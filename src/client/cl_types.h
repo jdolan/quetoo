@@ -69,15 +69,11 @@ typedef struct {
 typedef enum {
 	TRAIL_PRIMARY,
 	TRAIL_SECONDARY,
+	TRAIL_TERTIARY,
 	TRAIL_BUBBLE,
 
 	TRAIL_ID_COUNT
 } cl_trail_id_t;
-
-typedef struct {
-	vec3_t last_origin;
-	_Bool trail_updated;
-} cl_entity_trail_t;
 
 typedef struct {
 	entity_state_t baseline; // delta from this if not from a previous frame
@@ -88,7 +84,7 @@ typedef struct {
 
 	uint32_t timestamp; // for intermittent effects
 
-	cl_entity_trail_t trails[TRAIL_ID_COUNT];
+	vec3_t trail_origins[TRAIL_ID_COUNT];
 
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation

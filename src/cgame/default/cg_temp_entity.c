@@ -295,7 +295,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
 
-		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_Scale(dir, 8.f)), 32.0);
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_Scale(dir, 8.f)));
 	} else {
 
 		Cg_AddSprite(&(cg_sprite_t) {
@@ -424,7 +424,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	// if a player has died underwater, emit some bubbles
 	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
 
-		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3(0.f, 0.f, 64.f)), 16.0);
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3(0.f, 0.f, 64.f)));
 	}
 
 	for (int32_t i = 0; i < count; i++) {
@@ -698,7 +698,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 static void Cg_LightningDischargeEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 40; i++) {
-		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)), 4.0);
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)));
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -738,7 +738,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	});
 
 	// Check for bubble trail
-	Cg_BubbleTrail(NULL, start, end, 16.f);
+	Cg_BubbleTrail(NULL, start, end);
 
 	const float dist = Vec3_DistanceDir(end, start, &forward);
 	const vec3_t right = Vec3(forward.z, -forward.x, forward.y);
@@ -793,7 +793,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			.size = 128.f,
 			.size_velocity = 20.f,
 			.dir = (i == 1) ? dir : Vec3_Zero(),
-			.color = Vec4(0.f, 0.f, 1.f, .25f)
+			.color = Vec4(0.f, 0.f, 1.f, .25f),
+			.flags = SPRITE_LERP
 		});
 	}
 
@@ -1177,7 +1178,7 @@ void Cg_ParseTempEntity(void) {
 		case TE_BUBBLES: // bubbles chasing projectiles in water
 			pos = cgi.ReadPosition();
 			pos2 = cgi.ReadPosition();
-			Cg_BubbleTrail(NULL, pos, pos2, 1.0);
+			Cg_BubbleTrail(NULL, pos, pos2);
 			break;
 
 		case TE_RIPPLE: // liquid surface ripples

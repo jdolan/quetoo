@@ -25,36 +25,52 @@
 /**
  * @brief
  */
-static int32_t Cg_TrailDensity(cl_entity_t *ent, const vec3_t start, const vec3_t end, float density, cl_trail_id_t trail, vec3_t *origin) {
-
-	// warning: don't blindly pass &entity->origin to the origin parameter or it'll stutter
-
-	const float min_length = 16.f, max_length = 64.f;
-
-	// first we have to reach up to min_length before we decide to start spawning
-	if (ent && Vec3_Distance(start, ent->trails[trail].last_origin) < min_length) {
-		return 0;
-	}
-
-	// check how far we're gonna draw a trail
-	*origin = ent ? ent->trails[trail].last_origin : start;
-
-	const float dist = Vec3_Distance(*origin, end);
-	const float frac = dist / (max_length - min_length);
-
-	if (ent) {
-		ent->trails[trail].trail_updated = true;
-	}
-
-	return (int32_t) ceilf(density * frac);
-}
-
-/**
- * @brief
- */
 static inline void Cg_ParticleTrailLifeOffset(vec3_t start, vec3_t end, float speed, float step, float *life_start, float *life_frac) {
 	*life_start = (speed - Vec3_Distance(start, end)) / 1000;
 	*life_frac = (1.0 - *life_start) * step;
+}
+
+/**
+ * @brief Calculates the number of "distance" steps that have been travelled between the last recorded trail position & the end.
+ * @param end The end of the trail - the current position, basically.
+ * @param distance The distance that the trail should spawn particles within.
+ * @param ent The entity spawning this trail. If this is NULL, "start" must be pointing to a proper start point.
+ * @param trail The trail ID.
+ * @param start The trail's output start position.
+ * @param dir The trail's output direction.
+ * @return The number of whole steps that was travelled by this trail.
+*/
+static int32_t Cg_TrailFraction(const vec3_t end, const float distance, cl_entity_t *ent, const cl_trail_id_t trail, vec3_t *start, vec3_t *dir) {
+	const float dist_to_last = Vec3_Distance(end, ent ? ent->trail_origins[trail] : *start);
+	static vec3_t _start, _dir;
+
+	// haven't travelled long enough yet
+	if (dist_to_last < distance) {
+		return 0;
+	}
+
+	// calculate steps
+	const int32_t steps = (int) truncf(dist_to_last / distance);
+
+	// allow nulls to be passed
+	if (!start) {
+		start = &_start;
+	}
+
+	if (!dir) {
+		dir = &_dir;
+	}
+
+	// adjust new origin
+	if (ent) {
+		*start = ent->trail_origins[trail];
+		*dir = Vec3_Scale(Vec3_Subtract(end, ent->trail_origins[trail]), 1.0f / dist_to_last);
+		ent->trail_origins[trail] = Vec3_Fmaf(ent->trail_origins[trail], steps * distance, *dir);
+	} else {
+		*dir = Vec3_Scale(Vec3_Subtract(end, *start), 1.0f / dist_to_last);
+	}
+
+	return steps;
 }
 
 /**
@@ -127,25 +143,24 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	}
 
 	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(ent, start, end, 24.0);
+		Cg_BubbleTrail(ent, start, end);
 		return;
 	}
 
-	vec3_t origin;
-	const int32_t count = Cg_TrailDensity(ent, start, end, 8, TRAIL_SECONDARY, &origin);
+	vec3_t origin, dir;
+	const int32_t count = Cg_TrailFraction(end, 8.f, ent, TRAIL_SECONDARY, &origin, &dir);
 
 	if (!count) {
 		return;
 	}
 
 	const float step = 1.f / count;
-	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, origin));
 
-	for (int32_t i = 0; i < count; i++) {
+	for (int32_t i = 0; i <= count; i++) {
 
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_smoke,
-			.origin = Vec3_Mix(origin, end, (step * i) + RandomRangef(-.5f, .5f)),
+			.origin = Vec3_Mix(start, origin, (step * i) + RandomRangef(-.5f, .5f)),
 			.velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f)),
 			.acceleration = Vec3_Scale(dir, -20.f),
 			.lifetime = RandomRangef(1000.f, 1400.f),
@@ -164,7 +179,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(ent, start, end, 10.f);
+		Cg_BubbleTrail(ent, start, end);
 		return;
 	}
 
@@ -193,10 +208,10 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 /**
  * @brief
  */
-void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, float target) {
+void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	vec3_t origin;
-	const int32_t count = Cg_TrailDensity(ent, start, end, target, TRAIL_SECONDARY, &origin);
+	vec3_t origin = start;
+	const int32_t count = Cg_TrailFraction(end, 32.f, ent, TRAIL_BUBBLE, &origin, NULL);
 
 	if (!count) {
 		return;
@@ -204,11 +219,11 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, floa
 
 	const float step = 1.f / count;
 
-	for (int32_t i = 0; i < count; i++) {
+	for (int32_t i = 0; i <= count; i++) {
 
-		const vec3_t pos = Vec3_Mix(origin, end, step * i);
-
+		const vec3_t pos = Vec3_Mix(end, origin, step * i);
 		const int32_t contents = cgi.PointContents(pos);
+
 		if (!(contents & CONTENTS_MASK_LIQUID)) {
 			continue;
 		}
@@ -221,7 +236,7 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, floa
 				.velocity = Vec3_Add(Vec3_RandomRange(-5.f, 5.f), Vec3(0.f, 0.f, 6.f)),
 				.acceleration.z = 10.f,
 				.lifetime = 1000 - (Randomf() * 100),
-				.size = RandomRangef(1.f, 2.f)
+				.size = RandomRangef(4.f, 8.f)
 			}))) {
 			return;
 		}
@@ -246,16 +261,16 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, floa
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	const vec3_t effect_color = Cg_ResolveEntityEffectHSV(ent->current.client, color_hue_orange);
+	const float trail_length = 8.f;
 
-	Cg_BubbleTrail(ent, start, end, 12.0);
+	Cg_BubbleTrail(ent, start, end);
 
-	vec3_t origin;
-	const int32_t count = Cg_TrailDensity(ent, start, end, 30, TRAIL_PRIMARY, &origin);
+	vec3_t org, dir;
+	const int32_t count = Cg_TrailFraction(end, trail_length, ent, TRAIL_PRIMARY, &org, &dir);
 
 	if (count) {
-		const float step = 1.f / count;
 
-		for (int32_t i = 0; i < count; i++) {
+		for (int32_t i = 0; i <= count; i++) {
 			const float scale = 7.f;
 			const float power = 3.f;
 			const vec3_t pdir = Vec3_Normalize(Vec3_RandomRange(-1.f, 1.f));
@@ -266,8 +281,8 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 				.atlas_image = cg_sprite_particle,
 				.lifetime = 1000,
 				.velocity = Vec3_Scale(pdir, pdist * 10.f),
-				.origin = Vec3_Add(porig, Vec3_Mix(origin, end, step * i)),
-				.size = Maxf(1.7f, powf(1.7f - pdist, power)),
+				.origin = Vec3_Add(porig, Vec3_Mix(end, org, 1.0f / i)),
+				.size = Maxf(1.85f, powf(1.85f - pdist, power)),
 				.size_velocity = Mixf(-3.5f, -.2f, pdist) * RandomRangef(.66f, 1.f),
 				.color = Vec4(effect_color.x, effect_color.y, effect_color.z, pdist),
 				.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
@@ -374,12 +389,12 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	}
 
 	// exhaust flames
-	count = Cg_TrailDensity(ent, start, end, 12, TRAIL_PRIMARY, &origin);
+	count = Cg_TrailFraction(end, 12.f, ent, TRAIL_PRIMARY, &origin, NULL);
 	if (count) {
 		const float step = 1.f / count;
 		float life_start, life_frac;
 
-		Cg_ParticleTrailLifeOffset(origin, end, speed, step, &life_start, &life_frac);
+		Cg_ParticleTrailLifeOffset(start, origin, speed, step, &life_start, &life_frac);
 
 		for (int32_t i = 0; i < count; i++) {
 			const float particle_life_frac = life_start + (life_frac * (i + 1));
@@ -388,7 +403,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			if (!Cg_AddSprite(&(cg_sprite_t) {
 					.animation = cg_sprite_rocket_flame,
 					.lifetime = Cg_AnimationLifetime(cg_sprite_rocket_flame, 90) * particle_life_frac,
-					.origin = Vec3_Mix(origin, end, step * i),
+					.origin = Vec3_Mix(start, origin, step * i),
 					.velocity = velocity,
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = 10.f,
@@ -401,12 +416,12 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	}
 
 	// smoke trail
-	count = Cg_TrailDensity(ent, start, end, 2, TRAIL_SECONDARY, &origin);
+	count = Cg_TrailFraction(end, 16.f, ent, TRAIL_SECONDARY, &origin, NULL);
 	if (count) {
 		const float step = 1.f / count;
 		float life_start, life_frac;
 
-		Cg_ParticleTrailLifeOffset(origin, end, speed, step, &life_start, &life_frac);
+		Cg_ParticleTrailLifeOffset(start, origin, speed, step, &life_start, &life_frac);
 
 		for (int32_t i = 0; i < count; i++) {
 			const float particle_life_frac = life_start + (life_frac * (i + 1));
@@ -416,7 +431,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			if (!Cg_AddSprite(&(cg_sprite_t) {
 					.animation = cg_sprite_smoke_04,
 					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_04, 60) * particle_life_frac,
-					.origin = Vec3_Add(Vec3_Mix(origin, end, step * i), Vec3_RandomRange(-2.5f, 2.5f)),
+					.origin = Vec3_Add(Vec3_Mix(start, origin, step * i), Vec3_RandomRange(-2.5f, 2.5f)),
 					.velocity = Vec3_Scale(velocity, 0.5),
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = Randomf() * 5.f + 10.f,
@@ -430,7 +445,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			if (!Cg_AddSprite(&(cg_sprite_t) {
 					.animation = cg_sprite_smoke_05,
 					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 60) * particle_life_frac,
-					.origin = Vec3_Add(Vec3_Mix(origin, end, (step * i) + (step * .5f)), Vec3_RandomRange(-2.5f, 2.5f)),
+					.origin = Vec3_Add(Vec3_Mix(start, origin, (step * i) + (step * .5f)), Vec3_RandomRange(-2.5f, 2.5f)),
 					.velocity = Vec3_Scale(velocity, 0.5),
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = Randomf() * 5.f + 10.f,
@@ -443,12 +458,12 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	}
 
 	// firefly trail
-	count = Cg_TrailDensity(ent, start, end, 10, TRAIL_BUBBLE, &origin);
+	count = Cg_TrailFraction(end, 10.f, ent, TRAIL_TERTIARY, &origin, NULL);
 	if (count) {
 		const float step = 1.f / count;
 		float life_start, life_frac;
 
-		Cg_ParticleTrailLifeOffset(origin, end, speed, step, &life_start, &life_frac);
+		Cg_ParticleTrailLifeOffset(start, origin, speed, step, &life_start, &life_frac);
 
 		for (int32_t i = 0; i < count; i++) {
 			const float particle_life_frac = life_start + (life_frac * (i + 1));
@@ -457,7 +472,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			if (!Cg_AddSprite(&(cg_sprite_t) {
 					.atlas_image = cg_sprite_particle,
 					.lifetime = RandomRangef(900.f, 1300.f) * particle_life_frac,
-					.origin = Vec3_Mix(origin, end, step * i),
+					.origin = Vec3_Mix(start, origin, step * i),
 					.velocity = Vec3_RandomRange(-10.f, 10.f),
 					.acceleration = Vec3_RandomRange(-10.f, 10.f),
 					.size = Randomf() * 1.6f + 1.6f,
@@ -523,8 +538,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-		const float radius = 6.f;
-		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, radius / 4.0);
+		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin);
 	}
 
 	Cg_AddLight(&(cg_light_t) {
@@ -653,7 +667,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, 4.0);
+		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin);
 	}
 
 	Cg_AddLight(&(cg_light_t) {
@@ -723,14 +737,12 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const float hue) {
 static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(ent, start, end, 8.0);
+		Cg_BubbleTrail(ent, start, end);
 		return;
 	}
 
-	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
-
-	vec3_t origin;
-	const int32_t count = Cg_TrailDensity(ent, start, end, 3, TRAIL_PRIMARY, &origin);
+	vec3_t origin, dir;
+	const int32_t count = Cg_TrailFraction(end, 8.f, ent, TRAIL_PRIMARY, &origin, &dir);
 
 	if (!count) {
 		return;
@@ -738,7 +750,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 	float step = 1.f / count;
 
-	for (int32_t i = 0; i < count; i++) {
+	for (int32_t i = 0; i <= count; i++) {
 
 		cg_sprite_t *s;
 
@@ -747,7 +759,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 				.lifetime = Cg_AnimationLifetime(cg_sprite_blood_01, 30) + Randomf() * 500,
 				.size = RandomRangef(40.f, 64.f),
 				.rotation = RandomRadian(),
-				.origin = Vec3_Mix(origin, end, step * i),
+				.origin = Vec3_Mix(end, origin, step * i),
 				.velocity = Vec3_Scale(dir, 20.0),
 				.acceleration.z = -SPRITE_GRAVITY / 2.0,
 				.flags = SPRITE_LERP,
@@ -883,12 +895,5 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			break;
 		default:
 			break;
-	}
-
-	for (cl_entity_trail_t *trail = ent->trails; trail < ent->trails + lengthof(ent->trails); trail++) {
-		if (trail->trail_updated) {
-			trail->last_origin = end;
-			trail->trail_updated = false;
-		}
 	}
 }
