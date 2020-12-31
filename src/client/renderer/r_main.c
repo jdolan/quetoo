@@ -349,6 +349,10 @@ static void R_Clear(void) {
 void R_BeginFrame(void) {
 
 	R_Clear();
+
+	if (cls.state == CL_ACTIVE) {
+		memset(&r_view, 0, sizeof(r_view));
+	}
 }
 
 /**
@@ -435,8 +439,6 @@ void R_EndFrame(void) {
 		if (r_view.update) {
 			R_FreeUnseededMedia();
 		}
-
-		memset(&r_view, 0, sizeof(r_view));
 	}
 
 	SDL_GL_SwapWindow(r_context.window);
