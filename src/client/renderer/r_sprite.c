@@ -104,11 +104,13 @@ void R_AddSprite(const r_sprite_t *s) {
 		return;
 	}
 
-	if (R_CullSphere(s->origin, s->size * .5f)) {
+	const float size = s->size ?: Maxf(s->width, s->height);
+
+	if (R_CullSphere(s->origin, size * .5f)) {
 		return;
 	}
 
-	if (R_OccludeSphere(s->origin, s->size * .5f)) {
+	if (R_OccludeSphere(s->origin, size * .5f)) {
 		return;
 	}
 
@@ -178,7 +180,8 @@ static void R_UpdateSprite(const r_sprite_t *s) {
 	in->diffusemap = R_ResolveSpriteImage(s->media, s->life);
 
 	const float aspect_ratio = (float) in->diffusemap->width / (float) in->diffusemap->height;
-	const float half_size = s->size * .5f;
+	const float half_width = (s->size ?: s->width) * .5f;
+	const float half_height = (s->size ?: s->height) * .5f;
 
 	vec3_t dir, right, up;
 
@@ -202,7 +205,7 @@ static void R_UpdateSprite(const r_sprite_t *s) {
 				}
 			}
 
-			dir = Vec3_Euler(dir);
+			dir = Vec3_Euler(Vec3_Normalize(dir));
 			dir.z = Degrees(s->rotation);
 			Vec3_Vectors(dir, NULL, &right, &up);
 		}
@@ -212,10 +215,10 @@ static void R_UpdateSprite(const r_sprite_t *s) {
 		Vec3_Vectors(dir, NULL, &right, &up);
 	}
 
-	const vec3_t u = Vec3_Scale(up, half_size),
-				 d = Vec3_Scale(up, -half_size),
-				 l = Vec3_Scale(right, -half_size * aspect_ratio),
-				 r = Vec3_Scale(right, half_size * aspect_ratio);
+	const vec3_t u = Vec3_Scale(up, half_height),
+				 d = Vec3_Scale(up, -half_height),
+				 l = Vec3_Scale(right, -half_width * aspect_ratio),
+				 r = Vec3_Scale(right, half_width * aspect_ratio);
 
 	in->vertexes[0].position = Vec3_Add(Vec3_Add(s->origin, u), l);
 	in->vertexes[1].position = Vec3_Add(Vec3_Add(s->origin, u), r);

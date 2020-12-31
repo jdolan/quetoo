@@ -54,7 +54,17 @@ enum {
 	/**
 	 * @brief Beam's velocity does not affect the end point
 	 */
-	SPRITE_BEAM_VELOCITY_NO_END = SPRITE_CGAME
+	SPRITE_BEAM_VELOCITY_NO_END = SPRITE_CGAME,
+
+	/**
+	 * @brief Life time is calculated based on server time rather than client time
+	 */
+	SPRITE_SERVER_TIME = SPRITE_CGAME << 1,
+
+	/**
+	 * @brief Data is not heap-allocated, so don't free
+	 */
+	SPRITE_DATA_NOFREE = SPRITE_CGAME << 2
 };
 
 typedef uint32_t cg_r_sprite_flags_t;
@@ -170,6 +180,12 @@ typedef struct cg_sprite_s {
 	 * @brief Think function for particle.
 	 */
 	cg_sprite_think_t think;
+
+	/**
+	 * @brief Custom data allocated on a sprite. Automatically freed unless
+	 * SPRITE_DATA_NOFREE is set.
+	 */
+	void *data;
 
 	/**
 	 * @brief The sprite's media.

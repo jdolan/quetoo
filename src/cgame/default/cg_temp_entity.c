@@ -168,7 +168,7 @@ static void Cg_DrawFloatingStringLine(vec3_t position, const char *string, const
 			.height = size * 2.f,
 			.color = Vec4(0.f, 0.f, 1.f, 1.f),
 			.end_color = Vec4(0.f, 0.f, 1.f, 1.f),
-			.flags = SPRITE_NO_BLEND_DEPTH,
+			.flags = SPRITE_SERVER_TIME,
 			.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
 		});
 
@@ -195,6 +195,7 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 			.origin = start,
 			.termination = end,
 			.size = 2.f,
+			.flags = SPRITE_SERVER_TIME,
 			.lifetime = QUETOO_TICK_MILLIS,
 			.color = mover_color,
 			.end_color = mover_color
@@ -226,6 +227,7 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 			.termination = end,
 			.size = 2.f,
 			.lifetime = QUETOO_TICK_MILLIS,
+			.flags = SPRITE_SERVER_TIME,
 			.color = both_color,
 			.end_color = both_color
 		});
@@ -241,6 +243,7 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 				.termination = center,
 				.size = 2.f,
 				.lifetime = QUETOO_TICK_MILLIS,
+				.flags = SPRITE_SERVER_TIME,
 				.color = a_color,
 				.end_color = a_color
 			});
@@ -252,6 +255,7 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 				.termination = start,
 				.size = 2.f,
 				.lifetime = QUETOO_TICK_MILLIS,
+				.flags = SPRITE_SERVER_TIME,
 				.color = b_color,
 				.end_color = b_color
 			});
@@ -263,6 +267,7 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 				.termination = center,
 				.size = 2.f,
 				.lifetime = QUETOO_TICK_MILLIS,
+				.flags = SPRITE_SERVER_TIME,
 				.color = b_color,
 				.end_color = b_color
 			});
@@ -274,6 +279,7 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 				.termination = start,
 				.size = 2.f,
 				.lifetime = QUETOO_TICK_MILLIS,
+				.flags = SPRITE_SERVER_TIME,
 				.color = a_color,
 				.end_color = a_color
 			});
@@ -827,17 +833,34 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 }
 
 /**
+ * @brief 
+ */
+typedef union {
+	struct {
+		uint16_t org, dest;
+	};
+
+	void *data;
+} cg_bfg_laser_data_t;
+
+static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
+
+	const cg_bfg_laser_data_t data = { .data = sprite->data };
+
+	const vec3_t org = cgi.client->entities[data.org].origin;
+	const vec3_t end = cgi.client->entities[data.dest].origin;
+
+	sprite->origin = org;
+	sprite->termination = end;
+}
+
+/**
  * @brief
  */
-static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
+static void Cg_BfgLaserEffect(const uint16_t org_entity, const uint16_t dest_entity) {
 
-	cgi.AddBeam(&(r_beam_t) {
-		.image = cg_beam_rail,
-		.start = org,
-		.end = end,
-		.size = 5.f,
-		.color = Color32(0, 255, 0, 0)
-	});
+	const vec3_t org = cgi.client->entities[org_entity].origin;
+	const vec3_t end = cgi.client->entities[dest_entity].origin;
 
 	Cg_AddSprite(&(cg_sprite_t) {
 		.type = SPRITE_BEAM,
@@ -846,8 +869,11 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 		.termination = end,
 		.size = 5.f,
 		.lifetime = QUETOO_TICK_MILLIS,
+		.flags = SPRITE_SERVER_TIME | SPRITE_DATA_NOFREE,
 		.color = Vec4(color_hue_green, 1.f, 1.f, 0),
-		.end_color = Vec4(color_hue_green, 1.f, 1.f, 0)
+		.end_color = Vec4(color_hue_green, 1.f, 1.f, 0),
+		.data = ((cg_bfg_laser_data_t) { .org = org_entity, .dest = dest_entity }).data,
+		.think = Cg_BfgLaserThink
 	});
 
 	Cg_AddLight(&(cg_light_t) {
@@ -1138,9 +1164,9 @@ void Cg_ParseTempEntity(void) {
 			break;
 
 		case TE_BFG_LASER:
-			pos = cgi.ReadPosition();
-			pos2 = cgi.ReadPosition();
-			Cg_BfgLaserEffect(pos, pos2);
+			i = cgi.ReadShort();
+			j = cgi.ReadShort();
+			Cg_BfgLaserEffect(j, i);
 			break;
 
 		case TE_BFG: // bfg explosion

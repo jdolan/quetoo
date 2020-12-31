@@ -84,7 +84,11 @@ cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
 
 	*s = *in_s;
 
-	s->time = s->timestamp = cgi.client->unclamped_time;
+	if (in_s->flags & SPRITE_SERVER_TIME) {
+		s->time = s->timestamp = cgi.client->frame.time;
+	} else {
+		s->time = s->timestamp = cgi.client->unclamped_time;
+	}
 
 	Cg_PushSprite(s, &cg_active_sprites);
 
@@ -101,6 +105,12 @@ cg_sprite_t *Cg_FreeSprite(cg_sprite_t *s) {
 	Cg_PopSprite(s, &cg_active_sprites);
 
 	Cg_PushSprite(s, &cg_free_sprites);
+
+	if (s->data && !(s->flags & SPRITE_DATA_NOFREE)) {
+
+		cgi.Free(s->data);
+		s->data = NULL;
+	}
 
 	return next;
 }
@@ -134,16 +144,18 @@ void Cg_AddSprites(void) {
 	cg_sprite_t *s = cg_active_sprites;
 	while (s) {
 
+		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? cgi.client->frame.time : cgi.client->unclamped_time;
+
 		assert(s->media);
 
-		if (s->time != cgi.client->unclamped_time) {
-			if (cgi.client->unclamped_time - s->time > s->lifetime) {
+		if (s->time != time) {
+			if (time - s->time > s->lifetime) {
 				s = Cg_FreeSprite(s);
 				continue;
 			}
 		}
 
-		const uint32_t elapsed_time = (cgi.client->unclamped_time - s->time);
+		const uint32_t elapsed_time = (time - s->time);
 		float life = elapsed_time / (float) (s->lifetime ?: 1);
 		if (s->life_easing) {
 			life = s->life_easing(life);

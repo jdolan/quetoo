@@ -1101,8 +1101,8 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(TE_BFG_LASER);
-		gi.WritePosition(self->s.origin);
-		gi.WritePosition(end);
+		gi.WriteShort(self->s.number);
+		gi.WriteShort(ent->s.number);
 		gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 	}
 
