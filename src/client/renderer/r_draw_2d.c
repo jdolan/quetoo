@@ -527,7 +527,7 @@ void R_InitDraw2D(void) {
 
 	R_BindFont(NULL, NULL, NULL);
 
-	r_draw_2d.null_texture = R_LoadImage("textures/common/white", IT_PROGRAM);
+	r_draw_2d.null_texture = R_LoadImage("textures/common/notex", IT_PROGRAM);
 	assert(r_draw_2d.null_texture);
 	
 	glGenVertexArrays(1, &r_draw_2d.vertex_array);
