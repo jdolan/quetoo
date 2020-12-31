@@ -70,7 +70,7 @@ check_cm_polylib_LDADD = \
 	$(top_builddir)/src/libmem.la \
 	$(top_builddir)/src/collision/libcollision.la
 
-check_cm_polylib_SOURCES = \
+check_cm_test_SOURCES = \
 	check_cm_test.c
 check_cm_test_CFLAGS = \
 	$(TESTS_CFLAGS)
