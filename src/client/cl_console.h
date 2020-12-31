@@ -27,6 +27,7 @@
 extern console_t cl_console;
 extern console_t cl_chat_console;
 
+r_pixel_t Cl_GetConsoleHeight(void);
 void Cl_DrawConsole(void);
 void Cl_DrawNotify(void);
 void Cl_DrawChat(void);

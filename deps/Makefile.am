@@ -1,3 +1,2 @@
 SUBDIRS = \
-	genann \
 	minizip

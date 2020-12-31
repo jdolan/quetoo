@@ -70,9 +70,9 @@ typedef struct s_play_sample_s {
 	const s_sample_t *sample;
 	vec3_t origin;
 	int32_t entity;
-	int32_t attenuation;
-	int16_t flags;
-	int16_t pitch; // pitch offset; 0 is no adjustment, TONES_PER_OCTAVE is +1 octave, -TONES_PER_OCTAVE is -1 octave, etc.
+	sound_atten_t atten;
+	int32_t flags;
+	int32_t pitch; // pitch offset; 0 is no adjustment, TONES_PER_OCTAVE is +1 octave, -TONES_PER_OCTAVE is -1 octave, etc.
 } s_play_sample_t;
 
 typedef struct s_channel_s {
@@ -82,8 +82,8 @@ typedef struct s_channel_s {
 	int32_t frame;
 	vec3_t position;
 	vec3_t velocity;
-	vec_t gain;
-	vec_t pitch;
+	float gain;
+	float pitch;
 	ALuint filter;
 	_Bool relative; // sound is relative to listener
 } s_channel_t;
@@ -130,7 +130,7 @@ typedef struct s_env_s {
 	const char *version;
 
 	size_t raw_sample_buffer_size;
-	vec_t *raw_sample_buffer;
+	float *raw_sample_buffer;
 
 	size_t converted_sample_buffer_size;
 	int16_t *converted_sample_buffer; // converted raw_samples

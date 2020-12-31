@@ -64,7 +64,7 @@ libclient_la_LIBADD = \
 	renderer/librenderer.la \
 	sound/libsound.la \
 	ui/libui.la \
-	$(top_builddir)/src/collision/libcmodel.la \
+	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/net/libnet.la \
 	$(top_builddir)/src/libconsole.la \
 	$(top_builddir)/src/libthread.la \

@@ -50,7 +50,7 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
 
 		case KEY_CONSOLE: {
 				const int64_t scroll = cl_console.scroll + event->wheel.y;
-				cl_console.scroll = Clamp(scroll, 0, (int64_t) console_state.strings.length);
+				cl_console.scroll = Clampf(scroll, 0, (int64_t) console_state.strings.length);
 			}
 			break;
 
@@ -85,7 +85,7 @@ void Cl_MouseMotionEvent(const SDL_Event *event) {
 	}
 
 	if (m_sensitivity->modified) {
-		m_sensitivity->value = Clamp(m_sensitivity->value, 0.1, 20.0);
+		m_sensitivity->value = Clampf(m_sensitivity->value, 0.1, 20.0);
 		m_sensitivity->modified = false;
 	}
 
@@ -105,7 +105,7 @@ void Cl_MouseMotionEvent(const SDL_Event *event) {
 			cls.mouse_state.y = -cls.mouse_state.y;
 		}
 
-		cl.angles[YAW] -= m_yaw->value * cls.mouse_state.x;
-		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
+		cl.angles.y -= m_yaw->value * cls.mouse_state.x;
+		cl.angles.x += m_pitch->value * cls.mouse_state.y;
 	}
 }

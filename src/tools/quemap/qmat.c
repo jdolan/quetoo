@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "bsp.h"
+#include "map.h"
+#include "material.h"
 #include "qmat.h"
 
 /**
@@ -26,18 +29,19 @@
  * serializes them back to the materials file for the current map.
  */
 int32_t MAT_Main(void) {
+	char path[MAX_QPATH];
 
-	Com_Print("\n----- MAT -----\n\n");
+	g_snprintf(path, sizeof(path), "maps/%s.mat", map_base);
 
-	const time_t start = time(NULL);
+	Com_Print("\n------------------------------------------\n");
+	Com_Print("\nGenerating %s for %s\n\n", path, map_name);
+
+	const uint32_t start = SDL_GetTicks();
 
 	// clear the whole bsp structure
 	memset(&bsp_file, 0, sizeof(bsp_file));
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXINFO);
-
-	char path[MAX_QPATH];
-	g_snprintf(path, sizeof(path), "materials/%s.mat", map_base);
 
 	LoadMaterials(path, ASSET_CONTEXT_TEXTURES, NULL);
 
@@ -47,19 +51,12 @@ int32_t MAT_Main(void) {
 		LoadMaterial(bsp_file.texinfo[i].texture, ASSET_CONTEXT_TEXTURES);
 	}
 
-	UnloadScriptFiles();
-
 	WriteMaterialsFile(path);
 
 	FreeMaterials();
 
-	const time_t end = time(NULL);
-	const time_t duration = end - start;
-	Com_Print("\nMaterials time: ");
-	if (duration > 59) {
-		Com_Print("%d Minutes ", (int32_t) (duration / 60));
-	}
-	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
+	const uint32_t end = SDL_GetTicks();
+	Com_Print("\nGenerated materials in %d ms\n", end - start);
 
 	return 0;
 }

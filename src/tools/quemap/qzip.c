@@ -19,6 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "deps/minizip/zip.h"
+
+#include "bsp.h"
+#include "material.h"
 #include "qzip.h"
 
 #define MISSING "__missing__"
@@ -105,7 +109,7 @@ static void AddImage(const char *image, _Bool required) {
 /**
  * @brief Adds the sky environment map.
  */
-static void AddSky(char *sky) {
+static void AddSky(const char *sky) {
 	const char *suffix[] = { "rt", "bk", "lf", "ft", "up", "dn", NULL };
 	const char **suf = suffix;
 
@@ -137,14 +141,18 @@ static _Bool AddAsset(const cm_asset_t *asset) {
  */
 static void AddMaterial(const cm_material_t *material) {
 
-	if (AddAsset(&material->diffuse)) {
+	if (AddAsset(&material->diffusemap)) {
 		AddAsset(&material->normalmap);
 		AddAsset(&material->heightmap);
+		AddAsset(&material->glossmap);
 		AddAsset(&material->specularmap);
 		AddAsset(&material->tintmap);
 
 		for (const cm_stage_t *stage = material->stages; stage; stage = stage->next) {
 			AddAsset(&stage->asset);
+			for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+				AddAsset(stage->animation.frames + i);
+			}
 		}
 	} else {
 		Com_Warn("Failed to resolve %s\n", material->name);
@@ -174,7 +182,7 @@ static void AddMaterials(const char *path, cm_asset_context_t context) {
  */
 static void AddTextures(void) {
 
-	AddMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES);
+	AddMaterials(va("maps/%s.mat", map_base), ASSET_CONTEXT_TEXTURES);
 
 	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
 		const char *name = bsp_file.texinfo[i].texture;
@@ -185,11 +193,11 @@ static void AddTextures(void) {
 /**
  * @brief Attempts to add the specified mesh model.
  */
-static void AddModel(char *model) {
+static void AddModel(const char *model) {
 	const char *model_formats[] = { "md3", "obj", NULL };
 	char path[MAX_QPATH];
 
-	if (model[0] == '*') { // bsp submodel
+	if (model[0] == '*') { // inline bsp model
 		return;
 	}
 
@@ -219,23 +227,32 @@ static void AddModel(char *model) {
  */
 static void AddEntities(void) {
 
-	ParseEntities();
+	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
 
-	for (uint16_t i = 0; i < num_entities; i++) {
-		const epair_t *e = entities[i].epairs;
+	for (GList *entity = entities; entity; entity = entity->next) {
+		const cm_entity_t *e = entity->data;
 		while (e) {
 
 			if (!g_strcmp0(e->key, "noise") || !g_strcmp0(e->key, "sound")) {
-				AddSound(e->value);
+				AddSound(e->string);
 			} else if (!g_strcmp0(e->key, "model")) {
-				AddModel(e->value);
+				AddModel(e->string);
 			} else if (!g_strcmp0(e->key, "sky")) {
-				AddSky(e->value);
+				AddSky(e->string);
 			}
 
 			e = e->next;
 		}
 	}
+
+	g_list_free_full(entities, Mem_Free);
+}
+
+/**
+ * @brief
+ */
+static void AddNavigation(void) {
+	AddPath(va("maps/%s.nav", map_base), false);
 }
 
 /**
@@ -332,11 +349,12 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
  * but straightforward implementation.
  */
 int32_t ZIP_Main(void) {
-	char zip[MAX_QPATH];
+	char path[MAX_QPATH];
 
-	Com_Print("\n----- ZIP -----\n\n");
+	Com_Print("\n------------------------------------------\n");
+	Com_Print("\nCreating archive for %s\n\n", bsp_name);
 
-	const time_t start = time(NULL);
+	const uint32_t start = SDL_GetTicks();
 
 	qzip.assets = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
@@ -348,7 +366,8 @@ int32_t ZIP_Main(void) {
 	// add the sounds, models, sky, ..
 	AddEntities();
 
-	// add location, docs and mapshots
+	// add navigation, location, docs and mapshots
+	AddNavigation();
 	AddLocation();
 	AddDocumentation();
 	AddMapshots();
@@ -361,11 +380,11 @@ int32_t ZIP_Main(void) {
 	GList *assets = g_hash_table_get_values(qzip.assets);
 	assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
 
-	g_snprintf(zip, sizeof(zip), "%s/%s", Fs_WriteDir(), GetZipFilename());
-	zipFile zip_file = zipOpen(zip, APPEND_STATUS_CREATE);
+	g_snprintf(path, sizeof(path), "%s/%s", Fs_WriteDir(), GetZipFilename());
+	zipFile zip_file = zipOpen(path, APPEND_STATUS_CREATE);
 
 	if (zip_file) {
-		Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), zip);
+		Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), path);
 
 		GList *a = assets;
 		while (a) {
@@ -379,19 +398,16 @@ int32_t ZIP_Main(void) {
 
 		zipClose(zip_file, NULL);
 	} else {
-		Com_Warn("Failed to open %s\n", zip);
+		Com_Warn("Failed to open %s\n", path);
 	}
 
 	g_list_free(assets);
 	g_hash_table_destroy(qzip.assets);
 
-	const time_t end = time(NULL);
-	const time_t duration = end - start;
-	Com_Print("\nZIP Time: ");
-	if (duration > 59) {
-		Com_Print("%d Minutes ", (int32_t) (duration / 60));
-	}
-	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
+	Mem_FreeTag(MEM_TAG_ASSET);
+
+	const uint32_t end = SDL_GetTicks();
+	Com_Print("\nWrote %s in %d ms\n", path, end - start);
 
 	return 0;
 }

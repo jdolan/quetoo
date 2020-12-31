@@ -31,7 +31,6 @@ static void G_ClientDamage(g_entity_t *ent) {
 	if (client->locals.damage_health || client->locals.damage_armor) {
 		// play an appropriate pain sound
 		if (g_level.time > client->locals.pain_time) {
-			vec3_t org;
 			int32_t l;
 
 			client->locals.pain_time = g_level.time + 700;
@@ -46,10 +45,9 @@ static void G_ClientDamage(g_entity_t *ent) {
 				l = 100;
 			}
 
-			UnpackVector(client->ps.pm_state.view_offset, org);
-			VectorAdd(client->ps.pm_state.origin, org, org);
+			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
-			gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), ATTEN_NORM, 0);
+			gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), SOUND_ATTEN_LINEAR, 0);
 		}
 	}
 
@@ -75,18 +73,18 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 	// if just entered a water volume, play a sound
 	if (old_water_level <= WATER_NONE && water_level >= WATER_FEET) {
-		gi.Sound(ent, g_media.sounds.water_in, ATTEN_NORM, 0);
+		gi.Sound(ent, g_media.sounds.water_in, SOUND_ATTEN_LINEAR, 0);
 	}
 
 	// completely exited the water
 	if (old_water_level >= WATER_FEET && water_level == WATER_NONE) {
-		gi.Sound(ent, g_media.sounds.water_out, ATTEN_NORM, 0);
+		gi.Sound(ent, g_media.sounds.water_out, SOUND_ATTEN_LINEAR, 0);
 	}
 
 	// same water level, head out of water
 	if ((old_water_level == water_level) && (water_level > WATER_FEET && water_level < WATER_UNDER)) {
-		if (VectorLength(ent->locals.velocity) > 10.0) {
-			G_Ripple(ent, NULL, NULL, 0.0, false);
+		if (Vec3_Length(ent->locals.velocity) > 10.0) {
+			G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, false);
 		}
 	}
 
@@ -94,12 +92,10 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 		// head just coming out of water, play a gasp if we were down for a while
 		if (old_water_level == WATER_UNDER && water_level != WATER_UNDER && (client->locals.drown_time - g_level.time) < 8000) {
-			vec3_t org;
 
-			UnpackVector(client->ps.pm_state.view_offset, org);
-			VectorAdd(client->ps.pm_state.origin, org, org);
+			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
-			gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), ATTEN_NORM, 0);
+			gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), SOUND_ATTEN_LINEAR, 0);
 		}
 
 		// check for drowning
@@ -128,7 +124,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 				client->locals.pain_time = g_level.time;
 
 				// and apply the damage
-				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, ent->locals.damage, 0, DMG_NO_ARMOR, MOD_WATER);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), ent->locals.damage, 0, DMG_NO_ARMOR, MOD_WATER);
 			}
 		}
 	}
@@ -136,25 +132,23 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	// check for sizzle damage
 	if (water_level && (ent->locals.water_type & (CONTENTS_LAVA | CONTENTS_SLIME))) {
 		if (client->locals.sizzle_time <= g_level.time) {
-			client->locals.sizzle_time = g_level.time + 1000;
+			client->locals.sizzle_time = g_level.time + 100;
 
-			if (ent->locals.dead == false && ent->locals.water_type & CONTENTS_LAVA) {
+			if (ent->locals.dead == false && (ent->locals.water_type & CONTENTS_LAVA) && client->locals.pain_time <= g_level.time) {
 
 				// play a sizzle sound instead of a normal pain sound
 				ent->s.event = EV_CLIENT_SIZZLE;
 
 				// suppress normal pain sound
-				client->locals.pain_time = g_level.time;
+				client->locals.pain_time = g_level.time + 1000;
 			}
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 12 * water_level, 0, DMG_NO_ARMOR,
-				         MOD_LAVA);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), 2 * water_level, 0, DMG_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 6 * water_level, 0, DMG_NO_ARMOR,
-				         MOD_SLIME);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), water_level, 0, 0, MOD_SLIME);
 			}
 		}
 	}
@@ -169,17 +163,17 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 static void G_ClientWorldAngles(g_entity_t *ent) {
 
 	if (ent->locals.dead) { // just lay there like a lump
-		ent->s.angles[PITCH] = 0.0;
+		ent->s.angles.x = ent->s.angles.z = 0.0;
 		return;
 	}
 
-	ent->s.angles[PITCH] = ent->client->locals.angles[PITCH] / 1.5;
-	ent->s.angles[YAW] = ent->client->locals.angles[YAW];
+	ent->s.angles.x = ent->client->locals.angles.x / 1.5;
+	ent->s.angles.y = ent->client->locals.angles.y;
 
 	// set roll based on lateral velocity and ground entity
-	const vec_t dot = DotProduct(ent->locals.velocity, ent->client->locals.right);
+	const float dot = Vec3_Dot(ent->locals.velocity, ent->client->locals.right);
 
-	ent->s.angles[ROLL] = ent->locals.ground_entity ? dot * 0.015 : dot * 0.005;
+	ent->s.angles.z = ent->locals.ground_entity ? dot * 0.015 : dot * 0.005;
 
 	// check for footsteps
 	if (ent->locals.ground_entity && ent->locals.move_type == MOVE_TYPE_WALK && !ent->s.event) {
@@ -194,23 +188,23 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 /**
  * @brief Adds view kick in the specified direction to the specified client.
  */
-void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
+void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const float kick) {
 	vec3_t ndir;
 
-	VectorNormalize2(dir, ndir);
+	ndir = Vec3_Normalize(dir);
 
-	const vec_t pitch = DotProduct(ndir, ent->client->locals.forward) * kick;
-	ent->client->locals.kick_angles[PITCH] += pitch;
+	const float pitch = Vec3_Dot(ndir, ent->client->locals.forward) * kick;
+	ent->client->locals.kick_angles.x += pitch;
 
-	const vec_t roll = DotProduct(ndir, ent->client->locals.right) * kick;
-	ent->client->locals.kick_angles[ROLL] += roll;
+	const float roll = Vec3_Dot(ndir, ent->client->locals.right) * kick;
+	ent->client->locals.kick_angles.z += roll;
 }
 
 /**
  * @brief Adds view angle kick based on entity events (falling, landing, etc).
  */
-static void G_ClientFallKick(g_entity_t *ent, const vec_t kick) {
-	ent->client->locals.kick_angles[PITCH] += kick;
+static void G_ClientFallKick(g_entity_t *ent, const float kick) {
+	ent->client->locals.kick_angles.x += kick;
 }
 
 /**
@@ -232,14 +226,14 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 			break;
 	}
 
-	if (!VectorCompare(ent->client->locals.kick_angles, vec3_origin)) {
+	if (!Vec3_Equal(ent->client->locals.kick_angles, Vec3_Zero())) {
 		gi.WriteByte(SV_CMD_VIEW_KICK);
-		gi.WriteAngle(ent->client->locals.kick_angles[PITCH]);
-		gi.WriteAngle(ent->client->locals.kick_angles[ROLL]);
+		gi.WriteAngle(ent->client->locals.kick_angles.x);
+		gi.WriteAngle(ent->client->locals.kick_angles.z);
 		gi.Unicast(ent, false);
 	}
 
-	VectorClear(ent->client->locals.kick_angles);
+	ent->client->locals.kick_angles = Vec3_Zero();
 }
 
 /**
@@ -308,12 +302,12 @@ static void G_ClientAnimation(g_entity_t *ent) {
 
 	if (g_level.time - 400 > cl->land_time && g_level.time - 50 > cl->ground_time) {
 
-		vec3_t angles, forward;
+		vec3_t forward;
+		
+		const vec3_t euler = Vec3(0.0, ent->s.angles.y, 0.0);
+		Vec3_Vectors(euler, &forward, NULL, NULL);
 
-		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
-		AngleVectors(angles, forward, NULL, NULL);
-
-		const _Bool backwards = DotProduct(ent->locals.velocity, forward) < -0.1;
+		const _Bool backwards = Vec3_Dot(ent->locals.velocity, forward) < -0.1;
 
 		if (ent->client->ps.pm_state.flags & PMF_DUCKED) { // ducked
 			if (cl->speed < 1.0) {
@@ -334,7 +328,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 
 		entity_animation_t anim = ANIM_LEGS_RUN;
 
-		if (cl->speed < 200.0) {
+		if (cl->speed < 290.0) {
 			anim = ANIM_LEGS_WALK;
 
 			if (backwards) {
@@ -364,8 +358,8 @@ void G_ClientEndFrame(g_entity_t *ent) {
 	//
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"
-	VectorCopy(ent->s.origin, client->ps.pm_state.origin);
-	VectorCopy(ent->locals.velocity, client->ps.pm_state.velocity);
+	client->ps.pm_state.origin = ent->s.origin;
+	client->ps.pm_state.velocity = ent->locals.velocity;
 
 	// If in intermission, just set stats and scores and return
 	if (g_level.intermission_time) {
@@ -417,6 +411,11 @@ void G_EndClientFrames(void) {
 		}
 
 		G_ClientEndFrame(ent);
+	}
+
+	// render the nodes to the clients
+	if (aix) {
+		aix->Render();
 	}
 
 	// now loop through again, and for chase camera users, copy the final player state

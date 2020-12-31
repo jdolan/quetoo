@@ -28,7 +28,7 @@
  * @brief Resolve typed data from a structure using offsets.
  */
 #define MEMBER_DATA(from, member) \
-	((typeof(member)) ((byte *) (from) + ((ptrdiff_t) member)))
+	((typeof(member)) ((intptr_t) (from) + ((ptrdiff_t) member)))
 
 /**
  * @brief Typed offsets into g_item_t, populated by the game module.
@@ -68,7 +68,7 @@ typedef struct ai_item_data_s {
 	/**
 	 * @brief The ammo item, if any.
 	 */
-	const g_item_t *const *ammo;
+	const char *const *ammo;
 
 	/**
 	 * @brief The quantity, provided or used, depending on the item type.
@@ -83,18 +83,22 @@ typedef struct ai_item_data_s {
 	/**
 	 * @brief The priority, for bots to weigh.
 	 */
-	vec_t *priority;
+	float *priority;
 
 } ai_item_data_t;
 
-#define ITEM_DATA(item, m) \
-	(*MEMBER_DATA(item, ai_item_data.m))
+#define ITEM_DATA(item, m) (*MEMBER_DATA(item, ai_item_data.m))
 
 /**
  * @brief Struct of parameters from g_entity_t that the bot
  * will make use of. These will be offsets, not actual pointers.
  */
 typedef struct ai_entity_data_s {
+
+	/**
+	 * @brief Offset to entity class name.
+	 */
+	const char *const *class_name;
 
 	/**
 	 * @brief Offset to ground entity
@@ -109,7 +113,7 @@ typedef struct ai_entity_data_s {
 	/**
 	 * @brief Offset to velocity
 	 */
-	const vec_t *velocity;
+	const vec3_t *velocity;
 
 	/**
 	 * @brief Offset to health
@@ -125,13 +129,18 @@ typedef struct ai_entity_data_s {
 	 * @brief Offset to water level
 	 */
 	const pm_water_level_t *water_level;
+
+	/**
+	 * @brief Offset to node dropped by this entity
+	 */
+	const ai_node_id_t *node;
 } ai_entity_data_t;
 
 /**
  * @brief Resolve the entity data ptr for the specified member
  */
 #define ENTITY_DATA(ent, m) \
-	(*MEMBER_DATA(&ent->locals, ai_entity_data.m))
+	(*MEMBER_DATA(ent, ai_entity_data.m))
 
 /**
  * @brief Struct of parameters from g_client_t that the bot
@@ -141,7 +150,7 @@ typedef struct ai_client_data_s {
 	/**
 	 * @brief Offset to view angles
 	 */
-	const vec_t *angles;
+	const vec3_t *angles;
 
 	/**
 	 * @brief Offset to inventory
@@ -162,6 +171,11 @@ typedef struct ai_client_data_s {
 	 * @brief Offset to team id
 	 */
 	const g_team_id_t *team;
+	
+	/**
+	 * @brief Offset to grenade hold time
+	 */
+	const uint32_t *grenade_hold_time;
 
 } ai_client_data_t;
 
@@ -180,6 +194,8 @@ typedef struct {
 	_Bool teams;
 	_Bool ctf;
 	_Bool match;
+	_Bool load_finished;
+	char mapname[MAX_QPATH];
 } ai_level_t;
 
 /**
@@ -187,27 +203,129 @@ typedef struct {
  */
 #define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\qforcer/default"
 
+/**
+ * @brief The type of goal we're after. This controls which variant in ai_goal_t
+ * we can access.
+ */
 typedef enum {
+	/**
+	 * @brief This goal is empty. This is still technically a valid goal type, just
+	 * very low priority generally.
+	 */
 	AI_GOAL_NONE,
-	AI_GOAL_NAV,
-	AI_GOAL_GHOST,
-	AI_GOAL_ITEM,
-	AI_GOAL_ENEMY,
-	AI_GOAL_TEAMMATE
+
+	/**
+	 * @brief This goal is a positional goal. It only has a known position
+	 * in the world.
+	 */
+	AI_GOAL_POSITION,
+
+	/**
+	 * @brief This goal is an entity goal. It is attached to an entity's existence.
+	 */
+	AI_GOAL_ENTITY,
+	
+	/**
+	 * @brief This goal is a path goal. It stores a whole path of connected nodes
+	 * to reach a destination.
+	 */
+	AI_GOAL_PATH
 } ai_goal_type_t;
 
-typedef struct {
-	ai_goal_type_t type;
-	vec_t priority;
-	uint32_t time; // time this goal was set
-	const g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY/TEAMMATE
-	uint16_t ent_id; // FOR AI_GOAL_ITEM/ENEMY/TEAMMATE
-} ai_goal_t;
+/**
+ * @brief Bot combat styles.
+ */
+typedef enum {
+	AI_COMBAT_NONE,
+
+	AI_COMBAT_CLOSE,
+	AI_COMBAT_FLANK,
+	AI_COMBAT_WANDER,
+
+	AI_COMBAT_TOTAL
+} ai_combat_type_t;
 
 /**
- * @brief A G_AIGoalFunc can return this if the goal is finished.
+ * @brief Bot trick jump timing.
  */
-#define AI_GOAL_COMPLETE	0
+typedef enum {
+	TRICK_JUMP_NONE,
+	TRICK_JUMP_START,
+	TRICK_JUMP_WAITING,
+	TRICK_JUMP_TURNING
+} ai_trick_jump_t;
+
+/**
+ * @brief The variant structure of a goal.
+ */
+typedef struct {
+	/**
+	 * @brief The type of goal we hold.
+	 */
+	ai_goal_type_t type;
+
+	/**
+	 * @brief The priority of this goal. This can be used, for instance, to find a more suitable
+	 * target while we're actively heading for a particular goal, and replacing it.
+	 */
+	float priority;
+
+	/**
+	 * @brief The time this goal was set at.
+	 */
+	uint32_t time;
+
+	/**
+	 * @brief Distress counter; if we reach a threshold, this goal will be abandoned.
+	 */
+	float distress;
+
+	/**
+	 * @brief Just used for debugging.
+	 */
+	float last_distress;
+
+	/**
+	 * @brief Last distance we recorded to our goal.
+	 */
+	float last_distance;
+
+	/**
+	 * @brief extends the time from 1s to 10s+ FIXME: change to a fixed # that can be added to distress timeout
+	 */
+	_Bool distress_extension;
+	
+	union {
+		struct {
+			float angle;
+		} wander;
+
+		struct {
+			vec3_t pos;
+		} position;
+
+		struct {
+			const g_entity_t *ent;
+			uint32_t spawn_id;
+
+			// specific to combat goal
+
+			ai_combat_type_t combat_type;
+			uint32_t lock_on_time;
+			float flank_angle;
+		} entity;
+
+		struct {
+			GArray *path;
+			guint path_index;
+			vec3_t path_position, next_path_position;
+			ai_trick_jump_t trick_jump;
+			vec3_t trick_position;
+			const g_entity_t *path_target;
+			uint32_t path_target_spawn_id;
+		} path;
+	};
+} ai_goal_t;
 
 /**
  * @brief A functional AI goal. It returns the amount of time to wait
@@ -216,41 +334,36 @@ typedef struct {
 typedef uint32_t (*Ai_GoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
 
 /**
- * @brief A functional AI goal.
+ * @brief Functional AI goal IDs.
  */
-typedef struct {
-	Ai_GoalFunc think;
-	uint32_t nextthink;
-	uint32_t time; // time this funcgoal was added
-} ai_funcgoal_t;
+typedef enum {
+	AI_FUNCGOAL_LONGRANGE,
+	AI_FUNCGOAL_HUNT,
+	AI_FUNCGOAL_WEAPONRY,
+	AI_FUNCGOAL_ACROBATICS,
+	AI_FUNCGOAL_FINDITEMS,
+	AI_FUNCGOAL_TURN,
+	AI_FUNCGOAL_MOVE,
 
-/**
- * @brief The total number of functional goals the AI may have at once.
- */
-#define MAX_AI_FUNCGOALS	12
+	AI_FUNCGOAL_TOTAL
+} ai_funcgoal_t;
 
 /**
  * @brief AI-specific locals
  */
 typedef struct ai_locals_s {
-	ai_funcgoal_t funcgoals[MAX_AI_FUNCGOALS];
+	uint32_t funcgoal_nextthinks[AI_FUNCGOAL_TOTAL];
 
 	vec3_t last_origin;
 	vec3_t aim_forward; // calculated at start of thinking
 	vec3_t eye_origin; //  ^^^
 
-	// the AI can have two distinct targets: one it's aiming at,
-	// and one it's moving towards. These aren't pointers because
-	// the priority of an item/enemy might be different depending on
-	// the state of the bot.
-	ai_goal_t aim_target;
-	ai_goal_t move_target;
-
-	vec_t wander_angle;
-	vec3_t ghost_position;
+	ai_goal_t move_target, backup_move_target;
+	ai_goal_t combat_target;
 
 	uint32_t weapon_check_time;
-
-	uint32_t no_movement_frames;
+	uint32_t reacquire_time;
+	uint32_t distress_jump_offset;
+	vec3_t ideal_angles;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */

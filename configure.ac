@@ -217,14 +217,10 @@ AC_CHECK_HEADER(AL/al.h,
 HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
-case "$host" in
-	*-mingw*)
-		HOST_OPENAL_LIBS="-lOpenAL32"
-		;;
-	*)
-		HOST_OPENAL_LIBS="-lopenal"
-		;;
-esac
+AC_SEARCH_LIBS(alGetError, [OpenAL32, openal],
+	HOST_OPENAL_LIBS="$ac_cv_search_function_alGetError",
+	[AC_MSG_ERROR([Could not find library containing alGetError(), please install OpenAL])]
+)
 
 AC_SUBST(HOST_OPENAL_CFLAGS)
 AC_SUBST(HOST_OPENAL_LIBS)
@@ -503,7 +499,6 @@ dnl -----------------------------------------------------------
 AC_CONFIG_FILES([
 	Makefile
 	deps/Makefile
-	deps/genann/Makefile
 	deps/minizip/Makefile
 	src/Makefile
 	src/ai/Makefile
@@ -521,7 +516,6 @@ AC_CONFIG_FILES([
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
-	src/client/renderer/shaders/include/Makefile
 	src/client/sound/Makefile
 	src/client/ui/Makefile
 	src/client/ui/editor/Makefile

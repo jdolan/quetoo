@@ -73,17 +73,7 @@ void Ui_Draw(void) {
 
 	Ui_CheckEditor();
 
-	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix) {
-		R_PushMatrix(matrix);
-	}
-
-	R_SetMatrix(R_MATRIX_PROJECTION, &r_view.matrix_base_ui);
-
 	$(windowController, render);
-
-	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix) {
-		R_PopMatrix(matrix);
-	}
 }
 
 /**

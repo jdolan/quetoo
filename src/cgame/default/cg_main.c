@@ -21,18 +21,11 @@
 
 #include "cg_local.h"
 
-/**
- * @brief Local state to the cgame per server.
- */
-typedef struct {
-	vec_t hook_pull_speed;
-} cg_state_t;
+cg_state_t cg_state;
 
-static cg_state_t cg_state;
-
-cvar_t *cg_add_emits;
 cvar_t *cg_add_entities;
-cvar_t *cg_add_particles;
+cvar_t *cg_add_lights;
+cvar_t *cg_add_sprites;
 cvar_t *cg_add_weather;
 cvar_t *cg_auto_switch;
 cvar_t *cg_bob;
@@ -117,13 +110,10 @@ static void Cg_Init(void) {
 
 	Cg_InitInput();
 
-	cg_add_emits = cgi.AddCvar("cg_add_emits", "1", 0,
-	                        "Toggles adding client-side entities to the scene.");
 	cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
-	cg_add_particles = cgi.AddCvar("cg_add_particles", "1", 0,
-	                            "Toggles adding particles to the scene.");
-	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE,
-	                          "Control the intensity of atmospheric effects.");
+	cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
+	cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
+	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE, "Control the intensity of atmospheric effects.");
 
 	cg_auto_switch = cgi.AddCvar("auto_switch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
 				 "The weapon pickup auto-switch method. 0 disables, 1 switches from Blaster only,"
@@ -218,7 +208,7 @@ static void Cg_Init(void) {
 	cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
 
-	cg_particle_quality = cgi.AddCvar("cg_particle_quality", "1", CVAR_ARCHIVE, "Particle quality. 0 disables most eyecandy particles, 1 enables all.");
+	cg_particle_quality = cgi.AddCvar("cg_particle_quality", "1", CVAR_ARCHIVE, "Particle quality. 0 disables some particles, 1 enables all.");
 
 	cg_predict = cgi.AddCvar("cg_predict", "1", 0, "Use client side movement prediction");
 
@@ -345,7 +335,7 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
 /**
  * @brief Fetch the server's reported hook pull speed.
  */
-vec_t Cg_GetHookPullSpeed(void) {
+float Cg_GetHookPullSpeed(void) {
 
 	return cg_state.hook_pull_speed;
 }
@@ -359,9 +349,11 @@ static void Cg_ClearState(void) {
 
 	Cg_ClearInput();
 
-	Cg_FreeEmits();
+	Cg_FreeEntities();
 
 	Cg_ClearHud();
+
+	Cg_ClearUi();
 }
 
 cg_team_info_t cg_team_info[MAX_TEAMS];
@@ -374,20 +366,20 @@ static void Cg_ParseTeamInfo(const char *s) {
 	gchar **info = g_strsplit(s, "\\", 0);
 	const size_t count = g_strv_length(info);
 
-	if (count != lengthof(cg_team_info) * 2) {
+	if (count != lengthof(cg_team_info) * 3) {
 		g_strfreev(info);
 		cgi.Error("Invalid team data");
 	}
 
 	cg_team_info_t *team = cg_team_info;
 
-	for (size_t i = 0; i < count; i += 2, team++) {
+	for (size_t i = 0; i < count; i += 3, team++) {
 
 		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
 
-		const int16_t hue = atoi(info[i + 1]);
-		const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
-		team->color.u32 = *(int32_t *) &color;
+		team->hue = atoi(info[i + 1]);
+
+		Color_Parse(info[i + 2], &team->color);
 	}
 
 	g_strfreev(info);
@@ -397,13 +389,13 @@ static void Cg_ParseTeamInfo(const char *s) {
  * @brief An updated configuration string has just been received from the server.
  * Refresh related variables and media that aren't managed by the engine.
  */
-static void Cg_UpdateConfigString(uint16_t i) {
+static void Cg_UpdateConfigString(int32_t i) {
 
 	const char *s = cgi.ConfigString(i);
 
 	switch (i) {
 		case CS_WEATHER:
-			Cg_ResolveWeather(s);
+			cg_state.weather = Cg_ParseWeather(s);
 			return;
 		case CS_HOOK_PULL_SPEED:
 			cg_state.hook_pull_speed = strtof(s, NULL);
@@ -454,6 +446,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.PredictMovement = Cg_PredictMovement;
 	cge.UpdateLoading = Cg_UpdateLoading;
 	cge.UpdateView = Cg_UpdateView;
+	cge.PopulateView = Cg_PopulateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
 
 	return &cge;

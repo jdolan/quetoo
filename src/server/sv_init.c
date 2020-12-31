@@ -43,7 +43,7 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bo
 	}
 
 	if (i == max) {
-		Com_Warn("Max index for %s reached\n", name);
+		Com_Warn("Max index for %s\n", name);
 		return 0;
 	}
 
@@ -54,7 +54,7 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bo
 		Net_WriteByte(&sv.multicast, SV_CMD_CONFIG_STRING);
 		Net_WriteShort(&sv.multicast, start + i);
 		Net_WriteString(&sv.multicast, name);
-		Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
+		Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R, NULL);
 	}
 
 	return i;
@@ -156,9 +156,7 @@ static void Sv_UpdateLatchedVars(void) {
 
 	Cvar_UpdateLatched();
 
-	sv_max_clients->integer = Clamp(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
-
-	cm_no_areas = sv_no_areas->integer;
+	sv_max_clients->integer = Clampf(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
 }
 
 /**
@@ -208,12 +206,10 @@ static void Sv_InitEntities(sv_state_t state) {
 		svs.num_entity_states = sv_max_clients->integer * PACKET_BACKUP * MAX_PACKET_ENTITIES;
 		svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states, MEM_TAG_SERVER);
 
-		svs.spawn_count = Random();
-
 		Sv_InitGame();
-	} else {
-		svs.spawn_count++;
 	}
+	
+	svs.spawn_count++;
 }
 
 /**
@@ -284,7 +280,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Sv_InitWorld();
 
-		svs.game->SpawnEntities(sv.name, Cm_EntityString());
+		svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
 
 		/*
 		 * Run a few game frames for entities to settle down. Failure to do

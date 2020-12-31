@@ -61,7 +61,7 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 
 	G_SetAnimation(ent, ANIM_TORSO_DROP, true);
 
-	gi.Sound(ent, g_media.sounds.weapon_switch, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
+	gi.Sound(ent, g_media.sounds.weapon_switch, SOUND_ATTEN_LINEAR, 0);
 }
 
 /**
@@ -206,7 +206,7 @@ g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item) {
 			G_AddAmmo(ent, ammo, -dropped->locals.health);
 		}
 	} else {
-		gi.Debug("Failed to drop %s\n", item->name);
+		G_Debug("Failed to drop %s\n", item->name);
 	}
 
 	return dropped;
@@ -273,7 +273,7 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
 	if (ent->client->locals.ammo_index && ammo < ammo_needed) {
 
 		if (g_level.time >= ent->client->locals.pain_time) { // play a click sound
-			gi.Sound(ent, g_media.sounds.weapon_no_ammo, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
+			gi.Sound(ent, g_media.sounds.weapon_no_ammo, SOUND_ATTEN_LINEAR, 0);
 			ent->client->locals.pain_time = g_level.time + 1000;
 		}
 
@@ -296,7 +296,7 @@ void G_PlayTechSound(g_entity_t *ent) {
 	}
 
 	if (ent->client->locals.tech_sound_time < g_level.time) {
-		gi.Sound(ent, g_media.sounds.techs[tech->tag], ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
+		gi.Sound(ent, g_media.sounds.techs[tech->tag], SOUND_ATTEN_LINEAR, 0);
 		ent->client->locals.tech_sound_time = g_level.time + 1000;
 	}
 }
@@ -330,7 +330,7 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval, uint32_t ammo_need
 	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) {
 
 		if (ent->client->locals.quad_attack_time < g_level.time) {
-			gi.Sound(ent, g_media.sounds.quad_attack, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
+			gi.Sound(ent, g_media.sounds.quad_attack, SOUND_ATTEN_LINEAR, 0);
 			ent->client->locals.quad_attack_time = g_level.time + 500;
 		}
 	}
@@ -441,16 +441,15 @@ void G_ClientHookDetach(g_entity_t *ent) {
 
 	ent->client->locals.hook_pull = false;
 
-	gi.Sound(ent, g_media.sounds.hook_detach, ATTEN_NORM, (int8_t) (Randomc() * 4.0));
+	gi.Sound(ent, g_media.sounds.hook_detach, SOUND_ATTEN_LINEAR, RandomRangei(-4, 5));
 
 	// see if we can backflip for style
 	if (ent->in_use && ent->locals.health > 0) {
 
-		const vec3_t velocity = { ent->locals.velocity[0], ent->locals.velocity[1], 0.0 };
-		const vec_t fwd_speed = VectorLength(velocity) / 1.75;
+		const vec3_t velocity = Vec3(ent->locals.velocity.x, ent->locals.velocity.y, 0.0);
+		const float fwd_speed = Vec3_Length(velocity) / 1.75;
 
-		if (ent->locals.velocity[2] > 50 &&
-		        ent->locals.velocity[2] > fwd_speed) {
+		if (ent->locals.velocity.z > 50 && ent->locals.velocity.z > fwd_speed) {
 			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 		}
 	}
@@ -481,12 +480,12 @@ static void G_ClientHookCheckFire(g_entity_t *ent, const _Bool refire) {
 
 	// fire away!
 	vec3_t forward, right, up, org;
-	G_InitProjectile(ent, forward, right, up, org, -1.0);
+	G_InitProjectile(ent, &forward, &right, &up, &org, -1.0);
 
 	ent->client->locals.hook_pull = false;
 	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward);
 
-	gi.Sound(ent, g_media.sounds.hook_fire, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), (int8_t) (Randomc() * 4.0));
+	gi.Sound(ent, g_media.sounds.hook_fire, SOUND_ATTEN_LINEAR, RandomRangei(-4, 5));
 	ent->client->locals.hook_think_time = g_level.time;
 }
 
@@ -540,7 +539,7 @@ void G_FireBlaster(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_BlasterProjectile(ent, org, forward, g_balance_blaster_speed->integer,
 			g_balance_blaster_damage->integer, g_balance_blaster_knockback->integer);
@@ -559,7 +558,7 @@ void G_FireShotgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_ShotgunProjectiles(ent, org, forward, g_balance_shotgun_damage->integer,
 			g_balance_shotgun_knockback->integer, g_balance_shotgun_spread_x->integer,
@@ -579,7 +578,7 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_ShotgunProjectiles(ent, org, forward, g_balance_supershotgun_damage->integer,
 			g_balance_supershotgun_knockback->integer, g_balance_supershotgun_spread_x->integer,
@@ -599,7 +598,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_BulletProjectile(ent, org, forward, g_balance_machinegun_damage->integer,
 			g_balance_machinegun_knockback->integer, g_balance_machinegun_spread_x->integer,
@@ -622,7 +621,7 @@ static void G_PullGrenadePin(g_entity_t *ent) {
 	nade->solid = SOLID_NOT;
 	nade->sv_flags |= SVF_NO_CLIENT;
 	nade->locals.move_type = MOVE_TYPE_NONE;
-	nade->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	nade->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
 	nade->locals.take_damage = true;
 	nade->locals.Touch = G_GrenadeProjectile_Touch;
 	nade->locals.touch_time = g_level.time;
@@ -667,7 +666,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	}
 
 	const uint32_t nade_time = 3 * 1000; // 3 seconds before boom
-	vec_t throw_speed = 500.0; // minimum
+	float throw_speed = 500.0; // minimum
 
 	// use small epsilon for low server frame rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1) {
@@ -688,7 +687,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	if (ent->client->locals.ammo_index && ammo < ammo_needed) {
 
 		if (g_level.time >= ent->client->locals.pain_time) { // play a click sound
-			gi.Sound(ent, g_media.sounds.weapon_no_ammo, ATTEN_NORM, 0);
+			gi.Sound(ent, g_media.sounds.weapon_no_ammo, SOUND_ATTEN_LINEAR, 0);
 			ent->client->locals.pain_time = g_level.time + 1000;
 		}
 
@@ -707,7 +706,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 
 		// play the timer sound if we're holding once every second
 		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % QUETOO_TICK_RATE == 0) {
-			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
+			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), SOUND_ATTEN_LINEAR, 0);
 		}
 		return;
 	}
@@ -718,12 +717,12 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	}
 
 	// figure out how fast/far to throw
-	throw_speed *= (vec_t) hold_time / 1000;
-	throw_speed = Clamp(throw_speed, 500, 1200);
+	throw_speed *= (float) hold_time / 1000;
+	throw_speed = Clampf(throw_speed, 500, 1200);
 
 	vec3_t forward, right, up, org;
 
-	G_InitProjectile(ent, forward, right, up, org, 1.0);
+	G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 	G_HandGrenadeProjectile(
 	    ent,					// player
 	    ent->client->locals.held_grenade, // the grenade
@@ -737,7 +736,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	);
 
 	// play the sound if we throw it
-	gi.Sound(ent, g_media.sounds.grenade_throw, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
+	gi.Sound(ent, g_media.sounds.grenade_throw, SOUND_ATTEN_LINEAR, 0);
 
 	// push the next fire time out by the interval (2 secs)
 	G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_handgrenade_refire->value), ammo_needed);
@@ -754,7 +753,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_GrenadeProjectile(ent, org, forward, g_balance_grenadelauncher_speed->integer,
 			g_balance_grenadelauncher_damage->integer, g_balance_grenadelauncher_knockback->integer,
@@ -774,7 +773,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_RocketProjectile(ent, org, forward, g_balance_rocketlauncher_speed->integer,
 			g_balance_rocketlauncher_damage->integer, g_balance_rocketlauncher_knockback->integer,
@@ -794,7 +793,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_HyperblasterProjectile(ent, org, forward, g_balance_hyperblaster_speed->integer,
 			g_balance_hyperblaster_damage->integer, g_balance_hyperblaster_knockback->value);
@@ -825,7 +824,7 @@ void G_FireLightning(g_entity_t *ent) {
 			G_MuzzleFlash(ent, MZ_LIGHTNING);
 		}
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		G_LightningProjectile(ent, org, forward, g_balance_lightning_damage->integer, g_balance_lightning_knockback->integer);
 
@@ -841,7 +840,7 @@ void G_FireRailgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
+		G_InitProjectile(ent, &forward, &right, &up, &org, 1.0);
 
 		const int16_t damage = (g_level.gameplay == GAME_INSTAGIB) ? 999 : g_balance_railgun_damage->integer;
 
@@ -862,7 +861,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 		if (ent->owner->client->locals.weapon == g_media.items.weapons[WEAPON_BFG10K]) {
 			vec3_t forward, right, up, org;
 
-			G_InitProjectile(ent->owner, forward, right, up, org, 1.0);
+			G_InitProjectile(ent->owner, &forward, &right, &up, &org, 1.0);
 
 			G_BfgProjectile(ent->owner, org, forward, g_balance_bfg_speed->integer,
 				g_balance_bfg_damage->integer, g_balance_bfg_knockback->integer,
@@ -893,6 +892,6 @@ void G_FireBfg(g_entity_t *ent) {
 		timer->locals.Think = G_FireBfg_;
 		timer->locals.next_think = g_level.time + SECONDS_TO_MILLIS(g_balance_bfg_prefire->value) - QUETOO_TICK_MILLIS;
 
-		gi.Sound(ent, g_media.sounds.bfg_prime, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
+		gi.Sound(ent, g_media.sounds.bfg_prime, SOUND_ATTEN_LINEAR, 0);
 	}
 }

@@ -26,8 +26,8 @@
 #include <signal.h>
 
 #if defined(_WIN32)
-	#include <windows.h>
-	#include <shlobj.h>
+	#include <Windows.h>
+	#include <ShlObj.h>
 #endif
 
 #if defined(__APPLE__)
@@ -223,9 +223,7 @@ void Sys_Signal(int32_t s) {
 		case SIGQUIT:
 #endif
 			Com_Shutdown("Received signal %d, quitting...\n", s);
-			break;
 		default:
 			Com_Error(ERROR_FATAL, "Received signal %d\n", s);
-			break;
 	}
 }

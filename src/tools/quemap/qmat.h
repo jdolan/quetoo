@@ -21,6 +21,6 @@
 
 #pragma once
 
-#include "qbsp.h"
-#include "materials.h"
-#include "scriptlib.h"
+#include "quemap.h"
+
+int32_t MAT_Main(void);

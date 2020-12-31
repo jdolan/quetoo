@@ -21,6 +21,7 @@
 
 #include "g_local.h"
 #include "ai/default/ai_types.h"
+#include "bg_pmove.h"
 
 cvar_t *g_ai_max_clients;
 
@@ -83,12 +84,19 @@ static uint8_t G_Ai_NumberOfClients(void) {
  */
 static void G_Ai_ClientThink(g_entity_t *self) {
 	pm_cmd_t cmd;
+	const int32_t num_runs = 3;
+	uint8_t msec_left = QUETOO_TICK_MILLIS;
 
-	memset(&cmd, 0, sizeof(cmd));
-	cmd.msec = QUETOO_TICK_MILLIS;
+	for (int32_t i = 0; i < num_runs; i++) {
+		memset(&cmd, 0, sizeof(cmd));
+		cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
 
-	aix->Think(self, &cmd);
-	G_ClientThink(self, &cmd);
+		aix->Think(self, &cmd);
+		G_ClientThink(self, &cmd);
+		aix->PostThink(self, &cmd);
+
+		msec_left -= cmd.msec;
+	}
 
 	// see if we're in a match and need to join
 	if (self->client->locals.persistent.spectator) {
@@ -153,7 +161,7 @@ static void G_Ai_ClientBegin(g_entity_t *self) {
 
 	aix->Begin(self);
 
-	gi.Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
+	G_Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
 
 	self->locals.Think = G_Ai_ClientThink;
 	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
@@ -189,14 +197,14 @@ static void G_Ai_AddBots(const int32_t count) {
 		return;
 	}
 
-	g_game.ai_left_to_spawn += Min(count, empty_slots);
+	g_game.ai_left_to_spawn += Minf(count, empty_slots);
 }
 
 /**
  * @brief
  */
 static void G_Ai_RemoveBots(const int32_t count) {
-	int32_t clamped = Min(count, G_Ai_NumberOfBots());
+	int32_t clamped = Minf(count, G_Ai_NumberOfBots());
 
 	if (!clamped) {
 		return;
@@ -279,7 +287,7 @@ void G_Ai_ClientConnect(const g_entity_t *ent) {
 /**
  * @brief
  */
-void G_Ai_ClientDisconnect(const g_entity_t *ent) {
+void G_Ai_ClientDisconnect(g_entity_t *ent) {
 
 	if (!aix) {
 		return;
@@ -293,6 +301,8 @@ void G_Ai_ClientDisconnect(const g_entity_t *ent) {
 			g_game.ai_left_to_spawn++;
 		}
 	}
+
+	aix->Disconnect(ent);
 }
 
 /**
@@ -309,13 +319,15 @@ void G_Ai_Frame(void) {
 		return;
 	}
 
+	aix->State(g_level.frame_num);
+
 	if (g_ai_max_clients->modified) {
 		g_ai_max_clients->modified = false;
 
 		if (g_ai_max_clients->integer == -1) {
 			g_ai_max_clients->integer = sv_max_clients->integer;
 		} else {
-			g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, sv_max_clients->integer);
+			g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
 		}
 
 		int32_t slot_diff = g_ai_max_clients->integer - G_Ai_NumberOfClients();
@@ -348,7 +360,7 @@ void G_Ai_Frame(void) {
 
 	// run AI think functions
 	g_entity_t *ent = &g_game.entities[1];
-	for (uint16_t i = 1; i <= sv_max_clients->integer; i++, ent++) {
+	for (int32_t i = 1; i <= sv_max_clients->integer; i++, ent++) {
 
 		if (!ent->client->connected) {
 			continue;
@@ -371,13 +383,16 @@ void G_Ai_RegisterItems(void) {
 		return;
 	}
 
-	for (uint16_t i = 0; i < g_num_items; i++) {
+	for (size_t i = 0; i < g_num_items; i++) {
 		aix->RegisterItem(G_ItemByIndex(i));
 	}
 }
 
 #define ENTITY_PTR_OFFSET(m) \
-	entity.m = (typeof(entity.m)) offsetof(g_entity_locals_t, m)
+	entity.m = (typeof(entity.m)) offsetof(g_entity_t, m)
+
+#define ENTITY_LOCALS_PTR_OFFSET(m) \
+	entity.m = (typeof(entity.m)) offsetof(g_entity_t, locals.m)
 
 #define CLIENT_PTR_OFFSET(m) \
 	client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
@@ -395,19 +410,22 @@ static void G_Ai_SetDataPointers(void) {
 	static ai_entity_data_t entity;
 	static ai_client_data_t client;
 	static ai_item_data_t item;
-
-	ENTITY_PTR_OFFSET(ground_entity);
-	ENTITY_PTR_OFFSET(item);
-	ENTITY_PTR_OFFSET(velocity);
-	ENTITY_PTR_OFFSET(health);
-	ENTITY_PTR_OFFSET(max_health);
-	ENTITY_PTR_OFFSET(water_level);
+	
+	ENTITY_PTR_OFFSET(class_name);
+	ENTITY_LOCALS_PTR_OFFSET(ground_entity);
+	ENTITY_LOCALS_PTR_OFFSET(item);
+	ENTITY_LOCALS_PTR_OFFSET(velocity);
+	ENTITY_LOCALS_PTR_OFFSET(health);
+	ENTITY_LOCALS_PTR_OFFSET(max_health);
+	ENTITY_LOCALS_PTR_OFFSET(water_level);
+	ENTITY_LOCALS_PTR_OFFSET(node);
 
 	CLIENT_PTR_OFFSET(angles);
 	CLIENT_PTR_OFFSET(inventory);
 	CLIENT_PTR_OFFSET(max_armor);
 	CLIENT_PTR_OFFSET(weapon);
 	CLIENT_PERSISTENT_PTR_OFFSET(team);
+	CLIENT_PTR_OFFSET(grenade_hold_time);
 
 	ITEM_PTR_OFFSET(class_name);
 	ITEM_PTR_OFFSET(index);
@@ -436,6 +454,7 @@ void G_Ai_Init(void) {
 	import.ge = &ge;
 
 	import.OnSameTeam = G_OnSameTeam;
+	import.G_FindItem = G_FindItem;
 
 	aix = gi.LoadAi(&import);
 
@@ -453,4 +472,84 @@ void G_Ai_Init(void) {
  */
 void G_Ai_Shutdown(void) {
 
+}
+
+/**
+ * @brief
+ */
+void G_Ai_Load(const char *mapname) {
+
+	if (aix) {
+		aix->Load(mapname);
+	}
+}
+
+/**
+ * @brief Drops a node on top of this object and connects it to any nearby
+ * nodes.
+ */
+bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
+
+	if (!aix || aix->IsDeveloperMode()) {
+		return false;
+	}
+
+	// find node closest to us
+	const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true);
+
+	if (src_node == NODE_INVALID) {
+		return false;
+	}
+
+	// make a new node on the item
+	cm_trace_t down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, Vec3(0, 0, MAX_WORLD_COORD)), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID);
+	vec3_t pos;
+
+	if (down.fraction == 1.0) {
+		pos = ent->s.origin;
+	} else {
+		pos = Vec3_Subtract(down.end, Vec3(0.f, 0.f, PM_MINS.z));
+	}
+
+	// grab all the links of the node that brought us here
+	GArray *src_links = aix->GetNodeLinks(src_node);
+
+	const ai_node_id_t new_node = aix->CreateNode(pos);
+	const float dist = Vec3_Distance(aix->GetNodePosition(src_node), ent->s.origin);
+
+	// bidirectionally connect us to source
+	aix->CreateLink(src_node, new_node, dist);
+	aix->CreateLink(new_node, src_node, dist);
+
+	// if we had source links, link any connected bi-directional nodes
+	// to the item as well
+	if (src_links) {
+
+		for (guint i = 0; i < src_links->len; i++) {
+			ai_node_id_t src_link = g_array_index(src_links, ai_node_id_t, i);
+
+			// not bidirectional
+			if (!aix->IsLinked(src_link, src_node)) {
+				continue;
+			}
+
+			const vec3_t link_pos = aix->GetNodePosition(src_link);
+
+			// can't see 
+			if (gi.Trace(ent->s.origin, link_pos, Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
+				continue;
+			}
+
+			const float dist = Vec3_Distance(link_pos, ent->s.origin);
+
+			// bidirectionally connect us to source
+			aix->CreateLink(src_link, new_node, dist);
+			aix->CreateLink(new_node, src_link, dist);
+		}
+
+		g_array_free(src_links, true);
+	}
+
+	ent->locals.node = new_node;
+	return true;
 }

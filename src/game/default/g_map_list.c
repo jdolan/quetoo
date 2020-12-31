@@ -73,6 +73,10 @@ static GList *G_MapList_Parse(const char *filename) {
 			map->hook = -1;
 		}
 
+		if (!map) {
+			continue;
+		}
+
 		if (!g_strcmp0(token, "name")) {
 			if (!Parse_Token(&parser, PARSE_DEFAULT, map->name, sizeof(map->name))) {
 				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
@@ -221,7 +225,7 @@ static GList *G_MapList_Parse(const char *filename) {
 
 		if (*token == '}') { // wrap it up, B
 
-			gi.Debug("Loaded map %s:\n"
+			G_Debug("Loaded map %s:\n"
 			         "message: %s\n"
 			         "sky: %s\n"
 			         "weather: %s\n"
@@ -278,7 +282,7 @@ const g_map_list_map_t *G_MapList_Next(void) {
 	const guint len = g_list_length(g_map_list);
 	if (len) {
 		if (g_random_map->value) {
-			list = g_list_nth(g_map_list, Randomr(0, len));
+			list = g_list_nth(g_map_list, RandomRangeu(0, len));
 		} else {
 			const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
 			if (map) {

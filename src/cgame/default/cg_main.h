@@ -24,11 +24,11 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-vec_t Cg_GetHookPullSpeed(void);
+float Cg_GetHookPullSpeed(void);
 
-extern cvar_t *cg_add_emits;
 extern cvar_t *cg_add_entities;
-extern cvar_t *cg_add_particles;
+extern cvar_t *cg_add_lights;
+extern cvar_t *cg_add_sprites;
 extern cvar_t *cg_add_weather;
 extern cvar_t *cg_auto_switch;
 extern cvar_t *cg_bob;

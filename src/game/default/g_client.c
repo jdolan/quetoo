@@ -224,16 +224,16 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
  * @brief Play a sloppy sound when impacting the world.
  */
 static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
-                                 const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf) {
+                                 const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo) {
 
-	if (surf && (surf->flags & SURF_SKY)) {
+	if (texinfo && (texinfo->flags & SURF_SKY)) {
 		G_FreeEntity(self);
 	} else {
-		const vec_t speed = VectorLength(self->locals.velocity);
-		if (speed > 40.0 && G_IsStructural(other, surf)) {
+		const float speed = Vec3_Length(self->locals.velocity);
+		if (speed > 40.0 && G_IsStructural(other, texinfo)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
-				gi.Sound(self, self->locals.noise_index, ATTEN_IDLE, 0);
+				gi.Sound(self, self->locals.sound, SOUND_ATTEN_SQUARE, 0);
 				self->locals.touch_time = g_level.time;
 			}
 		}
@@ -250,18 +250,18 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 
 	if (self->s.model1 == MODEL_CLIENT) {
 		if (age > 6000) {
-			const int16_t dmg = self->locals.health;
+			const int32_t dmg = self->locals.health;
 
 			if (self->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(self, NULL, NULL, NULL, NULL, NULL, dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
+				G_Damage(self, NULL, NULL, Vec3_Zero(), self->s.origin, Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (self->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(self, NULL, NULL, NULL, NULL, NULL, dmg, 0, DMG_NO_ARMOR, MOD_SLIME);
+				G_Damage(self, NULL, NULL, Vec3_Zero(), self->s.origin, Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	} else {
-		const vec_t speed = VectorLength(self->locals.velocity);
+		const float speed = Vec3_Length(self->locals.velocity);
 
 		if (!(self->s.effects & EF_DESPAWN) && speed > 30.0) {
 			self->s.trail = TRAIL_GIB;
@@ -286,7 +286,7 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 		self->solid = SOLID_NOT;
 
 		if (self->locals.ground_entity) {
-			self->s.origin[2] -= QUETOO_TICK_SECONDS * 8.0;
+			self->s.origin.z -= QUETOO_TICK_SECONDS * 8.0;
 		}
 
 		gi.LinkEntity(self);
@@ -303,48 +303,58 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
                                uint32_t mod) {
 
-	const vec3_t mins[] = { { -6.0, -6.0, -6.0 }, { -6.0, -6.0, -6.0 }, { -4.0, -4.0, -4.0 }, { -8.0, -8.0, -8.0 } };
-	const vec3_t maxs[] = { { 6.0, 6.0, 6.0 }, { 6.0, 6.0, 6.0 }, { 4.0, 4.0, 4.0 }, { 8.0, 8.0, 8.0 } };
+	const vec3_t mins[] = {
+		Vec3(-6.0, -6.0, -6.0),
+		Vec3(-6.0, -6.0, -6.0),
+		Vec3(-4.0, -4.0, -4.0),
+		Vec3(-8.0, -8.0, -8.0),
+	};
 
-	uint16_t i, count = Randomr(4, 8);
+	const vec3_t maxs[] = {
+		Vec3(6.0, 6.0, 6.0),
+		Vec3(6.0, 6.0, 6.0),
+		Vec3(4.0, 4.0, 4.0),
+		Vec3(8.0, 8.0, 8.0),
+	};
 
-	for (i = 0; i < count; i++) {
+	const int32_t count = RandomRangei(4, 8);
+	for (int32_t i = 0; i < count; i++) {
+
 		int32_t gib_index;
-
 		if (i == 0) { // 0 is always chest
 			gib_index = (NUM_GIB_MODELS - 1);
 		} else if (i == 1 && !self->client) { // if we're not client, drop a head
 			gib_index = 2;
 		} else { // pick forearm/femur
-			gib_index = Randomr(0, NUM_GIB_MODELS - 2);
+			gib_index = RandomRangei(0, NUM_GIB_MODELS - 2);
 		}
 
 		g_entity_t *ent = G_AllocEntity();
 
-		VectorCopy(self->s.origin, ent->s.origin);
+		ent->s.origin = self->s.origin;
 
-		VectorCopy(mins[gib_index], ent->mins);
-		VectorCopy(maxs[gib_index], ent->maxs);
+		ent->mins = mins[gib_index];
+		ent->maxs = maxs[gib_index];
 
 		ent->solid = SOLID_DEAD;
 
 		ent->s.model1 = g_media.models.gibs[gib_index];
-		ent->locals.noise_index = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
+		ent->locals.sound = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
 
-		VectorCopy(self->locals.velocity, ent->locals.velocity);
+		ent->locals.velocity = self->locals.velocity;
 
-		const int16_t h = Clamp(-5.0 * self->locals.health, 100, 500);
+		const int32_t h = Clampf(-5.0 * self->locals.health, 100, 500);
 
-		ent->locals.velocity[0] += h * Randomc();
-		ent->locals.velocity[1] += h * Randomc();
-		ent->locals.velocity[2] += 100.0 + (h * Randomf());
+		ent->locals.velocity.x += RandomRangef(-h, h);
+		ent->locals.velocity.y += RandomRangef(-h, h);
+		ent->locals.velocity.z += RandomRangef(100.f, 100.f + h);
 
 		for (int32_t i = 0; i < 3; ++i) {
-			ent->locals.avelocity[i] = Randomc() * 100;
-			ent->s.angles[i] = Randomf() * 360;
+			ent->locals.avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
+			ent->s.angles.xyz[i] = RandomRangef(0, 360.f);
 		}
 
-		ent->locals.clip_mask = MASK_CLIP_CORPSE;
+		ent->locals.clip_mask = CONTENTS_MASK_CLIP_CORPSE;
 		ent->locals.dead = true;
 		ent->locals.mass = (gib_index + 1) * 20.0;
 		ent->locals.move_type = MOVE_TYPE_BOUNCE;
@@ -362,18 +372,18 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 	gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 
 	if (self->client) {
-		VectorCopy(mins[2], self->mins);
-		VectorCopy(maxs[2], self->maxs);
+		self->mins = mins[2];
+		self->maxs = maxs[2];
 
-		const int16_t h = Clamp(-5.0 * self->locals.health, 100, 500);
-
-		self->locals.velocity[0] += h * Randomc();
-		self->locals.velocity[1] += h * Randomc();
-		self->locals.velocity[2] += 100.0 + (h * Randomf());
+		const int32_t h = Clampf(-5.0 * self->locals.health, 100, 500);
+		
+		self->locals.velocity.x += RandomRangef(-h, h);
+		self->locals.velocity.y += RandomRangef(-h, h);
+		self->locals.velocity.z += RandomRangef(100.f, 100.f + h);
 
 		for (int32_t i = 0; i < 3; ++i) {
-			self->locals.avelocity[i] = Randomc() * 100;
-			self->s.angles[i] = Randomf() * 360;
+			self->locals.avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
+			self->s.angles.xyz[i] = RandomRangef(0, 360.f);
 		}
 
 		self->locals.Die = NULL;
@@ -414,11 +424,11 @@ static void G_ClientCorpse(g_entity_t *self) {
 
 	ent->solid = SOLID_DEAD;
 
-	VectorCopy(self->s.origin, ent->s.origin);
-	VectorCopy(self->s.angles, ent->s.angles);
+	ent->s.origin = self->s.origin;
+	ent->s.angles = self->s.angles;
 
-	VectorCopy(self->mins, ent->mins);
-	VectorCopy(self->maxs, ent->maxs);
+	ent->mins = self->mins;
+	ent->maxs = self->maxs;
 
 	ent->s.client = self->s.client;
 	ent->s.model1 = self->s.model1;
@@ -428,9 +438,9 @@ static void G_ClientCorpse(g_entity_t *self) {
 
 	ent->s.effects = EF_CORPSE;
 
-	VectorCopy(self->locals.velocity, ent->locals.velocity);
+	ent->locals.velocity = self->locals.velocity;
 
-	ent->locals.clip_mask = MASK_CLIP_CORPSE;
+	ent->locals.clip_mask = CONTENTS_MASK_CLIP_CORPSE;
 	ent->locals.dead = true;
 	ent->locals.mass = self->locals.mass;
 	ent->locals.move_type = MOVE_TYPE_BOUNCE;
@@ -474,9 +484,9 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) {
 		G_ClientCorpse_Die(self, attacker, mod);
 	} else {
-		gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM, 0);
+		gi.Sound(self, gi.SoundIndex("*death_1"), SOUND_ATTEN_LINEAR, 0);
 
-		const vec_t r = Randomf();
+		const float r = Randomf();
 		if (r < 0.33) {
 			G_SetAnimation(self, ANIM_BOTH_DEATH1, true);
 		} else if (r < 0.66) {
@@ -485,7 +495,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 			G_SetAnimation(self, ANIM_BOTH_DEATH3, true);
 		}
 
-		self->maxs[2] = 0.0; // corpses are laying down
+		self->maxs.z = 0.0; // corpses are laying down
 
 		self->locals.health = CLIENT_CORPSE_HEALTH;
 		self->locals.Die = G_ClientCorpse_Die;
@@ -495,13 +505,13 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	if (nade_hold_time != 0) {
 
-		G_InitProjectile(self, NULL, NULL, NULL, self->s.origin, 1.0);
+		G_InitProjectile(self, NULL, NULL, NULL, &self->s.origin, 1.0);
 
 		G_HandGrenadeProjectile(
 		    self,					// player
 		    self->client->locals.held_grenade, // the grenade
 		    self->s.origin,			// starting point
-		    vec3_up,				// direction
+		    Vec3_Up(),				// direction
 		    0,						// how fast it flies
 		    120,					// damage dealt
 		    120,					// knockback
@@ -665,8 +675,8 @@ static void G_InitClientInventory(g_entity_t *ent) {
 /**
  * @brief Returns the distance to the nearest enemy from the given spot.
  */
-static vec_t G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
-	vec_t dist, best_dist;
+static float G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
+	float dist, best_dist;
 	vec3_t v;
 
 	best_dist = 9999999.0;
@@ -686,8 +696,8 @@ static vec_t G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
 			continue;
 		}
 
-		VectorSubtract(spot->s.origin, other->s.origin, v);
-		dist = VectorLength(v);
+		v = Vec3_Subtract(spot->s.origin, other->s.origin);
+		dist = Vec3_Length(v);
 
 		if (g_level.teams || g_level.ctf) { // avoid collision with team mates
 
@@ -713,11 +723,11 @@ static _Bool G_WouldTelefrag(const vec3_t spot) {
 	g_entity_t *ents[MAX_ENTITIES];
 	vec3_t mins, maxs;
 
-	VectorAdd(spot, PM_MINS, mins);
-	VectorAdd(spot, PM_MAXS, maxs);
+	mins = Vec3_Add(spot, PM_MINS);
+	maxs = Vec3_Add(spot, PM_MAXS);
 
-	mins[2] += PM_STEP_HEIGHT;
-	maxs[2] += PM_STEP_HEIGHT;
+	mins.z += PM_STEP_HEIGHT;
+	maxs.z += PM_STEP_HEIGHT;
 
 	const size_t len = gi.BoxEntities(mins, maxs, ents, lengthof(ents), BOX_COLLIDE);
 
@@ -735,7 +745,6 @@ static _Bool G_WouldTelefrag(const vec3_t spot) {
  * @brief
  */
 static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points) {
-
 	uint32_t empty_spawns[spawn_points->count];
 	uint32_t num_empty_spawns = 0;
 
@@ -753,10 +762,10 @@ static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points
 			return G_SelectRandomSpawnPoint(&g_level.spawn_points);
 		}
 
-		return spawn_points->spots[Randomr(0, spawn_points->count)];
+		return spawn_points->spots[RandomRangeu(0, spawn_points->count)];
 	}
 
-	return spawn_points->spots[empty_spawns[Randomr(0, num_empty_spawns)]];
+	return spawn_points->spots[empty_spawns[RandomRangeu(0, num_empty_spawns)]];
 }
 
 /**
@@ -764,7 +773,7 @@ static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points
  */
 static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const g_spawn_points_t *spawn_points) {
 	g_entity_t *spot, *best_spot;
-	vec_t dist, best_dist;
+	float dist, best_dist;
 
 	spot = best_spot = NULL;
 	best_dist = 0.0;
@@ -849,7 +858,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	g_client_persistent_t persistent = ent->client->locals.persistent;
 
 	// and the last angles for calculating delta to spawn point
-	VectorCopy(ent->client->locals.cmd_angles, cmd_angles);
+	cmd_angles = ent->client->locals.cmd_angles;
 
 	// clear the client and restore the persistent state
 
@@ -863,18 +872,19 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	const g_entity_t *spawn = G_SelectSpawnPoint(ent);
 
 	// move to the spawn origin
-	VectorCopy(spawn->s.origin, ent->s.origin);
-	ent->s.origin[2] += PM_STEP_HEIGHT;
+	ent->s.origin = spawn->s.origin;
+	ent->s.origin.z += PM_STEP_HEIGHT;
 
 	// and calculate delta angles
-	VectorClear(ent->s.angles);
-	VectorSubtract(spawn->s.angles, cmd_angles, delta_angles);
+	ent->s.angles = Vec3_Zero();
+	ent->client->locals.angles = spawn->s.angles;
+	delta_angles = Vec3_Subtract(spawn->s.angles, cmd_angles);
 
 	// pack the new origin and delta angles into the player state
-	VectorCopy(ent->s.origin, ent->client->ps.pm_state.origin);
-	PackAngles(delta_angles, ent->client->ps.pm_state.delta_angles);
+	ent->client->ps.pm_state.origin = ent->s.origin;
+	ent->client->ps.pm_state.delta_angles = delta_angles;
 
-	VectorClear(ent->locals.velocity);
+	ent->locals.velocity = Vec3_Zero();
 
 	ent->s.effects = 0;
 	ent->s.model1 = 0;
@@ -885,8 +895,8 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	if (ent->client->locals.persistent.spectator) { // spawn a spectator
 		ent->class_name = "spectator";
 
-		VectorClear(ent->mins);
-		VectorClear(ent->maxs);
+		ent->mins = Vec3_Zero();
+		ent->maxs = Vec3_Zero();
 
 		ent->solid = SOLID_NOT;
 		ent->sv_flags = SVF_NO_CLIENT;
@@ -906,8 +916,8 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->solid = SOLID_BOX;
 		ent->sv_flags = 0;
 
-		VectorScale(PM_MINS, PM_SCALE, ent->mins);
-		VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
+		ent->mins = Vec3_Scale(PM_MINS, PM_SCALE);
+		ent->maxs = Vec3_Scale(PM_MAXS, PM_SCALE);
 
 		ent->s.model1 = MODEL_CLIENT;
 		ent->s.client = ent->s.number - 1;
@@ -916,7 +926,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
 		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
-		ent->locals.clip_mask = MASK_CLIP_PLAYER;
+		ent->locals.clip_mask = CONTENTS_MASK_CLIP_PLAYER;
 		ent->locals.dead = false;
 		ent->locals.Die = G_ClientDie;
 		ent->locals.ground_entity = NULL;
@@ -996,14 +1006,14 @@ void G_ClientBegin(g_entity_t *ent) {
 
 	G_InitEntity(ent, "client");
 
-	VectorClear(ent->client->locals.cmd_angles);
+	ent->client->locals.cmd_angles = Vec3_Zero();
 	ent->client->locals.persistent.first_frame = g_level.frame_num;
 
 	// force spectator if match or rounds
 	if (g_level.match || g_level.rounds) {
 		ent->client->locals.persistent.spectator = true;
 	} else if (g_level.teams || g_level.ctf) {
-		if (g_auto_join->value) {
+		if (g_auto_join->value || ent->client->ai) {
 			G_AddClientToTeam(ent, G_SmallestTeam()->name);
 		} else {
 			ent->client->locals.persistent.spectator = true;
@@ -1093,7 +1103,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	const size_t len = strlen(user_info);
 	memmove(ent->client->locals.persistent.user_info, user_info, len + 1);
 
-	gi.Debug("%s\n", user_info);
+	G_Debug("%s\n", user_info);
 
 	// set name, use a temp buffer to compute length and crutch up bad names
 	const char *s = GetUserInfo(user_info, "name");
@@ -1111,7 +1121,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 			break;
 		}
 
-		if (IS_COLOR(c)) {
+		if (StrIsColor(c)) {
 			color = true;
 			c += 2;
 			continue;
@@ -1173,7 +1183,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		if (strlen(s) && strcmp(s, "default")) { // not default
 			const int32_t hue = atoi(s);
 			if (hue >= 0) {
-				cl->locals.persistent.color = Min(hue, 360);
+				cl->locals.persistent.color = Minf(hue, 361);
 			}
 		}
 	}
@@ -1193,13 +1203,13 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	} else {
 
 		s = GetUserInfo(user_info, "shirt");
-		ColorFromHex(s, &cl->locals.persistent.shirt);
+		Color_Parse(s, &cl->locals.persistent.shirt);
 
 		s = GetUserInfo(user_info, "pants");
-		ColorFromHex(s, &cl->locals.persistent.pants);
+		Color_Parse(s, &cl->locals.persistent.pants);
 
 		s = GetUserInfo(user_info, "helmet");
-		ColorFromHex(s, &cl->locals.persistent.helmet);
+		Color_Parse(s, &cl->locals.persistent.helmet);
 	}
 
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
@@ -1211,13 +1221,13 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	g_strlcat(client_info, cl->locals.persistent.skin, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, ColorToHex(&cl->locals.persistent.shirt), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, Color_Unparse(cl->locals.persistent.shirt), MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, ColorToHex(&cl->locals.persistent.pants), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, Color_Unparse(cl->locals.persistent.pants), MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, ColorToHex(&cl->locals.persistent.helmet), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, Color_Unparse(cl->locals.persistent.helmet), MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
@@ -1242,7 +1252,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		handicap = 100;
 	}
 
-	cl->locals.persistent.handicap_next = Clamp(handicap, 50, 100);
+	cl->locals.persistent.handicap_next = Clampf(handicap, 50, 100);
 
 	// auto-switch
 	uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);
@@ -1343,9 +1353,9 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 	const g_entity_t *self = g_level.current_entity;
 
 	if (self->locals.dead) {
-		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_CORPSE);
+		return gi.Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_CORPSE);
 	} else {
-		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
+		return gi.Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_PLAYER);
 	}
 }
 
@@ -1359,7 +1369,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	g_client_t *cl = ent->client;
 
 	// save the raw angles sent over in the command
-	UnpackAngles(cmd->angles, cl->locals.cmd_angles);
+	cl->locals.cmd_angles = cmd->angles;
 
 	// set the move type
 	if (ent->locals.move_type == MOVE_TYPE_NO_CLIP) {
@@ -1373,13 +1383,10 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	// copy the current gravity in
 	cl->ps.pm_state.gravity = g_level.gravity;
 
-	// share the command with the bot library so that it can learn
-	aix->Learn(ent, cmd);
-
 	memset(&pm, 0, sizeof(pm));
 	pm.s = cl->ps.pm_state;
 
-	VectorCopy(ent->s.origin, pm.s.origin);
+	pm.s.origin = ent->s.origin;
 
 	if (ent->client->locals.hook_pull) {
 
@@ -1389,7 +1396,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 			pm.s.type = PM_HOOK_PULL;
 		}
 	} else {
-		VectorCopy(ent->locals.velocity, pm.s.velocity);
+		pm.s.velocity = ent->locals.velocity;
 	}
 
 	pm.cmd = *cmd;
@@ -1399,7 +1406,9 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	pm.PointContents = gi.PointContents;
 	pm.Trace = G_ClientMove_Trace;
 
-	pm.Debug = gi.PmDebug_;
+	pm.Debug = gi.Debug_;
+	pm.DebugMask = gi.DebugMask;
+	pm.debug_mask = DEBUG_PMOVE_SERVER;
 
 	// perform a move
 	Pm_Move(&pm);
@@ -1407,24 +1416,25 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	// save results of move
 	cl->ps.pm_state = pm.s;
 
-	VectorCopy(ent->locals.velocity, old_velocity);
+	old_velocity = ent->locals.velocity;
 
-	VectorCopy(pm.s.origin, ent->s.origin);
-	VectorCopy(pm.s.velocity, ent->locals.velocity);
+	ent->s.origin = pm.s.origin;
+	ent->locals.velocity = pm.s.velocity;
 
-	VectorCopy(pm.mins, ent->mins);
-	VectorCopy(pm.maxs, ent->maxs);
+	ent->mins = pm.mins;
+	ent->maxs = pm.maxs;
 
 	// copy the clamped angles out
-	VectorCopy(pm.angles, cl->locals.angles);
+	cl->locals.angles = pm.angles;
 
 	// update the directional vectors based on new view angles
-	AngleVectors(cl->locals.angles, cl->locals.forward, cl->locals.right, cl->locals.up);
+	Vec3_Vectors(cl->locals.angles, &cl->locals.forward, &cl->locals.right, &cl->locals.up);
 
 	// update the horizontal speed scalar based on new velocity
-	VectorCopy(ent->locals.velocity, velocity);
-	velocity[2] = 0.0;
-	cl->locals.speed = VectorNormalize(velocity);
+	velocity = ent->locals.velocity;
+	velocity.z = 0.0;
+
+	velocity = Vec3_NormalizeLength(velocity, &cl->locals.speed);
 
 	// blend animations for live players
 	if (ent->locals.dead == false) {
@@ -1434,15 +1444,15 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				vec3_t angles, forward, point;
 				cm_trace_t tr;
 
-				VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
-				AngleVectors(angles, forward, NULL, NULL);
+				angles = Vec3(0.0, ent->s.angles.y, 0.0);
+				Vec3_Vectors(angles, &forward, NULL, NULL);
 
-				VectorMA(ent->s.origin, cl->locals.speed * 0.4, velocity, point);
+				point = Vec3_Add(ent->s.origin, Vec3_Scale(velocity, cl->locals.speed * 0.4));
 
 				// trace towards our jump destination to see if we have room to backflip
-				tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, MASK_CLIP_PLAYER);
+				tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, CONTENTS_MASK_CLIP_PLAYER);
 
-				if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0) {
+				if (Vec3_Dot(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0) {
 					G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 				} else {
 					G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
@@ -1473,8 +1483,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 					G_SetAnimation(ent, ANIM_LEGS_LAND1, true);
 				}
 
-				if (old_velocity[2] <= PM_SPEED_FALL) { // player will take damage
-					int16_t damage = ((int16_t) - ((old_velocity[2] - PM_SPEED_FALL) * 0.05));
+				if (old_velocity.z <= PM_SPEED_FALL) { // player will take damage
+					int32_t damage = ((int32_t) - ((old_velocity.z - PM_SPEED_FALL) * 0.05));
 
 					damage >>= pm.water_level; // water breaks the fall
 
@@ -1482,15 +1492,16 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 						damage = 1;
 					}
 
-					if (old_velocity[2] <= PM_SPEED_FALL_FAR) {
+					if (old_velocity.z <= PM_SPEED_FALL_FAR) {
 						event = EV_CLIENT_FALL_FAR;
 					} else {
 						event = EV_CLIENT_FALL;
 					}
 
 					cl->locals.pain_time = g_level.time; // suppress pain sound
-
-					G_Damage(ent, NULL, NULL, vec3_up, NULL, NULL, damage, 0, DMG_NO_ARMOR, MOD_FALLING);
+					
+					// TODO: get normal from what we've landed on
+					G_Damage(ent, NULL, NULL, Vec3_Up(), ent->s.origin, Vec3_Zero(), damage, 0, DMG_NO_ARMOR, MOD_FALLING);
 				}
 
 				ent->s.event = event;
@@ -1498,7 +1509,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 			}
 		} else if (pm.s.flags & PMF_ON_LADDER) {
 			if (g_level.time - 400 > cl->locals.jump_time) {
-				if (fabs(ent->locals.velocity[2]) > 20.0) {
+				if (fabs(ent->locals.velocity.z) > 20.0) {
 
 					G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
@@ -1527,7 +1538,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	// touch every object we collided with objects
 	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 
-		for (uint16_t i = 0; i < pm.num_touch_ents; i++) {
+		for (int32_t i = 0; i < pm.num_touch_ents; i++) {
 			g_entity_t *other = pm.touch_ents[i];
 
 			if (!other->locals.Touch) {
@@ -1549,7 +1560,7 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
 
 		if (ent->client->locals.quad_countdown_time && ent->client->locals.quad_countdown_time < g_level.time) { // play the countdown sound
-			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM, 0);
+			gi.Sound(ent, g_media.sounds.quad_expire, SOUND_ATTEN_LINEAR, 0);
 			ent->client->locals.quad_countdown_time += 1000;
 		}
 
@@ -1655,6 +1666,12 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			G_ClientChaseThink(other);
 		}
 	}
+
+	// if we're the first player in a game, send our client over
+	// to the AI system in case it needs to make nodes
+	if (aix && ent->s.number == 1) {
+		aix->PlayerRoam(ent, cmd);
+	}
 }
 
 /**
@@ -1709,7 +1726,7 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 				ent->client->locals.regen_time = g_level.time + TECH_REGEN_TICK_TIME;
 
 				if (ent->locals.health < ent->locals.max_health) {
-					ent->locals.health = Min(ent->locals.health + TECH_REGEN_HEALTH, ent->locals.max_health);
+					ent->locals.health = Minf(ent->locals.health + TECH_REGEN_HEALTH, ent->locals.max_health);
 					G_PlayTechSound(ent);
 				}
 			}

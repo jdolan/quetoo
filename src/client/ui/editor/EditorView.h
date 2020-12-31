@@ -62,9 +62,9 @@ struct EditorView {
 	TextView *name;
 
 	/**
-	 * @brief The diffuse texture.
+	 * @brief The diffusemap texture.
 	 */
-	TextView *diffuse;
+	TextView *diffusemap;
 
 	/**
 	 * @brief The normalmap texture.
@@ -72,14 +72,24 @@ struct EditorView {
 	TextView *normalmap;
 
 	/**
+	 * @brief The heightmap texture.
+	 */
+	TextView *heightmap;
+
+	/**
+	 * @brief The glossmap texture.
+	 */
+	TextView *glossmap;
+
+	/**
 	 * @brief The specularmap texture.
 	 */
 	TextView *specularmap;
 
 	/**
-	 * @brief The bump slider.
+	 * @brief The roughness slider.
 	 */
-	Slider *bump;
+	Slider *roughness;
 
 	/**
 	 * @brief The hardness slider.
@@ -87,9 +97,9 @@ struct EditorView {
 	Slider *hardness;
 
 	/**
-	 * @brief The specular slider.
+	 * @brief The specularity slider.
 	 */
-	Slider *specular;
+	Slider *specularity;
 
 	/**
 	 * @brief The parallax slider.

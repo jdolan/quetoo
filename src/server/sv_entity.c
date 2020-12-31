@@ -124,10 +124,6 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 	Net_WriteByte(msg, client->suppress_count); // rate dropped packets
 	client->suppress_count = 0;
 
-	// send over the area bits
-	Net_WriteByte(msg, frame->area_bytes);
-	Net_WriteData(msg, frame->area_bits, frame->area_bytes);
-
 	// delta encode the player state
 	Sv_WritePlayerState(delta_frame, frame, msg);
 
@@ -136,74 +132,10 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 }
 
 /**
- * @brief Resolve the visibility data for the bounding box around the client. The
- * bounding box provides some leniency because the client's actual view origin
- * is likely slightly different than what we think it is.
- */
-static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
-	int32_t leafs[MAX_ENT_LEAFS];
-	int32_t clusters[MAX_ENT_CLUSTERS];
-	size_t num_clusters = 0;
-	vec3_t mins, maxs;
-
-	// spread the bounds to account for view offset
-	for (int32_t i = 0; i < 3; i++) {
-		mins[i] = org[i] - 16.0;
-		maxs[i] = org[i] + 16.0;
-	}
-
-	const size_t len = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
-	if (len == 0) {
-		Com_Error(ERROR_DROP, "Bad leaf count for client @ %s\n", vtos(org));
-	} else if (len == lengthof(leafs)) {
-		Com_Warn("MAX_ENT_LEAFS for client @ %s\n", vtos(org));
-	}
-
-	memset(pvs, 0, MAX_BSP_LEAFS >> 3);
-	memset(phs, 0, MAX_BSP_LEAFS >> 3);
-
-	// convert leafs to clusters and combine their visibility data
-	for (size_t i = 0; i < len; i++) {
-
-		const int32_t cluster = Cm_LeafCluster(leafs[i]);
-
-		size_t j;
-		for (j = 0; j < num_clusters; j++) {
-			if (clusters[j] == cluster) {
-				break;
-			}
-		}
-
-		if (j < num_clusters) { // already got it
-			continue;
-		}
-
-		clusters[num_clusters++] = cluster;
-
-		byte cluster_pvs[MAX_BSP_LEAFS >> 3];
-		byte cluster_phs[MAX_BSP_LEAFS >> 3];
-
-		Cm_ClusterPVS(cluster, cluster_pvs);
-		Cm_ClusterPHS(cluster, cluster_phs);
-
-		for (size_t n = 0; n < sizeof(cluster_pvs); n++) {
-			pvs[n] |= cluster_pvs[n];
-			phs[n] |= cluster_phs[n];
-		}
-
-		if (num_clusters == lengthof(clusters)) {
-			Com_Warn("MAX_ENT_CLUSTERS for client @ %s\n", vtos(org));
-			break;
-		}
-	}
-}
-
-/**
  * @brief Decides which entities are going to be visible to the client, and
- * copies off the player state and area_bits.
+ * copies off the player state.
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
-	vec3_t org, off;
 
 	g_entity_t *cent = client->entity;
 	if (!cent->client) {
@@ -217,26 +149,11 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	// grab the current player_state_t
 	frame->ps = cent->client->ps;
 
-	// find the client's PVS
-	const pm_state_t *pm = &cent->client->ps.pm_state;
-	UnpackVector(pm->view_offset, off);
-	VectorAdd(pm->origin, off, org);
-
-	const int32_t leaf = Cm_PointLeafnum(org, 0);
-	const int32_t area = Cm_LeafArea(leaf);
-
-	// calculate the visible areas
-	frame->area_bytes = Cm_WriteAreaBits(area, frame->area_bits);
-
-	// resolve the visibility data
-	byte pvs[MAX_BSP_LEAFS >> 3], phs[MAX_BSP_LEAFS >> 3];
-	Sv_ClientVisibility(org, pvs, phs);
-
 	// build up the list of relevant entities
 	frame->num_entities = 0;
 	frame->entity_state = svs.next_entity_state;
 
-	for (uint16_t e = 1; e < svs.game->num_entities; e++) {
+	for (int32_t e = 1; e < svs.game->num_entities; e++) {
 		g_entity_t *ent = ENTITY_FOR_NUM(e);
 
 		// ignore entities that are local to the server
@@ -247,37 +164,6 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		// ignore entities without visible presence unless they have an effect
 		if (!ent->s.event && !ent->s.effects && !ent->s.trail && !ent->s.model1 && !ent->s.sound) {
 			continue;
-		}
-
-		// ignore entities not in PVS / PHS
-		if (ent != cent) {
-			const sv_entity_t *sent = &sv.entities[e];
-
-			// by first checking area
-			if (!Cm_AreasConnected(area, sent->areas[0])) {
-				if (!sent->areas[1] || !Cm_AreasConnected(area, sent->areas[1])) {
-					continue;
-				}
-			}
-
-			const byte *vis = ent->s.sound || ent->s.event ? phs : pvs;
-
-			if (sent->num_clusters == -1) { // use top_node
-				if (!Cm_HeadnodeVisible(sent->top_node, vis)) {
-					continue;
-				}
-			} else { // or check individual leafs
-				int32_t i;
-				for (i = 0; i < sent->num_clusters; i++) {
-					const int32_t c = sent->clusters[i];
-					if (vis[c >> 3] & (1 << (c & 7))) {
-						break;
-					}
-				}
-				if (i == sent->num_clusters) {
-					continue;    // not visible
-				}
-			}
 		}
 
 		// copy it to the circular entity_state_t array

@@ -101,7 +101,7 @@ const char *Cvar_GetString(const char *name) {
 /**
  * @return The floating point value for the specified variable, or 0.0.
  */
-vec_t Cvar_GetValue(const char *name) {
+float Cvar_GetValue(const char *name) {
 
 	const cvar_t *var = Cvar_Get(name);
 
@@ -415,7 +415,7 @@ cvar_t *Cvar_SetString(const char *name, const char *value) {
 /**
  * @brief
  */
-cvar_t *Cvar_SetValue(const char *name, vec_t value) {
+cvar_t *Cvar_SetValue(const char *name, float value) {
 	return Cvar_Set_(name, va("%g", value), 0, false);
 }
 
@@ -447,7 +447,7 @@ cvar_t *Cvar_ForceSetString(const char *name, const char *value) {
 /**
  * @brief
  */
-cvar_t *Cvar_ForceSetValue(const char *name, vec_t value) {
+cvar_t *Cvar_ForceSetValue(const char *name, float value) {
 	return Cvar_Set_(name, va("%f", value), 0, true);
 }
 
@@ -644,7 +644,7 @@ static void Cvar_Toggle_f(void) {
  */
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
 
-	const gchar *str = g_strdup(Cvar_Stringify(var));
+	gchar *str = g_strdup(Cvar_Stringify(var));
 
 	GSList **list = (GSList **) data;
 	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrColorCmp);

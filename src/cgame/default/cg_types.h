@@ -26,81 +26,33 @@
 
 #ifdef __CG_LOCAL_H__
 
-// an infinitely-timed particle
-#define PARTICLE_INFINITE		0
+#define WEATHER_NONE        0x0
+#define WEATHER_RAIN        0x1
+#define WEATHER_SNOW        0x2
 
-// particle that immediately dies
-#define PARTICLE_IMMEDIATE		1
+/**
+ * @brief Client game state.
+ */
+typedef struct {
+	/**
+	 * @brief Grapple hook speed, for client side prediction.
+	 */
+	float hook_pull_speed;
 
-typedef enum {
-	PARTICLE_EFFECT_NONE,
+	/**
+	 * @brief The current weather bitmask.
+	 */
+	int32_t weather;
+} cg_state_t;
 
-	PARTICLE_EFFECT_COLOR = 1 << 0, // use color lerp
-	PARTICLE_EFFECT_SCALE = 1 << 1, // use scale lerp
-	PARTICLE_EFFECT_BOUNCE = 1 << 2, // collide with solids
-} cg_particle_effects_t;
-
-typedef enum {
-	PARTICLE_SPECIAL_NONE
-} cg_particle_special_t;
-
-typedef struct cg_particle_s {
-	r_particle_t part; // the r_particle_t to add to the view
-
-	// common particle components
-	uint32_t start; // client time when allocated
-	uint32_t lifetime; // client time particle should remain active for. a lifetime of 0 = infinite (make sure they get freed sometime though!), 1 = immediate
-	vec3_t vel;
-	vec3_t accel;
-
-	// special ID specific
-	cg_particle_special_t special; // a special ID that can be used for think routines
-
-	union {
-		struct {
-			uint32_t time; // next time to check for splat
-		} blood;
-	};
-
-	// effect flag specifics
-	cg_particle_effects_t effects; // flags for effects
-	vec4_t color_start, color_end;
-	vec_t scale_start, scale_end;
-	vec_t bounce;
-
-	// particle type specific
-	union {
-		struct {
-			vec_t end_z; // weather particles are freed at this Z
-		} weather;
-
-		struct {
-			vec_t radius;
-			vec_t flicker;
-		} corona;
-
-		struct {
-			vec_t length;
-		} spark;
-	};
-
-	struct cg_particle_s *prev; // previous particle in the chain
-	struct cg_particle_s *next; // next particle in chain
-} cg_particle_t;
-
-// particles are chained by image
-typedef struct cg_particles_s {
-	const r_image_t *original_image; // the image that we passed to it initially
-	const r_image_t *image; // the loaded atlas image
-	cg_particle_t *particles;
-	struct cg_particles_s *next;
-} cg_particles_t;
+extern cg_state_t cg_state;
 
 /**
  * @brief Stores info related to teams on the server.
  */
 typedef struct {
 	char team_name[MAX_USER_INFO_KEY];
+	float hue;
 	color_t color;
 } cg_team_info_t;
 

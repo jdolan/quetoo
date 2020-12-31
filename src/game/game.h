@@ -22,10 +22,9 @@
 #pragma once
 
 #include "shared.h"
-#include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 9
+#define GAME_API_VERSION 13
 
 /**
  * @brief Server flags for g_entity_t.
@@ -99,6 +98,12 @@ struct g_client_s {
  * through g_entity_locals_t.
  */
 struct g_entity_s {
+
+	/**
+	 * @brief The entity definition from the BSP file.
+	 */
+	const cm_entity_t *def;
+
 	/**
 	 * @brief The class name provides basic identification and taxonomy for
 	 * the entity. This is guaranteed to be set through G_Spawn.
@@ -131,7 +136,7 @@ struct g_entity_s {
 	 * may be catastrophic. This ID is a second line of defense, as if this ID changes, the entity
 	 * is no longer the same entity it used to reference, and is more accurate than referencing classnames
 	 */
-	uint16_t spawn_id;
+	uint32_t spawn_id;
 
 	/**
 	 * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
@@ -185,22 +190,122 @@ typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 typedef struct g_import_s {
 
 	/**
+	 * @defgroup console-appending Console appending
+	 * @{
+	 */
+
+	/**
 	 * @brief Console logging facilities.
 	 */
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+	/**
+	 * @return The active debug mask.
+	 */
+	debug_t (*DebugMask)(void);
+
+	/**
+	 * @brief Prints a formatted debug message to the configured consoles.
+	 * @details If the proivided `debug` mask is inactive, the message will not be printed.
+	 */
 	void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-	void (*PmDebug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+
+	/**
+	 * @brief Prints a formatted warning message to the configured consoles.
+	 */
 	void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
+
+	/**
+	 * @brief Prints a formattet error message to the configured consoles.
+	 */
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
 	/**
-	 * @brief Memory management. The game module should use MEM_TAG_GAME and
-	 * MEM_TAG_GAME_LEVEL for any allocations it makes.
+	 * @}
+	 * @defgroup memory-management Memory management
+	 * @{
+	 */
+
+	/**
+	 * @param tag The tag to associate the managed block with (e.g. MEM_TAG_GAME_LEVEL).
+	 * @return A newly allocated block of managed memory under the given `tag`.
 	 */
 	void *(*Malloc)(size_t size, mem_tag_t tag);
+
+	/**
+	 * @return A newly allocated block of managed memory, linked to `parent`.
+	 * @remarks The returned memory will be freed automatically when `parent` is freed.
+	 */
 	void *(*LinkMalloc)(size_t size, void *parent);
+
+	/**
+	 * @brief Frees the specified managed memory.
+	 */
 	void (*Free)(void *p);
+
+	/**
+	 * @brief Frees all managed memory allocated with the given `tag`.
+	 */
 	void (*FreeTag)(mem_tag_t tag);
+
+	/**
+	 * @}
+	 * @defgroup filesystem Filesystem
+	 * @{
+	 */
+
+	/**
+	 * @brief Opens the specified file for reading.
+	 * @param path The file path (e.g. `"maps/torn.bsp"`).
+	 */
+	file_t *(*OpenFile)(const char *path);
+
+	/**
+	 * @brief Seeks to the specified offset.
+	 * @param file The file.
+	 * @param offset The offset.
+	 * @return True on success, false on error.
+	 */
+	_Bool (*SeekFile)(file_t *file, int64_t offset);
+
+	/**
+	 * @brief Reads from the specified file.
+	 * @param file The file.
+	 * @param buffer The buffer into which to read.
+	 * @param size The size of the objects to read.
+	 * @param count The count of the objects to read.
+	 * @return The number of objects read, or -1 on failure.
+	 */
+	int64_t (*ReadFile)(file_t *file, void *buffer, size_t size, size_t count);
+
+	/**
+	 * @brief Opens the specified file for writing.
+	 * @param path The file path (e.g. `"maps.ui.list"`).
+	 */
+	file_t *(*OpenFileWrite)(const char *path);
+
+	/**
+	 * @brief Writes `count` objects of size `size` from `buffer` to `file`.
+	 * @param file The file.
+	 * @param buffer The buffer to write from.
+	 * @param size The size of the objects to write.
+	 * @param count The count of the objecst to write.
+	 * @return The number of objects written, or `-1` on error.
+	 */
+	int64_t (*WriteFile)(file_t *file, const void *buffer, size_t size, size_t count);
+
+	/**
+	 * @brief Closes the specified file.
+	 * @param file The file.
+	 * @return True on success, false on error.
+	 */
+	_Bool (*CloseFile)(file_t *file);
+
+	/**
+	 * @brief Check if a file exists or not.
+	 * @return True if the specified filename exists on the search path.
+	 */
+	_Bool (*FileExists)(const char *path);
 
 	/**
 	 * @brief Loads the specified file into the given buffer.
@@ -235,6 +340,12 @@ typedef struct g_import_s {
 	 */
 	void (*EnumerateFiles)(const char *pattern, Fs_Enumerator enumerator, void *data);
 
+	/*
+	 * @}
+	 * @defgroup console-variables Console variables & commands
+	 * @{
+	 */
+
 	/**
 	 * @brief Resolves a console variable, creating it if not found.
 	 * @param name The variable name.
@@ -264,7 +375,7 @@ typedef struct g_import_s {
 	/**
 	 * @return The floating point value of the console variable with the given name.
 	 */
-	vec_t (*GetCvarValue)(const char *name);
+	float (*GetCvarValue)(const char *name);
 
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
@@ -279,7 +390,7 @@ typedef struct g_import_s {
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
 	 */
-	cvar_t *(*SetCvarValue)(const char *name, vec_t value);
+	cvar_t *(*SetCvarValue)(const char *name, float value);
 
 	/**
 	 * @brief Forces the console variable to take the value of the string immediately.
@@ -295,7 +406,7 @@ typedef struct g_import_s {
 	 * @param value The variable value.
 	 * @return The modified variable.
 	 */
-	cvar_t *(*ForceSetCvarValue)(const char *name, vec_t value);
+	cvar_t *(*ForceSetCvarValue)(const char *name, float value);
 
 	/**
 	 * @brief Toggles the console variable by `name`.
@@ -312,34 +423,88 @@ typedef struct g_import_s {
 	 */
 	cmd_t *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
 
+	/**
+	 * @return The argument count for the currently executing command.
+	 * @remarks This should only be called from within `CmdExecuteFunc`.
+	 */
 	int32_t (*Argc)(void);
+
+	/**
+	 * @return The nth argument for the currently executing command.
+	 * @param arg The argument index. Pass `0` for the command name itself.
+	 * @remarks This should only be called from within `CmdExecuteFunc`.
+	 */
 	const char *(*Argv)(int32_t arg);
+
+	/**
+	 * @return The arguments vector for the currently executing command.
+	 * @remarks This should only be called from within `CmdExecuteFunc`.
+	 */
 	const char *(*Args)(void);
+
+	/**
+	 * @brief Tokenizes `text`, setting up the arguments vector for `CmdExecuteFunc`.
+	 * @param text The user command to tokenize.
+	 * @remarks This can be useful if dispatching commands to another subsystem (e.g. AI).
+	 */
 	void (*TokenizeString)(const char *text);
 
 	/**
-	 * @brief Console command buffer interaction.
+	 * @brief Appends `text` to the pending command buffer for execution.
+	 * @param text The user command to execute.
+	 * @remarks This can be useful for "command stuffing" client or server commands.
 	 */
 	void (*Cbuf)(const char *text);
 
 	/**
-	 * @brief Configuration strings are used to transmit arbitrary tokens such
+	 * @}
+	 * @defgroup configstrings Configuration strings
+	 * @details Configuration strings are used to transmit arbitrary tokens such
 	 * as model names, skin names, team names and weather effects. See CS_GAME.
+	 * @{
+	 */
+
+	/**
+	 * @brief Sets the configuration string at index to the specified string.
+	 * @param index The index.
+	 * @param string The string.
 	 */
 	void (*SetConfigString)(const uint16_t index, const char *string);
+
+	/**
+	 @param index The index.
+	 @return The configuration string at `index`.
+	 */
 	const char *(*GetConfigString)(const uint16_t index);
 
 	/**
-	 * @brief Returns the configuration string index for the given asset,
-	 * inserting it within the appropriate range if it is not present.
+	 * @brief Finds or inserts a string in the appropriate range for the given model name.
+	 * @param name The asset name, e.g. `models/weapons/rocketlauncher/tris`.
+	 * @return The configuration string index.
 	 */
 	uint16_t (*ModelIndex)(const char *name);
+
+	/**
+	 * @brief Finds or inserts a string in the appropriate range for the given sound name.
+	 * @param name The asset name, e.g. `sounds/weapons/rocketlauncher/fire`.
+	 * @return The configuration string index.
+	 */
 	uint16_t (*SoundIndex)(const char *name);
+
+	/**
+	 * @brief Finds or inserts a string in the appropriate range for the given image name.
+	 * @param name The asset name, e.g. `pics/items/health_i`.
+	 * @return The configuration string index.
+	 */
 	uint16_t (*ImageIndex)(const char *name);
 
 	/**
-	 * @brief Set the model of a given entity by name. For inline BSP models,
-	 * the bounding box is also set and the entity linked.
+	 * @}
+	 */
+
+	/**
+	 * @brief Set the model of a given entity by name.
+	 * @details For inline BSP models, the bounding box is also set and the entity linked.
 	 */
 	void (*SetModel)(g_entity_t *ent, const char *name);
 
@@ -348,29 +513,62 @@ typedef struct g_import_s {
 	 *
 	 * @param ent The entity originating the sound.
 	 * @param index The configuration string index of the sound to be played.
-	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
+	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
 	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
 	 */
-	void (*Sound)(const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch);
+	void (*Sound)(const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch);
 
 	/**
 	 * @brief Sound sample playback dispatch for server-local entities, or
 	 * sounds that do not originate from any specific entity.
 	 *
-	 * @param origin The origin of the sound.
-	 * @param ent The entity originating the sound.
+	 * @param origin The origin of the sound (required).
+	 * @param ent The entity originating the sound, `NULL` for worldspawn.
 	 * @param index The configuration string index of the sound to be played.
-	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
+	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
 	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
 	 */
-	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, const uint16_t index,
-	                        const uint16_t atten, const int8_t pitch);
+	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch);
+
+	/**
+	 * @defgroup collision Collision model
+	 * @{
+	 */
+
+	/**
+	 * @brief Finds the key-value pair for `key` within the specifed entity.
+	 * @param entity The entity.
+	 * @param key The entity key.
+	 * @return The key-value pair for the specified key within entity.
+	 * @remarks This function will always return non-NULL for convenience. Check the
+	 * parsed types on the returned pair to differentiate "not present" from "0."
+	 */
+	const cm_entity_t *(*EntityValue)(const cm_entity_t *entity, const char *key);
+
+	/**
+	 * @brief Finds all brushes within the specified entity.
+	 * @param entity The entity.
+	 * @return A pointer array of brushes originally defined within `entity`.
+	 * @remarks This function returns the brushes within an entity as it was defined
+	 * in the source .map file. Even `func_group` and other entities which have their
+	 * contents merged into `worldspawn` during the compilation step are fully supported.
+	 */
+	GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
 
 	/**
 	 * @return The contents mask at the specific point. The point is tested
 	 * against the world as well as all solid entities.
 	 */
 	int32_t (*PointContents)(const vec3_t point);
+
+	/**
+	 * @return 1 if `point` resides inside `brush`, `0` otherwise.
+	 * @param point The point to test.
+	 * @param brush The brush to test against.
+	 * @remarks This function is useful for testing points against non-solid brushes
+	 * from brush entities. For general purpose collision detection, use PointContents.
+	 */
+	int32_t (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Collision detection. Traces between the two endpoints, impacting
@@ -381,7 +579,7 @@ typedef struct g_import_s {
 	 * @param mins The bounding box mins (optional).
 	 * @param maxs The bounding box maxs (optional).
 	 * @param skip The entity to skip (e.g. self) (optional).
-	 * @param contents The contents mask to intersect with (e.g. MASK_SOLID).
+	 * @param contents The contents mask to intersect with (e.g. CONTENTS_MASK_SOLID).
 	 *
 	 * @return The resulting trace. A fraction less than 1.0 indicates that
 	 * the trace intersected a plane.
@@ -395,13 +593,6 @@ typedef struct g_import_s {
 	 */
 	_Bool (*inPVS)(const vec3_t p1, const vec3_t p2);
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
-
-	/**
-	 * @brief Area portal management, for doors and other entities that
-	 * manipulate BSP visibility.
-	 */
-	void (*SetAreaPortalState)(int32_t portal_num, _Bool open);
-	_Bool (*AreasConnected)(int32_t area1, int32_t area2);
 
 	/**
 	 * @brief All solid and trigger entities must be linked when they are
@@ -419,8 +610,8 @@ typedef struct g_import_s {
 	 * @brief Populates a list of entities occupying the specified bounding
 	 * box, filtered by the given type (BOX_SOLID, BOX_TRIGGER, ..).
 	 *
-	 * @param mins The area bounds in world space.
-	 * @param maxs The area bounds in world space.
+	 * @param mins The box bounds in world space.
+	 * @param maxs The box bounds in world space.
 	 * @param list The list of entities to populate.
 	 * @param len The maximum number of entities to return (lengthof(list)).
 	 * @param type The entity type to return (BOX_SOLID, BOX_TRIGGER, ..).
@@ -431,8 +622,10 @@ typedef struct g_import_s {
 	                      const uint32_t type);
 
 	/**
-	 * @brief Network messaging facilities.
+	 * @}
+	 * @defgroup network Network messaging.
 	 */
+
 	void (*Multicast)(const vec3_t org, multicast_t to, EntityFilterFunc filter);
 	void (*Unicast)(const g_entity_t *ent, const _Bool reliable);
 	void (*WriteData)(const void *data, size_t len);
@@ -441,10 +634,10 @@ typedef struct g_import_s {
 	void (*WriteShort)(const int32_t c);
 	void (*WriteLong)(const int32_t c);
 	void (*WriteString)(const char *s);
-	void (*WriteVector)(const vec_t v);
+	void (*WriteVector)(const float v);
 	void (*WritePosition)(const vec3_t pos);
 	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
-	void (*WriteAngle)(const vec_t v);
+	void (*WriteAngle)(const float v);
 	void (*WriteAngles)(const vec3_t angles);
 
 	/**
@@ -453,6 +646,10 @@ typedef struct g_import_s {
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3,
 	        4)));
+
+	/**
+	 * @}
+	 */
 
 	/**
 	 * @brief Load AI functions
@@ -469,12 +666,12 @@ typedef struct g_export_s {
 	 * @brief Game API version, in case the game module was compiled for a
 	 * different version than the engine provides.
 	 */
-	uint16_t api_version;
+	int32_t api_version;
 
 	/**
 	 * @brief Minor protocol version.
 	 */
-	uint16_t protocol;
+	int32_t protocol;
 
 	/**
 	 * @brief The g_entity_t array, which must be allocated by the game due to
@@ -491,12 +688,12 @@ typedef struct g_export_s {
 	/**
 	 * @brief The current number of allocated (in use) g_entity_t.
 	 */
-	uint16_t num_entities;
+	int32_t num_entities;
 
 	/**
 	 * @brief The total number of allocated g_entity_t (MAX_ENTITIES).
 	 */
-	uint16_t max_entities;
+	int32_t max_entities;
 
 	/**
 	 * @brief Called only when the game module is first loaded. Persistent
@@ -512,7 +709,7 @@ typedef struct g_export_s {
 	/**
 	 * @brief Called at the start of a new level.
 	 */
-	void (*SpawnEntities)(const char *name, const char *entities);
+	void (*SpawnEntities)(const char *name, cm_entity_t *const *entities, size_t num_entities);
 
 	/**
 	 * @brief Called when a client connects with valid user information.

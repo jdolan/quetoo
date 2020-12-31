@@ -154,7 +154,7 @@ static void Cl_ParseBaseline(void) {
 			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, ent->baseline.angles, 1.0);
 			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 		} else { // bounding-box entities
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, vec3_origin, 1.0);
+			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, Vec3_Zero(), 1.0);
 			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 		}
 	}
@@ -272,8 +272,8 @@ static void Cl_ParseServerData(void) {
 	Cl_SetKeyDest(KEY_CONSOLE);
 
 	// parse protocol version number
-	const uint16_t major = Net_ReadShort(&net_message);
-	const uint16_t minor = Net_ReadShort(&net_message);
+	const int32_t major = Net_ReadLong(&net_message);
+	const int32_t minor = Net_ReadLong(&net_message);
 
 	// ensure protocol major matches
 	if (major != PROTOCOL_MAJOR) {
@@ -365,11 +365,11 @@ static void Cl_ParsePrint(void) {
  * @brief
  */
 static void Cl_ParseSound(void) {
-	uint16_t index;
+	int32_t index;
 
 	s_play_sample_t play = {
 		.flags = 0,
-		.attenuation = ATTEN_DEFAULT
+		.atten = SOUND_ATTEN_LINEAR
 	};
 
 	const byte flags = Net_ReadByte(&net_message);
@@ -381,7 +381,7 @@ static void Cl_ParseSound(void) {
 	play.sample = cl.sound_precache[index];
 
 	// Always use this since it also holds Z offset information
-	play.attenuation = Net_ReadByte(&net_message);
+	play.atten = Net_ReadByte(&net_message);
 
 	if (flags & S_ENTITY) { // entity relative
 		play.entity = Net_ReadShort(&net_message);
@@ -391,7 +391,7 @@ static void Cl_ParseSound(void) {
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
-		Net_ReadPosition(&net_message, play.origin);
+		play.origin = Net_ReadPosition(&net_message);
 		play.flags |= S_PLAY_POSITIONED;
 	}
 
@@ -469,7 +469,6 @@ void Cl_ParseServerMessage(void) {
 
 			case SV_CMD_DROP:
 				Com_Error(ERROR_DROP, "Server dropped connection\n");
-				break;
 
 			case SV_CMD_FRAME:
 				Cl_ParseFrame();
@@ -485,7 +484,7 @@ void Cl_ParseServerMessage(void) {
 				if (cls.download.file) {
 					if (cls.download.http) { // clean up http downloads
 						Cl_HttpDownload_Complete();
-					} else { // or just stop legacy ones
+					} else { // or just stop UDP ones
 						Fs_Close(cls.download.file);
 					}
 					cls.download.name[0] = '\0';

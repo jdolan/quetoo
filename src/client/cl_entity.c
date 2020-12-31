@@ -21,8 +21,6 @@
 
 #include "cl_local.h"
 
-#define MAX_DELTA_ORIGIN 64.0 // MAX_SPEED * QUETOO_TICK_SECONDS = 60.0
-
 /**
  * @brief Parse the player_state_t for the current frame from the server, using delta
  * compression for all fields where possible.
@@ -47,7 +45,6 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
  */
 static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
                                  const entity_state_t *from, const entity_state_t *to) {
-	vec3_t delta;
 
 	if (frame->delta_frame_num == -1) {
 		return false;
@@ -63,13 +60,22 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 		return false;
 	}
 
-	VectorSubtract(ent->current.origin, to->origin, delta);
-
-	if (VectorLength(delta) > MAX_DELTA_ORIGIN) {
+	if (Vec3_Distance(ent->current.origin, to->origin) > MAX_DELTA_ORIGIN) {
 		return false;
 	}
 
 	return true;
+}
+
+/**
+ * @brief Resets all trails to initial values
+ * @param ent Entity to reset trails for
+ */
+static void Cl_ResetTrails(cl_entity_t *ent) {
+
+	for (vec3_t *trail = ent->trail_origins; trail < ent->trail_origins + lengthof(ent->trail_origins); trail++) {
+		*trail = ent->previous_origin;
+	}
 }
 
 /**
@@ -92,8 +98,9 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
 		ent->prev = *to; // copy the current state to the previous
 		ent->animation1.time = ent->animation2.time = 0;
 		ent->animation1.frame = ent->animation2.frame = -1;
-		VectorCopy(to->origin, ent->previous_origin);
-		ent->legs_yaw = to->angles[1];
+		ent->previous_origin = to->origin;
+		Cl_ResetTrails(ent);
+		ent->legs_current_yaw = to->angles.y;
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;
 	}
@@ -101,11 +108,6 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
 	// set the current frame number and entity state
 	ent->frame_num = cl.frame.frame_num;
 	ent->current = *to;
-
-	// mark the lighting cache as dirty
-	if (bits & (U_ORIGIN | U_TERMINATION | U_ANGLES | U_MODELS | U_BOUNDS)) {
-		ent->lighting.state = LIGHTING_DIRTY;
-	}
 }
 
 /**
@@ -126,7 +128,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 		from_number = from->number;
 	}
 
-	uint32_t index = 0;
+	int32_t index = 0;
 
 	while (true) {
 		const uint16_t number = Net_ReadShort(&net_message);
@@ -287,9 +289,6 @@ void Cl_ParseFrame(void) {
 
 	cl.frame.valid = true;
 
-	const size_t len = Net_ReadByte(&net_message); // read area_bits
-	Net_ReadData(&net_message, &cl.frame.area_bits, len);
-
 	Cl_ParsePlayerState(cl.delta_frame, &cl.frame);
 
 	Cl_ParseEntities(cl.delta_frame, &cl.frame);
@@ -326,12 +325,10 @@ static void Cl_UpdateLerp(void) {
 
 	_Bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
 
-	if (no_lerp == false && cl.previous_frame) {
-		vec3_t delta;
-
-		VectorSubtract(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin, delta);
-		if (VectorLength(delta) > MAX_DELTA_ORIGIN) {
-			Com_Debug(DEBUG_CLIENT, "%d No lerp\n", cl.frame.frame_num);
+	if (cl.previous_frame) {
+		const float dist = Vec3_Distance(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
+		if (dist > MAX_DELTA_ORIGIN) {
+			Com_Debug(DEBUG_CLIENT, "MAX_ORIGIN_DELTA: %.2f\n", dist);
 			no_lerp = true;
 		}
 	}
@@ -349,7 +346,7 @@ static void Cl_UpdateLerp(void) {
 			cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
 			cl.lerp = 0.0;
 		} else {
-			cl.lerp = 1.0 - (cl.frame.time - cl.time) / (vec_t) QUETOO_TICK_MILLIS;
+			cl.lerp = 1.0 - (cl.frame.time - cl.time) / (float) QUETOO_TICK_MILLIS;
 		}
 	}
 }
@@ -372,28 +369,28 @@ void Cl_Interpolate(void) {
 
 	Cl_UpdateLerp();
 
-	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
 
-		if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
-			VectorCopy(ent->origin, ent->previous_origin);
-			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
+		if (!Vec3_Equal(ent->prev.origin, ent->current.origin)) {
+			ent->previous_origin = ent->origin;
+			ent->origin = Vec3_Mix(ent->prev.origin, ent->current.origin, cl.lerp);
 		} else {
-			VectorCopy(ent->current.origin, ent->origin);
+			ent->origin = ent->current.origin;
 		}
 
-		if (!VectorCompare(ent->prev.termination, ent->current.termination)) {
-			VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
+		if (!Vec3_Equal(ent->prev.termination, ent->current.termination)) {
+			ent->termination = Vec3_Mix(ent->prev.termination, ent->current.termination, cl.lerp);
 		} else {
-			VectorCopy(ent->current.termination, ent->termination);
+			ent->termination = ent->current.termination;
 		}
 
-		if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
-			AnglesLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
+		if (!Vec3_Equal(ent->prev.angles, ent->current.angles)) {
+			ent->angles = Vec3_MixEuler(ent->prev.angles, ent->current.angles, cl.lerp);
 		} else {
-			VectorCopy(ent->current.angles, ent->angles);
+			ent->angles = ent->current.angles;
 		}
 
 		if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
@@ -412,66 +409,46 @@ void Cl_Interpolate(void) {
 			S_AddSample(&(const s_play_sample_t) {
 				.sample = cl.sound_precache[ent->current.sound],
 				.entity = ent->current.number,
-				.attenuation = ATTEN_IDLE,
+				.atten = SOUND_ATTEN_SQUARE,
 				.flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
 			});
 			ent->current.sound = 0;
 		}
 
-		if (ent->current.solid > SOLID_DEAD) {
-			const vec_t *angles;
+		vec3_t angles;
+		if (ent->current.solid == SOLID_BSP) {
+			angles = ent->angles;
 
-			// FIXME
-			//
-			// Currently, the entity's collision state is snapped to the most recently received
-			// server frame, rather than its interpolated state. This works well with the prediction
-			// code, but has certain side effects, such as shadows flickering while riding platforms
-			// etc. Ideally, we would create the clipping matrix from ent->origin and ent->angles,
-			// but this introduces prediction error issues. Need to understand why the prediction
-			// code doesn't play well with the more accurate collision simulation.
+			const r_model_t *mod = cl.model_precache[ent->current.model1];
 
-			if (ent->current.solid == SOLID_BSP) {
-				angles = ent->current.angles;
+			assert(mod);
+			assert(mod->bsp_inline);
 
-				const r_model_t *mod = cl.model_precache[ent->current.model1];
+			ent->mins = mod->bsp_inline->mins;
+			ent->maxs = mod->bsp_inline->maxs;
+		} else {
+			angles = Vec3_Zero();
 
-				assert(mod);
-				assert(mod->bsp_inline);
-
-				VectorCopy(mod->bsp_inline->mins, ent->mins);
-				VectorCopy(mod->bsp_inline->maxs, ent->maxs);
-			} else {
-				angles = vec3_origin;
-				UnpackBounds(ent->current.bounds, ent->mins, ent->maxs);
-			}
-
-			Cm_EntityBounds(ent->current.solid, ent->current.origin, angles, ent->mins, ent->maxs,
-			                ent->abs_mins, ent->abs_maxs);
-
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
-			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			ent->mins = ent->current.mins;
+			ent->maxs = ent->current.maxs;
 		}
+
+		// jdolan: Note that we use the latest snapshot origin, not the interpolated origin.
+		// This is so client side prediction can work, and the client and server are working
+		// with the same entity positions at their respective intervals.
+
+		Cm_EntityBounds(ent->current.solid, ent->current.origin,
+						angles,
+						ent->mins,
+						ent->maxs,
+						&ent->abs_mins,
+						&ent->abs_maxs);
+
+		Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.f);
+		Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 	}
 
 	cls.cgame->Interpolate(&cl.frame);
 
 	cl.frame.interpolated = true;
-}
-
-/**
- * @brief Invalidate lighting caches on media load.
- */
-void Cl_UpdateEntities(void) {
-
-	if (r_view.update) {
-
-		for (size_t i = 0; i < lengthof(cl.entities); i++) {
-			r_lighting_t *lighting = &cl.entities[i].lighting;
-
-			memset(lighting, 0, sizeof(*lighting));
-
-			lighting->state = LIGHTING_DIRTY;
-			lighting->number = i;
-		}
-	}
 }

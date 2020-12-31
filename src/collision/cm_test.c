@@ -22,14 +22,57 @@
 #include "cm_local.h"
 
 /**
+ * @brief
+ */
+cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
+
+	return (cm_bsp_plane_t) {
+		.normal = normal,
+		.dist = dist,
+		.type = Cm_PlaneTypeForNormal(normal),
+		.sign_bits = Cm_SignBitsForNormal(normal)
+	};
+}
+
+/**
+ * @return The PLANE_ type for the given normal vector.
+ */
+int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
+
+	const float x = fabsf(normal.x);
+	if (x > 1.f - FLT_EPSILON) {
+		return PLANE_X;
+	}
+
+	const float y = fabsf(normal.y);
+	if (y > 1.f - FLT_EPSILON) {
+		return PLANE_Y;
+	}
+
+	const float z = fabsf(normal.z);
+	if (z > 1.f - FLT_EPSILON) {
+		return PLANE_Z;
+	}
+
+	if (x >= y && x >= z) {
+		return PLANE_ANY_X;
+	}
+	if (y >= x && y >= z) {
+		return PLANE_ANY_Y;
+	}
+
+	return PLANE_ANY_Z;
+}
+
+/**
  * @return A bit mask hinting at the sign of each normal vector component. This
  * can be used to optimize plane side tests.
  */
-int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
+int32_t Cm_SignBitsForNormal(const vec3_t normal) {
 	int32_t bits = 0;
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (p->normal[i] < 0.0) {
+		if (normal.xyz[i] < 0.0f) {
 			bits |= 1 << i;
 		}
 	}
@@ -38,15 +81,34 @@ int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
 }
 
 /**
- * @return The distance from `point` to `plane`.
+ * @brief
  */
-vec_t Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
+cm_bsp_plane_t Cm_TransformPlane(const mat4_t *matrix, const cm_bsp_plane_t *plane) {
 
-	if (AXIAL(plane)) {
-		return point[plane->type] - plane->dist;
+	vec4_t out;
+	Matrix4x4_TransformQuakePlane(matrix, plane->normal, plane->dist, &out);
+
+	return Cm_Plane(Vec4_XYZ(out), out.w);
+}
+
+/**
+ * @return `1` if `point` resides inside `brush`, `0` otherwise.
+ */
+int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
+
+	if (Vec3_BoxIntersect(point, point, brush->mins, brush->maxs)) {
+
+		const cm_bsp_brush_side_t *side = brush->sides;
+		for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
+			if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
+				return 0;
+			}
+		}
+
+		return 1;
 	}
 
-	return DotProduct(point, plane->normal) - plane->dist;
+	return 0;
 }
 
 /**
@@ -54,68 +116,66 @@ vec_t Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
 int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *p) {
-	vec_t dist1, dist2;
 
-	// axial planes
 	if (AXIAL(p)) {
-		if (p->dist - SIDE_EPSILON <= mins[p->type]) {
+		if (mins.xyz[p->type] - p->dist >= 0.f) {
 			return SIDE_FRONT;
 		}
-		if (p->dist + SIDE_EPSILON >= maxs[p->type]) {
+		if (maxs.xyz[p->type] - p->dist <  0.f) {
 			return SIDE_BACK;
 		}
 		return SIDE_BOTH;
 	}
 
-	// general case
+	float dist1, dist2;
 	switch (p->sign_bits) {
 		case 0:
-			dist1 = DotProduct(p->normal, maxs);
-			dist2 = DotProduct(p->normal, mins);
+			dist1 = Vec3_Dot(p->normal, maxs);
+			dist2 = Vec3_Dot(p->normal, mins);
 			break;
 		case 1:
-			dist1 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * maxs[2];
-			dist2 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * mins[2];
+			dist1 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * maxs.z;
+			dist2 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * mins.z;
 			break;
 		case 2:
-			dist1 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
-			dist2 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			dist1 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * maxs.z;
+			dist2 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * mins.z;
 			break;
 		case 3:
-			dist1 = p->normal[0] * mins[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
-			dist2 = p->normal[0] * maxs[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			dist1 = p->normal.x * mins.x + p->normal.y * mins.y + p->normal.z * maxs.z;
+			dist2 = p->normal.x * maxs.x + p->normal.y * maxs.y + p->normal.z * mins.z;
 			break;
 		case 4:
-			dist1 = p->normal[0] * maxs[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
-			dist2 = p->normal[0] * mins[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			dist1 = p->normal.x * maxs.x + p->normal.y * maxs.y + p->normal.z * mins.z;
+			dist2 = p->normal.x * mins.x + p->normal.y * mins.y + p->normal.z * maxs.z;
 			break;
 		case 5:
-			dist1 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
-			dist2 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			dist1 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * mins.z;
+			dist2 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * maxs.z;
 			break;
 		case 6:
-			dist1 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * mins[2];
-			dist2 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * maxs[2];
+			dist1 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * mins.z;
+			dist2 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * maxs.z;
 			break;
 		case 7:
-			dist1 = DotProduct(p->normal, mins);
-			dist2 = DotProduct(p->normal, maxs);
+			dist1 = Vec3_Dot(p->normal, mins);
+			dist2 = Vec3_Dot(p->normal, maxs);
 			break;
 		default:
 			dist1 = dist2 = 0.0; // shut up compiler
 			break;
 	}
 
-	int32_t sides = 0;
+	int32_t side = 0;
 
-	if (dist1 >= p->dist) {
-		sides = SIDE_FRONT;
+	if (dist1 - p->dist >= 0.f) {
+		side = SIDE_FRONT;
 	}
-	if (dist2 < p->dist) {
-		sides |= SIDE_BACK;
+	if (dist2 - p->dist <  0.f) {
+		side |= SIDE_BACK;
 	}
 
-	return sides;
+	return side;
 }
 
 /**
@@ -137,51 +197,51 @@ static cm_box_t cm_box;
  * just beyond the parsed size of the map.
  */
 void Cm_InitBoxHull(void) {
-	static cm_bsp_texinfo_t null_surface;
+	static cm_bsp_texinfo_t null_texinfo;
 
-	if (cm_bsp.bsp.num_planes + 12 > MAX_BSP_PLANES) {
+	if (cm_bsp.file.num_planes + 12 > MAX_BSP_PLANES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
 	}
 
-	if (cm_bsp.bsp.num_nodes + 6 > MAX_BSP_NODES) {
+	if (cm_bsp.file.num_nodes + 6 > MAX_BSP_NODES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_NODES\n");
 	}
 
-	if (cm_bsp.bsp.num_leafs + 1 > MAX_BSP_LEAFS) {
+	if (cm_bsp.file.num_leafs + 1 > MAX_BSP_LEAFS) {
 		Com_Error(ERROR_DROP, "MAX_BSP_LEAFS\n");
 	}
 
-	if (cm_bsp.bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
+	if (cm_bsp.file.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_LEAF_BRUSHES\n");
 	}
 
-	if (cm_bsp.bsp.num_brushes + 1 > MAX_BSP_BRUSHES) {
+	if (cm_bsp.file.num_brushes + 1 > MAX_BSP_BRUSHES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_BRUSHES\n");
 	}
 
-	if (cm_bsp.bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
+	if (cm_bsp.file.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_BRUSH_SIDES\n");
 	}
 
 	// head node
-	cm_box.head_node = cm_bsp.bsp.num_nodes;
+	cm_box.head_node = cm_bsp.file.num_nodes;
 
 	// planes
-	cm_box.planes = &cm_bsp.planes[cm_bsp.bsp.num_planes];
+	cm_box.planes = &cm_bsp.planes[cm_bsp.file.num_planes];
 
 	// leaf
-	cm_box.leaf = &cm_bsp.leafs[cm_bsp.bsp.num_leafs];
+	cm_box.leaf = &cm_bsp.leafs[cm_bsp.file.num_leafs];
 	cm_box.leaf->contents = CONTENTS_MONSTER;
-	cm_box.leaf->first_leaf_brush = cm_bsp.bsp.num_leaf_brushes;
+	cm_box.leaf->first_leaf_brush = cm_bsp.file.num_leaf_brushes;
 	cm_box.leaf->num_leaf_brushes = 1;
 
 	// leaf brush
-	cm_bsp.leaf_brushes[cm_bsp.bsp.num_leaf_brushes] = cm_bsp.bsp.num_brushes;
+	cm_bsp.leaf_brushes[cm_bsp.file.num_leaf_brushes] = cm_bsp.file.num_brushes;
 
 	// brush
-	cm_box.brush = &cm_bsp.brushes[cm_bsp.bsp.num_brushes];
+	cm_box.brush = &cm_bsp.brushes[cm_bsp.file.num_brushes];
 	cm_box.brush->num_sides = 6;
-	cm_box.brush->first_brush_side = cm_bsp.bsp.num_brush_sides;
+	cm_box.brush->sides = cm_bsp.brush_sides + cm_bsp.file.num_brush_sides;
 	cm_box.brush->contents = CONTENTS_MONSTER;
 
 	for (int32_t i = 0; i < 6; i++) {
@@ -189,34 +249,32 @@ void Cm_InitBoxHull(void) {
 		// fill in planes, two per side
 		cm_bsp_plane_t *plane = &cm_box.planes[i * 2];
 		plane->type = i >> 1;
-		VectorClear(plane->normal);
-		plane->normal[i >> 1] = 1.0;
-		plane->sign_bits = Cm_SignBitsForPlane(plane);
-		plane->num = (cm_bsp.bsp.num_planes >> 1) + (i >> 1) + 1;
+		plane->normal = Vec3_Zero();
+		plane->normal.xyz[i >> 1] = 1.f;
+		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
-		VectorClear(plane->normal);
-		plane->normal[i >> 1] = -1.0;
-		plane->sign_bits = Cm_SignBitsForPlane(plane);
-		plane->num = (cm_bsp.bsp.num_planes >> 1) + (i >> 1) + 1;
+		plane->normal = Vec3_Zero();
+		plane->normal.xyz[i >> 1] = -1.f;
+		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
 
-		const int32_t side = i & 1;
+		const int32_t s = i & 1;
 
 		// fill in nodes, one per side
 		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
-		node->plane = cm_bsp.planes + (cm_bsp.bsp.num_planes + i * 2);
-		node->children[side] = -1 - cm_bsp.bsp.num_leafs;
+		node->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2);
+		node->children[s] = -1 - cm_bsp.file.num_leafs;
 		if (i != 5) {
-			node->children[side ^ 1] = cm_box.head_node + i + 1;
+			node->children[s ^ 1] = cm_box.head_node + i + 1;
 		} else {
-			node->children[side ^ 1] = -1 - cm_bsp.bsp.num_leafs;
+			node->children[s ^ 1] = -1 - cm_bsp.file.num_leafs;
 		}
 
 		// fill in brush sides, one per side
-		cm_bsp_brush_side_t *bside = &cm_bsp.brush_sides[cm_bsp.bsp.num_brush_sides + i];
-		bside->plane = cm_bsp.planes + (cm_bsp.bsp.num_planes + i * 2 + side);
-		bside->surface = &null_surface;
+		cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[cm_bsp.file.num_brush_sides + i];
+		side->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2 + s);
+		side->texinfo = &null_texinfo;
 	}
 }
 
@@ -226,21 +284,21 @@ void Cm_InitBoxHull(void) {
  */
 int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t contents) {
 
-	VectorCopy(mins, cm_box.brush->mins);
-	VectorCopy(maxs, cm_box.brush->maxs);
+	cm_box.brush->mins = mins;
+	cm_box.brush->maxs = maxs;
 
-	cm_box.planes[0].dist = maxs[0];
-	cm_box.planes[1].dist = -maxs[0];
-	cm_box.planes[2].dist = mins[0];
-	cm_box.planes[3].dist = -mins[0];
-	cm_box.planes[4].dist = maxs[1];
-	cm_box.planes[5].dist = -maxs[1];
-	cm_box.planes[6].dist = mins[1];
-	cm_box.planes[7].dist = -mins[1];
-	cm_box.planes[8].dist = maxs[2];
-	cm_box.planes[9].dist = -maxs[2];
-	cm_box.planes[10].dist = mins[2];
-	cm_box.planes[11].dist = -mins[2];
+	cm_box.planes[0].dist = maxs.x;
+	cm_box.planes[1].dist = -maxs.x;
+	cm_box.planes[2].dist = mins.x;
+	cm_box.planes[3].dist = -mins.x;
+	cm_box.planes[4].dist = maxs.y;
+	cm_box.planes[5].dist = -maxs.y;
+	cm_box.planes[6].dist = mins.y;
+	cm_box.planes[7].dist = -mins.y;
+	cm_box.planes[8].dist = maxs.z;
+	cm_box.planes[9].dist = -maxs.z;
+	cm_box.planes[10].dist = mins.z;
+	cm_box.planes[11].dist = -mins.z;
 
 	cm_box.leaf->contents = cm_box.brush->contents = contents;
 
@@ -248,15 +306,19 @@ int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t conten
 }
 
 /**
- * @brief
+ * @return The leaf number containing the specified point.
  */
-static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
+int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 
+	if (!cm_bsp.file.num_nodes) {
+		return 0;
+	}
+
+	int32_t num = head_node;
 	while (num >= 0) {
 		const cm_bsp_node_t *node = cm_bsp.nodes + num;
-		const vec_t dist = Cm_DistanceToPlane(p, node->plane);
-
-		if (dist < 0.0) {
+		const float dist = Cm_DistanceToPlane(p, node->plane);
+		if (dist < 0.f) {
 			num = node->children[1];
 		} else {
 			num = node->children[0];
@@ -264,18 +326,6 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 	}
 
 	return -1 - num;
-}
-
-/**
- * @return The leaf number containing the specified point.
- */
-int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
-
-	if (!cm_bsp.bsp.num_nodes) {
-		return 0;
-	}
-
-	return Cm_PointLeafnum_r(p, head_node);
 }
 
 /**
@@ -288,7 +338,7 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
  */
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 
-	if (!cm_bsp.bsp.num_nodes) {
+	if (!cm_bsp.file.num_nodes) {
 		return 0;
 	}
 
@@ -309,10 +359,10 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
  *
  * @return The contents mask at the specified point.
  */
-int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const matrix4x4_t *inverse_matrix) {
+int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat4_t *inverse_matrix) {
 	vec3_t p0;
 
-	Matrix4x4_Transform(inverse_matrix, p, p0);
+	Matrix4x4_Transform(inverse_matrix, p.xyz, p0.xyz);
 
 	return Cm_PointContents(p0, head_node);
 }
@@ -321,7 +371,7 @@ int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat
  * @brief Data binding structure for box to leaf tests.
  */
 typedef struct {
-	const vec_t *mins, *maxs;
+	vec3_t mins, maxs;
 	int32_t *list;
 	size_t len, max_len;
 	int32_t top_node;
@@ -398,3 +448,4 @@ size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_
 
 	return data.len;
 }
+

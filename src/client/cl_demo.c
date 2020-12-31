@@ -35,8 +35,8 @@ static void Cl_WriteDemoHeader(void) {
 
 	// write the server data
 	Net_WriteByte(&msg, SV_CMD_SERVER_DATA);
-	Net_WriteShort(&msg, PROTOCOL_MAJOR);
-	Net_WriteShort(&msg, cls.cgame->protocol);
+	Net_WriteLong(&msg, PROTOCOL_MAJOR);
+	Net_WriteLong(&msg, cls.cgame->protocol);
 	Net_WriteByte(&msg, 1); // demo_server byte
 	Net_WriteString(&msg, Cvar_GetString("game"));
 	Net_WriteShort(&msg, cl.client_num);
@@ -172,13 +172,13 @@ void Cl_Record_f(void) {
 /**
  * @brief Adjusts time scale by delta, clamping to reasonable limits.
  */
-static void Cl_AdjustDemoPlayback(vec_t delta) {
+static void Cl_AdjustDemoPlayback(float delta) {
 
 	if (!cl.demo_server) {
 		return;
 	}
 
-	Cvar_ForceSetValue(time_scale->name, Clamp(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0));
+	Cvar_ForceSetValue(time_scale->name, Clampf(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0));
 
 	Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
 }

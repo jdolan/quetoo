@@ -23,8 +23,8 @@
 
 typedef union {
 	int32_t i;
-	vec_t v;
-} net_vec_t;
+	float v;
+} net_float;
 
 /**
  * @brief
@@ -36,7 +36,7 @@ void Net_WriteData(mem_buf_t *msg, const void *data, size_t len) {
 /**
  * @brief
  */
-void Net_WriteChar(mem_buf_t *msg, const int32_t c) {
+void Net_WriteChar(mem_buf_t *msg, int32_t c) {
 	byte *buf;
 
 	buf = Mem_AllocBuffer(msg, sizeof(char));
@@ -46,7 +46,7 @@ void Net_WriteChar(mem_buf_t *msg, const int32_t c) {
 /**
  * @brief
  */
-void Net_WriteByte(mem_buf_t *msg, const int32_t c) {
+void Net_WriteByte(mem_buf_t *msg, int32_t c) {
 	byte *buf;
 
 	buf = Mem_AllocBuffer(msg, sizeof(byte));
@@ -56,7 +56,7 @@ void Net_WriteByte(mem_buf_t *msg, const int32_t c) {
 /**
  * @brief
  */
-void Net_WriteShort(mem_buf_t *msg, const int32_t c) {
+void Net_WriteShort(mem_buf_t *msg, int32_t c) {
 	byte *buf;
 
 	buf = Mem_AllocBuffer(msg, sizeof(int16_t));
@@ -67,7 +67,7 @@ void Net_WriteShort(mem_buf_t *msg, const int32_t c) {
 /**
  * @brief
  */
-void Net_WriteLong(mem_buf_t *msg, const int32_t c) {
+void Net_WriteLong(mem_buf_t *msg, int32_t c) {
 	byte *buf;
 
 	buf = Mem_AllocBuffer(msg, sizeof(int32_t));
@@ -91,9 +91,9 @@ void Net_WriteString(mem_buf_t *msg, const char *s) {
 /**
  * @brief
  */
-void Net_WriteVector(mem_buf_t *msg, const vec_t v) {
+void Net_WriteFloat(mem_buf_t *msg, float v) {
 
-	const net_vec_t vec = {
+	const net_float vec = {
 		.v = v
 	};
 
@@ -104,25 +104,34 @@ void Net_WriteVector(mem_buf_t *msg, const vec_t v) {
  * @brief
  */
 void Net_WritePosition(mem_buf_t *msg, const vec3_t pos) {
-	Net_WriteVector(msg, pos[0]);
-	Net_WriteVector(msg, pos[1]);
-	Net_WriteVector(msg, pos[2]);
+	Net_WriteFloat(msg, pos.x);
+	Net_WriteFloat(msg, pos.y);
+	Net_WriteFloat(msg, pos.z);
 }
 
 /**
  * @brief
  */
-void Net_WriteAngle(mem_buf_t *msg, const vec_t v) {
-	Net_WriteShort(msg, PackAngle(v));
+void Net_WriteAngle(mem_buf_t *msg, float angle) {
+
+	while (angle < 0.f) {
+		angle += 360.f;
+	}
+
+	while (angle > 360.f) {
+		angle -= 360.f;
+	}
+
+	Net_WriteShort(msg, (int16_t) ((angle / 360.0f) * UINT16_MAX));
 }
 
 /**
  * @brief
  */
 void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles) {
-	Net_WriteAngle(msg, angles[0]);
-	Net_WriteAngle(msg, angles[1]);
-	Net_WriteAngle(msg, angles[2]);
+	Net_WriteAngle(msg, angles.x);
+	Net_WriteAngle(msg, angles.y);
+	Net_WriteAngle(msg, angles.z);
 }
 
 /**
@@ -130,10 +139,10 @@ void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles) {
  */
 void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 	int32_t i, best = 0;
-	vec_t best_d = 0.0;
+	float best_d = 0.0;
 
 	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
-		const vec_t d = DotProduct(dir, approximate_normals[i]);
+		const float d = Vec3_Dot(dir, approximate_normals[i]);
 		if (d > best_d) {
 			best_d = d;
 			best = i;
@@ -146,17 +155,35 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 /**
  * @brief
  */
+void Net_WriteBounds(mem_buf_t *msg, const vec3_t mins, const vec3_t maxs) {
+
+	const vec3s_t _mins = Vec3_CastVec3s(mins);
+
+	Net_WriteShort(msg, _mins.x);
+	Net_WriteShort(msg, _mins.y);
+	Net_WriteShort(msg, _mins.z);
+
+	const vec3s_t _maxs = Vec3_CastVec3s(maxs);
+
+	Net_WriteShort(msg, _maxs.x);
+	Net_WriteShort(msg, _maxs.y);
+	Net_WriteShort(msg, _maxs.z);
+}
+
+/**
+ * @brief
+ */
 void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to) {
 
 	byte bits = 0;
 
-	if (to->angles[0] != from->angles[0]) {
+	if (to->angles.x != from->angles.x) {
 		bits |= CMD_ANGLE1;
 	}
-	if (to->angles[1] != from->angles[1]) {
+	if (to->angles.y != from->angles.y) {
 		bits |= CMD_ANGLE2;
 	}
-	if (to->angles[2] != from->angles[2]) {
+	if (to->angles.z != from->angles.z) {
 		bits |= CMD_ANGLE3;
 	}
 
@@ -177,13 +204,13 @@ void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t 
 	Net_WriteByte(msg, bits);
 
 	if (bits & CMD_ANGLE1) {
-		Net_WriteShort(msg, to->angles[0]);
+		Net_WriteAngle(msg, to->angles.x);
 	}
 	if (bits & CMD_ANGLE2) {
-		Net_WriteShort(msg, to->angles[1]);
+		Net_WriteAngle(msg, to->angles.y);
 	}
 	if (bits & CMD_ANGLE3) {
-		Net_WriteShort(msg, to->angles[2]);
+		Net_WriteAngle(msg, to->angles.z);
 	}
 
 	if (bits & CMD_FORWARD) {
@@ -214,11 +241,11 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		bits |= PS_PM_TYPE;
 	}
 
-	if (!VectorCompare(to->pm_state.origin, from->pm_state.origin)) {
+	if (!Vec3_Equal(to->pm_state.origin, from->pm_state.origin)) {
 		bits |= PS_PM_ORIGIN;
 	}
 
-	if (!VectorCompare(to->pm_state.velocity, from->pm_state.velocity)) {
+	if (!Vec3_Equal(to->pm_state.velocity, from->pm_state.velocity)) {
 		bits |= PS_PM_VELOCITY;
 	}
 
@@ -234,19 +261,19 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		bits |= PS_PM_GRAVITY;
 	}
 
-	if (!VectorCompare(to->pm_state.view_offset, from->pm_state.view_offset)) {
+	if (!Vec3_Equal(to->pm_state.view_offset, from->pm_state.view_offset)) {
 		bits |= PS_PM_VIEW_OFFSET;
 	}
 
-	if (!VectorCompare(to->pm_state.view_angles, from->pm_state.view_angles)) {
+	if (!Vec3_Equal(to->pm_state.view_angles, from->pm_state.view_angles)) {
 		bits |= PS_PM_VIEW_ANGLES;
 	}
 
-	if (!VectorCompare(to->pm_state.delta_angles, from->pm_state.delta_angles)) {
+	if (!Vec3_Equal(to->pm_state.delta_angles, from->pm_state.delta_angles)) {
 		bits |= PS_PM_DELTA_ANGLES;
 	}
 
-	if (!VectorCompare(to->pm_state.hook_position, from->pm_state.hook_position)) {
+	if (!Vec3_Equal(to->pm_state.hook_position, from->pm_state.hook_position)) {
 		bits |= PS_PM_HOOK_POSITION;
 	}
 
@@ -281,21 +308,15 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 	}
 
 	if (bits & PS_PM_VIEW_OFFSET) {
-		Net_WriteShort(msg, to->pm_state.view_offset[0]);
-		Net_WriteShort(msg, to->pm_state.view_offset[1]);
-		Net_WriteShort(msg, to->pm_state.view_offset[2]);
+		Net_WritePosition(msg, to->pm_state.view_offset);
 	}
 
 	if (bits & PS_PM_VIEW_ANGLES) {
-		Net_WriteShort(msg, to->pm_state.view_angles[0]);
-		Net_WriteShort(msg, to->pm_state.view_angles[1]);
-		Net_WriteShort(msg, to->pm_state.view_angles[2]);
+		Net_WriteAngles(msg, to->pm_state.view_angles);
 	}
 
 	if (bits & PS_PM_DELTA_ANGLES) {
-		Net_WriteShort(msg, to->pm_state.delta_angles[0]);
-		Net_WriteShort(msg, to->pm_state.delta_angles[1]);
-		Net_WriteShort(msg, to->pm_state.delta_angles[2]);
+		Net_WriteAngles(msg, to->pm_state.delta_angles);
 	}
 
 	if (bits & PS_PM_HOOK_POSITION) {
@@ -340,15 +361,15 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		Com_Error(ERROR_FATAL, "Entity number >= MAX_ENTITIES\n");
 	}
 
-	if (!VectorCompare(to->origin, from->origin)) {
+	if (!Vec3_Equal(to->origin, from->origin)) {
 		bits |= U_ORIGIN;
 	}
 
-	if (!VectorCompare(from->termination, to->termination)) {
+	if (!Vec3_Equal(from->termination, to->termination)) {
 		bits |= U_TERMINATION;
 	}
 
-	if (!VectorCompare(to->angles, from->angles)) {
+	if (!Vec3_Equal(to->angles, from->angles)) {
 		bits |= U_ANGLES;
 	}
 
@@ -373,6 +394,10 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		bits |= U_MODELS;
 	}
 
+	if (to->color.rgba != from->color.rgba) {
+		bits |= U_COLOR;
+	}
+
 	if (to->client != from->client) {
 		bits |= U_CLIENT;
 	}
@@ -385,7 +410,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		bits |= U_SOLID;
 	}
 
-	if (to->bounds != from->bounds) {
+	if (!Vec3_Equal(to->mins, from->mins) || !Vec3_Equal(to->maxs, from->maxs)) {
 		bits |= U_BOUNDS;
 	}
 
@@ -434,6 +459,13 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		Net_WriteByte(msg, to->model4);
 	}
 
+	if (bits & U_COLOR) {
+		Net_WriteByte(msg, to->color.r);
+		Net_WriteByte(msg, to->color.g);
+		Net_WriteByte(msg, to->color.b);
+		Net_WriteByte(msg, to->color.a);
+	}
+
 	if (bits & U_CLIENT) {
 		Net_WriteByte(msg, to->client);
 	}
@@ -447,7 +479,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 	}
 
 	if (bits & U_BOUNDS) {
-		Net_WriteLong(msg, to->bounds);
+		Net_WriteBounds(msg, to->mins, to->maxs);
 	}
 }
 
@@ -580,9 +612,9 @@ char *Net_ReadStringLine(mem_buf_t *msg) {
 /**
  * @brief
  */
-vec_t Net_ReadVector(mem_buf_t *msg) {
+float Net_ReadFloat(mem_buf_t *msg) {
 
-	const net_vec_t vec = {
+	const net_float vec = {
 		.i = Net_ReadLong(msg)
 	};
 
@@ -592,32 +624,36 @@ vec_t Net_ReadVector(mem_buf_t *msg) {
 /**
  * @brief
  */
-void Net_ReadPosition(mem_buf_t *msg, vec3_t pos) {
-	pos[0] = Net_ReadVector(msg);
-	pos[1] = Net_ReadVector(msg);
-	pos[2] = Net_ReadVector(msg);
+vec3_t Net_ReadPosition(mem_buf_t *msg) {
+	return (vec3_t) {
+		.x = Net_ReadFloat(msg),
+		.y = Net_ReadFloat(msg),
+		.z = Net_ReadFloat(msg)
+	};
 }
 
 /**
  * @brief
  */
-vec_t Net_ReadAngle(mem_buf_t *msg) {
-	return UnpackAngle(Net_ReadShort(msg));
+float Net_ReadAngle(mem_buf_t *msg) {
+	return Net_ReadShort(msg) * 360.f / UINT16_MAX;
 }
 
 /**
  * @brief
  */
-void Net_ReadAngles(mem_buf_t *msg, vec3_t angles) {
-	angles[0] = Net_ReadAngle(msg);
-	angles[1] = Net_ReadAngle(msg);
-	angles[2] = Net_ReadAngle(msg);
+vec3_t Net_ReadAngles(mem_buf_t *msg) {
+	return (vec3_t) {
+		.x = Net_ReadAngle(msg),
+		.y = Net_ReadAngle(msg),
+		.z = Net_ReadAngle(msg)
+	};
 }
 
 /**
  * @brief
  */
-void Net_ReadDir(mem_buf_t *msg, vec3_t dir) {
+vec3_t Net_ReadDir(mem_buf_t *msg) {
 
 	const int32_t b = Net_ReadByte(msg);
 
@@ -625,7 +661,20 @@ void Net_ReadDir(mem_buf_t *msg, vec3_t dir) {
 		Com_Error(ERROR_DROP, "%d out of range\n", b);
 	}
 
-	VectorCopy(approximate_normals[b], dir);
+	return approximate_normals[b];
+}
+
+/**
+ * @brief
+ */
+void Net_ReadBounds(mem_buf_t *msg, vec3_t *mins, vec3_t *maxs) {
+	
+	mins->x = Net_ReadShort(msg);
+	mins->y = Net_ReadShort(msg);
+	mins->z = Net_ReadShort(msg);
+	maxs->x = Net_ReadShort(msg);
+	maxs->y = Net_ReadShort(msg);
+	maxs->z = Net_ReadShort(msg);
 }
 
 /**
@@ -638,13 +687,13 @@ void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to) {
 	const uint8_t bits = Net_ReadByte(msg);
 
 	if (bits & CMD_ANGLE1) {
-		to->angles[0] = Net_ReadShort(msg);
+		to->angles.x = Net_ReadAngle(msg);
 	}
 	if (bits & CMD_ANGLE2) {
-		to->angles[1] = Net_ReadShort(msg);
+		to->angles.y = Net_ReadAngle(msg);
 	}
 	if (bits & CMD_ANGLE3) {
-		to->angles[2] = Net_ReadShort(msg);
+		to->angles.z = Net_ReadAngle(msg);
 	}
 
 	if (bits & CMD_FORWARD) {
@@ -678,11 +727,11 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 	}
 
 	if (bits & PS_PM_ORIGIN) {
-		Net_ReadPosition(msg, to->pm_state.origin);
+		to->pm_state.origin = Net_ReadPosition(msg);
 	}
 
 	if (bits & PS_PM_VELOCITY) {
-		Net_ReadPosition(msg, to->pm_state.velocity);
+		to->pm_state.velocity = Net_ReadPosition(msg);
 	}
 
 	if (bits & PS_PM_FLAGS) {
@@ -698,25 +747,19 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 	}
 
 	if (bits & PS_PM_VIEW_OFFSET) {
-		to->pm_state.view_offset[0] = Net_ReadShort(msg);
-		to->pm_state.view_offset[1] = Net_ReadShort(msg);
-		to->pm_state.view_offset[2] = Net_ReadShort(msg);
+		to->pm_state.view_offset = Net_ReadPosition(msg);
 	}
 
 	if (bits & PS_PM_VIEW_ANGLES) {
-		to->pm_state.view_angles[0] = Net_ReadShort(msg);
-		to->pm_state.view_angles[1] = Net_ReadShort(msg);
-		to->pm_state.view_angles[2] = Net_ReadShort(msg);
+		to->pm_state.view_angles = Net_ReadAngles(msg);
 	}
 
 	if (bits & PS_PM_DELTA_ANGLES) {
-		to->pm_state.delta_angles[0] = Net_ReadShort(msg);
-		to->pm_state.delta_angles[1] = Net_ReadShort(msg);
-		to->pm_state.delta_angles[2] = Net_ReadShort(msg);
+		to->pm_state.delta_angles = Net_ReadAngles(msg);
 	}
 
 	if (bits & PS_PM_HOOK_POSITION) {
-		Net_ReadPosition(msg, to->pm_state.hook_position);
+		to->pm_state.hook_position = Net_ReadPosition(msg);
 	}
 
 	if (bits & PS_PM_HOOK_LENGTH) {
@@ -743,15 +786,15 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 	to->number = number;
 
 	if (bits & U_ORIGIN) {
-		Net_ReadPosition(msg, to->origin);
+		to->origin = Net_ReadPosition(msg);
 	}
 
 	if (bits & U_TERMINATION) {
-		Net_ReadPosition(msg, to->termination);
+		to->termination = Net_ReadPosition(msg);
 	}
 
 	if (bits & U_ANGLES) {
-		Net_ReadAngles(msg, to->angles);
+		to->angles = Net_ReadAngles(msg);
 	}
 
 	if (bits & U_ANIMATIONS) {
@@ -780,6 +823,13 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 		to->model4 = Net_ReadByte(msg);
 	}
 
+	if (bits & U_COLOR) {
+		to->color.r = Net_ReadByte(msg);
+		to->color.g = Net_ReadByte(msg);
+		to->color.b = Net_ReadByte(msg);
+		to->color.a = Net_ReadByte(msg);
+	}
+
 	if (bits & U_CLIENT) {
 		to->client = Net_ReadByte(msg);
 	}
@@ -793,6 +843,6 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 	}
 
 	if (bits & U_BOUNDS) {
-		to->bounds = Net_ReadLong(msg);
+		Net_ReadBounds(msg, &to->mins, &to->maxs);
 	}
 }

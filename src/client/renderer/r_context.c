@@ -27,15 +27,107 @@ r_context_t r_context;
  * @brief
  */
 static void R_SetWindowIcon(void) {
-	SDL_Surface *surf;
 
-	if (!Img_LoadImage("icons/quetoo", &surf)) {
+	SDL_Surface *surf = Img_LoadSurface("icons/quetoo");
+
+	if (!surf) {
 		return;
 	}
 
 	SDL_SetWindowIcon(r_context.window, surf);
 
 	SDL_FreeSurface(surf);
+}
+
+/**
+ * @brief Convert error source into a string
+*/
+static const char *R_Debug_Source(const GLenum source) {
+	switch(source) {
+		case GL_DEBUG_SOURCE_API:
+			return "API";
+		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+			return "Window System";
+		case GL_DEBUG_SOURCE_SHADER_COMPILER:
+			return "Shader Compiler";
+		case GL_DEBUG_SOURCE_THIRD_PARTY:
+			return "Third Party";
+		case GL_DEBUG_SOURCE_APPLICATION:
+			return "Application";
+		case GL_DEBUG_SOURCE_OTHER:
+		default:
+			return "Other";
+	}
+}
+
+/**
+ * @brief Convert error type into a string
+*/
+static const char *R_Debug_Type(const GLenum type) {
+	switch(type) {
+		case GL_DEBUG_TYPE_ERROR:
+			return "Error";
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+			return "Deprecated Behaviour";
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+			return "Undefined Behaviour";
+		case GL_DEBUG_TYPE_PORTABILITY:
+			return "Portability";
+		case GL_DEBUG_TYPE_PERFORMANCE:
+			return "Performance";
+		case GL_DEBUG_TYPE_MARKER:
+			return "Marker";
+		case GL_DEBUG_TYPE_PUSH_GROUP:
+			return "Push Group";
+		case GL_DEBUG_TYPE_POP_GROUP:
+			return "Pop Group";
+		case GL_DEBUG_TYPE_OTHER:
+		default:
+			return "Other";
+	}
+}
+
+/**
+ * @brief Convert error severity into a string
+*/
+static const char *R_Debug_Severity(const GLenum severity) {
+	switch(severity) {
+		case GL_DEBUG_SEVERITY_HIGH:
+			return "High";
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			return "Medium";
+		case GL_DEBUG_SEVERITY_LOW:
+			return "Low";
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+		default:
+			return "Notification";
+	}
+}
+
+/**
+ * @brief Callback for OpenGL's debug system.
+*/
+static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei length, const GLchar *message, const void *userParam) {
+	
+	char temp[length + 1];
+
+	if (length > 0) {
+		strncpy(temp, message, length);
+		temp[length] = 0;
+		message = temp;
+	} else if (!length) {
+		message = "";
+	}
+
+	if (type == GL_DEBUG_TYPE_ERROR) {
+		Com_Warn("^1OpenGL (%s; %s) %s [id %i]: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message);
+	} else {
+		Com_Warn("OpenGL (%s; %s) %s [id %i]: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message);
+	}
+
+	if (r_get_error_break->integer) {
+		SDL_TriggerBreakpoint();
+	}
 }
 
 /**
@@ -51,16 +143,16 @@ void R_InitContext(void) {
 		}
 	}
 
-	uint32_t flags = SDL_WINDOW_OPENGL;
+	uint32_t flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_GRABBED;
 
-	const int display = Clamp(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
+	const int display = Clampf(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
 
 	if (r_allow_high_dpi->integer) {
 		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 	}
 
-	int32_t w = Max(0, r_width->integer);
-	int32_t h = Max(0, r_height->integer);
+	int32_t w = Maxf(0, r_width->integer);
+	int32_t h = Maxf(0, r_height->integer);
 
 	if (w == 0 || h == 0) {
 		SDL_DisplayMode best;
@@ -91,10 +183,12 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	const int32_t s = Clamp(r_multisample->integer, 0, 8);
+	const int32_t s = Clampf(r_multisample->integer, 0, 8);
 
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
+
+//	SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
 
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
 			SDL_WINDOWPOS_CENTERED_DISPLAY(display),
@@ -109,7 +203,14 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+
+	SDL_GLcontextFlag gl_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+
+	if (r_get_error->integer) {
+		gl_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
+	}
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, gl_flags);
 
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
@@ -129,38 +230,66 @@ void R_InitContext(void) {
 		SDL_GL_GetAttribute(valid_attribs[i], &attr[valid_attribs[i]]);
 	}
 
-	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i stencil %i framebuffer %i\n", attr[SDL_GL_RED_SIZE],
-	            attr[SDL_GL_GREEN_SIZE], attr[SDL_GL_BLUE_SIZE], attr[SDL_GL_ALPHA_SIZE], attr[SDL_GL_DEPTH_SIZE],
-	            attr[SDL_GL_STENCIL_SIZE], attr[SDL_GL_BUFFER_SIZE]);
+	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i stencil %i framebuffer %i\n",
+				attr[SDL_GL_RED_SIZE],
+	            attr[SDL_GL_GREEN_SIZE],
+				attr[SDL_GL_BLUE_SIZE],
+				attr[SDL_GL_ALPHA_SIZE],
+				attr[SDL_GL_DEPTH_SIZE],
+	            attr[SDL_GL_STENCIL_SIZE],
+				attr[SDL_GL_BUFFER_SIZE]);
+
 	Com_Verbose("   Double-buffered: %s\n", attr[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
-	Com_Verbose("   Multisample: %i buffers, %i samples\n", attr[SDL_GL_MULTISAMPLEBUFFERS],
+
+	Com_Verbose("   Multisample: %i buffers, %i samples\n",
+				attr[SDL_GL_MULTISAMPLEBUFFERS],
 	            attr[SDL_GL_MULTISAMPLESAMPLES]);
-	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n", attr[SDL_GL_CONTEXT_MAJOR_VERSION],
-	            attr[SDL_GL_CONTEXT_MINOR_VERSION], attr[SDL_GL_CONTEXT_FLAGS], attr[SDL_GL_CONTEXT_PROFILE_MASK]);
+
+	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n",
+				attr[SDL_GL_CONTEXT_MAJOR_VERSION],
+	            attr[SDL_GL_CONTEXT_MINOR_VERSION],
+				attr[SDL_GL_CONTEXT_FLAGS],
+				attr[SDL_GL_CONTEXT_PROFILE_MASK]);
 
 	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
-		Com_Warn("Failed to set VSync %d: %s\n", r_swap_interval->integer, SDL_GetError());
+		Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
 	}
 
 	if (SDL_SetWindowBrightness(r_context.window, r_gamma->value) == -1) {
 		Com_Warn("Failed to set gamma %1.1f: %s\n", r_gamma->value, SDL_GetError());
 	}
 
+	SDL_DisplayMode mode;
+	SDL_GetWindowDisplayMode(r_context.window, &mode);
+
+	r_context.refresh_rate = mode.refresh_rate;
+
 	int32_t dw, dh;
 	SDL_GL_GetDrawableSize(r_context.window, &dw, &dh);
 
-	r_context.render_width = r_context.width = dw;
-	r_context.render_height = r_context.height = dh;
+	r_context.drawable_width = dw;
+	r_context.drawable_height = dh;
 
 	int32_t ww, wh;
 	SDL_GetWindowSize(r_context.window, &ww, &wh);
 
-	r_context.window_width = ww;
-	r_context.window_height = wh;
+	r_context.width = ww;
+	r_context.height = wh;
 
-	r_context.high_dpi = dw > ww && dh > wh;
+	r_context.window_scale = dw / (float) ww;
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
+
+	gladLoadGL();
+	
+	if (r_get_error->integer) {
+		if (GLAD_GL_KHR_debug) {
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(R_Debug_Callback, NULL);
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+		}
+	}
 
 	R_SetWindowIcon();
 }

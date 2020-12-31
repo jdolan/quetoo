@@ -1,23 +1,23 @@
 ailibdir = @PKGLIBDIR@/default
 
 noinst_HEADERS = \
-	ai_ann.h \
 	ai_goal.h \
 	ai_info.h \
 	ai_item.h \
 	ai_local.h \
 	ai_main.h \
+	ai_node.h \
 	ai_types.h
 
 noinst_LTLIBRARIES = \
 	libai.la
 
 libai_la_SOURCES = \
-	ai_ann.c \
 	ai_goal.c \
 	ai_info.c \
 	ai_item.c \
-	ai_main.c
+	ai_main.c \
+	ai_node.c
 
 libai_la_CFLAGS = \
 	-I$(top_srcdir)/src \
@@ -29,7 +29,6 @@ libai_la_LDFLAGS = \
 	-shared
 
 libai_la_LIBADD = \
-	$(top_builddir)/deps/genann/libgenann.la \
 	$(top_builddir)/src/game/default/libpmove.la \
 	@GLIB_LIBS@
 

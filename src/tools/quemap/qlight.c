@@ -21,116 +21,63 @@
 
 #include "qlight.h"
 
-/*
- *
- * every surface must be divided into at least two patches each axis
- *
- */
-
-patch_t *face_patches[MAX_BSP_FACES];
-
-vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
-
-vec_t patch_size = PATCH_SIZE;
+_Bool indirect = true;
 _Bool antialias = false;
-_Bool indirect = false;
 
-vec3_t ambient;
+float brightness = 1.0;
+float saturation = 1.0;
+float contrast = 1.0;
 
-vec_t brightness = 1.0;
-vec_t saturation = 1.0;
-vec_t contrast = 1.0;
+int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
+int32_t patch_size = DEFAULT_BSP_PATCH_SIZE;
 
-vec_t surface_scale = 1.0;
-vec_t entity_scale = 1.0;
+float radiosity = 1.0;
+int32_t num_bounces = 1;
+int32_t bounce = 0;
+
+float lightscale_point = 1.0;
+float lightscale_patch = 1.0;
+
+// we use the collision detection facilities for lighting
+static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
 
 /**
  * @brief
  */
-int32_t Light_PointLeafnum(const vec3_t point) {
-	int32_t nodenum;
+int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
 
-	nodenum = 0;
-	while (nodenum >= 0) {
-		bsp_node_t *node = &bsp_file.nodes[nodenum];
-		bsp_plane_t *plane = &bsp_file.planes[node->plane_num];
-		vec_t dist = DotProduct(point, plane->normal) - plane->dist;
-		if (dist > 0) {
-			nodenum = node->children[0];
-		} else {
-			nodenum = node->children[1];
+	int32_t contents = Cm_PointContents(p, 0);
+
+	if (head_node) {
+		contents |= Cm_PointContents(p, head_node);
+	}
+
+	return contents;
+}
+
+/**
+ * @brief Lighting collision detection.
+ * @details Lighting traces are clipped to the world, and to the entity for the given lightmap.
+ * This way, inline models will self-shadow, but will not cast shadows on each other or on the
+ * world.
+ * @param lm The lightmap.
+ * @param start The starting point.
+ * @param end The desired end point.
+ * @param mask The contents mask to clip to.
+ * @return The trace.
+ */
+cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask) {
+
+	cm_trace_t trace = Cm_BoxTrace(start, end, Vec3_Zero(), Vec3_Zero(), 0, mask);
+
+	if (head_node) {
+		cm_trace_t tr = Cm_BoxTrace(start, end, Vec3_Zero(), Vec3_Zero(), head_node, mask);
+		if (tr.fraction < trace.fraction) {
+			trace = tr;
 		}
 	}
 
-	return -nodenum - 1;
-}
-
-/**
- * @brief
- */
-_Bool Light_PointPVS(const vec3_t org, byte *pvs) {
-
-	if (!bsp_file.vis_data_size) {
-		memset(pvs, 0xff, (bsp_file.num_leafs + 7) / 8);
-		return true;
-	}
-
-	const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(org)];
-	if (leaf->cluster == -1) {
-		return false; // in solid leaf
-	}
-
-	Bsp_DecompressVis(&bsp_file, bsp_file.vis_data.raw + bsp_file.vis_data.vis->bit_offsets[leaf->cluster][DVIS_PVS], pvs);
-	return true;
-}
-
-/**
- * @brief
- */
-_Bool Light_InPVS(const vec3_t p1, const vec3_t p2) {
-	byte pvs[MAX_BSP_LEAFS >> 3];
-
-	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
-	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
-
-	const int32_t area1 = Cm_LeafArea(leaf1);
-	const int32_t area2 = Cm_LeafArea(leaf2);
-
-	if (!Cm_AreasConnected(area1, area2)) {
-		return false; // a door blocks sight
-	}
-
-	const int32_t cluster1 = Cm_LeafCluster(leaf1);
-	const int32_t cluster2 = Cm_LeafCluster(leaf2);
-
-	Cm_ClusterPVS(cluster1, pvs);
-
-	if ((pvs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
-		return false;
-	}
-
-	return true;
-}
-
-// we use the c_model_t collision detection facilities for lighting
-static int32_t num_cmodels;
-static cm_bsp_model_t *cmodels[MAX_BSP_MODELS];
-
-/**
- * @brief
- */
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask) {
-
-	vec_t frac = 999.0;
-
-	for (int32_t i = 0; i < num_cmodels; i++) {
-
-		const cm_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin, cmodels[i]->head_node, mask);
-		if (tr.fraction < frac) {
-			frac = tr.fraction;
-			*trace = tr;
-		}
-	}
+	return trace;
 }
 
 /**
@@ -142,53 +89,115 @@ static void LightWorld(void) {
 		Com_Error(ERROR_FATAL, "Empty map\n");
 	}
 
-	// load the map for tracing
-	cmodels[0] = Cm_LoadBspModel(bsp_name, NULL);
-	num_cmodels = Cm_NumModels();
-
-	for (int32_t i = 1; i < num_cmodels; i++) {
-		cmodels[i] = Cm_Model(va("*%d", i));
+	// load the bsp for tracing
+	bsp_models[0] = Cm_LoadBspModel(bsp_name, NULL);
+	for (int32_t i = 1; i < Cm_NumModels(); i++) {
+		bsp_models[i] = Cm_Model(va("*%d", i));
 	}
 
-	// turn each face into a single patch
+	// resolve global lighting parameters from worldspawn
+
+	const cm_entity_t *e = Cm_Bsp()->entities[0];
+
+	if (radiosity == 1.f) {
+		radiosity = Cm_EntityValue(e, "radiosity")->value ?: radiosity;
+		Com_Verbose("Radiosity: %g\n", radiosity);
+	}
+
+	if (brightness == 1.f) {
+		brightness = Cm_EntityValue(e, "brightness")->value ?: brightness;
+		Com_Verbose("Brightness: %g\n", brightness);
+	}
+
+	if (saturation == 1.f) {
+		saturation = Cm_EntityValue(e, "saturation")->value ?: saturation;
+		Com_Verbose("Saturation: %g\n", saturation);
+	}
+
+	if (contrast == 1.f) {
+		contrast = Cm_EntityValue(e, "contrast")->value ?: contrast;
+		Com_Verbose("Contrast: %g\n", contrast);
+	}
+
+	if (luxel_size == BSP_LIGHTMAP_LUXEL_SIZE) {
+		luxel_size = Cm_EntityValue(e, "luxel_size")->integer ?: luxel_size;
+		Com_Verbose("Luxel size: %d\n", luxel_size);
+	}
+
+	if (patch_size == DEFAULT_BSP_PATCH_SIZE) {
+		patch_size = Cm_EntityValue(e, "patch_size")->integer ?: patch_size;
+		Com_Verbose("Patch size: %d\n", patch_size);
+	}
+
+	if (lightscale_point == 1.f) {
+		lightscale_point = Cm_EntityValue(e, "lightscale_point")->value ?: lightscale_point;
+		Com_Verbose("Point light intensity scale: 1.0\n");
+	}
+
+	if (lightscale_patch == 1.f) {
+		lightscale_patch = Cm_EntityValue(e, "lightscale_patch")->value ?: lightscale_patch;
+		Com_Verbose("Patch light intensity scale: 1.0\n");
+	}
+
+	// build patches
 	BuildPatches();
 
-	// subdivide patches to a maximum dimension
-	SubdividePatches();
+	// subdivide patches to the desired resolution
+	Work("Building patches", SubdividePatch, bsp_file.num_faces);
 
-	// create lights out of patches and entities
-	BuildLights();
+	// build lightmaps
+	BuildLightmaps();
 
-	// patches are no longer needed
-	FreePatches();
+	// build lightgrid
+	const size_t num_lightgrid = BuildLightgrid();
 
-	// build face extents
-	BuildFaceExtents();
+	// build lights out of patches and entities
+	BuildDirectLights();
 
-	// build per-vertex normals for phong shading
-	if (!legacy) {
-		BuildVertexNormals();
+	// ambient and diffuse lighting
+	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
+	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
+
+	if (indirect && radiosity > 0.f) {
+		for (bounce = 0; bounce < num_bounces; bounce++) {
+
+			// build indirect lights from lightmapped patches
+			BuildIndirectLights();
+
+			// calculate indirect lighting
+			Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
+			Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
+		}
 	}
 
-	// calculate direct lighting
-	RunThreadsOn(bsp_file.num_faces, true, DirectLighting);
+	// free the light sources
+	FreeLights();
 
-	// free the direct light sources
-	Mem_FreeTag(MEM_TAG_LIGHT);
+	// bake fog volumes into the lightgrid
+	BuildFog();
 
-	if (indirect) { // calculate indirect lighting
-		RunThreadsOn(bsp_file.num_faces, true, IndirectLighting);
-	}
+	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
 
-	// finalize it and write it out
-	bsp_file.lightmap_data_size = 0;
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTING);
+	FreeFog();
 
-	// merge direct and indirect lighting, normalize all samples
-	RunThreadsOn(bsp_file.num_faces, true, FinalizeLighting);
+	// finalize it and write it to per-face textures
+	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
+	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
 
-	// free the face lighting structs
-	Mem_FreeTag(MEM_TAG_FACE_LIGHTING);
+	// generate atlased lightmaps
+	EmitLightmap();
+
+	// and vertex lightmap texcoords
+	EmitLightmapTexcoords();
+
+	// and lightgrid
+	EmitLightgrid();
+
+	// free the lightmaps
+	Mem_FreeTag(MEM_TAG_LIGHTMAP);
+
+	// free the patches
+	Mem_FreeTag(MEM_TAG_PATCH);
 }
 
 /**
@@ -196,19 +205,14 @@ static void LightWorld(void) {
  */
 int32_t LIGHT_Main(void) {
 
-	Com_Print("\n----- LIGHT -----\n\n");
+	Com_Print("\n------------------------------------------\n");
+	Com_Print("\nLighting %s\n\n", bsp_name);
 
-	const time_t start = time(NULL);
+	const uint32_t start = SDL_GetTicks();
 
-	const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
+	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
-	if (!bsp_file.vis_data_size) {
-		Com_Error(ERROR_FATAL, "No VIS information\n");
-	}
-
-	ParseEntities();
-
-	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
+	LoadMaterials(va("maps/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
 	BuildTextureColors();
 
@@ -218,15 +222,16 @@ int32_t LIGHT_Main(void) {
 
 	FreeMaterials();
 
-	WriteBSPFile(va("maps/%s.bsp", map_base), version);
+	WriteBSPFile(va("maps/%s.bsp", map_base));
 
-	const time_t end = time(NULL);
-	const time_t duration = end - start;
-	Com_Print("\nLIGHT Time: ");
-	if (duration > 59) {
-		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	FreeWindings();
+
+	for (int32_t tag = MEM_TAG_QLIGHT; tag < MEM_TAG_QMAT; tag++) {
+		Mem_FreeTag(tag);
 	}
-	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
+
+	const uint32_t end = SDL_GetTicks();
+	Com_Print("\nLit %s in %d ms\n", bsp_name, (end - start));
 
 	return 0;
 }

@@ -52,11 +52,10 @@ typedef struct {
 	int32_t clusters[MAX_ENT_CLUSTERS];
 	int32_t num_clusters; // if -1, use top_node
 
-	int32_t areas[2];
 	struct sv_sector_s *sector;
 
-	matrix4x4_t matrix;
-	matrix4x4_t inverse_matrix;
+	mat4_t matrix;
+	mat4_t inverse_matrix;
 } sv_entity_t;
 
 /**
@@ -97,8 +96,6 @@ typedef struct {
 } sv_server_t;
 
 typedef struct {
-	int32_t area_bytes;
-	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps;
 	uint16_t num_entities;
 	uint32_t entity_state; // index into svs.entity_states array
@@ -280,6 +277,6 @@ typedef struct {
  * negotiating the edicts array based on the reported size of g_entity_t.
  */
 #define NUM_FOR_ENTITY(e) \
-	( ((byte *)(e) - (byte *) svs.game->entities) / svs.game->entity_size )
+	( ((intptr_t)(e) - (intptr_t) svs.game->entities) / svs.game->entity_size )
 
 #endif /* __SV_LOCAL_H__ */

@@ -57,11 +57,11 @@ void S_FreeChannel(int32_t c) {
 static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	vec3_t org, delta, center;
 
-	VectorCopy(r_view.origin, org);
+	org = r_view.origin;
 
 	if (ch->play.flags & S_PLAY_POSITIONED) {
-		VectorCopy(ch->play.origin, org);
-		VectorClear(ch->velocity);
+		org = ch->play.origin;
+		ch->velocity = Vec3_Zero();
 	} else if (ch->play.flags & S_PLAY_ENTITY) {
 		const cl_entity_t *ent = &cl.entities[ch->play.entity];
 
@@ -71,44 +71,41 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 		if (s_doppler->value) {
 			if (!ch->relative) {
-				VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
+				ch->velocity = Vec3_Subtract(ent->current.origin, ent->prev.origin);
 			}
 		}
 
 		if (ent->current.solid == SOLID_BSP) {
 			const r_model_t *mod = cl.model_precache[ent->current.model1];
-			VectorLerp(mod->mins, mod->maxs, 0.5, center);
-			VectorAdd(center, ent->origin, org);
+			center = Vec3_Mix(mod->mins, mod->maxs, 0.5);
+			org = Vec3_Add(center, ent->origin);
 		} else {
 			if (!ch->relative) {
-				VectorCopy(ent->origin, org);
+				org = ent->origin;
 			}
 		}
 	}
 
-	VectorCopy(org, ch->position);
-//  	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up, ch->position);
+	ch->position = org;
 
-	VectorSubtract(org, r_view.origin, delta);
+	const float dist = Vec3_DistanceDir(org, r_view.origin, &delta);
 
-	vec_t attenuation;
-	switch (ch->play.attenuation & 0x0f) {
-		case ATTEN_NORM:
-			attenuation = 1.0;
+	float atten;
+	switch (ch->play.atten) {
+		case SOUND_ATTEN_NONE:
+			atten = 0.f;
+		case SOUND_ATTEN_LINEAR:
+			atten = 1.f;
 			break;
-		case ATTEN_IDLE:
-			attenuation = 2.0;
+		case SOUND_ATTEN_SQUARE:
+			atten = 2.f;
 			break;
-		case ATTEN_STATIC:
-			attenuation = 4.0;
-			break;
-		default:
-			attenuation = 0.0;
+		case SOUND_ATTEN_CUBIC:
+			atten = 4.f;
 			break;
 	}
 
-	const vec_t dist = VectorNormalize(delta) * attenuation;
-	const vec_t frac = dist / SOUND_MAX_DISTANCE;
+	const float frac = dist * atten / SOUND_MAX_DISTANCE;
 
 	ch->gain = 1.0 - frac;
 
@@ -131,23 +128,23 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	ch->filter = AL_NONE;
 
 	// adjust pitch in liquids
-	if (r_view.contents & MASK_LIQUID) {
+	if (r_view.contents & CONTENTS_MASK_LIQUID) {
 		ch->pitch = 0.5;
 	}
 
 	// offset pitch by sound-requested offset
 	if (ch->play.pitch) {
-		const vec_t octaves = (vec_t) pow(2, 0.69314718 * ((vec_t) ch->play.pitch / TONES_PER_OCTAVE));
+		const float octaves = (float) pow(2, 0.69314718 * ((float) ch->play.pitch / TONES_PER_OCTAVE));
 		ch->pitch *= octaves;
 	}
 
 	// apply sound effects
 	if (s_env.effects.loaded) {
 
-		if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
+		if (Cm_PointContents(ch->position, 0) & CONTENTS_MASK_LIQUID) {
 			ch->filter = s_env.effects.underwater;
 		} else {
-			const cm_trace_t tr = Cl_Trace(r_view.origin, ch->position, NULL, NULL, ch->play.entity, MASK_CLIP_PROJECTILE);
+			const cm_trace_t tr = Cl_Trace(r_view.origin, ch->position, Vec3_Zero(), Vec3_Zero(), ch->play.entity, CONTENTS_MASK_CLIP_PROJECTILE);
 			if (tr.fraction < 1.0) {
 				ch->filter = s_env.effects.occluded;
 			}
@@ -173,21 +170,19 @@ void S_MixChannels(void) {
 		alDopplerFactor(0.05 * s_doppler->value);
 	}
 
-	const vec3_t orientation[] = {
-		{ r_view.forward[0], r_view.forward[1], r_view.forward[2] },
-		{ r_view.up[0], r_view.up[1], r_view.up[2] }
-	};
-
-	alListenerfv(AL_POSITION, r_view.origin);
+	alListenerfv(AL_POSITION, r_view.origin.xyz);
 	S_CheckALError();
 
-	alListenerfv(AL_ORIENTATION, &orientation[0][0]);
+	alListenerfv(AL_ORIENTATION, (float []) {
+		r_view.forward.x, r_view.forward.y, r_view.forward.z,
+		r_view.up.x, r_view.up.y, r_view.up.z
+	});
 	S_CheckALError();
 
 	if (s_doppler->value) {
-		alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity);
+		alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity.xyz);
 	} else {
-		alListenerfv(AL_VELOCITY, vec3_origin);
+		alListenerfv(AL_VELOCITY, Vec3_Zero().xyz);
 	}
 
 	s_env.num_active_channels = 0;
@@ -203,20 +198,20 @@ void S_MixChannels(void) {
 			if (S_SpatializeChannel(ch)) {
 
 				if (ch->relative) {
-					alSourcefv(src, AL_POSITION, vec3_origin);
+					alSourcefv(src, AL_POSITION, Vec3_Zero().xyz);
 					S_CheckALError();
 				} else {
-					alSourcefv(src, AL_POSITION, ch->position);
+					alSourcefv(src, AL_POSITION, ch->position.xyz);
 					S_CheckALError();
 
 					if (s_doppler->value) {
-						alSourcefv(src, AL_VELOCITY, ch->velocity);
+						alSourcefv(src, AL_VELOCITY, ch->velocity.xyz);
 					} else {
-						alSourcefv(src, AL_VELOCITY, vec3_origin);
+						alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
 					}
 				}
 
-				vec_t volume;
+				float volume;
 
 				if (ch->play.flags & S_PLAY_AMBIENT) {
 					volume = s_volume->value * s_ambient_volume->value;
@@ -344,8 +339,7 @@ void S_AddSample(const s_play_sample_t *play) {
 	// warn on spatialized stereo samples
 
 	if (play->sample->stereo) {
-		const _Bool has_atten = (play->attenuation & 0x0f) != ATTEN_NONE;
-		if (has_atten || (has_atten && play->entity != -1 && &cl.entities[play->entity] != cl.entity)) {
+		if (play->atten) {
 			Com_Warn("%s is a stereo sound sample and is being spatialized\n", play->sample->media.name);
 		}
 	}

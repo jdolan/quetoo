@@ -121,7 +121,6 @@ static void Mon_Stdio(mon_level_t level, const char *msg) {
 			break;
 		case MON_ERROR:
 			Com_Error(ERROR_FATAL, "!@%s\n", msg);
-			break;
 		default:
 			break;
 	}
@@ -130,7 +129,7 @@ static void Mon_Stdio(mon_level_t level, const char *msg) {
 /**
  * @brief Sends a brush selection to GtkRadiant.
  */
-void Mon_SendSelect_(const char *func, mon_level_t level, uint16_t e, uint16_t b, const char *msg) {
+void Mon_SendSelect_(const char *func, mon_level_t level, int32_t e, int32_t b, const char *msg) {
 
 	xmlNodePtr select = xmlNewNode(NULL, xmlString("select"));
 	xmlNodeSetContent(select, xmlStringf("%s: Entity %u, Brush %u: %s", func, e, b, msg));
@@ -155,7 +154,7 @@ void Mon_SendPoint_(const char *func, mon_level_t level, const vec3_t p, const c
 	xmlSetProp(point_msg, xmlString("level"), xmlStringf("%d", level));
 
 	xmlNodePtr point = xmlNewNode(NULL, xmlString("point"));
-	xmlNodeSetContent(point, xmlStringf("(%g %g %g", p[0], p[1], p[2]));
+	xmlNodeSetContent(point, xmlStringf("(%g %g %g", p.x, p.y, p.z));
 	xmlAddChild(point_msg, point);
 
 	Mon_SendXML(point_msg);
@@ -166,24 +165,28 @@ void Mon_SendPoint_(const char *func, mon_level_t level, const vec3_t p, const c
 /**
  * @brief Sends a winding to GtkRadiant.
  */
-void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], uint16_t n, const char *msg) {
+void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], int32_t n, const char *msg) {
 
 	xmlNodePtr winding_msg = xmlNewNode(NULL, xmlString("windingmsg"));
 	xmlNodeSetContent(winding_msg, xmlStringf("%s: %s", func, msg));
 	xmlSetProp(winding_msg, xmlString("level"), xmlStringf("%d", level));
 
 	xmlNodePtr winding = xmlNewNode(NULL, xmlString("winding"));
-	xmlNodeSetContent(winding, xmlStringf("%u", n));
+	xmlNodeSetContent(winding, xmlStringf("%u ", n));
 	xmlAddChild(winding_msg, winding);
 
-	int32_t i;
-	for (i = 0; i < n; i++) {
-		xmlNodeAddContent(winding, xmlStringf("(%g %g %g)", p[i][0], p[i][1], p[i][2]));
+	vec3_t center;
+	center = Vec3_Zero();
+
+	for (int32_t i = 0; i < n; i++) {
+		xmlNodeAddContent(winding, xmlStringf("(%g %g %g)", p[i].x, p[i].y, p[i].z));
+		center = Vec3_Add(center, p[i]);
 	}
 
 	Mon_SendXML(winding_msg);
 
-	Mon_Stdio(level, va("%s: Winding at %s: %s", func, vtos(p[0]), msg));
+	center = Vec3_Scale(center, 1.0 / n);
+	Mon_Stdio(level, va("%s: Winding with center %s: %s", func, vtos(center), msg));
 }
 
 /**
@@ -223,6 +226,13 @@ _Bool Mon_Connect(const char *host) {
 	}
 
 	return false;
+}
+
+/**
+ * @brief
+ */
+_Bool Mon_IsConnected(void) {
+	return mon_state.socket != 0;
 }
 
 /**
@@ -266,7 +276,7 @@ void Mon_Shutdown(const char *msg) {
 
 		g_list_free(mon_backlog);
 	} else {
-		g_list_free_full(mon_backlog, xmlFree);
+		g_list_free_full(mon_backlog, (GDestroyNotify) xmlFreeNode);
 	}
 
 	mon_backlog = NULL;

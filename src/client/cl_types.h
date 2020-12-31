@@ -30,14 +30,18 @@ typedef struct {
 	pm_cmd_t cmd; // the movement command
 	uint32_t time; // simulation time when the command was sent
 	uint32_t timestamp; // system time when the command was sent
+	struct {
+		uint32_t time; // the simulation time when prediction was run
+		vec3_t origin; // the predicted origin for this command
+		vec3_t error; // the prediction error for this command
+	} prediction;
 } cl_cmd_t;
 
 typedef struct {
 	int32_t frame_num; // sequential identifier, used for delta
 	int32_t delta_frame_num; // negatives indicate no delta
-	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps; // the player state
-	uint16_t num_entities; // the number of entities in the frame
+	int32_t num_entities; // the number of entities in the frame
 	uint32_t entity_state; // non-masked index into cl.entity_states array
 	_Bool valid; // false if delta parsing failed
 	_Bool interpolated; // true if this frame has been interpolated one or more times
@@ -49,18 +53,27 @@ typedef struct {
 	uint32_t time;
 	int32_t frame;
 	int32_t old_frame;
-	vec_t lerp;
-	vec_t fraction;
+	float lerp;
+	float fraction;
 	_Bool reverse;
 } cl_entity_animation_t;
 
 typedef struct {
-	vec_t height;
+	float height;
 	uint32_t time;
 	uint32_t timestamp;
 	uint32_t interval;
-	vec_t delta_height;
+	float delta_height;
 } cl_entity_step_t;
+
+typedef enum {
+	TRAIL_PRIMARY,
+	TRAIL_SECONDARY,
+	TRAIL_TERTIARY,
+	TRAIL_BUBBLE,
+
+	TRAIL_ID_COUNT
+} cl_trail_id_t;
 
 typedef struct {
 	entity_state_t baseline; // delta from this if not from a previous frame
@@ -71,6 +84,8 @@ typedef struct {
 
 	uint32_t timestamp; // for intermittent effects
 
+	vec3_t trail_origins[TRAIL_ID_COUNT];
+
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation
 
@@ -80,14 +95,13 @@ typedef struct {
 	vec3_t angles; // and angles
 	vec3_t mins, maxs; // bounding box
 	vec3_t abs_mins, abs_maxs; // absolute bounding box
-	vec_t legs_yaw; // only used by player models, the leg angle we're currently at
+	float legs_yaw; // only used by player models; leg angle ideal yaw
+	float legs_current_yaw; // only used by player models
 
 	cl_entity_step_t step; // the step the entity just traversed
 
-	matrix4x4_t matrix; // interpolated translation and rotation
-	matrix4x4_t inverse_matrix; // for box hull collision
-
-	r_lighting_t lighting; // cached static lighting info
+	mat4_t matrix; // interpolated translation and rotation
+	mat4_t inverse_matrix; // for box hull collision
 } cl_entity_t;
 
 // the total number of tokens info can contain
@@ -99,16 +113,17 @@ typedef struct {
 	char model[MAX_USER_INFO_VALUE]; // the model name, e.g. qforcer
 	char skin[MAX_USER_INFO_VALUE]; // the skin name, e.g. blue
 
-	color_t shirt, pants, helmet, color; // player and effects colors
+	color_t shirt, pants, helmet; // player and effects colors
+	float hue;
 
 	r_model_t *head;
-	r_material_t *head_skins[MD3_MAX_MESHES];
+	r_material_t *head_skins[MAX_ENTITY_SKINS];
 
 	r_model_t *torso;
-	r_material_t *torso_skins[MD3_MAX_MESHES];
+	r_material_t *torso_skins[MAX_ENTITY_SKINS];
 
 	r_model_t *legs;
-	r_material_t *legs_skins[MD3_MAX_MESHES];
+	r_material_t *legs_skins[MAX_ENTITY_SKINS];
 
 	r_image_t *icon; // for the scoreboard
 } cl_client_info_t;
@@ -136,8 +151,6 @@ typedef struct {
 	cl_entity_step_t step; // the predicted step
 
 	struct g_entity_s *ground_entity;
-
-	vec3_t origins[CMD_BACKUP]; // for reconciling with the server
 
 	vec3_t error; // the prediction error, interpolated over the current server frame
 } cl_predicted_state_t;
@@ -175,14 +188,15 @@ typedef struct {
 	entity_state_t entity_states[ENTITY_STATE_BACKUP]; // accumulated each frame
 	uint32_t entity_state; // index (not wrapped) into entity states
 
-	uint16_t client_num; // our client number, which is our entity number - 1
+	int32_t client_num; // our client number, which is our entity number - 1
 
 	uint32_t suppress_count; // number of messages rate suppressed
 
 	uint32_t time; // clamped simulation time that the client is rendering at
 	uint32_t unclamped_time; // unclamped simulation time, useful for effect durations
 
-	vec_t lerp; // linear interpolation fraction between frames
+	uint32_t frame_msec; // the duration of the current frame
+	float lerp; // linear interpolation fraction between frames
 
 	// the client maintains its own idea of view angles, which are
 	// sent to the server each frame. It is cleared to 0 upon entering each level.
@@ -194,7 +208,7 @@ typedef struct {
 	_Bool third_person; // we're viewing third person camera
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
-	uint16_t precache_check;
+	int32_t precache_check;
 
 	// for client side prediction clipping
 	cm_bsp_model_t *cm_models[MAX_MODELS];
@@ -300,14 +314,14 @@ typedef struct {
 	char name[32];
 	char gameplay[32];
 	char error[128];
-	uint16_t clients;
-	uint16_t max_clients;
+	int32_t clients;
+	int32_t max_clients;
 	uint32_t ping_time; // when we pinged the server
-	uint16_t ping; // server latency
+	int32_t ping; // server latency
 } cl_server_info_t;
 
 typedef struct {
-	uint16_t percent;
+	int32_t percent;
 	const char *status;
 	char mapshot[MAX_QPATH];
 } cl_loading_t;

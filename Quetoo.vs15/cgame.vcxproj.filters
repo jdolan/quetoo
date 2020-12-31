@@ -39,9 +39,6 @@
     <ClInclude Include="..\src\cgame\default\cg_effect.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\cg_emit.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\cg_entity.h">
       <Filter>src\default</Filter>
     </ClInclude>
@@ -70,9 +67,6 @@
       <Filter>src\default</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\cg_muzzle_flash.h">
-      <Filter>src\default</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\cg_particle.h">
       <Filter>src\default</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\cg_predict.h">
@@ -168,6 +162,18 @@
     <ClInclude Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.h">
       <Filter>src\default\ui\controls</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_light.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_sprite.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_entity_misc.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_weapon.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\cgame\default\ui\home\HomeViewController.json">
@@ -182,9 +188,6 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_effect.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\cg_emit.c">
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_entity.c">
@@ -212,9 +215,6 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_muzzle_flash.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\cg_particle.c">
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_predict.c">
@@ -306,6 +306,18 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.c">
       <Filter>src\default\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_light.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_sprite.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_entity_misc.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_weapon.c">
+      <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

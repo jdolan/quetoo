@@ -20,7 +20,7 @@
  */
 
 #if defined(_WIN32)
-	#include <winsock2.h> // for htons
+	#include <WinSock2.h> // for htons
 #endif
 
 #include "sv_local.h"
@@ -232,14 +232,13 @@ static void Sv_Status_f(void) {
  * @brief Lists all entities currently in use.
  */
 static void Sv_ListEntities_f(void) {
-	uint16_t i;
 
 	if (!svs.initialized) {
 		Com_Print("No server running\n");
 		return;
 	}
 
-	for (i = 0; i < svs.game->num_entities; i++) {
+	for (int32_t i = 0; i < svs.game->num_entities; i++) {
 		const g_entity_t *e = ENTITY_FOR_NUM(i);
 
 		if (Cmd_Argc() > 1) {
@@ -257,7 +256,6 @@ static void Sv_ListEntities_f(void) {
  */
 static void Sv_Say_f(void) {
 	char text[MAX_STRING_CHARS];
-	int32_t i;
 
 	if (Cmd_Argc() < 2) {
 		return;
@@ -277,16 +275,16 @@ static void Sv_Say_f(void) {
 	}
 
 	const sv_client_t *client = svs.clients;
-	for (i = 0; i < sv_max_clients->integer; i++, client++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++, client++) {
 
 		if (client->state != SV_CLIENT_ACTIVE) {
 			continue;
 		}
 
-		Sv_ClientPrint(client->entity, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_CHAT, s);
+		Sv_ClientPrint(client->entity, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_CHAT, s);
 	}
 
-	Com_Print("^1console^%d: %s\n", CON_COLOR_CHAT, s);
+	Com_Print("^1console^%d: %s\n", ESC_COLOR_CHAT, s);
 }
 
 /**
@@ -321,8 +319,8 @@ static void Sv_Tell_f(void) {
 		return;
 	}
 
-	Sv_ClientPrint(sv_client->entity, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
-	Com_Print("^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
+	Sv_ClientPrint(sv_client->entity, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_TEAMCHAT, s);
+	Com_Print("^1console^%d: %s\n", ESC_COLOR_TEAMCHAT, s);
 }
 
 /**

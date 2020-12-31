@@ -24,31 +24,18 @@
 #include "shared.h"
 
 /**
- * @brief Quake2 .wal legacy texture format.
- */
-typedef struct {
-	char name[32];
-	uint32_t width;
-	uint32_t height;
-	uint32_t offsets[4]; // four mip maps stored
-	char anim_name[32]; // next frame in animation chain, not used
-	uint32_t flags;
-	int32_t contents;
-	int32_t value;
-} d_wal_t;
-
-/**
  * @brief Quake3 .md3 model format.
  */
-#define MD3_HEADER			(('3'<<24)+('P'<<16)+('D'<<8)+'I')
+#define MD3_ID				(('3'<<24)+('P'<<16)+('D'<<8)+'I')
 #define MD3_VERSION			15
 
 #define MD3_MAX_LODS		0x4 // per model
 #define	MD3_MAX_TRIANGLES	0x2000 // per mesh
-#define MD3_MAX_VERTS		0x1000 // per mesh
+#define MD3_MAX_VERTEXES	0x1000 // per mesh
 #define MD3_MAX_SHADERS		0x100 // per mesh
+#define MD3_MIN_FRAMES		0x1 // per model
 #define MD3_MAX_FRAMES		0x400 // per model
-#define	MD3_MAX_MESHES		0x20 // per model
+#define	MD3_MAX_SURFACES	0x20 // per model
 #define MD3_MAX_TAGS		0x10 // per frame
 #define MD3_MAX_PATH		0x40 // relative file references
 #define MD3_MAX_ANIMATIONS	0x20 // see entity_animation_t
@@ -60,32 +47,32 @@ typedef struct {
 } d_md3_texcoord_t;
 
 typedef struct {
-	int16_t point[3];
+	vec3s_t point;
 	int16_t norm;
 } d_md3_vertex_t;
+
+typedef struct {
+	uint32_t indexes[3];
+} d_md3_triangle_t;
 
 typedef struct {
 	vec3_t mins;
 	vec3_t maxs;
 	vec3_t translate;
-	vec_t radius;
+	float radius;
 	char name[16];
 } d_md3_frame_t;
 
 typedef struct {
+	char name[MD3_MAX_PATH];
 	vec3_t origin;
 	vec3_t axis[3];
-} d_md3_orientation_t;
-
-typedef struct {
-	char name[MD3_MAX_PATH];
-	d_md3_orientation_t orient;
 } d_md3_tag_t;
 
 typedef struct {
 	char name[MD3_MAX_PATH];
-	int32_t unused; // shader
-} d_md3_skin_t;
+	int32_t index;
+} d_md3_shader_t;
 
 typedef struct {
 	int32_t id;
@@ -95,17 +82,16 @@ typedef struct {
 	int32_t flags;
 
 	int32_t num_frames;
-	int32_t num_skins;
-	int32_t num_verts;
-	int32_t num_tris;
+	int32_t num_shaders;
+	int32_t num_vertexes;
+	int32_t num_triangles;
 
-	int32_t ofs_tris;
-	int32_t ofs_skins;
-	int32_t ofs_tcs;
-	int32_t ofs_verts;
-
-	int32_t size;
-} d_md3_mesh_t;
+	int32_t ofs_triangles;
+	int32_t ofs_shaders;
+	int32_t ofs_texcoords;
+	int32_t ofs_vertexes;
+	int32_t ofs_end;
+} d_md3_surface_t;
 
 typedef struct {
 	int32_t id;
@@ -117,72 +103,11 @@ typedef struct {
 
 	int32_t num_frames;
 	int32_t num_tags;
-	int32_t num_meshes;
-	int32_t num_skins;
+	int32_t num_surfaces;
+	int32_t num_shaders;
 
 	int32_t ofs_frames;
 	int32_t ofs_tags;
-	int32_t ofs_meshes;
+	int32_t ofs_surfaces;
 	int32_t ofs_end;
 } d_md3_t;
-
-/**
- * @brief Represents the data to find and read in a lump from the disk. This is shared
- * between BSP and AAS.
- */
-typedef struct {
-	int32_t file_ofs;
-	int32_t file_len;
-} d_bsp_lump_t;
-
-/**
- * @brief .aas format. Under heavy construction.
- */
-
-#define AAS_IDENT (('S' << 24) + ('A' << 16) + ('A' << 8) + 'Q') // "QAAS"
-#define AAS_VERSION	1
-
-#define AAS_LUMP_NODES 0
-#define AAS_LUMP_PORTALS 1
-#define AAS_LUMP_PATHS 2
-#define AAS_LUMPS (AAS_LUMP_PATHS + 1)
-
-// AAS uses BSP as a base, so we need cm_bsp
-#include "collision/cmodel.h"
-
-typedef struct {
-	uint32_t ident;
-	uint32_t version;
-	d_bsp_lump_t lumps[AAS_LUMPS];
-} d_aas_header_t;
-
-#define AAS_PORTAL_WALK		0x1
-#define AAS_PORTAL_CROUCH	0x2
-#define AAS_PORTAL_STAIR 	0x4
-#define AAS_PORTAL_JUMP		0x8
-#define AAS_PORTAL_FALL		0x10
-#define AAS_PORTAL_IMPASS	0x10000
-
-// portals are polygons that split two nodes
-typedef struct {
-	uint16_t plane_num; // the plane this portal lives on
-	uint16_t nodes[2]; // the nodes this portal connects (front and back)
-	uint32_t flags[2]; // the travel flags to cross this portal from either side
-} d_aas_portal_t;
-
-#define AAS_INVALID_LEAF INT32_MIN
-
-typedef struct {
-	uint16_t plane_num;
-	int32_t children[2]; // negative children are leafs, just like BSP
-	int16_t mins[3];
-	int16_t maxs[3];
-	uint16_t first_path;
-	uint16_t num_paths;
-} d_aas_node_t;
-
-typedef struct {
-	uint16_t plane_num;
-	int16_t mins[3];
-	int16_t maxs[3];
-} d_aas_leaf_t;

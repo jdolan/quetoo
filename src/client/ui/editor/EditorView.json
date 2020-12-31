@@ -37,7 +37,7 @@
                   },
                   "control": {
                     "class": "TextView",
-                    "identifier": "diffuse"
+                    "identifier": "diffusemap"
                   }
                 },
                 {
@@ -52,7 +52,31 @@
                     "identifier": "normalmap"
                   }
                 },
+				{
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Heightmap texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "heightmap"
+                  }
+                },
                 {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Glossmap texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "glossmap"
+                  }
+                },
+				{
                   "class": "Input",
                   "label": {
                     "text": {
@@ -68,12 +92,12 @@
                   "class": "Input",
                   "label": {
                     "text": {
-                      "text": "Bump"
+                      "text": "Roughness"
                     }
                   },
                   "control": {
                     "class": "Slider",
-                    "identifier": "bumpmap",
+                    "identifier": "roughness",
                     "min": 0,
                     "max": 8,
                     "step": 0.125
@@ -103,7 +127,7 @@
                   },
                   "control": {
                     "class": "Slider",
-                    "identifier": "specular",
+                    "identifier": "specularity",
                     "min": 0,
                     "max": 8,
                     "step": 0.125

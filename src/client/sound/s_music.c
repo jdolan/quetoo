@@ -32,7 +32,7 @@ cvar_t *s_music_volume;
 typedef struct s_music_state_s {
 	ALuint source;
 	ALuint *music_buffers;
-	vec_t *raw_frame_buffer;
+	float *raw_frame_buffer;
 	int16_t *frame_buffer;
 	size_t resample_frame_buffer_size;
 	int16_t *resample_frame_buffer;
@@ -124,14 +124,14 @@ s_music_t *S_LoadMusic(const char *name) {
 
 	StripExtension(name, key);
 
-	if (!(music = (s_music_t *) S_FindMedia(key))) {
+	if (!(music = (s_music_t *) S_FindMedia(key, S_MEDIA_MUSIC))) {
 		SF_INFO info;
 		SNDFILE *snd;
 		file_t *file;
 
 		if (S_LoadMusicFile(key, &info, &snd, &file)) {
 
-			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t));
+			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t), S_MEDIA_MUSIC);
 
 			music->media.type = S_MEDIA_MUSIC;
 
@@ -246,7 +246,7 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
  */
 static void S_PlayMusic(s_music_t *music) {
 	
-	SDL_mutexP(s_music_state.mutex);
+	SDL_LockMutex(s_music_state.mutex);
 
 	S_StopMusic();
 
@@ -271,7 +271,7 @@ static void S_PlayMusic(s_music_t *music) {
 	alSourcePlay(s_music_state.source);
 	S_CheckALError();
 
-	SDL_mutexV(s_music_state.mutex);
+	SDL_UnlockMutex(s_music_state.mutex);
 }
 
 /**
@@ -312,22 +312,20 @@ static int S_MusicThread(void *data) {
 
 	while (true) {
 		
-		SDL_mutexP(s_music_state.mutex);
+		SDL_LockMutex(s_music_state.mutex);
 	
 		if (s_music_state.shutdown) {
-			SDL_mutexV(s_music_state.mutex);
+			SDL_UnlockMutex(s_music_state.mutex);
 			return 1;
 		}
 
 		S_MusicThreadTick();
 
-		SDL_mutexV(s_music_state.mutex);
+		SDL_UnlockMutex(s_music_state.mutex);
 
 		// sleep a bit, so music thread doesn't eat cycles
 		SDL_Delay(QUETOO_TICK_MILLIS);
 	}
-
-	return 0;
 }
 
 /**
@@ -346,7 +344,7 @@ void S_FrameMusic(void) {
 		return;
 	}
 	
-	SDL_mutexP(s_music_state.mutex);
+	SDL_LockMutex(s_music_state.mutex);
 
 	// revert to the default music when the client disconnects
 	if (last_state == CL_ACTIVE && cls.state != CL_ACTIVE) {
@@ -357,7 +355,7 @@ void S_FrameMusic(void) {
 	last_state = cls.state;
 
 	if (s_music_volume->modified) {
-		const vec_t volume = Clamp(s_music_volume->value, 0.0, 1.0);
+		const float volume = Clampf(s_music_volume->value, 0.0, 1.0);
 
 		if (volume) {
 			alSourcef(s_music_state.source, AL_GAIN, volume);
@@ -373,7 +371,7 @@ void S_FrameMusic(void) {
 	alGetSourcei(s_music_state.source, AL_SOURCE_STATE, &state);
 	S_CheckALError();
 
-	SDL_mutexV(s_music_state.mutex);
+	SDL_UnlockMutex(s_music_state.mutex);
 
 	if (s_music_volume->value && state != AL_PLAYING) {
 		S_NextTrack_f();
@@ -413,7 +411,7 @@ void S_InitMusic(void) {
 	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_ARCHIVE | CVAR_S_MEDIA, "The size of each buffer for music streaming.");	
 	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 
-	s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(vec_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
+	s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(float) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.resample_frame_buffer = NULL;
 
@@ -455,7 +453,7 @@ void S_InitMusic(void) {
  */
 void S_ShutdownMusic(void) {
 	
-	SDL_mutexP(s_music_state.mutex);
+	SDL_LockMutex(s_music_state.mutex);
 	S_StopMusic();
 
 	if (s_music_state.source) {
@@ -471,10 +469,10 @@ void S_ShutdownMusic(void) {
 	if (s_music_state.thread) {
 		s_music_state.shutdown = true;
 	
-		SDL_mutexV(s_music_state.mutex);
+		SDL_UnlockMutex(s_music_state.mutex);
 		SDL_WaitThread(s_music_state.thread, NULL); // wait for thread to end
 	} else {
-		SDL_mutexV(s_music_state.mutex);
+		SDL_UnlockMutex(s_music_state.mutex);
 	}
 
 	// kill mutex

@@ -2,45 +2,61 @@ bin_PROGRAMS = \
 	quemap
 
 noinst_HEADERS = \
-	bspfile.h \
-	materials.h \
+	brush.h \
+	bsp.h \
+	csg.h \
+	entity.h \
+	face.h \
+	fog.h \
+	leakfile.h \
+	light.h \
+	lightgrid.h \
+	lightmap.h \
+	material.h \
 	monitor.h \
+	patch.h \
+	points.h \
 	polylib.h \
-	quemap.h \
+	portal.h \
+	prtfile.h \
 	qbsp.h \
 	qlight.h \
 	qmat.h \
-	qvis.h \
+	quemap.h \
 	qzip.h \
-	scriptlib.h
+	texinfo.h \
+	tjunction.h \
+	tree.h \
+	work.h \
+	writebsp.h
 
 quemap_SOURCES = \
 	brush.c \
-	bspfile.c \
+	bsp.c \
 	csg.c \
-	faces.c \
-	flow.c \
+	entity.c \
+	face.c \
+	fog.c \
 	leakfile.c \
+	light.c \
+	lightgrid.c \
 	lightmap.c \
 	main.c \
 	map.c \
-	materials.c \
+	material.c \
 	monitor.c \
-	patches.c \
+	patch.c \
 	polylib.c \
-	portals.c \
+	portal.c \
 	prtfile.c \
-	qaas.c \
 	qbsp.c \
 	qmat.c \
 	qlight.c \
-	qvis.c \
 	qzip.c \
-	scriptlib.c \
-	textures.c \
-	threads.c \
-	tjunctions.c \
+	texinfo.c \
+	tjunction.c \
 	tree.c \
+	work.c \
 	writebsp.c
 
 quemap_CFLAGS = \
@@ -54,7 +70,8 @@ quemap_CFLAGS = \
 
 quemap_LDADD = \
 	$(top_builddir)/deps/minizip/libminizip.la \
-	$(top_builddir)/src/collision/libcmodel.la \
+	$(top_builddir)/src/libatlas.la \
+	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/net/libnet.la \
 	$(top_builddir)/src/libimage.la \
 	$(top_builddir)/src/libthread.la \

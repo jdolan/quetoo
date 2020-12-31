@@ -20,9 +20,6 @@
  */
 
 #include "r_local.h"
-#include "r_gl.h"
-
-static cvar_t *r_atlas;
 
 /**
  * @brief Free event listener for atlases.
@@ -30,446 +27,106 @@ static cvar_t *r_atlas;
 static void R_FreeAtlas(r_media_t *media) {
 	r_atlas_t *atlas = (r_atlas_t *) media;
 
-	if (atlas->image.texnum) {
-		glDeleteTextures(1, &atlas->image.texnum);
+	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
+		atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
+
+		for (int32_t layer = 0; layer < atlas->atlas->layers; layer++) {
+			SDL_FreeSurface(node->surfaces[layer]);
+		}
 	}
 
-	g_array_unref(atlas->images);
-
-	g_hash_table_destroy(atlas->hash);
+	Atlas_Destroy(atlas->atlas);
 }
 
 /**
- * @brief Creates a blank state for an atlas and returns it.
+ * @brief Loads an existing atlas from memory, or creates a new one.
  */
-r_atlas_t *R_CreateAtlas(const char *name) {
-	r_atlas_t *atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), MEDIA_ATLAS);
+r_atlas_t *R_LoadAtlas(const char *name) {
 
-	atlas->image.media.Free = R_FreeAtlas;
-	atlas->image.type = IT_ATLAS_MAP;
-	g_strlcpy(atlas->image.media.name, name, sizeof(atlas->image.media.name));
+	r_atlas_t *atlas = (r_atlas_t *) R_FindMedia(name, R_MEDIA_ATLAS);
+	if (atlas == NULL) {
 
-	if (r_atlas->value) {
-		atlas->images = g_array_new(false, true, sizeof(r_atlas_image_t));
-		atlas->hash = g_hash_table_new(g_direct_hash, g_direct_equal);
+		atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), R_MEDIA_ATLAS);
+		atlas->media.Free = R_FreeAtlas;
+
+		atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), R_MEDIA_IMAGE);
+		atlas->image->media.Free = R_FreeImage;
+
+		atlas->image->type = IT_ATLAS;
+
+		R_RegisterMedia((r_media_t *) atlas->image);
+		R_RegisterMedia((r_media_t *) atlas);
+
+		R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
+
+		atlas->atlas = Atlas_Create(1);
 	}
 
 	return atlas;
 }
 
 /**
- * @brief Add an image to the list of images for this atlas.
+ * @brief Loads the named image through the specified atlas. The returned r_atlas_image_t is
+ * not available for rendering until the atlas is recompiled.
  */
-void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
+r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
+	const int32_t pixels = 0xff0000ff;
 
-	if (!r_atlas->value) {
-		return;
-	}
+	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
+		atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
 
-	// ignore duplicates
-	if (g_hash_table_contains(atlas->hash, image)) {
-		return;
-	}
-
-	// add to array
-	g_array_append_vals(atlas->images, &(const r_atlas_image_t) {
-		.input_image = image,
-		.atlas = atlas
-	}, 1);
-
-	// add blank entry to hash, it's filled in in upload stage
-	g_hash_table_insert(atlas->hash, (gpointer) image, NULL);
-
-	// might as well register it as a dependent
-	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) image);
-
-	Com_Debug(DEBUG_RENDERER, "Atlas %s -> %s\n", atlas->image.media.name, image->media.name);
-}
-
-/**
- * @brief Resolve an atlas image from an atlas and image.
- */
-const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_image_t *image) {
-
-	if (!r_atlas->value) {
-		return (r_atlas_image_t *) image;
-	}
-
-	return (const r_atlas_image_t *) g_hash_table_lookup(atlas->hash, image);
-}
-
-/**
- * @brief See if we have enough space for n number of nodes.
- */
-static void R_AtlasPacker_Reserve(r_atlas_packer_t *packer, const uint32_t new_nodes) {
-
-	// make sure we have at least n new entries
-	if (packer->num_alloc_nodes <= packer->num_nodes + new_nodes) {
-
-		packer->num_alloc_nodes = (packer->num_nodes + new_nodes) * 2;
-		packer->nodes = Mem_Realloc(packer->nodes, sizeof(r_atlas_packer_node_t) * packer->num_alloc_nodes);
-	}
-}
-
-/**
- * @brief Initialize an r_atlas_packer_t structure. If the packer is already
- * created, clears the packer back to an initial state.
- */
-void R_AtlasPacker_InitPacker(r_atlas_packer_t *packer, const uint16_t max_width, const uint16_t max_height,
-                              const uint16_t root_width, const uint16_t root_height, const uint32_t initial_size) {
-
-	packer->max_width = max_width;
-	packer->max_height = max_height;
-
-	if (packer->nodes == NULL) {
-
-		R_AtlasPacker_Reserve(packer, initial_size ? : 1);
-
-	} else {
-
-		packer->num_nodes = 0;
-	}
-
-	packer->nodes[0] = (const r_atlas_packer_node_t) {
-		.width = root_width,
-		 .height = root_height,
-		  .right = -1,
-		   .down = -1
-	};
-
-	packer->num_nodes++;
-	packer->root = 0;
-}
-
-/**
- * @brief Free data created by R_AtlasPacker_InitPacker
- */
-void R_AtlasPacker_FreePacker(r_atlas_packer_t *packer) {
-
-	Mem_Free(packer->nodes);
-	packer->nodes = NULL;
-}
-
-/**
- * @brief Finds a free node that is big enough to hold us.
- */
-r_atlas_packer_node_t *R_AtlasPacker_FindNode(r_atlas_packer_t *packer, const uint32_t root, const uint16_t width,
-                                        const uint16_t height) {
-
-	uint32_t node_queue[packer->num_nodes];
-	uint32_t node_index = 1;
-
-	node_queue[0] = root;
-
-	do {
-
-		uint32_t node_id = node_queue[--node_index];
-		r_atlas_packer_node_t *node = &packer->nodes[node_id];
-
-		// TODO: this line is still hot. It's better without the boolean,
-		// but it's weird that this line causes the worst.
-		if (node->down != -1u) {
-
-			node_queue[node_index + 0] = node->down;
-			node_queue[node_index + 1] = node->right;
-			node_index += 2;
-		} else if (width <= node->width && height <= node->height &&
-		           (node->x + width) <= packer->max_width && (node->y + height) <= packer->max_height) {
-
-			return node;
+		r_atlas_image_t *atlas_image = node->data;
+		if (!strcmp(name, atlas_image->image.media.name)) {
+			R_RegisterMedia((r_media_t *) atlas_image);
+			return atlas_image;
 		}
-	} while (node_index != 0);
+	}
 
-	return NULL;
+	r_atlas_image_t *atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), R_MEDIA_ATLAS_IMAGE);
+	assert(atlas_image);
+
+	SDL_Surface *surf = Img_LoadSurface(name);
+	if (!surf) {
+		Com_Warn("Failed to load atlas image %s\n", name);
+
+		surf = SDL_CreateRGBSurfaceWithFormatFrom((void *) (intptr_t) &pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
+	}
+
+	atlas_node_t *node = Atlas_Insert(atlas->atlas, surf);
+	assert(node);
+
+	node->data = atlas_image;
+
+	atlas_image->image.type = type;
+	atlas_image->image.width = surf->w;
+	atlas_image->image.height = surf->h;
+
+	R_RegisterMedia((r_media_t *) atlas_image);
+
+	atlas->dirty = true;
+
+	return atlas_image;
 }
 
 /**
- * @brief Split a packer node into two, assigning the first to the image.
+ * @brief GFunc for atlas node compilation.
  */
-r_atlas_packer_node_t *R_AtlasPacker_SplitNode(r_atlas_packer_t *packer, r_atlas_packer_node_t *node, const uint16_t width,
-        const uint16_t height) {
-	const uintptr_t index = (uintptr_t) (node - packer->nodes);
+static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
 
-	node->down = packer->num_nodes;
-	node->right = packer->num_nodes + 1;
+	const atlas_node_t *node = data;
+	const r_atlas_t *atlas = user_data;
 
-	const r_atlas_packer_node_t down_node = (const r_atlas_packer_node_t) {
-		.width = node->width,
-		 .height = node->height - height,
-		  .x = node->x,
-		   .y = node->y + height,
-		    .right = -1,
-		     .down = -1
-	};
+	r_atlas_image_t *atlas_image = node->data;
 
-	const r_atlas_packer_node_t right_node = (const r_atlas_packer_node_t) {
-		.width = node->width - width,
-		 .height = height,
-		  .x = node->x + width,
-		   .y = node->y,
-		    .right = -1,
-		     .down = -1
-	};
+	atlas_image->image.texnum = atlas->image->texnum;
 
-	R_AtlasPacker_Reserve(packer, 2);
+	const float w = atlas->image->width, h = atlas->image->height;
+	const float texel = (1.f / atlas->image->width) * .5f;
 
-	// do not use "node" after this point! it may be changed
-
-	packer->nodes[packer->num_nodes] = down_node;
-	packer->nodes[packer->num_nodes + 1] = right_node;
-
-	packer->num_nodes += 2;
-
-	return &packer->nodes[index];
-}
-
-#define GROW_RIGHT true
-#define GROW_DOWN false
-
-/**
- * @brief Grow the packer in the specified direction.
- */
-static r_atlas_packer_node_t *R_AtlasPacker_Grow(r_atlas_packer_t *packer, const uint16_t width, const uint16_t height,
-        const _Bool grow_direction) {
-	const uint32_t new_root_id = packer->num_nodes;
-	const uint32_t new_connect_id = packer->num_nodes + 1;
-	const r_atlas_packer_node_t *old_root = &packer->nodes[packer->root];
-
-	R_AtlasPacker_Reserve(packer, 2);
-
-	if (grow_direction == GROW_RIGHT) {
-
-		packer->nodes[new_root_id] = (const r_atlas_packer_node_t) {
-			.width = old_root->width + width,
-			 .height = old_root->height,
-			  .down = packer->root,
-			   .right = new_connect_id
-		};
-
-		packer->nodes[new_connect_id] = (const r_atlas_packer_node_t) {
-			.width = width,
-			 .height = old_root->height,
-			  .x = old_root->width,
-			   .y = 0,
-			    .right = -1,
-			     .down = -1
-		};
-	} else {
-
-		packer->nodes[new_root_id] = (const r_atlas_packer_node_t) {
-			.width = old_root->width,
-			 .height = old_root->height + height,
-			  .right = packer->root,
-			   .down = new_connect_id
-		};
-
-		packer->nodes[new_connect_id] = (const r_atlas_packer_node_t) {
-			.width = old_root->width,
-			 .height = height,
-			  .x = 0,
-			   .y = old_root->height,
-			    .right = -1,
-			     .down = -1
-		};
-	}
-
-	packer->num_nodes += 2;
-	packer->root = new_root_id;
-
-	r_atlas_packer_node_t *node = R_AtlasPacker_FindNode(packer, packer->root, width, height);
-
-	if (node != NULL) {
-		return R_AtlasPacker_SplitNode(packer, node, width, height);
-	}
-
-	return NULL;
-}
-
-/**
- * @brief Checks to see where the packer should grow into next. This keeps the atlas square.
- */
-r_atlas_packer_node_t *R_AtlasPacker_GrowNode(r_atlas_packer_t *packer, const uint16_t width, const uint16_t height) {
-	const r_atlas_packer_node_t *root = &packer->nodes[packer->root];
-
-	const _Bool canGrowDown = (width <= root->width);
-	const _Bool canGrowRight = (height <= root->height);
-
-	const _Bool shouldGrowRight = canGrowRight &&
-	                              (root->height >= (root->width +
-	                                      width)); // attempt to keep square-ish by growing right when height is much greater than width
-	const _Bool shouldGrowDown = canGrowDown &&
-	                             (root->width >= (root->height +
-	                                     height));  // attempt to keep square-ish by growing down  when width  is much greater than height
-
-	if (shouldGrowRight) {
-		return R_AtlasPacker_Grow(packer, width, height, GROW_RIGHT);
-	} else if (shouldGrowDown) {
-		return R_AtlasPacker_Grow(packer, width, height, GROW_DOWN);
-	} else if (canGrowRight) {
-		return R_AtlasPacker_Grow(packer, width, height, GROW_RIGHT);
-	} else if (canGrowDown) {
-		return R_AtlasPacker_Grow(packer, width, height, GROW_DOWN);
-	}
-
-	return NULL;
-}
-
-typedef struct {
-	uint16_t width, height;
-	uint16_t num_mips;
-} r_atlas_params_t;
-
-#define NearestPowerOfTwo(x) ({ int32_t power = 1; while (power < x) { power *= 2; } power; })
-
-/**
- * @brief Stitches the atlas, returning atlas parameters.
- */
-static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
-	uint16_t min_size = USHRT_MAX;
-	params->width = params->height = 0;
-
-	// setup base packer parameters
-	r_atlas_packer_t packer;
-	memset(&packer, 0, sizeof(packer));
-
-	r_atlas_image_t *image = (r_atlas_image_t *) atlas->images->data;
-	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, image->input_image->width,
-	                         image->input_image->height, atlas->images->len);
-
-	// stitch!
-	for (uint16_t i = 0; i < atlas->images->len; i++, image++) {
-		r_atlas_packer_node_t *node = R_AtlasPacker_FindNode(&packer, packer.root, image->input_image->width,
-		                        image->input_image->height);
-
-		if (node != NULL) {
-			node = R_AtlasPacker_SplitNode(&packer, node, image->input_image->width, image->input_image->height);
-		} else {
-			node = R_AtlasPacker_GrowNode(&packer, image->input_image->width, image->input_image->height);
-		}
-
-		params->width = Max(node->x + image->input_image->width, params->width);
-		params->height = Max(node->y + image->input_image->height, params->height);
-
-		min_size = Min(min_size, Min(image->input_image->width, image->input_image->height));
-
-		image->position[0] = node->x;
-		image->position[1] = node->y;
-		image->image.width = image->input_image->width;
-		image->image.height = image->input_image->height;
-		image->image.type = IT_ATLAS_IMAGE;
-		image->image.texnum = atlas->image.texnum;
-
-		// replace with new atlas image ptr
-		g_hash_table_replace(atlas->hash, (gpointer) image->input_image, (gpointer) image);
-	}
-	
-	params->width = NearestPowerOfTwo(params->width);
-	params->height = NearestPowerOfTwo(params->height);
-
-	// free packer
-	R_AtlasPacker_FreePacker(&packer);
-
-	// see how many mips we need to make
-	params->num_mips = 1;
-
-	while (min_size > 1) {
-		min_size = floor(min_size / 2.0);
-		params->num_mips++;
-	}
-}
-
-/**
- * @brief Generate mipmap levels for the specified atlas.
- */
-static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
-	
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-	
-	const vec_t texel_w = 1.0 / params->width;
-	const vec_t texel_h = 1.0 / params->height;
-
-	for (uint16_t i = 0; i < params->num_mips; i++) {
-		const uint16_t mip_scale = 1 << i;
-
-		const uint16_t mip_width = params->width / mip_scale;
-		const uint16_t mip_height = params->height / mip_scale;
-
-		R_BindDiffuseTexture(atlas->image.texnum);
-
-		// set the default to all black transparent
-		GLubyte *pixels = Mem_Malloc(mip_width * mip_height * 4);
-
-		memset(pixels, 0, mip_width * mip_height * 4);
-
-		// make initial space
-		glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, mip_width, mip_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-		// pop in all of the textures
-		for (uint16_t j = 0; j < atlas->images->len; j++) {
-			r_atlas_image_t *image = &g_array_index(atlas->images, r_atlas_image_t, j);
-
-			// pull the mip pixels from the original image
-			GLint image_mip_width;
-			GLint image_mip_height;
-
-			R_BindDiffuseTexture(image->input_image->texnum);
-
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, i, GL_TEXTURE_WIDTH, &image_mip_width);
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, i, GL_TEXTURE_HEIGHT, &image_mip_height);
-
-			GLubyte *subimage_pixels = Mem_Malloc(image_mip_width * image_mip_height * 4);
-
-			glGetTexImage(GL_TEXTURE_2D, i, GL_RGBA, GL_UNSIGNED_BYTE, subimage_pixels);
-
-			// push them into the atlas
-			R_BindDiffuseTexture(atlas->image.texnum);
-
-			const uint16_t subimage_x = image->position[0] / mip_scale;
-			const uint16_t subimage_y = image->position[1] / mip_scale;
-
-			glTexSubImage2D(GL_TEXTURE_2D, i, subimage_x, subimage_y, image_mip_width, image_mip_height, GL_RGBA, GL_UNSIGNED_BYTE,
-			                subimage_pixels);
-
-			// free scratch
-			Mem_Free(subimage_pixels);
-
-			// if we're setting up mip 0, set up texcoords
-			if (i == 0) {
-				Vector4Set(image->texcoords,
-				           (image->position[0] / (vec_t) params->width) + texel_w,
-				           (image->position[1] / (vec_t) params->height) + texel_h,
-				           ((image->position[0] + image->input_image->width) / (vec_t) params->width) - texel_w,
-				           ((image->position[1] + image->input_image->height) / (vec_t) params->height) - texel_h);
-			}
-
-			R_GetError(NULL);
-		}
-
-		Mem_Free(pixels);
-	}
-}
-
-/**
- * @brief Comparison function for atlas images. This keeps the larger ones running first.
- */
-static int R_AtlasImage_Compare(gconstpointer a, gconstpointer b) {
-	const r_atlas_image_t *ai = (const r_atlas_image_t *) a;
-	const r_atlas_image_t *bi = (const r_atlas_image_t *) b;
-	int cmp;
-
-	if ((cmp = Max(bi->input_image->width, bi->input_image->height) - Max(ai->input_image->width,
-	           ai->input_image->height)) ||
-	        (cmp = Min(bi->input_image->width, bi->input_image->height) - Min(ai->input_image->width, ai->input_image->height)) ||
-	        (cmp = bi->input_image->height - ai->input_image->height) ||
-	        (cmp = bi->input_image->width - ai->input_image->width)) {
-		return cmp;
-	}
-
-	return 0;
+	atlas_image->texcoords.x = (node->x / w) + texel;
+	atlas_image->texcoords.y = (node->y / h) + texel;
+	atlas_image->texcoords.z = ((node->x + atlas_image->image.width) / w) - (texel * 2);
+	atlas_image->texcoords.w = ((node->y + atlas_image->image.height) / h) - (texel * 2);
 }
 
 /**
@@ -477,109 +134,71 @@ static int R_AtlasImage_Compare(gconstpointer a, gconstpointer b) {
  */
 void R_CompileAtlas(r_atlas_t *atlas) {
 
-	if (!r_atlas->value) {
+	if (!atlas->dirty) {
 		return;
 	}
 
-	// sort images, to ensure best stitching
-	g_array_sort(atlas->images, R_AtlasImage_Compare);
+	R_FreeImage((r_media_t *) atlas->image);
 
-	r_atlas_params_t params;
-	uint32_t time_start = SDL_GetTicks();
+	atlas->image->width = 0;
 
-	// make the image if we need to
-	if (!atlas->image.texnum) {
+	// calculate number of mip levels; basically we just take the smallest possible
+	// mip size. larger textures get kinda shafted...
+	GLsizei levels = INT32_MAX;
 
-		glGenTextures(1, &(atlas->image.texnum));
-		R_BindDiffuseTexture(atlas->image.texnum);
+	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
+		const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
+		const r_atlas_image_t *atlas_image = node->data;
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
+		levels = MIN(levels, floorf(log2f(MAX(atlas_image->image.width, atlas_image->image.height)) + 1));
+	}
 
-		if (r_image_state.anisotropy) {
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
+	for (int32_t width = 2048; atlas->image->width == 0; width += 1024) {
+
+		if (width > r_config.max_texture_size) {
+			Com_Error(ERROR_DROP, "Atlas exceeds GL_MAX_TEXTURE_SIZE\n");
 		}
-	} else {
-		R_BindDiffuseTexture(atlas->image.texnum);
+
+		SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormat(0, width, width, 32, SDL_PIXELFORMAT_RGBA32);
+		if (Atlas_Compile(atlas->atlas, 0, surf) == 0) {
+
+			atlas->image->width = width;
+			atlas->image->height = width;
+
+			R_SetupImage(atlas->image, GL_TEXTURE_2D, GL_RGBA, levels, GL_UNSIGNED_BYTE, NULL);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
+
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
+			
+			for (GLsizei i = 1; i < levels; i++) {
+				SDL_Surface *mip_surf = SDL_CreateRGBSurfaceWithFormat(0, width >> i, width >> i, 32, SDL_PIXELFORMAT_RGBA32);
+
+				for (guint l = 0; l < atlas->atlas->nodes->len; l++) {
+					const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, l);
+					const r_atlas_image_t *atlas_image = node->data;
+
+					SDL_BlitScaled(surf, &(const SDL_Rect) {
+						.x = node->x, .y = node->y, .w = atlas_image->image.width, .h = atlas_image->image.height
+					}, mip_surf, &(SDL_Rect) {
+						.x = node->x >> i, .y = node->y >> i, .w = atlas_image->image.width >> i, .h = atlas_image->image.height >> i
+					});
+				}
+
+				glTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mip_surf->w, mip_surf->h, GL_RGBA, GL_UNSIGNED_BYTE, mip_surf->pixels);
+
+				R_GetError("");
+
+				SDL_FreeSurface(mip_surf);
+			}
+
+			g_ptr_array_foreach(atlas->atlas->nodes, R_CompileAtlas_Node, atlas);
+		}
+
+		SDL_FreeSurface(surf);
+
+		atlas->dirty = false;
 	}
 
-	// stitch
-	R_StitchAtlas(atlas, &params);
-
-	// set width/height
-	atlas->image.width = params.width;
-	atlas->image.height = params.height;
-
-	// set up num mipmaps
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, params.num_mips - 1);
-
-	// run generation
-	R_GenerateAtlasMips(atlas, &params);
-
-	// check for errors
-	R_GetError(atlas->image.media.name);
-
-	// register if we aren't already
-	R_RegisterMedia((r_media_t *) atlas);
-
-	uint32_t time = SDL_GetTicks() - time_start;
-	Com_Debug(DEBUG_RENDERER, "Atlas %s compiled in %u ms", atlas->image.media.name, time);
-}
-
-/**
- * @brief Serialize a packer to a file.
- */
-void R_AtlasPacker_Serialize(const r_atlas_packer_t *packer, file_t *file) {
-	
-	Fs_Write(file, &packer->num_nodes, sizeof(packer->num_nodes), 1);
-	Fs_Write(file, &packer->root, sizeof(packer->root), 1);
-	Fs_Write(file, packer->nodes, sizeof(r_atlas_packer_node_t), packer->num_nodes);
-}
-
-/**
- * @brief Unserialize packer from a file into the specified packer.
- * @returns bool if packer in file was invalid.
- */
-_Bool R_AtlasPacker_Unserialize(file_t *file, r_atlas_packer_t *packer) {
-
-	// read the header
-	if (!Fs_Read(file, &packer->num_nodes, sizeof(packer->num_nodes), 1) ||
-		!Fs_Read(file, &packer->root, sizeof(packer->root), 1)) {
-		return false;
-	}
-	
-	packer->num_nodes = (uint32_t) LittleLong(packer->num_nodes);
-	packer->root = (uint32_t) LittleLong(packer->root);
-
-	// check for malformed packer
-	if (packer->root >= packer->num_nodes) {
-		return false;
-	}
-
-	// see if the file even has enough room for this packer
-	if ((packer->num_nodes * sizeof(r_atlas_packer_node_t)) > (size_t) (Fs_FileLength(file) - Fs_Tell(file))) {
-		return false;
-	}
-
-	// good to go!
-	packer->nodes = Mem_Malloc(sizeof(r_atlas_packer_node_t) * packer->num_nodes);
-
-	// fatal somehow
-	if (Fs_Read(file, packer->nodes, sizeof(r_atlas_packer_node_t), packer->num_nodes) != packer->num_nodes) {
-		R_AtlasPacker_FreePacker(packer);
-		return false;
-	}
-
-	// done!
-	return true;
-}
-
-/**
- * @brief Initialize atlas subsystem.
- */
-void R_InitAtlas(void) {
-
-	r_atlas = Cvar_Add("r_atlas", "1", CVAR_ARCHIVE | CVAR_R_MEDIA,
-	                   "Controls whether to enable atlasing of common images or not.");
+	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
 }

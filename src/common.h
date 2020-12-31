@@ -36,16 +36,11 @@
 #define DEFAULT_AI			"default"
 
 /**
- * @brief The max length of any given output message (stdio).
- */
-#define MAX_PRINT_MSG		2048
-
-/**
  * @brief Quake net protocol version; this must be changed when the structure
  * of core net messages or serialized data types change. The game and client
  * game maintain PROTOCOL_MINOR as well.
  */
-#define PROTOCOL_MAJOR		1023
+#define PROTOCOL_MAJOR		1025
 
 /**
  * @brief The IP address of the master server, where the authoritative list of
@@ -93,32 +88,7 @@
 /**
  * @brief Disallow dangerous downloads for both the client and server.
  */
-#define IS_INVALID_DOWNLOAD(f) (\
-                                !*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
-                               )
-
-/**
- * @brief Debug cateogories.
- */
-typedef enum {
-	DEBUG_AI			= 1 << 0,
-	DEBUG_CGAME			= 1 << 1,
-	DEBUG_CLIENT		= 1 << 2,
-	DEBUG_COLLISION		= 1 << 3,
-	DEBUG_CONSOLE		= 1 << 4,
-	DEBUG_FILESYSTEM	= 1 << 5,
-	DEBUG_GAME			= 1 << 6,
-	DEBUG_NET			= 1 << 7,
-	DEBUG_PMOVE_CLIENT	= 1 << 8,
-	DEBUG_PMOVE_SERVER  = 1 << 9,
-	DEBUG_RENDERER		= 1 << 10,
-	DEBUG_SERVER		= 1 << 11,
-	DEBUG_SOUND			= 1 << 12,
-	DEBUG_UI			= 1 << 13,
-
-	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
-	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),
-} debug_t;
+#define IS_INVALID_DOWNLOAD(f) (!*f || *f == '/' || strstr(f, "..") || strchr(f, ' '))
 
 /**
  * @brief Error categories.
@@ -137,12 +107,10 @@ const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 
 void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3,
-        0)));
+void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3, 0)));
 
 void Com_Error_(err_t error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
-void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf,
-        3, 0)));
+void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf, 3, 0)));
 
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Printv(const char *fmt, va_list args) __attribute__((format(printf, 1, 0)));
@@ -188,8 +156,8 @@ void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 
 #define QUETOO_GAME			0x2
 #define QUETOO_CLIENT		0x4
 #define QUETOO_CGAME		0x8
-#define QUETOO_MAPTOOL		0x10
-#define QUETOO_AI			0x20
+#define QUETOO_AI			0x10
+#define QUEMAP				0x1000
 
 /**
  * @brief Global engine structure.
@@ -244,5 +212,6 @@ void Com_QuitSubsystem(uint32_t s);
 extern cvar_t *dedicated;
 extern cvar_t *game;
 extern cvar_t *ai;
+extern cvar_t *threads;
 extern cvar_t *time_demo;
 extern cvar_t *time_scale;

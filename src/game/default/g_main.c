@@ -137,13 +137,30 @@ cvar_t *dedicated;
 g_team_t g_teamlist[MAX_TEAMS];
 static g_team_t g_teamlist_default[MAX_TEAMS];
 
+static struct {
+	cvar_t		*g_team_name;
+	cvar_t		*g_team_shirt;
+	cvar_t		*g_team_color;
+} g_team_cvars[MAX_TEAMS];
+
+static const struct {
+	const char	*name;
+	const char	*shirt;
+	uint16_t	color;
+} g_default_team_values[MAX_TEAMS] = {
+	{ "Red", "ff0000", TEAM_COLOR_RED },
+	{ "Blue", "0000ff", TEAM_COLOR_BLUE },
+	{ "Yellow", "ffff00", TEAM_COLOR_YELLOW },
+	{ "White", "ffffff", TEAM_COLOR_WHITE }
+};
+
 /**
  * @brief
  */
 static void G_InitTeam(const g_team_id_t id, const char *name,
 					   const char *tint,
 					   const int16_t color,
-					   const int16_t effect) {
+					   const uint32_t effect) {
 
 	g_team_t *team = &g_teamlist[id];
 
@@ -153,10 +170,12 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
 
 	team->color = color;
 
-	ColorFromHex(tint, &team->shirt);
-	ColorFromHex(tint, &team->pants);
-	ColorFromHex(tint, &team->helmet);
+	Color_Parse(tint, &team->shirt);
+	team->pants = team->helmet = team->shirt;
 
+	// FIXME: enforcing "ctf" skin is kinda dumb if we have tints. it should just enforce
+	// that the skin has tints (on client side), and if it doesn't, fall back to "ctf", "team" or "default", whichever
+	// first has tints
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 
 	team->effect = effect;
@@ -172,10 +191,13 @@ void G_ResetTeams(void) {
 
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 
-	G_InitTeam(TEAM_RED, "Red", "ff0000", TEAM_COLOR_RED, EF_CTF_RED);
-	G_InitTeam(TEAM_BLUE, "Blue", "0000ff", TEAM_COLOR_BLUE, EF_CTF_BLUE);
-	G_InitTeam(TEAM_GREEN, "Green", "00ff00", TEAM_COLOR_GREEN, EF_CTF_GREEN);
-	G_InitTeam(TEAM_ORANGE, "Orange", "aa6600", TEAM_COLOR_ORANGE, EF_CTF_ORANGE);
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
+		G_InitTeam(i,
+				   g_team_cvars[i].g_team_name->string,
+				   g_team_cvars[i].g_team_shirt->string,
+				   g_team_cvars[i].g_team_color->integer,
+				   EF_CTF_RED << i);
+	}
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
 
@@ -197,6 +219,8 @@ void G_SetTeamNames(void) {
 		g_strlcat(team_info, g_teamlist[t].name, sizeof(team_info));
 		g_strlcat(team_info, "\\", sizeof(team_info));
 		g_strlcat(team_info, va("%i", g_teamlist[t].color), sizeof(team_info));
+		g_strlcat(team_info, "\\", sizeof(team_info));
+		g_strlcat(team_info, Color_Unparse(g_teamlist[t].shirt), sizeof(team_info));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);
@@ -278,19 +302,16 @@ void G_CheckHook(void) {
 	} else if (g_level.hook_map != -1) { // check maps.lst
 		g_level.hook_allowed = (g_level.hook_map == -1) ? g_level.ctf : !!g_level.hook_map;
 	} else { // check worldspawn
-		if (g_game.spawn.hook && *g_game.spawn.hook) {
-			if (g_strcmp0(g_game.spawn.hook, "default")) {
-				g_level.hook_allowed = !!atoi(g_game.spawn.hook);
-			} else {
-				g_level.hook_allowed = g_level.ctf;
-			}
+		const cm_entity_t *hook = gi.EntityValue(g_game.entities->def, "hook");
+		if (hook->parsed & ENTITY_INTEGER) {
+			g_level.hook_allowed = hook->integer;
 		} else {
 			g_level.hook_allowed = g_level.ctf;
 		}
 	}
 
 	if (g_hook_distance->modified) {
-		g_hook_distance->value = Clamp(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
+		g_hook_distance->value = Clampf(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
 		g_hook_distance->modified = false;
 	}
 }
@@ -305,12 +326,9 @@ void G_CheckTechs(void) {
 	} else if (g_level.techs_map != -1) { // check maps.lst
 		g_level.techs = (g_level.techs_map == -1) ? g_level.ctf : !!g_level.techs_map;
 	} else { // check worldspawn
-		if (g_game.spawn.techs && *g_game.spawn.techs) {
-			if (g_strcmp0(g_game.spawn.techs, "default")) {
-				g_level.techs = !!atoi(g_game.spawn.techs);
-			} else {
-				g_level.techs = g_level.ctf;
-			}
+		const cm_entity_t *techs = gi.EntityValue(g_game.entities->def, "techs");
+		if (techs->parsed & ENTITY_INTEGER) {
+			g_level.techs = techs->integer;
 		} else {
 			g_level.techs = g_level.ctf;
 		}
@@ -450,7 +468,7 @@ static void G_RestartGame(_Bool teamz) {
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
-	gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE, 0);
+	gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
 }
 
 /**
@@ -500,8 +518,8 @@ static void G_BeginIntermission(const char *map) {
 		}
 	}
 
-	VectorCopy(ent->s.origin, g_level.intermission_origin);
-	VectorCopy(ent->s.angles, g_level.intermission_angle);
+	g_level.intermission_origin = ent->s.origin;
+	g_level.intermission_angle = ent->s.angles;
 
 	// move all clients to the intermission point
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
@@ -516,10 +534,10 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NONE, 0);
+	gi.Sound(g_game.entities, g_media.sounds.roar, SOUND_ATTEN_NONE, 0);
 
 	// stay on same level if not provided
-	g_level.next_map = map ? : g_level.name;
+	g_level.next_map = map ?: g_level.name;
 }
 
 /**
@@ -706,10 +724,6 @@ static void G_CheckRoundLimit() {
  * @brief
  */
 static void G_CheckRoundEnd(void) {
-	uint32_t i, clients;
-	int32_t j;
-	g_entity_t *winner;
-	g_client_t *cl;
 
 	if (!g_level.rounds) {
 		return;
@@ -719,18 +733,18 @@ static void G_CheckRoundEnd(void) {
 		return; // no round currently running
 	}
 
-	winner = NULL;
-	clients = 0;
+	g_entity_t *winner = NULL;
+	int32_t clients = 0;
 
 	uint8_t teams_count[MAX_TEAMS];
 	memset(teams_count, 0, sizeof(teams_count));
 
-	for (j = 0; j < sv_max_clients->integer; j++) {
+	for (int32_t j = 0; j < sv_max_clients->integer; j++) {
 		if (!g_game.entities[j + 1].in_use) {
 			continue;
 		}
 
-		cl = g_game.entities[j + 1].client;
+		g_client_t *cl = g_game.entities[j + 1].client;
 
 		if (cl->locals.persistent.spectator) { // true spectator, or dead
 			continue;
@@ -767,7 +781,7 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	// allow enemy projectiles to expire before declaring a winner
-	for (i = 0; i < ge.num_entities; i++) {
+	for (int32_t i = 0; i < ge.num_entities; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
@@ -776,7 +790,9 @@ static void G_CheckRoundEnd(void) {
 			continue;
 		}
 
-		if (!(cl = g_game.entities[i + 1].owner->client)) {
+		g_client_t *cl = g_game.entities[i + 1].owner->client;
+
+		if (!cl) {
 			continue;
 		}
 
@@ -915,7 +931,7 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE, 0);
+		gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
@@ -931,7 +947,7 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE, 0);
+		gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
@@ -1023,7 +1039,7 @@ static void G_CheckRules(void) {
 	if (g_friendly_fire->modified) {
 		g_friendly_fire->modified = false;
 
-		gi.SetCvarValue(g_friendly_fire->name, Clamp(g_friendly_fire->value, 0.0, 4.0));
+		gi.SetCvarValue(g_friendly_fire->name, Clampf(g_friendly_fire->value, 0.0, 4.0));
 
 		gi.BroadcastPrint(PRINT_HIGH, "Friendly fire has been changed to %g\n",
 		                  g_friendly_fire->value);
@@ -1032,7 +1048,7 @@ static void G_CheckRules(void) {
 	if (g_self_damage->modified) {
 		g_self_damage->modified = false;
 
-		gi.SetCvarValue(g_self_damage->name, Clamp(g_self_damage->value, 0.0, 4.0));
+		gi.SetCvarValue(g_self_damage->name, Clampf(g_self_damage->value, 0.0, 4.0));
 
 		gi.BroadcastPrint(PRINT_HIGH, "Self damage has been changed to %g\n",
 		                  g_self_damage->value);
@@ -1073,7 +1089,7 @@ static void G_CheckRules(void) {
 		if (!g_strcmp0(g_num_teams->string, "default")) {
 			num_teams = -1; // G_InitNumTeams will pick this up
 		} else {
-			num_teams = Clamp(g_num_teams->integer, 2, MAX_TEAMS);
+			num_teams = Clampf(g_num_teams->integer, 2, MAX_TEAMS);
 		}
 
 		if (g_level.num_teams != num_teams) {
@@ -1240,6 +1256,73 @@ static void G_CheckRules(void) {
 		}
 	}
 
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
+		_Bool changed = false, reset_userinfo = false;
+
+		if (g_team_cvars[i].g_team_name->modified) {
+			g_team_cvars[i].g_team_name->modified = false;
+		
+			if (strlen(g_team_cvars[i].g_team_name->string) > 1 && strlen(g_team_cvars[i].g_team_name->string) < lengthof(g_teamlist[i].name) - 1 &&
+				!strstr(g_team_cvars[i].g_team_name->string, "\\") && strcmp(g_team_cvars[i].g_team_name->string, g_teamlist[i].name)) {
+
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s name has been changed to \"%s\"\n", g_teamlist[i].name, g_team_cvars[i].g_team_name->string);
+				strcpy(g_teamlist[i].name, g_team_cvars[i].g_team_name->string);
+				changed = true;
+			}
+		}
+
+		if (g_team_cvars[i].g_team_shirt->modified) {
+			g_team_cvars[i].g_team_shirt->modified = false;
+
+			color_t shirt;
+
+			if (Color_Parse(g_team_cvars[i].g_team_shirt->string, &shirt) && Color_Color32(shirt).rgba != Color_Color32(g_teamlist[i].shirt).rgba) {
+
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s shirt color has been changed to \"%s\"\n", g_teamlist[i].name, g_team_cvars[i].g_team_shirt->string);
+				g_teamlist[i].shirt = g_teamlist[i].helmet = g_teamlist[i].pants = shirt;
+				changed = true;
+				reset_userinfo = true;
+			}
+		}
+
+		if (g_team_cvars[i].g_team_color->modified) {
+			g_team_cvars[i].g_team_color->modified = false;
+			char *end_point;
+
+			int16_t hue = strtol(g_team_cvars[i].g_team_color->string, &end_point, 10);
+
+			if (end_point && hue >= 0 && hue <= 361 && hue != g_teamlist[i].color) {
+
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s effect color has been changed to \"%i\"\n", g_teamlist[i].name, hue);
+				g_teamlist[i].color = hue;
+				changed = true;
+				reset_userinfo = true;
+			}
+		}
+
+		if (changed) {
+			G_SetTeamNames();
+		}
+
+		if (reset_userinfo) {
+
+			for (uint16_t i = 1; i < sv_max_clients->integer; i++) {
+
+				g_entity_t *ent = &g_game.entities[i];
+
+				if (!ent->in_use) {
+					continue;
+				}
+
+				if (!ent->client->locals.persistent.team) {
+					continue;
+				}
+
+				G_ClientUserInfoChanged(ent, ent->client->locals.persistent.user_info);
+			}
+		}
+	}
+
 	if (restart) {
 		G_RestartGame(true);	// reset all clients
 	}
@@ -1362,7 +1445,7 @@ void G_InitNumTeams(void) {
 			g_level.num_teams++;
 		}
 
-		g_level.num_teams = Clamp(g_level.num_teams, 2, MAX_TEAMS);
+		g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
 	}
 
 	gi.SetConfigString(CS_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));
@@ -1501,6 +1584,12 @@ void G_Init(void) {
 	sv_hostname = gi.GetCvar("sv_hostname");
 
 	dedicated = gi.GetCvar("dedicated");
+
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
+		g_team_cvars[i].g_team_name = gi.AddCvar(va("g_team_%i_name", i + 1), g_default_team_values[i].name, 0, NULL);
+		g_team_cvars[i].g_team_shirt = gi.AddCvar(va("g_team_%i_shirt", i + 1), g_default_team_values[i].shirt, 0, NULL);
+		g_team_cvars[i].g_team_color = gi.AddCvar(va("g_team_%i_color", i + 1), va("%i", g_default_team_values[i].color), 0, NULL);
+	}
 
 	G_InitVote();
 
@@ -1648,7 +1737,7 @@ void G_RunTimers(void) {
 			if (j <= 5) {
 
 				if (j > 0) {
-					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE, 0);
+					gi.Sound(g_game.entities, g_media.sounds.countdown[j], SOUND_ATTEN_NONE, 0);
 				}
 
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
@@ -1667,7 +1756,7 @@ void G_RunTimers(void) {
 			if (j <= 10) {
 
 				if (j > 0) {
-					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE, 0);
+					gi.Sound(g_game.entities, g_media.sounds.countdown[j], SOUND_ATTEN_NONE, 0);
 				} else {
 					G_CallTimeIn();
 				}

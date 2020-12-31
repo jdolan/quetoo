@@ -223,7 +223,13 @@ static void G_Use_f(g_entity_t *ent) {
 	}
 
 	const char *s = gi.Args();
-	const g_item_t *it = G_FindItem(s);
+	const g_item_t *it;
+	
+	if (s && *s) {
+		it = G_FindItem(s);
+	} else {
+		it = ent->client->locals.last_pickup;
+	}
 	if (!it) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Unknown item: %s\n", s);
 		return;
@@ -286,7 +292,7 @@ static void G_Drop_f(g_entity_t *ent) {
 		return;
 	}
 
-	uint16_t drop_quantity;
+	int32_t drop_quantity;
 
 	if (it->type == ITEM_AMMO) {
 		drop_quantity = it->quantity;
@@ -560,7 +566,7 @@ static void G_Say_f(g_entity_t *ent) {
 		cl->locals.chat_time = g_level.time + 250;
 	}
 
-	const int32_t color = team ? CON_COLOR_TEAMCHAT : CON_COLOR_CHAT;
+	const int32_t color = team ? ESC_COLOR_TEAMCHAT : ESC_COLOR_CHAT;
 	g_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->locals.persistent.net_name, color, s);
 
 	for (i = 1; i <= sv_max_clients->integer; i++) { // print to clients
@@ -591,7 +597,7 @@ static void G_Say_f(g_entity_t *ent) {
 static void G_PlayerList_f(g_entity_t *ent) {
 	int32_t i, seconds;
 	char st[80];
-	char text[1400];
+	char text[MAX_PRINT_MSG];
 	g_entity_t *e2;
 
 	memset(text, 0, sizeof(text));
@@ -650,7 +656,7 @@ static const char *vote_cmds[] = {
 	NULL
 };
 
-static GList *vote_cvars; // temp number so it doesn't have to be dynamically allocated
+static GList *vote_cvars;
 
 /**
  * @brief Create g_vote_allow_<vote> CVars
@@ -673,6 +679,7 @@ void G_InitVote(void) {
  */
 void G_ShutdownVote(void) {
 	g_list_free(vote_cvars);
+	vote_cvars = NULL;
 }
 
 /**
@@ -992,105 +999,6 @@ static void G_Team_f(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_Teamname_f(g_entity_t *ent) {
-	g_team_t *t;
-
-	if (gi.Argc() != 2) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <name>\n", gi.Argv(0));
-		return;
-	}
-
-	if (!ent->client->locals.persistent.team) {
-		gi.ClientPrint(ent, PRINT_HIGH, "You're not on a team\n");
-		return;
-	}
-
-	t = ent->client->locals.persistent.team;
-
-	if (g_level.time - t->name_time < TEAM_CHANGE_TIME) {
-		return; // prevent change spamming
-	}
-
-	const char *s = gi.Argv(1);
-
-	if (*s != '\0' &&
-		strlen(s) < MAX_TEAM_NAME &&
-		!strchr(s, '|')) { // something valid-ish was provided
-		g_strlcpy(t->name, s, sizeof(t->name));
-	} else {
-		strcpy(t->name, G_TeamDefaults(t)->name);
-	}
-
-	t->name_time = g_level.time;
-
-	G_SetTeamNames();
-
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n",
-	                  ent->client->locals.persistent.net_name, t->name);
-}
-
-/**
- * @brief
- */
-static void G_Teamskin_f(g_entity_t *ent) {
-	int32_t i;
-	g_client_t *cl;
-	g_team_t *t;
-
-	if (gi.Argc() != 2) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <skin>\n", gi.Argv(0));
-		return;
-	}
-
-	if (!ent->client->locals.persistent.team) {
-		gi.ClientPrint(ent, PRINT_HIGH, "You're not on a team\n");
-		return;
-	}
-
-	t = ent->client->locals.persistent.team;
-
-	if (g_level.time - t->skin_time < TEAM_CHANGE_TIME) {
-		return; // prevent change spamming
-	}
-
-	const char *s = gi.Argv(1);
-
-	if (*s != '\0' &&
-		!strchr(s, '/')) { // something valid-ish was provided
-		g_strlcpy(t->skin, s, sizeof(t->skin));
-	} else {
-		strcpy(t->skin, G_TeamDefaults(t)->skin);
-	}
-
-	s = t->skin;
-
-	t->skin_time = g_level.time;
-
-	for (i = 0; i < sv_max_clients->integer; i++) { // update skins
-		cl = g_game.clients + i;
-
-		if (!cl->locals.persistent.team || cl->locals.persistent.team != t) {
-			continue;
-		}
-
-		char *skin_start = strchr(cl->locals.persistent.skin, '/');
-		*skin_start = 0;
-
-		const char *new_model = va("%s/%s", cl->locals.persistent.skin, s);
-
-		g_strlcpy(cl->locals.persistent.skin, new_model, sizeof(cl->locals.persistent.skin));
-
-		gi.SetConfigString(CS_CLIENTS + i,
-		                   va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
-	}
-
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_skin to %s\n",
-	                  ent->client->locals.persistent.net_name, t->skin);
-}
-
-/**
- * @brief
- */
 static void G_Unready_f(g_entity_t *ent) {
 
 	if (!g_level.match) {
@@ -1204,7 +1112,7 @@ static void G_Ready_f(g_entity_t *ent) {
 		}
 	}
 
-	g_warmup_time->integer = Clamp(g_warmup_time->integer, 0, 30);
+	g_warmup_time->integer = Clampf(g_warmup_time->integer, 0, 30);
 
 	gi.BroadcastPrint(PRINT_HIGH, "Match starting in %d seconds...\n", g_warmup_time->integer);
 	g_level.match_time = g_level.time + (g_warmup_time->integer * 1000);
@@ -1255,6 +1163,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 			} else { // or ask them to pick
 				gi.ClientPrint(ent, PRINT_HIGH, "Use team <team name> to join the game\n");
+				return;
 			}
 		}
 	} else { // they wish to spectate
@@ -1400,10 +1309,6 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Spectate_f(ent);
 	} else if (g_strcmp0(cmd, "team") == 0 || g_strcmp0(cmd, "join") == 0) {
 		G_Team_f(ent);
-	} else if (g_strcmp0(cmd, "team_name") == 0) {
-		G_Teamname_f(ent);
-	} else if (g_strcmp0(cmd, "team_skin") == 0) {
-		G_Teamskin_f(ent);
 	} else if (g_strcmp0(cmd, "ready") == 0) {
 		G_Ready_f(ent);
 	} else if (g_strcmp0(cmd, "unready") == 0) {

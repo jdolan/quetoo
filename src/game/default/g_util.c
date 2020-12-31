@@ -29,80 +29,76 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 	vec3_t mins, maxs, delta, forward;
 
 	// up
-	const vec_t up = ceilf(fabs(PM_SCALE * PM_MINS[2] - PM_MINS[2]));
-	ent->s.origin[2] += up;
+	const float up = ceilf(fabs(PM_SCALE * PM_MINS.z - PM_MINS.z));
+	ent->s.origin.z += up;
 
 	// forward, find the old x/y size
-	VectorCopy(PM_MINS, mins);
-	VectorCopy(PM_MAXS, maxs);
-	mins[2] = maxs[2] = 0.0;
+	mins = PM_MINS;
+	maxs = PM_MAXS;
+	mins.z = maxs.z = 0.0;
 
-	VectorSubtract(maxs, mins, delta);
-	const vec_t len0 = VectorLength(delta);
+	delta = Vec3_Subtract(maxs, mins);
+	const float len0 = Vec3_Length(delta);
 
 	// and the new x/y size
-	VectorScale(delta, PM_SCALE, delta);
-	const vec_t len1 = VectorLength(delta);
+	delta = Vec3_Scale(delta, PM_SCALE);
+	const float len1 = Vec3_Length(delta);
 
-	const vec_t fwd = ceilf(len1 - len0);
+	const float fwd = ceilf(len1 - len0);
 
-	AngleVectors(ent->s.angles, forward, NULL, NULL);
-	VectorMA(ent->s.origin, fwd, forward, ent->s.origin);
+	Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
+	ent->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(forward, fwd));
+	
+	if (!g_strcmp0(ent->class_name, "info_player_intermission")) {
+		G_Ai_DropItemLikeNode(ent);
+	}
 }
 
 /**
  * @brief Determines the initial position and directional vectors of a projectile.
  */
-void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org,
-                      const float hand_scale) {
-	vec3_t view, pos;
+void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand) {
 
 	// resolve the projectile destination
-	UnpackVector(ent->client->ps.pm_state.view_offset, view);
-	VectorAdd(ent->s.origin, view, view);
-
-	VectorMA(view, MAX_WORLD_DIST, ent->client->locals.forward, pos);
-	const cm_trace_t tr = gi.Trace(view, pos, NULL, NULL, ent, MASK_CLIP_PROJECTILE);
-
-	VectorCopy(tr.end, pos);
+	const vec3_t start = Vec3_Add(ent->s.origin, ent->client->ps.pm_state.view_offset);
+	const vec3_t end = Vec3_Add(start, Vec3_Scale(ent->client->locals.forward, MAX_WORLD_DIST));
+	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	// resolve the projectile origin
 	vec3_t ent_forward, ent_right, ent_up;
-	AngleVectors(ent->s.angles, ent_forward, ent_right, ent_up);
+	Vec3_Vectors(ent->client->locals.angles, &ent_forward, &ent_right, &ent_up);
 
-	VectorMA(view, 12.0, ent_forward, org);
+	*org = Vec3_Add(start, Vec3_Scale(ent_forward, 12.0));
 
 	switch (ent->client->locals.persistent.hand) {
 		case HAND_RIGHT:
-			VectorMA(org, 6.0 * hand_scale, ent_right, org);
+			*org = Vec3_Add(*org, Vec3_Scale(ent_right, 6.0 * hand));
 			break;
 		case HAND_LEFT:
-			VectorMA(org, -6.0 * hand_scale, ent_right, org);
+			*org = Vec3_Add(*org, Vec3_Scale(ent_right, -6.0 * hand));
 			break;
 		default:
 			break;
 	}
 
 	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
-		VectorMA(org, -6.0, ent_up, org);
+		*org = Vec3_Add(*org, Vec3_Scale(ent_up, -6.0));
 	} else {
-		VectorMA(org, -12.0, ent_up, org);
+		*org = Vec3_Add(*org, Vec3_Scale(ent_up, -12.0));
 	}
 
 	// if the projected origin is invalid, use the entity's origin
-	if (gi.Trace(org, org, NULL, NULL, ent, MASK_CLIP_PROJECTILE).start_solid) {
-		VectorCopy(ent->s.origin, org);
+	if (gi.Trace(*org, *org, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
+		*org = ent->s.origin;
 	}
 
 	if (forward) {
 		// return the projectile's directional vectors
-		VectorSubtract(pos, org, forward);
-		VectorNormalize(forward);
+		*forward = Vec3_Subtract(tr.end, *org);
+		*forward = Vec3_Normalize(*forward);
 
-		if (right || up) {
-			VectorAngles(forward, view);
-			AngleVectors(view, NULL, right, up);
-		}
+		const vec3_t euler = Vec3_Euler(*forward);
+		Vec3_Vectors(euler, NULL, right, up);
 	}
 }
 
@@ -179,13 +175,9 @@ g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match) {
 }
 
 /**
- * @brief Returns entities that have origins within a spherical area
- *
- * G_FindRadius(origin, radius)
+ * @brief Returns entities that have origins within a spherical radius.
  */
-g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
-	vec3_t delta;
-	int32_t j;
+g_entity_t *G_FindRadius(g_entity_t *from, const vec3_t org, float rad) {
 
 	if (!from) {
 		from = g_game.entities;
@@ -203,12 +195,12 @@ g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
 			continue;
 		}
 
-		for (j = 0; j < 3; j++) {
-			delta[j] = org[j] - (from->s.origin[j] + (from->mins[j] + from->maxs[j]) * 0.5);
+		if (Vec3_Distance(org, from->abs_mins) < rad) {
+			return from;
 		}
 
-		if (VectorLength(delta) > rad) {
-			continue;
+		if (Vec3_Distance(org, from->abs_maxs) < rad) {
+			return from;
 		}
 
 		return from;
@@ -225,12 +217,12 @@ g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
  * Searches beginning at the entity after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
  */
-g_entity_t *G_PickTarget(char *target_name) {
+g_entity_t *G_PickTarget(const char *target_name) {
 	g_entity_t *choice[MAX_TARGETS];
 	uint32_t num_choices = 0;
 
 	if (!target_name) {
-		gi.Debug("NULL target_name\n");
+		G_Debug("NULL target_name\n");
 		return NULL;
 	}
 
@@ -251,11 +243,11 @@ g_entity_t *G_PickTarget(char *target_name) {
 	}
 
 	if (!num_choices) {
-		gi.Debug("Target %s not found\n", target_name);
+		G_Debug("Target %s not found\n", target_name);
 		return NULL;
 	}
 
-	return choice[Randomr(0, num_choices)];
+	return choice[RandomRangeu(0, num_choices)];
 }
 
 /**
@@ -272,21 +264,20 @@ static void G_UseTargets_Delay(g_entity_t *ent) {
  * if set, to the activator.
  */
 void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
-	g_entity_t *t;
 
 	// check for a delay
 	if (ent->locals.delay) {
-		// create a temp object to fire at a later time
-		t = G_AllocEntity();
-		t->locals.next_think = g_level.time + ent->locals.delay * 1000;
-		t->locals.Think = G_UseTargets_Delay;
-		t->locals.activator = activator;
+		// create a temp entity to fire at a later time
+		g_entity_t *temp = G_AllocEntity();
+		temp->locals.next_think = g_level.time + ent->locals.delay * 1000;
+		temp->locals.Think = G_UseTargets_Delay;
+		temp->locals.activator = activator;
 		if (!activator) {
-			gi.Debug("No activator for %s\n", etos(ent));
+			G_Debug("No activator for %s\n", etos(ent));
 		}
-		t->locals.message = ent->locals.message;
-		t->locals.target = ent->locals.target;
-		t->locals.kill_target = ent->locals.kill_target;
+		temp->locals.message = ent->locals.message;
+		temp->locals.target = ent->locals.target;
+		temp->locals.kill_target = ent->locals.kill_target;
 		return;
 	}
 
@@ -296,46 +287,39 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		gi.WriteString(ent->locals.message);
 		gi.Unicast(activator, true);
 
-		if (ent->locals.noise_index) {
-			gi.Sound(activator, ent->locals.noise_index, ATTEN_NORM, 0);
+		if (ent->locals.sound) {
+			gi.Sound(activator, ent->locals.sound, SOUND_ATTEN_LINEAR, 0);
 		} else {
-			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTEN_NORM, 0);
+			gi.Sound(activator, gi.SoundIndex("misc/chat"), SOUND_ATTEN_LINEAR, 0);
 		}
 	}
 
 	// kill kill_targets
 	if (ent->locals.kill_target) {
-		t = NULL;
-		while ((t = G_Find(t, LOFS(target_name), ent->locals.kill_target))) {
-			G_FreeEntity(t);
+		g_entity_t *target = NULL;
+		while ((target = G_Find(target, LOFS(target_name), ent->locals.kill_target))) {
+			G_FreeEntity(target);
 			if (!ent->in_use) {
-				gi.Debug("%s was removed while using kill_targets\n", etos(ent));
+				G_Debug("%s was removed while using kill_targets\n", etos(ent));
 				return;
 			}
 		}
 	}
 
-	// doors fire area portals in a specific way
-	const _Bool is_door = g_str_has_prefix(ent->class_name, "func_door");
-
 	// fire targets
 	if (ent->locals.target) {
-		t = NULL;
-		while ((t = G_Find(t, LOFS(target_name), ent->locals.target))) {
+		g_entity_t *target = NULL;
+		while ((target = G_Find(target, LOFS(target_name), ent->locals.target))) {
 
-			if (is_door && !g_strcmp0(t->class_name, "func_areaportal")) {
+			if (target == ent) {
+				G_Debug("%s tried to use itself\n", etos(ent));
 				continue;
 			}
 
-			if (t == ent) {
-				gi.Debug("%s tried to use itself\n", etos(ent));
-				continue;
-			}
-
-			if (t->locals.Use) {
-				t->locals.Use(t, ent, activator);
+			if (target->locals.Use) {
+				target->locals.Use(target, ent, activator);
 				if (!ent->in_use) { // see if our target freed us
-					gi.Debug("%s was removed while using targets\n", etos(ent));
+					G_Debug("%s was removed while using targets\n", etos(ent));
 					break;
 				}
 			}
@@ -346,30 +330,23 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 /**
  * @brief
  */
-void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
+void G_SetMoveDir(g_entity_t *ent) {
 
-	const vec3_t angles_up = { 0.0, -1.0, 0.0 };
-	const vec3_t dir_up = { 0.0, 0.0, 1.0 };
-	const vec3_t angles_down = { 0.0, -2.0, 0.0 };
-	const vec3_t dir_down = { 0.0, 0.0, -1.0 };
+	const vec3_t angles_up = Vec3(0.0, -1.0, 0.0);
+	const vec3_t dir_up = Vec3(0.0, 0.0, 1.0 );
+	const vec3_t angles_down = Vec3(0.0, -2.0, 0.0);
+	const vec3_t dir_down = Vec3(0.0, 0.0, -1.0);
 
-	if (VectorCompare(angles, angles_up)) {
-		VectorCopy(dir_up, move_dir);
-	} else if (VectorCompare(angles, angles_down)) {
-		VectorCopy(dir_down, move_dir);
+	if (Vec3_Equal(ent->s.angles, angles_up)) {
+		ent->locals.move_dir = dir_up;
+	} else if (Vec3_Equal(ent->s.angles, angles_down)) {
+		ent->locals.move_dir = dir_down;
 	} else {
-		AngleVectors(angles, move_dir, NULL, NULL);
+		Vec3_Vectors(ent->s.angles, &ent->locals.move_dir, NULL, NULL);
 	}
 
-	VectorClear(angles);
+	ent->s.angles = Vec3_Zero();
 }
-
-/**
- * @brief A unique value that wraps around that represents the spawn ID
- * of this entity.
- * @see g_entity_t.spawn_id
- */
-static uint16_t g_spawn_id;
 
 /**
  * @brief Clear an entity's local data to empty. This function
@@ -389,6 +366,7 @@ void G_ClearEntity(g_entity_t *ent) {
  * that need to be there for entity system to work (number, etc) and marks it as in_use.
  */
 void G_InitEntity(g_entity_t *ent, const char *class_name) {
+	static uint32_t g_spawn_id;
 
 	G_ClearEntity(ent);
 
@@ -446,10 +424,9 @@ void G_FreeEntity(g_entity_t *ent) {
  */
 void G_KillBox(g_entity_t *ent) {
 	g_entity_t *ents[MAX_ENTITIES];
-	vec3_t mins, maxs;
 
-	VectorAdd(ent->s.origin, ent->mins, mins);
-	VectorAdd(ent->s.origin, ent->maxs, maxs);
+	const vec3_t mins = Vec3_Add(ent->s.origin, ent->mins);
+	const vec3_t maxs = Vec3_Add(ent->s.origin, ent->maxs);
 
 	size_t i, len = gi.BoxEntities(mins, maxs, ents, lengthof(ents), BOX_COLLIDE);
 	for (i = 0; i < len; i++) {
@@ -460,7 +437,7 @@ void G_KillBox(g_entity_t *ent) {
 
 		if (G_IsMeat(ents[i])) {
 
-			G_Damage(ents[i], NULL, ent, NULL, NULL, NULL, 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
+			G_Damage(ents[i], NULL, ent, Vec3_Zero(), ents[i]->s.origin, Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
 
 			if (ents[i]->in_use && !ents[i]->locals.dead) {
 				break;
@@ -472,7 +449,7 @@ void G_KillBox(g_entity_t *ent) {
 
 	if (i < len) {
 		if (G_IsMeat(ent)) {
-			G_Damage(ent, NULL, ents[i], NULL, NULL, NULL, 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
+			G_Damage(ent, NULL, ents[i], Vec3_Zero(), ent->s.origin, Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
 		}
 	}
 }
@@ -481,11 +458,12 @@ void G_KillBox(g_entity_t *ent) {
  * @brief Kills the specified entity via explosion, potentially taking nearby
  * entities with it. Certain pickup items are reset after exploding.
  */
-void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod) {
+void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius, uint32_t mod) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(ent->s.origin);
+	gi.WriteDir(Vec3_Up());
 	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
 
 	G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ?: MOD_EXPLOSIVE);
@@ -745,48 +723,6 @@ g_client_t *G_ClientByName(char *name) {
 }
 
 /**
- * @brief
- */
-int32_t G_ColorByName(const char *s, int32_t def) {
-
-	if (!s || *s == '\0') {
-		return def;
-	}
-
-	int32_t i = atoi(s);
-	if (i > 0 && i < 255) {
-		return i;
-	}
-
-	if (!g_ascii_strcasecmp(s, "red")) {
-		return PALETTE_COLOR_RED;
-	}
-	if (!g_ascii_strcasecmp(s, "green")) {
-		return PALETTE_COLOR_GREEN;
-	}
-	if (!g_ascii_strcasecmp(s, "blue")) {
-		return PALETTE_COLOR_BLUE;
-	}
-	if (!g_ascii_strcasecmp(s, "yellow")) {
-		return PALETTE_COLOR_YELLOW;
-	}
-	if (!g_ascii_strcasecmp(s, "orange")) {
-		return PALETTE_COLOR_ORANGE;
-	}
-	if (!g_ascii_strcasecmp(s, "white")) {
-		return PALETTE_COLOR_WHITE;
-	}
-	if (!g_ascii_strcasecmp(s, "pink")) {
-		return PALETTE_COLOR_PINK;
-	}
-	if (!g_ascii_strcasecmp(s, "purple")) {
-		return PALETTE_COLOR_PURPLE;
-	}
-
-	return def;
-}
-
-/**
  * @return Get the g_hook_style_t this string describes.
  */
 g_hook_style_t G_HookStyleByName(const char *s) {
@@ -831,11 +767,11 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 		return false;
 	}
 
-	if (!VectorCompare(vec3_origin, ent->locals.velocity)) {
+	if (!Vec3_Equal(Vec3_Zero(), ent->locals.velocity)) {
 		return false;
 	}
 
-	if (!VectorCompare(vec3_origin, ent->locals.avelocity)) {
+	if (!Vec3_Equal(Vec3_Zero(), ent->locals.avelocity)) {
 		return false;
 	}
 
@@ -845,12 +781,12 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 /**
  * @return True if the specified entity and surface are structural.
  */
-_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *surf) {
+_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *texinfo) {
 
 	if (ent) {
 		if (ent->solid == SOLID_BSP) {
 
-			if (!surf || (surf->flags & SURF_SKY)) {
+			if (!texinfo || (texinfo->flags & SURF_SKY)) {
 				return false;
 			}
 
@@ -864,9 +800,9 @@ _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *surf) {
 /**
  * @return True if the specified entity and surface are sky.
  */
-_Bool G_IsSky(const cm_bsp_texinfo_t *surf) {
+_Bool G_IsSky(const cm_bsp_texinfo_t *texinfo) {
 
-	if (surf && (surf->flags & SURF_SKY)) {
+	if (texinfo && (texinfo->flags & SURF_SKY)) {
 		return true;
 	}
 

@@ -20,127 +20,89 @@
  */
 
 #include "r_local.h"
-#include "client.h"
 
 /**
  * @brief Allocates an initializes the flare for the specified surface, if one
  * should be applied. The flare is linked to the provided BSP model and will
  * be freed automatically.
  */
-void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
-	vec3_t span;
+void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 
-	const r_material_t *m = surf->texinfo->material;
+	face->flare = Mem_LinkMalloc(sizeof(*face->flare), bsp);
 
-	if (!(m->cm->flags & STAGE_FLARE)) { // surface is not flared
-		return;
+	vec3_t mins = Vec3_Mins();
+	vec3_t maxs = Vec3_Maxs();
+
+	face->flare->origin = Vec3_Zero();
+	for (int32_t i = 0; i < face->num_vertexes; i++) {
+		mins = Vec3_Minf(mins, face->vertexes[i].position);
+		maxs = Vec3_Maxf(maxs, face->vertexes[i].position);
 	}
 
-	surf->flare = Mem_LinkMalloc(sizeof(*surf->flare), bsp);
+	face->flare->origin = Vec3_Scale(Vec3_Add(maxs, mins), .5f);
+	face->flare->origin = Vec3_Add(face->flare->origin, Vec3_Scale(face->plane->cm->normal, 2.f));
 
-	// move the flare away from the surface, into the level
-	VectorMA(surf->center, 2, surf->normal, surf->flare->particle.org);
+	face->flare->size = Vec3_Distance(maxs, mins);
 
-	// calculate the flare radius based on surface size
-	VectorSubtract(surf->maxs, surf->mins, span);
-	surf->flare->radius = VectorLength(span);
-
-	const r_stage_t *s = m->stages; // resolve the flare stage
+	const r_stage_t *s = face->texinfo->material->stages;
 	while (s) {
 		if (s->cm->flags & STAGE_FLARE) {
 			break;
 		}
 		s = s->next;
 	}
+	assert(s);
 
-	if (!s) {
-		return;
-	}
-
-	// resolve flare color
 	if (s->cm->flags & STAGE_COLOR) {
-		VectorCopy(s->cm->color, surf->flare->particle.color);
+		face->flare->color = Color_Color32(s->cm->color);
 	} else {
-		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->particle.color);
+		face->flare->color = Color_Color32(color_white);
 	}
 
-	// and scaled radius
 	if (s->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-		surf->flare->radius *= (s->cm->scale.s ? s->cm->scale.s : s->cm->scale.t);
+		face->flare->size *= (s->cm->scale.s ? s->cm->scale.s : s->cm->scale.t);
 	}
 
-	// and image
-	surf->flare->particle.type = PARTICLE_FLARE;
-	surf->flare->particle.image = s->image;
-	surf->flare->particle.blend = GL_ONE;
+	face->flare->media = s->media;
 }
 
 /**
- * @brief Flares are batched by their texture. Usually, this means one draw operation
- * for all flares in view. Flare visibility is calculated every few millis, and
- * flare alpha is ramped up or down depending on the results of the visibility
- * trace. Flares are also faded according to the angle of their surface to the
- * view origin.
+ * @brief
  */
-void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
+static void R_UpdateBspInlineModelFlares(const r_entity_t *e, const r_bsp_inline_model_t *in) {
+
+	for (guint i = 0; i < in->flare_faces->len; i++) {
+
+		const r_bsp_face_t *face = g_ptr_array_index(in->flare_faces, i);
+
+		r_sprite_t flare = *face->flare;
+
+		if (e) {
+			Matrix4x4_Transform(&e->matrix, flare.origin.xyz, flare.origin.xyz);
+		}
+
+		flare.color.a = (byte) Clampf(flare.color.a * r_flares->value, 0.f, 255.f);
+
+		R_AddSprite(&flare);
+	}
+}
+
+/**
+ * @brief
+ */
+void R_UpdateFlares(void) {
+
 	if (!r_flares->value || r_draw_wireframe->value) {
 		return;
 	}
 
-	if (!surfs->count) {
-		return;
-	}
+	R_UpdateBspInlineModelFlares(NULL, r_world_model->bsp->inline_models);
 
-	for (uint32_t i = 0; i < surfs->count; i++) {
-		const r_bsp_surface_t *surf = surfs->surfaces[i];
+	const r_entity_t *e = r_view.entities;
+	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		if (IS_BSP_INLINE_MODEL(e->model)) {
 
-		if (surf->frame != r_locals.frame) {
-			continue;
+			R_UpdateBspInlineModelFlares(e, e->model->bsp_inline);
 		}
-
-		r_bsp_flare_t *f = surf->flare;
-
-		// periodically test visibility to ramp alpha
-		if (r_view.ticks - f->time > 15) {
-
-			if (r_view.ticks - f->time > 500) { // reset old flares
-				f->alpha = 0;
-			}
-
-			cm_trace_t tr = Cl_Trace(r_view.origin, f->particle.org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
-
-			f->alpha += (tr.fraction == 1.0) ? 0.03 : -0.15; // ramp
-			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp
-
-			f->time = r_view.ticks;
-		}
-
-		vec3_t view;
-		VectorSubtract(f->particle.org, r_view.origin, view);
-		const vec_t dist = VectorNormalize(view);
-
-		// fade according to angle
-		const vec_t cos = DotProduct(surf->normal, view);
-		if (cos > 0.0) {
-			continue;
-		}
-
-		vec_t alpha = 0.1 + -cos * r_flares->value;
-
-		if (alpha > 1.0) {
-			alpha = 1.0;
-		}
-
-		alpha = f->alpha * alpha;
-
-		if (alpha <= FLT_EPSILON) {
-			continue;
-		}
-
-		// scale according to distance
-		f->particle.scale = f->radius + (f->radius * dist * .0005);
-		f->particle.color[3] = alpha;
-
-		R_AddParticle(&f->particle);
 	}
 }

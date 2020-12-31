@@ -72,7 +72,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		this->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/MainView.css");
 		assert(this->stylesheet);
 		
-		$(self->background, setImageWithResourceName, va("ui/backgrounds/%d.tga", Random() % 6));
+		$(self->background, setImageWithResourceName, va("ui/backgrounds/%u.tga", RandomRangeu(0, 6)));
 		$(self->logo, setImageWithResourceName, "ui/logo.tga");
 
 		$(self->version->text, setText, va("Quetoo %s", cgi.GetCvarString("version")));

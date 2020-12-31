@@ -43,12 +43,14 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 		Outlet outlets[] = MakeOutlets(
 			MakeOutlet("name", &self->name),
-			MakeOutlet("diffuse", &self->diffuse),
+			MakeOutlet("diffusemap", &self->diffusemap),
 			MakeOutlet("normalmap", &self->normalmap),
+			MakeOutlet("heightmap", &self->heightmap),
+			MakeOutlet("glossmap", &self->glossmap),
 			MakeOutlet("specularmap", &self->specularmap),
-			MakeOutlet("bumpmap", &self->bump),
+			MakeOutlet("roughness", &self->roughness),
 			MakeOutlet("hardness", &self->hardness),
-			MakeOutlet("specular", &self->specular),
+			MakeOutlet("specularity", &self->specularity),
 			MakeOutlet("parallax", &self->parallax),
 			MakeOutlet("save", &self->save)
 		);
@@ -72,23 +74,27 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 
 	if (self->material) {
 		$(self->name, setDefaultText, self->material->cm->basename);
-		$(self->diffuse, setDefaultText, self->material->cm->diffuse.name);
+		$(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
 		$(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
+		$(self->heightmap, setDefaultText, self->material->cm->heightmap.name);
+		$(self->glossmap, setDefaultText, self->material->cm->glossmap.name);
 		$(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
 
-		$(self->bump, setValue, (double) self->material->cm->bump);
+		$(self->roughness, setValue, (double) self->material->cm->roughness);
 		$(self->hardness, setValue, (double) self->material->cm->hardness);
-		$(self->specular, setValue, (double) self->material->cm->specular);
+		$(self->specularity, setValue, (double) self->material->cm->specularity);
 		$(self->parallax, setValue, (double) self->material->cm->parallax);
 	} else {
 		$(self->name, setDefaultText, NULL);
-		$(self->diffuse, setDefaultText, NULL);
+		$(self->diffusemap, setDefaultText, NULL);
 		$(self->normalmap, setDefaultText, NULL);
+		$(self->heightmap, setDefaultText, NULL);
+		$(self->glossmap, setDefaultText, NULL);
 		$(self->specularmap, setDefaultText, NULL);
 
-		$(self->bump, setValue, DEFAULT_BUMP);
+		$(self->roughness, setValue, DEFAULT_ROUGHNESS);
 		$(self->hardness, setValue, DEFAULT_HARDNESS);
-		$(self->specular, setValue, DEFAULT_SPECULAR);
+		$(self->specularity, setValue, DEFAULT_SPECULARITY);
 		$(self->parallax, setValue, DEFAULT_PARALLAX);
 	}
 }

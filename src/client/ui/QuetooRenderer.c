@@ -1,24 +1,22 @@
 /*
- * ObjectivelyMVC: MVC framework for OpenGL and SDL2 in c.
- * Copyright (C) 2014 Jay Dolan <jay@jaydolan.com>
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
  *
- * This software is provided 'as-is', without any express or implied
- * warranty. In no event will the authors be held liable for any damages
- * arising from the use of this software.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * Permission is granted to anyone to use this software for any purpose,
- * including commercial applications, and to alter it and redistribute it
- * freely, subject to the following restrictions:
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * 1. The origin of this software must not be misrepresented; you must not
- * claim that you wrote the original software. If you use this software
- * in a product, an acknowledgment in the product documentation would be
- * appreciated but is not required.
+ * See the GNU General Public License for more details.
  *
- * 2. Altered source versions must be plainly marked as such, and must not be
- * misrepresented as being the original software.
- *
- * 3. This notice may not be removed or altered from any source distribution.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #include <assert.h>
@@ -32,32 +30,15 @@
 
 #pragma mark - QuetooRenderer
 
+static color_t drawColor;
+
 /**
  * @see Renderer::beginFrame(Renderer *self)
  * @memberof QuetooRenderer
  */
 static void beginFrame(Renderer *self) {
 
-	R_Color(NULL);
-}
-
-/**
- * @see Renderer::drawLine(const Renderer *self, const SDL_Point *points, size_t count)
- */
-static void drawLine(const Renderer *self, const SDL_Point *points) {
-
-	assert(points);
-
-	R_DrawLinesUI(points, 2, false);
-}
-
-/**
- * @see Renderer::drawLines(const Renderer *self, const SDL_Point *points, size_t count)
- */
-static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
-	assert(points);
-
-	R_DrawLinesUI(points, count, false);
+	drawColor = color_white;
 }
 
 /**
@@ -95,20 +76,50 @@ static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
 }
 
 /**
+ * @see Renderer::drawLine(const Renderer *self, const SDL_Point *points, size_t count)
+ */
+static void drawLine(const Renderer *self, const SDL_Point *points) {
+
+	assert(points);
+
+	$(self, drawLines, points, 2);
+}
+
+/**
+ * @see Renderer::drawLines(const Renderer *self, const SDL_Point *points, size_t count)
+ */
+static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
+	assert(points);
+
+	r_pixel_t p[count][2];
+
+	for (size_t i = 0; i < count; i++) {
+		p[i][0] = points[i].x;
+		p[i][1] = points[i].y;
+	}
+
+	R_Draw2DLines((r_pixel_t *) p, count, drawColor);
+}
+
+
+/**
  * @see Renderer::drawRect(const Renderer *self, const SDL_Rect *rect)
  */
 static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	const SDL_Point points[] = {
-		{ rect->x,					rect->y },
-		{ rect->x + rect->w - 1,	rect->y },
-		{ rect->x + rect->w - 1,	rect->y + rect->h - 1 },
-		{ rect->x,					rect->y + rect->h - 1 }
+	const SDL_Rect r = *rect;
+
+	const r_pixel_t points[][2] = {
+		{ r.x,			r.y },
+		{ r.x + r.w,	r.y },
+		{ r.x + r.w,	r.y + r.h },
+		{ r.x,			r.y + r.h },
+		{ r.x,			r.y },
 	};
 
-	R_DrawLinesUI(points, 4, true);
+	R_Draw2DLines((r_pixel_t *) points, lengthof(points), drawColor);
 }
 
 /**
@@ -118,7 +129,7 @@ static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	R_DrawFillUI(rect);
+	R_Draw2DFill(rect->x, rect->y, rect->w, rect->h, drawColor);
 }
 
 /**
@@ -130,7 +141,7 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
 
 	const r_image_t image = { .texnum = texture };
 
-	R_DrawImageResized(rect->x, rect->y, rect->w, rect->h, &image);
+	R_Draw2DImage(rect->x, rect->y, rect->w, rect->h, &image, drawColor);
 }
 
 /**
@@ -147,14 +158,9 @@ static void endFrame(Renderer *self) {
 static void setDrawColor(Renderer *self, const SDL_Color *color) {
 
 	if (color) {
-		R_Color((const vec4_t) {
-			color->r / 255.0f,
-			color->g / 255.0f,
-			color->b / 255.0f,
-			color->a / 255.0f
-		});
+		drawColor = Color4b(color->r, color->g, color->b, color->a);
 	} else {
-		R_Color(NULL);
+		drawColor = color_white;
 	}
 }
 
@@ -164,14 +170,14 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
 static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 
 	if (!frame) {
-		R_EnableScissor(NULL);
+		glDisable(GL_SCISSOR_TEST);
 		return;
 	}
 
-	SDL_Window *window = SDL_GL_GetCurrentWindow();
-	const SDL_Rect scissor = MVC_TransformToWindow(window, frame);
+	const SDL_Rect scissor = MVC_TransformToWindow(r_context.window, frame);
 
-	R_EnableScissor(&scissor);
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(scissor.x, scissor.y, scissor.w, scissor.h);
 }
 
 /**

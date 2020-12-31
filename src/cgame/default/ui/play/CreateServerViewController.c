@@ -88,7 +88,7 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 			if (len == -1) {
 				cgi.Warn("Failed to write %s\n", MAP_LIST_UI);
 			} else {
-				cgi.Debug("Wrote %s %"PRId64" bytes\n", MAP_LIST_UI, len);
+				Cg_Debug("Wrote %s %"PRId64" bytes\n", MAP_LIST_UI, len);
 			}
 
 			release(string);

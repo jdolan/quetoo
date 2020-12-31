@@ -24,12 +24,42 @@
 #include "r_types.h"
 
 void R_AddLight(const r_light_t *l);
-void R_AddSustainedLight(const r_sustained_light_t *s);
 
 #ifdef __R_LOCAL_H__
-void R_AddSustainedLights(void);
-void R_ResetLights(void);
-void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node);
-void R_MarkLights(void);
-void R_EnableLights(uint64_t mask);
+
+/**
+ * @brief The lights uniform block type.
+ */
+typedef struct {
+	/**
+	 * @brief The uniform buffer name.
+	 */
+	GLuint buffer;
+
+	/**
+	 * @brief The lights block struct.
+	 * @remarks This struct is vec4 aligned.
+	 */
+	struct {
+		/**
+		 * @brief The light sources for the current frame, transformed to view space.
+		 */
+		r_light_t lights[MAX_LIGHTS];
+
+		/**
+		 * @brief The number of active light sources.
+		 */
+		int32_t num_lights;
+	} block;
+
+} r_lights_t;
+
+/**
+ * @brief The lights uniform block, updated once per frame.
+ */
+extern r_lights_t r_lights;
+
+void R_UpdateLights(void);
+void R_InitLights(void);
+void R_ShutdownLights(void);
 #endif /* __R_LOCAL_H__ */

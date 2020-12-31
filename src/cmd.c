@@ -41,7 +41,7 @@ typedef struct cmd_state_s {
 
 	_Bool wait; // commands may be deferred one frame
 
-	uint16_t alias_loop_count;
+	int32_t alias_loop_count;
 } cmd_state_t;
 
 static cmd_state_t cmd_state;
@@ -244,7 +244,7 @@ void Cmd_TokenizeString(const char *text) {
 
 		// expand console variables
 		if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
-			char *c = (char *) Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
+			const char *c = Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
 			g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
 		}
 
@@ -389,7 +389,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 	cmd->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CMD), cmd);
 	cmd->commands = Mem_Link(Mem_TagCopyString(commands, MEM_TAG_CMD), cmd);
 
-	gpointer *key = (gpointer *) cmd->name;
+	gpointer key = (gpointer) cmd->name;
 
 	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
 
@@ -409,7 +409,7 @@ static GQueue *Cmd_Remove_(cmd_t *cmd) {
 	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, cmd->name);
 
 	if (!g_queue_remove(queue, cmd)) {
-		Com_Error(ERROR_FATAL, "Missing command");
+		Com_Error(ERROR_FATAL, "Missing command: %s\n", cmd->name);
 	}
 
 	Mem_Free(cmd);
@@ -518,7 +518,7 @@ void Cmd_ExecuteString(const char *text) {
 			cmd->Execute();
 		} else if (cmd->commands) {
 			if (++cmd_state.alias_loop_count == MAX_ALIAS_LOOP_COUNT) {
-				Com_Warn("ALIAS_LOOP_COUNT reached\n");
+				Com_Warn("ALIAS_LOOP_COUNT\n");
 			} else {
 				Cbuf_AddText(cmd->commands);
 			}
@@ -550,7 +550,7 @@ static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data) {
 }
 
 /**
- * @brief Creates a new command that executes a command string (possibly ; seperated)
+ * @brief Creates a new command that executes a command string (possibly ; separated)
  */
 static void Cmd_Alias_f(void) {
 	char cmd[MAX_STRING_CHARS];
@@ -592,7 +592,7 @@ static void Cmd_Alias_f(void) {
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
 	GSList **list = (GSList **) data;
-	const gchar *str = g_strdup(Cmd_Stringify(cmd));
+	gchar *str = g_strdup(Cmd_Stringify(cmd));
 
 	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrColorCmp);
 }

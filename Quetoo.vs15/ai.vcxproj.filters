@@ -10,12 +10,6 @@
     <Filter Include="src\default">
       <UniqueIdentifier>{78f1ccb6-0a7f-49b3-886c-d02895750b07}</UniqueIdentifier>
     </Filter>
-    <Filter Include="deps">
-      <UniqueIdentifier>{395b5568-d1e0-4c1e-9e56-4f2bf4546f35}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="deps\genann">
-      <UniqueIdentifier>{c9be6cd9-d751-4488-b306-adf8850c440b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ai\ai.h">
@@ -36,10 +30,10 @@
     <ClInclude Include="..\src\ai\default\ai_item.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\ai\default\ai_ann.h">
+    <ClInclude Include="..\src\ai\default\ai_info.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\ai\default\ai_info.h">
+    <ClInclude Include="..\src\ai\default\ai_node.h">
       <Filter>src\default</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,14 +47,11 @@
     <ClCompile Include="..\src\ai\default\ai_item.c">
       <Filter>src\default</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ai\default\ai_ann.c">
-      <Filter>src\default</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ai\default\ai_info.c">
       <Filter>src\default</Filter>
     </ClCompile>
-    <ClCompile Include="..\deps\genann\genann.c">
-      <Filter>deps\genann</Filter>
+    <ClCompile Include="..\src\ai\default\ai_node.c">
+      <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

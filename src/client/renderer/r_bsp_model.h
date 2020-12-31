@@ -25,5 +25,5 @@
 
 #ifdef __R_LOCAL_H__
 void R_LoadBspModel(r_model_t *mod, void *buffer);
-void R_ExportBSP_f(void);
+void R_ExportBsp_f(void);
 #endif /* __R_LOCAL_H__ */

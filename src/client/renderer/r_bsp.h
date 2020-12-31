@@ -21,19 +21,16 @@
 
 #pragma once
 
-vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_surface_t *surf);
-const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp);
-_Bool R_LeafVisible(const r_bsp_leaf_t *leaf);
-_Bool R_LeafHearable(const r_bsp_leaf_t *leaf);
-_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
-_Bool R_CullSphere(const vec3_t point, const vec_t radius);
+const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p);
 
 #ifdef __R_LOCAL_H__
-_Bool R_CullBspInlineModel(const r_entity_t *e);
-void R_DrawBspInlineModels(const r_entities_t *ents);
-void R_AddBspInlineModelFlares(const r_entities_t *ents);
-void R_DrawBspLeafs(void);
-void R_DrawBspNormals(void);
-void R_MarkBspSurfaces(void);
-void R_UpdateVis(void);
+
+typedef enum {
+	BLEND_DEPTH_NONE   = 0x0,
+	BLEND_DEPTH_ENTITY = 0x1,
+	BLEND_DEPTH_SPRITE = 0x2
+} r_blend_depth_type_t;
+
+int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t);
+void R_UpdateBlendDepth(void);
 #endif /* __R_LOCAL_H__ */

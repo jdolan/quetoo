@@ -24,33 +24,9 @@
 /**
  * @brief
  */
-static void G_func_areaportal_Use(g_entity_t *ent, g_entity_t *other,
-                                  g_entity_t *activator) {
-
-	ent->locals.count ^= 1; // toggle state
-
-	gi.SetAreaPortalState(ent->locals.area_portal, ent->locals.count);
-}
-
-/*QUAKED func_areaportal (0 0 0) ?
- A non-visible object indicating disjoint areas in the world that should be combined when this entity is used. These are typically enclosed inside door brushes to toggle visibility of the rooms they separate.
-
- -------- Keys --------
- targetname : The target name of this entity if it is to be triggered.
- */
-void G_func_areaportal(g_entity_t *ent) {
-
-	ent->locals.Use = G_func_areaportal_Use;
-
-	ent->locals.count = 0; // always start closed;
-}
-
-/**
- * @brief
- */
 static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 
-	VectorClear(ent->locals.velocity);
+	ent->locals.velocity = Vec3_Zero();
 
 	ent->locals.move_info.current_speed = 0.0;
 
@@ -62,19 +38,16 @@ static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
  */
 static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
-	vec3_t delta;
 
-	VectorSubtract(move->dest, ent->s.origin, delta);
-	const vec_t distance = VectorNormalize(delta);
+	vec3_t dir;
+	const float distance = Vec3_DistanceDir(move->dest, ent->s.origin, &dir);
 
-	if (distance == 0.0 || DotProduct(delta, move->dir) < 0.0) {
+	if (distance == 0.0 || Vec3_Dot(dir, move->dir) < 0.0) {
 		G_MoveInfo_Linear_Done(ent);
 		return;
 	}
 
-	VectorScale(delta, distance / QUETOO_TICK_SECONDS, ent->locals.velocity);
-
-	ent->locals.Think = G_MoveInfo_Linear_Done;
+	ent->locals.Think = G_MoveInfo_Linear_Final;
 	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
@@ -84,19 +57,11 @@ static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
  */
 static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
-	vec3_t delta;
 
-	VectorSubtract(move->dest, ent->s.origin, delta);
-	const vec_t distance = VectorLength(delta);
-
-	if ((move->speed * QUETOO_TICK_SECONDS) >= distance) {
-		G_MoveInfo_Linear_Final(ent);
-		return;
-	}
-
-	VectorScale(move->dir, move->speed, ent->locals.velocity);
-
+	const float distance = Vec3_Distance(move->dest, ent->s.origin);
 	move->const_frames = distance / move->speed * QUETOO_TICK_RATE;
+
+	ent->locals.velocity = Vec3_Scale(move->dir, move->speed);
 
 	ent->locals.next_think = g_level.time + move->const_frames * QUETOO_TICK_MILLIS;
 	ent->locals.Think = G_MoveInfo_Linear_Final;
@@ -110,28 +75,26 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
 
 	if (move->current_speed == 0.0) { // starting or restarting after being blocked
-		vec3_t delta;
 
 		// http://www.ajdesigner.com/constantacceleration/cavelocitya.php
 
-		VectorSubtract(move->dest, ent->s.origin, delta);
-		const vec_t distance = VectorLength(delta);
+		const float distance = Vec3_Distance(move->dest, ent->s.origin);
 
-		const vec_t accel_time = move->speed / move->accel;
-		const vec_t decel_time = move->speed / move->decel;
+		const float accel_time = move->speed / move->accel;
+		const float decel_time = move->speed / move->decel;
 
 		move->accel_frames = accel_time * QUETOO_TICK_RATE;
 		move->decel_frames = decel_time * QUETOO_TICK_RATE;
 
-		const vec_t avg_speed = move->speed * 0.5;
+		const float avg_speed = move->speed * 0.5;
 
-		vec_t accel_distance = avg_speed * accel_time;
-		vec_t decel_distance = avg_speed * decel_time;
+		float accel_distance = avg_speed * accel_time;
+		float decel_distance = avg_speed * decel_time;
 
 		if (accel_distance + decel_distance > distance) {
-			gi.Debug("Clamping acceleration for %s\n", etos(ent));
+			G_Debug("Clamping acceleration for %s\n", etos(ent));
 
-			const vec_t scale = distance / (accel_distance + decel_distance);
+			const float scale = distance / (accel_distance + decel_distance);
 
 			accel_distance *= scale;
 			decel_distance *= scale;
@@ -140,8 +103,8 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 			move->decel_frames = decel_distance / avg_speed * QUETOO_TICK_RATE;
 		}
 
-		const vec_t const_distance = (distance - (accel_distance + decel_distance));
-		const vec_t const_time = const_distance / move->speed;
+		const float const_distance = (distance - (accel_distance + decel_distance));
+		const float const_time = const_distance / move->speed;
 
 		move->const_frames = const_time * QUETOO_TICK_RATE;
 	}
@@ -164,8 +127,8 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 	// decelerate
 	else if (move->decel_frames) {
 		move->current_speed -= move->decel * QUETOO_TICK_SECONDS;
-		if (move->current_speed <= sqrt(move->speed)) {
-			move->current_speed = sqrt(move->speed);
+		if (move->current_speed < sqrtf(move->speed)) {
+			move->current_speed = sqrtf(move->speed);
 		}
 		move->decel_frames--;
 	}
@@ -176,7 +139,7 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 		return;
 	}
 
-	VectorScale(move->dir, move->current_speed, ent->locals.velocity);
+	ent->locals.velocity = Vec3_Scale(move->dir, move->current_speed);
 
 	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 	ent->locals.Think = G_MoveInfo_Linear_Accelerate;
@@ -190,12 +153,12 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
 	g_move_info_t *move = &ent->locals.move_info;
 
-	VectorClear(ent->locals.velocity);
+	ent->locals.velocity = Vec3_Zero();
 	move->current_speed = 0.0;
 
-	VectorCopy(dest, move->dest);
-	VectorSubtract(dest, ent->s.origin, move->dir);
-	VectorNormalize(move->dir);
+	move->dest = dest;
+	move->dir = Vec3_Subtract(dest, ent->s.origin);
+	move->dir = Vec3_Normalize(move->dir);
 
 	move->Done = Done;
 
@@ -218,7 +181,7 @@ static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Do
  */
 static void G_MoveInfo_Angular_Done(g_entity_t *ent) {
 
-	VectorClear(ent->locals.avelocity);
+	ent->locals.avelocity = Vec3_Zero();
 	ent->locals.move_info.Done(ent);
 }
 
@@ -230,17 +193,17 @@ static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
 	vec3_t delta;
 
 	if (move->state == MOVE_STATE_GOING_UP) {
-		VectorSubtract(move->end_angles, ent->s.angles, delta);
+		delta = Vec3_Subtract(move->end_angles, ent->s.angles);
 	} else {
-		VectorSubtract(move->start_angles, ent->s.angles, delta);
+		delta = Vec3_Subtract(move->start_angles, ent->s.angles);
 	}
 
-	if (VectorCompare(delta, vec3_origin)) {
+	if (Vec3_Equal(delta, Vec3_Zero())) {
 		G_MoveInfo_Angular_Done(ent);
 		return;
 	}
 
-	VectorScale(delta, 1.0 / QUETOO_TICK_SECONDS, ent->locals.avelocity);
+	ent->locals.avelocity = Vec3_Scale(delta, 1.0 / QUETOO_TICK_SECONDS);
 
 	ent->locals.Think = G_MoveInfo_Angular_Done;
 	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
@@ -255,26 +218,26 @@ static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
 
 	// set move to the vector needed to move
 	if (move->state == MOVE_STATE_GOING_UP) {
-		VectorSubtract(move->end_angles, ent->s.angles, delta);
+		delta = Vec3_Subtract(move->end_angles, ent->s.angles);
 	} else {
-		VectorSubtract(move->start_angles, ent->s.angles, delta);
+		delta = Vec3_Subtract(move->start_angles, ent->s.angles);
 	}
 
 	// calculate length of vector
-	const vec_t len = VectorLength(delta);
+	const float len = Vec3_Length(delta);
 
 	// divide by speed to get time to reach dest
-	const vec_t time = len / move->speed;
+	const float time = len / move->speed;
 
 	if (time < QUETOO_TICK_SECONDS) {
 		G_MoveInfo_Angular_Final(ent);
 		return;
 	}
 
-	const vec_t frames = floor(time / QUETOO_TICK_SECONDS);
+	const float frames = floor(time / QUETOO_TICK_SECONDS);
 
 	// scale the move vector by the time spent traveling to get velocity
-	VectorScale(delta, 1.0 / time, ent->locals.avelocity);
+	ent->locals.avelocity = Vec3_Scale(delta, 1.0 / time);
 
 	// set next_think to trigger a think when dest is reached
 	ent->locals.next_think = g_level.time + frames * QUETOO_TICK_MILLIS;
@@ -286,7 +249,7 @@ static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
  */
 static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *)) {
 
-	VectorClear(ent->locals.avelocity);
+	ent->locals.avelocity = Vec3_Zero();
 
 	ent->locals.move_info.Done = Done;
 
@@ -305,12 +268,12 @@ static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *))
  */
 static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 
-	const vec_t *dir = self->locals.velocity;
+	const vec3_t dir = self->locals.velocity;
 
 	if (G_IsMeat(other)) {
 
 		if (other->solid == SOLID_DEAD) {
-			G_Damage(other, self, NULL, dir, NULL, vec3_up, 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
+			G_Damage(other, self, NULL, dir, other->s.origin, Vec3_Up(), 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
 			if (other->in_use) {
 				if (other->client) {
 					gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -324,12 +287,12 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 				}
 			}
 		} else if (other->solid == SOLID_BOX) {
-			G_Damage(other, self, NULL, dir, NULL, vec3_up, self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
+			G_Damage(other, self, NULL, dir, other->s.origin, Vec3_Up(), self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
 		} else {
-			gi.Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
+			G_Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
 		}
 	} else {
-		G_Damage(other, self, NULL, dir, NULL, vec3_up, 999, 0, 0, MOD_CRUSH);
+		G_Damage(other, self, NULL, dir, other->s.origin, Vec3_Up(), 999, 0, 0, MOD_CRUSH);
 		if (other->in_use) {
 			G_Explode(other, 60, 60, 80.0, 0);
 		}
@@ -348,7 +311,7 @@ static void G_func_plat_Top(g_entity_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (ent->locals.move_info.sound_end) {
-			gi.Sound(ent, ent->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.Sound(ent, ent->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		ent->s.sound = 0;
@@ -370,10 +333,10 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_end) {
 			vec3_t pos;
 
-			VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, pos);
-			pos[2] = ent->abs_maxs[2];
+			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
+			pos.z = ent->abs_maxs.z;
 
-			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		ent->s.sound = 0;
@@ -390,7 +353,7 @@ static void G_func_plat_GoingDown(g_entity_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (ent->locals.move_info.sound_start) {
-			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(ent, ent->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		ent->s.sound = ent->locals.move_info.sound_middle;
@@ -410,10 +373,10 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_start) {
 			vec3_t pos;
 
-			VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, pos);
-			pos[2] = ent->abs_maxs[2];
+			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
+			pos.z = ent->abs_maxs.z;
 
-			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		ent->s.sound = ent->locals.move_info.sound_middle;
@@ -455,7 +418,7 @@ static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other,
  */
 static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other,
                               const cm_bsp_plane_t *plane,
-                              const cm_bsp_texinfo_t *surf) {
+                              const cm_bsp_texinfo_t *texinfo) {
 
 	if (!other->client) {
 		return;
@@ -488,31 +451,31 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
 	trigger->solid = SOLID_TRIGGER;
 	trigger->locals.enemy = ent;
 
-	tmin[0] = ent->mins[0] + 25;
-	tmin[1] = ent->mins[1] + 25;
-	tmin[2] = ent->mins[2];
+	tmin.x = ent->mins.x + 25;
+	tmin.y = ent->mins.y + 25;
+	tmin.z = ent->mins.z;
 
-	tmax[0] = ent->maxs[0] - 25;
-	tmax[1] = ent->maxs[1] - 25;
-	tmax[2] = ent->maxs[2] + 8;
+	tmax.x = ent->maxs.x - 25;
+	tmax.y = ent->maxs.y - 25;
+	tmax.z = ent->maxs.z + 8;
 
-	tmin[2] = tmax[2] - (ent->locals.pos1[2] - ent->locals.pos2[2] + g_game.spawn.lip);
+	tmin.z = tmax.z - (ent->locals.pos1.z - ent->locals.pos2.z + ent->locals.lip);
 
 	if (ent->locals.spawn_flags & PLAT_LOW_TRIGGER) {
-		tmax[2] = tmin[2] + 8.0;
+		tmax.z = tmin.z + 8.0;
 	}
 
-	if (tmax[0] - tmin[0] <= 0) {
-		tmin[0] = (ent->mins[0] + ent->maxs[0]) * 0.5;
-		tmax[0] = tmin[0] + 1;
+	if (tmax.x - tmin.x <= 0) {
+		tmin.x = (ent->mins.x + ent->maxs.x) * 0.5;
+		tmax.x = tmin.x + 1;
 	}
-	if (tmax[1] - tmin[1] <= 0) {
-		tmin[1] = (ent->mins[1] + ent->maxs[1]) * 0.5;
-		tmax[1] = tmin[1] + 1;
+	if (tmax.y - tmin.y <= 0) {
+		tmin.y = (ent->mins.y + ent->maxs.y) * 0.5;
+		tmax.y = tmin.y + 1;
 	}
 
-	VectorCopy(tmin, trigger->mins);
-	VectorCopy(tmax, trigger->maxs);
+	trigger->mins = tmin;
+	trigger->maxs = tmax;
 
 	gi.LinkEntity(trigger);
 }
@@ -533,7 +496,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
  */
 void G_func_plat(g_entity_t *ent) {
 
-	VectorClear(ent->s.angles);
+	ent->s.angles = Vec3_Zero();
 
 	ent->solid = SOLID_BSP;
 	ent->locals.move_type = MOVE_TYPE_PUSH;
@@ -558,20 +521,21 @@ void G_func_plat(g_entity_t *ent) {
 		ent->locals.damage = 2;
 	}
 
-	if (!g_game.spawn.lip) {
-		g_game.spawn.lip = 8.0;
+	if (!ent->locals.lip) {
+		ent->locals.lip = 8.0;
 	}
 
 	// pos1 is the top position, pos2 is the bottom
-	VectorCopy(ent->s.origin, ent->locals.pos1);
-	VectorCopy(ent->s.origin, ent->locals.pos2);
+	ent->locals.pos1 = ent->s.origin;
+	ent->locals.pos2 = ent->s.origin;
 
-	if (g_game.spawn.height) { // use the specified height
-		ent->locals.pos2[2] -= g_game.spawn.height;
+	const cm_entity_t *height = gi.EntityValue(ent->def, "height");
+	if (height->parsed & ENTITY_INTEGER) { // use the specified height
+		ent->locals.pos2.z -= height->integer;
 	} else
 		// or derive it from the model height
 	{
-		ent->locals.pos2[2] -= (ent->maxs[2] - ent->mins[2]) - g_game.spawn.lip;
+		ent->locals.pos2.z -= (ent->maxs.z - ent->mins.z) - ent->locals.lip;
 	}
 
 	ent->locals.Use = G_func_plat_Use;
@@ -581,7 +545,7 @@ void G_func_plat(g_entity_t *ent) {
 	if (ent->locals.target_name) {
 		ent->locals.move_info.state = MOVE_STATE_GOING_UP;
 	} else {
-		VectorCopy(ent->locals.pos2, ent->s.origin);
+		ent->s.origin = ent->locals.pos2;
 		ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 	}
 
@@ -592,12 +556,12 @@ void G_func_plat(g_entity_t *ent) {
 	ent->locals.move_info.decel = ent->locals.decel;
 	ent->locals.move_info.wait = ent->locals.wait;
 
-	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_origin);
-	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
-	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
-	VectorCopy(ent->s.angles, ent->locals.move_info.end_angles);
+	ent->locals.move_info.start_origin = ent->locals.pos1;
+	ent->locals.move_info.start_angles = ent->s.angles;
+	ent->locals.move_info.end_origin = ent->locals.pos2;
+	ent->locals.move_info.end_angles = ent->s.angles;
 
-	const int32_t s = g_game.spawn.sounds;
+	const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
 	if (s != -1) {
 		ent->locals.move_info.sound_start = gi.SoundIndex(va("world/plat_start_%d", s + 1));
 		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/plat_middle_%d", s + 1));
@@ -617,11 +581,11 @@ void G_func_plat(g_entity_t *ent) {
  */
 static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
                                   const cm_bsp_plane_t *plane,
-                                  const cm_bsp_texinfo_t *surf) {
+                                  const cm_bsp_texinfo_t *texinfo) {
 
 	if (self->locals.damage) {
-		if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
-			G_Damage(other, self, NULL, NULL, NULL, NULL, self->locals.damage, 1, 0, MOD_CRUSH);
+		if (!Vec3_Equal(self->locals.avelocity, Vec3_Zero())) {
+			G_Damage(other, self, NULL, Vec3_Zero(), other->s.origin, Vec3_Zero(), self->locals.damage, 1, 0, MOD_CRUSH);
 		}
 	}
 }
@@ -632,13 +596,13 @@ static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
 static void G_func_rotating_Use(g_entity_t *self, g_entity_t *other,
                                 g_entity_t *activator) {
 
-	if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
+	if (!Vec3_Equal(self->locals.avelocity, Vec3_Zero())) {
 		self->s.sound = 0;
-		VectorClear(self->locals.avelocity);
+		self->locals.avelocity = Vec3_Zero();
 		self->locals.Touch = NULL;
 	} else {
 		self->s.sound = self->locals.move_info.sound_middle;
-		VectorScale(self->locals.move_dir, self->locals.speed, self->locals.avelocity);
+		self->locals.avelocity = Vec3_Scale(self->locals.move_dir, self->locals.speed);
 		if (self->locals.spawn_flags & ROTATE_TOUCH_PAIN) {
 			self->locals.Touch = G_func_rotating_Touch;
 		}
@@ -672,20 +636,18 @@ void G_func_rotating(g_entity_t *ent) {
 	}
 
 	// set the axis of rotation
-	VectorClear(ent->locals.move_dir);
+	ent->locals.move_dir = Vec3_Zero();
 	if (ent->locals.spawn_flags & ROTATE_AXIS_X) {
-		ent->locals.move_dir[2] = 1.0;
+		ent->locals.move_dir.z = 1.0;
 	} else if (ent->locals.spawn_flags & ROTATE_AXIS_Y) {
-		ent->locals.move_dir[0] = 1.0;
-	} else
-		// Z_AXIS
-	{
-		ent->locals.move_dir[1] = 1.0;
+		ent->locals.move_dir.x = 1.0;
+	} else {
+		ent->locals.move_dir.y = 1.0;
 	}
 
 	// check for reverse rotation
 	if (ent->locals.spawn_flags & ROTATE_REVERSE) {
-		VectorNegate(ent->locals.move_dir, ent->locals.move_dir);
+		ent->locals.move_dir = Vec3_Negate(ent->locals.move_dir);
 	}
 
 	if (!ent->locals.speed) {
@@ -758,7 +720,7 @@ static void G_func_button_Activate(g_entity_t *self) {
 	move->state = MOVE_STATE_GOING_UP;
 
 	if (move->sound_start && !(self->locals.flags & FL_TEAM_SLAVE)) {
-		gi.Sound(self, move->sound_start, ATTEN_IDLE, 0);
+		gi.Sound(self, move->sound_start, SOUND_ATTEN_SQUARE, 0);
 	}
 
 	G_MoveInfo_Linear_Init(self, move->end_origin, G_func_button_Wait);
@@ -779,7 +741,7 @@ static void G_func_button_Use(g_entity_t *self, g_entity_t *other,
  */
 static void G_func_button_Touch(g_entity_t *self, g_entity_t *other,
                                 const cm_bsp_plane_t *plane,
-                                const cm_bsp_texinfo_t *surf) {
+                                const cm_bsp_texinfo_t *texinfo) {
 
 	if (!other->client) {
 		return;
@@ -821,16 +783,16 @@ static void G_func_button_Die(g_entity_t *self, g_entity_t *attacker,
  */
 void G_func_button(g_entity_t *ent) {
 	vec3_t abs_move_dir;
-	vec_t dist;
+	float dist;
 
-	G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
-	ent->locals.move_type = MOVE_TYPE_STOP;
+	G_SetMoveDir(ent);
+	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
 	gi.LinkEntity(ent);
 
-	if (g_game.spawn.sounds != -1) {
+	if (gi.EntityValue(ent->def, "sounds")->integer != -1) {
 		ent->locals.move_info.sound_start = gi.SoundIndex("world/switch");
 	}
 
@@ -842,17 +804,17 @@ void G_func_button(g_entity_t *ent) {
 		ent->locals.wait = 3.0;
 	}
 
-	if (!g_game.spawn.lip) {
-		g_game.spawn.lip = 4.0;
+	if (!ent->locals.lip) {
+		ent->locals.lip = 4.0;
 	}
 
-	VectorCopy(ent->s.origin, ent->locals.pos1);
-	abs_move_dir[0] = fabsf(ent->locals.move_dir[0]);
-	abs_move_dir[1] = fabsf(ent->locals.move_dir[1]);
-	abs_move_dir[2] = fabsf(ent->locals.move_dir[2]);
-	dist = abs_move_dir[0] * ent->size[0] + abs_move_dir[1] * ent->size[1]
-	       + abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
-	VectorMA(ent->locals.pos1, dist, ent->locals.move_dir, ent->locals.pos2);
+	ent->locals.pos1 = ent->s.origin;
+	abs_move_dir.x = fabsf(ent->locals.move_dir.x);
+	abs_move_dir.y = fabsf(ent->locals.move_dir.y);
+	abs_move_dir.z = fabsf(ent->locals.move_dir.z);
+	dist = abs_move_dir.x * ent->size.x + abs_move_dir.y * ent->size.y
+	       + abs_move_dir.z * ent->size.z - ent->locals.lip;
+	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(ent->locals.move_dir, dist));
 
 	ent->locals.Use = G_func_button_Use;
 
@@ -868,34 +830,17 @@ void G_func_button(g_entity_t *ent) {
 
 	ent->locals.move_info.speed = ent->locals.speed;
 	ent->locals.move_info.wait = ent->locals.wait;
-	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_origin);
-	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
-	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
-	VectorCopy(ent->s.angles, ent->locals.move_info.end_angles);
+	ent->locals.move_info.start_origin = ent->locals.pos1;
+	ent->locals.move_info.start_angles = ent->s.angles;
+	ent->locals.move_info.end_origin = ent->locals.pos2;
+	ent->locals.move_info.end_angles = ent->s.angles;
 }
 
-#define DOOR_START_OPEN		0x1
-#define DOOR_REVERSE		0x2
-#define DOOR_TOGGLE			0x20
-#define DOOR_X_AXIS			0x40
-#define DOOR_Y_AXIS			0x80
-
-/**
- * @brief
- */
-static void G_func_door_UseAreaPortals(g_entity_t *self, _Bool open) {
-	g_entity_t *t = NULL;
-
-	if (!self->locals.target) {
-		return;
-	}
-
-	while ((t = G_Find(t, LOFS(target_name), self->locals.target))) {
-		if (g_ascii_strcasecmp(t->class_name, "func_areaportal") == 0) {
-			gi.SetAreaPortalState(t->locals.area_portal, open);
-		}
-	}
-}
+#define DOOR_START_OPEN        0x1
+#define DOOR_TOGGLE            0x2
+#define DOOR_ROTATING_REVERSE  0x4
+#define DOOR_ROTATING_X_AXIS   0x8
+#define DOOR_ROTATING_Y_AXIS   0x10
 
 static void G_func_door_GoingDown(g_entity_t *self);
 
@@ -907,7 +852,7 @@ static void G_func_door_Top(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		self->s.sound = 0;
@@ -933,14 +878,13 @@ static void G_func_door_Bottom(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
 
 		self->s.sound = 0;
 	}
 
 	self->locals.move_info.state = MOVE_STATE_BOTTOM;
-	G_func_door_UseAreaPortals(self, false);
 }
 
 /**
@@ -949,7 +893,7 @@ static void G_func_door_Bottom(g_entity_t *self) {
 static void G_func_door_GoingDown(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
@@ -984,7 +928,7 @@ static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
@@ -996,7 +940,6 @@ static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
 	}
 
 	G_UseTargets(self, activator);
-	G_func_door_UseAreaPortals(self, true);
 }
 
 /**
@@ -1013,7 +956,7 @@ static void G_func_door_Use(g_entity_t *self, g_entity_t *other, g_entity_t *act
 		if (self->locals.move_info.state == MOVE_STATE_GOING_UP
 		        || self->locals.move_info.state == MOVE_STATE_TOP) {
 			// trigger all paired doors
-			for (ent = self; ent; ent = ent->locals.team_chain) {
+			for (ent = self; ent; ent = ent->locals.team_next) {
 				ent->locals.message = NULL;
 				ent->locals.Touch = NULL;
 				G_func_door_GoingDown(ent);
@@ -1023,7 +966,7 @@ static void G_func_door_Use(g_entity_t *self, g_entity_t *other, g_entity_t *act
 	}
 
 	// trigger all paired doors
-	for (ent = self; ent; ent = ent->locals.team_chain) {
+	for (ent = self; ent; ent = ent->locals.team_next) {
 		ent->locals.message = NULL;
 		ent->locals.Touch = NULL;
 		G_func_door_GoingUp(ent, activator);
@@ -1035,7 +978,7 @@ static void G_func_door_Use(g_entity_t *self, g_entity_t *other, g_entity_t *act
  */
 static void G_func_door_TouchTrigger(g_entity_t *self, g_entity_t *other,
                                      const cm_bsp_plane_t *plane,
-                                     const cm_bsp_texinfo_t *surf) {
+                                     const cm_bsp_texinfo_t *texinfo) {
 
 	if (other->locals.health <= 0) {
 		return;
@@ -1065,20 +1008,20 @@ static void G_func_door_CalculateMove(g_entity_t *self) {
 	}
 
 	// find the smallest distance any member of the team will be moving
-	vec_t min = fabsf(self->locals.move_info.distance);
-	for (ent = self->locals.team_chain; ent; ent = ent->locals.team_chain) {
-		vec_t dist = fabsf(ent->locals.move_info.distance);
+	float min = fabsf(self->locals.move_info.distance);
+	for (ent = self->locals.team_next; ent; ent = ent->locals.team_next) {
+		float dist = fabsf(ent->locals.move_info.distance);
 		if (dist < min) {
 			min = dist;
 		}
 	}
 
-	const vec_t time = min / self->locals.move_info.speed;
+	const float time = min / self->locals.move_info.speed;
 
 	// adjust speeds so they will all complete at the same time
-	for (ent = self; ent; ent = ent->locals.team_chain) {
-		const vec_t new_speed = fabsf(ent->locals.move_info.distance) / time;
-		const vec_t ratio = new_speed / ent->locals.move_info.speed;
+	for (ent = self; ent; ent = ent->locals.team_next) {
+		const float new_speed = fabsf(ent->locals.move_info.distance) / time;
+		const float ratio = new_speed / ent->locals.move_info.speed;
 		if (ent->locals.move_info.accel == ent->locals.move_info.speed) {
 			ent->locals.move_info.accel = new_speed;
 		} else {
@@ -1104,32 +1047,28 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 		return; // only the team leader spawns a trigger
 	}
 
-	VectorCopy(ent->abs_mins, mins);
-	VectorCopy(ent->abs_maxs, maxs);
+	mins = ent->abs_mins;
+	maxs = ent->abs_maxs;
 
-	for (trigger = ent->locals.team_chain; trigger; trigger = trigger->locals.team_chain) {
-		AddPointToBounds(trigger->abs_mins, mins, maxs);
-		AddPointToBounds(trigger->abs_maxs, mins, maxs);
+	for (trigger = ent->locals.team_next; trigger; trigger = trigger->locals.team_next) {
+		mins = Vec3_Minf(mins, trigger->abs_mins);
+		maxs = Vec3_Maxf(maxs, trigger->abs_maxs);
 	}
 
 	// expand
-	mins[0] -= 60;
-	mins[1] -= 60;
-	maxs[0] += 60;
-	maxs[1] += 60;
+	mins.x -= 60;
+	mins.y -= 60;
+	maxs.x += 60;
+	maxs.y += 60;
 
 	trigger = G_AllocEntity();
-	VectorCopy(mins, trigger->mins);
-	VectorCopy(maxs, trigger->maxs);
+	trigger->mins = mins;
+	trigger->maxs = maxs;
 	trigger->owner = ent;
 	trigger->solid = SOLID_TRIGGER;
 	trigger->locals.move_type = MOVE_TYPE_NONE;
 	trigger->locals.Touch = G_func_door_TouchTrigger;
 	gi.LinkEntity(trigger);
-
-	if (ent->locals.spawn_flags & DOOR_START_OPEN) {
-		G_func_door_UseAreaPortals(ent, true);
-	}
 
 	G_func_door_CalculateMove(ent);
 }
@@ -1146,11 +1085,11 @@ static void G_func_door_Blocked(g_entity_t *self, g_entity_t *other) {
 	if (self->locals.move_info.wait >= 0) {
 		g_entity_t *ent;
 		if (self->locals.move_info.state == MOVE_STATE_GOING_DOWN) {
-			for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain) {
+			for (ent = self->locals.team_master; ent; ent = ent->locals.team_next) {
 				G_func_door_GoingUp(ent, ent->locals.activator);
 			}
 		} else {
-			for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain) {
+			for (ent = self->locals.team_master; ent; ent = ent->locals.team_next) {
 				G_func_door_GoingDown(ent);
 			}
 		}
@@ -1164,7 +1103,7 @@ static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod
 
 	g_entity_t *ent;
 
-	for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain) {
+	for (ent = self->locals.team_master; ent; ent = ent->locals.team_next) {
 		ent->locals.health = ent->locals.max_health;
 		ent->locals.take_damage = false;
 	}
@@ -1177,7 +1116,7 @@ static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod
  */
 static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
                               const cm_bsp_plane_t *plane,
-                              const cm_bsp_texinfo_t *surf) {
+                              const cm_bsp_texinfo_t *texinfo) {
 
 	if (!other->client) {
 		return;
@@ -1195,10 +1134,10 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
 		gi.Unicast(other, true);
 	}
 
-	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTEN_NORM, 0);
+	gi.Sound(other, gi.SoundIndex("misc/chat"), SOUND_ATTEN_LINEAR, 0);
 }
 
-/*QUAKED func_door (0 .5 .8) ? start_open reverse x x x toggle
+/*QUAKED func_door (0 .5 .8) ? start_open x x x toggle
  A sliding door. By default, doors open when a player walks close to them.
 
  -------- Keys --------
@@ -1219,7 +1158,7 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
 void G_func_door(g_entity_t *ent) {
 	vec3_t abs_move_dir;
 
-	G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
+	G_SetMoveDir(ent);
 	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
@@ -1243,8 +1182,8 @@ void G_func_door(g_entity_t *ent) {
 		ent->locals.wait = 3.0;
 	}
 
-	if (!g_game.spawn.lip) {
-		g_game.spawn.lip = 8.0;
+	if (!ent->locals.lip) {
+		ent->locals.lip = 8.0;
 	}
 
 	if (!ent->locals.damage) {
@@ -1252,21 +1191,19 @@ void G_func_door(g_entity_t *ent) {
 	}
 
 	// calculate second position
-	VectorCopy(ent->s.origin, ent->locals.pos1);
-	abs_move_dir[0] = fabsf(ent->locals.move_dir[0]);
-	abs_move_dir[1] = fabsf(ent->locals.move_dir[1]);
-	abs_move_dir[2] = fabsf(ent->locals.move_dir[2]);
-	ent->locals.move_info.distance = abs_move_dir[0] * ent->size[0] +
-	                                 abs_move_dir[1] * ent->size[1] +
-	                                 abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
+	ent->locals.pos1 = ent->s.origin;
+	abs_move_dir = Vec3_Fabsf(ent->locals.move_dir);
+	ent->locals.move_info.distance = abs_move_dir.x * ent->size.x +
+	                                 abs_move_dir.y * ent->size.y +
+	                                 abs_move_dir.z * ent->size.z - ent->locals.lip;
 
-	VectorMA(ent->locals.pos1, ent->locals.move_info.distance, ent->locals.move_dir, ent->locals.pos2);
+	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(ent->locals.move_dir, ent->locals.move_info.distance));
 
 	// if it starts open, switch the positions
 	if (ent->locals.spawn_flags & DOOR_START_OPEN) {
-		VectorCopy(ent->locals.pos2, ent->s.origin);
-		VectorCopy(ent->locals.pos1, ent->locals.pos2);
-		VectorCopy(ent->s.origin, ent->locals.pos1);
+		ent->s.origin = ent->locals.pos2;
+		ent->locals.pos2 = ent->locals.pos1;
+		ent->locals.pos1 = ent->s.origin;
 	}
 
 	gi.LinkEntity(ent);
@@ -1286,12 +1223,12 @@ void G_func_door(g_entity_t *ent) {
 	ent->locals.move_info.decel = ent->locals.decel;
 	ent->locals.move_info.wait = ent->locals.wait;
 
-	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_origin);
-	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
-	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
-	VectorCopy(ent->s.angles, ent->locals.move_info.end_angles);
+	ent->locals.move_info.start_origin = ent->locals.pos1;
+	ent->locals.move_info.start_angles = ent->s.angles;
+	ent->locals.move_info.end_origin = ent->locals.pos2;
+	ent->locals.move_info.end_angles = ent->s.angles;
 
-	const int32_t s = g_game.spawn.sounds;
+	const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
 	if (s != -1) {
 		ent->locals.move_info.sound_start = gi.SoundIndex(va("world/door_start_%d", s + 1));
 		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/door_middle_%d", s + 1));
@@ -1311,15 +1248,15 @@ void G_func_door(g_entity_t *ent) {
 	}
 }
 
-/*QUAKED func_door_rotating (0 .5 .8) ? start_open reverse x x x toggle x_axis y_axis
+/*QUAKED func_door_rotating (0 .5 .8) ? start_open reverse toggle x_axis y_axis
  A door which rotates about an origin on its Z axis. By default, doors open when a player walks close to them.
 
  -------- Keys --------
  message : An optional string printed when the door is first touched.
  health : If set, door must take damage to open.
  speed : The speed with which the door opens (default 100).
+ rotation : The rotation the door will open, in degrees (default 90).
  wait : wait before returning (3 default, -1 = never return).
- lip : The lip remaining at end of move (default 8 units).
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
@@ -1332,31 +1269,28 @@ void G_func_door(g_entity_t *ent) {
  y_axis : The door will rotate along its Y axis.
  */
 void G_func_door_rotating(g_entity_t *ent) {
-	VectorClear(ent->s.angles);
+	ent->s.angles = Vec3_Zero();
 
 	// set the axis of rotation
-	VectorClear(ent->locals.move_dir);
-	if (ent->locals.spawn_flags & DOOR_X_AXIS) {
-		ent->locals.move_dir[2] = 1.0;
-	} else if (ent->locals.spawn_flags & DOOR_Y_AXIS) {
-		ent->locals.move_dir[0] = 1.0;
+	ent->locals.move_dir = Vec3_Zero();
+	if (ent->locals.spawn_flags & DOOR_ROTATING_X_AXIS) {
+		ent->locals.move_dir.z = 1.0;
+	} else if (ent->locals.spawn_flags & DOOR_ROTATING_Y_AXIS) {
+		ent->locals.move_dir.x = 1.0;
 	} else {
-		ent->locals.move_dir[1] = 1.0;
+		ent->locals.move_dir.y = 1.0;
 	}
 
 	// check for reverse rotation
-	if (ent->locals.spawn_flags & DOOR_REVERSE) {
-		VectorNegate(ent->locals.move_dir, ent->locals.move_dir);
+	if (ent->locals.spawn_flags & DOOR_ROTATING_REVERSE) {
+		ent->locals.move_dir = Vec3_Negate(ent->locals.move_dir);
 	}
 
-	if (!g_game.spawn.distance) {
-		gi.Debug("%s at %s with no distance\n", ent->class_name, vtos(ent->s.origin));
-		g_game.spawn.distance = 90.0;
-	}
+	const float rotation = gi.EntityValue(ent->def, "rotation")->value ?: 90.f;
 
-	VectorCopy(ent->s.angles, ent->locals.pos1);
-	VectorMA(ent->s.angles, g_game.spawn.distance, ent->locals.move_dir, ent->locals.pos2);
-	ent->locals.move_info.distance = g_game.spawn.distance;
+	ent->locals.pos1 = ent->s.angles;
+	ent->locals.pos2 = Vec3_Add(ent->s.angles, Vec3_Scale(ent->locals.move_dir, rotation));
+	ent->locals.move_info.distance = rotation;
 
 	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
@@ -1384,10 +1318,10 @@ void G_func_door_rotating(g_entity_t *ent) {
 
 	// if it starts open, switch the positions
 	if (ent->locals.spawn_flags & DOOR_START_OPEN) {
-		VectorCopy(ent->locals.pos2, ent->s.angles);
-		VectorCopy(ent->locals.pos1, ent->locals.pos2);
-		VectorCopy(ent->s.angles, ent->locals.pos1);
-		VectorNegate(ent->locals.move_dir, ent->locals.move_dir);
+		ent->s.angles = ent->locals.pos2;
+		ent->locals.pos2 = ent->locals.pos1;
+		ent->locals.pos1 = ent->s.angles;
+		ent->locals.move_dir = Vec3_Negate(ent->locals.move_dir);
 	}
 
 	if (ent->locals.health) {
@@ -1407,12 +1341,12 @@ void G_func_door_rotating(g_entity_t *ent) {
 	ent->locals.move_info.decel = ent->locals.decel;
 	ent->locals.move_info.wait = ent->locals.wait;
 
-	VectorCopy(ent->s.origin, ent->locals.move_info.start_origin);
-	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_angles);
-	VectorCopy(ent->s.origin, ent->locals.move_info.end_origin);
-	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_angles);
+	ent->locals.move_info.start_origin = ent->s.origin;
+	ent->locals.move_info.start_angles = ent->locals.pos1;
+	ent->locals.move_info.end_origin = ent->s.origin;
+	ent->locals.move_info.end_angles = ent->locals.pos2;
 
-	const int32_t s = g_game.spawn.sounds;
+	const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
 	if (s != -1) {
 		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/door_middle_%d", s + 1));
 	}
@@ -1430,6 +1364,161 @@ void G_func_door_rotating(g_entity_t *ent) {
 	} else {
 		ent->locals.Think = G_func_door_CreateTrigger;
 	}
+}
+
+#define SECRET_ALWAYS_SHOOT		1
+#define SECRET_FIRST_LEFT		2
+#define SECRET_FIRST_DOWN		4
+
+static void G_func_door_secret_Move1(g_entity_t *self);
+static void G_func_door_secret_Move2(g_entity_t *self);
+static void G_func_door_secret_Move3(g_entity_t *self);
+static void G_func_door_secret_Move4(g_entity_t *self);
+static void G_func_door_secret_Move5(g_entity_t *self);
+static void G_func_door_secret_Move6(g_entity_t *self);
+static void G_func_door_secret_Done(g_entity_t *self);
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
+                                   g_entity_t *activator) {
+
+	// make sure we're not already moving
+	if (!Vec3_Equal(self->s.origin, Vec3_Zero())) {
+		return;
+	}
+
+	G_MoveInfo_Linear_Init(self, self->locals.pos1, G_func_door_secret_Move1);
+
+	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
+		if (self->locals.move_info.sound_start) {
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
+		}
+
+		self->s.sound = self->locals.move_info.sound_middle;
+	}
+}
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Move1(g_entity_t *self) {
+
+	self->locals.next_think = g_level.time + 1000;
+	self->locals.Think = G_func_door_secret_Move2;
+}
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Move2(g_entity_t *self) {
+
+	G_MoveInfo_Linear_Init(self, self->locals.pos2, G_func_door_secret_Move3);
+}
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Move3(g_entity_t *self) {
+
+	if (self->locals.wait == -1.0) {
+		return;
+	}
+
+	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
+		if (self->locals.move_info.sound_end) {
+			gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
+		}
+
+		self->s.sound = 0;
+	}
+
+	self->locals.next_think = g_level.time + self->locals.wait * 1000;
+	self->locals.Think = G_func_door_secret_Move4;
+}
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Move4(g_entity_t *self) {
+
+	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
+		if (self->locals.move_info.sound_start) {
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
+		}
+
+		self->s.sound = self->locals.move_info.sound_middle;
+	}
+
+	G_MoveInfo_Linear_Init(self, self->locals.pos1, G_func_door_secret_Move5);
+}
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Move5(g_entity_t *self) {
+
+	self->locals.next_think = g_level.time + 1000;
+	self->locals.Think = G_func_door_secret_Move6;
+}
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Move6(g_entity_t *self) {
+
+	G_MoveInfo_Linear_Init(self, Vec3_Zero(), G_func_door_secret_Done);
+}
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Done(g_entity_t *self) {
+
+	if (!(self->locals.target_name) || (self->locals.spawn_flags & SECRET_ALWAYS_SHOOT)) {
+		self->locals.dead = true;
+		self->locals.take_damage = true;
+	}
+
+	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
+		if (self->locals.move_info.sound_end) {
+			gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
+		}
+
+		self->s.sound = 0;
+	}
+}
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
+
+	if (!other->client) {
+		return;
+	}
+
+	if (g_level.time < self->locals.touch_time) {
+		return;
+	}
+
+	self->locals.touch_time = g_level.time + 500;
+
+	G_Damage(other, self, self, Vec3_Zero(), other->s.origin, Vec3_Zero(), self->locals.damage, 1, 0, MOD_CRUSH);
+}
+
+/**
+ * @brief
+ */
+static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
+
+	self->locals.take_damage = false;
+	G_func_door_secret_Use(self, attacker, attacker);
 }
 
 /*QUAKED func_door_secret (0 .5 .8) ? always_shoot 1st_left 1st_down
@@ -1452,136 +1541,6 @@ always_shoot : The door will open when shot, even if it is targeted.
 first_left : The door will first slide to the left.
 first_down : The door will first slide down.
 */
-
-#define SECRET_ALWAYS_SHOOT		1
-#define SECRET_FIRST_LEFT		2
-#define SECRET_FIRST_DOWN		4
-
-static void G_func_door_secret_Move1(g_entity_t *self);
-static void G_func_door_secret_Move2(g_entity_t *self);
-static void G_func_door_secret_Move3(g_entity_t *self);
-static void G_func_door_secret_Move4(g_entity_t *self);
-static void G_func_door_secret_Move5(g_entity_t *self);
-static void G_func_door_secret_Move6(g_entity_t *self);
-static void G_func_door_secret_Done(g_entity_t *self);
-
-static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
-                                   g_entity_t *activator) {
-
-	// make sure we're not already moving
-	if (!VectorCompare(self->s.origin, vec3_origin)) {
-		return;
-	}
-
-	G_MoveInfo_Linear_Init(self, self->locals.pos1, G_func_door_secret_Move1);
-
-	G_func_door_UseAreaPortals(self, true);
-
-	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
-
-		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
-		}
-
-		self->s.sound = self->locals.move_info.sound_middle;
-	}
-}
-
-static void G_func_door_secret_Move1(g_entity_t *self) {
-
-	self->locals.next_think = g_level.time + 1000;
-	self->locals.Think = G_func_door_secret_Move2;
-}
-
-static void G_func_door_secret_Move2(g_entity_t *self) {
-
-	G_MoveInfo_Linear_Init(self, self->locals.pos2, G_func_door_secret_Move3);
-}
-
-static void G_func_door_secret_Move3(g_entity_t *self) {
-
-	if (self->locals.wait == -1.0) {
-		return;
-	}
-
-	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
-
-		if (self->locals.move_info.sound_end) {
-			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
-		}
-
-		self->s.sound = 0;
-	}
-
-	self->locals.next_think = g_level.time + self->locals.wait * 1000;
-	self->locals.Think = G_func_door_secret_Move4;
-}
-
-static void G_func_door_secret_Move4(g_entity_t *self) {
-
-	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
-
-		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
-		}
-
-		self->s.sound = self->locals.move_info.sound_middle;
-	}
-
-	G_MoveInfo_Linear_Init(self, self->locals.pos1, G_func_door_secret_Move5);
-}
-
-static void G_func_door_secret_Move5(g_entity_t *self) {
-
-	self->locals.next_think = g_level.time + 1000;
-	self->locals.Think = G_func_door_secret_Move6;
-}
-
-static void G_func_door_secret_Move6(g_entity_t *self) {
-
-	G_MoveInfo_Linear_Init(self, vec3_origin, G_func_door_secret_Done);
-}
-
-static void G_func_door_secret_Done(g_entity_t *self) {
-
-	if (!(self->locals.target_name) || (self->locals.spawn_flags & SECRET_ALWAYS_SHOOT)) {
-		self->locals.dead = true;
-		self->locals.take_damage = true;
-	}
-
-	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
-
-		if (self->locals.move_info.sound_end) {
-			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
-		}
-
-		self->s.sound = 0;
-	}
-
-	G_func_door_UseAreaPortals(self, false);
-}
-
-static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
-
-	if (!other->client) {
-		return;
-	}
-
-	if (g_level.time < self->locals.touch_time) {
-		return;
-	}
-
-	self->locals.touch_time = g_level.time + 500;
-
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1, 0, MOD_CRUSH);
-}
-
-static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
-
-	self->locals.take_damage = false;
-	G_func_door_secret_Use(self, attacker, attacker);
-}
-
 void G_func_door_secret(g_entity_t *ent) {
 	vec3_t forward, right, up;
 
@@ -1612,7 +1571,7 @@ void G_func_door_secret(g_entity_t *ent) {
 
 	ent->locals.move_info.speed = ent->locals.speed;
 
-	const int32_t s = g_game.spawn.sounds;
+	const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
 	if (s != -1) {
 		ent->locals.move_info.sound_start = gi.SoundIndex(va("world/door_start_%d", s + 1));
 		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/door_middle_%d", s + 1));
@@ -1620,27 +1579,27 @@ void G_func_door_secret(g_entity_t *ent) {
 	}
 
 	// calculate positions
-	AngleVectors(ent->s.angles, forward, right, up);
-	VectorClear(ent->s.angles);
+	Vec3_Vectors(ent->s.angles, &forward, &right, &up);
+	ent->s.angles = Vec3_Zero();
 
-	const vec_t side = 1.0 - (ent->locals.spawn_flags & SECRET_FIRST_LEFT);
+	const float side = 1.0 - (ent->locals.spawn_flags & SECRET_FIRST_LEFT);
 
-	const vec_t length = fabsf(DotProduct(forward, ent->size));
+	const float length = fabsf(Vec3_Dot(forward, ent->size));
 
-	vec_t width;
+	float width;
 	if (ent->locals.spawn_flags & SECRET_FIRST_DOWN) {
-		width = fabsf(DotProduct(up, ent->size));
+		width = fabsf(Vec3_Dot(up, ent->size));
 	} else {
-		width = fabsf(DotProduct(right, ent->size));
+		width = fabsf(Vec3_Dot(right, ent->size));
 	}
 
 	if (ent->locals.spawn_flags & SECRET_FIRST_DOWN) {
-		VectorMA(ent->s.origin, -1.0 * width, up, ent->locals.pos1);
+		ent->locals.pos1 = Vec3_Add(ent->s.origin, Vec3_Scale(up, -1.0 * width));
 	} else {
-		VectorMA(ent->s.origin, side * width, right, ent->locals.pos1);
+		ent->locals.pos1 = Vec3_Add(ent->s.origin, Vec3_Scale(right, side * width));
 	}
 
-	VectorMA(ent->locals.pos1, length, forward, ent->locals.pos2);
+	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(forward, length));
 
 	if (ent->locals.health) {
 		ent->locals.take_damage = true;
@@ -1675,6 +1634,12 @@ static void G_func_wall_Use(g_entity_t *self, g_entity_t *other,
 	}
 }
 
+#define WALL_TRIGGER   0x1
+#define WALL_TOGGLE    0x2
+#define WALL_START_ON  0x4
+
+#define WALL_SPAWN_FLAGS (WALL_TRIGGER | WALL_TOGGLE | WALL_START_ON)
+
 /*QUAKED func_wall (0 .5 .8) ? triggered toggle start_on
  A solid that may spawn into existence via trigger.
 
@@ -1690,30 +1655,23 @@ void G_func_wall(g_entity_t *self) {
 	self->locals.move_type = MOVE_TYPE_PUSH;
 	gi.SetModel(self, self->model);
 
-	// just a wall
-	if ((self->locals.spawn_flags & 7) == 0) {
+	if ((self->locals.spawn_flags & WALL_SPAWN_FLAGS) == 0) {
 		self->solid = SOLID_BSP;
 		gi.LinkEntity(self);
 		return;
 	}
 
-	// it must be TRIGGER_SPAWN
-	if (!(self->locals.spawn_flags & 1)) {
-		gi.Debug("Missing TRIGGER_SPAWN\n");
-		self->locals.spawn_flags |= 1;
-	}
+	// it must be triggered to use start_on or toggle
+	self->locals.spawn_flags |= WALL_TRIGGER;
 
-	// yell if the spawnflags are odd
-	if (self->locals.spawn_flags & 4) {
-		if (!(self->locals.spawn_flags & 2)) {
-			gi.Debug("START_ON without TOGGLE\n");
-			self->locals.spawn_flags |= 2;
-		}
+	// and if it's start_on, it must be toggled
+	if (self->locals.spawn_flags & WALL_START_ON) {
+		self->locals.spawn_flags |= WALL_TOGGLE;
 	}
 
 	self->locals.Use = G_func_wall_Use;
 
-	if (self->locals.spawn_flags & 4) {
+	if (self->locals.spawn_flags & WALL_START_ON) {
 		self->solid = SOLID_BSP;
 	} else {
 		self->solid = SOLID_NOT;
@@ -1739,32 +1697,31 @@ void G_func_wall(g_entity_t *self) {
 void G_func_water(g_entity_t *self) {
 	vec3_t abs_move_dir;
 
-	G_SetMoveDir(self->s.angles, self->locals.move_dir);
+	G_SetMoveDir(self);
 	self->locals.move_type = MOVE_TYPE_PUSH;
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);
 
 	// calculate second position
-	VectorCopy(self->s.origin, self->locals.pos1);
-	abs_move_dir[0] = fabsf(self->locals.move_dir[0]);
-	abs_move_dir[1] = fabsf(self->locals.move_dir[1]);
-	abs_move_dir[2] = fabsf(self->locals.move_dir[2]);
-	self->locals.move_info.distance = abs_move_dir[0] * self->size[0]
-	                                  + abs_move_dir[1] * self->size[1] + abs_move_dir[2] * self->size[2] - g_game.spawn.lip;
-	VectorMA(self->locals.pos1, self->locals.move_info.distance, self->locals.move_dir,
-	         self->locals.pos2);
+	self->locals.pos1 = self->s.origin;
+	abs_move_dir = Vec3_Fabsf(self->locals.move_dir);
+	self->locals.move_info.distance = abs_move_dir.x * self->size.x +
+									  abs_move_dir.y * self->size.y +
+									  abs_move_dir.z * self->size.z - self->locals.lip;
+
+	self->locals.pos2 = Vec3_Add(self->locals.pos1, Vec3_Scale(self->locals.move_dir, self->locals.move_info.distance));
 
 	// if it starts open, switch the positions
 	if (self->locals.spawn_flags & DOOR_START_OPEN) {
-		VectorCopy(self->locals.pos2, self->s.origin);
-		VectorCopy(self->locals.pos1, self->locals.pos2);
-		VectorCopy(self->s.origin, self->locals.pos1);
+		self->s.origin = self->locals.pos2;
+		self->locals.pos2 = self->locals.pos1;
+		self->locals.pos1 = self->s.origin;
 	}
 
-	VectorCopy(self->locals.pos1, self->locals.move_info.start_origin);
-	VectorCopy(self->s.angles, self->locals.move_info.start_angles);
-	VectorCopy(self->locals.pos2, self->locals.move_info.end_origin);
-	VectorCopy(self->s.angles, self->locals.move_info.end_angles);
+	self->locals.move_info.start_origin = self->locals.pos1;
+	self->locals.move_info.start_angles = self->s.angles;
+	self->locals.move_info.end_origin = self->locals.pos2;
+	self->locals.move_info.end_angles = self->s.angles;
 
 	self->locals.move_info.state = MOVE_STATE_BOTTOM;
 
@@ -1802,10 +1759,10 @@ static void G_func_train_Wait(g_entity_t *self) {
 
 	if (self->locals.target_ent->locals.path_target) {
 		g_entity_t *ent = self->locals.target_ent;
-		char *savetarget = ent->locals.target;
+		const char *target = ent->locals.target;
 		ent->locals.target = ent->locals.path_target;
 		G_UseTargets(ent, self->locals.activator);
-		ent->locals.target = savetarget;
+		ent->locals.target = target;
 
 		// make sure we didn't get killed by a killtarget
 		if (!self->in_use) {
@@ -1820,13 +1777,13 @@ static void G_func_train_Wait(g_entity_t *self) {
 		} else if (self->locals.spawn_flags & TRAIN_TOGGLE) {
 			G_func_train_Next(self);
 			self->locals.spawn_flags &= ~TRAIN_START_ON;
-			VectorClear(self->locals.velocity);
+			self->locals.velocity = Vec3_Zero();
 			self->locals.next_think = 0;
 		}
 
 		if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 			if (self->locals.move_info.sound_end) {
-				gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE, 0);
+				gi.Sound(self, self->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 			}
 			self->s.sound = 0;
 		}
@@ -1851,7 +1808,7 @@ again:
 
 	ent = G_PickTarget(self->locals.target);
 	if (!ent) {
-		gi.Debug("%s has invalid target %s\n", etos(self), self->locals.target);
+		G_Debug("%s has invalid target %s\n", etos(self), self->locals.target);
 		return;
 	}
 
@@ -1860,11 +1817,11 @@ again:
 	// check for a teleport path_corner
 	if (ent->locals.spawn_flags & 1) {
 		if (!first) {
-			gi.Debug("%s has teleport path_corner %s\n", etos(self), etos(ent));
+			G_Debug("%s has teleport path_corner %s\n", etos(self), etos(ent));
 			return;
 		}
 		first = false;
-		VectorSubtract(ent->s.origin, self->mins, self->s.origin);
+		self->s.origin = Vec3_Subtract(ent->s.origin, self->mins);
 		self->s.event = EV_CLIENT_TELEPORT;
 		gi.LinkEntity(self);
 		goto again;
@@ -1875,15 +1832,15 @@ again:
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start) {
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE, 0);
+			gi.Sound(self, self->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
 
-	VectorSubtract(ent->s.origin, self->mins, dest);
+	dest = Vec3_Subtract(ent->s.origin, self->mins);
 	self->locals.move_info.state = MOVE_STATE_TOP;
-	VectorCopy(self->s.origin, self->locals.move_info.start_origin);
-	VectorCopy(dest, self->locals.move_info.end_origin);
+	self->locals.move_info.start_origin = self->s.origin;
+	self->locals.move_info.end_origin = dest;
 	G_MoveInfo_Linear_Init(self, dest, G_func_train_Wait);
 	self->locals.spawn_flags |= TRAIN_START_ON;
 }
@@ -1897,10 +1854,10 @@ static void G_func_train_Resume(g_entity_t *self) {
 
 	ent = self->locals.target_ent;
 
-	VectorSubtract(ent->s.origin, self->mins, dest);
+	dest = Vec3_Subtract(ent->s.origin, self->mins);
 	self->locals.move_info.state = MOVE_STATE_TOP;
-	VectorCopy(self->s.origin, self->locals.move_info.start_origin);
-	VectorCopy(dest, self->locals.move_info.end_origin);
+	self->locals.move_info.start_origin = self->s.origin;
+	self->locals.move_info.end_origin = dest;
 	G_MoveInfo_Linear_Init(self, dest, G_func_train_Wait);
 	self->locals.spawn_flags |= TRAIN_START_ON;
 }
@@ -1912,17 +1869,17 @@ static void G_func_train_Find(g_entity_t *self) {
 	g_entity_t *ent;
 
 	if (!self->locals.target) {
-		gi.Debug("No target specified\n");
+		G_Debug("No target specified\n");
 		return;
 	}
 	ent = G_PickTarget(self->locals.target);
 	if (!ent) {
-		gi.Debug("Target \"%s\" not found\n", self->locals.target);
+		G_Debug("Target \"%s\" not found\n", self->locals.target);
 		return;
 	}
 	self->locals.target = ent->locals.target;
 
-	VectorSubtract(ent->s.origin, self->mins, self->s.origin);
+	self->s.origin = Vec3_Subtract(ent->s.origin, self->mins);
 	gi.LinkEntity(self);
 
 	// if not triggered, start immediately
@@ -1949,7 +1906,7 @@ static void G_func_train_Use(g_entity_t *self, g_entity_t *other,
 			return;
 		}
 		self->locals.spawn_flags &= ~TRAIN_START_ON;
-		VectorClear(self->locals.velocity);
+		self->locals.velocity = Vec3_Zero();
 		self->locals.next_think = 0;
 	} else {
 		if (self->locals.target_ent) {
@@ -1961,12 +1918,14 @@ static void G_func_train_Use(g_entity_t *self, g_entity_t *other,
 }
 
 /*QUAKED func_train (0 .5 .8) ? start_on toggle block_stops
- Trains are moving solids that players can ride along a series of path_corners. The origin of each corner specifies the lower bounding point of the train at that corner. If the train is the target of a button or trigger, it will not begin moving until activated.
+ Trains are moving solids that players can ride along a series of path_corners. The origin of
+ each corner specifies the lower bounding point of the train at that corner. If the train is
+ the target of a button or trigger, it will not begin moving until activated.
 
  -------- Keys --------
  speed : The speed with which the train moves (default 100).
  dmg : The damage inflicted on players who block the train (default 2).
- noise : The looping sound to play while the train is in motion.
+ sound : The looping sound to play while the train is in motion.
  targetname : The target name of this entity if it is to be triggered.
 
  -------- Spawn flags --------
@@ -1977,7 +1936,7 @@ static void G_func_train_Use(g_entity_t *self, g_entity_t *other,
 void G_func_train(g_entity_t *self) {
 	self->locals.move_type = MOVE_TYPE_PUSH;
 
-	VectorClear(self->s.angles);
+	self->s.angles = Vec3_Zero();
 
 	if (self->locals.spawn_flags & TRAIN_BLOCK_STOPS) {
 		self->locals.damage = 0;
@@ -1989,8 +1948,9 @@ void G_func_train(g_entity_t *self) {
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);
 
-	if (g_game.spawn.noise) {
-		self->locals.move_info.sound_middle = gi.SoundIndex(g_game.spawn.noise);
+	const char *sound = gi.EntityValue(self->def, "sound")->string;
+	if (*sound) {
+		self->locals.move_info.sound_middle = gi.SoundIndex(sound);
 	}
 
 	if (!self->locals.speed) {
@@ -2010,7 +1970,7 @@ void G_func_train(g_entity_t *self) {
 		self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		self->locals.Think = G_func_train_Find;
 	} else {
-		gi.Debug("No target: %s\n", vtos(self->s.origin));
+		G_Debug("No target: %s\n", vtos(self->s.origin));
 	}
 }
 
@@ -2022,7 +1982,7 @@ static void G_func_timer_Think(g_entity_t *self) {
 	G_UseTargets(self, self->locals.activator);
 
 	const uint32_t wait = self->locals.wait * 1000;
-	const uint32_t rand = self->locals.random * 1000 * Randomc();
+	const uint32_t rand = self->locals.random * 1000 * RandomRangef(-1.f, 1.f);
 
 	self->locals.next_think = g_level.time + wait + rand;
 }
@@ -2071,14 +2031,14 @@ void G_func_timer(g_entity_t *self) {
 
 	if (self->locals.random >= self->locals.wait) {
 		self->locals.random = self->locals.wait - QUETOO_TICK_SECONDS;
-		gi.Debug("random >= wait: %s\n", vtos(self->s.origin));
+		G_Debug("random >= wait: %s\n", vtos(self->s.origin));
 	}
 
 	if (self->locals.spawn_flags & 1) {
 
 		const uint32_t delay = self->locals.delay * 1000;
 		const uint32_t wait = self->locals.wait * 1000;
-		const uint32_t rand = self->locals.random * 1000 * Randomc();
+		const uint32_t rand = self->locals.random * 1000 * RandomRangef(-1.f, 1.f);
 
 		self->locals.next_think = g_level.time + delay + wait + rand;
 		self->locals.activator = self;

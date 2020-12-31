@@ -50,8 +50,8 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 
 		SDL_SetRelativeMouseMode(false);
 
-		const r_pixel_t cx = r_context.window_width * 0.5;
-		const r_pixel_t cy = r_context.window_height * 0.5;
+		const r_pixel_t cx = r_context.width * 0.5;
+		const r_pixel_t cy = r_context.height * 0.5;
 
 		SDL_WarpMouseInWindow(r_context.window, cx, cy);
 	}
@@ -215,7 +215,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 				g_strlcat(in->buffer, tail, sizeof(in->buffer));
 				g_free(tail);
 
-				in->pos = Min(in->pos + strlen(text), sizeof(in->buffer) - 1);
+				in->pos = Minf(in->pos + strlen(text), sizeof(in->buffer) - 1);
 			}
 			break;
 
@@ -520,7 +520,7 @@ void Cl_InitKeys(void) {
 
 	cl_key_names = Mem_TagMalloc(SDL_NUM_SCANCODES * sizeof(char *), MEM_TAG_CLIENT);
 
-	for (SDL_Scancode k = SDLK_UNKNOWN; k <= SDL_SCANCODE_APP2; k++) {
+	for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
 		const char *name = SDL_GetScancodeName(k);
 		if (strlen(name)) {
 			cl_key_names[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), cl_key_names);
