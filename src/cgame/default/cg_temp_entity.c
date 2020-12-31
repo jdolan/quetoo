@@ -470,16 +470,16 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (int32_t i = 0; i < count; i++) {
-		const float hue = color_hue_yellow + RandomRangef(-20.f, 20.f);
+		const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
 		const float sat = RandomRangef(.7f, 1.f);
 
 		if (!Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_spark,
 				.origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f)),
-				.velocity = Vec3_Add(Vec3_Scale(dir, 4.f), Vec3_RandomRange(-90.f, 90.f)),
-				.acceleration = Vec3_Add(Vec3_RandomRange(-1.f, 1.f), Vec3(0.f, 0.f, -0.5 * SPRITE_GRAVITY)),
+				.velocity = Vec3_Add(Vec3_Scale(dir, 16.f), Vec3_RandomRange(-90.f, 90.f)),
+				.acceleration = Vec3_Add(Vec3_RandomRange(-1.f, 1.f), Vec3(0.f, 0.f, -SPRITE_GRAVITY)),
 				.lifetime = 500 + Randomf() * 250,
-				.size = RandomRangef(.4f, .8f),
+				.size = RandomRangef(1.f, 3.f),
 				.bounce = .6f,
 				.color = Vec4(hue, sat, RandomRangef(.7f, 1.f), RandomRangef(.56f, 1.f)),
 				.end_color = Vec4(hue, sat, 0.f, 0.f)
@@ -498,7 +498,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_sparks,
 		.origin = org,
-		.atten = SOUND_ATTEN_CUBIC,
+		.atten = SOUND_ATTEN_SQUARE,
 		.flags = S_PLAY_POSITIONED
 	});
 }
