@@ -479,7 +479,7 @@ static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
 		const r_image_t *image = (const r_image_t *) media;
 		char path[MAX_OS_PATH];
 
-		g_snprintf(path, sizeof(path), "imgdmp/%s %i", media->name, image->texnum, true);
+		g_snprintf(path, sizeof(path), "imgdmp/%s %i", media->name, image->texnum);
 
 		R_DumpImage(image, path, true);
 	}
