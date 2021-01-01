@@ -94,6 +94,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	switch (ch->play.atten) {
 		case SOUND_ATTEN_NONE:
 			atten = 0.f;
+			break;
 		case SOUND_ATTEN_LINEAR:
 			atten = 1.f;
 			break;
