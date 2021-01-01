@@ -19,8 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL.h>
+
 #include "s_local.h"
-#include "client.h"
 
 // the sound environment
 s_env_t s_env;
@@ -31,9 +32,6 @@ cvar_t *s_effects;
 cvar_t *s_effects_volume;
 cvar_t *s_rate;
 cvar_t *s_volume;
-
-extern cl_client_t cl;
-extern cl_static_t cls;
 
 /**
  * @brief Check and report OpenAL errors.
@@ -191,10 +189,10 @@ void S_Frame(void) {
 
 	S_FrameMusic();
 
-	if (cls.state != CL_ACTIVE) {
-		S_Stop();
-		return;
-	}
+//	if (cls.state != CL_ACTIVE) {
+//		S_Stop();
+//		return;
+//	}
 
 	if (s_env.update) {
 		s_env.update = false;
@@ -202,59 +200,6 @@ void S_Frame(void) {
 	}
 
 	S_MixChannels();
-}
-
-/**
- * @brief Loads all media for the sound subsystem.
- */
-void S_LoadMedia(void) {
-	extern cl_client_t cl;
-
-	if (!s_env.context) {
-		return;
-	}
-
-	if (!cl.config_strings[CS_MODELS][0]) {
-		return; // no map specified
-	}
-
-	S_ClearPlaylist();
-
-	S_BeginLoading();
-
-	Cl_LoadingProgress(-1, "sounds");
-
-	if (*cl_chat_sound->string) {
-		S_LoadSample(cl_chat_sound->string);
-	}
-
-	if (*cl_team_chat_sound->string) {
-		S_LoadSample(cl_team_chat_sound->string);
-	}
-
-	for (uint32_t i = 0; i < MAX_SOUNDS; i++) {
-
-		if (!cl.config_strings[CS_SOUNDS + i][0]) {
-			break;
-		}
-
-		cl.sound_precache[i] = S_LoadSample(cl.config_strings[CS_SOUNDS + i]);
-	}
-
-	for (uint32_t i = 0; i < MAX_MUSICS; i++) {
-
-		if (!cl.config_strings[CS_MUSICS + i][0]) {
-			break;
-		}
-
-		cl.music_precache[i] = S_LoadMusic(cl.config_strings[CS_MUSICS + i]);
-	}
-
-	S_NextTrack_f();
-
-	Cl_LoadingProgress(-3, "music");
-
-	s_env.update = true;
 }
 
 /**
@@ -282,29 +227,29 @@ static void S_Stop_f(void) {
  */
 void S_Restart_f(void) {
 
-	if (cls.state == CL_LOADING) {
-		return;
-	}
-
-	S_Shutdown();
-
-	S_Init();
-
-	const cl_state_t state = cls.state;
-
-	if (cls.state == CL_ACTIVE) {
-		cls.state = CL_LOADING;
-	}
-
-	cls.loading.percent = 0;
-	cls.cgame->UpdateLoading(cls.loading);
-
-	S_LoadMedia();
-
-	cls.loading.percent = 100;
-	cls.cgame->UpdateLoading(cls.loading);
-
-	cls.state = state;
+//	if (cls.state == CL_LOADING) {
+//		return;
+//	}
+//
+//	S_Shutdown();
+//
+//	S_Init();
+//
+//	const cl_state_t state = cls.state;
+//
+//	if (cls.state == CL_ACTIVE) {
+//		cls.state = CL_LOADING;
+//	}
+//
+//	cls.loading.percent = 0;
+//	cls.cgame->UpdateLoading(cls.loading);
+//
+//	S_LoadMedia();
+//
+//	cls.loading.percent = 100;
+//	cls.cgame->UpdateLoading(cls.loading);
+//
+//	cls.state = state;
 }
 
 /**

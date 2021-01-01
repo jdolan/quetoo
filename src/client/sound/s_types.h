@@ -26,7 +26,7 @@
 
 #include "s_al_ext.h"
 
-#include <SDL_rwops.h>
+#include <SDL_audio.h>
 
 #include <sndfile.h>
 

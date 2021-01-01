@@ -124,15 +124,100 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 }
 
 /**
+ * @brief
+ */
+static void Cl_LoadModels(void) {
+
+	for (int32_t i = 0; i < MAX_MODELS; i++) {
+
+		const char *str = cl.config_strings[CS_MODELS + i];
+		if (*str == 0) {
+			break;
+		}
+
+		Cl_LoadingProgress(-4, str);
+
+		cl.model_precache[i] = R_LoadModel(str);
+	}
+}
+
+/**
+ * @brief
+ * TODO: Use an atlas here?
+ */
+static void Cl_LoadImages(void) {
+
+	Cl_LoadingProgress(-1, "sky");
+	R_LoadSky(cl.config_strings[CS_SKY]);
+
+	for (int32_t i = 0; i < MAX_IMAGES; i++) {
+
+		const char *str = cl.config_strings[CS_IMAGES + i];
+		if (*str == 0) {
+			break;
+		}
+
+		Cl_LoadingProgress(-1, str);
+
+		cl.image_precache[i] = R_LoadImage(str, IT_PIC);
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cl_LoadSounds(void) {
+
+	if (*cl_chat_sound->string) {
+		S_LoadSample(cl_chat_sound->string);
+	}
+
+	if (*cl_team_chat_sound->string) {
+		S_LoadSample(cl_team_chat_sound->string);
+	}
+
+	for (int32_t i = 0; i < MAX_SOUNDS; i++) {
+
+		const char *str = cl.config_strings[CS_SOUNDS + i];
+		if (*str == 0) {
+			break;
+		}
+
+		Cl_LoadingProgress(-1, str);
+
+		cl.sound_precache[i] = S_LoadSample(str);
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cl_LoadMusics(void) {
+
+	S_ClearPlaylist();
+
+	for (int32_t i = 0; i < MAX_MUSICS; i++) {
+
+		const char *str = cl.config_strings[CS_MUSICS + i];
+		if (*str == 0) {
+			break;
+		}
+
+		Cl_LoadingProgress(-1, str);
+
+		cl.music_precache[i] = S_LoadMusic(str);
+	}
+
+	S_NextTrack_f();
+}
+
+/**
  * @brief Load all game media through the relevant subsystems. This is called when
- * spawning into a server. For incremental reloads on subsystem restarts,
- * see Cl_UpdateMedia.
+ * spawning into a server. For incremental reloads on subsystem restarts, see Cl_UpdateMedia.
  */
 void Cl_LoadMedia(void) {
 
 	cls.state = CL_LOADING;
-
-	// Mapshot
 
 	GList *mapshots = Cl_Mapshots(cl.config_strings[CS_MODELS]);
 	const size_t len = g_list_length(mapshots);
@@ -147,15 +232,27 @@ void Cl_LoadMedia(void) {
 
 	Cl_UpdatePrediction();
 
-	R_LoadMedia();
+	R_BeginLoading();
 
-	S_LoadMedia();
+	Cl_LoadingProgress(0, cl.config_strings[CS_MODELS]);
+
+	Cl_LoadModels();
+
+	Cl_LoadImages();
+
+	S_BeginLoading();
+
+	Cl_LoadSounds();
+
+	Cl_LoadMusics();
 
 	Cl_LoadingProgress(-1, "cgame");
 
 	cls.cgame->UpdateMedia();
 
 	Cl_LoadingProgress(100, "ready");
+
+	R_FreeUnseededMedia();
 
 	Cl_SetKeyDest(KEY_GAME);
 }
@@ -170,5 +267,9 @@ void Cl_UpdateMedia(void) {
 		Com_Debug(DEBUG_CLIENT, "%s %s\n", r_view.update ? "view" : "", s_env.update ? "sound" : "");
 
 		cls.cgame->UpdateMedia();
+
+		R_FreeUnseededMedia();
+
+		S_FreeMedia();
 	}
 }

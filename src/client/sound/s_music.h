@@ -23,13 +23,13 @@
 
 extern cvar_t *s_music_volume;
 
-#ifdef __S_LOCAL_H__
-
+s_music_t *S_LoadMusic(const char *name);
 void S_ClearPlaylist(void);
+void S_NextTrack_f(void);
+
+#ifdef __S_LOCAL_H__
 void S_FrameMusic(void);
 void S_InitMusic(void);
-s_music_t *S_LoadMusic(const char *name);
-void S_NextTrack_f(void);
 void S_ShutdownMusic(void);
 
 #endif /* __S_LOCAL_H__ */

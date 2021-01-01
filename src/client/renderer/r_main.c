@@ -26,7 +26,6 @@
 #endif
 
 #include "r_local.h"
-#include "client.h"
 
 r_view_t r_view;
 r_locals_t r_locals;
@@ -74,9 +73,6 @@ cvar_t *r_stains;
 cvar_t *r_texture_mode;
 cvar_t *r_swap_interval;
 cvar_t *r_width;
-
-extern cl_client_t cl;
-extern cl_static_t cls;
 
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
@@ -329,9 +325,9 @@ static void R_Clear(void) {
 	}
 
 	// or if the client is not fully loaded
-	if (cls.state != CL_ACTIVE) {
-		bits |= GL_COLOR_BUFFER_BIT;
-	}
+//	if (cls.state != CL_ACTIVE) {
+//		bits |= GL_COLOR_BUFFER_BIT;
+//	}
 
 	// or if the client is no-clipping around the world
 	if (r_view.contents & CONTENTS_SOLID) {
@@ -350,9 +346,7 @@ void R_BeginFrame(void) {
 
 	R_Clear();
 
-	if (cls.state == CL_ACTIVE) {
-		memset(&r_view, 0, sizeof(r_view));
-	}
+	memset(&r_view, 0, sizeof(r_view));
 }
 
 /**
@@ -434,70 +428,7 @@ void R_EndFrame(void) {
 
 	R_Draw2D();
 
-	if (cls.state == CL_ACTIVE) {
-
-		if (r_view.update) {
-			R_FreeUnseededMedia();
-		}
-	}
-
 	SDL_GL_SwapWindow(r_context.window);
-}
-
-/**
- * @brief Initializes the view and locals structures so that loading may begin.
- */
-static void R_InitView(void) {
-
-	memset(&r_view, 0, sizeof(r_view));
-
-	memset(&r_locals, 0, sizeof(r_locals));
-}
-
-/**
- * @brief Loads all media for the renderer subsystem.
- */
-void R_LoadMedia(void) {
-
-	if (!cl.config_strings[CS_MODELS][0]) {
-		return; // no map specified
-	}
-
-	R_InitView();
-
-	Cl_LoadingProgress(0, cl.config_strings[CS_MODELS]);
-
-	R_BeginLoading();
-
-	Cl_LoadingProgress(-1, "world");
-
-	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
-
-	Cl_LoadingProgress(-1, "models");
-
-	// load all other models
-	for (int32_t i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
-
-		if (i & 1) {
-			Cl_LoadingProgress(-1, cl.config_strings[CS_MODELS + i]);
-		}
-
-		cl.model_precache[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
-	}
-
-	Cl_LoadingProgress(-1, "images");
-
-	// load all known images
-	for (int32_t i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
-		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC); // FIXME: Atlas?
-	}
-
-	Cl_LoadingProgress(-1, "sky");
-
-	// sky environment map
-	R_SetSky(cl.config_strings[CS_SKY]);
-
-	r_view.update = true;
 }
 
 /**
@@ -507,7 +438,7 @@ void R_LoadMedia(void) {
  */
 static void R_Restart_f(void) {
 
-	if (cls.state == CL_LOADING) {
+	/*if (cls.state == CL_LOADING) {
 		return;
 	}
 
@@ -540,7 +471,7 @@ static void R_Restart_f(void) {
 	cls.loading.percent = 100;
 	cls.cgame->UpdateLoading(cls.loading);
 
-	cls.state = state;
+	cls.state = state;*/
 }
 
 /**
@@ -611,6 +542,8 @@ static void R_InitLocal(void) {
 	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
 	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
 	Cmd_Add("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM | CMD_RENDERER, "Toggle fullscreen");
+
+	memset(&r_locals, 0, sizeof(r_locals));
 }
 
 /**
@@ -756,8 +689,6 @@ void R_Init(void) {
 	R_InitDraw3D();
 
 	R_InitModels();
-
-	R_InitView();
 
 	R_InitSprites();
 

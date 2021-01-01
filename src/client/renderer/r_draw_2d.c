@@ -20,7 +20,6 @@
  */
 
 #include "r_local.h"
-#include "client.h"
 
 /**
  * @brief The font type.

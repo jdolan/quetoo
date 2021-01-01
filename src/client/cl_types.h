@@ -215,9 +215,9 @@ typedef struct {
 
 	// caches of indexed assets to be referenced by the server
 	r_model_t *model_precache[MAX_MODELS];
+	r_image_t *image_precache[MAX_IMAGES];
 	s_sample_t *sound_precache[MAX_SOUNDS];
 	s_music_t *music_precache[MAX_MUSICS];
-	r_image_t *image_precache[MAX_IMAGES];
 
 	cl_client_info_t client_info[MAX_CLIENTS];
 } cl_client_t;
