@@ -38,6 +38,17 @@
     <ClCompile Include="..\src\ai\default\ai_main.c" />
     <ClCompile Include="..\src\ai\default\ai_node.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="libs\libpmove.vcxproj">
+      <Project>{b1e86937-5a7a-48f6-9dab-a1d2900c3ae1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libshared.vcxproj">
+      <Project>{2f1c792e-6243-462b-af0d-e2554e77d5c5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libswap.vcxproj">
+      <Project>{c22daae7-0044-4b19-a369-28de8f2c661d}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}</ProjectGuid>
     <RootNamespace>ai</RootNamespace>
@@ -63,7 +74,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>glib-2.0.lib;libswap.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glib-2.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>ai.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
