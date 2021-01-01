@@ -50,7 +50,7 @@ typedef struct {
 static GLuint R_FindOrAppendObjVertex(r_mesh_face_t *face, const r_mesh_vertex_t *v) {
 
 	for (int32_t i = 0; i < face->num_vertexes; i++) {
-		if (!memcmp(&v, face->vertexes + i, sizeof(*v))) {
+		if (!memcmp(v, face->vertexes + i, sizeof(*v))) {
 			return i;
 		}
 	}

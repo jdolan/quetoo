@@ -62,7 +62,7 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 
 	Com_Debug(DEBUG_CLIENT, "Attempting to download %s\n", filename);
 
-	strncpy(cls.download.name, filename, sizeof(cls.download.name));
+	g_strlcpy(cls.download.name, filename, sizeof(cls.download.name));
 
 	// UDP downloads to a temp name, and only renames when done
 	StripExtension(cls.download.name, cls.download.tempname);

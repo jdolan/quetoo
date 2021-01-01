@@ -220,8 +220,7 @@ static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, c
 	// TODO: maybe first check if the paths actually exist?
 
 	char format_path[MAX_QPATH];
-	strncpy(format_path, base_path, MAX_QPATH);
-	strncat(format_path, seq_num_fmt, MAX_QPATH);
+	g_snprintf(format_path, sizeof(format_path), "%s%s", base_path, seq_num_fmt);
 
 	char name[MAX_QPATH];
 	const uint32_t length = (last_frame - first_frame) + 1;

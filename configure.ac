@@ -209,18 +209,17 @@ dnl -----------------------------------
 dnl Sort out OpenAL flags and libraries
 dnl -----------------------------------
 
-AC_CHECK_HEADER(AL/al.h,
-	PHYSFS_LIBS="-lphysfs -lz",
-	[AC_MSG_ERROR([Could not find AL/al.h, please install OpenAL])]
-)
-
 HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
-AC_SEARCH_LIBS(alGetError, [OpenAL32, openal],
-	HOST_OPENAL_LIBS="$ac_cv_search_function_alGetError",
-	[AC_MSG_ERROR([Could not find library containing alGetError(), please install OpenAL])]
-)
+case "$host" in
+	*-mingw*)
+		HOST_OPENAL_LIBS="-lOpenAL32"
+		;;
+	*)
+		HOST_OPENAL_LIBS="-lopenal"
+		;;
+esac
 
 AC_SUBST(HOST_OPENAL_CFLAGS)
 AC_SUBST(HOST_OPENAL_LIBS)

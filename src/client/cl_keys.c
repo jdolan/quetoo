@@ -283,7 +283,7 @@ static void Cl_KeyChat(const SDL_Event *event) {
 				} else {
 					out = va("say %s^7", in->buffer);
 				}
-				strncpy(in->buffer, out, sizeof(in->buffer));
+				g_strlcpy(in->buffer, out, sizeof(in->buffer));
 				Con_SubmitInput(&cl_chat_console);
 
 				Cl_SetKeyDest(KEY_GAME);

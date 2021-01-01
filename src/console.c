@@ -69,7 +69,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 /**
  * @brief Frees the specified console_str_t.
  */
-static void Con_FreeString(console_string_t *str, gpointer user_data) {
+static void Con_FreeString(console_string_t *str) {
 
 	if (str) {
 		g_free(str->chars);
@@ -78,11 +78,25 @@ static void Con_FreeString(console_string_t *str, gpointer user_data) {
 }
 
 /**
+ * @brief GFunc flavor of Con_FreeString.
+ */
+static void Con_FreeString_GFunc(gpointer data, gpointer user_data) {
+	Con_FreeString(data);
+}
+
+/**
+ * @brief GDestroyNotify flavor of Con_FreeString.
+ */
+static void Con_FreeString_GDestroyNotify(gpointer data) {
+	Con_FreeString(data);
+}
+
+/**
  * @brief Frees all console_str_t.
  */
 static void Con_FreeStrings(void) {
 
-	g_queue_foreach(&console_state.strings, (GFunc) Con_FreeString, NULL);
+	g_queue_foreach(&console_state.strings, Con_FreeString_GFunc, NULL);
 	g_queue_clear(&console_state.strings);
 
 	console_state.size = 0;
@@ -170,7 +184,7 @@ void Con_Append(int32_t level, const char *string) {
 		g_queue_unlink(&console_state.strings, first);
 		console_state.size -= str->size;
 
-		g_list_free_full(first, (GDestroyNotify) Con_FreeString);
+		g_list_free_full(first, Con_FreeString_GDestroyNotify);
 	}
 
 	SDL_UnlockMutex(console_state.lock);
