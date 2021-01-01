@@ -93,6 +93,47 @@
   <ItemGroup>
     <ResourceCompile Include="..\src\tools\quemap\quemap-icon.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="libs\libatlas.vcxproj">
+      <Project>{d8d2fe47-8f7f-4f88-8baa-f42f0fb669d5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libcmodel.vcxproj">
+      <Project>{76ebd445-3535-4652-be8b-7de4f03591ce}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libcommon.vcxproj">
+      <Project>{99c2a2a7-35f3-4a06-ae2f-8b98db2e4bfd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libfilesystem.vcxproj">
+      <Project>{817cecdd-9a82-4ea6-bc55-500462cfae0a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libimage.vcxproj">
+      <Project>{978d57a2-1735-4cfc-bf47-795a87a71a87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libmatrix.vcxproj">
+      <Project>{61be87b2-5e0b-43ef-af67-a6561f929364}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libmem.vcxproj">
+      <Project>{6689d02e-8034-4d5f-804e-935d444af5c8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libnet.vcxproj">
+      <Project>{07da2cea-0340-40c6-b389-357b69130815}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libparse.vcxproj">
+      <Project>{fef51acc-31f2-41ac-b562-41f5c5988088}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libshared.vcxproj">
+      <Project>{2f1c792e-6243-462b-af0d-e2554e77d5c5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libswap.vcxproj">
+      <Project>{c22daae7-0044-4b19-a369-28de8f2c661d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libsys.vcxproj">
+      <Project>{e12cf546-a3c4-4c3f-ab70-073a4e0795dd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libthread.vcxproj">
+      <Project>{5be97b66-53b4-4521-a905-92ac882dc02c}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{082FC21A-6D83-4960-9C9E-5C4B71409E92}</ProjectGuid>
     <RootNamespace>quemap</RootNamespace>
@@ -121,7 +162,7 @@
       <PreprocessorDefinitions>QUETOO_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libatlas.lib;libparse.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;dbghelp.lib;Wldap32.lib;physfs.lib;libxml2.lib;ws2_32.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;dbghelp.lib;Wldap32.lib;physfs.lib;libxml2.lib;ws2_32.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <StackReserveSize Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">88536064</StackReserveSize>
       <StackCommitSize Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">88536064</StackCommitSize>
