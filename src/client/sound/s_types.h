@@ -259,7 +259,7 @@ typedef struct {
 	 * @brief The mixed channels.
 	 */
 	s_channel_t channels[MAX_CHANNELS];
-	int32_t num_channels;
+	int32_t num_active_channels;
 
 	/**
 	 * @brief The OpenAL sound sources.

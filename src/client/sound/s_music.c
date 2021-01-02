@@ -23,14 +23,14 @@
 
 #include "s_local.h"
 
-static cvar_t *s_music_buffer_count;
-static cvar_t *s_music_buffer_size;
-
 cvar_t *s_music_volume;
+
+#define MUSIC_BUFFERS 8
+#define MUSIC_BUFFER_SIZE 16384
 
 static struct {
 	ALuint source;
-	ALuint *music_buffers;
+	ALuint music_buffers[MUSIC_BUFFERS];
 	float *raw_frame_buffer;
 	int16_t *frame_buffer;
 	size_t resample_frame_buffer_size;
@@ -175,7 +175,7 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 		return;
 	}
 
-	int32_t buffers_processed = s_music_buffer_count->integer;
+	int32_t buffers_processed = MUSIC_BUFFERS;
 
 	if (!setup_buffers) {
 		// if we're EOF, we can quit here and just let the source expire buffers
@@ -198,7 +198,7 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 	// go through the buffers we have left to add and start decoding
 	for (i = 0; i < buffers_processed; i++) {
 
-		const sf_count_t wanted_frames = (s_music_buffer_size->integer / sizeof(*s_music_state.frame_buffer)) / music->info.channels;
+		const sf_count_t wanted_frames = (MUSIC_BUFFER_SIZE / sizeof(*s_music_state.frame_buffer)) / music->info.channels;
 		sf_count_t frames = sf_readf_float(music->snd, s_music_state.raw_frame_buffer, wanted_frames) * music->info.channels;
 
 		if (!frames) {
@@ -218,7 +218,7 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 
 		if (setup_buffers) {
 			buffer = s_music_state.music_buffers[s_music_state.next_buffer];
-			s_music_state.next_buffer = (s_music_state.next_buffer + 1) % s_music_buffer_count->integer;
+			s_music_state.next_buffer = (s_music_state.next_buffer + 1) % MUSIC_BUFFERS;
 		} else {
 			alSourceUnqueueBuffers(s_music_state.source, 1, &buffer);
 		}
@@ -323,14 +323,6 @@ static int S_MusicThread(void *data) {
  */
 void S_RenderMusic(void) {
 
-	if (s_music_buffer_count->modified ||
-		s_music_buffer_size->modified) {
-		S_Restart_f();
-
-		s_music_buffer_size->modified = s_music_buffer_count->modified = false;
-		return;
-	}
-	
 	SDL_LockMutex(s_music_state.mutex);
 
 	if (s_music_volume->modified) {
@@ -387,19 +379,13 @@ void S_InitMusic(void) {
 
 	memset(&s_music_state, 0, sizeof(s_music_state));
 	
-	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_ARCHIVE | CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
-	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_ARCHIVE | CVAR_S_MEDIA, "The size of each buffer for music streaming.");	
 	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 
-	s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(float) * s_music_buffer_size->value, MEM_TAG_SOUND);
-	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
+	s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(float) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
+	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
 	s_music_state.resample_frame_buffer = NULL;
 
 	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
-
-	s_music_buffer_count->modified = 
-		s_music_buffer_size->modified = 
-		s_music_volume->modified = false;
 
 	alGenSources(1, &s_music_state.source);
 	
@@ -410,8 +396,7 @@ void S_InitMusic(void) {
 
 	alSourcef(s_music_state.source, AL_GAIN, s_music_volume->value);
 
-	s_music_state.music_buffers = Mem_TagMalloc(sizeof(ALuint) * s_music_buffer_count->integer, MEM_TAG_SOUND);
-	alGenBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
+	alGenBuffers(MUSIC_BUFFERS, s_music_state.music_buffers);
 
 	if (!*s_music_state.music_buffers) {
 		Com_Warn("Couldn't allocate buffers: %s\n", alGetString(alGetError()));
@@ -435,11 +420,9 @@ void S_ShutdownMusic(void) {
 
 	if (s_music_state.source) {
 		alDeleteSources(1, &s_music_state.source);
-		alDeleteBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
+		alDeleteBuffers(MUSIC_BUFFERS, s_music_state.music_buffers);
 
 		S_GetError(NULL);
-		
-		Mem_Free(s_music_state.music_buffers);
 	}
 
 	if (s_music_state.thread) {

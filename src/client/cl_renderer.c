@@ -19,14 +19,39 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "cl_local.h"
 
-void S_RenderStage(s_stage_t *stage);
-void S_Init(void);
-void S_Shutdown(void);
-void S_Stop(void);
+/**
+ * @brief Restarts the renderer subsystem.
+ */
+void Cl_R_Restart_f(void) {
 
-#ifdef __S_LOCAL_H__
-void S_GetError_(const char *function, const char *msg);
-#define S_GetError(msg) S_GetError_(__func__, msg)
-#endif /* __S_LOCAL_H__ */
+	if (cls.state == CL_LOADING) {
+		return;
+	}
+
+	Ui_HandleEvent(&(const SDL_Event) {
+		.window.type = SDL_WINDOWEVENT,
+		.window.event = SDL_WINDOWEVENT_CLOSE
+	});
+
+	R_Shutdown();
+
+	R_Init();
+
+	const cl_state_t state = cls.state;
+
+	Cl_LoadMedia();
+
+	cls.state = state;
+}
+
+/**
+ * @brief Toggles fullscreen vs windowed mode.
+ */
+void Cl_R_ToggleFullscreen_f(void) {
+
+	Cvar_Toggle("r_fullscreen");
+
+	Cl_R_Restart_f();
+}

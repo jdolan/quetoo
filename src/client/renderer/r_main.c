@@ -429,59 +429,6 @@ void R_EndFrame(void) {
 }
 
 /**
- * @brief Restarts the renderer subsystem. The OpenGL context is discarded and
- * recreated. All media is reloaded. Other subsystems can elect to refresh
- * their media references by inspecting r_view.update.
- */
-static void R_Restart_f(void) {
-
-	/*if (cls.state == CL_LOADING) {
-		return;
-	}
-
-	extern void Ui_HandleEvent(const SDL_Event *event);
-
-	Ui_HandleEvent(&(const SDL_Event) {
-		.window.type = SDL_WINDOWEVENT,
-		.window.event = SDL_WINDOWEVENT_CLOSE
-	});
-
-	R_Shutdown();
-
-	R_Init();
-
-	extern void Cl_HandleEvents(void);
-
-	Cl_HandleEvents();
-
-	const cl_state_t state = cls.state;
-
-	if (cls.state == CL_ACTIVE) {
-		cls.state = CL_LOADING;
-	}
-
-	cls.loading.percent = 0;
-	cls.cgame->UpdateLoading(cls.loading);
-
-	R_LoadMedia();
-
-	cls.loading.percent = 100;
-	cls.cgame->UpdateLoading(cls.loading);
-
-	cls.state = state;*/
-}
-
-/**
- * @brief Toggles fullscreen vs windowed mode.
- */
-static void R_ToggleFullscreen_f(void) {
-
-	Cvar_Toggle("r_fullscreen");
-
-	R_Restart_f();
-}
-
-/**
  * @brief Initializes console variables and commands for the renderer.
  */
 static void R_InitLocal(void) {
@@ -534,10 +481,8 @@ static void R_InitLocal(void) {
 	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool)");
 	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool)");
 	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
-	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");
 	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
 	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
-	Cmd_Add("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM | CMD_RENDERER, "Toggle fullscreen");
 
 	memset(&r_locals, 0, sizeof(r_locals));
 }

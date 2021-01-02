@@ -21,12 +21,9 @@
 
 #pragma once
 
-void S_RenderStage(s_stage_t *stage);
-void S_Init(void);
-void S_Shutdown(void);
-void S_Stop(void);
+#include "cl_types.h"
 
-#ifdef __S_LOCAL_H__
-void S_GetError_(const char *function, const char *msg);
-#define S_GetError(msg) S_GetError_(__func__, msg)
-#endif /* __S_LOCAL_H__ */
+#ifdef __CL_LOCAL_H__
+void Cl_S_Restart_f(void);
+void Cl_S_AddSample(const s_play_sample_t *play);
+#endif /* __CL_LOCAL_H__ */

@@ -260,7 +260,7 @@ static void Cl_DrawSoundStats(void) {
 	R_Draw2DString(x, y, "Sound:", color_magenta);
 	y += ch;
 
-	R_Draw2DString(x, y, va("%d channels", s_context.num_channels), color_magenta);
+	R_Draw2DString(x, y, va("%d channels", s_context.num_active_channels), color_magenta);
 	y += ch;
 
 	for (int32_t i = 0; i < MAX_CHANNELS; i++) {

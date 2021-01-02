@@ -19,14 +19,43 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "cl_local.h"
 
-void S_RenderStage(s_stage_t *stage);
-void S_Init(void);
-void S_Shutdown(void);
-void S_Stop(void);
+/**
+ * @brief
+ */
+void Cl_S_Restart_f(void) {
 
-#ifdef __S_LOCAL_H__
-void S_GetError_(const char *function, const char *msg);
-#define S_GetError(msg) S_GetError_(__func__, msg)
-#endif /* __S_LOCAL_H__ */
+	if (cls.state == CL_LOADING) {
+		return;
+	}
+
+	S_Shutdown();
+
+	S_Init();
+
+	const cl_state_t state = cls.state;
+
+	Cl_LoadMedia();
+
+	cls.state = state;
+}
+
+/**
+ * @brief Wraps S_AddSample, handling collision interactions for convenience.
+ */
+void Cl_S_AddSample(const s_play_sample_t *play) {
+
+	s_play_sample_t s = *play;
+
+	if (Cl_PointContents(s.origin) & CONTENTS_MASK_LIQUID) {
+		s.flags |= S_PLAY_UNDERWATER;
+	}
+
+	const cm_trace_t tr = Cl_Trace(s_stage.origin, s.origin, Vec3_Zero(), Vec3_Zero(), s.entity, CONTENTS_MASK_CLIP_PROJECTILE);
+	if (tr.fraction < 1.f) {
+		s.flags |= S_PLAY_OCCLUDED;
+	}
+
+	S_AddSample(&s);
+}

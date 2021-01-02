@@ -126,13 +126,6 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
  */
 void S_MixChannels(void) {
 
-	if (s_effects->modified) {
-		S_Restart_f();
-
-		s_effects->modified = false;
-		return;
-	}
-
 	if (s_doppler->modified) {
 		alDopplerFactor(.05f * s_doppler->value);
 	}
@@ -150,7 +143,7 @@ void S_MixChannels(void) {
 		alListenerfv(AL_VELOCITY, Vec3_Zero().xyz);
 	}
 
-	s_context.num_channels = 0;
+	s_context.num_active_channels = 0;
 
 	s_channel_t *ch = s_context.channels;
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
@@ -228,7 +221,7 @@ void S_MixChannels(void) {
 
 		S_GetError(ch->play.sample->media.name);
 
-		s_context.num_channels++;
+		s_context.num_active_channels++;
 	}
 }
 

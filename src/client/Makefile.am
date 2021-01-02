@@ -19,8 +19,10 @@ noinst_HEADERS = \
 	cl_mouse.h \
 	cl_parse.h \
 	cl_predict.h \
+	cl_renderer.h \
 	cl_screen.h \
 	cl_server.h \
+	cl_sound.h \
 	cl_types.h \
 	client.h
 
@@ -42,8 +44,10 @@ libclient_la_SOURCES = \
 	cl_mouse.c \
 	cl_parse.c \
 	cl_predict.c \
+	cl_renderer.c \
 	cl_screen.c \
-	cl_server.c
+	cl_server.c \
+	cl_sound.c
 
 libclient_la_CFLAGS = \
 	-I$(top_srcdir)/src \

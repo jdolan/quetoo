@@ -263,36 +263,6 @@ static void S_Stop_f(void) {
 }
 
 /**
- * @brief
- */
-void S_Restart_f(void) {
-
-//	if (cls.state == CL_LOADING) {
-//		return;
-//	}
-//
-//	S_Shutdown();
-//
-//	S_Init();
-//
-//	const cl_state_t state = cls.state;
-//
-//	if (cls.state == CL_ACTIVE) {
-//		cls.state = CL_LOADING;
-//	}
-//
-//	cls.loading.percent = 0;
-//	cls.cgame->UpdateLoading(cls.loading);
-//
-//	S_LoadMedia();
-//
-//	cls.loading.percent = 100;
-//	cls.cgame->UpdateLoading(cls.loading);
-//
-//	cls.state = state;
-}
-
-/**
  * @brief Initializes variables and commands for the sound subsystem.
  */
 static void S_InitLocal(void) {
@@ -301,7 +271,7 @@ static void S_InitLocal(void) {
 
 	s_ambient_volume = Cvar_Add("s_ambient_volume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
 	s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
-	s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_MEDIA, "Enables advanced sound effects.");
+	s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables advanced sound effects.");
 	s_effects_volume = Cvar_Add("s_effects_volume", "1", CVAR_ARCHIVE, "Effects sound volume.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_volume = Cvar_Add("s_volume", "1", CVAR_ARCHIVE, "Master sound volume level.");
@@ -310,7 +280,6 @@ static void S_InitLocal(void) {
 
 	Cmd_Add("s_list_media", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
 	Cmd_Add("s_play", S_Play_f, CMD_SOUND, NULL);
-	Cmd_Add("s_restart", S_Restart_f, CMD_SOUND, "Restart the sound subsystem");
 	Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
 }
 

@@ -44,6 +44,8 @@
 #include "cl_mouse.h"
 #include "cl_parse.h"
 #include "cl_predict.h"
+#include "cl_renderer.h"
 #include "cl_screen.h"
 #include "cl_server.h"
+#include "cl_sound.h"
 #include "cl_types.h"
