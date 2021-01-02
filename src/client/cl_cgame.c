@@ -127,6 +127,25 @@ static char *Cl_ConfigString(int32_t index) {
 }
 
 /**
+ * @brief Wraps S_AddSample, handling collision interactions for convenience.
+ */
+static void Cl_AddSample(const s_play_sample_t *play) {
+
+	s_play_sample_t s = *play;
+
+	if (Cl_PointContents(s.origin) & CONTENTS_MASK_LIQUID) {
+		s.flags |= S_PLAY_UNDERWATER;
+	}
+
+	const cm_trace_t tr = Cl_Trace(s_stage.origin, s.origin, Vec3_Zero(), Vec3_Zero(), s.entity, CONTENTS_MASK_CLIP_PROJECTILE);
+	if (tr.fraction < 1.f) {
+		s.flags |= S_PLAY_OCCLUDED;
+	}
+
+	S_AddSample(&s);
+}
+
+/**
  * @brief Initializes the client game subsystem
  */
 void Cl_InitCgame(void) {
@@ -233,7 +252,7 @@ void Cl_InitCgame(void) {
 	import.LoadSample = S_LoadSample;
 	import.LoadClientModelSample = S_LoadClientModelSample;
 	import.LoadClientModelSamples = S_LoadClientModelSamples;
-	import.AddSample = S_AddSample;
+	import.AddSample = Cl_AddSample;
 
 	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;
