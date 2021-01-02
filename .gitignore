@@ -5,6 +5,7 @@
 *.exe
 *.la
 *.lo
+*.manifest
 *.o
 *.swp
 .deps/
