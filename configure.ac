@@ -212,14 +212,10 @@ dnl -----------------------------------
 HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
-case "$host" in
-	*-mingw*)
-		HOST_OPENAL_LIBS="-lOpenAL32"
-		;;
-	*)
-		HOST_OPENAL_LIBS="-lopenal"
-		;;
-esac
+AC_SEARCH_LIBS(alGetError, [openal OpenAL32],
+	HOST_OPENAL_LIBS="$ac_cv_search_function_alGetError",
+	[AC_MSG_ERROR([Could not find library containing alGetError(), please install OpenAL])]
+)
 
 AC_SUBST(HOST_OPENAL_CFLAGS)
 AC_SUBST(HOST_OPENAL_LIBS)
