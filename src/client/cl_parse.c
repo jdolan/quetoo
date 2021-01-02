@@ -365,7 +365,6 @@ static void Cl_ParsePrint(void) {
  * @brief
  */
 static void Cl_ParseSound(void) {
-	int32_t index;
 
 	s_play_sample_t play = {
 		.flags = 0,
@@ -374,18 +373,23 @@ static void Cl_ParseSound(void) {
 
 	const byte flags = Net_ReadByte(&net_message);
 
-	if ((index = Net_ReadByte(&net_message)) > MAX_SOUNDS) {
-		Com_Error(ERROR_DROP, "Bad index (%d)\n", index);
+	const int32_t sound = Net_ReadByte(&net_message);
+	if (sound >= MAX_SOUNDS) {
+		Com_Error(ERROR_DROP, "Bad sound (%d)\n", sound);
 	}
 
-	play.sample = cl.sounds[index];
-
-	// Always use this since it also holds Z offset information
+	play.sample = cl.sounds[sound];
 	play.atten = Net_ReadByte(&net_message);
 
-	if (flags & S_ENTITY) { // entity relative
+	if (flags & S_ENTITY) {
 		play.entity = Net_ReadShort(&net_message);
-		play.origin = cl.entities[play.entity].current.origin;
+
+		const cl_entity_t *ent = &cl.entities[play.entity];
+		if (ent->current.solid == SOLID_BSP) {
+			play.origin = Vec3_Scale(Vec3_Add(ent->abs_mins, ent->abs_maxs), .5f);
+		} else {
+			play.origin = cl.entities[play.entity].current.origin;
+		}
 	} else {
 		play.entity = -1;
 	}
