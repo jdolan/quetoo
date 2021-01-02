@@ -36,6 +36,7 @@ The following dependencies are required:
  * [ObjectivelyMVC](https://github.com/jdolan/ObjectivelyMVC/)
  * [PhysicsFS](https://icculus.org/physfs/)
  * [OpenAL](https://www.openal.org/)
+ * [libsndfile](http://mega-nerd.com/libsndfile/)
  * [glib2](https://developer.gnome.org/glib/)
  * [ncurses](https://www.gnu.org/software/ncurses/)
  * [libxml2](http://xmlsoft.org/)
