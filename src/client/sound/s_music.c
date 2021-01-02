@@ -22,14 +22,13 @@
 #include <SDL_timer.h>
 
 #include "s_local.h"
-#include "client.h"
 
 static cvar_t *s_music_buffer_count;
 static cvar_t *s_music_buffer_size;
 
 cvar_t *s_music_volume;
 
-typedef struct s_music_state_s {
+static struct {
 	ALuint source;
 	ALuint *music_buffers;
 	float *raw_frame_buffer;
@@ -44,9 +43,7 @@ typedef struct s_music_state_s {
 	SDL_Thread *thread; // thread sound system runs on
 	SDL_mutex *mutex; // mutex for music state
 	_Bool shutdown;
-} s_music_state_t;
-
-static s_music_state_t s_music_state;
+} s_music_state;
 
 /**
  * @brief Retain event listener for s_music_t.
@@ -159,7 +156,7 @@ s_music_t *S_LoadMusic(const char *name) {
 /**
  * @brief Stops music playback.
  */
-static void S_StopMusic(void) {
+void S_StopMusic(void) {
 
 	alSourceStop(s_music_state.source);
 	S_GetError(NULL);
@@ -325,8 +322,6 @@ static int S_MusicThread(void *data) {
  * completes.
  */
 void S_RenderMusic(void) {
-	extern cl_static_t cls;
-	static cl_state_t last_state = CL_UNINITIALIZED;
 
 	if (s_music_buffer_count->modified ||
 		s_music_buffer_size->modified) {
@@ -337,14 +332,6 @@ void S_RenderMusic(void) {
 	}
 	
 	SDL_LockMutex(s_music_state.mutex);
-
-	// revert to the default music when the client disconnects
-	if (last_state == CL_ACTIVE && cls.state != CL_ACTIVE) {
-		S_ClearPlaylist();
-		S_StopMusic();
-	}
-
-	last_state = cls.state;
 
 	if (s_music_volume->modified) {
 		const float volume = Clampf(s_music_volume->value, 0.0, 1.0);
@@ -435,9 +422,7 @@ void S_InitMusic(void) {
 
 	s_music_state.mutex = SDL_CreateMutex();
 
-	if (Thread_Count()) {
-		s_music_state.thread = SDL_CreateThread(S_MusicThread, __func__, NULL);
-	}
+	s_music_state.thread = SDL_CreateThread(S_MusicThread, __func__, NULL);
 }
 
 /**

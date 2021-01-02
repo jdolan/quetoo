@@ -252,7 +252,10 @@ void Cl_ClearState(void) {
 
 	S_Stop();
 
-	// wipe the entire cl_client_t structure
+	S_ClearPlaylist();
+
+	S_StopMusic();
+
 	memset(&cl, 0, sizeof(cl));
 
 	Mem_ClearBuffer(&cls.net_chan.message);
