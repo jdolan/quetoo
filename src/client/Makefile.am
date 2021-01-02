@@ -22,7 +22,6 @@ noinst_HEADERS = \
 	cl_screen.h \
 	cl_server.h \
 	cl_types.h \
-	cl_view.h \
 	client.h
 
 noinst_LTLIBRARIES = \
@@ -44,8 +43,7 @@ libclient_la_SOURCES = \
 	cl_parse.c \
 	cl_predict.c \
 	cl_screen.c \
-	cl_server.c \
-	cl_view.c
+	cl_server.c
 
 libclient_la_CFLAGS = \
 	-I$(top_srcdir)/src \

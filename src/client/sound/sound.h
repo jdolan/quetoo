@@ -30,7 +30,7 @@
 #include "s_music.h"
 #include "s_sample.h"
 
-extern s_env_t s_env;
+extern s_context_t s_context;
 
 extern cvar_t *s_ambient_volume;
 extern cvar_t *s_doppler;

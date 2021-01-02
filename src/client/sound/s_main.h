@@ -21,13 +21,13 @@
 
 #pragma once
 
-void S_Frame(void);
-void S_LoadMedia(void);
+void S_RenderStage(s_stage_t *stage);
 void S_Init(void);
 void S_Shutdown(void);
 void S_Stop(void);
-void S_CheckALError(void);
 
 #ifdef __S_LOCAL_H__
+void S_GetError_(const char *function, const char *msg);
+#define S_GetError(msg) S_GetError_(__func__, msg)
 void S_Restart_f(void);
 #endif /* __S_LOCAL_H__ */

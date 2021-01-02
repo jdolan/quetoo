@@ -33,19 +33,16 @@
 #include "r_gl_types.h"
 
 /**
- * @brief Media identifier type
+ * @brief Media types.
  */
 typedef enum {
-	R_MEDIA_GENERIC, // unknown/generic type
-	R_MEDIA_IMAGE, // r_image_t
-	R_MEDIA_ATLAS, // r_atlas_t
-	R_MEDIA_ATLAS_IMAGE, // r_atlas_image_t
-	R_MEDIA_ANIMATION, // r_animation_t
-
-	R_MEDIA_MODEL, // r_model_t
-
-	R_MEDIA_MATERIAL, // r_material_t
-
+	R_MEDIA_GENERIC,
+	R_MEDIA_IMAGE,
+	R_MEDIA_ATLAS,
+	R_MEDIA_ATLAS_IMAGE,
+	R_MEDIA_ANIMATION,
+	R_MEDIA_MODEL,
+	R_MEDIA_MATERIAL,
 	R_MEDIA_TOTAL
 } r_media_type_t;
 

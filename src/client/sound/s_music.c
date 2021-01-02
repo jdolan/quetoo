@@ -162,7 +162,7 @@ s_music_t *S_LoadMusic(const char *name) {
 static void S_StopMusic(void) {
 
 	alSourceStop(s_music_state.source);
-	S_CheckALError();
+	S_GetError(NULL);
 
 	s_music_state.current_music = NULL;
 }
@@ -175,10 +175,8 @@ static void S_StopMusic(void) {
 static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 
 	if (!music->snd) {
-		return; // ???
+		return;
 	}
-
-	S_CheckALError();
 
 	int32_t buffers_processed = s_music_buffer_count->integer;
 
@@ -189,7 +187,6 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 		}
 
 		alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
-		S_CheckALError();
 	} else {
 		music->eof = false;
 		sf_seek(music->snd, 0, SEEK_SET);
@@ -227,15 +224,13 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 			s_music_state.next_buffer = (s_music_state.next_buffer + 1) % s_music_buffer_count->integer;
 		} else {
 			alSourceUnqueueBuffers(s_music_state.source, 1, &buffer);
-			S_CheckALError();
 		}
 
 		const ALsizei size = (ALsizei) frames * sizeof(int16_t);
 		alBufferData(buffer, AL_FORMAT_STEREO16, frame_buffer, size, s_rate->integer);
-		S_CheckALError();
 
 		alSourceQueueBuffers(s_music_state.source, 1, &buffer);
-		S_CheckALError();
+		S_GetError(NULL);
 	}
 
 	Com_Debug(DEBUG_SOUND, "%i music chunks processed\n", i);
@@ -252,15 +247,11 @@ static void S_PlayMusic(s_music_t *music) {
 
 	int32_t buffers_processed;
 	alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
-	S_CheckALError();
 
 	if (buffers_processed) {
 		ALuint buffers_list[buffers_processed];
 		alSourceUnqueueBuffers(s_music_state.source, buffers_processed, buffers_list);
-		S_CheckALError();
 	}
-
-	S_CheckALError();
 
 	s_music_state.next_buffer = 0;
 
@@ -269,7 +260,8 @@ static void S_PlayMusic(s_music_t *music) {
 	S_BufferMusic(music, true);
 
 	alSourcePlay(s_music_state.source);
-	S_CheckALError();
+
+	S_GetError(NULL);
 
 	SDL_UnlockMutex(s_music_state.mutex);
 }
@@ -332,7 +324,7 @@ static int S_MusicThread(void *data) {
  * @brief Ensures music playback continues by selecting a new track when one
  * completes.
  */
-void S_FrameMusic(void) {
+void S_RenderMusic(void) {
 	extern cl_static_t cls;
 	static cl_state_t last_state = CL_UNINITIALIZED;
 
@@ -369,7 +361,8 @@ void S_FrameMusic(void) {
 	// if music is enabled but not playing, play that funky music
 	ALenum state;
 	alGetSourcei(s_music_state.source, AL_SOURCE_STATE, &state);
-	S_CheckALError();
+
+	S_GetError(NULL);
 
 	SDL_UnlockMutex(s_music_state.mutex);
 
@@ -429,7 +422,6 @@ void S_InitMusic(void) {
 	}
 
 	alSourcef(s_music_state.source, AL_GAIN, s_music_volume->value);
-	S_CheckALError();
 
 	s_music_state.music_buffers = Mem_TagMalloc(sizeof(ALuint) * s_music_buffer_count->integer, MEM_TAG_SOUND);
 	alGenBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
@@ -458,11 +450,10 @@ void S_ShutdownMusic(void) {
 
 	if (s_music_state.source) {
 		alDeleteSources(1, &s_music_state.source);
-		S_CheckALError();
-
 		alDeleteBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
-		S_CheckALError();
 
+		S_GetError(NULL);
+		
 		Mem_Free(s_music_state.music_buffers);
 	}
 

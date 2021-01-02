@@ -47,4 +47,3 @@
 #include "cl_screen.h"
 #include "cl_server.h"
 #include "cl_types.h"
-#include "cl_view.h"

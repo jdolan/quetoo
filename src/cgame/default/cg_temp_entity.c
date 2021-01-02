@@ -111,7 +111,6 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
 		.sample = cg_sample_blaster_hit,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
-		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -382,7 +381,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.sample = cg_sample_machinegun_hit[RandomRangeu(0, 3)],
 			.origin = org,
 			.atten = SOUND_ATTEN_LINEAR,
-			.flags = S_PLAY_POSITIONED,
 			.pitch = RandomRangei(-8, 9)
 		});
 	}
@@ -466,7 +464,6 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		.sample = cg_sample_gib,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
-		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -505,7 +502,6 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		.sample = cg_sample_sparks,
 		.origin = org,
 		.atten = SOUND_ATTEN_SQUARE,
-		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -617,7 +613,6 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.sample = cg_sample_explosion,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
-		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -688,7 +683,6 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.sample = cg_sample_hyperblaster_hit,
 		.origin = Vec3_Add(org, dir),
 		.atten = SOUND_ATTEN_LINEAR,
-		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -712,7 +706,6 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 		.sample = cg_sample_lightning_discharge,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
-		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -1009,7 +1002,6 @@ static void Cg_BfgEffect(const vec3_t org) {
 		.sample = cg_sample_bfg_hit,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
-		.flags = S_PLAY_POSITIONED
 	});
 }
 

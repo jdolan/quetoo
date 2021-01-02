@@ -85,7 +85,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1 "
+            argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set s_ambient_volume 0"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set s_get_error 2 +set cl_draw_sound_stats 1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -93,7 +101,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map tokays"
+            argument = "+map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

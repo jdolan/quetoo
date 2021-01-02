@@ -104,7 +104,7 @@ static cg_hud_locals_t cg_hud_locals;
  */
 static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const int16_t icon, const color_t color) {
 
-	const r_image_t *image = cgi.client->image_precache[icon];
+	const r_image_t *image = cgi.client->images[icon];
 	if (!image) {
 		cgi.Warn("Invalid icon: %d\n", icon);
 		return;

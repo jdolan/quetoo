@@ -407,10 +407,11 @@ void Cl_Interpolate(void) {
 
 		if (ent->current.sound) {
 			S_AddSample(&(const s_play_sample_t) {
-				.sample = cl.sound_precache[ent->current.sound],
+				.sample = cl.sounds[ent->current.sound],
+				.origin = ent->current.origin,
 				.entity = ent->current.number,
 				.atten = SOUND_ATTEN_SQUARE,
-				.flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
+				.flags = S_PLAY_LOOP | S_PLAY_FRAME
 			});
 			ent->current.sound = 0;
 		}
@@ -419,7 +420,7 @@ void Cl_Interpolate(void) {
 		if (ent->current.solid == SOLID_BSP) {
 			angles = ent->angles;
 
-			const r_model_t *mod = cl.model_precache[ent->current.model1];
+			const r_model_t *mod = cl.models[ent->current.model1];
 
 			assert(mod);
 			assert(mod->bsp_inline);

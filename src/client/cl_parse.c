@@ -185,7 +185,7 @@ void Cl_ParseConfigString(void) {
 
 	if (i > CS_MODELS && i < CS_MODELS + MAX_MODELS) {
 		if (cls.state == CL_ACTIVE) {
-			cl.model_precache[i - CS_MODELS] = R_LoadModel(s);
+			cl.models[i - CS_MODELS] = R_LoadModel(s);
 			if (*s == '*') {
 				cl.cm_models[i - CS_MODELS] = Cm_Model(s);
 			} else {
@@ -194,11 +194,11 @@ void Cl_ParseConfigString(void) {
 		}
 	} else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
 		if (cls.state == CL_ACTIVE) {
-			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(s);
+			cl.sounds[i - CS_SOUNDS] = S_LoadSample(s);
 		}
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
 		if (cls.state == CL_ACTIVE) {
-			cl.image_precache[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
+			cl.images[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
 		}
 	}
 
@@ -378,21 +378,20 @@ static void Cl_ParseSound(void) {
 		Com_Error(ERROR_DROP, "Bad index (%d)\n", index);
 	}
 
-	play.sample = cl.sound_precache[index];
+	play.sample = cl.sounds[index];
 
 	// Always use this since it also holds Z offset information
 	play.atten = Net_ReadByte(&net_message);
 
 	if (flags & S_ENTITY) { // entity relative
 		play.entity = Net_ReadShort(&net_message);
-		play.flags |= S_PLAY_ENTITY;
+		play.origin = cl.entities[play.entity].current.origin;
 	} else {
 		play.entity = -1;
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
 		play.origin = Net_ReadPosition(&net_message);
-		play.flags |= S_PLAY_POSITIONED;
 	}
 
 	if (flags & S_PITCH) {

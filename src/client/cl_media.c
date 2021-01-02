@@ -137,7 +137,7 @@ static void Cl_LoadModels(void) {
 
 		Cl_LoadingProgress(-4, str);
 
-		cl.model_precache[i] = R_LoadModel(str);
+		cl.models[i] = R_LoadModel(str);
 	}
 }
 
@@ -159,7 +159,7 @@ static void Cl_LoadImages(void) {
 
 		Cl_LoadingProgress(-1, str);
 
-		cl.image_precache[i] = R_LoadImage(str, IT_PIC);
+		cl.images[i] = R_LoadImage(str, IT_PIC);
 	}
 }
 
@@ -185,7 +185,7 @@ static void Cl_LoadSounds(void) {
 
 		Cl_LoadingProgress(-1, str);
 
-		cl.sound_precache[i] = S_LoadSample(str);
+		cl.sounds[i] = S_LoadSample(str);
 	}
 }
 
@@ -205,7 +205,7 @@ static void Cl_LoadMusics(void) {
 
 		Cl_LoadingProgress(-1, str);
 
-		cl.music_precache[i] = S_LoadMusic(str);
+		cl.musics[i] = S_LoadMusic(str);
 	}
 
 	S_NextTrack_f();
@@ -262,14 +262,14 @@ void Cl_LoadMedia(void) {
  */
 void Cl_UpdateMedia(void) {
 
-	if ((r_view.update || s_env.update) && cls.state == CL_ACTIVE) {
-
-		Com_Debug(DEBUG_CLIENT, "%s %s\n", r_view.update ? "view" : "", s_env.update ? "sound" : "");
-
-		cls.cgame->UpdateMedia();
-
-		R_FreeUnseededMedia();
-
-		S_FreeMedia();
-	}
+//	if ((r_view.update || s_context.update) && cls.state == CL_ACTIVE) {
+//
+//		Com_Debug(DEBUG_CLIENT, "%s %s\n", r_view.update ? "view" : "", s_context.update ? "sound" : "");
+//
+//		cls.cgame->UpdateMedia();
+//
+//		R_FreeUnseededMedia();
+//
+//		S_FreeMedia();
+//	}
 }

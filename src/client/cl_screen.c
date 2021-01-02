@@ -241,7 +241,7 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-	r_pixel_t ch, x = 1, y = cl_draw_renderer_stats->value ? 512 : 64;
+	r_pixel_t ch, x = 1, y = cl_draw_renderer_stats->value ? 540 : 64;
 
 	if (!cl_draw_sound_stats->value) {
 		return;
@@ -260,23 +260,23 @@ static void Cl_DrawSoundStats(void) {
 	R_Draw2DString(x, y, "Sound:", color_magenta);
 	y += ch;
 
-	R_Draw2DString(x, y, va("%d channels", s_env.num_active_channels), color_magenta);
+	R_Draw2DString(x, y, va("%d channels", s_context.num_channels), color_magenta);
 	y += ch;
 
 	for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-		const s_channel_t *channel = &s_env.channels[i];
+		const s_channel_t *channel = &s_context.channels[i];
 
-		if (!channel->sample)
+		if (!channel->play.sample) {
 			continue;
+		}
 
 		ALenum state;
-		alGetSourcei(s_env.sources[i], AL_SOURCE_STATE, &state);
-		S_CheckALError();
+		alGetSourcei(s_context.sources[i], AL_SOURCE_STATE, &state);
 
 		if (state != AL_PLAYING)
 			continue;
 
-		R_Draw2DString(x + ch, y, va("%i: %s", i, channel->sample->media.name), color_magenta);
+		R_Draw2DString(x + ch, y, va("%i: %s", i, channel->play.sample->media.name), color_magenta);
 		y += ch;
 	}
 

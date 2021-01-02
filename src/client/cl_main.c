@@ -580,6 +580,22 @@ static void Cl_InitLocal(void) {
 /**
  * @brief
  */
+static void Cl_UpdateScene(void) {
+
+	cls.cgame->PrepareScene(&cl.frame);
+
+	R_DrawViewDepth(&r_view);
+
+	cls.cgame->PopulateScene(&cl.frame);
+
+	R_DrawView(&r_view);
+
+	S_RenderStage(&s_stage);
+}
+
+/**
+ * @brief
+ */
 void Cl_Frame(const uint32_t msec) {
 	static uint32_t frame_timestamp;
 
@@ -610,6 +626,9 @@ void Cl_Frame(const uint32_t msec) {
 		}
 	}
 
+	memset(&r_view, 0, sizeof(r_view));
+	memset(&s_stage, 0, sizeof(s_stage));
+
 	Cl_AttemptConnect();
 
 	Cl_HttpThink();
@@ -632,7 +651,7 @@ void Cl_Frame(const uint32_t msec) {
 
 		Cl_PredictMovement();
 
-		Cl_DrawView();
+		Cl_UpdateScene();
 	} else {
 		Cl_SendCommands();
 	}
@@ -640,8 +659,6 @@ void Cl_Frame(const uint32_t msec) {
 	Cl_UpdateScreen();
 
 	R_EndFrame();
-
-	S_Frame();
 
 	frame_timestamp = quetoo.ticks;
 	cl.frame_msec = 0;

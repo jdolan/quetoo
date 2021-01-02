@@ -23,7 +23,8 @@
 
 #include "r_types.h"
 
-// settings and preferences
+extern cvar_t *r_get_error;
+
 extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
@@ -36,8 +37,6 @@ extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_gamma;
-extern cvar_t *r_get_error;
-extern cvar_t *r_get_error_break;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_modulate;

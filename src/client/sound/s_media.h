@@ -24,7 +24,7 @@
 #include "s_types.h"
 
 void S_BeginLoading(void);
-void S_LoadClientSamples(const char *model);
+void S_LoadClientModelSamples(const char *model);
 void S_FreeMedia(void);
 
 #ifdef __S_LOCAL_H__

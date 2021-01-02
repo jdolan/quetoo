@@ -19,10 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "cg_local.h"
 
-#include "cl_types.h"
+/**
+ * @brief Updates the sound stage from the interpolated frame.
+ */
+void Cg_PrepareStage(const cl_frame_t *frame) {
 
-#ifdef __CL_LOCAL_H__
-void Cl_DrawView(void);
-#endif /* __CL_LOCAL_H__ */
+	cgi.stage->ticks = cgi.view->ticks;
+	cgi.stage->origin = cgi.view->origin;
+	cgi.stage->angles = cgi.view->angles;
+	cgi.stage->forward = cgi.view->forward;
+	cgi.stage->right = cgi.view->right;
+	cgi.stage->up = cgi.view->up;
+	cgi.stage->contents = cgi.view->contents;
+}

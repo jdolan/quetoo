@@ -41,6 +41,7 @@ cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_material_stages;
 cvar_t *r_draw_wireframe;
+cvar_t *r_get_error;
 cvar_t *r_occlude;
 
 cvar_t *r_allow_high_dpi;
@@ -55,8 +56,6 @@ cvar_t *r_fog_density;
 cvar_t *r_fog_samples;
 cvar_t *r_fullscreen;
 cvar_t *r_gamma;
-cvar_t *r_get_error;
-cvar_t *r_get_error_break;
 cvar_t *r_hardness;
 cvar_t *r_height;
 cvar_t *r_modulate;
@@ -113,7 +112,7 @@ void R_GetError_(const char *function, const char *msg) {
 
 		Com_Warn("%s threw %s: %s.\n", function, s, msg);
 
-		if (r_get_error_break->integer) {
+		if (r_get_error->integer == 2) {
 			SDL_TriggerBreakpoint();
 		}
 	}
@@ -345,8 +344,6 @@ static void R_Clear(void) {
 void R_BeginFrame(void) {
 
 	R_Clear();
-
-	memset(&r_view, 0, sizeof(r_view));
 }
 
 /**
@@ -499,6 +496,7 @@ static void R_InitLocal(void) {
 	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
+	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console (developer tool)");
 	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
 
 	// settings and preferences
@@ -514,8 +512,6 @@ static void R_InitLocal(void) {
 	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
 	r_gamma = Cvar_Add("r_gamma", "1", CVAR_ARCHIVE, "Controls video gamma (brightness)");
-	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL errors to the console (developer tool)");
-	r_get_error_break = Cvar_Add("r_get_error_break", "0", CVAR_DEVELOPER, "If a GL error occurs, break execution");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");

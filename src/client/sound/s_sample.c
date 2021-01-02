@@ -20,12 +20,8 @@
  */
 
 #include "s_local.h"
-#include "client.h"
-
-extern cl_client_t cl;
 
 static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
-static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
 
 /**
  * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation,
@@ -108,33 +104,33 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		} else {
 			const size_t raw_size = sizeof(float) * info.frames * info.channels;
 
-			if (s_env.raw_sample_buffer_size < raw_size) {
-				s_env.raw_sample_buffer = Mem_Realloc(s_env.raw_sample_buffer, raw_size);
-				s_env.raw_sample_buffer_size = raw_size;
+			if (s_context.raw_sample_buffer_size < raw_size) {
+				s_context.raw_sample_buffer = Mem_Realloc(s_context.raw_sample_buffer, raw_size);
+				s_context.raw_sample_buffer_size = raw_size;
 			}
 
-			sf_count_t count = sf_readf_float(snd, s_env.raw_sample_buffer, info.frames) * info.channels;
+			sf_count_t count = sf_readf_float(snd, s_context.raw_sample_buffer, info.frames) * info.channels;
 
-			S_ConvertSamples(s_env.raw_sample_buffer, count, &s_env.converted_sample_buffer, &s_env.converted_sample_buffer_size);
+			S_ConvertSamples(s_context.raw_sample_buffer, count, &s_context.converted_sample_buffer, &s_context.converted_sample_buffer_size);
 
-			const int16_t *buffer = s_env.converted_sample_buffer;
+			const int16_t *buffer = s_context.converted_sample_buffer;
 
 			if (info.samplerate != s_rate->integer) {
-				count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &s_env.resample_buffer, &s_env.resample_buffer_size);
-				buffer = s_env.resample_buffer;
+				count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &s_context.resample_buffer, &s_context.resample_buffer_size);
+				buffer = s_context.resample_buffer;
 			}
 
 			sample->stereo = info.channels != 1;
 			sample->num_samples = count;
 
 			alGenBuffers(1, &sample->buffer);
-			S_CheckALError();
 
 			const ALenum format = info.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
 			const ALsizei size = (ALsizei) count * sizeof(int16_t);
 
 			alBufferData(sample->buffer, format, buffer, size, s_rate->integer);
-			S_CheckALError();
+
+			S_GetError(NULL);
 		}
 
 		sf_close(snd);
@@ -162,23 +158,12 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 		return;
 	}
 
-	if (sample->media.name[0] == '#') { // global path
-
+	if (sample->media.name[0] == '#') {
 		g_strlcpy(path, (sample->media.name + 1), sizeof(path));
 		found = S_LoadSampleChunkFromPath(sample, path, sizeof(path));
-	} else { // or relative
-		int32_t i = 0;
-
-		while (SOUND_PATHS[i]) {
-
-			g_snprintf(path, sizeof(path), "%s%s", SOUND_PATHS[i], sample->media.name);
-
-			if ((found = S_LoadSampleChunkFromPath(sample, path, sizeof(path)))) {
-				break;
-			}
-
-			++i;
-		}
+	} else {
+		g_snprintf(path, sizeof(path), "sounds/%s", sample->media.name);
+		found = S_LoadSampleChunkFromPath(sample, path, sizeof(path));
 	}
 
 	if (found) {
@@ -201,7 +186,6 @@ static void S_FreeSample(s_media_t *self) {
 	if (sample->buffer) {
 		alDeleteBuffers(1, &sample->buffer);
 		sample->buffer = 0;
-		S_CheckALError();
 	}
 }
 
@@ -212,7 +196,7 @@ s_sample_t *S_LoadSample(const char *name) {
 	char key[MAX_QPATH];
 	s_sample_t *sample;
 
-	if (!s_env.context) {
+	if (!s_context.context) {
 		return NULL;
 	}
 
@@ -238,110 +222,38 @@ s_sample_t *S_LoadSample(const char *name) {
 }
 
 /**
- * @brief Registers and returns a new sample, aliasing the chunk provided by
- * the specified sample.
- */
-static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
-
-	s_sample_t *s = (s_sample_t *) S_AllocMedia(alias, sizeof(s_sample_t), S_MEDIA_SAMPLE);
-
-	sample->media.type = S_MEDIA_SAMPLE;
-
-	s->buffer = sample->buffer;
-
-	S_RegisterMedia((s_media_t *) s);
-
-	// dependency back to the main sample
-	S_RegisterDependency((s_media_t *) s, (s_media_t *) sample);
-
-	return s;
-}
-
-/**
  * @brief
  */
-s_sample_t *S_LoadModelSample(const char *model, const char *name) {
-	char path[MAX_QPATH];
-	char alias[MAX_QPATH];
-	s_sample_t *sample;
+s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
 
-	if (!s_env.context) {
+	if (!s_context.context) {
 		return NULL;
 	}
 
-	// if we can't figure it out, use common
-	if (!model || *model == '\0') {
-		model = "common";
+	if (!model || !model[0] || !name || !name[0]) {
+		Com_Error(ERROR_DROP, "NULL model or name\n");
 	}
 
-	// see if we already know of the model-specific sound
-	g_snprintf(alias, sizeof(path), "#players/%s/%s", model, name + 1);
+	char key[MAX_QPATH];
+	g_snprintf(key, sizeof(key), "#players/%s/%s", model, name + 1);
 
-	sample = (s_sample_t *) S_FindMedia(alias, S_MEDIA_SAMPLE);
-	if (sample) {
-		return sample;
-	}
+	s_sample_t *sample = (s_sample_t *) S_LoadSample(key);
+	if (sample->buffer == 0) {
 
-	// we don't, see if we already have this alias loaded
-	if (S_FindMedia(alias, S_MEDIA_SAMPLE)) {
+		char alias[MAX_QPATH];
+		g_snprintf(alias, sizeof(alias), "#players/common/%s", name + 1);
 
-		sample = S_LoadSample(alias);
+		s_sample_t *aliased = S_LoadSample(alias);
+		if (aliased->buffer) {
 
-		if (sample->buffer) {
-			return sample;
-		}
-
-		Com_Warn("%s: media found but not loaded?\n", alias);
-		return NULL;
-	}
-
-	// that didn't work, so load the common one and alias it.
-	g_snprintf(path, sizeof(path), "#players/common/%s", name + 1);
-	sample = S_LoadSample(path);
-
-	if (sample->buffer) {
-		return S_AliasSample(sample, alias);
-	}
-
-	Com_Warn("Failed to load %s\n", alias);
-	return NULL;
-}
-
-/**
- * @brief
- */
-s_sample_t *S_LoadEntitySample(const entity_state_t *ent, const char *name) {
-	char model[MAX_QPATH];
-
-	if (!s_env.context) {
-		return NULL;
-	}
-
-	// determine what model the client is using
-	memset(model, 0, sizeof(model));
-
-	if (ent->number - 1 >= MAX_CLIENTS) {
-		Com_Warn("Invalid client entity: %d\n", ent->number - 1);
-		return NULL;
-	}
-
-	uint16_t n = CS_CLIENTS + ent->number - 1;
-	if (cl.config_strings[n][0]) {
-		char *p = strchr(cl.config_strings[n], '\\');
-		if (p) {
-			p += 1;
-			strcpy(model, p);
-			p = strchr(model, '/');
-			if (p) {
-				*p = 0;
-			}
+			sample->buffer = aliased->buffer;
+			S_RegisterDependency((s_media_t *) sample, (s_media_t *) aliased);
 		}
 	}
 
-	// if we can't figure it out, use common
-	if (*model == '\0') {
-		strcpy(model, "common");
+	if (!sample->buffer) {
+		Com_Warn("Failed to load %s for %s\n", name, model);
 	}
 
-	return S_LoadModelSample(model, name);
+	return sample;
 }

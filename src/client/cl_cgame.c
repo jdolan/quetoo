@@ -146,6 +146,7 @@ void Cl_InitCgame(void) {
 	import.context = &r_context;
 
 	import.view = &r_view;
+	import.stage = &s_stage;
 
 	import.Print = Com_Print;
 	import.Debug_ = Cl_CgameDebug;
@@ -230,7 +231,8 @@ void Cl_InitCgame(void) {
 	import.KeyState = Cl_KeyState;
 
 	import.LoadSample = S_LoadSample;
-	import.LoadClientSamples = S_LoadClientSamples;
+	import.LoadClientModelSample = S_LoadClientModelSample;
+	import.LoadClientModelSamples = S_LoadClientModelSamples;
 	import.AddSample = S_AddSample;
 
 	import.LoadSurface = Img_LoadSurface;

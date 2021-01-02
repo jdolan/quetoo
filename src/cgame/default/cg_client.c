@@ -257,7 +257,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 		// load sound files if we're in-game
 		if (*cgi.state > CL_DISCONNECTED) {
-			cgi.LoadClientSamples(ci->model);
+			cgi.LoadClientModelSamples(ci->model);
 		}
 	}
 
@@ -626,7 +626,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			.parent = r_torso,
 			.tag = "tag_weapon",
 			.scale = e->scale,
-			.model = cgi.client->model_precache[s->model2],
+			.model = cgi.client->models[s->model2],
 			.effects = e->effects,
 			.color = e->color,
 			.shell = e->shell,
@@ -638,7 +638,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			.parent = r_torso,
 			.tag = "tag_head",
 			.scale = e->scale,
-			.model = cgi.client->model_precache[s->model3],
+			.model = cgi.client->models[s->model3],
 			.effects = e->effects,
 			.color = e->color,
 			.shell = e->shell,

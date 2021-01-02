@@ -29,7 +29,6 @@
  * @brief The client game view structure.
  */
 typedef struct {
-
 	/**
 	 * @brief View bob.
 	 */
@@ -38,6 +37,5 @@ typedef struct {
 
 extern cg_view_t cg_view;
 
-void Cg_UpdateView(const cl_frame_t *frame);
-void Cg_PopulateView(const cl_frame_t *frame);
+void Cg_PrepareView(const cl_frame_t *frame);
 #endif /* __CG_LOCAL_H__ */

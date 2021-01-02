@@ -18,6 +18,7 @@ noinst_HEADERS = \
 	cg_muzzle_flash.h \
 	cg_predict.h \
 	cg_score.h \
+	cg_sound.h \
 	cg_sprite.h \
 	cg_temp_entity.h \
 	cg_types.h \
@@ -47,6 +48,7 @@ cgame_la_SOURCES = \
 	cg_muzzle_flash.c \
 	cg_predict.c \
 	cg_score.c \
+	cg_sound.c \
 	cg_sprite.c \
 	cg_temp_entity.c \
 	cg_ui.c \

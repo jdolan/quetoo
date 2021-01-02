@@ -19,20 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cl_local.h"
+#pragma once
 
-/**
- * @brief
- */
-void Cl_DrawView(void) {
-
-	r_view.ticks = cl.unclamped_time;
-
-	cls.cgame->UpdateView(&cl.frame);
-
-	R_DrawViewDepth(&r_view);
-
-	cls.cgame->PopulateView(&cl.frame);
-
-	R_DrawView(&r_view);
-}
+#ifdef __CG_LOCAL_H__
+void Cg_PrepareStage(const cl_frame_t *frame);
+#endif /* __CG_LOCAL_H__ */

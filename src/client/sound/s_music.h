@@ -28,7 +28,7 @@ void S_ClearPlaylist(void);
 void S_NextTrack_f(void);
 
 #ifdef __S_LOCAL_H__
-void S_FrameMusic(void);
+void S_RenderMusic(void);
 void S_InitMusic(void);
 void S_ShutdownMusic(void);
 

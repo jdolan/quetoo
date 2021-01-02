@@ -233,7 +233,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	}
 
 	// assign the model
-	e.model = cgi.client->model_precache[ent->current.model1];
+	e.model = cgi.client->models[ent->current.model1];
 
 	// and any frame animations (button state, etc)
 	e.frame = ent->current.animation1;

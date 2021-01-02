@@ -42,6 +42,7 @@
 #include "cg_muzzle_flash.h"
 #include "cg_predict.h"
 #include "cg_score.h"
+#include "cg_sound.h"
 #include "cg_sprite.h"
 #include "cg_temp_entity.h"
 #include "cg_types.h"

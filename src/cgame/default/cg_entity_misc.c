@@ -108,7 +108,6 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 		.sample = cg_sample_fire,
 		.origin = self->origin,
 		.atten = SOUND_ATTEN_CUBIC,
-		.flags = S_PLAY_POSITIONED
 	});
 
 	self->next_think += 1000.f / flame->hz + 1000.f * flame->drift * Randomf();
@@ -235,10 +234,6 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 	}
 
 	sound->play.flags = S_PLAY_AMBIENT;
-
-	if (sound->play.atten != SOUND_ATTEN_NONE) {
-		sound->play.flags |= S_PLAY_POSITIONED;
-	}
 
 	if (sound->hz == 0.f) {
 		sound->play.flags |= S_PLAY_LOOP | S_PLAY_FRAME;

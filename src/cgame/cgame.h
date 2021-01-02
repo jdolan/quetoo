@@ -55,9 +55,14 @@ typedef struct cg_import_s {
 	const r_context_t *context;
 
 	/**
-	 * @brief The renderer view scene.
+	 * @brief The renderer view definition.
 	 */
 	r_view_t *view;
+
+	/**
+	 * @brief The sound stage.
+	 */
+	s_stage_t *stage;
 
 	/**
 	 * @defgroup console-appending Console appending
@@ -547,15 +552,23 @@ typedef struct cg_import_s {
 
 	/**
 	 * @brief Loads a sound sample by the given name.
-	 * @param name The sample name or alias (e.g. `"weapons/bfg/fire"`, `"*players/common/gurp"`).
+	 * @param name The sample name or alias (e.g. `"weapons/bfg/fire"`, `"#players/common/gurp"`).
 	 * @return The loaded sample.
 	 */
 	s_sample_t *(*LoadSample)(const char *name);
 
 	/**
+	 * @brief Loads a sound sample for the given player model and name.
+	 * @param model The player model name (e.g. `"qforcer"`).
+	 * @param name The sample name (e.g. `"*gurp"`).
+	 * @return The loaded sample, which may be an aliased common sample.
+	 */
+	s_sample_t *(*LoadClientModelSample)(const char *model, const char *name);
+
+	/**
 	 * @brief Precache all sound samples for a given player model.
 	 */
-	void (*LoadClientSamples)(const char *model);
+	void (*LoadClientModelSamples)(const char *model);
 
 	/**
 	 * @brief Adds a sound sample to the playback queue.
@@ -734,20 +747,95 @@ typedef struct cg_export_s {
 	int32_t api_version;
 	int32_t protocol;
 
+	/**
+	 * @brief Initializes the client game.
+	 * @details Called once when the client game module is loaded.
+	 */
 	void (*Init)(void);
+
+	/**
+	 * @brief Deinitializes the client game.
+	 * @details Called once when the client game module is unloaded.
+	 */
 	void (*Shutdown)(void);
+
+	/**
+	 * @brief Clears client game state on disconnect or error events.
+	 */
 	void (*ClearState)(void);
+
+	/**
+	 * @brief Updates client game media references on level load or subsystem restarts.
+	 */
 	void (*UpdateMedia)(void);
+
+	/**
+	 * @brief Called when a configuration string is received from the server.
+	 */
 	void (*UpdateConfigString)(int32_t index);
+
+	/**
+	 * @brief Called when a server message not known to the client is received.
+	 * @param cmd The message type.
+	 * @details This allows the game and client game to define their own custom message types.
+	 */
 	_Bool (*ParseMessage)(int32_t cmd);
+
+	/**
+	 * @brief Called each frame to update the current movement command angles.
+	 * @param cmd The current movement command.
+	 */
 	void (*Look)(pm_cmd_t *cmd);
+
+	/**
+	 * @brief Called each frame to updarte the current movement command movement.
+	 * @param cmd The current movement command.
+	 */
 	void (*Move)(pm_cmd_t *cmd);
+
+	/**
+	 * @brief Called each client frame to interpolate the most recently received server frames.
+	 * @details This does not populate the view with frame entities. Rather, this advances the
+	 * simulation for each entity within the frame.
+	 */
 	void (*Interpolate)(const cl_frame_t *frame);
+
+	/**
+	 * @brief Called to determine if client side prediction should be used for the current frame.
+	 * @details Third person, chasecam, or other conditions may prompt the client game to disable
+	 * client side prediction.
+	 */
 	_Bool (*UsePrediction)(void);
+
+	/**
+	 * @brief Called each frame to run all pending movement commands and update the client's
+	 * predicted state.
+	 */
 	void (*PredictMovement)(const GPtrArray *cmds);
+
+	/**
+	 * @brief Called during the loading process to allow the client game to update the loading
+	 * screen.
+	 */
 	void (*UpdateLoading)(const cl_loading_t loading);
-	void (*UpdateView)(const cl_frame_t *frame);
-	void (*PopulateView)(const cl_frame_t *frame);
+
+	/**
+	 * @brief Called each frame to update the view definition and sound stage.
+	 * @details This function should perform the minimal amount of work required to dispatch
+	 * the depth pre-pass render. The scene should not be populated with entities, samples, etc.
+	 */
+	void (*PrepareScene)(const cl_frame_t *frame);
+
+	/**
+	 * @brief Called each frame to populate the view definition and sound stage.
+	 * @details This function should add entities, sprites, lights, samples, etc. to the view
+	 * definition and sound stage.
+	 */
+	void (*PopulateScene)(const cl_frame_t *frame);
+
+	/**
+	 * @brief Called each frame to draw any non-view visual elements, such as the HUD.
+	 */
 	void (*UpdateScreen)(const cl_frame_t *frame);
 
 } cg_export_t;
