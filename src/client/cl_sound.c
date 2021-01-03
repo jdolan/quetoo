@@ -41,6 +41,9 @@ void Cl_S_Restart_f(void) {
 	cls.state = state;
 }
 
+/**
+ * @brief
+ */
 static void Cl_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 
 	if (Cl_PointContents(play->origin) & CONTENTS_MASK_LIQUID) {
@@ -58,7 +61,7 @@ static void Cl_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 }
 
 /**
- * @brief Wraps S_AddSample, handling collision interactions for convenience.
+ * @brief Wraps S_AddSample, installing the default S_PlaySampleThink function.
  */
 void Cl_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 
