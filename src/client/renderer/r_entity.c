@@ -120,8 +120,6 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 void R_UpdateEntities(r_view_t *view) {
 
 	R_UpdateMeshEntities(view);
-	
-	R_UpdateMeshEntitiesShadows(view);
 }
 
 /**
@@ -155,7 +153,7 @@ void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
 		if (e->model == NULL) {
 			continue;
 		}
-
+		
 		if (e->parent) {
 			continue;
 		}
