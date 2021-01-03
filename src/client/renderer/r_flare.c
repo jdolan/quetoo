@@ -69,7 +69,7 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 /**
  * @brief
  */
-static void R_UpdateBspInlineModelFlares(const r_entity_t *e, const r_bsp_inline_model_t *in) {
+static void R_UpdateBspInlineModelFlares(r_view_t *view, const r_entity_t *e, const r_bsp_inline_model_t *in) {
 
 	for (guint i = 0; i < in->flare_faces->len; i++) {
 
@@ -83,26 +83,25 @@ static void R_UpdateBspInlineModelFlares(const r_entity_t *e, const r_bsp_inline
 
 		flare.color.a = (byte) Clampf(flare.color.a * r_flares->value, 0.f, 255.f);
 
-		R_AddSprite(&flare);
+		R_AddSprite(view, &flare);
 	}
 }
 
 /**
  * @brief
  */
-void R_UpdateFlares(void) {
+void R_UpdateFlares(r_view_t *view) {
 
 	if (!r_flares->value || r_draw_wireframe->value) {
 		return;
 	}
 
-	R_UpdateBspInlineModelFlares(NULL, r_world_model->bsp->inline_models);
+	R_UpdateBspInlineModelFlares(view, NULL, r_world_model->bsp->inline_models);
 
-	const r_entity_t *e = r_view->entities;
-	for (int32_t i = 0; i < r_view->num_entities; i++, e++) {
+	const r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 		if (IS_BSP_INLINE_MODEL(e->model)) {
-
-			R_UpdateBspInlineModelFlares(e, e->model->bsp_inline);
+			R_UpdateBspInlineModelFlares(view, e, e->model->bsp_inline);
 		}
 	}
 }

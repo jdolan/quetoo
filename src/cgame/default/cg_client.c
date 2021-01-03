@@ -604,7 +604,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 
-	r_entity_t *r_legs = cgi.AddEntity(&legs);
+	r_entity_t *r_legs = cgi.AddEntity(cgi.view, &legs);
 	if (!r_legs) {
 		return; // if the legs were culled, we're done
 	}
@@ -612,17 +612,17 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	torso.parent = r_legs;
 	torso.tag = "tag_torso";
 
-	r_entity_t *r_torso = cgi.AddEntity(&torso);
+	r_entity_t *r_torso = cgi.AddEntity(cgi.view, &torso);
 	assert(r_torso);
 
 	head.parent = r_torso;
 	head.tag = "tag_head";
 
-	r_entity_t *r_head = cgi.AddEntity(&head);
+	r_entity_t *r_head = cgi.AddEntity(cgi.view, &head);
 	assert(r_head);
 
 	if (s->model2) {
-		cgi.AddEntity(&(const r_entity_t) {
+		cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_weapon",
 			.scale = e->scale,
@@ -634,7 +634,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (s->model3) {
-		cgi.AddEntity(&(const r_entity_t) {
+		cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_head",
 			.scale = e->scale,

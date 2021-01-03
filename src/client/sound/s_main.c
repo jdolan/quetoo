@@ -25,8 +25,6 @@
 
 s_context_t s_context;
 
-s_stage_t *s_stage;
-
 cvar_t *s_get_error;
 
 cvar_t *s_ambient_volume;
@@ -192,18 +190,16 @@ void S_Stop(void) {
 /**
  * @brief Renders the specified stage, adding channels from the defined play samples.
  */
-void S_RenderStage(s_stage_t *stage) {
+void S_RenderStage(const s_stage_t *stage) {
 
 	assert(stage);
-
-	s_stage = stage;
 
 	if (!s_context.context) {
 		return;
 	}
 
-	const s_play_sample_t *s = s_stage->samples;
-	for (int32_t i = 0; i < s_stage->num_samples; i++, s++) {
+	const s_play_sample_t *s = stage->samples;
+	for (int32_t i = 0; i < stage->num_samples; i++, s++) {
 
 		if (s->flags & S_PLAY_FRAME) {
 			s_channel_t *ch = s_context.channels;
@@ -212,7 +208,7 @@ void S_RenderStage(s_stage_t *stage) {
 				if (ch->play.sample && (ch->play.flags & S_PLAY_FRAME)) {
 					if (ch->play.sample == s->sample && ch->play.entity == s->entity) {
 						ch->play = *s;
-						ch->timestamp = s_stage->ticks;
+						ch->timestamp = stage->ticks;
 						break;
 					}
 				}
@@ -233,27 +229,12 @@ void S_RenderStage(s_stage_t *stage) {
 		}
 
 		s_context.channels[c].play = *s;
-		s_context.channels[c].timestamp = s_stage->ticks;
+		s_context.channels[c].timestamp = stage->ticks;
 	}
 
-	S_RenderMusic();
+	S_RenderMusic(stage);
 
-	S_MixChannels();
-
-	s_stage = NULL;
-}
-
-/**
- * @brief
- */
-static void S_Play_f(void) {
-
-	int32_t i = 1;
-	while (i < Cmd_Argc()) {
-		S_AddSample(&(const s_play_sample_t) {
-			.sample = S_LoadSample(Cmd_Argv(i++))
-		});
-	}
+	S_MixChannels(stage);
 }
 
 /**
@@ -280,7 +261,6 @@ static void S_InitLocal(void) {
 	Cvar_ClearAll(CVAR_S_MASK);
 
 	Cmd_Add("s_list_media", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
-	Cmd_Add("s_play", S_Play_f, CMD_SOUND, NULL);
 	Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
 }
 

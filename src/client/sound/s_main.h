@@ -21,7 +21,7 @@
 
 #pragma once
 
-void S_RenderStage(s_stage_t *stage);
+void S_RenderStage(const s_stage_t *stage);
 void S_Init(void);
 void S_Shutdown(void);
 void S_Stop(void);

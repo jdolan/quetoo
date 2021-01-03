@@ -101,13 +101,13 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
 		.decay = 350.f
 	});
 
-	cgi.AddStain(&(const r_stain_t) {
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = org,
 		.radius = 4.0,
 		.color = Color_Add(color_rgb, Color4f(0.f, 0.f, 0.f, -.66f))
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_blaster_hit,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
@@ -364,7 +364,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	});
 	*/
 
-	cgi.AddStain(&(const r_stain_t) {
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = org,
 		.radius = 1.f,
 		.color = Color4bv(0xbb202020),
@@ -377,7 +377,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	if (cgi.client->unclamped_time - last_ric_time > 300) {
 		last_ric_time = cgi.client->unclamped_time;
 
-		cgi.AddSample(&(const s_play_sample_t) {
+		cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 			.sample = cg_sample_machinegun_hit[RandomRangeu(0, 3)],
 			.origin = org,
 			.atten = SOUND_ATTEN_LINEAR,
@@ -404,7 +404,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		.end_color = Vec4(0.f, 1.f, 0.f, 0.f)
 	});
 
-	cgi.AddStain(&(const r_stain_t) {
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = org,
 		.radius = 1 + count,
 		.color = Color4bv(0xAA2222AA),
@@ -454,13 +454,13 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		}
 	}
 
-	cgi.AddStain(&(const r_stain_t) {
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = org,
 		.radius = count * 6.0,
 		.color = Color4bv(0x88111188),
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_gib,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
@@ -498,7 +498,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		.decay = 650
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_sparks,
 		.origin = org,
 		.atten = SOUND_ATTEN_SQUARE,
@@ -603,13 +603,13 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.decay = 825
 	});
 
-	cgi.AddStain(&(const r_stain_t) {
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = org,
 		.radius = RandomRangef(32.f, 48.f),
 		.color = Color4bv(0xaa202020),
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_explosion,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
@@ -673,13 +673,13 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.intensity = 0.05
 	});
 
-	cgi.AddStain(&(const r_stain_t) {
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = org,
 		.radius = 16.f,
 		.color = Color4f(.4f, .7f, 1.f, .33f),
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_hyperblaster_hit,
 		.origin = Vec3_Add(org, dir),
 		.atten = SOUND_ATTEN_LINEAR,
@@ -702,7 +702,7 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 		.decay = 750
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_lightning_discharge,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
@@ -819,7 +819,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.intensity = .1f
 	});
 
-	cgi.AddStain(&(const r_stain_t) {
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = end,
 		.radius = 8.0,
 		.color = color_rgb,
@@ -992,13 +992,13 @@ static void Cg_BfgEffect(const vec3_t org) {
 		.decay = 1500
 	});
 	
-	cgi.AddStain(&(const r_stain_t) {
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = org,
 		.radius = 45.f,
 		.color = Color4f(.8f, 1.f, .5f, .5f),
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_bfg_hit,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,

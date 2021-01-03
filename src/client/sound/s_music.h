@@ -29,7 +29,7 @@ void S_ClearPlaylist(void);
 void S_NextTrack_f(void);
 
 #ifdef __S_LOCAL_H__
-void S_RenderMusic(void);
+void S_RenderMusic(const s_stage_t *stage);
 void S_InitMusic(void);
 void S_ShutdownMusic(void);
 

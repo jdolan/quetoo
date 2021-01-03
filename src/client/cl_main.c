@@ -650,7 +650,7 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_HandleEvents();
 
-	R_BeginFrame();
+	R_BeginFrame(&cl_view);
 
 	if (cls.state == CL_ACTIVE) {
 

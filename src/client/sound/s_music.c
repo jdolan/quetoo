@@ -321,7 +321,7 @@ static int S_MusicThread(void *data) {
  * @brief Ensures music playback continues by selecting a new track when one
  * completes.
  */
-void S_RenderMusic(void) {
+void S_RenderMusic(const s_stage_t *stage) {
 
 	SDL_LockMutex(s_music_state.mutex);
 

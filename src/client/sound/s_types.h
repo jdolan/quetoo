@@ -325,11 +325,6 @@ typedef struct {
 
 #ifdef __S_LOCAL_H__
 
-/**
- * @brief The current sound stage.
- */
-extern s_stage_t *s_stage;
-
 extern SF_VIRTUAL_IO s_rwops_io;
 extern SF_VIRTUAL_IO s_physfs_io;
 

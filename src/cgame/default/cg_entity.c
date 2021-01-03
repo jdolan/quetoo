@@ -239,7 +239,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	e.frame = ent->current.animation1;
 
 	// add to view list
-	cgi.AddEntity(&e);
+	cgi.AddEntity(cgi.view, &e);
 }
 
 /**

@@ -61,7 +61,7 @@ void R_GetError_(const char *function, const char *msg);
 
 void R_Init(void);
 void R_Shutdown(void);
-void R_BeginFrame(void);
+void R_BeginFrame(r_view_t *view);
 void R_DrawViewDepth(r_view_t *view);
 void R_DrawView(r_view_t *view);
 void R_EndFrame(void);
@@ -217,8 +217,8 @@ extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_occlude;
 
-_Bool R_CullPoint(const vec3_t point);
-_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
-_Bool R_CullSphere(const vec3_t point, const float radius);
+_Bool R_CullPoint(const r_view_t *view, const vec3_t point);
+_Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs);
+_Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius);
 
 #endif /* __R_LOCAL_H__ */

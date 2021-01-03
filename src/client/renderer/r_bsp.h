@@ -31,6 +31,6 @@ typedef enum {
 	BLEND_DEPTH_SPRITE = 0x2
 } r_blend_depth_type_t;
 
-int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t);
-void R_UpdateBlendDepth(void);
+int32_t R_BlendDepthForPoint(r_view_t *view, const vec3_t p, const r_blend_depth_type_t);
+void R_UpdateBlendDepth(r_view_t *view);
 #endif /* __R_LOCAL_H__ */

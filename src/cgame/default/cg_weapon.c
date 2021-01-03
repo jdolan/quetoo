@@ -183,5 +183,5 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	w.lerp = w.scale = 1.0;
 
-	cgi.AddEntity(&w);
+	cgi.AddEntity(cgi.view, &w);
 }

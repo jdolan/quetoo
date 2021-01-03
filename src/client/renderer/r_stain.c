@@ -141,22 +141,22 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 /**
  * @brief
  */
-void R_AddStain(const r_stain_t *stain) {
+void R_AddStain(r_view_t *view, const r_stain_t *stain) {
 
-	if (r_view->num_stains == MAX_STAINS) {
+	if (view->num_stains == MAX_STAINS) {
 		Com_Warn("MAX_STAINS\n");
 		return;
 	}
 
-	r_view->stains[r_view->num_stains++] = *stain;
+	view->stains[view->num_stains++] = *stain;
 }
 
 /**
  * @brief
  */
-void R_UpdateStains(void) {
-
-	if (!r_view->num_stains) {
+void R_UpdateStains(const r_view_t *view) {
+	
+	if (!view->num_stains) {
 		return;
 	}
 
@@ -166,13 +166,13 @@ void R_UpdateStains(void) {
 
 	stain_frame++;
 
-	const r_stain_t *stain = r_view->stains;
-	for (int32_t i = 0; i < r_view->num_stains; i++, stain++) {
+	const r_stain_t *stain = view->stains;
+	for (int32_t i = 0; i < view->num_stains; i++, stain++) {
 
 		R_StainNode(stain, r_world_model->bsp->nodes);
 
-		const r_entity_t *e = r_view->entities;
-		for (int32_t j = 0; j < r_view->num_entities; j++, e++) {
+		const r_entity_t *e = view->entities;
+		for (int32_t j = 0; j < view->num_entities; j++, e++) {
 			if (e->model && e->model->type == MOD_BSP_INLINE) {
 
 				r_stain_t s = *stain;

@@ -288,7 +288,7 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 	}
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.origin = ent->current.origin,
 		.sample = sample,
 		.entity = entity,

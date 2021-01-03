@@ -352,7 +352,7 @@ static void Cl_ParsePrint(void) {
 		}
 
 		if (sample) {
-			S_AddSample(&(const s_play_sample_t) {
+			Cl_AddSample(&cl_stage, &(const s_play_sample_t) {
 				.sample = S_LoadSample(sample)
 			});
 		}
@@ -402,7 +402,7 @@ static void Cl_ParseSound(void) {
 		play.pitch = Net_ReadChar(&net_message) * 2;
 	}
 
-	S_AddSample(&play);
+	Cl_AddSample(&cl_stage, &play);
 }
 
 /**

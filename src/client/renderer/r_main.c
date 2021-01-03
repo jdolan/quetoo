@@ -122,14 +122,14 @@ void R_GetError_(const char *function, const char *msg) {
 /**
  * @return True if the specified point is culled by the view frustum, false otherwise.
  */
-_Bool R_CullPoint(const vec3_t point) {
+_Bool R_CullPoint(const r_view_t *view, const vec3_t point) {
 
 	if (!r_cull->value) {
 		return false;
 	}
 
-	const cm_bsp_plane_t *plane = r_view->frustum;
-	for (size_t i = 0; i< lengthof(r_view->frustum); i++, plane++) {
+	const cm_bsp_plane_t *plane = view->frustum;
+	for (size_t i = 0; i< lengthof(view->frustum); i++, plane++) {
 		const float dist = Cm_DistanceToPlane(point, plane);
 		if (dist > 0.f) {
 			return true;
@@ -143,7 +143,7 @@ _Bool R_CullPoint(const vec3_t point) {
  * @return True if the specified bounding box is culled by the view frustum, false otherwise.
  * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
  */
-_Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
+_Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
 
 	if (!r_cull->value) {
 		return false;
@@ -160,8 +160,8 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		Vec3(mins.x, maxs.y, maxs.z),
 	};
 
-	const cm_bsp_plane_t *plane = r_view->frustum;
-	for (size_t i = 0; i < lengthof(r_view->frustum); i++, plane++) {
+	const cm_bsp_plane_t *plane = view->frustum;
+	for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
 
 		size_t j;
 		for (j = 0; j < lengthof(points); j++) {
@@ -182,14 +182,14 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 /**
  * @return True if the specified sphere is culled by the view frustum, false otherwise.
  */
-_Bool R_CullSphere(const vec3_t point, const float radius) {
+_Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) {
 
 	if (!r_cull->value) {
 		return false;
 	}
 
-	const cm_bsp_plane_t *plane = r_view->frustum;
-	for (size_t i = 0 ; i < lengthof(r_view->frustum) ; i++, plane++)  {
+	const cm_bsp_plane_t *plane = view->frustum;
+	for (size_t i = 0 ; i < lengthof(view->frustum) ; i++, plane++)  {
 		const float dist = Cm_DistanceToPlane(point, plane);
 		if (dist < -radius) {
 			return true;
@@ -202,7 +202,7 @@ _Bool R_CullSphere(const vec3_t point, const float radius) {
 /**
  * @brief
  */
-static void R_UpdateUniforms(void) {
+static void R_UpdateUniforms(const r_view_t *view) {
 
 	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
 
@@ -216,11 +216,11 @@ static void R_UpdateUniforms(void) {
 	r_uniforms.block.saturation = r_saturation->value;
 	r_uniforms.block.gamma = r_gamma->value;
 
-	if (r_view) {
+	if (view) {
 
 		const float aspect = (float) r_context.width / (float) r_context.height;
 
-		const float ymax = tanf(Radians(r_view->fov.y));
+		const float ymax = tanf(Radians(view->fov.y));
 		const float ymin = -ymax;
 
 		const float xmin = ymin * aspect;
@@ -233,16 +233,16 @@ static void R_UpdateUniforms(void) {
 		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -90.0, 1.0, 0.0, 0.0); // put Z going up
 		Matrix4x4_ConcatRotate(&r_uniforms.block.view,  90.0, 0.0, 0.0, 1.0); // put Z going up
 
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view->angles.z, 1.0, 0.0, 0.0);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view->angles.x, 0.0, 1.0, 0.0);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view->angles.y, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.z, 1.0, 0.0, 0.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.x, 0.0, 1.0, 0.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.y, 0.0, 0.0, 1.0);
 
-		Matrix4x4_ConcatTranslate(&r_uniforms.block.view, -r_view->origin.x, -r_view->origin.y, -r_view->origin.z);
+		Matrix4x4_ConcatTranslate(&r_uniforms.block.view, -view->origin.x, -view->origin.y, -view->origin.z);
 
 		r_uniforms.block.depth_range.x = 1.f;
 		r_uniforms.block.depth_range.y = MAX_WORLD_DIST;
 
-		r_uniforms.block.ticks = r_view->ticks;
+		r_uniforms.block.ticks = view->ticks;
 
 		r_uniforms.block.modulate = r_modulate->value;
 		
@@ -254,10 +254,10 @@ static void R_UpdateUniforms(void) {
 			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->mins, 0.f);
 			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->maxs, 0.f);
 
-			const vec3_t view = Vec3_Subtract(r_view->origin, r_world_model->bsp->lightgrid->mins);
+			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->mins);
 			const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
 
-			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(view, size), 0.f);
+			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
 		}
 	}
 
@@ -271,37 +271,37 @@ static void R_UpdateUniforms(void) {
  * @details The frustum planes are outward facing. Thus, any object that appears
  * partially behind any of the frustum planes should be visible.
  */
-static void R_UpdateFrustum(void) {
+static void R_UpdateFrustum(r_view_t *view) {
 
 	if (!r_cull->value) {
 		return;
 	}
 
-	cm_bsp_plane_t *p = r_view->frustum;
+	cm_bsp_plane_t *p = view->frustum;
 
-	float ang = Radians(r_view->fov.x);
+	float ang = Radians(view->fov.x);
 	float xs = sinf(ang);
 	float xc = cosf(ang);
 
-	p[0].normal = Vec3_Scale(r_view->forward, xs);
-	p[0].normal = Vec3_Add(p[0].normal, Vec3_Scale(r_view->right, xc));
+	p[0].normal = Vec3_Scale(view->forward, xs);
+	p[0].normal = Vec3_Add(p[0].normal, Vec3_Scale(view->right, xc));
 
-	p[1].normal = Vec3_Scale(r_view->forward, xs);
-	p[1].normal = Vec3_Add(p[1].normal, Vec3_Scale(r_view->right, -xc));
+	p[1].normal = Vec3_Scale(view->forward, xs);
+	p[1].normal = Vec3_Add(p[1].normal, Vec3_Scale(view->right, -xc));
 
-	ang = Radians(r_view->fov.y);
+	ang = Radians(view->fov.y);
 	xs = sinf(ang);
 	xc = cosf(ang);
 
-	p[2].normal = Vec3_Scale(r_view->forward, xs);
-	p[2].normal = Vec3_Add(p[2].normal, Vec3_Scale(r_view->up, xc));
+	p[2].normal = Vec3_Scale(view->forward, xs);
+	p[2].normal = Vec3_Add(p[2].normal, Vec3_Scale(view->up, xc));
 
-	p[3].normal = Vec3_Scale(r_view->forward, xs);
-	p[3].normal = Vec3_Add(p[3].normal, Vec3_Scale(r_view->up, -xc));
+	p[3].normal = Vec3_Scale(view->forward, xs);
+	p[3].normal = Vec3_Add(p[3].normal, Vec3_Scale(view->up, -xc));
 
-	for (size_t i = 0; i < lengthof(r_view->frustum); i++) {
+	for (size_t i = 0; i < lengthof(view->frustum); i++) {
 		p[i].normal = Vec3_Normalize(p[i].normal);
-		p[i].dist = Vec3_Dot(r_view->origin, p[i].normal);
+		p[i].dist = Vec3_Dot(view->origin, p[i].normal);
 		p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
 		p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
 	}
@@ -310,7 +310,7 @@ static void R_UpdateFrustum(void) {
 /**
  * @brief
  */
-static void R_Clear(void) {
+static void R_Clear(const r_view_t *view) {
 
 	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
 
@@ -318,10 +318,12 @@ static void R_Clear(void) {
 		bits |= GL_COLOR_BUFFER_BIT;
 	}
 
-	if (r_view) {
-		if (r_view->contents & CONTENTS_SOLID) {
+	if (view) {
+		if (view->contents & CONTENTS_SOLID) {
 			bits |= GL_COLOR_BUFFER_BIT;
 		}
+	} else {
+		bits |= GL_COLOR_BUFFER_BIT;
 	}
 
 	glClear(bits);
@@ -332,11 +334,11 @@ static void R_Clear(void) {
 /**
  * @brief Called at the beginning of each render frame.
  */
-void R_BeginFrame(void) {
+void R_BeginFrame(r_view_t *view) {
 
 	memset(&r_stats, 0, sizeof(r_stats));
 
-	R_Clear();
+	R_Clear(view);
 }
 
 /**
@@ -346,13 +348,13 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
 
-	R_Clear();
+	R_Clear(view);
 
-	R_UpdateFrustum();
+	R_UpdateFrustum(view);
 
-	R_UpdateUniforms();
+	R_UpdateUniforms(view);
 
-	R_DrawDepthPass();
+	R_DrawDepthPass(view);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -380,19 +382,21 @@ static void R_DrawColorAttachment(void) {
  */
 void R_DrawView(r_view_t *view) {
 
-	R_DrawBspLightgrid();
+	assert(view);
 
-	R_UpdateBlendDepth();
+	R_DrawBspLightgrid(view);
 
-	R_UpdateEntities();
+	R_UpdateBlendDepth(view);
 
-	R_UpdateLights();
+	R_UpdateEntities(view);
 
-	R_UpdateFlares();
+	R_UpdateLights(view);
 
-	R_UpdateSprites();
+	R_UpdateFlares(view);
 
-	R_UpdateStains();
+	R_UpdateSprites(view);
+
+	R_UpdateStains(view);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
 
@@ -402,15 +406,15 @@ void R_DrawView(r_view_t *view) {
 		R_DrawSky();
 	}
 
-	R_DrawWorld();
+	R_DrawWorld(view);
 
-	R_DrawEntities(-1);
+	R_DrawEntities(view, -1);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
-	R_DrawSprites(-1);
+	R_DrawSprites(view, -1);
 
 	R_Draw3D();
 
@@ -578,7 +582,7 @@ static void R_InitUniforms(void) {
 
 	glGenBuffers(1, &r_uniforms.buffer);
 
-	R_UpdateUniforms();
+	R_UpdateUniforms(NULL);
 }
 
 /**

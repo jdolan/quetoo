@@ -44,7 +44,7 @@ void Cl_S_Restart_f(void) {
 /**
  * @brief Wraps S_AddSample, handling collision interactions for convenience.
  */
-void Cl_S_AddSample(const s_play_sample_t *play) {
+void Cl_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 
 	s_play_sample_t s = *play;
 
@@ -57,5 +57,5 @@ void Cl_S_AddSample(const s_play_sample_t *play) {
 		s.flags |= S_PLAY_OCCLUDED;
 	}
 
-	S_AddSample(&s);
+	S_AddSample(stage, &s);
 }

@@ -28,6 +28,6 @@
 extern void R_InitBspProgram(void);
 extern void R_ShutdownBspProgram(void);
 
-void R_DrawWorld(void);
-void R_DrawBspLightgrid(void);
+void R_DrawWorld(const r_view_t *view);
+void R_DrawBspLightgrid(r_view_t *view);
 #endif /* __R_LOCAL_H__ */

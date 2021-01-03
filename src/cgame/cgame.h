@@ -572,9 +572,10 @@ typedef struct cg_import_s {
 
 	/**
 	 * @brief Adds a sound sample to the playback queue.
+	 * @param stage The sound stage.
 	 * @param play The play sample.
 	 */
-	void (*AddSample)(const s_play_sample_t *play);
+	void (*AddSample)(s_stage_t *stage, const s_play_sample_t *play);
 
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
@@ -660,27 +661,27 @@ typedef struct cg_import_s {
 	 * @brief Adds an entity to the scene for the current frame.
 	 * @return The added entity.
 	 */
-	r_entity_t *(*AddEntity)(const r_entity_t *e);
+	r_entity_t *(*AddEntity)(r_view_t *view, const r_entity_t *e);
 
 	/**
 	 * @brief Adds an instantaneous light to the scene for the current frame.
 	 */
-	void (*AddLight)(const r_light_t *l);
+	void (*AddLight)(r_view_t *view, const r_light_t *l);
 	
 	/**
 	 * @brief Adds a sprite to the scene for the current frame.
 	 */
-	void (*AddSprite)(const r_sprite_t *p);
+	void (*AddSprite)(r_view_t *view, const r_sprite_t *p);
 	
 	/**
 	 * @brief Adds a beam to the scene for the current frame.
 	 */
-	void (*AddBeam)(const r_beam_t *p);
+	void (*AddBeam)(r_view_t *view, const r_beam_t *p);
 
 	/**
 	 * @brief Add a stain to the scene.
 	 */
-	void (*AddStain)(const r_stain_t *s);
+	void (*AddStain)(r_view_t *view, const r_stain_t *s);
 
 	/**
 	 * @}
