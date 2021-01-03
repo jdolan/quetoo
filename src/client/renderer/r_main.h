@@ -222,14 +222,24 @@ typedef struct {
 		float modulate;
 
 		/**
-		 * @brief The fog density scalar.
+		 * @brief The global fog color.
+		 */
+		// vec3_t fog_global_color; // FIXME
+
+		/**
+		 * @brief The global fog density scalar.
+		 */
+		// float fog_global_density; // FIXME
+
+		/**
+		 * @brief The volumetric fog density scalar.
 		 */
 		float fog_density;
 
 		/**
-		 * @brief The number of fog samples per fragment (quality).
+		 * @brief The number of volumetric fog samples per fragment (quality).
 		 */
-		int fog_samples;
+		int32_t fog_samples;
 
 		/**
 		* @brief The pixel dimensions of the framebuffer.

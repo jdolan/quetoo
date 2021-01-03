@@ -127,6 +127,16 @@ layout (std140) uniform uniforms {
 	float modulate;
 
 	/**
+	 * @brief The global fog color.
+	 */
+	// vec3 fog_global_color; // FIXME
+
+	/**
+	 * @brief The global fog density scalar.
+	 */
+	// float fog_global_density; // FIXME
+
+	/**
 	 * @brief The fog density scalar.
 	 */
 	float fog_density;

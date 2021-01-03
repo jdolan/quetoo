@@ -228,6 +228,9 @@ static void R_UpdateUniforms(void) {
 
 		r_uniforms.block.lightgrid.resolution = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 		r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(view, size), 0.f);
+
+		// r_uniforms.block.fog_global_color = Vec3(1.f, 1.f, 1.f); // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_color")->vec3; // FIXME
+		// r_uniforms.block.fog_global_density = 1.f; // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_density")->value; // FIXME
 	}
 
 	R_UpdateLights();
