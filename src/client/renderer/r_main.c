@@ -27,10 +27,11 @@
 
 #include "r_local.h"
 
-r_view_t r_view;
-r_locals_t r_locals;
+r_view_t *r_view;
+
 r_config_t r_config;
 r_uniforms_t r_uniforms;
+r_stats_t r_stats;
 
 cvar_t *r_blend_depth_sorting;
 cvar_t *r_clear;
@@ -127,8 +128,8 @@ _Bool R_CullPoint(const vec3_t point) {
 		return false;
 	}
 
-	const cm_bsp_plane_t *plane = r_locals.frustum;
-	for (size_t i = 0; i< lengthof(r_locals.frustum); i++, plane++) {
+	const cm_bsp_plane_t *plane = r_view->frustum;
+	for (size_t i = 0; i< lengthof(r_view->frustum); i++, plane++) {
 		const float dist = Cm_DistanceToPlane(point, plane);
 		if (dist > 0.f) {
 			return true;
@@ -159,8 +160,8 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		Vec3(mins.x, maxs.y, maxs.z),
 	};
 
-	const cm_bsp_plane_t *plane = r_locals.frustum;
-	for (size_t i = 0; i < lengthof(r_locals.frustum); i++, plane++) {
+	const cm_bsp_plane_t *plane = r_view->frustum;
+	for (size_t i = 0; i < lengthof(r_view->frustum); i++, plane++) {
 
 		size_t j;
 		for (j = 0; j < lengthof(points); j++) {
@@ -187,8 +188,8 @@ _Bool R_CullSphere(const vec3_t point, const float radius) {
 		return false;
 	}
 
-	const cm_bsp_plane_t *plane = r_locals.frustum;
-	for (size_t i = 0 ; i < lengthof(r_locals.frustum) ; i++, plane++)  {
+	const cm_bsp_plane_t *plane = r_view->frustum;
+	for (size_t i = 0 ; i < lengthof(r_view->frustum) ; i++, plane++)  {
 		const float dist = Cm_DistanceToPlane(point, plane);
 		if (dist < -radius) {
 			return true;
@@ -205,64 +206,59 @@ static void R_UpdateUniforms(void) {
 
 	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
 
-	{
-		r_uniforms.block.viewport = Vec4(0.f, 0.f, r_context.drawable_width, r_context.drawable_height);
-	}
+	r_uniforms.block.viewport = Vec4(0.f, 0.f, r_context.drawable_width, r_context.drawable_height);
 
-	{
+	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D_FBO, 0.0, r_context.drawable_width, r_context.drawable_height, 0.0, -1.0, 1.0);
+
+	r_uniforms.block.brightness = r_brightness->value;
+	r_uniforms.block.contrast = r_contrast->value;
+	r_uniforms.block.saturation = r_saturation->value;
+	r_uniforms.block.gamma = r_gamma->value;
+
+	if (r_view) {
+
 		const float aspect = (float) r_context.width / (float) r_context.height;
 
-		const float ymax = tanf(Radians(r_view.fov.y));
+		const float ymax = tanf(Radians(r_view->fov.y));
 		const float ymin = -ymax;
 
 		const float xmin = ymin * aspect;
 		const float xmax = ymax * aspect;
 
 		Matrix4x4_FromFrustum(&r_uniforms.block.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
-	}
 
-	{
-		Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
-		Matrix4x4_FromOrtho(&r_uniforms.block.projection2D_FBO, 0.0, r_context.drawable_width, r_context.drawable_height, 0.0, -1.0, 1.0);
-	}
-
-	{
 		Matrix4x4_CreateIdentity(&r_uniforms.block.view);
 
 		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -90.0, 1.0, 0.0, 0.0); // put Z going up
 		Matrix4x4_ConcatRotate(&r_uniforms.block.view,  90.0, 0.0, 0.0, 1.0); // put Z going up
 
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view.angles.z, 1.0, 0.0, 0.0);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view.angles.x, 0.0, 1.0, 0.0);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view.angles.y, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view->angles.z, 1.0, 0.0, 0.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view->angles.x, 0.0, 1.0, 0.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -r_view->angles.y, 0.0, 0.0, 1.0);
 
-		Matrix4x4_ConcatTranslate(&r_uniforms.block.view, -r_view.origin.x, -r_view.origin.y, -r_view.origin.z);
-	}
+		Matrix4x4_ConcatTranslate(&r_uniforms.block.view, -r_view->origin.x, -r_view->origin.y, -r_view->origin.z);
 
-	{
 		r_uniforms.block.depth_range.x = 1.f;
 		r_uniforms.block.depth_range.y = MAX_WORLD_DIST;
-	}
 
-	{
-		r_uniforms.block.ticks = r_view.ticks;
-		r_uniforms.block.brightness = r_brightness->value;
-		r_uniforms.block.contrast = r_contrast->value;
-		r_uniforms.block.saturation = r_saturation->value;
-		r_uniforms.block.gamma = r_gamma->value;
+		r_uniforms.block.ticks = r_view->ticks;
+
 		r_uniforms.block.modulate = r_modulate->value;
+		
 		r_uniforms.block.fog_density = r_fog_density->value;
 		r_uniforms.block.fog_samples = r_fog_samples->integer;
-	}
 
-	if (r_world_model) {
-		r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->mins, 0.f);
-		r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->maxs, 0.f);
+		if (r_world_model) {
 
-		const vec3_t view = Vec3_Subtract(r_view.origin, r_world_model->bsp->lightgrid->mins);
-		const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
+			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->mins, 0.f);
+			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->maxs, 0.f);
 
-		r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(view, size), 0.f);
+			const vec3_t view = Vec3_Subtract(r_view->origin, r_world_model->bsp->lightgrid->mins);
+			const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
+
+			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(view, size), 0.f);
+		}
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
@@ -281,31 +277,31 @@ static void R_UpdateFrustum(void) {
 		return;
 	}
 
-	cm_bsp_plane_t *p = r_locals.frustum;
+	cm_bsp_plane_t *p = r_view->frustum;
 
-	float ang = Radians(r_view.fov.x);
+	float ang = Radians(r_view->fov.x);
 	float xs = sinf(ang);
 	float xc = cosf(ang);
 
-	p[0].normal = Vec3_Scale(r_view.forward, xs);
-	p[0].normal = Vec3_Add(p[0].normal, Vec3_Scale(r_view.right, xc));
+	p[0].normal = Vec3_Scale(r_view->forward, xs);
+	p[0].normal = Vec3_Add(p[0].normal, Vec3_Scale(r_view->right, xc));
 
-	p[1].normal = Vec3_Scale(r_view.forward, xs);
-	p[1].normal = Vec3_Add(p[1].normal, Vec3_Scale(r_view.right, -xc));
+	p[1].normal = Vec3_Scale(r_view->forward, xs);
+	p[1].normal = Vec3_Add(p[1].normal, Vec3_Scale(r_view->right, -xc));
 
-	ang = Radians(r_view.fov.y);
+	ang = Radians(r_view->fov.y);
 	xs = sinf(ang);
 	xc = cosf(ang);
 
-	p[2].normal = Vec3_Scale(r_view.forward, xs);
-	p[2].normal = Vec3_Add(p[2].normal, Vec3_Scale(r_view.up, xc));
+	p[2].normal = Vec3_Scale(r_view->forward, xs);
+	p[2].normal = Vec3_Add(p[2].normal, Vec3_Scale(r_view->up, xc));
 
-	p[3].normal = Vec3_Scale(r_view.forward, xs);
-	p[3].normal = Vec3_Add(p[3].normal, Vec3_Scale(r_view.up, -xc));
+	p[3].normal = Vec3_Scale(r_view->forward, xs);
+	p[3].normal = Vec3_Add(p[3].normal, Vec3_Scale(r_view->up, -xc));
 
-	for (size_t i = 0; i < lengthof(r_locals.frustum); i++) {
+	for (size_t i = 0; i < lengthof(r_view->frustum); i++) {
 		p[i].normal = Vec3_Normalize(p[i].normal);
-		p[i].dist = Vec3_Dot(r_view.origin, p[i].normal);
+		p[i].dist = Vec3_Dot(r_view->origin, p[i].normal);
 		p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
 		p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
 	}
@@ -318,19 +314,14 @@ static void R_Clear(void) {
 
 	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
 
-	// clear the color buffer if requested
 	if (r_clear->value || r_draw_wireframe->value) {
 		bits |= GL_COLOR_BUFFER_BIT;
 	}
 
-	// or if the client is not fully loaded
-//	if (cls.state != CL_ACTIVE) {
-//		bits |= GL_COLOR_BUFFER_BIT;
-//	}
-
-	// or if the client is no-clipping around the world
-	if (r_view.contents & CONTENTS_SOLID) {
-		bits |= GL_COLOR_BUFFER_BIT;
+	if (r_view) {
+		if (r_view->contents & CONTENTS_SOLID) {
+			bits |= GL_COLOR_BUFFER_BIT;
+		}
 	}
 
 	glClear(bits);
@@ -342,6 +333,8 @@ static void R_Clear(void) {
  * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
+
+	memset(&r_stats, 0, sizeof(r_stats));
 
 	R_Clear();
 }
@@ -362,6 +355,22 @@ void R_DrawViewDepth(r_view_t *view) {
 	R_DrawDepthPass();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief Blits the color attachment to the framebuffer.
+ */
+static void R_DrawColorAttachment(void) {
+
+	const r_image_t img = {
+		.texnum = r_context.color_attachment,
+		.width = r_context.width,
+		.height = -r_context.height
+	};
+
+	R_Draw2DImage(0, r_context.height, img.width, img.height, &img, color_white);
 
 	R_GetError(NULL);
 }
@@ -407,15 +416,7 @@ void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	const r_image_t frame_buffer = {
-		.texnum = r_context.color_attachment,
-		.width = r_context.width,
-		.height = -r_context.height
-	};
-
-	R_Draw2DImage(0, r_context.height, frame_buffer.width, frame_buffer.height, &frame_buffer, color_white);
-
-	R_GetError(NULL);
+	R_DrawColorAttachment();
 }
 
 /**
@@ -483,8 +484,6 @@ static void R_InitLocal(void) {
 	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
 	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
 	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
-
-	memset(&r_locals, 0, sizeof(r_locals));
 }
 
 /**

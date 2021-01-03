@@ -56,6 +56,9 @@ cvar_t *cl_draw_sound_stats;
 cl_static_t cls;
 cl_client_t cl;
 
+r_view_t cl_view;
+s_stage_t cl_stage;
+
 /**
  * @brief We have gotten a challenge from the server, so try and connect.
  */
@@ -592,13 +595,13 @@ static void Cl_UpdateScene(void) {
 
 	cls.cgame->PrepareScene(&cl.frame);
 
-	R_DrawViewDepth(&r_view);
+	R_DrawViewDepth(&cl_view);
 
 	cls.cgame->PopulateScene(&cl.frame);
 
-	R_DrawView(&r_view);
+	R_DrawView(&cl_view);
 
-	S_RenderStage(&s_stage);
+	S_RenderStage(&cl_stage);
 }
 
 /**
@@ -634,8 +637,8 @@ void Cl_Frame(const uint32_t msec) {
 		}
 	}
 
-	memset(&r_view, 0, sizeof(r_view));
-	memset(&s_stage, 0, sizeof(s_stage));
+	memset(&cl_view, 0, sizeof(cl_view));
+	memset(&cl_stage, 0, sizeof(cl_stage));
 
 	Cl_AttemptConnect();
 

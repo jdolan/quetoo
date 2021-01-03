@@ -100,10 +100,9 @@ static void viewWillAppear(ViewController *self) {
 
 	r_material_t *material = NULL;
 
-	vec3_t end;
-	end = Vec3_Add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST));
+	const vec3_t end = Vec3_Add(cl_view.origin, Vec3_Scale(cl_view.forward, MAX_WORLD_DIST));
 
-	const cm_trace_t tr = Cl_Trace(r_view.origin, end, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+	const cm_trace_t tr = Cl_Trace(cl_view.origin, end, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 	if (tr.texinfo && tr.texinfo->material) {
 		material = R_LoadMaterial(tr.texinfo->name, ASSET_CONTEXT_TEXTURES);
 	}

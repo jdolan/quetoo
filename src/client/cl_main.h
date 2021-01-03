@@ -34,7 +34,6 @@ extern cvar_t *cl_no_lerp;
 extern cvar_t *cl_team_chat_sound;
 extern cvar_t *cl_timeout;
 
-// user_info
 extern cvar_t *name;
 extern cvar_t *active;
 extern cvar_t *message_level;
@@ -47,6 +46,9 @@ void Cl_Drop(const char *text);
 void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);
 void Cl_Shutdown(void);
+
+extern r_view_t cl_view;
+extern s_stage_t cl_stage;
 
 #ifdef __CL_LOCAL_H__
 

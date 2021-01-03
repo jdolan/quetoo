@@ -57,7 +57,7 @@ void S_FreeChannel(int32_t c) {
 static _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	vec3_t delta;
-	const float dist = Vec3_DistanceDir(ch->play.origin, s_stage.origin, &delta);
+	const float dist = Vec3_DistanceDir(ch->play.origin, s_stage->origin, &delta);
 
 	float atten;
 	switch (ch->play.atten) {
@@ -82,8 +82,8 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	// fade out frame sounds if they are no longer in the frame
 	if (ch->start_time) {
 		if (ch->play.flags & S_PLAY_FRAME) {
-			if (ch->timestamp != s_stage.ticks) {
-				const uint32_t delta = s_stage.ticks - ch->timestamp;
+			if (ch->timestamp != s_stage->ticks) {
+				const uint32_t delta = s_stage->ticks - ch->timestamp;
 
 				if (delta > 250) {
 					return false; // x faded out
@@ -98,7 +98,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	ch->filter = AL_NONE;
 
 	// adjust pitch in liquids
-	if (s_stage.contents & CONTENTS_MASK_LIQUID) {
+	if (s_stage->contents & CONTENTS_MASK_LIQUID) {
 		ch->pitch = .5f;
 	}
 
@@ -130,15 +130,15 @@ void S_MixChannels(void) {
 		alDopplerFactor(.05f * s_doppler->value);
 	}
 
-	alListenerfv(AL_POSITION, s_stage.origin.xyz);
+	alListenerfv(AL_POSITION, s_stage->origin.xyz);
 
 	alListenerfv(AL_ORIENTATION, (float []) {
-		s_stage.forward.x, s_stage.forward.y, s_stage.forward.z,
-		s_stage.up.x, s_stage.up.y, s_stage.up.z
+		s_stage->forward.x, s_stage->forward.y, s_stage->forward.z,
+		s_stage->up.x, s_stage->up.y, s_stage->up.z
 	});
 
 	if (s_doppler->value) {
-		alListenerfv(AL_VELOCITY, s_stage.velocity.xyz);
+		alListenerfv(AL_VELOCITY, s_stage->velocity.xyz);
 	} else {
 		alListenerfv(AL_VELOCITY, Vec3_Zero().xyz);
 	}
@@ -187,7 +187,7 @@ void S_MixChannels(void) {
 		}
 
 		if (ch->start_time == 0) {
-			ch->start_time = s_stage.ticks;
+			ch->start_time = s_stage->ticks;
 
 			alSourcei(src, AL_BUFFER, ch->play.sample->buffer);
 
@@ -256,11 +256,11 @@ void S_AddSample(const s_play_sample_t *play) {
 		}
 	}
 
-	if (s_stage.num_samples == MAX_SOUNDS) {
+	if (s_stage->num_samples == MAX_SOUNDS) {
 		Com_Debug(DEBUG_SOUND, "MAX_SOUNDS");
 		return;
 	}
 
-	s_stage.samples[s_stage.num_samples] = *play;
-	s_stage.num_samples++;
+	s_stage->samples[s_stage->num_samples] = *play;
+	s_stage->num_samples++;
 }

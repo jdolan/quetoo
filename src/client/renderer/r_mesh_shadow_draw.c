@@ -169,7 +169,7 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 			const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
 			glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 		
-			r_view.count_mesh_triangles += face->num_elements / 3;
+			r_stats.count_mesh_triangles += face->num_elements / 3;
 		}
 	}
 
@@ -178,7 +178,7 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 
 	glBindVertexArray(0);
 
-	r_view.count_mesh_models++;
+	r_stats.count_mesh_models++;
 }
 
 /**
@@ -189,8 +189,8 @@ static _Bool R_DrawMeshEntitiesShadowsProjected(int32_t blend_depth) {
 
 	_Bool any_rendered = false;
 
-	const r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+	const r_entity_t *e = r_view->entities;
+	for (int32_t i = 0; i < r_view->num_entities; i++, e++) {
 		if (IS_MESH_MODEL(e->model)) {
 
 			if (e->effects & EF_NO_SHADOW) {

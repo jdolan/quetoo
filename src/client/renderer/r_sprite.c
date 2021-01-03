@@ -99,7 +99,7 @@ static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float
  */
 void R_AddSprite(const r_sprite_t *s) {
 
-	if (r_view.num_sprites == MAX_SPRITES) {
+	if (r_view->num_sprites == MAX_SPRITES) {
 		Com_Debug(DEBUG_RENDERER, "MAX_SPRITES\n");
 		return;
 	}
@@ -114,8 +114,8 @@ void R_AddSprite(const r_sprite_t *s) {
 		return;
 	}
 
-	r_view.sprites[r_view.num_sprites] = *s;
-	r_view.num_sprites++;
+	r_view->sprites[r_view->num_sprites] = *s;
+	r_view->num_sprites++;
 }
 
 /**
@@ -124,7 +124,7 @@ void R_AddSprite(const r_sprite_t *s) {
  */
 void R_AddBeam(const r_beam_t *b) {
 
-	if (r_view.num_beams == MAX_BEAMS) {
+	if (r_view->num_beams == MAX_BEAMS) {
 		Com_Debug(DEBUG_RENDERER, "MAX_BEAMS\n");
 		return;
 	}
@@ -143,8 +143,8 @@ void R_AddBeam(const r_beam_t *b) {
 		return;
 	}
 
-	r_view.beams[r_view.num_beams] = *b;
-	r_view.num_beams++;
+	r_view->beams[r_view->num_beams] = *b;
+	r_view->num_beams++;
 }
 
 /**
@@ -152,18 +152,18 @@ void R_AddBeam(const r_beam_t *b) {
  */
 static r_sprite_instance_t *R_AllocSpriteInstance(void) {
 
-	if (r_view.num_sprite_instances == MAX_SPRITE_INSTANCES) {
+	if (r_view->num_sprite_instances == MAX_SPRITE_INSTANCES) {
 		Com_Debug(DEBUG_RENDERER, "MAX_SPRITE_INSTANCES\n");
 		return NULL;
 	}
 
-	r_sprite_instance_t *in = &r_view.sprite_instances[r_view.num_sprite_instances];
+	r_sprite_instance_t *in = &r_view->sprite_instances[r_view->num_sprite_instances];
 	memset(in, 0, sizeof(*in));
 
-	in->vertexes = r_sprites.vertexes + 4 * r_view.num_sprite_instances;
-	in->offset = r_view.num_sprite_instances * 6 * sizeof(GLuint);
+	in->vertexes = r_sprites.vertexes + 4 * r_view->num_sprite_instances;
+	in->offset = r_view->num_sprite_instances * 6 * sizeof(GLuint);
 
-	r_view.num_sprite_instances++;
+	r_view->num_sprite_instances++;
 	return in;
 }
 
@@ -189,19 +189,19 @@ static void R_UpdateSprite(const r_sprite_t *s) {
 
 		if (s->axis == SPRITE_AXIS_ALL) {
 			if (s->rotation) {
-				dir = r_view.angles;
+				dir = r_view->angles;
 				dir.z = Degrees(s->rotation);
 				Vec3_Vectors(dir, NULL, &right, &up);
 			} else {
-				right = r_view.right;
-				up = r_view.up;
+				right = r_view->right;
+				up = r_view->up;
 			}
 		} else {
 			dir = Vec3_Zero();
 
 			for (int32_t i = 0; i < 3; i++) {
 				if (s->axis & (1 << i)) {
-					dir.xyz[i] = r_view.forward.xyz[i];
+					dir.xyz[i] = r_view->forward.xyz[i];
 				}
 			}
 
@@ -277,7 +277,7 @@ void R_UpdateBeam(const r_beam_t *b) {
 	length /= b->image->width * (b->size / b->image->height);
 
 	const float half_size = b->size * .5f;
-	const vec3_t right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view.origin, b->end))), half_size);
+	const vec3_t right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(r_view->origin, b->end))), half_size);
 
 	vec2_t texcoords[4];
 	R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
@@ -361,20 +361,20 @@ void R_UpdateBeam(const r_beam_t *b) {
  */
 void R_UpdateSprites(void) {
 
-	const r_sprite_t *s = r_view.sprites;
-	for (int32_t i = 0; i < r_view.num_sprites; i++, s++) {
+	const r_sprite_t *s = r_view->sprites;
+	for (int32_t i = 0; i < r_view->num_sprites; i++, s++) {
 		R_UpdateSprite(s);
 	}
 
-	const r_beam_t *b = r_view.beams;
-	for (int32_t i = 0; i < r_view.num_beams; i++, b++) {
+	const r_beam_t *b = r_view->beams;
+	for (int32_t i = 0; i < r_view->num_beams; i++, b++) {
 		R_UpdateBeam(b);
 	}
 
 	g_hash_table_remove_all(r_sprites.blend_depth_hash);
 
-	r_sprite_instance_t *in = r_view.sprite_instances;
-	for (int32_t i = 0; i < r_view.num_sprite_instances; i++, in++) {
+	r_sprite_instance_t *in = r_view->sprite_instances;
+	for (int32_t i = 0; i < r_view->num_sprite_instances; i++, in++) {
 
 		r_sprite_instance_t *chain = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth));
 		if (chain == NULL) {
@@ -388,7 +388,7 @@ void R_UpdateSprites(void) {
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, r_view.num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, r_view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	R_GetError(NULL);
@@ -457,7 +457,7 @@ void R_DrawSprites(int32_t blend_depth) {
 		}
 
 		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) in->offset);
-		r_view.count_sprite_draw_elements++;
+		r_stats.count_sprite_draw_elements++;
 
 		while (count--) {
 			in = in->blend_chain;

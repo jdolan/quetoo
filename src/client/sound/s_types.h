@@ -323,9 +323,13 @@ typedef struct {
 	int32_t num_samples;
 } s_stage_t;
 
-extern s_stage_t s_stage;
-
 #ifdef __S_LOCAL_H__
+
+/**
+ * @brief The current sound stage.
+ */
+extern s_stage_t *s_stage;
+
 extern SF_VIRTUAL_IO s_rwops_io;
 extern SF_VIRTUAL_IO s_physfs_io;
 

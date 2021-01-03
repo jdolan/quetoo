@@ -145,8 +145,8 @@ void Cl_InitCgame(void) {
 
 	import.context = &r_context;
 
-	import.view = &r_view;
-	import.stage = &s_stage;
+	import.view = &cl_view;
+	import.stage = &cl_stage;
 
 	import.Print = Com_Print;
 	import.Debug_ = Cl_CgameDebug;

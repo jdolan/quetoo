@@ -1142,27 +1142,11 @@ typedef struct {
 	r_stain_t stains[MAX_STAINS];
 	int32_t num_stains;
 
-	// counters, reset each frame
-
-	int32_t count_bsp_inline_models;
-	int32_t count_bsp_draw_elements;
-	int32_t count_bsp_draw_elements_blend;
-	int32_t count_bsp_triangles;
-	int32_t count_bsp_occlusion_queries;
-	int32_t count_bsp_occlusion_queries_passed;
-
-	int32_t count_mesh_models;
-	int32_t count_mesh_triangles;
-
-	int32_t count_sprite_draw_elements;
-
-	int32_t count_draw_chars;
-	int32_t count_draw_fills;
-	int32_t count_draw_images;
-	int32_t count_draw_lines;
-	int32_t count_draw_arrays;
-
-	_Bool update; // inform the client of state changes
+	/**
+	 * @brief The view frustum, for box and sphere culling.
+	 * @remarks This is populated by the renderer.
+	 */
+	cm_bsp_plane_t frustum[4];
 
 } r_view_t;
 
@@ -1210,6 +1194,31 @@ typedef struct {
 	 */
 	GLuint framebuffer, color_attachment, depth_stencil_attachment;
 } r_context_t;
+
+/**
+ * @brief Renderer statistics.
+ */
+typedef struct {
+
+	int32_t count_bsp_inline_models;
+	int32_t count_bsp_draw_elements;
+	int32_t count_bsp_draw_elements_blend;
+	int32_t count_bsp_triangles;
+	int32_t count_bsp_occlusion_queries;
+	int32_t count_bsp_occlusion_queries_passed;
+
+	int32_t count_mesh_models;
+	int32_t count_mesh_triangles;
+
+	int32_t count_sprite_draw_elements;
+
+	int32_t count_draw_chars;
+	int32_t count_draw_fills;
+	int32_t count_draw_images;
+	int32_t count_draw_lines;
+	int32_t count_draw_arrays;
+
+} r_stats_t;
 
 #ifdef __R_LOCAL_H__
 

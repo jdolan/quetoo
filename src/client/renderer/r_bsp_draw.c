@@ -90,7 +90,7 @@ static void R_DrawBspNormals(void) {
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
 		
 		const vec3_t pos = v->position;
-		if (Vec3_Distance(pos, r_view.origin) > 256.f) {
+		if (Vec3_Distance(pos, r_view->origin) > 256.f) {
 			continue;
 		}
 
@@ -142,7 +142,7 @@ void R_DrawBspLightgrid(void) {
 				const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
 				const vec3_t origin = Vec3_Add(lg->mins, Vec3_Scale(position, BSP_LIGHTGRID_LUXEL_SIZE));
 
-				if (Vec3_DistanceSquared(r_view.origin, origin) > 512.f * 512.f) {
+				if (Vec3_DistanceSquared(r_view->origin, origin) > 512.f * 512.f) {
 					continue;
 				}
 
@@ -250,7 +250,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_
 				if (stage->cm->animation.fps == 0.f && e != NULL) {
 					frame = e->frame;
 				} else {
-					frame = r_view.ticks / 1000.f * stage->cm->animation.fps;
+					frame = r_view->ticks / 1000.f * stage->cm->animation.fps;
 				}
 				glBindTexture(GL_TEXTURE_2D, animation->frames[frame % animation->num_frames]->texnum);
 			}
@@ -337,7 +337,7 @@ static inline void R_DrawBspDrawElements(const r_entity_t *e, const r_bsp_draw_e
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-		r_view.count_bsp_triangles += draw->num_elements / 3;
+		r_stats.count_bsp_triangles += draw->num_elements / 3;
 	}
 
 	R_DrawBspDrawElementsMaterialStages(e, draw, draw->texinfo->material);
@@ -369,11 +369,11 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
 				}
 			}
 
-			r_view.count_bsp_draw_elements++;
+			r_stats.count_bsp_draw_elements++;
 		}
 	}
 
-	r_view.count_bsp_inline_models++;
+	r_stats.count_bsp_inline_models++;
 }
 
 /**
@@ -432,7 +432,7 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_b
 
 		R_DrawBspDrawElements(e, draw, &material);
 
-		r_view.count_bsp_draw_elements_blend++;
+		r_stats.count_bsp_draw_elements_blend++;
 	}
 
 	glBlendFunc(GL_ONE, GL_ZERO);
@@ -499,8 +499,8 @@ void R_DrawWorld(void) {
 	}
 
 	{
-		const r_entity_t *e = r_view.entities;
-		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		const r_entity_t *e = r_view->entities;
+		for (int32_t i = 0; i < r_view->num_entities; i++, e++) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
@@ -516,8 +516,8 @@ void R_DrawWorld(void) {
 	R_DrawBspInlineModelBlendDrawElements(NULL, r_world_model->bsp->inline_models);
 
 	{
-		const r_entity_t *e = r_view.entities;
-		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		const r_entity_t *e = r_view->entities;
+		for (int32_t i = 0; i < r_view->num_entities; i++, e++) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);

@@ -25,7 +25,7 @@
 
 s_context_t s_context;
 
-s_stage_t s_stage;
+s_stage_t *s_stage;
 
 cvar_t *s_get_error;
 
@@ -194,12 +194,16 @@ void S_Stop(void) {
  */
 void S_RenderStage(s_stage_t *stage) {
 
+	assert(stage);
+
+	s_stage = stage;
+
 	if (!s_context.context) {
 		return;
 	}
 
-	const s_play_sample_t *s = stage->samples;
-	for (int32_t i = 0; i < stage->num_samples; i++, s++) {
+	const s_play_sample_t *s = s_stage->samples;
+	for (int32_t i = 0; i < s_stage->num_samples; i++, s++) {
 
 		if (s->flags & S_PLAY_FRAME) {
 			s_channel_t *ch = s_context.channels;
@@ -208,7 +212,7 @@ void S_RenderStage(s_stage_t *stage) {
 				if (ch->play.sample && (ch->play.flags & S_PLAY_FRAME)) {
 					if (ch->play.sample == s->sample && ch->play.entity == s->entity) {
 						ch->play = *s;
-						ch->timestamp = s_stage.ticks;
+						ch->timestamp = s_stage->ticks;
 						break;
 					}
 				}
@@ -229,17 +233,14 @@ void S_RenderStage(s_stage_t *stage) {
 		}
 
 		s_context.channels[c].play = *s;
-		s_context.channels[c].timestamp = stage->ticks;
+		s_context.channels[c].timestamp = s_stage->ticks;
 	}
 
 	S_RenderMusic();
 
-//	if (cls.state != CL_ACTIVE) {
-//		S_Stop();
-//		return;
-//	}
-
 	S_MixChannels();
+
+	s_stage = NULL;
 }
 
 /**

@@ -98,8 +98,8 @@ void R_UpdateFlares(void) {
 
 	R_UpdateBspInlineModelFlares(NULL, r_world_model->bsp->inline_models);
 
-	const r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+	const r_entity_t *e = r_view->entities;
+	for (int32_t i = 0; i < r_view->num_entities; i++, e++) {
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 
 			R_UpdateBspInlineModelFlares(e, e->model->bsp_inline);

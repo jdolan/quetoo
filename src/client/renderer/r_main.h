@@ -54,7 +54,7 @@ extern cvar_t *r_texture_mode;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_width;
 
-extern r_view_t r_view;
+extern r_stats_t r_stats;
 
 void R_GetError_(const char *function, const char *msg);
 #define R_GetError(msg) R_GetError_(__func__, msg)
@@ -69,6 +69,11 @@ void R_EndFrame(void);
 #ifdef __R_LOCAL_H__
 
 /**
+ * @brief The current view.
+ */
+extern r_view_t *r_view;
+
+/**
  * @brief OpenGL driver information.
  */
 typedef struct {
@@ -81,24 +86,6 @@ typedef struct {
 } r_config_t;
 
 extern r_config_t r_config;
-
-/**
- * @brief Private renderer data type.
- */
-typedef struct {
-	/**
-	 * @brief The view frustum, for box and sphere culling.
-	 */
-	cm_bsp_plane_t frustum[4];
-
-	/**
-	 * @brief The stain frame counter.
-	 */
-	int32_t stain_frame;
-
-} r_locals_t;
-
-extern r_locals_t r_locals;
 
 /**
  * @brief The lightgrid uniform struct.

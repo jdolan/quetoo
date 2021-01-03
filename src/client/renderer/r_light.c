@@ -28,7 +28,7 @@ r_lights_t r_lights;
  */
 void R_AddLight(const r_light_t *in) {
 
-	if (r_view.num_lights == MAX_LIGHTS) {
+	if (r_view->num_lights == MAX_LIGHTS) {
 		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS\n");
 		return;
 	}
@@ -41,7 +41,7 @@ void R_AddLight(const r_light_t *in) {
 		return;
 	}
 
-	r_light_t *out = &r_view.lights[r_view.num_lights++];
+	r_light_t *out = &r_view->lights[r_view->num_lights++];
 	*out = *in;
 }
 
@@ -51,17 +51,22 @@ void R_AddLight(const r_light_t *in) {
 void R_UpdateLights(void) {
 
 	memset(r_lights.block.lights, 0, sizeof(r_lights.block.lights));
-	r_light_t *out = r_lights.block.lights;
 
-	const r_light_t *in = r_view.lights;
-	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
+	if (r_view) {
 
-		*out = *in;
+		const r_light_t *in = r_view->lights;
+		
+		r_light_t *out = r_lights.block.lights;
 
-		Matrix4x4_Transform(&r_uniforms.block.view, in->origin.xyz, out->origin.xyz);
+		for (int32_t i = 0; i < r_view->num_lights; i++, in++, out++) {
+
+			*out = *in;
+
+			Matrix4x4_Transform(&r_uniforms.block.view, in->origin.xyz, out->origin.xyz);
+		}
+
+		r_lights.block.num_lights = r_view->num_lights;
 	}
-
-	r_lights.block.num_lights = r_view.num_lights;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);

@@ -80,12 +80,12 @@ static _Bool R_CullEntity(const r_entity_t *e) {
  */
 r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
-	if (r_view.num_entities == MAX_ENTITIES) {
+	if (r_view->num_entities == MAX_ENTITIES) {
 		Com_Warn("MAX_ENTITIES\n");
 		return NULL;
 	}
 
-	r_entity_t *e = &r_view.entities[r_view.num_entities];
+	r_entity_t *e = &r_view->entities[r_view->num_entities];
 	*e = *ent;
 
 	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
@@ -107,7 +107,7 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 		return NULL;
 	}
 
-	r_view.num_entities++;
+	r_view->num_entities++;
 	return e;
 }
 
@@ -146,8 +146,8 @@ void R_DrawEntities(int32_t blend_depth) {
 		return;
 	}
 
-	const r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+	const r_entity_t *e = r_view->entities;
+	for (int32_t i = 0; i < r_view->num_entities; i++, e++) {
 
 		if (e->model == NULL) {
 			continue;

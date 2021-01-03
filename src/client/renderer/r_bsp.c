@@ -41,7 +41,7 @@ int32_t R_BlendDepthForPoint(const vec3_t p, const r_blend_depth_type_t type) {
 	if (r_blend_depth_sorting->value) {
 
 		vec3_t mins, maxs;
-		Cm_TraceBounds(r_view.origin, p, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
+		Cm_TraceBounds(r_view->origin, p, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
 
 		const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 		for (guint i = 0; i < in->blend_elements->len; i++) {
@@ -104,7 +104,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_entity_t *e, const r_bsp_
 	}
 
 	int32_t back_side;
-	if (Cm_DistanceToPlane(r_view.origin, &transformed_plane) > 0.f) {
+	if (Cm_DistanceToPlane(r_view->origin, &transformed_plane) > 0.f) {
 		back_side = 1;
 	} else {
 		back_side = 0;
@@ -153,8 +153,8 @@ void R_UpdateBlendDepth(void) {
 
 	R_UpdateBspInlineModelBlendDepth(NULL, in);
 
-	r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+	r_entity_t *e = r_view->entities;
+	for (int32_t i = 0; i < r_view->num_entities; i++, e++) {
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 			R_UpdateBspInlineModelBlendDepth(e, e->model->bsp_inline);
 		}

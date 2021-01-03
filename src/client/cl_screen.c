@@ -141,16 +141,16 @@ static void Cl_DrawRendererStats(void) {
 	{
 		R_Draw2DString(x, y, "BSP:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d inline models", r_view.count_bsp_inline_models), color_yellow);
+		R_Draw2DString(x, y, va(" %d inline models", r_stats.count_bsp_inline_models), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d draw elements", r_view.count_bsp_draw_elements), color_yellow);
+		R_Draw2DString(x, y, va(" %d draw elements", r_stats.count_bsp_draw_elements), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d blend elements", r_view.count_bsp_draw_elements_blend), color_yellow);
+		R_Draw2DString(x, y, va(" %d blend elements", r_stats.count_bsp_draw_elements_blend), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d triangles", r_view.count_bsp_triangles), color_yellow);
+		R_Draw2DString(x, y, va(" %d triangles", r_stats.count_bsp_triangles), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d occlusion queries (%d passed)", r_view.count_bsp_occlusion_queries,
-								r_view.count_bsp_occlusion_queries_passed), color_yellow);
+		R_Draw2DString(x, y, va(" %d occlusion queries (%d passed)", r_stats.count_bsp_occlusion_queries,
+								r_stats.count_bsp_occlusion_queries_passed), color_yellow);
 		y += ch;
 	}
 
@@ -159,9 +159,9 @@ static void Cl_DrawRendererStats(void) {
 	{
 		R_Draw2DString(x, y, "Mesh:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d models", r_view.count_mesh_models), color_yellow);
+		R_Draw2DString(x, y, va(" %d models", r_stats.count_mesh_models), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d triangles", r_view.count_mesh_triangles), color_yellow);
+		R_Draw2DString(x, y, va(" %d triangles", r_stats.count_mesh_triangles), color_yellow);
 		y += ch;
 	}
 
@@ -177,10 +177,10 @@ static void Cl_DrawRendererStats(void) {
 		if (quetoo.ticks - sprite_time > 100) {
 			sprite_time = quetoo.ticks;
 
-			g_snprintf(sprites, sizeof(sprites),      " %d sprites", r_view.num_sprites);
-			g_snprintf(beams, sizeof(beams),          " %d beams", r_view.num_beams);
-			g_snprintf(instances, sizeof(instances),  " %d instances", r_view.num_sprite_instances);
-			g_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_view.count_sprite_draw_elements);
+			g_snprintf(sprites, sizeof(sprites),      " %d sprites", cl_view.num_sprites);
+			g_snprintf(beams, sizeof(beams),          " %d beams", cl_view.num_beams);
+			g_snprintf(instances, sizeof(instances),  " %d instances", cl_view.num_sprite_instances);
+			g_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.count_sprite_draw_elements);
 		}
 
 		R_Draw2DString(x, y, sprites, color_yellow);
@@ -198,15 +198,15 @@ static void Cl_DrawRendererStats(void) {
 	{
 		R_Draw2DString(x, y, "Draw 2D:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d chars", r_view.count_draw_chars), color_yellow);
+		R_Draw2DString(x, y, va("%d chars", r_stats.count_draw_chars), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d fills", r_view.count_draw_fills), color_yellow);
+		R_Draw2DString(x, y, va("%d fills", r_stats.count_draw_fills), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d images", r_view.count_draw_images), color_yellow);
+		R_Draw2DString(x, y, va("%d images", r_stats.count_draw_images), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d lines", r_view.count_draw_lines), color_yellow);
+		R_Draw2DString(x, y, va("%d lines", r_stats.count_draw_lines), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d arrays", r_view.count_draw_arrays), color_yellow);
+		R_Draw2DString(x, y, va("%d arrays", r_stats.count_draw_arrays), color_yellow);
 		y += ch;
 	}
 
@@ -215,12 +215,12 @@ static void Cl_DrawRendererStats(void) {
 	{
 		R_Draw2DString(x, y, "Other:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d lights", r_view.num_lights), color_yellow);
+		R_Draw2DString(x, y, va("%d lights", cl_view.num_lights), color_yellow);
 		y += ch;
 	}
 
-	const vec3_t forward = Vec3_Add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST));
-	const cm_trace_t tr = Cl_Trace(r_view.origin, forward, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+	const vec3_t forward = Vec3_Add(cl_view.origin, Vec3_Scale(cl_view.forward, MAX_WORLD_DIST));
+	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 	if (tr.fraction < 1.f) {
 		y += ch;
 

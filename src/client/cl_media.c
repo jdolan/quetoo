@@ -262,9 +262,9 @@ void Cl_LoadMedia(void) {
  */
 void Cl_UpdateMedia(void) {
 
-//	if ((r_view.update || s_context.update) && cls.state == CL_ACTIVE) {
+//	if ((view->update || s_context.update) && cls.state == CL_ACTIVE) {
 //
-//		Com_Debug(DEBUG_CLIENT, "%s %s\n", r_view.update ? "view" : "", s_context.update ? "sound" : "");
+//		Com_Debug(DEBUG_CLIENT, "%s %s\n", view->update ? "view" : "", s_context.update ? "sound" : "");
 //
 //		cls.cgame->UpdateMedia();
 //
