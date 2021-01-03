@@ -551,6 +551,13 @@ typedef struct cg_import_s {
 	float (*KeyState)(button_t *key, uint32_t cmd_msec);
 
 	/**
+	 * @brief Update the loading progress during media loading.
+	 * @param percent The percent. Positive values for absolute, negaitve for relative increment.
+	 * @param status The status message.
+	 */
+	void (*LoadingProgress)(int32_t percent, const char *status);
+
+	/**
 	 * @brief Loads a sound sample by the given name.
 	 * @param name The sample name or alias (e.g. `"weapons/bfg/fire"`, `"#players/common/gurp"`).
 	 * @return The loaded sample.

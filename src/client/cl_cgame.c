@@ -230,6 +230,8 @@ void Cl_InitCgame(void) {
 	import.KeyUp = Cl_KeyUp;
 	import.KeyState = Cl_KeyState;
 
+	import.LoadingProgress = Cl_LoadingProgress;
+	
 	import.LoadSample = S_LoadSample;
 	import.LoadClientModelSample = S_LoadClientModelSample;
 	import.LoadClientModelSamples = S_LoadClientModelSamples;

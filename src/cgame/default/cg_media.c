@@ -242,6 +242,8 @@ void Cg_UpdateMedia(void) {
 	cgi.FreeTag(MEM_TAG_CGAME);
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
 
+	cgi.LoadingProgress(-1, "sounds");
+
 	cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire");
 	cg_sample_blaster_hit = cgi.LoadSample("weapons/blaster/hit");
 	cg_sample_shotgun_fire = cgi.LoadSample("weapons/shotgun/fire");
@@ -284,6 +286,8 @@ void Cg_UpdateMedia(void) {
 
 	Cg_InitFootsteps();
 
+	cgi.LoadingProgress(-1, "sprites");
+
 	Cg_FreeSprites();
 
 	Cg_InitLights();
@@ -318,6 +322,8 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_electro_02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/electro_02/electro_02", IT_EFFECT);
 	cg_sprite_teleport = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/teleport", IT_EFFECT);
 	cg_sprite_splash_02_03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/splash_02/splash_02_03", IT_EFFECT);
+
+	cgi.LoadingProgress(-1, "sprites");
 
 	cg_sprite_blaster_ring = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
 	cg_sprite_explosion = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
@@ -367,11 +373,17 @@ void Cg_UpdateMedia(void) {
 	cg_draw_crosshair->modified = true;
 	cg_draw_crosshair_color->modified = true;
 
+	cgi.LoadingProgress(-1, "entities");
+
 	Cg_LoadEntities();
 
 	Cg_LoadEffects();
 
+	cgi.LoadingProgress(-1, "clients");
+
 	Cg_LoadClients();
+
+	cgi.LoadingProgress(-1, "hud");
 
 	Cg_LoadHudMedia();
 

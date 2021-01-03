@@ -100,11 +100,11 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	if (percent < 0) {
 		cls.loading.percent -= percent;
+		cls.loading.percent = Mini(Maxi(0, cls.loading.percent), 99);
+
 	} else {
 		cls.loading.percent = percent;
 	}
-
-	cls.loading.percent = Mini(Maxi(0, cls.loading.percent), 100);
 
 	cls.loading.status = status;
 
@@ -135,7 +135,9 @@ static void Cl_LoadModels(void) {
 			break;
 		}
 
-		Cl_LoadingProgress(-4, str);
+		if (i ^ 1) {
+			Cl_LoadingProgress(-1, str);
+		}
 
 		cl.models[i] = R_LoadModel(str);
 	}
@@ -157,7 +159,9 @@ static void Cl_LoadImages(void) {
 			break;
 		}
 
-		Cl_LoadingProgress(-1, str);
+		if (i ^ 1) {
+			Cl_LoadingProgress(-1, str);
+		}
 
 		cl.images[i] = R_LoadImage(str, IT_PIC);
 	}
@@ -183,7 +187,9 @@ static void Cl_LoadSounds(void) {
 			break;
 		}
 
-		Cl_LoadingProgress(-1, str);
+		if (i ^ 1) {
+			Cl_LoadingProgress(-1, str);
+		}
 
 		cl.sounds[i] = S_LoadSample(str);
 	}
@@ -203,7 +209,9 @@ static void Cl_LoadMusics(void) {
 			break;
 		}
 
-		Cl_LoadingProgress(-1, str);
+		if (i ^ 1) {
+			Cl_LoadingProgress(-1, str);
+		}
 
 		cl.musics[i] = S_LoadMusic(str);
 	}
@@ -246,13 +254,13 @@ void Cl_LoadMedia(void) {
 
 	Cl_LoadMusics();
 
-	Cl_LoadingProgress(-1, "cgame");
-
 	cls.cgame->UpdateMedia();
 
 	Cl_LoadingProgress(100, "ready");
 
 	R_FreeUnseededMedia();
+
+	S_FreeMedia();
 
 	Cl_SetKeyDest(KEY_GAME);
 }
