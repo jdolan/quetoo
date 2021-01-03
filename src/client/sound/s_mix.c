@@ -155,6 +155,10 @@ void S_MixChannels(const s_stage_t *stage) {
 		const ALuint src = s_context.sources[i];
 		assert(src);
 
+		if (ch->play.Think) {
+			ch->play.Think(stage, &ch->play);
+		}
+
 		if (!S_SpatializeChannel(stage, ch)) {
 			S_FreeChannel(i);
 			continue;

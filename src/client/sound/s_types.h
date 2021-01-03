@@ -111,10 +111,18 @@ typedef struct {
 
 #define TONES_PER_OCTAVE	48
 
+struct s_play_sample_s;
+struct s_stage_s;
+
+/**
+ * @brief Think function for sound samples to update effects, pitch, etc.. per frame.
+ */
+typedef void (*PlaySampleThink)(const struct s_stage_s *stage, struct s_play_sample_s *play);
+
 /**
  * @brief The sample instance type, used to dispatch playback of a sample.
  */
-typedef struct  {
+typedef struct s_play_sample_s {
 	/**
 	 * @brief The sample to play.
 	 */
@@ -149,6 +157,12 @@ typedef struct  {
 	 * @brief The entity associated with this sample, so that occlusion traces may skip it.
 	 */
 	int32_t entity;
+
+	/**
+	 * @brief An optional think function run once per frame.
+	 */
+	PlaySampleThink Think;
+
 } s_play_sample_t;
 
 /**
@@ -275,7 +289,7 @@ typedef struct {
 /**
  * @brief The sound stage type.
  */
-typedef struct {
+typedef struct s_stage_s {
 	/**
 	 * @brief Unclamped simulation time, in milliseconds.
 	 */
