@@ -77,6 +77,8 @@ r_atlas_image_t *cg_sprite_blob_01;
 r_atlas_image_t *cg_sprite_electro_02;
 r_atlas_image_t *cg_sprite_splash_02_03;
 r_image_t *cg_beam_hook;
+r_image_t *cg_beam_arrow;
+r_image_t *cg_beam_line;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
 r_image_t *cg_beam_tracer;
@@ -289,6 +291,8 @@ void Cg_UpdateMedia(void) {
 	Cg_InitLights();
 
 	cg_beam_hook = cgi.LoadImage("sprites/rope", IT_EFFECT);
+	cg_beam_arrow = cgi.LoadImage("sprites/arrow", IT_EFFECT | IT_MASK_CLAMP_EDGE);
+	cg_beam_line = cgi.LoadImage("sprites/line", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_rail = cgi.LoadImage("sprites/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IT_EFFECT);
 	cg_beam_tracer = cgi.LoadImage("sprites/tracer", IT_EFFECT | IT_MASK_CLAMP_EDGE);
