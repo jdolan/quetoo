@@ -19,11 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "s_local.h"
-#include "client.h"
+#include <SDL.h>
 
-// the sound environment
-s_env_t s_env;
+#include "s_local.h"
+
+s_context_t s_context;
+
+cvar_t *s_get_error;
 
 cvar_t *s_ambient_volume;
 cvar_t *s_doppler;
@@ -32,20 +34,26 @@ cvar_t *s_effects_volume;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
-extern cl_client_t cl;
-extern cl_static_t cls;
-
 /**
  * @brief Check and report OpenAL errors.
  */
-void S_CheckALError(void) {
+void S_GetError_(const char *function, const char *msg) {
+
+	if (!s_get_error->integer) {
+		return;
+	}
+
 	const ALenum v = alGetError();
 
 	if (v == AL_NO_ERROR) {
 		return;
 	}
 
-	Com_Debug(DEBUG_BREAKPOINT | DEBUG_SOUND, "AL error: %s\n", alGetString(v));
+	Com_Warn("%s threw %s: %s\n", function, alGetString(v), msg);
+
+	if (s_get_error->integer == 2) {
+		SDL_TriggerBreakpoint();
+	}
 }
 
 /**
@@ -168,106 +176,65 @@ SF_VIRTUAL_IO s_physfs_io = {
  */
 void S_Stop(void) {
 
-	memset(s_env.channels, 0, sizeof(s_env.channels));
+	memset(s_context.channels, 0, sizeof(s_context.channels));
 
-	alSourceStopv(MAX_CHANNELS, s_env.sources);
+	alSourceStopv(MAX_CHANNELS, s_context.sources);
 
 	for (size_t i = 0; i < MAX_CHANNELS; i++) {
-		alSourcei(s_env.sources[i], AL_BUFFER, 0);
+		alSourcei(s_context.sources[i], AL_BUFFER, 0);
 	}
 
-	S_CheckALError();
+	S_GetError(NULL);
 }
 
 /**
- * @brief Adds a single frame of audio. Also, if a loading cycle has completed,
- * media is freed here.
+ * @brief Renders the specified stage, adding channels from the defined play samples.
  */
-void S_Frame(void) {
+void S_RenderStage(const s_stage_t *stage) {
 
-	if (!s_env.context) {
+	assert(stage);
+
+	if (!s_context.context) {
 		return;
 	}
 
-	S_FrameMusic();
+	const s_play_sample_t *s = stage->samples;
+	for (int32_t i = 0; i < stage->num_samples; i++, s++) {
 
-	if (cls.state != CL_ACTIVE) {
-		S_Stop();
-		return;
-	}
+		if (s->flags & S_PLAY_FRAME) {
+			s_channel_t *ch = s_context.channels;
+			int32_t j;
+			for (j = 0; j < MAX_CHANNELS; j++, ch++) {
+				if (ch->play.sample && (ch->play.flags & S_PLAY_FRAME)) {
+					if (ch->play.sample == s->sample && ch->play.entity == s->entity) {
+						ch->play = *s;
+						ch->timestamp = stage->ticks;
+						break;
+					}
+				}
+			}
 
-	if (s_env.update) {
-		s_env.update = false;
-		S_FreeMedia();
-	}
-
-	S_MixChannels();
-}
-
-/**
- * @brief Loads all media for the sound subsystem.
- */
-void S_LoadMedia(void) {
-	extern cl_client_t cl;
-
-	if (!s_env.context) {
-		return;
-	}
-
-	if (!cl.config_strings[CS_MODELS][0]) {
-		return; // no map specified
-	}
-
-	S_ClearPlaylist();
-
-	S_BeginLoading();
-
-	Cl_LoadingProgress(-1, "sounds");
-
-	if (*cl_chat_sound->string) {
-		S_LoadSample(cl_chat_sound->string);
-	}
-
-	if (*cl_team_chat_sound->string) {
-		S_LoadSample(cl_team_chat_sound->string);
-	}
-
-	for (uint32_t i = 0; i < MAX_SOUNDS; i++) {
-
-		if (!cl.config_strings[CS_SOUNDS + i][0]) {
-			break;
+			if (j < MAX_CHANNELS) {
+				continue;
+			}
 		}
 
-		cl.sound_precache[i] = S_LoadSample(cl.config_strings[CS_SOUNDS + i]);
-	}
-
-	for (uint32_t i = 0; i < MAX_MUSICS; i++) {
-
-		if (!cl.config_strings[CS_MUSICS + i][0]) {
-			break;
+		if (s->sample->stereo && s->atten) {
+			Com_Warn("%s is a stereo sound sample and is being spatialized\n", s->sample->media.name);
 		}
 
-		cl.music_precache[i] = S_LoadMusic(cl.config_strings[CS_MUSICS + i]);
+		const int32_t c = S_AllocChannel();
+		if (c == -1) {
+			continue;
+		}
+
+		s_context.channels[c].play = *s;
+		s_context.channels[c].timestamp = stage->ticks;
 	}
 
-	S_NextTrack_f();
+	S_RenderMusic(stage);
 
-	Cl_LoadingProgress(-3, "music");
-
-	s_env.update = true;
-}
-
-/**
- * @brief
- */
-static void S_Play_f(void) {
-
-	int32_t i = 1;
-	while (i < Cmd_Argc()) {
-		S_AddSample(&(const s_play_sample_t) {
-			.sample = S_LoadSample(Cmd_Argv(i++))
-		});
-	}
+	S_MixChannels(stage);
 }
 
 /**
@@ -278,43 +245,15 @@ static void S_Stop_f(void) {
 }
 
 /**
- * @brief
- */
-void S_Restart_f(void) {
-
-	if (cls.state == CL_LOADING) {
-		return;
-	}
-
-	S_Shutdown();
-
-	S_Init();
-
-	const cl_state_t state = cls.state;
-
-	if (cls.state == CL_ACTIVE) {
-		cls.state = CL_LOADING;
-	}
-
-	cls.loading.percent = 0;
-	cls.cgame->UpdateLoading(cls.loading);
-
-	S_LoadMedia();
-
-	cls.loading.percent = 100;
-	cls.cgame->UpdateLoading(cls.loading);
-
-	cls.state = state;
-}
-
-/**
  * @brief Initializes variables and commands for the sound subsystem.
  */
 static void S_InitLocal(void) {
 
+	s_get_error = Cvar_Add("s_get_error", "0", CVAR_DEVELOPER, "Log OpenAL errors to the console (developer tool");
+
 	s_ambient_volume = Cvar_Add("s_ambient_volume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
 	s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
-	s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_MEDIA, "Enables advanced sound effects.");
+	s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables advanced sound effects.");
 	s_effects_volume = Cvar_Add("s_effects_volume", "1", CVAR_ARCHIVE, "Effects sound volume.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_volume = Cvar_Add("s_volume", "1", CVAR_ARCHIVE, "Master sound volume level.");
@@ -322,8 +261,6 @@ static void S_InitLocal(void) {
 	Cvar_ClearAll(CVAR_S_MASK);
 
 	Cmd_Add("s_list_media", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
-	Cmd_Add("s_play", S_Play_f, CMD_SOUND, NULL);
-	Cmd_Add("s_restart", S_Restart_f, CMD_SOUND, "Restart the sound subsystem");
 	Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
 }
 
@@ -331,7 +268,7 @@ static void S_InitLocal(void) {
  * @brief Initializes the sound subsystem.
  */
 void S_Init(void) {
-	memset(&s_env, 0, sizeof(s_env));
+	memset(&s_context, 0, sizeof(s_context));
 
 	if (Cvar_GetValue("s_disable")) {
 		Com_Warn("Sound disabled\n");
@@ -342,29 +279,29 @@ void S_Init(void) {
 
 	S_InitLocal();
 
-	s_env.device = alcOpenDevice(NULL);
+	s_context.device = alcOpenDevice(NULL);
 
-	if (!s_env.device) {
+	if (!s_context.device) {
 		Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
 		return;
 	}
 
-	s_env.context = alcCreateContext(s_env.device, NULL);
+	s_context.context = alcCreateContext(s_context.device, NULL);
 
-	if (!s_env.context || !alcMakeContextCurrent(s_env.context)) {
+	if (!s_context.context || !alcMakeContextCurrent(s_context.context)) {
 		Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
 		return;
 	}
 
 	aladLoadAL();
 
-	s_env.renderer = (const char *) alGetString(AL_RENDERER);
-	s_env.vendor = (const char *) alGetString(AL_VENDOR);
-	s_env.version = (const char *) alGetString(AL_VERSION);
+	s_context.renderer = (const char *) alGetString(AL_RENDERER);
+	s_context.vendor = (const char *) alGetString(AL_VENDOR);
+	s_context.version = (const char *) alGetString(AL_VERSION);
 
-	Com_Print("  Renderer:   ^2%s^7\n", s_env.renderer);
-	Com_Print("  Vendor:     ^2%s^7\n", s_env.vendor);
-	Com_Print("  Version:    ^2%s^7\n", s_env.version);
+	Com_Print("  Renderer:   ^2%s^7\n", s_context.renderer);
+	Com_Print("  Vendor:     ^2%s^7\n", s_context.vendor);
+	Com_Print("  Version:    ^2%s^7\n", s_context.version);
 
 	gchar **strings = g_strsplit(alGetString(AL_EXTENSIONS), " ", 0);
 
@@ -380,7 +317,7 @@ void S_Init(void) {
 
 	g_strfreev(strings);
 
-	strings = g_strsplit(alcGetString(s_env.device, ALC_EXTENSIONS), " ", 0);
+	strings = g_strsplit(alcGetString(s_context.device, ALC_EXTENSIONS), " ", 0);
 
 	for (guint i = 0; i < g_strv_length(strings); i++) {
 		const char *c = (const char *) strings[i];
@@ -394,31 +331,30 @@ void S_Init(void) {
 			Com_Warn("s_effects is enabled but OpenAL driver does not support them.");
 			Cvar_ForceSetInteger(s_effects->name, 0);
 			s_effects->modified = false;
-			s_env.effects.loaded = false;
+			s_context.effects.loaded = false;
 		} else {
-			alGenFilters(1, &s_env.effects.occluded);
-			alFilteri(s_env.effects.occluded, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-			alFilterf(s_env.effects.occluded, AL_LOWPASS_GAIN, 0.6);
-			alFilterf(s_env.effects.occluded, AL_LOWPASS_GAINHF, 0.6);
+			alGenFilters(1, &s_context.effects.occluded);
+			alFilteri(s_context.effects.occluded, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+			alFilterf(s_context.effects.occluded, AL_LOWPASS_GAIN, 0.6);
+			alFilterf(s_context.effects.occluded, AL_LOWPASS_GAINHF, 0.6);
 
-			alGenFilters(1, &s_env.effects.underwater);
-			alFilteri(s_env.effects.underwater, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-			alFilterf(s_env.effects.underwater, AL_LOWPASS_GAIN, 0.3);
-			alFilterf(s_env.effects.underwater, AL_LOWPASS_GAINHF, 0.3);
+			alGenFilters(1, &s_context.effects.underwater);
+			alFilteri(s_context.effects.underwater, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+			alFilterf(s_context.effects.underwater, AL_LOWPASS_GAIN, 0.3);
+			alFilterf(s_context.effects.underwater, AL_LOWPASS_GAINHF, 0.3);
 
-			S_CheckALError();
+			S_GetError("Failed to create filters");
 
-			s_env.effects.loaded = true;
+			s_context.effects.loaded = true;
 		}
 	} else {
-		s_env.effects.loaded = false;
+		s_context.effects.loaded = false;
 	}
 
 	alDistanceModel(AL_NONE);
-	S_CheckALError();
+	alGenSources(MAX_CHANNELS, s_context.sources);
 
-	alGenSources(MAX_CHANNELS, s_env.sources);
-	S_CheckALError();
+	S_GetError(NULL);
 
 	Com_Print("Sound initialized (OpenAL, resample @ %dhz)\n", s_rate->integer);
 
@@ -426,7 +362,7 @@ void S_Init(void) {
 
 	S_InitMusic();
 
-	s_env.resample_buffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
+	s_context.resample_buffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
 }
 
 /**
@@ -434,39 +370,38 @@ void S_Init(void) {
  */
 void S_Shutdown(void) {
 
-	if (!s_env.context) {
+	if (!s_context.context) {
 		return;
 	}
 
 	S_Stop();
 
-	alDeleteSources(MAX_CHANNELS, s_env.sources);
-	S_CheckALError();
+	alDeleteSources(MAX_CHANNELS, s_context.sources);
 
-	if (s_env.effects.loaded) {
-		alDeleteFilters(1, &s_env.effects.underwater);
-		S_CheckALError();
-
-		s_env.effects.loaded = false;
+	if (s_context.effects.loaded) {
+		alDeleteFilters(1, &s_context.effects.underwater);
+		s_context.effects.loaded = false;
 	}
+
+	S_GetError(NULL);
 
 	S_ShutdownMusic();
 
 	S_ShutdownMedia();
 
 	alcMakeContextCurrent(NULL);
-	alcDestroyContext(s_env.context);
-	alcCloseDevice(s_env.device);
+	alcDestroyContext(s_context.context);
+	alcCloseDevice(s_context.device);
 
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	Cmd_RemoveAll(CMD_SOUND);
 
-	Mem_Free(s_env.raw_sample_buffer);
-	Mem_Free(s_env.converted_sample_buffer);
-	Mem_Free(s_env.resample_buffer);
+	Mem_Free(s_context.raw_sample_buffer);
+	Mem_Free(s_context.converted_sample_buffer);
+	Mem_Free(s_context.resample_buffer);
 
 	Mem_FreeTag(MEM_TAG_SOUND);
 
-	memset(&s_env, 0, sizeof(s_env));
+	memset(&s_context, 0, sizeof(s_context));
 }

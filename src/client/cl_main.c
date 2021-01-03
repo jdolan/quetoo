@@ -56,6 +56,9 @@ cvar_t *cl_draw_sound_stats;
 cl_static_t cls;
 cl_client_t cl;
 
+r_view_t cl_view;
+s_stage_t cl_stage;
+
 /**
  * @brief We have gotten a challenge from the server, so try and connect.
  */
@@ -252,7 +255,10 @@ void Cl_ClearState(void) {
 
 	S_Stop();
 
-	// wipe the entire cl_client_t structure
+	S_ClearPlaylist();
+
+	S_StopMusic();
+
 	memset(&cl, 0, sizeof(cl));
 
 	Mem_ClearBuffer(&cls.net_chan.message);
@@ -573,8 +579,29 @@ static void Cl_InitLocal(void) {
 	Cmd_Add("download", Cl_Download_f, CMD_CLIENT, NULL);
 	Cmd_Add("save_config", Cl_WriteConfiguration, CMD_CLIENT, "Forces the configuration file to be written to disk");
 
+	Cmd_Add("r_restart", Cl_R_Restart_f, CMD_CLIENT, "Restart the rendering subsystem");
+	Cmd_Add("r_toggle_fullscreen", Cl_R_ToggleFullscreen_f, CMD_SYSTEM | CMD_CLIENT, "Toggle fullscreen");
+
+	Cmd_Add("s_restart", Cl_S_Restart_f, CMD_CLIENT, "Restart the sound subsystem");
+
 	// forward anything we don't handle locally to the server
 	Cmd_ForwardToServer = Cl_ForwardCmdToServer;
+}
+
+/**
+ * @brief
+ */
+static void Cl_UpdateScene(void) {
+
+	cls.cgame->PrepareScene(&cl.frame);
+
+	R_DrawViewDepth(&cl_view);
+
+	cls.cgame->PopulateScene(&cl.frame);
+
+	R_DrawView(&cl_view);
+
+	S_RenderStage(&cl_stage);
 }
 
 /**
@@ -610,6 +637,9 @@ void Cl_Frame(const uint32_t msec) {
 		}
 	}
 
+	memset(&cl_view, 0, sizeof(cl_view));
+	memset(&cl_stage, 0, sizeof(cl_stage));
+
 	Cl_AttemptConnect();
 
 	Cl_HttpThink();
@@ -620,7 +650,7 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_HandleEvents();
 
-	R_BeginFrame();
+	R_BeginFrame(&cl_view);
 
 	if (cls.state == CL_ACTIVE) {
 
@@ -632,7 +662,7 @@ void Cl_Frame(const uint32_t msec) {
 
 		Cl_PredictMovement();
 
-		Cl_DrawView();
+		Cl_UpdateScene();
 	} else {
 		Cl_SendCommands();
 	}
@@ -640,8 +670,6 @@ void Cl_Frame(const uint32_t msec) {
 	Cl_UpdateScreen();
 
 	R_EndFrame();
-
-	S_Frame();
 
 	frame_timestamp = quetoo.ticks;
 	cl.frame_msec = 0;

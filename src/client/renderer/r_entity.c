@@ -53,7 +53,7 @@ static void R_SetEntityBounds(r_entity_t *e) {
 /**
  * @brief
  */
-static _Bool R_CullEntity(const r_entity_t *e) {
+static _Bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 
 	if (e->parent) {
 		return false;
@@ -63,11 +63,11 @@ static _Bool R_CullEntity(const r_entity_t *e) {
 		return false;
 	}
 
-	if (R_OccludeBox(e->abs_model_mins, e->abs_model_maxs)) {
+	if (R_OccludeBox(view, e->abs_model_mins, e->abs_model_maxs)) {
 		return true;
 	}
 
-	if (R_CullBox(e->abs_model_mins, e->abs_model_maxs)) {
+	if (R_CullBox(view, e->abs_model_mins, e->abs_model_maxs)) {
 		return true;
 	}
 
@@ -78,14 +78,17 @@ static _Bool R_CullEntity(const r_entity_t *e) {
  * @brief Adds an entity to the view if it passes frustum culling and occlusion tests.
  * @return The renderer copy of the entity, if any. This is to enable linked entities.
  */
-r_entity_t *R_AddEntity(const r_entity_t *ent) {
+r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 
-	if (r_view.num_entities == MAX_ENTITIES) {
+	assert(view);
+	assert(ent);
+
+	if (view->num_entities == MAX_ENTITIES) {
 		Com_Warn("MAX_ENTITIES\n");
 		return NULL;
 	}
 
-	r_entity_t *e = &r_view.entities[r_view.num_entities];
+	r_entity_t *e = &view->entities[view->num_entities];
 	*e = *ent;
 
 	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
@@ -103,22 +106,22 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 	R_SetEntityBounds(e);
 
-	if (R_CullEntity(e)) {
+	if (R_CullEntity(view, e)) {
 		return NULL;
 	}
 
-	r_view.num_entities++;
+	view->num_entities++;
 	return e;
 }
 
 /**
  * @brief
  */
-void R_UpdateEntities(void) {
+void R_UpdateEntities(r_view_t *view) {
 
-	R_UpdateMeshEntities();
+	R_UpdateMeshEntities(view);
 	
-	R_UpdateMeshEntitiesShadows();
+	R_UpdateMeshEntitiesShadows(view);
 }
 
 /**
@@ -136,18 +139,18 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
 /**
  * @brief Draw all entities at the specified depth value.
  */
-void R_DrawEntities(int32_t blend_depth) {
+void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
 	
-	R_DrawMeshEntities(blend_depth);
+	R_DrawMeshEntities(view, blend_depth);
 
-	R_DrawMeshEntitiesShadows(blend_depth);
+	R_DrawMeshEntitiesShadows(view, blend_depth);
 
 	if (!r_draw_entity_bounds->value) {
 		return;
 	}
 
-	const r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+	const r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
 		if (e->model == NULL) {
 			continue;

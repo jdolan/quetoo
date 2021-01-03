@@ -274,7 +274,7 @@ void Cl_UpdatePrediction(void) {
 	}
 
 	// load the BSP models for prediction as well
-	for (int32_t i = 1; i < MAX_MODELS; i++) {
+	for (int32_t i = 0; i < MAX_MODELS; i++) {
 
 		const char *s = cl.config_strings[CS_MODELS + i];
 		if (*s == '*') {

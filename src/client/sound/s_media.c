@@ -32,7 +32,7 @@ static s_media_state_t s_media_state;
 /**
  * @brief Precaches all of the sexed sounds for a given player model.
  */
-void S_LoadClientSamples(const char *model) {
+void S_LoadClientModelSamples(const char *model) {
 
 	GSList *sounds = NULL;
 
@@ -50,7 +50,7 @@ void S_LoadClientSamples(const char *model) {
 	for (GSList *sound = sounds; sound; sound = sound->next) {
 		const s_media_t *media = (const s_media_t *) sound->data;
 
-		S_LoadModelSample(model, media->name);
+		S_LoadClientModelSample(model, media->name);
 	}
 
 	g_slist_free(sounds);

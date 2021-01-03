@@ -78,7 +78,7 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawBspNormals(void) {
+static void R_DrawBspNormals(const r_view_t *view) {
 
 	if (!r_draw_bsp_normals->value) {
 		return;
@@ -90,7 +90,7 @@ static void R_DrawBspNormals(void) {
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
 		
 		const vec3_t pos = v->position;
-		if (Vec3_Distance(pos, r_view.origin) > 256.f) {
+		if (Vec3_Distance(pos, view->origin) > 256.f) {
 			continue;
 		}
 
@@ -113,7 +113,7 @@ static void R_DrawBspNormals(void) {
 /**
  * @brief
  */
-void R_DrawBspLightgrid(void) {
+void R_DrawBspLightgrid(r_view_t *view) {
 
 	if (!r_draw_bsp_lightgrid->value) {
 		return;
@@ -142,7 +142,7 @@ void R_DrawBspLightgrid(void) {
 				const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
 				const vec3_t origin = Vec3_Add(lg->mins, Vec3_Scale(position, BSP_LIGHTGRID_LUXEL_SIZE));
 
-				if (Vec3_DistanceSquared(r_view.origin, origin) > 512.f * 512.f) {
+				if (Vec3_DistanceSquared(view->origin, origin) > 512.f * 512.f) {
 					continue;
 				}
 
@@ -152,7 +152,7 @@ void R_DrawBspLightgrid(void) {
 					const byte g = Mini(ambient[1] + diffuse[1], 255);
 					const byte b = Mini(ambient[2] + diffuse[2], 255);
 
-					R_AddSprite(&(r_sprite_t) {
+					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
 						.size = 8.f,
 						.color = Color32(r, g, b, 255),
@@ -175,7 +175,7 @@ void R_DrawBspLightgrid(void) {
 					const byte b = Mini(fog[2], 255);
 					const byte a = Mini(fog[3], 255);
 
-					R_AddSprite(&(r_sprite_t) {
+					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
 						.size = 8.f,
 						.color = Color32(r, g, b, a),
@@ -190,7 +190,10 @@ void R_DrawBspLightgrid(void) {
 /**
  * @brief
  */
-static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_draw_elements_t *draw, const r_stage_t *stage) {
+static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
+											   const r_entity_t *entity,
+											   const r_bsp_draw_elements_t *draw,
+											   const r_stage_t *stage) {
 
 	glUniform1i(r_bsp_program.stage.flags, stage->cm->flags);
 
@@ -247,10 +250,10 @@ static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_
 			case R_MEDIA_ANIMATION: {
 				const r_animation_t *animation = (r_animation_t *) stage->media;
 				int32_t frame;
-				if (stage->cm->animation.fps == 0.f && e != NULL) {
-					frame = e->frame;
+				if (stage->cm->animation.fps == 0.f && entity != NULL) {
+					frame = entity->frame;
 				} else {
-					frame = r_view.ticks / 1000.f * stage->cm->animation.fps;
+					frame = view->ticks / 1000.f * stage->cm->animation.fps;
 				}
 				glBindTexture(GL_TEXTURE_2D, animation->frames[frame % animation->num_frames]->texnum);
 			}
@@ -275,7 +278,10 @@ static void R_DrawBspDrawElementsMaterialStage(const r_entity_t *e, const r_bsp_
 /**
  * @brief
  */
-static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp_draw_elements_t *draw, const r_material_t *material) {
+static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
+												const r_entity_t *entity,
+												const r_bsp_draw_elements_t *draw,
+												const r_material_t *material) {
 
 	if (!r_draw_material_stages->value) {
 		return;
@@ -299,7 +305,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp
 
 		glPolygonOffset(-1.f, -s);
 
-		R_DrawBspDrawElementsMaterialStage(e, draw, stage);
+		R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage);
 	}
 
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
@@ -317,11 +323,14 @@ static void R_DrawBspDrawElementsMaterialStages(const r_entity_t *e, const r_bsp
 
 /**
  * @brief Draws the specified draw elements for the given entity.
- * @param e The entity, or NULL for the world model.
+ * @param entity The entity, or NULL for the world model.
  * @param draw The draw elements command.
  * @param material The currently bound material.
  */
-static inline void R_DrawBspDrawElements(const r_entity_t *e, const r_bsp_draw_elements_t *draw, const r_material_t **material) {
+static inline void R_DrawBspDrawElements(const r_view_t *view,
+										 const r_entity_t *entity,
+										 const r_bsp_draw_elements_t *draw,
+										 const r_material_t **material) {
 
 	if (!(draw->texinfo->flags & SURF_MATERIAL)) {
 
@@ -337,16 +346,18 @@ static inline void R_DrawBspDrawElements(const r_entity_t *e, const r_bsp_draw_e
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-		r_view.count_bsp_triangles += draw->num_elements / 3;
+		r_stats.count_bsp_triangles += draw->num_elements / 3;
 	}
 
-	R_DrawBspDrawElementsMaterialStages(e, draw, draw->texinfo->material);
+	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->texinfo->material);
 }
 
 /**
  * @brief Draws opaque and alpha test draw elements for the specified inline model.
  */
-static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_bsp_inline_model_t *in) {
+static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
+												   const r_entity_t *entity,
+												   const r_bsp_inline_model_t *in) {
 
 	const r_material_t *material = NULL;
 
@@ -361,7 +372,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
 				}
 			}
 
-			R_DrawBspDrawElements(e, draw, &material);
+			R_DrawBspDrawElements(view, entity, draw, &material);
 
 			if (r_depth_pass->value) {
 				if (draw->texinfo->flags & SURF_ALPHA_TEST) {
@@ -369,11 +380,11 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
 				}
 			}
 
-			r_view.count_bsp_draw_elements++;
+			r_stats.count_bsp_draw_elements++;
 		}
 	}
 
-	r_view.count_bsp_inline_models++;
+	r_stats.count_bsp_inline_models++;
 }
 
 /**
@@ -381,7 +392,9 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_entity_t *e, const r_
  * @details In order to ensure correct blend ordering, sprites and mesh entities may be dispatched
  * here, to be drawn immediately behind (before) any draw elements that may occlude them.
  */
-static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_bsp_inline_model_t *in) {
+static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
+												  const r_entity_t *entity,
+												  const r_bsp_inline_model_t *in) {
 
 	const r_material_t *material = NULL;
 
@@ -406,11 +419,11 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_b
 			glDisable(GL_DEPTH_TEST);
 
 			if (draw->blend_depth_types & BLEND_DEPTH_ENTITY) {
-				R_DrawEntities(blend_depth);
+				R_DrawEntities(view, blend_depth);
 			}
 
 			if (draw->blend_depth_types & BLEND_DEPTH_SPRITE) {
-				R_DrawSprites(blend_depth);
+				R_DrawSprites(view, blend_depth);
 			}
 
 			glEnable(GL_DEPTH_TEST);
@@ -430,9 +443,9 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_b
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		R_DrawBspDrawElements(e, draw, &material);
+		R_DrawBspDrawElements(view, entity, draw, &material);
 
-		r_view.count_bsp_draw_elements_blend++;
+		r_stats.count_bsp_draw_elements_blend++;
 	}
 
 	glBlendFunc(GL_ONE, GL_ZERO);
@@ -446,7 +459,7 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_entity_t *e, const r_b
 /**
  * @brief
  */
-void R_DrawWorld(void) {
+void R_DrawWorld(const r_view_t *view) {
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -492,19 +505,19 @@ void R_DrawWorld(void) {
 	}
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
-	R_DrawBspInlineModelOpaqueDrawElements(NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineModelOpaqueDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
 	if (r_depth_pass->value) {
 		glDepthMask(GL_TRUE);
 	}
 
 	{
-		const r_entity_t *e = r_view.entities;
-		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		const r_entity_t *e = view->entities;
+		for (int32_t i = 0; i < view->num_entities; i++, e++) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-				R_DrawBspInlineModelOpaqueDrawElements(e, e->model->bsp_inline);
+				R_DrawBspInlineModelOpaqueDrawElements(view, e, e->model->bsp_inline);
 			}
 		}
 	}
@@ -513,15 +526,15 @@ void R_DrawWorld(void) {
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
-	R_DrawBspInlineModelBlendDrawElements(NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineModelBlendDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
 	{
-		const r_entity_t *e = r_view.entities;
-		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		const r_entity_t *e = view->entities;
+		for (int32_t i = 0; i < view->num_entities; i++, e++) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-				R_DrawBspInlineModelBlendDrawElements(e, e->model->bsp_inline);
+				R_DrawBspInlineModelBlendDrawElements(view, e, e->model->bsp_inline);
 			}
 		}
 	}
@@ -538,7 +551,7 @@ void R_DrawWorld(void) {
 
 	R_GetError(NULL);
 
-	R_DrawBspNormals();
+	R_DrawBspNormals(view);
 }
 
 #define WARP_IMAGE_SIZE 16

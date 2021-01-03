@@ -100,11 +100,11 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	if (percent < 0) {
 		cls.loading.percent -= percent;
+		cls.loading.percent = Mini(Maxi(0, cls.loading.percent), 99);
+
 	} else {
 		cls.loading.percent = percent;
 	}
-
-	cls.loading.percent = Mini(Maxi(0, cls.loading.percent), 100);
 
 	cls.loading.status = status;
 
@@ -114,7 +114,7 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	cls.cgame->UpdateLoading(cls.loading);
 
-	R_BeginFrame();
+	R_BeginFrame(NULL);
 
 	Cl_UpdateScreen();
 
@@ -124,15 +124,108 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 }
 
 /**
+ * @brief
+ */
+static void Cl_LoadModels(void) {
+
+	for (int32_t i = 0; i < MAX_MODELS; i++) {
+
+		const char *str = cl.config_strings[CS_MODELS + i];
+		if (*str == 0) {
+			break;
+		}
+
+		if (i ^ 1) {
+			Cl_LoadingProgress(-1, str);
+		}
+
+		cl.models[i] = R_LoadModel(str);
+	}
+}
+
+/**
+ * @brief
+ * TODO: Use an atlas here?
+ */
+static void Cl_LoadImages(void) {
+
+	Cl_LoadingProgress(-1, "sky");
+	R_LoadSky(cl.config_strings[CS_SKY]);
+
+	for (int32_t i = 0; i < MAX_IMAGES; i++) {
+
+		const char *str = cl.config_strings[CS_IMAGES + i];
+		if (*str == 0) {
+			break;
+		}
+
+		if (i ^ 1) {
+			Cl_LoadingProgress(-1, str);
+		}
+
+		cl.images[i] = R_LoadImage(str, IT_PIC);
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cl_LoadSounds(void) {
+
+	if (*cl_chat_sound->string) {
+		S_LoadSample(cl_chat_sound->string);
+	}
+
+	if (*cl_team_chat_sound->string) {
+		S_LoadSample(cl_team_chat_sound->string);
+	}
+
+	for (int32_t i = 0; i < MAX_SOUNDS; i++) {
+
+		const char *str = cl.config_strings[CS_SOUNDS + i];
+		if (*str == 0) {
+			break;
+		}
+
+		if (i ^ 1) {
+			Cl_LoadingProgress(-1, str);
+		}
+
+		cl.sounds[i] = S_LoadSample(str);
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cl_LoadMusics(void) {
+
+	S_ClearPlaylist();
+
+	for (int32_t i = 0; i < MAX_MUSICS; i++) {
+
+		const char *str = cl.config_strings[CS_MUSICS + i];
+		if (*str == 0) {
+			break;
+		}
+
+		if (i ^ 1) {
+			Cl_LoadingProgress(-1, str);
+		}
+
+		cl.musics[i] = S_LoadMusic(str);
+	}
+
+	S_NextTrack_f();
+}
+
+/**
  * @brief Load all game media through the relevant subsystems. This is called when
- * spawning into a server. For incremental reloads on subsystem restarts,
- * see Cl_UpdateMedia.
+ * spawning into a server. For incremental reloads on subsystem restarts, see Cl_UpdateMedia.
  */
 void Cl_LoadMedia(void) {
 
 	cls.state = CL_LOADING;
-
-	// Mapshot
 
 	GList *mapshots = Cl_Mapshots(cl.config_strings[CS_MODELS]);
 	const size_t len = g_list_length(mapshots);
@@ -147,15 +240,27 @@ void Cl_LoadMedia(void) {
 
 	Cl_UpdatePrediction();
 
-	R_LoadMedia();
+	R_BeginLoading();
 
-	S_LoadMedia();
+	Cl_LoadingProgress(0, cl.config_strings[CS_MODELS]);
 
-	Cl_LoadingProgress(-1, "cgame");
+	Cl_LoadModels();
+
+	Cl_LoadImages();
+
+	S_BeginLoading();
+
+	Cl_LoadSounds();
+
+	Cl_LoadMusics();
 
 	cls.cgame->UpdateMedia();
 
 	Cl_LoadingProgress(100, "ready");
+
+	R_FreeUnseededMedia();
+
+	S_FreeMedia();
 
 	Cl_SetKeyDest(KEY_GAME);
 }
@@ -165,10 +270,14 @@ void Cl_LoadMedia(void) {
  */
 void Cl_UpdateMedia(void) {
 
-	if ((r_view.update || s_env.update) && cls.state == CL_ACTIVE) {
-
-		Com_Debug(DEBUG_CLIENT, "%s %s\n", r_view.update ? "view" : "", s_env.update ? "sound" : "");
-
-		cls.cgame->UpdateMedia();
-	}
+//	if ((view->update || s_context.update) && cls.state == CL_ACTIVE) {
+//
+//		Com_Debug(DEBUG_CLIENT, "%s %s\n", view->update ? "view" : "", s_context.update ? "sound" : "");
+//
+//		cls.cgame->UpdateMedia();
+//
+//		R_FreeUnseededMedia();
+//
+//		S_FreeMedia();
+//	}
 }

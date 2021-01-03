@@ -24,8 +24,8 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_UpdateMeshEntitiesShadows(void);
-void R_DrawMeshEntitiesShadows(int32_t blend_depth);
+void R_UpdateMeshEntitiesShadows(r_view_t *view);
+void R_DrawMeshEntitiesShadows(const r_view_t *view, int32_t blend_depth);
 void R_InitMeshShadowProgram(void);
 void R_ShutdownMeshShadowProgram(void);
 #endif /* __R_LOCAL_H__ */

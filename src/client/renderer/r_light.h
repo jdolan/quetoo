@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-void R_AddLight(const r_light_t *l);
+void R_AddLight(r_view_t *view, const r_light_t *l);
 
 #ifdef __R_LOCAL_H__
 
@@ -59,7 +59,7 @@ typedef struct {
  */
 extern r_lights_t r_lights;
 
-void R_UpdateLights(void);
+void R_UpdateLights(const r_view_t *view);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif /* __R_LOCAL_H__ */

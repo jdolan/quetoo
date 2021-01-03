@@ -104,11 +104,10 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 		.decay = 32
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_fire,
 		.origin = self->origin,
 		.atten = SOUND_ATTEN_CUBIC,
-		.flags = S_PLAY_POSITIONED
 	});
 
 	self->next_think += 1000.f / flame->hz + 1000.f * flame->drift * Randomf();
@@ -188,7 +187,7 @@ static void Cg_misc_model_Think(cg_entity_t *self) {
 	const r_entity_t *entity = self->data;
 
 	if (entity->model) {
-		cgi.AddEntity(entity);
+		cgi.AddEntity(cgi.view, entity);
 	}
 }
 
@@ -236,10 +235,6 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 
 	sound->play.flags = S_PLAY_AMBIENT;
 
-	if (sound->play.atten != SOUND_ATTEN_NONE) {
-		sound->play.flags |= S_PLAY_POSITIONED;
-	}
-
 	if (sound->hz == 0.f) {
 		sound->play.flags |= S_PLAY_LOOP | S_PLAY_FRAME;
 	}
@@ -253,7 +248,7 @@ static void Cg_misc_sound_Think(cg_entity_t *self) {
 	const cg_misc_sound_t *sound = self->data;
 
 	if (sound->play.sample) {
-		cgi.AddSample(&sound->play);
+		cgi.AddSample(cgi.stage, &sound->play);
 	}
 
 	self->next_think += 1000.f / sound->hz + 1000.f * sound->drift * Randomf();
@@ -445,7 +440,7 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
 		.color = Vec4(0.f, 0.f, 1.f, .19f)
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_steam,
 		.origin = org,
 		.attenuation = SOUND_ATTEN_CUBIC,

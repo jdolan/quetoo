@@ -83,7 +83,7 @@ void Cg_AddLights(void) {
 			out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);
 		}
 
-		cgi.AddLight(&out);
+		cgi.AddLight(cgi.view, &out);
 	}
 }
 

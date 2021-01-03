@@ -21,6 +21,6 @@
 
 #pragma once
 
-#define __S_LOCAL_H__
-
-#include "sound.h"
+#ifdef __CG_LOCAL_H__
+void Cg_PrepareStage(const cl_frame_t *frame);
+#endif /* __CG_LOCAL_H__ */

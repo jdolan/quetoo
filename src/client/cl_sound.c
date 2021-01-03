@@ -19,8 +19,43 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "cl_local.h"
 
-#define __S_LOCAL_H__
+/**
+ * @brief
+ */
+void Cl_S_Restart_f(void) {
 
-#include "sound.h"
+	if (cls.state == CL_LOADING) {
+		return;
+	}
+
+	S_Shutdown();
+
+	S_Init();
+
+	const cl_state_t state = cls.state;
+
+	Cl_LoadMedia();
+
+	cls.state = state;
+}
+
+/**
+ * @brief Wraps S_AddSample, handling collision interactions for convenience.
+ */
+void Cl_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
+
+	s_play_sample_t s = *play;
+
+	if (Cl_PointContents(s.origin) & CONTENTS_MASK_LIQUID) {
+		s.flags |= S_PLAY_UNDERWATER;
+	}
+
+	const cm_trace_t tr = Cl_Trace(cl_stage.origin, s.origin, Vec3_Zero(), Vec3_Zero(), s.entity, CONTENTS_MASK_CLIP_PROJECTILE);
+	if (tr.fraction < 1.f) {
+		s.flags |= S_PLAY_OCCLUDED;
+	}
+
+	S_AddSample(stage, &s);
+}

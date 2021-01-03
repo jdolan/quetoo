@@ -20,17 +20,14 @@
  */
 
 #include "s_local.h"
-#include "client.h"
-
-extern cl_client_t cl;
 
 /**
  * @brief
  */
-static int32_t S_AllocChannel(void) {
+int32_t S_AllocChannel(void) {
 
 	for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-		if (!s_env.channels[i].sample) {
+		if (!s_context.channels[i].play.sample) {
 			return i;
 		}
 	}
@@ -44,51 +41,23 @@ static int32_t S_AllocChannel(void) {
  */
 void S_FreeChannel(int32_t c) {
 
-	alSourceStop(s_env.sources[c]);
-	alSourcei(s_env.sources[c], AL_BUFFER, 0);
-	memset(&s_env.channels[c], 0, sizeof(s_env.channels[c]));
+	alSourceStop(s_context.sources[c]);
+	alSourcei(s_context.sources[c], AL_BUFFER, 0);
+
+	memset(&s_context.channels[c], 0, sizeof(s_context.channels[c]));
 }
 
 #define SOUND_MAX_DISTANCE 2048.0
 
 /**
- * @brief Set distance and stereo panning for the specified channel.
+ * @brief Resolve gain, pitch and effects for the specified channel.
+ * @param ch The channel.
+ * @return True if the channel is hearable, false otherwise.
  */
-static _Bool S_SpatializeChannel(s_channel_t *ch) {
-	vec3_t org, delta, center;
+static _Bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 
-	org = r_view.origin;
-
-	if (ch->play.flags & S_PLAY_POSITIONED) {
-		org = ch->play.origin;
-		ch->velocity = Vec3_Zero();
-	} else if (ch->play.flags & S_PLAY_ENTITY) {
-		const cl_entity_t *ent = &cl.entities[ch->play.entity];
-
-		if (ent == cl.entity) {
-			ch->relative = true;
-		}
-
-		if (s_doppler->value) {
-			if (!ch->relative) {
-				ch->velocity = Vec3_Subtract(ent->current.origin, ent->prev.origin);
-			}
-		}
-
-		if (ent->current.solid == SOLID_BSP) {
-			const r_model_t *mod = cl.model_precache[ent->current.model1];
-			center = Vec3_Mix(mod->mins, mod->maxs, 0.5);
-			org = Vec3_Add(center, ent->origin);
-		} else {
-			if (!ch->relative) {
-				org = ent->origin;
-			}
-		}
-	}
-
-	ch->position = org;
-
-	const float dist = Vec3_DistanceDir(org, r_view.origin, &delta);
+	vec3_t delta;
+	const float dist = Vec3_DistanceDir(ch->play.origin, stage->origin, &delta);
 
 	float atten;
 	switch (ch->play.atten) {
@@ -113,170 +82,158 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	// fade out frame sounds if they are no longer in the frame
 	if (ch->start_time) {
 		if (ch->play.flags & S_PLAY_FRAME) {
-			if (ch->frame != cl.frame.frame_num) {
-				const uint32_t delta = (cl.frame.frame_num - ch->frame) * QUETOO_TICK_MILLIS;
+			if (ch->timestamp != stage->ticks) {
+				const uint32_t delta = stage->ticks - ch->timestamp;
 
 				if (delta > 250) {
 					return false; // x faded out
 				}
 
-				ch->gain *= 1.0 - (delta / 250.0);
+				ch->gain *= 1.f - (delta / 250.f);
 			}
 		}
 	}
 
-	ch->pitch = 1.0;
+	ch->pitch = 1.f;
 	ch->filter = AL_NONE;
 
 	// adjust pitch in liquids
-	if (r_view.contents & CONTENTS_MASK_LIQUID) {
-		ch->pitch = 0.5;
+	if (stage->contents & CONTENTS_MASK_LIQUID) {
+		ch->pitch = .5f;
 	}
 
 	// offset pitch by sound-requested offset
 	if (ch->play.pitch) {
-		const float octaves = (float) pow(2, 0.69314718 * ((float) ch->play.pitch / TONES_PER_OCTAVE));
+		const float octaves = (float) pow(2.0, 0.69314718 * ((float) ch->play.pitch / TONES_PER_OCTAVE));
 		ch->pitch *= octaves;
 	}
 
 	// apply sound effects
-	if (s_env.effects.loaded) {
+	if (s_context.effects.loaded) {
 
-		if (Cm_PointContents(ch->position, 0) & CONTENTS_MASK_LIQUID) {
-			ch->filter = s_env.effects.underwater;
-		} else {
-			const cm_trace_t tr = Cl_Trace(r_view.origin, ch->position, Vec3_Zero(), Vec3_Zero(), ch->play.entity, CONTENTS_MASK_CLIP_PROJECTILE);
-			if (tr.fraction < 1.0) {
-				ch->filter = s_env.effects.occluded;
-			}
+		if (ch->play.flags & S_PLAY_UNDERWATER) {
+			ch->filter = s_context.effects.underwater;
+		} else if (ch->play.flags & S_PLAY_OCCLUDED) {
+			ch->filter = s_context.effects.occluded;
 		}
 	}
 
-	return frac <= 1.0;
+	return ch->gain > 0.f;
 }
 
 /**
  * @brief Updates all active channels for the current frame.
  */
-void S_MixChannels(void) {
-
-	if (s_effects->modified) {
-		S_Restart_f();
-
-		s_effects->modified = false;
-		return;
-	}
+void S_MixChannels(const s_stage_t *stage) {
 
 	if (s_doppler->modified) {
-		alDopplerFactor(0.05 * s_doppler->value);
+		alDopplerFactor(.05f * s_doppler->value);
 	}
 
-	alListenerfv(AL_POSITION, r_view.origin.xyz);
-	S_CheckALError();
+	alListenerfv(AL_POSITION, stage->origin.xyz);
 
 	alListenerfv(AL_ORIENTATION, (float []) {
-		r_view.forward.x, r_view.forward.y, r_view.forward.z,
-		r_view.up.x, r_view.up.y, r_view.up.z
+		stage->forward.x, stage->forward.y, stage->forward.z,
+		stage->up.x, stage->up.y, stage->up.z
 	});
-	S_CheckALError();
 
 	if (s_doppler->value) {
-		alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity.xyz);
+		alListenerfv(AL_VELOCITY, stage->velocity.xyz);
 	} else {
 		alListenerfv(AL_VELOCITY, Vec3_Zero().xyz);
 	}
 
-	s_env.num_active_channels = 0;
+	s_context.num_active_channels = 0;
 
-	s_channel_t *ch = s_env.channels;
+	s_channel_t *ch = s_context.channels;
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 
-		if (ch->sample) {
+		if (ch->play.sample == NULL) {
+			continue;
+		}
 
-			const ALuint src = s_env.sources[i];
-			assert(src);
+		const ALuint src = s_context.sources[i];
+		assert(src);
 
-			if (S_SpatializeChannel(ch)) {
+		if (!S_SpatializeChannel(stage, ch)) {
+			S_FreeChannel(i);
+			continue;
+		}
 
-				if (ch->relative) {
-					alSourcefv(src, AL_POSITION, Vec3_Zero().xyz);
-					S_CheckALError();
-				} else {
-					alSourcefv(src, AL_POSITION, ch->position.xyz);
-					S_CheckALError();
+		if (ch->play.flags & S_PLAY_RELATIVE) {
+			alSourcefv(src, AL_POSITION, Vec3_Zero().xyz);
+		} else {
+			alSourcefv(src, AL_POSITION, ch->play.origin.xyz);
 
-					if (s_doppler->value) {
-						alSourcefv(src, AL_VELOCITY, ch->velocity.xyz);
-					} else {
-						alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
-					}
-				}
-
-				float volume;
-
-				if (ch->play.flags & S_PLAY_AMBIENT) {
-					volume = s_volume->value * s_ambient_volume->value;
-				} else {
-					volume = s_volume->value * s_effects_volume->value;
-				}
-
-				alSourcef(src, AL_GAIN, ch->gain * volume);
-				S_CheckALError();
-
-				alSourcef(src, AL_PITCH, ch->pitch);
-				S_CheckALError();
-
-				if (s_env.effects.loaded) {
-					alSourcei(src, AL_DIRECT_FILTER, ch->filter);
-					S_CheckALError();
-				}
-
-				if (!ch->start_time) {
-					ch->start_time = quetoo.ticks;
-
-					alSourcei(src, AL_SOURCE_RELATIVE, ch->relative ? 1 : 0);
-					S_CheckALError();
-
-					alSourcei(src, AL_BUFFER, ch->sample->buffer);
-					S_CheckALError();
-
-					alSourcei(src, AL_LOOPING, !!(ch->play.flags & S_PLAY_LOOP));
-					S_CheckALError();
-
-					if (ch->play.flags & S_PLAY_AMBIENT) {
-						alSourcei(src, AL_SAMPLE_OFFSET, (ALint) (Randomf() * ch->sample->num_samples));
-						S_CheckALError();
-					}
-
-					alSourcePlay(src);
-					S_CheckALError();
-
-				} else {
-					ALenum state;
-					alGetSourcei(src, AL_SOURCE_STATE, &state);
-					S_CheckALError();
-
-					if (state != AL_PLAYING) {
-						S_FreeChannel(i);
-						continue;
-					}
-				}
-
-				s_env.num_active_channels++;
+			if (s_doppler->value) {
+				alSourcefv(src, AL_VELOCITY, ch->play.velocity.xyz);
 			} else {
-
-				S_FreeChannel(i);
+				alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
 			}
 		}
+
+		float volume;
+		if (ch->play.flags & S_PLAY_AMBIENT) {
+			volume = s_volume->value * s_ambient_volume->value;
+		} else {
+			volume = s_volume->value * s_effects_volume->value;
+		}
+
+		alSourcef(src, AL_GAIN, ch->gain * volume);
+		alSourcef(src, AL_PITCH, ch->pitch);
+
+		if (s_context.effects.loaded) {
+			alSourcei(src, AL_DIRECT_FILTER, ch->filter);
+		}
+
+		if (ch->start_time == 0) {
+			ch->start_time = stage->ticks;
+
+			alSourcei(src, AL_BUFFER, ch->play.sample->buffer);
+
+			if (ch->play.flags & S_PLAY_RELATIVE) {
+				alSourcei(src, AL_SOURCE_RELATIVE, 1);
+			} else {
+				alSourcei(src, AL_SOURCE_RELATIVE, 0);
+			}
+
+			if (ch->play.flags & S_PLAY_LOOP) {
+				alSourcei(src, AL_LOOPING, 1);
+			} else {
+				alSourcei(src, AL_LOOPING, 0);
+			}
+
+			if (ch->play.flags & S_PLAY_AMBIENT) {
+				alSourcei(src, AL_SAMPLE_OFFSET, Randomf() * (int32_t) ch->play.sample->num_samples);
+			}
+
+			alSourcePlay(src);
+
+		} else {
+			ALenum state;
+			alGetSourcei(src, AL_SOURCE_STATE, &state);
+
+			if (state != AL_PLAYING) {
+				S_FreeChannel(i);
+				continue;
+			}
+		}
+
+		S_GetError(ch->play.sample->media.name);
+
+		s_context.num_active_channels++;
 	}
 }
 
 /**
  * @brief
  */
-void S_AddSample(const s_play_sample_t *play) {
+void S_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 
-	if (!s_env.context) {
+	assert(stage);
+	assert(play);
+
+	if (!s_context.context) {
 		return;
 	}
 
@@ -292,10 +249,6 @@ void S_AddSample(const s_play_sample_t *play) {
 		return;
 	}
 
-	if (play->entity >= MAX_ENTITIES) {
-		return;
-	}
-
 	if (play->flags & S_PLAY_AMBIENT) {
 		if (!s_ambient_volume->value) {
 			return;
@@ -305,50 +258,12 @@ void S_AddSample(const s_play_sample_t *play) {
 			return;
 		}
 	}
-	
-	const s_sample_t *sample = play->sample;
 
-	const char *name = sample->media.name;
-	if (name[0] == '*') {
-		if (play->entity != -1) {
-			const entity_state_t *ent = &cl.entities[play->entity].current;
-			sample = S_LoadEntitySample(ent, sample->media.name);
-			if (sample == NULL) {
-				Com_Debug(DEBUG_SOUND, "Failed to load player model sound %s\n", name);
-				return;
-			}
-		} else {
-			Com_Warn("Player model sound %s requested without entity\n", name);
-			return;
-		}
+	if (stage->num_samples == MAX_SOUNDS) {
+		Com_Debug(DEBUG_SOUND, "MAX_SOUNDS");
+		return;
 	}
 
-	// for sounds added every frame, if an instance of the sound already exists, cull this one
-
-	if (play->flags & S_PLAY_FRAME) {
-		s_channel_t *ch = s_env.channels;
-		for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
-			if (ch->sample && (ch->play.flags & S_PLAY_FRAME)) {
-				if (memcmp(play, &ch->play, sizeof(*play)) == 0) {
-					ch->frame = cl.frame.frame_num;
-					return;
-				}
-			}
-		}
-	}
-
-	// warn on spatialized stereo samples
-
-	if (play->sample->stereo) {
-		if (play->atten) {
-			Com_Warn("%s is a stereo sound sample and is being spatialized\n", play->sample->media.name);
-		}
-	}
-
-	const int32_t i = S_AllocChannel();
-	if (i != -1) {
-		s_env.channels[i].play = *play;
-		s_env.channels[i].sample = sample;
-		s_env.channels[i].frame = cl.frame.frame_num;
-	}
+	stage->samples[stage->num_samples] = *play;
+	stage->num_samples++;
 }

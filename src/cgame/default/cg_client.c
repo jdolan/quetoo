@@ -257,7 +257,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 		// load sound files if we're in-game
 		if (*cgi.state > CL_DISCONNECTED) {
-			cgi.LoadClientSamples(ci->model);
+			cgi.LoadClientModelSamples(ci->model);
 		}
 	}
 
@@ -277,6 +277,10 @@ void Cg_LoadClients(void) {
 
 		if (!*s) {
 			continue;
+		}
+
+		if (i ^ 1) {
+			cgi.LoadingProgress(-1, ci->model);
 		}
 
 		Cg_LoadClient(ci, s);
@@ -604,7 +608,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 
-	r_entity_t *r_legs = cgi.AddEntity(&legs);
+	r_entity_t *r_legs = cgi.AddEntity(cgi.view, &legs);
 	if (!r_legs) {
 		return; // if the legs were culled, we're done
 	}
@@ -612,21 +616,21 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	torso.parent = r_legs;
 	torso.tag = "tag_torso";
 
-	r_entity_t *r_torso = cgi.AddEntity(&torso);
+	r_entity_t *r_torso = cgi.AddEntity(cgi.view, &torso);
 	assert(r_torso);
 
 	head.parent = r_torso;
 	head.tag = "tag_head";
 
-	r_entity_t *r_head = cgi.AddEntity(&head);
+	r_entity_t *r_head = cgi.AddEntity(cgi.view, &head);
 	assert(r_head);
 
 	if (s->model2) {
-		cgi.AddEntity(&(const r_entity_t) {
+		cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_weapon",
 			.scale = e->scale,
-			.model = cgi.client->model_precache[s->model2],
+			.model = cgi.client->models[s->model2],
 			.effects = e->effects,
 			.color = e->color,
 			.shell = e->shell,
@@ -634,11 +638,11 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (s->model3) {
-		cgi.AddEntity(&(const r_entity_t) {
+		cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_head",
 			.scale = e->scale,
-			.model = cgi.client->model_precache[s->model3],
+			.model = cgi.client->models[s->model3],
 			.effects = e->effects,
 			.color = e->color,
 			.shell = e->shell,

@@ -289,73 +289,6 @@ static void Cg_Shutdown(void) {
 	cgi.FreeTag(MEM_TAG_CGAME);
 }
 
-/**
- * @brief Parse a single server command, returning true on success.
- */
-static _Bool Cg_ParseMessage(int32_t cmd) {
-
-	switch (cmd) {
-		case SV_CMD_TEMP_ENTITY:
-			Cg_ParseTempEntity();
-			return true;
-
-		case SV_CMD_MUZZLE_FLASH:
-			Cg_ParseMuzzleFlash();
-			return true;
-
-		case SV_CMD_SCORES:
-			Cg_ParseScores();
-			return true;
-
-		case SV_CMD_CENTER_PRINT:
-			Cg_ParseCenterPrint();
-			return true;
-
-		case SV_CMD_VIEW_KICK:
-			Cg_ParseViewKick();
-			return true;
-
-		default:
-			break;
-	}
-
-	return false;
-}
-
-/**
- * @brief
- */
-static void Cg_UpdateScreen(const cl_frame_t *frame) {
-
-	Cg_DrawHud(&frame->ps);
-
-	Cg_DrawScores(&frame->ps);
-}
-
-/**
- * @brief Fetch the server's reported hook pull speed.
- */
-float Cg_GetHookPullSpeed(void) {
-
-	return cg_state.hook_pull_speed;
-}
-
-/**
- * @brief Clear any state that should not persist over multiple server connections.
- */
-static void Cg_ClearState(void) {
-
-	memset(&cg_state, 0, sizeof(cg_state));
-
-	Cg_ClearInput();
-
-	Cg_FreeEntities();
-
-	Cg_ClearHud();
-
-	Cg_ClearUi();
-}
-
 cg_team_info_t cg_team_info[MAX_TEAMS];
 
 /**
@@ -423,6 +356,97 @@ static void Cg_UpdateConfigString(int32_t i) {
 }
 
 /**
+ * @brief Parse a single server command, returning true on success.
+ */
+static _Bool Cg_ParseMessage(int32_t cmd) {
+
+	switch (cmd) {
+		case SV_CMD_TEMP_ENTITY:
+			Cg_ParseTempEntity();
+			return true;
+
+		case SV_CMD_MUZZLE_FLASH:
+			Cg_ParseMuzzleFlash();
+			return true;
+
+		case SV_CMD_SCORES:
+			Cg_ParseScores();
+			return true;
+
+		case SV_CMD_CENTER_PRINT:
+			Cg_ParseCenterPrint();
+			return true;
+
+		case SV_CMD_VIEW_KICK:
+			Cg_ParseViewKick();
+			return true;
+
+		default:
+			break;
+	}
+
+	return false;
+}
+
+/**
+ * @brief Fetch the server's reported hook pull speed.
+ */
+float Cg_GetHookPullSpeed(void) {
+
+	return cg_state.hook_pull_speed;
+}
+
+/**
+ * @brief Clear any state that should not persist over multiple server connections.
+ */
+static void Cg_ClearState(void) {
+
+	memset(&cg_state, 0, sizeof(cg_state));
+
+	Cg_ClearInput();
+
+	Cg_FreeEntities();
+
+	Cg_ClearHud();
+
+	Cg_ClearUi();
+}
+
+/**
+ * @brief Prepares the scene so that early rendering operations may begin.
+ */
+static void Cg_PrepareScene(const cl_frame_t *frame) {
+
+	Cg_PrepareView(frame);
+
+	Cg_PrepareStage(frame);
+}
+
+/**
+ * @brief Populates the scene with entities, sprites, samples, etc.. for the interpolated frame.
+ */
+static void Cg_PopulateScene(const cl_frame_t *frame) {
+
+	Cg_AddEntities(frame);
+
+	Cg_AddEffects();
+
+	Cg_AddSprites();
+
+	Cg_AddLights();
+}
+
+/**
+ * @brief
+ */
+static void Cg_UpdateScreen(const cl_frame_t *frame) {
+
+	Cg_DrawHud(&frame->ps);
+
+	Cg_DrawScores(&frame->ps);
+}
+
+/**
  * @brief
  */
 cg_export_t *Cg_LoadCgame(cg_import_t *import) {
@@ -445,8 +469,8 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.UsePrediction = Cg_UsePrediction;
 	cge.PredictMovement = Cg_PredictMovement;
 	cge.UpdateLoading = Cg_UpdateLoading;
-	cge.UpdateView = Cg_UpdateView;
-	cge.PopulateView = Cg_PopulateView;
+	cge.PrepareScene = Cg_PrepareScene;
+	cge.PopulateScene = Cg_PopulateScene;
 	cge.UpdateScreen = Cg_UpdateScreen;
 
 	return &cge;

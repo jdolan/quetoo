@@ -23,10 +23,11 @@
 
 #include "r_types.h"
 
+void R_LoadSky(const char *name);
+
 #ifdef __R_LOCAL_H__
 void R_DrawSky(void);
 void R_InitSky(void);
 void R_ShutdownSky(void);
-void R_SetSky(const char *name);
 void R_Sky_f(void);
 #endif /* __R_LOCAL_H__ */

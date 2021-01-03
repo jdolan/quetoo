@@ -22,17 +22,36 @@
 #include "cl_local.h"
 
 /**
- * @brief
+ * @brief Restarts the renderer subsystem.
  */
-void Cl_DrawView(void) {
+void Cl_R_Restart_f(void) {
 
-	r_view.ticks = cl.unclamped_time;
+	if (cls.state == CL_LOADING) {
+		return;
+	}
 
-	cls.cgame->UpdateView(&cl.frame);
+	Ui_HandleEvent(&(const SDL_Event) {
+		.window.type = SDL_WINDOWEVENT,
+		.window.event = SDL_WINDOWEVENT_CLOSE
+	});
 
-	R_DrawViewDepth(&r_view);
+	R_Shutdown();
 
-	cls.cgame->PopulateView(&cl.frame);
+	R_Init();
 
-	R_DrawView(&r_view);
+	const cl_state_t state = cls.state;
+
+	Cl_LoadMedia();
+
+	cls.state = state;
+}
+
+/**
+ * @brief Toggles fullscreen vs windowed mode.
+ */
+void Cl_R_ToggleFullscreen_f(void) {
+
+	Cvar_Toggle("r_fullscreen");
+
+	Cl_R_Restart_f();
 }

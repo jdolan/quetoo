@@ -206,7 +206,7 @@ void Cg_AddSprites(void) {
 			case SPRITE_NORMAL:
 				s->rotation += s->rotation_velocity * delta;
 
-				cgi.AddSprite(&(r_sprite_t) {
+				cgi.AddSprite(cgi.view, &(r_sprite_t) {
 					.origin = s->origin,
 					.size = s->size,
 					.width = s->width,
@@ -225,7 +225,7 @@ void Cg_AddSprites(void) {
 					s->termination = Vec3_Add(s->termination, Vec3_Scale(s->velocity, delta));
 				}
 
-				cgi.AddBeam(&(r_beam_t) {
+				cgi.AddBeam(cgi.view, &(r_beam_t) {
 					.start = s->origin,
 					.end = s->termination,
 					.size = s->size,

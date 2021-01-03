@@ -301,7 +301,7 @@ void R_ShutdownSky(void) {
 /**
  * @brief Sets the sky to the specified environment map.
  */
-void R_SetSky(const char *name) {
+void R_LoadSky(const char *name) {
 	const char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
 	r_image_t **out = r_sky.images;
@@ -327,5 +327,5 @@ void R_Sky_f(void) {
 		return;
 	}
 
-	R_SetSky(Cmd_Argv(1));
+	R_LoadSky(Cmd_Argv(1));
 }

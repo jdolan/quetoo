@@ -23,6 +23,9 @@
 
 #include "r_types.h"
 
+void R_BeginLoading(void);
+void R_FreeUnseededMedia(void);
+
 #ifdef __R_LOCAL_H__
 
 typedef void (*R_MediaEnumerator)(const r_media_t *media, void *data);
@@ -33,8 +36,6 @@ r_media_t *R_RegisterMedia(r_media_t *media);
 r_media_t *R_FindMedia(const char *name, r_media_type_t type);
 r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type);
 void R_FreeMedia(r_media_t *media);
-void R_FreeUnseededMedia(void);
-void R_BeginLoading(void);
 void R_InitMedia(void);
 void R_ShutdownMedia(void);
 

@@ -185,7 +185,7 @@ void Cl_ParseConfigString(void) {
 
 	if (i > CS_MODELS && i < CS_MODELS + MAX_MODELS) {
 		if (cls.state == CL_ACTIVE) {
-			cl.model_precache[i - CS_MODELS] = R_LoadModel(s);
+			cl.models[i - CS_MODELS] = R_LoadModel(s);
 			if (*s == '*') {
 				cl.cm_models[i - CS_MODELS] = Cm_Model(s);
 			} else {
@@ -194,11 +194,11 @@ void Cl_ParseConfigString(void) {
 		}
 	} else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
 		if (cls.state == CL_ACTIVE) {
-			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(s);
+			cl.sounds[i - CS_SOUNDS] = S_LoadSample(s);
 		}
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
 		if (cls.state == CL_ACTIVE) {
-			cl.image_precache[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
+			cl.images[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
 		}
 	}
 
@@ -352,7 +352,7 @@ static void Cl_ParsePrint(void) {
 		}
 
 		if (sample) {
-			S_AddSample(&(const s_play_sample_t) {
+			Cl_AddSample(&cl_stage, &(const s_play_sample_t) {
 				.sample = S_LoadSample(sample)
 			});
 		}
@@ -365,7 +365,6 @@ static void Cl_ParsePrint(void) {
  * @brief
  */
 static void Cl_ParseSound(void) {
-	int32_t index;
 
 	s_play_sample_t play = {
 		.flags = 0,
@@ -374,32 +373,36 @@ static void Cl_ParseSound(void) {
 
 	const byte flags = Net_ReadByte(&net_message);
 
-	if ((index = Net_ReadByte(&net_message)) > MAX_SOUNDS) {
-		Com_Error(ERROR_DROP, "Bad index (%d)\n", index);
+	const int32_t sound = Net_ReadByte(&net_message);
+	if (sound >= MAX_SOUNDS) {
+		Com_Error(ERROR_DROP, "Bad sound (%d)\n", sound);
 	}
 
-	play.sample = cl.sound_precache[index];
-
-	// Always use this since it also holds Z offset information
+	play.sample = cl.sounds[sound];
 	play.atten = Net_ReadByte(&net_message);
 
-	if (flags & S_ENTITY) { // entity relative
+	if (flags & S_ENTITY) {
 		play.entity = Net_ReadShort(&net_message);
-		play.flags |= S_PLAY_ENTITY;
+
+		const cl_entity_t *ent = &cl.entities[play.entity];
+		if (ent->current.solid == SOLID_BSP) {
+			play.origin = Vec3_Scale(Vec3_Add(ent->abs_mins, ent->abs_maxs), .5f);
+		} else {
+			play.origin = cl.entities[play.entity].current.origin;
+		}
 	} else {
 		play.entity = -1;
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
 		play.origin = Net_ReadPosition(&net_message);
-		play.flags |= S_PLAY_POSITIONED;
 	}
 
 	if (flags & S_PITCH) {
 		play.pitch = Net_ReadChar(&net_message) * 2;
 	}
 
-	S_AddSample(&play);
+	Cl_AddSample(&cl_stage, &play);
 }
 
 /**
