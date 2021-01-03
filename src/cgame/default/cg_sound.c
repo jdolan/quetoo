@@ -32,5 +32,6 @@ void Cg_PrepareStage(const cl_frame_t *frame) {
 	cgi.stage->forward = cgi.view->forward;
 	cgi.stage->right = cgi.view->right;
 	cgi.stage->up = cgi.view->up;
+	cgi.stage->velocity = frame->ps.pm_state.velocity;
 	cgi.stage->contents = cgi.view->contents;
 }
