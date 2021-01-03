@@ -391,7 +391,7 @@ static void Cl_ParseSound(void) {
 			play.origin = cl.entities[play.entity].current.origin;
 		}
 	} else {
-		play.entity = -1;
+		play.entity = 0;
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space

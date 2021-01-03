@@ -47,8 +47,12 @@ void Cl_S_Restart_f(void) {
 static void Cl_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 
 	if (play->entity) {
-		const cl_entity_t *entity = &cl.entity[play->entity];
-		play->origin = Vec3_Scale(Vec3_Add(entity->abs_mins, entity->abs_maxs), .5f);
+		const cl_entity_t *ent = &cl.entities[play->entity];
+		if (ent->current.solid == SOLID_BSP) {
+			play->origin = Vec3_Scale(Vec3_Add(ent->abs_mins, ent->abs_maxs), .5f);
+		} else {
+			play->origin = cl.entities[play->entity].current.origin;
+		}
 	}
 
 	if (play->flags & S_PLAY_RELATIVE) {
