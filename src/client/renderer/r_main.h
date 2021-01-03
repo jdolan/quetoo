@@ -106,6 +106,11 @@ typedef struct {
 	 * @brief The view origin, in lightgrid space.
 	 */
 	vec4_t view_coordinate;
+
+	/**
+	 * @brief The lightgrid texel dimensions.
+	 */
+	vec4_t resolution;
 } r_lightgrid_t;
 
 /**
@@ -188,14 +193,29 @@ typedef struct {
 		float modulate;
 
 		/**
-		 * @brief The fog density scalar.
+		 * @brief The global fog color.
+		 */
+		// vec3_t fog_global_color; // FIXME
+
+		/**
+		 * @brief The global fog density scalar.
+		 */
+		// float fog_global_density; // FIXME
+
+		/**
+		 * @brief The volumetric fog density scalar.
 		 */
 		float fog_density;
 
 		/**
-		 * @brief The number of fog samples per fragment (quality).
+		 * @brief The number of volumetric fog samples per fragment (quality).
 		 */
-		int fog_samples;
+		int32_t fog_samples;
+
+		/**
+		* @brief The pixel dimensions of the framebuffer.
+		*/
+		vec2_t resolution;
 	} block;
 
 } r_uniforms_t;

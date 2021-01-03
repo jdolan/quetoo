@@ -227,6 +227,21 @@ void main(void) {
 	
 	out_color.rgb = dither(out_color.rgb);
 
-//	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
-//	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
+	// debugging
+
+	#if 0
+	// draw lightgrid texel borders
+	vec4 raster = lightgrid_raster(vertex.lightgrid.xyz, length(vertex.position));
+	out_color.rgb = mix(out_color.rgb, raster.rgb, raster.a * 0.5);
+	#endif
+
+	#if 0
+	// draw vertex tangents
+	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
+	#endif
+
+	#if 0
+	// draw flat lightmaps
+	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
+	#endif
 }

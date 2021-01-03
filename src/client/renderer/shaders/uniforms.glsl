@@ -38,6 +38,11 @@ struct lightgrid_t {
 	 * @brief The view origin, in lightgrid space.
 	 */
 	vec4 view_coordinate;
+
+	/**
+	 * @brief The lightgrid texel resolution per dimension.
+	 */
+	vec3 resolution;
 };
 
 /**
@@ -110,6 +115,16 @@ layout (std140) uniform uniforms_block {
 	float modulate;
 
 	/**
+	 * @brief The global fog color.
+	 */
+	// vec3 fog_global_color; // FIXME
+
+	/**
+	 * @brief The global fog density scalar.
+	 */
+	// float fog_global_density; // FIXME
+
+	/**
 	 * @brief The fog density scalar.
 	 */
 	float fog_density;
@@ -118,6 +133,11 @@ layout (std140) uniform uniforms_block {
 	 * @brief The number of fog samples per fragment (quality).
 	 */
 	int fog_samples;
+
+	/**
+	 * @brief The pixel dimensions of the framebuffer.
+	 */
+	vec2 resolution;
 };
 
 /**

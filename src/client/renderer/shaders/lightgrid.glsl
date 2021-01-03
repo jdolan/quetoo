@@ -19,6 +19,34 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#define BSP_LIGHTGRID_LUXEL_SIZE 64
+
+/**
+ * @brief Clamps softly to 1.0 for values up to 1.5, to prevent an unsightly hard cutoff.
+ */
+float soft_clip_fog(float x) {
+	x = clamp(x, 0.0, 1.5);
+	float x3 = x * x * x;
+	return 0.5 * (2.0 * x - x3 / 3.375);
+}
+
+/**
+ * @brief Draws the boundaries of the lightgrid voxels;
+ */
+vec4 lightgrid_raster(vec3 uvw, float distance) {
+	float alpha = 1.0 - clamp(distance / 1024.0, 0.0, 1.0);
+	vec4 c = vec4(1.0);
+	c.rgb = fract(uvw * lightgrid.resolution.xyz);
+	c.rgb = abs(c.rgb * 2.0 - 1.0);
+	float t = 0.7 + (0.25 * alpha);
+	float m = max(max(c.r, c.g), c.b);
+	return vec4(
+		smoothstep(t, 1.0, c.r),
+		smoothstep(t, 1.0, c.g),
+		smoothstep(t, 1.0, c.b),
+		smoothstep(t, 1.0, m) * alpha);
+}
+
 /**
  * @brief Resolves the lightgrid coordinate for the specified position in world space.
  * @param lightgrid The lightgrid struct instance.
@@ -36,29 +64,45 @@ vec3 lightgrid_uvw(in vec3 position) {
  * @param position The position in view space.
  * @param lightgrid_uvw The lightgrid texture coordinate.
  */
-void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler, in vec3 position, in vec3 lightgrid_uvw) {
-
-	if (fog_density == 0.0) {
-		return;
-	}
-
-	vec4 fog = vec4(0.0);
-
-	float len = length(position);
-
-	int num_samples = int(clamp(len / 16.0, 1, fog_samples));
-	float num_samples_rcp = 1.0 / float(num_samples);
+void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler,
+	in vec3 position, in vec3 lightgrid_uvw) {
 	
-	for (int i = 0; i < num_samples; i++) {
-		vec3 uvw = mix(lightgrid_uvw, lightgrid.view_coordinate.xyz, float(i) * num_samples_rcp);
-		fog += texture(lightgrid_fog_sampler, uvw);
+	// TODO: reintroduce classic fog
+	// then only draw this expensive fog on top of that, near the player.
+
+	const float world_trace_distance = 1024.0;
+	float lightgrid_dimensions = hmax(lightgrid.resolution) * BSP_LIGHTGRID_LUXEL_SIZE;
+	float uvw_max_trace_distance = world_trace_distance / lightgrid_dimensions;
+
+	const float color_scale = 5.0;
+
+	vec3  rayvec = lightgrid_uvw - lightgrid.view_coordinate.xyz;
+	float raylen = length(rayvec);
+	vec3  raydir = rayvec / raylen;
+	raylen = min(raylen, uvw_max_trace_distance);
+
+	float steplen = uvw_max_trace_distance / fog_samples;
+	vec3  stepvec = raydir * steplen;
+
+	float steps = raylen / steplen;
+
+	vec3 coord = lightgrid.view_coordinate.xyz;
+	vec4 fog_0 = vec4(0.0);
+	for (int i = 0, n = int(floor(steps)); i < n; i++) {
+		vec4 samp = texture(lightgrid_fog_sampler, coord);
+		fog_0.rgb += samp.rgb * color_scale * samp.a;
+		fog_0.a += samp.a;
+		coord += stepvec;
 	}
+	vec4 samp = texture(lightgrid_fog_sampler, coord);
+	vec4 fog_1;
+	fog_1.rgb = fog_0.rgb + samp.rgb * color_scale * samp.a;
+	fog_1.a = fog_0.a + samp.a;
 
-	fog *= num_samples_rcp;
+	vec4 fog = mix(fog_0, fog_1, fract(steps));
+	fog /= steps;
+	fog.a *= raylen;
+	fog.a = soft_clip_fog(fog.a * fog_density);
 
-	float strength;
-	strength  = clamp(fog.a * fog_density, 0.0, 1.0);
-	strength *= clamp((len - 8.0) / (64.0 - 8.0), 0.0, 1.0);
-
-	color.rgb = mix(color.rgb, fog.rgb, color.a * strength);
+	color.rgb = mix(color.rgb, fog.rgb, color.a * fog.a);
 }
