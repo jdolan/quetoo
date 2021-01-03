@@ -62,6 +62,7 @@ static void R_DrawBspInlineModelDepthPass(const r_entity_t *e, const r_bsp_inlin
  * @brief
  */
 void R_DrawDepthPass(const r_view_t *view) {
+	static uint32_t occlusion_query_ticks;
 
 	if (!r_depth_pass->value) {
 		return;
@@ -91,7 +92,8 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glPolygonOffset(0.f, 0.f);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
-	if (r_occlude->value) {
+	if (r_occlude->value && view->ticks - occlusion_query_ticks >= 8) {
+		occlusion_query_ticks = view->ticks;
 
 		glDepthMask(GL_FALSE);
 
@@ -125,10 +127,6 @@ void R_DrawDepthPass(const r_view_t *view) {
 
 				if (available == GL_TRUE || r_occlude->integer == 2) {
 					glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
-
-					if (q->result) {
-						r_stats.count_bsp_occlusion_queries_passed++;
-					}
 				} else {
 					continue;
 				}
@@ -143,11 +141,17 @@ void R_DrawDepthPass(const r_view_t *view) {
 			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
 
 			glEndQuery(GL_ANY_SAMPLES_PASSED);
-
-			r_stats.count_bsp_occlusion_queries++;
 		}
 
 		glDepthMask(GL_TRUE);
+	}
+
+	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
+	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
+		r_stats.count_bsp_occlusion_queries++;
+		if (q->result) {
+			r_stats.count_bsp_occlusion_queries_passed++;
+		}
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
