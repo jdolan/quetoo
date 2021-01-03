@@ -52,7 +52,7 @@ void Cl_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 		s.flags |= S_PLAY_UNDERWATER;
 	}
 
-	const cm_trace_t tr = Cl_Trace(cl_stage.origin, s.origin, Vec3_Zero(), Vec3_Zero(), s.entity, CONTENTS_MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = Cl_Trace(stage->origin, s.origin, Vec3_Zero(), Vec3_Zero(), s.entity, CONTENTS_MASK_CLIP_PROJECTILE);
 	if (tr.fraction < 1.f) {
 		s.flags |= S_PLAY_OCCLUDED;
 	}

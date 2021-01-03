@@ -35,10 +35,11 @@
     <ClInclude Include="..\..\src\client\cl_mouse.h" />
     <ClInclude Include="..\..\src\client\cl_parse.h" />
     <ClInclude Include="..\..\src\client\cl_predict.h" />
+    <ClInclude Include="..\..\src\client\cl_renderer.h" />
     <ClInclude Include="..\..\src\client\cl_screen.h" />
     <ClInclude Include="..\..\src\client\cl_server.h" />
+    <ClInclude Include="..\..\src\client\cl_sound.h" />
     <ClInclude Include="..\..\src\client\cl_types.h" />
-    <ClInclude Include="..\..\src\client\cl_view.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\cl_cgame.c" />
@@ -54,9 +55,10 @@
     <ClCompile Include="..\..\src\client\cl_mouse.c" />
     <ClCompile Include="..\..\src\client\cl_parse.c" />
     <ClCompile Include="..\..\src\client\cl_predict.c" />
+    <ClCompile Include="..\..\src\client\cl_renderer.c" />
     <ClCompile Include="..\..\src\client\cl_screen.c" />
     <ClCompile Include="..\..\src\client\cl_server.c" />
-    <ClCompile Include="..\..\src\client\cl_view.c" />
+    <ClCompile Include="..\..\src\client\cl_sound.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C85EAFFF-BAD0-46C2-868C-982FE719263E}</ProjectGuid>

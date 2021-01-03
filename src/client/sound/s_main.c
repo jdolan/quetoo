@@ -25,7 +25,7 @@
 
 s_context_t s_context;
 
-cvar_t *s_get_error;
+static cvar_t *s_get_error;
 
 cvar_t *s_ambient_volume;
 cvar_t *s_doppler;

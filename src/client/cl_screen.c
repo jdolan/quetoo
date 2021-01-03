@@ -313,10 +313,10 @@ static void Cl_DrawCounters(void) {
 		last_speed_time = quetoo.ticks;
 	}
 
-	if (quetoo.ticks - last_draw_time >= 100) {
+	if (quetoo.ticks - last_draw_time >= 1000) {
 
-		g_snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter * 10);
-		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter * 10);
+		g_snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter);
+		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter);
 
 		last_draw_time = quetoo.ticks;
 
