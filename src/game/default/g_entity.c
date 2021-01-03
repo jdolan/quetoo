@@ -706,24 +706,43 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 }
 
 /**
+ * @brief CompareFunc to shuffle tracks.
+ */
+gint G_WorldspawnMusic_shuffle(gconstpointer a, gconstpointer b) {
+	return RandomRangei(-1, 2);
+}
+
+/**
  * @brief
  */
 static void G_WorldspawnMusic(void) {
-	char *t, buf[MAX_STRING_CHARS];
-	int32_t i;
 
 	if (*g_level.music == '\0') {
-		uint32_t shuffle = Randomu();
-		for (i = 0; i < MAX_MUSICS; i++) {
-			gi.SetConfigString(CS_MUSICS + i, va("track%u", ((i + shuffle) % MAX_MUSICS) + 1));
+
+		int32_t num_tracks = 0;
+		while (gi.FileExists(va("music/track%d.ogg", num_tracks + 1))) {
+			num_tracks++;
 		}
+
+		GArray *tracks = g_array_new(0, 0, sizeof(int32_t));
+		for (int32_t i = 1; i <= num_tracks; i++) {
+			g_array_append_val(tracks, i);
+		}
+		g_array_sort(tracks, G_WorldspawnMusic_shuffle);
+
+		for (int32_t i = 0; i < MAX_MUSICS; i++) {
+			gi.SetConfigString(CS_MUSICS + i, va("track%d", g_array_index(tracks, int32_t, i)));
+		}
+
+		g_array_free(tracks, 1);
 		return;
 	}
 
+	char buf[MAX_STRING_CHARS];
 	g_strlcpy(buf, g_level.music, sizeof(buf));
 
-	i = 0;
-	t = strtok(buf, ",");
+	int32_t i = 0;
+	char *t = strtok(buf, ",");
 
 	while (true) {
 
