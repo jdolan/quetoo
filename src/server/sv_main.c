@@ -850,6 +850,11 @@ void Sv_Init(void) {
 	Sv_InitAdmin();
 
 	Sv_InitMasters();
+
+	if (dedicated->value && Fs_Exists("server.cfg")) {
+		Cbuf_AddText("exec server.cfg\n");
+		Cbuf_Execute();
+	}
 }
 
 /**

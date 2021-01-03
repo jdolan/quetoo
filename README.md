@@ -1,4 +1,4 @@
-[![Linux Build Status](http://ci.quetoo.org/buildStatus/icon?job=Quetoo-Linux-x86_64-master)](http://ci.quetoo.org/job/Quetoo-Linux-x86_64/)
+[![Linux Build Status](http://ci.quetoo.org/buildStatus/icon?job=Quetoo-Linux-x86_64-master)](http://ci.quetoo.org/job/Quetoo-Linux-x86_64-master/)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/647d2fdblb63rkhy?svg=true)](https://ci.appveyor.com/project/Paril/quetoo)
 [![GPLv2 License](https://img.shields.io/badge/license-GPL%20v2-brightgreen.svg)](https://opensource.org/licenses/GPL-2.0)
 ![This software is BETA](https://img.shields.io/badge/development_stage-BETA-yellowgreen.svg)
@@ -36,6 +36,7 @@ The following dependencies are required:
  * [ObjectivelyMVC](https://github.com/jdolan/ObjectivelyMVC/)
  * [PhysicsFS](https://icculus.org/physfs/)
  * [OpenAL](https://www.openal.org/)
+ * [libsndfile](http://mega-nerd.com/libsndfile/)
  * [glib2](https://developer.gnome.org/glib/)
  * [ncurses](https://www.gnu.org/software/ncurses/)
  * [libxml2](http://xmlsoft.org/)
