@@ -249,15 +249,21 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		r_uniforms.block.fog_density = r_fog_density->value;
 		r_uniforms.block.fog_samples = r_fog_samples->integer;
 
-		if (r_world_model) {
+		r_uniforms.block.resolution.x = r_context.width;
+		r_uniforms.block.resolution.y = r_context.height;
 
+		if (r_world_model) {
 			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->mins, 0.f);
 			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->maxs, 0.f);
 
 			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->mins);
 			const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
 
+			r_uniforms.block.lightgrid.resolution = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
+
+			// r_uniforms.block.fog_global_color = Vec3(1.f, 1.f, 1.f); // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_color")->vec3; // FIXME
+			// r_uniforms.block.fog_global_density = 1.f; // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_density")->value; // FIXME
 		}
 	}
 
