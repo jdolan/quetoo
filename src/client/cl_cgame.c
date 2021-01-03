@@ -235,7 +235,7 @@ void Cl_InitCgame(void) {
 	import.LoadSample = S_LoadSample;
 	import.LoadClientModelSample = S_LoadClientModelSample;
 	import.LoadClientModelSamples = S_LoadClientModelSamples;
-	import.AddSample = Cl_AddSample;
+	import.AddSample = S_AddSample;
 
 	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;

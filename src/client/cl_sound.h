@@ -25,5 +25,4 @@
 
 #ifdef __CL_LOCAL_H__
 void Cl_S_Restart_f(void);
-void Cl_AddSample(s_stage_t *stage, const s_play_sample_t *play);
 #endif /* __CL_LOCAL_H__ */

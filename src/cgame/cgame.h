@@ -32,7 +32,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 22
+#define CGAME_API_VERSION 23
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -778,9 +778,11 @@ typedef struct cg_export_s {
 	void (*UpdateMedia)(void);
 
 	/**
-	 * @brief Called when a configuration string is received from the server.
+	 * @brief Called when a server message known to the client is received.
+	 * @param cmd The message type (e.g. SV_CMD_SOUND).
+	 * @param data The parsed type-specific data or NULL.
 	 */
-	void (*UpdateConfigString)(int32_t index);
+	void (*ParsedMessage)(int32_t cmd, void *data);
 
 	/**
 	 * @brief Called when a server message not known to the client is received.

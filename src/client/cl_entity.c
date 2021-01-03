@@ -406,7 +406,7 @@ void Cl_Interpolate(void) {
 		}
 
 		if (ent->current.sound) {
-			Cl_AddSample(&cl_stage, &(const s_play_sample_t) {
+			cls.cgame->ParsedMessage(SV_CMD_SOUND, &(s_play_sample_t) {
 				.sample = cl.sounds[ent->current.sound],
 				.origin = ent->current.origin,
 				.entity = ent->current.number,

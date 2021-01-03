@@ -356,6 +356,21 @@ static void Cg_UpdateConfigString(int32_t i) {
 }
 
 /**
+ * @brief React to a parsed server command.
+ */
+static void Cg_ParsedMessage(int32_t cmd, void *data) {
+
+	switch (cmd) {
+		case SV_CMD_CONFIG_STRING:
+			Cg_UpdateConfigString((int32_t) data);
+			break;
+		case SV_CMD_SOUND:
+			Cg_AddSample(cgi.stage, (s_play_sample_t *) data);
+			break;
+	}
+}
+
+/**
  * @brief Parse a single server command, returning true on success.
  */
 static _Bool Cg_ParseMessage(int32_t cmd) {
@@ -463,7 +478,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Look = Cg_Look;
 	cge.Move = Cg_Move;
 	cge.UpdateMedia = Cg_UpdateMedia;
-	cge.UpdateConfigString = Cg_UpdateConfigString;
+	cge.ParsedMessage = Cg_ParsedMessage;
 	cge.ParseMessage = Cg_ParseMessage;
 	cge.Interpolate = Cg_Interpolate;
 	cge.UsePrediction = Cg_UsePrediction;

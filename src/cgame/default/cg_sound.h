@@ -23,4 +23,5 @@
 
 #ifdef __CG_LOCAL_H__
 void Cg_PrepareStage(const cl_frame_t *frame);
+void Cg_AddSample(s_stage_t *stage, const s_play_sample_t *play);
 #endif /* __CG_LOCAL_H__ */
