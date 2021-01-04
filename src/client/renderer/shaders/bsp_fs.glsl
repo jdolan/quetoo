@@ -197,6 +197,8 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
 
+		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
+
 	} else {
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
@@ -218,8 +220,6 @@ void main(void) {
 	}
 
 	// postprocessing
-
-	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 
 	out_color.rgb = tonemap(out_color.rgb);
 
