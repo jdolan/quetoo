@@ -582,7 +582,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 		}
 	}
 
-	Cm_MaterialWarn(path, parser, va("Malformed stage for material %s\n", m->basename));
+	Cm_MaterialWarn(path, parser, va("Malformed stage for material %s", m->basename));
 	return false;
 }
 
@@ -765,11 +765,11 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "Invalid color (must be 3 or 4 components)");
 			} else {
 				if (num_parsed != 4) {
-					color->w = 1.0;
+					color->w = 1.f;
 				}
 
 				for (size_t i = 0; i < num_parsed; i++) {
-					if (color->xyzw[i] < 0.0 || color->xyzw[i] > 1.0) {
+					if (color->xyzw[i] < 0.f || color->xyzw[i] > 1.f) {
 						Cm_MaterialWarn(path, &parser, "Color number out of range (must be between 0.0 and 1.0)");
 					}
 				}
@@ -782,8 +782,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->roughness, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No roughness specified");
-			} else if (m->roughness < 0.0) {
-				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0\n");
+			} else if (m->roughness < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0");
 				m->roughness = DEFAULT_ROUGHNESS;
 			}
 		}
@@ -792,8 +792,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No hardness specified");
-			} else if (m->hardness < 0.0) {
-				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0\n");
+			} else if (m->hardness < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0");
 				m->hardness = DEFAULT_HARDNESS;
 			}
 		}
@@ -802,8 +802,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specularity, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No specularity specified");
-			} else if (m->specularity < 0.0) {
-				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be > 0.0\n");
+			} else if (m->specularity < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be > 0.0");
 				m->specularity = DEFAULT_HARDNESS;
 			}
 		}
@@ -812,8 +812,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No parallax specified");
-			} else if (m->parallax < 0.0) {
-				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be > 0.0\n");
+			} else if (m->parallax < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be > 0.0");
 				m->parallax = DEFAULT_PARALLAX;
 			}
 		}
@@ -821,7 +821,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		if (!g_strcmp0(token, "contents")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
-				Cm_MaterialWarn(path, &parser, "No contents specified\n");
+				Cm_MaterialWarn(path, &parser, "No contents specified");
 			} else {
 				m->contents |= Cm_ParseContents(token);
 			}
@@ -831,7 +831,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		if (!g_strcmp0(token, "surface")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
-				Cm_MaterialWarn(path, &parser, "No surface flags specified\n");
+				Cm_MaterialWarn(path, &parser, "No surface flags specified");
 			} else {
 				m->surface |= Cm_ParseSurface(token);
 			}
@@ -843,18 +843,29 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light specified");
 				m->light = DEFAULT_LIGHT;
-			} else if (m->light < 0.0) {
-				Cm_MaterialWarn(path, &parser, "Invalid light value, must be > 0.0\n");
+			} else if (m->light < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light value, must be > 0.0");
 				m->light = DEFAULT_LIGHT;
 			}
 
 			m->surface |= SURF_LIGHT;
 		}
 
+		if (!g_strcmp0(token, "patch_size")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->patch_size, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No patch size specified");
+				m->patch_size = DEFAULT_PATCH_SIZE;
+			} else if (m->patch_size < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid patch size value, must be > 0.0");
+				m->patch_size = DEFAULT_PATCH_SIZE;
+			}
+		}
+
 		if (!g_strcmp0(token, "footsteps")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps, sizeof(m->footsteps))) {
-				Cm_MaterialWarn(path, &parser, "Invalid footsteps value\n");
+				Cm_MaterialWarn(path, &parser, "Invalid footsteps value");
 			}
 		}
 
@@ -863,7 +874,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
 
 			if (!Cm_ParseStage(m, s, &parser, path)) {
-				Com_Debug(DEBUG_COLLISION, "Couldn't load a stage in %s\n", m->name);
+				Com_Debug(DEBUG_COLLISION, "Couldn't load a stage in %s", m->name);
 				Mem_Free(s);
 				continue;
 			}
