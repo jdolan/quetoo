@@ -43,7 +43,9 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 
 	if (play->entity) {
 		const cl_entity_t *ent = &cgi.client->entities[play->entity];
-		if (ent->current.solid == SOLID_BSP) {
+		if (ent == Cg_Self()) {
+			play->origin = cgi.client->predicted_state.view.origin;
+		} else if (ent->current.solid == SOLID_BSP) {
 			play->origin = Vec3_Scale(Vec3_Add(ent->abs_mins, ent->abs_maxs), .5f);
 		} else {
 			play->origin = ent->current.origin;

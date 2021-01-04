@@ -218,7 +218,7 @@ static void Cg_AddWeather(void) {
 		sample = cg_sample_snow;
 	}
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = sample,
 		 .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 	});
@@ -243,7 +243,7 @@ static void Cg_AddWeather(void) {
 static void Cg_AddUnderwater(void) {
 
 	if (cgi.view->contents & CONTENTS_MASK_LIQUID) {
-		cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 			.sample = cg_sample_underwater,
 			 .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 		});

@@ -953,7 +953,7 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 		if (cgi.client->unclamped_time - cg_hud_locals.damage.hit_sound_time > 50) {
 			cg_hud_locals.damage.hit_sound_time = cgi.client->unclamped_time;
 
-			cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+			Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 				.sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0]
 			});
 		}

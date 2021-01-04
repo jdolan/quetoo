@@ -107,7 +107,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
 		.color = Color_Add(color_rgb, Color4f(0.f, 0.f, 0.f, -.66f))
 	});
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_blaster_hit,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
@@ -359,7 +359,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	if (cgi.client->unclamped_time - last_ric_time > 300) {
 		last_ric_time = cgi.client->unclamped_time;
 
-		cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 			.sample = cg_sample_machinegun_hit[RandomRangeu(0, 3)],
 			.origin = org,
 			.atten = SOUND_ATTEN_LINEAR,
@@ -442,7 +442,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		.color = Color4bv(0x88111188),
 	});
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_gib,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
@@ -480,7 +480,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		.decay = 650
 	});
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_sparks,
 		.origin = org,
 		.atten = SOUND_ATTEN_SQUARE,
@@ -591,7 +591,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.color = Color4bv(0xaa202020),
 	});
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_explosion,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
@@ -661,7 +661,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.color = Color4f(.4f, .7f, 1.f, .33f),
 	});
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_hyperblaster_hit,
 		.origin = Vec3_Add(org, dir),
 		.atten = SOUND_ATTEN_LINEAR,
@@ -684,7 +684,7 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 		.decay = 750
 	});
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_lightning_discharge,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,
@@ -980,7 +980,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 		.color = Color4f(.8f, 1.f, .5f, .5f),
 	});
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_bfg_hit,
 		.origin = org,
 		.atten = SOUND_ATTEN_LINEAR,

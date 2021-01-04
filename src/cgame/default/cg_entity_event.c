@@ -277,7 +277,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 	}
 
 	if (play.sample) {
-		cgi.AddSample(cgi.stage, &play);
+		Cg_AddSample(cgi.stage, &play);
 	}
 
 	s->event = 0;
