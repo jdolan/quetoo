@@ -394,8 +394,8 @@ void R_InitMeshProgram(void) {
 	memset(&r_mesh_program, 0, sizeof(r_mesh_program));
 
 	r_mesh_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "mesh_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "mesh_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "mesh_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "mesh_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_mesh_program.name);

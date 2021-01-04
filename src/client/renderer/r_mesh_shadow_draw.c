@@ -211,8 +211,8 @@ void R_InitMeshShadowProgram(void) {
 	memset(&r_mesh_shadow_program, 0, sizeof(r_mesh_shadow_program));
 
 	r_mesh_shadow_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "mesh_shadow_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "mesh_shadow_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "mesh_shadow_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "soften_fs.glsl", "mesh_shadow_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_mesh_shadow_program.name);
