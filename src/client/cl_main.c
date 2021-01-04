@@ -637,9 +637,6 @@ void Cl_Frame(const uint32_t msec) {
 		}
 	}
 
-	memset(&cl_view, 0, sizeof(cl_view));
-	memset(&cl_stage, 0, sizeof(cl_stage));
-
 	Cl_AttemptConnect();
 
 	Cl_HttpThink();
@@ -647,6 +644,9 @@ void Cl_Frame(const uint32_t msec) {
 	Cl_ReadPackets();
 
 	Cl_HandleEvents();
+
+	memset(&cl_view, 0, sizeof(cl_view));
+	memset(&cl_stage, 0, sizeof(cl_stage));
 
 	R_BeginFrame(&cl_view);
 
