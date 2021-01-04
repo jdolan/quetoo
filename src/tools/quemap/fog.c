@@ -71,8 +71,12 @@ static void FogForEntity(const cm_entity_t *entity) {
 			fog_t fog = {};
 			fog.type = FOG_GLOBAL;
 			fog.entity = entity;
-
-			fog.absorption = Cm_EntityValue(entity, "fog_absorption")->value ?: FOG_ABSORPTION;
+			
+			if (Cm_EntityValue(entity, "fog_absorption")->parsed & ENTITY_FLOAT) {
+				fog.absorption = Cm_EntityValue(entity, "fog_absorption")->value;
+			} else {
+				fog.absorption = FOG_ABSORPTION;
+			}
 
 			const cm_entity_t *color = Cm_EntityValue(entity, "fog_color");
 			if (color->parsed & ENTITY_VEC3) {
@@ -92,7 +96,11 @@ static void FogForEntity(const cm_entity_t *entity) {
 		fog.type = FOG_VOLUME;
 		fog.entity = entity;
 
-		fog.absorption = Cm_EntityValue(entity, "absorption")->value ?: FOG_ABSORPTION;
+		if (Cm_EntityValue(entity, "absorption")->parsed & ENTITY_FLOAT) {
+			fog.absorption = Cm_EntityValue(entity, "absorption")->value;
+		} else {
+			fog.absorption = FOG_ABSORPTION;
+		}
 
 		if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
 			fog.color = Cm_EntityValue(entity, "_color")->vec3;
