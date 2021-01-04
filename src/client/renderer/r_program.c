@@ -83,7 +83,6 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 				if (length == -1) {
 					Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
 				}
-				printf("%s\n", source[count]);
 				count++;
 			} else {
 				break;
