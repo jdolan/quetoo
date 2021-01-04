@@ -125,7 +125,7 @@ static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, 
 		Com_Warn("OpenGL (%s; %s) %s [id %i]: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message);
 	}
 
-	if (r_get_error_break->integer) {
+	if (r_get_error->integer == 2) {
 		SDL_TriggerBreakpoint();
 	}
 }

@@ -60,10 +60,13 @@
     <ClInclude Include="..\..\src\client\cl_types.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\cl_view.h">
+    <ClInclude Include="..\..\src\client\client.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\client.h">
+    <ClInclude Include="..\..\src\client\cl_renderer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\cl_sound.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -113,7 +116,10 @@
     <ClCompile Include="..\..\src\client\cl_server.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\cl_view.c">
+    <ClCompile Include="..\..\src\client\cl_renderer.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\cl_sound.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

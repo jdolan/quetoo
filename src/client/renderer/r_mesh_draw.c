@@ -81,13 +81,13 @@ static struct {
 /**
  * @brief
  */
-void R_UpdateMeshEntities(void) {
+void R_UpdateMeshEntities(r_view_t *view) {
 
-	r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+	r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
 		if (IS_MESH_MODEL(e->model)) {
-			e->blend_depth = R_BlendDepthForPoint(e->origin, BLEND_DEPTH_ENTITY);
+			e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
 		}
 	}
 }
@@ -311,7 +311,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
 		glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 		
-		r_view.count_mesh_triangles += face->num_elements / 3;
+		r_stats.count_mesh_triangles += face->num_elements / 3;
 
 		R_DrawMeshEntityMaterialStages(e, face, material);
 	}
@@ -331,15 +331,15 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glDisable(GL_CULL_FACE);
 	}
 
-	r_view.count_mesh_models++;
+	r_stats.count_mesh_models++;
 }
 
 /**
  * @brief Draws mesh entities at the specified blend depth.
  */
-void R_DrawMeshEntities(int32_t blend_depth) {
+void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 
-	if (!r_view.num_entities) {
+	if (!view->num_entities) {
 		return;
 	}
 
@@ -360,14 +360,14 @@ void R_DrawMeshEntities(int32_t blend_depth) {
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-	const r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+	const r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 		if (IS_MESH_MODEL(e->model)) {
 
 			if (e->effects & EF_NO_DRAW) {
 				continue;
 			}
-
+			
 			if (e->blend_depth != blend_depth) {
 				continue;
 			}
@@ -394,8 +394,8 @@ void R_InitMeshProgram(void) {
 	memset(&r_mesh_program, 0, sizeof(r_mesh_program));
 
 	r_mesh_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "mesh_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "mesh_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "mesh_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "mesh_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_mesh_program.name);

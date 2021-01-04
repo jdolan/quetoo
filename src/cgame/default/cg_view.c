@@ -297,7 +297,9 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 /**
  * @brief Updates the view origin, angles, and field of view.
  */
-void Cg_UpdateView(const cl_frame_t *frame) {
+void Cg_PrepareView(const cl_frame_t *frame) {
+
+	cgi.view->ticks = cgi.client->unclamped_time;
 
 	const player_state_t *ps0;
 
@@ -320,18 +322,4 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateBob(ps1);
 
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
-}
-
-/**
- * @brief Populates the view with entities, effects, etc.. for the current frame.
- */
-void Cg_PopulateView(const cl_frame_t *frame) {
-
-	Cg_AddEntities(frame);
-
-	Cg_AddEffects();
-
-	Cg_AddSprites();
-
-	Cg_AddLights();
 }

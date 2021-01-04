@@ -19,8 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "cl_local.h"
 
-#define __S_LOCAL_H__
+/**
+ * @brief
+ */
+void Cl_S_Restart_f(void) {
 
-#include "sound.h"
+	if (cls.state == CL_LOADING) {
+		return;
+	}
+
+	S_Shutdown();
+
+	S_Init();
+
+	const cl_state_t state = cls.state;
+
+	Cl_LoadMedia();
+
+	cls.state = state;
+}

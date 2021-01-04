@@ -33,19 +33,16 @@
 #include "r_gl_types.h"
 
 /**
- * @brief Media identifier type
+ * @brief Media types.
  */
 typedef enum {
-	R_MEDIA_GENERIC, // unknown/generic type
-	R_MEDIA_IMAGE, // r_image_t
-	R_MEDIA_ATLAS, // r_atlas_t
-	R_MEDIA_ATLAS_IMAGE, // r_atlas_image_t
-	R_MEDIA_ANIMATION, // r_animation_t
-
-	R_MEDIA_MODEL, // r_model_t
-
-	R_MEDIA_MATERIAL, // r_material_t
-
+	R_MEDIA_GENERIC,
+	R_MEDIA_IMAGE,
+	R_MEDIA_ATLAS,
+	R_MEDIA_ATLAS_IMAGE,
+	R_MEDIA_ANIMATION,
+	R_MEDIA_MODEL,
+	R_MEDIA_MATERIAL,
 	R_MEDIA_TOTAL
 } r_media_type_t;
 
@@ -1145,27 +1142,11 @@ typedef struct {
 	r_stain_t stains[MAX_STAINS];
 	int32_t num_stains;
 
-	// counters, reset each frame
-
-	int32_t count_bsp_inline_models;
-	int32_t count_bsp_draw_elements;
-	int32_t count_bsp_draw_elements_blend;
-	int32_t count_bsp_triangles;
-	int32_t count_bsp_occlusion_queries;
-	int32_t count_bsp_occlusion_queries_passed;
-
-	int32_t count_mesh_models;
-	int32_t count_mesh_triangles;
-
-	int32_t count_sprite_draw_elements;
-
-	int32_t count_draw_chars;
-	int32_t count_draw_fills;
-	int32_t count_draw_images;
-	int32_t count_draw_lines;
-	int32_t count_draw_arrays;
-
-	_Bool update; // inform the client of state changes
+	/**
+	 * @brief The view frustum, for box and sphere culling.
+	 * @remarks This is populated by the renderer.
+	 */
+	cm_bsp_plane_t frustum[4];
 
 } r_view_t;
 
@@ -1213,6 +1194,31 @@ typedef struct {
 	 */
 	GLuint framebuffer, color_attachment, depth_stencil_attachment;
 } r_context_t;
+
+/**
+ * @brief Renderer statistics.
+ */
+typedef struct {
+
+	int32_t count_bsp_inline_models;
+	int32_t count_bsp_draw_elements;
+	int32_t count_bsp_draw_elements_blend;
+	int32_t count_bsp_triangles;
+	int32_t count_bsp_occlusion_queries;
+	int32_t count_bsp_occlusion_queries_passed;
+
+	int32_t count_mesh_models;
+	int32_t count_mesh_triangles;
+
+	int32_t count_sprite_draw_elements;
+
+	int32_t count_draw_chars;
+	int32_t count_draw_fills;
+	int32_t count_draw_images;
+	int32_t count_draw_lines;
+	int32_t count_draw_arrays;
+
+} r_stats_t;
 
 #ifdef __R_LOCAL_H__
 

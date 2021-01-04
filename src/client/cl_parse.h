@@ -25,7 +25,7 @@
 
 #ifdef __CL_LOCAL_H__
 _Bool Cl_CheckOrDownloadFile(const char *filename);
-void Cl_ParseConfigString(void);
+int32_t Cl_ParseConfigString(void);
 void Cl_ParseServerMessage(void);
 void Cl_Download_f(void);
 void Cl_Precache_f(void);

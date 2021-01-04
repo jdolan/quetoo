@@ -21,7 +21,7 @@
 
 #pragma once
 
-#define AI_API_VERSION 6
+#define AI_API_VERSION 7
 
 /**
  * @brief Forward declaration of entity type, since
@@ -176,7 +176,7 @@ typedef struct {
 	/**
 	 * @brief
 	 */
-	ai_node_id_t (*FindClosestNode)(const vec3_t position, const float max_distance, const bool only_visible);
+	ai_node_id_t (*FindClosestNode)(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level);
 
 	/**
 	 * @brief

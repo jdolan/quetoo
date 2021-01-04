@@ -96,8 +96,8 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
 	}
 
 	// find nodes closest to src and dst
-	const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true);
-	const ai_node_id_t dst_node = aix->FindClosestNode(dest->s.origin, 512.f, true);
+	const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true, true);
+	const ai_node_id_t dst_node = aix->FindClosestNode(dest->s.origin, 512.f, true, true);
 
 	if (src_node != NODE_INVALID && dst_node != NODE_INVALID) {
 

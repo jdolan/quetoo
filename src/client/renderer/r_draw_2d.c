@@ -20,7 +20,6 @@
  */
 
 #include "r_local.h"
-#include "client.h"
 
 /**
  * @brief The font type.
@@ -191,7 +190,7 @@ static void R_Draw2DChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color)
 
 	R_EmitDrawVertexes2D_Quad(quad);
 
-	r_view.count_draw_chars++;
+	r_stats.count_draw_chars++;
 }
 
 /**
@@ -342,7 +341,7 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 	R_EmitDrawVertexes2D_Quad(quad);
 	R_AddDraw2DArrays(&draw);
 
-	r_view.count_draw_images++;
+	r_stats.count_draw_images++;
 }
 
 /**
@@ -373,7 +372,7 @@ void R_Draw2DFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const colo
 	R_EmitDrawVertexes2D_Quad(quad);
 	R_AddDraw2DArrays(&draw);
 
-	r_view.count_draw_fills++;
+	r_stats.count_draw_fills++;
 }
 
 /**
@@ -403,7 +402,7 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
 
 	R_AddDraw2DArrays(&draw);
 
-	r_view.count_draw_lines += count >> 1;
+	r_stats.count_draw_lines += count >> 1;
 }
 
 /**
@@ -411,7 +410,7 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
  */
 void R_Draw2D(void) {
 	
-	r_view.count_draw_arrays = r_draw_2d.num_draw_arrays;
+	r_stats.count_draw_arrays = r_draw_2d.num_draw_arrays;
 
 	if (r_draw_2d.num_draw_arrays == 0) {
 		return;

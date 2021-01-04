@@ -292,7 +292,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		}
 	}
 
-	cgi.AddSprite(&(r_sprite_t) {
+	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_particle,
 		.origin = end,
 		.size = 8.f,
@@ -317,7 +317,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	// vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
 	// ring
-	cgi.AddSprite(&(r_sprite_t) {
+	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_ring,
 		.origin = ent->origin,
 		.size = pulse1 * 10.f + 20.f,
@@ -325,7 +325,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	});
 	
 	// streak
-	cgi.AddSprite(&(r_sprite_t) {
+	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_aniso_flare_01,
 		.origin = ent->origin,
 		.size = pulse2 * 10.f + 10.f,
@@ -334,7 +334,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	// glow
 	for (int32_t i = 0; i < 2; i++) {
-		cgi.AddSprite(&(r_sprite_t) {
+		cgi.AddSprite(cgi.view, &(r_sprite_t) {
 			.media = (r_media_t *) cg_sprite_flash,
 			.origin = ent->origin,
 			.size = 40.f,
@@ -370,7 +370,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	const float speed = Vec3_Length(velocity) / QUETOO_TICK_SECONDS;
 
 	// exhaust glow
-	cgi.AddSprite(&(r_sprite_t) {
+	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_explosion_glow,
 		.origin = Vec3_Add(ent->origin, Vec3_Scale(direction, -20.f)),
 		.size = 50.f,
@@ -379,7 +379,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 	// exhaust flare
 	for (int32_t i = 0; i < 2; i++) {
-		cgi.AddSprite(&(r_sprite_t) {
+		cgi.AddSprite(cgi.view, &(r_sprite_t) {
 			.media = (r_media_t *) cg_sprite_explosion_flash,
 			.origin = Vec3_Add(ent->origin, Vec3_Scale(direction, -20.f)),
 			.size = 35.f,
@@ -563,7 +563,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 	Cg_AddLight(&l);
 
-	cgi.AddBeam(&(const r_beam_t) {
+	cgi.AddBeam(cgi.view, &(const r_beam_t) {
 		.start = start,
 		.end = end,
 		.color = Color32(255, 255, 255, 0),
@@ -587,7 +587,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		if (tr.texinfo) {
 			vec3_t pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 1.0));
 
-			cgi.AddStain(&(const r_stain_t) {
+			cgi.AddStain(cgi.view, &(const r_stain_t) {
 				.origin = pos,
 				.radius = 8.0 + Randomf() * 4.0,
 				.color = Color4bv(0x40000000),
@@ -642,7 +642,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 
 	const vec3_t effect_color = Cg_ResolveEntityEffectHSV(ent->current.client, color_hue_green);
 
-	cgi.AddBeam(&(const r_beam_t) {
+	cgi.AddBeam(cgi.view, &(const r_beam_t) {
 		.start = start,
 		.end = Vec3_Add(end, Vec3_Scale(forward, -3.f)),
 		.color = Color_Color32(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
@@ -658,7 +658,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	const float mod = sinf(cgi.client->unclamped_time / 16.f) * 0.5 + 0.5;
 
 	// projectile core
-	cgi.AddSprite(&(r_sprite_t) {
+	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.origin = ent->origin,
 		.size = (50.f * mod) + 180.f,
 		.media = (r_media_t *) cg_sprite_fireball_01,
@@ -722,7 +722,7 @@ static inline float Cg_Oscillate(const float freq, const float amplitude, const 
 static void Cg_SpawnPointTrail(cl_entity_t *ent, const float hue) {
 	const vec4_t color = (hue < 0 || hue > 360) ? Vec4(0.f, 0.f, 1.f, 0.f) : Vec4(hue, 1.f, 1.f, 0.f);
 
-	cgi.AddSprite(&(r_sprite_t) {
+	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_ring,
 		.origin = Vec3_Fmaf(ent->origin, 16.f, Vec3_Down()),
 		.size = 48.f + Cg_Oscillate(1, 12.f, 1.f, 0.f),
@@ -771,7 +771,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 		static uint32_t added = 0;
 		if ((added++ % 3) == 0) {
-			cgi.AddStain(&(const r_stain_t) {
+			cgi.AddStain(cgi.view, &(const r_stain_t) {
 				.origin = s->origin,
 				.radius = 12.0 * Randomf() * 3.0,
 				.color = Color4bv(0x80101080),

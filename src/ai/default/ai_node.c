@@ -120,7 +120,7 @@ guint Ai_Node_Count(void) {
 /**
  * @brief
  */
-ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible) {
+ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level) {
 
 	if (!ai_nodes)
 		return NODE_INVALID;
@@ -132,9 +132,11 @@ ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
 
-		// weigh the Z axis more heavily
 		vec3_t dir = Vec3_Subtract(position, node->position);
-		dir.z *= 4.0f;
+		// weigh the Z axis more heavily
+		if (prefer_level && !(aim.gi->PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
+			dir.z *= 4.0f;
+		}
 		const float dist = Vec3_LengthSquared(dir);
 
 		if (dist < dist_squared && (closest == NODE_INVALID || dist < closest_dist) && (!only_visible || Ai_Node_Visible(position, i))) {
@@ -158,6 +160,8 @@ ai_node_id_t Ai_Node_CreateNode(const vec3_t position) {
 	g_array_append_val(ai_nodes, (ai_node_t) {
 		.position = position
 	});
+
+	Ai_Debug("Dropped new node %d\n", ai_nodes->len - 1);
 
 	return ai_nodes->len - 1;
 }
@@ -221,6 +225,8 @@ void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float 
 		.id = b,
 		.cost = cost
 	}, 1);
+
+	Ai_Debug("Connected %d -> %d\n", a, b);
 }
 
 /**
@@ -475,7 +481,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 				ai_player_roam.await_landing = false;
 				ai_player_roam.position = player->s.origin;
 
-				ai_node_id_t landed_near_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 2, true);
+				ai_node_id_t landed_near_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 2, true, true);
 				_Bool dropped_node = false;
 
 				if (landed_near_node == NODE_INVALID) {
@@ -506,7 +512,6 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 				ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
 				ai_player_roam.last_nodes[0] = landed_near_node;
 				ai_player_roam.is_water_jump = false;
-				Ai_Debug("%s A->B node\n", dropped_node ? "Dropped new" : "Connected existing");
 			}
 
 			return;
@@ -525,11 +530,13 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 
 		// we just left the floor (or water); drop a node here
 		if (!Ai_Node_PlayerIsOnFloor(player) && !in_water) {
-			const ai_node_id_t jumped_near_node = Ai_Node_FindClosest(ai_player_roam.floor_position, WALKING_DISTANCE / 2, true);
+			// for water leavings, we want to drop where we are, not where we went into the water from
+			const vec3_t where = ai_player_roam.is_water_jump ? player->s.origin : ai_player_roam.floor_position;
+			const ai_node_id_t jumped_near_node = Ai_Node_FindClosest(where, WALKING_DISTANCE / 2, true, false);
 			const _Bool is_jump = player->client->ps.pm_state.velocity.z > 0;
 
 			if (jumped_near_node == NODE_INVALID) {
-				const ai_node_id_t id = Ai_Node_CreateNode(ai_player_roam.floor_position);
+				const ai_node_id_t id = Ai_Node_CreateNode(where);
 
 				if (ai_player_roam.last_nodes[0] != NODE_INVALID) {
 
@@ -538,14 +545,11 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 			
 				ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
 				ai_player_roam.last_nodes[0] = id;
-				Ai_Debug("Dropped new A<->B node\n");
 			} else {
 				
 				if (ai_player_roam.last_nodes[0] != NODE_INVALID) {
 
 					Ai_Node_CreateDefaultLink(ai_player_roam.last_nodes[0], jumped_near_node, true);
-
-					Ai_Debug("Connected existing A<->B node\n");
 				}
 			
 				ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
@@ -567,7 +571,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 
 	// we're walkin'
 
-	const ai_node_id_t closest_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 4, true);
+	const ai_node_id_t closest_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 4, true, false);
 	const _Bool on_mover = ENTITY_DATA(player, ground_entity) && ENTITY_DATA(player, ground_entity)->s.number != 0;
 
 	// attack button moves node
@@ -586,7 +590,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 			Ai_Node_Destroy(ai_player_roam.last_nodes[0]);
 			ai_player_roam.position = player->s.origin;
 			ai_player_roam.last_nodes[0] = ai_player_roam.last_nodes[1] = NODE_INVALID;
-			ai_player_roam.last_nodes[0] = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE * 2.5f, true);
+			ai_player_roam.last_nodes[0] = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE * 2.5f, true, false);
 		}
 		ai_player_roam.latched_buttons &= ~BUTTON_HOOK;
 	// score adjusts link connections
@@ -622,7 +626,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		ai_player_roam.on_mover = on_mover;
 
 		if (do_noding) {
-			ai_node_id_t id = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 8, true);
+			ai_node_id_t id = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 8, true, false);
 			
 			if (id == NODE_INVALID) {
 				id = Ai_Node_CreateNode(player->s.origin);
@@ -635,7 +639,6 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		
 			ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
 			ai_player_roam.last_nodes[0] = id;
-			Ai_Debug("Dropped mover A->B node\n");
 		}
 
 	// if we touched another node and had another node lit up; connect us if we aren't already
@@ -644,7 +647,6 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		if (do_noding && ai_player_roam.last_nodes[0] != NODE_INVALID) {
 
 			Ai_Node_CreateDefaultLink(ai_player_roam.last_nodes[0], closest_node, !ai_player_roam.on_mover);
-			Ai_Debug("Connected existing A<->B node\n");
 		}
 		
 		ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
@@ -653,7 +655,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 	} else if (last_node_distance_compare > WALKING_DISTANCE) {
 
 		if (do_noding) {
-			ai_node_id_t id = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 2, true);
+			ai_node_id_t id = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 2, true, !in_water);
 			
 			if (id == NODE_INVALID) {
 				id = Ai_Node_CreateNode(player->s.origin);
@@ -666,7 +668,6 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		
 			ai_player_roam.last_nodes[1] = ai_player_roam.last_nodes[0];
 			ai_player_roam.last_nodes[0] = id;
-			Ai_Debug("Dropped new A<->B node\n");
 		}
 	}
 
@@ -748,16 +749,12 @@ void Ai_Node_Render(void) {
 
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
-
-		if (!node->links) {
-			continue;
-		}
-
 		const _Bool in_path = Ai_NodeInPath(ai_player_roam.test_path, i);
 
 		aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
 		aim.gi->WriteByte(TE_AI_NODE);
 		aim.gi->WritePosition(node->position);
+		aim.gi->WriteShort(i);
 		aim.gi->WriteByte(in_path ? 3 : (ai_player_roam.last_nodes[0] == i) ? 1 : (ai_player_roam.last_nodes[1] == i) ? 2 : 0);
 		aim.gi->Multicast(node->position, MULTICAST_PVS, NULL);
 
@@ -919,7 +916,7 @@ static void Ai_CheckNodes(void) {
 			continue;
 		}
 
-		const ai_node_id_t node = Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true);
+		const ai_node_id_t node = Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
 
 		if (node == NODE_INVALID) {
 			aim.gi->Warn("Entity %s @ %s appears to be unreachable by nodes\n", ENTITY_DATA(ent, class_name), vtos(ent->s.origin));

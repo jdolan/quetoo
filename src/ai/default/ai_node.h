@@ -28,7 +28,7 @@ vec3_t Ai_Node_GetPosition(const ai_node_id_t node);
 /**
  * @brief
  */
-ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible);
+ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level);
 
 /**
  * @brief Check if the node we want to move towards is currently pathable.

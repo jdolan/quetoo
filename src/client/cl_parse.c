@@ -163,18 +163,20 @@ static void Cl_ParseBaseline(void) {
 /**
  * @brief
  */
-static void Cl_ParseCbufText(void) {
+static const char *Cl_ParseCbufText(void) {
 
 	const char *text = Net_ReadString(&net_message);
 
 	Cbuf_AddText(text);
+
+	return text;
 }
 
 /**
  * @brief
  */
-void Cl_ParseConfigString(void) {
-	const uint16_t i = (uint16_t) Net_ReadShort(&net_message);
+int32_t Cl_ParseConfigString(void) {
+	const int32_t i = Net_ReadShort(&net_message);
 
 	if (i >= MAX_CONFIG_STRINGS) {
 		Com_Error(ERROR_DROP, "Invalid index %i\n", i);
@@ -185,7 +187,7 @@ void Cl_ParseConfigString(void) {
 
 	if (i > CS_MODELS && i < CS_MODELS + MAX_MODELS) {
 		if (cls.state == CL_ACTIVE) {
-			cl.model_precache[i - CS_MODELS] = R_LoadModel(s);
+			cl.models[i - CS_MODELS] = R_LoadModel(s);
 			if (*s == '*') {
 				cl.cm_models[i - CS_MODELS] = Cm_Model(s);
 			} else {
@@ -194,15 +196,15 @@ void Cl_ParseConfigString(void) {
 		}
 	} else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
 		if (cls.state == CL_ACTIVE) {
-			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(s);
+			cl.sounds[i - CS_SOUNDS] = S_LoadSample(s);
 		}
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
 		if (cls.state == CL_ACTIVE) {
-			cl.image_precache[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
+			cl.images[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
 		}
 	}
 
-	cls.cgame->UpdateConfigString(i);
+	return i;
 }
 
 /**
@@ -352,7 +354,7 @@ static void Cl_ParsePrint(void) {
 		}
 
 		if (sample) {
-			S_AddSample(&(const s_play_sample_t) {
+			cls.cgame->ParsedMessage(SV_CMD_SOUND, &(s_play_sample_t) {
 				.sample = S_LoadSample(sample)
 			});
 		}
@@ -364,42 +366,45 @@ static void Cl_ParsePrint(void) {
 /**
  * @brief
  */
-static void Cl_ParseSound(void) {
-	int32_t index;
-
-	s_play_sample_t play = {
-		.flags = 0,
-		.atten = SOUND_ATTEN_LINEAR
-	};
+static s_play_sample_t *Cl_ParseSound(void) {
+	static s_play_sample_t play;
 
 	const byte flags = Net_ReadByte(&net_message);
-
-	if ((index = Net_ReadByte(&net_message)) > MAX_SOUNDS) {
-		Com_Error(ERROR_DROP, "Bad index (%d)\n", index);
+	
+	const int32_t sound = Net_ReadByte(&net_message);
+	if (sound >= MAX_SOUNDS) {
+		Com_Error(ERROR_DROP, "Bad sound (%d)\n", sound);
 	}
 
-	play.sample = cl.sound_precache[index];
-
-	// Always use this since it also holds Z offset information
+	play.sample = cl.sounds[sound];
 	play.atten = Net_ReadByte(&net_message);
 
-	if (flags & S_ENTITY) { // entity relative
+	if (flags & S_ENTITY) {
 		play.entity = Net_ReadShort(&net_message);
-		play.flags |= S_PLAY_ENTITY;
+
+		const cl_entity_t *ent = &cl.entities[play.entity];
+		if (ent->current.solid == SOLID_BSP) {
+			play.origin = Vec3_Scale(Vec3_Add(ent->abs_mins, ent->abs_maxs), .5f);
+		} else {
+			play.origin = ent->current.origin;
+		}
 	} else {
-		play.entity = -1;
+		play.entity = 0;
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
 		play.origin = Net_ReadPosition(&net_message);
-		play.flags |= S_PLAY_POSITIONED;
+	} else {
+		play.origin = Vec3_Zero();
 	}
 
 	if (flags & S_PITCH) {
 		play.pitch = Net_ReadChar(&net_message) * 2;
+	} else {
+		play.pitch = 0;
 	}
 
-	S_AddSample(&play);
+	return &play;
 }
 
 /**
@@ -445,6 +450,8 @@ void Cl_ParseServerMessage(void) {
 			Cl_ShowNet(sv_cmd_names[cmd]);
 		}
 
+		void *data = NULL;
+
 		switch (cmd) {
 
 			case SV_CMD_BASELINE:
@@ -456,7 +463,7 @@ void Cl_ParseServerMessage(void) {
 				break;
 
 			case SV_CMD_CONFIG_STRING:
-				Cl_ParseConfigString();
+				data = (void *) (intptr_t) Cl_ParseConfigString();
 				break;
 
 			case SV_CMD_DISCONNECT:
@@ -499,7 +506,7 @@ void Cl_ParseServerMessage(void) {
 				break;
 
 			case SV_CMD_SOUND:
-				Cl_ParseSound();
+				data = Cl_ParseSound();
 				break;
 
 			default:
@@ -510,6 +517,8 @@ void Cl_ParseServerMessage(void) {
 				}
 				break;
 		}
+
+		cls.cgame->ParsedMessage(cmd, data);
 	}
 
 	Cl_AddNetGraph();

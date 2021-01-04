@@ -15,6 +15,6 @@
     <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -vis -light --indirect edge</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -light --antialias slimyplace</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -light --antialias hallways</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

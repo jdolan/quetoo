@@ -212,15 +212,15 @@ static void Cg_LogoutFlash(const cl_entity_t *ent) {
 void Cg_ParseMuzzleFlash(void) {
 	int32_t c;
 
-	const uint16_t ent_num = cgi.ReadShort();
+	const uint16_t entity = cgi.ReadShort();
 
-	if (ent_num < 1 || ent_num >= MAX_ENTITIES) {
-		cgi.Warn("Bad entity %u\n", ent_num);
+	if (entity < 1 || entity >= MAX_ENTITIES) {
+		cgi.Warn("Bad entity %u\n", entity);
 		cgi.ReadByte(); // attempt to ignore cleanly
 		return;
 	}
 
-	const cl_entity_t *ent = &cgi.client->entities[ent_num];
+	const cl_entity_t *ent = &cgi.client->entities[entity];
 	const uint8_t flash = cgi.ReadByte();
 
 	const s_sample_t *sample;
@@ -288,11 +288,11 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 	}
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+		.origin = ent->current.origin,
 		.sample = sample,
-		.entity = ent_num,
+		.entity = entity,
 		.atten = SOUND_ATTEN_LINEAR,
-		.flags = S_PLAY_ENTITY,
 		.pitch = RandomRangei(-pitch, pitch + 1)
 	});
 }

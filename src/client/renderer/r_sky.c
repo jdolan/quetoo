@@ -118,8 +118,8 @@ static void R_InitSkyProgram(void) {
 	memset(&r_sky_program, 0, sizeof(r_sky_program));
 
 	r_sky_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "sky_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "sky_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "sky_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "sky_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_sky_program.name);
@@ -301,7 +301,7 @@ void R_ShutdownSky(void) {
 /**
  * @brief Sets the sky to the specified environment map.
  */
-void R_SetSky(const char *name) {
+void R_LoadSky(const char *name) {
 	const char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
 	r_image_t **out = r_sky.images;
@@ -327,5 +327,5 @@ void R_Sky_f(void) {
 		return;
 	}
 
-	R_SetSky(Cmd_Argv(1));
+	R_LoadSky(Cmd_Argv(1));
 }

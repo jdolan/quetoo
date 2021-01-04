@@ -155,7 +155,7 @@ static inline void Ai_RestoreMainPath(const g_entity_t *self, ai_locals_t *ai) {
 	if (ai->backup_move_target.type == AI_GOAL_PATH) {
 		// generate a new path to the old target, because we might have gotten a bit out
 		// of sync with moving to the item
-		const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true);
+		const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true, true);
 		const ai_node_id_t dest = g_array_index(ai->backup_move_target.path.path, ai_node_id_t, ai->backup_move_target.path.path->len - 1);
 		GArray *path = Ai_Node_FindPath(src, dest, Ai_Node_DefaultHeuristic, NULL);
 
@@ -290,7 +290,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 			_Bool path_found = false;
 
 			if (ENTITY_DATA(pick.entity, node) != NODE_INVALID) {
-				const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true);
+				const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true, true);
 				const ai_node_id_t dest = ENTITY_DATA(pick.entity, node);
 
 				if (src != NODE_INVALID) {
@@ -556,8 +556,8 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 				const vec3_t where_to = ai->combat_target.entity.ent->s.origin;
 				
-				const ai_node_id_t closest = Ai_Node_FindClosest(self->s.origin, 128.f, true);
-				const ai_node_id_t closest_to_target = Ai_Node_FindClosest(where_to, 128.f, true);
+				const ai_node_id_t closest = Ai_Node_FindClosest(self->s.origin, 128.f, true, true);
+				const ai_node_id_t closest_to_target = Ai_Node_FindClosest(where_to, 128.f, true, true);
 				GArray *path = Ai_Node_FindPath(closest, closest_to_target, Ai_Node_DefaultHeuristic, NULL);
 
 				if (path) {
@@ -1382,7 +1382,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	// check to be sure we're in a navicable spot
-	const ai_node_id_t closest = Ai_Node_FindClosest(self->s.origin, 256.f, true);
+	const ai_node_id_t closest = Ai_Node_FindClosest(self->s.origin, 256.f, true, true);
 
 	if (closest == NODE_INVALID) {
 		return 200;
@@ -1442,7 +1442,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 	// go down the list, high priority wins but might not be pickable
 	for (guint i = 0; i < goal_possibilities->len; i++) {
 		const ai_item_pick_t *pick = &g_array_index(goal_possibilities, ai_item_pick_t, i);
-		const ai_node_id_t closest_to_item = Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true);
+		const ai_node_id_t closest_to_item = Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true, true);
 		GArray *path = Ai_Node_FindPath(closest, closest_to_item, Ai_Node_DefaultHeuristic, NULL);
 
 		if (path) {
@@ -1597,7 +1597,7 @@ static void Ai_TestPath_f(void) {
 
 		if (ent->in_use && !(ent->sv_flags & SVF_NO_CLIENT) && ent->client && ent->client->ai) {
 			ai_locals_t *ai = Ai_GetLocals(ent);
-			const ai_node_id_t closest_to_player = Ai_Node_FindClosest(ent->s.origin, 256.f, true);
+			const ai_node_id_t closest_to_player = Ai_Node_FindClosest(ent->s.origin, 256.f, true, true);
 
 			if (closest_to_player == NODE_INVALID) {
 				Ai_Debug("Can't find a node near this bot\n");

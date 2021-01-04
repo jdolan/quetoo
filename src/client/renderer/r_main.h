@@ -23,7 +23,8 @@
 
 #include "r_types.h"
 
-// settings and preferences
+extern cvar_t *r_get_error;
+
 extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
@@ -36,8 +37,6 @@ extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_gamma;
-extern cvar_t *r_get_error;
-extern cvar_t *r_get_error_break;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_modulate;
@@ -55,20 +54,24 @@ extern cvar_t *r_texture_mode;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_width;
 
-extern r_view_t r_view;
+extern r_stats_t r_stats;
 
 void R_GetError_(const char *function, const char *msg);
 #define R_GetError(msg) R_GetError_(__func__, msg)
 
 void R_Init(void);
 void R_Shutdown(void);
-void R_LoadMedia(void);
-void R_BeginFrame(void);
+void R_BeginFrame(r_view_t *view);
 void R_DrawViewDepth(r_view_t *view);
 void R_DrawView(r_view_t *view);
 void R_EndFrame(void);
 
 #ifdef __R_LOCAL_H__
+
+/**
+ * @brief The current view.
+ */
+extern r_view_t *r_view;
 
 /**
  * @brief OpenGL driver information.
@@ -83,24 +86,6 @@ typedef struct {
 } r_config_t;
 
 extern r_config_t r_config;
-
-/**
- * @brief Private renderer data type.
- */
-typedef struct {
-	/**
-	 * @brief The view frustum, for box and sphere culling.
-	 */
-	cm_bsp_plane_t frustum[4];
-
-	/**
-	 * @brief The stain frame counter.
-	 */
-	int32_t stain_frame;
-
-} r_locals_t;
-
-extern r_locals_t r_locals;
 
 /**
  * @brief The lightgrid uniform struct.
@@ -121,6 +106,11 @@ typedef struct {
 	 * @brief The view origin, in lightgrid space.
 	 */
 	vec4_t view_coordinate;
+
+	/**
+	 * @brief The lightgrid texel dimensions.
+	 */
+	vec4_t resolution;
 } r_lightgrid_t;
 
 /**
@@ -203,14 +193,29 @@ typedef struct {
 		float modulate;
 
 		/**
-		 * @brief The fog density scalar.
+		 * @brief The global fog color.
+		 */
+		// vec3_t fog_global_color; // FIXME
+
+		/**
+		 * @brief The global fog density scalar.
+		 */
+		// float fog_global_density; // FIXME
+
+		/**
+		 * @brief The volumetric fog density scalar.
 		 */
 		float fog_density;
 
 		/**
-		 * @brief The number of fog samples per fragment (quality).
+		 * @brief The number of volumetric fog samples per fragment (quality).
 		 */
-		int fog_samples;
+		int32_t fog_samples;
+
+		/**
+		* @brief The pixel dimensions of the framebuffer.
+		*/
+		vec2_t resolution;
 	} block;
 
 } r_uniforms_t;
@@ -232,8 +237,8 @@ extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_occlude;
 
-_Bool R_CullPoint(const vec3_t point);
-_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
-_Bool R_CullSphere(const vec3_t point, const float radius);
+_Bool R_CullPoint(const r_view_t *view, const vec3_t point);
+_Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs);
+_Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius);
 
 #endif /* __R_LOCAL_H__ */

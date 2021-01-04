@@ -26,42 +26,47 @@ r_lights_t r_lights;
 /**
  * @brief
  */
-void R_AddLight(const r_light_t *in) {
+void R_AddLight(r_view_t *view, const r_light_t *l) {
 
-	if (r_view.num_lights == MAX_LIGHTS) {
+	if (view->num_lights == MAX_LIGHTS) {
 		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS\n");
 		return;
 	}
 
-	if (R_CullSphere(in->origin, in->radius)) {
+	if (R_CullSphere(view, l->origin, l->radius)) {
 		return;
 	}
 
-	if (R_OccludeSphere(in->origin, in->radius)) {
+	if (R_OccludeSphere(view, l->origin, l->radius)) {
 		return;
 	}
 
-	r_light_t *out = &r_view.lights[r_view.num_lights++];
-	*out = *in;
+	view->lights[view->num_lights] = *l;
+	view->num_lights++;
 }
 
 /**
  * @brief Transforms all active light sources to view space for rendering.
  */
-void R_UpdateLights(void) {
+void R_UpdateLights(const r_view_t *view) {
 
 	memset(r_lights.block.lights, 0, sizeof(r_lights.block.lights));
-	r_light_t *out = r_lights.block.lights;
 
-	const r_light_t *in = r_view.lights;
-	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
+	if (view) {
 
-		*out = *in;
+		const r_light_t *in = view->lights;
+		
+		r_light_t *out = r_lights.block.lights;
 
-		Matrix4x4_Transform(&r_uniforms.block.view, in->origin.xyz, out->origin.xyz);
+		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
+
+			*out = *in;
+
+			Matrix4x4_Transform(&r_uniforms.block.view, in->origin.xyz, out->origin.xyz);
+		}
+
+		r_lights.block.num_lights = view->num_lights;
 	}
-
-	r_lights.block.num_lights = r_view.num_lights;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
@@ -75,7 +80,7 @@ void R_InitLights(void) {
 
 	glGenBuffers(1, &r_lights.buffer);
 
-	R_UpdateLights();
+	R_UpdateLights(NULL);
 }
 
 /**

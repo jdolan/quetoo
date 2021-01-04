@@ -172,6 +172,19 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
 }
 
 /**
+ * @brief Loads a wildcard sample name for the specified client entity.
+ */
+static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name) {
+
+	assert(ent->current.number > 0);
+	assert(ent->current.number <= MAX_CLIENTS);
+
+	const cl_client_info_t *info = &cgi.client->client_info[ent->current.number - 1];
+
+	return cgi.LoadClientModelSample(info->model, name);
+}
+
+/**
  * @brief
  */
 static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
@@ -202,35 +215,39 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 	entity_state_t *s = &ent->current;
 
 	s_play_sample_t play = {
-		.entity = s->number,
+		.origin = ent->current.origin,
 		.atten = SOUND_ATTEN_LINEAR,
-		.flags = S_PLAY_ENTITY,
+		.entity = s->number,
 	};
+
+	if (ent == cgi.client->entity) {
+		play.flags |= S_PLAY_RELATIVE;
+	}
 
 	switch (s->event) {
 		case EV_CLIENT_DROWN:
-			play.sample = cgi.LoadSample("*drown_1");
+			play.sample = Cg_ClientModelSample(ent, "*drown_1");
 			Cg_DrownEffect(ent);
 			break;
 		case EV_CLIENT_FALL:
-			play.sample = cgi.LoadSample("*fall_2");
+			play.sample = Cg_ClientModelSample(ent, "*fall_2");
 			break;
 		case EV_CLIENT_FALL_FAR:
-			play.sample = cgi.LoadSample("*fall_1");
+			play.sample = Cg_ClientModelSample(ent, "*fall_1");
 			break;
 		case EV_CLIENT_FOOTSTEP:
 			play.sample = Cg_Footstep(ent);
 			play.pitch = RandomRangei(-12, 13);
 			break;
 		case EV_CLIENT_GURP:
-			play.sample = cgi.LoadSample("*gurp_1");
+			play.sample = Cg_ClientModelSample(ent, "*gurp_1");
 			Cg_GurpEffect(ent);
 			break;
 		case EV_CLIENT_JUMP:
-			play.sample = cgi.LoadSample(va("*jump_%d", RandomRangeu(1, 5)));
+			play.sample = Cg_ClientModelSample(ent, va("*jump_%d", RandomRangeu(1, 5)));
 			break;
 		case EV_CLIENT_LAND:
-			play.sample = cgi.LoadSample("*land_1");
+			play.sample = Cg_ClientModelSample(ent, "*land_1");
 			break;
 		case EV_CLIENT_STEP: {
 			const float height = ent->current.origin.z - ent->prev.origin.z;
@@ -238,7 +255,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 		}
 			break;
 		case EV_CLIENT_SIZZLE:
-			play.sample = cgi.LoadSample("*sizzle_1");
+			play.sample = Cg_ClientModelSample(ent, "*sizzle_1");
 			break;
 		case EV_CLIENT_TELEPORT:
 			play.sample = cg_sample_teleport;
@@ -260,7 +277,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 	}
 
 	if (play.sample) {
-		cgi.AddSample(&play);
+		cgi.AddSample(cgi.stage, &play);
 	}
 
 	s->event = 0;

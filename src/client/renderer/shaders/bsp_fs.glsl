@@ -197,6 +197,8 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
 
+		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
+
 	} else {
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
@@ -219,14 +221,27 @@ void main(void) {
 
 	// postprocessing
 
-	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-
 	out_color.rgb = tonemap(out_color.rgb);
 
 	out_color.rgb = color_filter(out_color.rgb);
 	
 	out_color.rgb = dither(out_color.rgb);
 
-//	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
-//	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
+	// debugging
+
+	#if 0
+	// draw lightgrid texel borders
+	vec4 raster = lightgrid_raster(vertex.lightgrid.xyz, length(vertex.position));
+	out_color.rgb = mix(out_color.rgb, raster.rgb, raster.a * 0.5);
+	#endif
+
+	#if 0
+	// draw vertex tangents
+	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
+	#endif
+
+	#if 0
+	// draw flat lightmaps
+	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
+	#endif
 }

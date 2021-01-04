@@ -21,6 +21,9 @@
 
 #pragma once
 
-#define __S_LOCAL_H__
+#include "cl_types.h"
 
-#include "sound.h"
+#ifdef __CL_LOCAL_H__
+void Cl_R_Restart_f(void);
+void Cl_R_ToggleFullscreen_f(void);
+#endif /* __CL_LOCAL_H__ */

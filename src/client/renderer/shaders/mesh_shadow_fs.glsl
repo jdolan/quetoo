@@ -33,13 +33,13 @@ out vec4 out_color;
  */
 void main(void) {
 
-	float alpha = (0.6 - soften());
+	float alpha = 1.0 - soften();
 
 	if (alpha <= 0.0) {
 		discard;
 	}
 
-	out_color = vec4(0.0, 0.0, 0.0, alpha);
+	out_color = vec4(0.0, 0.0, 0.0, alpha * 0.5);
 	
 	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 }

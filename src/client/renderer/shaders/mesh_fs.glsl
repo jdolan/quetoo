@@ -93,6 +93,8 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb * (light_diffuse * modulate), 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + (light_specular * modulate), 0.0, 32.0);
 
+		out_color.rgb += vertex.fog.rgb;
+
 //		out_color.rgb = light_diffuse + light_ambient;
 
 	} else {
@@ -104,8 +106,6 @@ void main(void) {
 	}
 
 	// postprocessing
-
-	out_color.rgb += vertex.fog.rgb;
 
 	out_color.rgb = tonemap(out_color.rgb);
 

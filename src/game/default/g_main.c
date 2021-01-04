@@ -1494,9 +1494,9 @@ void G_Init(void) {
 	g_balance_lightning_knockback = gi.AddCvar("g_balance_lightning_knockback", "6", CVAR_SERVER_INFO, NULL);
 	g_balance_lightning_length = gi.AddCvar("g_balance_lightning_length", "600", CVAR_SERVER_INFO, NULL);
 	g_balance_lightning_refire = gi.AddCvar("g_balance_lightning_refire", "0.1", CVAR_SERVER_INFO, NULL);
-	g_balance_machinegun_damage = gi.AddCvar("g_balance_machinegun_damage", "4", CVAR_SERVER_INFO, NULL);
+	g_balance_machinegun_damage = gi.AddCvar("g_balance_machinegun_damage", "8", CVAR_SERVER_INFO, NULL);
 	g_balance_machinegun_knockback = gi.AddCvar("g_balance_machinegun_knockback", "2", CVAR_SERVER_INFO, NULL);
-	g_balance_machinegun_refire = gi.AddCvar("g_balance_machinegun_refire", "0.05", CVAR_SERVER_INFO, NULL);
+	g_balance_machinegun_refire = gi.AddCvar("g_balance_machinegun_refire", "0.1", CVAR_SERVER_INFO, NULL);
 	g_balance_machinegun_spread_x = gi.AddCvar("g_balance_machinegun_spread_x", "20", CVAR_SERVER_INFO, NULL);
 	g_balance_machinegun_spread_y = gi.AddCvar("g_balance_machinegun_spread_y", "200", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_damage = gi.AddCvar("g_balance_grenadelauncher_damage", "120", CVAR_SERVER_INFO, NULL);

@@ -21,6 +21,8 @@
 
 #pragma once
 
-#define __S_LOCAL_H__
+#include "cl_types.h"
 
-#include "sound.h"
+#ifdef __CL_LOCAL_H__
+void Cl_S_Restart_f(void);
+#endif /* __CL_LOCAL_H__ */
