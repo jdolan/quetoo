@@ -30,6 +30,5 @@ void Cl_LoadingProgress(int32_t percent, const char *file);
 
 void Cl_RequestNextDownload(void);
 void Cl_LoadMedia(void);
-void Cl_UpdateMedia(void);
 
 #endif /* __CL_LOCAL_H__ */

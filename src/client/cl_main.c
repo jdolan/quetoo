@@ -644,8 +644,6 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_HttpThink();
 
-	Cl_UpdateMedia();
-
 	Cl_ReadPackets();
 
 	Cl_HandleEvents();
