@@ -48,7 +48,7 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 		} else if (ent->current.solid == SOLID_BSP) {
 			play->origin = Vec3_Clamp(cgi.stage->origin, ent->abs_mins, ent->abs_maxs);
 		} else {
-			play->origin = ent->current.origin;
+			play->origin = ent->origin;
 		}
 	}
 
