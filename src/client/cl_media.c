@@ -264,20 +264,3 @@ void Cl_LoadMedia(void) {
 
 	Cl_SetKeyDest(KEY_GAME);
 }
-
-/**
- * @brief Reload stale media references on subsystem restarts.
- */
-void Cl_UpdateMedia(void) {
-
-//	if ((view->update || s_context.update) && cls.state == CL_ACTIVE) {
-//
-//		Com_Debug(DEBUG_CLIENT, "%s %s\n", view->update ? "view" : "", s_context.update ? "sound" : "");
-//
-//		cls.cgame->UpdateMedia();
-//
-//		R_FreeUnseededMedia();
-//
-//		S_FreeMedia();
-//	}
-}

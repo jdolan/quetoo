@@ -103,6 +103,7 @@ static patch_t *BuildPatch(const bsp_face_t *face, const vec3_t origin, cm_windi
 	patch->face = face;
 	patch->origin = origin;
 	patch->winding = w;
+	patch->texinfo = bsp_file.texinfo + patch->face->texinfo;
 
 	return patch;
 }
@@ -172,9 +173,12 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	vec3_t normal = Vec3_Zero();
 
+	const cm_material_t *material = LoadMaterial(patch->texinfo->texture, ASSET_CONTEXT_TEXTURES);
+	const float size = material->patch_size ?: patch_size;
+
 	int32_t i;
 	for (i = 0; i < 3; i++) {
-		if (floorf((mins.xyz[i] + 1.0) / patch_size) < floorf((maxs.xyz[i] - 1.0) / patch_size)) {
+		if (floorf((mins.xyz[i] + 1.0) / size) < floorf((maxs.xyz[i] - 1.0) / size)) {
 			normal.xyz[i] = 1.0;
 			break;
 		}
@@ -184,7 +188,7 @@ static void SubdividePatch_r(patch_t *patch) {
 		return;
 	}
 
-	const float dist = patch_size * (1.0 + floorf((mins.xyz[i] + 1.0) / patch_size));
+	const float dist = size * (1.0 + floorf((mins.xyz[i] + 1.0) / size));
 
 	cm_winding_t *front, *back;
 	Cm_SplitWinding(w, normal, dist, SIDE_EPSILON, &front, &back);
@@ -196,6 +200,7 @@ static void SubdividePatch_r(patch_t *patch) {
 	// create a new patch
 	patch_t *p = (patch_t *) Mem_TagMalloc(sizeof(*p), MEM_TAG_PATCH);
 	p->face = patch->face;
+	p->texinfo = patch->texinfo;
 
 	p->origin = patch->origin;
 
