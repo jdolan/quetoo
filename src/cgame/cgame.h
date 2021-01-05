@@ -505,13 +505,13 @@ typedef struct cg_import_s {
 	int32_t (*PointContents)(const vec3_t point);
 
 	/**
-	 * @return 1 if `point` resides inside `brush`, `0` otherwise.
+	 * @return True if `point` resides inside `brush`, falses otherwise.
 	 * @param point The point to test.
 	 * @param brush The brush to test against.
 	 * @remarks This function is useful for testing points against non-solid brushes
 	 * from brush entities. For general purpose collision detection, use PointContents.
 	 */
-	int32_t (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
+	_Bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.
