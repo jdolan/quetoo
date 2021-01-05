@@ -30,7 +30,7 @@
 #define MAX_BSP_MODELS				0x400
 #define MAX_BSP_PORTALS				0x20000
 #define MAX_BSP_LIGHTMAP_SIZE		0x60000000
-#define MAX_BSP_LIGHTGRID_SIZE		0x1200000
+#define MAX_BSP_LIGHTGRID_SIZE		0x2400000
 #define MAX_BSP_OCCLUSION_QUERIES	0x40
 
 /**
@@ -160,6 +160,16 @@ typedef struct {
 	float dist;
 } bsp_plane_t;
 
+/**
+ * @brief Sentinel texinfo identifier for BSP decision nodes.
+ */
+#define BSP_TEXINFO_NODE -1
+
+/**
+ * @brief Sentinel texinfo identifier for bevel sides.
+ */
+#define BSP_TEXINFO_BEVEL -2
+
 typedef struct {
 	int32_t plane_num; // facing out of the leaf
 	int32_t texinfo;
@@ -170,7 +180,6 @@ typedef struct {
 	int32_t contents;
 	int32_t first_brush_side;
 	int32_t num_sides; // the number of total brush sides, including bevel sides
-	int32_t num_original_sides; // the number of brush sides in the .map file, before beveling
 	vec3_t mins;
 	vec3_t maxs;
 } bsp_brush_t;

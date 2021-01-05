@@ -143,7 +143,9 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		}
 
 		e->effects |= (EF_BLEND | EF_NO_SHADOW);
-		e->color.w = 1.f - ((cgi.client->unclamped_time - ent->timestamp) / 3000.f);
+
+		const float fade = 1.f - ((cgi.client->unclamped_time - ent->timestamp) / 2000.f);
+		e->color = Vec4_Scale(e->color, fade);
 	}
 
 	if (e->effects & EF_LIGHT) {

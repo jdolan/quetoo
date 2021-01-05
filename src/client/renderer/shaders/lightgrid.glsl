@@ -20,6 +20,7 @@
  */
 
 #define BSP_LIGHTGRID_LUXEL_SIZE 64
+#define WORLD_TRACE_DISTANCE 1024.0
 
 /**
  * @brief Clamps softly to 1.0 for values up to 1.5, to prevent an unsightly hard cutoff.
@@ -34,7 +35,7 @@ float soft_clip_fog(float x) {
  * @brief Draws the boundaries of the lightgrid voxels;
  */
 vec4 lightgrid_raster(vec3 uvw, float distance) {
-	float alpha = 1.0 - clamp(distance / 1024.0, 0.0, 1.0);
+	float alpha = 1.0 - clamp(distance / WORLD_TRACE_DISTANCE, 0.0, 1.0);
 	vec4 c = vec4(1.0);
 	c.rgb = fract(uvw * lightgrid.resolution.xyz);
 	c.rgb = abs(c.rgb * 2.0 - 1.0);
@@ -71,10 +72,9 @@ void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler,
 	// then only draw this expensive fog on top of that, near the player.
 
 	#if 0
-
-		const float world_trace_distance = 1024.0;
+	
 		float lightgrid_dimensions = hmax(lightgrid.resolution) * BSP_LIGHTGRID_LUXEL_SIZE;
-		float uvw_max_trace_distance = world_trace_distance / lightgrid_dimensions;
+		float uvw_max_trace_distance = WORLD_TRACE_DISTANCE / lightgrid_dimensions;
 
 		const float color_scale = 5.0;
 

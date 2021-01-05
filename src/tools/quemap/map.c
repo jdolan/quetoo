@@ -286,9 +286,8 @@ static void AddBrushBevels(brush_t *b) {
 					dist = -b->mins.xyz[axis];
 				}
 				s->plane_num = FindPlane(normal, dist);
-				s->texinfo = b->sides[0].texinfo;
+				s->texinfo = BSP_TEXINFO_BEVEL;
 				s->contents = b->sides[0].contents;
-				s->bevel = true;
 			}
 			// if the plane is not in it canonical order, swap it
 			if (i != order) {
@@ -387,9 +386,8 @@ static void AddBrushBevels(brush_t *b) {
 
 					s2 = &b->sides[b->num_sides++];
 					s2->plane_num = FindPlane(normal, dist);
-					s2->texinfo = b->sides[0].texinfo;
+					s2->texinfo = BSP_TEXINFO_BEVEL;
 					s2->contents = b->sides[0].contents;
-					s2->bevel = true;
 
 					num_brush_sides++;
 				}
@@ -412,7 +410,7 @@ static void MakeBrushWindings(brush_t *brush) {
 	brush_side_t *side = brush->sides;
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
-		if (side->bevel) {
+		if (side->texinfo == BSP_TEXINFO_BEVEL) {
 			continue;
 		}
 
@@ -424,7 +422,7 @@ static void MakeBrushWindings(brush_t *brush) {
 			if (side == s) {
 				continue;
 			}
-			if (s->bevel) {
+			if (s->texinfo == BSP_TEXINFO_BEVEL) {
 				continue;
 			}
 			const plane_t *p = &planes[s->plane_num ^ 1];
@@ -720,11 +718,11 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 
 		if (brush->contents & CONTENTS_MASK_CLIP) {
-			brush->sides[i].texinfo = TEXINFO_NODE;
+			brush->sides[i].texinfo = BSP_TEXINFO_NODE;
 		}
 
 		if (brush->sides[i].surf & SURF_SKIP) {
-			brush->sides[i].texinfo = TEXINFO_NODE;
+			brush->sides[i].texinfo = BSP_TEXINFO_NODE;
 		}
 	}
 

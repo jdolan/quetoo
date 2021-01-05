@@ -119,7 +119,6 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 		brush->contents = LittleLong(brush->contents);
 		brush->first_brush_side = LittleLong(brush->first_brush_side);
 		brush->num_sides = LittleLong(brush->num_sides);
-		brush->num_original_sides = LittleLong(brush->num_original_sides);
 		brush->mins = LittleVec3(brush->mins);
 		brush->maxs = LittleVec3(brush->maxs);
 

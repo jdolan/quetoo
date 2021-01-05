@@ -615,10 +615,10 @@ static void FindPortalBrushSide(portal_t *portal) {
 
 			for (int32_t i = 0; i < original->num_sides; i++) {
 				brush_side_t *side = &original->sides[i];
-				if (side->bevel) {
+				if (side->texinfo == BSP_TEXINFO_BEVEL) {
 					continue;
 				}
-				if (side->texinfo == TEXINFO_NODE) {
+				if (side->texinfo == BSP_TEXINFO_NODE) {
 					continue;
 				}
 
@@ -649,12 +649,12 @@ static void FindPortalBrushSide(portal_t *portal) {
 /**
  * @brief
  */
-static void MarkVisibleSides_r(const node_t *node) {
+static void FindPortalBrushSides_r(const node_t *node) {
 	int32_t s;
 
 	if (node->plane_num != PLANE_NUM_LEAF) {
-		MarkVisibleSides_r(node->children[0]);
-		MarkVisibleSides_r(node->children[1]);
+		FindPortalBrushSides_r(node->children[0]);
+		FindPortalBrushSides_r(node->children[1]);
 		return;
 	}
 
@@ -670,21 +670,17 @@ static void MarkVisibleSides_r(const node_t *node) {
 			continue; // edge of world
 		}
 		FindPortalBrushSide(p);
-		if (p->side) {
-			p->side->visible = true;
-		}
 	}
 }
 
 /**
  * @brief
  */
-void MarkVisibleSides(tree_t *tree) {
+void FindPortalBrushSides(tree_t *tree) {
 
 	Com_Verbose("--- MarkVisibleSides ---\n");
 
-	// set visible flags on the sides that are used by portals
-	MarkVisibleSides_r(tree->head_node);
+	FindPortalBrushSides_r(tree->head_node);
 }
 
 /**

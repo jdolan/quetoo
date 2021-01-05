@@ -131,7 +131,7 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
 		if (b->original->contents & CONTENTS_SOLID) {
 			int32_t i;
 			for (i = 0; i < b->num_sides; i++) {
-				if (b->sides[i].texinfo != TEXINFO_NODE) {
+				if (b->sides[i].texinfo != BSP_TEXINFO_NODE) {
 					break;
 				}
 			}
@@ -221,10 +221,10 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 		const brush_side_t *side = brush->sides;
 		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
-			if (side->bevel) {
+			if (side->texinfo == BSP_TEXINFO_BEVEL) {
 				continue;
 			}
-			if (side->texinfo == TEXINFO_NODE) {
+			if (side->texinfo == BSP_TEXINFO_NODE) {
 				continue;
 			}
 
@@ -295,7 +295,7 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 			for (int32_t i = 0; i < new_brush->num_sides; i++) {
 				brush_side_t *side = new_brush->sides + i;
 				if ((side->plane_num & ~1) == node->plane_num) {
-					side->texinfo = TEXINFO_NODE;
+					side->texinfo = BSP_TEXINFO_NODE;
 				}
 			}
 		}
@@ -378,10 +378,10 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 		}
 
 		for (int32_t i = 0; i < b->num_sides; i++) {
-			if (b->sides[i].bevel) {
+			if (b->sides[i].texinfo == BSP_TEXINFO_BEVEL) {
 				continue;
 			}
-			if (b->sides[i].texinfo == TEXINFO_NODE) {
+			if (b->sides[i].texinfo == BSP_TEXINFO_NODE) {
 				continue;
 			}
 			num_brush_sides++;
