@@ -256,7 +256,16 @@
     <None Include="..\..\src\client\renderer\shaders\soften_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\lights_fs.glsl">
+    <None Include="..\..\src\client\renderer\shaders\depth_pass_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\depth_pass_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\lightgrid.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\uniforms.glsl">
       <Filter>src\shaders</Filter>
     </None>
   </ItemGroup>

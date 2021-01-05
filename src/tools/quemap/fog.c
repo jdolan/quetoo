@@ -27,19 +27,19 @@ GArray *fogs;
 /**
  * @brief
  */
-int32_t PointInsideFog(const vec3_t point, const fog_t *fog) {
+_Bool PointInsideFog(const vec3_t point, const fog_t *fog) {
 
 	if (Vec3_BoxIntersect(point, point, fog->mins, fog->maxs)) {
 
 		for (guint i = 0; i < fog->brushes->len; i++) {
 			const cm_bsp_brush_t *brush = g_ptr_array_index(fog->brushes, i);
 			if (Cm_PointInsideBrush(point, brush)) {
-				return 1;
+				return true;
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 /**

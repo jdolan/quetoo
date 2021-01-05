@@ -86,13 +86,15 @@
     <None Include="..\..\src\client\renderer\shaders\bsp_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\bsp_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\common_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\depth_pass_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\depth_pass_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_2d_blur_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_2d_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_2d_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_2d_blur_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_3d_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\lights_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\lightgrid.glsl" />
     <None Include="..\..\src\client\renderer\shaders\material.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_shadow_fs.glsl" />
@@ -104,6 +106,7 @@
     <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sprite_gs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sprite_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\uniforms.glsl" />
     <None Include="..\..\src\client\renderer\shaders\version.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
