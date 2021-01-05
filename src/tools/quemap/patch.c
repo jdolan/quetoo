@@ -173,7 +173,6 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	vec3_t normal = Vec3_Zero();
 
-
 	const cm_material_t *material = LoadMaterial(patch->texinfo->texture, ASSET_CONTEXT_TEXTURES);
 	const float size = material->patch_size ?: patch_size;
 
