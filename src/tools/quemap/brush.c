@@ -250,10 +250,10 @@ int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane_num, int3
 		const brush_side_t *side = brush->sides;
 		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
-			if (side->bevel) {
+			if (side->texinfo == BSP_TEXINFO_BEVEL) {
 				continue;
 			}
-			if (side->texinfo == TEXINFO_NODE) {
+			if (side->texinfo == BSP_TEXINFO_NODE) {
 				continue;
 			}
 
@@ -262,7 +262,7 @@ int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane_num, int3
 
 			for (int32_t j = 0; j < w->num_points; j++) {
 				const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
-
+				
 				if (d > SIDE_EPSILON) {
 					front++;
 				}
@@ -441,8 +441,8 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front
 		cb[i]->num_sides++;
 
 		cs->plane_num = plane_num ^ i ^ 1;
-		cs->texinfo = TEXINFO_NODE;
-		cs->visible = false;
+		cs->texinfo = BSP_TEXINFO_NODE;
+
 		if (i == 0) {
 			cs->winding = Cm_CopyWinding(mid_winding);
 		} else {

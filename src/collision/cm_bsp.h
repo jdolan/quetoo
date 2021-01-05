@@ -160,6 +160,16 @@ typedef struct {
 	float dist;
 } bsp_plane_t;
 
+/**
+ * @brief Sentinel texinfo identifier for BSP decision nodes.
+ */
+#define BSP_TEXINFO_NODE -1
+
+/**
+ * @brief Sentinel texinfo identifier for bevel sides.
+ */
+#define BSP_TEXINFO_BEVEL -2
+
 typedef struct {
 	int32_t plane_num; // facing out of the leaf
 	int32_t texinfo;

@@ -58,7 +58,6 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 	MakeTreePortals(tree);
 
 	if (FloodEntities(tree)) {
-
 		FillOutside(tree);
 	} else {
 		Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
@@ -67,7 +66,7 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 		WriteLeakFile(tree);
 	}
 
-	MarkVisibleSides(tree);
+	FindPortalBrushSides(tree);
 
 	MakeTreeFaces(tree);
 
@@ -102,7 +101,7 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 
 	MakeTreePortals(tree);
 
-	MarkVisibleSides(tree);
+	FindPortalBrushSides(tree);
 
 	MakeTreeFaces(tree);
 
