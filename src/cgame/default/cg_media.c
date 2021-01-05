@@ -76,6 +76,7 @@ r_atlas_image_t *cg_sprite_plasma_var03;
 r_atlas_image_t *cg_sprite_blob_01;
 r_atlas_image_t *cg_sprite_electro_02;
 r_atlas_image_t *cg_sprite_splash_02_03;
+r_atlas_image_t *cg_sprite_impact_spark_01_dot;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_arrow;
 r_image_t *cg_beam_line;
@@ -100,6 +101,7 @@ r_animation_t *cg_sprite_poof_02;
 r_animation_t *cg_sprite_blood_01;
 r_animation_t *cg_sprite_electro_01;
 r_animation_t *cg_sprite_fireball_01;
+r_animation_t *cg_sprite_impact_spark_01;
 
 r_atlas_image_t cg_sprite_font[16 * 8];
 
@@ -303,7 +305,6 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_blaster_flash = cgi.LoadImage("sprites/blast_01/blast_01_flash", IT_EFFECT);
 
 	cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");
-
 	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IT_EFFECT);
 	cg_sprite_particle2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle2", IT_EFFECT);
 	cg_sprite_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flash", IT_EFFECT);
@@ -326,6 +327,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_electro_02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/electro_02/electro_02", IT_EFFECT);
 	cg_sprite_teleport = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/teleport", IT_EFFECT);
 	cg_sprite_splash_02_03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/splash_02/splash_02_03", IT_EFFECT);
+	cg_sprite_impact_spark_01_dot = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01_dot", IT_EFFECT);
 
 	cgi.LoadingProgress(-1, "sprites");
 
@@ -344,6 +346,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_blood_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
 	cg_sprite_electro_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
 	cg_sprite_fireball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/fireball_01/fireball_01", "_%02" PRIu32, 0, 63);
+	cg_sprite_impact_spark_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01", "_%02" PRIu32, 0, 4);
 
 	cgi.CompileAtlas(cg_sprite_atlas);
 

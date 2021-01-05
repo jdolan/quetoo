@@ -133,7 +133,6 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
 		.velocity = Vec3_Scale(velocity, tracer_speed),
 		.lifetime = lifetime,
 		.color = Vec4(0, 0.0f, 1.f, 1.0f),
-		//.end_color = Vec4(30, 0.25f, 1.f, 0.f),
 	});
 }
 
@@ -279,17 +278,47 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_Scale(dir, 8.f)));
 	} else {
 
+		float spark_life = 200.f;
+		float spark_size = RandomRangef(35.f, 45.f);
+
 		Cg_AddSprite(&(cg_sprite_t) {
-			.atlas_image = cg_sprite_particle,
-			.origin = Vec3_Add(org, dir),
-			.velocity = Vec3_Scale(dir, RandomRangef(100.f, 200.f)),
-			.size = 4.f,
-			.acceleration = Vec3_Subtract(Vec3_RandomRange(-40.f, 40.f), Vec3(0.f, 0.f, SPRITE_GRAVITY)),
-			.lifetime = RandomRangef(150.f, 300.f),
-			.color = Vec4(27.f, .68f, RandomRangef(.5f, 1.f), RandomRangef(.5f, 1.f)),
-			.end_color = Vec4(27.f, .68f, 0.f, 0.f)
+			.animation = cg_sprite_impact_spark_01,
+			.origin = Vec3_Add(org, Vec3_Scale(dir, 2.f)),
+			.rotation = Randomf() * 2.f * M_PI,
+			.size = spark_size,
+			.lifetime = spark_life,
+			.color = Vec4(0.f, 0.f, 1.f, 0.f),
+			.flags = SPRITE_LERP | SPRITE_NO_BLEND_DEPTH
 		});
 
+		Cg_AddSprite(&(cg_sprite_t) {
+			.animation = cg_sprite_impact_spark_01,
+				.origin = Vec3_Add(org, Vec3_Scale(dir, 2.f)),
+				.rotation = Randomf() * 2.f * M_PI,
+				.size = spark_size,
+				.lifetime = spark_life,
+				.color = Vec4(0.f, 0.f, 1.f, 0.f),
+				.flags = SPRITE_LERP | SPRITE_NO_BLEND_DEPTH,
+				.dir = dir
+		});
+
+		vec3_t spark_origin = Vec3_Add(org, Vec3_Scale(dir, 2.f));
+		for (int32_t i = 0; i < 6; i++) {
+			float size = RandomRangef(3.f, 6.f);
+			float lifetime = RandomRangef(150.f, 300.f);
+			Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_impact_spark_01_dot,
+					.origin = spark_origin,
+					.velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, 0.33f), 55.f),
+					.size = size,
+					.size_velocity = -size * 5.f,
+					.lifetime = lifetime,
+					.color = Vec4(0.0, 0.0, 1.0, 1.0),
+					.end_color = Vec4(0.0, 0.0, 1.0, 1.0),
+			});
+		}
+
+		/*
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle,
 			.origin = Vec3_Add(org, dir),
@@ -318,6 +347,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 				.color = Vec4(0.f, 0.f, 1.f, 0.f)
 			});
 		}
+		*/
 	}
 
 	/*
