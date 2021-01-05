@@ -132,7 +132,8 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
 		.size = 5.f,
 		.velocity = Vec3_Scale(velocity, tracer_speed),
 		.lifetime = lifetime,
-		.color = Vec4(30, 0.2f, 1.f, 0),
+		.color = Vec4(0, 0.0f, 1.f, 1.0f),
+		//.end_color = Vec4(30, 0.25f, 1.f, 0.f),
 	});
 }
 
