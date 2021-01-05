@@ -170,7 +170,6 @@ typedef struct {
 	int32_t contents;
 	int32_t first_brush_side;
 	int32_t num_sides; // the number of total brush sides, including bevel sides
-	int32_t num_original_sides; // the number of brush sides in the .map file, before beveling
 	vec3_t mins;
 	vec3_t maxs;
 } bsp_brush_t;
