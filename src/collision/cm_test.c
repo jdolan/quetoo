@@ -98,8 +98,8 @@ _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
 	if (Vec3_BoxIntersect(point, point, brush->mins, brush->maxs)) {
 
-		const cm_bsp_brush_side_t *side = brush->sides;
-		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+		const cm_bsp_brush_side_t *side = &brush->sides[brush->num_sides - brush->num_original_sides];
+		for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
 			if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
 				return false;
 			}
