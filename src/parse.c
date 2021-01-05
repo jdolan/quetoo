@@ -220,17 +220,20 @@ static _Bool Parse_SkipComments(parser_t *parser) {
  * @brief Handles the appending routine for output. Returns false if the added character would overflow the
  * output buffer.
  */
-static _Bool Parse_AppendOutputChar(parser_t *parser, const char c, size_t *output_position, char *output, const size_t output_len) {
+static _Bool Parse_AppendOutputChar(parser_t *parser, const parse_flags_t flags, const char c, size_t *output_position, char *output, const size_t output_len) {
 
 	if (!output) {
 		return true;
 	}
 
-	if (*output_position >= output_len - 1) {
-		return false; // buffer overrun
+	if (*output_position >= output_len - 1) { // buffer overrun
+		if (!(flags & PARSE_ALLOW_OVERRUN)) {
+			return false;
+		}
+	} else {
+		output[(*output_position)++] = c;
 	}
 
-	output[(*output_position)++] = c;
 	return true;
 }
 
@@ -245,7 +248,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 	}
 
 	if (flags & PARSE_RETAIN_QUOTES) {
-		if (!Parse_AppendOutputChar(parser, '"', output_position, output, output_len)) {
+		if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
 			return false;
 		}
 	}
@@ -285,7 +288,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 				if (escaped != '\0') {
 
 					// copy it in
-					if (!Parse_AppendOutputChar(parser, escaped, output_position, output, output_len)) {
+					if (!Parse_AppendOutputChar(parser, flags, escaped, output_position, output, output_len)) {
 						return false;
 					}
 
@@ -296,8 +299,8 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 			}
 
 			// if we reached here, we're copying them literally or was an invalid escape sequence.
-			if (!Parse_AppendOutputChar(parser, c, output_position, output, output_len) ||
-				!Parse_AppendOutputChar(parser, c = *(++parser->position.ptr), output_position, output, output_len)) {
+			if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len) ||
+				!Parse_AppendOutputChar(parser, flags, *(++parser->position.ptr), output_position, output, output_len)) {
 				return false;
 			}
 
@@ -313,13 +316,13 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 		}
 
 		// regular char, just append
-		if (!Parse_AppendOutputChar(parser, c, output_position, output, output_len)) {
+		if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len)) {
 			return false;
 		}
 	}
 
 	if (flags & PARSE_RETAIN_QUOTES) {
-		if (!Parse_AppendOutputChar(parser, '"', output_position, output, output_len)) {
+		if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
 			return false;
 		}
 	}
@@ -335,6 +338,10 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
 	parser_position_t old_position = { NULL, 0, 0 };
 
+	if (!parser) {
+		return false;
+	}
+
 	if (flags & PARSE_PEEK) {
 		old_position = parser->position;
 	}
@@ -347,6 +354,11 @@ _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, con
 		}
 
 		output[0] = '\0';
+	}
+
+	// nothing to parse
+	if (!parser->start) {
+		return false;
 	}
 
 	// start by skipping whitespace tokens
@@ -374,7 +386,7 @@ _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, con
 		// regular token
 		while (c > 32) {
 
-			if (!Parse_AppendOutputChar(parser, c, &i, output, output_len)) {
+			if (!Parse_AppendOutputChar(parser, flags, c, &i, output, output_len)) {
 				return false;
 			}
 
@@ -383,7 +395,7 @@ _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, con
 		}
 	}
 
-	if (!Parse_AppendOutputChar(parser, '\0', &i, output, output_len)) {
+	if (!Parse_AppendOutputChar(parser, flags, '\0', &i, output, output_len)) {
 		return false;
 	}
 
@@ -422,7 +434,7 @@ static size_t Parse_TypeSize(const parse_type_t type) {
  */
 static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *output) {
 	int32_t result;
-	static byte scan_buffer[sizeof(dvec_t)];
+	static byte scan_buffer[sizeof(double)];
 	const size_t type_size = Parse_TypeSize(type);
 
 	switch (type) {
@@ -437,10 +449,10 @@ static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *o
 		result = sscanf(input, "%" SCNi32, (int32_t *) scan_buffer);
 		break;
 	case PARSE_FLOAT:
-		result = sscanf(input, "%f", (vec_t *) scan_buffer);
+		result = sscanf(input, "%f", (float *) scan_buffer);
 		break;
 	case PARSE_DOUBLE:
-		result = sscanf(input, "%lf", (dvec_t *) scan_buffer);
+		result = sscanf(input, "%lf", (double *) scan_buffer);
 		break;
 	default:
 		result = 0;
@@ -448,7 +460,9 @@ static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *o
 	}
 
 	if (result == 1) {
-		memcpy(output, scan_buffer, type_size);
+		if (output) {
+			memcpy(output, scan_buffer, type_size);
+		}
 		return true;
 	}
 
@@ -465,10 +479,6 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 	const size_t type_size = Parse_TypeSize(type);
 	size_t num_parsed = 0;
 
-	if (!output) {
-		output = calloc(count, type_size);
-	}
-
 	if (flags & PARSE_PEEK) {
 		old_position = parser->position;
 	}
@@ -476,6 +486,11 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 	const parse_flags_t prim_flags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
 
 	if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
+
+		if (flags & PARSE_PEEK) {
+			parser->position = old_position;
+		}
+
 		return num_parsed;
 	}
 
@@ -489,10 +504,15 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 
 		num_parsed = Parse_Primitive(&sub_parser, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
 	} else {
-		for (size_t i = 0; i < count; i++, output += type_size) {
+		for (size_t i = 0; i < count; i++) {
 
 			if (i != 0) { // 0 is parsed above for quote checking
 				if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
+
+					if (flags & PARSE_PEEK) {
+						parser->position = old_position;
+					}
+
 					return num_parsed;
 				}
 			}
@@ -502,6 +522,10 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 			}
 
 			num_parsed++;
+
+			if (output) {
+				output += type_size;
+			}
 		}
 	}
 

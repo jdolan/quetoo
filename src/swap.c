@@ -21,15 +21,15 @@
 
 #include "swap.h"
 
-#include <SDL2/SDL_endian.h>
+#include <SDL_endian.h>
 
 /**
  * @brief
  */
-static vec_t SwapFloat(vec_t f) {
+static float SwapFloat(float f) {
 
 	union {
-		vec_t f;
+		float f;
 		byte b[4];
 	} dat1, dat2;
 
@@ -74,7 +74,7 @@ int32_t LittleLong(int32_t l) {
 /**
  * @brief
  */
-vec_t BigFloat(vec_t f) {
+float BigFloat(float f) {
 	if (SDL_BYTEORDER == SDL_LIL_ENDIAN) {
 		return SwapFloat(f);
 	}
@@ -84,9 +84,67 @@ vec_t BigFloat(vec_t f) {
 /**
  * @brief
  */
-vec_t LittleFloat(vec_t f) {
+float LittleFloat(float f) {
 	if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
 		return SwapFloat(f);
 	}
 	return f;
+}
+
+/**
+ * @brief
+ */
+mat4_t LittleMat4(const mat4_t m) {
+	mat4_t out = m;
+	for (int32_t i = 0; i < 4; i++) {
+		for (int32_t j = 0; j < 4; j++) {
+			out.m[i][j] = LittleFloat(out.m[i][j]);
+		}
+	}
+	return out;
+}
+
+/**
+ * @brief
+ */
+vec3s_t LittleVec3s(const vec3s_t v) {
+	return Vec3s(LittleShort(v.x),
+				   LittleShort(v.y),
+				   LittleShort(v.z));
+}
+
+/**
+ * @brief
+ */
+vec3i_t LittleVec3i(const vec3i_t v) {
+	return Vec3i(LittleLong(v.x),
+				   LittleLong(v.y),
+				   LittleLong(v.z));
+}
+
+/**
+ * @brief
+ */
+vec2_t LittleVec2(const vec2_t v) {
+	return Vec2(LittleFloat(v.x),
+				LittleFloat(v.y));
+}
+
+/**
+ * @brief
+ */
+vec3_t LittleVec3(const vec3_t v) {
+	return Vec3(LittleFloat(v.x),
+				LittleFloat(v.y),
+				LittleFloat(v.z));
+}
+
+/**
+ * @brief
+ */
+vec4_t LittleVec4(const vec4_t v) {
+	return Vec4(LittleFloat(v.x),
+				LittleFloat(v.y),
+				LittleFloat(v.z),
+				LittleFloat(v.w));
 }

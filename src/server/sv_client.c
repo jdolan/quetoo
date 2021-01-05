@@ -41,8 +41,8 @@ static void Sv_New_f(void) {
 
 	// send the server data
 	Net_WriteByte(&sv_client->net_chan.message, SV_CMD_SERVER_DATA);
-	Net_WriteShort(&sv_client->net_chan.message, PROTOCOL_MAJOR);
-	Net_WriteShort(&sv_client->net_chan.message, svs.game->protocol);
+	Net_WriteLong(&sv_client->net_chan.message, PROTOCOL_MAJOR);
+	Net_WriteLong(&sv_client->net_chan.message, svs.game->protocol);
 	Net_WriteByte(&sv_client->net_chan.message, 0);
 	Net_WriteString(&sv_client->net_chan.message, Cvar_GetString("game"));
 
@@ -207,12 +207,12 @@ static void Sv_NextDownload_f(void) {
 
 	Mem_InitBuffer(&msg, buf, sizeof(buf));
 
-	int32_t len = Clamp(download->size - download->count, 0, 1024);
+	int32_t len = Clampf(download->size - download->count, 0, 1024);
 
 	Net_WriteByte(&msg, SV_CMD_DOWNLOAD);
 	Net_WriteShort(&msg, len);
 
-	int32_t percent = download->count * 100 / (Clamp(download->size, 1, download->size));
+	int32_t percent = download->count * 100 / (Clampf(download->size, 1, download->size));
 	Net_WriteByte(&msg, percent);
 
 	Mem_WriteBuffer(&msg, download->buffer + download->count, len);
@@ -244,7 +244,7 @@ static void Sv_Download_f(void) {
 
 	const char *filename = Cmd_Argv(1);
 
-	// catch illegal offset or file_names
+	// catch illegal offset or filenames
 	if (IS_INVALID_DOWNLOAD(filename)) {
 		Com_Warn("Malicious download (%s) from %s\n", filename, Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
@@ -430,6 +430,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 			case CL_CMD_MOVE:
 
 				if (++moves_issued > CMD_MAX_MOVES) {
+					Com_Warn("CMD_MAX_MOVES exceeded for %s\n", Sv_NetaddrToString(cl));
 					return; // someone is trying to cheat
 				}
 

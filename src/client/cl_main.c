@@ -56,6 +56,9 @@ cvar_t *cl_draw_sound_stats;
 cl_static_t cls;
 cl_client_t cl;
 
+r_view_t cl_view;
+s_stage_t cl_stage;
+
 /**
  * @brief We have gotten a challenge from the server, so try and connect.
  */
@@ -252,7 +255,10 @@ void Cl_ClearState(void) {
 
 	S_Stop();
 
-	// wipe the entire cl_client_t structure
+	S_ClearPlaylist();
+
+	S_StopMusic();
+
 	memset(&cl, 0, sizeof(cl));
 
 	Mem_ClearBuffer(&cls.net_chan.message);
@@ -308,7 +314,7 @@ void Cl_Disconnect(void) {
 	cls.state = CL_DISCONNECTED;
 
 	if (time_demo->value) {
-		const vec_t s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
+		const float s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
 				  cl.time_demo_frames / s);
 
@@ -535,7 +541,7 @@ static void Cl_InitLocal(void) {
 	cl_draw_net_graph = Cvar_Add("cl_draw_net_graph", "1", CVAR_ARCHIVE, "Draw the net graph at the bottom-right");
 	cl_editor = Cvar_Add("cl_editor", "0", CVAR_DEVELOPER, "Activate the in-game editor");
 	cl_ignore = Cvar_Add("cl_ignore", "", 0, "A list of patterns that will be matched against incoming messages and ignored by your client");
-	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at");
+	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
 	cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
 	cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
 	cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server");
@@ -548,7 +554,7 @@ static void Cl_InitLocal(void) {
 	password = Cvar_Add("password", "", CVAR_USER_INFO, "Password to the server you want to connect to");
 	rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");
 
-	qport = Cvar_Add("qport", va("%d", Random() & 0xff), 0, NULL);
+	qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
 
 	rcon_address = Cvar_Add("rcon_address", "", 0, NULL);
 	rcon_password = Cvar_Add("rcon_password", "", 0, NULL);
@@ -573,6 +579,11 @@ static void Cl_InitLocal(void) {
 	Cmd_Add("download", Cl_Download_f, CMD_CLIENT, NULL);
 	Cmd_Add("save_config", Cl_WriteConfiguration, CMD_CLIENT, "Forces the configuration file to be written to disk");
 
+	Cmd_Add("r_restart", Cl_R_Restart_f, CMD_CLIENT, "Restart the rendering subsystem");
+	Cmd_Add("r_toggle_fullscreen", Cl_R_ToggleFullscreen_f, CMD_SYSTEM | CMD_CLIENT, "Toggle fullscreen");
+
+	Cmd_Add("s_restart", Cl_S_Restart_f, CMD_CLIENT, "Restart the sound subsystem");
+
 	// forward anything we don't handle locally to the server
 	Cmd_ForwardToServer = Cl_ForwardCmdToServer;
 }
@@ -580,9 +591,24 @@ static void Cl_InitLocal(void) {
 /**
  * @brief
  */
+static void Cl_UpdateScene(void) {
+
+	cls.cgame->PrepareScene(&cl.frame);
+
+	R_DrawViewDepth(&cl_view);
+
+	cls.cgame->PopulateScene(&cl.frame);
+
+	R_DrawView(&cl_view);
+
+	S_RenderStage(&cl_stage);
+}
+
+/**
+ * @brief
+ */
 void Cl_Frame(const uint32_t msec) {
 	static uint32_t frame_timestamp;
-	static uint32_t frame_msec;
 
 	if (dedicated->value) {
 		return;
@@ -595,16 +621,19 @@ void Cl_Frame(const uint32_t msec) {
 	cl.unclamped_time += msec;
 
 	// and the pending command duration
-	frame_msec += msec;
+	cl.frame_msec += msec;
 
 	if (time_demo->value) { // accumulate timed demo statistics
 		if (!cl.time_demo_start) {
 			cl.time_demo_start = quetoo.ticks;
 		}
 		cl.time_demo_frames++;
-	} else if (cl_max_fps->value > 0.0) { // cap render frame rate
-		if (quetoo.ticks - frame_timestamp < 1000.0 / cl_max_fps->value) {
-			return;
+	} else {
+		float target_fps = cl_max_fps->value ?: r_context.refresh_rate;
+		if (target_fps > 0.f) { // cap render frame rate
+			if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / target_fps) {
+				return;
+			}
 		}
 	}
 
@@ -612,15 +641,18 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_HttpThink();
 
-	Cl_UpdateMedia();
-
 	Cl_ReadPackets();
 
 	Cl_HandleEvents();
 
+	memset(&cl_view, 0, sizeof(cl_view));
+	memset(&cl_stage, 0, sizeof(cl_stage));
+
+	R_BeginFrame(&cl_view);
+
 	if (cls.state == CL_ACTIVE) {
 
-		Cl_UpdateMovementCommand(frame_msec);
+		Cl_UpdateMovementCommand(cl.frame_msec);
 
 		Cl_SendCommands();
 
@@ -628,17 +660,17 @@ void Cl_Frame(const uint32_t msec) {
 
 		Cl_PredictMovement();
 
-		Cl_UpdateView();
+		Cl_UpdateScene();
 	} else {
 		Cl_SendCommands();
 	}
 
 	Cl_UpdateScreen();
 
-	S_Frame();
+	R_EndFrame();
 
 	frame_timestamp = quetoo.ticks;
-	frame_msec = 0;
+	cl.frame_msec = 0;
 }
 
 /**
@@ -669,8 +701,6 @@ void Cl_Init(void) {
 	R_Init();
 
 	Ui_Init();
-
-	Cl_InitView();
 
 	Cl_InitInput();
 

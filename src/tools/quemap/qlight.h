@@ -21,54 +21,33 @@
 
 #pragma once
 
-#include "bspfile.h"
-#include "materials.h"
-#include "polylib.h"
-#include "collision/cmodel.h"
+#include "fog.h"
+#include "light.h"
+#include "lightgrid.h"
+#include "lightmap.h"
+#include "material.h"
+#include "patch.h"
+#include "quemap.h"
+#include "writebsp.h"
 
-#define PATCH_SIZE 4.0
+extern _Bool antialias;
+extern _Bool indirect;
 
-typedef enum {
-	LIGHT_POINT,
-	LIGHT_SPOT,
-	LIGHT_FACE,
-} light_type_t;
+extern float brightness;
+extern float saturation;
+extern float contrast;
 
-typedef struct patch_s {
-	bsp_face_t *face;
-	winding_t *winding;
+extern int32_t luxel_size;
+extern int32_t patch_size;
 
-	vec3_t origin;
-	vec3_t normal;
+extern float radiosity;
+extern int32_t num_bounces;
+extern int32_t bounce;
 
-	vec_t area;
-	vec3_t light; // emissive surface light
+extern float lightscale_point;
+extern float lightscale_patch;
 
-	struct patch_s *next;  // next in face
-} patch_t;
+int32_t Light_PointContents(const vec3_t p, int32_t head_node);
+cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask);
 
-extern patch_t *face_patches[MAX_BSP_FACES];
-extern vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
-
-// lightmap.c
-void BuildLights(void);
-void BuildFaceExtents(void);
-void BuildVertexNormals(void);
-void DirectLighting(int32_t face_num);
-void IndirectLighting(int32_t face_num);
-void FinalizeLighting(int32_t face_num);
-
-// patches.c
-void BuildTextureColors(void);
-void GetTextureColor(const char *name, vec3_t color);
-void FreeTextureColors(void);
-void BuildPatches(void);
-void SubdividePatches(void);
-void FreePatches(void);
-
-// qlight.c
-_Bool Light_PointPVS(const vec3_t org, byte *pvs);
-_Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
-int32_t Light_PointLeafnum(const vec3_t point);
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
-vec3_t *Light_AverageTextureColor(const char *name);
+int32_t LIGHT_Main(void);

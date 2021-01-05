@@ -21,34 +21,117 @@
 
 #include "ai_local.h"
 
-ai_item_t ai_items[MAX_ITEMS];
-uint16_t ai_num_items;
-uint16_t ai_num_weapons;
+ai_item_data_t ai_item_data;
 
-void Ai_RegisterItem(const uint16_t index, const ai_item_t *item) {
+g_item_t const *ai_items[MAX_ITEMS];
+
+size_t ai_num_items;
+size_t ai_num_weapons;
+
+/**
+ * @brief
+ */
+void Ai_RegisterItem(const g_item_t *item) {
+
+	const uint16_t index = ITEM_DATA(item, index);
 
 	if (index >= MAX_ITEMS) {
-		aim.gi->Warn("Bad item ID for item\n");
+		aim.gi->Warn("Bad index for item: %d\n", index);
 		return;
 	}
 
-	if (ai_items[index].flags) { // already registered, just ignore
+	if (ai_items[index]) {
 		return;
 	}
 
+	ai_items[index] = item;
 	ai_num_items++;
 
-	if (item->flags & AI_ITEM_WEAPON) {
+	if (ITEM_DATA(item, type) == ITEM_WEAPON) {
 		ai_num_weapons++;
 	}
-
-	memcpy(&ai_items[index], item, sizeof(ai_item_t));
 }
 
-uint16_t Ai_ItemIndex(const ai_item_t *item) {
-	return item - ai_items;
+/**
+ * @return True if the bot entity can pick up the item entity.
+ */
+_Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
+	const g_item_t *item = ENTITY_DATA(other, item);
+
+	if (!item) {
+		return false;
+	}
+
+	const int16_t *inventory = &CLIENT_DATA(self->client, inventory);
+
+	if (ITEM_DATA(item, type) == ITEM_HEALTH) {
+		if (ITEM_DATA(item, tag) == HEALTH_SMALL ||
+			ITEM_DATA(item, tag) == HEALTH_MEGA) {
+			return true;
+		}
+
+		return ENTITY_DATA(self, health) < ENTITY_DATA(self, max_health);
+	} else if (ITEM_DATA(item, type) == ITEM_ARMOR) {
+
+		if (ITEM_DATA(item, tag) == ARMOR_SHARD ||
+			inventory[ITEM_DATA(item, index)] < ITEM_DATA(item, max)) {
+			return true;
+		}
+
+		return false;
+	} else if (ITEM_DATA(item, type) == ITEM_AMMO) {
+		return inventory[ITEM_DATA(item, index)] < ITEM_DATA(item, max);
+	} else if (ITEM_DATA(item, type) == ITEM_WEAPON) {
+
+		if (inventory[ITEM_DATA(item, index)]) {
+			const g_item_t *ammo = aim.G_FindItem(ITEM_DATA(item, ammo));
+			if (ammo) {
+				return inventory[ITEM_DATA(ammo, index)] < ITEM_DATA(ammo, max);
+			}
+
+			return false;
+		}
+
+		return true;
+	} else if (ITEM_DATA(item, type) == ITEM_TECH) {
+
+		const g_item_t **it = ai_items;
+		for (size_t i = 0; i < ai_num_items; i++, it++) {
+			if (ITEM_DATA(*it, type) == ITEM_TECH) {
+				if (inventory[ITEM_DATA(*it, index)]) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	} else if (ITEM_DATA(item, type) == ITEM_FLAG) {
+
+		const g_team_id_t team = CLIENT_DATA(self->client, team);
+		if ((g_team_id_t) ITEM_DATA(item, tag) == team && other->owner == NULL) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	return true;
 }
 
-ai_item_t *Ai_ItemForGameItem(const g_item_t *item) {
-	return ai_items + aim.ItemIndex(item);
+/**
+ * @brief
+ */
+void Ai_InitItems(void) {
+
+	memset(ai_items, 0, sizeof(ai_items));
+
+	ai_num_items = 0;
+	ai_num_weapons = 0;
+}
+
+/**
+ * @brief
+ */
+void Ai_ShutdownItems(void) {
+
 }

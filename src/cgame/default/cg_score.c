@@ -27,7 +27,7 @@
 
 typedef struct {
 	g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
-	uint16_t num_scores;
+	size_t num_scores;
 
 	int32_t teams;
 	_Bool ctf;
@@ -90,14 +90,14 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 	cgi.BindFont("medium", &cw, &ch);
 
-	y = cgi.view->viewport.y + 64 - ch - 4;
+	y = 64 - ch - 4;
 
 	const char *map_name = cgi.ConfigString(CS_NAME);
 	const r_pixel_t sw = cgi.StringWidth(map_name);
 
 	// map title
 	x = cgi.context->width / 2 - sw / 2;
-	cgi.DrawString(x, y, map_name, CON_COLOR_DEFAULT);
+	cgi.Draw2DString(x, y, map_name, color_white);
 
 	y += ch;
 
@@ -120,21 +120,21 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 			switch (i) {
 			case TEAM_RED:
 			default:
-				color_id = CON_COLOR_RED;
+				color_id = ESC_COLOR_RED;
 				break;
 			case TEAM_BLUE:
-				color_id = CON_COLOR_BLUE;
+				color_id = ESC_COLOR_BLUE;
 				break;
-			case TEAM_GREEN:
-				color_id = CON_COLOR_GREEN;
+			case TEAM_YELLOW:
+				color_id = ESC_COLOR_YELLOW;
 				break;
-			case TEAM_ORANGE:
-				color_id = CON_COLOR_YELLOW;
+			case TEAM_WHITE:
+				color_id = ESC_COLOR_WHITE;
 				break;
 			}
 
-			cgi.DrawString(x, y, va("%s^7 %d %s", cg_team_info[i].team_name, score_num,
-									cg_score_state.ctf ? "caps" : "frags"), color_id);
+			cgi.Draw2DString(x, y, va("^%d%s^7 %d %s", color_id, cg_team_info[i].team_name, score_num,
+									cg_score_state.ctf ? "caps" : "frags"), color_white);
 
 			x += SCORES_COL_WIDTH;
 		}
@@ -154,65 +154,59 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	const cl_client_info_t *info = &cgi.client->client_info[s->client];
 
 	// icon
-	const vec_t is = (vec_t) (SCORES_ICON_WIDTH - 2) / (vec_t) info->icon->width;
-	cgi.DrawImage(x, y, is, info->icon);
+	cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2, info->icon, color_white);
 
 	// flag carrier icon
 	if (atoi(cgi.ConfigString(CS_CTF)) && (s->flags & SCORE_CTF_FLAG)) {
 		const int32_t team = s->team;
 		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IT_PIC);
-		cgi.DrawImage(x, y, 0.33, flag);
+		cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * .3f, flag, color_white);
 	}
 
 	x += SCORES_ICON_WIDTH;
 
 	// background
-	const vec_t fa = s->client == cgi.client->client_num ? 0.3 : 0.15;
+	const float fa = s->client == cgi.client->client_num ? 0.3 : 0.15;
 	const r_pixel_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
 	const r_pixel_t fh = SCORES_ROW_HEIGHT - 1;
 
 	if (s->color != 0) {
-		const SDL_Color color = MVC_HSVToRGB(s->color, 1.0, 1.0);
-		const color_t c = {
-			.r = color.r,
-			.g = color.g,
-			.b = color.b,
-			.a = (fa * 255)
-		};
+		color_t c = ColorHSV(s->color, 1.0, 1.0);
+		c.a = fa;
 
-		cgi.DrawFill(x, y, fw, fh, c.u32, -1.0);
+		cgi.Draw2DFill(x, y, fw, fh, c);
 	}
 
 	cgi.BindFont("small", &cw, &ch);
 
 	// name
-	cgi.DrawString(x, y, info->name, CON_COLOR_DEFAULT);
+	cgi.Draw2DString(x, y, info->name, color_white);
 
 	// ping
 	{
 		const r_pixel_t px = x + SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 6 * cw;
-		cgi.DrawString(px, y, va("%3dms", s->ping), CON_COLOR_DEFAULT);
+		cgi.Draw2DString(px, y, va("%3dms", s->ping), color_white);
 		y += ch;
 	}
 
 	// spectating
 	if (s->flags & SCORE_SPECTATOR) {
-		cgi.DrawString(x, y, "spectating", CON_COLOR_DEFAULT);
+		cgi.Draw2DString(x, y, "spectating", color_white);
 		return true;
 	}
 
 	// frags
-	cgi.DrawString(x, y, va("%d frags", s->score), CON_COLOR_DEFAULT);
+	cgi.Draw2DString(x, y, va("%d frags", s->score), color_white);
 
 	// deaths
 	char *deaths = va("%d deaths ", s->deaths);
-	cgi.DrawString(x + fw - cgi.StringWidth(deaths), y, deaths, CON_COLOR_DEFAULT);
+	cgi.Draw2DString(x + fw - cgi.StringWidth(deaths), y, deaths, color_white);
 	y += ch;
 
 	// ready/not ready
 	if (atoi(cgi.ConfigString(CS_MATCH))) {
 		if (s->flags & SCORE_NOT_READY) {
-			cgi.DrawString(x + fw - cgi.StringWidth("not ready "), y, "not ready", CON_COLOR_DEFAULT);
+			cgi.Draw2DString(x + fw - cgi.StringWidth("not ready "), y, "not ready", color_white);
 		}
 	}
 
@@ -221,7 +215,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 		return true;
 	}
 
-	cgi.DrawString(x, y, va("%d captures", s->captures), CON_COLOR_DEFAULT);
+	cgi.Draw2DString(x, y, va("%d captures", s->captures), color_white);
 	return true;
 }
 
@@ -230,7 +224,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
  */
 static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	r_pixel_t x, y;
-	int16_t rows;
+	size_t rows;
 	size_t i;
 	int32_t j = 0;
 
@@ -250,7 +244,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 				continue;
 			}
 
-			if ((int16_t) i == rows) {
+			if (i == rows) {
 				break;
 			}
 
@@ -272,7 +266,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 			continue;
 		}
 
-		if ((int16_t) i == rows) {
+		if (i == rows) {
 			break;
 		}
 
@@ -291,24 +285,24 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
  * @brief
  */
 static void Cg_DrawDmScores(const r_pixel_t start_y) {
-	int16_t rows, cols;
+	size_t rows, cols;
 	r_pixel_t width;
 	size_t i;
 
 	rows = (cgi.context->height - (2 * start_y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
 
-	cols = (rows < (int16_t) cg_score_state.num_scores) ? 2 : 1;
+	cols = (rows < cg_score_state.num_scores) ? 2 : 1;
 	width = cols * SCORES_COL_WIDTH;
 
 	const g_score_t *s = cg_score_state.scores;
 	for (i = 0; i < cg_score_state.num_scores; i++, s++) {
 
-		if ((int16_t) i == (cols * rows)) { // screen is full
+		if (i == (cols * rows)) { // screen is full
 			break;
 		}
 
-		const int16_t col = i / rows;
+		const size_t col = i / rows;
 
 		const r_pixel_t x = cgi.context->width / 2 - width / 2 + col * SCORES_COL_WIDTH;
 		const r_pixel_t y = start_y + (i % rows) * SCORES_ROW_HEIGHT;

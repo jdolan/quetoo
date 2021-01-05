@@ -21,7 +21,7 @@
 
 #pragma once
 
-#define AI_API_VERSION 5
+#define AI_API_VERSION 7
 
 /**
  * @brief Forward declaration of entity type, since
@@ -36,8 +36,6 @@ typedef struct g_export_s g_export_t;
  */
 typedef struct g_item_s g_item_t;
 
-typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
-
 /**
  * @brief Functions and the like that the AI system imports from the game.
  */
@@ -46,28 +44,37 @@ typedef struct {
 	g_export_t *ge;
 	
 	/**
-	 * @brief Query if two entities are on the same team
+	 * @brief Query if two entities are on the same team.
 	 */
 	_Bool (*OnSameTeam)(const g_entity_t *self, const g_entity_t *other);
-
+	
 	/**
-	 * @brief TODO FIXME - TEMPORARY API SCRATCH SPACE.
+	 * @brief
 	 */
-	uint16_t (*ItemIndex)(const g_item_t *item);
-	_Bool (*CanPickupItem)(const g_entity_t *self, const g_entity_t *other);
+	const g_item_t *(*G_FindItem)(const char *name);
+	
 } ai_import_t;
 
 /**
  * @brief Forward declaration of AI structs.
  */
-typedef struct ai_item_s ai_item_t;
 typedef struct ai_entity_data_s ai_entity_data_t;
 typedef struct ai_client_data_s ai_client_data_t;
+typedef struct ai_item_data_s ai_item_data_t;
+
+/**
+ * @brief
+ */
+#define NODE_INVALID	((ai_node_id_t)-1)
 
 /**
  * @brief Functions and the like that the AI system exports to the game.
  */
 typedef struct {
+
+	/**
+	 * @brief The AI module API version number, to ensure compatibility with the server.
+	 */
 	int32_t	api_version;
 
 	/**
@@ -86,9 +93,19 @@ typedef struct {
 	void (*Shutdown)(void);
 
 	/**
+	 * @brief Load map-related content.
+	 */
+	void (*Load)(const char *mapname);
+
+	/**
 	 * @brief Called once by game to setup its data pointers
 	 */
-	void (*SetDataPointers)(ai_entity_data_t *entity, ai_client_data_t *client);
+	void (*SetDataPointers)(ai_entity_data_t *entity, ai_client_data_t *client, ai_item_data_t *item);
+	
+	/**
+	 * @brief Set shared state info.
+	 */
+	void (*State)(uint32_t frame_num);
 
 	/**
 	 * @brief Run an AI frame.
@@ -111,12 +128,68 @@ typedef struct {
 	void (*Spawn)(g_entity_t *self);
 
 	/**
-	 * @brief Call cause an AI to think. Returns the movement command for the bot.
+	 * @brief Called to think for an AI.
 	 */
 	void (*Think)(g_entity_t *self, pm_cmd_t *cmd);
 
 	/**
+	 * @brief Called after an AI has successfully thonked.
+	 */
+	void (*PostThink)(g_entity_t *self, const pm_cmd_t *cmd);
+	
+	/**
+	 * @brief Called just as a bot is being removed.
+	 */
+	void (*Disconnect)(g_entity_t *self);
+
+	/**
 	 * @brief Register an item on the AI system
 	 */
-	void (*RegisterItem)(const uint16_t index, const ai_item_t *item);
+	void (*RegisterItem)(const g_item_t *item);
+
+	/**
+	 * @brief Pass a player's movement over to the node system. Used for creating
+	 * navigation routes.
+	 */
+	void (*PlayerRoam)(const g_entity_t *player, const pm_cmd_t *cmd);
+	
+	/**
+	 * @brief Render a debug view to the specified player.
+	 */
+	void (*Render)(void);
+	
+	/**
+	 * @brief
+	 */
+	_Bool (*IsDeveloperMode)(void);
+
+	/**
+	 * @brief
+	 */
+	ai_node_id_t (*CreateNode)(const vec3_t position);
+
+	/**
+	 * @brief
+	 */
+	vec3_t (*GetNodePosition)(const ai_node_id_t node);
+
+	/**
+	 * @brief
+	 */
+	ai_node_id_t (*FindClosestNode)(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level);
+
+	/**
+	 * @brief
+	 */
+	void (*CreateLink)(const ai_node_id_t a, const ai_node_id_t b, const float cost);
+
+	/**
+	 * @brief
+	 */
+	GArray *(*GetNodeLinks)(const ai_node_id_t a);
+	
+	/**
+	 * @brief
+	 */
+	_Bool (*IsLinked)(const ai_node_id_t a, const ai_node_id_t b);
 } ai_export_t;

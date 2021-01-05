@@ -20,116 +20,46 @@
  */
 
 #include "r_local.h"
-#include "r_gl.h"
 
 typedef struct {
 	GHashTable *media;
-	GList *keys;
 	int32_t seed; // for tracking stale assets
 } r_media_state_t;
 
 static r_media_state_t r_media_state;
 
 /**
+ * @brief Enumerates all media in key-alphabetical order.
+ */
+void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
+
+	GList *keys = g_hash_table_get_keys(r_media_state.media);
+	keys = g_list_sort(keys, (GCompareFunc) g_strcmp0);
+
+	const GList *key = keys;
+	while (key) {
+		const r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
+		if (enumerator) {
+			enumerator(media, data);
+		}
+		key = key->next;
+	}
+
+	g_list_free(keys);
+}
+
+/**
+ * @brief R_MediaEnumerator for R_ListMedia_f.
+ */
+static void R_ListMedia_enumerator(const r_media_t *media, void *data) {
+	Com_Print("%s\n", media->name);
+}
+
+/**
  * @brief Prints information about all currently loaded media to the console.
  */
 void R_ListMedia_f(void) {
-
-	Com_Print("Loaded media:\n");
-
-	GList *key = r_media_state.keys;
-	while (key) {
-		r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
-
-		Com_Print("%s\n", media->name);
-
-		key = key->next;
-	}
-}
-
-#define RMASK 0x000000ff
-#define GMASK 0x0000ff00
-#define BMASK 0x00ff0000
-#define AMASK 0xff000000
-
-/**
- * @brief Dump the image to the specified output file (must be .png)
- */
-void R_DumpImage(const r_image_t *image, const char *output) {
-	const char *real_path = Fs_RealPath(output);
-	char real_dir[MAX_QPATH];
-	Dirname(output, real_dir);
-	Fs_Mkdir(real_dir);
-	SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
-
-	if (!f) {
-		return;
-	}
-
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-	R_BindDiffuseTexture(image->texnum);
-
-	int32_t width, height;
-
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-	
-	GLubyte *pixels = Mem_Malloc(width * height * 4);
-	
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
-	IMG_SavePNG_RW(ss, f, 0);
-	SDL_FreeSurface(ss);
-
-	Mem_Free(pixels);
-	SDL_RWclose(f);
-}
-
-/**
- * @brief
- */
-void R_DumpImages_f(void) {
-
-	Com_Print("Dumping media... ");
-
-	Fs_Mkdir("imgdmp");
-
-	GList *key = r_media_state.keys;
-	while (key) {
-		const r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
-
-		if (media) {
-			const r_image_t *image = NULL;
-
-			if (media->type == MEDIA_IMAGE ||
-			        media->type == MEDIA_ATLAS) {
-				image = (const r_image_t *) media;
-			} else if (media->type == MEDIA_FRAMEBUFFER) {
-				const r_framebuffer_t *fb = (const r_framebuffer_t *) media;
-
-				if (fb->color) {
-					image = fb->color;
-				}
-			}
-
-			if (image) {
-				char path[MAX_OS_PATH];
-				g_snprintf(path, sizeof(path), "imgdmp/%s.png", media->name);
-
-				R_DumpImage((const r_image_t *) media, path);
-			}
-		}
-
-		key = key->next;
-	}
-
-	Com_Print("done! Enjoy your wasted disk space.\n");
+	R_EnumerateMedia(R_ListMedia_enumerator, NULL);
 }
 
 /**
@@ -138,32 +68,15 @@ void R_DumpImages_f(void) {
  */
 r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 
-	if (dependent) {
-		if (dependency) {
-			if (!g_list_find(dependent->dependencies, dependency)) {
-				Com_Debug(DEBUG_RENDERER, "%s -> %s\n", dependent->name, dependency->name);
-				dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
+	assert(dependent);
+	assert(dependency);
 
-				R_RegisterMedia(dependency);
-			}
-		} else {
-			// Com_Debug("Invalid dependency for %s\n", dependent->name);
-		}
-	} else {
-		Com_Warn("Invalid dependent\n");
+	if (!g_list_find(dependent->dependencies, dependency)) {
+		dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
 	}
 
-	return dependency;
+	return R_RegisterMedia(dependency);
 }
-
-/**
- * @brief GCompareFunc for R_RegisterMedia. Sorts media by name.
- */
-static int32_t R_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
-	return g_strcmp0((const char *) name1, (const char *) name2);
-}
-
-static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
 
 /**
  * @brief Inserts the specified media into the shared table, re-registering all
@@ -171,36 +84,27 @@ static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
  */
 r_media_t *R_RegisterMedia(r_media_t *media) {
 
-	// check to see if we're already seeded
-	if (media->seed != r_media_state.seed) {
-		r_media_t *m;
+	assert(media);
 
-		if ((m = g_hash_table_lookup(r_media_state.media, media->name))) {
-			if (m != media) {
-				Com_Debug(DEBUG_RENDERER, "Replacing %s\n", media->name);
-				R_FreeMedia_(NULL, m, m);
-				g_hash_table_replace(r_media_state.media, media->name, media);
-			} else {
-				Com_Debug(DEBUG_RENDERER, "Retaining %s\n", media->name);
+	if (media->seed != r_media_state.seed) {
+
+		if (g_hash_table_contains(r_media_state.media, media)) {
+			r_media_t *other = g_hash_table_lookup(r_media_state.media, media);
+			if (other != media) {
+				R_FreeMedia(other);
+				g_hash_table_insert(r_media_state.media, media, media);
 			}
 		} else {
-			Com_Debug(DEBUG_RENDERER, "Inserting %s\n", media->name);
-			g_hash_table_insert(r_media_state.media, media->name, media);
-
-			r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media->name,
-			                     R_RegisterMedia_Compare);
+			g_hash_table_insert(r_media_state.media, media, media);
 		}
 
-		// re-seed the media to retain it
 		media->seed = r_media_state.seed;
 	}
 
-	// call the implementation-specific register function
 	if (media->Register) {
 		media->Register(media);
 	}
 
-	// and finally re-register all dependencies
 	GList *d = media->dependencies;
 	while (d) {
 		R_RegisterMedia((r_media_t *) d->data);
@@ -211,15 +115,18 @@ r_media_t *R_RegisterMedia(r_media_t *media) {
 }
 
 /**
- * @brief Resolves the specified media if it is already known. The returned
- * media is re-registered for convenience.
- *
- * @return r_media_t The media, or `NULL`.
+ * @return The named media if it is already known, re-registering it for convenience.
  */
-r_media_t *R_FindMedia(const char *name) {
-	r_media_t *media;
+r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
 
-	if ((media = g_hash_table_lookup(r_media_state.media, name))) {
+	r_media_t lookup = {
+		.type = type
+	};
+	
+	g_strlcpy(lookup.name, name, sizeof(lookup.name));
+
+	r_media_t *media = g_hash_table_lookup(r_media_state.media, &lookup);
+	if (media) {
 		R_RegisterMedia(media);
 	}
 
@@ -228,9 +135,7 @@ r_media_t *R_FindMedia(const char *name) {
 
 /**
  * @brief Returns a newly allocated r_media_t with the specified name.
- *
- * @param size_t size The number of bytes to allocate for the media.
- *
+ * @param size The number of bytes to allocate for the media.
  * @return The newly initialized media.
  */
 r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
@@ -250,35 +155,45 @@ r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 /**
  * @brief GHRFunc for freeing media. If data is non-NULL, then the media is
  * always freed. Otherwise, only media with stale seed values and no explicit
- * retainment are released.
+ * retainment are freed.
  */
 static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 	r_media_t *media = (r_media_t *) value;
 
-	if (!data) { // see if the media should be freed
-		if (media->seed == r_media_state.seed || (media->Retain && media->Retain(media))) {
+	if (!data) {
+		if (media->seed == r_media_state.seed) {
+			return false;
+		}
+
+		if (media->Retain && media->Retain(media)) {
 			return false;
 		}
 	}
 
-	Com_Debug(DEBUG_RENDERER, "Freeing %s\n", media->name);
-
-	// ask the implementation to clean up
 	if (media->Free) {
 		media->Free(media);
 	}
 
 	g_list_free(media->dependencies);
-	r_media_state.keys = g_list_remove(r_media_state.keys, key);
 
 	return true;
 }
 
 /**
+ * @breif Frees the specified media immediately.
+ */
+void R_FreeMedia(r_media_t *media) {
+
+	R_FreeMedia_(NULL, media, (void *) 1);
+
+	g_hash_table_remove(r_media_state.media, media->name);
+}
+
+/**
  * @brief Frees any media that has a stale seed and is not explicitly retained.
  */
-void R_FreeMedia(void) {
-	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, NULL);
+void R_FreeUnseededMedia(void) {
+	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) 0);
 }
 
 /**
@@ -288,10 +203,32 @@ void R_BeginLoading(void) {
 	int32_t s;
 
 	do {
-		s = Random();
+		s = Randomi();
 	} while (s == r_media_state.seed);
 
 	r_media_state.seed = s;
+}
+
+/**
+ * @brief
+ */
+static guint R_MediaHash(gconstpointer key) {
+	const r_media_t *media = key;
+
+	return g_str_hash(media->name) + media->type;
+}
+
+/**
+ * @brief
+ */
+static gboolean R_MediaEqual(gconstpointer a, gconstpointer b) {
+	const r_media_t *_a = a, *_b = b;
+
+	if (_a->type == _b->type) {
+		return g_str_equal(_a->name, _b->name);
+	}
+
+	return false;
 }
 
 /**
@@ -301,7 +238,7 @@ void R_InitMedia(void) {
 
 	memset(&r_media_state, 0, sizeof(r_media_state));
 
-	r_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+	r_media_state.media = g_hash_table_new_full(R_MediaHash, R_MediaEqual, NULL, Mem_Free);
 
 	R_BeginLoading();
 }
@@ -311,9 +248,7 @@ void R_InitMedia(void) {
  */
 void R_ShutdownMedia(void) {
 
-	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) true);
-
+	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) 1);
 	g_hash_table_destroy(r_media_state.media);
-	g_list_free(r_media_state.keys);
 }
 

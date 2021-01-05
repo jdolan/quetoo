@@ -24,16 +24,16 @@
     <ClInclude Include="..\..\src\collision\cm_types.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_vis.h">
-      <Filter>src\collision</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\collision\cmodel.h">
-      <Filter>src\collision</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\collision\cm_material.h">
       <Filter>src\collision</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\collision\cm_bsp.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_entity.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_polylib.h">
       <Filter>src\collision</Filter>
     </ClInclude>
   </ItemGroup>
@@ -47,13 +47,16 @@
     <ClCompile Include="..\..\src\collision\cm_trace.c">
       <Filter>src\collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_vis.c">
-      <Filter>src\collision</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\collision\cm_material.c">
       <Filter>src\collision</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\collision\cm_bsp.c">
+      <Filter>src\collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\collision\cm_entity.c">
+      <Filter>src\collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\collision\cm_polylib.c">
       <Filter>src\collision</Filter>
     </ClCompile>
   </ItemGroup>

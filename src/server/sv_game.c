@@ -22,30 +22,22 @@
 #include "sv_local.h"
 
 /**
+ * @brief Fetch the active debug mask.
+ */
+static debug_t Sv_DebugMask(void) {
+	return quetoo.debug_mask;
+}
+
+/**
  * @brief
  */
-static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3,
-        4)));
+static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
 
 	va_list args;
 	va_start(args, fmt);
 
 	Com_Debugv_(debug, func, fmt, args);
-
-	va_end(args);
-}
-
-/**
- * @brief
- */
-static void Sv_GamePmDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Sv_GamePmDebug(const char *func, const char *fmt, ...) {
-
-	va_list args;
-	va_start(args, fmt);
-
-	Com_Debugv_(DEBUG_PMOVE_SERVER, func, fmt, args);
 
 	va_end(args);
 }
@@ -79,8 +71,8 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 	// if it is an inline model, get the size information for it
 	if (name[0] == '*') {
 		const cm_bsp_model_t *mod = Cm_Model(name);
-		VectorCopy(mod->mins, ent->mins);
-		VectorCopy(mod->maxs, ent->maxs);
+		ent->mins = mod->mins;
+		ent->maxs = mod->maxs;
 		Sv_LinkEntity(ent);
 	}
 }
@@ -113,7 +105,7 @@ static void Sv_SetConfigString(const uint16_t index, const char *val) {
 		Net_WriteShort(&sv.multicast, index);
 		Net_WriteString(&sv.multicast, val);
 
-		Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
+		Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R, NULL);
 	}
 }
 
@@ -158,8 +150,8 @@ static void Sv_WriteString(const char *s) {
 	Net_WriteString(&sv.multicast, s);
 }
 
-static void Sv_WriteVector(const vec_t v) {
-	Net_WriteVector(&sv.multicast, v);
+static void Sv_WriteVector(const float v) {
+	Net_WriteFloat(&sv.multicast, v);
 }
 
 static void Sv_WritePosition(const vec3_t pos) {
@@ -170,7 +162,7 @@ static void Sv_WriteDir(const vec3_t dir) {
 	Net_WriteDir(&sv.multicast, dir);
 }
 
-static void Sv_WriteAngle(const vec_t v) {
+static void Sv_WriteAngle(const float v) {
 	Net_WriteAngle(&sv.multicast, v);
 }
 
@@ -179,58 +171,11 @@ static void Sv_WriteAngles(const vec3_t angles) {
 }
 
 /**
- * @brief Also checks areas so that doors block sight.
+ * @brief
  */
 static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
-	byte pvs[MAX_BSP_LEAFS >> 3];
 
-	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
-	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
-
-	const int32_t area1 = Cm_LeafArea(leaf1);
-	const int32_t area2 = Cm_LeafArea(leaf2);
-
-	if (!Cm_AreasConnected(area1, area2)) {
-		return false;    // a door blocks sight
-	}
-
-	const int32_t cluster1 = Cm_LeafCluster(leaf1);
-	const int32_t cluster2 = Cm_LeafCluster(leaf2);
-
-	Cm_ClusterPVS(cluster1, pvs);
-
-	if ((pvs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
-		return false;
-	}
-
-	return true;
-}
-
-/**
- * @brief Also checks areas so that doors block sound.
- */
-static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
-	byte phs[MAX_BSP_LEAFS >> 3];
-
-	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
-
-	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
-
-	const int32_t area1 = Cm_LeafArea(leaf1);
-	const int32_t area2 = Cm_LeafArea(leaf2);
-
-	if (!Cm_AreasConnected(area1, area2)) {
-		return false;    // a door blocks hearing
-	}
-
-	const int32_t cluster1 = Cm_LeafCluster(leaf1);
-	const int32_t cluster2 = Cm_LeafCluster(leaf2);
-
-	Cm_ClusterPHS(cluster1, phs);
-
-	if ((phs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
-		return false;
-	}
+	// TODO: Traces?
 
 	return true;
 }
@@ -238,13 +183,21 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 /**
  * @brief
  */
-static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch) {
+static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 
-	if (!ent) {
-		return;
-	}
+	// TODO: Distance threshold?
 
-	Sv_PositionedSound(NULL, ent, index, atten, pitch);
+	return true;
+}
+
+/**
+ * @brief
+ */
+static void Sv_Sound(const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch) {
+
+	assert(ent);
+
+	Sv_PositionedSound(ent->s.origin, ent, index, atten, pitch);
 }
 
 static void *ai_handle;
@@ -327,11 +280,9 @@ void Sv_InitGame(void) {
 
 	memset(&import, 0, sizeof(import));
 
-	g_strlcpy(import.write_dir, Fs_WriteDir(), MAX_OS_PATH);
-
 	import.Print = Com_Print;
+	import.DebugMask = Sv_DebugMask;
 	import.Debug_ = Sv_GameDebug;
-	import.PmDebug_ = Sv_GamePmDebug;
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Sv_GameError;
 
@@ -340,8 +291,17 @@ void Sv_InitGame(void) {
 	import.Free = Mem_Free;
 	import.FreeTag = Mem_FreeTag;
 
+	import.OpenFile = Fs_OpenRead;
+	import.SeekFile = Fs_Seek;
+	import.ReadFile = Fs_Read;
+	import.OpenFileWrite = Fs_OpenWrite;
+	import.WriteFile = Fs_Write;
+	import.CloseFile = Fs_Close;
+	import.FileExists = Fs_Exists;
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
+	import.Mkdir = Fs_Mkdir;
+	import.RealPath = Fs_RealPath;
 	import.EnumerateFiles = Fs_Enumerate;
 
 	import.AddCvar = Cvar_Add;
@@ -357,27 +317,26 @@ void Sv_InitGame(void) {
 	import.Argv = Cmd_Argv;
 	import.Args = Cmd_Args;
 	import.TokenizeString = Cmd_TokenizeString;
-
 	import.Cbuf = Cbuf_AddText;
 
 	import.SetConfigString = Sv_SetConfigString;
 	import.GetConfigString = Sv_GetConfigString;
-
 	import.ModelIndex = Sv_ModelIndex;
 	import.SoundIndex = Sv_SoundIndex;
 	import.ImageIndex = Sv_ImageIndex;
 
 	import.SetModel = Sv_SetModel;
+
 	import.Sound = Sv_Sound;
 	import.PositionedSound = Sv_PositionedSound;
 
-	import.Trace = Sv_Trace;
+	import.EntityValue = Cm_EntityValue;
+	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Sv_PointContents;
+	import.PointInsideBrush = Cm_PointInsideBrush;
+	import.Trace = Sv_Trace;
 	import.inPVS = Sv_InPVS;
 	import.inPHS = Sv_InPHS;
-	import.SetAreaPortalState = Cm_SetAreaPortalState;
-	import.AreasConnected = Cm_AreasConnected;
-
 	import.LinkEntity = Sv_LinkEntity;
 	import.UnlinkEntity = Sv_UnlinkEntity;
 	import.BoxEntities = Sv_BoxEntities;

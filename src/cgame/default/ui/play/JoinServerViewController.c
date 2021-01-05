@@ -45,8 +45,8 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 
 	JoinServerViewController *this = (JoinServerViewController *) sender;
 
-	const int16_t max_ping = Clamp(cg_quick_join_max_ping->integer, 0, 999);
-	const int16_t min_clients = Clamp(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
+	const int32_t max_ping = Clampf(cg_quick_join_max_ping->integer, 0, 999);
+	const int32_t min_clients = Clampf(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
 
 	uint32_t total_weight = 0;
 
@@ -55,14 +55,14 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 	while (list != NULL) {
 		const cl_server_info_t *server = list->data;
 
-		int16_t weight = 1;
+		int32_t weight = 1;
 
 		if (!(server->clients < min_clients || server->clients >= server->max_clients)) {
 			// more weight for more populated servers
-			weight += ((int16_t) (server->clients - min_clients)) * 5;
+			weight += (server->clients - min_clients) * 5;
 
 			// more weight for lower ping servers
-			weight += ((int16_t) (max_ping - server->ping)) / 10;
+			weight += (max_ping - server->ping) / 10;
 
 			if (server->ping > max_ping) { // one third weight for high ping servers
 				weight /= 3;
@@ -80,13 +80,13 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 
 	list = this->servers;
 
-	const uint32_t random_weight = Randomr(0, total_weight);
+	const uint32_t random_weight = RandomRangeu(0, total_weight);
 	uint32_t current_weight = 0;
 
 	while (list != NULL) {
 		const cl_server_info_t *server = list->data;
 
-		uint32_t weight = 1;
+		int32_t weight = 1;
 
 		if (server->ping > max_ping ||
 			server->clients < min_clients ||
@@ -98,7 +98,7 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 			weight += server->clients - min_clients;
 
 			// more weight for lower ping servers
-			weight += ((uint32_t) (max_ping - server->ping)) / 20;
+			weight += (max_ping - server->ping) / 20;
 		}
 
 		current_weight += weight;

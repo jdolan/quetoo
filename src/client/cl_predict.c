@@ -54,7 +54,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 
 	int32_t contents = Cm_PointContents(point, 0);
 
-	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cl.entity_states[snum];
@@ -81,11 +81,11 @@ int32_t Cl_PointContents(const vec3_t point) {
  * @brief A structure facilitating clipping to SOLID_BOX entities.
  */
 typedef struct {
-	const vec_t *mins, *maxs;
-	const vec_t *start, *end;
+	vec3_t start, end;
+	vec3_t mins, maxs;
 	vec3_t box_mins, box_maxs;
 	cm_trace_t trace;
-	uint16_t skip;
+	int32_t skip;
 	int32_t contents;
 } cl_trace_t;
 
@@ -94,7 +94,7 @@ typedef struct {
  */
 static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
-	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cl.entity_states[snum];
@@ -113,7 +113,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			continue;
 		}
 
-		if (!BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box_mins, trace->box_maxs)) {
+		if (!Vec3_BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box_mins, trace->box_maxs)) {
 			continue;
 		}
 
@@ -141,18 +141,11 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  * 0 for none, because entity 0 is the world, which we always test.
  */
 cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-                    const uint16_t skip, const int32_t contents) {
+                    const int32_t skip, const int32_t contents) {
 
 	cl_trace_t trace;
 
 	memset(&trace, 0, sizeof(trace));
-
-	if (!mins) {
-		mins = vec3_origin;
-	}
-	if (!maxs) {
-		maxs = vec3_origin;
-	}
 
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
@@ -171,7 +164,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	trace.skip = skip;
 	trace.contents = contents;
 
-	Cm_TraceBounds(start, end, mins, maxs, trace.box_mins, trace.box_maxs);
+	Cm_TraceBounds(start, end, mins, maxs, &trace.box_mins, &trace.box_maxs);
 
 	Cl_ClipTraceToEntities(&trace);
 
@@ -202,15 +195,17 @@ void Cl_PredictMovement(void) {
 		return;
 	}
 
-	GList *cmds = NULL;
+	GPtrArray *cmds = g_ptr_array_new();
 
 	while (++ack <= last) {
-		cmds = g_list_append(cmds, &cl.cmds[ack & CMD_MASK]);
+		g_ptr_array_add(cmds, &cl.cmds[ack & CMD_MASK]);
 	}
 
-	cls.cgame->PredictMovement(cmds);
+	if (cmds->len) {
+		cls.cgame->PredictMovement(cmds);
+	}
 
-	g_list_free(cmds);
+	g_ptr_array_free(cmds, true);
 }
 
 /**
@@ -219,38 +214,41 @@ void Cl_PredictMovement(void) {
  */
 void Cl_CheckPredictionError(void) {
 
-	if (!cls.cgame->UsePrediction()) {
+	const pm_state_t *in = &cl.frame.ps.pm_state;
+
+	cl_predicted_state_t *out = &cl.predicted_state;
+
+	// calculate the last cl_cmd_t we sent that the server has processed
+	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.incoming_acknowledged & CMD_MASK];
+
+	// if prediction was not run (just spawned), don't sweat it
+	if (cmd->prediction.time == 0) {
+
+		out->view.origin = in->origin;
+		out->view.offset = in->view_offset;
+		out->view.angles = in->view_angles;
+
+		out->error = Vec3_Zero();
 		return;
 	}
 
-	cl_predicted_state_t *pr = &cl.predicted_state;
+	// subtract what the server returned from our predicted origin for that frame
+	out->error = cmd->prediction.error = Vec3_Subtract(cmd->prediction.origin, in->origin);
 
-	if (cl.delta_frame) {
+	// if the error is too large, it was likely a teleport or respawn, so ignore it
+	const float len = Vec3_Length(out->error);
+	if (len > .1f) {
+		if (len > MAX_DELTA_ORIGIN) {
+			Com_Debug(DEBUG_CLIENT, "MAX_DELTA_ORIGIN: %s\n", vtos(out->error));
 
-		// calculate the last cl_cmd_t we sent that the server has processed
-		const uint32_t cmd = cls.net_chan.incoming_acknowledged & CMD_MASK;
+			out->view.origin = in->origin;
+			out->view.offset = in->view_offset;
+			out->view.angles = in->view_angles;
 
-		// subtract what the server returned with what we had predicted it to be
-		VectorSubtract(cl.frame.ps.pm_state.origin, pr->origins[cmd], pr->error);
-
-		// if the error is too large, it was likely a teleport or respawn, so ignore it
-		const vec_t len = VectorLength(pr->error);
-		if (len > 64.0) {
-			Com_Debug(DEBUG_CLIENT, "Clear %s\n", vtos(pr->error));
-			VectorClear(pr->error);
-		} else if (len > 0.1) {
-			Com_Debug(DEBUG_CLIENT, "Error %s\n", vtos(pr->error));
+			out->error = Vec3_Zero();
+		} else {
+			Com_Debug(DEBUG_CLIENT, "%s\n", vtos(out->error));
 		}
-
-	} else {
-		Com_Debug(DEBUG_CLIENT, "No delta\n");
-
-		VectorCopy(cl.frame.ps.pm_state.origin, pr->view.origin);
-
-		UnpackVector(cl.frame.ps.pm_state.view_offset, pr->view.offset);
-		UnpackAngles(cl.frame.ps.pm_state.view_angles, pr->view.angles);
-
-		VectorClear(pr->error);
 	}
 }
 
@@ -276,7 +274,7 @@ void Cl_UpdatePrediction(void) {
 	}
 
 	// load the BSP models for prediction as well
-	for (uint16_t i = 1; i < MAX_MODELS; i++) {
+	for (int32_t i = 0; i < MAX_MODELS; i++) {
 
 		const char *s = cl.config_strings[CS_MODELS + i];
 		if (*s == '*') {

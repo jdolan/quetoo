@@ -75,8 +75,7 @@ START_TEST(check_Ms_AddServer) {
 	ms_server_t *s = Ms_GetServer(&addr);
 	ck_assert_msg(!s, "Server was not NULL");
 
-}
-END_TEST
+} END_TEST
 
 START_TEST(check_Ms_BlacklistServer) {
 	file_t *f = Fs_OpenAppend("servers-blacklist");
@@ -101,8 +100,7 @@ START_TEST(check_Ms_BlacklistServer) {
 
 	ck_assert_msg(!Ms_BlacklistServer(&addr), "False positive for %s", inet_ntoa(addr.sin_addr));
 
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.

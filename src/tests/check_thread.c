@@ -22,6 +22,8 @@
 #include "tests.h"
 #include "thread.h"
 
+quetoo_t quetoo;
+
 typedef struct {
 	_Bool ready;
 } critical_section_t;
@@ -70,16 +72,15 @@ static void consume(void *data) {
 }
 
 START_TEST(check_Thread_Wait) {
-	thread_t *p = Thread_Create(produce, NULL);
+	thread_t *p = Thread_Create(produce, NULL, 0);
 
-	thread_t *c = Thread_Create(consume, p);
+	thread_t *c = Thread_Create(consume, p, 0);
 
 	Thread_Wait(c);
 
 	ck_assert(!cs.ready);
 
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.

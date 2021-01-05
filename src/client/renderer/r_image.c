@@ -20,32 +20,53 @@
  */
 
 #include "r_local.h"
-#include "r_gl.h"
 
-r_image_state_t r_image_state;
-
+/**
+ * @brief Texture sampling modes.
+ */
 typedef struct {
+	/**
+	 * @brief The mode name for setting from the console.
+	 */
 	const char *name;
-	GLenum minimize, maximize;
+
+	/**
+	 * @brief The minification and magnification sampling constants.
+	 */
+	GLenum minify, magnify, minify_no_mip;
 } r_texture_mode_t;
 
-static r_texture_mode_t r_texture_modes[] = { // specifies mipmapping (texture quality)
-	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
-	{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
-	{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
+static struct {
+	/**
+	 * @brief The texture sampling mode.
+	 */
+	r_texture_mode_t texture_mode;
+
+	/**
+	 * @brief The texture sampling anisotropy level.
+	 */
+	GLfloat anisotropy;
+
+} r_image_state;
+
+/**
+ * @brief Texture sampling modes.
+ */
+static const r_texture_mode_t r_texture_modes[] = {
+	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR, GL_LINEAR },
+	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_LINEAR }
 };
 
 /**
  * @brief Sets the texture parameters for mipmapping and anisotropy.
  */
 static void R_TextureMode(void) {
-	uint16_t i;
+	size_t i;
 
 	for (i = 0; i < lengthof(r_texture_modes); i++) {
 		if (!g_ascii_strcasecmp(r_texture_modes[i].name, r_texture_mode->string)) {
+			r_image_state.texture_mode = r_texture_modes[i];
 			break;
 		}
 	}
@@ -54,9 +75,6 @@ static void R_TextureMode(void) {
 		Com_Warn("Bad filter name: %s\n", r_texture_mode->string);
 		return;
 	}
-
-	r_image_state.filter_min = r_texture_modes[i].minimize;
-	r_image_state.filter_mag = r_texture_modes[i].maximize;
 
 	if (r_anisotropy->value) {
 		if (GLAD_GL_EXT_texture_filter_anisotropic) {
@@ -120,97 +138,90 @@ static void R_Screenshot_f_encode(void *data) {
 }
 
 /**
- * @brief Captures a screenshot, writing it to the user's directory.
- */
+* @brief Captures a screenshot, writing it to the user's directory.
+*/
 void R_Screenshot_f(void) {
 
 	r_screenshot_t *s = Mem_Malloc(sizeof(r_screenshot_t));
 
-	s->width = r_context.render_width;
-	s->height = r_context.render_height;
+	s->width = r_context.drawable_width;
+	s->height = r_context.drawable_height;
 
 	s->buffer = Mem_LinkMalloc(s->width * s->height * 3, s);
 
-	if (r_state.supersample_fb) {
-		R_BindDiffuseTexture(r_state.supersample_image->texnum);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
-	} else {
-		glReadPixels(0, 0, s->width, s->height, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
-	}
+	glReadPixels(0, 0, s->width, s->height, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
 
-	Thread_Create(R_Screenshot_f_encode, s);
+	Thread_Create(R_Screenshot_f_encode, s, THREAD_NO_WAIT);
 }
 
 /**
- * @brief Applies brightness, contrast and saturation to the specified image
- * while optionally computing the average color. Also handles image inversion
- * and monochrome. This is all munged into one function for performance.
+ * @brief Creates the base image state for the image.
  */
-void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
-	uint32_t color[3];
+void R_SetupImage(r_image_t *image, GLenum target, GLenum format, GLsizei levels, GLenum type, byte *data) {
+	
+	assert(image);
 
-	if (image->type == IT_DIFFUSE) { // compute average color
-		VectorClear(color);
+	switch (format) {
+		case GL_RGB:
+		case GL_RGBA:
+			break;
+		default:
+			Com_Error(ERROR_DROP, "Unsupported format %d\n", format);
 	}
 
-	const size_t pixels = image->width * image->height;
-	const size_t stride = format == GL_RGBA ? 4 : 3;
-
-	byte *p = data;
-
-	for (size_t i = 0; i < pixels; i++, p += stride) {
-
-		if ((image->type & IT_MASK_MULTIPLY) && format == GL_RGBA) { // pre-multiplied alpha
-			VectorScale(p, p[3] / 255.0, p);
-		}
-
-		if (image->type == IT_DIFFUSE) { // accumulate color
-			VectorAdd(color, p, color);
-		}
-	}
-
-	if (image->type == IT_DIFFUSE) { // average accumulated colors
-		VectorScale(color, 1.0 / pixels, color);
-		VectorScale(color, 1.0 / 255.0, image->color);
-	}
-}
-
-/**
- * @brief Uploads the specified image to the OpenGL implementation. Images that
- * do not have a GL texture reserved (which is most diffuse textures) will have
- * one generated for them. This flexibility allows for explicitly managed
- * textures (such as lightmaps) to be here as well.
- */
-void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
-
-	if (!image) {
-		Com_Error(ERROR_DROP, "NULL image\n");
-	}
-
-	if (!image->texnum) {
+	if (image->texnum == 0) {
 		glGenTextures(1, &(image->texnum));
 	}
 
-	R_BindDiffuseTexture(image->texnum);
-
+	glBindTexture(target, image->texnum);
+	
 	if (image->type & IT_MASK_MIPMAP) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
 
 		if (r_image_state.anisotropy) {
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 		}
-
 	} else {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_mag);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify_no_mip);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
-	             GL_UNSIGNED_BYTE, data);
+	if (image->type & IT_MASK_CLAMP_EDGE) {
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	} else {
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	}
 
-	if (image->type & IT_MASK_MIPMAP) {
-		glGenerateMipmap(GL_TEXTURE_2D);
+	if (GLAD_GL_ARB_texture_storage) {
+		const GLenum internal_format = (format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
+		if (image->depth) {
+			glTexStorage3D(target, levels, internal_format, image->width, image->height, image->depth);
+
+			if (data) {
+				glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, format, type, data);
+			}
+		} else {
+			glTexStorage2D(target, levels, internal_format, image->width, image->height);
+			
+			if (data) {
+				glTexSubImage2D(target, 0, 0, 0, image->width, image->height, format, type, data);
+			}
+		}
+	} else {
+		if (image->depth) {
+			glTexImage3D(target, 0, format, image->width, image->height, image->depth, 0, format, type, data);
+		} else {
+			glTexImage2D(target, 0, format, image->width, image->height, 0, format, type, data);
+		}
+	}
+
+	if ((image->type & IT_MASK_MIPMAP) && data) {
+		glGenerateMipmap(target);
 	}
 
 	R_RegisterMedia((r_media_t *) image);
@@ -219,72 +230,75 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 }
 
 /**
+ * @brief Uploads the specified image to the OpenGL implementation. Images that
+ * do not have a GL texture reserved (which is most diffusemap textures) will have
+ * one generated for them. This flexibility allows for explicitly managed
+ * textures (such as lightmaps) to be here as well.
+ */
+void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
+
+	assert(image);
+
+	GLenum target = GL_TEXTURE_2D;
+
+	if (image->depth) {
+		switch (image->type) {
+			case IT_MATERIAL:
+			case IT_LIGHTMAP:
+				target = GL_TEXTURE_2D_ARRAY;
+				break;
+			case IT_LIGHTGRID:
+				target = GL_TEXTURE_3D;
+				break;
+			default:
+				break;
+		}
+	}
+	
+	GLsizei levels = 1;
+
+	if (image->type & IT_MASK_MIPMAP) {
+		if (image->depth) {
+			levels = floorf(log2f(MAX(MAX(image->width, image->height), image->depth))) + 1;
+		} else {
+			levels = floorf(log2f(MAX(image->width, image->height))) + 1;
+		}
+	}
+
+	R_SetupImage(image, target, format, levels, GL_UNSIGNED_BYTE, data);
+}
+
+/**
  * @brief Retain event listener for images.
  */
 _Bool R_RetainImage(r_media_t *self) {
-	const r_image_type_t type = ((r_image_t *) self)->type;
 
-	if (type == IT_NULL || type == IT_PROGRAM || type == IT_FONT || type == IT_UI) {
-		return true;
+	switch (((r_image_t *) self)->type & ~IT_MASK_FLAGS) {
+		case IT_PROGRAM:
+		case IT_FONT:
+		case IT_UI:
+			return true;
+		default:
+			return false;
 	}
-
-	return false;
 }
 
 /**
  * @brief Free event listener for images.
  */
 void R_FreeImage(r_media_t *media) {
-	glDeleteTextures(1, &((r_image_t *) media)->texnum);
+
+	r_image_t *image = (r_image_t *) media;
+
+	glDeleteTextures(1, &image->texnum);
+
+	image->texnum = 0;
 }
 
 /**
- * @brief Merges a heightmap texture, if found, into the alpha channel of the
- * given normalmap surface. This is to handle loading of Quake4 texture sets
- * like Q4Power.
- *
- * @param name The diffuse name.
- * @param surf The normalmap surface.
+ * @brief Create an image by the specified name.
  */
-static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {
-	char heightmap[MAX_QPATH];
-
-	g_strlcpy(heightmap, name, sizeof(heightmap));
-	char *c = strrchr(heightmap, '_');
-	if (c) {
-		*c = '\0';
-	}
-
-	// FIXME:
-	// This should use the material's heightmap asset, which might be resolved
-	// from multiple potential suffixes. This is a total hack and is incorrect.
-	// Solving this without completely refactoring R_LoadImage is hard.
-
-	SDL_Surface *hsurf;
-	if (Img_LoadImage(va("%s_h", heightmap), &hsurf)) {
-
-		if (hsurf->w == surf->w && hsurf->h == surf->h) {
-			Com_Debug(DEBUG_RENDERER, "Merging heightmap %s\n", heightmap);
-
-			byte *in = hsurf->pixels;
-			byte *out = surf->pixels;
-
-			const size_t len = surf->w * surf->h;
-			for (size_t i = 0; i < len; i++, in += 4, out += 4) {
-				out[3] = (in[0] + in[1] + in[2]) / 3.0;
-			}
-		} else {
-			Com_Warn("Incorrect heightmap resolution for %s\n", name);
-		}
-
-		SDL_FreeSurface(hsurf);
-	}
-}
-
-/**
- * @brief Loads the image by the specified name.
- */
-r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
+_Bool R_CreateImage(r_image_t **out, const char *name, const int32_t width, const int32_t height, r_image_type_t type) {
 	r_image_t *image;
 	char key[MAX_QPATH];
 
@@ -294,94 +308,193 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	StripExtension(name, key);
 
-	if (!(image = (r_image_t *) R_FindMedia(key))) {
+	if (!(image = (r_image_t *) R_FindMedia(key, R_MEDIA_IMAGE))) {
 
-		SDL_Surface *surf;
-		if (Img_LoadImage(key, &surf)) { // attempt to load the image
-			image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), MEDIA_IMAGE);
+		image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), R_MEDIA_IMAGE);
 
-			image->media.Retain = R_RetainImage;
-			image->media.Free = R_FreeImage;
+		image->media.Retain = R_RetainImage;
+		image->media.Free = R_FreeImage;
 
-			image->width = surf->w;
-			image->height = surf->h;
-			image->type = type;
-
-			if (image->type == IT_NORMALMAP) {
-				R_LoadHeightmap(name, surf);
-			}
-
-			if (image->type & IT_MASK_FILTER) {
-				R_FilterImage(image, GL_RGBA, surf->pixels);
-			}
-
-			R_UploadImage(image, GL_RGBA, surf->pixels);
-
-			SDL_FreeSurface(surf);
-		} else {
-			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
-			image = r_image_state.null;
-		}
+		image->width = width;
+		image->height = height;
+		image->type = type;
+		
+		*out = image;
+		return true;
 	}
+
+	*out = image;
+	return false;
+}
+
+/**
+ * @brief Loads the image by the specified name.
+ */
+r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
+	char key[MAX_QPATH];
+	r_image_t *image;
+
+	if (!name || !name[0]) {
+		Com_Error(ERROR_DROP, "NULL name\n");
+	}
+
+	StripExtension(name, key);
+
+	if ((image = (r_image_t *) R_FindMedia(key, R_MEDIA_IMAGE))) {
+		return image;
+	}
+
+	SDL_Surface *surf = Img_LoadSurface(key);
+	if (!surf) {
+
+		Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
+		return NULL;
+	}
+	
+	if (!R_CreateImage(&image, name, surf->w, surf->h, type)) {
+		return image;
+	}
+
+	image->width = surf->w;
+	image->height = surf->h;
+	image->type = type;
+
+	R_UploadImage(image, GL_RGBA, surf->pixels);
+
+	SDL_FreeSurface(surf);
 
 	return image;
 }
 
-/**
- * @brief Initializes the null (default) image, used when the desired texture
- * is not available.
- */
-static void R_InitNullImage(void) {
-
-	r_image_state.null = (r_image_t *) R_AllocMedia("r_image_state.null", sizeof(r_image_t), MEDIA_IMAGE);
-	r_image_state.null->media.Retain = R_RetainImage;
-	r_image_state.null->media.Free = R_FreeImage;
-
-	r_image_state.null->width = r_image_state.null->height = 1;
-	r_image_state.null->type = IT_NULL;
-
-	byte data[1 * 1 * 3];
-	memset(&data, 0xff, sizeof(data));
-
-	R_UploadImage(r_image_state.null, GL_RGB, data);
-}
-
-#define WARP_SIZE 16
+#define RMASK 0x000000ff
+#define GMASK 0x0000ff00
+#define BMASK 0x00ff0000
+#define AMASK 0xff000000
 
 /**
- * @brief Initializes the warp texture, used by r_program_warp.c.
+ * @brief Dump the image to the specified output file (must be .png)
  */
-static void R_InitWarpImage(void) {
+void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 
-	r_image_state.warp = (r_image_t *) R_AllocMedia("r_image_state.warp", sizeof(r_image_t), MEDIA_IMAGE);
-	r_image_state.warp->media.Retain = R_RetainImage;
-	r_image_state.warp->media.Free = R_FreeImage;
+	char real_dir[MAX_OS_PATH], path_name[MAX_OS_PATH];
+	Dirname(output, real_dir);
+	Fs_Mkdir(real_dir);
 
-	r_image_state.warp->width = r_image_state.warp->height = WARP_SIZE;
-	r_image_state.warp->type = IT_PROGRAM;
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	byte data[WARP_SIZE][WARP_SIZE][4];
-	r_pixel_t i, j;
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-	for (i = 0; i < WARP_SIZE; i++) {
-		for (j = 0; j < WARP_SIZE; j++) {
-			data[i][j][0] = Randomr(0, 256);
-			data[i][j][1] = Randomr(0, 256);
-			data[i][j][2] = Randomr(0, 48);
-			data[i][j][3] = Randomr(0, 48);
+	GLenum target = GL_TEXTURE_2D;
+	
+	if (image->depth) {
+		switch (image->type) {
+			case IT_MATERIAL:
+			case IT_LIGHTMAP:
+				target = GL_TEXTURE_2D_ARRAY;
+				break;
+			case IT_LIGHTGRID:
+				target = GL_TEXTURE_3D;
+				break;
+			default:
+				break;
 		}
 	}
 
-	R_UploadImage(r_image_state.warp, GL_RGBA, (byte *) data);
+	glBindTexture(target, image->texnum);
 
-	R_BindWarpTexture(r_image_state.warp->texnum);
+	int32_t width, height, depth, mips;
+
+	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_HEIGHT, &height);
+	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_DEPTH, &depth);
+
+	if (image->type & IT_MASK_MIPMAP) {
+		glGetTexParameteriv(target, GL_TEXTURE_MAX_LEVEL, &mips);
+	} else {
+		mips = 0;
+	}
+
+	R_GetError("");
+
+	GLubyte *pixels = Mem_Malloc(width * height * depth * 4);
+
+	for (int32_t level = 0; level <= mips; level++) {
+
+		glGetTexImage(target, level, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+		if (glGetError() != GL_NO_ERROR) {
+			break;
+		}
+
+		int32_t scaled_width = width >> level;
+		int32_t scaled_height = height >> level;
+
+		if (scaled_width <= 0 || scaled_height <= 0) {
+			break;
+		}
+
+		for (int32_t d = 0; d < depth; d++) {
+
+			g_strlcpy(path_name, output, sizeof(path_name));
+
+			if (depth > 1) {
+				g_strlcat(path_name, va(" layer %i", d), sizeof(path_name));
+			}
+
+			if (mips > 0) {
+				g_strlcat(path_name, va(" mip %i", level), sizeof(path_name));
+			}
+
+			g_strlcat(path_name, ".png", sizeof(path_name));
+		
+			const char *real_path = Fs_RealPath(path_name);
+			SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
+			if (!f) {
+				return;
+			}
+
+			SDL_Surface *surf = SDL_CreateRGBSurfaceFrom(pixels + (scaled_width * scaled_height * 4 * d), scaled_width, scaled_height, 32, scaled_width * 4, RMASK, GMASK, BMASK, AMASK);
+			IMG_SavePNG_RW(surf, f, 0);
+			SDL_FreeSurface(surf);
+
+			SDL_RWclose(f);
+		}
+
+		if (!mipmap) {
+			break;
+		}
+	}
+
+	Mem_Free(pixels);
 }
 
 /**
- * @brief Initializes the mesh shell image.
+ * @brief R_MediaEnumerator for R_DumpImages_f.
  */
-static void R_InitShellImage(void) {
-	r_image_state.shell = R_LoadImage("envmaps/envmap_3", IT_PROGRAM);
+static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
+
+	if (media->type == R_MEDIA_IMAGE) {
+		const r_image_t *image = (const r_image_t *) media;
+		char path[MAX_OS_PATH];
+
+		g_snprintf(path, sizeof(path), "imgdmp/%s %i", media->name, image->texnum);
+
+		R_DumpImage(image, path, true);
+	}
+}
+
+/**
+ * @brief
+ */
+void R_DumpImages_f(void) {
+
+	Com_Print("Dumping media... ");
+
+	Fs_Mkdir("imgdmp");
+
+	R_EnumerateMedia(R_DumpImages_enumerator, NULL);
 }
 
 /**
@@ -393,19 +506,11 @@ void R_InitImages(void) {
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	Img_InitPalette();
-
 	memset(&r_image_state, 0, sizeof(r_image_state));
 
 	R_TextureMode();
 
-	R_InitNullImage();
-
-	R_InitWarpImage();
-
-	R_InitShellImage();
-
-	R_InitAtlas();
-
+	R_GetError(NULL);
+	
 	Fs_Mkdir("screenshots");
 }

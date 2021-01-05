@@ -22,6 +22,8 @@
 #include "tests.h"
 #include "mem.h"
 
+quetoo_t quetoo;
+
 /**
  * @brief Setup fixture.
  */
@@ -35,6 +37,34 @@ void setup(void) {
 void teardown(void) {
 	Mem_Shutdown();
 }
+
+START_TEST(check_Mem_TagMalloc) {
+
+	char *string = Mem_CopyString("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut tincidunt justo nec arcu mattis, quis pretium nisi dapibus. Nam placerat lacinia arcu, eu rhoncus justo ornare quis. Phasellus quis pulvinar turpis. Mauris congue, sem a fringilla facilisis, nisl nibh rutrum dolor, sed sagittis justo nulla vitae velit. Nulla non tincidunt turpis, at laoreet ex. Phasellus ut ante fringilla, tempus dui vitae, sagittis ligula. Curabitur pharetra quam turpis, et fermentum sapien lacinia quis. Curabitur sed efficitur nunc.");
+
+	const size_t len = strlen(string) + 1;
+
+	ck_assert_int_eq(len, Mem_Size());
+
+#define TAG 10
+
+	for (int32_t i = 0; i < 1024; i++) {
+		Mem_TagMalloc(1024, TAG);
+	}
+
+	ck_assert_int_eq(1024 * 1024 + len, Mem_Size());
+
+	Mem_FreeTag(TAG);
+
+	ck_assert_int_eq(len, Mem_Size());
+
+	ck_assert_str_eq("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut tincidunt justo nec arcu mattis, quis pretium nisi dapibus. Nam placerat lacinia arcu, eu rhoncus justo ornare quis. Phasellus quis pulvinar turpis. Mauris congue, sem a fringilla facilisis, nisl nibh rutrum dolor, sed sagittis justo nulla vitae velit. Nulla non tincidunt turpis, at laoreet ex. Phasellus ut ante fringilla, tempus dui vitae, sagittis ligula. Curabitur pharetra quam turpis, et fermentum sapien lacinia quis. Curabitur sed efficitur nunc.", string);
+
+	Mem_Free(string);
+
+	ck_assert_int_eq(0, Mem_Size());
+
+} END_TEST
 
 START_TEST(check_Mem_LinkMalloc) {
 	byte *parent = Mem_Malloc(1);
@@ -58,8 +88,7 @@ START_TEST(check_Mem_LinkMalloc) {
 
 	ck_assert(Mem_Size() == 0);
 
-}
-END_TEST
+} END_TEST
 
 START_TEST(check_Mem_CopyString) {
 	char *test = Mem_CopyString("test");
@@ -69,8 +98,7 @@ START_TEST(check_Mem_CopyString) {
 	Mem_Free(test);
 
 	ck_assert(Mem_Size() == 0);
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.
@@ -82,6 +110,7 @@ int32_t main(int32_t argc, char **argv) {
 	TCase *tcase = tcase_create("check_mem");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
+	tcase_add_test(tcase, check_Mem_TagMalloc);
 	tcase_add_test(tcase, check_Mem_LinkMalloc);
 	tcase_add_test(tcase, check_Mem_CopyString);
 

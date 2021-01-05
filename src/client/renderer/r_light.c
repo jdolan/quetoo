@@ -21,186 +21,72 @@
 
 #include "r_local.h"
 
-/**
- * @brief
- */
-void R_AddLight(const r_light_t *l) {
-
-	if (r_view.num_lights == MAX_LIGHTS) {
-		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS reached\n");
-		return;
-	}
-
-	r_view.lights[r_view.num_lights] = *l;
-
-	if (r_lighting->value) {
-		r_view.lights[r_view.num_lights].radius *= r_lighting->value;
-	}
-
-	r_view.num_lights++;
-}
+r_lights_t r_lights;
 
 /**
  * @brief
  */
-void R_AddSustainedLight(const r_sustained_light_t *s) {
-	int32_t i;
+void R_AddLight(r_view_t *view, const r_light_t *l) {
 
-	for (i = 0; i < MAX_LIGHTS; i++)
-		if (!r_view.sustained_lights[i].sustain) {
-			break;
-		}
-
-	if (i == MAX_LIGHTS) {
-		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS reached\n");
+	if (view->num_lights == MAX_LIGHTS) {
+		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS\n");
 		return;
 	}
 
-	r_view.sustained_lights[i] = *s;
+	if (R_CullSphere(view, l->origin, l->radius)) {
+		return;
+	}
 
-	r_view.sustained_lights[i].time = r_view.ticks;
-	r_view.sustained_lights[i].sustain = r_view.ticks + s->sustain;
+	if (R_OccludeSphere(view, l->origin, l->radius)) {
+		return;
+	}
+
+	view->lights[view->num_lights] = *l;
+	view->num_lights++;
+}
+
+/**
+ * @brief Transforms all active light sources to view space for rendering.
+ */
+void R_UpdateLights(const r_view_t *view) {
+
+	memset(r_lights.block.lights, 0, sizeof(r_lights.block.lights));
+
+	if (view) {
+
+		const r_light_t *in = view->lights;
+		
+		r_light_t *out = r_lights.block.lights;
+
+		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
+
+			*out = *in;
+
+			Matrix4x4_Transform(&r_uniforms.block.view, in->origin.xyz, out->origin.xyz);
+		}
+
+		r_lights.block.num_lights = view->num_lights;
+	}
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 /**
  * @brief
  */
-void R_AddSustainedLights(void) {
-	r_sustained_light_t *s;
-	int32_t i;
+void R_InitLights(void) {
 
-	// sustains must be recalculated every frame
-	for (i = 0, s = r_view.sustained_lights; i < MAX_LIGHTS; i++, s++) {
+	glGenBuffers(1, &r_lights.buffer);
 
-		if (s->sustain <= r_view.ticks) { // clear it
-			s->sustain = 0.0;
-			continue;
-		}
-
-		r_light_t l = s->light;
-
-		const vec_t intensity = (s->sustain - r_view.ticks) / (vec_t) (s->sustain - s->time);
-
-		l.radius *= intensity;
-		VectorScale(l.color, intensity, l.color);
-
-		R_AddLight(&l);
-	}
+	R_UpdateLights(NULL);
 }
 
 /**
- * @brief Resets hardware light source state. Note that this is accomplished purely
- * client-side. Our internal accounting lets us avoid GL state changes.
+ * @brief
  */
-void R_ResetLights(void) {
+void R_ShutdownLights(void) {
 
-	r_locals.light_mask = UINT64_MAX;
-}
-
-/**
- * @brief Recursively populates light source bit masks for world surfaces.
- */
-void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
-
-	if (node->contents != CONTENTS_NODE) { // leaf
-		return;
-	}
-
-	if (node->vis_frame != r_locals.vis_frame) { // not visible
-		if (!node->model) { // and not a bsp submodel
-			return;
-		}
-	}
-
-	const vec_t dist = Cm_DistanceToPlane(l->origin, node->plane);
-
-	if (dist > l->radius) { // front only
-		R_MarkLight(l, node->children[0]);
-		return;
-	}
-
-	if (dist < -l->radius) { // back only
-		R_MarkLight(l, node->children[1]);
-		return;
-	}
-
-	const uint64_t bit = ((uint64_t) 1 << (l - r_view.lights));
-
-	// mark all surfaces in this node
-	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
-
-	for (uint32_t i = 0; i < node->num_surfaces; i++, surf++) {
-
-		if (surf->light_frame != r_locals.light_frame) { // reset it
-			surf->light_frame = r_locals.light_frame;
-			surf->light_mask = 0;
-		}
-
-		surf->light_mask |= bit; // add this light
-	}
-
-	// now go down both sides
-	R_MarkLight(l, node->children[0]);
-	R_MarkLight(l, node->children[1]);
-}
-
-/**
- * @brief Recurses the world, populating the light source bit masks of surfaces
- * that receive light.
- */
-void R_MarkLights(void) {
-	const r_bsp_model_t *bsp = r_model_state.world->bsp;
-	const r_light_t *l = r_view.lights;
-
-	r_locals.light_frame++;
-
-	if (r_locals.light_frame == INT16_MAX) { // avoid overflows
-		r_locals.light_frame = 0;
-	}
-
-	// mark each light against the world
-
-	for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
-		R_MarkLight(l, bsp->nodes);
-	}
-}
-
-/**
- * @brief Enables the light sources indicated by the specified bit mask. Care
- * is taken to avoid GL state changes whenever possible.
- */
-void R_EnableLights(uint64_t mask) {
-
-	if (r_state.active_program != program_default) {
-		return;
-	}
-
-	if (mask == r_locals.light_mask) { // no change
-		return;
-	}
-
-	r_locals.light_mask = mask;
-	uint16_t j = 0;
-	const matrix4x4_t *world_view = R_GetMatrixPtr(R_MATRIX_MODELVIEW);
-
-	if (mask) { // enable up to MAX_ACTIVE_LIGHT sources
-		const r_light_t *l = r_view.lights;
-
-		for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
-
-			if (j == r_state.max_active_lights) {
-				break;
-			}
-
-			const uint64_t bit = ((uint64_t ) 1 << i);
-			if (mask & bit) {
-				r_state.active_program->UseLight(j, world_view, l);
-				j++;
-			}
-		}
-	}
-
-	if (j < r_state.max_active_lights) { // disable the next light as a stop
-		r_state.active_program->UseLight(j, world_view, NULL);
-	}
+	glDeleteBuffers(1, &r_lights.buffer);
 }

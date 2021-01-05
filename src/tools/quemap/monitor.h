@@ -31,8 +31,8 @@ typedef enum {
 
 void Mon_SendMessage(mon_level_t level, const char *msg);
 
-void Mon_SendSelect_(const char *func, mon_level_t level, uint16_t e, uint16_t b, const char *msg);
-void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], uint16_t n, const char *msg);
+void Mon_SendSelect_(const char *func, mon_level_t level, int32_t e, int32_t b, const char *msg);
+void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], int32_t n, const char *msg);
 void Mon_SendPoint_(const char *func, mon_level_t level, const vec3_t p, const char *msg);
 
 #define Mon_SendSelect(l, e, b, msg) Mon_SendSelect_(__func__, l, e, b, msg)
@@ -41,4 +41,5 @@ void Mon_SendPoint_(const char *func, mon_level_t level, const vec3_t p, const c
 
 void Mon_Init(void);
 _Bool Mon_Connect(const char *host);
+_Bool Mon_IsConnected(void);
 void Mon_Shutdown(const char *msg);

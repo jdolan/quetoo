@@ -12,6 +12,7 @@ SUBDIRS = \
 	tests
 
 noinst_HEADERS = \
+	atlas.h \
 	cmd.h \
 	common.h \
 	console.h \
@@ -28,6 +29,7 @@ noinst_HEADERS = \
 	thread.h
 
 noinst_LTLIBRARIES = \
+	libatlas.la \
 	libcommon.la \
 	libconsole.la \
 	libfilesystem.la \
@@ -40,6 +42,18 @@ noinst_LTLIBRARIES = \
 	libsys.la \
 	libthread.la
 
+libatlas_la_SOURCES = \
+	atlas.c
+libatlas_la_CFLAGS = \
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
+libatlas_la_LDFLAGS = \
+	-shared
+libatlas_la_LIBADD = \
+	@GLIB_LIBS@ \
+	@SDL_LIBS@
+
 libcommon_la_SOURCES = \
 	common.c
 libcommon_la_CFLAGS = \
@@ -49,15 +63,17 @@ libcommon_la_CFLAGS = \
 libcommon_la_LDFLAGS = \
 	-shared
 libcommon_la_LIBADD = \
-	libshared.la
-	
+	libshared.la \
+	libparse.la
+
 libconsole_la_SOURCES = \
 	cmd.c \
 	console.c \
 	cvar.c
 libconsole_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 libconsole_la_LDFLAGS = \
 	-shared
 libconsole_la_LIBADD = \
@@ -130,6 +146,7 @@ libshared_la_CFLAGS = \
 libshared_la_LDFLAGS = \
 	-shared
 libshared_la_LIBADD = \
+	libswap.la \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@
 
@@ -137,7 +154,8 @@ libswap_la_SOURCES = \
 	swap.c
 libswap_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 libswap_la_LDFLAGS = \
 	-shared
 

@@ -28,7 +28,7 @@
 #pragma mark - Crosshair selection
 
 /**
- * @brief Fs_EnumerateFunc for crosshair selection.
+ * @brief Fs_Enumerator for crosshair selection.
  */
 static void enumerateCrosshairs(const char *path, void *data) {
 	char name[MAX_QPATH];
@@ -183,11 +183,11 @@ static void loadView(ViewController *self) {
 
 	// TODO: Add an enum for the crosshair health options, and iterate it here
 	$(this->crosshairHealth, addOption, "None", (ident) CROSSHAIR_HEALTH_NONE);
-	$(this->crosshairHealth, addOption, "red / green", (ident) CROSSHAIR_HEALTH_RED_GREEN);
-	$(this->crosshairHealth, addOption, "red / green / blue", (ident) CROSSHAIR_HEALTH_RED_GREEN_BLUE);
+	$(this->crosshairHealth, addOption, "red / white", (ident) CROSSHAIR_HEALTH_RED_WHITE);
+	$(this->crosshairHealth, addOption, "red / white / green", (ident) CROSSHAIR_HEALTH_RED_WHITE_GREEN);
 	$(this->crosshairHealth, addOption, "red / yellow / white", (ident) CROSSHAIR_HEALTH_RED_YELLOW_WHITE);
-	$(this->crosshairHealth, addOption, "red / yellow / white / blue", (ident) CROSSHAIR_HEALTH_RED_YELLOW_WHITE_BLUE);
-	$(this->crosshairHealth, addOption, "white / blue", (ident) CROSSHAIR_HEALTH_WHITE_BLUE);
+	$(this->crosshairHealth, addOption, "red / yellow / white / green", (ident) CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN);
+	$(this->crosshairHealth, addOption, "white / green", (ident) CROSSHAIR_HEALTH_WHITE_GREEN);
 
 	this->crosshairHealth->delegate.self = this;
 	this->crosshairHealth->delegate.didSelectOption = didSelectCrosshairHealth;

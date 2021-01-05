@@ -24,6 +24,6 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf);
-void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs);
+void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face);
+void R_UpdateFlares(r_view_t *view);
 #endif /* __R_LOCAL_H__ */

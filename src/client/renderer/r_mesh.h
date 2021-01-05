@@ -21,23 +21,7 @@
 
 #pragma once
 
-#include "r_types.h"
-
-void R_DrawMeshModel_default(const r_entity_t *e);
-void R_DrawMeshModelMaterials_default(const r_entity_t *e);
-const r_model_tag_t *R_MeshModelTag(const r_model_t *mod, const char *name, const int32_t frame);
-
 #ifdef __R_LOCAL_H__
-typedef struct {
-	r_material_t *material;
-	matrix4x4_t world_view; // the modelview matrix pre-entity rotation
-	vec4_t color; // the last color we bound
-} r_mesh_state_t;
-
-extern r_mesh_state_t r_mesh_state;
-
-void R_ApplyMeshModelConfig(r_entity_t *e);
-_Bool R_CullMeshModel(const r_entity_t *e);
-void R_UpdateMeshModelLighting(const r_entity_t *e);
-void R_DrawMeshModels_default(const r_entities_t *ents);
-#endif /* __R_LOCAL_H__ */
+void R_ApplyMeshConfig(r_entity_t *e);
+void R_ApplyMeshTag(r_entity_t *e);
+#endif

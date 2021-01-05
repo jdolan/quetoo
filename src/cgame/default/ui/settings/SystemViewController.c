@@ -90,7 +90,7 @@ static void loadView(ViewController *self) {
 
 	$(verticalSync, addOption, "Off", (ident) 0);
 	$(verticalSync, addOption, "On", (ident) 1);
-	$(verticalSync, addOption, "Adaptive", (ident) 2);
+	$(verticalSync, addOption, "Immediate", (ident) -1);
 
 	$(textureMode, addOption, "Nearest", "GL_NEAREST");
 	$(textureMode, addOption, "Bilinear", "GL_LINEAR");

@@ -21,8 +21,10 @@
 
 #pragma once
 
-#include <SDL2/SDL_video.h>
+#include <SDL_video.h>
 
+#include "atlas.h"
+#include "collision/collision.h"
 #include "files.h"
 #include "image.h"
 #include "matrix.h"
@@ -31,751 +33,626 @@
 #include "r_gl_types.h"
 
 /**
- * @brief Media identifier type
+ * @brief Media types.
  */
 typedef enum {
-	MEDIA_GENERIC, // unknown/generic type
-	MEDIA_IMAGE, // r_image_t
-	MEDIA_ATLAS, // r_atlas_t
-
-	MEDIA_MD3, //
-	MEDIA_OBJ, // r_model_t
-	MEDIA_BSP, //
-
-	MEDIA_MATERIAL, // r_material_t
-	MEDIA_FRAMEBUFFER, // r_framebuffer_t
-
-	MEDIA_TOTAL
+	R_MEDIA_GENERIC,
+	R_MEDIA_IMAGE,
+	R_MEDIA_ATLAS,
+	R_MEDIA_ATLAS_IMAGE,
+	R_MEDIA_ANIMATION,
+	R_MEDIA_MODEL,
+	R_MEDIA_MATERIAL,
+	R_MEDIA_TOTAL
 } r_media_type_t;
 
-// media handles
+/**
+ * @brief Images, atlases, models, materials, etc. are all managed as media.
+ */
 typedef struct r_media_s {
+	/**
+	 * @brief The media name.
+	 */
 	char name[MAX_QPATH];
+
+	/**
+	 * @brief The media type.
+	 */
 	r_media_type_t type;
+
+	/**
+	 * @brief The media on which this media depends.
+	 */
 	GList *dependencies;
+
+	/**
+	 * @brief The media registration callback.
+	 */
 	void (*Register)(struct r_media_s *self);
+
+	/**
+	 * @brief The media retain callback, to avoid being freed.
+	 */
 	_Bool (*Retain)(struct r_media_s *self);
+
+	/**
+	 * @brief The free callback, to release any system resources.
+	 */
 	void (*Free)(struct r_media_s *self);
+
+	/**
+	 * @brief The media seed, to determine if this media is current.
+	 */
 	int32_t seed;
 } r_media_t;
 
 typedef int16_t r_pixel_t;
 
 typedef enum {
-	MOD_BAD,
+	MOD_INVALID,
 	MOD_BSP,
 	MOD_BSP_INLINE,
 	MOD_MESH
 } r_model_type_t;
 
-// high bits OR'ed with image types
-#define IT_MASK_MIPMAP		0x100
-#define IT_MASK_FILTER		0x200
-#define IT_MASK_MULTIPLY	0x400
-#define IT_MASK_TYPE		0x7F
-#define IT_MASK_FLAGS		(-1 & ~IT_MASK_TYPE)
+// high bits OR'ed with image categories, flags are bits 24..31
+#define IT_MASK_MIPMAP		(1 << 24)
+#define IT_MASK_CLAMP_EDGE  (1 << 25)
+#define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE)
 
-// image types
+// image categories (bits 0..23) + flags are making image types
 typedef enum {
-	IT_NULL = 0,
-	IT_PROGRAM = 1,
-	IT_FONT = 2 + (IT_MASK_FILTER),
-	IT_UI = 3 + (IT_MASK_FILTER),
-	IT_EFFECT = 4 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_DIFFUSE = 5 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_LIGHTMAP = 6 + (IT_MASK_FILTER),
-	IT_DELUXEMAP = 7,
-	IT_NORMALMAP = 8 + (IT_MASK_MIPMAP),
-	IT_SPECULARMAP = 9 + (IT_MASK_MIPMAP),
-	IT_ENVMAP = 10 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
-	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
-	IT_ATLAS_IMAGE = 15, // image is an r_atlas_image_t*
-	IT_STAINMAP = 16,
-	IT_TINTMAP = 17 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
+	IT_PROGRAM =     (1 <<  1),
+	IT_FONT =        (1 <<  2),
+	IT_UI =          (1 <<  3),
+	IT_EFFECT =      (1 <<  4) + (IT_MASK_MIPMAP),
+	IT_MATERIAL =    (1 <<  5) + (IT_MASK_MIPMAP),
+	IT_PIC =         (1 <<  6) + (IT_MASK_MIPMAP),
+	IT_ATLAS =       (1 <<  7) + (IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE),
+	IT_LIGHTMAP =    (1 <<  8) + (IT_MASK_CLAMP_EDGE),
+	IT_LIGHTGRID =   (1 <<  9) + (IT_MASK_CLAMP_EDGE)
 } r_image_type_t;
-
-/**
- * @brief Buffer types
- */
-typedef enum {
-	R_BUFFER_DATA,
-	R_BUFFER_ELEMENT,
-
-	R_NUM_BUFFERS,
-
-	// buffer flags, not stored in type
-	R_BUFFER_INTERLEAVE = 4,
-	R_BUFFER_TYPE_MASK = 0x03
-} r_buffer_type_t;
-
-/**
- * @brief Attribute indices - these should be assigned to
- * every program that uses them, and are also used for buffer storage.
- */
-typedef enum {
-	R_ATTRIB_POSITION,
-	R_ATTRIB_COLOR,
-	R_ATTRIB_NORMAL,
-	R_ATTRIB_TANGENT,
-	R_ATTRIB_BITANGENT,
-	R_ATTRIB_DIFFUSE,
-	R_ATTRIB_LIGHTMAP,
-
-	/**
-	 * @brief These three are only used for shader-based lerp.
-	 * They are only enabled if the ones that match up to it are enabled as well.
-	 */
-	R_ATTRIB_NEXT_POSITION,
-	R_ATTRIB_NEXT_NORMAL,
-	R_ATTRIB_NEXT_TANGENT,
-	R_ATTRIB_NEXT_BITANGENT,
-
-	/**
-	 * @brief Geometry shader parameters
-	 */
-	R_ATTRIB_SCALE,
-	R_ATTRIB_ROLL,
-	R_ATTRIB_END,
-	R_ATTRIB_TYPE,
-
-	R_ATTRIB_ALL,
-
-	/**
-	 * @brief This is a special entry so that R_BindAttributeBuffer can be
-	 * used for binding element buffers as well.
-	 */
-	R_ATTRIB_ELEMENTS = -1
-} r_attribute_id_t;
-
-/**
- * @brief These are the masks used to tell which data
- * should be actually bound. They should match
- * up with the ones above to make things simple.
- */
-typedef enum {
-	R_ATTRIB_MASK_POSITION       = (1 << R_ATTRIB_POSITION),
-	R_ATTRIB_MASK_COLOR          = (1 << R_ATTRIB_COLOR),
-	R_ATTRIB_MASK_NORMAL         = (1 << R_ATTRIB_NORMAL),
-	R_ATTRIB_MASK_TANGENT        = (1 << R_ATTRIB_TANGENT),
-	R_ATTRIB_MASK_BITANGENT      = (1 << R_ATTRIB_BITANGENT),
-	R_ATTRIB_MASK_DIFFUSE        = (1 << R_ATTRIB_DIFFUSE),
-	R_ATTRIB_MASK_LIGHTMAP       = (1 << R_ATTRIB_LIGHTMAP),
-
-	R_ATTRIB_MASK_NEXT_POSITION  = (1 << R_ATTRIB_NEXT_POSITION),
-	R_ATTRIB_MASK_NEXT_NORMAL    = (1 << R_ATTRIB_NEXT_NORMAL),
-	R_ATTRIB_MASK_NEXT_TANGENT   = (1 << R_ATTRIB_NEXT_TANGENT),
-	R_ATTRIB_MASK_NEXT_BITANGENT = (1 << R_ATTRIB_NEXT_BITANGENT),
-
-	R_ATTRIB_MASK_SCALE          = (1 << R_ATTRIB_SCALE),
-	R_ATTRIB_MASK_ROLL           = (1 << R_ATTRIB_ROLL),
-	R_ATTRIB_MASK_END            = (1 << R_ATTRIB_END),
-	R_ATTRIB_MASK_TYPE           = (1 << R_ATTRIB_TYPE),
-
-	R_ATTRIB_MASK_ALL            = (1 << R_ATTRIB_ALL) - 1,
-	R_ATTRIB_GEOMETRY_MASK       = R_ATTRIB_MASK_SCALE | R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE
-} r_attribute_mask_t;
-
-/**
- * @brief Types that can be used in buffers for attributes.
- */
-typedef enum {
-	R_TYPE_FLOAT,
-	R_TYPE_BYTE,
-	R_TYPE_UNSIGNED_BYTE,
-	R_TYPE_SHORT,
-	R_TYPE_UNSIGNED_SHORT,
-	R_TYPE_INT,
-	R_TYPE_UNSIGNED_INT,
-
-	R_TYPE_INTERLEAVE // special value to denote interleave buffers
-} r_attrib_type_t;
-
-/**
- * @brief A structure packing a bunch of attribute state together
- * for quick comparison of a single variable.
- *
- * @note if any of the enums or data types used here change,
- * be sure to modify the bit field too.
- */
-typedef union {
-	uint32_t packed;
-
-	struct {
-		uint32_t normalized : 1; // bool
-		uint32_t integer : 1; // bool
-		uint32_t type : 3; // r_attrib_type_t, max 7
-		uint32_t count : 3; // # of elements, max 7
-		uint32_t offset : 12; // offset in bytes, max 4095
-		uint32_t stride : 12; // offset in bytes, max 4095
-	};
-} r_attrib_type_state_t;
-
-/**
- * @brief Represents a single attribute layout for a buffer.
- * An interleaved buffer will supply a chain of these.
- * The last entry should have an 'attribute' of -1.
- */
-typedef struct {
-	r_attrib_type_t type;
-	uint8_t count;
-	_Bool normalized;
-	_Bool integer;
-
-	// only required for interleave buffers
-	r_attribute_id_t attribute;
-
-	// internal, no touch
-	GLenum gl_type;
-	r_attrib_type_state_t _type_state;
-} r_buffer_layout_t;
-
-/**
- * @brief Structure that holds construction arguments for buffers
- */
-typedef struct {
-	r_buffer_type_t type;
-	GLenum hint;
-	r_buffer_layout_t element;
-	size_t size;
-	const void *data;
-} r_create_buffer_t;
-
-/**
- * @brief Structure that holds construction arguments for element buffers
- */
-typedef struct {
-	r_attrib_type_t type;
-	GLenum hint;
-	size_t size;
-	const void *data;
-} r_create_element_t;
-
-/**
- * @brief Structure that holds construction arguments for interleave buffers
- */
-typedef struct {
-	GLubyte struct_size;
-	r_buffer_layout_t *layout;
-	GLenum hint;
-	size_t size;
-	const void *data;
-} r_create_interleave_t;
-
-/**
- * @brief Buffers are used to hold data for the renderer.
- */
-typedef struct r_buffer_s {
-	r_buffer_type_t type; // R_BUFFER_DATA or R_BUFFER_ELEMENT
-	GLenum hint; // GL_x_y, where x is STATIC or DYNAMIC, and where y is DRAW, READ or COPY
-	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
-	GLuint bufnum; // e.g. 123
-	size_t size; // last size of buffer, for resize operations
-
-	// attribute crap
-	r_attrib_type_state_t element_type;
-	GLenum element_gl_type;
-	r_attribute_mask_t attrib_mask;
-	const r_buffer_layout_t *interleave_attribs[R_ATTRIB_ALL];
-	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
-} r_buffer_t;
 
 /**
  * @brief Images are referenced by materials, models, entities, particles, etc.
  */
 typedef struct {
+	/**
+	 * @brief The media.
+	 */
 	r_media_t media;
+
+	/**
+	 * @brief The image type.
+	 */
 	r_image_type_t type;
-	r_pixel_t width, height; // image dimensions
-	GLuint texnum; // OpenGL texture binding
-	vec3_t color; // average color
+
+	/**
+	 * @brief The image width, height and depth (or layers).
+	 */
+	r_pixel_t width, height, depth;
+
+	/**
+	 * @brief The texture name.
+	 */
+	GLuint texnum;
+
 } r_image_t;
 
 /**
- * @brief An atlas is composed of multiple images stitched together to make
- * a single image. It is a sub-type of r_image_t.
+ * @brief An image atlas.
  */
 typedef struct {
-	r_image_t image;
-	GArray *images; // image list
-	GHashTable *hash; // hash of image -> image list ptr
+	/**
+	 * @brief The media.
+	 */
+	r_media_t media;
+
+	/**
+	 * @brief The atlas.
+	 */
+	atlas_t *atlas;
+
+	/**
+	 * @brief The compiled image atlas containing all nodes.
+	 */
+	r_image_t *image;
+
+	/**
+	 * @brief True if this at atlas should be recompiled.
+	 */
+	_Bool dirty;
 } r_atlas_t;
 
 /**
- * @brief This is a proxy structure that allows an atlased piece of texture to be
- * used in places that expect r_image_t's.
+ * @brief An atlas image, castable to r_image_t and r_media_t.
  */
 typedef struct {
-	r_image_t image; // this allows the individual atlas piece to be used as an image
+	/**
+	 * @brief The image.
+	 */
+	r_image_t image;
 
-	const r_image_t *input_image; // image ptr
-	u16vec2_t position; // position in pixels
-	vec4_t texcoords; // position in texcoords
-	color_t *scratch; // scratch space for image
-	r_atlas_t *atlas; // our owner atlas
+	/**
+	 * @brief The atlas node that created this atlas image.
+	 */
+	atlas_node_t *node;
+
+	/**
+	 * @brief The texture coordinates of this atlas image within the atlas.
+	 */
+	vec4_t texcoords;
 } r_atlas_image_t;
 
 /**
- * @brief A framebuffer is a screen buffer that can be drawn to.
+ * @brief An animation, castable to r_media_t.
  */
 typedef struct {
+	/**
+	 * @brief The media.
+	 */
 	r_media_t media;
-	GLuint framebuffer;
-
-	r_image_t *color; // the texture color attachment
-	r_image_type_t color_type; // since color might be freed
-	GLuint depth_stencil;
-
-	uint32_t width, height; // matches color attachment
-} r_framebuffer_t;
-
-/**
- * @brief Special index to mean "use default buffer"
- */
-#define FRAMEBUFFER_DEFAULT	NULL
-
-typedef enum {
-	PARTICLE_NORMAL,
-	PARTICLE_SPARK,
-	PARTICLE_ROLL,
-	PARTICLE_EXPLOSION,
-	PARTICLE_BUBBLE,
-	PARTICLE_BEAM,
-	PARTICLE_WEATHER,
-	PARTICLE_SPLASH,
-	PARTICLE_CORONA,
-	PARTICLE_FLARE,
-	PARTICLE_WIRE
-} r_particle_type_t;
-
-typedef enum {
-	PARTICLE_FLAG_NONE,
 
 	/**
-	 * @brief Only for PARTICLE_BEAM - causes the beam to
-	 * repeat instead of stretch
+	 * @brief The number of frames in this animation.
 	 */
-	PARTICLE_FLAG_REPEAT = 1 << 0,
+	int32_t num_frames;
 
 	/**
-	 * @brief Always sort closest to camera
+	 * @brief The frames in this animation.
 	 */
-	PARTICLE_FLAG_NO_DEPTH = 1 << 1,
-} r_particle_flags_t;
+	const r_image_t **frames;
+} r_animation_t;
 
 /**
- * @brief Particles are alpha-blended quads.
+ * @brief Material stages.
  */
-typedef struct r_particle_s {
-	r_particle_type_t type;
-	const r_image_t *image;
-	GLenum blend;
-	vec4_t color;
-	vec_t scale;
-	vec_t scroll_s;
-	vec_t scroll_t;
-	vec_t roll;
-	vec3_t org;
-	vec3_t end;
-	vec3_t dir;
-	r_particle_flags_t flags;
-	vec_t repeat_scale;
-} r_particle_t;
-
-#define MAX_PARTICLES		16384
-
-// renderer-specific material stuff
-typedef struct {
-	vec_t dhz;
-} r_stage_pulse_t;
-
-typedef struct {
-	vec_t dhz;
-	vec_t damp;
-} r_stage_stretch_t;
-
-typedef struct {
-	vec_t deg;
-} r_stage_rotate_t;
-
-typedef struct {
-	vec_t ds, dt;
-} r_stage_scroll_t;
-
-// frame based material animation, lerp between consecutive images
-typedef struct {
-	r_image_t **frames;
-	uint32_t dtime;
-	uint16_t dframe;
-} r_stage_anim_t;
-
 typedef struct r_stage_s {
-	const struct cm_stage_s *cm; // link to cm stage
+	/**
+	 * @brief The backing collision material stage.
+	 */
+	const cm_stage_t *cm;
 
-	// renderer-local stuff parsed from cm
-	struct r_material_s *material;
-	r_image_t *image;
-	r_stage_pulse_t pulse;
-	r_stage_stretch_t stretch;
-	r_stage_rotate_t rotate;
-	r_stage_scroll_t scroll;
-	r_stage_anim_t anim;
+	/**
+	 * @brief Stages with a render pass will reference an image, atlas image, material, animation, etc.
+	 */
+	r_media_t *media;
 
-	// next stage
+	/**
+	 * @brief The next stage in the material.
+	 */
 	struct r_stage_s *next;
 } r_stage_t;
 
+/**
+ * @brief Materials define texture, animation and lighting properties for BSP and mesh models.
+ */
 typedef struct r_material_s {
-	// from media
+	/**
+	 * @brief Materials are media.
+	 */
 	r_media_t media;
 
-	struct cm_material_s *cm; // the parsed material
+	/**
+	 * @brief The collision material definition.
+	 */
+	cm_material_t *cm;
 
-	// renderer-local stuff parsed from cm
-	r_image_t *diffuse;
-	r_image_t *normalmap;
-	r_image_t *specularmap;
-	r_image_t *tintmap;
+	/**
+	 * @brief The layered texture containing the diffusemap, normalmap and glossmap.
+	 */
+	r_image_t *texture;
 
-	uint32_t time;
-
+	/**
+	 * @brief Animated stage definitions.
+	 */
 	r_stage_t *stages;
+
+	/**
+	 * @brief The time when this material was last animated.
+	 */
+	uint32_t ticks;
 } r_material_t;
 
-// bsp model memory representation
-typedef struct {
-	vec3_t mins, maxs;
-	vec3_t origin; // for sounds or lights
-	vec_t radius;
-	int32_t head_node;
-	uint16_t first_surface, num_surfaces;
-} r_bsp_inline_model_t;
-
 /**
- * @brief Resolves a unique(ish) stencil reference value for the given plane number.
+ * @brief BSP texture information.
  */
-#define R_STENCIL_REF(pnum) (((pnum) % 0xff) + 1)
-
 typedef struct {
-	uint16_t v[2];
-} r_bsp_edge_t;
+	/**
+	 * @brief The XYZ + W texture vectors in world space.
+	 */
+	vec4_t vecs[2];
 
-typedef struct {
-	char name[32];
-	vec_t vecs[2][4];
-	vec2_t scale;
-	uint32_t flags;
+	/**
+	 * @brief The surface flags.
+	 */
+	int32_t flags;
+
+	/**
+	 * @brief The surface value, for lights or Phong grouping.
+	 */
 	int32_t value;
+
+	/**
+	 * @brief The diffusemap texture name.
+	 */
+	char texture[32];
+
+	/**
+	 * @brief The material.
+	 */
 	r_material_t *material;
-	vec3_t emissive;
-	vec_t light;
 } r_bsp_texinfo_t;
 
+/**
+ * @brief BSP plane structure.
+ */
 typedef struct {
-	vec_t radius;
-	uint32_t time;
-	vec_t alpha;
+	/**
+	 * @brief The collision plane.
+	 */
+	const cm_bsp_plane_t *cm;
 
-	r_particle_t particle;
-} r_bsp_flare_t;
+	/**
+	 * @brief The alpha blended draw elements referencing this plane.
+	 */
+	GPtrArray *blend_elements;
+} r_bsp_plane_t;
 
-// r_bsp_surface_t flags
-#define R_SURF_PLANE_BACK	1
-#define R_SURF_LIGHTMAP		2
-#define R_SURF_UNDERLIQUID	4
-
+/**
+ * @brief BSP vertex structure.
+ */
 typedef struct {
-	r_image_t *image;
-	r_framebuffer_t *fb;
+	vec3_t position;
+	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
+	vec2_t diffusemap;
+	vec2_t lightmap;
+	color32_t color;
+} r_bsp_vertex_t;
 
-	matrix4x4_t projection; // projection for this stainmap
-} r_stainmap_t;
-
+/**
+ * @brief Indivudual face lightmap information.
+ */
 typedef struct {
-	int16_t vis_frame; // PVS frame
-	int16_t frame; // renderer frame
-	int16_t back_frame; // back-facing renderer frame
-	int16_t light_frame; // dynamic lighting frame
-	uint64_t light_mask; // bit mask of dynamic light sources
+	/**
+	 * @brief The texture coordinates of this lightmap in the lightmap atlas.
+	 */
+	r_pixel_t s, t;
 
-	cm_bsp_plane_t *plane;
-	uint16_t flags; // R_SURF flags
+	/**
+	 * @brief The width and height of this lightmap.
+	 */
+	r_pixel_t w, h;
 
-	int32_t first_edge; // look up in model->surf_edges, negative numbers
-	uint16_t num_edges; // are backwards edges
+	/**
+	 * @brief The world-to-lightmap projection matrix.
+	 */
+	mat4_t matrix;
+
+	/**
+	 * @brief The texture coordinate bounds.
+	 */
+	vec2_t st_mins, st_maxs;
+
+	/**
+	 * @brief The stainmap for this lightmap.
+	 */
+	byte *stainmap;
+} r_bsp_face_lightmap_t;
+
+/**
+ * @brief BSP faces, which may reside on the front or back of their node.
+ */
+typedef struct {
+	struct r_bsp_node_s *node;
+
+	r_bsp_plane_t *plane;
+	byte plane_side;
+
+	r_bsp_texinfo_t *texinfo;
+	int32_t contents;
 
 	vec3_t mins;
 	vec3_t maxs;
-	vec3_t center;
-	vec3_t normal;
-	vec_t area;
 
-	vec2_t st_mins;
-	vec2_t st_maxs;
-	vec2_t st_center;
+	struct r_sprite_s *flare;
 
-	GLuint index; // index into element buffer
-	GLuint *elements; // elements unique to this surf
+	r_bsp_face_lightmap_t lightmap;
 
-	r_bsp_texinfo_t *texinfo; // SURF_ flags
+	r_bsp_vertex_t *vertexes;
+	int32_t num_vertexes;
 
-	r_bsp_flare_t *flare;
+	GLvoid *elements;
+	int32_t num_elements;
 
-	r_pixel_t lightmap_size[2];
-	r_pixel_t lightmap_s, lightmap_t; // lightmap texture coords
-
-	r_image_t *lightmap;
-	r_image_t *deluxemap;
-
-	// pointer to lightmap data on bsp.
-	const byte *lightmap_input;
-
-	r_stainmap_t stainmap; // the stainmap image to use
-} r_bsp_surface_t;
+	int32_t stain_frame;
+} r_bsp_face_t;
 
 /**
- * @brief Surfaces are assigned to arrays based on their render path and then
- * ordered by material to reduce glBindTexture calls.
+ * @brief BSP draw elements, which include all opaque faces of a given material
+ * within a particular inline model.
  */
 typedef struct {
-	r_bsp_surface_t **surfaces;
-	size_t count;
-} r_bsp_surfaces_t;
+	r_bsp_plane_t *plane;
+	byte plane_side;
+
+	r_bsp_texinfo_t *texinfo;
+	int32_t contents;
+
+	vec3_t mins;
+	vec3_t maxs;
+
+	GLvoid *elements;
+	int32_t num_elements;
+
+	vec2_t st_origin;
+
+	int32_t blend_depth_types;
+} r_bsp_draw_elements_t;
 
 /**
- * @brief The world model maintains master lists of all surfaces, partitioned
- * by render path and ordered by material.
+ * @brief BSP occlusion queries are defined by brushes with CONTENTS_OCCLUSION_QUERY.
+ * @remarks Occlusion queries are processed once per frame. Objects residing completely
+ * within such a brush may be culled if the occlusion query produces no visible samples.
  */
 typedef struct {
-	r_bsp_surfaces_t sky;
-	r_bsp_surfaces_t opaque;
-	r_bsp_surfaces_t opaque_warp;
-	r_bsp_surfaces_t alpha_test;
-	r_bsp_surfaces_t blend;
-	r_bsp_surfaces_t blend_warp;
-	r_bsp_surfaces_t material;
-	r_bsp_surfaces_t flare;
-	r_bsp_surfaces_t back;
-} r_sorted_bsp_surfaces_t;
+	GLuint name;
+
+	vec3_t mins;
+	vec3_t maxs;
+
+	vec3_t vertexes[8];
+
+	_Bool pending;
+	
+	GLint result;
+} r_bsp_occlusion_query_t;
 
 /**
- * @brief Appends a reference to the specified face to the given surfaces list.
+ * @brief BSP nodes comprise the tree representation of the world.
  */
-#define R_SURFACE_TO_SURFACES(surfs, surf) (surfs)->surfaces[(surfs)->count++] = surf
-
-/**
- * @brief Function prototype for BSP surfaces draw lists.
- */
-typedef void (*BspSurfacesDrawFunc)(const r_bsp_surfaces_t *surfs);
-
-/**
- * @brief BSP nodes comprise the tree representation of the world. At compile
- * time, the map is divided into convex volumes that fall along brushes
- * (walls). These volumes become nodes. The planes these divisions create
- * provide a basis for testing all other nodes in the world for sidedness
- * using the dot-product check: DOT(point, plane.normal) - plane.dist.
- * Starting from the origin, this information is gathered into a tree structure
- * with which a simple recursion can quickly determine:
- *
- *  a. Which nodes are in front of my view vector from my current origin?
- *  b. Of those, which nodes are facing me?
- *
- * This is the basis for all collision detection and rendering in Quake.
- */
-typedef struct r_bsp_node_s {
+struct r_bsp_node_s {
 	// common with leaf
 	int32_t contents; // -1, to differentiate from leafs
-	int16_t vis_frame; // node needs to be traversed if current
 
-	vec3_t mins; // for bounded box culling
+	vec3_t mins;
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
-	struct r_model_s *model;
+	struct r_bsp_inline_model_s *model;
 
 	// node specific
-	cm_bsp_plane_t *plane;
+	r_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
-	uint16_t first_surface;
-	uint16_t num_surfaces;
-} r_bsp_node_t;
+	r_bsp_face_t *faces;
+	int32_t num_faces;
+};
+
+typedef struct r_bsp_node_s r_bsp_node_t;
 
 /**
- * @brief BSP leafs terminate the branches of the BSP tree and provide grouping
- * for surfaces. If a leaf is found to be in the potentially visible set (PVS)
- * for a given frame, then all surfaces associated to that leaf are flagged for
- * drawing.
+ * @brief BSP leafs terminate the branches of the BSP tree.
  */
-typedef struct {
+struct r_bsp_leaf_s {
 	// common with node
-	int32_t contents; // will be a negative contents number
-	int16_t vis_frame; // node needs to be traversed if current
+	int32_t contents;
 
-	vec3_t mins; // for bounding box culling
+	vec3_t mins;
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
-	struct r_model_s *model;
+	struct r_bsp_inline_model_s *model;
+};
 
-	// leaf specific
-	int16_t cluster;
-	int16_t area;
+typedef struct r_bsp_leaf_s r_bsp_leaf_t;
 
-	r_bsp_surface_t **first_leaf_surface;
-	uint16_t num_leaf_surfaces;
-} r_bsp_leaf_t;
+/**
+ * @brief The BSP is organized into one or more models (trees). The first model is
+ * the worldspawn model, and typically is the largest. An additional model exists
+ * for each entity that contains brushes. Non-worldspawn models can move and rotate.
+ */
+typedef struct r_bsp_inline_model_s {
+	/**
+	 * @brief The head node of this inline model.
+	 * @brief This is a pointer into the BSP model's nodes array.
+	 */
+	r_bsp_node_t *head_node;
+
+	/**
+	 * @brief For frustum culling.
+	 */
+	vec3_t mins;
+	vec3_t maxs;
+
+	/**
+	 * @brief The faces of this inline model.
+	 * @remarks This is a pointer into the BSP model's faces array.
+	 */
+	r_bsp_face_t *faces;
+	int32_t num_faces;
+
+	/**
+	 * @brief The alpha blended draw elements of this inline model, sorted by depth each frame.
+	 */
+	GPtrArray *blend_elements;
+
+	/**
+	 * @brief The faces of this inline model that include flares, sorted by material at level load.
+	 */
+	GPtrArray *flare_faces;
+
+	/**
+	 * @brief The draw elements of this inline model.
+	 * @brief This is a pointer into the BSP model's draw elements array.
+	 */
+	r_bsp_draw_elements_t *draw_elements;
+	int32_t num_draw_elements;
+} r_bsp_inline_model_t;
 
 /**
  * @brief
  */
 typedef struct {
-	int16_t vis_frame; // PVS eligibility
-} r_bsp_cluster_t;
-
-/**
- * @brief BSP light sources.
- */
-typedef struct {
-	const r_bsp_leaf_t *leaf;
-	uint16_t count;
+	/**
+	 * @brief The atlas width.
+	 */
+	int32_t width;
 
 	/**
-	 * @see r_light_t
+	 * @brief The lightmap atlas.
 	 */
-	struct {
-		vec3_t origin;
-		vec3_t color;
-		vec_t radius;
-	} light;
+	r_image_t *atlas;
+} r_bsp_lightmap_t;
 
-	r_particle_t debug;
+/**
+ * @brief
+ */
+typedef struct {
+	/**
+	 * @brief The lightgrid size in luxels.
+	 */
+	vec3i_t size;
 
-} r_bsp_light_t;
+	/**
+	 * @brief The lightgrid bounds in world space.
+	 */
+	vec3_t mins, maxs;
+
+	/**
+	 * @brief The lightgrid textures (ambient, diffuse, etc..).
+	 */
+	r_image_t *textures[BSP_LIGHTGRID_TEXTURES + BSP_FOG_TEXTURES];
+} r_bsp_lightgrid_t;
+
+/**
+ * @brief The renderer representation of the BSP model.
+ */
+typedef struct {
+
+	cm_bsp_t *cm;
+
+	int32_t num_planes;
+	r_bsp_plane_t *planes;
+
+	int32_t num_texinfo;
+	r_bsp_texinfo_t *texinfo;
+
+	int32_t num_vertexes;
+	r_bsp_vertex_t *vertexes;
+
+	int32_t num_elements;
+	GLuint *elements;
+
+	int32_t num_faces;
+	r_bsp_face_t *faces;
+
+	int32_t num_draw_elements;
+	r_bsp_draw_elements_t *draw_elements;
+
+	int32_t num_occlusion_queries;
+	r_bsp_occlusion_query_t *occlusion_queries;
+
+	int32_t num_nodes;
+	r_bsp_node_t *nodes;
+
+	int32_t num_leafs;
+	r_bsp_leaf_t *leafs;
+
+	int32_t num_inline_models;
+	r_bsp_inline_model_t *inline_models;
+
+	int32_t luxel_size;
+
+	r_bsp_lightmap_t *lightmap;
+	r_bsp_lightgrid_t *lightgrid;
+
+	GLuint vertex_array;
+	GLuint vertex_buffer;
+	GLuint elements_buffer;
+
+} r_bsp_model_t;
 
 // mesh model, used for objects
 typedef struct {
-	vec3_t point;
+	vec3_t position;
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-} r_model_vertex_t;
+	vec2_t diffusemap;
+} r_mesh_vertex_t;
 
 typedef struct {
-	char name[MD3_MAX_PATH];
-	matrix4x4_t matrix;
-} r_model_tag_t;
+	vec3_t mins;
+	vec3_t maxs;
+	vec3_t translate;
+} r_mesh_frame_t;
 
 typedef struct {
-	char name[MD3_MAX_PATH];
+	char name[MAX_QPATH];
+	mat4_t matrix;
+} r_mesh_tag_t;
 
-	uint16_t num_verts;
-	uint16_t num_tris;
-	uint32_t num_elements;
+typedef struct {
+	char name[MAX_QPATH];
 
 	r_material_t *material;
-} r_model_mesh_t;
+
+	r_mesh_vertex_t *vertexes;
+	int32_t num_vertexes;
+
+	GLvoid *elements;
+	int32_t num_elements;
+} r_mesh_face_t;
 
 typedef struct {
-	uint16_t first_frame;
-	uint16_t num_frames;
-	uint16_t looped_frames;
-	uint16_t hz;
-} r_model_animation_t;
-
-// BSP model, used for maps
-typedef struct {
-	int32_t version;
-
-	/**
-	 * @brief Reference to the cm_ bsp that is currently loaded. We use this
-	 * to populate some stuff in r_bsp.
-	 */
-	cm_bsp_t *cm;
-	bsp_file_t *file;
-
-	uint16_t num_inline_models;
-	r_bsp_inline_model_t *inline_models;
-
-	uint16_t num_leafs;
-	r_bsp_leaf_t *leafs;
-
-	uint16_t num_nodes;
-	r_bsp_node_t *nodes;
-
-	uint16_t num_texinfo;
-	r_bsp_texinfo_t *texinfo;
-
-	uint16_t num_surfaces;
-	r_bsp_surface_t *surfaces;
-
-	uint16_t num_leaf_surfaces;
-	r_bsp_surface_t **leaf_surfaces;
-
-	uint16_t num_clusters;
-	r_bsp_cluster_t *clusters;
-
-	vec_t lightmap_scale;
-
-	uint16_t num_bsp_lights;
-	r_bsp_light_t *bsp_lights;
-
-	// sorted surfaces arrays
-	r_sorted_bsp_surfaces_t *sorted_surfaces;
-
-	// vertex arrays, for materials
-	vec3_t *verts;
-	vec2_t *texcoords;
-	vec2_t *lightmap_texcoords;
-	vec3_t *normals;
-	vec3_t *tangents;
-	vec3_t *bitangents;
-
-	// buffers
-	r_buffer_t vertex_buffer;
-	r_buffer_t element_buffer;
-
-	// an array of shadow counts, indexed by plane number
-	uint16_t *plane_shadows;
-} r_bsp_model_t;
+	int32_t first_frame;
+	int32_t num_frames;
+	int32_t looped_frames;
+	int32_t hz;
+} r_mesh_animation_t;
 
 /**
  * @brief Provides load-time normalization of mesh models.
  */
 typedef struct {
-	vec3_t translate;
-	vec3_t rotate;
-	vec_t scale;
+	mat4_t transform;
 	uint32_t flags; // EF_ALPHA_TEST, etc..
 } r_mesh_config_t;
 
 typedef struct {
 	uint32_t flags;
 
-	uint16_t num_frames;
-	uint16_t num_tags;
-	uint16_t num_meshes;
-	uint16_t num_animations;
+	r_mesh_vertex_t *vertexes;
+	int32_t num_vertexes;
 
-	r_model_tag_t *tags;
-	r_model_mesh_t *meshes;
-	r_model_animation_t *animations;
+	GLuint *elements;
+	int32_t num_elements;
 
-	r_mesh_config_t world_config;
-	r_mesh_config_t view_config;
-	r_mesh_config_t link_config;
+	r_mesh_frame_t *frames;
+	int32_t num_frames;
+
+	r_mesh_tag_t *tags;
+	int32_t num_tags;
+
+	r_mesh_face_t *faces;
+	int32_t num_faces;
+
+	r_mesh_animation_t *animations;
+	int32_t num_animations;
+
+	struct {
+		r_mesh_config_t world;
+		r_mesh_config_t view;
+		r_mesh_config_t link;
+	} config;
 
 	// buffer data
-	r_buffer_t vertex_buffer;
-	r_buffer_t element_buffer;
-
-	// animated models use a separate texcoord buffer
-	r_buffer_t texcoord_buffer;
-
-	r_buffer_t shell_vertex_buffer;
-	r_buffer_t shell_element_buffer;
+	GLuint vertex_buffer;
+	GLuint elements_buffer;
+	GLuint vertex_array;
 } r_mesh_model_t;
 
 /**
@@ -795,11 +672,8 @@ typedef struct r_model_s {
 	size_t num_materials;
 
 	vec3_t mins, maxs;
-	vec_t radius;
+	float radius;
 
-	GLsizei num_verts; // raw vertex primitive count, used to build arrays
-	GLsizei num_elements; // number of vertex elements, if element_buffer is to be used
-	GLsizei num_tris; // cached num_tris amount
 } r_model_t;
 
 #define IS_BSP_MODEL(m) (m && m->type == MOD_BSP)
@@ -807,107 +681,268 @@ typedef struct r_model_s {
 #define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
 
 /**
+ * @brief
+ */
+enum {
+	/**
+	 * @brief If set, sprite does not attempt to check blend depth.
+	 */
+	SPRITE_NO_BLEND_DEPTH	= 1 << 0,
+
+	/**
+	 * @brief If set, animation interpolates
+	 */
+	SPRITE_LERP				= 1 << 1,
+
+	/**
+	 * @brief Beginning of flags reserved for cgame
+	 */
+	SPRITE_CGAME			= 1 << 16
+};
+
+typedef uint32_t r_sprite_flags_t;
+
+/**
+ * @brief 
+ */
+typedef enum {
+	/**
+	 * @brief 
+	 */
+	SPRITE_AXIS_ALL = 0,
+	
+	/**
+	 * @brief 
+	 */
+	SPRITE_AXIS_X = 1,
+	
+	/**
+	 * @brief 
+	 */
+	SPRITE_AXIS_Y = 2,
+	
+	/**
+	 * @brief 
+	 */
+	SPRITE_AXIS_Z = 4
+} r_sprite_billboard_axis_t;
+
+/**
+ * @brief Sprites are billboarded alpha blended quads, optionally animated.
+ */
+typedef struct r_sprite_s {
+	/**
+	 * @brief The sprite origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The sprite size; if set, this is used for both width & height, otherwise width/height are used.
+	 */
+	float size;
+
+	/**
+	 * @brief The sprite width.
+	 */
+	float width;
+
+	/**
+	 * @brief The sprite width.
+	 */
+	float height;
+	
+	/**
+	 * @brief The sprite media (an r_amimation_t, r_image_t, etc).
+	 */
+	r_media_t *media;
+
+	/**
+	 * @brief The sprite's rotation, for non-beam sprites.
+	 */
+	float rotation;
+
+	/**
+	 * @brief The sprite color.
+	 */
+	color32_t color;
+	
+	/**
+	 * @brief The sprite's life from 0 to 1.
+	 */
+	float life;
+
+	/**
+	 * @brief Direction of the sprite. { 0, 0, 0 } is billboard.
+	 */
+	vec3_t dir;
+	
+	/**
+	 * @brief Axis modifier for billboard sprites.
+	 */
+	r_sprite_billboard_axis_t axis;
+
+	/**
+	 * @brief Sprite flags
+	 */
+	r_sprite_flags_t flags;
+} r_sprite_t;
+
+#define MAX_SPRITES		0x8000
+
+/**
+ * @brief Beams are segmented sprites.
+ */
+typedef struct {
+	/**
+	 * @brief The beam start.
+	 */
+	vec3_t start;
+
+	/**
+	 * @brief The beam end.
+	 */
+	vec3_t end;
+
+	/**
+	 * @brief The beam size.
+	 */
+	float size;
+	
+	/**
+	 * @brief The beam texture.
+	 */
+	r_image_t *image;
+
+	/**
+	 * @brief The beam color.
+	 */
+	color32_t color;
+	
+	/**
+	 * @brief The beam texture translation.
+	 */
+	float translate;
+			
+	/**
+	 * @brief The beam texture stretch.
+	 */
+	float stretch;
+			
+	/**
+	 * @brief The beam flags.
+	 */
+	r_sprite_flags_t flags;
+} r_beam_t;
+
+#define MAX_BEAMS 0x200
+
+/**
+ * @brief The sprite instance vertex structure.
+ */
+typedef struct {
+	vec3_t position;
+	vec2_t diffusemap;
+	vec2_t next_diffusemap;
+	color32_t color;
+	float lerp;
+} r_sprite_vertex_t;
+
+/**
+ * @brief An instance of a renderable sprite.
+ */
+typedef struct r_sprite_instance_s {
+	/**
+	 * @brief The diffusemap texture.
+	 */
+	const r_image_t *diffusemap;
+
+	/**
+	 * @brief The next diffusemap texture for frame interpolation.
+	 */
+	const r_image_t *next_diffusemap;
+
+	/**
+	 * @brief The sprite vertexes in the shared array.
+	 */
+	r_sprite_vertex_t *vertexes;
+
+	/**
+	 * @brief The element offset in the shared array.
+	 */
+	ptrdiff_t offset;
+
+	/**
+	 * @brief The blend depth at which this sprite should be rendered.
+	 */
+	int32_t blend_depth;
+
+	/**
+	 * @brief The next sprite instance to be rendered at the same blend depth.
+	 */
+	struct r_sprite_instance_s *blend_chain;
+
+} r_sprite_instance_t;
+
+#define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
+
+/**
  * @brief Stains are low-resolution color effects added to the map's lightmap
  * data. They are persistent for the duration of the map.
  */
 typedef struct {
+	/**
+	 * @brief The stain origin.
+	 */
 	vec3_t origin;
-	vec_t radius;
-	const r_image_t *image;
-	vec4_t color;
+
+	/**
+	 * @brief The stain radius.
+	 */
+	float radius;
+
+	/**
+	 * @brief The stain color.
+	 */
+	color_t color;
 } r_stain_t;
 
-#define MAX_STAINS			64
+#define MAX_STAINS			0x400
 
 /**
- * @brief Dynamic light sources expire immediately and must be re-added
- * for each frame they appear.
+ * @brief Dynamic light sources.
+ * @remarks This struct is vec4 aligned.
  */
 typedef struct {
+	/**
+	 * @brief The light origin.
+	 */
 	vec3_t origin;
+
+	/**
+	 * @brief The light radius.
+	 */
+	float radius;
+
+	/**
+	 * @brief The light color.
+	 */
 	vec3_t color;
-	vec_t radius;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
 } r_light_t;
 
-#define MAX_LIGHTS			64
+/**
+ * @brief 32 dynamic light sources per scene.
+ */
+#define MAX_LIGHTS			0x20
 
 /**
- * @brief Sustains are light flashes which slowly decay over time. These
- * persist over multiple frames.
+ * @brief Entity sub-mesh skins.
  */
-typedef struct {
-	r_light_t light;
-	uint32_t time;
-	uint32_t sustain;
-} r_sustained_light_t;
-
-typedef enum {
-	ILLUM_AMBIENT = 0x1,
-	ILLUM_SUN     = 0x2,
-	ILLUM_STATIC  = 0x4,
-	ILLUM_DYNAMIC = 0x8
-} r_illumination_type_t;
-
-/**
- * @brief Describes a light source contributions to point lighting.
- */
-typedef struct {
-	r_illumination_type_t type;
-	r_light_t light;
-	vec_t diffuse;
-} r_illumination_t;
-
-/**
- * @brief Describes the projection of a mesh model onto a BSP plane.
- */
-typedef struct {
-	const r_illumination_t *illumination;
-	cm_bsp_plane_t plane;
-	vec_t shadow;
-} r_shadow_t;
-
-/**
- * @brief Static lighting information is cached on the client entity structure.
- */
-typedef enum {
-	LIGHTING_DIRTY,
-	LIGHTING_READY
-} r_lighting_state_t;
-
-/**
- * @brief Up to MAX_ILLUMINATIONS illuminations are calculated for each mesh entity. The first
- * illumination in the structure is reserved for world lighting (ambient and
- * sunlight). The remaining (MAX_ILLUMINATIONS - 1) are populated by both BSP and dynamic light
- * sources, by order of their contribution.
- */
-#define MAX_ILLUMINATIONS 8
-
-/**
- * @brief Up to MAX_PLANES_PER_SHADOW shadows are cast for up to MAX_ILLUMINATIONS_PER_SHADOW illuminations.
- * These are populated by tracing from the illumination position through the lighting origin and
- * bounds. A shadow is cast for each unique plane hit.
- */
-#define MAX_ILLUMINATIONS_PER_SHADOW	(MAX_ILLUMINATIONS / 2)
-#define MAX_PLANES_PER_SHADOW			3
-#define MAX_SHADOWS						(MAX_ILLUMINATIONS_PER_SHADOW * MAX_PLANES_PER_SHADOW)
-
-/**
- * @brief Provides lighting information for mesh entities. Illuminations and
- * shadows are maintained in separate arrays because they must be sorted by
- * different criteria: for illuminations, the light that reaches the entity
- * defines priority; for shadows, the negative light that reaches the plane on
- * which the shadow is cast does.
- */
-typedef struct r_lighting_s {
-	r_lighting_state_t state;
-	uint16_t number; // entity number
-	vec3_t origin; // entity origin
-	vec_t radius; // entity radius
-	vec3_t mins, maxs; // entity bounding box in world space
-	uint64_t light_mask; // dynamic light sources mask
-	r_illumination_t illuminations[MAX_ILLUMINATIONS]; // light sources, ordered by diffuse
-	r_shadow_t shadows[MAX_SHADOWS]; // shadows, ordered by intensity
-} r_lighting_t;
+#define MAX_ENTITY_SKINS 	0x8
 
 /**
  * @brief Entities provide a means to add model instances to the view. Entity
@@ -915,246 +950,204 @@ typedef struct r_lighting_s {
  * when an entity moves.
  */
 typedef struct r_entity_s {
+	/**
+	 * @brief The parent entity, if any, for linked mesh models.
+	 */
+	const struct r_entity_s *parent;
+
+	/**
+	 * @brief The tag name, if any, for linked mesh models.
+	 */
+	const char *tag;
+
+	/**
+	 * @brief The entity origin.
+	 */
 	vec3_t origin;
+
+	/**
+	 * @brief The entity termination for beams.
+	 */
 	vec3_t termination;
+
+	/**
+	 * @brief The entity angles.
+	 */
 	vec3_t angles;
+
+	/**
+	 * @brief The entity scale, for mesh models.
+	 */
+	float scale;
+
+	/**
+	 * @brief The relative entity bounds, as known by the client.
+	 */
 	vec3_t mins, maxs;
 
-	matrix4x4_t matrix;
-	matrix4x4_t inverse_matrix;
+	/**
+	 * @brief The absolute entity bounds, as known by the client.
+	 */
+	vec3_t abs_mins, abs_maxs;
 
+	/**
+	 * @brief The visual model bounds, in world space, for frustum culling.
+	 */
+	vec3_t abs_model_mins, abs_model_maxs;
+
+	/**
+	 * @brief The model matrix.
+	 */
+	mat4_t matrix;
+
+	/**
+	 * @brief The inverse model matrix.
+	 */
+	mat4_t inverse_matrix;
+
+	/**
+	 * @brief The model, if any.
+	 */
 	const r_model_t *model;
 
-	uint16_t frame, old_frame; // frame-based animations
-	vec_t lerp, back_lerp;
+	/**
+	 * @brief Frame animations.
+	 */
+	int32_t frame, old_frame;
 
-	vec_t scale; // for mesh models
+	/**
+	 * @brief Frame interpolation.
+	 */
+	float lerp, back_lerp;
 
-	r_material_t *skins[MD3_MAX_MESHES]; // NULL for default skin
-	uint16_t num_skins;
+	/**
+	 * @brief Mesh model skins, up to one per face. NULL implies the default skin.
+	 */
+	r_material_t *skins[MAX_ENTITY_SKINS];
 
-	uint32_t effects; // e.g. EF_NO_DRAW, EF_WEAPON, ..
+	/**
+	 * @brief The number of mesh model skins.
+	 */
+	int32_t num_skins;
 
-	vec4_t color; // shaded color, e.g. EF_PULSE
+	/**
+	 * @brief The entity effects (`EF_NO_DRAW`, `EF_WEAPON`, ..).
+	 */
+	int32_t effects;
 
-	vec3_t shell; // shell color
+	/**
+	 * @brief The entity shade color for e.g. `EF_PULSE`.
+	 */
+	vec4_t color;
 
-	r_lighting_t *lighting; // static lighting information
+	/**
+	 * @brief The entity ambient lighting.
+	 */
+	float ambient;
 
-	vec4_t tints[TINT_TOTAL]; // tint colors, non-zero alpha enables the tint
+	/**
+	 * @brief The entity shell color for flag carriers, etc.
+	 */
+	vec3_t shell;
+
+	/**
+	 * @brief Tint maps allow users to customize their player skins.
+	 */
+	vec4_t tints[TINT_TOTAL];
+
+	/**
+	 * @brief The alpha blended element behind which this entity should be rendered.
+	 */
+	int32_t blend_depth;
 } r_entity_t;
 
 /**
- * @brief Entity draw lists.
+ * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
-	const r_entity_t *entities[MAX_ENTITIES];
-	size_t count;
-} r_entities_t;
+	/**
+	 * @brief The unclamped simulation time, in millis.
+	 */
+	uint32_t ticks;
 
-/**
- * @brief The view maintains lists of entities, sorted by render path.
- */
-typedef struct {
-	r_entities_t bsp_inline_entities;
-	r_entities_t mesh_entities;
-	r_entities_t null_entities;
-} r_sorted_entities_t;
-
-/**
- * @brief Appends a reference to the specified entity to the given entities list.
- */
-#define R_ENTITY_TO_ENTITIES(ents, ent) (ents)->entities[(ents)->count++] = ent
-
-/**
- * @brief Function prototype for mesh entity draw lists.
- */
-typedef void (*MeshModelsDrawFunc)(const r_entities_t *ents);
-
-/**
- * @brief Renderer element types.
- */
-typedef enum {
-	ELEMENT_NONE,
-	ELEMENT_BSP_SURFACE_BLEND,
-	ELEMENT_BSP_SURFACE_BLEND_WARP,
-	ELEMENT_ENTITY,
-	ELEMENT_PARTICLE
-} r_element_type_t;
-
-/**
- * @brief Element abstraction to allow sorting of mixed draw lists,
- * asynchronous rendering via commands, etc.
- */
-typedef struct {
-	const void *element;
-	const vec_t *origin;
-	void *data;
-	vec_t depth; // resolved for all elements
-	r_element_type_t type;
-} r_element_t;
-
-/**
- * @brief Allows alternate renderer plugins to be dropped in.
- */
-typedef enum {
-	R_PLUGIN_DEFAULT
-} r_plugin_t;
-
-#define WEATHER_NONE		0
-#define WEATHER_RAIN 		1
-#define WEATHER_SNOW 		2
-#define WEATHER_FOG 		4
-#define WEATHER_PRECIP_MASK	(WEATHER_RAIN | WEATHER_SNOW)
-
-#define FOG_START			128.0
-#define FOG_END				2048.0
-
-// program index
-typedef enum {
-	R_PROGRAM_DEFAULT,
-	R_PROGRAM_SHADOW,
-	R_PROGRAM_SHELL,
-	R_PROGRAM_WARP,
-	R_PROGRAM_NULL,
-	R_PROGRAM_CORONA,
-	R_PROGRAM_STAIN,
-
-	// geometry-enabled programs
-	R_PROGRAM_PARTICLE,
-	R_PROGRAM_PARTICLE_CORONA,
-
-	R_PROGRAM_TOTAL
-} r_program_id_t;
-
-// matrix index
-typedef enum {
-	R_MATRIX_PROJECTION,
-	R_MATRIX_MODELVIEW,
-	R_MATRIX_SHADOW,
-
-	R_MATRIX_TOTAL
-} r_matrix_id_t;
-
-// texunit IDs
-typedef enum {
-	R_TEXUNIT_DIFFUSE,
-	R_TEXUNIT_LIGHTMAP,
-	R_TEXUNIT_DELUXEMAP,
-	R_TEXUNIT_NORMALMAP,
-	R_TEXUNIT_SPECULARMAP,
-	R_TEXUNIT_WARP,
-	R_TEXUNIT_TINTMAP,
-	R_TEXUNIT_STAINMAP,
-
-	R_TEXUNIT_TOTAL
-} r_texunit_id_t;
-
-typedef enum {
-	R_STATE_PROGRAM,
-	R_STATE_ACTIVE_TEXTURE,
-	R_STATE_BIND_TEXTURE,
-	R_STATE_BIND_BUFFER,
-	R_STATE_BLEND_FUNC,
-	R_STATE_ENABLE_BLEND,
-	R_STATE_DEPTHMASK,
-	R_STATE_ENABLE_STENCIL,
-	R_STATE_STENCIL_OP,
-	R_STATE_STENCIL_FUNC,
-	R_STATE_POLYGON_OFFSET,
-	R_STATE_ENABLE_POLYGON_OFFSET,
-	R_STATE_VIEWPORT,
-	R_STATE_ENABLE_DEPTH_TEST,
-	R_STATE_DEPTH_RANGE,
-	R_STATE_ENABLE_SCISSOR,
-	R_STATE_SCISSOR,
-	R_STATE_PROGRAM_PARAMETER,
-	R_STATE_PROGRAM_ATTRIB_POINTER,
-	R_STATE_PROGRAM_ATTRIB_CONSTANT,
-	R_STATE_PROGRAM_ATTRIB_TOGGLE,
-
-	R_STATE_TOTAL
-} r_state_id_t;
-
-/**
- * @brief
- */
-typedef struct {
-	uint32_t bound;
-	uint32_t num_full_uploads;
-	uint32_t num_partial_uploads;
-	size_t size_uploaded;
-} r_buffer_stats_t;
-
-/**
- * @brief Provides read-write visibility and scene management to the client.
- */
-typedef struct {
-	SDL_Rect viewport, viewport_3d;
+	/**
+	 * @brief The horizontal and vertical field of view.
+	 */
 	vec2_t fov;
 
-	vec3_t origin; // client's view origin, angles, and vectors
+	/**
+	 * @brief The view origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The view angles.
+	 */
 	vec3_t angles;
+
+	/**
+	 * @brief The forward vector, derived from angles.
+	 */
 	vec3_t forward;
+
+	/**
+	 * @brief The right vector, derived from angles.
+	 */
 	vec3_t right;
+
+	/**
+	 * @brief The up vector, derived from angles.
+	 */
 	vec3_t up;
 
-	matrix4x4_t matrix_base_3d; // base projection matrices
-	matrix4x4_t matrix_base_2d;
-	matrix4x4_t matrix_base_ui;
+	/**
+	 * @brief The contents mask at the view origin.
+	 */
+	int32_t contents;
 
-	matrix4x4_t matrix; // the base modelview matrix
-	matrix4x4_t inverse_matrix;
-
-	int32_t contents; // view origin contents mask
-	vec_t bob;
-
-	uint32_t ticks; // unclamped simulation time
-
-	byte *area_bits; // if not NULL, only areas with set bits will be drawn
-
-	r_plugin_t plugin; // active renderer plugin
-
-	byte weather; // weather effects
-	vec4_t fog_color;
-
-	uint16_t num_entities;
+	/**
+	 * @brief The entities to render for the current frame.
+	 */
 	r_entity_t entities[MAX_ENTITIES];
+	int32_t num_entities;
 
-	uint16_t num_particles;
-	r_particle_t particles[MAX_PARTICLES];
+	/**
+	 * @brief The sprites to render for the current frame.
+	 */
+	r_sprite_t sprites[MAX_SPRITES];
+	int32_t num_sprites;
 
-	uint16_t num_lights;
+	/**
+	 * @brief The beams to render for the current frame.
+	 */
+	r_beam_t beams[MAX_BEAMS];
+	int32_t num_beams;
+
+	/**
+	 * @brief The sprite instances (sprites and beams) for the current frame.
+	 * @remarks This array is populated by the renderer from sprites and beams.
+	 */
+	r_sprite_instance_t sprite_instances[MAX_SPRITE_INSTANCES];
+	int32_t num_sprite_instances;
+
+	/**
+	 * @brief The lights to render for the current frame.
+	 */
 	r_light_t lights[MAX_LIGHTS];
+	int32_t num_lights;
 
-	uint16_t num_stains;
+	/**
+	 * @brief The stains to render for the current frame.
+	 */
 	r_stain_t stains[MAX_STAINS];
+	int32_t num_stains;
 
-	r_sustained_light_t sustained_lights[MAX_LIGHTS];
+	/**
+	 * @brief The view frustum, for box and sphere culling.
+	 * @remarks This is populated by the renderer.
+	 */
+	cm_bsp_plane_t frustum[4];
 
-	const r_entity_t *current_entity; // entity being rendered
-	const r_shadow_t *current_shadow; // shadow being rendered
-
-	// counters, reset each frame
-
-	uint32_t num_bsp_clusters;
-	uint32_t num_bsp_leafs;
-	uint32_t num_bsp_surfaces;
-
-	uint32_t num_mesh_models;
-	uint32_t num_mesh_tris;
-
-	uint32_t cull_passes;
-	uint32_t cull_fails;
-
-	uint32_t num_state_changes[R_STATE_TOTAL];
-	uint32_t num_binds[R_TEXUNIT_TOTAL];
-	r_buffer_stats_t buffer_stats[R_NUM_BUFFERS];
-
-	uint32_t num_draw_elements, num_draw_element_count;
-	uint32_t num_draw_arrays, num_draw_array_count;
-
-	_Bool update; // inform the client of state changes
 } r_view_t;
 
 /**
@@ -1167,97 +1160,103 @@ typedef struct {
 	SDL_Window *window;
 
 	/**
-	 * @brief The OpenGL 2.1 context.
+	 * @brief The OpenGL 3.3 context.
 	 */
 	SDL_GLContext *context;
 
 	/**
 	 * @brief OpenGL context size in drawable pixels, as reported by SDL_GL_GetDrawableSize.
 	 */
-	r_pixel_t width, height;
-
-	/**
-	 * @brief Actual OpenGL size being rendered after supersampling
-	 */
-	uint32_t render_width, render_height;
+	r_pixel_t drawable_width, drawable_height;
 
 	/**
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
 	 */
-	r_pixel_t window_width, window_height;
+	r_pixel_t width, height;
 
 	/**
-	 * @brief True if the application window uses High-DPI (Retina, 4K).
+	 * @brief The display vertical refresh rate, in Hz.
 	 */
-	_Bool high_dpi;
+	float refresh_rate;
+
+	/**
+	 * @brief Greater than 1.0 if High DPI mode is enabled.
+	 */
+	float window_scale;
 
 	/**
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	_Bool fullscreen;
+	
+	/**
+	 * @brief Framebuffer things.
+	 */
+	GLuint framebuffer, color_attachment, depth_stencil_attachment;
 } r_context_t;
+
+/**
+ * @brief Renderer statistics.
+ */
+typedef struct {
+
+	int32_t count_bsp_inline_models;
+	int32_t count_bsp_draw_elements;
+	int32_t count_bsp_draw_elements_blend;
+	int32_t count_bsp_triangles;
+	int32_t count_bsp_occlusion_queries;
+	int32_t count_bsp_occlusion_queries_passed;
+
+	int32_t count_mesh_models;
+	int32_t count_mesh_triangles;
+
+	int32_t count_sprite_draw_elements;
+
+	int32_t count_draw_chars;
+	int32_t count_draw_fills;
+	int32_t count_draw_images;
+	int32_t count_draw_lines;
+	int32_t count_draw_arrays;
+
+} r_stats_t;
 
 #ifdef __R_LOCAL_H__
 
 /**
- * @brief Quake3 (MD3) model in-memory representation.
+ * @brief OpenGL texture unit reservations.
  */
-typedef struct {
-	uint32_t *tris;
-	r_model_vertex_t *verts;
-	d_md3_texcoord_t *coords;
-} r_md3_mesh_t;
+typedef enum {
+	/**
+	 * @brief The base texture.
+	 */
+	TEXTURE_DIFFUSEMAP = 0,
 
-typedef struct {
-	uint16_t num_verts;
-	uint16_t num_tris;
+	/**
+	 * @brief Material specific textures.
+	 */
+	TEXTURE_MATERIAL = TEXTURE_DIFFUSEMAP,
+	TEXTURE_STAGE,
+	TEXTURE_WARP,
 
-	d_md3_frame_t *frames;
-	r_md3_mesh_t *meshes;
-} r_md3_t;
+	/**
+	 * @brief The lightmap texture, used by the BSP program.
+	 */
+	TEXTURE_LIGHTMAP,
 
-/*
- * @brief Object (OBJ) model in-memory representation.
- */
-typedef struct {
-	uint32_t position;
-	uint16_t indices[3];
+	/**
+	 * @brief The lightgrid textures, used for mesh lighting, and universally for fog.
+	 */
+	TEXTURE_LIGHTGRID,
+	TEXTURE_LIGHTGRID_AMBIENT = TEXTURE_LIGHTGRID,
+	TEXTURE_LIGHTGRID_DIFFUSE,
+	TEXTURE_LIGHTGRID_DIRECTION,
+	TEXTURE_LIGHTGRID_FOG,
 
-	vec_t *point;
-	vec_t *texcoords;
-	vec_t *normal;
-	vec3_t tangent;
-	vec3_t bitangent;
-} r_obj_vertex_t;
-
-typedef uint32_t r_obj_triangle_t[3];
-
-typedef struct {
-	char name[MAX_QPATH];
-	char material[MAX_QPATH];
-
-	uint32_t num_tris;
-} r_obj_group_t;
-
-typedef struct {
-	uint32_t num_points;
-	uint32_t num_texcoords;
-	uint32_t num_normals;
-	uint32_t num_tris;
-	uint32_t num_groups;
-
-	vec3_t *points;
-	uint32_t cur_point;
-	vec2_t *texcoords;
-	uint32_t cur_texcoord;
-	vec3_t *normals;
-	uint32_t cur_normal;
-	r_obj_group_t *groups;
-	uint32_t cur_group;
-	r_obj_triangle_t *tris;
-	uint32_t cur_tris;
-	
-	GArray *verts;
-} r_obj_t;
+	/**
+	 * @brief Sprite specific textures.
+	 */
+	TEXTURE_NEXT_DIFFUSEMAP,
+	TEXTURE_DEPTH_STENCIL_ATTACHMENT,
+} r_texture_t;
 
 #endif /* __R_LOCAL_H__ */

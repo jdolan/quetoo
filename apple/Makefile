@@ -56,11 +56,11 @@ install-data:
 	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
 
 post-install:
-	./set-icon.sh $(DATADIR)/quetoo-folder.icns $(INSTALL)
-	./set-icon.sh $(DATADIR)/quemap.icns $(BINDIR)/quemap
-	./set-icon.sh $(DATADIR)/quetoo.icns $(BINDIR)/quetoo
-	./set-icon.sh $(DATADIR)/quetoo-dedicated.icns $(BINDIR)/quetoo-dedicated
-	./set-icon.sh $(DATADIR)/quetoo-update.icns $(BINDIR)/quetoo-update
+	./set-icon.py $(DATADIR)/quetoo-folder.icns $(INSTALL)
+	./set-icon.py $(DATADIR)/quemap.icns $(BINDIR)/quemap
+	./set-icon.py $(DATADIR)/quetoo.icns $(BINDIR)/quetoo
+	./set-icon.py $(DATADIR)/quetoo-dedicated.icns $(BINDIR)/quetoo-dedicated
+	./set-icon.py $(DATADIR)/quetoo-update.icns $(BINDIR)/quetoo-update
 
 release:
 	aws s3 sync --exclude 'Icon*' --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)

@@ -37,7 +37,7 @@
  */
 static size_t numberOfItems(const CollectionView *collectionView) {
 
-	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
+	const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
 
 	return ((Array *) this->maps)->count;
 }
@@ -47,7 +47,7 @@ static size_t numberOfItems(const CollectionView *collectionView) {
  */
 static ident objectForItemAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
+	const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
 
 	const size_t index = $(indexPath, indexAtPosition, 0);
 
@@ -61,7 +61,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
  */
 static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
+	const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
 	const size_t index = $(indexPath, indexAtPosition, 0);
 
 	Value *value = $((Array *) this->maps, objectAtIndex, index);
@@ -91,7 +91,7 @@ static Order sortMaps(const ident a, const ident b) {
 }
 
 /**
- * @brief Fs_EnumerateFunc for map discovery.
+ * @brief Fs_Enumerator for map discovery.
  */
 static void enumerateMaps(const char *path, void *data) {
 
@@ -118,7 +118,7 @@ static void enumerateMaps(const char *path, void *data) {
 				((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 			}
 
-			if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
+			if (header.version != BSP_VERSION) {
 				cgi.Warn("Invalid BSP header found in %s: %d\n", path, header.version);
 				cgi.CloseFile(file);
 				return;
@@ -178,10 +178,10 @@ static void enumerateMaps(const char *path, void *data) {
 
 			const guint len = g_list_length(mapshots);
 			if (len) {
-				const char *mapshot = g_list_nth_data(mapshots, Randomr(0, len));
+				const char *mapshot = g_list_nth_data(mapshots, RandomRangeu(0, len));
 
-				SDL_Surface *surf;
-				if (cgi.LoadSurface(mapshot, &surf)) {
+				SDL_Surface *surf = cgi.LoadSurface(mapshot);
+				if (surf) {
 					SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
 					info->mapshot = SDL_CreateRGBSurface(0,
 					                                     this->collectionView.itemSize.w * 2,
@@ -283,7 +283,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 		self->maps = $$(MutableArray, array);
 		assert(self->maps);
 
-		cgi.Thread(__func__, loadMaps, self);
+		cgi.Thread(__func__, loadMaps, self, THREAD_NO_WAIT);
 
 		self->collectionView.dataSource.numberOfItems = numberOfItems;
 		self->collectionView.dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;
@@ -301,7 +301,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
  */
 static Array *selectedMaps(const MapListCollectionView *self) {
 
-	CollectionView *this = (CollectionView *) self;
+	const CollectionView *this = (const CollectionView *) self;
 
 	MutableArray *selectedMaps = $$(MutableArray, array);
 

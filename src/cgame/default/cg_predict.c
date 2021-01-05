@@ -39,6 +39,10 @@ _Bool Cg_UsePrediction(void) {
 		return false;
 	}
 
+	if (cgi.client->delta_frame == NULL) {
+		return false;
+	}
+
 	if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
 		return false;
 	}
@@ -49,22 +53,23 @@ _Bool Cg_UsePrediction(void) {
 /**
  * @brief Trace wrapper for Pm_Move.
  */
-static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
-        const vec3_t maxs) {
-	return cgi.Trace(start, end, mins, maxs, 0, MASK_CLIP_PLAYER);
+static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs) {
+	return cgi.Trace(start, end, mins, maxs, 0, CONTENTS_MASK_CLIP_PLAYER);
 }
 
 /**
  * @brief Run recent movement commands through the player movement code locally, storing the
  * resulting state so that it may be interpolated to and reconciled later.
  */
-void Cg_PredictMovement(const GList *cmds) {
-	static pm_move_t pm;
+void Cg_PredictMovement(const GPtrArray *cmds) {
+
+	assert(cmds);
+	assert(cmds->len);
 
 	cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
 	// copy current state to into the move
-	memset(&pm, 0, sizeof(pm));
+	pm_move_t pm = {};
 	pm.s = cgi.client->frame.ps.pm_state;
 
 	pm.ground_entity = pr->ground_entity;
@@ -73,16 +78,20 @@ void Cg_PredictMovement(const GList *cmds) {
 	pm.PointContents = cgi.PointContents;
 	pm.Trace = Cg_PredictMovement_Trace;
 
-	pm.Debug = cgi.PmDebug;
-
-	const GList *e = cmds;
+	pm.Debug = cgi.Debug_;
+	pm.DebugMask = cgi.DebugMask;
+	pm.debug_mask = DEBUG_PMOVE_CLIENT;
 
 	// run the commands
-	while (e) {
-		const cl_cmd_t *cmd = (cl_cmd_t *) e->data;
+	for (guint i = 0; i < cmds->len; i++) {
+		cl_cmd_t *cmd = g_ptr_array_index(cmds, i);
 
-		if (cmd->cmd.msec) { // if the command has time, simulate the movement
+		if (cmd->cmd.msec) { // if the command has time, run it
 
+			// timestamp it so the client knows we have valid results
+			cmd->prediction.time = cgi.client->time;
+
+			// simulate the movement
 			pm.cmd = cmd->cmd;
 			Pm_Move(&pm);
 
@@ -97,15 +106,12 @@ void Cg_PredictMovement(const GList *cmds) {
 		}
 
 		// save for error detection
-		const uint32_t frame = (uint32_t) (uintptr_t) (cmd - cgi.client->cmds);
-		VectorCopy(pm.s.origin, pr->origins[frame]);
-
-		e = e->next;
+		cmd->prediction.origin = pm.s.origin;
 	}
 
-	// copy results out for rendering
-	VectorCopy(pm.s.origin, pr->view.origin);
-	UnpackVector(pm.s.view_offset, pr->view.offset);
-	UnpackAngles(pm.cmd.angles, pr->view.angles);
+	// save for rendering
+	pr->view.origin = pm.s.origin;
+	pr->view.offset = pm.s.view_offset;
+	pr->view.angles = pm.cmd.angles;
 	pr->ground_entity = pm.ground_entity;
 }

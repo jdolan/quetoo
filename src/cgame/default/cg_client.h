@@ -26,5 +26,5 @@
 #ifdef __CG_LOCAL_H__
 void Cg_LoadClient(cl_client_info_t *ci, const char *s);
 void Cg_LoadClients(void);
-void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs);
+void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e);
 #endif /* __CG_LOCAL_H__ */

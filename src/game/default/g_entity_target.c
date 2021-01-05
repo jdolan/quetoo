@@ -22,43 +22,27 @@
 #include "g_local.h"
 
 #define LIGHT_START_ON 1
-#define LIGHT_TOGGLE 2
 
 /**
- * @brief
- */
-static void G_target_light_Toggle(g_entity_t *self) {
-
-	if ((self->s.effects & EF_LIGHT) == 0) {
-		self->s.client = self->locals.colors[0];
-		self->s.effects |= EF_LIGHT;
-	} else {
-		self->s.client = 0;
-		self->s.effects &= ~EF_LIGHT;
-	}
-}
-
-/**
- * @brief Cycles through state and colors for the given light entity.
+ * @brief For singular lights, simply toggle them. For teamed lights,
+ * advance through the team, toggling two at a time.
  */
 static void G_target_light_Cycle(g_entity_t *self) {
 
-	if ((self->s.effects & EF_LIGHT) == 0) {
-		G_target_light_Toggle(self);
-	} else {
-		if (self->s.client == self->locals.colors[0]) {
-			if (self->locals.colors[1]) {
-				self->s.client = self->locals.colors[1];
-			} else if (self->locals.spawn_flags & LIGHT_TOGGLE) {
-				G_target_light_Toggle(self);
-			}
-		} else {
-			if (self->locals.spawn_flags & LIGHT_TOGGLE) {
-				G_target_light_Toggle(self);
-			} else {
-				self->s.client = self->locals.colors[0];
-			}
+	g_entity_t *master = self->locals.team_master;
+	if (master) {
+		G_Debug("Cycling %s\n", etos(master->locals.enemy));
+
+		master->locals.enemy->s.effects ^= EF_LIGHT;
+		master->locals.enemy = master->locals.enemy->locals.team_next;
+
+		if (master->locals.enemy == NULL) {
+			master->locals.enemy = master;
 		}
+
+		master->locals.enemy->s.effects ^= EF_LIGHT;
+	} else {
+		self->s.effects ^= EF_LIGHT;
 	}
 }
 
@@ -80,49 +64,41 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
 	}
 }
 
-/*QUAKED target_light (0 1 0) (-8 -8 -8) (8 8 8) start_on toggle
- Emits a user-defined light when used. Lights can cycle between two colors,
- and also be toggled on and off.
+/*QUAKED target_light (1 1 1) (-4 -4 -4) (4 4 4) start_on
+ Emits a user-defined light when used. Lights can be chained with teams.
 
  -------- Keys --------
- colors : The color(s) to cycle through (1 - 255 paletted, "red", "green", etc..)
+ _color : The light color (default 1.0 1.0 1.0).
+ light : The radius of the light in units (default 300).
  delay : The delay before activating, in seconds (default 0).
- dmg : The radius of the light in units.
  targetname : The target name of this entity.
+ team : The team name for alternating lights.
  wait : If specified, an additional cycle will fire after this interval.
 
  -------- Spawn flags --------
- start_on : The light starts on, with the first configured color.
- toggle : The light will include an off state in its cycle.
+ start_on : The light will start on.
 
  -------- Notes --------
- Use this entity to add switched lights (toggle). Use the wait key to synchronize
+ Use this entity to add switched lights. Use the wait key to synchronize
  color cycles with other entities.
 */
 void G_target_light(g_entity_t *self) {
 
-	if (!g_game.spawn.colors) {
-		g_game.spawn.colors = "white";
+	if (Vec3_Equal(self->locals.color, Vec3_Zero())) {
+		self->locals.color = Vec3_One();
 	}
 
-	char *c = strchr(g_game.spawn.colors, ' ');
-	if (c) {
-		self->locals.colors[1] = G_ColorByName(c + 1, 0);
-		*c = '\0';
-	}
+	self->locals.light = self->locals.light ?: 300.f;
 
-	if (!self->locals.damage) {
-		self->locals.damage = 300;
-	}
-
-	self->locals.colors[0] = G_ColorByName(g_game.spawn.colors, PALETTE_COLOR_WHITE);
-	self->s.termination[0] = self->locals.damage; // radius
-
-	self->locals.Use = G_target_light_Use;
+	self->s.color = Color_Color32(Color3fv(self->locals.color));
+	self->s.termination.x = self->locals.light;
 
 	if (self->locals.spawn_flags & LIGHT_START_ON) {
-		G_target_light_Cycle(self);
+		self->s.effects |= EF_LIGHT;
 	}
+
+	self->locals.enemy = self;
+	self->locals.Use = G_target_light_Use;
 
 	gi.LinkEntity(self);
 }
@@ -141,10 +117,10 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 		if (ent->s.sound) {
 			ent->s.sound = 0;
 		} else {
-			ent->s.sound = ent->locals.noise_index;
+			ent->s.sound = ent->locals.sound;
 		}
 	} else { // intermittent sound
-		gi.PositionedSound(ent->s.origin, ent, ent->locals.noise_index, ent->locals.attenuation, 0);
+		gi.PositionedSound(ent->s.origin, ent, ent->locals.sound, ent->locals.atten, 0);
 	}
 }
 
@@ -152,9 +128,9 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
  Plays a sound each time it is used, or in loop if requested.
 
  -------- Keys --------
- noise : The name of the sample to play, e.g. voices/haunting.
- attenuation : The attenuation level; higher levels drop off more quickly (default 1):
-   -1 : No attenuation, send the sound to the entire level.
+ sound : The name of the sample to play, e.g. voices/haunting.
+ atten : The attenuation level; higher levels drop off more quickly (default 1):
+    0 : No attenuation, send the sound to the entire level.
     1 : Normal attenuation, hearable to all those in PHS of entity.
     2 : Idle attenuation, hearable only by those near to entity.
     3 : Static attenuation, hearable only by those very close to entity.
@@ -166,39 +142,35 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 
  -------- Notes --------
  Use this entity only when a sound must be triggered by another entity. For
- all other ambient sounds, use misc_emit.
+ ambient sounds, use the client-side version, misc_sound.
 */
 void G_target_speaker(g_entity_t *ent) {
-	char buffer[MAX_QPATH];
 
-	if (!g_game.spawn.noise) {
-		gi.Debug("No noise at %s\n", vtos(ent->s.origin));
+	const char *sound = gi.EntityValue(ent->def, "sound")->string;
+	if (!strlen(sound)) {
+		gi.Warn("No sound specified for %s\n", etos(ent));
 		return;
 	}
 
-	if (!strstr(g_game.spawn.noise, "")) {
-		g_snprintf(buffer, sizeof(buffer), "%s", g_game.spawn.noise);
+	ent->locals.sound = gi.SoundIndex(sound);
+
+	const cm_entity_t *atten = gi.EntityValue(ent->def, "atten");
+	if (atten->parsed & ENTITY_INTEGER) {
+		ent->locals.atten = atten->integer;
 	} else {
-		g_strlcpy(buffer, g_game.spawn.noise, sizeof(buffer));
+		ent->locals.atten = SOUND_ATTEN_LINEAR;
 	}
 
-	ent->locals.noise_index = gi.SoundIndex(buffer);
-
-	if (!ent->locals.attenuation) {
-		ent->locals.attenuation = ATTEN_NORM;
-	} else if (ent->locals.attenuation == -1) { // use -1 so 0 defaults to 1
-		ent->locals.attenuation = ATTEN_NONE;
-	}
+	const int32_t spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
 
 	// check for looping sound
-	if (ent->locals.spawn_flags & SPEAKER_LOOP_ON) {
-		ent->s.sound = ent->locals.noise_index;
+	if (spawn_flags & SPEAKER_LOOP_ON) {
+		ent->s.sound = ent->locals.sound;
 	}
 
 	ent->locals.Use = G_target_speaker_Use;
 
-	// must link the entity so we get areas and clusters so
-	// the server can determine who to send updates to
+	// link the entity so the server can determine who to send updates to
 	gi.LinkEntity(ent);
 }
 

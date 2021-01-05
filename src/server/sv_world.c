@@ -28,7 +28,7 @@
  */
 typedef struct sv_sector_s {
 	int32_t axis; // -1 = leaf
-	vec_t dist;
+	float dist;
 	struct sv_sector_s *children[2];
 	GList *entities;
 } sv_sector_t;
@@ -44,7 +44,7 @@ typedef struct {
 	sv_sector_t sectors[SECTOR_NODES];
 	uint16_t num_sectors;
 
-	const vec_t *box_mins, *box_maxs;
+	vec3_t box_mins, box_maxs;
 
 	g_entity_t **box_entities;
 	size_t num_box_entities, max_box_entities;
@@ -57,7 +57,7 @@ static sv_world_t sv_world;
 /**
  * @brief Builds a uniformly subdivided tree for the given world size.
  */
-static sv_sector_t *Sv_CreateSector(int32_t depth, vec3_t mins, vec3_t maxs) {
+static sv_sector_t *Sv_CreateSector(int32_t depth, const vec3_t mins, const vec3_t maxs) {
 	vec3_t size, mins1, maxs1, mins2, maxs2;
 
 	sv_sector_t *sector = &sv_world.sectors[sv_world.num_sectors];
@@ -69,20 +69,20 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, vec3_t mins, vec3_t maxs) {
 		return sector;
 	}
 
-	VectorSubtract(maxs, mins, size);
-	if (size[0] > size[1]) {
+	size = Vec3_Subtract(maxs, mins);
+	if (size.x > size.y) {
 		sector->axis = 0;
 	} else {
 		sector->axis = 1;
 	}
 
-	sector->dist = 0.5 * (maxs[sector->axis] + mins[sector->axis]);
-	VectorCopy(mins, mins1);
-	VectorCopy(mins, mins2);
-	VectorCopy(maxs, maxs1);
-	VectorCopy(maxs, maxs2);
+	sector->dist = 0.5f * (maxs.xyz[sector->axis] + mins.xyz[sector->axis]);
+	mins1 = mins;
+	mins2 = mins;
+	maxs1 = maxs;
+	maxs2 = maxs;
 
-	maxs1[sector->axis] = mins2[sector->axis] = sector->dist;
+	maxs1.xyz[sector->axis] = mins2.xyz[sector->axis] = sector->dist;
 
 	sector->children[0] = Sv_CreateSector(depth + 1, mins2, maxs2);
 	sector->children[1] = Sv_CreateSector(depth + 1, mins1, maxs1);
@@ -91,7 +91,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, vec3_t mins, vec3_t maxs) {
 }
 
 /**
- * @brief Resolve our area nodes for a newly loaded level. This is called prior to
+ * @brief Resolve our sectors for a newly loaded level. This is called prior to
  * linking any entities.
  */
 void Sv_InitWorld(void) {
@@ -141,7 +141,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	}
 
 	// set the size
-	VectorSubtract(ent->maxs, ent->mins, ent->size);
+	ent->size = Vec3_Subtract(ent->maxs, ent->mins);
 
 	// encode the size into the entity state for client prediction
 	ent->s.solid = ent->solid;
@@ -150,39 +150,25 @@ void Sv_LinkEntity(g_entity_t *ent) {
 		case SOLID_PROJECTILE:
 		case SOLID_DEAD:
 		case SOLID_BOX:
-			PackBounds(ent->mins, ent->maxs, &ent->s.bounds);
+			ent->s.mins = ent->mins;
+			ent->s.maxs = ent->maxs;
 			break;
 		default:
-			PackBounds(vec3_origin, vec3_origin, &ent->s.bounds);
+			ent->s.mins = Vec3_Zero();
+			ent->s.maxs = Vec3_Zero();
 			break;
 	}
 
 	// set the absolute bounding box; ensure it is symmetrical
-	Cm_EntityBounds(ent->solid, ent->s.origin, ent->s.angles, ent->mins, ent->maxs, ent->abs_mins, ent->abs_maxs);
+	Cm_EntityBounds(ent->solid, ent->s.origin, ent->s.angles, ent->mins, ent->maxs, &ent->abs_mins, &ent->abs_maxs);
 
 	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
-	// link to PVS leafs
+	// link to leafs
 	sent->num_clusters = 0;
-	sent->areas[0] = sent->areas[1] = 0;
 
 	// get all leafs, including solids
 	const size_t len = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs), &top_node, 0);
-
-	// set areas, allowing entities (doors) to occupy up to two
-	for (size_t i = 0; i < len; i++) {
-		const int32_t area = Cm_LeafArea(leafs[i]);
-		if (area) {
-			if (sent->areas[0] && sent->areas[0] != area) {
-				if (sent->areas[1] && sent->areas[1] != area && sv.state == SV_LOADING) {
-					Com_Warn("%s touching 3 areas at %s\n", etos(ent), vtos(ent->abs_mins));
-				}
-				sent->areas[1] = area;
-			} else {
-				sent->areas[0] = area;
-			}
-		}
-	}
 
 	if (len == MAX_ENT_LEAFS) { // use top_node
 		sent->num_clusters = -1;
@@ -227,9 +213,9 @@ void Sv_LinkEntity(g_entity_t *ent) {
 			break;
 		}
 
-		if (ent->abs_mins[sector->axis] > sector->dist) {
+		if (ent->abs_mins.xyz[sector->axis] > sector->dist) {
 			sector = sector->children[0];
-		} else if (ent->abs_maxs[sector->axis] < sector->dist) {
+		} else if (ent->abs_maxs.xyz[sector->axis] < sector->dist) {
 			sector = sector->children[1];
 		} else {
 			break;    // crosses the node
@@ -241,7 +227,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	sector->entities = g_list_prepend(sector->entities, ent);
 
 	// and update its clipping matrices
-	const vec_t *angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_origin;
+	const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
 
 	Matrix4x4_CreateFromEntity(&sent->matrix, ent->s.origin, angles, 1.0);
 	Matrix4x4_Invert_Simple(&sent->inverse_matrix, &sent->matrix);
@@ -286,13 +272,13 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 
 		if (Sv_BoxEntities_Filter(ent)) {
 
-			if (BoxIntersect(ent->abs_mins, ent->abs_maxs, sv_world.box_mins, sv_world.box_maxs)) {
+			if (Vec3_BoxIntersect(ent->abs_mins, ent->abs_maxs, sv_world.box_mins, sv_world.box_maxs)) {
 
 				sv_world.box_entities[sv_world.num_box_entities] = ent;
 				sv_world.num_box_entities++;
 
 				if (sv_world.num_box_entities == sv_world.max_box_entities) {
-					Com_Warn("sv_world.max_box_entities reached\n");
+					Com_Warn("sv_world.max_box_entities\n");
 					return;
 				}
 			}
@@ -306,19 +292,19 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 	}
 
 	// recurse down both sides
-	if (sv_world.box_maxs[sector->axis] > sector->dist) {
+	if (sv_world.box_maxs.xyz[sector->axis] > sector->dist) {
 		Sv_BoxEntities_r(sector->children[0]);
 	}
 
-	if (sv_world.box_mins[sector->axis] < sector->dist) {
+	if (sv_world.box_mins.xyz[sector->axis] < sector->dist) {
 		Sv_BoxEntities_r(sector->children[1]);
 	}
 }
 
 /**
  * @brief Populates an array of entities with those which have bounding boxes
- * that intersect the given area. It is possible for a non-axial BSP model to
- * be returned that doesn't actually intersect the area.
+ * that intersect the given box. It is possible for a non-axial BSP model to
+ * be returned that doesn't actually intersect the box.
  *
  * @return The number of entities found.
  */
@@ -334,8 +320,8 @@ size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, c
 
 	Sv_BoxEntities_r(sv_world.sectors);
 
-	sv_world.box_mins = vec3_origin;
-	sv_world.box_maxs = vec3_origin;
+	sv_world.box_mins = Vec3_Zero();
+	sv_world.box_maxs = Vec3_Zero();
 	sv_world.box_entities = NULL;
 
 	return sv_world.num_box_entities;
@@ -386,7 +372,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 	// as well as contents from all intersected entities
 	const size_t len = Sv_BoxEntities(point, point, entities, lengthof(entities), BOX_COLLIDE);
 
-	// iterate the area entities, checking each one for an intersection
+	// iterate the box entities, checking each one for an intersection
 	for (size_t i = 0; i < len; i++) {
 		const g_entity_t *ent = entities[i];
 
@@ -403,8 +389,8 @@ int32_t Sv_PointContents(const vec3_t point) {
 
 // an entity's movement, with allowed exceptions and other info
 typedef struct {
-	const vec_t *mins, *maxs; // size of the moving object
-	const vec_t *start, *end;
+	vec3_t start, end;
+	vec3_t mins, maxs; // size of the moving object
 	vec3_t box_mins, box_maxs; // enclose the test object along entire move
 	cm_trace_t trace;
 	const g_entity_t *skip;
@@ -412,7 +398,7 @@ typedef struct {
 } sv_trace_t;
 
 /**
- * @brief Clips the specified trace to other entities in its area. This is the basis of all
+ * @brief Clips the specified trace to other entities in its bounds. This is the basis of all
  * collision and interaction for the server. Tread carefully.
  */
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
@@ -426,21 +412,21 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 		if (trace->skip) { // see if we can skip it
 
 			if (ent == trace->skip) {
-				continue;    // explicitly (ourselves)
+				continue; // explicitly (ourselves)
 			}
 
 			if (ent->owner == trace->skip) {
-				continue;    // or via ownership (we own it)
+				continue; // or via ownership (we own it)
 			}
 
 			if (trace->skip->owner) {
 
 				if (ent == trace->skip->owner) {
-					continue;    // which is bidirectional (inverse of previous case)
+					continue; // which is bidirectional (inverse of previous case)
 				}
 
 				if (ent->owner == trace->skip->owner) {
-					continue;    // and commutative (we are both owned by the same)
+					continue; // and commutative (we are both owned by the same)
 				}
 			}
 
@@ -458,9 +444,10 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 
 			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
-			const cm_trace_t tr = Cm_TransformedBoxTrace(
-			                          trace->start, trace->end, trace->mins, trace->maxs, head_node, trace->contents,
-			                          &sent->matrix, &sent->inverse_matrix);
+			const cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end,
+														 trace->mins, trace->maxs,
+														 head_node, trace->contents,
+														 &sent->matrix, &sent->inverse_matrix);
 
 			// check for a full or partial intersection
 			if (tr.all_solid || tr.fraction < trace->trace.fraction) {
@@ -489,16 +476,9 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 
 	memset(&trace, 0, sizeof(trace));
 
-	if (!mins) {
-		mins = vec3_origin;
-	}
-	if (!maxs) {
-		maxs = vec3_origin;
-	}
-
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
-	if (trace.trace.fraction < 1.0) {
+	if (trace.trace.fraction < 1.0f) {
 		trace.trace.ent = svs.game->entities;
 
 		if (trace.trace.start_solid) { // blocked entirely
@@ -514,7 +494,7 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	trace.contents = contents;
 
 	// create the bounding box of the entire move
-	Cm_TraceBounds(start, end, mins, maxs, trace.box_mins, trace.box_maxs);
+	Cm_TraceBounds(start, end, mins, maxs, &trace.box_mins, &trace.box_maxs);
 
 	// clip to other solid entities
 	Sv_ClipTraceToEntities(&trace);

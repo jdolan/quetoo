@@ -80,7 +80,7 @@ struct PlayerModelView {
 	/**
 	 * @brief The camera yaw and zoom.
 	 */
-	vec_t yaw, zoom;
+	float yaw, zoom;
 };
 
 /**

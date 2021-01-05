@@ -28,9 +28,11 @@
 extern cvar_t *g_ai_max_clients;
 
 void G_Ai_RegisterItems(void);
-void G_Ai_ClientConnect(g_entity_t *ent);
+void G_Ai_ClientConnect(const g_entity_t *ent);
 void G_Ai_ClientDisconnect(g_entity_t *ent);
 void G_Ai_Init(void);
 void G_Ai_Shutdown(void);
+void G_Ai_Load(const char *mapname);
 void G_Ai_Frame(void);
+bool G_Ai_DropItemLikeNode(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */

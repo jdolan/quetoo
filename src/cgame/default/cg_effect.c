@@ -23,10 +23,9 @@
 
 // weather emitters are bound to downward-facing sky surfaces
 typedef struct cg_weather_emit_s {
-	const r_bsp_leaf_t *leaf;
-	uint16_t num_origins; // the number of origins
-	vec_t *origins; // the origins for particle spawns
-	vec_t *end_z; // the "floors" where particles are freed
+	const r_bsp_face_t *face;
+	int32_t num_origins; // the number of origins
+	vec4_t *origins; // the origins for particle spawns
 	struct cg_weather_emit_s *next;
 } cg_weather_emit_t;
 
@@ -38,93 +37,71 @@ typedef struct {
 static cg_weather_state_t cg_weather_state;
 
 /**
- * @brief Parses CS_WEATHER for weather and fog parameters, e.g. "rain fog 0.8 0.75 0.65 [1.0]".
+ * @brief Parses CS_WEATHER for weather, e.g. "rain," "snow."
  */
-void Cg_ResolveWeather(const char *weather) {
-	char *c;
-	int32_t err;
+int32_t Cg_ParseWeather(const char *string) {
 
-	cgi.Debug("%s\n", weather);
+	int32_t weather = WEATHER_NONE;
 
-	cgi.view->weather = WEATHER_NONE;
-
-	Vector4Set(cgi.view->fog_color, 0.75, 0.75, 0.75, 1.0);
-
-	if (!weather || *weather == '\0') {
-		return;
+	if (strstr(string, "rain")) {
+		weather |= WEATHER_RAIN;
 	}
 
-	if (strstr(weather, "rain")) {
-		cgi.view->weather |= WEATHER_RAIN;
+	if (strstr(string, "snow")) {
+		weather |= WEATHER_SNOW;
 	}
 
-	if (strstr(weather, "snow")) {
-		cgi.view->weather |= WEATHER_SNOW;
-	}
-
-	if ((c = strstr(weather, "fog"))) {
-
-		cgi.view->weather |= WEATHER_FOG;
-		err = -1;
-
-		if (strlen(c) > 3) { // try to parse fog color
-			vec_t *f = cgi.view->fog_color;
-
-			err = sscanf(c + 4, "%f %f %f %f", f, f + 1, f + 2, f + 3);
-		}
-
-		if (err != 3 && err != 4) { // default to gray
-			Vector4Set(cgi.view->fog_color, 0.75, 0.75, 0.75, 1.0);
-		}
-	}
+	return weather;
 }
 
 /**
  * @brief Creates an emitter for the given surface. The number of origins for the
  * emitter depends on the area of the surface.
  */
-static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) {
-	vec3_t delta;
-	uint16_t i;
+static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 	cg_weather_emit_t *e = cgi.Malloc(sizeof(cg_weather_emit_t), MEM_TAG_CGAME_LEVEL);
 
 	// resolve the leaf for the point just in front of the surface
-	VectorMA(s->center, 1.0, s->normal, delta);
-	e->leaf = cgi.LeafForPoint(delta, bsp);
+
+	vec3_t center = Vec3_Mix(face->mins, face->maxs, .5f);
+	center = Vec3_Add(center, Vec3_Scale(face->plane->cm->normal, 1.f));
+
+	e->face = face;
 
 	// resolve the number of origins based on surface area
-	VectorSubtract(s->maxs, s->mins, delta);
-	e->num_origins = VectorLength(delta) / 32.0;
-	e->num_origins = Clamp(e->num_origins, 1, 128);
+	e->num_origins = Vec3_Length(Vec3_Subtract(face->maxs, face->mins)) / 32.f;
+	e->num_origins = Clampf(e->num_origins, 1, 128);
 
-	e->origins = cgi.Malloc(sizeof(vec3_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
-	e->end_z = cgi.Malloc(sizeof(vec_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
+	e->origins = cgi.Malloc(sizeof(vec4_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
 
-	// resolve the origins and end_z
-	for (i = 0; i < e->num_origins; i++) {
-		vec_t *org = &e->origins[i * 3];
-		uint16_t j;
+	// resolve the origins and their end positions
+
+	int32_t i = 0;
+	while (i < e->num_origins) {
+		vec4_t *origin = e->origins + i;
 
 		// randomize the origin over the surface
-		for (j = 0; j < 3; j++) {
-			org[j] = s->mins[j] + Randomf() * delta[j];
+
+		const vec3_t org = Vec3_Add(Vec3_Mix3(face->mins, face->maxs, Vec3_Random()), face->plane->cm->normal);
+
+		vec3_t end = org;
+		end.z -= MAX_WORLD_DIST;
+
+		const cm_trace_t tr = cgi.Trace(org, end, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+		if (!tr.texinfo) {
+			continue;
 		}
 
-		VectorAdd(org, s->normal, org);
-
-		vec3_t end;
-		VectorSet(end, org[0], org[1], org[2] - MAX_WORLD_DIST);
-
-		cm_trace_t trace = cgi.Trace(org, end, NULL, NULL, 0, MASK_CLIP_PROJECTILE | MASK_LIQUID);
-		e->end_z[i] = trace.end[2];
+		*origin = Vec3_ToVec4(org, tr.end.z);
+		i++;
 	}
 
 	// push on to the linked list
 	e->next = cg_weather_state.emits;
 	cg_weather_state.emits = e;
 
-	cgi.Debug("%s: %d origins\n", vtos(s->center), e->num_origins);
+	Cg_Debug("%s: %d origins\n", vtos(center), e->num_origins);
 }
 
 /**
@@ -132,31 +109,31 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
  * Valid weather origins and z-depths are resolved and cached.
  */
 static void Cg_LoadWeather(void) {
-	uint16_t i, j;
+	int32_t i, j;
 
 	cg_weather_state.emits = NULL;
 	cg_weather_state.time = 0;
 
-	Cg_ResolveWeather(cgi.ConfigString(CS_WEATHER));
+	cg_state.weather = Cg_ParseWeather(cgi.ConfigString(CS_WEATHER));
 
-	if (!(cgi.view->weather & WEATHER_PRECIP_MASK)) {
+	if (!cg_state.weather) {
 		return;
 	}
 
 	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
-	const r_bsp_surface_t *s = bsp->surfaces;
+	const r_bsp_face_t *face = bsp->faces;
 
 	// iterate the world surfaces, testing sky surfaces
-	for (i = j = 0; i < bsp->num_surfaces; i++, s++) {
+	for (i = j = 0; i < bsp->num_faces; i++, face++) {
 
 		// for downward facing sky brushes, create an emitter
-		if ((s->texinfo->flags & SURF_SKY) && s->normal[2] < -0.1) {
-			Cg_LoadWeather_(bsp, s);
+		if ((face->texinfo->flags & SURF_SKY) && face->plane->cm->normal.z < -0.1) {
+			Cg_LoadWeather_(face);
 			j++;
 		}
 	}
 
-	cgi.Debug("%d emits\n", j);
+	Cg_Debug("%d emits\n", j);
 }
 
 /**
@@ -167,72 +144,56 @@ void Cg_LoadEffects(void) {
 }
 
 /**
- * @brief Adds weather particles for the specified emitter. The number of particles
+ * @brief Adds weather sprites for the specified emitter. The number of sprites
  * added is dependent on the size of the surface associated with the emitter.
  */
 static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
-	vec3_t color;
-	cgi.ColorFromPalette(8, color);
-
 	for (int32_t i = 0; i < e->num_origins; i++) {
-		cg_particles_t *ps;
-		cg_particle_t *p;
-		int32_t j;
+		const vec4_t origin = *(e->origins + i);
 
-		ps = cgi.view->weather & WEATHER_RAIN ? cg_particles_rain : cg_particles_snow;
+		vec3_t sprite_origin = Vec3_Add(Vec4_XYZ(origin), Vec3_RandomRange(-16.f, 16.f));
 
-		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, ps, true))) {
-			break;
-		}
-
-		const vec_t *org = &e->origins[i * 3];
-
-		// setup the origin and end_z
-		for (j = 0; j < 3; j++) {
-			p->part.org[j] = org[j] + Randomc() * 16.0;
-		}
-
-		p->weather.end_z = e->end_z[i];
-
-		// keep particle z origin relatively close to the view origin
-		if (p->weather.end_z < cgi.view->origin[2]) {
-			if (p->part.org[2] - cgi.view->origin[2] > 512.0) {
-				p->part.org[2] = cgi.view->origin[2] + 256.0 + Randomf() * 256.0;
+		// keep sprite z origin relatively close to the view origin
+		if (origin.w < cgi.view->origin.z) {
+			if (sprite_origin.z - cgi.view->origin.z > 512.0) {
+				sprite_origin.z = cgi.view->origin.z + 256.0 + Randomf() * 256.0;
 			}
 		}
 
-		if (cgi.view->weather & WEATHER_RAIN) {
-			VectorCopy(color, p->part.color);
-			p->part.color[3] = 0.4;
-			p->part.scale = 6.0;
-			// randomize the velocity and acceleration
-			for (j = 0; j < 2; j++) {
-				p->vel[j] = Randomc() * 2.0;
-				p->accel[j] = Randomc() * 2.0;
-			}
-			p->vel[2] = -600.0;
+		// free the sprite roughly when it will reach the floor
+		cg_sprite_t *s;
+
+		if (cg_state.weather & WEATHER_RAIN) {
+			s = Cg_AddSprite(&(cg_sprite_t) {
+				.origin = sprite_origin,
+				.atlas_image = cg_sprite_rain,
+				.color = Vec4(0.f, 0.f, .87f, .8f),
+				.end_color = Vec4(0.f, 0.f, .87f, .0f),
+				.size = 8.f,
+				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 600.f)),
+				.acceleration = Vec3_RandomRange(-2.f, 2.f),
+				.flags = SPRITE_NO_BLEND_DEPTH,
+				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
+			});
 		} else {
-			p->effects |= PARTICLE_EFFECT_COLOR;
-
-			VectorCopy(color, p->color_start);
-			p->color_start[3] = 0.6;
-
-			VectorCopy(color, p->color_end);
-			p->color_end[3] = 0.0;
-
-			// TODO: this may not work for extremely long snow tubes
-			p->lifetime = 500 + Randomf() * 2000;
-
-			p->part.scale = 1.5;
-
-			// randomize the velocity and acceleration
-			for (j = 0; j < 2; j++) {
-				p->vel[j] = Randomc() * 12.0;
-				p->accel[j] = Randomc() * 12.0;
-			}
-			p->vel[2] = -120.0;
+			s = Cg_AddSprite(&(cg_sprite_t) {
+				.origin = sprite_origin,
+				.atlas_image = cg_sprite_snow,
+				.color = Vec4(0.f, 0.f, .87f, .4f),
+				.end_color = Vec4(0.f, 0.f, .87f, .0f),
+				.size = 8.f,
+				.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f)),
+				.acceleration = Vec3_RandomRange(-12.f, 12.f),
+				.flags = SPRITE_NO_BLEND_DEPTH
+			});
 		}
+
+		if (!s) {
+			return;
+		}
+
+		s->lifetime = 1000 * (sprite_origin.z - origin.w) / fabsf(s->velocity.z);
 	}
 }
 
@@ -245,19 +206,19 @@ static void Cg_AddWeather(void) {
 		return;
 	}
 
-	if (!(cgi.view->weather & WEATHER_PRECIP_MASK)) {
+	if (cg_state.weather == WEATHER_NONE) {
 		return;
 	}
 
 	const s_sample_t *sample; // add an appropriate looping sound
 
-	if (cgi.view->weather & WEATHER_RAIN) {
+	if (cg_state.weather & WEATHER_RAIN) {
 		sample = cg_sample_rain;
 	} else {
 		sample = cg_sample_snow;
 	}
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = sample,
 		 .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 	});
@@ -271,9 +232,7 @@ static void Cg_AddWeather(void) {
 	const cg_weather_emit_t *e = cg_weather_state.emits;
 
 	while (e) {
-		if (cgi.LeafHearable(e->leaf)) {
-			Cg_AddWeather_(e);
-		}
+		Cg_AddWeather_(e);
 		e = e->next;
 	}
 }
@@ -283,8 +242,8 @@ static void Cg_AddWeather(void) {
  */
 static void Cg_AddUnderwater(void) {
 
-	if (cgi.view->contents & MASK_LIQUID) {
-		cgi.AddSample(&(const s_play_sample_t) {
+	if (cgi.view->contents & CONTENTS_MASK_LIQUID) {
+		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 			.sample = cg_sample_underwater,
 			 .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 		});

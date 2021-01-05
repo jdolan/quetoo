@@ -26,76 +26,210 @@
 
 #include "s_al_ext.h"
 
-#include <SDL2/SDL_rwops.h>
+#include <SDL_audio.h>
 
 #include <sndfile.h>
 
-#include "common.h"
-#include "filesystem.h"
-#include "sys.h"
+#include "console.h"
 
+/**
+ * @brief Media types.
+ */
 typedef enum {
-	S_MEDIA_GENERIC, // generic/unknown sound media
-
-	S_MEDIA_SAMPLE, // a sample, which may be aliasing another piece of media
-	S_MEDIA_MUSIC // a piece of music
+	S_MEDIA_GENERIC,
+	S_MEDIA_SAMPLE,
+	S_MEDIA_MUSIC,
+	S_MEDIA_TOTAL
 } s_media_type_t;
 
-// media handles
+/**
+ * @brief Samples, musics, etc. are all managed as media.
+ */
 typedef struct s_media_s {
+	/**
+	 * @brief The media name.
+	 */
 	char name[MAX_QPATH];
+
+	/**
+	 * @brief The media type.
+	 */
 	s_media_type_t type;
+
+	/**
+	 * @brief The media on which this media depends.
+	 */
 	GList *dependencies;
+
+	/**
+	 * @brief The media retain callback, to avoid being freed.
+	 */
 	_Bool (*Retain)(struct s_media_s *self);
+
+	/**
+	 * @brief The free callback, to release any system resources.
+	 */
 	void (*Free)(struct s_media_s *self);
+
+	/**
+	 * @brief The media seed, to determine if this media is current.
+	 */
 	int32_t seed;
 } s_media_t;
 
-typedef struct s_sample_s {
+/**
+ * @brief A sound sample.
+ */
+typedef struct {
+	/**
+	 * @brief The media.
+	 */
 	s_media_t media;
+
+	/**
+	 * @brief The OpenAL buffer object.
+	 */
 	ALuint buffer;
-	sf_count_t num_samples; // number of samples total
-	_Bool stereo; // whether this is stereo sample or not; they can't be spatialized
+
+	/**
+	 * @brief The number of samples.
+	 */
+	size_t num_samples;
+
+	/**
+	 * @brief True for stereo sounds, which will not be spatialized.
+	 */
+	_Bool stereo;
 } s_sample_t;
 
-#define S_PLAY_POSITIONED   0x1 // position the sound at a fixed origin
-#define S_PLAY_ENTITY       0x2 // position the sound at the entity's origin at each frame
-#define S_PLAY_AMBIENT      0x4 // this is an ambient sound, and may be culled by the user
-#define S_PLAY_LOOP         0x8 // loop the sound continuously
-#define S_PLAY_FRAME        0x10 // cull the sound if it is not added at each frame
+#define S_PLAY_AMBIENT      0x1 // this is an ambient sound, and may be culled by the user
+#define S_PLAY_LOOP         0x2 // loop the sound continuously
+#define S_PLAY_FRAME        0x4 // cull the sound if it is not added at each frame
+#define S_PLAY_RELATIVE		0x8 // play relative to the listener origin
+#define S_PLAY_UNDERWATER	0x10
+#define S_PLAY_OCCLUDED		0x20
 
 #define TONES_PER_OCTAVE	48
 
+struct s_play_sample_s;
+struct s_stage_s;
+
+/**
+ * @brief Think function for sound samples to update effects, pitch, etc.. per frame.
+ */
+typedef void (*PlaySampleThink)(const struct s_stage_s *stage, struct s_play_sample_s *play);
+
+/**
+ * @brief The sample instance type, used to dispatch playback of a sample.
+ */
 typedef struct s_play_sample_s {
+	/**
+	 * @brief The sample to play.
+	 */
 	const s_sample_t *sample;
+
+	/**
+	 * @brief The sample origin.
+	 */
 	vec3_t origin;
+
+	/**
+	 * @brief The sample velocity, for doppler effects.
+	 */
+	vec3_t velocity;
+
+	/**
+	 * @brief The sample attenuation.
+	 */
+	sound_atten_t atten;
+
+	/**
+	 * @brief The sample flags.
+	 */
+	int32_t flags;
+
+	/**
+	 * @brief The sample pitch shift, positive or negative.
+	 */
+	int32_t pitch;
+
+	/**
+	 * @brief The entity associated with this sample, so that occlusion traces may skip it.
+	 */
 	int32_t entity;
-	int32_t attenuation;
-	int16_t flags;
-	int16_t pitch; // pitch offset; 0 is no adjustment, TONES_PER_OCTAVE is +1 octave, -TONES_PER_OCTAVE is -1 octave, etc.
+
+	/**
+	 * @brief An optional think function run once per frame.
+	 */
+	PlaySampleThink Think;
+
 } s_play_sample_t;
 
-typedef struct s_channel_s {
+/**
+ * @brief Samples are collected into channels that are spatialized and played back.
+ */
+typedef struct {
+	/**
+	 * @brief The play sample
+	 */
 	s_play_sample_t play;
-	const s_sample_t *sample;
+
+	/**
+	 * @brief The time when this channel was last started.
+	 */
 	uint32_t start_time;
-	int32_t frame;
-	vec3_t position;
-	vec3_t velocity;
-	vec_t gain;
-	vec_t pitch;
+
+	/**
+	 * @brief The stage frame number this channel was last added in.
+	 */
+	uint32_t timestamp;
+
+	/**
+	 * @brief The channel gain.
+	 */
+	float gain;
+
+	/**
+	 * @brief The channel pitch.
+	 */
+	float pitch;
+
+	/**
+	 * @brief The channel filter.
+	 */
 	ALuint filter;
-	_Bool relative; // sound is relative to listener
 } s_channel_t;
 
 #define MAX_CHANNELS 128
 
-typedef struct s_music_s {
+/**
+ * @brief A music track.
+ */
+typedef struct {
+	/**
+	 * @brief The media.
+	 */
 	s_media_t media;
+
+	/**
+	 * @brief The Sndfile info.
+	 */
 	SF_INFO info;
+
+	/**
+	 * @brief The Sndfile.
+	 */
 	SNDFILE *snd;
+
+	/**
+	 * @brief The backing file.
+	 */
 	file_t *file;
-	_Bool eof; // whether we're out of samples or not
+
+	/**
+	 * @brief End of file.
+	 */
+	_Bool eof;
 } s_music_t;
 
 /**
@@ -111,10 +245,7 @@ typedef struct {
 /**
  * @brief The sound environment.
  */
-typedef struct s_env_s {
-	s_channel_t channels[MAX_CHANNELS];
-	uint16_t num_active_channels;
-
+typedef struct {
 	/**
 	 * @brief The OpenAL playback device.
 	 */
@@ -130,13 +261,19 @@ typedef struct s_env_s {
 	const char *version;
 
 	size_t raw_sample_buffer_size;
-	vec_t *raw_sample_buffer;
+	float *raw_sample_buffer;
 
 	size_t converted_sample_buffer_size;
 	int16_t *converted_sample_buffer; // converted raw_samples
 
 	size_t resample_buffer_size;
 	int16_t *resample_buffer; // temp space used for resampling
+
+	/**
+	 * @brief The mixed channels.
+	 */
+	s_channel_t channels[MAX_CHANNELS];
+	int32_t num_active_channels;
 
 	/**
 	 * @brief The OpenAL sound sources.
@@ -147,14 +284,61 @@ typedef struct s_env_s {
 	 * @brief Effect IDs.
 	 */
 	s_effects_t effects;
+} s_context_t;
+
+/**
+ * @brief The sound stage type.
+ */
+typedef struct s_stage_s {
+	/**
+	 * @brief Unclamped simulation time, in milliseconds.
+	 */
+	uint32_t ticks;
 
 	/**
-	 * @brief True when media has been reloaded, and the client should update its media references.
+	 * @brief The listener origin.
 	 */
-	_Bool update;
-} s_env_t;
+	vec3_t origin;
+
+	/**
+	 * @brief The listener angles.
+	 */
+	vec3_t angles;
+
+	/**
+	 * @brief The forward vector, derived from angles.
+	 */
+	vec3_t forward;
+
+	/**
+	 * @brief The right vector, derived from angles.
+	 */
+	vec3_t right;
+
+	/**
+	 * @brief The up vector, derived from angles.
+	 */
+	vec3_t up;
+
+	/**
+	 * @brief The listener velocity.
+	 */
+	vec3_t velocity;
+
+	/**
+	 * @brief The contents mask at the listener origin.
+	 */
+	int32_t contents;
+
+	/**
+	 * @brief The samples to render for the current frame.
+	 */
+	s_play_sample_t samples[MAX_SOUNDS];
+	int32_t num_samples;
+} s_stage_t;
 
 #ifdef __S_LOCAL_H__
+
 extern SF_VIRTUAL_IO s_rwops_io;
 extern SF_VIRTUAL_IO s_physfs_io;
 

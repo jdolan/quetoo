@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "deps/minizip/zip.h"
+#include "quemap.h"
 
-#include "qbsp.h"
-#include "materials.h"
+int32_t ZIP_Main(void);

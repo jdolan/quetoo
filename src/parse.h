@@ -111,6 +111,11 @@ typedef enum {
 	 */
 	PARSE_PEEK = 16,
 
+	/*
+	 * @brief If we encounter an overrun, just ignore it and keep moving rather than stopping
+	 */
+	PARSE_ALLOW_OVERRUN = 32,
+
 	/**
 	 * @brief Default parser settings
 	 */

@@ -36,25 +36,25 @@ static void didSelectQuality(Select *select, Option *option) {
 		case 3:
 			cgi.SetCvarInteger("r_caustics", 1);
 			cgi.SetCvarInteger("r_shadows", 3);
-			cgi.SetCvarInteger("r_stainmaps", 1);
+			cgi.SetCvarInteger("r_stains", 1);
 			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 2:
 			cgi.SetCvarInteger("r_caustics", 1);
 			cgi.SetCvarInteger("r_shadows", 2);
-			cgi.SetCvarInteger("r_stainmaps", 1);
+			cgi.SetCvarInteger("r_stains", 1);
 			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 1:
 			cgi.SetCvarInteger("r_caustics", 0);
 			cgi.SetCvarInteger("r_shadows", 1);
-			cgi.SetCvarInteger("r_stainmaps", 1);
+			cgi.SetCvarInteger("r_stains", 1);
 			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 0:
 			cgi.SetCvarInteger("r_caustics", 0);
 			cgi.SetCvarInteger("r_shadows", 0);
-			cgi.SetCvarInteger("r_stainmaps", 0);
+			cgi.SetCvarInteger("r_stains", 0);
 			cgi.SetCvarInteger("cg_weather", 0);
 			break;
 		default:
@@ -110,8 +110,8 @@ static void loadView(ViewController *self) {
 	$(weather, addOption, "Off", (ident) 0);
 
 	$(stains, addOption, "Never", (ident) 0);
-	$(stains, addOption, "Slow", (ident) 10000);
-	$(stains, addOption, "Fast", (ident) 4000);
+	$(stains, addOption, "Slow", (ident) 20000);
+	$(stains, addOption, "Fast", (ident) 10000);
 }
 
 #pragma mark - Class lifecycle

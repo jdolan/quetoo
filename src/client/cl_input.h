@@ -31,7 +31,6 @@ extern cvar_t *m_interpolate;
 extern cvar_t *m_invert;
 extern cvar_t *m_pitch;
 extern cvar_t *m_yaw;
-extern cvar_t *m_grab;
 
 void Cl_ClearInput(void);
 void Cl_InitInput(void);
@@ -40,6 +39,6 @@ void Cl_Look(pm_cmd_t *cmd);
 void Cl_Move(pm_cmd_t *cmd);
 void Cl_KeyDown(button_t *b);
 void Cl_KeyUp(button_t *b);
-vec_t Cl_KeyState(button_t *key, uint32_t cmd_msec);
+float Cl_KeyState(button_t *key, uint32_t cmd_msec);
 
 #endif /* __CL_LOCAL_H__ */

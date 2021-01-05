@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL2/SDL_timer.h>
+#include <SDL_timer.h>
 
 #include "sv_local.h"
 #include "console.h"
@@ -34,7 +34,6 @@ cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
 cvar_t *sv_hostname;
 cvar_t *sv_max_clients;
-cvar_t *sv_no_areas;
 cvar_t *sv_public;
 cvar_t *sv_rcon_password; // password for remote server commands
 cvar_t *sv_timeout;
@@ -190,7 +189,7 @@ static void Sv_GetChallenge_f(void) {
 	}
 
 	if (i == MAX_CHALLENGES) { // overwrite the oldest
-		svs.challenges[oldest].challenge = Random();
+		svs.challenges[oldest].challenge = Randomu();
 		svs.challenges[oldest].addr = net_from;
 		svs.challenges[oldest].time = quetoo.ticks;
 		i = oldest;
@@ -216,8 +215,7 @@ static void Sv_Connect_f(void) {
 
 	// resolve protocol
 	if (version != PROTOCOL_MAJOR) {
-		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n",
-		                       PROTOCOL_MAJOR);
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL_MAJOR);
 		return;
 	}
 
@@ -485,7 +483,7 @@ static void Sv_UpdatePings(void) {
 		if (!count) {
 			cl->entity->client->ping = 0;
 		} else {
-			cl->entity->client->ping = total / (vec_t) count;
+			cl->entity->client->ping = total / (float) count;
 		}
 	}
 }
@@ -768,7 +766,7 @@ void Sv_Frame(const uint32_t msec) {
 	}
 
 	// clamp the frame interval to 1 second of simulation
-	frame_delta = Min(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
+	frame_delta = Minf(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
 
 	// read any pending packets from clients
 	Sv_ReadPackets();
@@ -820,8 +818,6 @@ static void Sv_InitLocal(void) {
 	                       "The server hostname, visible in the server browser");
 	sv_max_clients = Cvar_Add("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH,
 	                          "The maximum number of clients the server will allow");
-	sv_no_areas = Cvar_Add("sv_no_areas", "0", CVAR_LATCH | CVAR_DEVELOPER,
-	                       "Disable server-side area management (developer tool)");
 	sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO,
 	                     "Set to 1 to to advertise this server via the master server");
 	sv_rcon_password = Cvar_Add("rcon_password", "", 0,
@@ -854,6 +850,11 @@ void Sv_Init(void) {
 	Sv_InitAdmin();
 
 	Sv_InitMasters();
+
+	if (dedicated->value && Fs_Exists("server.cfg")) {
+		Cbuf_AddText("exec server.cfg\n");
+		Cbuf_Execute();
+	}
 }
 
 /**

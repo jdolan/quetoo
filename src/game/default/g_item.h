@@ -26,8 +26,8 @@
 
 #ifdef __GAME_LOCAL_H__
 
-	extern const uint16_t g_num_items;
-
+	extern const size_t g_num_items;
+	
 	const g_item_t *G_ItemList(void);
 
 	/**
@@ -93,7 +93,7 @@
 	g_entity_t *G_TossFlag(g_entity_t *self);
 	g_entity_t *G_TossTech(g_entity_t *self);
 	g_entity_t *G_TossQuadDamage(g_entity_t *self);
-	void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf);
+	void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo);
 	void G_InitItems(void);
 
 #endif /* __GAME_LOCAL_H__ */

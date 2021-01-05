@@ -30,14 +30,18 @@ typedef struct {
 	pm_cmd_t cmd; // the movement command
 	uint32_t time; // simulation time when the command was sent
 	uint32_t timestamp; // system time when the command was sent
+	struct {
+		uint32_t time; // the simulation time when prediction was run
+		vec3_t origin; // the predicted origin for this command
+		vec3_t error; // the prediction error for this command
+	} prediction;
 } cl_cmd_t;
 
 typedef struct {
 	int32_t frame_num; // sequential identifier, used for delta
 	int32_t delta_frame_num; // negatives indicate no delta
-	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps; // the player state
-	uint16_t num_entities; // the number of entities in the frame
+	int32_t num_entities; // the number of entities in the frame
 	uint32_t entity_state; // non-masked index into cl.entity_states array
 	_Bool valid; // false if delta parsing failed
 	_Bool interpolated; // true if this frame has been interpolated one or more times
@@ -49,18 +53,27 @@ typedef struct {
 	uint32_t time;
 	int32_t frame;
 	int32_t old_frame;
-	vec_t lerp;
-	vec_t fraction;
+	float lerp;
+	float fraction;
 	_Bool reverse;
 } cl_entity_animation_t;
 
 typedef struct {
-	vec_t height;
+	float height;
 	uint32_t time;
 	uint32_t timestamp;
 	uint32_t interval;
-	vec_t delta_height;
+	float delta_height;
 } cl_entity_step_t;
+
+typedef enum {
+	TRAIL_PRIMARY,
+	TRAIL_SECONDARY,
+	TRAIL_TERTIARY,
+	TRAIL_BUBBLE,
+
+	TRAIL_ID_COUNT
+} cl_trail_id_t;
 
 typedef struct {
 	entity_state_t baseline; // delta from this if not from a previous frame
@@ -71,6 +84,8 @@ typedef struct {
 
 	uint32_t timestamp; // for intermittent effects
 
+	vec3_t trail_origins[TRAIL_ID_COUNT];
+
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation
 
@@ -80,14 +95,13 @@ typedef struct {
 	vec3_t angles; // and angles
 	vec3_t mins, maxs; // bounding box
 	vec3_t abs_mins, abs_maxs; // absolute bounding box
-	vec_t legs_yaw; // only used by player models, the leg angle we're currently at
+	float legs_yaw; // only used by player models; leg angle ideal yaw
+	float legs_current_yaw; // only used by player models
 
 	cl_entity_step_t step; // the step the entity just traversed
 
-	matrix4x4_t matrix; // interpolated translation and rotation
-	matrix4x4_t inverse_matrix; // for box hull collision
-
-	r_lighting_t lighting; // cached static lighting info
+	mat4_t matrix; // interpolated translation and rotation
+	mat4_t inverse_matrix; // for box hull collision
 } cl_entity_t;
 
 // the total number of tokens info can contain
@@ -99,16 +113,17 @@ typedef struct {
 	char model[MAX_USER_INFO_VALUE]; // the model name, e.g. qforcer
 	char skin[MAX_USER_INFO_VALUE]; // the skin name, e.g. blue
 
-	color_t shirt, pants, helmet, color; // player and effects colors
+	color_t shirt, pants, helmet; // player and effects colors
+	float hue;
 
 	r_model_t *head;
-	r_material_t *head_skins[MD3_MAX_MESHES];
+	r_material_t *head_skins[MAX_ENTITY_SKINS];
 
 	r_model_t *torso;
-	r_material_t *torso_skins[MD3_MAX_MESHES];
+	r_material_t *torso_skins[MAX_ENTITY_SKINS];
 
 	r_model_t *legs;
-	r_material_t *legs_skins[MD3_MAX_MESHES];
+	r_material_t *legs_skins[MAX_ENTITY_SKINS];
 
 	r_image_t *icon; // for the scoreboard
 } cl_client_info_t;
@@ -137,14 +152,11 @@ typedef struct {
 
 	struct g_entity_s *ground_entity;
 
-	vec3_t origins[CMD_BACKUP]; // for reconciling with the server
-
 	vec3_t error; // the prediction error, interpolated over the current server frame
 } cl_predicted_state_t;
 
 /**
- * @brief We accumulate a large circular buffer of entity states for each
- * entity in order to calculate delta compression.
+ * @brief We accumulate a large buffer of entity states for each entity in order to calculate delta compression.
  */
 #define ENTITY_STATE_BACKUP (PACKET_BACKUP * MAX_PACKET_ENTITIES)
 #define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
@@ -160,51 +172,153 @@ typedef struct {
 	uint32_t frame_counter;
 	uint32_t packet_counter;
 
-	cl_cmd_t cmds[CMD_BACKUP]; // each message will send several old cmds
-	cl_predicted_state_t predicted_state; // client side prediction output
+	/**
+	 * @brief The client commands, buffered.
+	 * @details The client sends several commands each frame, to best ensure that the server
+	 * receives them. This buffer also enables client side prediction to run several commands
+	 * ahead of what we know the server has received.
+	 */
+	cl_cmd_t cmds[CMD_BACKUP];
 
-	cl_frame_t frame; // the most recent frame received from server
-	cl_frame_t frames[PACKET_BACKUP]; // for calculating delta compression
+	/**
+	 * @brief The predicted state (view origin, offset, angles, etc) of the client.
+	 */
+	cl_predicted_state_t predicted_state;
 
-	const cl_frame_t *delta_frame; // the delta frame for the current frame
-	const cl_frame_t *previous_frame; // the last interpolated frame, if sequential
+	/**
+	 * @brief The most recently interpolated server frame.
+	 */
+	cl_frame_t frame;
 
-	cl_entity_t entities[MAX_ENTITIES]; // client entities
-	cl_entity_t *entity; // our own entity, which may be our player, or chase camera target, etc..
+	/**
+	 * @brief A circular buffer of received server frames, so that the client can take
+	 * advantage of delta-compression.
+	 */
+	cl_frame_t frames[PACKET_BACKUP];
 
+	/**
+	 * @brief The delta frame for the currently received frame, if any. `NULL` otherwise.
+	 * @details This is a pointer into `frames`.
+	 */
+	const cl_frame_t *delta_frame;
+
+	/**
+	 * @brief The previously received frame, if sequential. `NULL` otherwise.
+	 * @detaiils This is a pointer into `frames`.
+	 */
+	const cl_frame_t *previous_frame;
+
+	/**
+	 * @brief All known server-side entities, parsed from received frames.
+	 */
+	cl_entity_t entities[MAX_ENTITIES];
+
+	/**
+	 * @brief The server entity which represents our local client (player).
+	 * @details This is a pointer into `entities`, and may point to an entity we are chasing.
+	 */
+	cl_entity_t *entity;
+
+	/**
+	 * @brief A large buffer of entity states, shared by all parsed frames.
+	 * @details Each frame maintains an index into this buffer. Entity states are parsed
+	 * from the frame into this buffer, and then copied into the relevant entities.
+	 */
 	entity_state_t entity_states[ENTITY_STATE_BACKUP]; // accumulated each frame
-	uint32_t entity_state; // index (not wrapped) into entity states
 
-	uint16_t client_num; // our client number, which is our entity number - 1
+	/**
+	 * @brief The entity state index.
+	 */
+	uint32_t entity_state;
 
-	uint32_t suppress_count; // number of messages rate suppressed
+	/**
+	 * @brief Our local client number, or index into `CS_CLIENTS`.
+	 * @details This is equal to our entity number - 1, since the world is entity 0.
+	 */
+	int32_t client_num;
 
-	uint32_t time; // clamped simulation time that the client is rendering at
-	uint32_t unclamped_time; // unclamped simulation time, useful for effect durations
+	/**
+	 * @brief Suppressed messages count, for rate throttling.
+	 */
+	uint32_t suppress_count;
 
-	vec_t lerp; // linear interpolation fraction between frames
+	/**
+	 * @brief Clamped simulation time. This will always be between the previously received
+	 * server frame time, and the most recently received server frame time.
+	 */
+	uint32_t time;
 
-	// the client maintains its own idea of view angles, which are
-	// sent to the server each frame. It is cleared to 0 upon entering each level.
-	// the server sends a delta when necessary which is added to the locally
-	// tracked view angles to account for spawn and teleport direction changes
+	/**
+	 * @brief Unclamped simulation time. This will always reflect actual milliseconds since
+	 * the game was launched. This is useful for effect durations and constant-time events.
+	 */
+	uint32_t unclamped_time;
+
+	/**
+	 * @brief The duration of the current frame, in milliseconds.
+	 */
+	uint32_t frame_msec;
+
+	/**
+	 * @brief The interpolation fraction for the current frame.
+	 */
+	float lerp;
+
+	/**
+	 * @brief The client view angles, derived from input, and sent to the server.
+	 * @details These are cleared upon entering each level. The server sends a delta when
+	 * necessary to correct for spawn and teleport direction changes.
+	 */
 	vec3_t angles;
 
-	_Bool demo_server; // we're viewing a demo
-	_Bool third_person; // we're viewing third person camera
+	/**
+	 * @brief True if we are viewing a demo.
+	 */
+	_Bool demo_server;
 
+	/**
+	 * @brief True if we are in 3rd person view, which disables client-side prediction.
+	 */
+	_Bool third_person;
+
+	/**
+	 * @brief The parsed configuration strings.
+	 */
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
-	uint16_t precache_check;
 
-	// for client side prediction clipping
+	/**
+	 * @brief The client loads BSP inline models for collision tracing and client-side prediction.
+	 */
 	cm_bsp_model_t *cm_models[MAX_MODELS];
 
-	// caches of indexed assets to be referenced by the server
-	r_model_t *model_precache[MAX_MODELS];
-	s_sample_t *sound_precache[MAX_SOUNDS];
-	s_music_t *music_precache[MAX_MUSICS];
-	r_image_t *image_precache[MAX_IMAGES];
+	/**
+	 * @brief The cache of known models contained within `config_strings`.
+	 */
+	r_model_t  *models[MAX_MODELS];
 
+	/**
+	 * @brief The cache of known images contained within `config_strings`.
+	 */
+	r_image_t  *images[MAX_IMAGES];
+
+	/**
+	 * @brief The cache of known sounds contained within `config_strings`.
+	 */
+	s_sample_t *sounds[MAX_SOUNDS];
+
+	/**
+	 * @brief The cache of known musics contained within `config_strings`.
+	 */
+	s_music_t  *musics[MAX_MUSICS];
+
+	/**
+	 * @brief The index into `config_strings` to check for file presence or download.
+	 */
+	int32_t precache_check;
+
+	/**
+	 * @brief The cache of known client skins contained within `config_strings`.
+	 */
 	cl_client_info_t client_info[MAX_CLIENTS];
 } cl_client_t;
 
@@ -277,7 +391,6 @@ typedef struct {
 typedef struct {
 	int32_t x, y;
 	int32_t old_x, old_y;
-	_Bool grabbed;
 } cl_mouse_state_t;
 
 typedef struct {
@@ -301,14 +414,14 @@ typedef struct {
 	char name[32];
 	char gameplay[32];
 	char error[128];
-	uint16_t clients;
-	uint16_t max_clients;
+	int32_t clients;
+	int32_t max_clients;
 	uint32_t ping_time; // when we pinged the server
-	uint16_t ping; // server latency
+	int32_t ping; // server latency
 } cl_server_info_t;
 
 typedef struct {
-	uint16_t percent;
+	int32_t percent;
 	const char *status;
 	char mapshot[MAX_QPATH];
 } cl_loading_t;

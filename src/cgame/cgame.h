@@ -32,7 +32,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 20
+#define CGAME_API_VERSION 23
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -55,9 +55,14 @@ typedef struct cg_import_s {
 	const r_context_t *context;
 
 	/**
-	 * @brief The renderer view scene.
+	 * @brief The renderer view definition.
 	 */
 	r_view_t *view;
+
+	/**
+	 * @brief The sound stage.
+	 */
+	s_stage_t *stage;
 
 	/**
 	 * @defgroup console-appending Console appending
@@ -70,16 +75,15 @@ typedef struct cg_import_s {
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 	/**
-	 * @brief Prints a formatted debug message to the configured consoles.
-	 * @remarks If the `debug` cvar is unset, this function will simply return.
+	 * @return The active debug mask.
 	 */
-	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	debug_t (*DebugMask)(void);
 
 	/**
-	 * @brief Prints a formatted player movement debug message to the configured consoles.
-	 * @remarks If the `debug` cvar is unset, this function will simply return.
+	 * @brief Prints a formatted debug message to the configured consoles.
+	 * @details If the proivided `debug` mask is inactive, the message will not be printed.
 	 */
-	void (*PmDebug)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	/**
 	 * @brief Prints a formatted warning message to the configured consoles.
@@ -93,7 +97,6 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
-	 *
 	 * @defgroup memory-management Memory management
 	 * @{
 	 */
@@ -121,16 +124,30 @@ typedef struct cg_import_s {
 	void (*FreeTag)(mem_tag_t tag);
 
 	/**
-	 * @brief Creates and starts a thread for the given function.
+	 * @}
+	 * @defgroup threads Threads
+	 * @{
+	 */
+
+	/**
+	 * @brief Starts a thread for the given function.
 	 * @param name The thread name.
 	 * @param run The thread function.
 	 * @param data User data.
+	 * @param options The thread options.
+	 * @remarks Unless `THREAD_NO_WAIT` is passed via `options`, the caller must also
+	 * call `Wait` on the returned thread in order to relinquish it to the thread pool.
 	 */
-	thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data);
+	thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data, thread_options_t options);
+
+	/**
+	 * @brief Waits for the previously started thread, blocking the calling thread.
+	 * @param thread The thread.
+	 */
+	void (*Wait)(thread_t *thread);
 
 	/**
 	 * @}
-	 *
 	 * @defgroup filesystem Filesystem
 	 * @{
 	 */
@@ -152,7 +169,7 @@ typedef struct cg_import_s {
 	 * @param offset The offset.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*SeekFile)(file_t *file, size_t offset);
+	_Bool (*SeekFile)(file_t *file, int64_t offset);
 
 	/**
 	 * @brief Reads from the specified file.
@@ -207,7 +224,7 @@ typedef struct cg_import_s {
 	 * @param enumerator The enumerator function.
 	 * @param data User data.
 	 */
-	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
+	void (*EnumerateFiles)(const char *pattern, Fs_Enumerator enumerator, void *data);
 
 	/**
 	 * @brief Check if a file exists or not.
@@ -217,7 +234,6 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
-	 *
 	 * @defgroup console-variables Console variables & commands
 	 * @{
 	 */
@@ -251,7 +267,7 @@ typedef struct cg_import_s {
 	/**
 	 * @return The floating point value of the console variable with the given name.
 	 */
-	vec_t (*GetCvarValue)(const char *name);
+	float (*GetCvarValue)(const char *name);
 
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
@@ -266,7 +282,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
 	 */
-	cvar_t *(*SetCvarValue)(const char *name, vec_t value);
+	cvar_t *(*SetCvarValue)(const char *name, float value);
 
 	/**
 	 * @brief Forces the console variable to take the value of the string immediately.
@@ -282,7 +298,7 @@ typedef struct cg_import_s {
 	 * @param value The variable value.
 	 * @return The modified variable.
 	 */
-	cvar_t *(*ForceSetCvarValue)(const char *name, vec_t value);
+	cvar_t *(*ForceSetCvarValue)(const char *name, float value);
 
 	/**
 	 * @brief Toggles the console variable by `name`.
@@ -383,7 +399,7 @@ typedef struct cg_import_s {
 	/**
 	 * @return The configuration string at `index`.
 	 */
-	char *(*ConfigString)(uint16_t index);
+	char *(*ConfigString)(int32_t index);
 
 	/**
 	 * @defgroup network Network messaging
@@ -430,36 +446,31 @@ typedef struct cg_import_s {
 	 * @brief Reads a vector (float) from the last received network message.
 	 * @return The vector.
 	 */
-	vec_t (*ReadVector)(void);
+	float (*ReadFloat)(void);
 
 	/**
 	 * @brief Reads a positional vector from the last received network message.
 	 */
-	void (*ReadPosition)(vec3_t pos);
+	vec3_t (*ReadPosition)(void);
 
 	/**
 	 * @brief Reads a 32 bit precision directional vector from the last received network message.
 	 */
-	void (*ReadDir)(vec3_t dir);
+	vec3_t (*ReadDir)(void);
 
 	/**
 	 * @brief Reads a 16 bit precision angle from the last received network message.
 	 */
-	vec_t (*ReadAngle)(void);
+	float (*ReadAngle)(void);
 
 	/**
 	 * @brief Reads a 16 bit precision angle triplet from the last received network message.
 	 */
-	void (*ReadAngles)(vec3_t angles);
+	vec3_t (*ReadAngles)(void);
 
 	/**
 	 * @}
 	 */
-
-	/**
-	 * @return The entities string for the currently loaded level.
-	 */
-	const char *(*EntityString)(void);
 
 	/**
 	 * @defgroup collision Collision model
@@ -467,10 +478,40 @@ typedef struct cg_import_s {
 	 */
 
 	/**
+	 * @brief Finds the key-value pair for `key` within the specifed entity.
+	 * @param entity The entity.
+	 * @param key The entity key.
+	 * @return The key-value pair for the specified key within entity.
+	 * @remarks This function will always return non-NULL for convenience. Check the
+	 * parsed types on the returned pair to differentiate "not present" from "0."
+	 */
+	const cm_entity_t *(*EntityValue)(const cm_entity_t *entity, const char *key);
+
+	/**
+	 * @brief Finds all brushes within the specified entity.
+	 * @param entity The entity.
+	 * @return A pointer array of brushes originally defined within `entity`.
+	 * @remarks This function returns the brushes within an entity as it was defined
+	 * in the source .map file. Even `func_group` and other entities which have their
+	 * contents merged into `worldspawn` during the compilation step are fully supported.
+	 */
+	GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
+
+	/**
 	 * @return The contents mask at the specified point.
+	 * @param point The point to test.
 	 * @remarks This checks the world model and all known solid entities.
 	 */
 	int32_t (*PointContents)(const vec3_t point);
+
+	/**
+	 * @return True if `point` resides inside `brush`, falses otherwise.
+	 * @param point The point to test.
+	 * @param brush The brush to test against.
+	 * @remarks This function is useful for testing points against non-solid brushes
+	 * from brush entities. For general purpose collision detection, use PointContents.
+	 */
+	_Bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.
@@ -482,25 +523,13 @@ typedef struct cg_import_s {
 	 * @param contents Solids matching this mask will clip the returned trace.
 	 * @return A trace result.
 	 */
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, const uint16_t skip,
-	                    const int32_t contents);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, const int32_t skip, const int32_t contents);
 
 	/**
 	 * @param p The point to check.
-	 * @param model The model to check within, or `NULL` for the world model.
 	 * @return The BSP leaf at the given point `p`, in the given `model`.
 	 */
-	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p, const r_bsp_model_t *model);
-
-	/**
-	 * @return True if `leaf` is in the potentially hearable set for the current frame.
-	 */
-	_Bool (*LeafHearable)(const r_bsp_leaf_t *leaf);
-
-	/**
-	 * @return True if `leaf` is in the potentially visible set for the current frame.
-	 */
-	_Bool (*LeafVisible)(const r_bsp_leaf_t *leaf);
+	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p);
 
 	/**
 	 * @}
@@ -519,64 +548,48 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Returns the fraction of the command interval for which the key was down.
 	 */
-	vec_t (*KeyState)(button_t *key, uint32_t cmd_msec);
+	float (*KeyState)(button_t *key, uint32_t cmd_msec);
+
+	/**
+	 * @brief Update the loading progress during media loading.
+	 * @param percent The percent. Positive values for absolute, negaitve for relative increment.
+	 * @param status The status message.
+	 */
+	void (*LoadingProgress)(int32_t percent, const char *status);
 
 	/**
 	 * @brief Loads a sound sample by the given name.
-	 * @param name The sample name or alias (e.g. `"weapons/bfg/fire"`, `"*players/common/gurp"`).
+	 * @param name The sample name or alias (e.g. `"weapons/bfg/fire"`, `"#players/common/gurp"`).
 	 * @return The loaded sample.
 	 */
 	s_sample_t *(*LoadSample)(const char *name);
 
 	/**
+	 * @brief Loads a sound sample for the given player model and name.
+	 * @param model The player model name (e.g. `"qforcer"`).
+	 * @param name The sample name (e.g. `"*gurp"`).
+	 * @return The loaded sample, which may be an aliased common sample.
+	 */
+	s_sample_t *(*LoadClientModelSample)(const char *model, const char *name);
+
+	/**
 	 * @brief Precache all sound samples for a given player model.
 	 */
-	void (*LoadClientSamples)(const char *model);
+	void (*LoadClientModelSamples)(const char *model);
 
 	/**
 	 * @brief Adds a sound sample to the playback queue.
+	 * @param stage The sound stage.
 	 * @param play The play sample.
 	 */
-	void (*AddSample)(const s_play_sample_t *play);
-
-	/**
-	 * @brief Resolves an RGB floating point color from the specified palette index.
-	 * @param c The palette index.
-	 * @param color The RGB floating point color.
-	 */
-	void (*ColorFromPalette)(uint8_t c, vec3_t color);
-
-	/**
-	 * @brief Query if a box is visible on screen.
-	 * @param mins The min bounds point.
-	 * @param maxs The max bounds point.
-	 * @return Returns true if the specified bounding box is completely culled by the
-	 * view frustum, false otherwise.
-	 */
-	_Bool (*CullBox)(const vec3_t mins, const vec3_t maxs);
-
-	/**
-	 * @brief Query if a sphere is visible on screen.
-	 * @param point The central point of the sphere.
-	 * @param radius The radius of the sphere.
-	 * @return Returns true if the specified sphere is completely culled by the
-	 * view frustum, false otherwise.
-	 */
-	_Bool (*CullSphere)(const vec3_t point, const vec_t radius);
-
-	/**
-	 * @brief Sets the drawing color.
-	 * @param color The RGBA drawing color.
-	 */
-	void (*Color)(const vec4_t color);
+	void (*AddSample)(s_stage_t *stage, const s_play_sample_t *play);
 
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
 	 * @param name The image name (e.g. `"pics/ch1"`).
-	 * @param surface The surface pointer to return.
-	 * @return True on success, false on error.
+	 * @return The surface, or `NULL` if it could not be loaded.
 	 */
-	_Bool (*LoadSurface)(const char *name, SDL_Surface **surface);
+	SDL_Surface *(*LoadSurface)(const char *name);
 
 	/**
 	 * @brief Loads the image with the given name and type.
@@ -588,34 +601,34 @@ typedef struct cg_import_s {
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
 
 	/**
-	 * @brief Creates a blank state for an atlas and returns it.
-	 * @param name The name to give to the atlas, e.g. `"my_atlas_is_cool"`
+	 * @brief Loads or creates an image atlas.
+	 * @param name The name to give to the atlas, e.g. `"cg_particle_atlas"`
 	 * @return The atlas that has been created.
-	 * @remarks Start with this function, add images to it with AddImageToAtlas, then call StitchAtlas when
-	 * you are ready. You can then query positions with GetAtlasImageFromAtlas.
 	 */
-	r_atlas_t *(*CreateAtlas)(const char *name);
+	r_atlas_t *(*LoadAtlas)(const char *name);
 
 	/**
-	 * @brief Add an image to the list of images for this atlas.
+	 * @brief Load an image into an atlas. The atlas must be [re]compiled.
 	 * @param atlas The atlas to add an image to.
 	 * @param image The image to add to the atlas.
+	 * @return The atlas image, or a placeholder if the image could not be loaded.
 	 */
-	void (*AddImageToAtlas)(r_atlas_t *atlas, const r_image_t *image);
+	r_atlas_image_t *(*LoadAtlasImage)(r_atlas_t *atlas, const char *name, r_image_type_t type);
 
 	/**
-	 * @brief Resolve an atlas image from an atlas and image.
-	 * @param atlas The atlas to fetch the stitched image from.
-	 * @param image The original image you wish to query.
-	 * @return An r_atlas_image_t which contains the stitched coordinates of that image.
-	 */
-	const r_atlas_image_t *(*GetAtlasImageFromAtlas)(const r_atlas_t *atlas, const r_image_t *image);
-
-	/**
-	 * @brief Compiles the specified atlas.
+	 * @brief Compiles the specified atlas, preparing all atlas images it contains for rendering.
 	 * @param atlas The atlas to stitch together and produce the image for.
 	 */
 	void (*CompileAtlas)(r_atlas_t *atlas);
+
+	/**
+	 * @brief Creates an animation.
+	 * @param name The name to give to the animation, e.g. `"cg_flame_1"`
+	 * @param num_images The number of images in the image pointer list.
+	 * @param images The image pointer list.
+	 * @return The animation that has been created.
+	 */
+	r_animation_t *(*CreateAnimation)(const char *name, int32_t num_images, const r_image_t **images);
 
 	/**
 	 * @brief Loads the material with the given name.
@@ -627,7 +640,7 @@ typedef struct cg_import_s {
 
 	/**
 	 * @brief Loads all materials defined in the given file.
-	 * @param path The materials file path, e.g. `"materials/torn.mat"`.
+	 * @param path The materials file path, e.g. `"maps/torn.mat"`.
 	 * @param context The asset context, e.g. `ASSET_CONTEXT_TEXTURES`.
 	 * @param materials The list of materials to prepend.
 	 * @return The number of materials loaded.
@@ -647,149 +660,41 @@ typedef struct cg_import_s {
 	r_model_t *(*WorldModel)(void);
 
 	/**
-	 * @brief Adds an entity to the scene for the current frame.
-	 * @return The added entity.
-	 */
-	r_entity_t *(*AddEntity)(const r_entity_t *e);
-
-	/**
-	 * @brief Adds a linked entity to the scene for the current frame.
-	 * @param parent The entity to which this entity is to be linked (e.g. a client).
-	 * @param model The linked entity model.
-	 * @param tag_name The MD3 tag name to resolve in the parent for link alignment.
-	 * @return The linked entity.
-	 * @remarks The parent entity must have been previously returned by `AddEntity`.
-	 */
-	r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model, const char *tag_name);
-
-	/**
-	 * @brief Sets the model-view-projection matrix for the given entity.
-	 * @param e The entity.
-	 */
-	void (*SetMatrixForEntity)(r_entity_t *e);
-
-	/**
-	 * @brief Returns the desired tag structure, or `NULL`.
-	 * @param mod The model to check for the specified tag.
-	 * @param name The name of the tag.
-	 * @param frame The frame to fetch the tag on.
-	 * @return The tag structure.
-	 */
-	const r_model_tag_t *(*MeshModelTag)(const r_model_t *mod, const char *name, const int32_t frame);
-
-	/**
-	 * @brief Change the matrix identified by "id" with the values from "matrix".
-	 * @param id The matrix ID.
-	 * @param matrix The new matrix.
-	 */
-	void (*SetMatrix)(const r_matrix_id_t id, const matrix4x4_t *matrix);
-
-	/**
-	 * @brief Fetch the matrix identified by "id" and stick it in "matrix".
-	 * @param id The matrix ID.
-	 * @param matrix The matrix to store the active matrix in.
-	 */
-	void (*GetMatrix)(const r_matrix_id_t id, matrix4x4_t *matrix);
-
-	/**
-	 * @brief Push the active matrix into the stack
-	 */
-	void (*PushMatrix)(const r_matrix_id_t id);
-
-	/**
-	 * @brief Pop a saved matrix from the stack
-	 */
-	void (*PopMatrix)(const r_matrix_id_t id);
-
-	/**
-	 * @brief Draws the mesh model diffuse pass for the given entity.
-	 */
-	void (*DrawMeshModel)(const r_entity_t *e);
-
-	/**
-	 * @brief Draws the mesh model materials for the given entity.
-	 */
-	void (*DrawMeshModelMaterials)(const r_entity_t *e);
-
-	/**
-	 * @brief Toggle the state of alpha blending.
-	 */
-	void (*EnableBlend)(_Bool enable);
-
-	/**
-	 * @brief Toggle the state of depth testing.
-	 */
-	void (*EnableDepthTest)(_Bool enable);
-
-	/**
-	 * @brief Set the range of depth testing.
-	 */
-	void (*DepthRange)(double znear, double zfar);
-
-	/**
-	 * @brief Toggle the specified texunit.
-	 */
-	void (*EnableTexture)(const r_texunit_id_t tex, _Bool enable);
-
-	/**
-	 * @brief Change the rendering viewport.
-	 */
-	void (*SetViewport)(GLint x, GLint y, GLsizei width, GLsizei height, _Bool force);
-
-	/**
-	 * @brief Adds an instantaneous light to the scene for the current frame.
-	 */
-	void (*AddLight)(const r_light_t *l);
-
-	/**
-	 * @brief Adds a particle to the scene for the current frame.
-	 */
-	void (*AddParticle)(const r_particle_t *p);
-
-	/**
-	 * @brief Adds a sustained light to the scene.
-	 */
-	void (*AddSustainedLight)(const r_sustained_light_t *s);
-
-	/**
-	 * @brief Add a stain to the scene.
-	 */
-	void (*AddStain)(const r_stain_t *s);
-
-	/**
-	 * @defgroup draw-2d 2D drawing
+	 * @defgroup scene Scene management
 	 * @{
 	 */
 
 	/**
-	 * @brief Draws an image in orthographic projection on the screen.
-	 * @param x The x coordinate, in pixels.
-	 * @param y The y coordinate, in pixels.
-	 * @param scale The image scale.
-	 * @param image The image.
+	 * @brief Adds an entity to the scene for the current frame.
+	 * @return The added entity.
 	 */
-	void (*DrawImage)(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image);
+	r_entity_t *(*AddEntity)(r_view_t *view, const r_entity_t *e);
 
 	/**
-	 * @brief Draws an image with an arbitrary size on the screen.
-	 * @param x The x coordinate, in pixels.
-	 * @param y The y coordinate, in pixels.
-	 * @param x The width, in pixels.
-	 * @param y The height, in pixels.
-	 * @param image The image.
+	 * @brief Adds an instantaneous light to the scene for the current frame.
 	 */
-	void (*DrawImageResized)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image);
+	void (*AddLight)(r_view_t *view, const r_light_t *l);
+	
+	/**
+	 * @brief Adds a sprite to the scene for the current frame.
+	 */
+	void (*AddSprite)(r_view_t *view, const r_sprite_t *p);
+	
+	/**
+	 * @brief Adds a beam to the scene for the current frame.
+	 */
+	void (*AddBeam)(r_view_t *view, const r_beam_t *p);
 
 	/**
-	 * @brief Draws a filled rectangle in orthographic projection on the screen.
-	 * @param x The x coordinate, in pixels.
-	 * @param y The y coordinate, in pixels.
-	 * @param w The width, in pixels.
-	 * @param h The height, in pixels.
-	 * @param c The color palette index.
-	 * @param a The alpha component.
+	 * @brief Add a stain to the scene.
 	 */
-	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, vec_t a);
+	void (*AddStain)(r_view_t *view, const r_stain_t *s);
+
+	/**
+	 * @}
+	 * @defgroup draw-2d 2D drawing
+	 * @{
+	 */
 
 	/**
 	 * @brief Binds the font by `name`, optionally returning the character width and height.
@@ -800,19 +705,41 @@ typedef struct cg_import_s {
 	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);
 
 	/**
-	 * @return The width of the string `s` in pixels, using the currently bound font.
+	 * @brief Draws a filled rectangle in orthographic projection on the screen.
+	 * @param x The x coordinate, in pixels.
+	 * @param y The y coordinate, in pixels.
+	 * @param w The width, in pixels.
+	 * @param h The height, in pixels.
+	 * @param c The color.
+	 * @param a The alpha component.
 	 */
-	r_pixel_t (*StringWidth)(const char *s);
+	void (*Draw2DFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color);
+
+	/**
+	 * @brief Draws an image in orthographic projection on the screen.
+	 * @param x The x coordinate, in pixels.
+	 * @param y The y coordinate, in pixels.
+	 * @param x The width, in pixels.
+	 * @param y The height, in pixels.
+	 * @param image The image.
+	 * @param color The color.
+	 */
+	void (*Draw2DImage)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
 
 	/**
 	 * @brief Draws the string `s` at the given coordinates.
 	 * @param x The x coordinate, in pixels.
 	 * @param y The y coordinate, in pixels.
 	 * @param s The string.
-	 * @param color The color palette index.
+	 * @param color The color.
 	 * @return The number of visible characters drawn.
 	 */
-	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, int32_t color);
+	size_t (*Draw2DString)(r_pixel_t x, r_pixel_t y, const char *s, const color_t color);
+
+	/**
+	 * @return The width of the string `s` in pixels, using the currently bound font.
+	 */
+	r_pixel_t (*StringWidth)(const char *s);
 
 	/**
 	 * @}
@@ -825,22 +752,100 @@ typedef struct cg_import_s {
  */
 typedef struct cg_export_s {
 
-	uint16_t api_version;
-	uint16_t protocol;
+	int32_t api_version;
+	int32_t protocol;
 
+	/**
+	 * @brief Initializes the client game.
+	 * @details Called once when the client game module is loaded.
+	 */
 	void (*Init)(void);
+
+	/**
+	 * @brief Deinitializes the client game.
+	 * @details Called once when the client game module is unloaded.
+	 */
 	void (*Shutdown)(void);
+
+	/**
+	 * @brief Clears client game state on disconnect or error events.
+	 */
 	void (*ClearState)(void);
+
+	/**
+	 * @brief Updates client game media references on level load or subsystem restarts.
+	 */
 	void (*UpdateMedia)(void);
-	void (*UpdateConfigString)(uint16_t index);
+
+	/**
+	 * @brief Called when a server message known to the client is received.
+	 * @param cmd The message type (e.g. SV_CMD_SOUND).
+	 * @param data The parsed type-specific data or NULL.
+	 */
+	void (*ParsedMessage)(int32_t cmd, void *data);
+
+	/**
+	 * @brief Called when a server message not known to the client is received.
+	 * @param cmd The message type.
+	 * @details This allows the game and client game to define their own custom message types.
+	 */
 	_Bool (*ParseMessage)(int32_t cmd);
+
+	/**
+	 * @brief Called each frame to update the current movement command angles.
+	 * @param cmd The current movement command.
+	 */
 	void (*Look)(pm_cmd_t *cmd);
+
+	/**
+	 * @brief Called each frame to updarte the current movement command movement.
+	 * @param cmd The current movement command.
+	 */
 	void (*Move)(pm_cmd_t *cmd);
+
+	/**
+	 * @brief Called each client frame to interpolate the most recently received server frames.
+	 * @details This does not populate the view with frame entities. Rather, this advances the
+	 * simulation for each entity within the frame.
+	 */
 	void (*Interpolate)(const cl_frame_t *frame);
+
+	/**
+	 * @brief Called to determine if client side prediction should be used for the current frame.
+	 * @details Third person, chasecam, or other conditions may prompt the client game to disable
+	 * client side prediction.
+	 */
 	_Bool (*UsePrediction)(void);
-	void (*PredictMovement)(const GList *cmds);
+
+	/**
+	 * @brief Called each frame to run all pending movement commands and update the client's
+	 * predicted state.
+	 */
+	void (*PredictMovement)(const GPtrArray *cmds);
+
+	/**
+	 * @brief Called during the loading process to allow the client game to update the loading
+	 * screen.
+	 */
 	void (*UpdateLoading)(const cl_loading_t loading);
-	void (*UpdateView)(const cl_frame_t *frame);
+
+	/**
+	 * @brief Called each frame to update the view definition and sound stage.
+	 * @details This function should perform the minimal amount of work required to dispatch
+	 * the depth pre-pass render. The scene should not be populated with entities, samples, etc.
+	 */
+	void (*PrepareScene)(const cl_frame_t *frame);
+
+	/**
+	 * @brief Called each frame to populate the view definition and sound stage.
+	 * @details This function should add entities, sprites, lights, samples, etc. to the view
+	 * definition and sound stage.
+	 */
+	void (*PopulateScene)(const cl_frame_t *frame);
+
+	/**
+	 * @brief Called each frame to draw any non-view visual elements, such as the HUD.
+	 */
 	void (*UpdateScreen)(const cl_frame_t *frame);
 
 } cg_export_t;

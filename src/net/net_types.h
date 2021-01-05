@@ -49,7 +49,12 @@
  * this length. However, large server messages can be split into multiple
  * messages and sent in series. See Sv_SendClientDatagram.
  */
-#define MAX_MSG_SIZE 4096 * 8
+#define MAX_MSG_SIZE		16384
+
+/**
+ * @brief The max UDP message size, bounded by Windows MTU. Warn if we exceed this.
+ */
+#define MAX_MSG_SIZE_UDP	1450
 
 // A typedef for net_sockaddr, to reduce "struct" everywhere and silence Windows warning.
 typedef struct sockaddr_in net_sockaddr;
@@ -99,7 +104,6 @@ typedef struct {
 	uint32_t reliable_incoming; // single bit
 	uint32_t reliable_outgoing; // outgoing sequence number of last reliable
 
-	// reliable staging and holding areas
 	mem_buf_t message; // writing buffer to send to server
 	byte message_buffer[MAX_MSG_SIZE - 10]; // leave space for header
 

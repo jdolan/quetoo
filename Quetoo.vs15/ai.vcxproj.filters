@@ -30,6 +30,12 @@
     <ClInclude Include="..\src\ai\default\ai_item.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\ai\default\ai_info.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ai\default\ai_node.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ai\default\ai_goal.c">
@@ -39,6 +45,12 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ai\default\ai_item.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ai\default\ai_info.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ai\default\ai_node.c">
       <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>

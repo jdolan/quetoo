@@ -48,12 +48,12 @@ static void didSetValue(Slider *slider, double value) {
 		return;
 	}
 
-	if (slider == view->bump) {
-		view->material->cm->bump = view->bump->value;
+	if (slider == view->roughness) {
+		view->material->cm->roughness = view->roughness->value;
 	} else if (slider == view->hardness) {
 		view->material->cm->hardness = view->hardness->value;
-	} else if (slider == view->specular) {
-		view->material->cm->specular = view->specular->value;
+	} else if (slider == view->specularity) {
+		view->material->cm->specularity = view->specularity->value;
 	} else if (slider == view->parallax) {
 		view->material->cm->parallax = view->parallax->value;
 	} else {
@@ -73,14 +73,14 @@ static void loadView(ViewController *self) {
 	EditorView *view = $(alloc(EditorView), initWithFrame, NULL);
 	assert(view);
 
-	view->bump->delegate.self = self;
-	view->bump->delegate.didSetValue = didSetValue;
+	view->roughness->delegate.self = self;
+	view->roughness->delegate.didSetValue = didSetValue;
 
 	view->hardness->delegate.self = self;
 	view->hardness->delegate.didSetValue = didSetValue;
 
-	view->specular->delegate.self = self;
-	view->specular->delegate.didSetValue = didSetValue;
+	view->specularity->delegate.self = self;
+	view->specularity->delegate.didSetValue = didSetValue;
 
 	view->parallax->delegate.self = self;
 	view->parallax->delegate.didSetValue = didSetValue;
@@ -100,13 +100,11 @@ static void viewWillAppear(ViewController *self) {
 
 	r_material_t *material = NULL;
 
-	vec3_t end;
-	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
+	const vec3_t end = Vec3_Add(cl_view.origin, Vec3_Scale(cl_view.forward, MAX_WORLD_DIST));
 
-	const int32_t contents = MASK_SOLID | MASK_LIQUID | CONTENTS_MIST;
-	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, contents);
-	if (tr.fraction < 1.0 && tr.surface->material) {
-		material = R_LoadMaterial(tr.surface->name, ASSET_CONTEXT_TEXTURES);
+	const cm_trace_t tr = Cl_Trace(cl_view.origin, end, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+	if (tr.texinfo && tr.texinfo->material) {
+		material = R_LoadMaterial(tr.texinfo->name, ASSET_CONTEXT_TEXTURES);
 	}
 
 	$(view, setMaterial, material);

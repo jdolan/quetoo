@@ -23,6 +23,8 @@
 #include "cmd.h"
 #include "cvar.h"
 
+quetoo_t quetoo;
+
 /**
  * @brief Setup fixture.
  */
@@ -82,8 +84,7 @@ START_TEST(check_Cvar_Get) {
 	ck_assert_msg(var->value > 1.39 && var->value < 1.41, "var->value was %f", var->value);
 	ck_assert_msg(var->integer == 1, "var->integer was %d", var->integer);
 
-}
-END_TEST
+} END_TEST
 
 START_TEST(check_Cvar_WriteAll) {
 	cvar_t *vars[32];
@@ -123,8 +124,7 @@ START_TEST(check_Cvar_WriteAll) {
 		ck_abort_msg("Failed to open %s for writing", __func__);
 	}
 
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.

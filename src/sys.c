@@ -27,31 +27,15 @@
 
 #if defined(_WIN32)
 	#include <windows.h>
-
-	#if defined(_MSC_VER)
-		#include <DbgHelp.h>
-	#endif
-
 	#include <shlobj.h>
-	#define dlopen(file_name, mode) LoadLibrary(file_name)
-
-	static const char *dlerror() {
-		char num_buffer[32];
-		const DWORD err = GetLastError();
-
-		itoa(err, num_buffer, 10);
-		return va("Error loading library: %lu", err);
-	}
-
-	#define dlsym(handle, symbol) GetProcAddress(handle, symbol)
-	#define dlclose(handle) FreeLibrary(handle)
-#else
-	#include <sys/time.h>
-	#include <dlfcn.h>
 #endif
 
 #if defined(__APPLE__)
 	#include <mach-o/dyld.h>
+#endif
+
+#if HAVE_DLFCN_H
+	#include <dlfcn.h>
 #endif
 
 #if HAVE_EXECINFO
@@ -59,7 +43,11 @@
 	#define MAX_BACKTRACE_SYMBOLS 50
 #endif
 
-#include <SDL2/SDL.h>
+#if HAVE_SYS_TIME_H
+	#include <sys/time.h>
+#endif
+
+#include <SDL.h>
 
 /**
  * @return The current executable path (argv[0]).
@@ -125,10 +113,8 @@ const char *Sys_UserDir(void) {
 void *Sys_OpenLibrary(const char *name, _Bool global) {
 
 #if defined(_WIN32)
-	const int mode = RTLD_NOW;
 	const char *so_name = va("%s.dll", name);
 #else
-	const int mode = RTLD_LAZY;
 	const char *so_name = va("%s.so", name);
 #endif
 
@@ -136,9 +122,9 @@ void *Sys_OpenLibrary(const char *name, _Bool global) {
 		char path[MAX_OS_PATH];
 
 		g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
-		Com_Print("Trying %s...\n", path);
+		Com_Print("  Loading %s...\n", path);
 
-		void *handle = dlopen(path, mode | (global ? RTLD_GLOBAL : RTLD_LOCAL));
+		void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
 		if (handle) {
 			return handle;
 		}
@@ -181,10 +167,8 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
  */
 void Sys_Backtrace(const char *msg) {
 
-	char message[MAX_STRING_CHARS] = "";
-
 #if HAVE_EXECINFO
-
+	char message[MAX_STRING_CHARS] = "";
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 	const int32_t count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
 
@@ -202,18 +186,18 @@ void Sys_Backtrace(const char *msg) {
 
 	free(strings);
 
-#else
-
-	if (!Com_WasInit(QUETOO_CLIENT)) {
-		return;
-	}
-
 #endif
 
 	const SDL_MessageBoxData data = {
 		.flags = SDL_MESSAGEBOX_ERROR,
-		.title = msg ?: "Fatal Error",
-		.message = message,
+		.title = "Fatal Error",
+		.message = msg,
+		.numbuttons = 1,
+		.buttons = &(const SDL_MessageBoxButtonData) {
+			.flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+			.buttonid = 1,
+			.text = "OK"
+		}
 	};
 
 	int32_t button;
@@ -239,9 +223,7 @@ void Sys_Signal(int32_t s) {
 		case SIGQUIT:
 #endif
 			Com_Shutdown("Received signal %d, quitting...\n", s);
-			break;
 		default:
 			Com_Error(ERROR_FATAL, "Received signal %d\n", s);
-			break;
 	}
 }

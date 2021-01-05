@@ -24,29 +24,22 @@
 static void *cgame_handle;
 
 /**
- * @brief
+ * @brief Fetch the active debug mask.
  */
-static void Cl_CgameDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Cl_CgameDebug(const char *func, const char *fmt, ...) {
-
-	va_list args;
-	va_start(args, fmt);
-
-	Com_Debugv_(DEBUG_CGAME, func, fmt, args);
-
-	va_end(args);
+static debug_t Cl_CgameDebugMask(void) {
+	return quetoo.debug_mask;
 }
 
 /**
  * @brief
  */
-static void Cl_CgamePmDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Cl_CgamePmDebug(const char *func, const char *fmt, ...) {
+static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
 
 	va_list args;
 	va_start(args, fmt);
 
-	Com_Debugv_(DEBUG_PMOVE_CLIENT, func, fmt, args);
+	Com_Debugv_(debug, func, fmt, args);
 
 	va_end(args);
 }
@@ -93,24 +86,24 @@ static char *Cl_ReadString(void) {
 	return Net_ReadString(&net_message);
 }
 
-static vec_t Cl_ReadVector(void) {
-	return Net_ReadVector(&net_message);
+static float Cl_ReadFloat(void) {
+	return Net_ReadFloat(&net_message);
 }
 
-static void Cl_ReadPosition(vec3_t pos) {
-	Net_ReadPosition(&net_message, pos);
+static vec3_t Cl_ReadPosition(void) {
+	return Net_ReadPosition(&net_message);
 }
 
-static void Cl_ReadDir(vec3_t dir) {
-	Net_ReadDir(&net_message, dir);
+static vec3_t Cl_ReadDir(void) {
+	return Net_ReadDir(&net_message);
 }
 
-static vec_t Cl_ReadAngle(void) {
+static float Cl_ReadAngle(void) {
 	return Net_ReadAngle(&net_message);
 }
 
-static void Cl_ReadAngles(vec3_t angles) {
-	Net_ReadAngles(&net_message, angles);
+static vec3_t Cl_ReadAngles(void) {
+	return Net_ReadAngles(&net_message);
 }
 
 /**
@@ -123,9 +116,9 @@ static GList *Cl_Servers(void) {
 /**
  * @brief
  */
-static char *Cl_ConfigString(uint16_t index) {
+static char *Cl_ConfigString(int32_t index) {
 
-	if (index > MAX_CONFIG_STRINGS) {
+	if (index < 0 || index > MAX_CONFIG_STRINGS) {
 		Com_Warn("Bad index %i\n", index);
 		return "";
 	}
@@ -143,7 +136,7 @@ void Cl_InitCgame(void) {
 		Cl_ShutdownCgame();
 	}
 
-	Com_Print("Client initialization...\n");
+	Com_Print("Client game initialization...\n");
 
 	memset(&import, 0, sizeof(import));
 
@@ -152,11 +145,12 @@ void Cl_InitCgame(void) {
 
 	import.context = &r_context;
 
-	import.view = &r_view;
+	import.view = &cl_view;
+	import.stage = &cl_stage;
 
 	import.Print = Com_Print;
 	import.Debug_ = Cl_CgameDebug;
-	import.PmDebug = Cl_CgamePmDebug;
+	import.DebugMask = Cl_CgameDebugMask;
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Cl_CgameError;
 
@@ -166,6 +160,7 @@ void Cl_InitCgame(void) {
 	import.FreeTag = Mem_FreeTag;
 
 	import.Thread = Thread_Create_;
+	import.Wait = Thread_Wait;
 
 	import.BaseDir = Fs_BaseDir;
 	import.OpenFile = Fs_OpenRead;
@@ -217,72 +212,53 @@ void Cl_InitCgame(void) {
 	import.ReadShort = Cl_ReadShort;
 	import.ReadLong = Cl_ReadLong;
 	import.ReadString = Cl_ReadString;
-	import.ReadVector = Cl_ReadVector;
+	import.ReadFloat = Cl_ReadFloat;
 	import.ReadPosition = Cl_ReadPosition;
 	import.ReadDir = Cl_ReadDir;
 	import.ReadAngle = Cl_ReadAngle;
 	import.ReadAngles = Cl_ReadAngles;
 
-	import.EntityString = Cm_EntityString;
-
+	import.EntityValue = Cm_EntityValue;
+	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Cl_PointContents;
+	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Cl_Trace;
 
 	import.LeafForPoint = R_LeafForPoint;
-	import.LeafHearable = R_LeafHearable;
-	import.LeafVisible = R_LeafVisible;
 
 	import.KeyDown = Cl_KeyDown;
 	import.KeyUp = Cl_KeyUp;
 	import.KeyState = Cl_KeyState;
 
+	import.LoadingProgress = Cl_LoadingProgress;
+	
 	import.LoadSample = S_LoadSample;
-	import.LoadClientSamples = S_LoadClientSamples;
+	import.LoadClientModelSample = S_LoadClientModelSample;
+	import.LoadClientModelSamples = S_LoadClientModelSamples;
 	import.AddSample = S_AddSample;
 
-	import.CullBox = R_CullBox;
-	import.CullSphere = R_CullSphere;
-
-	import.ColorFromPalette = Img_ColorFromPalette;
-	import.Color = R_Color;
-
-	import.LoadSurface = Img_LoadImage;
+	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;
-	import.CreateAtlas = R_CreateAtlas;
-	import.AddImageToAtlas = R_AddImageToAtlas;
-	import.GetAtlasImageFromAtlas = R_GetAtlasImageFromAtlas;
+	import.LoadAtlas = R_LoadAtlas;
+	import.LoadAtlasImage = R_LoadAtlasImage;
 	import.CompileAtlas = R_CompileAtlas;
+	import.CreateAnimation = R_CreateAnimation;
 	import.LoadMaterial = R_LoadMaterial;
 	import.LoadMaterials = R_LoadMaterials;
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 
 	import.AddEntity = R_AddEntity;
-	import.MeshModelTag = R_MeshModelTag;
-	import.SetMatrixForEntity = R_SetMatrixForEntity;
-	import.SetMatrix = R_SetMatrix;
-	import.GetMatrix = R_GetMatrix;
-	import.PushMatrix = R_PushMatrix;
-	import.PopMatrix = R_PopMatrix;
-	import.DrawMeshModel = R_DrawMeshModel_default;
-	import.DrawMeshModelMaterials = R_DrawMeshModelMaterials_default;
-	import.EnableBlend = R_EnableBlend;
-	import.EnableDepthTest = R_EnableDepthTest;
-	import.DepthRange = R_DepthRange;
-	import.EnableTexture = R_EnableTextureByIdentifier;
-	import.SetViewport = R_SetViewport;
 	import.AddLight = R_AddLight;
-	import.AddParticle = R_AddParticle;
-	import.AddSustainedLight = R_AddSustainedLight;
+	import.AddSprite = R_AddSprite;
+	import.AddBeam = R_AddBeam;
 	import.AddStain = R_AddStain;
 
-	import.DrawImage = R_DrawImage;
-	import.DrawImageResized = R_DrawImageResized;
-	import.DrawFill = R_DrawFill;
-
 	import.BindFont = R_BindFont;
+	import.Draw2DFill = R_Draw2DFill;
+	import.Draw2DImage = R_Draw2DImage;
+	import.Draw2DString = R_Draw2DString;
 	import.StringWidth = R_StringWidth;
-	import.DrawString = R_DrawString;
 
 	cgame_handle = Sys_OpenLibrary("cgame", true);
 	assert(cgame_handle);
@@ -299,7 +275,7 @@ void Cl_InitCgame(void) {
 
 	cls.cgame->Init();
 
-	Com_Print("Client initialized\n");
+	Com_Print("Client game initialized\n");
 	Com_InitSubsystem(QUETOO_CGAME);
 }
 

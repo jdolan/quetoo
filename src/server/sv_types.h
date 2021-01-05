@@ -32,14 +32,14 @@
  * entity exceeds this (by having a massive bounding box, for example), it may
  * fall out of PVS for some valid client positions.
  */
-#define MAX_ENT_LEAFS 128
+#define MAX_ENT_LEAFS 512
 
 /**
  * @brief The maximum number of clusters an entity may occupy. If an entity
  * exceeds this (by having a massive bounding box, for example), a full BSP
  * recursion is necessary to determine its visibility (bad).
  */
-#define MAX_ENT_CLUSTERS 32
+#define MAX_ENT_CLUSTERS 64
 
 /**
  * @brief The server-specific view of an entity. An sv_entity_t corresponds to
@@ -52,11 +52,10 @@ typedef struct {
 	int32_t clusters[MAX_ENT_CLUSTERS];
 	int32_t num_clusters; // if -1, use top_node
 
-	int32_t areas[2];
 	struct sv_sector_s *sector;
 
-	matrix4x4_t matrix;
-	matrix4x4_t inverse_matrix;
+	mat4_t matrix;
+	mat4_t inverse_matrix;
 } sv_entity_t;
 
 /**
@@ -97,8 +96,6 @@ typedef struct {
 } sv_server_t;
 
 typedef struct {
-	int32_t area_bytes;
-	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps;
 	uint16_t num_entities;
 	uint32_t entity_state; // index into svs.entity_states array
@@ -257,7 +254,14 @@ typedef struct {
 
 	sv_challenge_t challenges[MAX_CHALLENGES]; // to prevent invalid IPs from connecting
 
+	/**
+	 * @brief The exported game module API.
+	 */
 	g_export_t *game;
+
+	/**
+	 * @brief The exported ai module API.
+	 */
 	ai_export_t *ai;
 } sv_static_t;
 
@@ -265,12 +269,14 @@ typedef struct {
  * @brief Yields a pointer to the edict by the given number by negotiating the
  * edicts array based on the reported size of g_entity_t.
  */
-#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) svs.game->entities + svs.game->entity_size * (n)) )
+#define ENTITY_FOR_NUM(n) \
+	( (g_entity_t *) ((byte *) svs.game->entities + svs.game->entity_size * (n)) )
 
 /**
  * @brief Yields the entity number (index) for the specified g_entity_t * by
  * negotiating the edicts array based on the reported size of g_entity_t.
  */
-#define NUM_FOR_ENTITY(e) ( ((byte *)(e) - (byte *) svs.game->entities) / svs.game->entity_size )
+#define NUM_FOR_ENTITY(e) \
+	( ((intptr_t)(e) - (intptr_t) svs.game->entities) / svs.game->entity_size )
 
 #endif /* __SV_LOCAL_H__ */

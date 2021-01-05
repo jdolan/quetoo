@@ -28,15 +28,21 @@ quetoo_dedicated_LDADD = \
 	$(top_builddir)/src/client/libclient_null.la \
 	$(top_builddir)/src/server/libserver.la
 
-if WINDOWS
+if MINGW
 
 .rc.o:
 	@WINDRES@ $^ -o $@
-        
+
 quetoo_SOURCES += \
 	quetoo-icon.rc
+
+quetoo_LDFLAGS = \
+	-mwindows
 
 quetoo_dedicated_SOURCES += \
 	quetoo-dedicated-icon.rc
 
+quetoo_dedicated_LDFLAGS = \
+	-mwindows
+	
 endif

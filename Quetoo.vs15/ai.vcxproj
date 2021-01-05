@@ -24,15 +24,19 @@
   <ItemGroup>
     <ClInclude Include="..\src\ai\ai.h" />
     <ClInclude Include="..\src\ai\default\ai_goal.h" />
+    <ClInclude Include="..\src\ai\default\ai_info.h" />
     <ClInclude Include="..\src\ai\default\ai_item.h" />
     <ClInclude Include="..\src\ai\default\ai_local.h" />
     <ClInclude Include="..\src\ai\default\ai_main.h" />
+    <ClInclude Include="..\src\ai\default\ai_node.h" />
     <ClInclude Include="..\src\ai\default\ai_types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ai\default\ai_goal.c" />
+    <ClCompile Include="..\src\ai\default\ai_info.c" />
     <ClCompile Include="..\src\ai\default\ai_item.c" />
     <ClCompile Include="..\src\ai\default\ai_main.c" />
+    <ClCompile Include="..\src\ai\default\ai_node.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}</ProjectGuid>
@@ -59,7 +63,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glib-2.0.lib;libswap.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>ai.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>

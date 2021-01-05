@@ -32,13 +32,14 @@ libserver_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 
 libserver_la_LDFLAGS = \
 	-shared
 
 libserver_la_LIBADD = \
-	$(top_builddir)/src/collision/libcmodel.la \
+	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/net/libnet.la \
 	$(top_builddir)/src/libconsole.la \
 	$(top_builddir)/src/libthread.la \

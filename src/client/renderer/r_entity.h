@@ -23,12 +23,9 @@
 
 #include "r_types.h"
 
-r_entity_t *R_AddEntity(const r_entity_t *e);
-void R_SetMatrixForEntity(r_entity_t *e);
+r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *e);
 
 #ifdef __R_LOCAL_H__
-void R_AddFlares(void);
-void R_RotateForEntity(const r_entity_t *e);
-void R_CullEntities(void);
-void R_DrawEntities(void);
+void R_UpdateEntities(r_view_t *view);
+void R_DrawEntities(const r_view_t *view, int32_t blend_depth);
 #endif /* __R_LOCAL_H__ */

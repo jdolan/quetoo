@@ -21,169 +21,57 @@
 
 #include "image.h"
 
-#define IMG_PALETTE "pics/colormap"
-
-img_palette_t img_palette;
-static _Bool img_palette_initialized;
-
-// RGBA color masks
-#define RMASK 0x000000ff
-#define GMASK 0x0000ff00
-#define BMASK 0x00ff0000
-#define AMASK 0xff000000
-
-// image formats, tried in this order
-static const char *img_formats[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
-
 /**
- * @brief A helper which mangles a .wal file into an SDL_Surface suitable for
- * OpenGL uploads and other basic manipulations.
+ * @brief Loads the specified image from the game filesystem.
  */
-static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
-	void *buf;
+static SDL_Surface *Img_LoadSurface_(const char *name, const char *type) {
+	SDL_Surface *surf = NULL;
 
-	*surf = NULL;
-
-	if (Fs_Load(path, &buf) == -1) {
-		return false;
-	}
-
-	d_wal_t *wal = (d_wal_t *) buf;
-
-	wal->width = LittleLong(wal->width);
-	wal->height = LittleLong(wal->height);
-
-	wal->offsets[0] = LittleLong(wal->offsets[0]);
-
-	if (!img_palette_initialized) { // lazy-load palette if necessary
-		Img_InitPalette();
-	}
-
-	size_t size = wal->width * wal->height;
-	uint32_t *p = (uint32_t *) SDL_malloc(size * sizeof(uint32_t));
-
-	const byte *b = (byte *) wal + wal->offsets[0];
-	for (size_t i = 0; i < size; i++) { // convert to 32bpp RGBA via palette
-		if (b[i] == 255) { // transparent
-			p[i] = 0;
-		} else {
-			p[i] = img_palette[b[i]];
-		}
-	}
-
-	// create the RGBA surface
-	if ((*surf = SDL_CreateRGBSurfaceFrom(p, wal->width, wal->height, 32, 0,
-	                                      RMASK, GMASK, BMASK, AMASK))) {
-
-		// trick SDL into freeing the pixel data with the surface
-		(*surf)->flags &= ~SDL_PREALLOC;
-	}
-
-	Fs_Free(buf);
-
-	return *surf != NULL;
-}
-
-/**
- * @brief Loads the specified image from the game filesystem and populates
- * the provided SDL_Surface.
- */
-static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
 	char path[MAX_QPATH];
-	void *buf;
-	int64_t len;
-
 	g_snprintf(path, sizeof(path), "%s.%s", name, type);
 
-	if (!g_strcmp0(type, "wal")) { // special case for .wal files
-		return Img_LoadWal(path, surf);
-	}
-
-	*surf = NULL;
-
+	void *buf;
+	int64_t len;
 	if ((len = Fs_Load(path, &buf)) != -1) {
 
 		SDL_RWops *rw;
-		if ((rw = SDL_RWFromMem(buf, (int32_t) len))) {
+		if ((rw = SDL_RWFromConstMem(buf, (int32_t) len))) {
 
 			SDL_Surface *s;
-			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
+			if ((s = IMG_LoadTyped_RW(rw, 0, type))) {
 
-				if (!g_str_has_prefix(path, IMG_PALETTE) && s->format->format != SDL_PIXELFORMAT_ABGR8888) {
-					*surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_ABGR8888, 0);
+				if (s->format->format != SDL_PIXELFORMAT_RGBA32) {
+					surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
 					SDL_FreeSurface(s);
 				} else {
-					*surf = s;
+					surf = s;
 				}
 			}
-			SDL_FreeRW(rw);
+			SDL_RWclose(rw);
 		}
 		Fs_Free(buf);
 	}
 
-	return *surf != NULL;
+	return surf;
 }
 
 /**
- * @brief Loads the specified image from the game filesystem and populates
- * the provided SDL_Surface. Image formats are tried in the order they appear
- * in TYPES.
+ * @brief Loads the specified image from the game filesystem, trying all supported formats.
  */
-_Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
+SDL_Surface *Img_LoadSurface(const char *name) {
+	const char *img_formats[] = { "tga", "png", "jpg", NULL };
 
 	char basename[MAX_QPATH];
 	StripExtension(name, basename);
 
-	int32_t i = 0;
-	while (img_formats[i]) {
-		if (Img_LoadTypedImage(basename, img_formats[i++], surf)) {
-			return true;
+	for (const char **fmt = img_formats; *fmt; fmt++) {
+		SDL_Surface *surf = Img_LoadSurface_(basename, *fmt);
+		if (surf) {
+			return surf;
 		}
 	}
 
-	return false;
-}
-
-/**
- * @brief Initializes the 8bit color palette required for .wal texture loading.
- */
-void Img_InitPalette(void) {
-	SDL_Surface *surf;
-
-	if (!Img_LoadTypedImage(IMG_PALETTE, "pcx", &surf)) {
-		return;
-	}
-
-	for (size_t i = 0; i < lengthof(img_palette); i++) {
-		const byte r = surf->format->palette->colors[i].r;
-		const byte g = surf->format->palette->colors[i].g;
-		const byte b = surf->format->palette->colors[i].b;
-
-		const uint32_t v = (255u << 24) + (r << 0) + (g << 8) + (b << 16);
-		img_palette[i] = LittleLong(v);
-	}
-
-	img_palette[lengthof(img_palette) - 1] &= LittleLong(0xffffff); // 255 is transparent
-
-	SDL_FreeSurface(surf);
-
-	img_palette_initialized = true;
-}
-
-/**
- * @brief Returns RGB components of the specified color in the specified result array.
- */
-void Img_ColorFromPalette(uint8_t c, vec_t *res) {
-
-	if (!img_palette_initialized) { // lazy-load palette if necessary
-		Img_InitPalette();
-	}
-
-	const uint32_t color = img_palette[c];
-
-	res[0] = (color >> 0 & 255) / 255.0;
-	res[1] = (color >> 8 & 255) / 255.0;
-	res[2] = (color >> 16 & 255) / 255.0;
+	return NULL;
 }
 
 /**
@@ -263,6 +151,75 @@ _Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height
 
 	// write TGA data
 	SDL_RWwrite(f, data, width * height, 3);
+
+	SDL_RWclose(f);
+	return true;
+}
+
+/**
+* @brief Write pixel data to a PBM file.
+*/
+_Bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
+	SDL_RWops *f;
+	const char *real_path = Fs_RealPath(path);
+
+	if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+		Com_Warn("Failed to open to %s\n", real_path);
+		return false;
+	}
+
+	char header[256];
+
+	if (bpp == 4) {
+		g_snprintf(header, sizeof(header), "PF\n%u %u\n%f\n", width, height, -1.0f);
+	}
+	else {
+		g_snprintf(header, sizeof(header), "P6\n%u %u\n%d\n", width, height, bpp == 2 ? 65535 : 255);
+	}
+
+	// write PBM header
+	SDL_RWwrite(f, header, strlen(header), 1);
+
+	// output buffer
+	byte *buffer = Mem_Malloc(width * height * 3 * bpp);
+	memcpy(buffer, data, width * height * 3 * bpp);
+
+	// possible input/output buffers in needed formats
+	const uint8_t *buffer_uint8_in = data;
+	uint8_t *buffer_uint8_out = buffer;
+
+	const uint16_t *buffer_uint16_in = (uint16_t *)data;
+	uint16_t *buffer_uint16_out = (uint16_t *)buffer;
+
+	const float *buffer_float_in = (float *)data;
+	float *buffer_float_out = (float *)buffer;
+
+	const uint8_t *chunk = NULL;
+	
+	// swap to big endian and flip pixels vertically (if needed)
+	for (size_t i = 0; i < height; i++) {
+		for (size_t j = 0; j < width * 3; j++) {
+			size_t index_in = i * width * 3 + j;
+			size_t index_out = (height - i - 1) * width * 3 + j;
+
+			switch (bpp) {
+			case 1:
+				buffer_uint8_out[index_out] = buffer_uint8_in[index_in];
+				break;
+			case 2:
+				chunk = (const uint8_t *)(&buffer_uint16_in[index_in]);
+				buffer_uint16_out[index_out] = (chunk[1] << 0) | (chunk[0] << 8);
+				break;
+			case 4:
+				buffer_float_out[index_out] = buffer_float_in[index_in];
+				break;
+			}
+		}
+	}
+
+	SDL_RWwrite(f, buffer, width * height, 3 * bpp);
+
+	Mem_Free(buffer);
 
 	SDL_RWclose(f);
 	return true;

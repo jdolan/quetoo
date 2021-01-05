@@ -37,9 +37,9 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
 		return;
 	}
 
-	char *skin_name, *mesh_name = line;
+	char *skin_name, *face_name = line;
 
-	if ((skin_name = strchr(mesh_name, ','))) {
+	if ((skin_name = strchr(face_name, ','))) {
 		*skin_name++ = '\0';
 
 		while (isspace(*skin_name)) {
@@ -49,10 +49,10 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
 		return;
 	}
 
-	const r_model_mesh_t *mesh = model->meshes;
-	for (i = 0; i < model->num_meshes; i++, mesh++) {
+	const r_mesh_face_t *face = model->faces;
+	for (i = 0; i < model->num_faces; i++, face++) {
 
-		if (!g_ascii_strcasecmp(mesh_name, mesh->name)) {
+		if (!g_ascii_strcasecmp(face_name, face->name)) {
 			skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
 			break;
 		}
@@ -60,8 +60,8 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
 }
 
 /**
- * @brief Parses the appropriate .skin file, resolving skins for each mesh
- * within the model. If a skin can not be resolved for any mesh, the entire
+ * @brief Parses the appropriate .skin file, resolving skins for each face
+ * within the model. If a skin can not be resolved for any face, the entire
  * skins array is invalidated so that the default will be loaded.
  */
 static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
@@ -74,7 +74,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 	g_snprintf(path, sizeof(path), "%s_%s.skin", mod->media.name, skin);
 
 	if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
-		cgi.Debug("%s not found\n", path);
+		Cg_Debug("%s not found\n", path);
 
 		skins[0] = NULL;
 		return false;
@@ -99,13 +99,12 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 		}
 	}
 
-	// ensure that a skin was resolved for each mesh, nullifying if not
-
-	const r_model_mesh_t *mesh = model->meshes;
-	for (i = 0; i < model->num_meshes; i++, mesh++) {
+	// ensure that a skin was resolved for each face, nullifying if not
+	const r_mesh_face_t *face = model->faces;
+	for (i = 0; i < model->num_faces; i++, face++) {
 
 		if (!skins[i]) {
-			cgi.Debug("%s: %s has no skin\n", path, mesh->name);
+			Cg_Debug("%s: %s has no skin\n", path, face->name);
 
 			skins[0] = NULL;
 			break;
@@ -164,7 +163,7 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
 		}
 	}
 
-	cgi.Debug("Could not load client model %s/%s\n", model, skin);
+	Cg_Debug("Could not load client model %s/%s\n", model, skin);
 
 	// if we reach here, something up above didn't load
 	return false;
@@ -179,7 +178,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	char *v = NULL;
 	int32_t i;
 
-	cgi.Debug("%s\n", s);
+	Cg_Debug("%s\n", s);
 
 	// copy the entire string
 	g_strlcpy(ci->info, s, sizeof(ci->info));
@@ -224,24 +223,23 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		if (!ColorFromHex(info[2], &ci->shirt)) {
+		if (!Color_Parse(info[2], &ci->shirt)) {
 			ci->shirt.a = 0;
 		}
 
-		if (!ColorFromHex(info[3], &ci->pants)) {
+		if (!Color_Parse(info[3], &ci->pants)) {
 			ci->pants.a = 0;
 		}
 
-		if (!ColorFromHex(info[4], &ci->helmet)) {
+		if (!Color_Parse(info[4], &ci->helmet)) {
 			ci->helmet.a = 0;
 		}
 
-		const int16_t hue = atoi(info[5]);
+		const int32_t hue = atoi(info[5]);
 		if (hue >= 0) {
-			const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
-			ci->color.u32 = *(int32_t *) &color;
+			ci->hue = hue;
 		} else {
-			ci->color.a = 0;
+			ci->hue = -1;
 		}
 
 		// ensure we were able to load everything
@@ -252,14 +250,14 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
-		VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
+		ci->legs->mins = Vec3_Scale(PM_MINS, PM_SCALE);
+		ci->legs->maxs = Vec3_Scale(PM_MAXS, PM_SCALE);
 
-		ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
+		ci->legs->radius = (ci->legs->maxs.z - ci->legs->mins.z) / 2.0;
 
 		// load sound files if we're in-game
 		if (*cgi.state > CL_DISCONNECTED) {
-			cgi.LoadClientSamples(ci->model);
+			cgi.LoadClientModelSamples(ci->model);
 		}
 	}
 
@@ -279,6 +277,10 @@ void Cg_LoadClients(void) {
 
 		if (!*s) {
 			continue;
+		}
+
+		if (i ^ 1) {
+			cgi.LoadingProgress(-1, ci->model);
 		}
 
 		Cg_LoadClient(ci, s);
@@ -306,6 +308,7 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 
 		case ANIM_LEGS_LAND1:
 		case ANIM_LEGS_LAND2:
+		case ANIM_LEGS_TURN:
 			return ANIM_LEGS_IDLE;
 
 		default:
@@ -321,12 +324,12 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_t *a) {
 	const r_mesh_model_t *mesh = model->mesh;
 
-	if (a->animation > mesh->num_animations) {
+	if ((int32_t) a->animation > mesh->num_animations) {
 		cgi.Warn("Invalid animation: %s: %d\n", model->media.name, a->animation);
 		return;
 	}
 
-	const r_model_animation_t *anim = &mesh->animations[a->animation];
+	const r_mesh_animation_t *anim = &mesh->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
 		cgi.Warn("Bad animation sequence: %s: %d\n", model->media.name, a->animation);
@@ -375,15 +378,15 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
 		}
 	}
 
-	a->lerp = (elapsed_time % frame_duration) / (vec_t) frame_duration;
-	a->fraction = Clamp(elapsed_time / (vec_t) animation_duration, 0.0, 1.0);
+	a->lerp = (elapsed_time % frame_duration) / (float) frame_duration;
+	a->fraction = Clampf(elapsed_time / (float) animation_duration, 0.0, 1.0);
 }
 
 /**
  * @brief Runs the animation sequences for the specified entity, setting the frame
  * indexes and interpolation fractions for the specified renderer entities.
  */
-void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
+static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
 
 	const cl_client_info_t *ci = &cgi.client->client_info[ent->current.client];
 
@@ -403,5 +406,250 @@ void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *leg
 		legs->old_frame = ent->animation2.old_frame;
 		legs->lerp = ent->animation2.lerp;
 		legs->back_lerp = 1.0 - ent->animation2.lerp;
+	}
+}
+
+/**
+ * @brief The min velocity we should apply leg rotation on.
+ */
+#define CLIENT_LEGS_SPEED_EPSILON		.5f
+
+/**
+ * @brief The max yaw that we'll rotate the legs by when moving left/right.
+ */
+#define CLIENT_LEGS_YAW_MAX				65.f
+
+/**
+ * @brief Clamp angle
+ */
+#define CLIENT_LEGS_CLAMP				(CLIENT_LEGS_YAW_MAX * 1.5f)
+
+/**
+ * @brief The speed that the legs will catch up to the current leg yaw.
+ */
+#define CLIENT_LEGS_YAW_LERP_SPEED		240.f
+
+/**
+ * @brief
+ */
+static inline float AngleMod(float a) {
+	a = fmodf(a, 360.f);// (360.0 / 65536) * ((int32_t) (a * (65536 / 360.0)) & 65535);
+
+	if (a < 0) {
+		return a + (((int32_t)(a / 360.f) + 1) * 360.f);
+	}
+
+	return a;
+}
+
+/**
+ * @brief
+ */
+static inline float SmallestAngleBetween(const float x, const float y) {
+	return min(360.f - fabsf(x - y), fabsf(x - y));
+}
+
+/**
+ * @brief
+ */
+static inline float Cg_CalculateAngle(const float speed, float current, float ideal) {
+	current = AngleMod(current);
+	ideal = AngleMod(ideal);
+
+	if (current == ideal) {
+		return current;
+	}
+
+	float move = ideal - current;
+
+	if (ideal > current) {
+		if (move >= 180.0) {
+			move = move - 360.0;
+		}
+	} else {
+		if (move <= -180.0) {
+			move = move + 360.0;
+		}
+	}
+
+	if (move > 0) {
+		if (move > speed) {
+			move = speed;
+		}
+	} else {
+		if (move < -speed) {
+			move = -speed;
+		}
+	}
+
+	return AngleMod(current + move);
+}
+
+/**
+ * @brief Adds the numerous render entities which comprise a given client (player)
+ * entity: head, torso, legs, weapon, flags, etc.
+ */
+void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
+	const entity_state_t *s = &ent->current;
+
+	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
+	if (!ci->head || !ci->torso || !ci->legs) {
+		Cg_Debug("Invalid client info: %d\n", s->client);
+		return;
+	}
+
+	if (Cg_IsSelf(ent)) {
+		e->effects |= EF_SELF;
+	}
+
+	// don't draw ourselves unless third person is set
+	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
+
+		e->effects |= EF_NO_DRAW;
+
+		// keep our shadow underneath us using the predicted origin
+		e->origin.x = cgi.view->origin.x;
+		e->origin.y = cgi.view->origin.y;
+	} else {
+		Cg_BreathTrail(ent);
+	}
+
+	// set tints
+	if (ci->shirt.a) {
+		e->tints[0] = Color_Vec4(ci->shirt);
+	}
+
+	if (ci->pants.a) {
+		e->tints[1] = Color_Vec4(ci->pants);
+	}
+
+	if (ci->helmet.a) {
+		e->tints[2] = Color_Vec4(ci->helmet);
+	}
+
+	r_entity_t head, torso, legs;
+
+	// copy the specified entity to all body segments
+	head = torso = legs = *e;
+
+	if ((ent->current.effects & EF_CORPSE) == 0) {
+		vec3_t right;
+		Vec3_Vectors(legs.angles, NULL, &right, NULL);
+
+		vec3_t move_dir;
+		move_dir = Vec3_Subtract(ent->prev.origin, ent->current.origin);
+		move_dir.z = 0.f; // don't care about z, just x/y
+
+		if (ent->animation2.animation < ANIM_LEGS_SWIM) {
+			if (Vec3_Length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
+				move_dir = Vec3_Normalize(move_dir);
+				float legs_yaw = Vec3_Dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+
+				if (ent->animation2.animation == ANIM_LEGS_BACK ||
+					ent->animation2.reverse) {
+					legs_yaw = -legs_yaw;
+				}
+
+				ent->legs_yaw = ent->angles.y + legs_yaw;
+			} else {
+				ent->legs_yaw = ent->angles.y;
+			}
+		} else {
+
+			const float angle_diff = SmallestAngleBetween(ent->legs_yaw, ent->angles.y);
+
+			if (ent->animation2.animation == ANIM_LEGS_TURN ||
+				fabsf(angle_diff) > CLIENT_LEGS_YAW_MAX) {
+
+				ent->legs_yaw = ent->angles.y;
+
+				// change animation as well
+				if (ent->animation2.animation == ANIM_LEGS_IDLE) {
+					ent->animation2.time = cgi.client->unclamped_time;
+					ent->animation2.frame = ent->animation2.old_frame = -1;
+					ent->animation2.lerp = ent->animation2.fraction = 0;
+				}
+			}
+		}
+
+		ent->legs_current_yaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->frame_msec), ent->legs_current_yaw, ent->legs_yaw);
+
+		const float angle_delta = AngleMod(ent->legs_current_yaw - ent->legs_yaw + 180.0f) - 180.0f;
+
+		ent->legs_current_yaw = AngleMod(ent->legs_yaw + clamp(angle_delta, -CLIENT_LEGS_CLAMP, CLIENT_LEGS_CLAMP));
+
+		if (fabsf(SmallestAngleBetween(ent->legs_yaw, ent->legs_current_yaw)) > 1) {
+			if (ent->animation2.animation == ANIM_LEGS_IDLE) {
+				ent->animation2.time = cgi.client->unclamped_time;
+				ent->animation2.animation = ANIM_LEGS_TURN;
+			}
+		} else {
+			if (ent->animation2.animation == ANIM_LEGS_TURN) {
+				ent->animation2.time = cgi.client->unclamped_time;
+				ent->animation2.animation = ANIM_LEGS_IDLE;
+			}
+		}
+	}
+
+	legs.model = ci->legs;
+	legs.angles.y = ent->legs_current_yaw;
+	legs.angles.x = legs.angles.z = 0.0; // legs only use yaw
+	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
+
+	torso.model = ci->torso;
+	torso.origin = Vec3_Zero();
+	torso.angles.y = ent->angles.y - legs.angles.y; // legs twisted already, we just need to pitch/roll
+	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
+
+	head.model = ci->head;
+	head.origin = Vec3_Zero();
+	head.angles.y = 0.0;
+	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
+
+	Cg_AnimateClientEntity(ent, &torso, &legs);
+
+	r_entity_t *r_legs = cgi.AddEntity(cgi.view, &legs);
+	if (!r_legs) {
+		return; // if the legs were culled, we're done
+	}
+
+	torso.parent = r_legs;
+	torso.tag = "tag_torso";
+
+	r_entity_t *r_torso = cgi.AddEntity(cgi.view, &torso);
+	assert(r_torso);
+
+	head.parent = r_torso;
+	head.tag = "tag_head";
+
+	r_entity_t *r_head = cgi.AddEntity(cgi.view, &head);
+	assert(r_head);
+
+	if (s->model2) {
+		cgi.AddEntity(cgi.view, &(const r_entity_t) {
+			.parent = r_torso,
+			.tag = "tag_weapon",
+			.scale = e->scale,
+			.model = cgi.client->models[s->model2],
+			.effects = e->effects,
+			.color = e->color,
+			.shell = e->shell,
+		});
+	}
+
+	if (s->model3) {
+		cgi.AddEntity(cgi.view, &(const r_entity_t) {
+			.parent = r_torso,
+			.tag = "tag_head",
+			.scale = e->scale,
+			.model = cgi.client->models[s->model3],
+			.effects = e->effects,
+			.color = e->color,
+			.shell = e->shell,
+		});
+	}
+
+	if (s->model4) {
+		cgi.Warn("Unsupported model_index4\n");
 	}
 }

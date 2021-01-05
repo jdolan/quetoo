@@ -33,7 +33,6 @@ cvar_t *m_sensitivity;
 cvar_t *m_sensitivity_zoom;
 cvar_t *m_pitch;
 cvar_t *m_yaw;
-cvar_t *m_grab;
 
 static button_t cl_buttons[10];
 #define in_left cl_buttons[0]
@@ -185,13 +184,13 @@ static void Cl_MoveRight_up_f(void) {
 	Cl_KeyUp(&in_move_right);
 }
 static void Cl_CenterView_f(void) {
-	cl.angles[PITCH] = 0;
+	cl.angles.x = 0;
 }
 
 /**
  * @brief Returns the fraction of the command interval for which the key was down.
  */
-vec_t Cl_KeyState(button_t *key, uint32_t cmd_msec) {
+float Cl_KeyState(button_t *key, uint32_t cmd_msec) {
 
 	uint32_t msec = key->msec;
 	key->msec = 0;
@@ -201,9 +200,9 @@ vec_t Cl_KeyState(button_t *key, uint32_t cmd_msec) {
 		key->down_time = cl.unclamped_time;
 	}
 
-	const vec_t frac = (msec * 1000.0) / (cmd_msec * 1000.0);
+	const float frac = (msec * 1000.0) / (cmd_msec * 1000.0);
 
-	return Clamp(frac, 0.0, 1.0);
+	return Clampf(frac, 0.0, 1.0);
 }
 
 /**
@@ -267,8 +266,8 @@ static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
 					const int32_t w = event->window.data1;
 					const int32_t h = event->window.data2;
 					if (w != r_width->integer || h != r_height->integer) {
-						Cvar_SetInteger(r_width->name, event->window.data1);
-						Cvar_SetInteger(r_height->name, event->window.data2);
+						Cvar_ForceSetInteger(r_width->name, event->window.data1);
+						Cvar_ForceSetInteger(r_height->name, event->window.data2);
 						Cbuf_AddText("r_restart\n");
 						return true;
 					}
@@ -276,6 +275,7 @@ static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
 			} else if (event->window.event == SDL_WINDOWEVENT_EXPOSED) {
 				const int32_t display = SDL_GetWindowDisplayIndex(SDL_GL_GetCurrentWindow());
 				if (display != r_display->integer) {
+					Cvar_ForceSetInteger(r_display->name, display);
 					Cbuf_AddText("r_restart\n");
 					return true;
 				}
@@ -381,30 +381,15 @@ static void Cl_HandleEvent(const SDL_Event *event) {
  */
 static void Cl_UpdateMouseState(void) {
 
-	// force a mouse grab when changing video modes
-	if (r_view.update) {
-		cls.mouse_state.grabbed = false;
-	}
-
-	if (cls.key_state.dest == KEY_UI || (m_grab && !m_grab->integer)) {
-		if (cls.mouse_state.grabbed) {
+	if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE) {
+		if (SDL_GetWindowGrab(r_context.window)) {
 			SDL_ShowCursor(true);
 			SDL_SetWindowGrab(r_context.window, false);
-			cls.mouse_state.grabbed = false;
-		}
-	} else if (cls.key_state.dest == KEY_CONSOLE) {
-		if (!r_context.fullscreen) { // allow cursor to move outside window
-			if (cls.mouse_state.grabbed) {
-				SDL_ShowCursor(true);
-				SDL_SetWindowGrab(r_context.window, false);
-				cls.mouse_state.grabbed = false;
-			}
 		}
 	} else {
-		if (!cls.mouse_state.grabbed) { // grab it for everything else
+		if (!SDL_GetWindowGrab(r_context.window)) {
 			SDL_ShowCursor(false);
 			SDL_SetWindowGrab(r_context.window, true);
-			cls.mouse_state.grabbed = true;
 		}
 	}
 }
@@ -443,20 +428,20 @@ void Cl_HandleEvents(void) {
 static void Cl_ClampPitch(const player_state_t *ps) {
 
 	// ensure our pitch is valid
-	vec_t pitch = UnpackAngle(ps->pm_state.delta_angles[PITCH]);
+	float pitch = ps->pm_state.delta_angles.x;
 
-	if (cl.angles[PITCH] + pitch < -360.0) {
-		cl.angles[PITCH] += 360.0; // wrapped
+	if (cl.angles.x + pitch < -360.0) {
+		cl.angles.x += 360.0; // wrapped
 	}
-	if (cl.angles[PITCH] + pitch > 360.0) {
-		cl.angles[PITCH] -= 360.0; // wrapped
+	if (cl.angles.x + pitch > 360.0) {
+		cl.angles.x -= 360.0; // wrapped
 	}
 
-	if (cl.angles[PITCH] + pitch > 89.0) {
-		cl.angles[PITCH] = 89.0 - pitch;
+	if (cl.angles.x + pitch > 89.0) {
+		cl.angles.x = 89.0 - pitch;
 	}
-	if (cl.angles[PITCH] + pitch < -89.0) {
-		cl.angles[PITCH] = -89.0 - pitch;
+	if (cl.angles.x + pitch < -89.0) {
+		cl.angles.x = -89.0 - pitch;
 	}
 }
 
@@ -469,17 +454,17 @@ void Cl_Look(pm_cmd_t *cmd) {
 	cmd->up += cl_up_speed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
 	cmd->up -= cl_up_speed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
 
-	cl.angles[YAW] -= cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_right, cmd->msec);
-	cl.angles[YAW] += cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_left, cmd->msec);
+	cl.angles.y -= cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_right, cmd->msec);
+	cl.angles.y += cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_left, cmd->msec);
 
-	cl.angles[PITCH] -= cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
-	cl.angles[PITCH] += cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
+	cl.angles.x -= cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
+	cl.angles.x += cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
 
 	cls.cgame->Look(cmd);
 
 	Cl_ClampPitch(&cl.frame.ps);
 
-	PackAngles(cl.angles, cmd->angles);
+	cmd->angles = cl.angles;
 }
 
 /**
@@ -548,10 +533,7 @@ void Cl_InitInput(void) {
 	m_invert = Cvar_Add("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
 	m_pitch = Cvar_Add("m_pitch", "0.022", 0, NULL);
 	m_yaw = Cvar_Add("m_yaw", "0.022", 0, NULL);
-	m_grab = Cvar_Add("m_grab", "1", 0, NULL);
 
 	Cl_ClearInput();
-
-	cls.mouse_state.grabbed = true;
 }
 

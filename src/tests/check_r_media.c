@@ -22,6 +22,8 @@
 #include "tests.h"
 #include "r_local.h"
 
+quetoo_t quetoo;
+
 /**
  * @brief Setup fixture.
  */
@@ -45,58 +47,57 @@ void teardown(void) {
 START_TEST(check_R_RegisterMedia) {
 	R_BeginLoading();
 
-	r_media_t *parent1 = R_AllocMedia("parent1", sizeof(r_media_t), MEDIA_GENERIC);
+	r_media_t *parent1 = R_AllocMedia("parent1", sizeof(r_media_t), R_MEDIA_GENERIC);
 	R_RegisterMedia(parent1);
 
-	ck_assert_msg(R_FindMedia("parent1") == parent1, "Failed to find parent1");
+	ck_assert_msg(R_FindMedia("parent1", R_MEDIA_GENERIC) == parent1, "Failed to find parent1");
 
-	r_media_t *child1 = R_AllocMedia("child1", sizeof(r_media_t), MEDIA_GENERIC);
+	r_media_t *child1 = R_AllocMedia("child1", sizeof(r_media_t), R_MEDIA_GENERIC);
 	R_RegisterDependency(parent1, child1);
 
-	ck_assert_msg(R_FindMedia("child1") == child1, "Failed to find child1");
+	ck_assert_msg(R_FindMedia("child1", R_MEDIA_GENERIC) == child1, "Failed to find child1");
 
-	r_media_t *grandchild1 = R_AllocMedia("grandchild1", sizeof(r_media_t), MEDIA_GENERIC);
+	r_media_t *grandchild1 = R_AllocMedia("grandchild1", sizeof(r_media_t), R_MEDIA_GENERIC);
 	R_RegisterDependency(child1, grandchild1);
 
-	R_FreeMedia();
+	R_FreeUnseededMedia();
 
-	ck_assert_msg(R_FindMedia("parent1") == parent1, "Erroneously freed parent1");
-	ck_assert_msg(R_FindMedia("child1") == child1, "Erroneously freed child1");
-	ck_assert_msg(R_FindMedia("grandchild1") == grandchild1, "Erroneously freed grandchild1");
+	ck_assert_msg(R_FindMedia("parent1", R_MEDIA_GENERIC) == parent1, "Erroneously freed parent1");
+	ck_assert_msg(R_FindMedia("child1", R_MEDIA_GENERIC) == child1, "Erroneously freed child1");
+	ck_assert_msg(R_FindMedia("grandchild1", R_MEDIA_GENERIC) == grandchild1, "Erroneously freed grandchild1");
 
 	int32_t old_seed = parent1->seed;
 
 	R_BeginLoading();
 
-	ck_assert(R_FindMedia("parent1") == parent1);
+	ck_assert(R_FindMedia("parent1", R_MEDIA_GENERIC) == parent1);
 	ck_assert_msg(old_seed != parent1->seed, "Seed for parent1 has not changed");
 	ck_assert_msg(child1->seed == parent1->seed, "Dependency child1 not retained");
 	ck_assert_msg(grandchild1->seed == parent1->seed, "Dependency grandchild1 not retained");
 
 	R_BeginLoading();
-	R_FreeMedia();
+	R_FreeUnseededMedia();
 
 	ck_assert_msg(Mem_Size() == 0, "Not all memory freed: %u", (uint32_t) Mem_Size());
 
 	R_BeginLoading();
 
-	r_media_t *copy0 = R_AllocMedia("copy", sizeof(r_media_t), MEDIA_GENERIC);
+	r_media_t *copy0 = R_AllocMedia("copy", sizeof(r_media_t), R_MEDIA_GENERIC);
 	R_RegisterMedia(copy0);
 
-	ck_assert_msg(R_FindMedia("copy") == copy0, "Failed to find copy0");
+	ck_assert_msg(R_FindMedia("copy", R_MEDIA_GENERIC) == copy0, "Failed to find copy0");
 
-	r_media_t *copy1 = R_AllocMedia("copy", sizeof(r_media_t), MEDIA_GENERIC);
+	r_media_t *copy1 = R_AllocMedia("copy", sizeof(r_media_t), R_MEDIA_GENERIC);
 	R_RegisterMedia(copy1);
 
-	ck_assert_msg(R_FindMedia("copy") == copy1, "Failed to replace copy0 with copy1");
+	ck_assert_msg(R_FindMedia("copy", R_MEDIA_GENERIC) == copy1, "Failed to replace copy0 with copy1");
 
 	R_BeginLoading();
-	R_FreeMedia();
+	R_FreeUnseededMedia();
 
 	ck_assert_msg(Mem_Size() == 0, "Not all memory freed: %u", (uint32_t) Mem_Size());
 
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.

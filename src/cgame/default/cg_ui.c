@@ -60,6 +60,16 @@ void Cg_ShutdownUi(void) {
 }
 
 /**
+ * @brief Pops to the main view controller.
+ */
+void Cg_ClearUi(void) {
+
+	if (mainViewController) {
+		cgi.PopToViewController((ViewController *) mainViewController);
+	}
+}
+
+/**
  * @brief Updates the loading screen
  */
 void Cg_UpdateLoading(const cl_loading_t loading) {

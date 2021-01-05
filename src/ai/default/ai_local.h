@@ -23,14 +23,15 @@
 
 #define __AI_LOCAL_H__
 
-// this is the AI name that we advertise to clients
 #define AI_NAME "default"
 
-#define Debug(...) Debug_(DEBUG_AI, __func__, __VA_ARGS__)
+#define Ai_Debug(...) ({ if (aim.gi->DebugMask() & DEBUG_AI) { aim.gi->Debug_(DEBUG_AI, __func__, __VA_ARGS__); } })
 #define Error(...) Error_(__func__, __VA_ARGS__)
 #define Warn(...) Warn_(__func__, __VA_ARGS__)
 
 #include "ai_goal.h"
+#include "ai_info.h"
 #include "ai_item.h"
 #include "ai_main.h"
+#include "ai_node.h"
 #include "ai_types.h"

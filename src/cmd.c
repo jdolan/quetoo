@@ -41,7 +41,7 @@ typedef struct cmd_state_s {
 
 	_Bool wait; // commands may be deferred one frame
 
-	uint16_t alias_loop_count;
+	int32_t alias_loop_count;
 } cmd_state_t;
 
 static cmd_state_t cmd_state;
@@ -244,7 +244,7 @@ void Cmd_TokenizeString(const char *text) {
 
 		// expand console variables
 		if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
-			char *c = (char *) Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
+			const char *c = Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
 			g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
 		}
 
@@ -287,25 +287,39 @@ static cmd_t *Cmd_Get_(const char *name, const _Bool case_sensitive) {
  * @return The variable by the specified name, or `NULL`.
  */
 cmd_t *Cmd_Get(const char *name) {
-
 	return Cmd_Get_(name, false);
+}
+
+/**
+ * @brief GCompareFunc for Cmd_Enumerate.
+ */
+static gint Cmd_Enumerate_comparator(gconstpointer a, const gconstpointer b) {
+	return g_ascii_strcasecmp(((const cmd_t *) a)->name, ((const cmd_t *) b)->name);
 }
 
 /**
  * @brief Enumerates all known commands with the given function.
  */
-void Cmd_Enumerate(CmdEnumerateFunc func, void *data) {
+void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
+	GList *sorted = NULL;
+
 	GHashTableIter iter;
 	gpointer key, value;
 	g_hash_table_iter_init(&iter, cmd_state.commands);
 
-	while (g_hash_table_iter_next (&iter, &key, &value)) {
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
 		const GQueue *queue = (GQueue *) value;
 
-		for (const GList *list = queue->head; list; list = list->next) {
-			func((cmd_t *) list->data, data);
+		for (GList *list = queue->head; list; list = list->next) {
+			sorted = g_list_concat(sorted, g_list_copy(list));
 		}
 	}
+
+	sorted = g_list_sort(sorted, Cmd_Enumerate_comparator);
+
+	g_list_foreach(sorted, (GFunc) func, data);
+
+	g_list_free(sorted);
 }
 
 /**
@@ -375,7 +389,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 	cmd->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CMD), cmd);
 	cmd->commands = Mem_Link(Mem_TagCopyString(commands, MEM_TAG_CMD), cmd);
 
-	gpointer *key = (gpointer *) cmd->name;
+	gpointer key = (gpointer) cmd->name;
 
 	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
 
@@ -395,7 +409,7 @@ static GQueue *Cmd_Remove_(cmd_t *cmd) {
 	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, cmd->name);
 
 	if (!g_queue_remove(queue, cmd)) {
-		Com_Error(ERROR_FATAL, "Missing command");
+		Com_Error(ERROR_FATAL, "Missing command: %s\n", cmd->name);
 	}
 
 	Mem_Free(cmd);
@@ -504,7 +518,7 @@ void Cmd_ExecuteString(const char *text) {
 			cmd->Execute();
 		} else if (cmd->commands) {
 			if (++cmd_state.alias_loop_count == MAX_ALIAS_LOOP_COUNT) {
-				Com_Warn("ALIAS_LOOP_COUNT reached\n");
+				Com_Warn("ALIAS_LOOP_COUNT\n");
 			} else {
 				Cbuf_AddText(cmd->commands);
 			}
@@ -536,7 +550,7 @@ static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data) {
 }
 
 /**
- * @brief Creates a new command that executes a command string (possibly ; seperated)
+ * @brief Creates a new command that executes a command string (possibly ; separated)
  */
 static void Cmd_Alias_f(void) {
 	char cmd[MAX_STRING_CHARS];
@@ -574,26 +588,13 @@ static void Cmd_Alias_f(void) {
 }
 
 /**
- * @brief Naiveless color-stripping cmp. Maybe can be better later.
- */
-static int32_t ColorlessStricmp(const char *a, const char *b) {
-	char bufferA[strlen(a) + 1];
-	char bufferB[strlen(b) + 1];
-	
-	StripColors(a, bufferA);
-	StripColors(b, bufferB);
-
-	return g_ascii_strcasecmp(bufferA, bufferB);
-}
-
-/**
  * @brief Enumeration helper for Cmd_List_f.
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
 	GSList **list = (GSList **) data;
-	const gchar *str = g_strdup(Cmd_Stringify(cmd));
+	gchar *str = g_strdup(Cmd_Stringify(cmd));
 
-	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) ColorlessStricmp);
+	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrColorCmp);
 }
 
 /**

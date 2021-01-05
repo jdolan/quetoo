@@ -103,7 +103,7 @@ _Bool Fs_Flush(file_t *file) {
  * @return The last error message resulting from filesystem operations.
  */
 const char *Fs_LastError(void) {
-	return PHYSFS_getLastError();
+	return PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
 }
 
 /**
@@ -154,6 +154,10 @@ file_t *Fs_OpenWrite(const char *filename) {
 	char dir[MAX_QPATH];
 	PHYSFS_File *file;
 
+	if (PHYSFS_isInit() == 0) {
+		return NULL;
+	}
+
 	Dirname(filename, dir);
 	Fs_Mkdir(dir);
 
@@ -188,7 +192,7 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
-	return PHYSFS_read((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
+	return PHYSFS_readBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
 }
 
 /**
@@ -220,7 +224,7 @@ _Bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 /**
  * @brief Seeks to the specified offset.
  */
-_Bool Fs_Seek(file_t *file, size_t offset) {
+_Bool Fs_Seek(file_t *file, int64_t offset) {
 	return PHYSFS_seek((PHYSFS_File *) file, offset) ? true : false;
 }
 
@@ -241,10 +245,10 @@ int64_t Fs_Tell(file_t *file) {
 /**
  * @brief Writes to the specified file.
  *
- * @return The number of objects read, or -1 on failure.
+ * @return The number of objects written, or -1 on failure.
  */
 int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
-	return PHYSFS_write((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
+	return PHYSFS_writeBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
 }
 
 /**
@@ -256,12 +260,6 @@ int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
  */
 int64_t Fs_Load(const char *filename, void **buffer) {
 	int64_t len;
-
-	typedef struct {
-		byte *data;
-		int64_t len;
-	} fs_block_t;
-
 	file_t *file;
 
 	if ((file = Fs_OpenRead(filename))) {
@@ -269,7 +267,6 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
 		// if we can calculate the length, we can pull it easily
 		if (buffer_length != -1) {
-
 			len = buffer_length;
 
 			if (buffer) {
@@ -284,7 +281,6 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 					g_hash_table_insert(fs_state.loaded_files, *buffer,
 										(gpointer) Mem_CopyString(filename));
 				} else {
-
 					*buffer = NULL;
 				}
 			}
@@ -293,18 +289,23 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 			GList *list = NULL;
 			len = 0;
 
+			typedef struct {
+				byte *data;
+				int64_t len;
+			} fs_chunk_t;
+
 			while (!Fs_Eof(file)) {
-				fs_block_t *b = Mem_TagMalloc(sizeof(fs_block_t), MEM_TAG_FS);
+				fs_chunk_t *chunk = Mem_TagMalloc(sizeof(fs_chunk_t), MEM_TAG_FS);
 
-				b->data = Mem_LinkMalloc(FS_FILE_BUFFER, b);
-				b->len = Fs_Read(file, b->data, 1, FS_FILE_BUFFER);
+				chunk->data = Mem_LinkMalloc(FS_FILE_BUFFER, chunk);
+				chunk->len = Fs_Read(file, chunk->data, 1, FS_FILE_BUFFER);
 
-				if (b->len == -1) {
+				if (chunk->len == -1) {
 					Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
 				}
 
-				list = g_list_append(list, b);
-				len += b->len;
+				list = g_list_append(list, chunk);
+				len += chunk->len;
 			}
 
 			if (buffer) {
@@ -313,7 +314,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
 					GList *e = list;
 					while (e) {
-						fs_block_t *b = (fs_block_t *) e->data;
+						fs_chunk_t *b = (fs_chunk_t *) e->data;
 
 						memcpy(buf, b->data, b->len);
 						buf += (ptrdiff_t) b->len;
@@ -374,7 +375,9 @@ _Bool Fs_Rename(const char *source, const char *dest) {
  * @brief Fetch the "last modified" time for the specified file.
  */
 int64_t Fs_LastModTime(const char *filename) {
-	return PHYSFS_getLastModTime(filename);
+	PHYSFS_Stat stat;
+	PHYSFS_stat(filename, &stat);
+	return stat.modtime;
 }
 
 
@@ -393,14 +396,14 @@ _Bool Fs_Unlink(const char *filename) {
 typedef struct {
 	char dir[MAX_QPATH];
 	const char *pattern;
-	Fs_EnumerateFunc function;
+	Fs_Enumerator function;
 	void *data;
 } fs_enumerate_t;
 
 /**
  * @brief Enumeration helper for Fs_Enumerate.
  */
-static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
+static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 	char path[MAX_QPATH];
 	const fs_enumerate_t *en = data;
 
@@ -409,12 +412,14 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 	if (GlobMatch(en->pattern, path, GLOB_FLAGS_NONE)) {
 		en->function(path, en->data);
 	}
+
+	return 1;
 }
 
 /**
  * @brief Enumerates files matching `pattern`, calling the given function.
  */
-void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
+void Fs_Enumerate(const char *pattern, Fs_Enumerator func, void *data) {
 	fs_enumerate_t en = {
 		.pattern = pattern,
 		.function = func,
@@ -427,7 +432,7 @@ void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 		g_strlcpy(en.dir, "/", sizeof(en.dir));
 	}
 
-	PHYSFS_enumerateFilesCallback(en.dir, Fs_Enumerate_, &en);
+	PHYSFS_enumerate(en.dir, Fs_Enumerate_, &en);
 }
 
 /**
@@ -558,7 +563,7 @@ void Fs_SetGame(const char *dir) {
 		}
 		if (!*p) {
 			Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
-			if (PHYSFS_removeFromSearchPath(*path) == 0) {
+			if (PHYSFS_unmount(*path) == 0) {
 				Com_Warn("%s: %s\n", *path, Fs_LastError());
 				return;
 			}
@@ -612,7 +617,7 @@ const char *Fs_RealDir(const char *filename) {
 }
 
 /**
- * @brief Returns the real path name of the specified file or directory.
+ * @return The real path name of the specified file or directory.
  */
 const char *Fs_RealPath(const char *path) {
 	static char real_path[MAX_OS_PATH];
@@ -642,6 +647,12 @@ const char *Fs_RealPath(const char *path) {
 void Fs_Init(const uint32_t flags) {
 
 	memset(&fs_state, 0, sizeof(fs_state_t));
+
+	PHYSFS_Version physfs_version;
+	PHYSFS_getLinkedVersion(&physfs_version);
+
+	Com_Debug(DEBUG_FILESYSTEM, "Initializing PhysFS %i.%i.%i...\n",
+			  physfs_version.major, physfs_version.minor, physfs_version.patch);
 
 	if (PHYSFS_init(Com_Argv(0)) == 0) {
 		Com_Error(ERROR_FATAL, "%s\n", Fs_LastError());
@@ -737,6 +748,10 @@ static void Fs_LoadedFiles_(gpointer key, gpointer value, gpointer data) {
  * @brief Shuts down the filesystem.
  */
 void Fs_Shutdown(void) {
+
+	if (PHYSFS_isInit() == 0) {
+		return;
+	}
 
 	g_hash_table_foreach(fs_state.loaded_files, Fs_LoadedFiles_, NULL);
 	g_hash_table_destroy(fs_state.loaded_files);

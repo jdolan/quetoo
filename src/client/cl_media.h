@@ -24,12 +24,11 @@
 #include "cl_types.h"
 
 GList *Cl_Mapshots(const char *mapname);
-void Cl_LoadingProgress(uint16_t percent, const char *file);
+void Cl_LoadingProgress(int32_t percent, const char *file);
 
 #ifdef __CL_LOCAL_H__
 
 void Cl_RequestNextDownload(void);
 void Cl_LoadMedia(void);
-void Cl_UpdateMedia(void);
 
 #endif /* __CL_LOCAL_H__ */

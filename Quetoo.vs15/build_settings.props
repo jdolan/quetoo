@@ -1,7 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgAutoLink>false</VcpkgAutoLink>
   </PropertyGroup>
 
   <PropertyGroup Label="Configuration">
@@ -22,8 +27,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v141_Clang_C2</PlatformToolset>
-    <PlatformToolset Condition="'$(PlatformToolset)'==''">v140_Clang_C2</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <QuetooOutDir>bin\$(Platform)$(Configuration)\</QuetooOutDir>
     <QuetooIntDir>tmp\$(MSBuildProjectName)\$(Platform)$(Configuration)\</QuetooIntDir>
 
@@ -71,6 +75,9 @@
     <QuetooPthreadIncludePath>$(QuetooPthreadPath)include\</QuetooPthreadIncludePath>
     <QuetooPthreadLibraryPath>$(QuetooPthreadPath)lib\$(Platform)\</QuetooPthreadLibraryPath>
 
+    <QuetooDLFCNIncludePath>$(QuetooObjectivelyLibsPath)dlfcn\</QuetooDLFCNIncludePath>
+    <QuetooDLFCNLibraryPath>$(QuetooDLFCNIncludePath)$(Platform)\</QuetooDLFCNLibraryPath>
+
     <QuetooIconvPath>$(QuetooObjectivelyLibsPath)iconv\</QuetooIconvPath>
     <QuetooIconvIncludePath>$(QuetooIconvPath)include\</QuetooIconvIncludePath>
     <QuetooIconvLibraryPath>$(QuetooIconvPath)lib\$(Platform)\</QuetooIconvLibraryPath>
@@ -92,11 +99,11 @@
     <QuetooSDLLibraryPath>$(QuetooSDLPath)lib\$(Platform)\</QuetooSDLLibraryPath>
 
     <QuetooSDLTTFPath>$(QuetooObjectivelyMVCLibsPath)sdl_ttf\</QuetooSDLTTFPath>
-    <QuetooSDLTTFIncludePath>$(QuetooSDLTTFPath)</QuetooSDLTTFIncludePath>
+    <QuetooSDLTTFIncludePath>$(QuetooSDLTTFPath)SDL2</QuetooSDLTTFIncludePath>
     <QuetooSDLTTFLibraryPath>$(QuetooSDLTTFPath)lib\$(Platform)\</QuetooSDLTTFLibraryPath>
 
     <QuetooSDLImagePath>$(QuetooObjectivelyMVCLibsPath)sdl_image\</QuetooSDLImagePath>
-    <QuetooSDLImageIncludePath>$(QuetooSDLImagePath)</QuetooSDLImageIncludePath>
+    <QuetooSDLImageIncludePath>$(QuetooSDLImagePath)SDL2</QuetooSDLImageIncludePath>
     <QuetooSDLImageLibraryPath>$(QuetooSDLImagePath)lib\$(Platform)\</QuetooSDLImageLibraryPath>
 
     <QuetoolibsndfilePath>$(QuetooLibsPath)libsndfile\</QuetoolibsndfilePath>
@@ -107,16 +114,16 @@
     <OpenALIncludePath>$(OpenALPath)\</OpenALIncludePath>
     <OpenALLibraryPath>$(OpenALPath)\libs\$(Platform)\</OpenALLibraryPath>
 
-    <QuetooFullIncludePath>$(OpenALIncludePath);$(QuetooIncludePath);$(QuetooPath)src\client\;$(QuetooPath)src\client\ui\;$(QuetooPath)src\cgame\default\;$(QuetooPath)src\cgame\default\ui\common\;$(QuetooPath)src\cgame\default\ui\home\;$(QuetooPath)src\cgame\default\ui\main\;$(QuetooPath)src\cgame\default\ui\play\;$(QuetooPath)src\cgame\default\ui\controls\;$(QuetooPath)src\cgame\default\ui\settings\;$(QuetooObjectivelyIncludePath);$(QuetooObjectivelyMVCIncludePath);$(QuetooPthreadIncludePath);$(QuetooIconvIncludePath);$(QuetooCURLIncludePath);$(QuetooGlibIncludePath);$(QuetooLibXMLIncludePath);$(QuetooPhysFSIncludePath);$(QuetooZlibIncludePath);$(QuetooCursesIncludePath);$(QuetooFontConfigIncludePath);$(QuetooFreeTypeIncludePath);$(QuetooSDLIncludePath);$(QuetooSDLTTFIncludePath);$(QuetooSDLImageIncludePath);$(QuetoolibsndfileIncludePath)</QuetooFullIncludePath>
-    <QuetooFullLibraryPath>$(OpenALLibraryPath);$(QuetooLibraryPath);$(QuetooObjectivelyLibraryPath);$(QuetooObjectivelyMVCLibraryPath);$(QuetooPthreadLibraryPath);$(QuetooIconvLibraryPath);$(QuetooCURLLibraryPath);$(QuetooGlibLibraryPath);$(QuetooLibXMLLibraryPath);$(QuetooPhysFSLibraryPath);$(QuetooCursesLibraryPath);$(QuetooFontConfigLibraryPath);$(QuetooFreeTypeLibraryPath);$(QuetooSDLLibraryPath);$(QuetooSDLTTFLibraryPath);$(QuetooSDLImageLibraryPath);$(QuetoolibsndfileLibraryPath)</QuetooFullLibraryPath>
+    <QuetooFullIncludePath>$(OpenALIncludePath);$(QuetooIncludePath);$(QuetooPath)src\client\;$(QuetooPath)src\client\ui\;$(QuetooPath)src\cgame\default\;$(QuetooPath)src\cgame\default\ui\common\;$(QuetooPath)src\cgame\default\ui\home\;$(QuetooPath)src\cgame\default\ui\main\;$(QuetooPath)src\cgame\default\ui\play\;$(QuetooPath)src\cgame\default\ui\controls\;$(QuetooPath)src\cgame\default\ui\settings\;$(QuetooObjectivelyIncludePath);$(QuetooObjectivelyMVCIncludePath);$(QuetooPthreadIncludePath);$(QuetooIconvIncludePath);$(QuetooCURLIncludePath);$(QuetooGlibIncludePath);$(QuetooLibXMLIncludePath);$(QuetooPhysFSIncludePath);$(QuetooZlibIncludePath);$(QuetooCursesIncludePath);$(QuetooFontConfigIncludePath);$(QuetooFreeTypeIncludePath);$(QuetooSDLIncludePath);$(QuetooSDLTTFIncludePath);$(QuetooSDLImageIncludePath);$(QuetoolibsndfileIncludePath);$(QuetooDLFCNIncludePath)</QuetooFullIncludePath>
+    <QuetooFullLibraryPath>$(OpenALLibraryPath);$(QuetooLibraryPath);$(QuetooObjectivelyLibraryPath);$(QuetooObjectivelyMVCLibraryPath);$(QuetooPthreadLibraryPath);$(QuetooIconvLibraryPath);$(QuetooCURLLibraryPath);$(QuetooGlibLibraryPath);$(QuetooLibXMLLibraryPath);$(QuetooPhysFSLibraryPath);$(QuetooCursesLibraryPath);$(QuetooFontConfigLibraryPath);$(QuetooFreeTypeLibraryPath);$(QuetooSDLLibraryPath);$(QuetooSDLTTFLibraryPath);$(QuetooSDLImageLibraryPath);$(QuetoolibsndfileLibraryPath);$(QuetooDLFCNLibraryPath)</QuetooFullLibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>$(QuetooPhysFSDefs);WIN32_LEAN_AND_MEAN;SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>$(QuetooPhysFSDefs);HAVE_DLFCN_H=1;G_DISABLE_DEPRECATED;WIN32_LEAN_AND_MEAN;SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC=1;_CRT_SECURE_NO_WARNINGS;__clang__;_CRT_DECLARE_NONSTDC_NAMES=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
-      <AdditionalOptions>%(AdditionalOptions) -ferror-limit=0 -Weverything -Wno-unreachable-code-return -Wno-unreachable-code-break -Wno-unused-parameter -Wno-reserved-id-macro -Wno-conversion -Wno-double-promotion -Wno-documentation -Wno-switch-enum -Wno-float-equal -Wno-undef -Wno-gnu-conditional-omitted-operand -Wno-cast-qual -Wno-vla -Wno-documentation-unknown-command -Wno-disabled-macro-expansion -Wno-gnu-statement-expression -Wno-dollar-in-identifier-extension -Wno-cast-align -Wno-language-extension-token -Wno-newline-eof -Wno-date-time -Wno-covered-switch-default -Wno-bad-function-cast -Wno-gnu-zero-variadic-macro-arguments -Wno-gcc-compat -Wno-pointer-arith -Wno-assign-enum -Wno-shadow</AdditionalOptions>
+ 	  <AdditionalOptions>%(AdditionalOptions) -ferror-limit=0 -fmacro-backtrace-limit=0 -Wno-trigraphs -Wmissing-field-initializers -Wno-missing-prototypes -Wunreachable-code -Wmissing-braces -Wparentheses -Wswitch -Wunused-function -Wunused-label -Wno-unused-parameter -Wunused-variable -Wunused-value -Wempty-body -Wuninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion -Wno-float-conversion -Wnon-literal-null-conversion -Wno-objc-literal-conversion -Wsign-compare -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -fstrict-aliasing -Wdeprecated-declarations -Wno-sign-conversion -Winfinite-recursion -Wcomma -Wno-block-capture-autoreleasing -Wstrict-prototypes -Wno-semicolon-before-method-body -Wno-documentation -Wno-dollar-in-identifier-extension -Wno-gnu-statement-expression -Wno-extra-semi-stmt -Wno-language-extension-token -Wno-switch-enum -Wno-covered-switch-default -Wno-gnu-zero-variadic-macro-arguments -Wno-reserved-id-macro -Wno-date-time -Wno-documentation-unknown-command -Wno-gnu-conditional-omitted-operand -Wno-undef -Wno-vla -Wno-cast-align -Wno-assign-enum -Wno-disabled-macro-expansion -Wno-zero-length-array -Wno-cast-qual -Wno-double-promotion -Wno-float-equal -Wno-bad-function-cast -Wno-comma -Wno-tautological-type-limit-compare -Wno-unused-macros -Wno-nonportable-system-include-path</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -135,12 +142,12 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <DebugInformationFormat>FullDebug</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <GenerateDebugInformation>ProgramDatabase</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
 

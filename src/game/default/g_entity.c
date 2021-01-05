@@ -22,75 +22,28 @@
 #include "g_local.h"
 #include "parse.h"
 
+/**
+ * @brief The entity class structure.
+ */
 typedef struct {
-	char *name;
-	void (*Spawn)(g_entity_t *ent);
-} g_entity_spawn_t;
+	/**
+	 * @brief The entity class name.
+	 */
+	char *class_name;
+
+	/**
+	 * @brief The instance initializer.
+	 */
+	void (*Init)(g_entity_t *ent);
+} g_entity_class_t;
 
 static void G_worldspawn(g_entity_t *ent);
 
 /**
- * @brief Actually does the magic
+ * @brief The entity classes.
  */
-static void G_weapon_chaingun_Think(g_entity_t *ent) {
+static const g_entity_class_t g_entity_classes[] = {
 
-	g_entity_t *cg = NULL;
-	
-	while ((cg = G_Find(cg, EOFS(class_name), "weapon_chaingun"))) {
-
-		// spawn a lightning gun where we are
-		g_entity_t *lg = G_AllocEntity_(g_media.items.weapons[WEAPON_LIGHTNING]->class_name);
-		VectorCopy(cg->s.origin, lg->s.origin);
-		VectorCopy(cg->s.angles, lg->s.angles);
-		lg->locals.spawn_flags = cg->locals.spawn_flags;
-
-		G_SpawnItem(lg, g_media.items.weapons[WEAPON_LIGHTNING]);
-
-		// replace nearby bullets with bolts
-		g_entity_t *ammo = NULL;
-
-		while ((ammo = G_FindRadius(ammo, lg->s.origin, 128.0))) {
-			if (ammo->locals.item && ammo->locals.item == g_media.items.ammo[AMMO_BULLETS]) {
-
-				// hello bolts
-				g_entity_t *bolts = G_AllocEntity_(g_media.items.ammo[AMMO_BOLTS]->class_name);
-				VectorCopy(ammo->s.origin, bolts->s.origin);
-				VectorCopy(ammo->s.angles, bolts->s.angles);
-				bolts->locals.spawn_flags = ammo->locals.spawn_flags;
-
-				G_SpawnItem(bolts, g_media.items.ammo[AMMO_BOLTS]);
-
-				// byebye bullets
-				G_FreeEntity(ammo);
-			}
-		}
-
-		// byebye chaingun
-		G_FreeEntity(cg);
-	}
-}
-
-/**
- * @brief Support function to allow chaingun maps to work nicely
- */
-static void G_weapon_chaingun(g_entity_t *ent) {
-
-	// see if we already have one ready, this is just to keep this BS self-contained
-	g_entity_t *cg = NULL;
-	
-	while ((cg = G_Find(cg, EOFS(class_name), "weapon_chaingun"))) {
-		if (cg->locals.Think) {
-			return; // think will destroy us later
-		}
-	}
-
-	ent->locals.Think = G_weapon_chaingun_Think;
-	ent->locals.next_think = g_level.time + 1; // do it after spawnentities
-	ent->locals.move_type = MOVE_TYPE_THINK;
-}
-
-static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn functions
-	{ "func_areaportal", G_func_areaportal },
 	{ "func_button", G_func_button },
 	{ "func_conveyor", G_func_conveyor },
 	{ "func_door", G_func_door },
@@ -134,36 +87,77 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 
 	{ "worldspawn", G_worldspawn },
 
-	// compatibility-only entities
-	{ "weapon_chaingun", G_weapon_chaingun },
-
 	// lastly, these are entities which we intentionally suppress
 
 	{ "func_group", G_FreeEntity },
 	{ "info_null", G_FreeEntity },
+
 	{ "light", G_FreeEntity },
 	{ "light_spot", G_FreeEntity },
-	{ "misc_emit", G_FreeEntity },
-	{ "misc_model", G_FreeEntity },
+	{ "light_sun", G_FreeEntity },
 
-	{ NULL, NULL }
+	{ "misc_flame", G_FreeEntity },
+	{ "misc_fog", G_FreeEntity },
+	{ "misc_light", G_FreeEntity },
+	{ "misc_model", G_FreeEntity },
+	{ "misc_sound", G_FreeEntity },
+	{ "misc_sparks", G_FreeEntity },
+	{ "misc_sprite", G_FreeEntity },
+	{ "misc_steam", G_FreeEntity },
 };
 
 /**
- * @brief Finds the spawn function for the entity and calls it.
+ * @brief Populates common entity fields and then dispatches the class initializer.
  */
 static _Bool G_SpawnEntity(g_entity_t *ent) {
 
-	if (!ent->class_name) {
-		gi.Debug("NULL classname\n");
-		return false;
+	ent->class_name = gi.EntityValue(ent->def, "classname")->string;
+	ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
+	ent->s.angles = gi.EntityValue(ent->def, "angles")->vec3;
+
+	const cm_entity_t *angle = gi.EntityValue(ent->def, "angle");
+	if (angle->parsed & ENTITY_FLOAT) {
+		ent->s.angles = Vec3(0.f, angle->value, 0.f);
 	}
 
+	ent->model = gi.EntityValue(ent->def, "model")->nullable_string;
+
+	// TODO: Trim down entity_locals_t, move all of these "one offs" to custom data
+	// structs, allocated through each spawn function. See cgame cg_entity_t.
+
+	ent->locals.spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
+
+	ent->locals.speed = gi.EntityValue(ent->def, "speed")->value;
+	ent->locals.accel = gi.EntityValue(ent->def, "accel")->value;
+	ent->locals.decel = gi.EntityValue(ent->def, "decel")->value;
+	ent->locals.lip = gi.EntityValue(ent->def, "lip")->value;
+
+	ent->locals.target = gi.EntityValue(ent->def, "target")->nullable_string;
+	ent->locals.target_name = gi.EntityValue(ent->def, "targetname")->nullable_string;
+	ent->locals.path_target = gi.EntityValue(ent->def, "pathtarget")->nullable_string;
+	ent->locals.kill_target = gi.EntityValue(ent->def, "killtarget")->nullable_string;
+	ent->locals.message = gi.EntityValue(ent->def, "message")->nullable_string;
+	ent->locals.team = gi.EntityValue(ent->def, "team")->nullable_string;
+	ent->locals.command = gi.EntityValue(ent->def, "command")->nullable_string;
+	ent->locals.script = gi.EntityValue(ent->def, "script")->nullable_string;
+
+	ent->locals.wait = gi.EntityValue(ent->def, "wait")->value;
+	ent->locals.delay = gi.EntityValue(ent->def, "delay")->value;
+	ent->locals.random = gi.EntityValue(ent->def, "random")->value;
+	ent->locals.count = gi.EntityValue(ent->def, "count")->integer;
+
+	ent->locals.health = gi.EntityValue(ent->def, "health")->integer;
+	ent->locals.damage = gi.EntityValue(ent->def, "dmg")->integer;
+	ent->locals.mass = gi.EntityValue(ent->def, "mass")->value;
+
+	ent->locals.atten = gi.EntityValue(ent->def, "atten")->integer;
+	ent->locals.color = gi.EntityValue(ent->def, "_color")->vec3;
+	ent->locals.light = gi.EntityValue(ent->def, "light")->value;
+
 	// check item spawn functions
-	for (int32_t i = 0; i < g_num_items; i++) {
+	for (size_t i = 0; i < g_num_items; i++) {
 
 		const g_item_t *item = G_ItemByIndex(i);
-
 		if (!item->class_name) {
 			continue;
 		}
@@ -175,283 +169,80 @@ static _Bool G_SpawnEntity(g_entity_t *ent) {
 	}
 
 	// check normal spawn functions
-	for (g_entity_spawn_t *s = g_entity_spawns; s->name; s++) {
-		if (!g_strcmp0(s->name, ent->class_name)) { // found it
-			s->Spawn(ent);
+
+	for (size_t i = 0; i < lengthof(g_entity_classes); i++) {
+		const g_entity_class_t *clazz = g_entity_classes + i;
+
+		if (!g_strcmp0(clazz->class_name, ent->class_name)) {
+			clazz->Init(ent);
 			return true;
 		}
 	}
 
-	gi.Warn("%s doesn't have a spawn function\n", ent->class_name);
+	gi.Warn("%s doesn't have a spawn function\n", etos(ent));
 	return false;
-}
-
-/**
- * @brief
- */
-static char *G_NewString(const char *string) {
-	char *newb, *new_p;
-	size_t i, l;
-
-	l = strlen(string) + 1;
-
-	newb = gi.Malloc(l, MEM_TAG_GAME_LEVEL);
-
-	new_p = newb;
-
-	for (i = 0; i < l; i++) {
-		if (string[i] == '\\' && i < l - 1) {
-			i++;
-			if (string[i] == 'n') {
-				*new_p++ = '\n';
-			} else {
-				*new_p++ = '\\';
-			}
-		} else {
-			*new_p++ = string[i];
-		}
-	}
-
-	return newb;
-}
-
-// fields are needed for spawning from the entity string
-#define FFL_SPAWN_TEMP		1
-#define FFL_NO_SPAWN		2
-
-typedef enum g_field_type_s {
-	F_SHORT,
-	F_INT,
-	F_FLOAT,
-	F_STRING, // string on disk, pointer in memory, TAG_LEVEL
-	F_VECTOR,
-	F_ANGLE
-} g_field_type_t;
-
-typedef struct g_field_s {
-	char *name;
-	ptrdiff_t ofs;
-	g_field_type_t type;
-	int32_t flags;
-} g_field_t;
-
-static const g_field_t fields[] = {
-	{ "classname", EOFS(class_name), F_STRING, 0 },
-	{ "model", EOFS(model), F_STRING, 0 },
-	{ "spawnflags", LOFS(spawn_flags), F_INT, 0 },
-	{ "speed", LOFS(speed), F_FLOAT, 0 },
-	{ "accel", LOFS(accel), F_FLOAT, 0 },
-	{ "decel", LOFS(decel), F_FLOAT, 0 },
-	{ "target", LOFS(target), F_STRING, 0 },
-	{ "targetname", LOFS(target_name), F_STRING, 0 },
-	{ "pathtarget", LOFS(path_target), F_STRING, 0 },
-	{ "killtarget", LOFS(kill_target), F_STRING, 0 },
-	{ "message", LOFS(message), F_STRING, 0 },
-	{ "team", LOFS(team), F_STRING, 0 },
-	{ "command", LOFS(command), F_STRING, 0 },
-	{ "script", LOFS(script), F_STRING, 0 },
-	{ "wait", LOFS(wait), F_FLOAT, 0 },
-	{ "delay", LOFS(delay), F_FLOAT, 0 },
-	{ "random", LOFS(random), F_FLOAT, 0 },
-	{ "style", LOFS(area_portal), F_INT, 0 }, // HACK, this was always overloaded
-	{ "areaportal", LOFS(area_portal), F_INT, 0 },
-	{ "count", LOFS(count), F_INT, 0 },
-	{ "health", LOFS(health), F_SHORT, 0 },
-	{ "dmg", LOFS(damage), F_SHORT, 0 },
-	{ "mass", LOFS(mass), F_FLOAT, 0 },
-	{ "attenuation", LOFS(attenuation), F_SHORT, 0 },
-	{ "origin", EOFS(s.origin), F_VECTOR, 0 },
-	{ "angles", EOFS(s.angles), F_VECTOR, 0 },
-	{ "angle", EOFS(s.angles), F_ANGLE, 0 },
-
-	// temp spawn vars -- only valid when the spawn function is called
-	{ "lip", SOFS(lip), F_INT, FFL_SPAWN_TEMP },
-	{ "distance", SOFS(distance), F_INT, FFL_SPAWN_TEMP },
-	{ "height", SOFS(height), F_INT, FFL_SPAWN_TEMP },
-	{ "sounds", SOFS(sounds), F_INT, FFL_SPAWN_TEMP },
-	{ "noise", SOFS(noise), F_STRING, FFL_SPAWN_TEMP },
-	{ "item", SOFS(item), F_STRING, FFL_SPAWN_TEMP },
-	{ "colors", SOFS(colors), F_STRING, FFL_SPAWN_TEMP },
-
-	// world vars, we use strings to differentiate between 0 and unset
-	{ "sky", SOFS(sky), F_STRING, FFL_SPAWN_TEMP },
-	{ "weather", SOFS(weather), F_STRING, FFL_SPAWN_TEMP },
-	{ "gravity", SOFS(gravity), F_STRING, FFL_SPAWN_TEMP },
-	{ "gameplay", SOFS(gameplay), F_STRING, FFL_SPAWN_TEMP },
-	{ "hook", SOFS(hook), F_STRING, FFL_SPAWN_TEMP },
-	{ "teams", SOFS(teams), F_STRING, FFL_SPAWN_TEMP },
-	{ "num_teams", SOFS(num_teams), F_STRING, FFL_SPAWN_TEMP },
-	{ "ctf", SOFS(ctf), F_STRING, FFL_SPAWN_TEMP },
-	{ "match", SOFS(match), F_STRING, FFL_SPAWN_TEMP },
-	{ "frag_limit", SOFS(frag_limit), F_STRING, FFL_SPAWN_TEMP },
-	{ "round_limit", SOFS(round_limit), F_STRING, FFL_SPAWN_TEMP },
-	{ "capture_limit", SOFS(capture_limit), F_STRING, FFL_SPAWN_TEMP },
-	{ "time_limit", SOFS(time_limit), F_STRING, FFL_SPAWN_TEMP },
-	{ "give", SOFS(give), F_STRING, FFL_SPAWN_TEMP },
-
-	{ 0, 0, 0, 0 }
-};
-
-/**
- * @brief Takes a key-value pair and sets the binary values in an entity.
- */
-static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
-	const g_field_t *f;
-	byte *b;
-	vec_t v;
-	vec3_t vec;
-
-	for (f = fields; f->name; f++) {
-
-		if (!(f->flags & FFL_NO_SPAWN) && !g_ascii_strcasecmp(f->name, key)) { // found it
-
-			if (f->flags & FFL_SPAWN_TEMP) {
-				b = (byte *) &g_game.spawn;
-			} else {
-				b = (byte *) ent;
-			}
-
-			switch (f->type) {
-				case F_SHORT:
-					*(int16_t *) (b + f->ofs) = (int16_t) atoi(value);
-					break;
-				case F_INT:
-					*(int32_t *) (b + f->ofs) = atoi(value);
-					break;
-				case F_FLOAT:
-					*(vec_t *) (b + f->ofs) = atof(value);
-					break;
-				case F_STRING:
-					*(char **) (b + f->ofs) = G_NewString(value);
-					break;
-				case F_VECTOR:
-					sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
-					((vec_t *) (b + f->ofs))[0] = vec[0];
-					((vec_t *) (b + f->ofs))[1] = vec[1];
-					((vec_t *) (b + f->ofs))[2] = vec[2];
-					break;
-				case F_ANGLE:
-					v = atof(value);
-					((vec_t *) (b + f->ofs))[0] = 0;
-					((vec_t *) (b + f->ofs))[1] = v;
-					((vec_t *) (b + f->ofs))[2] = 0;
-					break;
-				default:
-					break;
-			}
-			return;
-		}
-	}
-
-	//gi.Debug("%s is not a field\n", key);
-}
-
-/**
- * @brief Parses an entity out of the given string. 
- * The entity should be a properly initialized free entity.
- */
-static void G_ParseEntity(parser_t *parser, g_entity_t *ent) {
-	char key[MAX_BSP_ENTITY_KEY], value[MAX_BSP_ENTITY_VALUE];
-
-	_Bool init = false;
-	memset(&g_game.spawn, 0, sizeof(g_game.spawn));
-
-	// go through all the dictionary pairs
-	while (true) {
-
-		// parse key
-		if (!Parse_Token(parser, PARSE_DEFAULT, key, sizeof(key))) {
-			gi.Error("EOF without closing brace\n");
-		}
-
-		if (key[0] == '}') {
-			break;
-		}
-
-		// parse value
-		if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_NO_WRAP, value, sizeof(value))) {
-			gi.Error("EOF in entity definition\n");
-		}
-
-		if (value[0] == '}') {
-			gi.Error("No entity definition\n");
-		}
-
-		init = true;
-
-		// keys with a leading underscore are used for utility comments,
-		// and are immediately discarded by quake
-		if (key[0] == '_') {
-			continue;
-		}
-
-		G_ParseField(key, value, ent);
-	}
-
-	if (!init) {
-		G_ClearEntity(ent);
-	}
 }
 
 /**
  * @brief Chain together all entities with a matching team field.
  *
  * All but the first will have the FL_TEAM_SLAVE flag set.
- * All but the last will have the team_chain field set to the next one.
+ * All but the last will have the team_next field set to the next one.
  */
 static void G_InitEntityTeams(void) {
-	g_entity_t *e, *e2;
-	uint16_t i, j;
 
-	uint16_t teams = 0, team_entities = 0;
-	for (i = 1, e = g_game.entities + i; i < ge.num_entities; i++, e++) {
+	int32_t teams = 0, team_entities = 0;
 
-		if (!e->in_use) {
+	g_entity_t *m = g_game.entities;
+	for (int32_t i = 0; i < ge.num_entities; i++, m++) {
+
+		if (!m->in_use) {
 			continue;
 		}
 
-		if (!e->locals.team) {
+		if (!m->locals.team) {
 			continue;
 		}
 
-		if (e->locals.flags & FL_TEAM_SLAVE) {
+		if (m->locals.flags & FL_TEAM_SLAVE) {
 			continue;
 		}
 
-		g_entity_t *chain = e;
-		e->locals.team_master = e;
+		g_entity_t *team = m;
+		m->locals.team_master = m;
 
 		teams++;
 		team_entities++;
 
-		for (j = i + 1, e2 = e + 1; j < ge.num_entities; j++, e2++) {
+		g_entity_t *n = m + 1;
+		for (int32_t j = i + 1; j < ge.num_entities; j++, n++) {
 
-			if (!e2->in_use) {
+			if (!n->in_use) {
 				continue;
 			}
 
-			if (!e2->locals.team) {
+			if (!n->locals.team) {
 				continue;
 			}
 
-			if (e2->locals.flags & FL_TEAM_SLAVE) {
+			if (n->locals.flags & FL_TEAM_SLAVE) {
 				continue;
 			}
 
-			if (!g_strcmp0(e->locals.team, e2->locals.team)) {
+			if (!g_strcmp0(m->locals.team, n->locals.team)) {
 
-				e2->locals.team_master = e;
-				e2->locals.flags |= FL_TEAM_SLAVE;
+				n->locals.team_master = m;
+				n->locals.flags |= FL_TEAM_SLAVE;
 
-				chain->locals.team_chain = e2;
-				chain = e2;
+				team->locals.team_next = n;
+				team = n;
 
 				team_entities++;
 			}
 		}
 	}
 
-	gi.Debug("%i teams with %i entities\n", teams, team_entities);
+	G_Debug("%i teams with %i entities\n", teams, team_entities);
 }
 
 /**
@@ -547,7 +338,10 @@ static int32_t G_CreateTeamSpawnPoints_CompareFunc(gconstpointer a, gconstpointe
 	const g_entity_t *ap = (const g_entity_t *) a;
 	const g_entity_t *bp = (const g_entity_t *) b;
 
-	return Sign(VectorDistanceSquared(flag->s.origin, bp->s.origin) - VectorDistanceSquared(flag->s.origin, ap->s.origin));
+	const int32_t a_dist = Vec3_DistanceSquared(flag->s.origin, ap->s.origin);
+	const int32_t b_dist = Vec3_DistanceSquared(flag->s.origin, bp->s.origin);
+
+	return SignOf(b_dist - a_dist);
 }
 
 /**
@@ -572,7 +366,7 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 			return; // not enough points to make a flag
 		}
 
-		vec_t furthest_dist = 0;
+		float furthest_dist = 0;
 
 		for (GSList *pa = *dm_spawns; pa; pa = pa->next) {
 			for (GSList *pb = *dm_spawns; pb; pb = pb->next) {
@@ -590,10 +384,10 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 				}
 
 				vec3_t line;
-				VectorSubtract(pae->s.origin, pab->s.origin, line);
-				line[2] /= 10.0; // don't consider Z as heavily as X/Y
+				line = Vec3_Subtract(pae->s.origin, pab->s.origin);
+				line.z /= 10.0; // don't consider Z as heavily as X/Y
 
-				const vec_t dist = VectorLengthSquared(line);
+				const float dist = Vec3_LengthSquared(line);
 
 				if (dist > furthest_dist) {
 
@@ -611,10 +405,10 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 		red_flag = G_AllocEntity_(g_team_red->flag);
 		blue_flag = G_AllocEntity_(g_team_blue->flag);
 
-		const uint8_t r = Randomr(0, 2);
+		const uint8_t r = RandomRangeu(0, 2);
 
-		VectorCopy(reused_spawns[r]->s.origin, red_flag->s.origin);
-		VectorCopy(reused_spawns[r ^ 1]->s.origin, blue_flag->s.origin);
+		red_flag->s.origin = reused_spawns[r]->s.origin;
+		blue_flag->s.origin = reused_spawns[r ^ 1]->s.origin;
 		
 		G_SpawnItem(red_flag, g_media.items.flags[TEAM_RED]);
 		G_SpawnItem(blue_flag, g_media.items.flags[TEAM_BLUE]);
@@ -631,8 +425,8 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 			continue;
 		}
 
-		const vec_t dist_to_red = VectorDistanceSquared(red_flag->s.origin, p->s.origin);
-		const vec_t dist_to_blue = VectorDistanceSquared(blue_flag->s.origin, p->s.origin);
+		const float dist_to_red = Vec3_DistanceSquared(red_flag->s.origin, p->s.origin);
+		const float dist_to_blue = Vec3_DistanceSquared(blue_flag->s.origin, p->s.origin);
 
 		if (dist_to_red < dist_to_blue) {
 			*team_red_spawns = g_slist_prepend(*team_red_spawns, p);
@@ -692,19 +486,15 @@ static void G_InitSpawnPoints(void) {
 	// first, set up all of the deathmatch points
 	GSList *dm_spawns = NULL;
 	g_entity_t *spot = NULL;
-	
-	while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
+
+	while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
 		dm_spawns = g_slist_prepend(dm_spawns, spot);
 	}
 
 	spot = NULL;
 
-	// for legacy maps
-	if (!g_slist_length(dm_spawns)) {
-
-		while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
-			dm_spawns = g_slist_prepend(dm_spawns, spot);
-		}
+	while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
+		dm_spawns = g_slist_prepend(dm_spawns, spot);
 	}
 	
 	// find the team points, if we have any explicit ones in the map.
@@ -760,7 +550,6 @@ static void G_InitSpawnPoints(void) {
 		}
 	}
 
-	// if we have team spawns, copy them over
 	if (!g_team_red->spawn_points.count) {
 
 		// none in the map, let's make some!
@@ -806,7 +595,7 @@ void G_SpawnTech(const g_item_t *item) {
 	g_entity_t *spawn = G_SelectTechSpawnPoint();
 	g_entity_t *ent = G_DropItem(spawn, item);
 
-	VectorSet(ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+	ent->locals.velocity = Vec3(RandomRangef(-250.f, 250.f), RandomRangef(-250.f, 250.f), RandomRangef(200.f, 400.f));
 }
 
 /**
@@ -827,7 +616,7 @@ void G_SpawnTechs(void) {
  * @brief Creates a server's entity / program execution context by
  * parsing textual entity definitions out of an ent file.
  */
-void G_SpawnEntities(const char *name, const char *entities) {
+void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_entities) {
 
 	gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
@@ -844,7 +633,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			if (g_ai_max_clients->integer == -1) {
 				g_game.ai_fill_slots = sv_max_clients->integer;
 			} else {
-				g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, sv_max_clients->integer);
+				g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
 			}
 
 			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
@@ -856,6 +645,9 @@ void G_SpawnEntities(const char *name, const char *entities) {
 				}
 			}
 		}
+
+		// load nav data
+		G_Ai_Load(name);
 	}
 	
 	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));
@@ -867,65 +659,32 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	ge.num_entities = sv_max_clients->integer + 1;
 
-	g_entity_t *ent = NULL;
-
 	gchar **inhibit = g_strsplit(g_inhibit->string, " ", -1);
-	int32_t inhibited = 0;
-	
-	parser_t parser;
-	char tok[MAX_QPATH];
-	Parse_Init(&parser, entities, PARSER_NO_COMMENTS);
+	int32_t num_inhibited = 0;
 
-	// parse the entity definition string
-	while (true) {
+	for (size_t i = 0; i < num_entities; i++) {
 
-		if (!Parse_Token(&parser, PARSE_DEFAULT, tok, sizeof(tok))) {
-			break;
-		}
-
-		if (tok[0] != '{') {
-			gi.Error("Found \"%s\" when expecting \"{\"", tok);
-		}
-
-		if (ent == NULL) {
-			ent = g_game.entities;
-		} else {
-			ent = G_AllocEntity();
-		}
-
-		G_ParseEntity(&parser, ent);
-
-		if (ent != g_game.entities) {
-
-			// enforce entity inhibiting
-			for (size_t i = 0; i < g_strv_length(inhibit); i++) {
-				if (g_strcmp0(ent->class_name, inhibit[i]) == 0) {
-					G_FreeEntity(ent);
-					inhibited++;
-					continue;
-				}
-			}
-
-			// handle legacy spawn flags
-			if (ent->locals.spawn_flags & SF_NOT_DEATHMATCH) {
-				G_FreeEntity(ent);
-				inhibited++;
-				continue;
-			}
-
-			// strip away unsupported flags
-			ent->locals.spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP);
-		}
+		g_entity_t *ent = i == 0 ? g_game.entities : G_AllocEntity();
+		ent->def = entities[i];
 
 		if (!G_SpawnEntity(ent)) {
 			G_FreeEntity(ent);
-			inhibited++;
+			continue;
+		}
+
+		// enforce entity inhibiting
+		for (size_t i = 0; i < g_strv_length(inhibit); i++) {
+			if (!g_strcmp0(ent->class_name, inhibit[i])) {
+				G_FreeEntity(ent);
+				num_inhibited++;
+				continue;
+			}
 		}
 	}
 
 	g_strfreev(inhibit);
 
-	gi.Debug("%i entities inhibited\n", inhibited);
+	G_Debug("%i entities inhibited\n", num_inhibited);
 
 	G_InitMedia();
 
@@ -947,24 +706,43 @@ void G_SpawnEntities(const char *name, const char *entities) {
 }
 
 /**
+ * @brief CompareFunc to shuffle tracks.
+ */
+gint G_WorldspawnMusic_shuffle(gconstpointer a, gconstpointer b) {
+	return RandomRangei(-1, 2);
+}
+
+/**
  * @brief
  */
 static void G_WorldspawnMusic(void) {
-	char *t, buf[MAX_STRING_CHARS];
-	int32_t i;
 
 	if (*g_level.music == '\0') {
-		int32_t shuffle = Random();
-		for (i = 0; i < MAX_MUSICS; i++) {
-			gi.SetConfigString(CS_MUSICS + i, va("track%d", ((i + shuffle) % MAX_MUSICS) + 1));
+
+		int32_t num_tracks = 0;
+		while (gi.FileExists(va("music/track%d.ogg", num_tracks + 1))) {
+			num_tracks++;
 		}
+
+		GArray *tracks = g_array_new(0, 0, sizeof(int32_t));
+		for (int32_t i = 1; i <= num_tracks; i++) {
+			g_array_append_val(tracks, i);
+		}
+		g_array_sort(tracks, G_WorldspawnMusic_shuffle);
+
+		for (int32_t i = 0; i < MAX_MUSICS; i++) {
+			gi.SetConfigString(CS_MUSICS + i, va("track%d", g_array_index(tracks, int32_t, i)));
+		}
+
+		g_array_free(tracks, 1);
 		return;
 	}
 
+	char buf[MAX_STRING_CHARS];
 	g_strlcpy(buf, g_level.music, sizeof(buf));
 
-	i = 0;
-	t = strtok(buf, ",");
+	int32_t i = 0;
+	char *t = strtok(buf, ",");
 
 	while (true) {
 
@@ -989,10 +767,7 @@ static void G_WorldspawnMusic(void) {
  -------- KEYS --------
  message : The map title.
  sky : The sky environment map (default unit1_).
- ambient_light : The ambient light level (e.g. 0.14 0.11 0.12).
- sun_light : Sun light intensity, a single scalar value 0 - 255.
- sun_color : Sun light color (e.g. 0.8 0.4 0.7).
- sun_angles : Sun light angles as "pitch yaw roll" (e.g. 85 225 0).
+ ambient : The ambient light level (e.g. 0.14 0.11 0.12).
  brightness : Global light scale, a single positive scalar value (e.g. 1.125).
  saturation : Global light saturation, a single positive scalar value (e.g. 0.9).
  contrast : Global light contrast, a single positive scalar value (e.g. 1.17).
@@ -1032,11 +807,10 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && *map->sky) { // prefer maps.lst sky
 		gi.SetConfigString(CS_SKY, map->sky);
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.sky && *g_game.spawn.sky) {
-			gi.SetConfigString(CS_SKY, g_game.spawn.sky);
-		} else
-			// or default to unit1_
-		{
+		const cm_entity_t *sky = gi.EntityValue(ent->def, "sky");
+		if (*sky->string) {
+			gi.SetConfigString(CS_SKY, sky->string);
+		} else { // or default to unit1_
 			gi.SetConfigString(CS_SKY, "unit1_");
 		}
 	}
@@ -1044,11 +818,10 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && *map->weather) { // prefer maps.lst weather
 		gi.SetConfigString(CS_WEATHER, map->weather);
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.weather && *g_game.spawn.weather) {
-			gi.SetConfigString(CS_WEATHER, g_game.spawn.weather);
-		} else
-			// or default to none
-		{
+		const cm_entity_t *weather = gi.EntityValue(ent->def, "weather");
+		if (*weather->string) {
+			gi.SetConfigString(CS_WEATHER, weather->string);
+		} else { // or default to none
 			gi.SetConfigString(CS_WEATHER, "none");
 		}
 	}
@@ -1056,8 +829,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && map->gravity > 0) { // prefer maps.lst gravity
 		g_level.gravity = map->gravity;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.gravity && *g_game.spawn.gravity) {
-			g_level.gravity = atoi(g_game.spawn.gravity);
+		const cm_entity_t *gravity = gi.EntityValue(ent->def, "gravity");
+		if (gravity->parsed & ENTITY_INTEGER) {
+			g_level.gravity = gravity->integer;
 		} else {
 			g_level.gravity = DEFAULT_GRAVITY;
 		}
@@ -1068,8 +842,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else if (map && map->gameplay > -1) { // then maps.lst gameplay
 		g_level.gameplay = map->gameplay;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.gameplay && *g_game.spawn.gameplay) {
-			g_level.gameplay = G_GameplayByName(g_game.spawn.gameplay);
+		const cm_entity_t *gameplay = gi.EntityValue(ent->def, "gameplay");
+		if (*gameplay->string) {
+			g_level.gameplay = G_GameplayByName(gameplay->string);
 		} else {
 			g_level.gameplay = GAME_DEATHMATCH;
 		}
@@ -1080,8 +855,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && map->teams > -1) { // prefer maps.lst teams
 		g_level.teams = map->teams;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.teams && *g_game.spawn.teams) {
-			g_level.teams = atoi(g_game.spawn.teams);
+		const cm_entity_t *teams = gi.EntityValue(ent->def, "teams");
+		if (teams->parsed & ENTITY_INTEGER) {
+			g_level.teams = teams->integer;
 		} else {
 			g_level.teams = g_teams->integer;
 		}
@@ -1090,8 +866,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && map->num_teams > -1) { // prefer maps.lst teams
 		g_level.num_teams = map->num_teams;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.num_teams && *g_game.spawn.num_teams) {
-			g_level.num_teams = atoi(g_game.spawn.num_teams);
+		const cm_entity_t *num_teams = gi.EntityValue(ent->def, "num_teams");
+		if (num_teams->parsed & ENTITY_INTEGER) {
+			g_level.num_teams = num_teams->integer;
 		} else {
 			if (g_strcmp0(g_num_teams->string, "default")) {
 				g_level.num_teams = g_num_teams->integer;
@@ -1102,14 +879,15 @@ static void G_worldspawn(g_entity_t *ent) {
 	}
 
 	if (g_level.num_teams != -1) {
-		g_level.num_teams = Clamp(g_level.num_teams, 2, MAX_TEAMS);
+		g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
 	}
 
 	if (map && map->ctf > -1) { // prefer maps.lst ctf
 		g_level.ctf = map->ctf;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.ctf && *g_game.spawn.ctf) {
-			g_level.ctf = atoi(g_game.spawn.ctf);
+		const cm_entity_t *ctf = gi.EntityValue(ent->def, "ctf");
+		if (ctf->parsed & ENTITY_INTEGER) {
+			g_level.ctf = ctf->integer;
 		} else {
 			g_level.ctf = g_ctf->integer;
 		}
@@ -1137,8 +915,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && map->match > -1) { // prefer maps.lst match
 		g_level.match = map->match;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.match && *g_game.spawn.match) {
-			g_level.match = atoi(g_game.spawn.match);
+		const cm_entity_t *match = gi.EntityValue(ent->def, "match");
+		if (match->parsed & ENTITY_INTEGER) {
+			g_level.match = match->integer;
 		} else {
 			g_level.match = g_match->integer;
 		}
@@ -1147,8 +926,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && map->rounds > -1) { // prefer maps.lst rounds
 		g_level.rounds = map->rounds;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.rounds && *g_game.spawn.rounds) {
-			g_level.rounds = atoi(g_game.spawn.rounds);
+		const cm_entity_t *rounds = gi.EntityValue(ent->def, "rounds");
+		if (rounds->parsed & ENTITY_INTEGER) {
+			g_level.rounds = rounds->integer;
 		} else {
 			g_level.rounds = g_rounds->integer;
 		}
@@ -1164,8 +944,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && map->frag_limit > -1) { // prefer maps.lst frag_limit
 		g_level.frag_limit = map->frag_limit;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.frag_limit && *g_game.spawn.frag_limit) {
-			g_level.frag_limit = atoi(g_game.spawn.frag_limit);
+		const cm_entity_t *frag_limit = gi.EntityValue(ent->def, "frag_limit");
+		if (frag_limit->parsed & ENTITY_INTEGER) {
+			g_level.frag_limit = frag_limit->integer;
 		} else {
 			g_level.frag_limit = g_frag_limit->integer;
 		}
@@ -1174,8 +955,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && map->round_limit > -1) { // prefer maps.lst round_limit
 		g_level.round_limit = map->round_limit;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.round_limit && *g_game.spawn.round_limit) {
-			g_level.round_limit = atoi(g_game.spawn.round_limit);
+		const cm_entity_t *round_limit = gi.EntityValue(ent->def, "round_limit");
+		if (round_limit->parsed & ENTITY_INTEGER) {
+			g_level.round_limit = round_limit->integer;
 		} else {
 			g_level.round_limit = g_round_limit->integer;
 		}
@@ -1184,30 +966,33 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && map->capture_limit > -1) { // prefer maps.lst capture_limit
 		g_level.capture_limit = map->capture_limit;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.capture_limit && *g_game.spawn.capture_limit) {
-			g_level.capture_limit = atoi(g_game.spawn.capture_limit);
+		const cm_entity_t *capture_limit = gi.EntityValue(ent->def, "capture_limit");
+		if (capture_limit->parsed & ENTITY_INTEGER) {
+			g_level.capture_limit = capture_limit->integer;
 		} else {
 			g_level.capture_limit = g_capture_limit->integer;
 		}
 	}
 
-	vec_t time_limit;
+	float minutes;
 	if (map && map->time_limit > -1) { // prefer maps.lst time_limit
-		time_limit = map->time_limit;
+		minutes = map->time_limit;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.time_limit && *g_game.spawn.time_limit) {
-			time_limit = atof(g_game.spawn.time_limit);
+		const cm_entity_t *time_limit = gi.EntityValue(ent->def, "time_limit");
+		if (time_limit->parsed & ENTITY_FLOAT) {
+			minutes = time_limit->value;
 		} else {
-			time_limit = g_time_limit->value;
+			minutes = g_time_limit->value;
 		}
 	}
-	g_level.time_limit = time_limit * 60 * 1000;
+	g_level.time_limit = minutes * 60 * 1000;
 
 	if (map && *map->give) { // prefer maps.lst give
 		g_strlcpy(g_level.give, map->give, sizeof(g_level.give));
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.give && *g_game.spawn.give) {
-			g_strlcpy(g_level.give, g_game.spawn.give, sizeof(g_level.give));
+		const cm_entity_t *give = gi.EntityValue(ent->def, "give");
+		if (*give->string) {
+			g_strlcpy(g_level.give, give->string, sizeof(g_level.give));
 		} else {
 			g_level.give[0] = '\0';
 		}
@@ -1216,8 +1001,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	if (map && *map->music) { // prefer maps.lst music
 		g_strlcpy(g_level.music, map->music, sizeof(g_level.music));
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.music && *g_game.spawn.music) {
-			g_strlcpy(g_level.music, g_game.spawn.music, sizeof(g_level.music));
+		const cm_entity_t *music = gi.EntityValue(ent->def, "music");
+		if (*music->string) {
+			g_strlcpy(g_level.music, music->string, sizeof(g_level.music));
 		} else {
 			g_level.music[0] = '\0';
 		}

@@ -25,88 +25,246 @@
 /**
  * @brief
  */
-static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t color) {
-	cg_particle_t *p;
+static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t effect_color) {
+	const color_t color_rgb = ColorHSVA(effect_color.x, effect_color.y, effect_color.z, 1.f);
 
-	for (int32_t i = 0; i < 24; i++) {
+	for (int32_t i = 0; i < 2; i++)
+	{
+		const float saturation = RandomRangef(.8f, 1.f);
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark, false))) {
-			break;
-		}
-
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE | PARTICLE_EFFECT_PHYSICAL;
-		p->lifetime = 450 + Randomf() * 450;
-		p->bounce = 1.15;
-
-		ColorToVec4(color, p->color_start);
-		p->color_start[3] = 2.0;
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 3.5;
-		p->scale_end = Randomf() * 1.0;
-
-		VectorAdd(org, dir, p->part.org);
-
-		VectorScale(dir, 150.0, p->vel);
-
-		for (int32_t j = 0; j < 3; j++) {
-			p->vel[j] += Randomc() * 50.0;
-		}
-
-		p->accel[2] -= 2.0 * PARTICLE_GRAVITY;
+		// surface aligned blast ring sprite
+		Cg_AddSprite(&(cg_sprite_t) {
+			.animation = cg_sprite_blaster_ring,
+			.lifetime = Cg_AnimationLifetime(cg_sprite_blaster_ring, 17.5f),
+			.origin = Vec3_Add(org, Vec3_Scale(dir, 3.0)),
+			.size = 22.5f,
+			.size_velocity = 75.f,
+			.dir = (i == 1) ? dir : Vec3_Zero(),
+			.color = Vec4(effect_color.x, effect_color.y * saturation, effect_color.z, 0.f),
+			.end_color = Vec4(effect_color.x, effect_color.y * saturation, 0.f, 0.f)
+		});
 	}
 
-	vec3_t c;
-	ColorToVec3(color, c);
+	// radial particles
+	for (int32_t i = 0; i < 32; i++) {
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
-		.light.color = { c[0], c[1], c[2] },
-		.light.radius = 150.0,
-		.sustain = 350
+		const vec3_t velocity = Vec3_RandomizeDir(Vec3_Scale(dir, 125.f), .6666f);
+
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.origin = Vec3_Add(org, Vec3_Scale(dir, 3.0)),
+			.velocity = velocity,
+			.size = 4.f,
+			.acceleration = Vec3_Scale(velocity, -2.f),
+			.lifetime = 500,
+			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
+			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
+		});
+	}
+
+	// residual flames
+	for (int32_t i = 0; i < 3; i++) {
+
+		Cg_AddSprite(&(cg_sprite_t) {
+			.animation = cg_sprite_blaster_flame,
+			.lifetime = Cg_AnimationLifetime(cg_sprite_blaster_flame, 30),
+			.origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 5.f)),
+			.rotation = Randomf() * M_PI * 2.f,
+			.rotation_velocity = Randomf() * .1f,
+			.size = 25.f,
+			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
+			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
+		});
+	}
+
+	// surface flame
+	const float flame_sat = RandomRangef(.8f, 1.f);
+
+	Cg_AddSprite(&(cg_sprite_t) {
+		.animation = cg_sprite_blaster_flame,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_blaster_flame, 30),
+		.origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 5.f)),
+		.rotation = Randomf() * M_PI * 2.f,
+		.rotation_velocity = Randomf() * .1f,
+		.dir = dir,
+		.size = 25.f,
+		.size_velocity = 20.f,
+		.color = Vec4(effect_color.x, effect_color.y * flame_sat, effect_color.z, 0.f),
+		.end_color = Vec4(effect_color.x, effect_color.y * flame_sat, 0.f, 0.f),
 	});
 
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { org[0], org[1], org[2] },
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = Vec3_Add(org, Vec3_Scale(dir, 8.f)),
+		.radius = 100.f,
+		.color = Color_Vec3(color_rgb),
+		.intensity = .125f,
+		.decay = 350.f
+	});
+
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
+		.origin = org,
 		.radius = 4.0,
-		.image = cg_particles_normal->image,
-		.color = { c[0], c[1], c[2], 0.33 }
+		.color = Color_Add(color_rgb, Color4f(0.f, 0.f, 0.f, -.66f))
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_blaster_hit,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = org,
+		.atten = SOUND_ATTEN_LINEAR,
 	});
 }
 
 /**
  * @brief
  */
-static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
-	cg_particle_t *p;
+static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
+	const float tracer_speed = 4000.f;
+	const float tracer_length = 120.f;
+	float len;
+	vec3_t velocity = Vec3_NormalizeLength(Vec3_Subtract(end, start), &len);
+	const uint32_t lifetime = SECONDS_TO_MILLIS((len - tracer_length) / tracer_speed);
 
-	if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_tracer, false))) {
-		p->lifetime = 0.1 * VectorDistance(start, end); // 0.1ms per unit in distance
-		p->effects |= PARTICLE_EFFECT_SCALE;
+	Cg_AddSprite(&(cg_sprite_t) {
+		.type = SPRITE_BEAM,
+		.image = cg_beam_tracer,
+		.origin = start,
+		.termination = Vec3_Add(start, Vec3_Scale(velocity, tracer_length)),
+		.size = 5.f,
+		.velocity = Vec3_Scale(velocity, tracer_speed),
+		.lifetime = lifetime,
+		.color = Vec4(45, 0.0f, 2.f, 0),
+		.end_color = Vec4(30, 0.2f, 1.f, 0)
+	});
+}
 
-		Vector4Set(p->part.color, 1.0, 0.7, 0.3, 1.0);
+/**
+ * @brief
+ */
+static void Cg_DrawFloatingStringLine(vec3_t position, const char *string, const float size, const vec3_t color) {
 
-		p->scale_start = 1.5;
-		p->scale_end = 0.5;
+	position = Vec3_Fmaf(position, -(size * strlen(string)) * 0.5f, cgi.view->right);
 
-		VectorCopy(start, p->part.org);
+	for (const char *c = string; *c; c++) {
 
-		VectorSubtract(end, start, p->vel);
-		VectorMA(p->vel, 4.0, p->vel, p->vel); // Ghetto indeed
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = &cg_sprite_font[(int32_t) *c],
+			.origin = position,
+			.lifetime = 1,
+			.width = size,
+			.height = size * 2.f,
+			.color = Vec3_ToVec4(color, 1.f),
+			.end_color = Vec3_ToVec4(color, 1.f),
+			.flags = SPRITE_SERVER_TIME,
+			.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
+		});
 
-		p->spark.length = 0.02 + Randomf() * 0.05;
+		position = Vec3_Fmaf(position, size, cgi.view->right);
+	}
+}
 
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
+/**
+ * @brief
+ */
+static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint16_t id) {
+	const float hue = color == 3 ? color_hue_red : color == 2 ? color_hue_rose : color == 1 ? color_hue_yellow : color_hue_orange;
 
-		p->accel[2] = -PARTICLE_GRAVITY * 3.0;
+	Cg_DrawFloatingStringLine(Vec3_Fmaf(start, 8.f, Vec3_Up()), va("%d", id), 1.f, Vec3(color_hue_yellow, 1.f, 1.f));
+
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_particle,
+		.origin = start,
+		.flags = SPRITE_SERVER_TIME,
+		.lifetime = 1,
+		.size = 8.f,
+		.color = Vec4(hue, 1.f, 1.f, 1.f),
+		.end_color = Vec4(hue, 1.f, 1.f, 1.f)
+	});
+}
+
+/**
+ * @brief
+ */
+static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint8_t bits) {
+
+	const float color_intensity = (bits & 4) ? 0.2f : 1.0f;
+	const vec4_t both_color = Vec4(color_hue_green, color_intensity, color_intensity, 0.f);
+	const vec4_t a_color = Vec4(color_hue_blue, color_intensity, color_intensity, 0.f);
+	const vec4_t b_color = Vec4(color_hue_red, color_intensity, color_intensity, 0.f);
+	const vec4_t mover_color = Vec4(color_hue_cyan, color_intensity, color_intensity, 0.f);
+
+	// mover connection
+	if (bits & 8) {
+		Cg_AddSprite(&(cg_sprite_t) {
+			.type = SPRITE_BEAM,
+			.image = cg_beam_hook,
+			.origin = start,
+			.termination = end,
+			.size = 2.f,
+			.flags = SPRITE_SERVER_TIME,
+			.lifetime = 1,
+			.color = mover_color,
+			.end_color = mover_color
+		});
+
+		return;
+	}
+
+	vec3_t center = Vec3_Scale(Vec3_Add(start, end), 0.5f);
+	const vec3_t euler = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(start, end)));
+	vec3_t up;
+	Vec3_Vectors(euler, NULL, NULL, &up);
+	vec3_t text_center = center;
+	text_center.z += 8.f;
+
+	Cg_DrawFloatingStringLine(text_center, va("%.1f", Vec3_Distance(start, end)), 1.f, Vec3(0.f, 0.f, 1.f));
+
+	if (bits & 16) {
+		text_center.z -= 2;
+		Cg_DrawFloatingStringLine(text_center, "Slow-drop", 1.f, Vec3(0.f, 0.f, 1.f));
+	}
+
+	// both sides connected
+	if ((bits & 3) == 3) {
+		Cg_AddSprite(&(cg_sprite_t) {
+			.type = SPRITE_BEAM,
+			.image = cg_beam_line,
+			.origin = start,
+			.termination = end,
+			.size = 2.f,
+			.lifetime = 1,
+			.flags = SPRITE_SERVER_TIME,
+			.color = both_color,
+			.end_color = both_color
+		});
+
+	} else {
+		
+		// only end connected
+		if (bits & 2) {
+			Cg_AddSprite(&(cg_sprite_t) {
+				.type = SPRITE_BEAM,
+				.image = cg_beam_arrow,
+				.origin = end,
+				.termination = start,
+				.size = 2.f,
+				.lifetime = 1,
+				.flags = SPRITE_SERVER_TIME,
+				.color = a_color,
+				.end_color = a_color
+			});
+		} else {
+			Cg_AddSprite(&(cg_sprite_t) {
+				.type = SPRITE_BEAM,
+				.image = cg_beam_arrow,
+				.origin = start,
+				.termination = end,
+				.size = 2.f,
+				.lifetime = 1,
+				.flags = SPRITE_SERVER_TIME,
+				.color = a_color,
+				.end_color = a_color
+			});
+		}
 	}
 }
 
@@ -115,73 +273,83 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
  */
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
-	cg_particle_t *p;
-	int32_t k = Randomr(1, 5);
-	vec3_t vec;
 
-	if (cgi.PointContents(org) & MASK_LIQUID) {
-		VectorMA(org, 8.0, dir, vec);
-		Cg_BubbleTrail(org, vec, 32.0);
+	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
+
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_Scale(dir, 8.f)));
 	} else {
-		while (k--) {
-			if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam, true))) {
 
-				p->effects |= PARTICLE_EFFECT_PHYSICAL;
-				p->bounce = 1.5;
-				p->lifetime = 100 + Randomf() * 350;
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.origin = Vec3_Add(org, dir),
+			.velocity = Vec3_Scale(dir, RandomRangef(100.f, 200.f)),
+			.size = 4.f,
+			.acceleration = Vec3_Subtract(Vec3_RandomRange(-40.f, 40.f), Vec3(0.f, 0.f, SPRITE_GRAVITY)),
+			.lifetime = RandomRangef(150.f, 300.f),
+			.color = Vec4(27.f, .68f, RandomRangef(.5f, 1.f), RandomRangef(.5f, 1.f)),
+			.end_color = Vec4(27.f, .68f, 0.f, 0.f)
+		});
 
-				cgi.ColorFromPalette(221 + (Randomr(0, 8)), p->part.color);
-				p->part.color[3] = 0.7 + Randomf() * 0.3;
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.origin = Vec3_Add(org, dir),
+			.lifetime = 1000,
+			.size = 8.f,
+			.color = Vec4(27.f, .68f, 1.f, 1.f),
+			.end_color = Vec4(27.f, .68f, 0.f, 0.f)
+		});
 
-				p->part.scale = 0.6 + Randomf() * 0.4;
-
-				VectorCopy(org, p->part.org);
-
-				VectorScale(dir, 180.0 + Randomf() * 40.0, p->vel);
-
-				p->accel[0] = Randomc() * 40.0;
-				p->accel[1] = Randomc() * 40.0;
-				p->accel[2] = -(PARTICLE_GRAVITY + (Randomf() * 60.0));
-				p->spark.length = 0.04 + Randomf() * 0.02;
-
-				VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
-			}
-		}
-
-		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke, false))) {
-
-			p->lifetime = 150 + Randomf() * 600;
-			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-			Vector4Set(p->color_start, 0.8, 0.8, 0.8, 0.8);
-			VectorCopy(p->color_start, p->color_end);
-			p->color_end[3] = 0.0;
-
-			p->scale_start = 2.0 + Randomf() * 2.0;
-			p->scale_end = 18.0 + Randomf() * 8.0;
-			p->part.roll = Randomc() * 50.0;
-
-			VectorCopy(org, p->part.org);
-			VectorScale(dir, 60.0 + (Randomc() * 60.0), p->vel);
-			VectorScale(dir, -80.0, p->accel);
-			VectorMA(p->accel, 20.0, vec3_up, p->accel);
-
-			p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
+		if (Randomf() < .75f) {
+			Cg_AddSprite(&(cg_sprite_t) {
+				.animation = cg_sprite_poof_02,
+				.lifetime = Cg_AnimationLifetime(cg_sprite_poof_02, 20),
+				.origin = Vec3_Add(org, dir),
+				.size_velocity = 100.f,
+				.rotation = Randomf() * M_PI * 2.f,
+				.color = Vec4(0.f, 0.f, 1.f, 0.f)
+			});
+		} else {
+			Cg_AddSprite(&(cg_sprite_t) {
+				.animation = cg_sprite_smoke_05,
+				.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 80),
+				.origin = Vec3_Add(org, Vec3_Scale(dir, 3.f)),
+				.dir = dir,
+				.rotation = Randomf() * M_PI * 2.f,
+				.color = Vec4(0.f, 0.f, 1.f, 0.f)
+			});
 		}
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
-		       .light.color = { 0.5, 0.3, 0.2 },
-		              .light.radius = 20.0,
-		                     .sustain = 250
-	});
+	/*
+	if ((p = Cg_AllocSprite())) {
 
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { org[0], org[1], org[2] },
-		.radius = 2.0,
-		.image = cg_particles_normal->image,
-		.color = { 0.0, 0.0, 0.0, 0.33 },
+		p->origin = org;
+		p->velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f));
+		p->acceleration = Vec3_Scale(dir, -20.f);
+		p->acceleration.z = RandomRangef(20.f, 30.f);
+
+		p->lifetime = RandomRangef(600.f, 1000.f);
+
+		p->color = Color_Add(Color3bv(0xa0a0a0), Color3fv(Vec3_RandomRange(-1.f, .1f)));
+
+		p->size = RandomRangef(1.f, 2.f);
+		p->size_velocity = 1.f;
+	}
+	*/
+
+	/*
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = Vec3_Add(org, dir),
+		.radius = 20.0,
+		.color = Vec3(0.5f, 0.3f, 0.2f),
+		.decay = 250
+	});
+	*/
+
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
+		.origin = org,
+		.radius = 1.f,
+		.color = Color4bv(0xbb202020),
 	});
 
 	if (cgi.client->unclamped_time < last_ric_time) {
@@ -191,12 +359,11 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	if (cgi.client->unclamped_time - last_ric_time > 300) {
 		last_ric_time = cgi.client->unclamped_time;
 
-		cgi.AddSample(&(const s_play_sample_t) {
-			.sample = cg_sample_machinegun_hit[Randomr(0, 3)],
-			 .origin = { org[0], org[1], org[2] },
-			  .attenuation = ATTEN_NORM,
-			   .flags = S_PLAY_POSITIONED,
-				.pitch = (int16_t) (Randomc() * 8)
+		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+			.sample = cg_sample_machinegun_hit[RandomRangeu(0, 3)],
+			.origin = org,
+			.atten = SOUND_ATTEN_LINEAR,
+			.pitch = RandomRangei(-8, 9)
 		});
 	}
 }
@@ -206,118 +373,79 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
  */
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
-	for (int32_t i = 0; i < count; i++) {
-		cg_particle_t *p;
+	Cg_AddSprite(&(cg_sprite_t) {
+		.animation = cg_sprite_blood_01,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_blood_01, 30) + Randomf() * 500,
+		.size = RandomRangef(1.f, 2.f) + count,
+		.rotation = RandomRadian(),
+		.origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-1.f, 1.f)), Vec3_Scale(dir, RandomRangef(0.f, 4.f))),
+		.velocity = Vec3_Scale(dir, RandomRangef(1.f, 4.f)),
+		.acceleration.z = -SPRITE_GRAVITY / 2.0,
+		.flags = SPRITE_LERP,
+		.color = Vec4(0.f, 1.f, .5f, .66f),
+		.end_color = Vec4(0.f, 1.f, 0.f, 0.f)
+	});
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood, false))) {
-			break;
-		}
-
-		p->lifetime = 100 + Randomf() * 500;
-		p->effects = PARTICLE_EFFECT_COLOR;
-
-		Vector4Set(p->color_start, Randomfr(0.5, 0.8), 0.0, 0.0, 0.5);
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->part.scale = Randomfr(5.0, 8.0);
-		p->part.roll = Randomc() * 100.0;
-
-		const vec_t d = Randomr(0, 32);
-		for (int32_t j = 0; j < 3; j++) {
-			p->part.org[j] = org[j] + Randomfr(-10.0, 10.0) + d * dir[j];
-			p->vel[j] = Randomc() * 30.0;
-		}
-
-		p->accel[0] = p->accel[1] = 0.0;
-		p->accel[2] = -PARTICLE_GRAVITY / 2.0;
-
-		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
-	}
-
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { org[0], org[1], org[2] },
-		.radius = count * 6.0,
-		.image = cg_particles_blood_burn->image,
-		.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
+		.origin = org,
+		.radius = 1 + count,
+		.color = Color4bv(0xAA2222AA),
 	});
 }
 
-#define GIB_STREAM_DIST 180.0
-#define GIB_STREAM_COUNT 24
+#define GIB_STREAM_DIST 220.0
+#define GIB_STREAM_COUNT 12
 
 /**
  * @brief
  */
 void Cg_GibEffect(const vec3_t org, int32_t count) {
-	cg_particle_t *p;
-	vec3_t o, v, tmp;
-	vec_t dist;
 
 	// if a player has died underwater, emit some bubbles
-	if (cgi.PointContents(org) & MASK_LIQUID) {
-		VectorCopy(org, tmp);
-		tmp[2] += 64.0;
+	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
 
-		Cg_BubbleTrail(org, tmp, 16.0);
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3(0.f, 0.f, 64.f)));
 	}
 
 	for (int32_t i = 0; i < count; i++) {
 
 		// set the origin and velocity for each gib stream
-		VectorSet(o, Randomc() * 8.0, Randomc() * 8.0, 8.0 + Randomc() * 12.0);
-		VectorAdd(o, org, o);
+		const vec3_t o = Vec3_Add(Vec3(RandomRangef(-8.f, 8.f), RandomRangef(-8.f, 8.f), RandomRangef(-4.f, 20.f)), org);
+		const vec3_t v = Vec3(RandomRangef(-1.f, 1.f), RandomRangef(-1.f, 1.f), RandomRangef(.2f, 1.2f));
 
-		VectorSet(v, Randomc(), Randomc(), 0.2 + Randomf());
+		float dist = GIB_STREAM_DIST;
+		vec3_t tmp = Vec3_Add(o, Vec3_Scale(v, dist));
 
-		dist = GIB_STREAM_DIST;
-		VectorMA(o, dist, v, tmp);
-
-		const cm_trace_t tr = cgi.Trace(o, tmp, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+		const cm_trace_t tr = cgi.Trace(o, tmp, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
 		dist = GIB_STREAM_DIST * tr.fraction;
 
 		for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood, false))) {
+			if (!Cg_AddSprite(&(cg_sprite_t) {
+					.animation = cg_sprite_blood_01,
+					.lifetime = Cg_AnimationLifetime(cg_sprite_blood_01, 30) + Randomf() * 500,
+					.origin = o,
+					.velocity = Vec3_Add(Vec3_Add(Vec3_Scale(v, dist * ((float)j / GIB_STREAM_COUNT)), Vec3_RandomRange(-2.f, 2.f)), Vec3(0.f, 0.f, 100.f)),
+					.acceleration.z = -SPRITE_GRAVITY * 2.0,
+					.size = RandomRangef(24.f, 56.f),
+					.color = Vec4(0.f, 1.f, .5f, .97f),
+					.flags = SPRITE_LERP
+				})) {
 				break;
 			}
-
-			p->lifetime = 700 + Randomf() * 400;
-			p->effects = PARTICLE_EFFECT_COLOR;
-
-			Vector4Set(p->color_start, Randomfr(0.5, 0.8), 0.0, 0.0, 0.5);
-			VectorCopy(p->color_start, p->color_end);
-			p->color_end[3] = 0.0;
-
-			p->part.scale = Randomfr(3.0, 7.0);
-			p->part.roll = Randomc() * 100.0;
-
-			VectorCopy(o, p->part.org);
-
-			VectorScale(v, dist * ((vec_t)j / GIB_STREAM_COUNT), p->vel);
-			p->vel[0] += Randomc() * 2.0;
-			p->vel[1] += Randomc() * 2.0;
-			p->vel[2] += 100.0;
-
-			p->accel[0] = p->accel[1] = 0.0;
-			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-			p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 		}
 	}
 
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { org[0], org[1], org[2] },
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
+		.origin = org,
 		.radius = count * 6.0,
-		.image = cg_particles_normal->image,
-		.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
+		.color = Color4bv(0x88111188),
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_gib,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = org,
+		.atten = SOUND_ATTEN_LINEAR,
 	});
 }
 
@@ -327,184 +455,146 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (int32_t i = 0; i < count; i++) {
-		cg_particle_t *p;
+		const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
+		const float sat = RandomRangef(.7f, 1.f);
 
-		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
+		if (!Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_spark,
+				.origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f)),
+				.velocity = Vec3_Add(Vec3_Scale(dir, 16.f), Vec3_RandomRange(-90.f, 90.f)),
+				.acceleration = Vec3_Add(Vec3_RandomRange(-1.f, 1.f), Vec3(0.f, 0.f, -SPRITE_GRAVITY)),
+				.lifetime = 500 + Randomf() * 250,
+				.size = RandomRangef(1.f, 3.f),
+				.bounce = .6f,
+				.color = Vec4(hue, sat, RandomRangef(.7f, 1.f), RandomRangef(.56f, 1.f)),
+				.end_color = Vec4(hue, sat, 0.f, 0.f)
+			})) {
 			break;
 		}
-
-		p->lifetime = 50 + Randomf() * 150;
-
-		cgi.ColorFromPalette(221 + (Randomr(0, 8)), p->part.color);
-		p->part.color[3] = 0.7 + Randomf() * 0.3;
-
-		p->part.scale = 0.6 + Randomf() * 0.2;
-
-		VectorCopy(org, p->part.org);
-
-		VectorScale(dir, 4, p->vel);
-
-		for (int32_t j = 0; j < 3; j++) {
-			p->part.org[j] += Randomc() * 4.0;
-			p->vel[j] += Randomc() * 90.0;
-		}
-
-		p->accel[0] = Randomc() * 1.0;
-		p->accel[1] = Randomc() * 1.0;
-		p->accel[2] = -0.5 * PARTICLE_GRAVITY;
-		p->spark.length = 0.15;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0], org[1], org[2] },
-		       .light.color = { 0.7, 0.5, 0.5 },
-		              .light.radius = 80.0,
-		                     .sustain = 650
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = org,
+		.radius = 80.0,
+		.color = Vec3(0.7, 0.5, 0.5),
+		.decay = 650
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_sparks,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_STATIC,
-		   .flags = S_PLAY_POSITIONED
+		.origin = org,
+		.atten = SOUND_ATTEN_SQUARE,
 	});
 }
 
 /**
  * @brief
  */
-static void Cg_ExplosionEffect(const vec3_t org) {
-	cg_particle_t *p;
+static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
+	// TODO: Bubbles in water?
 
-	if ((p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion, true))) {
+	// ember sparks
+	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
+		for (int32_t i = 0; i < 100; i++) {
+			const uint32_t lifetime = 3000 + Randomf() * 300;
+			const float size = 2.f + Randomf() * 2.f;
+			const float hue = RandomRangef(10.f, 50.f);
 
-		p->lifetime = 250;
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-		cgi.ColorFromPalette(224, p->color_start);
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 6.0;
-		p->scale_end = 128.0;
-
-		p->part.roll = Randomc() * 100.0;
-
-		VectorCopy(org, p->part.org);
-	}
-
-	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {
-
-		for (int32_t i = 0; i < 10; i++) {
-
-			if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke, false))) {
+			if (!Cg_AddSprite(&(cg_sprite_t) {
+					.atlas_image = cg_sprite_particle2,
+					.origin = Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f)),
+					.velocity = Vec3_RandomRange(-300.f, 300.f),
+					.acceleration.z = -SPRITE_GRAVITY * 2.f,
+					.lifetime = lifetime,
+					.size = size,
+					.size_velocity = -size / MILLIS_TO_SECONDS(lifetime),
+					.bounce = .4f,
+					.color = Vec4(hue, 1.f, 1.f, 8.f),
+					.end_color = Vec4(hue, 1.f, -.7f, 0.f)
+				})) {
 				break;
 			}
-
-			p->lifetime = 1500 + (Randomc() * 500);
-			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-			const vec_t smoke_color = Randomfr(0.6, 0.9);
-
-			Vector4Set(p->color_start, smoke_color, smoke_color, smoke_color, 0.125);
-			Vector4Set(p->color_end, smoke_color, smoke_color, smoke_color, 0.0);
-
-			p->scale_start = 40.0;
-			p->scale_end = 16.0;
-
-			p->part.roll = Randomc() * 60.0;
-
-			p->part.org[0] = org[0] + Randomc() * 16.0;
-			p->part.org[1] = org[1] + Randomc() * 16.0;
-			p->part.org[2] = org[2] + Randomc() * 16.0;
-
-			VectorSet(p->vel, Randomc() * 50.0, Randomc() * 50.0, Randomc() * 50.0);
-			VectorSet(p->accel, -p->vel[0], -p->vel[1], -p->vel[2]);
-
-			p->accel[2] += PARTICLE_GRAVITY / Randomfr(6.0, 9.0);
-
-			p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
-		}
-
-		for (int32_t i = 0; i < 40; i++) {
-			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
-				break;
-			}
-
-			p->lifetime = 200 + Randomf() * 300;
-
-			cgi.ColorFromPalette(221 + (Randomr(0, 8)), p->part.color);
-			p->part.color[3] = 0.7 + Randomf() * 0.3;
-
-			p->part.scale = 0.9 + Randomf() * 0.4;
-
-			VectorCopy(org, p->part.org);
-
-			p->vel[0] = Randomc() * 170.0;
-			p->vel[1] = Randomc() * 170.0;
-			p->vel[2] = Randomc() * 170.0;
-
-			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-			p->spark.length = 0.04 + Randomf() * 0.06;
-
-			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
 	}
 
-	for (int32_t i = 0; i < 24; i++) {
-
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_debris[Randomr(0, 4)], false))) {
-			break;
-		}
-
-		p->lifetime = 400 + Randomf() * 300;
-		p->effects = PARTICLE_EFFECT_COLOR;
-
-		VectorSet(p->color_start, 1.0, 1.0, 1.0);
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.3;
-
-		p->part.scale = 3.0;
-		p->part.roll = Randomc() * 30.0;
-
-		p->part.org[0] = org[0] + Randomfr(-16.0, 16.0);
-		p->part.org[1] = org[1] + Randomfr(-16.0, 16.0);
-		p->part.org[2] = org[2] + Randomfr(-16.0, 16.0);
-
-		p->vel[0] = Randomc() * 800.0;
-		p->vel[1] = Randomc() * 800.0;
-		p->vel[2] = Randomc() * 800.0;
-
-		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
-
-		p->accel[2] = -PARTICLE_GRAVITY * 2;
-	}
-
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0], org[1], org[2] },
-		 .light.color = { 0.8, 0.4, 0.2 },
-		  .light.radius = 200.0,
-		   .sustain = 1000
+	// billboard explosion 16
+	Cg_AddSprite(&(cg_sprite_t) {
+		.origin = org,
+		.animation = cg_sprite_explosion,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_explosion, 40),
+		.size = 100.f,
+		.size_velocity = 25.f,
+		.rotation = Randomf() * 2.f * M_PI,
+		.flags = SPRITE_LERP,
+		.color = Vec4(0.f, 0.f, 1.f, .5f)
 	});
 
-	vec3_t c;
-	cgi.ColorFromPalette(Randomr(0, 2), c);
-
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { org[0], org[1], org[2] },
-		.radius = 88.0 + (64.0 * Randomc() * 0.15),
-		.image = cg_particles_stain_burn->image,
-		.color = { c[0], c[1], c[2], 0.66 },
+	// billboard explosion 2
+	Cg_AddSprite(&(cg_sprite_t) {
+		.origin = org,
+		.animation = cg_sprite_explosion,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_explosion, 30),
+		.size = 175.f,
+		.size_velocity = 25.f,
+		.rotation = Randomf() * 2.f * M_PI,
+		.flags = SPRITE_LERP,
+		.color = Vec4(0.f, 0.f, 1.f, .5f)
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	// decal explosion
+	Cg_AddSprite(&(cg_sprite_t) {
+		.origin = org,
+		.animation = cg_sprite_explosion,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_explosion, 30),
+		.size = 175.f,
+		.size_velocity = 25.f,
+		.rotation = Randomf() * 2.f * M_PI,
+		.flags = SPRITE_LERP,
+		.color = Vec4(0.f, 0.f, 1.f, .5f),
+		.dir = dir
+	});
+
+	// decal blast ring
+	Cg_AddSprite(&(cg_sprite_t) {
+		.origin = org,
+		.animation = cg_sprite_explosion_ring_02,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_explosion_ring_02, 20),
+		.size = 65.f,
+		.size_velocity = 500.f,
+		.size_acceleration = -500.f,
+		.rotation = Randomf() * 2.f * M_PI,
+		.flags = SPRITE_LERP,
+		.color = Vec4(0.f, 0.f, 1.f, 0.f),
+		.dir = dir
+	});
+
+	// blast glow
+	Cg_AddSprite(&(cg_sprite_t) {
+		.origin = org,
+		.lifetime = 325,
+		.size = 200.f,
+		.rotation = Randomf() * 2.f * M_PI,
+		.atlas_image = cg_sprite_explosion_glow,
+		.color = Vec4(0.f, 0.f, 1.f, 1.f)
+	});
+
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = org,
+		.radius = 150.0,
+		.color = Vec3(0.8, 0.4, 0.2),
+		.decay = 825
+	});
+
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
+		.origin = org,
+		.radius = RandomRangef(32.f, 48.f),
+		.color = Color4bv(0xaa202020),
+	});
+
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_explosion,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = org,
+		.atten = SOUND_ATTEN_LINEAR,
 	});
 }
 
@@ -512,77 +602,69 @@ static void Cg_ExplosionEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
-	cg_particle_t *p;
+	// impact "splash"
+	for (uint32_t i = 0; i < 6; i++) {
 
-	vec3_t color;
-	cgi.ColorFromPalette(113 + Randomr(0, 3), color);
-
-	for (int32_t i = 0; i < 2; i++) {
-
-		if (!(p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion, false))) {
-			break;
-		}
-
-		p->lifetime = 150;
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-		VectorCopy(color, p->color_start);
-		VectorCopy(color, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 1.5;
-		p->scale_end = 25.0 * (i + 1);
-
-		p->part.roll = 100.0 * Randomc();
-
-		VectorAdd(org, dir, p->part.org);
+		Cg_AddSprite(&(cg_sprite_t) {
+			.origin = org,
+			.animation = cg_sprite_electro_01,
+			.lifetime = Cg_AnimationLifetime(cg_sprite_electro_01, 20),
+			.size = 50.f,
+			.size_velocity = 400.f,
+			.rotation = Randomf() * 2.f * M_PI,
+			.flags = SPRITE_LERP,
+			.dir = Vec3_RandomRange(-1.f, 1.f),
+			.color = Vec4(204.f, .55f, .9f, 0.f),
+			.end_color = Vec4(204.f, .55f, 0.f, 0.f)
+		});
 	}
 
-	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {
-		for (int32_t i = 0; i < 6; i++) {
-			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
-				break;
-			}
+	Cg_AddSprite(&(cg_sprite_t) {
+		.origin = org,
+		.animation = cg_sprite_electro_01,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_electro_01, 8),
+		.size = 100.f,
+		.size_velocity = 25.f,
+		.rotation = Randomf() * 2.f * M_PI,
+		.flags = SPRITE_LERP,
+		.dir = dir,
+		.color = Vec4(204.f, .55f, .9f, 0.f),
+		.end_color = Vec4(204.f, .55f, 0.f, 0.f)
+	});
 
-			p->lifetime = 200 + Randomf() * 500;
+	// impact flash
+	for (uint32_t i = 0; i < 2; i++) {
 
-			Vector4Set(p->part.color, 0.4, 0.7, 1.0, 1.0);
-
-			p->part.scale = 1.5 + Randomf() * 0.7;
-
-			VectorCopy(org, p->part.org);
-
-			p->vel[0] = dir[0] * Randomfr(20.0, 140.0) + Randomc() * 16.0;
-			p->vel[1] = dir[1] * Randomfr(20.0, 140.0) + Randomc() * 16.0;
-			p->vel[2] = dir[2] * Randomfr(20.0, 140.0) + Randomc() * 16.0;
-
-			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-			p->spark.length = 0.03 + Randomf() * 0.04;
-
-			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
-		}
+		Cg_AddSprite(&(cg_sprite_t) {
+			.origin = org,
+			.atlas_image = cg_sprite_flash,
+			.lifetime = 150,
+			.size = RandomRangef(75.f, 100.f),
+			.rotation = RandomRadian(),
+			.rotation_velocity = i == 0 ? .66f : -.66f,
+			.color = Vec4(204.f, .55f, .9f, 0.f),
+			.end_color = Vec4(204.f, .55f, 0.f, 0.f)
+		});
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
-		       .light.color = { 0.4, 0.7, 1.0 },
-		              .light.radius = 80.0,
-		                     .sustain = 250
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = Vec3_Add(org, dir),
+		.radius = 80.f,
+		.color = Vec3(0.4, 0.7, 1.0),
+		.decay = 250,
+		.intensity = 0.05
 	});
 
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { org[0], org[1], org[2] },
-		.radius = 16.0,
-		.image = cg_particles_normal->image,
-		.color = { color[0], color[1], color[2], 0.33 },
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
+		.origin = org,
+		.radius = 16.f,
+		.color = Color4f(.4f, .7f, 1.f, .33f),
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_hyperblaster_hit,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = Vec3_Add(org, dir),
+		.atten = SOUND_ATTEN_LINEAR,
 	});
 }
 
@@ -592,119 +674,82 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 static void Cg_LightningDischargeEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 40; i++) {
-		vec3_t tmp;
-		VectorCopy(org, tmp);
-
-		for (int32_t j = 0; j < 3; j++) {
-			tmp[j] = tmp[j] + Randomfr(-48.0, 48.0);
-		}
-
-		Cg_BubbleTrail(org, tmp, 4.0);
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)));
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0], org[1], org[2] },
-		       .light.color = { 0.6, 0.6, 1.0 },
-		              .light.radius = 160.0,
-		                     .sustain = 750
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = org,
+		.radius = 160.f,
+		.color = Vec3(.6f, .6f, 1.f),
+		.decay = 750
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_lightning_discharge,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = org,
+		.atten = SOUND_ATTEN_LINEAR,
 	});
+}
+
+/**
+ * @brief  
+ */
+static float Cg_EaseInExpo(float life) {
+	return life == 0 ? 0 : powf(2, 10 * life - 10);
 }
 
 /**
  * @brief
  */
-static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const color_t color) {
-	vec3_t vec, right, up, point;
-	cg_particle_t *p;
-	r_sustained_light_t s;
+static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const vec3_t effect_color) {
+	vec3_t forward;
+	color_t color_rgb = ColorHSVA(effect_color.x, effect_color.y, effect_color.z, 1.f);
 
-	VectorCopy(start, s.light.origin);
-	s.light.radius = 100.0;
-	ColorToVec3(color, s.light.color);
-	s.sustain = 500;
+	Cg_AddLight(&(cg_light_t) {
+		.origin = start,
+		.radius = 100.f,
+		.color = Color_Vec3(color_rgb),
+		.decay = 500,
+	});
 
-	cgi.AddSustainedLight(&s);
+	// Check for bubble trail
+	Cg_BubbleTrail(NULL, start, end);
 
-	// Rail core
+	const float dist = Vec3_DistanceDir(end, start, &forward);
+	const vec3_t right = Vec3(forward.z, -forward.x, forward.y);
+	const vec3_t up = Vec3_Cross(forward, right);
 
-	if ((p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam, true))) {
-		p->lifetime = 1600;
-		p->effects = PARTICLE_EFFECT_COLOR;
+	for (int32_t i = 0; i < dist; i++) {
+		const float cosi = cosf(i * 0.1f);
+		const float sini = sinf(i * 0.1f);
+		const float frac = (1.0 - (i / dist));
+		const uint32_t lifetime = RandomRangeu(1500, 1550);
+//		const float sat = RandomRangef(.8f, 1.f);
 
-		ColorToVec4(color, p->color_start);
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->part.scale = 8.0;
-
-		VectorCopy(start, p->part.org);
-		VectorCopy(end, p->part.end);
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.origin = Vec3_Add(Vec3_Add(Vec3_Add(start, Vec3_Scale(forward, i)), Vec3_Scale(right, cosi)), Vec3_Scale(up, sini)),
+			.velocity = Vec3_Add(Vec3_Add(Vec3_Scale(forward, 20.f), Vec3_Scale(right, cosi * frac)), Vec3_Scale(up, sini * frac)),
+			.acceleration = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 8.f), Vec3_Scale(up, sini * 8.f)), Vec3(0.f, 0.f, 1.f)),
+			.lifetime = lifetime,
+			.size = frac * 5.f,
+			.size_velocity = 1.f / MILLIS_TO_SECONDS(lifetime),
+			.life_easing = Cg_EaseInExpo,
+			.color = Vec4(effect_color.x, effect_color.y, effect_color.z * RandomRangef(.8f, 1.f), 0.f),
+			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
+		});
 	}
 
-	// Rail wake
-
-	VectorCopy(start, point);
-
-	VectorSubtract(end, start, vec);
-
-	const vec_t len = VectorNormalize(vec);
-
-	VectorSet(right, vec[2], -vec[0], vec[1]);
-	CrossProduct(vec, right, up);
-
-	for (int32_t i = 0; i < len && i < 2048; i += 3) {
-
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_rail_wake, true))) {
-			break;
-		}
-
-		p->lifetime = 600 + ((i / len) * 600.0);
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.2);
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 2.0;
-		p->scale_end = 1.0;
-
-		p->part.roll = -(100.0 + ((1.0 - (i / len)) * 700.0));
-
-		VectorMA(point, 3.0, vec, point);
-		VectorCopy(point, p->part.org);
-
-		VectorScale(vec, 20.0, p->vel);
-
-		const vec_t cosi = cos(i * 0.1);
-		const vec_t sini = sin(i * 0.1);
-
-		VectorMA(p->part.org, cosi * 2.0, right, p->part.org);
-		VectorMA(p->part.org, sini * 2.0, up, p->part.org);
-
-		VectorMA(p->vel, cosi * 10.0, right, p->vel);
-		VectorMA(p->vel, sini * 10.0, up, p->vel);
-
-		// Check for bubble trail
-
-		if (i % 6 == 0 && (cgi.PointContents(point) & MASK_LIQUID)) {
-			Cg_BubbleTrail(point, p->part.org, 16.0);
-		}
-
-		// Add sustained lights
-
-		if (i > 0 && i < len - 64.0 && i % 64 == 0) {
-			VectorCopy(point, s.light.origin);
-			s.sustain = 200;
-			cgi.AddSustainedLight(&s);
-		}
-	}
+	Cg_AddSprite(&(cg_sprite_t) {
+		.type = SPRITE_BEAM,
+		.image = cg_beam_rail,
+		.origin = start,
+		.termination = end,
+		.size = 12.f,
+		.velocity = Vec3_Scale(forward, 20.f),
+		.lifetime = RandomRangeu(1500, 1550),
+		.color = Vec4(0.f, 0.f, 1.f, 0.f)
+	});
 
 	// Check for explosion effect on solids
 
@@ -712,249 +757,281 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		return;
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion, false))) {
-		p->lifetime = 250;
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+	// Rail impact cloud
+	// TODO: use a different sprite
+	for (int32_t i = 0; i < 2; i++) {
 
-		ColorToVec4(color, p->color_start);
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 6.0;
-		p->scale_end = 128.0;
-
-		VectorCopy(end, p->part.org);
+		Cg_AddSprite(&(cg_sprite_t) {
+			.origin = Vec3_Add(end, Vec3_Scale(dir, 8.f)),
+			.animation = cg_sprite_poof_01,
+			.lifetime = Cg_AnimationLifetime(cg_sprite_poof_01, 30),
+			.size = 128.f,
+			.size_velocity = 20.f,
+			.dir = (i == 1) ? dir : Vec3_Zero(),
+			.color = Vec4(0.f, 0.f, 1.f, .25f),
+			.flags = SPRITE_LERP
+		});
 	}
 
-	// Rail impact sparks
+	// TODO: what DIS?
+	if (cg_particle_quality->integer && (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) == 0) {
 
-	if ((cgi.PointContents(end) & MASK_LIQUID) == 0) {
-		for (int32_t i = 0; i < 24; i++) {
-			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
-				break;
-			}
+		for (int32_t i = 0; i < 16; i++) {
+			const vec3_t velocity = Vec3_Scale(Vec3_Add(Vec3_Scale(dir, .5f), Vec3_RandomDir()), 100.f);
 
-			p->lifetime = 50 + Randomf() * 100;
-
-			ColorToVec4(color, p->part.color);
-
-			p->part.scale = 1.6 + Randomf() * 0.6;
-
-			VectorCopy(end, p->part.org);
-
-			VectorScale(dir, 400.0 + Randomf() * 200, p->vel);
-
-			p->vel[0] += Randomc() * 100;
-			p->vel[1] += Randomc() * 100;
-			p->vel[2] += Randomc() * 100;
-
-			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-			p->spark.length = 0.04 + Randomf() * 0.07;
-
-			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
+			Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_particle,
+				.origin = end,
+				.velocity = velocity,
+				.acceleration = Vec3_Scale(velocity, -1.f),
+				.lifetime = 1000,
+				.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 1.f),
+				.size = 8.f,
+				.size_velocity = -8.f
+			});
 		}
 	}
 
 	// Impact light
-
-	VectorMA(end, -12.0, vec, s.light.origin);
-	s.light.radius = 120.0;
-	s.sustain += 250;
-
-	cgi.AddSustainedLight(&s);
-
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { end[0], end[1], end[2] },
-		.radius = 8.0,
-		.image = cg_particles_normal->image,
-		.color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.66 },
+	Cg_AddLight(&(cg_light_t) {
+		.origin = Vec3_Add(end, Vec3_Scale(dir, 20.f)),
+		.radius = 120.f,
+		.color = Color_Vec3(color_rgb),
+		.decay = 350.f,
+		.intensity = .1f
 	});
+
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
+		.origin = end,
+		.radius = 8.0,
+		.color = color_rgb,
+	});
+}
+
+/**
+ * @brief 
+ */
+typedef union {
+	struct {
+		uint16_t org, dest;
+	};
+
+	void *data;
+} cg_bfg_laser_data_t;
+
+static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
+
+	const cg_bfg_laser_data_t data = { .data = sprite->data };
+
+	const vec3_t org = cgi.client->entities[data.org].origin;
+	const vec3_t end = cgi.client->entities[data.dest].origin;
+
+	sprite->origin = org;
+	sprite->termination = end;
 }
 
 /**
  * @brief
  */
-static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
-	cg_particle_t *p;
-	r_sustained_light_t s;
+static void Cg_BfgLaserEffect(const uint16_t org_entity, const uint16_t dest_entity) {
 
-	if ((p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam, true))) {
-		VectorCopy(org, p->part.org);
-		VectorCopy(end, p->part.end);
+	const vec3_t org = cgi.client->entities[org_entity].origin;
+	const vec3_t end = cgi.client->entities[dest_entity].origin;
 
-		p->lifetime = 50;
+	Cg_AddSprite(&(cg_sprite_t) {
+		.type = SPRITE_BEAM,
+		.image = cg_beam_rail,
+		.origin = org,
+		.termination = end,
+		.size = 5.f,
+		.lifetime = 1,
+		.flags = SPRITE_SERVER_TIME | SPRITE_DATA_NOFREE,
+		.color = Vec4(color_hue_green, 1.f, 1.f, 0),
+		.end_color = Vec4(color_hue_green, 1.f, 1.f, 0),
+		.data = ((cg_bfg_laser_data_t) { .org = org_entity, .dest = dest_entity }).data,
+		.think = Cg_BfgLaserThink
+	});
 
-		cgi.ColorFromPalette(200 + Randomr(0, 3), p->part.color);
-
-		p->part.scale = 6.0;
-
-		p->part.scroll_s = -4.0;
-	}
-
-	VectorCopy(end, s.light.origin);
-	s.light.radius = 80.0;
-	VectorSet(s.light.color, 0.8, 1.0, 0.5);
-	s.sustain = 50;
-
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = end,
+		.radius = 80.0,
+		.color = Vec3(0.8, 1.0, 0.5),
+		.decay = 50,
+	});
 }
 
 /**
  * @brief
  */
 static void Cg_BfgEffect(const vec3_t org) {
-	cg_particle_t *p;
-
+	// explosion 1
 	for (int32_t i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion, true))) {
-			break;
-		}
-
-		p->lifetime = 500;
-		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-		cgi.ColorFromPalette(200 + Randomr(0, 3), p->color_start);
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 6.0;
-		p->scale_end = 48.0 * (i + 1);
-
-		p->part.roll = 100.0 * Randomc();
-
-		VectorCopy(org, p->part.org);
+		Cg_AddSprite(&(cg_sprite_t) {
+			.animation = cg_sprite_bfg_explosion_2,
+			.lifetime = Cg_AnimationLifetime(cg_sprite_bfg_explosion_2, 15),
+			.size = RandomRangef(200.f, 300.f),
+			.size_velocity = 100.f,
+			.size_acceleration = -10.f,
+			.rotation = RandomRangef(0.f, 2.f * M_PI),
+			.origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f)),
+			.flags = SPRITE_LERP,
+			.color = Vec4(0.f, 0.f, 1.f, .15f)
+		});
 	}
 
-	for (int32_t i = 0; i < 128; i++) {
+	// explosion 2
+	for (int32_t i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL, false))) {
-			break;
-		}
-
-		p->lifetime = 750;
-		p->effects |= PARTICLE_EFFECT_COLOR;
-
-		cgi.ColorFromPalette(206, p->color_start);
-		Vector4Set(p->color_end, 1.0, 2.0, 0.0, 0.0);
-
-		p->part.scale = 2.0;
-
-		p->part.org[0] = org[0] + Randomfr(-24.0, 24.0);
-		p->part.org[1] = org[1] + Randomfr(-24.0, 24.0);
-		p->part.org[2] = org[2] + Randomfr(-24.0, 24.0);
-
-		p->vel[0] = Randomfr(-256.0, 256.0);
-		p->vel[1] = Randomfr(-256.0, 256.0);
-		p->vel[2] = Randomfr(-256.0, 256.0);
-
-		VectorSet(p->accel, 0.0, 0.0, -3.0 * PARTICLE_GRAVITY);
+		Cg_AddSprite(&(cg_sprite_t) {
+			.animation = cg_sprite_bfg_explosion_3,
+			.lifetime = Cg_AnimationLifetime(cg_sprite_bfg_explosion_3, 15),
+			.size = RandomRangef(200.f, 300.f),
+			.size_velocity = 100.f,
+			.size_acceleration = -10.f,
+			.rotation = RandomRangef(0.f, 2.f * M_PI),
+			.origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f)),
+			.flags = SPRITE_LERP,
+			.color = Vec4(0.f, 0.f, 1.f, .15f)
+		});
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0], org[1], org[2] },
-		       .light.color = { 0.8, 1.0, 0.5 },
-		              .light.radius = 200.0,
-		                     .sustain = 1000
+	// particles 1
+	for (int32_t i = 0; i < 50; i++) {
+
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.lifetime = 3000,
+			.size = 8.f,
+			.size_velocity = -8.f / MILLIS_TO_SECONDS(3000),
+			.bounce = .5f,
+			.velocity = Vec3_Scale(Vec3_RandomDir(), 400.f),
+			.acceleration = Vec3(0.f, 0.f, -3.f * SPRITE_GRAVITY),
+			.origin = org,
+			.color = Vec4(0.f, 0.f, 1.f, 1.f)
+		});
+	}
+
+	// particles 2
+	for (int32_t i = 0; i < 20; i++) {
+		const float sat = RandomRangef(.5f, 1.f);
+
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.lifetime = 10000,
+			.size = 4.f,
+			.size_velocity = -4.f / MILLIS_TO_SECONDS(10000),
+			.bounce = .5f,
+			.velocity = Vec3_Scale(Vec3_RandomDir(), 300.f),
+			.origin = org,
+			.color = Vec4(color_hue_green, RandomRangef(.5f, 1.f), .1f, 1.f),
+			.end_color = Vec4(color_hue_green, sat, 0.f, 0.f)
+		});
+	}
+
+	// impact flash 1
+	for (uint32_t i = 0; i < 4; i++) {
+
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_flash,
+			.origin = org,
+			.lifetime = 600,
+			.size = RandomRangef(300, 400),
+			.rotation = RandomRadian(),
+			.dir = Vec3_Random(),
+			.color = Vec4(120.f, .87f, .80f, .0f),
+			.end_color = Vec4(120.f, .87f, 0.f, 0.f)
+		});
+	}
+
+	// impact flash 2
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_flash,
+		.origin = org,
+		.lifetime = 600,
+		.size = 400.f,
+		.rotation = RandomRadian(),
+		.color = Vec4(120.f, .87f, .80f, .0f),
+		.end_color = Vec4(120.f, .87f, .0f, .0f)
 	});
 
-	vec3_t c;
-	cgi.ColorFromPalette(203 + Randomr(0, 3), c);
-
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { org[0], org[1], org[2] },
-		.radius = 96.0,
-		.image = cg_particles_normal->image,
-		.color = { c[0], c[1], c[2], 0.75 },
+	// glow
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_particle,
+		.origin = org,
+		.lifetime = 1000,
+		.size = 600.f,
+		.rotation = RandomRadian(),
+		.color = Vec4(120.f, .87f, .80f, .0f),
+		.end_color = Vec4(120.f, .87f, 0.f, 0.f)
 	});
 
-	cgi.AddSample(&(const s_play_sample_t) {
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = org,
+		.radius = 200.f,
+		.color = Vec3(.8f, 1.f, .5f),
+		.intensity = .1f,
+		.decay = 1500
+	});
+	
+	cgi.AddStain(cgi.view, &(const r_stain_t) {
+		.origin = org,
+		.radius = 45.f,
+		.color = Color4f(.8f, 1.f, .5f, .5f),
+	});
+
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_bfg_hit,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = org,
+		.atten = SOUND_ATTEN_LINEAR,
 	});
 }
 
 /**
  * @brief
  */
-void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
-	cg_particle_t *p;
+void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 
-	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple[Randomr(0, 3)], false))) {
-		return;
-	}
-
-	p->lifetime = Randomr(500, 1500) * (viscosity * 0.1);
-
-	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-	p->part.flags = PARTICLE_FLAG_NO_DEPTH;
-
-	Vector4Set(p->color_start, 0.5, 0.5, 0.5, 0.3 + (Randomf() * 0.2));
-	Vector4Set(p->color_end, 0.0, 0.0, 0.0, 0.0);
-
-	p->scale_start = size + Randomc() * 0.5;
-	p->scale_end = size * (3.0 + Randomf() * 0.5);
-
-	VectorCopy(org, p->part.org);
+	Cg_AddSprite(&(cg_sprite_t) {
+		.animation = cg_sprite_poof_01,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_poof_01, 17.5f) * (viscosity * .1f),
+		.origin = org,
+		.size = size * 8.f,
+		.dir = Vec3_Up(),
+		.flags = SPRITE_LERP,
+		.color = Vec4(0.f, 0.f, 1.f, .25f)
+	});
 }
 
 /**
  * @brief
  */
 static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
-	cg_particle_t *p;
 
 	for (int32_t i = 0; i < 10; i++) {
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_normal, false))) {
+		if (!Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_bubble,
+				.origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f)),
+				.velocity = Vec3_Add(Vec3_RandomRange(-64.f, 64.f), Vec3(0.f, 0.f, 36.f)),
+				.acceleration = Vec3(0.f, 0.f, -SPRITE_GRAVITY / 2.f),
+				.lifetime = RandomRangeu(100, 400),
+				.color = Vec4(0.f, 0.f, 1.f, 1.f),
+				.size = 6.4f 
+			})) {
 			break;
 		}
-
-		p->lifetime = 250 + Randomc() * 150;
-
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 2.0);
-		Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
-
-		p->scale_start = 0.8;
-		p->scale_end = 0.5;
-
-		p->part.org[0] = org[0] + (Randomc() * 8.0);
-		p->part.org[1] = org[1] + (Randomc() * 8.0);
-		p->part.org[2] = org[2] + (Randomf() * 8.0);
-
-		p->vel[0] = Randomc() * 64.0;
-		p->vel[1] = Randomc() * 64.0;
-		p->vel[2] = 36.0 + Randomf() * 64.0;
-
-		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam, false))) {
-
-		p->lifetime = 120 + Randomf() * 80;
-		p->effects = PARTICLE_EFFECT_COLOR;
-
-		Vector4Set(p->color_start, 0.8, 0.8, 0.8, 0.45);
-		Vector4Set(p->color_end, 0.8, 0.8, 0.8, 0.0);
-
-		p->part.scale = 1.4 + Randomf() * 0.7;
-
-		VectorCopy(org, p->part.org);
-
-		VectorScale(dir, 70.0 + Randomf() * 30.0, p->vel);
-		p->vel[0] += Randomc() * 8.0;
-		p->vel[1] += Randomc() * 8.0;
-
-		p->spark.length = 0.3 + Randomf() * 0.03;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
-
-		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
-	}
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_bubble,
+		.origin = org,
+		.velocity = Vec3_Add(Vec3_Scale(dir, 70.f + Randomf() * 30.f), Vec3_RandomRange(-8.f, 8.f)),
+		.acceleration = Vec3(0.f, 0.f, -SPRITE_GRAVITY / 2.f),
+		.lifetime = 120 + Randomf() * 80,
+		.color = Vec4(180.f, .42f, .87f, .87f),
+		.end_color = Vec4(180.f, .42f, 0.f, 0.f),
+		.size = 11.2f + Randomf() * 5.6f
+	});
 }
 
 /**
@@ -963,44 +1040,26 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 
 	for (int32_t i = 0; i < 32; i++) {
-		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
+		if (!Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_particle,
+				.origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f)),
+				.velocity = Vec3_Add(Vec3_Scale(dir, 9.f), Vec3_RandomRange(-90.f, 90.f)),
+				.acceleration = Vec3_Add(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, -0.5f * SPRITE_GRAVITY)),
+				.lifetime = 100 + (Randomf() * 150),
+				.color = Vec4(53.f, .83f, .97f, RandomRangef(.8f, 1.f)),
+				.end_color = Vec4(53.f, .83f, 0.f, 0.f),
+				.size = 6.4f + Randomf() * 3.2f
+			})) {
 			break;
 		}
-
-		p->lifetime = 100 + (Randomf() * 150);
-
-		cgi.ColorFromPalette(221 + (Randomr(0, 8)), p->part.color);
-		p->part.color[3] = 0.7 + Randomf() * 0.3;
-
-		p->part.scale = 0.8 + Randomf() * 0.4;
-
-		VectorCopy(org, p->part.org);
-
-		VectorScale(dir, 9, p->vel);
-
-		for (int32_t j = 0; j < 3; j++) {
-			p->part.org[j] += Randomc() * 4.0;
-			p->vel[j] += Randomc() * 90.0;
-		}
-
-		p->accel[0] = Randomc() * 2.0;
-		p->accel[1] = Randomc() * 2.0;
-		p->accel[2] = -0.5 * PARTICLE_GRAVITY;
-		p->spark.length = 0.15;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
-	vec3_t v;
-	VectorAdd(org, dir, v);
-
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { v[0], v[1], v[2] },
-		       .light.color = { 0.7, 0.5, 0.5 },
-		              .light.radius = 80.0,
-		                     .sustain = 850
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = Vec3_Add(org, dir),
+		.radius = 80.0,
+		.color = Vec3(0.7, 0.5, 0.5),
+		.decay = 850
 	});
 }
 
@@ -1016,86 +1075,89 @@ void Cg_ParseTempEntity(void) {
 	switch (type) {
 
 		case TE_BLASTER:
-			cgi.ReadPosition(pos);
-			cgi.ReadDir(dir);
+			pos = cgi.ReadPosition();
+			dir = cgi.ReadDir();
 			i = cgi.ReadByte();
-			Cg_BlasterEffect(pos, dir, Cg_ResolveEffectColor(i ? i - 1 : 0, EFFECT_COLOR_ORANGE));
+			Cg_BlasterEffect(pos, dir, Cg_ResolveEntityEffectHSV(i ? i - 1 : 0, color_hue_orange));
 			break;
 
 		case TE_TRACER:
-			cgi.ReadPosition(pos);
-			cgi.ReadPosition(pos2);
+			pos = cgi.ReadPosition();
+			pos2 = cgi.ReadPosition();
 			Cg_TracerEffect(pos, pos2);
 			break;
 
 		case TE_BULLET: // bullet hitting wall
-			cgi.ReadPosition(pos);
-			cgi.ReadDir(dir);
+			pos = cgi.ReadPosition();
+			dir = cgi.ReadDir();
 			Cg_BulletEffect(pos, dir);
 			break;
 
 		case TE_BLOOD: // projectile hitting flesh
-			cgi.ReadPosition(pos);
-			cgi.ReadDir(dir);
-			Cg_BloodEffect(pos, dir, 12);
+			pos = cgi.ReadPosition();
+			dir = cgi.ReadDir();
+			i = cgi.ReadByte();
+			Cg_BloodEffect(pos, dir, i);
 			break;
 
 		case TE_GIB: // player over-death
-			cgi.ReadPosition(pos);
+			pos = cgi.ReadPosition();
 			Cg_GibEffect(pos, 12);
 			break;
 
-		case TE_SPARKS: // colored sparks
-			cgi.ReadPosition(pos);
-			cgi.ReadDir(dir);
-			Cg_SparksEffect(pos, dir, 12);
+		case TE_SPARKS: // player damage sparks
+			pos = cgi.ReadPosition();
+			dir = cgi.ReadDir();
+			i = cgi.ReadByte();
+			Cg_SparksEffect(pos, dir, 12 * i);
 			break;
 
 		case TE_HYPERBLASTER: // hyperblaster hitting wall
-			cgi.ReadPosition(pos);
-			cgi.ReadDir(dir);
+			pos = cgi.ReadPosition();
+			dir = cgi.ReadDir();
 			Cg_HyperblasterEffect(pos, dir);
 			break;
 
 		case TE_LIGHTNING_DISCHARGE: // lightning discharge in water
-			cgi.ReadPosition(pos);
+			pos = cgi.ReadPosition();
 			Cg_LightningDischargeEffect(pos);
 			break;
 
 		case TE_RAIL: // railgun effect
-			cgi.ReadPosition(pos);
-			cgi.ReadPosition(pos2);
-			cgi.ReadDir(dir);
+			pos = cgi.ReadPosition();
+			pos2 = cgi.ReadPosition();
+			dir = cgi.ReadDir();
 			i = cgi.ReadLong();
 			j = cgi.ReadByte();
-			Cg_RailEffect(pos, pos2, dir, i, Cg_ResolveEffectColor(j ? j - 1 : 0, EFFECT_COLOR_BLUE));
+			Cg_RailEffect(pos, pos2, dir, i, Cg_ResolveEntityEffectHSV(j ? j - 1 : 0, color_hue_cyan));
 			break;
 
 		case TE_EXPLOSION: // rocket and grenade explosions
-			cgi.ReadPosition(pos);
-			Cg_ExplosionEffect(pos);
+			pos = cgi.ReadPosition();
+			dir = cgi.ReadDir();
+			Cg_ExplosionEffect(pos, dir);
 			break;
 
 		case TE_BFG_LASER:
-			cgi.ReadPosition(pos);
-			cgi.ReadPosition(pos2);
-			Cg_BfgLaserEffect(pos, pos2);
+			i = cgi.ReadShort();
+			j = cgi.ReadShort();
+			Cg_BfgLaserEffect(j, i);
 			break;
 
 		case TE_BFG: // bfg explosion
-			cgi.ReadPosition(pos);
+			pos = cgi.ReadPosition();
 			Cg_BfgEffect(pos);
 			break;
 
 		case TE_BUBBLES: // bubbles chasing projectiles in water
-			cgi.ReadPosition(pos);
-			cgi.ReadPosition(pos2);
-			Cg_BubbleTrail(pos, pos2, 1.0);
+			pos = cgi.ReadPosition();
+			pos2 = cgi.ReadPosition();
+			Cg_BubbleTrail(NULL, pos, pos2);
 			break;
 
 		case TE_RIPPLE: // liquid surface ripples
-			cgi.ReadPosition(pos);
-			cgi.ReadDir(dir);
+			pos = cgi.ReadPosition();
+			dir = cgi.ReadDir();
 			i = cgi.ReadByte();
 			j = cgi.ReadByte();
 			Cg_RippleEffect(pos, i, j);
@@ -1105,9 +1167,23 @@ void Cg_ParseTempEntity(void) {
 			break;
 
 		case TE_HOOK_IMPACT: // grapple hook impact
-			cgi.ReadPosition(pos);
-			cgi.ReadDir(dir);
+			pos = cgi.ReadPosition();
+			dir = cgi.ReadDir();
 			Cg_HookImpactEffect(pos, dir);
+			break;
+
+		case TE_AI_NODE: // AI node debug
+			pos = cgi.ReadPosition();
+			j = cgi.ReadShort();
+			i = cgi.ReadByte();
+			Cg_AiNodeEffect(pos, i, j);
+			break;
+
+		case TE_AI_NODE_LINK: // AI node debug
+			pos = cgi.ReadPosition();
+			pos2 = cgi.ReadPosition();
+			i = cgi.ReadByte();
+			Cg_AiNodeLinkEffect(pos, pos2, i);
 			break;
 
 		default:

@@ -21,8 +21,6 @@
 
 #include "tests.h"
 
-quetoo_t quetoo;
-
 /**
  * @brief Runs the specified suite, returning the number of tests that failed.
  */
@@ -30,8 +28,8 @@ int32_t Test_Run(Suite *suite) {
 
 	SRunner *runner = srunner_create(suite);
 
-	srunner_run_all(runner, CK_NORMAL);
-	int32_t failed = srunner_ntests_failed(runner);
+	srunner_run_all(runner, CK_VERBOSE);
+	const int32_t failed = srunner_ntests_failed(runner);
 
 	srunner_free(runner);
 	return failed;

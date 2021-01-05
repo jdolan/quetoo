@@ -25,24 +25,6 @@
 #include "swap.h"
 #include "sys.h"
 
-/**
- * @brief Default filesystem initialization flags.
- */
-#define FS_NONE					0x0
-
-/**
- * @brief If set, supported archives (.pk3, .pak) in search paths will be
- * automatically loaded. Set this to false for tools that require the write
- * directory, but not read access to the Quake file system (e.g quetoo-master).
- */
-#define FS_AUTO_LOAD_ARCHIVES   0x1
-
-typedef struct {
-	void *opaque;
-} file_t;
-
-typedef void (*Fs_EnumerateFunc)(const char *path, void *data);
-
 const char *Fs_BaseDir(void);
 _Bool Fs_Close(file_t *file);
 _Bool Fs_Delete(const char *filename);
@@ -57,7 +39,7 @@ file_t *Fs_OpenWrite(const char *filename);
 int64_t Fs_Print(file_t *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count);
 _Bool Fs_ReadLine(file_t *file, char *buffer, size_t len);
-_Bool Fs_Seek(file_t *file, size_t offset);
+_Bool Fs_Seek(file_t *file, int64_t offset);
 int64_t Fs_FileLength(file_t *file);
 int64_t Fs_Tell(file_t *file);
 int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count);
@@ -66,7 +48,7 @@ int64_t Fs_LastModTime(const char *filename);
 void Fs_Free(void *buffer);
 _Bool Fs_Rename(const char *source, const char *dest);
 _Bool Fs_Unlink(const char *filename);
-void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc, void *data);
+void Fs_Enumerate(const char *pattern, Fs_Enumerator, void *data);
 void Fs_CompleteFile(const char *pattern, GList **matches);
 void Fs_AddToSearchPath(const char *dir);
 void Fs_SetGame(const char *dir);

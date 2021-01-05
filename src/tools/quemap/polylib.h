@@ -21,31 +21,10 @@
 
 #pragma once
 
-#include <float.h>
+#include "collision/cm_polylib.h"
 
-typedef struct {
-	uint16_t num_points;
-	vec3_t points[4]; // variable sized
-} winding_t;
+#include "quemap.h"
 
-#define	MAX_POINTS_ON_WINDING	64
-
-#ifndef	ON_EPSILON
-	#define	ON_EPSILON	0.1
-#endif
-
-winding_t *AllocWinding(int32_t points);
-vec_t WindingArea(const winding_t *w);
-void WindingCenter(const winding_t *w, vec3_t center);
-void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t epsilon,
-                        winding_t **front, winding_t **back);
-winding_t *CopyWinding(const winding_t *w);
-winding_t *ReverseWinding(winding_t *w);
-winding_t *WindingForPlane(const vec3_t normal, const vec_t dist);
-winding_t *WindingForFace(const bsp_face_t *f);
-void WindingPlane(const winding_t *w, vec3_t normal, vec_t *dist);
-void RemoveColinearPoints(winding_t *w);
-void FreeWinding(winding_t *w);
-void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs);
-void ChopWindingInPlace(winding_t **w, const vec3_t normal, const vec_t dist, const vec_t epsilon);
-// frees the original if clipped
+_Bool WindingIsSmall(const cm_winding_t *w);
+_Bool WindingIsLarge(const cm_winding_t *w);
+void FreeWindings(void);

@@ -30,8 +30,8 @@
  */
 static void G_Trigger_Init(g_entity_t *self) {
 
-	if (!VectorCompare(self->s.angles, vec3_origin)) {
-		G_SetMoveDir(self->s.angles, self->locals.move_dir);
+	if (!Vec3_Equal(self->s.angles, Vec3_Zero())) {
+		G_SetMoveDir(self);
 	}
 
 	self->solid = SOLID_TRIGGER;
@@ -61,8 +61,7 @@ static void G_trigger_multiple_Think(g_entity_t *ent) {
 	if (ent->locals.wait > 0) {
 		ent->locals.Think = G_trigger_multiple_Wait;
 		ent->locals.next_think = g_level.time + ent->locals.wait * 1000;
-	} else { // we can't just remove (self) here, because this is a touch function
-		// called while looping through area links...
+	} else {
 		ent->locals.Touch = NULL;
 		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		ent->locals.Think = G_FreeEntity;
@@ -85,7 +84,7 @@ static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other,
  */
 static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
                                      const cm_bsp_plane_t *plane,
-                                     const cm_bsp_texinfo_t *surf) {
+                                     const cm_bsp_texinfo_t *texinfo) {
 
 	if (!other->client) {
 		const _Bool isProjectile = other->owner && other->owner->client;
@@ -96,12 +95,12 @@ static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
 		}
 	}
 
-	if (!VectorCompare(self->locals.move_dir, vec3_origin)) {
+	if (!Vec3_Equal(self->locals.move_dir, Vec3_Zero())) {
 		vec3_t forward;
 
-		AngleVectors(other->s.angles, forward, NULL, NULL);
+		Vec3_Vectors(other->s.angles, &forward, NULL, NULL);
 
-		if (DotProduct(forward, self->locals.move_dir) < 0.0) {
+		if (Vec3_Dot(forward, self->locals.move_dir) < 0.0) {
 			return;
 		}
 	}
@@ -137,7 +136,7 @@ static void G_trigger_multiple_Enable(g_entity_t *self, g_entity_t *other,
  */
 void G_trigger_multiple(g_entity_t *ent) {
 
-	ent->locals.noise_index = gi.SoundIndex("misc/chat");
+	ent->locals.sound = gi.SoundIndex("misc/chat");
 
 	if (!ent->locals.wait) {
 		ent->locals.wait = 0.2;
@@ -155,8 +154,8 @@ void G_trigger_multiple(g_entity_t *ent) {
 		ent->locals.Use = G_trigger_multiple_Use;
 	}
 
-	if (!VectorCompare(ent->s.angles, vec3_origin)) {
-		G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
+	if (!Vec3_Equal(ent->s.angles, Vec3_Zero())) {
+		G_SetMoveDir(ent);
 	}
 
 	gi.SetModel(ent, ent->model);
@@ -230,11 +229,11 @@ void G_trigger_always(g_entity_t *ent) {
  */
 static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
                                  const cm_bsp_plane_t *plane,
-                                 const cm_bsp_texinfo_t *surf) {
+                                 const cm_bsp_texinfo_t *texinfo) {
 
 	if (other->locals.move_type == MOVE_TYPE_WALK || other->locals.move_type == MOVE_TYPE_BOUNCE) {
 
-		VectorScale(self->locals.move_dir, self->locals.speed * 10.0, other->locals.velocity);
+		other->locals.velocity = Vec3_Scale(self->locals.move_dir, self->locals.speed * 10.0);
 
 		if (other->client) {
 			other->client->ps.pm_state.flags |= PMF_TIME_PUSHED;
@@ -243,7 +242,7 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
 
 		if (other->locals.push_time < g_level.time) {
 			other->locals.push_time = g_level.time + 1500;
-			gi.Sound(other, self->locals.move_info.sound_start, ATTEN_NORM, 0);
+			gi.Sound(other, self->locals.move_info.sound_start, SOUND_ATTEN_LINEAR, 0);
 		}
 	}
 
@@ -259,8 +258,8 @@ static void G_trigger_push_Effect(g_entity_t *self) {
 
 	g_entity_t *ent = G_AllocEntity();
 
-	VectorAdd(self->mins, self->maxs, ent->s.origin);
-	VectorScale(ent->s.origin, 0.5, ent->s.origin);
+	ent->s.origin = Vec3_Add(self->mins, self->maxs);
+	ent->s.origin = Vec3_Scale(ent->s.origin, 0.5);
 
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->s.trail = TRAIL_TELEPORTER;
@@ -273,7 +272,7 @@ static void G_trigger_push_Effect(g_entity_t *self) {
 
  -------- Keys --------
  angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).
- noise : The sound effect to play when the player is pushed (default "world/jumppad").
+ sound : The sound effect to play when the player is pushed (default "world/jumppad").
  speed : The speed with which to push the player (default 100).
 
  -------- Spawn flags --------
@@ -286,8 +285,12 @@ void G_trigger_push(g_entity_t *self) {
 
 	self->locals.Touch = G_trigger_push_Touch;
 
-	const char *noise = g_game.spawn.noise ?: "world/jumppad";
-	self->locals.move_info.sound_start = gi.SoundIndex(noise);
+	const cm_entity_t *sound = gi.EntityValue(self->def, "sound");
+	if (sound->parsed & ENTITY_STRING) {
+		self->locals.move_info.sound_start = gi.SoundIndex(sound->string);
+	} else {
+		self->locals.move_info.sound_start = gi.SoundIndex("world/jumppad");
+	}
 
 	if (!self->locals.speed) {
 		self->locals.speed = 100;
@@ -323,7 +326,7 @@ static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other,
  */
 static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
                                  const cm_bsp_plane_t *plane,
-                                 const cm_bsp_texinfo_t *surf) {
+                                 const cm_bsp_texinfo_t *texinfo) {
 
 	if (!other->locals.take_damage) { // deal with items that land on us
 
@@ -337,7 +340,7 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
 			}
 		}
 
-		gi.Debug("%s\n", etos(other));
+		G_Debug("%s\n", etos(other));
 		return;
 	}
 
@@ -359,7 +362,7 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
 		dflags = DMG_NO_GOD;
 	}
 
-	G_Damage(other, self, NULL, NULL, NULL, NULL, d, d, dflags, MOD_TRIGGER_HURT);
+	G_Damage(other, self, NULL, Vec3_Zero(), other->s.origin, Vec3_Zero(), d, d, dflags, MOD_TRIGGER_HURT);
 }
 
 /*QUAKED trigger_hurt (.5 .5 .5) ? start_off toggle ? no_protection slow
@@ -404,7 +407,7 @@ void G_trigger_hurt(g_entity_t *self) {
  */
 static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other,
                                  const cm_bsp_plane_t *plane,
-                                 const cm_bsp_texinfo_t *surf) {
+                                 const cm_bsp_texinfo_t *texinfo) {
 
 	if (self->locals.timestamp > g_level.time) {
 		return;
@@ -432,7 +435,7 @@ static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other,
 void G_trigger_exec(g_entity_t *self) {
 
 	if (!self->locals.command && !self->locals.script) {
-		gi.Debug("No command or script at %s", vtos(self->s.origin));
+		G_Debug("No command or script at %s", vtos(self->s.origin));
 		G_FreeEntity(self);
 		return;
 	}

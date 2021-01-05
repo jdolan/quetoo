@@ -21,98 +21,100 @@
 
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
-#include "collision/cmodel.h"
+#include "collision/collision.h"
 
-/**
- * @brief
- */
-static void Cg_ItemRespawnEffect(const vec3_t org) {
-
-	vec3_t color;
-	cgi.ColorFromPalette(110, color);
-
-	for (int32_t i = 0; i < 64; i++) {
-		cg_particle_t *p;
-
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL, false))) {
-			break;
-		}
-
-		p->lifetime = 500 + Randomf() * 100;
-		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-		VectorCopy(color, p->color_start);
-		VectorCopy(color, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 1.0;
-		p->scale_end = 0.8;
-
-		p->part.org[0] = org[0] + Randomc() * 8.0;
-		p->part.org[1] = org[1] + Randomc() * 8.0;
-		p->part.org[2] = org[2] + 8.0 + Randomf() * 8.0;
-
-		p->vel[0] = Randomc() * 48.0;
-		p->vel[1] = Randomc() * 48.0;
-		p->vel[2] = Randomf() * 48.0;
-
-		p->accel[0] = p->accel[1] = 0;
-		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
-	}
-
-	r_sustained_light_t s;
-	VectorCopy(org, s.light.origin);
-	s.light.radius = 80.0;
-	VectorSet(s.light.color, 0.9, 0.9, 0.9);
-	s.sustain = 1000;
-
-	cgi.AddSustainedLight(&s);
+static vec3_t Cg_FibonacciLatticeDir(int32_t count, int32_t index) {
+	// source: http://extremelearning.com.au/evenly-distributing-points-on-a-sphere/
+	float phi = acosf(1.f - 2.f * index / count);
+	float golden_ratio = (1.f + pow(5.f, .5f)) * .5f;
+	float theta = 2.f * M_PI * index / golden_ratio;
+	return Vec3(cosf(theta) * sinf(phi), sinf(theta) * sinf(phi), cosf(phi));
 }
 
 /**
  * @brief
  */
-static void Cg_ItemPickupEffect(const vec3_t org) {
+static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 
-	vec3_t color;
-	cgi.ColorFromPalette(110, color);
+	cg_sprite_t *s;
 
-	for (int32_t i = 0; i < 32; i++) {
-		cg_particle_t *p;
+	int32_t particle_count = 64;
+	vec3_t z_offset = org;
+	z_offset.z += 20.f;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL, false))) {
+	// sphere particles
+	for (int32_t i = 0; i < particle_count; i++) {
+
+		if (!(s = Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_particle2,
+				.lifetime = 1000,
+				.origin = z_offset,
+				.velocity = Vec3_Scale(Cg_FibonacciLatticeDir(particle_count, i + 1), 55.f),
+				.color = Vec4(144.f, 0.f, 1.f, 0.f),
+				.end_color = Vec4(144.f, .83f, .6f, 0.f),
+				.size = 10.f
+			}))) {
 			break;
 		}
 
-		p->lifetime = 500 + Randomf() * 100;
-		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-		VectorCopy(color, p->color_start);
-		VectorCopy(color, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 1.0;
-		p->scale_end = 0.8;
-
-		p->part.org[0] = org[0] + Randomc() * 8.0;
-		p->part.org[1] = org[1] + Randomc() * 8.0;
-		p->part.org[2] = org[2] + 8 + Randomc() * 16.0;
-
-		p->vel[0] = Randomc() * 16.0;
-		p->vel[1] = Randomc() * 16.0;
-		p->vel[2] = Randomf() * 128.0;
-
-		p->accel[0] = p->accel[1] = 0;
-		p->accel[2] = PARTICLE_GRAVITY * 0.2;
+		s->acceleration = Vec3_Scale(s->velocity, -1.f);
+		s->size_velocity = -s->size / MILLIS_TO_SECONDS(s->lifetime);
 	}
 
-	r_sustained_light_t s;
-	VectorCopy(org, s.light.origin);
-	s.light.radius = 80.0;
-	VectorSet(s.light.color, 0.9, 1.0, 1.0);
-	s.sustain = 1000;
+	// glow
+	Cg_AddSprite(&(cg_sprite_t) {
+		.origin = z_offset,
+		.lifetime = 1000,
+		.size = 150.f,
+		.atlas_image = cg_sprite_particle,
+		.color = Vec4(0.f, 0.f, 1.f, 0.f),
+		.end_color = Vec4(0.f, 0.f, 0.f, 0.f)
+	});
 
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = org,
+		.radius = 80.f,
+		.color = Vec3(.1f, .6f, .3f),
+		.decay = 1000
+	});
+}
+
+/**
+ * @brief
+ */
+static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
+
+	cg_sprite_t *s;
+
+	// ring
+	if ((s = Cg_AddSprite(&(cg_sprite_t) {
+			.origin = org,
+			.lifetime = 400,
+			.size = 10.f,
+			.atlas_image = cg_sprite_ring,
+			.color = Vec4(150.f, .5f, .4f, 0.f),
+			.end_color = Vec4(150.f, .5f, 0.f, 0.f),
+			.dir = Vec3(0.f, 0.f, 1.f)
+		}))) {
+		s->size_velocity = 50.f / MILLIS_TO_SECONDS(s->lifetime);
+	}
+
+	// glow
+	Cg_AddSprite(&(cg_sprite_t) {
+		.origin = org,
+		.lifetime = 1000,
+		.size = 200.f,
+		.atlas_image = cg_sprite_particle,
+		.color = Vec4(150.f, .5f, .4f, 0.f),
+		.end_color = Vec4(150.f, .5f, 0.f, 0.f)
+	});
+
+	Cg_AddLight(&(cg_light_t) {
+		.origin = org,
+		.radius = 80.f,
+		.color = Vec3(.2f, .4f, .3f),
+		.decay = 1000
+	});
 }
 
 /**
@@ -120,102 +122,66 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
  */
 static void Cg_TeleporterEffect(const vec3_t org) {
 
-	vec3_t color;
-	cgi.ColorFromPalette(110, color);
-
 	for (int32_t i = 0; i < 64; i++) {
-		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL, false))) {
-			break;
-		}
-
-		p->lifetime = 500;
-		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-		VectorCopy(color, p->color_start);
-		VectorCopy(color, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 1.0;
-		p->scale_end = 0.8;
-
-		p->part.org[0] = org[0] + Randomc() * 16.0;
-		p->part.org[1] = org[1] + Randomc() * 16.0;
-		p->part.org[2] = org[2] + 8.0 + Randomf() * 24.0;
-
-		p->vel[0] = Randomc() * 24.0;
-		p->vel[1] = Randomc() * 24.0;
-		p->vel[2] = Randomf() * 64.0;
-
-		p->accel[0] = p->accel[1] = 0;
-		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.size = 8.f,
+			.origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f)), Vec3(0.f, 0.f, RandomRangef(8.f, 32.f))),
+			.velocity = Vec3_Add(Vec3_RandomRange(-24.f, 24.f), Vec3(0.f, 0.f, RandomRangef(16.f, 48.f))),
+			.acceleration.z = -SPRITE_GRAVITY * .1f,
+			.lifetime = 500,
+			.color = Vec4(0.f, 0.f, .87f, 0.f)
+		});
 	}
 
-	r_sustained_light_t s;
-	VectorCopy(org, s.light.origin);
-	s.light.radius = 120.0;
-	VectorSet(s.light.color, 0.9, 0.9, 0.9);
-	s.sustain = 1000;
-
-	cgi.AddSustainedLight(&s);
-
-	const s_play_sample_t play = {
-		.sample = cg_sample_respawn,
-		.origin = { org[0], org[1], org[2] },
-		.attenuation = ATTEN_IDLE,
-		.flags = S_PLAY_POSITIONED
-	};
-
-	cgi.AddSample(&play);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = org,
+		.radius = 120.f,
+		.color = Vec3(.9f, .9f, .9f),
+		.decay = 1000
+	});
 }
 
 /**
  * @brief A player is gasping for air under water.
  */
 static void Cg_GurpEffect(cl_entity_t *ent) {
-	vec3_t start, end;
 
-	const s_play_sample_t play = {
-		.sample = cgi.LoadSample("*gurp_1"),
-		.entity = ent->current.number,
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_ENTITY
-	};
+	vec3_t start = ent->origin;
+	start.z += 16.0;
 
-	cgi.AddSample(&play);
+	vec3_t end = start;
+	end.z += 16.0;
 
-	VectorCopy(ent->current.origin, start);
-	start[2] += 16.0;
-
-	VectorCopy(start, end);
-	end[2] += 16.0;
-
-	Cg_BubbleTrail(start, end, 32.0);
+	Cg_BubbleTrail(NULL, start, end);
 }
 
 /**
  * @brief A player has drowned.
  */
 static void Cg_DrownEffect(cl_entity_t *ent) {
-	vec3_t start, end;
 
-	const s_play_sample_t play = {
-		.sample = cgi.LoadSample("*drown_1"),
-		.entity = ent->current.number,
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_ENTITY
-	};
+	vec3_t start = ent->origin;
+	start.z += 16.0;
 
-	cgi.AddSample(&play);
+	vec3_t end = start;
+	end.z += 16.0;
 
-	VectorCopy(ent->current.origin, start);
-	start[2] += 16.0;
+	Cg_BubbleTrail(NULL, start, end);
+}
 
-	VectorCopy(start, end);
-	end[2] += 16.0;
+/**
+ * @brief Loads a wildcard sample name for the specified client entity.
+ */
+static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name) {
 
-	Cg_BubbleTrail(start, end, 32.0);
+	assert(ent->current.number > 0);
+	assert(ent->current.number <= MAX_CLIENTS);
+
+	const cl_client_info_t *info = &cgi.client->client_info[ent->current.number - 1];
+
+	return cgi.LoadClientModelSample(info->model, name);
 }
 
 /**
@@ -225,21 +191,16 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
 	const char *footsteps = "default";
 
-	vec3_t mins, maxs;
-	UnpackBounds(ent->current.bounds, mins, maxs);
+	vec3_t start = ent->origin;
+	start.z += ent->current.mins.z;
 
-	cm_trace_t tr = cgi.Trace((const vec3_t) {
-		ent->current.origin[0],
-		ent->current.origin[1],
-		ent->current.origin[2] + mins[2]
-	}, (const vec3_t) {
-		ent->current.origin[0],
-		ent->current.origin[1],
-		ent->current.origin[2] + mins[2] - PM_STEP_HEIGHT
-	}, vec3_origin, vec3_origin, ent->current.number, MASK_SOLID);
+	vec3_t end = start;
+	end.z -= PM_STEP_HEIGHT;
 
-	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->footsteps) {
-		footsteps = tr.surface->material->footsteps;
+	cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_SOLID);
+
+	if (tr.fraction < 1.0 && tr.texinfo && tr.texinfo->material && *tr.texinfo->material->footsteps) {
+		footsteps = tr.texinfo->material->footsteps;
 	}
 
 	return Cg_GetFootstepSample(footsteps);
@@ -254,55 +215,59 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 	entity_state_t *s = &ent->current;
 
 	s_play_sample_t play = {
+		.origin = ent->current.origin,
+		.atten = SOUND_ATTEN_SQUARE,
 		.entity = s->number,
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_ENTITY,
 	};
+
+	if (ent == cgi.client->entity) {
+		play.flags |= S_PLAY_RELATIVE;
+	}
 
 	switch (s->event) {
 		case EV_CLIENT_DROWN:
+			play.sample = Cg_ClientModelSample(ent, "*drown_1");
 			Cg_DrownEffect(ent);
 			break;
 		case EV_CLIENT_FALL:
-			play.sample = cgi.LoadSample("*fall_2");
+			play.sample = Cg_ClientModelSample(ent, "*fall_2");
 			break;
 		case EV_CLIENT_FALL_FAR:
-			play.sample = cgi.LoadSample("*fall_1");
+			play.sample = Cg_ClientModelSample(ent, "*fall_1");
 			break;
 		case EV_CLIENT_FOOTSTEP:
 			play.sample = Cg_Footstep(ent);
-			play.pitch = (int16_t) (Randomc() * 12.0);
+			play.pitch = RandomRangei(-12, 13);
 			break;
 		case EV_CLIENT_GURP:
+			play.sample = Cg_ClientModelSample(ent, "*gurp_1");
 			Cg_GurpEffect(ent);
 			break;
 		case EV_CLIENT_JUMP:
-			play.sample = cgi.LoadSample(va("*jump_%d", Randomr(1, 5)));
+			play.sample = Cg_ClientModelSample(ent, va("*jump_%d", RandomRangeu(1, 5)));
 			break;
 		case EV_CLIENT_LAND:
-			play.sample = cgi.LoadSample("*land_1");
+			play.sample = Cg_ClientModelSample(ent, "*land_1");
 			break;
 		case EV_CLIENT_STEP: {
-			const vec_t height = ent->current.origin[2] - ent->prev.origin[2];
+			const float height = ent->current.origin.z - ent->prev.origin.z;
 			Cg_TraverseStep(&ent->step, cgi.client->unclamped_time, height);
 		}
 			break;
 		case EV_CLIENT_SIZZLE:
-			play.sample = cgi.LoadSample("*sizzle_1");
+			play.sample = Cg_ClientModelSample(ent, "*sizzle_1");
 			break;
 		case EV_CLIENT_TELEPORT:
 			play.sample = cg_sample_teleport;
-			play.attenuation = ATTEN_IDLE;
 			Cg_TeleporterEffect(s->origin);
 			break;
 
 		case EV_ITEM_RESPAWN:
 			play.sample = cg_sample_respawn;
-			play.attenuation = ATTEN_IDLE;
-			Cg_ItemRespawnEffect(s->origin);
+			Cg_ItemRespawnEffect(s->origin, color_white); //TODO: wire up colors, white is placeholder
 			break;
 		case EV_ITEM_PICKUP:
-			Cg_ItemPickupEffect(s->origin);
+			Cg_ItemPickupEffect(s->origin, color_white); // TODO: wire up colors, white is placeholder
 			break;
 
 		default:
@@ -310,7 +275,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 	}
 
 	if (play.sample) {
-		cgi.AddSample(&play);
+		Cg_AddSample(cgi.stage, &play);
 	}
 
 	s->event = 0;

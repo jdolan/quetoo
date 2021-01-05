@@ -75,11 +75,11 @@ case "$host" in
 		AC_MSG_RESULT(bsd)
 		;;
 	*-*-mingw*)
-		HOST_NAME="WINDOWS"
+		HOST_NAME="MINGW"
 		HOST_CFLAGS="-mfpmath=sse -msse2"
-		HOST_LIBS="-lws2_32 -lole32"
+		HOST_LIBS="-ldl -lws2_32 -lole32"
 		DEFAULT_PREFIX="/"
-		AC_MSG_RESULT(windows)
+		AC_MSG_RESULT(mingw)
 		AC_PATH_PROGS([WINDRES],
 			[windres $host-windres],
 		)
@@ -118,7 +118,7 @@ AC_SUBST(CPPFLAGS)
 
 AM_CONDITIONAL([APPLE], [test "x$HOST_NAME" = "xAPPLE"])
 AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
-AM_CONDITIONAL([WINDOWS], [test "x$HOST_NAME" = "xWINDOWS"])
+AM_CONDITIONAL([MINGW], [test "x$HOST_NAME" = "xMINGW"])
 AM_CONDITIONAL([LINUX], [test "x$HOST_NAME" = "xLINUX"])
 
 dnl --------------
@@ -212,14 +212,10 @@ dnl -----------------------------------
 HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
-case "$host" in
-	*-mingw*)
-		HOST_OPENAL_LIBS="-lOpenAL32"
-		;;
-	*)
-		HOST_OPENAL_LIBS="-lopenal"
-		;;
-esac
+AC_SEARCH_LIBS(alGetError, [openal OpenAL32],
+	HOST_OPENAL_LIBS="$ac_cv_search_function_alGetError",
+	[AC_MSG_ERROR([Could not find library containing alGetError(), please install OpenAL])]
+)
 
 AC_SUBST(HOST_OPENAL_CFLAGS)
 AC_SUBST(HOST_OPENAL_LIBS)
@@ -322,16 +318,25 @@ dnl --------------------------
 
 AC_MSG_CHECKING(which tools to build)
 
-TOOLS="quemap quetoo-master quetoo-update"
+ALL_TOOLS="quemap quetoo-master quetoo-update"
+TOOLS=${ALL_TOOLS}
 
 AC_ARG_WITH(tools,
-	AS_HELP_STRING([--with-tools='quemap quetoo-master quetoo-update...'],
+	AS_HELP_STRING([--with-tools='${ALL_TOOLS}...'],
 		[build specified tools]
 	)
 )
 
 if test "x${with_tools}" != x; then
 	TOOLS="${with_tools}"
+fi
+
+if test "${TOOLS}" = "no"; then
+        TOOLS=""
+fi
+
+if test "${TOOLS}" = "yes"; then
+        TOOLS="${ALL_TOOLS}"
 fi
 
 AC_SUBST(TOOLS)
@@ -506,7 +511,6 @@ AC_CONFIG_FILES([
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
-	src/client/renderer/shaders/include/Makefile
 	src/client/sound/Makefile
 	src/client/ui/Makefile
 	src/client/ui/editor/Makefile
