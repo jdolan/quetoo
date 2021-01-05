@@ -173,16 +173,16 @@ static void LightWorld(void) {
 	// free the light sources
 	FreeLights();
 
+	// finalize it and write it to per-face textures
+	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
+	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
+
 	// bake fog volumes into the lightgrid
 	BuildFog();
 
 	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
 
 	FreeFog();
-
-	// finalize it and write it to per-face textures
-	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
-	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
 
 	// generate atlased lightmaps
 	EmitLightmap();
