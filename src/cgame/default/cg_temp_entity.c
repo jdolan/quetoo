@@ -132,8 +132,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
 		.size = 5.f,
 		.velocity = Vec3_Scale(velocity, tracer_speed),
 		.lifetime = lifetime,
-		.color = Vec4(45, 0.0f, 2.f, 0),
-		.end_color = Vec4(30, 0.2f, 1.f, 0)
+		.color = Vec4(30, 0.2f, 1.f, 0),
 	});
 }
 
@@ -517,7 +516,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		}
 	}
 
-	// billboard explosion 16
+	// billboard explosion 1
 	Cg_AddSprite(&(cg_sprite_t) {
 		.origin = org,
 		.animation = cg_sprite_explosion,
@@ -526,7 +525,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
 		.flags = SPRITE_LERP,
-		.color = Vec4(0.f, 0.f, 1.f, .5f)
+		.color = Vec4(0.f, 0.f, 1.f, .0f)
 	});
 
 	// billboard explosion 2
@@ -538,7 +537,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
 		.flags = SPRITE_LERP,
-		.color = Vec4(0.f, 0.f, 1.f, .5f)
+		.color = Vec4(0.f, 0.f, 1.f, .0f)
 	});
 
 	// decal explosion
@@ -550,7 +549,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
 		.flags = SPRITE_LERP,
-		.color = Vec4(0.f, 0.f, 1.f, .5f),
+		.color = Vec4(0.f, 0.f, 1.f, .0f),
 		.dir = dir
 	});
 
@@ -692,13 +691,6 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 }
 
 /**
- * @brief  
- */
-static float Cg_EaseInExpo(float life) {
-	return life == 0 ? 0 : powf(2, 10 * life - 10);
-}
-
-/**
  * @brief
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const vec3_t effect_color) {
@@ -719,23 +711,25 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	const vec3_t right = Vec3(forward.z, -forward.x, forward.y);
 	const vec3_t up = Vec3_Cross(forward, right);
 
+	const uint32_t lifetime = 1500; //  RandomRangeu(1500, 1550);
+
 	for (int32_t i = 0; i < dist; i++) {
 		const float cosi = cosf(i * 0.1f);
 		const float sini = sinf(i * 0.1f);
-		const float frac = (1.0 - (i / dist));
-		const uint32_t lifetime = RandomRangeu(1500, 1550);
-//		const float sat = RandomRangef(.8f, 1.f);
+		// const float frac = (1.0 - (i / dist));
+
+		const float rando = (Randomf() + 1.f) * 0.5f;
+		const vec3_t origi = Vec3_Add(Vec3_Add(Vec3_Add(start, Vec3_Scale(forward, i)), Vec3_Scale(right, cosi)), Vec3_Scale(up, sini));
+		const vec3_t accel = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 8.f), Vec3_Scale(up, sini * 8.f)), Vec3(0.f, 0.f, 1.f));
 
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle,
-			.origin = Vec3_Add(Vec3_Add(Vec3_Add(start, Vec3_Scale(forward, i)), Vec3_Scale(right, cosi)), Vec3_Scale(up, sini)),
-			.velocity = Vec3_Add(Vec3_Add(Vec3_Scale(forward, 20.f), Vec3_Scale(right, cosi * frac)), Vec3_Scale(up, sini * frac)),
-			.acceleration = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 8.f), Vec3_Scale(up, sini * 8.f)), Vec3(0.f, 0.f, 1.f)),
+			.origin = origi,
+			.acceleration = accel,
 			.lifetime = lifetime,
-			.size = frac * 5.f,
-			.size_velocity = 1.f / MILLIS_TO_SECONDS(lifetime),
-			.life_easing = Cg_EaseInExpo,
-			.color = Vec4(effect_color.x, effect_color.y, effect_color.z * RandomRangef(.8f, 1.f), 0.f),
+			.size = 5.f,
+			.size_velocity = 1.0 / MILLIS_TO_SECONDS(lifetime),
+			.color = Vec4(effect_color.x, effect_color.y, effect_color.z * 0.5, 0.25f),
 			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
 		});
 	}
@@ -745,9 +739,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.image = cg_beam_rail,
 		.origin = start,
 		.termination = end,
-		.size = 12.f,
-		.velocity = Vec3_Scale(forward, 20.f),
-		.lifetime = RandomRangeu(1500, 1550),
+		.size = 8.f,
+		.size_velocity = 1.f / MILLIS_TO_SECONDS(lifetime),
+		.lifetime = lifetime,
 		.color = Vec4(0.f, 0.f, 1.f, 0.f)
 	});
 
@@ -759,6 +753,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Rail impact cloud
 	// TODO: use a different sprite
+	/*
 	for (int32_t i = 0; i < 2; i++) {
 
 		Cg_AddSprite(&(cg_sprite_t) {
@@ -772,7 +767,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			.flags = SPRITE_LERP
 		});
 	}
+	*/
 
+	/*
 	// TODO: what DIS?
 	if (cg_particle_quality->integer && (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) == 0) {
 
@@ -791,6 +788,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			});
 		}
 	}
+	*/
 
 	// Impact light
 	Cg_AddLight(&(cg_light_t) {

@@ -67,8 +67,8 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 		.lifetime = 1000,
 		.size = 150.f,
 		.atlas_image = cg_sprite_particle,
-		.color = Vec4(0.f, 0.f, 1.f, 0.f),
-		.end_color = Vec4(0.f, 0.f, 0.f, 0.f)
+		.color = Vec4(150.f, .5f, .4f, 0.f),
+		.end_color = Vec4(150.f, .5f, 0.f, 0.f)
 	});
 
 	Cg_AddLight(&(cg_light_t) {
@@ -103,7 +103,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 	Cg_AddSprite(&(cg_sprite_t) {
 		.origin = org,
 		.lifetime = 1000,
-		.size = 200.f,
+		.size = 150,
 		.atlas_image = cg_sprite_particle,
 		.color = Vec4(150.f, .5f, .4f, 0.f),
 		.end_color = Vec4(150.f, .5f, 0.f, 0.f)
