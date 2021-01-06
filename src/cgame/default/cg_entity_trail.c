@@ -590,7 +590,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.size = 8.5f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
 		.stretch = RandomRangef(.2f, .4f),
-		.softness = 1.f
+		.softness = 2.f
 	});
 
 	l.origin = Vec3_Add(end, Vec3_Scale(dir, 12.0));
@@ -683,7 +683,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	// projectile core
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.origin = ent->origin,
-		.size = 150.f,
+		.size = 100.f,
 		.media = (r_media_t*)cg_sprite_hyperball_01,
 		.rotation = mod * 200.f * M_PI,
 		.color = Color32(255, 255, 255, 0),
@@ -698,7 +698,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = ent->origin,
 		.radius = 160.f,
-		.color = Vec3_Scale(Vec3(.4f, 1.f, .4f), mod * .6f + .4f)
+		.color = Vec3(.4f, 1.f, .4f)
 	});
 }
 

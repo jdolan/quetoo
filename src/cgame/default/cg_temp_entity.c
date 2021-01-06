@@ -944,39 +944,41 @@ static void Cg_BfgEffect(const vec3_t org) {
 	}
 
 	// particles 1
-	for (int32_t i = 0; i < 50; i++) {
-
+	for (int32_t i = 0; i < 100; i++) {
+		float life = RandomRangef(2000, 3500);
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle,
-			.lifetime = 3000,
-			.size = 8.f,
-			.size_velocity = -8.f / MILLIS_TO_SECONDS(3000),
+			.lifetime = life,
+			.size = 6.f,
+			.size_velocity = -6.f / MILLIS_TO_SECONDS(life),
 			.bounce = .5f,
 			.velocity = Vec3_Scale(Vec3_RandomDir(), 400.f),
 			.acceleration = Vec3(0.f, 0.f, -3.f * SPRITE_GRAVITY),
 			.origin = org,
-			.color = Vec4(0.f, 0.f, 1.f, 1.f),
-			.softness = 1.f
+			.color = Vec4(150.f, 0.6f, 0.8f, 0.f),
+			.end_color = Vec4(150.f, 0.7f, 0.6f, 0.f),
+			.softness = 0.5f
 		});
 	}
 
-	// particles 2
-	for (int32_t i = 0; i < 20; i++) {
-		const float sat = RandomRangef(.5f, 1.f);
+	// TODO: these look interesting but need some work
+	// particles 2 (dark matter style)
+	//for (int32_t i = 0; i < 20; i++) {
+	//	const float sat = RandomRangef(.5f, 1.f);
 
-		Cg_AddSprite(&(cg_sprite_t) {
-			.atlas_image = cg_sprite_particle,
-			.lifetime = 10000,
-			.size = 4.f,
-			.size_velocity = -4.f / MILLIS_TO_SECONDS(10000),
-			.bounce = .5f,
-			.velocity = Vec3_Scale(Vec3_RandomDir(), 300.f),
-			.origin = org,
-			.color = Vec4(color_hue_green, RandomRangef(.5f, 1.f), .1f, 1.f),
-			.end_color = Vec4(color_hue_green, sat, 0.f, 0.f),
-			.softness = 1.f
-		});
-	}
+	//	Cg_AddSprite(&(cg_sprite_t) {
+	//		.atlas_image = cg_sprite_particle,
+	//		.lifetime = 10000,
+	//		.size = 4.f,
+	//		.size_velocity = -4.f / MILLIS_TO_SECONDS(10000),
+	//		.bounce = .5f,
+	//		.velocity = Vec3_Scale(Vec3_RandomDir(), 300.f),
+	//		.origin = org,
+	//		.color = Vec4(color_hue_green, RandomRangef(.5f, 1.f), .1f, 1.f),
+	//		.end_color = Vec4(color_hue_green, sat, 0.f, 0.f),
+	//		.softness = 1.f
+	//	});
+	//}
 
 	// impact flash 1
 	for (uint32_t i = 0; i < 4; i++) {
@@ -1015,7 +1017,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 		.rotation = RandomRadian(),
 		.color = Vec4(120.f, .87f, .80f, .0f),
 		.end_color = Vec4(120.f, .87f, 0.f, 0.f),
-		.softness = 1.f
+		.softness = 6.f
 	});
 
 	Cg_AddLight(&(const cg_light_t) {
