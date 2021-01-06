@@ -77,6 +77,7 @@ r_atlas_image_t *cg_sprite_blob_01;
 r_atlas_image_t *cg_sprite_electro_02;
 r_atlas_image_t *cg_sprite_splash_02_03;
 r_atlas_image_t *cg_sprite_impact_spark_01_dot;
+r_atlas_image_t *cg_sprite_puff_cloud;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_arrow;
 r_image_t *cg_beam_line;
@@ -328,6 +329,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_teleport = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/teleport", IT_EFFECT);
 	cg_sprite_splash_02_03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/splash_02/splash_02_03", IT_EFFECT);
 	cg_sprite_impact_spark_01_dot = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01_dot", IT_EFFECT);
+	cg_sprite_puff_cloud = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/puff_cloud", IT_EFFECT);
 
 	cgi.LoadingProgress(-1, "sprites");
 

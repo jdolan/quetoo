@@ -288,7 +288,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.size = spark_size,
 			.lifetime = spark_life,
 			.color = Vec4(0.f, 0.f, 1.f, 0.f),
-			.flags = SPRITE_LERP | SPRITE_NO_BLEND_DEPTH
+			.flags = SPRITE_LERP
 		});
 
 		Cg_AddSprite(&(cg_sprite_t) {
@@ -298,7 +298,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 				.size = spark_size,
 				.lifetime = spark_life,
 				.color = Vec4(0.f, 0.f, 1.f, 0.f),
-				.flags = SPRITE_LERP | SPRITE_NO_BLEND_DEPTH,
+				.flags = SPRITE_LERP,
 				.dir = dir
 		});
 
@@ -308,15 +308,26 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			float lifetime = RandomRangef(150.f, 300.f);
 			Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_impact_spark_01_dot,
-					.origin = spark_origin,
-					.velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, 0.33f), 55.f),
-					.size = size,
-					.size_velocity = -size * 5.f,
-					.lifetime = lifetime,
-					.color = Vec4(0.0, 0.0, 1.0, 1.0),
-					.end_color = Vec4(0.0, 0.0, 1.0, 1.0),
+				.origin = spark_origin,
+				.velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, 0.33f), 55.f),
+				.size = size,
+				.size_velocity = -size * 5.f,
+				.lifetime = lifetime,
+				.color = Vec4(0.0, 0.0, 1.0, 1.0),
+				.end_color = Vec4(0.0, 0.0, 1.0, 1.0),
 			});
 		}
+
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_puff_cloud,
+			.origin = Vec3_Add(org, Vec3_Scale(dir, 5.0f)),
+			.velocity.z = 10.0f,
+			.size = RandomRangef(30.f, 50.f),
+			.rotation = Randomf() * 2.f * M_PI,
+			.size_velocity = 60.0f,
+			.lifetime = 800.f,
+			.color = Vec4(0.f, 0.f, 0.75f, 0.75f)
+		});
 
 		/*
 		Cg_AddSprite(&(cg_sprite_t) {
