@@ -196,6 +196,14 @@ void Cg_Interpolate(const cl_frame_t *frame) {
  */
 void Cg_AddEntityShadow(const r_entity_t *ent) {
 
+	if (!ent->model) {
+		return;
+	}
+
+	if (ent->model->type == MOD_BSP_INLINE) {
+		return;
+	}
+
 	if (ent->effects & EF_NO_SHADOW) {
 		return;
 	}
