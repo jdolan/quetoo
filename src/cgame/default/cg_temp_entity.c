@@ -573,7 +573,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
 		.color = Vec4(0.f, 0.f, 1.f, .0f),
-		.softness = 1.f
+		.softness = 2.f
 	});
 
 	// billboard explosion 2
@@ -585,7 +585,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
 		.color = Vec4(0.f, 0.f, 1.f, .0f),
-		.softness = 1.f
+		.softness = 2.f
 	});
 
 	// decal explosion
@@ -621,7 +621,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.rotation = Randomf() * 2.f * M_PI,
 		.atlas_image = cg_sprite_explosion_glow,
 		.color = Vec4(0.f, 0.f, 1.f, 1.f),
-		.softness = 1.f
+		.softness = 2.f
 	});
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -758,14 +758,12 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	const vec3_t right = Vec3(forward.z, -forward.x, forward.y);
 	const vec3_t up = Vec3_Cross(forward, right);
 
-	const uint32_t lifetime = 1500; //  RandomRangeu(1500, 1550);
+	const uint32_t lifetime = 1500;
 
 	for (int32_t i = 0; i < dist; i++) {
 		const float cosi = cosf(i * 0.1f);
 		const float sini = sinf(i * 0.1f);
-		// const float frac = (1.0 - (i / dist));
 
-		//const float rando = (Randomf() + 1.f) * 0.5f;
 		const vec3_t origi = Vec3_Add(Vec3_Add(Vec3_Add(start, Vec3_Scale(forward, i)), Vec3_Scale(right, cosi)), Vec3_Scale(up, sini));
 		const vec3_t accel = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 8.f), Vec3_Scale(up, sini * 8.f)), Vec3(0.f, 0.f, 1.f));
 
@@ -799,44 +797,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	if (flags & SURF_SKY) {
 		return;
 	}
-
-	// Rail impact cloud
-	// TODO: use a different sprite
-	/*
-	for (int32_t i = 0; i < 2; i++) {
-
-		Cg_AddSprite(&(cg_sprite_t) {
-			.origin = Vec3_Add(end, Vec3_Scale(dir, 8.f)),
-			.animation = cg_sprite_poof_01,
-			.lifetime = Cg_AnimationLifetime(cg_sprite_poof_01, 30),
-			.size = 128.f,
-			.size_velocity = 20.f,
-			.dir = (i == 1) ? dir : Vec3_Zero(),
-			.color = Vec4(0.f, 0.f, 1.f, .25f)
-		});
-	}
-	*/
-
-	/*
-	// TODO: what DIS?
-	if (cg_particle_quality->integer && (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) == 0) {
-
-		for (int32_t i = 0; i < 16; i++) {
-			const vec3_t velocity = Vec3_Scale(Vec3_Add(Vec3_Scale(dir, .5f), Vec3_RandomDir()), 100.f);
-
-			Cg_AddSprite(&(cg_sprite_t) {
-				.atlas_image = cg_sprite_particle,
-				.origin = end,
-				.velocity = velocity,
-				.acceleration = Vec3_Scale(velocity, -1.f),
-				.lifetime = 1000,
-				.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 1.f),
-				.size = 8.f,
-				.size_velocity = -8.f
-			});
-		}
-	}
-	*/
 
 	// Impact light
 	Cg_AddLight(&(cg_light_t) {
