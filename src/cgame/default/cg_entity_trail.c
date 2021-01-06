@@ -763,7 +763,6 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 				.origin = Vec3_Mix(end, origin, step * i),
 				.velocity = Vec3_Scale(dir, 20.0),
 				.acceleration.z = -SPRITE_GRAVITY / 2.0,
-				.flags = SPRITE_LERP,
 				.color = Vec4(15.f, 1.f, .53f, 1.f),
 				.end_color = Vec4(15.f, 1.f, 0.f, 0.f)
 			}))) {

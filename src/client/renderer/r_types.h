@@ -690,9 +690,9 @@ enum {
 	SPRITE_NO_BLEND_DEPTH	= 1 << 0,
 
 	/**
-	 * @brief If set, animation interpolates
+	 * @brief If set, animations don't interpolate
 	 */
-	SPRITE_LERP				= 1 << 1,
+	SPRITE_NO_LERP			= 1 << 1,
 
 	/**
 	 * @brief If set, sprite does not use soft edges

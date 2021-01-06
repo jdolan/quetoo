@@ -21,6 +21,9 @@
 
 #include "r_local.h"
 
+static cvar_t *r_sprites_lerp;
+static cvar_t *r_sprites_soften;
+
 /**
  * @brief
  */
@@ -243,7 +246,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 														&in->vertexes[2].next_diffusemap,
 														&in->vertexes[3].next_diffusemap);
 
-		if (s->flags & SPRITE_LERP) {
+		if (!(s->flags & SPRITE_NO_LERP) && r_sprites_lerp->integer) {
 			const float life_to_images = floorf(s->life * anim->num_frames);
 			const float cur_frame = life_to_images / anim->num_frames;
 			const float next_frame = (life_to_images + 1) / anim->num_frames;
@@ -267,18 +270,10 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 		in->blend_depth = R_BlendDepthForPoint(view, s->origin, BLEND_DEPTH_SPRITE);
 	}
 
-	int32_t softness = 1.f;
-
-	if (s->flags & SPRITE_NO_SOFT) {
-		softness = 0;
-	} else if (s->flags & SPRITE_SOFT_INVERT) {
-		softness = -1.f;
-	}
-
 	in->vertexes[0].soft =
 	in->vertexes[1].soft =
 	in->vertexes[2].soft =
-	in->vertexes[3].soft = softness;
+	in->vertexes[3].soft = s->softness;
 }
 
 /**
@@ -361,6 +356,11 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->vertexes[1].lerp =
 		in->vertexes[2].lerp =
 		in->vertexes[3].lerp = 0.f;
+
+		in->vertexes[0].soft =
+		in->vertexes[1].soft =
+		in->vertexes[2].soft =
+		in->vertexes[3].soft = b->softness;
 
 		in->blend_depth = x_depth;
 
@@ -581,6 +581,9 @@ void R_InitSprites(void) {
 	r_sprites.blend_depth_hash = g_hash_table_new(g_direct_hash, g_direct_equal);
 
 	R_InitSpriteProgram();
+	
+	r_sprites_lerp = Cvar_Add("r_sprites_lerp", "1", 0, "Whether animated sprites linearly interpolate their images");
+	r_sprites_soften = Cvar_Add("r_sprites_soften", "1", 0, "Whether sprite softening is enabled");
 }
 
 /**

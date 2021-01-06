@@ -286,8 +286,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.rotation = Randomf() * 2.f * M_PI,
 			.size = spark_size,
 			.lifetime = spark_life,
-			.color = Vec4(0.f, 0.f, 1.f, 0.f),
-			.flags = SPRITE_LERP
+			.color = Vec4(0.f, 0.f, 1.f, 0.f)
 		});
 
 		Cg_AddSprite(&(cg_sprite_t) {
@@ -297,7 +296,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 				.size = spark_size,
 				.lifetime = spark_life,
 				.color = Vec4(0.f, 0.f, 1.f, 0.f),
-				.flags = SPRITE_LERP,
 				.dir = dir
 		});
 
@@ -421,7 +419,6 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		.origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-1.f, 1.f)), Vec3_Scale(dir, RandomRangef(0.f, 4.f))),
 		.velocity = Vec3_Scale(dir, RandomRangef(1.f, 4.f)),
 		.acceleration.z = -SPRITE_GRAVITY / 2.0,
-		.flags = SPRITE_LERP,
 		.color = Vec4(0.f, 1.f, .5f, .66f),
 		.end_color = Vec4(0.f, 1.f, 0.f, 0.f)
 	});
@@ -468,8 +465,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 					.velocity = Vec3_Add(Vec3_Add(Vec3_Scale(v, dist * ((float)j / GIB_STREAM_COUNT)), Vec3_RandomRange(-2.f, 2.f)), Vec3(0.f, 0.f, 100.f)),
 					.acceleration.z = -SPRITE_GRAVITY * 2.0,
 					.size = RandomRangef(24.f, 56.f),
-					.color = Vec4(0.f, 1.f, .5f, .97f),
-					.flags = SPRITE_LERP
+					.color = Vec4(0.f, 1.f, .5f, .97f)
 				})) {
 				break;
 			}
@@ -565,7 +561,6 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.size = 100.f,
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
-		.flags = SPRITE_LERP,
 		.color = Vec4(0.f, 0.f, 1.f, .0f)
 	});
 
@@ -577,7 +572,6 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.size = 175.f,
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
-		.flags = SPRITE_LERP,
 		.color = Vec4(0.f, 0.f, 1.f, .0f)
 	});
 
@@ -589,7 +583,6 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.size = 175.f,
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
-		.flags = SPRITE_LERP,
 		.color = Vec4(0.f, 0.f, 1.f, .0f),
 		.dir = dir
 	});
@@ -603,7 +596,6 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.size_velocity = 500.f,
 		.size_acceleration = -500.f,
 		.rotation = Randomf() * 2.f * M_PI,
-		.flags = SPRITE_LERP,
 		.color = Vec4(0.f, 0.f, 1.f, 0.f),
 		.dir = dir
 	});
@@ -652,7 +644,6 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			.size = 50.f,
 			.size_velocity = 400.f,
 			.rotation = Randomf() * 2.f * M_PI,
-			.flags = SPRITE_LERP,
 			.dir = Vec3_RandomRange(-1.f, 1.f),
 			.color = Vec4(204.f, .55f, .9f, 0.f),
 			.end_color = Vec4(204.f, .55f, 0.f, 0.f)
@@ -666,7 +657,6 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.size = 100.f,
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
-		.flags = SPRITE_LERP,
 		.dir = dir,
 		.color = Vec4(204.f, .55f, .9f, 0.f),
 		.end_color = Vec4(204.f, .55f, 0.f, 0.f)
@@ -804,8 +794,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			.size = 128.f,
 			.size_velocity = 20.f,
 			.dir = (i == 1) ? dir : Vec3_Zero(),
-			.color = Vec4(0.f, 0.f, 1.f, .25f),
-			.flags = SPRITE_LERP
+			.color = Vec4(0.f, 0.f, 1.f, .25f)
 		});
 	}
 	*/
@@ -914,7 +903,6 @@ static void Cg_BfgEffect(const vec3_t org) {
 			.size_acceleration = -10.f,
 			.rotation = RandomRangef(0.f, 2.f * M_PI),
 			.origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f)),
-			.flags = SPRITE_LERP,
 			.color = Vec4(0.f, 0.f, 1.f, .15f)
 		});
 	}
@@ -930,7 +918,6 @@ static void Cg_BfgEffect(const vec3_t org) {
 			.size_acceleration = -10.f,
 			.rotation = RandomRangef(0.f, 2.f * M_PI),
 			.origin = Vec3_Add(org, Vec3_Scale(Vec3_RandomDir(), 50.f)),
-			.flags = SPRITE_LERP,
 			.color = Vec4(0.f, 0.f, 1.f, .15f)
 		});
 	}
@@ -1037,7 +1024,6 @@ void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 		.origin = org,
 		.size = size * 8.f,
 		.dir = Vec3_Up(),
-		.flags = SPRITE_LERP,
 		.color = Vec4(0.f, 0.f, 1.f, .25f)
 	});
 }
