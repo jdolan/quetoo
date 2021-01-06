@@ -99,7 +99,7 @@ typedef struct cg_sprite_s {
 	vec3_t acceleration;
 
 	/**
-	 * @brief The sprite rotation.
+	 * @brief The sprite rotation, in radians
 	 */
 	float rotation;
 

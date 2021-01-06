@@ -122,7 +122,9 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 		R_AddSprite(view, &(const r_sprite_t) {
 			.origin = p,
 			.color = Color32(0, 0, 0, 255),
-			.size = e->model->radius * 2.f,
+			.width = e->model->maxs.y - e->model->mins.y,
+			.height = e->model->maxs.x - e->model->mins.x,
+			.rotation = Radians(e->angles.y),
 			.dir = tr.plane.normal,
 			.media = (r_media_t *)R_LoadImage("sprites/particle2", IT_PROGRAM),
 			.flags = SPRITE_SOFT_INVERT
