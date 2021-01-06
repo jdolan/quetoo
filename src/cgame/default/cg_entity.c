@@ -192,6 +192,38 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 }
 
 /**
+ * @brief Wraps R_AddEntity to apply shadows, which require collision.
+ */
+void Cg_AddEntityShadow(const r_entity_t *ent) {
+
+	if (ent->effects & EF_NO_SHADOW) {
+		return;
+	}
+
+	const vec3_t down = Vec3_Fmaf(ent->origin, MAX_WORLD_COORD, Vec3_Down());
+	cm_trace_t tr = cgi.Trace(ent->origin, down, ent->mins, ent->maxs, 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
+
+	vec3_t origin;
+	if (tr.all_solid || tr.start_solid) {
+			tr = cgi.Trace(ent->origin, down, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
+			origin = tr.end;
+		} else {
+			origin = Vec3(tr.end.x, tr.end.y, tr.end.z + ent->mins.z);
+		}
+
+	cgi.AddSprite(cgi.view, &(const r_sprite_t) {
+		.origin = origin,
+		.color = Color32(0, 0, 0, 255),
+		.width = ent->model->maxs.y - ent->model->mins.y,
+		.height = ent->model->maxs.x - ent->model->mins.x,
+		.rotation = Radians(ent->angles.y),
+		.dir = tr.plane.normal,
+		.media = (r_media_t *) cg_sprite_particle2,
+		.flags = SPRITE_SOFT_INVERT
+	});
+}
+
+/**
  * @brief Adds the specified client entity to the view.
  */
 static void Cg_AddEntity(cl_entity_t *ent) {
@@ -216,10 +248,12 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 		return;
 	}
 
-	if (ent->current.model1 == MODEL_CLIENT) { // add a player entity
+	if (ent->current.model1 == MODEL_CLIENT) {
 
+		// add a client entity, with an animated player model
 		Cg_AddClientEntity(ent, &e);
 
+		// add our view weapon, if it's us
 		if (Cg_IsSelf(ent)) {
 			Cg_AddWeapon(ent, &e);
 		}
@@ -227,7 +261,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 		return;
 	}
 
-	// don't draw our own giblet
+	// don't draw our own giblet, since the view is inside it
 	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 		e.effects |= EF_NO_DRAW;
 	}
@@ -237,6 +271,9 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 
 	// and any frame animations (button state, etc)
 	e.frame = ent->current.animation1;
+
+	// add a sprite shadow
+	Cg_AddEntityShadow(&e);
 
 	// add to view list
 	cgi.AddEntity(cgi.view, &e);

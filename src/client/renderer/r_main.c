@@ -66,7 +66,6 @@ cvar_t *r_parallax_samples;
 cvar_t *r_roughness;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
-cvar_t *r_shadows;
 cvar_t *r_shell;
 cvar_t *r_specularity;
 cvar_t *r_stains;
@@ -479,7 +478,6 @@ static void R_InitLocal(void) {
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects");
 	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
-	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE, "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");
