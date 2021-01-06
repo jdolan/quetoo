@@ -56,6 +56,7 @@ static r_atlas_t *cg_sprite_atlas;
 
 r_atlas_image_t *cg_sprite_particle;
 r_atlas_image_t *cg_sprite_particle2;
+r_atlas_image_t *cg_sprite_particle3;
 r_atlas_image_t *cg_sprite_flash;
 r_atlas_image_t *cg_sprite_ring;
 r_atlas_image_t *cg_sprite_aniso_flare_01;
@@ -308,6 +309,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");
 	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IT_EFFECT);
 	cg_sprite_particle2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle2", IT_EFFECT);
+	cg_sprite_particle3 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle3", IT_EFFECT);
 	cg_sprite_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flash", IT_EFFECT);
 	cg_sprite_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/ring", IT_EFFECT);
 	cg_sprite_aniso_flare_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/aniso_flare_01", IT_EFFECT);

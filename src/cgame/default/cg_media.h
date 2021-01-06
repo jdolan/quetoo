@@ -57,6 +57,7 @@ s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
 extern r_atlas_image_t *cg_sprite_particle;
 extern r_atlas_image_t *cg_sprite_particle2;
+extern r_atlas_image_t* cg_sprite_particle3;
 extern r_atlas_image_t *cg_sprite_flash;
 extern r_atlas_image_t *cg_sprite_ring;
 extern r_atlas_image_t *cg_sprite_aniso_flare_01;

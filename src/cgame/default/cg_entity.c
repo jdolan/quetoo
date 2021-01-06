@@ -214,11 +214,14 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 
 	r_sprite_t shadow_sprite = {
 		.color = Color32(0, 0, 0, 255),
-		.width = ent->model->maxs.y - ent->model->mins.y,
-		.height = ent->model->maxs.x - ent->model->mins.x,
+		//.width = ent->model->maxs.y - ent->model->mins.y,
+		//.height = ent->model->maxs.x - ent->model->mins.x,
+		.width = (ent->model->maxs.y - ent->model->mins.y) * 2,
+		.height = (ent->model->maxs.x - ent->model->mins.x) * 2,
 		.rotation = Radians(ent->angles.y),
 		.dir = box_trace.plane.normal,
-		.media = (r_media_t *) cg_sprite_particle2,
+		//.media = (r_media_t*)cg_sprite_particle2,
+		.media = (r_media_t *) cg_sprite_particle3,
 		.softness = -1.f
 	};
 
