@@ -628,23 +628,25 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 						.rotation = Randomf() * 2.f * M_PI,
 						.dir = Vec3_RandomRange(-1.f, 1.f),
 						.color = Vec4(0.f, 0.f, 1.f, 0.f),
-						.softness = 1.f
+						.softness = 2.f
 					});
 				}
 
 				for (int32_t i = 0; i < 2; i++) {
 
 					Cg_AddSprite(&(cg_sprite_t) {
-						.atlas_image = cg_sprite_particle2,
+						.atlas_image = cg_sprite_particle3,
 						.origin = pos,
 						.velocity = Vec3_Scale(Vec3_Add(tr.plane.normal, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
 						.acceleration.z = -SPRITE_GRAVITY * 3.0,
-						.lifetime = 600 + Randomf() * 300,
+						.lifetime = 200 + Randomf() * 800,
 						.bounce = 0.2f,
-						.size = 2.f + RandomRangef(.5f, 2.f),
-						.color = Vec4(210.f, 0.f, 1.f, 0.f),
-						.end_color = Vec4(210.f, 1.f, 1.f, 0.f),
-						.softness = 1.f
+						.size = 2.0f + RandomRangef(1.0f, 2.0f),
+						.color = Vec4(250.f, 0.f, 1.0f, 0.f),
+						// FIXME: PAAAARIIIILLLLL, wuts DIS?
+						.end_color = Vec4(280.f, 0.0f, 0.0f, 0.f), // white
+						// .end_color = Vec4(280.f, 0.0001f, 0.0f, 0.f), // full saturation, wtf?
+						.softness = 0.5f
 					});
 				}
 			}
