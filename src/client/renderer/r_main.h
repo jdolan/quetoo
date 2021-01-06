@@ -46,7 +46,6 @@ extern cvar_t *r_parallax_samples;
 extern cvar_t *r_roughness;
 extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
-extern cvar_t *r_shadows;
 extern cvar_t *r_shell;
 extern cvar_t *r_specularity;
 extern cvar_t *r_stains;

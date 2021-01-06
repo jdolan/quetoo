@@ -217,7 +217,8 @@ void Cg_AddSprites(void) {
 					.life = life,
 					.flags = (r_sprite_flags_t)s->flags,
 					.dir = s->dir,
-					.axis = s->axis
+					.axis = s->axis,
+					.softness = s->softness
 				});
 				break;
 			case SPRITE_BEAM:
@@ -231,7 +232,8 @@ void Cg_AddSprites(void) {
 					.size = s->size,
 					.image = (r_image_t *) s->image,
 					.color = color,
-					.flags = s->flags
+					.flags = s->flags,
+					.softness = s->softness
 				});
 				break;
 		}

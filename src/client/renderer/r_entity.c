@@ -141,8 +141,6 @@ void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
 	
 	R_DrawMeshEntities(view, blend_depth);
 
-	R_DrawMeshEntitiesShadows(view, blend_depth);
-
 	if (!r_draw_entity_bounds->value) {
 		return;
 	}

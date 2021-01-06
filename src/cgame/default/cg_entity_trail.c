@@ -111,7 +111,8 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 				.acceleration.z = 10.f,
 				.lifetime = 1000 - Randomf() * 100,
 				.size = 24.f,
-				.color = Vec4(0.f, 0.f, .62f, 1.f)
+				.color = Vec4(0.f, 0.f, .62f, 1.f),
+				.softness = 1.f
 			});
 
 			ent->timestamp = cgi.client->unclamped_time + 3000;
@@ -124,7 +125,8 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 			.size = 1.5f,
 			.origin = pos,
 			.velocity = Vec3_Add(Vec3_Scale(forward, 5.0), Vec3_RandomRange(-2.f, 2.f)),
-			.color = Vec4(0.f, 0.f, 1.f, .78f)
+			.color = Vec4(0.f, 0.f, 1.f, .78f),
+			.softness = 1.f
 		});
 
 		ent->timestamp = cgi.client->unclamped_time + 3000;
@@ -168,7 +170,8 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 			.size = 2.5f,
 			.size_velocity = 15.f,
 			.rotation = RandomRangef(.0f, M_PI),
-			.rotation_velocity = RandomRangef(.2f, 1.f)
+			.rotation_velocity = RandomRangef(.2f, 1.f),
+			.softness = 1.f
 		});
 	}
 }
@@ -193,7 +196,8 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		.lifetime = 500 + Randomf() * 250,
 		.size = RandomRangef(4.f, 12.f),
 		.color = Vec4(hue, 1.f, 1.f, 1.f),
-		.end_color = Vec4(hue - 50.f, 1.f, 0.f, 0.f)
+		.end_color = Vec4(hue - 50.f, 1.f, 0.f, 0.f),
+		.softness = 1.f
 	});
 
 	// make static flames rise
@@ -236,7 +240,8 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 				.velocity = Vec3_Add(Vec3_RandomRange(-5.f, 5.f), Vec3(0.f, 0.f, 6.f)),
 				.acceleration.z = 10.f,
 				.lifetime = 1000 - (Randomf() * 100),
-				.size = RandomRangef(4.f, 8.f)
+				.size = RandomRangef(4.f, 8.f),
+				.softness = 1.f
 			}))) {
 			return;
 		}
@@ -286,6 +291,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 				.size_velocity = Mixf(-3.5f, -.2f, pdist) * RandomRangef(.66f, 1.f),
 				.color = Vec4(effect_color.x, effect_color.y, effect_color.z, pdist),
 				.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+				.softness = 1.f
 			})) {
 				break;
 			}
@@ -296,7 +302,8 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.media = (r_media_t *) cg_sprite_particle,
 		.origin = end,
 		.size = 8.f,
-		.color = Color_Color32(ColorHSV(effect_color.x, effect_color.y, effect_color.z))
+		.color = Color_Color32(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
+		.softness = 1.f
 	});
 
 	Cg_AddLight(&(cg_light_t) {
@@ -321,7 +328,8 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.media = (r_media_t *) cg_sprite_ring,
 		.origin = ent->origin,
 		.size = pulse1 * 10.f + 20.f,
-		.color = Color_Color32(ColorHSVA(120.f, .76f, .20f, 0.f))
+		.color = Color_Color32(ColorHSVA(120.f, .76f, .20f, 0.f)),
+		.softness = 1.f
 	});
 	
 	// streak
@@ -329,7 +337,8 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.media = (r_media_t *) cg_sprite_aniso_flare_01,
 		.origin = ent->origin,
 		.size = pulse2 * 10.f + 10.f,
-		.color = Color_Color32(ColorHSVA(120.f, .76f, .20f + (pulse2 * .33f), 0.f))
+		.color = Color_Color32(ColorHSVA(120.f, .76f, .20f + (pulse2 * .33f), 0.f)),
+		.softness = 1.f
 	});
 
 	// glow
@@ -339,7 +348,8 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			.origin = ent->origin,
 			.size = 40.f,
 			.color = Color_Color32(ColorHSVA(120.f, .76f, .20f, 0.f)),
-			.rotation = sinf(cgi.client->unclamped_time * (i == 0 ? .002f : -.001f))
+			.rotation = sinf(cgi.client->unclamped_time * (i == 0 ? .002f : -.001f)),
+			.softness = 1.f
 		});
 	}
 
@@ -374,7 +384,8 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		.media = (r_media_t *) cg_sprite_explosion_glow,
 		.origin = Vec3_Add(ent->origin, Vec3_Scale(direction, -20.f)),
 		.size = 50.f,
-		.color = Color_Color32(ColorHSVA(29.f, .57f, .34f, 0.f))
+		.color = Color_Color32(ColorHSVA(29.f, .57f, .34f, 0.f)),
+		.softness = 1.f
 	});
 
 	// exhaust flare
@@ -384,7 +395,8 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			.origin = Vec3_Add(ent->origin, Vec3_Scale(direction, -20.f)),
 			.size = 35.f,
 			.color = Color_Color32(ColorHSVA(0.f, 0.f, .50f, 0.f)),
-			.rotation = (i == 0 ? sine : -sine)
+			.rotation = (i == 0 ? sine : -sine),
+			.softness = 1.f
 		});
 	}
 
@@ -408,7 +420,8 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = 10.f,
 					.size_velocity = -20.f,
-					.color = Vec4(0.f, 0.f, 1.f, 0.f)
+					.color = Vec4(0.f, 0.f, 1.f, 0.f),
+					.softness = 1.f
 				})) {
 				break;
 			}
@@ -436,7 +449,8 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = Randomf() * 5.f + 10.f,
 					.size_velocity = Randomf() * 5.f + 10.f,
-					.color = Vec4(0.f, 0.f, 1.f, .25f)
+					.color = Vec4(0.f, 0.f, 1.f, .25f),
+					.softness = 1.f
 				})) {
 				break;
 			}
@@ -450,7 +464,8 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = Randomf() * 5.f + 10.f,
 					.size_velocity = Randomf() * 5.f + 10.f,
-					.color = Vec4(0.f, 0.f, 1.f, .25f)
+					.color = Vec4(0.f, 0.f, 1.f, .25f),
+					.softness = 1.f
 				})) {
 				break;
 			}
@@ -478,7 +493,8 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 					.size = Randomf() * 1.6f + 1.6f,
 					.think = Cg_FireFlyTrail_Think,
 					.color = Vec4(20.f, .75f, 1.f, 0.f),
-					.end_color = Vec4(20.f, .75f, 0.f, 0.f)
+					.end_color = Vec4(20.f, .75f, 0.f, 0.f),
+					.softness = 1.f
 				})) {
 				break;
 			}
@@ -511,7 +527,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 			.rotation = RandomRadian(),
 			.lifetime = 50,
 			.color = Vec4(204.f, .55f, .44f, 0.f),
-			.end_color = Vec4(204.f, .55f, 0.f, 0.f)
+			.end_color = Vec4(204.f, .55f, 0.f, 0.f),
+			.softness = 1.f
 		});
 	}
 
@@ -523,7 +540,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.rotation = RandomRadian(),
 		.lifetime = 20,
 		.color = Vec4(204.f, .55f, .44f, 0.f),
-		.end_color = Vec4(204.f, .55f, 0.f, 0.f)
+		.end_color = Vec4(204.f, .55f, 0.f, 0.f),
+		.softness = 1.f
 	});
 
 	// center core
@@ -534,7 +552,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.rotation = RandomRadian(),
 		.lifetime = 20,
 		.color = Vec4(204.f, .55f, .44f, 0.f),
-		.end_color = Vec4(204.f, .55f, 0.f, 0.f)
+		.end_color = Vec4(204.f, .55f, 0.f, 0.f),
+		.softness = 1.f
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
@@ -571,6 +590,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.size = 8.5f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
 		.stretch = RandomRangef(.2f, .4f),
+		.softness = 1.f
 	});
 
 	l.origin = Vec3_Add(end, Vec3_Scale(dir, 12.0));
@@ -607,7 +627,8 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 						.size_velocity = 400.f,
 						.rotation = Randomf() * 2.f * M_PI,
 						.dir = Vec3_RandomRange(-1.f, 1.f),
-						.color = Vec4(0.f, 0.f, 1.f, 0.f)
+						.color = Vec4(0.f, 0.f, 1.f, 0.f),
+						.softness = 1.f
 					});
 				}
 
@@ -622,7 +643,8 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 						.bounce = 0.2f,
 						.size = 2.f + RandomRangef(.5f, 2.f),
 						.color = Vec4(210.f, 0.f, 1.f, 0.f),
-						.end_color = Vec4(210.f, 1.f, 1.f, 0.f)
+						.end_color = Vec4(210.f, 1.f, 1.f, 0.f),
+						.softness = 1.f
 					});
 				}
 			}
@@ -647,7 +669,8 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 		.end = Vec3_Add(end, Vec3_Scale(forward, -3.f)),
 		.color = Color_Color32(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
 		.image = cg_beam_hook,
-		.size = 1.f
+		.size = 1.f,
+		.softness = 1.f
 	});
 }
 
@@ -664,7 +687,8 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		.media = (r_media_t*)cg_sprite_hyperball_01,
 		.rotation = mod * 200.f * M_PI,
 		.color = Color32(255, 255, 255, 0),
-		.life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f)
+		.life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f),
+		.softness = 1.f
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
@@ -690,6 +714,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 		.size = 64.f,
 		.color = Vec4(0.f, 0.f, value, 0),
 		.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
+		.softness = 1.f
 	});
 
 	if (ent->timestamp <= cgi.client->unclamped_time) {
@@ -704,7 +729,8 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 			.size = 64.f,
 			.size_velocity = 48.f,
 			.color = Vec4(0.f, 0.f, 1.f, 0.f),
-			.end_color = Vec4(0.f, 0.f, 0.f, 0.f)
+			.end_color = Vec4(0.f, 0.f, 0.f, 0.f),
+			.softness = 1.f
 		});
 	}
 }
@@ -763,9 +789,9 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 				.origin = Vec3_Mix(end, origin, step * i),
 				.velocity = Vec3_Scale(dir, 20.0),
 				.acceleration.z = -SPRITE_GRAVITY / 2.0,
-				.flags = SPRITE_LERP,
 				.color = Vec4(15.f, 1.f, .53f, 1.f),
-				.end_color = Vec4(15.f, 1.f, 0.f, 0.f)
+				.end_color = Vec4(15.f, 1.f, 0.f, 0.f),
+				.softness = 1.f
 			}))) {
 			break;
 		};

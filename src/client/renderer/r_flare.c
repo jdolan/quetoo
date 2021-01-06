@@ -64,6 +64,7 @@ void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face) {
 	}
 
 	face->flare->media = s->media;
+	face->flare->softness = 1.f;
 }
 
 /**

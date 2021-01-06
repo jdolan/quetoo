@@ -129,7 +129,8 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		.rotation = RandomRangef(0.0f, M_PI),
 		.rotation_velocity = RandomRangef(.8f, 1.6f),
 		.color = Vec4(0.f, 0.f, .7f, .78f),
-		.end_color = Vec4(0.f, 0.f, .7f, 0.f)
+		.end_color = Vec4(0.f, 0.f, .7f, 0.f),
+		.softness = 1.f
 	});
 }
 
@@ -183,7 +184,8 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 			.rotation = Randomf() * M_PI * 2.f,
 			.size = 1.f + 2.f * (np - i / flashlen),
 			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
-			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
+			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+			.softness = 1.f
 		});
 	}
 
@@ -194,7 +196,8 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 		.size = 30.f,
 		.size_velocity = 30.f,
 		.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
-		.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
+		.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+		.softness = 1.f
 	});
 }
 

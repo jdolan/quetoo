@@ -690,9 +690,9 @@ enum {
 	SPRITE_NO_BLEND_DEPTH	= 1 << 0,
 
 	/**
-	 * @brief If set, animation interpolates
+	 * @brief If set, animations don't interpolate
 	 */
-	SPRITE_LERP				= 1 << 1,
+	SPRITE_NO_LERP			= 1 << 1,
 
 	/**
 	 * @brief Beginning of flags reserved for cgame
@@ -785,6 +785,11 @@ typedef struct r_sprite_s {
 	 * @brief Sprite flags
 	 */
 	r_sprite_flags_t flags;
+
+	/**
+	 * @brief Sprite softness scalar. Negative values apply an invert to the result.
+	 */
+	float softness;
 } r_sprite_t;
 
 #define MAX_SPRITES		0x8000
@@ -832,6 +837,11 @@ typedef struct {
 	 * @brief The beam flags.
 	 */
 	r_sprite_flags_t flags;
+
+	/**
+	 * @brief Beam softness scalar. Negative values apply an invert to the result.
+	 */
+	float softness;
 } r_beam_t;
 
 #define MAX_BEAMS 0x200
@@ -845,6 +855,7 @@ typedef struct {
 	vec2_t next_diffusemap;
 	color32_t color;
 	float lerp;
+	float softness;
 } r_sprite_vertex_t;
 
 /**
