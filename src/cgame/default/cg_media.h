@@ -93,7 +93,6 @@ extern r_animation_t *cg_sprite_blaster_flame;
 extern r_animation_t *cg_sprite_smoke_04;
 extern r_animation_t *cg_sprite_smoke_05;
 extern r_animation_t *cg_sprite_blaster_ring;
-// extern r_animation_t *cg_sprite_hyperblaster;
 extern r_animation_t *cg_bfg_explosion_1;
 extern r_animation_t *cg_sprite_bfg_explosion_2;
 extern r_animation_t *cg_sprite_bfg_explosion_3;
