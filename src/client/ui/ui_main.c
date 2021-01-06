@@ -67,6 +67,18 @@ void Ui_ViewWillAppear(void) {
 /**
  * @brief
  */
+void Ui_ViewWillDisappear(void) {
+
+	if (windowController) {
+		$(windowController->viewController, viewWillDisappear);
+	} else {
+		Com_Warn("windowControler was NULL\n");
+	}
+}
+
+/**
+ * @brief
+ */
 void Ui_Draw(void) {
 
 	assert(windowController);
