@@ -33,7 +33,7 @@ out vertex_data {
 	vec3 lightgrid;
 	vec4 color;
 	float lerp;
-	int soft;
+	float soft;
 } vertex;
 
 /**
