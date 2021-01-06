@@ -66,7 +66,6 @@ cvar_t *r_parallax_samples;
 cvar_t *r_roughness;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
-cvar_t *r_shadows;
 cvar_t *r_shell;
 cvar_t *r_specularity;
 cvar_t *r_stains;
@@ -466,8 +465,8 @@ static void R_InitLocal(void) {
 	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_flares = Cvar_Add("r_flares", "1", CVAR_ARCHIVE, "Controls the rendering of light source flares");
-	r_fog_density = Cvar_Add("r_fog_density", "3", CVAR_ARCHIVE, "Controls the density of fog effects");
-	r_fog_samples = Cvar_Add("r_fog_samples", "16", CVAR_ARCHIVE, "Controls the quality of fog effects");
+	r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
+	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
 	r_gamma = Cvar_Add("r_gamma", "1", CVAR_ARCHIVE, "Controls video gamma (brightness)");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
@@ -479,7 +478,6 @@ static void R_InitLocal(void) {
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects");
 	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
-	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE, "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");

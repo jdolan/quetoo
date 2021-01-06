@@ -727,12 +727,6 @@
 		CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		CEFC7B8C1D9D2EB5000FA6B2 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
 		CEFC7B931D9D2FB3000FA6B2 /* libgame-bgame.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-bgame.a */; };
-		F552389E2482D3DF00BE8B36 /* r_mesh_shadow_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = F552389D2482D3DF00BE8B36 /* r_mesh_shadow_draw.c */; };
-		F55238A02482D40F00BE8B36 /* r_mesh_shadow_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = F552389F2482D40F00BE8B36 /* r_mesh_shadow_draw.h */; };
-		F55238A72482D55500BE8B36 /* mesh_shadow_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F55238A22482D42B00BE8B36 /* mesh_shadow_fs.glsl */; };
-		F55238A82482D55500BE8B36 /* mesh_shadow_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F55238A42482D42B00BE8B36 /* mesh_shadow_vs.glsl */; };
-		F55238A92482D71F00BE8B36 /* draw_2d_blur_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F55238A32482D42B00BE8B36 /* draw_2d_blur_fs.glsl */; };
-		F55238AA2482D71F00BE8B36 /* draw_2d_blur_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F55238A12482D42B00BE8B36 /* draw_2d_blur_vs.glsl */; };
 		F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
 /* End PBXBuildFile section */
 
@@ -993,16 +987,12 @@
 				CE2CEC4C25852FF80001E599 /* depth_pass_vs.glsl in CopyFiles */,
 				CE4A255C1FA2032700A539E7 /* draw_2d_fs.glsl in CopyFiles */,
 				CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */,
-				F55238A92482D71F00BE8B36 /* draw_2d_blur_fs.glsl in CopyFiles */,
-				F55238AA2482D71F00BE8B36 /* draw_2d_blur_vs.glsl in CopyFiles */,
 				CED5BB192407163D00784D93 /* draw_3d_fs.glsl in CopyFiles */,
 				CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */,
 				CEC59522257DD26E00DC7908 /* lightgrid.glsl in CopyFiles */,
 				CE57E13D2462572900F8902F /* material.glsl in CopyFiles */,
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
-				F55238A72482D55500BE8B36 /* mesh_shadow_fs.glsl in CopyFiles */,
-				F55238A82482D55500BE8B36 /* mesh_shadow_vs.glsl in CopyFiles */,
 				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
 				CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */,
 				F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */,
@@ -1766,12 +1756,6 @@
 		CEFC7A6B1D9CB512000FA6B2 /* libimage.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libimage.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFC7A831D9CB5C9000FA6B2 /* libmatrix.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libmatrix.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFC7B8A1D9D2E71000FA6B2 /* libgame-bgame.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-bgame.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F552389D2482D3DF00BE8B36 /* r_mesh_shadow_draw.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_mesh_shadow_draw.c; sourceTree = "<group>"; };
-		F552389F2482D40F00BE8B36 /* r_mesh_shadow_draw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_mesh_shadow_draw.h; sourceTree = "<group>"; };
-		F55238A12482D42B00BE8B36 /* draw_2d_blur_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = draw_2d_blur_vs.glsl; sourceTree = "<group>"; };
-		F55238A22482D42B00BE8B36 /* mesh_shadow_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mesh_shadow_fs.glsl; sourceTree = "<group>"; };
-		F55238A32482D42B00BE8B36 /* draw_2d_blur_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = draw_2d_blur_fs.glsl; sourceTree = "<group>"; };
-		F55238A42482D42B00BE8B36 /* mesh_shadow_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mesh_shadow_vs.glsl; sourceTree = "<group>"; };
 		F57902A124843E730023101D /* soften_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soften_fs.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -2733,8 +2717,6 @@
 				CE5022EB23DE3CF900B333CE /* r_mesh_model_md3.c */,
 				CE5022E623DE3C3600B333CE /* r_mesh_model_obj.h */,
 				CE5022E723DE3C3600B333CE /* r_mesh_model_obj.c */,
-				F552389F2482D40F00BE8B36 /* r_mesh_shadow_draw.h */,
-				F552389D2482D3DF00BE8B36 /* r_mesh_shadow_draw.c */,
 				CE12D5DF1C5C58C300CD0B13 /* r_model.c */,
 				CE12D5E01C5C58C300CD0B13 /* r_model.h */,
 				CE8FD2EA23D3E034002FD074 /* r_program.h */,
@@ -2766,14 +2748,10 @@
 				CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */,
 				CED5BB182406B74300784D93 /* draw_3d_fs.glsl */,
 				CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */,
-				F55238A32482D42B00BE8B36 /* draw_2d_blur_fs.glsl */,
-				F55238A12482D42B00BE8B36 /* draw_2d_blur_vs.glsl */,
 				CEC594C7257DC69300DC7908 /* lightgrid.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CE63992C23E1251A00DB7A2D /* mesh_fs.glsl */,
 				CE63992B23E124F700DB7A2D /* mesh_vs.glsl */,
-				F55238A22482D42B00BE8B36 /* mesh_shadow_fs.glsl */,
-				F55238A42482D42B00BE8B36 /* mesh_shadow_vs.glsl */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
 				F57902A124843E730023101D /* soften_fs.glsl */,
@@ -3769,7 +3747,6 @@
 				CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */,
 				CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */,
 				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
-				F55238A02482D40F00BE8B36 /* r_mesh_shadow_draw.h in Headers */,
 				CED438971D9D34450052BAFA /* r_model.h in Headers */,
 				CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */,
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
@@ -5148,7 +5125,6 @@
 				CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */,
 				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
-				F552389E2482D3DF00BE8B36 /* r_mesh_shadow_draw.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
 				CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,

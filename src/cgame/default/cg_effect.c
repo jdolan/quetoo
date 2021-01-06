@@ -174,7 +174,8 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 600.f)),
 				.acceleration = Vec3_RandomRange(-2.f, 2.f),
 				.flags = SPRITE_NO_BLEND_DEPTH,
-				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
+				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
+				.softness = 1.f
 			});
 		} else {
 			s = Cg_AddSprite(&(cg_sprite_t) {
@@ -185,7 +186,8 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.size = 8.f,
 				.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f)),
 				.acceleration = Vec3_RandomRange(-12.f, 12.f),
-				.flags = SPRITE_NO_BLEND_DEPTH
+				.flags = SPRITE_NO_BLEND_DEPTH,
+				.softness = 1.f
 			});
 		}
 
