@@ -205,11 +205,11 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 
 	vec3_t origin;
 	if (tr.all_solid || tr.start_solid) {
-			tr = cgi.Trace(ent->origin, down, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
-			origin = tr.end;
-		} else {
-			origin = Vec3(tr.end.x, tr.end.y, tr.end.z + ent->mins.z);
-		}
+		tr = cgi.Trace(ent->origin, down, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
+		origin = tr.end;
+	} else {
+		origin = Vec3(tr.end.x, tr.end.y, tr.end.z + ent->mins.z);
+	}
 
 	cgi.AddSprite(cgi.view, &(const r_sprite_t) {
 		.origin = origin,
