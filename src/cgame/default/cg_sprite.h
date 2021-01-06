@@ -206,6 +206,11 @@ typedef struct cg_sprite_s {
 	 * @brief Sprite billboard axis.
 	 */
 	r_sprite_billboard_axis_t axis;
+	
+	/**
+	 * @brief Sprite softness scalar. Negative values invert the scalar.
+	 */
+	float softness;
 
 	cg_sprite_t *prev;
 	cg_sprite_t *next;

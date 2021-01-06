@@ -51,7 +51,7 @@ static struct {
 	GLint in_next_diffusemap;
 	GLint in_color;
 	GLint in_lerp;
-	GLint in_soft;
+	GLint in_softness;
 	
 	GLint texture_diffusemap;
 	GLint texture_lightgrid_fog;
@@ -270,10 +270,10 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 		in->blend_depth = R_BlendDepthForPoint(view, s->origin, BLEND_DEPTH_SPRITE);
 	}
 
-	in->vertexes[0].soft =
-	in->vertexes[1].soft =
-	in->vertexes[2].soft =
-	in->vertexes[3].soft = s->softness;
+	in->vertexes[0].softness =
+	in->vertexes[1].softness =
+	in->vertexes[2].softness =
+	in->vertexes[3].softness = r_sprites_soften->integer ? s->softness : 0.f;
 }
 
 /**
@@ -357,10 +357,10 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->vertexes[2].lerp =
 		in->vertexes[3].lerp = 0.f;
 
-		in->vertexes[0].soft =
-		in->vertexes[1].soft =
-		in->vertexes[2].soft =
-		in->vertexes[3].soft = b->softness;
+		in->vertexes[0].softness =
+		in->vertexes[1].softness =
+		in->vertexes[2].softness =
+		in->vertexes[3].softness = r_sprites_soften->integer ? b->softness : 0.f;
 
 		in->blend_depth = x_depth;
 
@@ -432,7 +432,7 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
 	glEnableVertexAttribArray(r_sprite_program.in_color);
 	glVertexAttrib1f(r_sprite_program.in_lerp, 0.f);
-	glEnableVertexAttribArray(r_sprite_program.in_soft);
+	glEnableVertexAttribArray(r_sprite_program.in_softness);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
 	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
@@ -519,7 +519,7 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.in_next_diffusemap = glGetAttribLocation(r_sprite_program.name, "in_next_diffusemap");
 	r_sprite_program.in_color = glGetAttribLocation(r_sprite_program.name, "in_color");
 	r_sprite_program.in_lerp = glGetAttribLocation(r_sprite_program.name, "in_lerp");
-	r_sprite_program.in_soft = glGetAttribLocation(r_sprite_program.name, "in_soft");
+	r_sprite_program.in_softness = glGetAttribLocation(r_sprite_program.name, "in_softness");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
@@ -554,7 +554,7 @@ void R_InitSprites(void) {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
 	glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
-	glVertexAttribIPointer(5, 1, GL_INT, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, soft));
+	glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
 
 	glGenBuffers(1, &r_sprites.elements_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);

@@ -31,7 +31,7 @@ in vertex_data {
 	vec3 lightgrid;
 	vec4 color;
 	float lerp;
-	float soft;
+	float softness;
 } vertex;
 
 out vec4 out_color;
@@ -49,9 +49,5 @@ void main(void) {
 
 	out_color.rgb = color_filter(out_color.rgb);
 
-	if (vertex.soft == -1.0) {
-		out_color *= 1.0f - soften();
-	} else if (vertex.soft == 1) {
-		out_color *= soften();
-	}
+	out_color *= soften(vertex.softness);
 }

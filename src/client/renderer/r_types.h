@@ -695,16 +695,6 @@ enum {
 	SPRITE_NO_LERP			= 1 << 1,
 
 	/**
-	 * @brief If set, sprite does not use soft edges
-	 */
-	SPRITE_NO_SOFT			= 1 << 2,
-
-	/**
-	 * @brief If set, sprite inverts on soft edges
-	 */
-	SPRITE_SOFT_INVERT		= 1 << 3,
-
-	/**
 	 * @brief Beginning of flags reserved for cgame
 	 */
 	SPRITE_CGAME			= 1 << 16
@@ -795,6 +785,11 @@ typedef struct r_sprite_s {
 	 * @brief Sprite flags
 	 */
 	r_sprite_flags_t flags;
+
+	/**
+	 * @brief Sprite softness scalar. Negative values apply an invert to the result.
+	 */
+	float softness;
 } r_sprite_t;
 
 #define MAX_SPRITES		0x8000
@@ -842,6 +837,11 @@ typedef struct {
 	 * @brief The beam flags.
 	 */
 	r_sprite_flags_t flags;
+
+	/**
+	 * @brief Beam softness scalar. Negative values apply an invert to the result.
+	 */
+	float softness;
 } r_beam_t;
 
 #define MAX_BEAMS 0x200
@@ -855,7 +855,7 @@ typedef struct {
 	vec2_t next_diffusemap;
 	color32_t color;
 	float lerp;
-	int32_t soft;
+	float softness;
 } r_sprite_vertex_t;
 
 /**

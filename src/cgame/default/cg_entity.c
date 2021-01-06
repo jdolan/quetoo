@@ -219,7 +219,7 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 		.rotation = Radians(ent->angles.y),
 		.dir = tr.plane.normal,
 		.media = (r_media_t *) cg_sprite_particle2,
-		.flags = SPRITE_SOFT_INVERT
+		.softness = -1.f
 	});
 }
 

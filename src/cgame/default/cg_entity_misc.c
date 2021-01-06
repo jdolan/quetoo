@@ -91,7 +91,8 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 				.size = RandomRangef(4.f, 12.f),
 				.bounce = .6f,
 				.color = Vec4(hue, sat, RandomRangef(.7f, 1.f), RandomRangef(.56f, 1.f)),
-				.end_color = Vec4(hue, sat, 0.f, 0.f)
+				.end_color = Vec4(hue, sat, 0.f, 0.f),
+				.softness = 1.f
 			})) {
 			break;
 		}
@@ -375,6 +376,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 	sprite->sprite.size_velocity = cgi.EntityValue(self->def, "size_velocity")->value;
 	sprite->sprite.size_acceleration = cgi.EntityValue(self->def, "size_acceleration")->value;
 	sprite->sprite.bounce = cgi.EntityValue(self->def, "bounce")->value;
+	sprite->sprite.softness = cgi.EntityValue(self->def, "softness")->value;
 
 	sprite->hz = cgi.EntityValue(self->def, "hz")->value ?: .5f;
 	sprite->drift = cgi.EntityValue(self->def, "drift")->value ?: 3.f;
