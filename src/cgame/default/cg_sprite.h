@@ -48,21 +48,21 @@ typedef void (*cg_sprite_think_t) (cg_sprite_t *sprite, float life, float delta)
 
 
 /**
- * @brief CGame-specific sprite flags
+ * @brief CGame-specific sprite flags.
  */
 enum {
 	/**
-	 * @brief Beam's velocity does not affect the end point
+	 * @brief Beam's velocity does not affect the end point.
 	 */
 	SPRITE_BEAM_VELOCITY_NO_END = SPRITE_CGAME,
 
 	/**
-	 * @brief Life time is calculated based on server time rather than client time
+	 * @brief Life time is calculated based on server time rather than client time.
 	 */
 	SPRITE_SERVER_TIME = SPRITE_CGAME << 1,
 
 	/**
-	 * @brief Data is not heap-allocated, so don't free
+	 * @brief Data is not heap-allocated, so don't free.
 	 */
 	SPRITE_DATA_NOFREE = SPRITE_CGAME << 2
 };
@@ -99,7 +99,7 @@ typedef struct cg_sprite_s {
 	vec3_t acceleration;
 
 	/**
-	 * @brief The sprite rotation, in radians
+	 * @brief The sprite rotation, in radians.
 	 */
 	float rotation;
 

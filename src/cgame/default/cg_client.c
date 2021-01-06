@@ -608,7 +608,10 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 
+	Cg_AddEntityShadow(&legs);
+
 	r_entity_t *r_legs = cgi.AddEntity(cgi.view, &legs);
+
 	if (!r_legs) {
 		return; // if the legs were culled, we're done
 	}
