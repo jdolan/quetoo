@@ -93,7 +93,7 @@ r_animation_t *cg_sprite_blaster_flame;
 r_animation_t *cg_sprite_smoke_04;
 r_animation_t *cg_sprite_smoke_05;
 r_animation_t *cg_sprite_blaster_ring;
-r_animation_t *cg_sprite_hyperblaster;
+// r_animation_t *cg_sprite_hyperblaster;
 r_animation_t *cg_bfg_explosion_1;
 r_animation_t *cg_sprite_bfg_explosion_2;
 r_animation_t *cg_sprite_bfg_explosion_3;
@@ -103,6 +103,7 @@ r_animation_t *cg_sprite_blood_01;
 r_animation_t *cg_sprite_electro_01;
 r_animation_t *cg_sprite_fireball_01;
 r_animation_t *cg_sprite_impact_spark_01;
+r_animation_t *cg_sprite_hyperball_01;
 
 r_atlas_image_t cg_sprite_font[16 * 8];
 
@@ -340,7 +341,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_blaster_flame = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
 	cg_sprite_smoke_04 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
 	cg_sprite_smoke_05 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
-	cg_sprite_hyperblaster = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
+	// cg_sprite_hyperblaster = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
 	cg_sprite_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
 	cg_sprite_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
 	cg_sprite_poof_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 32);
@@ -349,6 +350,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_electro_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
 	cg_sprite_fireball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/fireball_01/fireball_01", "_%02" PRIu32, 0, 63);
 	cg_sprite_impact_spark_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01", "_%02" PRIu32, 0, 4);
+	cg_sprite_hyperball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
 
 	cgi.CompileAtlas(cg_sprite_atlas);
 
