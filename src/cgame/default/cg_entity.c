@@ -192,7 +192,7 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 }
 
 /**
- * @brief Wraps R_AddEntity to apply shadows, which require collision.
+ * @brief
  */
 void Cg_AddEntityShadow(const r_entity_t *ent) {
 
