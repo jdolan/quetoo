@@ -223,7 +223,7 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 	};
 
 	if (!box_trace.start_solid) {
-		shadow_sprite.origin = box_trace.end,
+		shadow_sprite.origin = box_trace.end;
 		cgi.AddSprite(cgi.view, &shadow_sprite);
 	}
 
