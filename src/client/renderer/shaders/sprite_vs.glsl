@@ -24,6 +24,7 @@ layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec2 in_next_diffusemap;
 layout (location = 3) in vec4 in_color;
 layout (location = 4) in float in_lerp;
+layout (location = 5) in int in_soft;
 
 out vertex_data {
 	vec3 position;
@@ -32,6 +33,7 @@ out vertex_data {
 	vec3 lightgrid;
 	vec4 color;
 	float lerp;
+	int soft;
 } vertex;
 
 /**
@@ -47,6 +49,7 @@ void main(void) {
 	vertex.lightgrid = lightgrid_uvw(in_position);
 	vertex.color = in_color;
 	vertex.lerp = in_lerp;
+	vertex.soft = in_soft;
 
 	gl_Position = projection3D * view * position;
 }

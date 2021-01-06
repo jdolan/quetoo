@@ -106,6 +106,29 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 
 	R_SetEntityBounds(e);
 
+	// add shadow
+	if (!(e->effects & EF_NO_SHADOW) && r_shadows->integer) {
+		const vec3_t end = Vec3_Fmaf(ent->origin, MAX_WORLD_COORD, Vec3_Down());
+		cm_trace_t tr = Cm_BoxTrace(ent->origin, end, ent->mins, ent->maxs, 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
+		vec3_t p;
+
+		if (tr.all_solid || tr.start_solid) {
+			tr = Cm_BoxTrace(ent->origin, end, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
+			p = tr.end;
+		} else {
+			p = Vec3(tr.end.x, tr.end.y, tr.end.z + ent->mins.z);
+		}
+
+		R_AddSprite(view, &(const r_sprite_t) {
+			.origin = p,
+			.color = Color32(0, 0, 0, 255),
+			.size = e->model->radius * 2.f,
+			.dir = tr.plane.normal,
+			.media = (r_media_t *)R_LoadImage("sprites/particle2", IT_PROGRAM),
+			.flags = SPRITE_SOFT_INVERT
+		});
+	}
+
 	if (R_CullEntity(view, e)) {
 		return NULL;
 	}
@@ -140,8 +163,6 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
 void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
 	
 	R_DrawMeshEntities(view, blend_depth);
-
-	R_DrawMeshEntitiesShadows(view, blend_depth);
 
 	if (!r_draw_entity_bounds->value) {
 		return;

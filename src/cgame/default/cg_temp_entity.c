@@ -188,7 +188,6 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 	const float color_intensity = (bits & 4) ? 0.2f : 1.0f;
 	const vec4_t both_color = Vec4(color_hue_green, color_intensity, color_intensity, 0.f);
 	const vec4_t a_color = Vec4(color_hue_blue, color_intensity, color_intensity, 0.f);
-	const vec4_t b_color = Vec4(color_hue_red, color_intensity, color_intensity, 0.f);
 	const vec4_t mover_color = Vec4(color_hue_cyan, color_intensity, color_intensity, 0.f);
 
 	// mover connection
@@ -760,7 +759,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		const float sini = sinf(i * 0.1f);
 		// const float frac = (1.0 - (i / dist));
 
-		const float rando = (Randomf() + 1.f) * 0.5f;
+		//const float rando = (Randomf() + 1.f) * 0.5f;
 		const vec3_t origi = Vec3_Add(Vec3_Add(Vec3_Add(start, Vec3_Scale(forward, i)), Vec3_Scale(right, cosi)), Vec3_Scale(up, sini));
 		const vec3_t accel = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 8.f), Vec3_Scale(up, sini * 8.f)), Vec3(0.f, 0.f, 1.f));
 
