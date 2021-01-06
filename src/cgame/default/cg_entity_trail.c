@@ -655,14 +655,15 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
  * @brief
  */
 static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	const float mod = sinf(cgi.client->unclamped_time / 16.f) * 0.5 + 0.5;
+	const float mod = fmodf((float)cgi.client->unclamped_time, 100.f) / 100.f;
 
 	// projectile core
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.origin = ent->origin,
-		.size = (50.f * mod) + 180.f,
-		.media = (r_media_t *) cg_sprite_fireball_01,
-		.color = Color32(8, 255, 8, 0),
+		.size = 150.f,
+		.media = (r_media_t*)cg_sprite_hyperball_01,
+		.rotation = mod * 200.f * M_PI,
+		.color = Color32(255, 255, 255, 0),
 		.life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f)
 	});
 

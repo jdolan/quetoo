@@ -78,6 +78,7 @@ extern r_atlas_image_t *cg_sprite_explosion_flash;
 extern r_atlas_image_t *cg_sprite_explosion_glow;
 extern r_atlas_image_t *cg_sprite_splash_02_03;
 extern r_atlas_image_t *cg_sprite_impact_spark_01_dot;
+extern r_atlas_image_t *cg_sprite_puff_cloud;
 extern r_image_t *cg_beam_hook;
 extern r_image_t *cg_beam_arrow;
 extern r_image_t *cg_beam_line;
@@ -92,7 +93,7 @@ extern r_animation_t *cg_sprite_blaster_flame;
 extern r_animation_t *cg_sprite_smoke_04;
 extern r_animation_t *cg_sprite_smoke_05;
 extern r_animation_t *cg_sprite_blaster_ring;
-extern r_animation_t *cg_sprite_hyperblaster;
+// extern r_animation_t *cg_sprite_hyperblaster;
 extern r_animation_t *cg_bfg_explosion_1;
 extern r_animation_t *cg_sprite_bfg_explosion_2;
 extern r_animation_t *cg_sprite_bfg_explosion_3;
@@ -102,6 +103,7 @@ extern r_animation_t *cg_sprite_blood_01;
 extern r_animation_t *cg_sprite_electro_01;
 extern r_animation_t *cg_sprite_fireball_01;
 extern r_animation_t *cg_sprite_impact_spark_01;
+extern r_animation_t *cg_sprite_hyperball_01;
 
 extern r_atlas_image_t cg_sprite_font[16 * 8];
 
