@@ -374,9 +374,13 @@ static void Shutdown(const char *msg) {
 
 	Com_Print("%s", msg);
 
-	Sv_Shutdown(msg);
+	if (Com_WasInit(QUETOO_SERVER)) {
+		Sv_Shutdown(msg);
+	}
 
-	Cl_Shutdown();
+	if (Com_WasInit(QUETOO_CLIENT)) {
+		Cl_Shutdown();
+	}
 
 	Netchan_Shutdown();
 
