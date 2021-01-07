@@ -114,6 +114,12 @@ typedef struct cg_import_s {
 	void *(*LinkMalloc)(size_t size, void *parent);
 
 	/**
+	 * @brief Reallocates the dynamic memory block `p` to the specified size.
+	 * @return The reallocated memory. If `p` is grown, the newly allocated region is not cleared.
+	 */
+	void *(*Realloc)(void *p, size_t size);
+
+	/**
 	 * @brief Frees the specified managed memory.
 	 */
 	void (*Free)(void *p);
