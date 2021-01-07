@@ -30,6 +30,7 @@ static GArray *cg_entities;
  */
 void Cg_LoadEntities(void) {
 	 const cg_entity_class_t *classes[] = {
+		&cg_misc_dust,
 		&cg_misc_flame,
 		&cg_misc_light,
 		&cg_misc_model,
