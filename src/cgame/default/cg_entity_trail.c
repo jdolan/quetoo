@@ -602,53 +602,51 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	}
 
 	if (ent->timestamp < cgi.client->unclamped_time) {
-		const cm_trace_t tr = cgi.Trace(start, Vec3_Add(end, Vec3_Scale(dir, -128.0)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
 
-		if (tr.texinfo) {
-			vec3_t pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 1.0));
+		vec3_t dir;
+		Vec3_Vectors(ent->angles, &dir, NULL, NULL);
 
-			cgi.AddStain(cgi.view, &(const r_stain_t) {
-				.origin = pos,
-				.radius = 8.0 + Randomf() * 4.0,
-				.color = Color4bv(0x40000000),
-			});
+		vec3_t pos = Vec3_Fmaf(ent->termination, 1.0f, dir);
 
-			pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 2.0));
+		cgi.AddStain(cgi.view, &(const r_stain_t) {
+			.origin = pos,
+			.radius = 8.0 + Randomf() * 4.0,
+			.color = Color4bv(0x40000000),
+		});
 
-			if ((cgi.PointContents(pos) & CONTENTS_MASK_LIQUID) == 0) {
+		pos = Vec3_Fmaf(ent->termination, 2.f, dir);
 
-				for (int32_t i = 0; i < 2; i++) {
+		if ((cgi.PointContents(pos) & CONTENTS_MASK_LIQUID) == 0) {
 
-					Cg_AddSprite(&(cg_sprite_t) {
-						.atlas_image = cg_sprite_electro_02,
-						.origin = Vec3_Add(Vec3_Add(end, Vec3_Scale(dir, 10.f)), Vec3_RandomRange(-10.f, 10.f)),
-						.lifetime = 60 * (i + 1),
-						.size = RandomRangef(100.f, 200.f),
-						.size_velocity = 400.f,
-						.rotation = Randomf() * 2.f * M_PI,
-						.dir = Vec3_RandomRange(-1.f, 1.f),
-						.color = Vec4(0.f, 0.f, 1.f, 0.f),
-						.softness = 2.f
-					});
-				}
+			for (int32_t i = 0; i < 2; i++) {
 
-				for (int32_t i = 0; i < 2; i++) {
+				Cg_AddSprite(&(cg_sprite_t) {
+					.atlas_image = cg_sprite_electro_02,
+					.origin = Vec3_Add(Vec3_Fmaf(ent->termination, 10.f, dir), Vec3_RandomRange(-10.f, 10.f)),
+					.lifetime = 60 * (i + 1),
+					.size = RandomRangef(100.f, 200.f),
+					.size_velocity = 400.f,
+					.rotation = Randomf() * 2.f * M_PI,
+					.dir = Vec3_RandomRange(-1.f, 1.f),
+					.color = Vec4(0.f, 0.f, 1.f, 0.f),
+					.softness = 2.f
+				});
+			}
 
-					Cg_AddSprite(&(cg_sprite_t) {
-						.atlas_image = cg_sprite_particle3,
-						.origin = pos,
-						.velocity = Vec3_Scale(Vec3_Add(tr.plane.normal, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
-						.acceleration.z = -SPRITE_GRAVITY * 3.0,
-						.lifetime = 200 + Randomf() * 800,
-						.bounce = 0.2f,
-						.size = 2.0f + RandomRangef(1.0f, 2.0f),
-						.color = Vec4(250.f, 0.f, 1.0f, 0.f),
-						// FIXME: PAAAARIIIILLLLL, wuts DIS?
-						.end_color = Vec4(280.f, 0.0f, 0.0f, 0.f), // white
-						// .end_color = Vec4(280.f, 0.0001f, 0.0f, 0.f), // full saturation, wtf?
-						.softness = 0.5f
-					});
-				}
+			for (int32_t i = 0; i < 2; i++) {
+
+				Cg_AddSprite(&(cg_sprite_t) {
+					.atlas_image = cg_sprite_particle3,
+					.origin = pos,
+					.velocity = Vec3_Scale(Vec3_Add(dir, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
+					.acceleration.z = -SPRITE_GRAVITY * 3.0,
+					.lifetime = 200 + Randomf() * 800,
+					.bounce = 0.2f,
+					.size = 2.0f + RandomRangef(1.0f, 2.0f),
+					.color = Vec4(250.f, 0.5f, 1.0f, 0.f),
+					.end_color = Vec4(280.f, 0.0f, 0.0f, 0.f),
+					.softness = 0.05f
+				});
 			}
 		}
 

@@ -106,13 +106,13 @@ color_t Color4fv(const vec4_t rgba) {
  */
 color_t ColorHSV(float hue, float saturation, float value) {
 
-	value = CLAMP(value, 0.f, 1.f);
+	value = Clampf01(value);
 
     if (saturation <= 0.0f) {
 		return Color3f(value, value, value);
     }
 
-	saturation = MAX(saturation, 1.f);
+	saturation = Minf(saturation, 1.f);
 
 	hue = ClampEuler(hue) / 60.f;
 	color_t color = { .a = 1.f };
@@ -165,7 +165,7 @@ color_t ColorHSV(float hue, float saturation, float value) {
  */
 color_t ColorHSVA(float hue, float saturation, float value, float alpha) {
 	color_t color = ColorHSV(hue, saturation, value);
-	color.a = CLAMP(alpha, 0.f, 1.f);
+	color.a = Clampf01(alpha);
 	return color;
 }
 
