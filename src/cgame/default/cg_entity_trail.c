@@ -836,6 +836,51 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 }
 
 /**
+ * @brief Determines the initial position and directional vectors of a projectile.
+ */
+static void Cg_InitProjectile(const cl_entity_t *ent, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand) {
+
+	// resolve the projectile destination
+	const vec3_t start = cgi.view->origin;
+	const vec3_t end = Vec3_Add(start, Vec3_Scale(cgi.view->forward, MAX_WORLD_DIST));
+	const cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_CLIP_PROJECTILE);
+
+	// resolve the projectile origin
+	*org = Vec3_Add(start, Vec3_Scale(cgi.view->forward, 12.0));
+
+	switch (cg_hand->integer) {
+		case HAND_RIGHT:
+			*org = Vec3_Add(*org, Vec3_Scale(cgi.view->right, 6.0 * hand));
+			break;
+		case HAND_LEFT:
+			*org = Vec3_Add(*org, Vec3_Scale(cgi.view->right, -6.0 * hand));
+			break;
+		default:
+			break;
+	}
+
+	if ((cgi.client->frame.ps.pm_state.flags & PMF_DUCKED)) {
+		*org = Vec3_Add(*org, Vec3_Scale(cgi.view->up, -6.0));
+	} else {
+		*org = Vec3_Add(*org, Vec3_Scale(cgi.view->up, -12.0));
+	}
+
+	// if the projected origin is invalid, use the entity's origin
+	if (cgi.Trace(*org, *org, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
+		*org = ent->origin;
+	}
+
+	if (forward) {
+		// return the projectile's directional vectors
+		*forward = Vec3_Subtract(tr.end, *org);
+		*forward = Vec3_Normalize(*forward);
+
+		const vec3_t euler = Vec3_Euler(*forward);
+		Vec3_Vectors(euler, NULL, right, up);
+	}
+}
+
+/**
  * @brief Apply unique trails to entities between their previous packet origin
  * and their current interpolated origin. Beam trails are a special case: the
  * old origin field is overridden to specify the endpoint of the beam.
@@ -858,26 +903,30 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			// project start & end points based on our current view origin
 			float dist = Vec3_Distance(start, end);
 
-			start = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, 8.0));
-
-			const float hand_scale = (ent->current.trail == TRAIL_HOOK ? -1.0 : 1.0);
-
-			switch (cg_hand->integer) {
-				case HAND_LEFT:
-					start = Vec3_Add(start, Vec3_Scale(cgi.view->right, -5.5 * hand_scale));
-					break;
-				case HAND_RIGHT:
-					start = Vec3_Add(start, Vec3_Scale(cgi.view->right, 5.5 * hand_scale));
-					break;
-				default:
-					break;
-			}
-
-			start = Vec3_Add(start, Vec3_Scale(cgi.view->up, -8.0));
-
-			// lightning always uses predicted end points
 			if (s->trail == TRAIL_LIGHTNING) {
-				end = Vec3_Add(start, Vec3_Scale(cgi.view->forward, dist));
+				vec3_t forward;
+
+				Cg_InitProjectile(ent, &forward, NULL, NULL, &start, 1.0);
+
+				end = Vec3_Fmaf(start, dist, forward);
+			} else {
+
+				start = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, 8.0));
+
+				const float hand_scale = (ent->current.trail == TRAIL_HOOK ? -1.0 : 1.0);
+
+				switch (cg_hand->integer) {
+					case HAND_LEFT:
+						start = Vec3_Fmaf(start, -5.5 * hand_scale, cgi.view->right);
+						break;
+					case HAND_RIGHT:
+						start = Vec3_Fmaf(start, 5.5 * hand_scale, cgi.view->right);
+						break;
+					default:
+						break;
+				}
+
+				start = Vec3_Fmaf(start, -8.f, cgi.view->up);
 			}
 		}
 	} else {
