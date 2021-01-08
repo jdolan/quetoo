@@ -391,13 +391,11 @@ void R_UpdateSprites(r_view_t *view) {
 
 		r_sprite_instance_t *chain = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth));
 		if (chain == NULL) {
-			g_hash_table_insert(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth), in);
+			chain = in;
 		} else {
-			while (chain->blend_chain) {
-				chain = chain->blend_chain;
-			}
-			chain->blend_chain = in;
+			in->blend_chain = chain;
 		}
+		g_hash_table_insert(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth), in);
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
