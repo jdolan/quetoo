@@ -304,6 +304,7 @@ void Cg_UpdateMedia(void) {
 	cg_beam_rail = cgi.LoadImage("sprites/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IT_EFFECT);
 	cg_beam_tracer = cgi.LoadImage("sprites/tracer", IT_EFFECT | IT_MASK_CLAMP_EDGE);
+	cg_beam_tail = cgi.LoadImage("sprites/particle_tail", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_sprite_blaster_flash = cgi.LoadImage("sprites/blast_01/blast_01_flash", IT_EFFECT);
 
 	cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");

@@ -57,7 +57,7 @@ s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
 extern r_atlas_image_t *cg_sprite_particle;
 extern r_atlas_image_t *cg_sprite_particle2;
-extern r_atlas_image_t* cg_sprite_particle3;
+extern r_atlas_image_t *cg_sprite_particle3;
 extern r_atlas_image_t *cg_sprite_flash;
 extern r_atlas_image_t *cg_sprite_ring;
 extern r_atlas_image_t *cg_sprite_aniso_flare_01;
@@ -86,6 +86,7 @@ extern r_image_t *cg_beam_line;
 extern r_image_t *cg_beam_rail;
 extern r_image_t *cg_beam_lightning;
 extern r_image_t *cg_beam_tracer;
+extern r_image_t *cg_beam_tail;
 extern r_image_t *cg_sprite_blaster_flash;
 extern r_animation_t *cg_sprite_explosion;
 extern r_animation_t *cg_sprite_explosion_ring_02;
