@@ -85,6 +85,7 @@ r_image_t *cg_beam_line;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
 r_image_t *cg_beam_tracer;
+r_image_t *cg_beam_tail;
 r_image_t *cg_sprite_blaster_flash;
 
 r_animation_t *cg_sprite_explosion;
