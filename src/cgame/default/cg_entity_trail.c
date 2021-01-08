@@ -572,15 +572,13 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
  * @brief
  */
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(start, end));
 
-	cg_light_t l = {
-		.origin = start,
-		.radius = 90.f + RandomRangef(-10.f, 10.f),
-		.color = Vec3(.6f, .6f, 1.f)
-	};
+	// TODO:
+	// * The end sprites get kind of lost when firing and running into a wall at the same time.
+	//   No such problem when backpedaling etc.
+	// * Re-enable lights and stains     
 
-	Cg_AddLight(&l);
+	vec3_t aimdir = Vec3_Normalize(Vec3_Subtract(start, end));
 
 	cgi.AddBeam(cgi.view, &(const r_beam_t) {
 		.start = start,
@@ -589,64 +587,73 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.image = cg_beam_lightning,
 		.size = 8.5f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
-		.stretch = RandomRangef(.2f, .4f),
 		.softness = 1.f
 	});
 
-	l.origin = Vec3_Add(end, Vec3_Scale(dir, 12.0));
-	l.radius = 90.0 + RandomRangef(-10.f, 10.f);
-	Cg_AddLight(&l);
+	// beam endpoint cap
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_electro_02,
+			.origin = Vec3_Add(end, Vec3_Scale(aimdir, 10.f)),
+			.lifetime = 30.f,
+			.size = 50.f,
+			.rotation = Randomf() * 2.f * M_PI,
+			.color = Vec4(0.f, 0.f, 1.f, 0.f),
+			.softness = 0.5f
+	});
 
 	if (ent->current.animation1 != LIGHTNING_SOLID_HIT) {
 		return;
 	}
 
 	if (ent->timestamp < cgi.client->unclamped_time) {
-		const cm_trace_t tr = cgi.Trace(start, Vec3_Add(end, Vec3_Scale(dir, -128.0)), Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
 
-		if (tr.texinfo) {
-			vec3_t pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 1.0));
+		vec3_t dir;
+		Vec3_Vectors(ent->angles, &dir, NULL, NULL);
 
-			cgi.AddStain(cgi.view, &(const r_stain_t) {
-				.origin = pos,
-				.radius = 8.0 + Randomf() * 4.0,
-				.color = Color4bv(0x40000000),
+		if ((cgi.PointContents(ent->termination) & CONTENTS_MASK_LIQUID) == 0) {
+
+			// hit bolts billboards
+			for (int32_t i = 0; i < 2; i++) {
+				Cg_AddSprite(&(cg_sprite_t) {
+					.atlas_image = cg_sprite_electro_02,
+					.origin = end,
+					.lifetime = 60 * (i + 1),
+					.size = RandomRangef(100.f, 200.f),
+					.size_velocity = 400.f,
+					.rotation = Randomf() * 2.f * M_PI,
+					.dir = Vec3_RandomRange(-1.f, 1.f),
+					.color = Vec4(0.f, 0.f, 1.f, 0.f),
+					.softness = 1.f
+				});
+			}
+
+			// hit bolts decal
+			Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_electro_02,
+					.origin = Vec3_Add(end, dir),
+					.lifetime = 120,
+					.size = RandomRangef(100.f, 200.f),
+					.size_velocity = 400.f,
+					.rotation = Randomf() * 2.f * M_PI,
+					.dir = dir,
+					.color = Vec4(0.f, 0.f, 1.f, 0.f),
+					.softness = 0.5f
 			});
 
-			pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 2.0));
+			for (int32_t i = 0; i < 2; i++) {
 
-			if ((cgi.PointContents(pos) & CONTENTS_MASK_LIQUID) == 0) {
-
-				for (int32_t i = 0; i < 2; i++) {
-
-					Cg_AddSprite(&(cg_sprite_t) {
-						.atlas_image = cg_sprite_electro_02,
-						.origin = Vec3_Add(Vec3_Add(end, Vec3_Scale(dir, 10.f)), Vec3_RandomRange(-10.f, 10.f)),
-						.lifetime = 60 * (i + 1),
-						.size = RandomRangef(100.f, 200.f),
-						.size_velocity = 400.f,
-						.rotation = Randomf() * 2.f * M_PI,
-						.dir = Vec3_RandomRange(-1.f, 1.f),
-						.color = Vec4(0.f, 0.f, 1.f, 0.f),
-						.softness = 1.f
-					});
-				}
-
-				for (int32_t i = 0; i < 2; i++) {
-
-					Cg_AddSprite(&(cg_sprite_t) {
-						.atlas_image = cg_sprite_particle2,
-						.origin = pos,
-						.velocity = Vec3_Scale(Vec3_Add(tr.plane.normal, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
-						.acceleration.z = -SPRITE_GRAVITY * 3.0,
-						.lifetime = 600 + Randomf() * 300,
-						.bounce = 0.2f,
-						.size = 2.f + RandomRangef(.5f, 2.f),
-						.color = Vec4(210.f, 0.f, 1.f, 0.f),
-						.end_color = Vec4(210.f, 1.f, 1.f, 0.f),
-						.softness = 1.f
-					});
-				}
+				Cg_AddSprite(&(cg_sprite_t) {
+					.atlas_image = cg_sprite_particle3,
+					.origin = end,
+					.velocity = Vec3_Scale(Vec3_Add(dir, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
+					.acceleration.z = -SPRITE_GRAVITY * 3.0,
+					.lifetime = 200 + Randomf() * 800,
+					.bounce = 0.2f,
+					.size = 2.0f + RandomRangef(1.0f, 2.0f),
+					.color = Vec4(250.f, 0.5f, 1.0f, 0.f),
+					.end_color = Vec4(280.f, 0.0f, 0.0f, 0.f),
+					.softness = 0.5f
+				});
 			}
 		}
 
@@ -683,7 +690,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	// projectile core
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.origin = ent->origin,
-		.size = 150.f,
+		.size = 100.f,
 		.media = (r_media_t*)cg_sprite_hyperball_01,
 		.rotation = mod * 200.f * M_PI,
 		.color = Color32(255, 255, 255, 0),
@@ -698,7 +705,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = ent->origin,
 		.radius = 160.f,
-		.color = Vec3_Scale(Vec3(.4f, 1.f, .4f), mod * .6f + .4f)
+		.color = Vec3(.4f, 1.f, .4f)
 	});
 }
 
@@ -836,6 +843,51 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 }
 
 /**
+ * @brief Determines the initial position and directional vectors of a projectile.
+ */
+static void Cg_InitProjectile(const cl_entity_t *ent, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand) {
+
+	// resolve the projectile destination
+	const vec3_t start = cgi.view->origin;
+	const vec3_t end = Vec3_Add(start, Vec3_Scale(cgi.view->forward, MAX_WORLD_DIST));
+	const cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_CLIP_PROJECTILE);
+
+	// resolve the projectile origin
+	*org = Vec3_Add(start, Vec3_Scale(cgi.view->forward, 12.0));
+
+	switch (cg_hand->integer) {
+		case HAND_RIGHT:
+			*org = Vec3_Add(*org, Vec3_Scale(cgi.view->right, 6.0 * hand));
+			break;
+		case HAND_LEFT:
+			*org = Vec3_Add(*org, Vec3_Scale(cgi.view->right, -6.0 * hand));
+			break;
+		default:
+			break;
+	}
+
+	if ((cgi.client->frame.ps.pm_state.flags & PMF_DUCKED)) {
+		*org = Vec3_Add(*org, Vec3_Scale(cgi.view->up, -6.0));
+	} else {
+		*org = Vec3_Add(*org, Vec3_Scale(cgi.view->up, -12.0));
+	}
+
+	// if the projected origin is invalid, use the entity's origin
+	if (cgi.Trace(*org, *org, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
+		*org = ent->origin;
+	}
+
+	if (forward) {
+		// return the projectile's directional vectors
+		*forward = Vec3_Subtract(tr.end, *org);
+		*forward = Vec3_Normalize(*forward);
+
+		const vec3_t euler = Vec3_Euler(*forward);
+		Vec3_Vectors(euler, NULL, right, up);
+	}
+}
+
+/**
  * @brief Apply unique trails to entities between their previous packet origin
  * and their current interpolated origin. Beam trails are a special case: the
  * old origin field is overridden to specify the endpoint of the beam.
@@ -858,26 +910,30 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			// project start & end points based on our current view origin
 			float dist = Vec3_Distance(start, end);
 
-			start = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, 8.0));
-
-			const float hand_scale = (ent->current.trail == TRAIL_HOOK ? -1.0 : 1.0);
-
-			switch (cg_hand->integer) {
-				case HAND_LEFT:
-					start = Vec3_Add(start, Vec3_Scale(cgi.view->right, -5.5 * hand_scale));
-					break;
-				case HAND_RIGHT:
-					start = Vec3_Add(start, Vec3_Scale(cgi.view->right, 5.5 * hand_scale));
-					break;
-				default:
-					break;
-			}
-
-			start = Vec3_Add(start, Vec3_Scale(cgi.view->up, -8.0));
-
-			// lightning always uses predicted end points
 			if (s->trail == TRAIL_LIGHTNING) {
-				end = Vec3_Add(start, Vec3_Scale(cgi.view->forward, dist));
+				vec3_t forward;
+
+				Cg_InitProjectile(ent, &forward, NULL, NULL, &start, 1.0);
+
+				end = Vec3_Fmaf(start, dist, forward);
+			} else {
+
+				start = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, 8.0));
+
+				const float hand_scale = (ent->current.trail == TRAIL_HOOK ? -1.0 : 1.0);
+
+				switch (cg_hand->integer) {
+					case HAND_LEFT:
+						start = Vec3_Fmaf(start, -5.5 * hand_scale, cgi.view->right);
+						break;
+					case HAND_RIGHT:
+						start = Vec3_Fmaf(start, 5.5 * hand_scale, cgi.view->right);
+						break;
+					default:
+						break;
+				}
+
+				start = Vec3_Fmaf(start, -8.f, cgi.view->up);
 			}
 		}
 	} else {

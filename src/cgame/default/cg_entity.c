@@ -30,6 +30,7 @@ static GArray *cg_entities;
  */
 void Cg_LoadEntities(void) {
 	 const cg_entity_class_t *classes[] = {
+		&cg_misc_dust,
 		&cg_misc_flame,
 		&cg_misc_light,
 		&cg_misc_model,
@@ -196,31 +197,44 @@ void Cg_Interpolate(const cl_frame_t *frame) {
  */
 void Cg_AddEntityShadow(const r_entity_t *ent) {
 
+	if (!ent->model) {
+		return;
+	}
+
+	if (ent->model->type == MOD_BSP_INLINE) {
+		return;
+	}
+
 	if (ent->effects & EF_NO_SHADOW) {
 		return;
 	}
 
 	const vec3_t down = Vec3_Fmaf(ent->origin, MAX_WORLD_COORD, Vec3_Down());
-	cm_trace_t tr = cgi.Trace(ent->origin, down, ent->mins, ent->maxs, 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
+	cm_trace_t box_trace = cgi.Trace(ent->origin, down, Vec3(ent->mins.x, ent->mins.y, 0.f), Vec3(ent->maxs.x, ent->maxs.y, 0.f), 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
+	const cm_trace_t down_trace = cgi.Trace(ent->origin, down, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
 
-	vec3_t origin;
-	if (tr.all_solid || tr.start_solid) {
-		tr = cgi.Trace(ent->origin, down, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
-		origin = tr.end;
-	} else {
-		origin = Vec3(tr.end.x, tr.end.y, tr.end.z + ent->mins.z);
+	r_sprite_t shadow_sprite = {
+		.color = Color32(0, 0, 0, 255),
+		//.width = ent->model->maxs.y - ent->model->mins.y,
+		//.height = ent->model->maxs.x - ent->model->mins.x,
+		.width = (ent->model->maxs.y - ent->model->mins.y) * 2,
+		.height = (ent->model->maxs.x - ent->model->mins.x) * 2,
+		.rotation = Radians(ent->angles.y),
+		.dir = box_trace.plane.normal,
+		//.media = (r_media_t*)cg_sprite_particle2,
+		.media = (r_media_t *) cg_sprite_particle3,
+		.softness = -1.f
+	};
+
+	if (!box_trace.start_solid) {
+		shadow_sprite.origin = box_trace.end;
+		cgi.AddSprite(cgi.view, &shadow_sprite);
 	}
 
-	cgi.AddSprite(cgi.view, &(const r_sprite_t) {
-		.origin = origin,
-		.color = Color32(0, 0, 0, 255),
-		.width = ent->model->maxs.y - ent->model->mins.y,
-		.height = ent->model->maxs.x - ent->model->mins.x,
-		.rotation = Radians(ent->angles.y),
-		.dir = tr.plane.normal,
-		.media = (r_media_t *) cg_sprite_particle2,
-		.softness = -1.f
-	});
+	if (box_trace.start_solid || !Vec3_EqualEpsilon(box_trace.plane.normal, down_trace.plane.normal, 0.01f) || fabsf(box_trace.plane.dist - down_trace.plane.dist) > 8.f) {
+		shadow_sprite.origin = down_trace.end;
+		cgi.AddSprite(cgi.view, &shadow_sprite);
+	}
 }
 
 /**

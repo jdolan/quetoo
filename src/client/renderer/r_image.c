@@ -340,7 +340,13 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	StripExtension(name, key);
 
-	if ((image = (r_image_t *) R_FindMedia(key, R_MEDIA_IMAGE))) {
+	image = (r_image_t *) R_FindMedia(key, R_MEDIA_IMAGE);
+	if (image) {
+		return image;
+	}
+
+	image = (r_image_t *) R_FindMedia(key, R_MEDIA_ATLAS_IMAGE);
+	if (image) {
 		return image;
 	}
 

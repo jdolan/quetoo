@@ -156,6 +156,7 @@ void Cl_InitCgame(void) {
 
 	import.Malloc = Mem_TagMalloc;
 	import.LinkMalloc = Mem_LinkMalloc;
+	import.Realloc = Mem_Realloc;
 	import.Free = Mem_Free;
 	import.FreeTag = Mem_FreeTag;
 

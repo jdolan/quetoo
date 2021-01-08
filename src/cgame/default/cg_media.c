@@ -56,6 +56,7 @@ static r_atlas_t *cg_sprite_atlas;
 
 r_atlas_image_t *cg_sprite_particle;
 r_atlas_image_t *cg_sprite_particle2;
+r_atlas_image_t *cg_sprite_particle3;
 r_atlas_image_t *cg_sprite_flash;
 r_atlas_image_t *cg_sprite_ring;
 r_atlas_image_t *cg_sprite_aniso_flare_01;
@@ -84,6 +85,7 @@ r_image_t *cg_beam_line;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
 r_image_t *cg_beam_tracer;
+r_image_t *cg_beam_tail;
 r_image_t *cg_sprite_blaster_flash;
 
 r_animation_t *cg_sprite_explosion;
@@ -93,7 +95,6 @@ r_animation_t *cg_sprite_blaster_flame;
 r_animation_t *cg_sprite_smoke_04;
 r_animation_t *cg_sprite_smoke_05;
 r_animation_t *cg_sprite_blaster_ring;
-// r_animation_t *cg_sprite_hyperblaster;
 r_animation_t *cg_bfg_explosion_1;
 r_animation_t *cg_sprite_bfg_explosion_2;
 r_animation_t *cg_sprite_bfg_explosion_3;
@@ -304,11 +305,13 @@ void Cg_UpdateMedia(void) {
 	cg_beam_rail = cgi.LoadImage("sprites/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IT_EFFECT);
 	cg_beam_tracer = cgi.LoadImage("sprites/tracer", IT_EFFECT | IT_MASK_CLAMP_EDGE);
+	cg_beam_tail = cgi.LoadImage("sprites/particle_tail", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_sprite_blaster_flash = cgi.LoadImage("sprites/blast_01/blast_01_flash", IT_EFFECT);
 
 	cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");
 	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IT_EFFECT);
 	cg_sprite_particle2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle2", IT_EFFECT);
+	cg_sprite_particle3 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle3", IT_EFFECT);
 	cg_sprite_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flash", IT_EFFECT);
 	cg_sprite_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/ring", IT_EFFECT);
 	cg_sprite_aniso_flare_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/aniso_flare_01", IT_EFFECT);
@@ -341,7 +344,6 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_blaster_flame = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
 	cg_sprite_smoke_04 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
 	cg_sprite_smoke_05 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
-	// cg_sprite_hyperblaster = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
 	cg_sprite_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
 	cg_sprite_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
 	cg_sprite_poof_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 32);
