@@ -568,19 +568,14 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 	});
 }
 
-/**
- * @brief
- */
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(start, end));
 
-	cg_light_t l = {
-		.origin = start,
-		.radius = 90.f + RandomRangef(-10.f, 10.f),
-		.color = Vec3(.6f, .6f, 1.f)
-	};
+	// TODO:
+	// * The end sprites get kind of lost when firing and running into a wall at the same time.
+	//   No such problem when backpedaling etc.
+	// * Re-enable lights and stains     
 
-	Cg_AddLight(&l);
+	vec3_t aimdir = Vec3_Normalize(Vec3_Subtract(start, end));
 
 	cgi.AddBeam(cgi.view, &(const r_beam_t) {
 		.start = start,
@@ -589,13 +584,19 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.image = cg_beam_lightning,
 		.size = 8.5f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
-		.stretch = RandomRangef(.2f, .4f),
-		.softness = 2.f
+		.softness = 1.f
 	});
 
-	l.origin = Vec3_Add(end, Vec3_Scale(dir, 12.0));
-	l.radius = 90.0 + RandomRangef(-10.f, 10.f);
-	Cg_AddLight(&l);
+	// beam endpoint cap
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_electro_02,
+			.origin = Vec3_Add(end, Vec3_Scale(aimdir, 10.f)),
+			.lifetime = 30.f,
+			.size = 50.f,
+			.rotation = Randomf() * 2.f * M_PI,
+			.color = Vec4(0.f, 0.f, 1.f, 0.f),
+			.softness = 0.5f
+	});
 
 	if (ent->current.animation1 != LIGHTNING_SOLID_HIT) {
 		return;
@@ -606,38 +607,41 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		vec3_t dir;
 		Vec3_Vectors(ent->angles, &dir, NULL, NULL);
 
-		vec3_t pos = Vec3_Fmaf(ent->termination, 1.0f, dir);
+		if ((cgi.PointContents(ent->termination) & CONTENTS_MASK_LIQUID) == 0) {
 
-		cgi.AddStain(cgi.view, &(const r_stain_t) {
-			.origin = pos,
-			.radius = 8.0 + Randomf() * 4.0,
-			.color = Color4bv(0x40000000),
-		});
-
-		pos = Vec3_Fmaf(ent->termination, 2.f, dir);
-
-		if ((cgi.PointContents(pos) & CONTENTS_MASK_LIQUID) == 0) {
-
+			// hit bolts billboards
 			for (int32_t i = 0; i < 2; i++) {
-
 				Cg_AddSprite(&(cg_sprite_t) {
 					.atlas_image = cg_sprite_electro_02,
-					.origin = Vec3_Add(Vec3_Fmaf(ent->termination, 10.f, dir), Vec3_RandomRange(-10.f, 10.f)),
+					.origin = end,
 					.lifetime = 60 * (i + 1),
 					.size = RandomRangef(100.f, 200.f),
 					.size_velocity = 400.f,
 					.rotation = Randomf() * 2.f * M_PI,
 					.dir = Vec3_RandomRange(-1.f, 1.f),
 					.color = Vec4(0.f, 0.f, 1.f, 0.f),
-					.softness = 2.f
+					.softness = 1.f
 				});
 			}
+
+			// hit bolts decal
+			Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_electro_02,
+					.origin = Vec3_Add(end, dir),
+					.lifetime = 120,
+					.size = RandomRangef(100.f, 200.f),
+					.size_velocity = 400.f,
+					.rotation = Randomf() * 2.f * M_PI,
+					.dir = dir,
+					.color = Vec4(0.f, 0.f, 1.f, 0.f),
+					.softness = 0.5f
+			});
 
 			for (int32_t i = 0; i < 2; i++) {
 
 				Cg_AddSprite(&(cg_sprite_t) {
 					.atlas_image = cg_sprite_particle3,
-					.origin = pos,
+					.origin = end,
 					.velocity = Vec3_Scale(Vec3_Add(dir, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
 					.acceleration.z = -SPRITE_GRAVITY * 3.0,
 					.lifetime = 200 + Randomf() * 800,
@@ -645,7 +649,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 					.size = 2.0f + RandomRangef(1.0f, 2.0f),
 					.color = Vec4(250.f, 0.5f, 1.0f, 0.f),
 					.end_color = Vec4(280.f, 0.0f, 0.0f, 0.f),
-					.softness = 0.05f
+					.softness = 0.5f
 				});
 			}
 		}
