@@ -512,6 +512,13 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  * @brief
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
+
+	vec4_t color_start = Vec4(204.f, .75f, .44f, 0.f);
+	vec4_t color_end = Vec4(204.f, .75f, .0f, 0.f);
+	color32_t bcolor = Color32(28, 79, 112, 0);
+
+	vec3_t dir = Vec3_Direction(start, end);
+
 	r_atlas_image_t *variation[] = {
 		cg_sprite_plasma_var01,
 		cg_sprite_plasma_var02,
@@ -526,8 +533,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 			.size = RandomRangef(15.f, 20.f),
 			.rotation = RandomRadian(),
 			.lifetime = 50,
-			.color = Vec4(204.f, .55f, .44f, 0.f),
-			.end_color = Vec4(204.f, .55f, 0.f, 0.f),
+			.color = color_start,
+			.end_color = color_end,
 			.softness = 1.f
 		});
 	}
@@ -539,8 +546,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.size = RandomRangef(15.f, 20.f),
 		.rotation = RandomRadian(),
 		.lifetime = 20,
-		.color = Vec4(204.f, .55f, .44f, 0.f),
-		.end_color = Vec4(204.f, .55f, 0.f, 0.f),
+		.color = color_start,
+		.end_color = color_end,
 		.softness = 1.f
 	});
 
@@ -551,9 +558,19 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.size = RandomRangef(6.f, 9.f),
 		.rotation = RandomRadian(),
 		.lifetime = 20,
-		.color = Vec4(204.f, .55f, .44f, 0.f),
-		.end_color = Vec4(204.f, .55f, 0.f, 0.f),
+		.color = color_start,
+		.end_color = color_end,
 		.softness = 1.f
+	});
+
+	cgi.AddBeam(cgi.view, &(r_beam_t) {
+		.start = Vec3_Add(end, Vec3_Scale(dir, 100.f)),
+		.end = start,
+		.color = bcolor,
+		.image = cg_beam_tail,
+		.size = 5.0f,
+		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
+		.softness = 0.f
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
@@ -576,7 +593,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	// TODO:
 	// * The end sprites get kind of lost when firing and running into a wall at the same time.
 	//   No such problem when backpedaling etc.
-	// * Re-enable lights and stains     
+	// * Re-enable lights and stains
 
 	vec3_t aimdir = Vec3_Normalize(Vec3_Subtract(start, end));
 
