@@ -529,6 +529,13 @@ float Vec3_DistanceDir(const vec3_t a, const vec3_t b, vec3_t *dir) {
 /**
  * @brief
  */
+static inline vec3_t Vec3_Direction(const vec3_t a, const vec3_t b) {
+	return Vec3_Normalize(Vec3_Subtract(a, b));
+}
+
+/**
+ * @brief
+ */
 float Vec3_DistanceSquared(const vec3_t a, const vec3_t b) {
 	return Vec3_LengthSquared(Vec3_Subtract(a, b));
 }
