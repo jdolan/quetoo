@@ -284,11 +284,39 @@ static void Cl_DrawSoundStats(void) {
 }
 
 /**
+ * @brief 
+ */
+static void Cl_DrawSampleCounter(char *buffer, gulong buffer_length, const char *title, uint16_t *samples) {
+	uint16_t min, max;
+
+	if (!cl.sample_count) {
+		min = max = samples[cl.sample_index];
+	} else {
+		min = UINT16_MAX;
+		max = 0;
+
+		for (uint32_t i = 0; i < cl.sample_count; i++) {
+			int32_t index = (cl.sample_index - i);
+
+			if (index < 0) {
+				index = STAT_COUNTER_SAMPLE_COUNT - (-index);
+			}
+
+			uint16_t sample = samples[index];
+			min = min(min, sample);
+			max = max(max, sample);
+		}
+	}
+
+	g_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.sample_index], title, min, max);
+}
+
+/**
  * @brief
  */
 static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
-	static char pps[8], fps[8], spd[8];
+	static char pps[28], fps[28], spd[8];
 	static int32_t last_draw_time, last_speed_time;
 	r_pixel_t cw, ch;
 
@@ -298,10 +326,10 @@ static void Cl_DrawCounters(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	const r_pixel_t x = r_context.width - 7 * cw;
+	r_pixel_t x = r_context.width - 7 * cw;
 	r_pixel_t y = r_context.height - 3 * ch;
 
-	cl.frame_counter++;
+	cl.frame_counter[cl.sample_index]++;
 
 	if (quetoo.ticks - last_speed_time >= 100) {
 
@@ -314,14 +342,17 @@ static void Cl_DrawCounters(void) {
 	}
 
 	if (quetoo.ticks - last_draw_time >= 1000) {
-
-		g_snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter);
-		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter);
+		
+		Cl_DrawSampleCounter(fps, sizeof(fps), "fps", cl.frame_counter);
+		Cl_DrawSampleCounter(pps, sizeof(pps), "pps", cl.packet_counter);
 
 		last_draw_time = quetoo.ticks;
 
-		cl.frame_counter = 0;
-		cl.packet_counter = 0;
+		cl.sample_index = (cl.sample_index + 1) % STAT_COUNTER_SAMPLE_COUNT;
+		cl.sample_count = min(STAT_COUNTER_SAMPLE_COUNT, cl.sample_count + 1);
+
+		cl.frame_counter[cl.sample_index] = 0;
+		cl.packet_counter[cl.sample_index] = 0;
 	}
 
 	if (cl_draw_position->integer) {
@@ -333,6 +364,8 @@ static void Cl_DrawCounters(void) {
 
 	R_Draw2DString(x, y, spd, color_white);
 	y += ch;
+
+	x = r_context.width - 16 * cw;
 
 	R_Draw2DString(x, y, fps, color_white);
 	y += ch;
