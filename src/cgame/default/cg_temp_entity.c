@@ -648,9 +648,12 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
  * @brief
  */
 static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
+	
+	vec4_t color_start = Vec4(204.f, .75f, .9f, 0.f);
+	vec4_t color_end = Vec4(204.f, .9f, .0f, 0.f);
+	
 	// impact "splash"
 	for (uint32_t i = 0; i < 6; i++) {
-
 		Cg_AddSprite(&(cg_sprite_t) {
 			.origin = org,
 			.animation = cg_sprite_electro_01,
@@ -659,8 +662,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			.size_velocity = 400.f,
 			.rotation = Randomf() * 2.f * M_PI,
 			.dir = Vec3_RandomRange(-1.f, 1.f),
-			.color = Vec4(204.f, .55f, .9f, 0.f),
-			.end_color = Vec4(204.f, .55f, 0.f, 0.f),
+			.color = color_start,
+			.end_color = color_end,
 			.softness = 1.f
 		});
 	}
@@ -673,13 +676,12 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.size_velocity = 25.f,
 		.rotation = Randomf() * 2.f * M_PI,
 		.dir = dir,
-		.color = Vec4(204.f, .55f, .9f, 0.f),
-		.end_color = Vec4(204.f, .55f, 0.f, 0.f)
+		.color = color_start,
+		.end_color = color_end
 	});
 
 	// impact flash
 	for (uint32_t i = 0; i < 2; i++) {
-
 		Cg_AddSprite(&(cg_sprite_t) {
 			.origin = org,
 			.atlas_image = cg_sprite_flash,
@@ -687,18 +689,18 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			.size = RandomRangef(75.f, 100.f),
 			.rotation = RandomRadian(),
 			.rotation_velocity = i == 0 ? .66f : -.66f,
-			.color = Vec4(204.f, .55f, .9f, 0.f),
-			.end_color = Vec4(204.f, .55f, 0.f, 0.f),
+			.color = color_start,
+			.end_color = color_end,
 			.softness = 1.f
 		});
 	}
 
-	Cg_AddLight(&(const cg_light_t) {
+	Cg_AddLight(&(cg_light_t) {
 		.origin = Vec3_Add(org, dir),
-		.radius = 80.f,
-		.color = Vec3(0.4, 0.7, 1.0),
+		.radius = 100.f,
+		.color = Vec3(.4f, .7f, 1.f),
 		.decay = 250,
-		.intensity = 0.05
+		.intensity = 0.1
 	});
 
 	cgi.AddStain(cgi.view, &(const r_stain_t) {
