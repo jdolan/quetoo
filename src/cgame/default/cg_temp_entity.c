@@ -284,6 +284,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		float spark_life = 200.f;
 		float spark_size = RandomRangef(35.f, 45.f);
 
+		// spark spikes billboard
 		Cg_AddSprite(&(cg_sprite_t) {
 			.animation = cg_sprite_impact_spark_01,
 			.origin = Vec3_Add(org, Vec3_Scale(dir, 2.f)),
@@ -294,6 +295,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.softness = 1.f
 		});
 
+		// spark spikes decal
 		Cg_AddSprite(&(cg_sprite_t) {
 			.animation = cg_sprite_impact_spark_01,
 			.origin = Vec3_Add(org, Vec3_Scale(dir, 2.f)),
@@ -304,6 +306,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.dir = dir
 		});
 
+		// spark dots
 		vec3_t spark_origin = Vec3_Add(org, Vec3_Scale(dir, 2.f));
 		for (int32_t i = 0; i < 6; i++) {
 			float size = RandomRangef(3.f, 6.f);
@@ -321,6 +324,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			});
 		}
 
+		// impact smoke
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_puff_cloud,
 			.origin = Vec3_Add(org, Vec3_Scale(dir, 5.0f)),
@@ -330,66 +334,9 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.size_velocity = 60.0f,
 			.lifetime = 800.f,
 			.color = Vec4(0.f, 0.f, 0.75f, 0.75f),
-			.softness = 1.f
+			.softness = 2.f
 		});
-
-		/*
-		Cg_AddSprite(&(cg_sprite_t) {
-			.atlas_image = cg_sprite_particle,
-			.origin = Vec3_Add(org, dir),
-			.lifetime = 1000,
-			.size = 8.f,
-			.color = Vec4(27.f, .68f, 1.f, 1.f),
-			.end_color = Vec4(27.f, .68f, 0.f, 0.f)
-		});
-
-		if (Randomf() < .75f) {
-			Cg_AddSprite(&(cg_sprite_t) {
-				.animation = cg_sprite_poof_02,
-				.lifetime = Cg_AnimationLifetime(cg_sprite_poof_02, 20),
-				.origin = Vec3_Add(org, dir),
-				.size_velocity = 100.f,
-				.rotation = Randomf() * M_PI * 2.f,
-				.color = Vec4(0.f, 0.f, 1.f, 0.f)
-			});
-		} else {
-			Cg_AddSprite(&(cg_sprite_t) {
-				.animation = cg_sprite_smoke_05,
-				.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 80),
-				.origin = Vec3_Add(org, Vec3_Scale(dir, 3.f)),
-				.dir = dir,
-				.rotation = Randomf() * M_PI * 2.f,
-				.color = Vec4(0.f, 0.f, 1.f, 0.f)
-			});
-		}
-		*/
 	}
-
-	/*
-	if ((p = Cg_AllocSprite())) {
-
-		p->origin = org;
-		p->velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f));
-		p->acceleration = Vec3_Scale(dir, -20.f);
-		p->acceleration.z = RandomRangef(20.f, 30.f);
-
-		p->lifetime = RandomRangef(600.f, 1000.f);
-
-		p->color = Color_Add(Color3bv(0xa0a0a0), Color3fv(Vec3_RandomRange(-1.f, .1f)));
-
-		p->size = RandomRangef(1.f, 2.f);
-		p->size_velocity = 1.f;
-	}
-	*/
-
-	/*
-	Cg_AddLight(&(const cg_light_t) {
-		.origin = Vec3_Add(org, dir),
-		.radius = 20.0,
-		.color = Vec3(0.5f, 0.3f, 0.2f),
-		.decay = 250
-	});
-	*/
 
 	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = org,
@@ -1008,47 +955,84 @@ static void Cg_BfgEffect(const vec3_t org) {
  */
 void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 
+	size *= RandomRangef(0.9f, 1.1f);
+
+	// center decal
 	Cg_AddSprite(&(cg_sprite_t) {
 		.animation = cg_sprite_poof_01,
-		.lifetime = Cg_AnimationLifetime(cg_sprite_poof_01, 17.5f) * (viscosity * .1f),
+		.lifetime = Cg_AnimationLifetime(cg_sprite_poof_01, 30.0f) * (viscosity * .1f),
 		.origin = org,
 		.size = size * 8.f,
+		.size_velocity = size,
 		.dir = Vec3_Up(),
-		.color = Vec4(0.f, 0.f, 1.f, .25f)
+		.rotation = RandomRadian(),
+		.color = Vec4(0.f, 0.f, 1.0f, 1.0f),
+		.end_color = Vec4(0.f, 0.f, 1.0f, 1.0f)
+	});
+
+	// ring decal
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_water_ring,
+		.lifetime = 1000.f,
+		.origin = org,
+		.size = size * 4.f,
+		.size_velocity = size * 6.f,
+		.rotation = RandomRadian(),
+		.dir = Vec3_Up(),
+		.color = Vec4(0.f, 0.f, 0.5f, 0.5f),
+		.end_color = Vec4(0.f, 0.f, 0.f, 0.f)
 	});
 }
 
 /**
  * @brief
  */
-static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
+static void Cg_SplashEffect(const vec3_t org, const vec3_t dir, const float size) {
 
-	for (int32_t i = 0; i < 10; i++) {
-		if (!Cg_AddSprite(&(cg_sprite_t) {
-				.atlas_image = cg_sprite_bubble,
-				.origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f)),
-				.velocity = Vec3_Add(Vec3_RandomRange(-64.f, 64.f), Vec3(0.f, 0.f, 36.f)),
-				.acceleration = Vec3(0.f, 0.f, -SPRITE_GRAVITY / 2.f),
-				.lifetime = RandomRangeu(100, 400),
-				.color = Vec4(0.f, 0.f, 1.f, 1.f),
-				.size = 6.4f ,
-				.softness = 1.f
-			})) {
+	// foam spray column
+
+	cg_sprite_t s = (cg_sprite_t){
+		.atlas_image = cg_sprite_particle,
+		.lifetime = 750.f,
+		.origin = org,
+		.size = 30.f,
+		.size_velocity = 100.f,
+		.color = Vec4(0.f, 0.f, 0.25f, 0.25f),
+		.end_color = Vec4(0.f, 0.f, 0.0f, 0.0f),
+		.softness = 1.f
+	};
+
+	Cg_AddSprite(&s);
+
+	s.lifetime = 500.f;
+	s.acceleration.z = -SPRITE_GRAVITY;
+	for (int32_t i = 1; i < 4; i++)
+	{
+		s.origin = Vec3_Add(org, Vec3_Scale(Vec3_Up(), (float)i * 5.0)),
+		s.size = 20.f * (1.f - (float)i * 0.25f);
+		Cg_AddSprite(&s);
+	}
+
+	// splash droplets
+
+	for (int32_t i = 0; i < 50; i++)
+	{
+		cg_sprite_t *p = Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.lifetime = RandomRangef(10.f, 1000.f),
+			.origin = org,
+			.size = RandomRangef(1.0f, 3.0f),
+			.velocity = Vec3_Scale(Vec3_RandomizeDir(dir, 0.66f), RandomRangef(50.f, 150.f)),
+			.acceleration.z = -SPRITE_GRAVITY * 1.5f,
+			.color = Vec4(0.f, 0.f, 0.4f, 0.4f),
+			.end_color = Vec4(0.f, 0.f, 0.0f, 0.0f),
+			.softness = 1.f
+		});
+
+		if (!p) {
 			break;
 		}
 	}
-
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_bubble,
-		.origin = org,
-		.velocity = Vec3_Add(Vec3_Scale(dir, 70.f + Randomf() * 30.f), Vec3_RandomRange(-8.f, 8.f)),
-		.acceleration = Vec3(0.f, 0.f, -SPRITE_GRAVITY / 2.f),
-		.lifetime = 120 + Randomf() * 80,
-		.color = Vec4(180.f, .42f, .87f, .87f),
-		.end_color = Vec4(180.f, .42f, 0.f, 0.f),
-		.size = 11.2f + Randomf() * 5.6f,
-		.softness = 1.f
-	});
 }
 
 /**
@@ -1180,7 +1164,7 @@ void Cg_ParseTempEntity(void) {
 			j = cgi.ReadByte();
 			Cg_RippleEffect(pos, i, j);
 			if (cgi.ReadByte()) {
-				Cg_SplashEffect(pos, dir);
+				Cg_SplashEffect(pos, dir, (float)i);
 			}
 			break;
 
