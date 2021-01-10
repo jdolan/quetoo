@@ -24,36 +24,56 @@
 #include "shared.h"
 
 /**
- * @brief Notification feed types
+ * @brief Notification types.
  */
 typedef enum {
-	NOTIFICATION_TYPE_OBITUARY, // Player killed a player (MOD + CID + CID)
-	NOTIFICATION_TYPE_OBITUARY_SELF, // Player killed itself (MOD + CID)
-	NOTIFICATION_TYPE_OBITUARY_PIC, // Player killed a player (PIC + CID + CID)
-	NOTIFICATION_TYPE_PLAYER_ACTION, // Race times, capture times (PIC + CID + STRING)
-	NOTIFICATION_TYPE_ACTION // Flag auto returned, objetives (PIC + STRING)
-} bg_notification_type_t;
+	NOTIFICATION_OBITUARY,
+	NOTIFICATION_OBITUARY_SELF,
+	NOTIFICATION_PLAYER_EVENT,
+	NOTIFICATION_GAME_EVENT
+} bg_NOTIFICATION_t;
 
 /**
- * @brief Notification feed
+ * @brief Notifications.
  */
-typedef struct bg_notification_item_s {
-	bg_notification_type_t type;
+typedef struct {
+	/**
+	 * @brief The notification type.
+	 */
+	bg_NOTIFICATION_t type;
 
-	char string_1[MAX_STRING_CHARS]; // STRING
-	char string_2[MAX_STRING_CHARS]; // STRING
+	/**
+	 * @brief The notification string.
+	 */
+	char string[MAX_STRING_CHARS];
 
-	uint16_t client_id_1; // CID
-	uint16_t client_id_2; // CID
+	/**
+	 * @brief The subject entity number (typically a client).
+	 */
+	uint16_t subject;
 
-	uint16_t pic; // PIC
+	/**
+	 * @brief The object entity number (typically a client).
+	 */
+	uint16_t object;
 
-	uint32_t mod; // MOD. FIXME: make this a g_mod_t
+	/**
+	 * @brief The notification pic.
+	 */
+	uint16_t pic;
 
-	uint32_t millis; // MILLIS
+	/**
+	 * @brief The type specific tag or data for this notification.
+	 * @details For obituaries, this is the means of death.
+	 */
+	int32_t tag;
 
-	uint32_t when; // The time this feed item appeared at (used in cgame)
-} bg_notification_item_t;
+	/**
+	 * @brief The expiration timestamp, in milliseconds.
+	 * @details This is a client-side attribtue, not used on the server.
+	 */
+	uint32_t expiration;
+} bg_notification_t;
 
 const char *Bg_GetModString(const uint32_t mod, const _Bool friendly_fire);
 const char *Bg_GetModIconString(const uint32_t mod, const _Bool friendly_fire);

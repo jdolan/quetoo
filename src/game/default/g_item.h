@@ -72,7 +72,7 @@
 	extern const vec3_t ITEM_MINS;
 	extern const vec3_t ITEM_MAXS;
 
-	void G_BroadcastNotification(const bg_notification_item_t item);
+	void G_BroadcastNotification(const bg_notification_t *notification);
 	const g_item_t *G_CarryingTech(const g_entity_t *ent);
 	_Bool G_HasTech(const g_entity_t *player, const g_tech_t tech);
 	_Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);

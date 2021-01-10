@@ -32,14 +32,14 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 	const _Bool friendly_fire = mod & MOD_FRIENDLY_FIRE;
 
-	bg_notification_item_t notification_item = {
-		.type = NOTIFICATION_TYPE_OBITUARY,
-		.mod = mod
+	bg_notification_t notification = {
+		.type = NOTIFICATION_OBITUARY,
+		.tag = mod
 	};
 
 	if (frag) {
-		notification_item.client_id_1 = attacker->s.number - 1;
-		notification_item.client_id_2 = self->s.number - 1;
+		notification.subject = attacker->s.number - 1;
+		notification.object = self->s.number - 1;
 
 		if (dedicated->value) {
 			gi.Print("^7%s ^1%s ^7%s\n", attacker->client->locals.persistent.net_name,
@@ -47,8 +47,8 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			self->client->locals.persistent.net_name);
 		}
 	} else {
-		notification_item.type = NOTIFICATION_TYPE_OBITUARY_SELF;
-		notification_item.client_id_1 = self->s.number - 1;
+		notification.type = NOTIFICATION_OBITUARY_SELF;
+		notification.subject = self->s.number - 1;
 
 		if (dedicated->value) {
 			gi.Print("^1%s ^7%s\n", Bg_GetModString(mod, false),
@@ -56,7 +56,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 		}
 	}
 
-	G_BroadcastNotification(notification_item);
+	G_BroadcastNotification(&notification);
 
 	mod &= ~MOD_FRIENDLY_FIRE; // Reset this AFTER broadcasting it in the notification
 

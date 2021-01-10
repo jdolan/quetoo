@@ -53,12 +53,7 @@ typedef struct cg_crosshair_s {
 
 static cg_crosshair_t crosshair;
 
-typedef struct cg_notifications_s {
-	GSList *items;
-	uint16_t num_lines;
-} cg_notifications_t;
-
-static cg_notifications_t notifications;
+static GPtrArray *cg_notifications;
 
 #define CENTER_PRINT_LINES 8
 typedef struct cg_center_print_s {
@@ -67,7 +62,7 @@ typedef struct cg_center_print_s {
 	uint32_t time;
 } cg_center_print_t;
 
-static cg_center_print_t center_print;
+static cg_center_print_t cg_center_print;
 
 typedef struct {
 	int16_t icon_index;
@@ -637,7 +632,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		return; // dead
 	}
 
-	if (center_print.time > cgi.client->unclamped_time) {
+	if (cg_center_print.time > cgi.client->unclamped_time) {
 		return;
 	}
 
@@ -790,19 +785,19 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 void Cg_ParseCenterPrint(void) {
 	char *c, *out, *line;
 
-	memset(&center_print, 0, sizeof(center_print));
+	memset(&cg_center_print, 0, sizeof(cg_center_print));
 
 	c = cgi.ReadString();
 
-	line = center_print.lines[0];
+	line = cg_center_print.lines[0];
 	out = line;
 
-	while (*c && center_print.num_lines < CENTER_PRINT_LINES - 1) {
+	while (*c && cg_center_print.num_lines < CENTER_PRINT_LINES - 1) {
 
 		if (*c == '\n') {
 			line += MAX_STRING_CHARS;
 			out = line;
-			center_print.num_lines++;
+			cg_center_print.num_lines++;
 			c++;
 			continue;
 		}
@@ -810,8 +805,8 @@ void Cg_ParseCenterPrint(void) {
 		*out++ = *c++;
 	}
 
-	center_print.num_lines++;
-	center_print.time = cgi.client->unclamped_time + 3000;
+	cg_center_print.num_lines++;
+	cg_center_print.time = cgi.client->unclamped_time + 3000;
 }
 
 /**
@@ -819,19 +814,19 @@ void Cg_ParseCenterPrint(void) {
  */
 static void Cg_DrawCenterPrint(const player_state_t *ps) {
 	r_pixel_t cw, ch, x, y;
-	char *line = center_print.lines[0];
+	char *line = cg_center_print.lines[0];
 
 	if (ps->stats[STAT_SCORES]) {
 		return;
 	}
 
-	if (center_print.time < cgi.client->unclamped_time) {
+	if (cg_center_print.time < cgi.client->unclamped_time) {
 		return;
 	}
 
 	cgi.BindFont(NULL, &cw, &ch);
 
-	y = (cgi.context->height - center_print.num_lines * ch) / 2;
+	y = (cgi.context->height - cg_center_print.num_lines * ch) / 2;
 
 	while (*line) {
 		x = (cgi.context->width - cgi.StringWidth(line)) / 2;
@@ -1295,108 +1290,86 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
  * @brief
  */
 void Cg_ParseNotification(void) {
-	bg_notification_item_t *item = g_malloc0(sizeof(bg_notification_item_t));
 
-	item->type = cgi.ReadByte();
+	bg_notification_t *notification = g_malloc0(sizeof(bg_notification_t));
+	
+	notification->type = cgi.ReadByte();
 
-	switch(item->type) {
-		case NOTIFICATION_TYPE_OBITUARY:
-			item->mod = cgi.ReadByte();
-			item->client_id_1 = cgi.ReadByte();
-			item->client_id_2 = cgi.ReadByte();
+	switch(notification->type) {
+		case NOTIFICATION_OBITUARY:
+			notification->tag = cgi.ReadLong();
+			notification->subject = cgi.ReadShort();
+			notification->object = cgi.ReadShort();
 
-			item->when = 4000;
+			notification->expiration = 4000;
 
 			if (!cg_draw_notifications_disable_print->value) {
-				cgi.Print("^7%s ^1%s ^7%s\n", cgi.client->client_info[item->client_id_1].name,
-					Bg_GetModString(item->mod, item->mod & MOD_FRIENDLY_FIRE),
-					cgi.client->client_info[item->client_id_2].name);
+				cgi.Print("^7%s ^1%s ^7%s\n", cgi.client->client_info[notification->subject].name,
+					Bg_GetModString(notification->tag, notification->tag & MOD_FRIENDLY_FIRE),
+					cgi.client->client_info[notification->object].name);
 			}
 
 			break;
-		case NOTIFICATION_TYPE_OBITUARY_SELF:
-			item->mod = cgi.ReadByte();
-			item->client_id_1 = cgi.ReadByte();
+		case NOTIFICATION_OBITUARY_SELF:
+			notification->tag = cgi.ReadLong();
+			notification->subject = cgi.ReadShort();
 
-			item->when = 4000;
+			notification->expiration = 4000;
 
 			if (!cg_draw_notifications_disable_print->value) {
-				cgi.Print("^1%s ^7%s\n", Bg_GetModString(item->mod, false),
-					cgi.client->client_info[item->client_id_1].name);
+				cgi.Print("^1%s ^7%s\n", Bg_GetModString(notification->tag, false),
+					cgi.client->client_info[notification->subject].name);
 			}
 
 			break;
-		case NOTIFICATION_TYPE_OBITUARY_PIC: {
-			item->pic = cgi.ReadShort();
-			item->client_id_1 = cgi.ReadByte();
-			item->client_id_2 = cgi.ReadByte();
+		case NOTIFICATION_PLAYER_EVENT: {
+			notification->pic = cgi.ReadShort();
+			notification->subject = cgi.ReadShort();
+			const char *s = cgi.ReadString();
+			strcpy(notification->string, s);
 
-			item->when = 4000;
+			notification->expiration = 6000;
 
 			if (!cg_draw_notifications_disable_print->value) {
-				cgi.Print("^7%s ^1[%d] ^7%s\n", cgi.client->client_info[item->client_id_1].name,
-					item->pic,
-					cgi.client->client_info[item->client_id_2].name);
+				cgi.Print("^7%s ^7%s\n", cgi.client->client_info[notification->subject].name,
+					notification->string);
 			}
 		}
 			break;
-		case NOTIFICATION_TYPE_PLAYER_ACTION: {
-			item->pic = cgi.ReadShort();
-			item->client_id_1 = cgi.ReadByte();
+		case NOTIFICATION_GAME_EVENT: {
+			notification->pic = cgi.ReadShort();
 			const char *s = cgi.ReadString();
-			strcpy(item->string_1, s);
+			strcpy(notification->string, s);
 
-			item->when = 6000;
+			notification->expiration = 6000;
 
 			if (!cg_draw_notifications_disable_print->value) {
-				cgi.Print("^7%s ^7%s\n", cgi.client->client_info[item->client_id_1].name,
-					item->string_1);
-			}
-		}
-			break;
-		case NOTIFICATION_TYPE_ACTION: {
-			item->pic = cgi.ReadShort();
-			const char *s = cgi.ReadString();
-			strcpy(item->string_1, s);
-
-			item->when = 6000;
-
-			if (!cg_draw_notifications_disable_print->value) {
-				cgi.Print("^7%s\n", item->string_1);
+				cgi.Print("^7%s\n", notification->string);
 			}
 		}
 			break;
 		default:
-			cgi.Warn("Invalid notification type %d\n", item->type);
+			cgi.Warn("Invalid notification type %d\n", notification->type);
 			break;
 	}
 
-	item->when = cgi.client->unclamped_time + (item->when * cg_draw_notifications_time->value);
+	notification->expiration = cgi.client->unclamped_time + (notification->expiration * cg_draw_notifications_time->value);
 
-	notifications.items = g_slist_prepend(notifications.items, item);
-
-	notifications.num_lines = g_slist_length(notifications.items);
+	g_ptr_array_add(cg_notifications, notification);
 }
 
 /**
  * @brief
  */
-static void Cg_DrawNotification(const player_state_t *ps) {
+static void Cg_DrawNotifications(const player_state_t *ps) {
 	r_pixel_t cw, ch, x, y, text_offset;
-	bg_notification_item_t *item;
 
-	GSList *list;
+	for (guint i = 0; i < cg_notifications->len; i++) {
+		bg_notification_t *notification = g_ptr_array_index(cg_notifications, i);
 
-	for (int32_t i = 0; i < notifications.num_lines; i++) {
-		list = g_slist_nth(notifications.items, i);
-
-		if (list && cgi.client->unclamped_time > ((bg_notification_item_t *) list->data)->when) {
-			notifications.items = g_slist_delete_link(notifications.items, list);
-
-			notifications.num_lines = g_slist_length(notifications.items);
-
+		if (cgi.client->unclamped_time > notification->expiration) {
+			g_ptr_array_remove_index(cg_notifications, i);
 			i--;
-
 			continue;
 		}
 	}
@@ -1407,24 +1380,19 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 	cgi.BindFont("small", &cw, &ch);
 
-	y = (Minf(notifications.num_lines - 1, cg_draw_notifications_lines->integer - 1) * NOTIFICATION_PIC_SIZE) + 10;
+	y = (Minf(cg_notifications->len - 1, cg_draw_notifications_lines->integer - 1) * NOTIFICATION_PIC_SIZE) + 10;
 
 	text_offset = (NOTIFICATION_PIC_SIZE / 2.0) - 8;
 
-	for (int32_t i = 0; i < Minf(notifications.num_lines, cg_draw_notifications_lines->integer); i++) {
-		list = g_slist_nth(notifications.items, i);
+	for (guint i = Mini(cg_notifications->len, cg_draw_notifications_lines->integer); i > 0; i--) {
 
-		if (list == NULL) {
-			continue;
-		}
-
-		item = (bg_notification_item_t *) list->data;
+		const bg_notification_t *notification = g_ptr_array_index(cg_notifications, i - 1);
 
 		x = cgi.context->width - 10;
 
-		switch (item->type) {
-			case NOTIFICATION_TYPE_OBITUARY: {
-				char *name = cgi.client->client_info[item->client_id_2].name;
+		switch (notification->type) {
+			case NOTIFICATION_OBITUARY: {
+				char *name = cgi.client->client_info[notification->object].name;
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
@@ -1432,18 +1400,18 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 				x -= NOTIFICATION_PIC_SIZE + NOTIFICATION_PADDING_X;
 
-				const r_image_t *pic = cgi.LoadImage(Bg_GetModIconString(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC);
+				const r_image_t *pic = cgi.LoadImage(Bg_GetModIconString(notification->tag, notification->tag & MOD_FRIENDLY_FIRE), IT_PIC);
 				cgi.Draw2DImage(x, y, NOTIFICATION_PIC_SIZE, NOTIFICATION_PIC_SIZE, pic, color_white);
 
-				name = cgi.client->client_info[item->client_id_1].name;
+				name = cgi.client->client_info[notification->subject].name;
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
 				cgi.Draw2DString(x, y + text_offset, name, color_white);
 			}
 				break;
-			case NOTIFICATION_TYPE_OBITUARY_SELF: {
-				char *name = cgi.client->client_info[item->client_id_1].name;
+			case NOTIFICATION_OBITUARY_SELF: {
+				char *name = cgi.client->client_info[notification->subject].name;
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
@@ -1451,38 +1419,20 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 				x -= NOTIFICATION_PIC_SIZE + NOTIFICATION_PADDING_X;
 
-				const r_image_t *pic  =cgi.LoadImage(Bg_GetModIconString(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC);
+				const r_image_t *pic  =cgi.LoadImage(Bg_GetModIconString(notification->tag, notification->tag & MOD_FRIENDLY_FIRE), IT_PIC);
 				cgi.Draw2DImage(x, y, NOTIFICATION_PIC_SIZE, NOTIFICATION_PIC_SIZE, pic, color_white);
 			}
 				break;
-			case NOTIFICATION_TYPE_OBITUARY_PIC: {
-				char *name = cgi.client->client_info[item->client_id_2].name;
+			case NOTIFICATION_PLAYER_EVENT: {
+				x -= cgi.StringWidth(notification->string) + NOTIFICATION_PADDING_X;
 
-				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
-
-				cgi.Draw2DString(x, y + text_offset, name, color_white);
+				cgi.Draw2DString(x, y + 6, notification->string, color_white);
 
 				x -= NOTIFICATION_PIC_SIZE + NOTIFICATION_PADDING_X;
 
-				Cg_DrawIcon(x, y, item->pic, color_white);
+				Cg_DrawIcon(x, y, notification->pic, color_white);
 
-				name = cgi.client->client_info[item->client_id_1].name;
-
-				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
-
-				cgi.Draw2DString(x, y + text_offset, name, color_white);
-			}
-				break;
-			case NOTIFICATION_TYPE_PLAYER_ACTION: {
-				x -= cgi.StringWidth(item->string_1) + NOTIFICATION_PADDING_X;
-
-				cgi.Draw2DString(x, y + 6, item->string_1, color_white);
-
-				x -= NOTIFICATION_PIC_SIZE + NOTIFICATION_PADDING_X;
-
-				Cg_DrawIcon(x, y, item->pic, color_white);
-
-				char *name = cgi.client->client_info[item->client_id_1].name;
+				char *name = cgi.client->client_info[notification->subject].name;
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
@@ -1595,7 +1545,7 @@ void Cg_DrawHud(const player_state_t *ps) {
 
 	Cg_DrawSelectWeapon(ps);
 
-	Cg_DrawNotification(ps);
+	Cg_DrawNotifications(ps);
 
 	Cg_DrawRespawn(ps);
 }
@@ -1608,7 +1558,7 @@ void Cg_ClearHud(void) {
 
 	cg_hud_locals.weapon.tag = WEAPON_SELECT_OFF;
 
-	g_slist_free(notifications.items);
+	g_ptr_array_set_size(cg_notifications, 0);
 }
 
 /**
@@ -1640,11 +1590,15 @@ void Cg_InitHud(void) {
 					  "The amount of time in seconds for the weapon bar to fade out in.");
 	cg_select_weapon_interval = cgi.AddCvar("cg_select_weapon_interval", "0.75", CVAR_ARCHIVE,
 					      "The amount of time, in seconds, to show the weapon bar after changing weapons.");
+
+	cg_notifications = g_ptr_array_new_with_free_func(g_free);
 }
 
 /**
  * @brief
  */
 void Cg_ShutdownHud(void) {
-	g_slist_free(notifications.items);
+
+	g_ptr_array_free(cg_notifications, 1);
+	cg_notifications = NULL;
 }

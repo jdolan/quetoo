@@ -27,35 +27,30 @@
 /**
  * @brief Sends a feed item to all active clients over their unreliable channels.
  */
-void G_BroadcastNotification(const bg_notification_item_t item) {
+void G_BroadcastNotification(const bg_notification_t *notification) {
 
 	gi.WriteByte(SV_CMD_NOTIFICATION);
 
-	gi.WriteByte(item.type);
+	gi.WriteByte(notification->type);
 
-	switch (item.type) {
-		case NOTIFICATION_TYPE_OBITUARY:
-			gi.WriteByte(item.mod);
-			gi.WriteByte(item.client_id_1);
-			gi.WriteByte(item.client_id_2);
+	switch (notification->type) {
+		case NOTIFICATION_OBITUARY:
+			gi.WriteLong(notification->tag);
+			gi.WriteShort(notification->subject);
+			gi.WriteShort(notification->object);
 			break;
-		case NOTIFICATION_TYPE_OBITUARY_SELF:
-			gi.WriteByte(item.mod);
-			gi.WriteByte(item.client_id_1);
+		case NOTIFICATION_OBITUARY_SELF:
+			gi.WriteLong(notification->tag);
+			gi.WriteShort(notification->subject);
 			break;
-		case NOTIFICATION_TYPE_OBITUARY_PIC:
-			gi.WriteShort(item.pic);
-			gi.WriteByte(item.client_id_1);
-			gi.WriteByte(item.client_id_2);
+		case NOTIFICATION_PLAYER_EVENT:
+			gi.WriteShort(notification->pic);
+			gi.WriteShort(notification->subject);
+			gi.WriteString(notification->string);
 			break;
-		case NOTIFICATION_TYPE_PLAYER_ACTION:
-			gi.WriteShort(item.pic);
-			gi.WriteByte(item.client_id_1);
-			gi.WriteString(item.string_1);
-			break;
-		case NOTIFICATION_TYPE_ACTION:
-			gi.WriteShort(item.pic);
-			gi.WriteString(item.string_1);
+		case NOTIFICATION_GAME_EVENT:
+			gi.WriteShort(notification->pic);
+			gi.WriteString(notification->string);
 			break;
 	}
 
@@ -518,14 +513,14 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	gi.Sound(ent, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
 
-	bg_notification_item_t notification_item = {
-		.type = NOTIFICATION_TYPE_ACTION,
+	bg_notification_t notifiation = {
+		.type = NOTIFICATION_GAME_EVENT,
 		.pic = gi.ImageIndex(va("pics/notifications/i_flag%d_return", t->id + 1)),
 	};
 
-	strncpy(notification_item.string_1, va("%s flag returned", t->name), MAX_STRING_CHARS);
+	strncpy(notifiation.string, va("%s flag returned", t->name), MAX_STRING_CHARS);
 
-	G_BroadcastNotification(notification_item);
+	G_BroadcastNotification(&notifiation);
 
 	G_FreeEntity(ent);
 }
@@ -566,15 +561,15 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 			gi.Sound(other, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
 
-			bg_notification_item_t notification_item = {
-				.type = NOTIFICATION_TYPE_PLAYER_ACTION,
+			bg_notification_t nofitication = {
+				.type = NOTIFICATION_PLAYER_EVENT,
 				.pic = gi.ImageIndex(va("pics/notifications/i_flag%d_return", t->id + 1)),
-				.client_id_1 = other->s.number - 1
+				.subject = other->s.number - 1
 			};
 
-			strncpy(notification_item.string_1, va("%s flag returned", t->name), MAX_STRING_CHARS);
+			g_snprintf(nofitication.string, sizeof(nofitication.string), "%s flag returned", t->name);
 
-			G_BroadcastNotification(notification_item);
+			G_BroadcastNotification(&nofitication);
 
 			return true;
 		}
@@ -599,15 +594,15 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				gi.Sound(other, gi.SoundIndex("ctf/capture"), SOUND_ATTEN_NONE, 0);
 
-				bg_notification_item_t notification_item = {
-					.type = NOTIFICATION_TYPE_PLAYER_ACTION,
+				bg_notification_t notification = {
+					.type = NOTIFICATION_PLAYER_EVENT,
 					.pic = gi.ImageIndex(va("pics/notifications/team%d_flag%d_captured", ot->id + 1, t->id + 1)),
-					.client_id_1 = other->s.number - 1
+					.subject = other->s.number - 1
 				};
 
-				strncpy(notification_item.string_1, va("%s flag captured", t->name), MAX_STRING_CHARS);
+				g_snprintf(notification.string, sizeof(notification.string), "%s flag captured", t->name);
 
-				G_BroadcastNotification(notification_item);
+				G_BroadcastNotification(&notification);
 
 				t->captures++;
 				other->client->locals.persistent.captures++;
@@ -638,15 +633,15 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), SOUND_ATTEN_NONE, 0);
 
-	bg_notification_item_t notification_item = {
-		.type = NOTIFICATION_TYPE_PLAYER_ACTION,
+	bg_notification_t notification = {
+		.type = NOTIFICATION_PLAYER_EVENT,
 		.pic = gi.ImageIndex(va("pics/notifications/i_flag%d_steal", t->id + 1)),
-		.client_id_1 = other->s.number - 1
+		.subject = other->s.number - 1
 	};
 
-	strncpy(notification_item.string_1, va("%s flag stolen", t->name), MAX_STRING_CHARS);
+	g_snprintf(notification.string, sizeof(notification.string), "%s flag stolen", t->name);
 
-	G_BroadcastNotification(notification_item);
+	G_BroadcastNotification(&notification);
 
 	other->s.effects |= G_EffectForTeam(t);
 	return true;
@@ -674,15 +669,15 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 	ent->s.model3 = 0;
 	ent->s.effects &= ~EF_CTF_MASK;
 
-	bg_notification_item_t notification_item = {
-		.type = NOTIFICATION_TYPE_PLAYER_ACTION,
+	bg_notification_t notification = {
+		.type = NOTIFICATION_PLAYER_EVENT,
 		.pic = gi.ImageIndex(va("pics/notifications/i_flag%d_dropped", ot->id + 1)),
-		.client_id_1 = ent->s.number - 1
+		.subject = ent->s.number - 1
 	};
 
-	strncpy(notification_item.string_1, va("%s flag dropped", ot->name), MAX_STRING_CHARS);
+	g_snprintf(notification.string, sizeof(notification.string), "%s flag dropped", ot->name);
 
-	G_BroadcastNotification(notification_item);
+	G_BroadcastNotification(&notification);
 
 	return G_DropItem(ent, ofi);
 }
