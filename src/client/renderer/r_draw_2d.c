@@ -328,10 +328,18 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 	quad[2].position = Vec2s(x + w, y + h);
 	quad[3].position = Vec2s(x, y + h);
 
-	quad[0].diffusemap = Vec2(0, 0);
-	quad[1].diffusemap = Vec2(1, 0);
-	quad[2].diffusemap = Vec2(1, 1);
-	quad[3].diffusemap = Vec2(0, 1);
+	if (image->media.type == R_MEDIA_ATLAS_IMAGE) {
+		const vec4_t st = ((r_atlas_image_t *) image)->texcoords;
+		quad[0].diffusemap = Vec2(st.x, st.y);
+		quad[1].diffusemap = Vec2(st.z, st.y);
+		quad[2].diffusemap = Vec2(st.z, st.w);
+		quad[3].diffusemap = Vec2(st.x, st.w);
+	} else {
+		quad[0].diffusemap = Vec2(0, 0);
+		quad[1].diffusemap = Vec2(1, 0);
+		quad[2].diffusemap = Vec2(1, 1);
+		quad[3].diffusemap = Vec2(0, 1);
+	}
 
 	quad[0].color = Color_Color32(color);
 	quad[1].color = Color_Color32(color);
