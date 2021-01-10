@@ -249,15 +249,13 @@ static void G_InitEntityTeams(void) {
  * @brief Resolves references to frequently accessed media.
  */
 static void G_InitMedia(void) {
-	uint16_t i;
 
 	memset(&g_media, 0, sizeof(g_media));
 
 	// preload items/set item media ptrs
 	G_InitItems();
 
-	// precache sexed sounds; clients will load these when a new player model
-	// gets loaded.
+	// precache sexed sounds; clients will load these when a new player model gets loaded
 	gi.SoundIndex("*gurp_1");
 	gi.SoundIndex("*drown_1");
 	gi.SoundIndex("*fall_1");
@@ -305,16 +303,16 @@ static void G_InitMedia(void) {
 	g_media.sounds.weapon_no_ammo = gi.SoundIndex("weapons/common/no_ammo");
 	g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
 
-	for (i = 0; i < NUM_GIB_MODELS; i++) {
+	for (int32_t i = 0; i < NUM_GIB_MODELS; i++) {
 		g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
 	}
 
-	for (i = 0; i < NUM_GIB_SOUNDS; i++) {
+	for (int32_t i = 0; i < NUM_GIB_SOUNDS; i++) {
 		g_media.sounds.gib_hits[i] = gi.SoundIndex(va("gibs/gib_%i/hit", i + 1));
 	}
 
-	for (i = 1; i < lengthof(g_media.sounds.countdown); i++) {
-		g_media.sounds.countdown[i] = gi.SoundIndex(va("world/countdown_%d", i));
+	for (size_t i = 1; i < lengthof(g_media.sounds.countdown); i++) {
+		g_media.sounds.countdown[i] = gi.SoundIndex(va("world/countdown_%d", (int32_t) i));
 	}
 
 	g_media.sounds.roar = gi.SoundIndex("world/ominous_bwah");
@@ -326,6 +324,11 @@ static void G_InitMedia(void) {
 	g_media.sounds.techs[TECH_VAMPIRE] = gi.SoundIndex("tech/vampire");
 
 	g_media.images.health = gi.ImageIndex("pics/i_health");
+
+	for (int32_t i = MOD_FIRST; i <= MOD_LAST; i++) {
+		gi.ImageIndex(Bg_GetModIconString(i, true));
+		gi.ImageIndex(Bg_GetModIconString(i, false));
+	}
 }
 
 /**

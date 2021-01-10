@@ -56,7 +56,7 @@ static const char *mod_strings[] = {
 	"[Hand Grenade]",
 	"[Fireball]",
 	"[Hook]",
-	"[God]"
+	"[Act of God]"
 };
 
 /**

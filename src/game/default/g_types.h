@@ -319,8 +319,9 @@ typedef enum {
 /**
  * @brief Means of death.
  */
- typedef enum {
-	MOD_UNKNOWN,
+typedef enum {
+	MOD_FIRST,
+	MOD_UNKNOWN = MOD_FIRST,
 	MOD_BLASTER,
 	MOD_SHOTGUN,
 	MOD_SUPER_SHOTGUN,
@@ -352,6 +353,7 @@ typedef enum {
 	MOD_FIREBALL,
 	MOD_HOOK,
 	MOD_ACT_OF_GOD,
+	MOD_LAST,
 	MOD_FRIENDLY_FIRE = 0x8000000
 } g_mod_t;
 
