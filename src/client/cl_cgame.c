@@ -260,6 +260,7 @@ void Cl_InitCgame(void) {
 	import.Draw2DImage = R_Draw2DImage;
 	import.Draw2DString = R_Draw2DString;
 	import.StringWidth = R_StringWidth;
+	import.Draw3DLines = R_Draw3DLines;
 
 	cgame_handle = Sys_OpenLibrary("cgame", true);
 	assert(cgame_handle);
