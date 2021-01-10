@@ -46,6 +46,8 @@ static const char *DEFAULT_BINDS =
     "bind \"left shift\" +speed\n"
 
     "bind t cl_message_mode\n"
+	"bind enter cl_message_mode\n"
+	"bind return cl_message_mode\n"
     "bind y cl_message_mode_2\n"
 
     "bind \"mouse 1\" +attack\n"
