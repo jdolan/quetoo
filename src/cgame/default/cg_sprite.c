@@ -144,6 +144,27 @@ void Cg_AddSprites(void) {
 
 	cg_sprite_t *s = cg_active_sprites;
 	while (s) {
+		cl_entity_t *entity = NULL;
+
+		if (s->flags & SPRITE_FOLLOW_ENTITY) {
+			entity = &cgi.client->entities[s->entity.entity_id];
+
+			if (entity->frame_num != cgi.client->frame.frame_num ||
+				entity->current.spawn_id != s->entity.spawn_id) {
+
+				if (!(s->flags & SPRITE_ENTITY_UNLINK_ON_DEATH) || entity->prev.spawn_id != s->entity.spawn_id) {
+					s = Cg_FreeSprite(s);
+					continue;
+				}
+
+				s->flags &= ~(SPRITE_FOLLOW_ENTITY | SPRITE_ENTITY_UNLINK_ON_DEATH);
+				s->origin = Vec3_Add(s->origin, entity->previous_origin);
+
+				if (s->type == SPRITE_BEAM) {
+					s->termination = Vec3_Add(s->termination, entity->previous_origin);
+				}
+			}
+		}
 
 		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? client_time : server_time;
 
@@ -202,13 +223,18 @@ void Cg_AddSprites(void) {
 
 		const vec4_t c = Vec4_Mix(s->color, s->end_color, life);
 		const color32_t color = Color_Color32(ColorHSVA(c.x, c.y, c.z, c.w));
+		vec3_t origin = s->origin;
+
+		if (s->flags & SPRITE_FOLLOW_ENTITY) {
+			origin = Vec3_Add(origin, entity->origin);
+		}
 
 		switch (s->type) {
 			case SPRITE_NORMAL:
 				s->rotation += s->rotation_velocity * delta;
 
 				cgi.AddSprite(cgi.view, &(r_sprite_t) {
-					.origin = s->origin,
+					.origin = origin,
 					.size = s->size,
 					.width = s->width,
 					.height = s->height,
@@ -222,14 +248,20 @@ void Cg_AddSprites(void) {
 					.softness = s->softness
 				});
 				break;
-			case SPRITE_BEAM:
+			case SPRITE_BEAM: {
 				if (!(s->flags & SPRITE_BEAM_VELOCITY_NO_END)) {
 					s->termination = Vec3_Add(s->termination, Vec3_Scale(s->velocity, delta));
 				}
 
+				vec3_t termination = s->termination;
+
+				if (s->flags & SPRITE_FOLLOW_ENTITY) {
+					termination = Vec3_Add(termination, entity->origin);
+				}
+
 				cgi.AddBeam(cgi.view, &(r_beam_t) {
-					.start = s->origin,
-					.end = s->termination,
+					.start = origin,
+					.end = termination,
 					.size = s->size,
 					.image = (r_image_t *) s->image,
 					.color = color,
@@ -237,6 +269,7 @@ void Cg_AddSprites(void) {
 					.softness = s->softness
 				});
 				break;
+			}
 		}
 		
 		if (s->think) {

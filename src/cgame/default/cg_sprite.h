@@ -64,10 +64,40 @@ enum {
 	/**
 	 * @brief Data is not heap-allocated, so don't free.
 	 */
-	SPRITE_DATA_NOFREE = SPRITE_CGAME << 2
+	SPRITE_DATA_NOFREE = SPRITE_CGAME << 2,
+
+	/**
+	 * @brief Sprite is relative to entity ID specified in the structure.
+	 */
+	SPRITE_FOLLOW_ENTITY = SPRITE_CGAME << 3,
+
+	/**
+	 * @brief Rather than despawning, the sprite will "unlink" from its entity when it dies
+	 */
+	SPRITE_ENTITY_UNLINK_ON_DEATH = SPRITE_CGAME << 4
 };
 
 typedef uint32_t cg_r_sprite_flags_t;
+
+/**
+ * @brief Type-safe mapping to entity & spawn ID
+ */
+typedef struct {
+	uint16_t entity_id;
+	uint8_t spawn_id;
+} cg_sprite_entity_t;
+
+/**
+ * @brief Convenience function to get a `cg_sprite_entity_t` from a `cl_entity_t`
+ * @param ent The entity to get a sprite entity for
+ * @return The sprite entity
+ */
+static inline cg_sprite_entity_t Cg_GetSpriteEntity(cl_entity_t *ent) {
+	return (cg_sprite_entity_t) {
+		.entity_id = ent->current.number,
+		.spawn_id = ent->current.spawn_id
+	};
+}
 
 /**
  * @brief Client game sprites can persist over multiple frames.
@@ -211,6 +241,11 @@ typedef struct cg_sprite_s {
 	 * @brief Sprite softness scalar. Negative values invert the scalar.
 	 */
 	float softness;
+
+	/**
+	 * @brief Entity to follow, for SPRITE_FOLLOW_ENTITY. Use Cg_GetSpriteEntity.
+	 */
+	cg_sprite_entity_t entity;
 
 	cg_sprite_t *prev;
 	cg_sprite_t *next;
