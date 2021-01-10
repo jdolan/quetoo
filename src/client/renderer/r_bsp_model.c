@@ -95,7 +95,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 		out->diffusemap = in->diffusemap;
 		out->lightmap = in->lightmap;
 
-		float alpha = 1.0;
+		float alpha = 1.f;
 
 		const r_bsp_texinfo_t *texinfo = bsp->texinfo + in->texinfo;
 		switch (texinfo->flags & SURF_MASK_BLEND) {
