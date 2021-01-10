@@ -140,11 +140,12 @@ void Cg_AddSprites(void) {
 	}
 
 	const float delta = MILLIS_TO_SECONDS(cgi.client->frame_msec);
+	const uint32_t client_time = cgi.client->frame.time, server_time = cgi.client->unclamped_time;
 
 	cg_sprite_t *s = cg_active_sprites;
 	while (s) {
 
-		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? cgi.client->frame.time : cgi.client->unclamped_time;
+		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? client_time : server_time;
 
 		assert(s->media);
 
