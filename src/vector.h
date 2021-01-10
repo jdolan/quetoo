@@ -453,6 +453,11 @@ static inline vec3_t Vec3_Degrees(const vec3_t radians) __attribute__ ((warn_unu
 static inline float Vec3_DistanceDir(const vec3_t a, const vec3_t b, vec3_t *dir) __attribute__ ((warn_unused_result));
 
 /**
+ * @return The direction vector between points a and b.
+ */
+static inline vec3_t Vec3_Direction(const vec3_t a, const vec3_t b) __attribute__((warn_unused_result));
+
+/**
  * @return The squared length of the vector `a - b`.
  */
 static inline float Vec3_DistanceSquared(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_result));
