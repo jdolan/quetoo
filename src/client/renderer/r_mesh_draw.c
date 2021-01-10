@@ -149,10 +149,6 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
 		return;
 	}
 
-	if (!(e->effects & EF_BLEND)) {
-		glDisable(GL_CULL_FACE);
-	}
-
 	R_DrawMeshEntityMaterialStage(e, face, &(const r_stage_t) {
 		.cm = &(const cm_stage_t) {
 			.flags = STAGE_COLOR | STAGE_SHELL | STAGE_SCROLL_S | STAGE_SCROLL_T,
@@ -163,10 +159,6 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
 		},
 		.media = r_mesh_program.shell
 	});
-
-	if (!(e->effects & EF_BLEND)) {
-		glEnable(GL_CULL_FACE);
-	}
 }
 
 /**
@@ -184,7 +176,13 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 
 	glDepthMask(GL_FALSE);
 
-	glEnable(GL_BLEND);
+	const GLboolean blend = glIsEnabled(GL_BLEND);
+	if (!blend) {
+		glEnable(GL_BLEND);
+	}
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glEnable(GL_POLYGON_OFFSET_FILL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
@@ -210,12 +208,81 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 	glPolygonOffset(0.f, 0.f);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if (!blend) {
+		glDisable(GL_BLEND);
+	}
 
 	glDepthMask(GL_TRUE);
 
 	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
+static void R_DrawMeshEntityFace(const r_entity_t *e,
+								 const r_mesh_model_t *mesh,
+								 const r_mesh_face_t *face,
+								 const r_material_t *material) {
+
+	const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, normal)));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, tangent)));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap)));
+
+	const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+
+	glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
+	glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
+	glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, tangent)));
+	glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
+
+	glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+
+	glUniform1f(r_mesh_program.material.roughness, material->cm->roughness * r_roughness->value);
+	glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
+	glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
+	glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
+
+	if (*material->cm->tintmap.path) {
+		vec4_t tints[3];
+
+		memcpy(tints, e->tints, sizeof(tints));
+
+		for (size_t i = 0; i < lengthof(tints); i++) {
+			if (!e->tints[i].w) {
+				tints[i] = material->cm->tintmap_defaults[i];
+			}
+		}
+
+		glUniform4fv(r_mesh_program.tint_colors, 3, tints[0].xyzw);
+	}
+
+	float alpha = 1.f;
+	switch (material->cm->surface & SURF_MASK_BLEND) {
+		case SURF_BLEND_33:
+			alpha = .333f;
+			break;
+		case SURF_BLEND_66:
+			alpha = .666f;
+			break;
+		default:
+			break;
+	}
+
+	glUniform4f(r_mesh_program.color, 1.f, 1.f, 1.f, alpha);
+
+	const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
+	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
+
+	r_stats.count_mesh_triangles += face->num_elements / 3;
+
+	R_DrawMeshEntityMaterialStages(e, face, material);
 }
 
 /**
@@ -228,14 +295,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(.0f, 0.1f);
-	}
-
-	if (e->effects & EF_BLEND) {
-		glUniform1f(r_mesh_program.alpha_threshold, .0f);
-		glEnable(GL_BLEND);
-	} else {
-		glUniform1f(r_mesh_program.alpha_threshold, .125f);
-		glEnable(GL_CULL_FACE);
 	}
 
 	if (e->effects & EF_AMBIENT) {
@@ -265,56 +324,41 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
 
-	const r_mesh_face_t *face = mesh->faces;
-	for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+	glUniform1f(r_mesh_program.alpha_threshold, .125f);
+	glEnable(GL_CULL_FACE);
 
-		const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+	{
+		const r_mesh_face_t *face = mesh->faces;
+		for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, normal)));
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, tangent)));
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
-		glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap)));
-
-		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
-
-		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
-		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
-		glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, tangent)));
-		glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
-
-		const r_material_t *material = e->skins[i] ?: face->material;
-		if (material) {
-
-			glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
-
-			glUniform1f(r_mesh_program.material.roughness, material->cm->roughness * r_roughness->value);
-			glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
-			glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
-			glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
-		
-			if (*material->cm->tintmap.path) {
-				vec4_t tints[3];
-
-				memcpy(tints, e->tints, sizeof(tints));
-
-				for (size_t i = 0; i < lengthof(tints); i++) {
-					if (!e->tints[i].w) {
-						tints[i] = material->cm->tintmap_defaults[i];
-					}
-				}
-
-				glUniform4fv(r_mesh_program.tint_colors, 3, tints[0].xyzw);
+			const r_material_t *material = e->skins[i] ?: face->material;
+			if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
+				continue;
 			}
+
+			R_DrawMeshEntityFace(e, mesh, face, material);
 		}
-
-		const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
-		glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
-		
-		r_stats.count_mesh_triangles += face->num_elements / 3;
-
-		R_DrawMeshEntityMaterialStages(e, face, material);
 	}
+
+	glDisable(GL_CULL_FACE);
+	glUniform1f(r_mesh_program.alpha_threshold, .0f);
+
+	glEnable(GL_BLEND);
+
+	{
+		const r_mesh_face_t *face = mesh->faces;
+		for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+
+			const r_material_t *material = e->skins[i] ?: face->material;
+			if (!(material->cm->surface & SURF_MASK_BLEND) && !(e->effects & EF_BLEND)) {
+				continue;
+			}
+
+			R_DrawMeshEntityFace(e, mesh, face, material);
+		}
+	}
+
+	glDisable(GL_BLEND);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
