@@ -890,7 +890,7 @@ typedef struct r_sprite_instance_s {
 	/**
 	 * @brief The next sprite instance to be rendered at the same blend depth.
 	 */
-	struct r_sprite_instance_s *blend_chain;
+	struct r_sprite_instance_s *tail, *head, *prev, *next;
 
 } r_sprite_instance_t;
 

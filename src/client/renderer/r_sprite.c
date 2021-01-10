@@ -391,11 +391,13 @@ void R_UpdateSprites(r_view_t *view) {
 
 		r_sprite_instance_t *chain = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth));
 		if (chain == NULL) {
-			chain = in;
+			g_hash_table_insert(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth), in);
+			in->tail = in->head = in;
 		} else {
-			in->blend_chain = chain;
+			in->prev = chain->tail;
+			chain->tail = in;
+			in->prev->next = in;
 		}
-		g_hash_table_insert(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth), in);
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
@@ -439,6 +441,11 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
 
 	r_sprite_instance_t *in = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(blend_depth));
+
+	if (in) {
+		in = in->head;
+	}
+
 	while (in) {
 
 		if (in->next_diffusemap) {
@@ -458,7 +465,9 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		const ptrdiff_t stride = 6 * (ptrdiff_t) sizeof(GLuint);
 
 		int32_t count = 0;
-		for (r_sprite_instance_t *chain = in; chain; chain = chain->blend_chain) {
+		r_sprite_instance_t *chain;
+
+		for (chain = in; chain; chain = chain->next) {
 			if (chain->offset == in->offset + count * stride &&
 				chain->diffusemap == in->diffusemap &&
 				chain->next_diffusemap == in->next_diffusemap) {
@@ -471,9 +480,7 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) in->offset);
 		r_stats.count_sprite_draw_elements++;
 
-		while (count--) {
-			in = in->blend_chain;
-		}
+		in = chain;
 	}
 
 	glActiveTexture(GL_TEXTURE0);
