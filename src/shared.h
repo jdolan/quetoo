@@ -181,6 +181,11 @@ typedef struct {
 	 * @brief The entity number that this state update belongs to.
 	 */
 	uint16_t number;
+	
+	/**
+	 * @brief The entity's spawn_id; this will differ if an entity is replaced.
+	 */
+	uint8_t spawn_id;
 
 	/**
 	 * @brief The entity origin.

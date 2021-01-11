@@ -366,7 +366,7 @@ void G_ClearEntity(g_entity_t *ent) {
  * that need to be there for entity system to work (number, etc) and marks it as in_use.
  */
 void G_InitEntity(g_entity_t *ent, const char *class_name) {
-	static uint32_t g_spawn_id;
+	static uint8_t g_spawn_id;
 
 	G_ClearEntity(ent);
 
@@ -376,7 +376,7 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 	ent->locals.water_level = WATER_UNKNOWN;
 	ent->locals.timestamp = g_level.time;
 	ent->s.number = ent - g_game.entities;
-	ent->spawn_id = g_spawn_id++;
+	ent->s.spawn_id = g_spawn_id++;
 }
 
 /**

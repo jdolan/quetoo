@@ -79,6 +79,9 @@ r_atlas_image_t *cg_sprite_electro_02;
 r_atlas_image_t *cg_sprite_splash_02_03;
 r_atlas_image_t *cg_sprite_impact_spark_01_dot;
 r_atlas_image_t *cg_sprite_puff_cloud;
+r_atlas_image_t *cg_sprite_water_circle;
+r_atlas_image_t *cg_sprite_water_ring;
+r_atlas_image_t *cg_sprite_water_ring2;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_arrow;
 r_image_t *cg_beam_line;
@@ -334,6 +337,9 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_splash_02_03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/splash_02/splash_02_03", IT_EFFECT);
 	cg_sprite_impact_spark_01_dot = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01_dot", IT_EFFECT);
 	cg_sprite_puff_cloud = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/puff_cloud", IT_EFFECT);
+	cg_sprite_water_circle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_circle", IT_EFFECT);
+	cg_sprite_water_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring", IT_EFFECT);
+	cg_sprite_water_ring2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring2", IT_EFFECT);
 
 	cgi.LoadingProgress(-1, "sprites");
 
@@ -346,7 +352,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_smoke_05 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
 	cg_sprite_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
 	cg_sprite_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
-	cg_sprite_poof_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 32);
+	cg_sprite_poof_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 34);
 	cg_sprite_poof_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
 	cg_sprite_blood_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
 	cg_sprite_electro_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);

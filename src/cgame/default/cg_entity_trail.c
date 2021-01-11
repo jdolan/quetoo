@@ -526,51 +526,51 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 	};
 
 	// outer rim
-	for (int32_t i = 0; i < 3; i++) {
-		Cg_AddSprite(&(cg_sprite_t) {
-			.atlas_image = variation[i],
-			.origin = ent->origin,
-			.size = RandomRangef(15.f, 20.f),
-			.rotation = RandomRadian(),
-			.lifetime = 50,
-			.color = color_start,
-			.end_color = color_end,
-			.softness = 1.f
-		});
+	if (ent->timestamp < cgi.client->unclamped_time) {
+		for (int32_t i = 0; i < 3; i++) {
+			Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = variation[i],
+				.size = RandomRangef(10.f, 15.f),
+				.rotation = RandomRadian(),
+				.lifetime = 100.f,
+				.color = color_start,
+				.end_color = color_end,
+				.softness = 1.f,
+				.flags = SPRITE_FOLLOW_ENTITY | SPRITE_ENTITY_UNLINK_ON_DEATH,
+				.entity = Cg_GetSpriteEntity(ent)
+			});
+		}
+		ent->timestamp = cgi.client->unclamped_time + 32;
 	}
 
 	// center blob
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_blob_01,
+	cgi.AddSprite(cgi.view, &(r_sprite_t) {
+		.media = (r_media_t *)cg_sprite_blob_01,
 		.origin = ent->origin,
-		.size = RandomRangef(15.f, 20.f),
+		.size = RandomRangef(10.f, 15.f),
 		.rotation = RandomRadian(),
-		.lifetime = 20,
-		.color = color_start,
-		.end_color = color_end,
+		.color = Color32(27, 133, 194, 0),
 		.softness = 1.f
 	});
 
 	// center core
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_particle,
+	cgi.AddSprite(cgi.view, &(r_sprite_t) {
+		.media = (r_media_t *)cg_sprite_particle,
 		.origin = ent->origin,
-		.size = RandomRangef(6.f, 9.f),
+		.size = RandomRangef(4.5f, 7.f),
 		.rotation = RandomRadian(),
-		.lifetime = 20,
-		.color = color_start,
-		.end_color = color_end,
+		.color = bcolor,
 		.softness = 1.f
 	});
 
 	cgi.AddBeam(cgi.view, &(r_beam_t) {
-		.start = Vec3_Add(end, Vec3_Scale(dir, 100.f)),
+		.start = Vec3_Add(end, Vec3_Scale(dir, 70.f)),
 		.end = start,
 		.color = bcolor,
 		.image = cg_beam_tail,
 		.size = 5.0f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
-		.softness = 0.f
+		.softness = 1.f
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {

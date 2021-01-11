@@ -70,7 +70,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 		.atlas_image = cg_sprite_particle,
 		.color = Vec4(150.f, .5f, .4f, 0.f),
 		.end_color = Vec4(150.f, .5f, 0.f, 0.f),
-		.softness = 1.f
+		.softness = 4.f
 	});
 
 	Cg_AddLight(&(cg_light_t) {
@@ -109,7 +109,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 		.atlas_image = cg_sprite_particle,
 		.color = Vec4(150.f, .5f, .4f, 0.f),
 		.end_color = Vec4(150.f, .5f, 0.f, 0.f),
-		.softness = 1.f
+		.softness = 4.f
 	});
 
 	Cg_AddLight(&(cg_light_t) {

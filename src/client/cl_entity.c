@@ -56,6 +56,10 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 		}
 	}
 
+	if (ent->current.spawn_id != to->spawn_id) {
+		return false;
+	}
+
 	if (ent->current.model1 != to->model1) {
 		return false;
 	}

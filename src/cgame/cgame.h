@@ -748,6 +748,14 @@ typedef struct cg_import_s {
 	r_pixel_t (*StringWidth)(const char *s);
 
 	/**
+	 * @brief Draw a 3D line at the given coordinates.
+	 * @param points Pointer to point coordinates.
+	 * @param count Number of point coordinates.
+	 * @param color Color of lines.
+	*/
+	void (*Draw3DLines)(const vec3_t *points, size_t count, const color_t color);
+
+	/**
 	 * @}
 	 */
 
