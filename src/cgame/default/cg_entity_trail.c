@@ -530,7 +530,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		for (int32_t i = 0; i < 3; i++) {
 			Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = variation[i],
-				.size = RandomRangef(15.f, 20.f),
+				.size = RandomRangef(10.f, 15.f),
 				.rotation = RandomRadian(),
 				.lifetime = 100.f,
 				.color = color_start,
@@ -547,7 +547,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.media = (r_media_t *)cg_sprite_blob_01,
 		.origin = ent->origin,
-		.size = RandomRangef(15.f, 20.f),
+		.size = RandomRangef(10.f, 15.f),
 		.rotation = RandomRadian(),
 		.color = Color32(27, 133, 194, 0),
 		.softness = 1.f
@@ -557,7 +557,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.media = (r_media_t *)cg_sprite_particle,
 		.origin = ent->origin,
-		.size = RandomRangef(6.f, 9.f),
+		.size = RandomRangef(4.5f, 7.f),
 		.rotation = RandomRadian(),
 		.color = bcolor,
 		.softness = 1.f
