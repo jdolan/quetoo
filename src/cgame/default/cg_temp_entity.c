@@ -624,7 +624,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.rotation = Randomf() * 2.f * M_PI,
 		.dir = dir,
 		.color = color_start,
-		.end_color = color_end
+		.end_color = color_end,
+		.softness = -1.f
 	});
 
 	// impact flash
