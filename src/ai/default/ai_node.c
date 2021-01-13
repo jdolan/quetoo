@@ -390,7 +390,40 @@ static void Ai_Node_RecalculateCosts(const ai_node_id_t id) {
 /**
  * @brief Check if the node we want to move towards is currently pathable.
  */
-_Bool Ai_Path_CanPathTo(const g_entity_t *self, const GArray *path, const guint index) {
+_Bool Ai_Node_CanPathTo(const vec3_t position) {
+
+	// if we're heading onto a mover node, only allow us to go forth
+	// if the mover is there
+	const vec3_t end = Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f));
+
+	// check if the destination has ground
+	cm_trace_t tr = aim.gi->Trace(position, end, Vec3(PM_MINS.x - 1.f, PM_MINS.y - 1.f, PM_MINS.z), Vec3(PM_MAXS.x + 1.f, PM_MAXS.y + 1.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+
+	// bad ground
+	_Bool stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
+
+	if (tr.fraction == 1.0 || stuck_in_mover) {
+
+		// check with a thinner box; it might be a button press or rotating thing
+		if (stuck_in_mover) {
+			tr = aim.gi->Trace(position, Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Vec3(-4.f, -4.f, PM_MINS.z), Vec3(4.f, 4.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+			stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
+
+			if (!stuck_in_mover) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * @brief Check if the node we want to move towards is currently pathable.
+ */
+_Bool Ai_Path_CanPathTo(const GArray *path, const guint index) {
 
 	// sanity
 	if (index >= path->len) {
@@ -399,32 +432,7 @@ _Bool Ai_Path_CanPathTo(const g_entity_t *self, const GArray *path, const guint 
 
 	// if we're heading onto a mover node, only allow us to go forth
 	// if the mover is there
-	const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, g_array_index(path, ai_node_id_t, index));
-
-	if (!(aim.gi->PointContents(self->s.origin) & CONTENTS_MASK_LIQUID)) {
-		// check if the destination has ground
-		cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Vec3(PM_MINS.x - 1.f, PM_MINS.y - 1.f, PM_MINS.z), Vec3(PM_MAXS.x + 1.f, PM_MAXS.y + 1.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
-
-		// bad ground
-		_Bool stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
-
-		if (tr.fraction == 1.0 || stuck_in_mover) {
-
-			// check with a thinner box; it might be a button press or rotating thing
-			if (stuck_in_mover) {
-				tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Vec3(-4.f, -4.f, PM_MINS.z), Vec3(4.f, 4.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
-				stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
-
-				if (!stuck_in_mover) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-	}
-
-	return true;
+	return Ai_Node_CanPathTo(g_array_index(ai_nodes, ai_node_t, g_array_index(path, ai_node_id_t, index)).position);
 }
 
 /**
@@ -579,6 +587,11 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		if (ai_player_roam.last_nodes[0] != NODE_INVALID) {
 			ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, ai_player_roam.last_nodes[0]);
 			node->position = player->s.origin;
+
+			if (cmd->up < 0) {
+				const cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0.f, 0.f, MAX_WORLD_COORD)), PM_MINS, PM_MAXS, player, CONTENTS_MASK_SOLID);
+				node->position = tr.end;
+			}
 
 			// recalculate links
 			Ai_Node_RecalculateCosts(ai_player_roam.last_nodes[0]);
@@ -755,7 +768,22 @@ void Ai_Node_Render(void) {
 		aim.gi->WriteByte(TE_AI_NODE);
 		aim.gi->WritePosition(node->position);
 		aim.gi->WriteShort(i);
-		aim.gi->WriteByte(in_path ? 3 : (ai_player_roam.last_nodes[0] == i) ? 1 : (ai_player_roam.last_nodes[1] == i) ? 2 : 0);
+
+		byte bits = 0;
+
+		if (in_path) {
+			bits = 3;
+		} else if (ai_player_roam.last_nodes[0] == i) {
+			bits = 1;
+		} else if (ai_player_roam.last_nodes[1] == i) {
+			bits = 2;
+		}
+
+		if (!Ai_Node_CanPathTo(node->position)) {
+			bits |= 16;
+		}
+
+		aim.gi->WriteByte(bits);
 		aim.gi->Multicast(node->position, MULTICAST_PVS, NULL);
 
 		if (node->links) {
