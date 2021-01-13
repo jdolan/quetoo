@@ -830,7 +830,9 @@ static entity_t *ParseEntity(parser_t *parser) {
 					const double dist = plane->dist - Vec3_Dot(plane->normal, origin);
 
 					side->plane_num = FindPlane(plane->normal, dist);
-					side->texinfo = TexinfoForBrushSide(side, origin);
+					if (side->texinfo != BSP_TEXINFO_BEVEL) {
+						side->texinfo = TexinfoForBrushSide(side, origin);
+					}
 				}
 				MakeBrushWindings(brush);
 			}
