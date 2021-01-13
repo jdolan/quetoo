@@ -994,7 +994,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	if (ai->move_target.type == AI_GOAL_PATH) {
 		// the next step(s) will be onto a mover, so if we can't move yet, we wait.
-		if (!Ai_Path_CanPathTo(self, ai->move_target.path.path, ai->move_target.path.path_index)) {
+		if (!(aim.gi->PointContents(self->s.origin) & CONTENTS_MASK_LIQUID) && !Ai_Path_CanPathTo(ai->move_target.path.path, ai->move_target.path.path_index)) {
 			dir = Vec3_Scale(dir, PM_SPEED_RUN);
 			wait_politely = true;
 			ai->move_target.distress_extension = true;
@@ -1100,7 +1100,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			const float xy_dist = Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin));
 			
 			// we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
-			if (!Ai_Path_CanPathTo(self, ai->move_target.path.path, ai->move_target.path.path_index)) {
+			if (!(aim.gi->PointContents(self->s.origin) & CONTENTS_MASK_LIQUID) && !Ai_Path_CanPathTo(ai->move_target.path.path, ai->move_target.path.path_index)) {
 				cmd->forward = -cmd->forward;
 				cmd->right = -cmd->right; // stop for now
 				Ai_Debug("Stopping early to prevent mover issues\n");

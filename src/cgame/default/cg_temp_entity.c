@@ -144,7 +144,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
  */
 static void Cg_DrawFloatingStringLine(vec3_t position, const char *string, const float size, const vec3_t color) {
 
-	position = Vec3_Fmaf(position, -(size * strlen(string)) * 0.5f, cgi.view->right);
+	position = Vec3_Fmaf(position, -(size * strlen(string)) * 0.5f, Vec3(1.f, 0.f, 0.f));
 
 	for (const char *c = string; *c; c++) {
 
@@ -160,7 +160,7 @@ static void Cg_DrawFloatingStringLine(vec3_t position, const char *string, const
 			.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
 		});
 
-		position = Vec3_Fmaf(position, size, cgi.view->right);
+		position = Vec3_Fmaf(position, size, Vec3(1.f, 0.f, 0.f));
 	}
 }
 
@@ -168,9 +168,14 @@ static void Cg_DrawFloatingStringLine(vec3_t position, const char *string, const
  * @brief
  */
 static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint16_t id) {
-	const float hue = color == 3 ? color_hue_red : color == 2 ? color_hue_rose : color == 1 ? color_hue_yellow : color_hue_orange;
+	const uint8_t color_id = color & 0x7;
+	const float hue = color_id == 3 ? color_hue_red : color_id == 2 ? color_hue_rose : color_id == 1 ? color_hue_yellow : color_hue_orange;
 
 	Cg_DrawFloatingStringLine(Vec3_Fmaf(start, 8.f, Vec3_Up()), va("%d", id), 1.f, Vec3(color_hue_yellow, 1.f, 1.f));
+
+	if (color & 16) {
+		Cg_DrawFloatingStringLine(Vec3_Fmaf(start, 4.f, Vec3_Up()), "WAIT", 1.f, Vec3(color_hue_red, 1.f, 1.f));
+	}
 
 	Cg_AddSprite(&(cg_sprite_t) {
 		.atlas_image = cg_sprite_particle,
