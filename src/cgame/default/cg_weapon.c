@@ -27,8 +27,7 @@
 static void Cg_WeaponBob(const player_state_t *ps, vec3_t *offset, vec3_t *angles) {
 	const vec3_t bob = Vec3(0.2f, 0.4f, 0.2f);
 
-	*offset = Vec3_Add(*offset, Vec3_Scale(bob, cg_view.bob));
-
+	*offset = Vec3_Fmaf(*offset, cg_view.bob, bob);
 	*angles = Vec3_Add(*angles, Vec3(0.f, 1.5f * cg_view.bob, 0.f));
 }
 
@@ -47,13 +46,13 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t *offset, vec3_t *angles) {
 	*angles = Vec3_Zero();
 
 	if (ent->animation1.animation == ANIM_TORSO_DROP) {
-		*offset = Vec3_Add(*offset, Vec3_Scale(drop_raise_offset, ent->animation1.fraction));
+		*offset = Vec3_Fmaf(*offset, ent->animation1.fraction, drop_raise_offset);
 		*angles = Vec3_Scale(drop_raise_angles, ent->animation1.fraction);
 	} else if (ent->animation1.animation == ANIM_TORSO_RAISE) {
-		*offset = Vec3_Add(*offset, Vec3_Scale(drop_raise_offset, 1.f - ent->animation1.fraction));
+		*offset = Vec3_Fmaf(*offset, 1.f - ent->animation1.fraction, drop_raise_offset);
 		*angles = Vec3_Scale(drop_raise_angles, 1.f - ent->animation1.fraction);
 	} else if (ent->animation1.animation == ANIM_TORSO_ATTACK1) {
-		*offset = Vec3_Add(*offset, Vec3_Scale(kick_offset, 1.f - ent->animation1.fraction));
+		*offset = Vec3_Fmaf(*offset, 1.f - ent->animation1.fraction, kick_offset);
 		*angles = Vec3_Scale(kick_angles, 1.f - ent->animation1.fraction);
 	}
 
@@ -158,9 +157,9 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 			break;
 	}
 
-	w.origin = Vec3_Add(w.origin, Vec3_Scale(cgi.view->up, offset.z));
-	w.origin = Vec3_Add(w.origin, Vec3_Scale(cgi.view->right, offset.y));
-	w.origin = Vec3_Add(w.origin, Vec3_Scale(cgi.view->forward, offset.x));
+	w.origin = Vec3_Fmaf(w.origin, offset.z, cgi.view->up);
+	w.origin = Vec3_Fmaf(w.origin, offset.y, cgi.view->right);
+	w.origin = Vec3_Fmaf(w.origin, offset.x, cgi.view->forward);
 
 	w.angles = Vec3_Add(cgi.view->angles, angles);
 

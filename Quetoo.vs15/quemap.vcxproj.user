@@ -15,6 +15,6 @@
     <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -light tokays</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -light sandbox</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "D:/jdolan/quetoo-data/src/default" -bsp -light edge</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

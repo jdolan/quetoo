@@ -65,7 +65,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 	// resolve the leaf for the point just in front of the surface
 
 	vec3_t center = Vec3_Mix(face->mins, face->maxs, .5f);
-	center = Vec3_Add(center, Vec3_Scale(face->plane->cm->normal, 1.f));
+	center = Vec3_Add(center, face->plane->cm->normal);
 
 	e->face = face;
 

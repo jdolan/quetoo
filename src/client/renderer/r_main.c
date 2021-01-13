@@ -289,20 +289,20 @@ static void R_UpdateFrustum(r_view_t *view) {
 	float xc = cosf(ang);
 
 	p[0].normal = Vec3_Scale(view->forward, xs);
-	p[0].normal = Vec3_Add(p[0].normal, Vec3_Scale(view->right, xc));
+	p[0].normal = Vec3_Fmaf(p[0].normal, xc, view->right);
 
 	p[1].normal = Vec3_Scale(view->forward, xs);
-	p[1].normal = Vec3_Add(p[1].normal, Vec3_Scale(view->right, -xc));
+	p[1].normal = Vec3_Fmaf(p[1].normal, -xc, view->right);
 
 	ang = Radians(view->fov.y);
 	xs = sinf(ang);
 	xc = cosf(ang);
 
 	p[2].normal = Vec3_Scale(view->forward, xs);
-	p[2].normal = Vec3_Add(p[2].normal, Vec3_Scale(view->up, xc));
+	p[2].normal = Vec3_Fmaf(p[2].normal, xc, view->up);
 
 	p[3].normal = Vec3_Scale(view->forward, xs);
-	p[3].normal = Vec3_Add(p[3].normal, Vec3_Scale(view->up, -xc));
+	p[3].normal = Vec3_Fmaf(p[3].normal, -xc, view->up);
 
 	for (size_t i = 0; i < lengthof(view->frustum); i++) {
 		p[i].normal = Vec3_Normalize(p[i].normal);

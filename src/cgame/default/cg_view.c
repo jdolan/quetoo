@@ -103,13 +103,11 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
 	Vec3_Vectors(angles, &forward, &right, &up);
 
-	point = Vec3_Add(cgi.view->origin, Vec3_Scale(forward, 512.0));
+	point = Vec3_Fmaf(cgi.view->origin, 512.f, forward);
 
-	origin = cgi.view->origin;
-
-	origin = Vec3_Add(origin, Vec3_Scale(up, offset.z));
-	origin = Vec3_Add(origin, Vec3_Scale(right, offset.y));
-	origin = Vec3_Add(origin, Vec3_Scale(forward, offset.x));
+	origin = Vec3_Fmaf(cgi.view->origin, offset.z, up);
+	origin = Vec3_Fmaf(origin, offset.y, right);
+	origin = Vec3_Fmaf(origin, offset.x, forward);
 
 	const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, mins, maxs, 0, CONTENTS_MASK_CLIP_PLAYER);
 	cgi.view->origin = tr.end;
@@ -206,9 +204,9 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	cg_view.bob = sinf(0.0066 * bob) * mod * mod;
 	cg_view.bob *= cg_bob->value; // scale via cvar too
 
-	cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, -cg_view.bob));
-	cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->right,  cg_view.bob));
-	cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->up,  cg_view.bob));
+	cgi.view->origin = Vec3_Fmaf(cgi.view->origin, -cg_view.bob, cgi.view->forward);
+	cgi.view->origin = Vec3_Fmaf(cgi.view->origin,  cg_view.bob, cgi.view->right);
+	cgi.view->origin = Vec3_Fmaf(cgi.view->origin,  cg_view.bob, cgi.view->up);
 }
 
 /**

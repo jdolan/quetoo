@@ -71,7 +71,7 @@
 /**
  * @brief Lightgrid luxel size in world units.
  */
-#define BSP_LIGHTGRID_LUXEL_SIZE 64
+#define BSP_LIGHTGRID_LUXEL_SIZE 32
 
 /**
  * @brief Lightgrid bytes per pixel.
@@ -94,7 +94,7 @@
 #define BSP_FOG_BPP 4
 
 /**
- * @brief Largest lightgrid width in luxels (8192 / 64 = 128).
+ * @brief Largest lightgrid width in luxels (8192 / 32 = 256).
  */
 #define MAX_BSP_LIGHTGRID_WIDTH (MAX_WORLD_AXIAL / BSP_LIGHTGRID_LUXEL_SIZE)
 

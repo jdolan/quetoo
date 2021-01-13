@@ -97,7 +97,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 	vec3_t forward;
 	Vec3_Vectors(ent->angles, &forward, NULL, NULL);
 
-	pos = Vec3_Add(pos, Vec3_Scale(forward, 8.0));
+	pos = Vec3_Fmaf(pos, 8.f, forward);
 
 	const int32_t contents = cgi.PointContents(pos);
 
@@ -363,7 +363,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 static void Cg_FireFlyTrail_Think(cg_sprite_t *sprite, float life, float delta) {
 
-	sprite->velocity = Vec3_Add(sprite->velocity, Vec3_Scale(Vec3_RandomDir(), delta * 1000.f));
+	sprite->velocity = Vec3_Fmaf(sprite->velocity, delta * 1000.f, Vec3_RandomDir());
 }
 
 /**
@@ -382,7 +382,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	// exhaust glow
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_explosion_glow,
-		.origin = Vec3_Add(ent->origin, Vec3_Scale(direction, -20.f)),
+		.origin = Vec3_Fmaf(ent->origin, -20.f, direction),
 		.size = 50.f,
 		.color = Color_Color32(ColorHSVA(29.f, .57f, .34f, 0.f)),
 		.softness = 1.f
@@ -392,7 +392,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	for (int32_t i = 0; i < 2; i++) {
 		cgi.AddSprite(cgi.view, &(r_sprite_t) {
 			.media = (r_media_t *) cg_sprite_explosion_flash,
-			.origin = Vec3_Add(ent->origin, Vec3_Scale(direction, -20.f)),
+			.origin = Vec3_Fmaf(ent->origin, -20.f, direction),
 			.size = 35.f,
 			.color = Color_Color32(ColorHSVA(0.f, 0.f, .50f, 0.f)),
 			.rotation = (i == 0 ? sine : -sine),
@@ -564,7 +564,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 	});
 
 	cgi.AddBeam(cgi.view, &(r_beam_t) {
-		.start = Vec3_Add(end, Vec3_Scale(dir, 70.f)),
+		.start = Vec3_Fmaf(end, 70.f, dir),
 		.end = start,
 		.color = bcolor,
 		.image = cg_beam_tail,
@@ -610,7 +610,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	// beam endpoint cap
 	Cg_AddSprite(&(cg_sprite_t) {
 		.atlas_image = cg_sprite_electro_02,
-			.origin = Vec3_Add(end, Vec3_Scale(aimdir, 10.f)),
+			.origin = Vec3_Fmaf(end, 10.f, aimdir),
 			.lifetime = 30.f,
 			.size = 50.f,
 			.rotation = Randomf() * 2.f * M_PI,
@@ -690,12 +690,41 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 
 	cgi.AddBeam(cgi.view, &(const r_beam_t) {
 		.start = start,
-		.end = Vec3_Add(end, Vec3_Scale(forward, -3.f)),
+		.end = Vec3_Fmaf(end, -3.f, forward),
 		.color = Color_Color32(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
 		.image = cg_beam_hook,
 		.size = 1.f,
 		.softness = 1.f
 	});
+}
+
+#define BFG_BALLS_SPEED	400.f
+
+static void Cg_BfgTrail_Think(cg_sprite_t *sprite, float life, float delta) {
+
+	if (!(sprite->flags & SPRITE_FOLLOW_ENTITY)) {
+		sprite->think = NULL;
+		sprite->acceleration = Vec3(0.f, 0.f, -3.f * SPRITE_GRAVITY);
+		const float lifetime = RandomRangef(2000, 3500);
+		sprite->lifetime = lifetime;
+		sprite->size_velocity = -sprite->size / MILLIS_TO_SECONDS(lifetime);
+		sprite->time = sprite->timestamp = cgi.client->unclamped_time;
+		sprite->bounce = .2f;
+		return;
+	}
+
+	float length;
+	
+	sprite->acceleration = Vec3_NormalizeLength(sprite->origin, &length);
+	sprite->acceleration = Vec3_Scale(sprite->acceleration, -length * (BFG_BALLS_SPEED * QUETOO_TICK_SECONDS));
+
+	sprite->size = Clampf((1.0 - (length / 100.f)) * 24.f, 6.f, 24.f);
+
+	length = Vec3_Length(sprite->velocity);
+
+	if (length > BFG_BALLS_SPEED) {
+		sprite->velocity = Vec3_Scale(Vec3_Normalize(sprite->velocity), BFG_BALLS_SPEED);
+	}
 }
 
 /**
@@ -714,6 +743,26 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		.life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f),
 		.softness = 1.f
 	});
+
+	if (ent->timestamp < cgi.client->unclamped_time) {
+		ent->timestamp = cgi.client->unclamped_time + 4;
+	
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.origin = Vec3_Zero(),
+			.size = 6.f,
+			.color = Vec4(150.f, 0.6f, 0.8f, 0.f),
+			.end_color = Vec4(150.f, 0.7f, 0.6f, 0.f),
+			.lifetime = 1000,
+			.flags = SPRITE_FOLLOW_ENTITY | SPRITE_DATA_NOFREE | SPRITE_ENTITY_UNLINK_ON_DEATH,
+			.softness = 1.f,
+			.bounce = 1.0f,
+			.think = Cg_BfgTrail_Think,
+			.entity = Cg_GetSpriteEntity(ent),
+			.data = ent,
+			.velocity = Vec3_Scale(Vec3_RandomDir(), BFG_BALLS_SPEED)
+		});
+	}
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin);
@@ -860,33 +909,34 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 }
 
 /**
- * @brief Determines the initial position and directional vectors of a projectile.
+ * @brief Determines the initial position and directional vectors of a projectile. This is a copy of G_InitProjectile.
+ * If that function changes, make sure this one is modified too.
  */
 static void Cg_InitProjectile(const cl_entity_t *ent, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand) {
 
 	// resolve the projectile destination
 	const vec3_t start = cgi.view->origin;
-	const vec3_t end = Vec3_Add(start, Vec3_Scale(cgi.view->forward, MAX_WORLD_DIST));
+	const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
 	const cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	// resolve the projectile origin
-	*org = Vec3_Add(start, Vec3_Scale(cgi.view->forward, 12.0));
+	*org = Vec3_Fmaf(start, 12.f, cgi.view->forward);
 
 	switch (cg_hand->integer) {
 		case HAND_RIGHT:
-			*org = Vec3_Add(*org, Vec3_Scale(cgi.view->right, 6.0 * hand));
+			*org = Vec3_Fmaf(*org, 6.f * hand, cgi.view->right);
 			break;
 		case HAND_LEFT:
-			*org = Vec3_Add(*org, Vec3_Scale(cgi.view->right, -6.0 * hand));
+			*org = Vec3_Fmaf(*org, -6.f * hand, cgi.view->right);
 			break;
 		default:
 			break;
 	}
 
 	if ((cgi.client->frame.ps.pm_state.flags & PMF_DUCKED)) {
-		*org = Vec3_Add(*org, Vec3_Scale(cgi.view->up, -6.0));
+		*org = Vec3_Fmaf(*org, -6.f, cgi.view->up);
 	} else {
-		*org = Vec3_Add(*org, Vec3_Scale(cgi.view->up, -12.0));
+		*org = Vec3_Fmaf(*org, -12.f, cgi.view->up);
 	}
 
 	// if the projected origin is invalid, use the entity's origin
@@ -935,7 +985,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 				end = Vec3_Fmaf(start, dist, forward);
 			} else {
 
-				start = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, 8.0));
+				start = Vec3_Fmaf(cgi.view->origin, 8.f, cgi.view->forward);
 
 				const float hand_scale = (ent->current.trail == TRAIL_HOOK ? -1.0 : 1.0);
 

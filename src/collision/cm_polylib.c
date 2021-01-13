@@ -165,7 +165,7 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist) {
 
 	up = Vec3_Cross(normal, right);
 
-	org = Vec3_Add(Vec3_Zero(), Vec3_Scale(normal, dist));
+	org = Vec3_Fmaf(Vec3_Zero(), dist, normal);
 
 	// project a really big	axis aligned box onto the plane
 	cm_winding_t *w = Cm_AllocWinding(4);

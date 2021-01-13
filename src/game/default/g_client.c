@@ -1331,7 +1331,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				angles = Vec3(0.0, ent->s.angles.y, 0.0);
 				Vec3_Vectors(angles, &forward, NULL, NULL);
 
-				point = Vec3_Add(ent->s.origin, Vec3_Scale(velocity, cl->locals.speed * 0.4));
+				point = Vec3_Fmaf(ent->s.origin, cl->locals.speed * .4f, velocity);
 
 				// trace towards our jump destination to see if we have room to backflip
 				tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, CONTENTS_MASK_CLIP_PLAYER);

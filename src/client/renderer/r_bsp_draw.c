@@ -94,9 +94,9 @@ static void R_DrawBspNormals(const r_view_t *view) {
 			continue;
 		}
 
-		const vec3_t normal[] = { pos, Vec3_Add(pos, Vec3_Scale(v->normal, 8.f)) };
-		const vec3_t tangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->tangent, 8.f)) };
-		const vec3_t bitangent[] = { pos, Vec3_Add(pos, Vec3_Scale(v->bitangent, 8.f)) };
+		const vec3_t normal[] = { pos, Vec3_Fmaf(pos, 8.f, v->normal) };
+		const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
+		const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
 
 		R_Draw3DLines(normal, 2, color_red);
 
@@ -140,7 +140,7 @@ void R_DrawBspLightgrid(r_view_t *view) {
 			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, fog += 4) {
 
 				const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
-				const vec3_t origin = Vec3_Add(lg->mins, Vec3_Scale(position, BSP_LIGHTGRID_LUXEL_SIZE));
+				const vec3_t origin = Vec3_Fmaf(lg->mins, BSP_LIGHTGRID_LUXEL_SIZE, position);
 
 				if (Vec3_DistanceSquared(view->origin, origin) > 512.f * 512.f) {
 					continue;
@@ -164,7 +164,7 @@ void R_DrawBspLightgrid(r_view_t *view) {
 					const float z = direction[2] / 255.f * 2.f - 1.f;
 
 					const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
-					const vec3_t end = Vec3_Add(origin, Vec3_Scale(dir, 16.f));
+					const vec3_t end = Vec3_Fmaf(origin, 16.f, dir);
 
 					R_Draw3DLines((vec3_t []) { origin, end }, 2, Color3b(r, g, b));
 

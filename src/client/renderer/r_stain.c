@@ -108,7 +108,7 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 
 	// project the stain onto the node's plane
 	const r_stain_t s = {
-		.origin = Vec3_Add(stain->origin, Vec3_Scale(plane->normal, -dist)),
+		.origin = Vec3_Fmaf(stain->origin, -dist, plane->normal),
 		.radius = stain->radius - fabsf(dist),
 		.color = stain->color
 	};

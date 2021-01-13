@@ -28,7 +28,7 @@ static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
 
 	if (ent->owner) {
 		const float s = scale * g_player_projectile->value;
-		ent->locals.velocity = Vec3_Add(ent->locals.velocity, Vec3_Scale(ent->owner->locals.velocity, s));
+		ent->locals.velocity = Vec3_Fmaf(ent->locals.velocity, s, ent->owner->locals.velocity);
 	} else {
 		G_Debug("No owner for %s\n", etos(ent));
 	}
@@ -65,7 +65,7 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 
 	dir = Vec3_Subtract(tr->end, start);
 	dir = Vec3_Normalize(dir);
-	pos = Vec3_Add(tr->end, Vec3_Scale(dir, -2));
+	pos = Vec3_Fmaf(tr->end, -2.f, dir);
 
 	if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
 		tr->end = pos;
@@ -75,7 +75,7 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	}
 
 	pos = Vec3_Add(start, tr->end);
-	pos = Vec3_Scale(pos, 0.5);
+	pos = Vec3_Scale(pos, .5f);
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BUBBLES);
@@ -94,13 +94,12 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 	dir = Vec3_Subtract(end, start);
 	len = Vec3_Length(dir);
 
-	if (len < 128.0) {
+	if (len < 128.f) {
 		return;
 	}
 
 	dir = Vec3_Normalize(dir);
-
-	mid = Vec3_Add(end, Vec3_Scale(dir, -len + (Randomf() * 0.05 * len)));
+	mid = Vec3_Fmaf(end, -len + (Randomf() * .05f * len), dir);
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_TRACER);
@@ -262,14 +261,13 @@ static vec3_t G_ProjectImpactPoint(const g_entity_t *projectile, const g_entity_
 	}
 
 	// push out the desired distance, this is purely for visual effects with explosions
-	vec3_t out = Vec3_Add(point, Vec3_Scale(plane->normal, dist));
+	vec3_t out = Vec3_Fmaf(point, dist, plane->normal);
 
 	if (gi.PointContents(out) & CONTENTS_SOLID) {
 
 		if (projectile) { // try back along the projectile velocity
-			vec3_t dir;
-			dir = Vec3_Normalize(projectile->locals.velocity);
-			out = Vec3_Add(point, Vec3_Scale(dir, -dist));
+			vec3_t dir = Vec3_Normalize(projectile->locals.velocity);
+			out = Vec3_Fmaf(point, -dist,dir);
 			if (gi.PointContents(out) & CONTENTS_SOLID) {
 				out = point;
 			}
@@ -381,9 +379,9 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		angles = Vec3_Euler(dir);
 		Vec3_Vectors(angles, &forward, &right, &up);
 
-		end = Vec3_Add(start, Vec3_Scale(forward, MAX_WORLD_DIST));
-		end = Vec3_Add(end, Vec3_Scale(right, RandomRangef(-hspread, hspread)));
-		end = Vec3_Add(end, Vec3_Scale(up, RandomRangef(-vspread, vspread)));
+		end = Vec3_Fmaf(start, MAX_WORLD_DIST, forward);
+		end = Vec3_Fmaf(end, RandomRangef(-hspread, hspread), right);
+		end = Vec3_Fmaf(end, RandomRangef(-vspread, vspread), up);
 
 		tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
@@ -433,7 +431,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 
 		vec3_t v;
 		v = Vec3_Add(self->locals.enemy->mins, self->locals.enemy->maxs);
-		v = Vec3_Add(self->locals.enemy->s.origin, Vec3_Scale(v, 0.5));
+		v = Vec3_Fmaf(self->locals.enemy->s.origin, .5f, v);
 		v = Vec3_Subtract(self->s.origin, v);
 
 		const float dist = Vec3_Length(v);
@@ -526,8 +524,8 @@ void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
 	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
-	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(up, RandomRangef(90.f, 110.f)));
-	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(right, RandomRangef(-10.f, 10.f)));
+	projectile->locals.velocity = Vec3_Fmaf(projectile->locals.velocity, RandomRangef(90.f, 110.f), up);
+	projectile->locals.velocity = Vec3_Fmaf(projectile->locals.velocity, RandomRangef(-10.f, 10.f), right);
 
 	G_PlayerProjectile(projectile, 0.33);
 
@@ -573,8 +571,8 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
 	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
-	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(up, RandomRangef(190.f, 210.f)));
-	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(right, RandomRangef(-10.f, 10.f)));
+	projectile->locals.velocity = Vec3_Fmaf(projectile->locals.velocity, RandomRangef(190.f, 210.f), up);
+	projectile->locals.velocity = Vec3_Fmaf(projectile->locals.velocity, RandomRangef(-10.f, 10.f), right);
 
 	// add some of the player's velocity to the projectile
 	G_PlayerProjectile(projectile, 0.33);
@@ -848,9 +846,9 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		return;
 	}
 
-	end = Vec3_Add(start, Vec3_Scale(forward, g_balance_lightning_length->value)); // resolve end
-	end = Vec3_Add(end, Vec3_Scale(up, 2.0 * sinf(g_level.time / 4.0)));
-	end = Vec3_Add(end, Vec3_Scale(right, RandomRangef(-2.f, 2.f)));
+	end = Vec3_Fmaf(start, g_balance_lightning_length->value, forward); // resolve end
+	end = Vec3_Fmaf(end, 2.f * sinf(g_level.time / 4.f), up);
+	end = Vec3_Fmaf(end, RandomRangef(-2.f, 2.f), right);
 
 	tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 
@@ -865,7 +863,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		tr = gi.Trace(water_start, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 		G_BubbleTrail(water_start, &tr);
 
-		G_Ripple(NULL, start, end, 16.0, true);
+		G_Ripple(NULL, start, end, 16.f, true);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
 			gi.PositionedSound(start, NULL, g_media.sounds.water_out, SOUND_ATTEN_LINEAR, 0);
@@ -923,7 +921,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 			projectile->s.origin = ent->s.origin;
 		}
 
-		projectile->s.termination = Vec3_Add(start, Vec3_Scale(dir, g_balance_lightning_length->value));
+		projectile->s.termination = Vec3_Fmaf(start, g_balance_lightning_length->value, dir);
 
 		projectile->owner = ent;
 		projectile->solid = SOLID_NOT;
@@ -969,7 +967,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		liquid = true;
 	}
 
-	end = Vec3_Add(pos, Vec3_Scale(dir, MAX_WORLD_DIST));
+	end = Vec3_Fmaf(pos, MAX_WORLD_DIST, dir);
 
 	G_Ripple(NULL, pos, end, 24.0, true);
 

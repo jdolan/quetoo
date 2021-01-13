@@ -29,16 +29,14 @@ static vec3_t Cg_MuzzleOrigin(const cl_entity_t *ent, const float stand_z_ofs, c
 
 	// project the flash just in front of the entity
 	Vec3_Vectors(ent->angles, &forward, &right, NULL);
-	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
-	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
+	org = Vec3_Fmaf(ent->origin, 30.f, forward);
+	org = Vec3_Fmaf(org, 6.f, right);
 
 	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
-		org = Vec3_Subtract(ent->origin, tr.end);
-		org = Vec3_Scale(org, 0.75);
-
-		org = Vec3_Add(ent->origin, org);
+		const vec3_t dir = Vec3_Subtract(ent->origin, tr.end);
+		org = Vec3_Fmaf(ent->origin, .75f, dir);
 	}
 
 	// and adjust for ducking
@@ -64,7 +62,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		vec3_t org2, forward, right;
 		Vec3_Vectors(ent->angles, &forward, &right, NULL);
-		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
+		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
 		Cg_BubbleTrail(NULL, org, org2);
 	}
 }
@@ -86,7 +84,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		vec3_t org2, forward, right;
 		Vec3_Vectors(ent->angles, &forward, &right, NULL);
-		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
+		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
 		Cg_BubbleTrail(NULL, org, org2);
 		return;
 	}
@@ -123,7 +121,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 	vec3_t org2, forward, right;
 	Vec3_Vectors(ent->angles, &forward, &right, NULL);
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
+		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
 		Cg_BubbleTrail(NULL, org, org2);
 		return;
 	}
@@ -136,7 +134,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 		Cg_AddSprite(&(cg_sprite_t) {
 			.animation = cg_sprite_blaster_flame,
 			.lifetime = Cg_AnimationLifetime(cg_sprite_blaster_flame, 70) + (i / flashlen * 20.f),
-			.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen))),
+			.origin = Vec3_Fmaf(org, 3.f * (i / flashlen), forward),
 			.rotation = Randomf() * M_PI * 2.f,
 			.size = 1.f + 2.f * (np - i / flashlen),
 			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
@@ -148,7 +146,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 	Cg_AddSprite(&(cg_sprite_t) {
 		.image = cg_sprite_blaster_flash,
 		.lifetime = 200,
-		.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f)),
+		.origin = Vec3_Fmaf(org, 3.f, forward),
 		.size = 30.f,
 		.size_velocity = 30.f,
 		.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
