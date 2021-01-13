@@ -714,9 +714,8 @@ static inline float Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t forward;
 	Vec3_Vectors(Vec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
-	vec3_t end = Vec3_Add(self->s.origin, Vec3_Scale(forward, (self->maxs.x - self->mins.x) * 2.0f));
-
-	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
+	const vec3_t end = Vec3_Fmaf(self->s.origin, (self->maxs.x - self->mins.x) * 2.0f, forward);
+	const cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0f) { // hit a wall
 	
@@ -971,7 +970,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 		angles = Vec3(0.0, wander_angle, 0.0);
 		Vec3_Vectors(angles, &dir, NULL, NULL);
-		dest = Vec3_Add(self->s.origin, Vec3_Scale(dir, 1.0));
+		dest = Vec3_Add(self->s.origin, dir);
 	}
 
 	dir = Vec3_Subtract(dest, self->s.origin);
@@ -1322,7 +1321,7 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			const float speed = RandomRangef(900, 1200);
 			const float time = dist / speed;
 			const vec3_t target_velocity = ENTITY_DATA(combat_target->entity.ent, velocity);
-			const vec3_t target_pos = Vec3_Add(combat_target->entity.ent->s.origin, Vec3_Scale(target_velocity, time));
+			const vec3_t target_pos = Vec3_Fmaf(combat_target->entity.ent->s.origin, time, target_velocity);
 			aim_direction = Vec3_Subtract(target_pos, self->s.origin);
 		} else {
 			aim_direction = Vec3_Subtract(combat_target->entity.ent->s.origin, self->s.origin);

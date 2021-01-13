@@ -814,7 +814,7 @@ void G_func_button(g_entity_t *ent) {
 	abs_move_dir.z = fabsf(ent->locals.move_dir.z);
 	dist = abs_move_dir.x * ent->size.x + abs_move_dir.y * ent->size.y
 	       + abs_move_dir.z * ent->size.z - ent->locals.lip;
-	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(ent->locals.move_dir, dist));
+	ent->locals.pos2 = Vec3_Fmaf(ent->locals.pos1, dist, ent->locals.move_dir);
 
 	ent->locals.Use = G_func_button_Use;
 
@@ -1197,7 +1197,7 @@ void G_func_door(g_entity_t *ent) {
 	                                 abs_move_dir.y * ent->size.y +
 	                                 abs_move_dir.z * ent->size.z - ent->locals.lip;
 
-	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(ent->locals.move_dir, ent->locals.move_info.distance));
+	ent->locals.pos2 = Vec3_Fmaf(ent->locals.pos1, ent->locals.move_info.distance, ent->locals.move_dir);
 
 	// if it starts open, switch the positions
 	if (ent->locals.spawn_flags & DOOR_START_OPEN) {
@@ -1289,7 +1289,7 @@ void G_func_door_rotating(g_entity_t *ent) {
 	const float rotation = gi.EntityValue(ent->def, "rotation")->value ?: 90.f;
 
 	ent->locals.pos1 = ent->s.angles;
-	ent->locals.pos2 = Vec3_Add(ent->s.angles, Vec3_Scale(ent->locals.move_dir, rotation));
+	ent->locals.pos2 = Vec3_Fmaf(ent->s.angles, rotation, ent->locals.move_dir);
 	ent->locals.move_info.distance = rotation;
 
 	ent->locals.move_type = MOVE_TYPE_PUSH;
@@ -1594,12 +1594,12 @@ void G_func_door_secret(g_entity_t *ent) {
 	}
 
 	if (ent->locals.spawn_flags & SECRET_FIRST_DOWN) {
-		ent->locals.pos1 = Vec3_Add(ent->s.origin, Vec3_Scale(up, -1.0 * width));
+		ent->locals.pos1 = Vec3_Fmaf(ent->s.origin, -1.0 * width, up);
 	} else {
-		ent->locals.pos1 = Vec3_Add(ent->s.origin, Vec3_Scale(right, side * width));
+		ent->locals.pos1 = Vec3_Fmaf(ent->s.origin, side * width, right);
 	}
 
-	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(forward, length));
+	ent->locals.pos2 = Vec3_Fmaf(ent->locals.pos1, length, forward);
 
 	if (ent->locals.health) {
 		ent->locals.take_damage = true;
@@ -1709,7 +1709,7 @@ void G_func_water(g_entity_t *self) {
 									  abs_move_dir.y * self->size.y +
 									  abs_move_dir.z * self->size.z - self->locals.lip;
 
-	self->locals.pos2 = Vec3_Add(self->locals.pos1, Vec3_Scale(self->locals.move_dir, self->locals.move_info.distance));
+	self->locals.pos2 = Vec3_Fmaf(self->locals.pos1, self->locals.move_info.distance, self->locals.move_dir);
 
 	// if it starts open, switch the positions
 	if (self->locals.spawn_flags & DOOR_START_OPEN) {

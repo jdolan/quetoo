@@ -220,10 +220,9 @@ static vec3_t PhongLuxel(const lightmap_t *lm, const vec3_t origin) {
 			best = delta;
 
 			normal = Vec3_Zero();
-
-			normal = Vec3_Add(normal, Vec3_Scale(a->normal, out.x));
-			normal = Vec3_Add(normal, Vec3_Scale(b->normal, out.y));
-			normal = Vec3_Add(normal, Vec3_Scale(c->normal, out.z));
+			normal = Vec3_Fmaf(normal, out.x, a->normal);
+			normal = Vec3_Fmaf(normal, out.y, b->normal);
+			normal = Vec3_Fmaf(normal, out.z, c->normal);
 		}
 	}
 
@@ -382,7 +381,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 		} else if (light->type == LIGHT_SUN) {
 
-			const vec3_t sun_origin = Vec3_Add(luxel->origin, Vec3_Scale(light->normal, -MAX_WORLD_DIST));
+			const vec3_t sun_origin = Vec3_Fmaf(luxel->origin, -MAX_WORLD_DIST, light->normal);
 
 			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, head_node, CONTENTS_SOLID);
 			if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
@@ -394,7 +393,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 					const vec3_t points[] = CUBE_8;
 					for (size_t j = 0; j < lengthof(points); j++) {
 
-						const vec3_t point = Vec3_Add(sun_origin, Vec3_Scale(points[j], i * LIGHT_SIZE_STEP));
+						const vec3_t point = Vec3_Fmaf(sun_origin, i * LIGHT_SIZE_STEP, points[j]);
 
 						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
 						if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
@@ -420,7 +419,7 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 					const vec3_t points[] = CUBE_8;
 					for (size_t j = 0; j < lengthof(points); j++) {
 
-						const vec3_t point = Vec3_Add(light->origin, Vec3_Scale(points[j], (i + 1) * LIGHT_SIZE_STEP));
+						const vec3_t point = Vec3_Fmaf(light->origin, (i + 1) * LIGHT_SIZE_STEP, points[j]);
 
 						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
 						if (trace.fraction < 1.f) {
@@ -446,17 +445,17 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 			case LIGHT_INVALID:
 				break;
 			case LIGHT_AMBIENT:
-				luxel->ambient = Vec3_Add(luxel->ambient, Vec3_Scale(light->color, intensity));
+				luxel->ambient = Vec3_Fmaf(luxel->ambient, intensity, light->color);
 				break;
 			case LIGHT_SUN:
 			case LIGHT_POINT:
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
-				luxel->diffuse = Vec3_Add(luxel->diffuse, Vec3_Scale(light->color, intensity));
-				luxel->direction = Vec3_Add(luxel->direction, Vec3_Scale(dir, intensity));
+				luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
+				luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
 				break;
 			case LIGHT_INDIRECT:
-				luxel->radiosity[bounce] = Vec3_Add(luxel->radiosity[bounce], Vec3_Scale(light->color, intensity));
+				luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
 				break;
 		}
 	}
@@ -520,7 +519,7 @@ void DirectLightmap(int32_t face_num) {
 				const light_t *light = g_ptr_array_index(lights, j);
 
 				if (light->type == LIGHT_AMBIENT) {
-					l->ambient = Vec3_Add(l->ambient, Vec3_Scale(light->color, light->radius));
+					l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
 				}
 			}
 		}

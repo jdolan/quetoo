@@ -229,7 +229,7 @@ static void LightForPatch(const patch_t *patch) {
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
 	light.size = sqrtf(Cm_WindingArea(patch->winding));
 	light.origin = Cm_WindingCenter(patch->winding);
-	light.origin = Vec3_Add(light.origin, Vec3_Scale(plane->normal, 4.0));
+	light.origin = Vec3_Fmaf(light.origin, 4.f, plane->normal);
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;
@@ -290,8 +290,8 @@ static GPtrArray *BoxLights(const vec3_t box_mins, const vec3_t box_maxs) {
 									   light->radius + light->size * .5f,
 									   light->radius + light->size * .5f);
 
-			const vec3_t mins = Vec3_Add(light->origin, Vec3_Scale(radius, -1.f));
-			const vec3_t maxs = Vec3_Add(light->origin, Vec3_Scale(radius,  1.f));
+			const vec3_t mins = Vec3_Subtract(light->origin, radius);
+			const vec3_t maxs = Vec3_Add(light->origin, radius);
 
 			if (!Vec3_BoxIntersect(box_mins, box_maxs, mins, maxs)) {
 				continue;
@@ -375,7 +375,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
 	light.size = sqrtf(Cm_WindingArea(patch->winding));
 	light.origin = Cm_WindingCenter(patch->winding);
-	light.origin = Vec3_Add(light.origin, Vec3_Scale(lm->plane->normal, 4.0));
+	light.origin = Vec3_Fmaf(light.origin, 4.f, lm->plane->normal);
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;

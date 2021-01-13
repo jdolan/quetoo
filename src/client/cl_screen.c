@@ -219,8 +219,9 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 	}
 
-	const vec3_t forward = Vec3_Add(cl_view.origin, Vec3_Scale(cl_view.forward, MAX_WORLD_DIST));
+	const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
 	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+
 	if (tr.fraction < 1.f) {
 		y += ch;
 

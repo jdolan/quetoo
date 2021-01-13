@@ -296,9 +296,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 		// apply angular velocity (rotate)
 		if (client == NULL || (client->ps.pm_state.flags & PMF_GIBLET)) {
 			knockback_avel = Vec3(knockback, knockback, knockback);
-			const float ascale = 100.0 / mass;
-
-			target->locals.avelocity = Vec3_Add(target->locals.avelocity, Vec3_Scale(knockback_avel, ascale));
+			target->locals.avelocity = Vec3_Fmaf(target->locals.avelocity, 100.f / mass, knockback_avel);
 		}
 
 		if (client && target->locals.velocity.z >= PM_STEP_HEIGHT) { // make sure the client can leave the ground

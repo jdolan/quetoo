@@ -751,8 +751,8 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 
 	// resolve forward direction and project origin
 	if (ent->client && ent->locals.dead) {
-		Vec3_Vectors(Vec3(0.0, ent->client->locals.angles.y, 0.0), &forward, NULL, NULL);
-		it->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(forward, 24.0));
+		Vec3_Vectors(Vec3(.0f, ent->client->locals.angles.y, .0f), &forward, NULL, NULL);
+		it->s.origin = Vec3_Fmaf(ent->s.origin, 24.f, forward);
 	} else {
 		Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
 		it->s.origin = ent->s.origin;

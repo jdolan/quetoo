@@ -291,7 +291,7 @@ static void G_Accelerate(g_entity_t *ent, const vec3_t dir, float speed, float a
 		accel_speed = add_speed;
 	}
 
-	ent->locals.velocity = Vec3_Add(ent->locals.velocity, Vec3_Scale(dir, accel_speed));
+	ent->locals.velocity = Vec3_Fmaf(ent->locals.velocity, accel_speed, dir);
 }
 
 /**
@@ -424,8 +424,8 @@ void G_TouchOccupy(g_entity_t *ent) {
  */
 static void G_Physics_NoClip(g_entity_t *ent) {
 
-	ent->s.angles = Vec3_Add(ent->s.angles, Vec3_Scale(ent->locals.avelocity, QUETOO_TICK_SECONDS));
-	ent->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(ent->locals.velocity, QUETOO_TICK_SECONDS));
+	ent->s.angles = Vec3_Fmaf(ent->s.angles, QUETOO_TICK_SECONDS, ent->locals.avelocity);
+	ent->s.origin = Vec3_Fmaf(ent->s.origin, QUETOO_TICK_SECONDS, ent->locals.velocity);
 
 	gi.LinkEntity(ent);
 }
@@ -748,7 +748,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 		}
 
 		// project desired destination
-		pos = Vec3_Add(ent->s.origin, Vec3_Scale(ent->locals.velocity, time_remaining));
+		pos = Vec3_Fmaf(ent->s.origin, time_remaining, ent->locals.velocity);
 
 		// trace to it
 		const cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, mask);
@@ -761,8 +761,8 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 
 		const float time = trace.fraction * time_remaining;
 
-		ent->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(ent->locals.velocity, time));
-		ent->s.angles = Vec3_Add(ent->s.angles, Vec3_Scale(ent->locals.avelocity, time));
+		ent->s.origin = Vec3_Fmaf(ent->s.origin, time, ent->locals.velocity);
+		ent->s.angles = Vec3_Fmaf(ent->s.angles, time, ent->locals.avelocity);
 
 		time_remaining -= time;
 

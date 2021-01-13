@@ -204,8 +204,8 @@ void Cg_AddSprites(void) {
 
 		vec3_t old_origin = s->origin;
 
-		s->velocity = Vec3_Add(s->velocity, Vec3_Scale(s->acceleration, delta));
-		s->origin = Vec3_Add(s->origin, Vec3_Scale(s->velocity, delta));
+		s->velocity = Vec3_Fmaf(s->velocity, delta, s->acceleration);
+		s->origin = Vec3_Fmaf(s->origin, delta, s->velocity);
 
 		if (s->bounce && cg_particle_quality->integer) {
 			vec3_t origin = s->origin;
@@ -261,7 +261,7 @@ void Cg_AddSprites(void) {
 				break;
 			case SPRITE_BEAM: {
 				if (!(s->flags & SPRITE_BEAM_VELOCITY_NO_END)) {
-					s->termination = Vec3_Add(s->termination, Vec3_Scale(s->velocity, delta));
+					s->termination = Vec3_Fmaf(s->termination, delta, s->velocity);
 				}
 
 				vec3_t termination = s->termination;

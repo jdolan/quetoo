@@ -97,7 +97,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_RESPAWN) {
 		const vec3_t color = Vec3(0.5f, 0.5f, 0.f);
-		e->shell = Vec3_Add(e->shell, Vec3_Scale(color, 0.5));
+		e->shell = Vec3_Fmaf(e->shell, 0.5f, color);
 	}
 
 	if (e->effects & EF_QUAD) {
@@ -109,7 +109,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 		Cg_AddLight(&l);
 
-		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
+		e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
 	}
 
 	if (e->effects & EF_CTF_MASK) {
@@ -126,7 +126,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 				Cg_AddLight(&l);
 
-				e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
+				e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
 			}
 		}
 	}

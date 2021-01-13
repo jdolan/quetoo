@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define BSP_LIGHTGRID_LUXEL_SIZE 64
+#define BSP_LIGHTGRID_LUXEL_SIZE 32
 #define WORLD_TRACE_DISTANCE 1024.0
 
 /**

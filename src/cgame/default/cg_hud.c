@@ -1205,8 +1205,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 		time = 0;
 	}
 
-	vec3_t pos;
-	pos = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, MAX_WORLD_DIST));
+	vec3_t pos = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
 
 	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_MEAT);
 	if (tr.fraction < 1.0) {
