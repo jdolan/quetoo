@@ -854,7 +854,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	}
 
 	// particles 1
-	for (int32_t i = 0; i < 100; i++) {
+	/*for (int32_t i = 0; i < 100; i++) {
 		float life = RandomRangef(2000, 3500);
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle,
@@ -869,7 +869,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 			.end_color = Vec4(150.f, 0.7f, 0.6f, 0.f),
 			.softness = 0.5f
 		});
-	}
+	}*/
 
 	// TODO: these look interesting but need some work
 	// particles 2 (dark matter style)

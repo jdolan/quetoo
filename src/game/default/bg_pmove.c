@@ -322,68 +322,6 @@ static void Pm_StepDown(const cm_trace_t *trace) {
  * @brief
  */
 static void Pm_StepSlideMove(void) {
-
-#if PM_QUAKE3
-
-	vec3_t org, vel;
-	vec3_t down, up;
-
-	// save our initial position and velocity to step from
-	org = pm->s.origin;
-	vel = pm->s.velocity;
-
-	if (Pm_SlideMove()) { // we weren't blocked, we're done
-		return;
-	}
-
-	if (pm->s.flags & PMF_ON_LADDER) { // we're on a ladder, we're done
-		return;
-	}
-
-	// don't step up if we still have upward velocity, and there's no ground
-
-	down = Vec3_Add(org, Vec3_Scale(Vec3_Down(), PM_STEP_HEIGHT + PM_GROUND_DIST));
-	cm_trace_t trace = pm->Trace(org, down, pm->mins, pm->maxs);
-	if (pm->s.velocity.z > PM_SPEED_UP && (trace.ent == NULL || trace.plane.normal.z < PM_STEP_NORMAL)) {
-		return;
-	}
-
-	// try to step up
-
-	up = Vec3_Add(org, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT));
-	trace = pm->Trace(org, up, pm->mins, pm->maxs);
-	if (trace.all_solid) {
-		return;
-	}
-
-	pm->s.origin = trace.end;
-	pm->s.velocity = vel;
-
-	Pm_SlideMove();
-
-	// settle to the new ground
-
-	down = Vec3_Add(pm->s.origin, Vec3_Scale(Vec3_Down(), PM_STEP_HEIGHT + PM_GROUND_DIST));
-	trace = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
-	if (!trace.all_solid) {
-		pm->s.origin = trace.end;
-	}
-
-	if (trace.fraction < 1.0) {
-		pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, PM_CLIP_BOUNCE);
-	}
-
-	// set the step for interpolation
-
-	pm->step = pm->s.origin.z - org.z;
-	if (fabs(pm->step) >= PM_STEP_HEIGHT_MIN) {
-		pm->s.flags |= PMF_ON_STAIRS;
-	} else {
-		pm->step = 0.0;
-	}
-
-#else
-
 	vec3_t org0, vel0;
 	vec3_t org1, vel1;
 	vec3_t down, up;
@@ -442,8 +380,6 @@ static void Pm_StepSlideMove(void) {
 
 	pm->s.origin = org1;
 	pm->s.velocity = vel1;
-
-#endif
 }
 
 /**
@@ -1565,6 +1501,9 @@ void Pm_Move(pm_move_t *pm_move) {
 	if (pm->s.type == PM_DEAD) { // no control
 		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
 	}
+
+	// ensure we're in a valid spot, or revert
+	Pm_CorrectPosition();
 
 	// check for ladders
 	Pm_CheckLadder();

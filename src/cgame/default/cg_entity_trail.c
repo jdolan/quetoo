@@ -698,6 +698,35 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 	});
 }
 
+#define BFG_BALLS_SPEED	400.f
+
+static void Cg_BfgTrail_Think(cg_sprite_t *sprite, float life, float delta) {
+
+	if (!(sprite->flags & SPRITE_FOLLOW_ENTITY)) {
+		sprite->think = NULL;
+		sprite->acceleration = Vec3(0.f, 0.f, -3.f * SPRITE_GRAVITY);
+		const float lifetime = RandomRangef(2000, 3500);
+		sprite->lifetime = lifetime;
+		sprite->size_velocity = -sprite->size / MILLIS_TO_SECONDS(lifetime);
+		sprite->time = sprite->timestamp = cgi.client->unclamped_time;
+		sprite->bounce = .2f;
+		return;
+	}
+
+	float length;
+	
+	sprite->acceleration = Vec3_NormalizeLength(sprite->origin, &length);
+	sprite->acceleration = Vec3_Scale(sprite->acceleration, -length * (BFG_BALLS_SPEED * QUETOO_TICK_SECONDS));
+
+	sprite->size = Clampf((1.0 - (length / 100.f)) * 24.f, 6.f, 24.f);
+
+	length = Vec3_Length(sprite->velocity);
+
+	if (length > BFG_BALLS_SPEED) {
+		sprite->velocity = Vec3_Scale(Vec3_Normalize(sprite->velocity), BFG_BALLS_SPEED);
+	}
+}
+
 /**
  * @brief
  */
@@ -714,6 +743,26 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		.life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f),
 		.softness = 1.f
 	});
+
+	if (ent->timestamp < cgi.client->unclamped_time) {
+		ent->timestamp = cgi.client->unclamped_time + 4;
+	
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.origin = Vec3_Zero(),
+			.size = 6.f,
+			.color = Vec4(150.f, 0.6f, 0.8f, 0.f),
+			.end_color = Vec4(150.f, 0.7f, 0.6f, 0.f),
+			.lifetime = 1000,
+			.flags = SPRITE_FOLLOW_ENTITY | SPRITE_DATA_NOFREE | SPRITE_ENTITY_UNLINK_ON_DEATH,
+			.softness = 1.f,
+			.bounce = 1.0f,
+			.think = Cg_BfgTrail_Think,
+			.entity = Cg_GetSpriteEntity(ent),
+			.data = ent,
+			.velocity = Vec3_Scale(Vec3_RandomDir(), BFG_BALLS_SPEED)
+		});
+	}
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		Cg_BubbleTrail(ent, ent->prev.origin, ent->origin);

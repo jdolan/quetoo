@@ -61,11 +61,6 @@
 #define PM_GROUND_DIST_TRICK	16.f
 
 /**
- * @brief If set, use Quake3 step-slide movement.
- */
-#define PM_QUAKE3 0
-
-/**
  * @brief Speed constants; intended velocities are clipped to these.
  */
 #define PM_SPEED_AIR			350.f

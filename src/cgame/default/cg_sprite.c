@@ -140,7 +140,7 @@ void Cg_AddSprites(void) {
 	}
 
 	const float delta = MILLIS_TO_SECONDS(cgi.client->frame_msec);
-	const uint32_t client_time = cgi.client->frame.time, server_time = cgi.client->unclamped_time;
+	const uint32_t client_time = cgi.client->unclamped_time, server_time = cgi.client->frame.time;
 
 	cg_sprite_t *s = cg_active_sprites;
 	while (s) {
@@ -166,7 +166,7 @@ void Cg_AddSprites(void) {
 			}
 		}
 
-		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? client_time : server_time;
+		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? server_time : client_time;
 
 		assert(s->media);
 
@@ -202,22 +202,33 @@ void Cg_AddSprites(void) {
 			}
 		}
 
-		const vec3_t old_origin = s->origin;
+		vec3_t old_origin = s->origin;
 
 		s->velocity = Vec3_Add(s->velocity, Vec3_Scale(s->acceleration, delta));
 		s->origin = Vec3_Add(s->origin, Vec3_Scale(s->velocity, delta));
 
 		if (s->bounce && cg_particle_quality->integer) {
+			vec3_t origin = s->origin;
+
+			if (s->flags & SPRITE_FOLLOW_ENTITY) {
+				old_origin = Vec3_Add(old_origin, entity->origin);
+				origin = Vec3_Add(origin, entity->origin);
+			}
+
 			const float half_size = ceilf((s->size ?: max(s->height, s->width)) * .5f);
-			cm_trace_t tr = cgi.Trace(old_origin, s->origin, Vec3(-half_size, -half_size, -half_size), Vec3(half_size, half_size, half_size), 0, CONTENTS_MASK_SOLID);
+			cm_trace_t tr = cgi.Trace(old_origin, origin, Vec3(-half_size, -half_size, -half_size), Vec3(half_size, half_size, half_size), 0, CONTENTS_MASK_SOLID);
 
 			if (tr.start_solid || tr.all_solid) {
-				tr = cgi.Trace(old_origin, s->origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
+				tr = cgi.Trace(old_origin, origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
 			}
 
 			if (tr.fraction < 1.0) {
 				s->velocity = Vec3_Scale(Vec3_Reflect(s->velocity, tr.plane.normal), s->bounce);
 				s->origin = tr.end;
+				
+				if (s->flags & SPRITE_FOLLOW_ENTITY) {
+					s->origin = Vec3_Subtract(s->origin, entity->origin);
+				}
 			}
 		}
 
