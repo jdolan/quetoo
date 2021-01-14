@@ -1418,7 +1418,7 @@ static void Cg_DrawNotifications(const player_state_t *ps) {
 
 				x -= NOTIFICATION_PIC_SIZE + NOTIFICATION_PADDING_X;
 
-				const r_image_t *pic  =cgi.LoadImage(Bg_GetModIconString(notification->tag, notification->tag & MOD_FRIENDLY_FIRE), IT_PIC);
+				const r_image_t *pic = cgi.LoadImage(Bg_GetModIconString(notification->tag, notification->tag & MOD_FRIENDLY_FIRE), IT_PIC);
 				cgi.Draw2DImage(x, y, NOTIFICATION_PIC_SIZE, NOTIFICATION_PIC_SIZE, pic, color_white);
 			}
 				break;

@@ -314,6 +314,11 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
  */
 void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color) {
 
+	if (image == NULL) {
+		Com_Warn("NULL image\n");
+		return;
+	}
+
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_TRIANGLES,
 		.texture = image->texnum,
