@@ -258,3 +258,26 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 	glBindVertexArray(0);
 }
 
+/**
+ * @brief
+ */
+void R_RegisterMeshModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
+
+	const r_mesh_face_t *face = mod->mesh->faces;
+	for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+		if (face->material) {
+			R_RegisterDependency(self, (r_media_t *) face->material);
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+void R_FreeMeshModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
+
+	glDeleteBuffers(1, &mod->mesh->vertex_buffer);
+	glDeleteBuffers(1, &mod->mesh->elements_buffer);
+}

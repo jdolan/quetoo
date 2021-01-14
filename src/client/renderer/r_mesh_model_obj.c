@@ -80,7 +80,7 @@ static void R_AppendObjElements(r_mesh_face_t *face, GLuint a, GLuint b, GLuint 
 /**
  * @brief
  */
-void R_LoadObjModel(r_model_t *mod, void *buffer) {
+static void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	r_mesh_model_t *out;
 
 	R_LoadModelMaterials(mod);
@@ -227,3 +227,13 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
 
+/**
+ * @brief
+ */
+const r_model_format_t r_obj_model_format = {
+	.extension = "obj",
+	.type = MOD_MESH,
+	.Load = R_LoadObjModel,
+	.Register = R_RegisterMeshModel,
+	.Free = R_FreeMeshModel,
+};
