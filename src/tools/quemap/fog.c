@@ -66,7 +66,12 @@ static void FogForEntity(const cm_entity_t *entity) {
 		if (Cm_EntityValue(entity, "fog_absorption")->parsed ||
 			Cm_EntityValue(entity, "fog_color")->parsed ||
 			Cm_EntityValue(entity, "fog_density")->parsed ||
-			Cm_EntityValue(entity, "fog_noise")->parsed) {
+			Cm_EntityValue(entity, "fog_noise")->parsed ||
+			Cm_EntityValue(entity, "fog_frequency")->parsed ||
+			Cm_EntityValue(entity, "fog_amplitude")->parsed ||
+			Cm_EntityValue(entity, "fog_lacunarity")->parsed ||
+			Cm_EntityValue(entity, "fog_persistence")->parsed ||
+			Cm_EntityValue(entity, "fog_octaves")->parsed) {
 
 			fog_t fog = {};
 			fog.type = FOG_GLOBAL;
@@ -87,6 +92,11 @@ static void FogForEntity(const cm_entity_t *entity) {
 
 			fog.density = Cm_EntityValue(entity, "fog_density")->value ?: FOG_DENSITY;
 			fog.noise = Cm_EntityValue(entity, "fog_noise")->value ?: FOG_NOISE;
+			fog.frequency = Cm_EntityValue(entity, "fog_frequency")->value ?: FOG_FREQUENCY;
+			fog.amplitude = Cm_EntityValue(entity, "fog_amplitude")->value ?: FOG_AMPLITUDE;
+			fog.lacunarity = Cm_EntityValue(entity, "fog_lacunarity")->value ?: FOG_LACUNARITY;
+			fog.persistence = Cm_EntityValue(entity, "fog_persistence")->value ?: FOG_PERSISTENCE;
+			fog.octaves = Cm_EntityValue(entity, "fog_octaves")->integer ?: FOG_OCTAVES;
 
 			g_array_append_val(fogs, fog);
 		}
@@ -110,6 +120,11 @@ static void FogForEntity(const cm_entity_t *entity) {
 
 		fog.density = Cm_EntityValue(entity, "density")->value ?: FOG_DENSITY;
 		fog.noise = Cm_EntityValue(entity, "noise")->value ?: FOG_NOISE;
+		fog.frequency = Cm_EntityValue(entity, "frequency")->value ?: FOG_FREQUENCY;
+		fog.amplitude = Cm_EntityValue(entity, "amplitude")->value ?: FOG_AMPLITUDE;
+		fog.lacunarity = Cm_EntityValue(entity, "lacunarity")->value ?: FOG_LACUNARITY;
+		fog.persistence = Cm_EntityValue(entity, "persistence")->value ?: FOG_PERSISTENCE;
+		fog.octaves = Cm_EntityValue(entity, "octaves")->integer ?: FOG_OCTAVES;
 
 		fog.brushes = Cm_EntityBrushes(entity);
 

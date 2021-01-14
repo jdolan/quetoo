@@ -170,17 +170,21 @@ void R_DrawBspLightgrid(r_view_t *view) {
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
 
-					const byte r = Mini(fog[0], 255);
-					const byte g = Mini(fog[1], 255);
-					const byte b = Mini(fog[2], 255);
 					const byte a = Mini(fog[3], 255);
 
-					R_AddSprite(view, &(r_sprite_t) {
-						.origin = origin,
-						.size = 8.f,
-						.color = Color32(r, g, b, a),
-						.media = (r_media_t *) particle
-					});
+					if (a) {
+						const byte r = Mini(fog[0], 255);
+						const byte g = Mini(fog[1], 255);
+						const byte b = Mini(fog[2], 255);
+						const float af = a / 255.f;
+
+						R_AddSprite(view, &(r_sprite_t) {
+							.origin = origin,
+							.size = 8.f,
+							.color = Color32(r * af, g * af, b * af, 0),
+							.media = (r_media_t *) particle
+						});
+					}
 				}
 			}
 		}
