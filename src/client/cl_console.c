@@ -210,7 +210,7 @@ void Cl_DrawChat(void) {
 			cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
 		}
 
-		if (cls.key_state.dest == KEY_CHAT) { // Show chat history while typing
+		if (cls.key_state.dest == KEY_CHAT) { // show chat history while typing
 			cl_chat_console.whence = 0;
 		}
 
