@@ -166,6 +166,10 @@ void S_MixChannels(const s_stage_t *stage) {
 
 		if (ch->play.flags & S_PLAY_RELATIVE) {
 			alSourcefv(src, AL_POSITION, Vec3_Zero().xyz);
+
+			if (s_doppler->value) {
+				alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
+			}
 		} else {
 			alSourcefv(src, AL_POSITION, ch->play.origin.xyz);
 

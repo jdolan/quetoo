@@ -224,10 +224,6 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 		.entity = s->number,
 	};
 
-	if (ent == cgi.client->entity) {
-		play.flags |= S_PLAY_RELATIVE;
-	}
-
 	switch (s->event) {
 		case EV_CLIENT_DROWN:
 			play.sample = Cg_ClientModelSample(ent, "*drown_1");
