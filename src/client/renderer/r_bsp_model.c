@@ -359,6 +359,17 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 }
 
 /**
+ * @brief Media free callback for inline models.
+ */
+static void R_FreeBspInlineModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
+
+	g_ptr_array_free(mod->bsp_inline->blend_elements, 1);
+	g_ptr_array_free(mod->bsp_inline->flare_faces, 1);
+}
+
+
+/**
  * @brief Creates an r_model_t for each inline model so that entities may reference them.
  */
 static void R_SetupBspInlineModels(r_model_t *mod) {
@@ -373,6 +384,8 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 
 		out->type = MOD_BSP_INLINE;
 		out->bsp_inline = in;
+
+		out->media.Free = R_FreeBspInlineModel;
 
 		out->maxs = in->maxs;
 		out->mins = in->mins;
@@ -422,6 +435,34 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 	R_UploadImage(out->atlas, GL_RGB, data);
 
 	Mem_Free(data);
+}
+
+/**
+ * @brief Resets all face stainmaps in the event that the map is reloaded.
+ */
+static void R_ResetBspLightmap(r_model_t *mod) {
+
+	r_bsp_lightmap_t *out = mod->bsp->lightmap;
+
+	glBindTexture(GL_TEXTURE_2D_ARRAY, out->atlas->texnum);
+
+	r_bsp_face_t *face = mod->bsp->faces;
+	for (int32_t i = 0; i < mod->bsp->num_faces; i++, face++) {
+
+		memset(face->lightmap.stainmap, 0xff, face->lightmap.w * face->lightmap.h * BSP_LIGHTMAP_BPP);
+
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+				0,
+				face->lightmap.s,
+				face->lightmap.t,
+				BSP_LIGHTMAP_LAYERS,
+				face->lightmap.w,
+				face->lightmap.h,
+				1,
+				GL_RGB,
+				GL_UNSIGNED_BYTE,
+				face->lightmap.stainmap);
+	}
 }
 
 /**
@@ -572,7 +613,7 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 /**
  * @brief
  */
-void R_LoadBspModel(r_model_t *mod, void *buffer) {
+static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	bsp_header_t *file = (bsp_header_t *) buffer;
 
@@ -613,6 +654,60 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Draw elements:  %d\n", mod->bsp->num_draw_elements);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
+
+/**
+ * @brief
+ */
+static void R_RegisterBspModel(r_media_t *self) {
+
+	r_model_t *mod = (r_model_t *) self;
+
+	r_bsp_texinfo_t *texinfo = mod->bsp->texinfo;
+	for (int32_t i = 0; i < mod->bsp->num_texinfo; i++, texinfo++) {
+		R_RegisterDependency(self, (r_media_t *) texinfo->material);
+	}
+
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);
+
+	R_ResetBspLightmap(mod);
+
+	for (size_t i = 0; i < lengthof(mod->bsp->lightgrid->textures); i++) {
+		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->textures[i]);
+	}
+
+	r_world_model = mod;
+}
+
+/**
+ * @brief
+ */
+static void R_FreeBspModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
+
+	glDeleteBuffers(1, &mod->bsp->vertex_buffer);
+	glDeleteBuffers(1, &mod->bsp->elements_buffer);
+	glDeleteVertexArrays(1, &mod->bsp->vertex_array);
+
+	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++) {
+		glDeleteQueries(1, &mod->bsp->occlusion_queries[i].name);
+	}
+
+	r_bsp_plane_t *plane = mod->bsp->planes;
+	for (int32_t i = 0; i < mod->bsp->num_planes; i++, plane++) {
+		g_ptr_array_free(plane->blend_elements, 1);
+	}
+}
+
+/**
+ * @brief
+ */
+const r_model_format_t r_bsp_model_format = {
+	.extension = "bsp",
+	.type = MOD_BSP,
+	.Load = R_LoadBspModel,
+	.Register = R_RegisterBspModel,
+	.Free = R_FreeBspModel
+};
 
 /**
  * @brief Function for exporting a BSP to an OBJ.

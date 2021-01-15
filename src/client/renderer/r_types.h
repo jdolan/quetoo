@@ -681,6 +681,36 @@ typedef struct r_model_s {
 #define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
 
 /**
+ * @brief The model format type.
+ */
+typedef struct {
+	/**
+	 * @brief The file extension.
+	 */
+	const char *extension;
+
+	/**
+	 * @brief The model type.
+	 */
+	r_model_type_t type;
+
+	/**
+	 * @brief The load function.
+	 */
+	void (*Load)(r_model_t *mod, void *buffer);
+
+	/**
+	 * @brief The media registration callback.
+	 */
+	void (*Register)(r_media_t *self);
+
+	/**
+	 * @brief The media free callback.
+	 */
+	void (*Free)(r_media_t *self);
+} r_model_format_t;
+
+/**
  * @brief
  */
 enum {

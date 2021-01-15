@@ -28,8 +28,7 @@
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t effect_color) {
 	const color_t color_rgb = ColorHSVA(effect_color.x, effect_color.y, effect_color.z, 1.f);
 
-	for (int32_t i = 0; i < 2; i++)
-	{
+	for (int32_t i = 0; i < 2; i++) {
 		const float saturation = RandomRangef(.8f, 1.f);
 
 		// surface aligned blast ring sprite
@@ -975,17 +974,15 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir, const float size
 
 	s.lifetime = 500.f;
 	s.acceleration.z = -SPRITE_GRAVITY;
-	for (int32_t i = 1; i < 4; i++)
-	{
-		s.origin = Vec3_Fmaf(org, i * 5.f, Vec3_Up()),
+	for (int32_t i = 1; i < 4; i++) {
+		s.origin = Vec3_Fmaf(org, i * 5.f, Vec3_Up());
 		s.size = 20.f * (1.f - i * .25f);
 		Cg_AddSprite(&s);
 	}
 
 	// splash droplets
 
-	for (int32_t i = 0; i < 50; i++)
-	{
+	for (int32_t i = 0; i < 50; i++) {
 		cg_sprite_t *p = Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle,
 			.lifetime = RandomRangef(10.f, 1000.f),

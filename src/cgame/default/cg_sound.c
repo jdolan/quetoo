@@ -44,9 +44,9 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 	if (play->entity) {
 		const cl_entity_t *ent = &cgi.client->entities[play->entity];
 		if (ent == Cg_Self()) {
-			play->origin = cgi.stage->origin;
+			play->origin = stage->origin;
 		} else if (ent->current.solid == SOLID_BSP) {
-			play->origin = Vec3_Clamp(cgi.stage->origin, ent->abs_mins, ent->abs_maxs);
+			play->origin = Vec3_Clamp(stage->origin, ent->abs_mins, ent->abs_maxs);
 		} else {
 			play->origin = ent->origin;
 		}
@@ -76,6 +76,10 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 void Cg_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 
 	s_play_sample_t s = *play;
+
+	if (Vec3_Equal(Vec3_Zero(), play->origin) && !play->entity && !(play->flags & S_PLAY_RELATIVE)) {
+		Cg_Debug("Potentially mispositioned sound\n");
+	}
 
 	if (s.Think == NULL) {
 		s.Think = Cg_PlaySampleThink;
