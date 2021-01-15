@@ -280,7 +280,7 @@ static d_md3_t R_SwapMd3(const d_md3_t *in) {
 /**
  * @brief Loads the d_md3_t contents of buffer to the specified model.
  */
-void R_LoadMd3Model(r_model_t *mod, void *buffer) {
+static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 	const byte *base = buffer;
 
@@ -472,3 +472,14 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Animations:     %d\n", mod->mesh->num_animations);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
+
+/**
+ * @brief
+ */
+const r_model_format_t r_md3_model_format = {
+	.extension = "md3",
+	.type = MOD_MESH,
+	.Load = R_LoadMd3Model,
+	.Register = R_RegisterMeshModel,
+	.Free = R_FreeMeshModel,
+};
