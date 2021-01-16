@@ -151,7 +151,7 @@ static void enumerateMaps(const char *path, void *data) {
 						break;
 					}
 
-					StripColors(token, info->message);
+					StrStrip(token, info->message);
 
 					char *c = strstr(info->message, "\\n");
 					if (c) {

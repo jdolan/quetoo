@@ -267,13 +267,31 @@ void StripExtension(const char *in, char *out) {
 }
 
 /**
- * @return The color escape sequence at `c`, or -1 if none.
+ * @return True if `c` is a color escape sequence, false otherwise.
  */
 _Bool StrIsColor(const char *c) {
 	if (c) {
 		if (*c == ESC_COLOR) {
 			const char num = *(c + 1);
 			if (num >= '0' && num <= '7') {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**
+ * @return True if `c` is an emoji escape sequence, false otherwise.
+ */
+_Bool StrIsEmoji(const char *c) {
+	if (c) {
+		if (*c == ESC_EMOJI) {
+			c++;
+			while (isalnum(*c)) {
+				c++;
+			}
+			if (*c == ESC_EMOJI) {
 				return true;
 			}
 		}
@@ -308,9 +326,37 @@ color_t ColorEsc(int32_t esc) {
 }
 
 /**
+ * @brief Extracts the emoji sequence at `in` to `out`, returning a pointer to the next character
+ * after the emoji sequence.
+ */
+const char *EmojiEsc(const char *in, char *out, size_t out_size) {
+
+	assert(*in == ESC_EMOJI);
+
+	in++;
+
+	for (size_t i = 0; i < out_size - 1; i++) {
+		if (isalnum(*in)) {
+			if (out) {
+				*out++ = *in++;
+			}
+		} else {
+			break;
+		}
+	}
+	
+	if (out) {
+		*out = 0;
+	}
+
+	assert(*in == ESC_EMOJI);
+	return in + 1;
+}
+
+/**
  * @brief Strips color escape sequences from the specified input string.
  */
-void StripColors(const char *in, char *out) {
+void StrStrip(const char *in, char *out) {
 
 	while (*in) {
 
@@ -327,7 +373,7 @@ void StripColors(const char *in, char *out) {
 /**
  * @brief Returns the length of s in printable characters.
  */
-size_t StrColorLen(const char *s) {
+size_t StrStripLen(const char *s) {
 
 	size_t len = 0;
 
@@ -347,11 +393,11 @@ size_t StrColorLen(const char *s) {
 /**
  * @brief Performs a color- and case-insensitive string comparison.
  */
-int32_t StrColorCmp(const char *s1, const char *s2) {
+int32_t StrStripCmp(const char *s1, const char *s2) {
 	char string1[strlen(s1) + 1], string2[strlen(s2) + 1];
 
-	StripColors(s1, string1);
-	StripColors(s2, string2);
+	StrStrip(s1, string1);
+	StrStrip(s2, string2);
 
 	return g_ascii_strcasecmp(string1, string2);
 }

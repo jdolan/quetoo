@@ -858,7 +858,7 @@ typedef struct {
 	MOD_HOOK,
 	MOD_ACT_OF_GOD,
 	MOD_FRIENDLY_FIRE = 0x8000000
-} g_mod_t;
+} g_means_of_death;
 
 /**
  * @brief Damage flags. These can be and often are combined.

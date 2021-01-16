@@ -218,7 +218,26 @@ void R_Draw2DChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
  * on the currently bound font. Color escapes are omitted.
  */
 r_pixel_t R_StringWidth(const char *s) {
-	return StrColorLen(s) * r_draw_2d.font->char_width;
+
+	size_t len = 0;
+
+	while (*s) {
+		if (StrIsColor(s)) {
+			s += 2;
+			continue;
+		}
+
+		if (StrIsEmoji(s)) {
+			s = EmojiEsc(s, NULL, MAX_STRING_CHARS);
+			len += 2;
+			continue;
+		}
+
+		s++;
+		len++;
+	}
+
+	return len * r_draw_2d.font->char_width;
 }
 
 /**
@@ -257,6 +276,29 @@ size_t R_Draw2DSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, 
 			c = ColorEsc(StrColor(s));
 			j += 2;
 			s += 2;
+			continue;
+		}
+
+		if (StrIsEmoji(s)) {
+
+			draw.num_vertexes = r_draw_2d.num_vertexes - draw.first_vertex;
+			R_AddDraw2DArrays(&draw);
+
+			char name[MAX_QPATH];
+			s = EmojiEsc(s, name, sizeof(name));
+
+			char path[MAX_QPATH];
+			g_snprintf(path, sizeof(path), "pics/emoji/%s", name);
+
+			const r_image_t *emoji = R_LoadImage(path, IT_PIC) ?: r_draw_2d.null_texture;
+
+			R_Draw2DImage(x, y, r_draw_2d.font->char_height, r_draw_2d.font->char_height, emoji, color_white);
+			x += r_draw_2d.font->char_height;
+
+			i += 2;
+			j += strlen(name) + 2;
+
+			draw.first_vertex = r_draw_2d.num_vertexes;
 			continue;
 		}
 

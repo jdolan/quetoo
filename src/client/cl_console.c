@@ -255,7 +255,7 @@ void Cl_DrawChat(void) {
 static void Cl_Print(const console_string_t *str) {
 	char stripped[strlen(str->chars) + 1];
 
-	StripColors(str->chars, stripped);
+	StrStrip(str->chars, stripped);
 	fputs(stripped, stdout);
 }
 

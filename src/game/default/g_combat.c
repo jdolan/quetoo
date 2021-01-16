@@ -201,7 +201,7 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  */
 void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 			  const vec3_t dir, const vec3_t pos, const vec3_t normal,
-			  int32_t damage, int32_t knockback, int32_t dflags, g_mod_t mod) {
+			  int32_t damage, int32_t knockback, int32_t dflags, g_means_of_death mod) {
 
 	if (!target || !target->locals.take_damage) {
 		return;
@@ -387,7 +387,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
  * @brief
  */
 void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int32_t damage,
-                    int32_t knockback, float radius, g_mod_t mod) {
+                    int32_t knockback, float radius, g_means_of_death mod) {
 
 	g_entity_t *ent = NULL;
 
