@@ -429,6 +429,7 @@ void Cl_UpdateScreen(void) {
 					Cl_DrawConsole();
 					break;
 				case KEY_GAME:
+					Cl_DrawChat();
 					Cl_DrawNotify();
 					Cl_DrawRendererStats();
 					Cl_DrawSoundStats();

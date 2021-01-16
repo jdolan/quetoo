@@ -352,7 +352,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	SDL_Surface *surf = Img_LoadSurface(key);
 	if (!surf) {
-
 		Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
 		return NULL;
 	}
