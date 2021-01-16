@@ -161,7 +161,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 		const int16_t health = ps->stats[STAT_HEALTH];
 		const int16_t health_icon = ps->stats[STAT_HEALTH_ICON];
 
-		x = cgi.context->width * 0.25 - x_offset;
+		x = cgi.context->width * 0.5 - x_offset;
 
 		Cg_DrawVital(x, ch, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
 	}
@@ -173,7 +173,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 			const int16_t ammo_low = ps->stats[STAT_AMMO_LOW];
 			const int16_t ammo_icon = ps->stats[STAT_AMMO_ICON];
 
-			x = cgi.context->width * 0.5 - x_offset;
+			x = cgi.context->width * 0.25 - x_offset;
 
 			Cg_DrawVital(x, ch, ammo, ammo_icon, -1, ammo_low);
 		}
