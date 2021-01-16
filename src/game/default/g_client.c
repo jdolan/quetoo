@@ -1316,7 +1316,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	G_TossTech(ent);
 	G_ClientHookDetach(ent);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s disconnected\n", ent->client->locals.persistent.net_name);
 
 	// send effect
 	if (G_IsMeat(ent)) {

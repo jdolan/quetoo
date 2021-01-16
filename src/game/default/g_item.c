@@ -477,7 +477,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	gi.Sound(ent, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
 
-	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned\n", t->name);
+	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
 
 	G_FreeEntity(ent);
 }
@@ -518,8 +518,8 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 			gi.Sound(other, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
 
-			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
-			                  other->client->locals.persistent.net_name, t->name);
+			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n",
+			                  other->client->locals.persistent.net_name, t->name, t->id + 1);
 
 			return true;
 		}
@@ -544,8 +544,8 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				gi.Sound(other, gi.SoundIndex("ctf/capture"), SOUND_ATTEN_NONE, 0);
 
-				gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
-								  other->client->locals.persistent.net_name, ot->name);
+				gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n",
+								  other->client->locals.persistent.net_name, ot->name, ot->id + 1);
 
 				t->captures++;
 				other->client->locals.persistent.captures++;
@@ -576,8 +576,8 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), SOUND_ATTEN_NONE, 0);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
-	                  other->client->locals.persistent.net_name, t->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n",
+	                  other->client->locals.persistent.net_name, t->name, t->id + 1);
 
 	other->s.effects |= G_EffectForTeam(t);
 	return true;
@@ -605,8 +605,8 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 	ent->s.model3 = 0;
 	ent->s.effects &= ~EF_CTF_MASK;
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
-	                  ent->client->locals.persistent.net_name, ot->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n",
+	                  ent->client->locals.persistent.net_name, ot->name, ot->id);
 
 	return G_DropItem(ent, ofi);
 }
