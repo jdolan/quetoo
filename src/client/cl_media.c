@@ -145,12 +145,13 @@ static void Cl_LoadModels(void) {
 
 /**
  * @brief
- * TODO: Use an atlas here?
  */
 static void Cl_LoadImages(void) {
 
 	Cl_LoadingProgress(-1, "sky");
 	R_LoadSky(cl.config_strings[CS_SKY]);
+
+	r_atlas_t *atlas = R_LoadAtlas("images");
 
 	for (int32_t i = 0; i < MAX_IMAGES; i++) {
 
@@ -159,12 +160,11 @@ static void Cl_LoadImages(void) {
 			break;
 		}
 
-		if (i ^ 1) {
-			Cl_LoadingProgress(-1, str);
-		}
-
-		cl.images[i] = R_LoadImage(str, IT_PIC);
+		cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IT_PIC);
 	}
+
+	Cl_LoadingProgress(-1, "compiling images");
+	R_CompileAtlas(atlas);
 }
 
 /**

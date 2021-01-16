@@ -454,9 +454,16 @@ static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
 				break;
 		}
 
-		const float noise = SimplexNoiseFBM(fog->octaves, fog->frequency, fog->amplitude, fog->lacunarity,fog->persistence,
-			(l->s + fog->offset.x) / (float)MAX_BSP_LIGHTGRID_WIDTH, (l->t + fog->offset.y) / (float)MAX_BSP_LIGHTGRID_WIDTH, (l->u + fog->offset.z) / (float)MAX_BSP_LIGHTGRID_WIDTH,
-			fog->permutation_vector);
+
+		float noise = SimplexNoiseFBM(fog->octaves,
+									  fog->frequency,
+									  fog->amplitude,
+									  fog->lacunarity,
+									  fog->persistence,
+									  (l->s + fog->offset.x) / (float) MAX_BSP_LIGHTGRID_WIDTH,
+									  (l->t + fog->offset.y) / (float) MAX_BSP_LIGHTGRID_WIDTH,
+									  (l->u + fog->offset.z) / (float) MAX_BSP_LIGHTGRID_WIDTH,
+									  fog->permutation_vector);
 
 		intensity *= fog->density + (fog->noise * noise);
 

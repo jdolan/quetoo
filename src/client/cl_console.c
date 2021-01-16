@@ -202,11 +202,13 @@ void Cl_DrawChat(void) {
 	r_pixel_t x = 1, y = r_context.height * 0.66;
 
 	cl_chat_console.width = r_context.width / cw / 3;
-	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 8);
+	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 16);
 
 	if (cl_draw_chat->value && cl_chat_console.height) {
 
-		if (quetoo.ticks > cl_chat_time->value * 1000) {
+		if (cls.key_state.dest == KEY_CHAT) {
+			cl_chat_console.whence = 0;
+		} else if (quetoo.ticks > cl_chat_time->value * 1000) {
 			cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
 		}
 
@@ -362,7 +364,7 @@ void Cl_InitConsole(void) {
 	cl_notify_lines = Cvar_Add("cl_console_notify_lines", "3", CVAR_ARCHIVE, "How many lines to show in the notify console.");
 	cl_notify_time = Cvar_Add("cl_notify_time", "3.0", CVAR_ARCHIVE, "How long notify messages stay on-screen.");
 
-	cl_chat_lines = Cvar_Add("cl_chat_lines", "3", CVAR_ARCHIVE, "How many chat lines to show");
+	cl_chat_lines = Cvar_Add("cl_chat_lines", "4", CVAR_ARCHIVE, "How many chat lines to show");
 	cl_chat_time = Cvar_Add("cl_chat_time", "10.0", CVAR_ARCHIVE, "How long chat messages last");
 
 	Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
