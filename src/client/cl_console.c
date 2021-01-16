@@ -202,11 +202,13 @@ void Cl_DrawChat(void) {
 	r_pixel_t x = 1, y = r_context.height * 0.66;
 
 	cl_chat_console.width = r_context.width / cw / 3;
-	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 8);
+	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 16);
 
 	if (cl_draw_chat->value && cl_chat_console.height) {
 
-		if (quetoo.ticks > cl_chat_time->value * 1000) {
+		if (cls.key_state.dest == KEY_CHAT) {
+			cl_chat_console.whence = 0;
+		} else if (quetoo.ticks > cl_chat_time->value * 1000) {
 			cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
 		}
 
