@@ -362,7 +362,7 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
 
 	switch (cmd) {
 		case SV_CMD_CONFIG_STRING:
-			Cg_UpdateConfigString((int32_t) data);
+			Cg_UpdateConfigString((int32_t) (intptr_t) data);
 			break;
 		case SV_CMD_SOUND:
 			Cg_AddSample(cgi.stage, (s_play_sample_t *) data);
