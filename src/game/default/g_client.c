@@ -31,7 +31,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 	const _Bool frag = attacker && (attacker != self) && attacker->client;
 
-	const _Bool friendy_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
+	const _Bool friendly_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
 	mod &= ~MOD_FRIENDLY_FIRE;
 
 	if (frag) { // killed by another player
@@ -104,7 +104,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 		           attacker->client->locals.persistent.net_name);
 #pragma clang diagnostic pop
 
-		if (friendy_fire) {
+		if (friendly_fire) {
 			g_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
 		}
 
@@ -192,7 +192,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 	if (!g_level.warmup) {
 
 		if (frag) {
-			if (friendy_fire) {
+			if (friendly_fire) {
 				attacker->client->locals.persistent.score--;
 			} else {
 				attacker->client->locals.persistent.score++;
@@ -202,7 +202,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			        self->client->locals.persistent.team &&
 			        attacker->client->locals.persistent.team) {
 
-				if (friendy_fire) {
+				if (friendly_fire) {
 					attacker->client->locals.persistent.team->score--;
 				} else {
 					attacker->client->locals.persistent.team->score++;
