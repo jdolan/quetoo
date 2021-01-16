@@ -40,9 +40,9 @@ struct lightgrid_t {
 	vec4 view_coordinate;
 
 	/**
-	 * @brief The lightgrid texel resolution per dimension.
+	 * @brief The lightgrid size, in luxels.
 	 */
-	vec3 resolution;
+	vec4 size;
 };
 
 /**
@@ -113,16 +113,6 @@ layout (std140) uniform uniforms_block {
 	 * @brief The modulate scalar.
 	 */
 	float modulate;
-
-	/**
-	 * @brief The global fog color.
-	 */
-	// vec3 fog_global_color; // FIXME
-
-	/**
-	 * @brief The global fog density scalar.
-	 */
-	// float fog_global_density; // FIXME
 
 	/**
 	 * @brief The fog density scalar.

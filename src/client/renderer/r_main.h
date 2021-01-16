@@ -107,9 +107,9 @@ typedef struct {
 	vec4_t view_coordinate;
 
 	/**
-	 * @brief The lightgrid texel dimensions.
+	 * @brief The lightgrid size, in luxels.
 	 */
-	vec4_t resolution;
+	vec4_t size;
 } r_lightgrid_t;
 
 /**

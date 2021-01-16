@@ -258,8 +258,8 @@ static void R_UpdateUniforms(const r_view_t *view) {
 			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->mins);
 			const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
 
-			r_uniforms.block.lightgrid.resolution = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
+			r_uniforms.block.lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 
 			// r_uniforms.block.fog_global_color = Vec3(1.f, 1.f, 1.f); // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_color")->vec3; // FIXME
 			// r_uniforms.block.fog_global_density = 1.f; // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_density")->value; // FIXME

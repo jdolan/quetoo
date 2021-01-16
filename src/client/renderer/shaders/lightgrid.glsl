@@ -37,7 +37,7 @@ float soft_clip_fog(float x) {
 vec4 lightgrid_raster(vec3 uvw, float distance) {
 	float alpha = 1.0 - clamp(distance / WORLD_TRACE_DISTANCE, 0.0, 1.0);
 	vec4 c = vec4(1.0);
-	c.rgb = fract(uvw * lightgrid.resolution.xyz);
+	c.rgb = fract(uvw * lightgrid.size.xyz);
 	c.rgb = abs(c.rgb * 2.0 - 1.0);
 	float t = 0.7 + (0.25 * alpha);
 	float m = max(max(c.r, c.g), c.b);
