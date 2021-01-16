@@ -27,10 +27,11 @@
  * @param[in] x float coordinate
  * @param[in] y float coordinate
  * @param[in] z float coordinate
+ * @param[in] perm permutation vector
  *
  * @return Noise value in the range[-1; 1], value of 0 on all integer coordinates.
  */
-float SimplexNoise(float x, float y, float z);
+float SimplexNoise(float x, float y, float z, const uint8_t *perm);
 
 /**
  * Fractal/Fractional Brownian Motion (fBm) summation of 3D Perlin Simplex noise
@@ -39,7 +40,8 @@ float SimplexNoise(float x, float y, float z);
  * @param[in] x         x float coordinate
  * @param[in] y         y float coordinate
  * @param[in] z         z float coordinate
+ * @param[in] perm		permutation vector
  *
  * @return Noise value in the range[-1; 1], value of 0 on all integer coordinates.
  */
-float SimplexNoiseFBM(size_t octaves, float frequency, float amplitude, float lacunarity, float persistence, float x, float y, float z);
+float SimplexNoiseFBM(size_t octaves, float frequency, float amplitude, float lacunarity, float persistence, float x, float y, float z, const uint8_t *perm);

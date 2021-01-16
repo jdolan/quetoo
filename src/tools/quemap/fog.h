@@ -32,6 +32,8 @@
 #define FOG_LACUNARITY 2.f
 #define FOG_PERSISTENCE .5f
 #define FOG_OCTAVES 5
+#define FOG_SEED 0
+#define FOG_OFFSET Vec3_Zero()
 
 /**
  * @brief Fog types.
@@ -114,6 +116,21 @@ typedef struct {
 	 * @brief The fog octaves.
 	 */
 	size_t octaves;
+
+	/**
+	 * @brief The fog noise offset.
+	 */
+	vec3_t offset;
+	
+	/**
+	 * @brief The seed for this fog volume.
+	 */
+	int32_t seed;
+
+	/**
+	 * @brief The permutation vector for this fog volume.
+	 */
+	uint8_t permutation_vector[256];
 
 	/**
 	 * @brief The bounds of all brushes in this fog entity.
