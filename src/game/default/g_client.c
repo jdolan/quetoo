@@ -40,61 +40,61 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 		switch (mod) {
 			case MOD_BLASTER:
-				msg = "%s was humiliated by %s's blaster";
+				msg = "%s was humiliated by %s's blaster :blaster:";
 				break;
 			case MOD_SHOTGUN:
-				msg = "%s was gunned down by %s's shotgun";
+				msg = "%s was gunned down by %s's shotgun :shotgun:";
 				break;
 			case MOD_SUPER_SHOTGUN:
-				msg = "%s was blown away by %s's super shotgun";
+				msg = "%s was blown away by %s's super shotgun :sshotgun:";
 				break;
 			case MOD_MACHINEGUN:
-				msg = "%s was perforated by %s's machinegun";
+				msg = "%s was perforated by %s's machinegun :machinegun:";
 				break;
 			case MOD_GRENADE:
-				msg = "%s was popped by %s's grenade";
+				msg = "%s was popped by %s's grenade :grenade:";
 				break;
 			case MOD_GRENADE_SPLASH:
-				msg = "%s was shredded by %s's shrapnel";
+				msg = "%s was shredded by %s's shrapnel :grenade:";
 				break;
 			case MOD_HANDGRENADE:
-				msg = "%s caught %s's handgrenade";
+				msg = "%s caught %s's handgrenade :handgrenade:";
 				break;
 			case MOD_HANDGRENADE_SPLASH:
-				msg = "%s felt the burn from %s's handgrenade";
+				msg = "%s felt the burn from %s's handgrenade :handgrenade:";
 				break;
 			case MOD_HANDGRENADE_KAMIKAZE:
-				msg = "%s felt %s's pain";
+				msg = "%s felt %s's pain :handgrenade:";
 				break;
 			case MOD_ROCKET:
-				msg = "%s ate %s's rocket";
+				msg = "%s ate %s's rocket :rocket:";
 				break;
 			case MOD_ROCKET_SPLASH:
-				msg = "%s almost dodged %s's rocket";
+				msg = "%s almost dodged %s's rocket :rocket:";
 				break;
 			case MOD_HYPERBLASTER:
-				msg = "%s was melted by %s's hyperblaster";
+				msg = "%s was melted by %s's hyperblaster :hyperblaster:";
 				break;
 			case MOD_LIGHTNING:
-				msg = "%s got a charge out of %s's lightning";
+				msg = "%s got a charge out of %s's lightning :lightning:";
 				break;
 			case MOD_LIGHTNING_DISCHARGE:
-				msg = "%s was shocked by %s's discharge";
+				msg = "%s was shocked by %s's discharge :lightning:";
 				break;
 			case MOD_RAILGUN:
-				msg = "%s was railed by %s";
+				msg = "%s was railed by %s :railgun:";
 				break;
 			case MOD_BFG_LASER:
-				msg = "%s saw the pretty lights from %s's BFG";
+				msg = "%s saw the pretty lights from %s's BFG :bfg:";
 				break;
 			case MOD_BFG_BLAST:
-				msg = "%s was disintegrated by %s's BFG blast";
+				msg = "%s was disintegrated by %s's BFG blast :bfg:";
 				break;
 			case MOD_TELEFRAG:
-				msg = "%s tried to invade %s's personal space";
+				msg = "%s tried to invade %s's personal space :telefrag:";
 				break;
 			case MOD_HOOK:
-				msg = "%s had their intestines shredded by %s's grappling hook";
+				msg = "%s had their intestines shredded by %s's grappling hook :hook:";
 				break;
 		}
 
@@ -110,60 +110,60 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 	} else { // killed by self or world
 
-		const char *msg = "%s sucks at life";
+		const char *msg = "%s sucks at life :suicide:";
 
 		switch (mod) {
 			case MOD_SUICIDE:
-				msg = "%s suicides";
+				msg = "%s suicides :suicide:";
 				break;
 			case MOD_FALLING:
-				msg = "%s cratered";
+				msg = "%s cratered :falldamage:";
 				break;
 			case MOD_CRUSH:
-				msg = "%s was squished";
+				msg = "%s was squished :crush:";
 				break;
 			case MOD_WATER:
-				msg = "%s sleeps with the fishes";
+				msg = "%s sleeps with the fishes :drown:";
 				break;
 			case MOD_SLIME:
-				msg = "%s melted";
+				msg = "%s melted :slime:";
 				break;
 			case MOD_LAVA:
-				msg = "%s did a back flip into the lava";
+				msg = "%s did a back flip into the lava :lava:";
 				break;
 			case MOD_FIREBALL:
-				msg = "%s tasted the lava rainbow";
+				msg = "%s tasted the lava rainbow :lava:";
 				break;
 			case MOD_TRIGGER_HURT:
-				msg = "%s was in the wrong place";
+				msg = "%s was in the wrong place :actofgod:";
 				break;
 			case MOD_ACT_OF_GOD:
-				msg = "%s was killed by an act of god";
+				msg = "%s was killed by an act of god :actofgod:";
 				break;
 		}
 
 		if (attacker == self) {
 			switch (mod) {
 				case MOD_GRENADE_SPLASH:
-					msg = "%s went pop";
+					msg = "%s went pop :explosive:";
 					break;
 				case MOD_HANDGRENADE_KAMIKAZE:
-					msg = "%s tried to put the pin back in";
+					msg = "%s tried to put the pin back in :handgrenade:";
 					break;
 				case MOD_HANDGRENADE_SPLASH:
-					msg = "%s has no hair left";
+					msg = "%s has no hair left :explosive:";
 					break;
 				case MOD_ROCKET_SPLASH:
-					msg = "%s blew up";
+					msg = "%s blew up :explosive:";
 					break;
 				case MOD_HYPERBLASTER_CLIMB:
-					msg = "%s forgot how to climb";
+					msg = "%s forgot how to climb :death:";
 					break;
 				case MOD_LIGHTNING_DISCHARGE:
-					msg = "%s took a toaster bath";
+					msg = "%s took a toaster bath :death:";
 					break;
 				case MOD_BFG_BLAST:
-					msg = "%s should have used a smaller gun";
+					msg = "%s should have used a smaller gun :death:";
 					break;
 			}
 		}
