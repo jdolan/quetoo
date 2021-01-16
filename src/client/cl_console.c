@@ -364,7 +364,7 @@ void Cl_InitConsole(void) {
 	cl_notify_lines = Cvar_Add("cl_console_notify_lines", "3", CVAR_ARCHIVE, "How many lines to show in the notify console.");
 	cl_notify_time = Cvar_Add("cl_notify_time", "3.0", CVAR_ARCHIVE, "How long notify messages stay on-screen.");
 
-	cl_chat_lines = Cvar_Add("cl_chat_lines", "3", CVAR_ARCHIVE, "How many chat lines to show");
+	cl_chat_lines = Cvar_Add("cl_chat_lines", "4", CVAR_ARCHIVE, "How many chat lines to show");
 	cl_chat_time = Cvar_Add("cl_chat_time", "10.0", CVAR_ARCHIVE, "How long chat messages last");
 
 	Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
