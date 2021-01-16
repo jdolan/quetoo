@@ -160,13 +160,10 @@ static void Cl_LoadImages(void) {
 			break;
 		}
 
-		if (i ^ 1) {
-			Cl_LoadingProgress(-1, str);
-		}
-
 		cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IT_PIC);
 	}
 
+	Cl_LoadingProgress(-1, "compiling images");
 	R_CompileAtlas(atlas);
 }
 
