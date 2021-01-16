@@ -513,14 +513,14 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	gi.Sound(ent, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
 
-	bg_notification_t notifiation = {
+	bg_notification_t notification = {
 		.type = NOTIFICATION_GAME_EVENT,
 		.pic = gi.ImageIndex(va("pics/notifications/i_flag%d_return", t->id + 1)),
 	};
 
-	strncpy(notifiation.string, va("%s flag returned", t->name), MAX_STRING_CHARS);
+	g_snprintf(notification.string, sizeof(notification.string), "%s flag returned", t->name);
 
-	G_BroadcastNotification(&notifiation);
+	G_BroadcastNotification(&notification);
 
 	G_FreeEntity(ent);
 }
