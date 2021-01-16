@@ -44,6 +44,7 @@
     <ClCompile Include="..\src\tools\quemap\qlight.c" />
     <ClCompile Include="..\src\tools\quemap\qmat.c" />
     <ClCompile Include="..\src\tools\quemap\qzip.c" />
+    <ClCompile Include="..\src\tools\quemap\simplex.c" />
     <ClCompile Include="..\src\tools\quemap\texinfo.c" />
     <ClCompile Include="..\src\tools\quemap\tjunction.c" />
     <ClCompile Include="..\src\tools\quemap\tree.c" />
@@ -78,6 +79,7 @@
     <ClInclude Include="..\src\tools\quemap\qmat.h" />
     <ClInclude Include="..\src\tools\quemap\quemap.h" />
     <ClInclude Include="..\src\tools\quemap\qzip.h" />
+    <ClInclude Include="..\src\tools\quemap\simplex.h" />
     <ClInclude Include="..\src\tools\quemap\texinfo.h" />
     <ClInclude Include="..\src\tools\quemap\tjunction.h" />
     <ClInclude Include="..\src\tools\quemap\tree.h" />
