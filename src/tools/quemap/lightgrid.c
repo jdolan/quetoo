@@ -24,6 +24,7 @@
 #include "lightgrid.h"
 #include "points.h"
 #include "qlight.h"
+#include "simplex.h"
 
 typedef struct {
 	vec3_t stu_mins, stu_maxs;
@@ -453,7 +454,18 @@ static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
 				break;
 		}
 
-		intensity *= fog->density + RandomRangef(-fog->noise, fog->noise);
+
+		float noise = SimplexNoiseFBM(fog->octaves,
+									  fog->frequency,
+									  fog->amplitude,
+									  fog->lacunarity,
+									  fog->persistence,
+									  (l->s + fog->offset.x) / (float) MAX_BSP_LIGHTGRID_WIDTH,
+									  (l->t + fog->offset.y) / (float) MAX_BSP_LIGHTGRID_WIDTH,
+									  (l->u + fog->offset.z) / (float) MAX_BSP_LIGHTGRID_WIDTH,
+									  fog->permutation_vector);
+
+		intensity *= fog->density + (fog->noise * noise);
 
 		intensity = Clampf(intensity, 0.f, 1.f);
 
@@ -589,10 +601,10 @@ void EmitLightgrid(void) {
 			}
 		}
 
-//		IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
-//		IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
-//		IMG_SavePNG(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
-//		IMG_SavePNG(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
+		//IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
+		//IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
+		//IMG_SavePNG(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
+		//IMG_SavePNG(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);

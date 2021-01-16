@@ -114,6 +114,9 @@
     <ClCompile Include="..\src\tools\quemap\fog.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\tools\quemap\simplex.c">
+      <Filter>src\tools\quemap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\deps\minizip\ioapi.h">
@@ -207,6 +210,9 @@
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tools\quemap\fog.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\simplex.h">
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
   </ItemGroup>
