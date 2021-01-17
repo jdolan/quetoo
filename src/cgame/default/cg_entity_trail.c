@@ -443,14 +443,15 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			// smoke 1
 			if (!Cg_AddSprite(&(cg_sprite_t) {
 					.animation = cg_sprite_smoke_04,
-					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_04, 60) * particle_life_frac,
+					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_04, 6) * particle_life_frac,
 					.origin = Vec3_Add(Vec3_Mix(start, origin, step * i), Vec3_RandomRange(-2.5f, 2.5f)),
 					.velocity = Vec3_Scale(velocity, 0.5),
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = Randomf() * 5.f + 10.f,
 					.size_velocity = Randomf() * 5.f + 10.f,
 					.color = Vec4(0.f, 0.f, 1.f, .25f),
-					.softness = 1.f
+					.softness = 1.f,
+					.lighting = 1.f
 				})) {
 				break;
 			}
@@ -458,14 +459,15 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			// smoke 2
 			if (!Cg_AddSprite(&(cg_sprite_t) {
 					.animation = cg_sprite_smoke_05,
-					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 60) * particle_life_frac,
+					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 6) * particle_life_frac,
 					.origin = Vec3_Add(Vec3_Mix(start, origin, (step * i) + (step * .5f)), Vec3_RandomRange(-2.5f, 2.5f)),
 					.velocity = Vec3_Scale(velocity, 0.5),
 					.rotation = Randomf() * 2.f * M_PI,
 					.size = Randomf() * 5.f + 10.f,
 					.size_velocity = Randomf() * 5.f + 10.f,
 					.color = Vec4(0.f, 0.f, 1.f, .25f),
-					.softness = 1.f
+					.softness = 1.f,
+					.lighting = 1.f
 				})) {
 				break;
 			}

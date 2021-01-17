@@ -106,7 +106,21 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 			GLchar log[log_length];
 			glGetShaderInfoLog(shader, log_length, NULL, log);
 
-			Com_Error(ERROR_FATAL, "%s\n", log);
+			GLchar source_list[MAX_PRINT_MSG] = { 0 };
+
+			for (GLsizei i = 0; i < (GLsizei) lengthof(desc->filenames); i++) {
+				const char *filename = desc->filenames[i];
+
+				if (!filename) {
+					break;
+				} else if (source_list[0] != 0) {
+					g_strlcat(source_list, ", ", sizeof(source_list));
+				}
+				
+				g_strlcat(source_list, filename, sizeof(source_list));
+			}
+
+			Com_Error(ERROR_FATAL, "Sources: %s\n%s\n", source_list, log);
 		}
 	}
 

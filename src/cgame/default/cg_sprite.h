@@ -243,6 +243,11 @@ typedef struct cg_sprite_s {
 	float softness;
 
 	/**
+	 * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
+	 */
+	float lighting;
+
+	/**
 	 * @brief Entity to follow, for SPRITE_FOLLOW_ENTITY. Use Cg_GetSpriteEntity.
 	 */
 	cg_sprite_entity_t entity;
