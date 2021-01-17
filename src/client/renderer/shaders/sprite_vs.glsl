@@ -25,15 +25,23 @@ layout (location = 2) in vec2 in_next_diffusemap;
 layout (location = 3) in vec4 in_color;
 layout (location = 4) in float in_lerp;
 layout (location = 5) in float in_softness;
+layout (location = 6) in float in_lighting;
+
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_fog;
 
 out vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec2 next_diffusemap;
-	vec3 lightgrid;
+	vec3 ambient;
+	vec3 diffuse;
+	vec4 fog;
 	vec4 color;
 	float lerp;
 	float softness;
+	float lighting;
 } vertex;
 
 /**
@@ -43,13 +51,21 @@ void main(void) {
 
 	vec4 position = vec4(in_position, 1.0);
 
-	vertex.position = vec3(view * vec4(in_position.xyz, 1.0));
+	vertex.position = vec3(view * position);
 	vertex.diffusemap = in_diffusemap;
 	vertex.next_diffusemap = in_next_diffusemap;
-	vertex.lightgrid = lightgrid_uvw(in_position);
 	vertex.color = in_color;
 	vertex.lerp = in_lerp;
 	vertex.softness = in_softness;
+	vertex.lighting = in_lighting;
+
+	vec3 lightgrid_uvw = lightgrid_uvw(in_position);
+
+	vertex.ambient = texture(texture_lightgrid_ambient, lightgrid_uvw).rgb;
+	vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
+
+	vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
+	lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
 
 	gl_Position = projection3D * view * position;
 }

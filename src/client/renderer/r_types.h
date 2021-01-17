@@ -820,6 +820,11 @@ typedef struct r_sprite_s {
 	 * @brief Sprite softness scalar. Negative values apply an invert to the result.
 	 */
 	float softness;
+
+	/**
+	 * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
+	 */
+	float lighting;
 } r_sprite_t;
 
 #define MAX_SPRITES		0x8000
@@ -872,6 +877,11 @@ typedef struct {
 	 * @brief Beam softness scalar. Negative values apply an invert to the result.
 	 */
 	float softness;
+
+	/**
+	 * @brief Beam lighting mix factor. 0 is fullbright, 1 is fully affected by light.
+	 */
+	float lighting;
 } r_beam_t;
 
 #define MAX_BEAMS 0x200
@@ -886,6 +896,7 @@ typedef struct {
 	color32_t color;
 	float lerp;
 	float softness;
+	float lighting;
 } r_sprite_vertex_t;
 
 /**
