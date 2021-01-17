@@ -208,7 +208,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 	r_uniforms.block.viewport = Vec4(0.f, 0.f, r_context.drawable_width, r_context.drawable_height);
 
 	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
-	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D_FBO, 0.0, r_context.drawable_width, r_context.drawable_height, 0.0, -1.0, 1.0);
 
 	r_uniforms.block.brightness = r_brightness->value;
 	r_uniforms.block.contrast = r_contrast->value;
@@ -260,9 +259,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
 			r_uniforms.block.lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
-
-			// r_uniforms.block.fog_global_color = Vec3(1.f, 1.f, 1.f); // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_color")->vec3; // FIXME
-			// r_uniforms.block.fog_global_density = 1.f; // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_density")->value; // FIXME
 		}
 	}
 

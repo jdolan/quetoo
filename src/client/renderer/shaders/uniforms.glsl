@@ -55,19 +55,14 @@ layout (std140) uniform uniforms_block {
 	vec4 viewport;
 
 	/**
-	 * @brief The 3D projection matrix.
-	 */
-	mat4 projection3D;
-
-	/**
 	 * @brief The 2D projection matrix.
 	 */
 	mat4 projection2D;
 
 	/**
-	 * @brief The 2D projection matrix for the framebuffer object.
+	 * @brief The 3D projection matrix.
 	 */
-	mat4 projection2D_FBO;
+	mat4 projection3D;
 
 	/**
 	 * @brief The view matrix.

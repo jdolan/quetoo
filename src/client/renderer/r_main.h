@@ -132,19 +132,14 @@ typedef struct {
 		vec4_t viewport;
 
 		/**
-		 * @brief The 3D projection matrix.
-		 */
-		mat4_t projection3D;
-
-		/**
 		 * @brief The 2D projection matrix.
 		 */
 		mat4_t projection2D;
 
 		/**
-		 * @brief The 2D projection matrix for the framebuffer object.
+		 * @brief The 3D projection matrix.
 		 */
-		mat4_t projection2D_FBO;
+		mat4_t projection3D;
 
 		/**
 		 * @brief The view matrix.
@@ -190,16 +185,6 @@ typedef struct {
 		 * @brief The modulate scalar.
 		 */
 		float modulate;
-
-		/**
-		 * @brief The global fog color.
-		 */
-		// vec3_t fog_global_color; // FIXME
-
-		/**
-		 * @brief The global fog density scalar.
-		 */
-		// float fog_global_density; // FIXME
 
 		/**
 		 * @brief The volumetric fog density scalar.
