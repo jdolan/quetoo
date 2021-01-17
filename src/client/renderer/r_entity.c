@@ -55,6 +55,10 @@ static void R_SetEntityBounds(r_entity_t *e) {
  */
 static _Bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 
+	if (view->type == VIEW_PLAYER_MODEL) {
+		return false;
+	}
+	
 	if (e->parent) {
 		return false;
 	}

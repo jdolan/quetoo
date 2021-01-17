@@ -86,7 +86,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_ambient_volume 0"
@@ -102,15 +102,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map edge"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+debug client cgame"

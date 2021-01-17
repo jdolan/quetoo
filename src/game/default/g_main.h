@@ -38,8 +38,6 @@ extern g_export_t ge;
 
 extern ai_export_t *aix;
 
-extern uint32_t g_means_of_death;
-
 extern cvar_t *g_admin_password;
 extern cvar_t *g_ammo_respawn_time;
 extern cvar_t *g_auto_join;

@@ -60,9 +60,10 @@ void R_GetError_(const char *function, const char *msg);
 
 void R_Init(void);
 void R_Shutdown(void);
-void R_BeginFrame(r_view_t *view);
+void R_BeginFrame(void);
 void R_DrawViewDepth(r_view_t *view);
 void R_DrawView(r_view_t *view);
+void R_DrawPlayerModelView(r_view_t *view);
 void R_EndFrame(void);
 
 #ifdef __R_LOCAL_H__
@@ -107,9 +108,9 @@ typedef struct {
 	vec4_t view_coordinate;
 
 	/**
-	 * @brief The lightgrid texel dimensions.
+	 * @brief The lightgrid size, in luxels.
 	 */
-	vec4_t resolution;
+	vec4_t size;
 } r_lightgrid_t;
 
 /**
@@ -132,19 +133,14 @@ typedef struct {
 		vec4_t viewport;
 
 		/**
-		 * @brief The 3D projection matrix.
-		 */
-		mat4_t projection3D;
-
-		/**
 		 * @brief The 2D projection matrix.
 		 */
 		mat4_t projection2D;
 
 		/**
-		 * @brief The 2D projection matrix for the framebuffer object.
+		 * @brief The 3D projection matrix.
 		 */
-		mat4_t projection2D_FBO;
+		mat4_t projection3D;
 
 		/**
 		 * @brief The view matrix.
@@ -190,16 +186,6 @@ typedef struct {
 		 * @brief The modulate scalar.
 		 */
 		float modulate;
-
-		/**
-		 * @brief The global fog color.
-		 */
-		// vec3_t fog_global_color; // FIXME
-
-		/**
-		 * @brief The global fog density scalar.
-		 */
-		// float fog_global_density; // FIXME
 
 		/**
 		 * @brief The volumetric fog density scalar.

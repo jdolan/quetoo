@@ -205,10 +205,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
 
-	r_uniforms.block.viewport = Vec4(0.f, 0.f, r_context.drawable_width, r_context.drawable_height);
-
-	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
-	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D_FBO, 0.0, r_context.drawable_width, r_context.drawable_height, 0.0, -1.0, 1.0);
+	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
 
 	r_uniforms.block.brightness = r_brightness->value;
 	r_uniforms.block.contrast = r_contrast->value;
@@ -216,8 +213,9 @@ static void R_UpdateUniforms(const r_view_t *view) {
 	r_uniforms.block.gamma = r_gamma->value;
 
 	if (view) {
+		r_uniforms.block.viewport = view->viewport;
 
-		const float aspect = (float) r_context.width / (float) r_context.height;
+		const float aspect = (view->viewport.z - view->viewport.x) / (view->viewport.w - view->viewport.y);
 
 		const float ymax = tanf(Radians(view->fov.y));
 		const float ymin = -ymax;
@@ -225,16 +223,16 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		const float xmin = ymin * aspect;
 		const float xmax = ymax * aspect;
 
-		Matrix4x4_FromFrustum(&r_uniforms.block.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
+		Matrix4x4_FromFrustum(&r_uniforms.block.projection3D, xmin, xmax, ymin, ymax, 1.f, MAX_WORLD_DIST);
 
 		Matrix4x4_CreateIdentity(&r_uniforms.block.view);
 
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -90.0, 1.0, 0.0, 0.0); // put Z going up
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view,  90.0, 0.0, 0.0, 1.0); // put Z going up
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -90.f, 1.f, 0.f, 0.f); // put Z going up
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view,  90.f, 0.f, 0.f, 1.f); // put Z going up
 
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.z, 1.0, 0.0, 0.0);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.x, 0.0, 1.0, 0.0);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.y, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.z, 1.f, 0.f, 0.f);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.x, 0.f, 1.f, 0.f);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.y, 0.f, 0.f, 1.f);
 
 		Matrix4x4_ConcatTranslate(&r_uniforms.block.view, -view->origin.x, -view->origin.y, -view->origin.z);
 
@@ -258,11 +256,8 @@ static void R_UpdateUniforms(const r_view_t *view) {
 			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->mins);
 			const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
 
-			r_uniforms.block.lightgrid.resolution = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
-
-			// r_uniforms.block.fog_global_color = Vec3(1.f, 1.f, 1.f); // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_color")->vec3; // FIXME
-			// r_uniforms.block.fog_global_density = 1.f; // Cm_EntityValue(*r_world_model->bsp->cm->entities, "fog_density")->value; // FIXME
+			r_uniforms.block.lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 		}
 	}
 
@@ -339,11 +334,11 @@ static void R_Clear(const r_view_t *view) {
 /**
  * @brief Called at the beginning of each render frame.
  */
-void R_BeginFrame(r_view_t *view) {
+void R_BeginFrame(void) {
 
 	memset(&r_stats, 0, sizeof(r_stats));
 
-	R_Clear(view);
+	R_Clear(NULL);
 }
 
 /**
@@ -383,7 +378,7 @@ static void R_DrawColorAttachment(void) {
 }
 
 /**
- * @brief Main entry point for drawing the 3D view.
+ * @brief Entry point for drawing the main view.
  */
 void R_DrawView(r_view_t *view) {
 
@@ -426,6 +421,18 @@ void R_DrawView(r_view_t *view) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	R_DrawColorAttachment();
+}
+
+/**
+ * @brief Entry point for drawing the player model view.
+ */
+void R_DrawPlayerModelView(r_view_t *view) {
+
+	assert(view);
+
+	R_UpdateUniforms(view);
+
+	R_DrawEntities(view, 0);
 }
 
 /**

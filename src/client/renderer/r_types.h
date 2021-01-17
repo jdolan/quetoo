@@ -1114,13 +1114,27 @@ typedef struct r_entity_s {
 } r_entity_t;
 
 /**
+ * @brief View types.
+ */
+typedef enum {
+	VIEW_MAIN,
+	VIEW_PLAYER_MODEL,
+	VIEW_OTHER,
+} r_view_type_t;
+
+/**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
 	/**
-	 * @brief The unclamped simulation time, in millis.
+	 * @brief The view type.
 	 */
-	uint32_t ticks;
+	r_view_type_t type;
+
+	/**
+	 * @brief The viewport, in device pixels.
+	 */
+	vec4_t viewport;
 
 	/**
 	 * @brief The horizontal and vertical field of view.
@@ -1156,6 +1170,11 @@ typedef struct {
 	 * @brief The contents mask at the view origin.
 	 */
 	int32_t contents;
+
+	/**
+	 * @brief The unclamped simulation time, in millis.
+	 */
+	uint32_t ticks;
 
 	/**
 	 * @brief The entities to render for the current frame.

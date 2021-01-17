@@ -114,7 +114,7 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	cls.cgame->UpdateLoading(cls.loading);
 
-	R_BeginFrame(NULL);
+	R_BeginFrame();
 
 	Cl_UpdateScreen();
 
@@ -144,6 +144,13 @@ static void Cl_LoadModels(void) {
 }
 
 /**
+ * @brief Fs_Enumerator to load all emoji into the images atlas.
+ */
+static void Cl_LoadImages_Emoji(const char *path, void *data) {
+	R_LoadAtlasImage((r_atlas_t *) data, path, IT_PIC);
+}
+
+/**
  * @brief
  */
 static void Cl_LoadImages(void) {
@@ -152,6 +159,7 @@ static void Cl_LoadImages(void) {
 	R_LoadSky(cl.config_strings[CS_SKY]);
 
 	r_atlas_t *atlas = R_LoadAtlas("images");
+	Fs_Enumerate("pics/emoji/*", Cl_LoadImages_Emoji, atlas);
 
 	for (int32_t i = 0; i < MAX_IMAGES; i++) {
 
@@ -263,4 +271,6 @@ void Cl_LoadMedia(void) {
 	S_FreeMedia();
 
 	Cl_SetKeyDest(KEY_GAME);
+
+	cls.state = CL_ACTIVE;
 }

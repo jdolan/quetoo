@@ -377,8 +377,7 @@ static void Cl_DrawCounters(void) {
 }
 
 /**
- * @brief This is called every frame, and can also be called explicitly to flush
- * text to the screen.
+ * @brief This is called at least once per frame, and more often during loading.
  */
 void Cl_UpdateScreen(void) {
 
