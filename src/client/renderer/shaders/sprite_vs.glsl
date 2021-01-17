@@ -35,13 +35,13 @@ out vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec2 next_diffusemap;
-	vec3 ambient;
-	vec3 diffuse;
-	vec4 fog;
 	vec4 color;
 	float lerp;
 	float softness;
 	float lighting;
+	vec3 ambient;
+	vec3 diffuse;
+	vec4 fog;
 } vertex;
 
 /**

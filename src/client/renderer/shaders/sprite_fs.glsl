@@ -28,13 +28,13 @@ in vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec2 next_diffusemap;
-	vec3 ambient;
-	vec3 diffuse;
-	vec4 fog;
 	vec4 color;
 	float lerp;
 	float softness;
 	float lighting;
+	vec3 ambient;
+	vec3 diffuse;
+	vec4 fog;
 } vertex;
 
 out vec4 out_color;
@@ -46,15 +46,19 @@ void main(void) {
 
 	vec4 diffuse_color = mix(texture(texture_diffusemap, vertex.diffusemap), texture(texture_next_diffusemap, vertex.next_diffusemap), vertex.lerp);
 
-	vec3 light_ambient = vertex.ambient;
-	vec3 light_diffuse = vertex.diffuse /** max(0.0, dot(normal, vertex.direction))*/ + light_ambient;
+	vec3 light_diffuse = vertex.ambient + vertex.diffuse;
 	vec3 light_specular = vec3(0.0);
 
-	dynamic_light(vertex.position, vec3(0, 0, 1), 64.0, light_diffuse, light_specular);
+	dynamic_light(vertex.position, vec3(0.0, 0.0, -1.0), 64.0, light_diffuse, light_specular);
 
 	out_color = vertex.color * diffuse_color;
 
-	out_color.rgb = mix(out_color.rgb, clamp(out_color.rgb * (light_diffuse * modulate), 0.0, 32.0), vertex.lighting);
+	vec3 lighting_color = out_color.rgb;
+	
+	lighting_color = clamp(lighting_color * (light_diffuse * modulate), 0.0, 32.0);
+	lighting_color = clamp(lighting_color + (light_specular * modulate), 0.0, 32.0);
+
+	out_color.rgb = mix(out_color.rgb, lighting_color.rgb, vertex.lighting);
 
 	//out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a * diffuse_color.a);
 

@@ -60,7 +60,8 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 		.origin = Vec3_Add(org, Vec3(0.f, 0.f, 50.f)),
 		.color = Color_Color32(color_white),
 		.media = (r_media_t *) cg_sprite_inactive,
-		.size = 32.f
+		.size = 32.f,
+		.softness = 1.f
 	});
 }
 

@@ -338,7 +338,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.size_velocity = 60.0f,
 			.lifetime = 800.f,
 			.color = Vec4(0.f, 0.f, 0.75f, 0.75f),
-			.softness = 2.f
+			.softness = 2.f,
+			.lighting = 1.f
 		});
 	}
 
@@ -425,7 +426,8 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 					.acceleration.z = -SPRITE_GRAVITY * 2.0,
 					.size = RandomRangef(24.f, 56.f),
 					.color = Vec4(0.f, 1.f, .5f, .97f),
-					.softness = 1.f
+					.softness = 1.f,
+					.lighting = 1.f
 				})) {
 				break;
 			}
@@ -508,7 +510,8 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 					.bounce = .4f,
 					.color = Vec4(hue, 1.f, 1.f, 8.f),
 					.end_color = Vec4(hue, 1.f, -.7f, 0.f),
-					.softness = 1.f
+					.softness = 1.f,
+					.lighting = .5f,
 				})) {
 				break;
 			}
@@ -572,7 +575,8 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.rotation = Randomf() * 2.f * M_PI,
 		.atlas_image = cg_sprite_explosion_glow,
 		.color = Vec4(0.f, 0.f, 1.f, 1.f),
-		.softness = 2.f
+		.softness = 2.f,
+		.lighting = 1.f
 	});
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -615,7 +619,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			.dir = Vec3_RandomRange(-1.f, 1.f),
 			.color = color_start,
 			.end_color = color_end,
-			.softness = 1.f
+			.softness = 1.f,
+			.lighting = .3f
 		});
 	}
 
@@ -629,7 +634,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.dir = dir,
 		.color = color_start,
 		.end_color = color_end,
-		.softness = -1.f
+		.softness = -1.f,
+		.lighting = 1.f
 	});
 
 	// impact flash
@@ -730,7 +736,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			.size_velocity = 1.0 / MILLIS_TO_SECONDS(lifetime),
 			.color = Vec4(effect_color.x, effect_color.y, effect_color.z * 0.5, 0.25f),
 			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
-			.softness = 1.f
+			.softness = 1.f,
+			.lighting = .2f
 		});
 	}
 
@@ -743,7 +750,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.size_velocity = 1.f / MILLIS_TO_SECONDS(lifetime),
 		.lifetime = lifetime,
 		.color = Vec4(0.f, 0.f, 1.f, 0.f),
-		.softness = 1.f
+		.softness = 1.f,
+		.lighting = .2f
 	});
 
 	// Check for explosion effect on solids
@@ -810,7 +818,8 @@ static void Cg_BfgLaserEffect(const uint16_t org_entity, const uint16_t dest_ent
 		.end_color = Vec4(color_hue_green, 1.f, 1.f, 0),
 		.data = ((cg_bfg_laser_data_t) { .org = org_entity, .dest = dest_entity }).data,
 		.think = Cg_BfgLaserThink,
-		.softness = 1.f
+		.softness = 1.f,
+		.lighting = .5f,
 	});
 
 	Cg_AddLight(&(cg_light_t) {
@@ -853,7 +862,8 @@ static void Cg_BfgEffect(const vec3_t org) {
 			.rotation = RandomRangef(0.f, 2.f * M_PI),
 			.origin = Vec3_Fmaf(org, 50.f, Vec3_RandomDir()),
 			.color = Vec4(0.f, 0.f, 1.f, .15f),
-			.softness = 1.f
+			.softness = 1.f,
+			.lighting = .5f,
 		});
 	}
 
@@ -869,7 +879,8 @@ static void Cg_BfgEffect(const vec3_t org) {
 			.dir = Vec3_Random(),
 			.color = Vec4(120.f, .87f, .80f, .0f),
 			.end_color = Vec4(120.f, .87f, 0.f, 0.f),
-			.softness = 1.f
+			.softness = 1.f,
+			.lighting = .3f,
 		});
 	}
 
@@ -882,7 +893,8 @@ static void Cg_BfgEffect(const vec3_t org) {
 		.rotation = RandomRadian(),
 		.color = Vec4(120.f, .87f, .80f, .0f),
 		.end_color = Vec4(120.f, .87f, .0f, .0f),
-		.softness = 1.f
+		.softness = 1.f,
+		.lighting = .3f,
 	});
 
 	// glow
@@ -894,7 +906,8 @@ static void Cg_BfgEffect(const vec3_t org) {
 		.rotation = RandomRadian(),
 		.color = Vec4(120.f, .87f, .80f, .0f),
 		.end_color = Vec4(120.f, .87f, 0.f, 0.f),
-		.softness = 6.f
+		.softness = 6.f,
+		.lighting = .2f,
 	});
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -935,7 +948,8 @@ void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 		.dir = Vec3_Up(),
 		.rotation = RandomRadian(),
 		.color = Vec4(0.f, 0.f, 1.0f, 1.0f),
-		.end_color = Vec4(0.f, 0.f, 1.0f, 1.0f)
+		.end_color = Vec4(0.f, 0.f, 1.0f, 1.0f),
+		.lighting = .6f
 	});
 
 	// ring decal
@@ -948,7 +962,8 @@ void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 		.rotation = RandomRadian(),
 		.dir = Vec3_Up(),
 		.color = Vec4(0.f, 0.f, 0.5f, 0.5f),
-		.end_color = Vec4(0.f, 0.f, 0.f, 0.f)
+		.end_color = Vec4(0.f, 0.f, 0.f, 0.f),
+		.lighting = 1.f
 	});
 }
 
@@ -967,7 +982,8 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir, const float size
 		.size_velocity = 100.f,
 		.color = Vec4(0.f, 0.f, 0.25f, 0.25f),
 		.end_color = Vec4(0.f, 0.f, 0.0f, 0.0f),
-		.softness = 1.f
+		.softness = 1.f,
+		.lighting = .6f
 	};
 
 	Cg_AddSprite(&s);
@@ -992,7 +1008,8 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir, const float size
 			.acceleration.z = -SPRITE_GRAVITY * 1.5f,
 			.color = Vec4(0.f, 0.f, 0.4f, 0.4f),
 			.end_color = Vec4(0.f, 0.f, 0.0f, 0.0f),
-			.softness = 1.f
+			.softness = 1.f,
+			.lighting = 1.f
 		});
 
 		if (!p) {
@@ -1017,7 +1034,8 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 				.color = Vec4(53.f, .83f, .97f, RandomRangef(.8f, 1.f)),
 				.end_color = Vec4(53.f, .83f, 0.f, 0.f),
 				.size = 6.4f + Randomf() * 3.2f,
-				.softness = 1.f
+				.softness = 1.f,
+				.lighting = 1.f
 			})) {
 			break;
 		}

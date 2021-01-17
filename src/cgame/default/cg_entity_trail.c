@@ -105,14 +105,15 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 		if ((contents & CONTENTS_MASK_LIQUID) == CONTENTS_WATER) {
 
 			Cg_AddSprite(&(cg_sprite_t) {
-				.atlas_image = cg_sprite_particle,
+				.atlas_image = cg_sprite_bubble,
 				.origin = Vec3_Add(pos, Vec3_RandomRange(-2.f, 2.f)),
 				.velocity = Vec3_Add(Vec3_Add(Vec3_Scale(forward, 2.f), Vec3_RandomRange(-5.f, 5.f)), Vec3(0.f, 0.f, 6.f)),
 				.acceleration.z = 10.f,
 				.lifetime = 1000 - Randomf() * 100,
-				.size = 24.f,
+				.size = RandomRangef(2.f, 6.f),
 				.color = Vec4(0.f, 0.f, .62f, 1.f),
-				.softness = 1.f
+				.softness = 1.f,
+				.lighting = 1.f
 			});
 
 			ent->timestamp = cgi.client->unclamped_time + 3000;
@@ -126,7 +127,8 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 			.origin = pos,
 			.velocity = Vec3_Add(Vec3_Scale(forward, 5.0), Vec3_RandomRange(-2.f, 2.f)),
 			.color = Vec4(0.f, 0.f, 1.f, .78f),
-			.softness = 1.f
+			.softness = 1.f,
+			.lighting = 1.f
 		});
 
 		ent->timestamp = cgi.client->unclamped_time + 3000;
@@ -171,7 +173,8 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 			.size_velocity = 15.f,
 			.rotation = RandomRangef(.0f, M_PI),
 			.rotation_velocity = RandomRangef(.2f, 1.f),
-			.softness = 1.f
+			.softness = 1.f,
+			.lighting = 1.f,
 		});
 	}
 }
@@ -241,7 +244,8 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 				.acceleration.z = 10.f,
 				.lifetime = 1000 - (Randomf() * 100),
 				.size = RandomRangef(4.f, 8.f),
-				.softness = 1.f
+				.softness = 1.f,
+				.lighting = 1.f
 			}))) {
 			return;
 		}
@@ -291,7 +295,8 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 				.size_velocity = Mixf(-3.5f, -.2f, pdist) * RandomRangef(.66f, 1.f),
 				.color = Vec4(effect_color.x, effect_color.y, effect_color.z, pdist),
 				.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
-				.softness = 1.f
+				.softness = 1.f,
+				.lighting = .3f
 			})) {
 				break;
 			}
@@ -443,7 +448,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			// smoke 1
 			if (!Cg_AddSprite(&(cg_sprite_t) {
 					.animation = cg_sprite_smoke_04,
-					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_04, 6) * particle_life_frac,
+					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_04, 60) * particle_life_frac,
 					.origin = Vec3_Add(Vec3_Mix(start, origin, step * i), Vec3_RandomRange(-2.5f, 2.5f)),
 					.velocity = Vec3_Scale(velocity, 0.5),
 					.rotation = Randomf() * 2.f * M_PI,
@@ -459,7 +464,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			// smoke 2
 			if (!Cg_AddSprite(&(cg_sprite_t) {
 					.animation = cg_sprite_smoke_05,
-					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 6) * particle_life_frac,
+					.lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 60) * particle_life_frac,
 					.origin = Vec3_Add(Vec3_Mix(start, origin, (step * i) + (step * .5f)), Vec3_RandomRange(-2.5f, 2.5f)),
 					.velocity = Vec3_Scale(velocity, 0.5),
 					.rotation = Randomf() * 2.f * M_PI,
@@ -538,6 +543,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 				.color = color_start,
 				.end_color = color_end,
 				.softness = 1.f,
+				.lighting = .3f,
 				.flags = SPRITE_FOLLOW_ENTITY | SPRITE_ENTITY_UNLINK_ON_DEATH,
 				.entity = Cg_GetSpriteEntity(ent)
 			});
@@ -547,22 +553,24 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 
 	// center blob
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
-		.media = (r_media_t *)cg_sprite_blob_01,
+		.media = (r_media_t *) cg_sprite_blob_01,
 		.origin = ent->origin,
 		.size = RandomRangef(10.f, 15.f),
 		.rotation = RandomRadian(),
 		.color = Color32(27, 133, 194, 0),
-		.softness = 1.f
+		.softness = 1.f,
+		.lighting = .3f,
 	});
 
 	// center core
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
-		.media = (r_media_t *)cg_sprite_particle,
+		.media = (r_media_t *) cg_sprite_particle,
 		.origin = ent->origin,
 		.size = RandomRangef(4.5f, 7.f),
 		.rotation = RandomRadian(),
 		.color = bcolor,
-		.softness = 1.f
+		.softness = 1.f,
+		.lighting = .1f,
 	});
 
 	cgi.AddBeam(cgi.view, &(r_beam_t) {
@@ -572,7 +580,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.image = cg_beam_tail,
 		.size = 5.0f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
-		.softness = 1.f
+		.softness = 1.f,
+		.lighting = 1.f
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
@@ -606,7 +615,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.image = cg_beam_lightning,
 		.size = 8.5f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
-		.softness = 1.f
+		.softness = 1.f,
 	});
 
 	// beam endpoint cap
@@ -866,7 +875,8 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 				.acceleration.z = -SPRITE_GRAVITY / 2.0,
 				.color = Vec4(15.f, 1.f, .53f, 1.f),
 				.end_color = Vec4(15.f, 1.f, 0.f, 0.f),
-				.softness = 1.f
+				.softness = 1.f,
+				.lighting = 1.f
 			}))) {
 			break;
 		};
