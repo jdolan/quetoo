@@ -271,4 +271,6 @@ void Cl_LoadMedia(void) {
 	S_FreeMedia();
 
 	Cl_SetKeyDest(KEY_GAME);
+
+	cls.state = CL_ACTIVE;
 }

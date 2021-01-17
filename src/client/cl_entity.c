@@ -304,12 +304,6 @@ void Cl_ParseFrame(void) {
 	cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
 
 	if (cl.frame.valid) {
-
-		// getting a valid frame message ends the connection process
-		if (cls.state == CL_LOADING) {
-			cls.state = CL_ACTIVE;
-		}
-
 		Cl_CheckPredictionError();
 	}
 }

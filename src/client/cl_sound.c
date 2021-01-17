@@ -26,7 +26,9 @@
  */
 void Cl_S_Restart_f(void) {
 
-	if (cls.state == CL_LOADING) {
+	if (cls.state == CL_CONNECTING ||
+		cls.state == CL_CONNECTED ||
+		cls.state == CL_LOADING) {
 		return;
 	}
 
@@ -34,9 +36,7 @@ void Cl_S_Restart_f(void) {
 
 	S_Init();
 
-	const cl_state_t state = cls.state;
-
-	Cl_LoadMedia();
-
-	cls.state = state;
+	if (cls.state == CL_ACTIVE) {
+		Cl_LoadMedia();
+	}
 }
