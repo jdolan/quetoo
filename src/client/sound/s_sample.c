@@ -251,7 +251,9 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
 		}
 	}
 
-	if (!sample->buffer) {
+	if (sample->buffer) {
+		Com_Debug(DEBUG_SOUND, "Loaded %s for %s/%s\n", sample->media.name, model, name);
+	} else {
 		Com_Warn("Failed to load %s for %s\n", name, model);
 	}
 
