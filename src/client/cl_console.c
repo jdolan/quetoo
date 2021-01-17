@@ -46,26 +46,29 @@ static void Cl_DrawConsole_Background(void) {
 	}
 
 	const r_image_t *conback = R_LoadImage("ui/conback", IT_UI);
-	if (conback) {
-		const float x_scale = r_context.width / (float) conback->width;
-		const float y_scale = r_context.height / (float) conback->height;
-
-		const float scale = Maxf(x_scale, y_scale);
-
-		const float width = conback->width * scale;
-		const float height = conback->height * scale;
-		
-		const r_pixel_t x = (r_context.width / 2.f) - (width / 2.f);
-
-		r_pixel_t ch;
-		R_BindFont("small", NULL, &ch);
-
-		const r_pixel_t y = cl_console.height * (ch + 1);
-
-		const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
-
-		R_Draw2DImage(x, y - height, width, height, conback, color);
+	if (!conback) {
+		return;
 	}
+
+	r_pixel_t ch;
+	R_BindFont("small", NULL, &ch);
+
+	const float x_scale = r_context.width / (float) conback->width;
+	const float y_scale = r_context.height / (float) conback->height;
+
+	const float scale = Maxf(x_scale, y_scale);
+
+	const float width = conback->width * scale;
+	const float height = conback->height * scale;
+
+	const r_pixel_t x = (r_context.width / 2.f) - (width / 2.f);
+	const r_pixel_t y = (r_context.height / 2.f) - (height / 2.f);
+
+	const r_pixel_t offset = Maxf(0, height - cl_console.height * (ch + 1));
+
+	const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
+
+	R_Draw2DImage(x, y - offset, width, height, conback, color);
 }
 
 /**
@@ -131,9 +134,9 @@ r_pixel_t Cl_GetConsoleHeight(void) {
  * @brief
  */
 void Cl_DrawConsole(void) {
-	r_pixel_t cw, ch;
 	const r_pixel_t height = Cl_GetConsoleHeight();
 
+	r_pixel_t cw, ch;
 	R_BindFont("small", &cw, &ch);
 
 	cl_console.width = r_context.width / cw;
