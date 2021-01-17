@@ -60,7 +60,7 @@ static void Cl_DrawConsole_Background(void) {
 		r_pixel_t ch;
 		R_BindFont("small", NULL, &ch);
 
-		r_pixel_t y = cl_console.height * (ch + 1);
+		const r_pixel_t y = cl_console.height * (ch + 1);
 
 		const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
 

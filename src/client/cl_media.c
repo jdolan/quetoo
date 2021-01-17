@@ -114,7 +114,7 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	cls.cgame->UpdateLoading(cls.loading);
 
-	R_BeginFrame(NULL);
+	R_BeginFrame();
 
 	Cl_UpdateScreen();
 

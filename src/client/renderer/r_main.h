@@ -60,7 +60,7 @@ void R_GetError_(const char *function, const char *msg);
 
 void R_Init(void);
 void R_Shutdown(void);
-void R_BeginFrame(r_view_t *view);
+void R_BeginFrame(void);
 void R_DrawViewDepth(r_view_t *view);
 void R_DrawView(r_view_t *view);
 void R_EndFrame(void);

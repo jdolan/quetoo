@@ -334,11 +334,11 @@ static void R_Clear(const r_view_t *view) {
 /**
  * @brief Called at the beginning of each render frame.
  */
-void R_BeginFrame(r_view_t *view) {
+void R_BeginFrame(void) {
 
 	memset(&r_stats, 0, sizeof(r_stats));
 
-	R_Clear(view);
+	R_Clear(NULL);
 }
 
 /**
