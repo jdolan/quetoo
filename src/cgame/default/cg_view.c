@@ -298,6 +298,8 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 void Cg_PrepareView(const cl_frame_t *frame) {
 
 	cgi.view->ticks = cgi.client->unclamped_time;
+	
+	cgi.view->viewport = Vec4(0.f, 0.f, cgi.context->drawable_width, cgi.context->drawable_height);
 
 	const player_state_t *ps0;
 

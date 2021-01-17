@@ -205,8 +205,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
 
-	r_uniforms.block.viewport = Vec4(0.f, 0.f, r_context.drawable_width, r_context.drawable_height);
-
 	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
 
 	r_uniforms.block.brightness = r_brightness->value;
@@ -215,8 +213,9 @@ static void R_UpdateUniforms(const r_view_t *view) {
 	r_uniforms.block.gamma = r_gamma->value;
 
 	if (view) {
+		r_uniforms.block.viewport = view->viewport;
 
-		const float aspect = (float) r_context.width / (float) r_context.height;
+		const float aspect = (view->viewport.z - view->viewport.x) / (view->viewport.w - view->viewport.y);
 
 		const float ymax = tanf(Radians(view->fov.y));
 		const float ymin = -ymax;

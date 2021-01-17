@@ -1110,6 +1110,10 @@ typedef struct {
 	 * @brief The unclamped simulation time, in millis.
 	 */
 	uint32_t ticks;
+	/**
+	 * @brief The viewport, in device pixels.
+	 */
+	vec4_t viewport;
 
 	/**
 	 * @brief The horizontal and vertical field of view.
