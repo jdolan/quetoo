@@ -697,6 +697,11 @@ typedef struct cg_import_s {
 	void (*AddStain)(r_view_t *view, const r_stain_t *s);
 
 	/**
+	 * @brief Draws the player model view.
+	 */
+	void (*DrawPlayerModelView)(r_view_t *view);
+
+	/**
 	 * @}
 	 * @defgroup draw-2d 2D drawing
 	 * @{

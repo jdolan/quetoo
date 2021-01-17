@@ -71,35 +71,6 @@ static View *init(View *self) {
 }
 
 /**
- * @brief Renders the given entity stub.
- */
-// static void renderMeshEntity(r_entity_t *e) {
-//
-// 	cgi.view->current_entity = e;
-//
-// 	cgi.SetMatrixForEntity(e);
-//
-// 	cgi.EnableBlend(false);
-//
-// 	cgi.DrawMeshModel(e);
-//
-// 	cgi.EnableBlend(true);
-// }
-
-/**
- * @brief Renders the given entity stub.
- */
-// static void renderMeshMaterialsEntity(r_entity_t *e) {
-//
-//	cgi.view->current_entity = e;
-//
-//	cgi.DrawMeshModelMaterials(e);
-// }
-
-#define NEAR_Z 1.0
-#define FAR_Z  MAX_WORLD_COORD
-
-/**
  * @see View::render(View *, Renderer *)
  */
 static void render(View *self, Renderer *renderer) {
@@ -115,73 +86,36 @@ static void render(View *self, Renderer *renderer) {
 	if (this->client.torso) {
 		$(this, animate);
 
-//		cgi.PushMatrix(R_MATRIX_PROJECTION);
-//		cgi.PushMatrix(R_MATRIX_MODELVIEW);
-//
-//		const SDL_Rect viewport = $(self, viewport);
-//		cgi.SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, false);
-//
-//		// create projection matrix
-//		const float aspect = (float) viewport.w / (float) viewport.h;
-//
-//		const float ymax = NEAR_Z * tanf(radians(40)); // Field of view
-//		const float ymin = -ymax;
-//
-//		const float xmin = ymin * aspect;
-//		const float xmax = ymax * aspect;
-//		mat4_t mat;
-//
-//		Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
-//
-//		cgi.SetMatrix(R_MATRIX_PROJECTION, &mat);
-//
-//		// create base modelview matrix
-//		Matrix4x4_CreateIdentity(&mat);
-//
-//		// Quake is retarded: rotate so that Z is up
-//		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
-//		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
-//		Matrix4x4_ConcatTranslate(&mat, 90.0 - (this->zoom * 45.0), 0.0, 20.0 - (this->zoom * 35.0));
-//
-//		Matrix4x4_ConcatRotate(&mat, -25.0 - (this->zoom * -10.0), 0.0, 1.0, 0.0);
-//
-//		Matrix4x4_ConcatRotate(&mat, sinf(radians(cgi.client->unclamped_time * 0.05)) * 10.0, 0.0, 0.0, 1.0);
-//
-//		cgi.EnableDepthTest(true);
-//		cgi.DepthRange(0.0, 0.1);
-//
-//		// Platform base; doesn't rotate
-//
-//		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
-//
-//		renderMeshEntity(&this->platformBase);
-//		renderMeshMaterialsEntity(&this->platformBase);
-//
-//		// Rotating stuff
-//
-//		Matrix4x4_ConcatRotate(&mat, this->yaw, 0.0, 0.0, 1.0);
-//
-//		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
-//
-//		renderMeshEntity(&this->legs);
-//		renderMeshEntity(&this->torso);
-//		renderMeshEntity(&this->head);
-//		renderMeshEntity(&this->weapon);
-//		renderMeshEntity(&this->platformCenter);
-//
-//		renderMeshMaterialsEntity(&this->legs);
-//		renderMeshMaterialsEntity(&this->torso);
-//		renderMeshMaterialsEntity(&this->head);
-//		renderMeshMaterialsEntity(&this->weapon);
-//		renderMeshMaterialsEntity(&this->platformCenter);
-//
-//		cgi.DepthRange(0.0, 1.0);
-//		cgi.EnableDepthTest(false);
-//
-//		cgi.SetViewport(0, 0, cgi.context->width, cgi.context->height, false);
-//
-//		cgi.PopMatrix(R_MATRIX_MODELVIEW);
-//		cgi.PopMatrix(R_MATRIX_PROJECTION);
+		r_view_t view = {
+			.type = VIEW_PLAYER_MODEL,
+			.ticks = cgi.client->unclamped_time,
+			.fov = Vec2(45.f, 30.f),
+			.origin = Vec3(0.f, -100.f, 0.f),
+			.angles = Vec3(0.f, 0.f, 0.f),
+			.forward = Vec3(0.f, 1.f, 0.f),
+			.right = Vec3(1.f, 0.f, 0.f),
+			.up = Vec3(0.f, 0.f, 1.f),
+			.contents = 0,
+		};
+
+		cgi.AddEntity(&view, &this->platformBase);
+		cgi.AddEntity(&view, &this->platformCenter);
+
+		this->torso.parent = cgi.AddEntity(&view, &this->legs);
+		r_entity_t *torso = cgi.AddEntity(&view, &this->torso);
+
+		this->head.parent = torso;
+		cgi.AddEntity(&view, &this->head);
+
+		this->weapon.parent = torso;
+		cgi.AddEntity(&view, &this->weapon);
+
+		const SDL_Rect viewport = $(self, viewport);
+		glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
+
+		cgi.DrawPlayerModelView(&view);
+
+		glViewport(0, 0, cgi.context->drawable_width, cgi.context->drawable_height);
 	}
 }
 
@@ -224,18 +158,24 @@ static void updateBindings(View *self) {
 	this->legs.model = this->client.legs;
 	this->legs.scale = 1.0;
 	this->legs.color = Vec4(1.0, 1.0, 1.0, 1.0);
+	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
 
 	this->torso.model = this->client.torso;
 	this->torso.scale = 1.0;
 	this->torso.color = Vec4(1.0, 1.0, 1.0, 1.0);
+	this->torso.tag = "tag_torso";
+	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
 
 	this->head.model = this->client.head;
 	this->head.scale = 1.0;
 	this->head.color = Vec4(1.0, 1.0, 1.0, 1.0);
+	this->head.tag = "tag_head";
+	memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
 
 	this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
 	this->weapon.scale = 1.0;
 	this->weapon.color = Vec4(1.0, 1.0, 1.0, 1.0);
+	this->weapon.tag = "tag_weapon";
 
 	this->platformBase.model = cgi.LoadModel("models/objects/platform/base/tris");
 	this->platformBase.scale = 1.0;
@@ -244,10 +184,6 @@ static void updateBindings(View *self) {
 	this->platformCenter.model = cgi.LoadModel("models/objects/platform/center/tris");
 	this->platformCenter.scale = 1.0;
 	this->platformCenter.color = Vec4(1.0, 1.0, 1.0, 1.0);
-
-	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
-	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
-	memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
 
 	this->iconView->texture = this->client.icon->texnum;
 }
@@ -338,24 +274,6 @@ static void animate(PlayerModelView *self) {
 	self->weapon.frame = 0;
 	self->weapon.lerp = 1.0;
 
-	self->legs.origin = Vec3_Zero();
-	self->torso.origin = Vec3_Zero();
-	self->head.origin = Vec3_Zero();
-	self->weapon.origin = Vec3_Zero();
-	self->platformBase.origin = Vec3_Zero();
-	self->platformCenter.origin = Vec3_Zero();
-
-	self->legs.angles = Vec3_Zero();
-	self->torso.angles = Vec3_Zero();
-	self->head.angles = Vec3_Zero();
-	self->weapon.angles = Vec3_Zero();
-	self->platformBase.angles = Vec3_Zero();
-	self->platformCenter.angles = Vec3_Zero();
-
-	self->legs.scale = self->torso.scale = self->head.scale = 1.0;
-	self->weapon.scale = 1.0;
-	self->platformBase.scale = self->platformCenter.scale = 1.0;
-
 	if (self->client.shirt.a) {
 		self->torso.tints[0] = Color_Vec4(self->client.shirt);
 	} else {
@@ -373,17 +291,6 @@ static void animate(PlayerModelView *self) {
 	} else {
 		self->head.tints[2] = Vec4_Zero();
 	}
-
-	Matrix4x4_CreateFromEntity(&self->legs.matrix, self->legs.origin, self->legs.angles, self->legs.scale);
-	Matrix4x4_CreateFromEntity(&self->torso.matrix, self->torso.origin, self->torso.angles, self->torso.scale);
-	Matrix4x4_CreateFromEntity(&self->head.matrix, self->head.origin, self->head.angles, self->head.scale);
-	Matrix4x4_CreateFromEntity(&self->weapon.matrix, self->weapon.origin, self->weapon.angles, self->weapon.scale);
-	Matrix4x4_CreateFromEntity(&self->platformBase.matrix, self->platformBase.origin, self->platformBase.angles, self->platformBase.scale);
-	Matrix4x4_CreateFromEntity(&self->platformCenter.matrix, self->platformCenter.origin, self->platformCenter.angles, self->platformCenter.scale);
-
-//	Cg_ApplyMeshTag(&self->torso, &self->legs, "tag_torso");
-//	Cg_ApplyMeshTag(&self->head, &self->torso, "tag_head");
-//	Cg_ApplyMeshTag(&self->weapon, &self->torso, "tag_weapon");
 }
 
 /**

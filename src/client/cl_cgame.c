@@ -254,6 +254,7 @@ void Cl_InitCgame(void) {
 	import.AddSprite = R_AddSprite;
 	import.AddBeam = R_AddBeam;
 	import.AddStain = R_AddStain;
+	import.DrawPlayerModelView = R_DrawPlayerModelView;
 
 	import.BindFont = R_BindFont;
 	import.Draw2DFill = R_Draw2DFill;

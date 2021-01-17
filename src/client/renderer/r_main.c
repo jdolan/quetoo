@@ -205,7 +205,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
 
-	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
 
 	r_uniforms.block.brightness = r_brightness->value;
 	r_uniforms.block.contrast = r_contrast->value;
@@ -223,16 +223,16 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		const float xmin = ymin * aspect;
 		const float xmax = ymax * aspect;
 
-		Matrix4x4_FromFrustum(&r_uniforms.block.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
+		Matrix4x4_FromFrustum(&r_uniforms.block.projection3D, xmin, xmax, ymin, ymax, 1.f, MAX_WORLD_DIST);
 
 		Matrix4x4_CreateIdentity(&r_uniforms.block.view);
 
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -90.0, 1.0, 0.0, 0.0); // put Z going up
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view,  90.0, 0.0, 0.0, 1.0); // put Z going up
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -90.f, 1.f, 0.f, 0.f); // put Z going up
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view,  90.f, 0.f, 0.f, 1.f); // put Z going up
 
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.z, 1.0, 0.0, 0.0);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.x, 0.0, 1.0, 0.0);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.y, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.z, 1.f, 0.f, 0.f);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.x, 0.f, 1.f, 0.f);
+		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.y, 0.f, 0.f, 1.f);
 
 		Matrix4x4_ConcatTranslate(&r_uniforms.block.view, -view->origin.x, -view->origin.y, -view->origin.z);
 
@@ -378,7 +378,7 @@ static void R_DrawColorAttachment(void) {
 }
 
 /**
- * @brief Main entry point for drawing the 3D view.
+ * @brief Entry point for drawing the main view.
  */
 void R_DrawView(r_view_t *view) {
 
@@ -421,6 +421,18 @@ void R_DrawView(r_view_t *view) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	R_DrawColorAttachment();
+}
+
+/**
+ * @brief Entry point for drawing the player model view.
+ */
+void R_DrawPlayerModelView(r_view_t *view) {
+
+	assert(view);
+
+	R_UpdateUniforms(view);
+
+	R_DrawEntities(view, 0);
 }
 
 /**
