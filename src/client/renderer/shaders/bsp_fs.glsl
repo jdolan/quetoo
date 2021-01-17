@@ -161,8 +161,6 @@ void main(void) {
 
 		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1.0), viewdir * tbn, fragdist, material.parallax * 0.04);
 
-		float _specularity = material.specularity * 100.0;
-
 		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
 		vec4 normalmap = texture(texture_material, vec3(texcoord_material, 1));
 		vec4 glossmap = texture(texture_material, vec3(texcoord_material, 2));
@@ -184,7 +182,7 @@ void main(void) {
 		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
 		vec3 light_diffuse = ambient + diffuse * 2.0 * bump_shading;
 
-		vec3 light_specular = brdf_blinn(normalize(viewdir), direction, normal, diffuse, glossmap.a, _specularity);
+		vec3 light_specular = brdf_blinn(viewdir, direction, normal, diffuse, glossmap.a, material.specularity * 100.0);
 		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		vec3 stainmap = sample_lightmap(4).rgb;

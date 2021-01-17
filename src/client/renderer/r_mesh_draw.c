@@ -73,8 +73,6 @@ static struct {
 
 	GLint tint_colors;
 
-	GLint ambient;
-
 	r_media_t *shell;
 } r_mesh_program;
 
@@ -297,12 +295,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glDepthRange(.0f, 0.1f);
 	}
 
-	if (e->effects & EF_AMBIENT) {
-		glUniform1f(r_mesh_program.ambient, .125f);
-	} else {
-		glUniform1f(r_mesh_program.ambient, .0f);
-	}
-
 	glBindVertexArray(mesh->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
@@ -488,8 +480,6 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
 	r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
 	r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
-
-	r_mesh_program.ambient = glGetUniformLocation(r_mesh_program.name, "ambient");
 
 	r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
 

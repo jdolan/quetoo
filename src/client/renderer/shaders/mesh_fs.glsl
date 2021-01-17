@@ -23,7 +23,6 @@ uniform sampler2DArray texture_material;
 uniform sampler2D texture_stage;
 
 uniform float alpha_threshold;
-uniform float ambient;
 
 uniform material_t material;
 uniform stage_t stage;
@@ -82,9 +81,9 @@ void main(void) {
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
-		vec3 light_ambient = max(vertex.ambient, ambient);
-		vec3 light_diffuse = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + light_ambient;
-		vec3 light_specular = vec3(0.0);
+		vec3 light_diffuse = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + vertex.ambient;
+		vec3 light_specular = brdf_blinn(normalize(-vertex.position), vertex.direction, normal, light_diffuse, glossmap.a, material.specularity * 100.0);
+		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		dynamic_light(vertex.position, normal, 64.0, light_diffuse, light_specular);
 
