@@ -403,17 +403,6 @@ void Cl_Interpolate(void) {
 			ent->animation2.reverse = ent->current.animation2 & ANIM_REVERSE_BIT;
 		}
 
-		if (ent->current.sound) {
-			cls.cgame->ParsedMessage(SV_CMD_SOUND, &(s_play_sample_t) {
-				.sample = cl.sounds[ent->current.sound],
-				.origin = ent->current.origin,
-				.entity = ent->current.number,
-				.atten = SOUND_ATTEN_SQUARE,
-				.flags = S_PLAY_LOOP | S_PLAY_FRAME
-			});
-			ent->current.sound = 0;
-		}
-
 		vec3_t angles;
 		if (ent->current.solid == SOLID_BSP) {
 			angles = ent->angles;

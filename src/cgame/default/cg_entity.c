@@ -136,6 +136,26 @@ _Bool Cg_IsDucking(const cl_entity_t *ent) {
 }
 
 /**
+ * @brief Adds the entity's current sound, if any, to the sound stage.
+ */
+static void Cg_EntitySound(cl_entity_t *ent) {
+
+	entity_state_t *s = &ent->current;
+
+	if (s->sound) {
+		Cg_AddSample(cgi.stage, (const s_play_sample_t *) &(s_play_sample_t) {
+			.sample = cgi.client->sounds[s->sound],
+			.origin = s->origin,
+			.entity = s->number,
+			.atten = SOUND_ATTEN_SQUARE,
+			.flags = S_PLAY_LOOP | S_PLAY_FRAME
+		});
+	}
+
+	s->sound = 0;
+}
+
+/**
  * @brief Setup step interpolation.
  */
 void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, float height) {
@@ -181,6 +201,8 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 		const entity_state_t *s = &cgi.client->entity_states[snum];
 
 		cl_entity_t *ent = &cgi.client->entities[s->number];
+
+		Cg_EntitySound(ent);
 
 		Cg_EntityEvent(ent);
 
