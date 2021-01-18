@@ -354,8 +354,9 @@ static void Cl_ParsePrint(void) {
 		}
 
 		if (sample) {
-			cls.cgame->ParsedMessage(SV_CMD_SOUND, &(s_play_sample_t) {
-				.sample = S_LoadSample(sample)
+			S_AddSample(&cl_stage, &(s_play_sample_t) {
+				.sample = S_LoadSample(sample),
+				.flags = S_PLAY_RELATIVE
 			});
 		}
 
