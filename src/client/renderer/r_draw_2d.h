@@ -24,6 +24,7 @@
 #include "r_types.h"
 
 void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch);
+void R_SetClippingFrame(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h);
 void R_Draw2DChar(r_pixel_t x, r_pixel_t y, char c, const color_t color);
 size_t R_Draw2DBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, const color_t color);
 void R_Draw2DFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color);

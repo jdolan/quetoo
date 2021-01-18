@@ -35,12 +35,18 @@ typedef struct {
 
 #define MAX_DRAW_FONTS 3
 
+typedef struct {
+	r_pixel_t x, y, w, h;
+} r_draw_2d_clipping_frame_t;
+
 /**
  * @brief glDrawArrays commands.
  */
 typedef struct {
 	GLenum mode;
 	GLuint texture;
+
+	r_draw_2d_clipping_frame_t clipping_frame;
 
 	GLint first_vertex;
 	GLsizei num_vertexes;
@@ -70,6 +76,9 @@ static struct {
 
 	// active font
 	r_font_t *font;
+
+	// active clipping frame, copied to each command
+	r_draw_2d_clipping_frame_t clipping_frame;
 
 	// the null texture
 	r_image_t *null_texture;
@@ -128,7 +137,12 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 		}
 	}
 
-	r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays] = *draw;
+	r_draw_2d_arrays_t *out = &r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays];
+
+	*out = *draw;
+
+	out->clipping_frame = r_draw_2d.clipping_frame;
+
 	r_draw_2d.num_draw_arrays++;
 }
 
@@ -354,6 +368,17 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 /**
  * @brief
  */
+void R_SetClippingFrame(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
+
+	r_draw_2d.clipping_frame.x = x;
+	r_draw_2d.clipping_frame.y = y;
+	r_draw_2d.clipping_frame.w = w;
+	r_draw_2d.clipping_frame.h = h;
+}
+
+/**
+ * @brief
+ */
 void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color) {
 
 	if (image == NULL) {
@@ -489,8 +514,20 @@ void R_Draw2D(void) {
 
 	const r_draw_2d_arrays_t *draw = r_draw_2d.draw_arrays;
 	for (int32_t i = 0; i < r_draw_2d.num_draw_arrays; i++, draw++) {
+
+		const r_draw_2d_clipping_frame_t *clip = &draw->clipping_frame;
+
+		if (clip->x || clip->y || clip->w || clip->h) {
+			glScissor(clip->x, clip->y, clip->w, clip->h);
+			glEnable(GL_SCISSOR_TEST);
+		}
+
 		glBindTexture(GL_TEXTURE_2D, draw->texture);
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
+
+		if (draw->clipping_frame.w || draw->clipping_frame.h) {
+			glDisable(GL_SCISSOR_TEST);
+		}
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
