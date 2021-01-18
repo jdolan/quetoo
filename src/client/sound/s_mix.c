@@ -57,7 +57,13 @@ void S_FreeChannel(int32_t c) {
 static _Bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 
 	vec3_t delta;
-	const float dist = Vec3_DistanceDir(ch->play.origin, stage->origin, &delta);
+	float dist;
+	
+	if (ch->play.flags & S_PLAY_RELATIVE) {
+		delta = Vec3_NormalizeLength(ch->play.origin, &dist);
+	} else {
+		dist = Vec3_DistanceDir(ch->play.origin, stage->origin, &delta);
+	}
 
 	float atten;
 	switch (ch->play.atten) {
@@ -164,17 +170,12 @@ void S_MixChannels(const s_stage_t *stage) {
 			continue;
 		}
 
-		if (ch->play.flags & S_PLAY_RELATIVE) {
-			alSourcefv(src, AL_POSITION, Vec3_Zero().xyz);
-			alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
-		} else {
-			alSourcefv(src, AL_POSITION, ch->play.origin.xyz);
+		alSourcefv(src, AL_POSITION, ch->play.origin.xyz);
 
-			if (s_doppler->value) {
-				alSourcefv(src, AL_VELOCITY, ch->play.velocity.xyz);
-			} else {
-				alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
-			}
+		if (s_doppler->value) {
+			alSourcefv(src, AL_VELOCITY, ch->play.velocity.xyz);
+		} else {
+			alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
 		}
 
 		float volume;

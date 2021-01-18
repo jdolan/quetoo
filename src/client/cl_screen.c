@@ -277,7 +277,7 @@ static void Cl_DrawSoundStats(void) {
 		if (state != AL_PLAYING)
 			continue;
 
-		R_Draw2DString(x + ch, y, va("%i: %s", i, channel->play.sample->media.name), color_magenta);
+		R_Draw2DString(x + ch, y, va("%i: %s @ (%f %f %f) : %i", i, channel->play.sample->media.name, channel->play.origin.x, channel->play.origin.y, channel->play.origin.z, channel->play.flags), color_magenta);
 		y += ch;
 	}
 
