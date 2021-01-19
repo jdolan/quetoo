@@ -465,6 +465,8 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
  */
 void R_DrawWorld(const r_view_t *view) {
 
+	R_DrawSky(view);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
@@ -554,8 +556,6 @@ void R_DrawWorld(const r_view_t *view) {
 	glBindVertexArray(0);
 
 	R_GetError(NULL);
-
-	R_DrawSky(view);
 
 	R_DrawBspNormals(view);
 }
