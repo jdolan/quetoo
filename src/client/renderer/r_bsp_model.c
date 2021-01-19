@@ -229,6 +229,14 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 			out->st_origin = Vec2_Scale(Vec2_Add(st_mins, st_maxs), .5f);
 		}
+
+		if (out->texinfo->flags & SURF_SKY) {
+			if (bsp->sky) {
+				Com_Warn("Model contains multiple sky elements\n");
+			} else {
+				bsp->sky = out;
+			}
+		}
 	}
 }
 

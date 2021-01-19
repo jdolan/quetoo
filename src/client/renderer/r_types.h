@@ -579,6 +579,8 @@ typedef struct {
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
 
+	r_bsp_draw_elements_t *sky;
+
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint elements_buffer;

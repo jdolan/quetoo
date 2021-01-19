@@ -336,7 +336,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_bsp_draw_elements_t *draw,
 										 const r_material_t **material) {
 
-	if (!(draw->texinfo->flags & SURF_MATERIAL) && !(draw->texinfo->flags & SURF_SKY)) {
+	if (!(draw->texinfo->flags & SURF_MATERIAL)) {
 
 		if (*material != draw->texinfo->material) {
 			*material = draw->texinfo->material;
@@ -368,7 +368,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (!(draw->texinfo->flags & SURF_MASK_BLEND)) {
+		if (!(draw->texinfo->flags & SURF_MASK_BLEND) && !(draw->texinfo->flags & SURF_SKY)) {
 
 			if (r_depth_pass->value) {
 				if (draw->texinfo->flags & SURF_ALPHA_TEST) {

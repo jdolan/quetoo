@@ -65,6 +65,10 @@ static struct {
  */
 void R_DrawSky(const r_view_t *view) {
 
+	if (!r_world_model->bsp->sky) {
+		return;
+	}
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
@@ -95,15 +99,8 @@ void R_DrawSky(const r_view_t *view) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, r_sky.image->texnum);
 
-	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
-
-	const r_bsp_draw_elements_t *draw = in->draw_elements;
-	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
-
-		if (draw->texinfo->flags & SURF_SKY) {
-			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-		}
-	}
+	const r_bsp_draw_elements_t *sky = r_world_model->bsp->sky;
+	glDrawElements(GL_TRIANGLES, sky->num_elements, GL_UNSIGNED_INT, sky->elements);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -179,19 +176,24 @@ void R_ShutdownSky(void) {
 
 /**
  * @brief Sets the sky to the specified environment map.
+ * @param name The skybox cubemap name, e.g. `"edge/dragonheart_"`.
  */
 void R_LoadSky(const char *name) {
 
-	r_sky.image = R_LoadImage(va("env/%s", name), IT_CUBEMAP);
-	if (r_sky.image == NULL) {
-
-		Com_Warn("Failed to load sky env/%s\n", name);
-
-		r_sky.image = R_LoadImage("env/edge/dragonheart_", IT_CUBEMAP);
+	if (r_world_model->bsp->sky) {
+		r_sky.image = R_LoadImage(va("env/%s", name), IT_CUBEMAP);
 		if (r_sky.image == NULL) {
 
-			Com_Error(ERROR_DROP, "Failed to load default sky\n");
+			Com_Warn("Failed to load sky env/%s\n", name);
+
+			r_sky.image = R_LoadImage("env/sky/template_", IT_CUBEMAP);
+			if (r_sky.image == NULL) {
+
+				Com_Error(ERROR_DROP, "Failed to load default sky\n");
+			}
 		}
+	} else {
+		r_sky.image = NULL;
 	}
 }
 
