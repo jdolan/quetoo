@@ -58,6 +58,11 @@ struct PlayerModelView {
 	cl_client_info_t client;
 
 	/**
+	 * @brief The view to populate and pass to DrawPlayerModelView.
+	 */
+	r_view_t view;
+
+	/**
 	 * @brief The entity stubs.
 	 */
 	r_entity_t head, torso, legs, weapon, platformBase, platformCenter;

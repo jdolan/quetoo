@@ -86,29 +86,28 @@ static void render(View *self, Renderer *renderer) {
 	if (this->client.torso) {
 		$(this, animate);
 
-		r_view_t view = {
-			.type = VIEW_PLAYER_MODEL,
-			.ticks = cgi.client->unclamped_time,
-			.fov = Vec2(45.f, 30.f),
-			.origin = Vec3(0.f, -100.f, 0.f),
-			.angles = Vec3(0.f, 0.f, 0.f),
-			.forward = Vec3(0.f, 1.f, 0.f),
-			.right = Vec3(1.f, 0.f, 0.f),
-			.up = Vec3(0.f, 0.f, 1.f),
-			.contents = 0,
-		};
+		memset(&this->view, 0, sizeof(this->view));
 
-		cgi.AddEntity(&view, &this->platformBase);
-		cgi.AddEntity(&view, &this->platformCenter);
+		this->view.type = VIEW_PLAYER_MODEL;
+		this->view.ticks = cgi.client->unclamped_time;
+		this->view.fov = Vec2(45.f, 30.f);
+		this->view.origin = Vec3(0.f, -100.f, 0.f);
+		this->view.angles = Vec3(0.f, 0.f, 0.f);
+		this->view.forward = Vec3(0.f, 1.f, 0.f);
+		this->view.right = Vec3(1.f, 0.f, 0.f);
+		this->view.up = Vec3(0.f, 0.f, 1.f);
 
-		this->torso.parent = cgi.AddEntity(&view, &this->legs);
-		r_entity_t *torso = cgi.AddEntity(&view, &this->torso);
+		cgi.AddEntity(&this->view, &this->platformBase);
+		cgi.AddEntity(&this->view, &this->platformCenter);
+
+		this->torso.parent = cgi.AddEntity(&this->view, &this->legs);
+		r_entity_t *torso = cgi.AddEntity(&this->view, &this->torso);
 
 		this->head.parent = torso;
-		cgi.AddEntity(&view, &this->head);
+		cgi.AddEntity(&this->view, &this->head);
 
 		this->weapon.parent = torso;
-		cgi.AddEntity(&view, &this->weapon);
+		cgi.AddEntity(&this->view, &this->weapon);
 
 		const SDL_Rect viewport = $(self, viewport);
 		glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
