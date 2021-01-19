@@ -430,7 +430,11 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	R_UpdateUniforms(view);
 
+	glViewport(view->viewport.x, view->viewport.y, view->viewport.z, view->viewport.w);
+
 	R_DrawEntities(view, 0);
+
+	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 }
 
 /**

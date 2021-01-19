@@ -110,11 +110,9 @@ static void render(View *self, Renderer *renderer) {
 		cgi.AddEntity(&this->view, &this->weapon);
 
 		const SDL_Rect viewport = $(self, viewport);
-		glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
+		this->view.viewport = Vec4(viewport.x, viewport.y, viewport.w, viewport.h);
 
-		cgi.DrawPlayerModelView(&view);
-
-		glViewport(0, 0, cgi.context->drawable_width, cgi.context->drawable_height);
+		cgi.DrawPlayerModelView(&this->view);
 	}
 }
 
