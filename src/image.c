@@ -75,6 +75,44 @@ SDL_Surface *Img_LoadSurface(const char *name) {
 }
 
 /**
+ * @brief Flips the given RGBA surface's pixel data along the specified axis.
+ */
+void Img_FlipSurface(SDL_Surface *surf, img_axis_t axis) {
+
+	int32_t *pixels = (int32_t *) surf->pixels;
+
+	if (axis == IMG_AXIS_VERTICAL) {
+		for (int32_t i = 0; i < surf->h >> 1; i++) {
+
+			int32_t *a_row = pixels + surf->w * i;
+			int32_t *b_row = pixels + surf->w * (surf->h - i - 1);
+
+			for (int32_t j = 0; j < surf->w; j++) {
+				const int32_t a = a_row[j];
+				const int32_t b = b_row[j];
+
+				a_row[j] = b;
+				b_row[j] = a;
+			}
+		}
+	} else {
+		for (int32_t i = 0; i < surf->w >> 1; i++) {
+
+			int32_t *a_col = pixels + surf->h * i;
+			int32_t *b_col = pixels + surf->h * (surf->w - i - 1);
+
+			for (int32_t j = 0; j < surf->h; j++) {
+				const int32_t a = a_col[j];
+				const int32_t b = b_col[j];
+
+				a_col[j] = b;
+				b_col[j] = a;
+			}
+		}
+	}
+}
+
+/**
 * @brief Write pixel data to a PNG file.
 */
 _Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {

@@ -326,6 +326,21 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 				Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
 				return NULL;
 			}
+
+			switch (i) {
+				case 0:
+				case 1:
+				case 4:
+				case 5:
+					Img_FlipSurface(surfaces[i], IMG_AXIS_HORIZONTAL);
+					Img_FlipSurface(surfaces[i], IMG_AXIS_VERTICAL);
+					break;
+				case 2:
+				case 3:
+					Img_FlipSurface(surfaces[i], IMG_AXIS_VERTICAL);
+					Img_FlipSurface(surfaces[i], IMG_AXIS_HORIZONTAL);
+					break;
+			}
 		}
 
 		surface = surfaces[0];

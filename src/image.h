@@ -32,6 +32,16 @@
  */
 SDL_Surface *Img_LoadSurface(const char *name);
 
+typedef enum {
+	IMG_AXIS_VERTICAL,
+	IMG_AXIS_HORIZONTAL
+} img_axis_t;
+
+/**
+ * @brief Flips the given RGBA surface's pixel data.
+ */
+void Img_FlipSurface(SDL_Surface *surf, img_axis_t axis);
+
 /**
 * @brief Write pixel data to a PNG file.
 */
