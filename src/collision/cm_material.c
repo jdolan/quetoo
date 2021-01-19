@@ -211,7 +211,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 		if (!g_strcmp0(token, "texture")) {
 
 			if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
-				Cm_MaterialWarn(path, parser, "Missing or invalid path");
+				Cm_MaterialWarn(path, parser, "Missing texture name");
 				continue;
 			}
 
@@ -966,7 +966,12 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 /**
  * @brief
  */
-static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type) {
+static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t context) {
+
+	if (!Cm_ResolveAsset(&stage->asset, context)) {
+		Com_Warn("Failed to resolve animation asset %s\n", stage->asset.name);
+		return false;
+	}
 
 	const size_t size = sizeof(cm_asset_t) * stage->animation.num_frames;
 	stage->animation.frames = Mem_LinkMalloc(size, stage);
@@ -989,7 +994,7 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type
 		cm_asset_t *frame = &stage->animation.frames[i];
 		g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
-		if (!Cm_ResolveAsset(frame, type)) {
+		if (!Cm_ResolveAsset(frame, context)) {
 			Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
 			return false;
 		}
@@ -1001,24 +1006,26 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type
 /**
  * @brief
  */
-static _Bool Cm_ResolveStage(cm_material_t *material, cm_stage_t *stage, cm_asset_context_t context) {
+static _Bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm_asset_context_t context) {
 
+	_Bool res = false;
+	
 	if (*stage->asset.name) {
 
-		if (stage->flags & STAGE_ENVMAP) {
-			context = ASSET_CONTEXT_ENVMAPS;
-		} else if (stage->flags & STAGE_FLARE) {
-			context = ASSET_CONTEXT_FLARES;
+		if (stage->flags & STAGE_ANIMATION) {
+			res = Cm_ResolveStageAnimation(stage, context);
+		} else {
+			if (stage->flags & STAGE_ENVMAP) {
+				res = Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_ENVMAPS);
+			} else if (stage->flags & STAGE_FLARE) {
+				res = Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_FLARES);
+			} else {
+				res = Cm_ResolveAsset(&stage->asset, context);
+			}
 		}
 
-		if (Cm_ResolveAsset(&stage->asset, context)) {
-			if (stage->flags & STAGE_ANIMATION) {
-				return Cm_ResolveStageAnimation(stage, context);
-			} else {
-				return true;
-			}
-		} else {
-			Com_Warn("Material %s stage %d: Failed to resolve asset %s\n",
+		if (res == false) {
+			Com_Warn("Material %s stage %d: Failed to resolve asset(s) %s\n",
 					 material->basename, Cm_StageIndex(material, stage), stage->asset.name);
 		}
 	} else {
@@ -1026,7 +1033,7 @@ static _Bool Cm_ResolveStage(cm_material_t *material, cm_stage_t *stage, cm_asse
 				 material->basename, Cm_StageIndex(material, stage));
 	}
 
-	return false;
+	return res;
 }
 
 /**
@@ -1069,7 +1076,7 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 
 	cm_stage_t *stage = material->stages;
 	while (stage) {
-		if (Cm_ResolveStage(material, stage, context)) {
+		if (Cm_ResolveStageAssets(material, stage, context)) {
 			stage = stage->next;
 		} else {
 			return false;

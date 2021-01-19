@@ -19,12 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler2D texture_diffusemap;
+uniform samplerCube texture_cubemap;
 uniform sampler3D texture_lightgrid_fog;
 
 in vertex_data {
 	vec3 position;
-	vec2 diffusemap;
+	vec3 cubemap;
 	vec3 lightgrid;
 } vertex;
 
@@ -35,7 +35,7 @@ out vec4 out_color;
  */
 void main(void) {
 
-	out_color = texture(texture_diffusemap, vertex.diffusemap);
+	out_color = texture(texture_cubemap, normalize(vertex.cubemap));
 
 	// postprocessing
 	

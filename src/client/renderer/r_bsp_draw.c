@@ -336,7 +336,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_bsp_draw_elements_t *draw,
 										 const r_material_t **material) {
 
-	if (!(draw->texinfo->flags & SURF_MATERIAL)) {
+	if (!(draw->texinfo->flags & SURF_MATERIAL) && !(draw->texinfo->flags & SURF_SKY)) {
 
 		if (*material != draw->texinfo->material) {
 			*material = draw->texinfo->material;
@@ -555,6 +555,8 @@ void R_DrawWorld(const r_view_t *view) {
 
 	R_GetError(NULL);
 
+	R_DrawSky(view);
+
 	R_DrawBspNormals(view);
 }
 
@@ -630,6 +632,8 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.warp_image->width = r_bsp_program.warp_image->height = WARP_IMAGE_SIZE;
 	r_bsp_program.warp_image->type = IT_PROGRAM;
+	r_bsp_program.warp_image->target = GL_TEXTURE_2D;
+	r_bsp_program.warp_image->format = GL_RGBA;
 
 	byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
 
@@ -642,7 +646,7 @@ void R_InitBspProgram(void) {
 		}
 	}
 
-	R_UploadImage(r_bsp_program.warp_image, GL_RGBA, (byte *) data);
+	R_UploadImage(r_bsp_program.warp_image, GL_TEXTURE_2D, (byte *) data);
 
 	R_GetError(NULL);
 }

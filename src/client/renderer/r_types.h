@@ -107,10 +107,11 @@ typedef enum {
 	IT_UI =          (1 <<  3),
 	IT_EFFECT =      (1 <<  4) + (IT_MASK_MIPMAP),
 	IT_MATERIAL =    (1 <<  5) + (IT_MASK_MIPMAP),
-	IT_PIC =         (1 <<  6) + (IT_MASK_MIPMAP),
-	IT_ATLAS =       (1 <<  7) + (IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE),
-	IT_LIGHTMAP =    (1 <<  8) + (IT_MASK_CLAMP_EDGE),
-	IT_LIGHTGRID =   (1 <<  9) + (IT_MASK_CLAMP_EDGE)
+	IT_CUBEMAP =     (1 <<  6) + (IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE),
+	IT_PIC =         (1 <<  7) + (IT_MASK_MIPMAP),
+	IT_ATLAS =       (1 <<  8) + (IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE),
+	IT_LIGHTMAP =    (1 <<  9) + (IT_MASK_CLAMP_EDGE),
+	IT_LIGHTGRID =   (1 << 10) + (IT_MASK_CLAMP_EDGE),
 } r_image_type_t;
 
 /**
@@ -133,10 +134,19 @@ typedef struct {
 	r_pixel_t width, height, depth;
 
 	/**
+	 * @brief The target to bind this texture.
+	 */
+	GLenum target;
+
+	/**
+	 * @brief The pixel format, typically GL_RGB or GL_RGBA.
+	 */
+	GLenum format;
+
+	/**
 	 * @brief The texture name.
 	 */
 	GLuint texnum;
-
 } r_image_t;
 
 /**

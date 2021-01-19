@@ -402,8 +402,6 @@ void R_DrawView(r_view_t *view) {
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	} else {
-		R_DrawSky();
 	}
 
 	R_DrawWorld(view);
@@ -584,7 +582,6 @@ static void R_InitFramebuffer(void) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
-
 
 /**
  * @brief

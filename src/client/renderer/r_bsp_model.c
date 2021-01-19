@@ -418,6 +418,8 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 	out->atlas->width = out->width;
 	out->atlas->height = out->width;
 	out->atlas->depth = BSP_LIGHTMAP_LAYERS + BSP_STAINMAP_LAYERS;
+	out->atlas->target = GL_TEXTURE_2D_ARRAY;
+	out->atlas->format = GL_RGB;
 
 	const size_t in_size = out->width * out->width * BSP_LIGHTMAP_LAYERS * BSP_LIGHTMAP_BPP;
 	const size_t out_size = out->atlas->width * out->atlas->height * out->atlas->depth * BSP_LIGHTMAP_BPP;
@@ -432,7 +434,7 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 
 	memset(data + in_size, 0xff, out->width * out->width * BSP_LIGHTMAP_BPP);
 
-	R_UploadImage(out->atlas, GL_RGB, data);
+	R_UploadImage(out->atlas, GL_TEXTURE_2D_ARRAY, data);
 
 	Mem_Free(data);
 }
@@ -503,20 +505,29 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	for (int32_t i = 0; i < (int32_t) lengthof(out->textures); i++) {
 
-		out->textures[i] = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), R_MEDIA_IMAGE);
-		out->textures[i]->media.Free = R_FreeImage;
-		out->textures[i]->type = IT_LIGHTGRID;
-		out->textures[i]->width = out->size.x;
-		out->textures[i]->height = out->size.y;
-		out->textures[i]->depth = out->size.z;
+		r_image_t *texture = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), R_MEDIA_IMAGE);
+		texture->media.Free = R_FreeImage;
+		texture->type = IT_LIGHTGRID;
+		texture->width = out->size.x;
+		texture->height = out->size.y;
+		texture->depth = out->size.z;
+		texture->target = GL_TEXTURE_3D;
 
 		if (i < BSP_LIGHTGRID_TEXTURES) {
-			R_UploadImage(out->textures[i], GL_RGB, data);
+			texture->format = GL_RGB;
+		} else {
+			texture->format = GL_RGBA;
+		}
+
+		R_UploadImage(texture, texture->target, data);
+
+		if (i < BSP_LIGHTGRID_TEXTURES) {
 			data += luxels * BSP_LIGHTGRID_BPP;
 		} else {
-			R_UploadImage(out->textures[i], GL_RGBA, data);
 			data += luxels * BSP_FOG_BPP;
 		}
+
+		out->textures[i] = texture;
 	}
 }
 

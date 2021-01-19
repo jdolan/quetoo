@@ -157,71 +157,68 @@ void R_Screenshot_f(void) {
 /**
  * @brief Creates the base image state for the image.
  */
-void R_SetupImage(r_image_t *image, GLenum target, GLenum format, GLsizei levels, GLenum type, byte *data) {
+void R_SetupImage(r_image_t *image) {
 	
 	assert(image);
+	assert(image->type);
+	assert(image->width);
+	assert(image->height);
+	assert(image->target);
+	assert(image->format);
 
-	switch (format) {
+	switch (image->format) {
 		case GL_RGB:
 		case GL_RGBA:
 			break;
 		default:
-			Com_Error(ERROR_DROP, "Unsupported format %d\n", format);
+			Com_Error(ERROR_DROP, "Unsupported format %d\n", image->format);
 	}
 
 	if (image->texnum == 0) {
 		glGenTextures(1, &(image->texnum));
 	}
 
-	glBindTexture(target, image->texnum);
-	
+	glBindTexture(image->target, image->texnum);
+
 	if (image->type & IT_MASK_MIPMAP) {
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
+		glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
+		glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
 
 		if (r_image_state.anisotropy) {
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
+			glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 		}
 	} else {
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify_no_mip);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
+		glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify_no_mip);
+		glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
 	}
 
 	if (image->type & IT_MASK_CLAMP_EDGE) {
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	} else {
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_REPEAT);
+		glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
 
 	if (GLAD_GL_ARB_texture_storage) {
-		const GLenum internal_format = (format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
-		if (image->depth) {
-			glTexStorage3D(target, levels, internal_format, image->width, image->height, image->depth);
 
-			if (data) {
-				glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, format, type, data);
-			}
-		} else {
-			glTexStorage2D(target, levels, internal_format, image->width, image->height);
-			
-			if (data) {
-				glTexSubImage2D(target, 0, 0, 0, image->width, image->height, format, type, data);
+		GLsizei levels = 1;
+		if (image->type & IT_MASK_MIPMAP) {
+			if (image->depth) {
+				levels = floorf(log2f(MAX(MAX(image->width, image->height), image->depth))) + 1;
+			} else {
+				levels = floorf(log2f(MAX(image->width, image->height))) + 1;
 			}
 		}
-	} else {
-		if (image->depth) {
-			glTexImage3D(target, 0, format, image->width, image->height, image->depth, 0, format, type, data);
-		} else {
-			glTexImage2D(target, 0, format, image->width, image->height, 0, format, type, data);
-		}
-	}
 
-	if ((image->type & IT_MASK_MIPMAP) && data) {
-		glGenerateMipmap(target);
+		const GLenum internal_format = (image->format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
+		if (image->depth) {
+			glTexStorage3D(image->target, levels, internal_format, image->width, image->height, image->depth);
+		} else {
+			glTexStorage2D(image->target, levels, internal_format, image->width, image->height);
+		}
 	}
 
 	R_RegisterMedia((r_media_t *) image);
@@ -230,42 +227,42 @@ void R_SetupImage(r_image_t *image, GLenum target, GLenum format, GLsizei levels
 }
 
 /**
- * @brief Uploads the specified image to the OpenGL implementation. Images that
- * do not have a GL texture reserved (which is most diffusemap textures) will have
- * one generated for them. This flexibility allows for explicitly managed
- * textures (such as lightmaps) to be here as well.
+ * @brief Uploads the given pixel data to the specified image and target.
+ * @param image The image.
+ * @param target The target, which may be different than the image's bind target.
+ * @param data The pixel data.
  */
-void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
+void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 
 	assert(image);
+	assert(target);
+	assert(data);
 
-	GLenum target = GL_TEXTURE_2D;
+	if (image->texnum == 0) {
+		R_SetupImage(image);
+	}
 
-	if (image->depth) {
-		switch (image->type) {
-			case IT_MATERIAL:
-			case IT_LIGHTMAP:
-				target = GL_TEXTURE_2D_ARRAY;
-				break;
-			case IT_LIGHTGRID:
-				target = GL_TEXTURE_3D;
-				break;
-			default:
-				break;
+	glBindTexture(image->target, image->texnum);
+
+	if (GLAD_GL_ARB_texture_storage) {
+		if (image->depth) {
+			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, GL_UNSIGNED_BYTE, data);
+		} else {
+			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, GL_UNSIGNED_BYTE, data);
+		}
+	} else {
+		if (image->depth) {
+			glTexImage3D(target, 0, image->format, image->width, image->height, image->depth, 0, image->format, GL_UNSIGNED_BYTE, data);
+		} else {
+			glTexImage2D(target, 0, image->format, image->width, image->height, 0, image->format, GL_UNSIGNED_BYTE, data);
 		}
 	}
-	
-	GLsizei levels = 1;
 
 	if (image->type & IT_MASK_MIPMAP) {
-		if (image->depth) {
-			levels = floorf(log2f(MAX(MAX(image->width, image->height), image->depth))) + 1;
-		} else {
-			levels = floorf(log2f(MAX(image->width, image->height))) + 1;
-		}
+		glGenerateMipmap(image->target);
 	}
 
-	R_SetupImage(image, target, format, levels, GL_UNSIGNED_BYTE, data);
+	R_GetError(image->media.name);
 }
 
 /**
@@ -296,38 +293,6 @@ void R_FreeImage(r_media_t *media) {
 }
 
 /**
- * @brief Create an image by the specified name.
- */
-_Bool R_CreateImage(r_image_t **out, const char *name, const int32_t width, const int32_t height, r_image_type_t type) {
-	r_image_t *image;
-	char key[MAX_QPATH];
-
-	if (!name || !name[0]) {
-		Com_Error(ERROR_DROP, "NULL name\n");
-	}
-
-	StripExtension(name, key);
-
-	if (!(image = (r_image_t *) R_FindMedia(key, R_MEDIA_IMAGE))) {
-
-		image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), R_MEDIA_IMAGE);
-
-		image->media.Retain = R_RetainImage;
-		image->media.Free = R_FreeImage;
-
-		image->width = width;
-		image->height = height;
-		image->type = type;
-		
-		*out = image;
-		return true;
-	}
-
-	*out = image;
-	return false;
-}
-
-/**
  * @brief Loads the image by the specified name.
  */
 r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
@@ -350,23 +315,57 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 		return image;
 	}
 
-	SDL_Surface *surf = Img_LoadSurface(key);
-	if (!surf) {
-		Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
-		return NULL;
-	}
-	
-	if (!R_CreateImage(&image, name, surf->w, surf->h, type)) {
-		return image;
+	SDL_Surface *surface;
+	SDL_Surface *surfaces[6];
+	if (type == IT_CUBEMAP) {
+		const char *suffix[6] = { "rt", "lf", "up", "dn", "bk", "ft" };
+		for (size_t i = 0; i < lengthof(surfaces); i++) {
+
+			surfaces[i] = Img_LoadSurface(va("%s%s", key, suffix[i]));
+			if (!surfaces[i]) {
+				Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
+				return NULL;
+			}
+		}
+
+		surface = surfaces[0];
+	} else {
+		surface = Img_LoadSurface(key);
+		if (!surface) {
+			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
+			return NULL;
+		}
 	}
 
-	image->width = surf->w;
-	image->height = surf->h;
+	image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), R_MEDIA_IMAGE);
+
+	image->media.Retain = R_RetainImage;
+	image->media.Free = R_FreeImage;
+
 	image->type = type;
+	image->width = surface->w;
+	image->height = surface->h;
+	image->format = GL_RGBA;
 
-	R_UploadImage(image, GL_RGBA, surf->pixels);
+	if (type == IT_CUBEMAP) {
+		image->target = GL_TEXTURE_CUBE_MAP;
 
-	SDL_FreeSurface(surf);
+		for (size_t i = 0; i < lengthof(surfaces); i++) {
+
+			const GLenum target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + (GLenum) i;
+			R_UploadImage(image, target, surfaces[i]->pixels);
+
+			SDL_FreeSurface(surfaces[i]);
+		}
+	} else {
+		image->target = GL_TEXTURE_2D;
+
+		R_UploadImage(image, image->target, surface->pixels);
+		
+		SDL_FreeSurface(surface);
+	}
+
+	R_GetError(name);
 
 	return image;
 }
