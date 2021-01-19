@@ -66,6 +66,7 @@ static struct {
 void R_DrawSky(const r_view_t *view) {
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
 	glUseProgram(r_sky_program.name);
 
@@ -111,6 +112,7 @@ void R_DrawSky(const r_view_t *view) {
 
 	glUseProgram(0);
 
+	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 }
 
