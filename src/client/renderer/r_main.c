@@ -77,7 +77,7 @@ cvar_t *r_width;
  * @brief Queries OpenGL for any errors and prints them as warnings.
  */
 void R_GetError_(const char *function, const char *msg) {
-
+#ifdef _DEBUG
 	if (!r_get_error->integer) {
 		return;
 	}
@@ -116,6 +116,7 @@ void R_GetError_(const char *function, const char *msg) {
 			SDL_TriggerBreakpoint();
 		}
 	}
+#endif
 }
 
 /**
