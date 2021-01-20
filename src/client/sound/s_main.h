@@ -21,12 +21,22 @@
 
 #pragma once
 
+#include "s_types.h"
+
 void S_RenderStage(const s_stage_t *stage);
 void S_Init(void);
 void S_Shutdown(void);
 void S_Stop(void);
 
 #ifdef __S_LOCAL_H__
+extern cvar_t *s_get_error;
+
 void S_GetError_(const char *function, const char *msg);
-#define S_GetError(msg) S_GetError_(__func__, msg)
+
+#define S_GetError(msg) { \
+	if (s_get_error->integer) { \
+		S_GetError_(__func__, msg); \
+	} \
+}
+
 #endif /* __S_LOCAL_H__ */

@@ -23,8 +23,6 @@
 
 #include "r_types.h"
 
-extern cvar_t *r_get_error;
-
 extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
@@ -54,9 +52,6 @@ extern cvar_t *r_swap_interval;
 extern cvar_t *r_width;
 
 extern r_stats_t r_stats;
-
-void R_GetError_(const char *function, const char *msg);
-#define R_GetError(msg) R_GetError_(__func__, msg)
 
 void R_Init(void);
 void R_Shutdown(void);
@@ -215,7 +210,16 @@ extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
+extern cvar_t *r_get_error;
 extern cvar_t *r_occlude;
+
+void R_GetError_(const char *function, const char *msg);
+
+#define R_GetError(msg) { \
+	if (r_get_error->integer) { \
+		R_GetError_(__func__, msg); \
+	} \
+}
 
 _Bool R_CullPoint(const r_view_t *view, const vec3_t point);
 _Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs);

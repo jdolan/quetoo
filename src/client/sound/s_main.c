@@ -25,7 +25,7 @@
 
 s_context_t s_context;
 
-static cvar_t *s_get_error;
+cvar_t *s_get_error;
 
 cvar_t *s_ambient_volume;
 cvar_t *s_doppler;
@@ -38,7 +38,7 @@ cvar_t *s_volume;
  * @brief Check and report OpenAL errors.
  */
 void S_GetError_(const char *function, const char *msg) {
-#if _DEBUG
+
 	if (!s_get_error->integer) {
 		return;
 	}
@@ -54,7 +54,6 @@ void S_GetError_(const char *function, const char *msg) {
 	if (s_get_error->integer == 2) {
 		SDL_TriggerBreakpoint();
 	}
-#endif
 }
 
 /**
