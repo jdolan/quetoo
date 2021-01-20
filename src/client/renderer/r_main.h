@@ -69,11 +69,6 @@ void R_EndFrame(void);
 #ifdef __R_LOCAL_H__
 
 /**
- * @brief The current view.
- */
-extern r_view_t *r_view;
-
-/**
  * @brief OpenGL driver information.
  */
 typedef struct {
