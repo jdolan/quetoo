@@ -52,7 +52,6 @@ static struct {
 	GLuint uniforms_block;
 
 	GLint in_position;
-	GLint in_diffusemap;
 
 	GLint texture_cubemap;
 	GLint texture_lightgrid_fog;
@@ -91,16 +90,17 @@ void R_DrawSky(const r_view_t *view) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
 
 	glEnableVertexAttribArray(r_sky_program.in_position);
-	glEnableVertexAttribArray(r_sky_program.in_diffusemap);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
 	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, r_sky.image->texnum);
 
 	const r_bsp_draw_elements_t *sky = r_world_model->bsp->sky;
 	glDrawElements(GL_TRIANGLES, sky->num_elements, GL_UNSIGNED_INT, sky->elements);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -111,6 +111,8 @@ void R_DrawSky(const r_view_t *view) {
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -131,14 +133,13 @@ static void R_InitSkyProgram(void) {
 	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
 
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
-	r_sky_program.in_diffusemap = glGetAttribLocation(r_sky_program.name, "in_diffusemap");
 
 	r_sky_program.texture_cubemap = glGetUniformLocation(r_sky_program.name, "texture_cubemap");
 	r_sky_program.texture_lightgrid_fog = glGetUniformLocation(r_sky_program.name, "texture_lightgrid_fog");
 
 	r_sky_program.cube = glGetUniformLocation(r_sky_program.name, "cube");
 
-	glUniform1i(r_sky_program.texture_cubemap, TEXTURE_DIFFUSEMAP);
+	glUniform1i(r_sky_program.texture_cubemap, TEXTURE_SKY);
 	glUniform1i(r_sky_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 
 	glUseProgram(0);

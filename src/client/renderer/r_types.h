@@ -1336,6 +1336,11 @@ typedef enum {
 	TEXTURE_LIGHTGRID_FOG,
 
 	/**
+	 * @brief The sky cubemap texture.
+	 */
+	TEXTURE_SKY,
+
+	/**
 	 * @brief Sprite specific textures.
 	 */
 	TEXTURE_NEXT_DIFFUSEMAP,
