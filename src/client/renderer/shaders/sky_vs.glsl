@@ -39,7 +39,7 @@ void main(void) {
 
 	vertex.position = vec3(view * position);
 	vertex.cubemap = vec3(cube * position);
-	vertex.lightgrid = lightgrid_uvw(in_position);
+	vertex.lightgrid = lightgrid_uvw(vec3(512.0, 512.0, 512.0));
 
 	gl_Position = projection3D * view * position;
 }

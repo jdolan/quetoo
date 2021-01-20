@@ -292,6 +292,63 @@ void R_FreeImage(r_media_t *media) {
 	image->texnum = 0;
 }
 
+// Quick access of a pixel
+#define SDL_PIXEL_AT(surf, type, x, y) \
+	*(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * surf->format->BytesPerPixel)
+
+// helper macro which copies an SDL pixel from one surf to another
+#define SDL_COPY_PIXEL(from, to, type, src_x, src_y, dst_x, dst_y) \
+		SDL_PIXEL_AT(to, type, dst_x, dst_y) = SDL_PIXEL_AT(from, type, src_x, src_y)
+
+/**
+ * @brief Rotate an SDL surface counter-clockwise by the number of rotations specified.
+ * @param surf Surface to rotate. It is not modified.
+ * @param num_rotations Number of 90-degree rotations to rotate by.
+ * @return Either a reference to "surf" if the surface was not rotated, or a new surface.
+*/
+SDL_Surface *SDL_SurfaceRotate(SDL_Surface *surf, int32_t num_rotations) {
+
+	num_rotations %= 4;
+
+	if (!num_rotations) {
+		return surf;
+	}
+
+	if (surf->w != surf->h) {
+		Com_Error(ERROR_FATAL, "Only works on square images :(");
+	}
+
+	SDL_LockSurface(surf);
+
+	SDL_Surface *output = SDL_CreateRGBSurfaceWithFormat(0, surf->w, surf->h, surf->format->BitsPerPixel, surf->format->format);
+
+	SDL_LockSurface(output);
+
+	switch (num_rotations) {
+	case 1:
+		for (int32_t y = 0; y < surf->h; y++) 
+			for (int32_t x = 0; x < surf->w; x++)
+				SDL_COPY_PIXEL(surf, output, int32_t, surf->w - y - 1, x, x, y);
+		break;
+	case 2:
+		for (int32_t y = 0; y < surf->h; y++) 
+			for (int32_t x = 0; x < surf->w; x++)
+				SDL_COPY_PIXEL(surf, output, int32_t, surf->w - x - 1, surf->h - y - 1, x, y);
+		break;
+	case 3:
+		for (int32_t y = 0; y < surf->h; y++) 
+			for (int32_t x = 0; x < surf->w; x++)
+				SDL_COPY_PIXEL(surf, output, int32_t, y, surf->h - x - 1, x, y);
+		break;
+	}
+
+	SDL_UnlockSurface(output);
+	
+	SDL_UnlockSurface(surf);
+
+	return output;
+}
+
 /**
  * @brief Loads the image by the specified name.
  */
@@ -315,41 +372,11 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 		return image;
 	}
 
-	SDL_Surface *surface;
-	SDL_Surface *surfaces[6];
-	if (type == IT_CUBEMAP) {
-		const char *suffix[6] = { "rt", "lf", "up", "dn", "bk", "ft" };
-		for (size_t i = 0; i < lengthof(surfaces); i++) {
+	SDL_Surface *surface = Img_LoadSurface(key);
 
-			surfaces[i] = Img_LoadSurface(va("%s%s", key, suffix[i]));
-			if (!surfaces[i]) {
-				Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
-				return NULL;
-			}
-
-			switch (i) {
-				case 0:
-				case 1:
-				case 4:
-				case 5:
-					Img_FlipSurface(surfaces[i], IMG_AXIS_HORIZONTAL);
-					Img_FlipSurface(surfaces[i], IMG_AXIS_VERTICAL);
-					break;
-				case 2:
-				case 3:
-					Img_FlipSurface(surfaces[i], IMG_AXIS_VERTICAL);
-					Img_FlipSurface(surfaces[i], IMG_AXIS_HORIZONTAL);
-					break;
-			}
-		}
-
-		surface = surfaces[0];
-	} else {
-		surface = Img_LoadSurface(key);
-		if (!surface) {
-			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
-			return NULL;
-		}
+	if (!surface) {
+		Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
+		return NULL;
 	}
 
 	image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), R_MEDIA_IMAGE);
@@ -358,37 +385,69 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	image->media.Free = R_FreeImage;
 
 	image->type = type;
-	image->width = surface->w;
-	image->height = surface->h;
-	image->format = GL_RGBA;
 
 	if (type == IT_CUBEMAP) {
 		image->target = GL_TEXTURE_CUBE_MAP;
+		image->format = GL_RGB;
+		
+		image->width = surface->w / 4;
+		image->height = surface->h / 3;
 
-		for (size_t i = 0; i < lengthof(surfaces); i++) {
+		// right left front back up down
+		const vec2s_t offsets[] = {
+			Vec2s(2, 1),
+			Vec2s(0, 1),
+			Vec2s(3, 1),
+			Vec2s(1, 1),
+			Vec2s(1, 0),
+			Vec2s(1, 2)
+		};
 
+		const int32_t rotations[] = {
+			1,
+			3,
+			2,
+			0,
+			0,
+			2
+		};
+
+		for (size_t i = 0; i < 6; i++) {
 			const GLenum target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + (GLenum) i;
-			R_UploadImage(image, target, surfaces[i]->pixels);
 
-			SDL_FreeSurface(surfaces[i]);
+			SDL_Surface *side = SDL_CreateRGBSurfaceWithFormat(0, image->width, image->height, 3, SDL_PIXELFORMAT_RGB24);
+
+			SDL_BlitSurface(surface, &(const SDL_Rect) { .x = image->width * offsets[i].x, .y = image->height * offsets[i].y, .w = image->width, .h = image->height },
+				side, &(SDL_Rect) { .x = 0, .y = 0, .w = image->width, .h = image->height });
+
+			if (rotations[i]) {
+				SDL_Surface *rotated = SDL_SurfaceRotate(side, rotations[i]);
+
+				if (rotated != side) {
+					SDL_FreeSurface(side);
+					side = rotated;
+				}
+			}
+
+			R_UploadImage(image, target, side->pixels);
+
+			SDL_FreeSurface(side);
 		}
 	} else {
+		image->width = surface->w;
+		image->height = surface->h;
 		image->target = GL_TEXTURE_2D;
+		image->format = GL_RGBA;
 
 		R_UploadImage(image, image->target, surface->pixels);
-		
-		SDL_FreeSurface(surface);
 	}
+		
+	SDL_FreeSurface(surface);
 
 	R_GetError(name);
 
 	return image;
 }
-
-#define RMASK 0x000000ff
-#define GMASK 0x0000ff00
-#define BMASK 0x00ff0000
-#define AMASK 0xff000000
 
 /**
  * @brief Dump the image to the specified output file (must be .png)
@@ -474,7 +533,7 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 				return;
 			}
 
-			SDL_Surface *surf = SDL_CreateRGBSurfaceFrom(pixels + (scaled_width * scaled_height * 4 * d), scaled_width, scaled_height, 32, scaled_width * 4, RMASK, GMASK, BMASK, AMASK);
+			SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormatFrom(pixels + (scaled_width * scaled_height * 4 * d), scaled_width, scaled_height, 32, scaled_width * 4, SDL_PIXELFORMAT_RGBA32);
 			IMG_SavePNG_RW(surf, f, 0);
 			SDL_FreeSurface(surf);
 

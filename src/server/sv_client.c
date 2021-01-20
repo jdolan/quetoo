@@ -237,7 +237,7 @@ static void Sv_Download_f(void) {
 		"maps/*",
 		"models/*",
 		"sounds/*",
-		"env/*",
+		"sky/*",
 		"textures/*",
 		NULL
 	};
