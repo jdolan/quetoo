@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-r_view_t *r_view;
-
 r_config_t r_config;
 r_uniforms_t r_uniforms;
 r_stats_t r_stats;
