@@ -22,8 +22,6 @@
 uniform sampler2D texture_diffusemap;
 uniform sampler2D texture_next_diffusemap;
 
-uniform sampler3D texture_lightgrid_fog;
-
 in vertex_data {
 	vec3 position;
 	vec2 diffusemap;
@@ -31,9 +29,7 @@ in vertex_data {
 	vec4 color;
 	float lerp;
 	float softness;
-	float lighting;
-	vec3 ambient;
-	vec3 diffuse;
+	vec3 light;
 	vec4 fog;
 } vertex;
 
@@ -44,24 +40,13 @@ out vec4 out_color;
  */
 void main(void) {
 
-	vec4 diffuse_color = mix(texture(texture_diffusemap, vertex.diffusemap), texture(texture_next_diffusemap, vertex.next_diffusemap), vertex.lerp);
+	vec4 texture_color = mix(
+		texture(texture_diffusemap, vertex.diffusemap),
+		texture(texture_next_diffusemap, vertex.next_diffusemap),
+		vertex.lerp);
 
-	vec3 light_diffuse = vertex.ambient + vertex.diffuse;
-	vec3 light_specular = vec3(0.0);
-
-	dynamic_light(vertex.position, vec3(0.0, 0.0, -1.0), 64.0, light_diffuse, light_specular);
-
-	out_color = vertex.color * diffuse_color;
-
-	vec3 lighting_color = out_color.rgb;
-	
-	lighting_color = clamp(lighting_color * (light_diffuse * modulate), 0.0, 32.0);
-	lighting_color = clamp(lighting_color + (light_specular * modulate), 0.0, 32.0);
-
-	out_color.rgb = mix(out_color.rgb, lighting_color.rgb, vertex.lighting);
-
-	//out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a * diffuse_color.a);
-
+	out_color = vertex.color * texture_color;
+	out_color.rgb *= vertex.light;
 	out_color.rgb = color_filter(out_color.rgb);
 
 	out_color *= soften(vertex.softness);

@@ -38,11 +38,54 @@ out vertex_data {
 	vec4 color;
 	float lerp;
 	float softness;
-	float lighting;
-	vec3 ambient;
-	vec3 diffuse;
+	vec3 light;
 	vec4 fog;
 } vertex;
+
+/**
+ * @brief Dynamic lighting for sprites
+ */
+void sprite_lighting(vec3 position, vec3 normal) {
+
+	vec3 grid_coord = lightgrid_uvw(in_position);
+
+	// static lighting
+	vertex.light += texture(texture_lightgrid_ambient, grid_coord).rgb;
+	vertex.light += texture(texture_lightgrid_diffuse, grid_coord).rgb;
+
+	// dynamic lighting
+	for (int i = 0; i < MAX_LIGHTS; i++) {
+
+		float radius = lights[i].origin.w;
+		if (radius == 0.0) {
+			continue;
+		}
+
+		float intensity = lights[i].color.w;
+		if (intensity == 0.0) {
+			continue;
+		}
+
+		float dist = distance(lights[i].origin.xyz, position);
+		if (dist > radius) {
+			continue;
+		}
+
+		vec3 light_dir = normalize(lights[i].origin.xyz - position);
+		float angle_atten = dot(light_dir, normal) * 0.5 + 0.5; // soft lighting
+
+		float dist_atten = 1.0 - dist / radius;
+		dist_atten *= dist_atten; // for looks, not for correctness
+
+		vec3 color = lights[i].color.rgb * intensity;
+
+		vertex.light += dist_atten * angle_atten * radius * color;
+	}
+
+	// scale lighting contribution
+	vertex.light = mix(vertex.light, vec3(1.0), 1.0 - in_lighting);
+	vertex.light *= modulate;
+}
 
 /**
  * @brief
@@ -57,15 +100,13 @@ void main(void) {
 	vertex.color = in_color;
 	vertex.lerp = in_lerp;
 	vertex.softness = in_softness;
-	vertex.lighting = in_lighting;
+	vertex.light = vec3(0.0);
 
 	vec3 lightgrid_uvw = lightgrid_uvw(in_position);
 
-	vertex.ambient = texture(texture_lightgrid_ambient, lightgrid_uvw).rgb;
-	vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
-
 	vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 	lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
+	sprite_lighting(vertex.position, vec3(0.0, 0.0, 1.0)); // TODO: actual normals
 
 	gl_Position = projection3D * view * position;
 }
