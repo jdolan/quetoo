@@ -14,6 +14,7 @@ noinst_HEADERS = \
 	r_draw_3d.h \
 	r_entity.h \
 	r_flare.h \
+	r_framebuffer.h \
 	r_gl.h \
 	r_gl_types.h \
 	r_image.h \
@@ -50,6 +51,7 @@ librenderer_la_SOURCES = \
 	r_draw_3d.c \
 	r_entity.c \
 	r_flare.c \
+	r_framebuffer.c \
 	r_gl.c \
 	r_image.c \
 	r_light.c \

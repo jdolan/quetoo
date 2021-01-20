@@ -591,6 +591,20 @@ typedef struct cg_import_s {
 	void (*AddSample)(s_stage_t *stage, const s_play_sample_t *play);
 
 	/**
+	 * @brief Creates an OpenGL framebuffer with color and depth attachments.
+	 * @param width The framebuffer width, in pixels.
+	 * @param height The framebuffer height, in pixels.
+	 * @return The framebuffer.
+	 */
+	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height);
+
+	/**
+	 * @brief Destroys the specified framebuffer, releasing any OpenGL resources.
+	 * @param framebuffer The framebuffer to destroy.
+	 */
+	void (*DestroyFramebuffer)(r_framebuffer_t *framebuffer);
+
+	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
 	 * @param name The image name (e.g. `"pics/ch1"`).
 	 * @return The surface, or `NULL` if it could not be loaded.
@@ -736,6 +750,17 @@ typedef struct cg_import_s {
 	 * @param color The color.
 	 */
 	void (*Draw2DImage)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
+
+	/**
+	 * @brief Draws the framebuffer color attachment in orthographic projection on the screen.
+	 * @param x The x coordinate, in pixels.
+	 * @param y The y coordinate, in pixels.
+	 * @param x The width, in pixels.
+	 * @param y The height, in pixels.
+	 * @param image The image.
+	 * @param color The color.
+	 */
+	void (*Draw2DFramebuffer)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color);
 
 	/**
 	 * @brief Draws the string `s` at the given coordinates.

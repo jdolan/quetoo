@@ -457,7 +457,7 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
+	glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment);
 
 	r_sprite_instance_t *in = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(blend_depth));
 	

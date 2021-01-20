@@ -1126,6 +1126,36 @@ typedef struct r_entity_s {
 } r_entity_t;
 
 /**
+ * @brief The framebuffer type.
+ */
+typedef struct {
+	/**
+	 * @brief The framebuffer name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The color attachment texture name.
+	 */
+	GLuint color_attachment;
+
+	/**
+	 * @brief The depth attachment texture name.
+	 */
+	GLuint depth_attachment;
+
+	/**
+	 * @brief The framebuffer width.
+	 */
+	r_pixel_t width;
+
+	/**
+	 * @brief The framebuffer height.
+	 */
+	r_pixel_t height;
+} r_framebuffer_t;
+
+/**
  * @brief View types.
  */
 typedef enum {
@@ -1226,6 +1256,12 @@ typedef struct {
 	int32_t num_stains;
 
 	/**
+	 * @brief The target framebuffer, or `NULL`.
+	 * @details If unset, the default framebuffer is targeted.
+	 */
+	r_framebuffer_t *framebuffer;
+
+	/**
 	 * @brief The view frustum, for box and sphere culling.
 	 * @remarks This is populated by the renderer.
 	 */
@@ -1275,7 +1311,7 @@ typedef struct {
 	/**
 	 * @brief Framebuffer things.
 	 */
-	GLuint framebuffer, color_attachment, depth_stencil_attachment;
+	r_framebuffer_t framebuffer;
 } r_context_t;
 
 /**

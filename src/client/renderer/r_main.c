@@ -347,7 +347,9 @@ void R_BeginFrame(void) {
  */
 void R_DrawViewDepth(r_view_t *view) {
 
-	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
+	view->framebuffer = view->framebuffer ?: &r_context.framebuffer;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
 	R_Clear(view);
 
@@ -363,27 +365,13 @@ void R_DrawViewDepth(r_view_t *view) {
 }
 
 /**
- * @brief Blits the color attachment to the framebuffer.
- */
-static void R_DrawColorAttachment(void) {
-
-	const r_image_t img = {
-		.texnum = r_context.color_attachment,
-		.width = r_context.width,
-		.height = -r_context.height
-	};
-
-	R_Draw2DImage(0, r_context.height, img.width, img.height, &img, color_white);
-
-	R_GetError(NULL);
-}
-
-/**
  * @brief Entry point for drawing the main view.
  */
 void R_DrawView(r_view_t *view) {
 
 	assert(view);
+
+	view->framebuffer = view->framebuffer ?: &r_context.framebuffer;
 
 	R_DrawBspLightgrid(view);
 
@@ -399,7 +387,7 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateStains(view);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -419,7 +407,7 @@ void R_DrawView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	R_DrawColorAttachment();
+	R_Draw2DFramebuffer(0, 0, r_context.width, r_context.height, view->framebuffer, color_white);
 }
 
 /**
@@ -429,13 +417,19 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	assert(view);
 
+	view->framebuffer = view->framebuffer ?: &r_context.framebuffer;
+
 	R_UpdateUniforms(view);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
 	glViewport(view->viewport.x, view->viewport.y, view->viewport.z, view->viewport.w);
 
 	R_DrawEntities(view, 0);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 /**
@@ -541,54 +535,6 @@ static void R_InitConfig(void) {
 }
 
 /**
- * @brief Creates the default 3d framebuffer.
- */
-static void R_InitFramebuffer(void) {
-
-	glGenFramebuffers(1, &r_context.framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, r_context.framebuffer);
-
-	R_GetError("Make framebuffer");
-
-	glGenTextures(1, &r_context.color_attachment);
-	glBindTexture(GL_TEXTURE_2D, r_context.color_attachment);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_context.drawable_width, r_context.drawable_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_context.color_attachment, 0);
-
-	{
-		const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if (status != GL_FRAMEBUFFER_COMPLETE) {
-			Com_Error(ERROR_FATAL, "Color attachment incomplete: %d\n", status);
-		}
-		R_GetError("Color attachment");
-	}
-
-	glGenTextures(1, &r_context.depth_stencil_attachment);
-	glBindTexture(GL_TEXTURE_2D, r_context.depth_stencil_attachment);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.drawable_width, r_context.drawable_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, r_context.depth_stencil_attachment, 0);
-
-	{
-		const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if (status != GL_FRAMEBUFFER_COMPLETE) {
-			Com_Error(ERROR_FATAL, "Depth stencil attachment incomplete: %d\n", status);
-		}
-		R_GetError("Depth stencil attachment");
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-/**
  * @brief
  */
 static void R_InitUniforms(void) {
@@ -607,18 +553,6 @@ static void R_ShutdownUniforms(void) {
 }
 
 /**
- * @brief Destroys the default 3d framebuffer.
- */
-static void R_ShutdownFramebuffer(void) {
-	
-	glDeleteFramebuffers(1, &r_context.framebuffer);
-	glDeleteTextures(1, &r_context.color_attachment);
-	glDeleteTextures(1, &r_context.depth_stencil_attachment);
-
-	R_GetError(NULL);
-}
-
-/**
  * @brief Creates the OpenGL context and initializes all GL state.
  */
 void R_Init(void) {
@@ -630,8 +564,6 @@ void R_Init(void) {
 	R_InitContext();
 
 	R_InitConfig();
-
-	R_InitFramebuffer();
 
 	R_InitUniforms();
 
@@ -686,8 +618,6 @@ void R_Shutdown(void) {
 	R_ShutdownDepthPass();
 
 	R_ShutdownUniforms();
-
-	R_ShutdownFramebuffer();
 
 	R_ShutdownContext();
 

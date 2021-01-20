@@ -238,6 +238,9 @@ void Cl_InitCgame(void) {
 	import.LoadClientModelSamples = S_LoadClientModelSamples;
 	import.AddSample = S_AddSample;
 
+	import.CreateFramebuffer = R_CreateFramebuffer;
+	import.DestroyFramebuffer = R_DestroyFramebuffer;
+
 	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;
 	import.LoadAtlas = R_LoadAtlas;
@@ -259,6 +262,7 @@ void Cl_InitCgame(void) {
 	import.BindFont = R_BindFont;
 	import.Draw2DFill = R_Draw2DFill;
 	import.Draw2DImage = R_Draw2DImage;
+	import.Draw2DFramebuffer = R_Draw2DFramebuffer;
 	import.Draw2DString = R_Draw2DString;
 	import.StringWidth = R_StringWidth;
 	import.Draw3DLines = R_Draw3DLines;

@@ -425,6 +425,44 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 }
 
 /**
+ * @brief
+ */
+void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color) {
+
+	if (framebuffer == NULL) {
+		Com_Warn("NULL framebuffer\n");
+		return;
+	}
+
+	r_draw_2d_arrays_t draw = {
+		.mode = GL_TRIANGLES,
+		.texture = framebuffer->color_attachment,
+		.first_vertex = r_draw_2d.num_vertexes,
+		.num_vertexes = 6
+	};
+
+	r_draw_2d_vertex_t quad[4];
+
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + w, y);
+	quad[2].position = Vec2s(x + w, y + h);
+	quad[3].position = Vec2s(x, y + h);
+
+	quad[0].diffusemap = Vec2(0, 1);
+	quad[1].diffusemap = Vec2(1, 1);
+	quad[2].diffusemap = Vec2(1, 0);
+	quad[3].diffusemap = Vec2(0, 0);
+
+	quad[0].color = Color_Color32(color);
+	quad[1].color = Color_Color32(color);
+	quad[2].color = Color_Color32(color);
+	quad[3].color = Color_Color32(color);
+
+	R_EmitDrawVertexes2D_Quad(quad);
+	R_AddDraw2DArrays(&draw);
+}
+
+/**
  * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
