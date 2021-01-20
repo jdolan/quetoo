@@ -351,6 +351,8 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 		r_stats.count_bsp_triangles += draw->num_elements / 3;
+
+		R_GetError(draw->texinfo->texture);
 	}
 
 	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->texinfo->material);
