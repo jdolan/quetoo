@@ -19,12 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <ctype.h>
-
-#ifndef _WIN32
-	#include <dlfcn.h>
-#endif
-
 #include "r_local.h"
 
 r_view_t *r_view;
