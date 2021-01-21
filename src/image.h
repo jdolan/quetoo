@@ -32,15 +32,10 @@
  */
 SDL_Surface *Img_LoadSurface(const char *name);
 
-typedef enum {
-	IMG_AXIS_VERTICAL,
-	IMG_AXIS_HORIZONTAL
-} img_axis_t;
-
 /**
- * @brief Flips the given RGBA surface's pixel data.
+ * @brief Rotates the specified surface clockwise by the number of rotations.
  */
-void Img_FlipSurface(SDL_Surface *surf, img_axis_t axis);
+SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
 
 /**
 * @brief Write pixel data to a PNG file.
