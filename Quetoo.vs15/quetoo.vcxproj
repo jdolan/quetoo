@@ -115,7 +115,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;OpenAL32.lib;SDL2_ttf.lib;SDL2_image.lib;libsndfile.lib;physfs.lib;ws2_32.lib;opengl32.lib;Wldap32.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenAL32.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;libsndfile.lib;physfs.lib;ws2_32.lib;opengl32.lib;Wldap32.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateDebugInformation>
