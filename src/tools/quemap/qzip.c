@@ -110,15 +110,10 @@ static void AddImage(const char *image, _Bool required) {
  * @brief Adds the sky environment map.
  */
 static void AddSky(const char *sky) {
-	const char *suffix[] = { "rt", "bk", "lf", "ft", "up", "dn", NULL };
-	const char **suf = suffix;
 
 	Com_Debug(DEBUG_ALL, "Adding sky %s\n", sky);
 
-	while (*suf) {
-		AddImage(va("env/%s%s", sky, *suf), true);
-		suf++;
-	}
+	AddImage(va("sky/%s", sky), true);
 }
 
 /**

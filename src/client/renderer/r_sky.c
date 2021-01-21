@@ -75,8 +75,7 @@ void R_DrawSky(const r_view_t *view) {
 
 	Matrix4x4_CreateIdentity(&r_sky.cubemap_matrix);
 
-	Matrix4x4_ConcatRotate(&r_sky.cubemap_matrix, -90.f, 1.f, 0.f, 0.f); // put Z going up
-	Matrix4x4_ConcatRotate(&r_sky.cubemap_matrix,  90.f, 0.f, 0.f, 1.f); // put Z going up
+	Matrix4x4_ConcatScale3(&r_sky.cubemap_matrix, -1.f, 1.f, 1.f); // put Z going up
 
 	Matrix4x4_ConcatTranslate(&r_sky.cubemap_matrix, -view->origin.x, -view->origin.y, -view->origin.z);
 
@@ -177,24 +176,30 @@ void R_ShutdownSky(void) {
 
 /**
  * @brief Sets the sky to the specified environment map.
- * @param name The skybox cubemap name, e.g. `"edge/dragonheart_"`.
+ * @param name The skybox cubemap name, e.g. `"edge/dragonheart"`.
  */
 void R_LoadSky(const char *name) {
 
-	if (r_world_model->bsp->sky) {
-		r_sky.image = R_LoadImage(va("env/%s", name), IT_CUBEMAP);
-		if (r_sky.image == NULL) {
+	if (!r_world_model->bsp->sky) {
+		r_sky.image = NULL;
+		return;
+	}
 
-			Com_Warn("Failed to load sky env/%s\n", name);
-
-			r_sky.image = R_LoadImage("env/sky/template_", IT_CUBEMAP);
-			if (r_sky.image == NULL) {
-
-				Com_Error(ERROR_DROP, "Failed to load default sky\n");
-			}
-		}
+	if (name && *name) {
+		r_sky.image = R_LoadImage(va("sky/%s", name), IT_CUBEMAP);
 	} else {
 		r_sky.image = NULL;
+	}
+
+	if (r_sky.image == NULL) {
+
+		Com_Warn("Failed to load sky sky/%s\n", name);
+
+		r_sky.image = R_LoadImage("sky/template", IT_CUBEMAP);
+		if (r_sky.image == NULL) {
+
+			Com_Error(ERROR_DROP, "Failed to load default sky\n");
+		}
 	}
 }
 
