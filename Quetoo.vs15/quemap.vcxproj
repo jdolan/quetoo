@@ -172,8 +172,4 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <PropertyGroup>
-    <LocalDebuggerCommand>$(QUETOO_HOME)\bin\quemap.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default"</LocalDebuggerCommandArguments>
-  </PropertyGroup>
 </Project>

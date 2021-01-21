@@ -163,8 +163,4 @@
       <BuildMacro Include="QuetooFullIncludePath"><Value>$(QuetooFullIncludePath)</Value></BuildMacro>
       <BuildMacro Include="QuetooFullLibraryPath"><Value>$(QuetooFullLibraryPath)</Value></BuildMacro>
   </ItemGroup>
-
-  <PropertyGroup>
-    <LocalDebuggerWorkingDirectory>$(QUETOO_HOME)\bin\</LocalDebuggerWorkingDirectory>
-  </PropertyGroup>
 </Project>

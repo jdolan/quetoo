@@ -82,7 +82,4 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <PropertyGroup>
-    <LocalDebuggerCommand>$(QUETOO_HOME)\bin\quetoo.exe</LocalDebuggerCommand>
-  </PropertyGroup>
 </Project>
