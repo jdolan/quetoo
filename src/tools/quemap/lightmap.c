@@ -469,11 +469,10 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 void DirectLightmap(int32_t face_num) {
 
 	const vec3_t offsets[] = {
-		Vec3(+0.0, +0.0, 0.195346), Vec3(-1.0, -1.0, 0.077847), Vec3(+0.0, -1.0, 0.123317),
-		Vec3(+1.0, -1.0, 0.077847), Vec3(-1.0, +0.0, 0.123317), Vec3(+1.0, +0.0, 0.123317),
-		Vec3(-1.0, +1.0, 0.077847), Vec3(+0.0, +1.0, 0.123317), Vec3(+1.0, +1.0, 0.07784),
+		Vec3(+0.0f, +0.0f, 0.195346f), Vec3(-1.0f, -1.0f, 0.077847f), Vec3(+0.0f, -1.0f, 0.123317f),
+		Vec3(+1.0f, -1.0f, 0.077847f), Vec3(-1.0f, +0.0f, 0.123317f), Vec3(+1.0f, +0.0f, 0.123317f),
+		Vec3(-1.0f, +1.0f, 0.077847f), Vec3(+0.0f, +1.0f, 0.123317f), Vec3(+1.0f, +1.0f, 0.077847f),
 	};
-	const size_t num_offsets = antialias ? lengthof(offsets) : 1;
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
@@ -488,11 +487,12 @@ void DirectLightmap(int32_t face_num) {
 
 		float contribution = 0.0;
 
-		for (size_t j = 0; j < num_offsets; j++) {
+		for (size_t j = 0; j < lengthof(offsets) && contribution < 1.f; j++) {
 
 			const float soffs = offsets[j].x;
 			const float toffs = offsets[j].y;
-			const float weight = offsets[j].z;
+
+			const float weight = antialias ? offsets[j].z : 1.f;
 
 			if (ProjectLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
 				continue;
@@ -505,21 +505,20 @@ void DirectLightmap(int32_t face_num) {
 
 		// Normalize samples by their weighted contribution
 
-		if (contribution > 0.f) {
+		if (contribution > 0.f && contribution < 1.f) {
 			l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
 			l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
 			l->direction = Vec3_Scale(l->direction, 1.f / contribution);
-		} else if (lm->model != bsp_file.models) {
-
+		} else {
 			// For inline models, always add ambient light sources, even if the sample resides
 			// in solid. This prevents completely unlit tops of doors, bottoms of plats, etc.
+			if (lm->model != bsp_file.models) {
+				for (guint j = 0; j < unattenuated_lights->len; j++) {
+					const light_t *light = g_ptr_array_index(lights, j);
 
-			for (guint j = 0; j < lights->len; j++) {
-
-				const light_t *light = g_ptr_array_index(lights, j);
-
-				if (light->type == LIGHT_AMBIENT) {
-					l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
+					if (light->type == LIGHT_AMBIENT) {
+						l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
+					}
 				}
 			}
 		}
@@ -532,10 +531,12 @@ void DirectLightmap(int32_t face_num) {
 void IndirectLightmap(int32_t face_num) {
 
 	const vec2_t offsets[] = {
-		Vec2(+0.0, +0.0), Vec2(-1.0, -1.0), Vec2(+0.0, -1.0),
-		Vec2(+1.0, -1.0), Vec2(-1.0, +0.0), Vec2(+1.0, +0.0),
-		Vec2(-1.0, +1.0), Vec2(+0.0, +1.0), Vec2(+1.0, +1.0),
+		Vec2(+0.0f, +0.0f), Vec2(-1.0f, -1.0f), Vec2(+0.0f, -1.0f),
+		Vec2(+1.0f, -1.0f), Vec2(-1.0f, +0.0f), Vec2(+1.0f, +0.0f),
+		Vec2(-1.0f, +1.0f), Vec2(+0.0f, +1.0f), Vec2(+1.0f, +1.0f),
 	};
+
+	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
@@ -548,7 +549,9 @@ void IndirectLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		for (size_t j = 0; j < lengthof(offsets); j++) {
+		float contribution = 0.f;
+
+		for (size_t j = 0; j < lengthof(offsets) && contribution < 1.f; j++) {
 
 			const float soffs = offsets[j].x;
 			const float toffs = offsets[j].y;
@@ -557,8 +560,13 @@ void IndirectLightmap(int32_t face_num) {
 				continue;
 			}
 
-			LightLuxel(lights, lm, l, 1.f);
-			break;
+			contribution += weight;
+
+			LightLuxel(lights, lm, l, weight);
+		}
+
+		if (contribution > 0.f && contribution < 1.f) {
+			l->radiosity[bounce] = Vec3_Scale(l->radiosity[bounce], 1.f / contribution);
 		}
 	}
 }

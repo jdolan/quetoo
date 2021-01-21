@@ -377,9 +377,14 @@ void DirectLightgrid(int32_t luxel_num) {
 		Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
 	};
 
+	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
+
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	for (size_t i = 0; i < lengthof(offsets); i++) {
+	float contribution = 0.f;
+
+	size_t i;
+	for (i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
 
 		const float soffs = offsets[i].x;
 		const float toffs = offsets[i].y;
@@ -394,8 +399,26 @@ void DirectLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		LightLuxel(lights, l, 1.f);
-		break;
+		contribution += weight;
+
+		LightLuxel(lights, l, weight);
+	}
+
+	if (contribution > 0.f && contribution < 1.f) {
+		l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
+		l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
+		l->direction = Vec3_Scale(l->direction, 1.f / contribution);
+	} else {
+		// Even luxels in solids should receive at least ambient light
+		if (contribution == 0.f) {
+			for (guint j = 0; j < unattenuated_lights->len; j++) {
+				const light_t *light = g_ptr_array_index(unattenuated_lights, j);
+
+				if (light->type == LIGHT_AMBIENT) {
+					l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
+				}
+			}
+		}
 	}
 }
 
@@ -411,11 +434,14 @@ void IndirectLightgrid(int32_t luxel_num) {
 		Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
 		Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
 	};
-	const size_t num_offsets = antialias ? lengthof(offsets) : 1;
+
+	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	for (size_t i = 0; i < num_offsets; i++) {
+	float contribution = 0.f;
+
+	for (size_t i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
 
 		const float soffs = offsets[i].x;
 		const float toffs = offsets[i].y;
@@ -430,7 +456,13 @@ void IndirectLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		LightLuxel(lights, l, 1.f);
+		contribution += weight;
+
+		LightLuxel(lights, l, weight);
+	}
+
+	if (contribution > 0.f && contribution < 1.f) {
+		l->radiosity[bounce] = Vec3_Scale(l->radiosity[bounce], 1.f / contribution);
 	}
 }
 
@@ -467,7 +499,7 @@ static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
 
 		intensity *= fog->density + (fog->noise * noise);
 
-		intensity = Clampf(intensity, 0.f, 1.f);
+		intensity = Clampf(intensity * scale, 0.f, 1.f);
 
 		if (intensity == 0.f) {
 			continue;
@@ -502,11 +534,14 @@ void FogLightgrid(int32_t luxel_num) {
 		Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
 		Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
 	};
-	const size_t num_offsets = antialias ? lengthof(offsets) : 1;
+
+	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	for (size_t i = 0; i < num_offsets; i++) {
+	float contribution = 0.f;
+
+	for (size_t i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
 
 		const float soffs = offsets[i].x;
 		const float toffs = offsets[i].y;
@@ -516,10 +551,16 @@ void FogLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		FogLuxel(fogs, l, 1.f);
+		contribution += weight;
 
-		l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));
+		FogLuxel(fogs, l, weight);
 	}
+
+	if (contribution > 0.f && contribution < 1.f) {
+		l->fog = Vec4_Scale(l->fog, 1.f / contribution);
+	}
+
+	l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));
 }
 
 /**

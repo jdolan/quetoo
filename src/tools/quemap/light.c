@@ -26,6 +26,7 @@ static GArray *lights = NULL;
 
 GPtrArray *node_lights[MAX_BSP_NODES];
 GPtrArray *leaf_lights[MAX_BSP_LEAFS];
+GPtrArray *unattenuated_lights;
 
 /**
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
@@ -273,6 +274,9 @@ void FreeLights(void) {
 			leaf_lights[i] = NULL;
 		}
 	}
+
+	g_ptr_array_free(unattenuated_lights, true);
+	unattenuated_lights = NULL;
 }
 
 /**
@@ -329,6 +333,16 @@ static void HashLights(void) {
 		}
 
 		leaf_lights[i] = BoxLights(leaf->mins, leaf->maxs);
+	}
+
+	unattenuated_lights = g_ptr_array_new();
+
+	for (guint i = 0; i < lights->len; i++) {
+		light_t *light = &g_array_index(lights, light_t, i);
+
+		if (light->atten == LIGHT_ATTEN_NONE) {
+			g_ptr_array_add(unattenuated_lights, light);
+		}
 	}
 }
 
