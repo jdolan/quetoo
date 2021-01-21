@@ -292,63 +292,6 @@ void R_FreeImage(r_media_t *media) {
 	image->texnum = 0;
 }
 
-// Quick access of a pixel
-#define SDL_PIXEL_AT(surf, type, x, y) \
-	*(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * surf->format->BytesPerPixel)
-
-// helper macro which copies an SDL pixel from one surf to another
-#define SDL_COPY_PIXEL(from, to, type, src_x, src_y, dst_x, dst_y) \
-		SDL_PIXEL_AT(to, type, dst_x, dst_y) = SDL_PIXEL_AT(from, type, src_x, src_y)
-
-/**
- * @brief Rotate an SDL surface counter-clockwise by the number of rotations specified.
- * @param surf Surface to rotate. It is not modified.
- * @param num_rotations Number of 90-degree rotations to rotate by.
- * @return Either a reference to "surf" if the surface was not rotated, or a new surface.
-*/
-SDL_Surface *SDL_SurfaceRotate(SDL_Surface *surf, int32_t num_rotations) {
-
-	num_rotations %= 4;
-
-	if (!num_rotations) {
-		return surf;
-	}
-
-	if (surf->w != surf->h) {
-		Com_Error(ERROR_FATAL, "Only works on square images :(");
-	}
-
-	SDL_LockSurface(surf);
-
-	SDL_Surface *output = SDL_CreateRGBSurfaceWithFormat(0, surf->w, surf->h, surf->format->BitsPerPixel, surf->format->format);
-
-	SDL_LockSurface(output);
-
-	switch (num_rotations) {
-	case 1:
-		for (int32_t y = 0; y < surf->h; y++) 
-			for (int32_t x = 0; x < surf->w; x++)
-				SDL_COPY_PIXEL(surf, output, int32_t, surf->w - y - 1, x, x, y);
-		break;
-	case 2:
-		for (int32_t y = 0; y < surf->h; y++) 
-			for (int32_t x = 0; x < surf->w; x++)
-				SDL_COPY_PIXEL(surf, output, int32_t, surf->w - x - 1, surf->h - y - 1, x, y);
-		break;
-	case 3:
-		for (int32_t y = 0; y < surf->h; y++) 
-			for (int32_t x = 0; x < surf->w; x++)
-				SDL_COPY_PIXEL(surf, output, int32_t, y, surf->h - x - 1, x, y);
-		break;
-	}
-
-	SDL_UnlockSurface(output);
-	
-	SDL_UnlockSurface(surf);
-
-	return output;
-}
-
 /**
  * @brief Loads the image by the specified name.
  */
@@ -417,11 +360,20 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			SDL_Surface *side = SDL_CreateRGBSurfaceWithFormat(0, image->width, image->height, 3, SDL_PIXELFORMAT_RGB24);
 
-			SDL_BlitSurface(surface, &(const SDL_Rect) { .x = image->width * offsets[i].x, .y = image->height * offsets[i].y, .w = image->width, .h = image->height },
-				side, &(SDL_Rect) { .x = 0, .y = 0, .w = image->width, .h = image->height });
+			SDL_BlitSurface(surface, &(const SDL_Rect) {
+				.x = image->width * offsets[i].x,
+				.y = image->height * offsets[i].y,
+				.w = image->width,
+				.h = image->height
+			}, side, &(SDL_Rect) {
+				.x = 0,
+				.y = 0,
+				.w = image->width,
+				.h = image->height
+			});
 
 			if (rotations[i]) {
-				SDL_Surface *rotated = SDL_SurfaceRotate(side, rotations[i]);
+				SDL_Surface *rotated = Img_RotateSurface(side, rotations[i]);
 
 				if (rotated != side) {
 					SDL_FreeSurface(side);
