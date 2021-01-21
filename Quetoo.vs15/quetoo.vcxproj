@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -31,6 +31,65 @@
   <ItemGroup>
     <ClInclude Include="..\src\QUETOO.H" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="libs\libatlas.vcxproj">
+      <Project>{d8d2fe47-8f7f-4f88-8baa-f42f0fb669d5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libclient.vcxproj">
+      <Project>{c85eafff-bad0-46c2-868c-982fe719263e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libcmodel.vcxproj">
+      <Project>{76ebd445-3535-4652-be8b-7de4f03591ce}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libcommon.vcxproj">
+      <Project>{99c2a2a7-35f3-4a06-ae2f-8b98db2e4bfd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libconsole.vcxproj">
+      <Project>{08745142-6b9c-4cbc-97ec-f80415b9cbea}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libfilesystem.vcxproj">
+      <Project>{817cecdd-9a82-4ea6-bc55-500462cfae0a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libimage.vcxproj">
+      <Project>{978d57a2-1735-4cfc-bf47-795a87a71a87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libmatrix.vcxproj">
+      <Project>{61be87b2-5e0b-43ef-af67-a6561f929364}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libmem.vcxproj">
+      <Project>{6689d02e-8034-4d5f-804e-935d444af5c8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libnet.vcxproj">
+      <Project>{07da2cea-0340-40c6-b389-357b69130815}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libparse.vcxproj">
+      <Project>{fef51acc-31f2-41ac-b562-41f5c5988088}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\librenderer.vcxproj">
+      <Project>{3b26d4d9-b320-4d6f-b4d1-9a2487bbd0b3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libserver.vcxproj">
+      <Project>{856aa625-7037-4e67-8da4-26ba59c2a9f2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libshared.vcxproj">
+      <Project>{2f1c792e-6243-462b-af0d-e2554e77d5c5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libsound.vcxproj">
+      <Project>{f81fd692-5ea3-4a8d-be83-7c33b9627017}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libswap.vcxproj">
+      <Project>{c22daae7-0044-4b19-a369-28de8f2c661d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libsys.vcxproj">
+      <Project>{e12cf546-a3c4-4c3f-ab70-073a4e0795dd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libthread.vcxproj">
+      <Project>{5be97b66-53b4-4521-a905-92ac882dc02c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libui.vcxproj">
+      <Project>{efd2b11d-5a11-43cc-ae87-db2a2a050c05}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A05CAC53-F8F2-4A14-9C81-8A34F4EA9085}</ProjectGuid>
     <RootNamespace>quetoo</RootNamespace>
@@ -56,14 +115,17 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>libatlas.lib;libparse.lib;libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;OpenAL32.lib;SDL2_ttf.lib;SDL2_image.lib;libsndfile.lib;physfs.lib;ws2_32.lib;opengl32.lib;Wldap32.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;OpenAL32.lib;SDL2_ttf.lib;SDL2_image.lib;libsndfile.lib;physfs.lib;ws2_32.lib;opengl32.lib;Wldap32.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_DEPENDENCIES "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO "$(QUETOO_HOME)\.." "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <PropertyGroup>
+    <LocalDebuggerCommand>$(QUETOO_HOME)\bin\quetoo.exe</LocalDebuggerCommand>
+  </PropertyGroup>
 </Project>

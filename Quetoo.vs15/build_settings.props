@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
 
@@ -26,13 +27,17 @@
     <UseNativeEnvironment>true</UseNativeEnvironment>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Label="Configuration">
     <PlatformToolset>ClangCL</PlatformToolset>
     <QuetooOutDir>bin\$(Platform)$(Configuration)\</QuetooOutDir>
     <QuetooIntDir>tmp\$(MSBuildProjectName)\$(Platform)$(Configuration)\</QuetooIntDir>
 
     <UseMultiToolTask>true</UseMultiToolTask>
     <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Configuration" Condition="'$(Platform)'=='x64'">
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
 
   <PropertyGroup Label="UserMacros">
@@ -158,4 +163,8 @@
       <BuildMacro Include="QuetooFullIncludePath"><Value>$(QuetooFullIncludePath)</Value></BuildMacro>
       <BuildMacro Include="QuetooFullLibraryPath"><Value>$(QuetooFullLibraryPath)</Value></BuildMacro>
   </ItemGroup>
+
+  <PropertyGroup>
+    <LocalDebuggerWorkingDirectory>$(QUETOO_HOME)\bin\</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
 </Project>
