@@ -131,7 +131,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <PostBuildEvent>
-      <Command>COPY_SHADER "$(QUETOO_HOME)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_SHADER "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -168,7 +168,7 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUEMAP "$(QUETOO_HOME)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUEMAP "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

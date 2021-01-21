@@ -113,7 +113,7 @@
       <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_GAME "$(QUETOO_HOME)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_GAME "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

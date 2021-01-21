@@ -121,7 +121,7 @@
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO "$(QUETOO_HOME)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

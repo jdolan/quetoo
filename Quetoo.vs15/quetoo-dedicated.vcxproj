@@ -99,7 +99,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO-DEDICATED "$(QUETOO_HOME)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO-DEDICATED "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
