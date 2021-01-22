@@ -398,6 +398,13 @@ vec2_t Vec2_Mix(const vec2_t a, const vec2_t b, float mix) {
 /**
  * @brief
  */
+vec2_t Vec2_Bilinear(const vec2_t tl, const vec2_t tr, const vec2_t bl, const vec2_t br, vec2_t mix) {
+	return Vec2_Mix(Vec2_Mix(tl, tr, mix.x), Vec2_Mix(bl, br, mix.x), mix.y);
+}
+
+/**
+ * @brief
+ */
 vec2_t Vec2_Scale(const vec2_t v, float scale) {
 	return Vec2(v.x * scale, v.y * scale);
 }
