@@ -97,7 +97,7 @@ static void AddSound(const char *sound) {
  * a warning will be issued should we fail to resolve the specified image.
  */
 static void AddImage(const char *image, _Bool required) {
-	const char *image_formats[] = { "tga", "png", "jpg", "pcx", "wal", NULL };
+	const char *image_formats[] = { "tga", "png", "jpg", NULL };
 
 	if (!ResolveAsset(image, image_formats)) {
 		if (required) {
