@@ -263,6 +263,16 @@ static void Check_LIGHT_Options(int32_t argc) {
  * @brief
  */
 static void Check_ZIP_Options(int32_t argc) {
+
+	for (int32_t i = argc; i < Com_Argc(); i++) {
+
+		if (!g_strcmp0(Com_Argv(i), "--include-shared")) {
+			include_shared = true;
+			Com_Verbose("Including shared assets\n");
+		} else {
+			break;
+		}
+	}
 }
 
 /**
@@ -309,10 +319,10 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --saturation <float> - saturation (default 1.0)\n");
 	Com_Print(" --luxel-size <float> - luxel size (default 4)\n");
 	Com_Print(" --patch-size <float> - patch size (default 16)\n");
-
 	Com_Print("\n");
 
 	Com_Print("-zip               ZIP stage options:\n");
+	Com_Print(" --include-shared - include assets from shared archives\n");
 	Com_Print("\n");
 
 	Com_Print("Examples:\n");

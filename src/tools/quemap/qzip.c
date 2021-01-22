@@ -25,6 +25,8 @@
 #include "material.h"
 #include "qzip.h"
 
+_Bool include_shared = false;
+
 #define MISSING "__missing__"
 
 // assets are accumulated in this structure
@@ -35,21 +37,18 @@ typedef struct qzip_s {
 static qzip_t qzip;
 
 /**
- * @brief Adds the specified asset, assuming the given name is a valid
- * filename.
+ * @brief Adds the specified asset, assuming the given name is a valid filename.
  */
-static void AddPath(const char *name, _Bool required) {
+static _Bool AddPath(const char *name) {
 
 	if (Fs_Exists(name)) {
 		if (!g_hash_table_contains(qzip.assets, name)) {
 			g_hash_table_insert(qzip.assets, g_strdup(name), g_strdup(name));
 		}
+		return true;
 	} else {
-		if (required) {
-			Com_Error(ERROR_FATAL, "Failed to add %s\n", name);
-		} else {
-			Com_Verbose("Failed to add %s\n", name);
-		}
+		Com_Verbose("Failed to add %s\n", name);
+		return false;
 	}
 }
 
@@ -96,13 +95,11 @@ static void AddSound(const char *sound) {
  * @brief Attempts to add the specified image in any available format. If required,
  * a warning will be issued should we fail to resolve the specified image.
  */
-static void AddImage(const char *image, _Bool required) {
+static void AddImage(const char *image) {
 	const char *image_formats[] = { "tga", "png", "jpg", NULL };
 
 	if (!ResolveAsset(image, image_formats)) {
-		if (required) {
-			Com_Warn("Failed to resolve %s\n", image);
-		}
+		Com_Warn("Failed to resolve %s\n", image);
 	}
 }
 
@@ -113,7 +110,7 @@ static void AddSky(const char *sky) {
 
 	Com_Debug(DEBUG_ALL, "Adding sky %s\n", sky);
 
-	AddImage(va("sky/%s", sky), true);
+	AddImage(va("sky/%s", sky));
 }
 
 /**
@@ -159,7 +156,7 @@ static void AddMaterial(const cm_material_t *material) {
  */
 static void AddMaterials(const char *path, cm_asset_context_t context) {
 
-	AddPath(path, false);
+	AddPath(path);
 	
 	GList *materials = NULL;
 	const ssize_t count = LoadMaterials(path, context, &materials);
@@ -204,12 +201,12 @@ static void AddModel(const char *model) {
 	Dirname(model, path);
 	g_strlcat(path, "skin", sizeof(path));
 
-	AddImage(path, true);
+	AddImage(path);
 
 	Dirname(model, path);
 	g_strlcat(path, "world.cfg", sizeof(path));
 
-	AddPath(path, false);
+	AddPath(path);
 
 	StripExtension(model, path);
 	g_strlcat(path, ".mat", sizeof(path));
@@ -228,7 +225,7 @@ static void AddEntities(void) {
 		const cm_entity_t *e = entity->data;
 		while (e) {
 
-			if (!g_strcmp0(e->key, "noise") || !g_strcmp0(e->key, "sound")) {
+			if (!g_strcmp0(e->key, "sound")) {
 				AddSound(e->string);
 			} else if (!g_strcmp0(e->key, "model")) {
 				AddModel(e->string);
@@ -247,21 +244,21 @@ static void AddEntities(void) {
  * @brief
  */
 static void AddNavigation(void) {
-	AddPath(va("maps/%s.nav", map_base), false);
+	AddPath(va("maps/%s.nav", map_base));
 }
 
 /**
  * @brief
  */
 static void AddLocation(void) {
-	AddPath(va("maps/%s.loc", map_base), false);
+	AddPath(va("maps/%s.loc", map_base));
 }
 
 /**
  * @brief
  */
 static void AddDocumentation(void) {
-	AddPath(va("docs/map-%s.txt", map_base), false);
+	AddPath(va("docs/map-%s.txt", map_base));
 }
 
 /**
@@ -269,8 +266,10 @@ static void AddDocumentation(void) {
  */
 static void AddMapshots_enumerate(const char *path, void *data) {
 
-	if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
-		AddPath(path, false);
+	if (g_str_has_suffix(path, ".jpg") ||
+		g_str_has_suffix(path, ".png") ||
+		g_str_has_suffix(path, ".tga")) {
+		AddPath(path);
 	}
 }
 
@@ -368,10 +367,14 @@ int32_t ZIP_Main(void) {
 	AddMapshots();
 
 	// and of course the bsp and map
-	AddPath(va("maps/%s.bsp", map_base), true);
-	AddPath(va("maps/%s.map", map_base), false);
+	if (!AddPath(va("maps/%s.bsp", map_base))) {
+		Com_Warn("Failed to add maps/%s.bsp", map_base);
+	}
+	if (!AddPath(va("maps/%s.map", map_base))) {
+		Com_Warn("Failed to add maps/%s.map", map_base);
+	};
 
-	// prune the assets list, removing missing resources
+	// sort the assets for output readability
 	GList *assets = g_hash_table_get_values(qzip.assets);
 	assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
 
@@ -385,8 +388,29 @@ int32_t ZIP_Main(void) {
 		while (a) {
 			const char *filename = (char *) a->data;
 			if (g_strcmp0(filename, MISSING)) {
+
+				if (include_shared == false) {
+					const char *dir = Fs_RealDir(filename);
+
+					if (GlobMatch("sky-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
+						GlobMatch("sounds-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
+						GlobMatch("textures-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
+						GlobMatch("*/common/*", filename, GLOB_CASE_INSENSITIVE) ||
+
+						// If the file comes from the official game data, and is not in a pk3,
+						// skip it. This allows us to rebuild our official maps easily, but without
+						// pulling in flares, envmaps, etc.
+
+						(g_str_has_prefix(dir, PKGDATADIR) && !g_str_has_suffix(dir, ".pk3"))) {
+
+						Com_Print("[S] %s (%s)\n", filename, dir);
+						a = a->next;
+						continue;
+					}
+				}
+
 				DeflateAsset(zip_file, filename);
-				Com_Print("%s\n", filename);
+				Com_Print("[A] %s\n", filename);
 			}
 			a = a->next;
 		}
