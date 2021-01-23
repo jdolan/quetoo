@@ -407,7 +407,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glViewport(0, 0, r_context.width, r_context.height);
+	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 }
 
 /**
