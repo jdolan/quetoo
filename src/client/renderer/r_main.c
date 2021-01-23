@@ -215,7 +215,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 	if (view) {
 		r_uniforms.block.viewport = view->viewport;
 
-		const float aspect = (view->viewport.z - view->viewport.x) / (view->viewport.w - view->viewport.y);
+		const float aspect = view->viewport.z / view->viewport.w;
 
 		const float ymax = tanf(Radians(view->fov.y));
 		const float ymin = -ymax;
