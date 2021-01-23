@@ -30,8 +30,8 @@ cg_view_t cg_view;
  */
 static void Cg_UpdateFov(void) {
 
-	cg_fov->value = Clampf(cg_fov->value, 10.0, 160.0);
-	cg_fov_interpolate->value = Clampf(cg_fov_interpolate->value, 0.0, 10.0);
+	cg_fov->value = Clampf(cg_fov->value, 10.f, 160.f);
+	cg_fov_interpolate->value = Clampf(cg_fov_interpolate->value, 0.f, 10.f);
 
 	float fov = cg_fov->value;
 
@@ -44,13 +44,13 @@ static void Cg_UpdateFov(void) {
 		}
 
 		if (time == 0) {
-			prev = cgi.view->fov.x * 2.0;
+			prev = cgi.view->fov.x * 2.f;
 			next = cg_fov->value;
 			time = cgi.client->unclamped_time;
 		}
 
-		const float frac = (cgi.client->unclamped_time - time) / (cg_fov_interpolate->value * 100.0);
-		if (frac >= 1.0) {
+		const float frac = (cgi.client->unclamped_time - time) / (cg_fov_interpolate->value * 100.f);
+		if (frac >= 1.f) {
 			time = 0;
 			fov = next;
 			cg_fov->modified = false;
@@ -61,13 +61,16 @@ static void Cg_UpdateFov(void) {
 		cg_fov->modified = false;
 	}
 
-	cgi.view->fov.x = fov / 2.0;
+	cgi.view->fov.x = fov / 2.f;
 
-	const float x = cgi.context->width / tanf(Radians(fov));
-	const float y = atan2f(cgi.context->height, x);
-	const float a = cgi.context->height / (float ) cgi.context->width;
+	const float width = cgi.view->viewport.z;
+	const float height = cgi.view->viewport.w;
 
-	cgi.view->fov.y = Degrees(y) * a / 2.0;
+	const float x = width / tanf(Radians(fov));
+	const float y = atan2f(width, x);
+	const float a = height / width;
+
+	cgi.view->fov.y = Degrees(y) * a / 2.f;
 }
 
 /**
@@ -77,8 +80,8 @@ static void Cg_UpdateFov(void) {
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	vec3_t forward, right, up, origin, point;
 
-	const vec3_t mins = Vec3(-16.0, -16.0, -16.0);
-	const vec3_t maxs = Vec3( 16.0,  16.0,  16.0);
+	const vec3_t mins = Vec3(-16.f, -16.f, -16.f);
+	const vec3_t maxs = Vec3( 16.f,  16.f,  16.f);
 
 	if (cg_third_person->value || (cg_third_person_chasecam->value && ps->stats[STAT_CHASE])) {
 		cgi.client->third_person = true;
@@ -129,7 +132,7 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
 
 	if (cgi.client->unclamped_time < time) {
 		time = 0;
-		old_speed = new_speed = 0.0;
+		old_speed = new_speed = 0.f;
 	}
 
 	float speed;
@@ -147,13 +150,13 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
 
 		old_speed = new_speed;
 		new_speed = Vec3_Length(velocity) / max_speed;
-		new_speed = Clampf(new_speed, 0.0, 1.0);
+		new_speed = Clampf(new_speed, 0.f, 1.f);
 		speed = old_speed;
 
 		time = cgi.client->unclamped_time;
 	}
 
-	return 0.66 + speed;
+	return 0.66f + speed;
 }
 
 /**
@@ -181,7 +184,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	}
 
 	if (cg_bob->modified) {
-		cgi.SetCvarValue(cg_bob->name, Clampf(cg_bob->value, 0.0, 2.0));
+		cgi.SetCvarValue(cg_bob->name, Clampf(cg_bob->value, 0.f, 2.f));
 		cg_bob->modified = false;
 	}
 
@@ -195,13 +198,13 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	float frame_bob = Clampf(cgi.client->unclamped_time - time, 1u, 1000u) * mod;
 
 	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
-		frame_bob *= 0.25;
+		frame_bob *= 0.25f;
 	}
 
 	bob += frame_bob;
 	time = cgi.client->unclamped_time;
 
-	cg_view.bob = sinf(0.0066 * bob) * mod * mod;
+	cg_view.bob = sinf(0.0066f * bob) * mod * mod;
 	cg_view.bob *= cg_bob->value; // scale via cvar too
 
 	cgi.view->origin = Vec3_Fmaf(cgi.view->origin, -cg_view.bob, cgi.view->forward);
@@ -271,7 +274,7 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 
 		for (i = 0; i < 3; i++) {
 			const float delta = fabs(angles1.xyz[i] - angles0.xyz[i]);
-			if (delta > 5.0 && delta < 355.0) {
+			if (delta > 5.f && delta < 355.f) {
 				break;
 			}
 		}
