@@ -140,6 +140,10 @@ _Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
 		return false;
 	}
 
+	if (view->type == VIEW_PLAYER_MODEL) {
+		return false;
+	}
+
 	const vec3_t points[] = {
 		Vec3(mins.x, mins.y, mins.z),
 		Vec3(maxs.x, mins.y, mins.z),
