@@ -90,15 +90,25 @@ static void render(View *self, Renderer *renderer) {
 
 		this->view.type = VIEW_PLAYER_MODEL;
 		this->view.ticks = cgi.client->unclamped_time;
-		this->view.fov = Vec2(45.f, 30.f);
-		this->view.origin = Vec3(0.f, -100.f, 0.f);
-		this->view.angles = Vec3(0.f, 0.f, 0.f);
-		this->view.forward = Vec3(0.f, 1.f, 0.f);
-		this->view.right = Vec3(1.f, 0.f, 0.f);
-		this->view.up = Vec3(0.f, 0.f, 1.f);
+
+		this->view.fov.x = 60.f / 2.f;
 
 		const SDL_Rect viewport = $(self, viewport);
 		this->view.viewport = Vec4(viewport.x, viewport.y, viewport.w, viewport.h);
+
+		const float x = viewport.w / tanf(Radians(60.f));
+		const float y = atan2f(viewport.w, x);
+		const float a = viewport.w / (float) viewport.h;
+
+		this->view.fov.y = Degrees(y) * a / 2.f;
+
+		this->view.origin = Vec3(128.f + (96.f * -this->zoom), 0.f, 24.f);
+
+		this->view.angles = Vec3_Euler(Vec3_Negate(this->view.origin));
+
+		Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
+
+//		printf("%s, %s\n", vtos(this->view.origin), vtos(this->view.angles));
 
 		if (this->framebuffer.name == 0) {
 			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h);
@@ -117,7 +127,6 @@ static void render(View *self, Renderer *renderer) {
 
 		this->weapon.parent = torso;
 		cgi.AddEntity(&this->view, &this->weapon);
-
 
 		cgi.DrawPlayerModelView(&this->view);
 
@@ -308,6 +317,10 @@ static void animate(PlayerModelView *self) {
 	} else {
 		self->head.tints[2] = Vec4_Zero();
 	}
+
+	self->legs.angles.y = self->yaw;
+	self->platformBase.angles.y = self->yaw;
+	self->platformCenter.angles.y = self->yaw;
 }
 
 /**
@@ -319,9 +332,6 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 
 	self = (PlayerModelView *) super(Control, self, initWithFrame, frame);
 	if (self) {
-		self->yaw = 150.0;
-		self->zoom = 0.1;
-
 		self->animation1.animation = ANIM_TORSO_STAND1;
 		self->animation2.animation = ANIM_LEGS_IDLE;
 
