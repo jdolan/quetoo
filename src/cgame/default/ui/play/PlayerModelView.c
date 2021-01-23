@@ -91,24 +91,22 @@ static void render(View *self, Renderer *renderer) {
 		this->view.type = VIEW_PLAYER_MODEL;
 		this->view.ticks = cgi.client->unclamped_time;
 
-		this->view.fov.x = 60.f / 2.f;
+		this->view.fov.x = 30.f / 2.f;
 
 		const SDL_Rect viewport = $(self, viewport);
 		this->view.viewport = Vec4(viewport.x, viewport.y, viewport.w, viewport.h);
 
-		const float x = viewport.w / tanf(Radians(60.f));
+		const float x = viewport.w / tanf(Radians(30.f));
 		const float y = atan2f(viewport.w, x);
 		const float a = viewport.w / (float) viewport.h;
 
 		this->view.fov.y = Degrees(y) * a / 2.f;
 
-		this->view.origin = Vec3(128.f + (96.f * -this->zoom), 0.f, 24.f);
+		this->view.origin = Vec3(196.f + (64.f * -this->zoom), 0.f, 64.f);
 
 		this->view.angles = Vec3_Euler(Vec3_Negate(this->view.origin));
 
 		Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
-
-//		printf("%s, %s\n", vtos(this->view.origin), vtos(this->view.angles));
 
 		if (this->framebuffer.name == 0) {
 			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h);
@@ -324,6 +322,7 @@ static void animate(PlayerModelView *self) {
 
 	self->legs.angles.y = self->yaw;
 	self->platformCenter.angles.y = self->yaw;
+	self->platformBase.angles.y = cgi.client->unclamped_time * .0625f;
 }
 
 /**
