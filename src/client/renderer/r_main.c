@@ -183,6 +183,10 @@ _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius)
 		return false;
 	}
 
+	if (view->type == VIEW_PLAYER_MODEL) {
+		return false;
+	}
+
 	const cm_bsp_plane_t *plane = view->frustum;
 	for (size_t i = 0 ; i < lengthof(view->frustum) ; i++, plane++)  {
 		const float dist = Cm_DistanceToPlane(point, plane);
