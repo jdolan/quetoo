@@ -319,7 +319,7 @@ static void animate(PlayerModelView *self) {
 	}
 
 	self->legs.angles.y = self->yaw;
-	self->platformBase.angles.y = self->yaw;
+	//self->platformBase.angles.y = self->yaw;
 	self->platformCenter.angles.y = self->yaw;
 }
 

@@ -390,6 +390,8 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	assert(view);
 
+	glViewport(0, 0, view->viewport.z, view->viewport.w);
+
 	view->framebuffer = view->framebuffer ?: &r_context.framebuffer;
 
 	R_UpdateUniforms(view);
@@ -407,6 +409,8 @@ void R_DrawPlayerModelView(r_view_t *view) {
 	R_DrawSprites(view, -1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glViewport(0, 0, r_context.width, r_context.height);
 }
 
 /**
