@@ -187,10 +187,6 @@ typedef struct {
 		 */
 		int32_t fog_samples;
 
-		/**
-		* @brief The pixel dimensions of the framebuffer.
-		*/
-		vec2_t resolution;
 	} block;
 
 } r_uniforms_t;
