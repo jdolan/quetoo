@@ -339,7 +339,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.lifetime = 800.f,
 			.color = Vec4(0.f, 0.f, 0.75f, 0.75f),
 			.softness = 2.f,
-			.lighting = 1.f
+			.lighting = 0.65f
 		});
 	}
 

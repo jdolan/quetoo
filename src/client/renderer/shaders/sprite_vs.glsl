@@ -38,7 +38,6 @@ out vertex_data {
 	vec4 color;
 	float lerp;
 	float softness;
-	vec3 light;
 	vec4 fog;
 } vertex;
 
@@ -47,13 +46,16 @@ out vertex_data {
  */
 void sprite_lighting(vec3 position, vec3 normal) {
 
+	if (in_lighting == 0.0) {
+		return;
+	}
+
+	vec3 light = vec3(0.0);
+
 	vec3 grid_coord = lightgrid_uvw(in_position);
+	light += texture(texture_lightgrid_diffuse, grid_coord).rgb;
+	light += texture(texture_lightgrid_ambient, grid_coord).rgb;
 
-	// static lighting
-	vertex.light += texture(texture_lightgrid_ambient, grid_coord).rgb;
-	vertex.light += texture(texture_lightgrid_diffuse, grid_coord).rgb;
-
-	// dynamic lighting
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
 		float radius = lights[i].origin.w;
@@ -71,20 +73,13 @@ void sprite_lighting(vec3 position, vec3 normal) {
 			continue;
 		}
 
-		vec3 light_dir = normalize(lights[i].origin.xyz - position);
-		float angle_atten = dot(light_dir, normal) * 0.5 + 0.5; // soft lighting
-
 		float dist_atten = 1.0 - dist / radius;
 		dist_atten *= dist_atten; // for looks, not for correctness
 
-		vec3 color = lights[i].color.rgb * intensity;
-
-		vertex.light += dist_atten * angle_atten * radius * color;
+		light += dist_atten * radius * lights[i].color.rgb * intensity;
 	}
 
-	// scale lighting contribution
-	vertex.light = mix(vertex.light, vec3(1.0), 1.0 - in_lighting);
-	vertex.light *= modulate;
+	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * light * modulate, in_lighting);
 }
 
 /**
@@ -100,7 +95,6 @@ void main(void) {
 	vertex.color = in_color;
 	vertex.lerp = in_lerp;
 	vertex.softness = in_softness;
-	vertex.light = vec3(0.0);
 
 	vec3 lightgrid_uvw = lightgrid_uvw(in_position);
 

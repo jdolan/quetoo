@@ -29,7 +29,6 @@ in vertex_data {
 	vec4 color;
 	float lerp;
 	float softness;
-	vec3 light;
 	vec4 fog;
 } vertex;
 
@@ -45,9 +44,12 @@ void main(void) {
 		texture(texture_next_diffusemap, vertex.next_diffusemap),
 		vertex.lerp);
 
-	out_color = vertex.color * texture_color;
-	out_color.rgb *= vertex.light;
+	out_color = texture_color * vertex.color;
+
+	out_color.rgb = tonemap(out_color.rgb);
+
 	out_color.rgb = color_filter(out_color.rgb);
 
 	out_color *= soften(vertex.softness);
+
 }
