@@ -36,7 +36,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
 /**
  * @return The blend depth at which the specified point should be rendered for alpha blending.
  */
-int32_t R_BlendDepthForPoint(r_view_t *view, const vec3_t p, const r_blend_depth_type_t type) {
+int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend_depth_type_t type) {
 
 	if (r_blend_depth_sorting->value) {
 
@@ -71,7 +71,7 @@ int32_t R_BlendDepthForPoint(r_view_t *view, const vec3_t p, const r_blend_depth
  * @details The node is transformed by the matrix of the entity to which it belongs, if any,
  * to ensure that alpha blended elements on inline models are visible, and sorted correctly.
  */
-static void R_UpdateBspInlineModelBlendDepth_r(r_view_t *view,
+static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 											   const r_entity_t *e,
 											   const r_bsp_inline_model_t *in,
 											   r_bsp_node_t *node) {
@@ -140,7 +140,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(r_view_t *view,
 /**
  * @brief Recurses the specified model's tree, sorting alpha blended faces from back to front.
  */
-static void R_UpdateBspInlineModelBlendDepth(r_view_t *view,
+static void R_UpdateBspInlineModelBlendDepth(const r_view_t *view,
 											 const r_entity_t *e,
 											 const r_bsp_inline_model_t *in) {
 
@@ -152,13 +152,13 @@ static void R_UpdateBspInlineModelBlendDepth(r_view_t *view,
 /**
  * @brief
  */
-void R_UpdateBlendDepth(r_view_t *view) {
+void R_UpdateBlendDepth(const r_view_t *view) {
 
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 
 	R_UpdateBspInlineModelBlendDepth(view, NULL, in);
 
-	r_entity_t *e = view->entities;
+	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 			R_UpdateBspInlineModelBlendDepth(view, e, e->model->bsp_inline);
