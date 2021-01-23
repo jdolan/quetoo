@@ -97,6 +97,15 @@ static void render(View *self, Renderer *renderer) {
 		this->view.right = Vec3(1.f, 0.f, 0.f);
 		this->view.up = Vec3(0.f, 0.f, 1.f);
 
+		const SDL_Rect viewport = $(self, viewport);
+		this->view.viewport = Vec4(viewport.x, viewport.y, viewport.w, viewport.h);
+
+		if (this->framebuffer.name == 0) {
+			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h);
+		}
+
+		this->view.framebuffer = &this->framebuffer;
+
 		cgi.AddEntity(&this->view, &this->platformBase);
 		cgi.AddEntity(&this->view, &this->platformCenter);
 
@@ -113,6 +122,9 @@ static void render(View *self, Renderer *renderer) {
 		this->view.viewport = Vec4(viewport.x, viewport.y, viewport.w, viewport.h);
 
 		cgi.DrawPlayerModelView(&this->view);
+
+		const SDL_Rect renderFrame = $(self, renderFrame);
+		cgi.Draw2DFramebuffer(renderFrame.x, renderFrame.y, renderFrame.w, renderFrame.h, &this->framebuffer, color_white);
 	}
 }
 
@@ -126,8 +138,18 @@ static void renderDeviceDidReset(View *self) {
 	PlayerModelView *this = (PlayerModelView *) self;
 
 	this->info[0] = '\0';
+}
 
-	$(self, updateBindings);
+/**
+ * @see View::renderDeviceWillReset(View *)
+ */
+static void renderDeviceWillReset(View *self) {
+
+	super(View, self, renderDeviceWillReset);
+
+	PlayerModelView *this = (PlayerModelView *) self;
+
+	cgi.DestroyFramebuffer(&this->framebuffer);
 }
 
 /**
@@ -330,6 +352,7 @@ static void initialize(Class *clazz) {
 	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->render = render;
 	((ViewInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;
+	((ViewInterface *) clazz->interface)->renderDeviceWillReset = renderDeviceWillReset;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;

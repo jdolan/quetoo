@@ -58,6 +58,11 @@ struct PlayerModelView {
 	cl_client_info_t client;
 
 	/**
+	 * @brief The framebuffer to which the view is rendered.
+	 */
+	r_framebuffer_t framebuffer;
+
+	/**
 	 * @brief The view to populate and pass to DrawPlayerModelView.
 	 */
 	r_view_t view;
