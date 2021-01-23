@@ -308,37 +308,13 @@ static void R_UpdateFrustum(r_view_t *view) {
 }
 
 /**
- * @brief
- */
-static void R_Clear(const r_view_t *view) {
-
-	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
-
-	if (r_clear->value || r_draw_wireframe->value) {
-		bits |= GL_COLOR_BUFFER_BIT;
-	}
-
-	if (view) {
-		if (view->contents & CONTENTS_SOLID) {
-			bits |= GL_COLOR_BUFFER_BIT;
-		}
-	} else {
-		bits |= GL_COLOR_BUFFER_BIT;
-	}
-
-	glClear(bits);
-
-	R_GetError(NULL);
-}
-
-/**
  * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
 
 	memset(&r_stats, 0, sizeof(r_stats));
 
-	R_Clear(NULL);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
 
 /**
@@ -350,7 +326,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
-	R_Clear(view);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	R_UpdateFrustum(view);
 
@@ -421,6 +397,8 @@ void R_DrawPlayerModelView(r_view_t *view) {
 	R_UpdateUniforms(view);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	glViewport(view->viewport.x, view->viewport.y, view->viewport.z, view->viewport.w);
 
