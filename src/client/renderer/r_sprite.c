@@ -448,13 +448,15 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glVertexAttrib1f(r_sprite_program.in_lerp, 0.f);
 	glEnableVertexAttribArray(r_sprite_program.in_softness);
 	glEnableVertexAttribArray(r_sprite_program.in_lighting);
-	
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[0]->texnum);
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[1]->texnum);
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
+
+	if (r_world_model) {
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
+		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[0]->texnum);
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
+		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[1]->texnum);
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
+		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
+	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment);
