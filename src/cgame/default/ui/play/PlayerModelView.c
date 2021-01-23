@@ -300,26 +300,29 @@ static void animate(PlayerModelView *self) {
 	self->weapon.frame = 0;
 	self->weapon.lerp = 1.0;
 
+	vec4_t tints[TINT_TOTAL] = {
+		Vec4_Zero(),
+		Vec4_Zero(),
+		Vec4_Zero()
+	};
+
 	if (self->client.shirt.a) {
-		self->torso.tints[0] = Color_Vec4(self->client.shirt);
-	} else {
-		self->torso.tints[0] = Vec4_Zero();
+		tints[0] = Color_Vec4(self->client.shirt);
 	}
 
 	if (self->client.pants.a) {
-		self->legs.tints[1] = Color_Vec4(self->client.pants);
-	} else {
-		self->legs.tints[1] = Vec4_Zero();
+		tints[1] = Color_Vec4(self->client.pants);
 	}
 
 	if (self->client.helmet.a) {
-		self->head.tints[2] = Color_Vec4(self->client.helmet);
-	} else {
-		self->head.tints[2] = Vec4_Zero();
+		tints[2] = Color_Vec4(self->client.helmet);
 	}
+	
+	memcpy(self->legs.tints, tints, sizeof(tints));
+	memcpy(self->torso.tints, tints, sizeof(tints));
+	memcpy(self->head.tints, tints, sizeof(tints));
 
 	self->legs.angles.y = self->yaw;
-	//self->platformBase.angles.y = self->yaw;
 	self->platformCenter.angles.y = self->yaw;
 }
 
