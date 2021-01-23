@@ -83,15 +83,6 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		e->origin.z += cg_entity_bob->value * bob;
 	}
 
-	if (e->effects & EF_PULSE) {
-		const float pulse = (cosf(cgi.client->unclamped_time * 0.0033f + ent->current.number) + 1.f);
-		const float c = 1.f - (cg_entity_pulse->value * 0.5f * pulse);
-		e->color = Vec4(c, c, c, 1.f);
-		e->color = Vec4(1.f, 1.f, 1.f, 1.f);
-	} else {
-		e->color = Vec4(1.f, 1.f, 1.f, 1.f);
-	}
-
 	if (e->effects & EF_INACTIVE) {
 		Cg_InactiveEffect(ent, e->origin);
 	}

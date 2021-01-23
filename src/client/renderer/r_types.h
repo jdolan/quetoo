@@ -1100,14 +1100,9 @@ typedef struct r_entity_s {
 	int32_t effects;
 
 	/**
-	 * @brief The entity shade color for e.g. `EF_PULSE`.
+	 * @brief The entity shade color.
 	 */
 	vec4_t color;
-
-	/**
-	 * @brief The entity ambient lighting.
-	 */
-	float ambient;
 
 	/**
 	 * @brief The entity shell color for flag carriers, etc.
