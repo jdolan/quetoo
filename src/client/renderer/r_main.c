@@ -239,6 +239,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		r_uniforms.block.depth_range.x = 1.f;
 		r_uniforms.block.depth_range.y = MAX_WORLD_DIST;
 
+		r_uniforms.block.view_type = view->type;
 		r_uniforms.block.ticks = view->ticks;
 
 		r_uniforms.block.modulate = r_modulate->value;

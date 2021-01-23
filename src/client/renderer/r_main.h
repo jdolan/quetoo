@@ -148,6 +148,11 @@ typedef struct {
 		vec2_t depth_range;
 
 		/**
+		 * @brief The view type, e.g. VIEW_MAIN.
+		 */
+		int32_t view_type;
+
+		/**
 		 * @brief The renderer time, in milliseconds.
 		 */
 		int32_t ticks;

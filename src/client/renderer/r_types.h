@@ -1154,6 +1154,7 @@ typedef struct {
  * @brief View types.
  */
 typedef enum {
+	VIEW_UNKNOWN,
 	VIEW_MAIN,
 	VIEW_PLAYER_MODEL,
 } r_view_type_t;

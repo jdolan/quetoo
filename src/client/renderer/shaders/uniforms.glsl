@@ -20,6 +20,10 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#define VIEW_UNKNOWN		(0 << 0)
+#define VIEW_MAIN			(1 << 0)
+#define VIEW_PLAYER_MODEL	(1 << 1)
+
 /**
  * @brief The lightgrid struct.
  */
@@ -78,6 +82,11 @@ layout (std140) uniform uniforms_block {
 	 * @brief The depth range, in world units.
 	 */
 	vec2 depth_range;
+
+	/**
+	 * @brief The view type, e.g. VIEW_MAIN.
+	 */
+	int view_type;
 
 	/**
 	 * @brief The renderer time, in milliseconds.
