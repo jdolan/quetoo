@@ -109,6 +109,8 @@ extern r_animation_t *cg_sprite_fireball_01;
 extern r_animation_t *cg_sprite_impact_spark_01;
 extern r_animation_t *cg_sprite_hyperball_01;
 
+extern r_framebuffer_t cg_framebuffer;
+
 extern r_atlas_image_t cg_sprite_font[16 * 8];
 
 extern int32_t cg_sprite_font_width, cg_sprite_font_height;

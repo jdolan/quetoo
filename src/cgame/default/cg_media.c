@@ -53,7 +53,6 @@ s_sample_t *cg_sample_gib;
 
 static r_atlas_t *cg_sprite_atlas;
 
-
 r_atlas_image_t *cg_sprite_particle;
 r_atlas_image_t *cg_sprite_particle2;
 r_atlas_image_t *cg_sprite_particle3;
@@ -108,6 +107,8 @@ r_animation_t *cg_sprite_electro_01;
 r_animation_t *cg_sprite_fireball_01;
 r_animation_t *cg_sprite_impact_spark_01;
 r_animation_t *cg_sprite_hyperball_01;
+
+r_framebuffer_t cg_framebuffer;
 
 r_atlas_image_t cg_sprite_font[16 * 8];
 
@@ -361,6 +362,8 @@ void Cg_LoadMedia(void) {
 	cg_sprite_hyperball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
 
 	cgi.CompileAtlas(cg_sprite_atlas);
+
+	cg_framebuffer = cgi.CreateFramebuffer(cgi.context->drawable_width, cgi.context->drawable_height);
 
 	// font sprite, used for debugging
 	const r_image_t *font_image = cgi.LoadImage("fonts/medium", IT_FONT);

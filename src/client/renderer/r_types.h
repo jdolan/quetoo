@@ -1169,6 +1169,11 @@ typedef struct {
 	r_view_type_t type;
 
 	/**
+	 * @brief The target framebuffer (required).
+	 */
+	r_framebuffer_t *framebuffer;
+
+	/**
 	 * @brief The viewport, in device pixels.
 	 */
 	vec4_t viewport;
@@ -1251,12 +1256,6 @@ typedef struct {
 	int32_t num_stains;
 
 	/**
-	 * @brief The target framebuffer, or `NULL`.
-	 * @details If unset, the default framebuffer is targeted.
-	 */
-	r_framebuffer_t *framebuffer;
-
-	/**
 	 * @brief The view frustum, for box and sphere culling.
 	 * @remarks This is populated by the renderer.
 	 */
@@ -1302,11 +1301,6 @@ typedef struct {
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	_Bool fullscreen;
-	
-	/**
-	 * @brief Framebuffer things.
-	 */
-	r_framebuffer_t framebuffer;
 } r_context_t;
 
 /**

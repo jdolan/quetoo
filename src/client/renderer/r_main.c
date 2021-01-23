@@ -320,7 +320,8 @@ void R_BeginFrame(void) {
  */
 void R_DrawViewDepth(r_view_t *view) {
 
-	view->framebuffer = view->framebuffer ?: &r_context.framebuffer;
+	assert(view);
+	assert(view->framebuffer);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
@@ -343,8 +344,7 @@ void R_DrawViewDepth(r_view_t *view) {
 void R_DrawMainView(r_view_t *view) {
 
 	assert(view);
-
-	view->framebuffer = view->framebuffer ?: &r_context.framebuffer;
+	assert(view->framebuffer);
 
 	R_DrawBspLightgrid(view);
 
@@ -379,8 +379,6 @@ void R_DrawMainView(r_view_t *view) {
 	R_Draw3D();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	R_Draw2DFramebuffer(0, 0, r_context.width, r_context.height, view->framebuffer, color_white);
 }
 
 /**
@@ -389,8 +387,7 @@ void R_DrawMainView(r_view_t *view) {
 void R_DrawPlayerModelView(r_view_t *view) {
 
 	assert(view);
-
-	view->framebuffer = view->framebuffer ?: &r_context.framebuffer;
+	assert(view->framebuffer);
 
 	R_UpdateUniforms(view);
 
