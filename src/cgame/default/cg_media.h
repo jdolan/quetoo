@@ -113,5 +113,5 @@ extern r_atlas_image_t cg_sprite_font[16 * 8];
 
 extern int32_t cg_sprite_font_width, cg_sprite_font_height;
 
-void Cg_UpdateMedia(void);
+void Cg_LoadMedia(void);
 #endif /* __CG_LOCAL_H__ */

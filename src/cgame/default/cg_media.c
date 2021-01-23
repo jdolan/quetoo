@@ -246,7 +246,7 @@ static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, c
 /**
  * @brief Updates all media references for the client game.
  */
-void Cg_UpdateMedia(void) {
+void Cg_LoadMedia(void) {
 	char name[MAX_QPATH];
 
 	cgi.FreeTag(MEM_TAG_CGAME);

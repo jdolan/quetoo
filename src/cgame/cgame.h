@@ -819,7 +819,7 @@ typedef struct cg_export_s {
 	/**
 	 * @brief Updates client game media references on level load or subsystem restarts.
 	 */
-	void (*UpdateMedia)(void);
+	void (*LoadMedia)(void);
 
 	/**
 	 * @brief Called when a server message known to the client is received.
