@@ -72,10 +72,20 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height) {
  */
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
-	assert(framebuffer);
+	if (framebuffer) {
 
-	glDeleteFramebuffers(1, &framebuffer->name);
+		if (framebuffer->name) {
+			glDeleteFramebuffers(1, &framebuffer->name);
+		}
 
-	glDeleteTextures(1, &framebuffer->color_attachment);
-	glDeleteTextures(1, &framebuffer->depth_attachment);
+		if (framebuffer->color_attachment) {
+			glDeleteTextures(1, &framebuffer->color_attachment);
+		}
+
+		if (framebuffer->depth_attachment) {
+			glDeleteTextures(1, &framebuffer->depth_attachment);
+		}
+
+		memset(framebuffer, 0, sizeof(*framebuffer));
+	}
 }
