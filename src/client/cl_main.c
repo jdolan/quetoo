@@ -599,7 +599,7 @@ static void Cl_UpdateScene(void) {
 
 	cls.cgame->PopulateScene(&cl.frame);
 
-	R_DrawView(&cl_view);
+	R_DrawMainView(&cl_view);
 
 	S_RenderStage(&cl_stage);
 }

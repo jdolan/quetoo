@@ -358,7 +358,7 @@ void R_DrawViewDepth(r_view_t *view) {
 /**
  * @brief Entry point for drawing the main view.
  */
-void R_DrawView(r_view_t *view) {
+void R_DrawMainView(r_view_t *view) {
 
 	assert(view);
 
