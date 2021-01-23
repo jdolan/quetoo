@@ -36,7 +36,7 @@
 /**
  * @brief Find the first character of a given list of characters.
  */
-static int str_find_first_of(const char *string, const char *characters) {
+static ssize_t str_find_first_of(const char *string, const char *characters) {
 	
 	for (const char *c = string; *c; c++) {
 		
