@@ -1161,7 +1161,6 @@ typedef struct {
 typedef enum {
 	VIEW_MAIN,
 	VIEW_PLAYER_MODEL,
-	VIEW_OTHER,
 } r_view_type_t;
 
 /**
