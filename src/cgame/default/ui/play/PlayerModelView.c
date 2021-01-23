@@ -118,8 +118,6 @@ static void render(View *self, Renderer *renderer) {
 		this->weapon.parent = torso;
 		cgi.AddEntity(&this->view, &this->weapon);
 
-		const SDL_Rect viewport = $(self, viewport);
-		this->view.viewport = Vec4(viewport.x, viewport.y, viewport.w, viewport.h);
 
 		cgi.DrawPlayerModelView(&this->view);
 
