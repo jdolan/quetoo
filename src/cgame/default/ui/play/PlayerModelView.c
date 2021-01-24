@@ -134,18 +134,6 @@ static void render(View *self, Renderer *renderer) {
 }
 
 /**
- * @see View::renderDeviceDidReset(View *)
- */
-static void renderDeviceDidReset(View *self) {
-
-	super(View, self, renderDeviceDidReset);
-
-	PlayerModelView *this = (PlayerModelView *) self;
-
-	this->info[0] = '\0';
-}
-
-/**
  * @see View::renderDeviceWillReset(View *)
  */
 static void renderDeviceWillReset(View *self) {
@@ -160,7 +148,7 @@ static void renderDeviceWillReset(View *self) {
 /**
  * @see View::updateBindings(View *)
  */
-static void updateBindings(View *self) {
+	static void updateBindings(View *self) {
 	
 	super(View, self, updateBindings);
 
@@ -168,15 +156,9 @@ static void updateBindings(View *self) {
 
 	this->animation1.frame = this->animation2.frame = -1;
 
-	char info[MAX_STRING_CHARS];
-	g_snprintf(info, sizeof(info), "newbie\\%s\\%s\\%s\\%s\\0",
+	g_snprintf(this->info, sizeof(this->info), "newbie\\%s\\%s\\%s\\%s\\0",
 			   cg_skin->string, cg_shirt->string, cg_pants->string, cg_helmet->string);
 
-	if (strcmp(this->info, info) == 0) {
-		return;
-	}
-
-	g_strlcpy(this->info, info, sizeof(this->info));
 	Cg_LoadClient(&this->client, this->info);
 
 	this->legs.model = this->client.legs;
@@ -237,6 +219,37 @@ static _Bool captureEvent(Control *self, const SDL_Event *event) {
 #pragma mark - PlayerModelView
 
 /**
+ * @brief Selects the next animation for the given animation.
+ */
+static entity_animation_t nextAnimation(const entity_animation_t a) {
+
+	switch (a) {
+		case ANIM_TORSO_GESTURE:
+			return ANIM_TORSO_STAND1;
+		case ANIM_TORSO_STAND1:
+			return ANIM_TORSO_DROP;
+		case ANIM_TORSO_DROP:
+			return ANIM_TORSO_RAISE;
+		case ANIM_TORSO_RAISE:
+			return ANIM_TORSO_ATTACK1;
+		case ANIM_TORSO_ATTACK1:
+			return ANIM_TORSO_STAND2;
+		case ANIM_TORSO_STAND2:
+			return ANIM_TORSO_GESTURE;
+
+		case ANIM_LEGS_WALK:
+			return ANIM_LEGS_RUN;
+		case ANIM_LEGS_RUN:
+			return ANIM_LEGS_IDLE;
+		case ANIM_LEGS_IDLE:
+			return ANIM_LEGS_WALK;
+
+		default:
+			assert(false);
+	}
+}
+
+/**
  * @brief Runs the animation, proceeding to the next in the sequence upon completion.
  */
 static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_entity_t *e) {
@@ -247,12 +260,13 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
 
 	const r_mesh_animation_t *anim = &model->animations[a->animation];
 
-	const int32_t frameTime = 1500 / anim->hz;
+	const int32_t frameTime = 2000.f / anim->hz;
 	const int32_t animationTime = anim->num_frames * frameTime;
 	const int32_t elapsedTime = cgi.client->unclamped_time - a->time;
 
 	if (elapsedTime >= animationTime) {
 
+		a->animation = nextAnimation(a->animation);
 		a->time = cgi.client->unclamped_time;
 
 		animate_(model, a, e);
@@ -361,7 +375,6 @@ static void initialize(Class *clazz) {
 
 	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->render = render;
-	((ViewInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;
 	((ViewInterface *) clazz->interface)->renderDeviceWillReset = renderDeviceWillReset;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
