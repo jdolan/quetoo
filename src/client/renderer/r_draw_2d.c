@@ -441,6 +441,9 @@ void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, con
 		.num_vertexes = 6
 	};
 
+	w = w ?: r_context.width;
+	h = h ?: r_context.height;
+
 	r_draw_2d_vertex_t quad[4];
 
 	quad[0].position = Vec2s(x, y);

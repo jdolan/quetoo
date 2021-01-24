@@ -262,7 +262,7 @@ void Cl_LoadMedia(void) {
 
 	Cl_LoadMusics();
 
-	cls.cgame->UpdateMedia();
+	cls.cgame->LoadMedia();
 
 	Cl_LoadingProgress(100, "ready");
 

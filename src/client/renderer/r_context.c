@@ -289,8 +289,6 @@ void R_InitContext(void) {
 		}
 	}
 
-	r_context.framebuffer = R_CreateFramebuffer(r_context.drawable_width, r_context.drawable_height);
-
 	R_SetWindowIcon();
 }
 
@@ -308,8 +306,6 @@ void R_ShutdownContext(void) {
 		SDL_DestroyWindow(r_context.window);
 		r_context.window = NULL;
 	}
-
-	R_DestroyFramebuffer(&r_context.framebuffer);
 
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }

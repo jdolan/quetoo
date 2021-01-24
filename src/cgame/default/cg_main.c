@@ -477,7 +477,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.ClearState = Cg_ClearState;
 	cge.Look = Cg_Look;
 	cge.Move = Cg_Move;
-	cge.UpdateMedia = Cg_UpdateMedia;
+	cge.LoadMedia = Cg_LoadMedia;
 	cge.ParsedMessage = Cg_ParsedMessage;
 	cge.ParseMessage = Cg_ParseMessage;
 	cge.Interpolate = Cg_Interpolate;

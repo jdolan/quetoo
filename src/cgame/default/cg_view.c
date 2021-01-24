@@ -301,8 +301,10 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 void Cg_PrepareView(const cl_frame_t *frame) {
 
 	cgi.view->type = VIEW_MAIN;
-	
-	cgi.view->viewport = Vec4(0.f, 0.f, cgi.context->drawable_width, cgi.context->drawable_height);
+
+	cgi.view->framebuffer = &cg_framebuffer;
+
+	cgi.view->viewport = Vec4(0.f, 0.f, cg_framebuffer.width, cg_framebuffer.height);
 
 	const player_state_t *ps0;
 
