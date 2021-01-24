@@ -270,19 +270,20 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 		d1 = Vec3_Dot(plane->normal, p1) - plane->dist;
 		d2 = Vec3_Dot(plane->normal, p2) - plane->dist;
 		if (data->is_point) {
-			offset = 0.0;
-		} else
-			offset = fabsf(data->extents.x * plane->normal.x) +
+			offset = 0.f;
+		} else {
+			offset = 2048.f/*fabsf(data->extents.x * plane->normal.x) +
 			         fabsf(data->extents.y * plane->normal.y) +
-			         fabsf(data->extents.z * plane->normal.z);
+			         fabsf(data->extents.z * plane->normal.z)*/;
+		}
 	}
 
 	// see which sides we need to consider
-	if (d1 >= offset && d2 >= offset) {
+	if (d1 >= offset + 1.f && d2 >= offset + 1.f) {
 		Cm_TraceToNode(data, node->children[0], p1f, p2f, p1, p2);
 		return;
 	}
-	if (d1 <= -offset && d2 <= -offset) {
+	if (d1 <= -offset - 1.f && d2 <= -offset - 1.f) {
 		Cm_TraceToNode(data, node->children[1], p1f, p2f, p1, p2);
 		return;
 	}
@@ -292,25 +293,25 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	float frac1, frac2;
 
 	if (d1 < d2) {
-		const float idist = 1.0f / (d1 - d2);
+		const float idist = 1.f / (d1 - d2);
 		side = 1;
 		frac2 = (d1 + offset + TRACE_EPSILON) * idist;
 		frac1 = (d1 - offset + TRACE_EPSILON) * idist;
 	} else if (d1 > d2) {
-		const float idist = 1.0f / (d1 - d2);
+		const float idist = 1.f / (d1 - d2);
 		side = 0;
 		frac2 = (d1 - offset - TRACE_EPSILON) * idist;
 		frac1 = (d1 + offset + TRACE_EPSILON) * idist;
 	} else {
 		side = 0;
-		frac1 = 1.0;
-		frac2 = 0.0;
+		frac1 = 1.f;
+		frac2 = 0.f;
 	}
 
 	vec3_t mid;
 
 	// move up to the node
-	frac1 = Clampf(frac1, 0.0, 1.0);
+	frac1 = Clampf(frac1, 0.f, 1.f);
 
 	const float midf1 = p1f + (p2f - p1f) * frac1;
 
@@ -319,7 +320,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	Cm_TraceToNode(data, node->children[side], p1f, midf1, p1, mid);
 
 	// go past the node
-	frac2 = Clampf(frac2, 0.0, 1.0);
+	frac2 = Clampf(frac2, 0.f, 1.f);
 
 	const float midf2 = p1f + (p2f - p1f) * frac2;
 

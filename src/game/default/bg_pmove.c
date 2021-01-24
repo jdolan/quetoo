@@ -1479,7 +1479,7 @@ void Pm_Move(pm_move_t *pm_move) {
 	}
 
 	// ensure we're in a valid spot, or revert
-	Pm_CorrectPosition();
+	//Pm_CorrectPosition();
 
 	// check for ladders
 	Pm_CheckLadder();
@@ -1511,13 +1511,13 @@ void Pm_Move(pm_move_t *pm_move) {
 	}
 
 	// ensure we're in a valid spot, or revert
-	Pm_CorrectPosition();
+	//Pm_CorrectPosition();
 
 	// check for ground at new spot
 	Pm_CheckGround();
 
 	// snap us to adjacent walls
-	Pm_SnapToWalls();
+	//Pm_SnapToWalls();
 
 	// check for water level, water type at new spot
 	Pm_CheckWater();
