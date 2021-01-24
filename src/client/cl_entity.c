@@ -304,6 +304,15 @@ void Cl_ParseFrame(void) {
 	cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
 
 	if (cl.frame.valid) {
+
+		// receiving a valid server frame means that loading completed on the
+		// previous client frame; set the client to active and key dest to game
+		if (cls.state == CL_LOADING) {
+			cls.state = CL_ACTIVE;
+
+			Cl_SetKeyDest(KEY_GAME);
+		}
+
 		Cl_CheckPredictionError();
 	}
 }
