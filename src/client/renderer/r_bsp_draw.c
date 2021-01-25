@@ -44,7 +44,12 @@ static struct {
 	GLint texture_lightmap;
 	GLint texture_stage;
 	GLint texture_warp;
+	GLint texture_lightgrid_ambient;
+	GLint texture_lightgrid_diffuse;
+	GLint texture_lightgrid_direction;
 	GLint texture_lightgrid_fog;
+
+	GLint entity;
 
 	GLint alpha_threshold;
 
@@ -495,8 +500,10 @@ void R_DrawWorld(const r_view_t *view) {
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
+	for (int32_t i = 0; i < (int32_t) lengthof(r_world_model->bsp->lightgrid->textures); i++) {
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
+		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[i]->texnum);
+	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->atlas->texnum);
@@ -519,6 +526,8 @@ void R_DrawWorld(const r_view_t *view) {
 		glDepthMask(GL_TRUE);
 	}
 
+	glUniform1i(r_bsp_program.entity, 1);
+
 	{
 		const r_entity_t *e = view->entities;
 		for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -529,6 +538,8 @@ void R_DrawWorld(const r_view_t *view) {
 			}
 		}
 	}
+
+	glUniform1i(r_bsp_program.entity, 0);
 
 	glDisable(GL_DEPTH_TEST);
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
@@ -598,7 +609,12 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
 	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
+	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
+	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
+	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
+
+	r_bsp_program.entity = glGetUniformLocation(r_bsp_program.name, "entity");
 
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
@@ -626,6 +642,9 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
 	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
+	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
+	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
+	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
