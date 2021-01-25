@@ -137,8 +137,8 @@ static void Cg_DrawVital(r_pixel_t x, r_pixel_t ch, const int16_t value, const i
 
 	cgi.Draw2DString(x, y, string, color);
 
-	x += cgi.StringWidth(string);
-	y = cgi.context->height - HUD_PIC_HEIGHT;
+	x += cgi.StringWidth(string) + 5;
+	y = cgi.context->height - HUD_PIC_HEIGHT - 5;
 
 	Cg_DrawIcon(x, y, icon, pulse);
 }
