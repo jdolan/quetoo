@@ -131,7 +131,7 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 	vec2 coord_delta = viewdir.xy * scale / samplecount;
 
 	// raymarch in small steps until we intersect the surface
-	while (curr_ray_height < curr_surface_height) {
+	while (curr_ray_height <= curr_surface_height) {
 		prev_coord = curr_coord;
 		curr_coord += coord_delta;
 		prev_surface_height = curr_surface_height;
