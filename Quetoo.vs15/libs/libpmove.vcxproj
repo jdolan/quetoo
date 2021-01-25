@@ -20,9 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\game\default\bg_pmove.c" />
-    <ClCompile Include="..\..\src\game\default\bg_pmove_q2.c" />
-    <ClCompile Include="..\..\src\game\default\bg_pmove_q3.c" />
-    <ClCompile Include="..\..\src\game\default\bg_pmove_q3_slidemove.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\default\bg_pmove.h" />
