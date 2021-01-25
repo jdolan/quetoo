@@ -329,6 +329,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 			SDL_FreeSurface(normalmap);
 			SDL_FreeSurface(glossmap);
+			SDL_FreeSurface(tintmap);
 		}
 			break;
 
