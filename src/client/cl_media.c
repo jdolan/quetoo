@@ -101,7 +101,6 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 	if (percent < 0) {
 		cls.loading.percent -= percent;
 		cls.loading.percent = Mini(Maxi(0, cls.loading.percent), 99);
-
 	} else {
 		cls.loading.percent = percent;
 	}
@@ -269,8 +268,4 @@ void Cl_LoadMedia(void) {
 	R_FreeUnseededMedia();
 
 	S_FreeMedia();
-
-	Cl_SetKeyDest(KEY_GAME);
-
-	cls.state = CL_ACTIVE;
 }

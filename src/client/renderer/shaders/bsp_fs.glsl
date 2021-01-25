@@ -23,7 +23,12 @@ uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_fog;
+
+uniform int entity;
 
 uniform float alpha_threshold;
 
@@ -173,11 +178,18 @@ void main(void) {
 
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
-		vec3 ambient = sample_lightmap(0).rgb;
-		vec3 diffuse = sample_lightmap(1).rgb;
-		vec3 direction = sample_lightmap(2).xyz;
-
+		vec3 ambient, diffuse, direction;
+		if (entity == 1) {
+			ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
+			diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
+			direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
+		} else {
+			ambient = sample_lightmap(0).rgb;
+			diffuse = sample_lightmap(1).rgb;
+			direction = sample_lightmap(2).xyz;
+		}
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
+
 
 		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
 		vec3 light_diffuse = ambient + diffuse * 2.0 * bump_shading;

@@ -202,6 +202,7 @@ typedef struct {
 extern r_uniforms_t r_uniforms;
 
 // developer tools
+extern cvar_t *r_alpha_test_threshold;
 extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;

@@ -505,11 +505,7 @@ static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
-		const float diffuse = Clampf(Vec3_Length(l->diffuse) / DEFAULT_LIGHT, 0.f, 1.f);
-
-		const float absorption = Clampf(diffuse * fog->absorption, 0.f, 1.f);
-
-		const vec3_t color = Vec3_Mix(fog->color, l->diffuse, absorption);
+		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), l->diffuse);
 
 		switch (fog->type) {
 			case FOG_INVALID:
