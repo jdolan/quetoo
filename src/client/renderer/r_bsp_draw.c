@@ -355,7 +355,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 			glUniform1f(r_bsp_program.material.roughness, (*material)->cm->roughness * r_roughness->value);
 			glUniform1f(r_bsp_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
-			glUniform1f(r_bsp_program.material.parallax, (*material)->cm->parallax * r_parallax->value);
+			glUniform1f(r_bsp_program.material.parallax, (*material)->cm->parallax * Maxf(r_parallax->value, 0.f));
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
