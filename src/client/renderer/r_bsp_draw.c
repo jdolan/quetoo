@@ -144,6 +144,10 @@ void R_DrawBspLightgrid(r_view_t *view) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
 			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, fog += 4) {
 
+				if (s & 1 || t & 1 || u & 1) {
+					continue;
+				}
+
 				const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
 				const vec3_t origin = Vec3_Fmaf(lg->mins, BSP_LIGHTGRID_LUXEL_SIZE, position);
 
