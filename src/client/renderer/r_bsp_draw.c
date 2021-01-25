@@ -487,7 +487,7 @@ void R_DrawWorld(const r_view_t *view) {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
 
 	glUniform1i(r_bsp_program.bicubic, r_bicubic->integer);
-	glUniform1i(r_bsp_program.parallax_samples, r_parallax_samples->integer);
+	glUniform1i(r_bsp_program.parallax_samples, MAX(r_parallax_samples->integer, 1));
 
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
