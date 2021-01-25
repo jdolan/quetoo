@@ -506,7 +506,7 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-	glUniform1f(r_bsp_program.alpha_threshold, .125f);
+	glUniform1f(r_bsp_program.alpha_threshold, r_alpha_test_threshold->value);
 
 	if (r_depth_pass->value) {
 		glDepthMask(GL_FALSE);

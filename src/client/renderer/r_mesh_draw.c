@@ -316,7 +316,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
 
-	glUniform1f(r_mesh_program.alpha_threshold, .125f);
+	glUniform1f(r_mesh_program.alpha_threshold, r_alpha_test_threshold->value);
 	glEnable(GL_CULL_FACE);
 
 	{
