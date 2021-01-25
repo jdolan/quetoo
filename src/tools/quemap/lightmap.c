@@ -377,7 +377,8 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 				occlusion += sample_fraction * trace.fraction;
 			}
 
-			intensity *= 1.f - (1.f - occlusion) * (1.f - occlusion);
+			luxel->ao = 1.f - (1.f - occlusion) * (1.f - occlusion);
+			//intensity *= 1.f - (1.f - occlusion) * (1.f - occlusion);
 
 		} else if (light->type == LIGHT_SUN) {
 
@@ -612,6 +613,7 @@ void FinalizeLightmap(int32_t face_num) {
 		// accumulate radiosity in ambient
 		for (int32_t i = 0; i < num_bounces; i++) {
 			l->ambient = Vec3_Add(l->ambient, l->radiosity[i]);
+			l->ambient = Vec3_Scale(l->ambient, l->ao);
 		}
 
 		// convert to float
@@ -619,8 +621,8 @@ void FinalizeLightmap(int32_t face_num) {
 		vec3_t diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
 
 		// apply brightness, saturation and contrast
-		ambient = ColorFilter(ambient);
-		diffuse = ColorFilter(diffuse);
+		//ambient = ColorFilter(ambient);
+		//diffuse = ColorFilter(diffuse);
 
 		// write the color sample data as bytes
 		for (int32_t j = 0; j < 3; j++) {
