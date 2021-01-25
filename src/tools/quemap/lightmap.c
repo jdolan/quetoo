@@ -350,10 +350,10 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 			const float t = lightmap->st_mins.y + padding_t + luxel->t + 0.5f;
 
 			const vec3_t points[] = DOME_COSINE_36X;
-			const float ao_radius = 64.f;
-
-			float occlusion = 0.f;
 			float sample_fraction = 1.f / lengthof(points);
+
+			const float ao_radius = 64.f;
+			float occlusion = 0.f;
 
 			for (size_t i = 0; i < lengthof(points); i++) {
 

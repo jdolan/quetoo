@@ -240,40 +240,15 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 
 		if (light->type == LIGHT_AMBIENT) {
 
-			const bsp_model_t *world = bsp_file.models;
-
-			const float padding_s = (world->maxs.x - world->mins.x) - (lg.size.x * BSP_LIGHTGRID_LUXEL_SIZE) * 0.5f;
-			const float padding_t = (world->maxs.y - world->mins.y) - (lg.size.y * BSP_LIGHTGRID_LUXEL_SIZE) * 0.5f;
-			const float padding_u = (world->maxs.z - world->mins.z) - (lg.size.z * BSP_LIGHTGRID_LUXEL_SIZE) * 0.5f;
-
-			const float s = lg.stu_mins.x + padding_s + luxel->s + 0.5f;
-			const float t = lg.stu_mins.y + padding_t + luxel->t + 0.5f;
-			const float u = lg.stu_mins.z + padding_u + luxel->u + 0.5f;
-
 			const vec3_t points[] = CUBE_8;
-			const float ao_radius = 64.f;
-
-			float occlusion = 0.f;
 			float sample_fraction = 1.f / lengthof(points);
+
+			const float ao_radius = 128.f;
+			float occlusion = 0.f;
 
 			for (size_t i = 0; i < lengthof(points); i++) {
 
-				vec3_t sample = points[i];
-
-				// Add some jitter to hide undersampling
-				sample.x += RandomRangef(-.04f, .04f);
-				sample.y += RandomRangef(-.04f, .04f);
-				sample.z += RandomRangef(-.04f, .04f);
-
-				// Scale the sample and move it into position
-				sample = Vec3_Scale(sample, ao_radius);
-
-				sample.x += s;
-				sample.y += t;
-				sample.z += u;
-
-				vec3_t point;
-				Matrix4x4_Transform(&lg.inverse_matrix, sample.xyz, point.xyz);
+				const vec3_t point = Vec3_Fmaf(luxel->origin, ao_radius, points[i]);
 
 				const cm_trace_t trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
 
