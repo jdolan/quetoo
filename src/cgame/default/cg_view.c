@@ -46,10 +46,10 @@ static void Cg_UpdateFov(void) {
 		if (time == 0) {
 			prev = cgi.view->fov.x * 2.f;
 			next = cg_fov->value;
-			time = cgi.client->unclamped_time;
+			time = cgi.client->ticks;
 		}
 
-		const float frac = (cgi.client->unclamped_time - time) / (cg_fov_interpolate->value * 100.f);
+		const float frac = (cgi.client->ticks - time) / (cg_fov_interpolate->value * 100.f);
 		if (frac >= 1.f) {
 			time = 0;
 			fov = next;
@@ -130,14 +130,14 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
 	static float old_speed, new_speed;
 	static uint32_t time;
 
-	if (cgi.client->unclamped_time < time) {
+	if (cgi.client->ticks < time) {
 		time = 0;
 		old_speed = new_speed = 0.f;
 	}
 
 	float speed;
 
-	const uint32_t delta = cgi.client->unclamped_time - time;
+	const uint32_t delta = cgi.client->ticks - time;
 	if (delta < 200) {
 		const float lerp = delta / (float) 200;
 		speed = old_speed + lerp * (new_speed - old_speed);
@@ -153,7 +153,7 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
 		new_speed = Clampf(new_speed, 0.f, 1.f);
 		speed = old_speed;
 
-		time = cgi.client->unclamped_time;
+		time = cgi.client->ticks;
 	}
 
 	return 0.66f + speed;
@@ -188,21 +188,21 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 		cg_bob->modified = false;
 	}
 
-	if (cgi.client->unclamped_time < time) {
+	if (cgi.client->ticks < time) {
 		bob = time = 0;
 	}
 
 	const float mod = Cg_BobSpeedModulus(ps);
 
 	// then calculate how much bob to add this frame
-	float frame_bob = Clampf(cgi.client->unclamped_time - time, 1u, 1000u) * mod;
+	float frame_bob = Clampf(cgi.client->ticks - time, 1u, 1000u) * mod;
 
 	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
 		frame_bob *= 0.25f;
 	}
 
 	bob += frame_bob;
-	time = cgi.client->unclamped_time;
+	time = cgi.client->ticks;
 
 	cg_view.bob = sinf(0.0066f * bob) * mod * mod;
 	cg_view.bob *= cg_bob->value; // scale via cvar too
@@ -328,5 +328,5 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 
-	cgi.view->ticks = cgi.client->unclamped_time;
+	cgi.view->ticks = cgi.client->ticks;
 }

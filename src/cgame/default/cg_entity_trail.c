@@ -82,7 +82,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 		return;
 	}
 
-	if (cgi.client->unclamped_time < ent->timestamp) {
+	if (cgi.client->ticks < ent->timestamp) {
 		return;
 	}
 
@@ -116,7 +116,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 				.lighting = 1.f
 			});
 
-			ent->timestamp = cgi.client->unclamped_time + 3000;
+			ent->timestamp = cgi.client->ticks + 3000;
 		}
 	} else if (cg_state.weather) {
 
@@ -131,7 +131,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 			.lighting = 1.f
 		});
 
-		ent->timestamp = cgi.client->unclamped_time + 3000;
+		ent->timestamp = cgi.client->ticks + 3000;
 	}
 }
 
@@ -324,8 +324,8 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
  */
 static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	const float pulse1 = sinf(cgi.client->unclamped_time * .02f)  * .5f + .5f;
-	const float pulse2 = sinf(cgi.client->unclamped_time * .04f)  * .5f + .5f;
+	const float pulse1 = sinf(cgi.client->ticks * .02f)  * .5f + .5f;
+	const float pulse2 = sinf(cgi.client->ticks * .04f)  * .5f + .5f;
 	// vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
 
 	// ring
@@ -353,7 +353,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			.origin = ent->origin,
 			.size = 40.f,
 			.color = Color_Color32(ColorHSVA(120.f, .76f, .20f, 0.f)),
-			.rotation = sinf(cgi.client->unclamped_time * (i == 0 ? .002f : -.001f)),
+			.rotation = sinf(cgi.client->ticks * (i == 0 ? .002f : -.001f)),
 			.softness = 1.f
 		});
 	}
@@ -378,7 +378,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	int32_t count;
 	vec3_t origin;
 
-	float sine = sinf(cgi.client->unclamped_time * .001f) * M_PI;
+	float sine = sinf(cgi.client->ticks * .001f) * M_PI;
 
 	const vec3_t velocity = Vec3_Subtract(ent->current.origin, ent->prev.origin);
 	const vec3_t direction = Vec3_Normalize(velocity);
@@ -533,7 +533,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 	};
 
 	// outer rim
-	if (ent->timestamp < cgi.client->unclamped_time) {
+	if (ent->timestamp < cgi.client->ticks) {
 		for (int32_t i = 0; i < 3; i++) {
 			Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = variation[i],
@@ -548,7 +548,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 				.entity = Cg_GetSpriteEntity(ent)
 			});
 		}
-		ent->timestamp = cgi.client->unclamped_time + 32;
+		ent->timestamp = cgi.client->ticks + 32;
 	}
 
 	// center blob
@@ -579,7 +579,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.color = bcolor,
 		.image = cg_beam_tail,
 		.size = 5.0f,
-		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
+		.translate = cgi.client->ticks * RandomRangef(.003f, .009f),
 		.softness = 1.f,
 		.lighting = 1.f
 	});
@@ -614,7 +614,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.color = Color32(255, 255, 255, 0),
 		.image = cg_beam_lightning,
 		.size = 8.5f,
-		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
+		.translate = cgi.client->ticks * RandomRangef(.003f, .009f),
 		.softness = 1.f,
 	});
 
@@ -633,7 +633,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		return;
 	}
 
-	if (ent->timestamp < cgi.client->unclamped_time) {
+	if (ent->timestamp < cgi.client->ticks) {
 
 		vec3_t dir;
 		Vec3_Vectors(ent->angles, &dir, NULL, NULL);
@@ -685,7 +685,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			}
 		}
 
-		ent->timestamp = cgi.client->unclamped_time + 25; // 40hz
+		ent->timestamp = cgi.client->ticks + 25; // 40hz
 	}
 }
 
@@ -719,7 +719,7 @@ static void Cg_BfgTrail_Think(cg_sprite_t *sprite, float life, float delta) {
 		const float lifetime = RandomRangef(2000, 3500);
 		sprite->lifetime = lifetime;
 		sprite->size_velocity = -sprite->size / MILLIS_TO_SECONDS(lifetime);
-		sprite->time = sprite->timestamp = cgi.client->unclamped_time;
+		sprite->time = sprite->timestamp = cgi.client->ticks;
 		sprite->bounce = .2f;
 		return;
 	}
@@ -742,7 +742,7 @@ static void Cg_BfgTrail_Think(cg_sprite_t *sprite, float life, float delta) {
  * @brief
  */
 static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	const float mod = fmodf((float)cgi.client->unclamped_time, 100.f) / 100.f;
+	const float mod = fmodf((float)cgi.client->ticks, 100.f) / 100.f;
 
 	// projectile core
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
@@ -751,12 +751,12 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		.media = (r_media_t*)cg_sprite_hyperball_01,
 		.rotation = mod * 200.f * M_PI,
 		.color = Color32(255, 255, 255, 0),
-		.life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f),
+		.life = fmod(cgi.client->ticks * 0.001f, 1.0f),
 		.softness = 1.f
 	});
 
-	if (ent->timestamp < cgi.client->unclamped_time) {
-		ent->timestamp = cgi.client->unclamped_time + 4;
+	if (ent->timestamp < cgi.client->ticks) {
+		ent->timestamp = cgi.client->ticks + 4;
 	
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle,
@@ -790,7 +790,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
  * @brief Oscillate value, from material.glsl
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
-	const float value = .7f + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * .3f;
+	const float value = .7f + (sinf(cgi.client->ticks * .02f) / M_PI) * .3f;
 	
 	Cg_AddSprite(&(cg_sprite_t) {
 		.atlas_image = cg_sprite_splash_02_03,
@@ -801,8 +801,8 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 		.softness = 1.f
 	});
 
-	if (ent->timestamp <= cgi.client->unclamped_time) {
-		ent->timestamp = cgi.client->unclamped_time + 100;
+	if (ent->timestamp <= cgi.client->ticks) {
+		ent->timestamp = cgi.client->ticks + 100;
 		
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_ring,
@@ -823,7 +823,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
  * @brief
  */
 static inline float Cg_Oscillate(const float freq, const float amplitude, const float base, const float phase) {
-	const float seconds = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
+	const float seconds = MILLIS_TO_SECONDS(cgi.client->ticks);
 	return base + sinf((phase + seconds * 2 * freq * 2)) * (amplitude * 0.5);
 }
 
@@ -909,11 +909,11 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 	};
 
 	if (ent->current.effects & EF_DESPAWN) {
-		const float decay = Clampf((cgi.client->unclamped_time - ent->timestamp) / 1000.0, 0.0, 1.0);
+		const float decay = Clampf((cgi.client->ticks - ent->timestamp) / 1000.0, 0.0, 1.0);
 		l.radius *= (1.0 - decay);
 	} else {
 		Cg_SmokeTrail(ent, start, end);
-		ent->timestamp = cgi.client->unclamped_time;
+		ent->timestamp = cgi.client->ticks;
 		Cg_FlameTrail(ent, start, end);
 	}
 

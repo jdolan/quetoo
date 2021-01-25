@@ -87,7 +87,7 @@ cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
 	if (in_s->flags & SPRITE_SERVER_TIME) {
 		s->time = s->timestamp = cgi.client->frame.time;
 	} else {
-		s->time = s->timestamp = cgi.client->unclamped_time;
+		s->time = s->timestamp = cgi.client->ticks;
 	}
 
 	Cg_PushSprite(s, &cg_active_sprites);
@@ -140,7 +140,7 @@ void Cg_AddSprites(void) {
 	}
 
 	const float delta = MILLIS_TO_SECONDS(cgi.client->frame_msec);
-	const uint32_t client_time = cgi.client->unclamped_time, server_time = cgi.client->frame.time;
+	const uint32_t client_time = cgi.client->ticks, server_time = cgi.client->frame.time;
 
 	cg_sprite_t *s = cg_active_sprites;
 	while (s) {

@@ -54,7 +54,7 @@ void Cg_AddLight(const cg_light_t *l) {
 		cg_lights[i].intensity = LIGHT_INTENSITY;
 	}
 
-	cg_lights[i].time = cgi.client->unclamped_time;
+	cg_lights[i].time = cgi.client->ticks;
 }
 
 /**
@@ -66,7 +66,7 @@ void Cg_AddLights(void) {
 	for (int32_t i = 0; i < MAX_LIGHTS; i++, l++) {
 
 		const uint32_t expiration = l->time + l->decay;
-		if (expiration < cgi.client->unclamped_time) {
+		if (expiration < cgi.client->ticks) {
 			l->radius = 0.0;
 			continue;
 		}
@@ -80,7 +80,7 @@ void Cg_AddLights(void) {
 
 		if (l->decay) {
 			assert(out.intensity >= 0.f);
-			out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);
+			out.intensity *= (expiration - cgi.client->ticks) / (float) (l->decay);
 		}
 
 		cgi.AddLight(cgi.view, &out);

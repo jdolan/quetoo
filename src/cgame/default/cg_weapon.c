@@ -70,7 +70,7 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 	static vec3_t old_speed, new_speed;
 	static uint32_t time;
 
-	if (cgi.client->unclamped_time < time) {
+	if (cgi.client->ticks < time) {
 		time = 0;
 
 		old_speed = Vec3_Zero();
@@ -79,7 +79,7 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 
 	vec3_t speed;
 
-	const uint32_t delta = cgi.client->unclamped_time - time;
+	const uint32_t delta = cgi.client->ticks - time;
 	if (delta < 100) {
 		const float lerp = delta / 100.f;
 
@@ -95,7 +95,7 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 
 		speed = old_speed;
 
-		time = cgi.client->unclamped_time;
+		time = cgi.client->ticks;
 	}
 
 	if (cg_draw_weapon_bob->modified) {

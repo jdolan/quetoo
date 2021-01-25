@@ -256,9 +256,9 @@ typedef struct {
 
 	/**
 	 * @brief Unclamped simulation time. This will always reflect actual milliseconds since
-	 * the game was launched. This is useful for effect durations and constant-time events.
+	 * the player connected. This is useful for effect durations and constant-time events.
 	 */
-	uint32_t unclamped_time;
+	uint32_t ticks;
 
 	/**
 	 * @brief The duration of the current frame, in milliseconds.

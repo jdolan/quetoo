@@ -89,7 +89,7 @@ static void render(View *self, Renderer *renderer) {
 		memset(&this->view, 0, sizeof(this->view));
 
 		this->view.type = VIEW_PLAYER_MODEL;
-		this->view.ticks = cgi.client->unclamped_time;
+		this->view.ticks = cgi.client->ticks;
 
 		this->view.fov.x = 30.f / 2.f;
 
@@ -262,12 +262,12 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
 
 	const int32_t frameTime = 2000.f / anim->hz;
 	const int32_t animationTime = anim->num_frames * frameTime;
-	const int32_t elapsedTime = cgi.client->unclamped_time - a->time;
+	const int32_t elapsedTime = cgi.client->ticks - a->time;
 
 	if (elapsedTime >= animationTime) {
 
 		a->animation = nextAnimation(a->animation);
-		a->time = cgi.client->unclamped_time;
+		a->time = cgi.client->ticks;
 
 		animate_(model, a, e);
 		return;
@@ -336,7 +336,7 @@ static void animate(PlayerModelView *self) {
 
 	self->legs.angles.y = self->yaw;
 	self->platformCenter.angles.y = self->yaw;
-	self->platformBase.angles.y = cgi.client->unclamped_time * .0625f;
+	self->platformBase.angles.y = cgi.client->ticks * .0625f;
 }
 
 /**

@@ -126,7 +126,7 @@ static void Cg_DrawVital(r_pixel_t x, r_pixel_t ch, const int16_t value, const i
 
 	if (value < low) {
 		if (cg_draw_vitals_pulse->integer) {
-			pulse.a = Clampf(sinf(cgi.client->unclamped_time / 250.f), 0.75f, 1.f);
+			pulse.a = Clampf(sinf(cgi.client->ticks / 250.f), 0.75f, 1.f);
 		}
 		color = HUD_COLOR_STAT_LOW;
 	} else if (value < med) {
@@ -252,7 +252,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	}
 
 	color_t pulse = color_white;
-	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f);
+	pulse.a = Clampf(sinf(cgi.client->ticks / 150.0), 0.75f, 1.f);
 
 	x = HUD_PIC_HEIGHT / 2;
 	y = cgi.context->height / 2 - HUD_PIC_HEIGHT * 2;
@@ -277,7 +277,7 @@ static void Cg_DrawHeldTech(const player_state_t *ps) {
 	}
 
 	color_t pulse = color_white;
-	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f);
+	pulse.a = Clampf(sinf(cgi.client->ticks / 150.0), 0.75f, 1.f);
 
 	x = 4;
 	y = cgi.context->height / 2 - HUD_PIC_HEIGHT * 4;
@@ -609,7 +609,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		return; // dead
 	}
 
-	if (cg_center_print.time > cgi.client->unclamped_time) {
+	if (cg_center_print.time > cgi.client->ticks) {
 		return;
 	}
 
@@ -729,12 +729,12 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 		const int16_t p = ps->stats[STAT_PICKUP_ICON];
 		if (p != -1 && (p != cg_hud_state.pulse.pickup)) {
-			cg_hud_state.pulse.time = cgi.client->unclamped_time;
+			cg_hud_state.pulse.time = cgi.client->ticks;
 		}
 
 		cg_hud_state.pulse.pickup = p;
 
-		const uint32_t delta = cgi.client->unclamped_time - cg_hud_state.pulse.time;
+		const uint32_t delta = cgi.client->ticks - cg_hud_state.pulse.time;
 		if (delta < 300) {
 			const float frac = delta / 300.f;
 			scale += sinf(frac * M_PI) * CROSSHAIR_SCALE;
@@ -781,7 +781,7 @@ void Cg_ParseCenterPrint(void) {
 	}
 
 	cg_center_print.num_lines++;
-	cg_center_print.time = cgi.client->unclamped_time + 3000;
+	cg_center_print.time = cgi.client->ticks + 3000;
 }
 
 /**
@@ -795,7 +795,7 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 		return;
 	}
 
-	if (cg_center_print.time < cgi.client->unclamped_time) {
+	if (cg_center_print.time < cgi.client->ticks) {
 		return;
 	}
 
@@ -843,8 +843,8 @@ static void Cg_AddBlend(color_t *blend, const color_t input) {
 static float Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint32_t blend_decay_time,
                                     const float blend_alpha) {
 
-	if ((cgi.client->unclamped_time - blend_start_time) <= blend_decay_time) {
-		const float time_factor = (float) (cgi.client->unclamped_time - blend_start_time) / blend_decay_time;
+	if ((cgi.client->ticks - blend_start_time) <= blend_decay_time) {
+		const float time_factor = (float) (cgi.client->ticks - blend_start_time) / blend_decay_time;
 		const float alpha = cg_draw_blend->value * (blend_alpha - (time_factor * blend_alpha));
 
 		return alpha;
@@ -906,7 +906,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	const int16_t p = ps->stats[STAT_PICKUP_ICON] & ~STAT_TOGGLE_BIT;
 
 	if (p > -1 && (p != cg_hud_state.blend.pickup)) { // don't flash on same item
-		cg_hud_state.blend.pickup_time = cgi.client->unclamped_time;
+		cg_hud_state.blend.pickup_time = cgi.client->ticks;
 	}
 
 	cg_hud_state.blend.pickup = p;
@@ -920,7 +920,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if (ps->stats[STAT_QUAD_TIME] > 0 && cg_draw_blend_powerup->value) {
 		Cg_DrawBlendFlashImage(cg_quad_blend_image,
-			fabsf(sinf(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value);
+			fabsf(sinf(Radians(cgi.client->ticks * 0.2))) * cg_draw_blend_powerup->value);
 	}
 
 	// taken damage
@@ -928,7 +928,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	const int16_t d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
 
 	if (d) {
-		cg_hud_state.blend.damage_time = cgi.client->unclamped_time;
+		cg_hud_state.blend.damage_time = cgi.client->ticks;
 	}
 
 	if (cg_hud_state.blend.damage_time && cg_draw_blend_damage->value) {
@@ -956,8 +956,8 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 	if (dmg) {
 
 		// play the hit sound
-		if (cgi.client->unclamped_time - cg_hud_state.damage.hit_sound_time > 50) {
-			cg_hud_state.damage.hit_sound_time = cgi.client->unclamped_time;
+		if (cgi.client->ticks - cg_hud_state.damage.hit_sound_time > 50) {
+			cg_hud_state.damage.hit_sound_time = cgi.client->ticks;
 
 			Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 				.sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0],
@@ -1075,8 +1075,8 @@ static void Cg_SelectWeapon(const int8_t dir) {
 		}
 
 		if (cg_hud_state.weapon.has[cg_hud_state.weapon.tag]) {
-			cg_hud_state.weapon.time = cgi.client->unclamped_time + cg_select_weapon_delay->integer;
-			cg_hud_state.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+			cg_hud_state.weapon.time = cgi.client->ticks + cg_select_weapon_delay->integer;
+			cg_hud_state.weapon.bar_time = cgi.client->ticks + cg_select_weapon_interval->integer;
 			return;
 		}
 	}
@@ -1099,8 +1099,8 @@ _Bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_weapons[cg_hud_state.weapon.tag].item_index];
 			cgi.Cbuf(va("use %s\n", name));
 
-			cg_hud_state.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
-			cg_hud_state.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+			cg_hud_state.weapon.time = cgi.client->ticks + cg_select_weapon_interval->integer;
+			cg_hud_state.weapon.bar_time = cgi.client->ticks + cg_select_weapon_interval->integer;
 
 			return true;
 		}
@@ -1157,16 +1157,16 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 
 			// we changed weapons without using scrolly, show it for a bit
 			cg_hud_state.weapon.tag = cg_hud_state.weapon.used_tag - 1;
-			cg_hud_state.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
-			cg_hud_state.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+			cg_hud_state.weapon.time = cgi.client->ticks + cg_select_weapon_interval->integer;
+			cg_hud_state.weapon.bar_time = cgi.client->ticks + cg_select_weapon_interval->integer;
 		}
 	}
 
 	// not changing or ran out of time
-	if (cg_hud_state.weapon.time <= cgi.client->unclamped_time) {
+	if (cg_hud_state.weapon.time <= cgi.client->ticks) {
 		Cg_AttemptSelectWeapon(ps);
 
-		if (cg_hud_state.weapon.time <= cgi.client->unclamped_time) {
+		if (cg_hud_state.weapon.time <= cgi.client->ticks) {
 			return;
 		}
 	}
@@ -1187,7 +1187,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 		cg_select_weapon_fade->value = Clampf(cg_select_weapon_fade->value, 0.f, cg_select_weapon_interval->value);
 	}
 
-	const int32_t delta = cg_hud_state.weapon.bar_time - cgi.client->unclamped_time;
+	const int32_t delta = cg_hud_state.weapon.bar_time - cgi.client->ticks;
 	const float alpha = Minf(delta / (float) cg_select_weapon_fade->integer, 1.0);
 
 	const color_t color_selection = Color4f(1.f, 1.f, 1.f, alpha);
@@ -1231,7 +1231,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 		return;
 	}
 
-	if (time > cgi.client->unclamped_time) {
+	if (time > cgi.client->ticks) {
 		time = 0;
 	}
 
@@ -1246,11 +1246,11 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 			const cl_client_info_t *client = &cgi.client->client_info[ent->current.number - 1];
 
 			g_strlcpy(name, client->name, sizeof(name));
-			time = cgi.client->unclamped_time;
+			time = cgi.client->ticks;
 		}
 	}
 
-	if (cgi.client->unclamped_time - time > 3000) {
+	if (cgi.client->ticks - time > 3000) {
 		*name = '\0';
 	}
 

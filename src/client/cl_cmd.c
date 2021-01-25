@@ -43,7 +43,7 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
 	Cl_Look(&cmd->cmd);
 
 	cmd->time = cl.time;
-	cmd->timestamp = cl.unclamped_time;
+	cmd->timestamp = cl.ticks;
 }
 
 /**
@@ -55,14 +55,14 @@ static void Cl_FinalizeMovementCommand(void) {
 
 	cl_cmd_t *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
 
-	const uint32_t msec = cl.unclamped_time - prev->timestamp;
+	const uint32_t msec = cl.ticks - prev->timestamp;
 
 	cmd->cmd.msec = Minf(msec, 255u);
 
 	Cl_Move(&cmd->cmd);
 
 	cmd->time = cl.time;
-	cmd->timestamp = cl.unclamped_time;
+	cmd->timestamp = cl.ticks;
 }
 
 /**

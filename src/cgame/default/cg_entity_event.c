@@ -251,7 +251,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 		case EV_CLIENT_STEP: {
 			const float height = ent->current.origin.z - ent->prev.origin.z;
-			Cg_TraverseStep(&ent->step, cgi.client->unclamped_time, height);
+			Cg_TraverseStep(&ent->step, cgi.client->ticks, height);
 		}
 			break;
 		case EV_CLIENT_SIZZLE:

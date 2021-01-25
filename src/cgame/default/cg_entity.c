@@ -178,7 +178,7 @@ void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, float height) {
  */
 void Cg_InterpolateStep(cl_entity_step_t *step) {
 
-	const uint32_t delta = cgi.client->unclamped_time - step->timestamp;
+	const uint32_t delta = cgi.client->ticks - step->timestamp;
 
 	if (delta < step->interval) {
 		const float lerp = (step->interval - delta) / (float) step->interval;
@@ -371,7 +371,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 	cg_entity_t *e = (cg_entity_t *) cg_entities->data;
 	for (guint i = 0; i < cg_entities->len; i++, e++) {
 
-		if (e->next_think > cgi.client->unclamped_time) {
+		if (e->next_think > cgi.client->ticks) {
 			continue;
 		}
 

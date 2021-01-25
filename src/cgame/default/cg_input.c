@@ -44,7 +44,7 @@ void Cg_ParseViewKick(void) {
 	cg_kick.prev = cg_kick.kick;
 	cg_kick.next = Vec3_Add(cg_kick.prev, kick);
 
-	cg_kick.timestamp = cgi.client->unclamped_time;
+	cg_kick.timestamp = cgi.client->ticks;
 	cg_kick.interval = 64;
 }
 
@@ -53,7 +53,7 @@ void Cg_ParseViewKick(void) {
  */
 static void Cg_ViewKick(const pm_cmd_t *cmd) {
 
-	if (cg_kick.timestamp > cgi.client->unclamped_time) {
+	if (cg_kick.timestamp > cgi.client->ticks) {
 		memset(&cg_kick, 0, sizeof(cg_kick));
 	}
 
@@ -78,7 +78,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 					cg_kick.kick = Vec3_Zero();
 					cg_kick.prev = Vec3_Zero();
 
-					cg_kick.timestamp = cgi.client->unclamped_time;
+					cg_kick.timestamp = cgi.client->ticks;
 					cg_kick.interval = 1;
 
 					frame = cgi.client->frame.frame_num;
@@ -87,7 +87,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 		}
 	}
 
-	const uint32_t delta = cgi.client->unclamped_time - cg_kick.timestamp;
+	const uint32_t delta = cgi.client->ticks - cg_kick.timestamp;
 	if (delta < cg_kick.interval) {
 		const float frac = Minf(delta, cmd->msec) / (float) cg_kick.interval;
 
@@ -113,7 +113,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 			cg_kick.prev = cg_kick.kick;
 			cg_kick.next = Vec3_Zero();
 
-			cg_kick.timestamp = cgi.client->unclamped_time;
+			cg_kick.timestamp = cgi.client->ticks;
 			cg_kick.interval = 240;
 		}
 	}
@@ -240,13 +240,13 @@ void Cg_Move(pm_cmd_t *cmd) {
 		if (cmd->up) {
 			static uint32_t time;
 
-			if (time > cgi.client->unclamped_time) {
+			if (time > cgi.client->ticks) {
 				time = 0;
 			}
 
-			if (cgi.client->unclamped_time - time > 200) {
+			if (cgi.client->ticks - time > 200) {
 				cgi.ToggleCvar(cg_third_person_chasecam->name);
-				time = cgi.client->unclamped_time;
+				time = cgi.client->ticks;
 			}
 		}
 	}
