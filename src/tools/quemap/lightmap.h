@@ -36,7 +36,7 @@ typedef struct {
 	vec3_t direction;
 	vec3_t radiosity[MAX_BOUNCES];
 	vec4_t fog;
-	float ao;
+	float exposure;
 } luxel_t;
 
 typedef struct {
