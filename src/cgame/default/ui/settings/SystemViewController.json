@@ -412,30 +412,6 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Download maps"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarCheckbox",
-                          "var": "cl_download_maps"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Download models"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarCheckbox",
-                          "var": "cl_download_models"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
                             "text": "Network graph"
                           }
                         },
