@@ -271,6 +271,12 @@ static void LightLightmapLuxel(const GPtrArray *lights, const lightmap_t *lightm
 
 		const light_t *light = g_ptr_array_index(lights, i);
 
+		if (light->type == LIGHT_INDIRECT) {
+			if (light->face == lightmap->face) {
+				continue;
+			}
+		}
+
 		float dist_squared = 0.f;
 		switch (light->type) {
 			case LIGHT_SUN:

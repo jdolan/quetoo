@@ -94,6 +94,10 @@ typedef struct {
 	 */
 	float size;
 
+	/**
+	 * @brief The light source face for indirect lights.
+	 */
+	const bsp_face_t *face;
 } light_t;
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];

@@ -245,6 +245,7 @@ static void LightForPatch(const patch_t *patch) {
 	}
 
 	light.radius = (texinfo->value ?: DEFAULT_LIGHT) * lightscale_patch;
+	light.face = patch->face;
 
 	g_array_append_val(lights, light);
 }
@@ -443,6 +444,8 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	const vec3_t diffuse = GetTextureColor(lm->texinfo->texture);
 	light.color = Vec3_Multiply(lightmap, diffuse);
+
+	light.face = patch->face;
 
 	g_array_append_val(lights, light);
 }
