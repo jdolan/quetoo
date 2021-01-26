@@ -219,6 +219,10 @@ void Cg_Interpolate(const cl_frame_t *frame) {
  */
 void Cg_AddEntityShadow(const r_entity_t *ent) {
 
+	if (!cg_add_entity_shadows->integer) {
+		return;
+	}
+
 	if (!ent->model) {
 		return;
 	}
@@ -258,10 +262,24 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 		Vec2(ent->model->mins.x, 0.f)
 	};
 
-	cm_bsp_plane_t planes[9];
+	int32_t num_shadows;
+	switch (cg_add_entity_shadows->integer) {
+		case 1:
+			num_shadows = 1;
+			break;
+		case 2:
+			num_shadows = 5;
+			break;
+		case 3:
+		default:
+			num_shadows = 9;
+			break;
+	}
+
+	cm_bsp_plane_t planes[num_shadows];
 	int32_t num_planes = 0;
 
-	for (size_t i = 0; i < lengthof(offsets); i++) {
+	for (int32_t i = 0; i < num_shadows; i++) {
 		vec3_t start = Vec3_Fmaf(ent->origin, offsets[i].x, forward);
 		start = Vec3_Fmaf(start, offsets[i].y, right);
 		const vec3_t down = Vec3_Fmaf(start, MAX_WORLD_COORD, Vec3_Down());

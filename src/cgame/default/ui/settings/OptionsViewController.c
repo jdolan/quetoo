@@ -34,26 +34,26 @@ static void didSelectQuality(Select *select, Option *option) {
 
 	switch ((intptr_t) option->value) {
 		case 3:
+			cgi.SetCvarInteger("cg_add_entity_shadows", 3);
 			cgi.SetCvarInteger("r_caustics", 1);
-			cgi.SetCvarInteger("r_shadows", 3);
 			cgi.SetCvarInteger("r_stains", 1);
 			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 2:
+			cgi.SetCvarInteger("cg_add_entity_shadows", 2);
 			cgi.SetCvarInteger("r_caustics", 1);
-			cgi.SetCvarInteger("r_shadows", 2);
 			cgi.SetCvarInteger("r_stains", 1);
 			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 1:
+			cgi.SetCvarInteger("cg_add_entity_shadows", 1);
 			cgi.SetCvarInteger("r_caustics", 0);
-			cgi.SetCvarInteger("r_shadows", 1);
 			cgi.SetCvarInteger("r_stains", 1);
 			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 0:
+			cgi.SetCvarInteger("cg_add_entity_shadows", 0);
 			cgi.SetCvarInteger("r_caustics", 0);
-			cgi.SetCvarInteger("r_shadows", 0);
 			cgi.SetCvarInteger("r_stains", 0);
 			cgi.SetCvarInteger("cg_weather", 0);
 			break;
@@ -100,11 +100,6 @@ static void loadView(ViewController *self) {
 	quality->delegate.self = self;
 	quality->delegate.didSelectOption = didSelectQuality;
 
-	$(shadows, addOption, "Highest", (ident) 3);
-	$(shadows, addOption, "High", (ident) 2);
-	$(shadows, addOption, "Low", (ident) 1);
-	$(shadows, addOption, "Off", (ident) 0);
-
 	$(weather, addOption, "Heavy", (ident) 2);
 	$(weather, addOption, "Normal", (ident) 1);
 	$(weather, addOption, "Off", (ident) 0);
@@ -112,6 +107,10 @@ static void loadView(ViewController *self) {
 	$(stains, addOption, "Never", (ident) 0);
 	$(stains, addOption, "Slow", (ident) 20000);
 	$(stains, addOption, "Fast", (ident) 10000);
+	$(shadows, addOption, "High", (ident) 3);
+	$(shadows, addOption, "Medium", (ident) 2);
+	$(shadows, addOption, "Low", (ident) 1);
+	$(shadows, addOption, "Off", (ident) 0);
 }
 
 #pragma mark - Class lifecycle
