@@ -67,7 +67,7 @@ static void didSelectQuality(Select *select, Option *option) {
 			cgi.SetCvarInteger("r_caustics", 0);
 			cgi.SetCvarInteger("r_sprites_soften", 0);
 			cgi.SetCvarInteger("r_sprites_lerp", 0);
-			
+			cgi.SetCvarInteger("r_stains", 0);
 			break;
 		default:
 			break;
