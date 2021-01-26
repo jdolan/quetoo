@@ -34,28 +34,68 @@ static void didSelectQuality(Select *select, Option *option) {
 
 	switch ((intptr_t) option->value) {
 		case 3:
+			cgi.SetCvarInteger("cg_add_atmospheric", 1);
 			cgi.SetCvarInteger("cg_add_entity_shadows", 3);
+			cgi.SetCvarInteger("cg_add_weather", 1);
 			cgi.SetCvarInteger("r_caustics", 1);
+			cgi.SetCvarInteger("r_sprites_soften", 1);
+			cgi.SetCvarInteger("r_sprites_lerp", 1);
 			cgi.SetCvarInteger("r_stains", 1);
-			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 2:
+			cgi.SetCvarInteger("cg_add_atmospheric", 1);
 			cgi.SetCvarInteger("cg_add_entity_shadows", 2);
+			cgi.SetCvarInteger("cg_add_weather", 1);
 			cgi.SetCvarInteger("r_caustics", 1);
+			cgi.SetCvarInteger("r_sprites_soften", 1);
+			cgi.SetCvarInteger("r_sprites_lerp", 1);
 			cgi.SetCvarInteger("r_stains", 1);
-			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 1:
+			cgi.SetCvarInteger("cg_add_atmospheric", 1);
 			cgi.SetCvarInteger("cg_add_entity_shadows", 1);
+			cgi.SetCvarInteger("cg_add_weather", 1);
 			cgi.SetCvarInteger("r_caustics", 0);
+			cgi.SetCvarInteger("r_sprites_soften", 1);
+			cgi.SetCvarInteger("r_sprites_lerp", 0);
 			cgi.SetCvarInteger("r_stains", 1);
-			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 0:
+			cgi.SetCvarInteger("cg_add_atmospheric", 0);
 			cgi.SetCvarInteger("cg_add_entity_shadows", 0);
+			cgi.SetCvarInteger("cg_add_weather", 0);
 			cgi.SetCvarInteger("r_caustics", 0);
-			cgi.SetCvarInteger("r_stains", 0);
-			cgi.SetCvarInteger("cg_weather", 0);
+			cgi.SetCvarInteger("r_sprites_soften", 0);
+			cgi.SetCvarInteger("r_sprites_lerp", 0);
+			
+			break;
+		default:
+			break;
+	}
+
+	ViewController *this = select->delegate.self;
+	if (this) {
+		$(this->view, updateBindings);
+	}
+}
+
+/**
+ * @brief SelectDelegate callback for sprites quality.
+ */
+static void didSelectSprites(Select *select, Option *option) {
+
+	switch ((intptr_t) option->value) {
+		case 0:
+			cgi.SetCvarInteger("r_sprites_soften", 0);
+			cgi.SetCvarInteger("r_sprites_lerp", 0);
+			break;
+		case 1:
+			cgi.SetCvarInteger("r_sprites_soften", 1);
+			cgi.SetCvarInteger("r_sprites_lerp", 0);
+			break;
+		case 2:
+			cgi.SetCvarInteger("r_sprites_soften", 1);
+			cgi.SetCvarInteger("r_sprites_lerp", 1);
 			break;
 		default:
 			break;
@@ -76,13 +116,15 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	Select *quality, *shadows, *weather, *stains;
+	Select *quality, *weather, *fog, *atmospheric, *shadows, *sprites;
 
 	Outlet outlets[] = MakeOutlets(
 		MakeOutlet("quality", &quality),
-		MakeOutlet("shadows", &shadows),
 		MakeOutlet("weather", &weather),
-		MakeOutlet("stains", &stains)
+		MakeOutlet("fog", &fog),
+		MakeOutlet("atmospheric", &atmospheric),
+		MakeOutlet("shadows", &shadows),
+		MakeOutlet("sprites", &sprites)
 	);
 
 	$(self->view, awakeWithResourceName, "ui/settings/OptionsViewController.json");
@@ -104,13 +146,25 @@ static void loadView(ViewController *self) {
 	$(weather, addOption, "Normal", (ident) 1);
 	$(weather, addOption, "Off", (ident) 0);
 
-	$(stains, addOption, "Never", (ident) 0);
-	$(stains, addOption, "Slow", (ident) 20000);
-	$(stains, addOption, "Fast", (ident) 10000);
+	$(fog, addOption, "High", (ident) 32);
+	$(fog, addOption, "Medium", (ident) 16);
+	$(fog, addOption, "Low", (ident) 8);
+
+	$(atmospheric, addOption, "Heavy", (ident) 2);
+	$(atmospheric, addOption, "Normal", (ident) 1);
+	$(atmospheric, addOption, "Off", (ident) 8);
+
 	$(shadows, addOption, "High", (ident) 3);
 	$(shadows, addOption, "Medium", (ident) 2);
 	$(shadows, addOption, "Low", (ident) 1);
 	$(shadows, addOption, "Off", (ident) 0);
+
+	$(sprites, addOption, "High", (ident) 2);
+	$(sprites, addOption, "Medium", (ident) 1);
+	$(sprites, addOption, "Low", (ident) 8);
+
+	sprites->delegate.self = self;
+	sprites->delegate.didSelectOption = didSelectSprites;
 }
 
 #pragma mark - Class lifecycle

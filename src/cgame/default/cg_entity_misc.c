@@ -127,6 +127,10 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
  */
 static void Cg_misc_dust_Think(cg_entity_t *self) {
 
+	if (!cg_add_atmospheric->value) {
+		return;
+	}
+	
 	const cg_dust_t *dust = self->data;
 	for (int32_t i = 0; i < dust->num_origins; i++) {
 
