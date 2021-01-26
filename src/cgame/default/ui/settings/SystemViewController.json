@@ -146,19 +146,6 @@
                           "identifier": "multisample",
                           "var": "r_multisample"
                         }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Supersample"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "supersample",
-                          "var": "r_supersample"
-                        }
                       }
                     ]
                   }
@@ -195,6 +182,20 @@
                           "var": "r_brightness"
                         }
                       },
+					  {
+						"class": "Input",
+						"label": {
+						  "text": {
+							"text": "Saturation"
+						  }
+						},
+						"control": {
+						  "class": "CvarSlider",
+						  "min": 0.1,
+						  "max": 2,
+						  "var": "r_saturation"
+						}
+					  },
                       {
                         "class": "Input",
                         "label": {
@@ -232,8 +233,8 @@
                         },
                         "control": {
                           "class": "CvarSlider",
-                          "min": 1,
-                          "max": 5,
+                          "min": 0.1,
+                          "max": 2,
                           "var": "r_modulate"
                         }
                       },
@@ -241,14 +242,14 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Bumpmapping"
+                            "text": "Roughness"
                           }
                         },
                         "control": {
                           "class": "CvarSlider",
                           "min": 0.1,
                           "max": 2,
-                          "var": "r_bumpmap"
+                          "var": "r_roughness"
                         }
                       },
                       {
@@ -269,14 +270,14 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Specular"
+                            "text": "Specularity"
                           }
                         },
                         "control": {
                           "class": "CvarSlider",
                           "min": 0.1,
                           "max": 2,
-                          "var": "r_specular"
+                          "var": "r_specularity"
                         }
                       },
                       {
