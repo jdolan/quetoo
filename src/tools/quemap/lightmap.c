@@ -102,7 +102,7 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 	}
 }
 
-static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs);
+static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs);
 
 /**
  * @brief Authors a .map file which can be imported into Radiant to view the luxel projections.
@@ -128,7 +128,7 @@ static void DebugLightmapLuxels(void) {
 			luxel_t *l = lm->luxels;
 			for (size_t j = 0; j < lm->num_luxels; j++, l++) {
 
-				ProjectLuxel(lm, l, 0.0, 0.0);
+				ProjectLightmapLuxel(lm, l, 0.0, 0.0);
 
 				Fs_Print(file, "{\n");
 				Fs_Print(file, "  \"classname\" \"info_luxel\"\n");
@@ -237,7 +237,7 @@ static vec3_t PhongLuxel(const lightmap_t *lm, const vec3_t origin) {
  * @param toffs The T offset in texture space, for antialiasing.
  * @return The contents mask at the projected luxel origin.
  */
-static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs) {
+static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs) {
 
 	const float padding_s = ((lm->st_maxs.x - lm->st_mins.x) - lm->w) * 0.5;
 	const float padding_t = ((lm->st_maxs.y - lm->st_mins.y) - lm->h) * 0.5;
@@ -259,13 +259,13 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float
 }
 
 /**
- * @brief Iterates the specified lights, accumulating color and direction to the appropriate buffers.
+ * @brief Iterates lights, accumulating color and direction on the specified luxel.
  * @param lights The light sources to iterate.
  * @param lightmap The lightmap containing the luxel.
  * @param luxel The luxel to light.
- * @param scale A scalar applied to both light and direction.
+ * @param scale A scalar applied to both color and direction.
  */
-static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightLightmapLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	for (guint i = 0; i < lights->len; i++) {
 
@@ -352,19 +352,18 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 			const vec3_t points[] = DOME_COSINE_36X;
 			float sample_fraction = 1.f / lengthof(points);
 
-			const float ao_radius = 64.f;
-			float occlusion = 0.f;
+			float exposure = 0.f;
 
 			for (size_t i = 0; i < lengthof(points); i++) {
 
 				vec3_t sample = points[i];
 
 				// Add some jitter to hide undersampling
-				sample.x += RandomRangef(-.04f, .04f);
-				sample.y += RandomRangef(-.04f, .04f);
+				sample.x += RandomRangef(-.02f, .02f);
+				sample.y += RandomRangef(-.02f, .02f);
 
 				// Scale the sample and move it into position
-				sample = Vec3_Scale(sample, ao_radius);
+				sample = Vec3_Scale(sample, 256.f / BSP_LIGHTMAP_LUXEL_SIZE);
 				
 				sample.x += s;
 				sample.y += t;
@@ -374,10 +373,10 @@ static void LightLuxel(const GPtrArray *lights, const lightmap_t *lightmap, luxe
 
 				const cm_trace_t trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
 
-				occlusion += sample_fraction * trace.fraction;
+				exposure += sample_fraction * trace.fraction;
 			}
 
-			intensity *= 1.f - (1.f - occlusion) * (1.f - occlusion);
+			intensity *= exposure;
 
 		} else if (light->type == LIGHT_SUN) {
 
@@ -494,28 +493,27 @@ void DirectLightmap(int32_t face_num) {
 
 			const float weight = antialias ? offsets[j].z : 1.f;
 
-			if (ProjectLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
+			if (ProjectLightmapLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
 				continue;
 			}
 
 			contribution += weight;
 
-			LightLuxel(lights, lm, l, weight);
+			LightLightmapLuxel(lights, lm, l, weight);
 		}
 
-		// Normalize samples by their weighted contribution
-
-		if (contribution > 0.f && contribution < 1.f) {
-			l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
-			l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
-			l->direction = Vec3_Scale(l->direction, 1.f / contribution);
+		if (contribution > 0.f) {
+			if (contribution < 1.f) {
+				l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
+				l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
+				l->direction = Vec3_Scale(l->direction, 1.f / contribution);
+			}
 		} else {
 			// For inline models, always add ambient light sources, even if the sample resides
 			// in solid. This prevents completely unlit tops of doors, bottoms of plats, etc.
 			if (lm->model != bsp_file.models) {
 				for (guint j = 0; j < unattenuated_lights->len; j++) {
 					const light_t *light = g_ptr_array_index(lights, j);
-
 					if (light->type == LIGHT_AMBIENT) {
 						l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
 					}
@@ -556,13 +554,13 @@ void IndirectLightmap(int32_t face_num) {
 			const float soffs = offsets[j].x;
 			const float toffs = offsets[j].y;
 
-			if (ProjectLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
+			if (ProjectLightmapLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
 				continue;
 			}
 
 			contribution += weight;
 
-			LightLuxel(lights, lm, l, weight);
+			LightLightmapLuxel(lights, lm, l, weight);
 		}
 
 		if (contribution > 0.f && contribution < 1.f) {
@@ -629,7 +627,7 @@ void FinalizeLightmap(int32_t face_num) {
 		}
 
 		// re-project the luxel to calculate its centered normal
-		ProjectLuxel(lm, l, 0.f, 0.f);
+		ProjectLightmapLuxel(lm, l, 0.f, 0.f);
 
 		// write the directional sample data, in tangent space
 		l->direction = Vec3_Add(l->direction, l->normal);

@@ -169,12 +169,12 @@ size_t BuildLightgrid(void) {
 }
 
 /**
- * @brief Iterates the specified lights, accumulating color and direction to the appropriate buffers.
+ * @brief Iterates lights, accumulating color and direction on the specified luxel.
  * @param lights The lights to iterate.
  * @param luxel The luxel to light.
- * @param scale A scalar applied to both light and direction.
+ * @param scale A scalar applied to both color and direction.
  */
-static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
+static void LightLightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 
 	for (guint i = 0; i < lights->len; i++) {
 
@@ -243,19 +243,18 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 			const vec3_t points[] = CUBE_8;
 			float sample_fraction = 1.f / lengthof(points);
 
-			const float ao_radius = 128.f;
-			float occlusion = 0.f;
+			float exposure = 0.f;
 
 			for (size_t i = 0; i < lengthof(points); i++) {
 
-				const vec3_t point = Vec3_Fmaf(luxel->origin, ao_radius, points[i]);
+				const vec3_t point = Vec3_Fmaf(luxel->origin, 256.f, points[i]);
 
 				const cm_trace_t trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
 
-				occlusion += sample_fraction * trace.fraction;
+				exposure += sample_fraction * trace.fraction;
 			}
 
-			intensity *= 1.f - (1.f - occlusion) * (1.f - occlusion);
+			intensity *= exposure;
 
 		} else if (light->type == LIGHT_SUN) {
 
@@ -358,8 +357,7 @@ void DirectLightgrid(int32_t luxel_num) {
 
 	float contribution = 0.f;
 
-	size_t i;
-	for (i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
+	for (size_t i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
 
 		const float soffs = offsets[i].x;
 		const float toffs = offsets[i].y;
@@ -376,22 +374,21 @@ void DirectLightgrid(int32_t luxel_num) {
 
 		contribution += weight;
 
-		LightLuxel(lights, l, weight);
+		LightLightgridLuxel(lights, l, weight);
 	}
 
-	if (contribution > 0.f && contribution < 1.f) {
-		l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
-		l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
-		l->direction = Vec3_Scale(l->direction, 1.f / contribution);
+	if (contribution > 0.f) {
+		if (contribution < 1.f) {
+			l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
+			l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
+			l->direction = Vec3_Scale(l->direction, 1.f / contribution);
+		}
 	} else {
 		// Even luxels in solids should receive at least ambient light
-		if (contribution == 0.f) {
-			for (guint j = 0; j < unattenuated_lights->len; j++) {
-				const light_t *light = g_ptr_array_index(unattenuated_lights, j);
-
-				if (light->type == LIGHT_AMBIENT) {
-					l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
-				}
+		for (guint j = 0; j < unattenuated_lights->len; j++) {
+			const light_t *light = g_ptr_array_index(unattenuated_lights, j);
+			if (light->type == LIGHT_AMBIENT) {
+				l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
 			}
 		}
 	}
@@ -433,18 +430,20 @@ void IndirectLightgrid(int32_t luxel_num) {
 
 		contribution += weight;
 
-		LightLuxel(lights, l, weight);
+		LightLightgridLuxel(lights, l, weight);
 	}
 
-	if (contribution > 0.f && contribution < 1.f) {
-		l->radiosity[bounce] = Vec3_Scale(l->radiosity[bounce], 1.f / contribution);
+	if (contribution > 0.f) {
+		if (contribution < 1.f) {
+			l->radiosity[bounce] = Vec3_Scale(l->radiosity[bounce], 1.f / contribution);
+		}
 	}
 }
 
 /**
  * @brief
  */
-static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
+static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 
 	const fog_t *fog = (fog_t *) fogs->data;
 	for (guint i = 0; i < fogs->len; i++, fog++) {
@@ -460,7 +459,6 @@ static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
 			default:
 				break;
 		}
-
 
 		float noise = SimplexNoiseFBM(fog->octaves,
 									  fog->frequency,
@@ -524,11 +522,13 @@ void FogLightgrid(int32_t luxel_num) {
 
 		contribution += weight;
 
-		FogLuxel(fogs, l, weight);
+		FogLightgridLuxel(fogs, l, weight);
 	}
 
-	if (contribution > 0.f && contribution < 1.f) {
-		l->fog = Vec4_Scale(l->fog, 1.f / contribution);
+	if (contribution > 0.f) {
+		if (contribution < 1.f) {
+			l->fog = Vec4_Scale(l->fog, 1.f / contribution);
+		}
 	}
 
 	l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));
