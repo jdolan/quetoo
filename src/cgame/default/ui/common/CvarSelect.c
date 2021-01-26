@@ -86,7 +86,6 @@ static void selectOptionWithValue(Select *self, ident value) {
 
 		Option *option = $(self, optionWithValue, value);
 		if (option) {
-
 			if (this->expectsStringValue) {
 				const char *string = option->value ?: option->title->text;
 				cgi.SetCvarString(this->var->name, string);
@@ -102,6 +101,21 @@ static void selectOptionWithValue(Select *self, ident value) {
 #pragma mark - CvarSelect
 
 /**
+ * @brief Default SelectDelegate for CvarSelect.
+ */
+static void didSelectOption(Select *select, Option *option) {
+
+	CvarSelect *this = (CvarSelect *) select;
+
+	if (this->expectsStringValue) {
+		const char *string = option->value ?: option->title->text;
+		cgi.SetCvarString(this->var->name, string);
+	} else {
+		cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
+	}
+}
+
+/**
  * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, cvar_t *var)
  *
  * @memberof CvarSelect
@@ -111,6 +125,9 @@ static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
 	self = (CvarSelect *) super(Select, self, initWithFrame, NULL);
 	if (self) {
 		self->var = var;
+
+		self->select.delegate.self = self;
+		self->select.delegate.didSelectOption = didSelectOption;
 	}
 
 	return self;
