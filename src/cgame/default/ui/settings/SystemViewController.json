@@ -375,12 +375,12 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Reverse stereo"
+                            "text": "Enhanced effects"
                           }
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "s_reverse"
+                          "var": "s_effects"
                         }
                       }
                     ]
