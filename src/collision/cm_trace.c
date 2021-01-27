@@ -272,18 +272,18 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 		if (data->is_point) {
 			offset = 0.f;
 		} else {
-			offset = 2048.f/*fabsf(data->extents.x * plane->normal.x) +
+			offset = (fabsf(data->extents.x * plane->normal.x) +
 			         fabsf(data->extents.y * plane->normal.y) +
-			         fabsf(data->extents.z * plane->normal.z)*/;
+			         fabsf(data->extents.z * plane->normal.z)) * 3.f;
 		}
 	}
 
 	// see which sides we need to consider
-	if (d1 >= offset + 1.f && d2 >= offset + 1.f) {
+	if (d1 >= offset + TRACE_EPSILON && d2 >= offset + TRACE_EPSILON) {
 		Cm_TraceToNode(data, node->children[0], p1f, p2f, p1, p2);
 		return;
 	}
-	if (d1 <= -offset - 1.f && d2 <= -offset - 1.f) {
+	if (d1 <= -offset - TRACE_EPSILON && d2 <= -offset - TRACE_EPSILON) {
 		Cm_TraceToNode(data, node->children[1], p1f, p2f, p1, p2);
 		return;
 	}
@@ -308,14 +308,12 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 		frac2 = 0.f;
 	}
 
-	vec3_t mid;
-
 	// move up to the node
 	frac1 = Clampf(frac1, 0.f, 1.f);
 
 	const float midf1 = p1f + (p2f - p1f) * frac1;
 
-	mid = Vec3_Mix(p1, p2, frac1);
+	vec3_t mid = Vec3_Mix(p1, p2, frac1);
 
 	Cm_TraceToNode(data, node->children[side], p1f, midf1, p1, mid);
 
@@ -513,16 +511,6 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
 		*bounds_mins = Vec3_Add(origin, mins);
 		*bounds_maxs = Vec3_Add(origin, maxs);
 	}
-
-	// spread the bounds to ensure that floating point precision doesn't preclude us from
-	// testing an entity that we do in fact need to check
-
-	bounds_mins->x -= 1.0;
-	bounds_mins->y -= 1.0;
-	bounds_mins->z -= 1.0;
-	bounds_maxs->x += 1.0;
-	bounds_maxs->y += 1.0;
-	bounds_maxs->z += 1.0;
 }
 
 /**
@@ -539,11 +527,11 @@ void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, con
 
 	for (int32_t i = 0; i < 3; i++) {
 		if (end.xyz[i] > start.xyz[i]) {
-			bounds_mins->xyz[i] = start.xyz[i] + mins.xyz[i] - 1.0f;
-			bounds_maxs->xyz[i] = end.xyz[i] + maxs.xyz[i] + 1.0f;
+			bounds_mins->xyz[i] = start.xyz[i] + mins.xyz[i];
+			bounds_maxs->xyz[i] = end.xyz[i] + maxs.xyz[i];
 		} else {
-			bounds_mins->xyz[i] = end.xyz[i] + mins.xyz[i] - 1.0f;
-			bounds_maxs->xyz[i] = start.xyz[i] + maxs.xyz[i] + 1.0f;
+			bounds_mins->xyz[i] = end.xyz[i] + mins.xyz[i];
+			bounds_maxs->xyz[i] = start.xyz[i] + maxs.xyz[i];
 		}
 	}
 }
