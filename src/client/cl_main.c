@@ -624,6 +624,8 @@ void Cl_Frame(const uint32_t msec) {
 
 	// and the pending command duration
 	cl.frame_msec += msec;
+	// and the total ticks
+	cl.ticks = quetoo.ticks;
 
 	if (time_demo->value) { // accumulate timed demo statistics
 		if (!cl.time_demo_start) {
