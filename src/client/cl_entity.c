@@ -402,13 +402,13 @@ void Cl_Interpolate(void) {
 
 		if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
 			ent->animation1.animation = ent->current.animation1 & ANIM_MASK_VALUE;
-			ent->animation1.time = cl.ticks;
+			ent->animation1.time = cl.unclamped_time;
 			ent->animation1.reverse = ent->current.animation1 & ANIM_REVERSE_BIT;
 		}
 
 		if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
 			ent->animation2.animation = ent->current.animation2 & ANIM_MASK_VALUE;
-			ent->animation2.time = cl.ticks;
+			ent->animation2.time = cl.unclamped_time;
 			ent->animation2.reverse = ent->current.animation2 & ANIM_REVERSE_BIT;
 		}
 

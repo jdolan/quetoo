@@ -226,11 +226,11 @@ static void Cg_AddWeather(void) {
 		.entity = Cg_Self()->current.number
 	});
 
-	if (cgi.client->ticks - cg_weather_state.time < 100) {
+	if (cgi.client->unclamped_time - cg_weather_state.time < 100) {
 		return;
 	}
 
-	cg_weather_state.time = cgi.client->ticks;
+	cg_weather_state.time = cgi.client->unclamped_time;
 
 	const cg_weather_emit_t *e = cg_weather_state.emits;
 

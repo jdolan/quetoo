@@ -77,7 +77,7 @@ void Cl_KeyDown(button_t *b) {
 	}
 
 	// save the down time so that we can calculate fractional time later
-	b->down_time = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0) ? : cl.ticks;
+	b->down_time = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0) ? : cl.unclamped_time;
 
 	// and indicate that the key is down
 	b->state |= (BUTTON_STATE_HELD | BUTTON_STATE_DOWN);
@@ -196,8 +196,8 @@ float Cl_KeyState(button_t *key, uint32_t cmd_msec) {
 	key->msec = 0;
 
 	if (key->state) { // still down, reset downtime for next frame
-		msec += cl.ticks - key->down_time;
-		key->down_time = cl.ticks;
+		msec += cl.unclamped_time - key->down_time;
+		key->down_time = cl.unclamped_time;
 	}
 
 	const float frac = (msec * 1000.0) / (cmd_msec * 1000.0);

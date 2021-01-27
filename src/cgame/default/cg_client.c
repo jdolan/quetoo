@@ -338,7 +338,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
 
 	const uint32_t frame_duration = 1000 / anim->hz;
 	const uint32_t animation_duration = anim->num_frames * frame_duration;
-	const uint32_t elapsed_time = cgi.client->ticks - a->time;
+	const uint32_t elapsed_time = cgi.client->unclamped_time - a->time;
 	int32_t frame = elapsed_time / frame_duration;
 
 	if (elapsed_time >= animation_duration) { // to loop, or not to loop
@@ -353,7 +353,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
 			}
 
 			a->animation = next; // or move into the next animation
-			a->time = cgi.client->ticks;
+			a->time = cgi.client->unclamped_time;
 
 			Cg_AnimateClientEntity_(model, a);
 			return;
@@ -565,7 +565,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 				// change animation as well
 				if (ent->animation2.animation == ANIM_LEGS_IDLE) {
-					ent->animation2.time = cgi.client->ticks;
+					ent->animation2.time = cgi.client->unclamped_time;
 					ent->animation2.frame = ent->animation2.old_frame = -1;
 					ent->animation2.lerp = ent->animation2.fraction = 0;
 				}
@@ -580,12 +580,12 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 		if (fabsf(SmallestAngleBetween(ent->legs_yaw, ent->legs_current_yaw)) > 1) {
 			if (ent->animation2.animation == ANIM_LEGS_IDLE) {
-				ent->animation2.time = cgi.client->ticks;
+				ent->animation2.time = cgi.client->unclamped_time;
 				ent->animation2.animation = ANIM_LEGS_TURN;
 			}
 		} else {
 			if (ent->animation2.animation == ANIM_LEGS_TURN) {
-				ent->animation2.time = cgi.client->ticks;
+				ent->animation2.time = cgi.client->unclamped_time;
 				ent->animation2.animation = ANIM_LEGS_IDLE;
 			}
 		}
