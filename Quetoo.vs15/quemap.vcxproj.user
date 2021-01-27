@@ -4,6 +4,6 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(QUETOO_HOME)\bin\</LocalDebuggerWorkingDirectory>
     <LocalDebuggerCommand>$(QUETOO_HOME)\bin\quemap.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default" -bsp -vis -light --antialias lavatomb</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default" -bsp -vis -light lavatomb</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

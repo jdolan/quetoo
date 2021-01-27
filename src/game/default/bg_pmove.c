@@ -134,6 +134,38 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
 }
 
 /**
+ * Adapted from Quake III, this function adjusts a trace so that if it starts inside of a wall,
+ * it is adjusted so that the trace begins outside of the solid it impacts.
+ * @return The actual trace.
+ */
+static cm_trace_t Pm_TraceCorrectAllSolid(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs) {
+
+	const int32_t offsets[] = { 0, 1, -1 };
+
+	// jitter around
+	for (uint32_t i = 0; i < lengthof(offsets); i++) {
+		for (uint32_t j = 0; j < lengthof(offsets); j++) {
+			for (uint32_t k = 0; k < lengthof(offsets); k++) {
+				const vec3_t point = Vec3_Add(start, Vec3(offsets[i], offsets[j], offsets[k]));
+				const cm_trace_t trace = pm->Trace(point, end, mins, maxs);
+				
+				if (!trace.all_solid) {
+
+					if (i != 0 || j != 0 || k != 0) {
+						Pm_Debug("Fixed all-solid\n");
+					}
+
+					return trace;
+				}
+			}
+		}
+	}
+	
+	Pm_Debug("No good position\n");
+	return pm->Trace(start, end, mins, maxs);
+}
+
+/**
  * @return True if `plane` is unique to `planes` and should be impacted, false otherwise.
  */
 static _Bool Pm_ImpactPlane(vec3_t *planes, int32_t num_planes, const vec3_t plane) {
@@ -182,7 +214,7 @@ static _Bool Pm_SlideMove(void) {
 		pos = Vec3_Fmaf(pm->s.origin, time_remaining, pm->s.velocity);
 
 		// trace to it
-		const cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
+		const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
 
 		// if the player is trapped in a solid, don't build up Z
 		if (trace.all_solid) {
@@ -335,7 +367,7 @@ static void Pm_StepSlideMove(void) {
 		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up <= 0) {
 
 			const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-			const cm_trace_t step_down = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
+			const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, pm->mins, pm->maxs);
 
 			if (Pm_CheckStep(&step_down)) {
 				Pm_StepDown(&step_down);
@@ -351,7 +383,7 @@ static void Pm_StepSlideMove(void) {
 	const vec3_t vel1 = pm->s.velocity;
 
 	const vec3_t up = Vec3_Fmaf(org0, PM_STEP_HEIGHT, Vec3_Up());
-	const cm_trace_t step_up = pm->Trace(org0, up, pm->mins, pm->maxs);
+	const cm_trace_t step_up = Pm_TraceCorrectAllSolid(org0, up, pm->mins, pm->maxs);
 
 	if (!step_up.all_solid) {
 
@@ -363,7 +395,7 @@ static void Pm_StepSlideMove(void) {
 
 		// settle to the new ground, keeping the step if and only if it was successful
 		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-		const cm_trace_t step_down = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
+		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, pm->mins, pm->maxs);
 
 		if (Pm_CheckStep(&step_down)) {
 			// Quake2 trick jump secret sauce
@@ -550,74 +582,6 @@ static _Bool Pm_CheckTrickJump(void) {
 }
 
 /**
- * @brief This function is designed to keep the player from getting too close to
- * other planes. If the player is close enough to another wall or box, it will adjust
- * the position by shoving them away from it at a certain distance.
- */
-static void Pm_SnapToWalls(void) {
-
-	const vec3_t dirs[] = {
-		Vec3( 1.0,  0.0,  0.0 ),
-		Vec3(-1.0,  0.0,  0.0 ),
-		Vec3( 0.0,  1.0,  0.0 ),
-		Vec3( 0.0, -1.0,  0.0 ),
-		Vec3( 0.0, 0.0,   1.0 )
-	};
-
-	for (size_t i = 0; i < lengthof(dirs); i++) {
-		vec3_t end = Vec3_Fmaf(pm->s.origin, PM_SNAP_DISTANCE, dirs[i]);
-
-		const cm_trace_t tr = pm->Trace(pm->s.origin, end, pm->mins, pm->maxs);
-		if (tr.fraction < 1.0f) {
-			if ((i < 4 && tr.plane.normal.z < PM_STEP_NORMAL && tr.plane.normal.z > -PM_STEP_NORMAL) ||
-				(i == 4 && tr.plane.normal.z == -1.0f)) {
-				pm->s.origin = Vec3_Fmaf(tr.end, -PM_SNAP_DISTANCE, dirs[i]);
-			}
-		}
-	}
-}
-
-/**
- * @brief Shift around the current origin to find a valid position.
- */
-static void Pm_CorrectPosition(void) {
-	cm_trace_t tr = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
-
-	// are we already in a good spot?
-	if (!tr.all_solid) {
-		return;
-	}
-
-	// nope, so try to find a good one
-	Pm_Debug("all solid %s\n", vtos(pm->s.origin));
-
-	static const int32_t offsets[] = { 0, 1, -1 };
-
-	for (int32_t k = -1; k <= 1; k++) {
-		for (size_t j = 0; j < lengthof(offsets); j++) {
-			for (size_t i = 0; i < lengthof(offsets); i++) {
-				vec3_t pos = pm->s.origin;
-
-				pos.x += offsets[i] * PM_NUDGE_DIST;
-				pos.y += offsets[j] * PM_NUDGE_DIST;
-				pos.z += k * PM_NUDGE_DIST;
-
-				tr = pm->Trace(pm_locals.previous_origin, pos, pm->mins, pm->maxs);
-				if (tr.fraction == 1.0f) {
-					pm->s.origin = pos;
-					Pm_Debug("corrected %s\n", vtos(pm->s.origin));
-					return;
-				}
-			}
-		}
-	}
-
-	pm->s.origin = pm_locals.previous_origin;
-
-	Pm_Debug("still solid, reverted to %s\n", vtos(pm->s.origin));
-}
-
-/**
  * @return True if the player is attempting to leave the ground via grappling hook.
  */
 static bool Pm_CheckHookJump(void) {
@@ -760,7 +724,7 @@ static void Pm_CheckGround(void) {
 	}
 
 	// seek the ground
-	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
+	cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
 
 	pm_locals.ground.plane = trace.plane;
 	pm_locals.ground.texinfo = trace.texinfo;
@@ -877,7 +841,7 @@ static void Pm_CheckDuck(void) {
 		if (!is_ducking && wants_ducking) {
 			pm->s.flags |= PMF_DUCKED;
 		} else if (is_ducking && !wants_ducking) {
-			const cm_trace_t trace = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
+			const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
 
 			if (!trace.all_solid && !trace.start_solid) {
 				pm->s.flags &= ~PMF_DUCKED;
@@ -997,7 +961,7 @@ static void Pm_CheckLadder(void) {
 	}
 
 	const vec3_t pos = Vec3_Fmaf(pm->s.origin, 4.f, pm_locals.forward_xy);
-	const cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
+	const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
 
 	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_LADDER)) {
 		pm->s.flags |= PMF_ON_LADDER;
@@ -1032,13 +996,13 @@ static _Bool Pm_CheckWaterJump(void) {
 	}
 
 	vec3_t pos = Vec3_Fmaf(pm->s.origin, 16.f, pm_locals.forward);
-	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
+	cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
 
 	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_MASK_SOLID)) {
 
 		pos.z += PM_STEP_HEIGHT + pm->maxs.z - pm->mins.z;
 
-		trace = pm->Trace(pos, pos, pm->mins, pm->maxs);
+		trace = Pm_TraceCorrectAllSolid(pos, pos, pm->mins, pm->maxs);
 
 		if (trace.start_solid) {
 			Pm_Debug("Can't exit water: blocked\n");
@@ -1047,7 +1011,7 @@ static _Bool Pm_CheckWaterJump(void) {
 
 		vec3_t pos2 = Vec3(pos.x, pos.y, pm->s.origin.z);
 
-		trace = pm->Trace(pos, pos2, pm->mins, pm->maxs);
+		trace = Pm_TraceCorrectAllSolid(pos, pos2, pm->mins, pm->maxs);
 
 		if (!(trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL)) {
 			Pm_Debug("Can't exit water: not a step\n");
@@ -1137,7 +1101,7 @@ static void Pm_WaterJumpMove(void) {
 	const vec3_t pos = Vec3_Fmaf(pm->s.origin, 30.f, pm_locals.forward_xy);
 
 	// if we've reached a usable spot, clamp the jump to avoid launching
-	if (pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs).fraction == 1.0f) {
+	if (Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs).fraction == 1.0f) {
 		pm->s.velocity.z = Clampf(pm->s.velocity.z, 0.f, PM_SPEED_JUMP);
 	}
 
@@ -1478,9 +1442,6 @@ void Pm_Move(pm_move_t *pm_move) {
 		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
 	}
 
-	// ensure we're in a valid spot, or revert
-	//Pm_CorrectPosition();
-
 	// check for ladders
 	Pm_CheckLadder();
 
@@ -1510,14 +1471,8 @@ void Pm_Move(pm_move_t *pm_move) {
 		Pm_AirMove();
 	}
 
-	// ensure we're in a valid spot, or revert
-	//Pm_CorrectPosition();
-
 	// check for ground at new spot
 	Pm_CheckGround();
-
-	// snap us to adjacent walls
-	//Pm_SnapToWalls();
 
 	// check for water level, water type at new spot
 	Pm_CheckWater();
