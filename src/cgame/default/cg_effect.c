@@ -168,14 +168,14 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			s = Cg_AddSprite(&(cg_sprite_t) {
 				.origin = sprite_origin,
 				.atlas_image = cg_sprite_rain,
-				.color = Vec4(0.f, 0.f, .87f, .8f),
-				.end_color = Vec4(0.f, 0.f, .87f, .0f),
-				.size = 8.f,
-				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 600.f)),
-				.acceleration = Vec3_RandomRange(-2.f, 2.f),
+				.color = Vec4(0.f, 0.f, 0.1f, 0.f),
+				.end_color = Vec4(0.f, 0.f, 0.0f, 0.f),
+				.size = 128.f,
+				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f)),
 				.flags = SPRITE_NO_BLEND_DEPTH,
 				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
-				.softness = 1.f
+				.softness = 5.f,
+				.lifetime = 500.f
 			});
 		} else {
 			s = Cg_AddSprite(&(cg_sprite_t) {
