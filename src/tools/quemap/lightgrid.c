@@ -539,18 +539,24 @@ void FogLightgrid(int32_t luxel_num) {
  */
 void FinalizeLightgrid(int32_t luxel_num) {
 
-	luxel_t *l = &lg.luxels[luxel_num];
+	luxel_t* l = &lg.luxels[luxel_num];
 
+	// convert to float
+	l->ambient = Vec3_Clampf(Vec3_Scale(l->ambient, 1.f / 255.f), 0.f, 1.f);
+	l->diffuse = Vec3_Clampf(Vec3_Scale(l->diffuse, 1.f / 255.f), 0.f, 1.f);
+
+	// accumulate radiosity in ambient
 	for (int32_t i = 0; i < num_bounces; i++) {
-		l->ambient = Vec3_Add(l->ambient, l->radiosity[i]);
+		l->ambient = Vec3_Subtract(Vec3_One(), Vec3_Multiply(
+			Vec3_Subtract(Vec3_One(), l->ambient),
+			Vec3_Subtract(Vec3_One(), l->radiosity[i])));
 	}
 
-	l->ambient = Vec3_Scale(l->ambient, 1.f / 255.f);
+	// apply brightness, saturation and contrast
 	l->ambient = ColorFilter(l->ambient);
-
-	l->diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
 	l->diffuse = ColorFilter(l->diffuse);
 
+	// direction ...
 	l->direction = Vec3_Add(l->direction, Vec3_Up());
 	l->direction = Vec3_Normalize(l->direction);
 }
