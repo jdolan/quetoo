@@ -46,10 +46,7 @@ void main(void) {
 
 	out_color = texture_color * vertex.color;
 
-	out_color.rgb = tonemap(out_color.rgb);
-
 	out_color.rgb = color_filter(out_color.rgb);
-
+	
 	out_color *= soften(vertex.softness);
-
 }

@@ -64,51 +64,44 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
+		// diffuse albedo
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-
+		if (diffusemap.a < alpha_threshold) { discard; }
 		diffusemap *= vertex.color;
+		out_color = diffusemap;
 
-		if (diffusemap.a < alpha_threshold) {
-			discard;
-		}
-
+		// diffuse albedo tinting
 		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
 		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
 
-		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
+		// specular albedo and roughness
 		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
+		// normal
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
+		// lighting
 		vec3 light_diffuse = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + vertex.ambient;
 		vec3 light_specular = brdf_blinn(normalize(-vertex.position), vertex.direction, normal, light_diffuse, glossmap.a, material.specularity * 100.0);
 		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
-
 		dynamic_light(vertex.position, normal, 64.0, light_diffuse, light_specular);
-
-		out_color = diffusemap;
-
-		out_color.rgb = clamp(out_color.rgb * (light_diffuse * modulate), 0.0, 32.0);
+		out_color.rgb = clamp(out_color.rgb * (light_diffuse  * modulate), 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + (light_specular * modulate), 0.0, 32.0);
 
-		out_color.rgb += vertex.fog.rgb;
-
-//		out_color.rgb = light_diffuse + light_ambient;
+		// fog 
+		// out_color.rgb *= 1.0 - vertex.fog.a; // black? sigh.
+		// out_color.rgb += vertex.fog.rgb;
+		out_color.rgb = screen(out_color.rgb, vertex.fog.rgb);
 
 	} else {
+
+		// effect
 		vec4 effect = texture(texture_stage, vertex.diffusemap);
-
 		effect *= vertex.color;
-
 		out_color = effect;
 	}
 
-	// postprocessing
-
-	out_color.rgb = tonemap(out_color.rgb);
-
-	out_color.rgb = color_filter(out_color.rgb);
-
-	out_color.rgb = dither(out_color.rgb);
+	postprocessing(out_color.rgb);
 }
