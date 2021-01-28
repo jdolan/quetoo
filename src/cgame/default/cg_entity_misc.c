@@ -83,8 +83,13 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
 	cg_dust_t *dust = self->data;
 
-	const char *name = cgi.EntityValue(self->def, "sprite")->nullable_string ?: "sprites/particle1";
+	const char *name = cgi.EntityValue(self->def, "sprite")->nullable_string ?: "sprites/particle";
 	dust->sprite.media = (r_media_t *) cgi.LoadImage(name, IT_EFFECT);
+
+	if (!dust->sprite.media) {
+		dust->sprite.media = (r_media_t *) cgi.LoadImage("sprites/particle", IT_EFFECT);
+		cgi.Warn("%s @ %s has missing sprite specified\n", self->clazz->class_name, vtos(self->origin));
+	}
 
 	dust->sprite.size = cgi.EntityValue(self->def, "sprite_size")->value ?: 2.f;
 
@@ -95,6 +100,10 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 	}
 
 	dust->sprite.lifetime = cgi.EntityValue(self->def, "lifetime")->integer;
+
+	if (!dust->sprite.lifetime) {
+		dust->sprite.lifetime = 1000;
+	}
 
 	dust->density = cgi.EntityValue(self->def, "density")->value;
 	dust->origins = cgi.Malloc(0, MEM_TAG_CGAME_LEVEL);
@@ -148,7 +157,7 @@ static void Cg_misc_dust_Think(cg_entity_t *self) {
  * @brief
  */
 const cg_entity_class_t cg_misc_dust = {
-	.class_name = "misc_flame",
+	.class_name = "misc_dust",
 	.Init = Cg_misc_dust_Init,
 	.Think = Cg_misc_dust_Think,
 	.data_size = sizeof(cg_dust_t)
