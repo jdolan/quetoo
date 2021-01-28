@@ -21,9 +21,10 @@
 
 #pragma once
 
-#include "r_types.h"
+#include "cg_types.h"
 
-#ifdef __R_LOCAL_H__
-void R_LoadFlare(r_bsp_model_t *bsp, r_bsp_face_t *face);
-void R_UpdateFlares(r_view_t *view);
-#endif /* __R_LOCAL_H__ */
+#ifdef __CG_LOCAL_H__
+void Cg_AddFlares(void);
+void Cg_LoadFlares(void);
+void Cg_FreeFlares(void);
+#endif /* __CG_LOCAL_H__ */

@@ -367,8 +367,6 @@ typedef struct {
 	vec3_t mins;
 	vec3_t maxs;
 
-	struct r_sprite_s *flare;
-
 	r_bsp_face_lightmap_t lightmap;
 
 	r_bsp_vertex_t *vertexes;
@@ -488,11 +486,6 @@ typedef struct r_bsp_inline_model_s {
 	 * @brief The alpha blended draw elements of this inline model, sorted by depth each frame.
 	 */
 	GPtrArray *blend_elements;
-
-	/**
-	 * @brief The faces of this inline model that include flares, sorted by material at level load.
-	 */
-	GPtrArray *flare_faces;
 
 	/**
 	 * @brief The draw elements of this inline model.
@@ -772,7 +765,7 @@ typedef enum {
 /**
  * @brief Sprites are billboarded alpha blended quads, optionally animated.
  */
-typedef struct r_sprite_s {
+typedef struct {
 	/**
 	 * @brief The sprite origin.
 	 */
@@ -916,6 +909,11 @@ typedef struct {
  */
 typedef struct r_sprite_instance_s {
 	/**
+	 * @brief The sprite flags.
+	 */
+	r_sprite_flags_t flags;
+
+	/**
 	 * @brief The diffusemap texture.
 	 */
 	const r_image_t *diffusemap;
@@ -944,7 +942,6 @@ typedef struct r_sprite_instance_s {
 	 * @brief The next sprite instance to be rendered at the same blend depth.
 	 */
 	struct r_sprite_instance_s *tail, *head, *prev, *next;
-
 } r_sprite_instance_t;
 
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)

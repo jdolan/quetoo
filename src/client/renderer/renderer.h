@@ -36,7 +36,6 @@
 #include "r_draw_2d.h"
 #include "r_draw_3d.h"
 #include "r_entity.h"
-#include "r_flare.h"
 #include "r_framebuffer.h"
 #include "r_image.h"
 #include "r_light.h"

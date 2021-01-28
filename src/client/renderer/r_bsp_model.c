@@ -171,10 +171,6 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * BSP_LIGHTMAP_BPP, bsp->faces);
 		memset(lm->stainmap, 0xff, lm->w * lm->h * BSP_LIGHTMAP_BPP);
-
-		if (out->texinfo->material->cm->flags & STAGE_FLARE) {
-			R_LoadFlare(bsp, out);
-		}
 	}
 }
 
@@ -318,17 +314,6 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 /**
  * @brief
  */
-static gint R_FlareFacesCmp(gconstpointer a, gconstpointer b) {
-
-	const r_bsp_face_t *a_face = *(r_bsp_face_t **) a;
-	const r_bsp_face_t *b_face = *(r_bsp_face_t **) b;
-
-	return strcmp(a_face->flare->media->name, b_face->flare->media->name);
-}
-
-/**
- * @brief
- */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 	r_bsp_inline_model_t *out;
 
@@ -348,16 +333,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->num_faces = in->num_faces;
 
 		out->blend_elements = g_ptr_array_new();
-		out->flare_faces = g_ptr_array_new();
-
-		r_bsp_face_t *face = out->faces;
-		for (int32_t i = 0; i < in->num_faces; i++, face++) {
-			if (face->flare) {
-				g_ptr_array_add(out->flare_faces, face);
-			}
-		}
-
-		g_ptr_array_sort(out->flare_faces, R_FlareFacesCmp);
 
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
@@ -373,7 +348,6 @@ static void R_FreeBspInlineModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
 	g_ptr_array_free(mod->bsp_inline->blend_elements, 1);
-	g_ptr_array_free(mod->bsp_inline->flare_faces, 1);
 }
 
 

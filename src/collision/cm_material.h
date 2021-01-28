@@ -31,14 +31,12 @@ typedef enum {
 	ASSET_CONTEXT_TEXTURES,
 	ASSET_CONTEXT_MODELS,
 	ASSET_CONTEXT_PLAYERS,
-	ASSET_CONTEXT_ENVMAPS,
-	ASSET_CONTEXT_FLARES,
+	ASSET_CONTEXT_SPRITES,
 } cm_asset_context_t;
 
 typedef struct {
 	char name[MAX_QPATH];
 	char path[MAX_QPATH];
-	int32_t index;
 } cm_asset_t;
 
 typedef struct {

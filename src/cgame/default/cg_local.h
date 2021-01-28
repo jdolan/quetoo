@@ -34,6 +34,7 @@
 #include "cg_entity_event.h"
 #include "cg_entity_misc.h"
 #include "cg_entity_trail.h"
+#include "cg_flare.h"
 #include "cg_hud.h"
 #include "cg_input.h"
 #include "cg_light.h"

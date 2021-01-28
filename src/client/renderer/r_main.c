@@ -44,7 +44,6 @@ cvar_t *r_bicubic;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
 cvar_t *r_display;
-cvar_t *r_flares;
 cvar_t *r_fog_density;
 cvar_t *r_fog_samples;
 cvar_t *r_fullscreen;
@@ -354,8 +353,6 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_UpdateLights(view);
 
-	R_UpdateFlares(view);
-
 	R_UpdateSprites(view);
 
 	R_UpdateStains(view);
@@ -446,7 +443,6 @@ static void R_InitLocal(void) {
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
-	r_flares = Cvar_Add("r_flares", "1", CVAR_ARCHIVE, "Controls the rendering of light source flares");
 	r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
 	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");

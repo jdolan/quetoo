@@ -151,7 +151,7 @@
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "r_flares"
+                          "var": "cg_add_flares"
                         }
                       }
                     ]

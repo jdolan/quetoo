@@ -185,6 +185,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 		return;
 	}
 
+	in->flags = s->flags;
 	in->diffusemap = R_ResolveSpriteImage(s->media, s->life);
 
 	const float aspect_ratio = (float) in->diffusemap->width / (float) in->diffusemap->height;
@@ -336,6 +337,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 			return;
 		}
 
+		in->flags = b->flags;
 		in->diffusemap = b->image;
 
 		in->vertexes[0].position = Vec3_Add(x, right);

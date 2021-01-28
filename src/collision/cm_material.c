@@ -256,15 +256,14 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 				if (count == 3) {
 					s->color.a = 1.f;
 				} else {
-					Cm_MaterialWarn(path, parser, "Need 3 or 4 values for color");
+					Cm_MaterialWarn(path, parser, "Missing color values");
 					continue;
 				}
 			}
 
 			for (int32_t i = 0; i < 4; i++) {
-
-				if (s->color.rgba[i] < 0.0f || s->color.rgba[i] > 1.0f) {
-					Cm_MaterialWarn(path, parser, "Invalid value for color, must be between 0.0 and 1.0");
+				if (s->color.rgba[i] < 0.0f) {
+					Cm_MaterialWarn(path, parser, "Invalid value for color");
 				}
 			}
 
@@ -545,13 +544,6 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 			// a blend dest other than GL_ONE should use fog by default
 			if (s->blend.dest != GL_ONE) {
 				s->flags |= STAGE_FOG;
-			}
-
-			// determine if a numeric asset index was requested
-			if (g_ascii_isdigit(s->asset.name[0])) {
-				s->asset.index = (int32_t) strtol(s->asset.name, NULL, 0);
-			} else {
-				s->asset.index = -1;
 			}
 
 			Com_Debug(DEBUG_COLLISION,
@@ -932,18 +924,9 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 					g_snprintf(name, sizeof(name), "players/%s", asset->name);
 				}
 				break;
-			case ASSET_CONTEXT_ENVMAPS:
-				if (asset->index > -1) {
-					g_snprintf(name, sizeof(name), "envmaps/envmap_%s", asset->name);
-				} else if (!g_str_has_prefix(asset->name, "envmaps/")) {
-					g_snprintf(name, sizeof(name), "envmaps/%s", asset->name);
-				}
-				break;
-			case ASSET_CONTEXT_FLARES:
-				if (asset->index > -1) {
-					g_snprintf(name, sizeof(name), "flares/flare_%s", asset->name);
-				} else if (!g_str_has_prefix(asset->name, "flares/")) {
-					g_snprintf(name, sizeof(name), "flares/%s", asset->name);
+			case ASSET_CONTEXT_SPRITES:
+				if (!g_str_has_prefix(asset->name, "sprites/")) {
+					g_snprintf(name, sizeof(name), "sprites/%s", asset->name);
 				}
 				break;
 		}
@@ -1015,10 +998,8 @@ static _Bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, c
 		if (stage->flags & STAGE_ANIMATION) {
 			res = Cm_ResolveStageAnimation(stage, context);
 		} else {
-			if (stage->flags & STAGE_ENVMAP) {
-				res = Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_ENVMAPS);
-			} else if (stage->flags & STAGE_FLARE) {
-				res = Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_FLARES);
+			if (stage->flags & STAGE_FLARE) {
+				res = Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_SPRITES);
 			} else {
 				res = Cm_ResolveAsset(&stage->asset, context);
 			}
@@ -1141,11 +1122,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	}
 
 	if (stage->flags & STAGE_ENVMAP) {
-		if (stage->asset.index > -1) {
-			Fs_Print(file, "\t\tenvmap %d\n", stage->asset.index);
-		} else {
-			Fs_Print(file, "\t\tenvmap %s\n", stage->asset.name);
-		}
+		Fs_Print(file, "\t\tenvmap %s\n", stage->asset.name);
 	}
 
 	if (stage->flags & STAGE_WARP) {
@@ -1157,11 +1134,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	}
 
 	if (stage->flags & STAGE_FLARE) {
-	   if (stage->asset.index > -1) {
-		   Fs_Print(file, "\t\tflare %d\n", stage->asset.index);
-	   } else {
-		   Fs_Print(file, "\t\tflare %s\n", stage->asset.name);
-	   }
+	   Fs_Print(file, "\t\tflare %s\n", stage->asset.name);
    }
 
 	if (stage->flags & STAGE_ANIMATION) {

@@ -26,6 +26,7 @@ cg_state_t cg_state;
 cvar_t *cg_add_atmospheric;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_entity_shadows;
+cvar_t *cg_add_flares;
 cvar_t *cg_add_lights;
 cvar_t *cg_add_sprites;
 cvar_t *cg_add_weather;
@@ -115,6 +116,7 @@ static void Cg_Init(void) {
 	cg_add_atmospheric = cgi.AddCvar("cg_add_atmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
 	cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
 	cg_add_entity_shadows = cgi.AddCvar("cg_add_entity_shadows", "1", CVAR_ARCHIVE, "Toggles adding mesh entity shadows to the scene.");
+	cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
 	cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
 	cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
 	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
@@ -287,6 +289,8 @@ static void Cg_Shutdown(void) {
 
 	cgi.Print("Client game module shutdown...\n");
 
+	Cg_FreeMedia();
+
 	Cg_ShutdownUi();
 
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
@@ -450,6 +454,8 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
 	Cg_AddEffects();
 
+	Cg_AddFlares();
+
 	Cg_AddSprites();
 
 	Cg_AddLights();
@@ -482,6 +488,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Look = Cg_Look;
 	cge.Move = Cg_Move;
 	cge.LoadMedia = Cg_LoadMedia;
+	cge.FreeMedia = Cg_FreeMedia;
 	cge.ParsedMessage = Cg_ParsedMessage;
 	cge.ParseMessage = Cg_ParseMessage;
 	cge.Interpolate = Cg_Interpolate;

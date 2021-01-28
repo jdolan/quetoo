@@ -232,6 +232,8 @@ static void Cl_LoadMusics(void) {
  */
 void Cl_LoadMedia(void) {
 
+	cls.cgame->FreeMedia();
+
 	cls.state = CL_LOADING;
 
 	GList *mapshots = Cl_Mapshots(cl.config_strings[CS_MODELS]);

@@ -110,14 +110,9 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 						g_strlcat(key, "players/", len);
 					}
 					break;
-				case ASSET_CONTEXT_ENVMAPS:
-					if (!g_str_has_prefix(name, "envmaps/")) {
-						g_strlcat(key, "envmaps/", len);
-					}
-					break;
-				case ASSET_CONTEXT_FLARES:
-					if (!g_str_has_prefix(name, "flares/")) {
-						g_strlcat(key, "flares/", len);
+				case ASSET_CONTEXT_SPRITES:
+					if (!g_str_has_prefix(name, "sprites/")) {
+						g_strlcat(key, "sprites/", len);
 					}
 					break;
 			}

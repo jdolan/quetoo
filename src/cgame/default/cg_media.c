@@ -301,8 +301,6 @@ void Cg_LoadMedia(void) {
 
 	Cg_FreeSprites();
 
-	Cg_InitLights();
-
 	cg_beam_hook = cgi.LoadImage("sprites/rope", IT_EFFECT);
 	cg_beam_arrow = cgi.LoadImage("sprites/arrow", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_line = cgi.LoadImage("sprites/line", IT_EFFECT | IT_MASK_CLAMP_EDGE);
@@ -392,8 +390,7 @@ void Cg_LoadMedia(void) {
 	cg_sprite_font_width = font_image->width / 16;
 	cg_sprite_font_height = font_image->height / 8;
 
-	cg_draw_crosshair->modified = true;
-	cg_draw_crosshair_color->modified = true;
+	Cg_LoadFlares();
 
 	cgi.LoadingProgress(-1, "entities");
 
@@ -401,13 +398,35 @@ void Cg_LoadMedia(void) {
 
 	Cg_LoadEffects();
 
+	Cg_InitLights();
+
 	cgi.LoadingProgress(-1, "clients");
 
 	Cg_LoadClients();
 
 	cgi.LoadingProgress(-1, "hud");
 
+	cg_draw_crosshair->modified = true;
+	cg_draw_crosshair_color->modified = true;
+
 	Cg_LoadHudMedia();
 
 	Cg_Debug("Complete\n");
+}
+
+/**
+ * @brief
+ */
+void Cg_FreeMedia(void) {
+
+	cgi.FreeTag(MEM_TAG_CGAME);
+	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
+
+	cgi.DestroyFramebuffer(&cg_framebuffer);
+
+	Cg_FreeEntities();
+
+	Cg_FreeFlares();
+
+	Cg_FreeSprites();
 }

@@ -25,6 +25,8 @@
 
 #define SPRITE_GRAVITY 180.f
 
+typedef struct cg_sprite_s cg_sprite_t;
+
 /**
  * @brief Sprite types.
  */
@@ -35,17 +37,21 @@ typedef enum {
 	SPRITE_NORMAL	= 0,
 
 	/**
-	 * @brief A beam.
+	 * @brief A beam, or segmented sprite with origin and termination points.
 	 */
-	SPRITE_BEAM		= 1
+	SPRITE_BEAM		= 1,
+	
 } cg_sprite_type_t;
 
+/**
+ * @brief Sprite easing function type.
+ */
 typedef float (*cg_easing_function_t) (float life);
 
-typedef struct cg_sprite_s cg_sprite_t;
-
-typedef void (*cg_sprite_think_t) (cg_sprite_t *sprite, float life, float delta);
-
+/**
+ * @brief Sprite think function type.
+ */
+typedef void (*cg_sprite_think_t)(struct cg_sprite_s *sprite, float life, float delta);
 
 /**
  * @brief CGame-specific sprite flags.
@@ -92,7 +98,7 @@ typedef struct {
  * @param ent The entity to get a sprite entity for
  * @return The sprite entity
  */
-static inline cg_sprite_entity_t Cg_GetSpriteEntity(cl_entity_t *ent) {
+static inline cg_sprite_entity_t Cg_GetSpriteEntity(const cl_entity_t *ent) {
 	return (cg_sprite_entity_t) {
 		.entity_id = ent->current.number,
 		.spawn_id = ent->current.spawn_id
@@ -102,7 +108,7 @@ static inline cg_sprite_entity_t Cg_GetSpriteEntity(cl_entity_t *ent) {
 /**
  * @brief Client game sprites can persist over multiple frames.
  */
-typedef struct cg_sprite_s {
+struct cg_sprite_s {
 	/**
 	 * @brief Type of sprite.
 	 */
@@ -207,7 +213,7 @@ typedef struct cg_sprite_s {
 	cg_easing_function_t life_easing;
 
 	/**
-	 * @brief Think function for particle.
+	 * @brief Think function for custom logic.
 	 */
 	cg_sprite_think_t think;
 
@@ -254,7 +260,7 @@ typedef struct cg_sprite_s {
 
 	cg_sprite_t *prev;
 	cg_sprite_t *next;
-} cg_sprite_t;
+};
 
 /**
  * @brief Calculate a lifetime value that causes the animation to run at a specified framerate.
