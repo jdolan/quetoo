@@ -192,7 +192,7 @@ void main(void) {
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
 
 		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
-		vec3 light_diffuse = screen(ambient, diffuse) * 2.0 * bump_shading;
+		vec3 light_diffuse = ambient + diffuse * 2.0 * bump_shading;
 
 		vec3 light_specular = brdf_blinn(viewdir, direction, normal, diffuse, glossmap.a, material.specularity * 100.0);
 		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
@@ -223,11 +223,19 @@ void main(void) {
 			vec3 ambient = sample_lightmap(0).rgb;
 			vec3 diffuse = sample_lightmap(1).rgb;
 
-			effect.rgb *= screen(ambient, diffuse) * modulate;
+			effect.rgb *= (ambient + diffuse) * modulate;
 		}
 
 		out_color = effect;
 	}
+
+	// postprocessing
+
+	out_color.rgb = tonemap(out_color.rgb);
+
+	out_color.rgb = color_filter(out_color.rgb);
+	
+	out_color.rgb = dither(out_color.rgb);
 
 	// debugging
 
@@ -245,11 +253,5 @@ void main(void) {
 	#if 0
 	// draw flat lightmaps
 	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
-	#endif
-
-	// postprocessing
-
-	#if 1
-	postprocessing(out_color.rgb);
 	#endif
 }

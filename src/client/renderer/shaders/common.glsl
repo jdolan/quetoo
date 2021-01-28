@@ -20,20 +20,6 @@
  */
 
 /**
- * @brief Screen blend for soft additions.
- */
-float screen(float a, float b) {
-	return 1.0 - (1.0 - a) * (1.0 - b);
-}
-
-/**
- * @brief Screen blend for soft additions.
- */
-vec3 screen(vec3 a, vec3 b) {
-	return 1.0 - (1.0 - a) * (1.0 - b);
-}
-
-/**
  * @brief Horizontal maximum, returns the maximum component of a vector.
  */
 float hmax(vec2 v) {

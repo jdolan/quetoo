@@ -613,16 +613,14 @@ void FinalizeLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		// convert to float
-		vec3_t ambient = Vec3_Clampf(Vec3_Scale(l->ambient, 1.f / 255.f), 0.f, 1.f);
-		vec3_t diffuse = Vec3_Clampf(Vec3_Scale(l->diffuse, 1.f / 255.f), 0.f, 1.f);
-
 		// accumulate radiosity in ambient
 		for (int32_t i = 0; i < num_bounces; i++) {
-			l->ambient = Vec3_Subtract(Vec3_One(), Vec3_Multiply(
-				Vec3_Subtract(Vec3_One(), l->ambient),
-				Vec3_Subtract(Vec3_One(), l->radiosity[i])));
+			l->ambient = Vec3_Add(l->ambient, l->radiosity[i]);
 		}
+
+		// convert to float
+		vec3_t ambient = Vec3_Scale(l->ambient, 1.f / 255.f);
+		vec3_t diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
 
 		// apply brightness, saturation and contrast
 		ambient = ColorFilter(ambient);
