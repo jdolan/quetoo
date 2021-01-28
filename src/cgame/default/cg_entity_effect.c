@@ -38,13 +38,13 @@ vec3_t Cg_ResolveEffectHSV(const float hue, const float default_hue) {
 /**
  * @brief Resolve a client hue from the entity index given in the effect
  */
-vec3_t Cg_ResolveEntityEffectHSV(const uint8_t index, const float default_hue) {
+vec3_t Cg_ResolveEntityEffectHSV(const uint8_t client, const float default_hue) {
 
-	if (index >= MAX_CLIENTS) {
+	if (client >= MAX_CLIENTS) {
 		return Vec3(default_hue, 1.f, 1.f);
 	}
 
-	return Cg_ResolveEffectHSV(cgi.client->client_info[index].hue, default_hue);
+	return Cg_ResolveEffectHSV(cgi.client->client_info[client].hue, default_hue);
 }
 
 /**
