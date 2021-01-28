@@ -86,6 +86,8 @@ void R_UpdateMeshEntities(r_view_t *view) {
 
 		if (IS_MESH_MODEL(e->model)) {
 			e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
+		} else {
+			e->blend_depth = -1;
 		}
 	}
 }

@@ -335,14 +335,6 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 }
 
 /**
- * @brief
- */
-static void R_DrawBspEntityBounds(const r_entity_t *e) {
-
-	R_Draw3DBox(e->abs_mins, e->abs_maxs, color_yellow);
-}
-
-/**
  * @brief Draws the specified draw elements for the given entity.
  * @param entity The entity, or NULL for the world model.
  * @param draw The draw elements command.
@@ -373,10 +365,6 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 	}
 
 	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->texinfo->material);
-
-	if (entity) {
-		R_DrawBspEntityBounds(entity);
-	}
 }
 
 /**
