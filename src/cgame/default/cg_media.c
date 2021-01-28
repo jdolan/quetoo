@@ -81,6 +81,7 @@ r_atlas_image_t *cg_sprite_puff_cloud;
 r_atlas_image_t *cg_sprite_water_circle;
 r_atlas_image_t *cg_sprite_water_ring;
 r_atlas_image_t *cg_sprite_water_ring2;
+r_atlas_image_t *cg_sprite_abstract_01;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_arrow;
 r_image_t *cg_beam_line;
@@ -339,6 +340,7 @@ void Cg_LoadMedia(void) {
 	cg_sprite_water_circle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_circle", IT_EFFECT);
 	cg_sprite_water_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring", IT_EFFECT);
 	cg_sprite_water_ring2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring2", IT_EFFECT);
+	cg_sprite_abstract_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/abstract/abstract_01", IT_EFFECT);
 
 	cgi.LoadingProgress(-1, "sprites");
 

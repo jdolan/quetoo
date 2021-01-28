@@ -83,6 +83,7 @@ extern r_atlas_image_t *cg_sprite_puff_cloud;
 extern r_atlas_image_t *cg_sprite_water_circle;
 extern r_atlas_image_t *cg_sprite_water_ring;
 extern r_atlas_image_t *cg_sprite_water_ring2;
+extern r_atlas_image_t *cg_sprite_abstract_01;
 extern r_image_t *cg_beam_hook;
 extern r_image_t *cg_beam_arrow;
 extern r_image_t *cg_beam_line;

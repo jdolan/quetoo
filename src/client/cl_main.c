@@ -619,10 +619,12 @@ void Cl_Frame(const uint32_t msec) {
 	// update the simulation time
 	cl.time += msec;
 
+	// and the unclamped simulation time
+	cl.unclamped_time += msec;
+
 	// and the pending command duration
 	cl.frame_msec += msec;
-
-	// and the unclamped simulation time
+	// and the total ticks
 	cl.ticks = quetoo.ticks;
 
 	if (time_demo->value) { // accumulate timed demo statistics

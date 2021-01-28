@@ -70,7 +70,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 	e->face = face;
 
 	// resolve the number of origins based on surface area
-	e->num_origins = Vec3_Length(Vec3_Subtract(face->maxs, face->mins)) / 32.f;
+	e->num_origins = Vec3_Length(Vec3_Subtract(face->maxs, face->mins)) / 16.f;
 	e->num_origins = Clampf(e->num_origins, 1, 128);
 
 	e->origins = cgi.Malloc(sizeof(vec4_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
@@ -168,22 +168,22 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			s = Cg_AddSprite(&(cg_sprite_t) {
 				.origin = sprite_origin,
 				.atlas_image = cg_sprite_rain,
-				.color = Vec4(0.f, 0.f, .87f, .8f),
-				.end_color = Vec4(0.f, 0.f, .87f, .0f),
-				.size = 8.f,
-				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 600.f)),
-				.acceleration = Vec3_RandomRange(-2.f, 2.f),
+				.color = Vec4(0.f, 0.f, 0.1f, 0.f),
+				.end_color = Vec4(0.f, 0.f, 0.0f, 0.f),
+				.size = 128.f,
+				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f)),
 				.flags = SPRITE_NO_BLEND_DEPTH,
 				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
-				.softness = 1.f
+				.softness = 5.f,
+				.lifetime = 500.f
 			});
 		} else {
 			s = Cg_AddSprite(&(cg_sprite_t) {
 				.origin = sprite_origin,
 				.atlas_image = cg_sprite_snow,
-				.color = Vec4(0.f, 0.f, .87f, .4f),
-				.end_color = Vec4(0.f, 0.f, .87f, .0f),
-				.size = 8.f,
+				.color = Vec4(0.f, 0.f, .33f, .33f),
+				.end_color = Vec4(0.f, 0.f, .0f, .0f),
+				.size = 4.f,
 				.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f)),
 				.acceleration = Vec3_RandomRange(-12.f, 12.f),
 				.flags = SPRITE_NO_BLEND_DEPTH,
@@ -226,11 +226,11 @@ static void Cg_AddWeather(void) {
 		.entity = Cg_Self()->current.number
 	});
 
-	if (cgi.client->ticks - cg_weather_state.time < 100) {
+	if (cgi.client->unclamped_time - cg_weather_state.time < 100) {
 		return;
 	}
 
-	cg_weather_state.time = cgi.client->ticks;
+	cg_weather_state.time = cgi.client->unclamped_time;
 
 	const cg_weather_emit_t *e = cg_weather_state.emits;
 

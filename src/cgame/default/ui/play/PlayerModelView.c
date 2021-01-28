@@ -246,6 +246,7 @@ static entity_animation_t nextAnimation(const entity_animation_t a) {
 
 		default:
 			assert(false);
+			return ANIM_LEGS_WALK;
 	}
 }
 

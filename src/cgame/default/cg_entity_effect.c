@@ -73,13 +73,13 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	e->effects = ent->current.effects;
 
 	if (e->effects & EF_ROTATE) {
-		const float rotate = cgi.client->ticks;
+		const float rotate = cgi.client->unclamped_time;
 		e->angles.y = cg_entity_rotate->value * rotate / M_PI;
 	}
 
 	if (e->effects & EF_BOB) {
 		e->termination = e->origin;
-		const float bob = sinf(cgi.client->ticks * 0.005f + ent->current.number);
+		const float bob = sinf(cgi.client->unclamped_time * 0.005f + ent->current.number);
 		e->origin.z += cg_entity_bob->value * bob;
 	}
 
@@ -131,12 +131,12 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	if (e->effects & EF_DESPAWN) {
 
 		if (!(ent->prev.effects & EF_DESPAWN)) {
-			ent->timestamp = cgi.client->ticks;
+			ent->timestamp = cgi.client->unclamped_time;
 		}
 
 		e->effects |= (EF_BLEND | EF_NO_SHADOW);
 
-		const float fade = 1.f - ((cgi.client->ticks - ent->timestamp) / 2000.f);
+		const float fade = 1.f - ((cgi.client->unclamped_time - ent->timestamp) / 2000.f);
 		e->color = Vec4_Scale(e->color, fade);
 	}
 

@@ -349,12 +349,12 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		.color = Color4bv(0xbb202020),
 	});
 
-	if (cgi.client->ticks < last_ric_time) {
+	if (cgi.client->unclamped_time < last_ric_time) {
 		last_ric_time = 0;
 	}
 
-	if (cgi.client->ticks - last_ric_time > 300) {
-		last_ric_time = cgi.client->ticks;
+	if (cgi.client->unclamped_time - last_ric_time > 300) {
+		last_ric_time = cgi.client->unclamped_time;
 
 		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 			.sample = cg_sample_machinegun_hit[RandomRangeu(0, 3)],
