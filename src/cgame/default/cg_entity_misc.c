@@ -92,6 +92,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 	}
 
 	dust->sprite.size = cgi.EntityValue(self->def, "sprite_size")->value ?: 2.f;
+	dust->sprite.softness = 5.f;
 
 	if (cgi.EntityValue(self->def, "sprite_color")->parsed & ENTITY_VEC4) {
 		dust->sprite.color = cgi.EntityValue(self->def, "sprite_color")->vec4;
@@ -99,28 +100,42 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 		dust->sprite.color = Vec4(0.f, 0.f, 1.f, 1.f);
 	}
 
-	dust->sprite.lifetime = cgi.EntityValue(self->def, "lifetime")->integer;
+	dust->sprite.lifetime = cgi.EntityValue(self->def, "sprite_lifetime")->integer;
 
 	if (!dust->sprite.lifetime) {
 		dust->sprite.lifetime = 1000;
 	}
 
 	dust->density = cgi.EntityValue(self->def, "density")->value;
-	dust->origins = cgi.Malloc(0, MEM_TAG_CGAME_LEVEL);
 
 	GPtrArray *brushes = cgi.EntityBrushes(self->def);
+	
+	// Get total amount of particles.
+
+	float num_origins = 0.f;
+	for (guint i = 0; i < brushes->len; i++) {
+		const cm_bsp_brush_t* brush = g_ptr_array_index(brushes, i);
+
+		const vec3_t brush_size = Vec3_Subtract(brush->maxs, brush->mins);
+		num_origins += Vec3_Length(brush_size) / dust->density;
+	}
+	dust->num_origins = (int32_t)num_origins;
+
+	// Decide particle origins.
+
+	dust->origins = cgi.Malloc(dust->num_origins * sizeof(vec3_t), MEM_TAG_CGAME_LEVEL);
+
 	for (guint i = 0; i < brushes->len; i++) {
 		const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
 
-		int32_t j = dust->num_origins;
-		const vec3_t brush_size = Vec3_Subtract(brush->maxs, brush->mins);
-
-		dust->num_origins += Vec3_Length(brush_size) / dust->density;
-		dust->origins = cgi.Realloc(dust->origins, dust->num_origins * sizeof(vec3_t));
-
+		int32_t j = 0;
 		while (j < dust->num_origins) {
 
-			const vec3_t point = Vec3_Add(brush->mins, Vec3_Multiply(brush_size, Vec3_Random()));
+			vec3_t point;
+			point.x = RandomRangef(brush->mins.x, brush->maxs.x);
+			point.y = RandomRangef(brush->mins.y, brush->maxs.y);
+			point.z = RandomRangef(brush->mins.z, brush->maxs.z);
+
 			if (cgi.PointInsideBrush(point, brush)) {
 				dust->origins[j++] = point;
 			}
@@ -136,21 +151,27 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
  */
 static void Cg_misc_dust_Think(cg_entity_t *self) {
 
+	static uint32_t i = 0;
+
 	if (!cg_add_atmospheric->value) {
 		return;
 	}
 	
 	const cg_dust_t *dust = self->data;
-	for (int32_t i = 0; i < dust->num_origins; i++) {
 
-		cg_sprite_t s = dust->sprite;
+	cg_sprite_t s = dust->sprite;
+	s.origin = dust->origins[i];
+	s.rotation = RandomRangef(-10.f, 10.f);
+	s.size = RandomRangef(20.f, 60.f);
+	s.size_velocity = RandomRangef(-10.f, 10.f);
+	s.color = Vec4(0.f, 0.f, 0.05f, 0.05f);
+	s.end_color = Vec4(0.f, 0.f, 0.f, 0.f);
 
-		s.origin = dust->origins[i];
+	Cg_AddSprite(&s);
 
-		Cg_AddSprite(&s);
-	}
+	self->next_think += dust->sprite.lifetime / dust->num_origins;
 
-	self->next_think += 1000.f / dust->hz + 1000.f * dust->drift * Randomf();
+	i = (i + 1) % dust->num_origins;
 }
 
 /**
