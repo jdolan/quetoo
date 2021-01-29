@@ -290,6 +290,8 @@ void R_InitContext(void) {
 	}
 
 	R_SetWindowIcon();
+
+	glDepthFunc(GL_LEQUAL);
 }
 
 /**

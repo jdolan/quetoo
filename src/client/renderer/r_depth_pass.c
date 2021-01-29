@@ -71,13 +71,10 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	glEnable(GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset(1.f, 1.f);
-
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	glUseProgram(r_depth_pass_program.name);
-
+	
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
@@ -88,9 +85,6 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
 	R_DrawBspInlineModelDepthPass(NULL, r_world_model->bsp->inline_models);
-
-	glPolygonOffset(0.f, 0.f);
-	glDisable(GL_POLYGON_OFFSET_FILL);
 
 	if (r_occlude->value && view->ticks - occlusion_query_ticks >= 8) {
 		occlusion_query_ticks = view->ticks;

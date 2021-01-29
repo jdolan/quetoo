@@ -5,4 +5,7 @@
     <LocalDebuggerWorkingDirectory>$(QUETOO_HOME)\bin\</LocalDebuggerWorkingDirectory>
     <LocalDebuggerCommand>$(QUETOO_HOME)\bin\quetoo.exe</LocalDebuggerCommand>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default"</LocalDebuggerCommandArguments>
+  </PropertyGroup>
 </Project>

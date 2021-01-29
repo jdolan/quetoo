@@ -21,6 +21,8 @@
 
 layout (location = 0) in vec3 in_position;
 
+invariant gl_Position;
+
 /**
  * @brief
  */
