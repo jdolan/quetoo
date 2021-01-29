@@ -44,14 +44,9 @@ typedef enum {
 } cg_sprite_type_t;
 
 /**
- * @brief Sprite easing function type.
- */
-typedef float (*cg_easing_function_t) (float life);
-
-/**
  * @brief Sprite think function type.
  */
-typedef void (*cg_sprite_think_t)(struct cg_sprite_s *sprite, float life, float delta);
+typedef void (*Cg_SpriteThink)(cg_sprite_t *sprite, float life, float delta);
 
 /**
  * @brief CGame-specific sprite flags.
@@ -208,14 +203,9 @@ struct cg_sprite_s {
 	uint32_t timestamp;
 
 	/**
-	 * @brief Easing function for life time.
-	 */
-	cg_easing_function_t life_easing;
-
-	/**
 	 * @brief Think function for custom logic.
 	 */
-	cg_sprite_think_t think;
+	Cg_SpriteThink Think;
 
 	/**
 	 * @brief Custom data allocated on a sprite. Automatically freed unless

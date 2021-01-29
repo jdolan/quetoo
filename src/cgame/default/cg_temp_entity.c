@@ -817,7 +817,7 @@ static void Cg_BfgLaserEffect(const uint16_t org_entity, const uint16_t dest_ent
 		.color = Vec4(color_hue_green, 1.f, 1.f, 0),
 		.end_color = Vec4(color_hue_green, 1.f, 1.f, 0),
 		.data = ((cg_bfg_laser_data_t) { .org = org_entity, .dest = dest_entity }).data,
-		.think = Cg_BfgLaserThink,
+		.Think = Cg_BfgLaserThink,
 		.softness = 1.f,
 		.lighting = .5f,
 	});

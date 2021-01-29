@@ -160,10 +160,7 @@ static void Cg_misc_dust_SpriteThink(cg_sprite_t *sprite, float life, float delt
 
 	// TODO: Ease in the color if life < .1 or something?
 
-	// TODO: This seems pretty reliable, but it's not foolproof.
-	// TODO: A custom Free callback on sprites would be better.
-	if (life + delta >= 1.f) {
-		sprite->lifetime = 0;
+	if (life >= 1.f) {
 		dust->num_active--;
 	}
 }
@@ -187,7 +184,7 @@ static void Cg_misc_dust_Think(cg_entity_t *self) {
 		s.size = RandomRangef(s.size * .9f, s.size * 1.1f);
 		s.velocity = Vec3_Add(s.velocity, Vec3_RandomDir());
 		s.lifetime = RandomRangeu(s.lifetime * .666f, s.lifetime * 1.333f);
-		s.think = Cg_misc_dust_SpriteThink;
+		s.Think = Cg_misc_dust_SpriteThink;
 		s.data = dust;
 		s.flags |= SPRITE_DATA_NOFREE;
 

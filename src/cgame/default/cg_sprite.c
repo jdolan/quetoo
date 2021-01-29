@@ -143,8 +143,25 @@ void Cg_AddSprites(void) {
 
 	cg_sprite_t *s = cg_active_sprites;
 	while (s) {
-		cl_entity_t *entity = NULL;
 
+		assert(s->media);
+
+		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? server_time : client_time;
+
+		const float life = (time - s->time) / (float) (s->lifetime ?: 1);
+
+		if (s->Think) {
+			s->Think(s, life, delta);
+		}
+
+		if (s->time != time) {
+			if (life >= 1.f) {
+				s = Cg_FreeSprite(s);
+				continue;
+			}
+		}
+
+		cl_entity_t *entity = NULL;
 		if (s->flags & SPRITE_FOLLOW_ENTITY) {
 			entity = &cgi.client->entities[s->entity.entity_id];
 
@@ -163,23 +180,6 @@ void Cg_AddSprites(void) {
 					s->termination = Vec3_Add(s->termination, entity->previous_origin);
 				}
 			}
-		}
-
-		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? server_time : client_time;
-
-		assert(s->media);
-
-		if (s->time != time) {
-			if (time - s->time > s->lifetime) {
-				s = Cg_FreeSprite(s);
-				continue;
-			}
-		}
-
-		const uint32_t elapsed_time = (time - s->time);
-		float life = elapsed_time / (float) (s->lifetime ?: 1);
-		if (s->life_easing) {
-			life = s->life_easing(life);
 		}
 
 		s->size_velocity += s->size_acceleration * delta;
@@ -282,10 +282,6 @@ void Cg_AddSprites(void) {
 				});
 				break;
 			}
-		}
-		
-		if (s->think) {
-			s->think(s, life, delta);
 		}
 		
 		s = s->next;

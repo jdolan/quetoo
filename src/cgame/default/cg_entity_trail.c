@@ -498,7 +498,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 					.velocity = Vec3_RandomRange(-10.f, 10.f),
 					.acceleration = Vec3_RandomRange(-10.f, 10.f),
 					.size = Randomf() * 1.6f + 1.6f,
-					.think = Cg_FireFlyTrail_Think,
+					.Think = Cg_FireFlyTrail_Think,
 					.color = Vec4(20.f, .75f, 1.f, 0.f),
 					.end_color = Vec4(20.f, .75f, 0.f, 0.f),
 					.softness = 1.f
@@ -714,7 +714,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 static void Cg_BfgTrail_Think(cg_sprite_t *sprite, float life, float delta) {
 
 	if (!(sprite->flags & SPRITE_FOLLOW_ENTITY)) {
-		sprite->think = NULL;
+		sprite->Think = NULL;
 		sprite->acceleration = Vec3(0.f, 0.f, -3.f * SPRITE_GRAVITY);
 		const float lifetime = RandomRangef(2000, 3500);
 		sprite->lifetime = lifetime;
@@ -768,7 +768,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 			.flags = SPRITE_FOLLOW_ENTITY | SPRITE_DATA_NOFREE | SPRITE_ENTITY_UNLINK_ON_DEATH,
 			.softness = 1.f,
 			.bounce = 1.0f,
-			.think = Cg_BfgTrail_Think,
+			.Think = Cg_BfgTrail_Think,
 			.entity = Cg_GetSpriteEntity(ent),
 			.data = ent,
 			.velocity = Vec3_Scale(Vec3_RandomDir(), BFG_BALLS_SPEED)
