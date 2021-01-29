@@ -199,6 +199,10 @@ void Cg_LoadFlares(void) {
 			}
 			assert(stage);
 
+			if (stage->media == NULL) {
+				continue;
+			}
+
 			cg_flare_t *flare = Cg_LoadFlare(face, stage);
 			g_ptr_array_add(cg_flares, flare);
 		}
