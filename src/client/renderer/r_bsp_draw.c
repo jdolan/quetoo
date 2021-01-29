@@ -305,7 +305,6 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 	}
 
 	glEnable(GL_BLEND);
-	glEnable(GL_POLYGON_OFFSET_FILL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
 
@@ -316,17 +315,12 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 			continue;
 		}
 
-		glPolygonOffset(-1.f, -s);
-
 		R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage);
 	}
 
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-
-	glPolygonOffset(0.f, 0.f);
-	glDisable(GL_POLYGON_OFFSET_FILL);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
