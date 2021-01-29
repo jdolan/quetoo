@@ -80,8 +80,13 @@ void Cg_AddFlares(void) {
 					continue;
 				}
 
+				if (e->current.model1 == MODEL_CLIENT) {
+					continue;
+				}
+
 				const r_model_t *mod = cgi.client->models[e->current.model1];
-				if (mod->type == MOD_BSP_INLINE) {
+
+				if (mod && mod->type == MOD_BSP_INLINE) {
 					if (in == mod->bsp_inline) {
 						flare->entity = e;
 						break;
