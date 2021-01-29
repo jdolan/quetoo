@@ -496,20 +496,21 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
 		float max = 0.0;
 
 		for (int32_t i = 0; i < 3; i++) {
-			float v = fabsf(mins.xyz[i]);
-			if (v > max) {
-				max = v;
-			}
-			v = fabsf(maxs.xyz[i]);
-			if (v > max) {
-				max = v;
-			}
+			max = Maxf(max, Maxf(fabsf(mins.xyz[i]), fabsf(maxs.xyz[i])));
 		}
+
 		*bounds_mins = Vec3_Add(origin, Vec3(-max, -max, -max));
 		*bounds_maxs = Vec3_Add(origin, Vec3( max,  max,  max));
 	} else {
 		*bounds_mins = Vec3_Add(origin, mins);
 		*bounds_maxs = Vec3_Add(origin, maxs);
+	}
+
+	// because movement is clipped an epsilon away from an actual edge,
+	// we must fully check even when bounding boxes don't quite touch
+	for (int32_t i = 0; i < 3; i++) {
+		bounds_mins->xyz[i] -= 1;
+		bounds_maxs->xyz[i] += 1;
 	}
 }
 
