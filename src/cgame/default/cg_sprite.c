@@ -107,12 +107,11 @@ cg_sprite_t *Cg_FreeSprite(cg_sprite_t *s) {
 	Cg_PushSprite(s, &cg_free_sprites);
 
 	if (s->data && !(s->flags & SPRITE_DATA_NOFREE)) {
-
 		cgi.Free(s->data);
 		s->data = NULL;
 	}
 
-	return next;
+	return next; 
 }
 
 /**
