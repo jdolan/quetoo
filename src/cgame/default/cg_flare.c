@@ -131,10 +131,18 @@ void Cg_AddFlares(void) {
 		flare->alpha = Clampf(flare->alpha + alpha, 0.f, 1.f);
 		if (flare->alpha > 0.f) {
 
-			const color_t color = Color_Scale(Color32_Color(flare->in.color), flare->alpha);
-			flare->out.color = Color_Color32(color);
+			const float dot = -Vec3_Dot(cgi.view->forward, flare->face->plane->cm->normal);
 
-			cgi.AddSprite(cgi.view, &flare->out);
+			alpha = Clampf(flare->alpha * dot * cg_add_flares->value, 0.f, 1.f);
+			if (alpha > 0.f) {
+
+				const color_t in_color = Color32_Color(flare->in.color);
+				const color_t out_color = Color_Scale(in_color, alpha);
+
+				flare->out.color = Color_Color32(out_color);
+
+				cgi.AddSprite(cgi.view, &flare->out);
+			}
 		}
 	}
 }
