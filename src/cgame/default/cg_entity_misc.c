@@ -158,7 +158,9 @@ static void Cg_misc_dust_SpriteThink(cg_sprite_t *sprite, float life, float delt
 
 	cg_dust_t *dust = sprite->data;
 
-	// TODO: Ease in the color if life < .1 or something?
+	if (life <= .1f) {
+		sprite->color = Vec4_Scale(dust->sprite.color, life / .1f);
+	}
 
 	if (life >= 1.f) {
 		dust->num_active--;
