@@ -230,6 +230,7 @@ int main(int argc, char **argv) {
 		g_ptr_array_add(args, ARCH);
 		g_ptr_array_add(args, "--host");
 		g_ptr_array_add(args, HOST);
+		g_ptr_array_add(args, "--prune");
 
 		for (int i = 1; i < argc; i++) {
 			g_ptr_array_add(args, argv[i]);
