@@ -58,7 +58,7 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	Select *videoMode, *windowMode, *verticalSync,
-		   *textureMode, *anisotropy, *multisample, *supersample,
+		   *textureMode, *anisotropy, *multisample,
 	       *rate;
 
 	Button *apply;
@@ -70,7 +70,6 @@ static void loadView(ViewController *self) {
 		MakeOutlet("textureMode", &textureMode),
 		MakeOutlet("anisotropy", &anisotropy),
 		MakeOutlet("multisample", &multisample),
-		MakeOutlet("supersample", &supersample),
 		MakeOutlet("rate", &rate),
 		MakeOutlet("apply", &apply)
 	);
@@ -107,14 +106,10 @@ static void loadView(ViewController *self) {
 	$(multisample, addOption, "2x", (ident) 1);
 	$(multisample, addOption, "Off", (ident) 0);
 
-	$(supersample, addOption, "4x", (ident) 4);
-	$(supersample, addOption, "2x", (ident) 2);
-	$(supersample, addOption, "Off", (ident) 0);
-
-	$((Select *) rate, addOption, "100Mbps", (ident) (intptr_t) 0);
-	$((Select *) rate, addOption, "50Mbps", (ident) (intptr_t) 50000);
-	$((Select *) rate, addOption, "20Mbps", (ident) (intptr_t) 20000);
-	$((Select *) rate, addOption, "10Mbps", (ident) (intptr_t) 10000);
+	$(rate, addOption, "100Mbps", (ident) (intptr_t) 0);
+	$(rate, addOption, "50Mbps", (ident) (intptr_t) 50000);
+	$(rate, addOption, "20Mbps", (ident) (intptr_t) 20000);
+	$(rate, addOption, "10Mbps", (ident) (intptr_t) 10000);
 
 	$((Control *) apply, addActionForEventType, SDL_MOUSEBUTTONUP, applyAction, self, NULL);
 }

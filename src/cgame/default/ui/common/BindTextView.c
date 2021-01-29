@@ -117,22 +117,25 @@ static _Bool captureEvent(Control *self, const SDL_Event *event) {
 
 			BindTextView *this = (BindTextView *) self;
 
-			if (key == SDL_SCANCODE_BACKSPACE) {
-				key = SDL_SCANCODE_UNKNOWN;
-				while (true) {
-					key = cgi.KeyForBind(key, this->bind);
-					if (key == SDL_SCANCODE_UNKNOWN) {
-						break;
+			if (key != SDL_SCANCODE_ESCAPE) {
+				
+				if (key == SDL_SCANCODE_BACKSPACE) {
+					key = SDL_SCANCODE_UNKNOWN;
+					while (true) {
+						key = cgi.KeyForBind(key, this->bind);
+						if (key == SDL_SCANCODE_UNKNOWN) {
+							break;
+						}
+
+						cgi.BindKey(key, NULL);
 					}
-
-					cgi.BindKey(key, NULL);
+				} else {
+					cgi.BindKey(key, this->bind);
 				}
-			} else {
-				cgi.BindKey(key, this->bind);
-			}
 
-			if (this->textView.delegate.didEndEditing) {
-				this->textView.delegate.didEndEditing(&this->textView);
+				if (this->textView.delegate.didEndEditing) {
+					this->textView.delegate.didEndEditing(&this->textView);
+				}
 			}
 
 			self->state &= ~ControlStateFocused;

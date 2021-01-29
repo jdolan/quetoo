@@ -33,6 +33,11 @@
 SDL_Surface *Img_LoadSurface(const char *name);
 
 /**
+ * @brief Rotates the specified surface clockwise by the number of rotations.
+ */
+SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
+
+/**
 * @brief Write pixel data to a PNG file.
 */
 _Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height);

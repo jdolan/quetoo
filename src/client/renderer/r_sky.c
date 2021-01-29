@@ -31,19 +31,16 @@
 /**
  * @brief
  */
-typedef struct {
-	vec3_t position;
-	vec2_t diffusemap;
-} r_sky_vertex_t;
-
-/**
- * @brief
- */
 static struct {
-	r_image_t *images[6];
+	/**
+	 * @brief The sky cubemap.
+	 */
+	r_image_t *image;
 
-	GLuint vertex_buffer;
-	GLuint vertex_array;
+	/**
+	 * @brief The sky matrix, which includes Quake rotation, but not view rotation.
+	 */
+	mat4_t cubemap_matrix;
 } r_sky;
 
 /**
@@ -55,59 +52,66 @@ static struct {
 	GLuint uniforms_block;
 
 	GLint in_position;
-	GLint in_diffusemap;
 
-	GLint texture_diffusemap;
+	GLint texture_cubemap;
 	GLint texture_lightgrid_fog;
+
+	GLint cube;
 } r_sky_program;
 
 /**
  * @brief
  */
-void R_DrawSky(void) {
+void R_DrawSky(const r_view_t *view) {
+
+	if (!r_world_model->bsp->sky) {
+		return;
+	}
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
 	glUseProgram(r_sky_program.name);
 
+	Matrix4x4_CreateIdentity(&r_sky.cubemap_matrix);
+
+	Matrix4x4_ConcatScale3(&r_sky.cubemap_matrix, -1.f, 1.f, 1.f); // put Z going up
+
+	Matrix4x4_ConcatTranslate(&r_sky.cubemap_matrix, -view->origin.x, -view->origin.y, -view->origin.z);
+
+	glUniformMatrix4fv(r_sky_program.cube, 1, GL_FALSE, (GLfloat *) r_sky.cubemap_matrix.m);
+
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
-	glBindVertexArray(r_sky.vertex_array);
-	glBindBuffer(GL_ARRAY_BUFFER, r_sky.vertex_buffer);
+	glBindVertexArray(r_world_model->bsp->vertex_array);
+
+	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
 
 	glEnableVertexAttribArray(r_sky_program.in_position);
-	glEnableVertexAttribArray(r_sky_program.in_diffusemap);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
 	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, r_sky.image->texnum);
+
+	const r_bsp_draw_elements_t *sky = r_world_model->bsp->sky;
+	glDrawElements(GL_TRIANGLES, sky->num_elements, GL_UNSIGNED_INT, sky->elements);
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
-	glBindTexture(GL_TEXTURE_2D, r_sky.images[4]->texnum);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-	glBindTexture(GL_TEXTURE_2D, r_sky.images[5]->texnum);
-	glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
-
-	glBindTexture(GL_TEXTURE_2D, r_sky.images[0]->texnum);
-	glDrawArrays(GL_TRIANGLE_FAN, 8, 4);
-
-	glBindTexture(GL_TEXTURE_2D, r_sky.images[2]->texnum);
-	glDrawArrays(GL_TRIANGLE_FAN, 12, 4);
-
-	glBindTexture(GL_TEXTURE_2D, r_sky.images[1]->texnum);
-	glDrawArrays(GL_TRIANGLE_FAN, 16, 4);
-
-	glBindTexture(GL_TEXTURE_2D, r_sky.images[3]->texnum);
-	glDrawArrays(GL_TRIANGLE_FAN, 20, 4);
-
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 
 	glUseProgram(0);
 
+	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -128,12 +132,13 @@ static void R_InitSkyProgram(void) {
 	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
 
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
-	r_sky_program.in_diffusemap = glGetAttribLocation(r_sky_program.name, "in_diffusemap");
 
-	r_sky_program.texture_diffusemap = glGetUniformLocation(r_sky_program.name, "texture_diffusemap");
+	r_sky_program.texture_cubemap = glGetUniformLocation(r_sky_program.name, "texture_cubemap");
 	r_sky_program.texture_lightgrid_fog = glGetUniformLocation(r_sky_program.name, "texture_lightgrid_fog");
 
-	glUniform1i(r_sky_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+	r_sky_program.cube = glGetUniformLocation(r_sky_program.name, "cube");
+
+	glUniform1i(r_sky_program.texture_cubemap, TEXTURE_SKY);
 	glUniform1i(r_sky_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 
 	glUseProgram(0);
@@ -147,131 +152,6 @@ static void R_InitSkyProgram(void) {
 void R_InitSky(void) {
 
 	memset(&r_sky, 0, sizeof(r_sky));
-
-	const r_sky_vertex_t vertexes[] = {
-		// +z (top)
-		{
-			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
-		},
-
-		// -z (bottom)
-		{
-			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
-		},
-		{
-			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
-		},
-
-		// +x (right)
-		{
-			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
-		},
-
-		// -x (left)
-		{
-			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
-		},
-		{
-			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
-		},
-
-		// +y (back)
-		{
-			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(-SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
-		},
-
-		// -y (front)
-		{
-			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MIN)
-		},
-		{
-			.position = Vec3(-SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MAX, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MAX)
-		},
-		{
-			.position = Vec3(SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE),
-			.diffusemap = Vec2(SKY_ST_MIN, SKY_ST_MIN)
-
-		},
-	};
-
-	glGenVertexArrays(1, &r_sky.vertex_array);
-	glBindVertexArray(r_sky.vertex_array);
-
-	glGenBuffers(1, &r_sky.vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, r_sky.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, lengthof(vertexes) * sizeof(r_sky_vertex_t), vertexes, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sky_vertex_t), (void *) offsetof(r_sky_vertex_t, position));
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sky_vertex_t), (void *) offsetof(r_sky_vertex_t, diffusemap));
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
-	glBindVertexArray(0);
 
 	R_InitSkyProgram();
 }
@@ -291,28 +171,34 @@ static void R_ShutdownSkyProgram(void) {
  */
 void R_ShutdownSky(void) {
 
-	glDeleteVertexArrays(1, &r_sky.vertex_array);
-
-	glDeleteBuffers(1, &r_sky.vertex_buffer);
-
 	R_ShutdownSkyProgram();
 }
 
 /**
  * @brief Sets the sky to the specified environment map.
+ * @param name The skybox cubemap name, e.g. `"edge/dragonheart"`.
  */
 void R_LoadSky(const char *name) {
-	const char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
-	r_image_t **out = r_sky.images;
-	for (size_t i = 0; i < lengthof(suf); i++, out++) {
-		char path[MAX_QPATH];
+	if (!r_world_model->bsp->sky) {
+		r_sky.image = NULL;
+		return;
+	}
 
-		g_snprintf(path, sizeof(path), "env/%s%s", name, suf[i]);
-		*out = R_LoadImage(path, IT_MATERIAL);
+	if (name && *name) {
+		r_sky.image = R_LoadImage(va("sky/%s", name), IT_CUBEMAP);
+	} else {
+		r_sky.image = NULL;
+	}
 
-		if (*out == NULL) {
-			*out = R_LoadImage("textures/common/notex", IT_MATERIAL);
+	if (r_sky.image == NULL) {
+
+		Com_Warn("Failed to load sky sky/%s\n", name);
+
+		r_sky.image = R_LoadImage("sky/template", IT_CUBEMAP);
+		if (r_sky.image == NULL) {
+
+			Com_Error(ERROR_DROP, "Failed to load default sky\n");
 		}
 	}
 }

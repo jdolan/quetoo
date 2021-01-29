@@ -65,12 +65,12 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 	// resolve the leaf for the point just in front of the surface
 
 	vec3_t center = Vec3_Mix(face->mins, face->maxs, .5f);
-	center = Vec3_Add(center, Vec3_Scale(face->plane->cm->normal, 1.f));
+	center = Vec3_Add(center, face->plane->cm->normal);
 
 	e->face = face;
 
 	// resolve the number of origins based on surface area
-	e->num_origins = Vec3_Length(Vec3_Subtract(face->maxs, face->mins)) / 32.f;
+	e->num_origins = Vec3_Length(Vec3_Subtract(face->maxs, face->mins)) / 16.f;
 	e->num_origins = Clampf(e->num_origins, 1, 128);
 
 	e->origins = cgi.Malloc(sizeof(vec4_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
@@ -168,24 +168,26 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			s = Cg_AddSprite(&(cg_sprite_t) {
 				.origin = sprite_origin,
 				.atlas_image = cg_sprite_rain,
-				.color = Vec4(0.f, 0.f, .87f, .8f),
-				.end_color = Vec4(0.f, 0.f, .87f, .0f),
-				.size = 8.f,
-				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 600.f)),
-				.acceleration = Vec3_RandomRange(-2.f, 2.f),
+				.color = Vec4(0.f, 0.f, 0.1f, 0.f),
+				.end_color = Vec4(0.f, 0.f, 0.0f, 0.f),
+				.size = 128.f,
+				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f)),
 				.flags = SPRITE_NO_BLEND_DEPTH,
-				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
+				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
+				.softness = 5.f,
+				.lifetime = 500.f
 			});
 		} else {
 			s = Cg_AddSprite(&(cg_sprite_t) {
 				.origin = sprite_origin,
 				.atlas_image = cg_sprite_snow,
-				.color = Vec4(0.f, 0.f, .87f, .4f),
-				.end_color = Vec4(0.f, 0.f, .87f, .0f),
-				.size = 8.f,
+				.color = Vec4(0.f, 0.f, .33f, .33f),
+				.end_color = Vec4(0.f, 0.f, .0f, .0f),
+				.size = 4.f,
 				.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f)),
 				.acceleration = Vec3_RandomRange(-12.f, 12.f),
-				.flags = SPRITE_NO_BLEND_DEPTH
+				.flags = SPRITE_NO_BLEND_DEPTH,
+				.softness = 1.f
 			});
 		}
 
@@ -218,9 +220,10 @@ static void Cg_AddWeather(void) {
 		sample = cg_sample_snow;
 	}
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = sample,
-		 .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
+		.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+		.entity = Cg_Self()->current.number
 	});
 
 	if (cgi.client->unclamped_time - cg_weather_state.time < 100) {
@@ -243,9 +246,10 @@ static void Cg_AddWeather(void) {
 static void Cg_AddUnderwater(void) {
 
 	if (cgi.view->contents & CONTENTS_MASK_LIQUID) {
-		cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 			.sample = cg_sample_underwater,
-			 .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
+			.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+			.entity = Cg_Self()->current.number
 		});
 	}
 }

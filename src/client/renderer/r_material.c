@@ -110,14 +110,9 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 						g_strlcat(key, "players/", len);
 					}
 					break;
-				case ASSET_CONTEXT_ENVMAPS:
-					if (!g_str_has_prefix(name, "envmaps/")) {
-						g_strlcat(key, "envmaps/", len);
-					}
-					break;
-				case ASSET_CONTEXT_FLARES:
-					if (!g_str_has_prefix(name, "flares/")) {
-						g_strlcat(key, "flares/", len);
+				case ASSET_CONTEXT_SPRITES:
+					if (!g_str_has_prefix(name, "sprites/")) {
+						g_strlcat(key, "sprites/", len);
 					}
 					break;
 			}
@@ -231,6 +226,8 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), R_MEDIA_IMAGE);
 	material->texture->type = IT_MATERIAL;
+	material->texture->target = GL_TEXTURE_2D;
+	material->texture->format = GL_RGBA;
 
 	R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 
@@ -312,6 +309,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			}
 
 			material->texture->depth = 4;
+			material->texture->target = GL_TEXTURE_2D_ARRAY;
 
 			byte *data = malloc(layer_size * material->texture->depth);
 
@@ -320,17 +318,18 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			memcpy(data + 2 * layer_size, glossmap->pixels, layer_size);
 			memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
-			R_UploadImage(material->texture, GL_RGBA, data);
+			R_UploadImage(material->texture, material->texture->target, data);
 
 			free(data);
 
 			SDL_FreeSurface(normalmap);
 			SDL_FreeSurface(glossmap);
+			SDL_FreeSurface(tintmap);
 		}
 			break;
 
 		default:
-			R_UploadImage(material->texture, GL_RGBA, diffusemap->pixels);
+			R_UploadImage(material->texture, material->texture->target, diffusemap->pixels);
 			break;
 	}
 

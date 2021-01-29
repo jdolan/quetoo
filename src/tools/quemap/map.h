@@ -49,12 +49,11 @@ typedef struct plane_s {
 } plane_t;
 
 /**
- * @brief Sentinel texinfo identifier for BSP decision nodes.
- */
-#define TEXINFO_NODE -1
-
-/**
  * @brief The map file reprensetation of a brush side.
+ * @details Beyond the original sides defined in the .map file, additional brush sides
+ * may be allocated to provide axial clipping planes for all brushes. These are known as
+ * bevels. Bevels should not be used for BSP splitting and face generation. They are
+ * only used for collision detection.
  */
 typedef struct brush_side_s {
 	/**
@@ -112,18 +111,6 @@ typedef struct brush_side_s {
 	 * will point to their original brush side, to tie BSP faces back to their brushes.
 	 */
 	const struct brush_side_s *original;
-
-	/**
-	 * @brief If true, this side has been marked visible from within the map by a portal.
-	 */
-	_Bool visible;
-
-	/**
-	 * @brief Additional brush sides are allocated to provide axial clipping planes for all brushes.
-	 * Bevels should not be used for BSP splitting and face generation. They are only used for
-	 * collision detection.
-	 */
-	_Bool bevel;
 } brush_side_t;
 
 /**

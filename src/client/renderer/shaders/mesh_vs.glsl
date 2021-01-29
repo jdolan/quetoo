@@ -78,15 +78,24 @@ void main(void) {
 	vertex.diffusemap = in_diffusemap;
 	vertex.color = color;
 
-	vec3 lightgrid_uvw = lightgrid_uvw(vec3(model * position));
+	if (view_type == VIEW_PLAYER_MODEL) {
 
-	vertex.ambient = texture(texture_lightgrid_ambient, lightgrid_uvw).rgb;
-	vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
-	vertex.direction = texture(texture_lightgrid_direction, lightgrid_uvw).xyz;
-	vertex.direction = normalize((view * vec4(vertex.direction * 2.0 - 1.0, 0.0)).xyz);
+		vertex.ambient = vec3(1.0);
+		vertex.diffuse = vec3(1.0);
+		vertex.direction = vec3(0.0, 0.0, 1.0);
+		vertex.fog = vec4(0.f);
+	} else {
 
-	vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
-	lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
+		vec3 lightgrid_uvw = lightgrid_uvw(vec3(model * position));
+
+		vertex.ambient = texture(texture_lightgrid_ambient, lightgrid_uvw).rgb;
+		vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
+		vertex.direction = texture(texture_lightgrid_direction, lightgrid_uvw).xyz;
+		vertex.direction = normalize((view * vec4(vertex.direction * 2.0 - 1.0, 0.0)).xyz);
+
+		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
+		lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
+	}
 
 	gl_Position = projection3D * vec4(vertex.position, 1.0);
 

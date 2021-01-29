@@ -56,6 +56,10 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 		}
 	}
 
+	if (ent->current.spawn_id != to->spawn_id) {
+		return false;
+	}
+
 	if (ent->current.model1 != to->model1) {
 		return false;
 	}
@@ -301,9 +305,12 @@ void Cl_ParseFrame(void) {
 
 	if (cl.frame.valid) {
 
-		// getting a valid frame message ends the connection process
+		// receiving a valid server frame means that loading completed on the
+		// previous client frame; set the client to active and key dest to game
 		if (cls.state == CL_LOADING) {
 			cls.state = CL_ACTIVE;
+
+			Cl_SetKeyDest(KEY_GAME);
 		}
 
 		Cl_CheckPredictionError();
@@ -403,17 +410,6 @@ void Cl_Interpolate(void) {
 			ent->animation2.animation = ent->current.animation2 & ANIM_MASK_VALUE;
 			ent->animation2.time = cl.unclamped_time;
 			ent->animation2.reverse = ent->current.animation2 & ANIM_REVERSE_BIT;
-		}
-
-		if (ent->current.sound) {
-			cls.cgame->ParsedMessage(SV_CMD_SOUND, &(s_play_sample_t) {
-				.sample = cl.sounds[ent->current.sound],
-				.origin = ent->current.origin,
-				.entity = ent->current.number,
-				.atten = SOUND_ATTEN_SQUARE,
-				.flags = S_PLAY_LOOP | S_PLAY_FRAME
-			});
-			ent->current.sound = 0;
 		}
 
 		vec3_t angles;

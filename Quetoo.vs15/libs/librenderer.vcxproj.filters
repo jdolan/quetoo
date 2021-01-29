@@ -21,9 +21,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_entity.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_flare.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_image.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -87,10 +84,10 @@
     <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_mesh_shadow_draw.c">
+    <ClCompile Include="..\..\src\client\renderer\r_depth_pass.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_depth_pass.c">
+    <ClCompile Include="..\..\src\client\renderer\r_framebuffer.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -105,9 +102,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_entity.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_flare.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_image.h">
@@ -185,21 +179,36 @@
     <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_mesh_shadow_draw.h">
+    <ClInclude Include="..\..\src\client\renderer\r_depth_pass.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_depth_pass.h">
+    <ClInclude Include="..\..\src\client\renderer\r_framebuffer.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\src\client\renderer\shaders\lightgrid.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
     <None Include="..\..\src\client\renderer\shaders\bsp_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\bsp_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\common.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
     <None Include="..\..\src\client\renderer\shaders\common_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\common_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\depth_pass_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\depth_pass_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\draw_2d_fs.glsl">
@@ -214,6 +223,12 @@
     <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\lightgrid.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\material.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
@@ -226,37 +241,19 @@
     <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\soften_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
     <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\sprite_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\uniforms.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
     <None Include="..\..\src\client\renderer\shaders\version.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\sprite_gs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\material.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\mesh_shadow_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\draw_2d_blur_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\draw_2d_blur_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\soften_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\lights_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
   </ItemGroup>

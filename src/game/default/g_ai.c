@@ -315,7 +315,8 @@ void G_Ai_Frame(void) {
 	}
 
 	// don't run bots for a few frames so that the game has settled
-	if (g_level.frame_num <= 5) {
+	// or during intermission
+	if (g_level.frame_num <= 5 || g_level.intermission_time) {
 		return;
 	}
 

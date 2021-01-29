@@ -9,6 +9,7 @@ noinst_HEADERS = \
 	cg_entity_event.h \
 	cg_entity_misc.h \
 	cg_entity_trail.h \
+	cg_flare.h \
 	cg_hud.h \
 	cg_input.h \
 	cg_light.h \
@@ -40,6 +41,7 @@ cgame_la_SOURCES = \
 	cg_entity_event.c \
 	cg_entity_misc.c \
 	cg_entity_trail.c \
+	cg_flare.c \
 	cg_hud.c \
 	cg_input.c \
 	cg_light.c \

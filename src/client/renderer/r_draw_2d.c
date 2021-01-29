@@ -35,12 +35,18 @@ typedef struct {
 
 #define MAX_DRAW_FONTS 3
 
+typedef struct {
+	r_pixel_t x, y, w, h;
+} r_draw_2d_clipping_frame_t;
+
 /**
  * @brief glDrawArrays commands.
  */
 typedef struct {
 	GLenum mode;
 	GLuint texture;
+
+	r_draw_2d_clipping_frame_t clipping_frame;
 
 	GLint first_vertex;
 	GLsizei num_vertexes;
@@ -70,6 +76,9 @@ static struct {
 
 	// active font
 	r_font_t *font;
+
+	// active clipping frame, copied to each command
+	r_draw_2d_clipping_frame_t clipping_frame;
 
 	// the null texture
 	r_image_t *null_texture;
@@ -128,7 +137,12 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 		}
 	}
 
-	r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays] = *draw;
+	r_draw_2d_arrays_t *out = &r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays];
+
+	*out = *draw;
+
+	out->clipping_frame = r_draw_2d.clipping_frame;
+
 	r_draw_2d.num_draw_arrays++;
 }
 
@@ -218,7 +232,26 @@ void R_Draw2DChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
  * on the currently bound font. Color escapes are omitted.
  */
 r_pixel_t R_StringWidth(const char *s) {
-	return StrColorLen(s) * r_draw_2d.font->char_width;
+
+	size_t len = 0;
+
+	while (*s) {
+		if (StrIsColor(s)) {
+			s += 2;
+			continue;
+		}
+
+		if (StrIsEmoji(s)) {
+			s = EmojiEsc(s, NULL, MAX_STRING_CHARS);
+			len += 2;
+			continue;
+		}
+
+		s++;
+		len++;
+	}
+
+	return len * r_draw_2d.font->char_width;
 }
 
 /**
@@ -257,6 +290,29 @@ size_t R_Draw2DSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, 
 			c = ColorEsc(StrColor(s));
 			j += 2;
 			s += 2;
+			continue;
+		}
+
+		if (StrIsEmoji(s)) {
+
+			draw.num_vertexes = r_draw_2d.num_vertexes - draw.first_vertex;
+			R_AddDraw2DArrays(&draw);
+
+			char name[MAX_QPATH];
+			s = EmojiEsc(s, name, sizeof(name));
+
+			char path[MAX_QPATH];
+			g_snprintf(path, sizeof(path), "pics/emoji/%s", name);
+
+			const r_image_t *emoji = R_LoadImage(path, IT_PIC) ?: r_draw_2d.null_texture;
+
+			R_Draw2DImage(x, y, r_draw_2d.font->char_height, r_draw_2d.font->char_height, emoji, color_white);
+			x += r_draw_2d.font->char_height;
+
+			i += 2;
+			j += strlen(name) + 2;
+
+			draw.first_vertex = r_draw_2d.num_vertexes;
 			continue;
 		}
 
@@ -312,8 +368,24 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 /**
  * @brief
  */
+void R_SetClippingFrame(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
+
+	r_draw_2d.clipping_frame.x = x;
+	r_draw_2d.clipping_frame.y = y;
+	r_draw_2d.clipping_frame.w = w;
+	r_draw_2d.clipping_frame.h = h;
+}
+
+/**
+ * @brief
+ */
 void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color) {
 
+	if (image == NULL) {
+		Com_Warn("NULL image\n");
+		return;
+	}
+	
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_TRIANGLES,
 		.texture = image->texnum,
@@ -328,10 +400,18 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 	quad[2].position = Vec2s(x + w, y + h);
 	quad[3].position = Vec2s(x, y + h);
 
-	quad[0].diffusemap = Vec2(0, 0);
-	quad[1].diffusemap = Vec2(1, 0);
-	quad[2].diffusemap = Vec2(1, 1);
-	quad[3].diffusemap = Vec2(0, 1);
+	if (image->media.type == R_MEDIA_ATLAS_IMAGE) {
+		const vec4_t st = ((r_atlas_image_t *) image)->texcoords;
+		quad[0].diffusemap = Vec2(st.x, st.y);
+		quad[1].diffusemap = Vec2(st.z, st.y);
+		quad[2].diffusemap = Vec2(st.z, st.w);
+		quad[3].diffusemap = Vec2(st.x, st.w);
+	} else {
+		quad[0].diffusemap = Vec2(0, 0);
+		quad[1].diffusemap = Vec2(1, 0);
+		quad[2].diffusemap = Vec2(1, 1);
+		quad[3].diffusemap = Vec2(0, 1);
+	}
 
 	quad[0].color = Color_Color32(color);
 	quad[1].color = Color_Color32(color);
@@ -342,6 +422,47 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 	R_AddDraw2DArrays(&draw);
 
 	r_stats.count_draw_images++;
+}
+
+/**
+ * @brief
+ */
+void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color) {
+
+	if (framebuffer == NULL) {
+		Com_Warn("NULL framebuffer\n");
+		return;
+	}
+
+	r_draw_2d_arrays_t draw = {
+		.mode = GL_TRIANGLES,
+		.texture = framebuffer->color_attachment,
+		.first_vertex = r_draw_2d.num_vertexes,
+		.num_vertexes = 6
+	};
+
+	w = w ?: r_context.width;
+	h = h ?: r_context.height;
+
+	r_draw_2d_vertex_t quad[4];
+
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + w, y);
+	quad[2].position = Vec2s(x + w, y + h);
+	quad[3].position = Vec2s(x, y + h);
+
+	quad[0].diffusemap = Vec2(0, 1);
+	quad[1].diffusemap = Vec2(1, 1);
+	quad[2].diffusemap = Vec2(1, 0);
+	quad[3].diffusemap = Vec2(0, 0);
+
+	quad[0].color = Color_Color32(color);
+	quad[1].color = Color_Color32(color);
+	quad[2].color = Color_Color32(color);
+	quad[3].color = Color_Color32(color);
+
+	R_EmitDrawVertexes2D_Quad(quad);
+	R_AddDraw2DArrays(&draw);
 }
 
 /**
@@ -434,8 +555,20 @@ void R_Draw2D(void) {
 
 	const r_draw_2d_arrays_t *draw = r_draw_2d.draw_arrays;
 	for (int32_t i = 0; i < r_draw_2d.num_draw_arrays; i++, draw++) {
+
+		const r_draw_2d_clipping_frame_t *clip = &draw->clipping_frame;
+
+		if (clip->x || clip->y || clip->w || clip->h) {
+			glScissor(clip->x, clip->y, clip->w, clip->h);
+			glEnable(GL_SCISSOR_TEST);
+		}
+
 		glBindTexture(GL_TEXTURE_2D, draw->texture);
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
+
+		if (draw->clipping_frame.w || draw->clipping_frame.h) {
+			glDisable(GL_SCISSOR_TEST);
+		}
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

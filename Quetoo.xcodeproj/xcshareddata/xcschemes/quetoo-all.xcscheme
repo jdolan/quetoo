@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1220"
+   LastUpgradeVersion = "1240"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -86,7 +86,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_ambient_volume 0"
@@ -94,22 +94,26 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_get_error 2 +set cl_draw_sound_stats 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map lavatomb"
+            argument = "+map torn"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_cheats 1 +give all"
-            isEnabled = "YES">
+            argument = "+set g_cheats 1 +give all +no_clip"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+debug client cgame"
+            argument = "+set cl_editor 1"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+debug sound"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -297,17 +297,17 @@ typedef enum {
  */
 #define SURF_LIGHT				0x1 // value will hold the light radius
 #define SURF_SLICK				0x2 // affects game physics
-#define SURF_SKY				0x4 // don't draw, but add to skybox
+#define SURF_SKY				0x4 // skybox, cubemap that occludes
 #define SURF_LIQUID				0x8 // water, lava, slime, etc.
 #define SURF_BLEND_33			0x10 // 0.33 alpha blending
 #define SURF_BLEND_66			0x20 // 0.66 alpha blending
 #define SURF_BLEND_100			0x40 // texture-defined alpha blending
-#define SURF_NO_DRAW			0x80 // don't bother referencing the texture
+#define SURF_NO_DRAW			0x80 // caulk (backs of details, etc)
 #define SURF_HINT				0x100 // make a primary bsp splitter
 #define SURF_SKIP				0x200 // completely skip, allowing non-closed brushes
 #define SURF_ALPHA_TEST			0x400 // alpha test (grates, foliage, etc..)
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
-#define SURF_MATERIAL			0x1000 // retain the geometry, but don't draw diffuse pass
+#define SURF_MATERIAL			0x1000 // skip diffuse pass, draw material stages only
 #define SURF_DECAL				0x2000 // draw diffuse pass, but don't use for alpha blend sorting
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 
@@ -335,7 +335,7 @@ typedef enum {
 /**
  * @brief Texinfos with these flags will not emit draw elements.
  */
-#define SURF_MASK_NO_DRAW_ELEMENTS SURF_MASK_NO_LIGHTMAP
+#define SURF_MASK_NO_DRAW_ELEMENTS (SURF_NO_DRAW | SURF_HINT)
 
 /**
  * @brief The absolute world bounds is +/- 4096. This is the largest box we can

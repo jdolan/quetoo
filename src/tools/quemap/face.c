@@ -452,7 +452,7 @@ void PhongVertex(int32_t vertex_num) {
 				const plane_t *plane = &planes[(*pf)->plane_num];
 
 				cm_winding_t *w = Cm_WindingForFace(&bsp_file, *pf);
-				v->normal = Vec3_Add(v->normal, Vec3_Scale(plane->normal, Cm_WindingArea(w)));
+				v->normal = Vec3_Fmaf(v->normal, Cm_WindingArea(w), plane->normal);
 				Cm_FreeWinding(w);
 			}
 

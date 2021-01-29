@@ -107,12 +107,11 @@ cg_sprite_t *Cg_FreeSprite(cg_sprite_t *s) {
 	Cg_PushSprite(s, &cg_free_sprites);
 
 	if (s->data && !(s->flags & SPRITE_DATA_NOFREE)) {
-
 		cgi.Free(s->data);
 		s->data = NULL;
 	}
 
-	return next;
+	return next; 
 }
 
 /**
@@ -140,25 +139,47 @@ void Cg_AddSprites(void) {
 	}
 
 	const float delta = MILLIS_TO_SECONDS(cgi.client->frame_msec);
+	const uint32_t client_time = cgi.client->unclamped_time, server_time = cgi.client->frame.time;
 
 	cg_sprite_t *s = cg_active_sprites;
 	while (s) {
 
-		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? cgi.client->frame.time : cgi.client->unclamped_time;
-
 		assert(s->media);
 
+		const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? server_time : client_time;
+
+		const float life = (time - s->time) / (float) (s->lifetime ?: 1);
+
+		if (s->Think) {
+			s->Think(s, life, delta);
+		}
+
 		if (s->time != time) {
-			if (time - s->time > s->lifetime) {
+			if (life >= 1.f) {
 				s = Cg_FreeSprite(s);
 				continue;
 			}
 		}
 
-		const uint32_t elapsed_time = (time - s->time);
-		float life = elapsed_time / (float) (s->lifetime ?: 1);
-		if (s->life_easing) {
-			life = s->life_easing(life);
+		cl_entity_t *entity = NULL;
+		if (s->flags & SPRITE_FOLLOW_ENTITY) {
+			entity = &cgi.client->entities[s->entity.entity_id];
+
+			if (entity->frame_num != cgi.client->frame.frame_num ||
+				entity->current.spawn_id != s->entity.spawn_id) {
+
+				if (!(s->flags & SPRITE_ENTITY_UNLINK_ON_DEATH) || entity->prev.spawn_id != s->entity.spawn_id) {
+					s = Cg_FreeSprite(s);
+					continue;
+				}
+
+				s->flags &= ~(SPRITE_FOLLOW_ENTITY | SPRITE_ENTITY_UNLINK_ON_DEATH);
+				s->origin = Vec3_Add(s->origin, entity->previous_origin);
+
+				if (s->type == SPRITE_BEAM) {
+					s->termination = Vec3_Add(s->termination, entity->previous_origin);
+				}
+			}
 		}
 
 		s->size_velocity += s->size_acceleration * delta;
@@ -180,34 +201,50 @@ void Cg_AddSprites(void) {
 			}
 		}
 
-		const vec3_t old_origin = s->origin;
+		vec3_t old_origin = s->origin;
 
-		s->velocity = Vec3_Add(s->velocity, Vec3_Scale(s->acceleration, delta));
-		s->origin = Vec3_Add(s->origin, Vec3_Scale(s->velocity, delta));
+		s->velocity = Vec3_Fmaf(s->velocity, delta, s->acceleration);
+		s->origin = Vec3_Fmaf(s->origin, delta, s->velocity);
 
 		if (s->bounce && cg_particle_quality->integer) {
+			vec3_t origin = s->origin;
+
+			if (s->flags & SPRITE_FOLLOW_ENTITY) {
+				old_origin = Vec3_Add(old_origin, entity->origin);
+				origin = Vec3_Add(origin, entity->origin);
+			}
+
 			const float half_size = ceilf((s->size ?: max(s->height, s->width)) * .5f);
-			cm_trace_t tr = cgi.Trace(old_origin, s->origin, Vec3(-half_size, -half_size, -half_size), Vec3(half_size, half_size, half_size), 0, CONTENTS_MASK_SOLID);
+			cm_trace_t tr = cgi.Trace(old_origin, origin, Vec3(-half_size, -half_size, -half_size), Vec3(half_size, half_size, half_size), 0, CONTENTS_MASK_SOLID);
 
 			if (tr.start_solid || tr.all_solid) {
-				tr = cgi.Trace(old_origin, s->origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
+				tr = cgi.Trace(old_origin, origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
 			}
 
 			if (tr.fraction < 1.0) {
 				s->velocity = Vec3_Scale(Vec3_Reflect(s->velocity, tr.plane.normal), s->bounce);
 				s->origin = tr.end;
+				
+				if (s->flags & SPRITE_FOLLOW_ENTITY) {
+					s->origin = Vec3_Subtract(s->origin, entity->origin);
+				}
 			}
 		}
 
 		const vec4_t c = Vec4_Mix(s->color, s->end_color, life);
 		const color32_t color = Color_Color32(ColorHSVA(c.x, c.y, c.z, c.w));
+		vec3_t origin = s->origin;
+
+		if (s->flags & SPRITE_FOLLOW_ENTITY) {
+			origin = Vec3_Add(origin, entity->origin);
+		}
 
 		switch (s->type) {
 			case SPRITE_NORMAL:
 				s->rotation += s->rotation_velocity * delta;
 
 				cgi.AddSprite(cgi.view, &(r_sprite_t) {
-					.origin = s->origin,
+					.origin = origin,
 					.size = s->size,
 					.width = s->width,
 					.height = s->height,
@@ -217,27 +254,34 @@ void Cg_AddSprites(void) {
 					.life = life,
 					.flags = (r_sprite_flags_t)s->flags,
 					.dir = s->dir,
-					.axis = s->axis
+					.axis = s->axis,
+					.softness = s->softness,
+					.lighting = s->lighting
 				});
 				break;
-			case SPRITE_BEAM:
+			case SPRITE_BEAM: {
 				if (!(s->flags & SPRITE_BEAM_VELOCITY_NO_END)) {
-					s->termination = Vec3_Add(s->termination, Vec3_Scale(s->velocity, delta));
+					s->termination = Vec3_Fmaf(s->termination, delta, s->velocity);
+				}
+
+				vec3_t termination = s->termination;
+
+				if (s->flags & SPRITE_FOLLOW_ENTITY) {
+					termination = Vec3_Add(termination, entity->origin);
 				}
 
 				cgi.AddBeam(cgi.view, &(r_beam_t) {
-					.start = s->origin,
-					.end = s->termination,
+					.start = origin,
+					.end = termination,
 					.size = s->size,
 					.image = (r_image_t *) s->image,
 					.color = color,
-					.flags = s->flags
+					.flags = s->flags,
+					.softness = s->softness,
+					.lighting = s->lighting,
 				});
 				break;
-		}
-		
-		if (s->think) {
-			s->think(s, life, delta);
+			}
 		}
 		
 		s = s->next;

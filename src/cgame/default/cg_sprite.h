@@ -25,6 +25,8 @@
 
 #define SPRITE_GRAVITY 180.f
 
+typedef struct cg_sprite_s cg_sprite_t;
+
 /**
  * @brief Sprite types.
  */
@@ -35,44 +37,73 @@ typedef enum {
 	SPRITE_NORMAL	= 0,
 
 	/**
-	 * @brief A beam.
+	 * @brief A beam, or segmented sprite with origin and termination points.
 	 */
-	SPRITE_BEAM		= 1
+	SPRITE_BEAM		= 1,
+	
 } cg_sprite_type_t;
 
-typedef float (*cg_easing_function_t) (float life);
-
-typedef struct cg_sprite_s cg_sprite_t;
-
-typedef void (*cg_sprite_think_t) (cg_sprite_t *sprite, float life, float delta);
-
+/**
+ * @brief Sprite think function type.
+ */
+typedef void (*Cg_SpriteThink)(cg_sprite_t *sprite, float life, float delta);
 
 /**
- * @brief CGame-specific sprite flags
+ * @brief CGame-specific sprite flags.
  */
 enum {
 	/**
-	 * @brief Beam's velocity does not affect the end point
+	 * @brief Beam's velocity does not affect the end point.
 	 */
 	SPRITE_BEAM_VELOCITY_NO_END = SPRITE_CGAME,
 
 	/**
-	 * @brief Life time is calculated based on server time rather than client time
+	 * @brief Life time is calculated based on server time rather than client time.
 	 */
 	SPRITE_SERVER_TIME = SPRITE_CGAME << 1,
 
 	/**
-	 * @brief Data is not heap-allocated, so don't free
+	 * @brief Data is not heap-allocated, so don't free.
 	 */
-	SPRITE_DATA_NOFREE = SPRITE_CGAME << 2
+	SPRITE_DATA_NOFREE = SPRITE_CGAME << 2,
+
+	/**
+	 * @brief Sprite is relative to entity ID specified in the structure.
+	 */
+	SPRITE_FOLLOW_ENTITY = SPRITE_CGAME << 3,
+
+	/**
+	 * @brief Rather than despawning, the sprite will "unlink" from its entity when it dies
+	 */
+	SPRITE_ENTITY_UNLINK_ON_DEATH = SPRITE_CGAME << 4
 };
 
 typedef uint32_t cg_r_sprite_flags_t;
 
 /**
+ * @brief Type-safe mapping to entity & spawn ID
+ */
+typedef struct {
+	uint16_t entity_id;
+	uint8_t spawn_id;
+} cg_sprite_entity_t;
+
+/**
+ * @brief Convenience function to get a `cg_sprite_entity_t` from a `cl_entity_t`
+ * @param ent The entity to get a sprite entity for
+ * @return The sprite entity
+ */
+static inline cg_sprite_entity_t Cg_GetSpriteEntity(const cl_entity_t *ent) {
+	return (cg_sprite_entity_t) {
+		.entity_id = ent->current.number,
+		.spawn_id = ent->current.spawn_id
+	};
+}
+
+/**
  * @brief Client game sprites can persist over multiple frames.
  */
-typedef struct cg_sprite_s {
+struct cg_sprite_s {
 	/**
 	 * @brief Type of sprite.
 	 */
@@ -99,7 +130,7 @@ typedef struct cg_sprite_s {
 	vec3_t acceleration;
 
 	/**
-	 * @brief The sprite rotation.
+	 * @brief The sprite rotation, in radians.
 	 */
 	float rotation;
 
@@ -172,14 +203,9 @@ typedef struct cg_sprite_s {
 	uint32_t timestamp;
 
 	/**
-	 * @brief Easing function for life time.
+	 * @brief Think function for custom logic.
 	 */
-	cg_easing_function_t life_easing;
-
-	/**
-	 * @brief Think function for particle.
-	 */
-	cg_sprite_think_t think;
+	Cg_SpriteThink Think;
 
 	/**
 	 * @brief Custom data allocated on a sprite. Automatically freed unless
@@ -206,10 +232,25 @@ typedef struct cg_sprite_s {
 	 * @brief Sprite billboard axis.
 	 */
 	r_sprite_billboard_axis_t axis;
+	
+	/**
+	 * @brief Sprite softness scalar. Negative values invert the scalar.
+	 */
+	float softness;
+
+	/**
+	 * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
+	 */
+	float lighting;
+
+	/**
+	 * @brief Entity to follow, for SPRITE_FOLLOW_ENTITY. Use Cg_GetSpriteEntity.
+	 */
+	cg_sprite_entity_t entity;
 
 	cg_sprite_t *prev;
 	cg_sprite_t *next;
-} cg_sprite_t;
+};
 
 /**
  * @brief Calculate a lifetime value that causes the animation to run at a specified framerate.

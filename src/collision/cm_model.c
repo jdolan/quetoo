@@ -168,7 +168,7 @@ static void Cm_LoadBspBrushSides(void) {
 
 		out->plane = &cm_bsp.planes[p];
 
-		if (in->texinfo == -1) {
+		if (in->texinfo < 0) {
 			out->texinfo = &null_texinfo;
 		} else {
 			if (in->texinfo >= cm_bsp.file.num_texinfo) {
@@ -197,7 +197,6 @@ static void Cm_LoadBspBrushes(void) {
 		out->contents = in->contents;
 		out->sides = cm_bsp.brush_sides + in->first_brush_side;
 		out->num_sides = in->num_sides;
-		out->num_original_sides = in->num_original_sides;
 		out->mins = in->mins;
 		out->maxs = in->maxs;
 	}

@@ -74,6 +74,64 @@ SDL_Surface *Img_LoadSurface(const char *name) {
 	return NULL;
 }
 
+// Quick access of a pixel
+#define SDL_PIXEL_AT(surf, type, x, y) \
+	*(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * surf->format->BytesPerPixel)
+
+// helper macro which copies an SDL pixel from one surf to another
+#define SDL_COPY_PIXEL(from, to, type, src_x, src_y, dst_x, dst_y) \
+		SDL_PIXEL_AT(to, type, dst_x, dst_y) = SDL_PIXEL_AT(from, type, src_x, src_y)
+
+/**
+ * @brief Rotate an SDL surface counter-clockwise by the number of rotations specified.
+ * @param surf Surface to rotate. It is not modified.
+ * @param num_rotations Number of 90-degree rotations to rotate by.
+ * @return Either a reference to "surf" if the surface was not rotated, or a new surface.
+*/
+SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
+
+	num_rotations %= 4;
+
+	if (!num_rotations) {
+		return surf;
+	}
+
+	if (surf->w != surf->h) {
+		Com_Error(ERROR_FATAL, "Only works on square images :(");
+	}
+
+	SDL_LockSurface(surf);
+
+	SDL_Surface *output = SDL_CreateRGBSurfaceWithFormat(0, surf->w, surf->h, surf->format->BitsPerPixel, surf->format->format);
+
+	SDL_LockSurface(output);
+
+	switch (num_rotations) {
+	case 1:
+		for (int32_t y = 0; y < surf->h; y++)
+			for (int32_t x = 0; x < surf->w; x++)
+				SDL_COPY_PIXEL(surf, output, int32_t, surf->w - y - 1, x, x, y);
+		break;
+	case 2:
+		for (int32_t y = 0; y < surf->h; y++)
+			for (int32_t x = 0; x < surf->w; x++)
+				SDL_COPY_PIXEL(surf, output, int32_t, surf->w - x - 1, surf->h - y - 1, x, y);
+		break;
+	case 3:
+		for (int32_t y = 0; y < surf->h; y++)
+			for (int32_t x = 0; x < surf->w; x++)
+				SDL_COPY_PIXEL(surf, output, int32_t, y, surf->h - x - 1, x, y);
+		break;
+	}
+
+	SDL_UnlockSurface(output);
+
+	SDL_UnlockSurface(surf);
+
+	return output;
+}
+
+
 /**
 * @brief Write pixel data to a PNG file.
 */

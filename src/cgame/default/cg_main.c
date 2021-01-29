@@ -23,7 +23,10 @@
 
 cg_state_t cg_state;
 
+cvar_t *cg_add_atmospheric;
 cvar_t *cg_add_entities;
+cvar_t *cg_add_entity_shadows;
+cvar_t *cg_add_flares;
 cvar_t *cg_add_lights;
 cvar_t *cg_add_sprites;
 cvar_t *cg_add_weather;
@@ -110,10 +113,13 @@ static void Cg_Init(void) {
 
 	Cg_InitInput();
 
+	cg_add_atmospheric = cgi.AddCvar("cg_add_atmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
 	cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
+	cg_add_entity_shadows = cgi.AddCvar("cg_add_entity_shadows", "1", CVAR_ARCHIVE, "Toggles adding mesh entity shadows to the scene.");
+	cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
 	cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
 	cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
-	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE, "Control the intensity of atmospheric effects.");
+	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
 
 	cg_auto_switch = cgi.AddCvar("auto_switch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
 				 "The weapon pickup auto-switch method. 0 disables, 1 switches from Blaster only,"
@@ -283,6 +289,8 @@ static void Cg_Shutdown(void) {
 
 	cgi.Print("Client game module shutdown...\n");
 
+	Cg_FreeMedia();
+
 	Cg_ShutdownUi();
 
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
@@ -362,7 +370,7 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
 
 	switch (cmd) {
 		case SV_CMD_CONFIG_STRING:
-			Cg_UpdateConfigString((int32_t) data);
+			Cg_UpdateConfigString((int32_t) (intptr_t) data);
 			break;
 		case SV_CMD_SOUND:
 			Cg_AddSample(cgi.stage, (s_play_sample_t *) data);
@@ -446,6 +454,8 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
 	Cg_AddEffects();
 
+	Cg_AddFlares();
+
 	Cg_AddSprites();
 
 	Cg_AddLights();
@@ -477,7 +487,8 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.ClearState = Cg_ClearState;
 	cge.Look = Cg_Look;
 	cge.Move = Cg_Move;
-	cge.UpdateMedia = Cg_UpdateMedia;
+	cge.LoadMedia = Cg_LoadMedia;
+	cge.FreeMedia = Cg_FreeMedia;
 	cge.ParsedMessage = Cg_ParsedMessage;
 	cge.ParseMessage = Cg_ParseMessage;
 	cge.Interpolate = Cg_Interpolate;

@@ -19,19 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-layout (location = 0) in vec2 in_position;
-layout (location = 1) in vec2 in_diffusemap;
+#pragma once
 
-out vertex_data {
-	vec2 diffusemap;
-} vertex;
+#include "cg_types.h"
 
-/**
- * @brief
- */
-void main(void) {
-
-	gl_Position = projection2D_FBO * vec4(in_position, 0.0, 1.0);
-
-	vertex.diffusemap = in_diffusemap;
-}
+#ifdef __CG_LOCAL_H__
+void Cg_AddFlares(void);
+void Cg_LoadFlares(void);
+void Cg_FreeFlares(void);
+#endif /* __CG_LOCAL_H__ */

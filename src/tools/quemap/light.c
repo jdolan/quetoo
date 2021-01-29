@@ -26,6 +26,7 @@ static GArray *lights = NULL;
 
 GPtrArray *node_lights[MAX_BSP_NODES];
 GPtrArray *leaf_lights[MAX_BSP_LEAFS];
+GPtrArray *unattenuated_lights;
 
 /**
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
@@ -229,7 +230,7 @@ static void LightForPatch(const patch_t *patch) {
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
 	light.size = sqrtf(Cm_WindingArea(patch->winding));
 	light.origin = Cm_WindingCenter(patch->winding);
-	light.origin = Vec3_Add(light.origin, Vec3_Scale(plane->normal, 4.0));
+	light.origin = Vec3_Fmaf(light.origin, 4.f, plane->normal);
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;
@@ -244,6 +245,7 @@ static void LightForPatch(const patch_t *patch) {
 	}
 
 	light.radius = (texinfo->value ?: DEFAULT_LIGHT) * lightscale_patch;
+	light.face = patch->face;
 
 	g_array_append_val(lights, light);
 }
@@ -273,6 +275,9 @@ void FreeLights(void) {
 			leaf_lights[i] = NULL;
 		}
 	}
+
+	g_ptr_array_free(unattenuated_lights, true);
+	unattenuated_lights = NULL;
 }
 
 /**
@@ -290,8 +295,8 @@ static GPtrArray *BoxLights(const vec3_t box_mins, const vec3_t box_maxs) {
 									   light->radius + light->size * .5f,
 									   light->radius + light->size * .5f);
 
-			const vec3_t mins = Vec3_Add(light->origin, Vec3_Scale(radius, -1.f));
-			const vec3_t maxs = Vec3_Add(light->origin, Vec3_Scale(radius,  1.f));
+			const vec3_t mins = Vec3_Subtract(light->origin, radius);
+			const vec3_t maxs = Vec3_Add(light->origin, radius);
 
 			if (!Vec3_BoxIntersect(box_mins, box_maxs, mins, maxs)) {
 				continue;
@@ -329,6 +334,16 @@ static void HashLights(void) {
 		}
 
 		leaf_lights[i] = BoxLights(leaf->mins, leaf->maxs);
+	}
+
+	unattenuated_lights = g_ptr_array_new();
+
+	for (guint i = 0; i < lights->len; i++) {
+		light_t *light = &g_array_index(lights, light_t, i);
+
+		if (light->atten == LIGHT_ATTEN_NONE) {
+			g_ptr_array_add(unattenuated_lights, light);
+		}
 	}
 }
 
@@ -375,7 +390,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
 	light.size = sqrtf(Cm_WindingArea(patch->winding));
 	light.origin = Cm_WindingCenter(patch->winding);
-	light.origin = Vec3_Add(light.origin, Vec3_Scale(lm->plane->normal, 4.0));
+	light.origin = Vec3_Fmaf(light.origin, 4.f, lm->plane->normal);
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;
@@ -429,6 +444,8 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	const vec3_t diffuse = GetTextureColor(lm->texinfo->texture);
 	light.color = Vec3_Multiply(lightmap, diffuse);
+
+	light.face = patch->face;
 
 	g_array_append_val(lights, light);
 }

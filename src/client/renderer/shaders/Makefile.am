@@ -8,8 +8,6 @@ shaders_DATA = \
 	common_vs.glsl \
 	depth_pass_fs.glsl \
 	depth_pass_vs.glsl \
-	draw_2d_blur_fs.glsl \
-	draw_2d_blur_vs.glsl \
 	draw_2d_fs.glsl \
 	draw_2d_vs.glsl \
 	draw_3d_fs.glsl \
@@ -18,8 +16,6 @@ shaders_DATA = \
 	material.glsl \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
-	mesh_shadow_fs.glsl \
-	mesh_shadow_vs.glsl \
 	sky_fs.glsl \
 	sky_vs.glsl \
 	soften_fs.glsl \

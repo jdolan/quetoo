@@ -47,7 +47,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 	const float fwd = ceilf(len1 - len0);
 
 	Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
-	ent->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(forward, fwd));
+	ent->s.origin = Vec3_Fmaf(ent->s.origin, fwd, forward);
 	
 	if (!g_strcmp0(ent->class_name, "info_player_intermission")) {
 		G_Ai_DropItemLikeNode(ent);
@@ -61,30 +61,30 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 
 	// resolve the projectile destination
 	const vec3_t start = Vec3_Add(ent->s.origin, ent->client->ps.pm_state.view_offset);
-	const vec3_t end = Vec3_Add(start, Vec3_Scale(ent->client->locals.forward, MAX_WORLD_DIST));
+	const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, ent->client->locals.forward);
 	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	// resolve the projectile origin
 	vec3_t ent_forward, ent_right, ent_up;
 	Vec3_Vectors(ent->client->locals.angles, &ent_forward, &ent_right, &ent_up);
 
-	*org = Vec3_Add(start, Vec3_Scale(ent_forward, 12.0));
+	*org = Vec3_Fmaf(start, 12.f, ent_forward);
 
 	switch (ent->client->locals.persistent.hand) {
 		case HAND_RIGHT:
-			*org = Vec3_Add(*org, Vec3_Scale(ent_right, 6.0 * hand));
+			*org = Vec3_Fmaf(*org, 6.f * hand, ent_right);
 			break;
 		case HAND_LEFT:
-			*org = Vec3_Add(*org, Vec3_Scale(ent_right, -6.0 * hand));
+			*org = Vec3_Fmaf(*org, -6.f * hand, ent_right);
 			break;
 		default:
 			break;
 	}
 
 	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
-		*org = Vec3_Add(*org, Vec3_Scale(ent_up, -6.0));
+		*org = Vec3_Fmaf(*org, -6.f, ent_up);
 	} else {
-		*org = Vec3_Add(*org, Vec3_Scale(ent_up, -12.0));
+		*org = Vec3_Fmaf(*org, -12.f, ent_up);
 	}
 
 	// if the projected origin is invalid, use the entity's origin
@@ -366,7 +366,7 @@ void G_ClearEntity(g_entity_t *ent) {
  * that need to be there for entity system to work (number, etc) and marks it as in_use.
  */
 void G_InitEntity(g_entity_t *ent, const char *class_name) {
-	static uint32_t g_spawn_id;
+	static uint8_t g_spawn_id;
 
 	G_ClearEntity(ent);
 
@@ -376,7 +376,7 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 	ent->locals.water_level = WATER_UNKNOWN;
 	ent->locals.timestamp = g_level.time;
 	ent->s.number = ent - g_game.entities;
-	ent->spawn_id = g_spawn_id++;
+	ent->s.spawn_id = g_spawn_id++;
 }
 
 /**
@@ -552,7 +552,7 @@ g_team_t *G_TeamByName(const char *c) {
 
 	for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-		if (!StrColorCmp(g_teamlist[i].name, c)) {
+		if (!StrStripCmp(g_teamlist[i].name, c)) {
 			return &g_teamlist[i];
 		}
 	}

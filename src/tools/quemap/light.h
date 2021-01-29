@@ -94,10 +94,15 @@ typedef struct {
 	 */
 	float size;
 
+	/**
+	 * @brief The light source face for indirect lights.
+	 */
+	const bsp_face_t *face;
 } light_t;
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];
 extern GPtrArray *leaf_lights[MAX_BSP_LEAFS];
+extern GPtrArray *unattenuated_lights;
 
 float ColorNormalize(const vec3_t in, vec3_t *out);
 vec3_t ColorFilter(const vec3_t in);

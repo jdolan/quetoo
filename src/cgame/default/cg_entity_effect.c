@@ -38,13 +38,13 @@ vec3_t Cg_ResolveEffectHSV(const float hue, const float default_hue) {
 /**
  * @brief Resolve a client hue from the entity index given in the effect
  */
-vec3_t Cg_ResolveEntityEffectHSV(const uint8_t index, const float default_hue) {
+vec3_t Cg_ResolveEntityEffectHSV(const uint8_t client, const float default_hue) {
 
-	if (index >= MAX_CLIENTS) {
+	if (client >= MAX_CLIENTS) {
 		return Vec3(default_hue, 1.f, 1.f);
 	}
 
-	return Cg_ResolveEffectHSV(cgi.client->client_info[index].hue, default_hue);
+	return Cg_ResolveEffectHSV(cgi.client->client_info[client].hue, default_hue);
 }
 
 /**
@@ -60,7 +60,8 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 		.origin = Vec3_Add(org, Vec3(0.f, 0.f, 50.f)),
 		.color = Color_Color32(color_white),
 		.media = (r_media_t *) cg_sprite_inactive,
-		.size = 32.f
+		.size = 32.f,
+		.softness = 1.f
 	});
 }
 
@@ -82,22 +83,13 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		e->origin.z += cg_entity_bob->value * bob;
 	}
 
-	if (e->effects & EF_PULSE) {
-		const float pulse = (cosf(cgi.client->unclamped_time * 0.0033f + ent->current.number) + 1.f);
-		const float c = 1.f - (cg_entity_pulse->value * 0.5f * pulse);
-		e->color = Vec4(c, c, c, 1.f);
-		e->color = Vec4(1.f, 1.f, 1.f, 1.f);
-	} else {
-		e->color = Vec4(1.f, 1.f, 1.f, 1.f);
-	}
-
 	if (e->effects & EF_INACTIVE) {
 		Cg_InactiveEffect(ent, e->origin);
 	}
 
 	if (e->effects & EF_RESPAWN) {
 		const vec3_t color = Vec3(0.5f, 0.5f, 0.f);
-		e->shell = Vec3_Add(e->shell, Vec3_Scale(color, 0.5));
+		e->shell = Vec3_Fmaf(e->shell, 0.5f, color);
 	}
 
 	if (e->effects & EF_QUAD) {
@@ -109,7 +101,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 		Cg_AddLight(&l);
 
-		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
+		e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
 	}
 
 	if (e->effects & EF_CTF_MASK) {
@@ -126,7 +118,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 				Cg_AddLight(&l);
 
-				e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
+				e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
 			}
 		}
 	}
@@ -143,7 +135,9 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		}
 
 		e->effects |= (EF_BLEND | EF_NO_SHADOW);
-		e->color.w = 1.f - ((cgi.client->unclamped_time - ent->timestamp) / 3000.f);
+
+		const float fade = 1.f - ((cgi.client->unclamped_time - ent->timestamp) / 2000.f);
+		e->color = Vec4_Scale(e->color, fade);
 	}
 
 	if (e->effects & EF_LIGHT) {

@@ -106,8 +106,8 @@ typedef struct {
 #define S_PLAY_LOOP         0x2 // loop the sound continuously
 #define S_PLAY_FRAME        0x4 // cull the sound if it is not added at each frame
 #define S_PLAY_RELATIVE		0x8 // play relative to the listener origin
-#define S_PLAY_UNDERWATER	0x10
-#define S_PLAY_OCCLUDED		0x20
+#define S_PLAY_UNDERWATER	0x10 // sound is of a different liquid state than the listener: extreme low pass
+#define S_PLAY_OCCLUDED		0x20 // sound is occluded by an occluder: low pass
 
 #define TONES_PER_OCTAVE	48
 

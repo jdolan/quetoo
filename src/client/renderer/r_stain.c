@@ -106,31 +106,30 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 		return;
 	}
 
-	// project the stain onto the node's plane
-	const r_stain_t s = {
-		.origin = Vec3_Add(stain->origin, Vec3_Scale(plane->normal, -dist)),
-		.radius = stain->radius - fabsf(dist),
-		.color = stain->color
-	};
+	if (node->contents & (CONTENTS_MASK_SOLID | CONTENTS_MASK_ATMOSPHERIC)) {
 
-	const int32_t side = dist > 0.f ? 0 : 1;
+		// project the stain onto the node's plane
+		const r_stain_t s = {
+			.origin = Vec3_Fmaf(stain->origin, -dist, plane->normal),
+			.radius = stain->radius - fabsf(dist),
+			.color = stain->color
+		};
 
-	r_bsp_face_t *face = node->faces;
-	for (int32_t i = 0; i < node->num_faces; i++, face++) {
+		const int32_t side = dist > 0.f ? 0 : 1;
 
-		if (face->plane_side != side) {
-			continue;
+		r_bsp_face_t *face = node->faces;
+		for (int32_t i = 0; i < node->num_faces; i++, face++) {
+
+			if (face->plane_side != side) {
+				continue;
+			}
+
+			if (face->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+				continue;
+			}
+
+			R_StainFace(&s, face);
 		}
-
-		if (face->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
-			continue;
-		}
-
-		if (face->contents & SURF_LIQUID) {
-			continue;
-		}
-
-		R_StainFace(&s, face);
 	}
 
 	// recurse down both sides
@@ -143,6 +142,10 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
  */
 void R_AddStain(r_view_t *view, const r_stain_t *stain) {
 
+	if (!r_stains->value) {
+		return;
+	}
+	
 	if (view->num_stains == MAX_STAINS) {
 		Com_Warn("MAX_STAINS\n");
 		return;

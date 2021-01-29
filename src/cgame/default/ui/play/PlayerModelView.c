@@ -71,35 +71,6 @@ static View *init(View *self) {
 }
 
 /**
- * @brief Renders the given entity stub.
- */
-// static void renderMeshEntity(r_entity_t *e) {
-//
-// 	cgi.view->current_entity = e;
-//
-// 	cgi.SetMatrixForEntity(e);
-//
-// 	cgi.EnableBlend(false);
-//
-// 	cgi.DrawMeshModel(e);
-//
-// 	cgi.EnableBlend(true);
-// }
-
-/**
- * @brief Renders the given entity stub.
- */
-// static void renderMeshMaterialsEntity(r_entity_t *e) {
-//
-//	cgi.view->current_entity = e;
-//
-//	cgi.DrawMeshModelMaterials(e);
-// }
-
-#define NEAR_Z 1.0
-#define FAR_Z  MAX_WORLD_COORD
-
-/**
  * @see View::render(View *, Renderer *)
  */
 static void render(View *self, Renderer *renderer) {
@@ -115,94 +86,69 @@ static void render(View *self, Renderer *renderer) {
 	if (this->client.torso) {
 		$(this, animate);
 
-//		cgi.PushMatrix(R_MATRIX_PROJECTION);
-//		cgi.PushMatrix(R_MATRIX_MODELVIEW);
-//
-//		const SDL_Rect viewport = $(self, viewport);
-//		cgi.SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, false);
-//
-//		// create projection matrix
-//		const float aspect = (float) viewport.w / (float) viewport.h;
-//
-//		const float ymax = NEAR_Z * tanf(radians(40)); // Field of view
-//		const float ymin = -ymax;
-//
-//		const float xmin = ymin * aspect;
-//		const float xmax = ymax * aspect;
-//		mat4_t mat;
-//
-//		Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
-//
-//		cgi.SetMatrix(R_MATRIX_PROJECTION, &mat);
-//
-//		// create base modelview matrix
-//		Matrix4x4_CreateIdentity(&mat);
-//
-//		// Quake is retarded: rotate so that Z is up
-//		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
-//		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
-//		Matrix4x4_ConcatTranslate(&mat, 90.0 - (this->zoom * 45.0), 0.0, 20.0 - (this->zoom * 35.0));
-//
-//		Matrix4x4_ConcatRotate(&mat, -25.0 - (this->zoom * -10.0), 0.0, 1.0, 0.0);
-//
-//		Matrix4x4_ConcatRotate(&mat, sinf(radians(cgi.client->unclamped_time * 0.05)) * 10.0, 0.0, 0.0, 1.0);
-//
-//		cgi.EnableDepthTest(true);
-//		cgi.DepthRange(0.0, 0.1);
-//
-//		// Platform base; doesn't rotate
-//
-//		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
-//
-//		renderMeshEntity(&this->platformBase);
-//		renderMeshMaterialsEntity(&this->platformBase);
-//
-//		// Rotating stuff
-//
-//		Matrix4x4_ConcatRotate(&mat, this->yaw, 0.0, 0.0, 1.0);
-//
-//		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
-//
-//		renderMeshEntity(&this->legs);
-//		renderMeshEntity(&this->torso);
-//		renderMeshEntity(&this->head);
-//		renderMeshEntity(&this->weapon);
-//		renderMeshEntity(&this->platformCenter);
-//
-//		renderMeshMaterialsEntity(&this->legs);
-//		renderMeshMaterialsEntity(&this->torso);
-//		renderMeshMaterialsEntity(&this->head);
-//		renderMeshMaterialsEntity(&this->weapon);
-//		renderMeshMaterialsEntity(&this->platformCenter);
-//
-//		cgi.DepthRange(0.0, 1.0);
-//		cgi.EnableDepthTest(false);
-//
-//		cgi.SetViewport(0, 0, cgi.context->width, cgi.context->height, false);
-//
-//		cgi.PopMatrix(R_MATRIX_MODELVIEW);
-//		cgi.PopMatrix(R_MATRIX_PROJECTION);
+		memset(&this->view, 0, sizeof(this->view));
+
+		this->view.type = VIEW_PLAYER_MODEL;
+		this->view.ticks = cgi.client->ticks;
+
+		this->view.fov.x = 30.f / 2.f;
+
+		const SDL_Rect viewport = $(self, viewport);
+		this->view.viewport = Vec4(viewport.x, viewport.y, viewport.w, viewport.h);
+
+		const float x = viewport.w / tanf(Radians(30.f));
+		const float y = atan2f(viewport.w, x);
+		const float a = viewport.w / (float) viewport.h;
+
+		this->view.fov.y = Degrees(y) * a / 2.f;
+
+		this->view.origin = Vec3(196.f + (64.f * -this->zoom), 0.f, 64.f);
+
+		this->view.angles = Vec3_Euler(Vec3_Negate(this->view.origin));
+
+		Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
+
+		if (this->framebuffer.name == 0) {
+			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h);
+		}
+
+		this->view.framebuffer = &this->framebuffer;
+
+		cgi.AddEntity(&this->view, &this->platformBase);
+		cgi.AddEntity(&this->view, &this->platformCenter);
+
+		this->torso.parent = cgi.AddEntity(&this->view, &this->legs);
+		r_entity_t *torso = cgi.AddEntity(&this->view, &this->torso);
+
+		this->head.parent = torso;
+		cgi.AddEntity(&this->view, &this->head);
+
+		this->weapon.parent = torso;
+		cgi.AddEntity(&this->view, &this->weapon);
+
+		cgi.DrawPlayerModelView(&this->view);
+
+		const SDL_Rect renderFrame = $(self, renderFrame);
+		cgi.Draw2DFramebuffer(renderFrame.x, renderFrame.y, renderFrame.w, renderFrame.h, &this->framebuffer, color_white);
 	}
 }
 
 /**
- * @see View::renderDeviceDidReset(View *)
+ * @see View::renderDeviceWillReset(View *)
  */
-static void renderDeviceDidReset(View *self) {
+static void renderDeviceWillReset(View *self) {
 
-	super(View, self, renderDeviceDidReset);
+	super(View, self, renderDeviceWillReset);
 
 	PlayerModelView *this = (PlayerModelView *) self;
 
-	this->info[0] = '\0';
-
-	$(self, updateBindings);
+	cgi.DestroyFramebuffer(&this->framebuffer);
 }
 
 /**
  * @see View::updateBindings(View *)
  */
-static void updateBindings(View *self) {
+	static void updateBindings(View *self) {
 	
 	super(View, self, updateBindings);
 
@@ -210,32 +156,32 @@ static void updateBindings(View *self) {
 
 	this->animation1.frame = this->animation2.frame = -1;
 
-	char info[MAX_STRING_CHARS];
-	g_snprintf(info, sizeof(info), "newbie\\%s\\%s\\%s\\%s\\0",
+	g_snprintf(this->info, sizeof(this->info), "newbie\\%s\\%s\\%s\\%s\\0",
 			   cg_skin->string, cg_shirt->string, cg_pants->string, cg_helmet->string);
 
-	if (strcmp(this->info, info) == 0) {
-		return;
-	}
-
-	g_strlcpy(this->info, info, sizeof(this->info));
 	Cg_LoadClient(&this->client, this->info);
 
 	this->legs.model = this->client.legs;
 	this->legs.scale = 1.0;
 	this->legs.color = Vec4(1.0, 1.0, 1.0, 1.0);
+	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
 
 	this->torso.model = this->client.torso;
 	this->torso.scale = 1.0;
 	this->torso.color = Vec4(1.0, 1.0, 1.0, 1.0);
+	this->torso.tag = "tag_torso";
+	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
 
 	this->head.model = this->client.head;
 	this->head.scale = 1.0;
 	this->head.color = Vec4(1.0, 1.0, 1.0, 1.0);
+	this->head.tag = "tag_head";
+	memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
 
 	this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
 	this->weapon.scale = 1.0;
 	this->weapon.color = Vec4(1.0, 1.0, 1.0, 1.0);
+	this->weapon.tag = "tag_weapon";
 
 	this->platformBase.model = cgi.LoadModel("models/objects/platform/base/tris");
 	this->platformBase.scale = 1.0;
@@ -244,10 +190,6 @@ static void updateBindings(View *self) {
 	this->platformCenter.model = cgi.LoadModel("models/objects/platform/center/tris");
 	this->platformCenter.scale = 1.0;
 	this->platformCenter.color = Vec4(1.0, 1.0, 1.0, 1.0);
-
-	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
-	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
-	memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
 
 	this->iconView->texture = this->client.icon->texnum;
 }
@@ -277,6 +219,38 @@ static _Bool captureEvent(Control *self, const SDL_Event *event) {
 #pragma mark - PlayerModelView
 
 /**
+ * @brief Selects the next animation for the given animation.
+ */
+static entity_animation_t nextAnimation(const entity_animation_t a) {
+
+	switch (a) {
+		case ANIM_TORSO_GESTURE:
+			return ANIM_TORSO_STAND1;
+		case ANIM_TORSO_STAND1:
+			return ANIM_TORSO_DROP;
+		case ANIM_TORSO_DROP:
+			return ANIM_TORSO_RAISE;
+		case ANIM_TORSO_RAISE:
+			return ANIM_TORSO_ATTACK1;
+		case ANIM_TORSO_ATTACK1:
+			return ANIM_TORSO_STAND2;
+		case ANIM_TORSO_STAND2:
+			return ANIM_TORSO_GESTURE;
+
+		case ANIM_LEGS_WALK:
+			return ANIM_LEGS_RUN;
+		case ANIM_LEGS_RUN:
+			return ANIM_LEGS_IDLE;
+		case ANIM_LEGS_IDLE:
+			return ANIM_LEGS_WALK;
+
+		default:
+			assert(false);
+			return ANIM_LEGS_WALK;
+	}
+}
+
+/**
  * @brief Runs the animation, proceeding to the next in the sequence upon completion.
  */
 static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_entity_t *e) {
@@ -287,13 +261,14 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
 
 	const r_mesh_animation_t *anim = &model->animations[a->animation];
 
-	const int32_t frameTime = 1500 / anim->hz;
+	const int32_t frameTime = 2000.f / anim->hz;
 	const int32_t animationTime = anim->num_frames * frameTime;
-	const int32_t elapsedTime = cgi.client->unclamped_time - a->time;
+	const int32_t elapsedTime = cgi.client->ticks - a->time;
 
 	if (elapsedTime >= animationTime) {
 
-		a->time = cgi.client->unclamped_time;
+		a->animation = nextAnimation(a->animation);
+		a->time = cgi.client->ticks;
 
 		animate_(model, a, e);
 		return;
@@ -338,52 +313,31 @@ static void animate(PlayerModelView *self) {
 	self->weapon.frame = 0;
 	self->weapon.lerp = 1.0;
 
-	self->legs.origin = Vec3_Zero();
-	self->torso.origin = Vec3_Zero();
-	self->head.origin = Vec3_Zero();
-	self->weapon.origin = Vec3_Zero();
-	self->platformBase.origin = Vec3_Zero();
-	self->platformCenter.origin = Vec3_Zero();
-
-	self->legs.angles = Vec3_Zero();
-	self->torso.angles = Vec3_Zero();
-	self->head.angles = Vec3_Zero();
-	self->weapon.angles = Vec3_Zero();
-	self->platformBase.angles = Vec3_Zero();
-	self->platformCenter.angles = Vec3_Zero();
-
-	self->legs.scale = self->torso.scale = self->head.scale = 1.0;
-	self->weapon.scale = 1.0;
-	self->platformBase.scale = self->platformCenter.scale = 1.0;
+	vec4_t tints[TINT_TOTAL] = {
+		Vec4_Zero(),
+		Vec4_Zero(),
+		Vec4_Zero()
+	};
 
 	if (self->client.shirt.a) {
-		self->torso.tints[0] = Color_Vec4(self->client.shirt);
-	} else {
-		self->torso.tints[0] = Vec4_Zero();
+		tints[0] = Color_Vec4(self->client.shirt);
 	}
 
 	if (self->client.pants.a) {
-		self->legs.tints[1] = Color_Vec4(self->client.pants);
-	} else {
-		self->legs.tints[1] = Vec4_Zero();
+		tints[1] = Color_Vec4(self->client.pants);
 	}
 
 	if (self->client.helmet.a) {
-		self->head.tints[2] = Color_Vec4(self->client.helmet);
-	} else {
-		self->head.tints[2] = Vec4_Zero();
+		tints[2] = Color_Vec4(self->client.helmet);
 	}
+	
+	memcpy(self->legs.tints, tints, sizeof(tints));
+	memcpy(self->torso.tints, tints, sizeof(tints));
+	memcpy(self->head.tints, tints, sizeof(tints));
 
-	Matrix4x4_CreateFromEntity(&self->legs.matrix, self->legs.origin, self->legs.angles, self->legs.scale);
-	Matrix4x4_CreateFromEntity(&self->torso.matrix, self->torso.origin, self->torso.angles, self->torso.scale);
-	Matrix4x4_CreateFromEntity(&self->head.matrix, self->head.origin, self->head.angles, self->head.scale);
-	Matrix4x4_CreateFromEntity(&self->weapon.matrix, self->weapon.origin, self->weapon.angles, self->weapon.scale);
-	Matrix4x4_CreateFromEntity(&self->platformBase.matrix, self->platformBase.origin, self->platformBase.angles, self->platformBase.scale);
-	Matrix4x4_CreateFromEntity(&self->platformCenter.matrix, self->platformCenter.origin, self->platformCenter.angles, self->platformCenter.scale);
-
-//	Cg_ApplyMeshTag(&self->torso, &self->legs, "tag_torso");
-//	Cg_ApplyMeshTag(&self->head, &self->torso, "tag_head");
-//	Cg_ApplyMeshTag(&self->weapon, &self->torso, "tag_weapon");
+	self->legs.angles.y = self->yaw;
+	self->platformCenter.angles.y = self->yaw;
+	self->platformBase.angles.y = cgi.client->ticks * .0625f;
 }
 
 /**
@@ -395,9 +349,6 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 
 	self = (PlayerModelView *) super(Control, self, initWithFrame, frame);
 	if (self) {
-		self->yaw = 150.0;
-		self->zoom = 0.1;
-
 		self->animation1.animation = ANIM_TORSO_STAND1;
 		self->animation2.animation = ANIM_LEGS_IDLE;
 
@@ -425,7 +376,7 @@ static void initialize(Class *clazz) {
 
 	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->render = render;
-	((ViewInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;
+	((ViewInterface *) clazz->interface)->renderDeviceWillReset = renderDeviceWillReset;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;

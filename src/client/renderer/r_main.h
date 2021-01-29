@@ -23,8 +23,6 @@
 
 #include "r_types.h"
 
-extern cvar_t *r_get_error;
-
 extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
@@ -32,7 +30,6 @@ extern cvar_t *r_bicubic;
 extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
 extern cvar_t *r_display;
-extern cvar_t *r_flares;
 extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
@@ -46,7 +43,6 @@ extern cvar_t *r_parallax_samples;
 extern cvar_t *r_roughness;
 extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
-extern cvar_t *r_shadows;
 extern cvar_t *r_shell;
 extern cvar_t *r_specularity;
 extern cvar_t *r_stains;
@@ -56,22 +52,15 @@ extern cvar_t *r_width;
 
 extern r_stats_t r_stats;
 
-void R_GetError_(const char *function, const char *msg);
-#define R_GetError(msg) R_GetError_(__func__, msg)
-
 void R_Init(void);
 void R_Shutdown(void);
-void R_BeginFrame(r_view_t *view);
+void R_BeginFrame(void);
 void R_DrawViewDepth(r_view_t *view);
-void R_DrawView(r_view_t *view);
+void R_DrawMainView(r_view_t *view);
+void R_DrawPlayerModelView(r_view_t *view);
 void R_EndFrame(void);
 
 #ifdef __R_LOCAL_H__
-
-/**
- * @brief The current view.
- */
-extern r_view_t *r_view;
 
 /**
  * @brief OpenGL driver information.
@@ -108,9 +97,9 @@ typedef struct {
 	vec4_t view_coordinate;
 
 	/**
-	 * @brief The lightgrid texel dimensions.
+	 * @brief The lightgrid size, in luxels.
 	 */
-	vec4_t resolution;
+	vec4_t size;
 } r_lightgrid_t;
 
 /**
@@ -133,19 +122,14 @@ typedef struct {
 		vec4_t viewport;
 
 		/**
-		 * @brief The 3D projection matrix.
-		 */
-		mat4_t projection3D;
-
-		/**
 		 * @brief The 2D projection matrix.
 		 */
 		mat4_t projection2D;
 
 		/**
-		 * @brief The 2D projection matrix for the framebuffer object.
+		 * @brief The 3D projection matrix.
 		 */
-		mat4_t projection2D_FBO;
+		mat4_t projection3D;
 
 		/**
 		 * @brief The view matrix.
@@ -161,6 +145,11 @@ typedef struct {
 		 * @brief The depth range, in world units.
 		 */
 		vec2_t depth_range;
+
+		/**
+		 * @brief The view type, e.g. VIEW_MAIN.
+		 */
+		int32_t view_type;
 
 		/**
 		 * @brief The renderer time, in milliseconds.
@@ -193,16 +182,6 @@ typedef struct {
 		float modulate;
 
 		/**
-		 * @brief The global fog color.
-		 */
-		// vec3_t fog_global_color; // FIXME
-
-		/**
-		 * @brief The global fog density scalar.
-		 */
-		// float fog_global_density; // FIXME
-
-		/**
 		 * @brief The volumetric fog density scalar.
 		 */
 		float fog_density;
@@ -212,10 +191,6 @@ typedef struct {
 		 */
 		int32_t fog_samples;
 
-		/**
-		* @brief The pixel dimensions of the framebuffer.
-		*/
-		vec2_t resolution;
 	} block;
 
 } r_uniforms_t;
@@ -226,8 +201,8 @@ typedef struct {
 extern r_uniforms_t r_uniforms;
 
 // developer tools
+extern cvar_t *r_alpha_test_threshold;
 extern cvar_t *r_blend_depth_sorting;
-extern cvar_t *r_clear;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
 extern cvar_t *r_draw_bsp_lightgrid;
@@ -235,7 +210,16 @@ extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
+extern cvar_t *r_get_error;
 extern cvar_t *r_occlude;
+
+void R_GetError_(const char *function, const char *msg);
+
+#define R_GetError(msg) { \
+	if (r_get_error->integer) { \
+		R_GetError_(__func__, msg); \
+	} \
+}
 
 _Bool R_CullPoint(const r_view_t *view, const vec3_t point);
 _Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs);

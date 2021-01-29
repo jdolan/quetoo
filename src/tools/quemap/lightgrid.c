@@ -24,6 +24,7 @@
 #include "lightgrid.h"
 #include "points.h"
 #include "qlight.h"
+#include "simplex.h"
 
 typedef struct {
 	vec3_t stu_mins, stu_maxs;
@@ -168,12 +169,12 @@ size_t BuildLightgrid(void) {
 }
 
 /**
- * @brief Iterates the specified lights, accumulating color and direction to the appropriate buffers.
+ * @brief Iterates lights, accumulating color and direction on the specified luxel.
  * @param lights The lights to iterate.
  * @param luxel The luxel to light.
- * @param scale A scalar applied to both light and direction.
+ * @param scale A scalar applied to both color and direction.
  */
-static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
+static void LightLightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 
 	for (guint i = 0; i < lights->len; i++) {
 
@@ -239,51 +240,25 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 
 		if (light->type == LIGHT_AMBIENT) {
 
-			const bsp_model_t *world = bsp_file.models;
-
-			const float padding_s = (world->maxs.x - world->mins.x) - (lg.size.x * BSP_LIGHTGRID_LUXEL_SIZE) * 0.5f;
-			const float padding_t = (world->maxs.y - world->mins.y) - (lg.size.y * BSP_LIGHTGRID_LUXEL_SIZE) * 0.5f;
-			const float padding_u = (world->maxs.z - world->mins.z) - (lg.size.z * BSP_LIGHTGRID_LUXEL_SIZE) * 0.5f;
-
-			const float s = lg.stu_mins.x + padding_s + luxel->s + 0.5f;
-			const float t = lg.stu_mins.y + padding_t + luxel->t + 0.5f;
-			const float u = lg.stu_mins.z + padding_u + luxel->u + 0.5f;
-
 			const vec3_t points[] = CUBE_8;
-			const float ao_radius = 64.f;
-
-			float occlusion = 0.f;
 			float sample_fraction = 1.f / lengthof(points);
+
+			float exposure = 0.f;
 
 			for (size_t i = 0; i < lengthof(points); i++) {
 
-				vec3_t sample = points[i];
-
-				// Add some jitter to hide undersampling
-				sample.x += RandomRangef(-.04f, .04f);
-				sample.y += RandomRangef(-.04f, .04f);
-				sample.z += RandomRangef(-.04f, .04f);
-
-				// Scale the sample and move it into position
-				sample = Vec3_Scale(sample, ao_radius);
-
-				sample.x += s;
-				sample.y += t;
-				sample.z += u;
-
-				vec3_t point;
-				Matrix4x4_Transform(&lg.inverse_matrix, sample.xyz, point.xyz);
+				const vec3_t point = Vec3_Fmaf(luxel->origin, 256.f, points[i]);
 
 				const cm_trace_t trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
 
-				occlusion += sample_fraction * trace.fraction;
+				exposure += sample_fraction * trace.fraction;
 			}
 
-			intensity *= 1.f - (1.f - occlusion) * (1.f - occlusion);
+			intensity *= exposure;
 
 		} else if (light->type == LIGHT_SUN) {
 
-			const vec3_t sun_origin = Vec3_Add(luxel->origin, Vec3_Scale(light->normal, -MAX_WORLD_DIST));
+			const vec3_t sun_origin = Vec3_Fmaf(luxel->origin, -MAX_WORLD_DIST, light->normal);
 
 			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, 0, CONTENTS_SOLID);
 			if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
@@ -295,7 +270,7 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 					const vec3_t points[] = CUBE_8;
 					for (size_t j = 0; j < lengthof(points); j++) {
 
-						const vec3_t point = Vec3_Add(sun_origin, Vec3_Scale(points[j], i * LIGHT_SIZE_STEP));
+						const vec3_t point = Vec3_Fmaf(sun_origin, i * LIGHT_SIZE_STEP, points[j]);
 
 						trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
 						if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
@@ -321,7 +296,7 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 					const vec3_t points[] = CUBE_8;
 					for (size_t j = 0; j < lengthof(points); j++) {
 
-						const vec3_t point = Vec3_Add(light->origin, Vec3_Scale(points[j], (i + 1) * LIGHT_SIZE_STEP));
+						const vec3_t point = Vec3_Fmaf(light->origin, (i + 1) * LIGHT_SIZE_STEP, points[j]);
 
 						trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
 						if (trace.fraction < 1.f) {
@@ -347,17 +322,17 @@ static void LightLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 			case LIGHT_INVALID:
 				break;
 			case LIGHT_AMBIENT:
-				luxel->ambient = Vec3_Add(luxel->ambient, Vec3_Scale(light->color, intensity));
+				luxel->ambient = Vec3_Fmaf(luxel->ambient, intensity, light->color);
 				break;
 			case LIGHT_SUN:
 			case LIGHT_POINT:
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
-				luxel->diffuse = Vec3_Add(luxel->diffuse, Vec3_Scale(light->color, intensity));
-				luxel->direction = Vec3_Add(luxel->direction, Vec3_Scale(dir, intensity));
+				luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
+				luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
 				break;
 			case LIGHT_INDIRECT:
-				luxel->radiosity[bounce] = Vec3_Add(luxel->radiosity[bounce], Vec3_Scale(light->color, intensity));
+				luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
 				break;
 		}
 	}
@@ -376,9 +351,13 @@ void DirectLightgrid(int32_t luxel_num) {
 		Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
 	};
 
+	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
+
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	for (size_t i = 0; i < lengthof(offsets); i++) {
+	float contribution = 0.f;
+
+	for (size_t i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
 
 		const float soffs = offsets[i].x;
 		const float toffs = offsets[i].y;
@@ -393,8 +372,25 @@ void DirectLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		LightLuxel(lights, l, 1.f);
-		break;
+		contribution += weight;
+
+		LightLightgridLuxel(lights, l, weight);
+	}
+
+	if (contribution > 0.f) {
+		if (contribution < 1.f) {
+			l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
+			l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
+			l->direction = Vec3_Scale(l->direction, 1.f / contribution);
+		}
+	} else {
+		// Even luxels in solids should receive at least ambient light
+		for (guint j = 0; j < unattenuated_lights->len; j++) {
+			const light_t *light = g_ptr_array_index(unattenuated_lights, j);
+			if (light->type == LIGHT_AMBIENT) {
+				l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
+			}
+		}
 	}
 }
 
@@ -411,9 +407,13 @@ void IndirectLightgrid(int32_t luxel_num) {
 		Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
 	};
 
+	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
+
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	for (size_t i = 0; i < lengthof(offsets); i++) {
+	float contribution = 0.f;
+
+	for (size_t i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
 
 		const float soffs = offsets[i].x;
 		const float toffs = offsets[i].y;
@@ -428,15 +428,22 @@ void IndirectLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		LightLuxel(lights, l, 1.f);
-		break;
+		contribution += weight;
+
+		LightLightgridLuxel(lights, l, weight);
+	}
+
+	if (contribution > 0.f) {
+		if (contribution < 1.f) {
+			l->radiosity[bounce] = Vec3_Scale(l->radiosity[bounce], 1.f / contribution);
+		}
 	}
 }
 
 /**
  * @brief
  */
-static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
+static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 
 	const fog_t *fog = (fog_t *) fogs->data;
 	for (guint i = 0; i < fogs->len; i++, fog++) {
@@ -453,19 +460,25 @@ static void FogLuxel(GArray *fogs, luxel_t *l, float scale) {
 				break;
 		}
 
-		intensity *= fog->density + RandomRangef(-fog->noise, fog->noise);
+		float noise = SimplexNoiseFBM(fog->octaves,
+									  fog->frequency,
+									  fog->amplitude,
+									  fog->lacunarity,
+									  fog->persistence,
+									  (l->s + fog->offset.x) / (float) MAX_BSP_LIGHTGRID_WIDTH,
+									  (l->t + fog->offset.y) / (float) MAX_BSP_LIGHTGRID_WIDTH,
+									  (l->u + fog->offset.z) / (float) MAX_BSP_LIGHTGRID_WIDTH,
+									  fog->permutation_vector);
 
-		intensity = Clampf(intensity, 0.f, 1.f);
+		intensity *= fog->density + (fog->noise * noise);
+
+		intensity = Clampf(intensity * scale, 0.f, 1.f);
 
 		if (intensity == 0.f) {
 			continue;
 		}
 
-		const float diffuse = Clampf(Vec3_Length(l->diffuse) / DEFAULT_LIGHT, 0.f, 1.f);
-
-		const float absorption = Clampf(diffuse * fog->absorption, 0.f, 1.f);
-
-		const vec3_t color = Vec3_Mix(fog->color, l->diffuse, absorption);
+		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), l->diffuse);
 
 		switch (fog->type) {
 			case FOG_INVALID:
@@ -491,9 +504,13 @@ void FogLightgrid(int32_t luxel_num) {
 		Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
 	};
 
+	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
+
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	for (size_t i = 0; i < lengthof(offsets); i++) {
+	float contribution = 0.f;
+
+	for (size_t i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
 
 		const float soffs = offsets[i].x;
 		const float toffs = offsets[i].y;
@@ -503,9 +520,18 @@ void FogLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		FogLuxel(fogs, l, 1.f);
-		break;
+		contribution += weight;
+
+		FogLightgridLuxel(fogs, l, weight);
 	}
+
+	if (contribution > 0.f) {
+		if (contribution < 1.f) {
+			l->fog = Vec4_Scale(l->fog, 1.f / contribution);
+		}
+	}
+
+	l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));
 }
 
 /**
@@ -527,8 +553,6 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	l->direction = Vec3_Add(l->direction, Vec3_Up());
 	l->direction = Vec3_Normalize(l->direction);
-
-	l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));
 }
 
 /**
@@ -589,10 +613,10 @@ void EmitLightgrid(void) {
 			}
 		}
 
-//		IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
-//		IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
-//		IMG_SavePNG(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
-//		IMG_SavePNG(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
+		//IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
+		//IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
+		//IMG_SavePNG(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
+		//IMG_SavePNG(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);

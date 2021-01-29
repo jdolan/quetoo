@@ -31,14 +31,12 @@ typedef enum {
 	ASSET_CONTEXT_TEXTURES,
 	ASSET_CONTEXT_MODELS,
 	ASSET_CONTEXT_PLAYERS,
-	ASSET_CONTEXT_ENVMAPS,
-	ASSET_CONTEXT_FLARES,
+	ASSET_CONTEXT_SPRITES,
 } cm_asset_context_t;
 
 typedef struct {
 	char name[MAX_QPATH];
 	char path[MAX_QPATH];
-	int32_t index;
 } cm_asset_t;
 
 typedef struct {
@@ -213,6 +211,8 @@ typedef struct cm_stage_s {
 #define DEFAULT_HARDNESS 1.0
 #define DEFAULT_SPECULARITY 1.0
 #define DEFAULT_LIGHT 300.0
+#define DEFAULT_PATCH_SIZE 64
+
 
 /**
  * @brief Materials define the rendering attributes of texinfos.
@@ -303,6 +303,11 @@ typedef struct cm_material_s {
 	 * @brief The parallel factor to use for the normal map.
 	 */
 	float parallax;
+
+	/**
+	 * @brief The per-material patch size, for light emission.
+	 */
+	float patch_size;
 
 	/**
 	 * @brief The name for the footstep sounds to query on this surface

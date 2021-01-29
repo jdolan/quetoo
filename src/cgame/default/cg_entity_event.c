@@ -38,7 +38,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 
 	cg_sprite_t *s;
 
-	int32_t particle_count = 256;
+	int32_t particle_count = 64;
 	vec3_t z_offset = org;
 	z_offset.z += 20.f;
 
@@ -52,7 +52,8 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 				.velocity = Vec3_Scale(Cg_FibonacciLatticeDir(particle_count, i + 1), 55.f),
 				.color = Vec4(144.f, 0.f, 1.f, 0.f),
 				.end_color = Vec4(144.f, .83f, .6f, 0.f),
-				.size = 5.f
+				.size = 10.f,
+				.softness = 1.f
 			}))) {
 			break;
 		}
@@ -65,10 +66,11 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 	Cg_AddSprite(&(cg_sprite_t) {
 		.origin = z_offset,
 		.lifetime = 1000,
-		.size = 200.f,
+		.size = 150.f,
 		.atlas_image = cg_sprite_particle,
-		.color = Vec4(0.f, 0.f, 1.f, 0.f),
-		.end_color = Vec4(0.f, 0.f, 0.f, 0.f)
+		.color = Vec4(150.f, .5f, .4f, 0.f),
+		.end_color = Vec4(150.f, .5f, 0.f, 0.f),
+		.softness = 4.f
 	});
 
 	Cg_AddLight(&(cg_light_t) {
@@ -94,7 +96,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 			.atlas_image = cg_sprite_ring,
 			.color = Vec4(150.f, .5f, .4f, 0.f),
 			.end_color = Vec4(150.f, .5f, 0.f, 0.f),
-			.dir = Vec3(0.f, 0.f, 1.f)
+			.dir = Vec3_Up()
 		}))) {
 		s->size_velocity = 50.f / MILLIS_TO_SECONDS(s->lifetime);
 	}
@@ -103,10 +105,11 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 	Cg_AddSprite(&(cg_sprite_t) {
 		.origin = org,
 		.lifetime = 1000,
-		.size = 200.f,
+		.size = 150,
 		.atlas_image = cg_sprite_particle,
 		.color = Vec4(150.f, .5f, .4f, 0.f),
-		.end_color = Vec4(150.f, .5f, 0.f, 0.f)
+		.end_color = Vec4(150.f, .5f, 0.f, 0.f),
+		.softness = 4.f
 	});
 
 	Cg_AddLight(&(cg_light_t) {
@@ -131,7 +134,8 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 			.velocity = Vec3_Add(Vec3_RandomRange(-24.f, 24.f), Vec3(0.f, 0.f, RandomRangef(16.f, 48.f))),
 			.acceleration.z = -SPRITE_GRAVITY * .1f,
 			.lifetime = 500,
-			.color = Vec4(0.f, 0.f, .87f, 0.f)
+			.color = Vec4(0.f, 0.f, .87f, 0.f),
+			.softness = 1.f
 		});
 	}
 
@@ -216,13 +220,9 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 
 	s_play_sample_t play = {
 		.origin = ent->current.origin,
-		.atten = SOUND_ATTEN_LINEAR,
+		.atten = SOUND_ATTEN_SQUARE,
 		.entity = s->number,
 	};
-
-	if (ent == cgi.client->entity) {
-		play.flags |= S_PLAY_RELATIVE;
-	}
 
 	switch (s->event) {
 		case EV_CLIENT_DROWN:
@@ -259,13 +259,11 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 		case EV_CLIENT_TELEPORT:
 			play.sample = cg_sample_teleport;
-			play.atten = SOUND_ATTEN_SQUARE;
 			Cg_TeleporterEffect(s->origin);
 			break;
 
 		case EV_ITEM_RESPAWN:
 			play.sample = cg_sample_respawn;
-			play.atten = SOUND_ATTEN_SQUARE;
 			Cg_ItemRespawnEffect(s->origin, color_white); //TODO: wire up colors, white is placeholder
 			break;
 		case EV_ITEM_PICKUP:
@@ -277,7 +275,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 	}
 
 	if (play.sample) {
-		cgi.AddSample(cgi.stage, &play);
+		Cg_AddSample(cgi.stage, &play);
 	}
 
 	s->event = 0;

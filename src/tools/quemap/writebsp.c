@@ -379,10 +379,6 @@ static void EmitBrushes(void) {
 
 			bs->plane_num = b->sides[j].plane_num;
 			bs->texinfo = b->sides[j].texinfo;
-
-			if (!b->sides[j].bevel) {
-				out->num_original_sides++;
-			}
 		}
 
 		// add any axis planes not contained in the brush to bevel off corners

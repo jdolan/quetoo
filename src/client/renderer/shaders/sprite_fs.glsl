@@ -22,15 +22,14 @@
 uniform sampler2D texture_diffusemap;
 uniform sampler2D texture_next_diffusemap;
 
-uniform sampler3D texture_lightgrid_fog;
-
 in vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec2 next_diffusemap;
-	vec3 lightgrid;
 	vec4 color;
 	float lerp;
+	float softness;
+	vec4 fog;
 } vertex;
 
 out vec4 out_color;
@@ -40,13 +39,14 @@ out vec4 out_color;
  */
 void main(void) {
 
-	vec4 diffuse_color = mix(texture(texture_diffusemap, vertex.diffusemap), texture(texture_next_diffusemap, vertex.next_diffusemap), vertex.lerp);
+	vec4 texture_color = mix(
+		texture(texture_diffusemap, vertex.diffusemap),
+		texture(texture_next_diffusemap, vertex.next_diffusemap),
+		vertex.lerp);
 
-	out_color = vertex.color * diffuse_color;
-
-	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
+	out_color = texture_color * vertex.color;
 
 	out_color.rgb = color_filter(out_color.rgb);
-
-	out_color *= soften();
+	
+	out_color *= soften(vertex.softness);
 }

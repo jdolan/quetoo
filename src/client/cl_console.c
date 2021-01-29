@@ -45,32 +45,30 @@ static void Cl_DrawConsole_Background(void) {
 		return;
 	}
 
-	// FIXME: cache
-	const r_image_t *image = R_LoadImage("ui/conback", IT_UI);
-	if (image) {
-
-		const float x_scale = r_context.width / (float) image->width;
-		const float y_scale = r_context.height / (float) image->height;
-		const float scale = Maxf(x_scale, y_scale);
-
-		const float image_width = image->width * scale;
-		const float image_height = image->height * scale;
-		
-		const float x_offset = (r_context.width / 2.f) - (image_width / 2.f);
-
-		r_pixel_t ch;
-
-		R_BindFont("small", NULL, &ch);
-
-		r_pixel_t y = cl_console.height * (ch + 1);
-
-		const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
-
-		R_Draw2DImage(x_offset,
-					y - image_height,
-					image_width,
-					image_height, image, color);
+	const r_image_t *conback = R_LoadImage("ui/conback", IT_UI);
+	if (!conback) {
+		return;
 	}
+
+	r_pixel_t ch;
+	R_BindFont("small", NULL, &ch);
+
+	const float x_scale = r_context.width / (float) conback->width;
+	const float y_scale = r_context.height / (float) conback->height;
+
+	const float scale = Maxf(x_scale, y_scale);
+
+	const float width = conback->width * scale;
+	const float height = conback->height * scale;
+
+	const r_pixel_t x = (r_context.width / 2.f) - (width / 2.f);
+	const r_pixel_t y = (r_context.height / 2.f) - (height / 2.f);
+
+	const r_pixel_t offset = Maxf(0, height - cl_console.height * (ch + 1));
+
+	const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
+
+	R_Draw2DImage(x, y - offset, width, height, conback, color);
 }
 
 /**
@@ -136,9 +134,9 @@ r_pixel_t Cl_GetConsoleHeight(void) {
  * @brief
  */
 void Cl_DrawConsole(void) {
-	r_pixel_t cw, ch;
 	const r_pixel_t height = Cl_GetConsoleHeight();
 
+	r_pixel_t cw, ch;
 	R_BindFont("small", &cw, &ch);
 
 	cl_console.width = r_context.width / cw;
@@ -202,11 +200,13 @@ void Cl_DrawChat(void) {
 	r_pixel_t x = 1, y = r_context.height * 0.66;
 
 	cl_chat_console.width = r_context.width / cw / 3;
-	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 8);
+	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 16);
 
 	if (cl_draw_chat->value && cl_chat_console.height) {
 
-		if (quetoo.ticks > cl_chat_time->value * 1000) {
+		if (cls.key_state.dest == KEY_CHAT) {
+			cl_chat_console.whence = 0;
+		} else if (quetoo.ticks > cl_chat_time->value * 1000) {
 			cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
 		}
 
@@ -253,7 +253,7 @@ void Cl_DrawChat(void) {
 static void Cl_Print(const console_string_t *str) {
 	char stripped[strlen(str->chars) + 1];
 
-	StripColors(str->chars, stripped);
+	StrStrip(str->chars, stripped);
 	fputs(stripped, stdout);
 }
 
@@ -362,7 +362,7 @@ void Cl_InitConsole(void) {
 	cl_notify_lines = Cvar_Add("cl_console_notify_lines", "3", CVAR_ARCHIVE, "How many lines to show in the notify console.");
 	cl_notify_time = Cvar_Add("cl_notify_time", "3.0", CVAR_ARCHIVE, "How long notify messages stay on-screen.");
 
-	cl_chat_lines = Cvar_Add("cl_chat_lines", "3", CVAR_ARCHIVE, "How many chat lines to show");
+	cl_chat_lines = Cvar_Add("cl_chat_lines", "4", CVAR_ARCHIVE, "How many chat lines to show");
 	cl_chat_time = Cvar_Add("cl_chat_time", "10.0", CVAR_ARCHIVE, "How long chat messages last");
 
 	Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");

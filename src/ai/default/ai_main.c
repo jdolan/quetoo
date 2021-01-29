@@ -250,7 +250,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		}
 
 		// we're already pathing to this item, so ignore it in our short range goal finding
-		if (ai->move_target.type == AI_GOAL_PATH && ai->move_target.path.path_target == ent && ai->move_target.path.path_target_spawn_id == ent->spawn_id) {
+		if (ai->move_target.type == AI_GOAL_PATH && ai->move_target.path.path_target == ent && ai->move_target.path.path_target_spawn_id == ent->s.spawn_id) {
 			continue;
 		}
 
@@ -714,9 +714,8 @@ static inline float Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t forward;
 	Vec3_Vectors(Vec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
-	vec3_t end = Vec3_Add(self->s.origin, Vec3_Scale(forward, (self->maxs.x - self->mins.x) * 2.0f));
-
-	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
+	const vec3_t end = Vec3_Fmaf(self->s.origin, (self->maxs.x - self->mins.x) * 2.0f, forward);
+	const cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0f) { // hit a wall
 	
@@ -971,7 +970,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 		angles = Vec3(0.0, wander_angle, 0.0);
 		Vec3_Vectors(angles, &dir, NULL, NULL);
-		dest = Vec3_Add(self->s.origin, Vec3_Scale(dir, 1.0));
+		dest = Vec3_Add(self->s.origin, dir);
 	}
 
 	dir = Vec3_Subtract(dest, self->s.origin);
@@ -995,7 +994,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	if (ai->move_target.type == AI_GOAL_PATH) {
 		// the next step(s) will be onto a mover, so if we can't move yet, we wait.
-		if (!Ai_Path_CanPathTo(self, ai->move_target.path.path, ai->move_target.path.path_index)) {
+		if (!(aim.gi->PointContents(self->s.origin) & CONTENTS_MASK_LIQUID) && !Ai_Path_CanPathTo(ai->move_target.path.path, ai->move_target.path.path_index)) {
 			dir = Vec3_Scale(dir, PM_SPEED_RUN);
 			wait_politely = true;
 			ai->move_target.distress_extension = true;
@@ -1101,7 +1100,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			const float xy_dist = Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin));
 			
 			// we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
-			if (!Ai_Path_CanPathTo(self, ai->move_target.path.path, ai->move_target.path.path_index)) {
+			if (!(aim.gi->PointContents(self->s.origin) & CONTENTS_MASK_LIQUID) && !Ai_Path_CanPathTo(ai->move_target.path.path, ai->move_target.path.path_index)) {
 				cmd->forward = -cmd->forward;
 				cmd->right = -cmd->right; // stop for now
 				Ai_Debug("Stopping early to prevent mover issues\n");
@@ -1322,7 +1321,7 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			const float speed = RandomRangef(900, 1200);
 			const float time = dist / speed;
 			const vec3_t target_velocity = ENTITY_DATA(combat_target->entity.ent, velocity);
-			const vec3_t target_pos = Vec3_Add(combat_target->entity.ent->s.origin, Vec3_Scale(target_velocity, time));
+			const vec3_t target_pos = Vec3_Fmaf(combat_target->entity.ent->s.origin, time, target_velocity);
 			aim_direction = Vec3_Subtract(target_pos, self->s.origin);
 		} else {
 			aim_direction = Vec3_Subtract(combat_target->entity.ent->s.origin, self->s.origin);

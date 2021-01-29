@@ -156,6 +156,7 @@ void Cl_InitCgame(void) {
 
 	import.Malloc = Mem_TagMalloc;
 	import.LinkMalloc = Mem_LinkMalloc;
+	import.Realloc = Mem_Realloc;
 	import.Free = Mem_Free;
 	import.FreeTag = Mem_FreeTag;
 
@@ -237,6 +238,9 @@ void Cl_InitCgame(void) {
 	import.LoadClientModelSamples = S_LoadClientModelSamples;
 	import.AddSample = S_AddSample;
 
+	import.CreateFramebuffer = R_CreateFramebuffer;
+	import.DestroyFramebuffer = R_DestroyFramebuffer;
+
 	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;
 	import.LoadAtlas = R_LoadAtlas;
@@ -253,12 +257,15 @@ void Cl_InitCgame(void) {
 	import.AddSprite = R_AddSprite;
 	import.AddBeam = R_AddBeam;
 	import.AddStain = R_AddStain;
+	import.DrawPlayerModelView = R_DrawPlayerModelView;
 
 	import.BindFont = R_BindFont;
 	import.Draw2DFill = R_Draw2DFill;
 	import.Draw2DImage = R_Draw2DImage;
+	import.Draw2DFramebuffer = R_Draw2DFramebuffer;
 	import.Draw2DString = R_Draw2DString;
 	import.StringWidth = R_StringWidth;
+	import.Draw3DLines = R_Draw3DLines;
 
 	cgame_handle = Sys_OpenLibrary("cgame", true);
 	assert(cgame_handle);

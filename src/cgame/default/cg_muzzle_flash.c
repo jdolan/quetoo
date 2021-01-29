@@ -21,53 +21,36 @@
 
 #include "cg_local.h"
 
-// FIXME: up/down positioning is messed up, roughly right though.
+ /**
+  * @brief
+  */
+static vec3_t Cg_MuzzleOrigin(const cl_entity_t *ent, const float stand_z_ofs, const float duck_z_ofs) {
+	vec3_t forward, right, org;
+
+	// project the flash just in front of the entity
+	Vec3_Vectors(ent->angles, &forward, &right, NULL);
+	org = Vec3_Fmaf(ent->origin, 30.f, forward);
+	org = Vec3_Fmaf(org, 6.f, right);
+
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
+
+	if (tr.fraction < 1.0) { // firing near a wall, back it up
+		const vec3_t dir = Vec3_Subtract(ent->origin, tr.end);
+		org = Vec3_Fmaf(ent->origin, .75f, dir);
+	}
+
+	// and adjust for ducking
+	org.z += Cg_IsDucking(ent) ? stand_z_ofs : duck_z_ofs;
+
+	return org;
+}
 
 /**
  * @brief
  */
 static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
-	vec3_t forward, right, org, org2;
-
-	// project the flash just in front of the entity
-	Vec3_Vectors(ent->angles, &forward, &right, NULL );
-	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
-	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
-
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
-
-	if (tr.fraction < 1.0) { // firing near a wall, back it up
-		org = Vec3_Subtract(ent->origin, tr.end);
-		org = Vec3_Scale(org, 0.75);
-
-		org = Vec3_Add(ent->origin, org);
-	}
-
-	// and adjust for ducking
-	org.z += Cg_IsDucking(ent) ? -2.0 : 20.0;
-
-	#if 0 // looks mediocre
-	cg_sprite_t *s;
-	for (uint32_t i = 0; i < 2; i++) {
-		if ((s = Cg_AllocSprite())) {
-			s->origin = org;
-			s->lifetime = 66;
-			s->color = Color4f(.1f, .45f, .45f, .0f);
-			s->size = RandomRangef(20, 35);
-			s->rotation = RandomRadian();
-			s->rotation_velocity = i == 0 ? .66f : -.66f;
-			s->atlas_image = cg_sprite_flash;
-		}
-	}
-
-	if ((s = Cg_AllocSprite())) {
-		s->atlas_image = cg_sprite_particle;
-		s->origin = org;
-		s->lifetime = 100;
-		s->color = Color4f(.4f, .7f, .9f, .0f);
-		s->size = 10;
-	}
-	#endif
+	
+	vec3_t org = Cg_MuzzleOrigin(ent, -2.f, 20.f);
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
@@ -77,7 +60,9 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
+		vec3_t org2, forward, right;
+		Vec3_Vectors(ent->angles, &forward, &right, NULL);
+		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
 		Cg_BubbleTrail(NULL, org, org2);
 	}
 }
@@ -86,24 +71,8 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
  * @brief
  */
 static void Cg_SmokeFlash(const cl_entity_t *ent) {
-	vec3_t forward, right, org, org2;
 
-	// project the puff just in front of the entity
-	Vec3_Vectors(ent->angles, &forward, &right, NULL );
-	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
-	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
-
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
-
-	if (tr.fraction < 1.0) { // firing near a wall, back it up
-		org = Vec3_Subtract(ent->origin, tr.end);
-		org = Vec3_Scale(org, 0.75);
-
-		org = Vec3_Add(ent->origin, org);
-	}
-
-	// and adjust for ducking
-	org.z += Cg_IsDucking(ent) ? -2.0 : 16.0;
+	vec3_t org = Cg_MuzzleOrigin(ent, -2.f, 20.f);
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
@@ -113,23 +82,23 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	});
 
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
+		vec3_t org2, forward, right;
+		Vec3_Vectors(ent->angles, &forward, &right, NULL);
+		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
 		Cg_BubbleTrail(NULL, org, org2);
 		return;
 	}
 
 	Cg_AddSprite(&(cg_sprite_t) {
 		.origin = org,
-		.lifetime = 500,
+		.lifetime = 1000,
 		.size = 4.f,
 		.size_velocity = 16.f,
-		.velocity = Vec3_Add(Vec3_RandomRange(-1.f, 1.f), Vec3(0.f, 0.f, 10.f)),
-		.acceleration.z = 5.f,
-		.atlas_image = cg_sprite_smoke,
-		.rotation = RandomRangef(0.0f, M_PI),
-		.rotation_velocity = RandomRangef(.8f, 1.6f),
-		.color = Vec4(0.f, 0.f, .7f, .78f),
-		.end_color = Vec4(0.f, 0.f, .7f, 0.f)
+		.atlas_image = cg_sprite_steam,
+		.rotation = RandomRangef(0.0f, 2.0 * M_PI),
+		.color = Vec4(0.f, 0.f, 1.f, 1.f),
+		.end_color = Vec4(0.f, 0.f, 0.f, 0.f),
+		.softness = 1.f
 	});
 }
 
@@ -137,24 +106,10 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
  * @brief
  */
 static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
-	vec3_t forward, right, org, org2;
 
-	// project the puff just in front of the entity
-	Vec3_Vectors(ent->angles, &forward, &right, NULL );
-	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
-	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
+	// TODO: make less ugly and align better with gun
 
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
-
-	if (tr.fraction < 1.0) { // firing near a wall, back it up
-		org = Vec3_Subtract(ent->origin, tr.end);
-		org = Vec3_Scale(org, 0.75);
-
-		org = Vec3_Add(ent->origin, org);
-	}
-
-	// and adjust for ducking
-	org.z += Cg_IsDucking(ent) ? -2.0 : 16.0;
+	vec3_t org = Cg_MuzzleOrigin(ent, -2.f, 16.f);
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
@@ -163,13 +118,13 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 		.decay = 300
 	});
 
+	vec3_t org2, forward, right;
+	Vec3_Vectors(ent->angles, &forward, &right, NULL);
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
+		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
 		Cg_BubbleTrail(NULL, org, org2);
 		return;
 	}
-
-	// TODO: make less ugly and align better with gun
 
 	const int32_t np = 5;
 	const float flashlen = 2.f;
@@ -179,22 +134,24 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 		Cg_AddSprite(&(cg_sprite_t) {
 			.animation = cg_sprite_blaster_flame,
 			.lifetime = Cg_AnimationLifetime(cg_sprite_blaster_flame, 70) + (i / flashlen * 20.f),
-			.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f * (i / flashlen))),
+			.origin = Vec3_Fmaf(org, 3.f * (i / flashlen), forward),
 			.rotation = Randomf() * M_PI * 2.f,
 			.size = 1.f + 2.f * (np - i / flashlen),
 			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
-			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
+			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+			.softness = 1.f
 		});
 	}
 
 	Cg_AddSprite(&(cg_sprite_t) {
 		.image = cg_sprite_blaster_flash,
 		.lifetime = 200,
-		.origin = Vec3_Add(org, Vec3_Scale(forward, 3.f)),
+		.origin = Vec3_Fmaf(org, 3.f, forward),
 		.size = 30.f,
 		.size_velocity = 30.f,
 		.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
-		.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f)
+		.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+		.softness = 1.f
 	});
 }
 
@@ -288,7 +245,7 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 	}
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.origin = ent->current.origin,
 		.sample = sample,
 		.entity = entity,

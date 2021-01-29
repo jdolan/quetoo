@@ -381,6 +381,11 @@ static inline vec2_t Vec2_Mins(void) __attribute__ ((warn_unused_result));
 static inline vec2_t Vec2_Mix(const vec2_t a, const vec2_t b, float mix) __attribute__ ((warn_unused_result));
 
 /**
+ * @brief Bilinear interpolation of 4 vec2_t.
+ */
+static inline vec2_t Vec2_Bilinear(const vec2_t tl, const vec2_t tr, const vec2_t bl, const vec2_t br, vec2_t mix) __attribute__((warn_unused_result));
+
+/**
  * @return The vector `v` scaled by `scale`.
  */
 static inline vec2_t Vec2_Scale(const vec2_t v, float scale) __attribute__ ((warn_unused_result));
@@ -451,6 +456,11 @@ static inline vec3_t Vec3_Degrees(const vec3_t radians) __attribute__ ((warn_unu
  * @return The length of `a - b` as well as the normalized directional vector.
  */
 static inline float Vec3_DistanceDir(const vec3_t a, const vec3_t b, vec3_t *dir) __attribute__ ((warn_unused_result));
+
+/**
+ * @return The direction vector between points a and b.
+ */
+static inline vec3_t Vec3_Direction(const vec3_t a, const vec3_t b) __attribute__((warn_unused_result));
 
 /**
  * @return The squared length of the vector `a - b`.

@@ -1482,7 +1482,7 @@ void G_Init(void) {
 	g_balance_blaster_damage = gi.AddCvar("g_balance_blaster_damage", "15", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_knockback = gi.AddCvar("g_balance_blaster_knockback", "2", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_refire = gi.AddCvar("g_balance_blaster_refire", "0.45", CVAR_SERVER_INFO, NULL);
-	g_balance_blaster_speed = gi.AddCvar("g_balance_blaster_speed", "1000", CVAR_SERVER_INFO, NULL);
+	g_balance_blaster_speed = gi.AddCvar("g_balance_blaster_speed", "2000", CVAR_SERVER_INFO, NULL);
 	g_balance_handgrenade_refire = gi.AddCvar("g_balance_handgrenade_refire", "2", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_damage = gi.AddCvar("g_balance_hyperblaster_climb_damage", "3", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_knockback = gi.AddCvar("g_balance_hyperblaster_climb_knockback", "68", CVAR_SERVER_INFO, NULL);

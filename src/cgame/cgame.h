@@ -114,6 +114,12 @@ typedef struct cg_import_s {
 	void *(*LinkMalloc)(size_t size, void *parent);
 
 	/**
+	 * @brief Reallocates the dynamic memory block `p` to the specified size.
+	 * @return The reallocated memory. If `p` is grown, the newly allocated region is not cleared.
+	 */
+	void *(*Realloc)(void *p, size_t size);
+
+	/**
 	 * @brief Frees the specified managed memory.
 	 */
 	void (*Free)(void *p);
@@ -505,13 +511,13 @@ typedef struct cg_import_s {
 	int32_t (*PointContents)(const vec3_t point);
 
 	/**
-	 * @return 1 if `point` resides inside `brush`, `0` otherwise.
+	 * @return True if `point` resides inside `brush`, falses otherwise.
 	 * @param point The point to test.
 	 * @param brush The brush to test against.
 	 * @remarks This function is useful for testing points against non-solid brushes
 	 * from brush entities. For general purpose collision detection, use PointContents.
 	 */
-	int32_t (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
+	_Bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.
@@ -583,6 +589,20 @@ typedef struct cg_import_s {
 	 * @param play The play sample.
 	 */
 	void (*AddSample)(s_stage_t *stage, const s_play_sample_t *play);
+
+	/**
+	 * @brief Creates an OpenGL framebuffer with color and depth attachments.
+	 * @param width The framebuffer width, in pixels.
+	 * @param height The framebuffer height, in pixels.
+	 * @return The framebuffer.
+	 */
+	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height);
+
+	/**
+	 * @brief Destroys the specified framebuffer, releasing any OpenGL resources.
+	 * @param framebuffer The framebuffer to destroy.
+	 */
+	void (*DestroyFramebuffer)(r_framebuffer_t *framebuffer);
 
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
@@ -691,6 +711,11 @@ typedef struct cg_import_s {
 	void (*AddStain)(r_view_t *view, const r_stain_t *s);
 
 	/**
+	 * @brief Draws the player model view.
+	 */
+	void (*DrawPlayerModelView)(r_view_t *view);
+
+	/**
 	 * @}
 	 * @defgroup draw-2d 2D drawing
 	 * @{
@@ -727,6 +752,17 @@ typedef struct cg_import_s {
 	void (*Draw2DImage)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
 
 	/**
+	 * @brief Draws the framebuffer color attachment in orthographic projection on the screen.
+	 * @param x The x coordinate, in pixels.
+	 * @param y The y coordinate, in pixels.
+	 * @param x The width, in pixels.
+	 * @param y The height, in pixels.
+	 * @param image The image.
+	 * @param color The color.
+	 */
+	void (*Draw2DFramebuffer)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color);
+
+	/**
 	 * @brief Draws the string `s` at the given coordinates.
 	 * @param x The x coordinate, in pixels.
 	 * @param y The y coordinate, in pixels.
@@ -740,6 +776,14 @@ typedef struct cg_import_s {
 	 * @return The width of the string `s` in pixels, using the currently bound font.
 	 */
 	r_pixel_t (*StringWidth)(const char *s);
+
+	/**
+	 * @brief Draw a 3D line at the given coordinates.
+	 * @param points Pointer to point coordinates.
+	 * @param count Number of point coordinates.
+	 * @param color Color of lines.
+	*/
+	void (*Draw3DLines)(const vec3_t *points, size_t count, const color_t color);
 
 	/**
 	 * @}
@@ -773,9 +817,14 @@ typedef struct cg_export_s {
 	void (*ClearState)(void);
 
 	/**
-	 * @brief Updates client game media references on level load or subsystem restarts.
+	 * @brief Loads client game media on level load or subsystem restarts.
 	 */
-	void (*UpdateMedia)(void);
+	void (*LoadMedia)(void);
+
+	/**
+	 * @brief Frees client game media on shutdown or subsystem restarts.
+	 */
+	void (*FreeMedia)(void);
 
 	/**
 	 * @brief Called when a server message known to the client is received.

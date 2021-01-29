@@ -57,6 +57,45 @@
                       {
                         "class": "Input",
                         "label": {
+                        "text": {
+                          "text": "Weather effects"
+                        }
+                        },
+                        "control": {
+                        "class": "CvarSelect",
+                        "identifier": "weather",
+                        "var": "cg_add_weather"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                        "text": {
+                          "text": "Atmospheric effects"
+                        }
+                        },
+                        "control": {
+                        "class": "CvarSelect",
+                        "identifier": "atmospheric",
+                        "var": "cg_add_atmospheric"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                        "text": {
+                          "text": "Fog"
+                        }
+                        },
+                        "control": {
+                        "class": "CvarSelect",
+                        "identifier": "fog",
+                        "var": "r_fog_samples"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
                           "text": {
                             "text": "Shadows"
                           }
@@ -64,9 +103,21 @@
                         "control": {
                           "class": "CvarSelect",
                           "identifier": "shadows",
-                          "var": "r_shadows"
-                        }
+                          "var": "cg_add_entity_shadows"
+						}
                       },
+					  {
+						"class": "Input",
+						"label": {
+						  "text": {
+							"text": "Sprites"
+						  }
+						},
+						"control": {
+						  "class": "Select",
+						  "identifier": "sprites"
+						}
+					  },
                       {
                         "class": "Input",
                         "label": {
@@ -77,19 +128,6 @@
                         "control": {
                           "class": "CvarCheckbox",
                           "var": "r_stains"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Stain expiration"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "stains",
-                          "var": "r_stains_expiration"
                         }
                       },
                       {
@@ -108,25 +146,12 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Weather effects"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "weather",
-                          "var": "cg_add_weather"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
                             "text": "Flares"
                           }
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "r_flares"
+                          "var": "cg_add_flares"
                         }
                       }
                     ]

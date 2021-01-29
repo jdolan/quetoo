@@ -63,7 +63,6 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			break;
 		case KEY_UI:
 			SDL_StopTextInput();
-			Ui_ViewWillAppear();
 			break;
 		case KEY_GAME:
 			SDL_StopTextInput();
@@ -277,17 +276,21 @@ static void Cl_KeyChat(const SDL_Event *event) {
 
 		case SDLK_RETURN:
 		case SDLK_KP_ENTER: {
-				const char *out;
-				if (cls.chat_state.team_chat) {
-					out = va("say_team %s^7", in->buffer);
-				} else {
-					out = va("say %s^7", in->buffer);
-				}
-				g_strlcpy(in->buffer, out, sizeof(in->buffer));
-				Con_SubmitInput(&cl_chat_console);
-
-				Cl_SetKeyDest(KEY_GAME);
+			const char *out;
+			if (cls.chat_state.team_chat ||
+				cls.key_state.down[SDL_SCANCODE_LSHIFT] ||
+				cls.key_state.down[SDL_SCANCODE_RSHIFT] ||
+				cls.key_state.down[SDL_SCANCODE_LCTRL] ||
+				cls.key_state.down[SDL_SCANCODE_RCTRL]) {
+				out = va("say_team %s^7", in->buffer);
+			} else {
+				out = va("say %s^7", in->buffer);
 			}
+			g_strlcpy(in->buffer, out, sizeof(in->buffer));
+			Con_SubmitInput(&cl_chat_console);
+
+			Cl_SetKeyDest(KEY_GAME);
+		}
 			break;
 
 		case SDLK_BACKSPACE:

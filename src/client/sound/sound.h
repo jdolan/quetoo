@@ -23,12 +23,12 @@
 
 #include "console.h"
 
-#include "s_types.h"
 #include "s_main.h"
 #include "s_media.h"
 #include "s_mix.h"
 #include "s_music.h"
 #include "s_sample.h"
+#include "s_types.h"
 
 extern s_context_t s_context;
 

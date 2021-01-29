@@ -222,17 +222,20 @@ typedef enum {
 /**
  * @brief Game-specific entity state effects.
  */
-#define EF_BEAM				(EF_GAME << 0) // overloads old_origin for endpoint
-#define EF_CORPSE			(EF_GAME << 1) // to differentiate own corpse from self
-#define EF_RESPAWN			(EF_GAME << 2) // yellow shell
-#define EF_QUAD				(EF_GAME << 3) // green shell
-#define EF_CTF_RED			(EF_GAME << 4) // carrying the red flag
-#define EF_CTF_BLUE			(EF_GAME << 5) // carrying the blue flag
-#define EF_CTF_YELLOW		(EF_GAME << 6) // carrying the yellow flag
-#define EF_CTF_WHITE		(EF_GAME << 7) // carrying the white flag
-#define EF_DESPAWN			(EF_GAME << 8) // translucent
-#define EF_LIGHT			(EF_GAME << 9) // colored light
-#define EF_TEAM_TINT		(EF_GAME << 10) // tint by the team color provided
+#define EF_ROTATE			(EF_GAME << 0) // rotate on z
+#define EF_BOB				(EF_GAME << 1) // bob on z
+#define EF_INACTIVE			(EF_GAME << 2) // inactive icon for when input is not going to game
+#define EF_BEAM				(EF_GAME << 3) // overloads old_origin for endpoint
+#define EF_CORPSE			(EF_GAME << 4) // to differentiate own corpse from self
+#define EF_RESPAWN			(EF_GAME << 5) // yellow shell
+#define EF_QUAD				(EF_GAME << 6) // green shell
+#define EF_CTF_RED			(EF_GAME << 7) // carrying the red flag
+#define EF_CTF_BLUE			(EF_GAME << 8) // carrying the blue flag
+#define EF_CTF_YELLOW		(EF_GAME << 9) // carrying the yellow flag
+#define EF_CTF_WHITE		(EF_GAME << 10) // carrying the white flag
+#define EF_DESPAWN			(EF_GAME << 11) // translucent
+#define EF_LIGHT			(EF_GAME << 12) // colored light
+#define EF_TEAM_TINT		(EF_GAME << 13) // tint by the team color provided
 
 #define EF_CTF_MASK			(EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_WHITE)
 
@@ -858,7 +861,7 @@ typedef struct {
 	MOD_HOOK,
 	MOD_ACT_OF_GOD,
 	MOD_FRIENDLY_FIRE = 0x8000000
-} g_mod_t;
+} g_means_of_death;
 
 /**
  * @brief Damage flags. These can be and often are combined.

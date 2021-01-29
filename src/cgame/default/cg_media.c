@@ -53,9 +53,9 @@ s_sample_t *cg_sample_gib;
 
 static r_atlas_t *cg_sprite_atlas;
 
-
 r_atlas_image_t *cg_sprite_particle;
 r_atlas_image_t *cg_sprite_particle2;
+r_atlas_image_t *cg_sprite_particle3;
 r_atlas_image_t *cg_sprite_flash;
 r_atlas_image_t *cg_sprite_ring;
 r_atlas_image_t *cg_sprite_aniso_flare_01;
@@ -76,12 +76,19 @@ r_atlas_image_t *cg_sprite_plasma_var03;
 r_atlas_image_t *cg_sprite_blob_01;
 r_atlas_image_t *cg_sprite_electro_02;
 r_atlas_image_t *cg_sprite_splash_02_03;
+r_atlas_image_t *cg_sprite_impact_spark_01_dot;
+r_atlas_image_t *cg_sprite_puff_cloud;
+r_atlas_image_t *cg_sprite_water_circle;
+r_atlas_image_t *cg_sprite_water_ring;
+r_atlas_image_t *cg_sprite_water_ring2;
+r_atlas_image_t *cg_sprite_abstract_01;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_arrow;
 r_image_t *cg_beam_line;
 r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
 r_image_t *cg_beam_tracer;
+r_image_t *cg_beam_tail;
 r_image_t *cg_sprite_blaster_flash;
 
 r_animation_t *cg_sprite_explosion;
@@ -91,7 +98,6 @@ r_animation_t *cg_sprite_blaster_flame;
 r_animation_t *cg_sprite_smoke_04;
 r_animation_t *cg_sprite_smoke_05;
 r_animation_t *cg_sprite_blaster_ring;
-r_animation_t *cg_sprite_hyperblaster;
 r_animation_t *cg_bfg_explosion_1;
 r_animation_t *cg_sprite_bfg_explosion_2;
 r_animation_t *cg_sprite_bfg_explosion_3;
@@ -100,6 +106,10 @@ r_animation_t *cg_sprite_poof_02;
 r_animation_t *cg_sprite_blood_01;
 r_animation_t *cg_sprite_electro_01;
 r_animation_t *cg_sprite_fireball_01;
+r_animation_t *cg_sprite_impact_spark_01;
+r_animation_t *cg_sprite_hyperball_01;
+
+r_framebuffer_t cg_framebuffer;
 
 r_atlas_image_t cg_sprite_font[16 * 8];
 
@@ -238,7 +248,7 @@ static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, c
 /**
  * @brief Updates all media references for the client game.
  */
-void Cg_UpdateMedia(void) {
+void Cg_LoadMedia(void) {
 	char name[MAX_QPATH];
 
 	cgi.FreeTag(MEM_TAG_CGAME);
@@ -292,20 +302,19 @@ void Cg_UpdateMedia(void) {
 
 	Cg_FreeSprites();
 
-	Cg_InitLights();
-
 	cg_beam_hook = cgi.LoadImage("sprites/rope", IT_EFFECT);
 	cg_beam_arrow = cgi.LoadImage("sprites/arrow", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_line = cgi.LoadImage("sprites/line", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_rail = cgi.LoadImage("sprites/beam", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IT_EFFECT);
 	cg_beam_tracer = cgi.LoadImage("sprites/tracer", IT_EFFECT | IT_MASK_CLAMP_EDGE);
+	cg_beam_tail = cgi.LoadImage("sprites/particle_tail", IT_EFFECT | IT_MASK_CLAMP_EDGE);
 	cg_sprite_blaster_flash = cgi.LoadImage("sprites/blast_01/blast_01_flash", IT_EFFECT);
 
 	cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");
-
 	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IT_EFFECT);
 	cg_sprite_particle2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle2", IT_EFFECT);
+	cg_sprite_particle3 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle3", IT_EFFECT);
 	cg_sprite_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flash", IT_EFFECT);
 	cg_sprite_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/ring", IT_EFFECT);
 	cg_sprite_aniso_flare_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/aniso_flare_01", IT_EFFECT);
@@ -326,6 +335,12 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_electro_02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/electro_02/electro_02", IT_EFFECT);
 	cg_sprite_teleport = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/teleport", IT_EFFECT);
 	cg_sprite_splash_02_03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/splash_02/splash_02_03", IT_EFFECT);
+	cg_sprite_impact_spark_01_dot = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01_dot", IT_EFFECT);
+	cg_sprite_puff_cloud = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/puff_cloud", IT_EFFECT);
+	cg_sprite_water_circle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_circle", IT_EFFECT);
+	cg_sprite_water_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring", IT_EFFECT);
+	cg_sprite_water_ring2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring2", IT_EFFECT);
+	cg_sprite_abstract_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/abstract/abstract_01", IT_EFFECT);
 
 	cgi.LoadingProgress(-1, "sprites");
 
@@ -336,16 +351,19 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_blaster_flame = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
 	cg_sprite_smoke_04 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
 	cg_sprite_smoke_05 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
-	cg_sprite_hyperblaster = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
 	cg_sprite_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
 	cg_sprite_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
-	cg_sprite_poof_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 32);
+	cg_sprite_poof_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 34);
 	cg_sprite_poof_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
 	cg_sprite_blood_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
 	cg_sprite_electro_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
 	cg_sprite_fireball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/fireball_01/fireball_01", "_%02" PRIu32, 0, 63);
+	cg_sprite_impact_spark_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01", "_%02" PRIu32, 0, 4);
+	cg_sprite_hyperball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
 
 	cgi.CompileAtlas(cg_sprite_atlas);
+
+	cg_framebuffer = cgi.CreateFramebuffer(cgi.context->drawable_width, cgi.context->drawable_height);
 
 	// font sprite, used for debugging
 	const r_image_t *font_image = cgi.LoadImage("fonts/medium", IT_FONT);
@@ -374,8 +392,7 @@ void Cg_UpdateMedia(void) {
 	cg_sprite_font_width = font_image->width / 16;
 	cg_sprite_font_height = font_image->height / 8;
 
-	cg_draw_crosshair->modified = true;
-	cg_draw_crosshair_color->modified = true;
+	Cg_LoadFlares();
 
 	cgi.LoadingProgress(-1, "entities");
 
@@ -383,13 +400,35 @@ void Cg_UpdateMedia(void) {
 
 	Cg_LoadEffects();
 
+	Cg_InitLights();
+
 	cgi.LoadingProgress(-1, "clients");
 
 	Cg_LoadClients();
 
 	cgi.LoadingProgress(-1, "hud");
 
+	cg_draw_crosshair->modified = true;
+	cg_draw_crosshair_color->modified = true;
+
 	Cg_LoadHudMedia();
 
 	Cg_Debug("Complete\n");
+}
+
+/**
+ * @brief
+ */
+void Cg_FreeMedia(void) {
+
+	cgi.FreeTag(MEM_TAG_CGAME);
+	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
+
+	cgi.DestroyFramebuffer(&cg_framebuffer);
+
+	Cg_FreeEntities();
+
+	Cg_FreeFlares();
+
+	Cg_FreeSprites();
 }

@@ -594,7 +594,7 @@ static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
 	GSList **list = (GSList **) data;
 	gchar *str = g_strdup(Cmd_Stringify(cmd));
 
-	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrColorCmp);
+	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrStripCmp);
 }
 
 /**

@@ -127,3 +127,14 @@ vec4 texture_bicubic(sampler2DArray sampler, vec3 coords) {
 	   mix(sample3, sample2, sx), mix(sample1, sample0, sx)
 	, sy);
 }
+
+/**
+ * @brief Groups postprocessing operations
+ */
+vec3 postprocessing(vec3 color)
+{
+	color = tonemap(color);
+	color = color_filter(color.rgb);
+	color = dither(color.rgb);
+	return color;
+}

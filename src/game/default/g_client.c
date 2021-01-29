@@ -31,7 +31,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 	const _Bool frag = attacker && (attacker != self) && attacker->client;
 
-	const _Bool friendy_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
+	const _Bool friendly_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
 	mod &= ~MOD_FRIENDLY_FIRE;
 
 	if (frag) { // killed by another player
@@ -40,61 +40,61 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 		switch (mod) {
 			case MOD_BLASTER:
-				msg = "%s was humiliated by %s's blaster";
+				msg = "%s was humiliated by %s's blaster :blaster:";
 				break;
 			case MOD_SHOTGUN:
-				msg = "%s was gunned down by %s's shotgun";
+				msg = "%s was gunned down by %s's shotgun :shotgun:";
 				break;
 			case MOD_SUPER_SHOTGUN:
-				msg = "%s was blown away by %s's super shotgun";
+				msg = "%s was blown away by %s's super shotgun :sshotgun:";
 				break;
 			case MOD_MACHINEGUN:
-				msg = "%s was perforated by %s's machinegun";
+				msg = "%s was perforated by %s's machinegun :machinegun:";
 				break;
 			case MOD_GRENADE:
-				msg = "%s was popped by %s's grenade";
+				msg = "%s was popped by %s's grenade :grenade:";
 				break;
 			case MOD_GRENADE_SPLASH:
-				msg = "%s was shredded by %s's shrapnel";
+				msg = "%s was shredded by %s's shrapnel :grenade:";
 				break;
 			case MOD_HANDGRENADE:
-				msg = "%s caught %s's handgrenade";
+				msg = "%s caught %s's handgrenade :handgrenade:";
 				break;
 			case MOD_HANDGRENADE_SPLASH:
-				msg = "%s felt the burn from %s's handgrenade";
+				msg = "%s felt the burn from %s's handgrenade :handgrenade:";
 				break;
 			case MOD_HANDGRENADE_KAMIKAZE:
-				msg = "%s felt %s's pain";
+				msg = "%s felt %s's pain :handgrenade:";
 				break;
 			case MOD_ROCKET:
-				msg = "%s ate %s's rocket";
+				msg = "%s ate %s's rocket :rocket:";
 				break;
 			case MOD_ROCKET_SPLASH:
-				msg = "%s almost dodged %s's rocket";
+				msg = "%s almost dodged %s's rocket :rocket:";
 				break;
 			case MOD_HYPERBLASTER:
-				msg = "%s was melted by %s's hyperblaster";
+				msg = "%s was melted by %s's hyperblaster :hyperblaster:";
 				break;
 			case MOD_LIGHTNING:
-				msg = "%s got a charge out of %s's lightning";
+				msg = "%s got a charge out of %s's lightning :lightning:";
 				break;
 			case MOD_LIGHTNING_DISCHARGE:
-				msg = "%s was shocked by %s's discharge";
+				msg = "%s was shocked by %s's discharge :lightning:";
 				break;
 			case MOD_RAILGUN:
-				msg = "%s was railed by %s";
+				msg = "%s was railed by %s :railgun:";
 				break;
 			case MOD_BFG_LASER:
-				msg = "%s saw the pretty lights from %s's BFG";
+				msg = "%s saw the pretty lights from %s's BFG :bfg:";
 				break;
 			case MOD_BFG_BLAST:
-				msg = "%s was disintegrated by %s's BFG blast";
+				msg = "%s was disintegrated by %s's BFG blast :bfg:";
 				break;
 			case MOD_TELEFRAG:
-				msg = "%s tried to invade %s's personal space";
+				msg = "%s tried to invade %s's personal space :telefrag:";
 				break;
 			case MOD_HOOK:
-				msg = "%s had their intestines shredded by %s's grappling hook";
+				msg = "%s had their intestines shredded by %s's grappling hook :hook:";
 				break;
 		}
 
@@ -104,66 +104,66 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 		           attacker->client->locals.persistent.net_name);
 #pragma clang diagnostic pop
 
-		if (friendy_fire) {
+		if (friendly_fire) {
 			g_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
 		}
 
 	} else { // killed by self or world
 
-		const char *msg = "%s sucks at life";
+		const char *msg = "%s sucks at life :suicide:";
 
 		switch (mod) {
 			case MOD_SUICIDE:
-				msg = "%s suicides";
+				msg = "%s suicides :suicide:";
 				break;
 			case MOD_FALLING:
-				msg = "%s cratered";
+				msg = "%s cratered :falldamage:";
 				break;
 			case MOD_CRUSH:
-				msg = "%s was squished";
+				msg = "%s was squished :crush:";
 				break;
 			case MOD_WATER:
-				msg = "%s sleeps with the fishes";
+				msg = "%s sleeps with the fishes :drown:";
 				break;
 			case MOD_SLIME:
-				msg = "%s melted";
+				msg = "%s melted :slime:";
 				break;
 			case MOD_LAVA:
-				msg = "%s did a back flip into the lava";
+				msg = "%s did a back flip into the lava :lava:";
 				break;
 			case MOD_FIREBALL:
-				msg = "%s tasted the lava rainbow";
+				msg = "%s tasted the lava rainbow :lava:";
 				break;
 			case MOD_TRIGGER_HURT:
-				msg = "%s was in the wrong place";
+				msg = "%s was in the wrong place :actofgod:";
 				break;
 			case MOD_ACT_OF_GOD:
-				msg = "%s was killed by an act of god";
+				msg = "%s was killed by an act of god :actofgod:";
 				break;
 		}
 
 		if (attacker == self) {
 			switch (mod) {
 				case MOD_GRENADE_SPLASH:
-					msg = "%s went pop";
+					msg = "%s went pop :explosive:";
 					break;
 				case MOD_HANDGRENADE_KAMIKAZE:
-					msg = "%s tried to put the pin back in";
+					msg = "%s tried to put the pin back in :handgrenade:";
 					break;
 				case MOD_HANDGRENADE_SPLASH:
-					msg = "%s has no hair left";
+					msg = "%s has no hair left :explosive:";
 					break;
 				case MOD_ROCKET_SPLASH:
-					msg = "%s blew up";
+					msg = "%s blew up :explosive:";
 					break;
 				case MOD_HYPERBLASTER_CLIMB:
-					msg = "%s forgot how to climb";
+					msg = "%s forgot how to climb :death:";
 					break;
 				case MOD_LIGHTNING_DISCHARGE:
-					msg = "%s took a toaster bath";
+					msg = "%s took a toaster bath :death:";
 					break;
 				case MOD_BFG_BLAST:
-					msg = "%s should have used a smaller gun";
+					msg = "%s should have used a smaller gun :death:";
 					break;
 			}
 		}
@@ -192,7 +192,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 	if (!g_level.warmup) {
 
 		if (frag) {
-			if (friendy_fire) {
+			if (friendly_fire) {
 				attacker->client->locals.persistent.score--;
 			} else {
 				attacker->client->locals.persistent.score++;
@@ -202,7 +202,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			        self->client->locals.persistent.team &&
 			        attacker->client->locals.persistent.team) {
 
-				if (friendy_fire) {
+				if (friendly_fire) {
 					attacker->client->locals.persistent.team->score--;
 				} else {
 					attacker->client->locals.persistent.team->score++;
@@ -1316,7 +1316,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	G_TossTech(ent);
 	G_ClientHookDetach(ent);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s disconnected\n", ent->client->locals.persistent.net_name);
 
 	// send effect
 	if (G_IsMeat(ent)) {
@@ -1447,7 +1447,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				angles = Vec3(0.0, ent->s.angles.y, 0.0);
 				Vec3_Vectors(angles, &forward, NULL, NULL);
 
-				point = Vec3_Add(ent->s.origin, Vec3_Scale(velocity, cl->locals.speed * 0.4));
+				point = Vec3_Fmaf(ent->s.origin, cl->locals.speed * .4f, velocity);
 
 				// trace towards our jump destination to see if we have room to backflip
 				tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, CONTENTS_MASK_CLIP_PLAYER);

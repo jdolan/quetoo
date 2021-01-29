@@ -24,15 +24,63 @@ layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec2 in_next_diffusemap;
 layout (location = 3) in vec4 in_color;
 layout (location = 4) in float in_lerp;
+layout (location = 5) in float in_softness;
+layout (location = 6) in float in_lighting;
+
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_fog;
 
 out vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec2 next_diffusemap;
-	vec3 lightgrid;
 	vec4 color;
 	float lerp;
+	float softness;
+	vec4 fog;
 } vertex;
+
+/**
+ * @brief Dynamic lighting for sprites
+ */
+void sprite_lighting(vec3 position, vec3 normal) {
+
+	if (in_lighting == 0.0) {
+		return;
+	}
+
+	vec3 light = vec3(0.0);
+
+	vec3 grid_coord = lightgrid_uvw(in_position);
+	light += texture(texture_lightgrid_diffuse, grid_coord).rgb;
+	light += texture(texture_lightgrid_ambient, grid_coord).rgb;
+
+	for (int i = 0; i < MAX_LIGHTS; i++) {
+
+		float radius = lights[i].origin.w;
+		if (radius == 0.0) {
+			continue;
+		}
+
+		float intensity = lights[i].color.w;
+		if (intensity == 0.0) {
+			continue;
+		}
+
+		float dist = distance(lights[i].origin.xyz, position);
+		if (dist > radius) {
+			continue;
+		}
+
+		float dist_atten = 1.0 - dist / radius;
+		dist_atten *= dist_atten; // for looks, not for correctness
+
+		light += dist_atten * radius * lights[i].color.rgb * intensity;
+	}
+
+	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * light * modulate, in_lighting);
+}
 
 /**
  * @brief
@@ -41,12 +89,18 @@ void main(void) {
 
 	vec4 position = vec4(in_position, 1.0);
 
-	vertex.position = vec3(view * vec4(in_position.xyz, 1.0));
+	vertex.position = vec3(view * position);
 	vertex.diffusemap = in_diffusemap;
 	vertex.next_diffusemap = in_next_diffusemap;
-	vertex.lightgrid = lightgrid_uvw(in_position);
 	vertex.color = in_color;
 	vertex.lerp = in_lerp;
+	vertex.softness = in_softness;
+
+	vec3 lightgrid_uvw = lightgrid_uvw(in_position);
+
+	vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
+	lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
+	sprite_lighting(vertex.position, vec3(0.0, 0.0, 1.0)); // TODO: actual normals
 
 	gl_Position = projection3D * view * position;
 }

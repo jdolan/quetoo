@@ -107,10 +107,11 @@ typedef enum {
 	IT_UI =          (1 <<  3),
 	IT_EFFECT =      (1 <<  4) + (IT_MASK_MIPMAP),
 	IT_MATERIAL =    (1 <<  5) + (IT_MASK_MIPMAP),
-	IT_PIC =         (1 <<  6) + (IT_MASK_MIPMAP),
-	IT_ATLAS =       (1 <<  7) + (IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE),
-	IT_LIGHTMAP =    (1 <<  8) + (IT_MASK_CLAMP_EDGE),
-	IT_LIGHTGRID =   (1 <<  9) + (IT_MASK_CLAMP_EDGE)
+	IT_CUBEMAP =     (1 <<  6) + (IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE),
+	IT_PIC =         (1 <<  7) + (IT_MASK_MIPMAP),
+	IT_ATLAS =       (1 <<  8) + (IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE),
+	IT_LIGHTMAP =    (1 <<  9) + (IT_MASK_CLAMP_EDGE),
+	IT_LIGHTGRID =   (1 << 10) + (IT_MASK_CLAMP_EDGE),
 } r_image_type_t;
 
 /**
@@ -133,10 +134,19 @@ typedef struct {
 	r_pixel_t width, height, depth;
 
 	/**
+	 * @brief The target to bind this texture.
+	 */
+	GLenum target;
+
+	/**
+	 * @brief The pixel format, typically GL_RGB or GL_RGBA.
+	 */
+	GLenum format;
+
+	/**
 	 * @brief The texture name.
 	 */
 	GLuint texnum;
-
 } r_image_t;
 
 /**
@@ -357,8 +367,6 @@ typedef struct {
 	vec3_t mins;
 	vec3_t maxs;
 
-	struct r_sprite_s *flare;
-
 	r_bsp_face_lightmap_t lightmap;
 
 	r_bsp_vertex_t *vertexes;
@@ -480,11 +488,6 @@ typedef struct r_bsp_inline_model_s {
 	GPtrArray *blend_elements;
 
 	/**
-	 * @brief The faces of this inline model that include flares, sorted by material at level load.
-	 */
-	GPtrArray *flare_faces;
-
-	/**
 	 * @brief The draw elements of this inline model.
 	 * @brief This is a pointer into the BSP model's draw elements array.
 	 */
@@ -568,6 +571,8 @@ typedef struct {
 
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
+
+	r_bsp_draw_elements_t *sky;
 
 	GLuint vertex_array;
 	GLuint vertex_buffer;
@@ -681,6 +686,36 @@ typedef struct r_model_s {
 #define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
 
 /**
+ * @brief The model format type.
+ */
+typedef struct {
+	/**
+	 * @brief The file extension.
+	 */
+	const char *extension;
+
+	/**
+	 * @brief The model type.
+	 */
+	r_model_type_t type;
+
+	/**
+	 * @brief The load function.
+	 */
+	void (*Load)(r_model_t *mod, void *buffer);
+
+	/**
+	 * @brief The media registration callback.
+	 */
+	void (*Register)(r_media_t *self);
+
+	/**
+	 * @brief The media free callback.
+	 */
+	void (*Free)(r_media_t *self);
+} r_model_format_t;
+
+/**
  * @brief
  */
 enum {
@@ -690,9 +725,9 @@ enum {
 	SPRITE_NO_BLEND_DEPTH	= 1 << 0,
 
 	/**
-	 * @brief If set, animation interpolates
+	 * @brief If set, animations don't interpolate
 	 */
-	SPRITE_LERP				= 1 << 1,
+	SPRITE_NO_LERP			= 1 << 1,
 
 	/**
 	 * @brief Beginning of flags reserved for cgame
@@ -730,7 +765,7 @@ typedef enum {
 /**
  * @brief Sprites are billboarded alpha blended quads, optionally animated.
  */
-typedef struct r_sprite_s {
+typedef struct {
 	/**
 	 * @brief The sprite origin.
 	 */
@@ -785,6 +820,16 @@ typedef struct r_sprite_s {
 	 * @brief Sprite flags
 	 */
 	r_sprite_flags_t flags;
+
+	/**
+	 * @brief Sprite softness scalar. Negative values apply an invert to the result.
+	 */
+	float softness;
+
+	/**
+	 * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
+	 */
+	float lighting;
 } r_sprite_t;
 
 #define MAX_SPRITES		0x8000
@@ -832,6 +877,16 @@ typedef struct {
 	 * @brief The beam flags.
 	 */
 	r_sprite_flags_t flags;
+
+	/**
+	 * @brief Beam softness scalar. Negative values apply an invert to the result.
+	 */
+	float softness;
+
+	/**
+	 * @brief Beam lighting mix factor. 0 is fullbright, 1 is fully affected by light.
+	 */
+	float lighting;
 } r_beam_t;
 
 #define MAX_BEAMS 0x200
@@ -845,12 +900,19 @@ typedef struct {
 	vec2_t next_diffusemap;
 	color32_t color;
 	float lerp;
+	float softness;
+	float lighting;
 } r_sprite_vertex_t;
 
 /**
  * @brief An instance of a renderable sprite.
  */
 typedef struct r_sprite_instance_s {
+	/**
+	 * @brief The sprite flags.
+	 */
+	r_sprite_flags_t flags;
+
 	/**
 	 * @brief The diffusemap texture.
 	 */
@@ -879,8 +941,7 @@ typedef struct r_sprite_instance_s {
 	/**
 	 * @brief The next sprite instance to be rendered at the same blend depth.
 	 */
-	struct r_sprite_instance_s *blend_chain;
-
+	struct r_sprite_instance_s *tail, *head, *prev, *next;
 } r_sprite_instance_t;
 
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
@@ -1036,14 +1097,9 @@ typedef struct r_entity_s {
 	int32_t effects;
 
 	/**
-	 * @brief The entity shade color for e.g. `EF_PULSE`.
+	 * @brief The entity shade color.
 	 */
 	vec4_t color;
-
-	/**
-	 * @brief The entity ambient lighting.
-	 */
-	float ambient;
 
 	/**
 	 * @brief The entity shell color for flag carriers, etc.
@@ -1062,13 +1118,62 @@ typedef struct r_entity_s {
 } r_entity_t;
 
 /**
+ * @brief The framebuffer type.
+ */
+typedef struct {
+	/**
+	 * @brief The framebuffer name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The color attachment texture name.
+	 */
+	GLuint color_attachment;
+
+	/**
+	 * @brief The depth attachment texture name.
+	 */
+	GLuint depth_attachment;
+
+	/**
+	 * @brief The framebuffer width.
+	 */
+	r_pixel_t width;
+
+	/**
+	 * @brief The framebuffer height.
+	 */
+	r_pixel_t height;
+} r_framebuffer_t;
+
+/**
+ * @brief View types.
+ */
+typedef enum {
+	VIEW_UNKNOWN,
+	VIEW_MAIN,
+	VIEW_PLAYER_MODEL,
+} r_view_type_t;
+
+/**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
 	/**
-	 * @brief The unclamped simulation time, in millis.
+	 * @brief The view type.
 	 */
-	uint32_t ticks;
+	r_view_type_t type;
+
+	/**
+	 * @brief The target framebuffer (required).
+	 */
+	r_framebuffer_t *framebuffer;
+
+	/**
+	 * @brief The viewport, in device pixels.
+	 */
+	vec4_t viewport;
 
 	/**
 	 * @brief The horizontal and vertical field of view.
@@ -1104,6 +1209,11 @@ typedef struct {
 	 * @brief The contents mask at the view origin.
 	 */
 	int32_t contents;
+
+	/**
+	 * @brief The unclamped simulation time, in millis.
+	 */
+	uint32_t ticks;
 
 	/**
 	 * @brief The entities to render for the current frame.
@@ -1188,11 +1298,6 @@ typedef struct {
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	_Bool fullscreen;
-	
-	/**
-	 * @brief Framebuffer things.
-	 */
-	GLuint framebuffer, color_attachment, depth_stencil_attachment;
 } r_context_t;
 
 /**
@@ -1251,6 +1356,11 @@ typedef enum {
 	TEXTURE_LIGHTGRID_DIFFUSE,
 	TEXTURE_LIGHTGRID_DIRECTION,
 	TEXTURE_LIGHTGRID_FOG,
+
+	/**
+	 * @brief The sky cubemap texture.
+	 */
+	TEXTURE_SKY,
 
 	/**
 	 * @brief Sprite specific textures.

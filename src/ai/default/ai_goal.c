@@ -52,7 +52,7 @@ void Ai_SetEntityGoal(const g_entity_t *self, ai_goal_t *goal, float priority, c
 	Ai_SetGoalBase(self, goal, AI_GOAL_ENTITY, priority);
 	
 	goal->entity.ent = entity;
-	goal->entity.spawn_id = entity->spawn_id;
+	goal->entity.spawn_id = entity->s.spawn_id;
 
 	Ai_Debug("New goal: %s (%f priority)\n", etos(entity), priority);
 }
@@ -71,7 +71,7 @@ void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GAr
 	goal->path.path_target = path_target;
 
 	if (path_target) {
-		goal->path.path_target_spawn_id = path_target->spawn_id;
+		goal->path.path_target_spawn_id = path_target->s.spawn_id;
 	}
 
 	Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", g_array_index(path, ai_node_id_t, 0), g_array_index(path, ai_node_id_t, path->len - 1), priority, etos(path_target));
@@ -82,8 +82,8 @@ void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GAr
  */
 _Bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent) {
 
-	return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawn_id == ent->spawn_id) ||
-		(goal->type == AI_GOAL_PATH && goal->path.path_target == ent && goal->path.path_target_spawn_id == ent->spawn_id);;
+	return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawn_id == ent->s.spawn_id) ||
+		(goal->type == AI_GOAL_PATH && goal->path.path_target == ent && goal->path.path_target_spawn_id == ent->s.spawn_id);
 }
 
 /**

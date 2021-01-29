@@ -92,23 +92,23 @@ cm_bsp_plane_t Cm_TransformPlane(const mat4_t *matrix, const cm_bsp_plane_t *pla
 }
 
 /**
- * @return `1` if `point` resides inside `brush`, `0` otherwise.
+ * @return `true` if `point` resides inside `brush`, `false` otherwise.
  */
-int32_t Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
+_Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
 	if (Vec3_BoxIntersect(point, point, brush->mins, brush->maxs)) {
 
 		const cm_bsp_brush_side_t *side = brush->sides;
-		for (int32_t i = 0; i < brush->num_original_sides; i++, side++) {
+		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 			if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
-				return 0;
+				return false;
 			}
 		}
 
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 /**

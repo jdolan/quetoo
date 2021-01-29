@@ -164,8 +164,10 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 			atlas->image->width = width;
 			atlas->image->height = width;
+			atlas->image->target = GL_TEXTURE_2D;
+			atlas->image->format = GL_RGBA;
 
-			R_SetupImage(atlas->image, GL_TEXTURE_2D, GL_RGBA, levels, GL_UNSIGNED_BYTE, NULL);
+			R_SetupImage(atlas->image);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
 

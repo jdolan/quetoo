@@ -306,7 +306,7 @@ typedef struct {
 
 		struct {
 			const g_entity_t *ent;
-			uint32_t spawn_id;
+			uint8_t spawn_id;
 
 			// specific to combat goal
 

@@ -212,7 +212,7 @@ static void viewWillAppear(ViewController *self) {
 		$(this->crosshairColorPicker, setColor, 0.0, 1.0, 1.0);
 	}
 
-	$(this->crosshair, selectOptionWithValue, (ident) ((size_t) cg_draw_crosshair->integer)); // Double cast to silence warnings
+	$(this->crosshair, selectOptionWithValue, (ident) ((size_t) cg_draw_crosshair->integer));
 	$(this->crosshairHealth, selectOptionWithValue, (ident) ((size_t) cg_draw_crosshair_health->integer));
 }
 

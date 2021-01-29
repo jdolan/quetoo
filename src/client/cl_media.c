@@ -101,7 +101,6 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 	if (percent < 0) {
 		cls.loading.percent -= percent;
 		cls.loading.percent = Mini(Maxi(0, cls.loading.percent), 99);
-
 	} else {
 		cls.loading.percent = percent;
 	}
@@ -114,7 +113,7 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	cls.cgame->UpdateLoading(cls.loading);
 
-	R_BeginFrame(NULL);
+	R_BeginFrame();
 
 	Cl_UpdateScreen();
 
@@ -144,13 +143,22 @@ static void Cl_LoadModels(void) {
 }
 
 /**
+ * @brief Fs_Enumerator to load all emoji into the images atlas.
+ */
+static void Cl_LoadImages_Emoji(const char *path, void *data) {
+	R_LoadAtlasImage((r_atlas_t *) data, path, IT_PIC);
+}
+
+/**
  * @brief
- * TODO: Use an atlas here?
  */
 static void Cl_LoadImages(void) {
 
 	Cl_LoadingProgress(-1, "sky");
 	R_LoadSky(cl.config_strings[CS_SKY]);
+
+	r_atlas_t *atlas = R_LoadAtlas("images");
+	Fs_Enumerate("pics/emoji/*", Cl_LoadImages_Emoji, atlas);
 
 	for (int32_t i = 0; i < MAX_IMAGES; i++) {
 
@@ -159,12 +167,11 @@ static void Cl_LoadImages(void) {
 			break;
 		}
 
-		if (i ^ 1) {
-			Cl_LoadingProgress(-1, str);
-		}
-
-		cl.images[i] = R_LoadImage(str, IT_PIC);
+		cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IT_PIC);
 	}
+
+	Cl_LoadingProgress(-1, "compiling images");
+	R_CompileAtlas(atlas);
 }
 
 /**
@@ -225,6 +232,8 @@ static void Cl_LoadMusics(void) {
  */
 void Cl_LoadMedia(void) {
 
+	cls.cgame->FreeMedia();
+
 	cls.state = CL_LOADING;
 
 	GList *mapshots = Cl_Mapshots(cl.config_strings[CS_MODELS]);
@@ -254,30 +263,11 @@ void Cl_LoadMedia(void) {
 
 	Cl_LoadMusics();
 
-	cls.cgame->UpdateMedia();
+	cls.cgame->LoadMedia();
 
 	Cl_LoadingProgress(100, "ready");
 
 	R_FreeUnseededMedia();
 
 	S_FreeMedia();
-
-	Cl_SetKeyDest(KEY_GAME);
-}
-
-/**
- * @brief Reload stale media references on subsystem restarts.
- */
-void Cl_UpdateMedia(void) {
-
-//	if ((view->update || s_context.update) && cls.state == CL_ACTIVE) {
-//
-//		Com_Debug(DEBUG_CLIENT, "%s %s\n", view->update ? "view" : "", s_context.update ? "sound" : "");
-//
-//		cls.cgame->UpdateMedia();
-//
-//		R_FreeUnseededMedia();
-//
-//		S_FreeMedia();
-//	}
 }

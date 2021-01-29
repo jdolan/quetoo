@@ -30,6 +30,7 @@ static GArray *cg_entities;
  */
 void Cg_LoadEntities(void) {
 	 const cg_entity_class_t *classes[] = {
+		&cg_misc_dust,
 		&cg_misc_flame,
 		&cg_misc_light,
 		&cg_misc_model,
@@ -135,6 +136,26 @@ _Bool Cg_IsDucking(const cl_entity_t *ent) {
 }
 
 /**
+ * @brief Adds the entity's current sound, if any, to the sound stage.
+ */
+static void Cg_EntitySound(cl_entity_t *ent) {
+
+	entity_state_t *s = &ent->current;
+
+	if (s->sound) {
+		Cg_AddSample(cgi.stage, (const s_play_sample_t *) &(s_play_sample_t) {
+			.sample = cgi.client->sounds[s->sound],
+			.origin = s->origin,
+			.entity = s->number,
+			.atten = SOUND_ATTEN_SQUARE,
+			.flags = S_PLAY_LOOP | S_PLAY_FRAME
+		});
+	}
+
+	s->sound = 0;
+}
+
+/**
  * @brief Setup step interpolation.
  */
 void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, float height) {
@@ -181,12 +202,102 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 
 		cl_entity_t *ent = &cgi.client->entities[s->number];
 
+		Cg_EntitySound(ent);
+
 		Cg_EntityEvent(ent);
 
 		Cg_InterpolateStep(&ent->step);
 
 		if (ent->step.delta_height) {
 			ent->origin.z = ent->current.origin.z - ent->step.delta_height;
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+void Cg_AddEntityShadow(const r_entity_t *ent) {
+
+	if (!cg_add_entity_shadows->integer) {
+		return;
+	}
+
+	if (!ent->model) {
+		return;
+	}
+
+	if (ent->model->type == MOD_BSP_INLINE) {
+		return;
+	}
+
+	if (ent->effects & EF_NO_SHADOW) {
+		return;
+	}
+
+	r_sprite_t shadow_sprite = {
+		.color = Color32(0, 0, 0, 255),
+		.width = (ent->model->maxs.y - ent->model->mins.y) * 2,
+		.height = (ent->model->maxs.x - ent->model->mins.x) * 2,
+		.rotation = Radians(ent->angles.y),
+		.media = (r_media_t *) cg_sprite_particle3,
+		.softness = -1.f,
+		.origin = ent->origin
+	};
+
+	vec3_t forward, right;
+	Vec3_Vectors(ent->angles, &forward, &right, NULL);
+
+	const vec2_t offsets[9] = {
+		Vec2(0.f, 0.f),
+		
+		Vec2(ent->model->mins.x, ent->model->mins.y),
+		Vec2(ent->model->maxs.x, ent->model->mins.y),
+		Vec2(ent->model->maxs.x, ent->model->maxs.y),
+		Vec2(ent->model->mins.x, ent->model->maxs.y),
+		
+		Vec2(0.f, ent->model->mins.y),
+		Vec2(ent->model->maxs.x, 0.f),
+		Vec2(0.f, ent->model->maxs.y),
+		Vec2(ent->model->mins.x, 0.f)
+	};
+
+	int32_t num_shadows;
+	switch (cg_add_entity_shadows->integer) {
+		case 1:
+			num_shadows = 1;
+			break;
+		case 2:
+			num_shadows = 5;
+			break;
+		case 3:
+		default:
+			num_shadows = 9;
+			break;
+	}
+
+	cm_bsp_plane_t planes[num_shadows];
+	int32_t num_planes = 0;
+
+	for (int32_t i = 0; i < num_shadows; i++) {
+		vec3_t start = Vec3_Fmaf(ent->origin, offsets[i].x, forward);
+		start = Vec3_Fmaf(start, offsets[i].y, right);
+		const vec3_t down = Vec3_Fmaf(start, MAX_WORLD_COORD, Vec3_Down());
+		const cm_trace_t tr = cgi.Trace(start, down, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MIST);
+		int32_t p;
+
+		for (p = 0; p < num_planes; p++) {
+			if (Vec3_EqualEpsilon(planes[p].normal, tr.plane.normal, .01f) && fabsf(planes[p].dist - tr.plane.dist) <= 8.f) {
+				break;
+			}
+		}
+
+		if (p == num_planes) {
+			planes[num_planes] = tr.plane;
+			num_planes++;
+			shadow_sprite.dir = tr.plane.normal;
+			shadow_sprite.origin.z = tr.end.z;
+			cgi.AddSprite(cgi.view, &shadow_sprite);
 		}
 	}
 }
@@ -216,10 +327,12 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 		return;
 	}
 
-	if (ent->current.model1 == MODEL_CLIENT) { // add a player entity
+	if (ent->current.model1 == MODEL_CLIENT) {
 
+		// add a client entity, with an animated player model
 		Cg_AddClientEntity(ent, &e);
 
+		// add our view weapon, if it's us
 		if (Cg_IsSelf(ent)) {
 			Cg_AddWeapon(ent, &e);
 		}
@@ -227,7 +340,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 		return;
 	}
 
-	// don't draw our own giblet
+	// don't draw our own giblet, since the view is inside it
 	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 		e.effects |= EF_NO_DRAW;
 	}
@@ -237,6 +350,9 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 
 	// and any frame animations (button state, etc)
 	e.frame = ent->current.animation1;
+
+	// add a sprite shadow
+	Cg_AddEntityShadow(&e);
 
 	// add to view list
 	cgi.AddEntity(cgi.view, &e);

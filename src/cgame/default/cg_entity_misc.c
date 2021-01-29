@@ -51,6 +51,162 @@ static const cm_entity_t *Cg_EntityTarget(const cg_entity_t *self) {
 }
 
 /**
+ * @brief The cmisc_dist data type.
+ */
+typedef struct {
+	/**
+	 * @brief The sprite template.
+	 */
+	cg_sprite_t sprite;
+
+	/**
+	 * @brief The sprite origins, clipped to the backing entity's brushes.
+	 */
+	vec3_t *origins;
+	int32_t num_origins;
+
+	/**
+	 * @brief The dust density.
+	 */
+	float density;
+
+	/**
+	 * @brief The count of active sprites.
+	 */
+	int32_t num_active;
+} cg_dust_t;
+
+/**
+ * @brief
+ */
+static void Cg_misc_dust_Init(cg_entity_t *self) {
+
+	cg_dust_t *dust = self->data;
+
+	const char *name = cgi.EntityValue(self->def, "sprite")->nullable_string ?: "particle";
+	dust->sprite.image = cgi.LoadImage(va("sprites/%s", name), IT_EFFECT);
+	if (dust->sprite.image == NULL) {
+		dust->sprite.image = cgi.LoadImage("sprites/particle", IT_EFFECT);
+		cgi.Warn("%s @ %s failed to load sprite %s\n",
+				 self->clazz->class_name,
+				 vtos(self->origin),
+				 name);
+	}
+
+	dust->sprite.velocity = cgi.EntityValue(self->def, "sprite_velocity")->vec3;
+	dust->sprite.size = cgi.EntityValue(self->def, "sprite_size")->value ?: 1.f;
+
+	const cm_entity_t *color = cgi.EntityValue(self->def, "sprite_color");
+	if (color->parsed & ENTITY_VEC4) {
+		dust->sprite.color = color->vec4;
+	} else if (color->parsed & ENTITY_VEC3) {
+		dust->sprite.color = Vec3_ToVec4(color->vec3, 1.f);
+	} else {
+		dust->sprite.color = Vec4(0.f, 0.f, 1.f, 1.f);
+	}
+
+	const cm_entity_t *end_color = cgi.EntityValue(self->def, "sprite_end_color");
+	if (end_color->parsed & ENTITY_VEC4) {
+		dust->sprite.end_color = end_color->vec4;
+	} else if (end_color->parsed & ENTITY_VEC3) {
+		dust->sprite.end_color = Vec3_ToVec4(end_color->vec3, 1.f);
+	} else {
+		dust->sprite.end_color = Vec4(0.f, 0.f, 0.f, 0.f);
+	}
+
+	dust->sprite.lifetime = cgi.EntityValue(self->def, "sprite_lifetime")->integer ?: 10000;
+	dust->sprite.softness = cgi.EntityValue(self->def, "sprite_softness")->value ?: 1.f;
+
+	dust->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
+
+
+	GPtrArray *brushes = cgi.EntityBrushes(self->def);
+	for (guint i = 0; i < brushes->len; i++) {
+
+		const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
+
+		const vec3_t brush_size = Vec3_Subtract(brush->maxs, brush->mins);
+		const int32_t brush_origins = Maxi(Vec3_Length(brush_size) * dust->density, 1);
+
+		if (dust->origins) {
+			dust->origins = cgi.Realloc(dust->origins, (dust->num_origins + brush_origins) * sizeof(vec3_t));
+		} else {
+			dust->origins = cgi.LinkMalloc(brush_origins * sizeof(vec3_t), dust);
+		}
+
+		int32_t j = dust->num_origins;
+		while (j < dust->num_origins + brush_origins) {
+
+			vec3_t point;
+			point.x = RandomRangef(brush->mins.x, brush->maxs.x);
+			point.y = RandomRangef(brush->mins.y, brush->maxs.y);
+			point.z = RandomRangef(brush->mins.z, brush->maxs.z);
+
+			if (cgi.PointInsideBrush(point, brush)) {
+				dust->origins[j++] = point;
+			}
+		}
+
+		dust->num_origins += brush_origins;
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cg_misc_dust_SpriteThink(cg_sprite_t *sprite, float life, float delta) {
+
+	cg_dust_t *dust = sprite->data;
+
+	if (life <= .1f) {
+		sprite->color = Vec4_Scale(dust->sprite.color, life / .1f);
+	}
+
+	if (life >= 1.f) {
+		dust->num_active--;
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cg_misc_dust_Think(cg_entity_t *self) {
+
+	if (!cg_add_atmospheric->value) {
+		return;
+	}
+	
+	cg_dust_t *dust = self->data;
+	while (dust->num_active < dust->num_origins) {
+
+		cg_sprite_t s = dust->sprite;
+
+		s.origin = dust->origins[RandomRangei(0, dust->num_origins)];
+		s.origin = Vec3_Add(s.origin, Vec3_RandomDir());
+		s.size = RandomRangef(s.size * .9f, s.size * 1.1f);
+		s.velocity = Vec3_Add(s.velocity, Vec3_RandomDir());
+		s.lifetime = RandomRangeu(s.lifetime * .666f, s.lifetime * 1.333f);
+		s.Think = Cg_misc_dust_SpriteThink;
+		s.data = dust;
+		s.flags |= SPRITE_DATA_NOFREE;
+
+		Cg_AddSprite(&s);
+
+		dust->num_active++;
+	}
+}
+
+/**
+ * @brief
+ */
+const cg_entity_class_t cg_misc_dust = {
+	.class_name = "misc_dust",
+	.Init = Cg_misc_dust_Init,
+	.Think = Cg_misc_dust_Think,
+	.data_size = sizeof(cg_dust_t)
+};
+
+/**
  * @brief
  */
 typedef struct {
@@ -91,7 +247,8 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 				.size = RandomRangef(4.f, 12.f),
 				.bounce = .6f,
 				.color = Vec4(hue, sat, RandomRangef(.7f, 1.f), RandomRangef(.56f, 1.f)),
-				.end_color = Vec4(hue, sat, 0.f, 0.f)
+				.end_color = Vec4(hue, sat, 0.f, 0.f),
+				.softness = 1.f
 			})) {
 			break;
 		}
@@ -104,7 +261,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 		.decay = 32
 	});
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_fire,
 		.origin = self->origin,
 		.atten = SOUND_ATTEN_CUBIC,
@@ -248,7 +405,7 @@ static void Cg_misc_sound_Think(cg_entity_t *self) {
 	const cg_misc_sound_t *sound = self->data;
 
 	if (sound->play.sample) {
-		cgi.AddSample(cgi.stage, &sound->play);
+		Cg_AddSample(cgi.stage, &sound->play);
 	}
 
 	self->next_think += 1000.f / sound->hz + 1000.f * sound->drift * Randomf();
@@ -375,6 +532,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 	sprite->sprite.size_velocity = cgi.EntityValue(self->def, "size_velocity")->value;
 	sprite->sprite.size_acceleration = cgi.EntityValue(self->def, "size_acceleration")->value;
 	sprite->sprite.bounce = cgi.EntityValue(self->def, "bounce")->value;
+	sprite->sprite.softness = cgi.EntityValue(self->def, "softness")->value;
 
 	sprite->hz = cgi.EntityValue(self->def, "hz")->value ?: .5f;
 	sprite->drift = cgi.EntityValue(self->def, "drift")->value ?: 3.f;
@@ -440,7 +598,7 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
 		.color = Vec4(0.f, 0.f, 1.f, .19f)
 	});
 
-	cgi.AddSample(cgi.stage, &(const s_play_sample_t) {
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_steam,
 		.origin = org,
 		.attenuation = SOUND_ATTEN_CUBIC,

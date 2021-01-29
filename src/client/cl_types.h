@@ -162,6 +162,11 @@ typedef struct {
 #define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
 
 /**
+ * @brief How many samples to keep of frame/packet counts.
+ */
+#define STAT_COUNTER_SAMPLE_COUNT 20
+
+/**
  * @brief The client structure is cleared at each level load, and is exposed to
  * the client game module to provide access to media and other client state.
  */
@@ -169,8 +174,9 @@ typedef struct {
 	uint32_t time_demo_frames;
 	uint32_t time_demo_start;
 
-	uint32_t frame_counter;
-	uint32_t packet_counter;
+	uint16_t frame_counter[STAT_COUNTER_SAMPLE_COUNT];
+	uint16_t packet_counter[STAT_COUNTER_SAMPLE_COUNT];
+	uint16_t sample_index, sample_count;
 
 	/**
 	 * @brief The client commands, buffered.
@@ -250,9 +256,15 @@ typedef struct {
 
 	/**
 	 * @brief Unclamped simulation time. This will always reflect actual milliseconds since
-	 * the game was launched. This is useful for effect durations and constant-time events.
+	 * the game was launched. This is useful for effect durations and constant-time events. Affected by time_scale.
 	 */
 	uint32_t unclamped_time;
+
+	/**
+	 * @brief Unclamped simulation time. This will always reflect actual milliseconds since
+	 * the player connected. This is useful for effect durations and constant-time events. Not affected by time_scale.
+	 */
+	uint32_t ticks;
 
 	/**
 	 * @brief The duration of the current frame, in milliseconds.

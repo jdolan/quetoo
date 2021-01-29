@@ -33,7 +33,12 @@ ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance
 /**
  * @brief Check if the node we want to move towards is currently pathable.
  */
-_Bool Ai_Path_CanPathTo(const g_entity_t *self, const GArray *path, const guint index);
+_Bool Ai_Node_CanPathTo(const vec3_t position);
+
+/**
+ * @brief Check if the node we want to move towards along the path is currently pathable.
+ */
+_Bool Ai_Path_CanPathTo(const GArray *path, const guint index);
 
 /**
  * @brief
@@ -81,8 +86,13 @@ typedef float (*Ai_NodeCost_Func)(const ai_node_id_t a, const ai_node_id_t b);
 static inline float Ai_Node_DefaultHeuristic(const ai_node_id_t link, const ai_node_id_t end) {
 	const vec3_t av = Ai_Node_GetPosition(link);
 	const vec3_t bv = Ai_Node_GetPosition(end);
+	float cost = fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
 
-	return fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
+	if (!Ai_Node_CanPathTo(av)) {
+		cost *= 8.f;
+	}
+
+	return cost;
 }
 
 /**

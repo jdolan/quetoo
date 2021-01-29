@@ -95,7 +95,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 		out->diffusemap = in->diffusemap;
 		out->lightmap = in->lightmap;
 
-		float alpha = 1.0;
+		float alpha = 1.f;
 
 		const r_bsp_texinfo_t *texinfo = bsp->texinfo + in->texinfo;
 		switch (texinfo->flags & SURF_MASK_BLEND) {
@@ -171,10 +171,6 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * BSP_LIGHTMAP_BPP, bsp->faces);
 		memset(lm->stainmap, 0xff, lm->w * lm->h * BSP_LIGHTMAP_BPP);
-
-		if (out->texinfo->material->cm->flags & STAGE_FLARE) {
-			R_LoadFlare(bsp, out);
-		}
 	}
 }
 
@@ -228,6 +224,14 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 			}
 
 			out->st_origin = Vec2_Scale(Vec2_Add(st_mins, st_maxs), .5f);
+		}
+
+		if (out->texinfo->flags & SURF_SKY) {
+			if (bsp->sky) {
+				Com_Warn("Model contains multiple sky elements\n");
+			} else {
+				bsp->sky = out;
+			}
 		}
 	}
 }
@@ -310,17 +314,6 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 /**
  * @brief
  */
-static gint R_FlareFacesCmp(gconstpointer a, gconstpointer b) {
-
-	const r_bsp_face_t *a_face = *(r_bsp_face_t **) a;
-	const r_bsp_face_t *b_face = *(r_bsp_face_t **) b;
-
-	return strcmp(a_face->flare->media->name, b_face->flare->media->name);
-}
-
-/**
- * @brief
- */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 	r_bsp_inline_model_t *out;
 
@@ -340,16 +333,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->num_faces = in->num_faces;
 
 		out->blend_elements = g_ptr_array_new();
-		out->flare_faces = g_ptr_array_new();
-
-		r_bsp_face_t *face = out->faces;
-		for (int32_t i = 0; i < in->num_faces; i++, face++) {
-			if (face->flare) {
-				g_ptr_array_add(out->flare_faces, face);
-			}
-		}
-
-		g_ptr_array_sort(out->flare_faces, R_FlareFacesCmp);
 
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
@@ -357,6 +340,16 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		R_SetupBspNode(out->head_node, NULL, out);
 	}
 }
+
+/**
+ * @brief Media free callback for inline models.
+ */
+static void R_FreeBspInlineModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
+
+	g_ptr_array_free(mod->bsp_inline->blend_elements, 1);
+}
+
 
 /**
  * @brief Creates an r_model_t for each inline model so that entities may reference them.
@@ -373,6 +366,8 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 
 		out->type = MOD_BSP_INLINE;
 		out->bsp_inline = in;
+
+		out->media.Free = R_FreeBspInlineModel;
 
 		out->maxs = in->maxs;
 		out->mins = in->mins;
@@ -405,6 +400,8 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 	out->atlas->width = out->width;
 	out->atlas->height = out->width;
 	out->atlas->depth = BSP_LIGHTMAP_LAYERS + BSP_STAINMAP_LAYERS;
+	out->atlas->target = GL_TEXTURE_2D_ARRAY;
+	out->atlas->format = GL_RGB;
 
 	const size_t in_size = out->width * out->width * BSP_LIGHTMAP_LAYERS * BSP_LIGHTMAP_BPP;
 	const size_t out_size = out->atlas->width * out->atlas->height * out->atlas->depth * BSP_LIGHTMAP_BPP;
@@ -419,9 +416,37 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 
 	memset(data + in_size, 0xff, out->width * out->width * BSP_LIGHTMAP_BPP);
 
-	R_UploadImage(out->atlas, GL_RGB, data);
+	R_UploadImage(out->atlas, GL_TEXTURE_2D_ARRAY, data);
 
 	Mem_Free(data);
+}
+
+/**
+ * @brief Resets all face stainmaps in the event that the map is reloaded.
+ */
+static void R_ResetBspLightmap(r_model_t *mod) {
+
+	r_bsp_lightmap_t *out = mod->bsp->lightmap;
+
+	glBindTexture(GL_TEXTURE_2D_ARRAY, out->atlas->texnum);
+
+	r_bsp_face_t *face = mod->bsp->faces;
+	for (int32_t i = 0; i < mod->bsp->num_faces; i++, face++) {
+
+		memset(face->lightmap.stainmap, 0xff, face->lightmap.w * face->lightmap.h * BSP_LIGHTMAP_BPP);
+
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+				0,
+				face->lightmap.s,
+				face->lightmap.t,
+				BSP_LIGHTMAP_LAYERS,
+				face->lightmap.w,
+				face->lightmap.h,
+				1,
+				GL_RGB,
+				GL_UNSIGNED_BYTE,
+				face->lightmap.stainmap);
+	}
 }
 
 /**
@@ -462,20 +487,29 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	for (int32_t i = 0; i < (int32_t) lengthof(out->textures); i++) {
 
-		out->textures[i] = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), R_MEDIA_IMAGE);
-		out->textures[i]->media.Free = R_FreeImage;
-		out->textures[i]->type = IT_LIGHTGRID;
-		out->textures[i]->width = out->size.x;
-		out->textures[i]->height = out->size.y;
-		out->textures[i]->depth = out->size.z;
+		r_image_t *texture = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), R_MEDIA_IMAGE);
+		texture->media.Free = R_FreeImage;
+		texture->type = IT_LIGHTGRID;
+		texture->width = out->size.x;
+		texture->height = out->size.y;
+		texture->depth = out->size.z;
+		texture->target = GL_TEXTURE_3D;
 
 		if (i < BSP_LIGHTGRID_TEXTURES) {
-			R_UploadImage(out->textures[i], GL_RGB, data);
+			texture->format = GL_RGB;
+		} else {
+			texture->format = GL_RGBA;
+		}
+
+		R_UploadImage(texture, texture->target, data);
+
+		if (i < BSP_LIGHTGRID_TEXTURES) {
 			data += luxels * BSP_LIGHTGRID_BPP;
 		} else {
-			R_UploadImage(out->textures[i], GL_RGBA, data);
 			data += luxels * BSP_FOG_BPP;
 		}
+
+		out->textures[i] = texture;
 	}
 }
 
@@ -572,7 +606,7 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 /**
  * @brief
  */
-void R_LoadBspModel(r_model_t *mod, void *buffer) {
+static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	bsp_header_t *file = (bsp_header_t *) buffer;
 
@@ -613,6 +647,60 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Draw elements:  %d\n", mod->bsp->num_draw_elements);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
+
+/**
+ * @brief
+ */
+static void R_RegisterBspModel(r_media_t *self) {
+
+	r_model_t *mod = (r_model_t *) self;
+
+	r_bsp_texinfo_t *texinfo = mod->bsp->texinfo;
+	for (int32_t i = 0; i < mod->bsp->num_texinfo; i++, texinfo++) {
+		R_RegisterDependency(self, (r_media_t *) texinfo->material);
+	}
+
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);
+
+	R_ResetBspLightmap(mod);
+
+	for (size_t i = 0; i < lengthof(mod->bsp->lightgrid->textures); i++) {
+		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->textures[i]);
+	}
+
+	r_world_model = mod;
+}
+
+/**
+ * @brief
+ */
+static void R_FreeBspModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
+
+	glDeleteBuffers(1, &mod->bsp->vertex_buffer);
+	glDeleteBuffers(1, &mod->bsp->elements_buffer);
+	glDeleteVertexArrays(1, &mod->bsp->vertex_array);
+
+	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++) {
+		glDeleteQueries(1, &mod->bsp->occlusion_queries[i].name);
+	}
+
+	r_bsp_plane_t *plane = mod->bsp->planes;
+	for (int32_t i = 0; i < mod->bsp->num_planes; i++, plane++) {
+		g_ptr_array_free(plane->blend_elements, 1);
+	}
+}
+
+/**
+ * @brief
+ */
+const r_model_format_t r_bsp_model_format = {
+	.extension = "bsp",
+	.type = MOD_BSP,
+	.Load = R_LoadBspModel,
+	.Register = R_RegisterBspModel,
+	.Free = R_FreeBspModel
+};
 
 /**
  * @brief Function for exporting a BSP to an OBJ.

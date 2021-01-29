@@ -23,91 +23,6 @@
 
 r_model_t *r_world_model;
 
-typedef struct {
-	const char *extension;
-	r_model_type_t type;
-	void (*Load)(r_model_t *mod, void *buffer);
-} r_model_format_t;
-
-static const r_model_format_t r_model_formats[] = { // supported model formats
-	{ ".obj", MOD_MESH, R_LoadObjModel},
-	{ ".md3", MOD_MESH, R_LoadMd3Model},
-	{ ".bsp", MOD_BSP, R_LoadBspModel}
-};
-
-/**
- * @brief Register event listener for models.
- */
-static void R_RegisterModel(r_media_t *self) {
-	r_model_t *mod = (r_model_t *) self;
-
-	if (mod->type == MOD_BSP) {
-
-		r_bsp_texinfo_t *texinfo = mod->bsp->texinfo;
-		for (int32_t i = 0; i < mod->bsp->num_texinfo; i++, texinfo++) {
-			R_RegisterDependency(self, (r_media_t *) texinfo->material);
-		}
-
-		if (mod->bsp->lightmap) {
-			R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);
-		}
-
-		if (mod->bsp->lightgrid) {
-			for (size_t i = 0; i < lengthof(mod->bsp->lightgrid->textures); i++) {
-				R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->textures[i]);
-			}
-		}
-
-		// keep a reference to the world model
-		r_world_model = mod;
-
-	} else if (mod->type == MOD_MESH) {
-
-		const r_mesh_face_t *face = mod->mesh->faces;
-		for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
-			if (face->material) {
-				R_RegisterDependency(self, (r_media_t *) face->material);
-			}
-		}
-	}
-}
-
-/**
- * @brief Free event listener for models.
- */
-static void R_FreeModel(r_media_t *self) {
-	r_model_t *mod = (r_model_t *) self;
-
-	if (IS_BSP_MODEL(mod)) {
-
-		glDeleteBuffers(1, &mod->bsp->vertex_buffer);
-		glDeleteBuffers(1, &mod->bsp->elements_buffer);
-		glDeleteVertexArrays(1, &mod->bsp->vertex_array);
-
-		for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++) {
-			glDeleteQueries(1, &mod->bsp->occlusion_queries[i].name);
-		}
-
-		r_bsp_plane_t *plane = mod->bsp->planes;
-		for (int32_t i = 0; i < mod->bsp->num_planes; i++, plane++) {
-			g_ptr_array_free(plane->blend_elements, 1);
-		}
-
-	} else if (IS_BSP_INLINE_MODEL(mod)) {
-
-		g_ptr_array_free(mod->bsp_inline->blend_elements, 1);
-		g_ptr_array_free(mod->bsp_inline->flare_faces, 1);
-
-	} else if (IS_MESH_MODEL(mod)) {
-
-		glDeleteBuffers(1, &mod->mesh->vertex_buffer);
-		glDeleteBuffers(1, &mod->mesh->elements_buffer);
-		
-	}
-
-	R_GetError(mod->media.name);
-}
-
 /**
  * @brief Loads the model by the specified name.
  */
@@ -127,21 +42,26 @@ r_model_t *R_LoadModel(const char *name) {
 	r_model_t *mod = (r_model_t *) R_FindMedia(key, R_MEDIA_MODEL);
 	if (mod == NULL) {
 
-		const r_model_format_t *format = r_model_formats;
-		char filename[MAX_QPATH];
+		const r_model_format_t formats[] = {
+			r_obj_model_format,
+			r_md3_model_format,
+			r_bsp_model_format
+		};
+
+		const r_model_format_t *format = formats;
+		char path[MAX_QPATH];
 
 		size_t i;
-		for (i = 0; i < lengthof(r_model_formats); i++, format++) {
+		for (i = 0; i < lengthof(formats); i++, format++) {
 
-			strncpy(filename, key, MAX_QPATH);
-			strcat(filename, format->extension);
+			g_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
 
-			if (Fs_Exists(filename)) {
+			if (Fs_Exists(path)) {
 				break;
 			}
 		}
 
-		if (i == lengthof(r_model_formats)) { // not found
+		if (i == lengthof(formats)) {
 			if (strstr(name, "players/")) {
 				Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
 			} else {
@@ -152,8 +72,8 @@ r_model_t *R_LoadModel(const char *name) {
 
 		mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t), R_MEDIA_MODEL);
 
-		mod->media.Register = R_RegisterModel;
-		mod->media.Free = R_FreeModel;
+		mod->media.Register = format->Register;
+		mod->media.Free = format->Free;
 
 		mod->type = format->type;
 
@@ -162,15 +82,12 @@ r_model_t *R_LoadModel(const char *name) {
 
 		void *buf = NULL;
 
-		Fs_Load(filename, &buf);
+		Fs_Load(path, &buf);
 
-		// load it
 		format->Load(mod, buf);
 
-		// free the file
 		Fs_Free(buf);
 
-		// calculate an approximate radius from the bounding box
 		mod->radius = Vec3_Distance(mod->maxs, mod->mins) / 2.0;
 
 		R_RegisterMedia((r_media_t *) mod);
@@ -199,8 +116,6 @@ void R_InitModels(void) {
 
 	R_InitMeshProgram();
 
-	R_InitMeshShadowProgram();
-
 	glFrontFace(GL_CW);
 
 	R_GetError(NULL);
@@ -216,6 +131,4 @@ void R_ShutdownModels(void) {
 	R_ShutdownBspProgram();
 
 	R_ShutdownMeshProgram();
-
-	R_ShutdownMeshShadowProgram();
 }

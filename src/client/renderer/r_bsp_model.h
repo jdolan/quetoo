@@ -24,6 +24,6 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_LoadBspModel(r_model_t *mod, void *buffer);
+extern const r_model_format_t r_bsp_model_format;
 void R_ExportBsp_f(void);
 #endif /* __R_LOCAL_H__ */

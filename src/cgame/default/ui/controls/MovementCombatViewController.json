@@ -223,18 +223,6 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Best weapon"
-                          }
-                        },
-                        "control": {
-                          "class": "BindTextView",
-                          "bind": "cg_weapon_best"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
                             "text": "Drop weapon"
                           }
                         },

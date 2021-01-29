@@ -599,7 +599,9 @@ static void Cl_UpdateScene(void) {
 
 	cls.cgame->PopulateScene(&cl.frame);
 
-	R_DrawView(&cl_view);
+	R_DrawMainView(&cl_view);
+
+	R_Draw2DFramebuffer(0, 0, 0, 0, cl_view.framebuffer, color_white);
 
 	S_RenderStage(&cl_stage);
 }
@@ -622,6 +624,8 @@ void Cl_Frame(const uint32_t msec) {
 
 	// and the pending command duration
 	cl.frame_msec += msec;
+	// and the total ticks
+	cl.ticks = quetoo.ticks;
 
 	if (time_demo->value) { // accumulate timed demo statistics
 		if (!cl.time_demo_start) {
@@ -644,13 +648,11 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_HttpThink();
 
-	Cl_UpdateMedia();
-
 	Cl_ReadPackets();
 
 	Cl_HandleEvents();
 
-	R_BeginFrame(&cl_view);
+	R_BeginFrame();
 
 	if (cls.state == CL_ACTIVE) {
 

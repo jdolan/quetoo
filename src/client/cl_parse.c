@@ -354,8 +354,9 @@ static void Cl_ParsePrint(void) {
 		}
 
 		if (sample) {
-			cls.cgame->ParsedMessage(SV_CMD_SOUND, &(s_play_sample_t) {
-				.sample = S_LoadSample(sample)
+			S_AddSample(&cl_stage, &(s_play_sample_t) {
+				.sample = S_LoadSample(sample),
+				.flags = S_PLAY_RELATIVE
 			});
 		}
 
@@ -387,6 +388,13 @@ static s_play_sample_t *Cl_ParseSound(void) {
 			play.origin = Vec3_Scale(Vec3_Add(ent->abs_mins, ent->abs_maxs), .5f);
 		} else {
 			play.origin = ent->current.origin;
+
+			if (play.sample->media.name[0] == '*') {
+				assert(play.entity - 1 < MAX_CLIENTS);
+
+				const cl_client_info_t *info = &cl.client_info[play.entity - 1];
+				play.sample = S_LoadClientModelSample(info->model, play.sample->media.name);
+			}
 		}
 	} else {
 		play.entity = 0;

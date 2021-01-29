@@ -71,13 +71,10 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	glEnable(GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset(1.f, 1.f);
-
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	glUseProgram(r_depth_pass_program.name);
-
+	
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
@@ -88,9 +85,6 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
 	R_DrawBspInlineModelDepthPass(NULL, r_world_model->bsp->inline_models);
-
-	glPolygonOffset(0.f, 0.f);
-	glDisable(GL_POLYGON_OFFSET_FILL);
 
 	if (r_occlude->value && view->ticks - occlusion_query_ticks >= 8) {
 		occlusion_query_ticks = view->ticks;
@@ -104,11 +98,13 @@ void R_DrawDepthPass(const r_view_t *view) {
 
 		glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
+		const vec3_t view_mins = Vec3_Fmaf(view->origin, -16.f, Vec3(1.f, 1.f, 1.f));
+		const vec3_t view_maxs = Vec3_Fmaf(view->origin, 16.f, Vec3(1.f, 1.f, 1.f));
+
 		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-			if (view->origin.x >= q->mins.x && view->origin.y >= q->mins.y && view->origin.z >= q->mins.z &&
-				view->origin.x <= q->maxs.x && view->origin.y <= q->maxs.y && view->origin.z <= q->maxs.z) {
+			if (Vec3_BoxIntersect(view_mins, view_maxs, q->mins, q->maxs)) {
 				q->pending = false;
 				q->result = 1;
 				continue;
@@ -175,6 +171,10 @@ void R_DrawDepthPass(const r_view_t *view) {
 _Bool R_OccludeBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
 
 	if (!r_occlude->value) {
+		return false;
+	}
+
+	if (view->type == VIEW_PLAYER_MODEL) {
 		return false;
 	}
 

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -44,6 +44,7 @@
     <ClCompile Include="..\src\tools\quemap\qlight.c" />
     <ClCompile Include="..\src\tools\quemap\qmat.c" />
     <ClCompile Include="..\src\tools\quemap\qzip.c" />
+    <ClCompile Include="..\src\tools\quemap\simplex.c" />
     <ClCompile Include="..\src\tools\quemap\texinfo.c" />
     <ClCompile Include="..\src\tools\quemap\tjunction.c" />
     <ClCompile Include="..\src\tools\quemap\tree.c" />
@@ -78,6 +79,7 @@
     <ClInclude Include="..\src\tools\quemap\qmat.h" />
     <ClInclude Include="..\src\tools\quemap\quemap.h" />
     <ClInclude Include="..\src\tools\quemap\qzip.h" />
+    <ClInclude Include="..\src\tools\quemap\simplex.h" />
     <ClInclude Include="..\src\tools\quemap\texinfo.h" />
     <ClInclude Include="..\src\tools\quemap\tjunction.h" />
     <ClInclude Include="..\src\tools\quemap\tree.h" />
@@ -164,11 +166,9 @@
     <Link>
       <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;dbghelp.lib;Wldap32.lib;physfs.lib;libxml2.lib;ws2_32.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
-      <StackReserveSize Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">88536064</StackReserveSize>
-      <StackCommitSize Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">88536064</StackCommitSize>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_DEPENDENCIES "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUEMAP "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUEMAP "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

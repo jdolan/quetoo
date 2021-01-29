@@ -23,7 +23,12 @@ uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_fog;
+
+uniform int entity;
 
 uniform float alpha_threshold;
 
@@ -126,7 +131,7 @@ vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float s
 	vec2 coord_delta = viewdir.xy * scale / samplecount;
 
 	// raymarch in small steps until we intersect the surface
-	while (curr_ray_height < curr_surface_height) {
+	while (curr_ray_height <= curr_surface_height) {
 		prev_coord = curr_coord;
 		curr_coord += coord_delta;
 		prev_surface_height = curr_surface_height;
@@ -161,8 +166,6 @@ void main(void) {
 
 		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1.0), viewdir * tbn, fragdist, material.parallax * 0.04);
 
-		float _specularity = material.specularity * 100.0;
-
 		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
 		vec4 normalmap = texture(texture_material, vec3(texcoord_material, 1));
 		vec4 glossmap = texture(texture_material, vec3(texcoord_material, 2));
@@ -179,12 +182,19 @@ void main(void) {
 		vec3 diffuse = sample_lightmap(1).rgb;
 		vec3 direction = sample_lightmap(2).xyz;
 
+		if (entity > 0) {
+			ambient = mix(ambient, texture(texture_lightgrid_ambient, vertex.lightgrid).rgb, .666);
+			diffuse = mix(diffuse, texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb, .666);
+			direction = mix(direction, texture(texture_lightgrid_direction, vertex.lightgrid).xyz, .666);
+			direction = normalize(direction);
+		}
+
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
 
 		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
 		vec3 light_diffuse = ambient + diffuse * 2.0 * bump_shading;
 
-		vec3 light_specular = brdf_blinn(normalize(viewdir), direction, normal, diffuse, glossmap.a, _specularity);
+		vec3 light_specular = brdf_blinn(viewdir, direction, normal, diffuse, glossmap.a, material.specularity * 100.0);
 		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		vec3 stainmap = sample_lightmap(4).rgb;

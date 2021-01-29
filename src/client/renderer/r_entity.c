@@ -54,7 +54,7 @@ static void R_SetEntityBounds(r_entity_t *e) {
  * @brief
  */
 static _Bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
-
+	
 	if (e->parent) {
 		return false;
 	}
@@ -140,8 +140,6 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
 void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
 	
 	R_DrawMeshEntities(view, blend_depth);
-
-	R_DrawMeshEntitiesShadows(view, blend_depth);
 
 	if (!r_draw_entity_bounds->value) {
 		return;

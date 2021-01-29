@@ -20,6 +20,10 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#define VIEW_UNKNOWN		(0 << 0)
+#define VIEW_MAIN			(1 << 0)
+#define VIEW_PLAYER_MODEL	(1 << 1)
+
 /**
  * @brief The lightgrid struct.
  */
@@ -40,9 +44,9 @@ struct lightgrid_t {
 	vec4 view_coordinate;
 
 	/**
-	 * @brief The lightgrid texel resolution per dimension.
+	 * @brief The lightgrid size, in luxels.
 	 */
-	vec3 resolution;
+	vec4 size;
 };
 
 /**
@@ -55,19 +59,14 @@ layout (std140) uniform uniforms_block {
 	vec4 viewport;
 
 	/**
-	 * @brief The 3D projection matrix.
-	 */
-	mat4 projection3D;
-
-	/**
 	 * @brief The 2D projection matrix.
 	 */
 	mat4 projection2D;
 
 	/**
-	 * @brief The 2D projection matrix for the framebuffer object.
+	 * @brief The 3D projection matrix.
 	 */
-	mat4 projection2D_FBO;
+	mat4 projection3D;
 
 	/**
 	 * @brief The view matrix.
@@ -83,6 +82,11 @@ layout (std140) uniform uniforms_block {
 	 * @brief The depth range, in world units.
 	 */
 	vec2 depth_range;
+
+	/**
+	 * @brief The view type, e.g. VIEW_MAIN.
+	 */
+	int view_type;
 
 	/**
 	 * @brief The renderer time, in milliseconds.
@@ -115,16 +119,6 @@ layout (std140) uniform uniforms_block {
 	float modulate;
 
 	/**
-	 * @brief The global fog color.
-	 */
-	// vec3 fog_global_color; // FIXME
-
-	/**
-	 * @brief The global fog density scalar.
-	 */
-	// float fog_global_density; // FIXME
-
-	/**
 	 * @brief The fog density scalar.
 	 */
 	float fog_density;
@@ -133,11 +127,6 @@ layout (std140) uniform uniforms_block {
 	 * @brief The number of fog samples per fragment (quality).
 	 */
 	int fog_samples;
-
-	/**
-	 * @brief The pixel dimensions of the framebuffer.
-	 */
-	vec2 resolution;
 };
 
 /**

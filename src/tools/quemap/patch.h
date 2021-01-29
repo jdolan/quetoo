@@ -24,10 +24,9 @@
 #include "bsp.h"
 #include "polylib.h"
 
-#define DEFAULT_BSP_PATCH_SIZE 64
-
 typedef struct patch_s {
 	const bsp_face_t *face;
+	const bsp_texinfo_t *texinfo;
 	vec3_t origin;
 	cm_winding_t *winding;
 	struct patch_s *next;  // next in face

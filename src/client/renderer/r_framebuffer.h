@@ -19,28 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler3D texture_lightgrid_fog;
+#pragma once
 
-in vertex_data {
-	vec3 position;
-	vec3 lightgrid;
-} vertex;
+#include "r_types.h"
 
-out vec4 out_color;
+r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height);
+void R_DestroyFramebuffer(r_framebuffer_t *framebuffer);
 
-/**
- * @brief
- */
-void main(void) {
-
-	float alpha = 1.0 - soften();
-
-	if (alpha <= 0.0) {
-		discard;
-	}
-
-	out_color = vec4(0.0, 0.0, 0.0, alpha * 0.5);
-	
-	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-}
-
+#ifdef __R_LOCAL_H__
+#endif /* __R_LOCAL_H__ */

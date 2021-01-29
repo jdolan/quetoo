@@ -59,7 +59,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 	}
 
 	str->size = string_len;
-	str->length = StrColorLen(str->chars);
+	str->length = StrStripLen(str->chars);
 
 	str->timestamp = quetoo.ticks;
 
@@ -205,7 +205,7 @@ void Con_Append(int32_t level, const char *string) {
 	} else {
 		char stripped[strlen(string) + 1];
 
-		StripColors(string, stripped);
+		StrStrip(string, stripped);
 		fputs(stripped, stdout);
 	}
 }

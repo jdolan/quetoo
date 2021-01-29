@@ -115,28 +115,22 @@ typedef enum {
 
 /**
  * @brief Entity state effects are a bit mask used to combine common effects
- * such as rotating, bobbing, and pulsing. The game module may define custom
- * effects, up to 16 bits.
+ * such as rotating, bobbing, etc. The game module may define the lower 16 effect bits.
  */
 #define EF_NONE				(0)
-#define EF_ROTATE			(1 << 0) // rotate on z
-#define EF_BOB				(1 << 1) // bob on z
-#define EF_PULSE			(1 << 2) // pulsing light effect
-#define EF_INACTIVE			(1 << 3) // inactive icon for when input is not going to game
-#define EF_AMBIENT			(1 << 4) // ambient light to spot dimly lit entities easier
-#define EF_GAME				(1 << 5) // the game may extend from here
+#define EF_GAME				(1 << 0) // the game may extend from here
 
 /**
  * @brief The 16 high bits of the effects mask are not transmitted by the
  * protocol. Rather, they are reserved for the renderer.
  */
-#define EF_SELF             (1 << 24) // client's entity model
-#define EF_WEAPON			(1 << 25) // view weapon
-#define EF_SHELL			(1 << 26) // colored shell
-#define EF_ALPHATEST		(1 << 27) // alpha test
-#define EF_BLEND			(1 << 28) // alpha blend
-#define EF_NO_SHADOW		(1 << 29) // no shadow
-#define EF_NO_DRAW			(1 << 30) // no draw (but perhaps shadow)
+#define EF_SELF             (1 << 16) // client's entity model
+#define EF_WEAPON			(1 << 17) // view weapon
+#define EF_SHELL			(1 << 18) // colored shell
+#define EF_ALPHATEST		(1 << 19) // alpha test
+#define EF_BLEND			(1 << 20) // alpha blend
+#define EF_NO_SHADOW		(1 << 22) // no shadow
+#define EF_NO_DRAW			(1 << 23) // no draw (but perhaps shadow)
 
 /**
  * @brief Entity trails are used to apply unique trail effects to entities
@@ -181,6 +175,11 @@ typedef struct {
 	 * @brief The entity number that this state update belongs to.
 	 */
 	uint16_t number;
+	
+	/**
+	 * @brief The entity's spawn_id; this will differ if an entity is replaced.
+	 */
+	uint8_t spawn_id;
 
 	/**
 	 * @brief The entity origin.
@@ -497,13 +496,17 @@ void StripExtension(const char *in, char *out);
 #define ESC_COLOR_CHAT		ESC_COLOR_ALT
 #define ESC_COLOR_TEAMCHAT	ESC_COLOR_YELLOW
 
+#define ESC_EMOJI			':'
+
 _Bool StrIsColor(const char *s);
+_Bool StrIsEmoji(const char *s);
 color_t ColorEsc(int32_t esc);
-size_t StrColorLen(const char *s);
-int32_t StrColorCmp(const char *s1, const char *s2);
+const char *EmojiEsc(const char *in, char *out, size_t out_size);
+size_t StrStripLen(const char *s);
+int32_t StrStripCmp(const char *s1, const char *s2);
 int32_t StrColor(const char *s);
 int32_t StrrColor(const char *s);
-void StripColors(const char *in, char *out);
+void StrStrip(const char *in, char *out);
 
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *vtos(const vec3_t v);

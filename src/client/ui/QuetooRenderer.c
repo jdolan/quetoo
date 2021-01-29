@@ -169,15 +169,12 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
  */
 static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 
-	if (!frame) {
-		glDisable(GL_SCISSOR_TEST);
-		return;
+	if (frame) {
+		const SDL_Rect clip = MVC_TransformToWindow(r_context.window, frame);
+		R_SetClippingFrame(clip.x, clip.y, clip.w, clip.h);
+	} else {
+		R_SetClippingFrame(0, 0, 0, 0);
 	}
-
-	const SDL_Rect scissor = MVC_TransformToWindow(r_context.window, frame);
-
-	glEnable(GL_SCISSOR_TEST);
-	glScissor(scissor.x, scissor.y, scissor.w, scissor.h);
 }
 
 /**

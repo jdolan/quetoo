@@ -29,7 +29,7 @@ float saturation = 1.0;
 float contrast = 1.0;
 
 int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
-int32_t patch_size = DEFAULT_BSP_PATCH_SIZE;
+int32_t patch_size = DEFAULT_PATCH_SIZE;
 
 float radiosity = 1.0;
 int32_t num_bounces = 1;
@@ -124,7 +124,7 @@ static void LightWorld(void) {
 		Com_Verbose("Luxel size: %d\n", luxel_size);
 	}
 
-	if (patch_size == DEFAULT_BSP_PATCH_SIZE) {
+	if (patch_size == DEFAULT_PATCH_SIZE) {
 		patch_size = Cm_EntityValue(e, "patch_size")->integer ?: patch_size;
 		Com_Verbose("Patch size: %d\n", patch_size);
 	}
@@ -173,16 +173,16 @@ static void LightWorld(void) {
 	// free the light sources
 	FreeLights();
 
+	// finalize it and write it to per-face textures
+	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
+	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
+
 	// bake fog volumes into the lightgrid
 	BuildFog();
 
 	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
 
 	FreeFog();
-
-	// finalize it and write it to per-face textures
-	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
-	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
 
 	// generate atlased lightmaps
 	EmitLightmap();

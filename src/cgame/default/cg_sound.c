@@ -40,31 +40,45 @@ void Cg_PrepareStage(const cl_frame_t *frame) {
  * @brief S_PlaySampleThink implementation.
  */
 static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
-
+	
 	if (play->entity) {
 		const cl_entity_t *ent = &cgi.client->entities[play->entity];
-		if (ent->current.solid == SOLID_BSP) {
-			play->origin = Vec3_Scale(Vec3_Add(ent->abs_mins, ent->abs_maxs), .5f);
+		if (ent == Cg_Self()) {
+			play->flags |= S_PLAY_RELATIVE;
+		} else if (ent->current.solid == SOLID_BSP) {
+
+			for (int32_t i = 0; i < 3; i++) {
+				if (stage->origin.xyz[i] > ent->abs_maxs.xyz[i]) {
+					play->origin.xyz[i] = ent->abs_maxs.xyz[i];
+				} else if (stage->origin.xyz[i] < ent->abs_mins.xyz[i]) {
+					play->origin.xyz[i] = ent->abs_mins.xyz[i];
+				} else {
+					play->origin.xyz[i] = stage->origin.xyz[i];
+				}
+			}
+
+			play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
 		} else {
-			play->origin = ent->current.origin;
+			play->origin = ent->origin;
+			play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
 		}
 	}
 
 	if (play->flags & S_PLAY_RELATIVE) {
-		play->origin = stage->origin;
-	}
-
-	if (cgi.PointContents(play->origin) & CONTENTS_MASK_LIQUID) {
-		play->flags |= S_PLAY_UNDERWATER;
+		play->origin = play->velocity = Vec3_Zero();
 	} else {
-		play->flags &= ~S_PLAY_UNDERWATER;
-	}
+		if ((cgi.PointContents(play->origin) & CONTENTS_MASK_LIQUID) != (cgi.PointContents(stage->origin) & CONTENTS_MASK_LIQUID)) {
+			play->flags |= S_PLAY_UNDERWATER;
+		} else {
+			play->flags &= ~S_PLAY_UNDERWATER;
+		}
 
-	const cm_trace_t tr = cgi.Trace(stage->origin, play->origin, Vec3_Zero(), Vec3_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
-	if (tr.fraction < 1.f) {
-		play->flags |= S_PLAY_OCCLUDED;
-	} else {
-		play->flags &= ~S_PLAY_OCCLUDED;
+		const cm_trace_t tr = cgi.Trace(stage->origin, play->origin, Vec3_Zero(), Vec3_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+		if (tr.fraction < 1.f) {
+			play->flags |= S_PLAY_OCCLUDED;
+		} else {
+			play->flags &= ~S_PLAY_OCCLUDED;
+		}
 	}
 }
 

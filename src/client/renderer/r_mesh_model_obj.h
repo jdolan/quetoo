@@ -24,5 +24,5 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_LoadObjModel(r_model_t *mod, void *buffer);
+extern const r_model_format_t r_obj_model_format;
 #endif /* __R_LOCAL_H__ */

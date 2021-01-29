@@ -477,7 +477,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	gi.Sound(ent, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
 
-	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned\n", t->name);
+	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
 
 	G_FreeEntity(ent);
 }
@@ -518,8 +518,8 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 			gi.Sound(other, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
 
-			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
-			                  other->client->locals.persistent.net_name, t->name);
+			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n",
+			                  other->client->locals.persistent.net_name, t->name, t->id + 1);
 
 			return true;
 		}
@@ -544,8 +544,8 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				gi.Sound(other, gi.SoundIndex("ctf/capture"), SOUND_ATTEN_NONE, 0);
 
-				gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
-								  other->client->locals.persistent.net_name, ot->name);
+				gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n",
+								  other->client->locals.persistent.net_name, ot->name, ot->id + 1);
 
 				t->captures++;
 				other->client->locals.persistent.captures++;
@@ -576,8 +576,8 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), SOUND_ATTEN_NONE, 0);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
-	                  other->client->locals.persistent.net_name, t->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n",
+	                  other->client->locals.persistent.net_name, t->name, t->id + 1);
 
 	other->s.effects |= G_EffectForTeam(t);
 	return true;
@@ -605,8 +605,8 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 	ent->s.model3 = 0;
 	ent->s.effects &= ~EF_CTF_MASK;
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
-	                  ent->client->locals.persistent.net_name, ot->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n",
+	                  ent->client->locals.persistent.net_name, ot->name, ot->id);
 
 	return G_DropItem(ent, ofi);
 }
@@ -751,8 +751,8 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 
 	// resolve forward direction and project origin
 	if (ent->client && ent->locals.dead) {
-		Vec3_Vectors(Vec3(0.0, ent->client->locals.angles.y, 0.0), &forward, NULL, NULL);
-		it->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(forward, 24.0));
+		Vec3_Vectors(Vec3(.0f, ent->client->locals.angles.y, .0f), &forward, NULL, NULL);
+		it->s.origin = Vec3_Fmaf(ent->s.origin, 24.f, forward);
 	} else {
 		Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
 		it->s.origin = ent->s.origin;
@@ -1220,7 +1220,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "armor/body/pickup.wav",
 		.model = "models/armor/body/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/i_bodyarmor",
 		.name = "Body Armor",
 		.quantity = 100,
@@ -1254,7 +1254,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "armor/combat/pickup.wav",
 		.model = "models/armor/combat/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/i_combatarmor",
 		.name = "Combat Armor",
 		.quantity = 50,
@@ -1288,7 +1288,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "armor/jacket/pickup.wav",
 		.model = "models/armor/jacket/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/i_jacketarmor",
 		.name = "Jacket Armor",
 		.quantity = 25,
@@ -1322,7 +1322,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "armor/shard/pickup.wav",
 		.model = "models/armor/shard/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/i_shard",
 		.name = "Armor Shard",
 		.quantity = 3,
@@ -1355,7 +1355,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireBlaster,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/weapons/blaster/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/w_blaster",
 		.name = "Blaster",
 		.quantity = 0,
@@ -1389,7 +1389,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireShotgun,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/weapons/shotgun/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/w_shotgun",
 		.name = "Shotgun",
 		.quantity = 1,
@@ -1423,7 +1423,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireSuperShotgun,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/weapons/supershotgun/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/w_sshotgun",
 		.name = "Super Shotgun",
 		.quantity = 2,
@@ -1457,7 +1457,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireMachinegun,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/weapons/machinegun/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/w_machinegun",
 		.name = "Machinegun",
 		.quantity = 1,
@@ -1492,7 +1492,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireHandGrenade,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/objects/grenade/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/a_handgrenades",
 		.name = "Hand Grenades",
 		.quantity = 1,
@@ -1527,7 +1527,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireGrenadeLauncher,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/weapons/grenadelauncher/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/w_glauncher",
 		.name = "Grenade Launcher",
 		.quantity = 1,
@@ -1561,7 +1561,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireRocketLauncher,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/weapons/rocketlauncher/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/w_rlauncher",
 		.name = "Rocket Launcher",
 		.quantity = 1,
@@ -1596,7 +1596,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireHyperblaster,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/weapons/hyperblaster/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/w_hyperblaster",
 		.name = "Hyperblaster",
 		.quantity = 1,
@@ -1630,7 +1630,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireLightning,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/weapons/lightning/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/w_lightning",
 		.name = "Lightning Gun",
 		.quantity = 1,
@@ -1699,7 +1699,7 @@ static g_item_t g_items[] = {
 		.Think = G_FireBfg,
 		.pickup_sound = "weapons/common/pickup.wav",
 		.model = "models/weapons/bfg/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/w_bfg",
 		.name = "BFG10K",
 		.quantity = 1,
@@ -1733,7 +1733,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
 		.model = "models/ammo/shells/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/a_shells",
 		.name = "Shells",
 		.quantity = 10,
@@ -1767,7 +1767,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
 		.model = "models/ammo/bullets/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/a_bullets",
 		.name = "Bullets",
 		.quantity = 50,
@@ -1801,7 +1801,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
 		.model = "models/ammo/grenades/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/a_handgrenades",
 		.name = "Grenades",
 		.quantity = 10,
@@ -1836,7 +1836,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
 		.model = "models/ammo/rockets/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/a_rockets",
 		.name = "Rockets",
 		.quantity = 10,
@@ -1870,7 +1870,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
 		.model = "models/ammo/cells/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/a_cells",
 		.name = "Cells",
 		.quantity = 50,
@@ -1904,7 +1904,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
 		.model = "models/ammo/bolts/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/a_bolts",
 		.name = "Bolts",
 		.quantity = 25,
@@ -1938,7 +1938,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
 		.model = "models/ammo/slugs/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/a_slugs",
 		.name = "Slugs",
 		.quantity = 10,
@@ -1972,7 +1972,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
 		.model = "models/ammo/nukes/tris.md3",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/a_nukes",
 		.name = "Nukes",
 		.quantity = 2,
@@ -2006,7 +2006,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "adren/pickup.wav",
 		.model = "models/powerups/adren/tris.obj",
-		.effects = EF_ROTATE | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/p_adrenaline",
 		.name = "Adrenaline",
 		.quantity = 0,
@@ -2039,7 +2039,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "health/small/pickup.wav",
 		.model = "models/health/small/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/i_small_health",
 		.name = "Small Health",
 		.quantity = 3,
@@ -2072,7 +2072,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "health/medium/pickup.wav",
 		.model = "models/health/medium/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/i_medium_health",
 		.name = "Medium Health",
 		.quantity = 15,
@@ -2105,7 +2105,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "health/large/pickup.wav",
 		.model = "models/health/large/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/i_large_health",
 		.name = "Large Health",
 		.quantity = 25,
@@ -2138,7 +2138,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "health/mega/pickup.wav",
 		.model = "models/health/mega/tris.obj",
-		.effects = EF_ROTATE | EF_BOB | EF_AMBIENT,
+		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/i_mega_health",
 		.name = "Mega Health",
 		.quantity = 75,
@@ -2167,7 +2167,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = NULL,
 		.model = "models/ctf/flag/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT | EF_TEAM_TINT,
+		.effects = EF_BOB | EF_ROTATE  | EF_TEAM_TINT,
 		.icon = "pics/i_flag1",
 		.name = "Enemy Flag",
 		.quantity = 0,
@@ -2196,7 +2196,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = NULL,
 		.model = "models/ctf/flag/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT | EF_TEAM_TINT,
+		.effects = EF_BOB | EF_ROTATE  | EF_TEAM_TINT,
 		.icon = "pics/i_flag2",
 		.name = "Enemy Flag",
 		.quantity = 0,
@@ -2225,7 +2225,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = NULL,
 		.model = "models/ctf/flag/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT | EF_TEAM_TINT,
+		.effects = EF_BOB | EF_ROTATE  | EF_TEAM_TINT,
 		.icon = "pics/i_flag3",
 		.name = "Enemy Flag",
 		.quantity = 0,
@@ -2254,7 +2254,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = NULL,
 		.model = "models/ctf/flag/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT | EF_TEAM_TINT,
+		.effects = EF_BOB | EF_ROTATE  | EF_TEAM_TINT,
 		.icon = "pics/i_flag4",
 		.name = "Enemy Flag",
 		.quantity = 0,
@@ -2287,7 +2287,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "quad/pickup.wav",
 		.model = "models/powerups/quad/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT,
+		.effects = EF_BOB | EF_ROTATE ,
 		.icon = "pics/i_quad",
 		.name = "Quad Damage",
 		.quantity = 0,
@@ -2306,7 +2306,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "tech/pickup.wav",
 		.model = "models/techs/haste/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT,
+		.effects = EF_BOB | EF_ROTATE ,
 		.icon = "pics/t_haste",
 		.name = "Haste",
 		.quantity = 0,
@@ -2325,7 +2325,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "tech/pickup.wav",
 		.model = "models/techs/regen/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT,
+		.effects = EF_BOB | EF_ROTATE ,
 		.icon = "pics/t_regen",
 		.name = "Regeneration",
 		.quantity = 0,
@@ -2344,7 +2344,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "tech/pickup.wav",
 		.model = "models/techs/resist/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT,
+		.effects = EF_BOB | EF_ROTATE ,
 		.icon = "pics/t_resist",
 		.name = "Resist",
 		.quantity = 0,
@@ -2363,7 +2363,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "tech/pickup.wav",
 		.model = "models/techs/strength/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT,
+		.effects = EF_BOB | EF_ROTATE ,
 		.icon = "pics/t_strength",
 		.name = "Strength",
 		.quantity = 0,
@@ -2382,7 +2382,7 @@ static g_item_t g_items[] = {
 		.Think = NULL,
 		.pickup_sound = "tech/pickup.wav",
 		.model = "models/techs/vampire/tris.obj",
-		.effects = EF_BOB | EF_ROTATE | EF_AMBIENT,
+		.effects = EF_BOB | EF_ROTATE ,
 		.icon = "pics/t_vampire",
 		.name = "Vampire",
 		.quantity = 0,
