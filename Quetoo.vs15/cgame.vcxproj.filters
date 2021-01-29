@@ -177,6 +177,9 @@
     <ClInclude Include="..\src\cgame\default\cg_sound.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_flare.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\cgame\default\ui\home\HomeViewController.json">
@@ -323,6 +326,9 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_sound.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_flare.c">
       <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>

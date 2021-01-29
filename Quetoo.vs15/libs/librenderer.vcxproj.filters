@@ -21,9 +21,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_entity.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_flare.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_image.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -105,9 +102,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_entity.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_flare.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_image.h">
