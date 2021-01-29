@@ -42,6 +42,8 @@ out vertex_data {
 	vec4 color;
 } vertex;
 
+invariant gl_Position;
+
 /**
  * @brief
  */
@@ -66,7 +68,7 @@ void main(void) {
 	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
 	vertex.color = in_color;
 
-	gl_Position = projection3D * vec4(vertex.position, 1.0);
+	gl_Position = projection3D * view * model * vec4(in_position, 1.0);
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }

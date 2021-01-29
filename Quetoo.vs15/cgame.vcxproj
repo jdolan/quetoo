@@ -27,6 +27,7 @@
     <ClInclude Include="..\src\cgame\default\cg_entity_event.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_misc.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_trail.h" />
+    <ClInclude Include="..\src\cgame\default\cg_flare.h" />
     <ClInclude Include="..\src\cgame\default\cg_hud.h" />
     <ClInclude Include="..\src\cgame\default\cg_input.h" />
     <ClInclude Include="..\src\cgame\default\cg_light.h" />
@@ -81,6 +82,7 @@
     <ClCompile Include="..\src\cgame\default\cg_entity_event.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity_misc.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity_trail.c" />
+    <ClCompile Include="..\src\cgame\default\cg_flare.c" />
     <ClCompile Include="..\src\cgame\default\cg_hud.c" />
     <ClCompile Include="..\src\cgame\default\cg_input.c" />
     <ClCompile Include="..\src\cgame\default\cg_light.c" />

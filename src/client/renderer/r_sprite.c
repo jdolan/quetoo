@@ -107,6 +107,8 @@ static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float
  */
 void R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 
+	assert(s->media);
+
 	if (view->num_sprites == MAX_SPRITES) {
 		Com_Debug(DEBUG_RENDERER, "MAX_SPRITES\n");
 		return;

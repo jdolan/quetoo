@@ -150,7 +150,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
 	if (trace.trace.fraction < 1.0) {
-		trace.trace.ent = (struct g_entity_s *) (intptr_t) - 1;
+		trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
 
 		if (trace.trace.start_solid) { // blocked entirely
 			return trace.trace;

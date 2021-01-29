@@ -328,6 +328,25 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 }
 
 /**
+ * @brief Adjust inputs so that mins and maxs are always symetric, which
+ * avoids some complications with plane expanding of rotated bmodels.
+ * @param start 
+ * @param end 
+ * @param mins 
+ * @param maxs 
+*/
+static void Cm_AdjustTraceSymmetry(vec3_t *start, vec3_t *end, vec3_t *mins, vec3_t *maxs) {
+
+	const vec3_t offset = Vec3_Scale(Vec3_Add(*mins, *maxs), .5f);
+
+	*mins = Vec3_Subtract(*mins, offset);
+	*maxs = Vec3_Subtract(*maxs, offset);
+
+	*start = Vec3_Add(*start, offset);
+	*end = Vec3_Add(*end, offset);
+}
+
+/**
  * @brief Primary collision detection entry point. This function recurses down
  * the BSP tree from the specified head node, clipping the desired movement to
  * brushes that match the specified contents mask.
@@ -341,12 +360,16 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
  *
  * @return The trace.
  */
-cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, const vec3_t maxs,
+cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
                        const int32_t head_node, const int32_t contents) {
 
+	vec3_t start0 = start, end0 = end, mins0 = mins, maxs0 = maxs;
+
+	Cm_AdjustTraceSymmetry(&start0, &end0, &mins0, &maxs0);
+
 	cm_trace_data_t data = {
-		.start = start,
-		.end = end,
+		.start = start0,
+		.end = end0,
 		.contents = contents,
 		.trace = {
 			.fraction = 1.f
@@ -366,41 +389,41 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 		data.is_point = false;
 
 		// extents allow planes to be shifted to account for the box size
-		data.extents.x = -mins.x > maxs.x ? -mins.x : maxs.x;
-		data.extents.y = -mins.y > maxs.y ? -mins.y : maxs.y;
-		data.extents.z = -mins.z > maxs.z ? -mins.z : maxs.z;
+		data.extents.x = -mins0.x > maxs0.x ? -mins0.x : maxs0.x;
+		data.extents.y = -mins0.y > maxs0.y ? -mins0.y : maxs0.y;
+		data.extents.z = -mins0.z > maxs0.z ? -mins0.z : maxs0.z;
 
 		// offsets provide sign bit lookups for fast plane tests
-		data.offsets[0] = mins;
+		data.offsets[0] = mins0;
 
-		data.offsets[1].x = maxs.x;
-		data.offsets[1].y = mins.y;
-		data.offsets[1].z = mins.z;
+		data.offsets[1].x = maxs0.x;
+		data.offsets[1].y = mins0.y;
+		data.offsets[1].z = mins0.z;
 
-		data.offsets[2].x = mins.x;
-		data.offsets[2].y = maxs.y;
-		data.offsets[2].z = mins.z;
+		data.offsets[2].x = mins0.x;
+		data.offsets[2].y = maxs0.y;
+		data.offsets[2].z = mins0.z;
 
-		data.offsets[3].x = maxs.x;
-		data.offsets[3].y = maxs.y;
-		data.offsets[3].z = mins.z;
+		data.offsets[3].x = maxs0.x;
+		data.offsets[3].y = maxs0.y;
+		data.offsets[3].z = mins0.z;
 
-		data.offsets[4].x = mins.x;
-		data.offsets[4].y = mins.y;
-		data.offsets[4].z = maxs.z;
+		data.offsets[4].x = mins0.x;
+		data.offsets[4].y = mins0.y;
+		data.offsets[4].z = maxs0.z;
 
-		data.offsets[5].x = maxs.x;
-		data.offsets[5].y = mins.y;
-		data.offsets[5].z = maxs.z;
+		data.offsets[5].x = maxs0.x;
+		data.offsets[5].y = mins0.y;
+		data.offsets[5].z = maxs0.z;
 
-		data.offsets[6].x = mins.x;
-		data.offsets[6].y = maxs.y;
-		data.offsets[6].z = maxs.z;
+		data.offsets[6].x = mins0.x;
+		data.offsets[6].y = maxs0.y;
+		data.offsets[6].z = maxs0.z;
 
-		data.offsets[7] = maxs;
+		data.offsets[7] = maxs0;
 	}
 
-	Cm_TraceBounds(start, end, mins, maxs, &data.box_mins, &data.box_maxs);
+	Cm_TraceBounds(start0, end0, mins0, maxs0, &data.box_mins, &data.box_maxs);
 
 	// check for position test special case
 	if (Vec3_Equal(start, end)) {
@@ -424,7 +447,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 		return data.trace;
 	}
 
-	Cm_TraceToNode(&data, head_node, 0.0, 1.0, start, end);
+	Cm_TraceToNode(&data, head_node, 0.0, 1.0, start0, end0);
 
 	if (data.trace.fraction == 0.0f) {
 		data.trace.end = start;
@@ -459,14 +482,18 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 								  const vec3_t mins, const vec3_t maxs,
 								  const int32_t head_node, const int32_t contents,
                                   const mat4_t *matrix, const mat4_t *inverse_matrix) {
+	
+	vec3_t start0 = start, end0 = end, mins0 = mins, maxs0 = maxs;
 
-	vec3_t start0, end0;
+	Cm_AdjustTraceSymmetry(&start0, &end0, &mins0, &maxs0);
 
-	Matrix4x4_Transform(inverse_matrix, start.xyz, start0.xyz);
-	Matrix4x4_Transform(inverse_matrix, end.xyz, end0.xyz);
+	vec3_t start1, end1;
+
+	Matrix4x4_Transform(inverse_matrix, start0.xyz, start1.xyz);
+	Matrix4x4_Transform(inverse_matrix, end0.xyz, end1.xyz);
 
 	// sweep the box through the model
-	cm_trace_t trace = Cm_BoxTrace(start0, end0, mins, maxs, head_node, contents);
+	cm_trace_t trace = Cm_BoxTrace(start1, end1, mins0, maxs0, head_node, contents);
 
 	if (trace.fraction < 1.0f) { // transform the impacted plane
 		trace.plane = Cm_TransformPlane(matrix, &trace.plane);
@@ -496,20 +523,21 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
 		float max = 0.0;
 
 		for (int32_t i = 0; i < 3; i++) {
-			float v = fabsf(mins.xyz[i]);
-			if (v > max) {
-				max = v;
-			}
-			v = fabsf(maxs.xyz[i]);
-			if (v > max) {
-				max = v;
-			}
+			max = Maxf(max, Maxf(fabsf(mins.xyz[i]), fabsf(maxs.xyz[i])));
 		}
+
 		*bounds_mins = Vec3_Add(origin, Vec3(-max, -max, -max));
 		*bounds_maxs = Vec3_Add(origin, Vec3( max,  max,  max));
 	} else {
 		*bounds_mins = Vec3_Add(origin, mins);
 		*bounds_maxs = Vec3_Add(origin, maxs);
+	}
+
+	// because movement is clipped an epsilon away from an actual edge,
+	// we must fully check even when bounding boxes don't quite touch
+	for (int32_t i = 0; i < 3; i++) {
+		bounds_mins->xyz[i] -= 1;
+		bounds_maxs->xyz[i] += 1;
 	}
 }
 
