@@ -29,6 +29,8 @@ static struct {
 	GLuint uniforms_block;
 
 	GLint in_position;
+
+	GLint model;
 } r_depth_pass_program;
 
 /**
@@ -43,7 +45,7 @@ static struct {
 /**
  * @brief Draws all opaque world geometry, writing to the depth buffer.
  */
-static void R_DrawBspInlineModelDepthPass(const r_entity_t *e, const r_bsp_inline_model_t *in) {
+static void R_DrawBspInlineModelDepthPass(const r_view_t *view, const r_entity_t *e, const r_bsp_inline_model_t *in) {
 
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
@@ -84,7 +86,19 @@ void R_DrawDepthPass(const r_view_t *view) {
 
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
-	R_DrawBspInlineModelDepthPass(NULL, r_world_model->bsp->inline_models);
+	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
+	R_DrawBspInlineModelDepthPass(view, NULL, r_world_model->bsp->inline_models);
+
+	{
+		const r_entity_t *e = view->entities;
+		for (int32_t i = 0; i < view->num_entities; i++, e++) {
+			if (IS_BSP_INLINE_MODEL(e->model)) {
+
+				glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
+				R_DrawBspInlineModelDepthPass(view, e, e->model->bsp_inline);
+			}
+		}
+	}
 
 	if (r_occlude->value && view->ticks - occlusion_query_ticks >= 8) {
 		occlusion_query_ticks = view->ticks;
@@ -173,7 +187,7 @@ _Bool R_OccludeBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
 	if (!r_depth_pass->value) {
 		return false;
 	}
-	
+
 	if (!r_occlude->value) {
 		return false;
 	}
@@ -230,6 +244,8 @@ static void R_InitDepthPassProgram(void) {
 	glUniformBlockBinding(r_depth_pass_program.name, r_depth_pass_program.uniforms_block, 0);
 
 	r_depth_pass_program.in_position = glGetAttribLocation(r_depth_pass_program.name, "in_position");
+
+	r_depth_pass_program.model = glGetUniformLocation(r_depth_pass_program.name, "model");
 
 	glUseProgram(0);
 
