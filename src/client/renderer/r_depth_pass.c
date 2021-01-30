@@ -170,6 +170,10 @@ void R_DrawDepthPass(const r_view_t *view) {
  */
 _Bool R_OccludeBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
 
+	if (!r_depth_pass->value) {
+		return false;
+	}
+	
 	if (!r_occlude->value) {
 		return false;
 	}
