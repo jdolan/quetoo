@@ -520,6 +520,10 @@ void R_DrawWorld(const r_view_t *view) {
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 	R_DrawBspInlineModelOpaqueDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
+	if (r_depth_pass->value) {
+		glDepthMask(GL_TRUE);
+	}
+
 	glUniform1i(r_bsp_program.entity, 1);
 
 	{
@@ -534,10 +538,6 @@ void R_DrawWorld(const r_view_t *view) {
 	}
 
 	glUniform1i(r_bsp_program.entity, 0);
-
-	if (r_depth_pass->value) {
-		glDepthMask(GL_TRUE);
-	}
 
 	glDisable(GL_DEPTH_TEST);
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
