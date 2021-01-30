@@ -53,6 +53,8 @@ static struct {
 
 	GLint in_position;
 
+	GLint model;
+
 	GLint texture_cubemap;
 	GLint texture_lightgrid_fog;
 
@@ -73,12 +75,11 @@ void R_DrawSky(const r_view_t *view) {
 
 	glUseProgram(r_sky_program.name);
 
+	glUniformMatrix4fv(r_sky_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
+
 	Matrix4x4_CreateIdentity(&r_sky.cubemap_matrix);
-
 	Matrix4x4_ConcatScale3(&r_sky.cubemap_matrix, -1.f, 1.f, 1.f); // put Z going up
-
 	Matrix4x4_ConcatTranslate(&r_sky.cubemap_matrix, -view->origin.x, -view->origin.y, -view->origin.z);
-
 	glUniformMatrix4fv(r_sky_program.cube, 1, GL_FALSE, (GLfloat *) r_sky.cubemap_matrix.m);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
@@ -132,6 +133,8 @@ static void R_InitSkyProgram(void) {
 	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
 
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
+
+	r_sky_program.model = glGetUniformLocation(r_sky_program.name, "model");
 
 	r_sky_program.texture_cubemap = glGetUniformLocation(r_sky_program.name, "texture_cubemap");
 	r_sky_program.texture_lightgrid_fog = glGetUniformLocation(r_sky_program.name, "texture_lightgrid_fog");

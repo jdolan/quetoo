@@ -22,6 +22,7 @@
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec2 in_diffusemap;
 
+uniform mat4 model;
 uniform mat4 cube;
 
 out vertex_data {
@@ -30,16 +31,20 @@ out vertex_data {
 	vec3 lightgrid;
 } vertex;
 
+invariant gl_Position;
+
 /**
  * @brief
  */
 void main(void) {
 
+	mat4 view_model = view * model;
+
 	vec4 position = vec4(in_position, 1.0);
 
-	vertex.position = vec3(view * position);
+	vertex.position = vec3(view_model * position);
 	vertex.cubemap = vec3(cube * position);
 	vertex.lightgrid = lightgrid_uvw(vec3(512.0, 512.0, 512.0));
 
-	gl_Position = projection3D * view * position;
+	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
 }
