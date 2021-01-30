@@ -89,17 +89,6 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 	R_DrawBspInlineModelDepthPass(view, NULL, r_world_model->bsp->inline_models);
 
-	{
-		const r_entity_t *e = view->entities;
-		for (int32_t i = 0; i < view->num_entities; i++, e++) {
-			if (IS_BSP_INLINE_MODEL(e->model)) {
-
-				glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
-				R_DrawBspInlineModelDepthPass(view, e, e->model->bsp_inline);
-			}
-		}
-	}
-
 	if (r_occlude->value && view->ticks - occlusion_query_ticks >= 8) {
 		occlusion_query_ticks = view->ticks;
 
