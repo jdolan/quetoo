@@ -49,7 +49,7 @@ invariant gl_Position;
  */
 void main(void) {
 
-	mat4 model_view = view * model;
+	mat4 view_model = view * model;
 
 	vec4 position = vec4(in_position, 1.0);
 	vec4 normal = vec4(in_normal, 0.0);
@@ -58,17 +58,17 @@ void main(void) {
 
 	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	vertex.position = vec3(model_view * position);
-	vertex.normal = vec3(model_view * normal);
-	vertex.tangent = vec3(model_view * tangent);
-	vertex.bitangent = vec3(model_view * bitangent);
+	vertex.position = vec3(view_model * position);
+	vertex.normal = vec3(view_model * normal);
+	vertex.tangent = vec3(view_model * tangent);
+	vertex.bitangent = vec3(view_model * bitangent);
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
 	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
 	vertex.color = in_color;
 
-	gl_Position = projection3D * view * model * vec4(in_position, 1.0);
+	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }

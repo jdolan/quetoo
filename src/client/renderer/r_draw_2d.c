@@ -609,6 +609,7 @@ static void R_InitFont(char *name) {
 	g_strlcpy(font->name, name, sizeof(font->name));
 
 	font->image = R_LoadImage(va("fonts/%s", name), IT_FONT);
+	assert(font->image);
 
 	font->char_width = font->image->width / r_context.window_scale / 16;
 	font->char_height = font->image->height / r_context.window_scale / 8;

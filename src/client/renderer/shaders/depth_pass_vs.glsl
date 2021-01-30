@@ -21,6 +21,8 @@
 
 layout (location = 0) in vec3 in_position;
 
+uniform mat4 model;
+
 invariant gl_Position;
 
 /**
@@ -28,5 +30,7 @@ invariant gl_Position;
  */
 void main(void) {
 
-	gl_Position = projection3D * view * vec4(in_position, 1.0);
+	mat4 view_model = view * model;
+
+	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
 }
