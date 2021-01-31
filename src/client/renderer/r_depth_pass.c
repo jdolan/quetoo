@@ -101,13 +101,10 @@ void R_DrawDepthPass(const r_view_t *view) {
 
 		glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
-		const vec3_t view_mins = Vec3_Fmaf(view->origin, -16.f, Vec3(1.f, 1.f, 1.f));
-		const vec3_t view_maxs = Vec3_Fmaf(view->origin, 16.f, Vec3(1.f, 1.f, 1.f));
-
 		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-			if (Vec3_BoxIntersect(view_mins, view_maxs, q->mins, q->maxs)) {
+			if (Vec3_BoxIntersect(view->origin, view->origin, q->mins, q->maxs)) {
 				q->pending = false;
 				q->result = 1;
 				continue;

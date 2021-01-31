@@ -222,7 +222,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		const float xmin = ymin * aspect;
 		const float xmax = ymax * aspect;
 
-		Matrix4x4_FromFrustum(&r_uniforms.block.projection3D, xmin, xmax, ymin, ymax, 1.f, MAX_WORLD_DIST);
+		Matrix4x4_FromFrustum(&r_uniforms.block.projection3D, xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
 
 		Matrix4x4_CreateIdentity(&r_uniforms.block.view);
 
@@ -235,7 +235,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 		Matrix4x4_ConcatTranslate(&r_uniforms.block.view, -view->origin.x, -view->origin.y, -view->origin.z);
 
-		r_uniforms.block.depth_range.x = 1.f;
+		r_uniforms.block.depth_range.x = NEAR_DIST;
 		r_uniforms.block.depth_range.y = MAX_WORLD_DIST;
 
 		r_uniforms.block.view_type = view->type;

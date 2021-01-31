@@ -349,4 +349,7 @@ typedef enum {
  * @brief Therefore, the maximum distance across the world is the
  * sqrtf((2 * 4096.0)^2 + (2 * 4096.0)^2) = 11585.237
  */
-#define MAX_WORLD_DIST		 11586.0
+#define MAX_WORLD_DIST		11586.0
+
+/** @brief Near plane distance. */
+#define NEAR_DIST			1.f
