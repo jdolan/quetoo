@@ -56,6 +56,8 @@ out vertex_data {
 	vec4 fog;
 } vertex;
 
+invariant gl_Position;
+
 /**
  * @brief
  */

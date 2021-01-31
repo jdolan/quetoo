@@ -183,8 +183,6 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable(GL_POLYGON_OFFSET_FILL);
-
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
 
 	int32_t s = 1;
@@ -194,8 +192,6 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 			continue;
 		}
 
-		glPolygonOffset(-1.f, -s);
-
 		R_DrawMeshEntityMaterialStage(e, face, stage);
 	}
 
@@ -204,9 +200,6 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-
-	glPolygonOffset(0.f, 0.f);
-	glDisable(GL_POLYGON_OFFSET_FILL);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
