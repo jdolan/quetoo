@@ -26,7 +26,6 @@
 #include "filesystem.h"
 #include "cgame/cgame.h"
 #include "net/net_chan.h"
-#include "net/net_http.h"
 #include "renderer/renderer.h"
 #include "sound/sound.h"
 #include "thread.h"
