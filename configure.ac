@@ -1,17 +1,13 @@
 AC_PREREQ([2.68])
 
-AC_INIT([quetoo],[0.1.0],[jay@jaydolan.com])
+AC_INIT([quetoo], [0.1.0], [jay@jaydolan.com])
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR(m4)
-AC_CONFIG_SRCDIR(src/shared.c)
+AC_CONFIG_SRCDIR(src/quetoo.h)
 
-AC_CANONICAL_TARGET
-AC_DEFINE_UNQUOTED(BUILD_HOST,
-	"${target_cpu}-${target_os}",
-	[Set to the canonical name of the target machine]
-)
+AC_CANONICAL_HOST
 
 AC_SUBST(PROGRAM)
 AC_SUBST(VERSION)
@@ -25,6 +21,7 @@ else
 fi
 
 AC_DEFINE_UNQUOTED(REVISION, "$REVISION", [Git revision])
+AC_SUBST(REVISION)
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])
@@ -62,6 +59,7 @@ AC_MSG_CHECKING([host type])
 case "$host" in
 	*-apple-*)
 		HOST_NAME="APPLE"
+		host_os="darwin"
 		HOST_CFLAGS="-I/opt/local/include"
 		HOST_LDFLAGS="-L/opt/local/lib -headerpad_max_install_names"
 		HOST_LIBS="-ldl"
@@ -96,6 +94,11 @@ case "$host" in
 		;;
 esac
 
+BUILD="${host_cpu}-${host_vendor}-${host_os}"
+AC_DEFINE_UNQUOTED(BUILD, "${BUILD}", [The canonical name of the build])
+
+AC_SUBST(ARCH)
+AC_SUBST(HOST)
 AC_SUBST(HOST_NAME)
 AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
@@ -160,6 +163,12 @@ dnl Check for libsndfile
 dnl --------------------
 
 PKG_CHECK_MODULES([SNDFILE], [sndfile])
+
+dnl ------------------------
+dnl Check for Objectively
+dnl ------------------------
+
+PKG_CHECK_MODULES([OBJECTIVELY], [Objectively])
 
 dnl ------------------------
 dnl Check for ObjectivelyMVC
@@ -532,7 +541,7 @@ AC_MSG_RESULT([
 Quetoo $VERSION: Automatic configuration OK.
 
   Configuration summary:
-    Platform: .......... $host
+    Build: ............. $BUILD
     Compiler: .......... $CC
     C flags: ........... $BASE_CFLAGS
     Libraries: ......... $BASE_LIBS
@@ -547,7 +556,6 @@ Quetoo $VERSION: Automatic configuration OK.
       Unit tests: ...... $BUILD_TESTS
 
   Installation directories:
-
     Program: ........... $BINDIR
     Libraries: ......... $PKGLIBDIR
     Data: .............. $PKGDATADIR

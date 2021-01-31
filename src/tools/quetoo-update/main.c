@@ -153,34 +153,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	#include <unistd.h>
 #endif
 
-#if defined(__APPLE__)
-	#define ARCH "x86_64"
-	#define HOST "apple_darwin"
-#elif defined(__linux__)
-	#if defined(__x86_64__)
-		#define ARCH "x86_64"
-	#else
-		#define ARCH "i686"
-	#endif
-	#define HOST "pc_linux"
-#elif defined __MINGW32__
-	#if defined(__MINGW64__)
-		#define ARCH "x86_64"
-	#else
-		#define ARCH "i686"
-	#endif
-	#define HOST "w64_mingw32"
-#elif defined(_MSC_VER)
-	#if defined(_WIN64)
-		#define ARCH "x86_64"
-	#else
-		#define ARCH "i686"
-	#endif
-	#define HOST "pc_windows"
-#else
-	#error Unknown architecture or host
-#endif
-
 #define QUETOO_INSTALLER_JAR "quetoo-installer-small.jar"
 
 /**
@@ -215,7 +187,7 @@ static gchar *get_quetoo_installer_jar(const char *argv0, const char *jar) {
 int main(int argc, char **argv) {
 	int status = 1;
 
-	printf("Quetoo Update %s %s %s\n", VERSION, BUILD_HOST, REVISION);
+	printf("Quetoo Update %s %s %s\n", VERSION, BUILD, REVISION);
 
 	const char *jar = g_getenv("QUETOO_INSTALLER_JAR") ?: QUETOO_INSTALLER_JAR;
 
@@ -226,10 +198,8 @@ int main(int argc, char **argv) {
 		g_ptr_array_add(args, "java");
 		g_ptr_array_add(args, "-jar");
 		g_ptr_array_add(args, quetoo_installer_jar);
-		g_ptr_array_add(args, "--arch");
-		g_ptr_array_add(args, ARCH);
-		g_ptr_array_add(args, "--host");
-		g_ptr_array_add(args, HOST);
+		g_ptr_array_add(args, "--build");
+		g_ptr_array_add(args, BUILD);
 		g_ptr_array_add(args, "--prune");
 
 		for (int i = 1; i < argc; i++) {

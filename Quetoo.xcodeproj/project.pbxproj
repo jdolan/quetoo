@@ -38,10 +38,11 @@
 				CE6EE3C91F7147E500FBC830 /* PBXTargetDependency */,
 				CEA029C01C5E548B00341079 /* PBXTargetDependency */,
 				CEA029C21C5E548B00341079 /* PBXTargetDependency */,
+				CEA029BC1C5E546200341079 /* PBXTargetDependency */,
 				CEA029B81C5E546200341079 /* PBXTargetDependency */,
 				CEA029BA1C5E546200341079 /* PBXTargetDependency */,
-				CEA029BC1C5E546200341079 /* PBXTargetDependency */,
 				CEA029F91C5E560100341079 /* PBXTargetDependency */,
+				CEAAA53B25C6F57400EE81B3 /* PBXTargetDependency */,
 			);
 			name = "quetoo-all";
 			productName = Quetoo;
@@ -590,6 +591,9 @@
 		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
 		CEA5FA24254A269500C924FA /* ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA5FA22254A269500C924FA /* ai_node.h */; };
 		CEA5FA25254A269500C924FA /* ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA5FA23254A269500C924FA /* ai_node.c */; };
+		CEAAA35825C6280A00EE81B3 /* net_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAAA29725C6252A00EE81B3 /* net_http.c */; };
+		CEAAA3B325C6285200EE81B3 /* net_http.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAAA29625C6252A00EE81B3 /* net_http.h */; };
+		CEAAA4DE25C6E68500EE81B3 /* libObjectively.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6EE3BE1F71450C00FBC830 /* libObjectively.0.dylib */; };
 		CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32B6242124BB007E1253 /* cg_sprite.h */; };
 		CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		CEAC32BC24212553007E1253 /* r_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32BA24212553007E1253 /* r_sprite.c */; };
@@ -960,6 +964,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CEA029C51C5E558100341079;
 			remoteInfo = "quetoo-master";
+		};
+		CEAAA53A25C6F57400EE81B3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE67EF9C1E351A95009C2819;
+			remoteInfo = "quetoo-update";
 		};
 		CEE3A10221EE2B570070FD3E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1437,9 +1448,6 @@
 		CE12D7271C5C58C300CD0B13 /* apple_osx_10.7.valgrind */ = {isa = PBXFileReference; lastKnownFileType = text; path = apple_osx_10.7.valgrind; sourceTree = "<group>"; };
 		CE12D7281C5C58C300CD0B13 /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
 		CE12D72B1C5C58D800CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		CE12D72D1C5C58D800CD0B13 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
-		CE12D72E1C5C58D800CD0B13 /* Update.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Update.app; sourceTree = "<group>"; };
-		CE12D72F1C5C58D800CD0B13 /* set-icon.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "set-icon.py"; sourceTree = "<group>"; };
 		CE12D7351C5C5B9300CD0B13 /* quetoo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quetoo; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE12D7CD1C5C5D5C00CD0B13 /* game.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = game.so; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE12D7EB1C5C5DF900CD0B13 /* cgame.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = cgame.so; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1703,6 +1711,10 @@
 		CEA3B4861E057569004A6CF3 /* cm_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_material.h; sourceTree = "<group>"; };
 		CEA5FA22254A269500C924FA /* ai_node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_node.h; sourceTree = "<group>"; };
 		CEA5FA23254A269500C924FA /* ai_node.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ai_node.c; sourceTree = "<group>"; };
+		CEAAA29625C6252A00EE81B3 /* net_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_http.h; sourceTree = "<group>"; };
+		CEAAA29725C6252A00EE81B3 /* net_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_http.c; sourceTree = "<group>"; };
+		CEAAA4AF25C6E65100EE81B3 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
+		CEAAA50C25C6E75000EE81B3 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
 		CEAC32B6242124BB007E1253 /* cg_sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_sprite.h; sourceTree = "<group>"; };
 		CEAC32B7242124BB007E1253 /* cg_sprite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_sprite.c; sourceTree = "<group>"; };
 		CEAC32BA24212553007E1253 /* r_sprite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_sprite.c; sourceTree = "<group>"; };
@@ -1886,6 +1898,7 @@
 				CEFC7AA61D9CB894000FA6B2 /* libthread.a in Frameworks */,
 				CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */,
+				CEAAA4DE25C6E68500EE81B3 /* libObjectively.0.dylib in Frameworks */,
 				CE78386823FDC37F004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
@@ -2895,6 +2908,8 @@
 				CE12D6911C5C58C300CD0B13 /* net.h */,
 				CE12D6921C5C58C300CD0B13 /* net_chan.c */,
 				CE12D6931C5C58C300CD0B13 /* net_chan.h */,
+				CEAAA29725C6252A00EE81B3 /* net_http.c */,
+				CEAAA29625C6252A00EE81B3 /* net_http.h */,
 				CE12D6941C5C58C300CD0B13 /* net_message.c */,
 				CE12D6951C5C58C300CD0B13 /* net_message.h */,
 				CE12D6961C5C58C300CD0B13 /* net_tcp.c */,
@@ -3143,20 +3158,10 @@
 		CE12D7291C5C58D800CD0B13 /* apple */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D72C1C5C58D800CD0B13 /* Quetoo */,
-				CE12D72F1C5C58D800CD0B13 /* set-icon.py */,
+				CEAAA50C25C6E75000EE81B3 /* Quetoo.app */,
 				CE12D72B1C5C58D800CD0B13 /* Makefile */,
 			);
 			path = apple;
-			sourceTree = "<group>";
-		};
-		CE12D72C1C5C58D800CD0B13 /* Quetoo */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D72D1C5C58D800CD0B13 /* Quetoo.app */,
-				CE12D72E1C5C58D800CD0B13 /* Update.app */,
-			);
-			path = Quetoo;
 			sourceTree = "<group>";
 		};
 		CE12D7361C5C5B9300CD0B13 /* Products */ = {
@@ -3233,6 +3238,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CEAAA4AF25C6E65100EE81B3 /* libObjectivelyMVC.0.dylib */,
 				CECD8AFB2587CC5A00D8C7E6 /* libopenal.1.21.0.dylib */,
 				CE4DD107256F0F5600FECAFC /* libidn2.0.dylib */,
 				CE78386C23FDC5CF004A7EBB /* libopenal.1.20.1.dylib */,
@@ -3642,6 +3648,7 @@
 			files = (
 				CE80FE6C1C5E435C00A21A51 /* net.h in Headers */,
 				CE80FE6D1C5E435C00A21A51 /* net_chan.h in Headers */,
+				CEAAA3B325C6285200EE81B3 /* net_http.h in Headers */,
 				CE80FE6E1C5E435C00A21A51 /* net_message.h in Headers */,
 				CE80FE6F1C5E435C00A21A51 /* net_tcp.h in Headers */,
 				CE80FE701C5E435C00A21A51 /* net_types.h in Headers */,
@@ -5008,6 +5015,7 @@
 			files = (
 				CE80FE671C5E433F00A21A51 /* net.c in Sources */,
 				CE80FE681C5E433F00A21A51 /* net_chan.c in Sources */,
+				CEAAA35825C6280A00EE81B3 /* net_http.c in Sources */,
 				CE80FE691C5E433F00A21A51 /* net_message.c in Sources */,
 				CE80FE6A1C5E433F00A21A51 /* net_tcp.c in Sources */,
 				CE80FE6B1C5E433F00A21A51 /* net_udp.c in Sources */,
@@ -5396,6 +5404,11 @@
 			isa = PBXTargetDependency;
 			target = CEA029C51C5E558100341079 /* quetoo-master */;
 			targetProxy = CEA029F81C5E560100341079 /* PBXContainerItemProxy */;
+		};
+		CEAAA53B25C6F57400EE81B3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE67EF9C1E351A95009C2819 /* quetoo-update */;
+			targetProxy = CEAAA53A25C6F57400EE81B3 /* PBXContainerItemProxy */;
 		};
 		CEE3A10321EE2B570070FD3E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

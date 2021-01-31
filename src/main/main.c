@@ -302,7 +302,7 @@ static void Init(void) {
 
 	Cvar_Init();
 
-	char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
+	char *s = va("%s %s %s", VERSION, BUILD, REVISION);
 	version = Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
@@ -354,11 +354,6 @@ static void Init(void) {
 	// execute any +commands specified on the command line
 	Cbuf_InsertFromDefer();
 	Cbuf_Execute();
-
-	// if we don't have console fonts, the user should run the updater
-	if (!Fs_Exists("fonts/small.tga")) {
-		Com_Error(ERROR_FATAL, "Please run quetoo-update.\n");
-	}
 
 	// dedicated server, nothing specified, use Edge
 	if (dedicated->value && !Com_WasInit(QUETOO_SERVER)) {
@@ -436,7 +431,7 @@ int32_t main(int32_t argc, char *argv[]) {
 	static uint32_t old_time;
 	uint32_t msec;
 
-	printf("Quetoo %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+	printf("Quetoo %s %s %s\n", VERSION, BUILD, REVISION);
 
 	memset(&quetoo, 0, sizeof(quetoo));
 

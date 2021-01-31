@@ -1,23 +1,23 @@
-# Makefile for Quetoo Linux snapshotributable, requires awscli.
+# Makefile for Quetoo Linux distributable, requires awscli.
 
 ARCH = x86_64
-HOST = $(ARCH)-pc-linux
-UPDATE = quetoo-installer-small.jar
+BUILD = $(ARCH)-pc-linux
 TARGET = target
 INSTALL = $(TARGET)/quetoo
 BINDIR = $(INSTALL)/bin
 LIBDIR = $(INSTALL)/lib
 DATADIR = $(INSTALL)/share
-SNAPSHOT = $(TARGET)/quetoo-BETA-$(HOST).tar.gz
+INSTALLER = quetoo-installer-small.jar
+SNAPSHOT = $(TARGET)/quetoo-BETA-$(BUILD).tar.gz
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean install-lib install-update snapshot
+all: clean install-lib install-installer snapshot
 
-all-data: clean install-lib install-update install-data snapshot
+all-data: clean install-lib install-installer install-data snapshot
 
 configure:
-	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O0' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --host=$(HOST) --prefix=/
+	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --host=$(BUILD) --prefix=/
 
 compile: configure
 	make -C .. all
@@ -41,14 +41,16 @@ install-lib: install
 		$(LIBDIR)/default/cgame.so \
 		$(LIBDIR)/default/game.so
 
-install-update:
-	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(LIBDIR)/
+install-installer:
+	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(INSTALLER) $(LIBDIR)/
 
 install-data:
 	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
 
 release:
-	aws s3 sync --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
+	aws s3 sync --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(BUILD)
+	git rev-parse --short HEAD > $(TARGET)/revision
+	aws s3 cp $(TARGET)/revision $(QUETOO_S3_BUCKET)/revisions/$(BUILD)
 
 snapshot:
 	tar -czvf $(SNAPSHOT) -C $(TARGET) quetoo

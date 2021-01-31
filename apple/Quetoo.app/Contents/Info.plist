@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>Quetoo Update</string>
+	<string>Quetoo</string>
 	<key>CFBundleExecutable</key>
-	<string>quetoo-update</string>
+	<string>quetoo</string>
 	<key>CFBundleIconFile</key>
-	<string>quetoo-update.icns</string>
+	<string>default/icons/quetoo.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.quetoo.update</string>
+	<string>org.quetoo.launcher</string>
 	<key>CFBundleName</key>
-	<string>Quetoo Update</string>
+	<string>Quetoo</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -23,6 +23,6 @@
 	<key>CFBundleVersion</key>
 	<string>BETA</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.6</string>
+	<string>10.14</string>
 </dict>
 </plist>
