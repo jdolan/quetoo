@@ -476,7 +476,6 @@
 		CE80FF331C5E473500A21A51 /* cl_console.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D58A1C5C58C300CD0B13 /* cl_console.c */; };
 		CE80FF341C5E473500A21A51 /* cl_demo.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D58C1C5C58C300CD0B13 /* cl_demo.c */; };
 		CE80FF351C5E473500A21A51 /* cl_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D58E1C5C58C300CD0B13 /* cl_entity.c */; };
-		CE80FF361C5E473500A21A51 /* cl_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5901C5C58C300CD0B13 /* cl_http.c */; };
 		CE80FF371C5E473500A21A51 /* cl_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5921C5C58C300CD0B13 /* cl_input.c */; };
 		CE80FF381C5E473500A21A51 /* cl_keys.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5941C5C58C300CD0B13 /* cl_keys.c */; };
 		CE80FF391C5E473500A21A51 /* cl_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5971C5C58C300CD0B13 /* cl_main.c */; };
@@ -492,7 +491,6 @@
 		CE80FF831C5E49E700A21A51 /* cl_console.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D58B1C5C58C300CD0B13 /* cl_console.h */; };
 		CE80FF841C5E49E700A21A51 /* cl_demo.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D58D1C5C58C300CD0B13 /* cl_demo.h */; };
 		CE80FF851C5E49E700A21A51 /* cl_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D58F1C5C58C300CD0B13 /* cl_entity.h */; };
-		CE80FF861C5E49E700A21A51 /* cl_http.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5911C5C58C300CD0B13 /* cl_http.h */; };
 		CE80FF871C5E49E700A21A51 /* cl_input.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5931C5C58C300CD0B13 /* cl_input.h */; };
 		CE80FF881C5E49E700A21A51 /* cl_keys.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5951C5C58C300CD0B13 /* cl_keys.h */; };
 		CE80FF891C5E49E700A21A51 /* cl_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5961C5C58C300CD0B13 /* cl_local.h */; };
@@ -1174,8 +1172,6 @@
 		CE12D58D1C5C58C300CD0B13 /* cl_demo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_demo.h; sourceTree = "<group>"; };
 		CE12D58E1C5C58C300CD0B13 /* cl_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cl_entity.c; sourceTree = "<group>"; };
 		CE12D58F1C5C58C300CD0B13 /* cl_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_entity.h; sourceTree = "<group>"; };
-		CE12D5901C5C58C300CD0B13 /* cl_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cl_http.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		CE12D5911C5C58C300CD0B13 /* cl_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_http.h; sourceTree = "<group>"; };
 		CE12D5921C5C58C300CD0B13 /* cl_input.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cl_input.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D5931C5C58C300CD0B13 /* cl_input.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_input.h; sourceTree = "<group>"; };
 		CE12D5941C5C58C300CD0B13 /* cl_keys.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cl_keys.c; sourceTree = "<group>"; };
@@ -2639,8 +2635,6 @@
 				CE12D58D1C5C58C300CD0B13 /* cl_demo.h */,
 				CE12D58E1C5C58C300CD0B13 /* cl_entity.c */,
 				CE12D58F1C5C58C300CD0B13 /* cl_entity.h */,
-				CE12D5901C5C58C300CD0B13 /* cl_http.c */,
-				CE12D5911C5C58C300CD0B13 /* cl_http.h */,
 				CE12D5921C5C58C300CD0B13 /* cl_input.c */,
 				CE12D5931C5C58C300CD0B13 /* cl_input.h */,
 				CE12D5941C5C58C300CD0B13 /* cl_keys.c */,
@@ -3681,7 +3675,6 @@
 				CE80FF831C5E49E700A21A51 /* cl_console.h in Headers */,
 				CE80FF841C5E49E700A21A51 /* cl_demo.h in Headers */,
 				CE80FF851C5E49E700A21A51 /* cl_entity.h in Headers */,
-				CE80FF861C5E49E700A21A51 /* cl_http.h in Headers */,
 				CE80FF871C5E49E700A21A51 /* cl_input.h in Headers */,
 				CE80FF881C5E49E700A21A51 /* cl_keys.h in Headers */,
 				CE80FF891C5E49E700A21A51 /* cl_local.h in Headers */,
@@ -5042,7 +5035,6 @@
 				CE80FF331C5E473500A21A51 /* cl_console.c in Sources */,
 				CE80FF341C5E473500A21A51 /* cl_demo.c in Sources */,
 				CE80FF351C5E473500A21A51 /* cl_entity.c in Sources */,
-				CE80FF361C5E473500A21A51 /* cl_http.c in Sources */,
 				CE80FF371C5E473500A21A51 /* cl_input.c in Sources */,
 				CE80FF381C5E473500A21A51 /* cl_keys.c in Sources */,
 				CE80FF391C5E473500A21A51 /* cl_main.c in Sources */,
