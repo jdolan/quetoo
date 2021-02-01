@@ -321,36 +321,6 @@ fi
 AC_SUBST(AI_MODULES)
 AC_MSG_RESULT($AI_MODULES)
 
-dnl --------------------------
-dnl Check which tools to build
-dnl --------------------------
-
-AC_MSG_CHECKING(which tools to build)
-
-ALL_TOOLS="quemap quetoo-master quetoo-update"
-TOOLS=${ALL_TOOLS}
-
-AC_ARG_WITH(tools,
-	AS_HELP_STRING([--with-tools='${ALL_TOOLS}...'],
-		[build specified tools]
-	)
-)
-
-if test "x${with_tools}" != x; then
-	TOOLS="${with_tools}"
-fi
-
-if test "${TOOLS}" = "no"; then
-        TOOLS=""
-fi
-
-if test "${TOOLS}" = "yes"; then
-        TOOLS="${ALL_TOOLS}"
-fi
-
-AC_SUBST(TOOLS)
-AC_MSG_RESULT($TOOLS)
-
 dnl ---------------------------------
 dnl Check whether to build unit tests
 dnl ---------------------------------
@@ -531,8 +501,8 @@ AC_CONFIG_FILES([
 	src/tests/Makefile
 	src/tools/Makefile
 	src/tools/quemap/Makefile
+	src/tools/quetoo-launcher/Makefile
 	src/tools/quetoo-master/Makefile
-	src/tools/quetoo-update/Makefile
 ])
 
 AC_OUTPUT
@@ -549,7 +519,6 @@ Quetoo $VERSION: Automatic configuration OK.
 
     Game modules: ...... $GAME_MODULES
     AI modules: ........ $AI_MODULES
-    Tools: ............. $TOOLS
 
     Options:
       MySQL: ........... $HAVE_MYSQL

@@ -52,8 +52,8 @@ src/tests/check_shared
 src/tests/check_thread
 src/tests/check_vector
 src/tools/quemap/quemap
+src/tools/quetoo-launcher/quetoo-launcher
 src/tools/quetoo-master/quetoo-master
-src/tools/quetoo-update/quetoo-update
 stamp-h1
 target
 test-driver

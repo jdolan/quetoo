@@ -35,8 +35,8 @@ install-lib: install
 		$(BINDIR)/quemap \
 		$(BINDIR)/quetoo \
 		$(BINDIR)/quetoo-dedicated \
+		$(BINDIR)/quetoo-launcher \
 		$(BINDIR)/quetoo-master \
-		$(BINDIR)/quetoo-update \
 		$(LIBDIR)/default/ai.so \
 		$(LIBDIR)/default/cgame.so \
 		$(LIBDIR)/default/game.so

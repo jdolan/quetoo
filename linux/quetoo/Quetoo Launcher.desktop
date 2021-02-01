@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Quetoo Launcher BETA
+Comment=Launcher for Quetoo BETA.
+Exec="%QUETOO_HOME%/bin/quetoo-launcher"
+Icon="%QUETOO_HOME%/share/default/icons/launcher.png"
+Type=Application
+Categories=Games;
+StartupNotify=true

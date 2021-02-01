@@ -37,8 +37,8 @@ install-lib: install
 		$(BINDIR)/quemap.exe \
 		$(BINDIR)/quetoo.exe \
 		$(BINDIR)/quetoo-dedicated.exe \
-		$(BINDIR)/quetoo-master.exe \
-		$(BINDIR)/quetoo-update.exe
+		$(BINDIR)/quetoo-launcher.exe \
+		$(BINDIR)/quetoo-master.exe
 
 install-installer:
 	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(INSTALLER) $(LIBDIR)/
