@@ -5,7 +5,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the licence, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -80,7 +80,7 @@ GVariantClass                   g_variant_classify                      (GVarian
 GLIB_AVAILABLE_IN_ALL
 GVariant *                      g_variant_new_boolean                   (gboolean              value);
 GLIB_AVAILABLE_IN_ALL
-GVariant *                      g_variant_new_byte                      (guchar                value);
+GVariant *                      g_variant_new_byte                      (guint8                value);
 GLIB_AVAILABLE_IN_ALL
 GVariant *                      g_variant_new_int16                     (gint16                value);
 GLIB_AVAILABLE_IN_ALL
@@ -133,7 +133,7 @@ GVariant *                      g_variant_new_fixed_array               (const G
 GLIB_AVAILABLE_IN_ALL
 gboolean                        g_variant_get_boolean                   (GVariant             *value);
 GLIB_AVAILABLE_IN_ALL
-guchar                          g_variant_get_byte                      (GVariant             *value);
+guint8                          g_variant_get_byte                      (GVariant             *value);
 GLIB_AVAILABLE_IN_ALL
 gint16                          g_variant_get_int16                     (GVariant             *value);
 GLIB_AVAILABLE_IN_ALL
@@ -327,7 +327,8 @@ typedef enum
   G_VARIANT_PARSE_ERROR_UNEXPECTED_TOKEN,
   G_VARIANT_PARSE_ERROR_UNKNOWN_KEYWORD,
   G_VARIANT_PARSE_ERROR_UNTERMINATED_STRING_CONSTANT,
-  G_VARIANT_PARSE_ERROR_VALUE_EXPECTED
+  G_VARIANT_PARSE_ERROR_VALUE_EXPECTED,
+  G_VARIANT_PARSE_ERROR_RECURSION
 } GVariantParseError;
 #define G_VARIANT_PARSE_ERROR (g_variant_parse_error_quark ())
 

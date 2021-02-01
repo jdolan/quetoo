@@ -4,7 +4,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,6 +23,7 @@
 #endif
 
 #include <glib/gtypes.h>
+#include <string.h>
 
 G_BEGIN_DECLS
 
@@ -34,7 +35,7 @@ GLIB_AVAILABLE_IN_ALL
 gpointer g_slice_alloc0         	(gsize         block_size) G_GNUC_MALLOC G_GNUC_ALLOC_SIZE(1);
 GLIB_AVAILABLE_IN_ALL
 gpointer g_slice_copy                   (gsize         block_size,
-                                         gconstpointer mem_block) G_GNUC_MALLOC G_GNUC_ALLOC_SIZE(1);
+                                         gconstpointer mem_block) G_GNUC_ALLOC_SIZE(1);
 GLIB_AVAILABLE_IN_ALL
 void     g_slice_free1          	(gsize         block_size,
 					 gpointer      mem_block);
@@ -43,7 +44,22 @@ void     g_slice_free_chain_with_offset (gsize         block_size,
 					 gpointer      mem_chain,
 					 gsize         next_offset);
 #define  g_slice_new(type)      ((type*) g_slice_alloc (sizeof (type)))
-#define  g_slice_new0(type)     ((type*) g_slice_alloc0 (sizeof (type)))
+
+/* Allow the compiler to inline memset(). Since the size is a constant, this
+ * can significantly improve performance. */
+#if defined (__GNUC__) && (__GNUC__ >= 2) && defined (__OPTIMIZE__)
+#  define g_slice_new0(type)                                    \
+  (type *) (G_GNUC_EXTENSION ({                                 \
+    gsize __s = sizeof (type);                                  \
+    gpointer __p;                                               \
+    __p = g_slice_alloc (__s);                                  \
+    memset (__p, 0, __s);                                       \
+    __p;                                                        \
+  }))
+#else
+#  define g_slice_new0(type)    ((type*) g_slice_alloc0 (sizeof (type)))
+#endif
+
 /* MemoryBlockType *
  *       g_slice_dup                    (MemoryBlockType,
  *	                                 MemoryBlockType *mem_block);

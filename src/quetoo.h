@@ -82,24 +82,6 @@
 			#define SCNxPTR SCNx32
 		#endif
 	#endif
-
-#ifndef __MINGW32__
-// FIXME temporary
-static inline _Bool g_ptr_array_find(GPtrArray *p, gconstpointer v, guint *index) {
-	
-	for (guint i = 0; i < p->len; i++) {
-		if (g_ptr_array_index(p, i) == v) {
-			if (index) {
-				*index = i;
-			}
-
-			return true;
-		}
-	}
-
-	return false;
-}
-#endif
 #endif
 
 #ifndef byte
