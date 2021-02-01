@@ -152,6 +152,11 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 	for (int32_t i = 0; i < e->num_origins; i++) {
 		const vec4_t origin = *(e->origins + i);
 
+		// don't draw too far out
+		if ((fabsf(origin.x - cgi.view->origin.x) > 800.f) || (fabsf(origin.y - cgi.view->origin.y) > 800.f)) {
+			return;
+		}
+
 		vec3_t sprite_origin = Vec3_Add(Vec4_XYZ(origin), Vec3_RandomRange(-16.f, 16.f));
 
 		// keep sprite z origin relatively close to the view origin
@@ -161,7 +166,6 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			}
 		}
 
-		// free the sprite roughly when it will reach the floor
 		cg_sprite_t *s;
 
 		if (cg_state.weather & WEATHER_RAIN) {
@@ -175,9 +179,12 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.flags = SPRITE_NO_BLEND_DEPTH,
 				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
 				.softness = 5.f,
-				.lifetime = 500.f
 			});
-		} else {
+			if (s) {
+				// particle dies when it reaches the floor
+				s->lifetime = 1000 * (sprite_origin.z - origin.w) / fabsf(s->velocity.z);
+			}
+		} else { // WEATHER_SNOW
 			s = Cg_AddSprite(&(cg_sprite_t) {
 				.origin = sprite_origin,
 				.atlas_image = cg_sprite_snow,
@@ -189,13 +196,15 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.flags = SPRITE_NO_BLEND_DEPTH,
 				.softness = 1.f
 			});
+			if (s) {
+				// limit particle lifetime to 3 secs or less
+				s->lifetime = min(3000, 1000 * (sprite_origin.z - origin.w) / fabsf(s->velocity.z));
+			}
 		}
 
 		if (!s) {
 			return;
 		}
-
-		s->lifetime = 1000 * (sprite_origin.z - origin.w) / fabsf(s->velocity.z);
 	}
 }
 
