@@ -224,7 +224,6 @@ void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
 void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
 
 	if (quetoo.recursive_error) {
-
 		if (quetoo.Error) {
 			quetoo.Error(ERROR_FATAL, "Recursive error\n");
 		} else {

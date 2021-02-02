@@ -453,6 +453,11 @@ else
 	eval PKGDATADIR="$prefix/share/$PACKAGE"
 fi
 
+AC_DEFINE_UNQUOTED(BINDIR, "$BINDIR",
+	[Define to path containing game binaries.]
+)
+AC_SUBST(BINDOR)
+
 AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
 	[Define to path containing the shared modules.]
 )

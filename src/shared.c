@@ -443,7 +443,7 @@ int32_t StrrColor(const char *s) {
  */
 char *va(const char *format, ...) {
 	static char strings[8][MAX_STRING_CHARS];
-	static uint16_t index;
+	static int32_t index;
 
 	char *string = strings[index++ % 8];
 

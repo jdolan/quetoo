@@ -25,8 +25,7 @@
 
 #define FS_FILE_BUFFER (1024 * 1024 * 2)
 
-typedef struct fs_state_s {
-
+typedef struct {
 	/**
 	 * @brief The FS_* flags.
 	 */
@@ -38,6 +37,21 @@ typedef struct fs_state_s {
 	 * is set for the .app and .tgz distributables.
 	 */
 	char base_dir[MAX_OS_PATH];
+
+	/**
+	 * @brief The binaries directory.
+	 */
+	char bin_dir[MAX_OS_PATH];
+
+	/**
+	 * @brief The shared libraries directory.
+	 */
+	char lib_dir[MAX_OS_PATH];
+
+	/**
+	 * @brief The data directory.
+	 */
+	char data_dir[MAX_OS_PATH];
 
 	/**
 	 * @brief The base search paths (all those present after invoking Fs_Init).
@@ -393,6 +407,9 @@ _Bool Fs_Unlink(const char *filename) {
 	return false;
 }
 
+/**
+ * @brief Fs_Enumerate context.
+ */
 typedef struct {
 	char dir[MAX_QPATH];
 	const char *pattern;
@@ -401,16 +418,16 @@ typedef struct {
 } fs_enumerate_t;
 
 /**
- * @brief Enumeration helper for Fs_Enumerate.
+ * @brief PHYSFS_EnumerateCallback for Fs_Enumerate.
  */
 static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) {
-	char path[MAX_QPATH];
-	const fs_enumerate_t *en = data;
+	const fs_enumerate_t *enumerator = data;
 
+	char path[MAX_QPATH];
 	g_snprintf(path, sizeof(path), "%s%s", dir, filename);
 
-	if (GlobMatch(en->pattern, path, GLOB_FLAGS_NONE)) {
-		en->function(path, en->data);
+	if (GlobMatch(enumerator->pattern, path, GLOB_FLAGS_NONE)) {
+		enumerator->function(path, enumerator->data);
 	}
 
 	return 1;
@@ -420,19 +437,20 @@ static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) 
  * @brief Enumerates files matching `pattern`, calling the given function.
  */
 void Fs_Enumerate(const char *pattern, Fs_Enumerator func, void *data) {
-	fs_enumerate_t en = {
+
+	fs_enumerate_t enumerator = {
 		.pattern = pattern,
 		.function = func,
 		.data = data,
 	};
 
 	if (strchr(pattern, '/')) {
-		Dirname(pattern, en.dir);
+		Dirname(pattern, enumerator.dir);
 	} else {
-		g_strlcpy(en.dir, "/", sizeof(en.dir));
+		g_strlcpy(enumerator.dir, "/", sizeof(enumerator.dir));
 	}
 
-	PHYSFS_enumerate(en.dir, Fs_Enumerate_, &en);
+	PHYSFS_enumerate(enumerator.dir, Fs_Enumerate_, &enumerator);
 }
 
 /**
@@ -478,28 +496,50 @@ void Fs_CompleteFile(const char *pattern, GList **matches) {
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
 
 /**
- * @brief Adds the directory to the search path, conditionally loading all
- * archives within it.
+ * @brief Concatenates the NULL-terminated list of path components and adds the
+ * resulting path to the search path.
  */
-void Fs_AddToSearchPath(const char *dir) {
+void Fs_AddToSearchPath(const char *path) {
 
-	if (g_file_test(dir, G_FILE_TEST_EXISTS)) {
-		Com_Print("Adding path %s..\n", dir);
+	if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+		Com_Print("Adding path %s..\n", path);
 
-		const _Bool is_dir = g_file_test(dir, G_FILE_TEST_IS_DIR);
+		const _Bool is_dir = g_file_test(path, G_FILE_TEST_IS_DIR);
 
-		if (PHYSFS_mount(dir, NULL, !is_dir) == 0) {
-			Com_Warn("%s: %s\n", dir, Fs_LastError());
+		if (PHYSFS_mount(path, NULL, !is_dir) == 0) {
+			Com_Warn("%s: %s\n", path, Fs_LastError());
 			return;
 		}
 
 		if ((fs_state.flags & FS_AUTO_LOAD_ARCHIVES) && is_dir) {
-			Fs_Enumerate("*.pak", Fs_AddToSearchPath_enumerate, (void *) dir);
-			Fs_Enumerate("*.pk3", Fs_AddToSearchPath_enumerate, (void *) dir);
+			Fs_Enumerate("*.pk3", Fs_AddToSearchPath_enumerate, (void *) path);
 		}
 	} else {
-		Com_Debug(DEBUG_FILESYSTEM, "Failed to stat %s\n", dir);
+		Com_Debug(DEBUG_FILESYSTEM, "Failed to stat %s\n", path);
 	}
+}
+
+/**
+ * @brief Variadic arguments version of Fs_AddToSearchPath.
+ */
+void Fs_AddToSearchPathv(const char *dir, ...) {
+	char path[MAX_OS_PATH] = "";
+
+	va_list args;
+	va_start(args, dir);
+
+	while (dir) {
+		g_strlcat(path, dir, sizeof(path));
+
+		dir = va_arg(args, const char *);
+		if (dir) {
+			g_strlcat(path, G_DIR_SEPARATOR_S, sizeof(path));
+		}
+	}
+
+	va_end(args);
+
+	Fs_AddToSearchPath(path);
 }
 
 /**
@@ -507,10 +547,12 @@ void Fs_AddToSearchPath(const char *dir) {
  * the newly added filesystem mount point.
  */
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
-	const char *dir = (const char *) data;
 
-	if (!g_strcmp0(Fs_RealDir(path), dir)) {
-		Fs_AddToSearchPath(va("%s%s", dir, path));
+	const char *real_dir = Fs_RealDir(path);
+	const char *enum_dir = data;
+
+	if (!g_strcmp0(real_dir, enum_dir)) {
+		Fs_AddToSearchPathv(real_dir, path + 1, NULL);
 	}
 }
 
@@ -519,9 +561,8 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
  * process. This is where all files produced by the game are written to.
  */
 static void Fs_AddUserSearchPath(const char *dir) {
-	char path[MAX_OS_PATH];
 
-	g_snprintf(path, sizeof(path), "%s"G_DIR_SEPARATOR_S"%s", Sys_UserDir(), dir);
+	gchar *path = g_build_path(G_DIR_SEPARATOR_S, Sys_UserDir(), dir, NULL);
 
 	if (g_mkdir_with_parents(path, 0755)) {
 		Com_Warn("Failed to create %s\n", path);
@@ -529,8 +570,9 @@ static void Fs_AddUserSearchPath(const char *dir) {
 	}
 
 	Fs_AddToSearchPath(path);
-
 	Fs_SetWriteDir(path);
+
+	g_free(path);
 }
 
 /**
@@ -574,8 +616,8 @@ void Fs_SetGame(const char *dir) {
 	PHYSFS_freeList(paths);
 
 	// now add new entries for the new game
-	Fs_AddToSearchPath(va(PKGLIBDIR G_DIR_SEPARATOR_S "%s", dir));
-	Fs_AddToSearchPath(va(PKGDATADIR G_DIR_SEPARATOR_S "%s", dir));
+	Fs_AddToSearchPathv(fs_state.lib_dir, dir, NULL);
+	Fs_AddToSearchPathv(fs_state.data_dir, dir, NULL);
 
 	Fs_AddUserSearchPath(dir);
 }
@@ -662,6 +704,10 @@ void Fs_Init(const uint32_t flags) {
 
 	PHYSFS_permitSymbolicLinks(true);
 
+	g_strlcpy(fs_state.bin_dir, BINDIR, MAX_OS_PATH);
+	g_strlcpy(fs_state.lib_dir, PKGLIBDIR, MAX_OS_PATH);
+	g_strlcpy(fs_state.data_dir, PKGDATADIR, MAX_OS_PATH);
+
 	const char *path = Sys_ExecutablePath();
 	if (path) {
 		char *c;
@@ -673,46 +719,37 @@ void Fs_Init(const uint32_t flags) {
 			*(c + strlen("Quetoo.app")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c + strlen("Quetoo.app"), "/Contents/MacOS/lib/"DEFAULT_GAME);
-			Fs_AddToSearchPath(path);
-
-			strcpy(c + strlen("Quetoo.app"), "/Contents/Resources/"DEFAULT_GAME);
-			Fs_AddToSearchPath(path);
+			g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.base_dir);
+			g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib", fs_state.base_dir);
+			g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
 		}
 #elif defined(__linux__)
 		if ((c = strstr(path, "quetoo/bin"))) {
 			*(c + strlen("quetoo")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c + strlen("quetoo"), "/lib/"DEFAULT_GAME);
-			Fs_AddToSearchPath(path);
-
-			strcpy(c + strlen("quetoo"), "/share/"DEFAULT_GAME);
-			Fs_AddToSearchPath(path);
+			g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
+			g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib", fs_state.base_dir);
+			g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share", fs_state.base_dir);
 		}
 #elif defined(_WIN32)
 		if ((c = strstr(path, "\\bin\\"))) {
 			*c = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c, "\\lib\\"DEFAULT_GAME);
-			Fs_AddToSearchPath(path);
-
-			strcpy(c, "\\share\\"DEFAULT_GAME);
-			Fs_AddToSearchPath(path);
+			g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s\\bin", fs_state.base_dir);
+			g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s\\lib", fs_state.base_dir);
+			g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s\\share", fs_state.base_dir);
 		}
 #endif
 	}
 
-	// if the base directory was not resolved, add the default search paths
-	if (strlen(fs_state.base_dir)) {
-		Com_Debug(DEBUG_FILESYSTEM, "Resolved base dir: %s\n", fs_state.base_dir);
-	} else { // trailing slash is added to "fix" links on Linux, possibly causes issues on other platforms?
-		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
-		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
-	}
+	Fs_AddToSearchPathv(fs_state.lib_dir, NULL);
+	Fs_AddToSearchPathv(fs_state.data_dir, NULL);
 
-	// then add the game directory in the user's home directory
+	Fs_AddToSearchPathv(fs_state.lib_dir, DEFAULT_GAME, NULL);
+	Fs_AddToSearchPathv(fs_state.data_dir, DEFAULT_GAME, NULL);
+
 	Fs_AddUserSearchPath(DEFAULT_GAME);
 
 	// finally add any paths specified on the command line

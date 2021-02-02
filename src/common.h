@@ -163,7 +163,14 @@ void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 
  * @brief Global engine structure.
  */
 typedef struct {
+	/**
+	 * @brief The command line argument count.
+	 */
 	int32_t argc;
+
+	/**
+	 * @brief The command line arguments.
+	 */
 	char **argv;
 
 	/**
