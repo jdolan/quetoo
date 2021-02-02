@@ -106,7 +106,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 
 	cm_bsp_plane_t transformed_plane;
 	if (e) {
-		transformed_plane = Cm_TransformPlane(&e->matrix, plane->cm);
+		transformed_plane = Cm_TransformPlane(e->matrix, plane->cm);
 	} else {
 		transformed_plane = *plane->cm;
 	}

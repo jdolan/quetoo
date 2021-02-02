@@ -22,19 +22,6 @@
 #include "cm_local.h"
 
 /**
- * @brief
- */
-cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
-
-	return (cm_bsp_plane_t) {
-		.normal = normal,
-		.dist = dist,
-		.type = Cm_PlaneTypeForNormal(normal),
-		.sign_bits = Cm_SignBitsForNormal(normal)
-	};
-}
-
-/**
  * @return The PLANE_ type for the given normal vector.
  */
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
@@ -78,15 +65,6 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
 	}
 
 	return bits;
-}
-
-/**
- * @brief
- */
-cm_bsp_plane_t Cm_TransformPlane(const mat4_t *matrix, const cm_bsp_plane_t *plane) {
-
-	const vec4_t out = Mat4_TransformQuakePlane(*matrix, plane->normal, plane->dist);
-	return Cm_Plane(Vec4_XYZ(out), out.w);
 }
 
 /**
@@ -343,23 +321,6 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 	const int32_t leaf_num = Cm_PointLeafnum(p, head_node);
 
 	return cm_bsp.leafs[leaf_num].contents;
-}
-
-/**
- * @brief Contents check for non-world models. Rotates and translates the point
- * into the model's space, and recurses the BSP tree. For inline BSP models,
- * the head node is the root of the model's subtree. For mesh models, a special
- * reserver box hull is used.
- *
- * @param p The point, in world space.
- * @param head_hode The BSP head node to recurse down.
- * @param inverse_matrix The inverse matrix of the entity to be tested.
- *
- * @return The contents mask at the specified point.
- */
-int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat4_t *inverse_matrix) {
-	const vec3_t p0 = Mat4_Transform(*inverse_matrix, p);
-	return Cm_PointContents(p0, head_node);
 }
 
 /**
