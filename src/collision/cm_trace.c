@@ -487,10 +487,8 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 
 	Cm_AdjustTraceSymmetry(&start0, &end0, &mins0, &maxs0);
 
-	vec3_t start1, end1;
-
-	Matrix4x4_Transform(inverse_matrix, start0.xyz, start1.xyz);
-	Matrix4x4_Transform(inverse_matrix, end0.xyz, end1.xyz);
+	vec3_t start1 = Mat4_Transform(*inverse_matrix, start0);
+	vec3_t end1 = Mat4_Transform(*inverse_matrix, end0);
 
 	// sweep the box through the model
 	cm_trace_t trace = Cm_BoxTrace(start1, end1, mins0, maxs0, head_node, contents);

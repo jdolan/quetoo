@@ -28,8 +28,7 @@ static int32_t stain_frame;
  */
 static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 
-	vec3_t point;
-	Matrix4x4_Transform(&face->lightmap.matrix, stain->origin.xyz, point.xyz);
+	const vec3_t point = Mat4_Transform(face->lightmap.matrix, stain->origin);
 
 	vec2_t st = Vec2_Subtract(Vec3_XY(point), face->lightmap.st_mins);
 
@@ -179,7 +178,8 @@ void R_UpdateStains(const r_view_t *view) {
 			if (e->model && e->model->type == MOD_BSP_INLINE) {
 
 				r_stain_t s = *stain;
-				Matrix4x4_Transform(&e->inverse_matrix, s.origin.xyz, s.origin.xyz);
+
+				s.origin = Mat4_Transform(e->inverse_matrix, s.origin);
 
 				R_StainNode(&s, e->model->bsp_inline->head_node);
 			}

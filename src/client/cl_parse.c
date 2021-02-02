@@ -151,11 +151,11 @@ static void Cl_ParseBaseline(void) {
 	// initialize clipping matrices
 	if (ent->baseline.solid) {
 		if (ent->baseline.solid == SOLID_BSP) {
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, ent->baseline.angles, 1.0);
-			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			ent->matrix = Mat4_FromOriginAnglesScale(ent->baseline.origin, ent->baseline.angles, 1.f);
+			ent->inverse_matrix = Mat4_Invert(ent->matrix);
 		} else { // bounding-box entities
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, Vec3_Zero(), 1.0);
-			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			ent->matrix = Mat4_FromOriginAnglesScale(ent->baseline.origin, Vec3_Zero(), 1.f);
+			ent->inverse_matrix = Mat4_Invert(ent->matrix);
 		}
 	}
 }

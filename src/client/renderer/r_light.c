@@ -61,8 +61,7 @@ void R_UpdateLights(const r_view_t *view) {
 		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
 
 			*out = *in;
-
-			Matrix4x4_Transform(&r_uniforms.block.view, in->origin.xyz, out->origin.xyz);
+			out->origin = Mat4_Transform(r_uniforms.block.view, in->origin);
 		}
 
 		r_lights.block.num_lights = view->num_lights;

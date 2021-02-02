@@ -85,9 +85,7 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
  */
 cm_bsp_plane_t Cm_TransformPlane(const mat4_t *matrix, const cm_bsp_plane_t *plane) {
 
-	vec4_t out;
-	Matrix4x4_TransformQuakePlane(matrix, plane->normal, plane->dist, &out);
-
+	const vec4_t out = Mat4_TransformQuakePlane(*matrix, plane->normal, plane->dist);
 	return Cm_Plane(Vec4_XYZ(out), out.w);
 }
 
@@ -360,10 +358,7 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
  * @return The contents mask at the specified point.
  */
 int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat4_t *inverse_matrix) {
-	vec3_t p0;
-
-	Matrix4x4_Transform(inverse_matrix, p.xyz, p0.xyz);
-
+	const vec3_t p0 = Mat4_Transform(*inverse_matrix, p);
 	return Cm_PointContents(p0, head_node);
 }
 

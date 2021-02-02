@@ -34,7 +34,6 @@ noinst_LTLIBRARIES = \
 	libconsole.la \
 	libfilesystem.la \
 	libimage.la \
-	libmatrix.la \
 	libmem.la \
 	libparse.la \
 	libshared.la \
@@ -102,16 +101,6 @@ libimage_la_LDFLAGS = \
 	-shared
 libimage_la_LIBADD = \
 	libfilesystem.la
-
-libmatrix_la_SOURCES = \
-	matrix.c
-libmatrix_la_CFLAGS = \
-	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
-libmatrix_la_LDFLAGS = \
-	-shared
-libmatrix_la_LIBADD = \
-	@BASE_LIBS@
 
 libmem_la_SOURCES = \
 	mem.c \

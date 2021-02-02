@@ -229,8 +229,8 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	// and update its clipping matrices
 	const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
 
-	Matrix4x4_CreateFromEntity(&sent->matrix, ent->s.origin, angles, 1.0);
-	Matrix4x4_Invert_Simple(&sent->inverse_matrix, &sent->matrix);
+	sent->matrix = Mat4_FromOriginAnglesScale(ent->s.origin, angles, 1.f);
+	sent->inverse_matrix = Mat4_Invert(sent->matrix);
 }
 
 /**

@@ -87,8 +87,8 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 
 	vec3_t transformed_mins, transformed_maxs;
 	if (e) {
-		Matrix4x4_Transform(&e->matrix, node->mins.xyz, transformed_mins.xyz);
-		Matrix4x4_Transform(&e->matrix, node->maxs.xyz, transformed_maxs.xyz);
+		transformed_mins = Mat4_Transform(e->matrix, node->mins);
+		transformed_maxs = Mat4_Transform(e->matrix, node->maxs);
 	} else {
 		transformed_mins = node->mins;
 		transformed_maxs = node->maxs;

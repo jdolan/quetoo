@@ -46,13 +46,9 @@ static void BuildLightgridMatrices(void) {
 
 	const bsp_model_t *world = bsp_file.models;
 
-	Matrix4x4_CreateTranslate(&lg.matrix, -world->mins.x, -world->mins.y, -world->mins.z);
-	Matrix4x4_ConcatScale3(&lg.matrix,
-						   1.0 / BSP_LIGHTGRID_LUXEL_SIZE,
-						   1.0 / BSP_LIGHTGRID_LUXEL_SIZE,
-						   1.0 / BSP_LIGHTGRID_LUXEL_SIZE);
-
-	Matrix4x4_Invert_Full(&lg.inverse_matrix, &lg.matrix);
+	lg.matrix = Mat4_FromTranslation(Vec3_Negate(world->mins));
+	lg.matrix = Mat4_ConcatScale(lg.matrix, 1.f / BSP_LIGHTGRID_LUXEL_SIZE);
+	lg.inverse_matrix = Mat4_Invert(lg.matrix);
 }
 
 /**
@@ -65,8 +61,8 @@ static void BuildLightgridExtents(void) {
 	const vec3_t mins = Vec3(world->mins.x, world->mins.y, world->mins.z);
 	const vec3_t maxs = Vec3(world->maxs.x, world->maxs.y, world->maxs.z);
 
-	Matrix4x4_Transform(&lg.matrix, mins.xyz, lg.stu_mins.xyz);
-	Matrix4x4_Transform(&lg.matrix, maxs.xyz, lg.stu_maxs.xyz);
+	lg.stu_mins = Mat4_Transform(lg.matrix, mins);
+	lg.stu_maxs = Mat4_Transform(lg.matrix, maxs);
 
 	for (int32_t i = 0; i < 3; i++) {
 		lg.size.xyz[i] = floorf(lg.stu_maxs.xyz[i] - lg.stu_mins.xyz[i]) + 2;
@@ -113,8 +109,7 @@ static int32_t ProjectLightgridLuxel(luxel_t *l, float soffs, float toffs, float
 	const float t = lg.stu_mins.y + padding_t + l->t + 0.5 + toffs;
 	const float u = lg.stu_mins.z + padding_u + l->u + 0.5 + uoffs;
 
-	const vec3_t stu = Vec3(s, t, u);
-	Matrix4x4_Transform(&lg.inverse_matrix, stu.xyz, l->origin.xyz);
+	l->origin = Mat4_Transform(lg.inverse_matrix, Vec3(s, t, u));
 
 	return Light_PointContents(l->origin, 0);
 }

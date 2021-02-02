@@ -75,12 +75,11 @@ void R_DrawSky(const r_view_t *view) {
 
 	glUseProgram(r_sky_program.name);
 
-	glUniformMatrix4fv(r_sky_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
+	glUniformMatrix4fv(r_sky_program.model, 1, GL_FALSE, Mat4_Identity().flat);
 
-	Matrix4x4_CreateIdentity(&r_sky.cubemap_matrix);
-	Matrix4x4_ConcatScale3(&r_sky.cubemap_matrix, -1.f, 1.f, 1.f); // put Z going up
-	Matrix4x4_ConcatTranslate(&r_sky.cubemap_matrix, -view->origin.x, -view->origin.y, -view->origin.z);
-	glUniformMatrix4fv(r_sky_program.cube, 1, GL_FALSE, (GLfloat *) r_sky.cubemap_matrix.m);
+	r_sky.cubemap_matrix = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f)); // put Z going up
+	r_sky.cubemap_matrix = Mat4_ConcatTranslation(r_sky.cubemap_matrix, Vec3_Negate(view->origin));
+	glUniformMatrix4fv(r_sky_program.cube, 1, GL_FALSE, r_sky.cubemap_matrix.flat);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 

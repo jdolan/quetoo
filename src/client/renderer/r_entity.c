@@ -41,10 +41,7 @@ static void R_SetEntityBounds(r_entity_t *e) {
 	};
 
 	for (size_t i = 0; i < lengthof(corners); i++) {
-
-		vec3_t corner;
-		Matrix4x4_Transform(&e->matrix, corners[i].xyz, corner.xyz);
-
+		const vec3_t corner = Mat4_Transform(e->matrix, corners[i]);
 		e->abs_model_mins = Vec3_Minf(e->abs_model_mins, corner);
 		e->abs_model_maxs = Vec3_Maxf(e->abs_model_maxs, corner);
 	}
@@ -91,7 +88,7 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 	r_entity_t *e = &view->entities[view->num_entities];
 	*e = *ent;
 
-	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
+	e->matrix = Mat4_FromOriginAnglesScale(e->origin, e->angles, e->scale);
 
 	if (IS_MESH_MODEL(e->model)) {
 
@@ -102,7 +99,7 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 		R_ApplyMeshConfig(e);
 	}
 
-	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
+	e->inverse_matrix = Mat4_Invert(e->matrix);
 
 	R_SetEntityBounds(e);
 

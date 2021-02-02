@@ -306,7 +306,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glEnableVertexAttribArray(r_mesh_program.in_next_tangent);
 	glEnableVertexAttribArray(r_mesh_program.in_next_bitangent);
 
-	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
+	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, e->matrix.flat);
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);

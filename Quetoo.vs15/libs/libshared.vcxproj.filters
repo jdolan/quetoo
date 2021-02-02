@@ -24,6 +24,12 @@
     <ClInclude Include="..\..\src\collision\cm_types.h">
       <Filter>src\collision</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\vector.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\matrix.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\shared.c">

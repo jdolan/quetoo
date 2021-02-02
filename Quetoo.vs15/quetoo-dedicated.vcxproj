@@ -42,9 +42,6 @@
     <ProjectReference Include="libs\libfilesystem.vcxproj">
       <Project>{817cecdd-9a82-4ea6-bc55-500462cfae0a}</Project>
     </ProjectReference>
-    <ProjectReference Include="libs\libmatrix.vcxproj">
-      <Project>{61be87b2-5e0b-43ef-af67-a6561f929364}</Project>
-    </ProjectReference>
     <ProjectReference Include="libs\libmem.vcxproj">
       <Project>{6689d02e-8034-4d5f-804e-935d444af5c8}</Project>
     </ProjectReference>

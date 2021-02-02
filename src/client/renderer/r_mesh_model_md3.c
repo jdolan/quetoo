@@ -345,7 +345,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 				const d_md3_tag_t tag = R_SwapMd3Tag(in);
 
 				g_strlcpy(out->name, tag.name, MD3_MAX_PATH);
-				Matrix4x4_FromVectors(&out->matrix, tag.axis[0].xyz, tag.axis[1].xyz, tag.axis[2].xyz, tag.origin.xyz);
+				out->matrix = Mat4_FromVectors(tag.axis[0], tag.axis[1], tag.axis[2], tag.origin);
 			}
 		}
 	}

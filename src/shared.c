@@ -24,18 +24,6 @@
 #include "shared.h"
 
 /**
- * @brief Make `value` stepped as specified by `step`
- */
-
-int32_t Step(int32_t value, int32_t step) {
-	if (!step) {
-		return 0; // divide by zero check
-	}
-
-	return (int32_t) floorf(value / (float) step) * step;
-}
-
-/**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
 static _Bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {
