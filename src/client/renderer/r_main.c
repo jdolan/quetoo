@@ -204,7 +204,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
 
-	Matrix4x4_FromOrtho(&r_uniforms.block.projection2D, 0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
+	r_uniforms.block.projection2D = Mat4_FromOrtho(0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
 
 	r_uniforms.block.brightness = r_brightness->value;
 	r_uniforms.block.contrast = r_contrast->value;
@@ -222,18 +222,12 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		const float xmin = ymin * aspect;
 		const float xmax = ymax * aspect;
 
-		Matrix4x4_FromFrustum(&r_uniforms.block.projection3D, xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
+		r_uniforms.block.projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
 
-		Matrix4x4_CreateIdentity(&r_uniforms.block.view);
-
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -90.f, 1.f, 0.f, 0.f); // put Z going up
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view,  90.f, 0.f, 0.f, 1.f); // put Z going up
-
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.z, 1.f, 0.f, 0.f);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.x, 0.f, 1.f, 0.f);
-		Matrix4x4_ConcatRotate(&r_uniforms.block.view, -view->angles.y, 0.f, 0.f, 1.f);
-
-		Matrix4x4_ConcatTranslate(&r_uniforms.block.view, -view->origin.x, -view->origin.y, -view->origin.z);
+		r_uniforms.block.view = Mat4_FromRotation(-90.f, Vec3(1.f, 0.f, 0.f)); // put Z going up
+		r_uniforms.block.view = Mat4_ConcatRotation(r_uniforms.block.view, 90.f, Vec3(0.f, 0.f, 1.f)); // put Z going up
+		r_uniforms.block.view = Mat4_ConcatRotation3(r_uniforms.block.view, Vec3(-view->angles.z, -view->angles.x, -view->angles.y));
+		r_uniforms.block.view = Mat4_ConcatTranslation(r_uniforms.block.view, Vec3_Negate(view->origin));
 
 		r_uniforms.block.depth_range.x = NEAR_DIST;
 		r_uniforms.block.depth_range.y = MAX_WORLD_DIST;

@@ -451,7 +451,17 @@ typedef enum {
 /**
  * @brief Math and trigonometry functions.
  */
-int32_t Step(int32_t value, int32_t step);
+
+/**
+ * @brief Make `value` stepped as specified by `step`
+ */
+static inline int32_t Step(int32_t value, int32_t step) {
+	if (!step) {
+		return 0; // divide by zero check
+	}
+
+	return (int32_t) floorf(value / (float) step) * step;
+}
 
 /**
  * @brief A table of approximate normal vectors is used to save bandwidth when

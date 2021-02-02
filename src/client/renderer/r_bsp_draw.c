@@ -517,7 +517,7 @@ void R_DrawWorld(const r_view_t *view) {
 		glDepthMask(GL_FALSE);
 	}
 
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
+	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	R_DrawBspInlineModelOpaqueDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
 	if (r_depth_pass->value) {
@@ -531,7 +531,7 @@ void R_DrawWorld(const r_view_t *view) {
 		for (int32_t i = 0; i < view->num_entities; i++, e++) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
-				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
+				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 				R_DrawBspInlineModelOpaqueDrawElements(view, e, e->model->bsp_inline);
 			}
 		}
@@ -542,7 +542,7 @@ void R_DrawWorld(const r_view_t *view) {
 	glDisable(GL_DEPTH_TEST);
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
+	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	R_DrawBspInlineModelBlendDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
 	{
@@ -550,7 +550,7 @@ void R_DrawWorld(const r_view_t *view) {
 		for (int32_t i = 0; i < view->num_entities; i++, e++) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
 
-				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
+				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 				R_DrawBspInlineModelBlendDrawElements(view, e, e->model->bsp_inline);
 			}
 		}

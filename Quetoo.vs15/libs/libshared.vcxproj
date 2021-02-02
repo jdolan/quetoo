@@ -20,7 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\collision\cm_types.h" />
+    <ClInclude Include="..\..\src\matrix.h" />
     <ClInclude Include="..\..\src\shared.h" />
+    <ClInclude Include="..\..\src\vector.h" />
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\unistd.h" />
   </ItemGroup>

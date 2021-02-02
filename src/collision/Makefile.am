@@ -32,5 +32,4 @@ libcollision_la_LDFLAGS = \
 
 libcollision_la_LIBADD = \
 	$(top_builddir)/src/libfilesystem.la \
-	$(top_builddir)/src/libmatrix.la \
 	$(top_builddir)/src/libparse.la

@@ -38,7 +38,7 @@ void R_ApplyMeshConfig(r_entity_t *e) {
 		c = &e->model->mesh->config.world;
 	}
 
-	Matrix4x4_Concat(&e->matrix, &e->matrix, &c->transform);
+	e->matrix = Mat4_Concat(e->matrix, c->transform);
 
 	e->effects |= c->flags;
 }
@@ -87,23 +87,20 @@ void R_ApplyMeshTag(r_entity_t *e) {
 		return;
 	}
 
-	mat4_t tag_transform;
-
-	Matrix4x4_Interpolate(&tag_transform, &t2->matrix, &t1->matrix, e->parent->back_lerp);
-	Matrix4x4_Normalize(&tag_transform, &tag_transform);
+	mat4_t tag_transform = Mat4_Mix(t2->matrix, t1->matrix, e->parent->back_lerp);
 
 	// add local origins to the local offset
-	Matrix4x4_Concat(&tag_transform, &tag_transform, &e->matrix);
+	tag_transform = Mat4_Concat(tag_transform, e->matrix);
 
 	// move by parent matrix
-	Matrix4x4_Concat(&e->matrix, &e->parent->matrix, &tag_transform);
+	e->matrix = Mat4_Concat(e->parent->matrix, tag_transform);
 
 	// calculate final origin/angles
 	vec3_t forward;
 	
-	Matrix4x4_ToVectors(&e->matrix, forward.xyz, NULL, NULL, e->origin.xyz);
+	Mat4_Vectors(e->matrix, &forward, NULL, NULL, &e->origin);
 
 	e->angles = Vec3_Euler(forward);
 
-	e->scale = Matrix4x4_ScaleFromMatrix(&e->matrix);
+	e->scale = Mat4_ToScale(e->matrix);
 }

@@ -124,9 +124,6 @@
     <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="libs\libmatrix.vcxproj">
-      <Project>{61be87b2-5e0b-43ef-af67-a6561f929364}</Project>
-    </ProjectReference>
     <ProjectReference Include="libs\libparse.vcxproj">
       <Project>{fef51acc-31f2-41ac-b562-41f5c5988088}</Project>
     </ProjectReference>
