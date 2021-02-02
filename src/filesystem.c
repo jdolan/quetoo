@@ -77,6 +77,27 @@ const char *Fs_BaseDir(void) {
 }
 
 /**
+ * @return The binaries directory.
+ */
+const char *Fs_BinDir(void) {
+	return fs_state.bin_dir;
+}
+
+/**
+ * @return The shared libraries directory.
+ */
+const char *Fs_LibDir(void) {
+	return fs_state.lib_dir;
+}
+
+/**
+ * @return The data directory.
+ */
+const char *Fs_DataDir(void) {
+	return fs_state.data_dir;
+}
+
+/**
  * @brief Closes the file.
  *
  * @return True on successful flush and close, false otherwise.

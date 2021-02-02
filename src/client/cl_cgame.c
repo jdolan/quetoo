@@ -154,6 +154,9 @@ void Cl_InitCgame(void) {
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Cl_CgameError;
 
+	import.CheckForUpdates = Installer_CheckForUpdates;
+	import.LaunchInstaller = Installer_LaunchInstaller;
+	
 	import.Malloc = Mem_TagMalloc;
 	import.LinkMalloc = Mem_LinkMalloc;
 	import.Realloc = Mem_Realloc;
@@ -163,7 +166,6 @@ void Cl_InitCgame(void) {
 	import.Thread = Thread_Create_;
 	import.Wait = Thread_Wait;
 
-	import.BaseDir = Fs_BaseDir;
 	import.OpenFile = Fs_OpenRead;
 	import.SeekFile = Fs_Seek;
 	import.ReadFile = Fs_Read;

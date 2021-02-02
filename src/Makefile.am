@@ -103,6 +103,19 @@ libimage_la_LDFLAGS = \
 libimage_la_LIBADD = \
 	libfilesystem.la
 
+libinstaller_la_SOURCES = \
+	installer.c
+libinstaller_la_CFLAGS = \
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@
+libinstaller_la_LDFLAGS = \
+	-shared
+libinstaller_la_LIBADD = \
+	libfilesystem.la \
+	@GLIB_LIBS@ \
+	@OBJECTIVELY_LIBS@
+
 libmatrix_la_SOURCES = \
 	matrix.c
 libmatrix_la_CFLAGS = \

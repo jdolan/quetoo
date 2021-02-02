@@ -26,6 +26,9 @@
 #include "sys.h"
 
 const char *Fs_BaseDir(void);
+const char *Fs_BinDir(void);
+const char *Fs_LibDir(void);
+const char *Fs_DataDir(void);
 _Bool Fs_Close(file_t *file);
 _Bool Fs_Delete(const char *filename);
 _Bool Fs_Eof(file_t *file);

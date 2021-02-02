@@ -506,7 +506,6 @@ AC_CONFIG_FILES([
 	src/tests/Makefile
 	src/tools/Makefile
 	src/tools/quemap/Makefile
-	src/tools/quetoo-launcher/Makefile
 	src/tools/quetoo-master/Makefile
 ])
 

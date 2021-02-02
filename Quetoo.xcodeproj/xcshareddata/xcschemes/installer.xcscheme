@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE67EF9C1E351A95009C2819"
-               BuildableName = "quetoo-launcher"
-               BlueprintName = "quetoo-launcher"
+               BlueprintIdentifier = "CEC74B3925C8EF7E009C6218"
+               BuildableName = "libinstaller.a"
+               BlueprintName = "installer"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -27,15 +27,6 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE67EF9C1E351A95009C2819"
-            BuildableName = "quetoo-launcher"
-            BlueprintName = "quetoo-launcher"
-            ReferencedContainer = "container:Quetoo.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <Testables>
       </Testables>
    </TestAction>
@@ -49,16 +40,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE67EF9C1E351A95009C2819"
-            BuildableName = "quetoo-launcher"
-            BlueprintName = "quetoo-launcher"
-            ReferencedContainer = "container:Quetoo.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -66,16 +47,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE67EF9C1E351A95009C2819"
-            BuildableName = "quetoo-launcher"
-            BlueprintName = "quetoo-launcher"
+            BlueprintIdentifier = "CEC74B3925C8EF7E009C6218"
+            BuildableName = "libinstaller.a"
+            BlueprintName = "installer"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
