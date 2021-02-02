@@ -311,7 +311,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) EqualEpsilonf(float a, 
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline float __attribute__ ((warn_unused_result)) Mixf(float a, float b, float mix) {
-	return a * (1.f - mix) + b * mix;
+	return fmaf(a, mix, b - a);
 }
 
 /**
@@ -517,10 +517,17 @@ static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Scale(const vec2_
 }
 
 /**
+ * @return The vector `v` + (`add` * `multiply`).
+ */
+static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Fmaf(const vec2_t v, float multiply, const vec2_t add) {
+	return Vec2(fmaf(add.x, multiply, v.x), fmaf(add.y, multiply, v.y));
+}
+
+/**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Mix(const vec2_t a, const vec2_t b, float mix) {
-	return Vec2_Add(Vec2_Scale(a, 1.f - mix), Vec2_Scale(b, mix));
+	return Vec2_Fmaf(a, mix, Vec2_Subtract(b, a));
 }
 
 /**
@@ -866,7 +873,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mins(void) {
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mix(const vec3_t a, const vec3_t b, float mix) {
-	return Vec3_Add(Vec3_Scale(a, 1.f - mix), Vec3_Scale(b, mix));
+	return Vec3_Fmaf(a, mix, Vec3_Subtract(b, a));
 }
 
 /**
@@ -906,7 +913,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_One(void) {
  * @return The linear interpolation of `a` and `b` using the specified fractions.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mix3(const vec3_t a, const vec3_t b, const vec3_t mix) {
-	return Vec3_Add(Vec3_Multiply(a, Vec3_Subtract(Vec3_One(), mix)), Vec3_Multiply(b, mix));
+	return Vec3_Add(a, Vec3_Multiply(Vec3_Subtract(b, a), mix));
 }
 
 /**
@@ -1122,10 +1129,17 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Scale(const vec4_
 }
 
 /**
+ * @return The vector `v` + (`add` * `multiply`).
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Fmaf(const vec4_t v, float multiply, const vec4_t add) {
+	return Vec4(fmaf(add.x, multiply, v.x), fmaf(add.y, multiply, v.y), fmaf(add.z, multiply, v.z), fmaf(add.w, multiply, v.w));
+}
+
+/**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Mix(const vec4_t a, const vec4_t b, float mix) {
-	return Vec4_Add(Vec4_Scale(a, 1.f - mix), Vec4_Scale(b, mix));
+	return Vec4_Fmaf(a, mix, Vec4_Subtract(b, a));
 }
 
 /**

@@ -49,7 +49,7 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 
 	const vec3_t origin = patches[lm - lightmaps].origin;
 	const mat4_t translate = Mat4_FromTranslation(origin);
-	const mat4_t inverse = Mat4_Invert(lm->matrix);
+	const mat4_t inverse = Mat4_Inverse(lm->matrix);
 	lm->inverse_matrix = Mat4_Concat(translate, inverse);
 }
 

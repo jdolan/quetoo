@@ -48,7 +48,7 @@ static void BuildLightgridMatrices(void) {
 
 	lg.matrix = Mat4_FromTranslation(Vec3_Negate(world->mins));
 	lg.matrix = Mat4_ConcatScale(lg.matrix, 1.f / BSP_LIGHTGRID_LUXEL_SIZE);
-	lg.inverse_matrix = Mat4_Invert(lg.matrix);
+	lg.inverse_matrix = Mat4_Inverse(lg.matrix);
 }
 
 /**

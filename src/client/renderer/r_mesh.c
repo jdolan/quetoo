@@ -98,7 +98,7 @@ void R_ApplyMeshTag(r_entity_t *e) {
 	// calculate final origin/angles
 	vec3_t forward;
 	
-	Mat4_ToVectors(e->matrix, &forward, NULL, NULL, &e->origin);
+	Mat4_Vectors(e->matrix, &forward, NULL, NULL, &e->origin);
 
 	e->angles = Vec3_Euler(forward);
 

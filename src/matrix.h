@@ -31,12 +31,17 @@ typedef union {
 	/**
 	 * @brief Flat array accessor.
 	 */
-	float flat[16];
+	float array[16];
 
 	/**
 	 * @brief Row/Col component accessor.
 	 */
 	float m[4][4];
+
+	/**
+	 * @brief Row accessors.
+	 */
+	vec4_t rows[4];
 } mat4_t;
 
 /**
@@ -44,32 +49,29 @@ typedef union {
 */
 static inline mat4_t __attribute__ ((warn_unused_result)) Mat4(const float elements[16]) {
 	mat4_t matrix;
-	memcpy(matrix.flat, elements, sizeof(matrix.flat));
+	memcpy(matrix.array, elements, sizeof(matrix.array));
 	return matrix;
 }
 
 /**
  * @return A `mat4_t` with the specified rows.
 */
-static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromRows(const float row0[4], const float row1[4], const float row2[4], const float row3[4]) {
-	return Mat4((const float []) {
-		row0[0], row0[1], row0[2], row0[3],
-		row1[0], row1[1], row1[2], row1[3],
-		row2[0], row2[1], row2[2], row2[3],
-		row3[0], row3[1], row3[2], row3[3],
-	});
+static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromRows(const vec4_t row0, const vec4_t row1, const vec4_t row2, const vec4_t row3) {
+	return (mat4_t) {
+		.rows = { row0, row1, row2, row3 }
+	};
 }
 
 /**
  * @return A `mat4_t` with the specified columns.
 */
-static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromColumns(const float col0[4], const float col1[4], const float col2[4], const float col3[4]) {
-	return Mat4((const float []) {
-		col0[0], col1[0], col2[0], col3[0],
-		col0[1], col1[1], col2[1], col3[1],
-		col0[2], col1[2], col2[2], col3[2],
-		col0[3], col1[3], col2[3], col3[3],
-	});
+static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromColumns(const vec4_t col0, const vec4_t col1, const vec4_t col2, const vec4_t col3) {
+	return (mat4_t) { .rows = {
+		Vec4(col0.x, col1.x, col2.x, col3.x),
+		Vec4(col0.y, col1.y, col2.y, col3.y),
+		Vec4(col0.z, col1.z, col2.z, col3.z),
+		Vec4(col0.w, col1.w, col2.w, col3.w)
+	} };
 }
 
 /**
@@ -88,43 +90,39 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_Identity(void) {
  * @return The product of `a` and `b`'s matrix concatenation
  */
 static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_Concat(const mat4_t a, const mat4_t b) {
-	return Mat4_FromColumns((const float[]) { 
+	return Mat4_FromColumns(Vec4(
 		a.m[0][0] * b.m[0][0] + a.m[1][0] * b.m[0][1] + a.m[2][0] * b.m[0][2] + a.m[3][0] * b.m[0][3],
 		a.m[0][0] * b.m[1][0] + a.m[1][0] * b.m[1][1] + a.m[2][0] * b.m[1][2] + a.m[3][0] * b.m[1][3],
 		a.m[0][0] * b.m[2][0] + a.m[1][0] * b.m[2][1] + a.m[2][0] * b.m[2][2] + a.m[3][0] * b.m[2][3],
 		a.m[0][0] * b.m[3][0] + a.m[1][0] * b.m[3][1] + a.m[2][0] * b.m[3][2] + a.m[3][0] * b.m[3][3]
-	}, (const float[]) {
+	), Vec4(
 		a.m[0][1] * b.m[0][0] + a.m[1][1] * b.m[0][1] + a.m[2][1] * b.m[0][2] + a.m[3][1] * b.m[0][3],
 		a.m[0][1] * b.m[1][0] + a.m[1][1] * b.m[1][1] + a.m[2][1] * b.m[1][2] + a.m[3][1] * b.m[1][3],
 		a.m[0][1] * b.m[2][0] + a.m[1][1] * b.m[2][1] + a.m[2][1] * b.m[2][2] + a.m[3][1] * b.m[2][3],
 		a.m[0][1] * b.m[3][0] + a.m[1][1] * b.m[3][1] + a.m[2][1] * b.m[3][2] + a.m[3][1] * b.m[3][3]
-	}, (const float[]) {
+	), Vec4(
 		a.m[0][2] * b.m[0][0] + a.m[1][2] * b.m[0][1] + a.m[2][2] * b.m[0][2] + a.m[3][2] * b.m[0][3],
 		a.m[0][2] * b.m[1][0] + a.m[1][2] * b.m[1][1] + a.m[2][2] * b.m[1][2] + a.m[3][2] * b.m[1][3],
 		a.m[0][2] * b.m[2][0] + a.m[1][2] * b.m[2][1] + a.m[2][2] * b.m[2][2] + a.m[3][2] * b.m[2][3],
 		a.m[0][2] * b.m[3][0] + a.m[1][2] * b.m[3][1] + a.m[2][2] * b.m[3][2] + a.m[3][2] * b.m[3][3]
-	}, (const float[]) {
+	), Vec4(
 		a.m[0][3] * b.m[0][0] + a.m[1][3] * b.m[0][1] + a.m[2][3] * b.m[0][2] + a.m[3][3] * b.m[0][3],
 		a.m[0][3] * b.m[1][0] + a.m[1][3] * b.m[1][1] + a.m[2][3] * b.m[1][2] + a.m[3][3] * b.m[1][3],
 		a.m[0][3] * b.m[2][0] + a.m[1][3] * b.m[2][1] + a.m[2][3] * b.m[2][2] + a.m[3][3] * b.m[2][3],
 		a.m[0][3] * b.m[3][0] + a.m[1][3] * b.m[3][1] + a.m[2][3] * b.m[3][2] + a.m[3][3] * b.m[3][3]
-	});
+	));
 }
 
 /**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_Mix(const mat4_t a, const mat4_t b, float mix) {
-	mat4_t result;
-
-	for (size_t i = 0; i < lengthof(a.flat); i++) {
-		result.flat[i] = Mixf(a.flat[i], b.flat[i], mix);
-	}
-	
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconditional-uninitialized"
-	return result;
-#pragma clang diagnostic pop
+	return Mat4_FromRows(
+		Vec4_Mix(a.rows[0], b.rows[0], mix),
+		Vec4_Mix(a.rows[1], b.rows[1], mix),
+		Vec4_Mix(a.rows[2], b.rows[2], mix),
+		Vec4_Mix(a.rows[3], b.rows[3], mix)
+	);
 }
 
 /**
@@ -161,17 +159,17 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromOrtho(const f
 }
 
 /**
- * @return A matrix constructed from the specified translation, Euler angles and scale.
+ * @return A matrix constructed from the specified routines. Quicker than doing Rotate3 + Translate + Scale separately.
  */
-static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromOriginAnglesScale(const vec3_t origin, const vec3_t angles, const float scale) {
+static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromRotationTranslationScale(const vec3_t angles, const vec3_t origin, const float scale) {
 
 	if (Vec3_Equal(angles, Vec3_Zero())) {
 
 		return Mat4_FromColumns(
-			(const float[]) { scale, 0.f,   0.f,   origin.x },
-			(const float[]) { 0.f,   scale, 0.f,   origin.y },
-			(const float[]) { 0.f,   0.f,   scale, origin.z },
-			(const float[]) { 0.f,   0.f,   0.f,   1.f }
+			Vec4(scale, 0.f,   0.f,   origin.x ),
+			Vec4(0.f,   scale, 0.f,   origin.y ),
+			Vec4(0.f,   0.f,   scale, origin.z ),
+			Vec4(0.f,   0.f,   0.f,   1.f )
 		);
 	} else if (angles.z) {
 		float angle = angles.y * (M_PI * 2 / 360);
@@ -184,27 +182,27 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromOriginAnglesS
 		const float sr = sinf(angle);
 		const float cr = cosf(angle);
 
-		return Mat4_FromColumns((const float[]) { 
+		return Mat4_FromColumns(Vec4( 
 				(cp * cy) * scale,
 				(sr * sp * cy + cr * -sy) * scale,
 				(cr * sp * cy + -sr * -sy) * scale,
 				origin.x
-			}, (const float[]) { 
+			), Vec4(
 				(cp * sy) * scale,
 				(sr * sp * sy + cr * cy) * scale,
 				(cr * sp * sy + -sr * cy) * scale,
 				origin.y
-			}, (const float[]) { 
+			), Vec4(
 				(-sp) * scale,
 				(sr * cp) * scale,
 				(cr * cp) * scale,
 				origin.z
-			}, (const float[]) { 
+			), Vec4(
 				0.f,
 				0.f,
 				0.f,
 				1.f
-			});
+			));
 	} else if (angles.x) {
 		float angle = angles.y * (M_PI * 2 / 360);
 		const float sy = sinf(angle);
@@ -213,60 +211,60 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromOriginAnglesS
 		const float sp = sinf(angle);
 		const float cp = cosf(angle);
 
-		return Mat4_FromColumns((const float[]) { 
+		return Mat4_FromColumns(Vec4(
 				(cp * cy) * scale,
 				(-sy) * scale,
 				(sp * cy) * scale,
 				origin.x
-			}, (const float[]) { 
+			), Vec4(
 				(cp * sy) * scale,
 				(cy) * scale,
 				(sp * sy) * scale,
 				origin.y
-			}, (const float[]) { 
+			), Vec4(
 				(-sp) * scale,
 				0.f,
 				(cp) * scale,
 				origin.z
-			}, (const float[]) { 
+			), Vec4(
 				0.f,
 				0.f,
 				0.f,
 				1.f
-			});
+			));
 	} else {
 		const float angle = angles.y * (M_PI * 2 / 360);
 		const float sy = sinf(angle);
 		const float cy = cosf(angle);
 
-		return Mat4_FromColumns((const float[]) { 
+		return Mat4_FromColumns(Vec4(
 				(cy) * scale,
 				(-sy) * scale,
 				0.f,
 				origin.x
-			}, (const float[]) { 
+			), Vec4(
 				(sy) * scale,
 				(cy) * scale,
 				0.f,
 				origin.y
-			}, (const float[]) { 
+			), Vec4(
 				0.f,
 				0.f,
 				scale,
 				origin.z
-			}, (const float[]) { 
+			), Vec4(
 				0.f,
 				0.f,
 				0.f,
 				1.f
-			});
+			));
 	}
 }
 
 /**
  * @return The inverse of the input matrix.
  */
-static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_Invert(const mat4_t a) {
+static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_Inverse(const mat4_t a) {
 	const float b00 = a.m[0][0] * a.m[1][1] - a.m[0][1] * a.m[1][0];
 	const float b01 = a.m[0][0] * a.m[1][2] - a.m[0][2] * a.m[1][0];
 	const float b02 = a.m[0][0] * a.m[1][3] - a.m[0][3] * a.m[1][0];
@@ -313,10 +311,10 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_Invert(const mat4
  */
 static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromTranslation(const vec3_t translate) {
 	return Mat4_FromColumns(
-		(const float[]) { 1.f,  0.f,  0.f,  translate.x },
-		(const float[]) { 0.0f, 1.0f, 0.0f, translate.y },
-		(const float[]) { 0.0f, 0.0f, 1.0f, translate.z },
-		(const float[]) { 0.0f, 0.0f, 0.0f, 1.0f }
+		Vec4(1.f,  0.f,  0.f,  translate.x),
+		Vec4(0.0f, 1.0f, 0.0f, translate.y),
+		Vec4(0.0f, 0.0f, 1.0f, translate.z),
+		Vec4(0.0f, 0.0f, 0.0f, 1.0f)
 	);
 }
 
@@ -328,27 +326,27 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromRotation(cons
 	const float c = cosf(radians);
 	const float s = sinf(radians);
 	
-	return Mat4_FromColumns((const float[]) {
+	return Mat4_FromColumns(Vec4(
 		axis.x * axis.x + c * (1.f - axis.x * axis.x),
 		axis.x * axis.y * (1.f - c) + axis.z * s,
 		axis.z * axis.x * (1.f - c) - axis.y * s,
 		0.f
-	}, (const float[]) {
+	), Vec4(
 		axis.x * axis.y * (1.f - c) - axis.z * s,
 		axis.y * axis.y + c * (1.f - axis.y * axis.y),
 		axis.y * axis.z * (1.f - c) + axis.x * s,
 		0.f
-	}, (const float[]) {
+	), Vec4(
 		axis.z * axis.x * (1.f - c) + axis.y * s,
 		axis.y * axis.z * (1.f - c) - axis.x * s,
 		axis.z * axis.z + c * (1.f - axis.z * axis.z),
 		0.f
-	}, (const float[]) {
+	), Vec4(
 		0.f,
 		0.f,
 		0.f,
 		1.f
-	});
+	));
 }
 
 /**
@@ -373,7 +371,7 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromScale(const f
 /**
  * @brief Fetch the three directional vectors and/or translation from this matrix.
  */
-static inline void Mat4_ToVectors(const mat4_t in, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *translation) {
+static inline void Mat4_Vectors(const mat4_t in, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *translation) {
 
 	if (forward) {
 		*forward = Vec3(in.m[0][0], in.m[0][1], in.m[0][2]);
@@ -397,10 +395,10 @@ static inline void Mat4_ToVectors(const mat4_t in, vec3_t *forward, vec3_t *righ
  */
 static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromVectors(const vec3_t forward, const vec3_t right, const vec3_t up, const vec3_t translation) {
 	return Mat4_FromColumns(
-		(const float[]) { forward.x, right.x, up.x, translation.x },
-		(const float[]) { forward.y, right.y, up.y, translation.y },
-		(const float[]) { forward.z, right.z, up.z, translation.z },
-		(const float[]) { 0.f, 0.f, 0.f, 1.f }
+		Vec4(forward.x, right.x, up.x, translation.x),
+		Vec4(forward.y, right.y, up.y, translation.y),
+		Vec4(forward.z, right.z, up.z, translation.z),
+		Vec4(0.f,       0.f,     0.f,  1.f)
 	);
 }
 
@@ -418,7 +416,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Mat4_Transform(const m
 /**
  * @return The transformed positive distance plane (A*x+B*y+C*z-D=0).
  */
-static inline vec4_t __attribute__ ((warn_unused_result)) Mat4_TransformQuakePlane(const mat4_t in, const vec3_t n, float d) {
+static inline vec4_t __attribute__ ((warn_unused_result)) Mat4_TransformPlane(const mat4_t in, const vec3_t n, float d) {
 	const float scale = sqrtf(in.m[0][0] * in.m[0][0] + in.m[0][1] * in.m[0][1] + in.m[0][2] * in.m[0][2]);
 	const float iscale = 1.f / scale;
 	const float x = (n.x * in.m[0][0] + n.y * in.m[1][0] + n.z * in.m[2][0]) * iscale;

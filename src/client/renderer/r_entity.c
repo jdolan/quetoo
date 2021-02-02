@@ -88,7 +88,7 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 	r_entity_t *e = &view->entities[view->num_entities];
 	*e = *ent;
 
-	e->matrix = Mat4_FromOriginAnglesScale(e->origin, e->angles, e->scale);
+	e->matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, e->scale);
 
 	if (IS_MESH_MODEL(e->model)) {
 
@@ -99,7 +99,7 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 		R_ApplyMeshConfig(e);
 	}
 
-	e->inverse_matrix = Mat4_Invert(e->matrix);
+	e->inverse_matrix = Mat4_Inverse(e->matrix);
 
 	R_SetEntityBounds(e);
 

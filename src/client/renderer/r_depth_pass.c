@@ -86,7 +86,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
-	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, Mat4_Identity().flat);
+	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	R_DrawBspInlineModelDepthPass(view, NULL, r_world_model->bsp->inline_models);
 
 	if (r_occlude->value && view->ticks - occlusion_query_ticks >= 8) {

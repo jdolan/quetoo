@@ -68,6 +68,27 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
 }
 
 /**
+ * @brief
+ */
+cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
+
+	return (cm_bsp_plane_t) {
+		.normal = normal,
+		.dist = dist,
+		.type = Cm_PlaneTypeForNormal(normal),
+		.sign_bits = Cm_SignBitsForNormal(normal)
+	};
+}
+
+/**
+ * @brief
+ */
+cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t *plane) {
+	const vec4_t out = Mat4_TransformPlane(matrix, plane->normal, plane->dist);
+	return Cm_Plane(Vec4_XYZ(out), out.w);
+}
+
+/**
  * @return `true` if `point` resides inside `brush`, `false` otherwise.
  */
 _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
@@ -364,6 +385,14 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 			node_num = node->children[1];
 		}
 	}
+}
+
+/**
+ * @brief
+ */
+int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat4_t inverse_matrix) {
+	const vec3_t p0 = Mat4_Transform(inverse_matrix, p);
+	return Cm_PointContents(p0, head_node);
 }
 
 /**

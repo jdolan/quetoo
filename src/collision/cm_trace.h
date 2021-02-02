@@ -27,25 +27,6 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
                        const int32_t head_node, const int32_t contents);
 
 /**
- * @brief Adjust inputs so that mins and maxs are always symetric, which
- * avoids some complications with plane expanding of rotated bmodels.
- * @param start 
- * @param end 
- * @param mins 
- * @param maxs 
-*/
-static inline void Cm_AdjustTraceSymmetry(vec3_t *start, vec3_t *end, vec3_t *mins, vec3_t *maxs) {
-
-	const vec3_t offset = Vec3_Scale(Vec3_Add(*mins, *maxs), .5f);
-
-	*mins = Vec3_Subtract(*mins, offset);
-	*maxs = Vec3_Subtract(*maxs, offset);
-
-	*start = Vec3_Add(*start, offset);
-	*end = Vec3_Add(*end, offset);
-}
-
-/**
  * @brief Collision detection for non-world models. Rotates the specified end
  * points into the model's space, and traces down the relevant subset of the
  * BSP tree. For inline BSP models, the head node is the root of the model's
@@ -63,30 +44,10 @@ static inline void Cm_AdjustTraceSymmetry(vec3_t *start, vec3_t *end, vec3_t *mi
  *
  * @return The trace.
  */
-static inline cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
+cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 								  const vec3_t mins, const vec3_t maxs,
 								  const int32_t head_node, const int32_t contents,
-                                  const mat4_t matrix, const mat4_t inverse_matrix) {
-	
-	vec3_t start0 = start, end0 = end, mins0 = mins, maxs0 = maxs;
-
-	Cm_AdjustTraceSymmetry(&start0, &end0, &mins0, &maxs0);
-
-	const vec3_t start1 = Mat4_Transform(inverse_matrix, start0);
-	const vec3_t end1 = Mat4_Transform(inverse_matrix, end0);
-
-	// sweep the box through the model
-	cm_trace_t trace = Cm_BoxTrace(start1, end1, mins0, maxs0, head_node, contents);
-
-	if (trace.fraction < 1.0f) { // transform the impacted plane
-		trace.plane = Cm_TransformPlane(matrix, &trace.plane);
-	}
-
-	// and calculate the final end point
-	trace.end = Vec3_Mix(start, end, trace.fraction);
-
-	return trace;
-}
+                                  const mat4_t matrix, const mat4_t inverse_matrix);
 
 void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles,
                      const vec3_t mins, const vec3_t maxs, vec3_t *bounds_mins, vec3_t *bounds_maxs);
