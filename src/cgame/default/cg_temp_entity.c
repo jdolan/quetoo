@@ -341,6 +341,19 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.softness = 2.f,
 			.lighting = 0.65f
 		});
+
+		// impact hotness
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_spark,
+			.origin = Vec3_Fmaf(org, 0.5f, dir),
+			.rotation = Randomf() * 2.f * M_PI,
+			.dir = dir,
+			.size = 4.f,
+			.lifetime = 650,
+			.color = Vec4(color_hue_orange, 0.8f, 1.f, 1.f),
+			.end_color = Vec4(color_hue_orange, 0.8f, 0.f, 0.f),
+			.softness = -1.f
+		});
 	}
 
 	cgi.AddStain(cgi.view, &(const r_stain_t) {

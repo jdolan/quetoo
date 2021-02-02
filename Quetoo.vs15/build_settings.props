@@ -60,8 +60,9 @@
     <QuetooLibraryPath>$(QuetooLibsPath)bin\$(Platform)$(Configuration)\</QuetooLibraryPath>
 
     <QuetooGlibPath>$(QuetooLibsPath)glib\</QuetooGlibPath>
+    <QuetooGettextPath>$(QuetooLibsPath)gettext\</QuetooGettextPath>
     <QuetooGlibIncludePath>$(QuetooGlibPath)include\</QuetooGlibIncludePath>
-    <QuetooGlibLibraryPath>$(QuetooGlibPath)$(Platform)\lib\</QuetooGlibLibraryPath>
+    <QuetooGlibLibraryPath>$(QuetooGlibPath)$(Platform)\lib\;$(QuetooGettextPath)$(Platform)\lib\</QuetooGlibLibraryPath>
 
     <QuetooCursesPath>$(QuetooLibsPath)curses\</QuetooCursesPath>
     <QuetooCursesIncludePath>$(QuetooCursesPath)</QuetooCursesIncludePath>

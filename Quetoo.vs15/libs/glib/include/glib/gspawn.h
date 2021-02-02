@@ -2,20 +2,18 @@
  *
  *  Copyright 2000 Red Hat, Inc.
  *
- * GLib is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * GLib is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with GLib; see the file COPYING.LIB.  If not, write
- * to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __G_SPAWN_H__
@@ -48,7 +46,7 @@ G_BEGIN_DECLS
  * @G_SPAWN_ERROR_ACCES: execv() returned `EACCES`
  * @G_SPAWN_ERROR_PERM: execv() returned `EPERM`
  * @G_SPAWN_ERROR_TOO_BIG: execv() returned `E2BIG`
- * @G_SPAWN_ERROR_2BIG: deprecated alias for %G_SPAWN_ERROR_TOO_BIG
+ * @G_SPAWN_ERROR_2BIG: deprecated alias for %G_SPAWN_ERROR_TOO_BIG (deprecated since GLib 2.32)
  * @G_SPAWN_ERROR_NOEXEC: execv() returned `ENOEXEC`
  * @G_SPAWN_ERROR_NAMETOOLONG: execv() returned `ENAMETOOLONG`
  * @G_SPAWN_ERROR_NOENT: execv() returned `ENOENT`
@@ -75,9 +73,7 @@ typedef enum
   G_SPAWN_ERROR_ACCES,  /* execv() returned EACCES */
   G_SPAWN_ERROR_PERM,   /* execv() returned EPERM */
   G_SPAWN_ERROR_TOO_BIG,/* execv() returned E2BIG */
-#ifndef G_DISABLE_DEPRECATED
-  G_SPAWN_ERROR_2BIG = G_SPAWN_ERROR_TOO_BIG,
-#endif
+  G_SPAWN_ERROR_2BIG GLIB_DEPRECATED_ENUMERATOR_IN_2_32_FOR(G_SPAWN_ERROR_TOO_BIG) = G_SPAWN_ERROR_TOO_BIG,
   G_SPAWN_ERROR_NOEXEC, /* execv() returned ENOEXEC */
   G_SPAWN_ERROR_NAMETOOLONG, /* ""  "" ENAMETOOLONG */
   G_SPAWN_ERROR_NOENT,       /* ""  "" ENOENT */
@@ -106,7 +102,7 @@ typedef enum
 
 /**
  * GSpawnChildSetupFunc:
- * @user_data: user data to pass to the function.
+ * @user_data: (closure): user data to pass to the function.
  *
  * Specifies the type of the setup function passed to g_spawn_async(),
  * g_spawn_sync() and g_spawn_async_with_pipes(), which can, in very
@@ -161,7 +157,7 @@ typedef void (* GSpawnChildSetupFunc) (gpointer user_data);
  *     execute, while the remaining elements are the actual argument vector
  *     to pass to the file. Normally g_spawn_async_with_pipes() uses `argv[0]`
  *     as the file to execute, and passes all of `argv` to the child.
- * @G_SPAWN_SEARCH_PATH_FROM_ENVP: if `argv[0]` is not an abolute path,
+ * @G_SPAWN_SEARCH_PATH_FROM_ENVP: if `argv[0]` is not an absolute path,
  *     it will be looked for in the `PATH` from the passed child environment.
  *     Since: 2.34
  * @G_SPAWN_CLOEXEC_PIPES: create all pipes with the `O_CLOEXEC` flag set.
@@ -217,6 +213,19 @@ gboolean g_spawn_async_with_pipes (const gchar          *working_directory,
                                    gint                 *standard_error,
                                    GError              **error);
 
+/* Lets you provide fds for stdin/stdout/stderr */
+GLIB_AVAILABLE_IN_2_58
+gboolean g_spawn_async_with_fds (const gchar          *working_directory,
+                                 gchar               **argv,
+                                 gchar               **envp,
+                                 GSpawnFlags           flags,
+                                 GSpawnChildSetupFunc  child_setup,
+                                 gpointer              user_data,
+                                 GPid                 *child_pid,
+                                 gint                  stdin_fd,
+                                 gint                  stdout_fd,
+                                 gint                  stderr_fd,
+                                 GError              **error);
 
 /* If standard_output or standard_error are non-NULL, the full
  * standard output or error of the command will be placed there.
@@ -250,59 +259,6 @@ gboolean g_spawn_check_exit_status (gint      exit_status,
 
 GLIB_AVAILABLE_IN_ALL
 void g_spawn_close_pid (GPid pid);
-
-#ifndef __GTK_DOC_IGNORE__
-#ifdef G_OS_WIN32
-#define g_spawn_async              g_spawn_async_utf8
-#define g_spawn_async_with_pipes   g_spawn_async_with_pipes_utf8
-#define g_spawn_sync               g_spawn_sync_utf8
-#define g_spawn_command_line_sync  g_spawn_command_line_sync_utf8
-#define g_spawn_command_line_async g_spawn_command_line_async_utf8
-
-GLIB_AVAILABLE_IN_ALL
-gboolean g_spawn_async_utf8              (const gchar           *working_directory,
-                                          gchar                **argv,
-                                          gchar                **envp,
-                                          GSpawnFlags            flags,
-                                          GSpawnChildSetupFunc   child_setup,
-                                          gpointer               user_data,
-                                          GPid                  *child_pid,
-                                          GError               **error);
-GLIB_AVAILABLE_IN_ALL
-gboolean g_spawn_async_with_pipes_utf8   (const gchar           *working_directory,
-                                          gchar                **argv,
-                                          gchar                **envp,
-                                          GSpawnFlags            flags,
-                                          GSpawnChildSetupFunc   child_setup,
-                                          gpointer               user_data,
-                                          GPid                  *child_pid,
-                                          gint                  *standard_input,
-                                          gint                  *standard_output,
-                                          gint                  *standard_error,
-                                          GError               **error);
-GLIB_AVAILABLE_IN_ALL
-gboolean g_spawn_sync_utf8               (const gchar           *working_directory,
-                                          gchar                **argv,
-                                          gchar                **envp,
-                                          GSpawnFlags            flags,
-                                          GSpawnChildSetupFunc   child_setup,
-                                          gpointer               user_data,
-                                          gchar                **standard_output,
-                                          gchar                **standard_error,
-                                          gint                  *exit_status,
-                                          GError               **error);
-
-GLIB_AVAILABLE_IN_ALL
-gboolean g_spawn_command_line_sync_utf8  (const gchar           *command_line,
-                                          gchar                **standard_output,
-                                          gchar                **standard_error,
-                                          gint                  *exit_status,
-                                          GError               **error);
-GLIB_AVAILABLE_IN_ALL
-gboolean g_spawn_command_line_async_utf8 (const gchar           *command_line,
-                                          GError               **error);
-#endif
-#endif
 
 G_END_DECLS
 

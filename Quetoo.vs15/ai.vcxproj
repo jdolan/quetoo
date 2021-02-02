@@ -74,7 +74,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>glib-2.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glib-2.0.lib;intl.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>ai.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>

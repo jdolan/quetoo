@@ -4,7 +4,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -59,21 +59,6 @@ typedef gboolean	(*GNodeTraverseFunc)	(GNode	       *node,
 						 gpointer	data);
 typedef void		(*GNodeForeachFunc)	(GNode	       *node,
 						 gpointer	data);
-
-/**
- * GCopyFunc:
- * @src: (not nullable): A pointer to the data which should be copied
- * @data: Additional data
- *
- * A function of this signature is used to copy the node data 
- * when doing a deep-copy of a tree.
- *
- * Returns: (not nullable): A pointer to the copy
- *
- * Since: 2.4
- */
-typedef gpointer	(*GCopyFunc)            (gconstpointer  src,
-                                                 gpointer       data);
 
 /* N-way tree implementation
  */

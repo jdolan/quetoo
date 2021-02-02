@@ -78,5 +78,4 @@ cgame_la_LIBADD = \
 	ui/play/libcguiplay.la \
 	ui/settings/libcguisettings.la \
 	$(top_builddir)/src/game/default/libpmove.la \
-	$(top_builddir)/src/libmatrix.la \
 	$(top_builddir)/src/libparse.la
