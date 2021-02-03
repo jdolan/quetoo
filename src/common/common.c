@@ -20,7 +20,6 @@
  */
 
 #include "common.h"
-#include "parse.h"
 
 /*
  * FIXME: This is a hack. I'd rather see this implemented as a Windows-only console appender
@@ -206,7 +205,7 @@ void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
+void Com_Error_(error_t error, const char *func, const char *fmt, ...) {
 
 	va_list args;
 	va_start(args, fmt);
@@ -221,7 +220,7 @@ void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
+void Com_Errorv_(error_t error, const char *func, const char *fmt, va_list args) {
 
 	if (quetoo.recursive_error) {
 		if (quetoo.Error) {
@@ -488,31 +487,4 @@ void Com_PrintInfo(const char *s) {
 		}
 		Com_Print("%s\n", value);
 	}
-}
-
-/**
- * @brief Allocate a match for autocomplete "matches" list.
- */
-com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *description) {
-	com_autocomplete_match_t *match = Mem_Malloc(sizeof(com_autocomplete_match_t));
-
-	match->name = Mem_CopyString(name);
-	Mem_Link(match, match->name);
-
-	if (description) {
-		match->description = Mem_CopyString(description);
-		Mem_Link(match, match->description);
-	}
-
-	return match;
-}
-
-/**
- * @brief Autocomplete match compare function
- */
-int32_t Com_MatchCompare(const void *a, const void *b) {
-	const com_autocomplete_match_t *ma = (const com_autocomplete_match_t *) a;
-	const com_autocomplete_match_t *mb = (const com_autocomplete_match_t *) b;
-
-	return g_strcmp0(ma->description ?: ma->name, mb->description ?: mb->name);
 }

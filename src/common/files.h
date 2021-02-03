@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "shared.h"
+#include "shared/shared.h"
 
 /**
  * @brief Quake3 .md3 model format.

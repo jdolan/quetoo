@@ -20,7 +20,6 @@
  */
 
 #include "cl_local.h"
-#include "parse.h"
 
 static char *sv_cmd_names[32] = {
 	"SV_CMD_BAD",

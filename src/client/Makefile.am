@@ -50,7 +50,6 @@ libclient_la_SOURCES = \
 libclient_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@CURL_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
@@ -63,12 +62,7 @@ libclient_la_LDFLAGS = \
 libclient_la_LIBADD = \
 	renderer/librenderer.la \
 	sound/libsound.la \
-	ui/libui.la \
-	$(top_builddir)/src/collision/libcollision.la \
-	$(top_builddir)/src/net/libnet.la \
-	$(top_builddir)/src/libconsole.la \
-	$(top_builddir)/src/libthread.la \
-	@CURL_LIBS@
+	ui/libui.la
 
 libclient_null_la_SOURCES = \
 	cl_null.c
@@ -76,7 +70,6 @@ libclient_null_la_SOURCES = \
 libclient_null_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@CURL_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@OPENGL_CFLAGS@ \

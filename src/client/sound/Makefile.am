@@ -22,7 +22,6 @@ libsound_la_SOURCES = \
 
 libsound_la_CFLAGS = \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/src/client \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
@@ -33,7 +32,7 @@ libsound_la_LDFLAGS = \
 	-shared
 
 libsound_la_LIBADD = \
-	$(top_builddir)/src/client/renderer/librenderer.la \
+	$(top_builddir)/src/common/libcommon.la \
 	@OPENAL_LIBS@ \
 	@SDL2_LIBS@ \
 	@SNDFILE_LIBS@

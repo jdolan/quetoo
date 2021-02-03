@@ -22,8 +22,6 @@
 #pragma once
 
 #include "common.h"
-#include "swap.h"
-#include "sys.h"
 
 const char *Fs_BaseDir(void);
 const char *Fs_BinDir(void);

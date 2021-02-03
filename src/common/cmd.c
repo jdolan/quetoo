@@ -21,7 +21,6 @@
 
 #include "console.h"
 #include "filesystem.h"
-#include "parse.h"
 
 typedef struct cmd_args_s {
 	int32_t argc;

@@ -22,11 +22,9 @@
 #pragma once
 
 #include "collision/collision.h"
-#include "console.h"
-#include "filesystem.h"
+#include "common/common.h"
 #include "game/game.h"
 #include "net/net_chan.h"
-#include "thread.h"
 
 #include "sv_admin.h"
 #include "sv_console.h"

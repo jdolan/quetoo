@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include "shared.h"
+#include "shared/shared.h"
 #include "ai/ai.h"
+#include "collision/cm_types.h"
 
 #define GAME_API_VERSION 13
 

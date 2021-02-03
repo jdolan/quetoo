@@ -21,10 +21,11 @@
 
 #pragma once
 
-#include "vector.h"
 #include "color.h"
-
-#include "collision/cm_types.h"
+#include "matrix.h"
+#include "parse.h"
+#include "swap.h"
+#include "vector.h"
 
 /**
  * @brief ConfigStrings are a general means of communication from the server to
@@ -539,8 +540,8 @@ void DeleteUserInfo(char *s, const char *key);
 void SetUserInfo(char *s, const char *key, const char *value);
 _Bool ValidateUserInfo(const char *s);
 
-gboolean g_stri_equal (gconstpointer v1, gconstpointer v2);
-guint g_stri_hash (gconstpointer v);
+gboolean g_stri_equal(gconstpointer v1, gconstpointer v2);
+guint g_stri_hash(gconstpointer v);
 
 /**
  * @brief The type of an AI node.

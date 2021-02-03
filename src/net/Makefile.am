@@ -19,10 +19,11 @@ libnet_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@OBJECTIVELY_CFLAGS@
+	@OBJECTIVELY_CFLAGS@ \
+	@SDL2_CFLAGS@
 
 libnet_la_LDFLAGS = \
 	-shared
 
 libnet_la_LIBADD = \
-	$(top_builddir)/src/libconsole.la
+	$(top_builddir)/src/common/libcommon.la

@@ -26,7 +26,6 @@
 	#include <sys/time.h>
 #endif
 
-#include "cvar.h"
 #include "net_udp.h"
 
 #define MAX_NET_UDP_LOOPS 64

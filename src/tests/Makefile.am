@@ -27,7 +27,7 @@ libtests_la_CFLAGS = \
 libtests_la_LDFLAGS = \
 	-shared
 libtests_la_LIBADD = \
-	$(top_builddir)/src/libcommon.la
+	$(top_builddir)/src/common/libcommon.la
 
 TESTS = \
 	check_atlas \
@@ -50,16 +50,14 @@ check_atlas_SOURCES = \
 check_atlas_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_atlas_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/libatlas.la
+	$(TESTS_LIBS)
 
 check_cmd_SOURCES = \
 	check_cmd.c
 check_cmd_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cmd_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/libconsole.la
+	$(TESTS_LIBS)
 
 check_cm_polylib_SOURCES = \
 	check_cm_polylib.c
@@ -67,7 +65,6 @@ check_cm_polylib_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cm_polylib_LDADD = \
 	$(TESTS_LIBS) \
-	$(top_builddir)/src/libmem.la \
 	$(top_builddir)/src/collision/libcollision.la
 
 check_cm_test_SOURCES = \
@@ -76,7 +73,6 @@ check_cm_test_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cm_test_LDADD = \
 	$(TESTS_LIBS) \
-	$(top_builddir)/src/libmem.la \
 	$(top_builddir)/src/collision/libcollision.la
 
 check_cvar_SOURCES = \
@@ -84,32 +80,28 @@ check_cvar_SOURCES = \
 check_cvar_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cvar_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/libconsole.la
+	$(TESTS_LIBS)
 
 check_filesystem_SOURCES = \
 	check_filesystem.c
 check_filesystem_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_filesystem_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/libfilesystem.la
+	$(TESTS_LIBS)
 
 check_master_SOURCES = \
 	check_master.c
 check_master_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_master_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/libfilesystem.la
+	$(TESTS_LIBS)
 
 check_mem_SOURCES = \
 	check_mem.c
 check_mem_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_mem_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/libmem.la
+	$(TESTS_LIBS)
 
 check_r_media_SOURCES = \
 	check_r_media.c
@@ -127,8 +119,7 @@ check_shared_CFLAGS = \
 	-I$(top_srcdir)/src \
 	$(TESTS_CFLAGS)
 check_shared_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/libshared.la
+	$(TESTS_LIBS)
 
 check_thread_SOURCES = \
 	check_thread.c
@@ -136,8 +127,7 @@ check_thread_CFLAGS = \
 	-I$(top_srcdir)/src \
 	$(TESTS_CFLAGS)
 check_thread_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/libthread.la
+	$(TESTS_LIBS)
 
 check_vector_SOURCES = \
 	check_vector.c

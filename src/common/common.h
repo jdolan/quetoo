@@ -21,9 +21,19 @@
 
 #pragma once
 
-#include "shared.h"
+#include "shared/shared.h"
+
+#include "atlas.h"
+#include "cmd.h"
+#include "console.h"
+#include "cvar.h"
+#include "filesystem.h"
+#include "image.h"
+#include "installer.h"
 #include "mem.h"
 #include "mem_buf.h"
+#include "sys.h"
+#include "thread.h"
 
 /**
  * @brief The default game / cgame module name.
@@ -96,7 +106,7 @@
 typedef enum {
 	ERROR_DROP, // don't fully shit pants, but drop to console
 	ERROR_FATAL, // program must exit
-} err_t;
+} error_t;
 
 int32_t Com_Argc(void);
 char *Com_Argv(int32_t arg); // range and null checked
@@ -109,8 +119,8 @@ void Com_SetDebug(const char *debug);
 void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3, 0)));
 
-void Com_Error_(err_t error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
-void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf, 3, 0)));
+void Com_Error_(error_t error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
+void Com_Errorv_(error_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf, 3, 0)));
 
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Printv(const char *fmt, va_list args) __attribute__((format(printf, 1, 0)));
@@ -129,24 +139,6 @@ void Com_Warnv_(const char *func, const char *fmt, va_list args) __attribute__((
 
 #define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
 #define Com_Warnv(fmt, args) Com_Warnv_(__func__, fmt, args)
-
-/**
- * @brief The structure used for autocomplete values.
- */
-typedef struct {
-	/**
-	 * @brief The match itself
-	 */
-	char *name;
-
-	/**
-	 * @brief The value printed to the screen. If null, name isused.
-	 */
-	char *description;
-} com_autocomplete_match_t;
-
-com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *description);
-int32_t Com_MatchCompare(const void *a, const void *b);
 
 void Com_Init(int32_t argc, char *argv[]);
 void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
@@ -201,7 +193,7 @@ typedef struct {
 	FILE *log_file;
 
 	void (*Debug)(const debug_t debug, const char *msg);
-	void (*Error)(err_t error, const char *msg) __attribute__((noreturn));
+	void (*Error)(error_t error, const char *msg) __attribute__((noreturn));
 	void (*Print)(const char *msg);
 	void (*Verbose)(const char *msg);
 	void (*Warn)(const char *msg);

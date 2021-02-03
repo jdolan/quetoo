@@ -405,6 +405,33 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
 }
 
 /**
+ * @brief Allocate a match for autocomplete "matches" list.
+ */
+com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *description) {
+	com_autocomplete_match_t *match = Mem_Malloc(sizeof(com_autocomplete_match_t));
+
+	match->name = Mem_CopyString(name);
+	Mem_Link(match, match->name);
+
+	if (description) {
+		match->description = Mem_CopyString(description);
+		Mem_Link(match, match->description);
+	}
+
+	return match;
+}
+
+/**
+ * @brief Autocomplete match compare function
+ */
+int32_t Com_MatchCompare(const void *a, const void *b) {
+	const com_autocomplete_match_t *ma = (const com_autocomplete_match_t *) a;
+	const com_autocomplete_match_t *mb = (const com_autocomplete_match_t *) b;
+
+	return g_strcmp0(ma->description ?: ma->name, mb->description ?: mb->name);
+}
+
+/**
  * @brief Tab completion for cvars & commands. This is the "generic case".
  */
 void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
