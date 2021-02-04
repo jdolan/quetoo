@@ -438,7 +438,7 @@ static void Cl_Bind_Autocomplete_f(const uint32_t argi, GList **matches) {
 			const char *keyName = cl_key_names[k];
 
 			if (GlobMatch(pattern, keyName, GLOB_CASE_INSENSITIVE)) {
-				*matches = g_list_insert_sorted(*matches, Com_AllocMatch(keyName, NULL), Com_MatchCompare);
+				Con_AutocompleteMatch(matches, keyName, NULL);
 			}
 		}
 	}

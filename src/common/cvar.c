@@ -212,7 +212,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	GList **matches = (GList **) data;
 
 	if (GlobMatch(cvar_complete_pattern, var->name, GLOB_CASE_INSENSITIVE)) {
-		*matches = g_list_insert_sorted(*matches, Com_AllocMatch(var->name, Cvar_Stringify(var)), Com_MatchCompare);
+		Con_AutocompleteMatch(matches, var->name, Cvar_Stringify(var));
 	}
 }
 

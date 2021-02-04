@@ -206,7 +206,7 @@ typedef struct {
 	 * @brief The value printed to the screen. If null, name isused.
 	 */
 	char *description;
-} com_autocomplete_match_t;
+} con_autocomplete_match_t;
 
 void Con_Append(int32_t level, const char *string);
 size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_lines);
@@ -218,8 +218,7 @@ _Bool Con_CompleteInput(console_t *console);
 void Con_SubmitInput(console_t *console);
 void Con_AddConsole(const console_t *console);
 void Con_RemoveConsole(const console_t *console);
-com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *description);
-int32_t Com_MatchCompare(const void *a, const void *b);
+void Con_AutocompleteMatch(GList **matches, const char *name, const char *description);
 void Con_AutocompleteInput_f(const uint32_t argi, GList **matches);
 
 void Con_Init(void);
