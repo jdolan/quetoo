@@ -24,9 +24,6 @@
     <ClInclude Include="..\..\src\client\cl_entity.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\cl_http.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\client\cl_input.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -84,9 +81,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\cl_entity.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\cl_http.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\cl_input.c">

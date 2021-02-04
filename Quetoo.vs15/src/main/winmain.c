@@ -2,7 +2,7 @@
 
 // Special file to redirect winmain
 #include "config.h"
-#include "shared.h"
+#include "shared/shared.h"
 
 #include <Windows.h>
 
