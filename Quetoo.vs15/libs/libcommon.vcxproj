@@ -19,10 +19,33 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\common.c" />
+    <ClCompile Include="..\..\src\common\atlas.c" />
+    <ClCompile Include="..\..\src\common\cmd.c" />
+    <ClCompile Include="..\..\src\common\common.c" />
+    <ClCompile Include="..\..\src\common\console.c" />
+    <ClCompile Include="..\..\src\common\cvar.c" />
+    <ClCompile Include="..\..\src\common\filesystem.c" />
+    <ClCompile Include="..\..\src\common\image.c" />
+    <ClCompile Include="..\..\src\common\installer.c" />
+    <ClCompile Include="..\..\src\common\mem.c" />
+    <ClCompile Include="..\..\src\common\mem_buf.c" />
+    <ClCompile Include="..\..\src\common\sys.c" />
+    <ClCompile Include="..\..\src\common\thread.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\common.h" />
+    <ClInclude Include="..\..\src\common\atlas.h" />
+    <ClInclude Include="..\..\src\common\cmd.h" />
+    <ClInclude Include="..\..\src\common\common.h" />
+    <ClInclude Include="..\..\src\common\console.h" />
+    <ClInclude Include="..\..\src\common\cvar.h" />
+    <ClInclude Include="..\..\src\common\files.h" />
+    <ClInclude Include="..\..\src\common\filesystem.h" />
+    <ClInclude Include="..\..\src\common\image.h" />
+    <ClInclude Include="..\..\src\common\installer.h" />
+    <ClInclude Include="..\..\src\common\mem.h" />
+    <ClInclude Include="..\..\src\common\mem_buf.h" />
+    <ClInclude Include="..\..\src\common\sys.h" />
+    <ClInclude Include="..\..\src\common\thread.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{99C2A2A7-35F3-4A06-AE2F-8B98DB2E4BFD}</ProjectGuid>
