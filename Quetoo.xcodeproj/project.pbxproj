@@ -1529,7 +1529,6 @@
 		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE89268723EE0F7300CF3D33 /* color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
-		CE89268823EE0F7300CF3D33 /* color.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = color.c; sourceTree = "<group>"; };
 		CE8FD2EA23D3E034002FD074 /* r_program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_program.h; sourceTree = "<group>"; };
 		CE8FD2EB23D3E034002FD074 /* r_program.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_program.c; sourceTree = "<group>"; };
 		CE8FD2EF23D48AB7002FD074 /* r_stain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_stain.h; sourceTree = "<group>"; };
@@ -2006,7 +2005,6 @@
 		CE04EF9425CA0F3F00C31433 /* shared */ = {
 			isa = PBXGroup;
 			children = (
-				CE89268823EE0F7300CF3D33 /* color.c */,
 				CE89268723EE0F7300CF3D33 /* color.h */,
 				CE12D6881C5C58C300CD0B13 /* matrix.h */,
 				CE55309A1E5A93C60009A127 /* parse.c */,
