@@ -37,7 +37,6 @@ install-lib: install
 		$(BINDIR)/quemap.exe \
 		$(BINDIR)/quetoo.exe \
 		$(BINDIR)/quetoo-dedicated.exe \
-		$(BINDIR)/quetoo-launcher.exe \
 		$(BINDIR)/quetoo-master.exe
 
 install-installer:

@@ -34,14 +34,13 @@ lightmap_t *lightmaps;
  */
 static void BuildLightmapMatrices(lightmap_t *lm) {
 
-	vec3_t s, t;
-	s = Vec3_Normalize(Vec4_XYZ(lm->texinfo->vecs[0]));
-	t = Vec3_Normalize(Vec4_XYZ(lm->texinfo->vecs[1]));
+	vec3_t s = Vec3_Normalize(Vec4_XYZ(lm->texinfo->vecs[0]));
+	vec3_t t = Vec3_Normalize(Vec4_XYZ(lm->texinfo->vecs[1]));
 
 	s = Vec3_Scale(s, 1.0 / luxel_size);
 	t = Vec3_Scale(t, 1.0 / luxel_size);
 
-	Matrix4x4_FromArrayFloatGL(&lm->matrix, (const float[]) {
+	lm->matrix = Mat4((const float[]) {
 		s.x, t.x, lm->plane->normal.x, 0.0,
 		s.y, t.y, lm->plane->normal.y, 0.0,
 		s.z, t.z, lm->plane->normal.z, 0.0,
@@ -49,14 +48,9 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 	});
 
 	const vec3_t origin = patches[lm - lightmaps].origin;
-
-	mat4_t translate;
-	Matrix4x4_CreateTranslate(&translate, origin.x, origin.y, origin.z);
-
-	mat4_t inverse;
-	Matrix4x4_Invert_Full(&inverse, &lm->matrix);
-
-	Matrix4x4_Concat(&lm->inverse_matrix, &translate, &inverse);
+	const mat4_t translate = Mat4_FromTranslation(origin);
+	const mat4_t inverse = Mat4_Inverse(lm->matrix);
+	lm->inverse_matrix = Mat4_Concat(translate, inverse);
 }
 
 /**
@@ -69,9 +63,7 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 
 	const bsp_vertex_t *v = &bsp_file.vertexes[lm->face->first_vertex];
 	for (int32_t i = 0; i < lm->face->num_vertexes; i++, v++) {
-
-		vec3_t st;
-		Matrix4x4_Transform(&lm->matrix, v->position.xyz, st.xyz);
+		const vec3_t st = Mat4_Transform(lm->matrix, v->position);
 
 		lm->st_mins = Vec2_Minf(lm->st_mins, Vec3_XY(st));
 		lm->st_maxs = Vec2_Maxf(lm->st_maxs, Vec3_XY(st));
@@ -245,8 +237,7 @@ static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soff
 	const float s = lm->st_mins.x + padding_s + l->s + 0.5 + soffs;
 	const float t = lm->st_mins.y + padding_t + l->t + 0.5 + toffs;
 
-	const vec3_t st = Vec3(s , t, 0.0);
-	Matrix4x4_Transform(&lm->inverse_matrix, st.xyz, l->origin.xyz);
+	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
 
 	if (lm->texinfo->flags & SURF_PHONG) {
 		l->normal = PhongLuxel(lm, l->origin);
@@ -374,8 +365,7 @@ static void LightLightmapLuxel(const GPtrArray *lights, const lightmap_t *lightm
 				sample.x += s;
 				sample.y += t;
 
-				vec3_t point;
-				Matrix4x4_Transform(&lightmap->inverse_matrix, sample.xyz, point.xyz);
+				const vec3_t point = Mat4_Transform(lightmap->inverse_matrix, sample);
 
 				const cm_trace_t trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
 
@@ -758,8 +748,7 @@ void EmitLightmapTexcoords(void) {
 		bsp_vertex_t *v = &bsp_file.vertexes[lm->face->first_vertex];
 		for (int32_t j = 0; j < lm->face->num_vertexes; j++, v++) {
 
-			vec3_t st;
-			Matrix4x4_Transform(&lm->matrix, v->position.xyz, st.xyz);
+			vec3_t st = Mat4_Transform(lm->matrix, v->position);
 
 			st.x -= lm->st_mins.x;
 			st.y -= lm->st_mins.y;

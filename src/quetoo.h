@@ -82,24 +82,6 @@
 			#define SCNxPTR SCNx32
 		#endif
 	#endif
-
-#ifndef __MINGW32__
-// FIXME temporary
-static inline _Bool g_ptr_array_find(GPtrArray *p, gconstpointer v, guint *index) {
-	
-	for (guint i = 0; i < p->len; i++) {
-		if (g_ptr_array_index(p, i) == v) {
-			if (index) {
-				*index = i;
-			}
-
-			return true;
-		}
-	}
-
-	return false;
-}
-#endif
 #endif
 
 #ifndef byte
@@ -127,7 +109,7 @@ static inline _Bool g_ptr_array_find(GPtrArray *p, gconstpointer v, guint *index
 #define MAX_STRING_TOKENS	128 // max tokens resulting from Cmd_TokenizeString
 #define MAX_TOKEN_CHARS		512 // max length of an individual token
 #define MAX_QPATH			64 // max length of a Quake game path
-#define MAX_OS_PATH			260 // max length of a system path
+#define MAX_OS_PATH			512 // max length of a system path
 
 /**
  * @brief Protocol limits.
@@ -349,4 +331,7 @@ typedef enum {
  * @brief Therefore, the maximum distance across the world is the
  * sqrtf((2 * 4096.0)^2 + (2 * 4096.0)^2) = 11585.237
  */
-#define MAX_WORLD_DIST		 11586.0
+#define MAX_WORLD_DIST		11586.0
+
+/** @brief Near plane distance. */
+#define NEAR_DIST			1.f

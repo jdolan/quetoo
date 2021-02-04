@@ -124,9 +124,6 @@
     <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="libs\libmatrix.vcxproj">
-      <Project>{61be87b2-5e0b-43ef-af67-a6561f929364}</Project>
-    </ProjectReference>
     <ProjectReference Include="libs\libparse.vcxproj">
       <Project>{fef51acc-31f2-41ac-b562-41f5c5988088}</Project>
     </ProjectReference>
@@ -165,7 +162,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
     </Link>

@@ -490,12 +490,10 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 				ai_player_roam.position = player->s.origin;
 
 				ai_node_id_t landed_near_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 2, true, true);
-				_Bool dropped_node = false;
 
 				if (landed_near_node == NODE_INVALID) {
 
 					landed_near_node = Ai_Node_CreateNode(player->s.origin);
-					dropped_node = true;
 				}
 
 				// one-way node from where we were to here

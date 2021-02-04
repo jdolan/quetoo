@@ -3,18 +3,17 @@
  * Copyright (C) 2005-2006 Emmanuele Bassi
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
+ * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __G_BOOKMARK_FILE_H__
@@ -24,6 +23,7 @@
 #error "Only <glib.h> can be included directly."
 #endif
 
+#include <glib/gdatetime.h>
 #include <glib/gerror.h>
 #include <time.h>
 
@@ -147,7 +147,7 @@ GLIB_AVAILABLE_IN_ALL
 gchar **       g_bookmark_file_get_groups          (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
 						    gsize          *length,
-						    GError        **error) G_GNUC_MALLOC;
+						    GError        **error);
 GLIB_AVAILABLE_IN_ALL
 void           g_bookmark_file_add_application     (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
@@ -162,8 +162,8 @@ GLIB_AVAILABLE_IN_ALL
 gchar **       g_bookmark_file_get_applications    (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
 						    gsize          *length,
-						    GError        **error) G_GNUC_MALLOC;
-GLIB_AVAILABLE_IN_ALL
+						    GError        **error);
+GLIB_DEPRECATED_IN_2_66_FOR(g_bookmark_file_set_application_info)
 gboolean       g_bookmark_file_set_app_info        (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
 						    const gchar    *name,
@@ -171,7 +171,15 @@ gboolean       g_bookmark_file_set_app_info        (GBookmarkFile  *bookmark,
 						    gint            count,
 						    time_t          stamp,
 						    GError        **error);
-GLIB_AVAILABLE_IN_ALL
+GLIB_AVAILABLE_IN_2_66
+gboolean       g_bookmark_file_set_application_info (GBookmarkFile  *bookmark,
+                                                     const char     *uri,
+                                                     const char     *name,
+                                                     const char     *exec,
+                                                     int             count,
+                                                     GDateTime      *stamp,
+                                                     GError        **error);
+GLIB_DEPRECATED_IN_2_66_FOR(g_bookmark_file_get_application_info)
 gboolean       g_bookmark_file_get_app_info        (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
 						    const gchar    *name,
@@ -179,6 +187,14 @@ gboolean       g_bookmark_file_get_app_info        (GBookmarkFile  *bookmark,
 						    guint          *count,
 						    time_t         *stamp,
 						    GError        **error);
+GLIB_AVAILABLE_IN_2_66
+gboolean       g_bookmark_file_get_application_info (GBookmarkFile  *bookmark,
+                                                     const char     *uri,
+                                                     const char     *name,
+                                                     char          **exec,
+                                                     unsigned int   *count,
+                                                     GDateTime     **stamp,
+                                                     GError        **error);
 GLIB_AVAILABLE_IN_ALL
 void           g_bookmark_file_set_is_private      (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
@@ -198,30 +214,54 @@ gboolean       g_bookmark_file_get_icon            (GBookmarkFile  *bookmark,
 						    gchar         **href,
 						    gchar         **mime_type,
 						    GError        **error);
-GLIB_AVAILABLE_IN_ALL
+GLIB_DEPRECATED_IN_2_66_FOR(g_bookmark_file_set_added_date_time)
 void           g_bookmark_file_set_added           (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
 						    time_t          added);
-GLIB_AVAILABLE_IN_ALL
+GLIB_AVAILABLE_IN_2_66
+void           g_bookmark_file_set_added_date_time (GBookmarkFile  *bookmark,
+                                                    const char     *uri,
+                                                    GDateTime      *added);
+GLIB_DEPRECATED_IN_2_66_FOR(g_bookmark_file_get_added_date_time)
 time_t         g_bookmark_file_get_added           (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
 						    GError        **error);
-GLIB_AVAILABLE_IN_ALL
+GLIB_AVAILABLE_IN_2_66
+GDateTime     *g_bookmark_file_get_added_date_time (GBookmarkFile  *bookmark,
+                                                    const char     *uri,
+                                                    GError        **error);
+GLIB_DEPRECATED_IN_2_66_FOR(g_bookmark_file_set_modified_date_time)
 void           g_bookmark_file_set_modified        (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
 						    time_t          modified);
-GLIB_AVAILABLE_IN_ALL
+GLIB_AVAILABLE_IN_2_66
+void           g_bookmark_file_set_modified_date_time (GBookmarkFile  *bookmark,
+                                                       const char     *uri,
+                                                       GDateTime      *modified);
+GLIB_DEPRECATED_IN_2_66_FOR(g_bookmark_file_get_modified_date_time)
 time_t         g_bookmark_file_get_modified        (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
 						    GError        **error);
-GLIB_AVAILABLE_IN_ALL
+GLIB_AVAILABLE_IN_2_66
+GDateTime     *g_bookmark_file_get_modified_date_time (GBookmarkFile  *bookmark,
+                                                       const char     *uri,
+                                                       GError        **error);
+GLIB_DEPRECATED_IN_2_66_FOR(g_bookmark_file_set_visited_date_time)
 void           g_bookmark_file_set_visited         (GBookmarkFile  *bookmark,
 						    const gchar    *uri,
 						    time_t          visited);
-GLIB_AVAILABLE_IN_ALL
+GLIB_AVAILABLE_IN_2_66
+void           g_bookmark_file_set_visited_date_time (GBookmarkFile  *bookmark,
+                                                      const char     *uri,
+                                                      GDateTime      *visited);
+GLIB_DEPRECATED_IN_2_66_FOR(g_bookmark_file_get_visited_date_time)
 time_t         g_bookmark_file_get_visited         (GBookmarkFile  *bookmark,
 						    const gchar    *uri, 
 						    GError        **error);
+GLIB_AVAILABLE_IN_2_66
+GDateTime     *g_bookmark_file_get_visited_date_time (GBookmarkFile  *bookmark,
+                                                      const char     *uri,
+                                                      GError        **error);
 GLIB_AVAILABLE_IN_ALL
 gboolean       g_bookmark_file_has_item            (GBookmarkFile  *bookmark,
 						    const gchar    *uri);
@@ -229,7 +269,7 @@ GLIB_AVAILABLE_IN_ALL
 gint           g_bookmark_file_get_size            (GBookmarkFile  *bookmark);
 GLIB_AVAILABLE_IN_ALL
 gchar **       g_bookmark_file_get_uris            (GBookmarkFile  *bookmark,
-						    gsize          *length) G_GNUC_MALLOC;
+						    gsize          *length);
 GLIB_AVAILABLE_IN_ALL
 gboolean       g_bookmark_file_remove_group        (GBookmarkFile  *bookmark,
 						    const gchar    *uri,

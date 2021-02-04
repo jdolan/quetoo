@@ -22,13 +22,10 @@
 #pragma once
 
 #include "collision/collision.h"
-#include "console.h"
-#include "filesystem.h"
 #include "cgame/cgame.h"
 #include "net/net_chan.h"
 #include "renderer/renderer.h"
 #include "sound/sound.h"
-#include "thread.h"
 #include "ui/ui.h"
 
 #include "cl_cgame.h"

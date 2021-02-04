@@ -111,9 +111,6 @@
     <ProjectReference Include="libs\libimage.vcxproj">
       <Project>{978d57a2-1735-4cfc-bf47-795a87a71a87}</Project>
     </ProjectReference>
-    <ProjectReference Include="libs\libmatrix.vcxproj">
-      <Project>{61be87b2-5e0b-43ef-af67-a6561f929364}</Project>
-    </ProjectReference>
     <ProjectReference Include="libs\libmem.vcxproj">
       <Project>{6689d02e-8034-4d5f-804e-935d444af5c8}</Project>
     </ProjectReference>
@@ -164,7 +161,7 @@
       <PreprocessorDefinitions>QUETOO_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;dbghelp.lib;Wldap32.lib;physfs.lib;libxml2.lib;ws2_32.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;intl.lib;dbghelp.lib;Wldap32.lib;physfs.lib;libxml2.lib;ws2_32.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>

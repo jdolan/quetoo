@@ -26,8 +26,6 @@
 #include "MapListCollectionView.h"
 #include "MapListCollectionItemView.h"
 
-#include "parse.h"
-
 #define _Class _MapListCollectionView
 
 #pragma mark CollectionViewDataSource

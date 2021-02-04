@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "thread.h"
+#include "common/thread.h"
 
 typedef void (*WorkFunc)(int32_t);
 

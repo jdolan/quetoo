@@ -124,12 +124,6 @@ AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
 AM_CONDITIONAL([MINGW], [test "x$HOST_NAME" = "xMINGW"])
 AM_CONDITIONAL([LINUX], [test "x$HOST_NAME" = "xLINUX"])
 
-dnl --------------
-dnl Check for cURL
-dnl --------------
-
-PKG_CHECK_MODULES([CURL], [libcurl])
-
 dnl -----------------
 dnl Check for curses
 dnl -----------------
@@ -453,6 +447,11 @@ else
 	eval PKGDATADIR="$prefix/share/$PACKAGE"
 fi
 
+AC_DEFINE_UNQUOTED(BINDIR, "$BINDIR",
+	[Define to path containing game binaries.]
+)
+AC_SUBST(BINDOR)
+
 AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
 	[Define to path containing the shared modules.]
 )
@@ -493,15 +492,16 @@ AC_CONFIG_FILES([
 	src/client/sound/Makefile
 	src/client/ui/Makefile
 	src/client/ui/editor/Makefile
+	src/common/Makefile
 	src/game/Makefile
 	src/game/default/Makefile
 	src/main/Makefile
 	src/net/Makefile
 	src/server/Makefile
+	src/shared/Makefile
 	src/tests/Makefile
 	src/tools/Makefile
 	src/tools/quemap/Makefile
-	src/tools/quetoo-launcher/Makefile
 	src/tools/quetoo-master/Makefile
 ])
 

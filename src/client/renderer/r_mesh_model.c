@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "parse.h"
-
 #include "r_local.h"
 
 /**
@@ -73,7 +71,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 	parser_t parser;
 	char token[MAX_STRING_CHARS];
 
-	Matrix4x4_CreateIdentity(&config->transform);
+	config->transform = Mat4_Identity();
 
 	if (Fs_Load(path, &buf) == -1) {
 		return;
@@ -94,7 +92,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 				break;
 			}
 
-			Matrix4x4_ConcatTranslate(&config->transform, v.x, v.y, v.z);
+			config->transform = Mat4_ConcatTranslation(config->transform, v);
 			continue;
 		}
 
@@ -105,9 +103,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 				break;
 			}
 
-			Matrix4x4_ConcatRotate(&config->transform, v.x, 1.0, 0.0, 0.0);
-			Matrix4x4_ConcatRotate(&config->transform, v.y, 0.0, 1.0, 0.0);
-			Matrix4x4_ConcatRotate(&config->transform, v.z, 0.0, 0.0, 1.0);
+			config->transform = Mat4_ConcatRotation3(config->transform, v);
 			continue;
 		}
 
@@ -118,7 +114,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 				break;
 			}
 
-			Matrix4x4_ConcatScale(&config->transform, v);
+			config->transform = Mat4_ConcatScale(config->transform, v);
 			continue;
 		}
 

@@ -4,7 +4,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,6 +32,7 @@
 #include <stdarg.h>
 #include <glib/gmacros.h>
 #include <glib/gtypes.h>
+#include <glib/gerror.h>
 
 G_BEGIN_DECLS
 
@@ -254,7 +255,7 @@ gchar*                g_strescape      (const gchar *source,
 
 GLIB_AVAILABLE_IN_ALL
 gpointer              g_memdup	       (gconstpointer mem,
-					guint	       byte_size) G_GNUC_MALLOC G_GNUC_ALLOC_SIZE(2);
+					guint	       byte_size) G_GNUC_ALLOC_SIZE(2);
 
 /* NULL terminated string arrays.
  * g_strsplit(), g_strsplit_set() split up string into max_tokens tokens
@@ -269,18 +270,18 @@ typedef gchar** GStrv;
 GLIB_AVAILABLE_IN_ALL
 gchar**	              g_strsplit       (const gchar  *string,
 					const gchar  *delimiter,
-					gint          max_tokens) G_GNUC_MALLOC;
+					gint          max_tokens);
 GLIB_AVAILABLE_IN_ALL
 gchar **	      g_strsplit_set   (const gchar *string,
 					const gchar *delimiters,
-					gint         max_tokens) G_GNUC_MALLOC;
+					gint         max_tokens);
 GLIB_AVAILABLE_IN_ALL
 gchar*                g_strjoinv       (const gchar  *separator,
 					gchar       **str_array) G_GNUC_MALLOC;
 GLIB_AVAILABLE_IN_ALL
 void                  g_strfreev       (gchar       **str_array);
 GLIB_AVAILABLE_IN_ALL
-gchar**               g_strdupv        (gchar       **str_array) G_GNUC_MALLOC;
+gchar**               g_strdupv        (gchar       **str_array);
 GLIB_AVAILABLE_IN_ALL
 guint                 g_strv_length    (gchar       **str_array);
 
@@ -305,6 +306,56 @@ gboolean                g_str_match_string                              (const g
 GLIB_AVAILABLE_IN_2_44
 gboolean              g_strv_contains  (const gchar * const *strv,
                                         const gchar         *str);
+
+GLIB_AVAILABLE_IN_2_60
+gboolean              g_strv_equal     (const gchar * const *strv1,
+                                        const gchar * const *strv2);
+
+/* Convenience ASCII string to number API */
+
+/**
+ * GNumberParserError:
+ * @G_NUMBER_PARSER_ERROR_INVALID: String was not a valid number.
+ * @G_NUMBER_PARSER_ERROR_OUT_OF_BOUNDS: String was a number, but out of bounds.
+ *
+ * Error codes returned by functions converting a string to a number.
+ *
+ * Since: 2.54
+ */
+typedef enum
+  {
+    G_NUMBER_PARSER_ERROR_INVALID,
+    G_NUMBER_PARSER_ERROR_OUT_OF_BOUNDS,
+  } GNumberParserError;
+
+/**
+ * G_NUMBER_PARSER_ERROR:
+ *
+ * Domain for errors returned by functions converting a string to a
+ * number.
+ *
+ * Since: 2.54
+ */
+#define G_NUMBER_PARSER_ERROR (g_number_parser_error_quark ())
+
+GLIB_AVAILABLE_IN_2_54
+GQuark                g_number_parser_error_quark  (void);
+
+GLIB_AVAILABLE_IN_2_54
+gboolean              g_ascii_string_to_signed     (const gchar  *str,
+                                                    guint         base,
+                                                    gint64        min,
+                                                    gint64        max,
+                                                    gint64       *out_num,
+                                                    GError      **error);
+
+GLIB_AVAILABLE_IN_2_54
+gboolean              g_ascii_string_to_unsigned   (const gchar  *str,
+                                                    guint         base,
+                                                    guint64       min,
+                                                    guint64       max,
+                                                    guint64      *out_num,
+                                                    GError      **error);
 
 G_END_DECLS
 

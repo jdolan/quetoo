@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "shared.h"
-#include "color.h"
+#include "shared/shared.h"
+#include "collision/cm_types.h"
 
 /**
  * @brief Game protocol version (protocol minor version). To be incremented

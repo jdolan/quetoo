@@ -20,7 +20,6 @@
  */
 
 #include "cl_local.h"
-#include "parse.h"
 
 static char *sv_cmd_names[32] = {
 	"SV_CMD_BAD",
@@ -151,11 +150,11 @@ static void Cl_ParseBaseline(void) {
 	// initialize clipping matrices
 	if (ent->baseline.solid) {
 		if (ent->baseline.solid == SOLID_BSP) {
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, ent->baseline.angles, 1.0);
-			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			ent->matrix = Mat4_FromRotationTranslationScale(ent->baseline.angles, ent->baseline.origin, 1.f);
+			ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 		} else { // bounding-box entities
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, Vec3_Zero(), 1.0);
-			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			ent->matrix = Mat4_FromRotationTranslationScale(Vec3_Zero(), ent->baseline.origin, 1.f);
+			ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 		}
 	}
 }

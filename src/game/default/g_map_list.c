@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "parse.h"
 
 static GList *g_map_list_default;
 GList *g_map_list;

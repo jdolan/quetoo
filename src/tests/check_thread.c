@@ -20,7 +20,6 @@
  */
 
 #include "tests.h"
-#include "thread.h"
 
 quetoo_t quetoo;
 

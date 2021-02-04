@@ -48,6 +48,8 @@ static void loadView(ViewController *self) {
 	release(view);
 
 	$(this->motd->text, setText, "Message of the day");
+
+	cgi.CheckForUpdates();
 }
 
 #pragma mark - Class lifecycle

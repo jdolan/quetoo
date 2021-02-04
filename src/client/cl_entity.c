@@ -441,8 +441,8 @@ void Cl_Interpolate(void) {
 						&ent->abs_mins,
 						&ent->abs_maxs);
 
-		Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.f);
-		Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+		ent->matrix = Mat4_FromRotationTranslationScale(angles, ent->current.origin, 1.f);
+		ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 	}
 
 	cls.cgame->Interpolate(&cl.frame);

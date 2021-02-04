@@ -25,7 +25,6 @@
 
 #include "cl_local.h"
 #include "server/server.h"
-#include "parse.h"
 
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;

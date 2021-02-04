@@ -22,7 +22,7 @@
 #include <check.h>
 #include <stdio.h>
 
-#include "vector.h"
+#include "shared/vector.h"
 
 static void assert_flt_eq(float a, float b) {
 	ck_assert_msg(fabsf(a - b) <= __FLT_EPSILON__, "%g != %g", a, b);

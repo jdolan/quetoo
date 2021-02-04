@@ -335,7 +335,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
  * @param mins 
  * @param maxs 
 */
-static void Cm_AdjustTraceSymmetry(vec3_t *start, vec3_t *end, vec3_t *mins, vec3_t *maxs) {
+static inline void Cm_AdjustTraceSymmetry(vec3_t *start, vec3_t *end, vec3_t *mins, vec3_t *maxs) {
 
 	const vec3_t offset = Vec3_Scale(Vec3_Add(*mins, *maxs), .5f);
 
@@ -481,16 +481,14 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 								  const vec3_t mins, const vec3_t maxs,
 								  const int32_t head_node, const int32_t contents,
-                                  const mat4_t *matrix, const mat4_t *inverse_matrix) {
+                                  const mat4_t matrix, const mat4_t inverse_matrix) {
 	
 	vec3_t start0 = start, end0 = end, mins0 = mins, maxs0 = maxs;
 
 	Cm_AdjustTraceSymmetry(&start0, &end0, &mins0, &maxs0);
 
-	vec3_t start1, end1;
-
-	Matrix4x4_Transform(inverse_matrix, start0.xyz, start1.xyz);
-	Matrix4x4_Transform(inverse_matrix, end0.xyz, end1.xyz);
+	const vec3_t start1 = Mat4_Transform(inverse_matrix, start0);
+	const vec3_t end1 = Mat4_Transform(inverse_matrix, end0);
 
 	// sweep the box through the model
 	cm_trace_t trace = Cm_BoxTrace(start1, end1, mins0, maxs0, head_node, contents);

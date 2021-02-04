@@ -71,7 +71,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 
 		const int32_t head_node = Cl_HullForEntity(s);
 
-		contents |= Cm_TransformedPointContents(point, head_node, &ent->inverse_matrix);
+		contents |= Cm_TransformedPointContents(point, head_node, ent->inverse_matrix);
 	}
 
 	return contents;
@@ -120,7 +120,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 		const int32_t head_node = Cl_HullForEntity(s);
 
 		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
-		                                       head_node, trace->contents, &ent->matrix, &ent->inverse_matrix);
+		                                       head_node, trace->contents, ent->matrix, ent->inverse_matrix);
 
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 			trace->trace = tr;

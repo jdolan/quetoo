@@ -22,7 +22,6 @@
 #include <SDL_opengl.h>
 
 #include "cm_local.h"
-#include "parse.h"
 
 /**
  * @brief Free the memory for the specified material.

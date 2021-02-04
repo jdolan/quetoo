@@ -320,10 +320,10 @@ static void Cl_Backtrace_f(void) {
  */
 __attribute__((noreturn))
 static void Cl_Error_f(void) {
-	err_t err = ERROR_DROP;
+	error_t err = ERROR_DROP;
 
 	if (Cmd_Argc() > 1) {
-		err = (err_t) strtoul(Cmd_Argv(1), NULL, 10);
+		err = (error_t) strtoul(Cmd_Argv(1), NULL, 10);
 	}
 
 	Com_Error(err, __func__);
