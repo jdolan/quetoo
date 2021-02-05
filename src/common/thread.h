@@ -27,6 +27,34 @@
 
 #define MAX_THREADS 128
 
+typedef enum {
+	THREAD_IDLE,
+	THREAD_RUNNING,
+	THREAD_WAITING,
+} thread_status_t;
+
+typedef enum {
+	THREAD_NONE,
+
+	/**
+	 * @brief The thread will not require `Thread_Wait` before returning to the pool.
+	 */
+	THREAD_NO_WAIT
+} thread_options_t;
+
+typedef void (*ThreadRunFunc)(void *data);
+
+typedef struct {
+	SDL_Thread *thread;
+	SDL_cond *cond;
+	SDL_mutex *mutex;
+	thread_status_t status;
+	thread_options_t options;
+	char name[64];
+	ThreadRunFunc Run;
+	void *data;
+} thread_t;
+
 thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread_options_t options);
 #define Thread_Create(function, data, options) Thread_Create_(#function, function, data, options)
 void Thread_Wait(thread_t *t);

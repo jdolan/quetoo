@@ -22,7 +22,6 @@
 #pragma once
 
 #include "net_types.h"
-#include "common/common.h"
 
 extern in_addr_t net_lo;
 

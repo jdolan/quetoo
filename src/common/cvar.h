@@ -22,6 +22,7 @@
 #pragma once
 
 #include "cmd.h"
+#include "filesystem.h"
 
 extern _Bool cvar_user_info_modified;
 

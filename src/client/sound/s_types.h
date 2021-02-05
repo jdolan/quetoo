@@ -30,7 +30,7 @@
 
 #include <sndfile.h>
 
-#include "shared/shared.h"
+#include "common/common.h"
 
 /**
  * @brief Media types.
