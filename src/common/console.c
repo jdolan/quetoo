@@ -405,10 +405,21 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
 }
 
 /**
- * @brief Allocate a match for autocomplete "matches" list.
+ * @brief Autocomplete match compare function
  */
-com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *description) {
-	com_autocomplete_match_t *match = Mem_Malloc(sizeof(com_autocomplete_match_t));
+static int32_t Con_AutocompleteMatchCompare(const void *a, const void *b) {
+	const con_autocomplete_match_t *ma = (const con_autocomplete_match_t *) a;
+	const con_autocomplete_match_t *mb = (const con_autocomplete_match_t *) b;
+
+	return g_ascii_strcasecmp(ma->description ?: ma->name, mb->description ?: mb->name);
+}
+
+/**
+ * @brief Convenience function for most autocomplete matching.
+ */
+void Con_AutocompleteMatch(GList **matches, const char *name, const char *description) {
+
+	con_autocomplete_match_t *match = Mem_Malloc(sizeof(con_autocomplete_match_t));
 
 	match->name = Mem_CopyString(name);
 	Mem_Link(match, match->name);
@@ -417,18 +428,12 @@ com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *descripti
 		match->description = Mem_CopyString(description);
 		Mem_Link(match, match->description);
 	}
-
-	return match;
-}
-
-/**
- * @brief Autocomplete match compare function
- */
-int32_t Com_MatchCompare(const void *a, const void *b) {
-	const com_autocomplete_match_t *ma = (const com_autocomplete_match_t *) a;
-	const com_autocomplete_match_t *mb = (const com_autocomplete_match_t *) b;
-
-	return g_strcmp0(ma->description ?: ma->name, mb->description ?: mb->name);
+	
+	if (!g_list_find_custom(*matches, match, Con_AutocompleteMatchCompare)) {
+		*matches = g_list_insert_sorted(*matches, match, Con_AutocompleteMatchCompare);
+	} else {
+		Mem_Free(match);
+	}
 }
 
 /**
@@ -462,7 +467,7 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
 
 	// calculate width per column
 	for (const GList *m = matches; m; m = m->next) {
-		const com_autocomplete_match_t *match = (const com_autocomplete_match_t *) m->data;
+		const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
 		const char *str = (match->description ?: match->name);
 		const size_t str_len = strlen(str);
 
@@ -488,7 +493,7 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
 	if (per_row == 1 || (!all_simple && num_rows == 1)) {
 		
 		for (const GList *m = matches; m; m = m->next) {
-			const com_autocomplete_match_t *match = (const com_autocomplete_match_t *) m->data;
+			const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
 			const char *str = (match->description ?: match->name);
 
 			Con_Append(PRINT_ECHO, va("%s\n", str));
@@ -504,7 +509,7 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
 		line[0] = '\0';
 
 		for (size_t i = 0; m && i < per_row; i++, m = m->next) {
-			const com_autocomplete_match_t *match = (const com_autocomplete_match_t *) m->data;
+			const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
 			const char *str = (match->description ?: match->name);
 			const size_t str_len = strlen(str);
 
@@ -536,13 +541,13 @@ static char *Con_CommonPrefix(GList *matches) {
 
 	for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
 		GList *e = matches;
-		const com_autocomplete_match_t *m = (const com_autocomplete_match_t *) e->data;
+		const con_autocomplete_match_t *m = (const con_autocomplete_match_t *) e->data;
 		const char c = m->name[i];
 
 		e = e->next;
 
 		while (e) {
-			m = (const com_autocomplete_match_t *) e->data;
+			m = (const con_autocomplete_match_t *) e->data;
 			const char *w = m->name;
 
 			if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
@@ -624,7 +629,7 @@ _Bool Con_CompleteInput(console_t *console) {
 	_Bool output_quotes = false;
 
 	if (g_list_length(matches) == 1) {
-		match = ((const com_autocomplete_match_t *) g_list_nth_data(matches, 0))->name;
+		match = ((const con_autocomplete_match_t *) g_list_nth_data(matches, 0))->name;
 
 		if (strchr(match, ' ') != NULL) {
 			match = va("\"%s\" ", match);

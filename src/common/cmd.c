@@ -487,7 +487,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 	GList **matches = (GList **) data;
 
 	if (GlobMatch(cmd_complete_pattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
-		*matches = g_list_insert_sorted(*matches, Com_AllocMatch(cmd->name, Cmd_Stringify(cmd)), Com_MatchCompare);
+		Con_AutocompleteMatch(matches, cmd->name, Cmd_Stringify(cmd));
 	}
 }
 

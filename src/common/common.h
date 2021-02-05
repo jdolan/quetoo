@@ -97,7 +97,7 @@ typedef enum {
 } error_t;
 
 int32_t Com_Argc(void);
-char *Com_Argv(int32_t arg); // range and null checked
+char *Com_Argv(int32_t arg);
 
 void Com_PrintInfo(const char *s);
 
