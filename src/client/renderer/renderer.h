@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "common/common.h"
 #include "collision/collision.h"
 
 #include "r_gl_types.h"

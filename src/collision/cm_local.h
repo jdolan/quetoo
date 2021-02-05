@@ -23,3 +23,4 @@
 
 #define __CM_LOCAL_H__
 #include "collision.h"
+#include "common/common.h"

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "quetoo.h"
+#include "shared/shared.h"
 
 void Mem_Free(void *p);
 void Mem_FreeTag(mem_tag_t tag);

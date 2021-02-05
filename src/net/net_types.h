@@ -42,7 +42,7 @@
 
 #endif
 
-#include "common/common.h"
+#include "shared/shared.h"
 
 /**
  * @brief Max length of a single packet. No individual command can exceed
@@ -111,3 +111,15 @@ typedef struct {
 	size_t reliable_size;
 	byte reliable_buffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
 } net_chan_t;
+
+/**
+ * @brief Both the client and the server retain multiple snapshots of each
+ * g_entity_t's state (entity_state_t) in order to calculate delta compression.
+ */
+#define PACKET_BACKUP		32
+#define PACKET_MASK			(PACKET_BACKUP - 1)
+
+/**
+ * @brief The maximum number of entities to be referenced in a single message.
+ */
+#define MAX_PACKET_ENTITIES	128

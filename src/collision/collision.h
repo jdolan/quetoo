@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "common/common.h"
+#include "shared/shared.h"
 
 #include "cm_bsp.h"
 #include "cm_entity.h"

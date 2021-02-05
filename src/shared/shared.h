@@ -588,3 +588,108 @@ typedef enum {
 	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
 	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),
 } debug_t;
+
+/**
+ * @brief A fixed-sized buffer, used for accumulating e.g. net messages.
+ */
+typedef struct {
+	_Bool allow_overflow; // error if false and overflow occurs
+	_Bool overflowed; // set to true when a write exceeds max_size
+	byte *data;
+	size_t max_size; // maximum size before overflow
+	size_t size; // current size
+	size_t read;
+} mem_buf_t;
+
+/**
+ * @brief An atlas node locates one or more layered surfaces within an atlas.
+ */
+typedef struct {
+
+	/**
+	 * @brief The surfaces, which must all be of the same size. The first surface
+	 * (first layer) must not be `NULL`.
+	 */
+	struct SDL_Surface **surfaces;
+
+	/**
+	 * @brief The node coordinates within the compiled atlas.
+	 */
+	int32_t x, y;
+
+	/**
+	 * @brief The atlas tag at which this node was compiled.
+	 */
+	int32_t tag;
+
+	/**
+	 * @brief User data.
+	 */
+	void *data;
+
+} atlas_node_t;
+
+/**
+ * @brief A comparator for sorting atlast nodes for packing.
+ * @details The default comparator sorts nodes by image height.
+ */
+typedef int32_t (*AtlasNodeComparator)(const atlas_node_t *a, const atlas_node_t *b);
+
+/**
+ * @brief An atlas efficiently packs multiple surfaces into a single large surface.
+ * @details Atlases are 3 dimensional, and can act on layers of surfaces. For example,
+ * an atlas that is 2 layers deep can be used to pack lightmaps and deluxemaps into
+ * two separate surfaces, where each input node occupies the same coordinates in both
+ * surfaces. All layers in a given node must be of the same size.
+ */
+typedef struct atlas_s {
+
+	/**
+	 * @brief The number of layers in the atlas.
+	 */
+	int32_t layers;
+
+	/**
+	 * @brief The atlas nodes.
+	 */
+	GPtrArray *nodes;
+
+	/**
+	 * @brief The comparator to sort nodes for packing.
+	 */
+	AtlasNodeComparator comparator;
+
+	/**
+	 * @brief The iteration identifier, which is written to nodes as they are compiled.
+	 */
+	int32_t tag;
+
+} atlas_t;
+
+typedef enum {
+	THREAD_IDLE,
+	THREAD_RUNNING,
+	THREAD_WAITING,
+} thread_status_t;
+
+typedef enum {
+	THREAD_NONE,
+
+	/**
+	 * @brief The thread will not require `Thread_Wait` before returning to the pool.
+	 */
+	THREAD_NO_WAIT
+} thread_options_t;
+
+typedef void (*ThreadRunFunc)(void *data);
+
+typedef struct {
+	struct SDL_Thread *thread;
+	struct SDL_cond *cond;
+	struct SDL_mutex *mutex;
+	thread_status_t status;
+	thread_options_t options;
+	char name[64];
+	ThreadRunFunc Run;
+	void *data;
+} thread_t;

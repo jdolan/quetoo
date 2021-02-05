@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "filesystem.h"
+#include "common.h"
 
 // command buffer functions
 void Cbuf_AddText(const char *text);
