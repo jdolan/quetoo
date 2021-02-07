@@ -38,9 +38,10 @@ static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
 
 	int32_t status = Net_HttpGet(rev_url, &data, &length);
 	if (status == 200) {
-		const char *remote_rev = g_strstrip((gchar *) data);
+		char *remote_rev = g_strchomp(g_strndup(data, length));
 		Com_Debug(DEBUG_COMMON, "%s == %s\n", rev, remote_rev);
 		status = g_strcmp0(rev, remote_rev);
+		g_free(remote_rev);
 	} else {
 		Com_Warn("%s: HTTP %d\n", rev_url, status);
 		if (length) {
