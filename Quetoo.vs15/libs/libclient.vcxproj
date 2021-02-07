@@ -26,7 +26,6 @@
     <ClInclude Include="..\..\src\client\cl_console.h" />
     <ClInclude Include="..\..\src\client\cl_demo.h" />
     <ClInclude Include="..\..\src\client\cl_entity.h" />
-    <ClInclude Include="..\..\src\client\cl_http.h" />
     <ClInclude Include="..\..\src\client\cl_input.h" />
     <ClInclude Include="..\..\src\client\cl_keys.h" />
     <ClInclude Include="..\..\src\client\cl_local.h" />
@@ -47,7 +46,6 @@
     <ClCompile Include="..\..\src\client\cl_console.c" />
     <ClCompile Include="..\..\src\client\cl_demo.c" />
     <ClCompile Include="..\..\src\client\cl_entity.c" />
-    <ClCompile Include="..\..\src\client\cl_http.c" />
     <ClCompile Include="..\..\src\client\cl_input.c" />
     <ClCompile Include="..\..\src\client\cl_keys.c" />
     <ClCompile Include="..\..\src\client\cl_main.c" />

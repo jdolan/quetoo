@@ -23,7 +23,6 @@
 #include "bsp.h"
 #include "map.h"
 #include "material.h"
-#include "parse.h"
 #include "qbsp.h"
 #include "texinfo.h"
 
@@ -845,6 +844,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 		const char *class_name = ValueForKey(entity, "classname", NULL);
 		if (!g_strcmp0(class_name, "func_group") ||
 			!g_strcmp0(class_name, "misc_fog") ||
+			!g_strcmp0(class_name, "misc_dust") ||
 			!g_strcmp0(class_name, "misc_sprite")) {
 			MoveBrushesToWorld(entity);
 		}

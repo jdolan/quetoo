@@ -1,2 +1,3 @@
 SUBDIRS = \
-	@TOOLS@
+	quemap \
+	quetoo-master

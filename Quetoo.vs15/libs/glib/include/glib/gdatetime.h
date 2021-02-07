@@ -12,10 +12,8 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
  * License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
- * USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  * Authors: Christian Hergert <chris@dronelabs.com>
  *          Thiago Santos <thiago.sousa.santos@collabora.co.uk>
@@ -115,10 +113,16 @@ GDateTime *             g_date_time_new_from_unix_local                 (gint64 
 GLIB_AVAILABLE_IN_ALL
 GDateTime *             g_date_time_new_from_unix_utc                   (gint64          t);
 
-GLIB_AVAILABLE_IN_ALL
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+GLIB_DEPRECATED_IN_2_62_FOR(g_date_time_new_from_unix_local)
 GDateTime *             g_date_time_new_from_timeval_local              (const GTimeVal *tv);
-GLIB_AVAILABLE_IN_ALL
+GLIB_DEPRECATED_IN_2_62_FOR(g_date_time_new_from_unix_utc)
 GDateTime *             g_date_time_new_from_timeval_utc                (const GTimeVal *tv);
+G_GNUC_END_IGNORE_DEPRECATIONS
+
+GLIB_AVAILABLE_IN_2_56
+GDateTime *             g_date_time_new_from_iso8601                    (const gchar    *text,
+                                                                         GTimeZone      *default_tz);
 
 GLIB_AVAILABLE_IN_ALL
 GDateTime *             g_date_time_new                                 (GTimeZone      *tz,
@@ -236,12 +240,16 @@ gdouble                 g_date_time_get_seconds                         (GDateTi
 
 GLIB_AVAILABLE_IN_ALL
 gint64                  g_date_time_to_unix                             (GDateTime      *datetime);
-GLIB_AVAILABLE_IN_ALL
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+GLIB_DEPRECATED_IN_2_62_FOR(g_date_time_to_unix)
 gboolean                g_date_time_to_timeval                          (GDateTime      *datetime,
                                                                          GTimeVal       *tv);
+G_GNUC_END_IGNORE_DEPRECATIONS
 
 GLIB_AVAILABLE_IN_ALL
 GTimeSpan               g_date_time_get_utc_offset                      (GDateTime      *datetime);
+GLIB_AVAILABLE_IN_2_58
+GTimeZone *             g_date_time_get_timezone                        (GDateTime      *datetime);
 GLIB_AVAILABLE_IN_ALL
 const gchar *           g_date_time_get_timezone_abbreviation           (GDateTime      *datetime);
 GLIB_AVAILABLE_IN_ALL
@@ -258,6 +266,8 @@ GDateTime *             g_date_time_to_utc                              (GDateTi
 GLIB_AVAILABLE_IN_ALL
 gchar *                 g_date_time_format                              (GDateTime      *datetime,
                                                                          const gchar    *format) G_GNUC_MALLOC;
+GLIB_AVAILABLE_IN_2_62
+gchar *                 g_date_time_format_iso8601                      (GDateTime      *datetime) G_GNUC_MALLOC;
 
 G_END_DECLS
 

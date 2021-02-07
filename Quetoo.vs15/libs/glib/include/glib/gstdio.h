@@ -2,19 +2,18 @@
  *
  * Copyright 2004 Tor Lillqvist
  *
- * GLib is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * GLib is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with GLib; see the file COPYING.LIB.  If not,
- * see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __G_STDIO_H__
@@ -45,18 +44,25 @@ G_BEGIN_DECLS
 
 typedef struct _stat32 GStatBuf;
 
+#elif defined(__MINGW64_VERSION_MAJOR) && defined(_WIN64)
+
+typedef struct _stat64 GStatBuf;
+
 #else
 
 typedef struct stat GStatBuf;
 
 #endif
 
-#if defined(G_OS_UNIX) && !defined(G_STDIO_NO_WRAP_ON_UNIX)
+#if defined(G_OS_UNIX) && !defined(G_STDIO_WRAP_ON_UNIX)
 
 /* Just pass on to the system functions, so there's no potential for data
  * format mismatches, especially with large file interfaces. 
  * A few functions can't be handled in this way, since they are not defined
  * in a portable system header that we could include here.
+ *
+ * #G_STDIO_WRAP_ON_UNIX is not public API and its behaviour is not guaranteed
+ * in future.
  */
 
 #ifndef __GTK_DOC_IGNORE__
@@ -70,6 +76,7 @@ typedef struct stat GStatBuf;
 #define g_remove  remove
 #define g_fopen   fopen
 #define g_freopen freopen
+#define g_fsync   fsync
 #define g_utime   utime
 #endif
 
@@ -151,6 +158,9 @@ GLIB_AVAILABLE_IN_ALL
 FILE *g_freopen (const gchar *filename,
                  const gchar *mode,
                  FILE        *stream);
+
+GLIB_AVAILABLE_IN_2_64
+gint g_fsync    (gint fd);
 
 struct utimbuf;			/* Don't need the real definition of struct utimbuf when just
 				 * including this header.

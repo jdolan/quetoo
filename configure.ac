@@ -1,17 +1,13 @@
 AC_PREREQ([2.68])
 
-AC_INIT([quetoo],[0.1.0],[jay@jaydolan.com])
+AC_INIT([quetoo], [0.1.0], [jay@jaydolan.com])
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR(m4)
-AC_CONFIG_SRCDIR(src/shared.c)
+AC_CONFIG_SRCDIR(src/quetoo.h)
 
-AC_CANONICAL_TARGET
-AC_DEFINE_UNQUOTED(BUILD_HOST,
-	"${target_cpu}-${target_os}",
-	[Set to the canonical name of the target machine]
-)
+AC_CANONICAL_HOST
 
 AC_SUBST(PROGRAM)
 AC_SUBST(VERSION)
@@ -25,6 +21,7 @@ else
 fi
 
 AC_DEFINE_UNQUOTED(REVISION, "$REVISION", [Git revision])
+AC_SUBST(REVISION)
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])
@@ -62,6 +59,7 @@ AC_MSG_CHECKING([host type])
 case "$host" in
 	*-apple-*)
 		HOST_NAME="APPLE"
+		host_os="darwin"
 		HOST_CFLAGS="-I/opt/local/include"
 		HOST_LDFLAGS="-L/opt/local/lib -headerpad_max_install_names"
 		HOST_LIBS="-ldl"
@@ -96,6 +94,11 @@ case "$host" in
 		;;
 esac
 
+BUILD="${host_cpu}-${host_vendor}-${host_os}"
+AC_DEFINE_UNQUOTED(BUILD, "${BUILD}", [The canonical name of the build])
+
+AC_SUBST(ARCH)
+AC_SUBST(HOST)
 AC_SUBST(HOST_NAME)
 AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
@@ -120,12 +123,6 @@ AM_CONDITIONAL([APPLE], [test "x$HOST_NAME" = "xAPPLE"])
 AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
 AM_CONDITIONAL([MINGW], [test "x$HOST_NAME" = "xMINGW"])
 AM_CONDITIONAL([LINUX], [test "x$HOST_NAME" = "xLINUX"])
-
-dnl --------------
-dnl Check for cURL
-dnl --------------
-
-PKG_CHECK_MODULES([CURL], [libcurl])
 
 dnl -----------------
 dnl Check for curses
@@ -160,6 +157,12 @@ dnl Check for libsndfile
 dnl --------------------
 
 PKG_CHECK_MODULES([SNDFILE], [sndfile])
+
+dnl ------------------------
+dnl Check for Objectively
+dnl ------------------------
+
+PKG_CHECK_MODULES([OBJECTIVELY], [Objectively])
 
 dnl ------------------------
 dnl Check for ObjectivelyMVC
@@ -312,36 +315,6 @@ fi
 AC_SUBST(AI_MODULES)
 AC_MSG_RESULT($AI_MODULES)
 
-dnl --------------------------
-dnl Check which tools to build
-dnl --------------------------
-
-AC_MSG_CHECKING(which tools to build)
-
-ALL_TOOLS="quemap quetoo-master quetoo-update"
-TOOLS=${ALL_TOOLS}
-
-AC_ARG_WITH(tools,
-	AS_HELP_STRING([--with-tools='${ALL_TOOLS}...'],
-		[build specified tools]
-	)
-)
-
-if test "x${with_tools}" != x; then
-	TOOLS="${with_tools}"
-fi
-
-if test "${TOOLS}" = "no"; then
-        TOOLS=""
-fi
-
-if test "${TOOLS}" = "yes"; then
-        TOOLS="${ALL_TOOLS}"
-fi
-
-AC_SUBST(TOOLS)
-AC_MSG_RESULT($TOOLS)
-
 dnl ---------------------------------
 dnl Check whether to build unit tests
 dnl ---------------------------------
@@ -474,6 +447,11 @@ else
 	eval PKGDATADIR="$prefix/share/$PACKAGE"
 fi
 
+AC_DEFINE_UNQUOTED(BINDIR, "$BINDIR",
+	[Define to path containing game binaries.]
+)
+AC_SUBST(BINDIR)
+
 AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
 	[Define to path containing the shared modules.]
 )
@@ -514,16 +492,17 @@ AC_CONFIG_FILES([
 	src/client/sound/Makefile
 	src/client/ui/Makefile
 	src/client/ui/editor/Makefile
+	src/common/Makefile
 	src/game/Makefile
 	src/game/default/Makefile
 	src/main/Makefile
 	src/net/Makefile
 	src/server/Makefile
+	src/shared/Makefile
 	src/tests/Makefile
 	src/tools/Makefile
 	src/tools/quemap/Makefile
 	src/tools/quetoo-master/Makefile
-	src/tools/quetoo-update/Makefile
 ])
 
 AC_OUTPUT
@@ -532,7 +511,7 @@ AC_MSG_RESULT([
 Quetoo $VERSION: Automatic configuration OK.
 
   Configuration summary:
-    Platform: .......... $host
+    Build: ............. $BUILD
     Compiler: .......... $CC
     C flags: ........... $BASE_CFLAGS
     Libraries: ......... $BASE_LIBS
@@ -540,14 +519,12 @@ Quetoo $VERSION: Automatic configuration OK.
 
     Game modules: ...... $GAME_MODULES
     AI modules: ........ $AI_MODULES
-    Tools: ............. $TOOLS
 
     Options:
       MySQL: ........... $HAVE_MYSQL
       Unit tests: ...... $BUILD_TESTS
 
   Installation directories:
-
     Program: ........... $BINDIR
     Libraries: ......... $PKGLIBDIR
     Data: .............. $PKGDATADIR

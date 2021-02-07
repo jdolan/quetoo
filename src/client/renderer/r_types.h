@@ -23,12 +23,7 @@
 
 #include <SDL_video.h>
 
-#include "atlas.h"
 #include "collision/collision.h"
-#include "files.h"
-#include "image.h"
-#include "matrix.h"
-#include "thread.h"
 
 #include "r_gl_types.h"
 

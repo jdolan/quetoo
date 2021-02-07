@@ -3,19 +3,18 @@
  *  Copyright (C) 1999, 2000 Tom Tromey
  *  Copyright 2000, 2005 Red Hat, Inc.
  *
- * The Gnome Library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * The Gnome Library is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the Gnome Library; see the file COPYING.LIB.  If not,
- * see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __G_UNICODE_H__
@@ -112,7 +111,7 @@ typedef guint16 gunichar2;
  *
  * These are the possible character classifications from the
  * Unicode specification.
- * See <ulink url="http://www.unicode.org/reports/tr44/#General_Category_Values">Unicode Character Database</unlink>.
+ * See [Unicode Character Database](http://www.unicode.org/reports/tr44/#General_Category_Values).
  */
 typedef enum
 {
@@ -155,9 +154,7 @@ typedef enum
  *
  * Deprecated: 2.30: Use %G_UNICODE_SPACING_MARK.
  */
-#ifndef G_DISABLE_DEPRECATED
-#define G_UNICODE_COMBINING_MARK G_UNICODE_SPACING_MARK
-#endif
+#define G_UNICODE_COMBINING_MARK G_UNICODE_SPACING_MARK GLIB_DEPRECATED_MACRO_IN_2_30_FOR(G_UNICODE_SPACING_MARK)
 
 /**
  * GUnicodeBreakType:
@@ -210,7 +207,7 @@ typedef enum
  * Since new unicode versions may add new types here, applications should be ready 
  * to handle unknown values. They may be regarded as %G_UNICODE_BREAK_UNKNOWN.
  *
- * See <ulink url="http://www.unicode.org/unicode/reports/tr14/">http://www.unicode.org/unicode/reports/tr14/</ulink>.
+ * See [Unicode Line Breaking Algorithm](http://www.unicode.org/unicode/reports/tr14/).
  */
 typedef enum
 {
@@ -412,6 +409,25 @@ typedef enum
  * @G_UNICODE_SCRIPT_NEWA:                 Newa. Since: 2.50
  * @G_UNICODE_SCRIPT_OSAGE:                Osage. Since: 2.50
  * @G_UNICODE_SCRIPT_TANGUT:               Tangut. Since: 2.50
+ * @G_UNICODE_SCRIPT_MASARAM_GONDI:        Masaram Gondi. Since: 2.54
+ * @G_UNICODE_SCRIPT_NUSHU:                Nushu. Since: 2.54
+ * @G_UNICODE_SCRIPT_SOYOMBO:              Soyombo. Since: 2.54
+ * @G_UNICODE_SCRIPT_ZANABAZAR_SQUARE:     Zanabazar Square. Since: 2.54
+ * @G_UNICODE_SCRIPT_DOGRA:                Dogra. Since: 2.58
+ * @G_UNICODE_SCRIPT_GUNJALA_GONDI:        Gunjala Gondi. Since: 2.58
+ * @G_UNICODE_SCRIPT_HANIFI_ROHINGYA:      Hanifi Rohingya. Since: 2.58
+ * @G_UNICODE_SCRIPT_MAKASAR:              Makasar. Since: 2.58
+ * @G_UNICODE_SCRIPT_MEDEFAIDRIN:          Medefaidrin. Since: 2.58
+ * @G_UNICODE_SCRIPT_OLD_SOGDIAN:          Old Sogdian. Since: 2.58
+ * @G_UNICODE_SCRIPT_SOGDIAN:              Sogdian. Since: 2.58
+ * @G_UNICODE_SCRIPT_ELYMAIC:              Elym. Since: 2.62
+ * @G_UNICODE_SCRIPT_NANDINAGARI:          Nand. Since: 2.62
+ * @G_UNICODE_SCRIPT_NYIAKENG_PUACHUE_HMONG: Rohg. Since: 2.62
+ * @G_UNICODE_SCRIPT_WANCHO:               Wcho. Since: 2.62
+ * @G_UNICODE_SCRIPT_CHORASMIAN:           Chorasmian. Since: 2.66
+ * @G_UNICODE_SCRIPT_DIVES_AKURU:          Dives Akuru. Since: 2.66
+ * @G_UNICODE_SCRIPT_KHITAN_SMALL_SCRIPT:  Khitan small script. Since: 2.66
+ * @G_UNICODE_SCRIPT_YEZIDI:               Yezidi. Since: 2.66
  *
  * The #GUnicodeScript enumeration identifies different writing
  * systems. The values correspond to the names as defined in the
@@ -420,9 +436,7 @@ typedef enum
  *
  * Note that new types may be added in the future. Applications
  * should be ready to handle unknown values.
- * See <ulink
- * url="http://www.unicode.org/reports/tr24/">Unicode Standard Annex
- * #24: Script names</ulink>.
+ * See [Unicode Standard Annex #24: Script names](http://www.unicode.org/reports/tr24/).
  */
 typedef enum
 {                         /* ISO 15924 code */
@@ -555,7 +569,7 @@ typedef enum
   G_UNICODE_SCRIPT_KHUDAWADI,              /* Sind */
   G_UNICODE_SCRIPT_LINEAR_A,               /* Lina */
   G_UNICODE_SCRIPT_MAHAJANI,               /* Mahj */
-  G_UNICODE_SCRIPT_MANICHAEAN,             /* Manu */
+  G_UNICODE_SCRIPT_MANICHAEAN,             /* Mani */
   G_UNICODE_SCRIPT_MENDE_KIKAKUI,          /* Mend */
   G_UNICODE_SCRIPT_MODI,                   /* Modi */
   G_UNICODE_SCRIPT_MRO,                    /* Mroo */
@@ -584,7 +598,34 @@ typedef enum
   G_UNICODE_SCRIPT_MARCHEN,                /* Marc */
   G_UNICODE_SCRIPT_NEWA,                   /* Newa */
   G_UNICODE_SCRIPT_OSAGE,                  /* Osge */
-  G_UNICODE_SCRIPT_TANGUT                  /* Tang */
+  G_UNICODE_SCRIPT_TANGUT,                 /* Tang */
+
+  /* Unicode 10.0 additions */
+  G_UNICODE_SCRIPT_MASARAM_GONDI,          /* Gonm */
+  G_UNICODE_SCRIPT_NUSHU,                  /* Nshu */
+  G_UNICODE_SCRIPT_SOYOMBO,                /* Soyo */
+  G_UNICODE_SCRIPT_ZANABAZAR_SQUARE,       /* Zanb */
+
+  /* Unicode 11.0 additions */
+  G_UNICODE_SCRIPT_DOGRA,                  /* Dogr */
+  G_UNICODE_SCRIPT_GUNJALA_GONDI,          /* Gong */
+  G_UNICODE_SCRIPT_HANIFI_ROHINGYA,        /* Rohg */
+  G_UNICODE_SCRIPT_MAKASAR,                /* Maka */
+  G_UNICODE_SCRIPT_MEDEFAIDRIN,            /* Medf */
+  G_UNICODE_SCRIPT_OLD_SOGDIAN,            /* Sogo */
+  G_UNICODE_SCRIPT_SOGDIAN,                /* Sogd */
+
+  /* Unicode 12.0 additions */
+  G_UNICODE_SCRIPT_ELYMAIC,                /* Elym */
+  G_UNICODE_SCRIPT_NANDINAGARI,            /* Nand */
+  G_UNICODE_SCRIPT_NYIAKENG_PUACHUE_HMONG, /* Rohg */
+  G_UNICODE_SCRIPT_WANCHO,                 /* Wcho */
+
+  /* Unicode 13.0 additions */
+  G_UNICODE_SCRIPT_CHORASMIAN,             /* Chrs */
+  G_UNICODE_SCRIPT_DIVES_AKURU,            /* Diak */
+  G_UNICODE_SCRIPT_KHITAN_SMALL_SCRIPT,    /* Kits */
+  G_UNICODE_SCRIPT_YEZIDI                  /* Yezi */
 } GUnicodeScript;
 
 GLIB_AVAILABLE_IN_ALL
@@ -824,6 +865,10 @@ GLIB_AVAILABLE_IN_ALL
 gboolean g_utf8_validate (const gchar  *str,
                           gssize        max_len,
                           const gchar **end);
+GLIB_AVAILABLE_IN_2_60
+gboolean g_utf8_validate_len (const gchar  *str,
+                              gsize         max_len,
+                              const gchar **end);
 
 GLIB_AVAILABLE_IN_ALL
 gchar *g_utf8_strup   (const gchar *str,
@@ -885,9 +930,9 @@ GLIB_AVAILABLE_IN_ALL
 gchar *g_utf8_collate_key_for_filename (const gchar *str,
                                         gssize       len) G_GNUC_MALLOC;
 
-
-/* private */
-gchar *_g_utf8_make_valid (const gchar *name);
+GLIB_AVAILABLE_IN_2_52
+gchar *g_utf8_make_valid (const gchar *str,
+                          gssize       len) G_GNUC_MALLOC;
 
 G_END_DECLS
 

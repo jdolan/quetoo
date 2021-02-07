@@ -158,7 +158,7 @@ static const struct {
  * @brief
  */
 static void G_InitTeam(const g_team_id_t id, const char *name,
-					   const char *tint,
+					   const char *shirt,
 					   const int16_t color,
 					   const uint32_t effect) {
 
@@ -170,7 +170,10 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
 
 	team->color = color;
 
-	Color_Parse(tint, &team->shirt);
+	if (!Color_Parse(shirt, &team->shirt)) {
+		gi.Warn("Failed to parse default team color %s\n", shirt);
+		team->shirt = color_white;
+	}
 	team->pants = team->helmet = team->shirt;
 
 	// FIXME: enforcing "ctf" skin is kinda dumb if we have tints. it should just enforce
@@ -1276,9 +1279,11 @@ static void G_CheckRules(void) {
 
 			color_t shirt;
 
-			if (Color_Parse(g_team_cvars[i].g_team_shirt->string, &shirt) && Color_Color32(shirt).rgba != Color_Color32(g_teamlist[i].shirt).rgba) {
+			if (Color_Parse(g_team_cvars[i].g_team_shirt->string, &shirt) &&
+				Color_Color32(shirt).rgba != Color_Color32(g_teamlist[i].shirt).rgba) {
 
-				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s shirt color has been changed to \"%s\"\n", g_teamlist[i].name, g_team_cvars[i].g_team_shirt->string);
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s shirt color has been changed to \"%s\"\n",
+								  g_teamlist[i].name, g_team_cvars[i].g_team_shirt->string);
 				g_teamlist[i].shirt = g_teamlist[i].helmet = g_teamlist[i].pants = shirt;
 				changed = true;
 				reset_userinfo = true;
@@ -1458,7 +1463,7 @@ void G_Init(void) {
 
 	gi.Print("Game module initialization...\n");
 
-	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
+	const char *s = va("%s %s %s", VERSION, BUILD, REVISION);
 	cvar_t *game_version = gi.AddCvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	gi.Print("  Version:    ^2%s^7\n", game_version->string);

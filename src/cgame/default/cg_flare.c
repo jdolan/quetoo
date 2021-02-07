@@ -96,7 +96,7 @@ void Cg_AddFlares(void) {
 		}
 
 		if (flare->entity) {
-			Matrix4x4_Transform(&flare->entity->matrix, flare->in.origin.xyz, flare->out.origin.xyz);
+			flare->out.origin = Mat4_Transform(flare->entity->matrix, flare->in.origin);
 		}
 
 		float exposure = 0.f;
@@ -109,7 +109,7 @@ void Cg_AddFlares(void) {
 
 				vec3_t p;
 				if (flare->entity) {
-					Matrix4x4_Transform(&flare->entity->matrix, v->position.xyz, p.xyz);
+					p = Mat4_Transform(flare->entity->matrix, v->position);
 				} else {
 					p = v->position;
 				}

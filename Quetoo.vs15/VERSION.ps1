@@ -1,4 +1,7 @@
-$commit = '"' + $env:APPVEYOR_REPO_COMMIT + '"'
+$commit = '"' + $commit = git rev-parse --short HEAD + '"'
+
+[IO.File]::WriteAllText("revision", $commit)
+
 $content = [IO.File]::ReadAllText("src/config.h")
 
 if ($content -imatch '#define(?:\s*)REVISION(?:\s*)(?:.*?)\r?\n')

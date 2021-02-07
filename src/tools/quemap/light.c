@@ -400,11 +400,8 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	vec2_t patch_maxs = Vec2_Maxs();
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
-
-		vec3_t point = Vec3_Subtract(patch->winding->points[i], patch->origin);
-
-		vec3_t st;
-		Matrix4x4_Transform(&lm->matrix, point.xyz, st.xyz);
+		const vec3_t point = Vec3_Subtract(patch->winding->points[i], patch->origin);
+		const vec3_t st = Mat4_Transform(lm->matrix, point);
 
 		patch_mins = Vec2_Minf(patch_mins, Vec3_XY(st));
 		patch_maxs = Vec2_Maxf(patch_maxs, Vec3_XY(st));
@@ -422,7 +419,6 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	for (int32_t t = 0; t < h; t++) {
 		for (int32_t s = 0; s < w; s++) {
-
 			const int32_t ds = patch_mins.x - lm->st_mins.x + s;
 			const int32_t dt = patch_mins.y - lm->st_mins.y + t;
 

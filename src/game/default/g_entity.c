@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "parse.h"
 
 /**
  * @brief The entity class structure.

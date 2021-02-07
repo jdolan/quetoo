@@ -21,7 +21,8 @@
 
 #pragma once
 
-#include "shared.h"
+#include "shared/shared.h"
+#include "collision/cm_types.h"
 
 /**
  * @brief Acceleration constants.

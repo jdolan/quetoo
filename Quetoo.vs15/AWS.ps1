@@ -11,3 +11,8 @@ $aws_exe = "aws.exe"
 
 &$aws_exe s3 sync $QUETOO_RELEASE_SRC $QUETOO_RELEASE_BUCKET --delete
 &$aws_exe s3 cp $QUETOO_SNAPSHOT_SRC $QUETOO_SNAPSHOT_BUCKET
+
+$QUETOO_REVISION_SRC = "revision"
+$QUETOO_REVISION_BUCKET = $QUETOO_BUCKET + "revisions/" + $QUETOO_ARCH + "-pc-windows"
+
+&$aws_exe s3 cp $QUETOO_REVISION_SRC $QUETOO_REVISION_BUCKET

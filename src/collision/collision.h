@@ -21,8 +21,7 @@
 
 #pragma once
 
-#include "filesystem.h"
-#include "matrix.h"
+#include "common/common.h"
 
 #include "cm_bsp.h"
 #include "cm_entity.h"

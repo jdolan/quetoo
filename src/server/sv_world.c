@@ -229,8 +229,8 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	// and update its clipping matrices
 	const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
 
-	Matrix4x4_CreateFromEntity(&sent->matrix, ent->s.origin, angles, 1.0);
-	Matrix4x4_Invert_Simple(&sent->inverse_matrix, &sent->matrix);
+	sent->matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
+	sent->inverse_matrix = Mat4_Inverse(sent->matrix);
 }
 
 /**
@@ -380,7 +380,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 		if (head_node != -1) {
 
 			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
-			contents |= Cm_TransformedPointContents(point, head_node, &sent->inverse_matrix);
+			contents |= Cm_TransformedPointContents(point, head_node, sent->inverse_matrix);
 		}
 	}
 
@@ -447,7 +447,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 			const cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end,
 														 trace->mins, trace->maxs,
 														 head_node, trace->contents,
-														 &sent->matrix, &sent->inverse_matrix);
+														 sent->matrix, sent->inverse_matrix);
 
 			// check for a full or partial intersection
 			if (tr.all_solid || tr.fraction < trace->trace.fraction) {

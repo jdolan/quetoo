@@ -47,7 +47,7 @@
 
 #endif
 
-#include "filesystem.h"
+#include "common/common.h"
 
 quetoo_t quetoo;
 
@@ -369,7 +369,7 @@ static void Shutdown(const char *msg) {
  */
 int32_t main(int32_t argc, char **argv) {
 
-	printf("Quetoo Master Server %s %s %s\n", VERSION, BUILD_HOST, REVISION);
+	printf("Quetoo Master Server %s %s %s\n", VERSION, BUILD, REVISION);
 
 	memset(&quetoo, 0, sizeof(quetoo));
 
