@@ -25,7 +25,7 @@
 #include "net/net_http.h"
 
 #define QUETOO_REVISION_URL "https://quetoo.s3.amazonaws.com/revisions/" BUILD
-#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/default/revision"
+#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/revision"
 
 #define QUETOO_INSTALLER "quetoo-installer-small.jar"
 
