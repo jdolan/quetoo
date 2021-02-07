@@ -106,7 +106,7 @@
 typedef enum {
 	ERROR_DROP, // don't fully shit pants, but drop to console
 	ERROR_FATAL, // program must exit
-} error_t;
+} err_t;
 
 int32_t Com_Argc(void);
 char *Com_Argv(int32_t arg);
@@ -119,8 +119,8 @@ void Com_SetDebug(const char *debug);
 void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3, 0)));
 
-void Com_Error_(error_t error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
-void Com_Errorv_(error_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf, 3, 0)));
+void Com_Error_(err_t error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
+void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf, 3, 0)));
 
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Printv(const char *fmt, va_list args) __attribute__((format(printf, 1, 0)));
@@ -193,7 +193,7 @@ typedef struct {
 	FILE *log_file;
 
 	void (*Debug)(const debug_t debug, const char *msg);
-	void (*Error)(error_t error, const char *msg) __attribute__((noreturn));
+	void (*Error)(err_t error, const char *msg) __attribute__((noreturn));
 	void (*Print)(const char *msg);
 	void (*Verbose)(const char *msg);
 	void (*Warn)(const char *msg);

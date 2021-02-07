@@ -44,7 +44,7 @@ cvar_t *time_demo;
 cvar_t *time_scale;
 
 static void Debug(const debug_t debug, const char *msg);
-static void Error(error_t err, const char *msg) __attribute__((noreturn));
+static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
 static void Verbose(const char *msg);
@@ -161,7 +161,7 @@ static _Bool jmp_set = false;
  * @brief Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
  */
-static void Error(error_t err, const char *msg) {
+static void Error(err_t err, const char *msg) {
 
 	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
 		SDL_TriggerBreakpoint();
