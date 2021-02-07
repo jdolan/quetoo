@@ -1,13 +1,16 @@
 cguicommondir = @PKGLIBDIR@/default/ui/common
 cguicommon_DATA = \
-	common.css
+	common.css \
+	DialogViewController.css \
+	DialogViewController.json
 
 noinst_HEADERS = \
 	BindTextView.h \
 	CvarCheckbox.h \
 	CvarSelect.h \
 	CvarSlider.h \
-	CvarTextView.h
+	CvarTextView.h \
+	DialogViewController.h
 
 noinst_LTLIBRARIES = \
 	libcguicommon.la
@@ -17,7 +20,8 @@ libcguicommon_la_SOURCES = \
 	CvarCheckbox.c \
 	CvarSelect.c \
 	CvarSlider.c \
-	CvarTextView.c
+	CvarTextView.c \
+	DialogViewController.c
 
 libcguicommon_la_CFLAGS = \
 	-I$(top_srcdir)/src \

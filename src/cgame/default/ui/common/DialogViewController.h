@@ -31,7 +31,7 @@
  */
 
 typedef struct Dialog Dialog;
-
+ 
 typedef struct DialogViewController DialogViewController;
 typedef struct DialogViewControllerInterface DialogViewControllerInterface;
 
