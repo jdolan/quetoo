@@ -14,9 +14,9 @@ SNAPSHOT = $(TARGET)/Quetoo-BETA-$(BUILD).zip
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean install-lib install-installer snapshot
+all: clean compile install install-lib install-installer snapshot
 
-all-data: clean install-lib install-installer install-data snapshot
+all-data: clean compile install install-lib install-installer install-data snapshot
 
 configure:
 	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' --host=$(BUILD) --prefix=/
@@ -29,10 +29,10 @@ pre-install:
 	cp -r Quetoo-$(ARCH)/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 
-install: compile pre-install
+install: pre-install
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
-install-lib: install
+install-lib:
 	./dllbundler.sh -h $(BUILD) \
 		$(BINDIR)/quemap.exe \
 		$(BINDIR)/quetoo.exe \

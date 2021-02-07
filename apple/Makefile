@@ -16,9 +16,9 @@ VOLUME_NAME = "Quetoo BETA $(BUILD)"
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean install-lib install-installer post-install snapshot
+all: clean compile install install-lib install-installer post-install snapshot
 
-all-data: clean install-lib install-installer install-data post-install snapshot
+all-data: clean compile install install-lib install-installer install-data post-install snapshot
 
 configure:
 	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' --prefix=/
@@ -31,14 +31,14 @@ pre-install:
 	cp -r Quetoo.app/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 
-install: compile pre-install
+install: pre-install
 	ln -f -s Contents/MacOS $(INSTALL)/bin
 	ln -f -s Contents/MacOS/lib $(INSTALL)/lib
 	ln -f -s Contents/Resources $(INSTALL)/share
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 	rm -f $(INSTALL)/bin $(INSTALL)/lib $(INSTALL)/share
 
-install-lib: install
+install-lib:
 	dylibbundler -b \
 		-x $(BINDIR)/quemap \
 		-x $(BINDIR)/quetoo \
