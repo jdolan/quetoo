@@ -106,7 +106,7 @@ static void Cg_Init(void) {
 
 	cgi.Print("Client game module initialization...\n");
 
-	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
+	const char *s = va("%s %s %s", VERSION, BUILD, REVISION);
 	cvar_t *cgame_version = cgi.AddCvar("cgame_version", s, CVAR_NO_SET, NULL);
 
 	cgi.Print("  Version:    ^2%s^7\n", cgame_version->string);
@@ -320,7 +320,9 @@ static void Cg_ParseTeamInfo(const char *s) {
 
 		team->hue = atoi(info[i + 1]);
 
-		Color_Parse(info[i + 2], &team->color);
+		if (!Color_Parse(info[i + 2], &team->color)) {
+			team->color = color_white;
+		}
 	}
 
 	g_strfreev(info);

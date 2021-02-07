@@ -22,7 +22,6 @@
 #include <SDL_timer.h>
 
 #include "sv_local.h"
-#include "console.h"
 
 sv_static_t svs; // persistent server info
 sv_server_t sv; // per-level server info

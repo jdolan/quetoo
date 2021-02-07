@@ -20,8 +20,6 @@
  */
 
 #include "tests.h"
-#include "cmd.h"
-#include "cvar.h"
 
 quetoo_t quetoo;
 

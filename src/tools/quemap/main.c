@@ -64,8 +64,8 @@ static void Shutdown(const char *msg);
 /**
  * @brief
  */
-static void Error(err_t err, const char *msg) __attribute__((noreturn));
-static void Error(err_t err, const char *msg) {
+static void Error(error_t err, const char *msg) __attribute__((noreturn));
+static void Error(error_t err, const char *msg) {
 
 	fprintf(stderr, "ERROR: Thread %lu: %s", SDL_ThreadID(), msg);
 
@@ -143,7 +143,7 @@ static void Init(void) {
 
 	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
-	Com_Print("Quetoo Map %s %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST, REVISION);
+	Com_Print("Quemap %s %s %s initialized\n", VERSION, BUILD, REVISION);
 }
 
 /**
@@ -347,7 +347,7 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_light = false;
 	_Bool do_zip = false;
 
-	printf("Quetoo Map %s %s %s\n", VERSION, BUILD_HOST, REVISION);
+	printf("Quemap %s %s %s\n", VERSION, BUILD, REVISION);
 
 	memset(&quetoo, 0, sizeof(quetoo));
 

@@ -2,26 +2,25 @@
 # export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:${PATH}
 
 ARCH = x86_64
-HOST = $(ARCH)-w64-mingw32
-UPDATE = quetoo-installer-small.jar
+BUILD = $(ARCH)-w64-mingw32
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
 BINDIR = $(INSTALL)/bin
 ETCDIR = $(INSTALL)/etc
 LIBDIR = $(INSTALL)/lib
 DATADIR = $(INSTALL)/share
-SNAPSHOT = $(TARGET)/Quetoo-BETA-$(HOST).zip
+INSTALLER = quetoo-installer-small.jar
+SNAPSHOT = $(TARGET)/Quetoo-BETA-$(BUILD).zip
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean install-lib install-update snapshot
-
-all-data: clean install-lib install-update install-data snapshot
+all: clean configure compile pre-install install install-lib install-installer
+continuous-integration: all release install-data snapshot snapshot-release
 
 configure:
-	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O0' --host=$(HOST) --prefix=/
+	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' --host=$(BUILD) --prefix=/
 	
-compile: configure
+compile:
 	make -C .. all
 
 pre-install:
@@ -29,25 +28,26 @@ pre-install:
 	cp -r Quetoo-$(ARCH)/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 
-install: compile pre-install
+install:
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
-install-lib: install
-	./dllbundler.sh -h $(HOST) \
+install-lib:
+	./dllbundler.sh -h $(BUILD) \
 		$(BINDIR)/quemap.exe \
 		$(BINDIR)/quetoo.exe \
 		$(BINDIR)/quetoo-dedicated.exe \
-		$(BINDIR)/quetoo-master.exe \
-		$(BINDIR)/quetoo-update.exe
+		$(BINDIR)/quetoo-master.exe
 
-install-update:
-	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(LIBDIR)/
+install-installer:
+	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(INSTALLER) $(LIBDIR)/
+
+release:
+	aws s3 sync --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(BUILD)
+	git rev-parse --short HEAD > $(TARGET)/revision
+	aws s3 cp $(TARGET)/revision $(QUETOO_S3_BUCKET)/revisions/$(BUILD)
 
 install-data:
 	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
-
-release:
-	aws s3 sync --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
 
 snapshot:
 	rm -f Quetoo; ln -s $(INSTALL)
@@ -59,4 +59,4 @@ snapshot-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all all-data configure compile pre-install install install-lib install-data release snapshot snapshot-release clean
+.PHONY: all configure compile pre-install install install-lib install-installer release install-data snapshot snapshot-release clean

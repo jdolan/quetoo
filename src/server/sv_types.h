@@ -21,9 +21,10 @@
 
 #pragma once
 
-#include "game/game.h"
+#include "common/common.h"
+
 #include "ai/ai.h"
-#include "matrix.h"
+#include "game/game.h"
 
 #ifdef __SV_LOCAL_H__
 

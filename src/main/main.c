@@ -33,8 +33,9 @@ static jmp_buf env;
 quetoo_t quetoo;
 
 static cvar_t *verbose;
-static cvar_t *version;
 
+cvar_t *version;
+cvar_t *revision;
 cvar_t *dedicated;
 cvar_t *game;
 cvar_t *ai;
@@ -43,7 +44,7 @@ cvar_t *time_demo;
 cvar_t *time_scale;
 
 static void Debug(const debug_t debug, const char *msg);
-static void Error(err_t err, const char *msg) __attribute__((noreturn));
+static void Error(error_t err, const char *msg) __attribute__((noreturn));
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
 static void Verbose(const char *msg);
@@ -160,7 +161,7 @@ static _Bool jmp_set = false;
  * @brief Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
  */
-static void Error(err_t err, const char *msg) {
+static void Error(error_t err, const char *msg) {
 
 	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
 		SDL_TriggerBreakpoint();
@@ -302,8 +303,10 @@ static void Init(void) {
 
 	Cvar_Init();
 
-	char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
+	char *s = va("%s %s %s", VERSION, BUILD, REVISION);
 	version = Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	
+	revision = Cvar_Add("revision", REVISION, CVAR_SERVER_INFO, NULL);
 
 	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
@@ -354,11 +357,6 @@ static void Init(void) {
 	// execute any +commands specified on the command line
 	Cbuf_InsertFromDefer();
 	Cbuf_Execute();
-
-	// if we don't have console fonts, the user should run the updater
-	if (!Fs_Exists("fonts/small.tga")) {
-		Com_Error(ERROR_FATAL, "Please run quetoo-update.\n");
-	}
 
 	// dedicated server, nothing specified, use Edge
 	if (dedicated->value && !Com_WasInit(QUETOO_SERVER)) {
@@ -436,7 +434,7 @@ int32_t main(int32_t argc, char *argv[]) {
 	static uint32_t old_time;
 	uint32_t msec;
 
-	printf("Quetoo %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+	printf("Quetoo %s %s %s\n", VERSION, BUILD, REVISION);
 
 	memset(&quetoo, 0, sizeof(quetoo));
 

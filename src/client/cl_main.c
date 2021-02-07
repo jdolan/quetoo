@@ -25,7 +25,6 @@
 
 #include "cl_local.h"
 #include "server/server.h"
-#include "parse.h"
 
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
@@ -297,13 +296,7 @@ void Cl_Disconnect(void) {
 	}
 
 	if (cls.download.file) {
-
-		if (cls.download.http) {
-			Cl_HttpDownload_Complete();
-		} else {
-			Fs_Close(cls.download.file);
-		}
-
+		Fs_Close(cls.download.file);
 		memset(&cls.download, 0, sizeof(cls.download));
 	}
 
@@ -646,8 +639,6 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_AttemptConnect();
 
-	Cl_HttpThink();
-
 	Cl_ReadPackets();
 
 	Cl_HandleEvents();
@@ -708,8 +699,6 @@ void Cl_Init(void) {
 
 	Cl_InitInput();
 
-	Cl_InitHttp();
-
 	Cl_ClearState();
 
 	Cl_InitCgame();
@@ -732,8 +721,6 @@ void Cl_Shutdown(void) {
 	Com_Print("Client shutdown...\n");
 
 	Cl_Disconnect();
-
-	Cl_ShutdownHttp();
 
 	Cl_ShutdownCgame();
 

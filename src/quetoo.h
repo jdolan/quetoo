@@ -109,7 +109,7 @@
 #define MAX_STRING_TOKENS	128 // max tokens resulting from Cmd_TokenizeString
 #define MAX_TOKEN_CHARS		512 // max length of an individual token
 #define MAX_QPATH			64 // max length of a Quake game path
-#define MAX_OS_PATH			260 // max length of a system path
+#define MAX_OS_PATH			512 // max length of a system path
 
 /**
  * @brief Protocol limits.

@@ -42,7 +42,7 @@
 
 #endif
 
-#include "common.h"
+#include "common/common.h"
 
 /**
  * @brief Max length of a single packet. No individual command can exceed

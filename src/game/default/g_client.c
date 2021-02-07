@@ -1203,13 +1203,19 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	} else {
 
 		s = GetUserInfo(user_info, "shirt");
-		Color_Parse(s, &cl->locals.persistent.shirt);
+		if (!Color_Parse(s, &cl->locals.persistent.shirt)) {
+			cl->locals.persistent.shirt = color_white;
+		}
 
 		s = GetUserInfo(user_info, "pants");
-		Color_Parse(s, &cl->locals.persistent.pants);
+		if (!Color_Parse(s, &cl->locals.persistent.pants)) {
+			cl->locals.persistent.pants = color_white;
+		}
 
 		s = GetUserInfo(user_info, "helmet");
-		Color_Parse(s, &cl->locals.persistent.helmet);
+		if (!Color_Parse(s, &cl->locals.persistent.helmet)) {
+			cl->locals.persistent.helmet = color_white;
+		}
 	}
 
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };

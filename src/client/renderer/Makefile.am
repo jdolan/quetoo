@@ -79,7 +79,5 @@ librenderer_la_LDFLAGS = \
 	-shared
 	
 librenderer_la_LIBADD = \
-	$(top_builddir)/src/libatlas.la \
-	$(top_builddir)/src/libimage.la \
-	$(top_builddir)/src/collision/libcollision.la \
+	$(top_builddir)/src/common/libcommon.la \
 	@OPENGL_LIBS@

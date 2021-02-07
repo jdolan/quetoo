@@ -22,8 +22,6 @@
 #pragma once
 
 #include "quemap.h"
-#include "atlas.h"
-#include "matrix.h"
 
 #define MAX_BOUNCES 3
 
