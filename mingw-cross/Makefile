@@ -14,7 +14,7 @@ SNAPSHOT = $(TARGET)/Quetoo-BETA-$(BUILD).zip
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean compile install install-lib install-installer install-data snapshot
+all: clean compile install install-lib install-installer
 
 configure:
 	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' --host=$(BUILD) --prefix=/
@@ -40,13 +40,13 @@ install-lib:
 install-installer:
 	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(INSTALLER) $(LIBDIR)/
 
-install-data:
-	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
-
 release:
 	aws s3 sync --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(BUILD)
 	git rev-parse --short HEAD > $(TARGET)/revision
 	aws s3 cp $(TARGET)/revision $(QUETOO_S3_BUCKET)/revisions/$(BUILD)
+
+install-data:
+	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
 
 snapshot:
 	rm -f Quetoo; ln -s $(INSTALL)
@@ -58,4 +58,4 @@ snapshot-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all configure compile pre-install install install-lib install-installer install-data release snapshot snapshot-release clean
+.PHONY: all configure compile pre-install install install-lib install-installer release install-data snapshot snapshot-release clean
