@@ -208,6 +208,8 @@ uint32_t Com_WasInit(uint32_t s);
 void Com_InitSubsystem(uint32_t s);
 void Com_QuitSubsystem(uint32_t s);
 
+extern cvar_t *version;
+extern cvar_t *revision;
 extern cvar_t *dedicated;
 extern cvar_t *game;
 extern cvar_t *ai;

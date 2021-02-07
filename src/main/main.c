@@ -33,8 +33,9 @@ static jmp_buf env;
 quetoo_t quetoo;
 
 static cvar_t *verbose;
-static cvar_t *version;
 
+cvar_t *version;
+cvar_t *revision;
 cvar_t *dedicated;
 cvar_t *game;
 cvar_t *ai;
@@ -304,6 +305,8 @@ static void Init(void) {
 
 	char *s = va("%s %s %s", VERSION, BUILD, REVISION);
 	version = Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	
+	revision = Cvar_Add("revision", REVISION, CVAR_SERVER_INFO, NULL);
 
 	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 

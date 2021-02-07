@@ -38,7 +38,10 @@ int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
 	$((URLSessionTask *) task, execute);
 	const int32_t status = task->urlSessionTask.response->httpStatusCode;
 
-	Com_Debug(DEBUG_NET, "%s: HTTP %d\n", url_string, status);
+	Com_Debug(DEBUG_NET, "%s: HTTP %d: %d bytes\n",
+			  url_string,
+			  status,
+			  task->data ? (int32_t) task->data->length : 0);
 
 	if (task->data) {
 		*data = Mem_Malloc(task->data->length);

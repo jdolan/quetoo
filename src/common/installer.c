@@ -36,11 +36,11 @@ static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
 	void *data;
 	size_t length;
 
-	Com_Debug(DEBUG_COMMON, "Checking %s\n", rev_url);
-
 	int32_t status = Net_HttpGet(rev_url, &data, &length);
 	if (status == 200) {
-		status = g_strcmp0(rev, g_strstrip((gchar *) data));
+		const char *remote_rev = g_strstrip((gchar *) data);
+		Com_Debug(DEBUG_COMMON, "%s == %s\n", rev, remote_rev);
+		status = g_strcmp0(rev, remote_rev);
 	} else {
 		Com_Warn("%s: HTTP %d\n", rev_url, status);
 		if (length) {
@@ -58,17 +58,25 @@ static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
  */
 int32_t Installer_CheckForUpdates(void) {
 
-	if (Cvar_Get("revision")) {
+	if (revision->integer == -1) {
 		Com_Debug(DEBUG_COMMON, "Skipping revisions check\n");
 		return 0;
 	}
 
-char *data_revision;
+	char *data_revision;
 	Fs_Load("revision", (void **) &data_revision);
 
-	int32_t res = Installer_CompareRevision(REVISION, QUETOO_REVISION_URL);
+	int32_t res = Installer_CompareRevision(revision->string, QUETOO_REVISION_URL);
 	if (res == 0) {
+		Com_Debug(DEBUG_COMMON, "Build revision %s is latest, checking data..\n", REVISION);
 		res = Installer_CompareRevision(data_revision, QUETOO_DATA_REVISION_URL);
+		if (res == 0) {
+			Com_Debug(DEBUG_COMMON, "Data revision %s is latest\n", data_revision);
+		} else {
+			Com_Debug(DEBUG_COMMON, "Data revision %s did not match\n", data_revision);
+		}
+	} else {
+		Com_Debug(DEBUG_COMMON, "Build revision %s is out of date\n", REVISION);
 	}
 
 	return res;
