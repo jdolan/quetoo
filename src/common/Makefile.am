@@ -31,7 +31,6 @@ libcommon_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@OBJECTIVELY_CFLAGS@ \
 	@SDL2_CFLAGS@
 libcommon_la_LDFLAGS = \
 	-shared
@@ -39,6 +38,5 @@ libcommon_la_LIBADD = \
 	$(top_builddir)/src/shared/libshared.la \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@ \
-	@OBJECTIVELY_LIBS@ \
 	@PHYSFS_LIBS@ \
 	@SDL2_LIBS@

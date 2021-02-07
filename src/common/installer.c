@@ -22,11 +22,10 @@
 #include "console.h"
 #include "installer.h"
 #include "filesystem.h"
-
-#include <Objectively/URLSession.h>
+#include "net/net_http.h"
 
 #define QUETOO_REVISION_URL "https://quetoo.s3.amazonaws.com/revisions/" BUILD
-#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/revision"
+#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/default/revision"
 
 #define QUETOO_INSTALLER "quetoo-installer-small.jar"
 
@@ -34,22 +33,24 @@
  * @brief
  */
 static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
+	void *data;
+	size_t length;
 
-	URLSession *session = $$(URLSession, sharedInstance);
-	URL *url = $(alloc(URL), initWithCharacters, rev_url);
+	Com_Debug(DEBUG_COMMON, "Checking %s\n", rev_url);
 
-	URLSessionDataTask *task = $(session, dataTaskWithURL, url, NULL);
-	$((URLSessionTask *) task, execute);
-
-	int32_t res = task->urlSessionTask.response->httpStatusCode;
-	if (res >= 200 && res <=300) {
-		res = g_strcmp0(rev, strtrim((char *) task->data->bytes));
+	int32_t status = Net_HttpGet(rev_url, &data, &length);
+	if (status == 200) {
+		status = g_strcmp0(rev, g_strstrip((gchar *) data));
+	} else {
+		Com_Warn("%s: HTTP %d\n", rev_url, status);
+		if (length) {
+			Com_Debug(DEBUG_COMMON, "%s\n", (gchar *) data);
+		}
 	}
 
-	release(task);
-	release(url);
+	Mem_Free(data);
 
-	return res;
+	return status;
 }
 
 /**
