@@ -276,17 +276,18 @@ _Bool StrIsEmoji(const char *c) {
 	if (c) {
 		if (*c == ESC_EMOJI) {
 			c++;
-			while (isalnum(*c)) {
-				c++;
-			}
-			if (*c == ESC_EMOJI) {
-				return true;
+			if (isalpha(*c)) {
+				while (isalnum(*c) || strchr("_-", *c)) {
+					c++;
+				}
+				if (*c == ESC_EMOJI) {
+					return true;
+				}
 			}
 		}
 	}
 	return false;
 }
-
 /**
  * @return A color_t for the color specified escape sequence.
  */

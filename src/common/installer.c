@@ -25,7 +25,7 @@
 #include "net/net_http.h"
 
 #define QUETOO_REVISION_URL "https://quetoo.s3.amazonaws.com/revisions/" BUILD
-#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/default/revision"
+#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/revision"
 
 #define QUETOO_INSTALLER "quetoo-installer-small.jar"
 
@@ -38,9 +38,10 @@ static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
 
 	int32_t status = Net_HttpGet(rev_url, &data, &length);
 	if (status == 200) {
-		const char *remote_rev = g_strstrip((gchar *) data);
+		char *remote_rev = g_strchomp(g_strndup(data, length));
 		Com_Debug(DEBUG_COMMON, "%s == %s\n", rev, remote_rev);
 		status = g_strcmp0(rev, remote_rev);
+		g_free(remote_rev);
 	} else {
 		Com_Warn("%s: HTTP %d\n", rev_url, status);
 		if (length) {
@@ -63,23 +64,29 @@ int32_t Installer_CheckForUpdates(void) {
 		return 0;
 	}
 
-	char *data_revision;
-	Fs_Load("revision", (void **) &data_revision);
+	if (Installer_CompareRevision(revision->string, QUETOO_REVISION_URL) == 0) {
+		Com_Debug(DEBUG_COMMON, "Build revision %s is latest.\n", revision->string);
 
-	int32_t res = Installer_CompareRevision(revision->string, QUETOO_REVISION_URL);
-	if (res == 0) {
-		Com_Debug(DEBUG_COMMON, "Build revision %s is latest, checking data..\n", REVISION);
-		res = Installer_CompareRevision(data_revision, QUETOO_DATA_REVISION_URL);
-		if (res == 0) {
-			Com_Debug(DEBUG_COMMON, "Data revision %s is latest\n", data_revision);
+		void *buffer;
+		if (Fs_Load("revision", &buffer) > 0) {
+
+			char *data_revision = g_strstrip((gchar *) buffer);
+			if (Installer_CompareRevision(data_revision, QUETOO_DATA_REVISION_URL) == 0) {
+				Com_Debug(DEBUG_COMMON, "Data revision %s is latest.\n", data_revision);
+				return 0;
+			} else {
+				Com_Debug(DEBUG_COMMON, "Data revision %s did not match.\n", data_revision);
+			}
+
+			Fs_Free(buffer);
 		} else {
-			Com_Debug(DEBUG_COMMON, "Data revision %s did not match\n", data_revision);
+			Com_Debug(DEBUG_COMMON, "Data revision not found.\n");
 		}
 	} else {
-		Com_Debug(DEBUG_COMMON, "Build revision %s is out of date\n", REVISION);
+		Com_Debug(DEBUG_COMMON, "Build revision %s is out of date.\n", revision->string);
 	}
 
-	return res;
+	return -1;
 }
 
 /**
