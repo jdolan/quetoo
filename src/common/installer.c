@@ -64,23 +64,29 @@ int32_t Installer_CheckForUpdates(void) {
 		return 0;
 	}
 
-	char *data_revision;
-	Fs_Load("revision", (void **) &data_revision);
+	if (Installer_CompareRevision(revision->string, QUETOO_REVISION_URL) == 0) {
+		Com_Debug(DEBUG_COMMON, "Build revision %s is latest.\n", revision->string);
 
-	int32_t res = Installer_CompareRevision(revision->string, QUETOO_REVISION_URL);
-	if (res == 0) {
-		Com_Debug(DEBUG_COMMON, "Build revision %s is latest, checking data..\n", revision->string);
-		res = Installer_CompareRevision(data_revision, QUETOO_DATA_REVISION_URL);
-		if (res == 0) {
-			Com_Debug(DEBUG_COMMON, "Data revision %s is latest\n", data_revision);
+		void *buffer;
+		if (Fs_Load("revision", &buffer) > 0) {
+
+			char *data_revision = g_strstrip((gchar *) buffer);
+			if (Installer_CompareRevision(data_revision, QUETOO_DATA_REVISION_URL) == 0) {
+				Com_Debug(DEBUG_COMMON, "Data revision %s is latest.\n", data_revision);
+				return 0;
+			} else {
+				Com_Debug(DEBUG_COMMON, "Data revision %s did not match.\n", data_revision);
+			}
+
+			Fs_Free(buffer);
 		} else {
-			Com_Debug(DEBUG_COMMON, "Data revision %s did not match\n", data_revision);
+			Com_Debug(DEBUG_COMMON, "Data revision not found.\n");
 		}
 	} else {
-		Com_Debug(DEBUG_COMMON, "Build revision %s is out of date\n", revision->string);
+		Com_Debug(DEBUG_COMMON, "Build revision %s is out of date.\n", revision->string);
 	}
 
-	return res;
+	return -1;
 }
 
 /**
