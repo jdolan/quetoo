@@ -16,9 +16,7 @@ VOLUME_NAME = "Quetoo BETA $(BUILD)"
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean compile install install-lib install-installer post-install snapshot
-
-all-data: clean compile install install-lib install-installer install-data post-install snapshot
+all: clean compile install install-lib install-installer install-data post-install snapshot
 
 configure:
 	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' --prefix=/
@@ -75,4 +73,4 @@ snapshot-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all all-data configure compile pre-install install install-lib install-update install-data post-install release snapshot snapshot-release clean
+.PHONY: all configure compile pre-install install install-lib install-installer install-data post-install release snapshot snapshot-release clean

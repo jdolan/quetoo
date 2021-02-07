@@ -12,9 +12,7 @@ SNAPSHOT = $(TARGET)/quetoo-BETA-$(BUILD).tar.gz
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean compile install install-lib install-installer snapshot
-
-all-data: clean compile install install-lib install-installer install-data snapshot
+all: clean compile install install-lib install-installer install-data snapshot
 
 configure:
 	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --host=$(BUILD) --prefix=/
@@ -60,4 +58,4 @@ snapshot-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all all-data configure compile pre-install install install-lib install-update install-data release snapshot snapshot-release clean
+.PHONY: all configure compile pre-install install install-lib install-installer install-data release snapshot snapshot-release clean
