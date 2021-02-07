@@ -19,7 +19,7 @@ continuous-integration: all release install-data snapshot snapshot-release
 
 configure:
 	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' --host=$(BUILD) --prefix=/
-	
+
 compile:
 	make -C .. all
 
