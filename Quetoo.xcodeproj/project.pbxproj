@@ -81,6 +81,8 @@
 		CE04F4B025CADFF200C31433 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6BA1C5C58C300CD0B13 /* swap.c */; };
 		CE04F56525CAE12B00C31433 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE04F5AA25CAE14500C31433 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CE04FB1925CEDCD400C31433 /* net_http.h in Headers */ = {isa = PBXBuildFile; fileRef = CE04FB1725CEDCD400C31433 /* net_http.h */; };
+		CE04FB1A25CEDCD400C31433 /* net_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CE04FB1825CEDCD400C31433 /* net_http.c */; };
 		CE052A5F214831FE003446C9 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE052A62214831FE003446C9 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE052A66214831FE003446C9 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
@@ -971,6 +973,8 @@
 /* Begin PBXFileReference section */
 		CE04EF9325CA0EE400C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04EFC125CA0F7D00C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE04FB1725CEDCD400C31433 /* net_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_http.h; sourceTree = "<group>"; };
+		CE04FB1825CEDCD400C31433 /* net_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_http.c; sourceTree = "<group>"; };
 		CE052A6E214831FE003446C9 /* check_mem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_mem; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE052A8421483255003446C9 /* check_thread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_thread; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE0B64811D89955B0011F974 /* .turd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
@@ -2609,6 +2613,8 @@
 				CE12D6911C5C58C300CD0B13 /* net.h */,
 				CE12D6921C5C58C300CD0B13 /* net_chan.c */,
 				CE12D6931C5C58C300CD0B13 /* net_chan.h */,
+				CE04FB1825CEDCD400C31433 /* net_http.c */,
+				CE04FB1725CEDCD400C31433 /* net_http.h */,
 				CE12D6941C5C58C300CD0B13 /* net_message.c */,
 				CE12D6951C5C58C300CD0B13 /* net_message.h */,
 				CE12D6961C5C58C300CD0B13 /* net_tcp.c */,
@@ -2986,6 +2992,10 @@
 				CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */,
 				CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */,
 				CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */,
+				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
+				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
+				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
+				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
 				CE4E07B320264B15000B276C /* common.css */,
 				CE7D2C07202E9C6D004BC58E /* Makefile.am */,
 			);
@@ -3045,10 +3055,6 @@
 		CE5870931F5CE7D2004CAAB2 /* main */ = {
 			isa = PBXGroup;
 			children = (
-				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
-				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
-				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
-				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
 				CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */,
 				CE4E07C320267ED9000B276C /* LoadingViewController.css */,
 				CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */,
@@ -3238,12 +3244,12 @@
 				CE6EE3F11F720DC300FBC830 /* CvarSelect.h in Headers */,
 				CE6EE3F21F720DC300FBC830 /* CvarSlider.h in Headers */,
 				CE6EE3F31F720DC300FBC830 /* CvarTextView.h in Headers */,
+				CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */,
 				CE1A28411F75FEB1005F62A9 /* ControlsViewController.h in Headers */,
 				CE1A28491F7600AC005F62A9 /* CrosshairView.h in Headers */,
 				CE1A283D1F75FE70005F62A9 /* ResponseServiceViewController.h in Headers */,
 				CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */,
 				CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */,
-				CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */,
 				CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */,
 				CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */,
 				CE6EE3FC1F720DC300FBC830 /* MainViewController.h in Headers */,
@@ -3316,6 +3322,7 @@
 			files = (
 				CE80FE6C1C5E435C00A21A51 /* net.h in Headers */,
 				CE80FE6D1C5E435C00A21A51 /* net_chan.h in Headers */,
+				CE04FB1925CEDCD400C31433 /* net_http.h in Headers */,
 				CE80FE6E1C5E435C00A21A51 /* net_message.h in Headers */,
 				CE80FE6F1C5E435C00A21A51 /* net_tcp.h in Headers */,
 				CE80FE701C5E435C00A21A51 /* net_types.h in Headers */,
@@ -4292,12 +4299,12 @@
 				CE6EE3D31F720D6700FBC830 /* CvarSelect.c in Sources */,
 				CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */,
 				CE6EE3D51F720D6700FBC830 /* CvarTextView.c in Sources */,
+				CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */,
 				CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */,
 				CE1A28481F7600AC005F62A9 /* CrosshairView.c in Sources */,
 				CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */,
 				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
 				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
-				CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
 				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
 				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,
@@ -4400,6 +4407,7 @@
 			files = (
 				CE80FE671C5E433F00A21A51 /* net.c in Sources */,
 				CE80FE681C5E433F00A21A51 /* net_chan.c in Sources */,
+				CE04FB1A25CEDCD400C31433 /* net_http.c in Sources */,
 				CE80FE691C5E433F00A21A51 /* net_message.c in Sources */,
 				CE80FE6A1C5E433F00A21A51 /* net_tcp.c in Sources */,
 				CE80FE6B1C5E433F00A21A51 /* net_udp.c in Sources */,
