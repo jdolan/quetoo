@@ -58,11 +58,12 @@ static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
  */
 int32_t Installer_CheckForUpdates(void) {
 
-	if (Cvar_GetInteger("maintainer")) {
+	if (Cvar_Get("revision")) {
+		Com_Debug(DEBUG_COMMON, "Skipping revisions check\n");
 		return 0;
 	}
 
-	char *data_revision;
+char *data_revision;
 	Fs_Load("revision", (void **) &data_revision);
 
 	int32_t res = Installer_CompareRevision(REVISION, QUETOO_REVISION_URL);
@@ -82,7 +83,11 @@ int32_t Installer_LaunchInstaller(void) {
 
 	GError *error;
 	if (!g_spawn_async(Fs_LibDir(),
-			(gchar *[]) { "java", "-jar", QUETOO_INSTALLER, "--build", BUILD, "--prune", NULL },
+			(gchar *[]) { "java",
+				"-jar", QUETOO_INSTALLER,
+				"--build", BUILD,
+				"--dir", (gchar *) Fs_BaseDir(),
+				"--prune", NULL },
 			NULL,
 			G_SPAWN_SEARCH_PATH |
 			G_SPAWN_DO_NOT_REAP_CHILD |
@@ -96,5 +101,6 @@ int32_t Installer_LaunchInstaller(void) {
 		Com_Error(ERROR_DROP, "Failed: %d: %s\n", error->code, error->message);
 	}
 
+	Com_Shutdown("Installer launched successfully.\n");
 	return 0;
 }
