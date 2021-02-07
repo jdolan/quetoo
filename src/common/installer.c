@@ -68,7 +68,7 @@ int32_t Installer_CheckForUpdates(void) {
 
 	int32_t res = Installer_CompareRevision(revision->string, QUETOO_REVISION_URL);
 	if (res == 0) {
-		Com_Debug(DEBUG_COMMON, "Build revision %s is latest, checking data..\n", REVISION);
+		Com_Debug(DEBUG_COMMON, "Build revision %s is latest, checking data..\n", revision->string);
 		res = Installer_CompareRevision(data_revision, QUETOO_DATA_REVISION_URL);
 		if (res == 0) {
 			Com_Debug(DEBUG_COMMON, "Data revision %s is latest\n", data_revision);
@@ -76,7 +76,7 @@ int32_t Installer_CheckForUpdates(void) {
 			Com_Debug(DEBUG_COMMON, "Data revision %s did not match\n", data_revision);
 		}
 	} else {
-		Com_Debug(DEBUG_COMMON, "Build revision %s is out of date\n", REVISION);
+		Com_Debug(DEBUG_COMMON, "Build revision %s is out of date\n", revision->string);
 	}
 
 	return res;
