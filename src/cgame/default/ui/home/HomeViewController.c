@@ -22,8 +22,20 @@
 #include "cg_local.h"
 
 #include "HomeViewController.h"
+#include "DialogViewController.h"
 
 #define _Class _HomeViewController
+
+#pragma mark - Actions
+
+/**
+ * @brief Dialog::okFunction for launching the installer to fetch updates.
+ */
+static void launchInstaller(ident data) {
+
+	cgi.Print("Launching installer..\n");
+	cgi.LaunchInstaller();
+}
 
 #pragma mark - ViewController
 
@@ -47,9 +59,22 @@ static void loadView(ViewController *self) {
 
 	release(view);
 
-	$(this->motd->text, setText, "Message of the day");
+	if (cgi.CheckForUpdates()) {
 
-	cgi.CheckForUpdates();
+		const Dialog dialog = {
+			.message = "A new version of Quetoo is available. Update now?",
+			.ok = "Yes",
+			.cancel = "No",
+			.okFunction = launchInstaller
+		};
+
+		ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+		$(self, addChildViewController, viewController);
+
+		$(this->motd->text, setText, "A new version of Quetoo is available.");
+	} else {
+		$(this->motd->text, setTextWithFormat, "Quetoo %s is up to date\n", REVISION);
+	}
 }
 
 #pragma mark - Class lifecycle
