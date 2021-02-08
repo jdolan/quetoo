@@ -71,7 +71,7 @@
     <QuetooPhysFSPath>$(QuetooLibsPath)physfs\</QuetooPhysFSPath>
     <QuetooPhysFSIncludePath>$(QuetooPhysFSPath)</QuetooPhysFSIncludePath>
     <QuetooPhysFSLibraryPath>$(QuetooPhysFSPath)bin\$(Platform)\</QuetooPhysFSLibraryPath>
-    <QuetooPhysFSDefs>PHYSFS_DECL=;alloca=_alloca;PHYSFS_SUPPORTS_ZIP=1;PHYSFS_SUPPORTS_7Z=0;PHYSFS_SUPPORTS_GRP=0;PHYSFS_SUPPORTS_HOG=0;PHYSFS_SUPPORTS_MVL=0;PHYSFS_SUPPORTS_WAD=0;PHYSFS_SUPPORTS_QPAK=1;PHYSFS_SUPPORTS_SLB=0;PHYSFS_SUPPORTS_ISO9660=0;PHYSFS_SUPPORTS_VDF=0</QuetooPhysFSDefs>
+    <QuetooPhysFSDefs>PHYSFS_DECL=;alloca=_alloca;utime=_utime;utimbuf=_utimbuf;PHYSFS_SUPPORTS_ZIP=1;PHYSFS_SUPPORTS_7Z=0;PHYSFS_SUPPORTS_GRP=0;PHYSFS_SUPPORTS_HOG=0;PHYSFS_SUPPORTS_MVL=0;PHYSFS_SUPPORTS_WAD=0;PHYSFS_SUPPORTS_QPAK=1;PHYSFS_SUPPORTS_SLB=0;PHYSFS_SUPPORTS_ISO9660=0;PHYSFS_SUPPORTS_VDF=0</QuetooPhysFSDefs>
 
     <QuetooLibXMLPath>$(QuetooLibsPath)xml\</QuetooLibXMLPath>
     <QuetooLibXMLIncludePath>$(QuetooLibXMLPath)include\</QuetooLibXMLIncludePath>
