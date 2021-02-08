@@ -4759,7 +4759,7 @@
 					/opt/local/lib,
 					/usr/local/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/src/**";
 				USE_HEADERMAP = NO;
@@ -4804,7 +4804,7 @@
 					/opt/local/lib,
 					/usr/local/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/src/**";
 				USE_HEADERMAP = NO;
