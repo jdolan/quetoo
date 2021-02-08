@@ -297,7 +297,7 @@ static char *GetZipFilename(void) {
  * but straightforward implementation.
  */
 int32_t ZIP_Main(void) {
-	char path[MAX_QPATH];
+	char path[MAX_OS_PATH];
 
 	Com_Print("\n------------------------------------------\n");
 	Com_Print("\nCreating archive for %s\n\n", bsp_name);
