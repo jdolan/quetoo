@@ -1615,8 +1615,6 @@ void G_Init(void) {
 
 	G_MapList_Init();
 
-	G_MySQL_Init();
-
 	// set these to false to avoid spurious game restarts and alerts on init
 	g_gameplay->modified =
 			g_ctf->modified =
@@ -1648,8 +1646,8 @@ void G_Shutdown(void) {
 
 	gi.Print("Game module shutdown...\n");
 
-	G_MySQL_Shutdown();
 	G_MapList_Shutdown();
+	
 	G_Ai_Shutdown();
 
 	G_ShutdownVote();

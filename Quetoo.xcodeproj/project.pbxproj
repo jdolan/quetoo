@@ -113,7 +113,6 @@
 		CE12D7E01C5C5D6A00CD0B13 /* g_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6611C5C58C300CD0B13 /* g_item.c */; };
 		CE12D7E11C5C5D6A00CD0B13 /* g_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6641C5C58C300CD0B13 /* g_main.c */; };
 		CE12D7E21C5C5D6A00CD0B13 /* g_map_list.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6661C5C58C300CD0B13 /* g_map_list.c */; };
-		CE12D7E31C5C5D6A00CD0B13 /* g_mysql.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6681C5C58C300CD0B13 /* g_mysql.c */; };
 		CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66A1C5C58C300CD0B13 /* g_physics.c */; };
 		CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66D1C5C58C300CD0B13 /* g_util.c */; };
 		CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66F1C5C58C300CD0B13 /* g_weapon.c */; };
@@ -368,7 +367,6 @@
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */; };
-		CE8040191FA90D7000931A89 /* libmysqlclient.20.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */; };
 		CE80FDB61C5E3D4E00A21A51 /* shared-anorms.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */; };
 		CE80FDB71C5E3D4E00A21A51 /* shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B81C5C58C300CD0B13 /* shared.c */; };
 		CE80FDD61C5E3D9700A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
@@ -412,7 +410,6 @@
 		CE80FE8C1C5E442700A21A51 /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6631C5C58C300CD0B13 /* g_local.h */; };
 		CE80FE8D1C5E442700A21A51 /* g_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6651C5C58C300CD0B13 /* g_main.h */; };
 		CE80FE8E1C5E442700A21A51 /* g_map_list.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6671C5C58C300CD0B13 /* g_map_list.h */; };
-		CE80FE8F1C5E442700A21A51 /* g_mysql.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6691C5C58C300CD0B13 /* g_mysql.h */; };
 		CE80FE901C5E442700A21A51 /* g_physics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66B1C5C58C300CD0B13 /* g_physics.h */; };
 		CE80FE911C5E442800A21A51 /* g_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66C1C5C58C300CD0B13 /* g_types.h */; };
 		CE80FE921C5E442800A21A51 /* g_util.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66E1C5C58C300CD0B13 /* g_util.h */; };
@@ -1173,8 +1170,6 @@
 		CE12D6651C5C58C300CD0B13 /* g_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_main.h; sourceTree = "<group>"; };
 		CE12D6661C5C58C300CD0B13 /* g_map_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_map_list.c; sourceTree = "<group>"; };
 		CE12D6671C5C58C300CD0B13 /* g_map_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_map_list.h; sourceTree = "<group>"; };
-		CE12D6681C5C58C300CD0B13 /* g_mysql.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_mysql.c; sourceTree = "<group>"; };
-		CE12D6691C5C58C300CD0B13 /* g_mysql.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_mysql.h; sourceTree = "<group>"; };
 		CE12D66A1C5C58C300CD0B13 /* g_physics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_physics.c; sourceTree = "<group>"; };
 		CE12D66B1C5C58C300CD0B13 /* g_physics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_physics.h; sourceTree = "<group>"; };
 		CE12D66C1C5C58C300CD0B13 /* g_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_types.h; sourceTree = "<group>"; };
@@ -1672,7 +1667,6 @@
 				CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */,
 				CE80FDD61C5E3D9700A21A51 /* libshared.a in Frameworks */,
 				CE12D8241C5C69A800CD0B13 /* libglib-2.0.0.dylib in Frameworks */,
-				CE8040191FA90D7000931A89 /* libmysqlclient.20.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2569,8 +2563,6 @@
 				CE12D6651C5C58C300CD0B13 /* g_main.h */,
 				CE12D6661C5C58C300CD0B13 /* g_map_list.c */,
 				CE12D6671C5C58C300CD0B13 /* g_map_list.h */,
-				CE12D6681C5C58C300CD0B13 /* g_mysql.c */,
-				CE12D6691C5C58C300CD0B13 /* g_mysql.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
@@ -3160,7 +3152,6 @@
 				CE80FE8C1C5E442700A21A51 /* g_local.h in Headers */,
 				CE80FE8D1C5E442700A21A51 /* g_main.h in Headers */,
 				CE80FE8E1C5E442700A21A51 /* g_map_list.h in Headers */,
-				CE80FE8F1C5E442700A21A51 /* g_mysql.h in Headers */,
 				CE80FE901C5E442700A21A51 /* g_physics.h in Headers */,
 				CE80FE911C5E442800A21A51 /* g_types.h in Headers */,
 				CE80FE921C5E442800A21A51 /* g_util.h in Headers */,
@@ -4148,7 +4139,6 @@
 				CE12D7E01C5C5D6A00CD0B13 /* g_item.c in Sources */,
 				CE12D7E11C5C5D6A00CD0B13 /* g_main.c in Sources */,
 				CE12D7E21C5C5D6A00CD0B13 /* g_map_list.c in Sources */,
-				CE12D7E31C5C5D6A00CD0B13 /* g_mysql.c in Sources */,
 				CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,
 				CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */,
@@ -4761,14 +4751,12 @@
 					/opt/local/include/SDL2,
 					"/opt/local/include/glib-2.0",
 					/opt/local/include/libxml2,
-					/opt/local/include/mysql57/mysql,
 					"/opt/local/lib/glib-2.0/include",
 					/usr/local/include,
 					"$(BUILT_PRODUCTS_DIR)/usr/local/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/local/lib,
-					/opt/local/lib/mysql57/mysql,
 					/usr/local/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
@@ -4808,14 +4796,12 @@
 					/opt/local/include/SDL2,
 					"/opt/local/include/glib-2.0",
 					/opt/local/include/libxml2,
-					/opt/local/include/mysql57/mysql,
 					"/opt/local/lib/glib-2.0/include",
 					/usr/local/include,
 					"$(BUILT_PRODUCTS_DIR)/usr/local/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/local/lib,
-					/opt/local/lib/mysql57/mysql,
 					/usr/local/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;

@@ -49,7 +49,6 @@
 #include "g_item.h"
 #include "g_main.h"
 #include "g_map_list.h"
-#include "g_mysql.h"
 #include "g_physics.h"
 #include "g_types.h"
 #include "g_util.h"

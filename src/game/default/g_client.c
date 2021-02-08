@@ -23,8 +23,7 @@
 #include "bg_pmove.h"
 
 /**
- * @brief Make a tasteless death announcement, insert a row into MySQL, and record scores. Side
- * effects are the best!
+ * @brief Make a tasteless death announcement and record scores.
  */
 static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	char buffer[MAX_PRINT_MSG];
@@ -215,8 +214,6 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				self->client->locals.persistent.team->score--;
 			}
 		}
-
-		G_MySQL_ClientObituary(self, attacker, mod);
 	}
 }
 

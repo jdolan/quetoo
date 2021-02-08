@@ -239,40 +239,6 @@ AC_CHECK_HEADER(execinfo.h,
 	),
 )
 
-dnl --------------------------
-dnl Check for MySQL (optional)
-dnl --------------------------
-
-HAVE_MYSQL=no
-
-AC_ARG_WITH(mysql,
-	AS_HELP_STRING([--with-mysql],
-		[use MySQL (relies on mysql_config)]
-	)
-)
-
-AC_PATH_PROGS(MYSQL_CONFIG, mysql_config mysql_config5)
-
-if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
-	MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
-
-	save_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $MYSQL_CFLAGS"
-
-	AC_CHECK_HEADER(mysql.h,
-		HAVE_MYSQL=yes
-		AC_DEFINE(HAVE_MYSQL, 1,
-			[Define to 1 if you have the mysql.h header file.]
-		)
-		MYSQL_LIBS=`$MYSQL_CONFIG --libs`,
-		HAVE_MYSQL=no
-	)
-
-	CFLAGS="$save_CFLAGS"
-fi
-AC_SUBST(MYSQL_CFLAGS)
-AC_SUBST(MYSQL_LIBS)
-
 dnl ---------------------------------
 dnl Check which game modules to build
 dnl ---------------------------------
@@ -520,9 +486,7 @@ Quetoo $VERSION: Automatic configuration OK.
     Game modules: ...... $GAME_MODULES
     AI modules: ........ $AI_MODULES
 
-    Options:
-      MySQL: ........... $HAVE_MYSQL
-      Unit tests: ...... $BUILD_TESTS
+    Unit tests: ........ $BUILD_TESTS
 
   Installation directories:
     Program: ........... $BINDIR
