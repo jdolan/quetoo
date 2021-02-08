@@ -24,6 +24,9 @@
     <ClCompile Include="..\..\src\net\net_udp.c">
       <Filter>src\net</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\net\net_http.c">
+      <Filter>src\net</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\net\net.h">
@@ -42,6 +45,9 @@
       <Filter>src\net</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\net\net_udp.h">
+      <Filter>src\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\net\net_http.h">
       <Filter>src\net</Filter>
     </ClInclude>
   </ItemGroup>

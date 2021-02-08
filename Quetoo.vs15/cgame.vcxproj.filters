@@ -150,9 +150,6 @@
     <ClInclude Include="..\src\cgame\default\ui\common\BindTextView.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\main\DialogViewController.h">
-      <Filter>src\default\ui\main</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\home\HomeViewController.h">
       <Filter>src\default\ui\home</Filter>
     </ClInclude>
@@ -179,6 +176,9 @@
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\cg_flare.h">
       <Filter>src\default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\common\DialogViewController.h">
+      <Filter>src\default\ui\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -301,9 +301,6 @@
     <ClCompile Include="..\src\cgame\default\ui\common\BindTextView.c">
       <Filter>src\default\ui\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\main\DialogViewController.c">
-      <Filter>src\default\ui\main</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\home\HomeViewController.c">
       <Filter>src\default\ui\home</Filter>
     </ClCompile>
@@ -330,6 +327,9 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_flare.c">
       <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\common\DialogViewController.c">
+      <Filter>src\default\ui\common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

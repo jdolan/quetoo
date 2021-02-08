@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\net\net.c" />
     <ClCompile Include="..\..\src\net\net_chan.c" />
+    <ClCompile Include="..\..\src\net\net_http.c" />
     <ClCompile Include="..\..\src\net\net_message.c" />
     <ClCompile Include="..\..\src\net\net_tcp.c" />
     <ClCompile Include="..\..\src\net\net_udp.c" />
@@ -28,6 +29,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\net\net.h" />
     <ClInclude Include="..\..\src\net\net_chan.h" />
+    <ClInclude Include="..\..\src\net\net_http.h" />
     <ClInclude Include="..\..\src\net\net_message.h" />
     <ClInclude Include="..\..\src\net\net_tcp.h" />
     <ClInclude Include="..\..\src\net\net_types.h" />
