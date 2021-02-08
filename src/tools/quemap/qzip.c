@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "deps/minizip/zip.h"
+#include "deps/minizip/miniz.h"
 
 #include "bsp.h"
 #include "material.h"
@@ -291,52 +291,6 @@ static char *GetZipFilename(void) {
 	return zipfile;
 }
 
-#define ZIP_BUFFER_SIZE 1024 * 1024 * 2
-
-/**
- * @brief Adds the specified resource to the .pk3 archive.
- */
-static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
-	static zip_fileinfo zip_info;
-	file_t *file;
-
-	if (!(file = Fs_OpenRead(filename))) {
-		Com_Warn("Failed to read %s\n", filename);
-		return false;
-	}
-
-	if (zipOpenNewFileInZip(zip_file, filename, &zip_info, NULL, 0, NULL, 0, NULL, Z_DEFLATED,
-	                        Z_DEFAULT_COMPRESSION) != Z_OK) {
-		Com_Warn("Failed to write %s\n", filename);
-		return false;
-	}
-
-	void *buffer = Mem_TagMalloc(ZIP_BUFFER_SIZE, MEM_TAG_ASSET);
-	_Bool success = true;
-
-	while (!Fs_Eof(file)) {
-		int64_t len = Fs_Read(file, buffer, 1, ZIP_BUFFER_SIZE);
-		if (len > 0) {
-			if (zipWriteInFileInZip(zip_file, buffer, (uint32_t) len) != ZIP_OK) {
-				Com_Warn("Failed to deflate %s\n", filename);
-				success = false;
-				break;
-			}
-		} else {
-			Com_Warn("Failed to buffer %s\n", filename);
-			success = false;
-			break;
-		}
-	}
-
-	Mem_Free(buffer);
-
-	zipCloseFileInZip(zip_file);
-	Fs_Close(file);
-
-	return success;
-}
-
 /**
  * @brief Loads the specified BSP file, resolves all resources referenced by it,
  * and generates a new zip archive for the project. This is a very inefficient
@@ -379,9 +333,11 @@ int32_t ZIP_Main(void) {
 	assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
 
 	g_snprintf(path, sizeof(path), "%s/%s", Fs_WriteDir(), GetZipFilename());
-	zipFile zip_file = zipOpen(path, APPEND_STATUS_CREATE);
 
-	if (zip_file) {
+	mz_zip_archive zip;
+	memset(&zip, 0, sizeof(zip));
+
+	if (mz_zip_writer_init_file(&zip, path, 0)) {
 		Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), path);
 
 		GList *a = assets;
@@ -409,15 +365,37 @@ int32_t ZIP_Main(void) {
 					}
 				}
 
-				DeflateAsset(zip_file, filename);
+				void *buffer;
+				const int64_t len = Fs_Load(filename, &buffer);
+				if (len == -1) {
+					Com_Warn("Failed to read %s\n", filename);
+					a = a->next;
+					continue;
+				}
+
+				if (!mz_zip_writer_add_mem(&zip, filename, buffer, len, MZ_DEFAULT_COMPRESSION)) {
+					Com_Error(ERROR_FATAL, "Failed to add %s to %s: %s\n",
+							  filename,
+							  path,
+							  mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
+				}
+
 				Com_Print("[A] %s\n", filename);
+
+				Fs_Free(buffer);
 			}
 			a = a->next;
 		}
 
-		zipClose(zip_file, NULL);
+		if (!mz_zip_writer_finalize_archive(&zip)) {
+			Com_Error(ERROR_FATAL, "Failed to finalize %s: %s\n",
+					  path,
+					  mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
+		}
 	} else {
-		Com_Warn("Failed to open %s\n", path);
+		Com_Error(ERROR_FATAL, "Failed to open %s: %s\n",
+				  path,
+				  mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
 	}
 
 	g_list_free(assets);
