@@ -132,8 +132,6 @@
 		CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
 		CE12D7FD1C5C5E0200CD0B13 /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */; };
 		CE12D7FE1C5C5E0200CD0B13 /* cg_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57E1C5C58C300CD0B13 /* cg_view.c */; };
-		CE12D8151C5C5F0600CD0B13 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5021C5C58C300CD0B13 /* ioapi.c */; };
-		CE12D8161C5C5F0600CD0B13 /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5071C5C58C300CD0B13 /* zip.c */; };
 		CE12D8241C5C69A800CD0B13 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE12D82A1C5C69F900CD0B13 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
@@ -396,8 +394,6 @@
 		CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D62F1C5C58C300CD0B13 /* cm_trace.h */; };
 		CE80FE761C5E437F00A21A51 /* cm_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6301C5C58C300CD0B13 /* cm_types.h */; };
 		CE80FE781C5E439200A21A51 /* shared.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B91C5C58C300CD0B13 /* shared.h */; };
-		CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5031C5C58C300CD0B13 /* ioapi.h */; };
-		CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5081C5C58C300CD0B13 /* zip.h */; };
 		CE80FE7C1C5E442700A21A51 /* g_ai.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6441C5C58C300CD0B13 /* g_ai.h */; };
 		CE80FE7E1C5E442700A21A51 /* g_ballistics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6481C5C58C300CD0B13 /* g_ballistics.h */; };
 		CE80FE7F1C5E442700A21A51 /* g_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D64A1C5C58C300CD0B13 /* g_client.h */; };
@@ -975,17 +971,14 @@
 		CE04EFC125CA0F7D00C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04FB1725CEDCD400C31433 /* net_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_http.h; sourceTree = "<group>"; };
 		CE04FB1825CEDCD400C31433 /* net_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_http.c; sourceTree = "<group>"; };
+		CE04FE4E25D0D90400C31433 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		CE052A6E214831FE003446C9 /* check_mem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_mem; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE052A8421483255003446C9 /* check_thread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_thread; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE0B64811D89955B0011F974 /* .turd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		CE12D4FF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE12D5021C5C58C300CD0B13 /* ioapi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ioapi.c; sourceTree = "<group>"; };
-		CE12D5031C5C58C300CD0B13 /* ioapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ioapi.h; sourceTree = "<group>"; };
 		CE12D5041C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE12D5071C5C58C300CD0B13 /* zip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zip.c; sourceTree = "<group>"; };
-		CE12D5081C5C58C300CD0B13 /* zip.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zip.h; sourceTree = "<group>"; };
 		CE12D50A1C5C58C300CD0B13 /* engine-architecture.graffle */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "engine-architecture.graffle"; sourceTree = "<group>"; };
 		CE12D50B1C5C58C300CD0B13 /* engine-architecture.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "engine-architecture.pdf"; sourceTree = "<group>"; };
 		CE12D50C1C5C58C300CD0B13 /* Doxyfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
@@ -2066,12 +2059,9 @@
 		CE12D5011C5C58C300CD0B13 /* minizip */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D5021C5C58C300CD0B13 /* ioapi.c */,
-				CE12D5031C5C58C300CD0B13 /* ioapi.h */,
+				CE04FE4E25D0D90400C31433 /* LICENSE */,
 				CE69DC9E202D3EE700E5C8B1 /* miniz.c */,
 				CE69DC9D202D3EE600E5C8B1 /* miniz.h */,
-				CE12D5071C5C58C300CD0B13 /* zip.c */,
-				CE12D5081C5C58C300CD0B13 /* zip.h */,
 				CE12D5041C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = minizip;
@@ -3214,8 +3204,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE69DC9F202D3EE700E5C8B1 /* miniz.h in Headers */,
-				CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */,
-				CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4201,8 +4189,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE69DCA0202D3EE700E5C8B1 /* miniz.c in Sources */,
-				CE12D8151C5C5F0600CD0B13 /* ioapi.c in Sources */,
-				CE12D8161C5C5F0600CD0B13 /* zip.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
