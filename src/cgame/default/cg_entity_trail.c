@@ -365,7 +365,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		// .intensity = .05f
 	});
 
-	mat4_t m = Mat4_FromTranslation(end);
+	/*mat4_t m = Mat4_FromTranslation(end);
 	m = Mat4_ConcatRotation(m, ent->angles.x, Vec3(1.f, 0.f, 0.f));
 	m = Mat4_ConcatRotation(m, ent->angles.y, Vec3(0.f, 1.f, 0.f));
 	m = Mat4_ConcatRotation(m, ent->angles.z, Vec3(0.f, 0.f, 1.f));
@@ -387,7 +387,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			.end_color = Vec4(color_hue_red, 1.f, 0.f, 0.f),
 			.lifetime = 120
 		});
-	}
+	}*/
 }
 
 static void Cg_FireFlyTrail_Think(cg_sprite_t *sprite, float life, float delta) {
