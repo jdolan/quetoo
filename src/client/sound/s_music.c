@@ -87,7 +87,7 @@ static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, fil
 		*snd = sf_open_virtual(&s_physfs_io, SFM_READ, info, *file);
 
 		if (!*snd || sf_error(*snd)) {
-			Com_Warn("%s\n", sf_strerror(*snd));
+			Com_Warn("%s: %s\n", path, sf_strerror(*snd));
 
 			sf_close(*snd);
 
