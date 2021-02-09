@@ -13,4 +13,4 @@ $QUETOO_DATA_BUCKET = "s3://quetoo-data/"
 $QUETOO_DATA_DIR = $QUETOO_RELEASE_SRC + "share/"
 
 # pull in data into Quetoo/share/
-&aws_exe s3 sync $QUETOO_DATA_BUCKET/ $QUETOO_DATA_DIR
+&$aws_exe s3 sync $QUETOO_DATA_BUCKET/ $QUETOO_DATA_DIR
