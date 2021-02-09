@@ -113,11 +113,6 @@
 #define PM_STOP_EPSILON			0.1f
 
 /**
- * @brief Invalid player positions are nudged to find a valid position.
- */
-#define PM_NUDGE_DIST			1.f
-
-/**
  * @brief Valid player positions are snapped a small distance away from planes.
  */
 #define PM_SNAP_DISTANCE		PM_GROUND_DIST

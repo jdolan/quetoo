@@ -149,7 +149,7 @@ void G_RunThink(g_entity_t *ent) {
 }
 
 /**
- * @return True if the entitiy is in a valid position, false otherwise.
+ * @return True if the entity is in a valid position, false otherwise.
  */
 static _Bool G_GoodPosition(const g_entity_t *ent) {
 
@@ -161,38 +161,31 @@ static _Bool G_GoodPosition(const g_entity_t *ent) {
 }
 
 /**
- * @return True if the entitiy is in, or could be moved to, a valid position, false otherwise.
+ * @return True if the entity is in, or could be moved to, a valid position, false otherwise.
  */
 static _Bool G_CorrectPosition(g_entity_t *ent) {
 
-	if (!G_GoodPosition(ent)) {
+	const int32_t offsets[] = { 0, 1, -1 };
 
-		vec3_t pos;
-		pos = ent->s.origin;
+	vec3_t pos = ent->s.origin;
 
-		for (int32_t i = -1; i <= 1; i++) {
-			for (int32_t j = -1; j <= 1; j++) {
-				for (int32_t k = -1; k <= 1; k++) {
-					ent->s.origin = pos;
+	for (int32_t i = 0; i < lengthof(offsets); i++) {
+		for (int32_t j = 0; j < lengthof(offsets); j++) {
+			for (int32_t k = 0; k < lengthof(offsets); k++) {
 
-					ent->s.origin.x += i * PM_NUDGE_DIST;
-					ent->s.origin.y += j * PM_NUDGE_DIST;
-					ent->s.origin.z += k * PM_NUDGE_DIST;
+				ent->s.origin = Vec3_Add(pos, Vec3(offsets[i], offsets[j], offsets[k]));
 
-					if (G_GoodPosition(ent)) {
-						return true;
-					}
+				if (G_GoodPosition(ent)) {
+					return true;
 				}
 			}
 		}
-
-		ent->s.origin = pos;
-		G_Debug("still solid, reverting %s\n", etos(ent));
-
-		return false;
 	}
 
-	return true;
+	ent->s.origin = pos;
+	G_Debug("still solid, reverting %s\n", etos(ent));
+
+	return false;
 }
 
 #define MAX_SPEED 2400.0

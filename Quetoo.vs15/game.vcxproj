@@ -40,7 +40,6 @@
     <ClInclude Include="..\src\game\default\g_local.h" />
     <ClInclude Include="..\src\game\default\g_main.h" />
     <ClInclude Include="..\src\game\default\g_map_list.h" />
-    <ClInclude Include="..\src\game\default\g_mysql.h" />
     <ClInclude Include="..\src\game\default\g_physics.h" />
     <ClInclude Include="..\src\game\default\g_types.h" />
     <ClInclude Include="..\src\game\default\g_util.h" />
@@ -65,7 +64,6 @@
     <ClCompile Include="..\src\game\default\g_item.c" />
     <ClCompile Include="..\src\game\default\g_main.c" />
     <ClCompile Include="..\src\game\default\g_map_list.c" />
-    <ClCompile Include="..\src\game\default\g_mysql.c" />
     <ClCompile Include="..\src\game\default\g_physics.c" />
     <ClCompile Include="..\src\game\default\g_util.c" />
     <ClCompile Include="..\src\game\default\g_weapon.c" />

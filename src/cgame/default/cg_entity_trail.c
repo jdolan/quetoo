@@ -164,7 +164,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_smoke,
-			.origin = Vec3_Mix(start, origin, (step * i) + RandomRangef(-.5f, .5f)),
+			.origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
 			.velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f)),
 			.acceleration = Vec3_Scale(dir, -20.f),
 			.lifetime = RandomRangef(1000.f, 1400.f),
@@ -364,6 +364,30 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.color = Vec3(.05f, .5f, .05f),
 		// .intensity = .05f
 	});
+
+	mat4_t m = Mat4_FromTranslation(end);
+	m = Mat4_ConcatRotation(m, ent->angles.x, Vec3(1.f, 0.f, 0.f));
+	m = Mat4_ConcatRotation(m, ent->angles.y, Vec3(0.f, 1.f, 0.f));
+	m = Mat4_ConcatRotation(m, ent->angles.z, Vec3(0.f, 0.f, 1.f));
+	m = Mat4_ConcatTranslation(m, Vec3(0.f, 0.f, 3.f));
+
+	vec3_t trail_pos = Mat4_Transform(m, Vec3_Zero());
+
+	vec3_t org, dir;
+	const int32_t count = Cg_TrailFraction(trail_pos, 8.f, ent, TRAIL_PRIMARY, &org, &dir);
+
+	if (count) {
+		Cg_AddSprite(&(cg_sprite_t) {
+			.image = cg_beam_line,
+			.type = SPRITE_BEAM,
+			.origin = trail_pos,
+			.termination = org,
+			.size = 4.f,
+			.color = Vec4(color_hue_red, 1.f, 1.f, 1.f),
+			.end_color = Vec4(color_hue_red, 1.f, 0.f, 0.f),
+			.lifetime = 120
+		});
+	}
 }
 
 static void Cg_FireFlyTrail_Think(cg_sprite_t *sprite, float life, float delta) {
