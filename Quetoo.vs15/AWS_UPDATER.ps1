@@ -1,3 +1,5 @@
+$aws_exe = "aws.exe"
+
 $QUETOO_REVISION_SRC = "revision"
 $QUETOO_BUCKET = "s3://quetoo/"
 $QUETOO_ARCH = If ($env:Platform -Match "Win32") {"i686"} Else {"x86_64"}
