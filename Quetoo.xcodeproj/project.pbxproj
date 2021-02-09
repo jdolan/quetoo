@@ -50,6 +50,7 @@
 
 /* Begin PBXBuildFile section */
 		CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */; };
+		CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CE04F03E25CADF4900C31433 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
 		CE04F06325CADF4D00C31433 /* atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CE354ED9220738BF008AE0C2 /* atlas.h */; };
 		CE04F08825CADF5100C31433 /* cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6261C5C58C300CD0B13 /* cmd.c */; };
@@ -1825,6 +1826,7 @@
 				CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */,
 				CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */,
 				CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */,
+				CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */,
 				CE78386723FDC368004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */,
 				CE1A28201F748B20005F62A9 /* libSDL2_image-2.0.0.dylib in Frameworks */,

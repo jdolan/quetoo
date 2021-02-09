@@ -26,6 +26,8 @@
 	#include <ws2tcpip.h>
 
 	#define ioctl ioctlsocket
+
+	#include <Objectively/URLSession.h>
 #else
 	#include <netdb.h>
 	#include <netinet/tcp.h>
@@ -263,6 +265,15 @@ void Net_Init(void) {
 void Net_Shutdown(void) {
 
 #if defined(_WIN32)
+	#if defined(_MSC_VER)
+	// HACK: With MSVC runtime, exit() terminates all threads before dispatching
+	// atexit() hooks, which means that the URLSession's thread is already gone
+	// before normal Objectively teardown and destroy operations can get to it.
+	// As a workaround, we explicitly cancel the URLSession's worker thread here,
+	// from the main thread, well before exit().
+	URLSession *session = $$(URLSession, sharedInstance);
+	$(session, invalidateAndCancel);
+	#endif
 	WSACleanup();
 #endif
 
