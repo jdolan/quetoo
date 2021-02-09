@@ -1,7 +1,8 @@
 $commit = git rev-parse --short HEAD
-$commit = '"' + $commit + '"'
 
 [IO.File]::WriteAllText("revision", $commit)
+
+$commit = '"' + $commit + '"'
 
 $content = [IO.File]::ReadAllText("src/config.h")
 
