@@ -95,27 +95,31 @@ int32_t Installer_CheckForUpdates(void) {
 int32_t Installer_LaunchInstaller(void) {
 
 	Com_Print("Quetoo is out of date, launching installer..\n");
+	
+	gchar *path = g_build_path(G_DIR_SEPARATOR_S, Fs_LibDir(), QUETOO_INSTALLER);
+	GError *error = NULL;
 
-	GError *error;
-	if (!g_spawn_async(Fs_LibDir(),
+	if (!g_spawn_async(NULL,
 			(gchar *[]) { "java",
-				"-jar", QUETOO_INSTALLER,
+				"-jar", path,
 				"--build", BUILD,
 				"--dir", (gchar *) Fs_BaseDir(),
 				"--prune", NULL },
 			NULL,
 			G_SPAWN_SEARCH_PATH |
 			G_SPAWN_DO_NOT_REAP_CHILD |
-			G_SPAWN_STDOUT_TO_DEV_NULL |
-			G_SPAWN_STDERR_TO_DEV_NULL,
+			G_SPAWN_CHILD_INHERITS_STDIN |
+			G_SPAWN_LEAVE_DESCRIPTORS_OPEN,
 			NULL,
 			NULL,
 			NULL,
 			&error)) {
 
+		g_free(path);
 		Com_Error(ERROR_DROP, "Failed: %d: %s\n", error->code, error->message);
 	}
-
+	
+	g_free(path);
 	Com_Shutdown("Installer launched successfully.\n");
 	return 0;
 }
