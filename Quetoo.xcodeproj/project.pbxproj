@@ -49,6 +49,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */; };
 		CE04F03E25CADF4900C31433 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
 		CE04F06325CADF4D00C31433 /* atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CE354ED9220738BF008AE0C2 /* atlas.h */; };
 		CE04F08825CADF5100C31433 /* cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6261C5C58C300CD0B13 /* cmd.c */; };
@@ -144,7 +145,6 @@
 		CE1A28191F740E2C005F62A9 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1A28171F740E2C005F62A9 /* libObjectivelyMVC.dylib */; };
 		CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FF561C5E485A00A21A51 /* libcurl.4.dylib */; };
 		CE1A281C1F740E7B005F62A9 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
-		CE1A281E1F740ECC005F62A9 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */; };
 		CE1A28201F748B20005F62A9 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
 		CE1A28211F748B3A005F62A9 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */; };
 		CE1A28221F748B59005F62A9 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
@@ -964,6 +964,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = ../../../../usr/local/lib/libsndfile.1.dylib; sourceTree = "<group>"; };
 		CE04EF9325CA0EE400C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04EFC125CA0F7D00C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04FB1725CEDCD400C31433 /* net_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_http.h; sourceTree = "<group>"; };
@@ -1655,7 +1656,7 @@
 				CE78386523FDC2EB004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
-				CE1A281E1F740ECC005F62A9 /* libsndfile.1.dylib in Frameworks */,
+				CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2904,6 +2905,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */,
 				CEAAA4AF25C6E65100EE81B3 /* libObjectivelyMVC.0.dylib */,
 				CECD8AFB2587CC5A00D8C7E6 /* libopenal.1.21.0.dylib */,
 				CE4DD107256F0F5600FECAFC /* libidn2.0.dylib */,
