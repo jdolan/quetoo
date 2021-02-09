@@ -96,7 +96,7 @@ int32_t Installer_LaunchInstaller(void) {
 
 	Com_Print("Quetoo is out of date, launching installer..\n");
 	
-	gchar *path = g_build_path(G_DIR_SEPARATOR_S, Fs_LibDir(), QUETOO_INSTALLER);
+	gchar *path = g_build_path(G_DIR_SEPARATOR_S, Fs_LibDir(), QUETOO_INSTALLER, NULL);
 	GError *error = NULL;
 
 	if (!g_spawn_async(NULL,
