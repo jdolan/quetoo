@@ -67,10 +67,6 @@ on_success:
 
     Remove-Item .\Quetoo\* -include *.exp,*.lib,*.ilk -recurse
 
-    .\AWS_UPDATER.ps1
-
-    7z a ..\Quetoo.zip Quetoo\
-
     .\AWS.ps1
 
     Pop-Location
