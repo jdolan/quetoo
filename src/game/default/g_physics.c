@@ -169,9 +169,9 @@ static _Bool G_CorrectPosition(g_entity_t *ent) {
 
 	vec3_t pos = ent->s.origin;
 
-	for (int32_t i = 0; i < lengthof(offsets); i++) {
-		for (int32_t j = 0; j < lengthof(offsets); j++) {
-			for (int32_t k = 0; k < lengthof(offsets); k++) {
+	for (size_t i = 0; i < lengthof(offsets); i++) {
+		for (size_t j = 0; j < lengthof(offsets); j++) {
+			for (size_t k = 0; k < lengthof(offsets); k++) {
 
 				ent->s.origin = Vec3_Add(pos, Vec3(offsets[i], offsets[j], offsets[k]));
 
