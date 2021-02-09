@@ -97,6 +97,24 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
+	 * @defgroup installer Installer
+	 * @{
+	 */
+
+	/**
+	 * @brief Checks for available updates via the official distribution site.
+	 * @return Zero if no updates are available, non-zero if updates are available.
+	 */
+	int32_t (*CheckForUpdates)(void);
+
+	/**
+	 * @brief Launches the installer to fetch available updates.
+	 * @return Zero if the installer was successfully launched, non-zero on error.
+	 */
+	int32_t (*LaunchInstaller)(void);
+
+	/**
+	 * @}
 	 * @defgroup memory-management Memory management
 	 * @{
 	 */
@@ -157,11 +175,6 @@ typedef struct cg_import_s {
 	 * @defgroup filesystem Filesystem
 	 * @{
 	 */
-
-	/**
-	 * @return The base directory, if running from a bundled application.
-	 */
-	const char *(*BaseDir)(void);
 
 	/**
 	 * @brief Opens the specified file for reading.

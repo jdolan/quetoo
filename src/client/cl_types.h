@@ -406,7 +406,6 @@ typedef struct {
 } cl_mouse_state_t;
 
 typedef struct {
-	_Bool http;
 	file_t *file;
 	char tempname[MAX_OS_PATH];
 	char name[MAX_OS_PATH];

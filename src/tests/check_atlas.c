@@ -22,7 +22,7 @@
 #include <check.h>
 #include <unistd.h>
 
-#include "atlas.h"
+#include "tests.h"
 
 static SDL_Surface *CreateSurface(int32_t w, int32_t h, int32_t color) {
 

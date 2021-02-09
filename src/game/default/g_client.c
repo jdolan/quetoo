@@ -23,8 +23,7 @@
 #include "bg_pmove.h"
 
 /**
- * @brief Make a tasteless death announcement, insert a row into MySQL, and record scores. Side
- * effects are the best!
+ * @brief Make a tasteless death announcement and record scores.
  */
 static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	char buffer[MAX_PRINT_MSG];
@@ -215,8 +214,6 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				self->client->locals.persistent.team->score--;
 			}
 		}
-
-		G_MySQL_ClientObituary(self, attacker, mod);
 	}
 }
 
@@ -1203,13 +1200,19 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	} else {
 
 		s = GetUserInfo(user_info, "shirt");
-		Color_Parse(s, &cl->locals.persistent.shirt);
+		if (!Color_Parse(s, &cl->locals.persistent.shirt)) {
+			cl->locals.persistent.shirt = color_white;
+		}
 
 		s = GetUserInfo(user_info, "pants");
-		Color_Parse(s, &cl->locals.persistent.pants);
+		if (!Color_Parse(s, &cl->locals.persistent.pants)) {
+			cl->locals.persistent.pants = color_white;
+		}
 
 		s = GetUserInfo(user_info, "helmet");
-		Color_Parse(s, &cl->locals.persistent.helmet);
+		if (!Color_Parse(s, &cl->locals.persistent.helmet)) {
+			cl->locals.persistent.helmet = color_white;
+		}
 	}
 
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };

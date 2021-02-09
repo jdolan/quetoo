@@ -21,7 +21,7 @@
 #pragma once
 
 #include "collision/cm_material.h"
-#include "image.h"
+#include "common/image.h"
 
 #include "quemap.h"
 

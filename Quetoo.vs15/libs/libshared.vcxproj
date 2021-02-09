@@ -19,16 +19,20 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\collision\cm_types.h" />
-    <ClInclude Include="..\..\src\matrix.h" />
-    <ClInclude Include="..\..\src\shared.h" />
-    <ClInclude Include="..\..\src\vector.h" />
+    <ClInclude Include="..\..\src\shared\color.h" />
+    <ClInclude Include="..\..\src\shared\matrix.h" />
+    <ClInclude Include="..\..\src\shared\parse.h" />
+    <ClInclude Include="..\..\src\shared\shared.h" />
+    <ClInclude Include="..\..\src\shared\swap.h" />
+    <ClInclude Include="..\..\src\shared\vector.h" />
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\unistd.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\shared-anorms.c" />
-    <ClCompile Include="..\..\src\shared.c" />
+    <ClCompile Include="..\..\src\shared\parse.c" />
+    <ClCompile Include="..\..\src\shared\shared-anorms.c" />
+    <ClCompile Include="..\..\src\shared\shared.c" />
+    <ClCompile Include="..\..\src\shared\swap.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2F1C792E-6243-462B-AF0D-E2554E77D5C5}</ProjectGuid>

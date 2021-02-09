@@ -16,7 +16,10 @@
           "subviews": [
             {
               "class": "Label",
-              "identifier": "motd"
+              "identifier": "motd",
+			  "text": {
+				  "lineWrap": true
+			  }
             }
           ]
         }

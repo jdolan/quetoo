@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleDisplayName</key>
+	<string>Quetoo</string>
+	<key>CFBundleExecutable</key>
+	<string>quetoo</string>
+	<key>CFBundleIconFile</key>
+	<string>default/icons/quetoo.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.quetoo.launcher</string>
+	<key>CFBundleName</key>
+	<string>Quetoo</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>BETA</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>BETA</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.9</string>
+</dict>
+</plist>

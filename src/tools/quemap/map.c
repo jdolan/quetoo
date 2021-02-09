@@ -23,7 +23,6 @@
 #include "bsp.h"
 #include "map.h"
 #include "material.h"
-#include "parse.h"
 #include "qbsp.h"
 #include "texinfo.h"
 

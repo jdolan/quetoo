@@ -23,7 +23,7 @@
 
 #include <check.h>
 
-#include "common.h"
+#include "common/common.h"
 
 int Test_Run(Suite *suite);
 void Test_Init(int32_t argc, char **argv);

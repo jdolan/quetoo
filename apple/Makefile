@@ -1,69 +1,67 @@
 # Makefile for Quetoo.app, requires awscli and dylibbundler.
 # http://macdylibbundler.sourceforge.net/
 
+CODESIGN_IDENTITY = "77C0E36DFF54D135D716AD4CA752823838E4D648"
+
 ARCH = x86_64
-HOST = $(ARCH)-apple-darwin
-UPDATE = quetoo-installer-small.jar
+BUILD = $(ARCH)-apple-darwin
 TARGET = target
-INSTALL = $(TARGET)/Quetoo
-QUETOO = $(INSTALL)/Quetoo.app
-BINDIR = $(QUETOO)/Contents/MacOS
-LIBDIR = $(QUETOO)/Contents/MacOS/lib
-DATADIR = $(QUETOO)/Contents/Resources
-SNAPSHOT = $(TARGET)/Quetoo-BETA-$(HOST).dmg
-VOLUME_NAME = "Quetoo BETA $(HOST)"
+INSTALL = $(TARGET)/Quetoo.app
+BINDIR = $(INSTALL)/Contents/MacOS
+LIBDIR = $(INSTALL)/Contents/MacOS/lib
+DATADIR = $(INSTALL)/Contents/Resources
+INSTALLER = quetoo-installer-small.jar
+SNAPSHOT = $(TARGET)/Quetoo-BETA-$(BUILD).dmg
+VOLUME_NAME = "Quetoo BETA $(BUILD)"
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean install-lib install-update post-install snapshot
-
-all-data: clean install-lib install-update install-data post-install snapshot
+all: clean configure compile pre-install install install-lib install-installer post-install
+continuous-integration: all release install-data snapshot snapshot-release
 
 configure:
-	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O0' --prefix=/
+	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' --prefix=/
 	
-compile: configure
+compile:
 	make -C .. -j8 all
 
 pre-install:
 	install -d $(INSTALL)
-	cp -R Quetoo/* $(INSTALL)
+	cp -r Quetoo.app/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 
-install: compile pre-install
-	ln -f -s Contents/MacOS $(QUETOO)/bin
-	ln -f -s Contents/MacOS/lib $(QUETOO)/lib
-	ln -f -s Contents/Resources $(QUETOO)/share
-	make -C .. DESTDIR=$(realpath $(QUETOO)) install
-	rm -f $(QUETOO)/bin $(QUETOO)/lib $(QUETOO)/share
+install:
+	ln -f -s Contents/MacOS $(INSTALL)/bin
+	ln -f -s Contents/MacOS/lib $(INSTALL)/lib
+	ln -f -s Contents/Resources $(INSTALL)/share
+	make -C .. DESTDIR=$(realpath $(INSTALL)) install
+	rm -f $(INSTALL)/bin $(INSTALL)/lib $(INSTALL)/share
 
-install-lib: install
+install-lib:
 	dylibbundler -b \
 		-x $(BINDIR)/quemap \
 		-x $(BINDIR)/quetoo \
 		-x $(BINDIR)/quetoo-dedicated \
 		-x $(BINDIR)/quetoo-master \
-		-x $(BINDIR)/quetoo-update \
 		-x $(LIBDIR)/default/ai.so \
 		-x $(LIBDIR)/default/cgame.so \
 		-x $(LIBDIR)/default/game.so \
 	-d $(LIBDIR) -of -p @executable_path/lib
 
-install-update:
-	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(LIBDIR)/
+install-installer:
+	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(INSTALLER) $(LIBDIR)/
+
+post-install:
+	xattr -cr $(QUETOO)
+	codesign -s $(CODESIGN_IDENTITY) --deep --force $(INSTALL)
+
+release:
+	aws s3 sync --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(BUILD)
+	git rev-parse --short HEAD > $(TARGET)/revision
+	aws s3 cp $(TARGET)/revision $(QUETOO_S3_BUCKET)/revisions/$(BUILD)
 
 install-data:
 	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
-
-post-install:
-	./set-icon.py $(DATADIR)/quetoo-folder.icns $(INSTALL)
-	./set-icon.py $(DATADIR)/quemap.icns $(BINDIR)/quemap
-	./set-icon.py $(DATADIR)/quetoo.icns $(BINDIR)/quetoo
-	./set-icon.py $(DATADIR)/quetoo-dedicated.icns $(BINDIR)/quetoo-dedicated
-	./set-icon.py $(DATADIR)/quetoo-update.icns $(BINDIR)/quetoo-update
-
-release:
-	aws s3 sync --exclude 'Icon*' --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
 
 snapshot:
 	ln -f -s /Applications $(TARGET)/Applications
@@ -76,4 +74,4 @@ snapshot-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all all-data configure compile pre-install install install-lib install-update install-data post-install release snapshot snapshot-release clean
+.PHONY: all configure compile pre-install install install-lib install-installer post-install release install-data snapshot snapshot-release clean

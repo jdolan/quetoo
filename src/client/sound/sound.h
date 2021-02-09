@@ -21,7 +21,7 @@
 
 #ifndef __SOUND_H__
 
-#include "console.h"
+#include "common/common.h"
 
 #include "s_main.h"
 #include "s_media.h"

@@ -7,8 +7,8 @@
     <Filter Include="src">
       <UniqueIdentifier>{fdc66d56-c60f-41f4-9e2a-482e8362c59e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\collision">
-      <UniqueIdentifier>{ab63c861-8f2c-4b59-8051-17178240c3bf}</UniqueIdentifier>
+    <Filter Include="src\shared">
+      <UniqueIdentifier>{00f3b106-549d-427a-817b-286f55816ec6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -18,25 +18,40 @@
     <ClInclude Include="..\src\unistd.h">
       <Filter>vs</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\shared.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\..\src\shared\color.h">
+      <Filter>src\shared</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_types.h">
-      <Filter>src\collision</Filter>
+    <ClInclude Include="..\..\src\shared\matrix.h">
+      <Filter>src\shared</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\vector.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\..\src\shared\parse.h">
+      <Filter>src\shared</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\matrix.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\..\src\shared\shared.h">
+      <Filter>src\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\swap.h">
+      <Filter>src\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\vector.h">
+      <Filter>src\shared</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\shared.c">
-      <Filter>src</Filter>
+    <ClCompile Include="..\..\src\shared\color.c">
+      <Filter>src\shared</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\shared-anorms.c">
-      <Filter>src</Filter>
+    <ClCompile Include="..\..\src\shared\parse.c">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\shared.c">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\shared-anorms.c">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\swap.c">
+      <Filter>src\shared</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

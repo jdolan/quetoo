@@ -22,7 +22,7 @@
 #include <check.h>
 #include <unistd.h>
 
-#include "shared.h"
+#include "shared/shared.h"
 
 /**
  * @brief Test entry point.

@@ -1,4 +1,5 @@
-$commit = '"' + $commit = git rev-parse --short HEAD + '"'
+$commit = git rev-parse --short HEAD
+$commit = '"' + $commit + '"'
 
 [IO.File]::WriteAllText("revision", $commit)
 

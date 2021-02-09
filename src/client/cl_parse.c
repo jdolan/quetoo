@@ -20,7 +20,6 @@
  */
 
 #include "cl_local.h"
-#include "parse.h"
 
 static char *sv_cmd_names[32] = {
 	"SV_CMD_BAD",
@@ -69,8 +68,8 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 	g_strlcat(cls.download.tempname, ".tmp", sizeof(cls.download.tempname));
 
 	// attempt an HTTP download if available
-	if (cls.download_url[0] && Cl_HttpDownload()) {
-		return false;
+	if (cls.download_url[0]) {
+//		return false; FIXME: Re-enable this when we have 3rd party HTTP servers in play
 	}
 
 	// check to see if we already have a temp for this file, if so, try to resume
@@ -497,13 +496,8 @@ void Cl_ParseServerMessage(void) {
 				Com_Print("Server disconnected, reconnecting...\n");
 				// stop download
 				if (cls.download.file) {
-					if (cls.download.http) { // clean up http downloads
-						Cl_HttpDownload_Complete();
-					} else { // or just stop UDP ones
-						Fs_Close(cls.download.file);
-					}
-					cls.download.name[0] = '\0';
-					cls.download.file = NULL;
+					Fs_Close(cls.download.file);
+					memset(&cls.download, 0, sizeof(cls.download));
 				}
 				cls.state = CL_CONNECTING;
 				cls.connect_time = 0; // fire immediately

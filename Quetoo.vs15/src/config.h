@@ -43,10 +43,13 @@
 
 #if defined(_WIN64)
 	#define BUILD_HOST "Win64 " BUILD_MACHINE
+	#define BUILD "x86_64-pc-windows"
 #elif defined(_WIN32)
 	#define BUILD_HOST "Win32 " BUILD_MACHINE
+	#define BUILD "i686-pc-windows"
 #else
 	#define BUILD_HOST "Windows " BUILD_MACHINE
+	#define BUILD "unknown-pc-windows"
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
@@ -76,6 +79,10 @@
 /* Define to path containing the game data.
  */
 #define PKGDATADIR "/share"
+
+/* Define to path containing the shared modules.
+ */
+#define BINDIR "/bin"
 
 /* Define to path containing the shared modules.
  */

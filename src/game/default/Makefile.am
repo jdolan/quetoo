@@ -18,7 +18,6 @@ noinst_HEADERS = \
 	g_local.h \
 	g_main.h \
 	g_map_list.h \
-	g_mysql.h \
 	g_physics.h \
 	g_types.h \
 	g_util.h \
@@ -36,7 +35,7 @@ libpmove_la_CFLAGS = \
 libpmove_la_LDFLAGS = \
 	-shared
 libpmove_la_LIBADD = \
-	$(top_builddir)/src/libshared.la
+	$(top_builddir)/src/shared/libshared.la
 
 gamelibdir = \
 	@PKGLIBDIR@/default
@@ -62,7 +61,6 @@ game_la_SOURCES = \
 	g_item.c \
 	g_main.c \
 	g_map_list.c \
-	g_mysql.c \
 	g_physics.c \
 	g_util.c \
 	g_weapon.c
@@ -71,8 +69,7 @@ game_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
-	@MYSQL_CFLAGS@
+	@GLIB_CFLAGS@
 
 game_la_LDFLAGS = \
 	-avoid-version \
@@ -82,7 +79,4 @@ game_la_LDFLAGS = \
 
 game_la_LIBADD = \
 	libpmove.la \
-	$(top_builddir)/src/libparse.la \
-	@GLIB_LIBS@ \
-	@MYSQL_LIBS@
-
+	@GLIB_LIBS@

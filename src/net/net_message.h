@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "common.h"
+#include "net_types.h"
 
 /**
  * @brief Delta compression flags for pm_state_t.
