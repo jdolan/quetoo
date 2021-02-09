@@ -69,8 +69,6 @@ on_success:
 
     .\AWS_UPDATER.ps1
 
-    7z a ..\Quetoo.zip Quetoo\
-
     .\AWS.ps1
 
     Pop-Location
