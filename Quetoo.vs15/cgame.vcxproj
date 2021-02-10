@@ -124,6 +124,12 @@
     <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\ObjectivelyMVC.vcxproj">
+      <Project>{ad4ceb0f-306e-4d57-b579-503239939766}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
+      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
+    </ProjectReference>
     <ProjectReference Include="libs\libpmove.vcxproj">
       <Project>{b1e86937-5a7a-48f6-9dab-a1d2900c3ae1}</Project>
     </ProjectReference>

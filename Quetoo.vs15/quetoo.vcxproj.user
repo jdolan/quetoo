@@ -9,6 +9,6 @@
     <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default"</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default" -debug net</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

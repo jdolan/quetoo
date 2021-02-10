@@ -32,6 +32,12 @@
     <ClInclude Include="..\src\QUETOO.H" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\ObjectivelyMVC.vcxproj">
+      <Project>{ad4ceb0f-306e-4d57-b579-503239939766}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
+      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
+    </ProjectReference>
     <ProjectReference Include="libs\libclient.vcxproj">
       <Project>{c85eafff-bad0-46c2-868c-982fe719263e}</Project>
     </ProjectReference>

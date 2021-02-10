@@ -92,6 +92,9 @@
     <ResourceCompile Include="..\src\tools\quemap\quemap-icon.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
+      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
+    </ProjectReference>
     <ProjectReference Include="libs\libcmodel.vcxproj">
       <Project>{76ebd445-3535-4652-be8b-7de4f03591ce}</Project>
     </ProjectReference>
