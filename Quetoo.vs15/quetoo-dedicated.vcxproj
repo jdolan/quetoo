@@ -74,7 +74,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>curses.lib;glib-2.0.lib;intl.lib;libcurl.lib;SDL2.lib;physfs.lib;ws2_32.lib;dbghelp.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>curses.lib;glib-2.0.lib;intl.lib;libcurl.lib;SDL2.lib;physfs.lib;ws2_32.lib;dbghelp.lib;dlfcn.lib;Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
