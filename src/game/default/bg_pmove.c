@@ -1127,9 +1127,13 @@ static void Pm_WaterMove(void) {
 	Pm_Debug("%s\n", vtos(pm->s.origin));
 
 	// apply friction, slowing rapidly when first entering the water
-	Pm_Friction();
+	float speed = Vec3_Length(pm->s.velocity);
 
-	// and sink if idle
+	for (int32_t i = speed / PM_SPEED_WATER; i >= 0; i--) {
+		Pm_Friction();
+	}
+
+	// and sink
 	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up && pm->s.type != PM_HOOK_PULL && pm->s.type != PM_HOOK_SWING) {
 		if (pm->s.velocity.z > PM_SPEED_WATER_SINK) {
 			Pm_Gravity();
@@ -1159,7 +1163,6 @@ static void Pm_WaterMove(void) {
 		}
 	}
 
-	float speed;
 	const vec3_t dir = Vec3_NormalizeLength(vel, &speed);
 	speed = Clampf(speed, 0, PM_SPEED_WATER);
 
