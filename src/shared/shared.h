@@ -299,6 +299,7 @@ typedef struct {
 	uint16_t time; // duration for temporal state flags
 	int16_t gravity;
 	vec3_t view_offset; // add to origin to resolve eyes
+	float step_offset; // add to final origin to resolve step interpolation
 	vec3_t view_angles; // base view angles
 	vec3_t delta_angles; // offset for spawns, pushers, etc.
 	vec3_t hook_position; // position we're hooking to

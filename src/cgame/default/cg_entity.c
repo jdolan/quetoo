@@ -156,39 +156,6 @@ static void Cg_EntitySound(cl_entity_t *ent) {
 }
 
 /**
- * @brief Setup step interpolation.
- */
-void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, float height) {
-
-	const uint32_t delta = time - step->timestamp;
-
-	if (delta < step->interval) {
-		const float lerp = (step->interval - delta) / (float) step->interval;
-		step->height = step->height * (1.f - lerp) + height;
-	} else {
-		step->height = height;
-		step->timestamp = time;
-	}
-
-	step->interval = 128.f * (fabsf(step->height) / PM_STEP_HEIGHT);
-}
-
-/**
- * @brief Interpolate the entity's step for the current frame.
- */
-void Cg_InterpolateStep(cl_entity_step_t *step) {
-
-	const uint32_t delta = cgi.client->unclamped_time - step->timestamp;
-
-	if (delta < step->interval) {
-		const float lerp = (step->interval - delta) / (float) step->interval;
-		step->delta_height = lerp * step->height;
-	} else {
-		step->delta_height = 0.0;
-	}
-}
-
-/**
  * @brief Interpolate the current frame, processing any new events and advancing the simulation.
  */
 void Cg_Interpolate(const cl_frame_t *frame) {
@@ -205,12 +172,6 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 		Cg_EntitySound(ent);
 
 		Cg_EntityEvent(ent);
-
-		Cg_InterpolateStep(&ent->step);
-
-		if (ent->step.delta_height) {
-			ent->origin.z = ent->current.origin.z - ent->step.delta_height;
-		}
 	}
 }
 

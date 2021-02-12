@@ -58,14 +58,6 @@ typedef struct {
 	_Bool reverse;
 } cl_entity_animation_t;
 
-typedef struct {
-	float height;
-	uint32_t time;
-	uint32_t timestamp;
-	uint32_t interval;
-	float delta_height;
-} cl_entity_step_t;
-
 typedef enum {
 	TRAIL_PRIMARY,
 	TRAIL_SECONDARY,
@@ -97,8 +89,6 @@ typedef struct {
 	vec3_t abs_mins, abs_maxs; // absolute bounding box
 	float legs_yaw; // only used by player models; leg angle ideal yaw
 	float legs_current_yaw; // only used by player models
-
-	cl_entity_step_t step; // the step the entity just traversed
 
 	mat4_t matrix; // interpolated translation and rotation
 	mat4_t inverse_matrix; // for box hull collision
@@ -146,9 +136,8 @@ typedef struct {
 		vec3_t origin; // the predicted view origin
 		vec3_t offset; // and offset (ducking)
 		vec3_t angles; // and angles (local movement + delta angles)
+		float step_offset;
 	} view;
-
-	cl_entity_step_t step; // the predicted step
 
 	struct g_entity_s *ground_entity;
 

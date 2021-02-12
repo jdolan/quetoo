@@ -81,6 +81,7 @@
 #define PM_SPEED_WATER			118.f
 #define PM_SPEED_WATER_JUMP		420.f
 #define PM_SPEED_WATER_SINK		-16.f
+#define PM_SPEED_STEP			150.f
 
 /**
  * @brief The walk modifier slows all user-controlled speeds.
@@ -140,17 +141,16 @@ extern const vec3_t PM_MAXS;
 #define PMF_JUMPED				(PMF_GAME << 1) // player jumped
 #define PMF_JUMP_HELD			(PMF_GAME << 2) // player's jump key is down
 #define PMF_ON_GROUND			(PMF_GAME << 3) // player is on ground
-#define PMF_ON_STAIRS			(PMF_GAME << 4) // player traversed step
-#define PMF_ON_LADDER			(PMF_GAME << 5) // player is on ladder
-#define PMF_UNDER_WATER			(PMF_GAME << 6) // player is under water
-#define PMF_TIME_PUSHED			(PMF_GAME << 7) // time before can seek ground
-#define PMF_TIME_TRICK_JUMP		(PMF_GAME << 8) // time eligible for trick jump
-#define PMF_TIME_WATER_JUMP		(PMF_GAME << 9) // time before control
-#define PMF_TIME_LAND			(PMF_GAME << 10) // time before jump eligible
-#define PMF_TIME_TELEPORT		(PMF_GAME << 11) // time frozen in place
-#define PMF_GIBLET				(PMF_GAME << 12) // player is a giblet
-#define PMF_HOOK_RELEASED		(PMF_GAME << 13) // player's hook key was released
-#define PMF_TIME_TRICK_START	(PMF_GAME << 14) // time until we can initiate a trick jump
+#define PMF_ON_LADDER			(PMF_GAME << 4) // player is on ladder
+#define PMF_UNDER_WATER			(PMF_GAME << 5) // player is under water
+#define PMF_TIME_PUSHED			(PMF_GAME << 6) // time before can seek ground
+#define PMF_TIME_TRICK_JUMP		(PMF_GAME << 7) // time eligible for trick jump
+#define PMF_TIME_WATER_JUMP		(PMF_GAME << 8) // time before control
+#define PMF_TIME_LAND			(PMF_GAME << 9) // time before jump eligible
+#define PMF_TIME_TELEPORT		(PMF_GAME << 10) // time frozen in place
+#define PMF_GIBLET				(PMF_GAME << 11) // player is a giblet
+#define PMF_HOOK_RELEASED		(PMF_GAME << 12) // player's hook key was released
+#define PMF_TIME_TRICK_START	(PMF_GAME << 13) // time until we can initiate a trick jump
 
 /**
  * @brief The mask of pm_state_t.flags affecting pm_state_t.time.
