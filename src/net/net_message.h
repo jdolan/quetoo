@@ -37,6 +37,7 @@
 #define PS_PM_DELTA_ANGLES		(1 << 8)
 #define PS_PM_HOOK_POSITION		(1 << 9)
 #define PS_PM_HOOK_LENGTH		(1 << 10)
+#define PS_PM_STEP_OFFSET		(1 << 11)
 
 /**
  * @brief Delta compression flags for user_cmd_t.

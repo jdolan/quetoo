@@ -226,21 +226,15 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
 		const vec3_t error = Vec3_Scale(pr->error, 1.f - cgi.client->lerp);
 		cgi.view->origin = Vec3_Add(cgi.view->origin, error);
 
-		Cg_InterpolateStep(&cgi.client->predicted_state.step);
-		cgi.view->origin.z -= cgi.client->predicted_state.step.delta_height;
-
+		cgi.view->origin.z -= pr->view.step_offset;
 	} else {
-		cgi.view->origin = Vec3_Mix(ps0->pm_state.origin, ps1->pm_state.origin, cgi.client->lerp);
-		const vec3_t offset = Vec3_Mix(ps0->pm_state.view_offset, ps1->pm_state.view_offset, cgi.client->lerp);
+		vec3_t ps0_org = Vec3_Add(ps0->pm_state.origin, ps0->pm_state.view_offset);
+		ps0_org.z -= ps0->pm_state.step_offset;
 
-		cgi.view->origin = Vec3_Add(cgi.view->origin, offset);
+		vec3_t ps1_org = Vec3_Add(ps1->pm_state.origin, ps1->pm_state.view_offset);
+		ps1_org.z -= ps1->pm_state.step_offset;
 
-		const cl_entity_t *ent = Cg_Self();
-		if (ent) {
-			if (ent->step.delta_height) {
-				cgi.view->origin.z = ps1->pm_state.origin.z - ent->step.delta_height + offset.z;
-			}
-		}
+		cgi.view->origin = Vec3_Mix(ps0_org, ps1_org, cgi.client->lerp);
 	}
 }
 

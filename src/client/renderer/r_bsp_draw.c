@@ -375,7 +375,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 
 		if (!(draw->texinfo->flags & SURF_MASK_BLEND) && !(draw->texinfo->flags & SURF_SKY)) {
 
-			if (r_depth_pass->value) {
+			if (entity && r_depth_pass->value) {
 				if (draw->texinfo->flags & SURF_ALPHA_TEST) {
 					glDepthMask(GL_TRUE);
 				}
@@ -383,7 +383,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 
 			R_DrawBspDrawElements(view, entity, draw, &material);
 
-			if (r_depth_pass->value) {
+			if (entity && r_depth_pass->value) {
 				if (draw->texinfo->flags & SURF_ALPHA_TEST) {
 					glDepthMask(GL_FALSE);
 				}
@@ -559,7 +559,6 @@ void R_DrawWorld(const r_view_t *view) {
 	glUseProgram(0);
 
 	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

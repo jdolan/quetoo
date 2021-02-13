@@ -227,6 +227,7 @@ void Cl_CheckPredictionError(void) {
 		out->view.origin = in->origin;
 		out->view.offset = in->view_offset;
 		out->view.angles = in->view_angles;
+		out->view.step_offset = 0.f;
 
 		out->error = Vec3_Zero();
 		return;
@@ -244,6 +245,7 @@ void Cl_CheckPredictionError(void) {
 			out->view.origin = in->origin;
 			out->view.offset = in->view_offset;
 			out->view.angles = in->view_angles;
+			out->view.step_offset = 0.f;
 
 			out->error = Vec3_Zero();
 		} else {

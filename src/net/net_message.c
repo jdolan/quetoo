@@ -281,6 +281,10 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		bits |= PS_PM_HOOK_LENGTH;
 	}
 
+	if (to->pm_state.step_offset != from->pm_state.step_offset) {
+		bits |= PS_PM_STEP_OFFSET;
+	}
+
 	Net_WriteShort(msg, bits);
 
 	if (bits & PS_PM_TYPE) {
@@ -325,6 +329,10 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 
 	if (bits & PS_PM_HOOK_LENGTH) {
 		Net_WriteShort(msg, to->pm_state.hook_length);
+	}
+
+	if (bits & PS_PM_STEP_OFFSET) {
+		Net_WriteFloat(msg, to->pm_state.step_offset);
 	}
 
 	uint32_t stat_bits = 0;
@@ -772,6 +780,10 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 
 	if (bits & PS_PM_HOOK_LENGTH) {
 		to->pm_state.hook_length = Net_ReadShort(msg);
+	}
+
+	if (bits & PS_PM_STEP_OFFSET) {
+		to->pm_state.step_offset = Net_ReadFloat(msg);
 	}
 
 	const int32_t stat_bits = Net_ReadLong(msg);

@@ -70,24 +70,9 @@ static struct {
 	float time;
 
 	/**
-	 * @brief The player's ground interaction, copied from a trace.
+	 * @brief The player's ground interaction.
 	 */
-	struct {
-		/**
-		 * @brief The ground plane.
-		 */
-		cm_bsp_plane_t plane;
-
-		/**
-		 * @brief The ground texinfo.
-		 */
-		cm_bsp_texinfo_t *texinfo;
-
-		/**
-		 * @brief The ground contents.
-		 */
-		int32_t contents;
-	} ground;
+	cm_trace_t ground_trace;
 
 } pm_locals;
 
@@ -195,7 +180,7 @@ static _Bool Pm_SlideMove(void) {
 
 	// never turn against our ground plane
 	if (pm->s.flags & PMF_ON_GROUND) {
-		planes[num_planes] = pm_locals.ground.plane.normal;
+		planes[num_planes] = pm_locals.ground_trace.plane.normal;
 		num_planes++;
 	}
 
@@ -322,9 +307,7 @@ static _Bool Pm_CheckStep(const cm_trace_t *trace) {
 
 	if (!trace->all_solid) {
 		if (trace->ent && trace->plane.normal.z >= PM_STEP_NORMAL) {
-			if (trace->ent != pm->ground_entity || trace->plane.dist != pm_locals.ground.plane.dist) {
-				return true;
-			}
+			return true;
 		}
 	}
 
@@ -337,18 +320,7 @@ static _Bool Pm_CheckStep(const cm_trace_t *trace) {
 static void Pm_StepDown(const cm_trace_t *trace) {
 
 	pm->s.origin = trace->end;
-
 	pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
-
-	if (pm->step >= PM_STEP_HEIGHT_MIN) {
-		Pm_Debug("step up %3.2f\n", pm->step);
-		pm->s.flags |= PMF_ON_STAIRS;
-	} else if (pm->step <= -PM_STEP_HEIGHT_MIN && (pm->s.flags & PMF_ON_GROUND)) {
-		Pm_Debug("step down %3.2f\n", pm->step);
-		pm->s.flags |= PMF_ON_STAIRS;
-	} else {
-		pm->step = 0.0;
-	}
 }
 
 /**
@@ -361,20 +333,17 @@ static void Pm_StepSlideMove(void) {
 	const vec3_t vel0 = pm->s.velocity;
 
 	// attempt to move; if nothing blocks us, we're done
-	if (Pm_SlideMove()) {
+	Pm_SlideMove();
 
-		// attempt to step down to remain on ground
-		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up <= 0) {
+	// attempt to step down to remain on ground
+	if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up <= 0) {
 
-			const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-			const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, pm->mins, pm->maxs);
+		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
+		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, pm->mins, pm->maxs);
 
-			if (Pm_CheckStep(&step_down)) {
-				Pm_StepDown(&step_down);
-			}
+		if (Pm_CheckStep(&step_down)) {
+			Pm_StepDown(&step_down);
 		}
-
-		return;
 	}
 
 	// we were blocked, so try to step over the obstacle
@@ -403,7 +372,6 @@ static void Pm_StepSlideMove(void) {
 				Pm_StepDown(&step_down);
 			} else {
 				pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
-				pm->s.flags |= PMF_ON_STAIRS;
 			}
 
 			return;
@@ -442,7 +410,7 @@ static void Pm_Friction(void) {
 	} else if (pm->water_level > WATER_FEET) { // water friction
 		friction = PM_FRICT_WATER;
 	} else if (pm->s.flags & PMF_ON_GROUND) { // ground friction
-		if (pm_locals.ground.texinfo && (pm_locals.ground.texinfo->flags & SURF_SLICK)) {
+		if (pm_locals.ground_trace.texinfo && (pm_locals.ground_trace.texinfo->flags & SURF_SLICK)) {
 			friction = PM_FRICT_GROUND_SLICK;
 		} else {
 			friction = PM_FRICT_GROUND;
@@ -525,22 +493,22 @@ static void Pm_Currents(void) {
 
 	// add conveyer belt velocities
 	if (pm->ground_entity) {
-		if (pm_locals.ground.contents & CONTENTS_CURRENT_0) {
+		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_0) {
 			current.x += 1.0;
 		}
-		if (pm_locals.ground.contents & CONTENTS_CURRENT_90) {
+		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_90) {
 			current.y += 1.0;
 		}
-		if (pm_locals.ground.contents & CONTENTS_CURRENT_180) {
+		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_180) {
 			current.x -= 1.0;
 		}
-		if (pm_locals.ground.contents & CONTENTS_CURRENT_270) {
+		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_270) {
 			current.y -= 1.0;
 		}
-		if (pm_locals.ground.contents & CONTENTS_CURRENT_UP) {
+		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_UP) {
 			current.z += 1.0;
 		}
-		if (pm_locals.ground.contents & CONTENTS_CURRENT_DOWN) {
+		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_DOWN) {
 			current.z -= 1.0;
 		}
 	}
@@ -724,11 +692,7 @@ static void Pm_CheckGround(void) {
 	}
 
 	// seek the ground
-	cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
-
-	pm_locals.ground.plane = trace.plane;
-	pm_locals.ground.texinfo = trace.texinfo;
-	pm_locals.ground.contents = trace.contents;
+	cm_trace_t trace = pm_locals.ground_trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
 
 	// if we hit an upward facing plane, make it our ground
 	if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
@@ -1240,8 +1204,8 @@ static void Pm_WalkMove(void) {
 
 	// project the desired movement into the X/Y plane
 
-	const vec3_t forward = Vec3_Normalize(Pm_ClipVelocity(pm_locals.forward_xy, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE));
-	const vec3_t right = Vec3_Normalize(Pm_ClipVelocity(pm_locals.right_xy, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE));
+	const vec3_t forward = Vec3_Normalize(Pm_ClipVelocity(pm_locals.forward_xy, pm_locals.ground_trace.plane.normal, PM_CLIP_BOUNCE));
+	const vec3_t right = Vec3_Normalize(Pm_ClipVelocity(pm_locals.right_xy, pm_locals.ground_trace.plane.normal, PM_CLIP_BOUNCE));
 
 	vec3_t vel = Vec3_Zero();
 	vel = Vec3_Fmaf(vel, pm->cmd.forward, forward);
@@ -1273,7 +1237,7 @@ static void Pm_WalkMove(void) {
 	}
 
 	// accelerate based on slickness of ground surface
-	const float accel = (pm_locals.ground.texinfo->flags & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
+	const float accel = (pm_locals.ground_trace.texinfo->flags & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
 
 	Pm_Accelerate(dir, speed, accel);
 
@@ -1281,7 +1245,7 @@ static void Pm_WalkMove(void) {
 	speed = Vec3_Length(pm->s.velocity);
 
 	// clip to the ground
-	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE);
+	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pm_locals.ground_trace.plane.normal, PM_CLIP_BOUNCE);
 
 	// and now scale by the speed to avoid slowing down on slopes
 	pm->s.velocity = Vec3_Normalize(pm->s.velocity);
@@ -1360,7 +1324,7 @@ static void Pm_Init(void) {
 	pm->step = 0.0;
 
 	// reset flags that we test each move
-	pm->s.flags &= ~(PMF_ON_GROUND | PMF_ON_STAIRS | PMF_ON_LADDER);
+	pm->s.flags &= ~(PMF_ON_GROUND | PMF_ON_LADDER);
 	pm->s.flags &= ~(PMF_JUMPED | PMF_UNDER_WATER);
 
 	if (pm->cmd.up < 1) { // jump key released
@@ -1416,6 +1380,26 @@ static void Pm_InitLocal(void) {
 
 	// and calculate the directional vectors in the XY plane
 	Vec3_Vectors(Vec3(0.f, pm->angles.y, 0.f), &pm_locals.forward_xy, &pm_locals.right_xy, NULL);
+}
+
+static void Pm_CheckViewStep(void) {
+
+	// add the step offset we've made on this frame
+	if (pm->step) {
+		pm->s.step_offset += pm->step;
+	}
+
+	// calculate change to the step offset
+	if (pm->s.step_offset) {
+
+		const float step_speed = pm_locals.time * (PM_SPEED_STEP * (Maxf(1.f, fabsf(pm->s.step_offset) / PM_STEP_HEIGHT)));
+
+		if (pm->s.step_offset > 0) {
+			pm->s.step_offset = Maxf(0.f, pm->s.step_offset - step_speed);
+		} else {
+			pm->s.step_offset = Minf(0.f, pm->s.step_offset + step_speed);
+		}
+	}
 }
 
 /**
@@ -1479,5 +1463,8 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	// check for water level, water type at new spot
 	Pm_CheckWater();
+
+	// check for offset changes for our view
+	Pm_CheckViewStep();
 }
 
