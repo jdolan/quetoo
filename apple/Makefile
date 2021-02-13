@@ -20,7 +20,7 @@ all: clean configure compile pre-install install install-lib install-installer p
 continuous-integration: all release install-data snapshot snapshot-release
 
 configure:
-	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' --prefix=/
+	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2 -mmacosx-version-min=10.9' --prefix=/
 	
 compile:
 	make -C .. -j8 all
