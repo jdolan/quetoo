@@ -76,15 +76,35 @@ struct cg_entity_s {
 	vec3_t origin;
 
 	/**
+	 * @brief The entity's target, if any.
+	 */
+	const cm_entity_t *target;
+
+	/**
+	 * @brief The entity's teammate, if any.
+	 */
+	const cm_entity_t *team;
+
+	/**
 	 * @brief Timestamp for next emission.
+	 * @details Client game entities will Think() each frame, unless deferred.
 	 */
 	uint32_t next_think;
+
+	/**
+	 * @brief Randomization of next_think.
+	 */
+	float hz, drift;
 
 	/**
 	 * @brief Opaque, type-specific data.
 	 */
 	void *data;
 };
+
+cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e);
+void Cg_LoadEntities(void);
+void Cg_FreeEntities(void);
 
 cl_entity_t *Cg_Self(void);
 _Bool Cg_IsSelf(const cl_entity_t *ent);
@@ -94,6 +114,5 @@ void Cg_InterpolateStep(cl_entity_step_t *step);
 void Cg_Interpolate(const cl_frame_t *frame);
 void Cg_AddEntities(const cl_frame_t *frame);
 void Cg_AddEntityShadow(const r_entity_t *e);
-void Cg_LoadEntities(void);
-void Cg_FreeEntities(void);
+
 #endif /* __CG_ENTITY_H__ */
