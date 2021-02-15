@@ -50,7 +50,7 @@ void Cl_RequestNextDownload(void) {
 
 		if (*cl.config_strings[CS_MODELS] != '\0') {
 			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS])) {
-				return;    // started a download
+				return; // started a download
 			}
 		}
 	}
