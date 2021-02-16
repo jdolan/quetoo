@@ -354,6 +354,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 		r_stats.count_bsp_triangles += draw->num_elements / 3;
+		r_stats.count_bsp_draw_elements_blend++;
 
 		R_GetError(draw->texinfo->texture);
 	}
@@ -373,23 +374,22 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (!(draw->texinfo->flags & SURF_MASK_BLEND) && !(draw->texinfo->flags & SURF_SKY)) {
+		if (draw->texinfo->flags & SURF_MASK_BLEND) {
+			continue;
+		}
 
-			if (entity && r_depth_pass->value) {
-				if (draw->texinfo->flags & SURF_ALPHA_TEST) {
-					glDepthMask(GL_TRUE);
-				}
-			}
+		if (draw->texinfo->flags & SURF_SKY) {
+			continue;
+		}
 
-			R_DrawBspDrawElements(view, entity, draw, &material);
+		if (r_depth_pass->value && (draw->texinfo->flags & SURF_ALPHA_TEST)) {
+			glDepthMask(GL_TRUE);
+		}
 
-			if (entity && r_depth_pass->value) {
-				if (draw->texinfo->flags & SURF_ALPHA_TEST) {
-					glDepthMask(GL_FALSE);
-				}
-			}
+		R_DrawBspDrawElements(view, entity, draw, &material);
 
-			r_stats.count_bsp_draw_elements++;
+		if (r_depth_pass->value && (draw->texinfo->flags & SURF_ALPHA_TEST)) {
+			glDepthMask(GL_FALSE);
 		}
 	}
 
@@ -453,8 +453,6 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		R_DrawBspDrawElements(view, entity, draw, &material);
-
-		r_stats.count_bsp_draw_elements_blend++;
 	}
 
 	glBlendFunc(GL_ONE, GL_ZERO);
