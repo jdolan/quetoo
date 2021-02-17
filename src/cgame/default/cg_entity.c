@@ -250,10 +250,6 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 		Cg_EntitySound(ent);
 
 		Cg_EntityEvent(ent);
-
-		if (ent->step_offset) {
-			ent->origin.z -= ent->step_offset;
-		}
 	}
 }
 

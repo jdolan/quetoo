@@ -498,19 +498,23 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		return;
 	}
 
+	// deal with our own player model
 	if (Cg_IsSelf(ent)) {
 		e->effects |= EF_SELF;
-	}
 
-	// don't draw ourselves unless third person is set
-	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
+		// don't draw ourselves, unless 3rd person is set
+		if (!cgi.client->third_person) {
+			e->effects |= EF_NO_DRAW;
 
-		e->effects |= EF_NO_DRAW;
-
-		// keep our shadow underneath us using the predicted origin
-		e->origin.x = cgi.view->origin.x;
-		e->origin.y = cgi.view->origin.y;
+			// keep our shadow underneath us using the predicted origin
+			e->origin.x = cgi.view->origin.x;
+			e->origin.y = cgi.view->origin.y;
+		} else { // if we're in 3rd person, use step offset, since prediction is off
+			e->origin.z -= ent->step_offset;
+			Cg_BreathTrail(ent);
+		}
 	} else {
+		e->origin.z -= ent->step_offset;
 		Cg_BreathTrail(ent);
 	}
 
