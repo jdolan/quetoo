@@ -412,6 +412,12 @@ void Cl_Interpolate(void) {
 			ent->animation2.reverse = ent->current.animation2 & ANIM_REVERSE_BIT;
 		}
 
+		if (ent->prev.step_offset != ent->current.step_offset) {
+			ent->step_offset = Mixf(ent->prev.step_offset, ent->current.step_offset, cl.lerp);
+		} else {
+			ent->step_offset = ent->current.step_offset;
+		}
+
 		vec3_t angles;
 		if (ent->current.solid == SOLID_BSP) {
 			angles = ent->angles;

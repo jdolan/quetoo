@@ -69,6 +69,7 @@
 #define U_BOUNDS				(1 << 12)
 #define U_REMOVE				(1 << 13)
 #define U_SPAWNID               (1 << 14)
+#define U_STEP_OFFSET           (1 << 15)
 
 /**
  * @brief These flags indicate which fields a given sound packet will contain. Maximum 8 flags.

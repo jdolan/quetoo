@@ -249,6 +249,11 @@ typedef struct {
 	 * other.
 	 */
 	vec3_t mins, maxs;
+
+	/**
+	 * @brief Step offset, used for player positional offsets from stair stepping.
+	 */
+	int8_t step_offset;
 } entity_state_t;
 
 /**

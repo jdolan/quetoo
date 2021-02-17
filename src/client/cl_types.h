@@ -89,6 +89,7 @@ typedef struct {
 	vec3_t abs_mins, abs_maxs; // absolute bounding box
 	float legs_yaw; // only used by player models; leg angle ideal yaw
 	float legs_current_yaw; // only used by player models
+	float step_offset; // interpolated step offset
 
 	mat4_t matrix; // interpolated translation and rotation
 	mat4_t inverse_matrix; // for box hull collision

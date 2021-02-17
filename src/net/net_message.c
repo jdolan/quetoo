@@ -369,6 +369,10 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		Com_Error(ERROR_FATAL, "Entity number >= MAX_ENTITIES\n");
 	}
 
+	if (to->step_offset != from->step_offset) {
+		bits |= U_STEP_OFFSET;
+	}
+
 	if (to->spawn_id != from->spawn_id) {
 		bits |= U_SPAWNID;
 	}
@@ -434,6 +438,10 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 
 	Net_WriteShort(msg, to->number);
 	Net_WriteShort(msg, bits);
+
+	if (bits & U_STEP_OFFSET) {
+		Net_WriteByte(msg, to->step_offset);
+	}
 
 	if (bits & U_SPAWNID) {
 		Net_WriteByte(msg, to->spawn_id);
@@ -804,6 +812,10 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 	*to = *from;
 
 	to->number = number;
+
+	if (bits & U_STEP_OFFSET) {
+		to->step_offset = Net_ReadByte(msg);
+	}
 
 	if (bits & U_SPAWNID) {
 		to->spawn_id = Net_ReadByte(msg);
