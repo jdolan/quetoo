@@ -249,11 +249,6 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 		case EV_CLIENT_LAND:
 			play.sample = Cg_ClientModelSample(ent, "*land_1");
 			break;
-		case EV_CLIENT_STEP: {
-			const float height = ent->current.origin.z - ent->prev.origin.z;
-			Cg_TraverseStep(&ent->step, cgi.client->unclamped_time, height);
-		}
-			break;
 		case EV_CLIENT_SIZZLE:
 			play.sample = Cg_ClientModelSample(ent, "*sizzle_1");
 			break;

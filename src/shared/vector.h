@@ -311,7 +311,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) EqualEpsilonf(float a, 
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline float __attribute__ ((warn_unused_result)) Mixf(float a, float b, float mix) {
-	return fmaf(a, mix, b - a);
+	return a * (1.f - mix) + b * mix;
 }
 
 /**
@@ -527,7 +527,7 @@ static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Fmaf(const vec2_t
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Mix(const vec2_t a, const vec2_t b, float mix) {
-	return Vec2_Fmaf(a, mix, Vec2_Subtract(b, a));
+	return Vec2_Add(Vec2_Scale(a, 1.f - mix), Vec2_Scale(b, mix));
 }
 
 /**
@@ -873,7 +873,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mins(void) {
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mix(const vec3_t a, const vec3_t b, float mix) {
-	return Vec3_Fmaf(a, mix, Vec3_Subtract(b, a));
+	return Vec3_Add(Vec3_Scale(a, 1.f - mix), Vec3_Scale(b, mix));
 }
 
 /**
@@ -913,7 +913,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_One(void) {
  * @return The linear interpolation of `a` and `b` using the specified fractions.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mix3(const vec3_t a, const vec3_t b, const vec3_t mix) {
-	return Vec3_Add(a, Vec3_Multiply(Vec3_Subtract(b, a), mix));
+	return Vec3_Add(Vec3_Multiply(a, Vec3_Subtract(Vec3_One(), mix)), Vec3_Multiply(b, mix));
 }
 
 /**
@@ -1139,7 +1139,7 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Fmaf(const vec4_t
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Mix(const vec4_t a, const vec4_t b, float mix) {
-	return Vec4_Fmaf(a, mix, Vec4_Subtract(b, a));
+	return Vec4_Add(Vec4_Scale(a, 1.f - mix), Vec4_Scale(b, mix));
 }
 
 /**

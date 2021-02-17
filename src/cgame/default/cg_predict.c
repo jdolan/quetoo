@@ -94,15 +94,6 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 			// simulate the movement
 			pm.cmd = cmd->cmd;
 			Pm_Move(&pm);
-
-			// for each movement, check for stair interaction and interpolate
-			if ((pm.s.flags & PMF_ON_STAIRS) && (cmd->time > pr->step.time)) {
-
-				Cg_TraverseStep(&pr->step, cmd->timestamp, pm.step);
-
-				// ensure we only count each step once
-				pr->step.time = cmd->time;
-			}
 		}
 
 		// save for error detection
@@ -112,6 +103,7 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 	// save for rendering
 	pr->view.origin = pm.s.origin;
 	pr->view.offset = pm.s.view_offset;
+	pr->view.step_offset = pm.s.step_offset;
 	pr->view.angles = pm.cmd.angles;
 	pr->ground_entity = pm.ground_entity;
 }

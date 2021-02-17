@@ -37,6 +37,7 @@
 #define PS_PM_DELTA_ANGLES		(1 << 8)
 #define PS_PM_HOOK_POSITION		(1 << 9)
 #define PS_PM_HOOK_LENGTH		(1 << 10)
+#define PS_PM_STEP_OFFSET		(1 << 11)
 
 /**
  * @brief Delta compression flags for user_cmd_t.
@@ -68,6 +69,7 @@
 #define U_BOUNDS				(1 << 12)
 #define U_REMOVE				(1 << 13)
 #define U_SPAWNID               (1 << 14)
+#define U_STEP_OFFSET           (1 << 15)
 
 /**
  * @brief These flags indicate which fields a given sound packet will contain. Maximum 8 flags.

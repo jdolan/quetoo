@@ -25,6 +25,70 @@
 static GArray *cg_entities;
 
 /**
+ * @brief The Cg_EntityPredicate type for Cg_FindEntity.
+ */
+typedef _Bool (*Cg_EntityPredicate)(const cm_entity_t *e, void *data);
+
+/**
+ * @return The first entity after `from` for which `predicate` returns `true`, or `NULL`.
+ */
+static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_EntityPredicate predicate, void *data) {
+
+	const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
+
+	size_t start = 0;
+	if (from) {
+		while (start < bsp->num_entities) {
+			if (bsp->entities[start] == from) {
+				break;
+			}
+			start++;
+		}
+		assert(start < bsp->num_entities);
+	}
+
+	for (size_t i = start; i < bsp->num_entities; i++) {
+		const cm_entity_t *e = bsp->entities[i];
+		if (predicate(e, data)) {
+			return e;
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * @brief
+ */
+static _Bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
+	return !g_strcmp0(cgi.EntityValue(e, "targetname")->nullable_string, data);
+}
+
+/**
+ * @brief
+ */
+static _Bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
+	return !g_strcmp0(cgi.EntityValue(e, "team")->nullable_string, data);
+}
+
+/**
+ * @return The cg_entity_t * for the specified cm_entity_t *, if any.
+ */
+cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
+
+	if (e) {
+		for (guint i = 0; i < cg_entities->len; i++) {
+			cg_entity_t *ent = &g_array_index(cg_entities, cg_entity_t, i);
+			if (ent->def == e) {
+				return ent;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+/**
  * @brief Loads entities from the current level.
  * @remarks This should be called once per map load, after the precache routine.
  */
@@ -60,6 +124,20 @@ void Cg_LoadEntities(void) {
 				};
 
 				e.origin = cgi.EntityValue(def, "origin")->vec3;
+
+				if (cgi.EntityValue(def, "target")->parsed & ENTITY_STRING) {
+					const char *target_name = cgi.EntityValue(def, "target")->string;
+					e.target = Cg_FindEntity(NULL, Cg_EntityTarget_Predicate, (void *) target_name);
+					if (!e.target) {
+						const char *class_name = cgi.EntityValue(def, "classname")->string;
+						cgi.Warn("Target not found for %s @ %s\n", class_name, vtos(e.origin));
+					}
+				}
+
+				if (cgi.EntityValue(def, "team")->parsed & ENTITY_STRING) {
+					const char *team_name = cgi.EntityValue(def, "team")->string;
+					e.team = Cg_FindEntity(def, Cg_EntityTeam_Predicate, (void *) team_name);
+				}
 
 				e.data = cgi.Malloc(e.clazz->data_size, MEM_TAG_CGAME_LEVEL);
 
@@ -156,39 +234,6 @@ static void Cg_EntitySound(cl_entity_t *ent) {
 }
 
 /**
- * @brief Setup step interpolation.
- */
-void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, float height) {
-
-	const uint32_t delta = time - step->timestamp;
-
-	if (delta < step->interval) {
-		const float lerp = (step->interval - delta) / (float) step->interval;
-		step->height = step->height * (1.f - lerp) + height;
-	} else {
-		step->height = height;
-		step->timestamp = time;
-	}
-
-	step->interval = 128.f * (fabsf(step->height) / PM_STEP_HEIGHT);
-}
-
-/**
- * @brief Interpolate the entity's step for the current frame.
- */
-void Cg_InterpolateStep(cl_entity_step_t *step) {
-
-	const uint32_t delta = cgi.client->unclamped_time - step->timestamp;
-
-	if (delta < step->interval) {
-		const float lerp = (step->interval - delta) / (float) step->interval;
-		step->delta_height = lerp * step->height;
-	} else {
-		step->delta_height = 0.0;
-	}
-}
-
-/**
  * @brief Interpolate the current frame, processing any new events and advancing the simulation.
  */
 void Cg_Interpolate(const cl_frame_t *frame) {
@@ -205,12 +250,6 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 		Cg_EntitySound(ent);
 
 		Cg_EntityEvent(ent);
-
-		Cg_InterpolateStep(&ent->step);
-
-		if (ent->step.delta_height) {
-			ent->origin.z = ent->current.origin.z - ent->step.delta_height;
-		}
 	}
 }
 
@@ -394,5 +433,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 		}
 
 		e->clazz->Think(e);
+
+		e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
 	}
 }

@@ -281,6 +281,10 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		bits |= PS_PM_HOOK_LENGTH;
 	}
 
+	if (to->pm_state.step_offset != from->pm_state.step_offset) {
+		bits |= PS_PM_STEP_OFFSET;
+	}
+
 	Net_WriteShort(msg, bits);
 
 	if (bits & PS_PM_TYPE) {
@@ -327,6 +331,10 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		Net_WriteShort(msg, to->pm_state.hook_length);
 	}
 
+	if (bits & PS_PM_STEP_OFFSET) {
+		Net_WriteFloat(msg, to->pm_state.step_offset);
+	}
+
 	uint32_t stat_bits = 0;
 
 	for (int32_t i = 0; i < MAX_STATS; i++) {
@@ -359,6 +367,10 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 
 	if (to->number >= MAX_ENTITIES) {
 		Com_Error(ERROR_FATAL, "Entity number >= MAX_ENTITIES\n");
+	}
+
+	if (to->step_offset != from->step_offset) {
+		bits |= U_STEP_OFFSET;
 	}
 
 	if (to->spawn_id != from->spawn_id) {
@@ -426,6 +438,10 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 
 	Net_WriteShort(msg, to->number);
 	Net_WriteShort(msg, bits);
+
+	if (bits & U_STEP_OFFSET) {
+		Net_WriteByte(msg, to->step_offset);
+	}
 
 	if (bits & U_SPAWNID) {
 		Net_WriteByte(msg, to->spawn_id);
@@ -774,6 +790,10 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 		to->pm_state.hook_length = Net_ReadShort(msg);
 	}
 
+	if (bits & PS_PM_STEP_OFFSET) {
+		to->pm_state.step_offset = Net_ReadFloat(msg);
+	}
+
 	const int32_t stat_bits = Net_ReadLong(msg);
 
 	for (int32_t i = 0; i < MAX_STATS; i++) {
@@ -792,6 +812,10 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 	*to = *from;
 
 	to->number = number;
+
+	if (bits & U_STEP_OFFSET) {
+		to->step_offset = Net_ReadByte(msg);
+	}
 
 	if (bits & U_SPAWNID) {
 		to->spawn_id = Net_ReadByte(msg);
