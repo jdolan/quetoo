@@ -384,8 +384,9 @@ static void Pm_StepSlideMove(void) {
 
 /**
  * @brief Handles friction against user intentions, and based on contents.
+ * @param flying Whether we should clear Z velocity as well if we are going to stop
  */
-static void Pm_Friction(void) {
+static void Pm_Friction(const bool flying) {
 	vec3_t vel = pm->s.velocity;
 
 	if (pm->s.flags & PMF_ON_GROUND) {
@@ -395,7 +396,12 @@ static void Pm_Friction(void) {
 	const float speed = Vec3_Length(vel);
 
 	if (speed < 1.0f) {
-		pm->s.velocity.x = pm->s.velocity.y = 0.0f;
+		pm->s.velocity.x = pm->s.velocity.y = 0.f;
+
+		if (flying) {
+			pm->s.velocity.z = 0.f;
+		}
+
 		return;
 	}
 
@@ -1001,7 +1007,7 @@ static void Pm_LadderMove(void) {
 
 	Pm_Debug("%s\n", vtos(pm->s.origin));
 
-	Pm_Friction();
+	Pm_Friction(false);
 
 	Pm_Currents();
 
@@ -1057,7 +1063,7 @@ static void Pm_WaterJumpMove(void) {
 
 	Pm_Debug("%s\n", vtos(pm->s.origin));
 
-	Pm_Friction();
+	Pm_Friction(false);
 
 	Pm_Gravity();
 
@@ -1094,7 +1100,7 @@ static void Pm_WaterMove(void) {
 	float speed = Vec3_Length(pm->s.velocity);
 
 	for (int32_t i = speed / PM_SPEED_WATER; i >= 0; i--) {
-		Pm_Friction();
+		Pm_Friction(true);
 	}
 
 	// and sink
@@ -1150,7 +1156,7 @@ static void Pm_AirMove(void) {
 
 	Pm_Debug("%s\n", vtos(pm->s.origin));
 
-	Pm_Friction();
+	Pm_Friction(false);
 
 	Pm_Gravity();
 
@@ -1198,7 +1204,7 @@ static void Pm_WalkMove(void) {
 
 	Pm_Debug("%s\n", vtos(pm->s.origin));
 
-	Pm_Friction();
+	Pm_Friction(false);
 
 	Pm_Currents();
 
@@ -1262,7 +1268,7 @@ static void Pm_WalkMove(void) {
  */
 static void Pm_SpectatorMove(void) {
 
-	Pm_Friction();
+	Pm_Friction(true);
 
 	// user intentions on X/Y/Z
 	vec3_t vel = Vec3_Zero();
