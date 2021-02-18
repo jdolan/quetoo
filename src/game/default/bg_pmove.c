@@ -239,7 +239,7 @@ static _Bool Pm_SlideMove(void) {
 			vec3_t vel;
 
 			// if velocity doesn't impact this plane, skip it
-			if (Vec3_Dot(pm->s.velocity, planes[i]) >= 0.0f) {
+			if (Vec3_Dot(pm->s.velocity, planes[i]) >= .1f) {
 				continue;
 			}
 
@@ -255,7 +255,7 @@ static _Bool Pm_SlideMove(void) {
 				}
 
 				// if the clipped velocity doesn't impact this plane, skip it
-				if (Vec3_Dot(vel, planes[j]) >= 0.0f) {
+				if (Vec3_Dot(vel, planes[j]) >= .1f) {
 					continue;
 				}
 
@@ -281,7 +281,7 @@ static _Bool Pm_SlideMove(void) {
 						continue;
 					}
 
-					if (Vec3_Dot(vel, planes[k]) >= 0.0f) {
+					if (Vec3_Dot(vel, planes[k]) >= .1f) {
 						continue;
 					}
 

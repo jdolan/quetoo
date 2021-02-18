@@ -7,9 +7,6 @@
     <Filter Include="src\common">
       <UniqueIdentifier>{08fc328d-7641-4f92-b19b-59520770635f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\net">
-      <UniqueIdentifier>{b1d38693-7e12-45d0-bfbe-ca47f62e08ab}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\common\atlas.c">

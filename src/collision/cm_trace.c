@@ -99,13 +99,13 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		}
 
 		// if completely behind plane, no intersection
-		if (d1 < 0.f && d2 < 0.f) {
+		if (d1 <= 0.f && d2 <= 0.f) {
 			continue;
 		}
 
 		// crosses face
 		if (d1 > d2) { // enter
-			const float f = (d1 - TRACE_EPSILON) / (d1 - d2);
+			const float f = Maxf(0.f, (d1 - TRACE_EPSILON) / (d1 - d2));
 
 			if (f > enter_fraction) {
 				enter_fraction = f;
@@ -113,7 +113,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 				clip_side = side;
 			}
 		} else { // leave
-			const float f = (d1 + TRACE_EPSILON) / (d1 - d2);
+			const float f = Minf(1.f, (d1 + TRACE_EPSILON) / (d1 - d2));
 
 			if (f < leave_fraction) {
 				leave_fraction = f;
@@ -279,11 +279,11 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	}
 
 	// see which sides we need to consider
-	if (d1 >= offset + TRACE_EPSILON && d2 >= offset + TRACE_EPSILON) {
+	if (d1 >= offset + 1.f && d2 >= offset + 1.f) {
 		Cm_TraceToNode(data, node->children[0], p1f, p2f, p1, p2);
 		return;
 	}
-	if (d1 <= -offset - TRACE_EPSILON && d2 <= -offset - TRACE_EPSILON) {
+	if (d1 <= -offset - 1.f && d2 <= -offset - 1.f) {
 		Cm_TraceToNode(data, node->children[1], p1f, p2f, p1, p2);
 		return;
 	}
@@ -533,10 +533,8 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
 
 	// because movement is clipped an epsilon away from an actual edge,
 	// we must fully check even when bounding boxes don't quite touch
-	for (int32_t i = 0; i < 3; i++) {
-		bounds_mins->xyz[i] -= 1;
-		bounds_maxs->xyz[i] += 1;
-	}
+	*bounds_mins = Vec3_Subtract(*bounds_mins, Vec3_One());
+	*bounds_maxs = Vec3_Add(*bounds_maxs, Vec3_One());
 }
 
 /**
