@@ -68,11 +68,12 @@ void main(void) {
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
 		if (diffusemap.a < alpha_threshold) { discard; }
 		diffusemap *= vertex.color;
-		out_color = diffusemap;
 
 		// diffuse albedo tinting
 		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
 		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
+
+		out_color = diffusemap;
 
 		// specular albedo and roughness
 		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
