@@ -364,7 +364,7 @@ static void Pm_StepSlideMove(void) {
 
 		// settle to the new ground, keeping the step if and only if it was successful
 		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, pm->mins, pm->maxs);
+		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, Vec3_Subtract(pm->mins, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)), Vec3_Add(pm->maxs, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)));
 
 		if (Pm_CheckStep(&step_down)) {
 			// Quake2 trick jump secret sauce

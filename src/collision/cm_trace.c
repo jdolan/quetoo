@@ -279,11 +279,11 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	}
 
 	// see which sides we need to consider
-	if (d1 >= offset + 1.f && d2 >= offset + 1.f) {
+	if (d1 >= offset && d2 >= offset) {
 		Cm_TraceToNode(data, node->children[0], p1f, p2f, p1, p2);
 		return;
 	}
-	if (d1 <= -offset - 1.f && d2 <= -offset - 1.f) {
+	if (d1 < -offset && d2 < -offset) {
 		Cm_TraceToNode(data, node->children[1], p1f, p2f, p1, p2);
 		return;
 	}
@@ -295,13 +295,13 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	if (d1 < d2) {
 		const float idist = 1.f / (d1 - d2);
 		side = 1;
-		frac2 = (d1 + offset + TRACE_EPSILON) * idist;
-		frac1 = (d1 - offset + TRACE_EPSILON) * idist;
+		frac2 = (d1 + offset) * idist;
+		frac1 = (d1 - offset) * idist;
 	} else if (d1 > d2) {
 		const float idist = 1.f / (d1 - d2);
 		side = 0;
-		frac2 = (d1 - offset - TRACE_EPSILON) * idist;
-		frac1 = (d1 + offset + TRACE_EPSILON) * idist;
+		frac2 = (d1 - offset) * idist;
+		frac1 = (d1 + offset) * idist;
 	} else {
 		side = 0;
 		frac1 = 1.f;
@@ -385,13 +385,12 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 	// check for point special case
 	if (Vec3_Equal(mins, Vec3_Zero()) && Vec3_Equal(maxs, Vec3_Zero())) {
 		data.is_point = true;
+		data.extents = Vec3(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON);
 	} else {
 		data.is_point = false;
 
 		// extents allow planes to be shifted to account for the box size
-		data.extents.x = -mins0.x > maxs0.x ? -mins0.x : maxs0.x;
-		data.extents.y = -mins0.y > maxs0.y ? -mins0.y : maxs0.y;
-		data.extents.z = -mins0.z > maxs0.z ? -mins0.z : maxs0.z;
+		data.extents = Vec3_Add(Vec3_Maxf(Vec3_Fabsf(mins0), Vec3_Fabsf(maxs0)), Vec3(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON));
 
 		// offsets provide sign bit lookups for fast plane tests
 		data.offsets[0] = mins0;
@@ -530,11 +529,6 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
 		*bounds_mins = Vec3_Add(origin, mins);
 		*bounds_maxs = Vec3_Add(origin, maxs);
 	}
-
-	// because movement is clipped an epsilon away from an actual edge,
-	// we must fully check even when bounding boxes don't quite touch
-	*bounds_mins = Vec3_Subtract(*bounds_mins, Vec3_One());
-	*bounds_maxs = Vec3_Add(*bounds_maxs, Vec3_One());
 }
 
 /**
@@ -551,11 +545,11 @@ void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, con
 
 	for (int32_t i = 0; i < 3; i++) {
 		if (end.xyz[i] > start.xyz[i]) {
-			bounds_mins->xyz[i] = start.xyz[i] + mins.xyz[i];
-			bounds_maxs->xyz[i] = end.xyz[i] + maxs.xyz[i];
+			bounds_mins->xyz[i] = start.xyz[i] + mins.xyz[i] - BOX_EPSILON;
+			bounds_maxs->xyz[i] = end.xyz[i] + maxs.xyz[i] + BOX_EPSILON;
 		} else {
-			bounds_mins->xyz[i] = end.xyz[i] + mins.xyz[i];
-			bounds_maxs->xyz[i] = start.xyz[i] + maxs.xyz[i];
+			bounds_mins->xyz[i] = end.xyz[i] + mins.xyz[i] - BOX_EPSILON;
+			bounds_maxs->xyz[i] = start.xyz[i] + maxs.xyz[i] + BOX_EPSILON;
 		}
 	}
 }
