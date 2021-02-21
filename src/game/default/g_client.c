@@ -1392,9 +1392,13 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	pm.s.origin = ent->s.origin;
 
 	if (ent->client->locals.hook_pull) {
-
-		if (ent->client->locals.persistent.hook_style == HOOK_SWING) {
-			pm.s.type = PM_HOOK_SWING;
+		
+		if (ent->client->locals.persistent.hook_style == HOOK_PULL) {
+			pm.s.type = PM_HOOK_PULL;
+		} else if (ent->client->locals.persistent.hook_style == HOOK_SWING_MANUAL) {
+			pm.s.type = PM_HOOK_SWING_MANUAL;
+		} else if (ent->client->locals.persistent.hook_style == HOOK_SWING_AUTO) {
+			pm.s.type = PM_HOOK_SWING_AUTO;
 		} else {
 			pm.s.type = PM_HOOK_PULL;
 		}

@@ -175,7 +175,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 		return;
 	}
 
-	if (ps->pm_state.type > PM_HOOK_SWING) {
+	if (ps->pm_state.type >= PM_SPECTATOR) {
 
 		// if we're frozen and not chasing, don't bob
 		if (!ps->stats[STAT_CHASE]) {

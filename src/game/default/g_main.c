@@ -1542,7 +1542,7 @@ void G_Init(void) {
 	g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO,
 	                       "The refire delay on the grapple hook in seconds.");
 	g_hook_style = gi.AddCvar("g_hook_style", "default", CVAR_SERVER_INFO,
-	                       "Whether to allow only \"pull\", \"swing\" or any (\"default\") hook swing style.");
+	                       "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
 	g_hook_speed = gi.AddCvar("g_hook_speed", "1200", CVAR_SERVER_INFO, "The speed that the hook will fly at.");
 	g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO,
 	                            "The speed that you get pulled towards the hook.");

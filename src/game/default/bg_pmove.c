@@ -560,7 +560,7 @@ static _Bool Pm_CheckTrickJump(void) {
  */
 static bool Pm_CheckHookJump(void) {
 
-	if ((pm->s.type == PM_HOOK_PULL || pm->s.type == PM_HOOK_SWING) && pm->s.velocity.z > 4.0f) {
+	if ((pm->s.type >= PM_HOOK_PULL && pm->s.type <= PM_HOOK_SWING_AUTO) && (pm->s.velocity.z > 1.f)) {
 
 		pm->s.flags &= ~PMF_ON_GROUND;
 		pm->ground_entity = NULL;
@@ -577,25 +577,25 @@ static bool Pm_CheckHookJump(void) {
 static void Pm_CheckHook(void) {
 
 	// hookers only
-	if (pm->s.type != PM_HOOK_PULL && pm->s.type != PM_HOOK_SWING) {
+	if (pm->s.type < PM_HOOK_PULL || pm->s.type > PM_HOOK_SWING_AUTO) {
 		pm->s.flags &= ~PMF_HOOK_RELEASED;
+		return;
+	}
+
+	// if we let go of hook, just go back to normal
+	if ((pm->s.type == PM_HOOK_PULL || pm->s.type == PM_HOOK_SWING_AUTO) && !(pm->cmd.buttons & BUTTON_HOOK)) {
+		pm->s.type = PM_NORMAL;
 		return;
 	}
 
 	// get chain length
 	if (pm->s.type == PM_HOOK_PULL) {
 
-		// if we let go of hook, just go back to normal
-		if (!(pm->cmd.buttons & BUTTON_HOOK)) {
-			pm->s.type = PM_NORMAL;
-			return;
-		}
-
 		pm->cmd.forward = pm->cmd.right = 0;
 
 		// pull physics
 		const float dist = Vec3_DistanceDir(pm->s.hook_position, pm->s.origin, &pm->s.velocity);
-		if (dist > 8.0f && !Pm_CheckHookJump()) {
+		if (dist > PM_HOOK_MIN_DIST && !Pm_CheckHookJump()) {
 			pm->s.velocity = Vec3_Scale(pm->s.velocity, pm->hook_pull_speed);
 		} else {
 			pm->s.velocity = Vec3_Zero();
@@ -648,8 +648,8 @@ static void Pm_CheckHook(void) {
 		// if player's velocity heading is away from the hook
 		if (Vec3_Dot(pm->s.velocity, chain_vec) < 0.0f) {
 
-			// if chain has streched for 24 units
-			if (chain_len > pm->s.hook_length + 24.0f) {
+			// if chain has streched for PM_HOOK_MIN_DIST units
+			if (chain_len > pm->s.hook_length + PM_HOOK_MIN_DIST) {
 
 				// remove player's velocity component moving away from hook
 				pm->s.velocity = Vec3_Subtract(pm->s.velocity, vel_part);
@@ -926,7 +926,7 @@ static void Pm_CheckLadder(void) {
 		return;
 	}
 
-	if (pm->s.type == PM_HOOK_PULL) {
+	if (pm->s.type >= PM_HOOK_PULL && pm->s.type <= PM_HOOK_SWING_AUTO) {
 		return;
 	}
 
@@ -949,7 +949,7 @@ static void Pm_CheckLadder(void) {
  */
 static _Bool Pm_CheckWaterJump(void) {
 
-	if (pm->s.type == PM_HOOK_PULL || pm->s.type == PM_HOOK_SWING) {
+	if (pm->s.type >= PM_HOOK_PULL && pm->s.type <= PM_HOOK_SWING_AUTO) {
 		return false;
 	}
 
@@ -1104,7 +1104,7 @@ static void Pm_WaterMove(void) {
 	}
 
 	// and sink
-	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up && pm->s.type != PM_HOOK_PULL && pm->s.type != PM_HOOK_SWING) {
+	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up && (pm->s.type < PM_HOOK_PULL || pm->s.type > PM_HOOK_SWING_AUTO)) {
 		if (pm->s.velocity.z > PM_SPEED_WATER_SINK) {
 			Pm_Gravity();
 		}
@@ -1121,7 +1121,7 @@ static void Pm_WaterMove(void) {
 	vel.z += pm->cmd.up;
 
 	// disable water skiing
-	if (pm->s.type != PM_HOOK_PULL && pm->s.type != PM_HOOK_SWING) {
+	if (pm->s.type < PM_HOOK_PULL || pm->s.type > PM_HOOK_SWING_AUTO) {
 		if (pm->water_level == WATER_WAIST) {
 			vec3_t view = Vec3_Add(pm->s.origin, pm->s.view_offset);
 			view.z -= 4.0;

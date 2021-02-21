@@ -796,7 +796,7 @@ static _Bool G_VoteHelp(g_entity_t *ent) {
 
 	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "g_hook_style")) { // list hook modes
 		gi.ClientPrint(ent, PRINT_HIGH, "\nAvailable force hook styles:\n\n"
-		               "  default\n  pull\n  swing\n");
+		               "  default\n  pull\n  swing_manual\n  swing_auto\n");
 		return true;
 	}
 

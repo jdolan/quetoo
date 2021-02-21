@@ -280,7 +280,8 @@ typedef enum {
 typedef enum {
 	PM_NORMAL, // walking, jumping, falling, swimming, etc.
 	PM_HOOK_PULL, // pull hook
-	PM_HOOK_SWING, // swing hook
+	PM_HOOK_SWING_MANUAL, // swing (manual)
+	PM_HOOK_SWING_AUTO, // swing (auto pull)
 	PM_SPECTATOR, // free-flying movement with acceleration and friction
 	PM_DEAD, // no movement, but the ability to rotate in place
 	PM_FREEZE // no movement at all

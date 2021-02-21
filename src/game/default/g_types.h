@@ -313,7 +313,8 @@ typedef enum {
  */
 typedef enum {
 	HOOK_PULL, // lithium-style pull hook
-	HOOK_SWING // hookmod-style swing hook
+	HOOK_SWING_MANUAL, // hookmod-style swing hook
+	HOOK_SWING_AUTO // Xotonic-style hook
 } g_hook_style_t;
 
 /**
