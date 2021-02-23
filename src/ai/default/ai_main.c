@@ -1058,16 +1058,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	pm.s.origin = self->s.origin;
 
-	/*if (self->client->locals.hook_pull) {
-
-		if (self->client->locals.persistent.hook_style == HOOK_SWING) {
-			pm.s.type = PM_HOOK_SWING;
-		} else {
-			pm.s.type = PM_HOOK_PULL;
-		}
-	} else {*/
-		pm.s.velocity = ENTITY_DATA(self, velocity);
-	/*}*/
+	pm.s.velocity = ENTITY_DATA(self, velocity);
 
 	pm.s.type = PM_NORMAL;
 

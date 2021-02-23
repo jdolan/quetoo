@@ -1177,7 +1177,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 
 			self->owner->client->ps.pm_state.hook_position = self->s.origin;
 
-			if (self->owner->client->locals.persistent.hook_style == HOOK_SWING) {
+			if (self->owner->client->locals.persistent.hook_style != HOOK_PULL) {
 				const float distance = Vec3_Distance(self->owner->s.origin, self->s.origin);
 
 				self->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);

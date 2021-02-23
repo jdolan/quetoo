@@ -512,14 +512,16 @@ void G_ClientHookThink(g_entity_t *ent, const _Bool refire) {
 	if (refire) {
 
 		G_ClientHookCheckFire(ent, true);
-
 		return;
 	}
 
 	if (ent->client->locals.hook_entity) {
 
-		if ((ent->client->locals.persistent.hook_style == HOOK_PULL && !(ent->client->locals.buttons & BUTTON_HOOK)) ||
-		        (ent->client->locals.persistent.hook_style == HOOK_SWING && (ent->client->locals.latched_buttons & BUTTON_HOOK))) {
+		const _Bool is_manual_hook_swing = ent->client->locals.persistent.hook_style == HOOK_SWING_MANUAL;
+		const _Bool is_holding_hook = (ent->client->locals.buttons & BUTTON_HOOK);
+		const _Bool is_pressing_hook = (ent->client->locals.latched_buttons & BUTTON_HOOK);
+
+		if ((!is_manual_hook_swing && !is_holding_hook) || (is_manual_hook_swing && is_pressing_hook)) {
 
 			G_ClientHookDetach(ent);
 			ent->client->locals.latched_buttons &= ~BUTTON_HOOK;

@@ -45,9 +45,14 @@
 #define VERTEX_EPSILON			.875f
 
 /**
+ * @brief Bounding box epsilon.
+ */
+#define BOX_EPSILON				1.f
+
+/**
  * @brief Trace collision epsilon.
  */
-#define TRACE_EPSILON			.125f
+#define TRACE_EPSILON			.25f
 
 /**
  * @brief Plane side constants used for BSP recursion.

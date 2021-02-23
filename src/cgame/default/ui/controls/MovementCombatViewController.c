@@ -71,7 +71,8 @@ static void loadView(ViewController *self) {
 	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
 	$(hookStyle, addOption, "pull", NULL);
-	$(hookStyle, addOption, "swing", NULL);
+	$(hookStyle, addOption, "swing_manual", NULL);
+	$(hookStyle, addOption, "swing_auto", NULL);
 }
 
 #pragma mark - Class lifecycle

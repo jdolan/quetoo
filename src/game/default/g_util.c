@@ -726,9 +726,11 @@ g_client_t *G_ClientByName(char *name) {
  * @return Get the g_hook_style_t this string describes.
  */
 g_hook_style_t G_HookStyleByName(const char *s) {
-
-	if (!g_strcmp0(s, "swing")) {
-		return HOOK_SWING;
+	
+	if (!g_strcmp0(s, "swing_manual")) {
+		return HOOK_SWING_MANUAL;
+	} else if (!g_strcmp0(s, "swing_auto")) {
+		return HOOK_SWING_AUTO;
 	}
 
 	return HOOK_PULL;

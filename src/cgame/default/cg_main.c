@@ -212,7 +212,7 @@ static void Cg_Init(void) {
 	                       "If a hit sound is played when damaging an enemy.");
 
 	cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
+	                         "Your preferred hook style. Can be either \"pull\", \"swing_manual\", or \"swing_auto\".");
 
 	cg_particle_quality = cgi.AddCvar("cg_particle_quality", "1", CVAR_ARCHIVE, "Particle quality. 0 disables some particles, 1 enables all.");
 
