@@ -1,7 +1,7 @@
 # Makefile for Quetoo.app, requires awscli and dylibbundler.
 # http://macdylibbundler.sourceforge.net/
 
-CODESIGN_IDENTITY = "77C0E36DFF54D135D716AD4CA752823838E4D648"
+CODESIGN_IDENTITY = "F43DBDE48E6ACE15193C42883170FB0D35C38A2B"
 
 ARCH = x86_64
 BUILD = $(ARCH)-apple-darwin
