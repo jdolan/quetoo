@@ -24,5 +24,7 @@
 	<string>BETA</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.13</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
 </dict>
 </plist>
