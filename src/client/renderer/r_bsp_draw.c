@@ -380,7 +380,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (draw->texinfo->flags & SURF_MASK_BLEND) {
+		if (draw->texinfo->flags & SURF_MASK_TRANSLUCENT) {
 			continue;
 		}
 
@@ -388,18 +388,30 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 			continue;
 		}
 
-		if (entity == NULL && r_depth_pass->value && (draw->texinfo->flags & SURF_ALPHA_TEST)) {
-			glDepthMask(GL_TRUE);
-		}
-
 		R_DrawBspDrawElements(view, entity, draw, &material);
-
-		if (entity == NULL && r_depth_pass->value && (draw->texinfo->flags & SURF_ALPHA_TEST)) {
-			glDepthMask(GL_FALSE);
-		}
 	}
 
 	r_stats.count_bsp_inline_models++;
+}
+
+/**
+ * @brief
+ */
+static void R_DrawBspInlineModelAlphaTestDrawElements(const r_view_t *view,
+													  const r_entity_t *entity,
+													  const r_bsp_inline_model_t *in) {
+
+	const r_material_t *material = NULL;
+
+	const r_bsp_draw_elements_t *draw = in->draw_elements;
+	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
+
+		if (!(draw->texinfo->flags & SURF_ALPHA_TEST)) {
+			continue;
+		}
+
+		R_DrawBspDrawElements(view, entity, draw, &material);
+	}
 }
 
 /**
@@ -515,6 +527,8 @@ void R_DrawWorld(const r_view_t *view) {
 		glDepthMask(GL_TRUE);
 	}
 
+	R_DrawBspInlineModelAlphaTestDrawElements(view, NULL, r_world_model->bsp->inline_models);
+
 	{
 		glUniform1i(r_bsp_program.entity, 1);
 
@@ -524,6 +538,8 @@ void R_DrawWorld(const r_view_t *view) {
 
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 				R_DrawBspInlineModelOpaqueDrawElements(view, e, e->model->bsp_inline);
+				R_DrawBspInlineModelAlphaTestDrawElements(view, e, e->model->bsp_inline);
+
 			}
 		}
 		glUniform1i(r_bsp_program.entity, 0);
