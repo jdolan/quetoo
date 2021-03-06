@@ -132,11 +132,9 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
 }
 
 /**
- * @brief Draw all entities at the specified depth value.
+ * @brief
  */
-void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
-	
-	R_DrawMeshEntities(view, blend_depth);
+static void R_DrawEntitiesBounds(const r_view_t *view, int32_t blend_depth) {
 
 	if (!r_draw_entity_bounds->value) {
 		return;
@@ -148,7 +146,7 @@ void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
 		if (e->model == NULL) {
 			continue;
 		}
-		
+
 		if (e->parent) {
 			continue;
 		}
@@ -163,4 +161,14 @@ void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
 
 		R_DrawEntityBounds(e);
 	}
+}
+
+/**
+ * @brief Draw all entities at the specified depth value.
+ */
+void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
+	
+	R_DrawMeshEntities(view, blend_depth);
+
+	R_DrawEntitiesBounds(view, blend_depth);
 }
