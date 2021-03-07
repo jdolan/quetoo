@@ -1189,6 +1189,10 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tlight %g\n", material->light);
 	}
 
+	if (material->patch_size) {
+		Fs_Print(file, "\tpatch_size %g\n", material->patch_size);
+	}
+
 	// if not empty/default, write footsteps
 	if (*material->footsteps && g_strcmp0(material->footsteps, "default")) {
 		Fs_Print(file, "\tfootsteps %s\n", material->footsteps);
