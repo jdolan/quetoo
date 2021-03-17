@@ -28,30 +28,6 @@
 #ifndef GLAD_GL_H_
 #define GLAD_GL_H_
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wreserved-id-macro"
-#endif
-#ifdef __gl_h_
-  #error OpenGL (gl.h) header already included (API: gl), remove previous include!
-#endif
-#define __gl_h_ 1
-#ifdef __gl3_h_
-  #error OpenGL (gl3.h) header already included (API: gl), remove previous include!
-#endif
-#define __gl3_h_ 1
-#ifdef __glext_h_
-  #error OpenGL (glext.h) header already included (API: gl), remove previous include!
-#endif
-#define __glext_h_ 1
-#ifdef __gl3ext_h_
-  #error OpenGL (gl3ext.h) header already included (API: gl), remove previous include!
-#endif
-#define __gl3ext_h_ 1
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-
 #define GLAD_GL
 #define GLAD_OPTION_GL_LOADER
 #define GLAD_OPTION_GL_DEBUG

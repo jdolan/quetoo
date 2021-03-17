@@ -215,12 +215,17 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 		}
 
 		// we don't care about UCRT/Windows SDK stuff
-		if (!g_strcmp0(symbol->Name, "invoke_main")) {
+		if (!g_strcmp0(symbol->Name, "invoke_main") ||
+			!strncmp(symbol->Name, "__scrt_", 7)) {
 			break;
 		}
 
 		// check for line number support
-		if (SymGetLineFromAddr64(process, (DWORD64) symbols[i], &dwDisplacement, &line)) {
+#ifdef _WIN64
+		if (SymGetLineFromAddr(process, (DWORD64) symbols[i], &dwDisplacement, &line)) {
+#else
+		if (SymGetLineFromAddr(process, (DWORD) symbols[i], &dwDisplacement, &line)) {
+#endif
 			char *last_slash = strrchr(line.FileName, '\\');
 
 			if (!last_slash)
@@ -238,6 +243,7 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 	}
 
 	SymCleanup(process);
+	free(symbol);
 #else
 	g_string_append(backtrace_str, "Backtrace not supported.\n");
 #endif
