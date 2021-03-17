@@ -100,10 +100,21 @@ static void viewWillAppear(ViewController *self) {
 
 	r_material_t *material = NULL;
 
-	const vec3_t end = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
+	vec3_t start = cl_view.origin, end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
 
-	const cm_trace_t tr = Cl_Trace(cl_view.origin, end, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-	if (tr.texinfo && tr.texinfo->material) {
+	while (material == NULL) {
+
+		const cm_trace_t tr = Cl_Trace(start, end, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+		if (!tr.texinfo) {
+			break;
+		}
+
+		if (g_str_has_prefix(tr.texinfo->name, "common/")) {
+			start = Vec3_Add(tr.end, cl_view.forward);
+			continue;
+		}
+
+		assert(tr.texinfo->material);
 		material = R_LoadMaterial(tr.texinfo->name, ASSET_CONTEXT_TEXTURES);
 	}
 

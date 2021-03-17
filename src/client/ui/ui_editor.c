@@ -33,7 +33,7 @@ static EditorViewController *editorViewController;
  */
 void Ui_CheckEditor(void) {
 
-	if (cl_editor->modified) {
+	if (cl_editor->modified || cls.loading.percent == 100) {
 
 		if (cl_editor->integer) {
 			if (cls.state != CL_ACTIVE) {

@@ -26,6 +26,14 @@ AC_SUBST(REVISION)
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])
 
+case $host in
+	*-*-mingw*)
+		dnl work around libtool refusing to link libdl statically
+		AC_CACHE_VAL(lt_cv_deplibs_check_method,
+			[lt_cv_deplibs_check_method=pass_all])
+		;;
+esac
+
 dnl ---------------
 dnl Check for tools
 dnl ---------------
