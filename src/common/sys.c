@@ -239,7 +239,7 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 
 	SymCleanup(process);
 #else
-	g_string_append(backtrace, "Backtrace not supported.\n");
+	g_string_append(backtrace_str, "Backtrace not supported.\n");
 #endif
 
 	// cut off the last \n
