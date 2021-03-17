@@ -28,7 +28,9 @@
 #if defined(_WIN32)
 	#include <windows.h>
 	#include <shlobj.h>
-	#include <DbgHelp.h>
+#if !defined(__MINGW32__)
+		#include <DbgHelp.h>
+#endif
 #endif
 
 #if defined(__APPLE__)
@@ -171,7 +173,7 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
  */
 GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 {
-	GString *backtrace = g_string_new(NULL);
+	GString *backtrace_str = g_string_new(NULL);
 
 #if HAVE_EXECINFO
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
@@ -181,12 +183,12 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 
 	for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
 
-		g_string_append(backtrace, strings[i]);
-		g_string_append(backtrace, "\n");
+		g_string_append(backtrace_str, strings[i]);
+		g_string_append(backtrace_str, "\n");
 	}
 
 	free(strings);
-#elif _WIN32
+#elif defined(_WIN32) && !defined(__MINGW32__)
 	void *symbols[32];
 	const int name_length = 256;
 	
@@ -208,7 +210,7 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 		BOOL result = SymFromAddr(process, (DWORD64) symbols[i], 0, symbol);
 
 		if (!result) {
-			g_string_append(backtrace, "> ???\n");
+			g_string_append(backtrace_str, "> ???\n");
 			continue;
 		}
 
@@ -229,23 +231,23 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 			else
 				last_slash++;
 
-			g_string_append_printf(backtrace, "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
+			g_string_append_printf(backtrace_str, "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
 		}
 		else
-			g_string_append_printf(backtrace, "> %s (unknown:unknown)\n", symbol->Name);
+			g_string_append_printf(backtrace_str, "> %s (unknown:unknown)\n", symbol->Name);
 	}
+
+	SymCleanup(process);
 #else
 	g_string_append(backtrace, "Backtrace not supported.\n");
 #endif
 
 	// cut off the last \n
-	if (backtrace->len) {
-		g_string_truncate(backtrace, backtrace->len - 1);
+	if (backtrace_str->len) {
+		g_string_truncate(backtrace_str, backtrace_str->len - 1);
 	}
 
-	SymCleanup(process);
-
-	return backtrace;
+	return backtrace_str;
 }
 
 /**
