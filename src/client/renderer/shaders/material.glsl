@@ -21,28 +21,28 @@
 
 #define MAX_HARDNESS       16
 
-#define STAGE_TEXTURE      0 //(1 << 0)
-#define STAGE_BLEND        4 //(1 << 2)
-#define STAGE_COLOR        8 //(1 << 3)
-#define STAGE_PULSE        16 //(1 << 4)
-#define STAGE_STRETCH      32 //(1 << 5)
-#define STAGE_ROTATE       64 //(1 << 6)
-#define STAGE_SCROLL_S     128 //(1 << 7)
-#define STAGE_SCROLL_T     256 //(1 << 8)
-#define STAGE_SCALE_S      512 //(1 << 9)
-#define STAGE_SCALE_T      1024 //(1 << 10)
-#define STAGE_TERRAIN      2048 //(1 << 11)
-#define STAGE_ANIM         4096 //(1 << 12)
-#define STAGE_LIGHTMAP     8192 //(1 << 13)
-#define STAGE_DIRTMAP      16384 //(1 << 14)
-#define STAGE_ENVMAP       32768 //(1 << 15)
-#define STAGE_WARP         65536 //(1 << 16)
-#define STAGE_FLARE        131072 //(1 << 17)
-#define STAGE_FOG          262144 //(1 << 18)
-#define STAGE_SHELL        524288 //(1 << 19)
+#define STAGE_TEXTURE      0
+#define STAGE_BLEND        4
+#define STAGE_COLOR        8
+#define STAGE_PULSE        16
+#define STAGE_STRETCH      32
+#define STAGE_ROTATE       64
+#define STAGE_SCROLL_S     128
+#define STAGE_SCROLL_T     256
+#define STAGE_SCALE_S      512
+#define STAGE_SCALE_T      1024
+#define STAGE_TERRAIN      2048
+#define STAGE_ANIM         4096
+#define STAGE_LIGHTMAP     8192
+#define STAGE_DIRTMAP      16384
+#define STAGE_ENVMAP       32768
+#define STAGE_WARP         65536
+#define STAGE_FLARE        131072
+#define STAGE_FOG          262144
+#define STAGE_SHELL        524288
 
-#define STAGE_DRAW         268435456 //(1 << 28)
-#define STAGE_MATERIAL     536870912 //(1 << 29)
+#define STAGE_DRAW         268435456
+#define STAGE_MATERIAL     536870912
 
 const float PI = 3.141592653589793115997963468544185161590576171875;
 const float TWO_PI = PI * 2.0;

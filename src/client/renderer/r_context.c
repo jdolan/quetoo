@@ -110,6 +110,7 @@ static const char *R_Debug_Severity(const GLenum severity) {
 static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei length, const GLchar *message, const void *userParam) {
 	
 	char temp[length + 1];
+	GString *backtrace = Sys_Backtrace(0, (uint32_t) -1);
 
 	if (length > 0) {
 		strncpy(temp, message, length);
@@ -119,14 +120,70 @@ static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, 
 		message = "";
 	}
 
-	if (type == GL_DEBUG_TYPE_ERROR) {
-		Com_Warn("^1OpenGL (%s; %s) %s [id %i]: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message);
-	} else {
-		Com_Warn("OpenGL (%s; %s) %s [id %i]: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message);
+	const char *trace = backtrace->str;
+	// we have to do this a bit different because it's driver-dependent as
+	// to how deep in the call stack this function will be.
+	// find the glad_ call from r_gl.c
+	const char *last_gl_func = strstr(backtrace->str, "r_gl.c");
+
+	if (last_gl_func) {
+		last_gl_func = strchr(last_gl_func, '\n') + 1;
+
+		if (last_gl_func) {
+			trace = last_gl_func;
+			*strchr(last_gl_func, '\n') = 0;
+		}
 	}
+
+	if (type == GL_DEBUG_TYPE_ERROR) {
+		Com_Warn("^1OpenGL (%s; %s) %s [id %i]: %s\n source: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message, trace);
+	} else {
+		Com_Warn("OpenGL (%s; %s) %s [id %i]: %s\n source: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message, trace);
+	}
+
+	g_string_free(backtrace, true);
 
 	if (r_get_error->integer == 2) {
 		SDL_TriggerBreakpoint();
+	}
+}
+
+/**
+ * @brief Convert error severity into a string
+*/
+static const char *R_Debug_Error(const GLenum error_code) {
+	switch(error_code) {
+		case GL_NO_ERROR:
+			return "No Error";
+		case GL_INVALID_ENUM:
+			return "INVALID_ENUM";
+		case GL_INVALID_OPERATION:
+			return "INVALID_OPERATION";
+		case GL_STACK_OVERFLOW:
+			return "STACK_OVERFLOW";
+		case GL_STACK_UNDERFLOW:
+			return "STACK_UNDERFLOW";
+		case GL_OUT_OF_MEMORY:
+			return "OUT_OF_MEMORY";
+		case GL_INVALID_FRAMEBUFFER_OPERATION:
+			return "INVALID_FRAMEBUFFER_OPERATION";
+		default:
+			return va("Unknown Error (%x)", error_code);
+	}
+}
+
+void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...)
+{
+	const GLenum error_code = glad_glGetError();
+
+	if (error_code != GL_NO_ERROR) {
+		GString *backtrace = Sys_Backtrace(3, 1);
+		Com_Warn("^1OpenGL (%s): %s\n source: %s\n", backtrace->str, name, R_Debug_Error(error_code));
+		g_string_free(backtrace, true);
+	
+		if (r_get_error->integer == 2) {
+			SDL_TriggerBreakpoint();
+		}
 	}
 }
 
@@ -278,7 +335,7 @@ void R_InitContext(void) {
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
-	gladLoadGL();
+	gladLoaderLoadGL();
 	
 	if (r_get_error->integer) {
 		if (GLAD_GL_KHR_debug) {
@@ -286,6 +343,10 @@ void R_InitContext(void) {
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 			glDebugMessageCallback(R_Debug_Callback, NULL);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+		} else {
+			Com_Print("GL_KHR_debug not supported: slower debug handler attached\n");
+			gladInstallGLDebug();
+			gladSetGLPostCallback(R_Debug_GladPostCallback);
 		}
 	}
 
@@ -310,4 +371,6 @@ void R_ShutdownContext(void) {
 	}
 
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+	gladLoaderUnloadGL();
 }

@@ -20,9 +20,9 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#define VIEW_UNKNOWN		0 //(0 << 0)
-#define VIEW_MAIN			1 //(1 << 0)
-#define VIEW_PLAYER_MODEL	2 //(1 << 1)
+#define VIEW_UNKNOWN		0
+#define VIEW_MAIN			1
+#define VIEW_PLAYER_MODEL	2
 
 /**
  * @brief The lightgrid struct.
@@ -144,7 +144,7 @@ struct light_t {
 	vec4 color;
 };
 
-#define MAX_LIGHTS 0x20
+#define MAX_LIGHTS 32
 
 /**
  * @brief The lights uniform block.

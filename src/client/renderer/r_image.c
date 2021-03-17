@@ -78,7 +78,9 @@ static void R_TextureMode(void) {
 
 	if (r_anisotropy->value) {
 		if (GLAD_GL_EXT_texture_filter_anisotropic) {
-			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_image_state.anisotropy);
+			GLfloat max_anisotropy;
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+			r_image_state.anisotropy = Minf(max_anisotropy, r_anisotropy->value);
 		} else {
 			Com_Warn("Anisotropy is enabled but not supported by your GPU.\n");
 			Cvar_ForceSetInteger(r_anisotropy->name, 0);
@@ -154,6 +156,11 @@ void R_Screenshot_f(void) {
 	Thread_Create(R_Screenshot_f_encode, s, THREAD_NO_WAIT);
 }
 
+static GLenum R_GetInternalImageFormat(const r_image_t *image) {
+
+	return (image->format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
+}
+
 /**
  * @brief Creates the base image state for the image.
  */
@@ -184,7 +191,7 @@ void R_SetupImage(r_image_t *image) {
 		glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
 		glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
 
-		if (r_image_state.anisotropy) {
+		if (r_image_state.anisotropy > 1.0) {
 			glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 		}
 	} else {
@@ -213,7 +220,7 @@ void R_SetupImage(r_image_t *image) {
 			}
 		}
 
-		const GLenum internal_format = (image->format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
+		const GLenum internal_format = R_GetInternalImageFormat(image);
 		if (image->depth) {
 			glTexStorage3D(image->target, levels, internal_format, image->width, image->height, image->depth);
 		} else {
@@ -251,10 +258,12 @@ void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, GL_UNSIGNED_BYTE, data);
 		}
 	} else {
+		const GLenum internal_format = R_GetInternalImageFormat(image);
+
 		if (image->depth) {
-			glTexImage3D(target, 0, image->format, image->width, image->height, image->depth, 0, image->format, GL_UNSIGNED_BYTE, data);
+			glTexImage3D(target, 0, image->format, image->width, image->height, image->depth, 0, internal_format, GL_UNSIGNED_BYTE, data);
 		} else {
-			glTexImage2D(target, 0, image->format, image->width, image->height, 0, image->format, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(target, 0, image->format, image->width, image->height, 0, internal_format, GL_UNSIGNED_BYTE, data);
 		}
 	}
 

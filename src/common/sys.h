@@ -31,5 +31,6 @@ void *Sys_OpenLibrary(const char *name, _Bool global);
 void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params);
 void Sys_CloseLibrary(void *handle);
 
-void Sys_Backtrace(const char *msg);
+GString *Sys_Backtrace(uint32_t start, uint32_t max_count);
+void Sys_Raise(const char *msg);
 void Sys_Signal(int32_t s) __attribute__((noreturn));

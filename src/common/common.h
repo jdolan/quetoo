@@ -116,6 +116,8 @@ void Com_PrintInfo(const char *s);
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 
+void Com_LogString(const char *str);
+
 void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3, 0)));
 

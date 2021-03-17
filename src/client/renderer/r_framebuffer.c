@@ -33,7 +33,7 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height) {
 
 	glGenFramebuffers(1, &framebuffer.name);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.name);
-
+	
 	glGenTextures(1, &framebuffer.color_attachment);
 	glBindTexture(GL_TEXTURE_2D, framebuffer.color_attachment);
 

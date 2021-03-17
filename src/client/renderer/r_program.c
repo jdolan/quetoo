@@ -104,6 +104,7 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
 
 			GLchar log[log_length];
+			log[0] = 0;
 			glGetShaderInfoLog(shader, log_length, NULL, log);
 
 			GLchar source_list[MAX_PRINT_MSG] = { 0 };
@@ -119,6 +120,16 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 				
 				g_strlcat(source_list, filename, sizeof(source_list));
 			}
+
+			GLint src_length;
+			glGetShaderiv(shader, GL_SHADER_SOURCE_LENGTH, &src_length);
+
+			GLchar src[src_length];
+			src[0] = 0;
+			glGetShaderSource(shader, src_length, NULL, src);
+
+			Com_LogString("Shader source:\n");
+			Com_LogString(src);
 
 			Com_Error(ERROR_FATAL, "Sources: %s\n%s\n", source_list, log);
 		}

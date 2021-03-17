@@ -309,10 +309,12 @@ static void Cl_MessageMode2_f(void) {
 }
 
 /**
- * @brief Crash the game.
+ * @brief Generate a backtrace.
  */
 static void Cl_Backtrace_f(void) {
-	Sys_Backtrace(__func__);
+	GString *backtrace = Sys_Backtrace(0, (uint32_t) -1);
+	Com_Print("%s\n", backtrace->str);
+	g_string_free(backtrace, true);
 }
 
 /**

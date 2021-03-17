@@ -28,6 +28,7 @@
 #if defined(_WIN32)
 	#include <windows.h>
 	#include <shlobj.h>
+	#include <DbgHelp.h>
 #endif
 
 #if defined(__APPLE__)
@@ -163,35 +164,110 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
 }
 
 /**
- * @brief On platforms supporting it, print a backtrace.
+ * @brief On platforms supporting it, capture a backtrace. Returns
+ * allocated memory; use `g_string_free` on it.
+ * @param start How many frames to skip
+ * @param count How many frames total to include
  */
-void Sys_Backtrace(const char *msg) {
+GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
+{
+	GString *backtrace = g_string_new(NULL);
 
 #if HAVE_EXECINFO
-	char message[MAX_STRING_CHARS] = "";
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
-	const int32_t count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
+	const int32_t symbol_count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
 
-	if (!Com_WasInit(QUETOO_CLIENT)) {
-		backtrace_symbols_fd(symbols, count, STDERR_FILENO);
-		return;
-	}
+	char **strings = backtrace_symbols(symbols, symbol_count);
 
-	char **strings = backtrace_symbols(symbols, count);
+	for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
 
-	for (int32_t i = 0; i < count; i++) {
-		g_strlcat(message, strings[i], sizeof(message));
-		g_strlcat(message, "\n", sizeof(message));
+		g_string_append(backtrace, strings[i]);
+		g_string_append(backtrace, "\n");
 	}
 
 	free(strings);
+#elif _WIN32
+	void *symbols[32];
+	const int name_length = 256;
+	
+    HANDLE process = GetCurrentProcess();
+	SymSetOptions(SYMOPT_LOAD_LINES);
+    SymInitialize(process, NULL, TRUE);
 
+	const int16_t symbol_count = RtlCaptureStackBackTrace(1, lengthof(symbols), symbols, NULL);
+
+	PSYMBOL_INFO symbol = calloc(sizeof(*symbol) + name_length, 1);
+	symbol->MaxNameLen = name_length - 1;
+	symbol->SizeOfStruct = sizeof(*symbol);
+	
+	IMAGEHLP_LINE line;
+	line.SizeOfStruct = sizeof(line);
+	DWORD dwDisplacement;
+	
+	for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
+		BOOL result = SymFromAddr(process, (DWORD64) symbols[i], 0, symbol);
+
+		if (!result) {
+			g_string_append(backtrace, "> ???\n");
+			continue;
+		}
+
+		// we don't care about UCRT/Windows SDK stuff
+		if (!g_strcmp0(symbol->Name, "invoke_main")) {
+			break;
+		}
+
+		// check for line number support
+		if (SymGetLineFromAddr64(process, (DWORD64) symbols[i], &dwDisplacement, &line)) {
+			char *last_slash = strrchr(line.FileName, '\\');
+
+			if (!last_slash)
+				last_slash = strrchr(line.FileName, '/');
+
+			if (!last_slash)
+				last_slash = line.FileName;
+			else
+				last_slash++;
+
+			g_string_append_printf(backtrace, "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
+		}
+		else
+			g_string_append_printf(backtrace, "> %s (unknown:unknown)\n", symbol->Name);
+	}
+#else
+	g_string_append(backtrace, "Backtrace not supported.\n");
 #endif
+
+	// cut off the last \n
+	if (backtrace->len) {
+		g_string_truncate(backtrace, backtrace->len - 1);
+	}
+
+	SymCleanup(process);
+
+	return backtrace;
+}
+
+/**
+ * @brief Raise a fatal error dialog/exception.
+ */
+void Sys_Raise(const char *msg) {
+
+	GString *backtrace = Sys_Backtrace(0, (uint32_t) -1);
+	
+	g_string_prepend(backtrace, "\n");
+	g_string_prepend(backtrace, msg);
+
+	if (!Com_WasInit(QUETOO_CLIENT)) {
+		fprintf(stderr, "%s", backtrace->str);
+		g_string_free(backtrace, true);
+		return;
+	}
 
 	const SDL_MessageBoxData data = {
 		.flags = SDL_MESSAGEBOX_ERROR,
 		.title = "Fatal Error",
-		.message = msg,
+		.message = backtrace->str,
 		.numbuttons = 1,
 		.buttons = &(const SDL_MessageBoxButtonData) {
 			.flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
@@ -202,6 +278,8 @@ void Sys_Backtrace(const char *msg) {
 
 	int32_t button;
 	SDL_ShowMessageBox(&data, &button);
+
+	g_string_free(backtrace, true);
 
 #if defined(_MSC_VER)
 

@@ -30,18 +30,9 @@
 #endif
 
 /**
- * @brief Sets up a log file that will be used for debugging issues
- * with the game's initialization routines.
- */
-static void Com_InitLog(void) {
-
-	quetoo.log_file = fopen(va("quetoo_%" PRIiMAX ".log", (intmax_t) time(NULL)), "w");
-}
-
-/**
  * @brief Logs a string to the log file.
  */
-static void Com_LogString(const char *str) {
+void Com_LogString(const char *str) {
 
 	if (!str || !*str || !quetoo.log_file) {
 		return;
@@ -49,6 +40,25 @@ static void Com_LogString(const char *str) {
 
 	fprintf(quetoo.log_file, "%s", str);
 	fflush(quetoo.log_file);
+}
+
+/**
+ * @brief Sets up a log file that will be used for debugging issues
+ * with the game's initialization routines.
+ */
+static void Com_InitLog(int32_t argc, char *argv[]) {
+
+	quetoo.log_file = fopen(va("quetoo_%" PRIiMAX ".log", (intmax_t) time(NULL)), "w");
+
+	Com_LogString(va("Quetoo %s %s %s\n", VERSION, BUILD, REVISION));
+
+	if (argc)
+	{
+		Com_LogString("Launch arguments:\n");
+		
+		for (int32_t i = 0; i < argc; i++)
+			Com_LogString(va("%s\n", argv[i]));
+	}
 }
 
 // max len we'll try to parse for a category
@@ -366,7 +376,7 @@ void Com_Init(int32_t argc, char *argv[]) {
 
 		if (!g_strcmp0(Com_Argv(i), "-log") ||
 		        !g_strcmp0(Com_Argv(i), "+log")) {
-			Com_InitLog();
+			Com_InitLog(argc, argv);
 			continue;
 		}
 	}
