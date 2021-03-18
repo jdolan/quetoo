@@ -312,7 +312,7 @@ static void Cl_MessageMode2_f(void) {
  * @brief Generate a backtrace.
  */
 static void Cl_Backtrace_f(void) {
-	GString *backtrace = Sys_Backtrace(0, (uint32_t) -1);
+	GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
 	Com_Print("%s\n", backtrace->str);
 	g_string_free(backtrace, true);
 }
