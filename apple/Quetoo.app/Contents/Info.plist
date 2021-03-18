@@ -11,7 +11,7 @@
 	<key>CFBundleIconFile</key>
 	<string>default/icons/quetoo.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.quetoo.launcher</string>
+	<string>org.quetoo.quetoo</string>
 	<key>CFBundleName</key>
 	<string>Quetoo</string>
 	<key>CFBundlePackageType</key>
@@ -23,7 +23,7 @@
 	<key>CFBundleVersion</key>
 	<string>BETA</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.13</string>
+	<string>10.15</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 </dict>
