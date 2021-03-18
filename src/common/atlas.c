@@ -164,16 +164,16 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 	for (int32_t i = start; i < (int32_t) atlas->nodes->len; i++) {
 		atlas_node_t *node = g_ptr_array_index(atlas->nodes, i);
 
-		if (node->surfaces[0]->w > surfaces[0]->w ||
-			node->surfaces[0]->h > surfaces[0]->h) {
+		if (node->w > surfaces[0]->w ||
+			node->h > surfaces[0]->h) {
 			return -1;
 		}
 
-		if (y + node->surfaces[0]->h > surfaces[0]->h) {
+		if (y + node->h > surfaces[0]->h) {
 			return i;
 		}
 
-		if (x + node->surfaces[0]->w > surfaces[0]->w) {
+		if (x + node->w > surfaces[0]->w) {
 			x = 0;
 			y += row;
 			row = 0;
@@ -189,14 +189,14 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 			SDL_Surface *dest = surfaces[layer];
 
 			if (src && dest) {
-				SDL_BlitSurface(src, NULL, dest, &(SDL_Rect) {
-					node->x, node->y, src->w, src->h
+				SDL_BlitScaled(src, NULL, dest, &(SDL_Rect) {
+					node->x, node->y, node->w, node->h
 				});
 			}
 		}
 
-		x += node->surfaces[0]->w;
-		row = MAX(row, node->surfaces[0]->h);
+		x += node->w;
+		row = MAX(row, node->h);
 	}
 
 	return 0;

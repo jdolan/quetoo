@@ -96,6 +96,13 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 	assert(node);
 
 	node->data = atlas_image;
+	node->w = surf->w;
+	node->h = surf->h;
+
+	if ((type & IT_MASK_QUALITY) && r_sprite_quality->integer > 1) {
+		node->w = Maxf(1, surf->w / r_sprite_quality->integer);
+		node->h = Maxf(1, surf->h / r_sprite_quality->integer);
+	}
 
 	atlas_image->image.type = type;
 	atlas_image->image.width = surf->w;
@@ -125,8 +132,8 @@ static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
 
 	atlas_image->texcoords.x = (node->x / w) + texel;
 	atlas_image->texcoords.y = (node->y / h) + texel;
-	atlas_image->texcoords.z = ((node->x + atlas_image->image.width) / w) - (texel * 2);
-	atlas_image->texcoords.w = ((node->y + atlas_image->image.height) / h) - (texel * 2);
+	atlas_image->texcoords.z = ((node->x + node->w) / w) - (texel * 2);
+	atlas_image->texcoords.w = ((node->y + node->h) / h) - (texel * 2);
 }
 
 /**
@@ -148,12 +155,10 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
 		const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
-		const r_atlas_image_t *atlas_image = node->data;
-
-		levels = MIN(levels, floorf(log2f(MAX(atlas_image->image.width, atlas_image->image.height)) + 1));
+		levels = MIN(levels, floorf(log2f(MAX(node->w, node->h)) + 1));
 	}
 
-	for (int32_t width = 2048; atlas->image->width == 0; width += 1024) {
+	for (int32_t width = 256; atlas->image->width == 0; width += 512) {
 
 		if (width > r_config.max_texture_size) {
 			Com_Error(ERROR_DROP, "Atlas exceeds GL_MAX_TEXTURE_SIZE\n");
@@ -183,7 +188,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 					SDL_BlitScaled(surf, &(const SDL_Rect) {
 						.x = node->x, .y = node->y, .w = atlas_image->image.width, .h = atlas_image->image.height
 					}, mip_surf, &(SDL_Rect) {
-						.x = node->x >> i, .y = node->y >> i, .w = atlas_image->image.width >> i, .h = atlas_image->image.height >> i
+						.x = node->x >> i, .y = node->y >> i, .w = node->w >> i, .h = node->h >> i
 					});
 				}
 

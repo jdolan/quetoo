@@ -189,12 +189,18 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 
 	free(strings);
 #elif defined(_WIN32) && !defined(__MINGW32__)
+	static bool symbols_initialized = false;
 	void *symbols[32];
 	const int name_length = 256;
 	
     HANDLE process = GetCurrentProcess();
-	SymSetOptions(SYMOPT_LOAD_LINES);
-    SymInitialize(process, NULL, TRUE);
+
+	if (!symbols_initialized)
+	{
+		SymSetOptions(SYMOPT_LOAD_LINES);
+		SymInitialize(process, NULL, TRUE);
+		symbols_initialized = true;
+	}
 
 	const int16_t symbol_count = RtlCaptureStackBackTrace(1, lengthof(symbols), symbols, NULL);
 

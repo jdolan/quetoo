@@ -138,7 +138,7 @@ void R_DrawBspLightgrid(r_view_t *view) {
 	const byte *direction = diffuse + luxels * BSP_LIGHTGRID_BPP;
 	const byte *fog = direction + luxels * BSP_LIGHTGRID_BPP;
 
-	r_image_t *particle = R_LoadImage("sprites/particle", IT_EFFECT);
+	r_image_t *particle = R_LoadImage("sprites/particle", IT_SPRITE);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {

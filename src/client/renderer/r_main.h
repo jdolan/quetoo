@@ -45,6 +45,7 @@ extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shell;
 extern cvar_t *r_specularity;
+extern cvar_t *r_sprite_quality;
 extern cvar_t *r_stains;
 extern cvar_t *r_texture_mode;
 extern cvar_t *r_swap_interval;
@@ -211,7 +212,14 @@ extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
+extern cvar_t *r_max_errors;
 extern cvar_t *r_occlude;
+
+/**
+ * @brief Keeps track of how many errors we've run into, so we can
+ * break out of expensive error handlers if too many have happened.
+ */
+extern int32_t r_error_count;
 
 void R_GetError_(const char *function, const char *msg);
 
