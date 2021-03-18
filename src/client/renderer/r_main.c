@@ -35,7 +35,10 @@ cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_material_stages;
 cvar_t *r_draw_wireframe;
 cvar_t *r_get_error;
+cvar_t *r_max_errors;
 cvar_t *r_occlude;
+
+int32_t r_error_count;
 
 cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
@@ -59,6 +62,7 @@ cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
 cvar_t *r_shell;
 cvar_t *r_specularity;
+cvar_t *r_sprite_quality;
 cvar_t *r_stains;
 cvar_t *r_texture_mode;
 cvar_t *r_swap_interval;
@@ -76,6 +80,13 @@ void R_GetError_(const char *function, const char *msg) {
 	if (GLAD_GL_KHR_debug) {
 		return;
 	}
+	
+	// reset error count, so as-it-happens errors
+	// can happen again.
+	r_error_count = 0;
+
+	// reinstall debug handler.
+	gladInstallGLDebug();
 
 	while (true) {
 		const GLenum err = glGetError();
@@ -426,7 +437,8 @@ static void R_InitLocal(void) {
 	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
-	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console (developer tool)");
+	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL errors to the console (developer tool)");
+	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
 	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
 
 	// settings and preferences
@@ -452,6 +464,7 @@ static void R_InitLocal(void) {
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
+	r_sprite_quality = Cvar_Add("r_sprite_quality", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the divisor for large, animated sprite effects. Best values are between 1 and 16, inclusive.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");

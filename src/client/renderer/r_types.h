@@ -93,6 +93,7 @@ typedef enum {
 // high bits OR'ed with image categories, flags are bits 24..31
 #define IT_MASK_MIPMAP		(1 << 24)
 #define IT_MASK_CLAMP_EDGE  (1 << 25)
+#define IT_MASK_QUALITY		(1 << 26)
 #define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE)
 
 // image categories (bits 0..23) + flags are making image types

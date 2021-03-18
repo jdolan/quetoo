@@ -41,6 +41,11 @@ typedef struct {
 	int32_t x, y;
 
 	/**
+	 * @brief The node width/height of the compiled atlas image.
+	 */
+	int32_t w, h;
+
+	/**
 	 * @brief The atlas tag at which this node was compiled.
 	 */
 	int32_t tag;

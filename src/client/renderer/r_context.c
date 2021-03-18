@@ -177,12 +177,19 @@ void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, 
 	const GLenum error_code = glad_glGetError();
 
 	if (error_code != GL_NO_ERROR) {
-		GString *backtrace = Sys_Backtrace(3, 1);
-		Com_Warn("^1OpenGL (%s): %s\n source: %s\n", backtrace->str, name, R_Debug_Error(error_code));
+		GString *backtrace = Sys_Backtrace(0, (uint32_t) -1);
+		Com_Warn("^1OpenGL (%s): %s\n source: %s\n", name, R_Debug_Error(error_code), backtrace->str);
 		g_string_free(backtrace, true);
 	
 		if (r_get_error->integer == 2) {
 			SDL_TriggerBreakpoint();
+		}
+
+		r_error_count++;
+
+		if (r_error_count >= r_max_errors->integer) {
+			Com_Warn("Too many errors encountered; skipping handler until next error boundary.\n");
+			gladUninstallGLDebug();
 		}
 	}
 }
@@ -343,11 +350,14 @@ void R_InitContext(void) {
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 			glDebugMessageCallback(R_Debug_Callback, NULL);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+			gladUninstallGLDebug();
 		} else {
-			Com_Print("GL_KHR_debug not supported: slower debug handler attached\n");
+			Com_Warn("GL_KHR_debug not supported: slower debug handler attached\n");
 			gladInstallGLDebug();
 			gladSetGLPostCallback(R_Debug_GladPostCallback);
 		}
+	} else {
+		gladUninstallGLDebug();
 	}
 
 	R_SetWindowIcon();

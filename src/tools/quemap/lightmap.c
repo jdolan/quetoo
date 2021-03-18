@@ -666,6 +666,8 @@ void EmitLightmap(void) {
 		}
 
 		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction);
+		nodes[i]->w = lm->w;
+		nodes[i]->h = lm->h;
 	}
 
 	int32_t width;
