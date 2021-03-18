@@ -213,7 +213,6 @@ typedef struct cm_stage_s {
 #define DEFAULT_LIGHT 300.0
 #define DEFAULT_PATCH_SIZE 64
 
-
 /**
  * @brief Materials define the rendering attributes of texinfos.
  */

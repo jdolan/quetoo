@@ -101,7 +101,7 @@ typedef enum {
 	IT_PROGRAM =     (1 <<  1),
 	IT_FONT =        (1 <<  2),
 	IT_UI =          (1 <<  3),
-	IT_EFFECT =      (1 <<  4) + (IT_MASK_MIPMAP),
+	IT_SPRITE =      (1 <<  4) + (IT_MASK_MIPMAP),
 	IT_MATERIAL =    (1 <<  5) + (IT_MASK_MIPMAP),
 	IT_CUBEMAP =     (1 <<  6) + (IT_MASK_CLAMP_EDGE),
 	IT_PIC =         (1 <<  7) + (IT_MASK_MIPMAP),
