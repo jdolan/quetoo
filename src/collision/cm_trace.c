@@ -529,6 +529,13 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
 		*bounds_mins = Vec3_Add(origin, mins);
 		*bounds_maxs = Vec3_Add(origin, maxs);
 	}
+
+	if (solid == SOLID_BSP) {
+
+		// epsilon, so bmodels can catch riders
+		*bounds_mins = Vec3_Add(*bounds_mins, Vec3(-BOX_EPSILON, -BOX_EPSILON, -BOX_EPSILON));
+		*bounds_maxs = Vec3_Add(*bounds_maxs, Vec3( BOX_EPSILON,  BOX_EPSILON,  BOX_EPSILON));
+	}
 }
 
 /**
