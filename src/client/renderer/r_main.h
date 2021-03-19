@@ -48,6 +48,7 @@ extern cvar_t *r_specularity;
 extern cvar_t *r_sprite_quality;
 extern cvar_t *r_stains;
 extern cvar_t *r_texture_mode;
+extern cvar_t *r_texture_storage;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_width;
 

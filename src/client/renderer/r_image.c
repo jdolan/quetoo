@@ -47,6 +47,11 @@ static struct {
 	 */
 	GLfloat anisotropy;
 
+	/**
+	 * @brief Whether to use texStorage or not, if supported.
+	 */
+	bool storage_mode;
+
 } r_image_state;
 
 /**
@@ -209,7 +214,7 @@ void R_SetupImage(r_image_t *image) {
 		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
 
-	if (GLAD_GL_ARB_texture_storage) {
+	if (r_texture_storage->integer && GLAD_GL_ARB_texture_storage) {
 
 		GLsizei levels = 1;
 		if (image->type & IT_MASK_MIPMAP) {
@@ -251,7 +256,7 @@ void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 
 	glBindTexture(image->target, image->texnum);
 
-	if (GLAD_GL_ARB_texture_storage) {
+	if (r_texture_storage->integer && GLAD_GL_ARB_texture_storage) {
 		if (image->depth) {
 			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, GL_UNSIGNED_BYTE, data);
 		} else {
@@ -261,9 +266,9 @@ void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 		const GLenum internal_format = R_GetInternalImageFormat(image);
 
 		if (image->depth) {
-			glTexImage3D(target, 0, image->format, image->width, image->height, image->depth, 0, internal_format, GL_UNSIGNED_BYTE, data);
+			glTexImage3D(target, 0, internal_format, image->width, image->height, image->depth, 0, image->format, GL_UNSIGNED_BYTE, data);
 		} else {
-			glTexImage2D(target, 0, image->format, image->width, image->height, 0, internal_format, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(target, 0, internal_format, image->width, image->height, 0, image->format, GL_UNSIGNED_BYTE, data);
 		}
 	}
 

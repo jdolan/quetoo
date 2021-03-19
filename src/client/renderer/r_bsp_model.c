@@ -426,6 +426,10 @@ static void R_LoadBspLightmap(r_model_t *mod) {
  */
 static void R_ResetBspLightmap(r_model_t *mod) {
 
+	if (!r_stains->integer) {
+		return;
+	}
+
 	r_bsp_lightmap_t *out = mod->bsp->lightmap;
 
 	glBindTexture(GL_TEXTURE_2D_ARRAY, out->atlas->texnum);
