@@ -46,12 +46,6 @@ static struct {
 	 * @brief The texture sampling anisotropy level.
 	 */
 	GLfloat anisotropy;
-
-	/**
-	 * @brief Whether to use texStorage or not, if supported.
-	 */
-	bool storage_mode;
-
 } r_image_state;
 
 /**
