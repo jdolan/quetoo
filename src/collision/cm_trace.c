@@ -37,6 +37,10 @@ typedef struct {
 
 	_Bool is_point;
 
+	_Bool is_rotated;
+
+	const mat4_t *matrix;
+
 	cm_trace_t trace;
 
 	int32_t brushes[32]; // used to avoid multiple intersection tests with brushes
@@ -56,6 +60,93 @@ static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_nu
 }
 
 /**
+ * @brief 
+ */
+static inline _Bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
+
+	vec3_t transformed_mins = brush->mins, transformed_maxs = brush->maxs;
+
+	if (data->matrix) {
+		Cm_TransformBBox(*data->matrix, &transformed_mins, &transformed_maxs);
+	}
+
+	return Vec3_BoxIntersect(data->box_mins, data->box_maxs, transformed_mins, transformed_maxs);
+}
+
+/**
+ * @brief
+ */
+static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
+
+	if (!brush->num_sides) {
+		return;
+	}
+
+	if (!Cm_TraceIntersect(data, brush)) {
+		return;
+	}
+
+	const cm_bsp_brush_side_t *side = brush->sides;
+	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+
+		const cm_bsp_plane_t *plane = side->plane;
+
+		if (data->matrix) {
+			static __thread cm_bsp_plane_t rotated;
+			rotated = Cm_TransformPlane(*data->matrix, plane);
+			plane = &rotated;
+		}
+
+		const float dist = plane->dist - Vec3_Dot(data->offsets[plane->sign_bits], plane->normal);
+
+		const float d1 = Vec3_Dot(data->start, plane->normal) - dist;
+
+		// if completely in front of face, no intersection
+		if (d1 > 0.0f) {
+			return;
+		}
+	}
+
+	// inside this brush
+	data->trace.start_solid = data->trace.all_solid = true;
+	data->trace.fraction = 0.0f;
+	data->trace.contents = brush->contents;
+}
+
+/**
+ * @brief
+ */
+static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
+
+	const cm_bsp_leaf_t *leaf = &cm_bsp.leafs[leaf_num];
+
+	if (!(leaf->contents & data->contents)) {
+		return;
+	}
+
+	// trace line against all brushes in the leaf
+	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
+		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
+
+		if (Cm_BrushAlreadyTested(data, brush_num)) {
+			continue; // already checked this brush in another leaf
+		}
+
+		const cm_bsp_brush_t *b = &cm_bsp.brushes[brush_num];
+
+		if (!(b->contents & data->contents)) {
+			continue;
+		}
+
+		Cm_TestBoxInBrush(data, b);
+
+		if (data->trace.all_solid) {
+			return;
+		}
+	}
+}
+
+/**
  * @brief Clips the bounded box to all brush sides for the given brush.
  */
 static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
@@ -64,7 +155,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		return;
 	}
 
-	if (!Vec3_BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
+	if (!Cm_TraceIntersect(data, brush)) {
 		return;
 	}
 
@@ -80,6 +171,13 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 
 		const cm_bsp_plane_t *plane = side->plane;
+
+		if (data->matrix) {
+			assert(i < 32);
+			static __thread cm_bsp_plane_t rotated[32];
+			rotated[i] = Cm_TransformPlane(*data->matrix, plane);
+			plane = &rotated[i];
+		}
 
 		const float dist = plane->dist - Vec3_Dot(data->offsets[plane->sign_bits], plane->normal);
 
@@ -143,40 +241,6 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 /**
  * @brief
  */
-static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
-
-	if (!brush->num_sides) {
-		return;
-	}
-
-	if (!Vec3_BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
-		return;
-	}
-
-	const cm_bsp_brush_side_t *side = brush->sides;
-	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
-
-		const cm_bsp_plane_t *plane = side->plane;
-
-		const float dist = plane->dist - Vec3_Dot(data->offsets[plane->sign_bits], plane->normal);
-
-		const float d1 = Vec3_Dot(data->start, plane->normal) - dist;
-
-		// if completely in front of face, no intersection
-		if (d1 > 0.0f) {
-			return;
-		}
-	}
-
-	// inside this brush
-	data->trace.start_solid = data->trace.all_solid = true;
-	data->trace.fraction = 0.0f;
-	data->trace.contents = brush->contents;
-}
-
-/**
- * @brief
- */
 static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 
 	const cm_bsp_leaf_t *leaf = &cm_bsp.leafs[leaf_num];
@@ -210,39 +274,6 @@ static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 /**
  * @brief
  */
-static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
-
-	const cm_bsp_leaf_t *leaf = &cm_bsp.leafs[leaf_num];
-
-	if (!(leaf->contents & data->contents)) {
-		return;
-	}
-
-	// trace line against all brushes in the leaf
-	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
-		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
-
-		if (Cm_BrushAlreadyTested(data, brush_num)) {
-			continue; // already checked this brush in another leaf
-		}
-
-		const cm_bsp_brush_t *b = &cm_bsp.brushes[brush_num];
-
-		if (!(b->contents & data->contents)) {
-			continue;
-		}
-
-		Cm_TestBoxInBrush(data, b);
-
-		if (data->trace.all_solid) {
-			return;
-		}
-	}
-}
-
-/**
- * @brief
- */
 static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float p2f,
                            const vec3_t p1, const vec3_t p2) {
 
@@ -260,6 +291,12 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	// and the offset for the size of the box
 	const cm_bsp_node_t *node = cm_bsp.nodes + num;
 	const cm_bsp_plane_t *plane = node->plane;
+
+	if (data->matrix) {
+		static __thread cm_bsp_plane_t rotated;
+		rotated = Cm_TransformPlane(*data->matrix, plane);
+		plane = &rotated;
+	}
 
 	float d1, d2, offset;
 	if (AXIAL(plane)) {
@@ -357,37 +394,50 @@ static inline void Cm_AdjustTraceSymmetry(vec3_t *start, vec3_t *end, vec3_t *mi
  * @param maxs The bounding box maxs, in model space.
  * @param head_node The BSP head node to recurse down.
  * @param contents The contents mask to clip to.
+ * @param matrix The matrix to adjust tested planes by.
+ * @param inverse_matrix The inverse matrix, for non-bbox traces.
  *
  * @return The trace.
  */
 cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-                       const int32_t head_node, const int32_t contents) {
+                       const int32_t head_node, const int32_t contents, const mat4_t *matrix, const mat4_t *inverse_matrix) {
 
-	vec3_t start0 = start, end0 = end, mins0 = mins, maxs0 = maxs;
-
-	Cm_AdjustTraceSymmetry(&start0, &end0, &mins0, &maxs0);
+	vec3_t mins0 = mins, maxs0 = maxs;
 
 	cm_trace_data_t data = {
-		.start = start0,
-		.end = end0,
+		.start = start,
+		.end = end,
 		.contents = contents,
 		.trace = {
 			.fraction = 1.f
 		}
 	};
 
-	memset(data.brushes, 0xff, sizeof(data.brushes));
-
 	if (!cm_bsp.file.num_nodes) { // map not loaded
 		return data.trace;
 	}
+
+	memset(data.brushes, 0xff, sizeof(data.brushes));
+
+	Cm_AdjustTraceSymmetry(&data.start, &data.end, &mins0, &maxs0);
 
 	// check for point special case
 	if (Vec3_Equal(mins, Vec3_Zero()) && Vec3_Equal(maxs, Vec3_Zero())) {
 		data.is_point = true;
 		data.extents = Vec3(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON);
+
+		if (matrix && !Mat4_Equal(*matrix, Mat4_Identity())) {
+			data.start = Mat4_Transform(*inverse_matrix, data.start);
+			data.end = Mat4_Transform(*inverse_matrix, data.end);
+
+			data.is_rotated = true;
+		}
 	} else {
 		data.is_point = false;
+
+		if (matrix && !Mat4_Equal(*matrix, Mat4_Identity())) {
+			data.matrix = matrix;
+		}
 
 		// extents allow planes to be shifted to account for the box size
 		data.extents = Vec3_Add(Vec3_Maxf(Vec3_Fabsf(mins0), Vec3_Fabsf(maxs0)), Vec3(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON));
@@ -422,7 +472,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 		data.offsets[7] = maxs0;
 	}
 
-	Cm_TraceBounds(start0, end0, mins0, maxs0, &data.box_mins, &data.box_maxs);
+	Cm_TraceBounds(data.start, data.end, mins0, maxs0, &data.box_mins, &data.box_maxs);
 
 	// check for position test special case
 	if (Vec3_Equal(start, end)) {
@@ -432,7 +482,8 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 												leafs,
 												lengthof(leafs),
 												NULL,
-												head_node);
+												head_node,
+												matrix);
 
 		for (size_t i = 0; i < num_leafs; i++) {
 			Cm_TestInLeaf(&data, leafs[i]);
@@ -446,7 +497,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 		return data.trace;
 	}
 
-	Cm_TraceToNode(&data, head_node, 0.0, 1.0, start0, end0);
+	Cm_TraceToNode(&data, head_node, 0.0, 1.0, data.start, data.end);
 
 	if (data.trace.fraction == 0.0f) {
 		data.trace.end = start;
@@ -456,50 +507,12 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 		data.trace.end = Vec3_Mix(start, end, data.trace.fraction);
 	}
 
-	return data.trace;
-}
-
-/**
- * @brief Collision detection for non-world models. Rotates the specified end
- * points into the model's space, and traces down the relevant subset of the
- * BSP tree. For inline BSP models, the head node is the root of the model's
- * subtree. For mesh models, a special reserved box hull and head node are
- * used.
- *
- * @param start The trace start point, in world space.
- * @param end The trace end point, in world space.
- * @param mins The bounding box mins, in model space.
- * @param maxs The bounding box maxs, in model space.
- * @param head_node The BSP head node to recurse down.
- * @param contents The contents mask to clip to.
- * @param matrix The matrix of the entity to clip to.
- * @param inverse_matrix The inverse matrix of the entity to clip to.
- *
- * @return The trace.
- */
-cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
-								  const vec3_t mins, const vec3_t maxs,
-								  const int32_t head_node, const int32_t contents,
-                                  const mat4_t matrix, const mat4_t inverse_matrix) {
-	
-	vec3_t start0 = start, end0 = end, mins0 = mins, maxs0 = maxs;
-
-	Cm_AdjustTraceSymmetry(&start0, &end0, &mins0, &maxs0);
-
-	const vec3_t start1 = Mat4_Transform(inverse_matrix, start0);
-	const vec3_t end1 = Mat4_Transform(inverse_matrix, end0);
-
-	// sweep the box through the model
-	cm_trace_t trace = Cm_BoxTrace(start1, end1, mins0, maxs0, head_node, contents);
-
-	if (trace.fraction < 1.0f) { // transform the impacted plane
-		trace.plane = Cm_TransformPlane(matrix, &trace.plane);
+	// transform the impacted plane
+	if (data.is_rotated && data.trace.fraction < 1.0f) {
+		data.trace.plane = Cm_TransformPlane(*matrix, &data.trace.plane);
 	}
 
-	// and calculate the final end point
-	trace.end = Vec3_Mix(start, end, trace.fraction);
-
-	return trace;
+	return data.trace;
 }
 
 /**
@@ -513,28 +526,26 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
  * @param bounds_maxs The resulting bounds maxs, in world space.
  * @remarks BSP entities have asymmetrical bounding boxes, requiring special attention.
  */
-void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles,
+void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles, const mat4_t matrix,
                      const vec3_t mins, const vec3_t maxs, vec3_t *bounds_mins, vec3_t *bounds_maxs) {
 
-	if (solid == SOLID_BSP && !Vec3_Equal(angles, Vec3_Zero())) {
-		float max = 0.0;
-
-		for (int32_t i = 0; i < 3; i++) {
-			max = Maxf(max, Maxf(fabsf(mins.xyz[i]), fabsf(maxs.xyz[i])));
-		}
-
-		*bounds_mins = Vec3_Add(origin, Vec3(-max, -max, -max));
-		*bounds_maxs = Vec3_Add(origin, Vec3( max,  max,  max));
-	} else {
-		*bounds_mins = Vec3_Add(origin, mins);
-		*bounds_maxs = Vec3_Add(origin, maxs);
-	}
-
 	if (solid == SOLID_BSP) {
+		
+		if (!Vec3_Equal(angles, Vec3_Zero())) {
+			*bounds_mins = mins;
+			*bounds_maxs = maxs;
+			Cm_TransformBBox(matrix, bounds_mins, bounds_maxs);
+		} else {
+			*bounds_mins = Vec3_Add(origin, mins);
+			*bounds_maxs = Vec3_Add(origin, maxs);
+		}
 
 		// epsilon, so bmodels can catch riders
 		*bounds_mins = Vec3_Add(*bounds_mins, Vec3(-BOX_EPSILON, -BOX_EPSILON, -BOX_EPSILON));
 		*bounds_maxs = Vec3_Add(*bounds_maxs, Vec3( BOX_EPSILON,  BOX_EPSILON,  BOX_EPSILON));
+	} else {
+		*bounds_mins = Vec3_Add(origin, mins);
+		*bounds_maxs = Vec3_Add(origin, maxs);
 	}
 }
 

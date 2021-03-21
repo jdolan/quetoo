@@ -441,7 +441,7 @@ void Cl_Interpolate(void) {
 		// with the same entity positions at their respective intervals.
 
 		Cm_EntityBounds(ent->current.solid, ent->current.origin,
-						angles,
+						angles, ent->matrix,
 						ent->mins,
 						ent->maxs,
 						&ent->abs_mins,

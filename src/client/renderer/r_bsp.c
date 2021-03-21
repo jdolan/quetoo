@@ -85,13 +85,10 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		return;
 	}
 
-	vec3_t transformed_mins, transformed_maxs;
+	vec3_t transformed_mins = node->mins, transformed_maxs = node->maxs;
+
 	if (e) {
-		transformed_mins = Mat4_Transform(e->matrix, node->mins);
-		transformed_maxs = Mat4_Transform(e->matrix, node->maxs);
-	} else {
-		transformed_mins = node->mins;
-		transformed_maxs = node->maxs;
+		Cm_TransformBBox(e->matrix, &transformed_mins, &transformed_maxs);
 	}
 
 	if (R_OccludeBox(view, transformed_mins, transformed_maxs)) {

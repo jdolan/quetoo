@@ -352,6 +352,7 @@ typedef struct {
 	int32_t *list;
 	size_t len, max_len;
 	int32_t top_node;
+	const mat4_t *matrix;
 } cm_box_leafnum_data;
 
 /**
@@ -370,6 +371,12 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 
 		const cm_bsp_node_t *node = &cm_bsp.nodes[node_num];
 		const cm_bsp_plane_t *plane = node->plane;
+
+		if (data->matrix) {
+			static __thread cm_bsp_plane_t rotated;
+			rotated = Cm_TransformPlane(*data->matrix, plane);
+			plane = &rotated;
+		}
 
 		const int32_t side = Cm_BoxOnPlaneSide(data->mins, data->maxs, plane);
 
@@ -410,16 +417,16 @@ int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat
  * @return The number of leafs accumulated to the list.
  */
 size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len,
-                      int32_t *top_node, int32_t head_node) {
+                      int32_t *top_node, int32_t head_node, const mat4_t *matrix) {
 
-	cm_box_leafnum_data data;
-
-	data.mins = mins;
-	data.maxs = maxs;
-	data.list = list;
-	data.len = 0;
-	data.max_len = len;
-	data.top_node = -1;
+	cm_box_leafnum_data data = {
+		.mins = mins,
+		.maxs = maxs,
+		.list = list,
+		.max_len = len,
+		.top_node = -1,
+		.matrix = matrix
+	};
 
 	Cm_BoxLeafnums_r(&data, head_node);
 

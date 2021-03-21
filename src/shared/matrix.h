@@ -86,6 +86,16 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_Identity(void) {
 	});
 }
 
+/**
+ * @return The identity matrix `(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)`.
+ */
+static inline bool __attribute__ ((warn_unused_result)) Mat4_Equal(const mat4_t a, const mat4_t b) {
+	return Vec4_Equal(a.rows[0], b.rows[0]) &&
+		Vec4_Equal(a.rows[1], b.rows[1]) &&
+		Vec4_Equal(a.rows[2], b.rows[2]) &&
+		Vec4_Equal(a.rows[3], b.rows[3]);
+}
+
 /** 
  * @return The product of `a` and `b`'s matrix concatenation
  */
