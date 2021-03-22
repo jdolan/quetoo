@@ -797,6 +797,14 @@ typedef struct cg_import_s {
 	 * @param color Color of lines.
 	*/
 	void (*Draw3DLines)(const vec3_t *points, size_t count, const color_t color);
+	
+	/**
+	 * @brief Draw a 3D bbox at the given coordinates.
+	 * @param mins Maxs.
+	 * @param maxs Mins.
+	 * @param color Color of lines.
+	*/
+	void (*Draw3DBox)(const vec3_t mins, const vec3_t maxs, const color_t color);
 
 	/**
 	 * @}
