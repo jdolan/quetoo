@@ -370,15 +370,13 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 		}
 
 		const cm_bsp_node_t *node = &cm_bsp.nodes[node_num];
-		const cm_bsp_plane_t *plane = node->plane;
+		cm_bsp_plane_t plane = *node->plane;
 
 		if (data->matrix) {
-			static __thread cm_bsp_plane_t rotated;
-			rotated = Cm_TransformPlane(*data->matrix, plane);
-			plane = &rotated;
+			plane = Cm_TransformPlane(*data->matrix, &plane);
 		}
 
-		const int32_t side = Cm_BoxOnPlaneSide(data->mins, data->maxs, plane);
+		const int32_t side = Cm_BoxOnPlaneSide(data->mins, data->maxs, &plane);
 
 		if (side == SIDE_FRONT) {
 			node_num = node->children[0];
