@@ -38,7 +38,7 @@ void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, con
  * @param mins 
  * @param maxs 
 */
-static inline void Cm_TransformBBox(const mat4_t m, vec3_t *mins, vec3_t *maxs) {
+static inline void Cm_TransformBounds(const mat4_t m, vec3_t *mins, vec3_t *maxs) {
 	
 	vec3_t points[8] = {
 		*mins,
