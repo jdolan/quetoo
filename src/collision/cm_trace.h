@@ -39,23 +39,25 @@ void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, con
  * @param maxs 
 */
 static inline void Cm_TransformBBox(const mat4_t m, vec3_t *mins, vec3_t *maxs) {
-	vec3_t original_mins = *mins, original_maxs = *maxs;
+	
+	vec3_t points[8] = {
+		*mins,
+		{ .x = maxs->x, .y = mins->y, .z = mins->z },
+		{ .x = mins->x, .y = maxs->y, .z = mins->z },
+		{ .x = maxs->x, .y = maxs->y, .z = mins->z },
+		{ .x = mins->x, .y = mins->y, .z = maxs->z },
+		{ .x = maxs->x, .y = mins->y, .z = maxs->z },
+		{ .x = maxs->x, .y = maxs->y, .z = maxs->z },
+		*maxs
+	};
 
-	*mins = *maxs = Vec3(m.array[12], m.array[13], m.array[14]);
+	*mins = Vec3_Mins();
+	*maxs = Vec3_Maxs();
 
-	for (int32_t j = 0; j < 3; j++) {
-		for (int32_t i = 0; i < 3; i++) {
-			float a = m.m[i][j] * original_mins.xyz[j];
-			float b = m.m[i][j] * original_maxs.xyz[j];
-
-			if (a < b) {
-				mins->xyz[j] += a;
-				maxs->xyz[j] += b;
-			} else {
-				mins->xyz[j] += b;
-				maxs->xyz[j] += a;
-			}
-		}
+	for (size_t i = 0; i < lengthof(points); i++) {
+		vec3_t p = Mat4_Transform(m, points[i]);
+		*mins = Vec3_Minf(*mins, p);
+		*maxs = Vec3_Maxf(*maxs, p);
 	}
 }
 

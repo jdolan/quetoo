@@ -64,8 +64,6 @@ static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_nu
  */
 static inline _Bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
-	return true;
-
 	vec3_t transformed_mins = brush->mins, transformed_maxs = brush->maxs;
 
 	if (data->matrix) {

@@ -55,7 +55,6 @@ cvar_t *cg_draw_powerups;
 cvar_t *cg_draw_time;
 cvar_t *cg_draw_target_name;
 cvar_t *cg_draw_team_banner;
-cvar_t *cg_draw_trace_test;
 cvar_t *cg_draw_weapon;
 cvar_t *cg_draw_weapon_alpha;
 cvar_t *cg_draw_weapon_bob;
@@ -174,7 +173,6 @@ static void Cg_Init(void) {
 	cg_draw_time = cgi.AddCvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
 	cg_draw_target_name = cgi.AddCvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
 	cg_draw_team_banner = cgi.AddCvar("cg_draw_team_banner", "1", CVAR_ARCHIVE, "Draw the team banner");
-	cg_draw_trace_test = cgi.AddCvar("cg_draw_trace_test", "0", CVAR_DEVELOPER, "Project a test trace of the specified mins/maxs, in the format of \"mins_x _y _z maxs_x _y _z\" (developer tool)");
 	cg_draw_powerups = cgi.AddCvar("cg_draw_powerups", "1", CVAR_ARCHIVE,
 	                            "Draw currently active powerups, such as Quad Damage and Adrenaline.");
 
@@ -463,25 +461,6 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 	Cg_AddSprites();
 
 	Cg_AddLights();
-
-	if (*cg_draw_trace_test->string && *cg_draw_trace_test->string != '0') {
-		static vec3_t mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
-
-		if (cg_draw_trace_test->modified) {
-			parser_t parser;
-			Parse_Init(&parser, cg_draw_trace_test->string, PARSER_NO_COMMENTS);
-			
-			Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &mins, 3);
-			Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &maxs, 3);
-
-			cg_draw_trace_test->modified = false;
-		}
-
-		vec3_t end = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
-		cm_trace_t tr = cgi.Trace(cgi.view->origin, end, mins, maxs, Cg_Self()->current.number, CONTENTS_MASK_SOLID);
-
-		cgi.Draw3DBox(Vec3_Add(tr.end, mins), Vec3_Add(tr.end, maxs), color_blue);
-	}
 }
 
 /**
