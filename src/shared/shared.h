@@ -592,6 +592,7 @@ typedef enum {
 	DEBUG_SERVER		= 1 << 12,
 	DEBUG_SOUND			= 1 << 13,
 	DEBUG_UI			= 1 << 14,
+	DEBUG_TOTAL			= 15, // make sure this is valid if you add more
 
 	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
 	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),

@@ -1510,6 +1510,8 @@ static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
 	self->locals.touch_time = g_level.time + 500;
 
 	G_Damage(other, self, self, Vec3_Zero(), other->s.origin, Vec3_Zero(), self->locals.damage, 1, 0, MOD_CRUSH);
+
+	self->locals.next_think = g_level.time + 1;
 }
 
 /**

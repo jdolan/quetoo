@@ -58,26 +58,9 @@ static void Debug_f(void) {
 	if (Cmd_Argc() == 1) {
 		Com_Print("Set or toggle debug categories.\nUsage: debug [category] ..\n");
 		Com_Print("Categories:\n");
-		const char *categories[] = {
-			"ai",
-			"cgame",
-			"client",
-			"collision",
-			"console",
-			"filesystem",
-			"game",
-			"net",
-			"pmove_client",
-			"pmove_server",
-			"renderer",
-			"server",
-			"sound",
-			"ui",
-		};
-
 		Com_Print("  none\n");
 
-		for (size_t i = 0; i < lengthof(categories); i++) {
+		for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
 			int32_t color = ESC_COLOR_WHITE;
 			switch (1 << i) {
 				case DEBUG_AI:
@@ -105,7 +88,7 @@ static void Debug_f(void) {
 				default:
 					break;
 			}
-			Com_Print("  ^%d%s^7\n", color, categories[i]);
+			Com_Print("  ^%d%s^7\n", color, DEBUG_CATEGORIES[i]);
 		}
 
 		Com_Print("  ^2all^7\n");

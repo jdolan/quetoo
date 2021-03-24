@@ -64,11 +64,12 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
 // max len we'll try to parse for a category
 #define DEBUG_CATEGORY_MAX_LEN	32
 
-static const char *DEBUG_CATEGORIES[] = {
+const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
 	"ai",
 	"cgame",
 	"client",
 	"collision",
+	"common",
 	"console",
 	"filesystem",
 	"game",

@@ -157,7 +157,7 @@ static _Bool G_GoodPosition(const g_entity_t *ent) {
 
 	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
 
-	return tr.start_solid == false;
+	return tr.start_solid == false && tr.all_solid == false;
 }
 
 /**
@@ -499,39 +499,21 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 	G_Physics_Push_Impact(self);
 
 	// calculate bounds for the entire move
-	vec3_t total_mins = Vec3_Zero(), total_maxs = Vec3_Zero();
-
-	if (!Vec3_Equal(self->s.angles, Vec3_Zero()) || !Vec3_Equal(amove, Vec3_Zero())) {
-		const float radius = Vec3_Distance(self->mins, self->maxs) * 0.5;
-
-		for (int32_t i = 0 ; i < 3 ; i++ ) {
-			total_mins.xyz[i] = self->s.origin.xyz[i] - radius;
-			total_maxs.xyz[i] = self->s.origin.xyz[i] + radius;
-		}
-	} else {
-
-		total_mins = self->abs_mins;
-		total_maxs = self->abs_maxs;
-
-		for (int32_t i = 0; i < 3; i++) {
-			if (move.xyz[i] > 0) {
-				total_maxs.xyz[i] += move.xyz[i];
-			} else {
-				total_mins.xyz[i] += move.xyz[i];
-			}
-		}
-	}
+	vec3_t total_mins = self->abs_mins, total_maxs = self->abs_maxs;
 
 	// unlink the pusher so we don't get it in the entity list
 	gi.UnlinkEntity(self);
-
-	const size_t len = gi.BoxEntities(total_mins, total_maxs, ents, lengthof(ents), BOX_ALL);
 
 	// move the pusher to it's intended position
 	self->s.origin = Vec3_Add(self->s.origin, move);
 	self->s.angles = Vec3_Add(self->s.angles, amove);
 
 	gi.LinkEntity(self);
+
+	total_mins = Vec3_Minf(total_mins, self->abs_mins);
+	total_maxs = Vec3_Maxf(total_maxs, self->abs_maxs);
+
+	const size_t len = gi.BoxEntities(total_mins, total_maxs, ents, lengthof(ents), BOX_ALL);
 
 	// calculate the angle vectors for rotational movement
 	inverse_amove = Vec3_Negate(amove);
@@ -557,28 +539,62 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 
 		// if we are a pusher, or someone is riding us, try to move them
 		if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground_entity == self)) {
-			vec3_t translate, rotate, delta;
 
 			G_Physics_Push_Impact(ent);
 
-			// translate the pushed entity
-			ent->s.origin = Vec3_Add(ent->s.origin, move);
-
 			// then rotate the movement to comply with the pusher's rotation
-			translate = Vec3_Subtract(ent->s.origin, self->s.origin);
+			const vec3_t translate = Vec3_Subtract(ent->s.origin, self->s.origin);
+			const vec3_t rotate = Vec3(
+				Vec3_Dot(translate, forward),
+				-Vec3_Dot(translate, right),
+				Vec3_Dot(translate, up)
+			);
 
-			rotate.x = Vec3_Dot(translate, forward);
-			rotate.y = -Vec3_Dot(translate, right);
-			rotate.z = Vec3_Dot(translate, up);
+			int32_t attempts = 0;
+			vec3_t desired_position = Vec3_Zero();
 
-			delta = Vec3_Subtract(rotate, translate);
+			// try three times to position the entity
+			for (; attempts < 3; attempts++) {
+				// translate the pushed entity
+				ent->s.origin = Vec3_Add(ent->s.origin, move);
 
-			ent->s.origin = Vec3_Add(ent->s.origin, delta);
+				vec3_t delta = Vec3_Subtract(rotate, translate);
 
-			// if the move has separated us, finish up by rotating the entity
-			if (G_CorrectPosition(ent)) {
-				G_Physics_Push_Rotate(self, ent, amove.y);
-				continue;
+				ent->s.origin = Vec3_Add(ent->s.origin, delta);
+
+				// store where we should approximately be
+				if (attempts == 0) {
+					desired_position = ent->s.origin;
+				}
+
+				// if the move has separated us, finish up by rotating the entity
+				if (G_CorrectPosition(ent)) {
+					G_Physics_Push_Rotate(self, ent, amove.y);
+					break;
+				}
+
+				G_Debug("Failed to move %s after iteration %i\n", ent->class_name, attempts);
+			}
+
+			// found a good spot
+			if (attempts != 3) {
+
+				// if our spot wasn't found initially, we are using
+				// a temporary "farther-than-necessary" position.
+				if (attempts > 0) {
+					const cm_trace_t tr = gi.Trace(ent->s.origin, desired_position, ent->mins, ent->maxs, ent, ent->locals.clip_mask);
+
+					// should never be solid, but just in case...
+					if (!tr.all_solid && !tr.start_solid) {
+						ent->s.origin = tr.end;
+						G_Debug("Corrected %s position after move (%f)\n", ent->class_name, tr.fraction);
+						continue;
+					}
+
+					G_Debug("Unable to correct %s position\n", ent->class_name);
+				} else {
+					continue;
+				}
 			}
 
 			if (ent->locals.ground_entity == self) {
@@ -663,13 +679,7 @@ static void G_Physics_Push(g_entity_t *ent) {
 		}
 	}
 
-	if (obstacle) { // blocked, let's try again next frame
-		for (g_entity_t *part = ent; part; part = part->locals.team_next) {
-			if (part->locals.next_think) {
-				part->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
-			}
-		}
-	} else { // the move succeeded, so call all think functions
+	if (!obstacle) { // the move succeeded, so call all think functions
 		for (g_entity_t *part = ent; part; part = part->locals.team_next) {
 			G_RunThink(part);
 		}

@@ -111,6 +111,7 @@ cvar_t *g_max_entities;
 cvar_t *g_motd;
 cvar_t *g_num_teams;
 cvar_t *g_password;
+cvar_t *g_paused;
 cvar_t *g_player_projectile;
 cvar_t *g_quad_damage_respawn_time;
 cvar_t *g_quad_damage_time;
@@ -1354,6 +1355,11 @@ static void G_ExitLevel(void) {
  */
 static void G_Frame(void) {
 
+	if (g_paused->integer) {
+		G_EndClientFrames();
+		return;
+	}
+
 	g_level.frame_num++;
 	g_level.time = g_level.frame_num * QUETOO_TICK_MILLIS;
 
@@ -1562,6 +1568,7 @@ void G_Init(void) {
 	g_max_entities = gi.AddCvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
 	g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
+	g_paused = gi.AddCvar("g_paused", "0", CVAR_DEVELOPER, "Pause the server. Developer tool.");
 	g_player_projectile = gi.AddCvar("g_player_projectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
 	g_quad_damage_respawn_time = gi.AddCvar("g_quad_damage_respawn_time", "60", CVAR_SERVER_INFO, "How long it takes for Quad Damage to respawn, in seconds.");
 	g_quad_damage_time = gi.AddCvar("g_quad_damage_time", "20", CVAR_SERVER_INFO, "How long Quad Damage lasts, in seconds.");
