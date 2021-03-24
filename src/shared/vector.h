@@ -584,17 +584,17 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Subtract(const ve
 /**
  * @return True if the specified boxes intersect, false otherwise.
  */
-static inline int32_t __attribute__ ((warn_unused_result)) Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
+static inline _Bool __attribute__ ((warn_unused_result)) Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
 
 	if (amins.x >= bmaxs.x || amins.y >= bmaxs.y || amins.z >= bmaxs.z) {
-		return 0;
+		return false;
 	}
 
 	if (amaxs.x <= bmins.x || amaxs.y <= bmins.y || amaxs.z <= bmins.z) {
-		return 0;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 /**

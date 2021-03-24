@@ -439,14 +439,13 @@ void Cl_Interpolate(void) {
 		// jdolan: Note that we use the latest snapshot origin, not the interpolated origin.
 		// This is so client side prediction can work, and the client and server are working
 		// with the same entity positions at their respective intervals.
-
-		Cm_EntityBounds(ent->current.solid, ent->current.origin,
-						angles,
-						ent->matrix,
-						ent->mins,
-						ent->maxs,
-						&ent->abs_mins,
-						&ent->abs_maxs);
+		bounds_t bounds = Cm_EntityBounds(ent->current.solid, ent->current.origin,
+										  angles,
+										  ent->matrix,
+										  Bounds(ent->mins, ent->maxs));
+		
+		ent->abs_mins = bounds.mins;
+		ent->abs_maxs = bounds.maxs;
 
 		ent->matrix = Mat4_FromRotationTranslationScale(angles, ent->current.origin, 1.f);
 		ent->inverse_matrix = Mat4_Inverse(ent->matrix);

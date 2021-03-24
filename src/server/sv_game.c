@@ -71,8 +71,8 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 	// if it is an inline model, get the size information for it
 	if (name[0] == '*') {
 		const cm_bsp_model_t *mod = Cm_Model(name);
-		ent->mins = mod->mins;
-		ent->maxs = mod->maxs;
+		ent->mins = mod->bounds.mins;
+		ent->maxs = mod->bounds.maxs;
 		Sv_LinkEntity(ent);
 	}
 }

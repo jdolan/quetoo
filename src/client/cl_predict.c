@@ -40,9 +40,9 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
 	const cl_entity_t *ent = &cl.entities[s->number];
 
 	if (s->client) {
-		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_MONSTER);
+		return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_MONSTER);
 	} else {
-		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_SOLID);
+		return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_SOLID);
 	}
 }
 
@@ -119,8 +119,8 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
 		const int32_t head_node = Cl_HullForEntity(s);
 
-		cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
-		                                       head_node, trace->contents, &ent->matrix, &ent->inverse_matrix);
+		cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, Bounds(trace->mins, trace->maxs),
+		                            head_node, trace->contents, &ent->matrix, &ent->inverse_matrix);
 
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 			trace->trace = tr;
@@ -148,7 +148,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	memset(&trace, 0, sizeof(trace));
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents, NULL, NULL);
+	trace.trace = Cm_BoxTrace(start, end, Bounds(mins, maxs), 0, contents, NULL, NULL);
 	if (trace.trace.fraction < 1.0) {
 		trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
 
@@ -164,7 +164,10 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	trace.skip = skip;
 	trace.contents = contents;
 
-	Cm_TraceBounds(start, end, mins, maxs, &trace.box_mins, &trace.box_maxs);
+	bounds_t trace_bounds = Cm_TraceBounds(start, end, Bounds(mins, maxs));
+	
+	trace.box_mins = trace_bounds.mins;
+	trace.box_maxs = trace_bounds.maxs;
 
 	Cl_ClipTraceToEntities(&trace);
 

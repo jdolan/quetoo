@@ -102,7 +102,7 @@ void Sv_InitWorld(void) {
 
 	memset(&sv_world, 0, sizeof(sv_world));
 
-	Sv_CreateSector(0, sv.cm_models[0]->mins, sv.cm_models[0]->maxs);
+	Sv_CreateSector(0, sv.cm_models[0]->bounds.mins, sv.cm_models[0]->bounds.maxs);
 }
 
 /**
@@ -164,7 +164,10 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	mat4_t matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
 
 	// set the absolute bounding box; ensure it is symmetrical
-	Cm_EntityBounds(ent->solid, ent->s.origin, angles, matrix, ent->mins, ent->maxs, &ent->abs_mins, &ent->abs_maxs);
+	bounds_t bounds = Cm_EntityBounds(ent->solid, ent->s.origin, angles, matrix, Bounds(ent->mins, ent->maxs));
+
+	ent->abs_mins = bounds.mins;
+	ent->abs_maxs = bounds.maxs;
 
 	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
@@ -172,7 +175,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	sent->num_clusters = 0;
 
 	// get all leafs, including solids
-	const size_t len = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs), &top_node, 0, &matrix);
+	const size_t len = Cm_BoxLeafnums(Bounds(ent->abs_mins, ent->abs_maxs), leafs, lengthof(leafs), &top_node, 0, &matrix);
 
 	if (len == MAX_ENT_LEAFS) { // use top_node
 		sent->num_clusters = -1;
@@ -348,14 +351,14 @@ static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 	if (ent->solid == SOLID_BOX) {
 
 		if (ent->client) {
-			return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_MONSTER);
+			return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_MONSTER);
 		}
 
-		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_SOLID);
+		return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_SOLID);
 	}
 
 	if (ent->solid == SOLID_DEAD) {
-		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_DEAD_MONSTER);
+		return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_DEAD_MONSTER);
 	}
 
 	return -1;
@@ -447,9 +450,9 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
 			const cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end,
-														 trace->mins, trace->maxs,
-														 head_node, trace->contents,
-														 &sent->matrix, &sent->inverse_matrix);
+											  Bounds(trace->mins, trace->maxs),
+											  head_node, trace->contents,
+											  &sent->matrix, &sent->inverse_matrix);
 
 			// check for a full or partial intersection
 			if (tr.all_solid || tr.fraction < trace->trace.fraction) {
@@ -479,7 +482,7 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	memset(&trace, 0, sizeof(trace));
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents, NULL, NULL);
+	trace.trace = Cm_BoxTrace(start, end, Bounds(mins, maxs), 0, contents, NULL, NULL);
 	if (trace.trace.fraction < 1.0f) {
 		trace.trace.ent = svs.game->entities;
 
@@ -496,7 +499,10 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	trace.contents = contents;
 
 	// create the bounding box of the entire move
-	Cm_TraceBounds(start, end, mins, maxs, &trace.box_mins, &trace.box_maxs);
+	bounds_t trace_bounds = Cm_TraceBounds(start, end, Bounds(mins, maxs));
+
+	trace.box_mins = trace_bounds.mins;
+	trace.box_maxs = trace_bounds.maxs;
 
 	// clip to other solid entities
 	Sv_ClipTraceToEntities(&trace);

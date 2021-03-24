@@ -194,8 +194,8 @@ static void FogForEntity(const cm_entity_t *entity) {
 		for (guint i = 0; i < fog.brushes->len; i++) {
 			const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);
 
-			fog.mins = Vec3_Minf(fog.mins, brush->mins);
-			fog.maxs = Vec3_Maxf(fog.maxs, brush->maxs);
+			fog.mins = Vec3_Minf(fog.mins, brush->bounds.mins);
+			fog.maxs = Vec3_Maxf(fog.maxs, brush->bounds.maxs);
 		}
 
 		FogSetPermutationVector(&fog);

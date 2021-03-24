@@ -539,8 +539,8 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
 			const vec3_t near_vec = Vec3(NEAR_DIST, NEAR_DIST, NEAR_DIST);
 
-			out->mins = Vec3_Subtract(in->mins, near_vec);
-			out->maxs = Vec3_Add(in->maxs, near_vec);
+			out->mins = Vec3_Subtract(in->bounds.mins, near_vec);
+			out->maxs = Vec3_Add(in->bounds.maxs, near_vec);
 
 			out->vertexes[0] = Vec3(out->mins.x, out->mins.y, out->mins.z);
 			out->vertexes[1] = Vec3(out->maxs.x, out->mins.y, out->mins.z);

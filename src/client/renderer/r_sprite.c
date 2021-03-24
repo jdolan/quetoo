@@ -139,17 +139,14 @@ void R_AddBeam(r_view_t *view, const r_beam_t *b) {
 		return;
 	}
 
-	vec3_t box_mins, box_maxs;
-	Cm_TraceBounds(b->start, b->end,
-				   Vec3(-b->size * .5f, -b->size * .5f, -b->size * .5f),
-				   Vec3( b->size * .5f,  b->size * .5f,  b->size * .5f),
-				   &box_mins, &box_maxs);
+	bounds_t bounds = Cm_TraceBounds(b->start, b->end,
+									 Bounds_FromDistance(b->size));
 
-	if (R_OccludeBox(view, box_mins, box_maxs)) {
+	if (R_OccludeBox(view, bounds.mins, bounds.maxs)) {
 		return;
 	}
 
-	if (R_CullBox(view, box_mins, box_maxs)) {
+	if (R_CullBox(view, bounds.mins, bounds.maxs)) {
 		return;
 	}
 

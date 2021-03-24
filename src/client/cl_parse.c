@@ -151,11 +151,10 @@ static void Cl_ParseBaseline(void) {
 	if (ent->baseline.solid) {
 		if (ent->baseline.solid == SOLID_BSP) {
 			ent->matrix = Mat4_FromRotationTranslationScale(ent->baseline.angles, ent->baseline.origin, 1.f);
-			ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 		} else { // bounding-box entities
 			ent->matrix = Mat4_FromRotationTranslationScale(Vec3_Zero(), ent->baseline.origin, 1.f);
-			ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 		}
+		ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 	}
 }
 

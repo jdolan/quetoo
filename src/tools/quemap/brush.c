@@ -233,7 +233,7 @@ int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane_num) {
 
 	const cm_bsp_plane_t plane = Cm_Plane(planes[plane_num].normal, planes[plane_num].dist);
 
-	return Cm_BoxOnPlaneSide(brush->mins, brush->maxs, &plane);
+	return Cm_BoxOnPlaneSide(Bounds(brush->mins, brush->maxs), &plane);
 }
 
 /**

@@ -110,7 +110,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
 		const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
 
-		const vec3_t brush_size = Vec3_Subtract(brush->maxs, brush->mins);
+		const vec3_t brush_size = Bounds_Size(brush->bounds);
 		const int32_t brush_origins = Maxi(Vec3_Length(brush_size) * dust->density, 1);
 
 		if (dust->origins) {
@@ -122,10 +122,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 		int32_t j = dust->num_origins;
 		while (j < dust->num_origins + brush_origins) {
 
-			vec3_t point;
-			point.x = RandomRangef(brush->mins.x, brush->maxs.x);
-			point.y = RandomRangef(brush->mins.y, brush->maxs.y);
-			point.z = RandomRangef(brush->mins.z, brush->maxs.z);
+			const vec3_t point = Bounds_RandomPoint(brush->bounds);
 
 			if (cgi.PointInsideBrush(point, brush)) {
 				dust->origins[j++] = point;

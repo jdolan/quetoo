@@ -93,7 +93,7 @@ cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t *plan
  */
 _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
-	if (Vec3_BoxIntersect(point, point, brush->mins, brush->maxs)) {
+	if (Bounds_Contains(brush->bounds, point)) {
 
 		const cm_bsp_brush_side_t *side = brush->sides;
 		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
@@ -112,13 +112,13 @@ _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
  * @return The sidedness of the given bounds relative to the specified plane.
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
-int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *p) {
+int32_t Cm_BoxOnPlaneSide(const bounds_t bounds, const cm_bsp_plane_t *p) {
 
 	if (AXIAL(p)) {
-		if (mins.xyz[p->type] - p->dist >= 0.f) {
+		if (bounds.mins.xyz[p->type] - p->dist >= 0.f) {
 			return SIDE_FRONT;
 		}
-		if (maxs.xyz[p->type] - p->dist <  0.f) {
+		if (bounds.maxs.xyz[p->type] - p->dist <  0.f) {
 			return SIDE_BACK;
 		}
 		return SIDE_BOTH;
@@ -127,36 +127,36 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 	float dist1, dist2;
 	switch (p->sign_bits) {
 		case 0:
-			dist1 = Vec3_Dot(p->normal, maxs);
-			dist2 = Vec3_Dot(p->normal, mins);
+			dist1 = Vec3_Dot(p->normal, bounds.maxs);
+			dist2 = Vec3_Dot(p->normal, bounds.mins);
 			break;
 		case 1:
-			dist1 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * maxs.z;
-			dist2 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * mins.z;
+			dist1 = p->normal.x * bounds.mins.x + p->normal.y * bounds.maxs.y + p->normal.z * bounds.maxs.z;
+			dist2 = p->normal.x * bounds.maxs.x + p->normal.y * bounds.mins.y + p->normal.z * bounds.mins.z;
 			break;
 		case 2:
-			dist1 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * maxs.z;
-			dist2 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * mins.z;
+			dist1 = p->normal.x * bounds.maxs.x + p->normal.y * bounds.mins.y + p->normal.z * bounds.maxs.z;
+			dist2 = p->normal.x * bounds.mins.x + p->normal.y * bounds.maxs.y + p->normal.z * bounds.mins.z;
 			break;
 		case 3:
-			dist1 = p->normal.x * mins.x + p->normal.y * mins.y + p->normal.z * maxs.z;
-			dist2 = p->normal.x * maxs.x + p->normal.y * maxs.y + p->normal.z * mins.z;
+			dist1 = p->normal.x * bounds.mins.x + p->normal.y * bounds.mins.y + p->normal.z * bounds.maxs.z;
+			dist2 = p->normal.x * bounds.maxs.x + p->normal.y * bounds.maxs.y + p->normal.z * bounds.mins.z;
 			break;
 		case 4:
-			dist1 = p->normal.x * maxs.x + p->normal.y * maxs.y + p->normal.z * mins.z;
-			dist2 = p->normal.x * mins.x + p->normal.y * mins.y + p->normal.z * maxs.z;
+			dist1 = p->normal.x * bounds.maxs.x + p->normal.y * bounds.maxs.y + p->normal.z * bounds.mins.z;
+			dist2 = p->normal.x * bounds.mins.x + p->normal.y * bounds.mins.y + p->normal.z * bounds.maxs.z;
 			break;
 		case 5:
-			dist1 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * mins.z;
-			dist2 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * maxs.z;
+			dist1 = p->normal.x * bounds.mins.x + p->normal.y * bounds.maxs.y + p->normal.z * bounds.mins.z;
+			dist2 = p->normal.x * bounds.maxs.x + p->normal.y * bounds.mins.y + p->normal.z * bounds.maxs.z;
 			break;
 		case 6:
-			dist1 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * mins.z;
-			dist2 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * maxs.z;
+			dist1 = p->normal.x * bounds.maxs.x + p->normal.y * bounds.mins.y + p->normal.z * bounds.mins.z;
+			dist2 = p->normal.x * bounds.mins.x + p->normal.y * bounds.maxs.y + p->normal.z * bounds.maxs.z;
 			break;
 		case 7:
-			dist1 = Vec3_Dot(p->normal, mins);
-			dist2 = Vec3_Dot(p->normal, maxs);
+			dist1 = Vec3_Dot(p->normal, bounds.mins);
+			dist2 = Vec3_Dot(p->normal, bounds.maxs);
 			break;
 		default:
 			dist1 = dist2 = 0.0; // shut up compiler
@@ -279,23 +279,22 @@ void Cm_InitBoxHull(void) {
  * @brief Initializes the box hull for the specified bounds, returning the
  * head node for the resulting box hull tree.
  */
-int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t contents) {
+int32_t Cm_SetBoxHull(const bounds_t bounds, const int32_t contents) {
 
-	cm_box.brush->mins = mins;
-	cm_box.brush->maxs = maxs;
+	cm_box.brush->bounds = bounds;
 
-	cm_box.planes[0].dist = maxs.x;
-	cm_box.planes[1].dist = -maxs.x;
-	cm_box.planes[2].dist = mins.x;
-	cm_box.planes[3].dist = -mins.x;
-	cm_box.planes[4].dist = maxs.y;
-	cm_box.planes[5].dist = -maxs.y;
-	cm_box.planes[6].dist = mins.y;
-	cm_box.planes[7].dist = -mins.y;
-	cm_box.planes[8].dist = maxs.z;
-	cm_box.planes[9].dist = -maxs.z;
-	cm_box.planes[10].dist = mins.z;
-	cm_box.planes[11].dist = -mins.z;
+	cm_box.planes[0].dist = bounds.maxs.x;
+	cm_box.planes[1].dist = -bounds.maxs.x;
+	cm_box.planes[2].dist = bounds.mins.x;
+	cm_box.planes[3].dist = -bounds.mins.x;
+	cm_box.planes[4].dist = bounds.maxs.y;
+	cm_box.planes[5].dist = -bounds.maxs.y;
+	cm_box.planes[6].dist = bounds.mins.y;
+	cm_box.planes[7].dist = -bounds.mins.y;
+	cm_box.planes[8].dist = bounds.maxs.z;
+	cm_box.planes[9].dist = -bounds.maxs.z;
+	cm_box.planes[10].dist = bounds.mins.z;
+	cm_box.planes[11].dist = -bounds.mins.z;
 
 	cm_box.leaf->contents = cm_box.brush->contents = contents;
 
@@ -348,7 +347,7 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
  * @brief Data binding structure for box to leaf tests.
  */
 typedef struct {
-	vec3_t mins, maxs;
+	bounds_t bounds;
 	int32_t *list;
 	size_t len, max_len;
 	int32_t top_node;
@@ -376,7 +375,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 			plane = Cm_TransformPlane(*data->matrix, &plane);
 		}
 
-		const int32_t side = Cm_BoxOnPlaneSide(data->mins, data->maxs, &plane);
+		const int32_t side = Cm_BoxOnPlaneSide(data->bounds, &plane);
 
 		if (side == SIDE_FRONT) {
 			node_num = node->children[0];
@@ -405,8 +404,7 @@ int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat
  * top_node is not NULL, it will contain the top node of the BSP tree that
  * fully contains the box.
  *
- * @param mins The box mins in world space.
- * @param maxs The box maxs in world space.
+ * @param bounds The bounds in world space.
  * @param list The list of leaf numbers to populate.
  * @param len The maximum number of leafs to return.
  * @param top_node If not null, this will contain the top node for the box.
@@ -414,12 +412,11 @@ int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat
  *
  * @return The number of leafs accumulated to the list.
  */
-size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len,
-                      int32_t *top_node, int32_t head_node, const mat4_t *matrix) {
+size_t Cm_BoxLeafnums(const bounds_t bounds, int32_t *list, size_t len, int32_t *top_node,
+					  int32_t head_node, const mat4_t *matrix) {
 
 	cm_box_leafnum_data data = {
-		.mins = mins,
-		.maxs = maxs,
+		.bounds = bounds,
 		.list = list,
 		.max_len = len,
 		.top_node = -1,
