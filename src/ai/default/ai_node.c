@@ -921,7 +921,15 @@ void Ai_InitNodes(const char *mapname) {
 	aim.gi->Print("  Loaded %u nodes with %u total links.\n", num_nodes, total_links);
 
 	ai_player_roam.file_nodes = num_nodes;
-	ai_player_roam.file_links = total_links;
+	ai_player_roam.file_links = 0;
+
+	for (guint i = 0; i < ai_nodes->len; i++) {
+		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+
+		if (node->links) {
+			ai_player_roam.file_links += node->links->len;
+		}
+	}
 }
 
 /**
@@ -1196,4 +1204,34 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
 	g_hash_table_destroy(costs_started);
 
 	return return_path;
+}
+
+void Ai_OffsetNodes_f(void) {
+
+	vec3_t translate;
+
+	if (aim.gi->Argc() <= 1) {
+		if (ai_player_roam.last_nodes[0] == NODE_INVALID) {
+			return;
+		}
+
+		const vec3_t node = Ai_Node_GetPosition(ai_player_roam.last_nodes[0]);
+		const vec3_t player_position = ai_player_roam.position;
+		translate = Vec3_Subtract(player_position, node);
+	} else {	
+		const char *offset = aim.gi->Argv(1);
+	
+		parser_t parser;
+
+		Parse_Init(&parser, offset, PARSER_DEFAULT);
+
+		if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &translate, 3) != 3) {
+			return;
+		}
+	}
+
+	for (guint i = 0; i < ai_nodes->len; i++) {
+		ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+		node->position = Vec3_Add(node->position, translate);
+	}
 }

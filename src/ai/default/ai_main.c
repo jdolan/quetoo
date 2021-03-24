@@ -1535,10 +1535,12 @@ static void Ai_State(uint32_t frame_num) {
  */
 static void Ai_Frame(void) {
 
-	if (!ai_level.load_finished) {
+	if (ai_level.time > 1000) {
+		if (!ai_level.load_finished) {
 
-		Ai_NodesReady();
-		ai_level.load_finished = true;
+			Ai_NodesReady();
+			ai_level.load_finished = true;
+		}
 	}
 }
 
@@ -1608,6 +1610,8 @@ static void Ai_TestPath_f(void) {
 	}
 }
 
+void Ai_OffsetNodes_f(void);
+
 /**
  * @brief Initializes the AI subsystem.
  */
@@ -1632,6 +1636,8 @@ static void Ai_Init(void) {
 	aim.gi->AddCmd("ai_save_nodes", Ai_SaveNodes_f, CMD_AI, "Save current node data");
 
 	aim.gi->AddCmd("ai_test_path", Ai_TestPath_f, CMD_AI, "Save current node data");
+
+	aim.gi->AddCmd("ai_offset_nodes", Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
 
 	Ai_InitItems();
 	Ai_InitSkins();

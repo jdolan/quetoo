@@ -111,7 +111,7 @@ cvar_t *g_max_entities;
 cvar_t *g_motd;
 cvar_t *g_num_teams;
 cvar_t *g_password;
-cvar_t *g_paused;
+static cvar_t *g_paused;
 cvar_t *g_player_projectile;
 cvar_t *g_quad_damage_respawn_time;
 cvar_t *g_quad_damage_time;

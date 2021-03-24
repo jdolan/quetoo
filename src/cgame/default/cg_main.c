@@ -55,7 +55,7 @@ cvar_t *cg_draw_powerups;
 cvar_t *cg_draw_time;
 cvar_t *cg_draw_target_name;
 cvar_t *cg_draw_team_banner;
-cvar_t *cg_draw_trace_test;
+static cvar_t *cg_draw_trace_test;
 cvar_t *cg_draw_weapon;
 cvar_t *cg_draw_weapon_alpha;
 cvar_t *cg_draw_weapon_bob;
@@ -466,7 +466,7 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
 
 	if (*cg_draw_trace_test->string && *cg_draw_trace_test->string != '0') {
-		static vec3_t mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
+		static vec3_t mins = { { 0, 0, 0 } }, maxs = { { 0, 0, 0 } };
 
 		if (cg_draw_trace_test->modified) {
 			parser_t parser;
