@@ -183,8 +183,7 @@ static d_md3_frame_t R_SwapMd3Frame(const d_md3_frame_t *in) {
 	d_md3_frame_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	out.mins = LittleVec3(out.mins);
-	out.maxs = LittleVec3(out.maxs);
+	out.bounds = LittleBounds(out.bounds);
 	out.translate = LittleVec3(out.translate);
 	out.radius = LittleFloat(out.radius);
 #endif

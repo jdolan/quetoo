@@ -153,42 +153,45 @@ void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color) {
  * @brief Draws the bounding box using line strips in 3D space.
  */
 void R_Draw3DBox(const bounds_t bounds, const color_t color, const _Bool solid) {
+	vec3_t points[8];
+
+	Bounds_ToPoints(bounds, points);
 
 	if (!solid) {
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(bounds.mins.x, bounds.mins.y, bounds.mins.z),
-			Vec3(bounds.maxs.x, bounds.mins.y, bounds.mins.z),
-			Vec3(bounds.maxs.x, bounds.maxs.y, bounds.mins.z),
-			Vec3(bounds.mins.x, bounds.maxs.y, bounds.mins.z),
-			Vec3(bounds.mins.x, bounds.mins.y, bounds.mins.z),
+			points[0],
+			points[1],
+			points[3],
+			points[2],
+			points[0],
 		}, 5, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(bounds.mins.x, bounds.mins.y, bounds.maxs.z),
-			Vec3(bounds.maxs.x, bounds.mins.y, bounds.maxs.z),
-			Vec3(bounds.maxs.x, bounds.maxs.y, bounds.maxs.z),
-			Vec3(bounds.mins.x, bounds.maxs.y, bounds.maxs.z),
-			Vec3(bounds.mins.x, bounds.mins.y, bounds.maxs.z),
+			points[4],
+			points[5],
+			points[7],
+			points[6],
+			points[4],
 		}, 5, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(bounds.mins.x, bounds.mins.y, bounds.mins.z),
-			Vec3(bounds.mins.x, bounds.mins.y, bounds.maxs.z),
+			points[0],
+			points[4],
 		}, 2, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(bounds.mins.x, bounds.maxs.y, bounds.mins.z),
-			Vec3(bounds.mins.x, bounds.maxs.y, bounds.maxs.z),
+			points[2],
+			points[6],
 		}, 2, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(bounds.maxs.x, bounds.maxs.y, bounds.mins.z),
-			Vec3(bounds.maxs.x, bounds.maxs.y, bounds.maxs.z),
+			points[3],
+			points[7],
 		}, 2, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(bounds.maxs.x, bounds.mins.y, bounds.mins.z),
-			Vec3(bounds.maxs.x, bounds.mins.y, bounds.maxs.z),
+			points[1],
+			points[5],
 		}, 2, color);
 	} else {
 		const GLuint elements[] = {
@@ -205,10 +208,6 @@ void R_Draw3DBox(const bounds_t bounds, const color_t color, const _Bool solid) 
 			// right
 			5, 7, 1, 7, 3, 1,
 		};
-
-		vec3_t points[8];
-
-		Bounds_ToPoints(bounds, points);
 
 		r_draw_3d_arrays_t draw = {
 			.mode = GL_TRIANGLES,
