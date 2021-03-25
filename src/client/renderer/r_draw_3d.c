@@ -152,43 +152,79 @@ void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color) {
 /**
  * @brief Draws the bounding box using line strips in 3D space.
  */
-void R_Draw3DBox(const vec3_t mins, const vec3_t maxs, const color_t color) {
+void R_Draw3DBox(const vec3_t mins, const vec3_t maxs, const color_t color, const _Bool solid) {
 
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(mins.x, mins.y, mins.z),
-		Vec3(maxs.x, mins.y, mins.z),
-		Vec3(maxs.x, maxs.y, mins.z),
-		Vec3(mins.x, maxs.y, mins.z),
-		Vec3(mins.x, mins.y, mins.z),
-	}, 5, color);
+	if (!solid) {
+		R_Draw3DLines((const vec3_t []) {
+			Vec3(mins.x, mins.y, mins.z),
+			Vec3(maxs.x, mins.y, mins.z),
+			Vec3(maxs.x, maxs.y, mins.z),
+			Vec3(mins.x, maxs.y, mins.z),
+			Vec3(mins.x, mins.y, mins.z),
+		}, 5, color);
 
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(mins.x, mins.y, maxs.z),
-		Vec3(maxs.x, mins.y, maxs.z),
-		Vec3(maxs.x, maxs.y, maxs.z),
-		Vec3(mins.x, maxs.y, maxs.z),
-		Vec3(mins.x, mins.y, maxs.z),
-	}, 5, color);
+		R_Draw3DLines((const vec3_t []) {
+			Vec3(mins.x, mins.y, maxs.z),
+			Vec3(maxs.x, mins.y, maxs.z),
+			Vec3(maxs.x, maxs.y, maxs.z),
+			Vec3(mins.x, maxs.y, maxs.z),
+			Vec3(mins.x, mins.y, maxs.z),
+		}, 5, color);
 
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(mins.x, mins.y, mins.z),
-		Vec3(mins.x, mins.y, maxs.z),
-	}, 2, color);
+		R_Draw3DLines((const vec3_t []) {
+			Vec3(mins.x, mins.y, mins.z),
+			Vec3(mins.x, mins.y, maxs.z),
+		}, 2, color);
 
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(mins.x, maxs.y, mins.z),
-		Vec3(mins.x, maxs.y, maxs.z),
-	}, 2, color);
+		R_Draw3DLines((const vec3_t []) {
+			Vec3(mins.x, maxs.y, mins.z),
+			Vec3(mins.x, maxs.y, maxs.z),
+		}, 2, color);
 
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(maxs.x, maxs.y, mins.z),
-		Vec3(maxs.x, maxs.y, maxs.z),
-	}, 2, color);
+		R_Draw3DLines((const vec3_t []) {
+			Vec3(maxs.x, maxs.y, mins.z),
+			Vec3(maxs.x, maxs.y, maxs.z),
+		}, 2, color);
 
-	R_Draw3DLines((const vec3_t []) {
-		Vec3(maxs.x, mins.y, mins.z),
-		Vec3(maxs.x, mins.y, maxs.z),
-	}, 2, color);
+		R_Draw3DLines((const vec3_t []) {
+			Vec3(maxs.x, mins.y, mins.z),
+			Vec3(maxs.x, mins.y, maxs.z),
+		}, 2, color);
+	} else {
+		const GLuint elements[] = {
+			// bottom
+			0, 1, 3, 0, 3, 2,
+			// top
+			6, 7, 4, 7, 5, 4,
+			// front
+			4, 5, 0, 5, 1, 0,
+			// back
+			7, 6, 3, 6, 2, 2,
+			// left
+			6, 4, 2, 4, 0, 2,
+			// right
+			5, 7, 1, 7, 3, 1,
+		};
+
+		vec3_t points[8];
+
+		Bounds_ToPoints(Bounds(mins, maxs), points);
+
+		r_draw_3d_arrays_t draw = {
+			.mode = GL_TRIANGLES,
+			.first_vertex = r_draw_3d.num_vertexes,
+			.num_vertexes = (GLsizei) lengthof(elements)
+		};
+
+		for (int32_t i = 0; i < draw.num_vertexes; i++) {
+			R_AddDraw3DVertex(&(const r_draw_3d_vertex_t) {
+				.position = points[elements[i]],
+				.color = Color_Color32(color)
+			});
+		}
+
+		R_AddDraw3DArrays(&draw);
+	}
 }
 
 /**

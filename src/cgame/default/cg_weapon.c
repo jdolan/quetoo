@@ -177,8 +177,7 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	w.model = cgi.client->models[ps->stats[STAT_WEAPON]];
 
-	w.abs_mins = Vec3_Add(cgi.view->origin, Vec3(-8.f, -8.f, -8.f));
-	w.abs_maxs = Vec3_Add(cgi.view->origin, Vec3( 8.f,  8.f,  8.f));
+	w.abs_bounds = Bounds_FromOriginSize(cgi.view->origin, Vec3(16.f, 16.f, 16.f));
 
 	w.lerp = w.scale = 1.0;
 

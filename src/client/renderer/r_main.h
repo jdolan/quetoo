@@ -209,6 +209,7 @@ extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
 extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_normals;
+extern cvar_t *r_draw_bsp_occlusion_queries;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;

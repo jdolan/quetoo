@@ -197,7 +197,7 @@ static void Cm_LoadBspBrushes(void) {
 		out->contents = in->contents;
 		out->sides = cm_bsp.brush_sides + in->first_brush_side;
 		out->num_sides = in->num_sides;
-		out->bounds = Bounds(in->mins, in->maxs);
+		out->bounds = in->bounds;
 	}
 }
 
@@ -214,7 +214,7 @@ static void Cm_LoadBspInlineModels(void) {
 	for (int32_t i = 0; i < num_models; i++, in++, out++) {
 		
 		out->head_node = in->head_node;
-		out->bounds = Bounds(in->mins, in->maxs);
+		out->bounds = in->bounds;
 	}
 }
 

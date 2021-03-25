@@ -481,7 +481,7 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 		vec3_t end = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
 		cm_trace_t tr = cgi.Trace(cgi.view->origin, end, mins, maxs, Cg_Self()->current.number, CONTENTS_MASK_SOLID);
 
-		cgi.Draw3DBox(Vec3_Add(tr.end, mins), Vec3_Add(tr.end, maxs), color_blue);
+		cgi.Draw3DBox(Vec3_Add(tr.end, mins), Vec3_Add(tr.end, maxs), color_blue, true);
 	}
 }
 

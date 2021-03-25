@@ -160,7 +160,7 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
 		if (fmt[0] == '!') { // skip it
 			fmt++;
 		} else {
-			g_snprintf(str, size, "%s: ", func);
+			g_snprintf(str, (gulong) size, "%s: ", func);
 			len = strlen(str);
 		}
 	}

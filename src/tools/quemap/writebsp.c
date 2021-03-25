@@ -78,8 +78,7 @@ static int32_t EmitLeaf(node_t *node) {
 	out->contents = node->contents;
 	out->cluster = node->cluster;
 
-	out->mins = node->mins;
-	out->maxs = node->maxs;
+	out->bounds = Bounds(node->mins, node->maxs);
 
 	// write the leaf_brushes
 	out->first_leaf_brush = bsp_file.num_leaf_brushes;
@@ -174,8 +173,7 @@ static int32_t EmitNode(node_t *node) {
 	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
 
-	out->mins = node->mins;
-	out->maxs = node->maxs;
+	out->bounds = Bounds(node->mins, node->maxs);
 
 	out->plane_num = node->plane_num;
 
@@ -310,8 +308,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 		out->texinfo = a->texinfo;
 		out->contents = a->contents;
 
-		out->mins = Vec3_Mins();
-		out->maxs = Vec3_Maxs();
+		out->bounds = Bounds_Infinity();
 
 		out->first_element = bsp_file.num_elements;
 
@@ -334,8 +331,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 			bsp_file.num_elements += b->num_elements;
 			out->num_elements += b->num_elements;
 
-			out->mins = Vec3_Minf(out->mins, b->mins);
-			out->maxs = Vec3_Maxf(out->maxs, b->maxs);
+			out->bounds = Bounds_Combine(out->bounds, b->bounds);
 			
 			i = j;
 		}
@@ -365,8 +361,7 @@ static void EmitBrushes(void) {
 		out->first_brush_side = bsp_file.num_brush_sides;
 		out->num_sides = b->num_sides;
 
-		out->mins = b->mins;
-		out->maxs = b->maxs;
+		out->bounds = Bounds(b->mins, b->maxs);
 
 		for (int32_t j = 0; j < b->num_sides; j++) {
 
@@ -520,16 +515,15 @@ bsp_model_t *BeginModel(const entity_t *e) {
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
-	mod->mins = Vec3_Mins();
-	mod->maxs = Vec3_Maxs();
+	mod->bounds = Bounds_Infinity();
 
 	for (int32_t j = start; j < end; j++) {
 		const brush_t *b = &brushes[j];
-		if (!b->num_sides) {
-			continue; // not a real brush (origin brush)
+		
+		// a real brush (not an origin brush)
+		if (b->num_sides) {
+			mod->bounds = Bounds_Combine(mod->bounds, Bounds(b->mins, b->maxs));
 		}
-		mod->mins = Vec3_Minf(mod->mins, b->mins);
-		mod->maxs = Vec3_Maxf(mod->maxs, b->maxs);
 	}
 
 	return mod;

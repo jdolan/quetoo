@@ -109,8 +109,8 @@ mat4_t LittleMat4(const mat4_t m) {
  */
 vec3s_t LittleVec3s(const vec3s_t v) {
 	return Vec3s(LittleShort(v.x),
-				   LittleShort(v.y),
-				   LittleShort(v.z));
+				 LittleShort(v.y),
+				 LittleShort(v.z));
 }
 
 /**
@@ -118,8 +118,8 @@ vec3s_t LittleVec3s(const vec3s_t v) {
  */
 vec3i_t LittleVec3i(const vec3i_t v) {
 	return Vec3i(LittleLong(v.x),
-				   LittleLong(v.y),
-				   LittleLong(v.z));
+				 LittleLong(v.y),
+				 LittleLong(v.z));
 }
 
 /**
@@ -147,4 +147,12 @@ vec4_t LittleVec4(const vec4_t v) {
 				LittleFloat(v.y),
 				LittleFloat(v.z),
 				LittleFloat(v.w));
+}
+
+/**
+ * @brief
+ */
+bounds_t LittleBounds(const bounds_t b) {
+	return Bounds(LittleVec3(b.mins),
+				  LittleVec3(b.maxs));
 }

@@ -323,7 +323,7 @@ static void HashLights(void) {
 			continue;
 		}
 
-		node_lights[i] = BoxLights(node->mins, node->maxs);
+		node_lights[i] = BoxLights(node->bounds.mins, node->bounds.maxs);
 	}
 
 	const bsp_leaf_t *leaf = bsp_file.leafs;
@@ -333,7 +333,7 @@ static void HashLights(void) {
 			continue;
 		}
 
-		leaf_lights[i] = BoxLights(leaf->mins, leaf->maxs);
+		leaf_lights[i] = BoxLights(leaf->bounds.mins, leaf->bounds.maxs);
 	}
 
 	unattenuated_lights = g_ptr_array_new();

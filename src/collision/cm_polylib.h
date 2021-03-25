@@ -62,7 +62,7 @@ cm_winding_t *Cm_AllocWinding(int32_t num_points);
 void Cm_FreeWinding(cm_winding_t *w);
 cm_winding_t *Cm_CopyWinding(const cm_winding_t *w);
 cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w);
-void Cm_WindingBounds(const cm_winding_t *w, vec3_t *mins, vec3_t *maxs);
+bounds_t Cm_WindingBounds(const cm_winding_t *w);
 vec3_t Cm_WindingCenter(const cm_winding_t *w);
 float Cm_WindingArea(const cm_winding_t *w);
 cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist);

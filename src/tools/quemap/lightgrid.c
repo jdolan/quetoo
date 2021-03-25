@@ -46,7 +46,7 @@ static void BuildLightgridMatrices(void) {
 
 	const bsp_model_t *world = bsp_file.models;
 
-	lg.matrix = Mat4_FromTranslation(Vec3_Negate(world->mins));
+	lg.matrix = Mat4_FromTranslation(Vec3_Negate(world->bounds.mins));
 	lg.matrix = Mat4_ConcatScale(lg.matrix, 1.f / BSP_LIGHTGRID_LUXEL_SIZE);
 	lg.inverse_matrix = Mat4_Inverse(lg.matrix);
 }
@@ -58,11 +58,8 @@ static void BuildLightgridExtents(void) {
 
 	const bsp_model_t *world = bsp_file.models;
 
-	const vec3_t mins = Vec3(world->mins.x, world->mins.y, world->mins.z);
-	const vec3_t maxs = Vec3(world->maxs.x, world->maxs.y, world->maxs.z);
-
-	lg.stu_mins = Mat4_Transform(lg.matrix, mins);
-	lg.stu_maxs = Mat4_Transform(lg.matrix, maxs);
+	lg.stu_mins = Mat4_Transform(lg.matrix, world->bounds.mins);
+	lg.stu_maxs = Mat4_Transform(lg.matrix, world->bounds.maxs);
 
 	for (int32_t i = 0; i < 3; i++) {
 		lg.size.xyz[i] = floorf(lg.stu_maxs.xyz[i] - lg.stu_mins.xyz[i]) + 2;

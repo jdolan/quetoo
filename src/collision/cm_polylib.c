@@ -77,15 +77,9 @@ cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w) {
 /**
  * @brief
  */
-void Cm_WindingBounds(const cm_winding_t *w, vec3_t *mins, vec3_t *maxs) {
+bounds_t Cm_WindingBounds(const cm_winding_t *w) {
 
-	*mins = Vec3_Mins();
-	*maxs = Vec3_Maxs();
-
-	for (int32_t i = 0; i < w->num_points; i++) {
-		*mins = Vec3_Minf(*mins, w->points[i]);
-		*maxs = Vec3_Maxf(*maxs, w->points[i]);
-	}
+	return Bounds_Points(w->points, w->num_points);
 }
 
 /**

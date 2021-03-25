@@ -137,7 +137,7 @@ static inline _Bool Bounds_Intersect(const bounds_t a, const bounds_t b) {
 */
 static inline _Bool Bounds_Contains(const bounds_t a, const vec3_t b) {
 
-	return Vec3_BoxIntersect(a.mins, a.maxs, b, b);
+	return Vec3_BoxIntersect(b, b, a.mins, a.maxs);
 }
 
 /**

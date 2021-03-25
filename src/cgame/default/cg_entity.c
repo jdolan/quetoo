@@ -276,8 +276,8 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 
 	r_sprite_t shadow_sprite = {
 		.color = Color32(0, 0, 0, 255),
-		.width = (ent->model->maxs.y - ent->model->mins.y) * 2,
-		.height = (ent->model->maxs.x - ent->model->mins.x) * 2,
+		.width = Bounds_Length(ent->model->bounds) * 2,
+		.height = Bounds_Width(ent->model->bounds) * 2,
 		.rotation = Radians(ent->angles.y),
 		.media = (r_media_t *) cg_sprite_particle3,
 		.softness = -1.f,
@@ -290,15 +290,15 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 	const vec2_t offsets[9] = {
 		Vec2(0.f, 0.f),
 		
-		Vec2(ent->model->mins.x, ent->model->mins.y),
-		Vec2(ent->model->maxs.x, ent->model->mins.y),
-		Vec2(ent->model->maxs.x, ent->model->maxs.y),
-		Vec2(ent->model->mins.x, ent->model->maxs.y),
+		Vec2(ent->model->bounds.mins.x, ent->model->bounds.mins.y),
+		Vec2(ent->model->bounds.maxs.x, ent->model->bounds.mins.y),
+		Vec2(ent->model->bounds.maxs.x, ent->model->bounds.maxs.y),
+		Vec2(ent->model->bounds.mins.x, ent->model->bounds.maxs.y),
 		
-		Vec2(0.f, ent->model->mins.y),
-		Vec2(ent->model->maxs.x, 0.f),
-		Vec2(0.f, ent->model->maxs.y),
-		Vec2(ent->model->mins.x, 0.f)
+		Vec2(0.f, ent->model->bounds.mins.y),
+		Vec2(ent->model->bounds.maxs.x, 0.f),
+		Vec2(0.f, ent->model->bounds.maxs.y),
+		Vec2(ent->model->bounds.mins.x, 0.f)
 	};
 
 	int32_t num_shadows;
@@ -352,10 +352,8 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 		.termination = ent->termination,
 		.angles = ent->angles,
 		.scale = 1.f,
-		.mins = ent->mins,
-		.maxs = ent->maxs,
-		.abs_mins = ent->abs_mins,
-		.abs_maxs = ent->abs_maxs,
+		.bounds = Bounds(ent->mins, ent->maxs),
+		.abs_bounds = Bounds(ent->abs_mins, ent->abs_maxs)
 	};
 
 	// add effects, augmenting the renderer entity

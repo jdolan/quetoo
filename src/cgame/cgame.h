@@ -802,9 +802,10 @@ typedef struct cg_import_s {
 	 * @brief Draw a 3D bbox at the given coordinates.
 	 * @param mins Maxs.
 	 * @param maxs Mins.
-	 * @param color Color of lines.
+	 * @param color Color.
+	 * @param solid Whether to draw a solid or wireframe box.
 	*/
-	void (*Draw3DBox)(const vec3_t mins, const vec3_t maxs, const color_t color);
+	void (*Draw3DBox)(const vec3_t mins, const vec3_t maxs, const color_t color, const _Bool solid);
 
 	/**
 	 * @}

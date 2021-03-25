@@ -57,7 +57,7 @@ int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend
 			continue;
 		}
 
-		if (Bounds_Intersect(bounds, Bounds(draw->mins, draw->maxs))) {
+		if (Bounds_Intersect(bounds, draw->bounds)) {
 			if (Cm_DistanceToPlane(p, draw->plane->cm) < 0.f) {
 
 				draw->blend_depth_types |= type;
@@ -84,7 +84,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		return;
 	}
 
-	bounds_t bounds = Bounds(node->mins, node->maxs);
+	bounds_t bounds = node->bounds;
 
 	if (e) {
 		bounds = Mat4_TransformBounds(e->matrix, bounds);
@@ -123,7 +123,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 			continue;
 		}
 
-		if (!Vec3_BoxIntersect(draw->mins, draw->maxs, node->mins, node->maxs)) {
+		if (!Bounds_Intersect(draw->bounds, node->bounds)) {
 			continue;
 		}
 

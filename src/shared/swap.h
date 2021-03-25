@@ -36,3 +36,4 @@ vec3i_t LittleVec3i(const vec3i_t v);
 vec2_t LittleVec2(const vec2_t v);
 vec3_t LittleVec3(const vec3_t v);
 vec4_t LittleVec4(const vec4_t v);
+bounds_t LittleBounds(const bounds_t v);

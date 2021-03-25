@@ -144,8 +144,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
 
-		out->mins = in->mins;
-		out->maxs = in->maxs;
+		out->bounds = in->bounds;
 
 		out->vertexes = bsp->vertexes + in->first_vertex;
 		out->num_vertexes = in->num_vertexes;
@@ -192,8 +191,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
 
-		out->mins = in->mins;
-		out->maxs = in->maxs;
+		out->bounds = in->bounds;
 
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
@@ -251,8 +249,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 		out->contents = in->contents;
 
-		out->mins = in->mins;
-		out->maxs = in->maxs;
+		out->bounds = in->bounds;
 	}
 }
 
@@ -271,8 +268,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 
 		out->contents = CONTENTS_NODE; // differentiate from leafs
 
-		out->mins = in->mins;
-		out->maxs = in->maxs;
+		out->bounds = in->bounds;
 
 		out->plane = bsp->planes + in->plane_num;
 
@@ -326,8 +322,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		out->head_node = bsp->nodes + in->head_node;
 
-		out->mins = in->mins;
-		out->maxs = in->maxs;
+		out->bounds = in->bounds;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
@@ -369,11 +364,9 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 
 		out->media.Free = R_FreeBspInlineModel;
 
-		out->maxs = in->maxs;
-		out->mins = in->mins;
+		out->bounds = in->bounds;
 
-		mod->mins = Vec3_Minf(mod->mins, out->mins);
-		mod->maxs = Vec3_Maxf(mod->maxs, out->maxs);
+		mod->bounds = Bounds_Combine(mod->bounds, out->bounds);
 
 		R_RegisterDependency(&mod->media, &out->media);
 	}
@@ -469,11 +462,10 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	}
 
 	const vec3_t grid_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
-	const vec3_t world_size = Vec3_Subtract(mod->maxs, mod->mins);
+	const vec3_t world_size = Bounds_Size(mod->bounds);
 	const vec3_t padding = Vec3_Scale(Vec3_Subtract(grid_size, world_size), 0.5);
 
-	out->mins = Vec3_Subtract(mod->mins, padding);
-	out->maxs = Vec3_Add(mod->maxs, padding);
+	out->bounds = Bounds_Expand3(mod->bounds, padding);
 
 	const size_t luxels = out->size.x * out->size.y * out->size.z;
 
@@ -537,19 +529,9 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
 			glGenQueries(1, &out->name);
 
-			const vec3_t near_vec = Vec3(NEAR_DIST, NEAR_DIST, NEAR_DIST);
+			out->bounds = Bounds_Expand(in->bounds, NEAR_DIST);
 
-			out->mins = Vec3_Subtract(in->bounds.mins, near_vec);
-			out->maxs = Vec3_Add(in->bounds.maxs, near_vec);
-
-			out->vertexes[0] = Vec3(out->mins.x, out->mins.y, out->mins.z);
-			out->vertexes[1] = Vec3(out->maxs.x, out->mins.y, out->mins.z);
-			out->vertexes[2] = Vec3(out->maxs.x, out->maxs.y, out->mins.z);
-			out->vertexes[3] = Vec3(out->mins.x, out->maxs.y, out->mins.z);
-			out->vertexes[4] = Vec3(out->mins.x, out->mins.y, out->maxs.z);
-			out->vertexes[5] = Vec3(out->maxs.x, out->mins.y, out->maxs.z);
-			out->vertexes[6] = Vec3(out->maxs.x, out->maxs.y, out->maxs.z);
-			out->vertexes[7] = Vec3(out->mins.x, out->maxs.y, out->maxs.z);
+			Bounds_ToPoints(out->bounds, out->vertexes);
 
 			out->pending = false;
 			out->result = 1;
