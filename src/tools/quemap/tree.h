@@ -31,7 +31,7 @@ typedef struct node_s {
 	// both leafs and nodes
 	struct node_s *parent;
 	int32_t plane_num; // -1 = leaf node
-	box_t bounds; // valid after portalization
+	box3_t bounds; // valid after portalization
 	csg_brush_t *volume; // one for each leaf/node
 
 	// nodes only
@@ -54,7 +54,7 @@ void FreeNode(node_t *node);
 typedef struct {
 	node_t *head_node;
 	node_t outside_node;
-	box_t bounds;
+	box3_t bounds;
 } tree_t;
 
 tree_t *AllocTree(void);

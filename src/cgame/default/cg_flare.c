@@ -114,7 +114,7 @@ void Cg_AddFlares(void) {
 					p = v->position;
 				}
 
-				const cm_trace_t tr = cgi.Trace(cgi.view->origin, p, Box_Zero(), 0, CONTENTS_SOLID);
+				const cm_trace_t tr = cgi.Trace(cgi.view->origin, p, Box3_Zero(), 0, CONTENTS_SOLID);
 				if (tr.fraction > 0.99f) {
 					exposure += 1.f / flare->face->num_vertexes;
 				}
@@ -158,16 +158,16 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 	flare->face = face;
 	flare->stage = stage;
 
-	box_t bounds = Box_Null();
+	box3_t bounds = Box3_Null();
 
 	for (int32_t i = 0; i < face->num_vertexes; i++) {
-		bounds = Box_Append(bounds, face->vertexes[i].position);
+		bounds = Box3_Append(bounds, face->vertexes[i].position);
 	}
 
-	flare->in.origin = Box_Origin(bounds);
+	flare->in.origin = Box3_Origin(bounds);
 	flare->in.origin = Vec3_Fmaf(flare->in.origin, 2.f, face->plane->cm->normal);
 
-	flare->in.size = Box_Distance(bounds);
+	flare->in.size = Box3_Distance(bounds);
 
 	if (stage->cm->flags & STAGE_COLOR) {
 		flare->in.color = Color_Color32(stage->cm->color);

@@ -146,7 +146,7 @@ _Bool R_CullPoint(const r_view_t *view, const vec3_t point) {
  * @return True if the specified bounding box is culled by the view frustum, false otherwise.
  * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
  */
-_Bool R_CullBox(const r_view_t *view, const box_t bounds) {
+_Bool R_CullBox(const r_view_t *view, const box3_t bounds) {
 
 	if (!r_cull->value) {
 		return false;
@@ -158,7 +158,7 @@ _Bool R_CullBox(const r_view_t *view, const box_t bounds) {
 
 	vec3_t points[8];
 	
-	Box_ToPoints(bounds, points);
+	Box3_ToPoints(bounds, points);
 
 	const cm_bsp_plane_t *plane = view->frustum;
 	for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
@@ -251,7 +251,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
 
 			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->bounds.mins);
-			const vec3_t size = Box_Size(r_world_model->bsp->lightgrid->bounds);
+			const vec3_t size = Box3_Size(r_world_model->bsp->lightgrid->bounds);
 
 			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
 			r_uniforms.block.lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);

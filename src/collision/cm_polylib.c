@@ -77,9 +77,9 @@ cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w) {
 /**
  * @brief
  */
-box_t Cm_WindingBounds(const cm_winding_t *w) {
+box3_t Cm_WindingBounds(const cm_winding_t *w) {
 
-	return Box_Points(w->points, w->num_points);
+	return Box3_Points(w->points, w->num_points);
 }
 
 /**

@@ -90,7 +90,7 @@ static csg_brush_t *SubtractBrush(csg_brush_t *a, csg_brush_t *b) {
 static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 
 	// check bounding boxes
-	if (!Box_Intersects(a->bounds, b->bounds)) {
+	if (!Box3_Intersects(a->bounds, b->bounds)) {
 		return true; // bounding boxes don't overlap
 	}
 

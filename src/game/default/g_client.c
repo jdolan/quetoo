@@ -300,7 +300,7 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
                                uint32_t mod) {
 
-	const box_t bounds[NUM_GIB_MODELS] = {
+	const box3_t bounds[NUM_GIB_MODELS] = {
 		Boxf(12.f),
 		Boxf(12.f),
 		Boxf(8.f),
@@ -708,7 +708,7 @@ static float G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
  */
 static _Bool G_WouldTelefrag(const vec3_t spot) {
 	g_entity_t *ents[MAX_ENTITIES];
-	box_t bounds = Box_Translate(PM_BOUNDS, spot);
+	box3_t bounds = Box3_Translate(PM_BOUNDS, spot);
 
 	bounds.mins.z -= PM_STEP_HEIGHT;
 	bounds.maxs.z += PM_STEP_HEIGHT;
@@ -879,7 +879,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	if (ent->client->locals.persistent.spectator) { // spawn a spectator
 		ent->class_name = "spectator";
 
-		ent->bounds = Box_Zero();
+		ent->bounds = Box3_Zero();
 
 		ent->solid = SOLID_NOT;
 		ent->sv_flags = SVF_NO_CLIENT;
@@ -899,7 +899,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->solid = SOLID_BOX;
 		ent->sv_flags = 0;
 
-		ent->bounds = Box_Scale(PM_BOUNDS, PM_SCALE);
+		ent->bounds = Box3_Scale(PM_BOUNDS, PM_SCALE);
 
 		ent->s.model1 = MODEL_CLIENT;
 		ent->s.client = ent->s.number - 1;
@@ -1335,7 +1335,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const box_t bounds) {
+static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
 
 	const g_entity_t *self = g_level.current_entity;
 

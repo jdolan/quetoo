@@ -139,7 +139,7 @@ void R_AddBeam(r_view_t *view, const r_beam_t *b) {
 		return;
 	}
 
-	box_t bounds = Cm_TraceBounds(b->start, b->end,
+	box3_t bounds = Cm_TraceBounds(b->start, b->end,
 									 Boxf(b->size));
 
 	if (R_OccludeBox(view, bounds)) {

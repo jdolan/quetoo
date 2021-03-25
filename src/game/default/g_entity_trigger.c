@@ -258,7 +258,7 @@ static void G_trigger_push_Effect(g_entity_t *self) {
 
 	g_entity_t *ent = G_AllocEntity();
 
-	ent->s.origin = Box_Origin(self->bounds);
+	ent->s.origin = Box3_Origin(self->bounds);
 
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->s.trail = TRAIL_TELEPORTER;

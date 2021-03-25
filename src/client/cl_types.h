@@ -85,8 +85,8 @@ typedef struct {
 	vec3_t previous_origin; // the previous interpolated origin
 	vec3_t termination; // and termination
 	vec3_t angles; // and angles
-	box_t bounds; // bounding box
-	box_t abs_bounds; // absolute bounding box
+	box3_t bounds; // bounding box
+	box3_t abs_bounds; // absolute bounding box
 	float legs_yaw; // only used by player models; leg angle ideal yaw
 	float legs_current_yaw; // only used by player models
 	float step_offset; // interpolated step offset

@@ -466,7 +466,7 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
 
 	if (*cg_draw_trace_test->string && *cg_draw_trace_test->string != '0') {
-		static box_t bounds;
+		static box3_t bounds;
 
 		if (cg_draw_trace_test->modified) {
 			parser_t parser;
@@ -482,7 +482,7 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
 		const cm_trace_t tr = cgi.Trace(cgi.view->origin, end, bounds, Cg_Self()->current.number, CONTENTS_MASK_SOLID);
 
-		cgi.Draw3DBox(Box_Translate(bounds, tr.end), color_blue, true);
+		cgi.Draw3DBox(Box3_Translate(bounds, tr.end), color_blue, true);
 	}
 }
 

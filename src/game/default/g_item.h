@@ -68,7 +68,7 @@
 	 */
 	#define TECH_VAMPIRE_DAMAGE_FACTOR 0.25
 
-	extern const box_t ITEM_BOUNDS;
+	extern const box3_t ITEM_BOUNDS;
 
 	const g_item_t *G_CarryingTech(const g_entity_t *ent);
 	_Bool G_HasTech(const g_entity_t *player, const g_tech_t tech);

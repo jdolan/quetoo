@@ -136,7 +136,7 @@ typedef struct brush_s {
 	/**
 	 * @brief The brush bounds, calculated by clipping all side planes against each other.
 	 */
-	box_t bounds;
+	box3_t bounds;
 
 	/**
 	 * @brief The brush sides.
@@ -159,7 +159,7 @@ extern int32_t num_planes;
 extern int32_t num_brushes;
 extern brush_t brushes[MAX_BSP_BRUSHES];
 
-extern box_t map_bounds;
+extern box3_t map_bounds;
 
 int32_t FindPlane(const vec3_t normal, double dist);
 void LoadMapFile(const char *filename);

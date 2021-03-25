@@ -308,7 +308,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 		out->texinfo = a->texinfo;
 		out->contents = a->contents;
 
-		out->bounds = Box_Null();
+		out->bounds = Box3_Null();
 
 		out->first_element = bsp_file.num_elements;
 
@@ -331,7 +331,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 			bsp_file.num_elements += b->num_elements;
 			out->num_elements += b->num_elements;
 
-			out->bounds = Box_Union(out->bounds, b->bounds);
+			out->bounds = Box3_Union(out->bounds, b->bounds);
 			
 			i = j;
 		}
@@ -515,14 +515,14 @@ bsp_model_t *BeginModel(const entity_t *e) {
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
-	mod->bounds = Box_Null();
+	mod->bounds = Box3_Null();
 
 	for (int32_t j = start; j < end; j++) {
 		const brush_t *b = &brushes[j];
 		
 		// a real brush (not an origin brush)
 		if (b->num_sides) {
-			mod->bounds = Box_Union(mod->bounds, b->bounds);
+			mod->bounds = Box3_Union(mod->bounds, b->bounds);
 		}
 	}
 

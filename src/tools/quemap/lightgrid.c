@@ -27,7 +27,7 @@
 #include "simplex.h"
 
 typedef struct {
-	box_t stu_bounds;
+	box3_t stu_bounds;
 	vec3i_t size;
 
 	mat4_t matrix;

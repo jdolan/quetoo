@@ -32,7 +32,7 @@ static vec3_t Cg_MuzzleOrigin(const cl_entity_t *ent, const float stand_z_ofs, c
 	org = Vec3_Fmaf(ent->origin, 30.f, forward);
 	org = Vec3_Fmaf(org, 6.f, right);
 
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, Box_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, Box3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		const vec3_t dir = Vec3_Subtract(ent->origin, tr.end);

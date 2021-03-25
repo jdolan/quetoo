@@ -30,7 +30,7 @@ typedef struct csg_brush_s {
 	const struct brush_s *original;
 	struct brush_side_s *sides;
 	int32_t num_sides;
-	box_t bounds;
+	box3_t bounds;
 	struct csg_brush_s *next;
 } csg_brush_t;
 

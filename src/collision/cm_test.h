@@ -43,9 +43,9 @@ cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist);
  */
 cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t *plane);
 
-int32_t Cm_BoxOnPlaneSide(const box_t bounds, const cm_bsp_plane_t *plane);
+int32_t Cm_BoxOnPlaneSide(const box3_t bounds, const cm_bsp_plane_t *plane);
 _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush);
-int32_t Cm_SetBoxHull(const box_t bounds, const int32_t contents);
+int32_t Cm_SetBoxHull(const box3_t bounds, const int32_t contents);
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node);
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node);
 
@@ -63,7 +63,7 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node);
  */
 int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat4_t inverse_matrix);
 
-size_t Cm_BoxLeafnums(const box_t bounds, int32_t *list, size_t len, int32_t *top_node, int32_t head_node, const mat4_t *matrix);
+size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t len, int32_t *top_node, int32_t head_node, const mat4_t *matrix);
 
 #ifdef __CM_LOCAL_H__
 void Cm_InitBoxHull(void);

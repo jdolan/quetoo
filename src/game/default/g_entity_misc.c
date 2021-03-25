@@ -138,7 +138,7 @@ void G_misc_teleporter(g_entity_t *ent) {
 		gi.SetModel(ent, ent->model);
 		ent->sv_flags = SVF_NO_CLIENT;
 	} else { // or model-less form, misc_teleporter
-		ent->bounds = Box_MinsMaxs(
+		ent->bounds = Box3_MinsMaxs(
 			Vec3(-32.0, -32.0, -24.0),
 			Vec3(32.0, 32.0, -16.0)
 		);

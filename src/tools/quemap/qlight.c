@@ -68,10 +68,10 @@ int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
  */
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask) {
 
-	cm_trace_t trace = Cm_BoxTrace(start, end, Box_Zero(), 0, mask, NULL, NULL);
+	cm_trace_t trace = Cm_BoxTrace(start, end, Box3_Zero(), 0, mask, NULL, NULL);
 
 	if (head_node) {
-		cm_trace_t tr = Cm_BoxTrace(start, end, Box_Zero(), head_node, mask, NULL, NULL);
+		cm_trace_t tr = Cm_BoxTrace(start, end, Box3_Zero(), head_node, mask, NULL, NULL);
 		if (tr.fraction < trace.fraction) {
 			trace = tr;
 		}

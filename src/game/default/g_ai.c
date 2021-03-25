@@ -503,7 +503,7 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 	}
 
 	// make a new node on the item
-	cm_trace_t down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, Vec3(0, 0, MAX_WORLD_COORD)), Box_Zero(), NULL, CONTENTS_MASK_SOLID);
+	cm_trace_t down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, Vec3(0, 0, MAX_WORLD_COORD)), Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
 	vec3_t pos;
 
 	if (down.fraction == 1.0) {
@@ -537,7 +537,7 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 			const vec3_t link_pos = aix->GetNodePosition(src_link);
 
 			// can't see 
-			if (gi.Trace(ent->s.origin, link_pos, Box_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
+			if (gi.Trace(ent->s.origin, link_pos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
 				continue;
 			}
 

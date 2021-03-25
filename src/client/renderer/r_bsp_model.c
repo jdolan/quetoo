@@ -366,7 +366,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 
 		out->bounds = in->bounds;
 
-		mod->bounds = Box_Union(mod->bounds, out->bounds);
+		mod->bounds = Box3_Union(mod->bounds, out->bounds);
 
 		R_RegisterDependency(&mod->media, &out->media);
 	}
@@ -462,10 +462,10 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	}
 
 	const vec3_t grid_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
-	const vec3_t world_size = Box_Size(mod->bounds);
+	const vec3_t world_size = Box3_Size(mod->bounds);
 	const vec3_t padding = Vec3_Scale(Vec3_Subtract(grid_size, world_size), 0.5);
 
-	out->bounds = Box_Expand3(mod->bounds, padding);
+	out->bounds = Box3_Expand3(mod->bounds, padding);
 
 	const size_t luxels = out->size.x * out->size.y * out->size.z;
 
@@ -529,9 +529,9 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
 			glGenQueries(1, &out->name);
 
-			out->bounds = Box_Expand(in->bounds, NEAR_DIST);
+			out->bounds = Box3_Expand(in->bounds, NEAR_DIST);
 
-			Box_ToPoints(out->bounds, out->vertexes);
+			Box3_ToPoints(out->bounds, out->vertexes);
 
 			out->pending = false;
 			out->result = 1;

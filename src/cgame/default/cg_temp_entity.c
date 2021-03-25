@@ -426,7 +426,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		float dist = GIB_STREAM_DIST;
 		vec3_t tmp = Vec3_Fmaf(o, dist, v);
 
-		const cm_trace_t tr = cgi.Trace(o, tmp, Box_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
+		const cm_trace_t tr = cgi.Trace(o, tmp, Box3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
 		dist = GIB_STREAM_DIST * tr.fraction;
 
 		for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {

@@ -76,11 +76,11 @@ static void G_CheckWater(g_entity_t *ent) {
 	// check for water interaction
 	const pm_water_level_t old_water_level = ent->locals.water_level;
 	const int32_t old_water_type = ent->locals.water_type;
-	box_t bounds;
+	box3_t bounds;
 
 	if (ent->solid == SOLID_BSP) {
-		pos = Box_Origin(ent->abs_bounds);
-		bounds = Box_MinsMaxs(
+		pos = Box3_Origin(ent->abs_bounds);
+		bounds = Box3_MinsMaxs(
 			Vec3_Subtract(pos, ent->abs_bounds.mins),
 			Vec3_Subtract(ent->abs_bounds.maxs, pos)
 		);
@@ -501,7 +501,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 	G_Physics_Push_Impact(self);
 
 	// calculate bounds for the entire move
-	box_t total_bounds = self->abs_bounds;
+	box3_t total_bounds = self->abs_bounds;
 
 	// unlink the pusher so we don't get it in the entity list
 	gi.UnlinkEntity(self);
@@ -512,7 +512,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 
 	gi.LinkEntity(self);
 
-	total_bounds = Box_Union(total_bounds, self->abs_bounds);
+	total_bounds = Box3_Union(total_bounds, self->abs_bounds);
 
 	const size_t len = gi.BoxEntities(total_bounds, ents, lengthof(ents), BOX_ALL);
 

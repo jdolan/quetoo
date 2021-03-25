@@ -155,7 +155,7 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 /**
  * @brief
  */
-void Net_WriteBounds(mem_buf_t *msg, const box_t bounds) {
+void Net_WriteBounds(mem_buf_t *msg, const box3_t bounds) {
 
 	const vec3s_t _mins = Vec3_CastVec3s(bounds.mins);
 
@@ -426,7 +426,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		bits |= U_SOLID;
 	}
 
-	if (!Box_Equal(to->bounds, from->bounds)) {
+	if (!Box3_Equal(to->bounds, from->bounds)) {
 		bits |= U_BOUNDS;
 	}
 
@@ -691,8 +691,8 @@ vec3_t Net_ReadDir(mem_buf_t *msg) {
 /**
  * @brief
  */
-box_t Net_ReadBounds(mem_buf_t *msg) {
-	box_t b;
+box3_t Net_ReadBounds(mem_buf_t *msg) {
+	box3_t b;
 
 	b.mins.x = Net_ReadShort(msg);
 	b.mins.y = Net_ReadShort(msg);

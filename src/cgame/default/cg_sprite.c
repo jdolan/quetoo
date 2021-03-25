@@ -218,7 +218,7 @@ void Cg_AddSprites(void) {
 			cm_trace_t tr = cgi.Trace(old_origin, origin, Boxf(size), 0, CONTENTS_MASK_SOLID);
 
 			if (tr.start_solid || tr.all_solid) {
-				tr = cgi.Trace(old_origin, origin, Box_Zero(), 0, CONTENTS_MASK_SOLID);
+				tr = cgi.Trace(old_origin, origin, Box3_Zero(), 0, CONTENTS_MASK_SOLID);
 			}
 
 			if (tr.fraction < 1.0) {

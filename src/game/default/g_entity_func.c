@@ -333,7 +333,7 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_end) {
 			vec3_t pos;
 
-			pos = Box_Origin(ent->abs_bounds);
+			pos = Box3_Origin(ent->abs_bounds);
 			pos.z = ent->abs_bounds.maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
@@ -373,7 +373,7 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_start) {
 			vec3_t pos;
 
-			pos = Box_Origin(ent->abs_bounds);
+			pos = Box3_Origin(ent->abs_bounds);
 			pos.z = ent->abs_bounds.maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
@@ -450,7 +450,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
 	trigger->solid = SOLID_TRIGGER;
 	trigger->locals.enemy = ent;
 
-	box_t bounds = Box_Expand3(ent->bounds, Vec3(-25.f, -25.f, 0.f));
+	box3_t bounds = Box3_Expand3(ent->bounds, Vec3(-25.f, -25.f, 0.f));
 	bounds.maxs.z += 8;
 
 	bounds.mins.z = bounds.maxs.z - (ent->locals.pos1.z - ent->locals.pos2.z + ent->locals.lip);
@@ -526,7 +526,7 @@ void G_func_plat(g_entity_t *ent) {
 	if (height->parsed & ENTITY_INTEGER) { // use the specified height
 		ent->locals.pos2.z -= height->integer;
 	} else { // or derive it from the model height
-		ent->locals.pos2.z -= Box_Size(ent->bounds).z - ent->locals.lip;
+		ent->locals.pos2.z -= Box3_Size(ent->bounds).z - ent->locals.lip;
 	}
 
 	ent->locals.Use = G_func_plat_Use;
@@ -1037,14 +1037,14 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 		return; // only the team leader spawns a trigger
 	}
 
-	box_t bounds = ent->abs_bounds;
+	box3_t bounds = ent->abs_bounds;
 
 	for (trigger = ent->locals.team_next; trigger; trigger = trigger->locals.team_next) {
-		bounds = Box_Union(bounds, trigger->abs_bounds);
+		bounds = Box3_Union(bounds, trigger->abs_bounds);
 	}
 
 	// expand
-	bounds = Box_Expand3(bounds, Vec3(60.f, 60.f, 0.f));
+	bounds = Box3_Expand3(bounds, Vec3(60.f, 60.f, 0.f));
 
 	trigger = G_AllocEntity();
 	trigger->bounds = bounds;

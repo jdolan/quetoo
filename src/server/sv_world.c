@@ -44,7 +44,7 @@ typedef struct {
 	sv_sector_t sectors[SECTOR_NODES];
 	uint16_t num_sectors;
 
-	box_t box;
+	box3_t box;
 
 	g_entity_t **box_entities;
 	size_t num_box_entities, max_box_entities;
@@ -57,7 +57,7 @@ static sv_world_t sv_world;
 /**
  * @brief Builds a uniformly subdivided tree for the given world size.
  */
-static sv_sector_t *Sv_CreateSector(int32_t depth, const box_t bounds) {
+static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
 	sv_sector_t *sector = &sv_world.sectors[sv_world.num_sectors];
 	sv_world.num_sectors++;
 
@@ -67,7 +67,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const box_t bounds) {
 		return sector;
 	}
 
-	vec3_t size = Box_Size(bounds);
+	vec3_t size = Box3_Size(bounds);
 
 	if (size.x > size.y) {
 		sector->axis = 0;
@@ -77,7 +77,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const box_t bounds) {
 
 	sector->dist = 0.5f * (bounds.maxs.xyz[sector->axis] + bounds.mins.xyz[sector->axis]);
 
-	box_t bounds1 = bounds, bounds2 = bounds;
+	box3_t bounds1 = bounds, bounds2 = bounds;
 
 	bounds1.maxs.xyz[sector->axis] = bounds2.mins.xyz[sector->axis] = sector->dist;
 
@@ -138,7 +138,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	}
 
 	// set the size
-	ent->size = Box_Size(ent->bounds);
+	ent->size = Box3_Size(ent->bounds);
 
 	// encode the size into the entity state for client prediction
 	ent->s.solid = ent->solid;
@@ -150,7 +150,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 			ent->s.bounds = ent->bounds;
 			break;
 		default:
-			ent->s.bounds = Box_Zero();
+			ent->s.bounds = Box3_Zero();
 			break;
 	}
 
@@ -269,7 +269,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 
 		if (Sv_BoxEntities_Filter(ent)) {
 
-			if (Box_Intersects(ent->abs_bounds, sv_world.box)) {
+			if (Box3_Intersects(ent->abs_bounds, sv_world.box)) {
 
 				sv_world.box_entities[sv_world.num_box_entities] = ent;
 				sv_world.num_box_entities++;
@@ -305,7 +305,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
  *
  * @return The number of entities found.
  */
-size_t Sv_BoxEntities(const box_t bounds, g_entity_t **list, const size_t len,
+size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, const size_t len,
                       const uint32_t type) {
 
 	sv_world.box = bounds;
@@ -316,7 +316,7 @@ size_t Sv_BoxEntities(const box_t bounds, g_entity_t **list, const size_t len,
 
 	Sv_BoxEntities_r(sv_world.sectors);
 
-	sv_world.box = Box_Zero();
+	sv_world.box = Box3_Zero();
 	sv_world.box_entities = NULL;
 
 	return sv_world.num_box_entities;
@@ -365,7 +365,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 	int32_t contents = Cm_PointContents(point, 0);
 
 	// as well as contents from all intersected entities
-	const size_t len = Sv_BoxEntities(Box_FromOrigin(point), entities, lengthof(entities), BOX_COLLIDE);
+	const size_t len = Sv_BoxEntities(Box3_FromOrigin(point), entities, lengthof(entities), BOX_COLLIDE);
 
 	// iterate the box entities, checking each one for an intersection
 	for (size_t i = 0; i < len; i++) {
@@ -385,8 +385,8 @@ int32_t Sv_PointContents(const vec3_t point) {
 // an entity's movement, with allowed exceptions and other info
 typedef struct {
 	vec3_t start, end;
-	box_t bounds; // size of the moving object
-	box_t box; // enclose the test object along entire move
+	box3_t bounds; // size of the moving object
+	box3_t box; // enclose the test object along entire move
 	cm_trace_t trace;
 	const g_entity_t *skip;
 	int32_t contents;
@@ -464,7 +464,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.
  */
-cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box_t bounds,
+cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
                     const g_entity_t *skip, const int32_t contents) {
 
 	sv_trace_t trace;

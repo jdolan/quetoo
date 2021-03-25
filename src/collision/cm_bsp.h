@@ -178,7 +178,7 @@ typedef struct {
 	int32_t contents;
 	int32_t first_brush_side;
 	int32_t num_sides; // the number of total brush sides, including bevel sides
-	box_t bounds;
+	box3_t bounds;
 } bsp_brush_t;
 
 typedef struct {
@@ -210,7 +210,7 @@ typedef struct {
 	int32_t texinfo;
 	int32_t contents;
 
-	box_t bounds;
+	box3_t bounds;
 
 	int32_t first_vertex;
 	int32_t num_vertexes;
@@ -225,7 +225,7 @@ typedef struct {
 	int32_t plane_num;
 	int32_t children[2]; // negative numbers are -(leafs + 1), not nodes
 
-	box_t bounds; // for frustum culling
+	box3_t bounds; // for frustum culling
 
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
@@ -235,7 +235,7 @@ typedef struct {
 	int32_t contents; // OR of all brushes
 	int32_t cluster;
 
-	box_t bounds; // for frustum culling
+	box3_t bounds; // for frustum culling
 
 	int32_t first_leaf_face;
 	int32_t num_leaf_faces;
@@ -255,7 +255,7 @@ typedef struct {
 	int32_t texinfo;
 	int32_t contents;
 
-	box_t bounds;
+	box3_t bounds;
 
 	int32_t first_element;
 	int32_t num_elements;
@@ -264,7 +264,7 @@ typedef struct {
 typedef struct {
 	int32_t head_node;
 
-	box_t bounds;
+	box3_t bounds;
 
 	int32_t first_face;
 	int32_t num_faces;

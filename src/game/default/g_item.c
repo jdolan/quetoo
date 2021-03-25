@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-const box_t ITEM_BOUNDS = { .mins = { { -16.0, -16.0, -16.0 } },
+const box3_t ITEM_BOUNDS = { .mins = { { -16.0, -16.0, -16.0 } },
 							   .maxs = { {  16.0,  16.0,  32.0 } } };
 
 #define ITEM_SCALE 1.0
@@ -744,7 +744,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	g_entity_t *it = G_AllocEntity_(item->class_name);
 	it->owner = ent;
 
-	it->bounds = Box_Scale(ITEM_BOUNDS, ITEM_SCALE);
+	it->bounds = Box3_Scale(ITEM_BOUNDS, ITEM_SCALE);
 
 	it->solid = SOLID_TRIGGER;
 
@@ -1049,7 +1049,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 
 			G_Debug("%s still can't fit, trying Q2 box..\n", etos(ent));
 
-			ent->bounds = Box_Expand3(ent->bounds, Vec3(-2.f, -2.f, -2.f));
+			ent->bounds = Box3_Expand3(ent->bounds, Vec3(-2.f, -2.f, -2.f));
 
 			// try Quake 2 box
 			tr = gi.Trace(ent->s.origin, dest, ent->bounds, ent, CONTENTS_MASK_SOLID);
@@ -1159,7 +1159,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 	ent->locals.item = item;
 	G_PrecacheItem(ent->locals.item);
 
-	ent->bounds = Box_Scale(ITEM_BOUNDS, ITEM_SCALE);
+	ent->bounds = Box3_Scale(ITEM_BOUNDS, ITEM_SCALE);
 
 	if (ent->model) {
 		ent->s.model1 = gi.ModelIndex(ent->model);

@@ -104,7 +104,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-			if (Box_ContainsPoint(q->bounds, view->origin)) {
+			if (Box3_ContainsPoint(q->bounds, view->origin)) {
 				q->pending = false;
 				q->result = 1;
 				continue;
@@ -168,7 +168,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 /**
  * @brief
  */
-_Bool R_OccludeBox(const r_view_t *view, const box_t bounds) {
+_Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
 	if (!r_depth_pass->value) {
 		return false;
@@ -185,7 +185,7 @@ _Bool R_OccludeBox(const r_view_t *view, const box_t bounds) {
 	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 		
-		if (!Box_ContainsBounds(q->bounds, bounds)) {
+		if (!Box3_ContainsBounds(q->bounds, bounds)) {
 			continue;
 		}
 
@@ -202,7 +202,7 @@ _Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
 
 	const vec3_t size = Vec3(radius, radius, radius);
 
-	return R_OccludeBox(view, Box_FromOriginSize(origin, size));
+	return R_OccludeBox(view, Box3_FromOriginSize(origin, size));
 }
 
 /**

@@ -383,7 +383,7 @@ static s_play_sample_t *Cl_ParseSound(void) {
 
 		const cl_entity_t *ent = &cl.entities[play.entity];
 		if (ent->current.solid == SOLID_BSP) {
-			play.origin = Box_Origin(ent->abs_bounds);
+			play.origin = Box3_Origin(ent->abs_bounds);
 		} else {
 			play.origin = ent->current.origin;
 

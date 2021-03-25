@@ -41,7 +41,7 @@ plane_t planes[MAX_BSP_PLANES];
 #define	PLANE_HASHES 4096
 static plane_t *plane_hash[PLANE_HASHES];
 
-box_t map_bounds;
+box3_t map_bounds;
 
 #define	NORMAL_EPSILON	0.0001
 #define	DIST_EPSILON	0.005
@@ -403,7 +403,7 @@ static void MakeBrushWindings(brush_t *brush) {
 	assert(brush);
 	assert(brush->num_sides);
 
-	brush->bounds = Box_Null();
+	brush->bounds = Box3_Null();
 
 	brush_side_t *side = brush->sides;
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
@@ -432,7 +432,7 @@ static void MakeBrushWindings(brush_t *brush) {
 		}
 
 		if (side->winding) {
-			brush->bounds = Box_Union(brush->bounds, Cm_WindingBounds(side->winding));
+			brush->bounds = Box3_Union(brush->bounds, Cm_WindingBounds(side->winding));
 		} else {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Malformed brush");
 			brush->num_sides = 0;
@@ -698,7 +698,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		if (brush->entity_num == 0) {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Origin brush in world");
 		} else {
-			const vec3_t origin = Box_Origin(brush->bounds);
+			const vec3_t origin = Box3_Origin(brush->bounds);
 			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 		}
 
@@ -887,13 +887,13 @@ void LoadMapFile(const char *filename) {
 		}
 	}
 
-	map_bounds = Box_Null();
+	map_bounds = Box3_Null();
 
 	for (int32_t i = 0; i < entities[0].num_brushes; i++) {
 		if (brushes[i].bounds.mins.x > MAX_WORLD_COORD) {
 			continue; // no valid points
 		}
-		map_bounds = Box_Union(map_bounds, brushes[i].bounds);
+		map_bounds = Box3_Union(map_bounds, brushes[i].bounds);
 	}
 
 	Com_Verbose("%5i brushes\n", num_brushes);

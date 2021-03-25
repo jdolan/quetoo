@@ -23,13 +23,13 @@
 
 #include "cm_types.h"
 
-cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box_t bounds, const int32_t head_node,
+cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, const int32_t head_node,
 					   const int32_t contents, const mat4_t *matrix, const mat4_t *inverse_matrix);
 
-box_t Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles, const mat4_t matrix,
-						 const box_t bounds);
+box3_t Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles, const mat4_t matrix,
+						 const box3_t bounds);
 
-box_t Cm_TraceBounds(const vec3_t start, const vec3_t end, const box_t bounds);
+box3_t Cm_TraceBounds(const vec3_t start, const vec3_t end, const box3_t bounds);
 
 #ifdef __CM_LOCAL_H__
 #endif /* __CM_LOCAL_H__ */

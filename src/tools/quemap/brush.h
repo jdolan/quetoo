@@ -30,7 +30,7 @@ void FreeBrushes(csg_brush_t *brushes);
 size_t CountBrushes(const csg_brush_t *brushes);
 csg_brush_t *CopyBrush(const csg_brush_t *brush);
 float BrushVolume(csg_brush_t *brush);
-csg_brush_t *BrushFromBounds(const box_t bounds);
+csg_brush_t *BrushFromBounds(const box3_t bounds);
 int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane_num);
 int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane_num, int32_t *num_splits);
 void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_brush_t **back);

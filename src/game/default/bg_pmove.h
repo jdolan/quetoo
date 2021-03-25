@@ -123,7 +123,7 @@
  */
 #define PM_SCALE 1.f
 
-extern const box_t PM_BOUNDS;
+extern const box3_t PM_BOUNDS;
 
 /**
  * @brief Game-specific button hits.
@@ -183,7 +183,7 @@ typedef struct {
 	int32_t num_touch_ents;
 
 	vec3_t angles; // clamped, and including kick and delta (out)
-	box_t bounds; // bounding box size (out)
+	box3_t bounds; // bounding box size (out)
 
 	struct g_entity_s *ground_entity; // (out)
 
@@ -194,7 +194,7 @@ typedef struct {
 
 	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box_t bounds);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds);
 
 	// print debug messages for development
 	debug_t (*DebugMask)(void);

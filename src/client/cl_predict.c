@@ -82,8 +82,8 @@ int32_t Cl_PointContents(const vec3_t point) {
  */
 typedef struct {
 	vec3_t start, end;
-	box_t bounds;
-	box_t box;
+	box3_t bounds;
+	box3_t box;
 	cm_trace_t trace;
 	int32_t skip;
 	int32_t contents;
@@ -113,7 +113,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			continue;
 		}
 
-		if (!Box_Intersects(ent->abs_bounds, trace->box)) {
+		if (!Box3_Intersects(ent->abs_bounds, trace->box)) {
 			continue;
 		}
 
@@ -140,7 +140,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  * @param skip An optional entity number for which all tests are skipped. Pass
  * 0 for none, because entity 0 is the world, which we always test.
  */
-cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box_t bounds,
+cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
                     const int32_t skip, const int32_t contents) {
 
 	cl_trace_t trace;
