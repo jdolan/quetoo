@@ -46,7 +46,7 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 		if (ent == Cg_Self()) {
 			play->flags |= S_PLAY_RELATIVE;
 		} else if (ent->current.solid == SOLID_BSP) {
-			play->origin = Bounds_ClampPoint(ent->abs_bounds, stage->origin);
+			play->origin = Box_ClampPoint(ent->abs_bounds, stage->origin);
 			play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
 		} else {
 			play->origin = ent->origin;
@@ -63,7 +63,7 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 			play->flags &= ~S_PLAY_UNDERWATER;
 		}
 
-		const cm_trace_t tr = cgi.Trace(stage->origin, play->origin, Bounds_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+		const cm_trace_t tr = cgi.Trace(stage->origin, play->origin, Box_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 		if (tr.fraction < 1.f) {
 			play->flags |= S_PLAY_OCCLUDED;
 		} else {

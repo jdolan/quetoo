@@ -93,7 +93,7 @@ cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t *plan
  */
 _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
-	if (Bounds_Contains(brush->bounds, point)) {
+	if (Box_ContainsPoint(brush->bounds, point)) {
 
 		const cm_bsp_brush_side_t *side = brush->sides;
 		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
@@ -112,7 +112,7 @@ _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
  * @return The sidedness of the given bounds relative to the specified plane.
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
-int32_t Cm_BoxOnPlaneSide(const bounds_t bounds, const cm_bsp_plane_t *p) {
+int32_t Cm_BoxOnPlaneSide(const box_t bounds, const cm_bsp_plane_t *p) {
 
 	if (AXIAL(p)) {
 		if (bounds.mins.xyz[p->type] - p->dist >= 0.f) {
@@ -279,7 +279,7 @@ void Cm_InitBoxHull(void) {
  * @brief Initializes the box hull for the specified bounds, returning the
  * head node for the resulting box hull tree.
  */
-int32_t Cm_SetBoxHull(const bounds_t bounds, const int32_t contents) {
+int32_t Cm_SetBoxHull(const box_t bounds, const int32_t contents) {
 
 	cm_box.brush->bounds = bounds;
 
@@ -347,7 +347,7 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
  * @brief Data binding structure for box to leaf tests.
  */
 typedef struct {
-	bounds_t bounds;
+	box_t bounds;
 	int32_t *list;
 	size_t len, max_len;
 	int32_t top_node;
@@ -412,7 +412,7 @@ int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat
  *
  * @return The number of leafs accumulated to the list.
  */
-size_t Cm_BoxLeafnums(const bounds_t bounds, int32_t *list, size_t len, int32_t *top_node,
+size_t Cm_BoxLeafnums(const box_t bounds, int32_t *list, size_t len, int32_t *top_node,
 					  int32_t head_node, const mat4_t *matrix) {
 
 	cm_box_leafnum_data data = {

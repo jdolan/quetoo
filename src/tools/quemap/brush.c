@@ -107,12 +107,12 @@ csg_brush_t *CopyBrush(const csg_brush_t *brush) {
  */
 static void SetBrushBounds(csg_brush_t *brush) {
 
-	brush->bounds = Bounds_Infinity();
+	brush->bounds = Box_Null();
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		const cm_winding_t *w = brush->sides[i].winding;
 		if (w) {
-			brush->bounds = Bounds_Combine(brush->bounds, Cm_WindingBounds(w));
+			brush->bounds = Box_Union(brush->bounds, Cm_WindingBounds(w));
 		}
 	}
 }
@@ -146,7 +146,7 @@ static void MakeBrushWindings(csg_brush_t *brush) {
 /**
  * @brief Creates a new axial brush
  */
-csg_brush_t *BrushFromBounds(const bounds_t bounds) {
+csg_brush_t *BrushFromBounds(const box_t bounds) {
 
 	csg_brush_t *b = AllocBrush(6);
 	b->num_sides = 6;

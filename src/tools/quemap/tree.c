@@ -363,7 +363,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 
 	tree_t *tree = AllocTree();
 
-	tree->bounds = Bounds_Infinity();
+	tree->bounds = Box_Null();
 
 	int32_t num_brushes = 0;
 	int32_t num_brush_sides = 0;
@@ -386,14 +386,14 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 			num_brush_sides++;
 		}
 
-		tree->bounds = Bounds_Combine(tree->bounds, b->bounds);
+		tree->bounds = Box_Union(tree->bounds, b->bounds);
 	}
 
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", num_brushes);
 	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
-	tree->head_node->volume = BrushFromBounds(Bounds_FromAbsoluteDistance(MAX_WORLD_COORD));
+	tree->head_node->volume = BrushFromBounds(Boxf(MAX_WORLD_AXIAL));
 
 	BuildTree_r(tree->head_node, brushes);
 

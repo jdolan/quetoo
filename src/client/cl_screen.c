@@ -220,7 +220,7 @@ static void Cl_DrawRendererStats(void) {
 	}
 
 	const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
-	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Bounds_Zero(), 0, CONTENTS_MASK_VISIBLE);
+	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
 	if (tr.fraction < 1.f) {
 		y += ch;

@@ -64,13 +64,13 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 	// resolve the leaf for the point just in front of the surface
 
-	vec3_t center = Bounds_Origin(face->bounds);
+	vec3_t center = Box_Origin(face->bounds);
 	center = Vec3_Add(center, face->plane->cm->normal);
 
 	e->face = face;
 
 	// resolve the number of origins based on surface area
-	e->num_origins = Vec3_Length(Bounds_Size(face->bounds)) / 16.f;
+	e->num_origins = Vec3_Length(Box_Size(face->bounds)) / 16.f;
 	e->num_origins = Clampf(e->num_origins, 1, 128);
 
 	e->origins = cgi.Malloc(sizeof(vec4_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
@@ -83,12 +83,12 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 		// randomize the origin over the surface
 
-		const vec3_t org = Vec3_Add(Bounds_RandomPoint(face->bounds), face->plane->cm->normal);
+		const vec3_t org = Vec3_Add(Box_RandomPoint(face->bounds), face->plane->cm->normal);
 
 		vec3_t end = org;
 		end.z -= MAX_WORLD_DIST;
 
-		const cm_trace_t tr = cgi.Trace(org, end, Bounds_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+		const cm_trace_t tr = cgi.Trace(org, end, Box_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 		if (!tr.texinfo) {
 			continue;
 		}

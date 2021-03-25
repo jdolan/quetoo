@@ -249,7 +249,7 @@ typedef struct {
 	 * client-sided prediction so that players don't e.g. run through each
 	 * other.
 	 */
-	bounds_t bounds;
+	box_t bounds;
 
 	/**
 	 * @brief Step offset, used for player positional offsets from stair stepping.

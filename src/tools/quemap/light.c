@@ -283,7 +283,7 @@ void FreeLights(void) {
 /**
  * @return A GPtrArray of all light sources that intersect the specified bounds.
  */
-static GPtrArray *BoxLights(const bounds_t bounds) {
+static GPtrArray *BoxLights(const box_t bounds) {
 
 	GPtrArray *box_lights = g_ptr_array_new();
 
@@ -291,9 +291,9 @@ static GPtrArray *BoxLights(const bounds_t bounds) {
 	for (guint i = 0; i < lights->len; i++, light++) {
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			const bounds_t light_bounds = Bounds_FromOriginDistance(light->origin, light->radius + light->size);
+			const box_t light_bounds = Box_FromOriginDistance(light->origin, light->radius + light->size);
 
-			if (!Bounds_Intersect(bounds, light_bounds)) {
+			if (!Box_Intersects(bounds, light_bounds)) {
 				continue;
 			}
 		}

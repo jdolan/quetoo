@@ -106,7 +106,7 @@ static inline ai_node_id_t Ai_Node_Index(const ai_node_t *node) {
  */
 static _Bool Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
 
-	return aim.gi->Trace(position, Ai_Node_GetPosition(node), Bounds_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
+	return aim.gi->Trace(position, Ai_Node_GetPosition(node), Box_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
 }
 
 /**
@@ -397,7 +397,7 @@ _Bool Ai_Node_CanPathTo(const vec3_t position) {
 	const vec3_t end = Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f));
 
 	// check if the destination has ground
-	cm_trace_t tr = aim.gi->Trace(position, end, Bounds_Expand3(PM_BOUNDS, Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+	cm_trace_t tr = aim.gi->Trace(position, end, Box_Expand3(PM_BOUNDS, Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
 	// bad ground
 	_Bool stuck_in_mover = tr.ent && (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
@@ -406,7 +406,7 @@ _Bool Ai_Node_CanPathTo(const vec3_t position) {
 
 		// check with a thinner box; it might be a button press or rotating thing
 		if (stuck_in_mover) {
-			tr = aim.gi->Trace(position, Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Bounds(Vec3(-4.f, -4.f, PM_BOUNDS.mins.z), Vec3(4.f, 4.f, PM_BOUNDS.maxs.z)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+			tr = aim.gi->Trace(position, Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Box_MinsMaxs(Vec3(-4.f, -4.f, PM_BOUNDS.mins.z), Vec3(4.f, 4.f, PM_BOUNDS.maxs.z)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 			stuck_in_mover = tr.ent && (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
 
 			if (!stuck_in_mover) {

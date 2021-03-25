@@ -404,7 +404,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 						out_vertex->position = Vec3_Scale(Vec3s_CastVec3(vertex.point), MD3_XYZ_SCALE);
 
-						mod->bounds = Bounds_Append(mod->bounds, out_vertex->position);
+						mod->bounds = Box_Append(mod->bounds, out_vertex->position);
 
 						float lat = (vertex.norm >> 8) & 0xff;
 						float lon = (vertex.norm & 0xff);

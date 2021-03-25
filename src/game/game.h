@@ -137,13 +137,13 @@ struct g_entity_s {
 	 * @brief The entity bounding box, set by the game, defines its relative
 	 * bounds. These are typically populated in the entity's spawn function.
 	 */
-	bounds_t bounds;
+	box_t bounds;
 
 	/**
 	 * @brief The entity bounding box, set by the server, in world space. These
 	 * are populated by gi.LinkEntity / Sv_LinkEntity.
 	 */
-	bounds_t abs_bounds;
+	box_t abs_bounds;
 	
 	/**
 	 * @brief The entity size, set by the server. This
@@ -572,14 +572,14 @@ typedef struct g_import_s {
 	 *
 	 * @param start The start point.
 	 * @param end The end point.
-	 * @param bounds The bounding box mins (optional; Bounds_Zero() for a line trace).
+	 * @param bounds The bounding box mins (optional; Box_Zero() for a line trace).
 	 * @param skip The entity to skip (e.g. self) (optional).
 	 * @param contents The contents mask to intersect with (e.g. CONTENTS_MASK_SOLID).
 	 *
 	 * @return The resulting trace. A fraction less than 1.0 indicates that
 	 * the trace intersected a plane.
 	 */
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const bounds_t bounds,
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box_t bounds,
 	                    const g_entity_t *skip, const int32_t contents);
 
 	/**
@@ -612,7 +612,7 @@ typedef struct g_import_s {
 	 *
 	 * @return The number of entities found.
 	 */
-	size_t (*BoxEntities)(const bounds_t bounds, g_entity_t **list, const size_t len,
+	size_t (*BoxEntities)(const box_t bounds, g_entity_t **list, const size_t len,
 	                      const uint32_t type);
 
 	/**

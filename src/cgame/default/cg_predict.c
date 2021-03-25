@@ -53,7 +53,7 @@ _Bool Cg_UsePrediction(void) {
 /**
  * @brief Trace wrapper for Pm_Move.
  */
-static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const bounds_t bounds) {
+static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const box_t bounds) {
 	return cgi.Trace(start, end, bounds, 0, CONTENTS_MASK_CLIP_PLAYER);
 }
 

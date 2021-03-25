@@ -56,7 +56,7 @@ typedef struct {
 } d_md3_triangle_t;
 
 typedef struct {
-	bounds_t bounds;
+	box_t bounds;
 	vec3_t translate;
 	float radius;
 	char name[16];

@@ -26,13 +26,13 @@
  * in Pm_Init. They are referenced in a few other places e.g. to create effects
  * at a certain body position on the player model.
  */
-const bounds_t PM_BOUNDS = { .mins = { { -16.f, -16.f, -24.f } },
+const box_t PM_BOUNDS = { .mins = { { -16.f, -16.f, -24.f } },
 							 .maxs = { {  16.f,  16.f,  32.f } } };
 
-static const bounds_t PM_DEAD_BOUNDS = { .mins = { { -16.f, -16.f, -24.f } },
+static const box_t PM_DEAD_BOUNDS = { .mins = { { -16.f, -16.f, -24.f } },
 										 .maxs = { {  16.f,  16.f,  -4.f } } };
 
-static const bounds_t PM_GIBLET_BOUNDS = { .mins = { { -8.f, -8.f, -8.f } },
+static const box_t PM_GIBLET_BOUNDS = { .mins = { { -8.f, -8.f, -8.f } },
 										   .maxs = { {  8.f,  8.f,  8.f } } };
 
 static pm_move_t *pm;
@@ -123,7 +123,7 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
  * it is adjusted so that the trace begins outside of the solid it impacts.
  * @return The actual trace.
  */
-static cm_trace_t Pm_TraceCorrectAllSolid(const vec3_t start, const vec3_t end, const bounds_t bounds) {
+static cm_trace_t Pm_TraceCorrectAllSolid(const vec3_t start, const vec3_t end, const box_t bounds) {
 
 	const int32_t offsets[] = { 0, 1, -1 };
 
@@ -364,7 +364,7 @@ static void Pm_StepSlideMove(void) {
 
 		// settle to the new ground, keeping the step if and only if it was successful
 		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, Bounds_Expand3(pm->bounds, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)));
+		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, Box_Expand3(pm->bounds, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)));
 
 		if (Pm_CheckStep(&step_down)) {
 			// Quake2 trick jump secret sauce
@@ -818,7 +818,7 @@ static void Pm_CheckDuck(void) {
 			}
 		}
 
-		const float height = Bounds_Height(pm->bounds);
+		const float height = Box_Size(pm->bounds).z;
 
 		if (pm->s.flags & PMF_DUCKED) { // ducked, reduce height
 			const float target = pm->bounds.mins.z + height * 0.5f;
@@ -970,7 +970,7 @@ static _Bool Pm_CheckWaterJump(void) {
 
 	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_MASK_SOLID)) {
 
-		pos.z += PM_STEP_HEIGHT + Bounds_Height(pm->bounds);
+		pos.z += PM_STEP_HEIGHT + Box_Size(pm->bounds).z;
 
 		trace = Pm_TraceCorrectAllSolid(pos, pos, pm->bounds);
 
@@ -1312,10 +1312,10 @@ static void Pm_Init(void) {
 		if (pm->s.flags & PMF_GIBLET) {
 			pm->bounds = PM_GIBLET_BOUNDS;
 		} else {
-			pm->bounds = Bounds_Scale(PM_DEAD_BOUNDS, PM_SCALE);
+			pm->bounds = Box_Scale(PM_DEAD_BOUNDS, PM_SCALE);
 		}
 	} else {
-		pm->bounds = Bounds_Scale(PM_BOUNDS, PM_SCALE);
+		pm->bounds = Box_Scale(PM_BOUNDS, PM_SCALE);
 	}
 
 	pm->angles = Vec3_Zero();

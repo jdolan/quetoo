@@ -365,7 +365,7 @@ typedef struct {
 	r_bsp_texinfo_t *texinfo;
 	int32_t contents;
 
-	bounds_t bounds;
+	box_t bounds;
 
 	r_bsp_face_lightmap_t lightmap;
 
@@ -389,7 +389,7 @@ typedef struct {
 	r_bsp_texinfo_t *texinfo;
 	int32_t contents;
 
-	bounds_t bounds;
+	box_t bounds;
 
 	GLvoid *elements;
 	int32_t num_elements;
@@ -407,7 +407,7 @@ typedef struct {
 typedef struct {
 	GLuint name;
 
-	bounds_t bounds;
+	box_t bounds;
 
 	vec3_t vertexes[8];
 
@@ -423,7 +423,7 @@ struct r_bsp_node_s {
 	// common with leaf
 	int32_t contents; // -1, to differentiate from leafs
 
-	bounds_t bounds;
+	box_t bounds;
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
@@ -445,7 +445,7 @@ struct r_bsp_leaf_s {
 	// common with node
 	int32_t contents;
 
-	bounds_t bounds;
+	box_t bounds;
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
@@ -468,7 +468,7 @@ typedef struct r_bsp_inline_model_s {
 	/**
 	 * @brief For frustum culling.
 	 */
-	bounds_t bounds;
+	box_t bounds;
 
 	/**
 	 * @brief The faces of this inline model.
@@ -517,7 +517,7 @@ typedef struct {
 	/**
 	 * @brief The lightgrid bounds in world space.
 	 */
-	bounds_t bounds;
+	box_t bounds;
 
 	/**
 	 * @brief The lightgrid textures (ambient, diffuse, etc..).
@@ -585,7 +585,7 @@ typedef struct {
 } r_mesh_vertex_t;
 
 typedef struct {
-	bounds_t bounds;
+	box_t bounds;
 	vec3_t translate;
 } r_mesh_frame_t;
 
@@ -670,7 +670,7 @@ typedef struct r_model_s {
 	r_material_t **materials;
 	size_t num_materials;
 
-	bounds_t bounds;
+	box_t bounds;
 	float radius;
 } r_model_t;
 
@@ -1037,17 +1037,17 @@ typedef struct r_entity_s {
 	/**
 	 * @brief The relative entity bounds, as known by the client.
 	 */
-	bounds_t bounds;
+	box_t bounds;
 
 	/**
 	 * @brief The absolute entity bounds, as known by the client.
 	 */
-	bounds_t abs_bounds;
+	box_t abs_bounds;
 
 	/**
 	 * @brief The visual model bounds, in world space, for frustum culling.
 	 */
-	bounds_t abs_model_bounds;
+	box_t abs_model_bounds;
 
 	/**
 	 * @brief The model matrix.

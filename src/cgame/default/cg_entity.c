@@ -207,8 +207,8 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
  */
 _Bool Cg_IsDucking(const cl_entity_t *ent) {
 
-	const float standing_height = Bounds_Height(PM_BOUNDS) * PM_SCALE;
-	const float height = Bounds_Height(ent->current.bounds);
+	const float standing_height = Box_Size(PM_BOUNDS).z * PM_SCALE;
+	const float height = Box_Size(ent->current.bounds).z;
 
 	return standing_height - height > PM_STOP_EPSILON;
 }
@@ -276,8 +276,8 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 
 	r_sprite_t shadow_sprite = {
 		.color = Color32(0, 0, 0, 255),
-		.width = Bounds_Length(ent->model->bounds) * 2,
-		.height = Bounds_Width(ent->model->bounds) * 2,
+		.width = Box_Size(ent->model->bounds).y * 2,
+		.height = Box_Size(ent->model->bounds).x * 2,
 		.rotation = Radians(ent->angles.y),
 		.media = (r_media_t *) cg_sprite_particle3,
 		.softness = -1.f,
@@ -322,7 +322,7 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 		vec3_t start = Vec3_Fmaf(ent->origin, offsets[i].x, forward);
 		start = Vec3_Fmaf(start, offsets[i].y, right);
 		const vec3_t down = Vec3_Fmaf(start, MAX_WORLD_COORD, Vec3_Down());
-		const cm_trace_t tr = cgi.Trace(start, down, Bounds_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+		const cm_trace_t tr = cgi.Trace(start, down, Box_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
 		int32_t p;
 
 		for (p = 0; p < num_planes; p++) {

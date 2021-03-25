@@ -77,7 +77,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 		mod->type = format->type;
 
-		mod->bounds = Bounds_Infinity();
+		mod->bounds = Box_Null();
 
 		void *buf = NULL;
 
@@ -87,7 +87,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 		Fs_Free(buf);
 
-		mod->radius = Bounds_Radius(mod->bounds);
+		mod->radius = Box_Radius(mod->bounds);
 
 		R_RegisterMedia((r_media_t *) mod);
 	}

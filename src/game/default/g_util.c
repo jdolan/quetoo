@@ -31,10 +31,10 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 	ent->s.origin.z += up;
 
 	// forward, find the old x/y size
-	bounds_t bounds = PM_BOUNDS;
+	box_t bounds = PM_BOUNDS;
 	bounds.mins.z = bounds.maxs.z = 0.0;
 
-	vec3_t delta = Bounds_Size(bounds);
+	vec3_t delta = Box_Size(bounds);
 	const float len0 = Vec3_Length(delta);
 
 	// and the new x/y size
@@ -60,7 +60,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 	// resolve the projectile destination
 	const vec3_t start = Vec3_Add(ent->s.origin, ent->client->ps.pm_state.view_offset);
 	const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, ent->client->locals.forward);
-	const cm_trace_t tr = gi.Trace(start, end, Bounds_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = gi.Trace(start, end, Box_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	// resolve the projectile origin
 	vec3_t ent_forward, ent_right, ent_up;
@@ -86,7 +86,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 	}
 
 	// if the projected origin is invalid, use the entity's origin
-	if (gi.Trace(*org, *org, Bounds_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
+	if (gi.Trace(*org, *org, Box_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
 		*org = ent->s.origin;
 	}
 
@@ -423,7 +423,7 @@ void G_FreeEntity(g_entity_t *ent) {
 void G_KillBox(g_entity_t *ent) {
 	g_entity_t *ents[MAX_ENTITIES];
 
-	const bounds_t bounds = Bounds_Translate(ent->bounds, ent->s.origin);
+	const box_t bounds = Box_Translate(ent->bounds, ent->s.origin);
 
 	size_t i, len = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_COLLIDE);
 	for (i = 0; i < len; i++) {

@@ -497,15 +497,15 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_ConcatScale3(cons
  * @return A new bounding box that contains all eight points of the input `bounds`
  * being transformed by `m`.
 */
-static inline bounds_t Mat4_TransformBounds(const mat4_t m, const bounds_t bounds) {
+static inline box_t Mat4_TransformBounds(const mat4_t m, const box_t bounds) {
 	
 	vec3_t points[8];
-	Bounds_ToPoints(bounds, points);
+	Box_ToPoints(bounds, points);
 
-	bounds_t b = Bounds_Infinity();
+	box_t b = Box_Null();
 
 	for (size_t i = 0; i < lengthof(points); i++) {
-		b = Bounds_Append(b, Mat4_Transform(m, points[i]));
+		b = Box_Append(b, Mat4_Transform(m, points[i]));
 	}
 
 	return b;

@@ -205,7 +205,7 @@ void RemovePortalFromNode(portal_t *portal, node_t *node) {
  * @brief The created portals will face the global outside node.
  */
 void MakeHeadnodePortals(tree_t *tree) {
-	bounds_t bounds;
+	box_t bounds;
 	portal_t *portals[6];
 
 	// pad with some space so there will never be null volume leafs
@@ -411,11 +411,11 @@ void SplitNodePortals(node_t *node) {
 static void CalcNodeBounds(node_t *node) {
 	int32_t s;
 
-	node->bounds = Bounds_Infinity();
+	node->bounds = Box_Null();
 
 	for (portal_t *p = node->portals; p; p = p->next[s]) {
 		s = (p->nodes[1] == node);
-		node->bounds = Bounds_Combine(node->bounds, Cm_WindingBounds(p->winding));
+		node->bounds = Box_Union(node->bounds, Cm_WindingBounds(p->winding));
 	}
 }
 

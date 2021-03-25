@@ -104,7 +104,7 @@ static void viewWillAppear(ViewController *self) {
 
 	while (material == NULL) {
 
-		const cm_trace_t tr = Cl_Trace(start, end, Bounds_Zero(), 0, CONTENTS_MASK_VISIBLE);
+		const cm_trace_t tr = Cl_Trace(start, end, Box_Zero(), 0, CONTENTS_MASK_VISIBLE);
 		if (!tr.texinfo) {
 			break;
 		}

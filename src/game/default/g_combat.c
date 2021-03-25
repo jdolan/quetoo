@@ -52,8 +52,8 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 
 	// BSP sub-models need special checking because their origin is 0,0,0
 	if (targ->solid == SOLID_BSP) {
-		dest = Bounds_Origin(targ->abs_bounds);
-		tr = gi.Trace(inflictor->s.origin, dest, Bounds_Zero(), inflictor, CONTENTS_MASK_SOLID);
+		dest = Box_Origin(targ->abs_bounds);
+		tr = gi.Trace(inflictor->s.origin, dest, Box_Zero(), inflictor, CONTENTS_MASK_SOLID);
 		if (tr.fraction == 1.0) {
 			return true;
 		}
@@ -63,7 +63,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 		return false;
 	}
 
-	tr = gi.Trace(inflictor->s.origin, targ->s.origin, Bounds_Zero(), inflictor, CONTENTS_MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, targ->s.origin, Box_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -71,7 +71,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x += 15.0;
 	dest.y += 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, Bounds_Zero(), inflictor, CONTENTS_MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Box_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -79,7 +79,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x += 15.0;
 	dest.y -= 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, Bounds_Zero(), inflictor, CONTENTS_MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Box_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -87,7 +87,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x -= 15.0;
 	dest.y += 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, Bounds_Zero(), inflictor, CONTENTS_MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Box_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -95,7 +95,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x -= 15.0;
 	dest.y -= 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, Bounds_Zero(), inflictor, CONTENTS_MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Box_Zero(), inflictor, CONTENTS_MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -109,7 +109,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 vec3_t G_GetOrigin(const g_entity_t *ent) {
 
 	if (ent->solid == SOLID_BSP) {
-		return Bounds_Origin(ent->abs_bounds);
+		return Box_Origin(ent->abs_bounds);
 	} else {
 		return ent->s.origin;
 	}
@@ -423,7 +423,7 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 		}
 
 		// find closest point to inflictor
-		const vec3_t point = Bounds_ClampPoint(ent->abs_bounds, inflictor->s.origin);
+		const vec3_t point = Box_ClampPoint(ent->abs_bounds, inflictor->s.origin);
 
 		G_Damage(ent, inflictor, attacker, dir, point, dir, d, k, DMG_RADIUS, mod);
 	}

@@ -27,10 +27,10 @@
 void Sv_InitWorld(void);
 void Sv_LinkEntity(g_entity_t *ent);
 void Sv_UnlinkEntity(g_entity_t *ent);
-size_t Sv_BoxEntities(const bounds_t bounds, g_entity_t **list, const size_t len,
+size_t Sv_BoxEntities(const box_t bounds, g_entity_t **list, const size_t len,
                       const uint32_t type);
 int32_t Sv_PointContents(const vec3_t p);
-cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const bounds_t bounds,
+cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box_t bounds,
                     const g_entity_t *skip, const int32_t contents);
 
 #endif /* __SV_LOCAL_H__ */

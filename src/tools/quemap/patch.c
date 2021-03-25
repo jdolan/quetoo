@@ -167,7 +167,7 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	const cm_winding_t *w = patch->winding;
 
-	bounds_t bounds = Cm_WindingBounds(w);
+	box_t bounds = Cm_WindingBounds(w);
 
 	vec3_t normal = Vec3_Zero();
 

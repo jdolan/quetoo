@@ -365,7 +365,7 @@ int32_t EmitFace(const face_t *face) {
 	out->texinfo = face->texinfo;
 	out->contents = face->contents;
 	
-	out->bounds = Bounds_Infinity();
+	out->bounds = Box_Null();
 
 	out->first_vertex = bsp_file.num_vertexes;
 	out->num_vertexes = EmitFaceVertexes(face);
@@ -373,7 +373,7 @@ int32_t EmitFace(const face_t *face) {
 	const bsp_vertex_t *v = bsp_file.vertexes + out->first_vertex;
 	for (int32_t i = 0; i < out->num_vertexes; i++, v++) {
 
-		out->bounds = Bounds_Append(out->bounds, v->position);
+		out->bounds = Box_Append(out->bounds, v->position);
 	}
 
 	out->first_element = bsp_file.num_elements;

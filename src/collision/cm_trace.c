@@ -31,7 +31,7 @@ typedef struct {
 
 	vec3_t offsets[8];
 
-	bounds_t bounds;
+	box_t bounds;
 
 	int32_t contents;
 
@@ -64,13 +64,13 @@ static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_nu
  */
 static inline _Bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
-	bounds_t brush_bounds = brush->bounds;
+	box_t brush_bounds = brush->bounds;
 
 	if (data->matrix) {
 		brush_bounds = Mat4_TransformBounds(*data->matrix, brush_bounds);
 	}
 
-	return Bounds_Intersect(data->bounds, brush_bounds);
+	return Box_Intersects(data->bounds, brush_bounds);
 }
 
 /**
@@ -380,7 +380,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
  *
  * @return The trace.
  */
-cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const bounds_t bounds, const int32_t head_node,
+cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box_t bounds, const int32_t head_node,
 					   const int32_t contents, const mat4_t *matrix, const mat4_t *inverse_matrix) {
 
 	cm_trace_data_t data = {
@@ -399,7 +399,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const bounds_t boun
 	memset(data.brushes, 0xff, sizeof(data.brushes));
 
 	// check for point special case
-	if (Bounds_Equal(bounds, Bounds_Zero())) {
+	if (Box_Equal(bounds, Box_Zero())) {
 		data.is_point = true;
 		data.extents = Vec3(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON);
 
@@ -417,10 +417,10 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const bounds_t boun
 		}
 
 		// extents allow planes to be shifted, to account for the box size
-		data.extents = Vec3_Add(Bounds_Extents(bounds), Vec3(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON));
+		data.extents = Vec3_Add(Box_Symetrical(bounds), Vec3(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON));
 
 		// offsets provide sign bit lookups for fast plane tests
-		Bounds_ToPoints(bounds, data.offsets);
+		Box_ToPoints(bounds, data.offsets);
 	}
 
 	data.bounds = Cm_TraceBounds(data.start, data.end, bounds);
@@ -474,10 +474,10 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const bounds_t boun
  * @return The resulting bounds, in world space.
  * @remarks BSP entities can be rotated, requiring special attention.
  */
-bounds_t Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles, const mat4_t matrix,
-						 const bounds_t bounds) {
+box_t Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles, const mat4_t matrix,
+						 const box_t bounds) {
 
-	bounds_t result = Bounds_FromOrigin(origin);
+	box_t result = Box_FromOrigin(origin);
 
 	if (solid == SOLID_BSP) {
 		
@@ -485,13 +485,13 @@ bounds_t Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t 
 			// TODO ??? why is mins/maxs already offset by origin in this case?
 			result = Mat4_TransformBounds(matrix, bounds);
 		} else {
-			result = Bounds_ExpandBounds(result, bounds);
+			result = Box_ExpandBox(result, bounds);
 		}
 
 		// epsilon, so bmodels can catch riders
-		result = Bounds_Expand(result, BOX_EPSILON);
+		result = Box_Expand(result, BOX_EPSILON);
 	} else {
-		result = Bounds_ExpandBounds(result, bounds);
+		result = Box_ExpandBox(result, bounds);
 	}
 	
 	return result;
@@ -504,11 +504,11 @@ bounds_t Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t 
  * @param bounds The bounding box, in model space.
  * @return The resulting bounding box, in world space.
  */
-bounds_t Cm_TraceBounds(const vec3_t start, const vec3_t end, const bounds_t bounds) {
+box_t Cm_TraceBounds(const vec3_t start, const vec3_t end, const box_t bounds) {
 
-	return Bounds_Expand(
-		Bounds_ExpandBounds(
-			Bounds_Points((const vec3_t []) { start, end }, 2),
+	return Box_Expand(
+		Box_ExpandBox(
+			Box_Points((const vec3_t []) { start, end }, 2),
 			bounds
 		), BOX_EPSILON);
 }

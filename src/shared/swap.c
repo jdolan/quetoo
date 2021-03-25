@@ -152,7 +152,7 @@ vec4_t LittleVec4(const vec4_t v) {
 /**
  * @brief
  */
-bounds_t LittleBounds(const bounds_t b) {
-	return Bounds(LittleVec3(b.mins),
+box_t LittleBounds(const box_t b) {
+	return Box_MinsMaxs(LittleVec3(b.mins),
 				  LittleVec3(b.maxs));
 }
