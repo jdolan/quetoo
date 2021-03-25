@@ -698,7 +698,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		if (brush->entity_num == 0) {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Origin brush in world");
 		} else {
-			const vec3_t origin = Box3_Origin(brush->bounds);
+			const vec3_t origin = Box3_Center(brush->bounds);
 			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 		}
 

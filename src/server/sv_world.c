@@ -365,7 +365,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 	int32_t contents = Cm_PointContents(point, 0);
 
 	// as well as contents from all intersected entities
-	const size_t len = Sv_BoxEntities(Box3_FromOrigin(point), entities, lengthof(entities), BOX_COLLIDE);
+	const size_t len = Sv_BoxEntities(Box3_FromCenter(point), entities, lengthof(entities), BOX_COLLIDE);
 
 	// iterate the box entities, checking each one for an intersection
 	for (size_t i = 0; i < len; i++) {

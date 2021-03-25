@@ -79,7 +79,7 @@ static void G_CheckWater(g_entity_t *ent) {
 	box3_t bounds;
 
 	if (ent->solid == SOLID_BSP) {
-		pos = Box3_Origin(ent->abs_bounds);
+		pos = Box3_Center(ent->abs_bounds);
 		bounds = Box3_MinsMaxs(
 			Vec3_Subtract(pos, ent->abs_bounds.mins),
 			Vec3_Subtract(ent->abs_bounds.maxs, pos)

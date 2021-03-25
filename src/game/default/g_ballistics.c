@@ -425,7 +425,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	if (self->locals.enemy) { // direct hit
 
 		vec3_t v;
-		v = Box3_Origin(self->locals.enemy->bounds);
+		v = Box3_Center(self->locals.enemy->bounds);
 		v = Vec3_Subtract(self->s.origin, v);
 
 		const float dist = Vec3_Length(v);

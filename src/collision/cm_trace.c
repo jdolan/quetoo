@@ -477,7 +477,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 box3_t Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles, const mat4_t matrix,
 						 const box3_t bounds) {
 
-	box3_t result = Box3_FromOrigin(origin);
+	box3_t result = Box3_FromCenter(origin);
 
 	if (solid == SOLID_BSP) {
 		
@@ -508,7 +508,7 @@ box3_t Cm_TraceBounds(const vec3_t start, const vec3_t end, const box3_t bounds)
 
 	return Box3_Expand(
 		Box3_ExpandBox(
-			Box3_Points((const vec3_t []) { start, end }, 2),
+			Box3_FromPoints((const vec3_t []) { start, end }, 2),
 			bounds
 		), BOX_EPSILON);
 }

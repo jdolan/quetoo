@@ -291,7 +291,7 @@ static GPtrArray *BoxLights(const box3_t bounds) {
 	for (guint i = 0; i < lights->len; i++, light++) {
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			const box3_t light_bounds = Box3_FromOriginDistance(light->origin, light->radius + light->size);
+			const box3_t light_bounds = Box3_FromCenterDistance(light->origin, light->radius + light->size);
 
 			if (!Box3_Intersects(bounds, light_bounds)) {
 				continue;

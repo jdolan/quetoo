@@ -164,7 +164,7 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 		bounds = Box3_Append(bounds, face->vertexes[i].position);
 	}
 
-	flare->in.origin = Box3_Origin(bounds);
+	flare->in.origin = Box3_Center(bounds);
 	flare->in.origin = Vec3_Fmaf(flare->in.origin, 2.f, face->plane->cm->normal);
 
 	flare->in.size = Box3_Distance(bounds);

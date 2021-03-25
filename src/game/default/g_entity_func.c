@@ -333,7 +333,7 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_end) {
 			vec3_t pos;
 
-			pos = Box3_Origin(ent->abs_bounds);
+			pos = Box3_Center(ent->abs_bounds);
 			pos.z = ent->abs_bounds.maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
@@ -373,7 +373,7 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_start) {
 			vec3_t pos;
 
-			pos = Box3_Origin(ent->abs_bounds);
+			pos = Box3_Center(ent->abs_bounds);
 			pos.z = ent->abs_bounds.maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);

@@ -52,7 +52,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 
 	// BSP sub-models need special checking because their origin is 0,0,0
 	if (targ->solid == SOLID_BSP) {
-		dest = Box3_Origin(targ->abs_bounds);
+		dest = Box3_Center(targ->abs_bounds);
 		tr = gi.Trace(inflictor->s.origin, dest, Box3_Zero(), inflictor, CONTENTS_MASK_SOLID);
 		if (tr.fraction == 1.0) {
 			return true;
@@ -109,7 +109,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 vec3_t G_GetOrigin(const g_entity_t *ent) {
 
 	if (ent->solid == SOLID_BSP) {
-		return Box3_Origin(ent->abs_bounds);
+		return Box3_Center(ent->abs_bounds);
 	} else {
 		return ent->s.origin;
 	}
