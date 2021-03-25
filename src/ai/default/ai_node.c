@@ -400,14 +400,14 @@ _Bool Ai_Node_CanPathTo(const vec3_t position) {
 	cm_trace_t tr = aim.gi->Trace(position, end, Vec3(PM_MINS.x - 1.f, PM_MINS.y - 1.f, PM_MINS.z), Vec3(PM_MAXS.x + 1.f, PM_MAXS.y + 1.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
 	// bad ground
-	_Bool stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
+	_Bool stuck_in_mover = tr.ent && (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
 
 	if (tr.fraction == 1.0 || stuck_in_mover) {
 
 		// check with a thinner box; it might be a button press or rotating thing
 		if (stuck_in_mover) {
 			tr = aim.gi->Trace(position, Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Vec3(-4.f, -4.f, PM_MINS.z), Vec3(4.f, 4.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
-			stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
+			stuck_in_mover = tr.ent && (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
 
 			if (!stuck_in_mover) {
 				return true;
