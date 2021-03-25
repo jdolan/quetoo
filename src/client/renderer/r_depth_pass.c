@@ -184,8 +184,8 @@ _Bool R_OccludeBox(const r_view_t *view, const bounds_t bounds) {
 
 	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
-
-		if (!Bounds_Touching(bounds, q->bounds)) {
+		
+		if (!Bounds_ContainsBounds(q->bounds, bounds)) {
 			continue;
 		}
 

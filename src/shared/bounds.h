@@ -133,7 +133,7 @@ static inline _Bool Bounds_Intersect(const bounds_t a, const bounds_t b) {
 }
 
 /**
- * @return `true` if `a` contains (intersects) the point `b`, `false` otherwise.
+ * @return `true` if `a` contains the point `b`, `false` otherwise.
 */
 static inline _Bool Bounds_Contains(const bounds_t a, const vec3_t b) {
 
@@ -141,16 +141,14 @@ static inline _Bool Bounds_Contains(const bounds_t a, const vec3_t b) {
 }
 
 /**
- * @return `true` if `a` intersects *or* touches `b`, `false` otherwise.
+ * @return `true` if `b` is fully contained within `a`, `false` otherwise.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Bounds_Touching(const bounds_t a, const bounds_t b) {
+static inline _Bool Bounds_ContainsBounds(const bounds_t a, const bounds_t b) {
 
-	if (a.mins.x > b.maxs.x || a.mins.y > b.maxs.y || a.mins.z > b.maxs.z) {
-		return false;
-	}
-
-	if (a.maxs.x < b.mins.x || a.maxs.y < b.mins.y || a.maxs.z < b.mins.z) {
-		return false;
+	for (int32_t j = 0; j < 3; j++) {
+		if (b.mins.xyz[j] < a.mins.xyz[j] || b.maxs.xyz[j] > a.maxs.xyz[j]) {
+			return false;
+		}
 	}
 
 	return true;
