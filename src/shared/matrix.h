@@ -21,9 +21,8 @@
 
 #pragma once
 
-#include "quetoo.h"
+#include "box.h"
 #include "vector.h"
-#include "bounds.h"
 
 /**
  * @brief Sixteen-component single precision 4x4 matrix type.

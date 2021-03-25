@@ -21,12 +21,12 @@
 
 #pragma once
 
+#include "box.h"
 #include "color.h"
 #include "matrix.h"
 #include "parse.h"
 #include "swap.h"
 #include "vector.h"
-#include "bounds.h"
 
 /**
  * @brief ConfigStrings are a general means of communication from the server to
