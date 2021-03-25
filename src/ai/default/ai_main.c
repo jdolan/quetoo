@@ -714,7 +714,7 @@ static inline float Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t forward;
 	Vec3_Vectors(Vec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
-	const vec3_t end = Vec3_Fmaf(self->s.origin, (self->maxs.x - self->mins.x) * 2.0f, forward);
+	const vec3_t end = Vec3_Fmaf(self->s.origin, Bounds_Width(self->bounds) * 2.0f, forward);
 	const cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Bounds_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0f) { // hit a wall
@@ -744,15 +744,14 @@ static g_entity_t *ai_current_entity;
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
-									 const vec3_t maxs) {
+static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, const bounds_t bounds) {
 
 	const g_entity_t *self = ai_current_entity;
 
 	if (self->solid == SOLID_DEAD) {
-		return aim.gi->Trace(start, end, Bounds(mins, maxs), self, CONTENTS_MASK_CLIP_CORPSE);
+		return aim.gi->Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_CORPSE);
 	} else {
-		return aim.gi->Trace(start, end, Bounds(mins, maxs), self, CONTENTS_MASK_CLIP_PLAYER);
+		return aim.gi->Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_PLAYER);
 	}
 }
 
@@ -1025,7 +1024,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		// otherwise hold jump
 		} else if (self->client->ps.pm_state.flags & PMF_ON_LADDER) {
 
-			if ((ai->move_target.path.path_position.z - self->s.origin.z) < -(PM_MAXS.z - PM_MINS.z)) {
+			if ((ai->move_target.path.path_position.z - self->s.origin.z) < -Bounds_Height(PM_BOUNDS)) {
 				cmd->up = -PM_SPEED_DUCKED;
 			} else {
 				cmd->up = PM_SPEED_JUMP;
@@ -1288,7 +1287,7 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			// (you get less forward momentum on a jump if you are looking up/down)
 			// so for now this is hardcoded to ladders
 			if (self->client->ps.pm_state.flags & PMF_ON_LADDER) {
-				if ((ai->move_target.path.path_position.z - self->s.origin.z) < -(PM_MAXS.z - PM_MINS.z)) {
+				if ((ai->move_target.path.path_position.z - self->s.origin.z) < -Bounds_Height(PM_BOUNDS)) {
 					ideal_angles.x = Clampf(ideal_angles.x, -10.f, -180.f);
 				} else {
 					ideal_angles.x = Clampf(ideal_angles.x, 10.f, 180.f);

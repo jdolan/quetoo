@@ -466,22 +466,23 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
 
 	if (*cg_draw_trace_test->string && *cg_draw_trace_test->string != '0') {
-		static vec3_t mins = { { 0, 0, 0 } }, maxs = { { 0, 0, 0 } };
+		static bounds_t bounds;
 
 		if (cg_draw_trace_test->modified) {
 			parser_t parser;
+
 			Parse_Init(&parser, cg_draw_trace_test->string, PARSER_NO_COMMENTS);
 			
-			Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &mins, 3);
-			Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &maxs, 3);
+			Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &bounds, 6);
 
 			cg_draw_trace_test->modified = false;
 		}
 
-		vec3_t end = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
-		cm_trace_t tr = cgi.Trace(cgi.view->origin, end, Bounds(mins, maxs), Cg_Self()->current.number, CONTENTS_MASK_SOLID);
+		const vec3_t end = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
 
-		cgi.Draw3DBox(Vec3_Add(tr.end, mins), Vec3_Add(tr.end, maxs), color_blue, true);
+		const cm_trace_t tr = cgi.Trace(cgi.view->origin, end, bounds, Cg_Self()->current.number, CONTENTS_MASK_SOLID);
+
+		cgi.Draw3DBox(Bounds_Translate(bounds, tr.end), color_blue, true);
 	}
 }
 

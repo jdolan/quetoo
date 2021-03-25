@@ -87,8 +87,7 @@ csg_brush_t *CopyBrush(const csg_brush_t *brush) {
 
 	csg_brush_t *copy = AllocBrush(brush->num_sides);
 
-	copy->mins = brush->mins;
-	copy->maxs = brush->maxs;
+	copy->bounds = brush->bounds;
 	copy->original = brush->original;
 	copy->num_sides = brush->num_sides;
 
@@ -108,17 +107,12 @@ csg_brush_t *CopyBrush(const csg_brush_t *brush) {
  */
 static void SetBrushBounds(csg_brush_t *brush) {
 
-	brush->mins = Vec3_Mins();
-	brush->maxs = Vec3_Maxs();
+	brush->bounds = Bounds_Infinity();
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		const cm_winding_t *w = brush->sides[i].winding;
-		if (!w) {
-			continue;
-		}
-		for (int32_t j = 0; j < w->num_points; j++) {
-			brush->mins = Vec3_Minf(brush->mins, w->points[j]);
-			brush->maxs = Vec3_Maxf(brush->maxs, w->points[j]);
+		if (w) {
+			brush->bounds = Bounds_Combine(brush->bounds, Cm_WindingBounds(w));
 		}
 	}
 }
@@ -152,7 +146,7 @@ static void MakeBrushWindings(csg_brush_t *brush) {
 /**
  * @brief Creates a new axial brush
  */
-csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs) {
+csg_brush_t *BrushFromBounds(const bounds_t bounds) {
 
 	csg_brush_t *b = AllocBrush(6);
 	b->num_sides = 6;
@@ -161,10 +155,10 @@ csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs) {
 		vec3_t normal = Vec3_Zero();
 
 		normal.xyz[i] = 1.f;
-		b->sides[i].plane_num = FindPlane(normal, maxs.xyz[i]);
+		b->sides[i].plane_num = FindPlane(normal, bounds.maxs.xyz[i]);
 
 		normal.xyz[i] = -1.f;
-		b->sides[3 + i].plane_num = FindPlane(normal, -mins.xyz[i]);
+		b->sides[3 + i].plane_num = FindPlane(normal, -bounds.mins.xyz[i]);
 	}
 
 	MakeBrushWindings(b);
@@ -233,7 +227,7 @@ int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane_num) {
 
 	const cm_bsp_plane_t plane = Cm_Plane(planes[plane_num].normal, planes[plane_num].dist);
 
-	return Cm_BoxOnPlaneSide(Bounds(brush->mins, brush->maxs), &plane);
+	return Cm_BoxOnPlaneSide(brush->bounds, &plane);
 }
 
 /**
@@ -406,7 +400,7 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane_num, csg_brush_t **front
 		SetBrushBounds(cb[i]);
 		int32_t j;
 		for (j = 0; j < 3; j++) {
-			if (cb[i]->mins.xyz[j] < MIN_WORLD_COORD || cb[i]->maxs.xyz[j] > MAX_WORLD_COORD) {
+			if (cb[i]->bounds.mins.xyz[j] < MIN_WORLD_COORD || cb[i]->bounds.maxs.xyz[j] > MAX_WORLD_COORD) {
 				Com_Debug(DEBUG_ALL, "Invalid brush after clip\n");
 				break;
 			}

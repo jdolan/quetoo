@@ -110,7 +110,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 				continue;
 			}
 
-			if (R_CullBox(view, q->bounds.mins, q->bounds.maxs)) {
+			if (R_CullBox(view, q->bounds)) {
 				q->pending = false;
 				q->result = 0;
 				continue;
@@ -168,7 +168,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 /**
  * @brief
  */
-_Bool R_OccludeBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
+_Bool R_OccludeBox(const r_view_t *view, const bounds_t bounds) {
 
 	if (!r_depth_pass->value) {
 		return false;
@@ -185,14 +185,7 @@ _Bool R_OccludeBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
 	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-		int32_t j;
-		for (j = 0; j < 3; j++) {
-			if (mins.xyz[j] < q->bounds.mins.xyz[j] || maxs.xyz[j] > q->bounds.maxs.xyz[j]) {
-				break;
-			}
-		}
-
-		if (j < 3) {
+		if (!Bounds_Touching(bounds, q->bounds)) {
 			continue;
 		}
 
@@ -209,7 +202,7 @@ _Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
 
 	const vec3_t size = Vec3(radius, radius, radius);
 
-	return R_OccludeBox(view, Vec3_Subtract(origin, size), Vec3_Add(origin, size));
+	return R_OccludeBox(view, Bounds_FromOriginSize(origin, size));
 }
 
 /**
@@ -272,7 +265,7 @@ static void R_InitOcclusionQueries(void) {
 		// front
 		4, 5, 0, 5, 1, 0,
 		// back
-		7, 6, 3, 6, 2, 2,
+		7, 6, 3, 6, 2, 3,
 		// left
 		6, 4, 2, 4, 0, 2,
 		// right

@@ -300,18 +300,11 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
                                uint32_t mod) {
 
-	const vec3_t mins[] = {
-		Vec3(-6.0, -6.0, -6.0),
-		Vec3(-6.0, -6.0, -6.0),
-		Vec3(-4.0, -4.0, -4.0),
-		Vec3(-8.0, -8.0, -8.0),
-	};
-
-	const vec3_t maxs[] = {
-		Vec3(6.0, 6.0, 6.0),
-		Vec3(6.0, 6.0, 6.0),
-		Vec3(4.0, 4.0, 4.0),
-		Vec3(8.0, 8.0, 8.0),
+	const bounds_t bounds[NUM_GIB_MODELS] = {
+		Bounds_FromAbsoluteDistance(6.f),
+		Bounds_FromAbsoluteDistance(6.f),
+		Bounds_FromAbsoluteDistance(4.f),
+		Bounds_FromAbsoluteDistance(8.f),
 	};
 
 	const int32_t count = RandomRangei(4, 8);
@@ -330,8 +323,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 
 		ent->s.origin = self->s.origin;
 
-		ent->mins = mins[gib_index];
-		ent->maxs = maxs[gib_index];
+		ent->bounds = bounds[gib_index];
 
 		ent->solid = SOLID_DEAD;
 
@@ -369,8 +361,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 	gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 
 	if (self->client) {
-		self->mins = mins[2];
-		self->maxs = maxs[2];
+		self->bounds = bounds[2];
 
 		const int32_t h = Clampf(-5.0 * self->locals.health, 100, 500);
 		
@@ -424,8 +415,7 @@ static void G_ClientCorpse(g_entity_t *self) {
 	ent->s.origin = self->s.origin;
 	ent->s.angles = self->s.angles;
 
-	ent->mins = self->mins;
-	ent->maxs = self->maxs;
+	ent->bounds = self->bounds;
 
 	ent->s.client = self->s.client;
 	ent->s.model1 = self->s.model1;
@@ -492,7 +482,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 			G_SetAnimation(self, ANIM_BOTH_DEATH3, true);
 		}
 
-		self->maxs.z = 0.0; // corpses are laying down
+		self->bounds.maxs.z = 0.0; // corpses are laying down
 
 		self->locals.health = CLIENT_CORPSE_HEALTH;
 		self->locals.Die = G_ClientCorpse_Die;
@@ -718,15 +708,12 @@ static float G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
  */
 static _Bool G_WouldTelefrag(const vec3_t spot) {
 	g_entity_t *ents[MAX_ENTITIES];
-	vec3_t mins, maxs;
+	bounds_t bounds = Bounds_Translate(PM_BOUNDS, spot);
 
-	mins = Vec3_Add(spot, PM_MINS);
-	maxs = Vec3_Add(spot, PM_MAXS);
+	bounds.mins.z -= PM_STEP_HEIGHT;
+	bounds.maxs.z += PM_STEP_HEIGHT;
 
-	mins.z += PM_STEP_HEIGHT;
-	maxs.z += PM_STEP_HEIGHT;
-
-	const size_t len = gi.BoxEntities(Bounds(mins, maxs), ents, lengthof(ents), BOX_COLLIDE);
+	const size_t len = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_COLLIDE);
 
 	for (size_t i = 0; i < len; i++) {
 
@@ -892,8 +879,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	if (ent->client->locals.persistent.spectator) { // spawn a spectator
 		ent->class_name = "spectator";
 
-		ent->mins = Vec3_Zero();
-		ent->maxs = Vec3_Zero();
+		ent->bounds = Bounds_Zero();
 
 		ent->solid = SOLID_NOT;
 		ent->sv_flags = SVF_NO_CLIENT;
@@ -913,8 +899,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->solid = SOLID_BOX;
 		ent->sv_flags = 0;
 
-		ent->mins = Vec3_Scale(PM_MINS, PM_SCALE);
-		ent->maxs = Vec3_Scale(PM_MAXS, PM_SCALE);
+		ent->bounds = Bounds_Scale(PM_BOUNDS, PM_SCALE);
 
 		ent->s.model1 = MODEL_CLIENT;
 		ent->s.client = ent->s.number - 1;
@@ -1350,15 +1335,14 @@ void G_ClientDisconnect(g_entity_t *ent) {
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
-                                     const vec3_t maxs) {
+static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const bounds_t bounds) {
 
 	const g_entity_t *self = g_level.current_entity;
 
 	if (self->locals.dead) {
-		return gi.Trace(start, end, Bounds(mins, maxs), self, CONTENTS_MASK_CLIP_CORPSE);
+		return gi.Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_CORPSE);
 	} else {
-		return gi.Trace(start, end, Bounds(mins, maxs), self, CONTENTS_MASK_CLIP_PLAYER);
+		return gi.Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_PLAYER);
 	}
 }
 
@@ -1429,8 +1413,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	ent->s.origin = pm.s.origin;
 	ent->locals.velocity = pm.s.velocity;
 
-	ent->mins = pm.mins;
-	ent->maxs = pm.maxs;
+	ent->bounds = pm.bounds;
 
 	// copy the clamped angles out
 	cl->locals.angles = pm.angles;
@@ -1458,7 +1441,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				point = Vec3_Fmaf(ent->s.origin, cl->locals.speed * .4f, velocity);
 
 				// trace towards our jump destination to see if we have room to backflip
-				tr = gi.Trace(ent->s.origin, point, Bounds(ent->mins, ent->maxs), ent, CONTENTS_MASK_CLIP_PLAYER);
+				tr = gi.Trace(ent->s.origin, point, ent->bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
 
 				if (Vec3_Dot(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0) {
 					G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);

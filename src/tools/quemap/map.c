@@ -41,7 +41,7 @@ plane_t planes[MAX_BSP_PLANES];
 #define	PLANE_HASHES 4096
 static plane_t *plane_hash[PLANE_HASHES];
 
-vec3_t map_mins, map_maxs;
+bounds_t map_bounds;
 
 #define	NORMAL_EPSILON	0.0001
 #define	DIST_EPSILON	0.005
@@ -280,9 +280,9 @@ static void AddBrushBevels(brush_t *b) {
 				normal = Vec3_Zero();
 				normal.xyz[axis] = dir;
 				if (dir == 1) {
-					dist = b->maxs.xyz[axis];
+					dist = b->bounds.maxs.xyz[axis];
 				} else {
-					dist = -b->mins.xyz[axis];
+					dist = -b->bounds.mins.xyz[axis];
 				}
 				s->plane_num = FindPlane(normal, dist);
 				s->texinfo = BSP_TEXINFO_BEVEL;
@@ -403,8 +403,7 @@ static void MakeBrushWindings(brush_t *brush) {
 	assert(brush);
 	assert(brush->num_sides);
 
-	brush->mins = Vec3_Mins();
-	brush->maxs = Vec3_Maxs();
+	brush->bounds = Bounds_Infinity();
 
 	brush_side_t *side = brush->sides;
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
@@ -433,10 +432,7 @@ static void MakeBrushWindings(brush_t *brush) {
 		}
 
 		if (side->winding) {
-			for (int32_t j = 0; j < side->winding->num_points; j++) {
-				brush->mins = Vec3_Minf(brush->mins, side->winding->points[j]);
-				brush->maxs = Vec3_Maxf(brush->maxs, side->winding->points[j]);
-			}
+			brush->bounds = Bounds_Combine(brush->bounds, Cm_WindingBounds(side->winding));
 		} else {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Malformed brush");
 			brush->num_sides = 0;
@@ -446,12 +442,12 @@ static void MakeBrushWindings(brush_t *brush) {
 
 	for (int32_t i = 0; i < 3; i++) {
 		//IDBUG: all the indexes into the mins and maxs were zero (not using i)
-		if (brush->mins.xyz[i] < MIN_WORLD_COORD || brush->maxs.xyz[i] > MAX_WORLD_COORD) {
+		if (brush->bounds.mins.xyz[i] < MIN_WORLD_COORD || brush->bounds.maxs.xyz[i] > MAX_WORLD_COORD) {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Brush bounds out of range");
 			brush->num_sides = 0;
 			return;
 		}
-		if (brush->mins.xyz[i] > MAX_WORLD_COORD || brush->maxs.xyz[i] < MIN_WORLD_COORD) {
+		if (brush->bounds.mins.xyz[i] > MAX_WORLD_COORD || brush->bounds.maxs.xyz[i] < MIN_WORLD_COORD) {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "No visible sides on brush");
 			brush->num_sides = 0;
 			return;
@@ -702,10 +698,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		if (brush->entity_num == 0) {
 			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Origin brush in world");
 		} else {
-			vec3_t origin;
-			origin = Vec3_Add(brush->mins, brush->maxs);
-			origin = Vec3_Scale(origin, 0.5);
-
+			const vec3_t origin = Bounds_Origin(brush->bounds);
 			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 		}
 
@@ -894,15 +887,13 @@ void LoadMapFile(const char *filename) {
 		}
 	}
 
-	map_mins = Vec3_Mins();
-	map_maxs = Vec3_Maxs();
+	map_bounds = Bounds_Infinity();
 
 	for (int32_t i = 0; i < entities[0].num_brushes; i++) {
-		if (brushes[i].mins.x > MAX_WORLD_COORD) {
+		if (brushes[i].bounds.mins.x > MAX_WORLD_COORD) {
 			continue; // no valid points
 		}
-		map_mins = Vec3_Minf(map_mins, brushes[i].mins);
-		map_maxs = Vec3_Maxf(map_maxs, brushes[i].maxs);
+		map_bounds = Bounds_Combine(map_bounds, brushes[i].bounds);
 	}
 
 	Com_Verbose("%5i brushes\n", num_brushes);
@@ -910,7 +901,8 @@ void LoadMapFile(const char *filename) {
 	Com_Verbose("%5i entities\n", num_entities);
 	Com_Verbose("%5i planes\n", num_planes);
 	Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",
-				map_mins.x, map_mins.y, map_mins.z, map_maxs.x, map_maxs.y, map_maxs.z);
+				map_bounds.mins.x, map_bounds.mins.y, map_bounds.mins.z,
+				map_bounds.maxs.x, map_bounds.maxs.y, map_bounds.maxs.z);
 
 	Fs_Free(buffer);
 }

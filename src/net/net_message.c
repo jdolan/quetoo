@@ -155,15 +155,15 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 /**
  * @brief
  */
-void Net_WriteBounds(mem_buf_t *msg, const vec3_t mins, const vec3_t maxs) {
+void Net_WriteBounds(mem_buf_t *msg, const bounds_t bounds) {
 
-	const vec3s_t _mins = Vec3_CastVec3s(mins);
+	const vec3s_t _mins = Vec3_CastVec3s(bounds.mins);
 
 	Net_WriteShort(msg, _mins.x);
 	Net_WriteShort(msg, _mins.y);
 	Net_WriteShort(msg, _mins.z);
 
-	const vec3s_t _maxs = Vec3_CastVec3s(maxs);
+	const vec3s_t _maxs = Vec3_CastVec3s(bounds.maxs);
 
 	Net_WriteShort(msg, _maxs.x);
 	Net_WriteShort(msg, _maxs.y);
@@ -426,7 +426,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		bits |= U_SOLID;
 	}
 
-	if (!Vec3_Equal(to->mins, from->mins) || !Vec3_Equal(to->maxs, from->maxs)) {
+	if (!Bounds_Equal(to->bounds, from->bounds)) {
 		bits |= U_BOUNDS;
 	}
 
@@ -503,7 +503,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 	}
 
 	if (bits & U_BOUNDS) {
-		Net_WriteBounds(msg, to->mins, to->maxs);
+		Net_WriteBounds(msg, to->bounds);
 	}
 }
 
@@ -691,14 +691,17 @@ vec3_t Net_ReadDir(mem_buf_t *msg) {
 /**
  * @brief
  */
-void Net_ReadBounds(mem_buf_t *msg, vec3_t *mins, vec3_t *maxs) {
-	
-	mins->x = Net_ReadShort(msg);
-	mins->y = Net_ReadShort(msg);
-	mins->z = Net_ReadShort(msg);
-	maxs->x = Net_ReadShort(msg);
-	maxs->y = Net_ReadShort(msg);
-	maxs->z = Net_ReadShort(msg);
+bounds_t Net_ReadBounds(mem_buf_t *msg) {
+	bounds_t b;
+
+	b.mins.x = Net_ReadShort(msg);
+	b.mins.y = Net_ReadShort(msg);
+	b.mins.z = Net_ReadShort(msg);
+	b.maxs.x = Net_ReadShort(msg);
+	b.maxs.y = Net_ReadShort(msg);
+	b.maxs.z = Net_ReadShort(msg);
+
+	return b;
 }
 
 /**
@@ -879,6 +882,6 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 	}
 
 	if (bits & U_BOUNDS) {
-		Net_ReadBounds(msg, &to->mins, &to->maxs);
+		to->bounds = Net_ReadBounds(msg);
 	}
 }

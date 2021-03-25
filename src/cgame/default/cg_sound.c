@@ -46,17 +46,7 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 		if (ent == Cg_Self()) {
 			play->flags |= S_PLAY_RELATIVE;
 		} else if (ent->current.solid == SOLID_BSP) {
-
-			for (int32_t i = 0; i < 3; i++) {
-				if (stage->origin.xyz[i] > ent->abs_maxs.xyz[i]) {
-					play->origin.xyz[i] = ent->abs_maxs.xyz[i];
-				} else if (stage->origin.xyz[i] < ent->abs_mins.xyz[i]) {
-					play->origin.xyz[i] = ent->abs_mins.xyz[i];
-				} else {
-					play->origin.xyz[i] = stage->origin.xyz[i];
-				}
-			}
-
+			play->origin = Bounds_ClampPoint(ent->abs_bounds, stage->origin);
 			play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
 		} else {
 			play->origin = ent->origin;

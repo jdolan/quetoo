@@ -146,7 +146,7 @@ _Bool R_CullPoint(const r_view_t *view, const vec3_t point) {
  * @return True if the specified bounding box is culled by the view frustum, false otherwise.
  * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
  */
-_Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
+_Bool R_CullBox(const r_view_t *view, const bounds_t bounds) {
 
 	if (!r_cull->value) {
 		return false;
@@ -156,16 +156,9 @@ _Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
 		return false;
 	}
 
-	const vec3_t points[] = {
-		Vec3(mins.x, mins.y, mins.z),
-		Vec3(maxs.x, mins.y, mins.z),
-		Vec3(maxs.x, maxs.y, mins.z),
-		Vec3(mins.x, maxs.y, mins.z),
-		Vec3(mins.x, mins.y, maxs.z),
-		Vec3(maxs.x, mins.y, maxs.z),
-		Vec3(maxs.x, maxs.y, maxs.z),
-		Vec3(mins.x, maxs.y, maxs.z),
-	};
+	vec3_t points[8];
+	
+	Bounds_ToPoints(bounds, points);
 
 	const cm_bsp_plane_t *plane = view->frustum;
 	for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {

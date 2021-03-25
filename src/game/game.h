@@ -137,7 +137,7 @@ struct g_entity_s {
 	 * @brief The entity bounding box, set by the game, defines its relative
 	 * bounds. These are typically populated in the entity's spawn function.
 	 */
-	vec3_t mins, maxs;
+	bounds_t bounds;
 
 	/**
 	 * @brief The entity bounding box, set by the server, in world space. These

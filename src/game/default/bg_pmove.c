@@ -22,18 +22,18 @@
 #include "bg_pmove.h"
 
 /**
- * @brief PM_MINS and PM_MAXS are the default bounding box, scaled by PM_SCALE
+ * @brief PM_BOUNDS is the default bounding box, scaled by PM_SCALE
  * in Pm_Init. They are referenced in a few other places e.g. to create effects
  * at a certain body position on the player model.
  */
-const vec3_t PM_MINS = { { -16.f, -16.f, -24.f } };
-const vec3_t PM_MAXS = { {  16.f,  16.f,  32.f } };
+const bounds_t PM_BOUNDS = { .mins = { { -16.f, -16.f, -24.f } },
+							 .maxs = { {  16.f,  16.f,  32.f } } };
 
-static const vec3_t PM_DEAD_MINS = { { -16.f, -16.f, -24.f } };
-static const vec3_t PM_DEAD_MAXS = { {  16.f,  16.f,  -4.f } };
+static const bounds_t PM_DEAD_BOUNDS = { .mins = { { -16.f, -16.f, -24.f } },
+										 .maxs = { {  16.f,  16.f,  -4.f } } };
 
-static const vec3_t PM_GIBLET_MINS = { { -8.f, -8.f, -8.f } };
-static const vec3_t PM_GIBLET_MAXS = { {  8.f,  8.f,  8.f } };
+static const bounds_t PM_GIBLET_BOUNDS = { .mins = { { -8.f, -8.f, -8.f } },
+										   .maxs = { {  8.f,  8.f,  8.f } } };
 
 static pm_move_t *pm;
 
@@ -123,7 +123,7 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
  * it is adjusted so that the trace begins outside of the solid it impacts.
  * @return The actual trace.
  */
-static cm_trace_t Pm_TraceCorrectAllSolid(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs) {
+static cm_trace_t Pm_TraceCorrectAllSolid(const vec3_t start, const vec3_t end, const bounds_t bounds) {
 
 	const int32_t offsets[] = { 0, 1, -1 };
 
@@ -132,7 +132,7 @@ static cm_trace_t Pm_TraceCorrectAllSolid(const vec3_t start, const vec3_t end, 
 		for (uint32_t j = 0; j < lengthof(offsets); j++) {
 			for (uint32_t k = 0; k < lengthof(offsets); k++) {
 				const vec3_t point = Vec3_Add(start, Vec3(offsets[i], offsets[j], offsets[k]));
-				const cm_trace_t trace = pm->Trace(point, end, mins, maxs);
+				const cm_trace_t trace = pm->Trace(point, end, bounds);
 				
 				if (!trace.all_solid) {
 
@@ -147,7 +147,7 @@ static cm_trace_t Pm_TraceCorrectAllSolid(const vec3_t start, const vec3_t end, 
 	}
 	
 	Pm_Debug("No good position\n");
-	return pm->Trace(start, end, mins, maxs);
+	return pm->Trace(start, end, bounds);
 }
 
 /**
@@ -199,7 +199,7 @@ static _Bool Pm_SlideMove(void) {
 		pos = Vec3_Fmaf(pm->s.origin, time_remaining, pm->s.velocity);
 
 		// trace to it
-		const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
+		const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
 
 		// if the player is trapped in a solid, don't build up Z
 		if (trace.all_solid) {
@@ -339,7 +339,7 @@ static void Pm_StepSlideMove(void) {
 	if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up <= 0) {
 
 		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, pm->mins, pm->maxs);
+		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, pm->bounds);
 
 		if (Pm_CheckStep(&step_down)) {
 			Pm_StepDown(&step_down);
@@ -352,7 +352,7 @@ static void Pm_StepSlideMove(void) {
 	const vec3_t vel1 = pm->s.velocity;
 
 	const vec3_t up = Vec3_Fmaf(org0, PM_STEP_HEIGHT, Vec3_Up());
-	const cm_trace_t step_up = Pm_TraceCorrectAllSolid(org0, up, pm->mins, pm->maxs);
+	const cm_trace_t step_up = Pm_TraceCorrectAllSolid(org0, up, pm->bounds);
 
 	if (!step_up.all_solid) {
 
@@ -364,7 +364,7 @@ static void Pm_StepSlideMove(void) {
 
 		// settle to the new ground, keeping the step if and only if it was successful
 		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, Vec3_Subtract(pm->mins, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)), Vec3_Add(pm->maxs, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)));
+		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, Bounds_Expand3(pm->bounds, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)));
 
 		if (Pm_CheckStep(&step_down)) {
 			// Quake2 trick jump secret sauce
@@ -698,7 +698,7 @@ static void Pm_CheckGround(void) {
 	}
 
 	// seek the ground
-	cm_trace_t trace = pm_locals.ground_trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
+	cm_trace_t trace = pm_locals.ground_trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
 
 	// if we hit an upward facing plane, make it our ground
 	if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
@@ -760,7 +760,7 @@ static void Pm_CheckWater(void) {
 	pm->water_type = 0;
 
 	vec3_t pos = pm->s.origin;
-	pos.z = pm->s.origin.z + pm->mins.z + PM_GROUND_DIST;
+	pos.z = pm->s.origin.z + pm->bounds.mins.z + PM_GROUND_DIST;
 
 	int32_t contents = pm->PointContents(pos);
 	if (contents & CONTENTS_MASK_LIQUID) {
@@ -811,17 +811,17 @@ static void Pm_CheckDuck(void) {
 		if (!is_ducking && wants_ducking) {
 			pm->s.flags |= PMF_DUCKED;
 		} else if (is_ducking && !wants_ducking) {
-			const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
+			const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pm->s.origin, pm->bounds);
 
 			if (!trace.all_solid && !trace.start_solid) {
 				pm->s.flags &= ~PMF_DUCKED;
 			}
 		}
 
-		const float height = pm->maxs.z - pm->mins.z;
+		const float height = Bounds_Height(pm->bounds);
 
 		if (pm->s.flags & PMF_DUCKED) { // ducked, reduce height
-			const float target = pm->mins.z + height * 0.5f;
+			const float target = pm->bounds.mins.z + height * 0.5f;
 
 			if (pm->s.view_offset.z > target) { // go down
 				pm->s.view_offset.z -= pm_locals.time * PM_SPEED_DUCK_STAND;
@@ -832,9 +832,9 @@ static void Pm_CheckDuck(void) {
 			}
 
 			// change the bounding box to reflect ducking
-			pm->maxs.z = pm->maxs.z + pm->mins.z * 0.5f;
+			pm->bounds.maxs.z = pm->bounds.maxs.z + pm->bounds.mins.z * 0.5f;
 		} else {
-			const float target = pm->mins.z + height * 0.9f;
+			const float target = pm->bounds.mins.z + height * 0.9f;
 
 			if (pm->s.view_offset.z < target) { // go up
 				pm->s.view_offset.z += pm_locals.time * PM_SPEED_DUCK_STAND;
@@ -931,7 +931,7 @@ static void Pm_CheckLadder(void) {
 	}
 
 	const vec3_t pos = Vec3_Fmaf(pm->s.origin, 4.f, pm_locals.forward_xy);
-	const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
+	const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
 
 	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_LADDER)) {
 		pm->s.flags |= PMF_ON_LADDER;
@@ -966,13 +966,13 @@ static _Bool Pm_CheckWaterJump(void) {
 	}
 
 	vec3_t pos = Vec3_Fmaf(pm->s.origin, 16.f, pm_locals.forward);
-	cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs);
+	cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
 
 	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_MASK_SOLID)) {
 
-		pos.z += PM_STEP_HEIGHT + pm->maxs.z - pm->mins.z;
+		pos.z += PM_STEP_HEIGHT + Bounds_Height(pm->bounds);
 
-		trace = Pm_TraceCorrectAllSolid(pos, pos, pm->mins, pm->maxs);
+		trace = Pm_TraceCorrectAllSolid(pos, pos, pm->bounds);
 
 		if (trace.start_solid) {
 			Pm_Debug("Can't exit water: blocked\n");
@@ -981,7 +981,7 @@ static _Bool Pm_CheckWaterJump(void) {
 
 		vec3_t pos2 = Vec3(pos.x, pos.y, pm->s.origin.z);
 
-		trace = Pm_TraceCorrectAllSolid(pos, pos2, pm->mins, pm->maxs);
+		trace = Pm_TraceCorrectAllSolid(pos, pos2, pm->bounds);
 
 		if (!(trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL)) {
 			Pm_Debug("Can't exit water: not a step\n");
@@ -1071,7 +1071,7 @@ static void Pm_WaterJumpMove(void) {
 	const vec3_t pos = Vec3_Fmaf(pm->s.origin, 30.f, pm_locals.forward_xy);
 
 	// if we've reached a usable spot, clamp the jump to avoid launching
-	if (Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->mins, pm->maxs).fraction == 1.0f) {
+	if (Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds).fraction == 1.0f) {
 		pm->s.velocity.z = Clampf(pm->s.velocity.z, 0.f, PM_SPEED_JUMP);
 	}
 
@@ -1310,15 +1310,12 @@ static void Pm_Init(void) {
 	if (pm->s.type == PM_DEAD) {
 
 		if (pm->s.flags & PMF_GIBLET) {
-			pm->mins = PM_GIBLET_MINS;
-			pm->maxs = PM_GIBLET_MAXS;
+			pm->bounds = PM_GIBLET_BOUNDS;
 		} else {
-			pm->mins = Vec3_Scale(PM_DEAD_MINS, PM_SCALE);
-			pm->maxs = Vec3_Scale(PM_DEAD_MAXS, PM_SCALE);
+			pm->bounds = Bounds_Scale(PM_DEAD_BOUNDS, PM_SCALE);
 		}
 	} else {
-		pm->mins = Vec3_Scale(PM_MINS, PM_SCALE);
-		pm->maxs = Vec3_Scale(PM_MAXS, PM_SCALE);
+		pm->bounds = Bounds_Scale(PM_BOUNDS, PM_SCALE);
 	}
 
 	pm->angles = Vec3_Zero();

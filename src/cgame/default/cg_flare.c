@@ -158,18 +158,16 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 	flare->face = face;
 	flare->stage = stage;
 
-	vec3_t mins = Vec3_Mins();
-	vec3_t maxs = Vec3_Maxs();
+	bounds_t bounds = Bounds_Infinity();
 
 	for (int32_t i = 0; i < face->num_vertexes; i++) {
-		mins = Vec3_Minf(mins, face->vertexes[i].position);
-		maxs = Vec3_Maxf(maxs, face->vertexes[i].position);
+		bounds = Bounds_Append(bounds, face->vertexes[i].position);
 	}
 
-	flare->in.origin = Vec3_Scale(Vec3_Add(maxs, mins), .5f);
+	flare->in.origin = Bounds_Origin(bounds);
 	flare->in.origin = Vec3_Fmaf(flare->in.origin, 2.f, face->plane->cm->normal);
 
-	flare->in.size = Vec3_Distance(maxs, mins);
+	flare->in.size = Bounds_Distance(bounds);
 
 	if (stage->cm->flags & STAGE_COLOR) {
 		flare->in.color = Color_Color32(stage->cm->color);

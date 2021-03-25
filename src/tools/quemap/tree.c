@@ -363,8 +363,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 
 	tree_t *tree = AllocTree();
 
-	tree->mins = Vec3_Mins();
-	tree->maxs = Vec3_Maxs();
+	tree->bounds = Bounds_Infinity();
 
 	int32_t num_brushes = 0;
 	int32_t num_brush_sides = 0;
@@ -387,17 +386,14 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 			num_brush_sides++;
 		}
 
-		tree->mins = Vec3_Minf(tree->mins, b->mins);
-		tree->maxs = Vec3_Maxf(tree->maxs, b->maxs);
+		tree->bounds = Bounds_Combine(tree->bounds, b->bounds);
 	}
 
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", num_brushes);
 	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
-	const vec3_t mins = Vec3(MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);
-	const vec3_t maxs = Vec3(MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD);
-	tree->head_node->volume = BrushFromBounds(mins, maxs);
+	tree->head_node->volume = BrushFromBounds(Bounds_FromAbsoluteDistance(MAX_WORLD_COORD));
 
 	BuildTree_r(tree->head_node, brushes);
 

@@ -196,7 +196,7 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 	const char *footsteps = "default";
 
 	vec3_t start = ent->origin;
-	start.z += ent->current.mins.z;
+	start.z += ent->current.bounds.mins.z;
 
 	vec3_t end = start;
 	end.z -= PM_STEP_HEIGHT;

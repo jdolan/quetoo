@@ -232,7 +232,7 @@ void R_GetError_(const char *function, const char *msg);
 }
 
 _Bool R_CullPoint(const r_view_t *view, const vec3_t point);
-_Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs);
+_Bool R_CullBox(const r_view_t *view, const bounds_t bounds);
 _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius);
 
 #endif /* __R_LOCAL_H__ */

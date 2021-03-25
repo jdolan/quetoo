@@ -119,12 +119,11 @@
 #define PM_SNAP_DISTANCE		PM_GROUND_DIST
 
 /**
- * @brief Player bounding box scaling. mins = Vec3_Scale(PM_MINS, PM_SCALE)..
+ * @brief Player bounding box scaling.
  */
 #define PM_SCALE 1.f
 
-extern const vec3_t PM_MINS;
-extern const vec3_t PM_MAXS;
+extern const bounds_t PM_BOUNDS;
 
 /**
  * @brief Game-specific button hits.
@@ -184,7 +183,7 @@ typedef struct {
 	int32_t num_touch_ents;
 
 	vec3_t angles; // clamped, and including kick and delta (out)
-	vec3_t mins, maxs; // bounding box size (out)
+	bounds_t bounds; // bounding box size (out)
 
 	struct g_entity_s *ground_entity; // (out)
 
@@ -195,7 +194,7 @@ typedef struct {
 
 	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const bounds_t bounds);
 
 	// print debug messages for development
 	debug_t (*DebugMask)(void);

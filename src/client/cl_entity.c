@@ -427,25 +427,21 @@ void Cl_Interpolate(void) {
 			assert(mod);
 			assert(mod->bsp_inline);
 
-			ent->mins = mod->bsp_inline->bounds.mins;
-			ent->maxs = mod->bsp_inline->bounds.maxs;
+			ent->bounds = mod->bsp_inline->bounds;
 		} else {
 			angles = Vec3_Zero();
 
-			ent->mins = ent->current.mins;
-			ent->maxs = ent->current.maxs;
+			ent->bounds = ent->current.bounds;
 		}
 
 		// jdolan: Note that we use the latest snapshot origin, not the interpolated origin.
 		// This is so client side prediction can work, and the client and server are working
 		// with the same entity positions at their respective intervals.
-		bounds_t bounds = Cm_EntityBounds(ent->current.solid, ent->current.origin,
+		ent->abs_bounds = Cm_EntityBounds(ent->current.solid,
+										  ent->current.origin,
 										  angles,
 										  ent->matrix,
-										  Bounds(ent->mins, ent->maxs));
-		
-		ent->abs_mins = bounds.mins;
-		ent->abs_maxs = bounds.maxs;
+										  ent->bounds);
 
 		ent->matrix = Mat4_FromRotationTranslationScale(angles, ent->current.origin, 1.f);
 		ent->inverse_matrix = Mat4_Inverse(ent->matrix);

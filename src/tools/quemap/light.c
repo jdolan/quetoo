@@ -283,7 +283,7 @@ void FreeLights(void) {
 /**
  * @return A GPtrArray of all light sources that intersect the specified bounds.
  */
-static GPtrArray *BoxLights(const vec3_t box_mins, const vec3_t box_maxs) {
+static GPtrArray *BoxLights(const bounds_t bounds) {
 
 	GPtrArray *box_lights = g_ptr_array_new();
 
@@ -291,14 +291,9 @@ static GPtrArray *BoxLights(const vec3_t box_mins, const vec3_t box_maxs) {
 	for (guint i = 0; i < lights->len; i++, light++) {
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			const vec3_t radius = Vec3(light->radius + light->size * .5f,
-									   light->radius + light->size * .5f,
-									   light->radius + light->size * .5f);
+			const bounds_t light_bounds = Bounds_FromOriginDistance(light->origin, light->radius + light->size);
 
-			const vec3_t mins = Vec3_Subtract(light->origin, radius);
-			const vec3_t maxs = Vec3_Add(light->origin, radius);
-
-			if (!Vec3_BoxIntersect(box_mins, box_maxs, mins, maxs)) {
+			if (!Bounds_Intersect(bounds, light_bounds)) {
 				continue;
 			}
 		}
@@ -323,7 +318,7 @@ static void HashLights(void) {
 			continue;
 		}
 
-		node_lights[i] = BoxLights(node->bounds.mins, node->bounds.maxs);
+		node_lights[i] = BoxLights(node->bounds);
 	}
 
 	const bsp_leaf_t *leaf = bsp_file.leafs;
@@ -333,7 +328,7 @@ static void HashLights(void) {
 			continue;
 		}
 
-		leaf_lights[i] = BoxLights(leaf->bounds.mins, leaf->bounds.maxs);
+		leaf_lights[i] = BoxLights(leaf->bounds);
 	}
 
 	unattenuated_lights = g_ptr_array_new();

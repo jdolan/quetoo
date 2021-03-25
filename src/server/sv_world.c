@@ -138,7 +138,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	}
 
 	// set the size
-	ent->size = Vec3_Subtract(ent->maxs, ent->mins);
+	ent->size = Bounds_Size(ent->bounds);
 
 	// encode the size into the entity state for client prediction
 	ent->s.solid = ent->solid;
@@ -147,12 +147,10 @@ void Sv_LinkEntity(g_entity_t *ent) {
 		case SOLID_PROJECTILE:
 		case SOLID_DEAD:
 		case SOLID_BOX:
-			ent->s.mins = ent->mins;
-			ent->s.maxs = ent->maxs;
+			ent->s.bounds = ent->bounds;
 			break;
 		default:
-			ent->s.mins = Vec3_Zero();
-			ent->s.maxs = Vec3_Zero();
+			ent->s.bounds = Bounds_Zero();
 			break;
 	}
 
@@ -161,7 +159,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	mat4_t matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
 
 	// set the absolute bounding box; ensure it is symmetrical
-	ent->abs_bounds = Cm_EntityBounds(ent->solid, ent->s.origin, angles, matrix, Bounds(ent->mins, ent->maxs));
+	ent->abs_bounds = Cm_EntityBounds(ent->solid, ent->s.origin, angles, matrix, ent->bounds);
 
 	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
@@ -343,14 +341,14 @@ static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 	if (ent->solid == SOLID_BOX) {
 
 		if (ent->client) {
-			return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_MONSTER);
+			return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
 		}
 
-		return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_SOLID);
+		return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
 	}
 
 	if (ent->solid == SOLID_DEAD) {
-		return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_DEAD_MONSTER);
+		return Cm_SetBoxHull(ent->bounds, CONTENTS_DEAD_MONSTER);
 	}
 
 	return -1;

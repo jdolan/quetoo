@@ -93,7 +93,7 @@ void Net_WritePosition(mem_buf_t *msg, const vec3_t pos);
 void Net_WriteAngle(mem_buf_t *msg, float f);
 void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles);
 void Net_WriteDir(mem_buf_t *msg, const vec3_t dir);
-void Net_WriteBounds(mem_buf_t *msg, const vec3_t mins, const vec3_t maxs);
+void Net_WriteBounds(mem_buf_t *msg, const bounds_t bounds);
 void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to);
 void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to);
 void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to, _Bool force);
@@ -111,7 +111,7 @@ vec3_t Net_ReadPosition(mem_buf_t *msg);
 float Net_ReadAngle(mem_buf_t *msg);
 vec3_t Net_ReadAngles(mem_buf_t *msg);
 vec3_t Net_ReadDir(mem_buf_t *msg);
-void Net_ReadBounds(mem_buf_t *msg, vec3_t *mins, vec3_t *maxs);
+bounds_t Net_ReadBounds(mem_buf_t *msg);
 void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to);
 void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to);
 void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to,

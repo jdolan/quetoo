@@ -142,11 +142,11 @@ void R_AddBeam(r_view_t *view, const r_beam_t *b) {
 	bounds_t bounds = Cm_TraceBounds(b->start, b->end,
 									 Bounds_FromDistance(b->size));
 
-	if (R_OccludeBox(view, bounds.mins, bounds.maxs)) {
+	if (R_OccludeBox(view, bounds)) {
 		return;
 	}
 
-	if (R_CullBox(view, bounds.mins, bounds.maxs)) {
+	if (R_CullBox(view, bounds)) {
 		return;
 	}
 

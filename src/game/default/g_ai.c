@@ -509,7 +509,7 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 	if (down.fraction == 1.0) {
 		pos = ent->s.origin;
 	} else {
-		pos = Vec3_Subtract(down.end, Vec3(0.f, 0.f, PM_MINS.z));
+		pos = Vec3_Subtract(down.end, Vec3(0.f, 0.f, PM_BOUNDS.mins.z));
 	}
 
 	// grab all the links of the node that brought us here

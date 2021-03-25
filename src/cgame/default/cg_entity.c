@@ -207,8 +207,8 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
  */
 _Bool Cg_IsDucking(const cl_entity_t *ent) {
 
-	const float standing_height = (PM_MAXS.z - PM_MINS.z) * PM_SCALE;
-	const float height = ent->current.maxs.z - ent->current.mins.z;
+	const float standing_height = Bounds_Height(PM_BOUNDS) * PM_SCALE;
+	const float height = Bounds_Height(ent->current.bounds);
 
 	return standing_height - height > PM_STOP_EPSILON;
 }
@@ -352,8 +352,8 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 		.termination = ent->termination,
 		.angles = ent->angles,
 		.scale = 1.f,
-		.bounds = Bounds(ent->mins, ent->maxs),
-		.abs_bounds = Bounds(ent->abs_mins, ent->abs_maxs)
+		.bounds = ent->bounds,
+		.abs_bounds = ent->abs_bounds
 	};
 
 	// add effects, augmenting the renderer entity

@@ -21,8 +21,8 @@
 
 #include "g_local.h"
 
-const vec3_t ITEM_MINS = { { -16.0, -16.0, -16.0 } };
-const vec3_t ITEM_MAXS = { {  16.0,  16.0,  32.0 } };
+const bounds_t ITEM_BOUNDS = { .mins = { { -16.0, -16.0, -16.0 } },
+							   .maxs = { {  16.0,  16.0,  32.0 } } };
 
 #define ITEM_SCALE 1.0
 
@@ -744,8 +744,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	g_entity_t *it = G_AllocEntity_(item->class_name);
 	it->owner = ent;
 
-	it->mins = Vec3_Scale(ITEM_MINS, ITEM_SCALE);
-	it->maxs = Vec3_Scale(ITEM_MAXS, ITEM_SCALE);
+	it->bounds = Bounds_Scale(ITEM_BOUNDS, ITEM_SCALE);
 
 	it->solid = SOLID_TRIGGER;
 
@@ -756,10 +755,10 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	} else {
 		Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
 		it->s.origin = ent->s.origin;
-		it->s.origin.z -= it->mins.z;
+		it->s.origin.z -= it->bounds.mins.z;
 	}
 
-	tr = gi.Trace(it->s.origin, it->s.origin, Bounds(it->mins, it->maxs), ent, CONTENTS_MASK_SOLID);
+	tr = gi.Trace(it->s.origin, it->s.origin, it->bounds, ent, CONTENTS_MASK_SOLID);
 
 	it->locals.item = item;
 
@@ -1039,22 +1038,21 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 		ent->locals.move_type = MOVE_TYPE_FLY;
 	}
 
-	tr = gi.Trace(ent->s.origin, dest, Bounds(ent->mins, ent->maxs), ent, CONTENTS_MASK_SOLID);
+	tr = gi.Trace(ent->s.origin, dest, ent->bounds, ent, CONTENTS_MASK_SOLID);
 	if (tr.start_solid) {
 		// try thinner box
 		G_Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
-		ent->maxs.z /= 2.0;
+		ent->bounds.maxs.z /= 2.0;
 
-		tr = gi.Trace(ent->s.origin, dest, Bounds(ent->mins, ent->maxs), ent, CONTENTS_MASK_SOLID);
+		tr = gi.Trace(ent->s.origin, dest, ent->bounds, ent, CONTENTS_MASK_SOLID);
 		if (tr.start_solid) {
 
 			G_Debug("%s still can't fit, trying Q2 box..\n", etos(ent));
 
-			ent->mins = Vec3_Add(ent->mins, Vec3(2.f, 2.f, 2.f));
-			ent->maxs = Vec3_Add(ent->maxs, Vec3(-2.f, -2.f, -2.f));
+			ent->bounds = Bounds_Expand3(ent->bounds, Vec3(-2.f, -2.f, -2.f));
 
 			// try Quake 2 box
-			tr = gi.Trace(ent->s.origin, dest, Bounds(ent->mins, ent->maxs), ent, CONTENTS_MASK_SOLID);
+			tr = gi.Trace(ent->s.origin, dest, ent->bounds, ent, CONTENTS_MASK_SOLID);
 			if (tr.start_solid) {
 
 				G_Debug("%s trying higher, last attempt..\n", etos(ent));
@@ -1062,7 +1060,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 				ent->s.origin.z += 8.0;
 
 				// make an effort to come up out of the floor (broken maps)
-				tr = gi.Trace(ent->s.origin, ent->s.origin, Bounds(ent->mins, ent->maxs), ent, CONTENTS_MASK_SOLID);
+				tr = gi.Trace(ent->s.origin, ent->s.origin, ent->bounds, ent, CONTENTS_MASK_SOLID);
 				if (tr.start_solid) {
 					gi.Warn("%s start_solid\n", etos(ent));
 					G_FreeEntity(ent);
@@ -1161,8 +1159,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 	ent->locals.item = item;
 	G_PrecacheItem(ent->locals.item);
 
-	ent->mins = Vec3_Scale(ITEM_MINS, ITEM_SCALE);
-	ent->maxs = Vec3_Scale(ITEM_MAXS, ITEM_SCALE);
+	ent->bounds = Bounds_Scale(ITEM_BOUNDS, ITEM_SCALE);
 
 	if (ent->model) {
 		ent->s.model1 = gi.ModelIndex(ent->model);

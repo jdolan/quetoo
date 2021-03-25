@@ -29,7 +29,7 @@ GArray *fogs;
  */
 _Bool PointInsideFog(const vec3_t point, const fog_t *fog) {
 
-	if (Vec3_BoxIntersect(point, point, fog->mins, fog->maxs)) {
+	if (Bounds_Contains(fog->bounds, point)) {
 
 		for (guint i = 0; i < fog->brushes->len; i++) {
 			const cm_bsp_brush_t *brush = g_ptr_array_index(fog->brushes, i);
@@ -188,14 +188,11 @@ static void FogForEntity(const cm_entity_t *entity) {
 
 		fog.brushes = Cm_EntityBrushes(entity);
 
-		fog.mins = Vec3_Mins();
-		fog.maxs = Vec3_Maxs();
+		fog.bounds = Bounds_Infinity();
 
 		for (guint i = 0; i < fog.brushes->len; i++) {
 			const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);
-
-			fog.mins = Vec3_Minf(fog.mins, brush->bounds.mins);
-			fog.maxs = Vec3_Maxf(fog.maxs, brush->bounds.maxs);
+			fog.bounds = Bounds_Combine(fog.bounds, brush->bounds);
 		}
 
 		FogSetPermutationVector(&fog);

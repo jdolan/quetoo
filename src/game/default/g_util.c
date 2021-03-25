@@ -26,18 +26,15 @@
  * @brief
  */
 void G_InitPlayerSpawn(g_entity_t *ent) {
-	vec3_t mins, maxs, delta, forward;
-
 	// up
-	const float up = ceilf(fabs(PM_SCALE * PM_MINS.z - PM_MINS.z));
+	const float up = ceilf(fabs(PM_SCALE * PM_BOUNDS.mins.z - PM_BOUNDS.mins.z));
 	ent->s.origin.z += up;
 
 	// forward, find the old x/y size
-	mins = PM_MINS;
-	maxs = PM_MAXS;
-	mins.z = maxs.z = 0.0;
+	bounds_t bounds = PM_BOUNDS;
+	bounds.mins.z = bounds.maxs.z = 0.0;
 
-	delta = Vec3_Subtract(maxs, mins);
+	vec3_t delta = Bounds_Size(bounds);
 	const float len0 = Vec3_Length(delta);
 
 	// and the new x/y size
@@ -46,6 +43,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 
 	const float fwd = ceilf(len1 - len0);
 
+	vec3_t forward;
 	Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
 	ent->s.origin = Vec3_Fmaf(ent->s.origin, fwd, forward);
 	
@@ -425,10 +423,9 @@ void G_FreeEntity(g_entity_t *ent) {
 void G_KillBox(g_entity_t *ent) {
 	g_entity_t *ents[MAX_ENTITIES];
 
-	const vec3_t mins = Vec3_Add(ent->s.origin, ent->mins);
-	const vec3_t maxs = Vec3_Add(ent->s.origin, ent->maxs);
+	const bounds_t bounds = Bounds_Translate(ent->bounds, ent->s.origin);
 
-	size_t i, len = gi.BoxEntities(Bounds(mins, maxs), ents, lengthof(ents), BOX_COLLIDE);
+	size_t i, len = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_COLLIDE);
 	for (i = 0; i < len; i++) {
 
 		if (ents[i] == ent) {

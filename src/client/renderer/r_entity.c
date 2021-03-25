@@ -42,11 +42,11 @@ static _Bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 		return false;
 	}
 
-	if (R_OccludeBox(view, e->abs_model_bounds.mins, e->abs_model_bounds.maxs)) {
+	if (R_OccludeBox(view, e->abs_model_bounds)) {
 		return true;
 	}
 
-	if (R_CullBox(view, e->abs_model_bounds.mins, e->abs_model_bounds.maxs)) {
+	if (R_CullBox(view, e->abs_model_bounds)) {
 		return true;
 	}
 
@@ -107,9 +107,9 @@ void R_UpdateEntities(r_view_t *view) {
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
 	if (r_draw_entity_bounds->integer == 2) {
-		R_Draw3DBox(e->abs_model_bounds.mins, e->abs_model_bounds.maxs, color_yellow, false);
+		R_Draw3DBox(e->abs_model_bounds, color_yellow, false);
 	} else {
-		R_Draw3DBox(e->abs_bounds.mins, e->abs_bounds.maxs, color_yellow, false);
+		R_Draw3DBox(e->abs_bounds, color_yellow, false);
 	}
 }
 

@@ -24,8 +24,7 @@
 #include "r_types.h"
 
 void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color);
-void R_Draw3DQuad(const vec3_t points[4], const color_t color);
-void R_Draw3DBox(const vec3_t mins, const vec3_t maxs, const color_t color, const _Bool solid);
+void R_Draw3DBox(const bounds_t bounds, const color_t color, const _Bool solid);
 void R_Draw3D(void);
 
 #ifdef __R_LOCAL_H__

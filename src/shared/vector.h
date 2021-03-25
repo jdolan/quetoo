@@ -969,7 +969,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Roundf(const vec3
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Clamp(const vec3_t v, vec3_t min, vec3_t max) {
 	return Vec3(
 		Clampf(v.x, min.x, max.x),
-		Clampf(v.y, min.z, max.y),
+		Clampf(v.y, min.y, max.y),
 		Clampf(v.z, min.z, max.z));
 }
 

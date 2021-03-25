@@ -178,7 +178,8 @@ static inline float __attribute__ ((warn_unused_result)) Bounds_Height(const bou
 }
 
 /**
- * @return The relative size of all three axis of the bounds.
+ * @return The relative size of all three axis of the bounds. This also works as
+ * a vector between the two points of the box.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Bounds_Size(const bounds_t a) {
 	return Vec3_Subtract(a.maxs, a.mins);
@@ -197,14 +198,6 @@ static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromSize(cons
 }
 
 /**
- * @return A bounding box constructed from the distance between each axis. Equivalent to
- * Bounds_FromSize(distance, distance, distance).
- */
-static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromDistance(const float distance) {
-	return Bounds_FromSize(Vec3(distance, distance, distance));
-}
-
-/**
  * @return A bounding box constructed from a 3d size parameter. The box is constructed
  * such that its origin is zero, and its size equals `size` * 2.0.
  */
@@ -216,7 +209,15 @@ static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromAbsoluteS
 }
 
 /**
- * @return A bounding box constructed from the distance between each axis. Equivalent to
+ * @return A bounding box constructed from the distance between the extent of each axis. Equivalent to
+ * Bounds_FromSize(distance, distance, distance).
+ */
+static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromDistance(const float distance) {
+	return Bounds_FromSize(Vec3(distance, distance, distance));
+}
+
+/**
+ * @return A bounding box constructed from the distance between the center and each axis. Equivalent to
  * Bounds_FromAbsoluteSize(distance, distance, distance).
  */
 static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromAbsoluteDistance(const float distance) {
@@ -224,10 +225,17 @@ static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromAbsoluteD
 }
 
 /**
- * @return The relative radius of the bounds.
+ * @return The distance between the two corners of the bounds.
+ */
+static inline float __attribute__ ((warn_unused_result)) Bounds_Distance(const bounds_t a) {
+	return Vec3_Distance(a.maxs, a.mins);
+}
+
+/**
+ * @return The radius of the bounds (equivalent to Bounds_Distance(a) / 2).
  */
 static inline float __attribute__ ((warn_unused_result)) Bounds_Radius(const bounds_t a) {
-	return Vec3_Distance(a.maxs, a.mins) / 2.f;
+	return Bounds_Distance(a) / 2.f;
 }
 
 /**
@@ -251,9 +259,37 @@ static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromOrigin(co
 static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromOriginSize(const vec3_t origin, const vec3_t size) {
 	const vec3_t half_size = Vec3_Scale(size, .5f);
 	return Bounds(
-		Vec3_Add(origin, Vec3_Negate(half_size)),
+		Vec3_Subtract(origin, half_size),
 		Vec3_Add(origin, half_size)
 	);
+}
+
+
+/**
+ * @return A bounding box constructed from a 3d size parameter. The box is constructed
+ * such that its origin is `origin`, and its size matches `size` * 2.
+ */
+static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromOriginAbsoluteSize(const vec3_t origin, const vec3_t size) {
+	return Bounds(
+		Vec3_Subtract(origin, size),
+		Vec3_Add(origin, size)
+	);
+}
+
+/**
+ * @return A bounding box constructed from the distance between the extent of each axis,
+ * translated by `origin`.
+ */
+static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromOriginDistance(const vec3_t origin, const float distance) {
+	return Bounds_FromOriginSize(origin, Vec3(distance, distance, distance));
+}
+
+/**
+ * @return A bounding box constructed from the distance between the center and each axis,
+ * translated by `origin`.
+ */
+static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromOriginAbsoluteDistance(const vec3_t origin, const float distance) {
+	return Bounds_FromOriginAbsoluteSize(origin, Vec3(distance, distance, distance));
 }
 
 /**
@@ -331,4 +367,14 @@ static inline _Bool __attribute__ ((warn_unused_result)) Bounds_Equal(const boun
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Bounds_Extents(const bounds_t bounds) {
 	return Vec3_Maxf(Vec3_Fabsf(bounds.mins), Vec3_Fabsf(bounds.maxs));
+}
+
+/**
+ * @return The `bounds` scaled by `scale`.
+ */
+static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_Scale(const bounds_t bounds, const float scale) {
+	return Bounds(
+		Vec3_Scale(bounds.mins, scale),
+		Vec3_Scale(bounds.maxs, scale)
+	);
 }

@@ -27,7 +27,7 @@
 #include "simplex.h"
 
 typedef struct {
-	vec3_t stu_mins, stu_maxs;
+	bounds_t stu_bounds;
 	vec3i_t size;
 
 	mat4_t matrix;
@@ -58,11 +58,10 @@ static void BuildLightgridExtents(void) {
 
 	const bsp_model_t *world = bsp_file.models;
 
-	lg.stu_mins = Mat4_Transform(lg.matrix, world->bounds.mins);
-	lg.stu_maxs = Mat4_Transform(lg.matrix, world->bounds.maxs);
+	lg.stu_bounds = Mat4_TransformBounds(lg.matrix, world->bounds);
 
 	for (int32_t i = 0; i < 3; i++) {
-		lg.size.xyz[i] = floorf(lg.stu_maxs.xyz[i] - lg.stu_mins.xyz[i]) + 2;
+		lg.size.xyz[i] = floorf(lg.stu_bounds.maxs.xyz[i] - lg.stu_bounds.mins.xyz[i]) + 2;
 	}
 }
 
@@ -98,13 +97,13 @@ static void BuildLightgridLuxels(void) {
  */
 static int32_t ProjectLightgridLuxel(luxel_t *l, float soffs, float toffs, float uoffs) {
 
-	const float padding_s = ((lg.stu_maxs.x - lg.stu_mins.x) - lg.size.x) * 0.5;
-	const float padding_t = ((lg.stu_maxs.y - lg.stu_mins.y) - lg.size.y) * 0.5;
-	const float padding_u = ((lg.stu_maxs.z - lg.stu_mins.z) - lg.size.z) * 0.5;
+	const float padding_s = ((lg.stu_bounds.maxs.x - lg.stu_bounds.mins.x) - lg.size.x) * 0.5;
+	const float padding_t = ((lg.stu_bounds.maxs.y - lg.stu_bounds.mins.y) - lg.size.y) * 0.5;
+	const float padding_u = ((lg.stu_bounds.maxs.z - lg.stu_bounds.mins.z) - lg.size.z) * 0.5;
 
-	const float s = lg.stu_mins.x + padding_s + l->s + 0.5 + soffs;
-	const float t = lg.stu_mins.y + padding_t + l->t + 0.5 + toffs;
-	const float u = lg.stu_mins.z + padding_u + l->u + 0.5 + uoffs;
+	const float s = lg.stu_bounds.mins.x + padding_s + l->s + 0.5 + soffs;
+	const float t = lg.stu_bounds.mins.y + padding_t + l->t + 0.5 + toffs;
+	const float u = lg.stu_bounds.mins.z + padding_u + l->u + 0.5 + uoffs;
 
 	l->origin = Mat4_Transform(lg.inverse_matrix, Vec3(s, t, u));
 

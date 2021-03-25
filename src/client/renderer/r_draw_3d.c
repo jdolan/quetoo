@@ -152,43 +152,43 @@ void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color) {
 /**
  * @brief Draws the bounding box using line strips in 3D space.
  */
-void R_Draw3DBox(const vec3_t mins, const vec3_t maxs, const color_t color, const _Bool solid) {
+void R_Draw3DBox(const bounds_t bounds, const color_t color, const _Bool solid) {
 
 	if (!solid) {
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(mins.x, mins.y, mins.z),
-			Vec3(maxs.x, mins.y, mins.z),
-			Vec3(maxs.x, maxs.y, mins.z),
-			Vec3(mins.x, maxs.y, mins.z),
-			Vec3(mins.x, mins.y, mins.z),
+			Vec3(bounds.mins.x, bounds.mins.y, bounds.mins.z),
+			Vec3(bounds.maxs.x, bounds.mins.y, bounds.mins.z),
+			Vec3(bounds.maxs.x, bounds.maxs.y, bounds.mins.z),
+			Vec3(bounds.mins.x, bounds.maxs.y, bounds.mins.z),
+			Vec3(bounds.mins.x, bounds.mins.y, bounds.mins.z),
 		}, 5, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(mins.x, mins.y, maxs.z),
-			Vec3(maxs.x, mins.y, maxs.z),
-			Vec3(maxs.x, maxs.y, maxs.z),
-			Vec3(mins.x, maxs.y, maxs.z),
-			Vec3(mins.x, mins.y, maxs.z),
+			Vec3(bounds.mins.x, bounds.mins.y, bounds.maxs.z),
+			Vec3(bounds.maxs.x, bounds.mins.y, bounds.maxs.z),
+			Vec3(bounds.maxs.x, bounds.maxs.y, bounds.maxs.z),
+			Vec3(bounds.mins.x, bounds.maxs.y, bounds.maxs.z),
+			Vec3(bounds.mins.x, bounds.mins.y, bounds.maxs.z),
 		}, 5, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(mins.x, mins.y, mins.z),
-			Vec3(mins.x, mins.y, maxs.z),
+			Vec3(bounds.mins.x, bounds.mins.y, bounds.mins.z),
+			Vec3(bounds.mins.x, bounds.mins.y, bounds.maxs.z),
 		}, 2, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(mins.x, maxs.y, mins.z),
-			Vec3(mins.x, maxs.y, maxs.z),
+			Vec3(bounds.mins.x, bounds.maxs.y, bounds.mins.z),
+			Vec3(bounds.mins.x, bounds.maxs.y, bounds.maxs.z),
 		}, 2, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(maxs.x, maxs.y, mins.z),
-			Vec3(maxs.x, maxs.y, maxs.z),
+			Vec3(bounds.maxs.x, bounds.maxs.y, bounds.mins.z),
+			Vec3(bounds.maxs.x, bounds.maxs.y, bounds.maxs.z),
 		}, 2, color);
 
 		R_Draw3DLines((const vec3_t []) {
-			Vec3(maxs.x, mins.y, mins.z),
-			Vec3(maxs.x, mins.y, maxs.z),
+			Vec3(bounds.maxs.x, bounds.mins.y, bounds.mins.z),
+			Vec3(bounds.maxs.x, bounds.mins.y, bounds.maxs.z),
 		}, 2, color);
 	} else {
 		const GLuint elements[] = {
@@ -199,7 +199,7 @@ void R_Draw3DBox(const vec3_t mins, const vec3_t maxs, const color_t color, cons
 			// front
 			4, 5, 0, 5, 1, 0,
 			// back
-			7, 6, 3, 6, 2, 2,
+			7, 6, 3, 6, 2, 3,
 			// left
 			6, 4, 2, 4, 0, 2,
 			// right
@@ -208,7 +208,7 @@ void R_Draw3DBox(const vec3_t mins, const vec3_t maxs, const color_t color, cons
 
 		vec3_t points[8];
 
-		Bounds_ToPoints(Bounds(mins, maxs), points);
+		Bounds_ToPoints(bounds, points);
 
 		r_draw_3d_arrays_t draw = {
 			.mode = GL_TRIANGLES,

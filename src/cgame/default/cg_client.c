@@ -250,8 +250,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		ci->legs->bounds.mins = Vec3_Scale(PM_MINS, PM_SCALE);
-		ci->legs->bounds.maxs = Vec3_Scale(PM_MAXS, PM_SCALE);
+		ci->legs->bounds = Bounds_Scale(PM_BOUNDS, PM_SCALE);
 
 		ci->legs->radius = Bounds_Height(ci->legs->bounds) / 2.0;
 

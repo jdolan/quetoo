@@ -78,7 +78,7 @@ static int32_t EmitLeaf(node_t *node) {
 	out->contents = node->contents;
 	out->cluster = node->cluster;
 
-	out->bounds = Bounds(node->mins, node->maxs);
+	out->bounds = node->bounds;
 
 	// write the leaf_brushes
 	out->first_leaf_brush = bsp_file.num_leaf_brushes;
@@ -173,7 +173,7 @@ static int32_t EmitNode(node_t *node) {
 	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
 
-	out->bounds = Bounds(node->mins, node->maxs);
+	out->bounds = node->bounds;
 
 	out->plane_num = node->plane_num;
 
@@ -361,7 +361,7 @@ static void EmitBrushes(void) {
 		out->first_brush_side = bsp_file.num_brush_sides;
 		out->num_sides = b->num_sides;
 
-		out->bounds = Bounds(b->mins, b->maxs);
+		out->bounds = b->bounds;
 
 		for (int32_t j = 0; j < b->num_sides; j++) {
 
@@ -385,9 +385,9 @@ static void EmitBrushes(void) {
 
 				float dist;
 				if (side == -1) {
-					dist = -b->mins.xyz[axis];
+					dist = -b->bounds.mins.xyz[axis];
 				} else {
-					dist = b->maxs.xyz[axis];
+					dist = b->bounds.maxs.xyz[axis];
 				}
 
 				const int32_t plane_num = FindPlane(normal, dist);
@@ -522,7 +522,7 @@ bsp_model_t *BeginModel(const entity_t *e) {
 		
 		// a real brush (not an origin brush)
 		if (b->num_sides) {
-			mod->bounds = Bounds_Combine(mod->bounds, Bounds(b->mins, b->maxs));
+			mod->bounds = Bounds_Combine(mod->bounds, b->bounds);
 		}
 	}
 

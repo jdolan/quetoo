@@ -98,7 +98,7 @@ static void R_DrawBspOcclusionQueries(const r_view_t *view) {
 		}
 
 		c.a = .1f;
-		R_Draw3DBox(query->bounds.mins, query->bounds.maxs, c, true);
+		R_Draw3DBox(query->bounds, c, true);
 	}
 }
 

@@ -383,7 +383,7 @@ static s_play_sample_t *Cl_ParseSound(void) {
 
 		const cl_entity_t *ent = &cl.entities[play.entity];
 		if (ent->current.solid == SOLID_BSP) {
-			play.origin = Vec3_Scale(Vec3_Add(ent->abs_mins, ent->abs_maxs), .5f);
+			play.origin = Bounds_Origin(ent->abs_bounds);
 		} else {
 			play.origin = ent->current.origin;
 

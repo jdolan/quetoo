@@ -40,9 +40,9 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
 	const cl_entity_t *ent = &cl.entities[s->number];
 
 	if (s->client) {
-		return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_MONSTER);
+		return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
 	} else {
-		return Cm_SetBoxHull(Bounds(ent->mins, ent->maxs), CONTENTS_SOLID);
+		return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
 	}
 }
 
@@ -113,7 +113,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			continue;
 		}
 
-		if (!Vec3_BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box.mins, trace->box.maxs)) {
+		if (!Bounds_Intersect(ent->abs_bounds, trace->box)) {
 			continue;
 		}
 
