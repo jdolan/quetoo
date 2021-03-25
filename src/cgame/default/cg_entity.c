@@ -322,7 +322,7 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 		vec3_t start = Vec3_Fmaf(ent->origin, offsets[i].x, forward);
 		start = Vec3_Fmaf(start, offsets[i].y, right);
 		const vec3_t down = Vec3_Fmaf(start, MAX_WORLD_COORD, Vec3_Down());
-		const cm_trace_t tr = cgi.Trace(start, down, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+		const cm_trace_t tr = cgi.Trace(start, down, Bounds_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
 		int32_t p;
 
 		for (p = 0; p < num_planes; p++) {

@@ -73,7 +73,7 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 			play->flags &= ~S_PLAY_UNDERWATER;
 		}
 
-		const cm_trace_t tr = cgi.Trace(stage->origin, play->origin, Vec3_Zero(), Vec3_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+		const cm_trace_t tr = cgi.Trace(stage->origin, play->origin, Bounds_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 		if (tr.fraction < 1.f) {
 			play->flags |= S_PLAY_OCCLUDED;
 		} else {

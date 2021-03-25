@@ -323,7 +323,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 			const d_md3_frame_t frame = R_SwapMd3Frame(in);
 
-			out->bounds = Bounds(frame.mins, frame.maxs);
+			out->bounds = frame.bounds;
 			
 			out->translate = frame.translate;
 		}

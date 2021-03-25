@@ -70,9 +70,9 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 		return false;
 	}
 
-	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Bounds_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 
-	return Vec3_BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs);
+	return Bounds_Contains(other->abs_bounds, tr.end);
 }
 
 /**
@@ -715,7 +715,7 @@ static inline float Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	Vec3_Vectors(Vec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
 	const vec3_t end = Vec3_Fmaf(self->s.origin, (self->maxs.x - self->mins.x) * 2.0f, forward);
-	const cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
+	const cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Bounds_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0f) { // hit a wall
 	
@@ -750,9 +750,9 @@ static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, cons
 	const g_entity_t *self = ai_current_entity;
 
 	if (self->solid == SOLID_DEAD) {
-		return aim.gi->Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_CORPSE);
+		return aim.gi->Trace(start, end, Bounds(mins, maxs), self, CONTENTS_MASK_CLIP_CORPSE);
 	} else {
-		return aim.gi->Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_PLAYER);
+		return aim.gi->Trace(start, end, Bounds(mins, maxs), self, CONTENTS_MASK_CLIP_PLAYER);
 	}
 }
 
@@ -789,10 +789,7 @@ static _Bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
 	const vec3_t padding = { .x = 8.f, .y = 8.f, .z = 0.f };
 
 	// if we're touching our nav goal, we can go next
-	if (Vec3_BoxIntersect(goal->path.path_position,
-						  goal->path.path_position,
-						  Vec3_Subtract(self->abs_mins, padding),
-						  Vec3_Add(self->abs_maxs, padding))) {
+	if (Bounds_Contains(Bounds_Expand3(self->abs_bounds, padding), goal->path.path_position)) {
 
 		return Ai_TryNextNodeInPath(self, goal);
 	}
@@ -836,7 +833,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 		}
 
 		// something is blocking our destination
-		const cm_trace_t tr = aim.gi->Trace(ai->eye_origin, dest, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_CORPSE);
+		const cm_trace_t tr = aim.gi->Trace(ai->eye_origin, dest, Bounds_Zero(), self, CONTENTS_MASK_CLIP_CORPSE);
 
 		if (tr.fraction < 1.0f) {
 			goal->distress += 0.25f;

@@ -40,8 +40,8 @@ static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
  */
 static _Bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
 
-	const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->mins,
-	                               projectile->maxs, ent, CONTENTS_MASK_SOLID);
+	const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, Bounds(projectile->mins,
+	                               projectile->maxs), ent, CONTENTS_MASK_SOLID);
 
 	return tr.fraction < 1.0;
 }
@@ -70,7 +70,7 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
 		tr->end = pos;
 	} else {
-		const cm_trace_t trace = gi.Trace(pos, start, Vec3_Zero(), Vec3_Zero(), tr->ent, CONTENTS_MASK_LIQUID);
+		const cm_trace_t trace = gi.Trace(pos, start, Bounds_Zero(), tr->ent, CONTENTS_MASK_LIQUID);
 		tr->end = trace.end;
 	}
 
@@ -150,7 +150,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		end = pos2;
 	}
 
-	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_LIQUID);
+	const cm_trace_t tr = gi.Trace(start, end, Bounds_Zero(), ent, CONTENTS_MASK_LIQUID);
 	if (tr.start_solid || tr.fraction == 1.0) {
 		G_Debug("%s failed to resolve water\n", etos(ent));
 		return;
@@ -372,7 +372,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
                         int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, start, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = gi.Trace(ent->s.origin, start, Bounds_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 	if (tr.fraction == 1.0) {
 		vec3_t angles, forward, right, up, end;
 
@@ -383,7 +383,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		end = Vec3_Fmaf(end, RandomRangef(-hspread, hspread), right);
 		end = Vec3_Fmaf(end, RandomRangef(-vspread, vspread), up);
 
-		tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+		tr = gi.Trace(start, end, Bounds_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
 		G_Tracer(start, tr.end);
 	}
@@ -850,7 +850,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	end = Vec3_Fmaf(end, 2.f * sinf(g_level.time / 4.f), up);
 	end = Vec3_Fmaf(end, RandomRangef(-2.f, 2.f), right);
 
-	tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+	tr = gi.Trace(start, end, Bounds_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 
 	if (tr.contents & CONTENTS_MASK_LIQUID) { // entered water, play sound, leave trail
 		water_start = tr.end;
@@ -860,7 +860,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			self->locals.water_level = WATER_FEET;
 		}
 
-		tr = gi.Trace(water_start, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
+		tr = gi.Trace(water_start, end, Bounds_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 		G_BubbleTrail(water_start, &tr);
 
 		G_Ripple(NULL, start, end, 16.f, true);
@@ -953,7 +953,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	pos = start;
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, pos, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = gi.Trace(ent->s.origin, pos, Bounds_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 	if (tr.fraction < 1.0) {
 		pos = ent->s.origin;
 	}
@@ -973,7 +973,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	g_entity_t *ignore = ent;
 	while (ignore) {
-		tr = gi.Trace(pos, end, Vec3_Zero(), Vec3_Zero(), ignore, content_mask);
+		tr = gi.Trace(pos, end, Bounds_Zero(), ignore, content_mask);
 		if (!tr.ent) {
 			break;
 		}

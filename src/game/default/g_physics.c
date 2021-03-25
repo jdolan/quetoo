@@ -38,7 +38,7 @@ static void G_CheckGround(g_entity_t *ent) {
 		pos = ent->s.origin;
 		pos.z -= PM_GROUND_DIST;
 
-		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, ent->locals.clip_mask ? : CONTENTS_MASK_SOLID);
+		cm_trace_t trace = gi.Trace(ent->s.origin, pos, Bounds(ent->mins, ent->maxs), ent, ent->locals.clip_mask ? : CONTENTS_MASK_SOLID);
 
 		if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
 			if (ent->locals.ground_entity == NULL) {
@@ -78,16 +78,16 @@ static void G_CheckWater(g_entity_t *ent) {
 	const int32_t old_water_type = ent->locals.water_type;
 
 	if (ent->solid == SOLID_BSP) {
-		pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
-		mins = Vec3_Subtract(pos, ent->abs_mins);
-		maxs = Vec3_Subtract(ent->abs_maxs, pos);
+		pos = Bounds_Origin(ent->abs_bounds);
+		mins = Vec3_Subtract(pos, ent->abs_bounds.mins);
+		maxs = Vec3_Subtract(ent->abs_bounds.maxs, pos);
 	} else {
 		pos = ent->s.origin;
 		mins = ent->mins;
 		maxs = ent->maxs;
 	}
 
-	const cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, CONTENTS_MASK_LIQUID);
+	const cm_trace_t tr = gi.Trace(pos, pos, Bounds(mins, maxs), ent, CONTENTS_MASK_LIQUID);
 
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? WATER_UNDER : WATER_NONE;
@@ -155,7 +155,7 @@ static _Bool G_GoodPosition(const g_entity_t *ent) {
 
 	const int32_t mask = ent->locals.clip_mask ? : CONTENTS_MASK_SOLID;
 
-	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
+	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, Bounds(ent->mins, ent->maxs), ent, mask);
 
 	return tr.start_solid == false && tr.all_solid == false;
 }
@@ -383,7 +383,7 @@ void G_TouchOccupy(g_entity_t *ent) {
 			return;
 	}
 
-	const size_t len = gi.BoxEntities(ent->abs_mins, ent->abs_maxs, ents, lengthof(ents), BOX_OCCUPY);
+	const size_t len = gi.BoxEntities(ent->abs_bounds, ents, lengthof(ents), BOX_OCCUPY);
 	for (size_t i = 0; i < len; i++) {
 
 		g_entity_t *occupied = ents[i];
@@ -499,7 +499,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 	G_Physics_Push_Impact(self);
 
 	// calculate bounds for the entire move
-	vec3_t total_mins = self->abs_mins, total_maxs = self->abs_maxs;
+	bounds_t total_bounds = self->abs_bounds;
 
 	// unlink the pusher so we don't get it in the entity list
 	gi.UnlinkEntity(self);
@@ -510,10 +510,9 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 
 	gi.LinkEntity(self);
 
-	total_mins = Vec3_Minf(total_mins, self->abs_mins);
-	total_maxs = Vec3_Maxf(total_maxs, self->abs_maxs);
+	total_bounds = Bounds_Combine(total_bounds, self->abs_bounds);
 
-	const size_t len = gi.BoxEntities(total_mins, total_maxs, ents, lengthof(ents), BOX_ALL);
+	const size_t len = gi.BoxEntities(total_bounds, ents, lengthof(ents), BOX_ALL);
 
 	// calculate the angle vectors for rotational movement
 	inverse_amove = Vec3_Negate(amove);
@@ -582,7 +581,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 				// if our spot wasn't found initially, we are using
 				// a temporary "farther-than-necessary" position.
 				if (attempts > 0) {
-					const cm_trace_t tr = gi.Trace(ent->s.origin, desired_position, ent->mins, ent->maxs, ent, ent->locals.clip_mask);
+					const cm_trace_t tr = gi.Trace(ent->s.origin, desired_position, Bounds(ent->mins, ent->maxs), ent, ent->locals.clip_mask);
 
 					// should never be solid, but just in case...
 					if (!tr.all_solid && !tr.start_solid) {
@@ -754,7 +753,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 		pos = Vec3_Fmaf(ent->s.origin, time_remaining, ent->locals.velocity);
 
 		// trace to it
-		const cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, mask);
+		const cm_trace_t trace = gi.Trace(ent->s.origin, pos, Bounds(ent->mins, ent->maxs), ent, mask);
 
 		// if the entity is trapped in a solid, don't build up Z
 		if (trace.all_solid) {

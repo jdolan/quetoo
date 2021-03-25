@@ -524,7 +524,7 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 			num_parsed++;
 
 			if (output) {
-				output += type_size;
+				output = ((uint8_t *) output) + type_size;
 			}
 		}
 	}

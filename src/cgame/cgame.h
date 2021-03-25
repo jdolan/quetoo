@@ -536,13 +536,12 @@ typedef struct cg_import_s {
 	 * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.
 	 * @param start The trace start point.
 	 * @param end The trace end point.
-	 * @param mins The trace mins, or `NULL` for point trace.
-	 * @param maxs The trace maxs, or `NULL` for point trace.
+	 * @param bounds The trace bounds, or `Bounds_Zero()` for point/line trace.
 	 * @param skip The entity number to skip (typically our own client).
 	 * @param contents Solids matching this mask will clip the returned trace.
 	 * @return A trace result.
 	 */
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, const int32_t skip, const int32_t contents);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const bounds_t bounds, const int32_t skip, const int32_t contents);
 
 	/**
 	 * @param p The point to check.

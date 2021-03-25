@@ -333,8 +333,8 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_end) {
 			vec3_t pos;
 
-			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
-			pos.z = ent->abs_maxs.z;
+			pos = Bounds_Origin(ent->abs_bounds);
+			pos.z = ent->abs_bounds.maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
@@ -373,8 +373,8 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_start) {
 			vec3_t pos;
 
-			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
-			pos.z = ent->abs_maxs.z;
+			pos = Bounds_Origin(ent->abs_bounds);
+			pos.z = ent->abs_bounds.maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
@@ -1041,29 +1041,23 @@ static void G_func_door_CalculateMove(g_entity_t *self) {
  */
 static void G_func_door_CreateTrigger(g_entity_t *ent) {
 	g_entity_t *trigger;
-	vec3_t mins, maxs;
 
 	if (ent->locals.flags & FL_TEAM_SLAVE) {
 		return; // only the team leader spawns a trigger
 	}
 
-	mins = ent->abs_mins;
-	maxs = ent->abs_maxs;
+	bounds_t bounds = ent->abs_bounds;
 
 	for (trigger = ent->locals.team_next; trigger; trigger = trigger->locals.team_next) {
-		mins = Vec3_Minf(mins, trigger->abs_mins);
-		maxs = Vec3_Maxf(maxs, trigger->abs_maxs);
+		bounds = Bounds_Combine(bounds, trigger->abs_bounds);
 	}
 
 	// expand
-	mins.x -= 60;
-	mins.y -= 60;
-	maxs.x += 60;
-	maxs.y += 60;
+	bounds = Bounds_Expand3(bounds, Vec3(60.f, 60.f, 0.f));
 
 	trigger = G_AllocEntity();
-	trigger->mins = mins;
-	trigger->maxs = maxs;
+	trigger->mins = bounds.mins;
+	trigger->maxs = bounds.maxs;
 	trigger->owner = ent;
 	trigger->solid = SOLID_TRIGGER;
 	trigger->locals.move_type = MOVE_TYPE_NONE;

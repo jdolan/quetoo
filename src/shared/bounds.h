@@ -205,6 +205,25 @@ static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromDistance(
 }
 
 /**
+ * @return A bounding box constructed from a 3d size parameter. The box is constructed
+ * such that its origin is zero, and its size equals `size` * 2.0.
+ */
+static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromAbsoluteSize(const vec3_t size) {
+	return Bounds(
+		Vec3_Negate(size),
+		size
+	);
+}
+
+/**
+ * @return A bounding box constructed from the distance between each axis. Equivalent to
+ * Bounds_FromAbsoluteSize(distance, distance, distance).
+ */
+static inline bounds_t __attribute__ ((warn_unused_result)) Bounds_FromAbsoluteDistance(const float distance) {
+	return Bounds_FromAbsoluteSize(Vec3(distance, distance, distance));
+}
+
+/**
  * @return The relative radius of the bounds.
  */
 static inline float __attribute__ ((warn_unused_result)) Bounds_Radius(const bounds_t a) {

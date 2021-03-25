@@ -114,7 +114,7 @@ void Cg_AddFlares(void) {
 					p = v->position;
 				}
 
-				const cm_trace_t tr = cgi.Trace(cgi.view->origin, p, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_SOLID);
+				const cm_trace_t tr = cgi.Trace(cgi.view->origin, p, Bounds_Zero(), 0, CONTENTS_SOLID);
 				if (tr.fraction > 0.99f) {
 					exposure += 1.f / flare->face->num_vertexes;
 				}

@@ -80,8 +80,7 @@ static void Cg_UpdateFov(void) {
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	vec3_t forward, right, up, origin, point;
 
-	const vec3_t mins = Vec3(-16.f, -16.f, -16.f);
-	const vec3_t maxs = Vec3( 16.f,  16.f,  16.f);
+	const bounds_t bounds = Bounds_FromAbsoluteDistance(16.f);
 
 	if (cg_third_person->value || (cg_third_person_chasecam->value && ps->stats[STAT_CHASE])) {
 		cgi.client->third_person = true;
@@ -112,7 +111,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	origin = Vec3_Fmaf(origin, offset.y, right);
 	origin = Vec3_Fmaf(origin, offset.x, forward);
 
-	const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, mins, maxs, 0, CONTENTS_MASK_CLIP_PLAYER);
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, bounds, 0, CONTENTS_MASK_CLIP_PLAYER);
 	cgi.view->origin = tr.end;
 
 	point = Vec3_Subtract(point, cgi.view->origin);

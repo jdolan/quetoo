@@ -726,7 +726,7 @@ static _Bool G_WouldTelefrag(const vec3_t spot) {
 	mins.z += PM_STEP_HEIGHT;
 	maxs.z += PM_STEP_HEIGHT;
 
-	const size_t len = gi.BoxEntities(mins, maxs, ents, lengthof(ents), BOX_COLLIDE);
+	const size_t len = gi.BoxEntities(Bounds(mins, maxs), ents, lengthof(ents), BOX_COLLIDE);
 
 	for (size_t i = 0; i < len; i++) {
 
@@ -1356,9 +1356,9 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 	const g_entity_t *self = g_level.current_entity;
 
 	if (self->locals.dead) {
-		return gi.Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_CORPSE);
+		return gi.Trace(start, end, Bounds(mins, maxs), self, CONTENTS_MASK_CLIP_CORPSE);
 	} else {
-		return gi.Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_PLAYER);
+		return gi.Trace(start, end, Bounds(mins, maxs), self, CONTENTS_MASK_CLIP_PLAYER);
 	}
 }
 
@@ -1458,7 +1458,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				point = Vec3_Fmaf(ent->s.origin, cl->locals.speed * .4f, velocity);
 
 				// trace towards our jump destination to see if we have room to backflip
-				tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, CONTENTS_MASK_CLIP_PLAYER);
+				tr = gi.Trace(ent->s.origin, point, Bounds(ent->mins, ent->maxs), ent, CONTENTS_MASK_CLIP_PLAYER);
 
 				if (Vec3_Dot(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0) {
 					G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);

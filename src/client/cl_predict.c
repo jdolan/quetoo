@@ -82,8 +82,8 @@ int32_t Cl_PointContents(const vec3_t point) {
  */
 typedef struct {
 	vec3_t start, end;
-	vec3_t mins, maxs;
-	vec3_t box_mins, box_maxs;
+	bounds_t bounds;
+	bounds_t box;
 	cm_trace_t trace;
 	int32_t skip;
 	int32_t contents;
@@ -113,13 +113,13 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			continue;
 		}
 
-		if (!Vec3_BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box_mins, trace->box_maxs)) {
+		if (!Vec3_BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box.mins, trace->box.maxs)) {
 			continue;
 		}
 
 		const int32_t head_node = Cl_HullForEntity(s);
 
-		cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, Bounds(trace->mins, trace->maxs),
+		cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds,
 		                            head_node, trace->contents, &ent->matrix, &ent->inverse_matrix);
 
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
@@ -140,7 +140,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  * @param skip An optional entity number for which all tests are skipped. Pass
  * 0 for none, because entity 0 is the world, which we always test.
  */
-cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const bounds_t bounds,
                     const int32_t skip, const int32_t contents) {
 
 	cl_trace_t trace;
@@ -148,7 +148,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	memset(&trace, 0, sizeof(trace));
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, Bounds(mins, maxs), 0, contents, NULL, NULL);
+	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, NULL, NULL);
 	if (trace.trace.fraction < 1.0) {
 		trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
 
@@ -159,15 +159,11 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 
 	trace.start = start;
 	trace.end = end;
-	trace.mins = mins;
-	trace.maxs = maxs;
+	trace.bounds = bounds;
 	trace.skip = skip;
 	trace.contents = contents;
 
-	bounds_t trace_bounds = Cm_TraceBounds(start, end, Bounds(mins, maxs));
-	
-	trace.box_mins = trace_bounds.mins;
-	trace.box_maxs = trace_bounds.maxs;
+	trace.box = Cm_TraceBounds(start, end, bounds);
 
 	Cl_ClipTraceToEntities(&trace);
 

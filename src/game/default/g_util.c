@@ -62,7 +62,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 	// resolve the projectile destination
 	const vec3_t start = Vec3_Add(ent->s.origin, ent->client->ps.pm_state.view_offset);
 	const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, ent->client->locals.forward);
-	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = gi.Trace(start, end, Bounds_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	// resolve the projectile origin
 	vec3_t ent_forward, ent_right, ent_up;
@@ -88,7 +88,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 	}
 
 	// if the projected origin is invalid, use the entity's origin
-	if (gi.Trace(*org, *org, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
+	if (gi.Trace(*org, *org, Bounds_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
 		*org = ent->s.origin;
 	}
 
@@ -195,11 +195,11 @@ g_entity_t *G_FindRadius(g_entity_t *from, const vec3_t org, float rad) {
 			continue;
 		}
 
-		if (Vec3_Distance(org, from->abs_mins) < rad) {
+		if (Vec3_Distance(org, from->abs_bounds.mins) < rad) {
 			return from;
 		}
 
-		if (Vec3_Distance(org, from->abs_maxs) < rad) {
+		if (Vec3_Distance(org, from->abs_bounds.maxs) < rad) {
 			return from;
 		}
 
@@ -428,7 +428,7 @@ void G_KillBox(g_entity_t *ent) {
 	const vec3_t mins = Vec3_Add(ent->s.origin, ent->mins);
 	const vec3_t maxs = Vec3_Add(ent->s.origin, ent->maxs);
 
-	size_t i, len = gi.BoxEntities(mins, maxs, ents, lengthof(ents), BOX_COLLIDE);
+	size_t i, len = gi.BoxEntities(Bounds(mins, maxs), ents, lengthof(ents), BOX_COLLIDE);
 	for (i = 0; i < len; i++) {
 
 		if (ents[i] == ent) {

@@ -88,7 +88,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 		vec3_t end = org;
 		end.z -= MAX_WORLD_DIST;
 
-		const cm_trace_t tr = cgi.Trace(org, end, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+		const cm_trace_t tr = cgi.Trace(org, end, Bounds_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 		if (!tr.texinfo) {
 			continue;
 		}
