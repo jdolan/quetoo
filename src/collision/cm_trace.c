@@ -42,19 +42,19 @@ typedef struct {
 	const mat4_t *matrix;
 
 	cm_trace_t trace;
-
-	int32_t brushes[32]; // used to avoid multiple intersection tests with brushes
 } cm_trace_data_t;
+
+static __thread int32_t brushes[128]; // used to avoid multiple intersection tests with brushes
 
 /**
  * @brief
  */
-static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_num) {
+static _Bool Cm_BrushAlreadyTested(const int32_t brush_num) {
+	const int32_t hash = brush_num & (lengthof(brushes) - 1);
 
-	const int32_t hash = brush_num & 31;
-	const _Bool skip = (data->brushes[hash] == brush_num);
+	const _Bool skip = (brushes[hash] == brush_num);
 
-	data->brushes[hash] = brush_num;
+	brushes[hash] = brush_num;
 
 	return skip;
 }
@@ -215,7 +215,7 @@ static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
 		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
-		if (Cm_BrushAlreadyTested(data, brush_num)) {
+		if (Cm_BrushAlreadyTested(brush_num)) {
 			continue; // already checked this brush in another leaf
 		}
 
@@ -248,7 +248,7 @@ static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
 		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
-		if (Cm_BrushAlreadyTested(data, brush_num)) {
+		if (Cm_BrushAlreadyTested(brush_num)) {
 			continue; // already checked this brush in another leaf
 		}
 
@@ -396,7 +396,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 		return data.trace;
 	}
 
-	memset(data.brushes, 0xff, sizeof(data.brushes));
+	memset(brushes, 0xff, sizeof(brushes));
 
 	// check for point special case
 	if (Box3_Equal(bounds, Box3_Zero())) {
