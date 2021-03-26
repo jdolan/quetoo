@@ -1220,12 +1220,8 @@ void Ai_OffsetNodes_f(void) {
 		translate = Vec3_Subtract(player_position, node);
 	} else {	
 		const char *offset = aim.gi->Argv(1);
-	
-		parser_t parser;
 
-		Parse_Init(&parser, offset, PARSER_DEFAULT);
-
-		if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &translate, 3) != 3) {
+		if (Parse_QuickPrimitive(offset, PARSER_DEFAULT, PARSE_DEFAULT, PARSE_FLOAT, &translate, 3) != 3) {
 			return;
 		}
 	}

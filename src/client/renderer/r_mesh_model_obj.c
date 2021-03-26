@@ -106,18 +106,21 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 		vec3_t vec;
 		if (strncmp("v ", line, strlen("v ")) == 0) {
-			if (sscanf(line, "v %f %f %f", &vec.x, &vec.z, &vec.y) == 3) {
+			if (Parse_QuickPrimitive(line + strlen("v "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
+				// swap ordering to match Quetoo
+				vec = Vec3(vec.x, vec.z, vec.y);
 				mod->bounds = Box3_Append(mod->bounds, vec);
 				g_array_append_val(obj.v, vec);
 			}
 		} else if (strncmp("vt ", line, strlen("vt ")) == 0) {
-			if (sscanf(line, "vt %f %f", &vec.x, &vec.y) == 2) {
+			if (Parse_QuickPrimitive(line + strlen("vt "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 2) == 2) {
 				vec.y = -vec.y;
 				g_array_append_val(obj.vt, vec);
 			}
 		} else if (strncmp("vn ", line, strlen("vn ")) == 0) {
-			if (sscanf(line, "vn %f %f %f", &vec.x, &vec.z, &vec.y) == 3) {
-				vec = Vec3_Normalize(vec);
+			if (Parse_QuickPrimitive(line + strlen("vn "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
+				// swap ordering to match Quetoo
+				vec = Vec3_Normalize(Vec3(vec.x, vec.z, vec.y));
 				g_array_append_val(obj.vn, vec);
 			}
 		} else if (strncmp("g ", line, strlen("g ")) == 0) {

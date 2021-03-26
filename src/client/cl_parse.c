@@ -320,10 +320,8 @@ static void Cl_ParsePrint(void) {
 
 		// check to see if we should ignore the message
 		if (*cl_ignore->string) {
-			parser_t parser;
+			parser_t parser = Parse_Init(cl_ignore->string, PARSER_DEFAULT);
 			char pattern[MAX_STRING_CHARS];
-
-			Parse_Init(&parser, cl_ignore->string, PARSER_DEFAULT);
 
 			while (true) {
 

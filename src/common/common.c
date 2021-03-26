@@ -112,9 +112,8 @@ const char *Com_GetDebug(void) {
 void Com_SetDebug(const char *debug) {
 
 	static char token[DEBUG_CATEGORY_MAX_LEN];
-	static parser_t parser;
 
-	Parse_Init(&parser, debug, PARSER_NO_COMMENTS);
+	parser_t parser = Parse_Init(debug, PARSER_NO_COMMENTS);
 
 	while (true) {
 

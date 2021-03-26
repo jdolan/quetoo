@@ -22,18 +22,6 @@
 #include "parse.h"
 
 /**
- * @brief Initialize a parser with the specified data and flags.
- */
-void Parse_Init(parser_t *parser, const char *data, const parser_flags_t flags) {
-
-	memset(parser, 0, sizeof(*parser));
-
-	parser->flags = flags;
-	parser->start = data;
-	parser->position.ptr = data;
-}
-
-/**
  * @brief Return true if the parser is at the end of the input.
  */
 _Bool Parse_IsEOF(const parser_t *parser) {
@@ -180,7 +168,7 @@ static _Bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const c
 /**
  * @brief Attempts to skip any comments that may be at the start of this token. This function should
  * only be called once the start of a token has been established.
- * @returns false if we are at EOF
+ * @return false if we are at EOF
  */
 static _Bool Parse_SkipComments(parser_t *parser) {
 
@@ -333,7 +321,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 /**
  * @brief Parse a single token out of the parser with the specified parse flags. You must pass your own
  * buffer into this function.
- * @returns false if the token cannot fit in the specified buffer, true if the parsing has succeeded.
+ * @return false if the token cannot fit in the specified buffer, true if the parsing has succeeded.
  */
 _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
 	parser_position_t old_position = { NULL, 0, 0 };
@@ -469,10 +457,12 @@ static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *o
 	return false;
 }
 
+static __thread char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to hold one full double plus \0
+
 /**
  * @brief Parse typed data out of the parser with the specified parse flags. You may pass NULL as the output
  * if you only wish to verify that the data can be parsed and not actually store the results.
- * @returns false if the specified data type cannot be parsed from the specified position in the parser.
+ * @return The number of primitives successfully parsed.
  */
 size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count) {
 	parser_position_t old_position = { NULL, 0, 0 };
@@ -485,7 +475,7 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 
 	const parse_flags_t prim_flags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
 
-	if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
+	if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
 
 		if (flags & PARSE_PEEK) {
 			parser->position = old_position;
@@ -495,19 +485,16 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 	}
 
 	// if we had quotes...
-	if (*parser->scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
-		parser_t sub_parser;
-
+	if (*scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
 		// init sub-parser without quotes
-		parser->scratch[strlen(parser->scratch) - 1] = '\0';
-		Parse_Init(&sub_parser, parser->scratch + 1, parser->flags);
+		scratch[strlen(scratch) - 1] = '\0';
 
-		num_parsed = Parse_Primitive(&sub_parser, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
+		num_parsed = Parse_QuickPrimitive(scratch + 1, parser->flags, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
 	} else {
 		for (size_t i = 0; i < count; i++) {
 
 			if (i != 0) { // 0 is parsed above for quote checking
-				if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
+				if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
 
 					if (flags & PARSE_PEEK) {
 						parser->position = old_position;
@@ -517,7 +504,7 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 				}
 			}
 
-			if (!Parse_TypeParse(type, parser->scratch, output)) {
+			if (!Parse_TypeParse(type, scratch, output)) {
 				break;
 			}
 

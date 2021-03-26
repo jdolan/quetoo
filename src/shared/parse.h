@@ -77,7 +77,6 @@ typedef struct {
 	const char *start;
 
 	// dynamic members, change through parsing
-	char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to hold one full double plus \0
 	parser_position_t position;
 } parser_t;
 
@@ -136,20 +135,49 @@ typedef enum {
 	PARSE_DOUBLE
 } parse_type_t;
 
-void Parse_Init(parser_t *parser, const char *data, const parser_flags_t flags);
+/**
+ * @brief Initialize a parser with the specified data and flags.
+ */
+static inline parser_t __attribute__ ((warn_unused_result)) Parse_Init(const char *data, const parser_flags_t flags) {
+
+	return (parser_t) {
+		.start = data,
+		.position.ptr = data,
+		.flags = flags
+	};
+}
+
 _Bool Parse_IsEOF(const parser_t *parser);
 _Bool Parse_IsEOL(const parser_t *parser);
 _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len);
 size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count);
 
-#define Parse_SkipToken(parser, flags) \
-		Parse_Token(parser, flags, NULL, 0)
+static inline _Bool Parse_SkipToken(parser_t *parser, const parse_flags_t flags) {
+	return Parse_Token(parser, flags, NULL, 0);
+}
 
-#define Parse_SkipPrimitive(parser, flags, type, count) \
-		Parse_Primitive(parser, flags, type, NULL, count)
+static inline size_t Parse_SkipPrimitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type,
+										 const size_t count) {
+	return Parse_Primitive(parser, flags, type, NULL, count);
+}
 
-#define Parse_PeekToken(parser, flags, output, output_len) \
-		Parse_Token(parser, flags | PARSE_PEEK, output, output_len)
+static inline _Bool Parse_PeekToken(parser_t *parser, const parse_flags_t flags, void *output, const size_t output_len) {
+	return Parse_Token(parser, flags | PARSE_PEEK, output, output_len);
+}
 
-#define Parse_PeekPrimitive(parser, flags, type, output, count) \
-		Parse_Primitive(parser, flags | PARSE_PEEK, type, output, count)
+static inline size_t Parse_PeekPrimitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type,
+										 void *output, const size_t count) {
+	return Parse_Primitive(parser, flags | PARSE_PEEK, type, output, count);
+}
+
+static inline _Bool Parse_QuickToken(const char *data, const parser_flags_t parser_flags, const parse_flags_t flags,
+									 void *output, const size_t output_len) {
+	parser_t p = Parse_Init(data, parser_flags);
+	return Parse_Token(&p, flags, output, output_len);
+}
+
+static inline size_t Parse_QuickPrimitive(const char *data, const parser_flags_t parser_flags, const parse_flags_t flags,
+										  const parse_type_t type, void *output, const size_t count) {
+	parser_t p = Parse_Init(data, parser_flags);
+	return Parse_Primitive(&p, flags, type, output, count);
+}

@@ -68,7 +68,6 @@ r_material_t *R_ResolveMeshMaterial(const r_model_t *mod, const r_mesh_face_t *f
  */
 static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 	void *buf;
-	parser_t parser;
 	char token[MAX_STRING_CHARS];
 
 	config->transform = Mat4_Identity();
@@ -77,7 +76,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 		return;
 	}
 
-	Parse_Init(&parser, (const char *) buf, PARSER_DEFAULT);
+	parser_t parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
 
 	while (true) {
 

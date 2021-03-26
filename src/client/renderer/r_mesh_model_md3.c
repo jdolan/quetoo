@@ -29,7 +29,6 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 	void *buf;
 	int32_t skip = 0;
 	char token[MAX_TOKEN_CHARS];
-	parser_t parser;
 
 	Dirname(mod->media.name, path);
 	strcat(path, "animation.cfg");
@@ -41,7 +40,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 
 	mod->mesh->animations = Mem_LinkMalloc(sizeof(r_mesh_animation_t) * MD3_MAX_ANIMATIONS, mod->mesh);
 
-	Parse_Init(&parser, (const char *) buf, PARSER_DEFAULT);
+	parser_t parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
 
 	while (true) {
 

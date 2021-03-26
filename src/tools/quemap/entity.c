@@ -63,7 +63,7 @@ vec3_t VectorForKey(const entity_t *ent, const char *key, const vec3_t def) {
 	const char *value = ValueForKey(ent, key, NULL);
 	if (value) {
 		vec3_t out;
-		if (sscanf(value, "%f %f %f", &out.x, &out.y, &out.z) == 3) {
+		if (Parse_QuickPrimitive(value, PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &out, 3) == 3) {
 			return out;
 		}
 	}

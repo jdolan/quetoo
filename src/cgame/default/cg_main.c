@@ -469,11 +469,8 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 		static box3_t bounds;
 
 		if (cg_draw_trace_test->modified) {
-			parser_t parser;
-
-			Parse_Init(&parser, cg_draw_trace_test->string, PARSER_NO_COMMENTS);
-			
-			Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &bounds, 6);
+			Parse_QuickPrimitive(cg_draw_trace_test->string, PARSER_NO_COMMENTS,
+								 PARSE_DEFAULT, PARSE_FLOAT, &bounds, 6);
 
 			cg_draw_trace_test->modified = false;
 		}
