@@ -44,7 +44,7 @@ typedef struct {
 	cm_trace_t trace;
 } cm_trace_data_t;
 
-static __thread int32_t brushes[128]; // used to avoid multiple intersection tests with brushes
+static __thread uint16_t brushes[128]; // used to avoid multiple intersection tests with brushes
 
 /**
  * @brief
