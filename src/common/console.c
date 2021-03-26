@@ -443,7 +443,7 @@ void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
 	const char *partial = Cmd_Argv(argi);
 	char pattern[strlen(partial) + 3];
 
-	g_snprintf(pattern, sizeof(pattern), "%s*", partial);
+	g_snprintf(pattern, (gulong) sizeof(pattern), "%s*", partial);
 
 	Cmd_CompleteCommand(pattern, matches);
 	Cvar_CompleteVar(pattern, matches);
@@ -676,7 +676,7 @@ _Bool Con_CompleteInput(console_t *console) {
 			}
 		}
 
-		g_snprintf(partial + arg_pos, max_len - arg_pos, "%s", match);
+		g_snprintf(partial + arg_pos, (gulong) (max_len - arg_pos), "%s", match);
 	}
 
 	console->input.pos = strlen(console->input.buffer);

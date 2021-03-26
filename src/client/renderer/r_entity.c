@@ -26,25 +26,7 @@
  */
 static void R_SetEntityBounds(r_entity_t *e) {
 
-	e->abs_model_mins = Vec3_Mins();
-	e->abs_model_maxs = Vec3_Maxs();
-
-	const vec3_t corners[] = {
-		Vec3(e->model->mins.x, e->model->mins.y, e->model->mins.z),
-		Vec3(e->model->maxs.x, e->model->mins.y, e->model->mins.z),
-		Vec3(e->model->maxs.x, e->model->maxs.y, e->model->mins.z),
-		Vec3(e->model->mins.x, e->model->maxs.y, e->model->mins.z),
-		Vec3(e->model->mins.x, e->model->mins.y, e->model->maxs.z),
-		Vec3(e->model->maxs.x, e->model->mins.y, e->model->maxs.z),
-		Vec3(e->model->maxs.x, e->model->maxs.y, e->model->maxs.z),
-		Vec3(e->model->mins.x, e->model->maxs.y, e->model->maxs.z),
-	};
-
-	for (size_t i = 0; i < lengthof(corners); i++) {
-		const vec3_t corner = Mat4_Transform(e->matrix, corners[i]);
-		e->abs_model_mins = Vec3_Minf(e->abs_model_mins, corner);
-		e->abs_model_maxs = Vec3_Maxf(e->abs_model_maxs, corner);
-	}
+	e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
 }
 
 /**
@@ -60,11 +42,11 @@ static _Bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 		return false;
 	}
 
-	if (R_OccludeBox(view, e->abs_model_mins, e->abs_model_maxs)) {
+	if (R_OccludeBox(view, e->abs_model_bounds)) {
 		return true;
 	}
 
-	if (R_CullBox(view, e->abs_model_mins, e->abs_model_maxs)) {
+	if (R_CullBox(view, e->abs_model_bounds)) {
 		return true;
 	}
 
@@ -125,9 +107,9 @@ void R_UpdateEntities(r_view_t *view) {
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
 	if (r_draw_entity_bounds->integer == 2) {
-		R_Draw3DBox(e->abs_model_mins, e->abs_model_maxs, color_yellow);
+		R_Draw3DBox(e->abs_model_bounds, color_yellow, false);
 	} else {
-		R_Draw3DBox(e->abs_mins, e->abs_maxs, color_yellow);
+		R_Draw3DBox(e->abs_bounds, color_yellow, false);
 	}
 }
 

@@ -953,7 +953,7 @@ static void Cg_InitProjectile(const cl_entity_t *ent, vec3_t *forward, vec3_t *r
 	// resolve the projectile destination
 	const vec3_t start = cgi.view->origin;
 	const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
-	const cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(start, end, Box3_Zero(), ent->current.number, CONTENTS_MASK_CLIP_PROJECTILE);
 
 	// resolve the projectile origin
 	*org = Vec3_Fmaf(start, 12.f, cgi.view->forward);
@@ -976,7 +976,7 @@ static void Cg_InitProjectile(const cl_entity_t *ent, vec3_t *forward, vec3_t *r
 	}
 
 	// if the projected origin is invalid, use the entity's origin
-	if (cgi.Trace(*org, *org, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
+	if (cgi.Trace(*org, *org, Box3_Zero(), ent->current.number, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
 		*org = ent->origin;
 	}
 

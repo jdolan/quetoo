@@ -151,11 +151,10 @@ static void Cl_ParseBaseline(void) {
 	if (ent->baseline.solid) {
 		if (ent->baseline.solid == SOLID_BSP) {
 			ent->matrix = Mat4_FromRotationTranslationScale(ent->baseline.angles, ent->baseline.origin, 1.f);
-			ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 		} else { // bounding-box entities
 			ent->matrix = Mat4_FromRotationTranslationScale(Vec3_Zero(), ent->baseline.origin, 1.f);
-			ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 		}
+		ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 	}
 }
 
@@ -384,7 +383,7 @@ static s_play_sample_t *Cl_ParseSound(void) {
 
 		const cl_entity_t *ent = &cl.entities[play.entity];
 		if (ent->current.solid == SOLID_BSP) {
-			play.origin = Vec3_Scale(Vec3_Add(ent->abs_mins, ent->abs_maxs), .5f);
+			play.origin = Box3_Center(ent->abs_bounds);
 		} else {
 			play.origin = ent->current.origin;
 

@@ -214,11 +214,11 @@ void Cg_AddSprites(void) {
 				origin = Vec3_Add(origin, entity->origin);
 			}
 
-			const float half_size = ceilf((s->size ?: max(s->height, s->width)) * .5f);
-			cm_trace_t tr = cgi.Trace(old_origin, origin, Vec3(-half_size, -half_size, -half_size), Vec3(half_size, half_size, half_size), 0, CONTENTS_MASK_SOLID);
+			const float size = s->size ?: max(s->height, s->width);
+			cm_trace_t tr = cgi.Trace(old_origin, origin, Boxf(size), 0, CONTENTS_MASK_SOLID);
 
 			if (tr.start_solid || tr.all_solid) {
-				tr = cgi.Trace(old_origin, origin, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID);
+				tr = cgi.Trace(old_origin, origin, Box3_Zero(), 0, CONTENTS_MASK_SOLID);
 			}
 
 			if (tr.fraction < 1.0) {

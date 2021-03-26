@@ -36,11 +36,11 @@
     <ClInclude Include="..\..\src\shared\vector.h">
       <Filter>src\shared</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\shared\bounds.h">
+      <Filter>src\shared</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\shared\color.c">
-      <Filter>src\shared</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\shared\parse.c">
       <Filter>src\shared</Filter>
     </ClCompile>

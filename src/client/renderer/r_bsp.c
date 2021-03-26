@@ -46,8 +46,7 @@ int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend
 		return -1;
 	}
 
-	vec3_t mins, maxs;
-	Cm_TraceBounds(view->origin, p, Vec3_Zero(), Vec3_Zero(), &mins, &maxs);
+	box3_t bounds = Cm_TraceBounds(view->origin, p, Box3_Zero());
 
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 	for (guint i = 0; i < in->blend_elements->len; i++) {
@@ -58,7 +57,7 @@ int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend
 			continue;
 		}
 
-		if (Vec3_BoxIntersect(mins, maxs, draw->mins, draw->maxs)) {
+		if (Box3_Intersects(bounds, draw->bounds)) {
 			if (Cm_DistanceToPlane(p, draw->plane->cm) < 0.f) {
 
 				draw->blend_depth_types |= type;
@@ -85,17 +84,17 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		return;
 	}
 
-	vec3_t transformed_mins = node->mins, transformed_maxs = node->maxs;
+	box3_t bounds = node->bounds;
 
 	if (e) {
-		Cm_TransformBounds(e->matrix, &transformed_mins, &transformed_maxs);
+		bounds = Mat4_TransformBounds(e->matrix, bounds);
 	}
 
-	if (R_OccludeBox(view, transformed_mins, transformed_maxs)) {
+	if (R_OccludeBox(view, bounds)) {
 		return;
 	}
 
-	if (R_CullBox(view, transformed_mins, transformed_maxs)) {
+	if (R_CullBox(view, bounds)) {
 		return;
 	}
 
@@ -124,7 +123,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 			continue;
 		}
 
-		if (!Vec3_BoxIntersect(draw->mins, draw->maxs, node->mins, node->maxs)) {
+		if (!Box3_Intersects(draw->bounds, node->bounds)) {
 			continue;
 		}
 

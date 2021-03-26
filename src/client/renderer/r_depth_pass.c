@@ -89,7 +89,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	R_DrawBspInlineModelDepthPass(view, NULL, r_world_model->bsp->inline_models);
 
-	if (r_occlude->value && view->ticks - occlusion_query_ticks >= 8) {
+	if (r_occlude->value == 1 && view->ticks - occlusion_query_ticks >= 8) {
 		occlusion_query_ticks = view->ticks;
 
 		glDepthMask(GL_FALSE);
@@ -104,13 +104,13 @@ void R_DrawDepthPass(const r_view_t *view) {
 		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-			if (Vec3_BoxIntersect(view->origin, view->origin, q->mins, q->maxs)) {
+			if (Box3_ContainsPoint(q->bounds, view->origin)) {
 				q->pending = false;
 				q->result = 1;
 				continue;
 			}
 
-			if (R_CullBox(view, q->mins, q->maxs)) {
+			if (R_CullBox(view, q->bounds)) {
 				q->pending = false;
 				q->result = 0;
 				continue;
@@ -121,7 +121,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 				GLint available;
 				glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
 
-				if (available == GL_TRUE || r_occlude->integer == 2) {
+				if (available == GL_TRUE) {
 					glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
 				} else {
 					continue;
@@ -168,7 +168,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 /**
  * @brief
  */
-_Bool R_OccludeBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
+_Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
 	if (!r_depth_pass->value) {
 		return false;
@@ -184,15 +184,8 @@ _Bool R_OccludeBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
 
 	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
-
-		int32_t j;
-		for (j = 0; j < 3; j++) {
-			if (mins.xyz[j] < q->mins.xyz[j] || maxs.xyz[j] > q->maxs.xyz[j]) {
-				break;
-			}
-		}
-
-		if (j < 3) {
+		
+		if (!Box3_Contains(q->bounds, bounds)) {
 			continue;
 		}
 
@@ -209,7 +202,7 @@ _Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
 
 	const vec3_t size = Vec3(radius, radius, radius);
 
-	return R_OccludeBox(view, Vec3_Subtract(origin, size), Vec3_Add(origin, size));
+	return R_OccludeBox(view, Box3_FromCenterSize(origin, size));
 }
 
 /**
@@ -264,19 +257,19 @@ static void R_InitOcclusionQueries(void) {
 	glGenBuffers(1, &r_occlusion_queries.elements_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
 
-	const GLuint elements[36] = {
+	const GLuint elements[] = {
 		// bottom
-		0, 1, 2, 0, 2, 3,
+		0, 1, 3, 0, 3, 2,
 		// top
-		7, 6, 4, 6, 5, 4,
+		6, 7, 4, 7, 5, 4,
 		// front
 		4, 5, 0, 5, 1, 0,
 		// back
-		6, 7, 2, 7, 3, 2,
+		7, 6, 3, 6, 2, 3,
 		// left
-		7, 4, 3, 4, 0, 3,
+		6, 4, 2, 4, 0, 2,
 		// right
-		5, 6, 1, 6, 2, 1,
+		5, 7, 1, 7, 3, 1,
 	};
 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);

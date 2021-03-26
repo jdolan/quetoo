@@ -80,6 +80,28 @@ static struct {
 	r_image_t *warp_image;
 } r_bsp_program;
 
+static void R_DrawBspOcclusionQueries(const r_view_t *view) {
+
+	if (!r_draw_bsp_occlusion_queries->value) {
+		return;
+	}
+
+	const r_bsp_model_t *bsp = r_world_model->bsp;
+
+	const r_bsp_occlusion_query_t *query = bsp->occlusion_queries;
+
+	for (int32_t i = 0; i < bsp->num_occlusion_queries; i++, query++) {
+		color_t c = query->result ? color_green : color_red;
+
+		if (query->pending) {
+			c.b = 1.f;
+		}
+
+		c.a = .1f;
+		R_Draw3DBox(query->bounds, c, true);
+	}
+}
+
 /**
  * @brief
  */
@@ -149,7 +171,7 @@ void R_DrawBspLightgrid(r_view_t *view) {
 				}
 
 				const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
-				const vec3_t origin = Vec3_Fmaf(lg->mins, BSP_LIGHTGRID_LUXEL_SIZE, position);
+				const vec3_t origin = Vec3_Fmaf(lg->bounds.mins, BSP_LIGHTGRID_LUXEL_SIZE, position);
 
 				if (Vec3_DistanceSquared(view->origin, origin) > 512.f * 512.f) {
 					continue;
@@ -583,6 +605,8 @@ void R_DrawWorld(const r_view_t *view) {
 	R_GetError(NULL);
 
 	R_DrawBspNormals(view);
+
+	R_DrawBspOcclusionQueries(view);
 }
 
 #define WARP_IMAGE_SIZE 16

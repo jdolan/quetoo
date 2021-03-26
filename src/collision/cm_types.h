@@ -128,7 +128,7 @@ typedef struct {
 	/**
 	 * @brief The model bounds.
 	 */
-	vec3_t mins, maxs;
+	box3_t bounds;
 } cm_bsp_model_t;
 
 /**
@@ -326,7 +326,7 @@ typedef struct {
 	/**
 	 * @brief The brush bounds.
 	 */
-	vec3_t mins, maxs;
+	box3_t bounds;
 } cm_bsp_brush_t;
 
 /**

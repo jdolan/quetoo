@@ -77,8 +77,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 		mod->type = format->type;
 
-		mod->mins = Vec3_Mins();
-		mod->maxs = Vec3_Maxs();
+		mod->bounds = Box3_Null();
 
 		void *buf = NULL;
 
@@ -88,7 +87,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 		Fs_Free(buf);
 
-		mod->radius = Vec3_Distance(mod->maxs, mod->mins) / 2.0;
+		mod->radius = Box3_Radius(mod->bounds);
 
 		R_RegisterMedia((r_media_t *) mod);
 	}

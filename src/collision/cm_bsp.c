@@ -119,8 +119,7 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 		brush->contents = LittleLong(brush->contents);
 		brush->first_brush_side = LittleLong(brush->first_brush_side);
 		brush->num_sides = LittleLong(brush->num_sides);
-		brush->mins = LittleVec3(brush->mins);
-		brush->maxs = LittleVec3(brush->maxs);
+		brush->bounds = LittleBounds(brush->bounds);
 
 		brush++;
 	}
@@ -172,8 +171,7 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 		face->texinfo = LittleLong(face->texinfo);
 		face->contents = LittleLong(face->contents);
 
-		face->mins = LittleVec3(face->mins);
-		face->maxs = LittleVec3(face->maxs);
+		face->bounds = LittleBounds(face->bounds);
 
 		face->first_vertex = LittleLong(face->first_vertex);
 		face->num_vertexes = LittleLong(face->num_vertexes);
@@ -208,8 +206,7 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 		draw->texinfo = LittleLong(draw->texinfo);
 		draw->contents = LittleLong(draw->contents);
 
-		draw->mins = LittleVec3(draw->mins);
-		draw->maxs = LittleVec3(draw->maxs);
+		draw->bounds = LittleBounds(draw->bounds);
 
 		draw->first_element = LittleLong(draw->first_element);
 		draw->num_elements = LittleLong(draw->num_elements);
@@ -231,8 +228,7 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 		node->children[0] = LittleLong(node->children[0]);
 		node->children[1] = LittleLong(node->children[1]);
 
-		node->mins = LittleVec3(node->mins);
-		node->maxs = LittleVec3(node->maxs);
+		node->bounds = LittleBounds(node->bounds);
 
 		node->first_face = LittleLong(node->first_face);
 		node->num_faces = LittleLong(node->num_faces);
@@ -277,8 +273,7 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 		leaf->contents = LittleLong(leaf->contents);
 		leaf->cluster = LittleLong(leaf->cluster);
 
-		leaf->mins = LittleVec3(leaf->mins);
-		leaf->maxs = LittleVec3(leaf->maxs);
+		leaf->bounds = LittleBounds(leaf->bounds);
 
 		leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
 		leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
@@ -301,8 +296,7 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 		model->head_node = LittleLong(model->head_node);
 
-		model->mins = LittleVec3(model->mins);
-		model->maxs = LittleVec3(model->maxs);
+		model->bounds = LittleBounds(model->bounds);
 
 		model->first_face = LittleLong(model->first_face);
 		model->num_faces = LittleLong(model->num_faces);

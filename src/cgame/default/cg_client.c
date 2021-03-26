@@ -250,10 +250,9 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		ci->legs->mins = Vec3_Scale(PM_MINS, PM_SCALE);
-		ci->legs->maxs = Vec3_Scale(PM_MAXS, PM_SCALE);
+		ci->legs->bounds = Box3_Scale(PM_BOUNDS, PM_SCALE);
 
-		ci->legs->radius = (ci->legs->maxs.z - ci->legs->mins.z) / 2.0;
+		ci->legs->radius = Box3_Size(ci->legs->bounds).z / 2.0;
 
 		// load sound files if we're in-game
 		if (*cgi.state > CL_DISCONNECTED) {

@@ -135,7 +135,7 @@ typedef struct {
 	/**
 	 * @brief The bounds of all brushes in this fog entity.
 	 */
-	vec3_t mins, maxs;
+	box3_t bounds;
 } fog_t;
 
 extern GArray *fogs;

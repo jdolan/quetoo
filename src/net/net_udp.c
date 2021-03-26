@@ -119,7 +119,7 @@ _Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 	net_sockaddr addr;
 	socklen_t addr_len = sizeof(addr);
 
-	const ssize_t received = recvfrom(sock, (void *) buf->data, buf->max_size, 0,
+	const ssize_t received = recvfrom(sock, (void *) buf->data, (int32_t) buf->max_size, 0,
 	                                  (struct sockaddr *) &addr, &addr_len);
 
 	from->addr = addr.sin_addr.s_addr;
@@ -186,7 +186,7 @@ _Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data,
 	net_sockaddr to_addr;
 	Net_NetAddrToSockaddr(to, &to_addr);
 
-	ssize_t sent = sendto(sock, data, len, 0, (const struct sockaddr *) &to_addr, sizeof(to_addr));
+	ssize_t sent = sendto(sock, data, (int32_t) len, 0, (const struct sockaddr *) &to_addr, sizeof(to_addr));
 
 	if (sent == -1) {
 		Com_Warn("%s to %s\n", Net_GetErrorString(), Net_NetaddrToString(to));

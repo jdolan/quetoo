@@ -65,7 +65,7 @@ static void Net_HttpGetAsync_Completion(URLSessionTask *task, _Bool success) {
 
 	Com_Debug(DEBUG_NET, "%s: HTTP %d\n", task->request->url->urlString->chars, status);
 
-	const Net_HttpCallback callback = task->data;
+	const Net_HttpCallback callback = (Net_HttpCallback) task->data;
 
 	const Data *data = ((URLSessionDataTask *) task)->data;
 	if (data) {
@@ -89,7 +89,7 @@ void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback) {
 	URLSessionDataTask *task = $(session, dataTaskWithURL, url, Net_HttpGetAsync_Completion);
 	release(url);
 
-	task->urlSessionTask.data = callback;
+	task->urlSessionTask.data = (ident) callback;
 
 	$((URLSessionTask *) task, resume);
 }

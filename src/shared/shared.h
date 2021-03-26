@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "box.h"
 #include "color.h"
 #include "matrix.h"
 #include "parse.h"
@@ -248,7 +249,7 @@ typedef struct {
 	 * client-sided prediction so that players don't e.g. run through each
 	 * other.
 	 */
-	vec3_t mins, maxs;
+	box3_t bounds;
 
 	/**
 	 * @brief Step offset, used for player positional offsets from stair stepping.

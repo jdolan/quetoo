@@ -23,43 +23,13 @@
 
 #include "cm_types.h"
 
-cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-                       const int32_t head_node, const int32_t contents, const mat4_t *matrix, const mat4_t *inverse_matrix);
+cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, const int32_t head_node,
+					   const int32_t contents, const mat4_t *matrix, const mat4_t *inverse_matrix);
 
-void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles, const mat4_t matrix,
-                     const vec3_t mins, const vec3_t maxs, vec3_t *bounds_mins, vec3_t *bounds_maxs);
+box3_t Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles, const mat4_t matrix,
+						 const box3_t bounds);
 
-void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-                    vec3_t *bounds_mins, vec3_t *bounds_maxs);
-
-/**
- * @brief Rotate a bounding box by the specified matrix.
- * @param m 
- * @param mins 
- * @param maxs 
-*/
-static inline void Cm_TransformBounds(const mat4_t m, vec3_t *mins, vec3_t *maxs) {
-	
-	vec3_t points[8] = {
-		*mins,
-		{ .x = maxs->x, .y = mins->y, .z = mins->z },
-		{ .x = mins->x, .y = maxs->y, .z = mins->z },
-		{ .x = maxs->x, .y = maxs->y, .z = mins->z },
-		{ .x = mins->x, .y = mins->y, .z = maxs->z },
-		{ .x = maxs->x, .y = mins->y, .z = maxs->z },
-		{ .x = maxs->x, .y = maxs->y, .z = maxs->z },
-		*maxs
-	};
-
-	*mins = Vec3_Mins();
-	*maxs = Vec3_Maxs();
-
-	for (size_t i = 0; i < lengthof(points); i++) {
-		vec3_t p = Mat4_Transform(m, points[i]);
-		*mins = Vec3_Minf(*mins, p);
-		*maxs = Vec3_Maxf(*maxs, p);
-	}
-}
+box3_t Cm_TraceBounds(const vec3_t start, const vec3_t end, const box3_t bounds);
 
 #ifdef __CM_LOCAL_H__
 #endif /* __CM_LOCAL_H__ */
