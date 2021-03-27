@@ -114,13 +114,13 @@ void R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 		return;
 	}
 
-	const float size = s->size ?: Maxf(s->width, s->height);
+	const float size = (s->size ?: Maxf(s->width, s->height)) * .5f;
 
-	if (R_CullSphere(view, s->origin, size * .5f)) {
+	if (R_OccludeSphere(view, s->origin, size)) {
 		return;
 	}
 
-	if (R_OccludeSphere(view, s->origin, size * .5f)) {
+	if (R_CullSphere(view, s->origin, size)) {
 		return;
 	}
 
