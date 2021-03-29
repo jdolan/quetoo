@@ -117,7 +117,7 @@ r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 
 	const float size = (s->size ?: Maxf(s->width, s->height)) * .5f;
 
-	if (R_CullSphere(view, s->origin, size)) {
+	if (R_CulludeSphere(view, s->origin, size)) {
 		return NULL;
 	}
 
@@ -142,7 +142,7 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 	box3_t bounds = Cm_TraceBounds(b->start, b->end,
 									 Boxf(b->size));
 
-	if (R_CullBox(view, bounds)) {
+	if (R_CulludeBox(view, bounds)) {
 		return NULL;
 	}
 

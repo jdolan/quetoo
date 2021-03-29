@@ -33,7 +33,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	if (R_CullSphere(view, l->origin, l->radius)) {
+	if (R_CulludeSphere(view, l->origin, l->radius)) {
 		return;
 	}
 

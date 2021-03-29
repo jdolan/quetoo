@@ -177,6 +177,10 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 	if (!r_occlude->value) {
 		return false;
 	}
+	
+	if (view->type == VIEW_PLAYER_MODEL) {
+		return false;
+	}
 
 	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
