@@ -311,7 +311,7 @@ void R_InitDraw3D(void) {
 
 	glGenBuffers(1, &r_draw_3d.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_3d.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, r_draw_3d.num_vertexes * sizeof(r_draw_3d_vertex_t), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(r_draw_3d.vertexes), NULL, GL_DYNAMIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_draw_3d_vertex_t), (void *) offsetof(r_draw_3d_vertex_t, position));
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_3d_vertex_t), (void *) offsetof(r_draw_3d_vertex_t, color));
