@@ -28,6 +28,22 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
 #ifdef __R_LOCAL_H__
 
 /**
+ * @brief The lights block struct.
+ * @remarks This struct is vec4 aligned.
+ */
+typedef struct {
+	/**
+	 * @brief The light sources for the current frame, transformed to view space.
+	 */
+	r_light_t lights[MAX_LIGHTS];
+
+	/**
+	 * @brief The number of active light sources.
+	 */
+	int32_t num_lights;
+} r_lights_block_t;
+
+/**
  * @brief The lights uniform block type.
  */
 typedef struct {
@@ -37,21 +53,9 @@ typedef struct {
 	GLuint buffer;
 
 	/**
-	 * @brief The lights block struct.
-	 * @remarks This struct is vec4 aligned.
+	 * @brief The uniform buffer interface block.
 	 */
-	struct {
-		/**
-		 * @brief The light sources for the current frame, transformed to view space.
-		 */
-		r_light_t lights[MAX_LIGHTS];
-
-		/**
-		 * @brief The number of active light sources.
-		 */
-		int32_t num_lights;
-	} block;
-
+	r_lights_block_t block;
 } r_lights_t;
 
 /**

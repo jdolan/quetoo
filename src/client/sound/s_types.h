@@ -337,6 +337,14 @@ typedef struct s_stage_s {
 	int32_t num_samples;
 } s_stage_t;
 
+/**
+ * @brief Convenience function to clear the per-frame attributes
+ * of a sound stage.
+ */
+static inline void S_ClearStage(s_stage_t *stage) {
+	stage->num_samples = 0;
+}
+
 #ifdef __S_LOCAL_H__
 
 extern SF_VIRTUAL_IO s_rwops_io;
