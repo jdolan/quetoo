@@ -416,7 +416,7 @@ void R_UpdateSprites(r_view_t *view) {
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	R_GetError(NULL);
@@ -583,6 +583,7 @@ void R_InitSprites(void) {
 
 	glGenBuffers(1, &r_sprites.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(r_sprites.vertexes), NULL, GL_DYNAMIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, diffusemap));

@@ -259,7 +259,8 @@ static void R_UpdateUniforms(const r_view_t *view) {
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), &r_uniforms.block, GL_DYNAMIC_DRAW);
+	// FIXME: we can adjust the written size based on data that's being updated
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -518,6 +519,9 @@ static void R_InitConfig(void) {
 static void R_InitUniforms(void) {
 
 	glGenBuffers(1, &r_uniforms.buffer);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), NULL, GL_DYNAMIC_DRAW);
 
 	R_UpdateUniforms(NULL);
 }

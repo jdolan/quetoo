@@ -130,7 +130,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 
 			q->pending = true;
 
-			glBufferData(GL_ARRAY_BUFFER, sizeof(q->vertexes), q->vertexes, GL_DYNAMIC_DRAW);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(q->vertexes), q->vertexes);
 
 			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
 
@@ -251,6 +251,7 @@ static void R_InitOcclusionQueries(void) {
 
 	glGenBuffers(1, &r_occlusion_queries.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3_t[8]), NULL, GL_DYNAMIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
 

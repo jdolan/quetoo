@@ -547,7 +547,7 @@ void R_Draw2D(void) {
 	glBindVertexArray(r_draw_2d.vertex_array);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, r_draw_2d.num_vertexes * sizeof(r_draw_2d_vertex_t), r_draw_2d.vertexes, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, r_draw_2d.num_vertexes * sizeof(r_draw_2d_vertex_t), r_draw_2d.vertexes);
 
 	glEnableVertexAttribArray(r_draw_2d_program.in_position);
 	glEnableVertexAttribArray(r_draw_2d_program.in_diffusemap);
@@ -668,6 +668,7 @@ void R_InitDraw2D(void) {
 
 	glGenBuffers(1, &r_draw_2d.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(r_draw_2d.vertexes), NULL, GL_DYNAMIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_SHORT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, diffusemap));

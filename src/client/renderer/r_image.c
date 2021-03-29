@@ -54,6 +54,7 @@ static struct {
 static const r_texture_mode_t r_texture_modes[] = {
 	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST, GL_NEAREST },
 	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR, GL_LINEAR },
+	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST, GL_NEAREST },
 	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_LINEAR }
 };
 
@@ -72,6 +73,7 @@ static void R_TextureMode(void) {
 
 	if (i == lengthof(r_texture_modes)) {
 		Com_Warn("Bad filter name: %s\n", r_texture_mode->string);
+		r_image_state.texture_mode = r_texture_modes[0];
 		return;
 	}
 
