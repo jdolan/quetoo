@@ -549,6 +549,16 @@ typedef struct cg_import_s {
 	 */
 	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p);
 
+	_Bool (*CullPoint)(const r_view_t *view, const vec3_t point);
+
+	_Bool (*CullBox)(const r_view_t *view, const box3_t bounds);
+
+	_Bool (*CullSphere)(const r_view_t *view, const vec3_t point, const float radius);
+
+	_Bool (*OccludeBox)(const r_view_t *view, const box3_t bounds);
+
+	_Bool (*OccludeSphere)(const r_view_t *view, const vec3_t origin, float radius);
+
 	/**
 	 * @}
 	 */

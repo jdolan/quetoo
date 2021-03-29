@@ -49,9 +49,15 @@ typedef struct {
 	 * @brief The flare alpha value, ramped by occlusion traces.
 	 */
 	float alpha;
+
+	/**
+	 * @brief The flare exposure value, calculated every once in a while.
+	 */
+	float exposure;
 } cg_flare_t;
 
 static GPtrArray *cg_flares;
+static uint32_t cg_flare_timestamp;
 
 #define FLARE_ALPHA_RAMP 0.01
 
@@ -99,31 +105,46 @@ void Cg_AddFlares(void) {
 			flare->out.origin = Mat4_Transform(flare->entity->matrix, flare->in.origin);
 		}
 
+		// occluded by occlusion queries
+		if (cgi.OccludeSphere(cgi.view, flare->out.origin, flare->in.size)) {
+			continue;
+		}
+
+		// occluded entirely by screen edge
+		if (cgi.CullSphere(cgi.view, flare->out.origin, flare->in.size)) {
+			continue;
+		}
+
 		float exposure = 0.f;
+		
+		if ((cgi.client->unclamped_time - cg_flare_timestamp) > 50) {
+			const float dist = Cm_DistanceToPlane(cgi.view->origin, flare->face->plane->cm);
+			if (dist > 0.f) {
 
-		const float dist = Cm_DistanceToPlane(cgi.view->origin, flare->face->plane->cm);
-		if (dist > 0.f) {
+				const r_bsp_vertex_t *v = flare->face->vertexes;
+				for (int32_t j = 0; j < flare->face->num_vertexes; j++, v++) {
 
-			const r_bsp_vertex_t *v = flare->face->vertexes;
-			for (int32_t j = 0; j < flare->face->num_vertexes; j++, v++) {
+					vec3_t p;
+					if (flare->entity) {
+						p = Mat4_Transform(flare->entity->matrix, v->position);
+					} else {
+						p = v->position;
+					}
 
-				vec3_t p;
-				if (flare->entity) {
-					p = Mat4_Transform(flare->entity->matrix, v->position);
-				} else {
-					p = v->position;
-				}
-
-				const cm_trace_t tr = cgi.Trace(cgi.view->origin, p, Box3_Zero(), 0, CONTENTS_SOLID);
-				if (tr.fraction > 0.99f) {
-					exposure += 1.f / flare->face->num_vertexes;
+					const cm_trace_t tr = cgi.Trace(cgi.view->origin, p, Box3_Zero(), 0, CONTENTS_SOLID);
+					if (tr.fraction > 0.99f) {
+						exposure += 1.f / flare->face->num_vertexes;
+					}
 				}
 			}
+			flare->exposure = exposure;
+		} else {
+			exposure = flare->exposure;
 		}
 
 		float alpha;
 		if (exposure > 0.f) {
-			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * exposure;
+ 			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * exposure;
 		} else {
 			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * -(1.f - exposure);
 		}
@@ -131,9 +152,7 @@ void Cg_AddFlares(void) {
 		flare->alpha = Clampf(flare->alpha + alpha, 0.f, 1.f);
 		if (flare->alpha > 0.f) {
 
-			const float dot = -Vec3_Dot(cgi.view->forward, flare->face->plane->cm->normal);
-
-			alpha = Clampf(flare->alpha * dot * cg_add_flares->value, 0.f, 1.f);
+			alpha = Clampf(flare->alpha * cg_add_flares->value, 0.f, 1.f);
 			if (alpha > 0.f) {
 
 				const color_t in_color = Color32_Color(flare->in.color);
@@ -144,6 +163,10 @@ void Cg_AddFlares(void) {
 				cgi.AddSprite(cgi.view, &flare->out);
 			}
 		}
+	}
+
+	if ((cgi.client->unclamped_time - cg_flare_timestamp) > 50) {
+		cg_flare_timestamp = cgi.client->unclamped_time;
 	}
 }
 
@@ -180,7 +203,7 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 	}
 
 	flare->in.media = stage->media;
-	flare->in.softness = 2.f;
+	flare->in.softness = 0.25f;
 	flare->in.lighting = 1.f;
 
 	flare->out = flare->in;
