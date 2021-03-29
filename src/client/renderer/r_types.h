@@ -1254,6 +1254,15 @@ typedef struct {
 } r_view_t;
 
 /**
+ * @brief Convenience inline function to clear a view.
+ * Use this instead of memset.
+ */
+static inline void R_ClearView(r_view_t *view) {
+	view->num_beams = view->num_entities = view->num_lights = view->num_sprites =
+		view->num_sprite_instances = view->num_stains = 0;
+}
+
+/**
  * @brief Window and OpenGL context information.
  */
 typedef struct {

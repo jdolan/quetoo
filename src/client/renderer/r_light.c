@@ -50,8 +50,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
  */
 void R_UpdateLights(const r_view_t *view) {
 
-	memset(r_lights.block.lights, 0, sizeof(r_lights.block.lights));
-
 	if (view) {
 
 		const r_light_t *in = view->lights;
