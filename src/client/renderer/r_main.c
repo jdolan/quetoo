@@ -123,26 +123,6 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /**
- * @return True if the specified point is culled by the view frustum, false otherwise.
- */
-_Bool R_CullPoint(const r_view_t *view, const vec3_t point) {
-
-	if (!r_cull->value) {
-		return false;
-	}
-
-	const cm_bsp_plane_t *plane = view->frustum;
-	for (size_t i = 0; i< lengthof(view->frustum); i++, plane++) {
-		const float dist = Cm_DistanceToPlane(point, plane);
-		if (dist > 0.f) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/**
  * @return True if the specified bounding box is culled by the view frustum, false otherwise.
  * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
  */
@@ -153,6 +133,10 @@ _Bool R_CullBox(const r_view_t *view, const box3_t bounds) {
 	}
 
 	if (view->type == VIEW_PLAYER_MODEL) {
+		return false;
+	}
+	
+	if (R_OccludeBox(view, bounds)) {
 		return false;
 	}
 
@@ -189,6 +173,10 @@ _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius)
 	}
 
 	if (view->type == VIEW_PLAYER_MODEL) {
+		return false;
+	}
+
+	if (R_OccludeSphere(view, point, radius)) {
 		return false;
 	}
 

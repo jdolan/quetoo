@@ -103,55 +103,53 @@ static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float
 
 /**
  * @brief Copies the specified sprite into the view structure, provided it
- * passes a basic visibility test.
+ * passes a basic visibility test, and returns a pointer to the sprite
+ * slot it fills.
  */
-void R_AddSprite(r_view_t *view, const r_sprite_t *s) {
+r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 
 	assert(s->media);
 
 	if (view->num_sprites == MAX_SPRITES) {
 		Com_Debug(DEBUG_RENDERER, "MAX_SPRITES\n");
-		return;
+		return NULL;
 	}
 
 	const float size = (s->size ?: Maxf(s->width, s->height)) * .5f;
 
-	if (R_OccludeSphere(view, s->origin, size)) {
-		return;
-	}
-
 	if (R_CullSphere(view, s->origin, size)) {
-		return;
+		return NULL;
 	}
 
 	view->sprites[view->num_sprites] = *s;
 	view->num_sprites++;
+
+	return &view->sprites[view->num_sprites - 1];
 }
 
 /**
  * @brief Copies the specified sprite into the view structure, provided it
- * passes a basic visibility test.
+ * passes a basic visibility test, and returns a pointer to the sprite
+ * slot it fills.
  */
-void R_AddBeam(r_view_t *view, const r_beam_t *b) {
+r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 
 	if (view->num_beams == MAX_BEAMS) {
 		Com_Debug(DEBUG_RENDERER, "MAX_BEAMS\n");
-		return;
+		return NULL;
 	}
 
 	box3_t bounds = Cm_TraceBounds(b->start, b->end,
 									 Boxf(b->size));
 
-	if (R_OccludeBox(view, bounds)) {
-		return;
-	}
-
 	if (R_CullBox(view, bounds)) {
-		return;
+		return NULL;
 	}
 
 	view->beams[view->num_beams] = *b;
 	view->num_beams++;
+
+	return &view->beams[view->num_beams - 1];
 }
 
 /**

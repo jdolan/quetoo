@@ -105,20 +105,17 @@ void Cg_AddFlares(void) {
 			flare->out.origin = Mat4_Transform(flare->entity->matrix, flare->in.origin);
 		}
 
-		// occluded by occlusion queries
-		if (cgi.OccludeSphere(cgi.view, flare->out.origin, flare->in.size)) {
+		r_sprite_t *flare_sprite = cgi.AddSprite(cgi.view, &flare->out);
+
+		// occluded, so don't bother checking this
+		if (!flare_sprite) {
 			continue;
 		}
 
-		// occluded entirely by screen edge
-		if (cgi.CullSphere(cgi.view, flare->out.origin, flare->in.size)) {
-			continue;
-		}
-
-		float exposure = 0.f;
-		
 		if ((cgi.client->unclamped_time - cg_flare_timestamp) > 50) {
 			const float dist = Cm_DistanceToPlane(cgi.view->origin, flare->face->plane->cm);
+			flare->exposure = 0.f;
+
 			if (dist > 0.f) {
 
 				const r_bsp_vertex_t *v = flare->face->vertexes;
@@ -133,20 +130,17 @@ void Cg_AddFlares(void) {
 
 					const cm_trace_t tr = cgi.Trace(cgi.view->origin, p, Box3_Zero(), 0, CONTENTS_SOLID);
 					if (tr.fraction > 0.99f) {
-						exposure += 1.f / flare->face->num_vertexes;
+						flare->exposure += 1.f / flare->face->num_vertexes;
 					}
 				}
 			}
-			flare->exposure = exposure;
-		} else {
-			exposure = flare->exposure;
 		}
 
 		float alpha;
-		if (exposure > 0.f) {
- 			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * exposure;
+		if (flare->exposure > 0.f) {
+ 			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * flare->exposure;
 		} else {
-			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * -(1.f - exposure);
+			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * -(1.f - flare->exposure);
 		}
 
 		flare->alpha = Clampf(flare->alpha + alpha, 0.f, 1.f);
@@ -158,10 +152,14 @@ void Cg_AddFlares(void) {
 				const color_t in_color = Color32_Color(flare->in.color);
 				const color_t out_color = Color_Scale(in_color, alpha);
 
-				flare->out.color = Color_Color32(out_color);
-
-				cgi.AddSprite(cgi.view, &flare->out);
+				flare_sprite->color = Color_Color32(out_color);
+			} else {
+				// "undo" the sprite addition
+				cgi.view->num_sprites--;
 			}
+		} else {
+			// "undo" the sprite addition
+			cgi.view->num_sprites--;
 		}
 	}
 

@@ -229,12 +229,6 @@ void Cl_InitCgame(void) {
 
 	import.LeafForPoint = R_LeafForPoint;
 
-	import.CullPoint = R_CullPoint;
-	import.CullBox = R_CullBox;
-	import.CullSphere = R_CullSphere;
-	import.OccludeBox = R_OccludeBox;
-	import.OccludeSphere = R_OccludeSphere;
-
 	import.KeyDown = Cl_KeyDown;
 	import.KeyUp = Cl_KeyUp;
 	import.KeyState = Cl_KeyState;

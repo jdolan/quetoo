@@ -1260,6 +1260,16 @@ typedef struct {
 static inline void R_ClearView(r_view_t *view) {
 	view->num_beams = view->num_entities = view->num_lights = view->num_sprites =
 		view->num_sprite_instances = view->num_stains = 0;
+
+	memset(view->frustum, 0, sizeof(view->frustum));
+	view->angles = Vec3_Zero();
+	view->contents = 0;
+	view->forward = Vec3_Zero();
+	view->fov = Vec2_Zero();
+	view->origin = Vec3_Zero();
+	view->right = Vec3_Zero();
+	view->up = Vec3_Zero();
+	view->viewport = Vec4_Zero();
 }
 
 /**

@@ -42,10 +42,6 @@ static _Bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 		return false;
 	}
 
-	if (R_OccludeBox(view, e->abs_model_bounds)) {
-		return true;
-	}
-
 	if (R_CullBox(view, e->abs_model_bounds)) {
 		return true;
 	}

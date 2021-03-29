@@ -178,10 +178,6 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 		return false;
 	}
 
-	if (view->type == VIEW_PLAYER_MODEL) {
-		return false;
-	}
-
 	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 		
@@ -200,9 +196,7 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
  */
 _Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
 
-	const vec3_t size = Vec3(radius, radius, radius);
-
-	return R_OccludeBox(view, Box3_FromCenterSize(origin, size));
+	return R_OccludeBox(view, Box3_FromCenterDistance(origin, radius));
 }
 
 /**

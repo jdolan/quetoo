@@ -23,8 +23,8 @@
 
 #include "r_types.h"
 
-void R_AddSprite(r_view_t *view, const r_sprite_t *p);
-void R_AddBeam(r_view_t *view, const r_beam_t *p);
+r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *p);
+r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *p);
 
 #ifdef __R_LOCAL_H__
 void R_UpdateSprites(r_view_t *view);

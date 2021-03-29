@@ -549,16 +549,6 @@ typedef struct cg_import_s {
 	 */
 	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p);
 
-	_Bool (*CullPoint)(const r_view_t *view, const vec3_t point);
-
-	_Bool (*CullBox)(const r_view_t *view, const box3_t bounds);
-
-	_Bool (*CullSphere)(const r_view_t *view, const vec3_t point, const float radius);
-
-	_Bool (*OccludeBox)(const r_view_t *view, const box3_t bounds);
-
-	_Bool (*OccludeSphere)(const r_view_t *view, const vec3_t origin, float radius);
-
 	/**
 	 * @}
 	 */
@@ -720,12 +710,12 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Adds a sprite to the scene for the current frame.
 	 */
-	void (*AddSprite)(r_view_t *view, const r_sprite_t *p);
+	r_sprite_t *(*AddSprite)(r_view_t *view, const r_sprite_t *p);
 	
 	/**
 	 * @brief Adds a beam to the scene for the current frame.
 	 */
-	void (*AddBeam)(r_view_t *view, const r_beam_t *p);
+	r_beam_t *(*AddBeam)(r_view_t *view, const r_beam_t *p);
 
 	/**
 	 * @brief Add a stain to the scene.
