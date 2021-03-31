@@ -393,6 +393,65 @@ typedef struct {
 } sv_trace_t;
 
 /**
+ * @brief Clips the specified trace to the specified entity.
+ */
+static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
+
+	if (trace->skip) { // see if we can skip it
+
+		if (ent == trace->skip) {
+			return; // explicitly (ourselves)
+		}
+
+		if (ent->owner == trace->skip) {
+			return; // or via ownership (we own it)
+		}
+
+		if (trace->skip->owner) {
+
+			if (ent == trace->skip->owner) {
+				return; // which is bidirectional (inverse of previous case)
+			}
+
+			if (ent->owner == trace->skip->owner) {
+				return; // and commutative (we are both owned by the same)
+			}
+		}
+
+		// triggers only clip to the world (while other entities can occupy triggers)
+		if (trace->skip->solid == SOLID_TRIGGER) {
+
+			if (ent->solid != SOLID_BSP) {
+				return;
+			}
+		}
+	}
+
+	const int32_t head_node = Sv_HullForEntity(ent);
+	if (head_node == -1) {
+		return;
+	}
+
+	const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+
+	const cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end,
+									  trace->bounds,
+									  head_node, trace->contents,
+									  &sent->matrix, &sent->inverse_matrix);
+
+	// check for a full or partial intersection
+	if (tr.all_solid || tr.fraction < trace->trace.fraction) {
+
+		trace->trace = tr;
+		trace->trace.ent = (g_entity_t *) ent;
+
+		if (tr.all_solid) { // we were actually blocked
+			return;
+		}
+	}
+}
+
+/**
  * @brief Clips the specified trace to other entities in its bounds. This is the basis of all
  * collision and interaction for the server. Tread carefully.
  */
@@ -402,59 +461,8 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	const size_t len = Sv_BoxEntities(trace->box, e, lengthof(e), BOX_COLLIDE);
 
 	for (size_t i = 0; i < len; i++) {
-		g_entity_t *ent = e[i];
 
-		if (trace->skip) { // see if we can skip it
-
-			if (ent == trace->skip) {
-				continue; // explicitly (ourselves)
-			}
-
-			if (ent->owner == trace->skip) {
-				continue; // or via ownership (we own it)
-			}
-
-			if (trace->skip->owner) {
-
-				if (ent == trace->skip->owner) {
-					continue; // which is bidirectional (inverse of previous case)
-				}
-
-				if (ent->owner == trace->skip->owner) {
-					continue; // and commutative (we are both owned by the same)
-				}
-			}
-
-			// triggers only clip to the world (while other entities can occupy triggers)
-			if (trace->skip->solid == SOLID_TRIGGER) {
-
-				if (ent->solid != SOLID_BSP) {
-					continue;
-				}
-			}
-		}
-
-		const int32_t head_node = Sv_HullForEntity(ent);
-		if (head_node != -1) {
-
-			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
-
-			const cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end,
-											  trace->bounds,
-											  head_node, trace->contents,
-											  &sent->matrix, &sent->inverse_matrix);
-
-			// check for a full or partial intersection
-			if (tr.all_solid || tr.fraction < trace->trace.fraction) {
-
-				trace->trace = tr;
-				trace->trace.ent = ent;
-
-				if (tr.all_solid) { // we were actually blocked
-					return;
-				}
-			}
-		}
+		Sv_ClipTraceToEntity(trace, e[i]);
 	}
 }
 
@@ -467,9 +475,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
                     const g_entity_t *skip, const int32_t contents) {
 
-	sv_trace_t trace;
-
-	memset(&trace, 0, sizeof(trace));
+	sv_trace_t trace = { };
 
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, NULL, NULL);
@@ -492,6 +498,28 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
 
 	// clip to other solid entities
 	Sv_ClipTraceToEntities(&trace);
+
+	return trace.trace;
+}
+
+
+/**
+ * @brief Tests a clip of the specified translation against the specified entity.
+ */
+cm_trace_t Sv_Clip(const vec3_t start, const vec3_t end, const box3_t bounds,
+                   const g_entity_t *test, const int32_t contents) {
+
+	sv_trace_t trace = {
+		.trace = {
+			.fraction = 1.f
+		},
+		.start = start,
+		.end = end,
+		.bounds = bounds,
+		.contents = contents
+	};
+
+	Sv_ClipTraceToEntity(&trace, test);
 
 	return trace.trace;
 }
