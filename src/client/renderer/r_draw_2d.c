@@ -427,52 +427,47 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 /**
  * @brief
  */
-void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color, const _Bool blit) {
+void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color) {
 
 	if (framebuffer == NULL) {
 		Com_Warn("NULL framebuffer\n");
 		return;
 	}
 
-	if (!blit && framebuffer->multisample) {
-		Com_Error(ERROR_DROP, "Can't do a non-blit draw of a multisampled framebuffer\n");
+	if (framebuffer->multisample) {
+		Com_Warn("Multisample framebuffer\n");
+		return;
 	}
 
-	if (!blit) {
-		r_draw_2d_arrays_t draw = {
-			.mode = GL_TRIANGLES,
-			.texture = framebuffer->color_attachment,
-			.first_vertex = r_draw_2d.num_vertexes,
-			.num_vertexes = 6
-		};
+	r_draw_2d_arrays_t draw = {
+		.mode = GL_TRIANGLES,
+		.texture = framebuffer->color_attachment,
+		.first_vertex = r_draw_2d.num_vertexes,
+		.num_vertexes = 6
+	};
 
-		w = w ?: r_context.width;
-		h = h ?: r_context.height;
+	w = w ?: r_context.width;
+	h = h ?: r_context.height;
 
-		r_draw_2d_vertex_t quad[4];
+	r_draw_2d_vertex_t quad[4];
 
-		quad[0].position = Vec2s(x, y);
-		quad[1].position = Vec2s(x + w, y);
-		quad[2].position = Vec2s(x + w, y + h);
-		quad[3].position = Vec2s(x, y + h);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + w, y);
+	quad[2].position = Vec2s(x + w, y + h);
+	quad[3].position = Vec2s(x, y + h);
 
-		quad[0].diffusemap = Vec2(0, 1);
-		quad[1].diffusemap = Vec2(1, 1);
-		quad[2].diffusemap = Vec2(1, 0);
-		quad[3].diffusemap = Vec2(0, 0);
+	quad[0].diffusemap = Vec2(0, 1);
+	quad[1].diffusemap = Vec2(1, 1);
+	quad[2].diffusemap = Vec2(1, 0);
+	quad[3].diffusemap = Vec2(0, 0);
 
-		quad[0].color = Color_Color32(color);
-		quad[1].color = Color_Color32(color);
-		quad[2].color = Color_Color32(color);
-		quad[3].color = Color_Color32(color);
+	quad[0].color = Color_Color32(color);
+	quad[1].color = Color_Color32(color);
+	quad[2].color = Color_Color32(color);
+	quad[3].color = Color_Color32(color);
 
-		R_EmitDrawVertexes2D_Quad(quad);
-		R_AddDraw2DArrays(&draw);
-	} else {
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
-		glBlitFramebuffer(0, 0, framebuffer->width, framebuffer->height, x, y, x + w, y + h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	}
+	R_EmitDrawVertexes2D_Quad(quad);
+	R_AddDraw2DArrays(&draw);
 }
 
 /**

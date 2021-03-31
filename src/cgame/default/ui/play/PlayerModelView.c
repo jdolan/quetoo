@@ -129,7 +129,7 @@ static void render(View *self, Renderer *renderer) {
 		cgi.DrawPlayerModelView(&this->view);
 
 		const SDL_Rect renderFrame = $(self, renderFrame);
-		cgi.Draw2DFramebuffer(renderFrame.x, renderFrame.y, renderFrame.w, renderFrame.h, &this->framebuffer, color_white, false);
+		cgi.Draw2DFramebuffer(renderFrame.x, renderFrame.y, renderFrame.w, renderFrame.h, &this->framebuffer, color_white);
 	}
 }
 

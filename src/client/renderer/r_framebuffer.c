@@ -125,3 +125,29 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 		memset(framebuffer, 0, sizeof(*framebuffer));
 	}
 }
+
+/**
+ * @brief Blits the framebuffer object to the specified screen rect.
+ */
+void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
+
+	if (framebuffer) {
+		w = w ?: r_context.drawable_width;
+		h = h ?: r_context.drawable_height;
+		
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
+		glBlitFramebuffer(0,
+						  0,
+						  framebuffer->width,
+						  framebuffer->height,
+						  x,
+						  y,
+						  x + w,
+						  y + h,
+						  GL_COLOR_BUFFER_BIT,
+						  GL_NEAREST);
+	} else {
+		Com_Warn("NULL framebuffer\n");
+	}
+}
