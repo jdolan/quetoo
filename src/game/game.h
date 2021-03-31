@@ -583,6 +583,22 @@ typedef struct g_import_s {
 	                    const g_entity_t *skip, const int32_t contents);
 
 	/**
+	 * @brief Collision detection. Traces between the two endpoints, impacting
+	 * the specified entity's planes matching the specified contents mask.
+	 *
+	 * @param start The start point.
+	 * @param end The end point.
+	 * @param bounds The bounding box mins (optional; Box3_Zero() for a line trace).
+	 * @param ent The entity to clip against.
+	 * @param contents The contents mask to intersect with (e.g. CONTENTS_MASK_SOLID).
+	 *
+	 * @return The resulting trace. A fraction less than 1.0 indicates that
+	 * the trace intersected a plane.
+	 */
+	cm_trace_t (*Clip)(const vec3_t start, const vec3_t end, const box3_t bounds,
+	                   const g_entity_t *ent, const int32_t contents);
+
+	/**
 	 * @brief PVS and PHS query facilities, returning true if the two points
 	 * can see or hear each other.
 	 */

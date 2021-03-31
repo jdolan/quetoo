@@ -594,7 +594,7 @@ static void Cl_UpdateScene(void) {
 
 	R_DrawMainView(&cl_view);
 
-	R_Draw2DFramebuffer(0, 0, 0, 0, cl_view.framebuffer, color_white);
+	R_Draw2DFramebuffer(0, 0, r_context.drawable_width, r_context.drawable_height, cl_view.framebuffer, color_white, true);
 
 	S_RenderStage(&cl_stage);
 }

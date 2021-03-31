@@ -109,7 +109,7 @@ static void render(View *self, Renderer *renderer) {
 		Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
 
 		if (this->framebuffer.name == 0) {
-			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h);
+			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h, false);
 		}
 
 		this->view.framebuffer = &this->framebuffer;
@@ -129,7 +129,7 @@ static void render(View *self, Renderer *renderer) {
 		cgi.DrawPlayerModelView(&this->view);
 
 		const SDL_Rect renderFrame = $(self, renderFrame);
-		cgi.Draw2DFramebuffer(renderFrame.x, renderFrame.y, renderFrame.w, renderFrame.h, &this->framebuffer, color_white);
+		cgi.Draw2DFramebuffer(renderFrame.x, renderFrame.y, renderFrame.w, renderFrame.h, &this->framebuffer, color_white, false);
 	}
 }
 

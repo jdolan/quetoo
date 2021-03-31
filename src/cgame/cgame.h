@@ -606,9 +606,10 @@ typedef struct cg_import_s {
 	 * @brief Creates an OpenGL framebuffer with color and depth attachments.
 	 * @param width The framebuffer width, in pixels.
 	 * @param height The framebuffer height, in pixels.
+	 * @param multisampled Whether the buffer is multisampled or not.
 	 * @return The framebuffer.
 	 */
-	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height);
+	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height, _Bool multisampled);
 
 	/**
 	 * @brief Destroys the specified framebuffer, releasing any OpenGL resources.
@@ -771,8 +772,9 @@ typedef struct cg_import_s {
 	 * @param y The height, in pixels.
 	 * @param image The image.
 	 * @param color The color.
+	 * @param blit Whether to blit directly to the main framebuffer or to draw using a quad.
 	 */
-	void (*Draw2DFramebuffer)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color);
+	void (*Draw2DFramebuffer)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color, const _Bool blit);
 
 	/**
 	 * @brief Draws the string `s` at the given coordinates.

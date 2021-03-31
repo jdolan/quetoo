@@ -334,6 +334,7 @@ void Sv_InitGame(void) {
 	import.PointContents = Sv_PointContents;
 	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Sv_Trace;
+	import.Clip = Sv_Clip;
 	import.inPVS = Sv_InPVS;
 	import.inPHS = Sv_InPHS;
 	import.LinkEntity = Sv_LinkEntity;

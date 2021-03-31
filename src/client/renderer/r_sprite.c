@@ -62,6 +62,8 @@ static struct {
 	GLint texture_next_diffusemap;
 	GLint texture_depth_stencil_attachment;
 
+	GLuint texture_depth_stencil;
+	GLuint framebuffer;
 } r_sprite_program;
 
 /**
@@ -417,6 +419,10 @@ void R_UpdateSprites(r_view_t *view) {
 	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_sprite_program.framebuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, view->framebuffer->name);
+	glBlitFramebuffer(0, 0, view->framebuffer->width, view->framebuffer->height, 0, 0, view->framebuffer->width, view->framebuffer->height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
 	R_GetError(NULL);
 }
 
@@ -458,7 +464,7 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment);
+	glBindTexture(GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil);
 
 	r_sprite_instance_t *in = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(blend_depth));
 	
@@ -566,6 +572,28 @@ static void R_InitSpriteProgram(void) {
 
 	glUseProgram(0);
 
+	glGenTextures(1, &r_sprite_program.texture_depth_stencil);
+	glGenFramebuffers(1, &r_sprite_program.framebuffer);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, r_sprite_program.framebuffer);
+
+	glBindTexture(GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.width, r_context.height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil, 0);
+
+	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		Com_Error(ERROR_FATAL, "Failed to create framebuffer: %d\n", status);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	R_GetError(NULL);
 }
 
@@ -627,6 +655,8 @@ void R_InitSprites(void) {
 static void R_ShutdownSpriteProgram(void) {
 
 	glDeleteProgram(r_sprite_program.name);
+	glDeleteTextures(1, &r_sprite_program.texture_depth_stencil);
+	glDeleteFramebuffers(1, &r_sprite_program.framebuffer);
 
 	r_sprite_program.name = 0;
 }

@@ -389,8 +389,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	R_UpdateEntities(view);
 
-	R_UpdateSprites(view);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -398,8 +396,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
 	glViewport(0, 0, view->viewport.z, view->viewport.w);
 
 	R_DrawEntities(view, -1);
-
-	R_DrawSprites(view, -1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

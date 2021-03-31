@@ -1138,6 +1138,11 @@ typedef struct {
 	 * @brief The framebuffer height.
 	 */
 	r_pixel_t height;
+
+	/**
+	 * @brief Whether this framebuffer is multisampled or not.
+	 */
+	_Bool multisampled;
 } r_framebuffer_t;
 
 /**
@@ -1310,6 +1315,11 @@ typedef struct {
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	_Bool fullscreen;
+
+	/**
+	 * @brief Number of samples for multisampled buffers
+	 */
+	int32_t samples;
 } r_context_t;
 
 /**

@@ -32,5 +32,7 @@ size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, const size_t len,
 int32_t Sv_PointContents(const vec3_t p);
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
                     const g_entity_t *skip, const int32_t contents);
+cm_trace_t Sv_Clip(const vec3_t start, const vec3_t end, const box3_t bounds,
+                   const g_entity_t *test, const int32_t contents);
 
 #endif /* __SV_LOCAL_H__ */
