@@ -342,7 +342,7 @@ void R_InitContext(void) {
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
-	r_context.samples = attr[SDL_GL_MULTISAMPLESAMPLES];
+	r_context.multisample_samples = attr[SDL_GL_MULTISAMPLESAMPLES];
 
 	gladLoaderLoadGL();
 	

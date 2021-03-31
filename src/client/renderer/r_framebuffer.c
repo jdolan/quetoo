@@ -24,22 +24,22 @@
 /**
  * @brief
  */
-r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, _Bool multisampled) {
+r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, _Bool multisample) {
 
 	r_framebuffer_t framebuffer = {
 		.width = width,
 		.height = height,
-		.multisampled = multisampled
+		.multisample = multisample
 	};
 
 	glGenFramebuffers(1, &framebuffer.name);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.name);
 
-	if (multisampled) {
+	if (multisample) {
 		glGenRenderbuffers(1, &framebuffer.color_attachment);
 		glBindRenderbuffer(GL_RENDERBUFFER, framebuffer.color_attachment);
-		if (r_context.samples > 1) {
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, r_context.samples, GL_RGBA, framebuffer.width, framebuffer.height);
+		if (r_context.multisample_samples > 1) {
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, r_context.multisample_samples, GL_RGBA, framebuffer.width, framebuffer.height);
 		} else {
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, framebuffer.width, framebuffer.height);
 		}
@@ -55,11 +55,11 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, _Bool mul
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.color_attachment, 0);
 	}
 
-	if (multisampled) {
+	if (multisample) {
 		glGenRenderbuffers(1, &framebuffer.depth_attachment);
 		glBindRenderbuffer(GL_RENDERBUFFER, framebuffer.depth_attachment);
-		if (r_context.samples > 1) {
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, r_context.samples, GL_DEPTH24_STENCIL8, framebuffer.width, framebuffer.height);
+		if (r_context.multisample_samples > 1) {
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, r_context.multisample_samples, GL_DEPTH24_STENCIL8, framebuffer.width, framebuffer.height);
 		} else {
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, framebuffer.width, framebuffer.height);
 		}
@@ -82,7 +82,7 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, _Bool mul
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	if (multisampled) {
+	if (multisample) {
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	} else {
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -104,7 +104,7 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 			glDeleteFramebuffers(1, &framebuffer->name);
 		}
 
-		if (framebuffer->multisampled) {
+		if (framebuffer->multisample) {
 			if (framebuffer->color_attachment) {
 				glDeleteRenderbuffers(1, &framebuffer->color_attachment);
 			}

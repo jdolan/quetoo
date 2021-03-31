@@ -434,7 +434,7 @@ void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, con
 		return;
 	}
 
-	if (!blit && framebuffer->multisampled) {
+	if (!blit && framebuffer->multisample) {
 		Com_Error(ERROR_DROP, "Can't do a non-blit draw of a multisampled framebuffer\n");
 	}
 
