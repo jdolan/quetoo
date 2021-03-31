@@ -370,7 +370,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->vertexes[0].softness =
 		in->vertexes[1].softness =
 		in->vertexes[2].softness =
-		in->vertexes[3].softness = r_sprite_soften->integer ? b->softness : 0.f;
+		in->vertexes[3].softness = r_sprite_soften->value * b->softness;
 
 		in->vertexes[0].lighting =
 		in->vertexes[1].lighting =
