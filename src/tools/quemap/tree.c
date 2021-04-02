@@ -393,7 +393,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
-	tree->head_node->volume = BrushFromBounds(Boxf(MAX_WORLD_AXIAL));
+	tree->head_node->volume = BrushFromBounds(Box3f(MAX_WORLD_AXIAL, MAX_WORLD_AXIAL, MAX_WORLD_AXIAL));
 
 	BuildTree_r(tree->head_node, brushes);
 

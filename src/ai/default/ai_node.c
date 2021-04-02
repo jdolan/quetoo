@@ -406,7 +406,7 @@ _Bool Ai_Node_CanPathTo(const vec3_t position) {
 
 		// check with a thinner box; it might be a button press or rotating thing
 		if (stuck_in_mover) {
-			tr = aim.gi->Trace(position, Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Box3_MinsMaxs(Vec3(-4.f, -4.f, PM_BOUNDS.mins.z), Vec3(4.f, 4.f, PM_BOUNDS.maxs.z)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+			tr = aim.gi->Trace(position, Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Box3(Vec3(-4.f, -4.f, PM_BOUNDS.mins.z), Vec3(4.f, 4.f, PM_BOUNDS.maxs.z)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 			stuck_in_mover = tr.ent && (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
 
 			if (!stuck_in_mover) {

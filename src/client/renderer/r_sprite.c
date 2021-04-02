@@ -141,8 +141,7 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 		return NULL;
 	}
 
-	box3_t bounds = Cm_TraceBounds(b->start, b->end,
-									 Boxf(b->size));
+	const box3_t bounds = Cm_TraceBounds(b->start, b->end, Box3f(b->size, b->size, b->size));
 
 	if (R_CulludeBox(view, bounds)) {
 		return NULL;

@@ -301,10 +301,10 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
                                uint32_t mod) {
 
 	const box3_t bounds[NUM_GIB_MODELS] = {
-		Boxf(12.f),
-		Boxf(12.f),
-		Boxf(8.f),
-		Boxf(16.f),
+		Box3f(12.f, 12.f, 12.f),
+		Box3f(12.f, 12.f, 12.f),
+		Box3f(8.f, 8.f, 8.f),
+		Box3f(16.f, 16.f, 16.f),
 	};
 
 	const int32_t count = RandomRangei(4, 8);
