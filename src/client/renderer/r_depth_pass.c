@@ -177,7 +177,7 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 	if (!r_occlude->value) {
 		return false;
 	}
-	
+
 	if (view->type == VIEW_PLAYER_MODEL) {
 		return false;
 	}
