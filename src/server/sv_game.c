@@ -71,8 +71,7 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 	// if it is an inline model, get the size information for it
 	if (name[0] == '*') {
 		const cm_bsp_model_t *mod = Cm_Model(name);
-		ent->mins = mod->mins;
-		ent->maxs = mod->maxs;
+		ent->bounds = mod->bounds;
 		Sv_LinkEntity(ent);
 	}
 }
@@ -335,6 +334,7 @@ void Sv_InitGame(void) {
 	import.PointContents = Sv_PointContents;
 	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Sv_Trace;
+	import.Clip = Sv_Clip;
 	import.inPVS = Sv_InPVS;
 	import.inPHS = Sv_InPHS;
 	import.LinkEntity = Sv_LinkEntity;

@@ -48,6 +48,7 @@ extern cvar_t *r_specularity;
 extern cvar_t *r_sprite_quality;
 extern cvar_t *r_stains;
 extern cvar_t *r_texture_mode;
+extern cvar_t *r_texture_storage;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_width;
 
@@ -208,6 +209,7 @@ extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
 extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_normals;
+extern cvar_t *r_draw_bsp_occlusion_queries;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
@@ -229,8 +231,9 @@ void R_GetError_(const char *function, const char *msg);
 	} \
 }
 
-_Bool R_CullPoint(const r_view_t *view, const vec3_t point);
-_Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs);
+_Bool R_CullBox(const r_view_t *view, const box3_t bounds);
 _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius);
 
+_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds);
+_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius);
 #endif /* __R_LOCAL_H__ */

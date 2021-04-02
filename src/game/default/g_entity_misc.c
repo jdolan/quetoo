@@ -138,8 +138,10 @@ void G_misc_teleporter(g_entity_t *ent) {
 		gi.SetModel(ent, ent->model);
 		ent->sv_flags = SVF_NO_CLIENT;
 	} else { // or model-less form, misc_teleporter
-		ent->mins = Vec3(-32.0, -32.0, -24.0);
-		ent->maxs = Vec3(32.0, 32.0, -16.0);
+		ent->bounds = Box3(
+			Vec3(-32.0, -32.0, -24.0),
+			Vec3(32.0, 32.0, -16.0)
+		);
 
 		v = ent->s.origin;
 		v.z -= 16.0;
@@ -221,8 +223,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 
 	ent->s.origin = self->s.origin;
 
-	ent->mins = Vec3(-3.0, -3.0, -3.0);
-	ent->maxs = Vec3(3.0, 3.0, 3.0);
+	ent->bounds = Box3f(6.f, 6.f, 6.f);
 
 	Vec3_Vectors(self->s.angles, &ent->locals.velocity, NULL, NULL);
 	ent->locals.velocity = Vec3_Scale(ent->locals.velocity, self->locals.speed);

@@ -1,4 +1,5 @@
 noinst_HEADERS = \
+	box.h \
 	color.h \
 	matrix.h \
 	parse.h \

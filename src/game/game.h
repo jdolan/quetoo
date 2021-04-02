@@ -137,13 +137,19 @@ struct g_entity_s {
 	 * @brief The entity bounding box, set by the game, defines its relative
 	 * bounds. These are typically populated in the entity's spawn function.
 	 */
-	vec3_t mins, maxs;
+	box3_t bounds;
 
 	/**
 	 * @brief The entity bounding box, set by the server, in world space. These
 	 * are populated by gi.LinkEntity / Sv_LinkEntity.
 	 */
-	vec3_t abs_mins, abs_maxs, size;
+	box3_t abs_bounds;
+	
+	/**
+	 * @brief The entity size, set by the server. This
+	 * is populated by gi.LinkEntity / Sv_LinkEntity.
+	 */
+	vec3_t size;
 
 	/**
 	 * @brief The solid type for the entity (e.g. SOLID_BOX) defines its
@@ -566,16 +572,31 @@ typedef struct g_import_s {
 	 *
 	 * @param start The start point.
 	 * @param end The end point.
-	 * @param mins The bounding box mins (optional).
-	 * @param maxs The bounding box maxs (optional).
+	 * @param bounds The bounding box mins (optional; Box3_Zero() for a line trace).
 	 * @param skip The entity to skip (e.g. self) (optional).
 	 * @param contents The contents mask to intersect with (e.g. CONTENTS_MASK_SOLID).
 	 *
 	 * @return The resulting trace. A fraction less than 1.0 indicates that
 	 * the trace intersected a plane.
 	 */
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds,
 	                    const g_entity_t *skip, const int32_t contents);
+
+	/**
+	 * @brief Collision detection. Traces between the two endpoints, impacting
+	 * the specified entity's planes matching the specified contents mask.
+	 *
+	 * @param start The start point.
+	 * @param end The end point.
+	 * @param bounds The bounding box mins (optional; Box3_Zero() for a line trace).
+	 * @param ent The entity to clip against.
+	 * @param contents The contents mask to intersect with (e.g. CONTENTS_MASK_SOLID).
+	 *
+	 * @return The resulting trace. A fraction less than 1.0 indicates that
+	 * the trace intersected a plane.
+	 */
+	cm_trace_t (*Clip)(const vec3_t start, const vec3_t end, const box3_t bounds,
+	                   const g_entity_t *ent, const int32_t contents);
 
 	/**
 	 * @brief PVS and PHS query facilities, returning true if the two points
@@ -600,15 +621,14 @@ typedef struct g_import_s {
 	 * @brief Populates a list of entities occupying the specified bounding
 	 * box, filtered by the given type (BOX_SOLID, BOX_TRIGGER, ..).
 	 *
-	 * @param mins The box bounds in world space.
-	 * @param maxs The box bounds in world space.
+	 * @param bounds The box bounds in world space.
 	 * @param list The list of entities to populate.
 	 * @param len The maximum number of entities to return (lengthof(list)).
 	 * @param type The entity type to return (BOX_SOLID, BOX_TRIGGER, ..).
 	 *
 	 * @return The number of entities found.
 	 */
-	size_t (*BoxEntities)(const vec3_t mins, const vec3_t maxs, g_entity_t **list, const size_t len,
+	size_t (*BoxEntities)(const box3_t bounds, g_entity_t **list, const size_t len,
 	                      const uint32_t type);
 
 	/**

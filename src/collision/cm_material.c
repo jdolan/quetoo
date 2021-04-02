@@ -660,8 +660,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		return -1;
 	}
 
-	parser_t parser;
-	Parse_Init(&parser, (const char *) buf, PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS);
+	parser_t parser = Parse_Init((const char *) buf, PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS);
 
 	cm_material_t *m = NULL;
 	_Bool in_material = false;

@@ -38,9 +38,8 @@ static GList *G_MapList_Parse(const char *filename) {
 		return list;
 	}
 
-	parser_t parser;
 	char token[MAX_STRING_CHARS];
-	Parse_Init(&parser, (const char *) buf, PARSER_ALL_COMMENTS);
+	parser_t parser = Parse_Init((const char *) buf, PARSER_ALL_COMMENTS);
 
 	g_map_list_map_t *map = NULL;
 

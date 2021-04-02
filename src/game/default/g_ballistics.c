@@ -40,8 +40,8 @@ static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
  */
 static _Bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
 
-	const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->mins,
-	                               projectile->maxs, ent, CONTENTS_MASK_SOLID);
+	const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
+	                               ent, CONTENTS_MASK_SOLID);
 
 	return tr.fraction < 1.0;
 }
@@ -70,7 +70,7 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
 		tr->end = pos;
 	} else {
-		const cm_trace_t trace = gi.Trace(pos, start, Vec3_Zero(), Vec3_Zero(), tr->ent, CONTENTS_MASK_LIQUID);
+		const cm_trace_t trace = gi.Trace(pos, start, Box3_Zero(), tr->ent, CONTENTS_MASK_LIQUID);
 		tr->end = trace.end;
 	}
 
@@ -136,8 +136,8 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 
 		ent->locals.ripple_time = g_level.time;
 
-		start = Vec3_Add(ent->s.origin, ent->maxs);
-		end = Vec3_Add(ent->s.origin, ent->mins);
+		start = Vec3_Add(ent->s.origin, ent->bounds.maxs);
+		end = Vec3_Add(ent->s.origin, ent->bounds.mins);
 
 		start.x = end.x = (start.x + end.x) * 0.5;
 		start.y = end.y = (start.y + end.y) * 0.5;
@@ -150,7 +150,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		end = pos2;
 	}
 
-	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_LIQUID);
+	const cm_trace_t tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
 	if (tr.start_solid || tr.fraction == 1.0) {
 		G_Debug("%s failed to resolve water\n", etos(ent));
 		return;
@@ -178,10 +178,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		if (ent->locals.ripple_size) {
 			size = ent->locals.ripple_size;
 		} else {
-			vec3_t bounds;
-			bounds = Vec3_Subtract(ent->maxs, ent->mins);
-
-			size = Clampf(Vec3_Length(bounds), 12.0, 64.0);
+			size = Clampf(Box3_Distance(ent->bounds), 12.0, 64.0);
 		}
 	}
 
@@ -336,15 +333,13 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                          int32_t damage, int32_t knockback) {
 
-	const vec3_t mins = Vec3(-1.0, -1.0, -1.0);
-	const vec3_t maxs = Vec3( 1.0,  1.0,  1.0);
+	const box3_t bounds = Box3f(2.f, 2.f, 2.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	projectile->s.origin = start;
-	projectile->mins = mins;
-	projectile->maxs = maxs;
+	projectile->bounds = bounds;
 	projectile->s.angles = Vec3_Euler(dir);
 	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
@@ -372,7 +367,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
                         int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, start, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = gi.Trace(ent->s.origin, start, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 	if (tr.fraction == 1.0) {
 		vec3_t angles, forward, right, up, end;
 
@@ -383,7 +378,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		end = Vec3_Fmaf(end, RandomRangef(-hspread, hspread), right);
 		end = Vec3_Fmaf(end, RandomRangef(-vspread, vspread), up);
 
-		tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+		tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
 		G_Tracer(start, tr.end);
 	}
@@ -430,8 +425,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	if (self->locals.enemy) { // direct hit
 
 		vec3_t v;
-		v = Vec3_Add(self->locals.enemy->mins, self->locals.enemy->maxs);
-		v = Vec3_Fmaf(self->locals.enemy->s.origin, .5f, v);
+		v = Box3_Center(self->locals.enemy->bounds);
 		v = Vec3_Subtract(self->s.origin, v);
 
 		const float dist = Vec3_Length(v);
@@ -508,8 +502,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 						 int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
 
-	const vec3_t mins = Vec3(-3.0, -3.0, -3.0);
-	const vec3_t maxs = Vec3( 3.0,  3.0,  3.0);
+	const box3_t bounds = Box3f(6.f, 6.f, 6.f);
 
 	vec3_t forward, right, up;
 
@@ -517,8 +510,7 @@ void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	projectile->owner = ent;
 
 	projectile->s.origin = start;
-	projectile->mins = mins;
-	projectile->maxs = maxs;
+	projectile->bounds = bounds;
 	projectile->s.angles = Vec3_Euler(dir);
 
 	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
@@ -558,14 +550,12 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
                              vec3_t const start, const vec3_t dir, int32_t speed, int32_t damage,
 							 int32_t knockback, float damage_radius, uint32_t timer) {
 
-	const vec3_t mins = Vec3(-2.0, -2.0, -2.0);
-	const vec3_t maxs = Vec3( 2.0,  2.0,  2.0);
+	const box3_t bounds = Box3f(4.f, 4.f, 4.f);
 
 	vec3_t forward, right, up;
 
 	projectile->s.origin = start;
-	projectile->mins = mins;
-	projectile->maxs = maxs;
+	projectile->bounds = bounds;
 	projectile->s.angles = Vec3_Euler(dir);
 
 	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
@@ -644,15 +634,13 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 						int32_t damage, int32_t knockback, float damage_radius) {
 
-	const vec3_t mins = Vec3(-2.0, -2.0, -2.0);
-	const vec3_t maxs = Vec3( 2.0,  2.0,  2.0);
+	const box3_t bounds = Box3f(4.f, 4.f, 4.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	projectile->s.origin = start;
-	projectile->mins = mins;
-	projectile->maxs = maxs;
+	projectile->bounds = bounds;
 	projectile->s.angles = Vec3_Euler(dir);
 	projectile->locals.velocity = Vec3_Scale(dir, speed);
 	projectile->locals.avelocity = Vec3(0.0, 0.0, 600.0);
@@ -732,15 +720,13 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 							  int32_t damage, int32_t knockback) {
 
-	const vec3_t mins = Vec3(-3.0, -3.0, -3.0);
-	const vec3_t maxs = Vec3( 3.0,  3.0,  3.0);
+	const box3_t bounds = Box3f(6.f, 6.f, 6.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	projectile->s.origin = start;
-	projectile->mins = mins;
-	projectile->maxs = maxs;
+	projectile->bounds = bounds;
 	projectile->s.angles = Vec3_Euler(dir);
 	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
@@ -850,7 +836,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	end = Vec3_Fmaf(end, 2.f * sinf(g_level.time / 4.f), up);
 	end = Vec3_Fmaf(end, RandomRangef(-2.f, 2.f), right);
 
-	tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+	tr = gi.Trace(start, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 
 	if (tr.contents & CONTENTS_MASK_LIQUID) { // entered water, play sound, leave trail
 		water_start = tr.end;
@@ -860,7 +846,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			self->locals.water_level = WATER_FEET;
 		}
 
-		tr = gi.Trace(water_start, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
+		tr = gi.Trace(water_start, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 		G_BubbleTrail(water_start, &tr);
 
 		G_Ripple(NULL, start, end, 16.f, true);
@@ -953,7 +939,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	pos = start;
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, pos, Vec3_Zero(), Vec3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = gi.Trace(ent->s.origin, pos, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 	if (tr.fraction < 1.0) {
 		pos = ent->s.origin;
 	}
@@ -973,7 +959,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	g_entity_t *ignore = ent;
 	while (ignore) {
-		tr = gi.Trace(pos, end, Vec3_Zero(), Vec3_Zero(), ignore, content_mask);
+		tr = gi.Trace(pos, end, Box3_Zero(), ignore, content_mask);
 		if (!tr.ent) {
 			break;
 		}
@@ -1113,15 +1099,13 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 					 int32_t damage, int32_t knockback, float damage_radius) {
 
-	const vec3_t mins = Vec3(-4.0, -4.0, -4.0);
-	const vec3_t maxs = Vec3( 4.0,  4.0,  4.0);
+	const box3_t bounds = Box3f(8.f, 8.f, 8.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	projectile->s.origin = start;
-	projectile->mins = mins;
-	projectile->maxs = maxs;
+	projectile->bounds = bounds;
 	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
 	if (G_ImmediateWall(ent, projectile)) {
@@ -1169,8 +1153,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 
 			self->locals.move_type = MOVE_TYPE_THINK;
 			self->solid = SOLID_NOT;
-			self->mins = Vec3_Zero();
-			self->maxs = Vec3_Zero();
+			self->bounds = Box3_Zero();
 			self->locals.enemy = other;
 
 			gi.LinkEntity(self);

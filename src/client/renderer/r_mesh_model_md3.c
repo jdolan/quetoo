@@ -29,7 +29,6 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 	void *buf;
 	int32_t skip = 0;
 	char token[MAX_TOKEN_CHARS];
-	parser_t parser;
 
 	Dirname(mod->media.name, path);
 	strcat(path, "animation.cfg");
@@ -41,7 +40,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 
 	mod->mesh->animations = Mem_LinkMalloc(sizeof(r_mesh_animation_t) * MD3_MAX_ANIMATIONS, mod->mesh);
 
-	Parse_Init(&parser, (const char *) buf, PARSER_DEFAULT);
+	parser_t parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
 
 	while (true) {
 
@@ -183,8 +182,7 @@ static d_md3_frame_t R_SwapMd3Frame(const d_md3_frame_t *in) {
 	d_md3_frame_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	out.mins = LittleVec3(out.mins);
-	out.maxs = LittleVec3(out.maxs);
+	out.bounds = LittleBounds(out.bounds);
 	out.translate = LittleVec3(out.translate);
 	out.radius = LittleFloat(out.radius);
 #endif
@@ -323,8 +321,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 			const d_md3_frame_t frame = R_SwapMd3Frame(in);
 
-			out->mins = frame.mins;
-			out->maxs = frame.maxs;
+			out->bounds = frame.bounds;
 			
 			out->translate = frame.translate;
 		}
@@ -406,8 +403,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 						out_vertex->position = Vec3_Scale(Vec3s_CastVec3(vertex.point), MD3_XYZ_SCALE);
 
-						mod->mins = Vec3_Minf(mod->mins, out_vertex->position);
-						mod->maxs = Vec3_Maxf(mod->maxs, out_vertex->position);
+						mod->bounds = Box3_Append(mod->bounds, out_vertex->position);
 
 						float lat = (vertex.norm >> 8) & 0xff;
 						float lon = (vertex.norm & 0xff);

@@ -258,8 +258,7 @@ static void G_trigger_push_Effect(g_entity_t *self) {
 
 	g_entity_t *ent = G_AllocEntity();
 
-	ent->s.origin = Vec3_Add(self->mins, self->maxs);
-	ent->s.origin = Vec3_Scale(ent->s.origin, 0.5);
+	ent->s.origin = Box3_Center(self->bounds);
 
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->s.trail = TRAIL_TELEPORTER;

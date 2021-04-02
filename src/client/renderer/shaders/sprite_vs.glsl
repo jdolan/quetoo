@@ -56,7 +56,7 @@ void sprite_lighting(vec3 position, vec3 normal) {
 	light += texture(texture_lightgrid_diffuse, grid_coord).rgb;
 	light += texture(texture_lightgrid_ambient, grid_coord).rgb;
 
-	for (int i = 0; i < MAX_LIGHTS; i++) {
+	for (int i = 0; i < num_lights; i++) {
 
 		float radius = lights[i].origin.w;
 		if (radius == 0.0) {

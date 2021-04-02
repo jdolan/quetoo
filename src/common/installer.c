@@ -121,5 +121,4 @@ int32_t Installer_LaunchInstaller(void) {
 	
 	g_free(path);
 	Com_Shutdown("Installer launched successfully.\n");
-	return 0;
 }

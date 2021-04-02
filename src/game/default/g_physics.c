@@ -38,7 +38,7 @@ static void G_CheckGround(g_entity_t *ent) {
 		pos = ent->s.origin;
 		pos.z -= PM_GROUND_DIST;
 
-		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, ent->locals.clip_mask ? : CONTENTS_MASK_SOLID);
+		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, ent->locals.clip_mask ? : CONTENTS_MASK_SOLID);
 
 		if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
 			if (ent->locals.ground_entity == NULL) {
@@ -63,7 +63,7 @@ static void G_CheckGround(g_entity_t *ent) {
  * @brief
  */
 static void G_CheckWater(g_entity_t *ent) {
-	vec3_t pos, mins, maxs;
+	vec3_t pos;
 
 	if (ent->locals.move_type == MOVE_TYPE_WALK) {
 		return;
@@ -76,18 +76,20 @@ static void G_CheckWater(g_entity_t *ent) {
 	// check for water interaction
 	const pm_water_level_t old_water_level = ent->locals.water_level;
 	const int32_t old_water_type = ent->locals.water_type;
+	box3_t bounds;
 
 	if (ent->solid == SOLID_BSP) {
-		pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
-		mins = Vec3_Subtract(pos, ent->abs_mins);
-		maxs = Vec3_Subtract(ent->abs_maxs, pos);
+		pos = Box3_Center(ent->abs_bounds);
+		bounds = Box3(
+			Vec3_Subtract(pos, ent->abs_bounds.mins),
+			Vec3_Subtract(ent->abs_bounds.maxs, pos)
+		);
 	} else {
 		pos = ent->s.origin;
-		mins = ent->mins;
-		maxs = ent->maxs;
+		bounds = ent->bounds;
 	}
 
-	const cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, CONTENTS_MASK_LIQUID);
+	const cm_trace_t tr = gi.Trace(pos, pos, bounds, ent, CONTENTS_MASK_LIQUID);
 
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? WATER_UNDER : WATER_NONE;
@@ -155,9 +157,9 @@ static _Bool G_GoodPosition(const g_entity_t *ent) {
 
 	const int32_t mask = ent->locals.clip_mask ? : CONTENTS_MASK_SOLID;
 
-	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
+	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->bounds, ent, mask);
 
-	return tr.start_solid == false;
+	return tr.start_solid == false && tr.all_solid == false;
 }
 
 /**
@@ -174,6 +176,7 @@ static _Bool G_CorrectPosition(g_entity_t *ent) {
 			for (size_t k = 0; k < lengthof(offsets); k++) {
 
 				ent->s.origin = Vec3_Add(pos, Vec3(offsets[i], offsets[j], offsets[k]));
+				gi.LinkEntity(ent);
 
 				if (G_GoodPosition(ent)) {
 					return true;
@@ -183,6 +186,7 @@ static _Bool G_CorrectPosition(g_entity_t *ent) {
 	}
 
 	ent->s.origin = pos;
+	gi.LinkEntity(ent);
 	G_Debug("still solid, reverting %s\n", etos(ent));
 
 	return false;
@@ -383,7 +387,7 @@ void G_TouchOccupy(g_entity_t *ent) {
 			return;
 	}
 
-	const size_t len = gi.BoxEntities(ent->abs_mins, ent->abs_maxs, ents, lengthof(ents), BOX_OCCUPY);
+	const size_t len = gi.BoxEntities(ent->abs_bounds, ents, lengthof(ents), BOX_OCCUPY);
 	for (size_t i = 0; i < len; i++) {
 
 		g_entity_t *occupied = ents[i];
@@ -478,7 +482,7 @@ static void G_Physics_Push_Revert(const g_push_t *p) {
  * @brief When items ride pushers, they rotate along with them. For clients,
  * this requires incrementing their delta angles.
  */
-static void G_Physics_Push_Rotate(g_entity_t *self, g_entity_t *ent, float yaw) {
+static void G_Physics_Push_Rotate_Entity(g_entity_t *self, g_entity_t *ent, float yaw) {
 
 	if (ent->locals.ground_entity == self) {
 		if (ent->client) {
@@ -492,50 +496,30 @@ static void G_Physics_Push_Rotate(g_entity_t *self, g_entity_t *ent, float yaw) 
 /**
  * @brief
  */
-static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, const vec3_t amove) {
-	vec3_t inverse_amove, forward, right, up;
+static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move) {
 	g_entity_t *ents[MAX_ENTITIES];
 
 	G_Physics_Push_Impact(self);
 
 	// calculate bounds for the entire move
-	vec3_t total_mins = Vec3_Zero(), total_maxs = Vec3_Zero();
-
-	if (!Vec3_Equal(self->s.angles, Vec3_Zero()) || !Vec3_Equal(amove, Vec3_Zero())) {
-		const float radius = Vec3_Distance(self->mins, self->maxs) * 0.5;
-
-		for (int32_t i = 0 ; i < 3 ; i++ ) {
-			total_mins.xyz[i] = self->s.origin.xyz[i] - radius;
-			total_maxs.xyz[i] = self->s.origin.xyz[i] + radius;
-		}
-	} else {
-
-		total_mins = self->abs_mins;
-		total_maxs = self->abs_maxs;
-
-		for (int32_t i = 0; i < 3; i++) {
-			if (move.xyz[i] > 0) {
-				total_maxs.xyz[i] += move.xyz[i];
-			} else {
-				total_mins.xyz[i] += move.xyz[i];
-			}
-		}
-	}
+	box3_t total_bounds = self->abs_bounds;
 
 	// unlink the pusher so we don't get it in the entity list
 	gi.UnlinkEntity(self);
 
-	const size_t len = gi.BoxEntities(total_mins, total_maxs, ents, lengthof(ents), BOX_ALL);
+	// store original position
+	const vec3_t original_position = self->s.origin;
 
 	// move the pusher to it's intended position
-	self->s.origin = Vec3_Add(self->s.origin, move);
-	self->s.angles = Vec3_Add(self->s.angles, amove);
+	const vec3_t final_position = Vec3_Add(original_position, move);
+
+	self->s.origin = final_position;
 
 	gi.LinkEntity(self);
 
-	// calculate the angle vectors for rotational movement
-	inverse_amove = Vec3_Negate(amove);
-	Vec3_Vectors(inverse_amove, &forward, &right, &up);
+	total_bounds = Box3_Union(total_bounds, self->abs_bounds);
+
+	const size_t len = gi.BoxEntities(total_bounds, ents, lengthof(ents), BOX_ALL);
 
 	// see if any solid entities are inside the final position
 	for (size_t i = 0; i < len; i++) {
@@ -557,28 +541,280 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, cons
 
 		// if we are a pusher, or someone is riding us, try to move them
 		if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground_entity == self)) {
-			vec3_t translate, rotate, delta;
 
 			G_Physics_Push_Impact(ent);
 
-			// translate the pushed entity
-			ent->s.origin = Vec3_Add(ent->s.origin, move);
+			if (ent->locals.ground_entity == self) {
+				// we can only ride a bmodel if we're in a good position
+				// on top of it already; to make things simpler, we assume
+				// that we're not going to self-intersect with the pusher.
 
-			// then rotate the movement to comply with the pusher's rotation
-			translate = Vec3_Subtract(ent->s.origin, self->s.origin);
+				// move us by the full translation, clipping to the rest of the world,
+				// and clip us to where we end up.
+				gi.UnlinkEntity(self);
 
-			rotate.x = Vec3_Dot(translate, forward);
-			rotate.y = -Vec3_Dot(translate, right);
-			rotate.z = Vec3_Dot(translate, up);
+				const cm_trace_t tr = gi.Trace(ent->s.origin, Vec3_Add(ent->s.origin, move), ent->bounds, ent, ent->locals.clip_mask);
 
-			delta = Vec3_Subtract(rotate, translate);
+				gi.LinkEntity(self);
 
-			ent->s.origin = Vec3_Add(ent->s.origin, delta);
+				ent->s.origin = tr.end;
+
+				// if we're good here, we can stop
+				if (G_CorrectPosition(ent)) {
+					continue;
+				}
+
+				// we intersected with the mover. we may have been pushed off of us by the world,
+				// so try it's original position, which may now be valid.
+				G_Physics_Push_Revert(--g_push_p);
+
+				if (G_CorrectPosition(ent)) {
+					continue;
+				}
+				
+				// no good, we're blocking!
+			} else {
+				// we're not riding the bmodel, so we must be being pushed by it.
+				// trace backwards to find our TOI with the pusher.
+				gi.UnlinkEntity(ent);
+
+				// restore original position to calculate our hit with it
+				self->s.origin = original_position;
+
+				gi.LinkEntity(self);
+
+				cm_trace_t tr = gi.Clip(ent->s.origin, Vec3_Subtract(ent->s.origin, move), ent->bounds, self, ent->locals.clip_mask);
+
+				// did we even collide with it?
+				if (tr.fraction >= 1.0) {
+					G_Debug("%s false positive clip\n", etos(self));
+					continue; // was a false positive?
+				}
+
+				// didn't hit the mover??
+				if (tr.ent == self) {
+					// we did; clip us against the world with the full movement that
+					// we need to do
+					const float remaining_dist = 1.0f - tr.fraction;
+
+					const vec3_t new_position = Vec3_Fmaf(ent->s.origin, remaining_dist, Vec3_Multiply(move, Vec3_Fabsf(tr.plane.normal)));
+
+					tr = gi.Trace(ent->s.origin, new_position, ent->s.bounds, self, ent->locals.clip_mask);
+				
+					ent->s.origin = tr.end;
+
+					// in theory this should never be a bad spot, but who knows
+					if (G_CorrectPosition(ent)) {
+						G_Debug("%s: pushed %s into correct position\n", etos(self), etos(ent));
+						continue;
+					}
+					
+					G_Debug("%s: pushed %s into bad position\n", etos(self), etos(ent));
+				} else {
+					G_Debug("%s -> %s didn't clip?\n", etos(self), etos(ent));
+				}
+			}
+		}
+
+		// try to destroy the impeding entity by calling our Blocked function
+
+		if (self->locals.Blocked) {
+			self->locals.Blocked(self, ent);
+			if (!ent->in_use || ent->locals.dead) {
+				continue;
+			}
+		}
+
+		G_Debug("%s blocked by %s\n", etos(self), etos(ent));
+
+		// if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
+		// blocked: revert any moves we may have made and return our obstacle
+
+		while (g_push_p > g_pushes) {
+			G_Physics_Push_Revert(--g_push_p);
+		}
+
+		return ent;
+	}
+
+	// set us in the new position
+	self->s.origin = final_position;
+
+	// the move was successful, so re-link all pushed entities
+	for (g_push_t *p = g_push_p - 1; p >= g_pushes; p--) {
+		if (p->ent->in_use) {
+
+			gi.LinkEntity(p->ent);
+
+			G_CheckGround(p->ent);
+
+			G_CheckWater(p->ent);
+
+			G_TouchOccupy(p->ent);
+		}
+	}
+
+	return NULL;
+}
+
+static cm_trace_t G_Physics_Push_Rotate_And_Trace(g_entity_t *ent, g_entity_t *mover, const vec3_t angles) {
+	mover->s.angles = angles;
+	
+	gi.LinkEntity(mover);
+
+	return gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, mover, ent->locals.clip_mask);
+}
+
+/**
+ * @brief The smallest fraction we care about in rotational
+ * TOI precision checking
+ */
+#define TOI_MIN_FRACTION	0.06f
+
+/**
+ * @return 
+ */
+static float G_Physics_Push_Calculate_Rotational_TOI(g_entity_t *ent, g_entity_t *mover, const vec3_t original_angles, const vec3_t final_angles, const float left, const float right) {
+	const cm_trace_t left_tr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(original_angles, final_angles, left));
+	
+	const float half = Mixf(left, right, 0.5f);
+
+	const cm_trace_t half_tr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(original_angles, final_angles, half));
+
+	if (left_tr.fraction == 1.f && half_tr.fraction < 1.f) {
+
+		if (half - left < TOI_MIN_FRACTION) {
+			return left;
+		}
+
+		return G_Physics_Push_Calculate_Rotational_TOI(ent, mover, original_angles, final_angles, left, half);
+	}
+
+	const cm_trace_t right_tr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(original_angles, final_angles, right));
+
+	if (half_tr.fraction == 1.f && right_tr.fraction < 1.f) {
+
+		if (half - left < TOI_MIN_FRACTION) {
+			return half;
+		}
+
+		return G_Physics_Push_Calculate_Rotational_TOI(ent, mover, original_angles, final_angles, half, right);
+	}
+
+	// this is an edge case where both positions are occupied by the mover.
+	// should never be possible on any iteration other than the first.
+	return 0.f;
+}
+
+/**
+ * @brief
+ */
+static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
+	g_entity_t *ents[MAX_ENTITIES];
+
+	G_Physics_Push_Impact(self);
+
+	// calculate bounds for the entire move
+	box3_t total_bounds = self->abs_bounds;
+
+	// unlink the pusher so we don't get it in the entity list
+	gi.UnlinkEntity(self);
+
+	const vec3_t original_angles = self->s.angles;
+
+	const vec3_t final_angles = Vec3_Add(original_angles, amove);
+
+	// move the pusher to it's intended position
+	self->s.angles = final_angles;
+
+	gi.LinkEntity(self);
+
+	total_bounds = Box3_Union(total_bounds, self->abs_bounds);
+
+	const size_t len = gi.BoxEntities(total_bounds, ents, lengthof(ents), BOX_ALL);
+
+	// see if any solid entities are inside the final position
+	for (size_t i = 0; i < len; i++) {
+
+		g_entity_t *ent = ents[i];
+
+		if (ent->solid == SOLID_BSP) {
+			continue;
+		}
+
+		if (ent->locals.move_type < MOVE_TYPE_WALK) {
+			continue;
+		}
+
+		// if the entity is in a good position and not riding us, we can skip them
+		if (G_GoodPosition(ent) && ent->locals.ground_entity != self) {
+			continue;
+		}
+
+		// if we are a pusher, or someone is riding us, try to move them
+		if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground_entity == self)) {
+
+			G_Physics_Push_Impact(ent);
+
+			// are we going to collide with the mover?
+			// put us to final angles and check for intersection.
+			// FIXME: this won't work for larger rotations of thin objects
+			// that rotate beyond the bounds of an object.
+			self->s.angles = final_angles;
+
+			gi.LinkEntity(self);
+
+			cm_trace_t tr = gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->locals.clip_mask);
+			float remaining_move = 1.0f;
+
+			if (tr.fraction < 1.f) {
+				// we intersect with the final position, so we're gonna be
+				// pushed by the rotator. calculate approximate TOI
+				remaining_move = 1.0f - G_Physics_Push_Calculate_Rotational_TOI(ent, self, original_angles, final_angles, 0.f, 1.f);
+
+				// put us back to final position
+				self->s.angles = final_angles;
+
+				gi.LinkEntity(self);
+			}
+
+			// calculate the rotational matrix for the rotation around the origin
+			vec3_t original_ent_position = ent->s.origin;
+
+			// try a few movements, taking the one that doesn't clip with the mover.
+			const int32_t total_movements = 55;
+			int32_t i;
+
+			for (i = 0; i < total_movements; i++) {
+				int32_t offset = (int32_t) ceilf(i * 0.5f);
+				if (i & 1) {
+					offset = -offset;
+				}
+				mat4_t m = Mat4_FromTranslation(self->s.origin);
+				m = Mat4_ConcatRotation3(m, Vec3_Scale(Vec3(amove.z, amove.x, amove.y), remaining_move + (remaining_move * offset * 0.5f)));
+				m = Mat4_ConcatTranslation(m, Vec3_Negate(self->s.origin));
+
+				ent->s.origin = Mat4_Transform(m, original_ent_position);
+
+				if (gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->locals.clip_mask).fraction == 1.0f) {
+					G_Debug("%s rotated %s @ %i, good position\n", etos(self), etos(ent), i);
+					break;
+				}
+			}
+
+			if (i == total_movements) {
+				G_Debug("%s rotated %s, but couldn't fit; %f was remaining\n", etos(self), etos(ent), remaining_move);
+			}
+
+			// clip rest of the movement.
+			tr = gi.Trace(original_ent_position, ent->s.origin, ent->bounds, ent, ent->locals.clip_mask);
+
+			ent->s.origin = tr.end;
 
 			// if the move has separated us, finish up by rotating the entity
 			if (G_CorrectPosition(ent)) {
-				G_Physics_Push_Rotate(self, ent, amove.y);
-				continue;
+				G_Physics_Push_Rotate_Entity(self, ent, amove.y);
+				break;
 			}
 
 			if (ent->locals.ground_entity == self) {
@@ -650,26 +886,24 @@ static void G_Physics_Push(g_entity_t *ent) {
 
 	// make sure all team slaves can move before committing any moves
 	for (g_entity_t *part = ent; part; part = part->locals.team_next) {
-		if (!Vec3_Equal(part->locals.velocity, Vec3_Zero()) ||
-				!Vec3_Equal(part->locals.avelocity, Vec3_Zero())) { // object is moving
-			vec3_t move, amove;
+		if (!Vec3_Equal(part->locals.velocity, Vec3_Zero())) { // object is translating
+			const vec3_t move = Vec3_Scale(part->locals.velocity, QUETOO_TICK_SECONDS);
 
-			move = Vec3_Scale(part->locals.velocity, QUETOO_TICK_SECONDS);
-			amove = Vec3_Scale(part->locals.avelocity, QUETOO_TICK_SECONDS);
+			if ((obstacle = G_Physics_Push_Translate(part, move))) {
+				break; // move was blocked
+			}
+		}
 
-			if ((obstacle = G_Physics_Push_Move(part, move, amove))) {
+		if (!Vec3_Equal(part->locals.avelocity, Vec3_Zero())) { // object is rotating
+			const vec3_t amove = Vec3_Scale(part->locals.avelocity, QUETOO_TICK_SECONDS);
+
+			if ((obstacle = G_Physics_Push_Rotate(part, amove))) {
 				break; // move was blocked
 			}
 		}
 	}
 
-	if (obstacle) { // blocked, let's try again next frame
-		for (g_entity_t *part = ent; part; part = part->locals.team_next) {
-			if (part->locals.next_think) {
-				part->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
-			}
-		}
-	} else { // the move succeeded, so call all think functions
+	if (!obstacle) { // the move succeeded, so call all think functions
 		for (g_entity_t *part = ent; part; part = part->locals.team_next) {
 			G_RunThink(part);
 		}
@@ -744,7 +978,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 		pos = Vec3_Fmaf(ent->s.origin, time_remaining, ent->locals.velocity);
 
 		// trace to it
-		const cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, mask);
+		const cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, mask);
 
 		// if the entity is trapped in a solid, don't build up Z
 		if (trace.all_solid) {

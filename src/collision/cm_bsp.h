@@ -178,8 +178,7 @@ typedef struct {
 	int32_t contents;
 	int32_t first_brush_side;
 	int32_t num_sides; // the number of total brush sides, including bevel sides
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 } bsp_brush_t;
 
 typedef struct {
@@ -211,8 +210,7 @@ typedef struct {
 	int32_t texinfo;
 	int32_t contents;
 
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 
 	int32_t first_vertex;
 	int32_t num_vertexes;
@@ -227,8 +225,7 @@ typedef struct {
 	int32_t plane_num;
 	int32_t children[2]; // negative numbers are -(leafs + 1), not nodes
 
-	vec3_t mins; // for frustum culling
-	vec3_t maxs;
+	box3_t bounds; // for frustum culling
 
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
@@ -238,8 +235,7 @@ typedef struct {
 	int32_t contents; // OR of all brushes
 	int32_t cluster;
 
-	vec3_t mins; // for frustum culling
-	vec3_t maxs;
+	box3_t bounds; // for frustum culling
 
 	int32_t first_leaf_face;
 	int32_t num_leaf_faces;
@@ -259,8 +255,7 @@ typedef struct {
 	int32_t texinfo;
 	int32_t contents;
 
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 
 	int32_t first_element;
 	int32_t num_elements;
@@ -269,8 +264,7 @@ typedef struct {
 typedef struct {
 	int32_t head_node;
 
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 
 	int32_t first_face;
 	int32_t num_faces;
@@ -365,5 +359,3 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 _Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
 void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t count);
 void Bsp_Write(file_t *file, const bsp_file_t *bsp);
-int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *in, byte *out);
-int32_t Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out);

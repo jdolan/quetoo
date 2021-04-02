@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\shared\box.h" />
     <ClInclude Include="..\..\src\shared\color.h" />
     <ClInclude Include="..\..\src\shared\matrix.h" />
     <ClInclude Include="..\..\src\shared\parse.h" />

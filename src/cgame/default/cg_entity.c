@@ -207,8 +207,8 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
  */
 _Bool Cg_IsDucking(const cl_entity_t *ent) {
 
-	const float standing_height = (PM_MAXS.z - PM_MINS.z) * PM_SCALE;
-	const float height = ent->current.maxs.z - ent->current.mins.z;
+	const float standing_height = Box3_Size(PM_BOUNDS).z * PM_SCALE;
+	const float height = Box3_Size(ent->current.bounds).z;
 
 	return standing_height - height > PM_STOP_EPSILON;
 }
@@ -276,8 +276,8 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 
 	r_sprite_t shadow_sprite = {
 		.color = Color32(0, 0, 0, 255),
-		.width = (ent->model->maxs.y - ent->model->mins.y) * 2,
-		.height = (ent->model->maxs.x - ent->model->mins.x) * 2,
+		.width = Box3_Size(ent->model->bounds).y * 2,
+		.height = Box3_Size(ent->model->bounds).x * 2,
 		.rotation = Radians(ent->angles.y),
 		.media = (r_media_t *) cg_sprite_particle3,
 		.softness = -1.f,
@@ -290,15 +290,15 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 	const vec2_t offsets[9] = {
 		Vec2(0.f, 0.f),
 		
-		Vec2(ent->model->mins.x, ent->model->mins.y),
-		Vec2(ent->model->maxs.x, ent->model->mins.y),
-		Vec2(ent->model->maxs.x, ent->model->maxs.y),
-		Vec2(ent->model->mins.x, ent->model->maxs.y),
+		Vec2(ent->model->bounds.mins.x, ent->model->bounds.mins.y),
+		Vec2(ent->model->bounds.maxs.x, ent->model->bounds.mins.y),
+		Vec2(ent->model->bounds.maxs.x, ent->model->bounds.maxs.y),
+		Vec2(ent->model->bounds.mins.x, ent->model->bounds.maxs.y),
 		
-		Vec2(0.f, ent->model->mins.y),
-		Vec2(ent->model->maxs.x, 0.f),
-		Vec2(0.f, ent->model->maxs.y),
-		Vec2(ent->model->mins.x, 0.f)
+		Vec2(0.f, ent->model->bounds.mins.y),
+		Vec2(ent->model->bounds.maxs.x, 0.f),
+		Vec2(0.f, ent->model->bounds.maxs.y),
+		Vec2(ent->model->bounds.mins.x, 0.f)
 	};
 
 	int32_t num_shadows;
@@ -322,7 +322,7 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 		vec3_t start = Vec3_Fmaf(ent->origin, offsets[i].x, forward);
 		start = Vec3_Fmaf(start, offsets[i].y, right);
 		const vec3_t down = Vec3_Fmaf(start, MAX_WORLD_COORD, Vec3_Down());
-		const cm_trace_t tr = cgi.Trace(start, down, Vec3_Zero(), Vec3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+		const cm_trace_t tr = cgi.Trace(start, down, Box3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
 		int32_t p;
 
 		for (p = 0; p < num_planes; p++) {
@@ -352,10 +352,8 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 		.termination = ent->termination,
 		.angles = ent->angles,
 		.scale = 1.f,
-		.mins = ent->mins,
-		.maxs = ent->maxs,
-		.abs_mins = ent->abs_mins,
-		.abs_maxs = ent->abs_maxs,
+		.bounds = ent->bounds,
+		.abs_bounds = ent->abs_bounds
 	};
 
 	// add effects, augmenting the renderer entity

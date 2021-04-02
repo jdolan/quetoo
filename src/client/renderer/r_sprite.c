@@ -21,8 +21,8 @@
 
 #include "r_local.h"
 
-static cvar_t *r_sprites_lerp;
-static cvar_t *r_sprites_soften;
+static cvar_t *r_sprite_lerp;
+static cvar_t *r_sprite_soften;
 
 /**
  * @brief
@@ -62,6 +62,8 @@ static struct {
 	GLint texture_next_diffusemap;
 	GLint texture_depth_stencil_attachment;
 
+	GLuint texture_depth_stencil;
+	GLuint framebuffer;
 } r_sprite_program;
 
 /**
@@ -103,58 +105,52 @@ static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float
 
 /**
  * @brief Copies the specified sprite into the view structure, provided it
- * passes a basic visibility test.
+ * passes a basic visibility test, and returns a pointer to the sprite
+ * slot it fills.
  */
-void R_AddSprite(r_view_t *view, const r_sprite_t *s) {
+r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 
 	assert(s->media);
 
 	if (view->num_sprites == MAX_SPRITES) {
 		Com_Debug(DEBUG_RENDERER, "MAX_SPRITES\n");
-		return;
+		return NULL;
 	}
 
-	const float size = s->size ?: Maxf(s->width, s->height);
+	const float size = (s->size ?: Maxf(s->width, s->height)) * .5f;
 
-	if (R_CullSphere(view, s->origin, size * .5f)) {
-		return;
-	}
-
-	if (R_OccludeSphere(view, s->origin, size * .5f)) {
-		return;
+	if (R_CulludeSphere(view, s->origin, size)) {
+		return NULL;
 	}
 
 	view->sprites[view->num_sprites] = *s;
 	view->num_sprites++;
+
+	return &view->sprites[view->num_sprites - 1];
 }
 
 /**
  * @brief Copies the specified sprite into the view structure, provided it
- * passes a basic visibility test.
+ * passes a basic visibility test, and returns a pointer to the sprite
+ * slot it fills.
  */
-void R_AddBeam(r_view_t *view, const r_beam_t *b) {
+r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 
 	if (view->num_beams == MAX_BEAMS) {
 		Com_Debug(DEBUG_RENDERER, "MAX_BEAMS\n");
-		return;
+		return NULL;
 	}
 
-	vec3_t box_mins, box_maxs;
-	Cm_TraceBounds(b->start, b->end,
-				   Vec3(-b->size * .5f, -b->size * .5f, -b->size * .5f),
-				   Vec3( b->size * .5f,  b->size * .5f,  b->size * .5f),
-				   &box_mins, &box_maxs);
+	const box3_t bounds = Cm_TraceBounds(b->start, b->end, Box3f(b->size, b->size, b->size));
 
-	if (R_OccludeBox(view, box_mins, box_maxs)) {
-		return;
-	}
-
-	if (R_CullBox(view, box_mins, box_maxs)) {
-		return;
+	if (R_CulludeBox(view, bounds)) {
+		return NULL;
 	}
 
 	view->beams[view->num_beams] = *b;
 	view->num_beams++;
+
+	return &view->beams[view->num_beams - 1];
 }
 
 /**
@@ -253,7 +249,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 														&in->vertexes[2].next_diffusemap,
 														&in->vertexes[3].next_diffusemap);
 
-		if (!(s->flags & SPRITE_NO_LERP) && r_sprites_lerp->integer) {
+		if (!(s->flags & SPRITE_NO_LERP) && r_sprite_lerp->integer) {
 			const float life_to_images = floorf(s->life * anim->num_frames);
 			const float cur_frame = life_to_images / anim->num_frames;
 			const float next_frame = (life_to_images + 1) / anim->num_frames;
@@ -280,7 +276,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 	in->vertexes[0].softness =
 	in->vertexes[1].softness =
 	in->vertexes[2].softness =
-	in->vertexes[3].softness = r_sprites_soften->value * s->softness;
+	in->vertexes[3].softness = r_sprite_soften->value * s->softness;
 
 	in->vertexes[0].lighting =
 	in->vertexes[1].lighting =
@@ -373,7 +369,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->vertexes[0].softness =
 		in->vertexes[1].softness =
 		in->vertexes[2].softness =
-		in->vertexes[3].softness = r_sprites_soften->integer ? b->softness : 0.f;
+		in->vertexes[3].softness = r_sprite_soften->value * b->softness;
 
 		in->vertexes[0].lighting =
 		in->vertexes[1].lighting =
@@ -419,8 +415,12 @@ void R_UpdateSprites(r_view_t *view) {
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_sprite_program.framebuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, view->framebuffer->name);
+	glBlitFramebuffer(0, 0, view->framebuffer->width, view->framebuffer->height, 0, 0, view->framebuffer->width, view->framebuffer->height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 	R_GetError(NULL);
 }
@@ -463,7 +463,7 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment);
+	glBindTexture(GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil);
 
 	r_sprite_instance_t *in = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(blend_depth));
 	
@@ -571,6 +571,28 @@ static void R_InitSpriteProgram(void) {
 
 	glUseProgram(0);
 
+	glGenTextures(1, &r_sprite_program.texture_depth_stencil);
+	glGenFramebuffers(1, &r_sprite_program.framebuffer);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, r_sprite_program.framebuffer);
+
+	glBindTexture(GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.drawable_width, r_context.drawable_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil, 0);
+
+	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		Com_Error(ERROR_FATAL, "Failed to create framebuffer: %d\n", status);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	R_GetError(NULL);
 }
 
@@ -586,6 +608,7 @@ void R_InitSprites(void) {
 
 	glGenBuffers(1, &r_sprites.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(r_sprites.vertexes), NULL, GL_DYNAMIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, diffusemap));
@@ -621,8 +644,8 @@ void R_InitSprites(void) {
 
 	R_InitSpriteProgram();
 	
-	r_sprites_lerp = Cvar_Add("r_sprites_lerp", "1", 0, "Whether animated sprites linearly interpolate their images");
-	r_sprites_soften = Cvar_Add("r_sprites_soften", "1", 0, "Whether sprite softening is enabled");
+	r_sprite_lerp = Cvar_Add("r_sprite_lerp", "1", 0, "Whether animated sprites linearly interpolate their images");
+	r_sprite_soften = Cvar_Add("r_sprite_soften", "1", 0, "Whether sprite softening is enabled");
 }
 
 /**
@@ -631,6 +654,8 @@ void R_InitSprites(void) {
 static void R_ShutdownSpriteProgram(void) {
 
 	glDeleteProgram(r_sprite_program.name);
+	glDeleteTextures(1, &r_sprite_program.texture_depth_stencil);
+	glDeleteFramebuffers(1, &r_sprite_program.framebuffer);
 
 	r_sprite_program.name = 0;
 }

@@ -196,12 +196,12 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 	const char *footsteps = "default";
 
 	vec3_t start = ent->origin;
-	start.z += ent->current.mins.z;
+	start.z += ent->current.bounds.mins.z;
 
 	vec3_t end = start;
 	end.z -= PM_STEP_HEIGHT;
 
-	cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, CONTENTS_MASK_SOLID);
+	cm_trace_t tr = cgi.Trace(start, end, Box3_Zero(), ent->current.number, CONTENTS_MASK_SOLID);
 
 	if (tr.fraction < 1.0 && tr.texinfo && tr.texinfo->material && *tr.texinfo->material->footsteps) {
 		footsteps = tr.texinfo->material->footsteps;

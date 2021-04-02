@@ -188,7 +188,7 @@ float linearstep(float a, float b, float t) {
 void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 				   inout vec3 diffuse_light, inout vec3 specular_light) {
 
-	for (int i = 0; i < MAX_LIGHTS; i++) {
+	for (int i = 0; i < num_lights; i++) {
 
 		float radius = lights[i].origin.w;
 		if (radius == 0.0) {

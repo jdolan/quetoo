@@ -594,7 +594,7 @@ static void Cl_UpdateScene(void) {
 
 	R_DrawMainView(&cl_view);
 
-	R_Draw2DFramebuffer(0, 0, 0, 0, cl_view.framebuffer, color_white);
+	R_BlitFramebuffer(cl_view.framebuffer, 0, 0, 0, 0);
 
 	S_RenderStage(&cl_stage);
 }
@@ -634,8 +634,9 @@ void Cl_Frame(const uint32_t msec) {
 		}
 	}
 
-	memset(&cl_view, 0, sizeof(cl_view));
-	memset(&cl_stage, 0, sizeof(cl_stage));
+	R_ClearView(&cl_view);
+
+	S_ClearStage(&cl_stage);
 
 	Cl_AttemptConnect();
 

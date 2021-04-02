@@ -584,17 +584,17 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Subtract(const ve
 /**
  * @return True if the specified boxes intersect, false otherwise.
  */
-static inline int32_t __attribute__ ((warn_unused_result)) Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
+static inline _Bool __attribute__ ((warn_unused_result)) Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
 
 	if (amins.x >= bmaxs.x || amins.y >= bmaxs.y || amins.z >= bmaxs.z) {
-		return 0;
+		return false;
 	}
 
 	if (amaxs.x <= bmins.x || amaxs.y <= bmins.y || amaxs.z <= bmins.z) {
-		return 0;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 /**
@@ -969,7 +969,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Roundf(const vec3
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Clamp(const vec3_t v, vec3_t min, vec3_t max) {
 	return Vec3(
 		Clampf(v.x, min.x, max.x),
-		Clampf(v.y, min.z, max.y),
+		Clampf(v.y, min.y, max.y),
 		Clampf(v.z, min.z, max.z));
 }
 

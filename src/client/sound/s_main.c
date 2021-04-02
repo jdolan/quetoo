@@ -402,6 +402,4 @@ void S_Shutdown(void) {
 	Mem_Free(s_context.resample_buffer);
 
 	Mem_FreeTag(MEM_TAG_SOUND);
-
-	memset(&s_context, 0, sizeof(s_context));
 }

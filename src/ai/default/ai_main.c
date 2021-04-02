@@ -70,9 +70,9 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 		return false;
 	}
 
-	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 
-	return Vec3_BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs);
+	return Box3_ContainsPoint(other->abs_bounds, tr.end);
 }
 
 /**
@@ -714,8 +714,8 @@ static inline float Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t forward;
 	Vec3_Vectors(Vec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
-	const vec3_t end = Vec3_Fmaf(self->s.origin, (self->maxs.x - self->mins.x) * 2.0f, forward);
-	const cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
+	const vec3_t end = Vec3_Fmaf(self->s.origin, Box3_Size(self->bounds).x * 2.0f, forward);
+	const cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0f) { // hit a wall
 	
@@ -744,15 +744,14 @@ static g_entity_t *ai_current_entity;
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
-									 const vec3_t maxs) {
+static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
 
 	const g_entity_t *self = ai_current_entity;
 
 	if (self->solid == SOLID_DEAD) {
-		return aim.gi->Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_CORPSE);
+		return aim.gi->Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_CORPSE);
 	} else {
-		return aim.gi->Trace(start, end, mins, maxs, self, CONTENTS_MASK_CLIP_PLAYER);
+		return aim.gi->Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_PLAYER);
 	}
 }
 
@@ -789,10 +788,7 @@ static _Bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
 	const vec3_t padding = { .x = 8.f, .y = 8.f, .z = 0.f };
 
 	// if we're touching our nav goal, we can go next
-	if (Vec3_BoxIntersect(goal->path.path_position,
-						  goal->path.path_position,
-						  Vec3_Subtract(self->abs_mins, padding),
-						  Vec3_Add(self->abs_maxs, padding))) {
+	if (Box3_ContainsPoint(Box3_Expand3(self->abs_bounds, padding), goal->path.path_position)) {
 
 		return Ai_TryNextNodeInPath(self, goal);
 	}
@@ -836,7 +832,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 		}
 
 		// something is blocking our destination
-		const cm_trace_t tr = aim.gi->Trace(ai->eye_origin, dest, Vec3_Zero(), Vec3_Zero(), self, CONTENTS_MASK_CLIP_CORPSE);
+		const cm_trace_t tr = aim.gi->Trace(ai->eye_origin, dest, Box3_Zero(), self, CONTENTS_MASK_CLIP_CORPSE);
 
 		if (tr.fraction < 1.0f) {
 			goal->distress += 0.25f;
@@ -1028,7 +1024,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		// otherwise hold jump
 		} else if (self->client->ps.pm_state.flags & PMF_ON_LADDER) {
 
-			if ((ai->move_target.path.path_position.z - self->s.origin.z) < -(PM_MAXS.z - PM_MINS.z)) {
+			if ((ai->move_target.path.path_position.z - self->s.origin.z) < -Box3_Size(PM_BOUNDS).z) {
 				cmd->up = -PM_SPEED_DUCKED;
 			} else {
 				cmd->up = PM_SPEED_JUMP;
@@ -1291,7 +1287,7 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			// (you get less forward momentum on a jump if you are looking up/down)
 			// so for now this is hardcoded to ladders
 			if (self->client->ps.pm_state.flags & PMF_ON_LADDER) {
-				if ((ai->move_target.path.path_position.z - self->s.origin.z) < -(PM_MAXS.z - PM_MINS.z)) {
+				if ((ai->move_target.path.path_position.z - self->s.origin.z) < -Box3_Size(PM_BOUNDS).z) {
 					ideal_angles.x = Clampf(ideal_angles.x, -10.f, -180.f);
 				} else {
 					ideal_angles.x = Clampf(ideal_angles.x, 10.f, 180.f);
@@ -1535,10 +1531,12 @@ static void Ai_State(uint32_t frame_num) {
  */
 static void Ai_Frame(void) {
 
-	if (!ai_level.load_finished) {
+	if (ai_level.time > 1000) {
+		if (!ai_level.load_finished) {
 
-		Ai_NodesReady();
-		ai_level.load_finished = true;
+			Ai_NodesReady();
+			ai_level.load_finished = true;
+		}
 	}
 }
 
@@ -1608,6 +1606,8 @@ static void Ai_TestPath_f(void) {
 	}
 }
 
+void Ai_OffsetNodes_f(void);
+
 /**
  * @brief Initializes the AI subsystem.
  */
@@ -1632,6 +1632,8 @@ static void Ai_Init(void) {
 	aim.gi->AddCmd("ai_save_nodes", Ai_SaveNodes_f, CMD_AI, "Save current node data");
 
 	aim.gi->AddCmd("ai_test_path", Ai_TestPath_f, CMD_AI, "Save current node data");
+
+	aim.gi->AddCmd("ai_offset_nodes", Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
 
 	Ai_InitItems();
 	Ai_InitSkins();

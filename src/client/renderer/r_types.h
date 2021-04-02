@@ -360,8 +360,7 @@ typedef struct {
 	r_bsp_texinfo_t *texinfo;
 	int32_t contents;
 
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 
 	r_bsp_face_lightmap_t lightmap;
 
@@ -385,8 +384,7 @@ typedef struct {
 	r_bsp_texinfo_t *texinfo;
 	int32_t contents;
 
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 
 	GLvoid *elements;
 	int32_t num_elements;
@@ -404,8 +402,7 @@ typedef struct {
 typedef struct {
 	GLuint name;
 
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 
 	vec3_t vertexes[8];
 
@@ -421,8 +418,7 @@ struct r_bsp_node_s {
 	// common with leaf
 	int32_t contents; // -1, to differentiate from leafs
 
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
@@ -444,8 +440,7 @@ struct r_bsp_leaf_s {
 	// common with node
 	int32_t contents;
 
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
@@ -468,8 +463,7 @@ typedef struct r_bsp_inline_model_s {
 	/**
 	 * @brief For frustum culling.
 	 */
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 
 	/**
 	 * @brief The faces of this inline model.
@@ -518,7 +512,7 @@ typedef struct {
 	/**
 	 * @brief The lightgrid bounds in world space.
 	 */
-	vec3_t mins, maxs;
+	box3_t bounds;
 
 	/**
 	 * @brief The lightgrid textures (ambient, diffuse, etc..).
@@ -586,8 +580,7 @@ typedef struct {
 } r_mesh_vertex_t;
 
 typedef struct {
-	vec3_t mins;
-	vec3_t maxs;
+	box3_t bounds;
 	vec3_t translate;
 } r_mesh_frame_t;
 
@@ -672,9 +665,8 @@ typedef struct r_model_s {
 	r_material_t **materials;
 	size_t num_materials;
 
-	vec3_t mins, maxs;
+	box3_t bounds;
 	float radius;
-
 } r_model_t;
 
 #define IS_BSP_MODEL(m) (m && m->type == MOD_BSP)
@@ -1040,17 +1032,17 @@ typedef struct r_entity_s {
 	/**
 	 * @brief The relative entity bounds, as known by the client.
 	 */
-	vec3_t mins, maxs;
+	box3_t bounds;
 
 	/**
 	 * @brief The absolute entity bounds, as known by the client.
 	 */
-	vec3_t abs_mins, abs_maxs;
+	box3_t abs_bounds;
 
 	/**
 	 * @brief The visual model bounds, in world space, for frustum culling.
 	 */
-	vec3_t abs_model_mins, abs_model_maxs;
+	box3_t abs_model_bounds;
 
 	/**
 	 * @brief The model matrix.
@@ -1141,6 +1133,11 @@ typedef struct {
 	 * @brief The framebuffer height.
 	 */
 	r_pixel_t height;
+
+	/**
+	 * @brief True if this framebuffer supports multisampling (MSAA).
+	 */
+	_Bool multisample;
 } r_framebuffer_t;
 
 /**
@@ -1257,6 +1254,25 @@ typedef struct {
 } r_view_t;
 
 /**
+ * @brief Convenience inline function to clear a view.
+ * Use this instead of memset.
+ */
+static inline void R_ClearView(r_view_t *view) {
+	view->num_beams = view->num_entities = view->num_lights = view->num_sprites =
+		view->num_sprite_instances = view->num_stains = 0;
+
+	memset(view->frustum, 0, sizeof(view->frustum));
+	view->angles = Vec3_Zero();
+	view->contents = 0;
+	view->forward = Vec3_Zero();
+	view->fov = Vec2_Zero();
+	view->origin = Vec3_Zero();
+	view->right = Vec3_Zero();
+	view->up = Vec3_Zero();
+	view->viewport = Vec4_Zero();
+}
+
+/**
  * @brief Window and OpenGL context information.
  */
 typedef struct {
@@ -1294,6 +1310,11 @@ typedef struct {
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	_Bool fullscreen;
+
+	/**
+	 * @brief Number of samples for multisampled buffers
+	 */
+	int32_t multisample_samples;
 } r_context_t;
 
 /**

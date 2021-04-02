@@ -248,7 +248,6 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 			g_string_append_printf(backtrace_str, "> %s (unknown:unknown)\n", symbol->Name);
 	}
 
-	SymCleanup(process);
 	free(symbol);
 #else
 	g_string_append(backtrace_str, "Backtrace not supported.\n");
@@ -267,7 +266,7 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
  */
 void Sys_Raise(const char *msg) {
 
-	GString *backtrace = Sys_Backtrace(0, (uint32_t) -1);
+	GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
 	
 	g_string_prepend(backtrace, "\n");
 	g_string_prepend(backtrace, msg);

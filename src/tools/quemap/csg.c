@@ -90,10 +90,9 @@ static csg_brush_t *SubtractBrush(csg_brush_t *a, csg_brush_t *b) {
 static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 
 	// check bounding boxes
-	for (int32_t i = 0; i < 3; i++)
-		if (a->mins.xyz[i] >= b->maxs.xyz[i] || a->maxs.xyz[i] <= b->mins.xyz[i]) {
-			return true;    // bounding boxes don't overlap
-		}
+	if (!Box3_Intersects(a->bounds, b->bounds)) {
+		return true; // bounding boxes don't overlap
+	}
 
 	// check for opposing planes
 	for (int32_t i = 0; i < a->num_sides; i++) {
@@ -138,8 +137,7 @@ csg_brush_t *MakeBrushes(int32_t index, int32_t count) {
 			}
 		}
 		
-		out->mins = in->mins;
-		out->maxs = in->maxs;
+		out->bounds = in->bounds;
 
 		out->next = list;
 		list = out;

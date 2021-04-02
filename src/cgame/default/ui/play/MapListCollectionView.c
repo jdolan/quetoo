@@ -132,10 +132,8 @@ static void enumerateMaps(const char *path, void *data) {
 			cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].file_ofs);
 			cgi.ReadFile(file, entities, 1, header.lumps[BSP_LUMP_ENTITIES].file_len);
 
-			parser_t parser;
+			parser_t parser = Parse_Init(entities, PARSER_NO_COMMENTS);;
 			char token[MAX_BSP_ENTITY_VALUE];
-
-			Parse_Init(&parser, entities, PARSER_NO_COMMENTS);
 
 			while (true) {
 				

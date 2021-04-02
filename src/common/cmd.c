@@ -214,8 +214,7 @@ void Cmd_TokenizeString(const char *text) {
 		return;
 	}
 
-	parser_t parser;
-	Parse_Init(&parser, text, PARSER_DEFAULT);
+	parser_t parser = Parse_Init(text, PARSER_DEFAULT);
 
 	while (true) {
 		// stop after we've exhausted our token buffer

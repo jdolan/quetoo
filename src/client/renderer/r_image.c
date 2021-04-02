@@ -46,7 +46,6 @@ static struct {
 	 * @brief The texture sampling anisotropy level.
 	 */
 	GLfloat anisotropy;
-
 } r_image_state;
 
 /**
@@ -55,6 +54,7 @@ static struct {
 static const r_texture_mode_t r_texture_modes[] = {
 	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST, GL_NEAREST },
 	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR, GL_LINEAR },
+	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST, GL_NEAREST },
 	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_LINEAR }
 };
 
@@ -73,6 +73,7 @@ static void R_TextureMode(void) {
 
 	if (i == lengthof(r_texture_modes)) {
 		Com_Warn("Bad filter name: %s\n", r_texture_mode->string);
+		r_image_state.texture_mode = r_texture_modes[0];
 		return;
 	}
 
@@ -209,7 +210,7 @@ void R_SetupImage(r_image_t *image) {
 		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
 
-	if (GLAD_GL_ARB_texture_storage) {
+	if (r_texture_storage->integer && GLAD_GL_ARB_texture_storage) {
 
 		GLsizei levels = 1;
 		if (image->type & IT_MASK_MIPMAP) {
@@ -251,7 +252,7 @@ void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 
 	glBindTexture(image->target, image->texnum);
 
-	if (GLAD_GL_ARB_texture_storage) {
+	if (r_texture_storage->integer && GLAD_GL_ARB_texture_storage) {
 		if (image->depth) {
 			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, GL_UNSIGNED_BYTE, data);
 		} else {
@@ -261,9 +262,9 @@ void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 		const GLenum internal_format = R_GetInternalImageFormat(image);
 
 		if (image->depth) {
-			glTexImage3D(target, 0, image->format, image->width, image->height, image->depth, 0, internal_format, GL_UNSIGNED_BYTE, data);
+			glTexImage3D(target, 0, internal_format, image->width, image->height, image->depth, 0, image->format, GL_UNSIGNED_BYTE, data);
 		} else {
-			glTexImage2D(target, 0, image->format, image->width, image->height, 0, internal_format, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(target, 0, internal_format, image->width, image->height, 0, image->format, GL_UNSIGNED_BYTE, data);
 		}
 	}
 

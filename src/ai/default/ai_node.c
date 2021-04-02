@@ -106,7 +106,7 @@ static inline ai_node_id_t Ai_Node_Index(const ai_node_t *node) {
  */
 static _Bool Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
 
-	return aim.gi->Trace(position, Ai_Node_GetPosition(node), Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
+	return aim.gi->Trace(position, Ai_Node_GetPosition(node), Box3_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
 }
 
 /**
@@ -352,7 +352,7 @@ static void Ai_Node_Destroy(const ai_node_id_t id) {
  * @brief
  */
 static _Bool Ai_Node_PlayerIsOnFloor(const g_entity_t *player) {
-	const cm_trace_t tr = aim.gi->Trace(player->s.origin, Vec3_Add(player->s.origin, Vec3(0, 0, -PM_GROUND_DIST)), player->s.mins, player->s.maxs, NULL, CONTENTS_MASK_CLIP_CORPSE);
+	const cm_trace_t tr = aim.gi->Trace(player->s.origin, Vec3_Add(player->s.origin, Vec3(0, 0, -PM_GROUND_DIST)), player->s.bounds, NULL, CONTENTS_MASK_CLIP_CORPSE);
 
 	return tr.fraction < 1.0f && tr.plane.normal.z > PM_STEP_NORMAL;
 }
@@ -397,17 +397,17 @@ _Bool Ai_Node_CanPathTo(const vec3_t position) {
 	const vec3_t end = Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f));
 
 	// check if the destination has ground
-	cm_trace_t tr = aim.gi->Trace(position, end, Vec3(PM_MINS.x - 1.f, PM_MINS.y - 1.f, PM_MINS.z), Vec3(PM_MAXS.x + 1.f, PM_MAXS.y + 1.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+	cm_trace_t tr = aim.gi->Trace(position, end, Box3_Expand3(PM_BOUNDS, Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
 	// bad ground
-	_Bool stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
+	_Bool stuck_in_mover = tr.ent && (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
 
 	if (tr.fraction == 1.0 || stuck_in_mover) {
 
 		// check with a thinner box; it might be a button press or rotating thing
 		if (stuck_in_mover) {
-			tr = aim.gi->Trace(position, Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Vec3(-4.f, -4.f, PM_MINS.z), Vec3(4.f, 4.f, PM_MAXS.z), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
-			stuck_in_mover = (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
+			tr = aim.gi->Trace(position, Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)), Box3(Vec3(-4.f, -4.f, PM_BOUNDS.mins.z), Vec3(4.f, 4.f, PM_BOUNDS.maxs.z)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+			stuck_in_mover = tr.ent && (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
 
 			if (!stuck_in_mover) {
 				return true;
@@ -587,7 +587,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 			node->position = player->s.origin;
 
 			if (cmd->up < 0) {
-				const cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0.f, 0.f, MAX_WORLD_COORD)), PM_MINS, PM_MAXS, player, CONTENTS_MASK_SOLID);
+				const cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0.f, 0.f, MAX_WORLD_COORD)), PM_BOUNDS, player, CONTENTS_MASK_SOLID);
 				node->position = tr.end;
 			}
 
@@ -921,7 +921,15 @@ void Ai_InitNodes(const char *mapname) {
 	aim.gi->Print("  Loaded %u nodes with %u total links.\n", num_nodes, total_links);
 
 	ai_player_roam.file_nodes = num_nodes;
-	ai_player_roam.file_links = total_links;
+	ai_player_roam.file_links = 0;
+
+	for (guint i = 0; i < ai_nodes->len; i++) {
+		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+
+		if (node->links) {
+			ai_player_roam.file_links += node->links->len;
+		}
+	}
 }
 
 /**
@@ -1196,4 +1204,30 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
 	g_hash_table_destroy(costs_started);
 
 	return return_path;
+}
+
+void Ai_OffsetNodes_f(void) {
+
+	vec3_t translate;
+
+	if (aim.gi->Argc() <= 1) {
+		if (ai_player_roam.last_nodes[0] == NODE_INVALID) {
+			return;
+		}
+
+		const vec3_t node = Ai_Node_GetPosition(ai_player_roam.last_nodes[0]);
+		const vec3_t player_position = ai_player_roam.position;
+		translate = Vec3_Subtract(player_position, node);
+	} else {	
+		const char *offset = aim.gi->Argv(1);
+
+		if (Parse_QuickPrimitive(offset, PARSER_DEFAULT, PARSE_DEFAULT, PARSE_FLOAT, &translate, 3) != 3) {
+			return;
+		}
+	}
+
+	for (guint i = 0; i < ai_nodes->len; i++) {
+		ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+		node->position = Vec3_Add(node->position, translate);
+	}
 }

@@ -28,8 +28,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
 	GList *entities = NULL;
 
-	parser_t parser;
-	Parse_Init(&parser, entity_string, PARSER_NO_COMMENTS);
+	parser_t parser = Parse_Init(entity_string, PARSER_NO_COMMENTS);
 
 	while (true) {
 
@@ -55,15 +54,14 @@ GList *Cm_LoadEntities(const char *entity_string) {
 					pair->nullable_string = pair->string;
 				}
 
-				if (sscanf(pair->string, "%d", &pair->integer) == 1) {
+				if (Parse_QuickPrimitive(pair->string, PARSER_NO_COMMENTS, PARSE_DEFAULT,
+										 PARSE_INT32, &pair->integer, 1) == 1) {
 					pair->parsed |= ENTITY_INTEGER;
 				}
 
-				const int32_t count = sscanf(pair->string, "%f %f %f %f",
-											 &pair->vec4.x,
-											 &pair->vec4.y,
-											 &pair->vec4.z,
-											 &pair->vec4.w);
+				const size_t count = Parse_QuickPrimitive(pair->string, PARSER_NO_COMMENTS,
+														  PARSE_DEFAULT, PARSE_FLOAT, &pair->vec4, 4);
+
 				switch (count) {
 					case 1:
 						pair->parsed |= ENTITY_FLOAT;

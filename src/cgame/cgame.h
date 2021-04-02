@@ -536,13 +536,12 @@ typedef struct cg_import_s {
 	 * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.
 	 * @param start The trace start point.
 	 * @param end The trace end point.
-	 * @param mins The trace mins, or `NULL` for point trace.
-	 * @param maxs The trace maxs, or `NULL` for point trace.
+	 * @param bounds The trace bounds, or `Box3_Zero()` for point/line trace.
 	 * @param skip The entity number to skip (typically our own client).
 	 * @param contents Solids matching this mask will clip the returned trace.
 	 * @return A trace result.
 	 */
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, const int32_t skip, const int32_t contents);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, const int32_t skip, const int32_t contents);
 
 	/**
 	 * @param p The point to check.
@@ -607,15 +606,26 @@ typedef struct cg_import_s {
 	 * @brief Creates an OpenGL framebuffer with color and depth attachments.
 	 * @param width The framebuffer width, in pixels.
 	 * @param height The framebuffer height, in pixels.
+	 * @param multisample True if the framebuffer should support multisampling (MSAA).
 	 * @return The framebuffer.
 	 */
-	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height);
+	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height, _Bool multisample);
 
 	/**
 	 * @brief Destroys the specified framebuffer, releasing any OpenGL resources.
 	 * @param framebuffer The framebuffer to destroy.
 	 */
 	void (*DestroyFramebuffer)(r_framebuffer_t *framebuffer);
+
+	/**
+	 * @brief Blits the framebuffer to the specified rectangle on the screen.
+	 * @param framebuffer The framebuffer to blit.
+	 * @param x The horizontal origin of the screen rectangle in drawable pixels.
+	 * @param y The vertical origin of the screen rectangle in drawable pixels.
+	 * @param w The width of the screen rectangle in drawable pixels.
+	 * @param h The height of the screen rectangle in drawable pixels.
+	 */
+	void (*BlitFramebuffer)(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h);
 
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
@@ -711,12 +721,12 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Adds a sprite to the scene for the current frame.
 	 */
-	void (*AddSprite)(r_view_t *view, const r_sprite_t *p);
+	r_sprite_t *(*AddSprite)(r_view_t *view, const r_sprite_t *p);
 	
 	/**
 	 * @brief Adds a beam to the scene for the current frame.
 	 */
-	void (*AddBeam)(r_view_t *view, const r_beam_t *p);
+	r_beam_t *(*AddBeam)(r_view_t *view, const r_beam_t *p);
 
 	/**
 	 * @brief Add a stain to the scene.
@@ -772,6 +782,9 @@ typedef struct cg_import_s {
 	 * @param y The height, in pixels.
 	 * @param image The image.
 	 * @param color The color.
+	 * @remarks This function uses deferred rendering, allowing framebuffers to be used as
+	 * textures in menus or on the HUD. For drawing directly and immediately to the screen,
+	 * use BlitFramebuffer.
 	 */
 	void (*Draw2DFramebuffer)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color);
 
@@ -797,6 +810,14 @@ typedef struct cg_import_s {
 	 * @param color Color of lines.
 	*/
 	void (*Draw3DLines)(const vec3_t *points, size_t count, const color_t color);
+	
+	/**
+	 * @brief Draw a 3D bbox at the given coordinates.
+	 * @param bounds Box.
+	 * @param color Color.
+	 * @param solid Whether to draw a solid or wireframe box.
+	*/
+	void (*Draw3DBox)(const box3_t bounds, const color_t color, const _Bool solid);
 
 	/**
 	 * @}

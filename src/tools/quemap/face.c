@@ -260,6 +260,8 @@ static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 	return w->num_points;
 }
 
+static _Bool warnings_emitted[MAX_BSP_TEXINFO];
+
 /**
  * @brief Emits a vertex array for the given face.
  */
@@ -272,7 +274,11 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 	const SDL_Surface *diffuse = LoadDiffuseTexture(texinfo->texture);
 	if (diffuse == NULL) {
 		diffuse = LoadDiffuseTexture("textures/common/notex");
-		Com_Warn("Failed to load %s\n", texinfo->texture);
+
+		if (!warnings_emitted[face->texinfo]) {
+			Com_Warn("Failed to load %s\n", texinfo->texture);
+			warnings_emitted[face->texinfo] = true;
+		}
 	}
 
 	vec3_t points[face->w->num_points];
@@ -365,8 +371,7 @@ int32_t EmitFace(const face_t *face) {
 	out->texinfo = face->texinfo;
 	out->contents = face->contents;
 	
-	out->mins = Vec3_Mins();
-	out->maxs = Vec3_Maxs();
+	out->bounds = Box3_Null();
 
 	out->first_vertex = bsp_file.num_vertexes;
 	out->num_vertexes = EmitFaceVertexes(face);
@@ -374,8 +379,7 @@ int32_t EmitFace(const face_t *face) {
 	const bsp_vertex_t *v = bsp_file.vertexes + out->first_vertex;
 	for (int32_t i = 0; i < out->num_vertexes; i++, v++) {
 
-		out->mins = Vec3_Minf(out->mins, v->position);
-		out->maxs = Vec3_Maxf(out->maxs, v->position);
+		out->bounds = Box3_Append(out->bounds, v->position);
 	}
 
 	out->first_element = bsp_file.num_elements;

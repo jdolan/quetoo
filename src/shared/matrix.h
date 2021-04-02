@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "quetoo.h"
+#include "box.h"
 #include "vector.h"
 
 /**
@@ -84,6 +84,16 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_Identity(void) {
 		0.f, 0.f, 1.f, 0.f,
 		0.f, 0.f, 0.f, 1.f
 	});
+}
+
+/**
+ * @return The identity matrix `(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)`.
+ */
+static inline bool __attribute__ ((warn_unused_result)) Mat4_Equal(const mat4_t a, const mat4_t b) {
+	return Vec4_Equal(a.rows[0], b.rows[0]) &&
+		Vec4_Equal(a.rows[1], b.rows[1]) &&
+		Vec4_Equal(a.rows[2], b.rows[2]) &&
+		Vec4_Equal(a.rows[3], b.rows[3]);
 }
 
 /** 
@@ -480,4 +490,22 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_ConcatScale(const
  */
 static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_ConcatScale3(const mat4_t in, const vec3_t scale) {
 	return Mat4_Concat(in, Mat4_FromScale3(scale));
+}
+
+/**
+ * @return A new bounding box that contains all eight points of the input `bounds`
+ * being transformed by `m`.
+*/
+static inline box3_t Mat4_TransformBounds(const mat4_t m, const box3_t bounds) {
+	
+	vec3_t points[8];
+	Box3_ToPoints(bounds, points);
+
+	box3_t b = Box3_Null();
+
+	for (size_t i = 0; i < lengthof(points); i++) {
+		b = Box3_Append(b, Mat4_Transform(m, points[i]));
+	}
+
+	return b;
 }

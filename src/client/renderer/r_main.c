@@ -31,6 +31,7 @@ cvar_t *r_cull;
 cvar_t *r_depth_pass;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_normals;
+cvar_t *r_draw_bsp_occlusion_queries;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_material_stages;
 cvar_t *r_draw_wireframe;
@@ -65,6 +66,7 @@ cvar_t *r_specularity;
 cvar_t *r_sprite_quality;
 cvar_t *r_stains;
 cvar_t *r_texture_mode;
+cvar_t *r_texture_storage;
 cvar_t *r_swap_interval;
 cvar_t *r_width;
 
@@ -121,30 +123,10 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /**
- * @return True if the specified point is culled by the view frustum, false otherwise.
- */
-_Bool R_CullPoint(const r_view_t *view, const vec3_t point) {
-
-	if (!r_cull->value) {
-		return false;
-	}
-
-	const cm_bsp_plane_t *plane = view->frustum;
-	for (size_t i = 0; i< lengthof(view->frustum); i++, plane++) {
-		const float dist = Cm_DistanceToPlane(point, plane);
-		if (dist > 0.f) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/**
  * @return True if the specified bounding box is culled by the view frustum, false otherwise.
  * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
  */
-_Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
+_Bool R_CullBox(const r_view_t *view, const box3_t bounds) {
 
 	if (!r_cull->value) {
 		return false;
@@ -154,16 +136,9 @@ _Bool R_CullBox(const r_view_t *view, const vec3_t mins, const vec3_t maxs) {
 		return false;
 	}
 
-	const vec3_t points[] = {
-		Vec3(mins.x, mins.y, mins.z),
-		Vec3(maxs.x, mins.y, mins.z),
-		Vec3(maxs.x, maxs.y, mins.z),
-		Vec3(mins.x, maxs.y, mins.z),
-		Vec3(mins.x, mins.y, maxs.z),
-		Vec3(maxs.x, mins.y, maxs.z),
-		Vec3(maxs.x, maxs.y, maxs.z),
-		Vec3(mins.x, maxs.y, maxs.z),
-	};
+	vec3_t points[8];
+	
+	Box3_ToPoints(bounds, points);
 
 	const cm_bsp_plane_t *plane = view->frustum;
 	for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
@@ -206,6 +181,24 @@ _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius)
 	}
 
 	return false;
+}
+
+/**
+ * @return True if the specified box is occluded *or* culled by the view frustum,
+ * false otherwise.
+ */
+_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
+
+	return R_OccludeBox(view, bounds) || R_CullBox(view, bounds);
+}
+
+/**
+ * @return True if the specified sphere is occluded *or* culled by the view frustum,
+ * false otherwise.
+ */
+_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius) {
+
+	return R_OccludeSphere(view, point, radius) || R_CullSphere(view, point, radius);
 }
 
 /**
@@ -252,11 +245,11 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		r_uniforms.block.fog_samples = r_fog_samples->integer;
 
 		if (r_world_model) {
-			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->mins, 0.f);
-			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->maxs, 0.f);
+			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
+			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
 
-			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->mins);
-			const vec3_t size = Vec3_Subtract(r_world_model->bsp->lightgrid->maxs, r_world_model->bsp->lightgrid->mins);
+			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->bounds.mins);
+			const vec3_t size = Box3_Size(r_world_model->bsp->lightgrid->bounds);
 
 			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
 			r_uniforms.block.lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
@@ -264,7 +257,8 @@ static void R_UpdateUniforms(const r_view_t *view) {
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), &r_uniforms.block, GL_DYNAMIC_DRAW);
+	// FIXME: we can adjust the written size based on data that's being updated
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -395,8 +389,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	R_UpdateEntities(view);
 
-	R_UpdateSprites(view);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -404,8 +396,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
 	glViewport(0, 0, view->viewport.z, view->viewport.w);
 
 	R_DrawEntities(view, -1);
-
-	R_DrawSprites(view, -1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -433,6 +423,7 @@ static void R_InitLocal(void) {
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
+	r_draw_bsp_occlusion_queries = Cvar_Add("r_draw_bsp_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of BSP occlusion queries (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
@@ -465,9 +456,10 @@ static void R_InitLocal(void) {
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_sprite_quality = Cvar_Add("r_sprite_quality", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the divisor for large, animated sprite effects. Best values are between 1 and 16, inclusive.");
-	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");
+	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
+	r_texture_storage = Cvar_Add("r_texture_storage", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies whether to use newer texture storage routines; keep on unless you have errors stemming from glTexStorage.");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
 	Cvar_ClearAll(CVAR_R_MASK);
@@ -521,6 +513,9 @@ static void R_InitConfig(void) {
 static void R_InitUniforms(void) {
 
 	glGenBuffers(1, &r_uniforms.buffer);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), NULL, GL_DYNAMIC_DRAW);
 
 	R_UpdateUniforms(NULL);
 }

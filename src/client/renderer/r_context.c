@@ -110,7 +110,7 @@ static const char *R_Debug_Severity(const GLenum severity) {
 static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei length, const GLchar *message, const void *userParam) {
 	
 	char temp[length + 1];
-	GString *backtrace = Sys_Backtrace(0, (uint32_t) -1);
+	GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
 
 	if (length > 0) {
 		strncpy(temp, message, length);
@@ -177,7 +177,7 @@ void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, 
 	const GLenum error_code = glad_glGetError();
 
 	if (error_code != GL_NO_ERROR) {
-		GString *backtrace = Sys_Backtrace(0, (uint32_t) -1);
+		GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
 		Com_Warn("^1OpenGL (%s): %s\n source: %s\n", name, R_Debug_Error(error_code), backtrace->str);
 		g_string_free(backtrace, true);
 	
@@ -341,6 +341,8 @@ void R_InitContext(void) {
 	r_context.window_scale = dw / (float) ww;
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
+
+	r_context.multisample_samples = attr[SDL_GL_MULTISAMPLESAMPLES];
 
 	gladLoaderLoadGL();
 	

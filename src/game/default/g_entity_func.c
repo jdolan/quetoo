@@ -333,8 +333,8 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_end) {
 			vec3_t pos;
 
-			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
-			pos.z = ent->abs_maxs.z;
+			pos = Box3_Center(ent->abs_bounds);
+			pos.z = ent->abs_bounds.maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, SOUND_ATTEN_SQUARE, 0);
 		}
@@ -373,8 +373,8 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_start) {
 			vec3_t pos;
 
-			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
-			pos.z = ent->abs_maxs.z;
+			pos = Box3_Center(ent->abs_bounds);
+			pos.z = ent->abs_bounds.maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, SOUND_ATTEN_SQUARE, 0);
 		}
@@ -442,7 +442,6 @@ static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other,
  */
 static void G_func_plat_CreateTrigger(g_entity_t *ent) {
 	g_entity_t *trigger;
-	vec3_t tmin, tmax;
 
 	// middle trigger
 	trigger = G_AllocEntity();
@@ -451,31 +450,25 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
 	trigger->solid = SOLID_TRIGGER;
 	trigger->locals.enemy = ent;
 
-	tmin.x = ent->mins.x + 25;
-	tmin.y = ent->mins.y + 25;
-	tmin.z = ent->mins.z;
+	box3_t bounds = Box3_Expand3(ent->bounds, Vec3(-25.f, -25.f, 0.f));
+	bounds.maxs.z += 8;
 
-	tmax.x = ent->maxs.x - 25;
-	tmax.y = ent->maxs.y - 25;
-	tmax.z = ent->maxs.z + 8;
-
-	tmin.z = tmax.z - (ent->locals.pos1.z - ent->locals.pos2.z + ent->locals.lip);
+	bounds.mins.z = bounds.maxs.z - (ent->locals.pos1.z - ent->locals.pos2.z + ent->locals.lip);
 
 	if (ent->locals.spawn_flags & PLAT_LOW_TRIGGER) {
-		tmax.z = tmin.z + 8.0;
+		bounds.maxs.z = bounds.mins.z + 8.0;
 	}
 
-	if (tmax.x - tmin.x <= 0) {
-		tmin.x = (ent->mins.x + ent->maxs.x) * 0.5;
-		tmax.x = tmin.x + 1;
+	if (bounds.maxs.x - bounds.mins.x <= 0) {
+		bounds.mins.x = (ent->bounds.mins.x + ent->bounds.maxs.x) * 0.5;
+		bounds.maxs.x = bounds.mins.x + 1;
 	}
-	if (tmax.y - tmin.y <= 0) {
-		tmin.y = (ent->mins.y + ent->maxs.y) * 0.5;
-		tmax.y = tmin.y + 1;
+	if (bounds.maxs.y - bounds.mins.y <= 0) {
+		bounds.mins.y = (ent->bounds.mins.y + ent->bounds.maxs.y) * 0.5;
+		bounds.maxs.y = bounds.mins.y + 1;
 	}
 
-	trigger->mins = tmin;
-	trigger->maxs = tmax;
+	trigger->bounds = bounds;
 
 	gi.LinkEntity(trigger);
 }
@@ -532,10 +525,8 @@ void G_func_plat(g_entity_t *ent) {
 	const cm_entity_t *height = gi.EntityValue(ent->def, "height");
 	if (height->parsed & ENTITY_INTEGER) { // use the specified height
 		ent->locals.pos2.z -= height->integer;
-	} else
-		// or derive it from the model height
-	{
-		ent->locals.pos2.z -= (ent->maxs.z - ent->mins.z) - ent->locals.lip;
+	} else { // or derive it from the model height
+		ent->locals.pos2.z -= Box3_Size(ent->bounds).z - ent->locals.lip;
 	}
 
 	ent->locals.Use = G_func_plat_Use;
@@ -1041,29 +1032,22 @@ static void G_func_door_CalculateMove(g_entity_t *self) {
  */
 static void G_func_door_CreateTrigger(g_entity_t *ent) {
 	g_entity_t *trigger;
-	vec3_t mins, maxs;
 
 	if (ent->locals.flags & FL_TEAM_SLAVE) {
 		return; // only the team leader spawns a trigger
 	}
 
-	mins = ent->abs_mins;
-	maxs = ent->abs_maxs;
+	box3_t bounds = ent->abs_bounds;
 
 	for (trigger = ent->locals.team_next; trigger; trigger = trigger->locals.team_next) {
-		mins = Vec3_Minf(mins, trigger->abs_mins);
-		maxs = Vec3_Maxf(maxs, trigger->abs_maxs);
+		bounds = Box3_Union(bounds, trigger->abs_bounds);
 	}
 
 	// expand
-	mins.x -= 60;
-	mins.y -= 60;
-	maxs.x += 60;
-	maxs.y += 60;
+	bounds = Box3_Expand3(bounds, Vec3(60.f, 60.f, 0.f));
 
 	trigger = G_AllocEntity();
-	trigger->mins = mins;
-	trigger->maxs = maxs;
+	trigger->bounds = bounds;
 	trigger->owner = ent;
 	trigger->solid = SOLID_TRIGGER;
 	trigger->locals.move_type = MOVE_TYPE_NONE;
@@ -1510,6 +1494,8 @@ static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
 	self->locals.touch_time = g_level.time + 500;
 
 	G_Damage(other, self, self, Vec3_Zero(), other->s.origin, Vec3_Zero(), self->locals.damage, 1, 0, MOD_CRUSH);
+
+	self->locals.next_think = g_level.time + 1;
 }
 
 /**
@@ -1821,7 +1807,7 @@ again:
 			return;
 		}
 		first = false;
-		self->s.origin = Vec3_Subtract(ent->s.origin, self->mins);
+		self->s.origin = Vec3_Subtract(ent->s.origin, self->bounds.mins);
 		self->s.event = EV_CLIENT_TELEPORT;
 		gi.LinkEntity(self);
 		goto again;
@@ -1837,7 +1823,7 @@ again:
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
 
-	dest = Vec3_Subtract(ent->s.origin, self->mins);
+	dest = Vec3_Subtract(ent->s.origin, self->bounds.mins);
 	self->locals.move_info.state = MOVE_STATE_TOP;
 	self->locals.move_info.start_origin = self->s.origin;
 	self->locals.move_info.end_origin = dest;
@@ -1854,7 +1840,7 @@ static void G_func_train_Resume(g_entity_t *self) {
 
 	ent = self->locals.target_ent;
 
-	dest = Vec3_Subtract(ent->s.origin, self->mins);
+	dest = Vec3_Subtract(ent->s.origin, self->bounds.mins);
 	self->locals.move_info.state = MOVE_STATE_TOP;
 	self->locals.move_info.start_origin = self->s.origin;
 	self->locals.move_info.end_origin = dest;
@@ -1879,7 +1865,7 @@ static void G_func_train_Find(g_entity_t *self) {
 	}
 	self->locals.target = ent->locals.target;
 
-	self->s.origin = Vec3_Subtract(ent->s.origin, self->mins);
+	self->s.origin = Vec3_Subtract(ent->s.origin, self->bounds.mins);
 	gi.LinkEntity(self);
 
 	// if not triggered, start immediately

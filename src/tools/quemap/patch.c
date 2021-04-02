@@ -167,8 +167,7 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	const cm_winding_t *w = patch->winding;
 
-	vec3_t mins, maxs;
-	Cm_WindingBounds(w, &mins, &maxs);
+	box3_t bounds = Cm_WindingBounds(w);
 
 	vec3_t normal = Vec3_Zero();
 
@@ -177,7 +176,7 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	int32_t i;
 	for (i = 0; i < 3; i++) {
-		if (floorf((mins.xyz[i] + 1.0) / size) < floorf((maxs.xyz[i] - 1.0) / size)) {
+		if (floorf((bounds.mins.xyz[i] + 1.0) / size) < floorf((bounds.maxs.xyz[i] - 1.0) / size)) {
 			normal.xyz[i] = 1.0;
 			break;
 		}
@@ -187,7 +186,7 @@ static void SubdividePatch_r(patch_t *patch) {
 		return;
 	}
 
-	const float dist = size * (1.0 + floorf((mins.xyz[i] + 1.0) / size));
+	const float dist = size * (1.0 + floorf((bounds.mins.xyz[i] + 1.0) / size));
 
 	cm_winding_t *front, *back;
 	Cm_SplitWinding(w, normal, dist, SIDE_EPSILON, &front, &back);

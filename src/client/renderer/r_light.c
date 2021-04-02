@@ -33,11 +33,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	if (R_CullSphere(view, l->origin, l->radius)) {
-		return;
-	}
-
-	if (R_OccludeSphere(view, l->origin, l->radius)) {
+	if (R_CulludeSphere(view, l->origin, l->radius)) {
 		return;
 	}
 
@@ -49,8 +45,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
  * @brief Transforms all active light sources to view space for rendering.
  */
 void R_UpdateLights(const r_view_t *view) {
-
-	memset(r_lights.block.lights, 0, sizeof(r_lights.block.lights));
 
 	if (view) {
 
@@ -68,7 +62,8 @@ void R_UpdateLights(const r_view_t *view) {
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, num_lights), sizeof(r_lights.block.num_lights), &r_lights.block.num_lights);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, lights), sizeof(r_light_t) * r_lights.block.num_lights, &r_lights.block.lights);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -78,6 +73,9 @@ void R_UpdateLights(const r_view_t *view) {
 void R_InitLights(void) {
 
 	glGenBuffers(1, &r_lights.buffer);
+	
+	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), NULL, GL_DYNAMIC_DRAW);
 
 	R_UpdateLights(NULL);
 }

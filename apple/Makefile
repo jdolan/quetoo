@@ -20,7 +20,7 @@ all: clean configure compile pre-install install install-lib install-installer p
 continuous-integration: all release install-data snapshot snapshot-release
 
 configure:
-	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2 -mmacosx-version-min=10.13' --prefix=/
+	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O2' --prefix=/
 	
 compile:
 	make -C .. -j8 all
@@ -53,7 +53,7 @@ install-installer:
 
 post-install:
 	xattr -cr $(QUETOO)
-	codesign -s $(CODESIGN_IDENTITY) --deep --force $(INSTALL)
+	codesign -s $(CODESIGN_IDENTITY) --verbose --deep --force $(INSTALL)
 
 release:
 	aws s3 sync --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(BUILD)

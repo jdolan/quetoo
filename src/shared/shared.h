@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "box.h"
 #include "color.h"
 #include "matrix.h"
 #include "parse.h"
@@ -248,7 +249,7 @@ typedef struct {
 	 * client-sided prediction so that players don't e.g. run through each
 	 * other.
 	 */
-	vec3_t mins, maxs;
+	box3_t bounds;
 
 	/**
 	 * @brief Step offset, used for player positional offsets from stair stepping.
@@ -592,6 +593,7 @@ typedef enum {
 	DEBUG_SERVER		= 1 << 12,
 	DEBUG_SOUND			= 1 << 13,
 	DEBUG_UI			= 1 << 14,
+	DEBUG_TOTAL			= 15, // make sure this is valid if you add more
 
 	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
 	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),

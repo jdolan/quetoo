@@ -64,11 +64,12 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
 // max len we'll try to parse for a category
 #define DEBUG_CATEGORY_MAX_LEN	32
 
-static const char *DEBUG_CATEGORIES[] = {
+const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
 	"ai",
 	"cgame",
 	"client",
 	"collision",
+	"common",
 	"console",
 	"filesystem",
 	"game",
@@ -111,9 +112,8 @@ const char *Com_GetDebug(void) {
 void Com_SetDebug(const char *debug) {
 
 	static char token[DEBUG_CATEGORY_MAX_LEN];
-	static parser_t parser;
 
-	Parse_Init(&parser, debug, PARSER_NO_COMMENTS);
+	parser_t parser = Parse_Init(debug, PARSER_NO_COMMENTS);
 
 	while (true) {
 
@@ -159,7 +159,7 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
 		if (fmt[0] == '!') { // skip it
 			fmt++;
 		} else {
-			g_snprintf(str, size, "%s: ", func);
+			g_snprintf(str, (gulong) size, "%s: ", func);
 			len = strlen(str);
 		}
 	}

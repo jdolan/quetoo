@@ -205,13 +205,13 @@ void RemovePortalFromNode(portal_t *portal, node_t *node) {
  * @brief The created portals will face the global outside node.
  */
 void MakeHeadnodePortals(tree_t *tree) {
-	vec3_t bounds[2];
+	box3_t bounds;
 	portal_t *portals[6];
 
 	// pad with some space so there will never be null volume leafs
 	for (int32_t i = 0; i < 3; i++) {
-		bounds[0].xyz[i] = floorf(tree->mins.xyz[i]) - SIDESPACE;
-		bounds[1].xyz[i] =  ceilf(tree->maxs.xyz[i]) + SIDESPACE;
+		bounds.mins.xyz[i] = floorf(tree->bounds.mins.xyz[i]) - SIDESPACE;
+		bounds.maxs.xyz[i] =  ceilf(tree->bounds.maxs.xyz[i]) + SIDESPACE;
 	}
 
 	tree->outside_node.plane_num = PLANE_NUM_LEAF;
@@ -229,10 +229,10 @@ void MakeHeadnodePortals(tree_t *tree) {
 			plane_t *plane = &p->plane;
 			if (j) {
 				plane->normal.xyz[i] = -1;
-				plane->dist = -bounds[j].xyz[i];
+				plane->dist = -bounds.maxs.xyz[i];
 			} else {
 				plane->normal.xyz[i] = 1;
-				plane->dist = bounds[j].xyz[i];
+				plane->dist = bounds.mins.xyz[i];
 			}
 			p->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 			AddPortalToNodes(p, tree->head_node, &tree->outside_node);
@@ -411,15 +411,11 @@ void SplitNodePortals(node_t *node) {
 static void CalcNodeBounds(node_t *node) {
 	int32_t s;
 
-	node->mins = Vec3_Mins();
-	node->maxs = Vec3_Maxs();
+	node->bounds = Box3_Null();
 
 	for (portal_t *p = node->portals; p; p = p->next[s]) {
 		s = (p->nodes[1] == node);
-		for (int32_t i = 0; i < p->winding->num_points; i++) {
-			node->mins = Vec3_Minf(node->mins, p->winding->points[i]);
-			node->maxs = Vec3_Maxf(node->maxs, p->winding->points[i]);
-		}
+		node->bounds = Box3_Union(node->bounds, Cm_WindingBounds(p->winding));
 	}
 }
 
@@ -430,12 +426,12 @@ static void MakeTreePortals_r(node_t *node) {
 
 	CalcNodeBounds(node);
 
-	if (node->mins.x >= node->maxs.x) {
+	if (node->bounds.mins.x >= node->bounds.maxs.x) {
 		Com_Warn("Node without a volume, is your map centered?\n");
 	}
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (node->mins.xyz[i] < -MAX_WORLD_COORD || node->maxs.xyz[i] > MAX_WORLD_COORD) {
+		if (node->bounds.mins.xyz[i] < -MAX_WORLD_COORD || node->bounds.maxs.xyz[i] > MAX_WORLD_COORD) {
 			Com_Warn("Node with unbounded volume, is your map centered?\n");
 			break;
 		}

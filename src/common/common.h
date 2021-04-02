@@ -113,6 +113,8 @@ char *Com_Argv(int32_t arg);
 
 void Com_PrintInfo(const char *s);
 
+extern const char *DEBUG_CATEGORIES[DEBUG_TOTAL];
+
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 
