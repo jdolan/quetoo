@@ -56,11 +56,6 @@ typedef struct r_media_s {
 	r_media_type_t type;
 
 	/**
-	 * @brief The number of dependencies to us.
-	 */
-	uint32_t ref_count;
-
-	/**
 	 * @brief The media on which this media depends.
 	 */
 	GList *dependencies;
