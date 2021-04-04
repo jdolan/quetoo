@@ -597,6 +597,8 @@ typedef struct {
 	r_mesh_vertex_t *vertexes;
 	int32_t num_vertexes;
 
+	vec3_t *shell_normals;
+
 	GLvoid *elements;
 	int32_t num_elements;
 } r_mesh_face_t;

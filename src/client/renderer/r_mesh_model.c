@@ -187,38 +187,36 @@ static void R_LoadMeshTangents(r_model_t *mod) {
  * @brief Calculates normal vectors for shells, which need to have
  * proper smooth vertex normals to look "right".
  */
-static void R_LoadMeshShellNormals(r_model_t *mod) {
+static void R_SetupMeshShellNormals(r_model_t *mod, r_mesh_face_t *face) {
 
 	assert(mod->mesh);
 	assert(mod->mesh->num_vertexes);
 	assert(mod->mesh->num_frames);
 
-	const int32_t total_vertices = mod->mesh->num_vertexes * mod->mesh->num_frames;
+	const int32_t total_vertices = face->num_vertexes * mod->mesh->num_frames;
 
-	mod->mesh->shell_normals = Mem_LinkMalloc(sizeof(vec3_t) * total_vertices, mod->mesh);
+	face->shell_normals = Mem_LinkMalloc(sizeof(vec3_t) * total_vertices, mod->mesh);
 	
-	int32_t remap[mod->mesh->num_vertexes];
-	int32_t num_normals[mod->mesh->num_vertexes];
-	_Bool any_remap_necessary = false;
+	int32_t remap[face->num_vertexes];
+	int32_t num_normals[face->num_vertexes];
 
 	for (int32_t f = 0; f < mod->mesh->num_frames; f++) {
-		const ptrdiff_t frame_vert_offset = (f * mod->mesh->num_vertexes);
+		const ptrdiff_t frame_vert_offset = (f * face->num_vertexes);
 
 		// reset remap lists
 		memset(remap, -1, sizeof(remap));
-		memset(num_normals, -1, sizeof(num_normals));
+		memset(num_normals, 0, sizeof(num_normals));
 
 		// first, remap vertices on every frame if they have
 		// the same position.
-		for (int32_t i = mod->mesh->num_vertexes - 1; i >= 0; i--) {
-			const r_mesh_vertex_t *v = &mod->mesh->vertexes[frame_vert_offset + i];
+		for (int32_t i = face->num_vertexes - 1; i >= 0; i--) {
+			const r_mesh_vertex_t *v = &face->vertexes[frame_vert_offset + i];
 			int32_t j;
 
 			for (j = 0; j < i; j++) {
-				const r_mesh_vertex_t *v2 = &mod->mesh->vertexes[frame_vert_offset + j];
+				const r_mesh_vertex_t *v2 = &face->vertexes[frame_vert_offset + j];
 
 				if (Vec3_Equal(v2->position, v->position)) {
-					any_remap_necessary = true;
 					break;
 				}
 			}
@@ -227,37 +225,33 @@ static void R_LoadMeshShellNormals(r_model_t *mod) {
 		}
 
 		// re-calculate normals for every vertex
-		vec3_t *normals = mod->mesh->shell_normals + frame_vert_offset;
+		vec3_t *normals = face->shell_normals + frame_vert_offset;
 
-		for (int32_t i = 0; i < mod->mesh->num_vertexes; i++) {
+		for (int32_t i = 0; i < face->num_vertexes; i++) {
 			const uint32_t v_i = remap[i];
-			const r_mesh_vertex_t *v = &mod->mesh->vertexes[frame_vert_offset + v_i];
 			vec3_t *normal = normals + v_i;
 
-			for (int32_t j = 0; j < mod->mesh->num_faces; j++) {
-				const r_mesh_face_t *f = &mod->mesh->faces[j];
-				const GLuint *e = mod->mesh->elements + ((ptrdiff_t) f->elements / sizeof(uint32_t));
+			const GLuint *e = (GLuint *) face->elements;
 
-				for (int32_t k = 0; k < f->num_elements; k += 3, e += 3) {
-					const uint32_t a = remap[*e], b = remap[*(e + 1)], c = remap[*(e + 2)];
+			for (int32_t k = 0; k < face->num_elements; k += 3, e += 3) {
+				const uint32_t a = remap[*e], b = remap[*(e + 1)], c = remap[*(e + 2)];
 
-					if (v_i == a || v_i == b || v_i == c) {
-						const vec3_t va = mod->mesh->vertexes[frame_vert_offset + a].position;
-						const vec3_t vb = mod->mesh->vertexes[frame_vert_offset + b].position;
-						const vec3_t vc = mod->mesh->vertexes[frame_vert_offset + c].position;
+				if (v_i == a || v_i == b || v_i == c) {
+					const vec3_t va = face->vertexes[frame_vert_offset + a].position;
+					const vec3_t vb = face->vertexes[frame_vert_offset + b].position;
+					const vec3_t vc = face->vertexes[frame_vert_offset + c].position;
 
-						const vec3_t v1 = Vec3_Subtract(va, vc);
-						const vec3_t v2 = Vec3_Subtract(vc, vb);
+					const vec3_t v1 = Vec3_Subtract(va, vc);
+					const vec3_t v2 = Vec3_Subtract(vc, vb);
 
-						*normal = Vec3_Add(*normal, Vec3_Cross(v1, v2));
-						num_normals[v_i]++;
-					}
+					*normal = Vec3_Add(*normal, Vec3_Cross(v1, v2));
+					num_normals[v_i]++;
 				}
 			}
 		}
 
 		// divide and normalize
-		for (int32_t i = 0; i < mod->mesh->num_vertexes; i++) {
+		for (int32_t i = 0; i < face->num_vertexes; i++) {
 			if (remap[i] == i) {
 				normals[i] = Vec3_Normalize(Vec3_Scale(normals[i], num_normals[i]));
 			} else {
@@ -288,13 +282,17 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 
 	mod->mesh->vertexes = Mem_LinkMalloc(mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t), mod->mesh);
 	mod->mesh->elements = Mem_LinkMalloc(mod->mesh->num_elements * sizeof(GLuint), mod->mesh);
+	mod->mesh->shell_normals = Mem_LinkMalloc(mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(vec3_t), mod->mesh);
 
 	r_mesh_vertex_t *vertex = mod->mesh->vertexes;
 	GLuint *elements = mod->mesh->elements;
+	vec3_t *shell_normal = mod->mesh->shell_normals;
 
 	{
 		r_mesh_face_t *face = mod->mesh->faces;
 		for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+
+			R_SetupMeshShellNormals(mod, face);
 
 			memcpy(vertex, face->vertexes, face->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t));
 			Mem_Free(face->vertexes);
@@ -307,12 +305,16 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 
 			face->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(GLuint));
 			elements += face->num_elements;
+
+			memcpy(shell_normal, face->shell_normals, face->num_vertexes * mod->mesh->num_frames * sizeof(vec3_t));
+			Mem_Free(face->shell_normals);
+
+			face->shell_normals = shell_normal;
+			shell_normal += face->num_vertexes * mod->mesh->num_frames;
 		}
 	}
 
 	R_LoadMeshTangents(mod);
-
-	R_LoadMeshShellNormals(mod);
 
 	glGenVertexArrays(1, &mod->mesh->vertex_array);
 	glBindVertexArray(mod->mesh->vertex_array);
