@@ -214,6 +214,47 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 /**
  * @brief
  */
+static void Cg_MergeFlares(void) {
+
+	for (guint i = 0; i < cg_flares->len; i++) {
+		cg_flare_t *a = g_ptr_array_index(cg_flares, i);
+
+		for (guint j = i + 1; j < cg_flares->len; j++) {
+			cg_flare_t *b = g_ptr_array_index(cg_flares, j);
+
+			if (b->face->texinfo == a->face->texinfo &&
+				b->face->plane == a->face->plane &&
+				b->face->plane_side == a->face->plane_side) {
+
+				const r_bsp_vertex_t *av = a->face->vertexes;
+				const r_bsp_vertex_t *bv = b->face->vertexes;
+
+				int32_t shared_verts = 0;
+
+				for (int32_t k = 0; k < a->face->num_vertexes; k++) {
+					for (int32_t l = 0; l < b->face->num_vertexes; l++) {
+						if (Vec3_Distance(av[k].position, bv[l].position) < ON_EPSILON) {
+							shared_verts++;
+						}
+					}
+				}
+
+				if (shared_verts > 1) {
+					Cg_Debug("Merging %s to %s\n", vtos(b->in.origin), vtos(a->in.origin));
+
+					a->in.origin = Vec3_Mix(a->in.origin, b->in.origin, .5f);
+					a->in.size += b->in.size;
+
+					g_ptr_array_remove_index(cg_flares, j);
+				}
+			}
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 void Cg_LoadFlares(void) {
 
 	cg_flares = g_ptr_array_new();
@@ -243,6 +284,8 @@ void Cg_LoadFlares(void) {
 			g_ptr_array_add(cg_flares, flare);
 		}
 	}
+
+	Cg_MergeFlares();
 
 	Cg_Debug("Loaded %u flares\n", cg_flares->len);
 }
