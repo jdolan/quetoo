@@ -73,6 +73,7 @@ void Cg_AddFlares(void) {
 	for (guint i = 0; i < cg_flares->len; i++) {
 		cg_flare_t *flare = g_ptr_array_index(cg_flares, i);
 
+		mat4_t matrix = Mat4_Identity();
 		flare->entity = NULL;
 
 		const r_bsp_inline_model_t *in = flare->face->node->model;
@@ -94,6 +95,7 @@ void Cg_AddFlares(void) {
 
 				if (mod && mod->type == MOD_BSP_INLINE) {
 					if (in == mod->bsp_inline) {
+						matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, 1.f);
 						flare->entity = e;
 						break;
 					}
@@ -104,7 +106,7 @@ void Cg_AddFlares(void) {
 		}
 
 		if (flare->entity) {
-			flare->out.origin = Mat4_Transform(flare->entity->matrix, flare->in.origin);
+			flare->out.origin = Mat4_Transform(matrix, flare->in.origin);
 		}
 
 		r_sprite_t *out = cgi.AddSprite(cgi.view, &flare->out);
@@ -125,7 +127,7 @@ void Cg_AddFlares(void) {
 
 					vec3_t p;
 					if (flare->entity) {
-						p = Mat4_Transform(flare->entity->matrix, v->position);
+						p = Mat4_Transform(matrix, v->position);
 					} else {
 						p = v->position;
 					}

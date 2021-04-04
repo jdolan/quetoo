@@ -91,8 +91,8 @@ typedef struct {
 	float legs_current_yaw; // only used by player models
 	float step_offset; // interpolated step offset
 
-	mat4_t matrix; // interpolated translation and rotation
-	mat4_t inverse_matrix; // for box hull collision
+	mat4_t matrix; // snapped transform matrix, for collision
+	mat4_t inverse_matrix; // inverse transform
 } cl_entity_t;
 
 // the total number of tokens info can contain
