@@ -585,6 +585,9 @@ static void R_InitSpriteProgram(void) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil, 0);
 
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
 	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
 		Com_Error(ERROR_FATAL, "Failed to create framebuffer: %d\n", status);
