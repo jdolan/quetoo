@@ -95,7 +95,7 @@ void R_UpdateMeshEntities(r_view_t *view) {
 /**
  * @brief
  */
-static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face_t *face, const r_stage_t *stage) {
+static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_stage_t *stage) {
 
 	glUniform1i(r_mesh_program.stage.flags, stage->cm->flags);
 
@@ -116,7 +116,15 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 	}
 
 	if (stage->cm->flags & STAGE_SHELL) {
+		const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(vec3_t);
+		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(vec3_t);
+
 		glUniform1f(r_mesh_program.stage.shell, stage->cm->shell.radius);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->shell_normals_buffer);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) old_frame_offset);
+		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) frame_offset);
 	}
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
@@ -137,19 +145,29 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 	const GLint base_vertex = (GLint) (face->vertexes - e->model->mesh->vertexes);
 	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 
+	if (stage->cm->flags & STAGE_SHELL) {
+		const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, normal)));
+		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
+	}
+
 	R_GetError(stage->media->name);
 }
 
 /**
  * @brief
  */
-static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t *face) {
+static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh) {
 
 	if (!(e->effects & EF_SHELL)) {
 		return;
 	}
 
-	R_DrawMeshEntityMaterialStage(e, face, &(const r_stage_t) {
+	R_DrawMeshEntityMaterialStage(e, face, mesh, &(const r_stage_t) {
 		.cm = &(const cm_stage_t) {
 			.flags = STAGE_COLOR | STAGE_SHELL | STAGE_SCROLL_S | STAGE_SCROLL_T,
 			.color = Color4fv(Vec3_ToVec4(e->shell, 0.33)),
@@ -164,7 +182,7 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
 /**
  * @brief
  */
-static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
+static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_material_t *material) {
 
 	if (!r_draw_material_stages->value) {
 		return;
@@ -192,10 +210,10 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 			continue;
 		}
 
-		R_DrawMeshEntityMaterialStage(e, face, stage);
+		R_DrawMeshEntityMaterialStage(e, face, mesh, stage);
 	}
 
-	R_DrawMeshEntityShellEffect(e, face);
+	R_DrawMeshEntityShellEffect(e, face, mesh);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
@@ -275,7 +293,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
 	r_stats.count_mesh_triangles += face->num_elements / 3;
 
-	R_DrawMeshEntityMaterialStages(e, face, material);
+	R_DrawMeshEntityMaterialStages(e, face, mesh, material);
 }
 
 /**

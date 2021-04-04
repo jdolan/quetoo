@@ -148,7 +148,7 @@ void R_LoadMeshConfigs(r_model_t *mod) {
 }
 
 /**
- * @brief Calculates tangent vectors for each MD3 vertex for per-pixel
+ * @brief Calculates tangent vectors for each vertex for per-pixel
  * lighting. See http://www.terathon.com/code/tangent.html.
  */
 static void R_LoadMeshTangents(r_model_t *mod) {
@@ -180,6 +180,90 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 		}
 
 		Mem_Free(vertexes);
+	}
+}
+
+/**
+ * @brief Calculates normal vectors for shells, which need to have
+ * proper smooth vertex normals to look "right".
+ */
+static void R_LoadMeshShellNormals(r_model_t *mod) {
+
+	assert(mod->mesh);
+	assert(mod->mesh->num_vertexes);
+	assert(mod->mesh->num_frames);
+
+	const int32_t total_vertices = mod->mesh->num_vertexes * mod->mesh->num_frames;
+
+	mod->mesh->shell_normals = Mem_LinkMalloc(sizeof(vec3_t) * total_vertices, mod->mesh);
+	
+	int32_t remap[mod->mesh->num_vertexes];
+	int32_t num_normals[mod->mesh->num_vertexes];
+	_Bool any_remap_necessary = false;
+
+	for (int32_t f = 0; f < mod->mesh->num_frames; f++) {
+		const ptrdiff_t frame_vert_offset = (f * mod->mesh->num_vertexes);
+
+		// reset remap lists
+		memset(remap, -1, sizeof(remap));
+		memset(num_normals, -1, sizeof(num_normals));
+
+		// first, remap vertices on every frame if they have
+		// the same position.
+		for (int32_t i = mod->mesh->num_vertexes - 1; i >= 0; i--) {
+			const r_mesh_vertex_t *v = &mod->mesh->vertexes[frame_vert_offset + i];
+			int32_t j;
+
+			for (j = 0; j < i; j++) {
+				const r_mesh_vertex_t *v2 = &mod->mesh->vertexes[frame_vert_offset + j];
+
+				if (Vec3_Equal(v2->position, v->position)) {
+					any_remap_necessary = true;
+					break;
+				}
+			}
+
+			remap[i] = j;
+		}
+
+		// re-calculate normals for every vertex
+		vec3_t *normals = mod->mesh->shell_normals + frame_vert_offset;
+
+		for (int32_t i = 0; i < mod->mesh->num_vertexes; i++) {
+			const uint32_t v_i = remap[i];
+			const r_mesh_vertex_t *v = &mod->mesh->vertexes[frame_vert_offset + v_i];
+			vec3_t *normal = normals + v_i;
+
+			for (int32_t j = 0; j < mod->mesh->num_faces; j++) {
+				const r_mesh_face_t *f = &mod->mesh->faces[j];
+				const GLuint *e = mod->mesh->elements + ((ptrdiff_t) f->elements / sizeof(uint32_t));
+
+				for (int32_t k = 0; k < f->num_elements; k += 3, e += 3) {
+					const uint32_t a = remap[*e], b = remap[*(e + 1)], c = remap[*(e + 2)];
+
+					if (v_i == a || v_i == b || v_i == c) {
+						const vec3_t va = mod->mesh->vertexes[frame_vert_offset + a].position;
+						const vec3_t vb = mod->mesh->vertexes[frame_vert_offset + b].position;
+						const vec3_t vc = mod->mesh->vertexes[frame_vert_offset + c].position;
+
+						const vec3_t v1 = Vec3_Subtract(va, vc);
+						const vec3_t v2 = Vec3_Subtract(vc, vb);
+
+						*normal = Vec3_Add(*normal, Vec3_Cross(v1, v2));
+						num_normals[v_i]++;
+					}
+				}
+			}
+		}
+
+		// divide and normalize
+		for (int32_t i = 0; i < mod->mesh->num_vertexes; i++) {
+			if (remap[i] == i) {
+				normals[i] = Vec3_Normalize(Vec3_Scale(normals[i], num_normals[i]));
+			} else {
+				normals[i] = normals[remap[i]];
+			}
+		}
 	}
 }
 
@@ -221,15 +305,21 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 			memcpy(elements, face->elements, face->num_elements * sizeof(GLuint));
 			Mem_Free(face->elements);
 
-			face->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(int32_t));
+			face->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(GLuint));
 			elements += face->num_elements;
 		}
 	}
 
 	R_LoadMeshTangents(mod);
 
+	R_LoadMeshShellNormals(mod);
+
 	glGenVertexArrays(1, &mod->mesh->vertex_array);
 	glBindVertexArray(mod->mesh->vertex_array);
+
+	glGenBuffers(1, &mod->mesh->shell_normals_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mod->mesh->shell_normals_buffer);
+	glBufferData(GL_ARRAY_BUFFER, mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(vec3_t), mod->mesh->shell_normals, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &mod->mesh->vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, mod->mesh->vertex_buffer);

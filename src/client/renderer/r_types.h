@@ -648,10 +648,13 @@ typedef struct {
 		r_mesh_config_t link;
 	} config;
 
+	vec3_t *shell_normals;
+
 	// buffer data
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
 	GLuint vertex_array;
+	GLuint shell_normals_buffer;
 } r_mesh_model_t;
 
 /**
