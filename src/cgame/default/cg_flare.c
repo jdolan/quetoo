@@ -24,7 +24,12 @@
 /**
  * @brief The flare type.
  */
-typedef struct {
+typedef struct cg_flare_s {
+	/**
+	 * @brief The flare that this flare was merged to.
+	 */
+	struct cg_flare_s *merged;
+
 	/**
 	 * @brief The face this flare is anchored to.
 	 */
@@ -73,6 +78,11 @@ void Cg_AddFlares(void) {
 	for (guint i = 0; i < cg_flares->len; i++) {
 		cg_flare_t *flare = g_ptr_array_index(cg_flares, i);
 
+		if (flare->merged) {
+			continue;;
+		}
+
+		mat4_t matrix = Mat4_Identity();
 		flare->entity = NULL;
 
 		const r_bsp_inline_model_t *in = flare->face->node->model;
@@ -94,6 +104,7 @@ void Cg_AddFlares(void) {
 
 				if (mod && mod->type == MOD_BSP_INLINE) {
 					if (in == mod->bsp_inline) {
+						matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, 1.f);
 						flare->entity = e;
 						break;
 					}
@@ -104,7 +115,7 @@ void Cg_AddFlares(void) {
 		}
 
 		if (flare->entity) {
-			flare->out.origin = Mat4_Transform(flare->entity->matrix, flare->in.origin);
+			flare->out.origin = Mat4_Transform(matrix, flare->in.origin);
 		}
 
 		r_sprite_t *out = cgi.AddSprite(cgi.view, &flare->out);
@@ -125,7 +136,7 @@ void Cg_AddFlares(void) {
 
 					vec3_t p;
 					if (flare->entity) {
-						p = Mat4_Transform(flare->entity->matrix, v->position);
+						p = Mat4_Transform(matrix, v->position);
 					} else {
 						p = v->position;
 					}
@@ -214,6 +225,59 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 /**
  * @brief
  */
+static int32_t Cg_MergeFlaresVerts(const cg_flare_t *a, const cg_flare_t *b) {
+
+	int32_t count = 0;
+
+	const r_bsp_vertex_t *av = a->face->vertexes;
+	const r_bsp_vertex_t *bv = b->face->vertexes;
+
+	for (int32_t i = 0; i < a->face->num_vertexes; i++) {
+		for (int32_t j = 0; j < b->face->num_vertexes; j++) {
+			if (Vec3_Distance(av[i].position, bv[j].position) < ON_EPSILON) {
+				count++;
+			}
+		}
+	}
+
+	if (b->merged) {
+		count += Cg_MergeFlaresVerts(a, b->merged);
+	}
+
+	return count;
+}
+
+/**
+ * @brief
+ */
+static void Cg_MergeFlares(void) {
+
+	for (guint i = 0; i < cg_flares->len; i++) {
+		cg_flare_t *a = g_ptr_array_index(cg_flares, i);
+
+		for (guint j = i + 1; j < cg_flares->len; j++) {
+			cg_flare_t *b = g_ptr_array_index(cg_flares, j);
+
+			if (b->face->texinfo == a->face->texinfo &&
+				b->face->plane == a->face->plane &&
+				b->face->plane_side == a->face->plane_side) {
+
+				if (Cg_MergeFlaresVerts(a, b) > 1) {
+					Cg_Debug("Merging %s to %s\n", vtos(b->in.origin), vtos(a->in.origin));
+
+					a->merged = b;
+
+					b->in.origin = Box3_Center(Box3_Union(a->face->bounds, b->face->bounds));
+					b->in.size += a->in.size;
+				}
+			}
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 void Cg_LoadFlares(void) {
 
 	cg_flares = g_ptr_array_new();
@@ -243,6 +307,8 @@ void Cg_LoadFlares(void) {
 			g_ptr_array_add(cg_flares, flare);
 		}
 	}
+
+	Cg_MergeFlares();
 
 	Cg_Debug("Loaded %u flares\n", cg_flares->len);
 }
