@@ -333,7 +333,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                          int32_t damage, int32_t knockback) {
 
-	const box3_t bounds = Boxf(2.f);
+	const box3_t bounds = Box3f(2.f, 2.f, 2.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
@@ -502,7 +502,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 						 int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
 
-	const box3_t bounds = Boxf(6.f);
+	const box3_t bounds = Box3f(6.f, 6.f, 6.f);
 
 	vec3_t forward, right, up;
 
@@ -550,7 +550,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
                              vec3_t const start, const vec3_t dir, int32_t speed, int32_t damage,
 							 int32_t knockback, float damage_radius, uint32_t timer) {
 
-	const box3_t bounds = Boxf(4.f);
+	const box3_t bounds = Box3f(4.f, 4.f, 4.f);
 
 	vec3_t forward, right, up;
 
@@ -634,7 +634,7 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 						int32_t damage, int32_t knockback, float damage_radius) {
 
-	const box3_t bounds = Boxf(4.f);
+	const box3_t bounds = Box3f(4.f, 4.f, 4.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
@@ -720,7 +720,7 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 							  int32_t damage, int32_t knockback) {
 
-	const box3_t bounds = Boxf(6.f);
+	const box3_t bounds = Box3f(6.f, 6.f, 6.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
@@ -1099,7 +1099,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 					 int32_t damage, int32_t knockback, float damage_radius) {
 
-	const box3_t bounds = Boxf(8.f);
+	const box3_t bounds = Box3f(8.f, 8.f, 8.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;

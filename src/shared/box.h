@@ -41,7 +41,7 @@ typedef struct {
 /**
  * @return A `box_t` with the specified mins and maxs.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_MinsMaxs(const vec3_t mins, const vec3_t maxs) {
+static inline box3_t __attribute__ ((warn_unused_result)) Box3(const vec3_t mins, const vec3_t maxs) {
 	return (box3_t) {
 		.mins = mins,
 		.maxs = maxs
@@ -53,19 +53,15 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_MinsMaxs(const ve
  * such that its center is zero, and its size matches `size`.
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3fv(const vec3_t size) {
-	const vec3_t half_size = Vec3_Scale(size, .5f);
-	return Box3_MinsMaxs(
-		Vec3_Negate(half_size),
-		half_size
-	);
+	return Box3(Vec3_Scale(size, -.5f), Vec3_Scale(size, .5f));
 }
 
 /**
- * @return A bounding box constructed from a single size value. The box is constructed
- * such that its center is zero, and its size matches { `distance`, `distance`, `distance` }.
+ * @return A bounding box constructed from size values. The box is constructed
+ * such that its center is zero, and its size matches { `x`, `y`, `z` }.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Boxf(const float distance) {
-	return Box3fv(Vec3(distance, distance, distance));
+static inline box3_t __attribute__ ((warn_unused_result)) Box3f(float x, float y, float z) {
+	return Box3fv(Vec3(x, y, z));
 }
 
 /**
@@ -208,7 +204,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Center(const box3
  * @return A bounding box centered around `a` with a size of zero.
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenter(const vec3_t a) {
-	return Box3_MinsMaxs(a, a);
+	return Box3(a, a);
 }
 
 /**
@@ -217,7 +213,7 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenter(const 
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenterSize(const vec3_t center, const vec3_t size) {
 	const vec3_t half_size = Vec3_Scale(size, .5f);
-	return Box3_MinsMaxs(
+	return Box3(
 		Vec3_Subtract(center, half_size),
 		Vec3_Add(center, half_size)
 	);
@@ -235,7 +231,7 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenterDistanc
  * @return A bounding box translated by the specified offset.
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3_Translate(const box3_t bounds, const vec3_t translation) {
-	return Box3_MinsMaxs(
+	return Box3(
 		Vec3_Add(bounds.mins, translation),
 		Vec3_Add(bounds.maxs, translation)
 	);
@@ -246,7 +242,7 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Translate(const b
  * specified expansion values on all six axis.
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3_Expand3(const box3_t bounds, const vec3_t expansion) {
-	return Box3_MinsMaxs(
+	return Box3(
 		Vec3_Subtract(bounds.mins, expansion),
 		Vec3_Add(bounds.maxs, expansion)
 	);
@@ -264,7 +260,7 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Expand(const box3
  * @return The bounding box `a` expanded by the bounding box `b`.
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3_ExpandBox(const box3_t a, const box3_t b) {
-	return Box3_MinsMaxs(
+	return Box3(
 		Vec3_Add(a.mins, b.mins),
 		Vec3_Add(a.maxs, b.maxs)
 	);
@@ -281,7 +277,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Box3_ClampPoint(const 
  * @return The bounds `b` clamped by the bounding box `a`.
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3_ClampBounds(const box3_t a, const box3_t b) {
-	return Box3_MinsMaxs(
+	return Box3(
 		Vec3_Clamp(b.mins, a.mins, a.maxs),
 		Vec3_Clamp(b.maxs, a.mins, a.maxs)
 	);
@@ -312,7 +308,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Symetrical(const 
  * @return The `bounds` scaled by `scale`.
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3_Scale(const box3_t bounds, const float scale) {
-	return Box3_MinsMaxs(
+	return Box3(
 		Vec3_Scale(bounds.mins, scale),
 		Vec3_Scale(bounds.maxs, scale)
 	);

@@ -215,7 +215,8 @@ void Cg_AddSprites(void) {
 			}
 
 			const float size = s->size ?: max(s->height, s->width);
-			cm_trace_t tr = cgi.Trace(old_origin, origin, Boxf(size), 0, CONTENTS_MASK_SOLID);
+			const box3_t bounds = Box3f(size, size, size);
+			cm_trace_t tr = cgi.Trace(old_origin, origin, bounds, 0, CONTENTS_MASK_SOLID);
 
 			if (tr.start_solid || tr.all_solid) {
 				tr = cgi.Trace(old_origin, origin, Box3_Zero(), 0, CONTENTS_MASK_SOLID);

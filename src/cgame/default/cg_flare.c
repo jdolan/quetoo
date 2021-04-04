@@ -99,16 +99,18 @@ void Cg_AddFlares(void) {
 					}
 				}
 			}
+
+			assert(flare->entity);
 		}
 
 		if (flare->entity) {
 			flare->out.origin = Mat4_Transform(flare->entity->matrix, flare->in.origin);
 		}
 
-		r_sprite_t *flare_sprite = cgi.AddSprite(cgi.view, &flare->out);
+		r_sprite_t *out = cgi.AddSprite(cgi.view, &flare->out);
 
 		// occluded, so don't bother checking this
-		if (!flare_sprite) {
+		if (!out) {
 			continue;
 		}
 
@@ -152,7 +154,7 @@ void Cg_AddFlares(void) {
 				const color_t in_color = Color32_Color(flare->in.color);
 				const color_t out_color = Color_Scale(in_color, alpha);
 
-				flare_sprite->color = Color_Color32(out_color);
+				out->color = Color_Color32(out_color);
 			} else {
 				// "undo" the sprite addition
 				cgi.view->num_sprites--;

@@ -56,11 +56,6 @@ typedef struct r_media_s {
 	r_media_type_t type;
 
 	/**
-	 * @brief The number of dependencies to us.
-	 */
-	uint32_t ref_count;
-
-	/**
 	 * @brief The media on which this media depends.
 	 */
 	GList *dependencies;
@@ -1143,9 +1138,9 @@ typedef struct {
 	r_pixel_t height;
 
 	/**
-	 * @brief Whether this framebuffer is multisampled or not.
+	 * @brief True if this framebuffer supports multisampling (MSAA).
 	 */
-	_Bool multisampled;
+	_Bool multisample;
 } r_framebuffer_t;
 
 /**
@@ -1322,7 +1317,7 @@ typedef struct {
 	/**
 	 * @brief Number of samples for multisampled buffers
 	 */
-	int32_t samples;
+	int32_t multisample_samples;
 } r_context_t;
 
 /**

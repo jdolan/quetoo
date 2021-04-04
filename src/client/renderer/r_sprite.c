@@ -21,8 +21,8 @@
 
 #include "r_local.h"
 
-static cvar_t *r_sprites_lerp;
-static cvar_t *r_sprites_soften;
+static cvar_t *r_sprite_lerp;
+static cvar_t *r_sprite_soften;
 
 /**
  * @brief
@@ -141,8 +141,7 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 		return NULL;
 	}
 
-	box3_t bounds = Cm_TraceBounds(b->start, b->end,
-									 Boxf(b->size));
+	const box3_t bounds = Cm_TraceBounds(b->start, b->end, Box3f(b->size, b->size, b->size));
 
 	if (R_CulludeBox(view, bounds)) {
 		return NULL;
@@ -250,7 +249,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 														&in->vertexes[2].next_diffusemap,
 														&in->vertexes[3].next_diffusemap);
 
-		if (!(s->flags & SPRITE_NO_LERP) && r_sprites_lerp->integer) {
+		if (!(s->flags & SPRITE_NO_LERP) && r_sprite_lerp->integer) {
 			const float life_to_images = floorf(s->life * anim->num_frames);
 			const float cur_frame = life_to_images / anim->num_frames;
 			const float next_frame = (life_to_images + 1) / anim->num_frames;
@@ -277,7 +276,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 	in->vertexes[0].softness =
 	in->vertexes[1].softness =
 	in->vertexes[2].softness =
-	in->vertexes[3].softness = r_sprites_soften->value * s->softness;
+	in->vertexes[3].softness = r_sprite_soften->value * s->softness;
 
 	in->vertexes[0].lighting =
 	in->vertexes[1].lighting =
@@ -370,7 +369,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->vertexes[0].softness =
 		in->vertexes[1].softness =
 		in->vertexes[2].softness =
-		in->vertexes[3].softness = r_sprites_soften->integer ? b->softness : 0.f;
+		in->vertexes[3].softness = r_sprite_soften->value * b->softness;
 
 		in->vertexes[0].lighting =
 		in->vertexes[1].lighting =
@@ -578,7 +577,7 @@ static void R_InitSpriteProgram(void) {
 	glBindFramebuffer(GL_FRAMEBUFFER, r_sprite_program.framebuffer);
 
 	glBindTexture(GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.width, r_context.height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.drawable_width, r_context.drawable_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -648,8 +647,8 @@ void R_InitSprites(void) {
 
 	R_InitSpriteProgram();
 	
-	r_sprites_lerp = Cvar_Add("r_sprites_lerp", "1", 0, "Whether animated sprites linearly interpolate their images");
-	r_sprites_soften = Cvar_Add("r_sprites_soften", "1", 0, "Whether sprite softening is enabled");
+	r_sprite_lerp = Cvar_Add("r_sprite_lerp", "1", 0, "Whether animated sprites linearly interpolate their images");
+	r_sprite_soften = Cvar_Add("r_sprite_soften", "1", 0, "Whether sprite softening is enabled");
 }
 
 /**

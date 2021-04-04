@@ -80,7 +80,7 @@ static void Cg_UpdateFov(void) {
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	vec3_t forward, right, up, origin, point;
 
-	const box3_t bounds = Boxf(32.f);
+	const box3_t bounds = Box3f(32.f, 32.f, 32.f);
 
 	if (cg_third_person->value || (cg_third_person_chasecam->value && ps->stats[STAT_CHASE])) {
 		cgi.client->third_person = true;

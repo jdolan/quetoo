@@ -606,16 +606,26 @@ typedef struct cg_import_s {
 	 * @brief Creates an OpenGL framebuffer with color and depth attachments.
 	 * @param width The framebuffer width, in pixels.
 	 * @param height The framebuffer height, in pixels.
-	 * @param multisampled Whether the buffer is multisampled or not.
+	 * @param multisample True if the framebuffer should support multisampling (MSAA).
 	 * @return The framebuffer.
 	 */
-	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height, _Bool multisampled);
+	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height, _Bool multisample);
 
 	/**
 	 * @brief Destroys the specified framebuffer, releasing any OpenGL resources.
 	 * @param framebuffer The framebuffer to destroy.
 	 */
 	void (*DestroyFramebuffer)(r_framebuffer_t *framebuffer);
+
+	/**
+	 * @brief Blits the framebuffer to the specified rectangle on the screen.
+	 * @param framebuffer The framebuffer to blit.
+	 * @param x The horizontal origin of the screen rectangle in drawable pixels.
+	 * @param y The vertical origin of the screen rectangle in drawable pixels.
+	 * @param w The width of the screen rectangle in drawable pixels.
+	 * @param h The height of the screen rectangle in drawable pixels.
+	 */
+	void (*BlitFramebuffer)(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h);
 
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
@@ -772,9 +782,11 @@ typedef struct cg_import_s {
 	 * @param y The height, in pixels.
 	 * @param image The image.
 	 * @param color The color.
-	 * @param blit Whether to blit directly to the main framebuffer or to draw using a quad.
+	 * @remarks This function uses deferred rendering, allowing framebuffers to be used as
+	 * textures in menus or on the HUD. For drawing directly and immediately to the screen,
+	 * use BlitFramebuffer.
 	 */
-	void (*Draw2DFramebuffer)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color, const _Bool blit);
+	void (*Draw2DFramebuffer)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color);
 
 	/**
 	 * @brief Draws the string `s` at the given coordinates.
