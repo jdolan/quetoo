@@ -410,6 +410,8 @@ void R_EndFrame(void) {
 
 	R_Draw2D();
 
+	glFinish();
+
 	SDL_GL_SwapWindow(r_context.window);
 }
 
