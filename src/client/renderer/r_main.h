@@ -46,6 +46,7 @@ extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shell;
 extern cvar_t *r_specularity;
 extern cvar_t *r_sprite_quality;
+extern cvar_t *r_texture_quality;
 extern cvar_t *r_stains;
 extern cvar_t *r_texture_mode;
 extern cvar_t *r_texture_storage;

@@ -77,7 +77,7 @@ cvar_t *cg_helmet;
 cvar_t *cg_hit_sound;
 cvar_t *cg_hook_style;
 cvar_t *cg_pants;
-cvar_t *cg_particle_quality;
+cvar_t *cg_particle_physics;
 cvar_t *cg_predict;
 cvar_t *cg_quick_join_max_ping;
 cvar_t *cg_quick_join_min_clients;
@@ -216,7 +216,7 @@ static void Cg_Init(void) {
 	cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\", \"swing_manual\", or \"swing_auto\".");
 
-	cg_particle_quality = cgi.AddCvar("cg_particle_quality", "1", CVAR_ARCHIVE, "Particle quality. 0 disables some particles, 1 enables all.");
+	cg_particle_physics = cgi.AddCvar("cg_particle_physics", "1", CVAR_ARCHIVE, "Whether to enable particle physics or not.");
 
 	cg_predict = cgi.AddCvar("cg_predict", "1", 0, "Use client side movement prediction");
 

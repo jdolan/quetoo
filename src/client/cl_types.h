@@ -157,6 +157,11 @@ typedef struct {
 #define STAT_COUNTER_SAMPLE_COUNT 20
 
 /**
+ * @brief How many samples to keep of frametimes.
+ */
+#define FRAMETIME_COUNTER_SAMPLE_COUNT 1024
+
+/**
  * @brief The client structure is cleared at each level load, and is exposed to
  * the client game module to provide access to media and other client state.
  */
@@ -166,7 +171,10 @@ typedef struct {
 
 	uint16_t frame_counter[STAT_COUNTER_SAMPLE_COUNT];
 	uint16_t packet_counter[STAT_COUNTER_SAMPLE_COUNT];
-	uint16_t sample_index, sample_count;
+	uint8_t sample_index, sample_count;
+	
+	uint8_t frametime_counter[FRAMETIME_COUNTER_SAMPLE_COUNT];
+	uint8_t frametime_index, frametime_count;
 
 	/**
 	 * @brief The client commands, buffered.

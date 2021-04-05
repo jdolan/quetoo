@@ -79,7 +79,7 @@ extern cvar_t *cg_helmet;
 extern cvar_t *cg_hit_sound;
 extern cvar_t *cg_hook_style;
 extern cvar_t *cg_pants;
-extern cvar_t *cg_particle_quality;
+extern cvar_t *cg_particle_physics;
 extern cvar_t *cg_predict;
 extern cvar_t *cg_quick_join_max_ping;
 extern cvar_t *cg_quick_join_min_clients;

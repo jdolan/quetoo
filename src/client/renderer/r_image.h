@@ -29,7 +29,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 void R_SetupImage(r_image_t *image);
 void R_UploadImage(r_image_t *image, GLenum target, byte *data);
 void R_Screenshot_f(void);
-void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmaps);
 void R_DumpImages_f(void);
 void R_InitImages(void);
 
