@@ -206,7 +206,7 @@ void Cg_AddSprites(void) {
 		s->velocity = Vec3_Fmaf(s->velocity, delta, s->acceleration);
 		s->origin = Vec3_Fmaf(s->origin, delta, s->velocity);
 
-		if (s->bounce && cg_particle_physics->integer) {
+		if (s->bounce && cg_sprite_physics->integer) {
 			vec3_t origin = s->origin;
 
 			if (s->flags & SPRITE_FOLLOW_ENTITY) {
