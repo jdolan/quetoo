@@ -1529,19 +1529,6 @@
 		CE9CFC9A23EAFFD00009DA65 /* vector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vector.h; sourceTree = "<group>"; };
 		CE9CFC9C23EB3BF50009DA65 /* check_vector.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_vector.c; sourceTree = "<group>"; };
 		CE9CFCAF23EB3D020009DA65 /* check_vector */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_vector; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE9F7B8A2619468C00932F43 /* quetoo_6_256x256x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = quetoo_6_256x256x32.png; sourceTree = "<group>"; };
-		CE9F7B8B2619468C00932F43 /* quetoo_13_20x20x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = quetoo_13_20x20x32.png; sourceTree = "<group>"; };
-		CE9F7B8C2619468C00932F43 /* quetoo_12_24x24x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = quetoo_12_24x24x32.png; sourceTree = "<group>"; };
-		CE9F7B8D2619468C00932F43 /* quetoo_9_48x48x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = quetoo_9_48x48x32.png; sourceTree = "<group>"; };
-		CE9F7B8E2619468C00932F43 /* quetoo_14_16x16x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = quetoo_14_16x16x32.png; sourceTree = "<group>"; };
-		CE9F7B8F2619468C00932F43 /* quetoo_11_32x32x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = quetoo_11_32x32x32.png; sourceTree = "<group>"; };
-		CE9F7B902619468C00932F43 /* quetoo_7_128x128x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = quetoo_7_128x128x32.png; sourceTree = "<group>"; };
-		CE9F7B912619468D00932F43 /* quetoo_8_64x64x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = quetoo_8_64x64x32.png; sourceTree = "<group>"; };
-		CE9F7B922619468D00932F43 /* quetoo_10_40x40x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = quetoo_10_40x40x32.png; sourceTree = "<group>"; };
-		CE9F7B932619468D00932F43 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		CE9F7B942619468D00932F43 /* org.quetoo.Quetoo.appdata.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = org.quetoo.Quetoo.appdata.xml; sourceTree = "<group>"; };
-		CE9F7B952619468D00932F43 /* org.quetoo.Quetoo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = org.quetoo.Quetoo.json; sourceTree = "<group>"; };
-		CE9F7B962619468D00932F43 /* org.quetoo.Quetoo.desktop */ = {isa = PBXFileReference; lastKnownFileType = text; path = org.quetoo.Quetoo.desktop; sourceTree = "<group>"; };
 		CE9FECDA201FEB7400F954ED /* r_gl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_gl.c; sourceTree = "<group>"; };
 		CE9FECDB201FEB7400F954ED /* r_gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl.h; sourceTree = "<group>"; };
 		CE9FECDC201FEB7400F954ED /* r_gl_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl_types.h; sourceTree = "<group>"; };
@@ -2028,7 +2015,6 @@
 				CE12D7291C5C58D800CD0B13 /* apple */,
 				CE12D4A91C5C58C300CD0B13 /* deps */,
 				CE12D5091C5C58C300CD0B13 /* doc */,
-				CE9F7B882619468C00932F43 /* flatpak */,
 				CE12D7231C5C58C300CD0B13 /* jenkins */,
 				CE12D50D1C5C58C300CD0B13 /* linux */,
 				CE12D51C1C5C58C300CD0B13 /* mingw-cross */,
@@ -3043,34 +3029,6 @@
 				CE7D2C13202F690A004BC58E /* Makefile.am */,
 			);
 			path = home;
-			sourceTree = "<group>";
-		};
-		CE9F7B882619468C00932F43 /* flatpak */ = {
-			isa = PBXGroup;
-			children = (
-				CE9F7B892619468C00932F43 /* res */,
-				CE9F7B932619468D00932F43 /* README.md */,
-				CE9F7B942619468D00932F43 /* org.quetoo.Quetoo.appdata.xml */,
-				CE9F7B952619468D00932F43 /* org.quetoo.Quetoo.json */,
-				CE9F7B962619468D00932F43 /* org.quetoo.Quetoo.desktop */,
-			);
-			path = flatpak;
-			sourceTree = "<group>";
-		};
-		CE9F7B892619468C00932F43 /* res */ = {
-			isa = PBXGroup;
-			children = (
-				CE9F7B8A2619468C00932F43 /* quetoo_6_256x256x32.png */,
-				CE9F7B8B2619468C00932F43 /* quetoo_13_20x20x32.png */,
-				CE9F7B8C2619468C00932F43 /* quetoo_12_24x24x32.png */,
-				CE9F7B8D2619468C00932F43 /* quetoo_9_48x48x32.png */,
-				CE9F7B8E2619468C00932F43 /* quetoo_14_16x16x32.png */,
-				CE9F7B8F2619468C00932F43 /* quetoo_11_32x32x32.png */,
-				CE9F7B902619468C00932F43 /* quetoo_7_128x128x32.png */,
-				CE9F7B912619468D00932F43 /* quetoo_8_64x64x32.png */,
-				CE9F7B922619468D00932F43 /* quetoo_10_40x40x32.png */,
-			);
-			path = res;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
