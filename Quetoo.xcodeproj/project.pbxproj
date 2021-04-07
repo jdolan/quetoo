@@ -1281,28 +1281,8 @@
 		CE12D7061C5C58C300CD0B13 /* work.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = work.c; sourceTree = "<group>"; };
 		CE12D7071C5C58C300CD0B13 /* tree.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tree.c; sourceTree = "<group>"; };
 		CE12D7081C5C58C300CD0B13 /* writebsp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writebsp.c; sourceTree = "<group>"; };
-		CE12D70C1C5C58C300CD0B13 /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
-		CE12D70D1C5C58C300CD0B13 /* Dockerfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Dockerfile; sourceTree = "<group>"; };
-		CE12D70E1C5C58C300CD0B13 /* run.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = run.sh; sourceTree = "<group>"; };
-		CE12D7101C5C58C300CD0B13 /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
-		CE12D7111C5C58C300CD0B13 /* Dockerfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Dockerfile; sourceTree = "<group>"; };
-		CE12D7121C5C58C300CD0B13 /* run.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = run.sh; sourceTree = "<group>"; };
-		CE12D7131C5C58C300CD0B13 /* start.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = start.sh; sourceTree = "<group>"; };
-		CE12D7171C5C58C300CD0B13 /* ci.quetoo.org.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = ci.quetoo.org.conf; sourceTree = "<group>"; };
-		CE12D7181C5C58C300CD0B13 /* default.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = default.conf; sourceTree = "<group>"; };
-		CE12D7191C5C58C300CD0B13 /* example_ssl.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = example_ssl.conf; sourceTree = "<group>"; };
-		CE12D71A1C5C58C300CD0B13 /* fastcgi_params */ = {isa = PBXFileReference; lastKnownFileType = text; path = fastcgi_params; sourceTree = "<group>"; };
-		CE12D71B1C5C58C300CD0B13 /* koi-utf */ = {isa = PBXFileReference; lastKnownFileType = text; path = "koi-utf"; sourceTree = "<group>"; };
-		CE12D71C1C5C58C300CD0B13 /* koi-win */ = {isa = PBXFileReference; lastKnownFileType = text; path = "koi-win"; sourceTree = "<group>"; };
-		CE12D71D1C5C58C300CD0B13 /* mime.types */ = {isa = PBXFileReference; lastKnownFileType = text; path = mime.types; sourceTree = "<group>"; };
-		CE12D71E1C5C58C300CD0B13 /* nginx.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = nginx.conf; sourceTree = "<group>"; };
-		CE12D71F1C5C58C300CD0B13 /* scgi_params */ = {isa = PBXFileReference; lastKnownFileType = text; path = scgi_params; sourceTree = "<group>"; };
-		CE12D7201C5C58C300CD0B13 /* uwsgi_params */ = {isa = PBXFileReference; lastKnownFileType = text; path = uwsgi_params; sourceTree = "<group>"; };
-		CE12D7211C5C58C300CD0B13 /* win-utf */ = {isa = PBXFileReference; lastKnownFileType = text; path = "win-utf"; sourceTree = "<group>"; };
-		CE12D7221C5C58C300CD0B13 /* run.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = run.sh; sourceTree = "<group>"; };
 		CE12D7241C5C58C300CD0B13 /* create_fixtures.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = create_fixtures.sh; sourceTree = "<group>"; };
 		CE12D7251C5C58C300CD0B13 /* install_deps.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = install_deps.sh; sourceTree = "<group>"; };
-		CE12D7271C5C58C300CD0B13 /* apple_osx_10.7.valgrind */ = {isa = PBXFileReference; lastKnownFileType = text; path = apple_osx_10.7.valgrind; sourceTree = "<group>"; };
 		CE12D7281C5C58C300CD0B13 /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
 		CE12D72B1C5C58D800CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		CE12D7351C5C5B9300CD0B13 /* quetoo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quetoo; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2035,10 +2015,10 @@
 				CE12D7291C5C58D800CD0B13 /* apple */,
 				CE12D4A91C5C58C300CD0B13 /* deps */,
 				CE12D5091C5C58C300CD0B13 /* doc */,
+				CE12D7231C5C58C300CD0B13 /* jenkins */,
 				CE12D50D1C5C58C300CD0B13 /* linux */,
 				CE12D51C1C5C58C300CD0B13 /* mingw-cross */,
 				CE12D5381C5C58C300CD0B13 /* src */,
-				CE12D7091C5C58C300CD0B13 /* support */,
 				CE12D4A71C5C58C300CD0B13 /* config.h */,
 				CE12D4A81C5C58C300CD0B13 /* configure.ac */,
 				CE12D50C1C5C58C300CD0B13 /* Doxyfile */,
@@ -2746,82 +2726,6 @@
 			path = quemap;
 			sourceTree = "<group>";
 		};
-		CE12D7091C5C58C300CD0B13 /* support */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D70A1C5C58C300CD0B13 /* docker */,
-				CE12D7231C5C58C300CD0B13 /* jenkins */,
-				CE12D7261C5C58C300CD0B13 /* valgrind */,
-			);
-			path = support;
-			sourceTree = "<group>";
-		};
-		CE12D70A1C5C58C300CD0B13 /* docker */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D70B1C5C58C300CD0B13 /* docker-jenkins */,
-				CE12D70F1C5C58C300CD0B13 /* docker-jenkins-slave */,
-				CE12D7141C5C58C300CD0B13 /* docker-nginx */,
-			);
-			path = docker;
-			sourceTree = "<group>";
-		};
-		CE12D70B1C5C58C300CD0B13 /* docker-jenkins */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D70C1C5C58C300CD0B13 /* build.sh */,
-				CE12D70D1C5C58C300CD0B13 /* Dockerfile */,
-				CE12D70E1C5C58C300CD0B13 /* run.sh */,
-			);
-			path = "docker-jenkins";
-			sourceTree = "<group>";
-		};
-		CE12D70F1C5C58C300CD0B13 /* docker-jenkins-slave */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D7101C5C58C300CD0B13 /* build.sh */,
-				CE12D7111C5C58C300CD0B13 /* Dockerfile */,
-				CE12D7121C5C58C300CD0B13 /* run.sh */,
-				CE12D7131C5C58C300CD0B13 /* start.sh */,
-			);
-			path = "docker-jenkins-slave";
-			sourceTree = "<group>";
-		};
-		CE12D7141C5C58C300CD0B13 /* docker-nginx */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D7151C5C58C300CD0B13 /* conf */,
-				CE12D7221C5C58C300CD0B13 /* run.sh */,
-			);
-			path = "docker-nginx";
-			sourceTree = "<group>";
-		};
-		CE12D7151C5C58C300CD0B13 /* conf */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D7161C5C58C300CD0B13 /* conf.d */,
-				CE12D71A1C5C58C300CD0B13 /* fastcgi_params */,
-				CE12D71B1C5C58C300CD0B13 /* koi-utf */,
-				CE12D71C1C5C58C300CD0B13 /* koi-win */,
-				CE12D71D1C5C58C300CD0B13 /* mime.types */,
-				CE12D71E1C5C58C300CD0B13 /* nginx.conf */,
-				CE12D71F1C5C58C300CD0B13 /* scgi_params */,
-				CE12D7201C5C58C300CD0B13 /* uwsgi_params */,
-				CE12D7211C5C58C300CD0B13 /* win-utf */,
-			);
-			path = conf;
-			sourceTree = "<group>";
-		};
-		CE12D7161C5C58C300CD0B13 /* conf.d */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D7171C5C58C300CD0B13 /* ci.quetoo.org.conf */,
-				CE12D7181C5C58C300CD0B13 /* default.conf */,
-				CE12D7191C5C58C300CD0B13 /* example_ssl.conf */,
-			);
-			path = conf.d;
-			sourceTree = "<group>";
-		};
 		CE12D7231C5C58C300CD0B13 /* jenkins */ = {
 			isa = PBXGroup;
 			children = (
@@ -2829,14 +2733,6 @@
 				CE12D7251C5C58C300CD0B13 /* install_deps.sh */,
 			);
 			path = jenkins;
-			sourceTree = "<group>";
-		};
-		CE12D7261C5C58C300CD0B13 /* valgrind */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D7271C5C58C300CD0B13 /* apple_osx_10.7.valgrind */,
-			);
-			path = valgrind;
 			sourceTree = "<group>";
 		};
 		CE12D7291C5C58D800CD0B13 /* apple */ = {

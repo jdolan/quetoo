@@ -45,7 +45,8 @@ extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shell;
 extern cvar_t *r_specularity;
-extern cvar_t *r_sprite_quality;
+extern cvar_t *r_sprite_downsample;
+extern cvar_t *r_texture_downsample;
 extern cvar_t *r_stains;
 extern cvar_t *r_texture_mode;
 extern cvar_t *r_texture_storage;
@@ -60,7 +61,7 @@ void R_BeginFrame(void);
 void R_DrawViewDepth(r_view_t *view);
 void R_DrawMainView(r_view_t *view);
 void R_DrawPlayerModelView(r_view_t *view);
-void R_EndFrame(void);
+void R_EndFrame(_Bool finish);
 
 #ifdef __R_LOCAL_H__
 

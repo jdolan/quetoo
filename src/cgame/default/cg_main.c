@@ -77,12 +77,12 @@ cvar_t *cg_helmet;
 cvar_t *cg_hit_sound;
 cvar_t *cg_hook_style;
 cvar_t *cg_pants;
-cvar_t *cg_particle_quality;
 cvar_t *cg_predict;
 cvar_t *cg_quick_join_max_ping;
 cvar_t *cg_quick_join_min_clients;
 cvar_t *cg_shirt;
 cvar_t *cg_skin;
+cvar_t *cg_sprite_physics;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_chasecam;
 cvar_t *cg_third_person_x;
@@ -216,8 +216,6 @@ static void Cg_Init(void) {
 	cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\", \"swing_manual\", or \"swing_auto\".");
 
-	cg_particle_quality = cgi.AddCvar("cg_particle_quality", "1", CVAR_ARCHIVE, "Particle quality. 0 disables some particles, 1 enables all.");
-
 	cg_predict = cgi.AddCvar("cg_predict", "1", 0, "Use client side movement prediction");
 
 	cg_quick_join_max_ping = cgi.AddCvar("cg_quick_join_max_ping", "200", CVAR_SERVER_INFO,
@@ -227,6 +225,8 @@ static void Cg_Init(void) {
 
 	cg_skin = cgi.AddCvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                   "Your player model and skin.");
+
+	cg_sprite_physics = cgi.AddCvar("cg_sprite_physics", "1", CVAR_ARCHIVE, "Whether to enable sprite physics or not.");
 
 	cg_third_person = cgi.AddCvar("cg_third_person", "0", CVAR_ARCHIVE | CVAR_DEVELOPER,
 	                           "Activate third person perspective.");

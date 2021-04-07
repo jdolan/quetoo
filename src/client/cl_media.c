@@ -117,7 +117,7 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	Cl_UpdateScreen();
 
-	R_EndFrame();
+	R_EndFrame(true);
 
 	quetoo.ticks = SDL_GetTicks();
 }

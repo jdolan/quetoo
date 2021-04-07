@@ -215,9 +215,9 @@ void R_SetupImage(r_image_t *image) {
 		GLsizei levels = 1;
 		if (image->type & IT_MASK_MIPMAP) {
 			if (image->depth) {
-				levels = floorf(log2f(MAX(MAX(image->width, image->height), image->depth))) + 1;
+				levels = floorf(log2f(Mini(Mini(image->width, image->height), image->depth))) + 1;
 			} else {
-				levels = floorf(log2f(MAX(image->width, image->height))) + 1;
+				levels = floorf(log2f(Mini(image->width, image->height))) + 1;
 			}
 		}
 
@@ -412,9 +412,14 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 }
 
 /**
- * @brief Dump the image to the specified output file (must be .png)
+ * @brief Dump the image to the specified output file.
  */
-void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
+static void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap, _Bool raw) {
+
+	if (image->format != GL_RGB && image->format != GL_RGBA) {
+		Com_Warn("Skipped %s due to format\n", image->media.name);
+		return;
+	}
 
 	char real_dir[MAX_OS_PATH], path_name[MAX_OS_PATH];
 	Dirname(output, real_dir);
@@ -426,50 +431,42 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-	GLenum target = GL_TEXTURE_2D;
-	
-	if (image->depth) {
-		switch (image->type) {
-			case IT_MATERIAL:
-			case IT_LIGHTMAP:
-				target = GL_TEXTURE_2D_ARRAY;
-				break;
-			case IT_LIGHTGRID:
-				target = GL_TEXTURE_3D;
-				break;
-			default:
-				break;
-		}
-	}
-
-	glBindTexture(target, image->texnum);
+	glBindTexture(image->target, image->texnum);
 
 	int32_t width, height, depth, mips;
 
-	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_WIDTH, &width);
-	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_HEIGHT, &height);
-	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_DEPTH, &depth);
+	glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_HEIGHT, &height);
+	glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_DEPTH, &depth);
 
-	if (image->type & IT_MASK_MIPMAP) {
-		glGetTexParameteriv(target, GL_TEXTURE_MAX_LEVEL, &mips);
+	if (image->type == IT_CUBEMAP) {
+		depth = 6;
+	}
+
+	if ((image->type & IT_MASK_MIPMAP) && mipmap) {
+		glGetTexParameteriv(image->target, GL_TEXTURE_MAX_LEVEL, &mips);
 	} else {
 		mips = 0;
 	}
 
 	R_GetError("");
 
-	GLubyte *pixels = Mem_Malloc(width * height * depth * 4);
+	int32_t bpp = (image->format == GL_RGBA ? 4 : 3);
+	GLubyte *pixels = Mem_Malloc(width * height * depth * bpp);
+	GLubyte *pixels_start = pixels;
 
 	for (int32_t level = 0; level <= mips; level++) {
 
-		glGetTexImage(target, level, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+		glGetTexImage(image->target, level, image->format, GL_UNSIGNED_BYTE, pixels);
 
 		if (glGetError() != GL_NO_ERROR) {
 			break;
 		}
 
-		int32_t scaled_width = width >> level;
-		int32_t scaled_height = height >> level;
+		int32_t scaled_width, scaled_height;
+
+		glGetTexLevelParameteriv(image->target, level, GL_TEXTURE_WIDTH, &scaled_width);
+		glGetTexLevelParameteriv(image->target, level, GL_TEXTURE_HEIGHT, &scaled_height);
 
 		if (scaled_width <= 0 || scaled_height <= 0) {
 			break;
@@ -479,32 +476,51 @@ void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap) {
 
 			g_strlcpy(path_name, output, sizeof(path_name));
 
+			g_strlcat(path_name, va("_%ix%i", width, height), sizeof(path_name));
+				
 			if (depth > 1) {
-				g_strlcat(path_name, va(" layer %i", d), sizeof(path_name));
+				g_strlcat(path_name, va("x%i", d), sizeof(path_name));
 			}
 
 			if (mips > 0) {
-				g_strlcat(path_name, va(" mip %i", level), sizeof(path_name));
+				g_strlcat(path_name, va("_%i", level), sizeof(path_name));
 			}
+				
+			if (raw) {
+			
+				file_t *f = Fs_OpenWrite(path_name);
 
-			g_strlcat(path_name, ".png", sizeof(path_name));
+				if (!f) {
+					break;
+				}
+				
+				Fs_Write(f, pixels, bpp, scaled_width * scaled_height);
+
+				Fs_Close(f);
+			} else {
+				g_strlcat(path_name, ".png", sizeof(path_name));
 		
-			const char *real_path = Fs_RealPath(path_name);
-			SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
-			if (!f) {
-				return;
+				const char *real_path = Fs_RealPath(path_name);
+
+				SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
+
+				if (!f) {
+					break;
+				}
+
+				SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormatFrom(pixels, scaled_width, scaled_height, bpp == 3 ? 24 : 32, scaled_width * bpp, bpp == 3 ? SDL_PIXELFORMAT_RGB24 : SDL_PIXELFORMAT_RGBA32);
+
+				IMG_SavePNG_RW(surf, f, 0);
+
+				SDL_FreeSurface(surf);
+
+				SDL_RWclose(f);
 			}
 
-			SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormatFrom(pixels + (scaled_width * scaled_height * 4 * d), scaled_width, scaled_height, 32, scaled_width * 4, SDL_PIXELFORMAT_RGBA32);
-			IMG_SavePNG_RW(surf, f, 0);
-			SDL_FreeSurface(surf);
-
-			SDL_RWclose(f);
+			pixels += scaled_width * scaled_height * bpp;
 		}
 
-		if (!mipmap) {
-			break;
-		}
+		pixels = pixels_start;
 	}
 
 	Mem_Free(pixels);
@@ -519,9 +535,9 @@ static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
 		const r_image_t *image = (const r_image_t *) media;
 		char path[MAX_OS_PATH];
 
-		g_snprintf(path, sizeof(path), "imgdmp/%s %i", media->name, image->texnum);
+		g_snprintf(path, sizeof(path), "imgdmp/%i", image->texnum);
 
-		R_DumpImage(image, path, true);
+		R_DumpImage(image, path, true, false);
 	}
 }
 
@@ -538,7 +554,7 @@ void R_DumpImages_f(void) {
 }
 
 /**
- * @brief Initializes the images facilities, which includes generation of
+ * @brief Initializes the images facilities
  */
 void R_InitImages(void) {
 

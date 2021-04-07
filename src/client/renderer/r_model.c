@@ -109,8 +109,6 @@ void R_InitModels(void) {
 
 	r_world_model = NULL;
 
-	Cmd_Add("r_export_bsp", R_ExportBsp_f, CMD_RENDERER, "Export the current map to a .obj model.");
-
 	R_InitBspProgram();
 
 	R_InitMeshProgram();
