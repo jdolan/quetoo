@@ -663,7 +663,7 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_UpdateScreen();
 
-	R_EndFrame();
+	R_EndFrame(cl.frame_msec > 8);
 
 	frame_timestamp = quetoo.ticks;
 	cl.frame_msec = 0;

@@ -406,11 +406,13 @@ void R_DrawPlayerModelView(r_view_t *view) {
 /**
  * @brief Called at the end of each render frame.
  */
-void R_EndFrame(void) {
+void R_EndFrame(_Bool finish) {
 
 	R_Draw2D();
 
-	glFinish();
+	if (r_swap_interval->value || finish) {
+		glFinish();
+	}
 
 	SDL_GL_SwapWindow(r_context.window);
 }
