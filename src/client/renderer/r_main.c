@@ -411,15 +411,8 @@ void R_EndFrame(void) {
 
 	R_Draw2D();
 
-	switch (r_finish->integer) {
-		case 1:
-			glFlush();
-			break;
-		case 2:
-			glFinish();
-			break;
-		default:
-			break;
+	if (r_finish->value) {
+		glFinish();
 	}
 
 	SDL_GL_SwapWindow(r_context.window);
