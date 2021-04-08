@@ -30,6 +30,7 @@ extern cvar_t *r_bicubic;
 extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
 extern cvar_t *r_display;
+extern cvar_t *r_finish;
 extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
@@ -61,7 +62,7 @@ void R_BeginFrame(void);
 void R_DrawViewDepth(r_view_t *view);
 void R_DrawMainView(r_view_t *view);
 void R_DrawPlayerModelView(r_view_t *view);
-void R_EndFrame(_Bool finish);
+void R_EndFrame(void);
 
 #ifdef __R_LOCAL_H__
 
