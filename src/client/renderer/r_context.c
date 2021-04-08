@@ -270,13 +270,13 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-	SDL_GLcontextFlag gl_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+	SDL_GLcontextFlag gl_context_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
 
 	if (r_get_error->integer) {
-		gl_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
+		gl_context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
 	}
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, gl_flags);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, gl_context_flags);
 
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
