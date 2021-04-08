@@ -407,13 +407,11 @@ void R_DrawPlayerModelView(r_view_t *view) {
 /**
  * @brief Called at the end of each render frame.
  */
-void R_EndFrame(void) {
+void R_EndFrame(_Bool finish) {
 
 	R_Draw2D();
 
-	if (r_finish->integer == 1) {
-		glFlush();
-	} else if (r_finish->integer == 2) {
+	if (r_swap_interval->value || finish || r_finish->integer) {
 		glFinish();
 	}
 
@@ -448,7 +446,7 @@ static void R_InitLocal(void) {
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
-	r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to flush (1) or finish (2) before moving to the next renderer frame.");
+	r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
 	r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
 	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
