@@ -48,6 +48,7 @@ cvar_t *r_bicubic;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
 cvar_t *r_display;
+cvar_t *r_finish;
 cvar_t *r_fog_density;
 cvar_t *r_fog_samples;
 cvar_t *r_fullscreen;
@@ -410,7 +411,11 @@ void R_EndFrame(void) {
 
 	R_Draw2D();
 
-	glFinish();
+	if (r_finish->integer == 1) {
+		glFlush();
+	} else if (r_finish->integer == 2) {
+		glFinish();
+	}
 
 	SDL_GL_SwapWindow(r_context.window);
 }
@@ -443,6 +448,7 @@ static void R_InitLocal(void) {
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
+	r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to flush (1) or finish (2) before moving to the next renderer frame.");
 	r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
 	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
@@ -458,7 +464,7 @@ static void R_InitLocal(void) {
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-	r_sprite_downsample = Cvar_Add("r_sprite_quality", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of sprite effects to boost performance on low-end systems.");
+	r_sprite_downsample = Cvar_Add("r_sprite_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of sprite effects to boost performance on low-end systems.");
 	r_texture_downsample = Cvar_Add("r_texture_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of textures to boost performance on low-end systems.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
