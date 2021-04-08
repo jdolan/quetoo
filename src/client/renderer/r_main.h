@@ -63,7 +63,7 @@ void R_BeginFrame(void);
 void R_DrawViewDepth(r_view_t *view);
 void R_DrawMainView(r_view_t *view);
 void R_DrawPlayerModelView(r_view_t *view);
-void R_EndFrame(_Bool finish);
+void R_EndFrame(void);
 
 #ifdef __R_LOCAL_H__
 

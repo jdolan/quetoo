@@ -428,11 +428,11 @@ void R_DrawPlayerModelView(r_view_t *view) {
 /**
  * @brief Called at the end of each render frame.
  */
-void R_EndFrame(_Bool finish) {
+void R_EndFrame(void) {
 
 	R_Draw2D();
 
-	if (r_swap_interval->value || finish || r_finish->integer) {
+	if (r_finish->value) {
 		glFinish();
 	}
 
