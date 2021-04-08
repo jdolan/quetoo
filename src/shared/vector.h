@@ -263,6 +263,13 @@ static inline int32_t __attribute__ ((warn_unused_result)) Mini(int32_t a, int32
 }
 
 /**
+ * @return The minimim of `a` and `b`.
+ */
+static inline int64_t __attribute__ ((warn_unused_result)) Minui64(uint64_t a, uint64_t b) {
+	return a < b ? a : b;
+}
+
+/**
  * @return The maximum of `a` and `b`.
  */
 static inline float __attribute__ ((warn_unused_result)) Maxf(float a, float b) {
@@ -273,6 +280,13 @@ static inline float __attribute__ ((warn_unused_result)) Maxf(float a, float b) 
  * @return The maximum of `a` and `b`.
  */
 static inline int32_t __attribute__ ((warn_unused_result)) Maxi(int32_t a, int32_t b) {
+	return a > b ? a : b;
+}
+
+/**
+ * @return The maximum of `a` and `b`.
+ */
+static inline int64_t __attribute__ ((warn_unused_result)) Maxui64(uint64_t a, uint64_t b) {
 	return a > b ? a : b;
 }
 

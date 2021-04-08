@@ -25,6 +25,8 @@ r_config_t r_config;
 r_uniforms_t r_uniforms;
 r_stats_t r_stats;
 
+static uint32_t r_frame_timer;
+
 cvar_t *r_alpha_test_threshold;
 cvar_t *r_blend_depth_sorting;
 cvar_t *r_cull;
@@ -313,7 +315,9 @@ void R_BeginFrame(void) {
 
 	memset(&r_stats, 0, sizeof(r_stats));
 
-	R_BeginTimer("Frame");
+	if (R_TimersReady()) {
+		r_frame_timer = R_BeginTimer("Frame");
+	}
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
@@ -326,16 +330,20 @@ void R_DrawViewDepth(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
-	R_TIMER_WRAP("Depth Pass",
+	R_TIMER_WRAP("Depth View",
 		glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 		R_UpdateFrustum(view);
-
-		R_UpdateUniforms(view);
-
-		R_DrawDepthPass(view);
+		
+		R_TIMER_WRAP("Uniforms",
+			R_UpdateUniforms(view);
+		);
+		
+		R_TIMER_WRAP("Depth Pass",
+			R_DrawDepthPass(view);
+		);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -438,7 +446,9 @@ void R_EndFrame(void) {
 
 	SDL_GL_SwapWindow(r_context.window);
 
-	R_EndTimer();
+	if (R_TimersReady()) {
+		R_EndTimer(r_frame_timer);
+	}
 
 	R_ResetTimers();
 }
@@ -458,7 +468,7 @@ static void R_InitLocal(void) {
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
-	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
+	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of the depth pass (developer tool");
 	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL errors to the console (developer tool)");
 	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
 	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");

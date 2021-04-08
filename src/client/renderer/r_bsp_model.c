@@ -653,6 +653,8 @@ static void R_RegisterBspModel(r_media_t *self) {
 	}
 
 	r_world_model = mod;
+
+	R_InitDepthElements();
 }
 
 /**
@@ -673,6 +675,8 @@ static void R_FreeBspModel(r_media_t *self) {
 	for (int32_t i = 0; i < mod->bsp->num_planes; i++, plane++) {
 		g_ptr_array_free(plane->blend_elements, 1);
 	}
+
+	R_FreeDepthElements();
 }
 
 /**

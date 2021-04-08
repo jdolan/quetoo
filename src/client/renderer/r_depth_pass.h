@@ -27,6 +27,8 @@
 void R_DrawDepthPass(const r_view_t *view);
 void R_InitDepthPass(void);
 void R_ShutdownDepthPass(void);
+void R_InitDepthElements(void);
+void R_FreeDepthElements(void);
 
 _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds);
 _Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);

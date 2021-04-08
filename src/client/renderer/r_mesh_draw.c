@@ -420,7 +420,9 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 				continue;
 			}
 
-			R_DrawMeshEntity(e);
+			R_TIMER_WRAP(va("Model: %s", e->model->media.name),
+				R_DrawMeshEntity(e);
+			);
 		}
 	}
 

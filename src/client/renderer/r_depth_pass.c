@@ -42,21 +42,73 @@ static struct {
 	GLuint elements_buffer;
 } r_occlusion_queries;
 
-/**
- * @brief Draws all opaque world geometry, writing to the depth buffer.
- */
-static void R_DrawBspInlineModelDepthPass(const r_view_t *view, const r_entity_t *e, const r_bsp_inline_model_t *in) {
+static GLuint r_depth_pass_elements_buffer, r_depth_pass_num_elements;
 
+/**
+ * @brief Create the depth elements buffer.
+ */
+void R_InitDepthElements(void) {
+
+	if (!r_depth_pass->integer) {
+		return;
+	}
+
+	glGenBuffers(1, &r_depth_pass_elements_buffer);
+
+	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
+	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
+
+		if (!(draw->texinfo->flags & SURF_MASK_TRANSLUCENT)) {
+			r_depth_pass_num_elements += draw->num_elements;
+		}
+	}
+
+	glBindBuffer(GL_COPY_WRITE_BUFFER, r_depth_pass_elements_buffer);
+	
+	glBufferData(GL_COPY_WRITE_BUFFER, r_depth_pass_num_elements * sizeof(GLuint), NULL, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_COPY_READ_BUFFER, r_world_model->bsp->elements_buffer);
+	
+	draw = in->draw_elements;
+
+	GLintptr offset = 0;
+
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
 		if (draw->texinfo->flags & SURF_MASK_TRANSLUCENT) {
 			continue;
 		}
-		
-		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, (GLintptr) draw->elements, (GLintptr) offset, draw->num_elements * sizeof(GLuint));
+
+		offset += draw->num_elements * sizeof(GLuint);
+	}
+	
+	glBindBuffer(GL_COPY_READ_BUFFER, 0);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+}
+
+/**
+ * @brief Free the depth elements buffer.
+ */
+void R_FreeDepthElements(void) {
+
+	if (!r_depth_pass->integer) {
+		return;
 	}
 
+	glDeleteBuffers(1, &r_depth_pass_elements_buffer);
+	r_depth_pass_elements_buffer = 0;
+	r_depth_pass_num_elements = 0;
+}
+
+/**
+ * @brief Draws all opaque world geometry, writing to the depth buffer.
+ */
+static inline void R_DrawBspInlineModelDepthPass(const r_view_t *view, const r_entity_t *e, const r_bsp_inline_model_t *in) {
+	
+	glDrawElements(GL_TRIANGLES, r_depth_pass_num_elements, GL_UNSIGNED_INT, NULL);
 	R_GetError(NULL);
 }
 
@@ -80,64 +132,68 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glBindVertexArray(r_world_model->bsp->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_depth_pass_elements_buffer);
 
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
 	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	R_DrawBspInlineModelDepthPass(view, NULL, r_world_model->bsp->inline_models);
-
+	
 	if (r_occlude->value == 1 && view->ticks - occlusion_query_ticks >= 8) {
-		occlusion_query_ticks = view->ticks;
+		R_TIMER_WRAP("Occlusion Queries",
+			occlusion_query_ticks = view->ticks;
 
-		glDepthMask(GL_FALSE);
+			glDepthMask(GL_FALSE);
 
-		glBindVertexArray(r_occlusion_queries.vertex_array);
+			glBindVertexArray(r_occlusion_queries.vertex_array);
 
-		glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
+			glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
 
-		glEnableVertexAttribArray(r_depth_pass_program.in_position);
+			glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
-		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
-		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
+			r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
+			for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-			if (Box3_ContainsPoint(q->bounds, view->origin)) {
-				q->pending = false;
-				q->result = 1;
-				continue;
-			}
-
-			if (R_CullBox(view, q->bounds)) {
-				q->pending = false;
-				q->result = 0;
-				continue;
-			}
-
-			if (q->pending) {
-
-				GLint available;
-				glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
-
-				if (available == GL_TRUE) {
-					glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
-				} else {
+				if (Box3_ContainsPoint(q->bounds, view->origin)) {
+					q->pending = false;
+					q->result = 1;
 					continue;
 				}
+
+				if (R_CullBox(view, q->bounds)) {
+					q->pending = false;
+					q->result = 0;
+					continue;
+				}
+
+				if (q->pending) {
+
+					GLint available;
+					glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
+
+					if (available == GL_TRUE) {
+						glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
+					} else {
+						continue;
+					}
+				}
+
+				q->pending = true;
+
+				R_TIMER_WRAP(va("Query %i", i),
+					glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(q->vertexes), q->vertexes);
+
+					glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
+
+					glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
+
+					glEndQuery(GL_ANY_SAMPLES_PASSED);
+				);
 			}
 
-			q->pending = true;
-
-			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(q->vertexes), q->vertexes);
-
-			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
-
-			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
-
-			glEndQuery(GL_ANY_SAMPLES_PASSED);
-		}
-
-		glDepthMask(GL_TRUE);
+			glDepthMask(GL_TRUE);
+		);
 	}
 
 	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
