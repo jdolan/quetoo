@@ -46,6 +46,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sprite.c" />
     <ClCompile Include="..\..\src\client\renderer\r_stain.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_timer.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\renderer.h" />
@@ -78,6 +79,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sprite.h" />
     <ClInclude Include="..\..\src\client\renderer\r_stain.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_timer.h" />
     <ClInclude Include="..\..\src\client\renderer\r_types.h" />
   </ItemGroup>
   <ItemGroup>

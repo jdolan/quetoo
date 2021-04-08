@@ -69,6 +69,7 @@ cvar_t *r_texture_downsample;
 cvar_t *r_stains;
 cvar_t *r_texture_mode;
 cvar_t *r_texture_storage;
+cvar_t *r_timers;
 cvar_t *r_swap_interval;
 cvar_t *r_width;
 
@@ -312,6 +313,8 @@ void R_BeginFrame(void) {
 
 	memset(&r_stats, 0, sizeof(r_stats));
 
+	R_BeginTimer("Frame");
+
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
 
@@ -323,19 +326,21 @@ void R_DrawViewDepth(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	R_TIMER_WRAP("Depth Pass",
+		glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	R_UpdateFrustum(view);
+		R_UpdateFrustum(view);
 
-	R_UpdateUniforms(view);
+		R_UpdateUniforms(view);
 
-	R_DrawDepthPass(view);
+		R_DrawDepthPass(view);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	R_GetError(NULL);
+		R_GetError(NULL);
+	);
 }
 
 /**
@@ -345,38 +350,54 @@ void R_DrawMainView(r_view_t *view) {
 
 	assert(view);
 	assert(view->framebuffer);
+	
+	R_TIMER_WRAP("Main View",
+		R_DrawBspLightgrid(view);
 
-	R_DrawBspLightgrid(view);
+		R_UpdateBlendDepth(view);
 
-	R_UpdateBlendDepth(view);
+		R_UpdateEntities(view);
 
-	R_UpdateEntities(view);
+		R_TIMER_WRAP("Update Lights",
+			R_UpdateLights(view);
+		);
+	
+		R_TIMER_WRAP("Update Sprites",
+			R_UpdateSprites(view);
+		);
+	
+		R_TIMER_WRAP("Update Stains",
+			R_UpdateStains(view);
+		);
+	
+		R_TIMER_WRAP("Draw World",
+			glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
-	R_UpdateLights(view);
+			if (r_draw_wireframe->value) {
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			}
+	
+			R_DrawWorld(view);
+		);
+	
+		R_TIMER_WRAP("Draw Remaining Entities",
+			R_DrawEntities(view, -1);
+		);
 
-	R_UpdateSprites(view);
+		if (r_draw_wireframe->value) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+	
+		R_TIMER_WRAP("Draw Remaining Sprites",
+			R_DrawSprites(view, -1);
+		);
+	
+		R_TIMER_WRAP("Draw 3D",
+			R_Draw3D();
+		);
 
-	R_UpdateStains(view);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-
-	R_DrawWorld(view);
-
-	R_DrawEntities(view, -1);
-
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-
-	R_DrawSprites(view, -1);
-
-	R_Draw3D();
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	);
 }
 
 /**
@@ -416,6 +437,10 @@ void R_EndFrame(_Bool finish) {
 	}
 
 	SDL_GL_SwapWindow(r_context.window);
+
+	R_EndTimer();
+
+	R_ResetTimers();
 }
 
 /**
@@ -437,6 +462,7 @@ static void R_InitLocal(void) {
 	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL errors to the console (developer tool)");
 	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
 	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
+	r_timers = Cvar_Add("r_timers", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Controls the gathering of timer query data per frame (developer tool)");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
@@ -525,6 +551,8 @@ static void R_InitUniforms(void) {
 	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), NULL, GL_DYNAMIC_DRAW);
 
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
+
 	R_UpdateUniforms(NULL);
 }
 
@@ -546,6 +574,8 @@ void R_Init(void) {
 	R_InitLocal();
 
 	R_InitContext();
+
+	R_InitTimers();
 
 	R_InitConfig();
 
@@ -602,6 +632,8 @@ void R_Shutdown(void) {
 	R_ShutdownDepthPass();
 
 	R_ShutdownUniforms();
+
+	R_ShutdownTimers();
 
 	R_ShutdownContext();
 

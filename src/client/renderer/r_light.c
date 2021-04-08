@@ -77,6 +77,8 @@ void R_InitLights(void) {
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), NULL, GL_DYNAMIC_DRAW);
 
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
+
 	R_UpdateLights(NULL);
 }
 

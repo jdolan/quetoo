@@ -439,8 +439,6 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 
 	glUseProgram(r_sprite_program.name);
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
-
 	glBindVertexArray(r_sprites.vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);

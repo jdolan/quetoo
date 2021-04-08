@@ -399,9 +399,6 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 
 	glUseProgram(r_mesh_program.name);
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
-
 	if (r_world_model) {
 		for (int32_t i = 0; i < (int32_t) lengthof(r_world_model->bsp->lightgrid->textures); i++) {
 			glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);

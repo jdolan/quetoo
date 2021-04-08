@@ -235,6 +235,15 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 	}
 
+	if (r_timers->integer) {
+
+		for (uint32_t i = 0; i < r_timer_queries.num_queries; i++) {
+			const uint64_t time = R_ResolveQuery(i);
+			R_Draw2DString(x, y, va("%s: %" PRIu64, r_timer_queries.queries[i].type, time), color_white);
+			y += ch;
+		}
+	}
+
 	R_BindFont(NULL, NULL, NULL);
 }
 

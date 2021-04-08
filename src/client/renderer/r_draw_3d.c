@@ -242,8 +242,6 @@ void R_Draw3D(void) {
 
 	glUseProgram(r_draw_3d_program.name);
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
-
 	glBindVertexArray(r_draw_3d.vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_3d.vertex_buffer);

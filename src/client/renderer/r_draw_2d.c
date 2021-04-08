@@ -547,8 +547,6 @@ void R_Draw2D(void) {
 
 	glUseProgram(r_draw_2d_program.name);
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
-
 	glBindVertexArray(r_draw_2d.vertex_array);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);

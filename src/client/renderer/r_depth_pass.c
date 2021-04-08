@@ -77,8 +77,6 @@ void R_DrawDepthPass(const r_view_t *view) {
 
 	glUseProgram(r_depth_pass_program.name);
 	
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
-
 	glBindVertexArray(r_world_model->bsp->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);

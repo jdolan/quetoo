@@ -81,8 +81,6 @@ void R_DrawSky(const r_view_t *view) {
 	r_sky.cubemap_matrix = Mat4_ConcatTranslation(r_sky.cubemap_matrix, Vec3_Negate(view->origin));
 	glUniformMatrix4fv(r_sky_program.cube, 1, GL_FALSE, r_sky.cubemap_matrix.array);
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
-
 	glBindVertexArray(r_world_model->bsp->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);

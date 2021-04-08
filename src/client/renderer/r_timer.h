@@ -21,35 +21,36 @@
 
 #pragma once
 
-#include "collision/collision.h"
-
-#include "r_gl_types.h"
-
-#include "r_atlas.h"
-#include "r_animation.h"
-#include "r_bsp.h"
-#include "r_bsp_draw.h"
-#include "r_bsp_model.h"
-#include "r_context.h"
-#include "r_depth_pass.h"
-#include "r_draw_2d.h"
-#include "r_draw_3d.h"
-#include "r_entity.h"
-#include "r_framebuffer.h"
-#include "r_image.h"
-#include "r_light.h"
-#include "r_main.h"
-#include "r_material.h"
-#include "r_media.h"
-#include "r_mesh_draw.h"
-#include "r_mesh_model.h"
-#include "r_mesh_model_md3.h"
-#include "r_mesh_model_obj.h"
-#include "r_mesh.h"
-#include "r_model.h"
-#include "r_program.h"
-#include "r_sky.h"
-#include "r_sprite.h"
-#include "r_stain.h"
-#include "r_timer.h"
 #include "r_types.h"
+
+#define R_MAX_TIMER_QUERIES 1024
+
+typedef struct {
+	GLuint id;
+	char type[MAX_QPATH];
+} r_timer_entry_t;
+
+typedef struct {
+	_Bool initialized;
+	uint32_t num_queries;
+	r_timer_entry_t queries[R_MAX_TIMER_QUERIES];
+
+	GLuint query_ids[R_MAX_TIMER_QUERIES];
+} r_timer_queries_t;
+
+extern r_timer_queries_t r_timer_queries;
+
+void R_InitTimers(void);
+void R_ShutdownTimers(void);
+void R_ResetTimers(void);
+uint64_t R_ResolveQuery(const uint32_t id);
+
+#define R_TIMER_WRAP(type, ...) \
+	if (r_timers->integer) { R_BeginTimer(type); } \
+	__VA_ARGS__ \
+	if (r_timers->integer) { R_EndTimer(); }
+
+#ifdef __R_LOCAL_H__
+void R_BeginTimer(const char *type);
+void R_EndTimer(void);
+#endif /* __R_LOCAL_H__ */
