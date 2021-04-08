@@ -9,7 +9,7 @@
 
 ## Overview
 
-[_Quetoo_](http://quetoo.org) is a Free first person shooter for Mac, PC and Linux. Our goal is to bring the fun of oldschool deathmatch to a new generation of gamers.
+[_Quetoo_](http://quetoo.org) is a free first person shooter for Mac, PC and Linux. Our goal is to bring the fun of oldschool deathmatch to a new generation of gamers. We're pwning nubz, one rail slug at a time.
 
 ## Features
 
