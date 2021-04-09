@@ -568,6 +568,9 @@ typedef struct {
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
 
+	GLuint depth_pass_elements_buffer;
+	GLuint num_depth_pass_elements;
+
 } r_bsp_model_t;
 
 // mesh model, used for objects
