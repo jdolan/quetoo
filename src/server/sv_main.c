@@ -834,6 +834,40 @@ static void Sv_InitLocal(void) {
 }
 
 /**
+ * @brief
+ */
+static void Sv_CheckForUpdates(void) {
+
+	if (!dedicated->value) {
+		return;
+	}
+
+	switch (Installer_CheckForUpdates()) {
+		case 0:
+			Com_Print("Quetoo %s is up to date.\n", REVISION);
+			break;
+		case 1:
+			while (true) {
+				Com_Print("A new version of Quetoo is available. Update now? Y/n");
+				const int32_t c = tolower(getchar());
+				if (c == 'y' || c == '\n') {
+					Installer_LaunchInstaller();
+				} else if (c == 'n') {
+					Com_Warn("Your server will not be public until you update.\n");
+					Cvar_ForceSetInteger("sv_public", 0);
+					break;
+				}
+			}
+			break;
+		case 2:
+			Com_Warn("A new version of Quetoo is available on Flathub.\n"
+					 "Your server will not be public until you update.\n");
+			Cvar_ForceSetInteger("sv_public", 0);
+			break;
+	}
+}
+
+/**
  * @brief Only called at Quetoo startup, not for each game.
  */
 void Sv_Init(void) {
@@ -849,6 +883,8 @@ void Sv_Init(void) {
 	Sv_InitAdmin();
 
 	Sv_InitMasters();
+
+	Sv_CheckForUpdates();
 
 	if (dedicated->value && Fs_Exists("server.cfg")) {
 		Cbuf_AddText("exec server.cfg\n");
