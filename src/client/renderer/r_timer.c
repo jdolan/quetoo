@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-typedef struct {
+static struct {
 	_Bool initialized;
 	_Bool running;
 	_Bool awaiting_results;
@@ -37,9 +37,7 @@ typedef struct {
 	GLuint last_query;
 
 	file_t *f;
-} r_timer_queries_t;
-
-static r_timer_queries_t r_timer_queries;
+} r_timer_queries;
 
 /**
  * @brief Get a free query ID. Allocates a new block of IDs if we run out.
@@ -302,9 +300,9 @@ static void R_StartTimers(void) {
 	// check flags
 	for (int32_t i = 1; i < Cmd_Argc(); i++) {
 
-		if (!stricmp(Cmd_Argv(i), "events")) {
+		if (!g_ascii_strcasecmp(Cmd_Argv(i), "events")) {
 			r_timer_queries.record_events = true;
-		} else if (!stricmp(Cmd_Argv(i), "combine")) {
+		} else if (!g_ascii_strcasecmp(Cmd_Argv(i), "combine")) {
 			const char *filename = va("profiles/profile_%u.json", r_timer_queries.start_time);
 			file_t *f = Fs_OpenWrite(filename);
 
