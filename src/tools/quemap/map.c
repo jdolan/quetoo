@@ -391,6 +391,45 @@ static void AddBrushBevels(brush_t *b) {
 			}
 		}
 	}
+
+	// jdolan: This code used to be in EmitBrushes. It added additional bevels (and planes)
+	// late, after portals, after planes were written to disk, etc.. It was bad news.
+
+	// add any axis planes not contained in the brush to bevel off corners
+	for (int32_t axis = 0; axis < 3; axis++) {
+		for (int32_t side = -1; side <= 1; side += 2) {
+			// add the plane
+			vec3_t normal = Vec3_Zero();
+			normal.xyz[axis] = side;
+
+			float dist;
+			if (side == -1) {
+				dist = -b->bounds.mins.xyz[axis];
+			} else {
+				dist = b->bounds.maxs.xyz[axis];
+			}
+
+			const int32_t plane_num = FindPlane(normal, dist);
+
+			int32_t j;
+			for (j = 0; j < b->num_sides; j++) {
+				if (b->sides[j].plane_num == plane_num) {
+					break;
+				}
+			}
+
+			if (j == b->num_sides) {
+				if (num_brush_sides == MAX_BSP_BRUSH_SIDES) {
+					Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+				}
+
+				s = &b->sides[b->num_sides++];
+				s->plane_num = plane_num;
+				s->texinfo = b->sides[j - 1].texinfo;
+				num_brush_sides++;
+			}
+		}
+	}
 }
 
 /**
@@ -768,6 +807,8 @@ static entity_t *ParseEntity(parser_t *parser) {
 		if (num_entities == MAX_BSP_ENTITIES) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES\n");
 		}
+
+		memset(plane_hash, 0, sizeof(plane_hash));
 
 		entity = &entities[num_entities];
 		num_entities++;
