@@ -71,7 +71,6 @@ cvar_t *r_texture_downsample;
 cvar_t *r_stains;
 cvar_t *r_texture_mode;
 cvar_t *r_texture_storage;
-cvar_t *r_timers;
 cvar_t *r_swap_interval;
 cvar_t *r_width;
 
@@ -438,7 +437,9 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
-	R_Draw2D();
+	R_TIMER_WRAP("Draw 2D",
+		R_Draw2D();
+	);
 
 	if (r_finish->value) {
 		glFinish();
@@ -472,7 +473,6 @@ static void R_InitLocal(void) {
 	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL errors to the console (developer tool)");
 	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
 	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
-	r_timers = Cvar_Add("r_timers", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Controls the gathering of timer query data per frame (developer tool)");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");

@@ -172,8 +172,22 @@ static const char *R_Debug_Error(const GLenum error_code) {
 	}
 }
 
-void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...)
-{
+/**
+ * @brief No-op callback
+ */
+static void R_Debug_GladPostCallbackNull(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...) {
+}
+
+/**
+ * @brief No-op callback
+ */
+static void R_Debug_GladPreCallbackNull(const char *name, GLADapiproc apiproc, int len_args, ...) {
+}
+
+/**
+ * @brief Callback for non-KHR_debug GPUs to log debug error sources and callstacks
+ */
+void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...) {
 	const GLenum error_code = glad_glGetError();
 
 	if (error_code != GL_NO_ERROR) {
@@ -357,13 +371,18 @@ void R_InitContext(void) {
 			glDebugMessageCallback(R_Debug_Callback, NULL);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 			gladUninstallGLDebug();
+			gladSetGLPostCallback(R_Debug_GladPostCallbackNull);
+			gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
 		} else {
 			Com_Warn("GL_KHR_debug not supported: slower debug handler attached\n");
 			gladInstallGLDebug();
 			gladSetGLPostCallback(R_Debug_GladPostCallback);
+			gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
 		}
 	} else {
 		gladUninstallGLDebug();
+		gladSetGLPostCallback(R_Debug_GladPostCallbackNull);
+		gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
 	}
 
 	R_SetWindowIcon();

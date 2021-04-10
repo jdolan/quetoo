@@ -235,14 +235,6 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 	}
 
-	if (r_timers->integer) {
-		y += ch;
-
-		R_Draw2DString(x, y, va("Query Timer Result #: %u", r_timer_queries.num_results), color_white);
-
-		y += ch;
-	}
-
 	R_BindFont(NULL, NULL, NULL);
 }
 
