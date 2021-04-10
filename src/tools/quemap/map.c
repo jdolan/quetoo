@@ -38,7 +38,7 @@ static brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
 int32_t num_planes;
 plane_t planes[MAX_BSP_PLANES];
 
-#define	PLANE_HASHES 4096
+#define	PLANE_HASHES (size_t) MAX_WORLD_COORD
 static plane_t *plane_hash[PLANE_HASHES];
 
 box3_t map_bounds;
@@ -217,7 +217,6 @@ static int32_t BrushContents(const brush_t *b) {
 		}
 	}
 
-
 	{
 		const brush_side_t *s = b->sides;
 		contents = s->contents;
@@ -236,7 +235,6 @@ static int32_t BrushContents(const brush_t *b) {
 			}
 		}
 	}
-
 
 	return contents;
 }
