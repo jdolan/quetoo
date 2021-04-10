@@ -506,6 +506,51 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 }
 
 /**
+ * @brief Create the depth elements buffer.
+ */
+static void R_LoadBspDepthPassElements(r_bsp_model_t *bsp) {
+
+	glGenBuffers(1, &bsp->depth_pass_elements_buffer);
+
+	const r_bsp_inline_model_t *in = bsp->inline_models;
+	const r_bsp_draw_elements_t *draw = in->draw_elements;
+	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
+
+		if (!(draw->texinfo->flags & SURF_MASK_TRANSLUCENT)) {
+			bsp->num_depth_pass_elements += draw->num_elements;
+		}
+	}
+
+	glBindBuffer(GL_COPY_WRITE_BUFFER, bsp->depth_pass_elements_buffer);
+
+	glBufferData(GL_COPY_WRITE_BUFFER, bsp->num_depth_pass_elements * sizeof(GLuint), NULL, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_COPY_READ_BUFFER, bsp->elements_buffer);
+
+	draw = in->draw_elements;
+
+	GLintptr offset = 0;
+
+	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
+
+		if (draw->texinfo->flags & SURF_MASK_TRANSLUCENT) {
+			continue;
+		}
+
+		glCopyBufferSubData(GL_COPY_READ_BUFFER,
+							GL_COPY_WRITE_BUFFER,
+							(GLintptr) draw->elements,
+							(GLintptr) offset,
+							draw->num_elements * sizeof(GLuint));
+
+		offset += draw->num_elements * sizeof(GLuint);
+	}
+
+	glBindBuffer(GL_COPY_READ_BUFFER, 0);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+}
+
+/**
  * @brief
  */
 static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
@@ -615,6 +660,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspVertexArray(mod);
 	R_LoadBspLightmap(mod);
 	R_LoadBspLightgrid(mod);
+	R_LoadBspDepthPassElements(mod->bsp);
 	R_LoadBspOcclusionQueries(mod->bsp);
 
 	if (r_draw_bsp_lightgrid->value) {
@@ -653,8 +699,6 @@ static void R_RegisterBspModel(r_media_t *self) {
 	}
 
 	r_world_model = mod;
-
-	R_InitDepthElements();
 }
 
 /**
@@ -665,6 +709,8 @@ static void R_FreeBspModel(r_media_t *self) {
 
 	glDeleteBuffers(1, &mod->bsp->vertex_buffer);
 	glDeleteBuffers(1, &mod->bsp->elements_buffer);
+	glDeleteBuffers(1, &mod->bsp->depth_pass_elements_buffer);
+
 	glDeleteVertexArrays(1, &mod->bsp->vertex_array);
 
 	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++) {
@@ -675,8 +721,6 @@ static void R_FreeBspModel(r_media_t *self) {
 	for (int32_t i = 0; i < mod->bsp->num_planes; i++, plane++) {
 		g_ptr_array_free(plane->blend_elements, 1);
 	}
-
-	R_FreeDepthElements();
 }
 
 /**

@@ -535,6 +535,8 @@
 		CE948B2E2235699300D961FA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE9771B1214557F500BBD71C /* ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771AF214557F500BBD71C /* ai_info.h */; };
 		CE9771B2214557F500BBD71C /* ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771B0214557F500BBD71C /* ai_info.c */; };
+		CE9B88362620943600A59BB9 /* r_timer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9B88342620943600A59BB9 /* r_timer.c */; };
+		CE9B88372620943600A59BB9 /* r_timer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9B88352620943600A59BB9 /* r_timer.h */; };
 		CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
 		CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
 		CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9423E7A9410009DA65 /* r_mesh.h */; };
@@ -1522,6 +1524,8 @@
 		CE948B222235652600D961FA /* check_shared */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_shared; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9771AF214557F500BBD71C /* ai_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_info.h; sourceTree = "<group>"; };
 		CE9771B0214557F500BBD71C /* ai_info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_info.c; sourceTree = "<group>"; };
+		CE9B88342620943600A59BB9 /* r_timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_timer.c; sourceTree = "<group>"; };
+		CE9B88352620943600A59BB9 /* r_timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_timer.h; sourceTree = "<group>"; };
 		CE9CFC9023E792FE0009DA65 /* cg_light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_light.h; sourceTree = "<group>"; };
 		CE9CFC9123E792FE0009DA65 /* cg_light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_light.c; sourceTree = "<group>"; };
 		CE9CFC9423E7A9410009DA65 /* r_mesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_mesh.h; sourceTree = "<group>"; };
@@ -2415,6 +2419,8 @@
 				CEAC32BB24212553007E1253 /* r_sprite.h */,
 				CE8FD2F023D48AB7002FD074 /* r_stain.c */,
 				CE8FD2EF23D48AB7002FD074 /* r_stain.h */,
+				CE9B88342620943600A59BB9 /* r_timer.c */,
+				CE9B88352620943600A59BB9 /* r_timer.h */,
 				CE12D5F11C5C58C300CD0B13 /* r_types.h */,
 				CE12D5F21C5C58C300CD0B13 /* renderer.h */,
 				CE12D5AE1C5C58C300CD0B13 /* Makefile.am */,
@@ -3317,6 +3323,7 @@
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
 				CEAC32BD24212553007E1253 /* r_sprite.h in Headers */,
 				CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */,
+				CE9B88372620943600A59BB9 /* r_timer.h in Headers */,
 				CED438A01D9D34450052BAFA /* r_types.h in Headers */,
 				CED438A11D9D34450052BAFA /* renderer.h in Headers */,
 			);
@@ -4411,6 +4418,7 @@
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
 				CEAC32BC24212553007E1253 /* r_sprite.c in Sources */,
 				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
+				CE9B88362620943600A59BB9 /* r_timer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

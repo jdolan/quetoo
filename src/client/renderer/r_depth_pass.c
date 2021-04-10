@@ -42,76 +42,6 @@ static struct {
 	GLuint elements_buffer;
 } r_occlusion_queries;
 
-static GLuint r_depth_pass_elements_buffer, r_depth_pass_num_elements;
-
-/**
- * @brief Create the depth elements buffer.
- */
-void R_InitDepthElements(void) {
-
-	if (!r_depth_pass->integer) {
-		return;
-	}
-
-	glGenBuffers(1, &r_depth_pass_elements_buffer);
-
-	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
-	const r_bsp_draw_elements_t *draw = in->draw_elements;
-	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
-
-		if (!(draw->texinfo->flags & SURF_MASK_TRANSLUCENT)) {
-			r_depth_pass_num_elements += draw->num_elements;
-		}
-	}
-
-	glBindBuffer(GL_COPY_WRITE_BUFFER, r_depth_pass_elements_buffer);
-	
-	glBufferData(GL_COPY_WRITE_BUFFER, r_depth_pass_num_elements * sizeof(GLuint), NULL, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_COPY_READ_BUFFER, r_world_model->bsp->elements_buffer);
-	
-	draw = in->draw_elements;
-
-	GLintptr offset = 0;
-
-	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
-
-		if (draw->texinfo->flags & SURF_MASK_TRANSLUCENT) {
-			continue;
-		}
-
-		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, (GLintptr) draw->elements, (GLintptr) offset, draw->num_elements * sizeof(GLuint));
-
-		offset += draw->num_elements * sizeof(GLuint);
-	}
-	
-	glBindBuffer(GL_COPY_READ_BUFFER, 0);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-}
-
-/**
- * @brief Free the depth elements buffer.
- */
-void R_FreeDepthElements(void) {
-
-	if (!r_depth_pass->integer) {
-		return;
-	}
-
-	glDeleteBuffers(1, &r_depth_pass_elements_buffer);
-	r_depth_pass_elements_buffer = 0;
-	r_depth_pass_num_elements = 0;
-}
-
-/**
- * @brief Draws all opaque world geometry, writing to the depth buffer.
- */
-static inline void R_DrawBspInlineModelDepthPass(const r_view_t *view, const r_entity_t *e, const r_bsp_inline_model_t *in) {
-	
-	glDrawElements(GL_TRIANGLES, r_depth_pass_num_elements, GL_UNSIGNED_INT, NULL);
-	R_GetError(NULL);
-}
-
 /**
  * @brief
  */
@@ -128,17 +58,17 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	glUseProgram(r_depth_pass_program.name);
-	
-	glBindVertexArray(r_world_model->bsp->vertex_array);
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_depth_pass_elements_buffer);
-
-	glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
 	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, Mat4_Identity().array);
-	R_DrawBspInlineModelDepthPass(view, NULL, r_world_model->bsp->inline_models);
 	
+	glBindVertexArray(r_world_model->bsp->vertex_array);
+	glEnableVertexAttribArray(r_depth_pass_program.in_position);
+
+	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->depth_pass_elements_buffer);
+
+	glDrawElements(GL_TRIANGLES, r_world_model->bsp->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
+
 	if (r_occlude->value == 1 && view->ticks - occlusion_query_ticks >= 8) {
 		R_TIMER_WRAP("Occlusion Queries",
 			occlusion_query_ticks = view->ticks;
