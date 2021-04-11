@@ -525,9 +525,10 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 				s->flags |= STAGE_DRAW;
 
 				// terrain and dirtmapping use lighting
-				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-					s->flags |= STAGE_MATERIAL;
-				}
+				// FIXME: Material stage does not currently blend correctly for terrain and dirtmap
+//				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+//					s->flags |= STAGE_MATERIAL;
+//				}
 			}
 
 			// ensure appropriate blend function defaults
