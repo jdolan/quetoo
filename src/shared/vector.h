@@ -249,21 +249,21 @@ static inline float __attribute__ ((warn_unused_result)) ClampEuler(float theta)
 }
 
 /**
- * @return The minimim of `a` and `b`.
+ * @return The minimum of `a` and `b`.
  */
 static inline float __attribute__ ((warn_unused_result)) Minf(float a, float b) {
 	return a < b ? a : b;
 }
 
 /**
- * @return The minimim of `a` and `b`.
+ * @return The minimum of `a` and `b`.
  */
 static inline int32_t __attribute__ ((warn_unused_result)) Mini(int32_t a, int32_t b) {
 	return a < b ? a : b;
 }
 
 /**
- * @return The minimim of `a` and `b`.
+ * @return The minimum of `a` and `b`.
  */
 static inline int64_t __attribute__ ((warn_unused_result)) Minui64(uint64_t a, uint64_t b) {
 	return a < b ? a : b;
