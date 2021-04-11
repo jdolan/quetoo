@@ -220,11 +220,14 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenterSize(co
 }
 
 /**
- * @return A bounding box constructed from the distance between the extent of each axis,
- * translated by `center`.
+ * @return A bounding box constructed from the spherical radius, translated by `center`.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenterDistance(const vec3_t center, const float distance) {
-	return Box3_FromCenterSize(center, Vec3(distance, distance, distance));
+static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenterRadius(const vec3_t center, float radius) {
+	const vec3_t delta = Vec3(radius, radius, radius);
+	return Box3(
+		Vec3_Subtract(center, delta),
+		Vec3_Add(center, delta)
+	);
 }
 
 /**
@@ -252,7 +255,7 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Expand3(const box
  * @return A bounding box expanded (or shrunk, if a value is negative) by the
  * specified expansion value on all six axis.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Expand(const box3_t bounds, const float expansion) {
+static inline box3_t __attribute__ ((warn_unused_result)) Box3_Expand(const box3_t bounds, float expansion) {
 	return Box3_Expand3(bounds, Vec3(expansion, expansion, expansion));
 }
 
@@ -307,7 +310,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Symetrical(const 
 /**
  * @return The `bounds` scaled by `scale`.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Scale(const box3_t bounds, const float scale) {
+static inline box3_t __attribute__ ((warn_unused_result)) Box3_Scale(const box3_t bounds, float scale) {
 	return Box3(
 		Vec3_Scale(bounds.mins, scale),
 		Vec3_Scale(bounds.maxs, scale)
