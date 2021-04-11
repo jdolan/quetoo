@@ -66,7 +66,6 @@ typedef struct {
 
 typedef struct {
 	float floor, ceil;
-	float height;
 } cm_stage_terrain_t;
 
 typedef struct {

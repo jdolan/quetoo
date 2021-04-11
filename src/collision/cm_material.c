@@ -405,7 +405,6 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 			if (s->terrain.ceil <= s->terrain.floor) {
 				Cm_MaterialWarn(path, parser, "Terrain ceiling must be > floor");
 			} else {
-				s->terrain.height = s->terrain.ceil - s->terrain.floor;
 				s->flags |= STAGE_TERRAIN;
 			}
 
