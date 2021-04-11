@@ -376,42 +376,6 @@ static void EmitBrushes(void) {
 			bs->texinfo = b->sides[j].texinfo;
 		}
 
-		// add any axis planes not contained in the brush to bevel off corners
-		for (int32_t axis = 0; axis < 3; axis++) {
-			for (int32_t side = -1; side <= 1; side += 2) {
-				// add the plane
-				vec3_t normal = Vec3_Zero();
-				normal.xyz[axis] = side;
-
-				float dist;
-				if (side == -1) {
-					dist = -b->bounds.mins.xyz[axis];
-				} else {
-					dist = b->bounds.maxs.xyz[axis];
-				}
-
-				const int32_t plane_num = FindPlane(normal, dist);
-
-				int32_t j;
-				for (j = 0; j < b->num_sides; j++) {
-					if (b->sides[j].plane_num == plane_num) {
-						break;
-					}
-				}
-
-				if (j == b->num_sides) {
-					if (bsp_file.num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
-						Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
-					}
-
-					bsp_file.brush_sides[bsp_file.num_brush_sides].plane_num = plane_num;
-					bsp_file.brush_sides[bsp_file.num_brush_sides].texinfo = bsp_file.brush_sides[bsp_file.num_brush_sides - 1].texinfo;
-					bsp_file.num_brush_sides++;
-					out->num_sides++;
-				}
-			}
-		}
-
 		Progress("Emitting brushes", 100.f * i / num_brushes);
 	}
 }

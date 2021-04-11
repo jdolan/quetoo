@@ -240,157 +240,62 @@ static int32_t BrushContents(const brush_t *b) {
 }
 
 /**
+ * @brief qsort comparator to sort a brushes sides by plane type. This ensures
+ * the first 6 sides of the brush are axial.
+ */
+static int32_t SortBrushSides(const void *a, const void *b) {
+
+	const brush_side_t *a_side = a;
+	const brush_side_t *b_side = b;
+
+	return planes[a_side->plane_num].type - planes[b_side->plane_num].type;
+}
+
+/**
  * @brief Adds any additional planes necessary to allow the brush to be expanded
- * against axial bounding boxes
+ * against axial bounding boxes. Ensures that the first 6 sides of every brush
+ * are axial, which allows some optimizations in collision detection.
  */
 static void AddBrushBevels(brush_t *b) {
-	int32_t axis, dir;
-	int32_t i, j, k, l, order;
-	brush_side_t sidetemp;
-	brush_side_t *s, *s2;
-	vec3_t normal;
-	double dist;
-	cm_winding_t *w, *w2;
-	vec3_t vec, vec2;
-	float d;
 
-	if (b->num_sides == 0) {
-		return;
-	}
+	for (int32_t axis = 0; axis < 3; axis++) {
+		for (int32_t side = -1; side <= 1; side += 2) {
 
-	// add the axial planes
-	order = 0;
-	for (axis = 0; axis < 3; axis++) {
-		for (dir = -1; dir <= 1; dir += 2, order++) {
-			// see if the plane is already present
-			for (i = 0, s = b->sides; i < b->num_sides; i++, s++) {
-				if (planes[s->plane_num].normal.xyz[axis] == dir) {
+			vec3_t normal = Vec3_Zero();
+			normal.xyz[axis] = side;
+
+			float dist;
+			if (side == -1) {
+				dist = -b->bounds.mins.xyz[axis];
+			} else {
+				dist = b->bounds.maxs.xyz[axis];
+			}
+
+			const int32_t plane_num = FindPlane(normal, dist);
+
+			int32_t j;
+			for (j = 0; j < b->num_sides; j++) {
+				if (b->sides[j].plane_num == plane_num) {
 					break;
 				}
 			}
 
-			if (i == b->num_sides) { // add a new side
-				if (num_brush_sides == MAX_BSP_BRUSH_SIDES) {
+			if (j == b->num_sides) {
+				if (num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
 					Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 				}
-				num_brush_sides++;
-				b->num_sides++;
-				normal = Vec3_Zero();
-				normal.xyz[axis] = dir;
-				if (dir == 1) {
-					dist = b->bounds.maxs.xyz[axis];
-				} else {
-					dist = -b->bounds.mins.xyz[axis];
-				}
-				s->plane_num = FindPlane(normal, dist);
+
+				brush_side_t *s = &b->sides[b->num_sides++];
+
+				s->plane_num = plane_num;
 				s->texinfo = BSP_TEXINFO_BEVEL;
-				s->contents = b->sides[0].contents;
-			}
-			// if the plane is not in it canonical order, swap it
-			if (i != order) {
-				sidetemp = b->sides[order];
-				b->sides[order] = b->sides[i];
-				b->sides[i] = sidetemp;
+
+				num_brush_sides++;
 			}
 		}
 	}
 
-	// add the edge bevels
-	if (b->num_sides == 6) {
-		return;    // pure axial
-	}
-
-	// test the non-axial plane edges
-	for (i = 6; i < b->num_sides; i++) {
-		s = b->sides + i;
-		w = s->winding;
-		if (!w) {
-			continue;
-		}
-		for (j = 0; j < w->num_points; j++) {
-			k = (j + 1) % w->num_points;
-			vec = Vec3_Subtract(w->points[j], w->points[k]);
-			if (Vec3_Length(vec) < 0.5) {
-				continue;
-			}
-			vec = Vec3_Normalize(vec);
-			vec = SnapNormal(vec);
-			for (k = 0; k < 3; k++) {
-				if (vec.xyz[k] == -1.0 || vec.xyz[k] == 1.0 ||
-					(vec.xyz[k] == 0.0 && vec.xyz[(k + 1) % 3] == 0.0)) {
-					break; // axial
-				}
-			}
-			if (k != 3) {
-				continue; // only test non-axial edges
-			}
-
-			// try the six possible slanted axials from this edge
-			for (axis = 0; axis < 3; axis++) {
-				for (dir = -1; dir <= 1; dir += 2) {
-					// construct a plane
-					vec2 = Vec3_Zero();
-					vec2.xyz[axis] = dir;
-					normal = Vec3_Cross(vec, vec2);
-					if (Vec3_Length(normal) < 0.5) {
-						continue;
-					}
-					normal = Vec3_Normalize(normal);
-					dist = Vec3_Dot(w->points[j], normal);
-
-					// if all the points on all the sides are
-					// behind this plane, it is a proper edge bevel
-					for (k = 0; k < b->num_sides; k++) {
-						float minBack;
-
-						// if this plane has already been used, skip it
-						if (PlaneEqual(&planes[b->sides[k].plane_num], normal, dist)) {
-							break;
-						}
-
-						w2 = b->sides[k].winding;
-						if (!w2) {
-							continue;
-						}
-						minBack = 0.0f;
-						for (l = 0; l < w2->num_points; l++) {
-							d = Vec3_Dot(w2->points[l], normal) - dist;
-							if (d > 0.1) {
-								break; // point in front
-							}
-							if (d < minBack) {
-								minBack = d;
-							}
-						}
-						// if some point was at the front
-						if (l != w2->num_points) {
-							break;
-						}
-						// if no points at the back then the winding is on the
-						// bevel plane
-						if (minBack > -0.1f) {
-							break;
-						}
-					}
-
-					if (k != b->num_sides) {
-						continue; // wasn't part of the outer hull
-					}
-					// add this plane
-					if (num_brush_sides == MAX_BSP_BRUSH_SIDES) {
-						Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
-					}
-
-					s2 = &b->sides[b->num_sides++];
-					s2->plane_num = FindPlane(normal, dist);
-					s2->texinfo = BSP_TEXINFO_BEVEL;
-					s2->contents = b->sides[0].contents;
-
-					num_brush_sides++;
-				}
-			}
-		}
-	}
+	qsort(b->sides, b->num_sides, sizeof(brush_side_t), SortBrushSides);
 }
 
 /**
