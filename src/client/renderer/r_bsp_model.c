@@ -340,9 +340,9 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
  * @brief Media free callback for inline models.
  */
 static void R_FreeBspInlineModel(r_media_t *self) {
-	r_bsp_inline_model_t *mod = (r_bsp_inline_model_t *) self;
+	r_model_t *mod = (r_model_t *) self;
 
-	g_ptr_array_free(mod->blend_elements, 1);
+	g_ptr_array_free(mod->bsp_inline->blend_elements, 1);
 }
 
 
