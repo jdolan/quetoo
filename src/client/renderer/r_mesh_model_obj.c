@@ -205,6 +205,8 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
 				R_AppendObjElements(face, a->el, b->el, c->el);
 			}
 		}
+
+		g_array_free(group->f, TRUE);
 	}
 
 	// and configs
