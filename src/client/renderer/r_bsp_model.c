@@ -337,16 +337,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Media free callback for inline models.
- */
-static void R_FreeBspInlineModel(r_media_t *self) {
-	r_model_t *mod = (r_model_t *) self;
-
-	g_ptr_array_free(mod->bsp_inline->blend_elements, 1);
-}
-
-
-/**
  * @brief Creates an r_model_t for each inline model so that entities may reference them.
  */
 static void R_SetupBspInlineModels(r_model_t *mod) {
@@ -361,8 +351,6 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 
 		out->type = MOD_BSP_INLINE;
 		out->bsp_inline = in;
-
-		out->media.Free = R_FreeBspInlineModel;
 
 		out->bounds = in->bounds;
 
@@ -720,6 +708,11 @@ static void R_FreeBspModel(r_media_t *self) {
 	r_bsp_plane_t *plane = mod->bsp->planes;
 	for (int32_t i = 0; i < mod->bsp->num_planes; i++, plane++) {
 		g_ptr_array_free(plane->blend_elements, 1);
+	}
+
+	r_bsp_inline_model_t *in = mod->bsp->inline_models;
+	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
+		g_ptr_array_free(in->blend_elements, 1);
 	}
 }
 
