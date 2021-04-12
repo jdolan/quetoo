@@ -72,7 +72,11 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 
 	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
 
-	return Box3_ContainsPoint(other->abs_bounds, tr.end);
+	if (tr.ent == other) {
+		return true;
+	}
+
+	return Box3_ContainsPoint(Box3_Expand(other->abs_bounds, 1.f), tr.end);
 }
 
 /**

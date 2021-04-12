@@ -1035,6 +1035,8 @@ void Ai_SaveNodes(void) {
 
 	aim.gi->CloseFile(file);
 
+	aim.gi->Print("Wrote nodes to %s.\n", aim.gi->RealPath(filename));
+
 	Ai_CheckNodes();
 }
 
