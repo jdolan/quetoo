@@ -216,10 +216,12 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	}
 
 	if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
-		color.a *= clamp((in_position.z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x), 0.0, 1.0);
+		float z = clamp(in_position.z, stage.terrain.x, stage.terrain.y);
+		color.a *= (z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x);
 	}
 
 	if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
-		color.a *= DIRTMAP[int(abs(in_position.x + in_position.y)) % DIRTMAP.length()] * stage.dirtmap;
+		int index = int(in_position.x) + int(in_position.y) + int(in_position.z);
+		color.a *= DIRTMAP[index % DIRTMAP.length()] * stage.dirtmap;
 	}
 }
