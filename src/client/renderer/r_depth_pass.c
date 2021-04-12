@@ -184,7 +184,7 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
  */
 _Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
 
-	return R_OccludeBox(view, Box3_FromCenterDistance(origin, radius));
+	return R_OccludeBox(view, Box3_FromCenterRadius(origin, radius));
 }
 
 /**

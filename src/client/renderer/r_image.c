@@ -214,7 +214,7 @@ void R_SetupImage(r_image_t *image) {
 
 		GLsizei levels = 1;
 		if (image->type & IT_MASK_MIPMAP) {
-			if (image->depth && image->target != GL_TEXTURE_2D_ARRAY) {
+			if (image->depth && image->target == GL_TEXTURE_3D) {
 				levels = floorf(log2f(Mini(Mini(image->width, image->height), image->depth))) + 1;
 			} else {
 				levels = floorf(log2f(Mini(image->width, image->height))) + 1;

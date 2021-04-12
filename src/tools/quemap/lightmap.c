@@ -626,8 +626,6 @@ void FinalizeLightmap(int32_t face_num) {
 		ProjectLightmapLuxel(lm, l, 0.f, 0.f);
 
 		// write the directional sample data, in tangent space
-		l->direction = Vec3_Add(l->direction, l->normal);
-
 		const vec3_t sdir = Vec4_XYZ(lm->texinfo->vecs[0]);
 		const vec3_t tdir = Vec4_XYZ(lm->texinfo->vecs[1]);
 
