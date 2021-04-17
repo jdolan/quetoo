@@ -726,6 +726,11 @@ enum {
 	SPRITE_NO_LERP			= 1 << 1,
 
 	/**
+	 * @brief If set, the sprite will ignore the depth buffer entirely.
+	 */
+	SPRITE_NO_DEPTH			= 1 << 2,
+
+	/**
 	 * @brief Beginning of flags reserved for cgame
 	 */
 	SPRITE_CGAME			= 1 << 16
