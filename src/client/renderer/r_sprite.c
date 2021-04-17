@@ -486,7 +486,7 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		glBindTexture(GL_TEXTURE_2D, in->diffusemap->texnum);
 
 		if (in->flags & SPRITE_NO_DEPTH) {
-			glDepthRange(.1f, 1.f);
+			glDepthRange(.1f, .9f);
 		} else {
 			glDepthRange(0.f, 1.f);
 		}
