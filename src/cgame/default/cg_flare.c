@@ -79,7 +79,7 @@ void Cg_AddFlares(void) {
 		cg_flare_t *flare = g_ptr_array_index(cg_flares, i);
 
 		if (flare->merged) {
-			continue;;
+			continue;
 		}
 
 		mat4_t matrix = Mat4_Identity();
@@ -122,6 +122,7 @@ void Cg_AddFlares(void) {
 
 		// occluded, so don't bother checking this
 		if (!out) {
+			flare->alpha = flare->exposure = 0.f;
 			continue;
 		}
 
@@ -132,36 +133,31 @@ void Cg_AddFlares(void) {
 			flare->exposure = 0.f;
 
 			if (dist > 0.f) {
+				const cm_trace_t tr = cgi.Trace(cgi.view->origin, flare->out.origin, Box3_Zero(), 0, CONTENTS_SOLID);
 
-				const r_bsp_vertex_t *v = flare->face->vertexes;
-				for (int32_t j = 0; j < flare->face->num_vertexes; j++, v++) {
+				if (tr.fraction > 0.99f) {
+					const float dot = (Vec3_Dot(cgi.view->forward, Vec3_Normalize(Vec3_Subtract(flare->out.origin, cgi.view->origin))) - 0.4f) / 0.6f;
 
-					vec3_t p;
-					if (flare->entity) {
-						p = Mat4_Transform(matrix, v->position);
-					} else {
-						p = v->position;
-					}
-
-					const cm_trace_t tr = cgi.Trace(cgi.view->origin, p, Box3_Zero(), 0, CONTENTS_SOLID);
-					if (tr.fraction > 0.99f) {
-						flare->exposure += 1.f / flare->face->num_vertexes;
+					if (dot > 0.f) {
+						flare->exposure = 1.f * (dot * dot * dot * dot);
 					}
 				}
 			}
 		}
 
-		float alpha;
-		if (flare->exposure > 0.f) {
- 			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * flare->exposure;
-		} else {
-			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * -(1.f - flare->exposure);
+		if (flare->alpha != flare->exposure) {
+			float alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP;
+
+			if (flare->exposure > flare->alpha) {
+ 				flare->alpha = Minf(flare->alpha + alpha, flare->exposure);
+			} else {
+				flare->alpha = Maxf(flare->alpha - alpha, flare->exposure);
+			}
 		}
 
-		flare->alpha = Clampf(flare->alpha + alpha, 0.f, 1.f);
 		if (flare->alpha > 0.f) {
+			const float alpha = Clampf(flare->alpha * cg_add_flares->value, 0.f, 1.f);
 
-			alpha = Clampf(flare->alpha * cg_add_flares->value, 0.f, 1.f);
 			if (alpha > 0.f) {
 
 				const color_t in_color = Color32_Color(flare->in.color);
@@ -216,8 +212,9 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 	}
 
 	flare->in.media = stage->media;
-	flare->in.softness = 0.25f;
+	flare->in.softness = 0.f;
 	flare->in.lighting = 1.f;
+	flare->in.flags = SPRITE_NO_DEPTH;
 
 	flare->out = flare->in;
 

@@ -434,8 +434,6 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	
-	glEnable(GL_DEPTH_TEST);
 
 	glUseProgram(r_sprite_program.name);
 
@@ -463,6 +461,8 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil);
 
+	glEnable(GL_DEPTH_TEST);
+
 	r_sprite_instance_t *in = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(blend_depth));
 	
 	if (in) {
@@ -485,6 +485,12 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 		glBindTexture(GL_TEXTURE_2D, in->diffusemap->texnum);
 
+		if (in->flags & SPRITE_NO_DEPTH) {
+			glDepthRange(.1f, .9f);
+		} else {
+			glDepthRange(0.f, 1.f);
+		}
+
 		const ptrdiff_t stride = 6 * (ptrdiff_t) sizeof(GLuint);
 
 		int32_t count = 0;
@@ -493,7 +499,8 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		for (chain = in; chain; chain = chain->next) {
 			if (chain->offset == in->offset + count * stride &&
 				chain->diffusemap == in->diffusemap &&
-				chain->next_diffusemap == in->next_diffusemap) {
+				chain->next_diffusemap == in->next_diffusemap &&
+				(chain->flags & SPRITE_NO_DEPTH) == (in->flags & SPRITE_NO_DEPTH)) {
 				count++;
 			} else {
 				break;
@@ -516,6 +523,8 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glUseProgram(0);
 
 	glDisable(GL_DEPTH_TEST);
+
+	glDepthRange(0.f, 1.f);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
