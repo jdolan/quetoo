@@ -102,7 +102,6 @@ static patch_t *BuildPatch(const bsp_face_t *face, const vec3_t origin, cm_windi
 	patch->face = face;
 	patch->origin = origin;
 	patch->winding = w;
-	patch->texinfo = bsp_file.texinfo + patch->face->texinfo;
 
 	return patch;
 }
@@ -171,7 +170,10 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	vec3_t normal = Vec3_Zero();
 
-	const cm_material_t *material = LoadMaterial(patch->texinfo->texture, ASSET_CONTEXT_TEXTURES);
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
+	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[brush_side->texinfo];
+
+	const cm_material_t *material = LoadMaterial(texinfo->texture, ASSET_CONTEXT_TEXTURES);
 	const float size = material->patch_size ?: patch_size;
 
 	int32_t i;
@@ -198,7 +200,6 @@ static void SubdividePatch_r(patch_t *patch) {
 	// create a new patch
 	patch_t *p = (patch_t *) Mem_TagMalloc(sizeof(*p), MEM_TAG_PATCH);
 	p->face = patch->face;
-	p->texinfo = patch->texinfo;
 
 	p->origin = patch->origin;
 
@@ -219,7 +220,8 @@ void SubdividePatch(int32_t patch_num) {
 
 	patch_t *patch = &patches[patch_num];
 
-	const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
+	const bsp_texinfo_t *tex = &bsp_file.texinfo[brush_side->texinfo];
 
 	if (tex->flags & SURF_MASK_NO_LIGHTMAP) {
 		return;

@@ -65,7 +65,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 	// resolve the leaf for the point just in front of the surface
 
 	vec3_t center = Box3_Center(face->bounds);
-	center = Vec3_Add(center, face->plane->cm->normal);
+	center = Vec3_Add(center, face->brush_side->plane->cm->normal);
 
 	e->face = face;
 
@@ -83,7 +83,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 		// randomize the origin over the surface
 
-		const vec3_t org = Vec3_Add(Box3_RandomPoint(face->bounds), face->plane->cm->normal);
+		const vec3_t org = Vec3_Add(Box3_RandomPoint(face->bounds), face->brush_side->plane->cm->normal);
 
 		vec3_t end = org;
 		end.z -= MAX_WORLD_DIST;
@@ -126,8 +126,10 @@ static void Cg_LoadWeather(void) {
 	// iterate the world surfaces, testing sky surfaces
 	for (i = j = 0; i < bsp->num_faces; i++, face++) {
 
+		const r_bsp_brush_side_t *side = face->brush_side;
+
 		// for downward facing sky brushes, create an emitter
-		if ((face->texinfo->flags & SURF_SKY) && face->plane->cm->normal.z < -0.1) {
+		if ((side->texinfo->flags & SURF_SKY) && side->plane->cm->normal.z < -0.1) {
 			Cg_LoadWeather_(face);
 			j++;
 		}

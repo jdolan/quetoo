@@ -117,7 +117,7 @@ int32_t TexinfoForBrushSide(const brush_side_t *side, const vec3_t origin) {
 	g_strlcpy(tx.texture, side->texture, sizeof(tx.texture));
 
 	vec3_t vecs[2];
-	TextureAxisFromPlane(&planes[side->plane_num], &vecs[0], &vecs[1]);
+	TextureAxisFromPlane(&planes[side->plane], &vecs[0], &vecs[1]);
 
 	vec2_t offset;
 	offset.x = Vec3_Dot(origin, vecs[0]);

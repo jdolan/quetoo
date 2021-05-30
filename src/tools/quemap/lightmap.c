@@ -169,8 +169,9 @@ void BuildLightmaps(void) {
 		assert(lm->model);
 		
 		lm->face = &bsp_file.faces[i];
-		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
-		lm->plane = &bsp_file.planes[lm->face->plane_num];
+		lm->brush_side = &bsp_file.brush_sides[lm->face->brush_side];
+		lm->texinfo = &bsp_file.texinfo[lm->brush_side->texinfo];
+		lm->plane = &bsp_file.planes[lm->brush_side->plane];
 
 		if (lm->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
 			continue;

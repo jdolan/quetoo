@@ -169,15 +169,16 @@ typedef struct {
 #define BSP_TEXINFO_BEVEL -2
 
 typedef struct {
-	int32_t plane_num; // facing out of the leaf
+	int32_t plane; // facing out of the leaf
 	int32_t texinfo;
+	int32_t contents;
 } bsp_brush_side_t;
 
 typedef struct {
-	int32_t entity_num; // the entity that defined this brush
+	int32_t entity; // the entity that defined this brush
 	int32_t contents;
 	int32_t first_brush_side;
-	int32_t num_sides; // the number of total brush sides, including bevel sides
+	int32_t num_brush_sides; // the number of total brush sides, including bevel sides
 	box3_t bounds;
 } bsp_brush_t;
 
@@ -206,9 +207,7 @@ typedef struct {
  * @brief Faces are polygon primitives, stored as both vertex and element arrays.
  */
 typedef struct {
-	int32_t plane_num;
-	int32_t texinfo;
-	int32_t contents;
+	int32_t brush_side;
 
 	box3_t bounds;
 
@@ -222,7 +221,7 @@ typedef struct {
 } bsp_face_t;
 
 typedef struct {
-	int32_t plane_num;
+	int32_t plane;
 	int32_t children[2]; // negative numbers are -(leafs + 1), not nodes
 
 	box3_t bounds; // for frustum culling
@@ -251,7 +250,7 @@ typedef struct {
  * are also grouped.
  */
 typedef struct {
-	int32_t plane_num;
+	int32_t plane;
 	int32_t texinfo;
 	int32_t contents;
 

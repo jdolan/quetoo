@@ -95,8 +95,8 @@ _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
 	if (Box3_ContainsPoint(brush->bounds, point)) {
 
-		const cm_bsp_brush_side_t *side = brush->sides;
-		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+		const cm_bsp_brush_side_t *side = brush->brush_sides;
+		for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 			if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
 				return false;
 			}
@@ -237,8 +237,8 @@ void Cm_InitBoxHull(void) {
 
 	// brush
 	cm_box.brush = &cm_bsp.brushes[cm_bsp.file.num_brushes];
-	cm_box.brush->num_sides = 6;
-	cm_box.brush->sides = cm_bsp.brush_sides + cm_bsp.file.num_brush_sides;
+	cm_box.brush->num_brush_sides = 6;
+	cm_box.brush->brush_sides = cm_bsp.brush_sides + cm_bsp.file.num_brush_sides;
 	cm_box.brush->contents = CONTENTS_MONSTER;
 
 	for (int32_t i = 0; i < 6; i++) {

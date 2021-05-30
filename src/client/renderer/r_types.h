@@ -306,6 +306,26 @@ typedef struct {
 } r_bsp_plane_t;
 
 /**
+ * @brief BSP brush side structure.
+ */
+typedef struct {
+	/**
+	 * @brief The texinfo.
+	 */
+	const r_bsp_texinfo_t *texinfo;
+
+	/**
+	 * @brief The plane.
+	 */
+	const r_bsp_plane_t *plane;
+
+	/**
+	 * @brief The contents mask.
+	 */
+	int32_t contents;
+} r_bsp_brush_side_t;
+
+/**
  * @brief BSP vertex structure.
  */
 typedef struct {
@@ -354,11 +374,7 @@ typedef struct {
 typedef struct {
 	struct r_bsp_node_s *node;
 
-	r_bsp_plane_t *plane;
-	byte plane_side;
-
-	r_bsp_texinfo_t *texinfo;
-	int32_t contents;
+	r_bsp_brush_side_t *brush_side;
 
 	box3_t bounds;
 
@@ -532,6 +548,9 @@ typedef struct {
 
 	int32_t num_texinfo;
 	r_bsp_texinfo_t *texinfo;
+
+	int32_t num_brush_sides;
+	r_bsp_brush_side_t *brush_sides;
 
 	int32_t num_vertexes;
 	r_bsp_vertex_t *vertexes;

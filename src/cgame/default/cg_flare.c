@@ -126,7 +126,9 @@ void Cg_AddFlares(void) {
 		}
 
 		if ((cgi.client->unclamped_time - cg_flare_timestamp) > 50) {
-			const float dist = Cm_DistanceToPlane(cgi.view->origin, flare->face->plane->cm);
+
+			const float dist = Cm_DistanceToPlane(cgi.view->origin, flare->face->brush_side->plane->cm);
+
 			flare->exposure = 0.f;
 
 			if (dist > 0.f) {
@@ -199,7 +201,7 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 	}
 
 	flare->in.origin = Box3_Center(bounds);
-	flare->in.origin = Vec3_Fmaf(flare->in.origin, 2.f, face->plane->cm->normal);
+	flare->in.origin = Vec3_Fmaf(flare->in.origin, 2.f, face->brush_side->plane->cm->normal);
 
 	flare->in.size = Box3_Distance(bounds);
 
@@ -258,9 +260,7 @@ static void Cg_MergeFlares(void) {
 		for (guint j = i + 1; j < cg_flares->len; j++) {
 			cg_flare_t *b = g_ptr_array_index(cg_flares, j);
 
-			if (b->face->texinfo == a->face->texinfo &&
-				b->face->plane == a->face->plane &&
-				b->face->plane_side == a->face->plane_side) {
+			if (b->face->brush_side == a->face->brush_side) {
 
 				if (Cg_MergeFlaresVerts(a, b) > 1) {
 					Cg_Debug("Merging %s to %s\n", vtos(b->in.origin), vtos(a->in.origin));
@@ -287,7 +287,7 @@ void Cg_LoadFlares(void) {
 	const r_bsp_face_t *face = bsp->faces;
 	for (int32_t i= 0; i < bsp->num_faces; i++, face++) {
 
-		const r_material_t *material = face->texinfo->material;
+		const r_material_t *material = face->brush_side->texinfo->material;
 		if (material->cm->flags & STAGE_FLARE) {
 
 			const r_stage_t *stage = material->stages;

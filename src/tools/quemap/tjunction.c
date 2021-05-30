@@ -43,7 +43,7 @@ static void FixTJunctions_(int32_t face_num) {
 
 	SDL_SpinLock *face_lock = &faces_locks[face_num];
 
-	const plane_t *plane = &planes[face->plane_num];
+	const plane_t *plane = &planes[face->brush_side->plane];
 
 	// Make a copy of face->w for testing
 	SDL_AtomicLock(face_lock);
@@ -128,7 +128,7 @@ static void FixTJunctions_(int32_t face_num) {
  */
 static void FixTJunctions_r(node_t *node) {
 
-	if (node->plane_num != PLANE_NUM_LEAF) {
+	if (node->plane != PLANE_LEAF) {
 		FixTJunctions_r(node->children[0]);
 		FixTJunctions_r(node->children[1]);
 	}

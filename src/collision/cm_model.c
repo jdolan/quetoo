@@ -99,7 +99,7 @@ static void Cm_LoadBspNodes(void) {
 
 	for (int32_t i = 0; i < num_nodes; i++, in++, out++) {
 
-		out->plane = cm_bsp.planes + in->plane_num;
+		out->plane = cm_bsp.planes + in->plane;
 
 		for (int32_t j = 0; j < 2; j++) {
 			out->children[j] = in->children[j];
@@ -160,7 +160,7 @@ static void Cm_LoadBspBrushSides(void) {
 
 	for (int32_t i = 0; i < num_brush_sides; i++, in++, out++) {
 
-		const int32_t p = in->plane_num;
+		const int32_t p = in->plane;
 
 		if (p >= cm_bsp.file.num_planes) {
 			Com_Error(ERROR_DROP, "Brush side %d has invalid plane %d\n", i, p);
@@ -177,6 +177,8 @@ static void Cm_LoadBspBrushSides(void) {
 
 			out->texinfo = &cm_bsp.texinfos[in->texinfo];
 		}
+
+		out->contents = in->contents;
 	}
 }
 
@@ -193,10 +195,10 @@ static void Cm_LoadBspBrushes(void) {
 
 	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
 
-		out->entity = cm_bsp.entities[in->entity_num];
+		out->entity = cm_bsp.entities[in->entity];
 		out->contents = in->contents;
-		out->sides = cm_bsp.brush_sides + in->first_brush_side;
-		out->num_sides = in->num_sides;
+		out->brush_sides = cm_bsp.brush_sides + in->first_brush_side;
+		out->num_brush_sides = in->num_brush_sides;
 		out->bounds = in->bounds;
 	}
 }

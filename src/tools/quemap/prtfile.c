@@ -49,7 +49,7 @@ static void WritePortalFile_r(node_t *node) {
 	double dist;
 
 	// decision node
-	if (node->plane_num != PLANE_NUM_LEAF && !(node->split_side->contents & CONTENTS_DETAIL)) {
+	if (node->plane != PLANE_LEAF && !(node->split_side->contents & CONTENTS_DETAIL)) {
 		WritePortalFile_r(node->children[0]);
 		WritePortalFile_r(node->children[1]);
 		return;
@@ -96,7 +96,7 @@ static void WritePortalFile_r(node_t *node) {
  * @brief All of the leafs under node will have the same cluster
  */
 static void FillLeafNumbers_r(node_t *node, int32_t num) {
-	if (node->plane_num == PLANE_NUM_LEAF) {
+	if (node->plane == PLANE_LEAF) {
 		if (node->contents & CONTENTS_SOLID) {
 			node->cluster = -1;
 		} else {
@@ -114,7 +114,7 @@ static void FillLeafNumbers_r(node_t *node, int32_t num) {
  */
 static void NumberLeafs_r(node_t *node) {
 
-	if (node->plane_num != PLANE_NUM_LEAF && !(node->split_side->contents & CONTENTS_DETAIL)) { // decision node
+	if (node->plane != PLANE_LEAF && !(node->split_side->contents & CONTENTS_DETAIL)) { // decision node
 		node->cluster = -99;
 		NumberLeafs_r(node->children[0]);
 		NumberLeafs_r(node->children[1]);
@@ -149,7 +149,7 @@ static void NumberLeafs_r(node_t *node) {
 static void CreateVisPortals_r(node_t *node) {
 	// stop as soon as we get to a leaf or detail node, which
 	// means that everything below is in a single cluster
-	if (node->plane_num == PLANE_NUM_LEAF || (node->split_side->contents & CONTENTS_DETAIL)) {
+	if (node->plane == PLANE_LEAF || (node->split_side->contents & CONTENTS_DETAIL)) {
 		return;
 	}
 
@@ -166,7 +166,7 @@ static void CreateVisPortals_r(node_t *node) {
 static void SaveClusters_r(node_t *node) {
 	static int32_t clusterleaf = 1;
 
-	if (node->plane_num == PLANE_NUM_LEAF) {
+	if (node->plane == PLANE_LEAF) {
 		bsp_file.leafs[clusterleaf++].cluster = node->cluster;
 		return;
 	}

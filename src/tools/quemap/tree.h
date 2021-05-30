@@ -25,12 +25,12 @@
 #include "face.h"
 #include "map.h"
 
-#define	PLANE_NUM_LEAF -1
+#define	PLANE_LEAF -1
 
 typedef struct node_s {
 	// both leafs and nodes
 	struct node_s *parent;
-	int32_t plane_num; // -1 = leaf node
+	int32_t plane; // -1 = leaf node
 	box3_t bounds; // valid after portalization
 	csg_brush_t *volume; // one for each leaf/node
 

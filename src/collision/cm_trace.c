@@ -78,7 +78,7 @@ static inline _Bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_
  */
 static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
-	if (!brush->num_sides) {
+	if (!brush->num_brush_sides) {
 		return;
 	}
 
@@ -94,8 +94,8 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 
 	_Bool end_outside = false, start_outside = false;
 
-	const cm_bsp_brush_side_t *side = brush->sides;
-	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+	const cm_bsp_brush_side_t *side = brush->brush_sides;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
 		cm_bsp_plane_t plane = *side->plane;
 
@@ -167,7 +167,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
  */
 static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
-	if (!brush->num_sides) {
+	if (!brush->num_brush_sides) {
 		return;
 	}
 
@@ -175,8 +175,8 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 		return;
 	}
 
-	const cm_bsp_brush_side_t *side = brush->sides;
-	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+	const cm_bsp_brush_side_t *side = brush->brush_sides;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
 		cm_bsp_plane_t plane = *side->plane;
 

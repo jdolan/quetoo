@@ -20,6 +20,7 @@
  */
 
 #include "bsp.h"
+#include "csg.h"
 #include "face.h"
 #include "leakfile.h"
 #include "map.h"
@@ -173,12 +174,16 @@ int32_t BSP_Main(void) {
 
 		LoadMapFile(map_name);
 
+		EmitPlanes();
+		EmitBrushes();
+		EmitEntities();
+
 		ProcessModels();
 
-		EndBSPFile();
+		PhongShading();
 	}
 
-	WriteBSPFile(va("maps/%s.bsp", map_base));
+	WriteBSPFile(bsp_name);
 
 	FreeMaterials();
 

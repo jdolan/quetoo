@@ -99,8 +99,9 @@ static void Bsp_SwapBrushSides(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		brush_side->plane_num = LittleLong(brush_side->plane_num);
+		brush_side->plane = LittleLong(brush_side->plane);
 		brush_side->texinfo = LittleLong(brush_side->texinfo);
+		brush_side->contents = LittleLong(brush_side->contents);
 
 		brush_side++;
 	}
@@ -115,10 +116,10 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		brush->entity_num = LittleLong(brush->entity_num);
+		brush->entity = LittleLong(brush->entity);
 		brush->contents = LittleLong(brush->contents);
 		brush->first_brush_side = LittleLong(brush->first_brush_side);
-		brush->num_sides = LittleLong(brush->num_sides);
+		brush->num_brush_sides = LittleLong(brush->num_brush_sides);
 		brush->bounds = LittleBounds(brush->bounds);
 
 		brush++;
@@ -167,9 +168,7 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		face->plane_num = LittleLong(face->plane_num);
-		face->texinfo = LittleLong(face->texinfo);
-		face->contents = LittleLong(face->contents);
+		face->brush_side = LittleLong(face->brush_side);
 
 		face->bounds = LittleBounds(face->bounds);
 
@@ -202,7 +201,7 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		draw->plane_num = LittleLong(draw->plane_num);
+		draw->plane = LittleLong(draw->plane);
 		draw->texinfo = LittleLong(draw->texinfo);
 		draw->contents = LittleLong(draw->contents);
 
@@ -224,7 +223,7 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		node->plane_num = LittleLong(node->plane_num);
+		node->plane = LittleLong(node->plane);
 		node->children[0] = LittleLong(node->children[0]);
 		node->children[1] = LittleLong(node->children[1]);
 

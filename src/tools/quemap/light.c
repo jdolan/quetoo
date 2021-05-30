@@ -222,7 +222,8 @@ static void LightForEntity(const cm_entity_t *entity) {
  */
 static void LightForPatch(const patch_t *patch) {
 
-	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
+	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane];
 
 	light_t light = {};
 
@@ -236,7 +237,7 @@ static void LightForPatch(const patch_t *patch) {
 		return;
 	}
 
-	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[patch->face->texinfo];
+	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[brush_side->texinfo];
 
 	light.color = GetTextureColor(texinfo->texture);
 	const float brightness = ColorNormalize(light.color, &light.color);
@@ -359,7 +360,8 @@ void BuildDirectLights(void) {
 	const bsp_face_t *face = bsp_file.faces;
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
 
-		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
+		const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[face->brush_side];
+		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[brush_side->texinfo];
 
 		if (texinfo->flags & SURF_LIGHT) {
 

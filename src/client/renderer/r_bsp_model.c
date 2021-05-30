@@ -79,6 +79,29 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
+	r_bsp_brush_side_t *out;
+
+	const bsp_brush_side_t *in = bsp->cm->file.brush_sides;
+
+	bsp->num_brush_sides = bsp->cm->file.num_brush_sides;
+	bsp->brush_sides = out = Mem_LinkMalloc(bsp->num_brush_sides * sizeof(*out), bsp);
+
+	for (int32_t i = 0; i < bsp->num_brush_sides; i++, in++, out++) {
+
+		out->plane = bsp->planes + in->plane;
+
+		if (in->texinfo > -1) {
+			out->texinfo = bsp->texinfo + in->texinfo;
+		}
+
+		out->contents = in->contents;
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
 	bsp->num_vertexes = bsp->cm->file.num_vertexes;
@@ -138,11 +161,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
-		out->plane = bsp->planes + in->plane_num;
-		out->plane_side = in->plane_num & 1;
-
-		out->texinfo = bsp->texinfo + in->texinfo;
-		out->contents = in->contents;
+		out->brush_side = bsp->brush_sides + in->brush_side;
 
 		out->bounds = in->bounds;
 
@@ -152,7 +171,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 		out->num_elements = in->num_elements;
 
-		if (out->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+		if (out->brush_side->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -185,8 +204,8 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	const bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
-		out->plane = bsp->planes + in->plane_num;
-		out->plane_side = in->plane_num & 1;
+		out->plane = bsp->planes + in->plane;
+		out->plane_side = in->plane & 1;
 
 		out->texinfo = bsp->texinfo + in->texinfo;
 		out->contents = in->contents;
@@ -270,7 +289,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 
 		out->bounds = in->bounds;
 
-		out->plane = bsp->planes + in->plane_num;
+		out->plane = bsp->planes + in->plane;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
@@ -637,6 +656,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspEntities(mod->bsp);
 	R_LoadBspPlanes(mod->bsp);
 	R_LoadBspTexinfo(mod->bsp);
+	R_LoadBspBrushSides(mod->bsp);
 	R_LoadBspVertexes(mod->bsp);
 	R_LoadBspElements(mod->bsp);
 	R_LoadBspFaces(mod->bsp);

@@ -295,6 +295,11 @@ typedef struct {
 	 * @brief The texinfo.
 	 */
 	cm_bsp_texinfo_t *texinfo;
+
+	/**
+	 * @brief The contents mask.
+	 */
+	int32_t contents;
 } cm_bsp_brush_side_t;
 
 /**
@@ -316,12 +321,12 @@ typedef struct {
 	/**
 	 * @brief The brush sides.
 	 */
-	cm_bsp_brush_side_t *sides;
+	cm_bsp_brush_side_t *brush_sides;
 
 	/**
-	 * @brief The number of sides.
+	 * @brief The number of brush sides.
 	 */
-	int32_t num_sides;
+	int32_t num_brush_sides;
 
 	/**
 	 * @brief The brush bounds.

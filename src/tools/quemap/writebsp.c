@@ -29,7 +29,7 @@
 /**
  * @brief
  */
-static void EmitPlanes(void) {
+void EmitPlanes(void) {
 
 	const plane_t *p = planes;
 	for (int32_t i = 0; i < num_planes; i++, p++) {
@@ -57,7 +57,7 @@ static int32_t EmitFaces(const node_t *node) {
 			continue;
 		}
 
-		face->face_num = EmitFace(face);
+		face->out = EmitFace(face);
 	}
 
 	return bsp_file.num_faces - num_faces;
@@ -127,12 +127,13 @@ static int32_t EmitLeaf(node_t *node) {
 			face = face->merged;
 		}
 
-		assert(face->face_num > -1);
-		assert(face->face_num <= bsp_file.num_faces);
+		assert(face->out);
+
+		const int32_t face_num = (int32_t) (ptrdiff_t) (face->out - bsp_file.faces);
 
 		int32_t i;
 		for (i = out->first_leaf_face; i < bsp_file.num_leaf_faces; i++) {
-			if (bsp_file.leaf_faces[i] == face->face_num) {
+			if (bsp_file.leaf_faces[i] == face_num) {
 				break;
 			}
 		}
@@ -142,7 +143,7 @@ static int32_t EmitLeaf(node_t *node) {
 				Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_FACES\n");
 			}
 
-			bsp_file.leaf_faces[bsp_file.num_leaf_faces] = face->face_num;
+			bsp_file.leaf_faces[bsp_file.num_leaf_faces] = face_num;
 			bsp_file.num_leaf_faces++;
 		}
 	}
@@ -156,11 +157,11 @@ static int32_t EmitLeaf(node_t *node) {
  */
 static int32_t EmitNode(node_t *node) {
 
-	if (node->plane_num == PLANE_NUM_LEAF) {
+	if (node->plane == PLANE_LEAF) {
 		Com_Error(ERROR_FATAL, "Leaf node\n");
 	}
 
-	if (node->plane_num & 1) {
+	if (node->plane & 1) {
 		Com_Error(ERROR_FATAL, "Node referencing negative plane\n");
 	}
 
@@ -175,7 +176,7 @@ static int32_t EmitNode(node_t *node) {
 
 	out->bounds = node->bounds;
 
-	out->plane_num = node->plane_num;
+	out->plane = node->plane;
 
 	if (node->faces) {
 		out->first_face = bsp_file.num_faces;
@@ -184,7 +185,7 @@ static int32_t EmitNode(node_t *node) {
 
 	// recursively output the other nodes
 	for (int32_t i = 0; i < 2; i++) {
-		if (node->children[i]->plane_num == PLANE_NUM_LEAF) {
+		if (node->children[i]->plane == PLANE_LEAF) {
 			out->children[i] = -(bsp_file.num_leafs + 1);
 			EmitLeaf(node->children[i]);
 		} else {
@@ -233,7 +234,7 @@ static int32_t TexinfoCmp(const bsp_texinfo_t *a, const bsp_texinfo_t *b) {
 /**
  * @brief Draw elements comparator to sort contents.
  */
-static int32_t ContentsCmp(const bsp_face_t *a, const bsp_face_t *b) {
+static int32_t ContentsCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) {
 
 	const int32_t a_contents = a->contents & CONTENTS_MASK_FACE_CMP;
 	const int32_t b_contents = b->contents & CONTENTS_MASK_FACE_CMP;
@@ -252,13 +253,16 @@ static int32_t FaceCmp(const void *a, const void *b) {
 	const bsp_face_t *a_face = a;
 	const bsp_face_t *b_face = b;
 
-	const bsp_texinfo_t *a_texinfo = bsp_file.texinfo + a_face->texinfo;
-	const bsp_texinfo_t *b_texinfo = bsp_file.texinfo + b_face->texinfo;
+	const bsp_brush_side_t *a_side = bsp_file.brush_sides + a_face->brush_side;
+	const bsp_brush_side_t *b_side = bsp_file.brush_sides + b_face->brush_side;
+
+	const bsp_texinfo_t *a_texinfo = bsp_file.texinfo + a_side->texinfo;
+	const bsp_texinfo_t *b_texinfo = bsp_file.texinfo + b_side->texinfo;
 
 	int32_t order = TexinfoCmp(a_texinfo, b_texinfo);
 	if (order == 0) {
 
-		order = ContentsCmp(a_face, b_face);
+		order = ContentsCmp(a_side, b_side);
 		if (order == 0) {
 
 			if (a_texinfo->flags & SURF_MATERIAL) {
@@ -266,7 +270,7 @@ static int32_t FaceCmp(const void *a, const void *b) {
 			}
 
 			if (a_texinfo->flags & SURF_MASK_BLEND) {
-				return a_face->plane_num - b_face->plane_num;
+				return a_side->plane - b_side->plane;
 			}
 		}
 	}
@@ -296,17 +300,18 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 		}
 
 		const bsp_face_t *a = model_faces + i;
+		const bsp_brush_side_t *a_side = bsp_file.brush_sides + a->brush_side;
 
-		if (bsp_file.texinfo[a->texinfo].flags & SURF_MASK_NO_DRAW_ELEMENTS) {
+		if (bsp_file.texinfo[a_side->texinfo].flags & SURF_MASK_NO_DRAW_ELEMENTS) {
 			continue;
 		}
 
 		bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
 		bsp_file.num_draw_elements++;
 
-		out->plane_num = a->plane_num;
-		out->texinfo = a->texinfo;
-		out->contents = a->contents;
+		out->plane = a_side->plane;
+		out->texinfo = a_side->texinfo;
+		out->contents = a_side->contents;
 
 		out->bounds = Box3_Null();
 
@@ -347,34 +352,66 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 /**
  * @brief
  */
-static void EmitBrushes(void) {
+static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
 
-	bsp_file.num_brush_sides = 0;
-	bsp_file.num_brushes = num_brushes;
+	bsp_brush_side_t *out = bsp_file.brush_sides + bsp_file.num_brush_sides;
 
-	for (int32_t i = 0; i < num_brushes; i++) {
-		brush_t *b = &brushes[i];
-		bsp_brush_t *out = &bsp_file.brushes[i];
+	out->plane = side->plane;
+	out->texinfo = side->texinfo;
+	out->contents = side->contents;
 
-		out->entity_num = b->entity_num;
-		out->contents = b->contents;
-		out->first_brush_side = bsp_file.num_brush_sides;
-		out->num_sides = b->num_sides;
+	return out;
+}
 
-		out->bounds = b->bounds;
+/**
+ * @brief
+ */
+static int32_t EmitBrushSides(const brush_t *brush) {
 
-		for (int32_t j = 0; j < b->num_sides; j++) {
+	brush_side_t *side = brush->brush_sides;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-			if (bsp_file.num_brush_sides == MAX_BSP_BRUSH_SIDES) {
-				Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
-			}
+		side->out = EmitBrushSide(side);
+		bsp_file.num_brush_sides++;
+	}
 
-			bsp_brush_side_t *bs = &bsp_file.brush_sides[bsp_file.num_brush_sides];
-			bsp_file.num_brush_sides++;
+	return brush->num_brush_sides;
+}
 
-			bs->plane_num = b->sides[j].plane_num;
-			bs->texinfo = b->sides[j].texinfo;
+/**
+ * @brief
+ */
+static bsp_brush_t *EmitBrush(const brush_t *brush) {
+
+	bsp_brush_t *out = bsp_file.brushes + bsp_file.num_brushes;
+
+	out->entity = brush->entity;
+	out->contents = brush->contents;
+
+	out->first_brush_side = bsp_file.num_brush_sides;
+	out->num_brush_sides = EmitBrushSides(brush);
+	
+	assert(out->num_brush_sides);
+
+	out->bounds = brush->bounds;
+
+	return out;
+}
+
+/**
+ * @brief
+ */
+void EmitBrushes(void) {
+
+	brush_t *brush = brushes;
+	for (int32_t i = 0; i < num_brushes; i++, brush++) {
+
+		if (brush->num_brush_sides == 0) {
+			continue;
 		}
+
+		brush->out = EmitBrush(brush);
+		bsp_file.num_brushes++;
 
 		Progress("Emitting brushes", 100.f * i / num_brushes);
 	}
@@ -449,20 +486,6 @@ void BeginBSPFile(void) {
 /**
  * @brief
  */
-void EndBSPFile(void) {
-
-	EmitPlanes();
-	EmitBrushes();
-	EmitEntities();
-
-	Work("Phong shading", PhongVertex, bsp_file.num_vertexes);
-	
-	EmitTangents();
-}
-
-/**
- * @brief
- */
 bsp_model_t *BeginModel(const entity_t *e) {
 
 	if (bsp_file.num_models == MAX_BSP_MODELS) {
@@ -485,7 +508,7 @@ bsp_model_t *BeginModel(const entity_t *e) {
 		const brush_t *b = &brushes[j];
 		
 		// a real brush (not an origin brush)
-		if (b->num_sides) {
+		if (b->num_brush_sides) {
 			mod->bounds = Box3_Union(mod->bounds, b->bounds);
 		}
 	}
