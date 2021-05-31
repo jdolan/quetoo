@@ -34,13 +34,6 @@ typedef struct face_s {
 	struct face_s *next;
 
 	/**
-	 * @brief The faces on a given node may be merged if they share the
-	 * same plane and texinfo. If this property is set, this face has been
-	 * merged and should not be emitted to the BSP.
-	 */
-	struct face_s *merged;
-
-	/**
 	 * @brief The portal that created this face.
 	 */
 	struct portal_s *portal;
@@ -51,7 +44,7 @@ typedef struct face_s {
 	const struct brush_side_s *brush_side;
 
 	/**
-	 * @brief The merged face winding, used to emit BSP vertexes.
+	 * @brief The ordered, welded face winding, used to emit BSP vertexes.
 	 */
 	cm_winding_t *w;
 
@@ -61,12 +54,10 @@ typedef struct face_s {
 	bsp_face_t *out;
 } face_t;
 
-extern int32_t c_merged;
 extern int32_t num_welds;
 
 face_t *AllocFace(void);
 void FreeFace(face_t *f);
-face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal);
 void ClearWeldingSpatialHash(void);
 bsp_face_t *EmitFace(const face_t *face);
 void PhongShading(void);

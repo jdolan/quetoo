@@ -723,11 +723,6 @@ static void MakeFaces_r(node_t *node) {
 	if (node->plane != PLANE_LEAF) {
 		MakeFaces_r(node->children[0]);
 		MakeFaces_r(node->children[1]);
-
-		if (!no_merge) {
-			MergeNodeFaces(node);
-		}
-
 		return;
 	}
 	// solid leafs never have visible faces
@@ -755,11 +750,9 @@ static void MakeFaces_r(node_t *node) {
 void MakeTreeFaces(tree_t *tree) {
 	Com_Verbose("--- MakeFaces ---\n");
 
-	c_merged = 0;
 	c_faces = 0;
 
 	MakeFaces_r(tree->head_node);
 
 	Com_Verbose("%5i faces\n", c_faces);
-	Com_Verbose("%5i merged\n", c_merged);
 }

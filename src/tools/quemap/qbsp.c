@@ -34,7 +34,6 @@
 float micro_volume = 0.125;
 
 _Bool no_prune = false;
-_Bool no_merge = false;
 _Bool no_detail = false;
 _Bool no_liquid = false;
 _Bool no_csg = false;

@@ -192,9 +192,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "--no-prune")) {
 			Com_Verbose("no_prune = true\n");
 			no_prune = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-merge")) {
-			Com_Verbose("no_merge = true\n");
-			no_merge = true;
 		} else if (!g_strcmp0(Com_Argv(i), "--no-detail")) {
 			Com_Verbose("no_detail = true\n");
 			no_detail = true;
@@ -301,7 +298,6 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --micro_volume <float>\n");
 	Com_Print(" --no-csg - don't subtract brushes\n");
 	Com_Print(" --no-detail - skip detail brushes\n");
-	Com_Print(" --no-merge - skip node face merging\n");
 	Com_Print(" --no-prune - don't prune unused nodes\n");
 	Com_Print(" --no-tjunc - don't fix T-junctions\n");
 	Com_Print(" --no-liquid - skip liquid brushes\n");

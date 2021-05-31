@@ -65,4 +65,3 @@ void PruneNodes_r(node_t *node);
 void PruneNodes(node_t *node);
 
 tree_t *BuildTree(csg_brush_t *brushes);
-void MergeNodeFaces(node_t *node);

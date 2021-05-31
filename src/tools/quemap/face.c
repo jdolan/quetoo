@@ -25,26 +25,12 @@
 #include "material.h"
 #include "qbsp.h"
 
-int32_t c_merged;
-
 /**
  * @brief
  */
 face_t *AllocFace(void) {
 
 	return Mem_TagMalloc(sizeof(face_t), MEM_TAG_FACE);
-}
-
-/**
- * @brief
- */
-static face_t *NewFaceFromFace(const face_t *f) {
-
-	face_t *newf = AllocFace();
-	*newf = *f;
-	newf->merged = NULL;
-	newf->w = NULL;
-	return newf;
 }
 
 /**
@@ -59,43 +45,6 @@ void FreeFace(face_t *f) {
 	Mem_Free(f);
 }
 
-
-/**
- * @brief If two polygons share a common edge and the edges that meet at the
- * common points are both inside the other polygons, merge them
- *
- * @return NULL if the faces couldn't be merged, or the new face.
- * @remark The originals will NOT be freed.
- */
-face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
-
-	if (!f1->w || !f2->w) {
-		return NULL;
-	}
-	if (f1->brush_side->texinfo != f2->brush_side->texinfo) {
-		return NULL;
-	}
-	if (f1->brush_side->plane != f2->brush_side->plane) { // on front and back sides
-		return NULL;
-	}
-	if (f1->brush_side->contents != f2->brush_side->contents) {
-		return NULL;
-	}
-
-	cm_winding_t *nw = Cm_MergeWindings(f1->w, f2->w, normal);
-	if (!nw) {
-		return NULL;
-	}
-
-	c_merged++;
-	face_t *newf = NewFaceFromFace(f1);
-	newf->w = nw;
-
-	f1->merged = newf;
-	f2->merged = newf;
-
-	return newf;
-}
 
 static GHashTable* welding_spatial_hash;
 static GSList* welding_hash_keys;
@@ -352,7 +301,6 @@ static int32_t EmitFaceElements(const face_t *face, int32_t first_vertex) {
  */
 bsp_face_t *EmitFace(const face_t *face) {
 
-	assert(face->merged == NULL);
 	assert(face->w->num_points > 2);
 	assert(face->brush_side->texinfo >= 0);
 	assert(face->brush_side->out);

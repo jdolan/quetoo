@@ -379,7 +379,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 			glUniform1f(r_bsp_program.material.roughness, (*material)->cm->roughness * r_roughness->value);
 			glUniform1f(r_bsp_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
-			glUniform1f(r_bsp_program.material.parallax, (*material)->cm->parallax * Maxf(r_parallax->value, 0.f));
+			glUniform1f(r_bsp_program.material.parallax, (*material)->cm->parallax * r_parallax->value);
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
@@ -463,7 +463,6 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 				const int32_t blend_depth = (int32_t) (draw - r_world_model->bsp->draw_elements);
 
 				glDisable(GL_DEPTH_TEST);
-				glDisable(GL_CULL_FACE);
 
 				glBlendFunc(GL_ONE, GL_ZERO);
 				glDisable(GL_BLEND);
@@ -477,7 +476,6 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 				}
 
 				glEnable(GL_DEPTH_TEST);
-				glEnable(GL_CULL_FACE);
 
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -495,6 +493,27 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 		);
 	}
 
+	/*const r_bsp_face_t *face = in->faces;
+	for (int32_t i = 0; i < in->num_faces; i++, face++) {
+
+		const r_bsp_texinfo_t *texinfo = face->brush_side->texinfo;
+
+		if (!(texinfo->flags & SURF_MASK_BLEND)) {
+			continue;
+		}
+
+		const r_material_t *material = texinfo->material;
+
+		glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+
+		glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
+		glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
+		glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
+		glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
+
+		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
+	}*/
+
 	R_GetError(NULL);
 }
 
@@ -506,9 +525,6 @@ void R_DrawWorld(const r_view_t *view) {
 	R_TIMER_WRAP("Sky",
 		R_DrawSky(view);
 	);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
 	glUseProgram(r_bsp_program.name);
 
@@ -545,6 +561,9 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glUniform1f(r_bsp_program.alpha_threshold, r_alpha_test_threshold->value);
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
 	if (r_depth_pass->value) {
 		glDepthMask(GL_FALSE);
 	}
@@ -576,6 +595,8 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
+	glDisable(GL_CULL_FACE);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -602,7 +623,6 @@ void R_DrawWorld(const r_view_t *view) {
 	glUseProgram(0);
 
 	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

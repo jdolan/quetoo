@@ -52,11 +52,6 @@ static int32_t EmitFaces(const node_t *node) {
 	const int32_t num_faces = bsp_file.num_faces;
 
 	for (face_t *face = node->faces; face; face = face->next) {
-
-		if (face->merged) {
-			continue;
-		}
-
 		face->out = EmitFace(face);
 	}
 
@@ -121,10 +116,6 @@ static int32_t EmitLeaf(node_t *node) {
 		const face_t *face = p->face[s];
 		if (!face) {
 			continue; // not a visible portal
-		}
-
-		while (face->merged) {
-			face = face->merged;
 		}
 
 		assert(face->out);
