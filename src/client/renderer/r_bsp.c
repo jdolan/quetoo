@@ -53,7 +53,7 @@ int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend
 
 		r_bsp_draw_elements_t *draw = g_ptr_array_index(in->blend_elements, i);
 
-		if (draw->texinfo->flags & SURF_DECAL) {
+		if (draw->surface & SURF_DECAL) {
 			continue;
 		}
 

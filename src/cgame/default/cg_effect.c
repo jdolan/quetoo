@@ -89,7 +89,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 		end.z -= MAX_WORLD_DIST;
 
 		const cm_trace_t tr = cgi.Trace(org, end, Box3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
-		if (!tr.texinfo) {
+		if (!tr.side) {
 			continue;
 		}
 
@@ -129,7 +129,7 @@ static void Cg_LoadWeather(void) {
 		const r_bsp_brush_side_t *side = face->brush_side;
 
 		// for downward facing sky brushes, create an emitter
-		if ((side->texinfo->flags & SURF_SKY) && side->plane->cm->normal.z < -0.1) {
+		if ((side->surface & SURF_SKY) && side->plane->cm->normal.z < -0.1) {
 			Cg_LoadWeather_(face);
 			j++;
 		}

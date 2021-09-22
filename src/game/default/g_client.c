@@ -220,14 +220,17 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 /**
  * @brief Play a sloppy sound when impacting the world.
  */
-static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
-                                 const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo) {
+static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (texinfo && (texinfo->flags & SURF_SKY)) {
+	if (trace == NULL) {
+		return;
+	}
+
+	if (G_IsSky(trace->side)) {
 		G_FreeEntity(self);
 	} else {
 		const float speed = Vec3_Length(self->locals.velocity);
-		if (speed > 40.0 && G_IsStructural(other, texinfo)) {
+		if (speed > 40.0 && G_IsStructural(trace->side)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
 				gi.Sound(self, self->locals.sound, SOUND_ATTEN_SQUARE, 0);
@@ -282,7 +285,7 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 
 		self->solid = SOLID_NOT;
 
-		if (self->locals.ground_entity) {
+		if (self->locals.ground.ent) {
 			self->s.origin.z -= QUETOO_TICK_SECONDS * 8.0;
 		}
 
@@ -911,7 +914,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.clip_mask = CONTENTS_MASK_CLIP_PLAYER;
 		ent->locals.dead = false;
 		ent->locals.Die = G_ClientDie;
-		ent->locals.ground_entity = NULL;
+		memset(&ent->locals.ground, 0, sizeof(ent->locals.ground));
 		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
 		ent->locals.max_health = ent->client->locals.persistent.handicap;
 		ent->locals.health = ent->locals.max_health + 5;
@@ -1391,7 +1394,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	}
 
 	pm.cmd = *cmd;
-	pm.ground_entity = ent->locals.ground_entity;
+	pm.ground = ent->locals.ground;
 	pm.hook_pull_speed = g_hook_pull_speed->value;
 
 	pm.PointContents = gi.PointContents;
@@ -1511,13 +1514,13 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 		}
 
 		// detect hitting the ground to help with animation blending
-		if (pm.ground_entity && !ent->locals.ground_entity) {
+		if (pm.ground.ent && !ent->locals.ground.ent) {
 			cl->locals.ground_time = g_level.time;
 		}
 	}
 
 	// copy ground and water state back into entity
-	ent->locals.ground_entity = pm.ground_entity;
+	ent->locals.ground = pm.ground;
 	ent->locals.water_level = pm.water_level;
 	ent->locals.water_type = pm.water_type;
 
@@ -1527,14 +1530,15 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	// touch every object we collided with objects
 	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 
-		for (int32_t i = 0; i < pm.num_touch_ents; i++) {
-			g_entity_t *other = pm.touch_ents[i];
+		const cm_trace_t *touched = pm.touched;
+		for (int32_t i = 0; i < pm.num_touched; i++, touched++) {
+			g_entity_t *other = touched->ent;
 
 			if (!other->locals.Touch) {
 				continue;
 			}
 
-			other->locals.Touch(other, ent, NULL, NULL);
+			other->locals.Touch(other, ent, touched);
 		}
 
 		G_TouchOccupy(ent);

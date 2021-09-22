@@ -57,9 +57,9 @@ typedef struct plane_s {
  */
 typedef struct brush_side_s {
 	/**
-	 * @brief The diffusemap texture name.
+	 * @brief The material name.
 	 */
-	char texture[32];
+	char material[MAX_QPATH];
 
 	/**
 	 * @brief The texture shift, in pixels.
@@ -77,6 +77,11 @@ typedef struct brush_side_s {
 	vec2_t scale;
 
 	/**
+	 * @brief The calculated texture vectors for S and T, in the format xyz + w.
+	 */
+	vec4_t vecs[2];
+
+	/**
 	 * @brief The CONTENTS_* mask.
 	 */
 	int32_t contents;
@@ -84,7 +89,7 @@ typedef struct brush_side_s {
 	/**
 	 * @brief The SURF_* mask.
 	 */
-	int32_t surf;
+	int32_t surface;
 
 	/**
 	 * @brief The value, for e.g. SURF_LIGHT or SURF_PHONG.
@@ -97,9 +102,9 @@ typedef struct brush_side_s {
 	int32_t plane;
 
 	/**
-	 * @brief The BSP texinfo number.
+	 * @brief The BSP texture number.
 	 */
-	int32_t texinfo;
+	int32_t texture;
 
 	/**
 	 * @brief All brush sides will have a valid winding.

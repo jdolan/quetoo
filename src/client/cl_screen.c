@@ -225,10 +225,8 @@ static void Cl_DrawRendererStats(void) {
 	if (tr.fraction < 1.f) {
 		y += ch;
 
-		const int32_t texinfo = tr.texinfo ? (int32_t) (ptrdiff_t) (tr.texinfo - Cm_Bsp()->texinfos) : -1;
-		R_Draw2DString(x, y, va("%s %d (%g %g %g) %g",
-								tr.texinfo->name,
-								texinfo,
+		R_Draw2DString(x, y, va("%s (%g %g %g) %g",
+								tr.side->material->name,
 								tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z,
 								tr.plane.dist
 								), color_white);

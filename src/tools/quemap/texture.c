@@ -21,7 +21,33 @@
 
 #include "bsp.h"
 #include "map.h"
-#include "texinfo.h"
+#include "texture.h"
+
+/**
+ * @brief Resolve the texture with identical properties to the one specified, or
+ * allocate a new one.
+ */
+int32_t FindTexture(const char *name) {
+
+	const bsp_texture_t *texture = bsp_file.textures;
+	for (int32_t i = 0; i < bsp_file.num_textures; i++, texture++) {
+
+		if (!g_strcmp0(name, texture->name)) {
+			return i;
+		}
+	}
+
+	if (bsp_file.num_textures == MAX_BSP_TEXTURES) {
+		Com_Error(ERROR_FATAL, "MAX_BSP_TEXTURES\n");
+	}
+
+	bsp_texture_t *out = bsp_file.textures + bsp_file.num_textures;
+	g_strlcpy(out->name, name, sizeof(out->name));
+
+	bsp_file.num_textures++;
+
+	return (int32_t) (ptrdiff_t) (out - bsp_file.textures);
+}
 
 /**
  * @brief
@@ -64,57 +90,9 @@ static void TextureAxisFromPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
 }
 
 /**
- * @brief Resolve the texinfo with identical properties to the one specified, or
- * allocate a new one.
- */
-static int32_t FindTexinfo(const bsp_texinfo_t *tx) {
-
-	const bsp_texinfo_t *tc = bsp_file.texinfo;
-	for (int32_t i = 0; i < bsp_file.num_texinfo; i++, tc++) {
-
-		if (tc->flags != tx->flags) {
-			continue;
-		}
-
-		if (tc->value != tx->value) {
-			continue;
-		}
-
-		if (strncmp(tc->texture, tx->texture, sizeof(tc->texture))) {
-			continue;
-		}
-
-		if (!Vec4_EqualEpsilon(tc->vecs[0], tx->vecs[0], .01f) ||
-			!Vec4_EqualEpsilon(tc->vecs[1], tx->vecs[1], .01f)) {
-			continue;
-		}
-
-		return i;
-	}
-
-	if (bsp_file.num_texinfo == MAX_BSP_TEXINFO) {
-		Com_Error(ERROR_FATAL, "MAX_BSP_TEXINFO\n");
-	}
-
-	bsp_file.texinfo[bsp_file.num_texinfo] = *tx;
-	bsp_file.num_texinfo++;
-
-	return bsp_file.num_texinfo - 1;
-}
-
-/**
  * @brief
  */
-int32_t TexinfoForBrushSide(const brush_side_t *side, const vec3_t origin) {
-
-	if (!side->texture[0]) {
-		return 0;
-	}
-
-	bsp_texinfo_t tx;
-	memset(&tx, 0, sizeof(tx));
-
-	g_strlcpy(tx.texture, side->texture, sizeof(tx.texture));
+void TextureVectorsForBrushSide(const brush_side_t *side, const vec3_t origin, vec4_t *out) {
 
 	vec3_t vecs[2];
 	TextureAxisFromPlane(&planes[side->plane], &vecs[0], &vecs[1]);
@@ -124,23 +102,23 @@ int32_t TexinfoForBrushSide(const brush_side_t *side, const vec3_t origin) {
 	offset.y = Vec3_Dot(origin, vecs[1]);
 
 	vec2_t scale;
-	scale.x = side->scale.x ?: 1.0;
-	scale.y = side->scale.y ?: 1.0;
+	scale.x = side->scale.x ?: 1.f;
+	scale.y = side->scale.y ?: 1.f;
 
 	// rotate axis
 	float sinv, cosv;
-	if (side->rotate == 0.0) {
-		sinv = 0.0;
-		cosv = 1.0;
-	} else if (side->rotate == 90.0) {
-		sinv = 1.0;
-		cosv = 0.0;
-	} else if (side->rotate == 180.0) {
-		sinv = 0.0;
-		cosv = -1.0;
-	} else if (side->rotate == 270.0) {
-		sinv = -1.0;
-		cosv = 0.0;
+	if (side->rotate == 0.f || side->rotate == -0.f) {
+		sinv = 0.f;
+		cosv = 1.f;
+	} else if (side->rotate == 90.0 || side->rotate == -270.f) {
+		sinv = 1.f;
+		cosv = 0.f;
+	} else if (side->rotate == 180.0 || side->rotate == -180.f) {
+		sinv = 0.f;
+		cosv = -1.f;
+	} else if (side->rotate == 270.0 || side->rotate == -90.f) {
+		sinv = -1.f;
+		cosv = 0.f;
 	} else {
 		sinv = sinf(Radians(side->rotate));
 		cosv = cosf(Radians(side->rotate));
@@ -171,16 +149,12 @@ int32_t TexinfoForBrushSide(const brush_side_t *side, const vec3_t origin) {
 		vecs[i].xyz[tv] = nt;
 	}
 
-	for (int32_t i = 0; i < 2; i++)
+	for (int32_t i = 0; i < 2; i++) {
 		for (int32_t j = 0; j < 3; j++) {
-			tx.vecs[i].xyzw[j] = vecs[i].xyz[j] / scale.xy[i];
+			out[i].xyzw[j] = vecs[i].xyz[j] / scale.xy[i];
 		}
+	}
 
-	tx.vecs[0].w = side->shift.x + offset.x;
-	tx.vecs[1].w = side->shift.y + offset.y;
-	
-	tx.flags = side->surf;
-	tx.value = side->value;
-
-	return FindTexinfo(&tx);
+	out[0].w = side->shift.x + offset.x;
+	out[1].w = side->shift.y + offset.y;
 }

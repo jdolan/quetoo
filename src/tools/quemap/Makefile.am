@@ -25,7 +25,7 @@ noinst_HEADERS = \
 	quemap.h \
 	qzip.h \
 	simplex.h \
-	texinfo.h \
+	texture.h \
 	tjunction.h \
 	tree.h \
 	work.h \
@@ -55,7 +55,7 @@ quemap_SOURCES = \
 	qlight.c \
 	qzip.c \
 	simplex.c \
-	texinfo.c \
+	texture.c \
 	tjunction.c \
 	tree.c \
 	work.c \

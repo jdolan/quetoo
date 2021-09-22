@@ -272,7 +272,7 @@ typedef enum {
  * @brief Faces with differing contents after applying this mask should not be considered equal
  * for face or draw elements merging.
  */
-#define CONTENTS_MASK_FACE_CMP (CONTENTS_MASK_LIQUID)
+#define CONTENTS_MASK_DRAW_ELEMENTS_CMP (CONTENTS_MASK_LIQUID)
 
 /**
  * @brief Texinfo flags.
@@ -294,30 +294,30 @@ typedef enum {
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 
 /**
- * @brief Texinfos with differing flags after applying this mask should not be considered
+ * @brief Faces with differing flags after applying this mask should not be considered
  * equal for face or draw elements merging.
  */
-#define SURF_MASK_TEXINFO_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_DEBUG_LUXEL)
+#define SURF_MASK_DRAW_ELEMENTS_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_DEBUG_LUXEL)
 
 /**
- * @brief Texinfos with these flags require transparency.
+ * @brief Faces with these flags require transparency.
  */
-#define SURF_MASK_BLEND			(SURF_BLEND_33 | SURF_BLEND_66 | SURF_BLEND_100)
+#define SURF_MASK_BLEND				(SURF_BLEND_33 | SURF_BLEND_66 | SURF_BLEND_100)
 
 /**
- * @brief Texinfos with these flags imply translucent contents.
+ * @brief Faces with these flags imply translucent contents.
  */
-#define SURF_MASK_TRANSLUCENT	(SURF_MASK_BLEND | SURF_ALPHA_TEST | SURF_MATERIAL)
+#define SURF_MASK_TRANSLUCENT		(SURF_MASK_BLEND | SURF_ALPHA_TEST | SURF_MATERIAL)
 
 /**
- * @brief Texinfos with these flags will not have lightmap data.
+ * @brief Faces with these flags will not have lightmap data.
  */
-#define SURF_MASK_NO_LIGHTMAP	(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
+#define SURF_MASK_NO_LIGHTMAP		(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
 
 /**
- * @brief Texinfos with these flags will not emit draw elements.
+ * @brief Faces with these flags will not emit draw elements.
  */
-#define SURF_MASK_NO_DRAW_ELEMENTS (SURF_NO_DRAW | SURF_HINT)
+#define SURF_MASK_NO_DRAW_ELEMENTS 	(SURF_NO_DRAW | SURF_HINT)
 
 /**
  * @brief The absolute world bounds is +/- 4096. This is the largest box we can

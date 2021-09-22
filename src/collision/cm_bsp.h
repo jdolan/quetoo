@@ -13,7 +13,7 @@
  */
 #define MAX_BSP_ENTITIES_SIZE		0x40000
 #define MAX_BSP_ENTITIES			0x800
-#define MAX_BSP_TEXINFO				0x4000
+#define MAX_BSP_TEXTURES			0x100
 #define MAX_BSP_PLANES				0x20000
 #define MAX_BSP_BRUSH_SIDES			0x20000
 #define MAX_BSP_BRUSHES				0x8000
@@ -144,12 +144,12 @@ typedef struct {
 	bsp_lump_t lumps[BSP_LUMP_LAST];
 } bsp_header_t;
 
+/**
+ * @brief Texture references.
+ */
 typedef struct {
-	vec4_t vecs[2]; // [s/t][xyz offset]
-	int32_t flags; // SURF_* flags
-	int32_t value; // light emission, etc
-	char texture[32]; // texture name (e.g. torn/metal1)
-} bsp_texinfo_t;
+	char name[MAX_QPATH];
+} bsp_texture_t;
 
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 
@@ -159,19 +159,22 @@ typedef struct {
 } bsp_plane_t;
 
 /**
- * @brief Sentinel texinfo identifier for BSP decision nodes.
+ * @brief Sentinel texture identifier for BSP decision nodes.
  */
-#define BSP_TEXINFO_NODE -1
+#define BSP_TEXTURE_NODE -1
 
 /**
- * @brief Sentinel texinfo identifier for bevel sides.
+ * @brief Sentinel texture identifier for bevel sides.
  */
-#define BSP_TEXINFO_BEVEL -2
+#define BSP_TEXTURE_BEVEL -2
 
 typedef struct {
 	int32_t plane; // facing out of the leaf
-	int32_t texinfo;
+	int32_t texture;
+	vec4_t vecs[2]; // [s/t][xyz + offset]
 	int32_t contents;
+	int32_t surface;
+	int32_t value; // light emission, etc
 } bsp_brush_side_t;
 
 typedef struct {
@@ -189,7 +192,7 @@ typedef struct {
 	vec3_t bitangent;
 	vec2_t diffusemap;
 	vec2_t lightmap;
-	int32_t texinfo;
+	color32_t color;
 } bsp_vertex_t;
 
 /**
@@ -245,14 +248,15 @@ typedef struct {
 
 /**
  * @brief Draw elements are OpenGL draw commands, serialized directly within the BSP.
- * @details For each model, all opaque faces sharing texinfo and contents are grouped
- * into a single draw elements. All blend faces sharing plane, texinfo and contents
+ * @details For each model, all opaque faces sharing texture and contents are grouped
+ * into a single draw elements. All blend faces sharing plane, texture and contents
  * are also grouped.
  */
 typedef struct {
 	int32_t plane;
-	int32_t texinfo;
+	int32_t texture;
 	int32_t contents;
+	int32_t surface;
 
 	box3_t bounds;
 
@@ -301,8 +305,8 @@ typedef struct {
 	int32_t entity_string_size;
 	char *entity_string;
 
-	int32_t num_texinfo;
-	bsp_texinfo_t *texinfo;
+	int32_t num_textures;
+	bsp_texture_t *textures;
 
 	int32_t num_planes;
 	bsp_plane_t *planes;

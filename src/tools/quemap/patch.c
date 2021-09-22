@@ -25,29 +25,20 @@
 
 patch_t *patches;
 
-static GHashTable *texture_colors;
+static vec3_t texture_colors[MAX_BSP_TEXTURES];
 
 /**
  * @brief
  */
-void BuildTextureColors(void) {
+vec3_t GetTextureColor(int32_t texture) {
 
-	texture_colors = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+	vec3_t *color = texture_colors + texture;
+	if (Vec3_Equal(*color, Vec3_Zero())) {
 
-	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
-
-		const bsp_texinfo_t *tex = &bsp_file.texinfo[i];
-
-		if (g_hash_table_contains(texture_colors, tex->texture)) {
-			continue;
-		}
-
-		vec3_t *color = Mem_Malloc(sizeof(vec3_t));
-		*color = Vec3(1.0, 1.0, 1.0);
-
-		SDL_Surface *surf = LoadDiffuseTexture(tex->texture);
+		const char *name = bsp_file.textures[texture].name;
+		SDL_Surface *surf = LoadDiffuseTexture(name);
 		if (surf) {
-			Com_Debug(DEBUG_ALL, "Loaded %s (%dx%d)\n", tex->texture, surf->w, surf->h);
+			Com_Debug(DEBUG_ALL, "Loaded %s (%dx%d)\n", name, surf->w, surf->h);
 
 			const int32_t texels = surf->w * surf->h;
 			uint32_t c[3] = { 0, 0, 0 };
@@ -64,32 +55,14 @@ void BuildTextureColors(void) {
 			for (int32_t j = 0; j < 3; j++) {
 				color->xyz[j] = (c[j] / texels) / 255.0;
 			}
+
+			SDL_FreeSurface(surf);
 		} else {
-			Com_Warn("Couldn't load %s\n", tex->texture);
+			Com_Warn("Couldn't load %s\n", name);
 		}
-
-		g_hash_table_insert(texture_colors, (gpointer) tex->texture, color);
 	}
-}
 
-/**
- * @brief
- */
-vec3_t GetTextureColor(const char *name) {
-
-	const vec3_t *color = g_hash_table_lookup(texture_colors, name);
-	if (color) {
-		return *color;
-	} else {
-		return Vec3(1.0, 1.0, 1.0);
-	}
-}
-
-/**
- * @brief Free the color hash table
- */
-void FreeTextureColors(void) {
-	g_hash_table_destroy(texture_colors);
+	return *color;
 }
 
 /**
@@ -171,9 +144,9 @@ static void SubdividePatch_r(patch_t *patch) {
 	vec3_t normal = Vec3_Zero();
 
 	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
-	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[brush_side->texinfo];
+	const bsp_texture_t *texture = &bsp_file.textures[brush_side->texture];
 
-	const cm_material_t *material = LoadMaterial(texinfo->texture, ASSET_CONTEXT_TEXTURES);
+	const cm_material_t *material = LoadMaterial(texture->name, ASSET_CONTEXT_TEXTURES);
 	const float size = material->patch_size ?: patch_size;
 
 	int32_t i;
@@ -221,9 +194,8 @@ void SubdividePatch(int32_t patch_num) {
 	patch_t *patch = &patches[patch_num];
 
 	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
-	const bsp_texinfo_t *tex = &bsp_file.texinfo[brush_side->texinfo];
 
-	if (tex->flags & SURF_MASK_NO_LIGHTMAP) {
+	if (brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 		return;
 	}
 

@@ -307,7 +307,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 
 	glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 
-	R_GetError(draw->texinfo->texture);
+	R_GetError(draw->texture->name);
 }
 
 /**
@@ -326,7 +326,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 		return;
 	}
 
-	if (draw->texinfo->flags & SURF_MASK_BLEND) {
+	if (draw->surface & SURF_MASK_BLEND) {
 		glBlendFunc(GL_ONE, GL_ZERO);
 	} else {
 		glEnable(GL_BLEND);
@@ -349,7 +349,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-	if (draw->texinfo->flags & SURF_MASK_BLEND) {
+	if (draw->surface & SURF_MASK_BLEND) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	} else {
 		glDisable(GL_BLEND);
@@ -369,10 +369,10 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_bsp_draw_elements_t *draw,
 										 const r_material_t **material) {
 
-	if (!(draw->texinfo->flags & SURF_MATERIAL)) {
+	if (!(draw->surface & SURF_MATERIAL)) {
 
-		if (*material != draw->texinfo->material) {
-			*material = draw->texinfo->material;
+		if (*material != draw->texture->material) {
+			*material = draw->texture->material;
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, (*material)->texture->texnum);
 
@@ -386,10 +386,10 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 		r_stats.count_bsp_triangles += draw->num_elements / 3;
 		r_stats.count_bsp_draw_elements_blend++;
 
-		R_GetError(draw->texinfo->texture);
+		R_GetError(draw->texture->name);
 	}
 
-	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->texinfo->material);
+	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->texture->material);
 }
 
 /**
@@ -404,15 +404,15 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (draw->texinfo->flags & SURF_MASK_TRANSLUCENT) {
+		if (draw->surface & SURF_MASK_TRANSLUCENT) {
 			continue;
 		}
 
-		if (draw->texinfo->flags & SURF_SKY) {
+		if (draw->surface & SURF_SKY) {
 			continue;
 		}
 
-		R_TIMER_WRAP(va("OpaqueDrawElem: %s", draw->texinfo->texture),
+		R_TIMER_WRAP(va("OpaqueDrawElem: %s", draw->texture->name),
 			R_DrawBspDrawElements(view, entity, draw, &material);
 		);
 	}
@@ -432,11 +432,11 @@ static void R_DrawBspInlineModelAlphaTestDrawElements(const r_view_t *view,
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (!(draw->texinfo->flags & SURF_ALPHA_TEST)) {
+		if (!(draw->surface & SURF_ALPHA_TEST)) {
 			continue;
 		}
 		
-		R_TIMER_WRAP(va("AlphaTestDrawElem: %s", draw->texinfo->texture),
+		R_TIMER_WRAP(va("AlphaTestDrawElem: %s", draw->texture->name),
 			R_DrawBspDrawElements(view, entity, draw, &material);
 		);
 	}
@@ -457,7 +457,7 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->blend_elements, i);
 
-		R_TIMER_WRAP(va("BlendDrawElem: %s", draw->texinfo->texture),
+		R_TIMER_WRAP(va("BlendDrawElem: %s", draw->texture->name),
 			if (draw->blend_depth_types) {
 
 				const int32_t blend_depth = (int32_t) (draw - r_world_model->bsp->draw_elements);
@@ -496,13 +496,13 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 	/*const r_bsp_face_t *face = in->faces;
 	for (int32_t i = 0; i < in->num_faces; i++, face++) {
 
-		const r_bsp_texinfo_t *texinfo = face->brush_side->texinfo;
+		const r_bsp_texture_t *texture = face->brush_side->texture;
 
-		if (!(texinfo->flags & SURF_MASK_BLEND)) {
+		if (!(texture->flags & SURF_MASK_BLEND)) {
 			continue;
 		}
 
-		const r_material_t *material = texinfo->material;
+		const r_material_t *material = texture->material;
 
 		glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 

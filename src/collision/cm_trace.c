@@ -149,15 +149,13 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		data->trace.start_solid = true;
 		if (!end_outside) {
 			data->trace.all_solid = true;
-			data->trace.fraction = 0.0;
-			data->trace.contents = brush->contents;
+			data->trace.fraction = 0.0f;
 		}
 	} else if (enter_fraction < leave_fraction) { // pierced brush
 		if (enter_fraction > -1.0f && enter_fraction < data->trace.fraction) {
 			data->trace.fraction = Maxf(0.0f, enter_fraction);
 			data->trace.plane = clip_plane;
-			data->trace.texinfo = clip_side->texinfo;
-			data->trace.contents = brush->contents;
+			data->trace.side = clip_side;
 		}
 	}
 }
@@ -197,7 +195,7 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 	// inside this brush
 	data->trace.start_solid = data->trace.all_solid = true;
 	data->trace.fraction = 0.0f;
-	data->trace.contents = brush->contents;
+	data->trace.side = brush->brush_sides;
 }
 
 /**

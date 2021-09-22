@@ -72,7 +72,7 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 	pm_move_t pm = {};
 	pm.s = cgi.client->frame.ps.pm_state;
 
-	pm.ground_entity = pr->ground_entity;
+	pm.ground = pr->ground;
 	pm.hook_pull_speed = Cg_GetHookPullSpeed();
 
 	pm.PointContents = cgi.PointContents;
@@ -105,5 +105,5 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 	pr->view.offset = pm.s.view_offset;
 	pr->view.step_offset = pm.s.step_offset;
 	pr->view.angles = pm.cmd.angles;
-	pr->ground_entity = pm.ground_entity;
+	pr->ground = pm.ground;
 }

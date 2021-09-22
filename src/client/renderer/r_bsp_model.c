@@ -54,25 +54,19 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
-	r_bsp_texinfo_t *out;
+static void R_LoadBspTextures(r_bsp_model_t *bsp) {
+	r_bsp_texture_t *out;
 
-	const bsp_texinfo_t *in = bsp->cm->file.texinfo;
+	const bsp_texture_t *in = bsp->cm->file.textures;
 
-	bsp->num_texinfo = bsp->cm->file.num_texinfo;
-	bsp->texinfo = out = Mem_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
+	bsp->num_texture = bsp->cm->file.num_textures;
+	bsp->texture = out = Mem_LinkMalloc(bsp->num_texture * sizeof(*out), bsp);
 
-	for (int32_t i = 0; i < bsp->num_texinfo; i++, in++, out++) {
+	for (int32_t i = 0; i < bsp->num_texture; i++, in++, out++) {
 
-		out->vecs[0] = in->vecs[0];
-		out->vecs[1] = in->vecs[1];
+		g_strlcpy(out->name, in->name, sizeof(out->name));
 
-		out->flags = in->flags;
-		out->value = in->value;
-
-		g_strlcpy(out->texture, in->texture, sizeof(out->texture));
-
-		out->material = R_LoadMaterial(out->texture, ASSET_CONTEXT_TEXTURES);
+		out->material = R_LoadMaterial(out->name, ASSET_CONTEXT_TEXTURES);
 	}
 }
 
@@ -91,11 +85,17 @@ static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
 
 		out->plane = bsp->planes + in->plane;
 
-		if (in->texinfo > -1) {
-			out->texinfo = bsp->texinfo + in->texinfo;
+		if (in->texture > -1) {
+			out->texture = bsp->texture + in->texture;
 		}
 
+		out->vecs[0] = in->vecs[0];
+		out->vecs[1] = in->vecs[1];
+
 		out->contents = in->contents;
+
+		out->surface = in->surface;
+		out->value = in->value;
 	}
 }
 
@@ -118,19 +118,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 		out->diffusemap = in->diffusemap;
 		out->lightmap = in->lightmap;
 
-		float alpha = 1.f;
-
-		const r_bsp_texinfo_t *texinfo = bsp->texinfo + in->texinfo;
-		switch (texinfo->flags & SURF_MASK_BLEND) {
-			case SURF_BLEND_33:
-				alpha = 0.333f;
-				break;
-			case SURF_BLEND_66:
-				alpha = 0.666f;
-				break;
-		}
-
-		out->color = Color_Color32(Color4f(1.f, 1.f, 1.f, alpha));
+		out->color = in->color;
 	}
 }
 
@@ -171,7 +159,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 		out->num_elements = in->num_elements;
 
-		if (out->brush_side->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+		if (out->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -207,15 +195,16 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->plane = bsp->planes + in->plane;
 		out->plane_side = in->plane & 1;
 
-		out->texinfo = bsp->texinfo + in->texinfo;
+		out->texture = bsp->texture + in->texture;
 		out->contents = in->contents;
+		out->surface = in->surface;
 
 		out->bounds = in->bounds;
 
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 
-		if (out->texinfo->flags & SURF_MASK_BLEND) {
+		if (out->surface & SURF_MASK_BLEND) {
 
 			r_bsp_plane_t *blend_plane;
 			if (out->plane_side) {
@@ -227,7 +216,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 			g_ptr_array_add(blend_plane->blend_elements, out);
 		}
 
-		if (out->texinfo->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
+		if (out->texture->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
 
 			vec2_t st_mins = Vec2_Mins();
 			vec2_t st_maxs = Vec2_Maxs();
@@ -243,7 +232,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 			out->st_origin = Vec2_Scale(Vec2_Add(st_mins, st_maxs), .5f);
 		}
 
-		if (out->texinfo->flags & SURF_SKY) {
+		if (out->surface & SURF_SKY) {
 			if (bsp->sky) {
 				Com_Warn("Model contains multiple sky elements\n");
 			} else {
@@ -523,7 +512,7 @@ static void R_LoadBspDepthPassElements(r_bsp_model_t *bsp) {
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (!(draw->texinfo->flags & SURF_MASK_TRANSLUCENT)) {
+		if (!(draw->surface & SURF_MASK_TRANSLUCENT)) {
 			bsp->num_depth_pass_elements += draw->num_elements;
 		}
 	}
@@ -540,7 +529,7 @@ static void R_LoadBspDepthPassElements(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (draw->texinfo->flags & SURF_MASK_TRANSLUCENT) {
+		if (draw->surface & SURF_MASK_TRANSLUCENT) {
 			continue;
 		}
 
@@ -655,7 +644,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadModelMaterials(mod);
 	R_LoadBspEntities(mod->bsp);
 	R_LoadBspPlanes(mod->bsp);
-	R_LoadBspTexinfo(mod->bsp);
+	R_LoadBspTextures(mod->bsp);
 	R_LoadBspBrushSides(mod->bsp);
 	R_LoadBspVertexes(mod->bsp);
 	R_LoadBspElements(mod->bsp);
@@ -693,9 +682,9 @@ static void R_RegisterBspModel(r_media_t *self) {
 
 	r_model_t *mod = (r_model_t *) self;
 
-	r_bsp_texinfo_t *texinfo = mod->bsp->texinfo;
-	for (int32_t i = 0; i < mod->bsp->num_texinfo; i++, texinfo++) {
-		R_RegisterDependency(self, (r_media_t *) texinfo->material);
+	r_bsp_texture_t *texture = mod->bsp->texture;
+	for (int32_t i = 0; i < mod->bsp->num_texture; i++, texture++) {
+		R_RegisterDependency(self, (r_media_t *) texture->material);
 	}
 
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);

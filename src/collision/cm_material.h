@@ -213,7 +213,7 @@ typedef struct cm_stage_s {
 #define DEFAULT_PATCH_SIZE 64
 
 /**
- * @brief Materials define the rendering attributes of texinfos.
+ * @brief Materials define the rendering attributes of textures.
  */
 typedef struct cm_material_s {
 

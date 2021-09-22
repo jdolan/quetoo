@@ -214,11 +214,7 @@ int32_t LIGHT_Main(void) {
 
 	LoadMaterials(va("maps/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
-	BuildTextureColors();
-
 	LightWorld();
-
-	FreeTextureColors();
 
 	FreeMaterials();
 

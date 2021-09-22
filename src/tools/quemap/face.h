@@ -39,7 +39,7 @@ typedef struct face_s {
 	struct portal_s *portal;
 
 	/**
-	 * @brief The original brush side that gives this face its texinfo.
+	 * @brief The original brush side that gives this face its texture.
 	 */
 	const struct brush_side_s *brush_side;
 

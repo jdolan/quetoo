@@ -98,24 +98,24 @@ static vec3_t Pm_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce
  * @brief Mark the specified entity as touched. This enables the game module to
  * detect player -> entity interactions.
  */
-static void Pm_TouchEntity(struct g_entity_s *ent) {
+static void Pm_TouchEntity(cm_trace_t *trace) {
 
-	if (ent == NULL) {
+	if (trace->ent == NULL) {
 		return;
 	}
 
-	if (pm->num_touch_ents == PM_MAX_TOUCH_ENTS) {
+	if (pm->num_touched == PM_MAX_TOUCHS) {
 		Pm_Debug("MAX_TOUCH_ENTS\n");
 		return;
 	}
 
-	for (int32_t i = 0; i < pm->num_touch_ents; i++) {
-		if (pm->touch_ents[i] == ent) {
+	for (int32_t i = 0; i < pm->num_touched; i++) {
+		if (pm->touched[i].ent == trace->ent) {
 			return;
 		}
 	}
 
-	pm->touch_ents[pm->num_touch_ents++] = ent;
+	pm->touched[pm->num_touched++] = *trace;
 }
 
 /**
@@ -199,7 +199,7 @@ static _Bool Pm_SlideMove(void) {
 		pos = Vec3_Fmaf(pm->s.origin, time_remaining, pm->s.velocity);
 
 		// trace to it
-		const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
+		cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
 
 		// if the player is trapped in a solid, don't build up Z
 		if (trace.all_solid) {
@@ -222,7 +222,7 @@ static _Bool Pm_SlideMove(void) {
 		}
 
 		// store a reference to the entity for firing game events
-		Pm_TouchEntity(trace.ent);
+		Pm_TouchEntity(&trace);
 
 		// record the impacted plane, or nudge velocity out along it
 		if (Pm_ImpactPlane(planes, num_planes, trace.plane.normal)) {
@@ -416,7 +416,7 @@ static void Pm_Friction(const bool flying) {
 	} else if (pm->water_level > WATER_FEET) { // water friction
 		friction = PM_FRICT_WATER;
 	} else if (pm->s.flags & PMF_ON_GROUND) { // ground friction
-		if (pm_locals.ground_trace.texinfo && (pm_locals.ground_trace.texinfo->flags & SURF_SLICK)) {
+		if (pm_locals.ground_trace.side && (pm_locals.ground_trace.side->surface & SURF_SLICK)) {
 			friction = PM_FRICT_GROUND_SLICK;
 		} else {
 			friction = PM_FRICT_GROUND;
@@ -498,23 +498,23 @@ static void Pm_Currents(void) {
 	}
 
 	// add conveyer belt velocities
-	if (pm->ground_entity) {
-		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_0) {
+	if (pm->ground.ent) {
+		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_0) {
 			current.x += 1.0;
 		}
-		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_90) {
+		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_90) {
 			current.y += 1.0;
 		}
-		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_180) {
+		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_180) {
 			current.x -= 1.0;
 		}
-		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_270) {
+		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_270) {
 			current.y -= 1.0;
 		}
-		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_UP) {
+		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_UP) {
 			current.z += 1.0;
 		}
-		if (pm_locals.ground_trace.contents & CONTENTS_CURRENT_DOWN) {
+		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_DOWN) {
 			current.z -= 1.0;
 		}
 	}
@@ -532,7 +532,7 @@ static void Pm_Currents(void) {
  */
 static _Bool Pm_CheckTrickJump(void) {
 
-	if (pm->ground_entity) {
+	if (pm->ground.ent) {
 		return false;
 	}
 
@@ -563,7 +563,7 @@ static bool Pm_CheckHookJump(void) {
 	if ((pm->s.type >= PM_HOOK_PULL && pm->s.type <= PM_HOOK_SWING_AUTO) && (pm->s.velocity.z > 1.f)) {
 
 		pm->s.flags &= ~PMF_ON_GROUND;
-		pm->ground_entity = NULL;
+		memset(&pm->ground, 0, sizeof(pm->ground));
 
 		return true;
 	}
@@ -704,7 +704,7 @@ static void Pm_CheckGround(void) {
 	if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
 
 		// if we had no ground, then handle landing events
-		if (!pm->ground_entity) {
+		if (!pm->ground.ent) {
 
 			// any landing terminates the water jump
 			if (pm->s.flags & PMF_TIME_WATER_JUMP) {
@@ -734,7 +734,7 @@ static void Pm_CheckGround(void) {
 
 		// save a reference to the ground
 		pm->s.flags |= PMF_ON_GROUND;
-		pm->ground_entity = trace.ent;
+		pm->ground = trace;
 
 		// and sink down to it if not trick jumping
 		if (!(pm->s.flags & PMF_TIME_TRICK_JUMP)) {
@@ -744,11 +744,11 @@ static void Pm_CheckGround(void) {
 		}
 	} else {
 		pm->s.flags &= ~PMF_ON_GROUND;
-		pm->ground_entity = NULL;
+		memset(&pm->ground, 0, sizeof(pm->ground));
 	}
 
 	// always touch the entity, even if we couldn't stand on it
-	Pm_TouchEntity(trace.ent);
+	Pm_TouchEntity(&trace);
 }
 
 /**
@@ -906,7 +906,7 @@ static _Bool Pm_CheckJump(void) {
 
 	// clear the ground indicators
 	pm->s.flags &= ~PMF_ON_GROUND;
-	pm->ground_entity = NULL;
+	memset(&pm->ground, 0, sizeof(pm->ground));
 
 	// we can trick jump soon
 	pm->s.flags |= PMF_TIME_TRICK_START;
@@ -933,10 +933,10 @@ static void Pm_CheckLadder(void) {
 	const vec3_t pos = Vec3_Fmaf(pm->s.origin, 4.f, pm_locals.forward_xy);
 	const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
 
-	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_LADDER)) {
+	if ((trace.fraction < 1.0f) && (trace.side->contents & CONTENTS_LADDER)) {
 		pm->s.flags |= PMF_ON_LADDER;
 
-		pm->ground_entity = NULL;
+		memset(&pm->ground, 0, sizeof(pm->ground));
 		pm->s.flags &= ~(PMF_ON_GROUND | PMF_DUCKED);
 	}
 }
@@ -968,7 +968,7 @@ static _Bool Pm_CheckWaterJump(void) {
 	vec3_t pos = Vec3_Fmaf(pm->s.origin, 16.f, pm_locals.forward);
 	cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
 
-	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_MASK_SOLID)) {
+	if ((trace.fraction < 1.0f) && (trace.side->contents & CONTENTS_MASK_SOLID)) {
 
 		pos.z += PM_STEP_HEIGHT + Box3_Size(pm->bounds).z;
 
@@ -1243,7 +1243,7 @@ static void Pm_WalkMove(void) {
 	}
 
 	// accelerate based on slickness of ground surface
-	const float accel = (pm_locals.ground_trace.texinfo->flags & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
+	const float accel = (pm_locals.ground_trace.side->surface & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
 
 	Pm_Accelerate(dir, speed, accel);
 
@@ -1320,7 +1320,7 @@ static void Pm_Init(void) {
 
 	pm->angles = Vec3_Zero();
 
-	pm->num_touch_ents = 0;
+	pm->num_touched = 0;
 	pm->water_level = WATER_NONE;
 	pm->water_type = 0;
 

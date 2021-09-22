@@ -41,21 +41,18 @@ static void G_CheckGround(g_entity_t *ent) {
 		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, ent->locals.clip_mask ? : CONTENTS_MASK_SOLID);
 
 		if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
-			if (ent->locals.ground_entity == NULL) {
+			if (ent->locals.ground.side == NULL) {
 				G_Debug("%s meeting ground %s\n", etos(ent), etos(trace.ent));
 			}
-			ent->locals.ground_entity = trace.ent;
-			ent->locals.ground_plane = trace.plane;
-			ent->locals.ground_texinfo = trace.texinfo;
-			ent->locals.ground_contents = trace.contents;
+			ent->locals.ground = trace;
 		} else {
-			if (ent->locals.ground_entity) {
-				G_Debug("%s leaving ground %s\n", etos(ent), etos(ent->locals.ground_entity));
+			if (ent->locals.ground.side) {
+				G_Debug("%s leaving ground %s\n", etos(ent), etos(ent->locals.ground.ent));
 			}
-			ent->locals.ground_entity = NULL;
+			memset(&ent->locals.ground, 0, sizeof(ent->locals.ground));
 		}
 	} else {
-		ent->locals.ground_entity = NULL;
+		memset(&ent->locals.ground, 0, sizeof(ent->locals.ground));
 	}
 }
 
@@ -91,7 +88,7 @@ static void G_CheckWater(g_entity_t *ent) {
 
 	const cm_trace_t tr = gi.Trace(pos, pos, bounds, ent, CONTENTS_MASK_LIQUID);
 
-	ent->locals.water_type = tr.contents;
+	ent->locals.water_type = tr.side ? tr.side->contents : 0;
 	ent->locals.water_level = ent->locals.water_type ? WATER_UNDER : WATER_NONE;
 
 	if (old_water_level == WATER_NONE && ent->locals.water_level == WATER_UNDER) {
@@ -234,7 +231,7 @@ static void G_Friction(g_entity_t *ent) {
 
 	vec3_t vel = ent->locals.velocity;
 
-	if (ent->locals.ground_entity) {
+	if (ent->locals.ground.ent) {
 		vel.z = 0.0;
 	}
 
@@ -249,9 +246,8 @@ static void G_Friction(g_entity_t *ent) {
 
 	float friction = 0.0;
 
-	if (ent->locals.ground_entity) {
-		const cm_bsp_texinfo_t *texinfo = ent->locals.ground_texinfo;
-		if (texinfo && (texinfo->flags & SURF_SLICK)) {
+	if (ent->locals.ground.side) {
+		if (ent->locals.ground.side->surface & SURF_SLICK) {
 			friction = PM_FRICT_GROUND_SLICK;
 		} else {
 			friction = PM_FRICT_GROUND;
@@ -296,7 +292,7 @@ static void G_Accelerate(g_entity_t *ent, const vec3_t dir, float speed, float a
  */
 static void G_Gravity(g_entity_t *ent) {
 
-	if (ent->locals.ground_entity == NULL) {
+	if (ent->locals.ground.side == NULL) {
 		float gravity = g_level.gravity;
 
 		if (ent->locals.water_level) {
@@ -337,24 +333,24 @@ static void G_Currents(g_entity_t *ent) {
 		}
 	}
 
-	if (ent->locals.ground_entity) {
+	if (ent->locals.ground.side) {
 
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_0) {
+		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_0) {
 			current.x += 1.0;
 		}
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_90) {
+		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_90) {
 			current.y += 1.0;
 		}
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_180) {
+		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_180) {
 			current.x -= 1.0;
 		}
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_270) {
+		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_270) {
 			current.y -= 1.0;
 		}
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_UP) {
+		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_UP) {
 			current.z += 1.0;
 		}
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_DOWN) {
+		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_DOWN) {
 			current.z -= 1.0;
 		}
 	}
@@ -401,13 +397,8 @@ void G_TouchOccupy(g_entity_t *ent) {
 		}
 
 		if (occupied->locals.Touch) {
-			static cm_bsp_plane_t plane = {
-				.normal = { { 0.0, 0.0, 1.0 } },
-				.dist = 0.0,
-				.type = PLANE_Z
-			};
 			G_Debug("%s occupying %s\n", etos(ent), etos(occupied));
-			occupied->locals.Touch(occupied, ent, &plane, NULL);
+			occupied->locals.Touch(occupied, ent, NULL);
 		}
 
 		if (!ent->in_use) {
@@ -484,7 +475,7 @@ static void G_Physics_Push_Revert(const g_push_t *p) {
  */
 static void G_Physics_Push_Rotate_Entity(g_entity_t *self, g_entity_t *ent, float yaw) {
 
-	if (ent->locals.ground_entity == self) {
+	if (ent->locals.ground.ent == self) {
 		if (ent->client) {
 			ent->client->ps.pm_state.delta_angles.y += yaw;
 		} else {
@@ -535,16 +526,16 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
 		}
 
 		// if the entity is in a good position and not riding us, we can skip them
-		if (G_GoodPosition(ent) && ent->locals.ground_entity != self) {
+		if (G_GoodPosition(ent) && ent->locals.ground.ent != self) {
 			continue;
 		}
 
 		// if we are a pusher, or someone is riding us, try to move them
-		if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground_entity == self)) {
+		if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground.ent == self)) {
 
 			G_Physics_Push_Impact(ent);
 
-			if (ent->locals.ground_entity == self) {
+			if (ent->locals.ground.ent == self) {
 				// we can only ride a bmodel if we're in a good position
 				// on top of it already; to make things simpler, we assume
 				// that we're not going to self-intersect with the pusher.
@@ -747,12 +738,12 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
 		}
 
 		// if the entity is in a good position and not riding us, we can skip them
-		if (G_GoodPosition(ent) && ent->locals.ground_entity != self) {
+		if (G_GoodPosition(ent) && ent->locals.ground.ent != self) {
 			continue;
 		}
 
 		// if we are a pusher, or someone is riding us, try to move them
-		if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground_entity == self)) {
+		if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground.ent == self)) {
 
 			G_Physics_Push_Impact(ent);
 
@@ -817,7 +808,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
 				break;
 			}
 
-			if (ent->locals.ground_entity == self) {
+			if (ent->locals.ground.ent == self) {
 
 				// an entity riding us may have been pushed off of us by the world, so try
 				// it's original position, which may now be valid
@@ -938,14 +929,14 @@ static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 
 	if (ent->locals.Touch) {
 		G_Debug("%s touching %s\n", etos(ent), etos(trace->ent));
-		ent->locals.Touch(ent, trace->ent, &trace->plane, trace->texinfo);
+		ent->locals.Touch(ent, trace->ent, trace);
 	}
 
 	if (ent->in_use && trace->ent->in_use) {
 
 		if (trace->ent->locals.Touch) {
 			G_Debug("%s touching %s\n", etos(trace->ent), etos(ent));
-			trace->ent->locals.Touch(trace->ent, ent, NULL, NULL);
+			trace->ent->locals.Touch(trace->ent, ent, trace);
 		}
 	}
 }
@@ -1104,7 +1095,7 @@ static void G_Physics_Fly(g_entity_t *ent) {
  */
 static void G_Physics_Bounce(g_entity_t *ent) {
 
-	if (ent->locals.ground_entity == NULL || Vec3_Equal(ent->locals.velocity, Vec3_Zero()) == false) {
+	if (ent->locals.ground.ent == NULL || !Vec3_Equal(ent->locals.velocity, Vec3_Zero())) {
 
 		G_Friction(ent);
 

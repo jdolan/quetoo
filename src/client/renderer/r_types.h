@@ -265,30 +265,15 @@ typedef struct r_material_s {
  */
 typedef struct {
 	/**
-	 * @brief The XYZ + W texture vectors in world space.
+	 * @brief The texture name.
 	 */
-	vec4_t vecs[2];
-
-	/**
-	 * @brief The surface flags.
-	 */
-	int32_t flags;
-
-	/**
-	 * @brief The surface value, for lights or Phong grouping.
-	 */
-	int32_t value;
-
-	/**
-	 * @brief The diffusemap texture name.
-	 */
-	char texture[32];
+	char name[MAX_QPATH];
 
 	/**
 	 * @brief The material.
 	 */
 	r_material_t *material;
-} r_bsp_texinfo_t;
+} r_bsp_texture_t;
 
 /**
  * @brief BSP plane structure.
@@ -310,19 +295,35 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The texinfo.
-	 */
-	const r_bsp_texinfo_t *texinfo;
-
-	/**
 	 * @brief The plane.
 	 */
 	const r_bsp_plane_t *plane;
 
 	/**
+	 * @brief The texture.
+	 */
+	const r_bsp_texture_t *texture;
+
+	/**
+	 * @brief The XYZ + W texture vectors in world space.
+	 */
+	vec4_t vecs[2];
+
+	/**
 	 * @brief The contents mask.
 	 */
 	int32_t contents;
+
+	/**
+	 * @brief The surface flags.
+	 */
+	int32_t surface;
+
+	/**
+	 * @brief The surface value, for lights or Phong grouping.
+	 */
+	int32_t value;
+
 } r_bsp_brush_side_t;
 
 /**
@@ -397,8 +398,9 @@ typedef struct {
 	r_bsp_plane_t *plane;
 	byte plane_side;
 
-	r_bsp_texinfo_t *texinfo;
+	r_bsp_texture_t *texture;
 	int32_t contents;
+	int32_t surface;
 
 	box3_t bounds;
 
@@ -546,8 +548,8 @@ typedef struct {
 	int32_t num_planes;
 	r_bsp_plane_t *planes;
 
-	int32_t num_texinfo;
-	r_bsp_texinfo_t *texinfo;
+	int32_t num_texture;
+	r_bsp_texture_t *texture;
 
 	int32_t num_brush_sides;
 	r_bsp_brush_side_t *brush_sides;

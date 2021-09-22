@@ -44,35 +44,6 @@ static void Cm_LoadBspEntities(void) {
 /**
  * @brief
  */
-static void Cm_LoadBspTexinfos(void) {
-
-	const int32_t num_texinfo = cm_bsp.file.num_texinfo;
-	const bsp_texinfo_t *in = cm_bsp.file.texinfo;
-
-	cm_bsp_texinfo_t *out = cm_bsp.texinfos = Mem_TagMalloc(sizeof(cm_bsp_texinfo_t) * num_texinfo, MEM_TAG_COLLISION);
-
-	for (int32_t i = 0; i < num_texinfo; i++, in++, out++) {
-
-		g_strlcpy(out->name, in->texture, sizeof(out->name));
-		out->flags = in->flags;
-		out->value = in->value;
-
-		for (size_t i = 0; i < cm_bsp.num_materials; i++) {
-			cm_material_t *material = cm_bsp.materials[i];
-			if (!g_strcmp0(out->name, material->name)) {
-				out->material = material;
-				break;
-			}
-		}
-
-		assert(out->material);
-	}
-}
-
-
-/**
- * @brief
- */
 static void Cm_LoadBspPlanes(void) {
 
 	const int32_t num_planes = cm_bsp.file.num_planes;
@@ -150,7 +121,7 @@ static void Cm_LoadBspLeafBrushes(void) {
  */
 static void Cm_LoadBspBrushSides(void) {
 
-	static cm_bsp_texinfo_t null_texinfo;
+	static cm_material_t null_material;
 
 	const int32_t num_brush_sides = cm_bsp.file.num_brush_sides;
 	const bsp_brush_side_t *in = cm_bsp.file.brush_sides;
@@ -168,17 +139,19 @@ static void Cm_LoadBspBrushSides(void) {
 
 		out->plane = &cm_bsp.planes[p];
 
-		if (in->texinfo < 0) {
-			out->texinfo = &null_texinfo;
+		if (in->texture < 0) {
+			out->material = &null_material;
 		} else {
-			if (in->texinfo >= cm_bsp.file.num_texinfo) {
-				Com_Error(ERROR_DROP, "Brush side %d has invalid texinfo %d\n", i, in->texinfo);
+			if (in->texture >= cm_bsp.file.num_textures) {
+				Com_Error(ERROR_DROP, "Brush side %d has invalid texture %d\n", i, in->texture);
 			}
 
-			out->texinfo = &cm_bsp.texinfos[in->texinfo];
+			out->material = cm_bsp.materials[in->texture];
 		}
 
 		out->contents = in->contents;
+		out->surface = in->surface;
+		out->value = in->value;
 	}
 }
 
@@ -223,40 +196,33 @@ static void Cm_LoadBspInlineModels(void) {
 /**
  * @brief
  */
-static void Cm_LoadBspMaterials(const char *name) {
+static void Cm_LoadBspMaterials(void) {
 
 	char path[MAX_QPATH];
-	StripExtension(Basename(name), path);
+	StripExtension(Basename(cm_bsp.name), path);
 
 	g_snprintf(path, sizeof(path), "maps/%s.mat", path);
 
 	GList *materials = NULL;
 	Cm_LoadMaterials(path, &materials);
 
-	const bsp_texinfo_t *in = cm_bsp.file.texinfo;
-	for (int32_t i = 0; i < cm_bsp.file.num_texinfo; i++, in++) {
+	cm_material_t **out = cm_bsp.materials = Mem_TagMalloc(sizeof(cm_material_t *) * cm_bsp.file.num_textures, MEM_TAG_COLLISION);
 
-		cm_material_t *material = NULL;
+	const bsp_texture_t *in = cm_bsp.file.textures;
+	for (int32_t i = 0; i < cm_bsp.file.num_textures; i++, in++, out++) {
 
 		for (GList *list = materials; list; list = list->next) {
-			if (!g_strcmp0(((cm_material_t *) list->data)->name, in->texture)) {
-				material = list->data;
+			if (!g_strcmp0(((cm_material_t *) list->data)->name, in->name)) {
+				*out = list->data;
 				break;
 			}
 		}
 
-		if (material == NULL) {
-			material = Cm_AllocMaterial(in->texture);
-			materials = g_list_prepend(materials, material);
+		if (*out == NULL) {
+			*out = Cm_AllocMaterial(in->name);
 		}
-	}
 
-	cm_bsp.num_materials = g_list_length(materials);
-	cm_bsp.materials = Mem_TagMalloc(sizeof(cm_material_t *) * cm_bsp.num_materials, MEM_TAG_COLLISION);
-
-	cm_material_t **out = cm_bsp.materials;
-	for (const GList *list = materials; list; list = list->next, out++) {
-		*out = Mem_Link(list->data, cm_bsp.materials);
+		*out = Mem_Link(*out, cm_bsp.materials);
 	}
 
 	g_list_free(materials);
@@ -296,7 +262,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Bsp_UnloadLumps(&cm_bsp.file, BSP_LUMPS_ALL);
 
 	// free dynamic memory
-	Mem_Free(cm_bsp.texinfos);
 	Mem_Free(cm_bsp.planes);
 	Mem_Free(cm_bsp.nodes);
 	Mem_Free(cm_bsp.leafs);
@@ -345,10 +310,8 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	Fs_Free(file);
 
-	Cm_LoadBspMaterials(name);
-
+	Cm_LoadBspMaterials();
 	Cm_LoadBspEntities();
-	Cm_LoadBspTexinfos();
 	Cm_LoadBspPlanes();
 	Cm_LoadBspNodes();
 	Cm_LoadBspLeafs();

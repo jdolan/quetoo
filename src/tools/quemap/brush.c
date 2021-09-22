@@ -244,10 +244,10 @@ int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane, int32_t 
 		const brush_side_t *side = brush->brush_sides;
 		for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-			if (side->texinfo == BSP_TEXINFO_BEVEL) {
+			if (side->texture == BSP_TEXTURE_BEVEL) {
 				continue;
 			}
-			if (side->texinfo == BSP_TEXINFO_NODE) {
+			if (side->texture == BSP_TEXTURE_NODE) {
 				continue;
 			}
 
@@ -435,7 +435,7 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane, csg_brush_t **front, cs
 		cb[i]->num_brush_sides++;
 
 		cs->plane = plane ^ i ^ 1;
-		cs->texinfo = BSP_TEXINFO_NODE;
+		cs->texture = BSP_TEXTURE_NODE;
 
 		if (i == 0) {
 			cs->winding = Cm_CopyWinding(mid_winding);

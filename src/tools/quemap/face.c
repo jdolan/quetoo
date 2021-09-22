@@ -205,24 +205,25 @@ static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 	return w->num_points;
 }
 
-static _Bool warnings_emitted[MAX_BSP_TEXINFO];
+static _Bool warnings_emitted[MAX_BSP_TEXTURES];
 
 /**
  * @brief Emits a vertex array for the given face.
  */
 static int32_t EmitFaceVertexes(const face_t *face) {
-	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->brush_side->texinfo];
+	const brush_side_t *brush_side = face->brush_side;
 
-	const vec3_t sdir = Vec4_XYZ(texinfo->vecs[0]);
-	const vec3_t tdir = Vec4_XYZ(texinfo->vecs[1]);
+	const vec3_t sdir = Vec4_XYZ(brush_side->vecs[0]);
+	const vec3_t tdir = Vec4_XYZ(brush_side->vecs[1]);
 
-	const SDL_Surface *diffuse = LoadDiffuseTexture(texinfo->texture);
+	const bsp_texture_t *texture = &bsp_file.textures[brush_side->texture];
+	const SDL_Surface *diffuse = LoadDiffuseTexture(texture->name);
 	if (diffuse == NULL) {
 		diffuse = LoadDiffuseTexture("textures/common/notex");
 
-		if (!warnings_emitted[face->brush_side->texinfo]) {
-			Com_Warn("Failed to load %s\n", texinfo->texture);
-			warnings_emitted[face->brush_side->texinfo] = true;
+		if (!warnings_emitted[brush_side->texture]) {
+			Com_Warn("Failed to load %s\n", texture->name);
+			warnings_emitted[brush_side->texture] = true;
 		}
 	}
 
@@ -245,9 +246,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES");
 		}
 
-		bsp_vertex_t out = {
-			.texinfo = face->brush_side->texinfo
-		};
+		bsp_vertex_t out;
 
 		out.position = points[i];
 		out.normal = planes[face->brush_side->plane].normal;
@@ -258,11 +257,23 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		 * introduced by moving the vertex in order to weld cracks.
 		 */
 
-		const float s = Vec3_Dot(face->w->points[i], sdir) + texinfo->vecs[0].w;
-		const float t = Vec3_Dot(face->w->points[i], tdir) + texinfo->vecs[1].w;
+		const float s = Vec3_Dot(face->w->points[i], sdir) + brush_side->vecs[0].w;
+		const float t = Vec3_Dot(face->w->points[i], tdir) + brush_side->vecs[1].w;
 
-		out.diffusemap.x = s / (diffuse ? diffuse->w : 1.0);
-		out.diffusemap.y = t / (diffuse ? diffuse->h : 1.0);
+		out.diffusemap.x = s / (diffuse ? diffuse->w : 1.f);
+		out.diffusemap.y = t / (diffuse ? diffuse->h : 1.f);
+
+		switch (brush_side->surface & SURF_MASK_BLEND) {
+			case SURF_BLEND_33:
+				out.color = Color32(255, 255, 255, 255 * .33f);
+				break;
+			case SURF_BLEND_66:
+				out.color = Color32(255, 255, 255, 255 * .66f);
+				break;
+			default:
+				out.color = Color32(255, 255, 255, 255);
+				break;
+		}
 
 		bsp_file.vertexes[bsp_file.num_vertexes] = out;
 		AddVertexToWeldingSpatialHash(out.position, bsp_file.num_vertexes);
@@ -302,7 +313,7 @@ static int32_t EmitFaceElements(const face_t *face, int32_t first_vertex) {
 bsp_face_t *EmitFace(const face_t *face) {
 
 	assert(face->w->num_points > 2);
-	assert(face->brush_side->texinfo >= 0);
+	assert(face->brush_side->texture >= 0);
 	assert(face->brush_side->out);
 
 	if (bsp_file.num_faces == MAX_BSP_FACES) {
@@ -346,13 +357,12 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, int32_t value, con
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
 
 		const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[face->brush_side];
-		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[brush_side->texinfo];
 
-		if (!(texinfo->flags & SURF_PHONG)) {
+		if (!(brush_side->surface & SURF_PHONG)) {
 			continue;
 		}
 
-		if (texinfo->value != value) {
+		if (brush_side->value != value) {
 			continue;
 		}
 
@@ -383,15 +393,13 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, int32_t value, con
  * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by finding all of
  * the faces which share a given vertex, and calculating a weighted average of their normals.
  */
-static void PhongVertex(int32_t vertex_num) {
+static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v) {
 	const bsp_face_t *phong_faces[MAX_PHONG_FACES];
 
-	bsp_vertex_t *v = &bsp_file.vertexes[vertex_num];
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[face->brush_side];
+	if (brush_side->surface & SURF_PHONG) {
 
-	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
-	if (texinfo->flags & SURF_PHONG) {
-
-		const size_t count = PhongFacesForVertex(v, texinfo->value, phong_faces);
+		const size_t count = PhongFacesForVertex(v, brush_side->value, phong_faces);
 		if (count > 1) {
 
 			v->normal = Vec3_Zero();
@@ -413,11 +421,24 @@ static void PhongVertex(int32_t vertex_num) {
 }
 
 /**
+ * @brief
+ */
+static void PhongFace(int32_t face_num) {
+
+	const bsp_face_t *face = bsp_file.faces + face_num;
+
+	bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;
+	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
+		PhongVertex(face, v);
+	}
+}
+
+/**
  * @brief Calculates Phong shading, emitting tangent vectors to the BSP vertexes.
  */
 void PhongShading(void) {
 
-	Work("Phong shading", PhongVertex, bsp_file.num_vertexes);
+	Work("Phong shading", PhongFace, bsp_file.num_faces);
 
 	cm_vertex_t *vertexes = Mem_Malloc(sizeof(cm_vertex_t) * bsp_file.num_vertexes);
 

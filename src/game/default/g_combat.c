@@ -320,14 +320,12 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 
 	// do the damage
 	if (damage_health && (target->locals.health || target->locals.dead)) {
-		if (G_IsStructural(target, NULL)) { // impact things we can hurt but don't bleed
-			if (dflags & DMG_BULLET) {
-				G_SpawnDamage(TE_BULLET, pos, normal, damage_health);
-			} else {
-				G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
-			}
-		} else if (G_IsMeat(target)) { // bleed for everything else
+		if (G_IsMeat(target)) {
 			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
+		} else if (dflags & DMG_BULLET) {
+			G_SpawnDamage(TE_BULLET, pos, normal, damage_health);
+		} else {
+			G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
 		}
 
 		if (attacker->client && attacker != target && !G_OnSameTeam(target, attacker) &&

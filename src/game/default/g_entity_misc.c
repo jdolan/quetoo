@@ -25,9 +25,7 @@
 /**
  * @brief
  */
-static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
-                                    const cm_bsp_plane_t *plane,
-                                    const cm_bsp_texinfo_t *texinfo) {
+static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (!G_IsMeat(other)) {
 		return;
@@ -180,7 +178,7 @@ void G_misc_teleporter_dest(g_entity_t *ent) {
  */
 static void G_misc_fireball_Think(g_entity_t *self) {
 
-	if (self->locals.ground_entity) {
+	if (self->locals.ground.ent) {
 		self->solid = SOLID_NOT;
 
 		self->s.effects = EF_DESPAWN;
@@ -200,9 +198,7 @@ static void G_misc_fireball_Think(g_entity_t *self) {
 /**
  * @brief
  */
-static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
-                                  const cm_bsp_plane_t *plane,
-                                  const cm_bsp_texinfo_t *texinfo) {
+static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (g_level.time - self->locals.touch_time > 500) {
 		self->locals.touch_time = g_level.time;

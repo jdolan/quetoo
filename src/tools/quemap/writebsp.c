@@ -208,18 +208,14 @@ int32_t EmitNodes(node_t *head_node) {
 }
 
 /**
- * @brief Draw elements comparator to sort texinfo.
+ * @brief Draw elements comparator to sort surfaces.
  */
-static int32_t TexinfoCmp(const bsp_texinfo_t *a, const bsp_texinfo_t *b) {
+static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) {
 
-	int32_t order = strcmp(a->texture, b->texture);
-	if (order == 0) {
-		const int32_t a_flags = (a->flags & SURF_MASK_TEXINFO_CMP);
-		const int32_t b_flags = (b->flags & SURF_MASK_TEXINFO_CMP);
-		order = a_flags - b_flags;
-	}
+	const int32_t a_surface = (a->surface & SURF_MASK_DRAW_ELEMENTS_CMP);
+	const int32_t b_surface = (b->surface & SURF_MASK_DRAW_ELEMENTS_CMP);
 
-	return order;
+	return a_surface - b_surface;
 }
 
 /**
@@ -227,15 +223,15 @@ static int32_t TexinfoCmp(const bsp_texinfo_t *a, const bsp_texinfo_t *b) {
  */
 static int32_t ContentsCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) {
 
-	const int32_t a_contents = a->contents & CONTENTS_MASK_FACE_CMP;
-	const int32_t b_contents = b->contents & CONTENTS_MASK_FACE_CMP;
+	const int32_t a_contents = a->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
+	const int32_t b_contents = b->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
 
 	return a_contents - b_contents;
 }
 
 /**
  * @brief Draw elements comparator to sort model faces by material.
- * @details Opaque faces are equal if they share texinfo and contents.
+ * @details Opaque faces are equal if they share texture and contents.
  * @details Blend faces are equal if they share opaque equality and plane.
  * @details Material faces are never equal, to preserve their texture matrices.
  */
@@ -247,21 +243,23 @@ static int32_t FaceCmp(const void *a, const void *b) {
 	const bsp_brush_side_t *a_side = bsp_file.brush_sides + a_face->brush_side;
 	const bsp_brush_side_t *b_side = bsp_file.brush_sides + b_face->brush_side;
 
-	const bsp_texinfo_t *a_texinfo = bsp_file.texinfo + a_side->texinfo;
-	const bsp_texinfo_t *b_texinfo = bsp_file.texinfo + b_side->texinfo;
-
-	int32_t order = TexinfoCmp(a_texinfo, b_texinfo);
+	int32_t order = a_side->texture - b_side->texture;
 	if (order == 0) {
 
-		order = ContentsCmp(a_side, b_side);
+		order = SurfaceCmp(a_side, b_side);
 		if (order == 0) {
 
-			if (a_texinfo->flags & SURF_MATERIAL) {
-				return (int32_t) (ptrdiff_t) (a_face - b_face);
-			}
+			order = ContentsCmp(a_side, b_side);
+			if (order == 0) {
 
-			if (a_texinfo->flags & SURF_MASK_BLEND) {
-				return a_side->plane - b_side->plane;
+				// FIXME: side - side now?
+				if (a_side->surface & SURF_MATERIAL) {
+					return (int32_t) (ptrdiff_t) (a_face - b_face);
+				}
+
+				if (a_side->surface & SURF_MASK_BLEND) {
+					return a_side->plane - b_side->plane;
+				}
 			}
 		}
 	}
@@ -293,7 +291,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 		const bsp_face_t *a = model_faces + i;
 		const bsp_brush_side_t *a_side = bsp_file.brush_sides + a->brush_side;
 
-		if (bsp_file.texinfo[a_side->texinfo].flags & SURF_MASK_NO_DRAW_ELEMENTS) {
+		if (a_side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
 			continue;
 		}
 
@@ -301,8 +299,9 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 		bsp_file.num_draw_elements++;
 
 		out->plane = a_side->plane;
-		out->texinfo = a_side->texinfo;
-		out->contents = a_side->contents;
+		out->texture = a_side->texture;
+		out->contents = a_side->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
+		out->surface = a_side->surface & SURF_MASK_DRAW_ELEMENTS_CMP;
 
 		out->bounds = Box3_Null();
 
@@ -348,8 +347,15 @@ static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
 	bsp_brush_side_t *out = bsp_file.brush_sides + bsp_file.num_brush_sides;
 
 	out->plane = side->plane;
-	out->texinfo = side->texinfo;
+	out->texture = side->texture;
+
+	for (size_t i = 0; i < lengthof(out->vecs); i++) {
+		out->vecs[i] = side->vecs[i];
+	}
+
 	out->contents = side->contents;
+	out->surface = side->surface;
+	out->value = side->value;
 
 	return out;
 }
@@ -448,7 +454,7 @@ void BeginBSPFile(void) {
 
 	memset(&bsp_file, 0, sizeof(bsp_file));
 
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXINFO);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXTURES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_PLANES, MAX_BSP_PLANES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSH_SIDES, MAX_BSP_BRUSH_SIDES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSHES, MAX_BSP_BRUSHES);

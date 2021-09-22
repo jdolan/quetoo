@@ -123,7 +123,7 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 //				continue;
 //			}
 
-			if (face->brush_side->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+			if (face->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 				continue;
 			}
 
