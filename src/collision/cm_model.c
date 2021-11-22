@@ -139,14 +139,14 @@ static void Cm_LoadBspBrushSides(void) {
 
 		out->plane = &cm_bsp.planes[p];
 
-		if (in->texture < 0) {
+		if (in->material < 0) {
 			out->material = &null_material;
 		} else {
-			if (in->texture >= cm_bsp.file.num_textures) {
-				Com_Error(ERROR_DROP, "Brush side %d has invalid texture %d\n", i, in->texture);
+			if (in->material >= cm_bsp.file.num_materials) {
+				Com_Error(ERROR_DROP, "Brush side %d has invalid texture %d\n", i, in->material);
 			}
 
-			out->material = cm_bsp.materials[in->texture];
+			out->material = cm_bsp.materials[in->material];
 		}
 
 		out->contents = in->contents;
@@ -206,10 +206,10 @@ static void Cm_LoadBspMaterials(void) {
 	GList *materials = NULL;
 	Cm_LoadMaterials(path, &materials);
 
-	cm_material_t **out = cm_bsp.materials = Mem_TagMalloc(sizeof(cm_material_t *) * cm_bsp.file.num_textures, MEM_TAG_COLLISION);
+	cm_material_t **out = cm_bsp.materials = Mem_TagMalloc(sizeof(cm_material_t *) * cm_bsp.file.num_materials, MEM_TAG_COLLISION);
 
-	const bsp_texture_t *in = cm_bsp.file.textures;
-	for (int32_t i = 0; i < cm_bsp.file.num_textures; i++, in++, out++) {
+	const bsp_material_t *in = cm_bsp.file.materials;
+	for (int32_t i = 0; i < cm_bsp.file.num_materials; i++, in++, out++) {
 
 		for (GList *list = materials; list; list = list->next) {
 			if (!g_strcmp0(((cm_material_t *) list->data)->name, in->name)) {

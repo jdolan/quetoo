@@ -284,7 +284,7 @@ void Cg_LoadFlares(void) {
 	const r_bsp_face_t *face = bsp->faces;
 	for (int32_t i= 0; i < bsp->num_faces; i++, face++) {
 
-		const r_material_t *material = face->brush_side->texture->material;
+		const r_material_t *material = face->brush_side->material;
 		if (material->cm->flags & STAGE_FLARE) {
 
 			const r_stage_t *stage = material->stages;

@@ -131,7 +131,7 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
 		if (b->original->contents & CONTENTS_SOLID) {
 			int32_t i;
 			for (i = 0; i < b->num_brush_sides; i++) {
-				if (b->brush_sides[i].texture != BSP_TEXTURE_NODE) {
+				if (b->brush_sides[i].material != BSP_MATERIAL_NODE) {
 					break;
 				}
 			}
@@ -221,10 +221,10 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 		const brush_side_t *side = brush->brush_sides;
 		for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-			if (side->texture == BSP_TEXTURE_BEVEL) {
+			if (side->material ==BSP_MATERIAL_BEVEL) {
 				continue;
 			}
-			if (side->texture == BSP_TEXTURE_NODE) {
+			if (side->material == BSP_MATERIAL_NODE) {
 				continue;
 			}
 
@@ -295,7 +295,7 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 			for (int32_t i = 0; i < new_brush->num_brush_sides; i++) {
 				brush_side_t *side = new_brush->brush_sides + i;
 				if ((side->plane & ~1) == node->plane) {
-					side->texture = BSP_TEXTURE_NODE;
+					side->material = BSP_MATERIAL_NODE;
 				}
 			}
 		}
@@ -377,10 +377,10 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 		}
 
 		for (int32_t i = 0; i < b->num_brush_sides; i++) {
-			if (b->brush_sides[i].texture == BSP_TEXTURE_BEVEL) {
+			if (b->brush_sides[i].material ==BSP_MATERIAL_BEVEL) {
 				continue;
 			}
-			if (b->brush_sides[i].texture == BSP_TEXTURE_NODE) {
+			if (b->brush_sides[i].material == BSP_MATERIAL_NODE) {
 				continue;
 			}
 			num_brush_sides++;

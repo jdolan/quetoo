@@ -321,7 +321,7 @@ typedef struct cm_material_s {
 
 cm_material_t *Cm_AllocMaterial(const char *name);
 void Cm_FreeMaterial(cm_material_t *material);
-void Cm_FreeMaterials(GList *materials, _Bool full);
+void Cm_FreeMaterials(GList *materials);
 ssize_t Cm_LoadMaterials(const char *path, GList **materials);
 _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
 ssize_t Cm_WriteMaterials(const char *path, GList *materials);

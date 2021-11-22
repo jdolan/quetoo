@@ -54,19 +54,26 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_LoadBspTextures(r_bsp_model_t *bsp) {
-	r_bsp_texture_t *out;
+static void R_LoadBspMaterials(r_model_t *mod) {
+	char path[MAX_QPATH];
 
-	const bsp_texture_t *in = bsp->cm->file.textures;
+	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
-	bsp->num_texture = bsp->cm->file.num_textures;
-	bsp->texture = out = Mem_LinkMalloc(bsp->num_texture * sizeof(*out), bsp);
+	GList *materials = NULL;
 
-	for (int32_t i = 0; i < bsp->num_texture; i++, in++, out++) {
+	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, &materials);
 
-		g_strlcpy(out->name, in->name, sizeof(out->name));
+	g_list_free(materials);
 
-		out->material = R_LoadMaterial(out->name, ASSET_CONTEXT_TEXTURES);
+	r_material_t **out;
+	const bsp_material_t *in = mod->bsp->cm->file.materials;
+
+	mod->bsp->num_materials = mod->bsp->cm->file.num_materials;
+	mod->bsp->materials = out = Mem_LinkMalloc(mod->bsp->num_materials * sizeof(*out), mod->bsp);
+
+	for (int32_t i = 0; i < mod->bsp->num_materials; i++, in++, out++) {
+		*out = R_LoadMaterial(in->name, ASSET_CONTEXT_TEXTURES);
+		R_RegisterDependency((r_media_t *) mod, (r_media_t *) *out);
 	}
 }
 
@@ -85,8 +92,8 @@ static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
 
 		out->plane = bsp->planes + in->plane;
 
-		if (in->texture > -1) {
-			out->texture = bsp->texture + in->texture;
+		if (in->material > -1) {
+			out->material = bsp->materials[in->material];
 		}
 
 		out->vecs[0] = in->vecs[0];
@@ -195,7 +202,8 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->plane = bsp->planes + in->plane;
 		out->plane_side = in->plane & 1;
 
-		out->texture = bsp->texture + in->texture;
+		out->material = bsp->materials[in->material];
+
 		out->contents = in->contents;
 		out->surface = in->surface;
 
@@ -216,7 +224,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 			g_ptr_array_add(blend_plane->blend_elements, out);
 		}
 
-		if (out->texture->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
+		if (out->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
 
 			vec2_t st_mins = Vec2_Mins();
 			vec2_t st_maxs = Vec2_Maxs();
@@ -641,10 +649,9 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// load in lumps that the renderer needs
 	Bsp_LoadLumps(file, &mod->bsp->cm->file, R_BSP_LUMPS);
 
-	R_LoadModelMaterials(mod);
 	R_LoadBspEntities(mod->bsp);
 	R_LoadBspPlanes(mod->bsp);
-	R_LoadBspTextures(mod->bsp);
+	R_LoadBspMaterials(mod);
 	R_LoadBspBrushSides(mod->bsp);
 	R_LoadBspVertexes(mod->bsp);
 	R_LoadBspElements(mod->bsp);
@@ -681,11 +688,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 static void R_RegisterBspModel(r_media_t *self) {
 
 	r_model_t *mod = (r_model_t *) self;
-
-	r_bsp_texture_t *texture = mod->bsp->texture;
-	for (int32_t i = 0; i < mod->bsp->num_texture; i++, texture++) {
-		R_RegisterDependency(self, (r_media_t *) texture->material);
-	}
 
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);
 

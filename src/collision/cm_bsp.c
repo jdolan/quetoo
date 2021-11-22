@@ -33,7 +33,7 @@ typedef struct {
 
 static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_SIZE_STRUCT(entity_string, MAX_BSP_ENTITIES_SIZE),
-	BSP_LUMP_NUM_STRUCT(textures, MAX_BSP_TEXTURES),
+	BSP_LUMP_NUM_STRUCT(materials, MAX_BSP_MATERIALS),
 	BSP_LUMP_NUM_STRUCT(planes, MAX_BSP_PLANES),
 	BSP_LUMP_NUM_STRUCT(brush_sides, MAX_BSP_BRUSH_SIDES),
 	BSP_LUMP_NUM_STRUCT(brushes, MAX_BSP_BRUSHES),
@@ -81,7 +81,7 @@ static void Bsp_SwapBrushSides(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		brush_side->plane = LittleLong(brush_side->plane);
-		brush_side->texture = LittleLong(brush_side->texture);
+		brush_side->material = LittleLong(brush_side->material);
 		brush_side->vecs[0] = LittleVec4(brush_side->vecs[0]);
 		brush_side->vecs[1] = LittleVec4(brush_side->vecs[1]);
 		brush_side->contents = LittleLong(brush_side->contents);
@@ -187,7 +187,7 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		draw->plane = LittleLong(draw->plane);
-		draw->texture = LittleLong(draw->texture);
+		draw->material = LittleLong(draw->material);
 		draw->contents = LittleLong(draw->contents);
 		draw->surface = LittleLong(draw->surface);
 		draw->bounds = LittleBounds(draw->bounds);

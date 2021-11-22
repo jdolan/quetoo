@@ -307,7 +307,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 
 	glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 
-	R_GetError(draw->texture->name);
+	R_GetError(draw->material->media.name);
 }
 
 /**
@@ -371,8 +371,8 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 
 	if (!(draw->surface & SURF_MATERIAL)) {
 
-		if (*material != draw->texture->material) {
-			*material = draw->texture->material;
+		if (*material != draw->material) {
+			*material = draw->material;
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, (*material)->texture->texnum);
 
@@ -386,10 +386,10 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 		r_stats.count_bsp_triangles += draw->num_elements / 3;
 		r_stats.count_bsp_draw_elements_blend++;
 
-		R_GetError(draw->texture->name);
+		R_GetError(draw->material->media.name);
 	}
 
-	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->texture->material);
+	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->material);
 }
 
 /**
@@ -412,7 +412,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 			continue;
 		}
 
-		R_TIMER_WRAP(va("OpaqueDrawElem: %s", draw->texture->name),
+		R_TIMER_WRAP(va("OpaqueDrawElem: %s", draw->material->media.name),
 			R_DrawBspDrawElements(view, entity, draw, &material);
 		);
 	}
@@ -436,7 +436,7 @@ static void R_DrawBspInlineModelAlphaTestDrawElements(const r_view_t *view,
 			continue;
 		}
 		
-		R_TIMER_WRAP(va("AlphaTestDrawElem: %s", draw->texture->name),
+		R_TIMER_WRAP(va("AlphaTestDrawElem: %s", draw->material->media.name),
 			R_DrawBspDrawElements(view, entity, draw, &material);
 		);
 	}
@@ -457,7 +457,7 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->blend_elements, i);
 
-		R_TIMER_WRAP(va("BlendDrawElem: %s", draw->texture->name),
+		R_TIMER_WRAP(va("BlendDrawElem: %s", draw->material->media.name),
 			if (draw->blend_depth_types) {
 
 				const int32_t blend_depth = (int32_t) (draw - r_world_model->bsp->draw_elements);

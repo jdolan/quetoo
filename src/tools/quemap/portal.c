@@ -611,10 +611,10 @@ static void FindPortalBrushSide(portal_t *portal) {
 
 			for (int32_t i = 0; i < original->num_brush_sides; i++) {
 				brush_side_t *side = &original->brush_sides[i];
-				if (side->texture == BSP_TEXTURE_BEVEL) {
+				if (side->material ==BSP_MATERIAL_BEVEL) {
 					continue;
 				}
-				if (side->texture == BSP_TEXTURE_NODE) {
+				if (side->material == BSP_MATERIAL_NODE) {
 					continue;
 				}
 

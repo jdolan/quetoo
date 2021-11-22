@@ -176,8 +176,8 @@ void BuildLightmaps(void) {
 			continue;
 		}
 
-		const bsp_texture_t *texture = &bsp_file.textures[lm->brush_side->texture];
-		lm->material = LoadMaterial(texture->name, ASSET_CONTEXT_TEXTURES);
+		const bsp_material_t *material = &bsp_file.materials[lm->brush_side->material];
+		lm->material = LoadMaterial(material->name, ASSET_CONTEXT_TEXTURES);
 
 		BuildLightmapMatrices(lm);
 

@@ -237,7 +237,7 @@ static void LightForPatch(const patch_t *patch) {
 		return;
 	}
 
-	light.color = GetTextureColor(brush_side->texture);
+	light.color = GetMaterialColor(brush_side->material);
 	const float brightness = ColorNormalize(light.color, &light.color);
 	if (brightness < 1.0) {
 		light.color = Vec3_Scale(light.color, 1.0 / brightness);
@@ -431,7 +431,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
 	light.radius = ColorNormalize(lightmap, &lightmap) * radiosity;
 
-	const vec3_t diffuse = GetTextureColor(lm->brush_side->texture);
+	const vec3_t diffuse = GetMaterialColor(lm->brush_side->material);
 	light.color = Vec3_Multiply(lightmap, diffuse);
 
 	light.face = patch->face;

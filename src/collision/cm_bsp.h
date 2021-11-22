@@ -13,7 +13,7 @@
  */
 #define MAX_BSP_ENTITIES_SIZE		0x40000
 #define MAX_BSP_ENTITIES			0x800
-#define MAX_BSP_TEXTURES			0x100
+#define MAX_BSP_MATERIALS			0x100
 #define MAX_BSP_PLANES				0x20000
 #define MAX_BSP_BRUSH_SIDES			0x20000
 #define MAX_BSP_BRUSHES				0x8000
@@ -145,11 +145,11 @@ typedef struct {
 } bsp_header_t;
 
 /**
- * @brief Texture references.
+ * @brief Material references.
  */
 typedef struct {
 	char name[MAX_QPATH];
-} bsp_texture_t;
+} bsp_material_t;
 
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 
@@ -159,18 +159,18 @@ typedef struct {
 } bsp_plane_t;
 
 /**
- * @brief Sentinel texture identifier for BSP decision nodes.
+ * @brief Sentinel material identifier for BSP decision nodes.
  */
-#define BSP_TEXTURE_NODE -1
+#define BSP_MATERIAL_NODE -1
 
 /**
- * @brief Sentinel texture identifier for bevel sides.
+ * @brief Sentinel material identifier for bevel sides.
  */
-#define BSP_TEXTURE_BEVEL -2
+#define BSP_MATERIAL_BEVEL -2
 
 typedef struct {
 	int32_t plane; // facing out of the leaf
-	int32_t texture;
+	int32_t material;
 	vec4_t vecs[2]; // [s/t][xyz + offset]
 	int32_t contents;
 	int32_t surface;
@@ -248,13 +248,13 @@ typedef struct {
 
 /**
  * @brief Draw elements are OpenGL draw commands, serialized directly within the BSP.
- * @details For each model, all opaque faces sharing texture and contents are grouped
- * into a single draw elements. All blend faces sharing plane, texture and contents
+ * @details For each model, all opaque faces sharing material and contents are grouped
+ * into a single draw elements. All blend faces sharing plane, material and contents
  * are also grouped.
  */
 typedef struct {
 	int32_t plane;
-	int32_t texture;
+	int32_t material;
 	int32_t contents;
 	int32_t surface;
 
@@ -305,8 +305,8 @@ typedef struct {
 	int32_t entity_string_size;
 	char *entity_string;
 
-	int32_t num_textures;
-	bsp_texture_t *textures;
+	int32_t num_materials;
+	bsp_material_t *materials;
 
 	int32_t num_planes;
 	bsp_plane_t *planes;

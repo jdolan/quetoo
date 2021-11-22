@@ -261,21 +261,6 @@ typedef struct r_material_s {
 } r_material_t;
 
 /**
- * @brief BSP texture information.
- */
-typedef struct {
-	/**
-	 * @brief The texture name.
-	 */
-	char name[MAX_QPATH];
-
-	/**
-	 * @brief The material.
-	 */
-	r_material_t *material;
-} r_bsp_texture_t;
-
-/**
  * @brief BSP plane structure.
  */
 typedef struct {
@@ -300,9 +285,9 @@ typedef struct {
 	const r_bsp_plane_t *plane;
 
 	/**
-	 * @brief The texture.
+	 * @brief The material.
 	 */
-	const r_bsp_texture_t *texture;
+	const r_material_t *material;
 
 	/**
 	 * @brief The XYZ + W texture vectors in world space.
@@ -398,7 +383,8 @@ typedef struct {
 	r_bsp_plane_t *plane;
 	byte plane_side;
 
-	r_bsp_texture_t *texture;
+	r_material_t *material;
+
 	int32_t contents;
 	int32_t surface;
 
@@ -548,8 +534,8 @@ typedef struct {
 	int32_t num_planes;
 	r_bsp_plane_t *planes;
 
-	int32_t num_texture;
-	r_bsp_texture_t *texture;
+	int32_t num_materials;
+	r_material_t **materials;
 
 	int32_t num_brush_sides;
 	r_bsp_brush_side_t *brush_sides;
@@ -690,9 +676,6 @@ typedef struct r_model_s {
 		r_bsp_inline_model_t *bsp_inline;
 		r_mesh_model_t *mesh;
 	};
-
-	r_material_t **materials;
-	size_t num_materials;
 
 	box3_t bounds;
 	float radius;

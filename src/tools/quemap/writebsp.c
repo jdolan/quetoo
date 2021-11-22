@@ -243,7 +243,7 @@ static int32_t FaceCmp(const void *a, const void *b) {
 	const bsp_brush_side_t *a_side = bsp_file.brush_sides + a_face->brush_side;
 	const bsp_brush_side_t *b_side = bsp_file.brush_sides + b_face->brush_side;
 
-	int32_t order = a_side->texture - b_side->texture;
+	int32_t order = a_side->material - b_side->material;
 	if (order == 0) {
 
 		order = SurfaceCmp(a_side, b_side);
@@ -299,7 +299,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 		bsp_file.num_draw_elements++;
 
 		out->plane = a_side->plane;
-		out->texture = a_side->texture;
+		out->material = a_side->material;
 		out->contents = a_side->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
 		out->surface = a_side->surface & SURF_MASK_DRAW_ELEMENTS_CMP;
 
@@ -347,7 +347,7 @@ static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
 	bsp_brush_side_t *out = bsp_file.brush_sides + bsp_file.num_brush_sides;
 
 	out->plane = side->plane;
-	out->texture = side->texture;
+	out->material = side->material;
 
 	for (size_t i = 0; i < lengthof(out->vecs); i++) {
 		out->vecs[i] = side->vecs[i];
@@ -454,7 +454,7 @@ void BeginBSPFile(void) {
 
 	memset(&bsp_file, 0, sizeof(bsp_file));
 
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXTURES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_MATERIALS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_PLANES, MAX_BSP_PLANES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSH_SIDES, MAX_BSP_BRUSH_SIDES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSHES, MAX_BSP_BRUSHES);

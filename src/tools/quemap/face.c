@@ -205,7 +205,7 @@ static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 	return w->num_points;
 }
 
-static _Bool warnings_emitted[MAX_BSP_TEXTURES];
+static _Bool warnings_emitted[MAX_BSP_MATERIALS];
 
 /**
  * @brief Emits a vertex array for the given face.
@@ -216,14 +216,14 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 	const vec3_t sdir = Vec4_XYZ(brush_side->vecs[0]);
 	const vec3_t tdir = Vec4_XYZ(brush_side->vecs[1]);
 
-	const bsp_texture_t *texture = &bsp_file.textures[brush_side->texture];
-	const SDL_Surface *diffuse = LoadDiffuseTexture(texture->name);
+	const bsp_material_t *material = &bsp_file.materials[brush_side->material];
+	const SDL_Surface *diffuse = LoadDiffusemap(material->name);
 	if (diffuse == NULL) {
-		diffuse = LoadDiffuseTexture("textures/common/notex");
+		diffuse = LoadDiffusemap("textures/common/notex");
 
-		if (!warnings_emitted[brush_side->texture]) {
-			Com_Warn("Failed to load %s\n", texture->name);
-			warnings_emitted[brush_side->texture] = true;
+		if (!warnings_emitted[brush_side->material]) {
+			Com_Warn("Failed to load %s\n", material->name);
+			warnings_emitted[brush_side->material] = true;
 		}
 	}
 
@@ -313,7 +313,7 @@ static int32_t EmitFaceElements(const face_t *face, int32_t first_vertex) {
 bsp_face_t *EmitFace(const face_t *face) {
 
 	assert(face->w->num_points > 2);
-	assert(face->brush_side->texture >= 0);
+	assert(face->brush_side->material >= 0);
 	assert(face->brush_side->out);
 
 	if (bsp_file.num_faces == MAX_BSP_FACES) {

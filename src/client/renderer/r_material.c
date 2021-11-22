@@ -362,7 +362,7 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
- * @brief Loads the r_material_t from the specified texture.
+ * @brief Loads the r_material_t with the specified asset name and context.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 
@@ -400,84 +400,6 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 }
 
 /**
- * @brief Loads all r_material_t for the specified BSP model.
- */
-static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
-	char path[MAX_QPATH];
-
-	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-
-	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, materials);
-
-	const bsp_texture_t *in = mod->bsp->cm->file.textures;
-	for (int32_t i = 0; i < mod->bsp->cm->file.num_textures; i++, in++) {
-
-		r_material_t *material = R_LoadMaterial(in->name, ASSET_CONTEXT_TEXTURES);
-
-		if (g_list_find(*materials, material) == NULL) {
-			*materials = g_list_prepend(*materials, material);
-		}
-	}
-}
-
-/**
- * @brief Loads all r_material_t for the specified mesh model.
- * @remarks Player models may optionally define materials, but are not required to.
- * @remarks Other mesh models must resolve at least one material. If no materials file is found,
- * we attempt to load ${model_dir}/skin.tga as the default material.
- */
-static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
-	char path[MAX_QPATH];
-
-	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-
-	if (g_str_has_prefix(mod->media.name, "players/")) {
-		R_LoadMaterials(path, ASSET_CONTEXT_PLAYERS, materials);
-	} else {
-		if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
-
-			Dirname(mod->media.name, path);
-			g_strlcat(path, "skin", sizeof(path));
-
-			*materials = g_list_prepend(*materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
-		}
-
-		assert(materials);
-	}
-}
-
-/**
- * @brief Loads all r_material_t for the specified model, populating `mod->materials`.
- */
-void R_LoadModelMaterials(r_model_t *mod) {
-	GList *materials = NULL;
-
-	switch (mod->type) {
-		case MOD_BSP:
-			R_LoadBspMaterials(mod, &materials);
-			break;
-		case MOD_MESH:
-			R_LoadMeshMaterials(mod, &materials);
-			break;
-		default:
-			Com_Debug(DEBUG_RENDERER, "Unsupported model: %s\n", mod->media.name);
-			break;
-	}
-
-	mod->num_materials = g_list_length(materials);
-	mod->materials = Mem_LinkMalloc(sizeof(r_material_t *) * mod->num_materials, mod);
-
-	r_material_t **out = mod->materials;
-	for (const GList *list = materials; list; list = list->next, out++) {
-		*out = (r_material_t *) R_RegisterDependency((r_media_t *) mod, (r_media_t *) list->data);
-	}
-
-	Com_Debug(DEBUG_RENDERER, "Loaded %" PRIuPTR " materials for %s\n", mod->num_materials, mod->media.name);
-
-	g_list_free(materials);
-}
-
-/**
  * @brief Writes all r_material_t for the specified BSP model to disk.
  */
 static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
@@ -486,8 +408,8 @@ static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
 	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
 	GList *materials = NULL;
-	for (size_t i = 0; i < mod->num_materials; i++) {
-		materials = g_list_prepend(materials, mod->materials[i]->cm);
+	for (int32_t i = 0; i < mod->bsp->num_materials; i++) {
+		materials = g_list_prepend(materials, mod->bsp->materials[i]->cm);
 	}
 
 	const ssize_t count = Cm_WriteMaterials(path, materials);

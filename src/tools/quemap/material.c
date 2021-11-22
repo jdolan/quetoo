@@ -29,6 +29,9 @@ static GHashTable *assets;
  */
 ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **result) {
 
+	assert(materials == NULL);
+	assert(assets == NULL);
+
 	const ssize_t count = Cm_LoadMaterials(path, &materials);
 
 	GList *e = materials;
@@ -37,19 +40,20 @@ ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **resu
 	}
 
 	if (result) {
-		GList *e = materials;
-		for (ssize_t i = 0; i < count; i++, e = e->next) {
-			*result = g_list_append(*result, e->data);
-		}
+		*result = g_list_copy(materials);
 	}
+
+	assets = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) SDL_FreeSurface);
 
 	return count;
 }
 
 /**
- * @brief Loads the material with the specified name.
+ * @brief Loads the material with the specified asset name and context.
  */
 cm_material_t *LoadMaterial(const char *name, cm_asset_context_t context) {
+
+	assert(materials);
 
 	for (GList *list = materials; list; list = list->next) {
 		if (!g_strcmp0(((cm_material_t *) list->data)->name, name)) {
@@ -70,17 +74,17 @@ cm_material_t *LoadMaterial(const char *name, cm_asset_context_t context) {
 /**
  * @brief
  */
-SDL_Surface *LoadAsset(const cm_asset_t *asset) {
+static SDL_Surface *LoadAsset(const cm_asset_t *asset) {
 
-	if (assets == NULL) {
-		assets = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) SDL_FreeSurface);
-	}
+	assert(assets);
+	
+	gchar *key = g_strdup(asset->path);
 
-	SDL_Surface *surf = g_hash_table_lookup(assets, (void *) asset->path);
+	SDL_Surface *surf = g_hash_table_lookup(assets, (void *) key);
 	if (surf == NULL) {
 		surf = Img_LoadSurface(asset->path);
 		if (surf) {
-			g_hash_table_insert(assets, (void *) asset->path, surf);
+			g_hash_table_insert(assets, (void *) key, surf);
 		}
 	}
 
@@ -90,7 +94,7 @@ SDL_Surface *LoadAsset(const cm_asset_t *asset) {
 /**
  * @brief
  */
-SDL_Surface *LoadDiffuseTexture(const char *name) {
+SDL_Surface *LoadDiffusemap(const char *name) {
 	return LoadAsset(&LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->diffusemap);
 }
 
@@ -100,7 +104,7 @@ SDL_Surface *LoadDiffuseTexture(const char *name) {
 void FreeMaterials(void) {
 
 	if (materials != NULL) {
-		g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
+		Cm_FreeMaterials(materials);
 		materials = NULL;
 	}
 

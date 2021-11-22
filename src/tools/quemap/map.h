@@ -57,9 +57,9 @@ typedef struct plane_s {
  */
 typedef struct brush_side_s {
 	/**
-	 * @brief The material name.
+	 * @brief The texture name.
 	 */
-	char material[MAX_QPATH];
+	char texture[MAX_QPATH];
 
 	/**
 	 * @brief The texture shift, in pixels.
@@ -102,9 +102,9 @@ typedef struct brush_side_s {
 	int32_t plane;
 
 	/**
-	 * @brief The BSP texture number.
+	 * @brief The BSP material number.
 	 */
-	int32_t texture;
+	int32_t material;
 
 	/**
 	 * @brief All brush sides will have a valid winding.
