@@ -307,7 +307,7 @@ int32_t ZIP_Main(void) {
 
 	paths = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
-	LoadBSPFile(bsp_name, (1 << BSP_LUMP_TEXINFO) | (1 << BSP_LUMP_ENTITIES));
+	LoadBSPFile(bsp_name, (1 << BSP_LUMP_MATERIALS) | (1 << BSP_LUMP_ENTITIES));
 
 	// add the materials
 	AddBspMaterials();

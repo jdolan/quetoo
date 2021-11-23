@@ -454,7 +454,7 @@ void BeginBSPFile(void) {
 
 	memset(&bsp_file, 0, sizeof(bsp_file));
 
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_MATERIALS);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_MATERIALS, MAX_BSP_MATERIALS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_PLANES, MAX_BSP_PLANES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSH_SIDES, MAX_BSP_BRUSH_SIDES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSHES, MAX_BSP_BRUSHES);

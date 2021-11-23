@@ -233,7 +233,7 @@ static void Cm_LoadBspMaterials(void) {
  */
 #define CM_BSP_LUMPS \
 	(1 << BSP_LUMP_ENTITIES) | \
-	(1 << BSP_LUMP_TEXINFO) | \
+	(1 << BSP_LUMP_MATERIALS) | \
 	(1 << BSP_LUMP_PLANES) | \
 	(1 << BSP_LUMP_NODES) | \
 	(1 << BSP_LUMP_LEAFS) | \

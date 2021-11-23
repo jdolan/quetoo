@@ -214,8 +214,8 @@ typedef enum {
  * @details Lower bits are stronger, and will eat weaker brushes completely.
  */
 #define CONTENTS_NONE				0x0 // brush sides may have no contents (skip, hint)
-#define CONTENTS_SOLID				0x1 // an eye is never valid in a solid
-#define CONTENTS_WINDOW				0x2 // translucent, but not watery
+#define CONTENTS_SOLID				0x1 // opaque solids
+#define CONTENTS_WINDOW				0x2 // translucent solids
 #define CONTENTS_AUX				0x4
 #define CONTENTS_LAVA				0x8
 #define CONTENTS_SLIME				0x10
@@ -226,12 +226,12 @@ typedef enum {
 
 // remaining contents are non-visible, and don't eat brushes
 
-#define CONTENTS_OCCLUSION_QUERY	0x8000 // shares value with CONTENTS_AREAPORTAL in other engines
+#define CONTENTS_OCCLUSION_QUERY	0x8000 // CONTENTS_AREAPORTAL in other engines
 
 #define CONTENTS_PLAYER_CLIP		0x10000
 #define CONTENTS_MONSTER_CLIP		0x20000
 
-// currents can be added to any 	other contents, and may be mixed
+// currents can be added to any other contents, and may be mixed
 #define CONTENTS_CURRENT_0			0x40000
 #define CONTENTS_CURRENT_90			0x80000
 #define CONTENTS_CURRENT_180		0x100000
@@ -275,22 +275,22 @@ typedef enum {
 #define CONTENTS_MASK_DRAW_ELEMENTS_CMP (CONTENTS_MASK_LIQUID)
 
 /**
- * @brief Texinfo flags.
+ * @brief Surface flags.
  */
 #define SURF_LIGHT				0x1 // value will hold the light radius
 #define SURF_SLICK				0x2 // affects game physics
-#define SURF_SKY				0x4 // skybox, cubemap that occludes
+#define SURF_SKY				0x4 // cubemap that occludes
 #define SURF_LIQUID				0x8 // water, lava, slime, etc.
 #define SURF_BLEND_33			0x10 // 0.33 alpha blending
 #define SURF_BLEND_66			0x20 // 0.66 alpha blending
-#define SURF_BLEND_100			0x40 // texture-defined alpha blending
+#define SURF_BLEND_100			0x40 // alpha channel blending
 #define SURF_NO_DRAW			0x80 // caulk (backs of details, etc)
 #define SURF_HINT				0x100 // make a primary bsp splitter
 #define SURF_SKIP				0x200 // completely skip, allowing non-closed brushes
-#define SURF_ALPHA_TEST			0x400 // alpha test (grates, foliage, etc..)
+#define SURF_ALPHA_TEST			0x400 // alpha test (grates, fences, foliage, etc..)
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL			0x1000 // skip diffuse pass, draw material stages only
-#define SURF_DECAL				0x2000 // draw diffuse pass, but don't use for alpha blend sorting
+#define SURF_DECAL				0x2000 // draw blended, but don't participate in depth sorting
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 
 /**
