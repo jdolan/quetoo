@@ -80,23 +80,8 @@ void TextureVectorsForBrushSide(const brush_side_t *side, const vec3_t origin, v
 	scale.y = side->scale.y ?: 1.f;
 
 	// rotate axis
-	float sinv, cosv;
-	if (side->rotate == 0.f || side->rotate == -0.f) {
-		sinv = 0.f;
-		cosv = 1.f;
-	} else if (side->rotate == 90.0 || side->rotate == -270.f) {
-		sinv = 1.f;
-		cosv = 0.f;
-	} else if (side->rotate == 180.0 || side->rotate == -180.f) {
-		sinv = 0.f;
-		cosv = -1.f;
-	} else if (side->rotate == 270.0 || side->rotate == -90.f) {
-		sinv = -1.f;
-		cosv = 0.f;
-	} else {
-		sinv = sinf(Radians(side->rotate));
-		cosv = cosf(Radians(side->rotate));
-	}
+	const double sinv = sin(Radians(side->rotate));
+	const double cosv = cos(Radians(side->rotate));
 
 	int32_t sv;
 	if (vecs[0].x) {
