@@ -363,21 +363,21 @@ static void MakeBrushWindings(brush_t *brush) {
  */
 static void SetMaterialFlags(brush_side_t *side) {
 
-	const cm_material_t *material = LoadMaterial(side->texture, ASSET_CONTEXT_TEXTURES);
+	const material_t *material = GetMaterial(side->material);
 	if (material) {
-		if (material->contents) {
+		if (material->cm->contents) {
 			if (side->contents == 0) {
-				side->contents = material->contents;
+				side->contents = material->cm->contents;
 			}
 		}
-		if (material->surface) {
+		if (material->cm->surface) {
 			if (side->surface == 0) {
-				side->surface = material->surface;
+				side->surface = material->cm->surface;
 			}
 		}
-		if (material->light) {
+		if (material->cm->light) {
 			if (side->value == 0) {
-				side->value = material->light;
+				side->value = material->cm->light;
 			}
 		}
 	}
@@ -509,6 +509,9 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->value, 1);
 		}
 
+		// resolve the texture
+		side->material = EmitMaterial(side->texture);
+		
 		// resolve material-based surface and contents flags
 		SetMaterialFlags(side);
 
@@ -571,9 +574,6 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 				return;
 			}
 		}
-
-		// resolve the texture
-		side->material = FindTexture(side->texture);
 
 		// and the texture vectors
 		TextureVectorsForBrushSide(side, Vec3_Zero(), side->vecs);

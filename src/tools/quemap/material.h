@@ -25,8 +25,14 @@
 
 #include "quemap.h"
 
-ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **materials);
-cm_material_t *LoadMaterial(const char *name, cm_asset_context_t context);
-SDL_Surface *LoadDiffusemap(const char *name);
-ssize_t WriteMaterialsFile(const char *filename);
+typedef struct {
+	bsp_material_t *out;
+	cm_material_t *cm;
+	SDL_Surface *diffusemap;
+} material_t;
+
+ssize_t LoadMaterials(const char *path);
+int32_t EmitMaterial(const char *name);
+material_t *GetMaterial(int32_t num);
+ssize_t WriteMaterialsFile(const char *path);
 void FreeMaterials(void);

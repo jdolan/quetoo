@@ -43,13 +43,9 @@ int32_t MAT_Main(void) {
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_MATERIALS, MAX_BSP_MATERIALS);
 
-	LoadMaterials(path, ASSET_CONTEXT_TEXTURES, NULL);
+	LoadMaterials(path);
 
 	LoadMapFile(map_name);
-
-	for (int32_t i = 0; i < bsp_file.num_materials; i++) {
-		LoadMaterial(bsp_file.materials[i].name, ASSET_CONTEXT_TEXTURES);
-	}
 
 	WriteMaterialsFile(path);
 

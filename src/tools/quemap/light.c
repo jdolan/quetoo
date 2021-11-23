@@ -29,6 +29,19 @@ GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 GPtrArray *unattenuated_lights;
 
 /**
+ * @brief
+ */
+static vec3_t GetMaterialColor(int32_t num) {
+	static vec3_t colors[MAX_BSP_MATERIALS];
+
+	if (Vec3_Equal(Vec3_Zero(), colors[num])) {
+		colors[num] = Img_Color(GetMaterial(num)->diffusemap);
+	}
+
+	return colors[num];
+}
+
+/**
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
  * down if necessary.
  */
@@ -430,9 +443,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
 	light.radius = ColorNormalize(lightmap, &lightmap) * radiosity;
-
-	const vec3_t diffuse = GetMaterialColor(lm->brush_side->material);
-	light.color = Vec3_Multiply(lightmap, diffuse);
+	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
 
 	light.face = patch->face;
 

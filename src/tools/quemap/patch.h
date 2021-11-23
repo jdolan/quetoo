@@ -33,6 +33,5 @@ typedef struct patch_s {
 
 extern patch_t *patches;
 
-vec3_t GetMaterialColor(int32_t texture);
 void BuildPatches(void);
 void SubdividePatch(int32_t patch_num);

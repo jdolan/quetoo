@@ -246,7 +246,12 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 	}
 
 	if (r_texture_downsample->integer > 1) {
-		SDL_Surface *scaled = SDL_CreateRGBSurfaceWithFormat(0, diffusemap->w / r_texture_downsample->integer, diffusemap->h / r_texture_downsample->integer, 32, SDL_PIXELFORMAT_RGBA32);
+		SDL_Surface *scaled = SDL_CreateRGBSurfaceWithFormat(
+				 0,
+				 diffusemap->w / r_texture_downsample->integer,
+				 diffusemap->h / r_texture_downsample->integer,
+				 32,
+				 SDL_PIXELFORMAT_RGBA32);
 		SDL_BlitScaled(diffusemap, NULL, scaled, NULL);
 
 		SDL_FreeSurface(diffusemap);

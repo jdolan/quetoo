@@ -205,8 +205,6 @@ static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 	return w->num_points;
 }
 
-static _Bool warnings_emitted[MAX_BSP_MATERIALS];
-
 /**
  * @brief Emits a vertex array for the given face.
  */
@@ -216,15 +214,10 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 	const vec3_t sdir = Vec4_XYZ(brush_side->vecs[0]);
 	const vec3_t tdir = Vec4_XYZ(brush_side->vecs[1]);
 
-	const bsp_material_t *material = &bsp_file.materials[brush_side->material];
-	const SDL_Surface *diffuse = LoadDiffusemap(material->name);
-	if (diffuse == NULL) {
-		diffuse = LoadDiffusemap("textures/common/notex");
-
-		if (!warnings_emitted[brush_side->material]) {
-			Com_Warn("Failed to load %s\n", material->name);
-			warnings_emitted[brush_side->material] = true;
-		}
+	const material_t *material = GetMaterial(brush_side->material);
+	const SDL_Surface *diffusemap = material->diffusemap;
+	if (diffusemap == NULL) {
+		diffusemap = Img_LoadSurface("textures/common/notex");
 	}
 
 	vec3_t points[face->w->num_points];
@@ -260,8 +253,8 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		const float s = Vec3_Dot(face->w->points[i], sdir) + brush_side->vecs[0].w;
 		const float t = Vec3_Dot(face->w->points[i], tdir) + brush_side->vecs[1].w;
 
-		out.diffusemap.x = s / (diffuse ? diffuse->w : 1.f);
-		out.diffusemap.y = t / (diffuse ? diffuse->h : 1.f);
+		out.diffusemap.x = s / (diffusemap ? diffusemap->w : 1.f);
+		out.diffusemap.y = t / (diffusemap ? diffusemap->h : 1.f);
 
 		switch (brush_side->surface & SURF_MASK_BLEND) {
 			case SURF_BLEND_33:

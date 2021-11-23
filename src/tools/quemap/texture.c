@@ -24,32 +24,6 @@
 #include "texture.h"
 
 /**
- * @brief Resolve the texture with identical properties to the one specified, or
- * allocate a new one.
- */
-int32_t FindTexture(const char *name) {
-
-	const bsp_material_t *material = bsp_file.materials;
-	for (int32_t i = 0; i < bsp_file.num_materials; i++, material++) {
-
-		if (!g_strcmp0(name, material->name)) {
-			return i;
-		}
-	}
-
-	if (bsp_file.num_materials == MAX_BSP_MATERIALS) {
-		Com_Error(ERROR_FATAL, "MAX_BSP_MATERIALS\n");
-	}
-
-	bsp_material_t *out = bsp_file.materials + bsp_file.num_materials;
-	g_strlcpy(out->name, name, sizeof(out->name));
-
-	bsp_file.num_materials++;
-
-	return (int32_t) (ptrdiff_t) (out - bsp_file.materials);
-}
-
-/**
  * @brief
  */
 static void TextureAxisFromPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {

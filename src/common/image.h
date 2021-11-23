@@ -32,6 +32,11 @@
 SDL_Surface *Img_LoadSurface(const char *name);
 
 /**
+ * @brief Resolves the average color of the specified surface.
+ */
+vec3_t Img_Color(const SDL_Surface *surf);
+
+/**
  * @brief Rotates the specified surface clockwise by the number of rotations.
  */
 SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);

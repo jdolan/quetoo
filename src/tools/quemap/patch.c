@@ -25,44 +25,6 @@
 
 patch_t *patches;
 
-static vec3_t material_colors[MAX_BSP_MATERIALS];
-
-/**
- * @brief
- */
-vec3_t GetMaterialColor(int32_t material) {
-
-	vec3_t *color = material_colors + material;
-	if (Vec3_Equal(*color, Vec3_Zero())) {
-
-		const char *name = bsp_file.materials[material].name;
-		SDL_Surface *surf = LoadDiffusemap(name);
-		if (surf) {
-			Com_Debug(DEBUG_ALL, "Loaded %s (%dx%d)\n", name, surf->w, surf->h);
-
-			const int32_t texels = surf->w * surf->h;
-			uint32_t c[3] = { 0, 0, 0 };
-
-			for (int32_t j = 0; j < texels; j++) {
-
-				const byte *pos = (byte *) surf->pixels + j * 4;
-
-				c[0] += *pos++; // r
-				c[1] += *pos++; // g
-				c[2] += *pos++; // b
-			}
-
-			for (int32_t j = 0; j < 3; j++) {
-				color->xyz[j] = (c[j] / texels) / 255.0;
-			}
-		} else {
-			Com_Warn("Couldn't load %s\n", name);
-		}
-	}
-
-	return *color;
-}
-
 /**
  * @brief
  */
@@ -142,10 +104,9 @@ static void SubdividePatch_r(patch_t *patch) {
 	vec3_t normal = Vec3_Zero();
 
 	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
-	const bsp_material_t *material = &bsp_file.materials[brush_side->material];
-
-	const cm_material_t *cm = LoadMaterial(material->name, ASSET_CONTEXT_TEXTURES);
-	const float size = cm->patch_size ?: patch_size;
+	const material_t *material = GetMaterial(brush_side->material);
+	
+	const float size = material->cm->patch_size ?: patch_size;
 
 	int32_t i;
 	for (i = 0; i < 3; i++) {
