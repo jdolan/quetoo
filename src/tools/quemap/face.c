@@ -418,6 +418,10 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v) {
  */
 static void PhongFace(int32_t face_num) {
 
+	if (no_phong) {
+		return;
+	}
+
 	const bsp_face_t *face = bsp_file.faces + face_num;
 
 	bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;

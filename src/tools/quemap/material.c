@@ -94,7 +94,7 @@ ssize_t LoadMaterials(const char *path) {
 }
 
 /**
- * @brief Finds the specified material by name, writing it to the BSP file.
+ * @brief Finds the specified material by name, or allocates a new one.
  */
 static material_t *FindMaterial(const char *name) {
 

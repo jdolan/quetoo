@@ -78,7 +78,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--only-ents"
@@ -97,6 +97,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--no-phong"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--no-prune"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -106,14 +110,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-weld"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-vis"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--fast"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -138,7 +134,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-zip"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lighttest.map"
