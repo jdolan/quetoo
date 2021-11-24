@@ -288,7 +288,7 @@ static void AddBrushBevels(brush_t *b) {
 				brush_side_t *s = &b->brush_sides[b->num_brush_sides++];
 
 				s->plane = plane;
-				s->material =BSP_MATERIAL_BEVEL;
+				s->material = BSP_MATERIAL_BEVEL;
 
 				num_brush_sides++;
 			}
@@ -311,7 +311,7 @@ static void MakeBrushWindings(brush_t *brush) {
 	brush_side_t *side = brush->brush_sides;
 	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-		if (side->material ==BSP_MATERIAL_BEVEL) {
+		if (side->material == BSP_MATERIAL_BEVEL) {
 			continue;
 		}
 
@@ -323,7 +323,7 @@ static void MakeBrushWindings(brush_t *brush) {
 			if (side == s) {
 				continue;
 			}
-			if (s->material ==BSP_MATERIAL_BEVEL) {
+			if (s->material == BSP_MATERIAL_BEVEL) {
 				continue;
 			}
 			const plane_t *p = &planes[s->plane ^ 1];
@@ -735,7 +735,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 					const double dist = plane->dist - Vec3_Dot(plane->normal, origin);
 
 					side->plane = FindPlane(plane->normal, dist);
-					if (side->material !=BSP_MATERIAL_BEVEL) {
+					if (side->material != BSP_MATERIAL_BEVEL) {
 						TextureVectorsForBrushSide(side, origin, side->vecs);
 					}
 				}

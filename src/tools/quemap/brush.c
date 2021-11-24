@@ -244,7 +244,7 @@ int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane, int32_t 
 		const brush_side_t *side = brush->brush_sides;
 		for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-			if (side->material ==BSP_MATERIAL_BEVEL) {
+			if (side->material == BSP_MATERIAL_BEVEL) {
 				continue;
 			}
 			if (side->material == BSP_MATERIAL_NODE) {

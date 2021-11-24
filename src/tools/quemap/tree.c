@@ -221,7 +221,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 		const brush_side_t *side = brush->brush_sides;
 		for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-			if (side->material ==BSP_MATERIAL_BEVEL) {
+			if (side->material == BSP_MATERIAL_BEVEL) {
 				continue;
 			}
 			if (side->material == BSP_MATERIAL_NODE) {
@@ -377,7 +377,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 		}
 
 		for (int32_t i = 0; i < b->num_brush_sides; i++) {
-			if (b->brush_sides[i].material ==BSP_MATERIAL_BEVEL) {
+			if (b->brush_sides[i].material == BSP_MATERIAL_BEVEL) {
 				continue;
 			}
 			if (b->brush_sides[i].material == BSP_MATERIAL_NODE) {
