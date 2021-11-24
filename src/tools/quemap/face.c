@@ -242,7 +242,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		bsp_vertex_t out;
 
 		out.position = points[i];
-		out.normal = planes[face->brush_side->plane].normal;
+		out.normal = planes[brush_side->plane].normal;
 
 		/*
 		 * Texcoords are derived from the original winding point, not the welded vertex position.
