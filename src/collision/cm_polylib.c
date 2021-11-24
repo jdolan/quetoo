@@ -599,6 +599,8 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 		*v2->bitangent = Vec3_Add(*v2->bitangent, b);
 	}
 
+	int32_t num_bad_vertexes = 0;
+
 	cm_vertex_t *v = vertexes;
 	for (int32_t i = 0; i < num_vertexes; i++, v++) {
 
@@ -611,18 +613,24 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 		// FIXME: It looks as if we have malformed triangles maybe? Collinear elements?
 
 		if (Vec3_Length(*v->tangent) < .99f || Vec3_Length(*v->bitangent) < .99f) {
+
 			int32_t references = 0;
 			for (int32_t j = 0; j < num_elements; j++) {
 				if (elements[j] == i) {
 					references++;
 				}
 			}
+
 			Com_Warn("Vertex @ %s with normal %s and %d references with bad tangents %s %s\n",
 					 vtos(*v->position),
 					 vtos(*v->normal),
 					 references,
 					 vtos(*v->tangent),
 					 vtos(*v->bitangent));
+
+			num_bad_vertexes++;
 		}
 	}
+
+	Com_Print("%d bad vertexes\n", num_bad_vertexes);
 }
