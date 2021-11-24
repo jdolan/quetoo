@@ -84,8 +84,8 @@ static csg_brush_t *SubtractBrush(csg_brush_t *a, csg_brush_t *b) {
 }
 
 /**
- * @return True if the two brushes definately do not intersect.
- * @remark There will be false negatives for some non-axial combinations.
+ * @return True if the two brushes do not intersect.
+ * @remarks There will be false negatives for some non-axial combinations.
  */
 static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 
@@ -98,7 +98,7 @@ static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 	for (int32_t i = 0; i < a->num_brush_sides; i++) {
 		for (int32_t j = 0; j < b->num_brush_sides; j++) {
 			if (a->brush_sides[i].plane == (b->brush_sides[j].plane ^ 1)) {
-				return true;    // opposite planes, so not touching
+				return true; // opposite planes, so not touching
 			}
 		}
 	}
