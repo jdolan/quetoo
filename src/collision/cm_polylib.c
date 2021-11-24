@@ -465,8 +465,8 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			point_t *b = &points[(i + 1) % num_points];
 			point_t *c = &points[(i + 2) % num_points];
 
-			const vec3_t ba = Vec3_Normalize(Vec3_Subtract(b->position, a->position));
-			const vec3_t cb = Vec3_Normalize(Vec3_Subtract(c->position, b->position));
+			const vec3_t ba = Vec3_Direction(b->position, a->position);
+			const vec3_t cb = Vec3_Direction(c->position, b->position);
 
 			if (Vec3_Dot(ba, cb) > 1.0f - COLINEAR_EPSILON) {
 				b->corner = 0;
@@ -489,12 +489,7 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 				const point_t *c = &points[(i + 2) % num_points];
 
 				if (!a->corner && b->corner) {
-
-					const vec3_t ba = Vec3_Subtract(b->position, a->position);
-					const vec3_t cb = Vec3_Subtract(c->position, b->position);
-					const vec3_t cross = Vec3_Cross(ba, cb);
-
-					const float area = 0.5f * Vec3_Length(cross);
+					const float area = Cm_TriangleArea(a->position, b->position, c->position);
 					if (area < best) {
 						best = area;
 						clip = b;
