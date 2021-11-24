@@ -601,11 +601,15 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 
 	cm_vertex_t *v = vertexes;
 	for (int32_t i = 0; i < num_vertexes; i++, v++) {
-		Vec3_Tangents(*v->normal, *v->tangent, *v->bitangent, v->tangent, v->bitangent);
+
+		const vec3_t sdir = *v->tangent;
+		const vec3_t tdir = *v->bitangent;
+
+		Vec3_Tangents(*v->normal, sdir, tdir, v->tangent, v->bitangent);
 
 		// FIXME: Remove once I sort out how I broke tangents with brush sides..
 		// FIXME: It looks as if we have malformed triangles maybe? Collinear elements?
-		
+
 		if (Vec3_Length(*v->tangent) < .99f || Vec3_Length(*v->bitangent) < .99f) {
 			int32_t references = 0;
 			for (int32_t j = 0; j < num_elements; j++) {
