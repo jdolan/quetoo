@@ -419,6 +419,8 @@ void EmitBrushes(void) {
  */
 void EmitEntities(void) {
 
+	const uint32_t start = SDL_GetTicks();
+
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_ENTITIES, MAX_BSP_ENTITIES_SIZE);
 
 	char *out = bsp_file.entity_string;
@@ -445,6 +447,8 @@ void EmitEntities(void) {
 	}
 
 	bsp_file.entity_string_size = (int32_t) len + 1;
+
+	Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting entities", SDL_GetTicks() - start);
 }
 
 /**
