@@ -363,7 +363,7 @@ static void MakeBrushWindings(brush_t *brush) {
  */
 static void SetMaterialFlags(brush_side_t *side) {
 
-	const material_t *material = GetMaterial(side->material);
+	const material_t *material = &materials[side->material];
 	if (material) {
 		if (material->cm->contents) {
 			if (side->contents == 0) {

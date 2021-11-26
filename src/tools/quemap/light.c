@@ -35,7 +35,7 @@ static vec3_t GetMaterialColor(int32_t num) {
 	static vec3_t colors[MAX_BSP_MATERIALS];
 
 	if (Vec3_Equal(Vec3_Zero(), colors[num])) {
-		colors[num] = Img_Color(GetMaterial(num)->diffusemap);
+		colors[num] = Img_Color(materials[num].diffusemap);
 	}
 
 	return colors[num];

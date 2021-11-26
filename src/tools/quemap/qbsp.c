@@ -175,6 +175,7 @@ int32_t BSP_Main(void) {
 		LoadMapFile(map_name);
 
 		EmitPlanes();
+		EmitMaterials();
 		EmitBrushes();
 		EmitEntities();
 

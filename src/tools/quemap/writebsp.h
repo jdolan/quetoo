@@ -24,6 +24,7 @@
 #include "tree.h"
 
 void EmitPlanes(void);
+void EmitMaterials(void);
 void EmitBrushes(void);
 void EmitEntities(void);
 int32_t EmitNodes(node_t *head_node);

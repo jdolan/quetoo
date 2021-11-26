@@ -47,6 +47,23 @@ void EmitPlanes(void) {
 /**
  * @brief
  */
+void EmitMaterials(void) {
+
+	const material_t *m = materials;
+	for (int32_t i = 0; i < num_materials; i++, m++) {
+		bsp_material_t *out = &bsp_file.materials[bsp_file.num_materials];
+
+		g_strlcpy(out->name, m->cm->name, sizeof(out->name));
+
+		bsp_file.num_materials++;
+
+		Progress("Emitting materials", 100.f * i / num_materials);
+	}
+}
+
+/**
+ * @brief
+ */
 static int32_t EmitFaces(const node_t *node) {
 
 	const int32_t num_faces = bsp_file.num_faces;
@@ -231,9 +248,9 @@ static int32_t ContentsCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b)
 
 /**
  * @brief Draw elements comparator to sort model faces by material.
- * @details Opaque faces are equal if they share texture and contents.
+ * @details Opaque faces are equal if they share material and contents.
  * @details Blend faces are equal if they share opaque equality and plane.
- * @details Material faces are never equal, to preserve their texture matrices.
+ * @details Material faces equal if they share blend equality and brush side.
  */
 static int32_t FaceCmp(const void *a, const void *b) {
 
@@ -252,9 +269,8 @@ static int32_t FaceCmp(const void *a, const void *b) {
 			order = ContentsCmp(a_side, b_side);
 			if (order == 0) {
 
-				// FIXME: side - side now?
 				if (a_side->surface & SURF_MATERIAL) {
-					return (int32_t) (ptrdiff_t) (a_face - b_face);
+					return (int32_t) (ptrdiff_t) (a_side - b_side);
 				}
 
 				if (a_side->surface & SURF_MASK_BLEND) {

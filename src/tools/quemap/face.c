@@ -214,12 +214,8 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 	const vec3_t sdir = Vec4_XYZ(brush_side->vecs[0]);
 	const vec3_t tdir = Vec4_XYZ(brush_side->vecs[1]);
 
-	const material_t *material = GetMaterial(brush_side->material);
-	const SDL_Surface *diffusemap = material->diffusemap;
-	if (diffusemap == NULL) {
-		diffusemap = Img_LoadSurface("textures/common/notex");
-	}
-
+	const SDL_Surface *diffusemap = materials[brush_side->material].diffusemap;
+	
 	vec3_t points[face->w->num_points];
 	int32_t num_points = face->w->num_points;
 
@@ -451,6 +447,45 @@ void PhongShading(void) {
 	}
 
 	Cm_Tangents(vertexes, bsp_file.num_vertexes, bsp_file.elements, bsp_file.num_elements);
+
+	int32_t num_bad_vertexes = 0;
+
+	v = bsp_file.vertexes;
+	for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
+
+		// FIXME: Remove once I sort out how I broke tangents with brush sides..
+		// FIXME: It looks as if we have malformed triangles maybe? Collinear elements?
+
+		if (Vec3_Length(v->tangent) < .9f || Vec3_Length(v->bitangent) < .9f) {
+
+			int32_t tris = 0;
+			for (int32_t j = 0; j < bsp_file.num_elements; j += 3) {
+				if (bsp_file.elements[j + 0] == i ||
+					bsp_file.elements[j + 1] == i ||
+					bsp_file.elements[j + 2] == i) {
+
+					Com_Warn("Triangle with bad vertex and area %g\n",
+							 Cm_TriangleArea(bsp_file.vertexes[bsp_file.elements[j + 0]].position,
+											 bsp_file.vertexes[bsp_file.elements[j + 1]].position,
+											 bsp_file.vertexes[bsp_file.elements[j + 2]].position));
+					tris++;
+				}
+			}
+
+			Com_Warn("Vertex @ %s with normal %s and %d triangles with bad tangents %s %s\n",
+					 vtos(v->position),
+					 vtos(v->normal),
+					 tris,
+					 vtos(v->tangent),
+					 vtos(v->bitangent));
+
+			v->color = Color32(255, 0, 0, 255);
+
+			num_bad_vertexes++;
+		}
+	}
+
+	Com_Print("%d bad vertexes\n", num_bad_vertexes);
 
 	Mem_Free(vertexes);
 }

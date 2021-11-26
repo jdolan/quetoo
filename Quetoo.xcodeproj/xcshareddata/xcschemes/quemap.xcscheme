@@ -114,7 +114,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-indirect"

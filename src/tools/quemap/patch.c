@@ -103,10 +103,8 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	vec3_t normal = Vec3_Zero();
 
-	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
-	const material_t *material = GetMaterial(brush_side->material);
-	
-	const float size = material->cm->patch_size ?: patch_size;
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];	
+	const float size = materials[brush_side->material].cm->patch_size ?: patch_size;
 
 	int32_t i;
 	for (i = 0; i < 3; i++) {

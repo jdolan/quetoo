@@ -38,15 +38,12 @@ typedef struct {
 	 * @brief The diffusemap texture.
 	 */
 	SDL_Surface *diffusemap;
-
-	/**
-	 * @brief The BSP material backing this material.
-	 */
-	bsp_material_t *out;
 } material_t;
+
+extern int32_t num_materials;
+extern material_t materials[MAX_BSP_MATERIALS];
 
 void LoadMaterials(const char *path);
 int32_t FindMaterial(const char *name);
-material_t *GetMaterial(int32_t num);
 ssize_t WriteMaterialsFile(const char *path);
 void FreeMaterials(void);

@@ -504,6 +504,14 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 		const int32_t i = (int32_t) (ptrdiff_t) (clip - points);
 		const int32_t j = (i - 1 + num_points) % num_points;
 
+		const vec3_t a = points[(j + 0) % num_points].position;
+		const vec3_t b = points[(j + 1) % num_points].position;
+		const vec3_t c = points[(j + 2) % num_points].position;
+
+		if (Cm_TriangleArea(a, b, c) == 0.f) {
+			Com_Warn("Invalid triangle %s %s %s\n", vtos(a), vtos(b), vtos(c));
+		}
+
 		for (int32_t k = 0; k < 3; k++) {
 			*out++ = points[(j + k) % num_points].index;
 		}
@@ -594,8 +602,6 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 		*v2->bitangent = Vec3_Add(*v2->bitangent, b);
 	}
 
-	int32_t num_bad_vertexes = 0;
-
 	cm_vertex_t *v = vertexes;
 	for (int32_t i = 0; i < num_vertexes; i++, v++) {
 
@@ -603,29 +609,5 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 		const vec3_t tdir = *v->bitangent;
 
 		Vec3_Tangents(*v->normal, sdir, tdir, v->tangent, v->bitangent);
-
-		// FIXME: Remove once I sort out how I broke tangents with brush sides..
-		// FIXME: It looks as if we have malformed triangles maybe? Collinear elements?
-
-		if (Vec3_Length(*v->tangent) < .99f || Vec3_Length(*v->bitangent) < .99f) {
-
-			int32_t references = 0;
-			for (int32_t j = 0; j < num_elements; j++) {
-				if (elements[j] == i) {
-					references++;
-				}
-			}
-
-			Com_Warn("Vertex @ %s with normal %s and %d references with bad tangents %s %s\n",
-					 vtos(*v->position),
-					 vtos(*v->normal),
-					 references,
-					 vtos(*v->tangent),
-					 vtos(*v->bitangent));
-
-			num_bad_vertexes++;
-		}
 	}
-
-	Com_Print("%d bad vertexes\n", num_bad_vertexes);
 }
