@@ -199,9 +199,8 @@ static void Cm_LoadBspInlineModels(void) {
 static void Cm_LoadBspMaterials(void) {
 
 	char path[MAX_QPATH];
-	StripExtension(Basename(cm_bsp.name), path);
-
-	g_snprintf(path, sizeof(path), "maps/%s.mat", path);
+	StripExtension(cm_bsp.name, path);
+	g_snprintf(path, sizeof(path), "%s.mat", path);
 
 	GList *materials = NULL;
 	Cm_LoadMaterials(path, &materials);
