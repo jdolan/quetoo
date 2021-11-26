@@ -497,6 +497,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 
 		g_strlcpy(side->texture, token, sizeof(side->texture));
 
+		// read the texture parameters
 		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.x, 1);
 		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.y, 1);
 		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
@@ -509,8 +510,37 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->value, 1);
 		}
 
-		// resolve the texture
+		// find the plane number
+		side->plane = PlaneFromPoints(points[0], points[1], points[2]);
+		if (side->plane == -1) {
+			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Bad plane");
+			num_brush_sides -= brush->num_brush_sides;
+			brush->num_brush_sides = 0;
+			return;
+		}
+
+		// ensure that no other side on the brush references the same plane
+		const brush_side_t *other = brush->brush_sides;
+		for (int32_t i = 0; i < brush->num_brush_sides; i++, other++) {
+			if (other->plane == side->plane) {
+				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Duplicate plane");
+				num_brush_sides -= brush->num_brush_sides;
+				brush->num_brush_sides = 0;
+				return;
+			}
+			if (other->plane == (side->plane ^ 1)) {
+				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Mirrored plane");
+				num_brush_sides -= brush->num_brush_sides;
+				brush->num_brush_sides = 0;
+				return;
+			}
+		}
+
+		// resolve the material
 		side->material = FindMaterial(side->texture);
+
+		// resolve the texture vectors
+		TextureVectorsForBrushSide(side, Vec3_Zero());
 		
 		// resolve material-based surface and contents flags
 		SetMaterialFlags(side);
@@ -542,41 +572,12 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 		}
 
-			// hints and skips have no contents
+		// hints and skips have no contents
 		if (side->surface & (SURF_HINT | SURF_SKIP)) {
 			if (!(side->contents & CONTENTS_OCCLUSION_QUERY)) {
 				side->contents = CONTENTS_NONE;
 			}
 		}
-
-		// find the plane number
-		side->plane = PlaneFromPoints(points[0], points[1], points[2]);
-		if (side->plane == -1) {
-			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Bad plane");
-			num_brush_sides -= brush->num_brush_sides;
-			brush->num_brush_sides = 0;
-			return;
-		}
-
-		// ensure that no other side on the brush references the same plane
-		const brush_side_t *other = brush->brush_sides;
-		for (int32_t i = 0; i < brush->num_brush_sides; i++, other++) {
-			if (other->plane == side->plane) {
-				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Duplicate plane");
-				num_brush_sides -= brush->num_brush_sides;
-				brush->num_brush_sides = 0;
-				return;
-			}
-			if (other->plane == (side->plane ^ 1)) {
-				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Mirrored plane");
-				num_brush_sides -= brush->num_brush_sides;
-				brush->num_brush_sides = 0;
-				return;
-			}
-		}
-
-		// and the texture vectors
-		TextureVectorsForBrushSide(side, Vec3_Zero(), side->vecs);
 
 		brush->num_brush_sides++;
 		num_brush_sides++;
@@ -736,7 +737,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 
 					side->plane = FindPlane(plane->normal, dist);
 					if (side->material != BSP_MATERIAL_BEVEL) {
-						TextureVectorsForBrushSide(side, origin, side->vecs);
+						TextureVectorsForBrushSide(side, origin);
 					}
 				}
 				MakeBrushWindings(brush);

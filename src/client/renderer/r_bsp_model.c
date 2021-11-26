@@ -121,10 +121,8 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 		out->normal = in->normal;
 		out->tangent = in->tangent;
 		out->bitangent = in->bitangent;
-
 		out->diffusemap = in->diffusemap;
 		out->lightmap = in->lightmap;
-
 		out->color = in->color;
 	}
 }

@@ -26,8 +26,8 @@
 /**
  * @brief
  */
-static void TextureAxisFromPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
-	static const vec3_t base_axis[18] = { // base texture axis
+static void TextureAxisForPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
+	static const vec3_t base_axis[18] = {
 		{ {  0,  0,  1 } },
 		{ {  1,  0,  0 } },
 		{ {  0, -1,  0 } }, // floor
@@ -66,14 +66,14 @@ static void TextureAxisFromPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
 /**
  * @brief
  */
-void TextureVectorsForBrushSide(const brush_side_t *side, const vec3_t origin, vec4_t *out) {
+void TextureVectorsForBrushSide(brush_side_t *side, const vec3_t origin) {
 
-	vec3_t vecs[2];
-	TextureAxisFromPlane(&planes[side->plane], &vecs[0], &vecs[1]);
+	vec3_t axis[2];
+	TextureAxisForPlane(&planes[side->plane], &axis[0], &axis[1]);
 
 	vec2_t offset;
-	offset.x = Vec3_Dot(origin, vecs[0]);
-	offset.y = Vec3_Dot(origin, vecs[1]);
+	offset.x = Vec3_Dot(origin, axis[0]);
+	offset.y = Vec3_Dot(origin, axis[1]);
 
 	vec2_t scale;
 	scale.x = side->scale.x ?: 1.f;
@@ -84,36 +84,36 @@ void TextureVectorsForBrushSide(const brush_side_t *side, const vec3_t origin, v
 	const double cosv = cos(Radians(side->rotate));
 
 	int32_t sv;
-	if (vecs[0].x) {
+	if (axis[0].x) {
 		sv = 0;
-	} else if (vecs[0].y) {
+	} else if (axis[0].y) {
 		sv = 1;
 	} else {
 		sv = 2;
 	}
 
 	int32_t tv;
-	if (vecs[1].x) {
+	if (axis[1].x) {
 		tv = 0;
-	} else if (vecs[1].y) {
+	} else if (axis[1].y) {
 		tv = 1;
 	} else {
 		tv = 2;
 	}
 
 	for (int32_t i = 0; i < 2; i++) {
-		const float ns = cosv * vecs[i].xyz[sv] - sinv * vecs[i].xyz[tv];
-		const float nt = sinv * vecs[i].xyz[sv] + cosv * vecs[i].xyz[tv];
-		vecs[i].xyz[sv] = ns;
-		vecs[i].xyz[tv] = nt;
+		const float ns = cosv * axis[i].xyz[sv] - sinv * axis[i].xyz[tv];
+		const float nt = sinv * axis[i].xyz[sv] + cosv * axis[i].xyz[tv];
+		axis[i].xyz[sv] = ns;
+		axis[i].xyz[tv] = nt;
 	}
 
 	for (int32_t i = 0; i < 2; i++) {
 		for (int32_t j = 0; j < 3; j++) {
-			out[i].xyzw[j] = vecs[i].xyz[j] / scale.xy[i];
+			side->vecs[i].xyzw[j] = axis[i].xyz[j] / scale.xy[i];
 		}
 	}
 
-	out[0].w = side->shift.x + offset.x;
-	out[1].w = side->shift.y + offset.y;
+	side->vecs[0].w = side->shift.x + offset.x;
+	side->vecs[1].w = side->shift.y + offset.y;
 }
