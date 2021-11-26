@@ -143,7 +143,7 @@ static void Cm_LoadBspBrushSides(void) {
 			out->material = &null_material;
 		} else {
 			if (in->material >= cm_bsp.file.num_materials) {
-				Com_Error(ERROR_DROP, "Brush side %d has invalid texture %d\n", i, in->material);
+				Com_Error(ERROR_DROP, "Brush side %d has invalid material %d\n", i, in->material);
 			}
 
 			out->material = cm_bsp.materials[in->material];
