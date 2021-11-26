@@ -182,6 +182,7 @@ int32_t BSP_Main(void) {
 		ProcessModels();
 
 		PhongShading();
+		TangentVectors();
 	}
 
 	WriteBSPFile(bsp_name);

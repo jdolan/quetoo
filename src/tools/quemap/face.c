@@ -427,11 +427,17 @@ static void PhongFace(int32_t face_num) {
 }
 
 /**
- * @brief Calculates Phong shading, emitting tangent vectors to the BSP vertexes.
+ * @brief Calculates Phong shading, updating vertex normal vectors.
  */
 void PhongShading(void) {
 
 	Work("Phong shading", PhongFace, bsp_file.num_faces);
+}
+
+/**
+ * @brief Calculates tangent and bitangent vectors from Phong-interpolated normals.
+ */
+void TangentVectors(void) {
 
 	cm_vertex_t *vertexes = Mem_Malloc(sizeof(cm_vertex_t) * bsp_file.num_vertexes);
 
@@ -447,6 +453,8 @@ void PhongShading(void) {
 	}
 
 	Cm_Tangents(vertexes, bsp_file.num_vertexes, bsp_file.elements, bsp_file.num_elements);
+
+	Mem_Free(vertexes);
 
 	if (debug) {
 		int32_t num_bad_vertexes = 0;
@@ -480,6 +488,4 @@ void PhongShading(void) {
 
 		Com_Debug(DEBUG_ALL, "%d bad vertexes\n", num_bad_vertexes);
 	}
-
-	Mem_Free(vertexes);
 }
