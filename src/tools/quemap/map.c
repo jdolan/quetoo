@@ -510,7 +510,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		}
 
 		// resolve the texture
-		side->material = EmitMaterial(side->texture);
+		side->material = FindMaterial(side->texture);
 		
 		// resolve material-based surface and contents flags
 		SetMaterialFlags(side);

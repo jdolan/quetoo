@@ -25,14 +25,28 @@
 
 #include "quemap.h"
 
+/**
+ * @brief The quemap representation of materials.
+ */
 typedef struct {
-	bsp_material_t *out;
+	/**
+	 * @brief The collision material backing this material.
+	 */
 	cm_material_t *cm;
+
+	/**
+	 * @brief The diffusemap texture.
+	 */
 	SDL_Surface *diffusemap;
+
+	/**
+	 * @brief The BSP material backing this material.
+	 */
+	bsp_material_t *out;
 } material_t;
 
-ssize_t LoadMaterials(const char *path);
-int32_t EmitMaterial(const char *name);
+void LoadMaterials(const char *path);
+int32_t FindMaterial(const char *name);
 material_t *GetMaterial(int32_t num);
 ssize_t WriteMaterialsFile(const char *path);
 void FreeMaterials(void);

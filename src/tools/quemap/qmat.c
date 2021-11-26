@@ -47,12 +47,12 @@ int32_t MAT_Main(void) {
 
 	LoadMapFile(map_name);
 
-	WriteMaterialsFile(path);
+	const ssize_t count = WriteMaterialsFile(path);
 
 	FreeMaterials();
 
 	const uint32_t end = SDL_GetTicks();
-	Com_Print("\nGenerated materials in %d ms\n", end - start);
+	Com_Print("\nGenerated %ld materials in %d ms\n", count, end - start);
 
 	return 0;
 }
