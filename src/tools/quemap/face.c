@@ -235,11 +235,11 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES");
 		}
 
-		bsp_vertex_t out;
-
-		out.position = points[i];
-		out.normal = planes[brush_side->plane].normal;
-
+		bsp_vertex_t out = {
+			.position = points[i],
+			.normal = planes[brush_side->plane].normal
+		};
+		
 		/*
 		 * Texcoords are derived from the original winding point, not the welded vertex position.
 		 * This produces WYSIWYG texture mapping, and avoids unsightly specular artifacts
