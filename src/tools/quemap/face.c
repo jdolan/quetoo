@@ -239,7 +239,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			.position = points[i],
 			.normal = planes[brush_side->plane].normal
 		};
-		
+
 		/*
 		 * Texcoords are derived from the original winding point, not the welded vertex position.
 		 * This produces WYSIWYG texture mapping, and avoids unsightly specular artifacts
@@ -448,44 +448,38 @@ void PhongShading(void) {
 
 	Cm_Tangents(vertexes, bsp_file.num_vertexes, bsp_file.elements, bsp_file.num_elements);
 
-	int32_t num_bad_vertexes = 0;
+	if (debug) {
+		int32_t num_bad_vertexes = 0;
 
-	v = bsp_file.vertexes;
-	for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
+		const bsp_vertex_t *v = bsp_file.vertexes;
+		for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
 
-		// FIXME: Remove once I sort out how I broke tangents with brush sides..
-		// FIXME: It looks as if we have malformed triangles maybe? Collinear elements?
+			if (Vec3_Length(v->tangent) < .9f || Vec3_Length(v->bitangent) < .9f) {
 
-		if (Vec3_Length(v->tangent) < .9f || Vec3_Length(v->bitangent) < .9f) {
+				const int32_t *e = bsp_file.elements;
+				for (int32_t j = 0; j < bsp_file.num_elements; j += 3, e += 3) {
 
-//			int32_t tris = 0;
-//			for (int32_t j = 0; j < bsp_file.num_elements; j += 3) {
-//				if (bsp_file.elements[j + 0] == i ||
-//					bsp_file.elements[j + 1] == i ||
-//					bsp_file.elements[j + 2] == i) {
-//
-//					Com_Warn("Triangle with bad vertex and area %g\n",
-//							 Cm_TriangleArea(bsp_file.vertexes[bsp_file.elements[j + 0]].position,
-//											 bsp_file.vertexes[bsp_file.elements[j + 1]].position,
-//											 bsp_file.vertexes[bsp_file.elements[j + 2]].position));
-//					tris++;
-//				}
-//			}
-//
-//			Com_Warn("Vertex @ %s with normal %s and %d triangles with bad tangents %s %s\n",
-//					 vtos(v->position),
-//					 vtos(v->normal),
-//					 tris,
-//					 vtos(v->tangent),
-//					 vtos(v->bitangent));
+					if (e[0] == i || e[1] == i || e[2] == i) {
 
-			v->color = Color32(255, 0, 0, 255);
+						const vec3_t tri[3] = {
+							bsp_file.vertexes[e[0]].position,
+							bsp_file.vertexes[e[1]].position,
+							bsp_file.vertexes[e[2]].position
+						};
 
-			num_bad_vertexes++;
+						const char *msg = va("Vertex at %s has invalid tangents", vtos(v->position));
+						Mon_SendWinding(MON_WARN, tri, 3, msg);
+
+						break;
+					}
+				}
+
+				num_bad_vertexes++;
+			}
 		}
-	}
 
-	Com_Print("%d bad vertexes\n", num_bad_vertexes);
+		Com_Debug(DEBUG_ALL, "%d bad vertexes\n", num_bad_vertexes);
+	}
 
 	Mem_Free(vertexes);
 }
