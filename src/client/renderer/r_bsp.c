@@ -58,7 +58,8 @@ int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend
 		}
 
 		if (Box3_Intersects(bounds, draw->bounds)) {
-			if (Cm_DistanceToPlane(p, draw->plane->cm) < 0.f) {
+			if (SignOf(Cm_DistanceToPlane(view->origin, draw->plane->cm)) !=
+				SignOf(Cm_DistanceToPlane(p, draw->plane->cm))) {
 
 				draw->blend_depth_types |= type;
 
@@ -115,10 +116,6 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 	for (guint i = 0; i < plane->blend_elements->len; i++) {
 		r_bsp_draw_elements_t *draw = g_ptr_array_index(plane->blend_elements, i);
 
-		if (draw->plane_side == back_side) {
-			continue;
-		}
-
 		if (!Box3_Intersects(draw->bounds, node->bounds)) {
 			continue;
 		}
@@ -128,6 +125,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		}
 
 		draw->blend_depth_types = BLEND_DEPTH_NONE;
+
 		g_ptr_array_add(in->blend_elements, draw);
 	}
 

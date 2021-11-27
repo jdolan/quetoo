@@ -198,8 +198,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
 		out->plane = bsp->planes + in->plane;
-		out->plane_side = in->plane & 1;
-
 		out->material = bsp->materials[in->material];
 
 		out->contents = in->contents;
@@ -213,7 +211,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		if (out->surface & SURF_MASK_BLEND) {
 
 			r_bsp_plane_t *blend_plane;
-			if (out->plane_side) {
+			if (in->plane & 1) {
 				blend_plane = out->plane - 1;
 			} else {
 				blend_plane = out->plane;

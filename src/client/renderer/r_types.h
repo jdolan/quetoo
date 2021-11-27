@@ -381,8 +381,6 @@ typedef struct {
  */
 typedef struct {
 	r_bsp_plane_t *plane;
-	byte plane_side;
-
 	r_material_t *material;
 
 	int32_t contents;
