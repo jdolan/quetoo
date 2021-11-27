@@ -138,7 +138,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lighttest.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/sandbox.map"
@@ -174,7 +174,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/torn.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/test.map"
