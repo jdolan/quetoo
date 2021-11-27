@@ -384,7 +384,6 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 		r_stats.count_bsp_triangles += draw->num_elements / 3;
-		r_stats.count_bsp_draw_elements_blend++;
 
 		R_GetError(draw->material->media.name);
 	}
@@ -417,7 +416,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 		);
 	}
 
-	r_stats.count_bsp_inline_models++;
+		r_stats.count_bsp_opaque_draw_elements++;
 }
 
 /**
@@ -439,6 +438,8 @@ static void R_DrawBspInlineModelAlphaTestDrawElements(const r_view_t *view,
 		R_TIMER_WRAP(va("AlphaTestDrawElem: %s", draw->material->media.name),
 			R_DrawBspDrawElements(view, entity, draw, &material);
 		);
+
+		r_stats.count_bsp_alpha_test_draw_elements++;
 	}
 }
 
@@ -491,6 +492,8 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 
 			R_DrawBspDrawElements(view, entity, draw, &material);
 		);
+
+		r_stats.count_bsp_blend_draw_elements++;
 	}
 
 	/*const r_bsp_face_t *face = in->faces;
@@ -587,7 +590,7 @@ void R_DrawWorld(const r_view_t *view) {
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 				R_DrawBspInlineModelOpaqueDrawElements(view, e, e->model->bsp_inline);
 				R_DrawBspInlineModelAlphaTestDrawElements(view, e, e->model->bsp_inline);
-
+				r_stats.count_bsp_inline_models++;
 			}
 		}
 		glUniform1i(r_bsp_program.entity, 0);

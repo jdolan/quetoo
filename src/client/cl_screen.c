@@ -143,9 +143,11 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 		R_Draw2DString(x, y, va(" %d inline models", r_stats.count_bsp_inline_models), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d draw elements", r_stats.count_bsp_draw_elements), color_yellow);
+		R_Draw2DString(x, y, va(" %d opaque draw elements", r_stats.count_bsp_opaque_draw_elements), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d blend elements", r_stats.count_bsp_draw_elements_blend), color_yellow);
+		R_Draw2DString(x, y, va(" %d alpha test draw elements", r_stats.count_bsp_alpha_test_draw_elements), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d blend draw elements", r_stats.count_bsp_blend_draw_elements), color_yellow);
 		y += ch;
 		R_Draw2DString(x, y, va(" %d triangles", r_stats.count_bsp_triangles), color_yellow);
 		y += ch;

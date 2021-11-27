@@ -1340,8 +1340,9 @@ typedef struct {
 typedef struct {
 
 	int32_t count_bsp_inline_models;
-	int32_t count_bsp_draw_elements;
-	int32_t count_bsp_draw_elements_blend;
+	int32_t count_bsp_opaque_draw_elements;
+	int32_t count_bsp_alpha_test_draw_elements;
+	int32_t count_bsp_blend_draw_elements;
 	int32_t count_bsp_triangles;
 	int32_t count_bsp_occlusion_queries;
 	int32_t count_bsp_occlusion_queries_passed;
