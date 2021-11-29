@@ -933,7 +933,7 @@ static void Pm_CheckLadder(void) {
 	const vec3_t pos = Vec3_Fmaf(pm->s.origin, 4.f, pm_locals.forward_xy);
 	const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
 
-	if ((trace.fraction < 1.0f) && (trace.side->contents & CONTENTS_LADDER)) {
+	if (trace.side && (trace.side->contents & CONTENTS_LADDER)) {
 		pm->s.flags |= PMF_ON_LADDER;
 
 		memset(&pm->ground, 0, sizeof(pm->ground));
@@ -968,7 +968,7 @@ static _Bool Pm_CheckWaterJump(void) {
 	vec3_t pos = Vec3_Fmaf(pm->s.origin, 16.f, pm_locals.forward);
 	cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
 
-	if ((trace.fraction < 1.0f) && (trace.side->contents & CONTENTS_MASK_SOLID)) {
+	if (trace.side && (trace.side->contents & CONTENTS_MASK_SOLID)) {
 
 		pos.z += PM_STEP_HEIGHT + Box3_Size(pm->bounds).z;
 
