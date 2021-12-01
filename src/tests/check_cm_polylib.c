@@ -225,7 +225,7 @@ START_TEST(check_Cm_ElementsForWinding_skinnyQuad) {
 
 } END_TEST
 
-START_TEST(check_Cm_ElementsForWinding_collinearQuad) {
+START_TEST(check_Cm_ElementsForWinding_colinearQuad) {
 
 	cm_winding_t *w = Cm_AllocWinding(6);
 	w->num_points = 6;
@@ -358,7 +358,7 @@ int32_t main(int32_t argc, char **argv) {
 		tcase_add_test(tcase, check_Cm_ElementsForWinding_triangle);
 		tcase_add_test(tcase, check_Cm_ElementsForWinding_quad);
 		tcase_add_test(tcase, check_Cm_ElementsForWinding_skinnyQuad);
-		tcase_add_test(tcase, check_Cm_ElementsForWinding_collinearQuad);
+		tcase_add_test(tcase, check_Cm_ElementsForWinding_colinearQuad);
 		tcase_add_test(tcase, check_Cm_ElementsForWinding_cornerCase);
 		suite_add_tcase(suite, tcase);
 	}

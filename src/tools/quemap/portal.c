@@ -611,10 +611,10 @@ static void FindPortalBrushSide(portal_t *portal) {
 
 			for (int32_t i = 0; i < original->num_brush_sides; i++) {
 				brush_side_t *side = &original->brush_sides[i];
-				if (side->material == BSP_MATERIAL_BEVEL) {
+				if (side->surface & SURF_BEVEL) {
 					continue;
 				}
-				if (side->material == BSP_MATERIAL_NODE) {
+				if (side->surface & SURF_NODE) {
 					continue;
 				}
 
@@ -725,6 +725,7 @@ static void MakeFaces_r(node_t *node) {
 		MakeFaces_r(node->children[1]);
 		return;
 	}
+
 	// solid leafs never have visible faces
 	if (node->contents & CONTENTS_SOLID) {
 		return;

@@ -477,7 +477,7 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 
 		//assert(num_corners > 2);
 
-		// chip away at edges with collinear points first
+		// chip away at edges with colinear points first
 
 		const point_t *clip = NULL;
 		if (num_corners < num_points) {

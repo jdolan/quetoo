@@ -121,8 +121,6 @@ static void Cm_LoadBspLeafBrushes(void) {
  */
 static void Cm_LoadBspBrushSides(void) {
 
-	static cm_material_t null_material;
-
 	const int32_t num_brush_sides = cm_bsp.file.num_brush_sides;
 	const bsp_brush_side_t *in = cm_bsp.file.brush_sides;
 
@@ -139,9 +137,7 @@ static void Cm_LoadBspBrushSides(void) {
 
 		out->plane = &cm_bsp.planes[p];
 
-		if (in->material < 0) {
-			out->material = &null_material;
-		} else {
+		if (in->material > -1) {
 			if (in->material >= cm_bsp.file.num_materials) {
 				Com_Error(ERROR_DROP, "Brush side %d has invalid material %d\n", i, in->material);
 			}

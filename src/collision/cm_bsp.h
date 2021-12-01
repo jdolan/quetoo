@@ -151,23 +151,24 @@ typedef struct {
 	char name[MAX_QPATH];
 } bsp_material_t;
 
-// planes (x & ~1) and (x & ~1) + 1 are always opposites
-
+/**
+ * @brief Planes are stored in opposing pairs, with positive normal vectors first in each pair.
+ */
 typedef struct {
 	vec3_t normal;
 	float dist;
 } bsp_plane_t;
 
 /**
- * @brief Sentinel material identifier for BSP decision nodes.
+ * @brief Sentine value for brush sides created from BSP.
  */
 #define BSP_MATERIAL_NODE -1
 
 /**
- * @brief Sentinel material identifier for bevel sides.
+ * @brief Brush sides are defined by map input, and by BSP tree generation. Map brushes
+ * may be split into multiple BSP brushes, producing new sides where they are split.
+ * Non-axial map brushes are also "beveled" to optimize collision detection.
  */
-#define BSP_MATERIAL_BEVEL -2
-
 typedef struct {
 	int32_t plane; // facing out of the leaf
 	int32_t material;
@@ -177,6 +178,9 @@ typedef struct {
 	int32_t value; // light emission, etc
 } bsp_brush_side_t;
 
+/**
+ * @brief Brushes are convex volumes defined by four or more clipping planes.
+ */
 typedef struct {
 	int32_t entity; // the entity that defined this brush
 	int32_t contents;

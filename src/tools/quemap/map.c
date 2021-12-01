@@ -252,6 +252,42 @@ static int32_t SortBrushSides(const void *a, const void *b) {
 }
 
 /**
+ * @brief Adds a bevel side referencing `plane` to the specified brush. The bevel will
+ * borrow surface, contents and material from the nearest original brush side.
+ */
+static void AddBrushBevel(brush_t *b, int32_t plane) {
+
+	if (num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
+		Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+	}
+
+
+	float dot = -1.f;
+	const brush_side_t *side = NULL, *s = b->brush_sides;
+	for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
+		if (s->surface & SURF_BEVEL) {
+			continue;
+		}
+
+		const float d = Vec3_Dot(planes[plane].normal, planes[s->plane].normal);
+		if (d > dot) {
+			dot = d;
+			side = s;
+		}
+	}
+
+	assert(side);
+
+	brush_side_t *bevel = &b->brush_sides[b->num_brush_sides++];
+	bevel->plane = plane;
+	bevel->contents = side->contents;
+	bevel->surface = side->surface | SURF_BEVEL;
+	bevel->material = side->material;
+
+	num_brush_sides++;
+}
+
+/**
  * @brief Adds any additional planes necessary to allow the brush to be expanded
  * against axial bounding boxes. Ensures that the first 6 sides of every brush
  * are axial, which allows some optimizations in collision detection.
@@ -281,16 +317,7 @@ static void AddBrushBevels(brush_t *b) {
 			}
 
 			if (j == b->num_brush_sides) {
-				if (num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
-					Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
-				}
-
-				brush_side_t *s = &b->brush_sides[b->num_brush_sides++];
-
-				s->plane = plane;
-				s->material = BSP_MATERIAL_BEVEL;
-
-				num_brush_sides++;
+				AddBrushBevel(b, plane);
 			}
 		}
 	}
@@ -311,7 +338,7 @@ static void MakeBrushWindings(brush_t *brush) {
 	brush_side_t *side = brush->brush_sides;
 	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-		if (side->material == BSP_MATERIAL_BEVEL) {
+		if (side->surface & SURF_BEVEL) {
 			continue;
 		}
 
@@ -323,7 +350,7 @@ static void MakeBrushWindings(brush_t *brush) {
 			if (side == s) {
 				continue;
 			}
-			if (s->material == BSP_MATERIAL_BEVEL) {
+			if (s->surface & SURF_BEVEL) {
 				continue;
 			}
 			const plane_t *p = &planes[s->plane ^ 1];
@@ -624,11 +651,11 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 	for (int32_t i = 0; i < brush->num_brush_sides; i++) {
 
 		if (brush->contents & CONTENTS_MASK_CLIP) {
-			brush->brush_sides[i].material = BSP_MATERIAL_NODE;
+			brush->brush_sides[i].surface |= SURF_NODE;
 		}
 
 		if (brush->brush_sides[i].surface & SURF_SKIP) {
-			brush->brush_sides[i].material = BSP_MATERIAL_NODE;
+			brush->brush_sides[i].surface |= SURF_NODE;
 		}
 	}
 
@@ -736,7 +763,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 					const double dist = plane->dist - Vec3_Dot(plane->normal, origin);
 
 					side->plane = FindPlane(plane->normal, dist);
-					if (side->material != BSP_MATERIAL_BEVEL) {
+					if (!(side->surface & SURF_BEVEL)) {
 						TextureVectorsForBrushSide(side, origin);
 					}
 				}

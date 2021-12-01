@@ -225,7 +225,6 @@ typedef enum {
 #define LAST_VISIBLE_CONTENTS		CONTENTS_MIST
 
 // remaining contents are non-visible, and don't eat brushes
-
 #define CONTENTS_OCCLUSION_QUERY	0x8000 // CONTENTS_AREAPORTAL in other engines
 
 #define CONTENTS_PLAYER_CLIP		0x10000
@@ -248,8 +247,7 @@ typedef enum {
 #define CONTENTS_LADDER				0x20000000
 
 /**
- * @brief Leafs will have some combination of the above flags; nodes will
- * always be -1.
+ * @brief Leafs will have some combination of the above flags; nodes will always be -1.
  */
 #define CONTENTS_NODE			-1
 
@@ -292,6 +290,8 @@ typedef enum {
 #define SURF_MATERIAL			0x1000 // skip diffuse pass, draw material stages only
 #define SURF_DECAL				0x2000 // draw blended, but don't participate in depth sorting
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
+#define SURF_BEVEL				0x20000000 // brush side is a bevel with approximate material
+#define SURF_NODE				0x40000000 // brush side is a node splitter with no material
 
 /**
  * @brief Faces with differing flags after applying this mask should not be considered
