@@ -224,11 +224,11 @@ static void Cl_DrawRendererStats(void) {
 	const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
 	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
-	if (tr.fraction < 1.f) {
+	if (tr.material) {
 		y += ch;
 
 		R_Draw2DString(x, y, va("%s (%g %g %g) %g",
-								tr.side->material->name,
+								tr.material->name,
 								tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z,
 								tr.plane.dist
 								), color_white);

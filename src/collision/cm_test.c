@@ -194,7 +194,6 @@ static cm_box_t cm_box;
  * just beyond the parsed size of the map.
  */
 void Cm_InitBoxHull(void) {
-	static cm_material_t null_material;
 
 	if (cm_bsp.file.num_planes + 12 > MAX_BSP_PLANES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
@@ -271,7 +270,7 @@ void Cm_InitBoxHull(void) {
 		// fill in brush sides, one per side
 		cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[cm_bsp.file.num_brush_sides + i];
 		side->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2 + s);
-		side->material = &null_material;
+		side->contents = CONTENTS_MONSTER;
 	}
 }
 

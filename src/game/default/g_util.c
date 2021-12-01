@@ -780,9 +780,9 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 /**
  * @return True if the specified entity and surface are structural.
  */
-_Bool G_IsStructural(const cm_bsp_brush_side_t *side) {
+_Bool G_IsStructural(const cm_trace_t *trace) {
 
-	if (side && (side->contents & CONTENTS_MASK_SOLID) && !G_IsSky(side)) {
+	if ((trace->contents & CONTENTS_MASK_SOLID) && !G_IsSky(trace)) {
 		return true;
 	}
 
@@ -792,13 +792,8 @@ _Bool G_IsStructural(const cm_bsp_brush_side_t *side) {
 /**
  * @return True if the specified entity and surface are sky.
  */
-_Bool G_IsSky(const cm_bsp_brush_side_t *side) {
-
-	if (side && (side->surface & SURF_SKY)) {
-		return true;
-	}
-
-	return false;
+_Bool G_IsSky(const cm_trace_t *trace) {
+	return trace->surface & SURF_SKY;
 }
 
 /**

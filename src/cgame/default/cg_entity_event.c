@@ -203,9 +203,9 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
 	cm_trace_t tr = cgi.Trace(start, end, Box3_Zero(), ent->current.number, CONTENTS_MASK_SOLID);
 
-	if (tr.fraction < 1.0 && tr.side) {
-		if (*tr.side->material->footsteps) {
-			footsteps = tr.side->material->footsteps;
+	if (tr.material) {
+		if (*tr.material->footsteps) {
+			footsteps = tr.material->footsteps;
 		}
 	}
 

@@ -221,12 +221,12 @@ typedef struct {
 	struct cm_material_s *material;
 
 	/**
-	 * @brief The contents mask.
+	 * @brief The CONTENTS_* mask.
 	 */
 	int32_t contents;
 
 	/**
-	 * @brief SURF_* flags.
+	 * @brief The SURF_* mask.
 	 */
 	int32_t surface;
 
@@ -330,8 +330,7 @@ typedef struct {
 	_Bool start_solid;
 
 	/**
-	 * @brief The fraction of the desired distance traveled (0.0 - 1.0). If
-	 * 1.0, no plane was impacted.
+	 * @brief The fraction of the desired distance traveled (0.0 - 1.0).
 	 */
 	float fraction;
 
@@ -341,21 +340,30 @@ typedef struct {
 	vec3_t end;
 
 	/**
-	 * @brief The impacted plane, or empty. Note that a copy of the plane is
-	 * returned, rather than a pointer. This is because the plane may belong to
-	 * an inline BSP model or the box hull of a solid entity, in which case it is
-	 * transformed by the entity's current position.
+	 * @brief The impacted plane, transformed by the matrix provided to Cm_BoxTrace.
 	 */
 	cm_bsp_plane_t plane;
 
 	/**
-	 * @brief The impacted brush side, or `NULL`.
+	 * @brief The contents mask of the impacted brush side.
 	 */
-	const cm_bsp_brush_side_t *side;
+	int32_t contents;
 
 	/**
-	 * @brief The impacted entity, or `NULL`.
+	 * @brief The surface mask of the impacted brush side.
 	 */
-	struct g_entity_s *ent; // not set by Cm_*() functions
+	int32_t surface;
+
+	/**
+	 * @brief The material of the impacted brush side.
+	 */
+	const struct cm_material_s *material;
+
+	/**
+	 * @brief The impacted entity, or `NULL`. This is not set by the collision routines directly,
+	 * but rather by the Sv_Trace and Cl_Trace routines, which clip traces to their respective
+	 * known entities.
+	 */
+	struct g_entity_s *ent;
 } cm_trace_t;
 

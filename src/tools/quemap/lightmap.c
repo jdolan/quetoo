@@ -377,7 +377,7 @@ static void LightLightmapLuxel(const GPtrArray *lights, const lightmap_t *lightm
 			const vec3_t sun_origin = Vec3_Fmaf(luxel->origin, -MAX_WORLD_DIST, light->normal);
 
 			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, head_node, CONTENTS_SOLID);
-			if (!(trace.side && (trace.side->surface & SURF_SKY))) {
+			if (!(trace.surface & SURF_SKY)) {
 				float exposure = 0.f;
 
 				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
@@ -389,7 +389,7 @@ static void LightLightmapLuxel(const GPtrArray *lights, const lightmap_t *lightm
 						const vec3_t point = Vec3_Fmaf(sun_origin, i * LIGHT_SIZE_STEP, points[j]);
 
 						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
-						if (!(trace.side && (trace.side->surface & SURF_SKY))) {
+						if (!(trace.surface & SURF_SKY)) {
 							continue;
 						}
 

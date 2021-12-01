@@ -158,11 +158,11 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 
 	float viscosity;
 
-	if (tr.side->contents & CONTENTS_SLIME) {
+	if (tr.contents & CONTENTS_SLIME) {
 		viscosity = 20.0;
-	} else if (tr.side->contents & CONTENTS_LAVA) {
+	} else if (tr.contents & CONTENTS_LAVA) {
 		viscosity = 30.0;
-	} else if (tr.side->contents & CONTENTS_WATER) {
+	} else if (tr.contents & CONTENTS_WATER) {
 		viscosity = 10.0;
 	} else {
 		G_Debug("%s failed to resolve water type\n", etos(ent));
@@ -192,7 +192,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 
-	if (!(tr.side->contents & CONTENTS_TRANSLUCENT)) {
+	if (!(tr.contents & CONTENTS_TRANSLUCENT)) {
 		pos = Vec3_Add(tr.end, Vec3_Down());
 		dir = Vec3_Negate(dir);
 
@@ -214,7 +214,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
  */
 static void G_BulletImpact(const cm_trace_t *trace) {
 
-	if (trace->side->surface & SURF_ALPHA_TEST) {
+	if (trace->surface & SURF_ALPHA_TEST) {
 		return;
 	}
 
@@ -243,12 +243,12 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const
 		return;
 	}
 
-	if (!(trace->side->surface & SURF_SKY)) {
+	if (!G_IsSky(trace)) {
 
 		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
 		         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BLASTER);
 
-		if (G_IsStructural(trace->side)) {
+		if (G_IsStructural(trace)) {
 
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_BLASTER);
@@ -322,7 +322,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 
 		G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, DMG_BULLET, mod);
 
-		if (G_IsStructural(tr.side)) {
+		if (G_IsStructural(&tr)) {
 			G_BulletImpact(&tr);
 		}
 
@@ -415,14 +415,14 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_tra
 
 	if (!G_TakesDamage(other)) { // bounce off of structural solids
 
-		if (G_IsStructural(trace->side)) {
+		if (G_IsStructural(trace)) {
 			if (g_level.time - self->locals.touch_time > 200) {
 				if (Vec3_Length(self->locals.velocity) > 40.0) {
 					gi.Sound(self, g_media.sounds.grenade_hit, SOUND_ATTEN_LINEAR, (int8_t) (Randomf() * 5.0));
 					self->locals.touch_time = g_level.time;
 				}
 			}
-		} else if (G_IsSky(trace->side)) {
+		} else if (G_IsSky(trace)) {
 			G_FreeEntity(self);
 		}
 
@@ -545,9 +545,9 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other, const 
 		return;
 	}
 
-	if (!G_IsSky(trace->side)) {
+	if (!G_IsSky(trace)) {
 
-		if (G_IsStructural(trace->side) || G_IsMeat(other)) {
+		if (G_IsStructural(trace) || G_IsMeat(other)) {
 
 			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
 			         self->locals.damage, self->locals.knockback, 0, MOD_ROCKET);
@@ -621,14 +621,14 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, 
 		return;
 	}
 
-	if (!G_IsSky(trace->side)) {
+	if (!G_IsSky(trace)) {
 
-		if (G_IsStructural(trace->side) || G_IsMeat(other)) {
+		if (G_IsStructural(trace) || G_IsMeat(other)) {
 
 			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
 			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_HYPERBLASTER);
 
-			if (G_IsStructural(trace->side)) {
+			if (G_IsStructural(trace)) {
 
 				vec3_t v;
 				v = Vec3_Subtract(self->s.origin, self->owner->s.origin);
@@ -777,7 +777,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 
 	tr = gi.Trace(start, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 
-	if (tr.side && tr.side->contents & CONTENTS_MASK_LIQUID) { // entered water, play sound, leave trail
+	if (tr.contents & CONTENTS_MASK_LIQUID) { // entered water, play sound, leave trail
 		water_start = tr.end;
 
 		if (!self->locals.water_level) {
@@ -806,8 +806,8 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_LIGHTNING);
 			self->locals.damage = 0;
 		} else { // or leave a mark
-			if (tr.side && tr.side->contents & CONTENTS_MASK_SOLID) {
-				if (G_IsStructural(tr.side)) {
+			if (tr.contents & CONTENTS_MASK_SOLID) {
+				if (G_IsStructural(&tr)) {
 					self->s.angles = Vec3_Euler(tr.plane.normal);
 					self->s.animation1 = LIGHTNING_SOLID_HIT;
 				}
@@ -903,7 +903,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 			break;
 		}
 
-		if ((tr.side->contents & CONTENTS_MASK_LIQUID) && !liquid) {
+		if ((tr.contents & CONTENTS_MASK_LIQUID) && !liquid) {
 
 			content_mask &= ~CONTENTS_MASK_LIQUID;
 			liquid = true;
@@ -935,7 +935,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	gi.WritePosition(start);
 	gi.WritePosition(tr.end);
 	gi.WriteDir(tr.plane.normal);
-	gi.WriteLong(tr.side ? tr.side->surface : 0);
+	gi.WriteLong(tr.surface);
 	gi.WriteByte(ent->s.number);
 
 	gi.Multicast(start, MULTICAST_PHS, NULL);
@@ -946,7 +946,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		gi.WritePosition(start);
 		gi.WritePosition(tr.end);
 		gi.WriteDir(tr.plane.normal);
-		gi.WriteLong(tr.side ? tr.side->surface : 0);
+		gi.WriteLong(tr.surface);
 		gi.WriteByte(ent->s.number);
 
 		gi.Multicast(tr.end, MULTICAST_PHS, NULL);
@@ -970,9 +970,9 @@ static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_
 		return;
 	}
 
-	if (!G_IsSky(trace->side)) {
+	if (!G_IsSky(trace)) {
 
-		if (G_IsStructural(trace->side) || G_IsMeat(other)) {
+		if (G_IsStructural(trace) || G_IsMeat(other)) {
 
 			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
 			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BFG_BLAST);
@@ -1085,9 +1085,9 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 
 	self->s.sound = 0;
 
-	if (!G_IsSky(trace->side)) {
+	if (!G_IsSky(trace)) {
 
-		if (G_IsStructural(trace->side) || (G_IsMeat(other) && G_OnSameTeam(other, self->owner))) {
+		if (G_IsStructural(trace) || (G_IsMeat(other) && G_OnSameTeam(other, self->owner))) {
 
 			self->locals.velocity = Vec3_Zero();
 			self->locals.avelocity = Vec3_Zero();

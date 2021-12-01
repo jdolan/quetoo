@@ -105,17 +105,16 @@ static void viewWillAppear(ViewController *self) {
 	while (material == NULL) {
 
 		const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-		if (!tr.side) {
+		if (!tr.material) {
 			break;
 		}
 
-		if (g_str_has_prefix(tr.side->material->name, "common/")) {
+		if (g_str_has_prefix(tr.material->name, "common/")) {
 			start = Vec3_Add(tr.end, cl_view.forward);
 			continue;
 		}
 
-		assert(tr.side->material);
-		material = R_LoadMaterial(tr.side->material->name, ASSET_CONTEXT_TEXTURES);
+		material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
 	}
 
 	$(view, setMaterial, material);

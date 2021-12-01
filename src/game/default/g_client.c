@@ -226,11 +226,11 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other, const cm_t
 		return;
 	}
 
-	if (G_IsSky(trace->side)) {
+	if (G_IsSky(trace)) {
 		G_FreeEntity(self);
 	} else {
 		const float speed = Vec3_Length(self->locals.velocity);
-		if (speed > 40.0 && G_IsStructural(trace->side)) {
+		if (speed > 40.0 && G_IsStructural(trace)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
 				gi.Sound(self, self->locals.sound, SOUND_ATTEN_SQUARE, 0);

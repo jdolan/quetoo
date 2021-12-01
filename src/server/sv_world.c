@@ -459,9 +459,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	g_entity_t *e[MAX_ENTITIES];
 
 	const size_t len = Sv_BoxEntities(trace->box, e, lengthof(e), BOX_COLLIDE);
-
 	for (size_t i = 0; i < len; i++) {
-
 		Sv_ClipTraceToEntity(trace, e[i]);
 	}
 }

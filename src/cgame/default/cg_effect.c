@@ -89,7 +89,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 		end.z -= MAX_WORLD_DIST;
 
 		const cm_trace_t tr = cgi.Trace(org, end, Box3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
-		if (!tr.side) {
+		if (tr.fraction == 1.f) {
 			continue;
 		}
 

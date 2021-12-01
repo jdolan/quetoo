@@ -41,12 +41,12 @@ static void G_CheckGround(g_entity_t *ent) {
 		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, ent->locals.clip_mask ? : CONTENTS_MASK_SOLID);
 
 		if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
-			if (ent->locals.ground.side == NULL) {
+			if (ent->locals.ground.ent == NULL) {
 				G_Debug("%s meeting ground %s\n", etos(ent), etos(trace.ent));
 			}
 			ent->locals.ground = trace;
 		} else {
-			if (ent->locals.ground.side) {
+			if (ent->locals.ground.ent) {
 				G_Debug("%s leaving ground %s\n", etos(ent), etos(ent->locals.ground.ent));
 			}
 			memset(&ent->locals.ground, 0, sizeof(ent->locals.ground));
@@ -86,9 +86,9 @@ static void G_CheckWater(g_entity_t *ent) {
 		bounds = ent->bounds;
 	}
 
-	const cm_trace_t tr = gi.Trace(pos, pos, bounds, ent, CONTENTS_MASK_LIQUID);
+	const cm_trace_t water = gi.Trace(pos, pos, bounds, ent, CONTENTS_MASK_LIQUID);
 
-	ent->locals.water_type = tr.side ? tr.side->contents : 0;
+	ent->locals.water_type = water.contents;
 	ent->locals.water_level = ent->locals.water_type ? WATER_UNDER : WATER_NONE;
 
 	if (old_water_level == WATER_NONE && ent->locals.water_level == WATER_UNDER) {
@@ -231,7 +231,7 @@ static void G_Friction(g_entity_t *ent) {
 
 	vec3_t vel = ent->locals.velocity;
 
-	if (ent->locals.ground.ent) {
+	if (ent->locals.ground.contents & CONTENTS_MASK_SOLID) {
 		vel.z = 0.0;
 	}
 
@@ -246,8 +246,8 @@ static void G_Friction(g_entity_t *ent) {
 
 	float friction = 0.0;
 
-	if (ent->locals.ground.side) {
-		if (ent->locals.ground.side->surface & SURF_SLICK) {
+	if (ent->locals.ground.contents & CONTENTS_MASK_SOLID) {
+		if (ent->locals.ground.surface & SURF_SLICK) {
 			friction = PM_FRICT_GROUND_SLICK;
 		} else {
 			friction = PM_FRICT_GROUND;
@@ -292,7 +292,7 @@ static void G_Accelerate(g_entity_t *ent, const vec3_t dir, float speed, float a
  */
 static void G_Gravity(g_entity_t *ent) {
 
-	if (ent->locals.ground.side == NULL) {
+	if (ent->locals.ground.ent == NULL) {
 		float gravity = g_level.gravity;
 
 		if (ent->locals.water_level) {
@@ -307,9 +307,7 @@ static void G_Gravity(g_entity_t *ent) {
  * @see Pm_Currents
  */
 static void G_Currents(g_entity_t *ent) {
-	vec3_t current;
-
-	current = Vec3_Zero();
+	vec3_t current = Vec3_Zero();
 
 	if (ent->locals.water_level) {
 
@@ -333,24 +331,24 @@ static void G_Currents(g_entity_t *ent) {
 		}
 	}
 
-	if (ent->locals.ground.side) {
+	if (ent->locals.ground.ent) {
 
-		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_0) {
+		if (ent->locals.ground.contents & CONTENTS_CURRENT_0) {
 			current.x += 1.0;
 		}
-		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_90) {
+		if (ent->locals.ground.contents & CONTENTS_CURRENT_90) {
 			current.y += 1.0;
 		}
-		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_180) {
+		if (ent->locals.ground.contents & CONTENTS_CURRENT_180) {
 			current.x -= 1.0;
 		}
-		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_270) {
+		if (ent->locals.ground.contents & CONTENTS_CURRENT_270) {
 			current.y -= 1.0;
 		}
-		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_UP) {
+		if (ent->locals.ground.contents & CONTENTS_CURRENT_UP) {
 			current.z += 1.0;
 		}
-		if (ent->locals.ground.side->contents & CONTENTS_CURRENT_DOWN) {
+		if (ent->locals.ground.contents & CONTENTS_CURRENT_DOWN) {
 			current.z -= 1.0;
 		}
 	}

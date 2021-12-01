@@ -72,7 +72,7 @@ static struct {
 	/**
 	 * @brief The player's ground interaction.
 	 */
-	cm_trace_t ground_trace;
+	cm_trace_t ground;
 
 } pm_locals;
 
@@ -123,9 +123,9 @@ static void Pm_TouchEntity(cm_trace_t *trace) {
  * it is adjusted so that the trace begins outside of the solid it impacts.
  * @return The actual trace.
  */
-static cm_trace_t Pm_TraceCorrectAllSolid(const vec3_t start, const vec3_t end, const box3_t bounds) {
+static cm_trace_t Pm_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
 
-	const int32_t offsets[] = { 0, 1, -1 };
+	const float offsets[] = { 0.f, 1.f, -1.f };
 
 	// jitter around
 	for (uint32_t i = 0; i < lengthof(offsets); i++) {
@@ -180,7 +180,7 @@ static _Bool Pm_SlideMove(void) {
 
 	// never turn against our ground plane
 	if (pm->s.flags & PMF_ON_GROUND) {
-		planes[num_planes] = pm_locals.ground_trace.plane.normal;
+		planes[num_planes] = pm_locals.ground.plane.normal;
 		num_planes++;
 	}
 
@@ -199,7 +199,7 @@ static _Bool Pm_SlideMove(void) {
 		pos = Vec3_Fmaf(pm->s.origin, time_remaining, pm->s.velocity);
 
 		// trace to it
-		cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
+		cm_trace_t trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
 
 		// if the player is trapped in a solid, don't build up Z
 		if (trace.all_solid) {
@@ -339,7 +339,7 @@ static void Pm_StepSlideMove(void) {
 	if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up <= 0) {
 
 		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, pm->bounds);
+		const cm_trace_t step_down = Pm_Trace(pm->s.origin, down, pm->bounds);
 
 		if (Pm_CheckStep(&step_down)) {
 			Pm_StepDown(&step_down);
@@ -352,7 +352,7 @@ static void Pm_StepSlideMove(void) {
 	const vec3_t vel1 = pm->s.velocity;
 
 	const vec3_t up = Vec3_Fmaf(org0, PM_STEP_HEIGHT, Vec3_Up());
-	const cm_trace_t step_up = Pm_TraceCorrectAllSolid(org0, up, pm->bounds);
+	const cm_trace_t step_up = Pm_Trace(org0, up, pm->bounds);
 
 	if (!step_up.all_solid) {
 
@@ -364,7 +364,7 @@ static void Pm_StepSlideMove(void) {
 
 		// settle to the new ground, keeping the step if and only if it was successful
 		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-		const cm_trace_t step_down = Pm_TraceCorrectAllSolid(pm->s.origin, down, Box3_Expand3(pm->bounds, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)));
+		const cm_trace_t step_down = Pm_Trace(pm->s.origin, down, Box3_Expand3(pm->bounds, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)));
 
 		if (Pm_CheckStep(&step_down)) {
 			// Quake2 trick jump secret sauce
@@ -416,7 +416,7 @@ static void Pm_Friction(const bool flying) {
 	} else if (pm->water_level > WATER_FEET) { // water friction
 		friction = PM_FRICT_WATER;
 	} else if (pm->s.flags & PMF_ON_GROUND) { // ground friction
-		if (pm_locals.ground_trace.side && (pm_locals.ground_trace.side->surface & SURF_SLICK)) {
+		if (pm_locals.ground.ent && (pm_locals.ground.surface & SURF_SLICK)) {
 			friction = PM_FRICT_GROUND_SLICK;
 		} else {
 			friction = PM_FRICT_GROUND;
@@ -499,22 +499,22 @@ static void Pm_Currents(void) {
 
 	// add conveyer belt velocities
 	if (pm->ground.ent) {
-		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_0) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_0) {
 			current.x += 1.0;
 		}
-		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_90) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_90) {
 			current.y += 1.0;
 		}
-		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_180) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_180) {
 			current.x -= 1.0;
 		}
-		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_270) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_270) {
 			current.y -= 1.0;
 		}
-		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_UP) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_UP) {
 			current.z += 1.0;
 		}
-		if (pm_locals.ground_trace.side->contents & CONTENTS_CURRENT_DOWN) {
+		if (pm_locals.ground.contents & CONTENTS_CURRENT_DOWN) {
 			current.z -= 1.0;
 		}
 	}
@@ -698,7 +698,7 @@ static void Pm_CheckGround(void) {
 	}
 
 	// seek the ground
-	cm_trace_t trace = pm_locals.ground_trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
+	cm_trace_t trace = pm_locals.ground = Pm_Trace(pm->s.origin, pos, pm->bounds);
 
 	// if we hit an upward facing plane, make it our ground
 	if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
@@ -811,7 +811,7 @@ static void Pm_CheckDuck(void) {
 		if (!is_ducking && wants_ducking) {
 			pm->s.flags |= PMF_DUCKED;
 		} else if (is_ducking && !wants_ducking) {
-			const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pm->s.origin, pm->bounds);
+			const cm_trace_t trace = Pm_Trace(pm->s.origin, pm->s.origin, pm->bounds);
 
 			if (!trace.all_solid && !trace.start_solid) {
 				pm->s.flags &= ~PMF_DUCKED;
@@ -931,9 +931,9 @@ static void Pm_CheckLadder(void) {
 	}
 
 	const vec3_t pos = Vec3_Fmaf(pm->s.origin, 4.f, pm_locals.forward_xy);
-	const cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
+	const cm_trace_t trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
 
-	if (trace.side && (trace.side->contents & CONTENTS_LADDER)) {
+	if (trace.contents & CONTENTS_LADDER) {
 		pm->s.flags |= PMF_ON_LADDER;
 
 		memset(&pm->ground, 0, sizeof(pm->ground));
@@ -966,13 +966,13 @@ static _Bool Pm_CheckWaterJump(void) {
 	}
 
 	vec3_t pos = Vec3_Fmaf(pm->s.origin, 16.f, pm_locals.forward);
-	cm_trace_t trace = Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds);
+	cm_trace_t trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
 
-	if (trace.side && (trace.side->contents & CONTENTS_MASK_SOLID)) {
+	if (trace.contents & CONTENTS_MASK_SOLID) {
 
 		pos.z += PM_STEP_HEIGHT + Box3_Size(pm->bounds).z;
 
-		trace = Pm_TraceCorrectAllSolid(pos, pos, pm->bounds);
+		trace = Pm_Trace(pos, pos, pm->bounds);
 
 		if (trace.start_solid) {
 			Pm_Debug("Can't exit water: blocked\n");
@@ -981,7 +981,7 @@ static _Bool Pm_CheckWaterJump(void) {
 
 		vec3_t pos2 = Vec3(pos.x, pos.y, pm->s.origin.z);
 
-		trace = Pm_TraceCorrectAllSolid(pos, pos2, pm->bounds);
+		trace = Pm_Trace(pos, pos2, pm->bounds);
 
 		if (!(trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL)) {
 			Pm_Debug("Can't exit water: not a step\n");
@@ -1071,7 +1071,7 @@ static void Pm_WaterJumpMove(void) {
 	const vec3_t pos = Vec3_Fmaf(pm->s.origin, 30.f, pm_locals.forward_xy);
 
 	// if we've reached a usable spot, clamp the jump to avoid launching
-	if (Pm_TraceCorrectAllSolid(pm->s.origin, pos, pm->bounds).fraction == 1.0f) {
+	if (Pm_Trace(pm->s.origin, pos, pm->bounds).fraction == 1.0f) {
 		pm->s.velocity.z = Clampf(pm->s.velocity.z, 0.f, PM_SPEED_JUMP);
 	}
 
@@ -1210,8 +1210,8 @@ static void Pm_WalkMove(void) {
 
 	// project the desired movement into the X/Y plane
 
-	const vec3_t forward = Vec3_Normalize(Pm_ClipVelocity(pm_locals.forward_xy, pm_locals.ground_trace.plane.normal, PM_CLIP_BOUNCE));
-	const vec3_t right = Vec3_Normalize(Pm_ClipVelocity(pm_locals.right_xy, pm_locals.ground_trace.plane.normal, PM_CLIP_BOUNCE));
+	const vec3_t forward = Vec3_Normalize(Pm_ClipVelocity(pm_locals.forward_xy, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE));
+	const vec3_t right = Vec3_Normalize(Pm_ClipVelocity(pm_locals.right_xy, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE));
 
 	vec3_t vel = Vec3_Zero();
 	vel = Vec3_Fmaf(vel, pm->cmd.forward, forward);
@@ -1243,7 +1243,7 @@ static void Pm_WalkMove(void) {
 	}
 
 	// accelerate based on slickness of ground surface
-	const float accel = (pm_locals.ground_trace.side->surface & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
+	const float accel = (pm_locals.ground.surface & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
 
 	Pm_Accelerate(dir, speed, accel);
 
@@ -1251,7 +1251,7 @@ static void Pm_WalkMove(void) {
 	speed = Vec3_Length(pm->s.velocity);
 
 	// clip to the ground
-	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pm_locals.ground_trace.plane.normal, PM_CLIP_BOUNCE);
+	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE);
 
 	// and now scale by the speed to avoid slowing down on slopes
 	pm->s.velocity = Vec3_Normalize(pm->s.velocity);
