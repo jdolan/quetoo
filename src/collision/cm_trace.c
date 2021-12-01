@@ -92,7 +92,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	cm_bsp_plane_t plane = { };
 	const cm_bsp_brush_side_t *side = NULL;
 
-	_Bool end_outside = false, start_outside = false;
+	_Bool start_outside = false, end_outside = false;
 
 	const cm_bsp_brush_side_t *s = brush->brush_sides;
 	for (int32_t i = 0; i < brush->num_brush_sides; i++, s++) {
@@ -116,19 +116,18 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		}
 
 		// if completely in front of plane, the trace does not intersect with the brush
-		if (d1 > 0.f && (d2 > TRACE_EPSILON || d2 >= d1)) {
+		if (d1 > 0.f && d2 >= d1) {
 			return;
 		}
 
 		// if completely behind plane, the trace does not intersect with this side
-		if (d1 <= 0.f && d2 <= 0.f) {
+		if (d1 <= 0.f && d2 <= d1) {
 			continue;
 		}
 
 		// the trace intersects this side
 		if (d1 > d2) { // enter
 			const float f = Maxf(0.f, (d1 - TRACE_EPSILON) / (d1 - d2));
-
 			if (f > enter_fraction) {
 				enter_fraction = f;
 				plane = p;
@@ -136,7 +135,6 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 			}
 		} else { // leave
 			const float f = Minf(1.f, (d1 + TRACE_EPSILON) / (d1 - d2));
-
 			if (f < leave_fraction) {
 				leave_fraction = f;
 			}
@@ -160,6 +158,10 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 			data->trace.surface = side->surface;
 			data->trace.material = side->material;
 		}
+	}
+
+	if (data->trace.start_solid != data->trace.all_solid) {
+		printf("Hm %g\n", data->trace.fraction);
 	}
 }
 

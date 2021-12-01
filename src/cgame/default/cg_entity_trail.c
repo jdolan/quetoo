@@ -630,7 +630,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	//   No such problem when backpedaling etc.
 	// * Re-enable lights and stains
 
-	vec3_t aimdir = Vec3_Normalize(Vec3_Subtract(start, end));
+	vec3_t dir = Vec3_Direction(end, start);
 
 	cgi.AddBeam(cgi.view, &(const r_beam_t) {
 		.start = start,
@@ -645,13 +645,22 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	// beam endpoint cap
 	Cg_AddSprite(&(cg_sprite_t) {
 		.atlas_image = cg_sprite_electro_02,
-			.origin = Vec3_Fmaf(end, 10.f, aimdir),
-			.lifetime = 30.f,
-			.size = 50.f,
-			.rotation = Randomf() * 2.f * M_PI,
-			.color = Vec4(0.f, 0.f, 1.f, 0.f),
-			.softness = 0.5f
+		.origin = Vec3_Fmaf(end, -10.f, dir),
+		.lifetime = 30.f,
+		.size = 50.f,
+		.rotation = Randomf() * 2.f * M_PI,
+		.color = Vec4(0.f, 0.f, 1.f, 0.f),
+		.softness = 0.5f
 	});
+
+	for (float f = 0.f; f < Vec3_Distance(start, end); f += 128.f) {
+		Cg_AddLight(&(const cg_light_t) {
+			.origin = Vec3_Fmaf(start, f, dir),
+			.radius = 128.f + RandomRangef(-32.f, 32.f),
+			.color = Vec3(1.f, .5f, 1.f),
+			.intensity = .05f
+		});
+	}
 
 	if (ent->current.animation1 != LIGHTNING_SOLID_HIT) {
 		return;
@@ -664,7 +673,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		if ((cgi.PointContents(ent->termination) & CONTENTS_MASK_LIQUID) == 0) {
 
-			// hit bolts billboards
+			// hit billboards
 			for (int32_t i = 0; i < 2; i++) {
 				Cg_AddSprite(&(cg_sprite_t) {
 					.atlas_image = cg_sprite_electro_02,
@@ -679,21 +688,21 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 				});
 			}
 
-			// hit bolts decal
+			// hit decal
 			Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_electro_02,
-					.origin = Vec3_Add(end, dir),
-					.lifetime = 120,
-					.size = RandomRangef(100.f, 200.f),
-					.size_velocity = 400.f,
-					.rotation = Randomf() * 2.f * M_PI,
-					.dir = dir,
-					.color = Vec4(0.f, 0.f, 1.f, 0.f),
-					.softness = 0.5f
+				.origin = Vec3_Add(end, dir),
+				.lifetime = 120,
+				.size = RandomRangef(100.f, 200.f),
+				.size_velocity = 400.f,
+				.rotation = Randomf() * 2.f * M_PI,
+				.dir = dir,
+				.color = Vec4(0.f, 0.f, 1.f, 0.f),
+				.softness = 0.5f
 			});
 
+			// hit sparks
 			for (int32_t i = 0; i < 2; i++) {
-
 				Cg_AddSprite(&(cg_sprite_t) {
 					.atlas_image = cg_sprite_particle3,
 					.origin = end,
@@ -707,6 +716,13 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 					.softness = 0.5f
 				});
 			}
+
+			// hit stains
+			cgi.AddStain(cgi.view, &(const r_stain_t) {
+				.origin = end,
+				.radius = RandomRangef(4.f, 16.f),
+				.color = Color4bv(0x33222222)
+			});
 		}
 
 		ent->timestamp = cgi.client->unclamped_time + 25; // 40hz
