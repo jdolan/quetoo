@@ -159,10 +159,6 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 			data->trace.material = side->material;
 		}
 	}
-
-	if (data->trace.start_solid != data->trace.all_solid) {
-		printf("Hm %g\n", data->trace.fraction);
-	}
 }
 
 /**
