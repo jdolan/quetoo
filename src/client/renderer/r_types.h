@@ -290,14 +290,9 @@ typedef struct {
 	const r_material_t *material;
 
 	/**
-	 * @brief The S and T texture axis in xyz + offset notation.
+	 * @brief The texture axis for S and T, in xyz + offset notation.
 	 */
 	vec4_t axis[2];
-
-	/**
-	 * @brief The contents mask.
-	 */
-	int32_t contents;
 
 	/**
 	 * @brief The surface flags.
@@ -1268,22 +1263,29 @@ typedef struct {
 } r_view_t;
 
 /**
- * @brief Convenience inline function to clear a view.
- * Use this instead of memset.
+ * @brief Convenience inline function to clear a view. Use this instead of memset.
  */
 static inline void R_ClearView(r_view_t *view) {
-	view->num_beams = view->num_entities = view->num_lights = view->num_sprites =
-		view->num_sprite_instances = view->num_stains = 0;
 
-	memset(view->frustum, 0, sizeof(view->frustum));
-	view->angles = Vec3_Zero();
-	view->contents = 0;
-	view->forward = Vec3_Zero();
+	view->viewport = Vec4_Zero();
 	view->fov = Vec2_Zero();
+
 	view->origin = Vec3_Zero();
+	view->angles = Vec3_Zero();
+	view->forward = Vec3_Zero();
 	view->right = Vec3_Zero();
 	view->up = Vec3_Zero();
-	view->viewport = Vec4_Zero();
+
+	view->contents = CONTENTS_NONE;
+
+	view->num_beams = 0;
+	view->num_entities = 0;
+	view->num_lights = 0;
+	view->num_sprites = 0;
+	view->num_sprite_instances = 0;
+	view->num_stains = 0;
+
+	memset(view->frustum, 0, sizeof(view->frustum));
 }
 
 /**
