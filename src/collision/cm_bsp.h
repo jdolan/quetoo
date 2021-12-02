@@ -160,7 +160,7 @@ typedef struct {
 } bsp_plane_t;
 
 /**
- * @brief Sentine value for brush sides created from BSP.
+ * @brief Sentinel value for brush sides created from BSP.
  */
 #define BSP_MATERIAL_NODE -1
 
