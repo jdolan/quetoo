@@ -104,7 +104,7 @@ void LoadMaterials(const char *path) {
 		Com_Print("Loaded %d materials from %s\n", g_list_length(mat_file), path);
 	} else {
 		Com_Warn("Failed to load %s\n", path);
-		Com_Warn("Run `quemap -mat %s` to generate", map_base);
+		Com_Warn("Run `quemap -mat %s` to generate\n", map_base);
 	}
 
 	const bsp_material_t *bsp = bsp_file.materials;
