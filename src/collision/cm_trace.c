@@ -116,12 +116,12 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		}
 
 		// if completely in front of plane, the trace does not intersect with the brush
-		if (d1 > 0.f && d2 >= d1) {
+		if (d1 > 0.f && d2 > 0.f) {
 			return;
 		}
 
 		// if completely behind plane, the trace does not intersect with this side
-		if (d1 <= 0.f && d2 <= d1) {
+		if (d1 <= 0.f && d2 <= 0.f) {
 			continue;
 		}
 
@@ -154,7 +154,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		if (enter_fraction > -1.0f && enter_fraction < data->trace.fraction) {
 			data->trace.fraction = Maxf(0.0f, enter_fraction);
 			data->trace.plane = plane;
-			data->trace.contents = side->contents;
+			data->trace.contents = brush->contents;
 			data->trace.surface = side->surface;
 			data->trace.material = side->material;
 		}
