@@ -40,7 +40,7 @@ static work_t work;
 static int32_t GetWork(void) {
 
 	int32_t w = -1;
-	WorkLock();
+	SDL_LockMutex(work.lock);
 
 	if (Com_WasInit(QUEMAP)) {
 		if (work.index < work.count) {
@@ -59,7 +59,7 @@ static int32_t GetWork(void) {
 		}
 	}
 
-	WorkUnlock();
+	SDL_UnlockMutex(work.lock);
 	return w;
 }
 
@@ -76,20 +76,6 @@ static void RunWorkFunc(void *p) {
 		}
 		work.func(w);
 	}
-}
-
-/**
- * @brief
- */
-void WorkLock(void) {
-	SDL_LockMutex(work.lock);
-}
-
-/**
- * @brief
- */
-void WorkUnlock(void) {
-	SDL_UnlockMutex(work.lock);
 }
 
 /**
@@ -125,6 +111,7 @@ void Work(const char *name, WorkFunc func, int32_t count) {
 	}
 
 	SDL_DestroyMutex(work.lock);
+	work.lock = NULL;
 
 	const uint32_t end = SDL_GetTicks();
 
