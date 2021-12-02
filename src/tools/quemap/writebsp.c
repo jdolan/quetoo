@@ -236,19 +236,8 @@ static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) 
 }
 
 /**
- * @brief Draw elements comparator to sort contents.
- */
-static int32_t ContentsCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) {
-
-	const int32_t a_contents = a->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
-	const int32_t b_contents = b->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
-
-	return a_contents - b_contents;
-}
-
-/**
  * @brief Draw elements comparator to sort model faces by material.
- * @details Opaque faces are equal if they share material and contents.
+ * @details Opaque faces are equal if they share material.
  * @details Blend faces are equal if they share opaque equality and plane.
  * @details Material faces equal if they share blend equality and brush side.
  */
@@ -266,16 +255,12 @@ static int32_t FaceCmp(const void *a, const void *b) {
 		order = SurfaceCmp(a_side, b_side);
 		if (order == 0) {
 
-			order = ContentsCmp(a_side, b_side);
-			if (order == 0) {
+			if (a_side->surface & SURF_MATERIAL) {
+				return (int32_t) (ptrdiff_t) (a_side - b_side);
+			}
 
-				if (a_side->surface & SURF_MATERIAL) {
-					return (int32_t) (ptrdiff_t) (a_side - b_side);
-				}
-
-				if (a_side->surface & SURF_MASK_BLEND) {
-					return a_side->plane - b_side->plane;
-				}
+			if (a_side->surface & SURF_MASK_BLEND) {
+				return a_side->plane - b_side->plane;
 			}
 		}
 	}
@@ -316,7 +301,6 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 
 		out->plane = a_side->plane;
 		out->material = a_side->material;
-		out->contents = a_side->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
 		out->surface = a_side->surface & SURF_MASK_DRAW_ELEMENTS_CMP;
 
 		out->bounds = Box3_Null();
@@ -369,7 +353,6 @@ static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
 		out->vecs[i] = side->vecs[i];
 	}
 
-	out->contents = side->contents;
 	out->surface = side->surface;
 	out->value = side->value;
 

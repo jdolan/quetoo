@@ -383,7 +383,6 @@ typedef struct {
 	r_bsp_plane_t *plane;
 	r_material_t *material;
 
-	int32_t contents;
 	int32_t surface;
 
 	box3_t bounds;

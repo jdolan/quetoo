@@ -173,7 +173,6 @@ typedef struct {
 	int32_t plane; // facing out of the leaf
 	int32_t material;
 	vec4_t vecs[2]; // [s/t][xyz + offset]
-	int32_t contents;
 	int32_t surface;
 	int32_t value; // light emission, etc
 } bsp_brush_side_t;
@@ -259,7 +258,6 @@ typedef struct {
 typedef struct {
 	int32_t plane;
 	int32_t material;
-	int32_t contents;
 	int32_t surface;
 
 	box3_t bounds;

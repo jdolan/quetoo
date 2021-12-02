@@ -99,8 +99,6 @@ static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
 		out->vecs[0] = in->vecs[0];
 		out->vecs[1] = in->vecs[1];
 
-		out->contents = in->contents;
-
 		out->surface = in->surface;
 		out->value = in->value;
 	}
@@ -199,8 +197,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 		out->plane = bsp->planes + in->plane;
 		out->material = bsp->materials[in->material];
-
-		out->contents = in->contents;
 		out->surface = in->surface;
 
 		out->bounds = in->bounds;

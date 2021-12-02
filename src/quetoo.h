@@ -268,12 +268,6 @@ typedef enum {
 #define CONTENTS_MASK_CLIP_PROJECTILE	(CONTENTS_MASK_SOLID | CONTENTS_MASK_MEAT)
 
 /**
- * @brief Faces with differing contents after applying this mask should not be considered equal
- * for face or draw elements merging.
- */
-#define CONTENTS_MASK_DRAW_ELEMENTS_CMP (CONTENTS_MASK_LIQUID)
-
-/**
  * @brief Surface flags.
  */
 #define SURF_LIGHT				0x1 // value will hold the light radius

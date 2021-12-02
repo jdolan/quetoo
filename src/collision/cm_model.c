@@ -145,7 +145,6 @@ static void Cm_LoadBspBrushSides(void) {
 			out->material = cm_bsp.materials[in->material];
 		}
 
-		out->contents = in->contents;
 		out->surface = in->surface;
 		out->value = in->value;
 	}
