@@ -34,8 +34,8 @@ lightmap_t *lightmaps;
  */
 static void BuildLightmapMatrices(lightmap_t *lm) {
 
-	vec3_t s = Vec3_Normalize(Vec4_XYZ(lm->brush_side->vecs[0]));
-	vec3_t t = Vec3_Normalize(Vec4_XYZ(lm->brush_side->vecs[1]));
+	vec3_t s = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[0]));
+	vec3_t t = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[1]));
 
 	s = Vec3_Scale(s, 1.0 / luxel_size);
 	t = Vec3_Scale(t, 1.0 / luxel_size);
@@ -624,8 +624,8 @@ void FinalizeLightmap(int32_t face_num) {
 		ProjectLightmapLuxel(lm, l, 0.f, 0.f);
 
 		// write the directional sample data, in tangent space
-		const vec3_t sdir = Vec4_XYZ(lm->brush_side->vecs[0]);
-		const vec3_t tdir = Vec4_XYZ(lm->brush_side->vecs[1]);
+		const vec3_t sdir = Vec4_XYZ(lm->brush_side->axis[0]);
+		const vec3_t tdir = Vec4_XYZ(lm->brush_side->axis[1]);
 
 		vec3_t tangent, bitangent;
 		Vec3_Tangents(l->normal, sdir, tdir, &tangent, &bitangent);

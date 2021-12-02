@@ -96,8 +96,8 @@ static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
 			out->material = bsp->materials[in->material];
 		}
 
-		out->vecs[0] = in->vecs[0];
-		out->vecs[1] = in->vecs[1];
+		out->axis[0] = in->axis[0];
+		out->axis[1] = in->axis[1];
 
 		out->surface = in->surface;
 		out->value = in->value;

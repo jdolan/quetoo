@@ -110,10 +110,10 @@ void TextureVectorsForBrushSide(brush_side_t *side, const vec3_t origin) {
 
 	for (int32_t i = 0; i < 2; i++) {
 		for (int32_t j = 0; j < 3; j++) {
-			side->vecs[i].xyzw[j] = axis[i].xyz[j] / scale.xy[i];
+			side->axis[i].xyzw[j] = axis[i].xyz[j] / scale.xy[i];
 		}
 	}
 
-	side->vecs[0].w = side->shift.x + offset.x;
-	side->vecs[1].w = side->shift.y + offset.y;
+	side->axis[0].w = side->shift.x + offset.x;
+	side->axis[1].w = side->shift.y + offset.y;
 }

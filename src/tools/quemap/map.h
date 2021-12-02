@@ -77,9 +77,9 @@ typedef struct brush_side_s {
 	vec2_t scale;
 
 	/**
-	 * @brief The calculated texture vectors for S and T, in the format xyz + w.
+	 * @brief The texture axis for S and T, in xyz + offset notation.
 	 */
-	vec4_t vecs[2];
+	vec4_t axis[2];
 
 	/**
 	 * @brief The CONTENTS_* mask.

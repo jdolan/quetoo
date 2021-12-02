@@ -349,8 +349,8 @@ static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
 	out->plane = side->plane;
 	out->material = side->material;
 
-	for (size_t i = 0; i < lengthof(out->vecs); i++) {
-		out->vecs[i] = side->vecs[i];
+	for (size_t i = 0; i < lengthof(out->axis); i++) {
+		out->axis[i] = side->axis[i];
 	}
 
 	out->surface = side->surface;

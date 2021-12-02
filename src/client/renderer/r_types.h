@@ -290,9 +290,9 @@ typedef struct {
 	const r_material_t *material;
 
 	/**
-	 * @brief The XYZ + W texture vectors in world space.
+	 * @brief The S and T texture axis in xyz + offset notation.
 	 */
-	vec4_t vecs[2];
+	vec4_t axis[2];
 
 	/**
 	 * @brief The contents mask.

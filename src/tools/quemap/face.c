@@ -211,8 +211,8 @@ static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 static int32_t EmitFaceVertexes(const face_t *face) {
 	const brush_side_t *brush_side = face->brush_side;
 
-	const vec3_t sdir = Vec4_XYZ(brush_side->vecs[0]);
-	const vec3_t tdir = Vec4_XYZ(brush_side->vecs[1]);
+	const vec3_t sdir = Vec4_XYZ(brush_side->axis[0]);
+	const vec3_t tdir = Vec4_XYZ(brush_side->axis[1]);
 
 	const SDL_Surface *diffusemap = materials[brush_side->material].diffusemap;
 	
@@ -246,8 +246,8 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		 * introduced by moving the vertex in order to weld cracks.
 		 */
 
-		const float s = Vec3_Dot(face->w->points[i], sdir) + brush_side->vecs[0].w;
-		const float t = Vec3_Dot(face->w->points[i], tdir) + brush_side->vecs[1].w;
+		const float s = Vec3_Dot(face->w->points[i], sdir) + brush_side->axis[0].w;
+		const float t = Vec3_Dot(face->w->points[i], tdir) + brush_side->axis[1].w;
 
 		out.diffusemap.x = s / (diffusemap ? diffusemap->w : 1.f);
 		out.diffusemap.y = t / (diffusemap ? diffusemap->h : 1.f);

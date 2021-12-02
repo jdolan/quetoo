@@ -82,8 +82,8 @@ static void Bsp_SwapBrushSides(void *lump, const int32_t num) {
 
 		brush_side->plane = LittleLong(brush_side->plane);
 		brush_side->material = LittleLong(brush_side->material);
-		brush_side->vecs[0] = LittleVec4(brush_side->vecs[0]);
-		brush_side->vecs[1] = LittleVec4(brush_side->vecs[1]);
+		brush_side->axis[0] = LittleVec4(brush_side->axis[0]);
+		brush_side->axis[1] = LittleVec4(brush_side->axis[1]);
 		brush_side->surface = LittleLong(brush_side->surface);
 		brush_side->value = LittleLong(brush_side->value);
 
