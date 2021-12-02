@@ -281,9 +281,13 @@ static int32_t EmitFaceElements(const face_t *face, int32_t first_vertex) {
 	const int32_t num_elements = num_triangles * 3;
 
 	int32_t elements[num_elements];
-	Cm_ElementsForWinding(face->w, elements);
+	const int32_t count = Cm_ElementsForWinding(face->w, elements);
 
-	for (int32_t i = 0; i < num_elements; i++) {
+	if (num_elements != count) {
+		Mon_SendWinding(MON_WARN, face->w->points, face->w->num_points, "Face has degenerate winding");
+	}
+
+	for (int32_t i = 0; i < count; i++) {
 
 		if (bsp_file.num_elements == MAX_BSP_ELEMENTS) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");

@@ -472,14 +472,20 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			const vec3_t ba = Vec3_Direction(b->position, a->position);
 			const vec3_t cb = Vec3_Direction(c->position, b->position);
 
-			if (Vec3_Dot(ba, cb) > 1.0f - COLINEAR_EPSILON) {
+			const float dot = Vec3_Dot(ba, cb);
+			if (dot > 1.f - COLINEAR_EPSILON) {
 				b->corner = 0;
 			} else {
 				b->corner = ++num_corners;
 			}
 		}
 
-		//assert(num_corners > 2);
+		// if we don't find 3 corners, this is a degenerate winding (a line segment)
+
+		if (num_corners < 3) {
+			Com_Warn("Invalid winding: %d corners found in %d points\n", num_corners, num_points);
+			break;
+		}
 
 		// chip away at edges with colinear points first
 
@@ -507,14 +513,6 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 
 		const int32_t i = (int32_t) (ptrdiff_t) (clip - points);
 		const int32_t j = (i - 1 + num_points) % num_points;
-
-		const vec3_t a = points[(j + 0) % num_points].position;
-		const vec3_t b = points[(j + 1) % num_points].position;
-		const vec3_t c = points[(j + 2) % num_points].position;
-
-		if (Cm_TriangleArea(a, b, c) == 0.f) {
-			Com_Warn("Invalid triangle %s %s %s\n", vtos(a), vtos(b), vtos(c));
-		}
 
 		for (int32_t k = 0; k < 3; k++) {
 			*out++ = points[(j + k) % num_points].index;
