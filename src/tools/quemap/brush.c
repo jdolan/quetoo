@@ -436,7 +436,6 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane, csg_brush_t **front, cs
 
 		cs->plane = plane ^ i ^ 1;
 		cs->material = BSP_MATERIAL_NODE;
-		cs->contents = CONTENTS_NODE;
 		cs->surface = SURF_NODE;
 
 		if (i == 0) {
