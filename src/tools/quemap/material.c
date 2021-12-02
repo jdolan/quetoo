@@ -29,11 +29,6 @@ int32_t num_materials;
 material_t materials[MAX_BSP_MATERIALS];
 
 /**
- * @brief The "missing" diffusemap texture.
- */
-static SDL_Surface *notex;
-
-/**
  * @brief The collision materials defined in maps/my.mat.
  */
 static GList *mat_file;
@@ -93,7 +88,7 @@ static material_t *LoadMaterial(const char *name) {
 		Com_Warn("Failed to resolve %s\n", name);
 	}
 
-	material->diffusemap = material->diffusemap ?: notex;
+	material->diffusemap = material->diffusemap ?: Img_LoadSurface("textures/common/notex");
 
 	return material;
 }
@@ -102,8 +97,6 @@ static material_t *LoadMaterial(const char *name) {
  * @brief Loads all materials defined in the specified file.
  */
 void LoadMaterials(const char *path) {
-
-	notex = Img_LoadSurface("textures/common/notex");
 
 	mat_file = NULL;
 	Cm_LoadMaterials(path, &mat_file);
@@ -154,9 +147,6 @@ void FreeMaterials(void) {
 
 	g_list_free(mat_file);
 	mat_file = NULL;
-
-	SDL_FreeSurface(notex);
-	notex = NULL;
 }
 
 /**
