@@ -394,8 +394,9 @@ void G_TouchOccupy(g_entity_t *ent) {
 			continue;
 		}
 
+		G_Debug("%s occupying %s\n", etos(ent), etos(occupied));
+
 		if (occupied->locals.Touch) {
-			G_Debug("%s occupying %s\n", etos(ent), etos(occupied));
 			occupied->locals.Touch(occupied, ent, NULL);
 		}
 
