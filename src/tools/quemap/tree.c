@@ -376,11 +376,12 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 			Mon_SendSelect(MON_WARN, b->original->entity, b->original->brush, "Micro volume");
 		}
 
-		for (int32_t i = 0; i < b->num_brush_sides; i++) {
-			if (b->brush_sides[i].surface & SURF_BEVEL) {
+		const brush_side_t *s = b->brush_sides;
+		for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
+			if (s->surface & SURF_BEVEL) {
 				continue;
 			}
-			if (b->brush_sides[i].surface & SURF_NODE) {
+			if (s->surface & SURF_NODE) {
 				continue;
 			}
 			num_brush_sides++;
