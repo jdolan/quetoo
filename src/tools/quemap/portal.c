@@ -697,10 +697,8 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 
 	if (pside) {
 		f->w = Cm_ReverseWinding(p->winding);
-//		f->contents = p->nodes[1]->contents;
 	} else {
 		f->w = Cm_CopyWinding(p->winding);
-//		f->contents = p->nodes[0]->contents;
 	}
 
 	return f;
