@@ -221,12 +221,7 @@ typedef struct {
 	struct cm_material_s *material;
 
 	/**
-	 * @brief The CONTENTS_* mask.
-	 */
-	int32_t contents;
-
-	/**
-	 * @brief The SURF_* mask.
+	 * @brief The surface mask (SURF_*).
 	 */
 	int32_t surface;
 
@@ -248,7 +243,7 @@ typedef struct {
 	cm_entity_t *entity;
 
 	/**
-	 * @brief The brush contents (CONTENTS_*).
+	 * @brief The contents mask (CONTENTS_*).
 	 */
 	int32_t contents;
 

@@ -270,7 +270,6 @@ void Cm_InitBoxHull(void) {
 		// fill in brush sides, one per side
 		cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[cm_bsp.file.num_brush_sides + i];
 		side->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2 + s);
-		side->contents = CONTENTS_MONSTER;
 	}
 }
 
