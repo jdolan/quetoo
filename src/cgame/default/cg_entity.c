@@ -119,6 +119,7 @@ void Cg_LoadEntities(void) {
 			if (!g_strcmp0(class_name, (*clazz)->class_name)) {
 
 				cg_entity_t e = {
+					.id = MAX_ENTITIES + (int32_t) i,
 					.clazz = *clazz,
 					.def = def
 				};

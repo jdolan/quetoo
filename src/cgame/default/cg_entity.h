@@ -31,7 +31,7 @@ typedef void (*EntityInit)(cg_entity_t *self);
 typedef void (*EntityThink)(cg_entity_t *self);
 
 /**
- * @brief The entity class type.
+ * @brief The client game entity class type.
  */
 typedef struct {
 	/**
@@ -57,9 +57,16 @@ typedef struct {
 } cg_entity_class_t;
 
 /**
- * @brief The entity instance type.
+ * @brief The client game entity instance type. Client game entities are local to the client,
+ * and are used for non-critical and atmospheric effects such as sparks, steam, particle
+ * fields, etc.
  */
 struct cg_entity_s {
+	/**
+	 * @brief The entity identifier, for persistent effects such as sounds.
+	 */
+	int32_t id;
+	
 	/**
 	 * @brief The entity class.
 	 */
