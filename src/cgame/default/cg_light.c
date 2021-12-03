@@ -23,7 +23,7 @@
 
 #define LIGHT_INTENSITY .125f
 
-static cg_light_t cg_lights[MAX_LIGHTS];
+static cg_light_t cg_lights[MAX_ENTITIES];
 
 /**
  * @brief
@@ -63,7 +63,7 @@ void Cg_AddLight(const cg_light_t *l) {
 void Cg_AddLights(void) {
 
 	cg_light_t *l = cg_lights;
-	for (int32_t i = 0; i < MAX_LIGHTS; i++, l++) {
+	for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
 
 		const uint32_t expiration = l->time + l->decay;
 		if (expiration < cgi.client->unclamped_time) {
