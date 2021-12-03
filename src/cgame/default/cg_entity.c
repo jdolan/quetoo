@@ -116,10 +116,11 @@ void Cg_LoadEntities(void) {
 
 		const cg_entity_class_t **clazz = classes;
 		for (size_t j = 0; j < lengthof(classes); j++, clazz++) {
+
 			if (!g_strcmp0(class_name, (*clazz)->class_name)) {
 
 				cg_entity_t e = {
-					.id = MAX_ENTITIES + (int32_t) i,
+					.id = MAX_ENTITIES + cg_entities->len,
 					.clazz = *clazz,
 					.def = def
 				};
