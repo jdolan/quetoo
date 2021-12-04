@@ -390,13 +390,15 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 		tree->bounds = Box3_Union(tree->bounds, b->bounds);
 	}
 
+	assert(num_brushes);
+	assert(num_brush_sides);
+
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", num_brushes);
 	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
 	tree->head_node->bounds = Box3f(MAX_WORLD_AXIAL, MAX_WORLD_AXIAL, MAX_WORLD_AXIAL);
 	tree->head_node->volume = BrushFromBounds(tree->head_node->bounds);
-	tree->head_node->contents = CONTENTS_SOLID;
 
 	BuildTree_r(tree->head_node, brushes);
 

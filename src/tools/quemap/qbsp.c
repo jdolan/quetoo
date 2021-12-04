@@ -127,7 +127,7 @@ static void ProcessModels(void) {
 	for (int32_t i = 0; i < num_entities; i++) {
 		const entity_t *e = entities + i;
 
-		if (!e->num_brushes) { 
+		if (!e->num_brush_sides) {
 			continue;
 		}
 

@@ -326,11 +326,27 @@ static void AddBrushBevels(brush_t *b) {
 }
 
 /**
+ * @brief Frees the brush sides allocated to `brush`, leaving an "emtpy" brush in place.
+ * This is because, for error reporting, we want to preserve the indexes of brushes.
+ */
+static void UnparseBrush(brush_t *brush) {
+
+	brush_side_t *side = brush->brush_sides;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
+		if (side->winding) {
+			Cm_FreeWinding(side->winding);
+		}
+	}
+
+	num_brush_sides -= brush->num_brush_sides;
+	brush->num_brush_sides = 0;
+}
+
+/**
  * @brief Makes windings for sides and mins / maxs for the brush
  */
 static void MakeBrushWindings(brush_t *brush) {
 
-	assert(brush);
 	assert(brush->num_brush_sides);
 
 	brush->bounds = Box3_Null();
@@ -365,7 +381,7 @@ static void MakeBrushWindings(brush_t *brush) {
 			brush->bounds = Box3_Union(brush->bounds, Cm_WindingBounds(side->winding));
 		} else {
 			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Malformed brush");
-			brush->num_brush_sides = 0;
+			UnparseBrush(brush);
 			return;
 		}
 	}
@@ -374,12 +390,12 @@ static void MakeBrushWindings(brush_t *brush) {
 		//IDBUG: all the indexes into the mins and maxs were zero (not using i)
 		if (brush->bounds.mins.xyz[i] < MIN_WORLD_COORD || brush->bounds.maxs.xyz[i] > MAX_WORLD_COORD) {
 			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Brush bounds out of range");
-			brush->num_brush_sides = 0;
+			UnparseBrush(brush);
 			return;
 		}
 		if (brush->bounds.mins.xyz[i] > MAX_WORLD_COORD || brush->bounds.maxs.xyz[i] < MIN_WORLD_COORD) {
 			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "No visible sides on brush");
-			brush->num_brush_sides = 0;
+			UnparseBrush(brush);
 			return;
 		}
 	}
@@ -450,35 +466,13 @@ static void SetMaterialFlags(brush_side_t *side) {
 /**
  * @brief
  */
-static void UnparseBrush(entity_t *entity, brush_t *brush) {
-
-	brush_side_t *side = brush->brush_sides;
-	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
-		if (side->winding) {
-			Cm_FreeWinding(side->winding);
-		}
-	}
-
-	num_brush_sides -= brush->num_brush_sides;
-	num_brushes--;
-
-	entity->num_brushes--;
-}
-
-/**
- * @brief
- */
-static void ParseBrush(parser_t *parser, entity_t *entity) {
+static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 	char token[MAX_TOKEN_CHARS];
-
-	if (Parse_IsEOF(parser)) {
-		return;
-	}
 
 	Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
 	if (g_strcmp0(token, "{")) {
-		return;
+		return NULL;
 	}
 
 	if (num_brushes == MAX_BSP_BRUSHES) {
@@ -490,11 +484,9 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 
 	brush->entity = (int32_t) (entity - entities);
 	brush->brush = num_brushes - entity->first_brush;
+	brush->brush_sides = &brush_sides[num_brush_sides];
 
 	num_brushes++;
-	entity->num_brushes++;
-
-	brush->brush_sides = &brush_sides[num_brush_sides];
 
 	while (true) {
 
@@ -560,8 +552,8 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		side->plane = PlaneFromPoints(points[0], points[1], points[2]);
 		if (side->plane == -1) {
 			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Bad plane");
-			UnparseBrush(entity, brush);
-			return;
+			UnparseBrush(brush);
+			return brush;
 		}
 
 		// ensure that no other side on the brush references the same plane
@@ -569,13 +561,13 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		for (int32_t i = 0; i < brush->num_brush_sides; i++, other++) {
 			if (other->plane == side->plane) {
 				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Duplicate plane");
-				UnparseBrush(entity, brush);
-				return;
+				UnparseBrush(brush);
+				return brush;
 			}
 			if (other->plane == (side->plane ^ 1)) {
 				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Mirrored plane");
-				UnparseBrush(entity, brush);
-				return;
+				UnparseBrush(brush);
+				return brush;
 			}
 		}
 
@@ -631,14 +623,14 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 
 	// allow detail brushes to be removed
 	if (no_detail && (brush->contents & CONTENTS_DETAIL)) {
-		UnparseBrush(entity, brush);
-		return;
+		UnparseBrush(brush);
+		return brush;
 	}
 
 	// allow liquid brushes to be removed
 	if (no_liquid && (brush->contents & CONTENTS_MASK_LIQUID)) {
-		UnparseBrush(entity, brush);
-		return;
+		UnparseBrush(brush);
+		return brush;
 	}
 
 	// create windings for sides and bounds for brush
@@ -656,8 +648,8 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 		}
 
-		UnparseBrush(entity, brush);
-		return;
+		UnparseBrush(brush);
+		return brush;
 	}
 
 	// sides that will not be visible at all will never be used as bsp splitters
@@ -674,6 +666,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 
 	// add brush bevels, which are required for collision
 	AddBrushBevels(brush);
+	return brush;
 }
 
 /**
@@ -703,6 +696,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
 	Mem_Free(temp);
 
 	ent->num_brushes = 0;
+	ent->num_brush_sides = 0;
 }
 
 /**
@@ -729,6 +723,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 		num_entities++;
 
 		entity->first_brush = num_brushes;
+		entity->first_brush_side = num_brush_sides;
 
 		while (true) {
 
@@ -742,12 +737,19 @@ static entity_t *ParseEntity(parser_t *parser) {
 			}
 
 			if (!g_strcmp0(token, "{")) {
-				ParseBrush(parser, entity);
+				brush_t *brush = ParseBrush(parser, entity);
+				if (brush) {
+					entity->num_brushes++;
+					entity->num_brush_sides += brush->num_brush_sides;
+				} else {
+					Com_Error(ERROR_FATAL, "Invalid brush %d in entity %d\n", num_brushes, num_entities);
+				}
+
 			} else {
 				entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), MEM_TAG_EPAIR);
 
 				if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
-					Com_Error(ERROR_FATAL, "Invalid entity key\n");
+					Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", num_entities);
 				}
 
 				Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, e->value, sizeof(e->value));
@@ -780,6 +782,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 						TextureVectorsForBrushSide(side, origin);
 					}
 				}
+
 				MakeBrushWindings(brush);
 			}
 		}
@@ -836,7 +839,7 @@ void LoadMapFile(const char *filename) {
 			break;
 		}
 
-		if (i > 0 && entity->num_brushes) {
+		if (i > 0 && entity->num_brush_sides) {
 			SetValueForKey(entity, "model", va("*%d", models++));
 		}
 	}

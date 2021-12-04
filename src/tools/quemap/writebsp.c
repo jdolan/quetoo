@@ -169,7 +169,7 @@ static int32_t EmitLeaf(node_t *node) {
 static int32_t EmitNode(node_t *node) {
 
 	if (node->plane == PLANE_LEAF) {
-		Com_Error(ERROR_FATAL, "Leaf node\n");
+		Com_Error(ERROR_FATAL, "Node does not reference a plane\n");
 	}
 
 	if (node->plane & 1) {
@@ -403,8 +403,9 @@ void EmitBrushes(void) {
 	brush_t *brush = brushes;
 	for (int32_t i = 0; i < num_brushes; i++, brush++) {
 
-		assert(brush->contents);
-		assert(brush->num_brush_sides);
+		if (!brush->num_brush_sides) {
+			continue;
+		}
 
 		brush->out = EmitBrush(brush);
 		bsp_file.num_brushes++;
@@ -506,7 +507,10 @@ bsp_model_t *BeginModel(const entity_t *e) {
 
 	const brush_t *brush = &brushes[start];
 	for (int32_t j = start; j < end; j++, brush++) {
-		mod->bounds = Box3_Union(mod->bounds, brush->bounds);
+
+		if (brush->num_brush_sides) {
+			mod->bounds = Box3_Union(mod->bounds, brush->bounds);
+		}
 	}
 
 	return mod;
