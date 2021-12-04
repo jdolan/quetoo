@@ -93,6 +93,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--no-liquid"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--no-merge"
             isEnabled = "NO">
          </CommandLineArgument>

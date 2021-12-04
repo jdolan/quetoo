@@ -386,8 +386,6 @@ static bsp_brush_t *EmitBrush(const brush_t *brush) {
 
 	out->first_brush_side = bsp_file.num_brush_sides;
 	out->num_brush_sides = EmitBrushSides(brush);
-	
-	assert(out->num_brush_sides);
 
 	out->bounds = brush->bounds;
 
@@ -402,9 +400,8 @@ void EmitBrushes(void) {
 	brush_t *brush = brushes;
 	for (int32_t i = 0; i < num_brushes; i++, brush++) {
 
-		if (brush->num_brush_sides == 0) {
-			continue;
-		}
+		assert(brush->contents);
+		assert(brush->num_brush_sides);
 
 		brush->out = EmitBrush(brush);
 		bsp_file.num_brushes++;
@@ -504,13 +501,9 @@ bsp_model_t *BeginModel(const entity_t *e) {
 
 	mod->bounds = Box3_Null();
 
-	for (int32_t j = start; j < end; j++) {
-		const brush_t *b = &brushes[j];
-		
-		// a real brush (not an origin brush)
-		if (b->num_brush_sides) {
-			mod->bounds = Box3_Union(mod->bounds, b->bounds);
-		}
+	const brush_t *brush = &brushes[start];
+	for (int32_t j = start; j < end; j++, brush++) {
+		mod->bounds = Box3_Union(mod->bounds, brush->bounds);
 	}
 
 	return mod;

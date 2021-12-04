@@ -450,6 +450,24 @@ static void SetMaterialFlags(brush_side_t *side) {
 /**
  * @brief
  */
+static void UnparseBrush(entity_t *entity, brush_t *brush) {
+
+	brush_side_t *side = brush->brush_sides;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
+		if (side->winding) {
+			Cm_FreeWinding(side->winding);
+		}
+	}
+
+	num_brush_sides -= brush->num_brush_sides;
+	num_brushes--;
+
+	entity->num_brushes--;
+}
+
+/**
+ * @brief
+ */
 static void ParseBrush(parser_t *parser, entity_t *entity) {
 	char token[MAX_TOKEN_CHARS];
 
@@ -468,6 +486,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 	}
 
 	brush_t *brush = &brushes[num_brushes];
+	memset(brush, 0, sizeof(*brush));
 
 	brush->entity = (int32_t) (entity - entities);
 	brush->brush = num_brushes - entity->first_brush;
@@ -541,8 +560,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		side->plane = PlaneFromPoints(points[0], points[1], points[2]);
 		if (side->plane == -1) {
 			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Bad plane");
-			num_brush_sides -= brush->num_brush_sides;
-			brush->num_brush_sides = 0;
+			UnparseBrush(entity, brush);
 			return;
 		}
 
@@ -551,14 +569,12 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		for (int32_t i = 0; i < brush->num_brush_sides; i++, other++) {
 			if (other->plane == side->plane) {
 				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Duplicate plane");
-				num_brush_sides -= brush->num_brush_sides;
-				brush->num_brush_sides = 0;
+				UnparseBrush(entity, brush);
 				return;
 			}
 			if (other->plane == (side->plane ^ 1)) {
 				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Mirrored plane");
-				num_brush_sides -= brush->num_brush_sides;
-				brush->num_brush_sides = 0;
+				UnparseBrush(entity, brush);
 				return;
 			}
 		}
@@ -615,15 +631,13 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 
 	// allow detail brushes to be removed
 	if (no_detail && (brush->contents & CONTENTS_DETAIL)) {
-		num_brush_sides -= brush->num_brush_sides;
-		brush->num_brush_sides = 0;
+		UnparseBrush(entity, brush);
 		return;
 	}
 
 	// allow liquid brushes to be removed
 	if (no_liquid && (brush->contents & CONTENTS_MASK_LIQUID)) {
-		num_brush_sides -= brush->num_brush_sides;
-		brush->num_brush_sides = 0;
+		UnparseBrush(entity, brush);
 		return;
 	}
 
@@ -642,8 +656,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 		}
 
-		num_brush_sides -= brush->num_brush_sides;
-		brush->num_brush_sides = 0;
+		UnparseBrush(entity, brush);
 		return;
 	}
 
