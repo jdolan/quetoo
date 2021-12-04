@@ -101,7 +101,10 @@ static int32_t EmitLeaf(node_t *node) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_BRUSHES\n");
 		}
 
-		const int32_t brush_num = (int32_t) (ptrdiff_t) (brush->original - brushes);
+		assert(brush->original);
+		assert(brush->original->out);
+		
+		const int32_t brush_num = (int32_t) (ptrdiff_t) (brush->original->out - bsp_file.brushes);
 
 		int32_t i;
 		for (i = out->first_leaf_brush; i < bsp_file.num_leaf_brushes; i++) {
