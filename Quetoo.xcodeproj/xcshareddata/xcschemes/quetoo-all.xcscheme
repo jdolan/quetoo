@@ -101,7 +101,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map lavatomb"
+            argument = "+map fragpipe"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
