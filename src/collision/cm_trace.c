@@ -116,12 +116,12 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		}
 
 		// if completely in front of plane, the trace does not intersect with the brush
-		if (d1 > 0.f && d2 > 0.f) {
+		if (d1 > 0.f && d2 >= d1) {
 			return;
 		}
 
 		// if completely behind plane, the trace does not intersect with this side
-		if (d1 <= 0.f && d2 <= 0.f) {
+		if (d1 <= 0.f && d2 <= d1) {
 			continue;
 		}
 

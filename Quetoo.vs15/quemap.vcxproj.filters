@@ -84,9 +84,6 @@
     <ClCompile Include="..\src\tools\quemap\qzip.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\texinfo.c">
-      <Filter>src\tools\quemap</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\tools\quemap\tjunction.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
@@ -110,6 +107,9 @@
     </ClCompile>
     <ClCompile Include="..\deps\minizip\miniz.c">
       <Filter>deps\minizip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tools\quemap\texture.c">
+      <Filter>src\tools\quemap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -176,9 +176,6 @@
     <ClInclude Include="..\src\tools\quemap\qzip.h">
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\texinfo.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\tools\quemap\tjunction.h">
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
@@ -202,6 +199,9 @@
     </ClInclude>
     <ClInclude Include="..\deps\minizip\miniz.h">
       <Filter>deps\minizip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\texture.h">
+      <Filter>src\tools\quemap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
