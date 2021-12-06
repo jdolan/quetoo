@@ -74,6 +74,33 @@ SDL_Surface *Img_LoadSurface(const char *name) {
 	return NULL;
 }
 
+/**
+ * @brief Resolves the average color of the specified surface.
+ */
+vec3_t Img_Color(const SDL_Surface *surf) {
+	vec3_t out = Vec3_One();
+
+	if (surf) {
+		const int32_t texels = surf->w * surf->h;
+		uint64_t c[3] = { 0, 0, 0 };
+
+		for (int32_t j = 0; j < texels; j++) {
+
+			const byte *pos = (byte *) surf->pixels + j * 4;
+
+			c[0] += *pos++; // r
+			c[1] += *pos++; // g
+			c[2] += *pos++; // b
+		}
+
+		for (int32_t j = 0; j < 3; j++) {
+			out.xyz[j] = (c[j] / texels) / 255.0;
+		}
+	}
+
+	return out;
+}
+
 // Quick access of a pixel
 #define SDL_PIXEL_AT(surf, type, x, y) \
 	*(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * surf->format->BytesPerPixel)

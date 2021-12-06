@@ -261,36 +261,6 @@ typedef struct r_material_s {
 } r_material_t;
 
 /**
- * @brief BSP texture information.
- */
-typedef struct {
-	/**
-	 * @brief The XYZ + W texture vectors in world space.
-	 */
-	vec4_t vecs[2];
-
-	/**
-	 * @brief The surface flags.
-	 */
-	int32_t flags;
-
-	/**
-	 * @brief The surface value, for lights or Phong grouping.
-	 */
-	int32_t value;
-
-	/**
-	 * @brief The diffusemap texture name.
-	 */
-	char texture[32];
-
-	/**
-	 * @brief The material.
-	 */
-	r_material_t *material;
-} r_bsp_texinfo_t;
-
-/**
  * @brief BSP plane structure.
  */
 typedef struct {
@@ -304,6 +274,37 @@ typedef struct {
 	 */
 	GPtrArray *blend_elements;
 } r_bsp_plane_t;
+
+/**
+ * @brief BSP brush side structure.
+ */
+typedef struct {
+	/**
+	 * @brief The plane.
+	 */
+	const r_bsp_plane_t *plane;
+
+	/**
+	 * @brief The material.
+	 */
+	const r_material_t *material;
+
+	/**
+	 * @brief The texture axis for S and T, in xyz + offset notation.
+	 */
+	vec4_t axis[2];
+
+	/**
+	 * @brief The surface flags.
+	 */
+	int32_t surface;
+
+	/**
+	 * @brief The surface value, for lights or Phong grouping.
+	 */
+	int32_t value;
+
+} r_bsp_brush_side_t;
 
 /**
  * @brief BSP vertex structure.
@@ -354,11 +355,7 @@ typedef struct {
 typedef struct {
 	struct r_bsp_node_s *node;
 
-	r_bsp_plane_t *plane;
-	byte plane_side;
-
-	r_bsp_texinfo_t *texinfo;
-	int32_t contents;
+	r_bsp_brush_side_t *brush_side;
 
 	box3_t bounds;
 
@@ -379,10 +376,9 @@ typedef struct {
  */
 typedef struct {
 	r_bsp_plane_t *plane;
-	byte plane_side;
+	r_material_t *material;
 
-	r_bsp_texinfo_t *texinfo;
-	int32_t contents;
+	int32_t surface;
 
 	box3_t bounds;
 
@@ -530,8 +526,11 @@ typedef struct {
 	int32_t num_planes;
 	r_bsp_plane_t *planes;
 
-	int32_t num_texinfo;
-	r_bsp_texinfo_t *texinfo;
+	int32_t num_materials;
+	r_material_t **materials;
+
+	int32_t num_brush_sides;
+	r_bsp_brush_side_t *brush_sides;
 
 	int32_t num_vertexes;
 	r_bsp_vertex_t *vertexes;
@@ -669,9 +668,6 @@ typedef struct r_model_s {
 		r_bsp_inline_model_t *bsp_inline;
 		r_mesh_model_t *mesh;
 	};
-
-	r_material_t **materials;
-	size_t num_materials;
 
 	box3_t bounds;
 	float radius;
@@ -1267,22 +1263,29 @@ typedef struct {
 } r_view_t;
 
 /**
- * @brief Convenience inline function to clear a view.
- * Use this instead of memset.
+ * @brief Convenience inline function to clear a view. Use this instead of memset.
  */
 static inline void R_ClearView(r_view_t *view) {
-	view->num_beams = view->num_entities = view->num_lights = view->num_sprites =
-		view->num_sprite_instances = view->num_stains = 0;
 
-	memset(view->frustum, 0, sizeof(view->frustum));
-	view->angles = Vec3_Zero();
-	view->contents = 0;
-	view->forward = Vec3_Zero();
+	view->viewport = Vec4_Zero();
 	view->fov = Vec2_Zero();
+
 	view->origin = Vec3_Zero();
+	view->angles = Vec3_Zero();
+	view->forward = Vec3_Zero();
 	view->right = Vec3_Zero();
 	view->up = Vec3_Zero();
-	view->viewport = Vec4_Zero();
+
+	view->contents = CONTENTS_NONE;
+
+	view->num_beams = 0;
+	view->num_entities = 0;
+	view->num_lights = 0;
+	view->num_sprites = 0;
+	view->num_sprite_instances = 0;
+	view->num_stains = 0;
+
+	memset(view->frustum, 0, sizeof(view->frustum));
 }
 
 /**
@@ -1336,8 +1339,9 @@ typedef struct {
 typedef struct {
 
 	int32_t count_bsp_inline_models;
-	int32_t count_bsp_draw_elements;
-	int32_t count_bsp_draw_elements_blend;
+	int32_t count_bsp_opaque_draw_elements;
+	int32_t count_bsp_alpha_test_draw_elements;
+	int32_t count_bsp_blend_draw_elements;
 	int32_t count_bsp_triangles;
 	int32_t count_bsp_occlusion_queries;
 	int32_t count_bsp_occlusion_queries_passed;

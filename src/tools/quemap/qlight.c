@@ -212,13 +212,9 @@ int32_t LIGHT_Main(void) {
 
 	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
-	LoadMaterials(va("maps/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
-
-	BuildTextureColors();
+	LoadMaterials(va("maps/%s.mat", map_base));
 
 	LightWorld();
-
-	FreeTextureColors();
 
 	FreeMaterials();
 

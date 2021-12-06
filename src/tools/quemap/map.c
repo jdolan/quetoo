@@ -24,7 +24,7 @@
 #include "map.h"
 #include "material.h"
 #include "qbsp.h"
-#include "texinfo.h"
+#include "texture.h"
 
 int32_t num_entities;
 entity_t entities[MAX_BSP_ENTITIES];
@@ -32,8 +32,8 @@ entity_t entities[MAX_BSP_ENTITIES];
 int32_t num_brushes;
 brush_t brushes[MAX_BSP_BRUSHES];
 
-static int32_t num_brush_sides;
-static brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
+int32_t num_brush_sides;
+brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
 
 int32_t num_planes;
 plane_t planes[MAX_BSP_PLANES];
@@ -202,26 +202,26 @@ static int32_t BrushContents(const brush_t *b) {
 	int32_t contents = 0;
 
 	{
-		const brush_side_t *s = b->sides;
-		for (int32_t i = 1; i < b->num_sides; i++, s++) {
+		const brush_side_t *s = b->brush_sides;
+		for (int32_t i = 1; i < b->num_brush_sides; i++, s++) {
 			contents |= s->contents;
 		}
 	}
 
 	// if we have a mix of solid and window, window wins
 	if ((contents & CONTENTS_SOLID) && (contents & CONTENTS_WINDOW)) {
-		brush_side_t *s = b->sides;
-		for (int32_t i = 1; i < b->num_sides; i++, s++) {
+		brush_side_t *s = b->brush_sides;
+		for (int32_t i = 1; i < b->num_brush_sides; i++, s++) {
 			s->contents |= CONTENTS_WINDOW;
 			s->contents &= ~CONTENTS_SOLID;
 		}
 	}
 
 	{
-		const brush_side_t *s = b->sides;
+		const brush_side_t *s = b->brush_sides;
 		contents = s->contents;
 
-		for (int32_t i = 1; i < b->num_sides; i++, s++) {
+		for (int32_t i = 1; i < b->num_brush_sides; i++, s++) {
 
 			if ((s->contents & CONTENTS_MASK_VISIBLE) != (contents & CONTENTS_MASK_VISIBLE)) {
 				char bits[33], bobs[33];
@@ -229,7 +229,7 @@ static int32_t BrushContents(const brush_t *b) {
 				SDL_itoa(s->contents & CONTENTS_MASK_VISIBLE, bits, 2);
 				SDL_itoa(contents & CONTENTS_MASK_VISIBLE, bobs, 2);
 
-				Mon_SendSelect(MON_WARN, b->entity_num, b->brush_num,
+				Mon_SendSelect(MON_WARN, b->entity, b->brush,
 							   va("Mixed face contents: %s expected %s", bits, bobs));
 				break;
 			}
@@ -248,7 +248,43 @@ static int32_t SortBrushSides(const void *a, const void *b) {
 	const brush_side_t *a_side = a;
 	const brush_side_t *b_side = b;
 
-	return planes[a_side->plane_num].type - planes[b_side->plane_num].type;
+	return planes[a_side->plane].type - planes[b_side->plane].type;
+}
+
+/**
+ * @brief Adds a bevel side referencing `plane` to the specified brush. The bevel will
+ * borrow surface, contents and material from the nearest original brush side.
+ */
+static void AddBrushBevel(brush_t *b, int32_t plane) {
+
+	if (num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
+		Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+	}
+
+
+	float dot = -1.f;
+	const brush_side_t *side = NULL, *s = b->brush_sides;
+	for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
+		if (s->surface & SURF_BEVEL) {
+			continue;
+		}
+
+		const float d = Vec3_Dot(planes[plane].normal, planes[s->plane].normal);
+		if (d > dot) {
+			dot = d;
+			side = s;
+		}
+	}
+
+	assert(side);
+
+	brush_side_t *bevel = &b->brush_sides[b->num_brush_sides++];
+	bevel->plane = plane;
+	bevel->contents = side->contents;
+	bevel->surface = side->surface | SURF_BEVEL;
+	bevel->material = side->material;
+
+	num_brush_sides++;
 }
 
 /**
@@ -271,31 +307,39 @@ static void AddBrushBevels(brush_t *b) {
 				dist = b->bounds.maxs.xyz[axis];
 			}
 
-			const int32_t plane_num = FindPlane(normal, dist);
+			const int32_t plane = FindPlane(normal, dist);
 
 			int32_t j;
-			for (j = 0; j < b->num_sides; j++) {
-				if (b->sides[j].plane_num == plane_num) {
+			for (j = 0; j < b->num_brush_sides; j++) {
+				if (b->brush_sides[j].plane == plane) {
 					break;
 				}
 			}
 
-			if (j == b->num_sides) {
-				if (num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
-					Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
-				}
-
-				brush_side_t *s = &b->sides[b->num_sides++];
-
-				s->plane_num = plane_num;
-				s->texinfo = BSP_TEXINFO_BEVEL;
-
-				num_brush_sides++;
+			if (j == b->num_brush_sides) {
+				AddBrushBevel(b, plane);
 			}
 		}
 	}
 
-	qsort(b->sides, b->num_sides, sizeof(brush_side_t), SortBrushSides);
+	qsort(b->brush_sides, b->num_brush_sides, sizeof(brush_side_t), SortBrushSides);
+}
+
+/**
+ * @brief Frees the brush sides allocated to `brush`, leaving an "emtpy" brush in place.
+ * This is because, for error reporting, we want to preserve the indexes of brushes.
+ */
+static void UnparseBrush(brush_t *brush) {
+
+	brush_side_t *side = brush->brush_sides;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
+		if (side->winding) {
+			Cm_FreeWinding(side->winding);
+		}
+	}
+
+	num_brush_sides -= brush->num_brush_sides;
+	brush->num_brush_sides = 0;
 }
 
 /**
@@ -303,30 +347,29 @@ static void AddBrushBevels(brush_t *b) {
  */
 static void MakeBrushWindings(brush_t *brush) {
 
-	assert(brush);
-	assert(brush->num_sides);
+	assert(brush->num_brush_sides);
 
 	brush->bounds = Box3_Null();
 
-	brush_side_t *side = brush->sides;
-	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+	brush_side_t *side = brush->brush_sides;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-		if (side->texinfo == BSP_TEXINFO_BEVEL) {
+		if (side->surface & SURF_BEVEL) {
 			continue;
 		}
 
-		const plane_t *plane = &planes[side->plane_num];
+		const plane_t *plane = &planes[side->plane];
 		side->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 
-		const brush_side_t *s = brush->sides;
-		for (int32_t j = 0; j < brush->num_sides; j++, s++) {
+		const brush_side_t *s = brush->brush_sides;
+		for (int32_t j = 0; j < brush->num_brush_sides; j++, s++) {
 			if (side == s) {
 				continue;
 			}
-			if (s->texinfo == BSP_TEXINFO_BEVEL) {
+			if (s->surface & SURF_BEVEL) {
 				continue;
 			}
-			const plane_t *p = &planes[s->plane_num ^ 1];
+			const plane_t *p = &planes[s->plane ^ 1];
 			Cm_ClipWinding(&side->winding, p->normal, p->dist, SIDE_EPSILON);
 
 			if (side->winding == NULL) {
@@ -337,8 +380,8 @@ static void MakeBrushWindings(brush_t *brush) {
 		if (side->winding) {
 			brush->bounds = Box3_Union(brush->bounds, Cm_WindingBounds(side->winding));
 		} else {
-			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Malformed brush");
-			brush->num_sides = 0;
+			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Malformed brush");
+			UnparseBrush(brush);
 			return;
 		}
 	}
@@ -346,13 +389,13 @@ static void MakeBrushWindings(brush_t *brush) {
 	for (int32_t i = 0; i < 3; i++) {
 		//IDBUG: all the indexes into the mins and maxs were zero (not using i)
 		if (brush->bounds.mins.xyz[i] < MIN_WORLD_COORD || brush->bounds.maxs.xyz[i] > MAX_WORLD_COORD) {
-			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Brush bounds out of range");
-			brush->num_sides = 0;
+			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Brush bounds out of range");
+			UnparseBrush(brush);
 			return;
 		}
 		if (brush->bounds.mins.xyz[i] > MAX_WORLD_COORD || brush->bounds.maxs.xyz[i] < MIN_WORLD_COORD) {
-			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "No visible sides on brush");
-			brush->num_sides = 0;
+			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "No visible sides on brush");
+			UnparseBrush(brush);
 			return;
 		}
 	}
@@ -363,77 +406,73 @@ static void MakeBrushWindings(brush_t *brush) {
  */
 static void SetMaterialFlags(brush_side_t *side) {
 
-	const cm_material_t *material = LoadMaterial(side->texture, ASSET_CONTEXT_TEXTURES);
+	const material_t *material = &materials[side->material];
 	if (material) {
-		if (material->contents) {
+		if (material->cm->contents) {
 			if (side->contents == 0) {
-				side->contents = material->contents;
+				side->contents = material->cm->contents;
 			}
 		}
-		if (material->surface) {
-			if (side->surf == 0) {
-				side->surf = material->surface;
+		if (material->cm->surface) {
+			if (side->surface == 0) {
+				side->surface = material->cm->surface;
 			}
 		}
-		if (material->light) {
+		if (material->cm->light) {
 			if (side->value == 0) {
-				side->value = material->light;
+				side->value = material->cm->light;
 			}
 		}
 	}
 
 	if (!g_strcmp0(side->texture, "common/caulk")) {
-		side->surf |= SURF_NO_DRAW;
+		side->surface |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(side->texture, "common/clip")) {
 		side->contents |= CONTENTS_PLAYER_CLIP;
 	} else if (!g_strcmp0(side->texture, "common/dust")) {
 		side->contents |= CONTENTS_MIST;
-		side->surf |= SURF_NO_DRAW;
+		side->surface |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(side->texture, "common/fog")) {
 		side->contents |= CONTENTS_MIST;
-		side->surf |= SURF_NO_DRAW;
+		side->surface |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(side->texture, "common/hint")) {
-		side->surf |= SURF_HINT;
+		side->surface |= SURF_HINT;
 	} else if (!g_strcmp0(side->texture, "common/ladder")) {
 		side->contents |= CONTENTS_LADDER | CONTENTS_WINDOW;
-		side->surf |= SURF_NO_DRAW;
+		side->surface |= SURF_NO_DRAW;
 	} if (!g_strcmp0(side->texture, "common/monsterclip")) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
 	} else if (!g_strcmp0(side->texture, "common/nodraw")) {
-		side->surf |= SURF_NO_DRAW;
+		side->surface |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(side->texture, "common/occlude")) {
 		side->contents |= CONTENTS_OCCLUSION_QUERY;
-		side->surf |= SURF_SKIP;
+		side->surface |= SURF_SKIP;
 	} else if (!g_strcmp0(side->texture, "common/origin")) {
 		side->contents |= CONTENTS_ORIGIN;
 	} else if (!g_strcmp0(side->texture, "common/skip")) {
-		side->surf |= SURF_SKIP;
+		side->surface |= SURF_SKIP;
 	} else if (!g_strcmp0(side->texture, "common/sky")) {
-		side->surf |= SURF_SKY;
+		side->surface |= SURF_SKY;
 	} else if (!g_strcmp0(side->texture, "common/trigger")) {
 		side->contents |= CONTENTS_WINDOW;
-		side->surf |= SURF_NO_DRAW;
+		side->surface |= SURF_NO_DRAW;
 	}
 
 	if (side->contents & CONTENTS_MASK_LIQUID) {
-		side->surf |= SURF_LIQUID;
+		side->surface |= SURF_LIQUID;
 	}
 }
 
 /**
  * @brief
  */
-static void ParseBrush(parser_t *parser, entity_t *entity) {
+static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 	char token[MAX_TOKEN_CHARS];
-
-	if (Parse_IsEOF(parser)) {
-		return;
-	}
 
 	Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
 	if (g_strcmp0(token, "{")) {
-		return;
+		return NULL;
 	}
 
 	if (num_brushes == MAX_BSP_BRUSHES) {
@@ -441,14 +480,13 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 	}
 
 	brush_t *brush = &brushes[num_brushes];
+	memset(brush, 0, sizeof(*brush));
 
-	brush->entity_num = (int32_t) (entity - entities);
-	brush->brush_num = num_brushes - entity->first_brush;
+	brush->entity = (int32_t) (entity - entities);
+	brush->brush = num_brushes - entity->first_brush;
+	brush->brush_sides = &brush_sides[num_brush_sides];
 
 	num_brushes++;
-	entity->num_brushes++;
-
-	brush->sides = &brush_sides[num_brush_sides];
 
 	while (true) {
 
@@ -466,6 +504,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 		}
 
 		brush_side_t *side = &brush_sides[num_brush_sides];
+		memset(side, 0, sizeof(*side));
 
 		vec3d_t points[3];
 
@@ -487,7 +526,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 		}
 
-		// read the texturedef
+		// read the texture name
 		Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
 		if (strlen(token) > sizeof(side->texture) - 1) {
@@ -496,6 +535,7 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 
 		g_strlcpy(side->texture, token, sizeof(side->texture));
 
+		// read the texture parameters
 		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.x, 1);
 		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.y, 1);
 		Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
@@ -504,15 +544,44 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 
 		if (!Parse_IsEOL(parser)) {
 			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->contents, 1);
-			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->surf, 1);
+			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->surface, 1);
 			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->value, 1);
 		}
 
+		// find the plane number
+		side->plane = PlaneFromPoints(points[0], points[1], points[2]);
+		if (side->plane == -1) {
+			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Bad plane");
+			UnparseBrush(brush);
+			return brush;
+		}
+
+		// ensure that no other side on the brush references the same plane
+		const brush_side_t *other = brush->brush_sides;
+		for (int32_t i = 0; i < brush->num_brush_sides; i++, other++) {
+			if (other->plane == side->plane) {
+				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Duplicate plane");
+				UnparseBrush(brush);
+				return brush;
+			}
+			if (other->plane == (side->plane ^ 1)) {
+				Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Mirrored plane");
+				UnparseBrush(brush);
+				return brush;
+			}
+		}
+
+		// resolve the material
+		side->material = FindMaterial(side->texture);
+
+		// resolve the texture vectors
+		TextureVectorsForBrushSide(side, Vec3_Zero());
+		
 		// resolve material-based surface and contents flags
 		SetMaterialFlags(side);
 
 		// translucent faces are inherently details beacuse they can not occlude
-		if ((side->surf & SURF_MASK_TRANSLUCENT) || (side->contents & CONTENTS_WINDOW)) {
+		if ((side->surface & SURF_MASK_TRANSLUCENT) || (side->contents & CONTENTS_WINDOW)) {
 			side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
 		}
 
@@ -538,40 +607,14 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 		}
 
-			// hints and skips have no contents
-		if (side->surf & (SURF_HINT | SURF_SKIP)) {
+		// hints and skips have no contents
+		if (side->surface & (SURF_HINT | SURF_SKIP)) {
 			if (!(side->contents & CONTENTS_OCCLUSION_QUERY)) {
 				side->contents = CONTENTS_NONE;
 			}
 		}
 
-		// find the plane number
-		side->plane_num = PlaneFromPoints(points[0], points[1], points[2]);
-		if (side->plane_num == -1) {
-			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Bad plane");
-			brush->num_sides = 0;
-			return;
-		}
-
-		// ensure that no other side on the brush references the same plane
-		const brush_side_t *other = brush->sides;
-		for (int32_t i = 0; i < brush->num_sides; i++, other++) {
-			if (other->plane_num == side->plane_num) {
-				Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Duplicate plane");
-				brush->num_sides = 0;
-				return;
-			}
-			if (other->plane_num == (side->plane_num ^ 1)) {
-				Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Mirrored plane");
-				brush->num_sides = 0;
-				return;
-			}
-		}
-
-		// resolve the texinfo
-		side->texinfo = TexinfoForBrushSide(side, Vec3_Zero());
-
-		brush->num_sides++;
+		brush->num_brush_sides++;
 		num_brush_sides++;
 	}
 
@@ -580,49 +623,50 @@ static void ParseBrush(parser_t *parser, entity_t *entity) {
 
 	// allow detail brushes to be removed
 	if (no_detail && (brush->contents & CONTENTS_DETAIL)) {
-		brush->num_sides = 0;
-		return;
+		UnparseBrush(brush);
+		return brush;
 	}
 
 	// allow liquid brushes to be removed
 	if (no_liquid && (brush->contents & CONTENTS_MASK_LIQUID)) {
-		brush->num_sides = 0;
-		return;
+		UnparseBrush(brush);
+		return brush;
 	}
 
 	// create windings for sides and bounds for brush
 	MakeBrushWindings(brush);
 
 	// origin brushes are removed, but they set the rotation origin for the rest of the brushes
-	// in the entity. After the entire entity is parsed, the plane_nums and texinfos will be adjusted for
+	// in the entity. After the entire entity is parsed, the planes and textures will be adjusted for
 	// the origin brush
 	if (brush->contents & CONTENTS_ORIGIN) {
 
-		if (brush->entity_num == 0) {
-			Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Origin brush in world");
+		if (brush->entity == 0) {
+			Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Origin brush in world");
 		} else {
 			const vec3_t origin = Box3_Center(brush->bounds);
 			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 		}
 
-		brush->num_sides = 0;
-		return;
+		UnparseBrush(brush);
+		return brush;
 	}
 
 	// sides that will not be visible at all will never be used as bsp splitters
-	for (int32_t i = 0; i < brush->num_sides; i++) {
+	for (int32_t i = 0; i < brush->num_brush_sides; i++) {
 
 		if (brush->contents & CONTENTS_MASK_CLIP) {
-			brush->sides[i].texinfo = BSP_TEXINFO_NODE;
+			brush->brush_sides[i].surface |= SURF_NODE;
 		}
 
-		if (brush->sides[i].surf & SURF_SKIP) {
-			brush->sides[i].texinfo = BSP_TEXINFO_NODE;
+		if (brush->brush_sides[i].surface & SURF_SKIP) {
+			brush->brush_sides[i].surface |= SURF_NODE;
 		}
 	}
 
 	// add brush bevels, which are required for collision
 	AddBrushBevels(brush);
+	return brush;
 }
 
 /**
@@ -652,6 +696,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
 	Mem_Free(temp);
 
 	ent->num_brushes = 0;
+	ent->num_brush_sides = 0;
 }
 
 /**
@@ -678,6 +723,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 		num_entities++;
 
 		entity->first_brush = num_brushes;
+		entity->first_brush_side = num_brush_sides;
 
 		while (true) {
 
@@ -691,12 +737,19 @@ static entity_t *ParseEntity(parser_t *parser) {
 			}
 
 			if (!g_strcmp0(token, "{")) {
-				ParseBrush(parser, entity);
+				brush_t *brush = ParseBrush(parser, entity);
+				if (brush) {
+					entity->num_brushes++;
+					entity->num_brush_sides += brush->num_brush_sides;
+				} else {
+					Com_Error(ERROR_FATAL, "Invalid brush %d in entity %d\n", num_brushes, num_entities);
+				}
+
 			} else {
 				entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), MEM_TAG_EPAIR);
 
 				if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
-					Com_Error(ERROR_FATAL, "Invalid entity key\n");
+					Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", num_entities);
 				}
 
 				Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, e->value, sizeof(e->value));
@@ -708,27 +761,28 @@ static entity_t *ParseEntity(parser_t *parser) {
 
 		const vec3_t origin = VectorForKey(entity, "origin", Vec3_Zero());
 
-		// if there was an origin brush, offset all of the planes and texinfo
+		// if there was an origin brush, offset all of the planes and texture
 		if (!Vec3_Equal(origin, Vec3_Zero())) {
 
 			brush_t *brush = brushes + entity->first_brush;
 			for (int32_t i = 0; i < entity->num_brushes; i++, brush++) {
 
-				if (!brush->num_sides) {
+				if (!brush->num_brush_sides) {
 					continue;
 				}
 
-				brush_side_t *side = brush->sides;
-				for (int32_t j = 0; j < brush->num_sides; j++, side++) {
+				brush_side_t *side = brush->brush_sides;
+				for (int32_t j = 0; j < brush->num_brush_sides; j++, side++) {
 
-					const plane_t *plane = &planes[side->plane_num];
+					const plane_t *plane = &planes[side->plane];
 					const double dist = plane->dist - Vec3_Dot(plane->normal, origin);
 
-					side->plane_num = FindPlane(plane->normal, dist);
-					if (side->texinfo != BSP_TEXINFO_BEVEL) {
-						side->texinfo = TexinfoForBrushSide(side, origin);
+					side->plane = FindPlane(plane->normal, dist);
+					if (!(side->surface & SURF_BEVEL)) {
+						TextureVectorsForBrushSide(side, origin);
 					}
 				}
+
 				MakeBrushWindings(brush);
 			}
 		}
@@ -785,7 +839,7 @@ void LoadMapFile(const char *filename) {
 			break;
 		}
 
-		if (i > 0 && entity->num_brushes) {
+		if (i > 0 && entity->num_brush_sides) {
 			SetValueForKey(entity, "model", va("*%d", models++));
 		}
 	}

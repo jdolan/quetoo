@@ -34,8 +34,8 @@ lightmap_t *lightmaps;
  */
 static void BuildLightmapMatrices(lightmap_t *lm) {
 
-	vec3_t s = Vec3_Normalize(Vec4_XYZ(lm->texinfo->vecs[0]));
-	vec3_t t = Vec3_Normalize(Vec4_XYZ(lm->texinfo->vecs[1]));
+	vec3_t s = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[0]));
+	vec3_t t = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[1]));
 
 	s = Vec3_Scale(s, 1.0 / luxel_size);
 	t = Vec3_Scale(t, 1.0 / luxel_size);
@@ -106,7 +106,7 @@ static void DebugLightmapLuxels(void) {
 	lightmap_t *lm = lightmaps;
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
 
-		if (lm->texinfo->flags & SURF_DEBUG_LUXEL) {
+		if (lm->brush_side->surface & SURF_DEBUG_LUXEL) {
 
 			if (file == NULL) {
 				const char *path = va("maps/%s.luxels.map", map_base);
@@ -169,14 +169,12 @@ void BuildLightmaps(void) {
 		assert(lm->model);
 		
 		lm->face = &bsp_file.faces[i];
-		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
-		lm->plane = &bsp_file.planes[lm->face->plane_num];
+		lm->brush_side = &bsp_file.brush_sides[lm->face->brush_side];
+		lm->plane = &bsp_file.planes[lm->brush_side->plane];
 
-		if (lm->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+		if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
-
-		lm->material = LoadMaterial(lm->texinfo->texture, ASSET_CONTEXT_TEXTURES);
 
 		BuildLightmapMatrices(lm);
 
@@ -239,7 +237,7 @@ static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soff
 
 	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
 
-	if (lm->texinfo->flags & SURF_PHONG) {
+	if (lm->brush_side->surface & SURF_PHONG) {
 		l->normal = PhongLuxel(lm, l->origin);
 	} else {
 		l->normal = lm->plane->normal;
@@ -379,7 +377,7 @@ static void LightLightmapLuxel(const GPtrArray *lights, const lightmap_t *lightm
 			const vec3_t sun_origin = Vec3_Fmaf(luxel->origin, -MAX_WORLD_DIST, light->normal);
 
 			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, head_node, CONTENTS_SOLID);
-			if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
+			if (!(trace.surface & SURF_SKY)) {
 				float exposure = 0.f;
 
 				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
@@ -391,7 +389,7 @@ static void LightLightmapLuxel(const GPtrArray *lights, const lightmap_t *lightm
 						const vec3_t point = Vec3_Fmaf(sun_origin, i * LIGHT_SIZE_STEP, points[j]);
 
 						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
-						if (!(trace.texinfo && (trace.texinfo->flags & SURF_SKY))) {
+						if (!(trace.surface & SURF_SKY)) {
 							continue;
 						}
 
@@ -471,7 +469,7 @@ void DirectLightmap(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+	if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 		return;
 	}
 
@@ -534,7 +532,7 @@ void IndirectLightmap(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+	if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 		return;
 	}
 
@@ -586,7 +584,7 @@ void FinalizeLightmap(int32_t face_num) {
 
 	lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+	if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 		return;
 	}
 
@@ -626,8 +624,8 @@ void FinalizeLightmap(int32_t face_num) {
 		ProjectLightmapLuxel(lm, l, 0.f, 0.f);
 
 		// write the directional sample data, in tangent space
-		const vec3_t sdir = Vec4_XYZ(lm->texinfo->vecs[0]);
-		const vec3_t tdir = Vec4_XYZ(lm->texinfo->vecs[1]);
+		const vec3_t sdir = Vec4_XYZ(lm->brush_side->axis[0]);
+		const vec3_t tdir = Vec4_XYZ(lm->brush_side->axis[1]);
 
 		vec3_t tangent, bitangent;
 		Vec3_Tangents(l->normal, sdir, tdir, &tangent, &bitangent);
@@ -659,7 +657,7 @@ void EmitLightmap(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+		if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -711,7 +709,7 @@ void EmitLightmap(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+		if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
 
@@ -741,7 +739,7 @@ void EmitLightmapTexcoords(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & SURF_MASK_NO_LIGHTMAP) {
+		if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
 

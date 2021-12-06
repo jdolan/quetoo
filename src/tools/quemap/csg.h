@@ -22,17 +22,7 @@
 #pragma once
 
 #include "quemap.h"
-
-/**
- * @brief Brushes defined in the map file are carved via CSG before being sorted into the tree.
- */
-typedef struct csg_brush_s {
-	const struct brush_s *original;
-	struct brush_side_s *sides;
-	int32_t num_sides;
-	box3_t bounds;
-	struct csg_brush_s *next;
-} csg_brush_t;
+#include "brush.h"
 
 csg_brush_t *MakeBrushes(int32_t index, int32_t count);
 csg_brush_t *SubtractBrushes(csg_brush_t *head);

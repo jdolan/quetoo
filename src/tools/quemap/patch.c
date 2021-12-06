@@ -25,73 +25,6 @@
 
 patch_t *patches;
 
-static GHashTable *texture_colors;
-
-/**
- * @brief
- */
-void BuildTextureColors(void) {
-
-	texture_colors = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
-
-	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
-
-		const bsp_texinfo_t *tex = &bsp_file.texinfo[i];
-
-		if (g_hash_table_contains(texture_colors, tex->texture)) {
-			continue;
-		}
-
-		vec3_t *color = Mem_Malloc(sizeof(vec3_t));
-		*color = Vec3(1.0, 1.0, 1.0);
-
-		SDL_Surface *surf = LoadDiffuseTexture(tex->texture);
-		if (surf) {
-			Com_Debug(DEBUG_ALL, "Loaded %s (%dx%d)\n", tex->texture, surf->w, surf->h);
-
-			const int32_t texels = surf->w * surf->h;
-			uint32_t c[3] = { 0, 0, 0 };
-
-			for (int32_t j = 0; j < texels; j++) {
-
-				const byte *pos = (byte *) surf->pixels + j * 4;
-
-				c[0] += *pos++; // r
-				c[1] += *pos++; // g
-				c[2] += *pos++; // b
-			}
-
-			for (int32_t j = 0; j < 3; j++) {
-				color->xyz[j] = (c[j] / texels) / 255.0;
-			}
-		} else {
-			Com_Warn("Couldn't load %s\n", tex->texture);
-		}
-
-		g_hash_table_insert(texture_colors, (gpointer) tex->texture, color);
-	}
-}
-
-/**
- * @brief
- */
-vec3_t GetTextureColor(const char *name) {
-
-	const vec3_t *color = g_hash_table_lookup(texture_colors, name);
-	if (color) {
-		return *color;
-	} else {
-		return Vec3(1.0, 1.0, 1.0);
-	}
-}
-
-/**
- * @brief Free the color hash table
- */
-void FreeTextureColors(void) {
-	g_hash_table_destroy(texture_colors);
-}
-
 /**
  * @brief
  */
@@ -102,7 +35,6 @@ static patch_t *BuildPatch(const bsp_face_t *face, const vec3_t origin, cm_windi
 	patch->face = face;
 	patch->origin = origin;
 	patch->winding = w;
-	patch->texinfo = bsp_file.texinfo + patch->face->texinfo;
 
 	return patch;
 }
@@ -171,8 +103,8 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	vec3_t normal = Vec3_Zero();
 
-	const cm_material_t *material = LoadMaterial(patch->texinfo->texture, ASSET_CONTEXT_TEXTURES);
-	const float size = material->patch_size ?: patch_size;
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];	
+	const float size = materials[brush_side->material].cm->patch_size ?: patch_size;
 
 	int32_t i;
 	for (i = 0; i < 3; i++) {
@@ -198,7 +130,6 @@ static void SubdividePatch_r(patch_t *patch) {
 	// create a new patch
 	patch_t *p = (patch_t *) Mem_TagMalloc(sizeof(*p), MEM_TAG_PATCH);
 	p->face = patch->face;
-	p->texinfo = patch->texinfo;
 
 	p->origin = patch->origin;
 
@@ -219,9 +150,9 @@ void SubdividePatch(int32_t patch_num) {
 
 	patch_t *patch = &patches[patch_num];
 
-	const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
 
-	if (tex->flags & SURF_MASK_NO_LIGHTMAP) {
+	if (brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 		return;
 	}
 

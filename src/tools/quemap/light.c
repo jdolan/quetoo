@@ -29,6 +29,19 @@ GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 GPtrArray *unattenuated_lights;
 
 /**
+ * @brief
+ */
+static vec3_t GetMaterialColor(int32_t num) {
+	static vec3_t colors[MAX_BSP_MATERIALS];
+
+	if (Vec3_Equal(Vec3_Zero(), colors[num])) {
+		colors[num] = Img_Color(materials[num].diffusemap);
+	}
+
+	return colors[num];
+}
+
+/**
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
  * down if necessary.
  */
@@ -222,7 +235,8 @@ static void LightForEntity(const cm_entity_t *entity) {
  */
 static void LightForPatch(const patch_t *patch) {
 
-	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
+	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane];
 
 	light_t light = {};
 
@@ -236,15 +250,13 @@ static void LightForPatch(const patch_t *patch) {
 		return;
 	}
 
-	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[patch->face->texinfo];
-
-	light.color = GetTextureColor(texinfo->texture);
+	light.color = GetMaterialColor(brush_side->material);
 	const float brightness = ColorNormalize(light.color, &light.color);
 	if (brightness < 1.0) {
 		light.color = Vec3_Scale(light.color, 1.0 / brightness);
 	}
 
-	light.radius = (texinfo->value ?: DEFAULT_LIGHT) * lightscale_patch;
+	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * lightscale_patch;
 	light.face = patch->face;
 
 	g_array_append_val(lights, light);
@@ -359,9 +371,8 @@ void BuildDirectLights(void) {
 	const bsp_face_t *face = bsp_file.faces;
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
 
-		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
-
-		if (texinfo->flags & SURF_LIGHT) {
+		const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[face->brush_side];
+		if (brush_side->surface & SURF_LIGHT) {
 
 			for (const patch_t *patch = &patches[i]; patch; patch = patch->next) {
 				LightForPatch(patch);
@@ -432,9 +443,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
 	light.radius = ColorNormalize(lightmap, &lightmap) * radiosity;
-
-	const vec3_t diffuse = GetTextureColor(lm->texinfo->texture);
-	light.color = Vec3_Multiply(lightmap, diffuse);
+	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
 
 	light.face = patch->face;
 
@@ -454,7 +463,7 @@ void BuildIndirectLights(void) {
 
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & (SURF_LIGHT | SURF_MASK_NO_LIGHTMAP)) {
+		if (lm->brush_side->surface & (SURF_LIGHT | SURF_MASK_NO_LIGHTMAP)) {
 			continue;
 		}
 

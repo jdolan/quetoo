@@ -24,33 +24,41 @@
 #include "polylib.h"
 
 /**
- * @brief
+ * @brief The in-tree representation of BSP faces.
  */
 typedef struct face_s {
-	struct face_s *next; // on node
+	/**
+	 * @brief Faces are chained on the node on which they reside.
+	 * @details Faces on either side of the node may be chained together.
+	 */
+	struct face_s *next;
 
-	// the chain of faces off of a node can be merged,
-	// but each face_t along the way will remain in the chain
-	// until the entire tree is freed
-	struct face_s *merged; // if set, this face isn't valid anymore
-
+	/**
+	 * @brief The portal that created this face.
+	 */
 	struct portal_s *portal;
-	int32_t texinfo;
-	int32_t plane_num;
-	int32_t contents; // faces in different contents can't merge
-	int32_t face_num; // for leaf faces
 
+	/**
+	 * @brief The original brush side that gives this face its texture.
+	 */
+	const struct brush_side_s *brush_side;
+
+	/**
+	 * @brief The ordered, welded face winding, used to emit BSP vertexes.
+	 */
 	cm_winding_t *w;
 
+	/**
+	 * @brief The output face in the BSP, so that node faces may emit leaf faces.
+	 */
+	bsp_face_t *out;
 } face_t;
 
-extern int32_t c_merged;
 extern int32_t num_welds;
 
 face_t *AllocFace(void);
 void FreeFace(face_t *f);
-face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal);
 void ClearWeldingSpatialHash(void);
-int32_t EmitFace(const face_t *face);
-void PhongVertex(int32_t vertex_num);
-void EmitTangents(void);
+bsp_face_t *EmitFace(const face_t *face);
+void PhongShading(void);
+void TangentVectors(void);

@@ -214,8 +214,8 @@ static void Cg_InitFootsteps(void) {
 
 	g_hash_table_insert(cg_footstep_table, "default", default_samples);
 
-	r_material_t **material = cgi.WorldModel()->materials;
-	for (size_t i = 0; i < cgi.WorldModel()->num_materials; i++, material++) {
+	r_material_t **material = cgi.WorldModel()->bsp->materials;
+	for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_materials; i++, material++) {
 
 		if (strlen((*material)->cm->footsteps)) {
 			Cg_FootstepsTable_Load((*material)->cm->footsteps);

@@ -25,7 +25,5 @@
 
 typedef void (*WorkFunc)(int32_t);
 
-void WorkLock(void);
-void WorkUnlock(void);
 void Work(const char *name, WorkFunc func, int32_t count);
 void Progress(const char *name, int32_t percent);

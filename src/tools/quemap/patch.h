@@ -26,7 +26,6 @@
 
 typedef struct patch_s {
 	const bsp_face_t *face;
-	const bsp_texinfo_t *texinfo;
 	vec3_t origin;
 	cm_winding_t *winding;
 	struct patch_s *next;  // next in face
@@ -34,8 +33,5 @@ typedef struct patch_s {
 
 extern patch_t *patches;
 
-void BuildTextureColors(void);
-vec3_t GetTextureColor(const char *name);
-void FreeTextureColors(void);
 void BuildPatches(void);
 void SubdividePatch(int32_t patch_num);

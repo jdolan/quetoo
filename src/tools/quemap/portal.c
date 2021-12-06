@@ -68,7 +68,7 @@ int32_t VisibleContents(int32_t contents) {
  */
 static int32_t ClusterContents(const node_t *node) {
 
-	if (node->plane_num == PLANE_NUM_LEAF) {
+	if (node->plane == PLANE_LEAF) {
 		return node->contents;
 	}
 
@@ -131,7 +131,7 @@ _Bool Portal_VisFlood(const portal_t *p) {
  */
 static _Bool Portal_EntityFlood(const portal_t *p) {
 
-	if (p->nodes[0]->plane_num != PLANE_NUM_LEAF || p->nodes[1]->plane_num != PLANE_NUM_LEAF) {
+	if (p->nodes[0]->plane != PLANE_LEAF || p->nodes[1]->plane != PLANE_LEAF) {
 		Com_Error(ERROR_FATAL, "Not a leaf\n");
 	}
 
@@ -214,7 +214,7 @@ void MakeHeadnodePortals(tree_t *tree) {
 		bounds.maxs.xyz[i] =  ceilf(tree->bounds.maxs.xyz[i]) + SIDESPACE;
 	}
 
-	tree->outside_node.plane_num = PLANE_NUM_LEAF;
+	tree->outside_node.plane = PLANE_LEAF;
 	tree->outside_node.brushes = NULL;
 	tree->outside_node.portals = NULL;
 	tree->outside_node.contents = 0;
@@ -256,12 +256,12 @@ void MakeHeadnodePortals(tree_t *tree) {
  */
 static cm_winding_t *BaseWindingForNode(const node_t *node) {
 
-	const plane_t *plane = &planes[node->plane_num];
+	const plane_t *plane = &planes[node->plane];
 	cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
 
 	// clip by all the parents
 	for (const node_t *n = node->parent; n && w;) {
-		plane = &planes[n->plane_num];
+		plane = &planes[n->plane];
 
 		if (n->children[0] == node) { // take front
 			Cm_ClipWinding(&w, plane->normal, plane->dist, SIDE_EPSILON);
@@ -315,7 +315,7 @@ void MakeNodePortal(node_t *node) {
 	}
 
 	portal_t *portal = AllocPortal();
-	portal->plane = planes[node->plane_num];
+	portal->plane = planes[node->plane];
 	portal->on_node = node;
 	portal->winding = w;
 	AddPortalToNodes(portal, node->children[0], node->children[1]);
@@ -327,7 +327,7 @@ void MakeNodePortal(node_t *node) {
 void SplitNodePortals(node_t *node) {
 	portal_t *next;
 
-	plane_t *plane = &planes[node->plane_num];
+	plane_t *plane = &planes[node->plane];
 
 	for (portal_t *p = node->portals; p; p = next) {
 		int32_t side;
@@ -437,7 +437,7 @@ static void MakeTreePortals_r(node_t *node) {
 		}
 	}
 
-	if (node->plane_num == PLANE_NUM_LEAF) {
+	if (node->plane == PLANE_LEAF) {
 		return;
 	}
 
@@ -487,8 +487,8 @@ static void FloodPortals_r(node_t *node, int32_t occupied) {
 static _Bool PlaceOccupant(node_t *head_node, const vec3_t origin, const entity_t *occupant) {
 
 	node_t *node = head_node;
-	while (node->plane_num != PLANE_NUM_LEAF) {
-		const plane_t *plane = &planes[node->plane_num];
+	while (node->plane != PLANE_LEAF) {
+		const plane_t *plane = &planes[node->plane];
 		const double d = Vec3_Dot(origin, plane->normal) - plane->dist;
 		if (d >= 0.0) {
 			node = node->children[0];
@@ -549,7 +549,7 @@ static int32_t c_solid;
 
 static void FillOutside_r(node_t *node) {
 
-	if (node->plane_num != PLANE_NUM_LEAF) {
+	if (node->plane != PLANE_LEAF) {
 		FillOutside_r(node->children[0]);
 		FillOutside_r(node->children[1]);
 		return;
@@ -609,23 +609,23 @@ static void FindPortalBrushSide(portal_t *portal) {
 				continue;
 			}
 
-			for (int32_t i = 0; i < original->num_sides; i++) {
-				brush_side_t *side = &original->sides[i];
-				if (side->texinfo == BSP_TEXINFO_BEVEL) {
+			for (int32_t i = 0; i < original->num_brush_sides; i++) {
+				brush_side_t *side = &original->brush_sides[i];
+				if (side->surface & SURF_BEVEL) {
 					continue;
 				}
-				if (side->texinfo == BSP_TEXINFO_NODE) {
+				if (side->surface & SURF_NODE) {
 					continue;
 				}
 
-				if ((side->plane_num & ~1) == portal->on_node->plane_num) { // exact match
+				if ((side->plane & ~1) == portal->on_node->plane) { // exact match
 					portal->side = side;
 					return;
 				}
 
 				// see how close the match is
-				const plane_t *p1 = &planes[portal->on_node->plane_num];
-				const plane_t *p2 = &planes[side->plane_num & ~1];
+				const plane_t *p1 = &planes[portal->on_node->plane];
+				const plane_t *p2 = &planes[side->plane & ~1];
 
 				const float dot = Vec3_Dot(p1->normal, p2->normal);
 				if (dot > best_dot) {
@@ -648,7 +648,7 @@ static void FindPortalBrushSide(portal_t *portal) {
 static void FindPortalBrushSides_r(const node_t *node) {
 	int32_t s;
 
-	if (node->plane_num != PLANE_NUM_LEAF) {
+	if (node->plane != PLANE_LEAF) {
 		FindPortalBrushSides_r(node->children[0]);
 		FindPortalBrushSides_r(node->children[1]);
 		return;
@@ -691,16 +691,14 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 
 	face_t *f = AllocFace();
 
-	f->texinfo = side->texinfo;
-	f->plane_num = (side->plane_num & ~1) | pside;
+	f->brush_side = side;
+//	f->plane_num = (side->plane & ~1) | pside;
 	f->portal = p;
 
 	if (pside) {
 		f->w = Cm_ReverseWinding(p->winding);
-		f->contents = p->nodes[1]->contents;
 	} else {
 		f->w = Cm_CopyWinding(p->winding);
-		f->contents = p->nodes[0]->contents;
 	}
 
 	return f;
@@ -720,16 +718,12 @@ static void MakeFaces_r(node_t *node) {
 	int32_t s;
 
 	// recurse down to leafs
-	if (node->plane_num != PLANE_NUM_LEAF) {
+	if (node->plane != PLANE_LEAF) {
 		MakeFaces_r(node->children[0]);
 		MakeFaces_r(node->children[1]);
-
-		if (!no_merge) {
-			MergeNodeFaces(node);
-		}
-
 		return;
 	}
+
 	// solid leafs never have visible faces
 	if (node->contents & CONTENTS_SOLID) {
 		return;
@@ -755,11 +749,9 @@ static void MakeFaces_r(node_t *node) {
 void MakeTreeFaces(tree_t *tree) {
 	Com_Verbose("--- MakeFaces ---\n");
 
-	c_merged = 0;
 	c_faces = 0;
 
 	MakeFaces_r(tree->head_node);
 
 	Com_Verbose("%5i faces\n", c_faces);
-	Com_Verbose("%5i merged\n", c_merged);
 }

@@ -307,7 +307,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 
 	glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 
-	R_GetError(draw->texinfo->texture);
+	R_GetError(draw->material->media.name);
 }
 
 /**
@@ -326,7 +326,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 		return;
 	}
 
-	if (draw->texinfo->flags & SURF_MASK_BLEND) {
+	if (draw->surface & SURF_MASK_BLEND) {
 		glBlendFunc(GL_ONE, GL_ZERO);
 	} else {
 		glEnable(GL_BLEND);
@@ -349,7 +349,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-	if (draw->texinfo->flags & SURF_MASK_BLEND) {
+	if (draw->surface & SURF_MASK_BLEND) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	} else {
 		glDisable(GL_BLEND);
@@ -369,27 +369,26 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_bsp_draw_elements_t *draw,
 										 const r_material_t **material) {
 
-	if (!(draw->texinfo->flags & SURF_MATERIAL)) {
+	if (!(draw->surface & SURF_MATERIAL)) {
 
-		if (*material != draw->texinfo->material) {
-			*material = draw->texinfo->material;
+		if (*material != draw->material) {
+			*material = draw->material;
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, (*material)->texture->texnum);
 
 			glUniform1f(r_bsp_program.material.roughness, (*material)->cm->roughness * r_roughness->value);
 			glUniform1f(r_bsp_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
-			glUniform1f(r_bsp_program.material.parallax, (*material)->cm->parallax * Maxf(r_parallax->value, 0.f));
+			glUniform1f(r_bsp_program.material.parallax, (*material)->cm->parallax * r_parallax->value);
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 		r_stats.count_bsp_triangles += draw->num_elements / 3;
-		r_stats.count_bsp_draw_elements_blend++;
 
-		R_GetError(draw->texinfo->texture);
+		R_GetError(draw->material->media.name);
 	}
 
-	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->texinfo->material);
+	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->material);
 }
 
 /**
@@ -404,20 +403,20 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (draw->texinfo->flags & SURF_MASK_TRANSLUCENT) {
+		if (draw->surface & SURF_MASK_TRANSLUCENT) {
 			continue;
 		}
 
-		if (draw->texinfo->flags & SURF_SKY) {
+		if (draw->surface & SURF_SKY) {
 			continue;
 		}
 
-		R_TIMER_WRAP(va("OpaqueDrawElem: %s", draw->texinfo->texture),
+		R_TIMER_WRAP(va("OpaqueDrawElem: %s", draw->material->media.name),
 			R_DrawBspDrawElements(view, entity, draw, &material);
 		);
-	}
 
-	r_stats.count_bsp_inline_models++;
+		r_stats.count_bsp_opaque_draw_elements++;
+	}
 }
 
 /**
@@ -432,13 +431,15 @@ static void R_DrawBspInlineModelAlphaTestDrawElements(const r_view_t *view,
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (!(draw->texinfo->flags & SURF_ALPHA_TEST)) {
+		if (!(draw->surface & SURF_ALPHA_TEST)) {
 			continue;
 		}
 		
-		R_TIMER_WRAP(va("AlphaTestDrawElem: %s", draw->texinfo->texture),
+		R_TIMER_WRAP(va("AlphaTestDrawElem: %s", draw->material->media.name),
 			R_DrawBspDrawElements(view, entity, draw, &material);
 		);
+
+		r_stats.count_bsp_alpha_test_draw_elements++;
 	}
 }
 
@@ -457,7 +458,7 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 
 		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->blend_elements, i);
 
-		R_TIMER_WRAP(va("BlendDrawElem: %s", draw->texinfo->texture),
+		R_TIMER_WRAP(va("BlendDrawElem: %s", draw->material->media.name),
 			if (draw->blend_depth_types) {
 
 				const int32_t blend_depth = (int32_t) (draw - r_world_model->bsp->draw_elements);
@@ -493,7 +494,30 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 
 			R_DrawBspDrawElements(view, entity, draw, &material);
 		);
+
+		r_stats.count_bsp_blend_draw_elements++;
 	}
+
+#if 0
+	const r_bsp_face_t *face = in->faces;
+	for (int32_t i = 0; i < in->num_faces; i++, face++) {
+
+		const r_material_t *material = face->brush_side->material;
+
+		if (!(material->cm->surface & SURF_MASK_BLEND)) {
+			continue;
+		}
+
+		glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+
+		glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
+		glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
+		glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
+		glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
+
+		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
+	}
+#endif
 
 	R_GetError(NULL);
 }
@@ -506,9 +530,6 @@ void R_DrawWorld(const r_view_t *view) {
 	R_TIMER_WRAP("Sky",
 		R_DrawSky(view);
 	);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
 	glUseProgram(r_bsp_program.name);
 
@@ -545,6 +566,9 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glUniform1f(r_bsp_program.alpha_threshold, r_alpha_test_threshold->value);
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
 	if (r_depth_pass->value) {
 		glDepthMask(GL_FALSE);
 	}
@@ -564,11 +588,10 @@ void R_DrawWorld(const r_view_t *view) {
 		const r_entity_t *e = view->entities;
 		for (int32_t i = 0; i < view->num_entities; i++, e++) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
-
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 				R_DrawBspInlineModelOpaqueDrawElements(view, e, e->model->bsp_inline);
 				R_DrawBspInlineModelAlphaTestDrawElements(view, e, e->model->bsp_inline);
-
+				r_stats.count_bsp_inline_models++;
 			}
 		}
 		glUniform1i(r_bsp_program.entity, 0);
@@ -588,7 +611,6 @@ void R_DrawWorld(const r_view_t *view) {
 		const r_entity_t *e = view->entities;
 		for (int32_t i = 0; i < view->num_entities; i++, e++) {
 			if (IS_BSP_INLINE_MODEL(e->model)) {
-
 				glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 				R_DrawBspInlineModelBlendDrawElements(view, e, e->model->bsp_inline);
 			}

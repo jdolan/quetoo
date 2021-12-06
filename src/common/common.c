@@ -38,7 +38,7 @@ void Com_LogString(const char *str) {
 		return;
 	}
 
-	fprintf(quetoo.log_file, "%s", str);
+	fputs(str, quetoo.log_file);
 	fflush(quetoo.log_file);
 }
 

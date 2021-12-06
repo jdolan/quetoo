@@ -24,11 +24,17 @@
 #include "cm_local.h"
 
 /**
- * @brief Free the memory for the specified material.
+ * @brief Free the specified material.
  */
 void Cm_FreeMaterial(cm_material_t *material) {
-
 	Mem_Free(material);
+}
+
+/**
+ * @brief Free the specified list and all included materials.
+ */
+void Cm_FreeMaterials(GList *materials) {
+	g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
 }
 
 /**

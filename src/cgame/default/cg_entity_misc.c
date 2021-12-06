@@ -196,6 +196,21 @@ typedef struct {
 	 * @brief Flame radius.
 	 */
 	float radius;
+
+	/**
+	 * @brief Flame density.
+	 */
+	float density;
+
+	/**
+	 * @brief The last time a light was emitted.
+	 */
+	uint32_t light_time;
+
+	/**
+	 * @brief The light decay interval.
+	 */
+	uint32_t light_decay;
 } cg_flame_t;
 
 /**
@@ -203,11 +218,12 @@ typedef struct {
  */
 static void Cg_misc_flame_Init(cg_entity_t *self) {
 
-	self->hz = cgi.EntityValue(self->def, "hz")->value ?: 5.f;
+	self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
 	self->drift = cgi.EntityValue(self->def, "drift")->value ?: .1f;
 
 	cg_flame_t *flame = self->data;
 
+	flame->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
 	flame->radius = cgi.EntityValue(self->def, "radius")->value ?: 16.f;
 }
 
@@ -216,20 +232,24 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
  */
 static void Cg_misc_flame_Think(cg_entity_t *self) {
 
-	const cg_flame_t *flame = self->data;
+	cg_flame_t *flame = self->data;
 
-	for (int32_t i = 0; i < flame->radius / 8.f; i++) {
+	const float r = flame->radius;
+	const float s = Clampf(flame->radius / 64.f, .125f, 1.f);
+
+	for (int32_t i = 0; i < flame->radius * flame->density; i++) {
 		const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
 		const float sat = RandomRangef(.7f, 1.f);
 
 		if (!Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_flame,
-				.origin = Vec3_Add(self->origin, Vec3_RandomRange(-8.f, 8.f)),
-				.velocity = Vec3_RandomRange(-4.f, 4.f),
-				.acceleration.z = 15.f,
-				.lifetime = 500 + Randomf() * 250,
-				.size = RandomRangef(4.f, 12.f),
-				.bounce = .6f,
+				.origin = Vec3_Fmaf(self->origin, r, Vec3_RandomRanges(-s, s, -s, s, -.1f, .5f)),
+				.velocity = Vec3_Scale(Vec3_RandomRanges(-r, r, -r, r, 0.f, 24.f), s * s),
+				.acceleration.z = 150.f * s,
+				.lifetime = 750 + Randomf() * 250,
+				.size = 1.f,
+				.size_velocity = 16.f,
+				.size_acceleration = 150.f * s,
 				.color = Vec4(hue, sat, RandomRangef(.7f, 1.f), RandomRangef(.56f, 1.f)),
 				.end_color = Vec4(hue, sat, 0.f, 0.f),
 				.softness = 1.f
@@ -238,17 +258,27 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 		}
 	}
 
-	Cg_AddLight(&(const cg_light_t) {
-		.origin = self->origin,
-		.radius = flame->radius,
-		.color = Vec3(1.f, 0.8f, 0.4f),
-		.decay = 32
-	});
+	if (cgi.client->unclamped_time - flame->light_time > flame->light_decay * .9f) {
+
+		flame->light_time = cgi.client->unclamped_time;
+		flame->light_decay = RandomRangeu(100, 500);
+
+		Cg_AddLight(&(const cg_light_t) {
+			.origin = self->origin,
+			.radius = r * RandomRangef(3.f, 4.f),
+			.color = Vec3(1.f, 0.5f, 0.3f),
+			.intensity = .05f,
+			.decay = flame->light_decay,
+		});
+	}
 
 	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_fire,
 		.origin = self->origin,
 		.atten = SOUND_ATTEN_CUBIC,
+		.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+		.pitch = RandomRangei(-1, 1),
+		.entity = self->id
 	});
 }
 
@@ -379,6 +409,8 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 	if (self->hz == 0.f) {
 		sound->play.flags |= S_PLAY_LOOP | S_PLAY_FRAME;
 	}
+
+	sound->play.entity = self->id;
 }
 
 /**

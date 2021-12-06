@@ -166,7 +166,7 @@ extern const box3_t PM_BOUNDS;
 /**
  * @brief The maximum number of entities any single player movement can impact.
  */
-#define PM_MAX_TOUCH_ENTS 32
+#define PM_MAX_TOUCHS 32
 
 /**
  * @brief The player movement structure provides context management between the
@@ -179,13 +179,13 @@ typedef struct {
 
 	float hook_pull_speed; // hook pull speed (in)
 
-	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS]; // entities touched (out)
-	int32_t num_touch_ents;
+	cm_trace_t touched[PM_MAX_TOUCHS]; // entities touched (out)
+	int32_t num_touched;
 
 	vec3_t angles; // clamped, and including kick and delta (out)
 	box3_t bounds; // bounding box size (out)
 
-	struct g_entity_s *ground_entity; // (out)
+	cm_trace_t ground; // (in / out)
 
 	int32_t water_type; // water type and level (out)
 	pm_water_level_t water_level;

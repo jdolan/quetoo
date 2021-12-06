@@ -57,9 +57,9 @@ typedef struct plane_s {
  */
 typedef struct brush_side_s {
 	/**
-	 * @brief The diffusemap texture name.
+	 * @brief The texture name.
 	 */
-	char texture[32];
+	char texture[MAX_QPATH];
 
 	/**
 	 * @brief The texture shift, in pixels.
@@ -77,6 +77,11 @@ typedef struct brush_side_s {
 	vec2_t scale;
 
 	/**
+	 * @brief The texture axis for S and T, in xyz + offset notation.
+	 */
+	vec4_t axis[2];
+
+	/**
 	 * @brief The CONTENTS_* mask.
 	 */
 	int32_t contents;
@@ -84,7 +89,7 @@ typedef struct brush_side_s {
 	/**
 	 * @brief The SURF_* mask.
 	 */
-	int32_t surf;
+	int32_t surface;
 
 	/**
 	 * @brief The value, for e.g. SURF_LIGHT or SURF_PHONG.
@@ -94,12 +99,12 @@ typedef struct brush_side_s {
 	/**
 	 * @brief The BSP plane number.
 	 */
-	int32_t plane_num;
+	int32_t plane;
 
 	/**
-	 * @brief The BSP texinfo number.
+	 * @brief The BSP material number.
 	 */
-	int32_t texinfo;
+	int32_t material;
 
 	/**
 	 * @brief All brush sides will have a valid winding.
@@ -111,6 +116,11 @@ typedef struct brush_side_s {
 	 * will point to their original brush side, to tie BSP faces back to their brushes.
 	 */
 	const struct brush_side_s *original;
+
+	/**
+	 * @brief The BSP brush side emitted from this map brush side.
+	 */
+	bsp_brush_side_t *out;
 } brush_side_t;
 
 /**
@@ -121,12 +131,12 @@ typedef struct brush_s {
 	/**
 	 * @brief The entity number within the map.
 	 */
-	int32_t entity_num;
+	int32_t entity;
 
 	/**
 	 * @brief The brush number within the entity.
 	 */
-	int32_t brush_num;
+	int32_t brush;
 
 	/**
 	 * @brief The combined CONTENTS_* mask (bitwise OR) of all sides of this brush.
@@ -142,12 +152,17 @@ typedef struct brush_s {
 	 * @brief The brush sides.
 	 * @remarks This is a pointer to a statically allocated global array.
 	 */
-	brush_side_t *sides;
+	brush_side_t *brush_sides;
 
 	/**
 	 * @brief The number of brush sides.
 	 */
-	int32_t num_sides;
+	int32_t num_brush_sides;
+
+	/**
+	 * @brief The BSP brush emitted from this map brush.
+	 */
+	bsp_brush_t *out;
 } brush_t;
 
 extern int32_t num_entities;
@@ -158,6 +173,9 @@ extern int32_t num_planes;
 
 extern int32_t num_brushes;
 extern brush_t brushes[MAX_BSP_BRUSHES];
+
+extern int32_t num_brush_sides;
+extern brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
 
 extern box3_t map_bounds;
 

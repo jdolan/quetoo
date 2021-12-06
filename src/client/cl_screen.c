@@ -143,9 +143,11 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 		R_Draw2DString(x, y, va(" %d inline models", r_stats.count_bsp_inline_models), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d draw elements", r_stats.count_bsp_draw_elements), color_yellow);
+		R_Draw2DString(x, y, va(" %d opaque draw elements", r_stats.count_bsp_opaque_draw_elements), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d blend elements", r_stats.count_bsp_draw_elements_blend), color_yellow);
+		R_Draw2DString(x, y, va(" %d alpha test draw elements", r_stats.count_bsp_alpha_test_draw_elements), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d blend draw elements", r_stats.count_bsp_blend_draw_elements), color_yellow);
 		y += ch;
 		R_Draw2DString(x, y, va(" %d triangles", r_stats.count_bsp_triangles), color_yellow);
 		y += ch;
@@ -222,13 +224,11 @@ static void Cl_DrawRendererStats(void) {
 	const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
 	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
-	if (tr.fraction < 1.f) {
+	if (tr.material) {
 		y += ch;
 
-		const int32_t texinfo = tr.texinfo ? (int32_t) (ptrdiff_t) (tr.texinfo - Cm_Bsp()->texinfos) : -1;
-		R_Draw2DString(x, y, va("%s %d (%g %g %g) %g",
-								tr.texinfo->name,
-								texinfo,
+		R_Draw2DString(x, y, va("%s (%g %g %g) %g",
+								tr.material->name,
 								tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z,
 								tr.plane.dist
 								), color_white);

@@ -208,96 +208,28 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 	}
 }
 
-/**
- * @brief Project an impact point for a projectile.
- * @remarks This is primarily for the benefit of visual effects that look better when projected
- * out away from the impacted object, such as explosions.
- */
-static vec3_t G_ProjectImpactPoint(const g_entity_t *projectile, const g_entity_t *other,
-								 const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo,
-								 const float dist, const vec3_t in) {
-
-	vec3_t point;
-	point = in;
-
-	// if we've hit a structural mover, project the impact point at the next server frame
-	if (G_IsStructural(other, texinfo)) {
-
-		if (!Vec3_Equal(other->locals.velocity, Vec3_Zero()) ||
-			!Vec3_Equal(other->locals.avelocity, Vec3_Zero())) {
-
-			vec3_t move, amove;
-
-			move = Vec3_Scale(other->locals.velocity, QUETOO_TICK_SECONDS);
-			amove = Vec3_Scale(other->locals.avelocity, QUETOO_TICK_SECONDS);
-
-			vec3_t inverse_amove;
-			inverse_amove = Vec3_Negate(amove);
-
-			vec3_t forward, right, up;
-			Vec3_Vectors(inverse_amove, &forward, &right, &up);
-
-			// translate the pushed entity
-			point = Vec3_Add(point, move);
-
-			// then rotate the movement to comply with the pusher's rotation
-			vec3_t translate;
-			translate = Vec3_Subtract(point, other->s.origin);
-
-			const vec3_t rotate = Vec3(
-				 Vec3_Dot(translate, forward),
-				-Vec3_Dot(translate, right),
-				 Vec3_Dot(translate, up)
-			);
-
-			vec3_t delta;
-			delta = Vec3_Subtract(rotate, translate);
-
-			point = Vec3_Add(point, delta);
-		}
-	}
-
-	// push out the desired distance, this is purely for visual effects with explosions
-	vec3_t out = Vec3_Fmaf(point, dist, plane->normal);
-
-	if (gi.PointContents(out) & CONTENTS_SOLID) {
-
-		if (projectile) { // try back along the projectile velocity
-			vec3_t dir = Vec3_Normalize(projectile->locals.velocity);
-			out = Vec3_Fmaf(point, -dist,dir);
-			if (gi.PointContents(out) & CONTENTS_SOLID) {
-				out = point;
-			}
-		} else {
-			out = point;
-		}
-	}
-
-	return out;
-}
 
 /**
  * @brief Used to add impact marks on surfaces hit by bullets.
  */
-static void G_BulletImpact(const vec3_t org, const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo) {
+static void G_BulletImpact(const cm_trace_t *trace) {
 
-	if (texinfo->flags & SURF_ALPHA_TEST) {
+	if (trace->surface & SURF_ALPHA_TEST) {
 		return;
 	}
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BULLET);
-	gi.WritePosition(org);
-	gi.WriteDir(plane->normal);
+	gi.WritePosition(trace->end);
+	gi.WriteDir(trace->plane.normal);
 
-	gi.Multicast(org, MULTICAST_PHS, NULL);
+	gi.Multicast(trace->end, MULTICAST_PHS, NULL);
 }
 
 /**
  * @brief
  */
-static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
-                                      const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo) {
+static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (other == self->owner) {
 		return;
@@ -307,20 +239,23 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		return;
 	}
 
-	if (!G_IsSky(texinfo)) {
+	if (trace == NULL) {
+		return;
+	}
 
-		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+	if (!G_IsSky(trace)) {
+
+		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
 		         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BLASTER);
 
-		if (G_IsStructural(other, texinfo)) {
-			vec3_t origin = G_ProjectImpactPoint(self, other, plane, texinfo, 0.0, self->s.origin);
+		if (G_IsStructural(trace)) {
 
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_BLASTER);
-			gi.WritePosition(origin);
-			gi.WriteDir(plane->normal);
+			gi.WritePosition(self->s.origin);
+			gi.WriteDir(trace->plane.normal);
 			gi.WriteByte(self->owner->s.number);
-			gi.Multicast(origin, MULTICAST_PHS, NULL);
+			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -367,7 +302,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
                         int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, start, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = gi.Trace(ent->s.origin, start, Box3f(1.f, 1.f, 1.f), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 	if (tr.fraction == 1.0) {
 		vec3_t angles, forward, right, up, end;
 
@@ -387,9 +322,8 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 
 		G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, DMG_BULLET, mod);
 
-		if (G_IsStructural(tr.ent, tr.texinfo)) {
-			const vec3_t impact = G_ProjectImpactPoint(NULL, tr.ent, &tr.plane, tr.texinfo, 0.0, tr.end);
-			G_BulletImpact(impact, &tr.plane, tr.texinfo);
+		if (G_IsStructural(&tr)) {
+			G_BulletImpact(&tr);
 		}
 
 		if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) {
@@ -465,8 +399,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 /**
  * @brief
  */
-void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
-                               const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo) {
+void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (other == self->owner) {
 		return;
@@ -476,16 +409,20 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		return;
 	}
 
+	if (trace == NULL) {
+		return;
+	}
+
 	if (!G_TakesDamage(other)) { // bounce off of structural solids
 
-		if (G_IsStructural(other, texinfo)) {
+		if (G_IsStructural(trace)) {
 			if (g_level.time - self->locals.touch_time > 200) {
 				if (Vec3_Length(self->locals.velocity) > 40.0) {
 					gi.Sound(self, g_media.sounds.grenade_hit, SOUND_ATTEN_LINEAR, (int8_t) (Randomf() * 5.0));
 					self->locals.touch_time = g_level.time;
 				}
 			}
-		} else if (G_IsSky(texinfo)) {
+		} else if (G_IsSky(trace)) {
 			G_FreeEntity(self);
 		}
 
@@ -594,8 +531,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 /**
  * @brief
  */
-static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
-                                     const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo) {
+static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (other == self->owner) {
 		return;
@@ -605,23 +541,25 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		return;
 	}
 
-	if (!G_IsSky(texinfo)) {
+	if (trace == NULL) {
+		return;
+	}
 
-		if (G_IsStructural(other, texinfo) || G_IsMeat(other)) {
+	if (!G_IsSky(trace)) {
 
-			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+		if (G_IsStructural(trace) || G_IsMeat(other)) {
+
+			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
 			         self->locals.damage, self->locals.knockback, 0, MOD_ROCKET);
 
 			G_RadiusDamage(self, self->owner, other, self->locals.damage, self->locals.knockback,
 			               self->locals.damage_radius, MOD_ROCKET_SPLASH);
 
-			const vec3_t origin = G_ProjectImpactPoint(self, other, plane, texinfo, 8.0, self->s.origin);
-
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_EXPLOSION);
-			gi.WritePosition(origin);
-			gi.WriteDir(plane->normal);
-			gi.Multicast(origin, MULTICAST_PHS, NULL);
+			gi.WritePosition(self->s.origin);
+			gi.WriteDir(trace->plane.normal);
+			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -634,7 +572,7 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 						int32_t damage, int32_t knockback, float damage_radius) {
 
-	const box3_t bounds = Box3f(4.f, 4.f, 4.f);
+	const box3_t bounds = Box3f(8.f, 8.f, 8.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
@@ -669,8 +607,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 /**
  * @brief
  */
-static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
-        const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo) {
+static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (other == self->owner) {
 		return;
@@ -680,34 +617,36 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		return;
 	}
 
-	if (!G_IsSky(texinfo)) {
+	if (trace == NULL) {
+		return;
+	}
 
-		if (G_IsStructural(other, texinfo) || G_IsMeat(other)) {
+	if (!G_IsSky(trace)) {
 
-			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+		if (G_IsStructural(trace) || G_IsMeat(other)) {
+
+			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
 			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_HYPERBLASTER);
 
-			if (G_IsStructural(other, texinfo)) {
+			if (G_IsStructural(trace)) {
 
 				vec3_t v;
 				v = Vec3_Subtract(self->s.origin, self->owner->s.origin);
 
 				if (Vec3_Length(v) < 32.0) { // hyperblaster climbing
 					G_Damage(self->owner, self, self->owner,
-							 Vec3_Zero(), self->s.origin, plane->normal,
+							 Vec3_Zero(), self->s.origin, trace->plane.normal,
 					        g_balance_hyperblaster_climb_damage->integer, 0, DMG_ENERGY, MOD_HYPERBLASTER_CLIMB);
 
 					self->owner->locals.velocity.z += g_balance_hyperblaster_climb_knockback->value;
 				}
 			}
 
-			const vec3_t origin = G_ProjectImpactPoint(self, other, plane, texinfo, 4.0, self->s.origin);
-
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_HYPERBLASTER);
-			gi.WritePosition(origin);
-			gi.WriteDir(plane->normal);
-			gi.Multicast(origin, MULTICAST_PHS, NULL);
+			gi.WritePosition(self->s.origin);
+			gi.WriteDir(trace->plane.normal);
+			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -868,7 +807,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			self->locals.damage = 0;
 		} else { // or leave a mark
 			if (tr.contents & CONTENTS_MASK_SOLID) {
-				if (G_IsStructural(tr.ent, tr.texinfo)) {
+				if (G_IsStructural(&tr)) {
 					self->s.angles = Vec3_Euler(tr.plane.normal);
 					self->s.animation1 = LIGHTNING_SOLID_HIT;
 				}
@@ -996,7 +935,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	gi.WritePosition(start);
 	gi.WritePosition(tr.end);
 	gi.WriteDir(tr.plane.normal);
-	gi.WriteLong(tr.texinfo ? tr.texinfo->flags : 0);
+	gi.WriteLong(tr.surface);
 	gi.WriteByte(ent->s.number);
 
 	gi.Multicast(start, MULTICAST_PHS, NULL);
@@ -1007,7 +946,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		gi.WritePosition(start);
 		gi.WritePosition(tr.end);
 		gi.WriteDir(tr.plane.normal);
-		gi.WriteLong(tr.texinfo ? tr.texinfo->flags : 0);
+		gi.WriteLong(tr.surface);
 		gi.WriteByte(ent->s.number);
 
 		gi.Multicast(tr.end, MULTICAST_PHS, NULL);
@@ -1017,8 +956,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 /**
  * @brief
  */
-static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane,
-                                  const cm_bsp_texinfo_t *texinfo) {
+static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (other == self->owner) {
 		return;
@@ -1028,22 +966,24 @@ static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_
 		return;
 	}
 
-	if (!G_IsSky(texinfo)) {
+	if (trace == NULL) {
+		return;
+	}
 
-		if (G_IsStructural(other, texinfo) || G_IsMeat(other)) {
+	if (!G_IsSky(trace)) {
 
-			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+		if (G_IsStructural(trace) || G_IsMeat(other)) {
+
+			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
 			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BFG_BLAST);
 
 			G_RadiusDamage(self, self->owner, other, self->locals.damage, self->locals.knockback,
 			               self->locals.damage_radius, MOD_BFG_BLAST);
 
-			const vec3_t origin = G_ProjectImpactPoint(self, other, plane, texinfo, 16.0, self->s.origin);
-
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_BFG);
-			gi.WritePosition(origin);
-			gi.Multicast(origin, MULTICAST_PHS, NULL);
+			gi.WritePosition(self->s.origin);
+			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -1099,7 +1039,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 					 int32_t damage, int32_t knockback, float damage_radius) {
 
-	const box3_t bounds = Box3f(8.f, 8.f, 8.f);
+	const box3_t bounds = Box3f(24.f, 24.f, 24.f);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
@@ -1129,8 +1069,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 /**
  * @brief
  */
-static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
-								   const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo) {
+static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (other == self->owner) {
 		return;
@@ -1140,11 +1079,15 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		return;
 	}
 
+	if (trace == NULL) {
+		return;
+	}
+
 	self->s.sound = 0;
 
-	if (!G_IsSky(texinfo)) {
+	if (!G_IsSky(trace)) {
 
-		if (G_IsStructural(other, texinfo) || (G_IsMeat(other) && G_OnSameTeam(other, self->owner))) {
+		if (G_IsStructural(trace) || (G_IsMeat(other) && G_OnSameTeam(other, self->owner))) {
 
 			self->locals.velocity = Vec3_Zero();
 			self->locals.avelocity = Vec3_Zero();
@@ -1171,7 +1114,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_HOOK_IMPACT);
 			gi.WritePosition(self->s.origin);
-			gi.WriteDir(plane->normal);
+			gi.WriteDir(trace->plane.normal);
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		} else {
 

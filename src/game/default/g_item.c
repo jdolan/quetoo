@@ -656,7 +656,7 @@ static void G_DropItem_SetExpiration(g_entity_t *ent) {
 static void G_DropItem_Think(g_entity_t *ent) {
 
 	// continue to think as we drop to the floor
-	if (ent->locals.ground_entity || (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID)) {
+	if (ent->locals.ground.ent || (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID)) {
 		G_DropItem_SetExpiration(ent);
 	} else {
 		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
@@ -666,9 +666,7 @@ static void G_DropItem_Think(g_entity_t *ent) {
 /**
  * @brief
  */
-void G_TouchItem(g_entity_t *ent, g_entity_t *other,
-                 const cm_bsp_plane_t *plane,
-                 const cm_bsp_texinfo_t *texinfo) {
+void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (other == ent->owner) {
 		if (ent->locals.touch_time > g_level.time) {

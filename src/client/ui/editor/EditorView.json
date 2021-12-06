@@ -32,7 +32,7 @@
                   "class": "Input",
                   "label": {
                     "text": {
-                      "text": "Diffuse texture"
+                      "text": "Diffusemap texture"
                     }
                   },
                   "control": {

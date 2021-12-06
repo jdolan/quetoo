@@ -114,13 +114,17 @@ float Cm_WindingArea(const cm_winding_t *w) {
  */
 void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
 
-	const vec3_t e1 = Vec3_Subtract(w->points[1], w->points[0]);
-	const vec3_t e2 = Vec3_Subtract(w->points[2], w->points[0]);
+	const vec3d_t a = Vec3_CastVec3d(w->points[0]);
+	const vec3d_t b = Vec3_CastVec3d(w->points[1]);
+	const vec3d_t c = Vec3_CastVec3d(w->points[2]);
 
-	*normal = Vec3_Cross(e2, e1);
-	*normal = Vec3_Normalize(*normal);
-	
-	*dist = (double) Vec3_Dot(w->points[0], *normal);
+	const vec3d_t ba = Vec3d_Subtract(b, a);
+	const vec3d_t ca = Vec3d_Subtract(c, a);
+
+	const vec3d_t n = Vec3d_Normalize(Vec3d_Cross(ca, ba));
+
+	*normal = Vec3d_CastVec3(n);
+	*dist = Vec3d_Dot(a, n);
 }
 
 /**
@@ -429,102 +433,6 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
 }
 
 /**
- * @brief If two polygons share a common edge and the edges that meet at the
- * common points are both inside the other polygons, merge them
- *
- * Returns NULL if the faces couldn't be merged, or the new face.
- * The originals will NOT be freed.
- */
-cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, const vec3_t normal) {
-	vec3_t p1, p2, back;
-	int32_t i, j, k, l;
-	vec3_t cross, delta;
-	float dot;
-
-	// find a common edge
-	p1 = p2 = Vec3_Zero();
-	j = 0;
-
-	for (i = 0; i < a->num_points; i++) {
-		p1 = a->points[i];
-		p2 = a->points[(i + 1) % a->num_points];
-		for (j = 0; j < b->num_points; j++) {
-			vec3_t p3 = b->points[j];
-			vec3_t p4 = b->points[(j + 1) % b->num_points];
-			for (k = 0; k < 3; k++) {
-				if (fabsf(p1.xyz[k] - p4.xyz[k]) > ON_EPSILON) {
-					break;
-				}
-				if (fabsf(p2.xyz[k] - p3.xyz[k]) > ON_EPSILON) {
-					break;
-				}
-			}
-			if (k == 3) {
-				break;
-			}
-		}
-		if (j < b->num_points) {
-			break;
-		}
-	}
-
-	if (i == a->num_points) {
-		return NULL; // no matching edges
-	}
-
-	// if the slopes are colinear, the point can be removed
-	back = a->points[(i + a->num_points - 1) % a->num_points];
-	delta = Vec3_Subtract(p1, back);
-	cross = Vec3_Cross(normal, delta);
-	cross = Vec3_Normalize(cross);
-
-	back = b->points[(j + 2) % b->num_points];
-	delta = Vec3_Subtract(back, p1);
-	dot = Vec3_Dot(delta, cross);
-	if (dot > COLINEAR_EPSILON) {
-		return NULL; // not a convex polygon
-	}
-	const _Bool keep1 = dot < -COLINEAR_EPSILON;
-
-	back = a->points[(i + 2) % a->num_points];
-	delta = Vec3_Subtract(back, p2);
-	cross = Vec3_Cross(normal, delta);
-	cross = Vec3_Normalize(cross);
-
-	back = b->points[(j + b->num_points - 1) % b->num_points];
-	delta = Vec3_Subtract(back, p2);
-	dot = Vec3_Dot(delta, cross);
-	if (dot > COLINEAR_EPSILON) {
-		return NULL; // not a convex polygon
-	}
-	const _Bool keep2 = dot < -COLINEAR_EPSILON;
-
-	// build the new polygon
-	cm_winding_t *merged = Cm_AllocWinding(a->num_points + b->num_points);
-
-	// copy first polygon
-	for (k = (i + 1) % a->num_points; k != i; k = (k + 1) % a->num_points) {
-		if (k == (i + 1) % a->num_points && !keep2) {
-			continue;
-		}
-
-		merged->points[merged->num_points] = a->points[k];
-		merged->num_points++;
-	}
-
-	// copy second polygon
-	for (l = (j + 1) % b->num_points; l != j; l = (l + 1) % b->num_points) {
-		if (l == (j + 1) % b->num_points && !keep1) {
-			continue;
-		}
-		merged->points[merged->num_points] = b->points[l];
-		merged->num_points++;
-	}
-
-	return Cm_FixWinding(merged);
-}
-
-/**
  * @brief Creates a vertex element array of triangles for the given winding.
  * @details This function uses an ear-clipping algorithm to clip triangles from
  * the given winding. Invalid triangles due to colinear points are skipped over.
@@ -561,19 +469,25 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			point_t *b = &points[(i + 1) % num_points];
 			point_t *c = &points[(i + 2) % num_points];
 
-			const vec3_t ba = Vec3_Normalize(Vec3_Subtract(b->position, a->position));
-			const vec3_t cb = Vec3_Normalize(Vec3_Subtract(c->position, b->position));
+			const vec3_t ba = Vec3_Direction(b->position, a->position);
+			const vec3_t cb = Vec3_Direction(c->position, b->position);
 
-			if (Vec3_Dot(ba, cb) > 1.0f - COLINEAR_EPSILON) {
+			const float dot = Vec3_Dot(ba, cb);
+			if (dot > 1.f - COLINEAR_EPSILON) {
 				b->corner = 0;
 			} else {
 				b->corner = ++num_corners;
 			}
 		}
 
-		//assert(num_corners > 2);
+		// if we don't find 3 corners, this is a degenerate winding (a line segment)
 
-		// chip away at edges with collinear points first
+		if (num_corners < 3) {
+			Com_Warn("Invalid winding: %d corners found in %d points\n", num_corners, num_points);
+			break;
+		}
+
+		// chip away at edges with colinear points first
 
 		const point_t *clip = NULL;
 		if (num_corners < num_points) {
@@ -585,12 +499,7 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 				const point_t *c = &points[(i + 2) % num_points];
 
 				if (!a->corner && b->corner) {
-
-					const vec3_t ba = Vec3_Subtract(b->position, a->position);
-					const vec3_t cb = Vec3_Subtract(c->position, b->position);
-					const vec3_t cross = Vec3_Cross(ba, cb);
-
-					const float area = 0.5f * Vec3_Length(cross);
+					const float area = Cm_TriangleArea(a->position, b->position, c->position);
 					if (area < best) {
 						best = area;
 						clip = b;
@@ -697,6 +606,10 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 
 	cm_vertex_t *v = vertexes;
 	for (int32_t i = 0; i < num_vertexes; i++, v++) {
-		Vec3_Tangents(*v->normal, *v->tangent, *v->bitangent, v->tangent, v->bitangent);
+
+		const vec3_t sdir = *v->tangent;
+		const vec3_t tdir = *v->bitangent;
+
+		Vec3_Tangents(*v->normal, sdir, tdir, v->tangent, v->bitangent);
 	}
 }

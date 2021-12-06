@@ -146,7 +146,7 @@ static void G_Give_f(g_entity_t *ent) {
 		it_ent = G_AllocEntity_(it->class_name);
 
 		G_SpawnItem(it_ent, it);
-		G_TouchItem(it_ent, ent, NULL, NULL);
+		G_TouchItem(it_ent, ent, NULL);
 
 		if (it_ent->in_use) {
 			G_FreeEntity(it_ent);

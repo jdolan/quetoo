@@ -103,7 +103,7 @@ typedef struct ai_entity_data_s {
 	/**
 	 * @brief Offset to ground entity
 	 */
-	g_entity_t *const *ground_entity;
+	cm_trace_t *ground;
 
 	/**
 	 * @brief Offset to item stored in this entity

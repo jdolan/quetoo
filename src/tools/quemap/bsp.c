@@ -34,8 +34,8 @@ static void PrintBSPFileSizes(void) {
 	Com_Verbose("%5i entities      %7i bytes\n", num_entities,
 				bsp_file.entity_string_size);
 
-	Com_Verbose("%5i texinfo       %7i bytes\n", bsp_file.num_texinfo,
-				(int32_t) (bsp_file.num_texinfo * sizeof(bsp_texinfo_t)));
+	Com_Verbose("%5i materials     %7i bytes\n", bsp_file.num_materials,
+				(int32_t) (bsp_file.num_materials * sizeof(bsp_material_t)));
 
 	Com_Verbose("%5i planes        %7i bytes\n", bsp_file.num_planes,
 				(int32_t) (bsp_file.num_planes * sizeof(bsp_plane_t)));

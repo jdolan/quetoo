@@ -61,8 +61,8 @@ static csg_brush_t *SubtractBrush(csg_brush_t *a, csg_brush_t *b) {
 
 	csg_brush_t *front = NULL, *back = NULL;
 
-	for (int32_t i = 0; i < b->num_sides && in; i++) {
-		SplitBrush(in, b->sides[i].plane_num, &front, &back);
+	for (int32_t i = 0; i < b->num_brush_sides && in; i++) {
+		SplitBrush(in, b->brush_sides[i].plane, &front, &back);
 		if (in != a) {
 			FreeBrush(in);
 		}
@@ -84,8 +84,8 @@ static csg_brush_t *SubtractBrush(csg_brush_t *a, csg_brush_t *b) {
 }
 
 /**
- * @return True if the two brushes definately do not intersect.
- * @remark There will be false negatives for some non-axial combinations.
+ * @return True if the two brushes do not intersect.
+ * @remarks There will be false negatives for some non-axial combinations.
  */
 static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 
@@ -95,10 +95,10 @@ static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 	}
 
 	// check for opposing planes
-	for (int32_t i = 0; i < a->num_sides; i++) {
-		for (int32_t j = 0; j < b->num_sides; j++) {
-			if (a->sides[i].plane_num == (b->sides[j].plane_num ^ 1)) {
-				return true;    // opposite planes, so not touching
+	for (int32_t i = 0; i < a->num_brush_sides; i++) {
+		for (int32_t j = 0; j < b->num_brush_sides; j++) {
+			if (a->brush_sides[i].plane == (b->brush_sides[j].plane ^ 1)) {
+				return true; // opposite planes, so not touching
 			}
 		}
 	}
@@ -118,22 +118,22 @@ csg_brush_t *MakeBrushes(int32_t index, int32_t count) {
 	const brush_t *in = &brushes[index];
 	for (int32_t i = 0; i < count; i++, in++) {
 
-		if (!in->num_sides) {
+		if (!in->num_brush_sides) {
 			continue;
 		}
 		
-		csg_brush_t *out = AllocBrush(in->num_sides);
+		csg_brush_t *out = AllocBrush(in->num_brush_sides);
 
 		out->original = in;
-		out->num_sides = in->num_sides;
+		out->num_brush_sides = in->num_brush_sides;
 
-		for (int32_t j = 0; j < out->num_sides; j++) {
+		for (int32_t j = 0; j < out->num_brush_sides; j++) {
 
-			out->sides[j] = in->sides[j];
-			out->sides[j].original = &in->sides[j];
+			out->brush_sides[j] = in->brush_sides[j];
+			out->brush_sides[j].original = &in->brush_sides[j];
 
-			if (in->sides[j].winding) {
-				out->sides[j].winding = Cm_CopyWinding(in->sides[j].winding);
+			if (in->brush_sides[j].winding) {
+				out->brush_sides[j].winding = Cm_CopyWinding(in->brush_sides[j].winding);
 			}
 		}
 		

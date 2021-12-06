@@ -25,9 +25,25 @@
 
 #include "quemap.h"
 
-ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **materials);
-cm_material_t *LoadMaterial(const char *diffuse, cm_asset_context_t context);
-SDL_Surface *LoadAsset(const cm_asset_t *asset);
-SDL_Surface *LoadDiffuseTexture(const char *name);
-ssize_t WriteMaterialsFile(const char *filename);
+/**
+ * @brief The quemap representation of materials.
+ */
+typedef struct {
+	/**
+	 * @brief The collision material backing this material.
+	 */
+	cm_material_t *cm;
+
+	/**
+	 * @brief The diffusemap texture.
+	 */
+	SDL_Surface *diffusemap;
+} material_t;
+
+extern int32_t num_materials;
+extern material_t materials[MAX_BSP_MATERIALS];
+
+void LoadMaterials(const char *path);
+int32_t FindMaterial(const char *name);
+ssize_t WriteMaterialsFile(const char *path);
 void FreeMaterials(void);

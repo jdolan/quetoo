@@ -330,6 +330,8 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
 
 	glUniform1f(r_mesh_program.alpha_threshold, r_alpha_test_threshold->value);
+
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
 	{
@@ -349,6 +351,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glUniform1f(r_mesh_program.alpha_threshold, .0f);
 
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	{
 		const r_mesh_face_t *face = mesh->faces;
@@ -363,7 +366,10 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		}
 	}
 
+	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
+
+	glDisable(GL_DEPTH_TEST);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -372,12 +378,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(0.f, 1.f);
-	}
-
-	if (e->effects & EF_BLEND) {
-		glDisable(GL_BLEND);
-	} else {
-		glDisable(GL_CULL_FACE);
 	}
 
 	r_stats.count_mesh_models++;
@@ -391,11 +391,6 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 	if (!view->num_entities) {
 		return;
 	}
-
-	glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(r_mesh_program.name);
 
@@ -427,11 +422,6 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 	}
 
 	glUseProgram(0);
-
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
-	
-	glDisable(GL_DEPTH_TEST);
 
 	R_GetError(NULL);
 }

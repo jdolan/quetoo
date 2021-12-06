@@ -42,7 +42,6 @@ typedef struct {
 
 	bsp_file_t file;
 
-	cm_bsp_texinfo_t *texinfos;
 	cm_bsp_plane_t *planes;
 	cm_bsp_node_t *nodes;
 	cm_bsp_leaf_t *leafs;

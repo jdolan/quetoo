@@ -140,7 +140,7 @@ typedef struct {
 		float step_offset;
 	} view;
 
-	struct g_entity_s *ground_entity;
+	cm_trace_t ground;
 
 	vec3_t error; // the prediction error, interpolated over the current server frame
 } cl_predicted_state_t;

@@ -200,7 +200,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 	// see if we're already hunting something.
 	// early exit if we're under water or in air; we have a goal already
 	// in that case.
-	if (ai->combat_target.type || !ENTITY_DATA(self, ground_entity)) {
+	if (ai->combat_target.type || !ENTITY_DATA(self, ground).ent) {
 		return 5;
 	}
 	
@@ -683,7 +683,7 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	// do some acrobatics
-	if (ENTITY_DATA(self, ground_entity)) {
+	if (ENTITY_DATA(self, ground).ent) {
 
 		if (self->client->ps.pm_state.flags & PMF_DUCKED) {
 
@@ -1007,7 +1007,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			}
 		// if we aren't underwater, have no ground entity & falling downwards, we're probably in the air;
 		// rather than full-blasting, pull us towards what we're trying to drop on.
-		} else if (!swimming && !ENTITY_DATA(self, ground_entity) && ENTITY_DATA(self, velocity).z < 0 &&
+		} else if (!swimming && !ENTITY_DATA(self, ground).ent && ENTITY_DATA(self, velocity).z < 0 &&
 			Vec3_Dot(Vec3_Subtract(self->s.origin, ai->move_target.path.path_position), Vec3_Down()) > 0.7f &&
 			(ai->move_target.path.path_position.z - self->s.origin.z) <= -PM_STEP_HEIGHT) {
 			dir = Vec3_Scale(dir, Clampf(len, 10.f, PM_SPEED_RUN));
@@ -1022,7 +1022,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		}
 
 		// if we're swimming, node is above us and we're "sticky feet", jump
-		if (swimming && ENTITY_DATA(self, ground_entity)) {
+		if (swimming && ENTITY_DATA(self, ground).ent) {
 			cmd->up = PM_SPEED_JUMP;
 		// if we're on a ladder and the node is a bbox below us, crouch to get down,
 		// otherwise hold jump
@@ -1063,7 +1063,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	pm.s.type = PM_NORMAL;
 
 	pm.cmd = *cmd;
-	pm.ground_entity = ENTITY_DATA(self, ground_entity);
+	pm.ground = ENTITY_DATA(self, ground);
 	//pm.hook_pull_speed = g_hook_pull_speed->value;
 
 	pm.PointContents = aim.gi->PointContents;
@@ -1083,7 +1083,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	Pm_Move(&pm_ahead);
 
 	// we weren't trying to jump and predicted ground is gone
-	if (cmd->up <= 0 && ENTITY_DATA(self, ground_entity) && (!pm_ahead.ground_entity || !pm.ground_entity)) {
+	if (cmd->up <= 0 && ENTITY_DATA(self, ground).ent && (!pm_ahead.ground.ent || !pm.ground.ent)) {
 
 		//Ai_Debug("Lacking ground entity. In 5 frames: %s, in 1 frame: %s\n", pm_ahead.ground_entity ? "no" : "yes", pm.ground_entity ? "no" : "yes");
 
@@ -1097,7 +1097,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 				Ai_Debug("Stopping early to prevent mover issues\n");
 			// if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
 			} else if (((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT ||
-				(xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground_entity) {
+				(xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
 				cmd->up = PM_SPEED_JUMP;
 			}
 		} else if (move_wander) {
@@ -1113,7 +1113,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			const float xy_dist = Vec2_Distance(Vec3_XY(dest), Vec3_XY(self->s.origin));
 
 			if (((dest.z - self->s.origin.z) > -PM_STEP_HEIGHT &&
-				(xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground_entity) {
+				(xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
 				cmd->up = PM_SPEED_JUMP;
 			}
 		}
@@ -1145,7 +1145,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	// and not waiting politely...
 	// and not riding a mover...
 	} else if (((ai->move_target.type == AI_GOAL_PATH && ai->move_target.path.trick_jump != TRICK_JUMP_TURNING) || ai->move_target.type != AI_GOAL_PATH) &&
-		!wait_politely && (!ENTITY_DATA(self, ground_entity) || ENTITY_DATA(self, ground_entity)->s.number == 0)) {
+		!wait_politely && (!ENTITY_DATA(self, ground).ent || ENTITY_DATA(self, ground).ent->s.number == 0)) {
 
 		// we'll be pushed up against something
 		float smol_dist = PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec);
@@ -1159,7 +1159,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			if (ai->distress_jump_offset <= ai_level.time) {
 				// if we're navving, node is above us, and we're on ground, jump; we're probably trying
 				// to trick-jump or something
-				if (ai->move_target.type == AI_GOAL_PATH && ENTITY_DATA(self, ground_entity) && pm.ground_entity) {
+				if (ai->move_target.type == AI_GOAL_PATH && ENTITY_DATA(self, ground).ent && pm.ground.ent) {
 					if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT * 7.f) {
 
 						ai->move_target.path.trick_jump = TRICK_JUMP_START;
@@ -1179,7 +1179,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 			// if we're on a mover, distress differently so we don't unexpectedly
 			// jump off of it
-			if (ENTITY_DATA(self, ground_entity) && ENTITY_DATA(self, ground_entity)->s.number != 0) {
+			if (ENTITY_DATA(self, ground).ent && ENTITY_DATA(self, ground).ent->s.number != 0) {
 				ai->move_target.distress += 0.02f;
 			} else {
 				ai->move_target.distress += 0.2f;
@@ -1494,7 +1494,7 @@ static void Ai_PostThink(g_entity_t *self, const pm_cmd_t *cmd) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 
 	// can't trick jump when we hit the ground.
-	if (ai->move_target.type == AI_GOAL_PATH && ENTITY_DATA(self, ground_entity) && ai->move_target.path.trick_jump) {
+	if (ai->move_target.type == AI_GOAL_PATH && ENTITY_DATA(self, ground).ent && ai->move_target.path.trick_jump) {
 
 		if (Vec3_Distance(ai->move_target.path.trick_position, self->s.origin) < 24.f) {
 			ai->move_target.path.trick_jump = TRICK_JUMP_TURNING;

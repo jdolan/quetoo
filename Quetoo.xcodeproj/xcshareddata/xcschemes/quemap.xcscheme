@@ -78,7 +78,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--only-ents"
@@ -93,7 +93,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--no-liquid"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--no-merge"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--no-phong"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -106,14 +114,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-weld"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-vis"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--fast"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -138,7 +138,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-zip"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lighttest.map"
@@ -150,11 +150,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/jgothic.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/fragpipe.map"

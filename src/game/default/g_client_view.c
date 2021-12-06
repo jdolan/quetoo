@@ -173,10 +173,10 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 	// set roll based on lateral velocity and ground entity
 	const float dot = Vec3_Dot(ent->locals.velocity, ent->client->locals.right);
 
-	ent->s.angles.z = ent->locals.ground_entity ? dot * 0.015 : dot * 0.005;
+	ent->s.angles.z = ent->locals.ground.ent ? dot * 0.015 : dot * 0.005;
 
 	// check for footsteps
-	if (ent->locals.ground_entity && ent->locals.move_type == MOVE_TYPE_WALK && !ent->s.event) {
+	if (ent->locals.ground.ent && ent->locals.move_type == MOVE_TYPE_WALK && !ent->s.event) {
 
 		if (ent->client->locals.speed > 250.0 && ent->client->locals.footstep_time < g_level.time) {
 			ent->client->locals.footstep_time = g_level.time + 275;
@@ -275,7 +275,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 	// check for falling
 
 	g_client_locals_t *cl = &ent->client->locals;
-	if (!ent->locals.ground_entity) { // not on the ground
+	if (!ent->locals.ground.ent) { // not on the ground
 
 		if (g_level.time - cl->jump_time > 400) {
 			if (ent->locals.water_level == WATER_UNDER && cl->speed > 10.0) { // swimming

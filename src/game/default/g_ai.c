@@ -413,7 +413,7 @@ static void G_Ai_SetDataPointers(void) {
 	static ai_item_data_t item;
 	
 	ENTITY_PTR_OFFSET(class_name);
-	ENTITY_LOCALS_PTR_OFFSET(ground_entity);
+	ENTITY_LOCALS_PTR_OFFSET(ground);
 	ENTITY_LOCALS_PTR_OFFSET(item);
 	ENTITY_LOCALS_PTR_OFFSET(velocity);
 	ENTITY_LOCALS_PTR_OFFSET(health);

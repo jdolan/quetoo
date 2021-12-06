@@ -123,8 +123,7 @@ static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, 
 	const char *trace = backtrace->str;
 	// we have to do this a bit different because it's driver-dependent as
 	// to how deep in the call stack this function will be.
-	// find the glad_ call from r_gl.c
-	const char *last_gl_func = strstr(backtrace->str, "r_gl.c");
+	const char *last_gl_func = g_strrstr(backtrace->str, "???");
 
 	if (last_gl_func) {
 		last_gl_func = strchr(last_gl_func, '\n') + 1;
@@ -143,7 +142,7 @@ static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, 
 
 	g_string_free(backtrace, true);
 
-	if (r_get_error->integer == 2) {
+	if (r_get_error->integer == 2 && type == GL_DEBUG_TYPE_ERROR) {
 		SDL_TriggerBreakpoint();
 	}
 }

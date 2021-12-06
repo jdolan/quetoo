@@ -20,6 +20,7 @@
  */
 
 #include "bsp.h"
+#include "csg.h"
 #include "face.h"
 #include "leakfile.h"
 #include "map.h"
@@ -30,18 +31,18 @@
 #include "writebsp.h"
 #include "qbsp.h"
 
+_Bool leaked = false;
+
 float micro_volume = 0.125;
 
-_Bool no_prune = false;
-_Bool no_merge = false;
+_Bool no_csg = false;
 _Bool no_detail = false;
 _Bool no_liquid = false;
-_Bool no_csg = false;
-_Bool no_weld = false;
-_Bool no_share = false;
+_Bool no_phong = false;
+_Bool no_prune = false;
 _Bool no_tjunc = false;
+_Bool no_weld = false;
 _Bool only_ents = false;
-_Bool leaked = false;
 
 /**
  * @brief
@@ -126,7 +127,7 @@ static void ProcessModels(void) {
 	for (int32_t i = 0; i < num_entities; i++) {
 		const entity_t *e = entities + i;
 
-		if (!e->num_brushes) { 
+		if (!e->num_brush_sides) {
 			continue;
 		}
 
@@ -155,7 +156,7 @@ int32_t BSP_Main(void) {
 
 	const uint32_t start = SDL_GetTicks();
 
-	LoadMaterials(va("maps/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
+	LoadMaterials(va("maps/%s.mat", map_base));
 
 	if (only_ents) {
 
@@ -173,12 +174,18 @@ int32_t BSP_Main(void) {
 
 		LoadMapFile(map_name);
 
+		EmitPlanes();
+		EmitMaterials();
+		EmitBrushes();
+		EmitEntities();
+
 		ProcessModels();
 
-		EndBSPFile();
+		PhongShading();
+		TangentVectors();
 	}
 
-	WriteBSPFile(va("maps/%s.bsp", map_base));
+	WriteBSPFile(bsp_name);
 
 	FreeMaterials();
 

@@ -78,7 +78,7 @@ static inline _Bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_
  */
 static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
-	if (!brush->num_sides) {
+	if (!brush->num_brush_sides) {
 		return;
 	}
 
@@ -89,24 +89,24 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	float enter_fraction = -1.0;
 	float leave_fraction = 1.0;
 
-	cm_bsp_plane_t clip_plane = { };
-	const cm_bsp_brush_side_t *clip_side = NULL;
+	cm_bsp_plane_t plane = { };
+	const cm_bsp_brush_side_t *side = NULL;
 
-	_Bool end_outside = false, start_outside = false;
+	_Bool start_outside = false, end_outside = false;
 
-	const cm_bsp_brush_side_t *side = brush->sides;
-	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+	const cm_bsp_brush_side_t *s = brush->brush_sides;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, s++) {
 
-		cm_bsp_plane_t plane = *side->plane;
+		cm_bsp_plane_t p = *s->plane;
 
 		if (data->matrix) {
-			plane = Cm_TransformPlane(*data->matrix, &plane);
+			p = Cm_TransformPlane(*data->matrix, &p);
 		}
 
-		const float dist = plane.dist - Vec3_Dot(data->offsets[plane.sign_bits], plane.normal);
+		const float dist = p.dist - Vec3_Dot(data->offsets[p.sign_bits], p.normal);
 
-		const float d1 = Vec3_Dot(data->start, plane.normal) - dist;
-		const float d2 = Vec3_Dot(data->end, plane.normal) - dist;
+		const float d1 = Vec3_Dot(data->start, p.normal) - dist;
+		const float d2 = Vec3_Dot(data->end, p.normal) - dist;
 
 		if (d1 > 0.f) {
 			start_outside = true;
@@ -115,28 +115,26 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 			end_outside = true;
 		}
 
-		// if completely in front of face, no intersection with entire brush
-		if (d1 > 0.f && (d2 > TRACE_EPSILON || d2 >= d1)) {
+		// if completely in front of plane, the trace does not intersect with the brush
+		if (d1 > 0.f && d2 >= d1) {
 			return;
 		}
 
-		// if completely behind plane, no intersection
-		if (d1 <= 0.f && d2 <= 0.f) {
+		// if completely behind plane, the trace does not intersect with this side
+		if (d1 <= 0.f && d2 <= d1) {
 			continue;
 		}
 
-		// crosses face
+		// the trace intersects this side
 		if (d1 > d2) { // enter
 			const float f = Maxf(0.f, (d1 - TRACE_EPSILON) / (d1 - d2));
-
 			if (f > enter_fraction) {
 				enter_fraction = f;
-				clip_plane = plane;
-				clip_side = side;
+				plane = p;
+				side = s;
 			}
 		} else { // leave
 			const float f = Minf(1.f, (d1 + TRACE_EPSILON) / (d1 - d2));
-
 			if (f < leave_fraction) {
 				leave_fraction = f;
 			}
@@ -149,15 +147,16 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		data->trace.start_solid = true;
 		if (!end_outside) {
 			data->trace.all_solid = true;
-			data->trace.fraction = 0.0;
 			data->trace.contents = brush->contents;
+			data->trace.fraction = 0.0f;
 		}
 	} else if (enter_fraction < leave_fraction) { // pierced brush
 		if (enter_fraction > -1.0f && enter_fraction < data->trace.fraction) {
 			data->trace.fraction = Maxf(0.0f, enter_fraction);
-			data->trace.plane = clip_plane;
-			data->trace.texinfo = clip_side->texinfo;
+			data->trace.plane = plane;
 			data->trace.contents = brush->contents;
+			data->trace.surface = side->surface;
+			data->trace.material = side->material;
 		}
 	}
 }
@@ -167,7 +166,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
  */
 static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
-	if (!brush->num_sides) {
+	if (!brush->num_brush_sides) {
 		return;
 	}
 
@@ -175,8 +174,8 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 		return;
 	}
 
-	const cm_bsp_brush_side_t *side = brush->sides;
-	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+	const cm_bsp_brush_side_t *side = brush->brush_sides;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
 		cm_bsp_plane_t plane = *side->plane;
 

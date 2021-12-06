@@ -40,9 +40,8 @@ typedef struct {
 	bsp_face_t *face;
 	const bsp_node_t *node;
 	const bsp_model_t *model;
+	const bsp_brush_side_t *brush_side;
 	const bsp_plane_t *plane;
-	const bsp_texinfo_t *texinfo;
-	const cm_material_t *material;
 	mat4_t matrix;
 	mat4_t inverse_matrix;
 	vec2_t st_mins, st_maxs;

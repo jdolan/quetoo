@@ -174,37 +174,34 @@ static void Shutdown(const char *msg) {
 static void Check_BSP_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "--no-weld")) {
-			Com_Verbose("no_weld = true\n");
-			no_weld = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-csg")) {
-			Com_Verbose("no_csg = true\n");
-			no_csg = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-share")) {
-			Com_Verbose("no_share = true\n");
-			no_share = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-tjunc")) {
-			Com_Verbose("no_tjunc = true\n");
-			no_tjunc = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-liquid")) {
-			Com_Verbose("no_liquid = true\n");
-			no_liquid = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-prune")) {
-			Com_Verbose("no_prune = true\n");
-			no_prune = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-merge")) {
-			Com_Verbose("no_merge = true\n");
-			no_merge = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-detail")) {
-			Com_Verbose("no_detail = true\n");
-			no_detail = true;
-		}else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
-			Com_Verbose("only_ents = true\n");
-			only_ents = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--micro-volume")) {
+		if (!g_strcmp0(Com_Argv(i), "--micro-volume")) {
 			micro_volume = atof(Com_Argv(i + 1));
 			Com_Verbose("micro_volume = %f\n", micro_volume);
 			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-csg")) {
+			Com_Verbose("no_csg = true\n");
+			no_csg = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-detail")) {
+			Com_Verbose("no_detail = true\n");
+			no_detail = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-liquid")) {
+			Com_Verbose("no_liquid = true\n");
+			no_liquid = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-phong")) {
+			Com_Verbose("no_phong = true\n");
+			no_phong = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-prune")) {
+			Com_Verbose("no_prune = true\n");
+			no_prune = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-tjunc")) {
+			Com_Verbose("no_tjunc = true\n");
+			no_tjunc = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-weld")) {
+			Com_Verbose("no_weld = true\n");
+			no_weld = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
+			Com_Verbose("only_ents = true\n");
+			only_ents = true;
 		} else {
 			break;
 		}
@@ -301,10 +298,10 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --micro_volume <float>\n");
 	Com_Print(" --no-csg - don't subtract brushes\n");
 	Com_Print(" --no-detail - skip detail brushes\n");
-	Com_Print(" --no-merge - skip node face merging\n");
+	Com_Print(" --no-liquid - skip liquid brushes\n");
+	Com_Print(" --no-phong - don't apply Phong shading\n");
 	Com_Print(" --no-prune - don't prune unused nodes\n");
 	Com_Print(" --no-tjunc - don't fix T-junctions\n");
-	Com_Print(" --no-liquid - skip liquid brushes\n");
 	Com_Print(" --no-weld - don't weld vertices\n");
 	Com_Print(" --only-ents - only update the entity string from the .map\n");
 	Com_Print("\n");

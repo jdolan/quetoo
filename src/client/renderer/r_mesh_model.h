@@ -25,6 +25,7 @@
 
 #ifdef __R_LOCAL_H__
 r_material_t *R_ResolveMeshMaterial(const r_model_t *mod, const r_mesh_face_t *face, const char *name);
+void R_LoadMeshMaterials(r_model_t *mod);
 void R_LoadMeshConfigs(r_model_t *mod);
 void R_LoadMeshVertexArray(r_model_t *mod);
 void R_RegisterMeshModel(r_media_t *self);

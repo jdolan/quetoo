@@ -91,31 +91,6 @@ typedef struct {
 #define AXIAL(p) ((p)->type < PLANE_ANY_X)
 
 /**
- * @brief Texinfos describe a material applied to a winding or plane.
- */
-typedef struct {
-	/**
-	 * @brief The texture name.
-	 */
-	char name[32];
-
-	/**
-	 * @brief SURF_* flags.
-	 */
-	int32_t flags;
-
-	/**
-	 * @brief The surface value (e.g. light radius).
-	 */
-	int32_t value;
-
-	/**
-	 * @brief The material definition.
-	 */
-	struct cm_material_s *material;
-} cm_bsp_texinfo_t;
-
-/**
  * @brief Inline BSP models are segments of the collision model that may move.
  * They are treated as their own sub-trees and recursed separately.
  */
@@ -230,57 +205,6 @@ typedef struct cm_entity_s {
 } cm_entity_t;
 
 /**
- * @brief Traces are discrete movements through world space, clipped to the
- * BSP planes they intersect. This is the basis for all collision detection
- * within Quake.
- */
-typedef struct {
-	/**
-	 * @brief If true, the trace started and ended within the same solid.
-	 */
-	_Bool all_solid;
-
-	/**
-	 * @brief If true, the trace started within a solid, but exited it.
-	 */
-	_Bool start_solid;
-
-	/**
-	 * @brief The fraction of the desired distance traveled (0.0 - 1.0). If
-	 * 1.0, no plane was impacted.
-	 */
-	float fraction;
-
-	/**
-	 * @brief The destination position.
-	 */
-	vec3_t end;
-
-	/**
-	 * @brief The impacted plane, or empty. Note that a copy of the plane is
-	 * returned, rather than a pointer. This is because the plane may belong to
-	 * an inline BSP model or the box hull of a solid entity, in which case it must
-	 * be transformed by the entity's current position.
-	 */
-	cm_bsp_plane_t plane;
-
-	/**
-	 * @brief The impacted texinfo, or `NULL`.
-	 */
-	cm_bsp_texinfo_t *texinfo;
-
-	/**
-	 * @brief The contents mask of the impacted brush, or 0.
-	 */
-	int32_t contents;
-
-	/**
-	 * @brief The impacted entity, or `NULL`.
-	 */
-	struct g_entity_s *ent; // not set by Cm_*() functions
-} cm_trace_t;
-
-/**
  * @brief Brush sides refefence the planes and textures of a given brush.
  * @remarks Brush sides are not clipped windings, or faces. They are used for collision,
  * not for rendering.
@@ -292,9 +216,19 @@ typedef struct {
 	cm_bsp_plane_t *plane;
 
 	/**
-	 * @brief The texinfo.
+	 * @brief The material definition.
 	 */
-	cm_bsp_texinfo_t *texinfo;
+	struct cm_material_s *material;
+
+	/**
+	 * @brief The surface mask (SURF_*).
+	 */
+	int32_t surface;
+
+	/**
+	 * @brief The surface value (e.g. light radius).
+	 */
+	int32_t value;
 } cm_bsp_brush_side_t;
 
 /**
@@ -309,19 +243,19 @@ typedef struct {
 	cm_entity_t *entity;
 
 	/**
-	 * @brief The brush contents (CONTENTS_*).
+	 * @brief The contents mask (CONTENTS_*).
 	 */
 	int32_t contents;
 
 	/**
 	 * @brief The brush sides.
 	 */
-	cm_bsp_brush_side_t *sides;
+	cm_bsp_brush_side_t *brush_sides;
 
 	/**
-	 * @brief The number of sides.
+	 * @brief The number of brush sides.
 	 */
-	int32_t num_sides;
+	int32_t num_brush_sides;
 
 	/**
 	 * @brief The brush bounds.
@@ -373,3 +307,58 @@ typedef struct {
 	 */
 	int32_t children[2];
 } cm_bsp_node_t;
+
+/**
+ * @brief Traces are discrete movements through world space, clipped to the
+ * BSP planes they intersect. This is the basis for all collision detection
+ * within Quake.
+ */
+typedef struct {
+	/**
+	 * @brief If true, the trace started and ended within the same solid.
+	 */
+	_Bool all_solid;
+
+	/**
+	 * @brief If true, the trace started within a solid, but exited it.
+	 */
+	_Bool start_solid;
+
+	/**
+	 * @brief The fraction of the desired distance traveled (0.0 - 1.0).
+	 */
+	float fraction;
+
+	/**
+	 * @brief The destination position.
+	 */
+	vec3_t end;
+
+	/**
+	 * @brief The impacted plane, transformed by the matrix provided to Cm_BoxTrace.
+	 */
+	cm_bsp_plane_t plane;
+
+	/**
+	 * @brief The contents mask of the impacted brush side.
+	 */
+	int32_t contents;
+
+	/**
+	 * @brief The surface mask of the impacted brush side.
+	 */
+	int32_t surface;
+
+	/**
+	 * @brief The material of the impacted brush side.
+	 */
+	const struct cm_material_s *material;
+
+	/**
+	 * @brief The impacted entity, or `NULL`. This is not set by the collision routines directly,
+	 * but rather by the Sv_Trace and Cl_Trace routines, which clip traces to their respective
+	 * known entities.
+	 */
+	struct g_entity_s *ent;
+} cm_trace_t;
+

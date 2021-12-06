@@ -225,7 +225,7 @@ START_TEST(check_Cm_ElementsForWinding_skinnyQuad) {
 
 } END_TEST
 
-START_TEST(check_Cm_ElementsForWinding_collinearQuad) {
+START_TEST(check_Cm_ElementsForWinding_colinearQuad) {
 
 	cm_winding_t *w = Cm_AllocWinding(6);
 	w->num_points = 6;
@@ -277,6 +277,26 @@ START_TEST(check_Cm_ElementsForWinding_cornerCase) {
 	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
 
 	ck_assert_int_eq(12, num_elements);
+
+} END_TEST
+
+START_TEST(check_Cm_ElementsForWinding_invalid) {
+
+	cm_winding_t *w = Cm_AllocWinding(3);
+	w->num_points = 3;
+
+	// This is a real invalid winding emitted from edge.map. Plotting this winding shows
+	// that indeed, the points are essentially colinear. This is a better test than the
+	// somewhat contrived ones above.
+
+	w->points[2] = Vec3(1516.32446, 1435.71924, 592.605286);
+	w->points[1] = Vec3(1511.57983, 1428.12781, 595.452087);
+	w->points[0] = Vec3(1506.83521, 1420.53638, 598.298889);
+
+	int32_t elements[(w->num_points - 2) * 3];
+	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
+
+	ck_assert_int_eq(0, num_elements);
 
 } END_TEST
 
@@ -358,8 +378,9 @@ int32_t main(int32_t argc, char **argv) {
 		tcase_add_test(tcase, check_Cm_ElementsForWinding_triangle);
 		tcase_add_test(tcase, check_Cm_ElementsForWinding_quad);
 		tcase_add_test(tcase, check_Cm_ElementsForWinding_skinnyQuad);
-		tcase_add_test(tcase, check_Cm_ElementsForWinding_collinearQuad);
+		tcase_add_test(tcase, check_Cm_ElementsForWinding_colinearQuad);
 		tcase_add_test(tcase, check_Cm_ElementsForWinding_cornerCase);
+		tcase_add_test(tcase, check_Cm_ElementsForWinding_invalid);
 		suite_add_tcase(suite, tcase);
 	}
 

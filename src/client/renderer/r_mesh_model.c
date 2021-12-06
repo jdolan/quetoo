@@ -22,6 +22,40 @@
 #include "r_local.h"
 
 /**
+ * @brief Loads the materials file for the specified mesh model.
+ * @remarks Player models may optionally define materials, but are not required to.
+ * @remarks Other mesh models must resolve at least one material. If no materials file is found,
+ * we attempt to load ${model_dir}/skin.tga as the default material.
+ */
+void R_LoadMeshMaterials(r_model_t *mod) {
+	char path[MAX_QPATH];
+
+	GList *materials = NULL;
+
+	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
+
+	if (g_str_has_prefix(mod->media.name, "players/")) {
+		R_LoadMaterials(path, ASSET_CONTEXT_PLAYERS, &materials);
+	} else {
+		if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, &materials) < 1) {
+
+			Dirname(mod->media.name, path);
+			g_strlcat(path, "skin", sizeof(path));
+
+			materials = g_list_prepend(materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
+		}
+
+		assert(materials);
+	}
+
+	for (GList *list = materials; materials; materials = materials->next) {
+		R_RegisterDependency((r_media_t *) mod, (r_media_t *) list->data);
+	}
+
+	g_list_free(materials);
+}
+
+/**
  * @brief Resolves a material for the specified mesh model.
  * @remarks First, it will attempt to use the material explicitly designated on the face, if
  * one exists. If that material is not found, it will attempt to load a material based on the face name.
@@ -56,7 +90,7 @@ r_material_t *R_ResolveMeshMaterial(const r_model_t *mod, const r_mesh_face_t *f
 		Com_Debug(DEBUG_RENDERER, "Couldn't resolve implicit mesh material \"%s\"\n", face->name);
 	}
 
-	// fall back to "skin", which will have been force-loaded by R_LoadModelMaterials
+	// fall back to "skin"
 	Dirname(mod->media.name, path);
 	g_strlcat(path, "skin", sizeof(path));
 
