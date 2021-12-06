@@ -153,6 +153,7 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		face->brush_side = LittleLong(face->brush_side);
+		face->contents = LittleLong(face->contents);
 
 		face->bounds = LittleBounds(face->bounds);
 
@@ -188,6 +189,8 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 		draw->plane = LittleLong(draw->plane);
 		draw->material = LittleLong(draw->material);
 		draw->surface = LittleLong(draw->surface);
+		draw->contents = LittleLong(draw->contents);
+		
 		draw->bounds = LittleBounds(draw->bounds);
 
 		draw->first_element = LittleLong(draw->first_element);

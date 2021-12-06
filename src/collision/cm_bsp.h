@@ -213,7 +213,8 @@ typedef struct {
  * @brief Faces are polygon primitives, stored as both vertex and element arrays.
  */
 typedef struct {
-	int32_t brush_side;
+	int32_t brush_side; // the brush side that produced this face
+	int32_t contents; // the combined contents of all leafs in which this face appears
 
 	box3_t bounds;
 
@@ -259,6 +260,7 @@ typedef struct {
 	int32_t plane;
 	int32_t material;
 	int32_t surface;
+	int32_t contents;
 
 	box3_t bounds;
 

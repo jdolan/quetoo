@@ -49,6 +49,11 @@ typedef struct face_s {
 	cm_winding_t *w;
 
 	/**
+	 * @brief The combined contents of all leafs in which this face appears.
+	 */
+	int32_t contents;
+
+	/**
 	 * @brief The output face in the BSP, so that node faces may emit leaf faces.
 	 */
 	bsp_face_t *out;

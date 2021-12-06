@@ -153,7 +153,8 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 	for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
 		out->brush_side = bsp->brush_sides + in->brush_side;
-
+		out->contents = in->contents;
+		
 		out->bounds = in->bounds;
 
 		out->vertexes = bsp->vertexes + in->first_vertex;
@@ -198,6 +199,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->plane = bsp->planes + in->plane;
 		out->material = bsp->materials[in->material];
 		out->surface = in->surface;
+		out->contents = in->contents;
 
 		out->bounds = in->bounds;
 

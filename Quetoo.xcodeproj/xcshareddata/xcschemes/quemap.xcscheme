@@ -150,7 +150,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/jgothic.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"
@@ -186,7 +186,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/tokays.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/wake.map"
