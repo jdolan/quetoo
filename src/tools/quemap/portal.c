@@ -737,7 +737,7 @@ static void MakeFaces_r(node_t *node) {
 			f->next = p->on_node->faces;
 			p->on_node->faces = f;
 			p->face[s] = f;
-			f->contents |= node->contents;
+			f->contents |= (node->contents & ~f->brush_side->contents);
 			c_faces++;
 		}
 	}
