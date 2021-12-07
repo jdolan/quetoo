@@ -261,6 +261,7 @@
 		CE51FC062148214300ABE14F /* check_master.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D11C5C58C300CD0B13 /* check_master.c */; };
 		CE51FC072148219900ABE14F /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE51FC08214821F000ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
+		CE5326FE275ECA25006B6A3E /* caustics.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5326DB275EC7CA006B6A3E /* caustics.glsl */; };
 		CE548C7F25B79F17003677ED /* r_framebuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE548C7D25B79F17003677ED /* r_framebuffer.h */; };
 		CE548C8025B79F17003677ED /* r_framebuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE548C7E25B79F17003677ED /* r_framebuffer.c */; };
 		CE55308D1E57E3670009A127 /* ui_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55308B1E57E3670009A127 /* ui_editor.c */; };
@@ -852,6 +853,7 @@
 			files = (
 				CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */,
 				CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */,
+				CE5326FE275ECA25006B6A3E /* caustics.glsl in CopyFiles */,
 				CE3CFD3625A2994F003D6148 /* common.glsl in CopyFiles */,
 				CE8FD2F423D611C0002FD074 /* common_fs.glsl in CopyFiles */,
 				CE45F49825718B42004DEFED /* common_vs.glsl in CopyFiles */,
@@ -1383,6 +1385,7 @@
 		CE51FBC421481F2500ABE14F /* check_cvar */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cvar; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE51FBDF21481FC100ABE14F /* check_filesystem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_filesystem; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE51FBF72148207700ABE14F /* check_master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_master; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE5326DB275EC7CA006B6A3E /* caustics.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = caustics.glsl; sourceTree = "<group>"; };
 		CE548C7D25B79F17003677ED /* r_framebuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_framebuffer.h; sourceTree = "<group>"; };
 		CE548C7E25B79F17003677ED /* r_framebuffer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_framebuffer.c; sourceTree = "<group>"; };
 		CE55308B1E57E3670009A127 /* ui_editor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_editor.c; sourceTree = "<group>"; };
@@ -2433,6 +2436,7 @@
 			children = (
 				CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */,
 				CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */,
+				CE5326DB275EC7CA006B6A3E /* caustics.glsl */,
 				CE3CFD3525A29932003D6148 /* common.glsl */,
 				CE8FD2F323D60E7B002FD074 /* common_fs.glsl */,
 				CE45F43D25716DAE004DEFED /* common_vs.glsl */,

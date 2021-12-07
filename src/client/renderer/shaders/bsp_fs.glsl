@@ -29,6 +29,7 @@ uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_fog;
 
 uniform int entity;
+uniform int contents;
 
 uniform float alpha_threshold;
 
@@ -39,6 +40,7 @@ uniform material_t material;
 uniform stage_t stage;
 
 in vertex_data {
+	vec3 point;
 	vec3 position;
 	vec3 normal;
 	vec3 tangent;
@@ -200,6 +202,8 @@ void main(void) {
 		vec3 stainmap = sample_lightmap(4).rgb;
 
 		dynamic_light(vertex.position, normal, 64.0, light_diffuse, light_specular);
+
+		caustics(contents, vertex.point, light_diffuse);
 
 		out_color = diffusemap;
 		out_color *= vec4(stainmap, 1.0);

@@ -319,7 +319,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 
 		out->plane = a_side->plane;
 		out->material = a_side->material;
-		
+
 		out->surface = a_side->surface & SURF_MASK_DRAW_ELEMENTS_CMP;
 		out->contents = a->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
 

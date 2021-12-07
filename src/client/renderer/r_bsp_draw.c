@@ -50,6 +50,7 @@ static struct {
 	GLint texture_lightgrid_fog;
 
 	GLint entity;
+	GLint contents;
 
 	GLint alpha_threshold;
 
@@ -369,6 +370,8 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_bsp_draw_elements_t *draw,
 										 const r_material_t **material) {
 
+	glUniform1i(r_bsp_program.contents, draw->contents);
+	
 	if (!(draw->surface & SURF_MATERIAL)) {
 
 		if (*material != draw->material) {
@@ -649,7 +652,7 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.name = R_LoadProgram(
 			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "bsp_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "bsp_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "caustics.glsl", "bsp_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_bsp_program.name);
@@ -680,6 +683,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
 	r_bsp_program.entity = glGetUniformLocation(r_bsp_program.name, "entity");
+	r_bsp_program.contents = glGetUniformLocation(r_bsp_program.name, "contents");
 
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 

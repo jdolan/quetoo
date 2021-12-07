@@ -49,7 +49,7 @@ typedef struct face_s {
 	cm_winding_t *w;
 
 	/**
-	 * @brief The combined contents of all leafs in which this face appears.
+	 * @brief The differing contents mask of all leafs in which this face appears.
 	 */
 	int32_t contents;
 
