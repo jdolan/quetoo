@@ -173,6 +173,9 @@ static void LightWorld(void) {
 	// free the light sources
 	FreeLights();
 
+	// free the patches
+	Mem_FreeTag(MEM_TAG_PATCH);
+
 	// finalize it and write it to per-face textures
 	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
 
@@ -184,9 +187,6 @@ static void LightWorld(void) {
 
 	// free the lightmaps
 	Mem_FreeTag(MEM_TAG_LIGHTMAP);
-
-	// free the patches
-	Mem_FreeTag(MEM_TAG_PATCH);
 
 	// build fog volumes out of brush entities
 	BuildFog();
@@ -205,6 +205,9 @@ static void LightWorld(void) {
 
 	// write it to the bsp
 	EmitLightgrid();
+
+	// free the lightgrid
+	Mem_FreeTag(MEM_TAG_LIGHTGRID);
 }
 
 /**
