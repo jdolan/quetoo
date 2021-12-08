@@ -249,8 +249,7 @@ typedef struct {
  */
 typedef struct {
 	int32_t brush_side; // the brush side that produced this face
-
-	int32_t contents; // the differing contents of all leafs in which this face appears
+	
 	box3_t bounds;
 
 	int32_t first_vertex;

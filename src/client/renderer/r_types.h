@@ -357,8 +357,6 @@ typedef struct {
 
 	r_bsp_brush_side_t *brush_side;
 
-	int32_t contents;
-	
 	box3_t bounds;
 
 	r_bsp_face_lightmap_t lightmap;

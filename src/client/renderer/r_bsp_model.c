@@ -154,7 +154,6 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 		out->brush_side = bsp->brush_sides + in->brush_side;
 
-		out->contents = in->contents;
 		out->bounds = in->bounds;
 
 		out->vertexes = bsp->vertexes + in->first_vertex;
