@@ -175,14 +175,6 @@ static void LightWorld(void) {
 
 	// finalize it and write it to per-face textures
 	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
-	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
-
-	// bake fog volumes into the lightgrid
-	BuildFog();
-
-	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
-
-	FreeFog();
 
 	// generate atlased lightmaps
 	EmitLightmap();
@@ -190,14 +182,29 @@ static void LightWorld(void) {
 	// and vertex lightmap texcoords
 	EmitLightmapTexcoords();
 
-	// and lightgrid
-	EmitLightgrid();
-
 	// free the lightmaps
 	Mem_FreeTag(MEM_TAG_LIGHTMAP);
 
 	// free the patches
 	Mem_FreeTag(MEM_TAG_PATCH);
+
+	// build fog volumes out of brush entities
+	BuildFog();
+
+	// bake fog into the lightgrid
+	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
+
+	// free the fog volumes
+	FreeFog();
+
+	// bake water caustics into the lightgrid
+	Work("Caustics", CausticsLightgrid, (int32_t) num_lightgrid);
+
+	// finalize the lightgrid
+	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
+
+	// write it to the bsp
+	EmitLightgrid();
 }
 
 /**

@@ -318,8 +318,6 @@ bsp_face_t *EmitFace(const face_t *face) {
 
 	out->brush_side = (int32_t) (ptrdiff_t) (face->brush_side->out - bsp_file.brush_sides);
 
-	out->contents = face->contents;
-
 	out->bounds = Box3_Null();
 
 	out->first_vertex = bsp_file.num_vertexes;

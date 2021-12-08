@@ -379,9 +379,7 @@ typedef struct {
 typedef struct {
 	r_bsp_plane_t *plane;
 	r_material_t *material;
-
 	int32_t surface;
-	int32_t contents;
 
 	box3_t bounds;
 
@@ -516,7 +514,7 @@ typedef struct {
 	/**
 	 * @brief The lightgrid textures (ambient, diffuse, etc..).
 	 */
-	r_image_t *textures[BSP_LIGHTGRID_TEXTURES + BSP_FOG_TEXTURES];
+	r_image_t *textures[BSP_LIGHTGRID_LAST];
 } r_bsp_lightgrid_t;
 
 /**
@@ -1386,13 +1384,14 @@ typedef enum {
 	TEXTURE_LIGHTMAP,
 
 	/**
-	 * @brief The lightgrid textures, used for mesh lighting, and universally for fog.
+	 * @brief The lightgrid textures, used by the BSP, mesh and sky programs.
 	 */
 	TEXTURE_LIGHTGRID,
 	TEXTURE_LIGHTGRID_AMBIENT = TEXTURE_LIGHTGRID,
 	TEXTURE_LIGHTGRID_DIFFUSE,
 	TEXTURE_LIGHTGRID_DIRECTION,
 	TEXTURE_LIGHTGRID_FOG,
+	TEXTURE_LIGHTGRID_CAUSTICS,
 
 	/**
 	 * @brief The sky cubemap texture.

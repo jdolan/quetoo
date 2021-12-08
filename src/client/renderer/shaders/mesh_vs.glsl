@@ -34,6 +34,7 @@ uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_fog;
+uniform sampler3D texture_lightgrid_caustics;
 
 uniform mat4 model;
 
@@ -97,6 +98,8 @@ void main(void) {
 
 		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 		lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
+
+		lightgrid_caustics(vertex.diffuse, texture_lightgrid_caustics, lightgrid_uvw);
 	}
 
 	gl_Position = projection3D * vec4(vertex.position, 1.0);

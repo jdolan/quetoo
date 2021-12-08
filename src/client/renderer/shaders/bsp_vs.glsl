@@ -32,7 +32,6 @@ uniform mat4 model;
 uniform stage_t stage;
 
 out vertex_data {
-	vec3 point;
 	vec3 position;
 	vec3 normal;
 	vec3 tangent;
@@ -59,7 +58,6 @@ void main(void) {
 
 	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	vertex.point = vec3(model * position);
 	vertex.position = vec3(view_model * position);
 	vertex.normal = vec3(view_model * normal);
 	vertex.tangent = vec3(view_model * tangent);

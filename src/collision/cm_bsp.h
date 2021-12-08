@@ -67,6 +67,18 @@
 #define BSP_STAINMAP_LAYERS 1
 
 /**
+ * @brief The lightmap textures.
+ */
+typedef enum {
+	BSP_LIGHTMAP_FIRST,
+	BSP_LIGHTMAP_AMBIENT = BSP_LIGHTMAP_FIRST,
+	BSP_LIGHTMAP_DIFFUSE,
+	BSP_LIGHTMAP_DIRECTION,
+	BSP_LIGHTMAP_LAST = BSP_LIGHTMAP_DIRECTION,
+	BSP_LIGHTMAP_STAINS
+} bsp_lightmap_texture_t;
+
+/**
  * @brief Lightgrid luxel size in world units.
  */
 #define BSP_LIGHTGRID_LUXEL_SIZE 32
@@ -92,6 +104,16 @@
 #define BSP_FOG_BPP 4
 
 /**
+ * @brief Caustics intensity.
+ */
+#define BSP_CAUSTICS_TEXTURES 1
+
+/**
+ * @brief Caustics bytes per pixel.
+ */
+#define BSP_CAUSTICS_BPP 1
+
+/**
  * @brief Largest lightgrid width in luxels (8192 / 32 = 256).
  */
 #define MAX_BSP_LIGHTGRID_WIDTH (MAX_WORLD_AXIAL / BSP_LIGHTGRID_LUXEL_SIZE)
@@ -100,6 +122,19 @@
  * @brief Largest lightgrid texture size in luxels.
  */
 #define MAX_BSP_LIGHTGRID_LUXELS (MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH)
+
+/**
+ * @brief The lightgrid textures.
+ */
+typedef enum {
+	BSP_LIGHTGRID_FIRST,
+	BSP_LIGHTGRID_AMBIENT = BSP_LIGHTGRID_FIRST,
+	BSP_LIGHTGRID_DIFFUSE,
+	BSP_LIGHTGRID_DIRECTION,
+	BSP_LIGHTGRID_FOG,
+	BSP_LIGHTGRID_CAUSTICS,
+	BSP_LIGHTGRID_LAST
+} bsp_lightgrid_texture_t;
 
 /**
  * @brief BSP file format lump identifiers.
@@ -260,7 +295,6 @@ typedef struct {
 	int32_t plane;
 	int32_t material;
 	int32_t surface;
-	int32_t contents;
 
 	box3_t bounds;
 
@@ -293,7 +327,8 @@ typedef struct {
  * @brief Lightgrids are layered 24 bit 3D texture objects of variable size.
  * @details Each layer is up to 128x128x128 RGB at 24bpp. The first layer contains
  * ambient light color, the second contains diffuse light color, and the third contains
- * diffuse light direction.
+ * diffuse light direction. Additional layers for fog and caustics exist with varying
+ * bit depths.
  */
 typedef struct {
 	vec3i_t size;

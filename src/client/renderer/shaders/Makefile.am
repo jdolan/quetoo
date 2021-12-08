@@ -3,7 +3,6 @@ shadersdir = @PKGLIBDIR@/default/shaders
 shaders_DATA = \
 	bsp_fs.glsl \
 	bsp_vs.glsl \
-	caustics.glsl \
 	common.glsl \
 	common_fs.glsl \
 	common_vs.glsl \

@@ -199,7 +199,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->plane = bsp->planes + in->plane;
 		out->material = bsp->materials[in->material];
 		out->surface = in->surface;
-		out->contents = in->contents;
 
 		out->bounds = in->bounds;
 
@@ -471,11 +470,12 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 			0xff, 0xff, 0xff,
 			0xff, 0xff, 0xff,
 			0xff, 0xff, 0xff,
-			0x00, 0x00, 0x00, 0x00
+			0x00, 0x00, 0x00, 0x00,
+			0x00
 		};
 	}
 
-	for (int32_t i = 0; i < (int32_t) lengthof(out->textures); i++) {
+	for (bsp_lightgrid_texture_t i = BSP_LIGHTGRID_FIRST; i < BSP_LIGHTGRID_LAST; i++) {
 
 		r_image_t *texture = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), R_MEDIA_IMAGE);
 		texture->media.Free = R_FreeImage;
@@ -485,21 +485,27 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 		texture->depth = out->size.z;
 		texture->target = GL_TEXTURE_3D;
 
-		if (i < BSP_LIGHTGRID_TEXTURES) {
-			texture->format = GL_RGB;
-		} else {
-			texture->format = GL_RGBA;
+		size_t layer_size;
+		switch (i) {
+			default:
+				texture->format = GL_RGB;
+				layer_size = luxels * BSP_LIGHTGRID_BPP;
+				break;
+			case BSP_LIGHTGRID_FOG:
+				texture->format = GL_RGBA;
+				layer_size = luxels * BSP_FOG_BPP;
+				break;
+			case BSP_LIGHTGRID_CAUSTICS:
+				texture->format = GL_RED;
+				layer_size = luxels * BSP_CAUSTICS_BPP;
+				break;
 		}
 
 		R_UploadImage(texture, texture->target, data);
 
-		if (i < BSP_LIGHTGRID_TEXTURES) {
-			data += luxels * BSP_LIGHTGRID_BPP;
-		} else {
-			data += luxels * BSP_FOG_BPP;
-		}
-
 		out->textures[i] = texture;
+
+		data += layer_size;
 	}
 }
 

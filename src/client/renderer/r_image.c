@@ -157,9 +157,22 @@ void R_Screenshot_f(void) {
 	Thread_Create(R_Screenshot_f_encode, s, THREAD_NO_WAIT);
 }
 
+/**
+ * @brief
+ */
 static GLenum R_GetInternalImageFormat(const r_image_t *image) {
 
-	return (image->format == GL_RGBA) ? GL_RGBA8 : GL_RGB8;
+	switch (image->format) {
+		case GL_RED:
+			return GL_R8;
+		case GL_RGBA:
+			return GL_RGBA8;
+		case GL_RGB:
+			return GL_RGB8;
+		default:
+			Com_Error(ERROR_DROP, "Unsupported format %d\n", image->format);
+
+	}
 }
 
 /**
@@ -173,14 +186,6 @@ void R_SetupImage(r_image_t *image) {
 	assert(image->height);
 	assert(image->target);
 	assert(image->format);
-
-	switch (image->format) {
-		case GL_RGB:
-		case GL_RGBA:
-			break;
-		default:
-			Com_Error(ERROR_DROP, "Unsupported format %d\n", image->format);
-	}
 
 	if (image->texnum == 0) {
 		glGenTextures(1, &(image->texnum));

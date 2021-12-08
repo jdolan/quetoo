@@ -228,17 +228,6 @@ int32_t EmitNodes(node_t *head_node) {
 }
 
 /**
- * @brief Draw elements comparator to sort faces by contents mask.
- */
-static int32_t ContentsCmp(const bsp_face_t *a, const bsp_face_t *b) {
-
-	const int32_t a_contents = a->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
-	const int32_t b_contents = b->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
-
-	return a_contents - b_contents;
-}
-
-/**
  * @brief Draw elements comparator to sort faces by surface mask.
  */
 static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) {
@@ -266,19 +255,15 @@ static int32_t FaceCmp(const void *a, const void *b) {
 	int32_t order = a_side->material - b_side->material;
 	if (order == 0) {
 
-		order = ContentsCmp(a_face, b_face);
+		order = SurfaceCmp(a_side, b_side);
 		if (order == 0) {
 
-			order = SurfaceCmp(a_side, b_side);
-			if (order == 0) {
+			if (a_side->surface & SURF_MATERIAL) {
+				return (int32_t) (ptrdiff_t) (a_side - b_side);
+			}
 
-				if (a_side->surface & SURF_MATERIAL) {
-					return (int32_t) (ptrdiff_t) (a_side - b_side);
-				}
-
-				if (a_side->surface & SURF_MASK_BLEND) {
-					return a_side->plane - b_side->plane;
-				}
+			if (a_side->surface & SURF_MASK_BLEND) {
+				return a_side->plane - b_side->plane;
 			}
 		}
 	}
@@ -319,9 +304,7 @@ static int32_t EmitDrawElements(const bsp_model_t *mod) {
 
 		out->plane = a_side->plane;
 		out->material = a_side->material;
-
 		out->surface = a_side->surface & SURF_MASK_DRAW_ELEMENTS_CMP;
-		out->contents = a->contents & CONTENTS_MASK_DRAW_ELEMENTS_CMP;
 
 		out->bounds = Box3_Null();
 
