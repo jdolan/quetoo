@@ -692,7 +692,6 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	face_t *f = AllocFace();
 
 	f->brush_side = side;
-//	f->plane_num = (side->plane & ~1) | pside;
 	f->portal = p;
 
 	if (pside) {

@@ -127,7 +127,7 @@ vec4 cubic(float v) {
 	float y = s.y - 4.0 * s.x;
 	float z = s.z - 4.0 * s.y + 6.0 * s.x;
 	float w = 6.0 - x - y - z;
-	return vec4(x, y, z, w) * (1.0/6.0);
+	return vec4(x, y, z, w) * (1.0 / 6.0);
 }
 
 /**
@@ -180,6 +180,62 @@ float grayscale(vec3 color) {
  */
 float linearstep(float a, float b, float t) {
 	return clamp((t - a) / (b - a), 0.0, 1.0);
+}
+
+/**
+ * @brief
+ */
+vec3 hash33(vec3 p) {
+	p = fract(p * vec3(.1031,.11369,.13787));
+	p += dot(p, p.yxz + 19.19);
+	return -1.0 + 2.0 * fract(vec3((p.x + p.y) * p.z, (p.x + p.z) * p.y, (p.y + p.z) * p.x));
+}
+
+/**
+ * @brief https://www.shadertoy.com/view/4sc3z2
+ */
+float noise3d(vec3 p) {
+	vec3 pi = floor(p);
+	vec3 pf = p - pi;
+
+	vec3 w = pf * pf * (3.0 - 2.0 * pf);
+
+	return mix(
+		mix(
+			mix(dot(pf - vec3(0, 0, 0), hash33(pi + vec3(0, 0, 0))),
+				dot(pf - vec3(1, 0, 0), hash33(pi + vec3(1, 0, 0))),
+				w.x),
+			mix(dot(pf - vec3(0, 0, 1), hash33(pi + vec3(0, 0, 1))),
+				dot(pf - vec3(1, 0, 1), hash33(pi + vec3(1, 0, 1))),
+				w.x),
+			w.z),
+		mix(
+			mix(dot(pf - vec3(0, 1, 0), hash33(pi + vec3(0, 1, 0))),
+				dot(pf - vec3(1, 1, 0), hash33(pi + vec3(1, 1, 0))),
+				w.x),
+			mix(dot(pf - vec3(0, 1, 1), hash33(pi + vec3(0, 1, 1))),
+				dot(pf - vec3(1, 1, 1), hash33(pi + vec3(1, 1, 1))),
+				w.x),
+			w.z),
+		w.y);
+}
+
+/**
+ * @brief
+ */
+void caustic_light(in vec3 model, in vec3 color, inout vec3 diffuse_light) {
+
+	float noise = noise3d(model * .05 + (ticks / 1000.0) * 0.5);
+
+	// make the inner edges stronger, clamp to 0-1
+
+	float thickness = 0.02;
+	float glow = 3.0;
+
+	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
+
+	// add it up
+	diffuse_light += clamp(diffuse_light * length(color) * noise * caustics, 0.0, 1.0);
 }
 
 /**

@@ -434,6 +434,94 @@ void IndirectLightgrid(int32_t luxel_num) {
 /**
  * @brief
  */
+static void CausticsLightgridLuxel(luxel_t *luxel, float scale) {
+
+	vec3_t caustics = Vec3_Zero();
+
+	const int32_t contents = Light_PointContents(luxel->origin, 0);
+	if (contents & CONTENTS_MASK_LIQUID) {
+		if (contents & CONTENTS_LAVA) {
+			caustics = Vec3_Add(caustics, Vec3(1.f, 0.f, 0.f));
+		}
+		if (contents & CONTENTS_SLIME) {
+			caustics = Vec3_Add(caustics, Vec3(0.f, 1.f, 0.f));
+		}
+		if (contents & CONTENTS_WATER) {
+			caustics = Vec3_Add(caustics, Vec3(0.f, 0.f, 1.f));
+		}
+	}
+	
+	const vec3_t points[] = CUBE_8;
+	float sample_fraction = 1.f / lengthof(points);
+
+	for (size_t i = 0; i < lengthof(points); i++) {
+
+		const vec3_t point = Vec3_Fmaf(luxel->origin, 128.f, points[i]);
+
+		const cm_trace_t tr = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID | CONTENTS_MASK_LIQUID);
+		if ((tr.contents & CONTENTS_MASK_LIQUID) && (tr.surface & SURF_MASK_TRANSLUCENT)) {
+
+			float f = sample_fraction * (1.f - tr.fraction);
+
+			if (tr.contents & CONTENTS_LAVA) {
+				caustics = Vec3_Add(caustics, Vec3(f, 0.f, 0.f));
+			}
+			if (tr.contents & CONTENTS_SLIME) {
+				caustics = Vec3_Add(caustics, Vec3(0.f, f, 0.f));
+			}
+			if (tr.contents & CONTENTS_WATER) {
+				caustics = Vec3_Add(caustics, Vec3(0.f, 0.f, f));
+			}
+		}
+	}
+
+	luxel->caustics = Vec3_Fmaf(luxel->caustics, scale, caustics);
+}
+
+/**
+ * @brief
+ */
+void CausticsLightgrid(int32_t luxel_num) {
+
+	const vec3_t offsets[] = {
+		Vec3(+0.00f, +0.00f, +0.00f),
+		Vec3(-0.25f, -0.25f, -0.25f), Vec3(-0.25f, +0.25f, -0.25f),
+		Vec3(+0.25f, -0.25f, -0.25f), Vec3(+0.25f, +0.25f, -0.25f),
+		Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
+		Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
+	};
+
+	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
+
+	luxel_t *l = &lg.luxels[luxel_num];
+
+	float contribution = 0.f;
+
+	for (size_t i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
+
+		const float soffs = offsets[i].x;
+		const float toffs = offsets[i].y;
+		const float uoffs = offsets[i].z;
+
+		if (ProjectLightgridLuxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
+			continue;
+		}
+
+		contribution += weight;
+
+		CausticsLightgridLuxel(l, weight);
+	}
+
+	if (contribution > 0.f) {
+		if (contribution < 1.f) {
+			l->caustics = Vec3_Scale(l->caustics, 1.f / contribution);
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 
 	const fog_t *fog = (fog_t *) fogs->data;
@@ -521,8 +609,6 @@ void FogLightgrid(int32_t luxel_num) {
 			l->fog = Vec4_Scale(l->fog, 1.f / contribution);
 		}
 	}
-
-	l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));
 }
 
 /**
@@ -544,6 +630,10 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	l->direction = Vec3_Add(l->direction, Vec3_Up());
 	l->direction = Vec3_Normalize(l->direction);
+
+	l->caustics = ColorNormalize(l->caustics);
+
+	l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));
 }
 
 /**
@@ -565,21 +655,19 @@ static SDL_Surface *CreateFogSurfaceFrom(void *pixels, int32_t w, int32_t h) {
  */
 void EmitLightgrid(void) {
 
-	const size_t lightgrid_bytes = lg.num_luxels * BSP_LIGHTGRID_TEXTURES * BSP_LIGHTGRID_BPP;
-	const size_t fog_bytes = lg.num_luxels * BSP_FOG_TEXTURES * BSP_FOG_BPP;
-
-	bsp_file.lightgrid_size = (int32_t) (sizeof(bsp_lightgrid_t) + lightgrid_bytes + fog_bytes);
+	bsp_file.lightgrid_size = sizeof(bsp_lightgrid_t);
+	bsp_file.lightgrid_size += lg.num_luxels * BSP_LIGHTGRID_TEXTURES * BSP_LIGHTGRID_BPP;
+	bsp_file.lightgrid_size += lg.num_luxels * BSP_FOG_TEXTURES * BSP_FOG_BPP;
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTGRID, bsp_file.lightgrid_size);
 
 	bsp_file.lightgrid->size = lg.size;
 
-	byte *out = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
-
-	byte *out_ambient = out + 0 * lg.num_luxels * BSP_LIGHTGRID_BPP;
-	byte *out_diffuse = out + 1 * lg.num_luxels * BSP_LIGHTGRID_BPP;
-	byte *out_direction = out + 2 * lg.num_luxels * BSP_LIGHTGRID_BPP;
-	byte *out_fog = out + 3 * lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_ambient = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
+	byte *out_diffuse = out_ambient + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_direction = out_diffuse + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_caustics = out_direction + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_fog = out_caustics + lg.num_luxels * BSP_LIGHTGRID_BPP;
 
 	const luxel_t *l = lg.luxels;
 	for (int32_t u = 0; u < lg.size.z; u++) {
@@ -587,6 +675,7 @@ void EmitLightgrid(void) {
 		SDL_Surface *ambient = CreateLightgridSurfaceFrom(out_ambient, lg.size.x, lg.size.y);
 		SDL_Surface *diffuse = CreateLightgridSurfaceFrom(out_diffuse, lg.size.x, lg.size.y);
 		SDL_Surface *direction = CreateLightgridSurfaceFrom(out_direction, lg.size.x, lg.size.y);
+		SDL_Surface *caustics = CreateLightgridSurfaceFrom(out_caustics, lg.size.x, lg.size.y);
 		SDL_Surface *fog = CreateFogSurfaceFrom(out_fog, lg.size.x, lg.size.y);
 
 		for (int32_t t = 0; t < lg.size.y; t++) {
@@ -596,6 +685,7 @@ void EmitLightgrid(void) {
 					*out_ambient++ = (byte) Clampf(l->ambient.xyz[i] * 255.f, 0.f, 255.f);
 					*out_diffuse++ = (byte) Clampf(l->diffuse.xyz[i] * 255.f, 0.f, 255.f);
 					*out_direction++ = (byte) Clampf((l->direction.xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+					*out_caustics++ = (byte) Clampf(l->caustics.xyz[i] * 255, 0.f, 255.f);
 				}
 
 				for (int32_t i = 0; i < BSP_FOG_BPP; i++) {
@@ -607,11 +697,13 @@ void EmitLightgrid(void) {
 		//IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
 		//IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
 		//IMG_SavePNG(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
+		//IMG_SavePNG(caustics, va("/tmp/%s_lg_caustics_%d.png", map_base, u));
 		//IMG_SavePNG(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
 		SDL_FreeSurface(direction);
+		SDL_FreeSurface(caustics);
 		SDL_FreeSurface(fog);
 	}
 }

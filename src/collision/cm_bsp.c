@@ -188,6 +188,7 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 		draw->plane = LittleLong(draw->plane);
 		draw->material = LittleLong(draw->material);
 		draw->surface = LittleLong(draw->surface);
+
 		draw->bounds = LittleBounds(draw->bounds);
 
 		draw->first_element = LittleLong(draw->first_element);

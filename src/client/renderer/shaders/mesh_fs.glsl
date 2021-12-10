@@ -28,6 +28,7 @@ uniform material_t material;
 uniform stage_t stage;
 
 in vertex_data {
+	vec3 model;
 	vec3 position;
 	vec3 normal;
 	vec3 tangent;
@@ -37,6 +38,7 @@ in vertex_data {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
+	vec3 caustic;
 	vec4 fog;
 } vertex;
 
@@ -84,12 +86,16 @@ void main(void) {
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
 		// lighting
-		vec3 light_diffuse = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + vertex.ambient;
-		vec3 light_specular = brdf_blinn(normalize(-vertex.position), vertex.direction, normal, light_diffuse, glossmap.a, material.specularity * 100.0);
-		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
-		dynamic_light(vertex.position, normal, 64.0, light_diffuse, light_specular);
-		out_color.rgb = clamp(out_color.rgb * (light_diffuse  * modulate), 0.0, 32.0);
-		out_color.rgb = clamp(out_color.rgb + (light_specular * modulate), 0.0, 32.0);
+		vec3 diffuse_light = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + vertex.ambient;
+		vec3 specular_light = brdf_blinn(normalize(-vertex.position), vertex.direction, normal, diffuse_light, glossmap.a, material.specularity * 100.0);
+		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
+
+		caustic_light(vertex.model, vertex.caustic, diffuse_light);
+
+		dynamic_light(vertex.position, normal, 64.0, diffuse_light, specular_light);
+
+		out_color.rgb = clamp(out_color.rgb * (diffuse_light  * modulate), 0.0, 32.0);
+		out_color.rgb = clamp(out_color.rgb + (specular_light * modulate), 0.0, 32.0);
 
 		// fog 
 		// out_color.rgb *= 1.0 - vertex.fog.a; // black? sigh.

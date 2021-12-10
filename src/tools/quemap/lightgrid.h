@@ -24,6 +24,7 @@
 size_t BuildLightgrid(void);
 void DirectLightgrid(int32_t luxel_num);
 void IndirectLightgrid(int32_t luxel_num);
+void CausticsLightgrid(int32_t luxel_num);
 void FogLightgrid(int32_t luxel_num);
 void FinalizeLightgrid(int32_t luxel_num);
 void EmitLightgrid(void);

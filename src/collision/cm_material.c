@@ -600,7 +600,7 @@ void Cm_MaterialBasename(const char *in, char *out, size_t len) {
 /**
  * @brief
  */
-static void Cm_AttachStage(cm_material_t *m, cm_stage_t *s) {
+static void Cm_AppendStage(cm_material_t *m, cm_stage_t *s) {
 
 	if (m->stages == NULL) {
 		m->stages = s;
@@ -876,7 +876,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 
 			// append the stage to the chain
-			Cm_AttachStage(m, s);
+			Cm_AppendStage(m, s);
 
 			m->flags |= s->flags;
 			continue;

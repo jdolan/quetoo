@@ -228,7 +228,7 @@ int32_t EmitNodes(node_t *head_node) {
 }
 
 /**
- * @brief Draw elements comparator to sort surfaces.
+ * @brief Draw elements comparator to sort faces by surface mask.
  */
 static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) {
 
@@ -240,7 +240,7 @@ static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) 
 
 /**
  * @brief Draw elements comparator to sort model faces by material.
- * @details Opaque faces are equal if they share material.
+ * @details Opaque faces are equal if they share material and contents.
  * @details Blend faces are equal if they share opaque equality and plane.
  * @details Material faces equal if they share blend equality and brush side.
  */

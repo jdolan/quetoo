@@ -67,8 +67,8 @@ cvar_t *r_screenshot_format;
 cvar_t *r_shell;
 cvar_t *r_specularity;
 cvar_t *r_sprite_downsample;
-cvar_t *r_texture_downsample;
 cvar_t *r_stains;
+cvar_t *r_texture_downsample;
 cvar_t *r_texture_mode;
 cvar_t *r_texture_storage;
 cvar_t *r_swap_interval;
@@ -248,6 +248,8 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		r_uniforms.block.fog_density = r_fog_density->value;
 		r_uniforms.block.fog_samples = r_fog_samples->integer;
 
+		r_uniforms.block.caustics = r_caustics->value;
+
 		if (r_world_model) {
 			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
 			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
@@ -261,7 +263,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-	// FIXME: we can adjust the written size based on data that's being updated
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
@@ -479,7 +480,7 @@ static void R_InitLocal(void) {
 	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
 	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE, "Controls texture brightness");
 	r_bicubic = Cvar_Add("r_bicubic", "1", CVAR_ARCHIVE, "Enable or disable high quality texture filtering on lightmaps and stainmaps.");
-	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Enable or disable liquid caustic effects");
+	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
@@ -499,9 +500,9 @@ static void R_InitLocal(void) {
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_sprite_downsample = Cvar_Add("r_sprite_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of sprite effects to boost performance on low-end systems.");
-	r_texture_downsample = Cvar_Add("r_texture_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of textures to boost performance on low-end systems.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
+	r_texture_downsample = Cvar_Add("r_texture_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of textures to boost performance on low-end systems.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
 	r_texture_storage = Cvar_Add("r_texture_storage", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies whether to use newer texture storage routines; keep on unless you have errors stemming from glTexStorage.");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);

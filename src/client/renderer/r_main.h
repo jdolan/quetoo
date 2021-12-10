@@ -47,8 +47,8 @@ extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shell;
 extern cvar_t *r_specularity;
 extern cvar_t *r_sprite_downsample;
-extern cvar_t *r_texture_downsample;
 extern cvar_t *r_stains;
+extern cvar_t *r_texture_downsample;
 extern cvar_t *r_texture_mode;
 extern cvar_t *r_texture_storage;
 extern cvar_t *r_swap_interval;
@@ -194,6 +194,11 @@ typedef struct {
 		 * @brief The number of volumetric fog samples per fragment (quality).
 		 */
 		int32_t fog_samples;
+
+		/**
+		 * @brief The caustics scalar.
+		 */
+		float caustics;
 
 	} block;
 

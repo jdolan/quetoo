@@ -50,6 +50,7 @@ static struct {
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_direction;
+	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
 
 	GLint color;
@@ -394,15 +395,6 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 
 	glUseProgram(r_mesh_program.name);
 
-	if (r_world_model) {
-		for (int32_t i = 0; i < (int32_t) lengthof(r_world_model->bsp->lightgrid->textures); i++) {
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
-			glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[i]->texnum);
-		}
-	}
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 		if (IS_MESH_MODEL(e->model)) {
@@ -466,6 +458,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_lightgrid_ambient = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_ambient");
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
 	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
+	r_mesh_program.texture_lightgrid_caustics = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_caustics");
 	r_mesh_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_fog");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
@@ -490,6 +483,7 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
+	glUniform1i(r_mesh_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_mesh_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);

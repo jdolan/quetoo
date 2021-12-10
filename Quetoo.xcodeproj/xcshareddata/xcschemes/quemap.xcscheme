@@ -118,7 +118,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-indirect"
@@ -142,7 +142,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lighttest.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/sandbox.map"
@@ -150,7 +150,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/jgothic.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"

@@ -170,19 +170,27 @@ static void LightWorld(void) {
 		}
 	}
 
+	// caustic effects
+	Work("Caustics lightmap", CausticsLightmap, bsp_file.num_faces);
+	Work("Caustics lightgrid", CausticsLightgrid, (int32_t) num_lightgrid);
+
 	// free the light sources
 	FreeLights();
 
-	// finalize it and write it to per-face textures
-	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
-	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
+	// free the patches
+	Mem_FreeTag(MEM_TAG_PATCH);
 
-	// bake fog volumes into the lightgrid
+	// build fog volumes out of brush entities
 	BuildFog();
 
+	// bake fog into the lightgrid
 	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
 
+	// free the fog volumes
 	FreeFog();
+
+	// finalize it and write it to per-face textures
+	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
 
 	// generate atlased lightmaps
 	EmitLightmap();
@@ -190,14 +198,17 @@ static void LightWorld(void) {
 	// and vertex lightmap texcoords
 	EmitLightmapTexcoords();
 
-	// and lightgrid
-	EmitLightgrid();
-
 	// free the lightmaps
 	Mem_FreeTag(MEM_TAG_LIGHTMAP);
 
-	// free the patches
-	Mem_FreeTag(MEM_TAG_PATCH);
+	// finalize the lightgrid
+	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
+
+	// write it to the bsp
+	EmitLightgrid();
+
+	// free the lightgrid
+	Mem_FreeTag(MEM_TAG_LIGHTGRID);
 }
 
 /**

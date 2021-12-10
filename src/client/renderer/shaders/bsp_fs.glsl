@@ -26,10 +26,10 @@ uniform sampler2D texture_warp;
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
+uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
 
 uniform int entity;
-
 uniform float alpha_threshold;
 
 uniform int bicubic;
@@ -39,6 +39,7 @@ uniform material_t material;
 uniform stage_t stage;
 
 in vertex_data {
+	vec3 model;
 	vec3 position;
 	vec3 normal;
 	vec3 tangent;
@@ -181,34 +182,40 @@ void main(void) {
 		vec3 ambient = sample_lightmap(0).rgb;
 		vec3 diffuse = sample_lightmap(1).rgb;
 		vec3 direction = sample_lightmap(2).xyz;
+		vec3 caustic = sample_lightmap(3).rgb;
 
 		if (entity > 0) {
 			ambient = mix(ambient, texture(texture_lightgrid_ambient, vertex.lightgrid).rgb, .666);
 			diffuse = mix(diffuse, texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb, .666);
 			direction = mix(direction, texture(texture_lightgrid_direction, vertex.lightgrid).xyz, .666);
+			caustic = mix(caustic, texture(texture_lightgrid_caustics, vertex.lightgrid).rgb, .666);
 			direction = normalize(direction);
 		}
 
 		direction = normalize(tbn * (direction * 2.0 - 1.0));
 
 		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
-		vec3 light_diffuse = ambient + diffuse * 2.0 * bump_shading;
+		vec3 diffuse_light = ambient + diffuse * 2.0 * bump_shading;
 
-		vec3 light_specular = brdf_blinn(viewdir, direction, normal, diffuse, glossmap.a, material.specularity * 100.0);
-		light_specular = min(light_specular * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
+		vec3 specular_light = brdf_blinn(viewdir, direction, normal, diffuse, glossmap.a, material.specularity * 100.0);
+		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		vec3 stainmap = sample_lightmap(4).rgb;
 
-		dynamic_light(vertex.position, normal, 64.0, light_diffuse, light_specular);
+		caustic_light(vertex.model, caustic, diffuse_light);
+
+		dynamic_light(vertex.position, normal, 64.0, diffuse_light, specular_light);
 
 		out_color = diffusemap;
 		out_color *= vec4(stainmap, 1.0);
 
-		out_color.rgb = clamp(out_color.rgb * light_diffuse  * modulate, 0.0, 32.0);
-		out_color.rgb = clamp(out_color.rgb + light_specular * modulate, 0.0, 32.0);
+		out_color.rgb = clamp(out_color.rgb * diffuse_light  * modulate, 0.0, 32.0);
+		out_color.rgb = clamp(out_color.rgb + specular_light * modulate, 0.0, 32.0);
 
 		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 
+		//out_color.rgb = caustic;
+		//out_color.rgb = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 	} else {
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {

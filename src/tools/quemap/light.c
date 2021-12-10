@@ -45,27 +45,27 @@ static vec3_t GetMaterialColor(int32_t num) {
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
  * down if necessary.
  */
-float ColorNormalize(const vec3_t in, vec3_t *out) {
+vec3_t ColorNormalize(const vec3_t in) {
+
+	vec3_t out = in;
+
 	float max = 0.0;
-
-	*out = in;
-
 	for (int32_t i = 0; i < 3; i++) { // find the brightest component
 
-		if (out->xyz[i] < 0.0) { // enforcing positive values
-			out->xyz[i] = 0.0;
+		if (out.xyz[i] < 0.0) { // enforcing positive values
+			out.xyz[i] = 0.0;
 		}
 
-		if (out->xyz[i] > max) {
-			max = out->xyz[i];
+		if (out.xyz[i] > max) {
+			max = out.xyz[i];
 		}
 	}
 
 	if (max > 1.0) { // clamp without changing hue
-		*out = Vec3_Scale(*out, 1.0 / max);
+		out = Vec3_Scale(out, 1.0 / max);
 	}
 
-	return max;
+	return out;
 }
 
 /**
@@ -74,13 +74,11 @@ float ColorNormalize(const vec3_t in, vec3_t *out) {
 vec3_t ColorFilter(const vec3_t in) {
 	const vec3_t luminosity = Vec3(0.2125f, 0.7154f, 0.0721f);
 
-	vec3_t out;
-	ColorNormalize(in, &out);
+	vec3_t out = ColorNormalize(in);
 
 	if (brightness != 1.f) { // apply brightness
 		out = Vec3_Scale(out, brightness);
-
-		ColorNormalize(out, &out);
+		out = ColorNormalize(out);
 	}
 
 	if (contrast != 1.f) { // apply contrast
@@ -91,17 +89,14 @@ vec3_t ColorFilter(const vec3_t in) {
 			out.xyz[i] += 0.5f;
 		}
 
-		ColorNormalize(out, &out);
+		out = ColorNormalize(out);
 	}
 
 	if (saturation != 1.f) { // apply saturation
 		const float d = Vec3_Dot(out, luminosity);
-		vec3_t intensity;
-
-		intensity = Vec3(d, d, d);
+		const vec3_t intensity = Vec3(d, d, d);
 		out = Vec3_Mix(intensity, out, saturation);
-
-		ColorNormalize(out, &out);
+		out = ColorNormalize(out);
 	}
 
 	return out;
@@ -251,9 +246,11 @@ static void LightForPatch(const patch_t *patch) {
 	}
 
 	light.color = GetMaterialColor(brush_side->material);
-	const float brightness = ColorNormalize(light.color, &light.color);
-	if (brightness < 1.0) {
-		light.color = Vec3_Scale(light.color, 1.0 / brightness);
+	light.color = ColorNormalize(light.color);
+
+	const float max = Maxf(Maxf(light.color.x, light.color.y), light.color.z);
+	if (max < 1.0) {
+		light.color = Vec3_Scale(light.color, 1.0 / max);
 	}
 
 	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * lightscale_patch;
@@ -442,7 +439,9 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	}
 
 	lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
-	light.radius = ColorNormalize(lightmap, &lightmap) * radiosity;
+	light.radius = Vec3_Length(lightmap) * radiosity;
+
+	lightmap = ColorNormalize(lightmap);
 	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
 
 	light.face = patch->face;

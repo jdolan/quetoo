@@ -33,6 +33,7 @@ typedef struct {
 	vec3_t diffuse;
 	vec3_t direction;
 	vec3_t radiosity[MAX_BOUNCES];
+	vec3_t caustics;
 	vec4_t fog;
 } luxel_t;
 
@@ -52,6 +53,7 @@ typedef struct {
 	SDL_Surface *ambient;
 	SDL_Surface *diffuse;
 	SDL_Surface *direction;
+	SDL_Surface *caustics;
 } lightmap_t;
 
 extern lightmap_t *lightmaps;
@@ -60,6 +62,7 @@ void BuildLightmaps(void);
 void BuildVertexNormals(void);
 void DirectLightmap(int32_t face_num);
 void IndirectLightmap(int32_t face_num);
+void CausticsLightmap(int32_t face_num);
 void FinalizeLightmap(int32_t face_num);
 void EmitLightmap(void);
 void EmitLightmapTexcoords(void);

@@ -57,14 +57,27 @@
 #define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
 
 /**
- * @brief Lightmap ambient, diffuse, and direction layers.
+ * @brief Lightmap ambient, diffuse, direction and caustics layers.
  */
-#define BSP_LIGHTMAP_LAYERS 3
+#define BSP_LIGHTMAP_LAYERS 4
 
 /**
  * @brief Stainmap layers.
  */
 #define BSP_STAINMAP_LAYERS 1
+
+/**
+ * @brief The lightmap textures.
+ */
+typedef enum {
+	BSP_LIGHTMAP_FIRST,
+	BSP_LIGHTMAP_AMBIENT = BSP_LIGHTMAP_FIRST,
+	BSP_LIGHTMAP_DIFFUSE,
+	BSP_LIGHTMAP_DIRECTION,
+	BSP_LIGHTMAP_CAUSTICS,
+	BSP_LIGHTMAP_STAINS,
+	BSP_LIGHTMAP_LAST,
+} bsp_lightmap_texture_t;
 
 /**
  * @brief Lightgrid luxel size in world units.
@@ -77,9 +90,9 @@
 #define BSP_LIGHTGRID_BPP 3
 
 /**
- * @brief Lightgrid ambient, diffuse and direction textures.
+ * @brief Lightgrid ambient, diffuse, direction and caustics textures.
  */
-#define BSP_LIGHTGRID_TEXTURES 3
+#define BSP_LIGHTGRID_TEXTURES 4
 
 /**
  * @brief Fog color and density textures.
@@ -100,6 +113,19 @@
  * @brief Largest lightgrid texture size in luxels.
  */
 #define MAX_BSP_LIGHTGRID_LUXELS (MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH)
+
+/**
+ * @brief The lightgrid textures.
+ */
+typedef enum {
+	BSP_LIGHTGRID_FIRST,
+	BSP_LIGHTGRID_AMBIENT = BSP_LIGHTGRID_FIRST,
+	BSP_LIGHTGRID_DIFFUSE,
+	BSP_LIGHTGRID_DIRECTION,
+	BSP_LIGHTGRID_CAUSTICS,
+	BSP_LIGHTGRID_FOG,
+	BSP_LIGHTGRID_LAST
+} bsp_lightgrid_texture_t;
 
 /**
  * @brief BSP file format lump identifiers.
@@ -213,7 +239,7 @@ typedef struct {
  * @brief Faces are polygon primitives, stored as both vertex and element arrays.
  */
 typedef struct {
-	int32_t brush_side;
+	int32_t brush_side; // the brush side that produced this face
 
 	box3_t bounds;
 
@@ -280,8 +306,9 @@ typedef struct {
 
 /**
  * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
- * @details The first layer contains diffuse light color, while the second layer contains
- * diffuse light direction.
+ * @details The first layer contains ambient light color, the second contains diffuse
+ * light color, and the third contains diffuse light direction. The fourth layer contains
+ * caustic lighting.
  */
 typedef struct {
 	int32_t width;
@@ -291,7 +318,8 @@ typedef struct {
  * @brief Lightgrids are layered 24 bit 3D texture objects of variable size.
  * @details Each layer is up to 128x128x128 RGB at 24bpp. The first layer contains
  * ambient light color, the second contains diffuse light color, and the third contains
- * diffuse light direction.
+ * diffuse light direction. The fourth layer contains caustic lighting, and the fifth
+ * contains fog color and density (32bpp).
  */
 typedef struct {
 	vec3i_t size;

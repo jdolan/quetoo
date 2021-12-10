@@ -88,9 +88,6 @@ void R_DrawSky(const r_view_t *view) {
 
 	glEnableVertexAttribArray(r_sky_program.in_position);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
-
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, r_sky.image->texnum);
 

@@ -290,7 +290,7 @@ typedef enum {
 
 /**
  * @brief Faces with differing flags after applying this mask should not be considered
- * equal for face or draw elements merging.
+ * equal for draw elements merging.
  */
 #define SURF_MASK_DRAW_ELEMENTS_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_DEBUG_LUXEL)
 

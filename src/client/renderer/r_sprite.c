@@ -449,15 +449,6 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glEnableVertexAttribArray(r_sprite_program.in_softness);
 	glEnableVertexAttribArray(r_sprite_program.in_lighting);
 
-	if (r_world_model) {
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
-		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[0]->texnum);
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
-		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[1]->texnum);
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
-		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
-	}
-
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil);
 
@@ -513,7 +504,7 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		in = chain;
 	}
 
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
