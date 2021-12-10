@@ -47,6 +47,7 @@ cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bicubic;
+cvar_t *r_bloom;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
 cvar_t *r_display;
@@ -377,14 +378,19 @@ void R_DrawMainView(r_view_t *view) {
 		R_TIMER_WRAP("Update Stains",
 			R_UpdateStains(view);
 		);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+		if (r_bloom->value && view->framebuffer->bloom_attachment) {
+			glDrawBuffers(2, (GLuint []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+		} else {
+			glDrawBuffers(1, (GLuint []) { GL_COLOR_ATTACHMENT0 });
+		}
+
+		if (r_draw_wireframe->value) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
 	
 		R_TIMER_WRAP("Draw World",
-			glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-
-			if (r_draw_wireframe->value) {
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			}
-	
 			R_DrawWorld(view);
 		);
 	
@@ -405,6 +411,7 @@ void R_DrawMainView(r_view_t *view) {
 		);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDrawBuffers(1, (GLuint[]) { GL_COLOR_ATTACHMENT0 });
 	);
 }
 
@@ -480,7 +487,8 @@ static void R_InitLocal(void) {
 	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
 	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE, "Controls texture brightness");
 	r_bicubic = Cvar_Add("r_bicubic", "1", CVAR_ARCHIVE, "Enable or disable high quality texture filtering on lightmaps and stainmaps.");
-	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Enable or disable liquid caustic effects");
+	r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of light bloom effects");
+	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");

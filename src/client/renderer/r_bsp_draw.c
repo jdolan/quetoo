@@ -61,6 +61,7 @@ static struct {
 		GLint hardness;
 		GLint specularity;
 		GLint parallax;
+		GLint bloom;
 	} material;
 
 	struct {
@@ -397,6 +398,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 			glUniform1f(r_bsp_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
 			glUniform1f(r_bsp_program.material.parallax, (*material)->cm->parallax * r_parallax->value);
+			glUniform1f(r_bsp_program.material.bloom, (*material)->cm->bloom * r_bloom->value);
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
@@ -707,6 +709,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");
 	r_bsp_program.material.specularity = glGetUniformLocation(r_bsp_program.name, "material.specularity");
 	r_bsp_program.material.parallax = glGetUniformLocation(r_bsp_program.name, "material.parallax");
+	r_bsp_program.material.bloom = glGetUniformLocation(r_bsp_program.name, "material.bloom");
 
 	r_bsp_program.stage.flags = glGetUniformLocation(r_bsp_program.name, "stage.flags");
 	r_bsp_program.stage.color = glGetUniformLocation(r_bsp_program.name, "stage.color");

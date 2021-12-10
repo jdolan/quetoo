@@ -779,7 +779,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->roughness, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No roughness specified");
 			} else if (m->roughness < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0");
+				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be >= 0.0");
 				m->roughness = DEFAULT_ROUGHNESS;
 			}
 		}
@@ -789,7 +789,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No hardness specified");
 			} else if (m->hardness < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0");
+				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be >= 0.0");
 				m->hardness = DEFAULT_HARDNESS;
 			}
 		}
@@ -799,7 +799,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specularity, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No specularity specified");
 			} else if (m->specularity < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be > 0.0");
+				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be >= 0.0");
 				m->specularity = DEFAULT_HARDNESS;
 			}
 		}
@@ -809,8 +809,18 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No parallax specified");
 			} else if (m->parallax < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be > 0.0");
+				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be >= 0.0");
 				m->parallax = DEFAULT_PARALLAX;
+			}
+		}
+
+		if (!g_strcmp0(token, "bloom")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->bloom, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No bloom specified");
+			} else if (m->bloom < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid bloom value, must be >= 0.0");
+				m->parallax = DEFAULT_BLOOM;
 			}
 		}
 

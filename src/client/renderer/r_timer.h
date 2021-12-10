@@ -45,12 +45,16 @@ void R_ShutdownTimers(void);
 void R_ResetTimers(void);
 _Bool R_TimersReady(void);
 
-#define R_TIMER_WRAP(type, ...) \
-	{ uint32_t timer_id = UINT32_MAX; \
-	if (R_TimersReady()) { timer_id = R_BeginTimer(type); } \
+#define R_TIMER_WRAP(type, ...) { \
+	uint32_t timer_id = UINT32_MAX; \
+	if (R_TimersReady()) { \
+		timer_id = R_BeginTimer(type); \
+	} \
 	__VA_ARGS__ \
-	if (timer_id != UINT32_MAX) { R_EndTimer(timer_id); } \
-	}
+	if (timer_id != UINT32_MAX) { \
+		R_EndTimer(timer_id); \
+	} \
+}
 
 #ifdef __R_LOCAL_H__
 uint32_t R_BeginTimer(const char *type);

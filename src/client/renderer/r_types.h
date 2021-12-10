@@ -1123,6 +1123,11 @@ typedef struct {
 	GLuint name;
 
 	/**
+	 * @brief The bloom attachment texture name.
+	 */
+	GLuint bloom_attachment;
+
+	/**
 	 * @brief The color attachment texture name.
 	 */
 	GLuint color_attachment;
