@@ -240,7 +240,7 @@ typedef struct {
  */
 typedef struct {
 	int32_t brush_side; // the brush side that produced this face
-	
+
 	box3_t bounds;
 
 	int32_t first_vertex;
@@ -306,8 +306,9 @@ typedef struct {
 
 /**
  * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
- * @details The first layer contains diffuse light color, while the second layer contains
- * diffuse light direction.
+ * @details The first layer contains ambient light color, the second contains diffuse
+ * light color, and the third contains diffuse light direction. The fourth layer contains
+ * caustic lighting.
  */
 typedef struct {
 	int32_t width;
@@ -317,8 +318,8 @@ typedef struct {
  * @brief Lightgrids are layered 24 bit 3D texture objects of variable size.
  * @details Each layer is up to 128x128x128 RGB at 24bpp. The first layer contains
  * ambient light color, the second contains diffuse light color, and the third contains
- * diffuse light direction. Additional layers for fog and caustics exist with varying
- * bit depths.
+ * diffuse light direction. The fourth layer contains caustic lighting, and the fifth
+ * contains fog color and density (32bpp).
  */
 typedef struct {
 	vec3i_t size;
