@@ -21,7 +21,6 @@
 
 #define BSP_LIGHTGRID_LUXEL_SIZE 32
 #define WORLD_TRACE_DISTANCE 1024.0
-#define MAX_WORLD_DIST 11586.0
 
 /**
  * @brief Clamps softly to 1.0 for values up to 1.5, to prevent an unsightly hard cutoff.
