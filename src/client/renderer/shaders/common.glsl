@@ -195,25 +195,47 @@ vec3 hash33(vec3 p) {
  * @brief https://www.shadertoy.com/view/4sc3z2
  */
 float noise3d(vec3 p) {
-	const float K1 = 0.333333333;
-	const float K2 = 0.166666667;
+	vec3 pi = floor(p);
+	vec3 pf = p - pi;
 
-	vec3 i = floor(p + (p.x + p.y + p.z) * K1);
-	vec3 d0 = p - (i - (i.x + i.y + i.z) * K2);
+	vec3 w = pf * pf * (3.0 - 2.0 * pf);
 
-	// thx nikita: https://www.shadertoy.com/view/XsX3zB
-	vec3 e = step(vec3(0.0), d0 - d0.yzx);
-	vec3 i1 = e * (1.0 - e.zxy);
-	vec3 i2 = 1.0 - e.zxy * (1.0 - e);
+	return mix(
+		mix(
+			mix(dot(pf - vec3(0, 0, 0), hash33(pi + vec3(0, 0, 0))),
+				dot(pf - vec3(1, 0, 0), hash33(pi + vec3(1, 0, 0))),
+				w.x),
+			mix(dot(pf - vec3(0, 0, 1), hash33(pi + vec3(0, 0, 1))),
+				dot(pf - vec3(1, 0, 1), hash33(pi + vec3(1, 0, 1))),
+				w.x),
+			w.z),
+		mix(
+			mix(dot(pf - vec3(0, 1, 0), hash33(pi + vec3(0, 1, 0))),
+				dot(pf - vec3(1, 1, 0), hash33(pi + vec3(1, 1, 0))),
+				w.x),
+			mix(dot(pf - vec3(0, 1, 1), hash33(pi + vec3(0, 1, 1))),
+				dot(pf - vec3(1, 1, 1), hash33(pi + vec3(1, 1, 1))),
+				w.x),
+			w.z),
+		w.y);
+}
 
-	vec3 d1 = d0 - (i1 - 1.0 * K2);
-	vec3 d2 = d0 - (i2 - 2.0 * K2);
-	vec3 d3 = d0 - (1.0 - 3.0 * K2);
+/**
+ * @brief
+ */
+void caustic_light(in vec3 model, in vec3 color, inout vec3 diffuse_light) {
 
-	vec4 h = max(0.6 - vec4(dot(d0, d0), dot(d1, d1), dot(d2, d2), dot(d3, d3)), 0.0);
-	vec4 n = h * h * h * h * vec4(dot(d0, hash33(i)), dot(d1, hash33(i + i1)), dot(d2, hash33(i + i2)), dot(d3, hash33(i + 1.0)));
+	float noise = noise3d(model * .05 + (ticks / 1000.0) * 0.5);
 
-	return dot(vec4(31.316), n);
+	// make the inner edges stronger, clamp to 0-1
+
+	float thickness = 0.02;
+	float glow = 3.0;
+
+	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
+
+	// add it up
+	diffuse_light += clamp(diffuse_light * length(color) * noise * caustics, 0.0, 1.0);
 }
 
 /**

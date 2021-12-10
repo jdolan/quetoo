@@ -47,8 +47,8 @@ static struct {
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_direction;
-	GLint texture_lightgrid_fog;
 	GLint texture_lightgrid_caustics;
+	GLint texture_lightgrid_fog;
 
 	GLint entity;
 	GLint alpha_threshold;
@@ -158,14 +158,14 @@ void R_DrawBspLightgrid(r_view_t *view) {
 	const byte *ambient = in + sizeof(bsp_lightgrid_t);
 	const byte *diffuse = ambient + luxels * BSP_LIGHTGRID_BPP;
 	const byte *direction = diffuse + luxels * BSP_LIGHTGRID_BPP;
-	const byte *fog = direction + luxels * BSP_LIGHTGRID_BPP;
-	const byte *caustics = fog + luxels * BSP_FOG_BPP;
+	const byte *caustics = direction + luxels * BSP_LIGHTGRID_BPP;
+	const byte *fog = caustics + luxels * BSP_LIGHTGRID_BPP;
 
 	r_image_t *particle = R_LoadImage("sprites/particle", IT_SPRITE);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, fog += 4, caustics += 1) {
+			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, caustics += 3, fog += 4) {
 
 				if (s & 1 || t & 1 || u & 1) {
 					continue;
@@ -202,30 +202,34 @@ void R_DrawBspLightgrid(r_view_t *view) {
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
 
+					const byte r = caustics[0];
+					const byte g = caustics[1];
+					const byte b = caustics[2];
+
+					if (r || g || b) {
+						const float a = Clampf((r + g + b) / 255.f, 0.f, 255.f);
+
+						R_AddSprite(view, &(r_sprite_t) {
+							.origin = origin,
+							.size = 8.f,
+							.color = Color32(r, g, b, a),
+							.media = (r_media_t *) particle
+						});
+					}
+				} else if (r_draw_bsp_lightgrid->integer == 3) {
+
 					const byte a = Mini(fog[3], 255);
 
 					if (a) {
-						const byte r = Mini(fog[0], 255);
-						const byte g = Mini(fog[1], 255);
-						const byte b = Mini(fog[2], 255);
+						const byte r = fog[0];
+						const byte g = fog[1];
+						const byte b = fog[2];
 						const float af = a / 255.f;
 
 						R_AddSprite(view, &(r_sprite_t) {
 							.origin = origin,
 							.size = 8.f,
 							.color = Color32(r * af, g * af, b * af, 0),
-							.media = (r_media_t *) particle
-						});
-					}
-				} else if (r_draw_bsp_lightgrid->integer == 3) {
-
-					const byte c = Mini(caustics[0], 255);
-
-					if (c) {
-						R_AddSprite(view, &(r_sprite_t) {
-							.origin = origin,
-							.size = 8.f,
-							.color = Color32(c, c, c, c / 255.f),
 							.media = (r_media_t *) particle
 						});
 					}
@@ -690,8 +694,8 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
 	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
 	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
-	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 	r_bsp_program.texture_lightgrid_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_caustics");
+	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
 	r_bsp_program.entity = glGetUniformLocation(r_bsp_program.name, "entity");
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
@@ -723,8 +727,8 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
-	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_bsp_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
+	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;

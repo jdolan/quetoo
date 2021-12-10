@@ -466,11 +466,11 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 		data = (byte *) in + sizeof(bsp_lightgrid_t);
 	} else {
 		data = (byte []) {
-			0xff, 0xff, 0xff,
-			0xff, 0xff, 0xff,
-			0xff, 0xff, 0xff,
-			0x00, 0x00, 0x00, 0x00,
-			0x00
+			0xff, 0xff, 0xff, // ambient
+			0xff, 0xff, 0xff, // diffuse
+			0xff, 0xff, 0xff, // direction
+			0x00, 0x00, 0x00, // caustics
+			0x00, 0x00, 0x00, 0x00, // fog
 		};
 	}
 
@@ -493,10 +493,6 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 			case BSP_LIGHTGRID_FOG:
 				texture->format = GL_RGBA;
 				layer_size = luxels * BSP_FOG_BPP;
-				break;
-			case BSP_LIGHTGRID_CAUSTICS:
-				texture->format = GL_RED;
-				layer_size = luxels * BSP_CAUSTICS_BPP;
 				break;
 		}
 

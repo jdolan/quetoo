@@ -57,9 +57,9 @@
 #define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
 
 /**
- * @brief Lightmap ambient, diffuse, and direction layers.
+ * @brief Lightmap ambient, diffuse, direction and caustics layers.
  */
-#define BSP_LIGHTMAP_LAYERS 3
+#define BSP_LIGHTMAP_LAYERS 4
 
 /**
  * @brief Stainmap layers.
@@ -74,7 +74,8 @@ typedef enum {
 	BSP_LIGHTMAP_AMBIENT = BSP_LIGHTMAP_FIRST,
 	BSP_LIGHTMAP_DIFFUSE,
 	BSP_LIGHTMAP_DIRECTION,
-	BSP_LIGHTMAP_LAST = BSP_LIGHTMAP_DIRECTION,
+	BSP_LIGHTMAP_CAUSTICS,
+	BSP_LIGHTMAP_LAST = BSP_LIGHTMAP_CAUSTICS,
 	BSP_LIGHTMAP_STAINS
 } bsp_lightmap_texture_t;
 
@@ -89,9 +90,9 @@ typedef enum {
 #define BSP_LIGHTGRID_BPP 3
 
 /**
- * @brief Lightgrid ambient, diffuse and direction textures.
+ * @brief Lightgrid ambient, diffuse, direction and caustics textures.
  */
-#define BSP_LIGHTGRID_TEXTURES 3
+#define BSP_LIGHTGRID_TEXTURES 4
 
 /**
  * @brief Fog color and density textures.
@@ -103,17 +104,7 @@ typedef enum {
  */
 #define BSP_FOG_BPP 4
 
-/**
- * @brief Caustics intensity.
- */
-#define BSP_CAUSTICS_TEXTURES 1
-
-/**
- * @brief Caustics bytes per pixel.
- */
-#define BSP_CAUSTICS_BPP 1
-
-/**
+/**L
  * @brief Largest lightgrid width in luxels (8192 / 32 = 256).
  */
 #define MAX_BSP_LIGHTGRID_WIDTH (MAX_WORLD_AXIAL / BSP_LIGHTGRID_LUXEL_SIZE)
@@ -131,8 +122,8 @@ typedef enum {
 	BSP_LIGHTGRID_AMBIENT = BSP_LIGHTGRID_FIRST,
 	BSP_LIGHTGRID_DIFFUSE,
 	BSP_LIGHTGRID_DIRECTION,
-	BSP_LIGHTGRID_FOG,
 	BSP_LIGHTGRID_CAUSTICS,
+	BSP_LIGHTGRID_FOG,
 	BSP_LIGHTGRID_LAST
 } bsp_lightgrid_texture_t;
 

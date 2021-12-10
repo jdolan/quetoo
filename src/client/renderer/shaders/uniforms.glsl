@@ -127,6 +127,11 @@ layout (std140) uniform uniforms_block {
 	 * @brief The number of fog samples per fragment (quality).
 	 */
 	int fog_samples;
+
+	/**
+	 * @brief The caustics scalar.
+	 */
+	float caustics;
 };
 
 /**

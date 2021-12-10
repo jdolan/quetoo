@@ -92,38 +92,3 @@ void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler,
 
 	color.rgb = mix(color.rgb, fog.rgb, color.a * density);
 }
-
-/**
- * @brief
- * @param color The input and output color.
- * @param lightgrid_caustics_sampler The lightgrid caustics texture sampler.
- * @param position The position in world space.
- * @param lightgrid_uvw The lightgrid texture coordinate.
- */
-void lightgrid_caustics(inout vec3 color, in sampler3D lightgrid_caustics_sampler,
-						in vec3 lightgrid_uvw) {
-
-	float hz = 0.5;
-	float thickness = 0.05;
-	float glow = 3.0;
-	float intensity = texture(lightgrid_caustics_sampler, lightgrid_uvw).r;
-
-	if (intensity == 0.0) {
-		return;
-	}
-
-	// scale the uvw based on the lightgrid size, so that caustics look the same on all maps
-	float scale = 120 * distance(lightgrid.maxs, lightgrid.mins) / MAX_WORLD_DIST;
-
-	// grab raw 3d noise
-	float factor = noise3d(lightgrid_uvw * scale + (ticks / 1000.0) * hz);
-
-	// scale to make very close to -1.0 to 1.0 based on observational data
-	factor = factor * (0.3515 * 2.0);
-
-	// make the inner edges stronger, clamp to 0-1
-	factor = clamp(pow((1.0 - abs(factor)) + thickness, glow), 0.0, 1.0);
-
-	// add it up
-	color = clamp(color + factor * intensity, 0.0, 1.0);
-}

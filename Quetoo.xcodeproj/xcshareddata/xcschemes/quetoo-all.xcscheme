@@ -81,7 +81,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightgrid 3"
+            argument = "+set r_draw_bsp_lightgrid 2"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -101,7 +101,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map tokays"
+            argument = "+map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

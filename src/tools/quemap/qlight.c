@@ -170,11 +170,24 @@ static void LightWorld(void) {
 		}
 	}
 
+	// caustic effects
+	Work("Caustics lightmap", CausticsLightmap, bsp_file.num_faces);
+	Work("Caustics lightgrid", CausticsLightgrid, (int32_t) num_lightgrid);
+
 	// free the light sources
 	FreeLights();
 
 	// free the patches
 	Mem_FreeTag(MEM_TAG_PATCH);
+
+	// build fog volumes out of brush entities
+	BuildFog();
+
+	// bake fog into the lightgrid
+	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
+
+	// free the fog volumes
+	FreeFog();
 
 	// finalize it and write it to per-face textures
 	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
@@ -187,18 +200,6 @@ static void LightWorld(void) {
 
 	// free the lightmaps
 	Mem_FreeTag(MEM_TAG_LIGHTMAP);
-
-	// build fog volumes out of brush entities
-	BuildFog();
-
-	// bake fog into the lightgrid
-	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
-
-	// free the fog volumes
-	FreeFog();
-
-	// bake water caustics into the lightgrid
-	Work("Caustics", CausticsLightgrid, (int32_t) num_lightgrid);
 
 	// finalize the lightgrid
 	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
