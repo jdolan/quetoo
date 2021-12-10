@@ -1382,7 +1382,7 @@ typedef enum {
 	TEXTURE_LIGHTMAP,
 
 	/**
-	 * @brief The lightgrid textures, used by the BSP, mesh and sky programs.
+	 * @brief The lightgrid textures, used by the BSP, mesh, sprite and sky programs.
 	 */
 	TEXTURE_LIGHTGRID,
 	TEXTURE_LIGHTGRID_AMBIENT = TEXTURE_LIGHTGRID,

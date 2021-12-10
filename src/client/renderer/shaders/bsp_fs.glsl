@@ -215,7 +215,7 @@ void main(void) {
 		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 
 		//out_color.rgb = caustic;
-
+		//out_color.rgb = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 	} else {
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {

@@ -75,8 +75,8 @@ typedef enum {
 	BSP_LIGHTMAP_DIFFUSE,
 	BSP_LIGHTMAP_DIRECTION,
 	BSP_LIGHTMAP_CAUSTICS,
-	BSP_LIGHTMAP_LAST = BSP_LIGHTMAP_CAUSTICS,
-	BSP_LIGHTMAP_STAINS
+	BSP_LIGHTMAP_STAINS,
+	BSP_LIGHTMAP_LAST,
 } bsp_lightmap_texture_t;
 
 /**
@@ -104,7 +104,7 @@ typedef enum {
  */
 #define BSP_FOG_BPP 4
 
-/**L
+/**
  * @brief Largest lightgrid width in luxels (8192 / 32 = 256).
  */
 #define MAX_BSP_LIGHTGRID_WIDTH (MAX_WORLD_AXIAL / BSP_LIGHTGRID_LUXEL_SIZE)
