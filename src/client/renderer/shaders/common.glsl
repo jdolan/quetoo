@@ -81,14 +81,14 @@ vec3 saturate3(vec3 v) {
 /**
  * @brief Brightness, contrast, saturation and gamma.
  */
-vec3 color_filter(vec3 color) {
+vec4 color_filter(vec4 color) {
 
 	vec3 luminance = vec3(0.2125, 0.7154, 0.0721);
 	vec3 bias = vec3(0.5);
 
-	vec3 scaled = mix(vec3(1.0), color, gamma) * brightness;
+	vec3 scaled = mix(vec3(color.a), color.rgb, gamma) * brightness;
 
-	color = mix(bias, mix(vec3(dot(luminance, scaled)), scaled, saturation), contrast);
+	color.rgb = mix(bias, mix(vec3(dot(luminance, scaled)), scaled, saturation), contrast);
 
 	return color;
 }

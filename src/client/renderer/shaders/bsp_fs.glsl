@@ -242,11 +242,7 @@ void main(void) {
 
 	// postprocessing
 
-	out_color.rgb = tonemap(out_color.rgb);
-
-	out_color.rgb = color_filter(out_color.rgb);
-	
-	out_color.rgb = dither(out_color.rgb);
+	out_color = postprocess(out_color);
 
 	// debugging
 

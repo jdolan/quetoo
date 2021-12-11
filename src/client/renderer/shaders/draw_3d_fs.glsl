@@ -34,5 +34,5 @@ void main(void) {
 
 	// postprocessing
 
-	out_color.rgb = color_filter(out_color.rgb);
+	out_color = color_filter(out_color);
 }

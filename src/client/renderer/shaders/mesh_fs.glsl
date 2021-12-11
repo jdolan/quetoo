@@ -112,5 +112,5 @@ void main(void) {
 		out_color = effect;
 	}
 
-	postprocessing(out_color.rgb);
+	postprocess(out_color);
 }
