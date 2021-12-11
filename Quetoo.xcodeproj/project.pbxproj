@@ -552,6 +552,10 @@
 		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
 		CEA5FA24254A269500C924FA /* ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA5FA22254A269500C924FA /* ai_node.h */; };
 		CEA5FA25254A269500C924FA /* ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA5FA23254A269500C924FA /* ai_node.c */; };
+		CEA952052764D3FB00C43140 /* r_bloom.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA952032764D3FB00C43140 /* r_bloom.h */; };
+		CEA952062764D3FB00C43140 /* r_bloom.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA952042764D3FB00C43140 /* r_bloom.c */; };
+		CEA9524D2764DBC100C43140 /* bloom_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9524B2764DB9900C43140 /* bloom_fs.glsl */; };
+		CEA952702764ECF900C43140 /* bloom_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9524C2764DB9900C43140 /* bloom_vs.glsl */; };
 		CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32B6242124BB007E1253 /* cg_sprite.h */; };
 		CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		CEAC32BC24212553007E1253 /* r_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32BA24212553007E1253 /* r_sprite.c */; };
@@ -848,6 +852,8 @@
 			dstPath = shaders;
 			dstSubfolderSpec = 16;
 			files = (
+				CEA9524D2764DBC100C43140 /* bloom_fs.glsl in CopyFiles */,
+				CEA952702764ECF900C43140 /* bloom_vs.glsl in CopyFiles */,
 				CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */,
 				CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */,
 				CE3CFD3625A2994F003D6148 /* common.glsl in CopyFiles */,
@@ -1539,6 +1545,10 @@
 		CEA3B4861E057569004A6CF3 /* cm_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_material.h; sourceTree = "<group>"; };
 		CEA5FA22254A269500C924FA /* ai_node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_node.h; sourceTree = "<group>"; };
 		CEA5FA23254A269500C924FA /* ai_node.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ai_node.c; sourceTree = "<group>"; };
+		CEA952032764D3FB00C43140 /* r_bloom.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bloom.h; sourceTree = "<group>"; };
+		CEA952042764D3FB00C43140 /* r_bloom.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bloom.c; sourceTree = "<group>"; };
+		CEA9524B2764DB9900C43140 /* bloom_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bloom_fs.glsl; sourceTree = "<group>"; };
+		CEA9524C2764DB9900C43140 /* bloom_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bloom_vs.glsl; sourceTree = "<group>"; };
 		CEAAA4AF25C6E65100EE81B3 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
 		CEAAA50C25C6E75000EE81B3 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
 		CEAC32B6242124BB007E1253 /* cg_sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_sprite.h; sourceTree = "<group>"; };
@@ -2363,6 +2373,8 @@
 				CE148DA7242A37BA00B589D8 /* r_animation.h */,
 				CEA082331DC6EBB7001207AA /* r_atlas.c */,
 				CEA082341DC6EBB7001207AA /* r_atlas.h */,
+				CEA952032764D3FB00C43140 /* r_bloom.h */,
+				CEA952042764D3FB00C43140 /* r_bloom.c */,
 				CE12D5B21C5C58C300CD0B13 /* r_bsp.c */,
 				CE12D5B31C5C58C300CD0B13 /* r_bsp.h */,
 				CE12D5B81C5C58C300CD0B13 /* r_bsp_draw.c */,
@@ -2425,6 +2437,8 @@
 		CE12D5F31C5C58C300CD0B13 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
+				CEA9524B2764DB9900C43140 /* bloom_fs.glsl */,
+				CEA9524C2764DB9900C43140 /* bloom_vs.glsl */,
 				CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */,
 				CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */,
 				CE3CFD3525A29932003D6148 /* common.glsl */,
@@ -3297,6 +3311,7 @@
 				CE2CEB9325852E110001E599 /* r_depth_pass.h in Headers */,
 				CED438861D9D34450052BAFA /* r_draw_2d.h in Headers */,
 				CED5BB152406A95800784D93 /* r_draw_3d.h in Headers */,
+				CEA952052764D3FB00C43140 /* r_bloom.h in Headers */,
 				CED438881D9D34450052BAFA /* r_entity.h in Headers */,
 				CE548C7F25B79F17003677ED /* r_framebuffer.h in Headers */,
 				CE9FECDF201FEB7400F954ED /* r_gl_types.h in Headers */,
@@ -4384,6 +4399,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEA952062764D3FB00C43140 /* r_bloom.c in Sources */,
 				CE148DA8242A37BA00B589D8 /* r_animation.c in Sources */,
 				CEA082371DC6EC50001207AA /* r_atlas.c in Sources */,
 				CED438391D9D34450052BAFA /* r_bsp.c in Sources */,

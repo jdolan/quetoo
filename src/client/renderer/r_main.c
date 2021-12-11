@@ -314,7 +314,7 @@ void R_BeginFrame(void) {
 
 	memset(&r_stats, 0, sizeof(r_stats));
 
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 /**
@@ -325,6 +325,10 @@ void R_DrawViewDepth(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	R_UpdateFrustum(view);
 
@@ -332,6 +336,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	R_DrawDepthPass(view);
 
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	R_GetError(NULL);
@@ -377,6 +382,9 @@ void R_DrawMainView(r_view_t *view) {
 	R_Draw3D();
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+
+	R_DrawBloom(view);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -393,12 +401,17 @@ void R_DrawPlayerModelView(r_view_t *view) {
 	R_UpdateEntities(view);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, view->viewport.z, view->viewport.w);
 
 	R_DrawEntities(view, -1);
+
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+
+	R_DrawBloom(view);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -573,6 +586,8 @@ void R_Init(void) {
 
 	R_InitSky();
 
+	R_InitBloom();
+
 	R_GetError("Video initialization");
 
 	Com_Print("Video initialized %dx%d (%dx%d) %s\n",
@@ -602,6 +617,8 @@ void R_Shutdown(void) {
 	R_ShutdownSprites();
 
 	R_ShutdownSky();
+
+	R_ShutdownBloom();
 
 	R_ShutdownDepthPass();
 

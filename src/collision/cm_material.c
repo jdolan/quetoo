@@ -647,6 +647,7 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->hardness = DEFAULT_HARDNESS;
 	mat->parallax = DEFAULT_PARALLAX;
 	mat->specularity = DEFAULT_SPECULARITY;
+	mat->bloom = DEFAULT_BLOOM;
 
 	return mat;
 }

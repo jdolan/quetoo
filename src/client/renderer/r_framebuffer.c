@@ -64,7 +64,7 @@ static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
  * @brief
  */
 static GLuint R_CreateColorAttachment(const r_framebuffer_t *f, GLenum attachment) {
-	return R_CreateFramebufferTexture(f, attachment, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+	return R_CreateFramebufferTexture(f, attachment, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 }
 
 /**
@@ -115,37 +115,25 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, _Bool mul
  */
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
-	if (framebuffer) {
+	assert(framebuffer);
 
-		if (framebuffer->name) {
-			glDeleteFramebuffers(1, &framebuffer->name);
-		}
+	if (framebuffer->name) {
+		glDeleteFramebuffers(1, &framebuffer->name);
 
 		if (framebuffer->multisample) {
-			if (framebuffer->bloom_attachment) {
-				glDeleteRenderbuffers(1, &framebuffer->bloom_attachment);
-			}
-			if (framebuffer->color_attachment) {
-				glDeleteRenderbuffers(1, &framebuffer->color_attachment);
-			}
-
-			if (framebuffer->depth_attachment) {
-				glDeleteRenderbuffers(1, &framebuffer->depth_attachment);
-			}
+			glDeleteRenderbuffers(1, &framebuffer->bloom_attachment);
+			glDeleteRenderbuffers(1, &framebuffer->color_attachment);
+			glDeleteRenderbuffers(1, &framebuffer->depth_attachment);
 		} else {
-			if (framebuffer->bloom_attachment) {
-				glDeleteTextures(1, &framebuffer->bloom_attachment);
-			}
-			if (framebuffer->color_attachment) {
-				glDeleteTextures(1, &framebuffer->color_attachment);
-			}
-			if (framebuffer->depth_attachment) {
-				glDeleteTextures(1, &framebuffer->depth_attachment);
-			}
+			glDeleteTextures(1, &framebuffer->bloom_attachment);
+			glDeleteTextures(1, &framebuffer->color_attachment);
+			glDeleteTextures(1, &framebuffer->depth_attachment);
 		}
 
-		memset(framebuffer, 0, sizeof(*framebuffer));
+		R_GetError(NULL);
 	}
+
+	memset(framebuffer, 0, sizeof(*framebuffer));
 }
 
 /**
@@ -153,24 +141,28 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
  */
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
 
-	if (framebuffer) {
-		w = w ?: r_context.drawable_width;
-		h = h ?: r_context.drawable_height;
-		
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
-		glBlitFramebuffer(0,
-						  0,
-						  framebuffer->width,
-						  framebuffer->height,
-						  x,
-						  y,
-						  x + w,
-						  y + h,
-						  GL_COLOR_BUFFER_BIT,
-						  GL_NEAREST);
-		glReadBuffer(GL_COLOR_ATTACHMENT0);
-	} else {
-		Com_Warn("NULL framebuffer\n");
-	}
+	assert(framebuffer);
+
+	w = w ?: r_context.drawable_width;
+	h = h ?: r_context.drawable_height;
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
+
+	//glReadBuffer(GL_COLOR_ATTACHMENT1);
+
+	glBlitFramebuffer(0,
+					  0,
+					  framebuffer->width,
+					  framebuffer->height,
+					  x,
+					  y,
+					  x + w,
+					  y + h,
+					  GL_COLOR_BUFFER_BIT,
+					  GL_NEAREST);
+
+	//glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+	R_GetError(NULL);
 }
