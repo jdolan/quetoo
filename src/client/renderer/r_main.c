@@ -370,9 +370,9 @@ void R_DrawMainView(r_view_t *view) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	R_DrawWorld(view);
-
 	R_DrawEntities(view, -1);
+
+	R_DrawWorld(view);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

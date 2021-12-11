@@ -86,10 +86,24 @@ void R_UpdateMeshEntities(r_view_t *view) {
 	r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-		if (IS_MESH_MODEL(e->model)) {
+		if (!IS_MESH_MODEL(e->model)) {
+			continue;
+		}
+
+		e->blend_depth = -1;
+
+		if (e->effects & (EF_BLEND | EF_SHELL)) {
 			e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
 		} else {
-			e->blend_depth = -1;
+			const r_mesh_face_t *face = e->model->mesh->faces;
+			for (int32_t j = 0; j < e->model->mesh->num_faces; j++, face++) {
+
+				const r_material_t *material = e->skins[j] ?: face->material;
+				if (material->cm->surface & SURF_MASK_BLEND) {
+					e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
+					break;
+				}
+			}
 		}
 	}
 }
