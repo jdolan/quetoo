@@ -5,6 +5,7 @@ SUBDIRS = \
 noinst_HEADERS = \
 	r_animation.h \
 	r_atlas.h \
+	r_bloom.h \
 	r_bsp.h \
 	r_bsp_draw.h \
 	r_bsp_model.h \
@@ -32,7 +33,6 @@ noinst_HEADERS = \
 	r_sky.h \
 	r_sprite.h \
 	r_stain.h \
-	r_timer.h \
 	r_types.h \
 	renderer.h
 
@@ -42,6 +42,7 @@ noinst_LTLIBRARIES = \
 librenderer_la_SOURCES = \
 	r_animation.c \
 	r_atlas.c \
+	r_bloom.c \
 	r_bsp.c \
 	r_bsp_draw.c \
 	r_bsp_model.c \
@@ -66,8 +67,7 @@ librenderer_la_SOURCES = \
 	r_program.c \
 	r_sky.c \
 	r_sprite.c \
-	r_stain.c \
-	r_timer.c
+	r_stain.c
 
 librenderer_la_CFLAGS = \
 	-I$(top_srcdir)/src \

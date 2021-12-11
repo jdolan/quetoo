@@ -407,10 +407,10 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 		quad[2].diffusemap = Vec2(st.z, st.w);
 		quad[3].diffusemap = Vec2(st.x, st.w);
 	} else {
-		quad[0].diffusemap = Vec2(0, 0);
-		quad[1].diffusemap = Vec2(1, 0);
-		quad[2].diffusemap = Vec2(1, 1);
-		quad[3].diffusemap = Vec2(0, 1);
+		quad[0].diffusemap = Vec2(0.f, 0.f);
+		quad[1].diffusemap = Vec2(1.f, 0.f);
+		quad[2].diffusemap = Vec2(1.f, 1.f);
+		quad[3].diffusemap = Vec2(0.f, 1.f);
 	}
 
 	quad[0].color = Color_Color32(color);
@@ -434,11 +434,6 @@ void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, con
 		return;
 	}
 
-	if (framebuffer->multisample) {
-		Com_Warn("Multisample framebuffer\n");
-		return;
-	}
-
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_TRIANGLES,
 		.texture = framebuffer->color_attachment,
@@ -456,10 +451,10 @@ void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, con
 	quad[2].position = Vec2s(x + w, y + h);
 	quad[3].position = Vec2s(x, y + h);
 
-	quad[0].diffusemap = Vec2(0, 1);
-	quad[1].diffusemap = Vec2(1, 1);
-	quad[2].diffusemap = Vec2(1, 0);
-	quad[3].diffusemap = Vec2(0, 0);
+	quad[0].diffusemap = Vec2(0.f, 1.f);
+	quad[1].diffusemap = Vec2(1.f, 1.f);
+	quad[2].diffusemap = Vec2(1.f, 0.f);
+	quad[3].diffusemap = Vec2(0.f, 0.f);
 
 	quad[0].color = Color_Color32(color);
 	quad[1].color = Color_Color32(color);

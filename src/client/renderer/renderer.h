@@ -27,6 +27,7 @@
 
 #include "r_atlas.h"
 #include "r_animation.h"
+#include "r_bloom.h"
 #include "r_bsp.h"
 #include "r_bsp_draw.h"
 #include "r_bsp_model.h"
@@ -51,5 +52,4 @@
 #include "r_sky.h"
 #include "r_sprite.h"
 #include "r_stain.h"
-#include "r_timer.h"
 #include "r_types.h"

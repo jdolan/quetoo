@@ -50,7 +50,8 @@ in vertex_data {
 	vec4 color;
 } vertex;
 
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 out_bloom;
 
 /**
  * @brief Samples the lightmap and stainmap with either bilinear or bicubic sampling.
@@ -216,6 +217,9 @@ void main(void) {
 
 		//out_color.rgb = caustic;
 		//out_color.rgb = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
+
+		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = out_color.a;
 	} else {
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
@@ -238,11 +242,7 @@ void main(void) {
 
 	// postprocessing
 
-	out_color.rgb = tonemap(out_color.rgb);
-
-	out_color.rgb = color_filter(out_color.rgb);
-	
-	out_color.rgb = dither(out_color.rgb);
+	out_color = postprocess(out_color);
 
 	// debugging
 

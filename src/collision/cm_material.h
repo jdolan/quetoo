@@ -209,6 +209,7 @@ typedef struct cm_stage_s {
 #define DEFAULT_PARALLAX 1.0
 #define DEFAULT_HARDNESS 1.0
 #define DEFAULT_SPECULARITY 1.0
+#define DEFAULT_BLOOM 1.0
 #define DEFAULT_LIGHT 300.0
 #define DEFAULT_PATCH_SIZE 64
 
@@ -283,24 +284,29 @@ typedef struct cm_material_s {
 	float light;
 
 	/**
-	 * @brief The roughness factor to use for the normal map.
+	 * @brief The roughness factor to use for the normalmap.
 	 */
 	float roughness;
 
 	/**
-	 * @brief The hardness factor to use for the normal map.
+	 * @brief The hardness factor to use for the normalmap.
 	 */
 	float hardness;
 
 	/**
-	 * @brief The specular factor to use for the specular map.
+	 * @brief The specular factor to use for the specularmap.
 	 */
 	float specularity;
 
 	/**
-	 * @brief The parallel factor to use for the normal map.
+	 * @brief The parallel factor to use for the normalmap.
 	 */
 	float parallax;
+
+	/**
+	 * @brief The bloom factor to apply to the diffusemap.
+	 */
+	float bloom;
 
 	/**
 	 * @brief The per-material patch size, for light emission.

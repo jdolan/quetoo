@@ -90,7 +90,7 @@ typedef enum {
 	MOD_MESH
 } r_model_type_t;
 
-// high bits OR'ed with image categories, flags are bits 24..31
+// high bits OR'ed with image types, flags are bits 24..31
 #define IT_MASK_MIPMAP		(1 << 24)
 #define IT_MASK_CLAMP_EDGE  (1 << 25)
 #define IT_MASK_QUALITY		(1 << 26)
@@ -1123,6 +1123,11 @@ typedef struct {
 	GLuint name;
 
 	/**
+	 * @brief The bloom attachment texture name.
+	 */
+	GLuint bloom_attachment;
+
+	/**
 	 * @brief The color attachment texture name.
 	 */
 	GLuint color_attachment;
@@ -1141,11 +1146,6 @@ typedef struct {
 	 * @brief The framebuffer height.
 	 */
 	r_pixel_t height;
-
-	/**
-	 * @brief True if this framebuffer supports multisampling (MSAA).
-	 */
-	_Bool multisample;
 } r_framebuffer_t;
 
 /**
@@ -1400,6 +1400,12 @@ typedef enum {
 	 * @brief Sprite specific textures.
 	 */
 	TEXTURE_NEXT_DIFFUSEMAP,
+
+	/**
+	 * @brief Framebuffer specific textures.
+	 */
+	TEXTURE_BLOOM_ATTACHMENT,
+	TEXTURE_COLOR_ATTACHMENT,
 	TEXTURE_DEPTH_STENCIL_ATTACHMENT,
 } r_texture_t;
 

@@ -32,7 +32,8 @@ in vertex_data {
 	vec4 fog;
 } vertex;
 
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 out_bloom;
 
 /**
  * @brief
@@ -46,7 +47,10 @@ void main(void) {
 
 	out_color = texture_color * vertex.color;
 
-	out_color.rgb = color_filter(out_color.rgb);
+	out_color = postprocess(out_color);
 	
 	out_color *= soften(vertex.softness);
+
+	out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * 2.0 * bloom - 1.0, 0.0, 1.0);
+	out_bloom.a = out_color.a;
 }

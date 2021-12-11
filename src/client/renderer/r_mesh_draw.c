@@ -61,6 +61,7 @@ static struct {
 		GLint hardness;
 		GLint specularity;
 		GLint parallax;
+		GLint bloom;
 	} material;
 
 	struct {
@@ -85,10 +86,24 @@ void R_UpdateMeshEntities(r_view_t *view) {
 	r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-		if (IS_MESH_MODEL(e->model)) {
+		if (!IS_MESH_MODEL(e->model)) {
+			continue;
+		}
+
+		e->blend_depth = -1;
+
+		if (e->effects & (EF_BLEND | EF_SHELL)) {
 			e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
 		} else {
-			e->blend_depth = -1;
+			const r_mesh_face_t *face = e->model->mesh->faces;
+			for (int32_t j = 0; j < e->model->mesh->num_faces; j++, face++) {
+
+				const r_material_t *material = e->skins[j] ?: face->material;
+				if (material->cm->surface & SURF_MASK_BLEND) {
+					e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
+					break;
+				}
+			}
 		}
 	}
 }
@@ -260,6 +275,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 	glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
 	glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
 	glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
+	glUniform1f(r_mesh_program.material.bloom, material->cm->bloom * r_bloom->value);
 
 	if (*material->cm->tintmap.path) {
 		vec4_t tints[3];
@@ -407,9 +423,7 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 				continue;
 			}
 
-			R_TIMER_WRAP(va("Model: %s", e->model->media.name),
-				R_DrawMeshEntity(e);
-			);
+			R_DrawMeshEntity(e);
 		}
 	}
 
@@ -468,6 +482,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");
 	r_mesh_program.material.specularity = glGetUniformLocation(r_mesh_program.name, "material.specularity");
 	r_mesh_program.material.parallax = glGetUniformLocation(r_mesh_program.name, "material.parallax");
+	r_mesh_program.material.bloom = glGetUniformLocation(r_mesh_program.name, "material.bloom");
 
 	r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
 	r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");

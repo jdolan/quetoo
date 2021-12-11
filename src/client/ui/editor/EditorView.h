@@ -107,6 +107,11 @@ struct EditorView {
 	Slider *parallax;
 
 	/**
+	 * @brief The bloom slider.
+	 */
+	Slider *bloom;
+
+	/**
 	 * @brief The save button.
 	 */
 	Button *save;

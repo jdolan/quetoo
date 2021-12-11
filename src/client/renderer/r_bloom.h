@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quetoo.
+ * Copyright(c) 2006-2011 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,23 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler2D texture_diffusemap;
+#pragma once
 
-in vertex_data {
-	vec2 diffusemap;
-	vec4 color;
-} vertex;
+#include "r_types.h"
 
-out vec4 out_color;
-
-/**
- * @brief
- */
-void main(void) {
-
-	out_color = vertex.color * texture(texture_diffusemap, vertex.diffusemap);
-	
-	// postprocessing
-	
-	out_color = color_filter(out_color);
-}
+void R_DrawBloom(const r_view_t *view);
+void R_InitBloom(void);
+void R_ShutdownBloom(void);

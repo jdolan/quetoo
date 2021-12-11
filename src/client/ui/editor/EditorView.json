@@ -147,7 +147,22 @@
                     "max": 8,
                     "step": 0.125
                   }
-                }
+                },
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Bloom"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "bloom",
+					"min": 0,
+					"max": 8,
+					"step": 0.125
+				  }
+				}
               ]
             }
           }

@@ -28,7 +28,8 @@ in vertex_data {
 	vec3 lightgrid;
 } vertex;
 
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 out_bloom;
 
 /**
  * @brief
@@ -41,5 +42,8 @@ void main(void) {
 	
 	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 
-	out_color.rgb = color_filter(out_color.rgb);
+	out_color = postprocess(out_color);
+
+	out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * 2.0 * bloom - 1.0, 0.0, 1.0);
+	out_bloom.a = out_color.a;
 }

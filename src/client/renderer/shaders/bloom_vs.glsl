@@ -19,40 +19,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+layout (location = 0) in vec2 in_position;
+layout (location = 1) in vec2 in_texcoord;
 
-#include "r_types.h"
+out vertex_data {
+	vec2 texcoord;
+} vertex;
 
-#define R_MAX_TIMER_QUERIES 1024
-#define R_MAX_TIMER_EVENTS 2048
+/**
+ * @brief
+ */
+void main(void) {
 
-typedef struct {
-	const char *event_name;
-	GLuint start, end;
-} r_timer_event_t;
+	gl_Position = projection2D * vec4(in_position, 0.0, 1.0);
 
-typedef struct r_timer_entry_s {
-	GLuint start, end;
-	char type[MAX_OS_PATH];
-	uint32_t depth;
-	uint32_t num_events;
-	r_timer_event_t events[R_MAX_TIMER_EVENTS];
-	struct r_timer_entry_s *prev;
-} r_timer_entry_t;
-
-void R_InitTimers(void);
-void R_ShutdownTimers(void);
-void R_ResetTimers(void);
-_Bool R_TimersReady(void);
-
-#define R_TIMER_WRAP(type, ...) \
-	{ uint32_t timer_id = UINT32_MAX; \
-	if (R_TimersReady()) { timer_id = R_BeginTimer(type); } \
-	__VA_ARGS__ \
-	if (timer_id != UINT32_MAX) { R_EndTimer(timer_id); } \
-	}
-
-#ifdef __R_LOCAL_H__
-uint32_t R_BeginTimer(const char *type);
-void R_EndTimer(const uint32_t id);
-#endif /* __R_LOCAL_H__ */
+	vertex.texcoord = in_texcoord;
+}

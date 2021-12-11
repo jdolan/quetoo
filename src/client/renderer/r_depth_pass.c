@@ -70,60 +70,56 @@ void R_DrawDepthPass(const r_view_t *view) {
 	glDrawElements(GL_TRIANGLES, r_world_model->bsp->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
 
 	if (r_occlude->value == 1 && view->ticks - occlusion_query_ticks >= 8) {
-		R_TIMER_WRAP("Occlusion Queries",
-			occlusion_query_ticks = view->ticks;
+		occlusion_query_ticks = view->ticks;
 
-			glDepthMask(GL_FALSE);
+		glDepthMask(GL_FALSE);
 
-			glBindVertexArray(r_occlusion_queries.vertex_array);
+		glBindVertexArray(r_occlusion_queries.vertex_array);
 
-			glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
 
-			glEnableVertexAttribArray(r_depth_pass_program.in_position);
+		glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
-			r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
-			for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
+		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
+		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-				if (Box3_ContainsPoint(q->bounds, view->origin)) {
-					q->pending = false;
-					q->result = 1;
-					continue;
-				}
-
-				if (R_CullBox(view, q->bounds)) {
-					q->pending = false;
-					q->result = 0;
-					continue;
-				}
-
-				if (q->pending) {
-
-					GLint available;
-					glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
-
-					if (available == GL_TRUE) {
-						glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
-					} else {
-						continue;
-					}
-				}
-
-				q->pending = true;
-
-				R_TIMER_WRAP(va("Query %i", i),
-					glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(q->vertexes), q->vertexes);
-
-					glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
-
-					glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
-
-					glEndQuery(GL_ANY_SAMPLES_PASSED);
-				);
+			if (Box3_ContainsPoint(q->bounds, view->origin)) {
+				q->pending = false;
+				q->result = 1;
+				continue;
 			}
 
-			glDepthMask(GL_TRUE);
-		);
+			if (R_CullBox(view, q->bounds)) {
+				q->pending = false;
+				q->result = 0;
+				continue;
+			}
+
+			if (q->pending) {
+
+				GLint available;
+				glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
+
+				if (available == GL_TRUE) {
+					glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &q->result);
+				} else {
+					continue;
+				}
+			}
+
+			q->pending = true;
+
+			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(q->vertexes), q->vertexes);
+
+			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
+
+			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
+
+			glEndQuery(GL_ANY_SAMPLES_PASSED);
+		}
+
+		glDepthMask(GL_TRUE);
 	}
 
 	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;

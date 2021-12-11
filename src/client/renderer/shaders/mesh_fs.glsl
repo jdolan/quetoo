@@ -42,7 +42,8 @@ in vertex_data {
 	vec4 fog;
 } vertex;
 
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 out_bloom;
 
 uniform vec4 tint_colors[3];
 
@@ -101,6 +102,8 @@ void main(void) {
 		// out_color.rgb *= 1.0 - vertex.fog.a; // black? sigh.
 		out_color.rgb += vertex.fog.rgb;
 
+		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = out_color.a;
 	} else {
 
 		// effect
@@ -109,5 +112,5 @@ void main(void) {
 		out_color = effect;
 	}
 
-	postprocessing(out_color.rgb);
+	postprocess(out_color);
 }

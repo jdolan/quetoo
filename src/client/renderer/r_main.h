@@ -27,6 +27,7 @@ extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bicubic;
+extern cvar_t *r_bloom;
 extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
 extern cvar_t *r_display;
@@ -200,6 +201,10 @@ typedef struct {
 		 */
 		float caustics;
 
+		/**
+		 * @brief The bloom scalar.
+		 */
+		float bloom;
 	} block;
 
 } r_uniforms_t;

@@ -25,8 +25,6 @@ r_config_t r_config;
 r_uniforms_t r_uniforms;
 r_stats_t r_stats;
 
-static uint32_t r_frame_timer;
-
 cvar_t *r_alpha_test_threshold;
 cvar_t *r_blend_depth_sorting;
 cvar_t *r_cull;
@@ -47,6 +45,7 @@ cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bicubic;
+cvar_t *r_bloom;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
 cvar_t *r_display;
@@ -249,6 +248,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		r_uniforms.block.fog_samples = r_fog_samples->integer;
 
 		r_uniforms.block.caustics = r_caustics->value;
+		r_uniforms.block.bloom = r_bloom->value;
 
 		if (r_world_model) {
 			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
@@ -315,11 +315,7 @@ void R_BeginFrame(void) {
 
 	memset(&r_stats, 0, sizeof(r_stats));
 
-	if (R_TimersReady()) {
-		r_frame_timer = R_BeginTimer("Frame");
-	}
-
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 /**
@@ -330,25 +326,21 @@ void R_DrawViewDepth(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
-	R_TIMER_WRAP("Depth View",
-		glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
-		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		R_UpdateFrustum(view);
-		
-		R_TIMER_WRAP("Uniforms",
-			R_UpdateUniforms(view);
-		);
-		
-		R_TIMER_WRAP("Depth Pass",
-			R_DrawDepthPass(view);
-		);
+	R_UpdateFrustum(view);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	R_UpdateUniforms(view);
 
-		R_GetError(NULL);
-	);
+	R_DrawDepthPass(view);
+
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -359,53 +351,41 @@ void R_DrawMainView(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 	
-	R_TIMER_WRAP("Main View",
-		R_DrawBspLightgrid(view);
+	R_DrawBspLightgrid(view);
 
-		R_UpdateBlendDepth(view);
+	R_UpdateBlendDepth(view);
 
-		R_UpdateEntities(view);
+	R_UpdateEntities(view);
 
-		R_TIMER_WRAP("Update Lights",
-			R_UpdateLights(view);
-		);
-	
-		R_TIMER_WRAP("Update Sprites",
-			R_UpdateSprites(view);
-		);
-	
-		R_TIMER_WRAP("Update Stains",
-			R_UpdateStains(view);
-		);
-	
-		R_TIMER_WRAP("Draw World",
-			glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	R_UpdateLights(view);
 
-			if (r_draw_wireframe->value) {
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			}
-	
-			R_DrawWorld(view);
-		);
-	
-		R_TIMER_WRAP("Draw Remaining Entities",
-			R_DrawEntities(view, -1);
-		);
+	R_UpdateSprites(view);
 
-		if (r_draw_wireframe->value) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-	
-		R_TIMER_WRAP("Draw Remaining Sprites",
-			R_DrawSprites(view, -1);
-		);
-	
-		R_TIMER_WRAP("Draw 3D",
-			R_Draw3D();
-		);
+	R_UpdateStains(view);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	);
+	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+
+	R_DrawEntities(view, -1);
+
+	R_DrawWorld(view);
+
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	R_DrawSprites(view, -1);
+
+	R_Draw3D();
+
+	R_DrawBloom(view);
+
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 /**
@@ -421,13 +401,17 @@ void R_DrawPlayerModelView(r_view_t *view) {
 	R_UpdateEntities(view);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, view->viewport.z, view->viewport.w);
 
 	R_DrawEntities(view, -1);
 
+	R_DrawBloom(view);
+
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
@@ -438,21 +422,13 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
-	R_TIMER_WRAP("Draw 2D",
-		R_Draw2D();
-	);
+	R_Draw2D();
 
 	if (r_finish->value) {
 		glFinish();
 	}
 
 	SDL_GL_SwapWindow(r_context.window);
-
-	if (R_TimersReady()) {
-		R_EndTimer(r_frame_timer);
-	}
-
-	R_ResetTimers();
 }
 
 /**
@@ -480,7 +456,8 @@ static void R_InitLocal(void) {
 	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
 	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE, "Controls texture brightness");
 	r_bicubic = Cvar_Add("r_bicubic", "1", CVAR_ARCHIVE, "Enable or disable high quality texture filtering on lightmaps and stainmaps.");
-	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Enable or disable liquid caustic effects");
+	r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of light bloom effects");
+	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
@@ -586,8 +563,6 @@ void R_Init(void) {
 
 	R_InitContext();
 
-	R_InitTimers();
-
 	R_InitConfig();
 
 	R_InitUniforms();
@@ -609,6 +584,8 @@ void R_Init(void) {
 	R_InitLights();
 
 	R_InitSky();
+
+	R_InitBloom();
 
 	R_GetError("Video initialization");
 
@@ -640,11 +617,11 @@ void R_Shutdown(void) {
 
 	R_ShutdownSky();
 
+	R_ShutdownBloom();
+
 	R_ShutdownDepthPass();
 
 	R_ShutdownUniforms();
-
-	R_ShutdownTimers();
 
 	R_ShutdownContext();
 
