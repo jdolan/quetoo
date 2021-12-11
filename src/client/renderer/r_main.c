@@ -382,10 +382,9 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_Draw3D();
 
-	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-
 	R_DrawBloom(view);
 
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -410,10 +409,9 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	R_DrawEntities(view, -1);
 
-	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-
 	R_DrawBloom(view);
 
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
