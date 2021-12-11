@@ -51,5 +51,4 @@
 #include "r_sky.h"
 #include "r_sprite.h"
 #include "r_stain.h"
-#include "r_timer.h"
 #include "r_types.h"

@@ -25,8 +25,6 @@ r_config_t r_config;
 r_uniforms_t r_uniforms;
 r_stats_t r_stats;
 
-static uint32_t r_frame_timer;
-
 cvar_t *r_alpha_test_threshold;
 cvar_t *r_blend_depth_sorting;
 cvar_t *r_cull;
@@ -316,10 +314,6 @@ void R_BeginFrame(void) {
 
 	memset(&r_stats, 0, sizeof(r_stats));
 
-	if (R_TimersReady()) {
-		r_frame_timer = R_BeginTimer("Frame");
-	}
-
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
 
@@ -331,25 +325,16 @@ void R_DrawViewDepth(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
-	R_TIMER_WRAP("Depth View",
-		glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
-		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	R_UpdateFrustum(view);
 
-		R_UpdateFrustum(view);
-		
-		R_TIMER_WRAP("Uniforms",
-			R_UpdateUniforms(view);
-		);
-		
-		R_TIMER_WRAP("Depth Pass",
-			R_DrawDepthPass(view);
-		);
+	R_UpdateUniforms(view);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	R_DrawDepthPass(view);
 
-		R_GetError(NULL);
-	);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -360,59 +345,39 @@ void R_DrawMainView(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 	
-	R_TIMER_WRAP("Main View",
-		R_DrawBspLightgrid(view);
+	R_DrawBspLightgrid(view);
 
-		R_UpdateBlendDepth(view);
+	R_UpdateBlendDepth(view);
 
-		R_UpdateEntities(view);
+	R_UpdateEntities(view);
 
-		R_TIMER_WRAP("Update Lights",
-			R_UpdateLights(view);
-		);
-	
-		R_TIMER_WRAP("Update Sprites",
-			R_UpdateSprites(view);
-		);
-	
-		R_TIMER_WRAP("Update Stains",
-			R_UpdateStains(view);
-		);
+	R_UpdateLights(view);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-		if (r_bloom->value && view->framebuffer->bloom_attachment) {
-			glDrawBuffers(2, (GLuint []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
-		} else {
-			glDrawBuffers(1, (GLuint []) { GL_COLOR_ATTACHMENT0 });
-		}
+	R_UpdateSprites(view);
 
-		if (r_draw_wireframe->value) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		}
-	
-		R_TIMER_WRAP("Draw World",
-			R_DrawWorld(view);
-		);
-	
-		R_TIMER_WRAP("Draw Remaining Entities",
-			R_DrawEntities(view, -1);
-		);
+	R_UpdateStains(view);
 
-		if (r_draw_wireframe->value) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-	
-		R_TIMER_WRAP("Draw Remaining Sprites",
-			R_DrawSprites(view, -1);
-		);
-	
-		R_TIMER_WRAP("Draw 3D",
-			R_Draw3D();
-		);
+	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDrawBuffers(1, (GLuint[]) { GL_COLOR_ATTACHMENT0 });
-	);
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+
+	R_DrawWorld(view);
+
+	R_DrawEntities(view, -1);
+
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	R_DrawSprites(view, -1);
+
+	R_Draw3D();
+
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 /**
@@ -445,21 +410,13 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
-	R_TIMER_WRAP("Draw 2D",
-		R_Draw2D();
-	);
+	R_Draw2D();
 
 	if (r_finish->value) {
 		glFinish();
 	}
 
 	SDL_GL_SwapWindow(r_context.window);
-
-	if (R_TimersReady()) {
-		R_EndTimer(r_frame_timer);
-	}
-
-	R_ResetTimers();
 }
 
 /**
@@ -594,8 +551,6 @@ void R_Init(void) {
 
 	R_InitContext();
 
-	R_InitTimers();
-
 	R_InitConfig();
 
 	R_InitUniforms();
@@ -651,8 +606,6 @@ void R_Shutdown(void) {
 	R_ShutdownDepthPass();
 
 	R_ShutdownUniforms();
-
-	R_ShutdownTimers();
 
 	R_ShutdownContext();
 
