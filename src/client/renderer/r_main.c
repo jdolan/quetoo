@@ -248,6 +248,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		r_uniforms.block.fog_samples = r_fog_samples->integer;
 
 		r_uniforms.block.caustics = r_caustics->value;
+		r_uniforms.block.bloom = r_bloom->value;
 
 		if (r_world_model) {
 			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);

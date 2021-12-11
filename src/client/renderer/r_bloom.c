@@ -63,12 +63,15 @@ void R_DrawBloom(const r_view_t *view) {
 		return;
 	}
 
+	const vec4_t v = view->viewport;
+	const float s = 1.f / r_context.window_scale;
+
 	r_bloom_vertex_t quad[4];
 
-	quad[0].position = Vec2s(0, 0);
-	quad[1].position = Vec2s(view->framebuffer->width, 0);
-	quad[2].position = Vec2s(view->framebuffer->width, view->framebuffer->height);
-	quad[3].position = Vec2s(0, view->framebuffer->height);
+	quad[0].position = Vec2s_Scale(Vec2s(v.x, v.y), s);
+	quad[1].position = Vec2s_Scale(Vec2s(v.x + v.z , v.y), s);
+	quad[2].position = Vec2s_Scale(Vec2s(v.x + v.z, v.y + v.w), s);
+	quad[3].position = Vec2s_Scale(Vec2s(v.x, v.w), s);
 
 	quad[0].texcoord = Vec2(0.f, 1.f);
 	quad[1].texcoord = Vec2(1.f, 1.f);

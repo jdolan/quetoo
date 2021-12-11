@@ -218,7 +218,7 @@ void main(void) {
 		//out_color.rgb = caustic;
 		//out_color.rgb = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 
-		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 		out_bloom.a = out_color.a;
 	} else {
 

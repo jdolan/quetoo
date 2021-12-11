@@ -434,11 +434,6 @@ void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, con
 		return;
 	}
 
-	if (framebuffer->multisample) {
-		Com_Warn("Multisample framebuffer\n");
-		return;
-	}
-
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_TRIANGLES,
 		.texture = framebuffer->color_attachment,

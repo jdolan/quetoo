@@ -606,10 +606,9 @@ typedef struct cg_import_s {
 	 * @brief Creates an OpenGL framebuffer with color and depth attachments.
 	 * @param width The framebuffer width, in pixels.
 	 * @param height The framebuffer height, in pixels.
-	 * @param multisample True if the framebuffer should support multisampling (MSAA).
 	 * @return The framebuffer.
 	 */
-	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height, _Bool multisample);
+	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height);
 
 	/**
 	 * @brief Destroys the specified framebuffer, releasing any OpenGL resources.

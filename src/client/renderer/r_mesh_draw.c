@@ -61,6 +61,7 @@ static struct {
 		GLint hardness;
 		GLint specularity;
 		GLint parallax;
+		GLint bloom;
 	} material;
 
 	struct {
@@ -260,6 +261,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 	glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
 	glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
 	glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
+	glUniform1f(r_mesh_program.material.bloom, material->cm->bloom * r_bloom->value);
 
 	if (*material->cm->tintmap.path) {
 		vec4_t tints[3];
@@ -466,6 +468,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");
 	r_mesh_program.material.specularity = glGetUniformLocation(r_mesh_program.name, "material.specularity");
 	r_mesh_program.material.parallax = glGetUniformLocation(r_mesh_program.name, "material.parallax");
+	r_mesh_program.material.bloom = glGetUniformLocation(r_mesh_program.name, "material.bloom");
 
 	r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
 	r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");

@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, _Bool multisample);
+r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height);
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer);
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h);
 

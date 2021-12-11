@@ -109,7 +109,7 @@ static void render(View *self, Renderer *renderer) {
 		Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
 
 		if (this->framebuffer.name == 0) {
-			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h, false);
+			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h);
 		}
 
 		this->view.framebuffer = &this->framebuffer;

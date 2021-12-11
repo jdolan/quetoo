@@ -1146,11 +1146,6 @@ typedef struct {
 	 * @brief The framebuffer height.
 	 */
 	r_pixel_t height;
-
-	/**
-	 * @brief True if this framebuffer supports multisampling (MSAA).
-	 */
-	_Bool multisample;
 } r_framebuffer_t;
 
 /**

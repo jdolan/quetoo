@@ -29,35 +29,23 @@ static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
 										 GLenum internal_format,
 										 GLenum format,
 										 GLenum type) {
-	GLuint name;
+	GLuint texture;
 
-	if (f->multisample) {
-		glGenRenderbuffers(1, &name);
-		glBindRenderbuffer(GL_RENDERBUFFER, name);
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
 
-		const GLsizei samples = r_context.multisample_samples;
-		if (samples > 1) {
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, internal_format, f->width, f->height);
-		} else {
-			glRenderbufferStorage(GL_RENDERBUFFER, internal_format, f->width, f->height);
-		}
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, f->width, f->height, 0, format, type, NULL);
 
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, name);
-	} else {
-		glGenTextures(1, &name);
-		glBindTexture(GL_TEXTURE_2D, name);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, f->width, f->height, 0, format, type, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, 0);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, name, 0);
-	}
-
-	return name;
+	return texture;
 }
 
 /**
@@ -77,12 +65,11 @@ static GLuint R_CreateDepthAttachment(const r_framebuffer_t *f, GLenum attachmen
 /**
  * @brief
  */
-r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, _Bool multisample) {
+r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height) {
 
 	r_framebuffer_t framebuffer = {
 		.width = width,
 		.height = height,
-		.multisample = multisample
 	};
 
 	glGenFramebuffers(1, &framebuffer.name);
@@ -99,12 +86,6 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, _Bool mul
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	if (multisample) {
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	} else {
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
 	R_GetError(NULL);
 
 	return framebuffer;
@@ -120,15 +101,9 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 	if (framebuffer->name) {
 		glDeleteFramebuffers(1, &framebuffer->name);
 
-		if (framebuffer->multisample) {
-			glDeleteRenderbuffers(1, &framebuffer->bloom_attachment);
-			glDeleteRenderbuffers(1, &framebuffer->color_attachment);
-			glDeleteRenderbuffers(1, &framebuffer->depth_attachment);
-		} else {
-			glDeleteTextures(1, &framebuffer->bloom_attachment);
-			glDeleteTextures(1, &framebuffer->color_attachment);
-			glDeleteTextures(1, &framebuffer->depth_attachment);
-		}
+		glDeleteTextures(1, &framebuffer->bloom_attachment);
+		glDeleteTextures(1, &framebuffer->color_attachment);
+		glDeleteTextures(1, &framebuffer->depth_attachment);
 
 		R_GetError(NULL);
 	}

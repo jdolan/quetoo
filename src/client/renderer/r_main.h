@@ -201,6 +201,10 @@ typedef struct {
 		 */
 		float caustics;
 
+		/**
+		 * @brief The bloom scalar.
+		 */
+		float bloom;
 	} block;
 
 } r_uniforms_t;

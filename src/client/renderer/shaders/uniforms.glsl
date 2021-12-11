@@ -132,6 +132,11 @@ layout (std140) uniform uniforms_block {
 	 * @brief The caustics scalar.
 	 */
 	float caustics;
+
+	/**
+	 * @brief The bloom scalar, for non-material based objects.
+	 */
+	float bloom;
 };
 
 /**
