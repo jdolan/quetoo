@@ -1192,6 +1192,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "\thardness %g\n", material->hardness);
 	Fs_Print(file, "\tspecularity %g\n", material->specularity);
 	Fs_Print(file, "\tparallax %g\n", material->parallax);
+	Fs_Print(file, "\tbloom %g\n", material->bloom);
 
 	if (material->contents) {
 		Fs_Print(file, "\tcontents \"%s\"\n", Cm_UnparseContents(material->contents));
