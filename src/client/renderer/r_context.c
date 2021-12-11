@@ -334,10 +334,6 @@ void R_InitContext(void) {
 		Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
 	}
 
-	if (SDL_SetWindowBrightness(r_context.window, r_gamma->value) == -1) {
-		Com_Warn("Failed to set gamma %1.1f: %s\n", r_gamma->value, SDL_GetError());
-	}
-
 	SDL_DisplayMode mode;
 	SDL_GetWindowDisplayMode(r_context.window, &mode);
 
