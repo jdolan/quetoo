@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\client\renderer\r_animation.c" />
     <ClCompile Include="..\..\src\client\renderer\r_atlas.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_bloom.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_draw.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_model.c" />
@@ -46,12 +47,12 @@
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sprite.c" />
     <ClCompile Include="..\..\src\client\renderer\r_stain.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_timer.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\renderer.h" />
     <ClInclude Include="..\..\src\client\renderer\r_animation.h" />
     <ClInclude Include="..\..\src\client\renderer\r_atlas.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_bloom.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_draw.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_model.h" />
@@ -79,7 +80,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sprite.h" />
     <ClInclude Include="..\..\src\client\renderer\r_stain.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_timer.h" />
     <ClInclude Include="..\..\src\client\renderer\r_types.h" />
   </ItemGroup>
   <ItemGroup>
