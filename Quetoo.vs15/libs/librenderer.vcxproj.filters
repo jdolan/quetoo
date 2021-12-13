@@ -90,7 +90,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_gl.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_timer.c">
+    <ClCompile Include="..\..\src\client\renderer\r_bloom.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -188,7 +188,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_gl_types.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_timer.h">
+    <ClInclude Include="..\..\src\client\renderer\r_bloom.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

@@ -24,6 +24,9 @@
 
 #if defined(_WIN32)
 	#include <winsock2.h> // for AllocConsole
+	#include <io.h>
+	#define isatty _isatty
+	#define fileno _fileno
 #endif
 
 #include "sv_local.h"

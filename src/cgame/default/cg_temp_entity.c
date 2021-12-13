@@ -798,7 +798,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			.size = RandomRangef(75.f, 100.f),
 			.rotation = RandomRadian(),
 			.rotation_velocity = i == 0 ? .66f : -.66f,
-			.color = Vec4(effect_color.x, effect_color.y * .5f, effect_color.z, .3f),
+			.color = Vec4(effect_color.x, effect_color.y * .5f, effect_color.z, 0.f),
 			.end_color = Vec4(effect_color.x, 0.f, 0.f, 0.f),
 			.softness = 1.f
 		});
