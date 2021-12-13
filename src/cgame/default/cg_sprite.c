@@ -204,6 +204,11 @@ void Cg_AddSprites(void) {
 		vec3_t old_origin = s->origin;
 
 		s->velocity = Vec3_Fmaf(s->velocity, delta, s->acceleration);
+
+		const float speed = Vec3_Length(s->velocity);
+		const float deceleration = Maxf(0.f, speed - s->friction * delta) / speed;
+		s->velocity = Vec3_Scale(s->velocity, deceleration);
+
 		s->origin = Vec3_Fmaf(s->origin, delta, s->velocity);
 
 		if (s->bounce && cg_sprite_physics->integer) {

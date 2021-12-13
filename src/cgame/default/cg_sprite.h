@@ -130,6 +130,11 @@ struct cg_sprite_s {
 	vec3_t acceleration;
 
 	/**
+	 * @brief The sprite friction.
+	 */
+	float friction;
+
+	/**
 	 * @brief The sprite rotation, in radians.
 	 */
 	float rotation;
