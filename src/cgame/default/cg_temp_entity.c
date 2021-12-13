@@ -714,8 +714,8 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const vec3_t effect_color) {
-	vec3_t forward;
-	color_t color_rgb = ColorHSVA(effect_color.x, effect_color.y, effect_color.z, 1.f);
+
+	const color_t color_rgb = ColorHSVA(effect_color.x, effect_color.y, effect_color.z, 1.f);
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = start,
@@ -727,45 +727,52 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	// Check for bubble trail
 	Cg_BubbleTrail(NULL, start, end);
 
+	vec3_t forward;
 	const float dist = Vec3_DistanceDir(end, start, &forward);
 	const vec3_t right = Vec3(forward.z, -forward.x, forward.y);
 	const vec3_t up = Vec3_Cross(forward, right);
 
-	const uint32_t lifetime = 1500;
+	const uint32_t core_lifetime = 500;
+	const uint32_t vapor_lifetime = 750;
 
 	for (int32_t i = 0; i < dist; i++) {
 		const float cosi = cosf(i * 0.1f);
 		const float sini = sinf(i * 0.1f);
 
-		const vec3_t origi = Vec3_Add(Vec3_Add(Vec3_Fmaf(start, i, forward), Vec3_Scale(right, cosi)), Vec3_Scale(up, sini));
-		const vec3_t accel = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 8.f), Vec3_Scale(up, sini * 8.f)), Vec3_Up());
+		const vec3_t org = Vec3_Add(Vec3_Add(Vec3_Fmaf(start, i, forward), Vec3_Scale(right, cosi)), Vec3_Scale(up, sini));
+		const vec3_t accel = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 32.f), Vec3_Scale(up, sini * 32.f)), Vec3_Up());
 
 		Cg_AddSprite(&(cg_sprite_t) {
-			.atlas_image = cg_sprite_particle,
-			.origin = origi,
-			.acceleration = accel,
-			.lifetime = lifetime,
-			.size = 5.f,
-			.size_velocity = 1.0 / MILLIS_TO_SECONDS(lifetime),
-			.color = Vec4(effect_color.x, effect_color.y, effect_color.z * 0.5, 0.25f),
+			.atlas_image = cg_sprite_particle3,
+			.origin = org,
+			.velocity = Vec3_Scale(forward, 256.f),
+			.acceleration = Vec3_Add(accel, Vec3_Scale(Vec3_RandomDir(), 192.f)),
+			.friction = 2048.f,
+			.lifetime = core_lifetime + Randomf() * 120,
+			.size = 1.f,
+			.size_velocity = 1.0 / MILLIS_TO_SECONDS(core_lifetime),
+			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
 			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
 			.softness = 1.f,
 			.lighting = .2f
 		});
-	}
 
-	Cg_AddSprite(&(cg_sprite_t) {
-		.type = SPRITE_BEAM,
-		.image = cg_beam_rail,
-		.origin = start,
-		.termination = end,
-		.size = 8.f,
-		.size_velocity = 1.f / MILLIS_TO_SECONDS(lifetime),
-		.lifetime = lifetime,
-		.color = Vec4(0.f, 0.f, 1.f, 0.f),
-		.softness = 1.f,
-		.lighting = .2f
-	});
+		if (i % 3 == 0) {
+			Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_particle3,
+				.origin = org,
+				.velocity = Vec3_Add(Vec3_Scale(Vec3_RandomDir(), 64.f), Vec3_Scale(Vec3_Up(), 96.f)),
+				.acceleration = Vec3(RandomRangef(-64.f, 64.f), RandomRangef(-64.f, 64.f), -SPRITE_GRAVITY),
+				.lifetime = vapor_lifetime + Randomf() * 160,
+				.size = 1.5f,
+				.size_velocity = -.5f / MILLIS_TO_SECONDS(vapor_lifetime),
+				.color = Vec4(effect_color.x + RandomRangef(-20.f, 20.f), effect_color.y, effect_color.z * .5f, 0.f),
+				.end_color = Vec4(effect_color.x + RandomRangef(-20.f, 20.f), 0.f, 0.f, 0.f),
+				.softness = 1.f,
+				.lighting = 1.f
+			});
+		}
+	}
 
 	// Check for explosion effect on solids
 
@@ -782,10 +789,51 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.intensity = .1f
 	});
 
+	// hit billboards FIXME: Why don't these work?
+	for (int32_t i = 0; i < 2; i++) {
+		Cg_AddSprite(&(cg_sprite_t) {
+			.origin = Vec3_Add(end, dir),
+			.atlas_image = cg_sprite_flash,
+			.lifetime = 150,
+			.size = RandomRangef(75.f, 100.f),
+			.rotation = RandomRadian(),
+			.rotation_velocity = i == 0 ? .66f : -.66f,
+			.color = Vec4(effect_color.x, effect_color.y * .5f, effect_color.z, .3f),
+			.end_color = Vec4(effect_color.x, 0.f, 0.f, 0.f),
+			.softness = 1.f
+		});
+	}
+
+	// slug debris
+	if ((cgi.PointContents(end) & CONTENTS_MASK_LIQUID) == 0) {
+
+		for (int32_t i = 0; i < 32; i++) {
+			const uint32_t lifetime = 2000 + Randomf() * 300;
+			const float size = 2.f + Randomf();
+
+			if (!Cg_AddSprite(&(cg_sprite_t) {
+					.atlas_image = cg_sprite_particle2,
+					.origin = Vec3_Add(end, Vec3_RandomRange(-4.f, 4.f)),
+					.velocity = Vec3_RandomRange(-200.f, 200.f),
+					.acceleration.z = -SPRITE_GRAVITY * 2.f,
+					.lifetime = lifetime,
+					.size = size,
+					.size_velocity = -size / MILLIS_TO_SECONDS(lifetime),
+					.bounce = .4f,
+					.color = Vec4(effect_color.x, effect_color.y * .5f, effect_color.z, .3f),
+					.end_color = Vec4(effect_color.x, 0.f, 0.f, 0.f),
+					.softness = 1.f,
+					.lighting = .5f,
+				})) {
+				break;
+			}
+		}
+	}
+
 	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = end,
-		.radius = 8.f,
-		.color = color_rgb,
+		.radius = 4.f,
+		.color = Color4bv(0xDD202020)
 	});
 }
 
