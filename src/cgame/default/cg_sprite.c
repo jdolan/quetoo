@@ -205,7 +205,7 @@ void Cg_AddSprites(void) {
 
 		s->velocity = Vec3_Fmaf(s->velocity, delta, s->acceleration);
 
-		const float speed = Vec3_Length(s->velocity);
+		const float speed = Maxf(1.f, Vec3_Length(s->velocity));
 		const float deceleration = Maxf(0.f, speed - s->friction * delta) / speed;
 		s->velocity = Vec3_Scale(s->velocity, deceleration);
 
