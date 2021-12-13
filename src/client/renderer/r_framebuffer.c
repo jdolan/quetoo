@@ -25,7 +25,6 @@
  * @brief
  */
 static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
-										 GLenum attachment,
 										 GLenum internal_format,
 										 GLenum format,
 										 GLenum type) {
@@ -43,23 +42,7 @@ static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture, 0);
-
 	return texture;
-}
-
-/**
- * @brief
- */
-static GLuint R_CreateColorAttachment(const r_framebuffer_t *f, GLenum attachment) {
-	return R_CreateFramebufferTexture(f, attachment, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-}
-
-/**
- * @brief
- */
-static GLuint R_CreateDepthAttachment(const r_framebuffer_t *f, GLenum attachment) {
-	return R_CreateFramebufferTexture(f, attachment, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
 }
 
 /**
@@ -75,9 +58,14 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height) {
 	glGenFramebuffers(1, &framebuffer.name);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.name);
 
-	framebuffer.bloom_attachment = R_CreateColorAttachment(&framebuffer, GL_COLOR_ATTACHMENT1);
-	framebuffer.color_attachment = R_CreateColorAttachment(&framebuffer, GL_COLOR_ATTACHMENT0);
-	framebuffer.depth_attachment = R_CreateDepthAttachment(&framebuffer, GL_DEPTH_STENCIL_ATTACHMENT);
+	framebuffer.bloom_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, framebuffer.bloom_attachment, 0);
+
+	framebuffer.color_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.color_attachment, 0);
+
+	framebuffer.depth_attachment = R_CreateFramebufferTexture(&framebuffer, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, framebuffer.depth_attachment, 0);
 
 	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -112,6 +100,28 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 }
 
 /**
+ * @brief
+ */
+void R_CopyFramebuffer(const r_framebuffer_t *framebuffer, GLenum mode, GLuint *texture) {
+
+	if (*texture == 0) {
+		*texture = R_CreateFramebufferTexture(framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	}
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
+	glReadBuffer(mode);
+
+	glBindTexture(GL_TEXTURE_2D, *texture);
+	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+	R_GetError(NULL);
+}
+
+/**
  * @brief Blits the framebuffer object to the specified screen rect.
  */
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
@@ -123,9 +133,6 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
-
-	//glReadBuffer(GL_COLOR_ATTACHMENT1);
-
 	glBlitFramebuffer(0,
 					  0,
 					  framebuffer->width,
@@ -137,7 +144,7 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_
 					  GL_COLOR_BUFFER_BIT,
 					  GL_NEAREST);
 
-	//glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	R_GetError(NULL);
 }
