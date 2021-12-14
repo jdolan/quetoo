@@ -758,6 +758,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		});
 
 		if (i % 3 == 0) {
+			const int32_t hue = (int32_t) effect_color.x + RandomRangei(10, 20) % 360;
 			Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_particle3,
 				.origin = org,
@@ -766,8 +767,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 				.lifetime = vapor_lifetime + Randomf() * 160,
 				.size = 1.5f,
 				.size_velocity = -.5f / MILLIS_TO_SECONDS(vapor_lifetime),
-				.color = Vec4(effect_color.x + RandomRangef(-20.f, 20.f), effect_color.y, effect_color.z * .5f, 0.f),
-				.end_color = Vec4(effect_color.x + RandomRangef(-20.f, 20.f), 0.f, 0.f, 0.f),
+				.color = Vec4(hue, 0.f, 1.f, 0.f),
+				.end_color = Vec4(hue, effect_color.y, 0.f, 0.f),
 				.softness = 1.f,
 				.lighting = 1.f
 			});
@@ -789,16 +790,17 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.intensity = .1f
 	});
 
-	// hit billboards FIXME: Why don't these work?
+	// hit billboards
 	for (int32_t i = 0; i < 2; i++) {
 		Cg_AddSprite(&(cg_sprite_t) {
 			.origin = Vec3_Add(end, dir),
 			.atlas_image = cg_sprite_flash,
-			.lifetime = 150,
-			.size = RandomRangef(75.f, 100.f),
+			.lifetime = 250,
+			.size = 120.f,
+			.size_velocity = RandomRangef(100.f, 200.f),
 			.rotation = RandomRadian(),
 			.rotation_velocity = i == 0 ? .66f : -.66f,
-			.color = Vec4(effect_color.x, effect_color.y * .5f, effect_color.z, 0.f),
+			.color = Vec4(effect_color.x, effect_color.y * .5f, 1.f, 0.f),
 			.end_color = Vec4(effect_color.x, 0.f, 0.f, 0.f),
 			.softness = 1.f
 		});
