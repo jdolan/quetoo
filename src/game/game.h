@@ -465,34 +465,34 @@ typedef struct g_import_s {
 	 * @param index The index.
 	 * @param string The string.
 	 */
-	void (*SetConfigString)(const uint16_t index, const char *string);
+	void (*SetConfigString)(const int32_t index, const char *string);
 
 	/**
 	 @param index The index.
 	 @return The configuration string at `index`.
 	 */
-	const char *(*GetConfigString)(const uint16_t index);
+	const char *(*GetConfigString)(const int32_t index);
 
 	/**
 	 * @brief Finds or inserts a string in the appropriate range for the given model name.
 	 * @param name The asset name, e.g. `models/weapons/rocketlauncher/tris`.
 	 * @return The configuration string index.
 	 */
-	uint16_t (*ModelIndex)(const char *name);
+	int32_t (*ModelIndex)(const char *name);
 
 	/**
 	 * @brief Finds or inserts a string in the appropriate range for the given sound name.
 	 * @param name The asset name, e.g. `sounds/weapons/rocketlauncher/fire`.
 	 * @return The configuration string index.
 	 */
-	uint16_t (*SoundIndex)(const char *name);
+	int32_t (*SoundIndex)(const char *name);
 
 	/**
 	 * @brief Finds or inserts a string in the appropriate range for the given image name.
 	 * @param name The asset name, e.g. `pics/items/health_i`.
 	 * @return The configuration string index.
 	 */
-	uint16_t (*ImageIndex)(const char *name);
+	int32_t (*ImageIndex)(const char *name);
 
 	/**
 	 * @}
@@ -512,7 +512,7 @@ typedef struct g_import_s {
 	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
 	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
 	 */
-	void (*Sound)(const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch);
+	void (*Sound)(const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch);
 
 	/**
 	 * @brief Sound sample playback dispatch for server-local entities, or
@@ -524,7 +524,7 @@ typedef struct g_import_s {
 	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
 	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
 	 */
-	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch);
+	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch);
 
 	/**
 	 * @defgroup collision Collision model

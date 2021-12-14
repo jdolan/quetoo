@@ -79,7 +79,7 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 /**
  * @brief
  */
-static void Sv_SetConfigString(const uint16_t index, const char *val) {
+static void Sv_SetConfigString(const int32_t index, const char *val) {
 
 	if (index >= MAX_CONFIG_STRINGS) {
 		Com_Warn("Bad index %u\n", index);
@@ -111,7 +111,7 @@ static void Sv_SetConfigString(const uint16_t index, const char *val) {
 /**
  * @brief
  */
-static const char *Sv_GetConfigString(const uint16_t index) {
+static const char *Sv_GetConfigString(const int32_t index) {
 
 	if (index >= MAX_CONFIG_STRINGS) {
 		Com_Warn("Bad index %u\n", index);
@@ -192,7 +192,7 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 /**
  * @brief
  */
-static void Sv_Sound(const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch) {
+static void Sv_Sound(const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch) {
 
 	assert(ent);
 

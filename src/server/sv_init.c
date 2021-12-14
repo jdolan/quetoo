@@ -26,8 +26,8 @@
  * desired name. If not found, the name can be optionally created and sent to
  * all connected clients. This allows the game to lazily load assets.
  */
-static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bool create) {
-	uint16_t i;
+static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, _Bool create) {
+	int32_t i;
 
 	if (!name || !name[0]) {
 		return 0;
@@ -60,15 +60,15 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bo
 	return i;
 }
 
-uint16_t Sv_ModelIndex(const char *name) {
+int32_t Sv_ModelIndex(const char *name) {
 	return Sv_FindIndex(name, CS_MODELS, MAX_MODELS, true);
 }
 
-uint16_t Sv_SoundIndex(const char *name) {
+int32_t Sv_SoundIndex(const char *name) {
 	return Sv_FindIndex(name, CS_SOUNDS, MAX_SOUNDS, true);
 }
 
-uint16_t Sv_ImageIndex(const char *name) {
+int32_t Sv_ImageIndex(const char *name) {
 	return Sv_FindIndex(name, CS_IMAGES, MAX_IMAGES, true);
 }
 
