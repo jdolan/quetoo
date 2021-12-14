@@ -997,9 +997,18 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
+void Cg_RippleEffect(const vec3_t org, float size, int32_t contents) {
 
 	size *= RandomRangef(0.9f, 1.1f);
+
+	float viscosity;
+	if (contents & CONTENTS_LAVA) {
+		viscosity = 10.f;
+	} else if (contents & CONTENTS_SLIME) {
+		viscosity = 20.f;
+	} else {
+		viscosity = 30.f;
+	}
 
 	// center decal
 	Cg_AddSprite(&(cg_sprite_t) {
@@ -1033,18 +1042,20 @@ void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 /**
  * @brief
  */
-static void Cg_SplashEffect(const vec3_t org, const vec3_t dir, const float size) {
+static void Cg_SplashEffect(const vec3_t org, const vec3_t dir, float size, int32_t contents) {
 
 	// foam spray column
 
+	vec4_t color;
+
 	cg_sprite_t s = (cg_sprite_t){
-		.atlas_image = cg_sprite_particle,
+		.atlas_image = cg_sprite_splash_02_03,
 		.lifetime = 750.f,
 		.origin = org,
-		.size = 30.f,
+		.size = size,
 		.size_velocity = 100.f,
-		.color = Vec4(0.f, 0.f, 0.25f, 0.25f),
-		.end_color = Vec4(0.f, 0.f, 0.0f, 0.0f),
+		.color = Vec4(1.f, 0.f, 0.25f, 0.f),
+		.end_color = Vec4(0.f, 0.f, 0.f, 0.f),
 		.softness = 1.f,
 		.lighting = .6f
 	};
@@ -1211,7 +1222,7 @@ void Cg_ParseTempEntity(void) {
 			j = cgi.ReadByte();
 			Cg_RippleEffect(pos, i, j);
 			if (cgi.ReadByte()) {
-				Cg_SplashEffect(pos, dir, (float)i);
+				Cg_SplashEffect(pos, dir, i, j);
 			}
 			break;
 
