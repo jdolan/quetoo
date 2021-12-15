@@ -193,51 +193,51 @@ static cm_box_t cm_box;
  * is never tested by the rest of the collision detection code, as it resides
  * just beyond the parsed size of the map.
  */
-void Cm_InitBoxHull(void) {
+void Cm_InitBoxHull(cm_bsp_t *bsp) {
 
-	if (cm_bsp.file.num_planes + 12 > MAX_BSP_PLANES) {
+	if (bsp->num_planes + 12 > MAX_BSP_PLANES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
 	}
 
-	if (cm_bsp.file.num_nodes + 6 > MAX_BSP_NODES) {
+	if (bsp->num_nodes + 6 > MAX_BSP_NODES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_NODES\n");
 	}
 
-	if (cm_bsp.file.num_leafs + 1 > MAX_BSP_LEAFS) {
+	if (bsp->num_leafs + 1 > MAX_BSP_LEAFS) {
 		Com_Error(ERROR_DROP, "MAX_BSP_LEAFS\n");
 	}
 
-	if (cm_bsp.file.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
+	if (bsp->num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_LEAF_BRUSHES\n");
 	}
 
-	if (cm_bsp.file.num_brushes + 1 > MAX_BSP_BRUSHES) {
+	if (bsp->num_brushes + 1 > MAX_BSP_BRUSHES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_BRUSHES\n");
 	}
 
-	if (cm_bsp.file.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
+	if (bsp->num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_BRUSH_SIDES\n");
 	}
 
 	// head node
-	cm_box.head_node = cm_bsp.file.num_nodes;
+	cm_box.head_node = bsp->num_nodes;
 
 	// planes
-	cm_box.planes = &cm_bsp.planes[cm_bsp.file.num_planes];
+	cm_box.planes = &bsp->planes[bsp->num_planes];
 
 	// leaf
-	cm_box.leaf = &cm_bsp.leafs[cm_bsp.file.num_leafs];
+	cm_box.leaf = &bsp->leafs[bsp->num_leafs];
 	cm_box.leaf->contents = CONTENTS_MONSTER;
-	cm_box.leaf->first_leaf_brush = cm_bsp.file.num_leaf_brushes;
+	cm_box.leaf->first_leaf_brush = bsp->num_leaf_brushes;
 	cm_box.leaf->num_leaf_brushes = 1;
 
 	// leaf brush
-	cm_bsp.leaf_brushes[cm_bsp.file.num_leaf_brushes] = cm_bsp.file.num_brushes;
+	bsp->leaf_brushes[bsp->num_leaf_brushes] = bsp->num_brushes;
 
 	// brush
-	cm_box.brush = &cm_bsp.brushes[cm_bsp.file.num_brushes];
+	cm_box.brush = &bsp->brushes[bsp->num_brushes];
 	cm_box.brush->num_brush_sides = 6;
-	cm_box.brush->brush_sides = cm_bsp.brush_sides + cm_bsp.file.num_brush_sides;
+	cm_box.brush->brush_sides = bsp->brush_sides + bsp->num_brush_sides;
 	cm_box.brush->contents = CONTENTS_MONSTER;
 
 	for (int32_t i = 0; i < 6; i++) {
@@ -258,18 +258,18 @@ void Cm_InitBoxHull(void) {
 		const int32_t s = i & 1;
 
 		// fill in nodes, one per side
-		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
-		node->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2);
-		node->children[s] = -1 - cm_bsp.file.num_leafs;
+		cm_bsp_node_t *node = &bsp->nodes[cm_box.head_node + i];
+		node->plane = bsp->planes + (bsp->num_planes + i * 2);
+		node->children[s] = -1 - bsp->num_leafs;
 		if (i != 5) {
 			node->children[s ^ 1] = cm_box.head_node + i + 1;
 		} else {
-			node->children[s ^ 1] = -1 - cm_bsp.file.num_leafs;
+			node->children[s ^ 1] = -1 - bsp->num_leafs;
 		}
 
 		// fill in brush sides, one per side
-		cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[cm_bsp.file.num_brush_sides + i];
-		side->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2 + s);
+		cm_bsp_brush_side_t *side = &bsp->brush_sides[bsp->num_brush_sides + i];
+		side->plane = bsp->planes + (bsp->num_planes + i * 2 + s);
 	}
 }
 
@@ -304,7 +304,7 @@ int32_t Cm_SetBoxHull(const box3_t bounds, const int32_t contents) {
  */
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 
-	if (!cm_bsp.file.num_nodes) {
+	if (!cm_bsp.num_nodes) {
 		return 0;
 	}
 
@@ -332,7 +332,7 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
  */
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 
-	if (!cm_bsp.file.num_nodes) {
+	if (!cm_bsp.num_nodes) {
 		return 0;
 	}
 

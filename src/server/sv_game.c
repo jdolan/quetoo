@@ -121,50 +121,79 @@ static const char *Sv_GetConfigString(const int32_t index) {
 	return sv.config_strings[index];
 }
 
-/*
- * Message wrappers which target the multicast buffer.
+/**
+ * @brief
  */
-
 static void Sv_WriteData(const void *data, size_t len) {
 	Net_WriteData(&sv.multicast, data, len);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteChar(const int32_t c) {
 	Net_WriteChar(&sv.multicast, c);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteByte(const int32_t c) {
 	Net_WriteByte(&sv.multicast, c);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteShort(const int32_t c) {
 	Net_WriteShort(&sv.multicast, c);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteLong(const int32_t c) {
 	Net_WriteLong(&sv.multicast, c);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteString(const char *s) {
 	Net_WriteString(&sv.multicast, s);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteVector(const float v) {
 	Net_WriteFloat(&sv.multicast, v);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WritePosition(const vec3_t pos) {
 	Net_WritePosition(&sv.multicast, pos);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteDir(const vec3_t dir) {
 	Net_WriteDir(&sv.multicast, dir);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteAngle(const float v) {
 	Net_WriteAngle(&sv.multicast, v);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteAngles(const vec3_t angles) {
 	Net_WriteAngles(&sv.multicast, angles);
 }
@@ -324,11 +353,10 @@ void Sv_InitGame(void) {
 	import.SoundIndex = Sv_SoundIndex;
 	import.ImageIndex = Sv_ImageIndex;
 
-	import.SetModel = Sv_SetModel;
-
 	import.Sound = Sv_Sound;
 	import.PositionedSound = Sv_PositionedSound;
 
+	import.Bsp = Cm_Bsp;
 	import.EntityValue = Cm_EntityValue;
 	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Sv_PointContents;
@@ -337,6 +365,7 @@ void Sv_InitGame(void) {
 	import.Clip = Sv_Clip;
 	import.inPVS = Sv_InPVS;
 	import.inPHS = Sv_InPHS;
+	import.SetModel = Sv_SetModel;
 	import.LinkEntity = Sv_LinkEntity;
 	import.UnlinkEntity = Sv_UnlinkEntity;
 	import.BoxEntities = Sv_BoxEntities;

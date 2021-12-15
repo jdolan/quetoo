@@ -498,11 +498,7 @@ typedef struct g_import_s {
 	 * @}
 	 */
 
-	/**
-	 * @brief Set the model of a given entity by name.
-	 * @details For inline BSP models, the bounding box is also set and the entity linked.
-	 */
-	void (*SetModel)(g_entity_t *ent, const char *name);
+
 
 	/**
 	 * @brief Sound sample playback dispatch.
@@ -530,6 +526,11 @@ typedef struct g_import_s {
 	 * @defgroup collision Collision model
 	 * @{
 	 */
+
+	/**
+	 * @return The BSP model for the currrently loaded map.
+	 */
+	cm_bsp_t *(*Bsp)(void);
 
 	/**
 	 * @brief Finds the key-value pair for `key` within the specifed entity.
@@ -606,6 +607,12 @@ typedef struct g_import_s {
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
 
 	/**
+	 * @brief Set the model of a given entity by name.
+	 * @details For inline BSP models, the bounding box is also set and the entity linked.
+	 */
+	void (*SetModel)(g_entity_t *ent, const char *name);
+
+	/**
 	 * @brief All solid and trigger entities must be linked when they are
 	 * initialized or moved. Linking resolves their absolute bounding box and
 	 * makes them eligible for physics interactions.
@@ -654,8 +661,7 @@ typedef struct g_import_s {
 	 * @brief Network console IO.
 	 */
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3,
-	        4)));
+	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	/**
 	 * @}

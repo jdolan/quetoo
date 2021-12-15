@@ -52,7 +52,7 @@ static const cm_entity_t *EntityForModel(int32_t num) {
 	g_snprintf(model, sizeof(model), "*%d", num);
 
 	cm_entity_t **e = Cm_Bsp()->entities;
-	for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
+	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
 		if (!g_strcmp0(Cm_EntityValue(*e, "model")->string, model)) {
 			return *e;
 		}

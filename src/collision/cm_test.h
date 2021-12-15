@@ -66,5 +66,5 @@ int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat
 size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t len, int32_t *top_node, int32_t head_node, const mat4_t *matrix);
 
 #ifdef __CM_LOCAL_H__
-void Cm_InitBoxHull(void);
+void Cm_InitBoxHull(cm_bsp_t *bsp);
 #endif /* __CM_LOCAL_H__ */

@@ -332,7 +332,7 @@ typedef struct {
  * You can safely edit the data within the boundaries of the num_x values, but
  * if you want to expand the space required use the Bsp_* functions.
  */
-typedef struct {
+typedef struct bsp_file_s {
 	int32_t entity_string_size;
 	char *entity_string;
 

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "cm_types.h"
+#include "shared/shared.h"
 
 /**
  * @brief Asset contexts are paths (and conventions) for locating and loading material assets.
@@ -217,7 +217,6 @@ typedef struct cm_stage_s {
  * @brief Materials define the rendering attributes of textures.
  */
 typedef struct cm_material_s {
-
 	/**
 	 * @brief The material name, as it appears in the materials file.
 	 */
