@@ -169,12 +169,14 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		}
 	}
 
+	assert(tr.brush_side);
+
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_RIPPLE);
 	gi.WritePosition(pos);
 	gi.WriteDir(dir);
+	gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
 	gi.WriteByte((uint8_t) size);
-	gi.WriteByte((uint8_t) tr.contents);
 	gi.WriteByte((uint8_t) splash);
 
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
@@ -187,8 +189,8 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		gi.WriteByte(TE_RIPPLE);
 		gi.WritePosition(pos);
 		gi.WriteDir(dir);
+		gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
 		gi.WriteByte((uint8_t) size);
-		gi.WriteByte((uint8_t) tr.contents);
 		gi.WriteByte((uint8_t) false);
 
 		gi.Multicast(pos, MULTICAST_PVS, NULL);

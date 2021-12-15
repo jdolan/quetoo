@@ -997,56 +997,9 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-void Cg_RippleEffect(const vec3_t org, float size, int32_t contents) {
-
-	size *= RandomRangef(0.9f, 1.1f);
-
-	float viscosity;
-	if (contents & CONTENTS_LAVA) {
-		viscosity = 10.f;
-	} else if (contents & CONTENTS_SLIME) {
-		viscosity = 20.f;
-	} else {
-		viscosity = 30.f;
-	}
-
-	// center decal
-	Cg_AddSprite(&(cg_sprite_t) {
-		.animation = cg_sprite_poof_01,
-		.lifetime = Cg_AnimationLifetime(cg_sprite_poof_01, 30.0f) * (viscosity * .1f),
-		.origin = org,
-		.size = size * 8.f,
-		.size_velocity = size,
-		.dir = Vec3_Up(),
-		.rotation = RandomRadian(),
-		.color = Vec4(0.f, 0.f, 1.0f, 1.0f),
-		.end_color = Vec4(0.f, 0.f, 1.0f, 1.0f),
-		.lighting = .6f
-	});
-
-	// ring decal
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_water_ring,
-		.lifetime = 1000.f,
-		.origin = org,
-		.size = size * 4.f,
-		.size_velocity = size * 6.f,
-		.rotation = RandomRadian(),
-		.dir = Vec3_Up(),
-		.color = Vec4(0.f, 0.f, 0.5f, 0.5f),
-		.end_color = Vec4(0.f, 0.f, 0.f, 0.f),
-		.lighting = 1.f
-	});
-}
-
-/**
- * @brief
- */
-static void Cg_SplashEffect(const vec3_t org, const vec3_t dir, float size, int32_t contents) {
+static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, const vec3_t dir, float size) {
 
 	// foam spray column
-
-	vec4_t color;
 
 	cg_sprite_t s = (cg_sprite_t){
 		.atlas_image = cg_sprite_splash_02_03,
@@ -1095,6 +1048,70 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir, float size, int3
 /**
  * @brief
  */
+static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, float size) {
+
+	size *= RandomRangef(0.9f, 1.1f);
+
+	float viscosity;
+	if (side->contents & CONTENTS_LAVA) {
+		viscosity = 10.f;
+	} else if (side->contents & CONTENTS_SLIME) {
+		viscosity = 20.f;
+	} else {
+		viscosity = 30.f;
+	}
+
+	// center decal
+	Cg_AddSprite(&(cg_sprite_t) {
+		.animation = cg_sprite_poof_01,
+		.lifetime = Cg_AnimationLifetime(cg_sprite_poof_01, 30.0f) * (viscosity * .1f),
+		.origin = org,
+		.size = size * 8.f,
+		.size_velocity = size,
+		.dir = Vec3_Up(),
+		.rotation = RandomRadian(),
+		.color = Vec4(0.f, 0.f, 1.0f, 1.0f),
+		.end_color = Vec4(0.f, 0.f, 1.0f, 1.0f),
+		.lighting = .6f
+	});
+
+	// ring decal
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_water_ring,
+		.lifetime = 1000.f,
+		.origin = org,
+		.size = size * 4.f,
+		.size_velocity = size * 6.f,
+		.rotation = RandomRadian(),
+		.dir = Vec3_Up(),
+		.color = Vec4(0.f, 0.f, 0.5f, 0.5f),
+		.end_color = Vec4(0.f, 0.f, 0.f, 0.f),
+		.lighting = 1.f
+	});
+}
+
+/**
+ * @brief
+ */
+static void Cg_RippleSplashEffect(const vec3_t org, const vec3_t dir, int32_t brush_side, float size, _Bool splash) {
+
+	if (brush_side < 0 || brush_side > cgi.WorldModel()->bsp->num_brush_sides) {
+		cgi.Warn("Invalid brush side %d\n", brush_side);
+		return;
+	}
+
+	const r_bsp_brush_side_t *side = cgi.WorldModel()->bsp->brush_sides + brush_side;
+
+	Cg_RippleEffect(side, org, size);
+
+	if (splash) {
+		Cg_SplashEffect(side, org, dir, size);
+	}
+}
+
+/**
+ * @brief
+ */
 static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 
 	for (int32_t i = 0; i < 32; i++) {
@@ -1128,7 +1145,7 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
  */
 void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
-	int32_t i, j;
+	int32_t i, j, k;
 
 	const uint8_t type = cgi.ReadByte();
 
@@ -1218,12 +1235,10 @@ void Cg_ParseTempEntity(void) {
 		case TE_RIPPLE: // liquid surface ripples
 			pos = cgi.ReadPosition();
 			dir = cgi.ReadDir();
-			i = cgi.ReadByte();
+			i = cgi.ReadLong();
 			j = cgi.ReadByte();
-			Cg_RippleEffect(pos, i, j);
-			if (cgi.ReadByte()) {
-				Cg_SplashEffect(pos, dir, i, j);
-			}
+			k = cgi.ReadByte();
+			Cg_RippleSplashEffect(pos, dir, i, j, k);
 			break;
 
 		case TE_HOOK_IMPACT: // grapple hook impact
