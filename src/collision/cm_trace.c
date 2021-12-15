@@ -153,6 +153,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	} else if (enter_fraction < leave_fraction) { // pierced brush
 		if (enter_fraction > -1.0f && enter_fraction < data->trace.fraction) {
 			data->trace.fraction = Maxf(0.0f, enter_fraction);
+			data->trace.brush_side = side;
 			data->trace.plane = plane;
 			data->trace.contents = side->contents;
 			data->trace.surface = side->surface;

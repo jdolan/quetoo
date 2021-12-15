@@ -393,6 +393,13 @@ typedef struct {
 	vec3_t end;
 
 	/**
+	 * @brief The impacted brush side.
+	 * @remarks Callers should typically use the derived fields (plane, contents, surface, ..),
+	 * so that they need not worry about NULL checking and dereferencing.
+	 */
+	const struct cm_bsp_brush_side_s *brush_side;
+
+	/**
 	 * @brief The impacted plane, transformed by the matrix provided to Cm_BoxTrace.
 	 */
 	cm_bsp_plane_t plane;
