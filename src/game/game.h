@@ -530,7 +530,7 @@ typedef struct g_import_s {
 	/**
 	 * @return The BSP model for the currrently loaded map.
 	 */
-	cm_bsp_t *(*Bsp)(void);
+	const cm_bsp_t *(*Bsp)(void);
 
 	/**
 	 * @brief Finds the key-value pair for `key` within the specifed entity.

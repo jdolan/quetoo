@@ -34,7 +34,7 @@ cm_entity_t *Cm_Worldspawn(void);
 int32_t Cm_LeafContents(const int32_t leaf_num);
 int32_t Cm_LeafCluster(const int32_t leaf_num);
 
-cm_bsp_t *Cm_Bsp(void);
+const cm_bsp_t *Cm_Bsp(void);
 
 #ifdef __CM_LOCAL_H__
 

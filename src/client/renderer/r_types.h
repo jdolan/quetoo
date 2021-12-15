@@ -525,7 +525,7 @@ typedef struct {
  */
 typedef struct {
 
-	cm_bsp_t *cm;
+	const cm_bsp_t *cm;
 
 	int32_t num_planes;
 	r_bsp_plane_t *planes;

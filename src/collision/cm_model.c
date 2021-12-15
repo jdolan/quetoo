@@ -384,6 +384,6 @@ int32_t Cm_LeafCluster(const int32_t leaf_num) {
 /**
  * @brief
  */
-cm_bsp_t *Cm_Bsp(void) {
+const cm_bsp_t *Cm_Bsp(void) {
 	return &cm_bsp;
 }
