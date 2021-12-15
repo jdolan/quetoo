@@ -295,6 +295,11 @@ typedef struct {
 	vec4_t axis[2];
 
 	/**
+	 * @brief The brush contents.
+	 */
+	int32_t contents;
+
+	/**
 	 * @brief The surface flags.
 	 */
 	int32_t surface;

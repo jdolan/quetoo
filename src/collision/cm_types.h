@@ -221,6 +221,11 @@ typedef struct {
 	struct cm_material_s *material;
 
 	/**
+	 * @brief The contents mask (CONTENTS_*).
+	 */
+	int32_t contents;
+
+	/**
 	 * @brief The surface mask (SURF_*).
 	 */
 	int32_t surface;
