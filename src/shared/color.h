@@ -245,6 +245,46 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Color_Vec4(const color
 }
 
 /**
+ * @return An HSV vector of the specified color.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Color_HSV(const color_t color) {
+
+	const float cmax = Maxf(Maxf(color.r, color.g), color.b);
+	const float cmin = Minf(Minf(color.r, color.g), color.b);
+
+	const float delta = cmax - cmin;
+
+	float h;
+	if (cmax == 0.f && cmin == 0.f) {
+		h = 0;
+	} else if (cmax == color.r) {
+		h = (60.f * (color.g - color.b) / delta + 360.f);
+	} else if (cmax == color.g) {
+		h = (60.f * (color.b - color.r) / delta + 120.f);
+	} else {
+		h = (60.f * (color.r - color.g) / delta + 240.f);
+	}
+
+	float s;
+	if (cmax == 0.f) {
+		s = 0.f;
+	} else {
+		s = (delta / cmax) * 100.f;
+	}
+
+	const float v = cmax * 100.f;
+
+	return Vec3((int32_t) h % 360, s, v);
+}
+
+/**
+ * @return An HSV vector of the specified color.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Color_HSVA(const color_t color) {
+	return Vec3_ToVec4(Color_HSV(color), color.a);
+}
+
+/**
  * @return The sum of `a + b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Add(const color_t a, const color_t b) {

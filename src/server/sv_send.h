@@ -27,7 +27,7 @@
 void Sv_SendClientPackets(void);
 void Sv_Unicast(const g_entity_t *ent, const _Bool reliable);
 void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter);
-void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch);
+void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch);
 void Sv_ClientPrint(const g_entity_t *ent, int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastCommand(const char *fmt, ...) __attribute__((format(printf, 1, 2)));

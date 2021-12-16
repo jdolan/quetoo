@@ -153,8 +153,9 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	} else if (enter_fraction < leave_fraction) { // pierced brush
 		if (enter_fraction > -1.0f && enter_fraction < data->trace.fraction) {
 			data->trace.fraction = Maxf(0.0f, enter_fraction);
+			data->trace.brush_side = side;
 			data->trace.plane = plane;
-			data->trace.contents = brush->contents;
+			data->trace.contents = side->contents;
 			data->trace.surface = side->surface;
 			data->trace.material = side->material;
 		}
@@ -391,7 +392,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 		}
 	};
 
-	if (!cm_bsp.file.num_nodes) { // map not loaded
+	if (!cm_bsp.num_nodes) { // map not loaded
 		return data.trace;
 	}
 

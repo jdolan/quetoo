@@ -147,7 +147,7 @@ void R_DrawBspLightgrid(r_view_t *view) {
 		return;
 	}
 
-	const byte *in = (byte *) r_world_model->bsp->cm->file.lightgrid;
+	const byte *in = (byte *) r_world_model->bsp->cm->file->lightgrid;
 	if (!in) {
 		return;
 	}

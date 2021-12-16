@@ -258,6 +258,11 @@ typedef struct r_material_s {
 	 * @brief The time when this material was last animated.
 	 */
 	uint32_t ticks;
+
+	/**
+	 * @brief The diffusemap color.
+	 */
+	color_t color;
 } r_material_t;
 
 /**
@@ -293,6 +298,11 @@ typedef struct {
 	 * @brief The texture axis for S and T, in xyz + offset notation.
 	 */
 	vec4_t axis[2];
+
+	/**
+	 * @brief The brush contents.
+	 */
+	int32_t contents;
 
 	/**
 	 * @brief The surface flags.
@@ -520,7 +530,7 @@ typedef struct {
  */
 typedef struct {
 
-	cm_bsp_t *cm;
+	const cm_bsp_t *cm;
 
 	int32_t num_planes;
 	r_bsp_plane_t *planes;

@@ -1224,7 +1224,8 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
 
 	// send it to clients
-	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients), client_info);
+	const int32_t index = (int32_t) (ptrdiff_t) (cl - g_game.clients);
+	gi.SetConfigString(CS_CLIENTS + index, client_info);
 
 	// set hand, if anything should go wrong, it defaults to 0 (centered)
 	cl->locals.persistent.hand = (g_hand_t) strtol(GetUserInfo(user_info, "hand"), NULL, 10);

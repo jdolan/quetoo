@@ -465,44 +465,40 @@ typedef struct g_import_s {
 	 * @param index The index.
 	 * @param string The string.
 	 */
-	void (*SetConfigString)(const uint16_t index, const char *string);
+	void (*SetConfigString)(const int32_t index, const char *string);
 
 	/**
 	 @param index The index.
 	 @return The configuration string at `index`.
 	 */
-	const char *(*GetConfigString)(const uint16_t index);
+	const char *(*GetConfigString)(const int32_t index);
 
 	/**
 	 * @brief Finds or inserts a string in the appropriate range for the given model name.
 	 * @param name The asset name, e.g. `models/weapons/rocketlauncher/tris`.
 	 * @return The configuration string index.
 	 */
-	uint16_t (*ModelIndex)(const char *name);
+	int32_t (*ModelIndex)(const char *name);
 
 	/**
 	 * @brief Finds or inserts a string in the appropriate range for the given sound name.
 	 * @param name The asset name, e.g. `sounds/weapons/rocketlauncher/fire`.
 	 * @return The configuration string index.
 	 */
-	uint16_t (*SoundIndex)(const char *name);
+	int32_t (*SoundIndex)(const char *name);
 
 	/**
 	 * @brief Finds or inserts a string in the appropriate range for the given image name.
 	 * @param name The asset name, e.g. `pics/items/health_i`.
 	 * @return The configuration string index.
 	 */
-	uint16_t (*ImageIndex)(const char *name);
+	int32_t (*ImageIndex)(const char *name);
 
 	/**
 	 * @}
 	 */
 
-	/**
-	 * @brief Set the model of a given entity by name.
-	 * @details For inline BSP models, the bounding box is also set and the entity linked.
-	 */
-	void (*SetModel)(g_entity_t *ent, const char *name);
+
 
 	/**
 	 * @brief Sound sample playback dispatch.
@@ -512,7 +508,7 @@ typedef struct g_import_s {
 	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
 	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
 	 */
-	void (*Sound)(const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch);
+	void (*Sound)(const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch);
 
 	/**
 	 * @brief Sound sample playback dispatch for server-local entities, or
@@ -524,12 +520,17 @@ typedef struct g_import_s {
 	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
 	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
 	 */
-	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch);
+	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch);
 
 	/**
 	 * @defgroup collision Collision model
 	 * @{
 	 */
+
+	/**
+	 * @return The BSP model for the currrently loaded map.
+	 */
+	const cm_bsp_t *(*Bsp)(void);
 
 	/**
 	 * @brief Finds the key-value pair for `key` within the specifed entity.
@@ -606,6 +607,12 @@ typedef struct g_import_s {
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
 
 	/**
+	 * @brief Set the model of a given entity by name.
+	 * @details For inline BSP models, the bounding box is also set and the entity linked.
+	 */
+	void (*SetModel)(g_entity_t *ent, const char *name);
+
+	/**
 	 * @brief All solid and trigger entities must be linked when they are
 	 * initialized or moved. Linking resolves their absolute bounding box and
 	 * makes them eligible for physics interactions.
@@ -654,8 +661,7 @@ typedef struct g_import_s {
 	 * @brief Network console IO.
 	 */
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3,
-	        4)));
+	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	/**
 	 * @}

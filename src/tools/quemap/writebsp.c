@@ -356,6 +356,7 @@ static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
 		out->axis[i] = side->axis[i];
 	}
 
+	out->contents = side->contents;
 	out->surface = side->surface;
 	out->value = side->value;
 

@@ -156,19 +156,6 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		return;
 	}
 
-	float viscosity;
-
-	if (tr.contents & CONTENTS_SLIME) {
-		viscosity = 20.0;
-	} else if (tr.contents & CONTENTS_LAVA) {
-		viscosity = 30.0;
-	} else if (tr.contents & CONTENTS_WATER) {
-		viscosity = 10.0;
-	} else {
-		G_Debug("%s failed to resolve water type\n", etos(ent));
-		return;
-	}
-
 	vec3_t pos, dir;
 
 	pos = Vec3_Add(tr.end, Vec3_Up());
@@ -182,12 +169,14 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		}
 	}
 
+	assert(tr.brush_side);
+
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_RIPPLE);
 	gi.WritePosition(pos);
 	gi.WriteDir(dir);
+	gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
 	gi.WriteByte((uint8_t) size);
-	gi.WriteByte((uint8_t) viscosity);
 	gi.WriteByte((uint8_t) splash);
 
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
@@ -200,8 +189,8 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		gi.WriteByte(TE_RIPPLE);
 		gi.WritePosition(pos);
 		gi.WriteDir(dir);
+		gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
 		gi.WriteByte((uint8_t) size);
-		gi.WriteByte((uint8_t) viscosity);
 		gi.WriteByte((uint8_t) false);
 
 		gi.Multicast(pos, MULTICAST_PVS, NULL);
