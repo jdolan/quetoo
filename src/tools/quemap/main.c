@@ -266,6 +266,9 @@ static void Check_ZIP_Options(int32_t argc) {
 		if (!g_strcmp0(Com_Argv(i), "--include-shared")) {
 			include_shared = true;
 			Com_Verbose("Including shared assets\n");
+		} else if (!g_strcmp0(Com_Argv(i), "--update")) {
+			update_zip = true;
+			Com_Verbose("Updating existing zip archive\n");
 		} else {
 			break;
 		}
@@ -320,6 +323,7 @@ static void PrintHelpMessage(void) {
 
 	Com_Print("-zip               ZIP stage options:\n");
 	Com_Print(" --include-shared - include assets from shared archives\n");
+	Com_Print(" --update - Update the existing archive instead of authoring a new one\n");
 	Com_Print("\n");
 
 	Com_Print("Examples:\n");

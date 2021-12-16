@@ -26,6 +26,7 @@
 #include "qzip.h"
 
 _Bool include_shared = false;
+_Bool update_zip = false;
 
 #define MISSING "__missing__"
 
@@ -282,14 +283,30 @@ static void AddMapshots(void) {
 }
 
 /**
- * @brief Returns a suitable .pk3 filename name for the current bsp name
+ * @brief Returns a suitable .pk3 filename name for the current bsp name.
  */
-static char *GetZipFilename(void) {
-	static char zipfile[MAX_OS_PATH];
+static char *GetZipArchivePath(void) {
+	static char path[MAX_OS_PATH];
 
-	g_snprintf(zipfile, sizeof(zipfile), "map-%s-%d.pk3", map_base, getpid());
+	g_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
 
-	return zipfile;
+	if (update_zip) {
+		const char *existing = va("map-%s.pk3", map_base);
+
+		if (Fs_Exists(existing)) {
+			const char *dir = Fs_RealDir(existing);
+
+			if (dir) {
+				g_snprintf(path, sizeof(path), "%s/map-%s.pk3", dir, map_base);
+			} else {
+				Com_Warn("Failed to resolve real path of %s\n", existing);
+			}
+		} else {
+			Com_Warn("%s does not exist\n", existing);
+		}
+	}
+
+	return path;
 }
 
 /**
@@ -298,7 +315,6 @@ static char *GetZipFilename(void) {
  * but straightforward implementation.
  */
 int32_t ZIP_Main(void) {
-	char path[MAX_OS_PATH];
 
 	Com_Print("\n------------------------------------------\n");
 	Com_Print("\nCreating archive for %s\n\n", bsp_name);
@@ -333,7 +349,7 @@ int32_t ZIP_Main(void) {
 	GList *assets = g_hash_table_get_values(paths);
 	assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
 
-	g_snprintf(path, sizeof(path), "%s/%s", Fs_WriteDir(), GetZipFilename());
+	char *path = GetZipArchivePath();
 
 	mz_zip_archive zip;
 	memset(&zip, 0, sizeof(zip));
