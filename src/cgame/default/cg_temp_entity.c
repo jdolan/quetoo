@@ -997,44 +997,48 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
+static void Cg_SplashEffect_Think(cg_sprite_t *s, float life, float delta) {
+	s->origin.z += .5f * delta * s->size_velocity;
+}
+
+/**
+ * @brief
+ */
 static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, const vec3_t dir, float size) {
 
-	// foam spray column
+	// vertical spray
 
-	cg_sprite_t s = (cg_sprite_t){
+	const vec4_t color = Vec3_ToVec4(Color_HSV(side->material->color), 0.f);
+
+	const float scale = Clampf(size / 64.f, 0.0, 1.f);
+
+	const uint32_t lifetime = 2000 * scale;
+
+	Cg_AddSprite(&(cg_sprite_t) {
 		.atlas_image = cg_sprite_splash_02_03,
-		.lifetime = 750.f,
-		.origin = org,
+		.lifetime = lifetime,
+		.origin = Vec3_Fmaf(org, .5f, Vec3(0.f, 0.f, size)),
 		.size = size,
-		.size_velocity = 100.f,
-		.color = Vec4(1.f, 0.f, 0.25f, 0.f),
-		.end_color = Vec4(0.f, 0.f, 0.f, 0.f),
+		.size_velocity = size * 2.f / MILLIS_TO_SECONDS(lifetime),
+		.color = Vec4(color.x, color.y * .1f, color.z * .5f, 0.f),
+		.end_color = Vec4(color.x, 0.f, 0.f, 0.f),
 		.softness = 1.f,
-		.lighting = .6f
-	};
-
-	Cg_AddSprite(&s);
-
-	s.lifetime = 500.f;
-	s.acceleration.z = -SPRITE_GRAVITY;
-	for (int32_t i = 1; i < 4; i++) {
-		s.origin = Vec3_Fmaf(org, i * 5.f, Vec3_Up());
-		s.size = 20.f * (1.f - i * .25f);
-		Cg_AddSprite(&s);
-	}
+		.lighting = 1.f,
+		.Think = Cg_SplashEffect_Think,
+	});
 
 	// splash droplets
 
-	for (int32_t i = 0; i < 50; i++) {
+	for (int32_t i = 0; i < 64 * scale; i++) {
 		cg_sprite_t *p = Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle,
-			.lifetime = RandomRangef(10.f, 1000.f),
+			.lifetime = RandomRangeu(0, lifetime),
 			.origin = org,
-			.size = RandomRangef(1.0f, 3.0f),
-			.velocity = Vec3_Scale(Vec3_RandomizeDir(dir, 0.66f), RandomRangef(50.f, 150.f)),
-			.acceleration.z = -SPRITE_GRAVITY * 1.5f,
-			.color = Vec4(0.f, 0.f, 0.4f, 0.4f),
-			.end_color = Vec4(0.f, 0.f, 0.0f, 0.0f),
+			.size = RandomRangef(1.f, 3.f),
+			.velocity = Vec3_Scale(Vec3_RandomizeDir(dir, 0.33f), RandomRangef(100.f, 200.f)),
+			.acceleration.z = -SPRITE_GRAVITY,
+			.color = Vec4(color.x, color.y * .1f, color.z * .5f, 0.f),
+			.end_color = Vec4(color.x, 0.f, 0.f, 0.f),
 			.softness = 1.f,
 			.lighting = 1.f
 		});
@@ -1051,6 +1055,8 @@ static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, co
 static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, float size) {
 
 	size *= RandomRangef(0.9f, 1.1f);
+
+	const vec4_t color = Vec3_ToVec4(Color_HSV(side->material->color), 0.f);
 
 	float viscosity;
 	if (side->contents & CONTENTS_LAVA) {
@@ -1070,8 +1076,8 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
 		.size_velocity = size,
 		.dir = Vec3_Up(),
 		.rotation = RandomRadian(),
-		.color = Vec4(0.f, 0.f, 1.0f, 1.0f),
-		.end_color = Vec4(0.f, 0.f, 1.0f, 1.0f),
+		.color = Vec4(color.x, color.y * .3f, color.z, 1.f),
+		.end_color = Vec4(color.x, 0.f, 0.f, 1.f),
 		.lighting = .6f
 	});
 
@@ -1084,7 +1090,7 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
 		.size_velocity = size * 6.f,
 		.rotation = RandomRadian(),
 		.dir = Vec3_Up(),
-		.color = Vec4(0.f, 0.f, 0.5f, 0.5f),
+		.color = Vec4(0.f, 0.f, .5f, .5f),
 		.end_color = Vec4(0.f, 0.f, 0.f, 0.f),
 		.lighting = 1.f
 	});
