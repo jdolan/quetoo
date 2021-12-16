@@ -283,38 +283,12 @@ static void AddMapshots(void) {
 }
 
 /**
- * @brief Returns a suitable .pk3 filename name for the current bsp name.
- */
-static char *GetZipArchivePath(void) {
-	static char path[MAX_OS_PATH];
-
-	g_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
-
-	if (update_zip) {
-		const char *existing = va("map-%s.pk3", map_base);
-
-		if (Fs_Exists(existing)) {
-			const char *dir = Fs_RealDir(existing);
-
-			if (dir) {
-				g_snprintf(path, sizeof(path), "%s/map-%s.pk3", dir, map_base);
-			} else {
-				Com_Warn("Failed to resolve real path of %s\n", existing);
-			}
-		} else {
-			Com_Warn("%s does not exist\n", existing);
-		}
-	}
-
-	return path;
-}
-
-/**
  * @brief Loads the specified BSP file, resolves all resources referenced by it,
  * and generates a new zip archive for the project. This is a very inefficient
  * but straightforward implementation.
  */
 int32_t ZIP_Main(void) {
+	char path[MAX_OS_PATH];
 
 	Com_Print("\n------------------------------------------\n");
 	Com_Print("\nCreating archive for %s\n\n", bsp_name);
@@ -349,10 +323,11 @@ int32_t ZIP_Main(void) {
 	GList *assets = g_hash_table_get_values(paths);
 	assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
 
-	char *path = GetZipArchivePath();
-
 	mz_zip_archive zip;
 	memset(&zip, 0, sizeof(zip));
+
+	// write to a "temporary" archive name
+	g_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
 
 	if (mz_zip_writer_init_file(&zip, path, 0)) {
 		Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), path);
@@ -422,6 +397,27 @@ int32_t ZIP_Main(void) {
 
 	const uint32_t end = SDL_GetTicks();
 	Com_Print("\nWrote %s in %d ms\n", path, end - start);
+
+	if (update_zip) {
+		const char *existing = va("map-%s.pk3", map_base);
+
+		if (Fs_Exists(existing)) {
+			const char *dir = Fs_RealDir(existing);
+
+			if (dir) {
+				gchar *to_update = g_build_filename(dir, existing, NULL);
+
+				rename(path, to_update);
+				Com_Print("Renamed %s to %s\n", path, to_update);
+
+				g_free(to_update);
+			} else {
+				Com_Warn("Can't update %s: Failed to resolve real path\n", existing);
+			}
+		} else {
+			Com_Warn("Can't update %s: file not found\n", existing);
+		}
+	}
 
 	return 0;
 }
