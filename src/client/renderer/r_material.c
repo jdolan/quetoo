@@ -346,6 +346,8 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			break;
 	}
 
+	material->color = Img_Color(diffusemap);
+	
 	SDL_FreeSurface(diffusemap);
 
 	R_ResolveMaterialStages(material, context);

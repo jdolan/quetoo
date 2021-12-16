@@ -258,6 +258,11 @@ typedef struct r_material_s {
 	 * @brief The time when this material was last animated.
 	 */
 	uint32_t ticks;
+
+	/**
+	 * @brief The diffusemap color.
+	 */
+	color_t color;
 } r_material_t;
 
 /**
