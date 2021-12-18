@@ -98,12 +98,13 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb * (diffuse_light  * modulate), 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + (specular_light * modulate), 0.0, 32.0);
 
+		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = out_color.a;
+
 		// fog 
 		// out_color.rgb *= 1.0 - vertex.fog.a; // black? sigh.
 		out_color.rgb += vertex.fog.rgb;
 
-		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
-		out_bloom.a = out_color.a;
 	} else {
 
 		// effect
