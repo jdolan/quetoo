@@ -293,30 +293,97 @@ const cg_entity_class_t cg_misc_flame = {
 };
 
 /**
+ * @brief Animated light styles.
+ */
+typedef struct {
+	/**
+	 * @brief The style string, a-z (26 levels), animated at 10Hz.
+	 * @details With 256 bytes at 10hz, you can animate up to 25 seconds.
+	 */
+	char string[MAX_BSP_ENTITY_VALUE];
+
+	/**
+	 * @brief The current index into the string, using modulo.
+	 */
+	uint32_t index;
+
+	/**
+	 * @brief The last time the animation was advanced.
+	 */
+	uint32_t time;
+} cg_light_style_t;
+
+/**
+ * @brief The misc_light data type.
+ */
+typedef struct {
+	/**
+	 * @brief The light instance.
+	 */
+	cg_light_t light;
+
+	cg_light_style_t style;
+} cg_misc_light_data_t;
+
+/**
  * @brief
  */
 static void Cg_misc_light_Init(cg_entity_t *self) {
 
-	cg_light_t *light = self->data;
+	self->hz = cgi.EntityValue(self->def, "hz")->value;
+	self->drift = cgi.EntityValue(self->def, "drift")->value;
 
-	light->origin = self->origin;
-	light->radius = cgi.EntityValue(self->def, "light")->value ?: DEFAULT_LIGHT;
+	cg_misc_light_data_t *data = self->data;
+
+	data->light.origin = self->origin;
+	data->light.radius = cgi.EntityValue(self->def, "light")->value ?: DEFAULT_LIGHT;
 
 	const cm_entity_t *color = cgi.EntityValue(self->def, "_color");
 	if (color->parsed & ENTITY_VEC3) {
-		light->color = color->vec3;
+		data->light.color = color->vec3;
 	} else {
-		light->color = Vec3(1.f, 1.f, 1.f);
+		data->light.color = Vec3(1.f, 1.f, 1.f);
 	}
 
-	light->intensity = cgi.EntityValue(self->def, "intensity")->value;
+	data->light.intensity = cgi.EntityValue(self->def, "intensity")->value;
+	data->light.decay = SECONDS_TO_MILLIS(cgi.EntityValue(self->def, "decay")->value);
+
+	if (self->hz && !data->light.decay) {
+		data->light.decay = SECONDS_TO_MILLIS(.9f / self->hz);
+	}
+
+	const char *style = cgi.EntityValue(self->def, "style")->nullable_string;
+	if (style) {
+		g_strlcpy(data->style.string, style, sizeof(data->style.string));
+		self->hz = 0.f;
+	}
 }
 
 /**
  * @brief
  */
 static void Cg_misc_light_Think(cg_entity_t *self) {
-	Cg_AddLight((cg_light_t *) self->data);
+
+	cg_misc_light_data_t *data = self->data;
+
+	cg_light_style_t *style = &data->style;
+	if (*style->string) {
+		const size_t len = strlen(style->string);
+
+		if (cgi.client->unclamped_time - style->time >= 100) {
+			style->index++;
+			style->time = cgi.client->unclamped_time;
+		}
+
+		const float lerp = (cgi.client->unclamped_time - style->time) / 100.f;
+
+		const float s = (style->string[(style->index + 0) % len] - 'a') / (float) ('z' - 'a');
+		const float t = (style->string[(style->index + 1) % len] - 'a') / (float) ('z' - 'a');
+
+		data->light.intensity = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+	}
+
+	Cg_AddLight(&data->light);
 }
 
 /**
@@ -326,7 +393,7 @@ const cg_entity_class_t cg_misc_light = {
 	.class_name = "misc_light",
 	.Init = Cg_misc_light_Init,
 	.Think = Cg_misc_light_Think,
-	.data_size = sizeof(cg_light_t)
+	.data_size = sizeof(cg_misc_light_data_t)
 };
 
 /**
