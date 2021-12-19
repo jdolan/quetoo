@@ -346,17 +346,9 @@ static void Cg_misc_light_Init(cg_entity_t *self) {
 	}
 
 	data->light.intensity = cgi.EntityValue(self->def, "intensity")->value;
-	data->light.decay = SECONDS_TO_MILLIS(cgi.EntityValue(self->def, "decay")->value);
 
-	if (self->hz && !data->light.decay) {
-		data->light.decay = SECONDS_TO_MILLIS(.9f / self->hz);
-	}
-
-	const char *style = cgi.EntityValue(self->def, "style")->nullable_string;
-	if (style) {
-		g_strlcpy(data->style.string, style, sizeof(data->style.string));
-		self->hz = 0.f;
-	}
+	const char *style = cgi.EntityValue(self->def, "style")->nullable_string ?: "zzz";
+	g_strlcpy(data->style.string, style, sizeof(data->style.string));
 }
 
 /**
