@@ -707,7 +707,6 @@ const cg_entity_class_t cg_misc_sprite = {
  * @brief
  */
 typedef struct {
-	float hz, drift;
 	vec3_t velocity;
 	float size;
 	int32_t count;
@@ -720,8 +719,8 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 
 	cg_misc_steam_t *steam = self->data;
 
-	steam->hz = cgi.EntityValue(self->def, "hz")->value ?: .3f;
-	steam->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;
+	self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
+	self->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;
 
 	if (self->target) {
 		const vec3_t target_origin = cgi.EntityValue(self->target, "origin")->vec3;
