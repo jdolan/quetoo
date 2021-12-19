@@ -358,6 +358,8 @@ static void Cg_misc_light_Think(cg_entity_t *self) {
 
 	cg_misc_light_data_t *data = self->data;
 
+	cg_light_t light = data->light;
+
 	cg_light_style_t *style = &data->style;
 	if (*style->string) {
 		const size_t len = strlen(style->string);
@@ -372,10 +374,14 @@ static void Cg_misc_light_Think(cg_entity_t *self) {
 		const float s = (style->string[(style->index + 0) % len] - 'a') / (float) ('z' - 'a');
 		const float t = (style->string[(style->index + 1) % len] - 'a') / (float) ('z' - 'a');
 
-		data->light.intensity = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+		light.intensity = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+
+		if (data->light.intensity) {
+			light.intensity *= data->light.intensity;
+		}
 	}
 
-	Cg_AddLight(&data->light);
+	Cg_AddLight(&light);
 }
 
 /**
