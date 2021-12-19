@@ -498,8 +498,6 @@ typedef struct g_import_s {
 	 * @}
 	 */
 
-
-
 	/**
 	 * @brief Sound sample playback dispatch.
 	 *

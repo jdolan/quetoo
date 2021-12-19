@@ -181,7 +181,7 @@ cl_entity_t *Cg_Self(void) {
  */
 _Bool Cg_IsSelf(const cl_entity_t *ent) {
 
-	if (ent->current.number == cgi.client->client_num + 1) {
+	if (ent == cgi.client->entity) {
 		return true;
 	}
 

@@ -243,7 +243,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const
 			gi.WriteByte(TE_BLASTER);
 			gi.WritePosition(self->s.origin);
 			gi.WriteDir(trace->plane.normal);
-			gi.WriteByte(self->owner->s.number);
+			gi.WriteByte(self->owner->s.client);
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		}
 	}
@@ -925,7 +925,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	gi.WritePosition(tr.end);
 	gi.WriteDir(tr.plane.normal);
 	gi.WriteLong(tr.surface);
-	gi.WriteByte(ent->s.number);
+	gi.WriteByte(ent->s.client);
 
 	gi.Multicast(start, MULTICAST_PHS, NULL);
 
@@ -936,7 +936,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		gi.WritePosition(tr.end);
 		gi.WriteDir(tr.plane.normal);
 		gi.WriteLong(tr.surface);
-		gi.WriteByte(ent->s.number);
+		gi.WriteByte(ent->s.client);
 
 		gi.Multicast(tr.end, MULTICAST_PHS, NULL);
 	}

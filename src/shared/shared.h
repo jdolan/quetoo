@@ -179,7 +179,7 @@ typedef struct {
 	uint16_t number;
 	
 	/**
-	 * @brief The entity's spawn_id; this will differ if an entity is replaced.
+	 * @brief The entity's spawn identifier; this will differ if an entity is replaced.
 	 */
 	uint8_t spawn_id;
 

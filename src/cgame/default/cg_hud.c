@@ -1245,7 +1245,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];
 		if (ent->current.model1 == MODEL_CLIENT) {
 
-			const cl_client_info_t *client = &cgi.client->client_info[ent->current.number - 1];
+			const cl_client_info_t *client = &cgi.client->client_info[ent->current.client];
 
 			g_strlcpy(name, client->name, sizeof(name));
 			time = cgi.client->unclamped_time;

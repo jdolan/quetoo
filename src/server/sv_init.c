@@ -223,7 +223,7 @@ static void Sv_InitClients(sv_state_t state) {
 		g_entity_t *ent = ENTITY_FOR_NUM(i + 1);
 		ent->s.number = NUM_FOR_ENTITY(ent);
 
-		// assign their edict
+		// assign their entity
 		svs.clients[i].entity = ent;
 
 		// reset state of spawned clients back to connected
