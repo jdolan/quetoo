@@ -708,6 +708,9 @@ const cg_entity_class_t cg_misc_sprite = {
  */
 typedef struct {
 	float hz, drift;
+	vec3_t velocity;
+	float size;
+	int32_t count;
 } cg_misc_steam_t;
 
 /**
@@ -719,34 +722,61 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 
 	steam->hz = cgi.EntityValue(self->def, "hz")->value ?: .3f;
 	steam->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;
+
+	if (self->target) {
+		const vec3_t target_origin = cgi.EntityValue(self->target, "origin")->vec3;
+		steam->velocity = Vec3_Subtract(target_origin, self->origin);
+	} else {
+		const cm_entity_t *velocity = cgi.EntityValue(self->def, "velocity");
+		if (velocity->parsed & ENTITY_VEC3) {
+			steam->velocity = velocity->vec3;
+		} else {
+			steam->velocity = Vec3(0.f, 0.f, 32.f);
+		}
+	}
+
+	steam->size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
+	steam->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
 }
 
 /**
  * @brief
  */
 static void Cg_misc_steam_Think(cg_entity_t *self) {
-	/*const vec3_t end = Vec3_Add(self->origin, self->steam.velocity);
+
+	const cg_misc_steam_t *steam = self->data;
+
+	const vec3_t end = Vec3_Add(self->origin, steam->velocity);
 
 	if (cgi.PointContents(self->origin) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(NULL, self->origin, end, 10.f);
+		Cg_BubbleTrail(NULL, self->origin, end);
 		return;
 	}
 
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_steam,
-		.origin = org,
-		.velocity = Vec3_Add(vel, Vec3_RandomRange(-2.f, 2.f)),
-		.lifetime = 4500 / (5.f + Randomf() * .5f),
-		.size = 8.f,
-		.color = Vec4(0.f, 0.f, 1.f, .19f)
-	});
+	for (int32_t i = 0; i < steam->count; i++) {
+		if (!Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_steam,
+			.origin = self->origin,
+			.velocity = Vec3_Add(steam->velocity, Vec3_RandomRange(-2.f, 2.f)),
+			.acceleration = Vec3_Add(Vec3_Scale(Vec3_Up(), 20.f), Vec3_RandomDir()),
+			.lifetime = 4500 / (5.f + Randomf() * .5f),
+			.size = steam->size,
+			.size_velocity = 10.f,
+			.color = Vec4(0.f, 0.f, 1.f, .5f),
+			.lighting = 1.f,
+			.softness = 1.f,
+		})) {
+			break;
+		};
+	}
 
 	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_steam,
-		.origin = org,
-		.attenuation = SOUND_ATTEN_CUBIC,
-		.flags = S_PLAY_POSITIONED
-	});*/
+		.origin = self->origin,
+		.atten = SOUND_ATTEN_CUBIC,
+		.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+		.entity = self->id,
+	});
 }
 
 /**
