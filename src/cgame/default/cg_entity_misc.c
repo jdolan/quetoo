@@ -591,6 +591,8 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 
 	cg_misc_sprite_t *sprite = self->data;
 
+	sprite->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
+
 	const char *name = cgi.EntityValue(self->def, "sprite")->nullable_string ?: "particle";
 	sprite->sprite.image = cgi.LoadImage(va("sprites/%s", name), IT_SPRITE);
 	if (sprite->sprite.image == NULL) {
@@ -610,7 +612,6 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 		sprite->sprite.velocity = cgi.EntityValue(self->def, "velocity")->vec3;
 	}
 
-	sprite->sprite.velocity = cgi.EntityValue(self->def, "velocity")->vec3;
 	sprite->sprite.acceleration = cgi.EntityValue(self->def, "acceleration")->vec3;
 	sprite->sprite.rotation = cgi.EntityValue(self->def, "rotation")->value;
 	sprite->sprite.rotation_velocity = cgi.EntityValue(self->def, "rotation_velocity")->value;
@@ -666,7 +667,7 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
 
 			cg_sprite_t s = this->sprite;
 
-			if (i & 1) {
+			if (Randomi() & 1) {
 				s.media = that->sprite.media;
 			}
 
