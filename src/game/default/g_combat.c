@@ -406,10 +406,10 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 		vec3_t dir = Vec3_Subtract(ent->s.origin, inflictor->s.origin);
 		const float dist = Vec3_Length(dir);
 
-		float d = damage - 0.5 * dist;
-		const float k = knockback - 0.5 * dist;
+		float d = Maxf(damage - 0.5 * dist, 0.f);
+		const float k = Maxf(knockback - 0.5 * dist, 0.f);
 
-		if (d <= 0 && k <= 0) { // too far away to be damaged
+		if (d == 0.f && k == 0.f) { // too far away to be damaged
 			continue;
 		}
 
