@@ -142,7 +142,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
  * @return The amount of damage absorbed, which is not necessarily the amount
  * of armor consumed.
  */
-static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t normal, int16_t damage,
+static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t normal, int32_t damage,
                             uint32_t dflags) {
 
 	if (dflags & DMG_NO_ARMOR) {
@@ -160,8 +160,8 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 		return 0;
 	}
 
-	const int16_t quantity = ent->client->locals.inventory[armor->index];
-	int16_t saved;
+	const int32_t quantity = ent->client->locals.inventory[armor->index];
+	int32_t saved;
 
 	if (dflags & DMG_ENERGY) {
 		saved = Clampf(damage * armor_info->energy_protection, 0, quantity);
@@ -211,6 +211,11 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 			return;
 		}
 	}
+
+	assert(damage >= 0);
+	assert(damage <= INT16_MAX);
+	assert(knockback >= 0);
+	assert(knockback <= INT16_MAX);
 
 	inflictor = inflictor ? inflictor : g_game.entities;
 	attacker = attacker ? attacker : g_game.entities;
@@ -304,7 +309,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 		}
 	}
 
-	int16_t damage_armor = 0, damage_health = 0;
+	int32_t damage_armor = 0, damage_health = 0;
 
 	// check for god mode protection
 	if ((target->locals.flags & FL_GOD_MODE) && !(dflags & DMG_NO_GOD)) {
@@ -336,7 +341,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 
 		target->locals.health -= damage_health;
 
-		// for hitsound
+		// for hit sound
 		if (!was_dead && attacker->client && attacker->client != client) {
 			attacker->client->locals.damage_inflicted += damage_health + damage_armor;
 		}

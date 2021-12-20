@@ -347,19 +347,11 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 
 	if (self->locals.enemy) { // direct hit
 
-		vec3_t v;
-		v = Box3_Center(self->locals.enemy->bounds);
-		v = Vec3_Subtract(self->s.origin, v);
-
-		const float dist = Vec3_Length(v);
-		const int32_t d = self->locals.damage - 0.5 * dist;
-		const int32_t k = self->locals.knockback - 0.5 * dist;
-
-		const vec3_t dir = Vec3_Subtract(self->locals.enemy->s.origin, self->s.origin);
-
 		mod = self->locals.spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
 
-		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, Vec3_Zero(), d, k, DMG_RADIUS, mod);
+		G_Damage(self->locals.enemy, self, self->owner,
+				 self->locals.velocity, self->s.origin, Vec3_Negate(self->locals.velocity),
+				 self->locals.damage, self->locals.knockback, 0, mod);
 	}
 
 	if (self->locals.spawn_flags & HAND_GRENADE) {
