@@ -1020,7 +1020,7 @@ static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, co
 		.origin = Vec3_Fmaf(org, .5f, Vec3(0.f, 0.f, size)),
 		.size = size,
 		.size_velocity = size * 2.f / MILLIS_TO_SECONDS(lifetime),
-		.color = Vec4(color.x, color.y * .1f, color.z * .5f, 0.f),
+		.color = Vec4(color.x, .3f, .5f, 0.f),
 		.end_color = Vec4(color.x, 0.f, 0.f, 0.f),
 		.softness = 1.f,
 		.lighting = 1.f,
@@ -1037,7 +1037,7 @@ static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, co
 			.size = RandomRangef(1.f, 3.f),
 			.velocity = Vec3_Scale(Vec3_RandomizeDir(dir, 0.33f), RandomRangef(100.f, 200.f)),
 			.acceleration.z = -SPRITE_GRAVITY,
-			.color = Vec4(color.x, color.y * .1f, color.z * .5f, 0.f),
+			.color = Vec4(color.x, .3f, .5f, 0.f),
 			.end_color = Vec4(color.x, 0.f, 0.f, 0.f),
 			.softness = 1.f,
 			.lighting = 1.f
@@ -1076,8 +1076,8 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
 		.size_velocity = size,
 		.dir = Vec3_Up(),
 		.rotation = RandomRadian(),
-		.color = Vec4(color.x, color.y * .3f, color.z, 1.f),
-		.end_color = Vec4(color.x, 0.f, 0.f, 1.f),
+		.color = Vec4(color.x, .1f, .3f, 0.f),
+		.end_color = Vec4(color.x, 0.f, 0.f, 0.f),
 		.lighting = .6f
 	});
 
