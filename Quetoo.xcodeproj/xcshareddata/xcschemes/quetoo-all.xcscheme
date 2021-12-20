@@ -85,6 +85,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+set r_get_error 2"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -97,8 +101,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
-            isEnabled = "NO">
+            argument = "+debug sound"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map edge"
@@ -110,10 +114,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+debug sound"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
