@@ -83,8 +83,8 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 	// same water level, head out of water
 	if ((old_water_level == water_level) && (water_level > WATER_FEET && water_level < WATER_UNDER)) {
-		if (Vec3_Length(ent->locals.velocity) > 10.0) {
-			G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, false);
+		if (Vec3_Length(ent->locals.velocity) > 10.f) {
+			G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.f, false);
 		}
 	}
 

@@ -127,8 +127,8 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
  * @param splash True to emit a splash effect, false otherwise.
  */
 void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, _Bool splash) {
-	vec3_t start, end;
 
+	cm_trace_t tr;
 	if (ent) {
 
 		if (g_level.time - ent->locals.ripple_time < 400) {
@@ -137,22 +137,13 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 
 		ent->locals.ripple_time = g_level.time;
 
-		start = Vec3_Add(ent->s.origin, ent->bounds.maxs);
-		end = Vec3_Add(ent->s.origin, ent->bounds.mins);
-
-		start.x = end.x = (start.x + end.x) * 0.5;
-		start.y = end.y = (start.y + end.y) * 0.5;
-
-		start.z += 16.0;
-		end.z -= 16.0;
-
+		const vec3_t pos = Vec3_Fmaf(ent->s.origin, -1.f, ent->locals.velocity);
+		tr = gi.Trace(pos, ent->s.origin, ent->bounds, ent, CONTENTS_MASK_LIQUID);
 	} else {
-		start = pos1;
-		end = pos2;
+		tr = gi.Trace(pos1, pos2, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
 	}
 
-	const cm_trace_t tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
-	if (tr.start_solid || tr.fraction == 1.0) {
+	if (!tr.brush_side) {
 		G_Debug("%s failed to resolve water\n", etos(ent));
 		return;
 	}
@@ -317,10 +308,10 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		}
 
 		if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) {
-			G_Ripple(NULL, tr.end, start, 8.0, false);
+			G_Ripple(NULL, tr.end, start, 8.f, false);
 			G_BubbleTrail(start, &tr, 12.f);
 		} else if (gi.PointContents(tr.end) & CONTENTS_MASK_LIQUID) {
-			G_Ripple(NULL, start, tr.end, 8.0, true);
+			G_Ripple(NULL, start, tr.end, 8.f, true);
 			G_BubbleTrail(start, &tr, 12.f);
 		}
 	}
@@ -876,7 +867,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	end = Vec3_Fmaf(pos, MAX_WORLD_DIST, dir);
 
-	G_Ripple(NULL, pos, end, 24.0, true);
+	G_Ripple(NULL, pos, end, 24.f, true);
 
 	g_entity_t *ignore = ent;
 	while (ignore) {

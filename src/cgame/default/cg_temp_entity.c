@@ -1024,7 +1024,7 @@ static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, co
 
 	const float scale = Clampf(size / 64.f, 0.0, 1.f);
 
-	const uint32_t lifetime = 2000 * scale;
+	const uint32_t lifetime = 1800 * scale;
 
 	Cg_AddSprite(&(cg_sprite_t) {
 		.atlas_image = cg_sprite_splash_02_03,
