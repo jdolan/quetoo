@@ -124,7 +124,8 @@ void Cg_AddFlares(void) {
 
 		if ((cgi.client->unclamped_time - cg_flare_timestamp) > 50) {
 
-			const float dist = Cm_DistanceToPlane(cgi.view->origin, flare->face->brush_side->plane->cm);
+			const cm_bsp_plane_t plane = *flare->face->brush_side->plane->cm;
+			const float dist = Vec3_Dot(cgi.view->origin, plane.normal) - plane.dist;
 
 			flare->exposure = 0.f;
 

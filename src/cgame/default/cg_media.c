@@ -20,7 +20,6 @@
  */
 
 #include "cg_local.h"
-#include "collision/collision.h"
 
 s_sample_t *cg_sample_blaster_fire;
 s_sample_t *cg_sample_blaster_hit;
