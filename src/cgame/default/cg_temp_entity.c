@@ -281,8 +281,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
 
 	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
-
-		Cg_BubbleTrail(NULL, org, Vec3_Fmaf(org, 8.f, dir));
+		Cg_BubbleTrail(NULL, org, Vec3_Fmaf(org, 8.f, dir), 2.f);
 	} else {
 
 		float spark_life = 200.f;
@@ -413,8 +412,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 	// if a player has died underwater, emit some bubbles
 	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
-
-		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3(0.f, 0.f, 64.f)));
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3(0.f, 0.f, 64.f)), 1.f);
 	}
 
 	for (int32_t i = 0; i < count; i++) {
@@ -693,7 +691,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 static void Cg_LightningDischargeEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 40; i++) {
-		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)));
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)), 1.f);
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -724,8 +722,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.decay = 500,
 	});
 
-	// Check for bubble trail
-	Cg_BubbleTrail(NULL, start, end);
+	if (cgi.BoxContents(Box3_FromPoints((const vec3_t[]) { start, end }, 2)) & CONTENTS_MASK_LIQUID) {
+		Cg_BubbleTrail(NULL, start, end, 1.f);
+	}
 
 	vec3_t forward;
 	const float dist = Vec3_DistanceDir(end, start, &forward);
@@ -741,6 +740,12 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 		const vec3_t org = Vec3_Add(Vec3_Add(Vec3_Fmaf(start, i, forward), Vec3_Scale(right, cosi)), Vec3_Scale(up, sini));
 		const vec3_t accel = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 32.f), Vec3_Scale(up, sini * 32.f)), Vec3_Up());
+
+		if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
+			if (Randomb()) {
+				continue;
+			}
+		}
 
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle3,
@@ -850,6 +855,9 @@ typedef union {
 	void *data;
 } cg_bfg_laser_data_t;
 
+/**
+ * @brief
+ */
 static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
 
 	const cg_bfg_laser_data_t data = { .data = sprite->data };
@@ -859,6 +867,10 @@ static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
 
 	sprite->origin = org;
 	sprite->termination = end;
+
+	if (cgi.BoxContents(Box3_FromPoints((const vec3_t[]) { org, end }, 2)) & CONTENTS_MASK_LIQUID) {
+		Cg_BubbleTrail(NULL, org, end, 4.f);
+	}
 }
 
 /**
@@ -1235,7 +1247,8 @@ void Cg_ParseTempEntity(void) {
 		case TE_BUBBLES: // bubbles chasing projectiles in water
 			pos = cgi.ReadPosition();
 			pos2 = cgi.ReadPosition();
-			Cg_BubbleTrail(NULL, pos, pos2);
+			i = cgi.ReadByte();
+			Cg_BubbleTrail(NULL, pos, pos2, (float) i);
 			break;
 
 		case TE_RIPPLE: // liquid surface ripples

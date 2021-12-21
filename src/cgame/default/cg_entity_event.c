@@ -158,7 +158,7 @@ static void Cg_GurpEffect(cl_entity_t *ent) {
 	vec3_t end = start;
 	end.z += 16.0;
 
-	Cg_BubbleTrail(NULL, start, end);
+	Cg_BubbleTrail(NULL, start, end, 2.f);
 }
 
 /**
@@ -172,7 +172,7 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
 	vec3_t end = start;
 	end.z += 16.0;
 
-	Cg_BubbleTrail(NULL, start, end);
+	Cg_BubbleTrail(NULL, start, end, 2.f);
 }
 
 /**

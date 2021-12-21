@@ -63,7 +63,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 		vec3_t org2, forward, right;
 		Vec3_Vectors(ent->angles, &forward, &right, NULL);
 		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
-		Cg_BubbleTrail(NULL, org, org2);
+		Cg_BubbleTrail(NULL, org, org2, 2.f);
 	}
 }
 
@@ -85,7 +85,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		vec3_t org2, forward, right;
 		Vec3_Vectors(ent->angles, &forward, &right, NULL);
 		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
-		Cg_BubbleTrail(NULL, org, org2);
+		Cg_BubbleTrail(NULL, org, org2, 2.f);
 		return;
 	}
 
@@ -122,7 +122,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 	Vec3_Vectors(ent->angles, &forward, &right, NULL);
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
-		Cg_BubbleTrail(NULL, org, org2);
+		Cg_BubbleTrail(NULL, org, org2, 8.f);
 		return;
 	}
 

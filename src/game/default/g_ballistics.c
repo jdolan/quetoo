@@ -56,7 +56,7 @@ static _Bool G_TakesDamage(g_entity_t *ent) {
 /**
  * @brief Used to add generic bubble trails to shots.
  */
-static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
+static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr, float freq) {
 	vec3_t dir, pos;
 
 	if (Vec3_Equal(tr->end, start)) {
@@ -81,6 +81,7 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	gi.WriteByte(TE_BUBBLES);
 	gi.WritePosition(start);
 	gi.WritePosition(tr->end);
+	gi.WriteByte((uint8_t) freq);
 	gi.Multicast(pos, MULTICAST_PHS, NULL);
 }
 
@@ -317,10 +318,10 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 
 		if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) {
 			G_Ripple(NULL, tr.end, start, 8.0, false);
-			G_BubbleTrail(start, &tr);
+			G_BubbleTrail(start, &tr, 12.f);
 		} else if (gi.PointContents(tr.end) & CONTENTS_MASK_LIQUID) {
 			G_Ripple(NULL, start, tr.end, 8.0, true);
-			G_BubbleTrail(start, &tr);
+			G_BubbleTrail(start, &tr, 12.f);
 		}
 	}
 }
@@ -767,7 +768,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		}
 
 		tr = gi.Trace(water_start, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
-		G_BubbleTrail(water_start, &tr);
+		G_BubbleTrail(water_start, &tr, 4.f);
 
 		G_Ripple(NULL, start, end, 16.f, true);
 	} else {

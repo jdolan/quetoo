@@ -747,8 +747,8 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
 
 	const vec3_t end = Vec3_Add(self->origin, steam->velocity);
 
-	if (cgi.PointContents(self->origin) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(NULL, self->origin, end);
+	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
+		Cg_BubbleTrail(NULL, self->origin, end, 2.f);
 		return;
 	}
 
