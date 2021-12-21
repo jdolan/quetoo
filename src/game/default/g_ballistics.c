@@ -694,7 +694,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 
 		if (gi.inPVS(self->s.origin, ent->s.origin)) {
 
-			if (ent->locals.water_level) {
+			if (ent->locals.water_level > WATER_NONE) {
 				const int32_t dmg = 50 * ent->locals.water_level;
 
 				G_Damage(ent, self, self->owner, Vec3_Zero(), ent->s.origin, Vec3_Zero(),
