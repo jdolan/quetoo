@@ -1002,6 +1002,10 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 
 		const float f = 1.0 - dist / self->locals.damage_radius;
 
+		if (f <= 0.f) {
+			continue;
+		}
+
 		G_Damage(ent, self, self->owner, dir, ent->s.origin, normal,
 				 frame_damage * f, frame_knockback * f, DMG_RADIUS, MOD_BFG_LASER);
 
