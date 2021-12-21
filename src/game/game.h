@@ -579,7 +579,7 @@ typedef struct g_import_s {
 	 * the trace intersected a plane.
 	 */
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds,
-	                    const g_entity_t *skip, const int32_t contents);
+	                    const g_entity_t *skip, int32_t contents);
 
 	/**
 	 * @brief Collision detection. Traces between the two endpoints, impacting
@@ -595,7 +595,7 @@ typedef struct g_import_s {
 	 * the trace intersected a plane.
 	 */
 	cm_trace_t (*Clip)(const vec3_t start, const vec3_t end, const box3_t bounds,
-	                   const g_entity_t *ent, const int32_t contents);
+	                   const g_entity_t *ent, int32_t contents);
 
 	/**
 	 * @brief PVS and PHS query facilities, returning true if the two points
@@ -633,8 +633,7 @@ typedef struct g_import_s {
 	 *
 	 * @return The number of entities found.
 	 */
-	size_t (*BoxEntities)(const box3_t bounds, g_entity_t **list, const size_t len,
-	                      const uint32_t type);
+	size_t (*BoxEntities)(const box3_t bounds, g_entity_t **list, const size_t len, uint32_t type);
 
 	/**
 	 * @}

@@ -68,7 +68,7 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
 }
 
 /**
- * @brief
+ * @return A constructed plane struct.
  */
 cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
 
@@ -81,7 +81,7 @@ cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
 }
 
 /**
- * @brief
+ * @return The plane transformed by the input matrix.
  */
 cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t *plane) {
 	const vec4_t out = Mat4_TransformPlane(matrix, plane->normal, plane->dist);
@@ -323,20 +323,30 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 }
 
 /**
- * @brief Contents check against the world model.
+ * @brief Point contents check.
  *
  * @param p The point to check.
  * @param head_node The BSP head node to recurse down.
+ * @param inverse_matrix The inverse matrix of the entity to be tested.
  *
  * @return The contents mask at the specified point.
+ *
+ * @remarks The inverse matrix is required, rather than the matrix, because it is cheaper to
+ * transform the test point once, than to transform every plane traversed in the tree.
  */
-int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
+int32_t Cm_PointContents(const vec3_t p, int32_t head_node, const mat4_t inverse_matrix) {
 
 	if (!cm_bsp.num_nodes) {
 		return 0;
 	}
 
-	const int32_t leaf_num = Cm_PointLeafnum(p, head_node);
+	vec3_t p0 = p;
+
+	if (!Mat4_Equal(inverse_matrix, Mat4_Identity())) {
+		p0 = Mat4_Transform(inverse_matrix, p);
+	}
+
+	const int32_t leaf_num = Cm_PointLeafnum(p0, head_node);
 
 	return cm_bsp.leafs[leaf_num].contents;
 }
@@ -347,9 +357,11 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 typedef struct {
 	box3_t bounds;
 	int32_t *list;
-	size_t len, max_len;
+	size_t count, length;
 	int32_t top_node;
-	const mat4_t *matrix;
+	int32_t contents;
+	mat4_t matrix;
+	_Bool is_transformed;
 } cm_box_leafnum_data;
 
 /**
@@ -360,17 +372,21 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 
 	while (true) {
 		if (node_num < 0) {
-			if (data->len < data->max_len) {
-				data->list[data->len++] = -1 - node_num;
+			const int32_t leaf_num = -1 - node_num;
+			data->contents |= cm_bsp.leafs[leaf_num].contents;
+
+			if (data->count < data->length) {
+				data->list[data->count++] = leaf_num;
 			}
+
 			return;
 		}
 
 		const cm_bsp_node_t *node = &cm_bsp.nodes[node_num];
 		cm_bsp_plane_t plane = *node->plane;
 
-		if (data->matrix) {
-			plane = Cm_TransformPlane(*data->matrix, &plane);
+		if (data->is_transformed) {
+			plane = Cm_TransformPlane(data->matrix, &plane);
 		}
 
 		const int32_t side = Cm_BoxOnPlaneSide(data->bounds, &plane);
@@ -390,35 +406,29 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 }
 
 /**
- * @brief
- */
-int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat4_t inverse_matrix) {
-	const vec3_t p0 = Mat4_Transform(inverse_matrix, p);
-	return Cm_PointContents(p0, head_node);
-}
-
-/**
  * @brief Populates the list of leafs the specified bounding box touches. If
  * top_node is not NULL, it will contain the top node of the BSP tree that
  * fully contains the box.
  *
  * @param bounds The bounds in world space.
  * @param list The list of leaf numbers to populate.
- * @param len The maximum number of leafs to return.
+ * @param length The maximum number of leafs to return.
  * @param top_node If not null, this will contain the top node for the box.
  * @param head_node The head node to recurse from.
+ * @param matrix The matrix by which to transform planes.
  *
  * @return The number of leafs accumulated to the list.
  */
-size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t len, int32_t *top_node,
-					  int32_t head_node, const mat4_t *matrix) {
+size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t length, int32_t *top_node,
+					  int32_t head_node, const mat4_t matrix) {
 
 	cm_box_leafnum_data data = {
 		.bounds = bounds,
 		.list = list,
-		.max_len = len,
+		.length = length,
 		.top_node = -1,
-		.matrix = matrix
+		.matrix = matrix,
+		.is_transformed = !Mat4_Equal(matrix, Mat4_Identity())
 	};
 
 	Cm_BoxLeafnums_r(&data, head_node);
@@ -427,10 +437,30 @@ size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t len, int32_t *t
 		*top_node = data.top_node;
 	}
 
-	if (data.len == data.max_len) {
-		Com_Debug(DEBUG_COLLISION, "max_len (%" PRIuPTR ") reached\n", data.max_len);
+	if (data.count == data.length) {
+		Com_Debug(DEBUG_COLLISION, "length (%" PRIuPTR ") reached\n", data.length);
 	}
 
-	return data.len;
+	return data.count;
 }
 
+/**
+ * @brief Contents check for a bounded box.
+ * @param bounds The bounding box to check for contents.
+ * @param head_node The BSP head node to recurse down.
+ * @param matrix The matrix to transform the bounds by.
+ * @return The contents mask of all leafs within the transformed bounds.
+ */
+int32_t Cm_BoxContents(const box3_t bounds, int32_t head_node, const mat4_t matrix) {
+	cm_box_leafnum_data data = {
+		.bounds = bounds,
+		.list = NULL,
+		.length = 0,
+		.top_node = -1,
+		.matrix = matrix
+	};
+
+	Cm_BoxLeafnums_r(&data, head_node);
+
+	return data.contents;
+}

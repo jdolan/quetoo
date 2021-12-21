@@ -24,8 +24,8 @@
 #include "cl_types.h"
 
 int32_t Cl_PointContents(const vec3_t point);
-cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
-                    const int32_t skip, const int32_t contents);
+int32_t Cl_BoxContents(const box3_t bounds);
+cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t skip, int32_t contents);
 
 #ifdef __CL_LOCAL_H__
 void Cl_PredictMovement(void);
