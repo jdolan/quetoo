@@ -99,6 +99,10 @@ int32_t Cl_BoxContents(const box3_t bounds) {
 			continue;
 		}
 
+		if (!Box3_Intersects(bounds, ent->abs_bounds)) {
+			continue;
+		}
+
 		const int32_t head_node = Cl_HullForEntity(s);
 
 		contents |= Cm_BoxContents(bounds, head_node, ent->matrix);
