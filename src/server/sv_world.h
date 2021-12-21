@@ -29,6 +29,7 @@ void Sv_LinkEntity(g_entity_t *ent);
 void Sv_UnlinkEntity(g_entity_t *ent);
 size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, size_t len, uint32_t type);
 int32_t Sv_PointContents(const vec3_t p);
+int32_t Sv_BoxContents(const box3_t bounds);
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
                     const g_entity_t *skip, int32_t contents);
 cm_trace_t Sv_Clip(const vec3_t start, const vec3_t end, const box3_t bounds,

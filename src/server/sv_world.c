@@ -381,6 +381,34 @@ int32_t Sv_PointContents(const vec3_t point) {
 	return contents;
 }
 
+/**
+ * @brief Returns the contents mask for the specified bounds. This includes world
+ * contents as well as contents for any solid entities this point intersects.
+ */
+int32_t Sv_BoxContents(const box3_t bounds) {
+	g_entity_t *entities[MAX_ENTITIES];
+
+	// get base contents from world
+	int32_t contents = Cm_BoxContents(bounds, 0, Mat4_Identity());
+
+	// as well as contents from all intersected entities
+	const size_t len = Sv_BoxEntities(bounds, entities, lengthof(entities), BOX_COLLIDE);
+
+	// iterate the box entities, checking each one for an intersection
+	for (size_t i = 0; i < len; i++) {
+		const g_entity_t *ent = entities[i];
+
+		const int32_t head_node = Sv_HullForEntity(ent);
+		if (head_node != -1) {
+
+			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+			contents |= Cm_BoxContents(bounds, head_node, sent->matrix);
+		}
+	}
+
+	return contents;
+}
+
 // an entity's movement, with allowed exceptions and other info
 typedef struct {
 	vec3_t start, end;

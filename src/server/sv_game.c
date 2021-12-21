@@ -360,6 +360,7 @@ void Sv_InitGame(void) {
 	import.EntityValue = Cm_EntityValue;
 	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Sv_PointContents;
+	import.BoxContents = Sv_BoxContents;
 	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Sv_Trace;
 	import.Clip = Sv_Clip;

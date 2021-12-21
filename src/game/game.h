@@ -557,6 +557,12 @@ typedef struct g_import_s {
 	int32_t (*PointContents)(const vec3_t point);
 
 	/**
+	 * @return The contents mask of all leafs within bounds. The box is tested
+	 * against the world as well as all solid entities.
+	 */
+	int32_t (*BoxContents)(const box3_t bounds);
+
+	/**
 	 * @return `true` if `point` resides inside `brush`, `false` otherwise.
 	 * @param point The point to test.
 	 * @param brush The brush to test against.
