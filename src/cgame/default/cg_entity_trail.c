@@ -986,6 +986,44 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 }
 
 /**
+ * @brief
+ */
+static void Cg_CtfEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+
+	const cg_team_info_t *team = cg_team_info;
+	for (int32_t i = 0; i < MAX_TEAMS; i++, team++) {
+		if (ent->current.effects & (EF_CTF_RED << i)) {
+			break;
+		}
+	}
+	assert(team);
+
+	const vec3_t color = Cg_ResolveEffectHSV(team->hue, 0.f);
+	const vec3_t velocity = Vec3_Scale(Vec3_Subtract(end, start), 100.f / cgi.client->frame_msec);
+
+	const int32_t count = Cg_TrailCount(end, 1.f, ent, TRAIL_PRIMARY, NULL, NULL);
+	for (int32_t i = 0; i < count; i++) {
+
+		if (!Cg_AddSprite(&(cg_sprite_t) {
+				.atlas_image = cg_sprite_particle,
+				.lifetime = RandomRangeu(800, 2000),
+				.size = RandomRangef(1.f, 2.f),
+				.size_velocity = RandomRangef(-2.f, 0.f),
+				.origin = Vec3_Add(start, Vec3_RandomRanges(-18.f, 18.f, -18.f, 18.f, 8.f, 32.f)),
+				.velocity = Vec3_Add(velocity, Vec3_RandomRanges(-24.f, 24.f, -24.f, 24.f, 0.f, 24.f)),
+				.acceleration = Vec3_RandomizeDir(Vec3_Scale(Vec3_Up(), 30.f), .33f),
+				.friction = 50.f,
+				.color = Vec4(color.x, color.y * .9, 1.f, 0.f),
+				.end_color = Vec4(color.x, color.y * .2f, 0.f, 0.f),
+				.softness = 1.f,
+				.lighting = .5f
+			})) {
+			break;
+		};
+	}
+}
+
+/**
  * @brief Determines the initial position and directional vectors of a projectile. This is a copy of G_InitProjectile.
  * If that function changes, make sure this one is modified too.
  */
@@ -1122,5 +1160,9 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			break;
 		default:
 			break;
+	}
+
+	if (s->effects & EF_CTF_MASK) {
+		Cg_CtfEffectTrail(ent, start, end);
 	}
 }
