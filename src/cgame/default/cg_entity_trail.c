@@ -650,10 +650,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
  */
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	// TODO:
-	// * The end sprites get kind of lost when firing and running into a wall at the same time.
-	//   No such problem when backpedaling etc.
-	// * Re-enable lights and stains
+	// TODO: The end sprites get kind of lost when firing and running into a wall at the same time.
 
 	vec3_t dir = Vec3_Direction(end, start);
 

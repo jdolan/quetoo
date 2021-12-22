@@ -464,20 +464,23 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (int32_t i = 0; i < count; i++) {
-		const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
-		const float sat = RandomRangef(.7f, 1.f);
+		const float hue = color_hue_yellow - RandomRangef(4.f, 40.f);
 
 		if (!Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_spark,
 				.origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f)),
-				.velocity = Vec3_Add(Vec3_Scale(dir, 16.f), Vec3_RandomRange(-90.f, 90.f)),
-				.acceleration = Vec3_Add(Vec3_RandomRange(-1.f, 1.f), Vec3(0.f, 0.f, -SPRITE_GRAVITY)),
-				.lifetime = 500 + Randomf() * 250,
-				.size = RandomRangef(1.f, 3.f),
-				.bounce = .6f,
-				.color = Vec4(hue, sat, RandomRangef(.7f, 1.f), RandomRangef(.56f, 1.f)),
-				.end_color = Vec4(hue, sat, 0.f, 0.f),
-				.softness = 1.f
+				.velocity = Vec3_Scale(Vec3_RandomizeDir(dir, .33f), RandomRangef(64.f, 128.f)),
+				.acceleration.z = -SPRITE_GRAVITY,
+				.lifetime = 1000 + Randomf() * 1000,
+				.size = RandomRangef(.5f, 3.f),
+				.size_velocity = 1.f,
+				.rotation = RandomRangef(-M_PI, M_PI),
+				.rotation_velocity = 1.f,
+				.bounce = .3f,
+				.color = Vec4(hue, .4f, 1.f, 1.f),
+				.end_color = Vec4(hue, .6f, .4f, 0.f),
+				.softness = 1.f,
+				.lighting = 1.f,
 			})) {
 			break;
 		}
@@ -485,9 +488,9 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 80.0,
+		.radius = 100.0,
 		.color = Vec3(0.7, 0.5, 0.5),
-		.decay = 650
+		.decay = RandomRangeu(120, 180)
 	});
 
 	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
