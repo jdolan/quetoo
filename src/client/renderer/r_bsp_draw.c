@@ -375,6 +375,38 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 }
 
 /**
+ * @brief Interrupt BSP drawing to draw depth sorted objects.
+ */
+static void R_DrawBlendDepthTypes(const r_view_t *view, int32_t blend_depth, r_blend_depth_type_t types) {
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
+	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_BLEND);
+
+	if (types & BLEND_DEPTH_ENTITY) {
+		R_DrawEntities(view, blend_depth);
+	}
+
+	if (types & BLEND_DEPTH_SPRITE) {
+		R_DrawSprites(view, blend_depth);
+	}
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glUseProgram(r_bsp_program.name);
+	glBindVertexArray(r_world_model->bsp->vertex_array);
+
+	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+}
+
+/**
  * @brief Draws the specified draw elements for the given entity.
  * @param entity The entity, or NULL for the world model.
  * @param draw The draw elements command.
@@ -475,31 +507,7 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 
 			const int32_t blend_depth = (int32_t) (draw - r_world_model->bsp->draw_elements);
 
-			glDisable(GL_DEPTH_TEST);
-			glDisable(GL_CULL_FACE);
-
-			glBlendFunc(GL_ONE, GL_ZERO);
-			glDisable(GL_BLEND);
-
-			if (draw->blend_depth_types & BLEND_DEPTH_ENTITY) {
-				R_DrawEntities(view, blend_depth);
-			}
-
-			if (draw->blend_depth_types & BLEND_DEPTH_SPRITE) {
-				R_DrawSprites(view, blend_depth);
-			}
-
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
-
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			glUseProgram(r_bsp_program.name);
-			glBindVertexArray(r_world_model->bsp->vertex_array);
-
-			glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+			R_DrawBlendDepthTypes(view, blend_depth, draw->blend_depth_types);
 
 			material = NULL;
 		}
@@ -607,6 +615,8 @@ void R_DrawWorld(const r_view_t *view) {
 	}
 
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
+
+	R_DrawBlendDepthTypes(view, -1, BLEND_DEPTH_ALL);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
