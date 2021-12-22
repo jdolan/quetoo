@@ -130,15 +130,19 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 
 	cm_trace_t tr;
 	if (ent) {
-
 		if (g_level.time - ent->locals.ripple_time < 400) {
 			return;
 		}
-
 		ent->locals.ripple_time = g_level.time;
 
-		const vec3_t pos = Vec3_Fmaf(ent->s.origin, -1.f, ent->locals.velocity);
-		tr = gi.Trace(pos, ent->s.origin, ent->bounds, ent, CONTENTS_MASK_LIQUID);
+		box3_t bounds;
+		if (ent->solid == SOLID_BSP) {
+			bounds = Box3_FromCenterSize(Vec3_Zero(), Box3_Size(ent->abs_bounds));
+		} else {
+			bounds = ent->bounds;
+		}
+
+		tr = gi.Trace(pos1, pos2, bounds, ent, CONTENTS_MASK_LIQUID);
 	} else {
 		tr = gi.Trace(pos1, pos2, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
 	}

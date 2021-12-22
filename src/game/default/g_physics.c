@@ -85,6 +85,9 @@ static void G_CheckWater(g_entity_t *ent) {
 		pos = ent->s.origin;
 	}
 
+	const vec3_t pos1 = Vec3_Fmaf(pos, -QUETOO_TICK_SECONDS, ent->locals.velocity);
+	const vec3_t pos2 = pos;
+
 	if (old_water_level == WATER_NONE && ent->locals.water_level == WATER_UNDER) {
 
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
@@ -99,7 +102,7 @@ static void G_CheckWater(g_entity_t *ent) {
 			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.f, true);
+				G_Ripple(ent, pos1, pos2, 0.f, true);
 			}
 		}
 
@@ -113,7 +116,7 @@ static void G_CheckWater(g_entity_t *ent) {
 			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.f, false);
+				G_Ripple(ent, pos2, pos1, 0.f, false);
 			}
 		}
 	}
