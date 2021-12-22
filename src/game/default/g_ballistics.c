@@ -128,44 +128,30 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
  */
 void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, _Bool splash) {
 
-	cm_trace_t tr;
+	const cm_trace_t tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
+	if (!tr.brush_side) {
+		G_Debug("Failed to resolve water brush side for %s\n", etos(ent));
+		return;
+	}
+
+	const vec3_t pos = Vec3_Add(tr.end, Vec3_Up());
+	const vec3_t dir = tr.plane.normal;
+
 	if (ent) {
 		if (g_level.time - ent->locals.ripple_time < 400) {
 			return;
 		}
+		
 		ent->locals.ripple_time = g_level.time;
 
-		box3_t bounds;
-		if (ent->solid == SOLID_BSP) {
-			bounds = Box3_FromCenterSize(Vec3_Zero(), Box3_Size(ent->abs_bounds));
-		} else {
-			bounds = ent->bounds;
-		}
-
-		tr = gi.Trace(pos1, pos2, bounds, ent, CONTENTS_MASK_LIQUID);
-	} else {
-		tr = gi.Trace(pos1, pos2, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
-	}
-
-	if (!tr.brush_side) {
-		G_Debug("%s failed to resolve water\n", etos(ent));
-		return;
-	}
-
-	vec3_t pos, dir;
-
-	pos = Vec3_Add(tr.end, Vec3_Up());
-	dir = tr.plane.normal;
-
-	if (ent && size == 0.0) {
-		if (ent->locals.ripple_size) {
-			size = ent->locals.ripple_size;
-		} else {
-			size = Clampf(Box3_Distance(ent->bounds), 12.0, 64.0);
+		if (size == 0.f) {
+			if (ent->locals.ripple_size) {
+				size = ent->locals.ripple_size;
+			} else {
+				size = Clampf(Box3_Distance(ent->bounds), 12.0, 64.0);
+			}
 		}
 	}
-
-	assert(tr.brush_side);
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_RIPPLE);
@@ -178,13 +164,11 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 
 	if (!(tr.contents & CONTENTS_TRANSLUCENT)) {
-		pos = Vec3_Add(tr.end, Vec3_Down());
-		dir = Vec3_Negate(dir);
 
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(TE_RIPPLE);
-		gi.WritePosition(pos);
-		gi.WriteDir(dir);
+		gi.WritePosition(Vec3_Add(pos, Vec3_Down()));
+		gi.WriteDir(Vec3_Negate(dir));
 		gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
 		gi.WriteByte((uint8_t) size);
 		gi.WriteByte((uint8_t) false);

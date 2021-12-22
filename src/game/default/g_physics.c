@@ -85,8 +85,8 @@ static void G_CheckWater(g_entity_t *ent) {
 		pos = ent->s.origin;
 	}
 
-	const vec3_t pos1 = Vec3_Fmaf(pos, -QUETOO_TICK_SECONDS, ent->locals.velocity);
-	const vec3_t pos2 = pos;
+	const vec3_t top = Vec3(pos.x, pos.y, ent->abs_bounds.maxs.z);
+	const vec3_t bot = Vec3(pos.x, pos.y, ent->abs_bounds.mins.z);
 
 	if (old_water_level == WATER_NONE && ent->locals.water_level == WATER_UNDER) {
 
@@ -102,7 +102,11 @@ static void G_CheckWater(g_entity_t *ent) {
 			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_Ripple(ent, pos1, pos2, 0.f, true);
+
+				const vec3_t pos1 = Vec3_Fmaf(top, -QUETOO_TICK_SECONDS, ent->locals.velocity);
+				const vec3_t pos2 = Vec3_Fmaf(bot,  QUETOO_TICK_SECONDS, ent->locals.velocity);
+
+				G_Ripple(ent, pos1, pos2, 0.f, Vec3_Length(ent->locals.velocity) > 100.f);
 			}
 		}
 
@@ -116,7 +120,11 @@ static void G_CheckWater(g_entity_t *ent) {
 			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_Ripple(ent, pos2, pos1, 0.f, false);
+
+				const vec3_t pos1 = Vec3_Fmaf(top,  QUETOO_TICK_SECONDS, ent->locals.velocity);
+				const vec3_t pos2 = Vec3_Fmaf(bot, -QUETOO_TICK_SECONDS, ent->locals.velocity);
+
+				G_Ripple(ent, pos1, pos2, 0.f, false);
 			}
 		}
 	}
