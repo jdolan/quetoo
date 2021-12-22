@@ -501,10 +501,17 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
  * @brief
  */
 static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
-	// TODO: Bubbles in water?
 
-	// ember sparks
-	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
+	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
+		for (int32_t i = 0; i < 16; i++) {
+
+			const vec3_t start = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f));
+			const vec3_t end = Vec3_Fmaf(start, RandomRangef(48.f, 128.f), Vec3_RandomDir());
+
+			Cg_BubbleTrail(NULL, start, end, 1.f);
+		}
+	} else {
+		// ember sparks
 		for (int32_t i = 0; i < 100; i++) {
 			const uint32_t lifetime = 3000 + Randomf() * 300;
 			const float size = 2.f + Randomf() * 2.f;
