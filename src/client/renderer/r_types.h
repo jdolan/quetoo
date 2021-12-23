@@ -23,7 +23,7 @@
 
 #include <SDL_video.h>
 
-#include "atlas.h"
+#include "common/atlas.h"
 #include "collision/cm_bsp.h"
 
 #include "r_gl_types.h"
