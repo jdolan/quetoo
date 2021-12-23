@@ -26,6 +26,8 @@
  */
 static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 
+	ent->s.origin = ent->locals.move_info.dest;
+
 	ent->locals.velocity = Vec3_Zero();
 
 	ent->locals.move_info.current_speed = 0.0;
