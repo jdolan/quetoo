@@ -32,22 +32,17 @@
  */
 void Sv_HeartbeatMasters(void) {
 	const char *string;
-	int32_t i;
-
-	if (!dedicated->value) {
-		return;    // only dedicated servers report to masters
-	}
 
 	if (!sv_public->value) {
-		return;    // a private dedicated game
+		return; // a private dedicated game
 	}
 
-	if (!svs.initialized) { // we're not up yet
+	if (sv.state != SV_ACTIVE_GAME) { // we're not up yet
 		return;
 	}
 
 	if (svs.next_heartbeat > quetoo.ticks) {
-		return;    // not time to send yet
+		return; // not time to send yet
 	}
 
 	svs.next_heartbeat = quetoo.ticks + HEARTBEAT_SECONDS * 1000;
@@ -56,7 +51,7 @@ void Sv_HeartbeatMasters(void) {
 	string = Sv_StatusString();
 
 	// send to each master server
-	for (i = 0; i < MAX_MASTERS; i++) {
+	for (int32_t i = 0; i < MAX_MASTERS; i++) {
 		if (svs.masters[i].port) {
 			Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(&svs.masters[i]));
 			Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "heartbeat\n%s", string);
@@ -80,18 +75,13 @@ void Sv_InitMasters(void) {
  * @brief Informs master servers that this server is halting.
  */
 void Sv_ShutdownMasters(void) {
-	int32_t i;
-
-	if (!dedicated->value) {
-		return;    // only dedicated servers send heartbeats
-	}
 
 	if (!sv_public->value) {
 		return;    // a private dedicated game
 	}
 
 	// send to group master
-	for (i = 0; i < MAX_MASTERS; i++) {
+	for (int32_t i = 0; i < MAX_MASTERS; i++) {
 		if (svs.masters[i].port) {
 			Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.masters[i]));
 			Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "shutdown");
