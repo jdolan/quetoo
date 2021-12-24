@@ -98,9 +98,9 @@ GList *Cm_LoadEntities(const char *entity_string) {
  */
 int32_t Cm_EntityNumber(const cm_entity_t *entity) {
 
-	for (size_t i = 0; i < Cm_Bsp()->num_entities; i++) {
+	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
 		if (Cm_Bsp()->entities[i] == entity) {
-			return (int32_t) i;
+			return i;
 		}
 	}
 
@@ -130,7 +130,7 @@ GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity) {
 	GPtrArray *brushes = g_ptr_array_new();
 
 	cm_bsp_brush_t *brush = Cm_Bsp()->brushes;
-	for (int32_t i = 0; i < Cm_Bsp()->file.num_brushes; i++, brush++) {
+	for (int32_t i = 0; i < Cm_Bsp()->num_brushes; i++, brush++) {
 
 		if (brush->entity == entity) {
 			g_ptr_array_add(brushes, brush);

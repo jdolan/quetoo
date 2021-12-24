@@ -211,7 +211,7 @@ void BuildFog(void) {
 	fogs = g_array_new(false, false, sizeof(fog_t));
 
 	cm_entity_t **entity = Cm_Bsp()->entities;
-	for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
+	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
 		FogForEntity(*entity);
 	}
 

@@ -36,7 +36,7 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
 
 	const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
 
-	size_t start = 0;
+	int32_t start = 0;
 	if (from) {
 		while (start < bsp->num_entities) {
 			if (bsp->entities[start] == from) {
@@ -47,7 +47,7 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
 		assert(start < bsp->num_entities);
 	}
 
-	for (size_t i = start; i < bsp->num_entities; i++) {
+	for (int32_t i = start; i < bsp->num_entities; i++) {
 		const cm_entity_t *e = bsp->entities[i];
 		if (predicate(e, data)) {
 			return e;
@@ -109,7 +109,7 @@ void Cg_LoadEntities(void) {
 	cg_entities = g_array_new(false, false, sizeof(cg_entity_t));
 
 	const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
-	for (size_t i = 0; i < bsp->num_entities; i++) {
+	for (int32_t i = 0; i < bsp->num_entities; i++) {
 
 		const cm_entity_t *def = bsp->entities[i];
 		const char *class_name = cgi.EntityValue(def, "classname")->string;
@@ -181,7 +181,7 @@ cl_entity_t *Cg_Self(void) {
  */
 _Bool Cg_IsSelf(const cl_entity_t *ent) {
 
-	if (ent->current.number == cgi.client->client_num + 1) {
+	if (ent == cgi.client->entity) {
 		return true;
 	}
 

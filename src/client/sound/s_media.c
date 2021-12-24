@@ -90,7 +90,7 @@ void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
 				S_RegisterMedia(dependency);
 			}
 		} else {
-			// Com_Debug("Invalid dependency for %s\n", dependent->name);
+			Com_Debug(DEBUG_SOUND, "Invalid dependency for %s\n", dependent->name);
 		}
 	} else {
 		Com_Warn("Invalid dependent\n");

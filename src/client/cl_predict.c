@@ -52,7 +52,7 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
  */
 int32_t Cl_PointContents(const vec3_t point) {
 
-	int32_t contents = Cm_PointContents(point, 0);
+	int32_t contents = Cm_PointContents(point, 0, Mat4_Identity());
 
 	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
@@ -71,7 +71,41 @@ int32_t Cl_PointContents(const vec3_t point) {
 
 		const int32_t head_node = Cl_HullForEntity(s);
 
-		contents |= Cm_TransformedPointContents(point, head_node, ent->inverse_matrix);
+		contents |= Cm_PointContents(point, head_node, ent->inverse_matrix);
+	}
+
+	return contents;
+}
+
+/**
+ * @return The contents mask of all leafs that span the specified bounds.
+ */
+int32_t Cl_BoxContents(const box3_t bounds) {
+
+	int32_t contents = Cm_BoxContents(bounds, 0, Mat4_Identity());
+
+	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+
+		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const entity_state_t *s = &cl.entity_states[snum];
+
+		if (s->solid < SOLID_BOX) {
+			continue;
+		}
+
+		const cl_entity_t *ent = &cl.entities[s->number];
+
+		if (ent == cl.entity) {
+			continue;
+		}
+
+		if (!Box3_Intersects(bounds, ent->abs_bounds)) {
+			continue;
+		}
+
+		const int32_t head_node = Cl_HullForEntity(s);
+
+		contents |= Cm_BoxContents(bounds, head_node, ent->matrix);
 	}
 
 	return contents;
@@ -83,7 +117,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 typedef struct {
 	vec3_t start, end;
 	box3_t bounds;
-	box3_t box;
+	box3_t abs_bounds;
 	cm_trace_t trace;
 	int32_t skip;
 	int32_t contents;
@@ -113,14 +147,13 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			continue;
 		}
 
-		if (!Box3_Intersects(ent->abs_bounds, trace->box)) {
+		if (!Box3_Intersects(ent->abs_bounds, trace->abs_bounds)) {
 			continue;
 		}
 
 		const int32_t head_node = Cl_HullForEntity(s);
 
-		cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds,
-		                            head_node, trace->contents, &ent->matrix, &ent->inverse_matrix);
+		cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix);
 
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 			trace->trace = tr;
@@ -140,15 +173,14 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  * @param skip An optional entity number for which all tests are skipped. Pass
  * 0 for none, because entity 0 is the world, which we always test.
  */
-cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
-                    const int32_t skip, const int32_t contents) {
+cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t skip, int32_t contents) {
 
 	cl_trace_t trace;
 
 	memset(&trace, 0, sizeof(trace));
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, NULL, NULL);
+	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, Mat4_Identity());
 	if (trace.trace.fraction < 1.0) {
 		trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
 
@@ -163,7 +195,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
 	trace.skip = skip;
 	trace.contents = contents;
 
-	trace.box = Cm_TraceBounds(start, end, bounds);
+	trace.abs_bounds = Cm_TraceBounds(start, end, bounds);
 
 	Cl_ClipTraceToEntities(&trace);
 

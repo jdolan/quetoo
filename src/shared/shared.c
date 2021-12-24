@@ -325,7 +325,7 @@ const char *EmojiEsc(const char *in, char *out, size_t out_size) {
 	in++;
 
 	for (size_t i = 0; i < out_size - 1; i++) {
-		if (isalnum(*in)) {
+		if (isalnum(*in) || strchr("_", *in)) {
 			if (out) {
 				*out++ = *in++;
 			}

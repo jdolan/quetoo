@@ -281,8 +281,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
 
 	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
-
-		Cg_BubbleTrail(NULL, org, Vec3_Fmaf(org, 8.f, dir));
+		Cg_BubbleTrail(NULL, org, Vec3_Fmaf(org, 8.f, dir), 2.f);
 	} else {
 
 		float spark_life = 200.f;
@@ -413,8 +412,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 	// if a player has died underwater, emit some bubbles
 	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
-
-		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3(0.f, 0.f, 64.f)));
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3(0.f, 0.f, 64.f)), 1.f);
 	}
 
 	for (int32_t i = 0; i < count; i++) {
@@ -466,20 +464,23 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (int32_t i = 0; i < count; i++) {
-		const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
-		const float sat = RandomRangef(.7f, 1.f);
+		const float hue = color_hue_yellow - RandomRangef(4.f, 40.f);
 
 		if (!Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_spark,
 				.origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f)),
-				.velocity = Vec3_Add(Vec3_Scale(dir, 16.f), Vec3_RandomRange(-90.f, 90.f)),
-				.acceleration = Vec3_Add(Vec3_RandomRange(-1.f, 1.f), Vec3(0.f, 0.f, -SPRITE_GRAVITY)),
-				.lifetime = 500 + Randomf() * 250,
-				.size = RandomRangef(1.f, 3.f),
-				.bounce = .6f,
-				.color = Vec4(hue, sat, RandomRangef(.7f, 1.f), RandomRangef(.56f, 1.f)),
-				.end_color = Vec4(hue, sat, 0.f, 0.f),
-				.softness = 1.f
+				.velocity = Vec3_Scale(Vec3_RandomizeDir(dir, .33f), RandomRangef(64.f, 128.f)),
+				.acceleration.z = -SPRITE_GRAVITY,
+				.lifetime = 1000 + Randomf() * 1000,
+				.size = RandomRangef(.5f, 3.f),
+				.size_velocity = 1.f,
+				.rotation = RandomRangef(-M_PI, M_PI),
+				.rotation_velocity = 1.f,
+				.bounce = .3f,
+				.color = Vec4(hue, .4f, 1.f, 1.f),
+				.end_color = Vec4(hue, .6f, .4f, 0.f),
+				.softness = 1.f,
+				.lighting = 1.f,
 			})) {
 			break;
 		}
@@ -487,9 +488,9 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 80.0,
+		.radius = 100.0,
 		.color = Vec3(0.7, 0.5, 0.5),
-		.decay = 650
+		.decay = RandomRangeu(120, 180)
 	});
 
 	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
@@ -503,10 +504,17 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
  * @brief
  */
 static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
-	// TODO: Bubbles in water?
 
-	// ember sparks
-	if ((cgi.PointContents(org) & CONTENTS_MASK_LIQUID) == 0) {
+	if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
+		for (int32_t i = 0; i < 16; i++) {
+
+			const vec3_t start = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f));
+			const vec3_t end = Vec3_Fmaf(start, RandomRangef(48.f, 128.f), Vec3_RandomDir());
+
+			Cg_BubbleTrail(NULL, start, end, 1.f);
+		}
+	} else {
+		// ember sparks
 		for (int32_t i = 0; i < 100; i++) {
 			const uint32_t lifetime = 3000 + Randomf() * 300;
 			const float size = 2.f + Randomf() * 2.f;
@@ -693,7 +701,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 static void Cg_LightningDischargeEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 40; i++) {
-		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)));
+		Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)), 1.f);
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -724,8 +732,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.decay = 500,
 	});
 
-	// Check for bubble trail
-	Cg_BubbleTrail(NULL, start, end);
+	if (cgi.BoxContents(Box3_FromPoints((const vec3_t[]) { start, end }, 2)) & CONTENTS_MASK_LIQUID) {
+		Cg_BubbleTrail(NULL, start, end, 1.f);
+	}
 
 	vec3_t forward;
 	const float dist = Vec3_DistanceDir(end, start, &forward);
@@ -741,6 +750,12 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 		const vec3_t org = Vec3_Add(Vec3_Add(Vec3_Fmaf(start, i, forward), Vec3_Scale(right, cosi)), Vec3_Scale(up, sini));
 		const vec3_t accel = Vec3_Add(Vec3_Add(Vec3_Scale(right, cosi * 32.f), Vec3_Scale(up, sini * 32.f)), Vec3_Up());
+
+		if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
+			if (Randomb()) {
+				continue;
+			}
+		}
 
 		Cg_AddSprite(&(cg_sprite_t) {
 			.atlas_image = cg_sprite_particle3,
@@ -758,6 +773,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		});
 
 		if (i % 3 == 0) {
+			const int32_t hue = (int32_t) effect_color.x + RandomRangei(10, 20) % 360;
 			Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_particle3,
 				.origin = org,
@@ -766,8 +782,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 				.lifetime = vapor_lifetime + Randomf() * 160,
 				.size = 1.5f,
 				.size_velocity = -.5f / MILLIS_TO_SECONDS(vapor_lifetime),
-				.color = Vec4(effect_color.x + RandomRangef(-20.f, 20.f), effect_color.y, effect_color.z * .5f, 0.f),
-				.end_color = Vec4(effect_color.x + RandomRangef(-20.f, 20.f), 0.f, 0.f, 0.f),
+				.color = Vec4(hue, 0.f, 1.f, 0.f),
+				.end_color = Vec4(hue, effect_color.y, 0.f, 0.f),
 				.softness = 1.f,
 				.lighting = 1.f
 			});
@@ -794,11 +810,12 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		Cg_AddSprite(&(cg_sprite_t) {
 			.origin = Vec3_Add(end, dir),
 			.atlas_image = cg_sprite_flash,
-			.lifetime = 150,
-			.size = RandomRangef(75.f, 100.f),
+			.lifetime = 250,
+			.size = 120.f,
+			.size_velocity = RandomRangef(100.f, 200.f),
 			.rotation = RandomRadian(),
 			.rotation_velocity = i == 0 ? .66f : -.66f,
-			.color = Vec4(effect_color.x, effect_color.y * .5f, effect_color.z, 0.f),
+			.color = Vec4(effect_color.x, effect_color.y * .5f, 1.f, 0.f),
 			.end_color = Vec4(effect_color.x, 0.f, 0.f, 0.f),
 			.softness = 1.f
 		});
@@ -848,6 +865,9 @@ typedef union {
 	void *data;
 } cg_bfg_laser_data_t;
 
+/**
+ * @brief
+ */
 static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
 
 	const cg_bfg_laser_data_t data = { .data = sprite->data };
@@ -857,6 +877,10 @@ static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
 
 	sprite->origin = org;
 	sprite->termination = end;
+
+	if (cgi.BoxContents(Box3_FromPoints((const vec3_t[]) { org, end }, 2)) & CONTENTS_MASK_LIQUID) {
+		Cg_BubbleTrail(NULL, org, end, 4.f);
+	}
 }
 
 /**
@@ -995,9 +1019,75 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
+static void Cg_SplashEffect_Think(cg_sprite_t *s, float life, float delta) {
+	s->origin.z += .5f * delta * s->size_velocity;
+}
+
+/**
+ * @brief
+ */
+static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, const vec3_t dir, float size) {
+
+	// vertical spray
+
+	const vec4_t color = Vec3_ToVec4(Color_HSV(side->material->color), 0.f);
+
+	const float scale = Clampf(size / 64.f, 0.0, 1.f);
+
+	const uint32_t lifetime = 1800 * scale;
+
+	Cg_AddSprite(&(cg_sprite_t) {
+		.atlas_image = cg_sprite_splash_02_03,
+		.lifetime = lifetime,
+		.origin = Vec3_Fmaf(org, .5f, Vec3(0.f, 0.f, size)),
+		.size = size,
+		.size_velocity = size * 2.f / MILLIS_TO_SECONDS(lifetime),
+		.color = Vec4(color.x, .3f, .5f, 0.f),
+		.end_color = Vec4(color.x, 0.f, 0.f, 0.f),
+		.softness = 1.f,
+		.lighting = 1.f,
+		.Think = Cg_SplashEffect_Think,
+	});
+
+	// splash droplets
+
+	for (int32_t i = 0; i < 64 * scale; i++) {
+		cg_sprite_t *p = Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_particle,
+			.lifetime = RandomRangeu(0, lifetime),
+			.origin = org,
+			.size = RandomRangef(1.f, 3.f),
+			.velocity = Vec3_Scale(Vec3_RandomizeDir(dir, 0.33f), RandomRangef(100.f, 200.f)),
+			.acceleration.z = -SPRITE_GRAVITY,
+			.color = Vec4(color.x, .3f, .5f, 0.f),
+			.end_color = Vec4(color.x, 0.f, 0.f, 0.f),
+			.softness = 1.f,
+			.lighting = 1.f
+		});
+
+		if (!p) {
+			break;
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, float size) {
 
 	size *= RandomRangef(0.9f, 1.1f);
+
+	const vec4_t color = Vec3_ToVec4(Color_HSV(side->material->color), 0.f);
+
+	float viscosity;
+	if (side->contents & CONTENTS_LAVA) {
+		viscosity = 10.f;
+	} else if (side->contents & CONTENTS_SLIME) {
+		viscosity = 20.f;
+	} else {
+		viscosity = 30.f;
+	}
 
 	// center decal
 	Cg_AddSprite(&(cg_sprite_t) {
@@ -1008,8 +1098,8 @@ void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 		.size_velocity = size,
 		.dir = Vec3_Up(),
 		.rotation = RandomRadian(),
-		.color = Vec4(0.f, 0.f, 1.0f, 1.0f),
-		.end_color = Vec4(0.f, 0.f, 1.0f, 1.0f),
+		.color = Vec4(color.x, .1f, .3f, 0.f),
+		.end_color = Vec4(color.x, 0.f, 0.f, 0.f),
 		.lighting = .6f
 	});
 
@@ -1022,7 +1112,7 @@ void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 		.size_velocity = size * 6.f,
 		.rotation = RandomRadian(),
 		.dir = Vec3_Up(),
-		.color = Vec4(0.f, 0.f, 0.5f, 0.5f),
+		.color = Vec4(0.f, 0.f, .5f, .5f),
 		.end_color = Vec4(0.f, 0.f, 0.f, 0.f),
 		.lighting = 1.f
 	});
@@ -1031,51 +1121,19 @@ void Cg_RippleEffect(const vec3_t org, float size, const uint8_t viscosity) {
 /**
  * @brief
  */
-static void Cg_SplashEffect(const vec3_t org, const vec3_t dir, const float size) {
+static void Cg_RippleSplashEffect(const vec3_t org, const vec3_t dir, int32_t brush_side, float size, _Bool splash) {
 
-	// foam spray column
-
-	cg_sprite_t s = (cg_sprite_t){
-		.atlas_image = cg_sprite_particle,
-		.lifetime = 750.f,
-		.origin = org,
-		.size = 30.f,
-		.size_velocity = 100.f,
-		.color = Vec4(0.f, 0.f, 0.25f, 0.25f),
-		.end_color = Vec4(0.f, 0.f, 0.0f, 0.0f),
-		.softness = 1.f,
-		.lighting = .6f
-	};
-
-	Cg_AddSprite(&s);
-
-	s.lifetime = 500.f;
-	s.acceleration.z = -SPRITE_GRAVITY;
-	for (int32_t i = 1; i < 4; i++) {
-		s.origin = Vec3_Fmaf(org, i * 5.f, Vec3_Up());
-		s.size = 20.f * (1.f - i * .25f);
-		Cg_AddSprite(&s);
+	if (brush_side < 0 || brush_side > cgi.WorldModel()->bsp->num_brush_sides) {
+		cgi.Warn("Invalid brush side %d\n", brush_side);
+		return;
 	}
 
-	// splash droplets
+	const r_bsp_brush_side_t *side = cgi.WorldModel()->bsp->brush_sides + brush_side;
 
-	for (int32_t i = 0; i < 50; i++) {
-		cg_sprite_t *p = Cg_AddSprite(&(cg_sprite_t) {
-			.atlas_image = cg_sprite_particle,
-			.lifetime = RandomRangef(10.f, 1000.f),
-			.origin = org,
-			.size = RandomRangef(1.0f, 3.0f),
-			.velocity = Vec3_Scale(Vec3_RandomizeDir(dir, 0.66f), RandomRangef(50.f, 150.f)),
-			.acceleration.z = -SPRITE_GRAVITY * 1.5f,
-			.color = Vec4(0.f, 0.f, 0.4f, 0.4f),
-			.end_color = Vec4(0.f, 0.f, 0.0f, 0.0f),
-			.softness = 1.f,
-			.lighting = 1.f
-		});
+	Cg_RippleEffect(side, org, size);
 
-		if (!p) {
-			break;
-		}
+	if (splash) {
+		Cg_SplashEffect(side, org, dir, size);
 	}
 }
 
@@ -1115,7 +1173,7 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
  */
 void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
-	int32_t i, j;
+	int32_t i, j, k;
 
 	const uint8_t type = cgi.ReadByte();
 
@@ -1125,7 +1183,7 @@ void Cg_ParseTempEntity(void) {
 			pos = cgi.ReadPosition();
 			dir = cgi.ReadDir();
 			i = cgi.ReadByte();
-			Cg_BlasterEffect(pos, dir, Cg_ResolveEntityEffectHSV(i ? i - 1 : 0, color_hue_orange));
+			Cg_BlasterEffect(pos, dir, Cg_ResolveEntityEffectHSV(i, color_hue_orange));
 			break;
 
 		case TE_TRACER:
@@ -1176,7 +1234,7 @@ void Cg_ParseTempEntity(void) {
 			dir = cgi.ReadDir();
 			i = cgi.ReadLong();
 			j = cgi.ReadByte();
-			Cg_RailEffect(pos, pos2, dir, i, Cg_ResolveEntityEffectHSV(j ? j - 1 : 0, color_hue_cyan));
+			Cg_RailEffect(pos, pos2, dir, i, Cg_ResolveEntityEffectHSV(j, color_hue_cyan));
 			break;
 
 		case TE_EXPLOSION: // rocket and grenade explosions
@@ -1199,18 +1257,17 @@ void Cg_ParseTempEntity(void) {
 		case TE_BUBBLES: // bubbles chasing projectiles in water
 			pos = cgi.ReadPosition();
 			pos2 = cgi.ReadPosition();
-			Cg_BubbleTrail(NULL, pos, pos2);
+			i = cgi.ReadByte();
+			Cg_BubbleTrail(NULL, pos, pos2, (float) i);
 			break;
 
 		case TE_RIPPLE: // liquid surface ripples
 			pos = cgi.ReadPosition();
 			dir = cgi.ReadDir();
-			i = cgi.ReadByte();
+			i = cgi.ReadLong();
 			j = cgi.ReadByte();
-			Cg_RippleEffect(pos, i, j);
-			if (cgi.ReadByte()) {
-				Cg_SplashEffect(pos, dir, (float)i);
-			}
+			k = cgi.ReadByte();
+			Cg_RippleSplashEffect(pos, dir, i, j, k);
 			break;
 
 		case TE_HOOK_IMPACT: // grapple hook impact

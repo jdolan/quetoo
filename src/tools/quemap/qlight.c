@@ -46,10 +46,10 @@ static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
  */
 int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
 
-	int32_t contents = Cm_PointContents(p, 0);
+	int32_t contents = Cm_PointContents(p, 0, Mat4_Identity());
 
 	if (head_node) {
-		contents |= Cm_PointContents(p, head_node);
+		contents |= Cm_PointContents(p, head_node, Mat4_Identity());
 	}
 
 	return contents;
@@ -67,11 +67,12 @@ int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
  * @return The trace.
  */
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask) {
+	const mat4_t mat = Mat4_Identity();
 
-	cm_trace_t trace = Cm_BoxTrace(start, end, Box3_Zero(), 0, mask, NULL, NULL);
+	cm_trace_t trace = Cm_BoxTrace(start, end, Box3_Zero(), 0, mask, mat);
 
 	if (head_node) {
-		cm_trace_t tr = Cm_BoxTrace(start, end, Box3_Zero(), head_node, mask, NULL, NULL);
+		cm_trace_t tr = Cm_BoxTrace(start, end, Box3_Zero(), head_node, mask, mat);
 		if (tr.fraction < trace.fraction) {
 			trace = tr;
 		}

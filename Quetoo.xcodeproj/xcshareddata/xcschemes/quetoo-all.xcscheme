@@ -85,7 +85,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_get_error 2"
+            argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -97,11 +101,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
-            isEnabled = "NO">
+            argument = "+debug game"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+map tokays"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -110,10 +114,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+debug sound"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

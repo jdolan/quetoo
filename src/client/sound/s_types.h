@@ -338,8 +338,7 @@ typedef struct s_stage_s {
 } s_stage_t;
 
 /**
- * @brief Convenience function to clear the per-frame attributes
- * of a sound stage.
+ * @brief Convenience function to clear the per-frame attributes of a sound stage.
  */
 static inline void S_ClearStage(s_stage_t *stage) {
 	stage->num_samples = 0;

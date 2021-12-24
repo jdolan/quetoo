@@ -51,7 +51,7 @@ static ai_locals_t *ai_locals;
  * @brief Get the locals for the specified bot entity.
  */
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent) {
-	return ai_locals + (ent->s.number - 1);
+	return ai_locals + ent->s.client;
 }
 
 /**

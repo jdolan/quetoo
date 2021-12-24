@@ -56,7 +56,7 @@ static _Bool G_TakesDamage(g_entity_t *ent) {
 /**
  * @brief Used to add generic bubble trails to shots.
  */
-static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
+static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr, float freq) {
 	vec3_t dir, pos;
 
 	if (Vec3_Equal(tr->end, start)) {
@@ -81,6 +81,7 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	gi.WriteByte(TE_BUBBLES);
 	gi.WritePosition(start);
 	gi.WritePosition(tr->end);
+	gi.WriteByte((uint8_t) freq);
 	gi.Multicast(pos, MULTICAST_PHS, NULL);
 }
 
@@ -126,59 +127,29 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
  * @param splash True to emit a splash effect, false otherwise.
  */
 void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, _Bool splash) {
-	vec3_t start, end;
+
+	const cm_trace_t tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
+	if (!tr.brush_side) {
+		G_Debug("Failed to resolve water brush side for %s\n", etos(ent));
+		return;
+	}
+
+	const vec3_t pos = Vec3_Add(tr.end, Vec3_Up());
+	const vec3_t dir = tr.plane.normal;
 
 	if (ent) {
-
 		if (g_level.time - ent->locals.ripple_time < 400) {
 			return;
 		}
-
+		
 		ent->locals.ripple_time = g_level.time;
 
-		start = Vec3_Add(ent->s.origin, ent->bounds.maxs);
-		end = Vec3_Add(ent->s.origin, ent->bounds.mins);
-
-		start.x = end.x = (start.x + end.x) * 0.5;
-		start.y = end.y = (start.y + end.y) * 0.5;
-
-		start.z += 16.0;
-		end.z -= 16.0;
-
-	} else {
-		start = pos1;
-		end = pos2;
-	}
-
-	const cm_trace_t tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
-	if (tr.start_solid || tr.fraction == 1.0) {
-		G_Debug("%s failed to resolve water\n", etos(ent));
-		return;
-	}
-
-	float viscosity;
-
-	if (tr.contents & CONTENTS_SLIME) {
-		viscosity = 20.0;
-	} else if (tr.contents & CONTENTS_LAVA) {
-		viscosity = 30.0;
-	} else if (tr.contents & CONTENTS_WATER) {
-		viscosity = 10.0;
-	} else {
-		G_Debug("%s failed to resolve water type\n", etos(ent));
-		return;
-	}
-
-	vec3_t pos, dir;
-
-	pos = Vec3_Add(tr.end, Vec3_Up());
-	dir = tr.plane.normal;
-
-	if (ent && size == 0.0) {
-		if (ent->locals.ripple_size) {
-			size = ent->locals.ripple_size;
-		} else {
-			size = Clampf(Box3_Distance(ent->bounds), 12.0, 64.0);
+		if (size == 0.f) {
+			if (ent->locals.ripple_size) {
+				size = ent->locals.ripple_size;
+			} else {
+				size = Clampf(Box3_Distance(ent->bounds), 12.0, 64.0);
+			}
 		}
 	}
 
@@ -186,22 +157,20 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 	gi.WriteByte(TE_RIPPLE);
 	gi.WritePosition(pos);
 	gi.WriteDir(dir);
+	gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
 	gi.WriteByte((uint8_t) size);
-	gi.WriteByte((uint8_t) viscosity);
 	gi.WriteByte((uint8_t) splash);
 
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 
 	if (!(tr.contents & CONTENTS_TRANSLUCENT)) {
-		pos = Vec3_Add(tr.end, Vec3_Down());
-		dir = Vec3_Negate(dir);
 
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(TE_RIPPLE);
-		gi.WritePosition(pos);
-		gi.WriteDir(dir);
+		gi.WritePosition(Vec3_Add(pos, Vec3_Down()));
+		gi.WriteDir(Vec3_Negate(dir));
+		gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
 		gi.WriteByte((uint8_t) size);
-		gi.WriteByte((uint8_t) viscosity);
 		gi.WriteByte((uint8_t) false);
 
 		gi.Multicast(pos, MULTICAST_PVS, NULL);
@@ -254,7 +223,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const
 			gi.WriteByte(TE_BLASTER);
 			gi.WritePosition(self->s.origin);
 			gi.WriteDir(trace->plane.normal);
-			gi.WriteByte(self->owner->s.number);
+			gi.WriteByte(self->owner->s.client);
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		}
 	}
@@ -327,11 +296,11 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		}
 
 		if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) {
-			G_Ripple(NULL, tr.end, start, 8.0, false);
-			G_BubbleTrail(start, &tr);
+			G_Ripple(NULL, tr.end, start, 8.f, false);
+			G_BubbleTrail(start, &tr, 12.f);
 		} else if (gi.PointContents(tr.end) & CONTENTS_MASK_LIQUID) {
-			G_Ripple(NULL, start, tr.end, 8.0, true);
-			G_BubbleTrail(start, &tr);
+			G_Ripple(NULL, start, tr.end, 8.f, true);
+			G_BubbleTrail(start, &tr, 12.f);
 		}
 	}
 }
@@ -358,19 +327,11 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 
 	if (self->locals.enemy) { // direct hit
 
-		vec3_t v;
-		v = Box3_Center(self->locals.enemy->bounds);
-		v = Vec3_Subtract(self->s.origin, v);
-
-		const float dist = Vec3_Length(v);
-		const int32_t d = self->locals.damage - 0.5 * dist;
-		const int32_t k = self->locals.knockback - 0.5 * dist;
-
-		const vec3_t dir = Vec3_Subtract(self->locals.enemy->s.origin, self->s.origin);
-
 		mod = self->locals.spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
 
-		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, Vec3_Zero(), d, k, DMG_RADIUS, mod);
+		G_Damage(self->locals.enemy, self, self->owner,
+				 self->locals.velocity, self->s.origin, Vec3_Negate(self->locals.velocity),
+				 self->locals.damage, self->locals.knockback, 0, mod);
 	}
 
 	if (self->locals.spawn_flags & HAND_GRENADE) {
@@ -712,7 +673,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 
 		if (gi.inPVS(self->s.origin, ent->s.origin)) {
 
-			if (ent->locals.water_level) {
+			if (ent->locals.water_level > WATER_NONE) {
 				const int32_t dmg = 50 * ent->locals.water_level;
 
 				G_Damage(ent, self, self->owner, Vec3_Zero(), ent->s.origin, Vec3_Zero(),
@@ -786,7 +747,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		}
 
 		tr = gi.Trace(water_start, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
-		G_BubbleTrail(water_start, &tr);
+		G_BubbleTrail(water_start, &tr, 4.f);
 
 		G_Ripple(NULL, start, end, 16.f, true);
 	} else {
@@ -894,7 +855,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	end = Vec3_Fmaf(pos, MAX_WORLD_DIST, dir);
 
-	G_Ripple(NULL, pos, end, 24.0, true);
+	G_Ripple(NULL, pos, end, 24.f, true);
 
 	g_entity_t *ignore = ent;
 	while (ignore) {
@@ -936,7 +897,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	gi.WritePosition(tr.end);
 	gi.WriteDir(tr.plane.normal);
 	gi.WriteLong(tr.surface);
-	gi.WriteByte(ent->s.number);
+	gi.WriteByte(ent->s.client);
 
 	gi.Multicast(start, MULTICAST_PHS, NULL);
 
@@ -947,7 +908,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		gi.WritePosition(tr.end);
 		gi.WriteDir(tr.plane.normal);
 		gi.WriteLong(tr.surface);
-		gi.WriteByte(ent->s.number);
+		gi.WriteByte(ent->s.client);
 
 		gi.Multicast(tr.end, MULTICAST_PHS, NULL);
 	}
@@ -1019,6 +980,10 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		const vec3_t normal = Vec3_Normalize(Vec3_Negate(dir));
 
 		const float f = 1.0 - dist / self->locals.damage_radius;
+
+		if (f <= 0.f) {
+			continue;
+		}
 
 		G_Damage(ent, self, self->owner, dir, ent->s.origin, normal,
 				 frame_damage * f, frame_knockback * f, DMG_RADIUS, MOD_BFG_LASER);

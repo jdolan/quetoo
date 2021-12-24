@@ -118,7 +118,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-indirect"
@@ -141,8 +141,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--update"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "maps/lighttest.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/sandbox.map"
@@ -159,6 +163,10 @@
          <CommandLineArgument
             argument = "maps/fragpipe.map"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/gehenna.map"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/hallways.map"

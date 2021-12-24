@@ -167,7 +167,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	sent->num_clusters = 0;
 
 	// get all leafs, including solids
-	const size_t len = Cm_BoxLeafnums(ent->abs_bounds, leafs, lengthof(leafs), &top_node, 0, &matrix);
+	const size_t len = Cm_BoxLeafnums(ent->abs_bounds, leafs, lengthof(leafs), &top_node, 0, matrix);
 
 	if (len == MAX_ENT_LEAFS) { // use top_node
 		sent->num_clusters = -1;
@@ -305,8 +305,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
  *
  * @return The number of entities found.
  */
-size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, const size_t len,
-                      const uint32_t type) {
+size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, const size_t len, uint32_t type) {
 
 	sv_world.box = bounds;
 	sv_world.box_entities = list;
@@ -362,7 +361,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 	g_entity_t *entities[MAX_ENTITIES];
 
 	// get base contents from world
-	int32_t contents = Cm_PointContents(point, 0);
+	int32_t contents = Cm_PointContents(point, 0, Mat4_Identity());
 
 	// as well as contents from all intersected entities
 	const size_t len = Sv_BoxEntities(Box3_FromCenter(point), entities, lengthof(entities), BOX_COLLIDE);
@@ -375,7 +374,35 @@ int32_t Sv_PointContents(const vec3_t point) {
 		if (head_node != -1) {
 
 			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
-			contents |= Cm_TransformedPointContents(point, head_node, sent->inverse_matrix);
+			contents |= Cm_PointContents(point, head_node, sent->inverse_matrix);
+		}
+	}
+
+	return contents;
+}
+
+/**
+ * @brief Returns the contents mask for the specified bounds. This includes world
+ * contents as well as contents for any solid entities this point intersects.
+ */
+int32_t Sv_BoxContents(const box3_t bounds) {
+	g_entity_t *entities[MAX_ENTITIES];
+
+	// get base contents from world
+	int32_t contents = Cm_BoxContents(bounds, 0, Mat4_Identity());
+
+	// as well as contents from all intersected entities
+	const size_t len = Sv_BoxEntities(bounds, entities, lengthof(entities), BOX_COLLIDE);
+
+	// iterate the box entities, checking each one for an intersection
+	for (size_t i = 0; i < len; i++) {
+		const g_entity_t *ent = entities[i];
+
+		const int32_t head_node = Sv_HullForEntity(ent);
+		if (head_node != -1) {
+
+			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+			contents |= Cm_BoxContents(bounds, head_node, sent->matrix);
 		}
 	}
 
@@ -386,7 +413,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 typedef struct {
 	vec3_t start, end;
 	box3_t bounds; // size of the moving object
-	box3_t box; // enclose the test object along entire move
+	box3_t abs_bounds; // enclose the test object along entire move
 	cm_trace_t trace;
 	const g_entity_t *skip;
 	int32_t contents;
@@ -434,10 +461,7 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
 
 	const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
-	const cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end,
-									  trace->bounds,
-									  head_node, trace->contents,
-									  &sent->matrix, &sent->inverse_matrix);
+	const cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, sent->matrix);
 
 	// check for a full or partial intersection
 	if (tr.all_solid || tr.fraction < trace->trace.fraction) {
@@ -458,7 +482,7 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	g_entity_t *e[MAX_ENTITIES];
 
-	const size_t len = Sv_BoxEntities(trace->box, e, lengthof(e), BOX_COLLIDE);
+	const size_t len = Sv_BoxEntities(trace->abs_bounds, e, lengthof(e), BOX_COLLIDE);
 	for (size_t i = 0; i < len; i++) {
 		Sv_ClipTraceToEntity(trace, e[i]);
 	}
@@ -471,12 +495,12 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
  * This prevents players from clipping against their own projectiles, etc.
  */
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
-                    const g_entity_t *skip, const int32_t contents) {
+                    const g_entity_t *skip, int32_t contents) {
 
 	sv_trace_t trace = { };
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, NULL, NULL);
+	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, Mat4_Identity());
 	if (trace.trace.fraction < 1.0f) {
 		trace.trace.ent = svs.game->entities;
 
@@ -492,7 +516,7 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
 	trace.contents = contents;
 
 	// create the bounding box of the entire move
-	trace.box = Cm_TraceBounds(start, end, bounds);
+	trace.abs_bounds = Cm_TraceBounds(start, end, bounds);
 
 	// clip to other solid entities
 	Sv_ClipTraceToEntities(&trace);
@@ -505,7 +529,7 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
  * @brief Tests a clip of the specified translation against the specified entity.
  */
 cm_trace_t Sv_Clip(const vec3_t start, const vec3_t end, const box3_t bounds,
-                   const g_entity_t *test, const int32_t contents) {
+                   const g_entity_t *test, int32_t contents) {
 
 	sv_trace_t trace = {
 		.trace = {

@@ -13,7 +13,7 @@
  */
 #define MAX_BSP_ENTITIES_SIZE		0x40000
 #define MAX_BSP_ENTITIES			0x800
-#define MAX_BSP_MATERIALS			0x100
+#define MAX_BSP_MATERIALS			0x400
 #define MAX_BSP_PLANES				0x20000
 #define MAX_BSP_BRUSH_SIDES			0x20000
 #define MAX_BSP_BRUSHES				0x8000
@@ -199,6 +199,7 @@ typedef struct {
 	int32_t plane; // facing out of the leaf
 	int32_t material;
 	vec4_t axis[2]; // [s/t][xyz + offset]
+	int32_t contents;
 	int32_t surface;
 	int32_t value; // light emission, etc
 } bsp_brush_side_t;
@@ -331,7 +332,7 @@ typedef struct {
  * You can safely edit the data within the boundaries of the num_x values, but
  * if you want to expand the space required use the Bsp_* functions.
  */
-typedef struct {
+typedef struct bsp_file_s {
 	int32_t entity_string_size;
 	char *entity_string;
 

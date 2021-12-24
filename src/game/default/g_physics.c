@@ -73,23 +73,20 @@ static void G_CheckWater(g_entity_t *ent) {
 	// check for water interaction
 	const pm_water_level_t old_water_level = ent->locals.water_level;
 	const int32_t old_water_type = ent->locals.water_type;
-	box3_t bounds;
+
+	const int32_t water = gi.BoxContents(ent->abs_bounds) & CONTENTS_MASK_LIQUID;
+
+	ent->locals.water_type = water;
+	ent->locals.water_level = ent->locals.water_type ? WATER_UNDER : WATER_NONE;
 
 	if (ent->solid == SOLID_BSP) {
 		pos = Box3_Center(ent->abs_bounds);
-		bounds = Box3(
-			Vec3_Subtract(pos, ent->abs_bounds.mins),
-			Vec3_Subtract(ent->abs_bounds.maxs, pos)
-		);
 	} else {
 		pos = ent->s.origin;
-		bounds = ent->bounds;
 	}
 
-	const cm_trace_t water = gi.Trace(pos, pos, bounds, ent, CONTENTS_MASK_LIQUID);
-
-	ent->locals.water_type = water.contents;
-	ent->locals.water_level = ent->locals.water_type ? WATER_UNDER : WATER_NONE;
+	const vec3_t top = Vec3(pos.x, pos.y, ent->abs_bounds.maxs.z);
+	const vec3_t bot = Vec3(pos.x, pos.y, ent->abs_bounds.mins.z);
 
 	if (old_water_level == WATER_NONE && ent->locals.water_level == WATER_UNDER) {
 
@@ -105,7 +102,11 @@ static void G_CheckWater(g_entity_t *ent) {
 			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, true);
+
+				const vec3_t pos1 = Vec3_Fmaf(top, -QUETOO_TICK_SECONDS, ent->locals.velocity);
+				const vec3_t pos2 = Vec3_Fmaf(bot,  QUETOO_TICK_SECONDS, ent->locals.velocity);
+
+				G_Ripple(ent, pos1, pos2, 0.f, Vec3_Length(ent->locals.velocity) > 100.f);
 			}
 		}
 
@@ -119,7 +120,11 @@ static void G_CheckWater(g_entity_t *ent) {
 			}
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, false);
+
+				const vec3_t pos1 = Vec3_Fmaf(top,  QUETOO_TICK_SECONDS, ent->locals.velocity);
+				const vec3_t pos2 = Vec3_Fmaf(bot, -QUETOO_TICK_SECONDS, ent->locals.velocity);
+
+				G_Ripple(ent, pos1, pos2, 0.f, false);
 			}
 		}
 	}

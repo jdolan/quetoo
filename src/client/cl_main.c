@@ -595,8 +595,6 @@ static void Cl_UpdateScene(void) {
 	R_DrawMainView(&cl_view);
 
 	R_BlitFramebuffer(cl_view.framebuffer, 0, 0, 0, 0);
-
-	S_RenderStage(&cl_stage);
 }
 
 /**
@@ -664,6 +662,8 @@ void Cl_Frame(const uint32_t msec) {
 	Cl_UpdateScreen();
 
 	R_EndFrame();
+
+	S_RenderStage(&cl_stage);
 
 	frame_timestamp = quetoo.ticks;
 	cl.frame_msec = 0;

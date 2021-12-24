@@ -158,7 +158,7 @@ static void Cg_GurpEffect(cl_entity_t *ent) {
 	vec3_t end = start;
 	end.z += 16.0;
 
-	Cg_BubbleTrail(NULL, start, end);
+	Cg_BubbleTrail(NULL, start, end, 2.f);
 }
 
 /**
@@ -172,7 +172,7 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
 	vec3_t end = start;
 	end.z += 16.0;
 
-	Cg_BubbleTrail(NULL, start, end);
+	Cg_BubbleTrail(NULL, start, end, 2.f);
 }
 
 /**
@@ -180,10 +180,9 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
  */
 static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name) {
 
-	assert(ent->current.number > 0);
-	assert(ent->current.number <= MAX_CLIENTS);
+	const cl_client_info_t *info = &cgi.client->client_info[ent->current.client];
 
-	const cl_client_info_t *info = &cgi.client->client_info[ent->current.number - 1];
+	assert(info->model);
 
 	return cgi.LoadClientModelSample(info->model, name);
 }

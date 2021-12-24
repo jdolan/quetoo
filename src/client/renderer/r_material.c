@@ -124,6 +124,21 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 }
 
 /**
+ * @return True if the specified surface is a greyscale heightmap.
+ */
+static _Bool R_IsHeightmap(const SDL_Surface *surf) {
+
+	const byte *b = surf->pixels;
+	for (int32_t i = 0; i < surf->w * surf->h; i++, b += 4) {
+		if (b[0] != b[1] || b[0] != b[2]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * @brief Loads the material asset, ensuring it is the specified dimensions for texture layering.
  */
 static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path) {
@@ -159,7 +174,7 @@ static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t colo
 }
 
 /**
- * @brief Merges the average of src's channels into the alpha channel of dest.
+ * @brief Merges the red channel of src into the alpha channel of dest.
  */
 static void R_MergeMaterialSurfaces(SDL_Surface *dest, const SDL_Surface *src) {
 
@@ -171,7 +186,7 @@ static void R_MergeMaterialSurfaces(SDL_Surface *dest, const SDL_Surface *src) {
 
 	const int32_t pixels = dest->w * dest->h;
 	for (int32_t i = 0; i < pixels; i++, in += 4, out += 4) {
-		out[3] = (in[0] + in[1] + in[2]) / 3.0;
+		out[3] = in[0];
 	}
 }
 
@@ -282,7 +297,11 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			if (*cm->heightmap.path) {
 				SDL_Surface *heightmap = R_LoadMaterialSurface(w, h, cm->heightmap.path);
 				if (heightmap) {
-					R_MergeMaterialSurfaces(normalmap, heightmap);
+					if (R_IsHeightmap(heightmap)) {
+						R_MergeMaterialSurfaces(normalmap, heightmap);
+					} else {
+						Com_Debug(DEBUG_RENDERER, "%s is not a greyscale heightmap\n", cm->heightmap.path);
+					}
 					SDL_FreeSurface(heightmap);
 				} else {
 					Com_Warn("Failed to load heightmap %s for %s\n", cm->heightmap.path, cm->basename);
@@ -346,6 +365,8 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			break;
 	}
 
+	material->color = Img_Color(diffusemap);
+	
 	SDL_FreeSurface(diffusemap);
 
 	R_ResolveMaterialStages(material, context);

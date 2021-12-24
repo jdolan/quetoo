@@ -524,6 +524,13 @@ typedef struct cg_import_s {
 	int32_t (*PointContents)(const vec3_t point);
 
 	/**
+	 * @return The contents mask of all leafs within the specified box.
+	 * @param bounds The bounding box to test.
+	 * @remarks This checks the world model and all known solid entities.
+	 */
+	int32_t (*BoxContents)(const box3_t bounds);
+
+	/**
 	 * @return True if `point` resides inside `brush`, falses otherwise.
 	 * @param point The point to test.
 	 * @param brush The brush to test against.
@@ -541,7 +548,7 @@ typedef struct cg_import_s {
 	 * @param contents Solids matching this mask will clip the returned trace.
 	 * @return A trace result.
 	 */
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, const int32_t skip, const int32_t contents);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t skip, int32_t contents);
 
 	/**
 	 * @param p The point to check.

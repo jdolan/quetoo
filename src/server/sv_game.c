@@ -79,7 +79,7 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 /**
  * @brief
  */
-static void Sv_SetConfigString(const uint16_t index, const char *val) {
+static void Sv_SetConfigString(const int32_t index, const char *val) {
 
 	if (index >= MAX_CONFIG_STRINGS) {
 		Com_Warn("Bad index %u\n", index);
@@ -111,7 +111,7 @@ static void Sv_SetConfigString(const uint16_t index, const char *val) {
 /**
  * @brief
  */
-static const char *Sv_GetConfigString(const uint16_t index) {
+static const char *Sv_GetConfigString(const int32_t index) {
 
 	if (index >= MAX_CONFIG_STRINGS) {
 		Com_Warn("Bad index %u\n", index);
@@ -121,50 +121,79 @@ static const char *Sv_GetConfigString(const uint16_t index) {
 	return sv.config_strings[index];
 }
 
-/*
- * Message wrappers which target the multicast buffer.
+/**
+ * @brief
  */
-
 static void Sv_WriteData(const void *data, size_t len) {
 	Net_WriteData(&sv.multicast, data, len);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteChar(const int32_t c) {
 	Net_WriteChar(&sv.multicast, c);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteByte(const int32_t c) {
 	Net_WriteByte(&sv.multicast, c);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteShort(const int32_t c) {
 	Net_WriteShort(&sv.multicast, c);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteLong(const int32_t c) {
 	Net_WriteLong(&sv.multicast, c);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteString(const char *s) {
 	Net_WriteString(&sv.multicast, s);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteVector(const float v) {
 	Net_WriteFloat(&sv.multicast, v);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WritePosition(const vec3_t pos) {
 	Net_WritePosition(&sv.multicast, pos);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteDir(const vec3_t dir) {
 	Net_WriteDir(&sv.multicast, dir);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteAngle(const float v) {
 	Net_WriteAngle(&sv.multicast, v);
 }
 
+/**
+ * @brief
+ */
 static void Sv_WriteAngles(const vec3_t angles) {
 	Net_WriteAngles(&sv.multicast, angles);
 }
@@ -192,7 +221,7 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 /**
  * @brief
  */
-static void Sv_Sound(const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch) {
+static void Sv_Sound(const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch) {
 
 	assert(ent);
 
@@ -324,19 +353,20 @@ void Sv_InitGame(void) {
 	import.SoundIndex = Sv_SoundIndex;
 	import.ImageIndex = Sv_ImageIndex;
 
-	import.SetModel = Sv_SetModel;
-
 	import.Sound = Sv_Sound;
 	import.PositionedSound = Sv_PositionedSound;
 
+	import.Bsp = Cm_Bsp;
 	import.EntityValue = Cm_EntityValue;
 	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Sv_PointContents;
+	import.BoxContents = Sv_BoxContents;
 	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Sv_Trace;
 	import.Clip = Sv_Clip;
 	import.inPVS = Sv_InPVS;
 	import.inPHS = Sv_InPHS;
+	import.SetModel = Sv_SetModel;
 	import.LinkEntity = Sv_LinkEntity;
 	import.UnlinkEntity = Sv_UnlinkEntity;
 	import.BoxEntities = Sv_BoxEntities;

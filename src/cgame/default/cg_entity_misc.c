@@ -293,30 +293,95 @@ const cg_entity_class_t cg_misc_flame = {
 };
 
 /**
+ * @brief Animated light styles.
+ */
+typedef struct {
+	/**
+	 * @brief The style string, a-z (26 levels), animated at 10Hz.
+	 * @details With 256 bytes at 10hz, you can animate up to 25 seconds.
+	 */
+	char string[MAX_BSP_ENTITY_VALUE];
+
+	/**
+	 * @brief The current index into the string, using modulo.
+	 */
+	uint32_t index;
+
+	/**
+	 * @brief The last time the animation was advanced.
+	 */
+	uint32_t time;
+} cg_light_style_t;
+
+/**
+ * @brief The misc_light data type.
+ */
+typedef struct {
+	/**
+	 * @brief The light instance.
+	 */
+	cg_light_t light;
+
+	cg_light_style_t style;
+} cg_misc_light_data_t;
+
+/**
  * @brief
  */
 static void Cg_misc_light_Init(cg_entity_t *self) {
 
-	cg_light_t *light = self->data;
+	self->hz = cgi.EntityValue(self->def, "hz")->value;
+	self->drift = cgi.EntityValue(self->def, "drift")->value;
 
-	light->origin = self->origin;
-	light->radius = cgi.EntityValue(self->def, "light")->value ?: DEFAULT_LIGHT;
+	cg_misc_light_data_t *data = self->data;
+
+	data->light.origin = self->origin;
+	data->light.radius = cgi.EntityValue(self->def, "light")->value ?: DEFAULT_LIGHT;
 
 	const cm_entity_t *color = cgi.EntityValue(self->def, "_color");
 	if (color->parsed & ENTITY_VEC3) {
-		light->color = color->vec3;
+		data->light.color = color->vec3;
 	} else {
-		light->color = Vec3(1.f, 1.f, 1.f);
+		data->light.color = Vec3(1.f, 1.f, 1.f);
 	}
 
-	light->intensity = cgi.EntityValue(self->def, "intensity")->value;
+	data->light.intensity = cgi.EntityValue(self->def, "intensity")->value;
+
+	const char *style = cgi.EntityValue(self->def, "style")->nullable_string ?: "zzz";
+	g_strlcpy(data->style.string, style, sizeof(data->style.string));
 }
 
 /**
  * @brief
  */
 static void Cg_misc_light_Think(cg_entity_t *self) {
-	Cg_AddLight((cg_light_t *) self->data);
+
+	cg_misc_light_data_t *data = self->data;
+
+	cg_light_t light = data->light;
+
+	cg_light_style_t *style = &data->style;
+	if (*style->string) {
+		const size_t len = strlen(style->string);
+
+		if (cgi.client->unclamped_time - style->time >= 100) {
+			style->index++;
+			style->time = cgi.client->unclamped_time;
+		}
+
+		const float lerp = (cgi.client->unclamped_time - style->time) / 100.f;
+
+		const float s = (style->string[(style->index + 0) % len] - 'a') / (float) ('z' - 'a');
+		const float t = (style->string[(style->index + 1) % len] - 'a') / (float) ('z' - 'a');
+
+		light.intensity = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+
+		if (data->light.intensity) {
+			light.intensity *= data->light.intensity;
+		}
+	}
+
+	Cg_AddLight(&light);
 }
 
 /**
@@ -326,7 +391,7 @@ const cg_entity_class_t cg_misc_light = {
 	.class_name = "misc_light",
 	.Init = Cg_misc_light_Init,
 	.Think = Cg_misc_light_Think,
-	.data_size = sizeof(cg_light_t)
+	.data_size = sizeof(cg_misc_light_data_t)
 };
 
 /**
@@ -526,6 +591,8 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 
 	cg_misc_sprite_t *sprite = self->data;
 
+	sprite->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
+
 	const char *name = cgi.EntityValue(self->def, "sprite")->nullable_string ?: "particle";
 	sprite->sprite.image = cgi.LoadImage(va("sprites/%s", name), IT_SPRITE);
 	if (sprite->sprite.image == NULL) {
@@ -545,7 +612,6 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 		sprite->sprite.velocity = cgi.EntityValue(self->def, "velocity")->vec3;
 	}
 
-	sprite->sprite.velocity = cgi.EntityValue(self->def, "velocity")->vec3;
 	sprite->sprite.acceleration = cgi.EntityValue(self->def, "acceleration")->vec3;
 	sprite->sprite.rotation = cgi.EntityValue(self->def, "rotation")->value;
 	sprite->sprite.rotation_velocity = cgi.EntityValue(self->def, "rotation_velocity")->value;
@@ -601,7 +667,7 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
 
 			cg_sprite_t s = this->sprite;
 
-			if (i & 1) {
+			if (Randomi() & 1) {
 				s.media = that->sprite.media;
 			}
 
@@ -641,7 +707,9 @@ const cg_entity_class_t cg_misc_sprite = {
  * @brief
  */
 typedef struct {
-	float hz, drift;
+	vec3_t velocity;
+	float size;
+	int32_t count;
 } cg_misc_steam_t;
 
 /**
@@ -651,36 +719,65 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 
 	cg_misc_steam_t *steam = self->data;
 
-	steam->hz = cgi.EntityValue(self->def, "hz")->value ?: .3f;
-	steam->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;
+	self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
+	self->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;
+
+	if (self->target) {
+		const vec3_t target_origin = cgi.EntityValue(self->target, "origin")->vec3;
+		steam->velocity = Vec3_Subtract(target_origin, self->origin);
+	} else {
+		const cm_entity_t *velocity = cgi.EntityValue(self->def, "velocity");
+		if (velocity->parsed & ENTITY_VEC3) {
+			steam->velocity = velocity->vec3;
+		} else {
+			steam->velocity = Vec3(0.f, 0.f, 32.f);
+		}
+	}
+
+	steam->size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
+	steam->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
 }
 
 /**
  * @brief
  */
 static void Cg_misc_steam_Think(cg_entity_t *self) {
-	/*const vec3_t end = Vec3_Add(self->origin, self->steam.velocity);
 
-	if (cgi.PointContents(self->origin) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(NULL, self->origin, end, 10.f);
+	const cg_misc_steam_t *steam = self->data;
+
+	const vec3_t end = Vec3_Add(self->origin, steam->velocity);
+
+	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
+		Cg_BubbleTrail(NULL, self->origin, end, 2.f);
 		return;
 	}
 
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_steam,
-		.origin = org,
-		.velocity = Vec3_Add(vel, Vec3_RandomRange(-2.f, 2.f)),
-		.lifetime = 4500 / (5.f + Randomf() * .5f),
-		.size = 8.f,
-		.color = Vec4(0.f, 0.f, 1.f, .19f)
-	});
+	for (int32_t i = 0; i < steam->count; i++) {
+		if (!Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_steam,
+			.origin = self->origin,
+			.velocity = Vec3_Add(steam->velocity, Vec3_RandomRange(-2.f, 2.f)),
+			.acceleration = Vec3_Add(Vec3_Scale(Vec3_Up(), 20.f), Vec3_RandomDir()),
+			.lifetime = 4500 / (5.f + Randomf() * .5f),
+			.rotation = Randomf(),
+			.rotation_velocity = RandomRangef(-1.f, 1.f),
+			.size = RandomRangef(.9f * steam->size, 1.1f * steam->size),
+			.size_velocity = 10.f,
+			.color = Vec4(0.f, 0.f, 1.f, .5f),
+			.lighting = 1.f,
+			.softness = 1.f,
+		})) {
+			break;
+		};
+	}
 
 	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
 		.sample = cg_sample_steam,
-		.origin = org,
-		.attenuation = SOUND_ATTEN_CUBIC,
-		.flags = S_PLAY_POSITIONED
-	});*/
+		.origin = self->origin,
+		.atten = SOUND_ATTEN_CUBIC,
+		.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+		.entity = self->id,
+	});
 }
 
 /**

@@ -34,31 +34,7 @@ cm_entity_t *Cm_Worldspawn(void);
 int32_t Cm_LeafContents(const int32_t leaf_num);
 int32_t Cm_LeafCluster(const int32_t leaf_num);
 
-typedef struct {
-	char name[MAX_QPATH];
-	
-	int64_t size;
-	int64_t mod_time;
-
-	bsp_file_t file;
-
-	cm_bsp_plane_t *planes;
-	cm_bsp_node_t *nodes;
-	cm_bsp_leaf_t *leafs;
-	int32_t *leaf_brushes;
-	cm_bsp_brush_t *brushes;
-	cm_bsp_brush_side_t *brush_sides;
-	cm_bsp_model_t *models;
-
-	size_t num_entities;
-	cm_entity_t **entities;
-
-	size_t num_materials;
-	cm_material_t **materials;
-
-} cm_bsp_t;
-
-cm_bsp_t *Cm_Bsp(void);
+const cm_bsp_t *Cm_Bsp(void);
 
 #ifdef __CM_LOCAL_H__
 

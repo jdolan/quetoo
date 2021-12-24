@@ -301,7 +301,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Box3_Equal(const box3_t
 }
 
 /**
- * @return The symetrical extents of `bounds`
+ * @return The symetrical extents of `bounds`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Symetrical(const box3_t bounds) {
 	return Vec3_Maxf(Vec3_Fabsf(bounds.mins), Vec3_Fabsf(bounds.maxs));

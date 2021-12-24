@@ -147,14 +147,6 @@ struct stage_t {
 /**
  * @brief
  */
-float osc(in stage_t stage, in float freq, in float amplitude, in float base, in float phase) {
-	float seconds = ticks * 0.001;
-	return base + sin((phase + seconds * 2 * freq * 2)) * (amplitude * 0.5);
-}
-
-/**
- * @brief
- */
 void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
 
 	if ((stage.flags & STAGE_SHELL) == STAGE_SHELL) {
@@ -168,7 +160,7 @@ void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, i
 void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout vec2 diffusemap, inout vec4 color) {
 
 	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
-		float p = osc(stage, stage.stretch.y, stage.stretch.x, 1.0, 0.0);
+		float p = 1.0 + sin(ticks * .001 * stage.stretch.y * PI) * stage.stretch.x * .5;
 
 		mat2 matrix;
 		vec2 translate;
@@ -217,7 +209,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	}
 
 	if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-		color.a *= osc(stage, stage.pulse, 1.0, 0.5, PI);
+		color.a *= (sin(ticks * .001 * stage.pulse * PI) + 1.0) * .5;
 	}
 
 	if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {

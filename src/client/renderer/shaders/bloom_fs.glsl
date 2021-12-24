@@ -42,7 +42,7 @@ void main(void) {
 	vec2 texture_size = textureSize(texture_bloom_attachment, 0);
 	vec2 texel_size = 1.0 / texture_size;
 
-	vec2 kernel = 4.0 * texel_size;
+	vec2 kernel = 1.0 * texel_size;
 
 	vec3 bloom = texture(texture_bloom_attachment, vertex.texcoord).rgb * WEIGHT[0];
 

@@ -32,13 +32,13 @@ GPtrArray *unattenuated_lights;
  * @brief
  */
 static vec3_t GetMaterialColor(int32_t num) {
-	static vec3_t colors[MAX_BSP_MATERIALS];
+	static color_t colors[MAX_BSP_MATERIALS];
 
-	if (Vec3_Equal(Vec3_Zero(), colors[num])) {
+	if (Vec3_Equal(Vec3_Zero(), Color_Vec3(colors[num]))) {
 		colors[num] = Img_Color(materials[num].diffusemap);
 	}
 
-	return colors[num];
+	return Color_Vec3(colors[num]);
 }
 
 /**
@@ -164,7 +164,7 @@ static void LightForEntity(const cm_entity_t *entity) {
 			const char *targetname = Cm_EntityValue(entity, "target")->string;
 			cm_entity_t *target = NULL;
 			cm_entity_t **e = Cm_Bsp()->entities;
-			for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
+			for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
 				if (!g_strcmp0(targetname, Cm_EntityValue(*e, "targetname")->string)) {
 					target = *e;
 					break;
@@ -361,7 +361,7 @@ void BuildDirectLights(void) {
 	lights = g_array_new(false, false, sizeof(light_t));
 
 	cm_entity_t **entity = Cm_Bsp()->entities;
-	for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
+	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
 		LightForEntity(*entity);
 	}
 

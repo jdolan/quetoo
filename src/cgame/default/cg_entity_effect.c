@@ -112,13 +112,14 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 				const cg_light_t l = {
 					.origin = e->origin,
-					.radius = 80.f,
-					.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z))
+					.radius = 128.f,
+					.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
+					.intensity = .1f,
 				};
 
 				Cg_AddLight(&l);
 
-				e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
+				e->shell = Vec3_Fmaf(e->shell, 0.66f, l.color);
 			}
 		}
 	}

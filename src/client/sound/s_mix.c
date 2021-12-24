@@ -159,6 +159,8 @@ void S_MixChannels(const s_stage_t *stage) {
 			continue;
 		}
 
+		assert(ch->play.sample->buffer);
+
 		const ALuint src = s_context.sources[i];
 		assert(src);
 
