@@ -1,0 +1,9 @@
+{
+  "class": "Panel",
+  "classNames": [
+    "menu"
+  ],
+  "contentView": {
+    "identifier": "teams",
+  }
+}

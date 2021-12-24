@@ -1,0 +1,26 @@
+
+{
+  "subviews": [
+    {
+      "class": "StackView",
+      "subviews": [
+        {
+          "class": "Label",
+          "identifier": "teamName"
+        },
+        {
+          "class": "TableView",
+          "identifier": "players",
+          "columns": [
+            {
+              "identifier": "playerName",
+            },
+            {
+              "identifier": "playerScore"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+TeamView {
+  autoresizing-mask: contain;
+}
+
+TeamView > #teamName {
+  width: 200;
+}
+
+TeamView > #players {
+  width: 200;
+}
