@@ -189,7 +189,7 @@ void main(void) {
 			ambient = mix(ambient, texture(texture_lightgrid_ambient, vertex.lightgrid).rgb, .666);
 			diffuse = mix(diffuse, texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb, .666);
 			direction = mix(direction, texture(texture_lightgrid_direction, vertex.lightgrid).xyz, .666);
-			caustic = mix(caustic, texture(texture_lightgrid_caustics, vertex.lightgrid).rgb, .666);
+			caustic = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
 			direction = normalize(direction);
 		}
 
