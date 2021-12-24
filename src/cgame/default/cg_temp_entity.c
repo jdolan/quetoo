@@ -789,7 +789,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.intensity = .1f
 	});
 
-	// hit billboards FIXME: Why don't these work?
+	// hit billboards
 	for (int32_t i = 0; i < 2; i++) {
 		Cg_AddSprite(&(cg_sprite_t) {
 			.origin = Vec3_Add(end, dir),
