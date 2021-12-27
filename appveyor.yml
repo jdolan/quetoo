@@ -13,6 +13,8 @@ init:
 - ps: 
 install:
 - ps: >-
+    echo "Installing $env:APPVEYOR_REPO_BRANCH..."
+
     md -Path "..\Objectively" 
 
     Push-Location "..\Objectively\"
@@ -64,6 +66,8 @@ before_build:
 test: off
 on_success:
 - ps:  >-
+    echo "Success; AWSing $env:APPVEYOR_REPO_BRANCH..."
+
     Push-Location "Quetoo.vs15\"
 
     [Environment]::CurrentDirectory = $PWD
