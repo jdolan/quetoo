@@ -52,18 +52,6 @@
                     "identifier": "normalmap"
                   }
                 },
-				{
-                  "class": "Input",
-                  "label": {
-                    "text": {
-                      "text": "Heightmap texture"
-                    }
-                  },
-                  "control": {
-                    "class": "TextView",
-                    "identifier": "heightmap"
-                  }
-                },
                 {
                   "class": "Input",
                   "label": {
@@ -128,21 +116,6 @@
                   "control": {
                     "class": "Slider",
                     "identifier": "specularity",
-                    "min": 0,
-                    "max": 8,
-                    "step": 0.125
-                  }
-                },
-                {
-                  "class": "Input",
-                  "label": {
-                    "text": {
-                      "text": "Parallax"
-                    }
-                  },
-                  "control": {
-                    "class": "Slider",
-                    "identifier": "parallax",
                     "min": 0,
                     "max": 8,
                     "step": 0.125

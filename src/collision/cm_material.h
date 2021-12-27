@@ -206,7 +206,6 @@ typedef struct cm_stage_s {
 } cm_stage_t;
 
 #define DEFAULT_ROUGHNESS 1.0
-#define DEFAULT_PARALLAX 1.0
 #define DEFAULT_HARDNESS 1.0
 #define DEFAULT_SPECULARITY 1.0
 #define DEFAULT_BLOOM 1.0
@@ -236,11 +235,6 @@ typedef struct cm_material_s {
 	 * @brief The normalmap asset.
 	 */
 	cm_asset_t normalmap;
-
-	/**
-	 * @brief The heightmap asset.
-	 */
-	cm_asset_t heightmap;
 
 	/**
 	 * @brief The glossmap asset.
@@ -296,11 +290,6 @@ typedef struct cm_material_s {
 	 * @brief The specular factor to use for the specularmap.
 	 */
 	float specularity;
-
-	/**
-	 * @brief The parallel factor to use for the normalmap.
-	 */
-	float parallax;
 
 	/**
 	 * @brief The bloom factor to apply to the diffusemap.

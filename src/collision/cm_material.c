@@ -645,7 +645,6 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 
 	mat->roughness = DEFAULT_ROUGHNESS;
 	mat->hardness = DEFAULT_HARDNESS;
-	mat->parallax = DEFAULT_PARALLAX;
 	mat->specularity = DEFAULT_SPECULARITY;
 	mat->bloom = DEFAULT_BLOOM;
 
@@ -805,23 +804,13 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "parallax")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No parallax specified");
-			} else if (m->parallax < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be >= 0.0");
-				m->parallax = DEFAULT_PARALLAX;
-			}
-		}
-
 		if (!g_strcmp0(token, "bloom")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->bloom, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No bloom specified");
 			} else if (m->bloom < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid bloom value, must be >= 0.0");
-				m->parallax = DEFAULT_BLOOM;
+				m->bloom = DEFAULT_BLOOM;
 			}
 		}
 
@@ -1065,7 +1054,6 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 	}
 
 	Cm_ResolveMaterialAsset(material, &material->normalmap, context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
-	Cm_ResolveMaterialAsset(material, &material->heightmap, context, (const char *[]) { "_h", "_height", NULL });
 	Cm_ResolveMaterialAsset(material, &material->glossmap, context, (const char *[]) { "_g", "_gloss", NULL });
 	Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", NULL });
 	Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
@@ -1175,9 +1163,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	if (*material->normalmap.name) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
 	}
-	if (*material->heightmap.name) {
-		Fs_Print(file, "\theightmap %s\n", material->heightmap.name);
-	}
 	if (*material->glossmap.name) {
 		Fs_Print(file, "\tglossmap %s\n", material->glossmap.name);
 	}
@@ -1191,7 +1176,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "\troughness %g\n", material->roughness);
 	Fs_Print(file, "\thardness %g\n", material->hardness);
 	Fs_Print(file, "\tspecularity %g\n", material->specularity);
-	Fs_Print(file, "\tparallax %g\n", material->parallax);
 	Fs_Print(file, "\tbloom %g\n", material->bloom);
 
 	if (material->contents) {
