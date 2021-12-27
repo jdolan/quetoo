@@ -50,7 +50,7 @@ build:
   project: Quetoo.vs15\quetoo.sln
 before_build:
 - ps: >-
-	echo "Building $env:APPVEYOR_REPO_BRANCH..."
+    echo "Building $env:APPVEYOR_REPO_BRANCH..."
 
     Push-Location "Quetoo.vs15\"
 
