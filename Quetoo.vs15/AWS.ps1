@@ -4,7 +4,7 @@ $QUETOO_REVISION_SRC = "revision"
 $QUETOO_BUCKET = "s3://quetoo/"
 $QUETOO_ARCH = If ($env:Platform -Match "Win32") {"i686"} Else {"x86_64"}
 
-if ($env::APPVEYOR_REPO_BRANCH -Match "master")
+if ($env::APPVEYOR_REPO_BRANCH -eq "master")
 {
 	$QUETOO_REVISION_BUCKET = $QUETOO_BUCKET + "revisions/" + $QUETOO_ARCH + "-pc-windows"
 
@@ -15,7 +15,7 @@ if ($env::APPVEYOR_REPO_BRANCH -Match "master")
 
 $QUETOO_RELEASE_SRC = "Quetoo/";
 
-if ($env::APPVEYOR_REPO_BRANCH -Match "master")
+if ($env::APPVEYOR_REPO_BRANCH -eq "master")
 {
 	$QUETOO_LIB_DIR = $QUETOO_RELEASE_SRC + "lib/"
 	$QUETOO_UPDATE = "quetoo-installer-small.jar"
@@ -40,7 +40,7 @@ echo "Syncing data"
 &$aws_exe s3 sync $QUETOO_DATA_BUCKET $QUETOO_DATA_DIR
 
 $QUETOO_SNAPSHOT_SRC = "Quetoo.zip"
-if ($env::APPVEYOR_REPO_BRANCH -Match "master")
+if ($env::APPVEYOR_REPO_BRANCH -eq "master")
 {
 	$QUETOO_SNAPSHOT_BUCKET = $QUETOO_BUCKET + "snapshots/Quetoo-BETA-" + $QUETOO_ARCH + "-pc-windows.zip"
 }
