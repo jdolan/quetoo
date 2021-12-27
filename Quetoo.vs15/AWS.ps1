@@ -6,7 +6,7 @@ if (-not $env:APPVEYOR_REPO_BRANCH)
 
 echo "AWS for $env:APPVEYOR_REPO_BRANCH..."
 
-$IS_MASTER = $env::APPVEYOR_REPO_BRANCH -eq "master"
+$IS_MASTER = $env:APPVEYOR_REPO_BRANCH -eq "master"
 
 $aws_exe = "aws.exe"
 
@@ -56,7 +56,7 @@ if ($IS_MASTER)
 }
 else
 {
-	$QUETOO_SNAPSHOT_BUCKET = $QUETOO_BUCKET + "snapshots/Quetoo-BETA-" + $QUETOO_ARCH + "-" + $env::APPVEYOR_REPO_BRANCH + "-pc-windows.zip"
+	$QUETOO_SNAPSHOT_BUCKET = $QUETOO_BUCKET + "snapshots/Quetoo-BETA-" + $QUETOO_ARCH + "-" + $env:APPVEYOR_REPO_BRANCH + "-pc-windows.zip"
 }
 
 # zip up Quetoo/
