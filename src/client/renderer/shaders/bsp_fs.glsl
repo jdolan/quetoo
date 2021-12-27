@@ -157,8 +157,6 @@ void main(void) {
 
 	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
-	float fragdist = length(vertex.position);
-
 	vec3 viewdir = normalize(-vertex.position);
 
 	vec2 texcoord_material = vertex.diffusemap;
@@ -166,7 +164,13 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		texcoord_material = parallax(texture_material, vec3(texcoord_material, 1.0), viewdir * tbn, fragdist, material.parallax * 0.04);
+		if (material.parallax > 0.0) {
+			texcoord_material = parallax(texture_material,
+										 vec3(texcoord_material, 1.0),
+										 viewdir * tbn,
+										 length(vertex.position),
+										 material.parallax * .04);
+		}
 
 		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
 		vec4 normalmap = texture(texture_material, vec3(texcoord_material, 1));
@@ -189,7 +193,7 @@ void main(void) {
 			ambient = mix(ambient, texture(texture_lightgrid_ambient, vertex.lightgrid).rgb, .666);
 			diffuse = mix(diffuse, texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb, .666);
 			direction = mix(direction, texture(texture_lightgrid_direction, vertex.lightgrid).xyz, .666);
-			caustic = mix(caustic, texture(texture_lightgrid_caustics, vertex.lightgrid).rgb, .666);
+			caustic = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
 			direction = normalize(direction);
 		}
 
