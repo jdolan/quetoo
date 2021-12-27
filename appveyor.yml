@@ -1,9 +1,10 @@
 version: 1.0.{build}
 image:
-- Visual Studio 2019
+- Visual Studio 2022
 branches:
   only:
   - master
+  - develop
 configuration: Release
 platform:
 - Win32
