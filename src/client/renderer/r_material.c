@@ -124,21 +124,6 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 }
 
 /**
- * @return True if the specified surface is a greyscale heightmap.
- */
-static _Bool R_IsHeightmap(const SDL_Surface *surf) {
-
-	const byte *b = surf->pixels;
-	for (int32_t i = 0; i < surf->w * surf->h; i++, b += 4) {
-		if (b[0] != b[1] || b[0] != b[2]) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-/**
  * @brief Loads the material asset, ensuring it is the specified dimensions for texture layering.
  */
 static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path) {
@@ -292,20 +277,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				}
 			} else {
 				normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 127));
-			}
-
-			if (*cm->heightmap.path) {
-				SDL_Surface *heightmap = R_LoadMaterialSurface(w, h, cm->heightmap.path);
-				if (heightmap) {
-					if (R_IsHeightmap(heightmap)) {
-						R_MergeMaterialSurfaces(normalmap, heightmap);
-					} else {
-						Com_Debug(DEBUG_RENDERER, "%s is not a greyscale heightmap\n", cm->heightmap.path);
-					}
-					SDL_FreeSurface(heightmap);
-				} else {
-					Com_Warn("Failed to load heightmap %s for %s\n", cm->heightmap.path, cm->basename);
-				}
 			}
 
 			SDL_Surface *glossmap = NULL;

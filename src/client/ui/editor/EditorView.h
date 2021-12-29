@@ -72,11 +72,6 @@ struct EditorView {
 	TextView *normalmap;
 
 	/**
-	 * @brief The heightmap texture.
-	 */
-	TextView *heightmap;
-
-	/**
 	 * @brief The glossmap texture.
 	 */
 	TextView *glossmap;
@@ -100,11 +95,6 @@ struct EditorView {
 	 * @brief The specularity slider.
 	 */
 	Slider *specularity;
-
-	/**
-	 * @brief The parallax slider.
-	 */
-	Slider *parallax;
 
 	/**
 	 * @brief The bloom slider.

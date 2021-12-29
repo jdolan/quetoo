@@ -33,7 +33,6 @@ uniform int entity;
 uniform float alpha_threshold;
 
 uniform int bicubic;
-uniform int parallax_samples;
 
 uniform material_t material;
 uniform stage_t stage;
@@ -65,92 +64,6 @@ vec4 sample_lightmap(int index) {
 }
 
 /**
- * @brief Returns texture coordinates offset via parallax occlusion mapping.
- */
-vec2 parallax(sampler2DArray sampler, vec3 uv, vec3 viewdir, float dist, float scale) {
-
-	// TODO: figure out how dFdx/dFdy can be used to improve quality around silhouettes
-	// TODO: store the heightmap as a BC4 texture to remove texture sampling bottleneck?
-	// TODO: unrolling to 4 iterations per loop supposedly more performant?
-
-	// TODO: do this outside the fragment shader
-	#if 1
-	float tex_lod; {
-
-		// this shader eats through texture bandwidth like crazy,
-		// so limit the size of the sampled texture by limiting
-		// the mipmap sampled from.
-
-		// this means lod bias or anisotropy is disregarded which is
-		// actually good for parallax since it makes no discernable
-		// difference and anisotropy makes it a lot slower
-
-		// 2^7 = 128*128 largest texture size.
-		const float max_mipsize = 7;
-
-		vec2 tex_size = textureSize(sampler, 0).xy;
-		float mipcount = log2(max(tex_size.x, tex_size.y));
-
-		float min_mip = mipcount - max_mipsize;
-		float cur_mip = mipmap_level(uv.xy);
-
-		tex_lod = max(cur_mip, min_mip);
-	}
-	#else
-	float tex_lod = 0;
-	#endif
-
-	// TODO: do this outside the fragment shader
-	float samplecount = parallax_samples;
-	#if 1
-	{
-		float min_samples = 1;
-
-		#if 1 // fade out at a distance.
-		float dist = 1.0 - linearstep(200.0, 500.0, dist);
-		samplecount = mix(min_samples, samplecount, dist);
-		scale *= dist;
-		#endif
-
-		#if 0 // do less work on surfaces orthogonal to the view -- might give subtle peeling artifacts.
-		float orthogonality = saturate(dot(viewdir, vec3(0.0, 0.0, 1.0)));
-		samplecount = mix(min_samples, samplecount, 1.0 - orthogonality * orthogonality);
-		#endif
-	}
-	#endif
-
-	// record keeping
-	vec2  prev_coord;
-	vec2  curr_coord = uv.xy - (viewdir.xy * scale * 0.5); // middle-out parallax
-	float prev_surface_height;
-	float curr_surface_height = textureLod(sampler, uv, tex_lod).a;
-	float prev_ray_height;
-	float curr_ray_height = 0.0;
-
-	// height offset per step
-	float height_delta = 1.0 / samplecount;
-	// uv offset per step
-	vec2 coord_delta = viewdir.xy * scale / samplecount;
-
-	// raymarch in small steps until we intersect the surface
-	while (curr_ray_height <= curr_surface_height) {
-		prev_coord = curr_coord;
-		curr_coord += coord_delta;
-		prev_surface_height = curr_surface_height;
-		curr_surface_height = textureLod(sampler, vec3(curr_coord, uv.z), tex_lod).a;
-		prev_ray_height = curr_ray_height;
-		curr_ray_height += height_delta;
-	}
-
-	// take last two heights and lerp between them
-	float a = curr_surface_height - curr_ray_height;
-	float b = prev_surface_height - prev_ray_height + height_delta;
-	vec2 result = mix(curr_coord, prev_coord, a / (a - b));
-
-	return result;
-}
-
-/**
  * @brief
  */
 void main(void) {
@@ -163,14 +76,6 @@ void main(void) {
 	vec2 texcoord_lightmap = vertex.lightmap;
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
-
-		if (material.parallax > 0.0) {
-			texcoord_material = parallax(texture_material,
-										 vec3(texcoord_material, 1.0),
-										 viewdir * tbn,
-										 length(vertex.position),
-										 material.parallax * .04);
-		}
 
 		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
 		vec4 normalmap = texture(texture_material, vec3(texcoord_material, 1));
