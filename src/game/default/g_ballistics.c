@@ -1096,8 +1096,6 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		} else {
 
-			// FIXME: Expand TE_HOOK_IMPACT to include contents, always send TE_HOOK_IMPACT,
-			// FIXME: which can play the appropriate hit sound without a separate packet
 			G_MulticastSound(&(const g_play_sound_t) {
 				.index = g_media.sounds.hook_gibhit,
 				.entity = self,

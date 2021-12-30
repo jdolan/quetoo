@@ -44,7 +44,7 @@ vec3_t Cg_ResolveEntityEffectHSV(const uint8_t client, const float default_hue) 
 		return Vec3(default_hue, 1.f, 1.f);
 	}
 
-	return Cg_ResolveEffectHSV(cgi.client->client_info[client].hue, default_hue);
+	return Cg_ResolveEffectHSV(cg_state.clients[client].hue, default_hue);
 }
 
 /**

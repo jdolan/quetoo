@@ -26,6 +26,64 @@
 
 #ifdef __CG_LOCAL_H__
 
+/**
+ * @brief The client game's representation of a player.
+ */
+typedef struct {
+	/**
+	 * @brief The client info string, e.g. "newbie\qforcer/default."
+	 */
+	char info[MAX_STRING_CHARS];
+
+	/**
+	 * @brief The player name, e.g. "newbie."
+	 */
+	char name[MAX_USER_INFO_VALUE];
+
+	/**
+	 * @brief The model name, e.g. "qforcer."
+	 */
+	char model[MAX_USER_INFO_VALUE];
+
+	/**
+	 * @brief The skin name, e.g. "default."
+	 */
+	char skin[MAX_USER_INFO_VALUE];
+
+	/**
+	 * @brief Shirt, pants and helmet color.
+	 */
+	color_t shirt, pants, helmet;
+
+	/**
+	 * @brief Effects color.
+	 */
+	float hue;
+
+	/**
+	 * @brief The head model and materials.
+	 */
+	r_model_t *head;
+	r_material_t *head_skins[MAX_ENTITY_SKINS];
+
+	/**
+	 * @brief The torso model and materials.
+	 */
+	r_model_t *torso;
+	r_material_t *torso_skins[MAX_ENTITY_SKINS];
+
+	/**
+	 * @brief The legs model and materials.
+	 */
+	r_model_t *legs;
+	r_material_t *legs_skins[MAX_ENTITY_SKINS];
+
+	/**
+	 * @brief The skin icon for the scoreboard.
+	 */
+	r_image_t *icon;
+} cg_client_info_t;
+
 #define WEATHER_NONE        0x0
 #define WEATHER_RAIN        0x1
 #define WEATHER_SNOW        0x2
@@ -34,6 +92,11 @@
  * @brief Client game state.
  */
 typedef struct {
+	/**
+	 * @brief The cache of known client skins contained within ConfigStrings.
+	 */
+	cg_client_info_t clients[MAX_CLIENTS];
+
 	/**
 	 * @brief Grapple hook speed, for client side prediction.
 	 */

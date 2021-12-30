@@ -61,7 +61,7 @@ void Cg_ParseSound(void) {
 			if (play.sample->media.name[0] == '*') {
 				assert(play.entity - 1 < MAX_CLIENTS);
 
-				const cl_client_info_t *info = &cgi.client->client_info[play.entity - 1];
+				const cg_client_info_t *info = &cg_state.clients[play.entity - 1];
 				play.sample = cgi.LoadClientModelSample(info->model, play.sample->media.name);
 			}
 		}

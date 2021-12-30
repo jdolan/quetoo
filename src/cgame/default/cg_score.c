@@ -150,7 +150,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	r_pixel_t cw, ch;
 
-	const cl_client_info_t *info = &cgi.client->client_info[s->client];
+	const cg_client_info_t *info = &cg_state.clients[s->client];
 
 	// icon
 	cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2, info->icon, color_white);

@@ -357,7 +357,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 
 	if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
 
-		cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
+		cg_client_info_t *ci = &cg_state.clients[i - CS_CLIENTS];
 		Cg_LoadClient(ci, s);
 
 		cl_entity_t *ent = &cgi.client->entities[i - CS_CLIENTS + 1];

@@ -98,27 +98,6 @@ typedef struct {
 // the total number of tokens info can contain
 #define MAX_CLIENT_INFO_ENTRIES		6
 
-typedef struct {
-	char info[MAX_STRING_CHARS]; // the full info string, e.g. newbie\qforcer/blue
-	char name[MAX_USER_INFO_VALUE]; // the player name, e.g. newbie
-	char model[MAX_USER_INFO_VALUE]; // the model name, e.g. qforcer
-	char skin[MAX_USER_INFO_VALUE]; // the skin name, e.g. blue
-
-	color_t shirt, pants, helmet; // player and effects colors
-	float hue;
-
-	r_model_t *head;
-	r_material_t *head_skins[MAX_ENTITY_SKINS];
-
-	r_model_t *torso;
-	r_material_t *torso_skins[MAX_ENTITY_SKINS];
-
-	r_model_t *legs;
-	r_material_t *legs_skins[MAX_ENTITY_SKINS];
-
-	r_image_t *icon; // for the scoreboard
-} cl_client_info_t;
-
 /**
  * @brief A circular buffer of recently sent user_cmd_t is maintained so that
  * we can always re-send the last 2 commands to counter packet loss, and so
@@ -325,11 +304,6 @@ typedef struct {
 	 * @brief The index into `config_strings` to check for file presence or download.
 	 */
 	int32_t precache_check;
-
-	/**
-	 * @brief The cache of known client skins contained within `config_strings`.
-	 */
-	cl_client_info_t client_info[MAX_CLIENTS];
 } cl_client_t;
 
 typedef enum {

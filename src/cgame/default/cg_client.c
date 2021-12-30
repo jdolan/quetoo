@@ -118,7 +118,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 /**
  * @brief Ensures that models and skins were resolved for the specified client info.
  */
-static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
+static _Bool Cg_ValidateSkin(cg_client_info_t *ci) {
 
 	if (!ci->head || !ci->torso || !ci->legs) {
 		return false;
@@ -134,7 +134,7 @@ static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
 /**
  * @brief Resolve and load the specified model/skin for the player.
  */
-static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const char *skin) {
+static _Bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const char *skin) {
 
 	g_strlcpy(ci->model, model, sizeof(ci->model));
 	g_strlcpy(ci->skin, skin, sizeof(ci->skin));
@@ -173,7 +173,7 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
  * @brief Resolves the player name, model and skins for the specified user info string.
  * If validation fails, we fall back on the DEFAULT_CLIENT_INFO constant.
  */
-void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
+void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 	const char *t;
 	char *v = NULL;
 	int32_t i;
@@ -268,10 +268,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
  */
 void Cg_LoadClients(void) {
 
-	memset(cgi.client->client_info, 0, sizeof(cgi.client->client_info));
+	memset(cg_state.clients, 0, sizeof(cg_state.clients));
 
 	for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-		cl_client_info_t *ci = &cgi.client->client_info[i];
+		cg_client_info_t *ci = &cg_state.clients[i];
 		const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
 		if (!*s) {
@@ -387,7 +387,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
  */
 static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
 
-	const cl_client_info_t *ci = &cgi.client->client_info[ent->current.client];
+	const cg_client_info_t *ci = &cg_state.clients[ent->current.client];
 
 	Cg_AnimateClientEntity_(ci->torso, &ent->animation1);
 
@@ -491,7 +491,7 @@ static inline float Cg_CalculateAngle(const float speed, float current, float id
 void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	const entity_state_t *s = &ent->current;
 
-	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
+	const cg_client_info_t *ci = &cg_state.clients[s->client];
 	if (!ci->head || !ci->torso || !ci->legs) {
 		Cg_Debug("Invalid client info: %d\n", s->client);
 		return;
