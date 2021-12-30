@@ -69,7 +69,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 
 	glDrawElements(GL_TRIANGLES, r_world_model->bsp->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
 
-	if (r_occlude->value == 1 && view->ticks - occlusion_query_ticks >= 8) {
+	if (r_occlude->integer && view->ticks - occlusion_query_ticks >= 8) {
 		occlusion_query_ticks = view->ticks;
 
 		glDepthMask(GL_FALSE);
@@ -154,7 +154,7 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 		return false;
 	}
 
-	if (!r_occlude->value) {
+	if (!r_occlude->integer) {
 		return false;
 	}
 
