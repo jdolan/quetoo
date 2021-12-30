@@ -23,4 +23,5 @@
 
 #include "g_types.h"
 
-void G_Sound(const g_play_sound_t *play);
+void G_MulticastSound(const g_play_sound_t *play, multicast_t to, EntityFilterFunc filter);
+void G_UnicastSound(const g_play_sound_t *play, const g_entity_t *to, _Bool reliable);

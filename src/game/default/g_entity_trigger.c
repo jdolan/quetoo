@@ -238,11 +238,11 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other, const cm_t
 
 		if (other->locals.push_time < g_level.time) {
 			other->locals.push_time = g_level.time + 1500;
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_start,
 				.origin = &other->s.origin,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 	}
 

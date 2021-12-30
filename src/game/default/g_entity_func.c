@@ -313,11 +313,11 @@ static void G_func_plat_Top(g_entity_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (ent->locals.move_info.sound_end) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = ent->locals.move_info.sound_end,
 				.entity = ent,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		ent->s.sound = 0;
@@ -342,11 +342,11 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 			pos = Box3_Center(ent->abs_bounds);
 			pos.z = ent->abs_bounds.maxs.z;
 
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = ent->locals.move_info.sound_end,
 				.origin = &pos,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		ent->s.sound = 0;
@@ -363,11 +363,11 @@ static void G_func_plat_GoingDown(g_entity_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (ent->locals.move_info.sound_start) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = ent->locals.move_info.sound_start,
 				.entity = ent,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		ent->s.sound = ent->locals.move_info.sound_middle;
@@ -390,11 +390,11 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 			pos = Box3_Center(ent->abs_bounds);
 			pos.z = ent->abs_bounds.maxs.z;
 
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = ent->locals.move_info.sound_start,
 				.origin = &pos,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		ent->s.sound = ent->locals.move_info.sound_middle;
@@ -725,11 +725,11 @@ static void G_func_button_Activate(g_entity_t *self) {
 	move->state = MOVE_STATE_GOING_UP;
 
 	if (move->sound_start && !(self->locals.flags & FL_TEAM_SLAVE)) {
-		G_Sound(&(const g_play_sound_t) {
+		G_MulticastSound(&(const g_play_sound_t) {
 			.index = move->sound_start,
 			.entity = self,
 			.atten = SOUND_ATTEN_SQUARE
-		});
+		}, MULTICAST_PHS, NULL);
 	}
 
 	G_MoveInfo_Linear_Init(self, move->end_origin, G_func_button_Wait);
@@ -859,11 +859,11 @@ static void G_func_door_Top(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_end,
 				.entity = self,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		self->s.sound = 0;
@@ -889,11 +889,11 @@ static void G_func_door_Bottom(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_end,
 				.entity = self,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		self->s.sound = 0;
@@ -908,11 +908,11 @@ static void G_func_door_Bottom(g_entity_t *self) {
 static void G_func_door_GoingDown(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_start,
 				.entity = self,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
@@ -947,11 +947,11 @@ static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_start,
 				.entity = self,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
@@ -1146,11 +1146,9 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other, const cm_trac
 		gi.Unicast(other, true);
 	}
 
-	G_Sound(&(const g_play_sound_t) {
-		.index = gi.SoundIndex("misc/chat"),
-		.entity = other,
-		.atten = SOUND_ATTEN_CUBIC
-	});
+	G_UnicastSound(&(const g_play_sound_t) {
+		.index = g_media.sounds.chat,
+	}, other, true);
 }
 
 /*QUAKED func_door (0 .5 .8) ? start_open x x x toggle
@@ -1347,7 +1345,6 @@ void G_func_door_rotating(g_entity_t *ent) {
 	}
 
 	if (ent->locals.target_name && ent->locals.message) {
-		gi.SoundIndex("misc/chat");
 		ent->locals.Touch = G_func_door_Touch;
 	}
 
@@ -1410,11 +1407,11 @@ static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_start) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_start,
 				.entity = self,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		self->s.sound = self->locals.move_info.sound_middle;
@@ -1450,11 +1447,11 @@ static void G_func_door_secret_Move3(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_end,
 				.entity = self,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		self->s.sound = 0;
@@ -1472,11 +1469,11 @@ static void G_func_door_secret_Move4(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_start) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_start,
 				.entity = self,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		self->s.sound = self->locals.move_info.sound_middle;
@@ -1515,11 +1512,11 @@ static void G_func_door_secret_Done(g_entity_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
 		if (self->locals.move_info.sound_end) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_end,
 				.entity = self,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		self->s.sound = 0;
@@ -1817,11 +1814,11 @@ static void G_func_train_Wait(g_entity_t *self) {
 
 		if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 			if (self->locals.move_info.sound_end) {
-				G_Sound(&(const g_play_sound_t) {
+				G_MulticastSound(&(const g_play_sound_t) {
 					.index = self->locals.move_info.sound_end,
 					.entity = self,
 					.atten = SOUND_ATTEN_SQUARE
-				});
+				}, MULTICAST_PHS, NULL);
 			}
 			self->s.sound = 0;
 		}
@@ -1870,11 +1867,11 @@ again:
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = self->locals.move_info.sound_start,
 				.entity = self,
 				.atten = SOUND_ATTEN_SQUARE
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 		self->s.sound = self->locals.move_info.sound_middle;
 	}

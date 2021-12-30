@@ -233,11 +233,11 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other, const cm_t
 		if (speed > 40.0 && G_IsStructural(trace)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
-				G_Sound(&(const g_play_sound_t) {
+				G_MulticastSound(&(const g_play_sound_t) {
 					.index = self->locals.sound,
 					.entity = self,
 					.atten = SOUND_ATTEN_SQUARE
-				});
+				}, MULTICAST_PHS, NULL);
 				self->locals.touch_time = g_level.time;
 			}
 		}
@@ -478,12 +478,12 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) {
 		G_ClientCorpse_Die(self, attacker, mod);
 	} else {
-		G_Sound(&(const g_play_sound_t) {
+		G_MulticastSound(&(const g_play_sound_t) {
 			.index = gi.SoundIndex("*death_1"),
 			.entity = self,
 			.origin = &self->s.origin, // send the origin in case of fast respawn
 			.atten = SOUND_ATTEN_LINEAR
-		});
+		}, MULTICAST_PHS, NULL);
 
 		const float r = Randomf();
 		if (r < 0.33) {
@@ -1215,6 +1215,10 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
 
 	// build the client info string
+//	const g_team_t *team = cl->locals.persistent.team;
+//	g_strlcat(client_info, va("%d", team ? team->id : TEAM_RED), MAX_USER_INFO_STRING);
+//
+//	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
@@ -1563,11 +1567,12 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
 
 		if (ent->client->locals.quad_countdown_time && ent->client->locals.quad_countdown_time < g_level.time) { // play the countdown sound			
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = g_media.sounds.quad_expire,
 				.entity = ent,
 				.atten = SOUND_ATTEN_LINEAR
-			});
+			}, MULTICAST_PHS, NULL);
+			
 			ent->client->locals.quad_countdown_time += 1000;
 		}
 

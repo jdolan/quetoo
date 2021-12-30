@@ -246,11 +246,11 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 	gi.LinkEntity(ent);
 
 	if (Randomf() < 0.33) {
-		G_Sound(&(const g_play_sound_t) {
+		G_MulticastSound(&(const g_play_sound_t) {
 			.index = gi.SoundIndex(va("world/lava_%d", (count++ % 3) + 1)),
 			.entity = ent,
 			.atten = SOUND_ATTEN_SQUARE
-		});
+		}, MULTICAST_PHS, NULL);
 	}
 
 	self->locals.next_think = g_level.time + (self->locals.wait * 1000.0) + (self->locals.random * 1000 * RandomRangef(-1.f, 1.f));

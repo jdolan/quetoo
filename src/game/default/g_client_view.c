@@ -47,12 +47,12 @@ static void G_ClientDamage(g_entity_t *ent) {
 
 			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = gi.SoundIndex(va("*pain%i_1", l)),
 				.entity = ent,
 				.origin = &org,
 				.atten = SOUND_ATTEN_LINEAR
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -78,20 +78,21 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 	// if just entered a water volume, play a sound
 	if (old_water_level <= WATER_NONE && water_level >= WATER_FEET) {
-		G_Sound(&(const g_play_sound_t) {
+		G_MulticastSound(&(const g_play_sound_t) {
 			.index = g_media.sounds.water_in,
 			.entity = ent,
 			.atten = SOUND_ATTEN_LINEAR
-		});
+		}, MULTICAST_PHS, NULL);
 	}
 
 	// completely exited the water
 	if (old_water_level >= WATER_FEET && water_level == WATER_NONE) {
-		G_Sound(&(const g_play_sound_t) {
+		G_MulticastSound(&(const g_play_sound_t) {
 			.index = g_media.sounds.water_out,
 			.entity = ent,
 			.atten = SOUND_ATTEN_LINEAR
-		});	}
+		}, MULTICAST_PHS, NULL);
+	}
 
 	// same water level, head out of water
 	if ((old_water_level == water_level) && (water_level >= WATER_FEET && water_level < WATER_UNDER)) {
@@ -106,12 +107,12 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 		if (old_water_level == WATER_UNDER && water_level != WATER_UNDER && (client->locals.drown_time - g_level.time) < 8000) {
 			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = gi.SoundIndex("*gasp_1"),
 				.entity = ent,
 				.origin = &org,
 				.atten = SOUND_ATTEN_LINEAR
-			});
+			}, MULTICAST_PHS, NULL);
 		}
 
 		// check for drowning

@@ -24,8 +24,7 @@
 /**
  * @brief
  */
-void G_Sound(const g_play_sound_t *play) {
-	vec3_t from;
+static void G_Sound(const g_play_sound_t *play) {
 
 	assert(play->index > -1);
 	assert(play->index < MAX_SOUNDS);
@@ -34,12 +33,10 @@ void G_Sound(const g_play_sound_t *play) {
 
 	if (play->entity) {
 		flags |= SOUND_ENTITY;
-		from = Box3_Center(play->entity->abs_bounds);
 	}
 
 	if (play->origin) {
 		flags |= SOUND_ORIGIN;
-		from = *play->origin;
 	}
 
 	if (play->atten) {
@@ -69,10 +66,33 @@ void G_Sound(const g_play_sound_t *play) {
 	if (flags & SOUND_PITCH) {
 		gi.WriteChar(play->pitch);
 	}
+}
 
-	if (play->atten) {
-		gi.Multicast(from, MULTICAST_PHS, NULL);
-	} else {
-		gi.Multicast(from, MULTICAST_ALL, NULL);
+/**
+ * @brief
+ */
+void G_MulticastSound(const g_play_sound_t *play, multicast_t to, EntityFilterFunc filter) {
+	vec3_t from;
+
+	G_Sound(play);
+
+	if (play->entity) {
+		from = Box3_Center(play->entity->abs_bounds);
 	}
+
+	if (play->origin) {
+		from = *play->origin;
+	}
+
+	gi.Multicast(from, to, filter);
+}
+
+/**
+ * @brief
+ */
+void G_UnicastSound(const g_play_sound_t *play, const g_entity_t *to, _Bool reliable) {
+
+	G_Sound(play);
+
+	gi.Unicast(to, reliable);
 }

@@ -379,12 +379,12 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_tra
 		if (G_IsStructural(trace)) {
 			if (g_level.time - self->locals.touch_time > 200) {
 				if (Vec3_Length(self->locals.velocity) > 40.0) {
-					G_Sound(&(const g_play_sound_t) {
+					G_MulticastSound(&(const g_play_sound_t) {
 						.index = g_media.sounds.grenade_hit,
 						.entity = self,
 						.atten = SOUND_ATTEN_LINEAR,
 						.pitch = (int8_t) (Randomf() * 5.0)
-					});
+					}, MULTICAST_PHS, NULL);
 					self->locals.touch_time = g_level.time;
 				}
 			}
@@ -746,11 +746,11 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		water_start = tr.end;
 
 		if (!self->locals.water_level) {
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = g_media.sounds.water_in,
 				.origin = &water_start,
 				.atten = SOUND_ATTEN_LINEAR
-			});
+			}, MULTICAST_PHS, NULL);
 			self->locals.water_level = WATER_FEET;
 		}
 
@@ -760,11 +760,11 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		G_Ripple(NULL, start, end, 16.f, true);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = g_media.sounds.water_out,
 				.origin = &start,
 				.atten = SOUND_ATTEN_LINEAR
-			});
+			}, MULTICAST_PHS, NULL);
 			self->locals.water_level = WATER_NONE;
 		}
 	}
@@ -881,11 +881,11 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 			content_mask &= ~CONTENTS_MASK_LIQUID;
 			liquid = true;
 
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = g_media.sounds.water_in,
 				.origin = &tr.end,
 				.atten = SOUND_ATTEN_LINEAR
-			});
+			}, MULTICAST_PHS, NULL);
 
 			ignore = ent;
 			continue;
@@ -1098,12 +1098,12 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 
 			// FIXME: Expand TE_HOOK_IMPACT to include contents, always send TE_HOOK_IMPACT,
 			// FIXME: which can play the appropriate hit sound without a separate packet
-			G_Sound(&(const g_play_sound_t) {
+			G_MulticastSound(&(const g_play_sound_t) {
 				.index = g_media.sounds.hook_gibhit,
 				.entity = self,
 				.atten = SOUND_ATTEN_LINEAR,
 				.pitch = RandomRangei(-4, 5)
-			});
+			}, MULTICAST_PHS, NULL);
 
 			/*
 			if (g_hook_auto_refire->integer) {

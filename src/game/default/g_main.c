@@ -473,10 +473,9 @@ static void G_RestartGame(_Bool teamz) {
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
 
-	G_Sound(&(const g_play_sound_t) {
-		.index = g_media.sounds.teleport,
-		.atten = SOUND_ATTEN_NONE
-	});
+	G_MulticastSound(&(const g_play_sound_t) {
+		.index = g_media.sounds.teleport
+	}, MULTICAST_PHS_R, NULL);
 }
 
 /**
@@ -542,10 +541,9 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	G_Sound(&(const g_play_sound_t) {
-		.index = g_media.sounds.roar,
-		.atten = SOUND_ATTEN_NONE
-	});
+	G_MulticastSound(&(const g_play_sound_t) {
+		.index = g_media.sounds.roar
+	}, MULTICAST_PHS_R, NULL);
 
 	// stay on same level if not provided
 	g_level.next_map = map ?: g_level.name;
@@ -942,10 +940,9 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		G_Sound(&(const g_play_sound_t) {
-			.index = g_media.sounds.teleport,
-			.atten = SOUND_ATTEN_NONE
-		});
+		G_MulticastSound(&(const g_play_sound_t) {
+			.index = g_media.sounds.teleport
+		}, MULTICAST_PHS_R, NULL);
 
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
@@ -962,10 +959,9 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		G_Sound(&(const g_play_sound_t) {
-			.index = g_media.sounds.teleport,
-			.atten = SOUND_ATTEN_NONE
-		});
+		G_MulticastSound(&(const g_play_sound_t) {
+			.index = g_media.sounds.teleport
+		}, MULTICAST_PHS_R, NULL);
 
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
@@ -1762,10 +1758,9 @@ void G_RunTimers(void) {
 			if (j <= 5) {
 
 				if (j > 0) {
-					G_Sound(&(const g_play_sound_t) {
-						.index = g_media.sounds.countdown[j],
-						.atten = SOUND_ATTEN_NONE
-					});
+					G_MulticastSound(&(const g_play_sound_t) {
+						.index = g_media.sounds.countdown[j]
+					}, MULTICAST_PHS_R, NULL);
 				}
 
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
@@ -1777,17 +1772,14 @@ void G_RunTimers(void) {
 			gi.SetConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_time_limit->integer * 60 * 1000)));
 		} else if (G_MatchIsTimeout()) { // mid match, player called timeout
 			j = (g_level.timeout_time - g_level.time) / 1000;
-			gi.SetConfigString(CS_TIME, va("Timeout %s",
-			                               G_FormatTime(g_level.timeout_time - g_level.time))
-			                  );
+			gi.SetConfigString(CS_TIME, va("Timeout %s", G_FormatTime(g_level.timeout_time - g_level.time)));
 
 			if (j <= 10) {
 
 				if (j > 0) {
-					G_Sound(&(const g_play_sound_t) {
-						.index = g_media.sounds.countdown[j],
-						.atten = SOUND_ATTEN_NONE
-					});
+					G_MulticastSound(&(const g_play_sound_t) {
+						.index = g_media.sounds.countdown[j]
+					}, MULTICAST_PHS_R, NULL);
 				} else {
 					G_CallTimeIn();
 				}

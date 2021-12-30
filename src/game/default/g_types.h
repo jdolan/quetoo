@@ -788,6 +788,8 @@ typedef struct {
 		uint16_t roar;
 
 		uint16_t techs[TECH_TOTAL];
+
+		uint16_t chat;
 	} sounds;
 
 	struct g_media_images_t {
