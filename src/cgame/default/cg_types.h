@@ -82,6 +82,11 @@ typedef struct {
 	 * @brief The skin icon for the scoreboard.
 	 */
 	r_image_t *icon;
+
+	/**
+	 * @brief The team identifier.
+	 */
+	g_team_id_t team;
 } cg_client_info_t;
 
 #define WEATHER_NONE        0x0

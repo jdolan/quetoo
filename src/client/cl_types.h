@@ -95,9 +95,6 @@ typedef struct {
 	mat4_t inverse_matrix; // inverse transform
 } cl_entity_t;
 
-// the total number of tokens info can contain
-#define MAX_CLIENT_INFO_ENTRIES		6
-
 /**
  * @brief A circular buffer of recently sent user_cmd_t is maintained so that
  * we can always re-send the last 2 commands to counter packet loss, and so

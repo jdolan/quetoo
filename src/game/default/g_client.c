@@ -1145,8 +1145,10 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		g_strlcpy(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name));
 	}
 
+	const g_team_t *team = (g_level.teams || g_level.ctf) ? cl->locals.persistent.team : NULL;
+
 	// set skin
-	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
+	if (team) { // players must use team_skin to change
 		s = GetUserInfo(user_info, "skin");
 
 		char *p;
@@ -1167,7 +1169,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	}
 
 	// set effect color
-	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
+	if (team) { // players must use team_skin to change
 		cl->locals.persistent.color = cl->locals.persistent.team->color;
 	} else {
 		s = GetUserInfo(user_info, "color");
@@ -1188,7 +1190,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	cl->locals.persistent.pants.a = 0;
 	cl->locals.persistent.helmet.a = 0;
 
-	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) {
+	if (team) {
 
 		cl->locals.persistent.shirt = cl->locals.persistent.team->shirt;
 		cl->locals.persistent.pants = cl->locals.persistent.team->pants;
@@ -1215,10 +1217,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
 
 	// build the client info string
-//	const g_team_t *team = cl->locals.persistent.team;
-//	g_strlcat(client_info, va("%d", team ? team->id : TEAM_RED), MAX_USER_INFO_STRING);
-//
-//	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+
 	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
@@ -1236,6 +1235,9 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
 
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, va("%d", team ? team->id : TEAM_RED), MAX_USER_INFO_STRING);
+
 	// send it to clients
 	const int32_t index = (int32_t) (ptrdiff_t) (cl - g_game.clients);
 	gi.SetConfigString(CS_CLIENTS + index, client_info);
@@ -1252,7 +1254,6 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// handicap
 	uint16_t handicap = strtoul(GetUserInfo(user_info, "handicap"), NULL, 10);
-
 	if (handicap == 0) {
 		handicap = 100;
 	}
@@ -1261,7 +1262,6 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// auto-switch
 	uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);
-
 	cl->locals.persistent.auto_switch = auto_switch;
 
 	// hook style

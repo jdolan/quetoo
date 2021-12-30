@@ -22,9 +22,13 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-#define DEFAULT_CLIENT_MODEL "qforcer"
-#define DEFAULT_CLIENT_SKIN "default"
-#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN "\\-1\\default\\default\\default"
+#define MAX_CLIENT_INFO_ENTRIES 7
+
+#define DEFAULT_MODEL "qforcer"
+#define DEFAULT_SKIN "default"
+
+//                           name    skin             shirt    pants    helmet   hue      team
+#define DEFAULT_CLIENT_INFO "newbie\\qforcer/default\\default\\default\\default\\default\\0"
 
 /**
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
@@ -214,10 +218,9 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 
 			// load the models
 			if (!Cg_LoadClientModel(ci, info[1], v + 1)) {
-				if (!Cg_LoadClientModel(ci, info[1], DEFAULT_CLIENT_SKIN)) {
-					if (!Cg_LoadClientModel(ci, DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN)) {
-						cgi.Error("Failed to load default client skin %s/%s\n",
-							DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN);
+				if (!Cg_LoadClientModel(ci, info[1], DEFAULT_SKIN)) {
+					if (!Cg_LoadClientModel(ci, DEFAULT_MODEL, DEFAULT_SKIN)) {
+						cgi.Error("Failed to load default client skin %s/%s\n", DEFAULT_MODEL, DEFAULT_SKIN);
 					}
 				}
 			}
