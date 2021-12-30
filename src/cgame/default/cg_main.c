@@ -376,9 +376,6 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
 		case SV_CMD_CONFIG_STRING:
 			Cg_UpdateConfigString((int32_t) (intptr_t) data);
 			break;
-		case SV_CMD_SOUND:
-			Cg_AddSample(cgi.stage, (s_play_sample_t *) data);
-			break;
 	}
 }
 
@@ -388,6 +385,10 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
 static _Bool Cg_ParseMessage(int32_t cmd) {
 
 	switch (cmd) {
+		case SV_CMD_SOUND:
+			Cg_ParseSound();
+			return true;
+
 		case SV_CMD_TEMP_ENTITY:
 			Cg_ParseTempEntity();
 			return true;

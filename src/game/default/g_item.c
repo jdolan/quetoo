@@ -475,7 +475,10 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	gi.LinkEntity(f);
 
-	gi.Sound(ent, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
+	G_Sound(&(const g_play_sound_t) {
+		.index = gi.SoundIndex("ctf/return"),
+		.atten = SOUND_ATTEN_NONE
+	});
 
 	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
 
@@ -516,7 +519,10 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 			f->s.event = EV_ITEM_RESPAWN;
 
-			gi.Sound(other, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
+			G_Sound(&(const g_play_sound_t) {
+				.index = gi.SoundIndex("ctf/return"),
+				.atten = SOUND_ATTEN_NONE
+			});
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n",
 			                  other->client->locals.persistent.net_name, t->name, t->id + 1);
@@ -542,7 +548,10 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				of->s.event = EV_ITEM_RESPAWN;
 
-				gi.Sound(other, gi.SoundIndex("ctf/capture"), SOUND_ATTEN_NONE, 0);
+				G_Sound(&(const g_play_sound_t) {
+					.index = gi.SoundIndex("ctf/capture"),
+					.atten = SOUND_ATTEN_NONE
+				});
 
 				gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n",
 								  other->client->locals.persistent.net_name, ot->name, ot->id + 1);
@@ -574,8 +583,10 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	// link the flag model to the player
 	other->s.model3 = f->locals.item->model_index;
 
-	gi.Sound(other, gi.SoundIndex("ctf/steal"), SOUND_ATTEN_NONE, 0);
-
+	G_Sound(&(const g_play_sound_t) {
+		.index = gi.SoundIndex("ctf/steal"),
+		.atten = SOUND_ATTEN_NONE
+	});
 	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n",
 	                  other->client->locals.persistent.net_name, t->name, t->id + 1);
 
@@ -712,8 +723,12 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 		}
 		other->client->locals.pickup_msg_time = g_level.time + 3000;
 
-		if (ent->locals.item->pickup_sound) { // play pickup sound
-			gi.Sound(other, ent->locals.item->pickup_sound_index, SOUND_ATTEN_LINEAR, 0);
+		if (ent->locals.item->pickup_sound) {
+			G_Sound(&(const g_play_sound_t) {
+				.index = ent->locals.item->pickup_sound_index,
+				.origin = &other->s.origin,
+				.atten = SOUND_ATTEN_LINEAR
+			});
 		}
 
 		other->s.event = EV_ITEM_PICKUP;

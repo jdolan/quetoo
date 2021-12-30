@@ -247,54 +247,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 	Mem_ClearBuffer(&sv.multicast);
 }
 
-/**
- * @brief Plays a sound from an entity's position.
- * @details If origin is NULL, the origin is determined from the entity origin
- * or the midpoint of the entity box for BSP sub-models.
- */
-void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch) {
 
-	uint32_t flags = 0;
-
-	if (ent) {
-		flags |= S_ENTITY;
-		if (ent->sv_flags & SVF_NO_CLIENT) {
-			flags |= S_ORIGIN;
-		} else if (!Vec3_Equal(origin, ent->s.origin)) {
-			flags |= S_ORIGIN;
-		}
-	} else {
-		flags |= S_ORIGIN;
-	}
-
-	if (pitch) {
-		flags |= S_PITCH;
-	}
-
-	Net_WriteByte(&sv.multicast, SV_CMD_SOUND);
-	Net_WriteByte(&sv.multicast, flags);
-	Net_WriteByte(&sv.multicast, index);
-
-	Net_WriteByte(&sv.multicast, atten);
-
-	if (flags & S_ENTITY) {
-		Net_WriteShort(&sv.multicast, (int32_t) NUM_FOR_ENTITY(ent));
-	}
-
-	if (flags & S_ORIGIN) {
-		Net_WritePosition(&sv.multicast, origin);
-	}
-
-	if (flags & S_PITCH) {
-		Net_WriteByte(&sv.multicast, pitch);
-	}
-
-	if (atten != SOUND_ATTEN_NONE) {
-		Sv_Multicast(origin, MULTICAST_PHS, NULL);
-	} else {
-		Sv_Multicast(origin, MULTICAST_ALL, NULL);
-	}
-}
 
 /**
  * @brief

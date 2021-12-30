@@ -105,7 +105,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map darkzone"
+            argument = "+map tokays"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

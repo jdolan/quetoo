@@ -496,31 +496,6 @@ typedef struct g_import_s {
 
 	/**
 	 * @}
-	 */
-
-	/**
-	 * @brief Sound sample playback dispatch.
-	 *
-	 * @param ent The entity originating the sound.
-	 * @param index The configuration string index of the sound to be played.
-	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
-	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
-	 */
-	void (*Sound)(const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch);
-
-	/**
-	 * @brief Sound sample playback dispatch for server-local entities, or
-	 * sounds that do not originate from any specific entity.
-	 *
-	 * @param origin The origin of the sound (required).
-	 * @param ent The entity originating the sound, `NULL` for worldspawn.
-	 * @param index The configuration string index of the sound to be played.
-	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
-	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
-	 */
-	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch);
-
-	/**
 	 * @defgroup collision Collision model
 	 * @{
 	 */

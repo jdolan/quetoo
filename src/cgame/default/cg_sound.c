@@ -37,6 +37,55 @@ void Cg_PrepareStage(const cl_frame_t *frame) {
 }
 
 /**
+ * @brief
+ */
+void Cg_ParseSound(void) {
+
+	const byte flags = cgi.ReadByte();
+
+	s_play_sample_t play = {
+		.sample = cgi.client->sounds[cgi.ReadByte()]
+	};
+	
+	assert(play.sample);
+
+	if (flags & SOUND_ENTITY) {
+		play.entity = cgi.ReadShort();
+
+		const cl_entity_t *ent = &cgi.client->entities[play.entity];
+		if (ent->current.solid == SOLID_BSP) {
+			play.origin = Box3_Center(ent->abs_bounds);
+		} else {
+			play.origin = ent->current.origin;
+
+			if (play.sample->media.name[0] == '*') {
+				assert(play.entity - 1 < MAX_CLIENTS);
+
+				const cl_client_info_t *info = &cgi.client->client_info[play.entity - 1];
+				play.sample = cgi.LoadClientModelSample(info->model, play.sample->media.name);
+			}
+		}
+	} else {
+		play.entity = 0;
+	}
+
+	if (flags & SOUND_ORIGIN) {
+		play.origin = cgi.ReadPosition();
+	}
+
+	if (flags & SOUND_ATTEN) {
+		play.atten = cgi.ReadByte();
+	}
+
+	if (flags & SOUND_PITCH) {
+		play.pitch = cgi.ReadChar() * 2;
+	}
+
+	Cg_AddSample(cgi.stage, &play);
+}
+
+
+/**
  * @brief S_PlaySampleThink implementation.
  */
 static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {

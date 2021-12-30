@@ -281,14 +281,23 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 
 	// print the message
 	if ((ent->locals.message) && activator->client) {
+
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(ent->locals.message);
 		gi.Unicast(activator, true);
 
 		if (ent->locals.sound) {
-			gi.Sound(activator, ent->locals.sound, SOUND_ATTEN_LINEAR, 0);
+			G_Sound(&(const g_play_sound_t) {
+				.index = ent->locals.sound,
+				.entity = activator,
+				.atten = SOUND_ATTEN_LINEAR
+			});
 		} else {
-			gi.Sound(activator, gi.SoundIndex("misc/chat"), SOUND_ATTEN_LINEAR, 0);
+			G_Sound(&(const g_play_sound_t) {
+				.index = gi.SoundIndex("misc/chat"),
+				.entity = activator,
+				.atten = SOUND_ATTEN_LINEAR
+			});
 		}
 	}
 

@@ -36,6 +36,7 @@ s_sample_t *cg_sample_lightning_discharge;
 s_sample_t *cg_sample_railgun_fire;
 s_sample_t *cg_sample_bfg_fire;
 s_sample_t *cg_sample_bfg_hit;
+s_sample_t *cg_sample_hook_hit;
 
 s_sample_t *cg_sample_explosion;
 s_sample_t *cg_sample_teleport;
@@ -268,6 +269,8 @@ void Cg_LoadMedia(void) {
 	cg_sample_railgun_fire = cgi.LoadSample("weapons/railgun/fire");
 	cg_sample_bfg_fire = cgi.LoadSample("weapons/bfg/fire");
 	cg_sample_bfg_hit = cgi.LoadSample("weapons/bfg/hit");
+
+	cg_sample_hook_hit = cgi.LoadSample("objects/hook/hit");
 
 	cg_sample_explosion = cgi.LoadSample("weapons/common/explosion");
 	cg_sample_teleport = cgi.LoadSample("world/teleport");

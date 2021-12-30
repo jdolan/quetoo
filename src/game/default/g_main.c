@@ -472,7 +472,11 @@ static void G_RestartGame(_Bool teamz) {
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
-	gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
+
+	G_Sound(&(const g_play_sound_t) {
+		.index = g_media.sounds.teleport,
+		.atten = SOUND_ATTEN_NONE
+	});
 }
 
 /**
@@ -538,7 +542,10 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	gi.Sound(g_game.entities, g_media.sounds.roar, SOUND_ATTEN_NONE, 0);
+	G_Sound(&(const g_play_sound_t) {
+		.index = g_media.sounds.roar,
+		.atten = SOUND_ATTEN_NONE
+	});
 
 	// stay on same level if not provided
 	g_level.next_map = map ?: g_level.name;
@@ -935,7 +942,11 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
+		G_Sound(&(const g_play_sound_t) {
+			.index = g_media.sounds.teleport,
+			.atten = SOUND_ATTEN_NONE
+		});
+
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
@@ -951,7 +962,11 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
+		G_Sound(&(const g_play_sound_t) {
+			.index = g_media.sounds.teleport,
+			.atten = SOUND_ATTEN_NONE
+		});
+
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
@@ -1747,7 +1762,10 @@ void G_RunTimers(void) {
 			if (j <= 5) {
 
 				if (j > 0) {
-					gi.Sound(g_game.entities, g_media.sounds.countdown[j], SOUND_ATTEN_NONE, 0);
+					G_Sound(&(const g_play_sound_t) {
+						.index = g_media.sounds.countdown[j],
+						.atten = SOUND_ATTEN_NONE
+					});
 				}
 
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
@@ -1766,7 +1784,10 @@ void G_RunTimers(void) {
 			if (j <= 10) {
 
 				if (j > 0) {
-					gi.Sound(g_game.entities, g_media.sounds.countdown[j], SOUND_ATTEN_NONE, 0);
+					G_Sound(&(const g_play_sound_t) {
+						.index = g_media.sounds.countdown[j],
+						.atten = SOUND_ATTEN_NONE
+					});
 				} else {
 					G_CallTimeIn();
 				}

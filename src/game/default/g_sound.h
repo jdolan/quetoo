@@ -21,36 +21,6 @@
 
 #pragma once
 
-#define __GAME_LOCAL_H__
-
-// this is the game name that we advertise to clients
-#ifndef GAME_NAME
-	#define GAME_NAME "default"
-#endif
-
-#define G_Debug(...) ({ if (gi.DebugMask() & DEBUG_GAME) { gi.Debug_(DEBUG_GAME, __func__, __VA_ARGS__); } })
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
-
-#include "g_ai.h"
-#include "g_ballistics.h"
-#include "g_client_chase.h"
-#include "g_client_stats.h"
-#include "g_client_view.h"
-#include "g_client.h"
-#include "g_cmd.h"
-#include "g_combat.h"
-#include "g_entity_func.h"
-#include "g_entity_info.h"
-#include "g_entity_misc.h"
-#include "g_entity_target.h"
-#include "g_entity_trigger.h"
-#include "g_entity.h"
-#include "g_item.h"
-#include "g_main.h"
-#include "g_map_list.h"
-#include "g_physics.h"
-#include "g_sound.h"
 #include "g_types.h"
-#include "g_util.h"
-#include "g_weapon.h"
+
+void G_Sound(const g_play_sound_t *play);

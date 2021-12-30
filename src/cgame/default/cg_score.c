@@ -78,8 +78,7 @@ void Cg_ParseScores(void) {
 		}
 	}
 
-	qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(g_score_t),
-	      Cg_ParseScores_Compare);
+	qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(g_score_t), Cg_ParseScores_Compare);
 }
 
 /**

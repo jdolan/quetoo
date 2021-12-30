@@ -363,57 +363,6 @@ static void Cl_ParsePrint(void) {
 /**
  * @brief
  */
-static s_play_sample_t *Cl_ParseSound(void) {
-	static s_play_sample_t play;
-
-	const byte flags = Net_ReadByte(&net_message);
-	
-	const int32_t sound = Net_ReadByte(&net_message);
-	if (sound >= MAX_SOUNDS) {
-		Com_Error(ERROR_DROP, "Bad sound (%d)\n", sound);
-	}
-
-	play.sample = cl.sounds[sound];
-	play.atten = Net_ReadByte(&net_message);
-
-	if (flags & S_ENTITY) {
-		play.entity = Net_ReadShort(&net_message);
-
-		const cl_entity_t *ent = &cl.entities[play.entity];
-		if (ent->current.solid == SOLID_BSP) {
-			play.origin = Box3_Center(ent->abs_bounds);
-		} else {
-			play.origin = ent->current.origin;
-
-			if (play.sample->media.name[0] == '*') {
-				assert(play.entity - 1 < MAX_CLIENTS);
-
-				const cl_client_info_t *info = &cl.client_info[play.entity - 1];
-				play.sample = S_LoadClientModelSample(info->model, play.sample->media.name);
-			}
-		}
-	} else {
-		play.entity = 0;
-	}
-
-	if (flags & S_ORIGIN) { // positioned in space
-		play.origin = Net_ReadPosition(&net_message);
-	} else {
-		play.origin = Vec3_Zero();
-	}
-
-	if (flags & S_PITCH) {
-		play.pitch = Net_ReadChar(&net_message) * 2;
-	} else {
-		play.pitch = 0;
-	}
-
-	return &play;
-}
-
-/**
- * @brief
- */
 static void Cl_ShowNet(const char *s) {
 	if (cl_draw_net_messages->integer >= 2) {
 		Com_Print("%3u: %s\n", (uint32_t) (net_message.read - 1), s);
@@ -502,10 +451,6 @@ void Cl_ParseServerMessage(void) {
 
 			case SV_CMD_SERVER_DATA:
 				Cl_ParseServerData();
-				break;
-
-			case SV_CMD_SOUND:
-				data = Cl_ParseSound();
 				break;
 
 			default:

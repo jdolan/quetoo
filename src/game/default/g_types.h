@@ -28,18 +28,19 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1018
+#define PROTOCOL_MINOR 1019
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
  * the client game module.
  */
 typedef enum {
-	SV_CMD_CENTER_PRINT = SV_CMD_CGAME,
+	SV_CMD_SOUND = SV_CMD_CGAME,
 	SV_CMD_MUZZLE_FLASH,
-	SV_CMD_SCORES,
 	SV_CMD_TEMP_ENTITY,
 	SV_CMD_VIEW_KICK,
+	SV_CMD_CENTER_PRINT,
+	SV_CMD_SCORES,
 } g_sv_packet_cmd_t;
 
 /**
@@ -178,6 +179,44 @@ typedef enum {
 	TE_AI_NODE,
 	TE_AI_NODE_LINK
 } g_temp_entity_t;
+
+/**
+ * @brief Sound playback flags.
+ */
+#define SOUND_ENTITY    (1 << 0)
+#define SOUND_ORIGIN    (1 << 1)
+#define SOUND_ATTEN     (1 << 2)
+#define SOUND_PITCH     (1 << 3)
+
+/**
+ * @brief Sound playback dispatch. Sounds may be associated with an entity, or simply positioned.
+ */
+typedef struct {
+	/**
+	 * @brief The ConfigString index of the sample to play.
+	 */
+	int32_t index;
+
+	/**
+	 * @brief The entity to associate the sound with for positioning and model-specific sounds.
+	 */
+	const struct g_entity_s *entity;
+
+	/**
+	 * @brief The sound origin, which takes precedent over the entity origin (if any).
+	 */
+	const vec3_t *origin;
+
+	/**
+	 * @brief The attenuation.
+	 */
+	sound_atten_t atten;
+
+	/**
+	 * @brief The pitch shift, in tones. There are 8 tones per octave.
+	 */
+	int8_t pitch;
+} g_play_sound_t;
 
 /**
  * @brief Player scores are transmitted as binary to the client game module.

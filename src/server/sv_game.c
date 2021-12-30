@@ -218,16 +218,6 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 	return true;
 }
 
-/**
- * @brief
- */
-static void Sv_Sound(const g_entity_t *ent, int32_t index, sound_atten_t atten, int8_t pitch) {
-
-	assert(ent);
-
-	Sv_PositionedSound(ent->s.origin, ent, index, atten, pitch);
-}
-
 static void *ai_handle;
 
 /**
@@ -352,9 +342,6 @@ void Sv_InitGame(void) {
 	import.ModelIndex = Sv_ModelIndex;
 	import.SoundIndex = Sv_SoundIndex;
 	import.ImageIndex = Sv_ImageIndex;
-
-	import.Sound = Sv_Sound;
-	import.PositionedSound = Sv_PositionedSound;
 
 	import.Bsp = Cm_Bsp;
 	import.EntityValue = Cm_EntityValue;

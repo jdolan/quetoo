@@ -658,6 +658,8 @@
 		CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		CEFC7B8C1D9D2EB5000FA6B2 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
 		CEFC7B931D9D2FB3000FA6B2 /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
+		CEFF1297277D439B001E1500 /* g_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1295277D439B001E1500 /* g_sound.h */; };
+		CEFF1298277D439B001E1500 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
 		F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
 /* End PBXBuildFile section */
 
@@ -1628,6 +1630,8 @@
 		CEF3C9442570732300BA332E /* fog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fog.h; sourceTree = "<group>"; };
 		CEF3C9452570732300BA332E /* fog.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fog.c; sourceTree = "<group>"; };
 		CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-pmove.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEFF1295277D439B001E1500 /* g_sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_sound.h; sourceTree = "<group>"; };
+		CEFF1296277D439B001E1500 /* g_sound.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_sound.c; sourceTree = "<group>"; };
 		F57902A124843E730023101D /* soften_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soften_fs.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -2596,6 +2600,8 @@
 				CE12D6671C5C58C300CD0B13 /* g_map_list.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
+				CEFF1295277D439B001E1500 /* g_sound.h */,
+				CEFF1296277D439B001E1500 /* g_sound.c */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
 				CE12D66D1C5C58C300CD0B13 /* g_util.c */,
 				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
@@ -3121,6 +3127,7 @@
 				CE80FE901C5E442700A21A51 /* g_physics.h in Headers */,
 				CE80FE911C5E442800A21A51 /* g_types.h in Headers */,
 				CE80FE921C5E442800A21A51 /* g_util.h in Headers */,
+				CEFF1297277D439B001E1500 /* g_sound.h in Headers */,
 				CE80FE931C5E442800A21A51 /* g_weapon.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4109,6 +4116,7 @@
 				CE12D7DF1C5C5D6A00CD0B13 /* g_entity_trigger.c in Sources */,
 				CE12D7E01C5C5D6A00CD0B13 /* g_item.c in Sources */,
 				CE12D7E11C5C5D6A00CD0B13 /* g_main.c in Sources */,
+				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
 				CE12D7E21C5C5D6A00CD0B13 /* g_map_list.c in Sources */,
 				CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,

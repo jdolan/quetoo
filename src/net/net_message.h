@@ -72,14 +72,6 @@
 #define U_STEP_OFFSET           (1 << 15)
 
 /**
- * @brief These flags indicate which fields a given sound packet will contain. Maximum 8 flags.
- */
-#define S_ATTEN					(1 << 0) // Flag is unused now; kept for net protocol compatibility
-#define S_ORIGIN				(1 << 1)
-#define S_ENTITY				(1 << 2)
-#define S_PITCH					(1 << 3)
-
-/**
  * @brief Message writing and reading facilities.
  */
 void Net_WriteData(mem_buf_t *msg, const void *data, size_t len);
