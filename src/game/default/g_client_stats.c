@@ -165,7 +165,7 @@ void G_ClientScores(g_entity_t *ent) {
 			gi.WriteShort((int32_t) i);
 			gi.WriteData((const void *) (scores + j), len);
 			gi.WriteByte(0); // sequence is incomplete
-			gi.Unicast(ent, false);
+			gi.Unicast(ent, true);
 
 			j = i;
 		}
@@ -179,7 +179,7 @@ void G_ClientScores(g_entity_t *ent) {
 	gi.WriteShort((int32_t) i);
 	gi.WriteData((const void *) (scores + j), len);
 	gi.WriteByte(1); // sequence is complete
-	gi.Unicast(ent, false);
+	gi.Unicast(ent, true);
 }
 
 /**
