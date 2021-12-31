@@ -84,8 +84,8 @@ static void viewWillAppear(ViewController *self) {
 
 	$((View *) this->teamsView, removeAllSubviews);
 
-	const cg_team_info_t *team = cg_team_info;
-	for (size_t i = 0; i < lengthof(cg_team_info); i++, team++) {
+	const cg_team_info_t *team = cg_state.teams;
+	for (size_t i = 0; i < lengthof(cg_state.teams); i++, team++) {
 
 		TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
 		$(teamView, setTeam, team);

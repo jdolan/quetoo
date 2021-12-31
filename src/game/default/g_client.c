@@ -1145,7 +1145,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		g_strlcpy(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name));
 	}
 
-	const g_team_t *team = (g_level.teams || g_level.ctf) ? cl->locals.persistent.team : NULL;
+	const g_team_t *team = cl->locals.persistent.team;
 
 	// set skin
 	if (team) { // players must use team_skin to change
@@ -1170,7 +1170,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// set effect color
 	if (team) { // players must use team_skin to change
-		cl->locals.persistent.color = cl->locals.persistent.team->color;
+		cl->locals.persistent.color = team->color;
 	} else {
 		s = GetUserInfo(user_info, "color");
 
@@ -1192,9 +1192,9 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	if (team) {
 
-		cl->locals.persistent.shirt = cl->locals.persistent.team->shirt;
-		cl->locals.persistent.pants = cl->locals.persistent.team->pants;
-		cl->locals.persistent.helmet = cl->locals.persistent.team->helmet;
+		cl->locals.persistent.shirt = team->shirt;
+		cl->locals.persistent.pants = team->pants;
+		cl->locals.persistent.helmet = team->helmet;
 
 	} else {
 
@@ -1217,7 +1217,9 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
 
 	// build the client info string
+	g_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), MAX_USER_INFO_STRING);
 
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
@@ -1234,9 +1236,6 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
-
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, va("%d", team ? team->id : TEAM_RED), MAX_USER_INFO_STRING);
 
 	// send it to clients
 	const int32_t index = (int32_t) (ptrdiff_t) (cl - g_game.clients);

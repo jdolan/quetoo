@@ -1451,7 +1451,7 @@ static void G_Restart_Sv_f(void) {
 }
 
 /**
- * @brief Set up the CS_TEAMS configstring to the number of valid teams we have
+ * @brief Set up the CS_NUM_TEAMS configstring to the number of valid teams we have
  */
 void G_InitNumTeams(void) {
 
@@ -1470,7 +1470,7 @@ void G_InitNumTeams(void) {
 		g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
 	}
 
-	gi.SetConfigString(CS_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));
+	gi.SetConfigString(CS_NUM_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));
 }
 
 /**

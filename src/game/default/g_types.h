@@ -84,16 +84,16 @@ typedef struct {
 /**
  * @brief ConfigStrings that are local to the game module.
  */
-#define CS_GAMEPLAY			(CS_GENERAL + 0)  // gameplay string
-#define CS_TEAMS			(CS_GENERAL + 1)  // are teams enabled? if so, # of teams
-#define CS_CTF				(CS_GENERAL + 2)  // is capture enabled?
-#define CS_MATCH			(CS_GENERAL + 3)  // is match mode enabled?
-#define CS_ROUNDS			(CS_GENERAL + 4)  // are rounds enabled?
-#define CS_TEAM_INFO		(CS_GENERAL + 5)  // team info, separated by \ (name\color\name\color, etc)
-#define CS_TIME				(CS_GENERAL + 6)  // level or match timer
-#define CS_ROUND			(CS_GENERAL + 7)  // round number
-#define CS_VOTE				(CS_GENERAL + 8)  // vote string\yes count\no count
-#define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9) // hook speed
+#define CS_GAMEPLAY			(CS_GAME + 0)  // gameplay string
+#define CS_NUM_TEAMS		(CS_GAME + 1)  // number of teams (0 - MAX_TEAMS)
+#define CS_CTF				(CS_GAME + 2)  // is capture enabled?
+#define CS_MATCH			(CS_GAME + 3)  // is match mode enabled?
+#define CS_ROUNDS			(CS_GAME + 4)  // are rounds enabled?
+#define CS_TEAM_INFO		(CS_GAME + 5)  // team info, separated by \ (name\color\name\color, etc)
+#define CS_TIME				(CS_GAME + 6)  // level or match timer
+#define CS_ROUND			(CS_GAME + 7)  // round number
+#define CS_VOTE				(CS_GAME + 8)  // vote string\yes count\no count
+#define CS_HOOK_PULL_SPEED	(CS_GAME + 9)  // hook speed
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -313,6 +313,7 @@ typedef enum {
  * @brief Team ID
  */
 typedef enum {
+	TEAM_NONE = -1,
 	TEAM_RED,
 	TEAM_BLUE,
 	TEAM_YELLOW,

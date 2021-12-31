@@ -27,8 +27,8 @@
 #define DEFAULT_MODEL "qforcer"
 #define DEFAULT_SKIN "default"
 
-//                           name    skin             shirt    pants    helmet   hue      team
-#define DEFAULT_CLIENT_INFO "newbie\\qforcer/default\\default\\default\\default\\default\\0"
+//                         team name    skin             shirt    pants    helmet   hue
+#define DEFAULT_CLIENT_INFO "-1\\newbie\\qforcer/default\\default\\default\\default\\default"
 
 /**
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
@@ -209,11 +209,19 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 	} else {
 
-		// copy in the name, first token
-		g_strlcpy(ci->name, info[0], sizeof(ci->name));
+		// resolve the team
+		const g_team_id_t team_id = atoi(info[0]);
+		if (team_id != TEAM_NONE) {
+			ci->team = cg_state.teams + team_id;
+		} else {
+			ci->team = NULL;
+		}
+
+		// copy in the name
+		g_strlcpy(ci->name, info[1], sizeof(ci->name));
 
 		// check for valid skin
-		if ((v = strchr(info[1], '/'))) { // it's well-formed
+		if ((v = strchr(info[2], '/'))) { // it's well-formed
 			*v = '\0';
 
 			// load the models
@@ -226,19 +234,19 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 			}
 		}
 
-		if (!Color_Parse(info[2], &ci->shirt)) {
+		if (!Color_Parse(info[3], &ci->shirt)) {
 			ci->shirt.a = 0;
 		}
 
-		if (!Color_Parse(info[3], &ci->pants)) {
+		if (!Color_Parse(info[4], &ci->pants)) {
 			ci->pants.a = 0;
 		}
 
-		if (!Color_Parse(info[4], &ci->helmet)) {
+		if (!Color_Parse(info[5], &ci->helmet)) {
 			ci->helmet.a = 0;
 		}
 
-		const int32_t hue = atoi(info[5]);
+		const int32_t hue = atoi(info[6]);
 		if (hue >= 0) {
 			ci->hue = hue;
 		} else {

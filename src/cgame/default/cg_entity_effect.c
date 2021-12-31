@@ -40,11 +40,10 @@ vec3_t Cg_ResolveEffectHSV(const float hue, const float default_hue) {
  */
 vec3_t Cg_ResolveEntityEffectHSV(const uint8_t client, const float default_hue) {
 
-	if (client >= MAX_CLIENTS) {
-		return Vec3(default_hue, 1.f, 1.f);
-	}
+	const cg_client_info_t *ci = &cg_state.clients[client];
+	const float hue = ci->team ? ci->team->hue : ci->hue;
 
-	return Cg_ResolveEffectHSV(cg_state.clients[client].hue, default_hue);
+	return Cg_ResolveEffectHSV(hue, default_hue);
 }
 
 /**
@@ -106,9 +105,9 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_CTF_MASK) {
 
-		for (int32_t team = 0; team < MAX_TEAMS; team++) {
+		for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
 			if (e->effects & (EF_CTF_RED << team)) {
-				const vec3_t effect_color = Cg_ResolveEffectHSV(cg_team_info[team].hue, 0.f);
+				const vec3_t effect_color = Cg_ResolveEffectHSV(cg_state.teams[team].hue, 0.f);
 
 				const cg_light_t l = {
 					.origin = e->origin,
@@ -153,9 +152,10 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_TEAM_TINT) {
-		const uint8_t team = ent->current.animation1;
+		assert(ent->current.animation1 < MAX_TEAMS);
 
-		e->tints[0] = Vec4(cg_team_info[team].color.r, cg_team_info[team].color.g, cg_team_info[team].color.b, 1.f);
+		const cg_team_info_t *team = cg_state.teams + ent->current.animation1;
+		e->tints[0] = Vec4(team->color.r, team->color.g, team->color.b, 1.f);
 
 		for (int32_t i = 1; i < 3; i++) {
 			e->tints[i] = e->tints[0];

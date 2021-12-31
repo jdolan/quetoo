@@ -27,7 +27,27 @@
 #ifdef __CG_LOCAL_H__
 
 /**
- * @brief The client game's representation of a player.
+ * @brief The client game reprensetation of teams.
+ */
+typedef struct {
+	/**
+	 * @brief Team name.
+	 */
+	char name[MAX_USER_INFO_KEY];
+
+	/**
+	 * @brief Shirt color.
+	 */
+	color_t color;
+
+	/**
+	 * @brief Effects color.
+	 */
+	float hue;
+} cg_team_info_t;
+
+/**
+ * @brief The client game representation of clients (players).
  */
 typedef struct {
 	/**
@@ -86,7 +106,7 @@ typedef struct {
 	/**
 	 * @brief The team identifier.
 	 */
-	g_team_id_t team;
+	cg_team_info_t *team;
 } cg_client_info_t;
 
 #define WEATHER_NONE        0x0
@@ -94,13 +114,33 @@ typedef struct {
 #define WEATHER_SNOW        0x2
 
 /**
- * @brief Client game state.
+ * @brief Client game state. Most of this is parsed from ConfigStrings when they change.
  */
 typedef struct {
 	/**
-	 * @brief The cache of known client skins contained within ConfigStrings.
+	 * @brief The clients (players).
 	 */
 	cg_client_info_t clients[MAX_CLIENTS];
+
+	/**
+	 * @brief The teams.
+	 */
+	cg_team_info_t teams[MAX_TEAMS];
+
+	/**
+	 * @brief The gameplay mode.
+	 */
+	g_gameplay_t gameplay;
+
+	/**
+	 * @brief Non-zero if CTF is enabled.
+	 */
+	int32_t ctf;
+
+	/**
+	 * @brief Non-zero if teams play is enabled.
+	 */
+	int32_t num_teams;
 
 	/**
 	 * @brief Grapple hook speed, for client side prediction.
@@ -115,15 +155,6 @@ typedef struct {
 
 extern cg_state_t cg_state;
 
-/**
- * @brief Stores info related to teams on the server.
- */
-typedef struct {
-	char team_name[MAX_USER_INFO_KEY];
-	float hue;
-	color_t color;
-} cg_team_info_t;
 
-extern cg_team_info_t cg_team_info[MAX_TEAMS];
 
 #endif /* __CG_LOCAL_H__ */

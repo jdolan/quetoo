@@ -299,8 +299,6 @@ static void Cg_Shutdown(void) {
 	cgi.FreeTag(MEM_TAG_CGAME);
 }
 
-cg_team_info_t cg_team_info[MAX_TEAMS];
-
 /**
  * @brief Resolve team info from team configstring
  */
@@ -309,16 +307,15 @@ static void Cg_ParseTeamInfo(const char *s) {
 	gchar **info = g_strsplit(s, "\\", 0);
 	const size_t count = g_strv_length(info);
 
-	if (count != lengthof(cg_team_info) * 3) {
+	if (count != lengthof(cg_state.teams) * 3) {
 		g_strfreev(info);
-		cgi.Error("Invalid team data");
+		cgi.Error("Invalid team data: %s\n", s);
 	}
 
-	cg_team_info_t *team = cg_team_info;
-
+	cg_team_info_t *team = cg_state.teams;
 	for (size_t i = 0; i < count; i += 3, team++) {
 
-		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
+		g_strlcpy(team->name, info[i], sizeof(team->name));
 
 		team->hue = atoi(info[i + 1]);
 
@@ -342,14 +339,20 @@ static void Cg_UpdateConfigString(int32_t i) {
 		case CS_WEATHER:
 			cg_state.weather = Cg_ParseWeather(s);
 			return;
-		case CS_HOOK_PULL_SPEED:
-			cg_state.hook_pull_speed = strtof(s, NULL);
+		case CS_NUM_TEAMS:
+			cg_state.num_teams = atoi(s);
 			return;
 		case CS_TEAM_INFO:
 			Cg_ParseTeamInfo(s);
 			return;
 		case CS_WEAPONS:
 			Cg_ParseWeaponInfo(s);
+			return;
+		case CS_CTF:
+			cg_state.ctf = atoi(s);
+			return;
+		case CS_HOOK_PULL_SPEED:
+			cg_state.hook_pull_speed = strtof(s, NULL);
 			return;
 		default:
 			break;

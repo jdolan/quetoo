@@ -73,7 +73,7 @@ static void setTeam(TeamView *self, const cg_team_info_t *team) {
 
 	self->team = team;
 
-	$(self->teamName->text, setText, team->team_name);
+	$(self->teamName->text, setText, team->name);
 }
 
 #pragma mark - Class lifecycle

@@ -31,7 +31,7 @@
 /**
  * @brief ConfigStrings are a general means of communication from the server to
  * all connected clients. Each ConfigString can be at most MAX_STRING_CHARS in
- * length. The game module is free to populate CS_GENERAL - MAX_CONFIG_STRINGS.
+ * length. The game module is free to populate CS_GAME - MAX_CONFIG_STRINGS.
  */
 #define CS_NAME				0 // the name (message) of the current level
 #define CS_SKY				1 // the sky box
@@ -46,9 +46,9 @@
 #define CS_IMAGES			(CS_MUSICS + MAX_MUSICS)
 #define CS_ITEMS			(CS_IMAGES + MAX_IMAGES)
 #define CS_CLIENTS			(CS_ITEMS + MAX_ITEMS)
-#define CS_GENERAL			(CS_CLIENTS + MAX_CLIENTS)
+#define CS_GAME			(CS_CLIENTS + MAX_CLIENTS)
 
-#define MAX_CONFIG_STRINGS	(CS_GENERAL + MAX_GENERAL)
+#define MAX_CONFIG_STRINGS	(CS_GAME + MAX_GENERAL)
 
 /**
  * @brief Entity animation sequences (player animations) are dictated by the

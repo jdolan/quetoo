@@ -1552,7 +1552,7 @@ static void Ai_GameStarted(void) {
 	ai_level.gameplay = atoi(aim.gi->GetConfigString(CS_GAMEPLAY));
 	ai_level.match = atoi(aim.gi->GetConfigString(CS_MATCH));
 	ai_level.ctf = atoi(aim.gi->GetConfigString(CS_CTF));
-	ai_level.teams = atoi(aim.gi->GetConfigString(CS_TEAMS));
+	ai_level.num_teams = atoi(aim.gi->GetConfigString(CS_NUM_TEAMS));
 }
 
 /**

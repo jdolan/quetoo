@@ -892,8 +892,11 @@ static inline float Cg_Oscillate(const float freq, const float amplitude, const 
 /**
  * @brief
  */
-static void Cg_SpawnPointTrail(cl_entity_t *ent, const float hue) {
-	const vec4_t color = (hue < 0 || hue > 360) ? Vec4(0.f, 0.f, 1.f, 0.f) : Vec4(hue, 1.f, 1.f, 0.f);
+static void Cg_PlayerSpawnTrail(cl_entity_t *ent) {
+
+	const vec3_t hsv = Cg_ResolveEntityEffectHSV(ent->current.client, 0);
+
+	const vec4_t color = Vec4(hsv.x, 1.f, 1.f, 0.f);
 
 	cgi.AddSprite(cgi.view, &(r_sprite_t) {
 		.media = (r_media_t *) cg_sprite_ring,
@@ -987,8 +990,8 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
  */
 static void Cg_CtfEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	const cg_team_info_t *team = cg_team_info;
-	for (int32_t i = 0; i < MAX_TEAMS; i++, team++) {
+	const cg_team_info_t *team = cg_state.teams;
+	for (size_t i = 0; i < lengthof(cg_state.teams); i++, team++) {
 		if (ent->current.effects & (EF_CTF_RED << i)) {
 			break;
 		}
@@ -1147,7 +1150,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			Cg_TeleporterTrail(ent);
 			break;
 		case TRAIL_PLAYER_SPAWN:
-			Cg_SpawnPointTrail(ent, ent->current.client >= MAX_TEAMS ? -1 : cg_team_info[ent->current.client].hue);
+			Cg_PlayerSpawnTrail(ent);
 			break;
 		case TRAIL_GIB:
 			Cg_GibTrail(ent, start, end);
