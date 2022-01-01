@@ -1,11 +1,12 @@
 cguiteamsdir = @PKGLIBDIR@/default/ui/teams
 cguiteams_DATA = \
+	TeamPlayerView.json \
 	TeamsViewController.css \
 	TeamsViewController.json \
-	TeamView.css \
 	TeamView.json
 
 noinst_HEADERS = \
+	TeamPlayerView.h \
 	TeamsViewController.h \
 	TeamView.h
 
@@ -13,6 +14,7 @@ noinst_LTLIBRARIES = \
 	libcguiteams.la
 
 libcguiteams_la_SOURCES = \
+	TeamPlayerView.c \
 	TeamsViewController.c \
 	TeamView.c
 

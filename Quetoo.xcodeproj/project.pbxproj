@@ -561,7 +561,6 @@
 		CEAA78EC2775388700EAC853 /* TeamView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA78EA2775388700EAC853 /* TeamView.h */; };
 		CEAA78ED2775388700EAC853 /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
 		CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA79542775396800EAC853 /* TeamView.json */; };
-		CEAA799B27753A5800EAC853 /* TeamView.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA79552775398700EAC853 /* TeamView.css */; };
 		CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */; };
 		CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */; };
 		CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32B6242124BB007E1253 /* cg_sprite.h */; };
@@ -660,6 +659,9 @@
 		CEFC7B931D9D2FB3000FA6B2 /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
 		CEFF1297277D439B001E1500 /* g_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1295277D439B001E1500 /* g_sound.h */; };
 		CEFF1298277D439B001E1500 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
+		CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
+		CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1378277FB721001E1500 /* TeamPlayerView.h */; };
+		CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFF1377277FB721001E1500 /* TeamPlayerView.json */; };
 		F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
 /* End PBXBuildFile section */
 
@@ -985,9 +987,9 @@
 			dstPath = ui/teams;
 			dstSubfolderSpec = 16;
 			files = (
+				CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */,
 				CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */,
 				CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */,
-				CEAA799B27753A5800EAC853 /* TeamView.css in CopyFiles */,
 				CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1578,7 +1580,6 @@
 		CEAA78EA2775388700EAC853 /* TeamView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamView.h; sourceTree = "<group>"; };
 		CEAA78EB2775388700EAC853 /* TeamView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamView.c; sourceTree = "<group>"; };
 		CEAA79542775396800EAC853 /* TeamView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamView.json; sourceTree = "<group>"; };
-		CEAA79552775398700EAC853 /* TeamView.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = TeamView.css; sourceTree = "<group>"; };
 		CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamsViewController.json; sourceTree = "<group>"; };
 		CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = TeamsViewController.css; sourceTree = "<group>"; };
 		CEAAA4AF25C6E65100EE81B3 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
@@ -1632,6 +1633,9 @@
 		CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-pmove.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFF1295277D439B001E1500 /* g_sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_sound.h; sourceTree = "<group>"; };
 		CEFF1296277D439B001E1500 /* g_sound.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_sound.c; sourceTree = "<group>"; };
+		CEFF1376277FB721001E1500 /* TeamPlayerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamPlayerView.c; sourceTree = "<group>"; };
+		CEFF1377277FB721001E1500 /* TeamPlayerView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamPlayerView.json; sourceTree = "<group>"; };
+		CEFF1378277FB721001E1500 /* TeamPlayerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamPlayerView.h; sourceTree = "<group>"; };
 		F57902A124843E730023101D /* soften_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soften_fs.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -3085,12 +3089,14 @@
 		CEAA78172775337300EAC853 /* teams */ = {
 			isa = PBXGroup;
 			children = (
+				CEFF1376277FB721001E1500 /* TeamPlayerView.c */,
+				CEFF1378277FB721001E1500 /* TeamPlayerView.h */,
+				CEFF1377277FB721001E1500 /* TeamPlayerView.json */,
 				CEAA78182775337300EAC853 /* TeamsViewController.c */,
 				CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */,
 				CEAA77F02775333300EAC853 /* TeamsViewController.h */,
 				CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */,
 				CEAA78EB2775388700EAC853 /* TeamView.c */,
-				CEAA79552775398700EAC853 /* TeamView.css */,
 				CEAA78EA2775388700EAC853 /* TeamView.h */,
 				CEAA79542775396800EAC853 /* TeamView.json */,
 				CEAA7882277533B100EAC853 /* Makefile.am */,
@@ -3202,7 +3208,6 @@
 				CE1A283D1F75FE70005F62A9 /* ResponseServiceViewController.h in Headers */,
 				CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */,
 				CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */,
-				CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */,
 				CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */,
 				CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */,
 				CE6EE3FC1F720DC300FBC830 /* MainViewController.h in Headers */,
@@ -3210,7 +3215,6 @@
 				CE6EE4001F720DC300FBC830 /* JoinServerViewController.h in Headers */,
 				CE6EE4011F720DC300FBC830 /* MapListCollectionItemView.h in Headers */,
 				CE6EE4021F720DC300FBC830 /* MapListCollectionView.h in Headers */,
-				CEAA78EC2775388700EAC853 /* TeamView.h in Headers */,
 				CE1A28321F75FC1D005F62A9 /* PlayerModelView.h in Headers */,
 				CE1A28341F75FC1D005F62A9 /* PlayerSetupViewController.h in Headers */,
 				CE6EE4031F720DC300FBC830 /* PlayViewController.h in Headers */,
@@ -3218,6 +3222,9 @@
 				CE6EE40B1F720DC300FBC830 /* SettingsViewController.h in Headers */,
 				CE6EE40D1F720DC300FBC830 /* SystemViewController.h in Headers */,
 				CE6EE40C1F720DC300FBC830 /* VideoModeSelect.h in Headers */,
+				CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */,
+				CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */,
+				CEAA78EC2775388700EAC853 /* TeamView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4260,7 +4267,6 @@
 				CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */,
 				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
 				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
-				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
 				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
 				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,
@@ -4276,6 +4282,8 @@
 				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
 				CE6EE3EF1F720D9A00FBC830 /* SystemViewController.c in Sources */,
 				CE6EE3EE1F720D9A00FBC830 /* VideoModeSelect.c in Sources */,
+				CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */,
+				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

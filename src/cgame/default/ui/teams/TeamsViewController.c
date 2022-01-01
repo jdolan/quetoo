@@ -28,17 +28,6 @@
 
 #pragma mark - Actions
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-	TeamsViewController *this = (TeamsViewController *) self;
-
-	super(Object, self, dealloc);
-}
 
 #pragma mark - ViewController
 
@@ -60,7 +49,7 @@ static void loadView(ViewController *self) {
 	TeamsViewController *this = (TeamsViewController *) self;
 
 	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("teams", &this->teamsView)
+		MakeOutlet("teamsView", &this->teamsView)
 	);
 
 	View *view = $$(View, viewWithResourceName, "ui/teams/TeamsViewController.json", outlets);
@@ -85,15 +74,20 @@ static void viewWillAppear(ViewController *self) {
 	$((View *) this->teamsView, removeAllSubviews);
 
 	const cg_team_info_t *team = cg_state.teams;
-	for (size_t i = 0; i < lengthof(cg_state.teams); i++, team++) {
+	for (int32_t i = 0; i < cg_state.num_teams && i < MAX_TEAMS; i++, team++) {
 
 		TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
 		$(teamView, setTeam, team);
 
 		$((View *) this->teamsView, addSubview, (View *) teamView);
-
 		release(teamView);
 	}
+
+	$(self->view, resize, &MakeSize(0, 0));
+
+	$((View *) this->teamsView, sizeToFit);
+
+	$(self->parentViewController->view, layoutSubviews);
 }
 
 #pragma mark - TeamsViewController
@@ -104,8 +98,6 @@ static void viewWillAppear(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->interface)->handleNotification = handleNotification;
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;

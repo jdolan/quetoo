@@ -1,3 +1,57 @@
-#teams {
+#teamsView {
   axis: horizontal;
+}
+
+TeamView {
+  autoresizing-mask: contain;
+  background-color: #ffffff11;
+  border-color: #1e4e62;
+  border-width: 1;
+}
+
+TeamView > .team {
+  autoresizing-mask: contain;
+  padding: 2;
+  spacing: 2;
+}
+
+TeamView > .team > #name {
+  autoresizing-mask: none;
+  height: 32;
+  width: 256;
+}
+
+TeamView > .team > #name > Text {
+  font-style: bold;
+  alignment: middle-center;
+}
+
+TeamView > .team > #players {
+  height: 480;
+  width: 256;
+}
+
+TeamPlayerView {
+  autoresizing-mask: contain;
+}
+
+TeamPlayerView > .player {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 2;
+}
+
+TeamPlayerView > .player > #icon {
+  height: 24;
+  width: 24;
+}
+
+TeamPlayerView > .player > #name {
+  autoresizing-mask: none;
+  height: 24;
+  width: 230;
+}
+
+TeamPlayerView > .player > #name > Text {
+  alignment: bottom;
 }

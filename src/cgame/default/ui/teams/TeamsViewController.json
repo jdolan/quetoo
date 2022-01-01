@@ -1,9 +1,10 @@
 {
   "class": "Panel",
+  "identifier": "Teams",
   "classNames": [
     "menu"
   ],
   "contentView": {
-    "identifier": "teams",
+    "identifier": "teamsView"
   }
 }

@@ -22,9 +22,8 @@
 #include "cg_local.h"
 
 #include "TeamPlayerView.h"
-#include "TeamView.h"
 
-#define _Class _TeamView
+#define _Class _TeamPlayerView
 
 #pragma mark - View
 
@@ -35,47 +34,36 @@ static void updateBindings(View *self) {
 
 	super(View, self, updateBindings);
 
-	TeamView *this = (TeamView *) self;
+	TeamPlayerView *this = (TeamPlayerView *) self;
 
-	$(this->name->text, setText, NULL);
-	$((View *) this->players, removeAllSubviews);
-
-	if (this->team) {
-		$(this->name->text, setText, this->team->name);
-
-		const cg_client_info_t *client = cg_state.clients;
-		for (int32_t i = 0; i < MAX_CLIENTS; i++, client++) {
-
-			if (client->team == this->team) {
-				TeamPlayerView *player = $(alloc(TeamPlayerView), initWithFrame, NULL);
-				$(player, setPlayer, client);
-
-				$((View *) this->players, addSubview, (View *) player);
-				release(player);
-			}
-		}
+	if (this->client && strlen(this->client->info)) {
+		$(this->name->text, setText, this->client->name);
+		this->icon->texture = this->client->icon->texnum;
+	} else {
+		$(this->name->text, setText, NULL);
+		this->icon->texture = 0;
 	}
 }
 
-#pragma mark - TeamView
+#pragma mark - TeamPlayerView
 
 /**
- * @fn TeamView *TeamView::initWithFrame(TeamView *, const SDL_Rect *)
- * @memberof TeamView
+ * @fn TeamPlayerView *TeamPlayerView::initWithFrame(TeamPlayerView *, const SDL_Rect *)
+ * @memberof TeamPlayerView
  */
-static TeamView *initWithFrame(TeamView *self, const SDL_Rect *frame) {
+static TeamPlayerView *initWithFrame(TeamPlayerView *self, const SDL_Rect *frame) {
 
-	self = (TeamView *) super(View, self, initWithFrame, frame);
+	self = (TeamPlayerView *) super(View, self, initWithFrame, frame);
 	if (self) {
 
 		Outlet outlets[] = MakeOutlets(
-			MakeOutlet("name", &self->name),
-			MakeOutlet("players", &self->players)
+			MakeOutlet("icon", &self->icon),
+			MakeOutlet("name", &self->name)
 		);
 
 		View *this = (View *) self;
 
-		$(this, awakeWithResourceName, "ui/teams/TeamView.json");
+		$(this, awakeWithResourceName, "ui/teams/TeamPlayerView.json");
 		$(this, resolve, outlets);
 	}
 
@@ -83,12 +71,12 @@ static TeamView *initWithFrame(TeamView *self, const SDL_Rect *frame) {
 }
 
 /**
- * @fn void TeamView::setTeam(TeamView *, const cg_team_info_t *)
- * @memberof TeamView
+ * @fn void TeamPlayerView::setPlayer(TeamPlayerView *, const cg_client_info_t *)
+ * @memberof TeamPlayerView
  */
-static void setTeam(TeamView *self, const cg_team_info_t *team) {
+static void setPlayer(TeamPlayerView *self, const cg_client_info_t *client) {
 
-	self->team = team;
+	self->client = client;
 
 	$((View *) self, updateBindings);
 }
@@ -102,25 +90,25 @@ static void initialize(Class *clazz) {
 
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((TeamViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
-	((TeamViewInterface *) clazz->interface)->setTeam = setTeam;
+	((TeamPlayerViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((TeamPlayerViewInterface *) clazz->interface)->setPlayer = setPlayer;
 }
 
 /**
- * @fn Class *TeamView::_TeamView(void)
- * @memberof TeamView
+ * @fn Class *TeamPlayerView::_TeamPlayerView(void)
+ * @memberof TeamPlayerView
  */
-Class *_TeamView(void) {
+Class *_TeamPlayerView(void) {
 	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
 		clazz = _initialize(&(const ClassDef) {
-			.name = "TeamView",
+			.name = "TeamPlayerView",
 			.superclass = _View(),
-			.instanceSize = sizeof(TeamView),
-			.interfaceOffset = offsetof(TeamView, interface),
-			.interfaceSize = sizeof(TeamViewInterface),
+			.instanceSize = sizeof(TeamPlayerView),
+			.interfaceOffset = offsetof(TeamPlayerView, interface),
+			.interfaceSize = sizeof(TeamPlayerViewInterface),
 			.initialize = initialize,
 		});
 	});

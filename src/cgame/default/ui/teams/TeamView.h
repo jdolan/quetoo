@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/TableView.h>
+#include <ObjectivelyMVC/View.h>
 
 /**
  * @file
- * @brief The TeamViewController's View.
+ * @brief The TeamView.
  */
 
 typedef struct TeamView TeamView;
@@ -54,14 +54,14 @@ struct TeamView {
 	const cg_team_info_t *team;
 
 	/**
-	 * @brief The version string.
+	 * @brief The team name.
 	 */
-	Label *teamName;
+	Label *name;
 
 	/**
-	 * @brief The players TableView.
+	 * @brief The players StackView.
 	 */
-	TableView *playersTableView;
+	StackView *players;
 };
 
 /**

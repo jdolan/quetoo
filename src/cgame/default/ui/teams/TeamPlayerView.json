@@ -3,16 +3,16 @@
     {
       "class": "StackView",
 	  "classNames": [
-        "team"
+        "player"
 	  ],
       "subviews": [
         {
-          "class": "Label",
-          "identifier": "name"
+          "class": "ImageView",
+          "identifier": "icon"
         },
         {
-          "class": "StackView",
-          "identifier": "players"
+          "class": "Label",
+          "identifier": "name"
         }
       ]
     }
