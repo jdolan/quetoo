@@ -156,7 +156,7 @@ static void renderDeviceWillReset(View *self) {
 
 	this->animation1.frame = this->animation2.frame = -1;
 
-	g_snprintf(this->info, sizeof(this->info), "newbie\\%s\\%s\\%s\\%s\\0",
+	g_snprintf(this->info, sizeof(this->info), "-1\\newbie\\%s\\%s\\%s\\%s\\default",
 			   cg_skin->string, cg_shirt->string, cg_pants->string, cg_helmet->string);
 
 	Cg_LoadClient(&this->client, this->info);
