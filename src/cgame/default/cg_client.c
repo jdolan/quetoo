@@ -225,8 +225,8 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 			*v = '\0';
 
 			// load the models
-			if (!Cg_LoadClientModel(ci, info[1], v + 1)) {
-				if (!Cg_LoadClientModel(ci, info[1], DEFAULT_SKIN)) {
+			if (!Cg_LoadClientModel(ci, info[2], v + 1)) {
+				if (!Cg_LoadClientModel(ci, info[2], DEFAULT_SKIN)) {
 					if (!Cg_LoadClientModel(ci, DEFAULT_MODEL, DEFAULT_SKIN)) {
 						cgi.Error("Failed to load default client skin %s/%s\n", DEFAULT_MODEL, DEFAULT_SKIN);
 					}
