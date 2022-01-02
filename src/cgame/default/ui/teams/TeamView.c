@@ -43,6 +43,11 @@ static void updateBindings(View *self) {
 	if (this->team) {
 		$(this->name->text, setText, this->team->name);
 
+		const color32_t c = Color_Color32(this->team->color);
+		Style *style = this->name->text->view.style;
+
+		$(style, addColorAttribute, "color", &MakeColor(c.r, c.g, c.b, c.a));
+
 		const cg_client_info_t *client = cg_state.clients;
 		for (int32_t i = 0; i < MAX_CLIENTS; i++, client++) {
 
