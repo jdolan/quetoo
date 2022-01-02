@@ -60,16 +60,19 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, int32_t a
 
 	if (attachments & ATTACHMENT_COLOR) {
 		framebuffer.color_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+		framebuffer.color_attachment_copy = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.color_attachment, 0);
 	}
 
 	if (attachments & ATTACHMENT_BLOOM) {
 		framebuffer.bloom_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+		framebuffer.bloom_attachment_copy = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, framebuffer.bloom_attachment, 0);
 	}
 
 	if (attachments & ATTACHMENT_DEPTH) {
 		framebuffer.depth_attachment = R_CreateFramebufferTexture(&framebuffer, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+		framebuffer.depth_attachment_copy = R_CreateFramebufferTexture(&framebuffer, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, framebuffer.depth_attachment, 0);
 	}
 
@@ -88,49 +91,32 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, int32_t a
 /**
  * @brief
  */
-void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
-
-	assert(framebuffer);
-
-	if (framebuffer->name) {
-		glDeleteFramebuffers(1, &framebuffer->name);
-
-		if (framebuffer->color_attachment) {
-			glDeleteTextures(1, &framebuffer->color_attachment);
-		}
-
-		if (framebuffer->bloom_attachment) {
-			glDeleteTextures(1, &framebuffer->bloom_attachment);
-		}
-
-		if (framebuffer->depth_attachment) {
-			glDeleteTextures(1, &framebuffer->depth_attachment);
-		}
-
-		R_GetError(NULL);
-	}
-
-	memset(framebuffer, 0, sizeof(*framebuffer));
-}
-
-/**
- * @brief
- */
-void R_CopyFramebuffer(const r_framebuffer_t *framebuffer, GLenum mode, GLuint *texture) {
-
-	if (*texture == 0) {
-		*texture = R_CreateFramebufferTexture(framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-	}
+void R_CopyFramebufferAttachments(const r_framebuffer_t *framebuffer, int32_t attachments) {
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
-	glReadBuffer(mode);
 
-	glBindTexture(GL_TEXTURE_2D, *texture);
-	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
+	if (attachments & ATTACHMENT_COLOR) {
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glBindTexture(GL_TEXTURE_2D, framebuffer->color_attachment_copy);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
+	}
+
+	if (attachments & ATTACHMENT_BLOOM) {
+		glReadBuffer(GL_COLOR_ATTACHMENT1);
+		glBindTexture(GL_TEXTURE_2D, framebuffer->bloom_attachment_copy);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
+	}
+
+	if (attachments & ATTACHMENT_DEPTH) {
+		glReadBuffer(GL_DEPTH_STENCIL_ATTACHMENT);
+		glBindTexture(GL_TEXTURE_2D, framebuffer->depth_attachment_copy);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
+	}
+
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+	glReadBuffer(GL_BACK);
 
 	R_GetError(NULL);
 }
@@ -146,6 +132,9 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_
 	h = h ?: r_context.drawable_height;
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
+
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+
 	glBlitFramebuffer(0,
 					  0,
 					  framebuffer->width,
@@ -159,5 +148,39 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
+	glReadBuffer(GL_BACK);
+
 	R_GetError(NULL);
 }
+
+/**
+ * @brief
+ */
+void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
+
+	assert(framebuffer);
+
+	if (framebuffer->name) {
+		glDeleteFramebuffers(1, &framebuffer->name);
+
+		if (framebuffer->color_attachment) {
+			glDeleteTextures(1, &framebuffer->color_attachment);
+			glDeleteTextures(1, &framebuffer->color_attachment_copy);
+		}
+
+		if (framebuffer->bloom_attachment) {
+			glDeleteTextures(1, &framebuffer->bloom_attachment);
+			glDeleteTextures(1, &framebuffer->bloom_attachment_copy);
+		}
+
+		if (framebuffer->depth_attachment) {
+			glDeleteTextures(1, &framebuffer->depth_attachment);
+			glDeleteTextures(1, &framebuffer->depth_attachment_copy);
+		}
+
+		R_GetError(NULL);
+	}
+
+	memset(framebuffer, 0, sizeof(*framebuffer));
+}
+

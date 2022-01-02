@@ -35,9 +35,6 @@ typedef struct {
 static struct {
 	GLuint vertex_array;
 	GLuint vertex_buffer;
-
-	GLuint bloom_attachment;
-	GLuint color_attachment;
 } r_bloom_data;
 
 /**
@@ -64,8 +61,9 @@ void R_DrawBloom(const r_view_t *view) {
 		return;
 	}
 
-	R_CopyFramebuffer(view->framebuffer, GL_COLOR_ATTACHMENT1, &r_bloom_data.bloom_attachment);
-	R_CopyFramebuffer(view->framebuffer, GL_COLOR_ATTACHMENT0, &r_bloom_data.color_attachment);
+	assert(view->framebuffer);
+
+	R_CopyFramebufferAttachments(view->framebuffer, ATTACHMENT_COLOR | ATTACHMENT_BLOOM);
 
 	glUseProgram(r_bloom_program.name);
 
@@ -77,10 +75,10 @@ void R_DrawBloom(const r_view_t *view) {
 	glEnableVertexAttribArray(r_bloom_program.in_texcoord);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, r_bloom_data.bloom_attachment);
+	glBindTexture(GL_TEXTURE_2D, view->framebuffer->bloom_attachment_copy);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, r_bloom_data.color_attachment);
+	glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment_copy);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
@@ -186,13 +184,6 @@ void R_ShutdownBloom(void) {
 
 	glDeleteBuffers(1, &r_bloom_data.vertex_buffer);
 	glDeleteVertexArrays(1, &r_bloom_data.vertex_array);
-
-	if (r_bloom_data.bloom_attachment) {
-		glDeleteTextures(1, &r_bloom_data.bloom_attachment);
-	}
-	if (r_bloom_data.color_attachment) {
-		glDeleteTextures(1, &r_bloom_data.color_attachment);
-	}
 
 	R_GetError(NULL);
 
