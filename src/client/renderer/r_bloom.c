@@ -140,12 +140,12 @@ void R_InitBloom(void) {
 	r_bloom_vertex_t quad[4];
 
 	quad[0].position = Vec2(-1.f, -1.f);
-	quad[1].position = Vec2(-1.f,  1.f);
+	quad[1].position = Vec2( 1.f, -1.f);
 	quad[2].position = Vec2( 1.f,  1.f);
 	quad[3].position = Vec2(-1.f,  1.f);
 
 	quad[0].texcoord = Vec2(0.f, 0.f);
-	quad[1].texcoord = Vec2(0.f, 1.f);
+	quad[1].texcoord = Vec2(1.f, 0.f);
 	quad[2].texcoord = Vec2(1.f, 1.f);
 	quad[3].texcoord = Vec2(0.f, 1.f);
 
