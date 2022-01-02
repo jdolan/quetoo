@@ -37,11 +37,15 @@ static void updateBindings(View *self) {
 	TeamPlayerView *this = (TeamPlayerView *) self;
 
 	if (this->client && strlen(this->client->info)) {
-		$(this->name->text, setText, this->client->name);
-		this->icon->texture = this->client->icon->texnum;
+
+		char name[MAX_USER_INFO_VALUE];
+		StrStrip(this->client->name, name);
+
+		$(this->name->text, setText, name);
+		$(this->icon, setImageWithSurface, cgi.LoadSurface(this->client->icon->media.name));
 	} else {
 		$(this->name->text, setText, NULL);
-		this->icon->texture = 0;
+		$(this->icon, setImage, NULL);
 	}
 }
 

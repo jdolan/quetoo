@@ -191,7 +191,7 @@ static void updateBindings(View *self) {
 	this->platformCenter.scale = 1.0;
 	this->platformCenter.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
-	this->iconView->texture = this->client.icon->texnum;
+	$(this->iconView, setImageWithSurface, cgi.LoadSurface(this->client.icon->media.name));
 }
 
 #pragma mark - Control
