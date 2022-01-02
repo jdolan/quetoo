@@ -95,6 +95,8 @@
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateDebugInformation>
+      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</Profile>
+      <Profile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</Profile>
     </Link>
     <PostBuildEvent>
       <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
