@@ -109,11 +109,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 64 +map edge"
+            argument = "+set sv_max_clients 32 +map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_ctf 1 +set g_num_teams 4 +g_ai_add 32"
+            argument = "+set g_ctf 1 +set g_num_teams 4 +g_ai_add 16"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
