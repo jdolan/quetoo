@@ -420,7 +420,13 @@ void R_UpdateSprites(r_view_t *view) {
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_sprite_program.framebuffer);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, view->framebuffer->name);
-	glBlitFramebuffer(0, 0, view->framebuffer->width, view->framebuffer->height, 0, 0, view->framebuffer->width, view->framebuffer->height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+	glBlitFramebuffer(0, 0, view->framebuffer->width, view->framebuffer->height,
+					  0, 0, view->framebuffer->width, view->framebuffer->height,
+					  GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	R_GetError(NULL);
 }
