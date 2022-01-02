@@ -340,7 +340,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 			cg_state.weather = Cg_ParseWeather(s);
 			return;
 		case CS_NUM_TEAMS:
-			cg_state.num_teams = atoi(s);
+			cg_state.num_teams = Clampf(atoi(s), 0, MAX_TEAMS);
 			return;
 		case CS_TEAM_INFO:
 			Cg_ParseTeamInfo(s);
@@ -349,7 +349,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 			Cg_ParseWeaponInfo(s);
 			return;
 		case CS_CTF:
-			cg_state.ctf = atoi(s);
+			cg_state.ctf = Clampf(atoi(s), 0, 1);
 			return;
 		case CS_HOOK_PULL_SPEED:
 			cg_state.hook_pull_speed = strtof(s, NULL);
