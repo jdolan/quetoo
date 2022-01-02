@@ -25,7 +25,7 @@
  * @brief The bloom vertex type.
  */
 typedef struct {
-	vec2s_t position;
+	vec2_t position;
 	vec2_t texcoord;
 } r_bloom_vertex_t;
 
@@ -60,25 +60,21 @@ static struct {
  */
 void R_DrawBloom(const r_view_t *view) {
 
-	assert(view->framebuffer);
-
 	if (!r_bloom->value) {
 		return;
 	}
 
-	const vec4_t v = Vec4_Scale(view->viewport, 1.f / r_context.window_scale);
-
 	r_bloom_vertex_t quad[4];
 
-	quad[0].position = Vec2s(v.x, v.y);
-	quad[1].position = Vec2s(v.x + v.z , v.y);
-	quad[2].position = Vec2s(v.x + v.z, v.y + v.w);
-	quad[3].position = Vec2s(v.x, v.w);
+	quad[0].position = Vec2(-1.f, -1.f);
+	quad[1].position = Vec2(-1.f,  1.f);
+	quad[2].position = Vec2( 1.f,  1.f);
+	quad[3].position = Vec2(-1.f,  1.f);
 
-	quad[0].texcoord = Vec2(0.f, 1.f);
-	quad[1].texcoord = Vec2(1.f, 1.f);
-	quad[2].texcoord = Vec2(1.f, 0.f);
-	quad[3].texcoord = Vec2(0.f, 0.f);
+	quad[0].texcoord = Vec2(0.f, 0.f);
+	quad[1].texcoord = Vec2(0.f, 1.f);
+	quad[2].texcoord = Vec2(1.f, 1.f);
+	quad[3].texcoord = Vec2(1.f, 0.f);
 
 	const r_bloom_vertex_t vertexes[] = { quad[0], quad[1], quad[2], quad[0], quad[2], quad[3] };
 
@@ -153,7 +149,7 @@ void R_InitBloom(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_bloom_data.vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(r_bloom_vertex_t) * 6, NULL, GL_DYNAMIC_DRAW);
 
-	glVertexAttribPointer(0, 2, GL_SHORT, GL_FALSE, sizeof(r_bloom_vertex_t), (void *) offsetof(r_bloom_vertex_t, position));
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(r_bloom_vertex_t), (void *) offsetof(r_bloom_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_bloom_vertex_t), (void *) offsetof(r_bloom_vertex_t, texcoord));
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
