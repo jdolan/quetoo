@@ -48,7 +48,7 @@ static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
 /**
  * @brief
  */
-r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height) {
+r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, int32_t attachments) {
 
 	r_framebuffer_t framebuffer = {
 		.width = width,
@@ -58,14 +58,20 @@ r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height) {
 	glGenFramebuffers(1, &framebuffer.name);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.name);
 
-	framebuffer.bloom_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, framebuffer.bloom_attachment, 0);
+	if (attachments & ATTACHMENT_COLOR) {
+		framebuffer.color_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.color_attachment, 0);
+	}
 
-	framebuffer.color_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.color_attachment, 0);
+	if (attachments & ATTACHMENT_BLOOM) {
+		framebuffer.bloom_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, framebuffer.bloom_attachment, 0);
+	}
 
-	framebuffer.depth_attachment = R_CreateFramebufferTexture(&framebuffer, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, framebuffer.depth_attachment, 0);
+	if (attachments & ATTACHMENT_DEPTH) {
+		framebuffer.depth_attachment = R_CreateFramebufferTexture(&framebuffer, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, framebuffer.depth_attachment, 0);
+	}
 
 	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -89,9 +95,17 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 	if (framebuffer->name) {
 		glDeleteFramebuffers(1, &framebuffer->name);
 
-		glDeleteTextures(1, &framebuffer->bloom_attachment);
-		glDeleteTextures(1, &framebuffer->color_attachment);
-		glDeleteTextures(1, &framebuffer->depth_attachment);
+		if (framebuffer->color_attachment) {
+			glDeleteTextures(1, &framebuffer->color_attachment);
+		}
+
+		if (framebuffer->bloom_attachment) {
+			glDeleteTextures(1, &framebuffer->bloom_attachment);
+		}
+
+		if (framebuffer->depth_attachment) {
+			glDeleteTextures(1, &framebuffer->depth_attachment);
+		}
 
 		R_GetError(NULL);
 	}

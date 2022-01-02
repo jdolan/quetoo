@@ -613,9 +613,10 @@ typedef struct cg_import_s {
 	 * @brief Creates an OpenGL framebuffer with color and depth attachments.
 	 * @param width The framebuffer width, in pixels.
 	 * @param height The framebuffer height, in pixels.
+	 * @param attachments The framebuffer attachments.
 	 * @return The framebuffer.
 	 */
-	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height);
+	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height, int32_t attachments);
 
 	/**
 	 * @brief Destroys the specified framebuffer, releasing any OpenGL resources.

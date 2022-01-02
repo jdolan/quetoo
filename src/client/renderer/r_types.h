@@ -1125,6 +1125,16 @@ typedef struct r_entity_s {
 } r_entity_t;
 
 /**
+ * @brief Framebuffer attachments bitmask.
+ */
+typedef enum {
+	ATTACHMENT_COLOR = 0x1,
+	ATTACHMENT_BLOOM = 0x2,
+	ATTACHMENT_DEPTH = 0x4,
+	ATTACHMENT_ALL   = 0xFF
+} r_attachment_t;
+
+/**
  * @brief The framebuffer type.
  */
 typedef struct {
@@ -1134,14 +1144,14 @@ typedef struct {
 	GLuint name;
 
 	/**
-	 * @brief The bloom attachment texture name.
-	 */
-	GLuint bloom_attachment;
-
-	/**
 	 * @brief The color attachment texture name.
 	 */
 	GLuint color_attachment;
+
+	/**
+	 * @brief The bloom attachment texture name.
+	 */
+	GLuint bloom_attachment;
 
 	/**
 	 * @brief The depth attachment texture name.

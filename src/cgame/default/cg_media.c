@@ -365,7 +365,8 @@ void Cg_LoadMedia(void) {
 
 	cgi.CompileAtlas(cg_sprite_atlas);
 
-	cg_framebuffer = cgi.CreateFramebuffer(cgi.context->drawable_width, cgi.context->drawable_height);
+	const int32_t w = cgi.context->drawable_width, h = cgi.context->drawable_height;
+	cg_framebuffer = cgi.CreateFramebuffer(w, h, ATTACHMENT_ALL);
 
 	// font sprite, used for debugging
 	const r_image_t *font_image = cgi.LoadImage("fonts/medium", IT_FONT);
