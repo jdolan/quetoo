@@ -31,7 +31,7 @@ out vertex_data {
  */
 void main(void) {
 
-	gl_Position = projection2D * vec4(in_position, 0.0, 1.0);
+	gl_Position = vec4(in_position, 0.0, 1.0);
 
 	vertex.texcoord = in_texcoord;
 }
