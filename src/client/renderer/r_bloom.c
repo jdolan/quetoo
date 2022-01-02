@@ -64,20 +64,6 @@ void R_DrawBloom(const r_view_t *view) {
 		return;
 	}
 
-	r_bloom_vertex_t quad[4];
-
-	quad[0].position = Vec2(-1.f, -1.f);
-	quad[1].position = Vec2(-1.f,  1.f);
-	quad[2].position = Vec2( 1.f,  1.f);
-	quad[3].position = Vec2(-1.f,  1.f);
-
-	quad[0].texcoord = Vec2(0.f, 0.f);
-	quad[1].texcoord = Vec2(0.f, 1.f);
-	quad[2].texcoord = Vec2(1.f, 1.f);
-	quad[3].texcoord = Vec2(1.f, 0.f);
-
-	const r_bloom_vertex_t vertexes[] = { quad[0], quad[1], quad[2], quad[0], quad[2], quad[3] };
-
 	R_CopyFramebuffer(view->framebuffer, GL_COLOR_ATTACHMENT1, &r_bloom_data.bloom_attachment);
 	R_CopyFramebuffer(view->framebuffer, GL_COLOR_ATTACHMENT0, &r_bloom_data.color_attachment);
 
@@ -86,7 +72,6 @@ void R_DrawBloom(const r_view_t *view) {
 	glBindVertexArray(r_bloom_data.vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_bloom_data.vertex_buffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexes), vertexes);
 
 	glEnableVertexAttribArray(r_bloom_program.in_position);
 	glEnableVertexAttribArray(r_bloom_program.in_texcoord);
@@ -102,6 +87,10 @@ void R_DrawBloom(const r_view_t *view) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glUseProgram(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
 
 	R_GetError(NULL);
 }
@@ -147,7 +136,22 @@ void R_InitBloom(void) {
 
 	glGenBuffers(1, &r_bloom_data.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_bloom_data.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(r_bloom_vertex_t) * 6, NULL, GL_DYNAMIC_DRAW);
+
+	r_bloom_vertex_t quad[4];
+
+	quad[0].position = Vec2(-1.f, -1.f);
+	quad[1].position = Vec2(-1.f,  1.f);
+	quad[2].position = Vec2( 1.f,  1.f);
+	quad[3].position = Vec2(-1.f,  1.f);
+
+	quad[0].texcoord = Vec2(0.f, 0.f);
+	quad[1].texcoord = Vec2(0.f, 1.f);
+	quad[2].texcoord = Vec2(1.f, 1.f);
+	quad[3].texcoord = Vec2(0.f, 1.f);
+
+	const r_bloom_vertex_t vertexes[] = { quad[0], quad[1], quad[2], quad[0], quad[2], quad[3] };
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(r_bloom_vertex_t) * 6, vertexes, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(r_bloom_vertex_t), (void *) offsetof(r_bloom_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_bloom_vertex_t), (void *) offsetof(r_bloom_vertex_t, texcoord));
