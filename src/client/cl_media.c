@@ -227,8 +227,7 @@ static void Cl_LoadMusics(void) {
 }
 
 /**
- * @brief Load all game media through the relevant subsystems. This is called when
- * spawning into a server. For incremental reloads on subsystem restarts, see Cl_UpdateMedia.
+ * @brief Load all game media through the relevant subsystems.
  */
 void Cl_LoadMedia(void) {
 
@@ -267,7 +266,9 @@ void Cl_LoadMedia(void) {
 
 	Cl_LoadingProgress(100, "ready");
 
-	R_FreeUnseededMedia();
+	R_EndLoading();
 
-	S_FreeMedia();
+	S_EndLoading();
+
+	Ui_ViewWillAppear();
 }

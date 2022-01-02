@@ -214,7 +214,7 @@ static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 /**
  * @brief Frees any media that has a stale seed and is not explicitly retained.
  */
-void S_FreeMedia(void) {
+void S_EndLoading(void) {
 	g_hash_table_foreach_remove(s_media_state.media, S_FreeMedia_, NULL);
 }
 
