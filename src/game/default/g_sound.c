@@ -72,7 +72,7 @@ static void G_Sound(const g_play_sound_t *play) {
  * @brief
  */
 void G_MulticastSound(const g_play_sound_t *play, multicast_t to, EntityFilterFunc filter) {
-	vec3_t from;
+	vec3_t from = Vec3_Zero();
 
 	G_Sound(play);
 
