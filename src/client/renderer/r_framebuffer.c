@@ -131,7 +131,6 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_
 	w = w ?: r_context.drawable_width;
 	h = h ?: r_context.drawable_height;
 
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
 	glBlitFramebuffer(0,
 					  0,
