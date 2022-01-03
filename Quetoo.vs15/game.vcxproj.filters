@@ -81,6 +81,9 @@
     <ClInclude Include="..\src\game\default\g_weapon.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\default\g_sound.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\game\default\g_ai.c">
@@ -141,6 +144,9 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\default\g_weapon.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\default\g_sound.c">
       <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>

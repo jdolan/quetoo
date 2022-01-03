@@ -41,6 +41,7 @@
     <ClInclude Include="..\src\game\default\g_main.h" />
     <ClInclude Include="..\src\game\default\g_map_list.h" />
     <ClInclude Include="..\src\game\default\g_physics.h" />
+    <ClInclude Include="..\src\game\default\g_sound.h" />
     <ClInclude Include="..\src\game\default\g_types.h" />
     <ClInclude Include="..\src\game\default\g_util.h" />
     <ClInclude Include="..\src\game\default\g_weapon.h" />
@@ -65,6 +66,7 @@
     <ClCompile Include="..\src\game\default\g_main.c" />
     <ClCompile Include="..\src\game\default\g_map_list.c" />
     <ClCompile Include="..\src\game\default\g_physics.c" />
+    <ClCompile Include="..\src\game\default\g_sound.c" />
     <ClCompile Include="..\src\game\default\g_util.c" />
     <ClCompile Include="..\src\game\default\g_weapon.c" />
   </ItemGroup>
