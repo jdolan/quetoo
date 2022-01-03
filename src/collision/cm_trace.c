@@ -116,8 +116,8 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		return;
 	}
 
-	float enter_fraction = -1.0;
-	float leave_fraction = 1.0;
+	float enter_fraction = -1.f;
+	float leave_fraction = 1.f;
 
 	cm_bsp_plane_t plane = { };
 	const cm_bsp_brush_side_t *side = NULL;
@@ -178,11 +178,11 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		if (!end_outside) {
 			data->trace.all_solid = true;
 			data->trace.contents = brush->contents;
-			data->trace.fraction = 0.0f;
+			data->trace.fraction = 0.f;
 		}
 	} else if (enter_fraction < leave_fraction) { // pierced brush
-		if (enter_fraction > -1.0f && enter_fraction < data->trace.fraction) {
-			data->trace.fraction = Maxf(0.0f, enter_fraction);
+		if (enter_fraction > -1.f && enter_fraction < data->trace.fraction) {
+			data->trace.fraction = Maxf(0.f, enter_fraction);
 			data->trace.brush_side = side;
 			data->trace.plane = plane;
 			data->trace.contents = side->contents;
