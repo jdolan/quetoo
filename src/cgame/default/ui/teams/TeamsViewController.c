@@ -28,7 +28,42 @@
 
 #pragma mark - Actions
 
+#pragma mark CollectionViewDataSource
 
+/**
+ * @see CollectionViewDataSource::numberOfItems(const CollectionView *)
+ */
+static size_t numberOfItems(const CollectionView *collectionView) {
+	return cg_state.num_teams;
+}
+
+/**
+ * @see CollectionViewDataSource::objectForItemAtIndexPath(const CollectionView *, const IndexPath *)
+ */
+static ident objectForItemAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
+
+	const size_t index = $(indexPath, indexAtPosition, 0);
+
+	return &cg_state.teams[index];
+}
+
+#pragma mark - CollectionViewDelegate
+
+/**
+ * @see CollectionViewDelegate::itemForObjectAtIndex(const CollectionView *, const IndexPath *)
+ */
+static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
+
+	TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
+
+	const size_t index = $(indexPath, indexAtPosition, 0);
+	$(teamView, setTeam, &cg_state.teams[index]);
+
+	CollectionItemView *item = $(alloc(CollectionItemView), initWithFrame, NULL);
+	$((View *) item, addSubview, (View *) teamView);
+
+	return item;
+}
 #pragma mark - ViewController
 
 /**
@@ -49,7 +84,7 @@ static void loadView(ViewController *self) {
 	TeamsViewController *this = (TeamsViewController *) self;
 
 	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("teamsView", &this->teamsView)
+		MakeOutlet("teamsCollectionView", &this->teamsCollectionView)
 	);
 
 	View *view = $$(View, viewWithResourceName, "ui/teams/TeamsViewController.json", outlets);
@@ -57,6 +92,11 @@ static void loadView(ViewController *self) {
 
 	$(self, setView, view);
 	release(view);
+
+	this->teamsCollectionView->dataSource.numberOfItems = numberOfItems;
+	this->teamsCollectionView->dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;
+
+	this->teamsCollectionView->delegate.itemForObjectAtIndexPath = itemForObjectAtIndexPath;
 
 	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/teams/TeamsViewController.css");
 	assert(self->view->stylesheet);
@@ -71,21 +111,11 @@ static void viewWillAppear(ViewController *self) {
 
 	TeamsViewController *this = (TeamsViewController *) self;
 
-	$((View *) this->teamsView, removeAllSubviews);
-
-	const cg_team_info_t *team = cg_state.teams;
-	for (int32_t i = 0; i < cg_state.num_teams; i++, team++) {
-
-		TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
-		$(teamView, setTeam, team);
-
-		$((View *) this->teamsView, addSubview, (View *) teamView);
-		release(teamView);
-	}
+	$(this->teamsCollectionView, reloadData);
 
 	$(self->view, resize, &MakeSize(0, 0));
 
-	$((View *) this->teamsView, sizeToFit);
+	$((View *) this->teamsCollectionView, sizeToFit);
 
 	$(self->parentViewController->view, layoutSubviews);
 }

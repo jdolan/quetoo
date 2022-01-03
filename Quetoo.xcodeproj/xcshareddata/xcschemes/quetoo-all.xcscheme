@@ -113,11 +113,15 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_ctf 1 +set g_num_teams 4 +g_ai_add 16"
+            argument = "+set g_ctf 1 +set g_num_teams 4 +team red"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +no_clip"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+g_ai_add 16"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

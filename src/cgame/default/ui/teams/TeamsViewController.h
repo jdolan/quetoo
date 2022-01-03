@@ -53,9 +53,9 @@ struct TeamsViewController {
 	TeamsViewControllerInterface *interface;
 
 	/**
-	 * @brief The teams StackView.
+	 * @brief The teams CollectionView.
 	 */
-	StackView *teamsView;
+	CollectionView *teamsCollectionView;
 };
 
 /**

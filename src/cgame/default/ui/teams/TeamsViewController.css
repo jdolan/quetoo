@@ -1,24 +1,35 @@
-#teamsView {
+Panel.menu {
+  autoresizing-mask: contain;
+}
+
+#teamsCollectionView {
+  autoresizing-mask: contain;
   axis: horizontal;
+  item-size: 240 480;
+}
+
+#teamsCollectionView > ScrollView {
+  autoresizing-mask: contain;
+}
+
+#teamsCollectionView > ScrollView .contentView {
+  background-color: transparent;
+  padding: 0;
 }
 
 TeamView {
-  autoresizing-mask: contain;
-  background-color: #ffffff11;
-  border-color: #1e4e62;
-  border-width: 1;
+  autoresizing-mask: fill;
 }
 
 TeamView > .team {
-  autoresizing-mask: contain;
+  autoresizing-mask: contain | width;
   padding: 2;
   spacing: 2;
 }
 
 TeamView > .team > #name {
-  autoresizing-mask: none;
+  autoresizing-mask: width;
   height: 32;
-  width: 256;
 }
 
 TeamView > .team > #name > Text {
@@ -27,16 +38,16 @@ TeamView > .team > #name > Text {
 }
 
 TeamView > .team > #players {
-  height: 480;
-  width: 256;
+  autoresizing-mask: fill;
 }
 
 TeamPlayerView {
-  autoresizing-mask: contain;
+  autoresizing-mask: width;
+  height: 24;
 }
 
 TeamPlayerView > .player {
-  autoresizing-mask: contain;
+  autoresizing-mask: fill;
   axis: horizontal;
   spacing: 2;
 }
@@ -47,9 +58,8 @@ TeamPlayerView > .player > #icon {
 }
 
 TeamPlayerView > .player > #name {
-  autoresizing-mask: none;
+  autoresizing-mask: width;
   height: 24;
-  width: 230;
 }
 
 TeamPlayerView > .player > #name > Text {

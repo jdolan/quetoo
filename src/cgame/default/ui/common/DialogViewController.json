@@ -1,5 +1,5 @@
 {
-	"identifier": "dialog",
+  "identifier": "dialog",
   "subviews": [
     {
       "class": "Panel",
