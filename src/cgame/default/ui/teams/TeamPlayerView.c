@@ -42,7 +42,11 @@ static void updateBindings(View *self) {
 		StrStrip(this->client->name, name);
 
 		$(this->name->text, setText, name);
-		$(this->icon, setImageWithSurface, cgi.LoadSurface(this->client->icon->media.name));
+
+		SDL_Surface *surface = cgi.LoadSurface(this->client->icon->media.name);
+		$(this->icon, setImageWithSurface, surface);
+		SDL_FreeSurface(surface);
+		
 	} else {
 		$(this->name->text, setText, NULL);
 		$(this->icon, setImage, NULL);

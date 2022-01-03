@@ -191,7 +191,9 @@ static void updateBindings(View *self) {
 	this->platformCenter.scale = 1.0;
 	this->platformCenter.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
-	$(this->iconView, setImageWithSurface, cgi.LoadSurface(this->client.icon->media.name));
+	SDL_Surface *surface = cgi.LoadSurface(this->client.icon->media.name);
+	$(this->iconView, setImageWithSurface, surface);
+	SDL_FreeSurface(surface);
 }
 
 #pragma mark - Control
