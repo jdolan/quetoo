@@ -33,6 +33,8 @@ static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 	ent->locals.move_info.current_speed = 0.0;
 
 	ent->locals.move_info.Done(ent);
+
+	gi.LinkEntity(ent);
 }
 
 /**
