@@ -413,7 +413,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 		.end = end,
 		.bounds = bounds,
 		.abs_bounds = Cm_TraceBounds(start, end, bounds),
-		.size = Vec3_Add(Box3_Symetrical(bounds), Vec3(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON)),
+		.size = Box3_Symetrical(Box3_Expand(bounds, BOX_EPSILON)),
 		.contents = contents,
 		.matrix = matrix,
 		.is_transformed = !Mat4_Equal(matrix, Mat4_Identity()),
