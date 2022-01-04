@@ -462,11 +462,6 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 		data.trace.end = Vec3_Mix(start, end, data.trace.fraction);
 	}
 
-	// transform the impacted plane
-	if (data.is_transformed && data.trace.fraction < 1.f) {
-		data.trace.plane = Cm_TransformPlane(matrix, &data.trace.plane);
-	}
-
 	return data.trace;
 }
 
