@@ -29,7 +29,7 @@ Looking for a game? Join the official [Quetoo Discord](https://discord.gg/unb9U4
 
 ## Compiling
 
-Compiling _Quetoo_ is only recommended for advanced users. Supported platforms and targets include GNU Linux, BSD, Apple OS X, MinGW Cross Compile, and Microsoft Visual Studio. See [Installation and Maintenance](http://quetoo.org/books/documentation/installation-and-maintenance).
+Compiling _Quetoo_ is only recommended for advanced users. Supported platforms and targets include GNU Linux, BSD, macOS, MinGW Cross Compile, and Microsoft Visual Studio. See [Developing and Modding](http://quetoo.org/books/documentation/developing-and-modding) for further details.
 
 The following dependencies are required:
 
