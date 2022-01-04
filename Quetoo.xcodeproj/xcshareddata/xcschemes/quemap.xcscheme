@@ -118,7 +118,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-indirect"
@@ -145,16 +145,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/lighttest.map"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "maps/sandbox.map"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "maps/jgothic.map"
-            isEnabled = "NO">
+            argument = "maps/darkzone.map"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"
@@ -166,10 +158,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/gehenna.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/hallways.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/jgothic.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/lighttest.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -178,6 +178,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lavatomb.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/sandbox.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

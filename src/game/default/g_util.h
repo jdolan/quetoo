@@ -59,7 +59,7 @@ void G_InitEntity(g_entity_t *ent, const char *class_name);
 void G_ClearEntity(g_entity_t *ent);
 void G_FreeEntity(g_entity_t *ent);
 void G_ClientStuff(const g_entity_t *ent, const char *s);
-void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 #define G_AllocEntity() G_AllocEntity_(__func__)
 

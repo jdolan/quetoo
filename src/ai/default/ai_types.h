@@ -191,7 +191,7 @@ typedef struct {
 	uint32_t frame_num;
 	uint32_t time;
 	g_gameplay_t gameplay;
-	_Bool teams;
+	int32_t num_teams;
 	_Bool ctf;
 	_Bool match;
 	_Bool load_finished;

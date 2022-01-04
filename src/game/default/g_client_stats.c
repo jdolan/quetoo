@@ -165,7 +165,7 @@ void G_ClientScores(g_entity_t *ent) {
 			gi.WriteShort((int32_t) i);
 			gi.WriteData((const void *) (scores + j), len);
 			gi.WriteByte(0); // sequence is incomplete
-			gi.Unicast(ent, false);
+			gi.Unicast(ent, true);
 
 			j = i;
 		}
@@ -179,7 +179,7 @@ void G_ClientScores(g_entity_t *ent) {
 	gi.WriteShort((int32_t) i);
 	gi.WriteData((const void *) (scores + j), len);
 	gi.WriteByte(1); // sequence is complete
-	gi.Unicast(ent, false);
+	gi.Unicast(ent, true);
 }
 
 /**
@@ -282,10 +282,10 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_SCORES] |= 1;
 	}
 
-	if ((g_level.teams || g_level.ctf) && client->locals.persistent.team) { // send team ID, -1 is no team
+	if (client->locals.persistent.team) { // send team ID, -1 is no team
 		client->ps.stats[STAT_TEAM] = client->locals.persistent.team->id;
 	} else {
-		client->ps.stats[STAT_TEAM] = -1;
+		client->ps.stats[STAT_TEAM] = TEAM_NONE;
 	}
 
 	// time

@@ -28,18 +28,19 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1018
+#define PROTOCOL_MINOR 1019
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
  * the client game module.
  */
 typedef enum {
-	SV_CMD_CENTER_PRINT = SV_CMD_CGAME,
+	SV_CMD_SOUND = SV_CMD_CGAME,
 	SV_CMD_MUZZLE_FLASH,
-	SV_CMD_SCORES,
 	SV_CMD_TEMP_ENTITY,
 	SV_CMD_VIEW_KICK,
+	SV_CMD_CENTER_PRINT,
+	SV_CMD_SCORES,
 } g_sv_packet_cmd_t;
 
 /**
@@ -83,16 +84,16 @@ typedef struct {
 /**
  * @brief ConfigStrings that are local to the game module.
  */
-#define CS_GAMEPLAY			(CS_GENERAL + 0)  // gameplay string
-#define CS_TEAMS			(CS_GENERAL + 1)  // are teams enabled? if so, # of teams
-#define CS_CTF				(CS_GENERAL + 2)  // is capture enabled?
-#define CS_MATCH			(CS_GENERAL + 3)  // is match mode enabled?
-#define CS_ROUNDS			(CS_GENERAL + 4)  // are rounds enabled?
-#define CS_TEAM_INFO		(CS_GENERAL + 5)  // team info, separated by \ (name\color\name\color, etc)
-#define CS_TIME				(CS_GENERAL + 6)  // level or match timer
-#define CS_ROUND			(CS_GENERAL + 7)  // round number
-#define CS_VOTE				(CS_GENERAL + 8)  // vote string\yes count\no count
-#define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9) // hook speed
+#define CS_GAMEPLAY			(CS_GAME + 0)  // gameplay string
+#define CS_NUM_TEAMS		(CS_GAME + 1)  // number of teams (0 - MAX_TEAMS)
+#define CS_CTF				(CS_GAME + 2)  // is capture enabled?
+#define CS_MATCH			(CS_GAME + 3)  // is match mode enabled?
+#define CS_ROUNDS			(CS_GAME + 4)  // are rounds enabled?
+#define CS_TEAM_INFO		(CS_GAME + 5)  // team info, separated by \ (name\color\name\color, etc)
+#define CS_TIME				(CS_GAME + 6)  // level or match timer
+#define CS_ROUND			(CS_GAME + 7)  // round number
+#define CS_VOTE				(CS_GAME + 8)  // vote string\yes count\no count
+#define CS_HOOK_PULL_SPEED	(CS_GAME + 9)  // hook speed
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -178,6 +179,44 @@ typedef enum {
 	TE_AI_NODE,
 	TE_AI_NODE_LINK
 } g_temp_entity_t;
+
+/**
+ * @brief Sound playback flags.
+ */
+#define SOUND_ENTITY    (1 << 0)
+#define SOUND_ORIGIN    (1 << 1)
+#define SOUND_ATTEN     (1 << 2)
+#define SOUND_PITCH     (1 << 3)
+
+/**
+ * @brief Sound playback dispatch. Sounds may be associated with an entity, or simply positioned.
+ */
+typedef struct {
+	/**
+	 * @brief The ConfigString index of the sample to play.
+	 */
+	int32_t index;
+
+	/**
+	 * @brief The entity to associate the sound with for positioning and model-specific sounds.
+	 */
+	const struct g_entity_s *entity;
+
+	/**
+	 * @brief The sound origin, which takes precedent over the entity origin (if any).
+	 */
+	const vec3_t *origin;
+
+	/**
+	 * @brief The attenuation.
+	 */
+	sound_atten_t atten;
+
+	/**
+	 * @brief The pitch shift, in tones. There are 8 tones per octave.
+	 */
+	int8_t pitch;
+} g_play_sound_t;
 
 /**
  * @brief Player scores are transmitted as binary to the client game module.
@@ -274,6 +313,7 @@ typedef enum {
  * @brief Team ID
  */
 typedef enum {
+	TEAM_NONE = -1,
 	TEAM_RED,
 	TEAM_BLUE,
 	TEAM_YELLOW,
@@ -749,6 +789,8 @@ typedef struct {
 		uint16_t roar;
 
 		uint16_t techs[TECH_TOTAL];
+
+		uint16_t chat;
 	} sounds;
 
 	struct g_media_images_t {

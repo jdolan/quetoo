@@ -109,7 +109,7 @@ static void render(View *self, Renderer *renderer) {
 		Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
 
 		if (this->framebuffer.name == 0) {
-			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h);
+			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h, ATTACHMENT_ALL);
 		}
 
 		this->view.framebuffer = &this->framebuffer;
@@ -148,7 +148,7 @@ static void renderDeviceWillReset(View *self) {
 /**
  * @see View::updateBindings(View *)
  */
-	static void updateBindings(View *self) {
+static void updateBindings(View *self) {
 	
 	super(View, self, updateBindings);
 
@@ -156,7 +156,7 @@ static void renderDeviceWillReset(View *self) {
 
 	this->animation1.frame = this->animation2.frame = -1;
 
-	g_snprintf(this->info, sizeof(this->info), "newbie\\%s\\%s\\%s\\%s\\0",
+	g_snprintf(this->info, sizeof(this->info), "-1\\newbie\\%s\\%s\\%s\\%s\\default",
 			   cg_skin->string, cg_shirt->string, cg_pants->string, cg_helmet->string);
 
 	Cg_LoadClient(&this->client, this->info);
@@ -191,7 +191,9 @@ static void renderDeviceWillReset(View *self) {
 	this->platformCenter.scale = 1.0;
 	this->platformCenter.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
-	this->iconView->texture = this->client.icon->texnum;
+	SDL_Surface *surface = cgi.LoadSurface(this->client.icon->media.name);
+	$(this->iconView, setImageWithSurface, surface);
+	SDL_FreeSurface(surface);
 }
 
 #pragma mark - Control

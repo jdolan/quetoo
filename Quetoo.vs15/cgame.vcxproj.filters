@@ -28,6 +28,9 @@
     <Filter Include="src\default\ui\home">
       <UniqueIdentifier>{5e79bf76-7c5c-4ba3-8526-839648afb61e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\default\ui\teams">
+      <UniqueIdentifier>{ee9ce366-f7a4-492f-92fd-bedd14bee051}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cgame\cgame.h">
@@ -180,14 +183,15 @@
     <ClInclude Include="..\src\cgame\default\ui\common\DialogViewController.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\cgame\default\ui\home\HomeViewController.json">
-      <Filter>src\default\ui\home</Filter>
-    </None>
-    <None Include="..\src\cgame\default\ui\home\HomeViewController.css">
-      <Filter>src\default\ui\home</Filter>
-    </None>
+    <ClInclude Include="..\src\cgame\default\ui\teams\TeamPlayerView.h">
+      <Filter>src\default\ui\teams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\teams\TeamsViewController.h">
+      <Filter>src\default\ui\teams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\teams\TeamView.h">
+      <Filter>src\default\ui\teams</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cgame\default\cg_client.c">
@@ -330,6 +334,15 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\common\DialogViewController.c">
       <Filter>src\default\ui\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\teams\TeamPlayerView.c">
+      <Filter>src\default\ui\teams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\teams\TeamsViewController.c">
+      <Filter>src\default\ui\teams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\teams\TeamView.c">
+      <Filter>src\default\ui\teams</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

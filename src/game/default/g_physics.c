@@ -95,11 +95,14 @@ static void G_CheckWater(g_entity_t *ent) {
 		}
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-			if (ent->locals.water_type & (CONTENTS_LAVA | CONTENTS_SLIME)) {
-				gi.PositionedSound(pos, ent, g_media.sounds.water_in, SOUND_ATTEN_CUBIC, -32);
-			} else {
-				gi.PositionedSound(pos, ent, g_media.sounds.water_in, SOUND_ATTEN_CUBIC,  0);
-			}
+			const int8_t pitch = ent->locals.water_type & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
+
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = g_media.sounds.water_in,
+				.origin = &pos,
+				.atten = SOUND_ATTEN_SQUARE,
+				.pitch = pitch
+			}, MULTICAST_PHS, NULL);
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 
@@ -113,11 +116,14 @@ static void G_CheckWater(g_entity_t *ent) {
 	} else if (old_water_level == WATER_UNDER && ent->locals.water_level == WATER_NONE) {
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-			if (old_water_type & (CONTENTS_LAVA | CONTENTS_SLIME)) {
-				gi.PositionedSound(pos, ent, g_media.sounds.water_out, SOUND_ATTEN_CUBIC, -32);
-			} else {
-				gi.PositionedSound(pos, ent, g_media.sounds.water_out, SOUND_ATTEN_CUBIC,  0);
-			}
+			const int8_t pitch = old_water_type & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
+
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = g_media.sounds.water_out,
+				.origin = &pos,
+				.atten = SOUND_ATTEN_SQUARE,
+				.pitch = pitch
+			}, MULTICAST_PHS, NULL);
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 

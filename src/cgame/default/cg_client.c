@@ -22,9 +22,13 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-#define DEFAULT_CLIENT_MODEL "qforcer"
-#define DEFAULT_CLIENT_SKIN "default"
-#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN "\\-1\\default\\default\\default"
+#define MAX_CLIENT_INFO_ENTRIES 7
+
+#define DEFAULT_MODEL "qforcer"
+#define DEFAULT_SKIN "default"
+
+//                         team name    skin             shirt    pants    helmet   hue
+#define DEFAULT_CLIENT_INFO "-1\\newbie\\qforcer/default\\default\\default\\default\\default"
 
 /**
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
@@ -118,7 +122,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 /**
  * @brief Ensures that models and skins were resolved for the specified client info.
  */
-static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
+static _Bool Cg_ValidateSkin(cg_client_info_t *ci) {
 
 	if (!ci->head || !ci->torso || !ci->legs) {
 		return false;
@@ -134,7 +138,7 @@ static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
 /**
  * @brief Resolve and load the specified model/skin for the player.
  */
-static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const char *skin) {
+static _Bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const char *skin) {
 
 	g_strlcpy(ci->model, model, sizeof(ci->model));
 	g_strlcpy(ci->skin, skin, sizeof(ci->skin));
@@ -173,7 +177,7 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
  * @brief Resolves the player name, model and skins for the specified user info string.
  * If validation fails, we fall back on the DEFAULT_CLIENT_INFO constant.
  */
-void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
+void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 	const char *t;
 	char *v = NULL;
 	int32_t i;
@@ -205,37 +209,44 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 	} else {
 
-		// copy in the name, first token
-		g_strlcpy(ci->name, info[0], sizeof(ci->name));
+		// resolve the team
+		const g_team_id_t team_id = atoi(info[0]);
+		if (team_id != TEAM_NONE) {
+			ci->team = cg_state.teams + team_id;
+		} else {
+			ci->team = NULL;
+		}
+
+		// copy in the name
+		g_strlcpy(ci->name, info[1], sizeof(ci->name));
 
 		// check for valid skin
-		if ((v = strchr(info[1], '/'))) { // it's well-formed
+		if ((v = strchr(info[2], '/'))) { // it's well-formed
 			*v = '\0';
 
 			// load the models
-			if (!Cg_LoadClientModel(ci, info[1], v + 1)) {
-				if (!Cg_LoadClientModel(ci, info[1], DEFAULT_CLIENT_SKIN)) {
-					if (!Cg_LoadClientModel(ci, DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN)) {
-						cgi.Error("Failed to load default client skin %s/%s\n",
-							DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN);
+			if (!Cg_LoadClientModel(ci, info[2], v + 1)) {
+				if (!Cg_LoadClientModel(ci, info[2], DEFAULT_SKIN)) {
+					if (!Cg_LoadClientModel(ci, DEFAULT_MODEL, DEFAULT_SKIN)) {
+						cgi.Error("Failed to load default client skin %s/%s\n", DEFAULT_MODEL, DEFAULT_SKIN);
 					}
 				}
 			}
 		}
 
-		if (!Color_Parse(info[2], &ci->shirt)) {
+		if (!Color_Parse(info[3], &ci->shirt)) {
 			ci->shirt.a = 0;
 		}
 
-		if (!Color_Parse(info[3], &ci->pants)) {
+		if (!Color_Parse(info[4], &ci->pants)) {
 			ci->pants.a = 0;
 		}
 
-		if (!Color_Parse(info[4], &ci->helmet)) {
+		if (!Color_Parse(info[5], &ci->helmet)) {
 			ci->helmet.a = 0;
 		}
 
-		const int32_t hue = atoi(info[5]);
+		const int32_t hue = atoi(info[6]);
 		if (hue >= 0) {
 			ci->hue = hue;
 		} else {
@@ -268,10 +279,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
  */
 void Cg_LoadClients(void) {
 
-	memset(cgi.client->client_info, 0, sizeof(cgi.client->client_info));
+	memset(cg_state.clients, 0, sizeof(cg_state.clients));
 
 	for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-		cl_client_info_t *ci = &cgi.client->client_info[i];
+		cg_client_info_t *ci = &cg_state.clients[i];
 		const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
 		if (!*s) {
@@ -387,7 +398,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
  */
 static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
 
-	const cl_client_info_t *ci = &cgi.client->client_info[ent->current.client];
+	const cg_client_info_t *ci = &cg_state.clients[ent->current.client];
 
 	Cg_AnimateClientEntity_(ci->torso, &ent->animation1);
 
@@ -491,7 +502,7 @@ static inline float Cg_CalculateAngle(const float speed, float current, float id
 void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	const entity_state_t *s = &ent->current;
 
-	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
+	const cg_client_info_t *ci = &cg_state.clients[s->client];
 	if (!ci->head || !ci->torso || !ci->legs) {
 		Cg_Debug("Invalid client info: %d\n", s->client);
 		return;

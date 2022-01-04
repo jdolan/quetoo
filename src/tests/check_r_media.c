@@ -60,7 +60,7 @@ START_TEST(check_R_RegisterMedia) {
 	r_media_t *grandchild1 = R_AllocMedia("grandchild1", sizeof(r_media_t), R_MEDIA_GENERIC);
 	R_RegisterDependency(child1, grandchild1);
 
-	R_FreeUnseededMedia();
+	R_EndLoading();
 
 	ck_assert_msg(R_FindMedia("parent1", R_MEDIA_GENERIC) == parent1, "Erroneously freed parent1");
 	ck_assert_msg(R_FindMedia("child1", R_MEDIA_GENERIC) == child1, "Erroneously freed child1");
@@ -76,7 +76,7 @@ START_TEST(check_R_RegisterMedia) {
 	ck_assert_msg(grandchild1->seed == parent1->seed, "Dependency grandchild1 not retained");
 
 	R_BeginLoading();
-	R_FreeUnseededMedia();
+	R_EndLoading();
 
 	ck_assert_msg(Mem_Size() == 0, "Not all memory freed: %u", (uint32_t) Mem_Size());
 
@@ -93,7 +93,7 @@ START_TEST(check_R_RegisterMedia) {
 	ck_assert_msg(R_FindMedia("copy", R_MEDIA_GENERIC) == copy1, "Failed to replace copy0 with copy1");
 
 	R_BeginLoading();
-	R_FreeUnseededMedia();
+	R_EndLoading();
 
 	ck_assert_msg(Mem_Size() == 0, "Not all memory freed: %u", (uint32_t) Mem_Size());
 

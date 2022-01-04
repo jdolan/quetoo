@@ -233,7 +233,11 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other, const cm_t
 		if (speed > 40.0 && G_IsStructural(trace)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
-				gi.Sound(self, self->locals.sound, SOUND_ATTEN_SQUARE, 0);
+				G_MulticastSound(&(const g_play_sound_t) {
+					.index = self->locals.sound,
+					.entity = self,
+					.atten = SOUND_ATTEN_SQUARE
+				}, MULTICAST_PHS, NULL);
 				self->locals.touch_time = g_level.time;
 			}
 		}
@@ -474,7 +478,12 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) {
 		G_ClientCorpse_Die(self, attacker, mod);
 	} else {
-		gi.Sound(self, gi.SoundIndex("*death_1"), SOUND_ATTEN_LINEAR, 0);
+		G_MulticastSound(&(const g_play_sound_t) {
+			.index = gi.SoundIndex("*death_1"),
+			.entity = self,
+			.origin = &self->s.origin, // send the origin in case of fast respawn
+			.atten = SOUND_ATTEN_LINEAR
+		}, MULTICAST_PHS, NULL);
 
 		const float r = Randomf();
 		if (r < 0.33) {
@@ -1136,8 +1145,10 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		g_strlcpy(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name));
 	}
 
+	const g_team_t *team = cl->locals.persistent.team;
+
 	// set skin
-	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
+	if (team) { // players must use team_skin to change
 		s = GetUserInfo(user_info, "skin");
 
 		char *p;
@@ -1158,8 +1169,8 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	}
 
 	// set effect color
-	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
-		cl->locals.persistent.color = cl->locals.persistent.team->color;
+	if (team) { // players must use team_skin to change
+		cl->locals.persistent.color = team->color;
 	} else {
 		s = GetUserInfo(user_info, "color");
 
@@ -1179,11 +1190,11 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	cl->locals.persistent.pants.a = 0;
 	cl->locals.persistent.helmet.a = 0;
 
-	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) {
+	if (team) {
 
-		cl->locals.persistent.shirt = cl->locals.persistent.team->shirt;
-		cl->locals.persistent.pants = cl->locals.persistent.team->pants;
-		cl->locals.persistent.helmet = cl->locals.persistent.team->helmet;
+		cl->locals.persistent.shirt = team->shirt;
+		cl->locals.persistent.pants = team->pants;
+		cl->locals.persistent.helmet = team->helmet;
 
 	} else {
 
@@ -1206,6 +1217,9 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
 
 	// build the client info string
+	g_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), MAX_USER_INFO_STRING);
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
@@ -1239,7 +1253,6 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// handicap
 	uint16_t handicap = strtoul(GetUserInfo(user_info, "handicap"), NULL, 10);
-
 	if (handicap == 0) {
 		handicap = 100;
 	}
@@ -1248,7 +1261,6 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// auto-switch
 	uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);
-
 	cl->locals.persistent.auto_switch = auto_switch;
 
 	// hook style
@@ -1553,8 +1565,13 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 
 	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
 
-		if (ent->client->locals.quad_countdown_time && ent->client->locals.quad_countdown_time < g_level.time) { // play the countdown sound
-			gi.Sound(ent, g_media.sounds.quad_expire, SOUND_ATTEN_LINEAR, 0);
+		if (ent->client->locals.quad_countdown_time && ent->client->locals.quad_countdown_time < g_level.time) { // play the countdown sound			
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = g_media.sounds.quad_expire,
+				.entity = ent,
+				.atten = SOUND_ATTEN_LINEAR
+			}, MULTICAST_PHS, NULL);
+			
 			ent->client->locals.quad_countdown_time += 1000;
 		}
 

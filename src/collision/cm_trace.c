@@ -116,8 +116,8 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		return;
 	}
 
-	float enter_fraction = -1.0;
-	float leave_fraction = 1.0;
+	float enter_fraction = -1.f;
+	float leave_fraction = 1.f;
 
 	cm_bsp_plane_t plane = { };
 	const cm_bsp_brush_side_t *side = NULL;
@@ -178,11 +178,11 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		if (!end_outside) {
 			data->trace.all_solid = true;
 			data->trace.contents = brush->contents;
-			data->trace.fraction = 0.0f;
+			data->trace.fraction = 0.f;
 		}
 	} else if (enter_fraction < leave_fraction) { // pierced brush
-		if (enter_fraction > -1.0f && enter_fraction < data->trace.fraction) {
-			data->trace.fraction = Maxf(0.0f, enter_fraction);
+		if (enter_fraction > -1.f && enter_fraction < data->trace.fraction) {
+			data->trace.fraction = Maxf(0.f, enter_fraction);
 			data->trace.brush_side = side;
 			data->trace.plane = plane;
 			data->trace.contents = side->contents;
@@ -413,7 +413,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 		.end = end,
 		.bounds = bounds,
 		.abs_bounds = Cm_TraceBounds(start, end, bounds),
-		.size = Vec3_Add(Box3_Symetrical(bounds), Vec3(BOX_EPSILON, BOX_EPSILON, BOX_EPSILON)),
+		.size = Box3_Symetrical(Box3_Expand(bounds, BOX_EPSILON)),
 		.contents = contents,
 		.matrix = matrix,
 		.is_transformed = !Mat4_Equal(matrix, Mat4_Identity()),
@@ -460,11 +460,6 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 		data.trace.end = end;
 	} else {
 		data.trace.end = Vec3_Mix(start, end, data.trace.fraction);
-	}
-
-	// transform the impacted plane
-	if (data.is_transformed && data.trace.fraction < 1.f) {
-		data.trace.plane = Cm_TransformPlane(matrix, &data.trace.plane);
 	}
 
 	return data.trace;

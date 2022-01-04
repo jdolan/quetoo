@@ -4,4 +4,5 @@ SUBDIRS = \
 	home \
 	main \
 	play \
-	settings
+	settings \
+	teams

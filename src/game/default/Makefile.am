@@ -19,6 +19,7 @@ noinst_HEADERS = \
 	g_main.h \
 	g_map_list.h \
 	g_physics.h \
+	g_sound.h \
 	g_types.h \
 	g_util.h \
 	g_weapon.h
@@ -62,6 +63,7 @@ game_la_SOURCES = \
 	g_main.c \
 	g_map_list.c \
 	g_physics.c \
+	g_sound.c \
 	g_util.c \
 	g_weapon.c
 

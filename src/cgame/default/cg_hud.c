@@ -391,11 +391,11 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 		return;
 	}
 
-	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+	if (!cg_state.ctf) {
 		return;
 	}
 
-	if (atoi(cgi.ConfigString(CS_CTF)) < 1) {
+	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
 		return;
 	}
 
@@ -523,7 +523,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
 	x = cgi.context->width - cgi.StringWidth(string);
 	y = 3 * (HUD_PIC_HEIGHT + ch);
 
-	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
+	if (cg_state.ctf) {
 		y += HUD_PIC_HEIGHT + ch;
 	}
 
@@ -547,7 +547,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
 	x = cgi.context->width - cgi.StringWidth("Ready");
 	y = 3 * (HUD_PIC_HEIGHT + ch);
 
-	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
+	if (cg_state.ctf) {
 		y += HUD_PIC_HEIGHT + ch;
 	}
 
@@ -573,7 +573,7 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
 		return;
 	}
 
-	const color_t color = ColorHSVA(cg_team_info[team].hue, 1.f, 1.f, .14f);
+	const color_t color = ColorHSVA(cg_state.teams[team].hue, 1.f, 1.f, .14f);
 
 	x = 0;
 	y = cgi.context->height - 64;
@@ -1245,7 +1245,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];
 		if (ent->current.model1 == MODEL_CLIENT) {
 
-			const cl_client_info_t *client = &cgi.client->client_info[ent->current.client];
+			const cg_client_info_t *client = &cg_state.clients[ent->current.client];
 
 			g_strlcpy(name, client->name, sizeof(name));
 			time = cgi.client->unclamped_time;

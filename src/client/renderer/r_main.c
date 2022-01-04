@@ -325,9 +325,10 @@ void R_DrawViewDepth(r_view_t *view) {
 	assert(view->framebuffer);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
 	R_UpdateFrustum(view);
 
@@ -335,7 +336,8 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	R_DrawDepthPass(view);
 
-	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	R_GetError(NULL);
@@ -364,6 +366,8 @@ void R_DrawMainView(r_view_t *view) {
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
+	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
+
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
@@ -377,6 +381,8 @@ void R_DrawMainView(r_view_t *view) {
 	R_Draw3D();
 
 	R_DrawBloom(view);
+
+	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -399,16 +405,16 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glViewport(0, 0, view->viewport.z, view->viewport.w);
+	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
 	R_DrawEntities(view, -1);
 
 	R_DrawBloom(view);
 
+	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 }
 
 /**

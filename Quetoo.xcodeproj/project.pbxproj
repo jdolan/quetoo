@@ -143,8 +143,6 @@
 		CE148DA9242A37BA00B589D8 /* r_animation.h in Headers */ = {isa = PBXBuildFile; fileRef = CE148DA7242A37BA00B589D8 /* r_animation.h */; };
 		CE15E8C11ED0CAE900A9FB7A /* s_al_ext.c in Sources */ = {isa = PBXBuildFile; fileRef = CE15E8BF1ED0CAE900A9FB7A /* s_al_ext.c */; };
 		CE15E8C21ED0CAE900A9FB7A /* s_al_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = CE15E8C01ED0CAE900A9FB7A /* s_al_ext.h */; };
-		CE1A28181F740E2C005F62A9 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1A28161F740E2C005F62A9 /* libObjectively.dylib */; };
-		CE1A28191F740E2C005F62A9 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1A28171F740E2C005F62A9 /* libObjectivelyMVC.dylib */; };
 		CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FF561C5E485A00A21A51 /* libcurl.4.dylib */; };
 		CE1A281C1F740E7B005F62A9 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1A28201F748B20005F62A9 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
@@ -556,12 +554,21 @@
 		CEA952062764D3FB00C43140 /* r_bloom.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA952042764D3FB00C43140 /* r_bloom.c */; };
 		CEA9524D2764DBC100C43140 /* bloom_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9524B2764DB9900C43140 /* bloom_fs.glsl */; };
 		CEA952702764ECF900C43140 /* bloom_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9524C2764DB9900C43140 /* bloom_vs.glsl */; };
+		CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA77F02775333300EAC853 /* TeamsViewController.h */; };
+		CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
+		CEAA78EC2775388700EAC853 /* TeamView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA78EA2775388700EAC853 /* TeamView.h */; };
+		CEAA78ED2775388700EAC853 /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
+		CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA79542775396800EAC853 /* TeamView.json */; };
+		CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */; };
+		CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */; };
 		CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32B6242124BB007E1253 /* cg_sprite.h */; };
 		CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		CEAC32BC24212553007E1253 /* r_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32BA24212553007E1253 /* r_sprite.c */; };
 		CEAC32BD24212553007E1253 /* r_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32BB24212553007E1253 /* r_sprite.h */; };
 		CEAC32C22421262A007E1253 /* sprite_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32C0242125ED007E1253 /* sprite_fs.glsl */; };
 		CEAC32C32421262B007E1253 /* sprite_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32BF242125ED007E1253 /* sprite_vs.glsl */; };
+		CEADA4A2278237D800E19745 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
+		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
 		CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C292030F25B004BC58E /* DialogViewController.json */; };
 		CEB112B022544B3900CE65F6 /* lightgrid.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB112AF22544B3900CE65F6 /* lightgrid.c */; };
@@ -650,6 +657,11 @@
 		CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		CEFC7B8C1D9D2EB5000FA6B2 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
 		CEFC7B931D9D2FB3000FA6B2 /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
+		CEFF1297277D439B001E1500 /* g_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1295277D439B001E1500 /* g_sound.h */; };
+		CEFF1298277D439B001E1500 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
+		CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
+		CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1378277FB721001E1500 /* TeamPlayerView.h */; };
+		CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFF1377277FB721001E1500 /* TeamPlayerView.json */; };
 		F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
 /* End PBXBuildFile section */
 
@@ -966,6 +978,19 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEAA78A5277535F100EAC853 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/teams;
+			dstSubfolderSpec = 16;
+			files = (
+				CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */,
+				CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */,
+				CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */,
+				CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1549,6 +1574,14 @@
 		CEA952042764D3FB00C43140 /* r_bloom.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bloom.c; sourceTree = "<group>"; };
 		CEA9524B2764DB9900C43140 /* bloom_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bloom_fs.glsl; sourceTree = "<group>"; };
 		CEA9524C2764DB9900C43140 /* bloom_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bloom_vs.glsl; sourceTree = "<group>"; };
+		CEAA77F02775333300EAC853 /* TeamsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamsViewController.h; sourceTree = "<group>"; };
+		CEAA78182775337300EAC853 /* TeamsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TeamsViewController.c; sourceTree = "<group>"; };
+		CEAA7882277533B100EAC853 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CEAA78EA2775388700EAC853 /* TeamView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamView.h; sourceTree = "<group>"; };
+		CEAA78EB2775388700EAC853 /* TeamView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamView.c; sourceTree = "<group>"; };
+		CEAA79542775396800EAC853 /* TeamView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamView.json; sourceTree = "<group>"; };
+		CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamsViewController.json; sourceTree = "<group>"; };
+		CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = TeamsViewController.css; sourceTree = "<group>"; };
 		CEAAA4AF25C6E65100EE81B3 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
 		CEAAA50C25C6E75000EE81B3 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
 		CEAC32B6242124BB007E1253 /* cg_sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_sprite.h; sourceTree = "<group>"; };
@@ -1598,6 +1631,11 @@
 		CEF3C9442570732300BA332E /* fog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fog.h; sourceTree = "<group>"; };
 		CEF3C9452570732300BA332E /* fog.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fog.c; sourceTree = "<group>"; };
 		CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-pmove.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEFF1295277D439B001E1500 /* g_sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_sound.h; sourceTree = "<group>"; };
+		CEFF1296277D439B001E1500 /* g_sound.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_sound.c; sourceTree = "<group>"; };
+		CEFF1376277FB721001E1500 /* TeamPlayerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamPlayerView.c; sourceTree = "<group>"; };
+		CEFF1377277FB721001E1500 /* TeamPlayerView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamPlayerView.json; sourceTree = "<group>"; };
+		CEFF1378277FB721001E1500 /* TeamPlayerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamPlayerView.h; sourceTree = "<group>"; };
 		F57902A124843E730023101D /* soften_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soften_fs.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1630,6 +1668,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEADA4A2278237D800E19745 /* libObjectively.dylib in Frameworks */,
+				CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */,
 				CE2B082223F9EB7A007C77B6 /* libclient-renderer.a in Frameworks */,
 				CE2B082323F9EB7A007C77B6 /* libclient-sound.a in Frameworks */,
 				CE2B082423F9EB7A007C77B6 /* libclient-ui.a in Frameworks */,
@@ -1641,8 +1681,6 @@
 				CED4397A1D9D3E4F0052BAFA /* libshared.a in Frameworks */,
 				CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */,
 				CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */,
-				CE1A28181F740E2C005F62A9 /* libObjectively.dylib in Frameworks */,
-				CE1A28191F740E2C005F62A9 /* libObjectivelyMVC.dylib in Frameworks */,
 				CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */,
 				CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CE1A281C1F740E7B005F62A9 /* libncurses.6.dylib in Frameworks */,
@@ -2566,6 +2604,8 @@
 				CE12D6671C5C58C300CD0B13 /* g_map_list.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
+				CEFF1295277D439B001E1500 /* g_sound.h */,
+				CEFF1296277D439B001E1500 /* g_sound.c */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
 				CE12D66D1C5C58C300CD0B13 /* g_util.c */,
 				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
@@ -2875,6 +2915,7 @@
 				CE5870931F5CE7D2004CAAB2 /* main */,
 				CE58707E1F5CDFE0004CAAB2 /* play */,
 				CE5870861F5CDFE0004CAAB2 /* settings */,
+				CEAA78172775337300EAC853 /* teams */,
 				CE6EE3CE1F72018C00FBC830 /* Makefile.am */,
 			);
 			path = ui;
@@ -3045,6 +3086,24 @@
 			path = home;
 			sourceTree = "<group>";
 		};
+		CEAA78172775337300EAC853 /* teams */ = {
+			isa = PBXGroup;
+			children = (
+				CEFF1376277FB721001E1500 /* TeamPlayerView.c */,
+				CEFF1378277FB721001E1500 /* TeamPlayerView.h */,
+				CEFF1377277FB721001E1500 /* TeamPlayerView.json */,
+				CEAA78182775337300EAC853 /* TeamsViewController.c */,
+				CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */,
+				CEAA77F02775333300EAC853 /* TeamsViewController.h */,
+				CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */,
+				CEAA78EB2775388700EAC853 /* TeamView.c */,
+				CEAA78EA2775388700EAC853 /* TeamView.h */,
+				CEAA79542775396800EAC853 /* TeamView.json */,
+				CEAA7882277533B100EAC853 /* Makefile.am */,
+			);
+			path = teams;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -3074,6 +3133,7 @@
 				CE80FE901C5E442700A21A51 /* g_physics.h in Headers */,
 				CE80FE911C5E442800A21A51 /* g_types.h in Headers */,
 				CE80FE921C5E442800A21A51 /* g_util.h in Headers */,
+				CEFF1297277D439B001E1500 /* g_sound.h in Headers */,
 				CE80FE931C5E442800A21A51 /* g_weapon.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3162,6 +3222,9 @@
 				CE6EE40B1F720DC300FBC830 /* SettingsViewController.h in Headers */,
 				CE6EE40D1F720DC300FBC830 /* SystemViewController.h in Headers */,
 				CE6EE40C1F720DC300FBC830 /* VideoModeSelect.h in Headers */,
+				CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */,
+				CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */,
+				CEAA78EC2775388700EAC853 /* TeamView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3628,6 +3691,7 @@
 				CE4E07D32026888A000B276C /* CopyFiles */,
 				CE4E07B720267815000B276C /* CopyFiles */,
 				CE4E07D9202688C5000B276C /* CopyFiles */,
+				CEAA78A5277535F100EAC853 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4059,6 +4123,7 @@
 				CE12D7DF1C5C5D6A00CD0B13 /* g_entity_trigger.c in Sources */,
 				CE12D7E01C5C5D6A00CD0B13 /* g_item.c in Sources */,
 				CE12D7E11C5C5D6A00CD0B13 /* g_main.c in Sources */,
+				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
 				CE12D7E21C5C5D6A00CD0B13 /* g_map_list.c in Sources */,
 				CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,
@@ -4214,8 +4279,11 @@
 				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
 				CE6EE3EA1F720D9A00FBC830 /* OptionsViewController.c in Sources */,
 				CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */,
+				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
 				CE6EE3EF1F720D9A00FBC830 /* SystemViewController.c in Sources */,
 				CE6EE3EE1F720D9A00FBC830 /* VideoModeSelect.c in Sources */,
+				CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */,
+				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4669,13 +4737,13 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
+					"$(BUILT_PRODUCTS_DIR)/usr/local/include",
+					/usr/local/include,
 					/opt/local/include,
 					/opt/local/include/SDL2,
 					"/opt/local/include/glib-2.0",
 					/opt/local/include/libxml2,
 					"/opt/local/lib/glib-2.0/include",
-					/usr/local/include,
-					"$(BUILT_PRODUCTS_DIR)/usr/local/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/local/lib,
@@ -4714,13 +4782,13 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
+					"$(BUILT_PRODUCTS_DIR)/usr/local/include",
+					/usr/local/include,
 					/opt/local/include,
 					/opt/local/include/SDL2,
 					"/opt/local/include/glib-2.0",
 					/opt/local/include/libxml2,
 					"/opt/local/lib/glib-2.0/include",
-					/usr/local/include,
-					"$(BUILT_PRODUCTS_DIR)/usr/local/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/local/lib,

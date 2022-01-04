@@ -460,6 +460,7 @@ AC_CONFIG_FILES([
 	src/cgame/default/ui/main/Makefile
 	src/cgame/default/ui/play/Makefile
 	src/cgame/default/ui/settings/Makefile
+	src/cgame/default/ui/teams/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile

@@ -180,7 +180,7 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
  */
 static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name) {
 
-	const cl_client_info_t *info = &cgi.client->client_info[ent->current.client];
+	const cg_client_info_t *info = &cg_state.clients[ent->current.client];
 
 	assert(info->model);
 

@@ -281,15 +281,14 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 
 	// print the message
 	if ((ent->locals.message) && activator->client) {
+
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(ent->locals.message);
 		gi.Unicast(activator, true);
 
-		if (ent->locals.sound) {
-			gi.Sound(activator, ent->locals.sound, SOUND_ATTEN_LINEAR, 0);
-		} else {
-			gi.Sound(activator, gi.SoundIndex("misc/chat"), SOUND_ATTEN_LINEAR, 0);
-		}
+		G_UnicastSound(&(const g_play_sound_t) {
+			.index = ent->locals.sound ?: g_media.sounds.chat,
+		}, activator, true);
 	}
 
 	// kill kill_targets
@@ -864,13 +863,13 @@ void G_ClientStuff(const g_entity_t *ent, const char *s) {
 	gi.Unicast(ent, true);
 }
 
+
 /**
  * @brief Send a centerprint to everyone on the supplied team
  */
-void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) {
+void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) {
 	char string[MAX_STRING_CHARS];
 	va_list args;
-	const g_entity_t *ent;
 
 	va_start(args, fmt);
 	vsprintf(string, fmt, args);
@@ -882,13 +881,13 @@ void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) {
 			continue;
 		}
 
-		ent = &g_game.entities[i + 1];
+		const g_entity_t *ent = &g_game.entities[i + 1];
 
 		// member of supplied team? send it
 		if (ent->client->locals.persistent.team == team) {
 			gi.WriteByte(SV_CMD_CENTER_PRINT);
 			gi.WriteString(string);
-			gi.Unicast(ent, false);
+			gi.Unicast(ent, true);
 		}
 	}
 }

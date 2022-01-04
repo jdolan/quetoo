@@ -1,0 +1,20 @@
+{
+  "subviews": [
+    {
+      "class": "StackView",
+	  "classNames": [
+        "team"
+	  ],
+      "subviews": [
+        {
+          "class": "Label",
+          "identifier": "name"
+        },
+        {
+          "class": "StackView",
+          "identifier": "players"
+        }
+      ]
+    }
+  ]
+}

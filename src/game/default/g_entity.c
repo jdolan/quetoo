@@ -305,6 +305,8 @@ static void G_InitMedia(void) {
 	g_media.sounds.weapon_no_ammo = gi.SoundIndex("weapons/common/no_ammo");
 	g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
 
+	g_media.sounds.chat = gi.SoundIndex("misc/chat");
+
 	for (i = 0; i < NUM_GIB_MODELS; i++) {
 		g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
 	}

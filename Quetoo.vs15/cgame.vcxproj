@@ -69,10 +69,9 @@
     <ClInclude Include="..\src\cgame\default\ui\settings\SettingsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\settings\SystemViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\settings\VideoModeSelect.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\cgame\default\ui\home\HomeViewController.css" />
-    <None Include="..\src\cgame\default\ui\home\HomeViewController.json" />
+    <ClInclude Include="..\src\cgame\default\ui\teams\TeamPlayerView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\teams\TeamsViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\teams\TeamView.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cgame\default\cg_client.c" />
@@ -122,6 +121,9 @@
     <ClCompile Include="..\src\cgame\default\ui\settings\SettingsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\settings\SystemViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c" />
+    <ClCompile Include="..\src\cgame\default\ui\teams\TeamPlayerView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\teams\TeamsViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\teams\TeamView.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\ObjectivelyMVC.vcxproj">

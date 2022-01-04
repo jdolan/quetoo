@@ -1,0 +1,14 @@
+{
+  "class": "Panel",
+  "classNames": [
+    "menu"
+  ],
+  "contentView": {
+    "subviews": [
+      {
+	    "class": "CollectionView",
+		"identifier": "teamsCollectionView"
+	  }
+    ]
+  }
+}

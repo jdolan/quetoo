@@ -1,0 +1,67 @@
+Panel.menu {
+  autoresizing-mask: contain;
+}
+
+#teamsCollectionView {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  item-size: 240 480;
+}
+
+#teamsCollectionView > ScrollView {
+  autoresizing-mask: contain;
+}
+
+#teamsCollectionView > ScrollView .contentView {
+  background-color: transparent;
+  padding: 0;
+}
+
+TeamView {
+  autoresizing-mask: fill;
+}
+
+TeamView > .team {
+  autoresizing-mask: contain | width;
+  padding: 2;
+  spacing: 2;
+}
+
+TeamView > .team > #name {
+  autoresizing-mask: width;
+  height: 32;
+}
+
+TeamView > .team > #name > Text {
+  font-style: bold;
+  alignment: middle-center;
+}
+
+TeamView > .team > #players {
+  autoresizing-mask: fill;
+}
+
+TeamPlayerView {
+  autoresizing-mask: width;
+  height: 24;
+}
+
+TeamPlayerView > .player {
+  autoresizing-mask: fill;
+  axis: horizontal;
+  spacing: 2;
+}
+
+TeamPlayerView > .player > #icon {
+  height: 24;
+  width: 24;
+}
+
+TeamPlayerView > .player > #name {
+  autoresizing-mask: width;
+  height: 24;
+}
+
+TeamPlayerView > .player > #name > Text {
+  alignment: bottom;
+}

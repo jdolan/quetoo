@@ -1,0 +1,20 @@
+{
+  "subviews": [
+    {
+      "class": "StackView",
+	  "classNames": [
+        "player"
+	  ],
+      "subviews": [
+        {
+          "class": "ImageView",
+          "identifier": "icon"
+        },
+        {
+          "class": "Label",
+          "identifier": "name"
+        }
+      ]
+    }
+  ]
+}

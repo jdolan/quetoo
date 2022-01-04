@@ -379,7 +379,12 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_tra
 		if (G_IsStructural(trace)) {
 			if (g_level.time - self->locals.touch_time > 200) {
 				if (Vec3_Length(self->locals.velocity) > 40.0) {
-					gi.Sound(self, g_media.sounds.grenade_hit, SOUND_ATTEN_LINEAR, (int8_t) (Randomf() * 5.0));
+					G_MulticastSound(&(const g_play_sound_t) {
+						.index = g_media.sounds.grenade_hit,
+						.entity = self,
+						.atten = SOUND_ATTEN_LINEAR,
+						.pitch = (int8_t) (Randomf() * 5.0)
+					}, MULTICAST_PHS, NULL);
 					self->locals.touch_time = g_level.time;
 				}
 			}
@@ -389,7 +394,6 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_tra
 
 		return;
 	}
-
 	self->locals.enemy = other;
 	G_GrenadeProjectile_Explode(self);
 }
@@ -742,7 +746,11 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		water_start = tr.end;
 
 		if (!self->locals.water_level) {
-			gi.PositionedSound(water_start, NULL, g_media.sounds.water_in, SOUND_ATTEN_LINEAR, 0);
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = g_media.sounds.water_in,
+				.origin = &water_start,
+				.atten = SOUND_ATTEN_LINEAR
+			}, MULTICAST_PHS, NULL);
 			self->locals.water_level = WATER_FEET;
 		}
 
@@ -752,7 +760,11 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		G_Ripple(NULL, start, end, 16.f, true);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
-			gi.PositionedSound(start, NULL, g_media.sounds.water_out, SOUND_ATTEN_LINEAR, 0);
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = g_media.sounds.water_out,
+				.origin = &start,
+				.atten = SOUND_ATTEN_LINEAR
+			}, MULTICAST_PHS, NULL);
 			self->locals.water_level = WATER_NONE;
 		}
 	}
@@ -869,7 +881,11 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 			content_mask &= ~CONTENTS_MASK_LIQUID;
 			liquid = true;
 
-			gi.PositionedSound(tr.end, NULL, g_media.sounds.water_in, SOUND_ATTEN_LINEAR, 0);
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = g_media.sounds.water_in,
+				.origin = &tr.end,
+				.atten = SOUND_ATTEN_LINEAR
+			}, MULTICAST_PHS, NULL);
 
 			ignore = ent;
 			continue;
@@ -883,8 +899,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 		// we've hit something, so damage it
 		if ((tr.ent != ent) && G_TakesDamage(tr.ent)) {
-			G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, 0,
-			         MOD_RAILGUN);
+			G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, 0, MOD_RAILGUN);
 		}
 
 		pos = tr.end;
@@ -1074,8 +1089,6 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 				self->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
 			}
 
-			gi.Sound(self, g_media.sounds.hook_hit, SOUND_ATTEN_LINEAR, RandomRangei(-4, 5));
-
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_HOOK_IMPACT);
 			gi.WritePosition(self->s.origin);
@@ -1083,7 +1096,12 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		} else {
 
-			gi.Sound(self, g_media.sounds.hook_gibhit, SOUND_ATTEN_LINEAR, RandomRangei(-4, 5));
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = g_media.sounds.hook_gibhit,
+				.entity = self,
+				.atten = SOUND_ATTEN_LINEAR,
+				.pitch = RandomRangei(-4, 5)
+			}, MULTICAST_PHS, NULL);
 
 			/*
 			if (g_hook_auto_refire->integer) {

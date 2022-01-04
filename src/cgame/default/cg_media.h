@@ -40,6 +40,8 @@ extern s_sample_t *cg_sample_railgun_fire;
 extern s_sample_t *cg_sample_bfg_fire;
 extern s_sample_t *cg_sample_bfg_hit;
 
+extern s_sample_t *cg_sample_hook_hit;
+
 extern s_sample_t *cg_sample_explosion;
 extern s_sample_t *cg_sample_teleport;
 extern s_sample_t *cg_sample_respawn;

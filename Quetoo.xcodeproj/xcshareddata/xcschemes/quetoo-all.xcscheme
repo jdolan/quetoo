@@ -65,7 +65,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1440 +set r_height 900 +set r_display 1"
+            argument = "+set r_fullscreen 0 +set r_width 1440 +set r_height 900 +set r_display 1 +set r_allow_high_dpi 1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -101,16 +101,28 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+debug game"
+            argument = "+set revision -1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map tokays"
+            argument = "+debug game"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set sv_max_clients 32 +map edge"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set g_ctf 1 +set g_num_teams 4 +team red"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +no_clip"
-            isEnabled = "YES">
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+g_ai_add 16"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"

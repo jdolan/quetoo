@@ -24,7 +24,7 @@
 #include "r_types.h"
 
 void R_BeginLoading(void);
-void R_FreeUnseededMedia(void);
+void R_EndLoading(void);
 
 #ifdef __R_LOCAL_H__
 

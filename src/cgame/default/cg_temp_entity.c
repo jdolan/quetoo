@@ -1166,6 +1166,13 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 		.color = Vec3(0.7, 0.5, 0.5),
 		.decay = 850
 	});
+
+	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+		.sample = cg_sample_hook_hit,
+		.origin = org,
+		.atten = SOUND_ATTEN_LINEAR,
+		.pitch = RandomRangei(-4, 5)
+	});
 }
 
 /**

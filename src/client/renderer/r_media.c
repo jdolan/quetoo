@@ -190,13 +190,6 @@ void R_FreeMedia(r_media_t *media) {
 }
 
 /**
- * @brief Frees any media that has a stale seed and is not explicitly retained.
- */
-void R_FreeUnseededMedia(void) {
-	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) 0);
-}
-
-/**
  * @brief Prepares the media subsystem for loading.
  */
 void R_BeginLoading(void) {
@@ -207,6 +200,13 @@ void R_BeginLoading(void) {
 	} while (s == r_media_state.seed);
 
 	r_media_state.seed = s;
+}
+
+/**
+ * @brief Frees any media that has a stale seed and is not explicitly retained.
+ */
+void R_EndLoading(void) {
+	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) 0);
 }
 
 /**

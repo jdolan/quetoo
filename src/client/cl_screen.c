@@ -454,7 +454,9 @@ void Cl_UpdateScreen(void) {
 			Cl_DrawNetGraph();
 			Cl_DrawCounters();
 
-			cls.cgame->UpdateScreen(&cl.frame);
+			if (cls.key_state.dest != KEY_UI) {
+				cls.cgame->UpdateScreen(&cl.frame);
+			}
 
 			switch (cls.key_state.dest) {
 				case KEY_UI:
