@@ -230,6 +230,7 @@ void Cl_InitCgame(void) {
 
 	import.LeafForPoint = R_LeafForPoint;
 
+	import.SetKeyDest = Cl_SetKeyDest;
 	import.KeyDown = Cl_KeyDown;
 	import.KeyUp = Cl_KeyUp;
 	import.KeyState = Cl_KeyState;

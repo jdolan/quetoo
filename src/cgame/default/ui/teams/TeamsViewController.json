@@ -10,5 +10,26 @@
 		"identifier": "teamsCollectionView"
 	  }
     ]
+  },
+  "accessoryView": {
+    "style": {
+      "hidden": false
+	},
+	"subviews": [
+      {
+        "class": "Button",
+		"identifier": "spectate",
+		"title": {
+          "text": "Spectate"
+		}
+	  },
+	  {
+		"class": "Button",
+		"identifier": "join",
+		"title": {
+		  "text": "Join"
+		}
+	  }
+	]
   }
 }

@@ -56,6 +56,16 @@ struct TeamsViewController {
 	 * @brief The teams CollectionView.
 	 */
 	CollectionView *teamsCollectionView;
+
+	/**
+	 * @brief The spectate Button.
+	 */
+	Button *spectate;
+
+	/**
+	 * @brief The join Button.
+	 */
+	Button *join;
 };
 
 /**

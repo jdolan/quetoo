@@ -28,6 +28,37 @@
 
 #pragma mark - Actions
 
+/**
+ * @brief ActionFunction for spectate Button.
+ */
+static void spectateAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	cgi.Cbuf("spectate\n");
+
+	cgi.SetKeyDest(KEY_GAME);
+}
+
+/**
+ * @brief ActionFunction for join Button.
+ */
+static void joinAction(Control *self, const SDL_Event *event, ident sender, ident data) {
+
+	TeamsViewController *this = sender;
+
+	Array *paths = $(this->teamsCollectionView, selectionIndexPaths);
+	IndexPath *path = $(paths, firstObject);
+
+	if (path) {
+		cg_team_info_t *team = &cg_state.teams[path->indexes[0]];
+		cgi.Cbuf(va("join %s\n", team->name));
+
+		cgi.SetKeyDest(KEY_GAME);
+	}
+
+	release(path);
+	release(paths);
+}
+
 #pragma mark CollectionViewDataSource
 
 /**
@@ -67,14 +98,6 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - ViewController
 
 /**
- * @see ViewController::handleNotification(ViewController *, const Notification *)
- */
-static void handleNotification(ViewController *self, const Notification *notification) {
-
-	super(ViewController, self, handleNotification, notification);
-}
-
-/**
  * @see ViewController::loadView(ViewController *)
  */
 static void loadView(ViewController *self) {
@@ -84,11 +107,16 @@ static void loadView(ViewController *self) {
 	TeamsViewController *this = (TeamsViewController *) self;
 
 	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("teamsCollectionView", &this->teamsCollectionView)
+		MakeOutlet("teamsCollectionView", &this->teamsCollectionView),
+		MakeOutlet("spectate", &this->spectate),
+		MakeOutlet("join", &this->join)
 	);
 
 	View *view = $$(View, viewWithResourceName, "ui/teams/TeamsViewController.json", outlets);
 	assert(view);
+
+	$((Control *) this->spectate, addActionForEventType, SDL_MOUSEBUTTONUP, spectateAction, self, NULL);
+	$((Control *) this->join, addActionForEventType, SDL_MOUSEBUTTONUP, joinAction, self, NULL);
 
 	$(self, setView, view);
 	release(view);
@@ -113,11 +141,9 @@ static void viewWillAppear(ViewController *self) {
 
 	$(this->teamsCollectionView, reloadData);
 
-	$(self->view, resize, &MakeSize(0, 0));
-
 	$((View *) this->teamsCollectionView, sizeToFit);
 
-	$(self->parentViewController->view, layoutSubviews);
+
 }
 
 #pragma mark - TeamsViewController
@@ -129,7 +155,6 @@ static void viewWillAppear(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->handleNotification = handleNotification;
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }

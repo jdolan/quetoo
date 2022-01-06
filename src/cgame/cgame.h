@@ -489,9 +489,6 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
-	 */
-
-	/**
 	 * @defgroup collision Collision model
 	 * @{
 	 */
@@ -559,6 +556,11 @@ typedef struct cg_import_s {
 	/**
 	 * @}
 	 */
+
+	/**
+	 * @brief Set the keyboard input destination.
+	 */
+	void (*SetKeyDest)(cl_key_dest_t dest);
 
 	/**
 	 * @brief Register a button as being held down.
