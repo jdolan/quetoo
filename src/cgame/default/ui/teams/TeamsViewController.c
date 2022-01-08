@@ -140,10 +140,20 @@ static void viewWillAppear(ViewController *self) {
 	TeamsViewController *this = (TeamsViewController *) self;
 
 	$(this->teamsCollectionView, reloadData);
+}
+
+/**
+ * @see ViewController::viewDidAppear(ViewController *)
+ */
+static void viewDidAppear(ViewController *self) {
+
+	super(ViewController, self, viewWillAppear);
+
+	TeamsViewController *this = (TeamsViewController *) self;
 
 	$((View *) this->teamsCollectionView, sizeToFit);
 
-
+	$(self->view, sizeToFit);
 }
 
 #pragma mark - TeamsViewController
@@ -157,6 +167,7 @@ static void initialize(Class *clazz) {
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
+	((ViewControllerInterface *) clazz->interface)->viewDidAppear = viewDidAppear;
 }
 
 /**

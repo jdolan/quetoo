@@ -1,4 +1,12 @@
-Panel.menu {
+#teams {
+  autoresizing-mask: fit;
+}
+
+#teams > StackView {
+  autoresizing-mask: fit;
+}
+
+#teams > StackView > .contentView {
   autoresizing-mask: fit;
 }
 
@@ -41,7 +49,7 @@ TeamView > .team > #name > Text {
 }
 
 TeamView > .team > #players {
-  autoresizing-mask: fill;
+  autoresizing-mask: contain | width;
 }
 
 TeamPlayerView {
@@ -67,7 +75,7 @@ TeamPlayerView > .player > #icon {
 }
 
 TeamPlayerView > .player > #name {
-  autoresizing-mask: fill;
+  autoresizing-mask: height | contain;
 }
 
 TeamPlayerView > .player > #name > Text {
