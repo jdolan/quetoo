@@ -212,17 +212,19 @@ void G_ResetTeams(void) {
 void G_SetTeamNames(void) {
 	char team_info[MAX_STRING_CHARS] = { '\0' };
 
-	for (int32_t t = 0; t < MAX_TEAMS; t++) {
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
 
-		if (t != TEAM_RED) {
+		if (i != TEAM_RED) {
 			g_strlcat(team_info, "\\", sizeof(team_info));
 		}
 
-		g_strlcat(team_info, g_team_list[t].name, sizeof(team_info));
+		g_strlcat(team_info, va("%d", g_team_list[i].id), sizeof(team_info));
 		g_strlcat(team_info, "\\", sizeof(team_info));
-		g_strlcat(team_info, va("%i", g_team_list[t].color), sizeof(team_info));
+		g_strlcat(team_info, g_team_list[i].name, sizeof(team_info));
 		g_strlcat(team_info, "\\", sizeof(team_info));
-		g_strlcat(team_info, Color_Unparse(g_team_list[t].shirt), sizeof(team_info));
+		g_strlcat(team_info, va("%d", g_team_list[i].color), sizeof(team_info));
+		g_strlcat(team_info, "\\", sizeof(team_info));
+		g_strlcat(team_info, Color_Unparse(g_team_list[i].shirt), sizeof(team_info));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);

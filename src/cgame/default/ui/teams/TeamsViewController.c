@@ -26,6 +26,46 @@
 
 #define _Class _TeamsViewController
 
+#pragma mark CollectionViewDataSource
+
+/**
+ * @see CollectionViewDataSource::numberOfItems(const CollectionView *)
+ */
+static size_t numberOfItems(const CollectionView *collectionView) {
+	return cg_state.num_teams ?: 1;
+}
+
+/**
+ * @see CollectionViewDataSource::objectForItemAtIndexPath(const CollectionView *, const IndexPath *)
+ */
+static ident objectForItemAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
+
+	if (cg_state.num_teams == 0) {
+		return NULL;
+	}
+
+	const size_t index = $(indexPath, indexAtPosition, 0);
+	return &cg_state.teams[index];
+}
+
+#pragma mark - CollectionViewDelegate
+
+/**
+ * @see CollectionViewDelegate::itemForObjectAtIndex(const CollectionView *, const IndexPath *)
+ */
+static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
+
+	const cg_team_info_t *team = objectForItemAtIndexPath(collectionView, indexPath);
+
+	TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
+	$(teamView, setTeam, team);
+
+	CollectionItemView *item = $(alloc(CollectionItemView), initWithFrame, NULL);
+	$((View *) item, addSubview, (View *) teamView);
+
+	return item;
+}
+
 #pragma mark - Actions
 
 /**
@@ -49,8 +89,12 @@ static void joinAction(Control *self, const SDL_Event *event, ident sender, iden
 	IndexPath *path = $(paths, firstObject);
 
 	if (path) {
-		cg_team_info_t *team = &cg_state.teams[path->indexes[0]];
-		cgi.Cbuf(va("join %s\n", team->name));
+		const cg_team_info_t *team = objectForItemAtIndexPath(this->teamsCollectionView, path);
+		if (team) {
+			cgi.Cbuf(va("team %s\n", team->name));
+		} else {
+			cgi.Cbuf(va("join\n"));
+		}
 
 		cgi.SetKeyDest(KEY_GAME);
 	}
@@ -59,42 +103,6 @@ static void joinAction(Control *self, const SDL_Event *event, ident sender, iden
 	release(paths);
 }
 
-#pragma mark CollectionViewDataSource
-
-/**
- * @see CollectionViewDataSource::numberOfItems(const CollectionView *)
- */
-static size_t numberOfItems(const CollectionView *collectionView) {
-	return cg_state.num_teams;
-}
-
-/**
- * @see CollectionViewDataSource::objectForItemAtIndexPath(const CollectionView *, const IndexPath *)
- */
-static ident objectForItemAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
-
-	const size_t index = $(indexPath, indexAtPosition, 0);
-
-	return &cg_state.teams[index];
-}
-
-#pragma mark - CollectionViewDelegate
-
-/**
- * @see CollectionViewDelegate::itemForObjectAtIndex(const CollectionView *, const IndexPath *)
- */
-static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
-
-	TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
-
-	const size_t index = $(indexPath, indexAtPosition, 0);
-	$(teamView, setTeam, &cg_state.teams[index]);
-
-	CollectionItemView *item = $(alloc(CollectionItemView), initWithFrame, NULL);
-	$((View *) item, addSubview, (View *) teamView);
-
-	return item;
-}
 #pragma mark - ViewController
 
 /**
@@ -140,6 +148,10 @@ static void viewWillAppear(ViewController *self) {
 	TeamsViewController *this = (TeamsViewController *) self;
 
 	$(this->teamsCollectionView, reloadData);
+
+	IndexPath *index = $(alloc(IndexPath), initWithIndex, 0);
+	$(this->teamsCollectionView, selectItemAtIndexPath, index);
+	release(index);
 }
 
 /**

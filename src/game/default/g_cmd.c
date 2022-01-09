@@ -816,37 +816,18 @@ static void G_ToggleReady_f(g_entity_t *ent) {
  * @brief
  */
 static void G_Spectate_f(g_entity_t *ent) {
-	_Bool spectator;
 
 	// prevent spectator spamming
 	if (g_level.time - ent->client->locals.respawn_time < 1000) {
 		return;
 	}
 
-	// prevent spectators from joining matches
-	if (!g_level.warmup && g_level.match_time && ent->client->locals.persistent.spectator) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Match has already started\n");
-		return;
-	}
+	if (!g_strcmp0(gi.Argv(0), "spectate")) {
 
-	// prevent spectators from joining rounds
-	if (g_level.round_time && ent->client->locals.persistent.spectator) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Round has already started\n");
-		return;
-	}
-
-	spectator = ent->client->locals.persistent.spectator;
-
-	if (ent->client->locals.persistent.spectator) { // they wish to join
-		if (g_level.teams || g_level.ctf) {
-			if (g_auto_join->value) { // assign them to a team
-				G_AddClientToTeam(ent, G_SmallestTeam()->name);
-			} else { // or ask them to pick
-				gi.ClientPrint(ent, PRINT_HIGH, "Use team <team name> to join the game\n");
-				return;
-			}
+		if (ent->client->locals.persistent.spectator) {
+			gi.ClientPrint(ent, PRINT_HIGH, "You are already spectating\n");
+			return;
 		}
-	} else { // they wish to spectate
 
 		if (g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) {
 			G_TossQuadDamage(ent);
@@ -855,9 +836,42 @@ static void G_Spectate_f(g_entity_t *ent) {
 		G_TossFlag(ent);
 		G_TossTech(ent);
 		G_ClientHookDetach(ent);
+
+		gi.WriteByte(SV_CMD_MUZZLE_FLASH);
+		gi.WriteShort(ent->s.number);
+		gi.WriteByte(MZ_LOGOUT);
+		gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
+
+	} else if (!g_strcmp0(gi.Argv(0), "join")) {
+
+		if (!ent->client->locals.persistent.spectator) {
+			gi.ClientPrint(ent, PRINT_HIGH, "You have already joined\n");
+			return;
+		}
+
+		// prevent spectators from joining matches
+		if (!g_level.warmup && g_level.match_time && ent->client->locals.persistent.spectator) {
+			gi.ClientPrint(ent, PRINT_HIGH, "Match has already started\n");
+			return;
+		}
+
+		// prevent spectators from joining rounds
+		if (g_level.round_time && ent->client->locals.persistent.spectator) {
+			gi.ClientPrint(ent, PRINT_HIGH, "Round has already started\n");
+			return;
+		}
+
+		if (g_level.teams || g_level.ctf) {
+			if (g_auto_join->value) { // assign them to a team
+				G_AddClientToTeam(ent, G_SmallestTeam()->name);
+			} else { // or ask them to pick
+				gi.ClientPrint(ent, PRINT_HIGH, "Use team <team name> to join the game\n");
+				return;
+			}
+		}
 	}
 
-	ent->client->locals.persistent.spectator = !spectator;
+	ent->client->locals.persistent.spectator = !ent->client->locals.persistent.spectator;
 	G_ClientRespawn(ent, true);
 }
 
@@ -981,9 +995,9 @@ void G_ClientCommand(g_entity_t *ent) {
 	}
 
 	// these commands are not allowed during intermission or timeout
-	if (g_strcmp0(cmd, "spectate") == 0) {
+	if (g_strcmp0(cmd, "spectate") == 0 || g_strcmp0(cmd, "join")) {
 		G_Spectate_f(ent);
-	} else if (g_strcmp0(cmd, "team") == 0 || g_strcmp0(cmd, "join") == 0) {
+	} else if (g_strcmp0(cmd, "team") == 0) {
 		G_Team_f(ent);
 	} else if (g_strcmp0(cmd, "ready") == 0) {
 		G_Ready_f(ent);

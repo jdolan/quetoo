@@ -37,27 +37,27 @@ static void updateBindings(View *self) {
 
 	TeamView *this = (TeamView *) self;
 
-	$(this->name->text, setText, NULL);
+	if (this->team) {
+		const color32_t c = Color_Color32(this->team->color);
+
+		$(this->name->text, setText, this->team->name);
+		$(this->name->text->view.style, addColorAttribute, "color", &MakeColor(c.r, c.g, c.b, c.a));
+	} else {
+		$(this->name->text, setText, "All players");
+		$(this->name->text->view.style, removeAttribute, "color");
+	}
+
 	$((View *) this->players, removeAllSubviews);
 
-	if (this->team) {
-		$(this->name->text, setText, this->team->name);
+	const cg_client_info_t *client = cg_state.clients;
+	for (int32_t i = 0; i < MAX_CLIENTS; i++, client++) {
 
-		const color32_t c = Color_Color32(this->team->color);
-		Style *style = this->name->text->view.style;
+		if (*client->info && client->team == this->team) {
+			TeamPlayerView *player = $(alloc(TeamPlayerView), initWithFrame, NULL);
+			$(player, setPlayer, client);
 
-		$(style, addColorAttribute, "color", &MakeColor(c.r, c.g, c.b, c.a));
-
-		const cg_client_info_t *client = cg_state.clients;
-		for (int32_t i = 0; i < MAX_CLIENTS; i++, client++) {
-
-			if (client->team == this->team) {
-				TeamPlayerView *player = $(alloc(TeamPlayerView), initWithFrame, NULL);
-				$(player, setPlayer, client);
-
-				$((View *) this->players, addSubview, (View *) player);
-				release(player);
-			}
+			$((View *) this->players, addSubview, (View *) player);
+			release(player);
 		}
 	}
 }

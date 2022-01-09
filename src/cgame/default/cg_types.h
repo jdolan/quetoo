@@ -31,6 +31,11 @@
  */
 typedef struct {
 	/**
+	 * @brief Team ID.
+	 */
+	g_team_id_t id;
+
+	/**
 	 * @brief Team name.
 	 */
 	char name[MAX_USER_INFO_KEY];

@@ -303,19 +303,21 @@ static void Cg_ParseTeamInfo(const char *s) {
 	gchar **info = g_strsplit(s, "\\", 0);
 	const size_t count = g_strv_length(info);
 
-	if (count != lengthof(cg_state.teams) * 3) {
+	if (count != lengthof(cg_state.teams) * 4) {
 		g_strfreev(info);
 		cgi.Error("Invalid team data: %s\n", s);
 	}
 
 	cg_team_info_t *team = cg_state.teams;
-	for (size_t i = 0; i < count; i += 3, team++) {
+	for (size_t i = 0; i < count; i += 4, team++) {
 
-		g_strlcpy(team->name, info[i], sizeof(team->name));
+		team->id = atoi(info[i + 0]);
 
-		team->hue = atoi(info[i + 1]);
+		g_strlcpy(team->name, info[i + 1], sizeof(team->name));
 
-		if (!Color_Parse(info[i + 2], &team->color)) {
+		team->hue = atoi(info[i + 2]);
+
+		if (!Color_Parse(info[i + 3], &team->color)) {
 			team->color = color_white;
 		}
 	}
