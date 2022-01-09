@@ -454,23 +454,6 @@ typedef enum {
 	CL_CMD_CGAME, // the game may extend from here
 } cl_packet_cmd_t;
 
-#define NearestMultiple(n, align)	((n) == 0 ? 0 : ((n) - 1 - ((n) - 1) % (align) + (align)))
-
-/**
- * @brief Math and trigonometry functions.
- */
-
-/**
- * @brief Make `value` stepped as specified by `step`
- */
-static inline int32_t Step(int32_t value, int32_t step) {
-	if (!step) {
-		return 0; // divide by zero check
-	}
-
-	return (int32_t) floorf(value / (float) step) * step;
-}
-
 /**
  * @brief A table of approximate normal vectors is used to save bandwidth when
  * transmitting entity angles, which would otherwise require 12 bytes.

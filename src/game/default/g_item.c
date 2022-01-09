@@ -156,7 +156,7 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 	uint32_t delta = 3000;
 
 	if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
-		delta = Maxf(0, Step((ent->locals.next_think + 1000) - g_level.time, 1000));
+		delta = Maxf(0, (ent->locals.next_think - g_level.time) - 3000.f);
 
 		other->client->locals.quad_damage_time = ent->locals.next_think;
 		other->client->locals.quad_countdown_time = ent->locals.next_think - delta;

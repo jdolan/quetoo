@@ -21,6 +21,8 @@
 
 #include "s_local.h"
 
+#define NearestMultiple(n, align)	((n) == 0 ? 0 : ((n) - 1 - ((n) - 1) % (align) + (align)))
+
 /**
  * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation,
  * so be sure to initialize to NULL before calling if it's first time!
