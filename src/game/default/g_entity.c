@@ -702,8 +702,6 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 
 	G_ResetSpawnPoints();
 
-	G_ResetVote();
-
 	G_ResetItems();
 }
 
@@ -1012,7 +1010,5 @@ static void G_worldspawn(g_entity_t *ent) {
 	}
 
 	G_WorldspawnMusic();
-
-	gi.SetConfigString(CS_VOTE, "");
 }
 

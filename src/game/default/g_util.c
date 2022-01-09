@@ -855,16 +855,6 @@ _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 }
 
 /**
- * @brief forcefully suggest client adds given command to its console buffer
- */
-void G_ClientStuff(const g_entity_t *ent, const char *s) {
-	gi.WriteByte(SV_CMD_CBUF_TEXT);
-	gi.WriteString(s);
-	gi.Unicast(ent, true);
-}
-
-
-/**
  * @brief Send a centerprint to everyone on the supplied team
  */
 void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) {

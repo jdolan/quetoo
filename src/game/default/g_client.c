@@ -1040,10 +1040,6 @@ void G_ClientBegin(g_entity_t *ent) {
 			strncat(welcome, "\n^2CTF is enabled", sizeof(welcome) - strlen(welcome) - 1);
 		}
 
-		if (g_voting->value) {
-			strncat(welcome, "\n^2Voting is enabled", sizeof(welcome) - strlen(welcome) - 1);
-		}
-
 		// FIXME: Move these tidbits into ConfigStrings so that the client can display a menu
 #if 0
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
@@ -1217,25 +1213,25 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
 
 	// build the client info string
-	g_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), sizeof(client_info));
 
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
+	g_strlcat(client_info, "\\", sizeof(client_info));
+	g_strlcat(client_info, cl->locals.persistent.net_name, sizeof(client_info));
 
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.skin, MAX_USER_INFO_STRING);
+	g_strlcat(client_info, "\\", sizeof(client_info));
+	g_strlcat(client_info, cl->locals.persistent.skin, sizeof(client_info));
 
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, Color_Unparse(cl->locals.persistent.shirt), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, "\\", sizeof(client_info));
+	g_strlcat(client_info, Color_Unparse(cl->locals.persistent.shirt), sizeof(client_info));
 
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, Color_Unparse(cl->locals.persistent.pants), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, "\\", sizeof(client_info));
+	g_strlcat(client_info, Color_Unparse(cl->locals.persistent.pants), sizeof(client_info));
 
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, Color_Unparse(cl->locals.persistent.helmet), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, "\\", sizeof(client_info));
+	g_strlcat(client_info, Color_Unparse(cl->locals.persistent.helmet), sizeof(client_info));
 
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, "\\", sizeof(client_info));
+	g_strlcat(client_info, va("%i", cl->locals.persistent.color), sizeof(client_info));
 
 	// send it to clients
 	const int32_t index = (int32_t) (ptrdiff_t) (cl - g_game.clients);

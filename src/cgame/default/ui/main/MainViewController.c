@@ -151,7 +151,6 @@ static void loadView(ViewController *self) {
 	$(this, primaryButton, "Quit", quitAction, NULL);
 
 	$(this, secondaryButton, "Teams", pushViewControllerAction, _TeamsViewController());
-	$(this, secondaryButton, "Votes", pushViewControllerAction, NULL); // TODO
 	$(this, secondaryButton, "Disconnect", disconnectAction, NULL);
 
 	$(self, addChildViewController, (ViewController *) this->navigationViewController);

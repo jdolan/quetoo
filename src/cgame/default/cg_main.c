@@ -64,7 +64,6 @@ cvar_t *cg_draw_weapon_y;
 cvar_t *cg_draw_weapon_z;
 cvar_t *cg_draw_vitals;
 cvar_t *cg_draw_vitals_pulse;
-cvar_t *cg_draw_vote;
 cvar_t *cg_entity_bob;
 cvar_t *cg_entity_pulse;
 cvar_t *cg_entity_rotate;
@@ -194,7 +193,6 @@ static void Cg_Init(void) {
 	                          "Draw the vitals (health, armor, ammo)");
 	cg_draw_vitals_pulse = cgi.AddCvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE,
 	                                "Pulse the vitals when low");
-	cg_draw_vote = cgi.AddCvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
 	cg_entity_bob = cgi.AddCvar("cg_entity_bob", "1", CVAR_ARCHIVE, "Controls the bobbing of items");
 	cg_entity_pulse = cgi.AddCvar("cg_entity_pulse", "1", CVAR_ARCHIVE, "Controls the pulsing of items");
@@ -267,7 +265,6 @@ static void Cg_Init(void) {
 	cgi.AddCmd("god", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("no_clip", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("weapon_last", NULL, CMD_CGAME, NULL);
-	cgi.AddCmd("vote", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("team", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("team_name", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("team_skin", NULL, CMD_CGAME, NULL);

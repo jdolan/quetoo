@@ -375,60 +375,11 @@ static void G_Kill_f(g_entity_t *ent) {
 	ent->locals.Die(ent, ent, MOD_SUICIDE);
 }
 
-/**
- *  * @brief Server console command - force a command on a particular player
- *   */
-void G_Stuff_Sv_f(void) {
-
-	char cmd[MAX_STRING_CHARS];
-
-	if (gi.Argc() < 3) {
-		gi.Print(" Usage: stuff <clientname> <command to execute>\n");
-		return;
-	}
-
-	const g_entity_t *ent = G_EntityByName(va("%s", gi.Argv(2)));
-
-	if (!ent) {
-		return;
-	}
-
-	// build the command 1 is the target
-	for (uint8_t i = 2; i < gi.Argc(); i++) {
-		g_strlcat(cmd, va("%s ", gi.Argv(i)), sizeof(cmd));
-	}
-
-
-	G_ClientStuff(ent, va("%s", cmd));
-}
-
-
-/**
- * @brief Server console command - force a command on all connected clients
- */
-void G_StuffAll_Sv_f(void) {
-
-	if (gi.Argc() < 2) {
-		gi.Print(" Usage: stuff_all <command>\n");
-		return;
-	}
-
-	const char *cmd = gi.Args();
-
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-		const g_entity_t *ent = &g_game.entities[i + 1];
-		if (!ent->in_use) {
-			continue;
-		}
-
-		G_ClientStuff(ent, cmd);
-	}
-}
 
 /**
  * @brief Server console command for muting players by name (toggles)
  */
-void G_Mute_Sv_f(void) {
+void G_Mute_f(void) {
 	if (gi.Argc() < 2) {
 		return;
 	}
@@ -611,10 +562,9 @@ static void G_PlayerList_f(g_entity_t *ent) {
 
 		seconds = (g_level.frame_num - e2->client->locals.persistent.first_frame) / QUETOO_TICK_RATE;
 
-		g_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s %s\n", (seconds / 60), (seconds % 60),
+		g_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
 		           e2->client->ping, e2->client->locals.persistent.score,
 		           e2->client->locals.persistent.net_name,
-		           (e2->client->locals.persistent.admin) ? "(admin)" : "",
 		           e2->client->locals.persistent.skin);
 
 		if (strlen(text) + strlen(st) > sizeof(text) - 200) {
@@ -626,276 +576,6 @@ static void G_PlayerList_f(g_entity_t *ent) {
 		strcat(text, st);
 	}
 	gi.ClientPrint(ent, PRINT_HIGH, "%s", text);
-}
-
-static const char *vote_cmds[] = {
-	"g_capture_limit",
-	"g_ctf",
-	"g_techs",
-	"g_frag_limit",
-	"g_friendly_fire",
-	"g_gameplay",
-	"g_match",
-	"g_round_limit",
-	"g_rounds",
-	"g_spawn_farthest",
-	"g_weapon_stay",
-	"g_teams",
-	"g_num_teams",
-	"g_time_limit",
-	"g_hook",
-	"g_hook_style",
-	"g_hook_speed",
-	"g_hook_pull_speed",
-	"kick",
-	"map",
-	"mute",
-	"next_map",
-	"restart",
-	"unmute",
-	NULL
-};
-
-static GList *vote_cvars;
-
-/**
- * @brief Create g_vote_allow_<vote> CVars
- */
-void G_InitVote(void) {
-	size_t i = 0;
-
-	while (vote_cmds[i]) {
-		const char *name = va("g_vote_allow_%s", vote_cmds[i]);
-		const char *desc = va("Allows voting on %s", vote_cmds[i]);
-
-		vote_cvars = g_list_append(vote_cvars, gi.AddCvar(name, "1", CVAR_SERVER_INFO, desc));
-
-		i++;
-	}
-}
-
-/**
- * @brief Deinitialize the vote CVar GList
- */
-void G_ShutdownVote(void) {
-	g_list_free(vote_cvars);
-	vote_cvars = NULL;
-}
-
-/**
- * @brief Returns if the g_vote_allow_<vote> CVar is enabled
- */
-static _Bool G_VoteAllowed(const char *vote) {
-	const char *name = va("g_vote_allow_%s", vote);
-
-	const GList *list = vote_cvars;
-
-	while (list) {
-		const cvar_t *var = list->data;
-		if ((!g_strcmp0(name, var->name)) && var->integer) {
-			return true;
-		}
-
-		list = list->next;
-	}
-
-	return false;
-}
-
-/**
- * @brief Inspects the vote command and issues help if applicable. Returns
- * true if the command received help and may therefore be ignored, false
- * otherwise.
- */
-static _Bool G_VoteHelp(g_entity_t *ent) {
-	char msg[MAX_STRING_CHARS];
-	size_t i;
-
-	if (!g_level.vote_time) { // check for yes/no
-		if (gi.Argc() == 1 && (!g_strcmp0(gi.Argv(0), "yes") || !g_strcmp0(gi.Argv(0), "no"))) {
-			gi.ClientPrint(ent, PRINT_HIGH, "There is not a vote in progress\n"); // shorthand
-			return true;
-		}
-		if (gi.Argc() == 2 && (!g_strcmp0(gi.Argv(1), "yes") || !g_strcmp0(gi.Argv(1), "no"))) {
-			gi.ClientPrint(ent, PRINT_HIGH, "There is not a vote in progress\n"); // explicit
-			return true;
-		}
-	}
-
-	memset(msg, 0, sizeof(msg));
-
-	i = 0;
-	if (gi.Argc() == 1) { // no command specified, list them
-		strcat(msg, "\nAvailable vote commands:\n\n");
-
-		while (vote_cmds[i]) {
-			if (G_VoteAllowed(vote_cmds[i])) {
-				strcat(msg, "  ");
-				strcat(msg, vote_cmds[i]);
-				strcat(msg, "\n");
-			}
-
-			i++;
-		}
-		gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
-		return true;
-	}
-
-	i = 0;
-	while (vote_cmds[i]) { // verify that command is supported
-		if (!g_strcmp0(gi.Argv(1), vote_cmds[i])) {
-			break;
-		}
-		i++;
-	}
-
-	if (!vote_cmds[i]) { // inform client if it is not
-		gi.ClientPrint(ent, PRINT_HIGH, "Voting on \"%s\" is not supported\n", gi.Argv(1));
-		return true;
-	}
-
-	if (!G_VoteAllowed(vote_cmds[i])) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Voting on \"%s\" is disabled\n", gi.Argv(1));
-		return true;
-	}
-
-	if (!g_strcmp0(gi.Argv(1), "restart") || !g_strcmp0(gi.Argv(1), "next_map")) {
-		return false; // takes no args, this is okay
-	}
-
-	// command-specific help for some commands
-	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "map")) { // list available maps
-
-		if (!g_map_list) { // no maps in maplist
-			gi.ClientPrint(ent, PRINT_HIGH, "Map voting is not available\n");
-			return true;
-		}
-
-		strcat(msg, "\nAvailable maps:\n\n");
-
-		for (GList *list = g_map_list; list; list = list->next) {
-			const g_map_list_map_t *elt = list->data;
-			g_strlcat(msg, va("  ^2%s^7 %s\n", elt->name, elt->message), sizeof(msg));
-		}
-
-		gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
-		return true;
-	}
-
-	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "g_gameplay")) { // list gameplay modes
-		gi.ClientPrint(ent, PRINT_HIGH, "\nAvailable gameplay modes:\n\n"
-		               "  DEATHMATCH\n  INSTAGIB\n  ARENA\n  DUEL\n");
-		return true;
-	}
-
-	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "g_hook")) { // list hook modes
-		gi.ClientPrint(ent, PRINT_HIGH, "\nAvailable hook modes:\n\n"
-		               "  default\n  1\n  0\n");
-		return true;
-	}
-
-	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "g_hook_style")) { // list hook modes
-		gi.ClientPrint(ent, PRINT_HIGH, "\nAvailable force hook styles:\n\n"
-		               "  default\n  pull\n  swing_manual\n  swing_auto\n");
-		return true;
-	}
-
-	// matches are required for duel mode
-	if (g_level.gameplay == GAME_DUEL && !g_strcmp0(gi.Argv(1), "g_match")) {
-		gi.ClientPrint(ent, PRINT_HIGH,
-		               "Match mode is required for DUEL gameplay, setting cannot be changed\n");
-		return true;
-	}
-
-	// teams are required for duel mode
-	if (g_level.gameplay == GAME_DUEL && !g_strcmp0(gi.Argv(1), "g_teams")) {
-		gi.ClientPrint(ent, PRINT_HIGH,
-		               "Teams are required for DUEL gameplay, setting cannot be changed\n");
-		return true;
-	}
-
-	if (gi.Argc() == 2) { // general catch for invalid commands
-		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <command args>\n", gi.Argv(0));
-		return true;
-	}
-
-	return false;
-}
-
-/**
- * @brief
- */
-static void G_Vote_f(g_entity_t *ent) {
-	char vote[64];
-
-	if (!g_voting->value) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Voting is not allowed");
-		return;
-	}
-
-	if (!g_strcmp0(gi.Argv(0), "yes") || !g_strcmp0(gi.Argv(0), "no")) { // allow shorthand voting
-		g_strlcpy(vote, gi.Argv(0), sizeof(vote));
-	} else { // or the explicit syntax
-		g_strlcpy(vote, gi.Args(), sizeof(vote));
-	}
-
-	if (g_level.vote_time) { // check for vote from client
-		if (ent->client->locals.persistent.vote) {
-			gi.ClientPrint(ent, PRINT_HIGH, "You've already voted\n");
-			return;
-		}
-		if (g_strcmp0(vote, "yes") == 0) {
-			if (ent->client->locals.persistent.admin) {
-				g_level.votes[VOTE_YES] = sv_max_clients->integer; // admin vote wins immediately
-				return;
-			}
-			ent->client->locals.persistent.vote = VOTE_YES;
-		} else if (g_strcmp0(vote, "no") == 0) {
-			if (ent->client->locals.persistent.admin) {
-				gi.BroadcastPrint(PRINT_HIGH, "An admin voted 'no', vote failed.\n");
-				G_ResetVote();
-				return;
-			}
-			ent->client->locals.persistent.vote = VOTE_NO;
-		} else { // only yes and no are valid during a vote
-			gi.ClientPrint(ent, PRINT_HIGH, "A vote \"%s\" is already in progress\n",
-			               g_level.vote_cmd);
-			return;
-		}
-
-		g_level.votes[ent->client->locals.persistent.vote]++;
-		gi.BroadcastPrint(PRINT_HIGH, "Voting results \"%s\":\n  %d Yes     %d No\n",
-		                  g_level.vote_cmd, g_level.votes[VOTE_YES], g_level.votes[VOTE_NO]);
-		return;
-	}
-
-	if (G_VoteHelp(ent)) { // vote command got help, ignore it
-		return;
-	}
-
-	if (!g_strcmp0(gi.Argv(1), "map")) { // ensure map is in map list
-
-		if (G_MapList_Find(NULL, gi.Argv(2)) == NULL) { // inform client if it is not
-			gi.ClientPrint(ent, PRINT_HIGH, "Map \"%s\" is not available\n", gi.Argv(2));
-			return;
-		}
-	}
-
-	g_strlcpy(g_level.vote_cmd, vote, sizeof(g_level.vote_cmd));
-	g_level.vote_time = g_level.time;
-
-	if (!ent->client->locals.persistent.admin) {	// wait to cast vote if admin
-		ent->client->locals.persistent.vote = VOTE_YES; // client has implicitly voted
-		g_level.votes[VOTE_YES] = 1;
-	}
-
-	gi.SetConfigString(CS_VOTE, g_level.vote_cmd); // send to layout
-
-	gi.BroadcastPrint(PRINT_HIGH, "%s has called a vote:\n"
-	                  "  %s\n"
-	                  "Type vote yes or vote no in the console\n",
-	                  ent->client->locals.persistent.net_name, g_level.vote_cmd
-	                 );
 }
 
 /**
@@ -1206,7 +886,7 @@ static void G_Timeout_f(g_entity_t *ent) {
 	}
 
 	if (!ent->client->locals.persistent.team && !ent->client->locals.persistent.admin) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Only players can pause the match...\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Only players or admins can pause the match...\n");
 		return;
 	}
 
@@ -1225,7 +905,7 @@ static void G_Timeout_f(g_entity_t *ent) {
 
 static void G_Admin_f(g_entity_t *ent) {
 
-	if (strlen(g_admin_password->string) == 0) {	// blank password (default) disabled
+	if (strlen(g_admin_password->string) == 0) { // blank password (default) disabled
 		gi.ClientPrint(ent, PRINT_HIGH, "Admin features disabled\n");
 		return;
 	}
@@ -1234,13 +914,13 @@ static void G_Admin_f(g_entity_t *ent) {
 		if (!ent->client->locals.persistent.admin) {
 			gi.ClientPrint(ent, PRINT_HIGH, "Usage: admin <password>\n");
 		} else {
-			gi.ClientPrint(ent, PRINT_HIGH, "Commands with admin overrides:\n");
-			gi.ClientPrint(ent, PRINT_HIGH, "vote, time/timeout/timein, kick, remove, mute, timelimit \n");
+			gi.ClientPrint(ent, PRINT_HIGH, "Admin commands:\n");
+			gi.ClientPrint(ent, PRINT_HIGH, "kick, remove, mute, unmute, timeout, timein\n");
 		}
 		return;
 	}
 
-	if (!ent->client->locals.persistent.admin) {	// not yet an admin, assuming auth
+	if (!ent->client->locals.persistent.admin) { // not yet an admin, assuming auth
 		if (g_strcmp0(gi.Argv(1), g_admin_password->string) == 0) {
 			ent->client->locals.persistent.admin = true;
 			gi.BroadcastPrint(PRINT_HIGH, "%s became an admin\n", ent->client->locals.persistent.net_name);
@@ -1282,15 +962,7 @@ void G_ClientCommand(g_entity_t *ent) {
 	}
 
 	// these commands are allowed in a timeout
-	if (g_strcmp0(cmd, "vote") == 0) { // maybe
-		G_Vote_f(ent);
-		return;
-
-	} else if (g_strcmp0(cmd, "yes") == 0 || g_strcmp0(cmd, "no") == 0) {
-		G_Vote_f(ent);
-		return;
-
-	} else if (g_strcmp0(cmd, "timeout") == 0 || g_strcmp0(cmd, "timein") == 0 || g_strcmp0(cmd, "time") == 0) {
+	if (g_strcmp0(cmd, "timeout") == 0 || g_strcmp0(cmd, "timein") == 0) {
 		G_Timeout_f(ent);
 		return;
 

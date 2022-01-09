@@ -100,8 +100,6 @@ cvar_t *g_hook_speed;
 cvar_t *g_hook_pull_speed;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
-cvar_t *g_force_demo;
-cvar_t *g_force_screenshot;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
 cvar_t *g_handicap;
@@ -126,7 +124,6 @@ cvar_t *g_spectator_chat;
 cvar_t *g_teams;
 cvar_t *g_time_limit;
 cvar_t *g_timeout_time;
-cvar_t *g_voting;
 cvar_t *g_warmup_time;
 cvar_t *g_weapon_respawn_time;
 cvar_t *g_weapon_stay;
@@ -236,29 +233,6 @@ void G_SetTeamNames(void) {
 const g_team_t *G_TeamDefaults(const g_team_t *team) {
 
 	return &g_teamlist_default[team->id];
-}
-
-/**
- * @brief
- */
-void G_ResetVote(void) {
-	int32_t i;
-
-	for (i = 0; i < sv_max_clients->integer; i++) { //reset vote flags
-
-		if (!g_game.entities[i + 1].in_use) {
-			continue;
-		}
-
-		g_game.entities[i + 1].client->locals.persistent.vote = VOTE_NO_OP;
-	}
-
-	gi.SetConfigString(CS_VOTE, NULL);
-
-	g_level.votes[0] = g_level.votes[1] = g_level.votes[2] = 0;
-	g_level.vote_cmd[0] = 0;
-
-	g_level.vote_time = 0;
 }
 
 /**
@@ -563,57 +537,6 @@ static void G_EndLevel(void) {
 		G_BeginIntermission(map->name);
 	} else {
 		G_BeginIntermission(NULL);
-	}
-}
-
-/**
- * @brief
- */
-static void G_CheckVote(void) {
-	int32_t i, count = 0;
-
-	if (!g_voting->value) {
-		return;
-	}
-
-	if (g_level.vote_time == 0) {
-		return;
-	}
-
-	if (g_level.time - g_level.vote_time > MAX_VOTE_TIME) {
-		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" expired\n", g_level.vote_cmd);
-		G_ResetVote();
-		return;
-	}
-
-	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use) {
-			continue;
-		}
-		count++;
-	}
-
-	if (g_level.votes[VOTE_YES] >= count * VOTE_MAJORITY) { // vote passed
-
-		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" passed\n", g_level.vote_cmd);
-
-		if (!strncmp(g_level.vote_cmd, "map ", 4)) { // special case for map
-			G_BeginIntermission(g_level.vote_cmd + 4);
-		} else if (!g_strcmp0(g_level.vote_cmd, "next_map")) { // and next_map
-			G_EndLevel();
-		} else if (!g_strcmp0(g_level.vote_cmd, "restart")) { // and restart
-			G_RestartGame(false);
-		} else if (!strncmp(g_level.vote_cmd, "mute ", 5)) { // and mute
-			G_MuteClient(g_level.vote_cmd + 5, true);
-		} else if (!strncmp(g_level.vote_cmd, "unmute ", 7)) {
-			G_MuteClient(g_level.vote_cmd + 7, false);
-		} else { // general case, just execute the command
-			gi.Cbuf(g_level.vote_cmd);
-		}
-		G_ResetVote();
-	} else if (g_level.votes[VOTE_NO] >= count * VOTE_MAJORITY) { // vote failed
-		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" failed\n", g_level.vote_cmd);
-		G_ResetVote();
 	}
 }
 
@@ -1341,14 +1264,14 @@ static void G_CheckRules(void) {
 	}
 
 	if (restart) {
-		G_RestartGame(true);	// reset all clients
+		G_RestartGame(true); // reset all clients
 	}
 }
 
 /**
  * @brief
  */
-static void G_ExitLevel(void) {
+static void G_NextMap_f(void) {
 
 	gi.Cbuf(va("map %s\n", g_level.next_map));
 
@@ -1377,7 +1300,7 @@ static void G_Frame(void) {
 	// check for level change after running intermission
 	if (g_level.intermission_time) {
 		if (g_level.time > g_level.intermission_time + INTERMISSION) {
-			G_ExitLevel();
+			G_NextMap_f();
 			return;
 		}
 	}
@@ -1403,9 +1326,6 @@ static void G_Frame(void) {
 
 		G_Ai_Frame();
 	}
-
-	// see if a vote has passed
-	G_CheckVote();
 
 	// inspect and enforce gameplay rules
 	G_CheckRules();
@@ -1445,7 +1365,7 @@ static const char *G_GameName(void) {
 /**
  * @brief Restart the game.
  */
-static void G_Restart_Sv_f(void) {
+static void G_Restart_f(void) {
 
 	G_RestartGame(false);
 }
@@ -1565,8 +1485,6 @@ void G_Init(void) {
 	                            "The speed that you get pulled towards the hook.");
 	g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
 	g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
-	g_force_demo = gi.AddCvar("g_force_demo", "0", CVAR_SERVER_INFO, "Force all players to record a demo.");
-	g_force_screenshot = gi.AddCvar("g_force_screenshot", "0", CVAR_SERVER_INFO, "Force all players to take a screenshot.");
 	g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat.");
 	g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_handicap = gi.AddCvar("g_handicap", "1", CVAR_SERVER_INFO,
@@ -1598,7 +1516,6 @@ void G_Init(void) {
 	                 "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
 	g_time_limit = gi.AddCvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes.");
 	g_timeout_time = gi.AddCvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled.");
-	g_voting = gi.AddCvar("g_voting", "1", CVAR_SERVER_INFO, "Enables voting.");
 	g_warmup_time = gi.AddCvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30.");
 	g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
 	g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay.");
@@ -1613,8 +1530,6 @@ void G_Init(void) {
 		g_team_cvars[i].g_team_shirt = gi.AddCvar(va("g_team_%i_shirt", i + 1), g_default_team_values[i].shirt, 0, NULL);
 		g_team_cvars[i].g_team_color = gi.AddCvar(va("g_team_%i_color", i + 1), va("%i", g_default_team_values[i].color), 0, NULL);
 	}
-
-	G_InitVote();
 
 	// initialize entities and clients for this game
 	g_game.entities = gi.Malloc(g_max_entities->integer * sizeof(g_entity_t), MEM_TAG_GAME);
@@ -1647,11 +1562,9 @@ void G_Init(void) {
 			g_time_limit->modified = false;
 
 	// add game-specific server console commands
-	gi.AddCmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
-	gi.AddCmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
-	gi.AddCmd("stuff", G_Stuff_Sv_f, CMD_GAME, "Force a client to execute a command");
-	gi.AddCmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
-	gi.AddCmd("g_restart", G_Restart_Sv_f, CMD_GAME, "Force the game to restart");
+	gi.AddCmd("mute", G_Mute_f, CMD_GAME, "Prevent a client from talking");
+	gi.AddCmd("unmute", G_Mute_f, CMD_GAME, "Allow a muted client to talk again");
+	gi.AddCmd("restart", G_Restart_f, CMD_GAME, "Force the game to restart");
 
 	gi.Print("Game module initialized\n");
 }
@@ -1667,8 +1580,6 @@ void G_Shutdown(void) {
 	G_MapList_Shutdown();
 	
 	G_Ai_Shutdown();
-
-	G_ShutdownVote();
 
 	gi.FreeTag(MEM_TAG_GAME_LEVEL);
 	gi.FreeTag(MEM_TAG_GAME);

@@ -479,33 +479,6 @@ static void Cg_DrawChase(const player_state_t *ps) {
 /**
  * @brief
  */
-static void Cg_DrawVote(const player_state_t *ps) {
-	r_pixel_t x, y, ch;
-	char string[MAX_STRING_CHARS];
-
-	if (!cg_draw_vote->integer) {
-		return;
-	}
-
-	if (!ps->stats[STAT_VOTE]) {
-		return;
-	}
-
-	cgi.BindFont("small", NULL, &ch);
-
-	g_snprintf(string, sizeof(string), "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
-
-	x = 0;
-	y = cgi.context->height - HUD_PIC_HEIGHT - ch;
-
-	cgi.Draw2DString(x, y, string, color_green);
-
-	cgi.BindFont(NULL, NULL, NULL);
-}
-
-/**
- * @brief
- */
 static void Cg_DrawTime(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
 	const char *string = cgi.ConfigString(CS_TIME);
@@ -1316,8 +1289,6 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawSpectator(ps);
 
 	Cg_DrawChase(ps);
-
-	Cg_DrawVote(ps);
 
 	Cg_DrawTime(ps);
 

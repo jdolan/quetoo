@@ -92,8 +92,7 @@ typedef struct {
 #define CS_TEAM_INFO		(CS_GAME + 5)  // team info, separated by \ (name\color\name\color, etc)
 #define CS_TIME				(CS_GAME + 6)  // level or match timer
 #define CS_ROUND			(CS_GAME + 7)  // round number
-#define CS_VOTE				(CS_GAME + 8)  // vote string\yes count\no count
-#define CS_HOOK_PULL_SPEED	(CS_GAME + 9)  // hook speed
+#define CS_HOOK_PULL_SPEED	(CS_GAME + 8)  // hook speed
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -123,7 +122,6 @@ typedef enum {
 	STAT_SPECTATOR,
 	STAT_TEAM,
 	STAT_TIME,
-	STAT_VOTE,
 	STAT_WEAPON,
 	STAT_WEAPON_ICON,
 	STAT_WEAPON_TAG, // low 8 bits = current weapon, high 8 bits = switching
@@ -852,10 +850,6 @@ typedef struct {
 	uint32_t round_time; // time round started
 	uint32_t round_num;
 
-	char vote_cmd[64]; // current vote in question
-	uint32_t votes[3]; // current vote count (yes/no/undecided)
-	uint32_t vote_time; // time vote started
-
 	g_entity_t *current_entity; // entity running from G_RunFrame
 
 	uint32_t match_status;	// (bitmask) are we playing, in warmup, in timeout?
@@ -913,18 +907,6 @@ typedef struct {
 #define DMG_BULLET		0x4  // damage is from a bullet
 #define DMG_NO_ARMOR	0x8  // armor does not protect from this damage
 #define DMG_NO_GOD		0x10  // armor and god mode have no effect
-
-/**
- * @brief Voting constants.
- */
-#define MAX_VOTE_TIME 60000
-#define VOTE_MAJORITY 0.51
-
-typedef enum {
-	VOTE_NO_OP,
-	VOTE_YES,
-	VOTE_NO
-} g_vote_t;
 
 /**
  * @brief The name for the CTF skin used in team games.
@@ -1007,12 +989,11 @@ typedef struct {
 	int16_t captures;
 	uint16_t deaths;
 
-	_Bool admin; // client is special?
-	_Bool spectator; // client is a spectator
-	_Bool ready; // ready
+	_Bool admin;
+	_Bool spectator;
+	_Bool ready;
 	_Bool muted;
 
-	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
 } g_client_persistent_t;
