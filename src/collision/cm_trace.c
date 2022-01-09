@@ -124,8 +124,8 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 
 	_Bool start_outside = false, end_outside = false;
 
-	const cm_bsp_brush_side_t *s = brush->brush_sides;
-	for (int32_t i = 0; i < brush->num_brush_sides; i++, s++) {
+	const cm_bsp_brush_side_t *s = brush->brush_sides + brush->num_brush_sides - 1;
+	for (int32_t i = brush->num_brush_sides - 1; i >= 0; i--, s--) {
 
 		cm_bsp_plane_t p = *s->plane;
 
