@@ -117,7 +117,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
 		memset(s, 0, sizeof(*s) * MAX_TEAMS);
 
 		for (i = 0; i < MAX_TEAMS; i++) {
-			g_team_t *team = &g_teamlist[i];
+			g_team_t *team = &g_team_list[i];
 
 			s->client = MAX_CLIENTS;
 			s->score = team->score;

@@ -132,24 +132,24 @@ cvar_t *sv_max_clients;
 cvar_t *sv_hostname;
 cvar_t *dedicated;
 
-g_team_t g_teamlist[MAX_TEAMS];
-static g_team_t g_teamlist_default[MAX_TEAMS];
+g_team_t g_team_list[MAX_TEAMS];
+static g_team_t g_team_list_default[MAX_TEAMS];
 
 static struct {
-	cvar_t		*g_team_name;
-	cvar_t		*g_team_shirt;
-	cvar_t		*g_team_color;
+	cvar_t *g_team_name;
+	cvar_t *g_team_shirt;
+	cvar_t *g_team_color;
 } g_team_cvars[MAX_TEAMS];
 
 static const struct {
-	const char	*name;
-	const char	*shirt;
-	uint16_t	color;
-} g_default_team_values[MAX_TEAMS] = {
+	const char *name;
+	const char *shirt;
+	int16_t color;
+} g_team_defaults[MAX_TEAMS] = {
 	{ "Red", "ff0000", TEAM_COLOR_RED },
 	{ "Blue", "0000ff", TEAM_COLOR_BLUE },
 	{ "Yellow", "ffff00", TEAM_COLOR_YELLOW },
-	{ "White", "ffffff", TEAM_COLOR_WHITE }
+	{ "Green", "00ff00", TEAM_COLOR_GREEN }
 };
 
 /**
@@ -158,9 +158,9 @@ static const struct {
 static void G_InitTeam(const g_team_id_t id, const char *name,
 					   const char *shirt,
 					   const int16_t color,
-					   const uint32_t effect) {
+					   const int16_t effect) {
 
-	g_team_t *team = &g_teamlist[id];
+	g_team_t *team = &g_team_list[id];
 
 	team->id = id;
 
@@ -172,6 +172,7 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
 		gi.Warn("Failed to parse default team color %s\n", shirt);
 		team->shirt = color_white;
 	}
+
 	team->pants = team->helmet = team->shirt;
 
 	// FIXME: enforcing "ctf" skin is kinda dumb if we have tints. it should just enforce
@@ -190,7 +191,7 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
  */
 void G_ResetTeams(void) {
 
-	memset(g_teamlist, 0, sizeof(g_teamlist));
+	memset(g_team_list, 0, sizeof(g_team_list));
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
 		G_InitTeam(i,
@@ -200,7 +201,7 @@ void G_ResetTeams(void) {
 				   EF_CTF_RED << i);
 	}
 
-	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
+	memcpy(g_team_list_default, g_team_list, sizeof(g_team_list));
 
 	G_SetTeamNames();
 }
@@ -217,11 +218,11 @@ void G_SetTeamNames(void) {
 			g_strlcat(team_info, "\\", sizeof(team_info));
 		}
 
-		g_strlcat(team_info, g_teamlist[t].name, sizeof(team_info));
+		g_strlcat(team_info, g_team_list[t].name, sizeof(team_info));
 		g_strlcat(team_info, "\\", sizeof(team_info));
-		g_strlcat(team_info, va("%i", g_teamlist[t].color), sizeof(team_info));
+		g_strlcat(team_info, va("%i", g_team_list[t].color), sizeof(team_info));
 		g_strlcat(team_info, "\\", sizeof(team_info));
-		g_strlcat(team_info, Color_Unparse(g_teamlist[t].shirt), sizeof(team_info));
+		g_strlcat(team_info, Color_Unparse(g_team_list[t].shirt), sizeof(team_info));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);
@@ -232,7 +233,7 @@ void G_SetTeamNames(void) {
  */
 const g_team_t *G_TeamDefaults(const g_team_t *team) {
 
-	return &g_teamlist_default[team->id];
+	return &g_team_list_default[team->id];
 }
 
 /**
@@ -349,13 +350,13 @@ void G_ResetSpawnPoints(void) {
 
 	// reset trails to 0 first
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
-		G_ResetTeamSpawnPoints(&g_teamlist[t].spawn_points, 0, 0);
+		G_ResetTeamSpawnPoints(&g_team_list[t].spawn_points, 0, 0);
 	}
 
 	// then apply team-based trails, this is done twice
 	// so neutrality gets applied properly
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
-		G_ResetTeamSpawnPoints(&g_teamlist[t].spawn_points, TRAIL_PLAYER_SPAWN, t);
+		G_ResetTeamSpawnPoints(&g_team_list[t].spawn_points, TRAIL_PLAYER_SPAWN, t);
 	}
 }
 
@@ -442,7 +443,7 @@ static void G_RestartGame(_Bool teamz) {
 	g_level.match_time = g_level.round_time = 0;
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
-		g_teamlist[i].score = g_teamlist[i].captures = 0;
+		g_team_list[i].score = g_team_list[i].captures = 0;
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
@@ -895,7 +896,7 @@ static void G_CheckRules(void) {
 
 		if (g_level.teams) { // check team scores
 			for (int32_t i = 0; i < g_level.num_teams; i++) {
-				if (g_teamlist[i].score >= g_level.frag_limit) {
+				if (g_team_list[i].score >= g_level.frag_limit) {
 					gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
 					G_EndLevel();
 					return;
@@ -920,7 +921,7 @@ static void G_CheckRules(void) {
 	if (g_level.ctf && g_level.capture_limit) { // check capture limit
 
 		for (int32_t i = 0; i < g_level.num_teams; i++) {
-			if (g_teamlist[i].captures >= g_level.capture_limit) {
+			if (g_team_list[i].captures >= g_level.capture_limit) {
 				gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
 				G_EndLevel();
 				return;
@@ -1200,11 +1201,11 @@ static void G_CheckRules(void) {
 		if (g_team_cvars[i].g_team_name->modified) {
 			g_team_cvars[i].g_team_name->modified = false;
 		
-			if (strlen(g_team_cvars[i].g_team_name->string) > 1 && strlen(g_team_cvars[i].g_team_name->string) < lengthof(g_teamlist[i].name) - 1 &&
-				!strstr(g_team_cvars[i].g_team_name->string, "\\") && strcmp(g_team_cvars[i].g_team_name->string, g_teamlist[i].name)) {
+			if (strlen(g_team_cvars[i].g_team_name->string) > 1 && strlen(g_team_cvars[i].g_team_name->string) < lengthof(g_team_list[i].name) - 1 &&
+				!strstr(g_team_cvars[i].g_team_name->string, "\\") && strcmp(g_team_cvars[i].g_team_name->string, g_team_list[i].name)) {
 
-				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s name has been changed to \"%s\"\n", g_teamlist[i].name, g_team_cvars[i].g_team_name->string);
-				strcpy(g_teamlist[i].name, g_team_cvars[i].g_team_name->string);
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s name has been changed to \"%s\"\n", g_team_list[i].name, g_team_cvars[i].g_team_name->string);
+				strcpy(g_team_list[i].name, g_team_cvars[i].g_team_name->string);
 				changed = true;
 			}
 		}
@@ -1215,11 +1216,11 @@ static void G_CheckRules(void) {
 			color_t shirt;
 
 			if (Color_Parse(g_team_cvars[i].g_team_shirt->string, &shirt) &&
-				Color_Color32(shirt).rgba != Color_Color32(g_teamlist[i].shirt).rgba) {
+				Color_Color32(shirt).rgba != Color_Color32(g_team_list[i].shirt).rgba) {
 
 				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s shirt color has been changed to \"%s\"\n",
-								  g_teamlist[i].name, g_team_cvars[i].g_team_shirt->string);
-				g_teamlist[i].shirt = g_teamlist[i].helmet = g_teamlist[i].pants = shirt;
+								  g_team_list[i].name, g_team_cvars[i].g_team_shirt->string);
+				g_team_list[i].shirt = g_team_list[i].helmet = g_team_list[i].pants = shirt;
 				changed = true;
 				reset_userinfo = true;
 			}
@@ -1231,10 +1232,10 @@ static void G_CheckRules(void) {
 
 			int16_t hue = strtol(g_team_cvars[i].g_team_color->string, &end_point, 10);
 
-			if (end_point && hue >= 0 && hue <= 361 && hue != g_teamlist[i].color) {
+			if (end_point && hue >= 0 && hue <= 361 && hue != g_team_list[i].color) {
 
-				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s effect color has been changed to \"%i\"\n", g_teamlist[i].name, hue);
-				g_teamlist[i].color = hue;
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s effect color has been changed to \"%i\"\n", g_team_list[i].name, hue);
+				g_team_list[i].color = hue;
 				changed = true;
 				reset_userinfo = true;
 			}
@@ -1380,7 +1381,7 @@ void G_InitNumTeams(void) {
 
 		for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
-			if (!g_teamlist[t].spawn_points.count) {
+			if (!g_team_list[t].spawn_points.count) {
 				break;
 			}
 
@@ -1526,9 +1527,9 @@ void G_Init(void) {
 	dedicated = gi.GetCvar("dedicated");
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
-		g_team_cvars[i].g_team_name = gi.AddCvar(va("g_team_%i_name", i + 1), g_default_team_values[i].name, 0, NULL);
-		g_team_cvars[i].g_team_shirt = gi.AddCvar(va("g_team_%i_shirt", i + 1), g_default_team_values[i].shirt, 0, NULL);
-		g_team_cvars[i].g_team_color = gi.AddCvar(va("g_team_%i_color", i + 1), va("%i", g_default_team_values[i].color), 0, NULL);
+		g_team_cvars[i].g_team_name = gi.AddCvar(va("g_team_%i_name", i + 1), g_team_defaults[i].name, 0, NULL);
+		g_team_cvars[i].g_team_shirt = gi.AddCvar(va("g_team_%i_shirt", i + 1), g_team_defaults[i].shirt, 0, NULL);
+		g_team_cvars[i].g_team_color = gi.AddCvar(va("g_team_%i_color", i + 1), va("%i", g_team_defaults[i].color), 0, NULL);
 	}
 
 	// initialize entities and clients for this game
@@ -1675,7 +1676,7 @@ void G_RunTimers(void) {
 				}
 
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
-					G_TeamCenterPrint(&g_teamlist[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
+					G_TeamCenterPrint(&g_team_list[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
 				}
 			}
 
@@ -1696,7 +1697,7 @@ void G_RunTimers(void) {
 				}
 
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
-					G_TeamCenterPrint(&g_teamlist[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
+					G_TeamCenterPrint(&g_team_list[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
 				}
 			}
 		} else {

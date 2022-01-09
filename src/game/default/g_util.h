@@ -42,7 +42,7 @@ g_team_t *G_TeamByName(const char *c);
 const g_item_t *G_IsFlagBearer(const g_entity_t *ent);
 g_team_t *G_TeamForFlag(const g_entity_t *ent);
 g_entity_t *G_FlagForTeam(const g_team_t *t);
-uint32_t G_EffectForTeam(const g_team_t *t);
+int32_t G_EffectForTeam(const g_team_t *t);
 size_t G_TeamSize(const g_team_t *team);
 g_team_t *G_SmallestTeam(void);
 g_entity_t *G_EntityByName(char *name);

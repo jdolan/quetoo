@@ -137,12 +137,12 @@ extern cvar_t *sv_max_clients;
 extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
 
-extern g_team_t g_teamlist[MAX_TEAMS];
+extern g_team_t g_team_list[MAX_TEAMS];
 
-#define g_team_red (&g_teamlist[TEAM_RED])
-#define g_team_blue (&g_teamlist[TEAM_BLUE])
-#define g_team_yellow (&g_teamlist[TEAM_YELLOW])
-#define g_team_white (&g_teamlist[TEAM_WHITE])
+#define g_team_red (&g_team_list[TEAM_RED])
+#define g_team_blue (&g_team_list[TEAM_BLUE])
+#define g_team_yellow (&g_team_list[TEAM_YELLOW])
+#define g_team_green (&g_team_list[TEAM_GREEN])
 
 void G_Init(void);
 void G_Shutdown(void);

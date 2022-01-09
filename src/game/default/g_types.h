@@ -302,10 +302,10 @@ typedef enum {
 /**
  * @brief Scoreboard background color hues.
  */
-#define TEAM_COLOR_RED			360
-#define TEAM_COLOR_BLUE			240
-#define TEAM_COLOR_YELLOW		60
-#define TEAM_COLOR_WHITE		361
+#define TEAM_COLOR_RED			color_hue_red
+#define TEAM_COLOR_BLUE			color_hue_blue
+#define TEAM_COLOR_YELLOW		color_hue_yellow
+#define TEAM_COLOR_GREEN		color_hue_green
 
 /**
  * @brief Team ID
@@ -315,7 +315,7 @@ typedef enum {
 	TEAM_RED,
 	TEAM_BLUE,
 	TEAM_YELLOW,
-	TEAM_WHITE,
+	TEAM_GREEN,
 
 	MAX_TEAMS
 } g_team_id_t;
@@ -917,8 +917,8 @@ typedef struct {
  * @brief There are four teams in the default game module.
  */
 typedef struct {
-	// static info, valid for all and default teams
 	g_team_id_t id; // id for team, to prevent us from needing to do ptr compare
+
 	char name[16]; // kept short for HUD consideration
 	char skin[32];
 	char flag[32]; // flag classname
@@ -927,12 +927,11 @@ typedef struct {
 	color_t shirt, pants, helmet;
 
 	int16_t color; // team color hue
+	int16_t effect; // flag effect
 
-	uint32_t effect; // flag effect
-
-	// dynamic info, valid for all teams
 	int16_t score;
 	int16_t captures;
+
 	g_spawn_points_t spawn_points;
 	g_entity_t *flag_entity;
 } g_team_t;

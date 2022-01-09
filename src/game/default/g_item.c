@@ -529,7 +529,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 		}
 
 		if (ofi) {
-			const g_team_t *ot = &g_teamlist[ofi->tag];
+			const g_team_t *ot = &g_team_list[ofi->tag];
 			g_entity_t *of = G_FlagForTeam(ot);
 
 			index = of->locals.item->index;
@@ -601,7 +601,7 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 		return NULL;
 	}
 
-	const g_team_t *ot = &g_teamlist[ofi->tag];
+	const g_team_t *ot = &g_team_list[ofi->tag];
 	const int32_t index = ofi->index;
 
 	if (!ent->client->locals.inventory[index]) {
@@ -899,7 +899,7 @@ g_entity_t *G_SelectTechSpawnPoint(void) {
 
 	if (g_level.teams || g_level.ctf) {
 		for (int32_t i = 0; i < g_level.num_teams; i++) {
-			G_SelectFarthestTechSpawnPoint(&g_teamlist[i].spawn_points, &point, &point_dist);
+			G_SelectFarthestTechSpawnPoint(&g_team_list[i].spawn_points, &point, &point_dist);
 		}
 	} else {
 		G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
@@ -2267,7 +2267,7 @@ static g_item_t g_items[] = {
 		.quantity = 0,
 		.ammo = NULL,
 		.type = ITEM_FLAG,
-		.tag = TEAM_WHITE,
+		.tag = TEAM_GREEN,
 		.priority = 0.75,
 		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},

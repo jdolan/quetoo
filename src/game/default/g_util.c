@@ -548,8 +548,8 @@ g_team_t *G_TeamByName(const char *c) {
 
 	for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-		if (!StrStripCmp(g_teamlist[i].name, c)) {
-			return &g_teamlist[i];
+		if (!StrStripCmp(g_team_list[i].name, c)) {
+			return &g_team_list[i];
 		}
 	}
 
@@ -571,8 +571,8 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 
 	for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-		if (!g_strcmp0(ent->class_name, g_teamlist[i].flag)) {
-			return &g_teamlist[i];
+		if (!g_strcmp0(ent->class_name, g_team_list[i].flag)) {
+			return &g_team_list[i];
 		}
 	}
 
@@ -594,7 +594,7 @@ g_entity_t *G_FlagForTeam(const g_team_t *t) {
 /**
  * @brief
  */
-uint32_t G_EffectForTeam(const g_team_t *t) {
+int32_t G_EffectForTeam(const g_team_t *t) {
 
 	if (!t) {
 		return 0;
@@ -610,11 +610,11 @@ const g_item_t *G_IsFlagBearer(const g_entity_t *ent) {
 
 	for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-		if (&g_teamlist[i] == ent->client->locals.persistent.team) {
+		if (&g_team_list[i] == ent->client->locals.persistent.team) {
 			continue;
 		}
 
-		g_entity_t *f = G_FlagForTeam(&g_teamlist[i]);
+		g_entity_t *f = G_FlagForTeam(&g_team_list[i]);
 
 		if (f && ent->client->locals.inventory[f->locals.item->index]) {
 			return f->locals.item;
@@ -670,7 +670,7 @@ g_team_t *G_SmallestTeam(void) {
 
 	for (int32_t i = 0; i < g_level.num_teams; i++) {
 		if (!smallest || num_clients[i] < num_clients[smallest->id]) {
-			smallest = &g_teamlist[i];
+			smallest = &g_team_list[i];
 		}
 	}
 
