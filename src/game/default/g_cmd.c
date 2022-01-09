@@ -903,6 +903,9 @@ static void G_Timeout_f(g_entity_t *ent) {
 	gi.ClientPrint(ent, PRINT_HIGH, "You cannot cancel timeout\n");
 }
 
+/**
+ * @brief
+ */
 static void G_Admin_f(g_entity_t *ent) {
 
 	if (strlen(g_admin_password->string) == 0) { // blank password (default) disabled
@@ -936,6 +939,7 @@ static void G_Admin_f(g_entity_t *ent) {
 		}
 	}
 }
+
 /**
  * @brief
  */

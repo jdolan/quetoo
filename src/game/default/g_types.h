@@ -48,7 +48,7 @@ typedef enum {
  * the game module.
  */
 typedef enum {
-	CL_CMD_EXAMPLE
+	CL_CMD_EXAMPLE = CL_CMD_CGAME,
 } g_cl_packet_cmd_t;
 
 /**
