@@ -995,7 +995,7 @@ void G_ClientCommand(g_entity_t *ent) {
 	}
 
 	// these commands are not allowed during intermission or timeout
-	if (g_strcmp0(cmd, "spectate") == 0 || g_strcmp0(cmd, "join")) {
+	if (g_strcmp0(cmd, "spectate") == 0 || g_strcmp0(cmd, "join") == 0) {
 		G_Spectate_f(ent);
 	} else if (g_strcmp0(cmd, "team") == 0) {
 		G_Team_f(ent);
