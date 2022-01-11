@@ -315,7 +315,9 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 
 		if (always_pickup) { // resolve max
 			if (h > max && other->client) {
-				other->client->locals.boost_time = g_level.time + 750;
+				if (tag == HEALTH_MEGA) {
+					other->client->locals.boost_time = g_level.time + 1000;
+				}
 				max = other->client->locals.max_boost_health;
 			}
 		} else if (always_add) {

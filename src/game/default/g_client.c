@@ -927,6 +927,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
 		ent->locals.max_health = ent->client->locals.persistent.handicap;
 		ent->locals.health = ent->locals.max_health + 5;
+		ent->client->locals.boost_time = g_level.time + 1000;
 		ent->client->locals.max_armor = 200;
 		ent->client->locals.max_boost_health = ent->locals.max_health + 100;
 		ent->locals.move_type = MOVE_TYPE_WALK;
@@ -1589,10 +1590,13 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 	}
 
 	// decrement any boosted health from items
-	if (ent->locals.health > ent->locals.max_health &&
-	        ent->client->locals.boost_time < g_level.time) {
-		ent->locals.health -= 1;
-		ent->client->locals.boost_time = g_level.time + 750;
+	if (ent->client->locals.boost_time != 0 && ent->client->locals.boost_time < g_level.time) {
+		if (ent->locals.health > ent->locals.max_health) {
+			ent->locals.health -= 1;
+			ent->client->locals.boost_time = g_level.time + 1000;
+		} else {
+			ent->client->locals.boost_time = 0;
+		}
 	}
 }
 
