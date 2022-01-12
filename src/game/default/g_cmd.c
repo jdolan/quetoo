@@ -954,6 +954,11 @@ static void G_Admin_f(g_entity_t *ent) {
 	}
 }
 
+#ifdef _DEBUG
+void G_RecordPmove(void);
+void G_PlayPmove(void);
+#endif
+
 /**
  * @brief
  */
@@ -1028,6 +1033,13 @@ void G_ClientCommand(g_entity_t *ent) {
 	} else if (g_strcmp0(cmd, "chase_next") == 0) {
 		G_ClientChaseNext(ent);
 	}
+#ifdef _DEBUG
+	else if (g_strcmp0(cmd, "pmove_record") == 0) {
+		G_RecordPmove();
+	} else if (g_strcmp0(cmd, "pmove_play") == 0) {
+		G_PlayPmove();
+	}
+#endif
 
 	else
 		// anything that doesn't match a command will be a chat

@@ -1359,6 +1359,46 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 	}
 }
 
+#ifdef _DEBUG
+static bool g_recording_pmove = false;
+static bool g_play_pmove = false;
+static file_t *g_pmove_file;
+
+void G_RecordPmove(void) {
+	if (g_play_pmove) {
+		return;
+	}
+
+	if (g_recording_pmove) {
+		gi.CloseFile(g_pmove_file);
+		g_recording_pmove = false;
+		gi.Print("Closing pmove recording\n");
+		return;
+	}
+
+	g_recording_pmove = true;
+	g_pmove_file = gi.OpenFileWrite("pmove.deboog");
+	gi.Print("Starting pmove recording\n");
+}
+
+void G_PlayPmove(void) {
+	if (g_recording_pmove) {
+		return;
+	}
+
+	if (g_play_pmove) {
+		gi.CloseFile(g_pmove_file);
+		g_play_pmove = false;
+		gi.Print("Closing pmove recording\n");
+		return;
+	}
+
+	g_play_pmove = true;
+	g_pmove_file = gi.OpenFile("pmove.deboog");
+	gi.Print("Starting pmove playback\n");
+}
+#endif
+
 /**
  * @brief Process the movement command, call Pm_Move and act on the result.
  */
@@ -1384,28 +1424,43 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	cl->ps.pm_state.gravity = g_level.gravity;
 
 	memset(&pm, 0, sizeof(pm));
-	pm.s = cl->ps.pm_state;
 
-	pm.s.origin = ent->s.origin;
-
-	if (ent->client->locals.hook_pull) {
-		
-		if (ent->client->locals.persistent.hook_style == HOOK_PULL) {
-			pm.s.type = PM_HOOK_PULL;
-		} else if (ent->client->locals.persistent.hook_style == HOOK_SWING_MANUAL) {
-			pm.s.type = PM_HOOK_SWING_MANUAL;
-		} else if (ent->client->locals.persistent.hook_style == HOOK_SWING_AUTO) {
-			pm.s.type = PM_HOOK_SWING_AUTO;
-		} else {
-			pm.s.type = PM_HOOK_PULL;
+#ifdef _DEBUG
+	if (g_play_pmove) {
+		if (!gi.ReadFile(g_pmove_file, &pm, sizeof(pm), 1)) {
+			g_play_pmove = false;
+			gi.CloseFile(g_pmove_file);
+			gi.Print("Finished pmove playback\n");
 		}
-	} else {
-		pm.s.velocity = ent->locals.velocity;
 	}
 
-	pm.cmd = *cmd;
-	pm.ground = ent->locals.ground;
-	pm.hook_pull_speed = g_hook_pull_speed->value;
+	if (!g_play_pmove) {
+#endif
+		pm.s = cl->ps.pm_state;
+
+		pm.s.origin = ent->s.origin;
+
+		if (ent->client->locals.hook_pull) {
+		
+			if (ent->client->locals.persistent.hook_style == HOOK_PULL) {
+				pm.s.type = PM_HOOK_PULL;
+			} else if (ent->client->locals.persistent.hook_style == HOOK_SWING_MANUAL) {
+				pm.s.type = PM_HOOK_SWING_MANUAL;
+			} else if (ent->client->locals.persistent.hook_style == HOOK_SWING_AUTO) {
+				pm.s.type = PM_HOOK_SWING_AUTO;
+			} else {
+				pm.s.type = PM_HOOK_PULL;
+			}
+		} else {
+			pm.s.velocity = ent->locals.velocity;
+		}
+
+		pm.cmd = *cmd;
+		pm.ground = ent->locals.ground;
+		pm.hook_pull_speed = g_hook_pull_speed->value;
+#ifdef _DEBUG
+	}
+#endif
 
 	pm.PointContents = gi.PointContents;
 	pm.Trace = G_ClientMove_Trace;
@@ -1413,6 +1468,12 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	pm.Debug = gi.Debug_;
 	pm.DebugMask = gi.DebugMask;
 	pm.debug_mask = DEBUG_PMOVE_SERVER;
+
+#ifdef _DEBUG
+	if (g_recording_pmove) {
+		gi.WriteFile(g_pmove_file, &pm, sizeof(pm), 1);
+	}
+#endif
 
 	// perform a move
 	Pm_Move(&pm);
