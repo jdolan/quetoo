@@ -327,6 +327,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
+	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
@@ -339,6 +340,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	R_GetError(NULL);
