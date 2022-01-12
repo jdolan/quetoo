@@ -52,7 +52,7 @@ int32_t MAT_Main(void) {
 	FreeMaterials();
 
 	const uint32_t end = SDL_GetTicks();
-	Com_Print("\nGenerated %ld materials in %d ms\n", count, end - start);
+	Com_Print("\nGenerated %" PRIoPTR " materials in %d ms\n", count, end - start);
 
 	return 0;
 }

@@ -74,6 +74,11 @@ typedef struct {
 	 * @brief The trace result.
 	 */
 	cm_trace_t trace;
+
+	/**
+	 * @brief The trace fraction not taking any epsilon nudging into account.
+	 */
+	float unnudged_fraction;
 } cm_trace_data_t;
 
 /**
@@ -118,6 +123,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 
 	float enter_fraction = -1.f;
 	float leave_fraction = 1.f;
+	float nudged_enter_fraction = -1.f;
 
 	cm_bsp_plane_t plane = { };
 	const cm_bsp_brush_side_t *side = NULL;
@@ -156,15 +162,18 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		}
 
 		// the trace intersects this side
+		const float d2d1_dist = (d1 - d2);
+
 		if (d1 > d2) { // enter
-			const float f = Maxf(0.f, (d1 - TRACE_EPSILON) / (d1 - d2));
+			const float f = d1 / d2d1_dist;
 			if (f > enter_fraction) {
 				enter_fraction = f;
 				plane = p;
 				side = s;
+				nudged_enter_fraction = (d1 - TRACE_EPSILON) / d2d1_dist;
 			}
 		} else { // leave
-			const float f = Minf(1.f, (d1 + TRACE_EPSILON) / (d1 - d2));
+			const float f = d1 / d2d1_dist;
 			if (f < leave_fraction) {
 				leave_fraction = f;
 			}
@@ -179,10 +188,12 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 			data->trace.all_solid = true;
 			data->trace.contents = brush->contents;
 			data->trace.fraction = 0.f;
+			data->unnudged_fraction = 0.f;
 		}
 	} else if (enter_fraction < leave_fraction) { // pierced brush
-		if (enter_fraction > -1.f && enter_fraction < data->trace.fraction) {
-			data->trace.fraction = Maxf(0.f, enter_fraction);
+		if (enter_fraction > -1.f && enter_fraction < data->unnudged_fraction && nudged_enter_fraction < data->trace.fraction) {
+			data->unnudged_fraction = enter_fraction;
+			data->trace.fraction = nudged_enter_fraction;
 			data->trace.brush_side = side;
 			data->trace.plane = plane;
 			data->trace.contents = side->contents;
@@ -302,7 +313,7 @@ static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float p2f,
                            const vec3_t p1, const vec3_t p2) {
 
-	if (data->trace.fraction <= p1f) {
+	if (data->unnudged_fraction <= p1f) {
 		return; // already hit something nearer
 	}
 
@@ -344,7 +355,6 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 		return;
 	}
 
-	// put the cross point DIST_EPSILON pixels on the near side
 	int32_t side;
 	float frac1, frac2;
 
@@ -419,7 +429,8 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 		.is_transformed = !Mat4_Equal(matrix, Mat4_Identity()),
 		.trace = {
 			.fraction = 1.f
-		}
+		},
+		.unnudged_fraction = 1.f + TRACE_EPSILON
 	};
 
 	if (!cm_bsp.num_nodes) { // map not loaded
@@ -453,6 +464,8 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 	}
 
 	Cm_TraceToNode(&data, head_node, 0.f, 1.f, data.start, data.end);
+
+	data.trace.fraction = Maxf(0.f, data.trace.fraction);
 
 	if (data.trace.fraction == 0.f) {
 		data.trace.end = start;

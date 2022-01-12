@@ -320,7 +320,12 @@ static _Bool Pm_CheckStep(const cm_trace_t *trace) {
 static void Pm_StepDown(const cm_trace_t *trace) {
 
 	pm->s.origin = trace->end;
-	pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
+	
+	const float step_height = pm->s.origin.z - pm_locals.previous_origin.z;
+
+	if (fabsf(step_height) >= PM_STEP_HEIGHT_MIN) {
+		pm->step = step_height;
+	}
 }
 
 /**
@@ -364,7 +369,7 @@ static void Pm_StepSlideMove(void) {
 
 		// settle to the new ground, keeping the step if and only if it was successful
 		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-		const cm_trace_t step_down = Pm_Trace(pm->s.origin, down, Box3_Expand3(pm->bounds, Vec3(TRACE_EPSILON, TRACE_EPSILON, 0.f)));
+		const cm_trace_t step_down = Pm_Trace(pm->s.origin, down, pm->bounds);
 
 		if (Pm_CheckStep(&step_down)) {
 			// Quake2 trick jump secret sauce

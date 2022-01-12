@@ -54,7 +54,7 @@
 /**
  * @brief Trace collision epsilon.
  */
-#define TRACE_EPSILON			.25f
+#define TRACE_EPSILON			.125f
 
 /**
  * @brief Plane side constants used for BSP recursion.
