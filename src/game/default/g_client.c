@@ -1363,6 +1363,8 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 static bool g_recording_pmove = false;
 static bool g_play_pmove = false;
 static file_t *g_pmove_file;
+static uint64_t pmove_frame = 0;
+static uint64_t pmove_frames = 0;
 
 void G_RecordPmove(void) {
 	if (g_play_pmove) {
@@ -1394,8 +1396,16 @@ void G_PlayPmove(void) {
 	}
 
 	g_play_pmove = true;
+	pmove_frames = gi.LoadFile("pmove.deboog", NULL) / sizeof(pm_move_t);
 	g_pmove_file = gi.OpenFile("pmove.deboog");
 	gi.Print("Starting pmove playback\n");
+
+	if (gi.Argc() > 1) {
+		pmove_frame = strtoull(gi.Argv(1), NULL, 10);
+		gi.SeekFile(g_pmove_file, sizeof(pm_move_t) * pmove_frame);
+	} else {
+		pmove_frame = 0;
+	}
 }
 #endif
 
@@ -1431,6 +1441,9 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 			g_play_pmove = false;
 			gi.CloseFile(g_pmove_file);
 			gi.Print("Finished pmove playback\n");
+		} else {
+			gi.Print("PMove frame %8" PRIu64 " / %8" PRIu64, pmove_frame, pmove_frames);
+			pmove_frame++;
 		}
 	}
 
