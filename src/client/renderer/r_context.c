@@ -134,17 +134,23 @@ static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, 
 		}
 	}
 
-	if (type == GL_DEBUG_TYPE_ERROR) {
+	const _Bool is_fatal = type == GL_DEBUG_TYPE_ERROR || type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR || type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR;
+
+	if (is_fatal) {
 		Com_Warn("^1OpenGL (%s; %s) %s [id %i]: %s\n source: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message, trace);
+
+		if (r_get_error->integer == 2) {
+			SDL_TriggerBreakpoint();
+		}
 	} else {
+		const int32_t error_relative_severity = (severity == GL_DEBUG_SEVERITY_HIGH) ? 3 : (severity == GL_DEBUG_SEVERITY_MEDIUM) ? 2 : (severity == GL_DEBUG_SEVERITY_LOW) ? 1 : 0;
+
+		if (error_relative_severity >= r_error_level->integer) {
 		Com_Warn("OpenGL (%s; %s) %s [id %i]: %s\n source: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message, trace);
+	}
 	}
 
 	g_string_free(backtrace, true);
-
-	if (r_get_error->integer == 2 && type == GL_DEBUG_TYPE_ERROR) {
-		SDL_TriggerBreakpoint();
-	}
 }
 
 /**

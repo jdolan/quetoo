@@ -224,6 +224,7 @@ extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
+extern cvar_t *r_error_level;
 extern cvar_t *r_max_errors;
 extern cvar_t *r_occlude;
 

@@ -36,6 +36,7 @@ cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_material_stages;
 cvar_t *r_draw_wireframe;
 cvar_t *r_get_error;
+cvar_t *r_error_level;
 cvar_t *r_max_errors;
 cvar_t *r_occlude;
 
@@ -447,7 +448,8 @@ static void R_InitLocal(void) {
 	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
-	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL errors to the console (developer tool)");
+	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool)");
+	r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
 	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
 	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
 
