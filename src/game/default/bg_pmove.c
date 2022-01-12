@@ -228,6 +228,12 @@ static _Bool Pm_SlideMove(void) {
 		if (Pm_ImpactPlane(planes, num_planes, trace.plane.normal)) {
 			planes[num_planes] = trace.plane.normal;
 			num_planes++;
+
+			// if we didn't move *at all* from the trace we'll probably be stuck, so
+			// move us out a tiny bit.
+			if (trace.fraction == 0.f) {
+				pm->s.origin = Vec3_Fmaf(pm->s.origin, TRACE_EPSILON, trace.plane.normal);
+			}
 		} else {
 			// if we've seen this plane before, nudge our velocity out along it
 			pm->s.velocity = Vec3_Add(pm->s.velocity, trace.plane.normal);
