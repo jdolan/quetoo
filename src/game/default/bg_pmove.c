@@ -210,7 +210,7 @@ static _Bool Pm_SlideMove(void) {
 		// if the trace succeeded, move some distance
 		if (trace.fraction > 0.0f) {
 
-			pm->s.origin = trace.end;
+			pm->s.origin = Vec3_Fmaf(trace.end, TRACE_EPSILON, trace.plane.normal);
 
 			// if the trace didn't hit anything, we're done
 			if (trace.fraction == 1.0f) {
@@ -231,9 +231,9 @@ static _Bool Pm_SlideMove(void) {
 
 			// if we didn't move *at all* from the trace we'll probably be stuck, so
 			// move us out a tiny bit.
-			if (trace.fraction == 0.f) {
-				pm->s.origin = Vec3_Fmaf(pm->s.origin, TRACE_EPSILON, trace.plane.normal);
-			}
+			//if (trace.fraction == 0.f) {
+			//	pm->s.origin = Vec3_Fmaf(pm->s.origin, TRACE_EPSILON, trace.plane.normal);
+			//}
 		} else {
 			// if we've seen this plane before, nudge our velocity out along it
 			pm->s.velocity = Vec3_Add(pm->s.velocity, trace.plane.normal);
