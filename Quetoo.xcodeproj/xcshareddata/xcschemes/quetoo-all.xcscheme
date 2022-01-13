@@ -69,10 +69,6 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -109,7 +105,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map gehenna"
+            argument = "+set sv_max_clients 32 +map tokays"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -117,7 +113,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_cheats 1 +give all"
+            argument = "+set g_cheats 1 +give all +no_clip"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
