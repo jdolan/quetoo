@@ -326,11 +326,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	// find the point distances to the separating plane
 	// and the offset for the size of the box
 	const cm_bsp_node_t *node = cm_bsp.nodes + num;
-	cm_bsp_plane_t plane = *node->plane;
-
-	if (data->is_transformed) {
-		plane = Cm_TransformPlane(data->matrix, plane);
-	}
+	const cm_bsp_plane_t plane = *node->plane;
 
 	float d1, d2, offset;
 	if (AXIAL(&plane)) {
@@ -397,12 +393,6 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
  * @brief Primary collision detection entry point. This function recurses down
  * the BSP tree from the specified head node, clipping the desired movement to
  * brushes that match the specified contents mask.
- * 
- * @remarks For non-world brush models: if the trace is a line trace (empty mins/maxs)
- * the trace itself is rotated before tracing down the relevant subset of the BSP
- * tree, and the resulting plane is un-rotated back into world space; if the trace
- * is a box trace, then planes are individually rotated and tested as the trace makes
- * its way through the tree.
  *
  * @param start The starting point.
  * @param end The desired end point.
@@ -416,14 +406,13 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
  * @return The trace.
  */
 cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node,
-					   int32_t contents, const mat4_t matrix) {
+					   int32_t contents, const mat4_t matrix, const mat4_t inverse_matrix) {
 
 	cm_trace_data_t data = {
 		.start = start,
 		.end = end,
 		.bounds = bounds,
 		.abs_bounds = Cm_TraceBounds(start, end, bounds),
-		.size = Box3_Symetrical(Box3_Expand(bounds, BOX_EPSILON)),
 		.contents = contents,
 		.matrix = matrix,
 		.is_transformed = !Mat4_Equal(matrix, Mat4_Identity()),
@@ -444,12 +433,17 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 	// check for position test special case
 	if (Vec3_Equal(start, end)) {
 		static __thread int32_t leafs[MAX_BSP_LEAFS];
-		const size_t num_leafs = Cm_BoxLeafnums(data.abs_bounds,
+		box3_t abs_bounds = data.abs_bounds;
+
+		if (data.is_transformed) {
+			abs_bounds = Mat4_TransformBounds(inverse_matrix, abs_bounds);
+		}
+
+		const size_t num_leafs = Cm_BoxLeafnums(abs_bounds,
 												leafs,
 												lengthof(leafs),
 												NULL,
-												head_node,
-												matrix);
+												head_node);
 
 		for (size_t i = 0; i < num_leafs; i++) {
 			Cm_TestInLeaf(&data, leafs[i]);
@@ -463,7 +457,13 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 		return data.trace;
 	}
 
-	Cm_TraceToNode(&data, head_node, 0.f, 1.f, data.start, data.end);
+	if (data.is_transformed) {
+		data.size = Box3_Symetrical(Mat4_TransformBounds(inverse_matrix, Box3_Expand(bounds, BOX_EPSILON)));
+		Cm_TraceToNode(&data, head_node, 0.f, 1.f, Mat4_Transform(inverse_matrix, data.start), Mat4_Transform(inverse_matrix, data.end));
+	} else {
+		data.size = Box3_Symetrical(Box3_Expand(bounds, BOX_EPSILON));
+		Cm_TraceToNode(&data, head_node, 0.f, 1.f, data.start, data.end);
+	}
 
 	data.trace.fraction = Maxf(0.f, data.trace.fraction);
 

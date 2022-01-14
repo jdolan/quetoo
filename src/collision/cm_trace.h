@@ -24,7 +24,7 @@
 #include "cm_types.h"
 
 cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node,
-					   int32_t contents, const mat4_t matrix);
+					   int32_t contents, const mat4_t matrix, const mat4_t inverse_matrix);
 
 box3_t Cm_EntityBounds(const solid_t solid, const mat4_t matrix,
 	                   const box3_t bounds);

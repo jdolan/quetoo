@@ -44,8 +44,8 @@ int32_t Cm_SetBoxHull(const box3_t bounds, const int32_t contents);
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node);
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node, const mat4_t inverse_matrix);
 
-size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t length, int32_t *top_node, int32_t head_node, const mat4_t matrix);
-int32_t Cm_BoxContents(const box3_t bounds, int32_t head_node, const mat4_t matrix);
+size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t length, int32_t *top_node, int32_t head_node);
+int32_t Cm_BoxContents(const box3_t bounds, int32_t head_node);
 
 #ifdef __CM_LOCAL_H__
 void Cm_InitBoxHull(cm_bsp_t *bsp);

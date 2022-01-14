@@ -82,7 +82,7 @@ int32_t Cl_PointContents(const vec3_t point) {
  */
 int32_t Cl_BoxContents(const box3_t bounds) {
 
-	int32_t contents = Cm_BoxContents(bounds, 0, Mat4_Identity());
+	int32_t contents = Cm_BoxContents(bounds, 0);
 
 	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
@@ -105,7 +105,7 @@ int32_t Cl_BoxContents(const box3_t bounds) {
 
 		const int32_t head_node = Cl_HullForEntity(s);
 
-		contents |= Cm_BoxContents(bounds, head_node, ent->matrix);
+		contents |= Cm_BoxContents(Mat4_TransformBounds(ent->inverse_matrix, bounds), head_node);
 	}
 
 	return contents;
@@ -153,7 +153,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
 		const int32_t head_node = Cl_HullForEntity(s);
 
-		cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix);
+		cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix, ent->inverse_matrix);
 
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 			trace->trace = tr;
@@ -180,7 +180,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, i
 	memset(&trace, 0, sizeof(trace));
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, Mat4_Identity());
+	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, Mat4_Identity(), Mat4_Identity());
 	if (trace.trace.fraction < 1.0) {
 		trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
 

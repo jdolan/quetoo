@@ -85,22 +85,7 @@ cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
  */
 cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t plane) {
 	const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
-	// FIXME
-	cm_bsp_plane_t p = Cm_Plane(Vec4_XYZ(out), out.w);
-
-	switch (p.type) {
-		case PLANE_X:
-			p.type = PLANE_ANY_X;
-			break;
-		case PLANE_Y:
-			p.type = PLANE_ANY_Y;
-			break;
-		case PLANE_Z:
-			p.type = PLANE_ANY_Z;
-			break;
-	}
-	// FIXME
-	return p;
+	return Cm_Plane(Vec4_XYZ(out), out.w);
 }
 
 /**
@@ -346,8 +331,7 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
  *
  * @return The contents mask at the specified point.
  *
- * @remarks The inverse matrix is required, rather than the matrix, because it is cheaper to
- * transform the test point once, than to transform every plane traversed in the tree.
+ * @remarks The input point is transformed because node planes can't be transformed.
  */
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node, const mat4_t inverse_matrix) {
 
@@ -375,8 +359,6 @@ typedef struct {
 	size_t count, length;
 	int32_t top_node;
 	int32_t contents;
-	mat4_t matrix;
-	_Bool is_transformed;
 } cm_box_leafnum_data;
 
 /**
@@ -398,12 +380,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 		}
 
 		const cm_bsp_node_t *node = &cm_bsp.nodes[node_num];
-		cm_bsp_plane_t plane = *node->plane;
-
-		if (data->is_transformed) {
-			plane = Cm_TransformPlane(data->matrix, plane);
-		}
-
+		const cm_bsp_plane_t plane = *node->plane;
 		const int32_t side = Cm_BoxOnPlaneSide(data->bounds, &plane);
 
 		if (side == SIDE_FRONT) {
@@ -435,15 +412,13 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
  * @return The number of leafs accumulated to the list.
  */
 size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t length, int32_t *top_node,
-					  int32_t head_node, const mat4_t matrix) {
+					  int32_t head_node) {
 
 	cm_box_leafnum_data data = {
 		.bounds = bounds,
 		.list = list,
 		.length = length,
-		.top_node = -1,
-		.matrix = matrix,
-		.is_transformed = !Mat4_Equal(matrix, Mat4_Identity())
+		.top_node = -1
 	};
 
 	Cm_BoxLeafnums_r(&data, head_node);
@@ -466,13 +441,12 @@ size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t length, int32_t
  * @param matrix The matrix to transform the bounds by.
  * @return The contents mask of all leafs within the transformed bounds.
  */
-int32_t Cm_BoxContents(const box3_t bounds, int32_t head_node, const mat4_t matrix) {
+int32_t Cm_BoxContents(const box3_t bounds, int32_t head_node) {
 	cm_box_leafnum_data data = {
 		.bounds = bounds,
 		.list = NULL,
 		.length = 0,
-		.top_node = -1,
-		.matrix = matrix
+		.top_node = -1
 	};
 
 	Cm_BoxLeafnums_r(&data, head_node);
