@@ -314,7 +314,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 /**
  * @brief
  */
-static void R_DrawMeshEntity(const r_entity_t *e) {
+static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
@@ -403,10 +403,6 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
  */
 void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 
-	if (!view->num_entities) {
-		return;
-	}
-
 	glUseProgram(r_mesh_program.name);
 
 	const r_entity_t *e = view->entities;
@@ -421,7 +417,7 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 				continue;
 			}
 
-			R_DrawMeshEntity(e);
+			R_DrawMeshEntity(view, e);
 		}
 	}
 
