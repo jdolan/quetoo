@@ -27,17 +27,17 @@
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
 
 	const float x = fabsf(normal.x);
-	if (x >= 1.f) {
+	if (x > 1.f - FLT_EPSILON) {
 		return PLANE_X;
 	}
 
 	const float y = fabsf(normal.y);
-	if (y >= 1.f) {
+	if (y > 1.f - FLT_EPSILON) {
 		return PLANE_Y;
 	}
 
 	const float z = fabsf(normal.z);
-	if (z >= 1.f) {
+	if (z > 1.f - FLT_EPSILON) {
 		return PLANE_Z;
 	}
 
@@ -85,7 +85,22 @@ cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
  */
 cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t plane) {
 	const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
-	return Cm_Plane(Vec4_XYZ(out), out.w);
+	// FIXME
+	cm_bsp_plane_t p = Cm_Plane(Vec4_XYZ(out), out.w);
+
+	switch (p.type) {
+		case PLANE_X:
+			p.type = PLANE_ANY_X;
+			break;
+		case PLANE_Y:
+			p.type = PLANE_ANY_Y;
+			break;
+		case PLANE_Z:
+			p.type = PLANE_ANY_Z;
+			break;
+	}
+	// FIXME
+	return p;
 }
 
 /**
@@ -244,16 +259,16 @@ void Cm_InitBoxHull(cm_bsp_t *bsp) {
 
 		// fill in planes, two per side
 		cm_bsp_plane_t *plane = &cm_box.planes[i * 2];
-		plane->type = i >> 1;
 		plane->normal = Vec3_Zero();
 		plane->normal.xyz[i >> 1] = 1.f;
 		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
+		plane->type = Cm_PlaneTypeForNormal(plane->normal);
 
 		plane = &cm_box.planes[i * 2 + 1];
-		plane->type = PLANE_ANY_X + (i >> 1);
 		plane->normal = Vec3_Zero();
 		plane->normal.xyz[i >> 1] = -1.f;
 		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
+		plane->type = Cm_PlaneTypeForNormal(plane->normal);
 
 		const int32_t s = i & 1;
 
