@@ -442,26 +442,6 @@ static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity
 /**
  * @brief
  */
-static inline float AngleMod(float a) {
-	a = fmodf(a, 360.f);// (360.0 / 65536) * ((int32_t) (a * (65536 / 360.0)) & 65535);
-
-	if (a < 0) {
-		return a + (((int32_t)(a / 360.f) + 1) * 360.f);
-	}
-
-	return a;
-}
-
-/**
- * @brief
- */
-static inline float SmallestAngleBetween(const float x, const float y) {
-	return min(360.f - fabsf(x - y), fabsf(x - y));
-}
-
-/**
- * @brief
- */
 static inline float Cg_CalculateAngle(const float speed, float current, float ideal) {
 	current = AngleMod(current);
 	ideal = AngleMod(ideal);

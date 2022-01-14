@@ -34,7 +34,7 @@ int32_t Cm_PlaneTypeForNormal(const vec3_t normal);
 int32_t Cm_SignBitsForNormal(const vec3_t normal);
 
 cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist);
-cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t *plane);
+cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t plane);
 
 int32_t Cm_BoxOnPlaneSide(const box3_t bounds, const cm_bsp_plane_t *plane);
 _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush);

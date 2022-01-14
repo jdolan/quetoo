@@ -27,17 +27,17 @@
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
 
 	const float x = fabsf(normal.x);
-	if (x > 1.f - FLT_EPSILON) {
+	if (x >= 1.f) {
 		return PLANE_X;
 	}
 
 	const float y = fabsf(normal.y);
-	if (y > 1.f - FLT_EPSILON) {
+	if (y >= 1.f) {
 		return PLANE_Y;
 	}
 
 	const float z = fabsf(normal.z);
-	if (z > 1.f - FLT_EPSILON) {
+	if (z >= 1.f) {
 		return PLANE_Z;
 	}
 
@@ -83,8 +83,8 @@ cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
 /**
  * @return The plane transformed by the input matrix.
  */
-cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t *plane) {
-	const vec4_t out = Mat4_TransformPlane(matrix, plane->normal, plane->dist);
+cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t plane) {
+	const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
 	return Cm_Plane(Vec4_XYZ(out), out.w);
 }
 
@@ -386,7 +386,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 		cm_bsp_plane_t plane = *node->plane;
 
 		if (data->is_transformed) {
-			plane = Cm_TransformPlane(data->matrix, &plane);
+			plane = Cm_TransformPlane(data->matrix, plane);
 		}
 
 		const int32_t side = Cm_BoxOnPlaneSide(data->bounds, &plane);

@@ -1207,13 +1207,14 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	return 0;
 }
 
-static inline float AngleMod(const float a) {
+// note: this is not the same as AngleMod
+static inline float Ai_AngleMod(const float a) {
 	return (360.0f / 65536) * ((int32_t) (a * (65536 / 360.0f)) & 65535);
 }
 
 static float Ai_CalculateAngle(g_entity_t *self, const float speed, float current, float ideal) {
-	current = AngleMod(current);
-	ideal = AngleMod(ideal);
+	current = Ai_AngleMod(current);
+	ideal = Ai_AngleMod(ideal);
 
 	if (current == ideal) {
 		return current;
@@ -1241,7 +1242,7 @@ static float Ai_CalculateAngle(g_entity_t *self, const float speed, float curren
 		}
 	}
 
-	return AngleMod(current + move);
+	return Ai_AngleMod(current + move);
 }
 
 /**

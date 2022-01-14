@@ -136,7 +136,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		cm_bsp_plane_t p = *s->plane;
 
 		if (data->is_transformed) {
-			p = Cm_TransformPlane(data->matrix, &p);
+			p = Cm_TransformPlane(data->matrix, p);
 		}
 
 		const float dist = p.dist - Vec3_Dot(data->offsets[p.sign_bits], p.normal);
@@ -222,7 +222,7 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 		cm_bsp_plane_t plane = *side->plane;
 
 		if (data->is_transformed) {
-			plane = Cm_TransformPlane(data->matrix, &plane);
+			plane = Cm_TransformPlane(data->matrix, plane);
 		}
 
 		const float dist = plane.dist - Vec3_Dot(data->offsets[plane.sign_bits], plane.normal);
@@ -329,7 +329,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	cm_bsp_plane_t plane = *node->plane;
 
 	if (data->is_transformed) {
-		plane = Cm_TransformPlane(data->matrix, &plane);
+		plane = Cm_TransformPlane(data->matrix, plane);
 	}
 
 	float d1, d2, offset;
@@ -481,32 +481,20 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 /**
  * @brief Calculates a suitable bounding box for tracing to an entity.
  * @param solid The entity's solid type.
- * @param origin The entity's origin.
- * @param angles The entity's angles.
  * @param bounds The entity's bounds, in model space.
  * @return The resulting bounds, in world space.
  * @remarks BSP entities can be rotated, requiring special attention.
  */
-box3_t Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles,
-					   const mat4_t matrix, const box3_t bounds) {
+box3_t Cm_EntityBounds(const solid_t solid, const mat4_t matrix,
+	                   const box3_t bounds) {
 
-	box3_t result = Box3_FromCenter(origin);
-
-	if (solid == SOLID_BSP) {
-		
-		if (!Vec3_Equal(angles, Vec3_Zero())) {
-			// TODO ??? why is mins/maxs already offset by origin in this case?
-			result = Mat4_TransformBounds(matrix, bounds);
-		} else {
-			result = Box3_ExpandBox(result, bounds);
-		}
-
-		// epsilon, so bmodels can catch riders
-		result = Box3_Expand(result, BOX_EPSILON);
-	} else {
-		result = Box3_ExpandBox(result, bounds);
-	}
+	box3_t result = Mat4_TransformBounds(matrix, bounds);
 	
+	// epsilon, so bmodels can catch riders
+	if (solid == SOLID_BSP) {
+		return Box3_Expand(result, BOX_EPSILON);
+	}
+
 	return result;
 }
 

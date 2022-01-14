@@ -159,7 +159,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	mat4_t matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
 
 	// set the absolute bounding box; ensure it is symmetrical
-	ent->abs_bounds = Cm_EntityBounds(ent->solid, ent->s.origin, angles, matrix, ent->bounds);
+	ent->abs_bounds = Cm_EntityBounds(ent->solid, matrix, ent->bounds);
 
 	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 

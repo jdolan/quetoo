@@ -236,16 +236,16 @@ static inline vec3i_t __attribute__ ((warn_unused_result)) Vec3i_Zero(void) {
 #pragma mark - single precision
 
 /**
- * @return The angle `theta` circularly clamped.
+ * @brief
  */
-static inline float __attribute__ ((warn_unused_result)) ClampEuler(float theta) {
-	while (theta >= 360.f) {
-		theta -= 360.f;
+static inline float __attribute__ ((warn_unused_result)) AngleMod(float a) {
+	a = fmodf(a, 360.f);
+
+	if (a < 0) {
+		return a + (((int32_t)(a / 360.f) + 1) * 360.f);
 	}
-	while (theta < 0.f) {
-		theta += 360.f;
-	}
-	return theta;
+
+	return a;
 }
 
 /**
@@ -334,6 +334,27 @@ static inline float __attribute__ ((warn_unused_result)) Mixf(float a, float b, 
 static inline float __attribute__ ((warn_unused_result)) Radians(float degrees) {
 	return degrees * RadiansScalar;
 }
+
+/**
+ * @brief
+ */
+static inline float __attribute__ ((warn_unused_result)) SmallestAngleBetween(const float x, const float y) {
+	return Minf(360.f - fabsf(x - y), fabsf(x - y));
+}
+
+/**
+ * @return The angle `theta` circularly clamped.
+ */
+static inline float __attribute__ ((warn_unused_result)) ClampEuler(float theta) {
+	while (theta >= 360.f) {
+		theta -= 360.f;
+	}
+	while (theta < 0.f) {
+		theta += 360.f;
+	}
+	return theta;
+}
+
 
 /**
  * @return A random number generator.
