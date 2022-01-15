@@ -101,9 +101,17 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 
 	R_UpdateBspInlineModelBlendDepth_r(view, e, in, node->children[back_side]);
 
-	for (guint i = 0; i < plane->blend_elements->len; i++) {
-		r_bsp_draw_elements_t *draw = g_ptr_array_index(plane->blend_elements, i);
+	r_bsp_draw_elements_t *draw = in->draw_elements;
+	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
+		if (!(draw->surface & SURF_MASK_BLEND)) {
+			continue;
+		}
+
+		if (draw->plane != plane && draw->plane != plane + 1) {
+			continue;
+		}
+		
 		if (!Box3_Intersects(draw->bounds, node->bounds)) {
 			continue;
 		}

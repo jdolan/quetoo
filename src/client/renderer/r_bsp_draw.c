@@ -505,6 +505,8 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 
 		if (draw->blend_depth_types) {
 
+			assert(entity == NULL);
+
 			const int32_t blend_depth = (int32_t) (draw - r_world_model->bsp->draw_elements);
 
 			R_DrawBlendDepthTypes(view, blend_depth, draw->blend_depth_types);
@@ -550,7 +552,7 @@ void R_UpdateBspInlineModelEntities(r_view_t *view) {
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 
 			const vec3_t point = Box3_Center(e->abs_model_bounds);
-			
+
 			e->blend_depth = R_BlendDepthForPoint(view, point, BLEND_DEPTH_ENTITY);
 		}
 	}

@@ -47,7 +47,6 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_planes; i++, out++, in++) {
 		out->cm = in;
-		out->blend_elements = g_ptr_array_new();
 	}
 }
 
@@ -204,18 +203,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
-
-		if (out->surface & SURF_MASK_BLEND) {
-
-			r_bsp_plane_t *blend_plane;
-			if (in->plane & 1) {
-				blend_plane = out->plane - 1;
-			} else {
-				blend_plane = out->plane;
-			}
-
-			g_ptr_array_add(blend_plane->blend_elements, out);
-		}
 
 		if (out->material->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
 
@@ -727,11 +714,6 @@ static void R_FreeBspModel(r_media_t *self) {
 
 	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++) {
 		glDeleteQueries(1, &mod->bsp->occlusion_queries[i].name);
-	}
-
-	r_bsp_plane_t *plane = mod->bsp->planes;
-	for (int32_t i = 0; i < mod->bsp->num_planes; i++, plane++) {
-		g_ptr_array_free(plane->blend_elements, 1);
 	}
 
 	r_bsp_inline_model_t *in = mod->bsp->inline_models;
