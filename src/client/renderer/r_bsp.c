@@ -22,18 +22,6 @@
 #include "r_local.h"
 
 /**
- * @return The leaf for the specified point.
- */
-const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
-
-	const int32_t leaf_num = Cm_PointLeafnum(p, 0);
-
-	assert(leaf_num >= 0);
-
-	return &r_world_model->bsp->leafs[leaf_num];
-}
-
-/**
  * @return The blend depth at which the specified point should be rendered for alpha blending.
  */
 int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend_depth_type_t type) {

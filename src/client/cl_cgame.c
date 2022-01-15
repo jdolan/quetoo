@@ -228,8 +228,6 @@ void Cl_InitCgame(void) {
 	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Cl_Trace;
 
-	import.LeafForPoint = R_LeafForPoint;
-
 	import.SetKeyDest = Cl_SetKeyDest;
 	import.KeyDown = Cl_KeyDown;
 	import.KeyUp = Cl_KeyUp;

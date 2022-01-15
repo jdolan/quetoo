@@ -21,8 +21,6 @@
 
 #pragma once
 
-const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p);
-
 #ifdef __R_LOCAL_H__
 
 typedef enum {

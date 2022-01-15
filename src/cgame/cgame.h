@@ -548,12 +548,6 @@ typedef struct cg_import_s {
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t skip, int32_t contents);
 
 	/**
-	 * @param p The point to check.
-	 * @return The BSP leaf at the given point `p`, in the given `model`.
-	 */
-	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p);
-
-	/**
 	 * @}
 	 */
 
