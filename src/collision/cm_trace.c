@@ -485,8 +485,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
  * @return The resulting bounds, in world space.
  * @remarks BSP entities can be rotated, requiring special attention.
  */
-box3_t Cm_EntityBounds(const solid_t solid, const mat4_t matrix,
-	                   const box3_t bounds) {
+box3_t Cm_EntityBounds(const solid_t solid, const mat4_t matrix, const box3_t bounds) {
 
 	box3_t result = Mat4_TransformBounds(matrix, bounds);
 	

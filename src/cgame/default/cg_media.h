@@ -55,8 +55,6 @@ extern s_sample_t *cg_sample_underwater;
 extern s_sample_t *cg_sample_hits[2];
 extern s_sample_t *cg_sample_gib;
 
-s_sample_t *Cg_GetFootstepSample(const char *footsteps);
-
 extern r_atlas_image_t *cg_sprite_particle;
 extern r_atlas_image_t *cg_sprite_particle2;
 extern r_atlas_image_t *cg_sprite_particle3;

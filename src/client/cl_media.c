@@ -200,6 +200,15 @@ static void Cl_LoadSounds(void) {
 
 		cl.sounds[i] = S_LoadSample(str);
 	}
+
+	for (int32_t i = 0; i < Cm_Bsp()->num_materials; i++) {
+		const cm_footsteps_t *footsteps = &Cm_Bsp()->materials[i]->footsteps;
+
+		const cm_asset_t *sample = footsteps->samples;
+		for (int32_t j = 0; j < footsteps->num_samples; j++, sample++) {
+			S_LoadSample(sample->name);
+		}
+	}
 }
 
 /**

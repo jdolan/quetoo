@@ -860,7 +860,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 		if (!g_strcmp0(token, "footsteps")) {
 
-			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps, sizeof(m->footsteps))) {
+			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps.name, sizeof(m->footsteps.name))) {
 				Cm_MaterialWarn(path, &parser, "Invalid footsteps value");
 			}
 		}
@@ -1043,6 +1043,51 @@ static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset,
 }
 
 /**
+ * @brief Filesystem enumerator for resolving footstep assets.
+ */
+static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
+
+	cm_footsteps_t *footsteps = data;
+
+	cm_asset_t *out = footsteps->samples + footsteps->num_samples;
+
+	out->name[0] = '#';
+	g_strlcat(out->name, file, sizeof(out->name));
+	g_strlcpy(out->path, file, sizeof(out->path));
+
+	footsteps->num_samples++;
+}
+
+/**
+ * @brief Comparator for sorting footstep assets.
+ */
+static int32_t Cm_ResolveFootsteps_Compare(const void *a, const void *b) {
+
+	const cm_asset_t *a_asset = a;
+	const cm_asset_t *b_asset = b;
+
+	return g_strcmp0(a_asset->name, b_asset->name);
+}
+
+/**
+ * @brief Resolves
+ */
+static _Bool Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
+
+	if (!strlen(footsteps->name)) {
+		g_strlcpy(footsteps->name, "default", sizeof(footsteps->name));
+	}
+
+	const char *pattern = va("players/common/step_%s_*", footsteps->name);
+
+	Fs_Enumerate(pattern, Cm_ResolveFootsteps_Enumerate, footsteps);
+
+	qsort(footsteps->samples, footsteps->num_samples, sizeof(cm_asset_t), Cm_ResolveFootsteps_Compare);
+
+	return footsteps->num_samples;
+}
+
+/**
  * @brief Resolves all asset references within the specified material.
  */
 _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
@@ -1067,7 +1112,7 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 		}
 	}
 
-	return true;
+	return Cm_ResolveFootsteps(&material->footsteps);
 }
 
 /**
@@ -1195,8 +1240,8 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	}
 
 	// if not empty/default, write footsteps
-	if (*material->footsteps && g_strcmp0(material->footsteps, "default")) {
-		Fs_Print(file, "\tfootsteps %s\n", material->footsteps);
+	if (*material->footsteps.name && g_strcmp0(material->footsteps.name, "default")) {
+		Fs_Print(file, "\tfootsteps %s\n", material->footsteps.name);
 	}
 
 	// write stages
