@@ -258,6 +258,10 @@ void S_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 		return;
 	}
 
+	if (!play->sample->buffer) {
+		return;
+	}
+
 	if (play->flags & S_PLAY_AMBIENT) {
 		if (!s_ambient_volume->value) {
 			return;
