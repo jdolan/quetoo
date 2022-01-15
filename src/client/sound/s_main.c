@@ -353,6 +353,8 @@ void S_Init(void) {
 
 	alDistanceModel(AL_NONE);
 	alGenSources(MAX_CHANNELS, s_context.sources);
+	// Approximate speed of sound (assumes 1 meter = 16 units)
+	alSpeedOfSound(343.3 * 16.f);
 
 	S_GetError(NULL);
 
