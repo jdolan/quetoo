@@ -79,10 +79,16 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 			break;
 	}
 
-	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
-		*org = Vec3_Fmaf(*org, -6.f, ent_up);
-	} else {
-		*org = Vec3_Fmaf(*org, -12.f, ent_up);
+	*org = Vec3_Fmaf(*org, -12.f, ent_up);
+
+	// if there's something non-damageable immediately blocking the shot, prefer to
+	// avoid the blocker
+	const cm_trace_t org_tr = gi.Trace(*org, end, Box3_Expand(Box3_Zero(), 8.f), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+	const vec3_t fake_end = Vec3_Fmaf(org_tr.end, 8.f, ent->client->locals.forward);
+	const float distance_between_traces = Vec3_Distance(fake_end, tr.end);
+
+	if (!org_tr.ent->locals.take_damage && distance_between_traces > 16.f && org_tr.brush_side != tr.brush_side) {
+		*org = start;
 	}
 
 	// if the projected origin is invalid, use the entity's origin
