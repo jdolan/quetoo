@@ -241,16 +241,6 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	static bsp_file_t file;
 
-	// don't re-load if we don't have to
-	if (name && !g_strcmp0(name, cm_bsp.name)) {
-
-		if (size) {
-			*size = cm_bsp.size;
-		}
-
-		return &cm_bsp.models[0];
-	}
-
 	Bsp_UnloadLumps(&file, BSP_LUMPS_ALL);
 
 	// free dynamic memory
