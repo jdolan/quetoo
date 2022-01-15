@@ -146,16 +146,6 @@ static void Cl_ParseBaseline(void) {
 	cl_entity_t *ent = &cl.entities[number];
 
 	Net_ReadDeltaEntity(&net_message, &null_state, &ent->baseline, number, bits);
-
-	// initialize clipping matrices
-	if (ent->baseline.solid) {
-		if (ent->baseline.solid == SOLID_BSP) {
-			ent->matrix = Mat4_FromRotationTranslationScale(ent->baseline.angles, ent->baseline.origin, 1.f);
-		} else { // bounding-box entities
-			ent->matrix = Mat4_FromRotationTranslationScale(Vec3_Zero(), ent->baseline.origin, 1.f);
-		}
-		ent->inverse_matrix = Mat4_Inverse(ent->matrix);
-	}
 }
 
 /**

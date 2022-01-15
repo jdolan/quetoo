@@ -87,12 +87,13 @@ typedef struct {
 	vec3_t angles; // and angles
 	box3_t bounds; // bounding box
 	box3_t abs_bounds; // absolute bounding box
+
 	float legs_yaw; // only used by player models; leg angle ideal yaw
 	float legs_current_yaw; // only used by player models
 	float step_offset; // interpolated step offset
 
-	mat4_t matrix; // snapped transform matrix, for collision
-	mat4_t inverse_matrix; // inverse transform
+	mat4_t matrix; // snapped transform matrix, for traces
+	mat4_t inverse_matrix; // inverse transform, for point contents
 } cl_entity_t;
 
 /**

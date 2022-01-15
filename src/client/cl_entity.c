@@ -418,7 +418,10 @@ void Cl_Interpolate(void) {
 			ent->step_offset = ent->current.step_offset;
 		}
 
+		vec3_t angles;
 		if (ent->current.solid == SOLID_BSP) {
+			angles = ent->current.angles;
+
 			const r_model_t *mod = cl.models[ent->current.model1];
 
 			assert(mod);
@@ -426,21 +429,21 @@ void Cl_Interpolate(void) {
 
 			ent->bounds = mod->bsp_inline->bounds;
 		} else {
+			angles = Vec3_Zero();
 			ent->bounds = ent->current.bounds;
 		}
 
-		const vec3_t angles = ent->current.solid == SOLID_BSP ? ent->current.angles : Vec3_Zero();
+		// jdolan: Note that we use the latest snapshot state, not the interpolated state.
+		// This is so client side prediction can work, and the client and server are working
+		// with the same entity positions at their respective intervals. A side effect of this
+		// is that client side traces are usually _ahead_ of the rendered simulation, so you'll
+		// see artifacts like player shadows glitching on func_plats, etc.
 
 		ent->matrix = Mat4_FromRotationTranslationScale(angles, ent->current.origin, 1.f);
 
-		// jdolan: Note that we use the latest snapshot origin, not the interpolated origin.
-		// This is so client side prediction can work, and the client and server are working
-		// with the same entity positions at their respective intervals.
-		ent->abs_bounds = Cm_EntityBounds(ent->current.solid,
-										  ent->matrix,
-										  ent->bounds);
-
 		ent->inverse_matrix = Mat4_Inverse(ent->matrix);
+
+		ent->abs_bounds = Cm_EntityBounds(ent->current.solid, ent->matrix, ent->bounds);
 	}
 
 	cls.cgame->Interpolate(&cl.frame);

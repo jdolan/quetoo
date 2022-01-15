@@ -274,11 +274,6 @@ typedef struct {
 	 * @brief The collision plane.
 	 */
 	const cm_bsp_plane_t *cm;
-
-	/**
-	 * @brief The alpha blended draw elements referencing this plane.
-	 */
-	GPtrArray *blend_elements;
 } r_bsp_plane_t;
 
 /**
