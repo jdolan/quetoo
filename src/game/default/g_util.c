@@ -87,7 +87,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 	const vec3_t fake_end = Vec3_Fmaf(org_tr.end, 8.f, ent->client->locals.forward);
 	const float distance_between_traces = Vec3_Distance(fake_end, tr.end);
 
-	if (!org_tr.ent->locals.take_damage && distance_between_traces > 16.f && org_tr.brush_side != tr.brush_side) {
+	if ((org_tr.fraction != 1.f && !org_tr.ent->locals.take_damage) && distance_between_traces > 16.f && org_tr.brush_side != tr.brush_side) {
 		*org = start;
 	}
 

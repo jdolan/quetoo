@@ -329,18 +329,7 @@ static void Cm_TestInLeaf(int32_t leaf_num) {
 static void Cm_TraceToNode(int32_t num, float p1f, float p2f,
                            const vec3_t p1, const vec3_t p2) {
 
-	if (data.unnudged_fraction <= p1f) {
-		return; // already hit something nearer
-	}
-
 next:
-
-	// if < 0, we are in a leaf node
-	if (num < 0) {
-		Cm_TraceToLeaf(-1 - num);
-		return;
-	}
-
 	// find the point distances to the separating plane
 	// and the offset for the size of the box
 	const cm_bsp_node_t *node = cm_bsp.nodes + num;
@@ -362,10 +351,24 @@ next:
 	// see which sides we need to consider
 	if (d1 >= offset && d2 >= offset) {
 		num = node->children[0];
+
+		// if < 0, we are in a leaf node
+		if (num < 0) {
+			Cm_TraceToLeaf(-1 - num);
+			return;
+		}
+
 		goto next;
 	}
 	if (d1 < -offset && d2 < -offset) {
 		num = node->children[1];
+
+		// if < 0, we are in a leaf node
+		if (num < 0) {
+			Cm_TraceToLeaf(-1 - num);
+			return;
+		}
+
 		goto next;
 	}
 
@@ -388,23 +391,41 @@ next:
 		frac2 = 0.f;
 	}
 
-	// move up to the node
-	frac1 = Clampf(frac1, 0.f, 1.f);
+	// move up to the node if we can potentially hit it
+	if (p1f < data.unnudged_fraction) {
+		frac1 = Clampf(frac1, 0.f, 1.f);
 
-	const float midf1 = p1f + (p2f - p1f) * frac1;
+		const float midf1 = p1f + (p2f - p1f) * frac1;
 
-	vec3_t mid = Vec3_Mix(p1, p2, frac1);
+		const vec3_t mid = Vec3_Mix(p1, p2, frac1);
+		
+		num = node->children[side];
 
-	Cm_TraceToNode(node->children[side], p1f, midf1, p1, mid);
+		// if < 0, we are in a leaf node
+		if (num < 0) {
+			Cm_TraceToLeaf(-1 - num);
+		} else {
+			Cm_TraceToNode(num, p1f, midf1, p1, mid);
+		}
+	}
 
 	// go past the node
 	frac2 = Clampf(frac2, 0.f, 1.f);
 
 	const float midf2 = p1f + (p2f - p1f) * frac2;
 
-	mid = Vec3_Mix(p1, p2, frac2);
+	if (midf2 < data.unnudged_fraction) {
+		const vec3_t mid = Vec3_Mix(p1, p2, frac2);
+		
+		num = node->children[side ^ 1];
 
-	Cm_TraceToNode(node->children[side ^ 1], midf2, p2f, mid, p2);
+		// if < 0, we are in a leaf node
+		if (num < 0) {
+			Cm_TraceToLeaf(-1 - num);
+		} else {
+			Cm_TraceToNode(num, midf2, p2f, mid, p2);
+		}
+	}
 }
 
 
