@@ -256,8 +256,7 @@ static void G_InitMedia(void) {
 	// preload items/set item media ptrs
 	G_InitItems();
 
-	// precache sexed sounds; clients will load these when a new player model
-	// gets loaded.
+	// precache player sounds; clients will load these when a new player model gets loaded.
 	gi.SoundIndex("*gurp_1");
 	gi.SoundIndex("*drown_1");
 	gi.SoundIndex("*fall_1");

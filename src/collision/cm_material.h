@@ -81,7 +81,6 @@ typedef struct {
 	float radius;
 } cm_stage_shell_t;
 
-// frame based material animation, lerp between consecutive images
 typedef struct {
 	int32_t num_frames;
 	cm_asset_t *frames;
@@ -205,6 +204,28 @@ typedef struct cm_stage_s {
 	struct cm_stage_s *next;
 } cm_stage_t;
 
+#define MAX_FOOTSTEP_SAMPLES 6
+
+/**
+ * @brief Materials may optionally reference footstep samples.
+ */
+typedef struct {
+	/**
+	 * @brief The footstep name, e.g. "metal3".
+	 */
+	char name[MAX_QPATH];
+
+	/**
+	 * @brief The footstep sample assets.
+	 */
+	cm_asset_t samples[MAX_FOOTSTEP_SAMPLES];
+
+	/**
+	 * @brief The number of footstep sample assets.
+	 */
+	int32_t num_samples;
+} cm_footsteps_t;
+
 #define DEFAULT_ROUGHNESS 1.0
 #define DEFAULT_HARDNESS 1.0
 #define DEFAULT_SPECULARITY 1.0
@@ -302,9 +323,9 @@ typedef struct cm_material_s {
 	float patch_size;
 
 	/**
-	 * @brief The name for the footstep sounds to query on this surface
+	 * @brief The footsteps to play when the player walks on this material.
 	 */
-	char footsteps[MAX_QPATH];
+	cm_footsteps_t footsteps;
 
 	/**
 	 * @brief Default tint colors
