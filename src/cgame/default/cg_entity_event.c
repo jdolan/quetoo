@@ -203,16 +203,18 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 	if (tr.material) {
 		const cm_footsteps_t *footsteps = &cgi.LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES)->cm->footsteps;
 
-		static uint32_t last_index = -1;
-		uint32_t index = RandomRangeu(0, footsteps->num_samples);
+		if (footsteps->num_samples) {
+			static uint32_t last_index = -1;
+			uint32_t index = RandomRangeu(0, footsteps->num_samples);
 
-		if (last_index == index) {
-			index = (index ^ 1) % footsteps->num_samples;
+			if (last_index == index) {
+				index = (index ^ 1) % footsteps->num_samples;
+			}
+
+			last_index = index;
+
+			return cgi.LoadSample(footsteps->samples[index].name);
 		}
-
-		last_index = index;
-
-		return cgi.LoadSample(footsteps->samples[index].name);
 	}
 
 	Cg_Debug("No ground found for footstep at %s\n", vtos(end));
