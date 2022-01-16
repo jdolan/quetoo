@@ -466,7 +466,13 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
 
 	const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
-	const cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, sent->matrix, sent->inverse_matrix);
+	cm_trace_t tr;
+	
+	if (Mat4_Equal(sent->matrix, Mat4_Identity())) {
+		tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
+	} else {
+		tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, sent->matrix, sent->inverse_matrix);
+	}
 
 	// check for a full or partial intersection
 	if (tr.all_solid || tr.fraction < trace->trace.fraction) {
@@ -505,7 +511,7 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
 	sv_trace_t trace = { };
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, Mat4_Identity(), Mat4_Identity());
+	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents);
 	if (trace.trace.fraction < 1.0f) {
 		trace.trace.ent = svs.game->entities;
 

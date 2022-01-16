@@ -23,11 +23,17 @@
 
 #include "cm_types.h"
 
+__attribute__ ((warn_unused_result))
 cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node,
-					   int32_t contents, const mat4_t matrix, const mat4_t inverse_matrix);
+					   int32_t contents);
+__attribute__ ((warn_unused_result))
+cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node,
+					              int32_t contents, const mat4_t matrix, const mat4_t inverse_matrix);
 
+__attribute__ ((warn_unused_result))
 box3_t Cm_EntityBounds(const solid_t solid, const mat4_t matrix, const box3_t bounds);
 
+__attribute__ ((warn_unused_result))
 box3_t Cm_TraceBounds(const vec3_t start, const vec3_t end, const box3_t bounds);
 
 #ifdef __CM_LOCAL_H__

@@ -9,7 +9,7 @@
     <LocalDebuggerCommandArguments>+set r_get_error 2</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>+set r_get_error 2</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>+set r_get_error 1</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommandArguments>+set r_get_error 2 +set r_texture_storage 0</LocalDebuggerCommandArguments>

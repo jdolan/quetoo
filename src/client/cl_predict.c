@@ -153,7 +153,13 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
 		const int32_t head_node = Cl_HullForEntity(s);
 
-		cm_trace_t tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix, ent->inverse_matrix);
+		cm_trace_t tr;
+		
+		if (Mat4_Equal(ent->matrix, Mat4_Identity())) {
+			tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
+		} else {
+			tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix, ent->inverse_matrix);
+		}
 
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 			trace->trace = tr;
@@ -180,7 +186,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, i
 	memset(&trace, 0, sizeof(trace));
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents, Mat4_Identity(), Mat4_Identity());
+	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents);
 	if (trace.trace.fraction < 1.0) {
 		trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
 
