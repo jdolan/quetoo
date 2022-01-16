@@ -224,7 +224,9 @@ typedef enum {
 
 #define LAST_VISIBLE_CONTENTS		CONTENTS_MIST
 
-// remaining contents are non-visible, and don't eat brushes
+// remaining contents do not generate faces, and don't eat brushes
+#define CONTENTS_ATMOSPHERIC		0x80
+
 #define CONTENTS_OCCLUSION_QUERY	0x8000 // CONTENTS_AREAPORTAL in other engines
 
 #define CONTENTS_PLAYER_CLIP		0x10000

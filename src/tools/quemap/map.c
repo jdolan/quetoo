@@ -430,11 +430,9 @@ static void SetMaterialFlags(brush_side_t *side) {
 	} else if (!g_strcmp0(side->texture, "common/clip")) {
 		side->contents |= CONTENTS_PLAYER_CLIP;
 	} else if (!g_strcmp0(side->texture, "common/dust")) {
-		side->contents |= CONTENTS_MIST;
-		side->surface |= SURF_NO_DRAW;
+		side->contents |= CONTENTS_ATMOSPHERIC;
 	} else if (!g_strcmp0(side->texture, "common/fog")) {
-		side->contents |= CONTENTS_MIST;
-		side->surface |= SURF_NO_DRAW;
+		side->contents |= CONTENTS_ATMOSPHERIC;
 	} else if (!g_strcmp0(side->texture, "common/hint")) {
 		side->surface |= SURF_HINT;
 	} else if (!g_strcmp0(side->texture, "common/ladder")) {
@@ -590,9 +588,9 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			side->contents |= CONTENTS_DETAIL;
 		}
 
-		// atmospheric brushes like dust, fog and mist are always detail
-		if (side->contents & CONTENTS_MASK_ATMOSPHERIC) {
-			side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
+		// and the same goes for atmospherics like dust and fog
+		if (side->contents & CONTENTS_ATMOSPHERIC) {
+			side->contents |= CONTENTS_DETAIL;
 		}
 
 		// brushes with no visible or functional contents default to solid or window

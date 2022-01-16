@@ -105,7 +105,7 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 		return;
 	}
 
-	if (node->contents & (CONTENTS_MASK_SOLID | CONTENTS_MASK_ATMOSPHERIC)) {
+	if (node->contents & CONTENTS_MASK_SOLID) {
 
 		// project the stain onto the node's plane
 		const r_stain_t s = {
