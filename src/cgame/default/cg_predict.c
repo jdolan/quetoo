@@ -101,7 +101,9 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 	}
 
 	// save for rendering
-	pr->view.origin = pm.s.origin;
+	if (Vec3_Distance(pr->view.origin, pm.s.origin) > TRACE_EPSILON) {
+		pr->view.origin = pm.s.origin;
+	}
 	pr->view.offset = pm.s.view_offset;
 	pr->view.step_offset = pm.s.step_offset;
 	pr->view.angles = pm.cmd.angles;
