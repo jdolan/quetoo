@@ -108,7 +108,6 @@ void R_CopyFramebufferAttachments(const r_framebuffer_t *framebuffer, int32_t at
 	}
 
 	if (attachments & ATTACHMENT_DEPTH) {
-		glReadBuffer(GL_DEPTH_STENCIL_ATTACHMENT);
 		glBindTexture(GL_TEXTURE_2D, framebuffer->depth_attachment_copy);
 		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
 	}
