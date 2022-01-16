@@ -333,6 +333,8 @@ static void Cm_TraceToNode(int32_t num, float p1f, float p2f,
 		return; // already hit something nearer
 	}
 
+next:
+
 	// if < 0, we are in a leaf node
 	if (num < 0) {
 		Cm_TraceToLeaf(-1 - num);
@@ -359,12 +361,12 @@ static void Cm_TraceToNode(int32_t num, float p1f, float p2f,
 
 	// see which sides we need to consider
 	if (d1 >= offset && d2 >= offset) {
-		Cm_TraceToNode(node->children[0], p1f, p2f, p1, p2);
-		return;
+		num = node->children[0];
+		goto next;
 	}
 	if (d1 < -offset && d2 < -offset) {
-		Cm_TraceToNode(node->children[1], p1f, p2f, p1, p2);
-		return;
+		num = node->children[1];
+		goto next;
 	}
 
 	int32_t side;
