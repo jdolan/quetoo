@@ -108,12 +108,6 @@ void R_CopyFramebufferAttachments(const r_framebuffer_t *framebuffer, int32_t at
 	}
 
 	if (attachments & ATTACHMENT_DEPTH) {
-		//glReadBuffer(GL_DEPTH_STENCIL_ATTACHMENT);
-		// FIXME:
-		// glReadBuffer does not accept GL_DEPTH_STENCIL_ATTACHMENT, so a different
-		// path for copying the depth attachment *should* be necessary, and uncommenting
-		// the line above will indeed produce GL errors. However, strangely, simply executing
-		// the copy as if we have specified the depth attachment somehow works ¯\_(ツ)_/¯
 		glBindTexture(GL_TEXTURE_2D, framebuffer->depth_attachment_copy);
 		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
 	}
