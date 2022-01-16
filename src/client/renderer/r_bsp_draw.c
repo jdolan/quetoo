@@ -550,10 +550,12 @@ void R_UpdateBspInlineModelEntities(r_view_t *view) {
 	r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 		if (IS_BSP_INLINE_MODEL(e->model)) {
-
-			const vec3_t point = Box3_Center(e->abs_model_bounds);
-
-			e->blend_depth = R_BlendDepthForPoint(view, point, BLEND_DEPTH_ENTITY);
+			const r_bsp_inline_model_t *in = e->model->bsp_inline;
+			if (in->blend_elements->len) {
+				e->blend_depth = R_BlendDepthForPoint(view, Box3_Center(e->abs_model_bounds), BLEND_DEPTH_ENTITY);
+			} else {
+				e->blend_depth = -1;
+			}
 		}
 	}
 }

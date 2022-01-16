@@ -61,8 +61,6 @@ static struct {
 	GLint texture_lightgrid_fog;
 	GLint texture_next_diffusemap;
 	GLint texture_depth_stencil_attachment;
-
-	r_framebuffer_t framebuffer;
 } r_sprite_program;
 
 /**
@@ -417,16 +415,6 @@ void R_UpdateSprites(r_view_t *view) {
 	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_sprite_program.framebuffer.name);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, view->framebuffer->name);
-
-	glBlitFramebuffer(0, 0, view->framebuffer->width, view->framebuffer->height,
-					  0, 0, view->framebuffer->width, view->framebuffer->height,
-					  GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-
 	R_GetError(NULL);
 }
 
@@ -434,7 +422,9 @@ void R_UpdateSprites(r_view_t *view) {
  * @brief
  */
 void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
-	
+
+	assert(view->framebuffer);
+
 	glDepthMask(GL_FALSE);
 
 	glEnable(GL_BLEND);
@@ -454,8 +444,12 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glEnableVertexAttribArray(r_sprite_program.in_softness);
 	glEnableVertexAttribArray(r_sprite_program.in_lighting);
 
+	if (r_sprite_soften->value && blend_depth == -1) {
+		R_CopyFramebufferAttachments(view->framebuffer, ATTACHMENT_DEPTH);
+	}
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, r_sprite_program.framebuffer.depth_attachment);
+	glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment_copy);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -574,8 +568,6 @@ static void R_InitSpriteProgram(void) {
 
 	glUseProgram(0);
 
-	r_sprite_program.framebuffer = R_CreateFramebuffer(r_context.drawable_width, r_context.drawable_height, ATTACHMENT_DEPTH);
-
 	R_GetError(NULL);
 }
 
@@ -638,8 +630,6 @@ static void R_ShutdownSpriteProgram(void) {
 
 	glDeleteProgram(r_sprite_program.name);
 
-	R_DestroyFramebuffer(&r_sprite_program.framebuffer);
-	
 	r_sprite_program.name = 0;
 }
 
