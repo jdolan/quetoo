@@ -329,7 +329,7 @@ static void Cm_TestInLeaf(int32_t leaf_num) {
 static void Cm_TraceToNode(int32_t num, float p1f, float p2f,
                            const vec3_t p1, const vec3_t p2) {
 
-next:
+next:;
 	// find the point distances to the separating plane
 	// and the offset for the size of the box
 	const cm_bsp_node_t *node = cm_bsp.nodes + num;
