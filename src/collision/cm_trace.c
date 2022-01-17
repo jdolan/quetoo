@@ -395,10 +395,6 @@ static inline void Cm_BoxTrace_(cm_trace_data_t *data) {
 		return;
 	}
 
-	Box3_ToPoints(data->bounds, data->offsets);
-
-	memset(data->brush_cache, 0xff, sizeof(data->brush_cache));
-
 	// check for position test special case
 	if (Vec3_Equal(data->start, data->end)) {
 		static __thread int32_t leafs[MAX_BSP_LEAFS];
@@ -466,16 +462,19 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const bo
 	data.size = Box3_Symetrical(Box3_Expand(bounds, BOX_EPSILON));
 	data.abs_bounds = Cm_TraceBounds(data.start, data.end, data.bounds);
 
-	data.trace.fraction = 1.f;
+	Box3_ToPoints(data.bounds, data.offsets);
+	memset(data.brush_cache, 0xff, sizeof(data.brush_cache));
+
 	data.unnudged_fraction = 1.f + TRACE_EPSILON;
+	data.trace.fraction = 1.f;
 
 	Cm_BoxTrace_(&data);
 
 	data.trace.end = Mat4_Transform(matrix, data.trace.end);
 
-	const vec4_t plane = Mat4_TransformPlane(matrix, data.trace.plane.normal, data.trace.plane.dist);
-	data.trace.plane.normal = Vec4_XYZ(plane);
-	data.trace.plane.dist = plane.w;
+	const vec4_t p = Mat4_TransformPlane(matrix, data.trace.plane.normal, data.trace.plane.dist);
+	data.trace.plane.normal = Vec4_XYZ(p);
+	data.trace.plane.dist = p.w;
 	
 	return data.trace;
 }
@@ -507,8 +506,11 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 	data.size = Box3_Symetrical(Box3_Expand(bounds, BOX_EPSILON));
 	data.abs_bounds = Cm_TraceBounds(start, end, bounds);
 
-	data.trace.fraction = 1.f;
+	Box3_ToPoints(data.bounds, data.offsets);
+	memset(data.brush_cache, 0xff, sizeof(data.brush_cache));
+
 	data.unnudged_fraction = 1.f + TRACE_EPSILON;
+	data.trace.fraction = 1.f;
 
 	Cm_BoxTrace_(&data);
 
