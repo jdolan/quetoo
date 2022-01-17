@@ -24,7 +24,7 @@
 /**
  * @brief Box trace data encapsulation and context management.
  */
-static __thread struct {
+typedef struct {
 	/**
 	 * @brief The trace start and end points, as provided by the user.
 	 */
@@ -39,6 +39,11 @@ static __thread struct {
 	 * @brief The head node, as provided by the user.
 	 */
 	int32_t head_node;
+
+	/**
+	 * @brief The contents mask to collide with, as provided by the user.
+	 */
+	int32_t contents;
 
 	/**
 	 * @brief The absolute bounds of the trace, spanning the start and end points.
@@ -56,35 +61,30 @@ static __thread struct {
 	vec3_t offsets[8];
 
 	/**
-	 * @brief The contents mask to collide with, as provided by the user.
-	 */
-	int32_t contents;
-
-	/**
 	 * @brief The brush cache, to avoid multiple tests against the same brush.
 	 */
 	int32_t brush_cache[128];
 
 	/**
-	 * @brief The trace result.
-	 */
-	cm_trace_t trace;
-
-	/**
 	 * @brief The trace fraction not taking any epsilon nudging into account.
 	 */
 	float unnudged_fraction;
-} data;
+
+	/**
+	 * @brief The trace result.
+	 */
+	cm_trace_t trace;
+} cm_trace_data_t;
 
 /**
  * @brief
  */
-static inline _Bool Cm_BrushAlreadyTested(int32_t brush_num) {
-	const int32_t hash = brush_num & (lengthof(data.brush_cache) - 1);
+static inline _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_num) {
+	const int32_t hash = brush_num & (lengthof(data->brush_cache) - 1);
 
-	const _Bool skip = (data.brush_cache[hash] == brush_num);
+	const _Bool skip = (data->brush_cache[hash] == brush_num);
 
-	data.brush_cache[hash] = brush_num;
+	data->brush_cache[hash] = brush_num;
 
 	return skip;
 }
@@ -92,13 +92,13 @@ static inline _Bool Cm_BrushAlreadyTested(int32_t brush_num) {
 /**
  * @brief Clips the bounded box to all brush sides for the given brush.
  */
-static void Cm_TraceToBrush(const cm_bsp_brush_t *brush) {
+static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
 	if (!brush->num_brush_sides) {
 		return;
 	}
 
-	if (!Box3_Intersects(data.abs_bounds, brush->bounds)) {
+	if (!Box3_Intersects(data->abs_bounds, brush->bounds)) {
 		return;
 	}
 
@@ -116,10 +116,10 @@ static void Cm_TraceToBrush(const cm_bsp_brush_t *brush) {
 
 		const cm_bsp_plane_t p = *s->plane;
 
-		const float dist = p.dist - Vec3_Dot(data.offsets[p.sign_bits], p.normal);
+		const float dist = p.dist - Vec3_Dot(data->offsets[p.sign_bits], p.normal);
 
-		const float d1 = Vec3_Dot(data.start, p.normal) - dist;
-		const float d2 = Vec3_Dot(data.end, p.normal) - dist;
+		const float d1 = Vec3_Dot(data->start, p.normal) - dist;
+		const float d2 = Vec3_Dot(data->end, p.normal) - dist;
 
 		if (d1 > 0.f) {
 			start_outside = true;
@@ -160,22 +160,22 @@ static void Cm_TraceToBrush(const cm_bsp_brush_t *brush) {
 	// some sort of collision has occurred
 
 	if (!start_outside) { // original point was inside brush
-		data.trace.start_solid = true;
+		data->trace.start_solid = true;
 		if (!end_outside) {
-			data.trace.all_solid = true;
-			data.trace.contents = brush->contents;
-			data.trace.fraction = 0.f;
-			data.unnudged_fraction = 0.f;
+			data->trace.all_solid = true;
+			data->trace.contents = brush->contents;
+			data->trace.fraction = 0.f;
+			data->unnudged_fraction = 0.f;
 		}
 	} else if (enter_fraction < leave_fraction) { // pierced brush
-		if (enter_fraction > -1.f && enter_fraction < data.unnudged_fraction && nudged_enter_fraction < data.trace.fraction) {
-			data.unnudged_fraction = enter_fraction;
-			data.trace.fraction = nudged_enter_fraction;
-			data.trace.brush_side = side;
-			data.trace.plane = plane;
-			data.trace.contents = side->contents;
-			data.trace.surface = side->surface;
-			data.trace.material = side->material;
+		if (enter_fraction > -1.f && enter_fraction < data->unnudged_fraction && nudged_enter_fraction < data->trace.fraction) {
+			data->unnudged_fraction = enter_fraction;
+			data->trace.fraction = nudged_enter_fraction;
+			data->trace.brush_side = side;
+			data->trace.plane = plane;
+			data->trace.contents = side->contents;
+			data->trace.surface = side->surface;
+			data->trace.material = side->material;
 		}
 	}
 }
@@ -183,13 +183,13 @@ static void Cm_TraceToBrush(const cm_bsp_brush_t *brush) {
 /**
  * @brief
  */
-static void Cm_TestBoxInBrush(const cm_bsp_brush_t *brush) {
+static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
 	if (!brush->num_brush_sides) {
 		return;
 	}
 
-	if (!Box3_Intersects(data.abs_bounds, brush->bounds)) {
+	if (!Box3_Intersects(data->abs_bounds, brush->bounds)) {
 		return;
 	}
 
@@ -198,9 +198,9 @@ static void Cm_TestBoxInBrush(const cm_bsp_brush_t *brush) {
 
 		const cm_bsp_plane_t plane = *side->plane;
 
-		const float dist = plane.dist - Vec3_Dot(data.offsets[plane.sign_bits], plane.normal);
+		const float dist = plane.dist - Vec3_Dot(data->offsets[plane.sign_bits], plane.normal);
 
-		const float d1 = Vec3_Dot(data.start, plane.normal) - dist;
+		const float d1 = Vec3_Dot(data->start, plane.normal) - dist;
 
 		// if completely in front of face, no intersection
 		if (d1 > 0.0f) {
@@ -209,19 +209,19 @@ static void Cm_TestBoxInBrush(const cm_bsp_brush_t *brush) {
 	}
 
 	// inside this brush
-	data.trace.start_solid = data.trace.all_solid = true;
-	data.trace.fraction = 0.0f;
-	data.trace.contents = brush->contents;
+	data->trace.start_solid = data->trace.all_solid = true;
+	data->trace.fraction = 0.0f;
+	data->trace.contents = brush->contents;
 }
 
 /**
  * @brief
  */
-static void Cm_TraceToLeaf(int32_t leaf_num) {
+static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 
 	const cm_bsp_leaf_t *leaf = &cm_bsp.leafs[leaf_num];
 
-	if (!(leaf->contents & data.contents)) {
+	if (!(leaf->contents & data->contents)) {
 		return;
 	}
 
@@ -229,19 +229,19 @@ static void Cm_TraceToLeaf(int32_t leaf_num) {
 	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
 		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
-		if (Cm_BrushAlreadyTested(brush_num)) {
+		if (Cm_BrushAlreadyTested(data, brush_num)) {
 			continue; // already checked this brush in another leaf
 		}
 
 		const cm_bsp_brush_t *b = &cm_bsp.brushes[brush_num];
 
-		if (!(b->contents & data.contents)) {
+		if (!(b->contents & data->contents)) {
 			continue;
 		}
 
-		Cm_TraceToBrush(b);
+		Cm_TraceToBrush(data, b);
 
-		if (data.trace.all_solid) {
+		if (data->trace.all_solid) {
 			return;
 		}
 	}
@@ -250,11 +250,11 @@ static void Cm_TraceToLeaf(int32_t leaf_num) {
 /**
  * @brief
  */
-static void Cm_TestInLeaf(int32_t leaf_num) {
+static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 
 	const cm_bsp_leaf_t *leaf = &cm_bsp.leafs[leaf_num];
 
-	if (!(leaf->contents & data.contents)) {
+	if (!(leaf->contents & data->contents)) {
 		return;
 	}
 
@@ -262,19 +262,19 @@ static void Cm_TestInLeaf(int32_t leaf_num) {
 	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
 		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
-		if (Cm_BrushAlreadyTested(brush_num)) {
+		if (Cm_BrushAlreadyTested(data, brush_num)) {
 			continue; // already checked this brush in another leaf
 		}
 
 		const cm_bsp_brush_t *b = &cm_bsp.brushes[brush_num];
 
-		if (!(b->contents & data.contents)) {
+		if (!(b->contents & data->contents)) {
 			continue;
 		}
 
-		Cm_TestBoxInBrush(b);
+		Cm_TestBoxInBrush(data, b);
 
-		if (data.trace.all_solid) {
+		if (data->trace.all_solid) {
 			return;
 		}
 	}
@@ -283,8 +283,8 @@ static void Cm_TestInLeaf(int32_t leaf_num) {
 /**
  * @brief
  */
-static void Cm_TraceToNode(int32_t num, float p1f, float p2f,
-                           const vec3_t p1, const vec3_t p2) {
+static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num,
+						   float p1f, float p2f, const vec3_t p1, const vec3_t p2) {
 
 next:;
 	// find the point distances to the separating plane
@@ -296,13 +296,13 @@ next:;
 	if (AXIAL(&plane)) {
 		d1 = p1.xyz[plane.type] - plane.dist;
 		d2 = p2.xyz[plane.type] - plane.dist;
-		offset = data.size.xyz[plane.type];
+		offset = data->size.xyz[plane.type];
 	} else {
 		d1 = Vec3_Dot(plane.normal, p1) - plane.dist;
 		d2 = Vec3_Dot(plane.normal, p2) - plane.dist;
-		offset = (fabsf(data.size.x * plane.normal.x) +
-				  fabsf(data.size.y * plane.normal.y) +
-				  fabsf(data.size.z * plane.normal.z)) * 3.f;
+		offset = (fabsf(data->size.x * plane.normal.x) +
+				  fabsf(data->size.y * plane.normal.y) +
+				  fabsf(data->size.z * plane.normal.z)) * 3.f;
 	}
 
 	// see which sides we need to consider
@@ -311,7 +311,7 @@ next:;
 
 		// if < 0, we are in a leaf node
 		if (num < 0) {
-			Cm_TraceToLeaf(-1 - num);
+			Cm_TraceToLeaf(data, -1 - num);
 			return;
 		}
 
@@ -322,7 +322,7 @@ next:;
 
 		// if < 0, we are in a leaf node
 		if (num < 0) {
-			Cm_TraceToLeaf(-1 - num);
+			Cm_TraceToLeaf(data, -1 - num);
 			return;
 		}
 
@@ -349,7 +349,7 @@ next:;
 	}
 
 	// move up to the node if we can potentially hit it
-	if (p1f < data.unnudged_fraction) {
+	if (p1f < data->unnudged_fraction) {
 		frac1 = Clampf(frac1, 0.f, 1.f);
 
 		const float midf1 = p1f + (p2f - p1f) * frac1;
@@ -360,9 +360,9 @@ next:;
 
 		// if < 0, we are in a leaf node
 		if (num < 0) {
-			Cm_TraceToLeaf(-1 - num);
+			Cm_TraceToLeaf(data, -1 - num);
 		} else {
-			Cm_TraceToNode(num, p1f, midf1, p1, mid);
+			Cm_TraceToNode(data, num, p1f, midf1, p1, mid);
 		}
 	}
 
@@ -371,82 +371,67 @@ next:;
 
 	const float midf2 = p1f + (p2f - p1f) * frac2;
 
-	if (midf2 < data.unnudged_fraction) {
+	if (midf2 < data->unnudged_fraction) {
 		const vec3_t mid = Vec3_Mix(p1, p2, frac2);
 		
 		num = node->children[side ^ 1];
 
 		// if < 0, we are in a leaf node
 		if (num < 0) {
-			Cm_TraceToLeaf(-1 - num);
+			Cm_TraceToLeaf(data, -1 - num);
 		} else {
-			Cm_TraceToNode(num, midf2, p2f, mid, p2);
+			Cm_TraceToNode(data, num, midf2, p2f, mid, p2);
 		}
 	}
 }
 
 
 /**
- * @brief Primary collision detection entry point. This function recurses down
- * the BSP tree from the specified head node, clipping the desired movement to
- * brushes that match the specified contents mask.
- *
- * @param start The starting point.
- * @param end The desired end point.
- * @param bounds The bounding box, in model space.
- * @param head_node The BSP head node to recurse down. For inline BSP models,
- * the head node is the root of the model's subtree. For mesh models, a
- * special reserved box hull and head node are used.
- * @param contents The contents mask to clip to.
- * @param matrix The matrix to adjust tested planes by.
- *
- * @return The trace.
+ * @brief
  */
-static inline cm_trace_t Cm_BoxTrace_(void) {
+static inline void Cm_BoxTrace_(cm_trace_data_t *data) {
 
-	if (!cm_bsp.num_nodes) { // map not loaded
-		return data.trace;
+	if (!cm_bsp.num_nodes) {
+		return;
 	}
 
-	Box3_ToPoints(data.bounds, data.offsets);
+	Box3_ToPoints(data->bounds, data->offsets);
 
-	memset(data.brush_cache, 0xff, sizeof(data.brush_cache));
+	memset(data->brush_cache, 0xff, sizeof(data->brush_cache));
 
 	// check for position test special case
-	if (Vec3_Equal(data.start, data.end)) {
+	if (Vec3_Equal(data->start, data->end)) {
 		static __thread int32_t leafs[MAX_BSP_LEAFS];
 
-		const size_t num_leafs = Cm_BoxLeafnums(data.abs_bounds,
+		const size_t num_leafs = Cm_BoxLeafnums(data->abs_bounds,
 												leafs,
 												lengthof(leafs),
 												NULL,
-												data.head_node);
+												data->head_node);
 
 		for (size_t i = 0; i < num_leafs; i++) {
-			Cm_TestInLeaf(leafs[i]);
+			Cm_TestInLeaf(data, leafs[i]);
 
-			if (data.trace.all_solid) {
+			if (data->trace.all_solid) {
 				break;
 			}
 		}
 
-		data.trace.end = data.start;
-		return data.trace;
+		data->trace.end = data->start;
+		return;
 	}
 
-	Cm_TraceToNode(data.head_node, 0.f, 1.f, data.start, data.end);
+	Cm_TraceToNode(data, data->head_node, 0.f, 1.f, data->start, data->end);
 
-	data.trace.fraction = Maxf(0.f, data.trace.fraction);
+	data->trace.fraction = Maxf(0.f, data->trace.fraction);
 
-	if (data.trace.fraction == 0.f) {
-		data.trace.end = data.start;
-	} else if (data.trace.fraction == 1.f) {
-		data.trace.end = data.end;
+	if (data->trace.fraction == 0.f) {
+		data->trace.end = data->start;
+	} else if (data->trace.fraction == 1.f) {
+		data->trace.end = data->end;
 	} else {
-		data.trace.end = Vec3_Mix(data.start, data.end, data.trace.fraction);
+		data->trace.end = Vec3_Mix(data->start, data->end, data->trace.fraction);
 	}
-
-	return data.trace;
 }
 
 /**
@@ -470,19 +455,21 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const bo
 								  int32_t head_node, int32_t contents,
 								  const mat4_t matrix, const mat4_t inverse_matrix) {
 
-	data.start = Mat4_Transform(inverse_matrix, start);
-	data.end = Mat4_Transform(inverse_matrix, end);
-	data.bounds = bounds;
-	data.size = Box3_Symetrical(Box3_Expand(data.bounds, BOX_EPSILON));
-	data.head_node = head_node;
-	data.abs_bounds = Cm_TraceBounds(data.start, data.end, data.bounds);
-	data.contents = contents;
-	data.trace = (cm_trace_t) {
-		.fraction = 1.f
+	cm_trace_data_t data = {
+		.start = Mat4_Transform(inverse_matrix, start),
+		.end = Mat4_Transform(inverse_matrix, end),
+		.bounds = bounds,
+		.head_node = head_node,
+		.contents = contents
 	};
+
+	data.size = Box3_Symetrical(Box3_Expand(bounds, BOX_EPSILON));
+	data.abs_bounds = Cm_TraceBounds(data.start, data.end, data.bounds);
+
+	data.trace.fraction = 1.f;
 	data.unnudged_fraction = 1.f + TRACE_EPSILON;
 
-	data.trace = Cm_BoxTrace_();
+	Cm_BoxTrace_(&data);
 
 	data.trace.end = Mat4_Transform(matrix, data.trace.end);
 
@@ -508,22 +495,26 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const bo
  *
  * @return The trace.
  */
-cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node,
-					   int32_t contents) {
+cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds,
+					   int32_t head_node, int32_t contents) {
 
-	data.start = start;
-	data.end = end;
-	data.bounds = bounds;
-	data.size = Box3_Symetrical(Box3_Expand(data.bounds, BOX_EPSILON));
-	data.head_node = head_node;
-	data.abs_bounds = Cm_TraceBounds(start, end, bounds);
-	data.contents = contents;
-	data.trace = (cm_trace_t) {
-		.fraction = 1.f
+	cm_trace_data_t data = {
+		.start = start,
+		.end = end,
+		.bounds = bounds,
+		.head_node = head_node,
+		.contents = contents
 	};
+
+	data.size = Box3_Symetrical(Box3_Expand(bounds, BOX_EPSILON));
+	data.abs_bounds = Cm_TraceBounds(start, end, bounds);
+
+	data.trace.fraction = 1.f;
 	data.unnudged_fraction = 1.f + TRACE_EPSILON;
 
-	return Cm_BoxTrace_();
+	Cm_BoxTrace_(&data);
+
+	return data.trace;
 }
 
 /**
