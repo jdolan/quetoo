@@ -61,21 +61,6 @@ static __thread struct {
 	int32_t contents;
 
 	/**
-	 * @brief The transformation matrix for plane collisions, as provided by the user.
-	 */
-	mat4_t matrix;
-
-	/**
-	 * @brief The transformation matrix for start/end/bounds, for the node tests, as provided by the user.
-	 */
-	mat4_t inverse_matrix;
-
-	/**
-	 * @brief True if matrix is not the identity.
-	 */
-	_Bool is_transformed;
-
-	/**
 	 * @brief The brush cache, to avoid multiple tests against the same brush.
 	 */
 	int32_t brush_cache[128];
@@ -105,22 +90,6 @@ static inline _Bool Cm_BrushAlreadyTested(int32_t brush_num) {
 }
 
 /**
- * @brief 
- */
-static inline _Bool Cm_TraceIntersect(const cm_bsp_brush_t *brush) {
-
-	box3_t brush_bounds;
-
-	if (data.is_transformed) {
-		brush_bounds = Mat4_TransformBounds(data.matrix, brush->bounds);
-	} else {
-		brush_bounds = brush->bounds;
-	}
-
-	return Box3_Intersects(data.abs_bounds, brush_bounds);
-}
-
-/**
  * @brief Clips the bounded box to all brush sides for the given brush.
  */
 static void Cm_TraceToBrush(const cm_bsp_brush_t *brush) {
@@ -129,7 +98,7 @@ static void Cm_TraceToBrush(const cm_bsp_brush_t *brush) {
 		return;
 	}
 
-	if (!Cm_TraceIntersect(brush)) {
+	if (!Box3_Intersects(data.abs_bounds, brush->bounds)) {
 		return;
 	}
 
@@ -145,13 +114,7 @@ static void Cm_TraceToBrush(const cm_bsp_brush_t *brush) {
 	const cm_bsp_brush_side_t *s = brush->brush_sides + brush->num_brush_sides - 1;
 	for (int32_t i = brush->num_brush_sides - 1; i >= 0; i--, s--) {
 
-		cm_bsp_plane_t p;
-
-		if (data.is_transformed) {
-			p = Cm_TransformPlane(data.matrix, *s->plane);
-		} else {
-			p = *s->plane;
-		}
+		const cm_bsp_plane_t p = *s->plane;
 
 		const float dist = p.dist - Vec3_Dot(data.offsets[p.sign_bits], p.normal);
 
@@ -226,20 +189,14 @@ static void Cm_TestBoxInBrush(const cm_bsp_brush_t *brush) {
 		return;
 	}
 
-	if (!Cm_TraceIntersect(brush)) {
+	if (!Box3_Intersects(data.abs_bounds, brush->bounds)) {
 		return;
 	}
 
 	const cm_bsp_brush_side_t *side = brush->brush_sides;
 	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-		cm_bsp_plane_t plane;
-
-		if (data.is_transformed) {
-			plane = Cm_TransformPlane(data.matrix, *side->plane);
-		} else {
-			plane = *side->plane;
-		}
+		const cm_bsp_plane_t plane = *side->plane;
 
 		const float dist = plane.dist - Vec3_Dot(data.offsets[plane.sign_bits], plane.normal);
 
@@ -458,13 +415,8 @@ static inline cm_trace_t Cm_BoxTrace_(void) {
 	// check for position test special case
 	if (Vec3_Equal(data.start, data.end)) {
 		static __thread int32_t leafs[MAX_BSP_LEAFS];
-		box3_t abs_bounds = data.abs_bounds;
 
-		if (data.is_transformed) {
-			abs_bounds = Mat4_TransformBounds(data.inverse_matrix, abs_bounds);
-		}
-
-		const size_t num_leafs = Cm_BoxLeafnums(abs_bounds,
+		const size_t num_leafs = Cm_BoxLeafnums(data.abs_bounds,
 												leafs,
 												lengthof(leafs),
 												NULL,
@@ -482,13 +434,7 @@ static inline cm_trace_t Cm_BoxTrace_(void) {
 		return data.trace;
 	}
 
-	if (data.is_transformed) {
-		data.size = Box3_Symetrical(Mat4_TransformBounds(data.inverse_matrix, Box3_Expand(data.bounds, BOX_EPSILON)));
-		Cm_TraceToNode(data.head_node, 0.f, 1.f, Mat4_Transform(data.inverse_matrix, data.start), Mat4_Transform(data.inverse_matrix, data.end));
-	} else {
-		data.size = Box3_Symetrical(Box3_Expand(data.bounds, BOX_EPSILON));
-		Cm_TraceToNode(data.head_node, 0.f, 1.f, data.start, data.end);
-	}
+	Cm_TraceToNode(data.head_node, 0.f, 1.f, data.start, data.end);
 
 	data.trace.fraction = Maxf(0.f, data.trace.fraction);
 
@@ -520,24 +466,31 @@ static inline cm_trace_t Cm_BoxTrace_(void) {
  *
  * @return The trace.
  */
-cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node,
-					              int32_t contents, const mat4_t matrix, const mat4_t inverse_matrix) {
+cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds,
+								  int32_t head_node, int32_t contents,
+								  const mat4_t matrix, const mat4_t inverse_matrix) {
 
-	data.start = start;
-	data.end = end;
+	data.start = Mat4_Transform(inverse_matrix, start);
+	data.end = Mat4_Transform(inverse_matrix, end);
 	data.bounds = bounds;
+	data.size = Box3_Symetrical(Box3_Expand(data.bounds, BOX_EPSILON));
 	data.head_node = head_node;
-	data.matrix = matrix;
-	data.inverse_matrix = inverse_matrix;
-	data.abs_bounds = Cm_TraceBounds(start, end, bounds);
+	data.abs_bounds = Cm_TraceBounds(data.start, data.end, data.bounds);
 	data.contents = contents;
-	data.is_transformed = true;
 	data.trace = (cm_trace_t) {
 		.fraction = 1.f
 	};
 	data.unnudged_fraction = 1.f + TRACE_EPSILON;
 
-	return Cm_BoxTrace_();
+	data.trace = Cm_BoxTrace_();
+
+	data.trace.end = Mat4_Transform(matrix, data.trace.end);
+
+	const vec4_t plane = Mat4_TransformPlane(matrix, data.trace.plane.normal, data.trace.plane.dist);
+	data.trace.plane.normal = Vec4_XYZ(plane);
+	data.trace.plane.dist = plane.w;
+	
+	return data.trace;
 }
 
 /**
@@ -561,10 +514,10 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
 	data.start = start;
 	data.end = end;
 	data.bounds = bounds;
+	data.size = Box3_Symetrical(Box3_Expand(data.bounds, BOX_EPSILON));
 	data.head_node = head_node;
 	data.abs_bounds = Cm_TraceBounds(start, end, bounds);
 	data.contents = contents;
-	data.is_transformed = false;
 	data.trace = (cm_trace_t) {
 		.fraction = 1.f
 	};
