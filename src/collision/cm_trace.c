@@ -114,12 +114,12 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	const cm_bsp_brush_side_t *s = brush->brush_sides + brush->num_brush_sides - 1;
 	for (int32_t i = brush->num_brush_sides - 1; i >= 0; i--, s--) {
 
-		const cm_bsp_plane_t p = *s->plane;
+		const cm_bsp_plane_t *p = s->plane;
 
-		const float dist = p.dist - Vec3_Dot(data->offsets[p.sign_bits], p.normal);
+		const float dist = p->dist - Vec3_Dot(data->offsets[p->sign_bits], p->normal);
 
-		const float d1 = Vec3_Dot(data->start, p.normal) - dist;
-		const float d2 = Vec3_Dot(data->end, p.normal) - dist;
+		const float d1 = Vec3_Dot(data->start, p->normal) - dist;
+		const float d2 = Vec3_Dot(data->end, p->normal) - dist;
 
 		if (d1 > 0.f) {
 			start_outside = true;
@@ -145,7 +145,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 			const float f = d1 / d2d1_dist;
 			if (f > enter_fraction) {
 				enter_fraction = f;
-				plane = p;
+				plane = *p;
 				side = s;
 				nudged_enter_fraction = (d1 - TRACE_EPSILON) / d2d1_dist;
 			}
@@ -196,11 +196,11 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 	const cm_bsp_brush_side_t *side = brush->brush_sides;
 	for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-		const cm_bsp_plane_t plane = *side->plane;
+		const cm_bsp_plane_t *plane = side->plane;
 
-		const float dist = plane.dist - Vec3_Dot(data->offsets[plane.sign_bits], plane.normal);
+		const float dist = plane->dist - Vec3_Dot(data->offsets[plane->sign_bits], plane->normal);
 
-		const float d1 = Vec3_Dot(data->start, plane.normal) - dist;
+		const float d1 = Vec3_Dot(data->start, plane->normal) - dist;
 
 		// if completely in front of face, no intersection
 		if (d1 > 0.0f) {
