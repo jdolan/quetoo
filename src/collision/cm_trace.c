@@ -437,17 +437,17 @@ static inline void Cm_BoxTrace_(cm_trace_data_t *data) {
 /**
  * @brief Primary collision detection entry point. This function recurses down
  * the BSP tree from the specified head node, clipping the desired movement to
- * brushes that match the specified contents mask.
+ * brushes that match the specified contents mask. The matrix and inverse matrix
+ * are used to transform the trace input and output, allowing for the trace to
+ * test against a translated or rotated BSP tree.
  *
  * @param start The starting point.
  * @param end The desired end point.
  * @param bounds The bounding box, in model space.
- * @param head_node The BSP head node to recurse down. For inline BSP models,
- * the head node is the root of the model's subtree. For mesh models, a
- * special reserved box hull and head node are used.
+ * @param head_node The head node of the inline model or box hull.
  * @param contents The contents mask to clip to.
- * @param matrix The matrix to adjust tested planes by.
- * @param inverse_matrix The inverse matrix to adjust the inputs by.
+ * @param matrix The matrix of the inline model or box hull.
+ * @param inverse_matrix The inverse matrix of the inline model or box hull.
  *
  * @return The trace.
  */
@@ -488,9 +488,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const bo
  * @param start The starting point.
  * @param end The desired end point.
  * @param bounds The bounding box, in model space.
- * @param head_node The BSP head node to recurse down. For inline BSP models,
- * the head node is the root of the model's subtree. For mesh models, a
- * special reserved box hull and head node are used.
+ * @param head_node The head node of the inline model or box hull.
  * @param contents The contents mask to clip to.
  *
  * @return The trace.
