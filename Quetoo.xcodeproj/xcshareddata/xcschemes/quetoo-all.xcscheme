@@ -86,7 +86,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_ambient_volume 0"
@@ -105,7 +105,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map tokays"
+            argument = "+set sv_max_clients 32 +map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
