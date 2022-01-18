@@ -129,10 +129,9 @@ typedef enum {
 #define EF_SELF             (1 << 16) // client's entity model
 #define EF_WEAPON			(1 << 17) // view weapon
 #define EF_SHELL			(1 << 18) // colored shell
-#define EF_ALPHATEST		(1 << 19) // alpha test
-#define EF_BLEND			(1 << 20) // alpha blend
-#define EF_NO_SHADOW		(1 << 22) // no shadow
-#define EF_NO_DRAW			(1 << 23) // no draw (but perhaps shadow)
+#define EF_BLEND			(1 << 19) // preset alpha blend
+#define EF_NO_SHADOW		(1 << 20) // no shadow
+#define EF_NO_DRAW			(1 << 21) // no draw (but perhaps shadow)
 
 /**
  * @brief Entity trails are used to apply unique trail effects to entities

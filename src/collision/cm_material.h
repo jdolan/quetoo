@@ -226,11 +226,12 @@ typedef struct {
 	int32_t num_samples;
 } cm_footsteps_t;
 
-#define DEFAULT_ROUGHNESS 1.0
-#define DEFAULT_HARDNESS 1.0
-#define DEFAULT_SPECULARITY 1.0
-#define DEFAULT_BLOOM 1.0
-#define DEFAULT_LIGHT 300.0
+#define DEFAULT_ROUGHNESS 1.f
+#define DEFAULT_HARDNESS 1.f
+#define DEFAULT_SPECULARITY 1.f
+#define DEFAULT_BLOOM 1.f
+#define DEFAULT_ALPHA_TEST .5f
+#define DEFAULT_LIGHT 300.f
 #define DEFAULT_PATCH_SIZE 64
 
 /**
@@ -275,7 +276,7 @@ typedef struct cm_material_s {
 	/**
 	 * @brief Flags for the material.
 	 */
-	cm_stage_flags_t flags;
+	cm_stage_flags_t stage_flags;
 
 	/**
 	 * @brief The material stages, if any.
@@ -296,6 +297,11 @@ typedef struct cm_material_s {
 	 * @brief Light emission applied to surfaces referencing this material.
 	 */
 	float light;
+
+	/**
+	 * @brief The alpha test threshold.
+	 */
+	float alpha_test;
 
 	/**
 	 * @brief The roughness factor to use for the normalmap.

@@ -54,6 +54,11 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
  */
 struct material_t {
 	/**
+	 * @brief The material alpha test threshold.
+	 */
+	float alpha_test;
+
+	/**
 	 * @brief The material roughness.
 	 */
 	float roughness;

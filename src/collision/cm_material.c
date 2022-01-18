@@ -847,6 +847,19 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			m->surface |= SURF_LIGHT;
 		}
 
+		if (!g_strcmp0(token, "alpha_test")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alpha_test, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No alpha test specified");
+				m->alpha_test = DEFAULT_ALPHA_TEST;
+			} else if (m->alpha_test < 0.f || m->alpha_test > 1.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid alpha test value, must be > 0.0 and < 1.0");
+				m->patch_size = DEFAULT_ALPHA_TEST;
+			}
+
+			m->surface |= SURF_ALPHA_TEST;
+		}
+
 		if (!g_strcmp0(token, "patch_size")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->patch_size, 1) != 1) {
@@ -878,7 +891,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			// append the stage to the chain
 			Cm_AppendStage(m, s);
 
-			m->flags |= s->flags;
+			m->stage_flags |= s->flags;
 			continue;
 		}
 
@@ -1233,6 +1246,10 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 	if (material->light) {
 		Fs_Print(file, "\tlight %g\n", material->light);
+	}
+
+	if (material->alpha_test) {
+		Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
 	}
 
 	if (material->patch_size) {

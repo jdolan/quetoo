@@ -25,7 +25,7 @@ r_config_t r_config;
 r_uniforms_t r_uniforms;
 r_stats_t r_stats;
 
-cvar_t *r_alpha_test_threshold;
+cvar_t *r_alpha_test;
 cvar_t *r_blend_depth_sorting;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
@@ -440,7 +440,7 @@ void R_EndFrame(void) {
 static void R_InitLocal(void) {
 
 	// development tools
-	r_alpha_test_threshold = Cvar_Add("r_alpha_test_threshold", ".8", CVAR_DEVELOPER, "Controls alpha test threshold (developer tool)");
+	r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool)");
 	r_blend_depth_sorting = Cvar_Add("r_blend_depth_sorting", "1", CVAR_DEVELOPER, "Controls alpha blending sorting (developer tool)");
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");

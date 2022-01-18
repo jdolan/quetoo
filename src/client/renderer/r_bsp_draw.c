@@ -51,11 +51,12 @@ static struct {
 	GLint texture_lightgrid_fog;
 
 	GLint entity;
-	GLint alpha_threshold;
+	GLint alpha_test;
 
 	GLint bicubic;
 
 	struct {
+		GLint alpha_test;
 		GLint roughness;
 		GLint hardness;
 		GLint specularity;
@@ -341,7 +342,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 		return;
 	}
 
-	if (!(material->cm->flags & STAGE_DRAW)) {
+	if (!(material->cm->stage_flags & STAGE_DRAW)) {
 		return;
 	}
 
@@ -425,6 +426,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, (*material)->texture->texnum);
 
+			glUniform1f(r_bsp_program.material.alpha_test, (*material)->cm->alpha_test * r_alpha_test->value);
 			glUniform1f(r_bsp_program.material.roughness, (*material)->cm->roughness * r_roughness->value);
 			glUniform1f(r_bsp_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
@@ -462,7 +464,7 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 
 		R_DrawBspDrawElements(view, entity, draw, &material);
 
-		r_stats.count_bsp_opaque_draw_elements++;
+		r_stats.count_bsp_draw_elements++;
 	}
 }
 
@@ -484,7 +486,7 @@ static void R_DrawBspInlineModelAlphaTestDrawElements(const r_view_t *view,
 		
 		R_DrawBspDrawElements(view, entity, draw, &material);
 
-		r_stats.count_bsp_alpha_test_draw_elements++;
+		r_stats.count_bsp_draw_elements++;
 	}
 }
 
@@ -516,6 +518,7 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 
 		R_DrawBspDrawElements(view, entity, draw, &material);
 
+		r_stats.count_bsp_draw_elements++;
 		r_stats.count_bsp_blend_draw_elements++;
 	}
 
@@ -569,13 +572,13 @@ static void R_DrawBspInlineModelEntity(const r_view_t *view, const r_entity_t *e
 
 	R_DrawBspInlineModelOpaqueDrawElements(view, e, e->model->bsp_inline);
 
-	glUniform1f(r_bsp_program.alpha_threshold, r_alpha_test_threshold->value);
 	R_DrawBspInlineModelAlphaTestDrawElements(view, e, e->model->bsp_inline);
-	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	R_DrawBspInlineModelBlendDrawElements(view, e, e->model->bsp_inline);
+
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 
@@ -679,21 +682,22 @@ void R_DrawWorld(const r_view_t *view) {
 	}
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
+
 	R_DrawBspInlineModelOpaqueDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
 	if (r_depth_pass->value) {
 		glDepthMask(GL_TRUE);
 	}
 
-	glUniform1f(r_bsp_program.alpha_threshold, r_alpha_test_threshold->value);
 	R_DrawBspInlineModelAlphaTestDrawElements(view, NULL, r_world_model->bsp->inline_models);
-	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	R_DrawBlendDepthTypes(view, -1, BLEND_DEPTH_ALL);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	R_DrawBspInlineModelBlendDrawElements(view, NULL, r_world_model->bsp->inline_models);
+
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 
@@ -757,10 +761,10 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
 	r_bsp_program.entity = glGetUniformLocation(r_bsp_program.name, "entity");
-	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
 	r_bsp_program.bicubic = glGetUniformLocation(r_bsp_program.name, "bicubic");
 
+	r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
 	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
 	r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");
 	r_bsp_program.material.specularity = glGetUniformLocation(r_bsp_program.name, "material.specularity");

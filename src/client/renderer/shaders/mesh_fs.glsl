@@ -22,8 +22,6 @@
 uniform sampler2DArray texture_material;
 uniform sampler2D texture_stage;
 
-uniform float alpha_threshold;
-
 uniform material_t material;
 uniform stage_t stage;
 
@@ -69,8 +67,11 @@ void main(void) {
 
 		// diffuse albedo
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-		if (diffusemap.a < alpha_threshold) { discard; }
 		diffusemap *= vertex.color;
+
+		if (diffusemap.a < material.alpha_test) {
+			discard;
+		}
 
 		// diffuse albedo tinting
 		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));

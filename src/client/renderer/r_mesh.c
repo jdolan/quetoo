@@ -39,8 +39,6 @@ void R_ApplyMeshConfig(r_entity_t *e) {
 	}
 
 	e->matrix = Mat4_Concat(e->matrix, c->transform);
-
-	e->effects |= c->flags;
 }
 
 /**

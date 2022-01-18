@@ -30,7 +30,6 @@ uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
 
 uniform int entity;
-uniform float alpha_threshold;
 
 uniform int bicubic;
 
@@ -83,7 +82,7 @@ void main(void) {
 
 		diffusemap *= vertex.color;
 
-		if (diffusemap.a < alpha_threshold) {
+		if (diffusemap.a < material.alpha_test) {
 			discard;
 		}
 

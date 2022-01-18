@@ -150,16 +150,6 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 			config->transform = Mat4_ConcatScale(config->transform, v);
 			continue;
 		}
-
-		if (!g_strcmp0(token, "alpha_test")) {
-			config->flags |= EF_ALPHATEST;
-			continue;
-		}
-
-		if (!g_strcmp0(token, "blend")) {
-			config->flags |= EF_BLEND;
-			continue;
-		}
 	}
 
 	Fs_Free(buf);

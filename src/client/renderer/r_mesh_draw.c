@@ -54,9 +54,9 @@ static struct {
 	GLint texture_lightgrid_fog;
 
 	GLint color;
-	GLint alpha_threshold;
 
 	struct {
+		GLint alpha_test;
 		GLint roughness;
 		GLint hardness;
 		GLint specularity;
@@ -203,7 +203,7 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 		return;
 	}
 
-	if (!(material->cm->flags & STAGE_DRAW) && !(e->effects & EF_SHELL)) {
+	if (!(material->cm->stage_flags & STAGE_DRAW) && !(e->effects & EF_SHELL)) {
 		return;
 	}
 
@@ -270,6 +270,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
 	glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
+	glUniform1f(r_mesh_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
 	glUniform1f(r_mesh_program.material.roughness, material->cm->roughness * r_roughness->value);
 	glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
 	glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
@@ -344,8 +345,6 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
 
-	glUniform1f(r_mesh_program.alpha_threshold, r_alpha_test_threshold->value);
-
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
@@ -363,7 +362,6 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 	}
 
 	glDisable(GL_CULL_FACE);
-	glUniform1f(r_mesh_program.alpha_threshold, .0f);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -470,8 +468,8 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_fog");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
-	r_mesh_program.alpha_threshold = glGetUniformLocation(r_mesh_program.name, "alpha_threshold");
 
+	r_mesh_program.material.alpha_test = glGetUniformLocation(r_mesh_program.name, "material.alpha_test");
 	r_mesh_program.material.roughness = glGetUniformLocation(r_mesh_program.name, "material.roughness");
 	r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");
 	r_mesh_program.material.specularity = glGetUniformLocation(r_mesh_program.name, "material.specularity");

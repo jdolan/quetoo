@@ -250,7 +250,7 @@ void Cg_LoadFlares(void) {
 	for (int32_t i= 0; i < bsp->num_faces; i++, face++) {
 
 		const r_material_t *material = face->brush_side->material;
-		if (material->cm->flags & STAGE_FLARE) {
+		if (material->cm->stage_flags & STAGE_FLARE) {
 
 			const r_stage_t *stage = material->stages;
 			while (stage) {
