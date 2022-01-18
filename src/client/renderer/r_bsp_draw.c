@@ -534,9 +534,11 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 
 		glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
+		glUniform1f(r_bsp_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
 		glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
 		glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
 		glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
+		glUniform1f(r_bsp_program.material.bloom, material->cm->bloom* r_bloom->value);
 
 		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
 	}
@@ -557,7 +559,7 @@ void R_UpdateBspInlineModelEntities(r_view_t *view) {
 			if (in->blend_elements->len) {
 				e->blend_depth = R_BlendDepthForPoint(view, Box3_Center(e->abs_model_bounds), BLEND_DEPTH_ENTITY);
 			} else {
-				e->blend_depth = -1;
+				e->blend_depth = INT32_MIN;
 			}
 		}
 	}
@@ -691,12 +693,14 @@ void R_DrawWorld(const r_view_t *view) {
 
 	R_DrawBspInlineModelAlphaTestDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
-	R_DrawBlendDepthTypes(view, -1, BLEND_DEPTH_ALL);
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	R_DrawBlendDepthTypes(view, INT32_MIN, BLEND_DEPTH_ALL);
+
 	R_DrawBspInlineModelBlendDrawElements(view, NULL, r_world_model->bsp->inline_models);
+
+	R_DrawBlendDepthTypes(view, INT32_MAX, BLEND_DEPTH_ALL);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);

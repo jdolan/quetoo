@@ -265,7 +265,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 	in->vertexes[3].lerp = lerp;
 
 	if (s->flags & SPRITE_NO_BLEND_DEPTH) {
-		in->blend_depth = -1;
+		in->blend_depth = INT32_MAX;
 	} else {
 		in->blend_depth = R_BlendDepthForPoint(view, s->origin, BLEND_DEPTH_SPRITE);
 	}
@@ -444,7 +444,7 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glEnableVertexAttribArray(r_sprite_program.in_softness);
 	glEnableVertexAttribArray(r_sprite_program.in_lighting);
 
-	if (r_sprite_soften->value && blend_depth == -1) {
+	if (r_sprite_soften->value) {
 		R_CopyFramebufferAttachments(view->framebuffer, ATTACHMENT_DEPTH);
 	}
 

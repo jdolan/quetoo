@@ -89,7 +89,7 @@ void R_UpdateMeshEntities(r_view_t *view) {
 			continue;
 		}
 
-		e->blend_depth = -1;
+		e->blend_depth = INT32_MIN;
 
 		if (e->effects & (EF_BLEND | EF_SHELL)) {
 			e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);

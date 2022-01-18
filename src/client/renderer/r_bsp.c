@@ -27,11 +27,11 @@
 int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend_depth_type_t type) {
 
 	if (!r_blend_depth_sorting->value) {
-		return -1;
+		return INT32_MIN;
 	}
 
 	if (view->type == VIEW_PLAYER_MODEL) {
-		return -1;
+		return INT32_MIN;
 	}
 
 	box3_t bounds = Cm_TraceBounds(view->origin, p, Box3_Zero());
@@ -56,7 +56,7 @@ int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend
 		}
 	}
 
-	return -1;
+	return INT32_MAX;
 }
 
 /**
