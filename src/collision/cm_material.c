@@ -1085,7 +1085,7 @@ static int32_t Cm_ResolveFootsteps_Compare(const void *a, const void *b) {
 /**
  * @brief Resolves
  */
-static _Bool Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
+static void Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
 
 	if (!strlen(footsteps->name)) {
 		g_strlcpy(footsteps->name, "default", sizeof(footsteps->name));
@@ -1095,9 +1095,11 @@ static _Bool Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
 
 	Fs_Enumerate(pattern, Cm_ResolveFootsteps_Enumerate, footsteps);
 
-	qsort(footsteps->samples, footsteps->num_samples, sizeof(cm_asset_t), Cm_ResolveFootsteps_Compare);
-
-	return footsteps->num_samples;
+	if (!footsteps->num_samples) {
+		Com_Warn("Footsteps \"%s\" have no samples\n", footsteps->name);
+	} else {
+		qsort(footsteps->samples, footsteps->num_samples, sizeof(cm_asset_t), Cm_ResolveFootsteps_Compare);
+	}
 }
 
 /**
@@ -1125,7 +1127,9 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 		}
 	}
 
-	return Cm_ResolveFootsteps(&material->footsteps);
+	Cm_ResolveFootsteps(&material->footsteps);
+
+	return true;
 }
 
 /**
