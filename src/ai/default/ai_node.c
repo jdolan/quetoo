@@ -944,23 +944,33 @@ void Ai_InitNodes(const char *mapname) {
  */
 static void Ai_CheckNodes(void) {
 
-	for (int32_t i = sv_max_clients->integer; i < aim.ge->num_entities; i++) {
+	if (ai_node_dev->integer) {
+		for (int32_t i = sv_max_clients->integer; i < aim.ge->num_entities; i++) {
 		
-		g_entity_t *ent = ENTITY_FOR_NUM(i);
+			g_entity_t *ent = ENTITY_FOR_NUM(i);
 
-		if (!ent->in_use) {
-			continue;
+			if (!ent->in_use) {
+				continue;
+			}
+
+			// only warn for item nodes
+			if (!ENTITY_DATA(ent, item)) {
+				continue;
+			}
+
+			const ai_node_id_t node = Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
+
+			if (node == NODE_INVALID) {
+				aim.gi->Warn("Entity %s @ %s appears to be unreachable by nodes\n", ENTITY_DATA(ent, class_name), vtos(ent->s.origin));
+			}
 		}
+	}
 
-		// only warn for item nodes
-		if (!ENTITY_DATA(ent, item)) {
-			continue;
-		}
-
-		const ai_node_id_t node = Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
-
-		if (node == NODE_INVALID) {
-			aim.gi->Warn("Entity %s @ %s appears to be unreachable by nodes\n", ENTITY_DATA(ent, class_name), vtos(ent->s.origin));
+	for (guint i = 0; i < ai_nodes->len; i++) {
+		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+		
+		if (aim.gi->PointContents(node->position) & CONTENTS_MASK_SOLID) {
+			aim.gi->Warn("Node %i @ %s is inside of solid\n", i, vtos(node->position));
 		}
 	}
 }
@@ -993,9 +1003,7 @@ void Ai_NodesReady(void) {
 		aim.gi->Print("  %u nodes optimized\n", optimized);
 	}*/
 
-	if (ai_node_dev->integer) {
-		Ai_CheckNodes();
-	}
+	Ai_CheckNodes();
 }
 
 /**
