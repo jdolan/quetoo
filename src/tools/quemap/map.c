@@ -584,7 +584,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		}
 
 		// clip brushes, similarly, are not drawn and therefore can not occlude
-		if (side->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
+		if (side->contents & CONTENTS_MASK_CLIP) {
 			side->contents |= CONTENTS_DETAIL;
 		}
 
