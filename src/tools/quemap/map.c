@@ -420,7 +420,6 @@ static void SetMaterialFlags(brush_side_t *side) {
 		side->surface |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(side->texture, "common/occlude")) {
 		side->contents |= CONTENTS_OCCLUSION_QUERY;
-		side->surface |= SURF_SKIP;
 	} else if (!g_strcmp0(side->texture, "common/origin")) {
 		side->contents |= CONTENTS_ORIGIN;
 	} else if (!g_strcmp0(side->texture, "common/skip")) {
@@ -583,9 +582,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 		// hints and skips have no contents
 		if (side->surface & (SURF_HINT | SURF_SKIP)) {
-			if (!(side->contents & CONTENTS_OCCLUSION_QUERY)) {
-				side->contents = CONTENTS_NONE;
-			}
+			side->contents = CONTENTS_NONE;
 		}
 
 		brush->num_brush_sides++;
