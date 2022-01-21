@@ -413,8 +413,7 @@ static void SetMaterialFlags(brush_side_t *side) {
 	} else if (!g_strcmp0(side->texture, "common/hint")) {
 		side->surface |= SURF_HINT;
 	} else if (!g_strcmp0(side->texture, "common/ladder")) {
-		side->contents |= CONTENTS_LADDER | CONTENTS_WINDOW;
-		side->surface |= SURF_NO_DRAW;
+		side->contents |= CONTENTS_LADDER | CONTENTS_PLAYER_CLIP;
 	} if (!g_strcmp0(side->texture, "common/monsterclip")) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
 	} else if (!g_strcmp0(side->texture, "common/nodraw")) {
@@ -429,8 +428,7 @@ static void SetMaterialFlags(brush_side_t *side) {
 	} else if (!g_strcmp0(side->texture, "common/sky")) {
 		side->surface |= SURF_SKY;
 	} else if (!g_strcmp0(side->texture, "common/trigger")) {
-		side->contents |= CONTENTS_WINDOW;
-		side->surface |= SURF_NO_DRAW;
+		side->contents |= CONTENTS_PLAYER_CLIP;
 	}
 
 	if (side->contents & CONTENTS_MASK_LIQUID) {
