@@ -602,9 +602,9 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 150.0,
+		.radius = 200.0,
 		.color = Vec3(0.8, 0.4, 0.2),
-		.decay = 825
+		.decay = 1200
 	});
 
 	cgi.AddStain(cgi.view, &(const r_stain_t) {
