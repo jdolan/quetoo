@@ -55,10 +55,11 @@ void FreePortal(portal_t *p) {
  */
 int32_t VisibleContents(int32_t contents) {
 
-	for (int32_t i = 1; i <= LAST_VISIBLE_CONTENTS; i <<= 1)
+	for (int32_t i = 1; i <= LAST_VISIBLE_CONTENTS; i <<= 1) {
 		if (contents & i) {
 			return i;
 		}
+	}
 
 	return 0;
 }
