@@ -531,6 +531,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	self->locals.take_damage = true;
 
+	self->locals.clip_mask = CONTENTS_MASK_CLIP_CORPSE;
 	self->client->locals.respawn_time = g_level.time + 1800; // respawn after death animation finishes
 	self->client->locals.show_scores = true;
 	self->client->locals.persistent.deaths++;
@@ -921,6 +922,11 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
 		ent->locals.clip_mask = CONTENTS_MASK_CLIP_PLAYER;
+
+		if (ent->client->ai) {
+			ent->locals.clip_mask = CONTENTS_MASK_CLIP_MONSTER;
+		}
+
 		ent->locals.dead = false;
 		ent->locals.Die = G_ClientDie;
 		memset(&ent->locals.ground, 0, sizeof(ent->locals.ground));
@@ -1349,14 +1355,9 @@ void G_ClientDisconnect(g_entity_t *ent) {
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
 static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
-
 	const g_entity_t *self = g_level.current_entity;
 
-	if (self->locals.dead) {
-		return gi.Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_CORPSE);
-	} else {
-		return gi.Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_PLAYER);
-	}
+	return gi.Trace(start, end, bounds, self, self->locals.clip_mask);
 }
 
 #ifdef _DEBUG
