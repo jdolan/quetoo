@@ -248,6 +248,10 @@ static void Check_LIGHT_Options(int32_t argc) {
 			patch_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
 			Com_Verbose("patch size: %d\n", patch_size);
 			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--caustics")) {
+			caustics = atof(Com_Argv(i + 1));
+			Com_Verbose("caustics: %g\n", caustics);
+			i++;
 		} else {
 			break;
 		}
