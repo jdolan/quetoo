@@ -24,23 +24,24 @@
 _Bool indirect = true;
 _Bool antialias = false;
 
-float brightness = 1.0;
-float saturation = 1.0;
-float contrast = 1.0;
+float brightness = 1.f;
+float saturation = 1.f;
+float contrast = 1.f;
 
 int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 int32_t patch_size = DEFAULT_PATCH_SIZE;
 
-float radiosity = 1.0;
+float radiosity = 1.f;
 int32_t num_bounces = 1;
 int32_t bounce = 0;
 
-float lightscale_point = 1.0;
-float lightscale_patch = 1.0;
+float lightscale_point = 1.f;
+float lightscale_patch = 1.f;
+
+float caustics = 1.f;
 
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
-
 
 /**
  * @brief Box trace data encapsulation and context management.
@@ -458,12 +459,17 @@ static void LightWorld(void) {
 
 	if (lightscale_point == 1.f) {
 		lightscale_point = Cm_EntityValue(e, "lightscale_point")->value ?: lightscale_point;
-		Com_Verbose("Point light intensity scale: 1.0\n");
+		Com_Verbose("Point light intensity: %g\n", lightscale_point);
 	}
 
 	if (lightscale_patch == 1.f) {
 		lightscale_patch = Cm_EntityValue(e, "lightscale_patch")->value ?: lightscale_patch;
-		Com_Verbose("Patch light intensity scale: 1.0\n");
+		Com_Verbose("Patch light intensity: %g\n", lightscale_patch);
+	}
+
+	if (caustics == 1.f) {
+		caustics = Cm_EntityValue(e, "caustics")->value ?: caustics;
+		Com_Verbose("Caustics intensity: %g\n", caustics);
 	}
 
 	// build patches

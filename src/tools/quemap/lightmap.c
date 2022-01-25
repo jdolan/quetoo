@@ -570,18 +570,18 @@ void IndirectLightmap(int32_t face_num) {
  */
 static void CausticsLightmapLuxel(luxel_t *luxel, float scale) {
 
-	vec3_t caustics = Vec3_Zero();
+	vec3_t c = Vec3_Zero();
 
 	const int32_t contents = Light_PointContents(luxel->origin, 0);
 	if (contents & CONTENTS_MASK_LIQUID) {
 		if (contents & CONTENTS_LAVA) {
-			caustics = Vec3_Add(caustics, Vec3(1.f, 0.f, 0.f));
+			c = Vec3_Add(c, Vec3(1.f, 0.f, 0.f));
 		}
 		if (contents & CONTENTS_SLIME) {
-			caustics = Vec3_Add(caustics, Vec3(0.f, 1.f, 0.f));
+			c = Vec3_Add(c, Vec3(0.f, 1.f, 0.f));
 		}
 		if (contents & CONTENTS_WATER) {
-			caustics = Vec3_Add(caustics, Vec3(0.f, 0.f, 1.f));
+			c = Vec3_Add(c, Vec3(0.f, 0.f, 1.f));
 		}
 	}
 
@@ -598,18 +598,18 @@ static void CausticsLightmapLuxel(luxel_t *luxel, float scale) {
 			float f = sample_fraction * (1.f - tr.fraction);
 
 			if (tr.contents & CONTENTS_LAVA) {
-				caustics = Vec3_Add(caustics, Vec3(f, 0.f, 0.f));
+				c = Vec3_Add(c, Vec3(f, 0.f, 0.f));
 			}
 			if (tr.contents & CONTENTS_SLIME) {
-				caustics = Vec3_Add(caustics, Vec3(0.f, f, 0.f));
+				c = Vec3_Add(c, Vec3(0.f, f, 0.f));
 			}
 			if (tr.contents & CONTENTS_WATER) {
-				caustics = Vec3_Add(caustics, Vec3(0.f, 0.f, f));
+				c = Vec3_Add(c, Vec3(0.f, 0.f, f));
 			}
 		}
 	}
 
-	luxel->caustics = Vec3_Fmaf(luxel->caustics, scale, caustics);
+	luxel->caustics = Vec3_Fmaf(luxel->caustics, scale * caustics, c);
 }
 
 /**

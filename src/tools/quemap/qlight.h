@@ -47,6 +47,8 @@ extern int32_t bounce;
 extern float lightscale_point;
 extern float lightscale_patch;
 
+extern float caustics;
+
 int32_t Light_PointContents(const vec3_t p, int32_t head_node);
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask);
 
