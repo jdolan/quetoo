@@ -830,6 +830,14 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No surface flags specified");
 			} else {
 				m->surface |= Cm_ParseSurface(token);
+
+				if ((m->surface & SURF_LIGHT) && m->light == 0.f) {
+					m->light = DEFAULT_LIGHT;
+				}
+				
+				if ((m->surface & SURF_ALPHA_TEST) && m->alpha_test == 0.f) {
+					m->alpha_test = DEFAULT_ALPHA_TEST;
+				}
 			}
 			continue;
 		}
