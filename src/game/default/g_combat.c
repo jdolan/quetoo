@@ -118,8 +118,7 @@ vec3_t G_GetOrigin(const g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal,
-                          int32_t damage) {
+static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal, int32_t damage) {
 
 	if (damage < 1) {
 		return;
@@ -129,10 +128,8 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 	gi.WriteByte(type);
 	gi.WritePosition(pos);
 	gi.WriteDir(normal);
-	if (type == TE_BLOOD || type == TE_SPARKS) {
-		const int8_t size = Clampf(damage, 16, 48);
-		gi.WriteByte(size);
-	}
+	gi.WriteByte(Clampf(damage, 1, 255));
+	
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 }
 

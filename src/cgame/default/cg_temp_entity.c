@@ -382,22 +382,27 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
  */
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
-	Cg_AddSprite(&(cg_sprite_t) {
-		.animation = cg_sprite_blood_01,
-		.lifetime = Cg_AnimationLifetime(cg_sprite_blood_01, 30) + Randomf() * 500,
-		.size = RandomRangef(1.f, 2.f) + count,
-		.rotation = RandomRadian(),
-		.origin = Vec3_Fmaf(Vec3_Add(org, Vec3_RandomRange(-1.f, 1.f)), RandomRangef(0.f, 4.f), dir),
-		.velocity = Vec3_Scale(dir, RandomRangef(1.f, 4.f)),
-		.acceleration.z = -SPRITE_GRAVITY / 2.0,
-		.color = Vec4(0.f, 1.f, .5f, .66f),
-		.end_color = Vec4(0.f, 1.f, 0.f, 0.f),
-		.softness = 1.f
-	});
+	for (int32_t i = 0; i < count; i += 3) {
+
+		if (!Cg_AddSprite(&(cg_sprite_t) {
+				.animation = cg_sprite_blood_01,
+				.lifetime = Cg_AnimationLifetime(cg_sprite_blood_01, 30) + Randomf() * 500,
+				.size = RandomRangef(48.f, 64.f),
+				.rotation = RandomRadian(),
+				.origin = Vec3_Fmaf(Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f)), RandomRangef(0.f, 32.f), dir),
+				.velocity = Vec3_RandomRange(-30.f, 30.f),
+				.acceleration.z = -SPRITE_GRAVITY / 2.0,
+				.color = Vec4(0.f, 1.f, .5f, .66f),
+				.end_color = Vec4(0.f, 1.f, 0.f, 0.f),
+				.softness = 1.f
+			})) {
+			break;
+		}
+	}
 
 	cgi.AddStain(cgi.view, &(const r_stain_t) {
 		.origin = org,
-		.radius = 1 + count,
+		.radius = count * .5f,
 		.color = Color4bv(0xAA2222AA),
 	});
 }
