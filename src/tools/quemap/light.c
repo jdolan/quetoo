@@ -105,122 +105,160 @@ vec3_t ColorFilter(const vec3_t in) {
 /**
  * @brief
  */
+const cm_entity_t *EntityTarget(const cm_entity_t *entity) {
+
+	const char *targetname = Cm_EntityValue(entity, "target")->nullable_string;
+	if (targetname) {
+
+		cm_entity_t **e = Cm_Bsp()->entities;
+		for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
+			if (!g_strcmp0(targetname, Cm_EntityValue(*e, "targetname")->nullable_string)) {
+				return *e;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * @brief
+ */
+static void LightForEntity_worldspawn(const cm_entity_t *entity, light_t *light) {
+
+	const vec3_t ambient = Cm_EntityValue(entity, "ambient")->vec3;
+	if (!Vec3_Equal(ambient, Vec3_Zero())) {
+
+		light->type = LIGHT_AMBIENT;
+		light->atten = LIGHT_ATTEN_NONE;
+		light->color = ambient;
+		light->radius = LIGHT_RADIUS_AMBIENT;
+	}
+}
+
+/**
+ * @brief
+ */
+static void LightForEntity_light_sun(const cm_entity_t *entity, light_t *light) {
+
+	light->type = LIGHT_SUN;
+	light->atten = LIGHT_ATTEN_NONE;
+	light->origin = Vec3_Zero();
+
+	if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
+		light->color = Cm_EntityValue(entity, "_color")->vec3;
+	} else {
+		light->color = LIGHT_COLOR;
+	}
+
+	light->normal = Vec3_Down();
+
+	const cm_entity_t *target = EntityTarget(entity);
+	if (target) {
+		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
+	} else {
+		Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0, "light_sun missing target");
+	}
+
+	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE_SUN;
+
+	g_array_append_val(lights, light);
+}
+
+/**
+ * @brief
+ */
+static void LightForEntity_light(const cm_entity_t *entity, light_t *light) {
+
+	light->type = LIGHT_POINT;
+	light->atten = LIGHT_ATTEN_LINEAR;
+	light->origin = Cm_EntityValue(entity, "origin")->vec3;
+	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
+	light->color = Cm_EntityValue(entity, "_color")->vec3;
+	light->size = Cm_EntityValue(entity, "_size")->value;
+
+	if (Vec3_Equal(Vec3_Zero(), light->color)) {
+		light->color = LIGHT_COLOR;
+	}
+
+	light->radius *= lightscale_point;
+
+	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
+		light->atten = Cm_EntityValue(entity, "atten")->integer;
+	}
+
+	g_array_append_val(lights, light);
+}
+
+/**
+ * @brief
+ */
+static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light) {
+
+	light->type = LIGHT_SPOT;
+	light->atten = LIGHT_ATTEN_LINEAR;
+	light->origin = Cm_EntityValue(entity, "origin")->vec3;
+	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
+	light->color = Cm_EntityValue(entity, "_color")->vec3;
+	light->size = Cm_EntityValue(entity, "_size")->value;
+
+	if (Vec3_Equal(Vec3_Zero(), light->color)) {
+		light->color = LIGHT_COLOR;
+	}
+
+	light->radius *= lightscale_point;
+
+	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
+		light->atten = Cm_EntityValue(entity, "atten")->integer;
+	}
+
+	light->normal = Vec3_Down();
+
+	const cm_entity_t *target = EntityTarget(entity);
+	if (target) {
+		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
+	} else if (Cm_EntityValue(entity, "_angle")->parsed & ENTITY_INTEGER) {
+		const int32_t angle = Cm_EntityValue(entity, "_angle")->integer;
+		if (angle == LIGHT_ANGLE_UP) {
+			light->normal = Vec3_Up();
+		} else if (angle == LIGHT_ANGLE_DOWN) {
+			light->normal = Vec3_Down();
+		} else {
+			Vec3_Vectors(Vec3(0.f, angle, 0.f), &light->normal, NULL, NULL);
+		}
+	} else {
+		Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0,
+					   va("light_spot at %s missing target and _angle", vtos(light->origin)));
+	}
+
+	if (Cm_EntityValue(entity, "_cone")->parsed & ENTITY_FLOAT) {
+		light->theta = Cm_EntityValue(entity, "_cone")->value;
+	} else {
+		light->theta = LIGHT_CONE;
+	}
+
+	light->theta = Radians(light->theta);
+}
+
+/**
+ * @brief
+ */
 static void LightForEntity(const cm_entity_t *entity) {
+
+	light_t light = { .type = LIGHT_INVALID };
 
 	const char *class_name = Cm_EntityValue(entity, "classname")->string;
 	if (!g_strcmp0(class_name, "worldspawn")) {
+		LightForEntity_worldspawn(entity, &light);
+	} else if (!g_strcmp0(class_name, "light_sun")) {
+		LightForEntity_light_sun(entity, &light);
+	} else if (!g_strcmp0(class_name, "light")) {
+		LightForEntity_light(entity, &light);
+	} else if (!g_strcmp0(class_name, "light_spot")) {
+		LightForEntity_light_spot(entity, &light);
+	}
 
-		const vec3_t ambient = Cm_EntityValue(entity, "ambient")->vec3;
-		if (!Vec3_Equal(ambient, Vec3_Zero())) {
-
-			light_t light;
-			light.type = LIGHT_AMBIENT;
-			light.atten = LIGHT_ATTEN_NONE;
-			light.color = ambient;
-			light.radius = LIGHT_RADIUS_AMBIENT;
-
-			g_array_append_val(lights, light);
-		}
-	} else if (!g_strcmp0(class_name, "light") ||
-		!g_strcmp0(class_name, "light_spot") ||
-		!g_strcmp0(class_name, "light_sun")) {
-
-		light_t light;
-
-		if (!g_strcmp0(class_name, "light_sun")) {
-			light.type = LIGHT_SUN;
-			light.atten = LIGHT_ATTEN_NONE;
-		} else if (!g_strcmp0(class_name, "light_spot")) {
-			light.type = LIGHT_SPOT;
-			light.atten = LIGHT_ATTEN_LINEAR;
-		} else {
-			light.type = LIGHT_POINT;
-			light.atten = LIGHT_ATTEN_LINEAR;
-		}
-
-		light.origin = Cm_EntityValue(entity, "origin")->vec3;
-
-		if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
-			light.color = Cm_EntityValue(entity, "_color")->vec3;
-		} else {
-			light.color = LIGHT_COLOR;
-		}
-
-		light.radius = Cm_EntityValue(entity, "light")->value;
-		if (light.radius == 0.f) {
-			light.radius = LIGHT_RADIUS;
-		}
-
-		switch (light.type) {
-			case LIGHT_POINT:
-			case LIGHT_SPOT:
-				light.radius *= lightscale_point;
-				break;
-			default:
-				break;
-		}
-
-		if (Cm_EntityValue(entity, "target")->parsed & ENTITY_STRING) {
-			const char *targetname = Cm_EntityValue(entity, "target")->string;
-			cm_entity_t *target = NULL;
-			cm_entity_t **e = Cm_Bsp()->entities;
-			for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
-				if (!g_strcmp0(targetname, Cm_EntityValue(*e, "targetname")->string)) {
-					target = *e;
-					break;
-				}
-			}
-			if (target) {
-				const vec3_t target_origin = Cm_EntityValue(target, "origin")->vec3;
-				light.normal = Vec3_Subtract(target_origin, light.origin);
-			} else {
-				Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0,
-							   va("%s at %s missing target", class_name, vtos(light.origin)));
-				light.normal = Vec3_Down();
-			}
-		} else {
-			if (light.type == LIGHT_SPOT) {
-				if (Cm_EntityValue(entity, "_angle")->parsed & ENTITY_INTEGER) {
-					const int32_t angle = Cm_EntityValue(entity, "_angle")->integer;
-					if (angle == LIGHT_ANGLE_UP) {
-						light.normal = Vec3_Up();
-					} else if (angle == LIGHT_ANGLE_DOWN) {
-						light.normal = Vec3_Down();
-					} else {
-						Vec3_Vectors(Vec3(0.f, angle, 0.f), &light.normal, NULL, NULL);
-					}
-				} else {
-					light.normal = Vec3_Down();
-				}
-			} else {
-				light.normal = Vec3_Down();
-			}
-		}
-
-		light.normal = Vec3_Normalize(light.normal);
-
-		if (light.type == LIGHT_SPOT) {
-			if (Cm_EntityValue(entity, "_cone")->parsed & ENTITY_FLOAT) {
-				light.theta = Cm_EntityValue(entity, "_cone")->value;
-			} else {
-				light.theta = LIGHT_CONE;
-			}
-			light.theta = Radians(light.theta);
-		}
-
-		light.size = Cm_EntityValue(entity, "_size")->value;
-		if (light.size == 0.f) {
-			if (light.type == LIGHT_SUN) {
-				light.size = LIGHT_SIZE_SUN;
-			} else {
-				light.size = LIGHT_SIZE_STEP;
-			}
-		}
-
-		if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
-			light.atten = Cm_EntityValue(entity, "atten")->integer;
-		}
-
+	if (light.type != LIGHT_INVALID) {
 		g_array_append_val(lights, light);
 	}
 }
@@ -266,6 +304,13 @@ void FreeLights(void) {
 
 	if (!lights) {
 		return;
+	}
+
+	for (guint i = 0; i < lights->len; i++) {
+		light_t *l = &g_array_index(lights, light_t, i);
+		if (l->num_points) {
+			g_free(l->points);
+		}
 	}
 
 	g_array_free(lights, true);
