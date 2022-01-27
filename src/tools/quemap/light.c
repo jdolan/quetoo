@@ -161,8 +161,6 @@ static void LightForEntity_light_sun(const cm_entity_t *entity, light_t *light) 
 	}
 
 	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE_SUN;
-
-	g_array_append_val(lights, light);
 }
 
 /**
@@ -187,7 +185,6 @@ static void LightForEntity_light(const cm_entity_t *entity, light_t *light) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
 	}
 
-	g_array_append_val(lights, light);
 }
 
 /**
