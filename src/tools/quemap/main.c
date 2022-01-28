@@ -315,7 +315,7 @@ static void PrintHelpMessage(void) {
 
 	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" --antialias - calculate extra lighting samples and average them\n");
-	Com_Print(" --indirect - calculate indirect lighting\n");
+	Com_Print(" --no-indirect - skip indirect lighting\n");
 	Com_Print(" --bounce <integer> - indirect lighting bounces (default 1)\n");
 	Com_Print(" --radiosity <float> - radiosity level (default 0.125)\n");
 	Com_Print(" --brightness <float> - brightness (default 1.0)\n");
