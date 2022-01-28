@@ -364,7 +364,6 @@ static void LightLightmapLuxel(const GPtrArray *lights, const lightmap_t *lightm
 				sample.y += t;
 
 				const vec3_t point = Mat4_Transform(lightmap->inverse_matrix, sample);
-
 				const cm_trace_t trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
 
 				exposure += sample_fraction * trace.fraction;
@@ -374,58 +373,27 @@ static void LightLightmapLuxel(const GPtrArray *lights, const lightmap_t *lightm
 
 		} else if (light->type == LIGHT_SUN) {
 
-			const vec3_t sun_origin = Vec3_Fmaf(luxel->origin, -MAX_WORLD_DIST, light->normal);
-
-			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, head_node, CONTENTS_SOLID);
-			if (!(trace.surface & SURF_SKY)) {
-				float exposure = 0.f;
-
-				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
-				for (int32_t i = 0; i < num_samples; i++) {
-
-					const vec3_t points[] = CUBE_8;
-					for (size_t j = 0; j < lengthof(points); j++) {
-
-						const vec3_t point = Vec3_Fmaf(sun_origin, i * LIGHT_SIZE_STEP, points[j]);
-
-						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
-						if (!(trace.surface & SURF_SKY)) {
-							continue;
-						}
-
-						exposure += 1.f / num_samples;
-						break;
-					}
+			int32_t samples = 0;
+			for (int32_t i = 0; i < light->num_points; i++) {
+				const vec3_t end = Vec3_Fmaf(luxel->origin, -MAX_WORLD_DIST, light->points[i]);
+				const cm_trace_t trace = Light_Trace(luxel->origin, end, head_node, CONTENTS_SOLID);
+				if (trace.surface & SURF_SKY) {
+					samples++;
 				}
-
-				intensity *= exposure;
 			}
+
+			intensity *= (samples / (float) light->num_points);
 
 		} else {
-			cm_trace_t trace = Light_Trace(luxel->origin, light->origin, head_node, CONTENTS_SOLID);
-			if (trace.fraction < 1.f) {
-				float exposure = 0.f;
 
-				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
-				for (int32_t i = 0; i < num_samples; i++) {
-
-					const vec3_t points[] = CUBE_8;
-					for (size_t j = 0; j < lengthof(points); j++) {
-
-						const vec3_t point = Vec3_Fmaf(light->origin, (i + 1) * LIGHT_SIZE_STEP, points[j]);
-
-						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
-						if (trace.fraction < 1.f) {
-							continue;
-						}
-
-						exposure += 1.f / num_samples;
-						break;
-					}
+			int32_t samples = 0;
+			for (int32_t i = 0; i < light->num_points; i++) {
+				if (Light_Trace(luxel->origin, light->points[i], head_node, CONTENTS_SOLID).fraction == 1.f) {
+					samples++;
 				}
-
-				intensity *= exposure;
 			}
+
+			intensity *= (samples / (float) light->num_points);
 		}
 
 		intensity *= scale;
