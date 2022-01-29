@@ -89,6 +89,14 @@ cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t plane
 }
 
 /**
+ * @return The `point` projected onto `plane`.
+ */
+vec3_t Cm_ProjectPointToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
+	const float dist = Cm_DistanceToPlane(point, plane);
+	return Vec3_Subtract(point, Vec3_Scale(plane->normal, dist));
+}
+
+/**
  * @return `true` if `point` resides inside `brush`, `false` otherwise.
  */
 _Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
