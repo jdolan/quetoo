@@ -353,6 +353,26 @@ START_TEST(check_Cm_Barycentric) {
 
 } END_TEST
 
+START_TEST(check_Cm_DistanceToWinding) {
+
+	cm_winding_t *w = Cm_AllocWinding(3);
+	w->num_points = 3;
+
+	w->points[0] = Vec3(0.f, 0.f, 0.f);
+	w->points[1] = Vec3(0.f, 1.f, 0.f);
+	w->points[2] = Vec3(1.f, 0.f, 0.f);
+
+	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[0]));
+	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[1]));
+	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[2]));
+
+	ck_assert_float_eq(.5f, Cm_DistanceToWinding(w, Vec3(.5f, .5f, 0.f)));
+	ck_assert_float_eq(1.f, Cm_DistanceToWinding(w, Vec3(0.f, 2.f, 0.f)));
+
+	Cm_FreeWinding(w);
+
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -395,6 +415,13 @@ int32_t main(int32_t argc, char **argv) {
 		TCase *tcase = tcase_create("Cm_Barycentric");
 		tcase_add_checked_fixture(tcase, setup, teardown);
 		tcase_add_test(tcase, check_Cm_Barycentric);
+		suite_add_tcase(suite, tcase);
+	}
+
+	{
+		TCase *tcase = tcase_create("Cm_DistanceToWinding");
+		tcase_add_checked_fixture(tcase, setup, teardown);
+		tcase_add_test(tcase, check_Cm_DistanceToWinding);
 		suite_add_tcase(suite, tcase);
 	}
 
