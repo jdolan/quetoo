@@ -28,10 +28,12 @@ patch_t *patches;
 /**
  * @brief
  */
-static patch_t *BuildPatch(const bsp_face_t *face, const vec3_t origin, cm_winding_t *w) {
+static patch_t *BuildPatch(const bsp_model_t *model, const bsp_face_t *face,
+						   const vec3_t origin, cm_winding_t *w) {
 
 	patch_t *patch = &patches[face - bsp_file.faces];
 
+	patch->model = model;
 	patch->face = face;
 	patch->origin = origin;
 	patch->winding = w;
@@ -70,15 +72,15 @@ void BuildPatches(void) {
 
 	for (int32_t i = 0; i < bsp_file.num_models; i++) {
 
-		const bsp_model_t *mod = &bsp_file.models[i];
+		const bsp_model_t *model = &bsp_file.models[i];
 		const cm_entity_t *ent = EntityForModel(i);
 
 		// inline models need to be offset into their in-use position
 		const vec3_t origin = Cm_EntityValue(ent, "origin")->vec3;
 
-		for (int32_t j = 0; j < mod->num_faces; j++) {
+		for (int32_t j = 0; j < model->num_faces; j++) {
 
-			const int32_t face_num = mod->first_face + j;
+			const int32_t face_num = model->first_face + j;
 			const bsp_face_t *face = &bsp_file.faces[face_num];
 
 			cm_winding_t *w = Cm_WindingForFace(&bsp_file, face);
@@ -87,7 +89,7 @@ void BuildPatches(void) {
 				w->points[k] = Vec3_Add(w->points[k], origin);
 			}
 
-			BuildPatch(face, origin, w);
+			BuildPatch(model, face, origin, w);
 		}
 	}
 }
@@ -129,6 +131,7 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	// create a new patch
 	patch_t *p = (patch_t *) Mem_TagMalloc(sizeof(*p), MEM_TAG_PATCH);
+	p->model = patch->model;
 	p->face = patch->face;
 
 	p->origin = patch->origin;

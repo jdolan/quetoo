@@ -454,6 +454,10 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
  */
 static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
+	if (light->model != bsp_file.models && light->model != lightmap->model) {
+		return;
+	}
+
 	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist <= 0.f) {
 		return;
 	}
@@ -503,6 +507,10 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	if (light->face == lightmap->face) {
+		return;
+	}
+
+	if (light->model != bsp_file.models && light->model != lightmap->model) {
 		return;
 	}
 

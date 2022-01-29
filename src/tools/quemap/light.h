@@ -114,6 +114,11 @@ typedef struct {
 	 * @brief The light source plane for patch and indirect lights.
 	 */
 	const bsp_plane_t *plane;
+
+	/**
+	 * @brief The light source model for patch and indirect lights.
+	 */
+	const bsp_model_t *model;
 } light_t;
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];
