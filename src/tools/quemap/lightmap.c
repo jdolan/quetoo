@@ -349,7 +349,7 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 		float dist;
 		dir = Vec3_NormalizeLength(points[i], &dist);
 		if (dist > light->radius) {
-			break;
+			return;
 		}
 
 		const float dot = Vec3_Dot(dir, luxel->normal);
@@ -405,7 +405,7 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 		float dist;
 		dir = Vec3_NormalizeLength(points[i], &dist);
 		if (dist > light->radius) {
-			break;
+			return;
 		}
 
 		const float dot = Vec3_Dot(dir, luxel->normal);
@@ -478,7 +478,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		float dist;
 		dir = Vec3_NormalizeLength(points[i], &dist);
 		if (dist > light->radius) {
-			break;
+			return;
 		}
 
 		const float dot = Vec3_Dot(dir, luxel->normal);
@@ -533,7 +533,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		float dist;
 		const vec3_t dir = Vec3_NormalizeLength(points[i], &dist);
 		if (dist > light->radius) {
-			break;
+			return;
 		}
 
 		const float dot = Vec3_Dot(dir, luxel->normal);

@@ -238,7 +238,7 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 		float dist;
 		dir = Vec3_NormalizeLength(points[i], &dist);
 		if (dist > light->radius) {
-			break;
+			return;
 		}
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
@@ -289,7 +289,7 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 		float dist;
 		dir = Vec3_NormalizeLength(points[i], &dist);
 		if (dist > light->radius) {
-			break;
+			return;
 		}
 
 		const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
@@ -357,7 +357,7 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 		float dist;
 		dir = Vec3_NormalizeLength(points[i], &dist);
 		if (dist > light->radius) {
-			break;
+			return;
 		}
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
@@ -383,7 +383,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 	if (light->model != bsp_file.models) {
 		return;
 	}
-	
+
 	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist <= 0.f) {
 		return;
 	}
