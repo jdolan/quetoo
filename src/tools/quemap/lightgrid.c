@@ -400,15 +400,9 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
-		float dist;
-		const vec3_t dir = Vec3_NormalizeLength(points[i], &dist);
+		const float dist = Vec3_Distance(points[i], luxel->origin);
 		if (dist > light->radius) {
 			break;
-		}
-
-		const float dot = Vec3_Dot(dir, luxel->normal);
-		if (dot <= 0.f) {
-			continue;
 		}
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
@@ -418,7 +412,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 
 		const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
 
-		intensity = light->radius * dot * atten * atten;
+		intensity = light->radius * atten * atten;
 		break;
 	}
 
