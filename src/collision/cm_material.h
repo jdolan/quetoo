@@ -232,7 +232,7 @@ typedef struct {
 #define DEFAULT_BLOOM 1.f
 #define DEFAULT_ALPHA_TEST .5f
 #define DEFAULT_LIGHT 300.f
-#define DEFAULT_PATCH_SIZE 32
+#define DEFAULT_PATCH_SIZE 64
 
 /**
  * @brief Materials define the rendering attributes of textures.
