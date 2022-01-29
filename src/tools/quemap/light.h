@@ -95,6 +95,11 @@ typedef struct {
 	float size;
 
 	/**
+	 * @brief The bounds of the light source.
+	 */
+	box3_t bounds;
+
+	/**
 	 * @brief The sample points (origins) to be traced to for this light.
 	 * @remarks For directional lights, these are directional vectors, not points.
 	 */

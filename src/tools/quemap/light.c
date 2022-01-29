@@ -134,6 +134,7 @@ static void LightForEntity_worldspawn(const cm_entity_t *entity, light_t *light)
 		light->atten = LIGHT_ATTEN_NONE;
 		light->color = ambient;
 		light->radius = LIGHT_RADIUS_AMBIENT;
+		light->bounds = Box3_Null();
 	}
 }
 
@@ -147,6 +148,7 @@ static void LightForEntity_light_sun(const cm_entity_t *entity, light_t *light) 
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->radius = LIGHT_RADIUS;
+	light->bounds = Box3_Null();
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
@@ -208,6 +210,8 @@ static void LightForEntity_light(const cm_entity_t *entity, light_t *light) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
 	}
 
+	light->bounds = Box3_FromCenter(light->origin);
+
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 	g_array_append_val(points, light->origin);
 
@@ -222,8 +226,12 @@ static void LightForEntity_light(const cm_entity_t *entity, light_t *light) {
 			}
 
 			g_array_append_val(points, p);
+
+			light->bounds = Box3_Append(light->bounds, p);
 		}
 	}
+
+	light->bounds = Box3_Expand(light->bounds, light->radius);
 
 	light->points = (vec3_t *) points->data;
 	light->num_points = points->len;
@@ -252,6 +260,8 @@ static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light)
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
 	}
+
+	light->bounds = Box3_FromCenter(light->origin);
 
 	light->normal = Vec3_Down();
 
@@ -293,9 +303,13 @@ static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light)
 				continue;
 			}
 
+			light->bounds = Box3_Append(light->bounds, p);
+
 			g_array_append_val(points, p);
 		}
 	}
+
+	light->bounds = Box3_Expand(light->bounds, light->radius);
 
 	light->points = (vec3_t *) points->data;
 	light->num_points = points->len;
@@ -358,18 +372,24 @@ static void LightForPatch(const patch_t *patch) {
 
 	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * lightscale_patch;
 
+	light.bounds = Box3_FromCenter(light.origin);
+
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 	g_array_append_val(points, light.origin);
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		const vec3_t point = Vec3_Fmaf(patch->winding->points[i], 4.f, plane->normal);
-		if (Light_PointContents(point, 0) & CONTENTS_SOLID) {
+		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], 4.f, plane->normal);
+		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
 		}
 
-		g_array_append_val(points, point);
+		light.bounds = Box3_Append(light.bounds, p);
+
+		g_array_append_val(points, p);
 	}
+
+	light.bounds = Box3_Expand(light.bounds, light.radius);
 
 	light.points = (vec3_t *) points->data;
 	light.num_points = points->len;
@@ -427,9 +447,7 @@ static GPtrArray *BoxLights(const box3_t bounds) {
 	for (guint i = 0; i < lights->len; i++, light++) {
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			const float radius = light->radius + light->size * .5f;
-			const box3_t light_bounds = Box3_FromCenterRadius(light->origin, radius);
-			if (!Box3_Intersects(bounds, light_bounds)) {
+			if (!Box3_Intersects(bounds, light->bounds)) {
 				continue;
 			}
 		}
@@ -576,18 +594,24 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	lightmap = ColorNormalize(lightmap);
 	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
 
+	light.bounds = Box3_FromCenter(light.origin);
+
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 	g_array_append_val(points, light.origin);
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		const vec3_t point = Vec3_Fmaf(patch->winding->points[i], 4.f, lm->plane->normal);
-		if (Light_PointContents(point, 0) & CONTENTS_SOLID) {
+		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], 4.f, lm->plane->normal);
+		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
 		}
 
-		g_array_append_val(points, point);
+		light.bounds = Box3_Append(light.bounds, p);
+
+		g_array_append_val(points, p);
 	}
+
+	light.bounds = Box3_Expand(light.bounds, light.radius);
 
 	light.points = (vec3_t *) points->data;
 	light.num_points = points->len;
