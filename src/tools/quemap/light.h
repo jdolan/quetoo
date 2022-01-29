@@ -106,9 +106,14 @@ typedef struct {
 	int32_t num_points;
 
 	/**
-	 * @brief The light source face for indirect lights.
+	 * @brief The light source face for patch and indirect lights.
 	 */
 	const bsp_face_t *face;
+
+	/**
+	 * @brief The light source plane for patch and indirect lights.
+	 */
+	const bsp_plane_t *plane;
 } light_t;
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];

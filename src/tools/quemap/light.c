@@ -340,6 +340,8 @@ static void LightForPatch(const patch_t *patch) {
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
 	light.size = sqrtf(Cm_WindingArea(patch->winding));
 	light.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, plane->normal);
+	light.face = patch->face;
+	light.plane = plane;
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;
@@ -354,7 +356,6 @@ static void LightForPatch(const patch_t *patch) {
 	}
 
 	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * lightscale_patch;
-	light.face = patch->face;
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 	g_array_append_val(points, light.origin);
@@ -512,12 +513,17 @@ void BuildDirectLights(void) {
  */
 static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
+	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane];
+
 	light_t light = {};
 
 	light.type = LIGHT_INDIRECT;
 	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
 	light.size = sqrtf(Cm_WindingArea(patch->winding));
 	light.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, lm->plane->normal);
+	light.face = patch->face;
+	light.plane = plane;
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;
