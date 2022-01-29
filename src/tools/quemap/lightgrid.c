@@ -333,6 +333,10 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
  */
 static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float scale) {
 
+	if (light->model != bsp_file.models) {
+		return;
+	}
+
 	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist <= 0.f) {
 		return;
 	}
@@ -376,6 +380,10 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
  */
 static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float scale) {
 
+	if (light->model != bsp_file.models) {
+		return;
+	}
+	
 	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist <= 0.f) {
 		return;
 	}
