@@ -386,13 +386,16 @@ int32_t main(int32_t argc, char **argv) {
 
 	{
 		TCase *tcase = tcase_create("Cm_TriangleArea");
+		tcase_add_checked_fixture(tcase, setup, teardown);
 		tcase_add_test(tcase, check_Cm_TriangleArea);
 		suite_add_tcase(suite, tcase);
 	}
 
 	{
 		TCase *tcase = tcase_create("Cm_Barycentric");
+		tcase_add_checked_fixture(tcase, setup, teardown);
 		tcase_add_test(tcase, check_Cm_Barycentric);
+		suite_add_tcase(suite, tcase);
 	}
 
 	int32_t failed = Test_Run(suite);
