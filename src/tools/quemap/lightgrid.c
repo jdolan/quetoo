@@ -87,6 +87,8 @@ static void BuildLightgridLuxels(void) {
 				l->s = s;
 				l->t = t;
 				l->u = u;
+
+				l->direction = Vec3_Up();
 			}
 		}
 	}
