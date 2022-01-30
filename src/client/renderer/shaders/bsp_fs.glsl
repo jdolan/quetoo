@@ -128,6 +128,8 @@ void main(void) {
 
 		//out_color.rgb = caustic;
 		//out_color.rgb = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
+		//out_color.rgb = diffuse + ambient;
+		//out_color.rgb = sample_lightmap(2).xyz;
 	} else {
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
