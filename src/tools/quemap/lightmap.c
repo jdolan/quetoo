@@ -506,7 +506,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
  */
 static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
-	if (light->face == lightmap->face) {
+	if (light->plane == lightmap->plane) {
 		return;
 	}
 
