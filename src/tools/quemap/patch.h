@@ -25,6 +25,7 @@
 #include "polylib.h"
 
 typedef struct patch_s {
+	const bsp_model_t *model;
 	const bsp_face_t *face;
 	vec3_t origin;
 	cm_winding_t *winding;

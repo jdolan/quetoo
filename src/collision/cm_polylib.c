@@ -110,6 +110,38 @@ float Cm_WindingArea(const cm_winding_t *w) {
 }
 
 /**
+ * @brief Calculates the distance from `p` to `w`.
+ * @see https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+ */
+float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p) {
+
+	float distance = FLT_MAX;
+
+	for (int32_t i = 0; i < w->num_points; i++) {
+
+		const vec3_t a = w->points[(i + 0) % w->num_points];
+		const vec3_t b = w->points[(i + 1) % w->num_points];
+
+		const float dist_squared = Vec3_DistanceSquared(a, b);
+		if (dist_squared == 0.f) {
+			return Vec3_Distance(a, p);
+		}
+
+		const vec3_t pa = Vec3_Subtract(p, a);
+		const vec3_t ba = Vec3_Subtract(b, a);
+
+		const float f = Maxf(0.f, Minf(1.f, Vec3_Dot(pa, ba) / dist_squared));
+		const float dist = Vec3_Distance(p, Vec3_Fmaf(a, f, ba));
+
+		if (dist < distance) {
+			distance = dist;
+		}
+	}
+
+	return distance;
+}
+
+/**
  * @brief
  */
 void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {

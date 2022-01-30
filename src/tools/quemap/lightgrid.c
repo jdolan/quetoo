@@ -87,6 +87,8 @@ static void BuildLightgridLuxels(void) {
 				l->s = s;
 				l->t = t;
 				l->u = u;
+
+				l->direction = Vec3_Up();
 			}
 		}
 	}
@@ -160,170 +162,241 @@ size_t BuildLightgrid(void) {
 }
 
 /**
+ * @brief
+ */
+static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float scale) {
+
+	const vec3_t points[] = CUBE_8;
+	float sample_fraction = 1.f / lengthof(points);
+
+	float intensity = 0.f;
+
+	for (size_t i = 0; i < lengthof(points); i++) {
+
+		const vec3_t end = Vec3_Fmaf(luxel->origin, light->radius, points[i]);
+		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
+
+		intensity += sample_fraction * trace.fraction;
+	}
+
+	luxel->ambient = Vec3_Fmaf(luxel->ambient, light->radius * intensity * scale, light->color);
+}
+
+/**
+ * @brief
+ */
+static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale) {
+
+	for (int32_t i = 0; i < light->num_points; i++) {
+
+		const vec3_t dir = Vec3_Negate(light->points[i]);
+		const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
+
+		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
+		if (trace.surface & SURF_SKY) {
+
+			const float intensity = (light->radius / light->num_points);
+
+			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity * scale, light->color);
+			luxel->direction = Vec3_Fmaf(luxel->direction, intensity * scale, dir);
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float scale) {
+	vec3_t dir;
+
+	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
+	dist = Maxf(0.f, dist - light->size * .5f);
+	if (dist > light->radius) {
+		return;
+	}
+
+	float atten = 1.f;
+
+	switch (light->atten) {
+		case LIGHT_ATTEN_NONE:
+			break;
+		case LIGHT_ATTEN_LINEAR:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten *= atten;
+			break;
+	}
+
+	const float intensity = light->radius * atten * scale;
+
+	for (int32_t i = 0; i < light->num_points; i++) {
+
+		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
+		if (trace.fraction < 1.f) {
+			continue;
+		}
+
+		luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
+		luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
+
+		break;
+	}
+}
+
+/**
+ * @brief
+ */
+static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scale) {
+	vec3_t dir;
+
+	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
+	dist = Maxf(0.f, dist - light->size * .5f);
+	if (dist > light->radius) {
+		return;
+	}
+
+	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+	const float thresh = cosf(light->theta);
+	const float smooth = 0.03f;
+	const float cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
+
+	if (cutoff <= 0.f) {
+		return;
+	}
+
+	float atten = 1.f;
+
+	switch (light->atten) {
+		case LIGHT_ATTEN_NONE:
+			break;
+		case LIGHT_ATTEN_LINEAR:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten *= atten;
+			break;
+	}
+
+	const float intensity = light->radius * cutoff * atten * scale;
+
+	for (int32_t i = 0; i < light->num_points; i++) {
+
+		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
+		if (trace.fraction < 1.f) {
+			continue;
+		}
+
+		luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
+		luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
+		break;
+	}
+}
+
+/**
+ * @brief
+ */
+static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float scale) {
+	vec3_t dir;
+
+	if (light->model != bsp_file.models) {
+		return;
+	}
+
+	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTGRID_LUXEL_SIZE) {
+		return;
+	}
+
+	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
+	dist = Maxf(0.f, dist - light->size * .5f);
+	if (dist > light->radius) {
+		return;
+	}
+
+	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+	const float intensity = light->radius * atten * atten * scale;
+
+	for (int32_t i = 0; i < light->num_points; i++) {
+
+		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
+		if (trace.fraction < 1.f) {
+			continue;
+		}
+
+		luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
+		luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
+		break;
+	}
+}
+
+/**
+ * @brief
+ */
+static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float scale) {
+
+	if (light->model != bsp_file.models) {
+		return;
+	}
+
+	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTGRID_LUXEL_SIZE) {
+		return;
+	}
+	
+	float dist = Vec3_Distance(light->origin, luxel->origin);
+	dist = Maxf(0.f, dist - light->size * .5f);
+	if (dist > light->radius) {
+		return;
+	}
+
+	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+	const float intensity = light->radius * atten * atten * scale;
+
+	for (int32_t i = 0; i < light->num_points; i++) {
+
+		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
+		if (trace.fraction < 1.f) {
+			continue;
+		}
+
+		luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
+		break;
+	}
+}
+
+/**
  * @brief Iterates lights, accumulating color and direction on the specified luxel.
- * @param lights The lights to iterate.
+ * @param lights The light sources to iterate.
  * @param luxel The luxel to light.
  * @param scale A scalar applied to both color and direction.
  */
-static void LightLightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
+static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float scale) {
 
 	for (guint i = 0; i < lights->len; i++) {
 
 		const light_t *light = g_ptr_array_index(lights, i);
 
-		float dist_squared = 0.f;
-		switch (light->type) {
-			case LIGHT_SUN:
-				break;
-			default:
-				dist_squared = Vec3_DistanceSquared(light->origin, luxel->origin);
-				break;
-		}
-
-		if (light->atten != LIGHT_ATTEN_NONE) {
-			if (dist_squared > light->radius * light->radius) {
-				continue;
-			}
-		}
-
-		const float dist = sqrtf(dist_squared);
-
-		vec3_t dir;
-		if (light->type == LIGHT_SUN) {
-			dir = Vec3_Negate(light->normal);
-		} else {
-			dir = Vec3_Normalize(Vec3_Subtract(light->origin, luxel->origin));
-		}
-
-		float intensity = Clampf(light->radius, 0.f, MAX_WORLD_COORD);
-
-		switch (light->type) {
-			case LIGHT_SPOT: {
-				const float cone_dot = Vec3_Dot(dir, light->normal);
-				const float thresh = cosf(light->theta);
-				const float smooth = 0.03f;
-				intensity *= Smoothf(thresh - smooth, thresh + smooth, cone_dot);
-			}
-				break;
-			default:
-				break;
-		}
-
-		float atten = 1.f;
-
-		switch (light->atten) {
-			case LIGHT_ATTEN_NONE:
-				break;
-			case LIGHT_ATTEN_LINEAR:
-				atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-				break;
-			case LIGHT_ATTEN_INVERSE_SQUARE:
-				atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-				atten *= atten;
-				break;
-		}
-
-		intensity *= atten;
-
-		if (intensity <= 0.f) {
-			continue;
-		}
-
-		if (light->type == LIGHT_AMBIENT) {
-
-			const vec3_t points[] = CUBE_8;
-			float sample_fraction = 1.f / lengthof(points);
-
-			float exposure = 0.f;
-
-			for (size_t i = 0; i < lengthof(points); i++) {
-
-				const vec3_t point = Vec3_Fmaf(luxel->origin, 256.f, points[i]);
-
-				const cm_trace_t trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
-
-				exposure += sample_fraction * trace.fraction;
-			}
-
-			intensity *= exposure;
-
-		} else if (light->type == LIGHT_SUN) {
-
-			const vec3_t sun_origin = Vec3_Fmaf(luxel->origin, -MAX_WORLD_DIST, light->normal);
-
-			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, 0, CONTENTS_SOLID);
-			if (!(trace.surface & SURF_SKY)) {
-				float exposure = 0.f;
-
-				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
-				for (int32_t i = 0; i < num_samples; i++) {
-
-					const vec3_t points[] = CUBE_8;
-					for (size_t j = 0; j < lengthof(points); j++) {
-
-						const vec3_t point = Vec3_Fmaf(sun_origin, i * LIGHT_SIZE_STEP, points[j]);
-
-						trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
-						if (!(trace.surface & SURF_SKY)) {
-							continue;
-						}
-
-						exposure += 1.f / num_samples;
-						break;
-					}
-				}
-
-				intensity *= exposure;
-			}
-
-		} else {
-			cm_trace_t trace = Light_Trace(luxel->origin, light->origin, 0, CONTENTS_SOLID);
-			if (trace.fraction < 1.f) {
-				float exposure = 0.f;
-
-				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
-				for (int32_t i = 0; i < num_samples; i++) {
-
-					const vec3_t points[] = CUBE_8;
-					for (size_t j = 0; j < lengthof(points); j++) {
-
-						const vec3_t point = Vec3_Fmaf(light->origin, (i + 1) * LIGHT_SIZE_STEP, points[j]);
-
-						trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
-						if (trace.fraction < 1.f) {
-							continue;
-						}
-
-						exposure += 1.f / num_samples;
-						break;
-					}
-				}
-
-				intensity *= exposure;
-			}
-		}
-
-		intensity *= scale;
-
-		if (intensity <= 0.f) {
-			continue;
-		}
-
 		switch (light->type) {
 			case LIGHT_INVALID:
 				break;
 			case LIGHT_AMBIENT:
-				luxel->ambient = Vec3_Fmaf(luxel->ambient, intensity, light->color);
+				LightgridLuxel_Ambient(light, luxel, scale);
 				break;
 			case LIGHT_SUN:
+				LightgridLuxel_Sun(light, luxel, scale);
+				break;
 			case LIGHT_POINT:
+				LightgridLuxel_Point(light, luxel, scale);
+				break;
 			case LIGHT_SPOT:
+				LightgridLuxel_Spot(light, luxel, scale);
+				break;
 			case LIGHT_PATCH:
-				luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
-				luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
+				LightgridLuxel_Patch(light, luxel, scale);
 				break;
 			case LIGHT_INDIRECT:
-				luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
+				LightgridLuxel_Indirect(light, luxel, scale);
 				break;
 		}
 	}
@@ -365,7 +438,7 @@ void DirectLightgrid(int32_t luxel_num) {
 
 		contribution += weight;
 
-		LightLightgridLuxel(lights, l, weight);
+		LightgridLuxel(lights, l, weight);
 	}
 
 	if (contribution > 0.f) {
@@ -421,7 +494,7 @@ void IndirectLightgrid(int32_t luxel_num) {
 
 		contribution += weight;
 
-		LightLightgridLuxel(lights, l, weight);
+		LightgridLuxel(lights, l, weight);
 	}
 
 	if (contribution > 0.f) {

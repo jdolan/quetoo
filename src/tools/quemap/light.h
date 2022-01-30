@@ -29,7 +29,8 @@
 #define LIGHT_ANGLE_UP -1.f
 #define LIGHT_ANGLE_DOWN -2.f
 #define LIGHT_CONE 22.5f
-#define LIGHT_SIZE_SUN 256.f
+#define LIGHT_SUN_DIST 1024.f
+#define LIGHT_SIZE_SUN 32.f
 #define LIGHT_SIZE_STEP 16.f
 
 typedef enum {
@@ -53,7 +54,6 @@ typedef enum {
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
 typedef struct {
-
 	/**
 	 * @brief The type.
 	 */
@@ -95,9 +95,35 @@ typedef struct {
 	float size;
 
 	/**
-	 * @brief The light source face for indirect lights.
+	 * @brief The bounds of the light source.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The sample points (origins) to be traced to for this light.
+	 * @remarks For directional lights, these are directional vectors, not points.
+	 */
+	vec3_t *points;
+
+	/**
+	 * @brief The number of sample points.
+	 */
+	int32_t num_points;
+
+	/**
+	 * @brief The light source face for patch and indirect lights.
 	 */
 	const bsp_face_t *face;
+
+	/**
+	 * @brief The light source plane for patch and indirect lights.
+	 */
+	const bsp_plane_t *plane;
+
+	/**
+	 * @brief The light source model for patch and indirect lights.
+	 */
+	const bsp_model_t *model;
 } light_t;
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];

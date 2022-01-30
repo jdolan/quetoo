@@ -20,6 +20,7 @@
  */
 
 #include "light.h"
+#include "points.h"
 #include "qlight.h"
 
 static GArray *lights = NULL;
@@ -105,122 +106,236 @@ vec3_t ColorFilter(const vec3_t in) {
 /**
  * @brief
  */
+const cm_entity_t *EntityTarget(const cm_entity_t *entity) {
+
+	const char *targetname = Cm_EntityValue(entity, "target")->nullable_string;
+	if (targetname) {
+
+		cm_entity_t **e = Cm_Bsp()->entities;
+		for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
+			if (!g_strcmp0(targetname, Cm_EntityValue(*e, "targetname")->nullable_string)) {
+				return *e;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * @brief
+ */
+static void LightForEntity_worldspawn(const cm_entity_t *entity, light_t *light) {
+
+	const vec3_t ambient = Cm_EntityValue(entity, "ambient")->vec3;
+	if (!Vec3_Equal(ambient, Vec3_Zero())) {
+
+		light->type = LIGHT_AMBIENT;
+		light->atten = LIGHT_ATTEN_NONE;
+		light->color = ambient;
+		light->radius = LIGHT_RADIUS_AMBIENT;
+		light->bounds = Box3_Null();
+	}
+}
+
+/**
+ * @brief
+ */
+static void LightForEntity_light_sun(const cm_entity_t *entity, light_t *light) {
+
+	light->type = LIGHT_SUN;
+	light->atten = LIGHT_ATTEN_NONE;
+	light->origin = Cm_EntityValue(entity, "origin")->vec3;
+	light->color = Cm_EntityValue(entity, "_color")->vec3;
+	light->radius = LIGHT_RADIUS;
+	light->bounds = Box3_Null();
+
+	if (Vec3_Equal(Vec3_Zero(), light->color)) {
+		light->color = LIGHT_COLOR;
+	}
+
+	light->normal = Vec3_Down();
+
+	const cm_entity_t *target = EntityTarget(entity);
+	if (target) {
+		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
+	} else {
+		Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0, "light_sun missing target");
+	}
+
+	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE_SUN;
+
+	GArray *points = g_array_new(false, false, sizeof(vec3_t));
+	g_array_append_val(points, light->normal);
+
+	for (int32_t i = 1; i <= ceilf(light->size / LIGHT_SIZE_STEP); i++) {
+
+		const vec3_t cube[] = CUBE_8;
+		for (size_t j = 0; j < lengthof(cube); j++) {
+
+			const vec3_t a = Vec3_Scale(light->normal, LIGHT_SUN_DIST);
+			const vec3_t b = Vec3_Scale(cube[j], i * LIGHT_SIZE_STEP);
+
+			const vec3_t dir = Vec3_Normalize(Vec3_Add(a, b));
+
+			g_array_append_val(points, dir);
+		}
+	}
+
+	light->points = (vec3_t *) points->data;
+	light->num_points = points->len;
+
+	g_array_free(points, false);
+}
+
+/**
+ * @brief
+ */
+static void LightForEntity_light(const cm_entity_t *entity, light_t *light) {
+
+	light->type = LIGHT_POINT;
+	light->atten = LIGHT_ATTEN_LINEAR;
+	light->origin = Cm_EntityValue(entity, "origin")->vec3;
+	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
+	light->color = Cm_EntityValue(entity, "_color")->vec3;
+	light->size = Cm_EntityValue(entity, "_size")->value;
+
+	if (Vec3_Equal(Vec3_Zero(), light->color)) {
+		light->color = LIGHT_COLOR;
+	}
+
+	light->radius *= lightscale_point;
+
+	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
+		light->atten = Cm_EntityValue(entity, "atten")->integer;
+	}
+
+	light->bounds = Box3_FromCenter(light->origin);
+
+	GArray *points = g_array_new(false, false, sizeof(vec3_t));
+	g_array_append_val(points, light->origin);
+
+	for (int32_t i = 1; i <= ceilf(light->size / LIGHT_SIZE_STEP); i++) {
+
+		const vec3_t cube[] = CUBE_8;
+		for (size_t j = 0; j < lengthof(cube); j++) {
+
+			const vec3_t p = Vec3_Fmaf(light->origin, i * LIGHT_SIZE_STEP, cube[j]);
+			if (Light_Trace(light->origin, p, 0, CONTENTS_SOLID).fraction < 1.f) {
+				continue;
+			}
+
+			g_array_append_val(points, p);
+
+			light->bounds = Box3_Append(light->bounds, p);
+		}
+	}
+
+	light->bounds = Box3_Expand(light->bounds, light->radius);
+
+	light->points = (vec3_t *) points->data;
+	light->num_points = points->len;
+
+	g_array_free(points, false);
+}
+
+/**
+ * @brief
+ */
+static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light) {
+
+	light->type = LIGHT_SPOT;
+	light->atten = LIGHT_ATTEN_LINEAR;
+	light->origin = Cm_EntityValue(entity, "origin")->vec3;
+	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
+	light->color = Cm_EntityValue(entity, "_color")->vec3;
+	light->size = Cm_EntityValue(entity, "_size")->value;
+
+	if (Vec3_Equal(Vec3_Zero(), light->color)) {
+		light->color = LIGHT_COLOR;
+	}
+
+	light->radius *= lightscale_point;
+
+	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
+		light->atten = Cm_EntityValue(entity, "atten")->integer;
+	}
+
+	light->bounds = Box3_FromCenter(light->origin);
+
+	light->normal = Vec3_Down();
+
+	const cm_entity_t *target = EntityTarget(entity);
+	if (target) {
+		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
+	} else if (Cm_EntityValue(entity, "_angle")->parsed & ENTITY_INTEGER) {
+		const int32_t angle = Cm_EntityValue(entity, "_angle")->integer;
+		if (angle == LIGHT_ANGLE_UP) {
+			light->normal = Vec3_Up();
+		} else if (angle == LIGHT_ANGLE_DOWN) {
+			light->normal = Vec3_Down();
+		} else {
+			Vec3_Vectors(Vec3(0.f, angle, 0.f), &light->normal, NULL, NULL);
+		}
+	} else {
+		Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0,
+					   va("light_spot at %s missing target and _angle", vtos(light->origin)));
+	}
+
+	if (Cm_EntityValue(entity, "_cone")->parsed & ENTITY_FLOAT) {
+		light->theta = Cm_EntityValue(entity, "_cone")->value;
+	} else {
+		light->theta = LIGHT_CONE;
+	}
+
+	light->theta = Radians(light->theta);
+
+	GArray *points = g_array_new(false, false, sizeof(vec3_t));
+	g_array_append_val(points, light->origin);
+
+	for (int32_t i = 1; i <= ceilf(light->size / LIGHT_SIZE_STEP); i++) {
+
+		const vec3_t cube[] = CUBE_8;
+		for (size_t j = 0; j < lengthof(cube); j++) {
+
+			const vec3_t p = Vec3_Fmaf(light->origin, i * LIGHT_SIZE_STEP, cube[j]);
+			if (Light_Trace(light->origin, p, 0, CONTENTS_SOLID).fraction < 1.f) {
+				continue;
+			}
+
+			light->bounds = Box3_Append(light->bounds, p);
+
+			g_array_append_val(points, p);
+		}
+	}
+
+	light->bounds = Box3_Expand(light->bounds, light->radius);
+
+	light->points = (vec3_t *) points->data;
+	light->num_points = points->len;
+
+	g_array_free(points, false);
+}
+
+/**
+ * @brief
+ */
 static void LightForEntity(const cm_entity_t *entity) {
+
+	light_t light = { .type = LIGHT_INVALID };
 
 	const char *class_name = Cm_EntityValue(entity, "classname")->string;
 	if (!g_strcmp0(class_name, "worldspawn")) {
+		LightForEntity_worldspawn(entity, &light);
+	} else if (!g_strcmp0(class_name, "light_sun")) {
+		LightForEntity_light_sun(entity, &light);
+	} else if (!g_strcmp0(class_name, "light")) {
+		LightForEntity_light(entity, &light);
+	} else if (!g_strcmp0(class_name, "light_spot")) {
+		LightForEntity_light_spot(entity, &light);
+	}
 
-		const vec3_t ambient = Cm_EntityValue(entity, "ambient")->vec3;
-		if (!Vec3_Equal(ambient, Vec3_Zero())) {
-
-			light_t light;
-			light.type = LIGHT_AMBIENT;
-			light.atten = LIGHT_ATTEN_NONE;
-			light.color = ambient;
-			light.radius = LIGHT_RADIUS_AMBIENT;
-
-			g_array_append_val(lights, light);
-		}
-	} else if (!g_strcmp0(class_name, "light") ||
-		!g_strcmp0(class_name, "light_spot") ||
-		!g_strcmp0(class_name, "light_sun")) {
-
-		light_t light;
-
-		if (!g_strcmp0(class_name, "light_sun")) {
-			light.type = LIGHT_SUN;
-			light.atten = LIGHT_ATTEN_NONE;
-		} else if (!g_strcmp0(class_name, "light_spot")) {
-			light.type = LIGHT_SPOT;
-			light.atten = LIGHT_ATTEN_LINEAR;
-		} else {
-			light.type = LIGHT_POINT;
-			light.atten = LIGHT_ATTEN_LINEAR;
-		}
-
-		light.origin = Cm_EntityValue(entity, "origin")->vec3;
-
-		if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
-			light.color = Cm_EntityValue(entity, "_color")->vec3;
-		} else {
-			light.color = LIGHT_COLOR;
-		}
-
-		light.radius = Cm_EntityValue(entity, "light")->value;
-		if (light.radius == 0.f) {
-			light.radius = LIGHT_RADIUS;
-		}
-
-		switch (light.type) {
-			case LIGHT_POINT:
-			case LIGHT_SPOT:
-				light.radius *= lightscale_point;
-				break;
-			default:
-				break;
-		}
-
-		if (Cm_EntityValue(entity, "target")->parsed & ENTITY_STRING) {
-			const char *targetname = Cm_EntityValue(entity, "target")->string;
-			cm_entity_t *target = NULL;
-			cm_entity_t **e = Cm_Bsp()->entities;
-			for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
-				if (!g_strcmp0(targetname, Cm_EntityValue(*e, "targetname")->string)) {
-					target = *e;
-					break;
-				}
-			}
-			if (target) {
-				const vec3_t target_origin = Cm_EntityValue(target, "origin")->vec3;
-				light.normal = Vec3_Subtract(target_origin, light.origin);
-			} else {
-				Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0,
-							   va("%s at %s missing target", class_name, vtos(light.origin)));
-				light.normal = Vec3_Down();
-			}
-		} else {
-			if (light.type == LIGHT_SPOT) {
-				if (Cm_EntityValue(entity, "_angle")->parsed & ENTITY_INTEGER) {
-					const int32_t angle = Cm_EntityValue(entity, "_angle")->integer;
-					if (angle == LIGHT_ANGLE_UP) {
-						light.normal = Vec3_Up();
-					} else if (angle == LIGHT_ANGLE_DOWN) {
-						light.normal = Vec3_Down();
-					} else {
-						Vec3_Vectors(Vec3(0.f, angle, 0.f), &light.normal, NULL, NULL);
-					}
-				} else {
-					light.normal = Vec3_Down();
-				}
-			} else {
-				light.normal = Vec3_Down();
-			}
-		}
-
-		light.normal = Vec3_Normalize(light.normal);
-
-		if (light.type == LIGHT_SPOT) {
-			if (Cm_EntityValue(entity, "_cone")->parsed & ENTITY_FLOAT) {
-				light.theta = Cm_EntityValue(entity, "_cone")->value;
-			} else {
-				light.theta = LIGHT_CONE;
-			}
-			light.theta = Radians(light.theta);
-		}
-
-		light.size = Cm_EntityValue(entity, "_size")->value;
-		if (light.size == 0.f) {
-			if (light.type == LIGHT_SUN) {
-				light.size = LIGHT_SIZE_SUN;
-			} else {
-				light.size = LIGHT_SIZE_STEP;
-			}
-		}
-
-		if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
-			light.atten = Cm_EntityValue(entity, "atten")->integer;
-		}
-
+	if (light.type != LIGHT_INVALID) {
 		g_array_append_val(lights, light);
 	}
 }
@@ -233,13 +348,15 @@ static void LightForPatch(const patch_t *patch) {
 	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
 	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane];
 
-	light_t light = {};
-
-	light.type = LIGHT_PATCH;
-	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
-	light.size = sqrtf(Cm_WindingArea(patch->winding));
-	light.origin = Cm_WindingCenter(patch->winding);
-	light.origin = Vec3_Fmaf(light.origin, 4.f, plane->normal);
+	light_t light = {
+		.type = LIGHT_PATCH,
+		.atten = LIGHT_ATTEN_INVERSE_SQUARE,
+		.size = sqrtf(Cm_WindingArea(patch->winding)),
+		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, plane->normal),
+		.face = patch->face,
+		.plane = plane,
+		.model = patch->model,
+	};
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;
@@ -254,7 +371,30 @@ static void LightForPatch(const patch_t *patch) {
 	}
 
 	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * lightscale_patch;
-	light.face = patch->face;
+
+	light.bounds = Box3_FromCenter(light.origin);
+
+	GArray *points = g_array_new(false, false, sizeof(vec3_t));
+	g_array_append_val(points, light.origin);
+
+	for (int32_t i = 0; i < patch->winding->num_points; i++) {
+
+		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], 4.f, plane->normal);
+		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
+			continue;
+		}
+
+		light.bounds = Box3_Append(light.bounds, p);
+
+		g_array_append_val(points, p);
+	}
+
+	light.bounds = Box3_Expand(light.bounds, light.radius);
+
+	light.points = (vec3_t *) points->data;
+	light.num_points = points->len;
+
+	g_array_free(points, false);
 
 	g_array_append_val(lights, light);
 }
@@ -266,6 +406,13 @@ void FreeLights(void) {
 
 	if (!lights) {
 		return;
+	}
+
+	for (guint i = 0; i < lights->len; i++) {
+		light_t *l = &g_array_index(lights, light_t, i);
+		if (l->num_points) {
+			g_free(l->points);
+		}
 	}
 
 	g_array_free(lights, true);
@@ -300,9 +447,7 @@ static GPtrArray *BoxLights(const box3_t bounds) {
 	for (guint i = 0; i < lights->len; i++, light++) {
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
-			const float radius = light->radius + light->size * .5f;
-			const box3_t light_bounds = Box3_FromCenterRadius(light->origin, radius);
-			if (!Box3_Intersects(bounds, light_bounds)) {
+			if (!Box3_Intersects(bounds, light->bounds)) {
 				continue;
 			}
 		}
@@ -387,13 +532,18 @@ void BuildDirectLights(void) {
  */
 static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
-	light_t light = {};
+	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
+	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane];
 
-	light.type = LIGHT_INDIRECT;
-	light.atten = LIGHT_ATTEN_INVERSE_SQUARE;
-	light.size = sqrtf(Cm_WindingArea(patch->winding));
-	light.origin = Cm_WindingCenter(patch->winding);
-	light.origin = Vec3_Fmaf(light.origin, 4.f, lm->plane->normal);
+	light_t light = {
+		.type = LIGHT_INDIRECT,
+		.atten = LIGHT_ATTEN_INVERSE_SQUARE,
+		.size = sqrtf(Cm_WindingArea(patch->winding)),
+		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, lm->plane->normal),
+		.face = patch->face,
+		.plane = plane,
+		.model = patch->model,
+	};
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
 		return;
@@ -410,10 +560,10 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		patch_maxs = Vec2_Maxf(patch_maxs, Vec3_XY(st));
 	}
 
-	assert(patch_mins.x >= lm->st_mins.x - 0.001);
-	assert(patch_mins.y >= lm->st_mins.y - 0.001);
-	assert(patch_maxs.x <= lm->st_maxs.x + 0.001);
-	assert(patch_maxs.y <= lm->st_maxs.y + 0.001);
+	assert(patch_mins.x >= lm->st_mins.x - 0.001f);
+	assert(patch_mins.y >= lm->st_mins.y - 0.001f);
+	assert(patch_maxs.x <= lm->st_maxs.x + 0.001f);
+	assert(patch_maxs.y <= lm->st_maxs.y + 0.001f);
 
 	const int16_t w = patch_maxs.x - patch_mins.x;
 	const int16_t h = patch_maxs.y - patch_mins.y;
@@ -438,13 +588,35 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		return;
 	}
 
-	lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
+	lightmap = Vec3_Scale(lightmap, 1.f / (w * h));
 	light.radius = Vec3_Length(lightmap) * radiosity;
 
 	lightmap = ColorNormalize(lightmap);
 	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
 
-	light.face = patch->face;
+	light.bounds = Box3_FromCenter(light.origin);
+
+	GArray *points = g_array_new(false, false, sizeof(vec3_t));
+	g_array_append_val(points, light.origin);
+
+	for (int32_t i = 0; i < patch->winding->num_points; i++) {
+
+		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], 4.f, lm->plane->normal);
+		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
+			continue;
+		}
+
+		light.bounds = Box3_Append(light.bounds, p);
+
+		g_array_append_val(points, p);
+	}
+
+	light.bounds = Box3_Expand(light.bounds, light.radius);
+
+	light.points = (vec3_t *) points->data;
+	light.num_points = points->len;
+
+	g_array_free(points, false);
 
 	g_array_append_val(lights, light);
 }
