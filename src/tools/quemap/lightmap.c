@@ -661,14 +661,6 @@ void DirectLightmap(int32_t face_num) {
  */
 void IndirectLightmap(int32_t face_num) {
 
-	const vec2_t offsets[] = {
-		Vec2(+0.0f, +0.0f), Vec2(-1.0f, -1.0f), Vec2(+0.0f, -1.0f),
-		Vec2(+1.0f, -1.0f), Vec2(-1.0f, +0.0f), Vec2(+1.0f, +0.0f),
-		Vec2(-1.0f, +1.0f), Vec2(+0.0f, +1.0f), Vec2(+1.0f, +1.0f),
-	};
-
-	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
-
 	const lightmap_t *lm = &lightmaps[face_num];
 
 	if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
@@ -680,27 +672,11 @@ void IndirectLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		float contribution = 0.f;
-
-		for (size_t j = 0; j < lengthof(offsets) && contribution < 1.f; j++) {
-
-			const float soffs = offsets[j].x;
-			const float toffs = offsets[j].y;
-
-			if (ProjectLightmapLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
-				continue;
-			}
-
-			contribution += weight;
-
-			LightmapLuxel(lights, lm, l, weight);
+		if (ProjectLightmapLuxel(lm, l, 0.f, 0.f) == CONTENTS_SOLID) {
+			continue;
 		}
 
-		if (contribution > 0.f) {
-			if (contribution < 1.f) {
-				l->radiosity[bounce] = Vec3_Scale(l->radiosity[bounce], 1.f / contribution);
-			}
-		}
+		LightmapLuxel(lights, lm, l, 1.f);
 	}
 }
 
@@ -756,14 +732,6 @@ static void CausticsLightmapLuxel(luxel_t *luxel, float scale) {
  */
 void CausticsLightmap(int32_t face_num) {
 
-	const vec2_t offsets[] = {
-		Vec2(+0.0f, +0.0f), Vec2(-1.0f, -1.0f), Vec2(+0.0f, -1.0f),
-		Vec2(+1.0f, -1.0f), Vec2(-1.0f, +0.0f), Vec2(+1.0f, +0.0f),
-		Vec2(-1.0f, +1.0f), Vec2(+0.0f, +1.0f), Vec2(+1.0f, +1.0f),
-	};
-
-	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
-
 	const lightmap_t *lm = &lightmaps[face_num];
 
 	if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
@@ -773,27 +741,11 @@ void CausticsLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		float contribution = 0.f;
-
-		for (size_t j = 0; j < lengthof(offsets) && contribution < 1.f; j++) {
-
-			const float soffs = offsets[j].x;
-			const float toffs = offsets[j].y;
-
-			if (ProjectLightmapLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
-				continue;
-			}
-
-			contribution += weight;
-
-			CausticsLightmapLuxel(l, weight);
+		if (ProjectLightmapLuxel(lm, l, 0.f, 0.f) == CONTENTS_SOLID) {
+			continue;
 		}
 
-		if (contribution > 0.f) {
-			if (contribution < 1.f) {
-				l->caustics = Vec3_Scale(l->caustics, 1.f / contribution);
-			}
-		}
+		CausticsLightmapLuxel(l, 1.f);
 	}
 }
 
