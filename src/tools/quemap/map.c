@@ -414,7 +414,7 @@ static void SetMaterialFlags(brush_side_t *side) {
 		side->surface |= SURF_HINT;
 	} else if (!g_strcmp0(side->texture, "common/ladder")) {
 		side->contents |= CONTENTS_LADDER | CONTENTS_PLAYER_CLIP;
-	} if (!g_strcmp0(side->texture, "common/monsterclip")) {
+	} else if (!g_strcmp0(side->texture, "common/monsterclip")) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
 	} else if (!g_strcmp0(side->texture, "common/nodraw")) {
 		side->surface |= SURF_NO_DRAW;
