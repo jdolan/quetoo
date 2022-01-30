@@ -623,19 +623,8 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		return brush;
 	}
 
-	// sides that will not be visible at all will never be used as bsp splitters
+	// ensure that skip sides do not become BSP splitters
 	for (int32_t i = 0; i < brush->num_brush_sides; i++) {
-
-		if ((brush->contents & CONTENTS_MASK_FUNCTIONAL)
-			&& !(brush->contents & CONTENTS_MASK_VISIBLE)) {
-			brush->brush_sides[i].surface |= SURF_NODE;
-		}
-
-		if ((brush->contents & CONTENTS_ATMOSPHERIC)
-			&& !(brush->contents & CONTENTS_MASK_VISIBLE)) {
-			brush->brush_sides[i].surface |= SURF_NODE;
-		}
-
 		if (brush->brush_sides[i].surface & SURF_SKIP) {
 			brush->brush_sides[i].surface |= SURF_NODE;
 		}
