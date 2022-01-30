@@ -371,8 +371,8 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 		break;
 	}
 
-	luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
-	luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
+	luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity * scale, light->color);
+	luxel->direction = Vec3_Fmaf(luxel->direction, intensity * scale, dir);
 }
 
 /**
@@ -416,7 +416,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 		break;
 	}
 
-	luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
+	luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity * scale, light->color);
 }
 
 /**

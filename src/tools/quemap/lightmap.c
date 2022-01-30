@@ -497,8 +497,8 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		break;
 	}
 
-	luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
-	luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
+	luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity * scale, light->color);
+	luxel->direction = Vec3_Fmaf(luxel->direction, intensity * scale, dir);
 }
 
 /**
@@ -552,7 +552,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		break;
 	}
 
-	luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
+	luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity * scale, light->color);
 }
 
 /**
