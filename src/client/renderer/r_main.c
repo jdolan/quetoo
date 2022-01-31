@@ -410,7 +410,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
-	R_DrawEntities(view, -1);
+	R_DrawEntities(view, INT32_MIN);
 
 	R_DrawBloom(view);
 
