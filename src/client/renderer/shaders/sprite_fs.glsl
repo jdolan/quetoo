@@ -46,6 +46,7 @@ void main(void) {
 		vertex.lerp);
 
 	out_color = texture_color * vertex.color;
+	out_color.rgb += vertex.fog.rgb * out_color.a;
 
 	out_color = color_filter(out_color);
 	

@@ -105,6 +105,9 @@ typedef struct {
 	vec4_t size;
 } r_lightgrid_t;
 
+#define FOG_DEPTH_NEAR 128.0
+#define FOG_DEPTH_FAR 2048.0
+
 /**
  * @brief The uniforms block type.
  */
@@ -145,9 +148,19 @@ typedef struct {
 		r_lightgrid_t lightgrid;
 
 		/**
+		 * @brief The global fog color (RGB, density).
+		 */
+		vec4_t fog_color;
+
+		/**
 		 * @brief The depth range, in world units.
 		 */
 		vec2_t depth_range;
+
+		/**
+		 * @brief The global fog depth range, in world units.
+		 */
+		vec2_t fog_depth_range;
 
 		/**
 		 * @brief The view type, e.g. VIEW_MAIN.

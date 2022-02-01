@@ -113,52 +113,7 @@ static void FogSetPermutationVector(fog_t *fog) {
 static void FogForEntity(const cm_entity_t *entity) {
 
 	const char *class_name = Cm_EntityValue(entity, "classname")->string;
-	if (!g_strcmp0(class_name, "worldspawn")) {
-
-		if (Cm_EntityValue(entity, "fog_absorption")->parsed ||
-			Cm_EntityValue(entity, "fog_color")->parsed ||
-			Cm_EntityValue(entity, "fog_density")->parsed ||
-			Cm_EntityValue(entity, "fog_noise")->parsed ||
-			Cm_EntityValue(entity, "fog_frequency")->parsed ||
-			Cm_EntityValue(entity, "fog_amplitude")->parsed ||
-			Cm_EntityValue(entity, "fog_lacunarity")->parsed ||
-			Cm_EntityValue(entity, "fog_persistence")->parsed ||
-			Cm_EntityValue(entity, "fog_octaves")->parsed ||
-			Cm_EntityValue(entity, "fog_seed")->parsed ||
-			Cm_EntityValue(entity, "fog_offset")->parsed) {
-
-			fog_t fog = {};
-			fog.type = FOG_GLOBAL;
-			fog.entity = entity;
-			
-			if (Cm_EntityValue(entity, "fog_absorption")->parsed & ENTITY_FLOAT) {
-				fog.absorption = Cm_EntityValue(entity, "fog_absorption")->value;
-			} else {
-				fog.absorption = FOG_ABSORPTION;
-			}
-
-			const cm_entity_t *color = Cm_EntityValue(entity, "fog_color");
-			if (color->parsed & ENTITY_VEC3) {
-				fog.color = color->vec3;
-			} else {
-				fog.color = FOG_COLOR;
-			}
-
-			fog.density = Cm_EntityValue(entity, "fog_density")->value ?: FOG_DENSITY;
-			fog.noise = Cm_EntityValue(entity, "fog_noise")->value ?: FOG_NOISE;
-			fog.frequency = Cm_EntityValue(entity, "fog_frequency")->value ?: FOG_FREQUENCY;
-			fog.amplitude = Cm_EntityValue(entity, "fog_amplitude")->value ?: FOG_AMPLITUDE;
-			fog.lacunarity = Cm_EntityValue(entity, "fog_lacunarity")->value ?: FOG_LACUNARITY;
-			fog.persistence = Cm_EntityValue(entity, "fog_persistence")->value ?: FOG_PERSISTENCE;
-			fog.octaves = Cm_EntityValue(entity, "fog_octaves")->integer ?: FOG_OCTAVES;
-			fog.seed = Cm_EntityValue(entity, "fog_seed")->integer ?: FOG_SEED;
-			fog.offset = (Cm_EntityValue(entity, "fog_offset")->parsed & ENTITY_VEC3) ? Cm_EntityValue(entity, "fog_offset")->vec3 : FOG_OFFSET;
-
-			FogSetPermutationVector(&fog);
-
-			g_array_append_val(fogs, fog);
-		}
-	} else if (!g_strcmp0(class_name, "misc_fog")) {
+	if (!g_strcmp0(class_name, "misc_fog")) {
 
 		fog_t fog = {};
 		fog.type = FOG_VOLUME;
@@ -184,7 +139,8 @@ static void FogForEntity(const cm_entity_t *entity) {
 		fog.persistence = Cm_EntityValue(entity, "persistence")->value ?: FOG_PERSISTENCE;
 		fog.octaves = Cm_EntityValue(entity, "octaves")->integer ?: FOG_OCTAVES;
 		fog.seed = Cm_EntityValue(entity, "seed")->integer ?: FOG_SEED;
-		fog.offset = (Cm_EntityValue(entity, "offset")->parsed & ENTITY_VEC3) ? Cm_EntityValue(entity, "offset")->vec3 : FOG_OFFSET;
+		fog.offset = (Cm_EntityValue(entity, "offset")->parsed & ENTITY_VEC3) ?
+			Cm_EntityValue(entity, "offset")->vec3 : FOG_OFFSET;
 
 		fog.brushes = Cm_EntityBrushes(entity);
 
