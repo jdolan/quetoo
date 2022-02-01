@@ -79,9 +79,19 @@ layout (std140) uniform uniforms_block {
 	lightgrid_t lightgrid;
 
 	/**
+	 * @brief The global fog color (RGB, density).
+	 */
+	vec4 fog_color;
+
+	/**
 	 * @brief The depth range, in world units.
 	 */
 	vec2 depth_range;
+
+	/**
+	 * @brief The global fog depth range, in world units.
+	 */
+	vec2 fog_depth_range;
 
 	/**
 	 * @brief The view type, e.g. VIEW_MAIN.
@@ -119,12 +129,12 @@ layout (std140) uniform uniforms_block {
 	float modulate;
 
 	/**
-	 * @brief The fog density scalar.
+	 * @brief The volumetric fog density scalar.
 	 */
 	float fog_density;
 
 	/**
-	 * @brief The number of fog samples per fragment (quality).
+	 * @brief The number of volumetric fog samples per fragment (quality).
 	 */
 	int fog_samples;
 

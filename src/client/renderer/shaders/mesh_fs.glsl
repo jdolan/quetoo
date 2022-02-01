@@ -104,7 +104,7 @@ void main(void) {
 
 		// fog 
 		// out_color.rgb *= 1.0 - vertex.fog.a; // black? sigh.
-		out_color.rgb += vertex.fog.rgb;
+		out_color.rgb += vertex.fog.rgb * out_color.a;
 
 	} else {
 

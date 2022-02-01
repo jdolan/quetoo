@@ -68,7 +68,7 @@ vec3 lightgrid_uvw(in vec3 position) {
 void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler,
 				   in vec3 position, in vec3 lightgrid_uvw) {
 
-	if (fog_density == 0.0) {
+	if (fog_samples == 0) {
 		return;
 	}
 

@@ -42,6 +42,7 @@ void main(void) {
 	out_bloom.a = out_color.a;
 
 	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-
+	global_fog(out_color, vec3(fog_depth_range.y));
+	
 	out_color = postprocess(out_color);
 }

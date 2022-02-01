@@ -125,6 +125,7 @@ void main(void) {
 		out_bloom.a = out_color.a;
 
 		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
+		global_fog(out_color, vertex.position);
 
 		//out_color.rgb = caustic;
 		//out_color.rgb = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
