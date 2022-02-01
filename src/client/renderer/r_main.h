@@ -105,8 +105,9 @@ typedef struct {
 	vec4_t size;
 } r_lightgrid_t;
 
-#define FOG_DEPTH_NEAR 128.0
-#define FOG_DEPTH_FAR 2048.0
+#define FOG_DENSITY    1.f
+#define FOG_DEPTH_NEAR 128.f
+#define FOG_DEPTH_FAR  2048.f
 
 /**
  * @brief The uniforms block type.
