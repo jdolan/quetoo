@@ -156,6 +156,31 @@ typedef struct {
 	 * @brief The current weather bitmask.
 	 */
 	int32_t weather;
+	
+	/**
+	 * @brief The current max_clients value of the server.
+	 */
+	int32_t max_clients;
+	
+	/**
+	 * @brief The current number of clients connected to the server.
+	 */
+	int32_t num_clients;
+
+	/**
+	 * @brief Whether match mode is enabled
+	 */
+	int32_t match;
+
+	/**
+	 * @brief The current round #
+	 */
+	int32_t round;
+
+	/**
+	 * @brief The current number of rounds
+	 */
+	int32_t num_rounds;
 } cg_state_t;
 
 extern cg_state_t cg_state;

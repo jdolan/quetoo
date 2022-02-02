@@ -166,8 +166,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>discord-rpc.lib;Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
+      <AdditionalDependencies>discord_game_sdk.dll.lib;Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>

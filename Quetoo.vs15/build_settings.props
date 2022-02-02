@@ -121,7 +121,7 @@
     <OpenALLibraryPath>$(OpenALPath)\libs\$(Platform)\</OpenALLibraryPath>
 
     <DiscordPath>$(QuetooLibsPath)discord</DiscordPath>
-    <DiscordIncludePath>$(DiscordPath)\$(Platform)\include\</DiscordIncludePath>
+    <DiscordIncludePath>$(DiscordPath)\include\</DiscordIncludePath>
     <DiscordLibraryPath>$(DiscordPath)\$(Platform)\lib\</DiscordLibraryPath>
 
     <QuetooFullIncludePath>$(DiscordIncludePath);$(OpenALIncludePath);$(QuetooIncludePath);$(QuetooPath)src\client\;$(QuetooPath)src\client\ui\;$(QuetooPath)src\cgame\default\;$(QuetooPath)src\cgame\default\ui\teams\;$(QuetooPath)src\cgame\default\ui\common\;$(QuetooPath)src\cgame\default\ui\home\;$(QuetooPath)src\cgame\default\ui\main\;$(QuetooPath)src\cgame\default\ui\play\;$(QuetooPath)src\cgame\default\ui\controls\;$(QuetooPath)src\cgame\default\ui\settings\;$(QuetooObjectivelyIncludePath);$(QuetooObjectivelyMVCIncludePath);$(QuetooPthreadIncludePath);$(QuetooIconvIncludePath);$(QuetooCURLIncludePath);$(QuetooGlibIncludePath);$(QuetooLibXMLIncludePath);$(QuetooPhysFSIncludePath);$(QuetooZlibIncludePath);$(QuetooCursesIncludePath);$(QuetooFontConfigIncludePath);$(QuetooFreeTypeIncludePath);$(QuetooSDLIncludePath);$(QuetooSDLTTFIncludePath);$(QuetooSDLImageIncludePath);$(QuetoolibsndfileIncludePath);$(QuetooDLFCNIncludePath)</QuetooFullIncludePath>

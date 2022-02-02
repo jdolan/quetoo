@@ -32,6 +32,8 @@ call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl_ttf/lib/%build_plat
 
 call ROBO "libs/openal/bin/%build_platform%/" "%quetoo_folder%/bin/" *.dll
 
+call ROBO "libs/discord/%build_platform%/lib/" "%quetoo_folder%/bin/" *.dll
+
 GOTO DONE
 
 :INVALID
