@@ -89,6 +89,7 @@ cvar_t *cg_third_person_y;
 cvar_t *cg_third_person_z;
 cvar_t *cg_third_person_pitch;
 cvar_t *cg_third_person_yaw;
+cvar_t *cg_spectator;
 
 cvar_t *g_gameplay;
 cvar_t *g_teams;
@@ -243,6 +244,9 @@ static void Cg_Init(void) {
 	cg_third_person_yaw = cgi.AddCvar("cg_third_person_yaw", "0", CVAR_ARCHIVE,
 									  "The yaw offset for third person perspective.");
 
+	cg_spectator = cgi.AddCvar("spectator", "0", CVAR_ARCHIVE | CVAR_USER_INFO,
+						       "Controls connection spectator status. If 1, you'll be put into spectator mode automatically.");
+
 	g_gameplay = cgi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
 	                      "Selects deathmatch, duel, arena, or instagib combat");
 	g_teams = cgi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
@@ -395,6 +399,11 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
 	switch (cmd) {
 		case SV_CMD_CONFIG_STRING:
 			Cg_UpdateConfigString((int32_t) (intptr_t) data);
+			break;
+		case SV_CMD_FRAME:
+			if (cg_spectator->integer) {
+				cgi.SetCvarInteger("spectator", 0);
+			}
 			break;
 	}
 }

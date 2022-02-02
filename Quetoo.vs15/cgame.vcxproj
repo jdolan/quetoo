@@ -19,6 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\deps\discord-rpc\include\discord_register.h" />
+    <ClInclude Include="..\deps\discord-rpc\include\discord_rpc.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\backoff.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\connection.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\msg_queue.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\rpc_connection.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\serialization.h" />
     <ClInclude Include="..\src\cgame\cgame.h" />
     <ClInclude Include="..\src\cgame\default\cg_client.h" />
     <ClInclude Include="..\src\cgame\default\cg_discord.h" />
@@ -75,6 +82,12 @@
     <ClInclude Include="..\src\cgame\default\ui\teams\TeamView.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\deps\discord-rpc\src\connection_win.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\discord_register_win.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\discord_rpc.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\dllmain.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\rpc_connection.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\serialization.cpp" />
     <ClCompile Include="..\src\cgame\default\cg_client.c" />
     <ClCompile Include="..\src\cgame\default\cg_discord.c" />
     <ClCompile Include="..\src\cgame\default\cg_effect.c" />
@@ -166,7 +179,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>discord_game_sdk.dll.lib;Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>

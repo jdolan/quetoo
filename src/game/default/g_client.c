@@ -1268,6 +1268,11 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// hook style
 	G_SetClientHookStyle(ent);
+
+	// auto-spectate from "spectator" key
+	if (strtoul(GetUserInfo(user_info, "spectator"), NULL, 10)) {
+		ent->client->locals.persistent.spectator = true;
+	}
 }
 
 /**
