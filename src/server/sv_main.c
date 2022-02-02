@@ -852,7 +852,7 @@ static void Sv_CheckForUpdates(void) {
 				const int32_t c = tolower(getc(stdin));
 				if (c == 'y' || c == '\n') {
 					Installer_LaunchInstaller();
-				} else if (c == 'n') {
+				} else if (c == 'n' || c == -1) {
 					Com_Warn("Your server will not be public until you update.\n");
 					Cvar_ForceSetInteger("sv_public", 0);
 					break;
