@@ -283,3 +283,14 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 		}
 	}
 }
+
+/**
+ * @brief
+ */
+void global_fog(inout vec4 color, in vec3 position) {
+
+	float dist = clamp(0.0, length(position) - fog_depth_range.x, fog_depth_range.y);
+	float frac = dist / (fog_depth_range.y - fog_depth_range.x);
+
+	color.rgb += fog_color.rgb * frac * fog_color.a;
+}

@@ -848,8 +848,8 @@ static void Sv_CheckForUpdates(void) {
 			break;
 		case 1:
 			while (true) {
-				Com_Print("A new version of Quetoo is available. Update now? Y/n");
-				const int32_t c = tolower(getchar());
+				Com_Print("A new version of Quetoo is available. Update now? Y/n ");
+				const int32_t c = tolower(getc(stdin));
 				if (c == 'y' || c == '\n') {
 					Installer_LaunchInstaller();
 				} else if (c == 'n') {
@@ -876,6 +876,8 @@ void Sv_Init(void) {
 
 	Cm_LoadBspModel(NULL, NULL);
 
+	Sv_CheckForUpdates();
+
 	Sv_InitConsole();
 
 	Sv_InitLocal();
@@ -883,8 +885,6 @@ void Sv_Init(void) {
 	Sv_InitAdmin();
 
 	Sv_InitMasters();
-
-	Sv_CheckForUpdates();
 
 	if (dedicated->value && Fs_Exists("server.cfg")) {
 		Cbuf_AddText("exec server.cfg\n");

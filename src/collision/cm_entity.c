@@ -66,6 +66,9 @@ GList *Cm_LoadEntities(const char *entity_string) {
 					case 1:
 						pair->parsed |= ENTITY_FLOAT;
 						break;
+					case 2:
+						pair->parsed |= ENTITY_VEC2;
+						break;
 					case 3:
 						pair->parsed |= ENTITY_VEC3;
 						break;

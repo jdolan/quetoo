@@ -138,14 +138,19 @@ typedef enum {
 	ENTITY_FLOAT = 0x4,
 
 	/**
+	 * @brief A two component vector value is available.
+	 */
+	ENTITY_VEC2 = 0x8,
+
+	/**
 	 * @brief A three component vector value is available.
 	 */
-	ENTITY_VEC3 = 0x8,
+	ENTITY_VEC3 = 0x10,
 
 	/**
 	 * @brief A four component vector is available.
 	 */
-	ENTITY_VEC4 = 0x10,
+	ENTITY_VEC4 = 0x20,
 
 } cm_entity_parsed_t;
 
@@ -188,6 +193,11 @@ typedef struct cm_entity_s {
 		 * @brief The entity pair value, as a float.
 		 */
 		float value;
+
+		/**
+		 * @brief The entity pair value, as a two component vector.
+		 */
+		vec2_t vec2;
 
 		/**
 		 * @brief The entity pair value, as a three component vector.

@@ -258,6 +258,26 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
 			r_uniforms.block.lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
+
+			const cm_entity_t *worldspawn = r_world_model->bsp->cm->entities[0];
+			const cm_entity_t *fog_color = Cm_EntityValue(worldspawn, "fog_color");
+			const cm_entity_t *fog_density = Cm_EntityValue(worldspawn, "fog_density");
+			const cm_entity_t *fog_depth_range = Cm_EntityValue(worldspawn, "fog_depth_range");
+
+			r_uniforms.block.fog_density = FOG_DENSITY * r_fog_density->value;
+			r_uniforms.block.fog_depth_range = Vec2(FOG_DEPTH_NEAR, FOG_DEPTH_FAR);
+
+			if (fog_color->parsed & ENTITY_VEC3) {
+				r_uniforms.block.fog_color = Vec3_ToVec4(fog_color->vec3, FOG_DENSITY);
+			}
+
+			if (fog_density->parsed & ENTITY_FLOAT) {
+				r_uniforms.block.fog_color.w = fog_density->value * r_fog_density->value;
+			}
+
+			if (fog_depth_range->parsed & ENTITY_VEC2) {
+				r_uniforms.block.fog_depth_range = fog_depth_range->vec2;
+			}
 		}
 	}
 
@@ -410,7 +430,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
-	R_DrawEntities(view, -1);
+	R_DrawEntities(view, INT32_MIN);
 
 	R_DrawBloom(view);
 

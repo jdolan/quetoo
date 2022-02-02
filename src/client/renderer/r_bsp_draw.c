@@ -594,6 +594,10 @@ static void R_DrawBspInlineModelEntity(const r_view_t *view, const r_entity_t *e
  */
 void R_DrawBspInlineModelEntities(const r_view_t *view, int32_t blend_depth) {
 
+	if (view->type == VIEW_PLAYER_MODEL) {
+		return;
+	}
+	
 	glUseProgram(r_bsp_program.name);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
