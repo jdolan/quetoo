@@ -73,9 +73,12 @@
     <LibraryPath>$(QuetooFullLibraryPath);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>QUETOO_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <Link>
       <AdditionalDependencies>curses.lib;glib-2.0.lib;intl.lib;libcurl.lib;SDL2.lib;physfs.lib;ws2_32.lib;dbghelp.lib;dlfcn.lib;Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
       <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO-DEDICATED "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
