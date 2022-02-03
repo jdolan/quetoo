@@ -105,16 +105,16 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map edge"
+            argument = "+set sv_max_clients 32 +map cistern"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_ctf 1 +set g_num_teams 4 +team red"
+            argument = "+set g_gameplay arena +set g_teams 1 +set g_rounds 1 +g_ai_add 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +no_clip"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+g_ai_add 16"
