@@ -498,7 +498,7 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 	// find node closest to us
 	const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true, true);
 
-	if (src_node == NODE_INVALID) {
+	if (src_node == AI_NODE_INVALID) {
 		return false;
 	}
 

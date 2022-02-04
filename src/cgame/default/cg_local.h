@@ -28,6 +28,7 @@
 #define Warn(...) Warn_(__func__, __VA_ARGS__)
 
 #include "cg_client.h"
+#include "cg_discord.h"
 #include "cg_effect.h"
 #include "cg_entity.h"
 #include "cg_entity_effect.h"

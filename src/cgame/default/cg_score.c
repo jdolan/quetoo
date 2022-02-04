@@ -135,7 +135,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2, info->icon, color_white);
 
 	// flag carrier icon
-	if (atoi(cgi.ConfigString(CS_CTF)) && (s->flags & SCORE_CTF_FLAG)) {
+	if (cg_state.ctf && (s->flags & SCORE_CTF_FLAG)) {
 		const int32_t team = s->team;
 		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IT_PIC);
 		cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * .3f, flag, color_white);
@@ -182,7 +182,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	y += ch;
 
 	// ready/not ready
-	if (atoi(cgi.ConfigString(CS_MATCH))) {
+	if (cg_state.match) {
 		if (s->flags & SCORE_NOT_READY) {
 			cgi.Draw2DString(x + fw - cgi.StringWidth("not ready "), y, "not ready", color_white);
 		}

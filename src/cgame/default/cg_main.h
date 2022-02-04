@@ -91,6 +91,7 @@ extern cvar_t *cg_third_person_y;
 extern cvar_t *cg_third_person_z;
 extern cvar_t *cg_third_person_pitch;
 extern cvar_t *cg_third_person_yaw;
+extern cvar_t *cg_spectator;
 
 extern cvar_t *g_gameplay;
 extern cvar_t *g_teams;
