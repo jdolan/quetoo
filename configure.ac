@@ -39,6 +39,8 @@ dnl Check for tools
 dnl ---------------
 
 AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_OBJC
 LT_INIT
 
 dnl --------------------
@@ -445,7 +447,15 @@ dnl -----------------------------------------------------------
 AC_CONFIG_FILES([
 	Makefile
 	deps/Makefile
+	deps/discord-rpc/Makefile
+	deps/discord-rpc/include/Makefile
+	deps/discord-rpc/src/Makefile
 	deps/minizip/Makefile
+	deps/rapidjson/Makefile
+	deps/rapidjson/rapidjson/Makefile
+	deps/rapidjson/rapidjson/error/Makefile
+	deps/rapidjson/rapidjson/internal/Makefile
+	deps/rapidjson/rapidjson/msinttypes/Makefile
 	src/Makefile
 	src/ai/Makefile
 	src/ai/default/Makefile

@@ -20,8 +20,9 @@
  */
 
 #include "cg_local.h"
-#include <discord_register.h>
-#include <discord_rpc.h>
+
+#include "deps/discord-rpc/include/discord_register.h"
+#include "deps/discord-rpc/include/discord_rpc.h"
 
 #define DISCORD_APP_ID				378347526203637760
 

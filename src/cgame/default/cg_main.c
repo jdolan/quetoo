@@ -361,19 +361,19 @@ static void Cg_UpdateConfigString(int32_t i) {
 			cg_state.hook_pull_speed = strtof(s, NULL);
 			return;
 		case CS_MAXCLIENTS:
-			cg_state.max_clients = strtol(s, NULL, 10);
+			cg_state.max_clients = (int32_t) strtol(s, NULL, 10);
 			return;
 		case CS_NUMCLIENTS:
-			cg_state.num_clients = strtol(s, NULL, 10);
+			cg_state.num_clients = (int32_t) strtol(s, NULL, 10);
 			return;
 		case CS_MATCH:
-			cg_state.match = strtol(s, NULL, 10);
+			cg_state.match = (int32_t) strtol(s, NULL, 10);
 			return;
 		case CS_ROUND:
-			cg_state.round = strtol(s, NULL, 10);
+			cg_state.round = (int32_t) strtol(s, NULL, 10);
 			return;
 		case CS_ROUNDS:
-			cg_state.num_rounds = strtol(s, NULL, 10);
+			cg_state.num_rounds = (int32_t) strtol(s, NULL, 10);
 			return;
 		default:
 			break;
