@@ -130,7 +130,7 @@ void main(void) {
 		//out_color.rgb = caustic;
 		//out_color.rgb = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 		//out_color.rgb = diffuse + ambient;
-		//out_color.rgb = sample_lightmap(2).xyz;
+		//out_color.rgb = sample_lightmap(1).xyz;
 	} else {
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
@@ -146,6 +146,11 @@ void main(void) {
 			vec3 diffuse = sample_lightmap(1).rgb;
 
 			effect.rgb *= (ambient + diffuse) * modulate;
+		}
+
+		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
+			lightgrid_fog(effect, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
+			global_fog(effect, vertex.position);
 		}
 
 		out_color = effect;

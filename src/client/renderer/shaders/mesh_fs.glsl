@@ -111,6 +111,11 @@ void main(void) {
 		// effect
 		vec4 effect = texture(texture_stage, vertex.diffusemap);
 		effect *= vertex.color;
+
+		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
+			effect.rgb += vertex.fog.rgb * effect.a;
+		}
+		
 		out_color = effect;
 	}
 
