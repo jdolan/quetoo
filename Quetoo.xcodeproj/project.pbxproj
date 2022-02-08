@@ -163,6 +163,23 @@
 		CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
+		CE27E1C527AC2740003D56AC /* rpc_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0D727AC1682003D56AC /* rpc_connection.cpp */; };
+		CE27E1C627AC2740003D56AC /* discord_rpc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0D827AC1683003D56AC /* discord_rpc.cpp */; };
+		CE27E1C927AC2740003D56AC /* connection_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0DC27AC1683003D56AC /* connection_unix.cpp */; };
+		CE27E1CB27AC2740003D56AC /* serialization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0E027AC1683003D56AC /* serialization.cpp */; };
+		CE27E1CD27AC2740003D56AC /* discord_register_osx.m in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0E327AC1683003D56AC /* discord_register_osx.m */; };
+		CE27E1F127AC276C003D56AC /* connection.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E0D627AC1682003D56AC /* connection.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CE27E1F227AC276C003D56AC /* msg_queue.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E0DB27AC1683003D56AC /* msg_queue.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CE27E1F327AC276C003D56AC /* serialization.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E0DD27AC1683003D56AC /* serialization.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CE27E1F427AC276C003D56AC /* backoff.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E0DF27AC1683003D56AC /* backoff.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CE27E1F527AC276C003D56AC /* rpc_connection.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E0E227AC1683003D56AC /* rpc_connection.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		CE27E21927AC2774003D56AC /* discord_register.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E0D327AC1682003D56AC /* discord_register.h */; };
+		CE27E21A27AC2774003D56AC /* discord_rpc.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E0D427AC1682003D56AC /* discord_rpc.h */; };
+		CE27E42927AC8F24003D56AC /* libdiscord-rpc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */; };
+		CE27E6B927AC95D1003D56AC /* cg_discord.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E6B727AC95D1003D56AC /* cg_discord.c */; };
+		CE27E6BA27AC95D1003D56AC /* cg_discord.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E6B827AC95D1003D56AC /* cg_discord.h */; };
+		CE27E82427AC98F0003D56AC /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
+		CE27E84927AC998A003D56AC /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27E84827AC998A003D56AC /* libc++.1.dylib */; };
 		CE2B081A23F60C4F007C77B6 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE2B082223F9EB7A007C77B6 /* libclient-renderer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* libclient-renderer.a */; };
 		CE2B082323F9EB7A007C77B6 /* libclient-sound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED4393B1D9D344E0052BAFA /* libclient-sound.a */; };
@@ -1348,6 +1365,66 @@
 		CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MovementCombatViewController.c; sourceTree = "<group>"; };
 		CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MovementCombatViewController.h; sourceTree = "<group>"; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
+		CE27E0D327AC1682003D56AC /* discord_register.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = discord_register.h; sourceTree = "<group>"; };
+		CE27E0D427AC1682003D56AC /* discord_rpc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = discord_rpc.h; sourceTree = "<group>"; };
+		CE27E0D627AC1682003D56AC /* connection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = connection.h; sourceTree = "<group>"; };
+		CE27E0D727AC1682003D56AC /* rpc_connection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = rpc_connection.cpp; sourceTree = "<group>"; };
+		CE27E0D827AC1683003D56AC /* discord_rpc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = discord_rpc.cpp; sourceTree = "<group>"; };
+		CE27E0DB27AC1683003D56AC /* msg_queue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = msg_queue.h; sourceTree = "<group>"; };
+		CE27E0DC27AC1683003D56AC /* connection_unix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = connection_unix.cpp; sourceTree = "<group>"; };
+		CE27E0DD27AC1683003D56AC /* serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = serialization.h; sourceTree = "<group>"; };
+		CE27E0DF27AC1683003D56AC /* backoff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = backoff.h; sourceTree = "<group>"; };
+		CE27E0E027AC1683003D56AC /* serialization.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = serialization.cpp; sourceTree = "<group>"; };
+		CE27E0E227AC1683003D56AC /* rpc_connection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rpc_connection.h; sourceTree = "<group>"; };
+		CE27E0E327AC1683003D56AC /* discord_register_osx.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = discord_register_osx.m; sourceTree = "<group>"; };
+		CE27E0E627AC172E003D56AC /* fwd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fwd.h; sourceTree = "<group>"; };
+		CE27E0E727AC172E003D56AC /* memorystream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = memorystream.h; sourceTree = "<group>"; };
+		CE27E0E827AC172E003D56AC /* reader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = reader.h; sourceTree = "<group>"; };
+		CE27E0E927AC172E003D56AC /* prettywriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prettywriter.h; sourceTree = "<group>"; };
+		CE27E0EA27AC172F003D56AC /* ostreamwrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ostreamwrapper.h; sourceTree = "<group>"; };
+		CE27E0EB27AC172F003D56AC /* encodedstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = encodedstream.h; sourceTree = "<group>"; };
+		CE27E0EC27AC172F003D56AC /* filereadstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filereadstream.h; sourceTree = "<group>"; };
+		CE27E0ED27AC172F003D56AC /* istreamwrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = istreamwrapper.h; sourceTree = "<group>"; };
+		CE27E0EE27AC172F003D56AC /* stringbuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stringbuffer.h; sourceTree = "<group>"; };
+		CE27E0F027AC172F003D56AC /* ieee754.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ieee754.h; sourceTree = "<group>"; };
+		CE27E0F127AC172F003D56AC /* strtod.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = strtod.h; sourceTree = "<group>"; };
+		CE27E0F227AC172F003D56AC /* swap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = swap.h; sourceTree = "<group>"; };
+		CE27E0F327AC172F003D56AC /* regex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = regex.h; sourceTree = "<group>"; };
+		CE27E0F427AC172F003D56AC /* diyfp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = diyfp.h; sourceTree = "<group>"; };
+		CE27E0F527AC172F003D56AC /* biginteger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = biginteger.h; sourceTree = "<group>"; };
+		CE27E0F627AC172F003D56AC /* strfunc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = strfunc.h; sourceTree = "<group>"; };
+		CE27E0F727AC172F003D56AC /* itoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = itoa.h; sourceTree = "<group>"; };
+		CE27E0F827AC172F003D56AC /* stack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stack.h; sourceTree = "<group>"; };
+		CE27E0F927AC172F003D56AC /* dtoa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dtoa.h; sourceTree = "<group>"; };
+		CE27E0FA27AC172F003D56AC /* meta.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = meta.h; sourceTree = "<group>"; };
+		CE27E0FB27AC172F003D56AC /* pow10.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pow10.h; sourceTree = "<group>"; };
+		CE27E0FC27AC172F003D56AC /* encodings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = encodings.h; sourceTree = "<group>"; };
+		CE27E0FD27AC172F003D56AC /* schema.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = schema.h; sourceTree = "<group>"; };
+		CE27E0FE27AC172F003D56AC /* stream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stream.h; sourceTree = "<group>"; };
+		CE27E0FF27AC172F003D56AC /* filewritestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filewritestream.h; sourceTree = "<group>"; };
+		CE27E10027AC172F003D56AC /* rapidjson.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rapidjson.h; sourceTree = "<group>"; };
+		CE27E10127AC172F003D56AC /* document.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = document.h; sourceTree = "<group>"; };
+		CE27E10227AC172F003D56AC /* allocators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = allocators.h; sourceTree = "<group>"; };
+		CE27E10327AC172F003D56AC /* writer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = writer.h; sourceTree = "<group>"; };
+		CE27E10527AC172F003D56AC /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = error.h; sourceTree = "<group>"; };
+		CE27E10627AC172F003D56AC /* en.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = en.h; sourceTree = "<group>"; };
+		CE27E10727AC172F003D56AC /* memorybuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = memorybuffer.h; sourceTree = "<group>"; };
+		CE27E10827AC172F003D56AC /* pointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pointer.h; sourceTree = "<group>"; };
+		CE27E10A27AC172F003D56AC /* inttypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = inttypes.h; sourceTree = "<group>"; };
+		CE27E10B27AC172F003D56AC /* stdint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stdint.h; sourceTree = "<group>"; };
+		CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libdiscord-rpc.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE27E6B727AC95D1003D56AC /* cg_discord.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_discord.c; sourceTree = "<group>"; };
+		CE27E6B827AC95D1003D56AC /* cg_discord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_discord.h; sourceTree = "<group>"; };
+		CE27E72427AC982F003D56AC /* libstdc++.6.0.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libstdc++.6.0.9.dylib"; path = "../../../../usr/lib/libstdc++.6.0.9.dylib"; sourceTree = "<group>"; };
+		CE27E84827AC998A003D56AC /* libc++.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.dylib"; path = "../../../../usr/lib/libc++.1.dylib"; sourceTree = "<group>"; };
+		CE27E86D27AC9A06003D56AC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE27E86E27AC9A43003D56AC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE27E86F27AC9AE5003D56AC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE27E87027AC9B07003D56AC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE27E87127AC9B55003D56AC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE27E87227AC9B9B003D56AC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE27E87327AC9BBA003D56AC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE27E87427AC9E93003D56AC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE2CEB9125852E110001E599 /* r_depth_pass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_depth_pass.h; sourceTree = "<group>"; };
 		CE2CEB9225852E110001E599 /* r_depth_pass.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_depth_pass.c; sourceTree = "<group>"; };
 		CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = depth_pass_vs.glsl; sourceTree = "<group>"; };
@@ -1707,12 +1784,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE27E42927AC8F24003D56AC /* libdiscord-rpc.a in Frameworks */,
 				CE6EE40E1F720F3A00FBC830 /* libcgame-ui.a in Frameworks */,
 				CEFC7B931D9D2FB3000FA6B2 /* libgame-pmove.a in Frameworks */,
 				CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */,
 				CE1A28221F748B59005F62A9 /* libObjectively.dylib in Frameworks */,
 				CE1A28231F748B59005F62A9 /* libObjectivelyMVC.dylib in Frameworks */,
+				CE27E82427AC98F0003D56AC /* AppKit.framework in Frameworks */,
 				CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */,
+				CE27E84927AC998A003D56AC /* libc++.1.dylib in Frameworks */,
 				CE12D82A1C5C69F900CD0B13 /* libglib-2.0.0.dylib in Frameworks */,
 				CEFC79A51D9CB1EE000FA6B2 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
@@ -1740,6 +1820,13 @@
 				CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */,
 				CE78386823FDC37F004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE27E10F27AC26E6003D56AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2079,7 +2166,9 @@
 		CE12D4A91C5C58C300CD0B13 /* deps */ = {
 			isa = PBXGroup;
 			children = (
+				CE27E0D127AC1682003D56AC /* discord-rpc */,
 				CE12D5011C5C58C300CD0B13 /* minizip */,
+				CE27E0E427AC172E003D56AC /* rapidjson */,
 				CE12D4FF1C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = deps;
@@ -2306,6 +2395,8 @@
 				CE5870711F5CDFE0004CAAB2 /* ui */,
 				CE12D55E1C5C58C300CD0B13 /* cg_client.c */,
 				CE12D55F1C5C58C300CD0B13 /* cg_client.h */,
+				CE27E6B727AC95D1003D56AC /* cg_discord.c */,
+				CE27E6B827AC95D1003D56AC /* cg_discord.h */,
 				CE12D5601C5C58C300CD0B13 /* cg_effect.c */,
 				CE12D5611C5C58C300CD0B13 /* cg_effect.h */,
 				CE12D5641C5C58C300CD0B13 /* cg_entity.c */,
@@ -2833,6 +2924,7 @@
 				CE948B222235652600D961FA /* check_shared */,
 				CE9CFCAF23EB3D020009DA65 /* check_vector */,
 				CE4DCF9F256F0DAD00FECAFC /* check_cm_test */,
+				CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2861,6 +2953,8 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE27E84827AC998A003D56AC /* libc++.1.dylib */,
+				CE27E72427AC982F003D56AC /* libstdc++.6.0.9.dylib */,
 				CEB58F1F25E88D2300407322 /* libopenal.1.21.1.dylib */,
 				CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */,
 				CEAAA4AF25C6E65100EE81B3 /* libObjectivelyMVC.0.dylib */,
@@ -2904,6 +2998,123 @@
 				CE7D2C08202E9DE6004BC58E /* Makefile.am */,
 			);
 			path = controls;
+			sourceTree = "<group>";
+		};
+		CE27E0D127AC1682003D56AC /* discord-rpc */ = {
+			isa = PBXGroup;
+			children = (
+				CE27E0D227AC1682003D56AC /* include */,
+				CE27E0D527AC1682003D56AC /* src */,
+				CE27E87227AC9B9B003D56AC /* Makefile.am */,
+			);
+			path = "discord-rpc";
+			sourceTree = "<group>";
+		};
+		CE27E0D227AC1682003D56AC /* include */ = {
+			isa = PBXGroup;
+			children = (
+				CE27E0D327AC1682003D56AC /* discord_register.h */,
+				CE27E0D427AC1682003D56AC /* discord_rpc.h */,
+				CE27E87427AC9E93003D56AC /* Makefile.am */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		CE27E0D527AC1682003D56AC /* src */ = {
+			isa = PBXGroup;
+			children = (
+				CE27E0DF27AC1683003D56AC /* backoff.h */,
+				CE27E0DC27AC1683003D56AC /* connection_unix.cpp */,
+				CE27E0D627AC1682003D56AC /* connection.h */,
+				CE27E0E327AC1683003D56AC /* discord_register_osx.m */,
+				CE27E0D827AC1683003D56AC /* discord_rpc.cpp */,
+				CE27E0DB27AC1683003D56AC /* msg_queue.h */,
+				CE27E0D727AC1682003D56AC /* rpc_connection.cpp */,
+				CE27E0E227AC1683003D56AC /* rpc_connection.h */,
+				CE27E0DD27AC1683003D56AC /* serialization.h */,
+				CE27E0E027AC1683003D56AC /* serialization.cpp */,
+				CE27E87327AC9BBA003D56AC /* Makefile.am */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		CE27E0E427AC172E003D56AC /* rapidjson */ = {
+			isa = PBXGroup;
+			children = (
+				CE27E0E527AC172E003D56AC /* rapidjson */,
+				CE27E86D27AC9A06003D56AC /* Makefile.am */,
+			);
+			path = rapidjson;
+			sourceTree = "<group>";
+		};
+		CE27E0E527AC172E003D56AC /* rapidjson */ = {
+			isa = PBXGroup;
+			children = (
+				CE27E10427AC172F003D56AC /* error */,
+				CE27E0EF27AC172F003D56AC /* internal */,
+				CE27E10927AC172F003D56AC /* msinttypes */,
+				CE27E10227AC172F003D56AC /* allocators.h */,
+				CE27E10127AC172F003D56AC /* document.h */,
+				CE27E0EB27AC172F003D56AC /* encodedstream.h */,
+				CE27E0FC27AC172F003D56AC /* encodings.h */,
+				CE27E0EC27AC172F003D56AC /* filereadstream.h */,
+				CE27E0FF27AC172F003D56AC /* filewritestream.h */,
+				CE27E0E627AC172E003D56AC /* fwd.h */,
+				CE27E0ED27AC172F003D56AC /* istreamwrapper.h */,
+				CE27E10727AC172F003D56AC /* memorybuffer.h */,
+				CE27E0E727AC172E003D56AC /* memorystream.h */,
+				CE27E0EA27AC172F003D56AC /* ostreamwrapper.h */,
+				CE27E10827AC172F003D56AC /* pointer.h */,
+				CE27E0E927AC172E003D56AC /* prettywriter.h */,
+				CE27E10027AC172F003D56AC /* rapidjson.h */,
+				CE27E0E827AC172E003D56AC /* reader.h */,
+				CE27E0FD27AC172F003D56AC /* schema.h */,
+				CE27E0FE27AC172F003D56AC /* stream.h */,
+				CE27E0EE27AC172F003D56AC /* stringbuffer.h */,
+				CE27E10327AC172F003D56AC /* writer.h */,
+				CE27E86E27AC9A43003D56AC /* Makefile.am */,
+			);
+			path = rapidjson;
+			sourceTree = "<group>";
+		};
+		CE27E0EF27AC172F003D56AC /* internal */ = {
+			isa = PBXGroup;
+			children = (
+				CE27E0F527AC172F003D56AC /* biginteger.h */,
+				CE27E0F427AC172F003D56AC /* diyfp.h */,
+				CE27E0F927AC172F003D56AC /* dtoa.h */,
+				CE27E0F027AC172F003D56AC /* ieee754.h */,
+				CE27E0F727AC172F003D56AC /* itoa.h */,
+				CE27E0FA27AC172F003D56AC /* meta.h */,
+				CE27E0FB27AC172F003D56AC /* pow10.h */,
+				CE27E0F327AC172F003D56AC /* regex.h */,
+				CE27E0F827AC172F003D56AC /* stack.h */,
+				CE27E0F627AC172F003D56AC /* strfunc.h */,
+				CE27E0F127AC172F003D56AC /* strtod.h */,
+				CE27E0F227AC172F003D56AC /* swap.h */,
+				CE27E87027AC9B07003D56AC /* Makefile.am */,
+			);
+			path = internal;
+			sourceTree = "<group>";
+		};
+		CE27E10427AC172F003D56AC /* error */ = {
+			isa = PBXGroup;
+			children = (
+				CE27E10627AC172F003D56AC /* en.h */,
+				CE27E10527AC172F003D56AC /* error.h */,
+				CE27E87127AC9B55003D56AC /* Makefile.am */,
+			);
+			path = error;
+			sourceTree = "<group>";
+		};
+		CE27E10927AC172F003D56AC /* msinttypes */ = {
+			isa = PBXGroup;
+			children = (
+				CE27E10A27AC172F003D56AC /* inttypes.h */,
+				CE27E10B27AC172F003D56AC /* stdint.h */,
+				CE27E86F27AC9AE5003D56AC /* Makefile.am */,
+			);
+			path = msinttypes;
 			sourceTree = "<group>";
 		};
 		CE5870711F5CDFE0004CAAB2 /* ui */ = {
@@ -3154,6 +3365,7 @@
 				CE80FE9C1C5E445500A21A51 /* cg_hud.h in Headers */,
 				CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */,
 				CE80FE9D1C5E445500A21A51 /* cg_local.h in Headers */,
+				CE27E6BA27AC95D1003D56AC /* cg_discord.h in Headers */,
 				CE80FE9E1C5E445500A21A51 /* cg_main.h in Headers */,
 				CE80FE9F1C5E445500A21A51 /* cg_media.h in Headers */,
 				CE80FEA01C5E445500A21A51 /* cg_muzzle_flash.h in Headers */,
@@ -3174,6 +3386,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE69DC9F202D3EE700E5C8B1 /* miniz.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE27E11027AC26E6003D56AC /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE27E1F427AC276C003D56AC /* backoff.h in Headers */,
+				CE27E1F127AC276C003D56AC /* connection.h in Headers */,
+				CE27E1F227AC276C003D56AC /* msg_queue.h in Headers */,
+				CE27E1F527AC276C003D56AC /* rpc_connection.h in Headers */,
+				CE27E1F327AC276C003D56AC /* serialization.h in Headers */,
+				CE27E21927AC2774003D56AC /* discord_register.h in Headers */,
+				CE27E21A27AC2774003D56AC /* discord_rpc.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3545,6 +3771,23 @@
 			productName = quetoo;
 			productReference = CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */;
 			productType = "com.apple.product-type.tool";
+		};
+		CE27E10C27AC26E6003D56AC /* discord-rpc */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE27E11227AC26E6003D56AC /* Build configuration list for PBXNativeTarget "discord-rpc" */;
+			buildPhases = (
+				CE27E10D27AC26E6003D56AC /* Sources */,
+				CE27E10F27AC26E6003D56AC /* Frameworks */,
+				CE27E11027AC26E6003D56AC /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "discord-rpc";
+			productName = minizip;
+			productReference = CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */;
+			productType = "com.apple.product-type.library.static";
 		};
 		CE354EEF22075132008AE0C2 /* check_atlas */ = {
 			isa = PBXNativeTarget;
@@ -4022,6 +4265,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				CE27E10C27AC26E6003D56AC /* discord-rpc */,
 				CE12D8101C5C5EF000CD0B13 /* minizip */,
 				CE80FDB41C5E3D4E00A21A51 /* shared */,
 				CE80FDD91C5E3E1100A21A51 /* common */,
@@ -4157,6 +4401,7 @@
 				CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */,
 				CE12D7FE1C5C5E0200CD0B13 /* cg_view.c in Sources */,
 				CE4DCF07256DCCA100FECAFC /* cg_weapon.c in Sources */,
+				CE27E6B927AC95D1003D56AC /* cg_discord.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4173,6 +4418,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE12D8C41C5CF86600CD0B13 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE27E10D27AC26E6003D56AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE27E1C927AC2740003D56AC /* connection_unix.cpp in Sources */,
+				CE27E1CD27AC2740003D56AC /* discord_register_osx.m in Sources */,
+				CE27E1C627AC2740003D56AC /* discord_rpc.cpp in Sources */,
+				CE27E1C527AC2740003D56AC /* rpc_connection.cpp in Sources */,
+				CE27E1CB27AC2740003D56AC /* serialization.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4890,6 +5147,36 @@
 			};
 			name = Release;
 		};
+		CE27E11327AC26E6003D56AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_COMMA = NO;
+				EXECUTABLE_PREFIX = lib;
+				OTHER_CFLAGS = (
+					"-Ideps/rapidjson",
+					"-Ideps/discord-rpc/include",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CE27E11427AC26E6003D56AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_COMMA = NO;
+				EXECUTABLE_PREFIX = lib;
+				OTHER_CFLAGS = (
+					"-Ideps/rapidjson",
+					"-Ideps/discord-rpc/include",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		CE354EFC22075132008AE0C2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -5360,6 +5647,15 @@
 			buildConfigurations = (
 				CE12D8F21C5CF86600CD0B13 /* Debug */,
 				CE12D8F31C5CF86600CD0B13 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE27E11227AC26E6003D56AC /* Build configuration list for PBXNativeTarget "discord-rpc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE27E11327AC26E6003D56AC /* Debug */,
+				CE27E11427AC26E6003D56AC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

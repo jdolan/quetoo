@@ -665,6 +665,8 @@ void Cl_Frame(const uint32_t msec) {
 
 	S_RenderStage(&cl_stage);
 
+	cls.cgame->UpdateDiscord();
+
 	frame_timestamp = quetoo.ticks;
 	cl.frame_msec = 0;
 }

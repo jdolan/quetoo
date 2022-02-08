@@ -89,6 +89,7 @@ cvar_t *cg_third_person_y;
 cvar_t *cg_third_person_z;
 cvar_t *cg_third_person_pitch;
 cvar_t *cg_third_person_yaw;
+cvar_t *cg_spectator;
 
 cvar_t *g_gameplay;
 cvar_t *g_teams;
@@ -243,6 +244,9 @@ static void Cg_Init(void) {
 	cg_third_person_yaw = cgi.AddCvar("cg_third_person_yaw", "0", CVAR_ARCHIVE,
 									  "The yaw offset for third person perspective.");
 
+	cg_spectator = cgi.AddCvar("spectator", "0", CVAR_ARCHIVE | CVAR_USER_INFO,
+						       "Controls connection spectator status. If 1, you'll be put into spectator mode automatically.");
+
 	g_gameplay = cgi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
 	                      "Selects deathmatch, duel, arena, or instagib combat");
 	g_teams = cgi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
@@ -277,6 +281,8 @@ static void Cg_Init(void) {
 
 	Cg_InitHud();
 
+	Cg_InitDiscord();
+
 	cgi.Print("Client game module initialized\n");
 }
 
@@ -290,6 +296,8 @@ static void Cg_Shutdown(void) {
 	Cg_FreeMedia();
 
 	Cg_ShutdownUi();
+
+	Cg_ShutdownDiscord();
 
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
 	cgi.FreeTag(MEM_TAG_CGAME);
@@ -352,6 +360,21 @@ static void Cg_UpdateConfigString(int32_t i) {
 		case CS_HOOK_PULL_SPEED:
 			cg_state.hook_pull_speed = strtof(s, NULL);
 			return;
+		case CS_MAXCLIENTS:
+			cg_state.max_clients = (int32_t) strtol(s, NULL, 10);
+			return;
+		case CS_NUMCLIENTS:
+			cg_state.num_clients = (int32_t) strtol(s, NULL, 10);
+			return;
+		case CS_MATCH:
+			cg_state.match = (int32_t) strtol(s, NULL, 10);
+			return;
+		case CS_ROUND:
+			cg_state.round = (int32_t) strtol(s, NULL, 10);
+			return;
+		case CS_ROUNDS:
+			cg_state.num_rounds = (int32_t) strtol(s, NULL, 10);
+			return;
 		default:
 			break;
 	}
@@ -376,6 +399,11 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
 	switch (cmd) {
 		case SV_CMD_CONFIG_STRING:
 			Cg_UpdateConfigString((int32_t) (intptr_t) data);
+			break;
+		case SV_CMD_FRAME:
+			if (cg_spectator->integer) {
+				cgi.SetCvarInteger("spectator", 0);
+			}
 			break;
 	}
 }
@@ -522,6 +550,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.PrepareScene = Cg_PrepareScene;
 	cge.PopulateScene = Cg_PopulateScene;
 	cge.UpdateScreen = Cg_UpdateScreen;
+	cge.UpdateDiscord = Cg_UpdateDiscord;
 
 	return &cge;
 }

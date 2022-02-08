@@ -97,7 +97,7 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
 	const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true, true);
 	const ai_node_id_t dst_node = aix->FindClosestNode(dest->s.origin, 512.f, true, true);
 
-	if (src_node != NODE_INVALID && dst_node != NODE_INVALID) {
+	if (src_node != AI_NODE_INVALID && dst_node != AI_NODE_INVALID) {
 
 		// make a new node on top of src so we touch the teleporter, connect
 		// it to dst with a small cost

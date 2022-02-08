@@ -31,6 +31,18 @@
     <Filter Include="src\default\ui\teams">
       <UniqueIdentifier>{ee9ce366-f7a4-492f-92fd-bedd14bee051}</UniqueIdentifier>
     </Filter>
+    <Filter Include="deps">
+      <UniqueIdentifier>{9e2ae0cc-2c49-4d2e-b1b2-b8a73235e595}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\discord-rpc">
+      <UniqueIdentifier>{de9eeb6e-2bf5-4fd7-a287-3822c68a4639}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\discord-rpc\src">
+      <UniqueIdentifier>{db52cb63-cf49-412c-aeb5-39fde47b93b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\discord-rpc\include">
+      <UniqueIdentifier>{8ef34dfd-a416-4e48-b10e-7ae73d41ea79}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cgame\cgame.h">
@@ -180,6 +192,9 @@
     <ClInclude Include="..\src\cgame\default\cg_flare.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_discord.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\common\DialogViewController.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
@@ -191,6 +206,27 @@
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\teams\TeamView.h">
       <Filter>src\default\ui\teams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\include\discord_rpc.h">
+      <Filter>deps\discord-rpc\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\include\discord_register.h">
+      <Filter>deps\discord-rpc\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\msg_queue.h">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\rpc_connection.h">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\serialization.h">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\backoff.h">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\connection.h">
+      <Filter>deps\discord-rpc\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -332,6 +368,9 @@
     <ClCompile Include="..\src\cgame\default\cg_flare.c">
       <Filter>src\default</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_discord.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\common\DialogViewController.c">
       <Filter>src\default\ui\common</Filter>
     </ClCompile>
@@ -343,6 +382,24 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\teams\TeamView.c">
       <Filter>src\default\ui\teams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\discord_register_win.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\discord_rpc.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\dllmain.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\rpc_connection.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\serialization.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\connection_win.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

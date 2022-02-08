@@ -293,11 +293,11 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 			_Bool path_found = false;
 
-			if (ENTITY_DATA(pick.entity, node) != NODE_INVALID) {
+			if (ENTITY_DATA(pick.entity, node) != AI_NODE_INVALID) {
 				const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true, true);
 				const ai_node_id_t dest = ENTITY_DATA(pick.entity, node);
 
-				if (src != NODE_INVALID) {
+				if (src != AI_NODE_INVALID) {
 					float length;
 					GArray *path = Ai_Node_FindPath(src, dest, Ai_Node_DefaultHeuristic, &length);
 
@@ -1375,7 +1375,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 	// check to be sure we're in a navicable spot
 	const ai_node_id_t closest = Ai_Node_FindClosest(self->s.origin, 256.f, true, true);
 
-	if (closest == NODE_INVALID) {
+	if (closest == AI_NODE_INVALID) {
 		return 200;
 	}
 
@@ -1592,7 +1592,7 @@ static void Ai_TestPath_f(void) {
 			ai_locals_t *ai = Ai_GetLocals(ent);
 			const ai_node_id_t closest_to_player = Ai_Node_FindClosest(ent->s.origin, 256.f, true, true);
 
-			if (closest_to_player == NODE_INVALID) {
+			if (closest_to_player == AI_NODE_INVALID) {
 				Ai_Debug("Can't find a node near this bot\n");
 				continue;
 			}

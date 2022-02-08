@@ -146,8 +146,8 @@ static void LightForEntity_light_sun(const cm_entity_t *entity, light_t *light) 
 	light->type = LIGHT_SUN;
 	light->atten = LIGHT_ATTEN_NONE;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
+	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
-	light->radius = LIGHT_RADIUS;
 	light->bounds = Box3_Null();
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {

@@ -547,8 +547,6 @@ static void G_EndLevel(void) {
  * @brief
  */
 static void G_CheckRoundStart(void) {
-	int32_t i, clients;
-	g_client_t *cl;
 
 	if (!g_level.rounds) {
 		return;
@@ -558,26 +556,30 @@ static void G_CheckRoundStart(void) {
 		return;
 	}
 
-	clients = 0;
+	int32_t clients = 0;
 
-	uint8_t teams_ready[MAX_TEAMS];
+	int32_t teams_ready[MAX_TEAMS];
 	memset(teams_ready, 0, sizeof(teams_ready));
 
-	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use) {
+	const g_entity_t *e = g_game.entities + 1;
+	for (int32_t i = 0; i < sv_max_clients->integer; i++, e++) {
+
+		if (!e->in_use) {
 			continue;
 		}
 
-		cl = g_game.entities[i + 1].client;
+		if (e->locals.dead) {
+			continue;
+		}
 
-		if (cl->locals.persistent.spectator) {
+		if (e->client->locals.persistent.spectator) {
 			continue;
 		}
 
 		clients++;
 
-		if (g_level.teams && cl->locals.persistent.team) {
-			teams_ready[cl->locals.persistent.team->id]++;
+		if (g_level.teams && e->client->locals.persistent.team) {
+			teams_ready[e->client->locals.persistent.team->id]++;
 		}
 	}
 
@@ -668,27 +670,31 @@ static void G_CheckRoundEnd(void) {
 		return; // no round currently running
 	}
 
-	g_entity_t *winner = NULL;
+	const g_entity_t *winner = NULL;
 	int32_t clients = 0;
 
-	uint8_t teams_count[MAX_TEAMS];
+	int32_t teams_count[MAX_TEAMS];
 	memset(teams_count, 0, sizeof(teams_count));
 
-	for (int32_t j = 0; j < sv_max_clients->integer; j++) {
-		if (!g_game.entities[j + 1].in_use) {
+	const g_entity_t *e = g_game.entities + 1;
+	for (int32_t j = 1; j < sv_max_clients->integer; j++, e++) {
+
+		if (!e->in_use) {
 			continue;
 		}
 
-		g_client_t *cl = g_game.entities[j + 1].client;
-
-		if (cl->locals.persistent.spectator) { // true spectator, or dead
+		if (e->locals.dead) {
 			continue;
 		}
 
-		winner = &g_game.entities[j + 1];
+		if (e->client->locals.persistent.spectator) {
+			continue;
+		}
 
-		if (g_level.teams) {
-			teams_count[cl->locals.persistent.team->id]++;
+		winner = e;
+
+		if (e->client->locals.persistent.team) {
+			teams_count[e->client->locals.persistent.team->id]++;
 		}
 
 		clients++;
@@ -702,13 +708,15 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	if (g_level.teams || g_level.ctf) { // teams rounds continue if each team has a player
-		_Bool do_continue = true;
 
-		for (int32_t i = 0; do_continue && i < g_level.num_teams; i++) {
-			do_continue = do_continue && !teams_count[i];
+		int32_t i;
+		for (i = 0; i < g_level.num_teams; i++) {
+			if (teams_count[i] == 0) {
+				break;
+			}
 		}
 
-		if (do_continue) {
+		if (i == g_level.num_teams) {
 			return;
 		}
 	} else if (clients > 1) { // ffa continues if two players are alive
@@ -716,16 +724,18 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	// allow enemy projectiles to expire before declaring a winner
-	for (int32_t i = 0; i < ge.num_entities; i++) {
-		if (!g_game.entities[i + 1].in_use) {
+	e = g_game.entities + 1;
+	for (int32_t i = 1; i < ge.num_entities; i++, e++) {
+
+		if (!e->in_use) {
 			continue;
 		}
 
-		if (!g_game.entities[i + 1].owner) {
+		if (!e->owner) {
 			continue;
 		}
 
-		g_client_t *cl = g_game.entities[i + 1].owner->client;
+		g_client_t *cl = e->owner->client;
 
 		if (!cl) {
 			continue;
