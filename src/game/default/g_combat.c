@@ -128,7 +128,10 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 	gi.WriteByte(type);
 	gi.WritePosition(pos);
 	gi.WriteDir(normal);
-	gi.WriteByte(Clampf(damage, 1, 255));
+	
+	if (type != TE_BULLET) {
+		gi.WriteByte(Clampf(damage, 1, 255));
+	}
 	
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 }
