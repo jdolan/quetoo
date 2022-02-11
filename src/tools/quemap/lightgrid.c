@@ -630,7 +630,8 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
-		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), l->diffuse);
+		const vec3_t diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
+		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), diffuse);
 
 		switch (fog->type) {
 			case FOG_INVALID:
