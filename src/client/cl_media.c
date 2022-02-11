@@ -265,6 +265,8 @@ void Cl_LoadMedia(void) {
 
 	Cl_LoadImages();
 
+	S_Stop();
+
 	S_BeginLoading();
 
 	Cl_LoadSounds();
