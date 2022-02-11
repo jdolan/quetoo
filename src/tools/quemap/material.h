@@ -45,5 +45,6 @@ extern material_t materials[MAX_BSP_MATERIALS];
 
 void LoadMaterials(const char *path);
 int32_t FindMaterial(const char *name);
+vec3_t GetMaterialColor(int32_t num);
 ssize_t WriteMaterialsFile(const char *path);
 void FreeMaterials(void);

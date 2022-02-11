@@ -30,19 +30,6 @@ GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 GPtrArray *unattenuated_lights;
 
 /**
- * @brief
- */
-static vec3_t GetMaterialColor(int32_t num) {
-	static color_t colors[MAX_BSP_MATERIALS];
-
-	if (Vec3_Equal(Vec3_Zero(), Color_Vec3(colors[num]))) {
-		colors[num] = Img_Color(materials[num].diffusemap);
-	}
-
-	return Color_Vec3(colors[num]);
-}
-
-/**
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
  * down if necessary.
  */

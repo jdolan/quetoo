@@ -21,6 +21,7 @@
 
 #include "fog.h"
 #include "light.h"
+#include "material.h"
 
 GArray *fogs;
 
@@ -119,6 +120,20 @@ static void FogForEntity(const cm_entity_t *entity) {
 		fog.type = FOG_VOLUME;
 		fog.entity = entity;
 
+		fog.brushes = Cm_EntityBrushes(entity);
+		fog.bounds = Box3_Null();
+
+		int32_t material = -1;
+
+		for (guint i = 0; i < fog.brushes->len; i++) {
+			const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);
+			fog.bounds = Box3_Union(fog.bounds, brush->bounds);
+
+			if (g_strcmp0(brush->brush_sides->material->name, "common/fog")) {
+				material = FindMaterial(brush->brush_sides->material->name);
+			}
+		}
+
 		if (Cm_EntityValue(entity, "absorption")->parsed & ENTITY_FLOAT) {
 			fog.absorption = Cm_EntityValue(entity, "absorption")->value;
 		} else {
@@ -127,6 +142,8 @@ static void FogForEntity(const cm_entity_t *entity) {
 
 		if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
 			fog.color = Cm_EntityValue(entity, "_color")->vec3;
+		} else if (material != -1) {
+			fog.color = GetMaterialColor(material);
 		} else {
 			fog.color = FOG_COLOR;
 		}
@@ -142,14 +159,7 @@ static void FogForEntity(const cm_entity_t *entity) {
 		fog.offset = (Cm_EntityValue(entity, "offset")->parsed & ENTITY_VEC3) ?
 			Cm_EntityValue(entity, "offset")->vec3 : FOG_OFFSET;
 
-		fog.brushes = Cm_EntityBrushes(entity);
 
-		fog.bounds = Box3_Null();
-
-		for (guint i = 0; i < fog.brushes->len; i++) {
-			const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);
-			fog.bounds = Box3_Union(fog.bounds, brush->bounds);
-		}
 
 		FogSetPermutationVector(&fog);
 

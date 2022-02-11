@@ -134,6 +134,19 @@ int32_t FindMaterial(const char *name) {
 }
 
 /**
+ * @brief
+ */
+vec3_t GetMaterialColor(int32_t num) {
+	static color_t colors[MAX_BSP_MATERIALS];
+
+	if (Vec3_Equal(Vec3_Zero(), Color_Vec3(colors[num]))) {
+		colors[num] = Img_Color(materials[num].diffusemap);
+	}
+
+	return Color_Vec3(colors[num]);
+}
+
+/**
  * @brief Frees all loaded materials.
  */
 void FreeMaterials(void) {
