@@ -863,12 +863,21 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if ((contents & CONTENTS_MASK_LIQUID) && cg_draw_blend_liquid->value) {
 		color_t color;
-		if (contents & CONTENTS_LAVA) {
-			color = Color4f(.8f, .4f, .1f, 1.f);
-		} else if (contents & CONTENTS_SLIME) {
-			color = Color4f(.4f, .7f, .2f, 1.f);
+
+		const cm_trace_t tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), 0, CONTENTS_MASK_LIQUID);
+		if (tr.brush) {
+			const char *name = tr.brush->brush_sides[0].material->name;
+			color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;
+			const float f = Maxf(color.r, Maxf(color.g, color.b));
+			color = Color_Scale(color, 1.f / f);
 		} else {
-			color = Color4f(.4f, .5f, .6f, 1.f);
+			if (contents & CONTENTS_LAVA) {
+				color = Color4f(.8f, .4f, .1f, 1.f);
+			} else if (contents & CONTENTS_SLIME) {
+				color = Color4f(.4f, .7f, .2f, 1.f);
+			} else {
+				color = Color4f(.4f, .5f, .6f, 1.f);
+			}
 		}
 
 		color.a = Clampf(cg_draw_blend_liquid->value * 0.4, 0.f, 0.4f);
