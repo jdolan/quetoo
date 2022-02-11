@@ -26,7 +26,7 @@
 #define FOG_COLOR Vec3(1.f, 1.f, 1.f)
 #define FOG_DENSITY 1.f
 #define FOG_NOISE 0.f
-#define FOG_ABSORPTION 0.125f
+#define FOG_ABSORPTION 0.5f
 #define FOG_FREQUENCY 32.f
 #define FOG_AMPLITUDE 1.f
 #define FOG_LACUNARITY 2.f
