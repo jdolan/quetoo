@@ -149,6 +149,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "maps/claustrophobopolis.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "maps/darkzone.map"
             isEnabled = "NO">
          </CommandLineArgument>
