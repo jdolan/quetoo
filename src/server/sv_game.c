@@ -423,5 +423,5 @@ void Sv_ShutdownGame(void) {
 	Com_Print("Game down\n");
 	Com_QuitSubsystem(QUETOO_GAME);
 
-	Sys_CloseLibrary(&game_handle);
+	Sys_CloseLibrary(game_handle);
 }
