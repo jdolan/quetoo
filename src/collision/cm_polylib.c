@@ -624,6 +624,10 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 
 		const float r = 1.f / (x1 * y2 - x2 * y1);
 
+		if (r == INFINITY || r == -INFINITY || r == NAN || r == -NAN) {
+			continue;
+		}
+
 		const vec3_t t = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e1, y2), Vec3_Scale(e2, y1)), r);
 		const vec3_t b = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e2, x1), Vec3_Scale(e1, x2)), r);
 
