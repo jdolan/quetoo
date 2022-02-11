@@ -253,7 +253,7 @@ typedef struct cm_bsp_brush_side_s {
 /**
  * @brief Brushes are convex volumes defined by the clipping planes of their sides.
  */
-typedef struct {
+typedef struct cm_bsp_brush_s {
 	/**
 	 * @brief The entity this brush belongs to.
 	 * @remarks Brushes may reside within the world model's BSP tree, but may have been
@@ -401,6 +401,13 @@ typedef struct {
 	 * @brief The destination position.
 	 */
 	vec3_t end;
+
+	/**
+	 * @brief The brush the trace either impacted, or was completely inside of.
+	 * @remarks Callers should typically use the derived fields (plane, contents, surface, ..),
+	 * so that they need not worry about NULL checking and dereferencing.
+	 */
+	const struct cm_bsp_brush_s *brush;
 
 	/**
 	 * @brief The impacted brush side.

@@ -200,6 +200,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		data->trace.start_solid = true;
 		if (!end_outside) {
 			data->trace.all_solid = true;
+			data->trace.brush = brush;
 			data->trace.contents = brush->contents;
 			data->trace.fraction = 0.f;
 			data->unnudged_fraction = 0.f;
@@ -208,6 +209,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		if (enter_fraction > -1.f && enter_fraction < data->unnudged_fraction && nudged_enter_fraction < data->trace.fraction) {
 			data->unnudged_fraction = enter_fraction;
 			data->trace.fraction = nudged_enter_fraction;
+			data->trace.brush = brush;
 			data->trace.brush_side = side;
 			data->trace.plane = plane;
 			data->trace.contents = side->contents;
@@ -253,6 +255,7 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 
 	// inside this brush
 	data->trace.start_solid = data->trace.all_solid = true;
+	data->trace.brush = brush;
 	data->trace.fraction = 0.0f;
 	data->trace.contents = brush->contents;
 }
