@@ -455,38 +455,40 @@ void TangentVectors(void) {
 
 	Cm_Tangents(vertexes, bsp_file.num_vertexes, bsp_file.elements, bsp_file.num_elements);
 
-	Mem_Free(vertexes);
+	int32_t num_bad_vertexes = 0;
 
-	if (debug) {
-		int32_t num_bad_vertexes = 0;
+	v = bsp_file.vertexes;
+	for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
 
-		const bsp_vertex_t *v = bsp_file.vertexes;
-		for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
-
-			if (Vec3_Length(v->tangent) < .9f || Vec3_Length(v->bitangent) < .9f) {
-
-				const int32_t *e = bsp_file.elements;
-				for (int32_t j = 0; j < bsp_file.num_elements; j += 3, e += 3) {
-
-					if (e[0] == i || e[1] == i || e[2] == i) {
-
-						const vec3_t tri[3] = {
-							bsp_file.vertexes[e[0]].position,
-							bsp_file.vertexes[e[1]].position,
-							bsp_file.vertexes[e[2]].position
-						};
-
-						const char *msg = va("Vertex at %s has invalid tangents", vtos(v->position));
-						Mon_SendWinding(MON_WARN, tri, 3, msg);
-
-						break;
-					}
-				}
-
-				num_bad_vertexes++;
-			}
+		if (vertexes[i].num_tris == 0) {
+			continue;
 		}
 
-		Com_Debug(DEBUG_ALL, "%d bad vertexes\n", num_bad_vertexes);
+		if (Vec3_Length(v->tangent) < .9f || Vec3_Length(v->bitangent) < .9f) {
+
+			const int32_t *e = bsp_file.elements;
+			for (int32_t j = 0; j < bsp_file.num_elements; j += 3, e += 3) {
+
+				if (e[0] == i || e[1] == i || e[2] == i) {
+
+					const vec3_t tri[3] = {
+						bsp_file.vertexes[e[0]].position,
+						bsp_file.vertexes[e[1]].position,
+						bsp_file.vertexes[e[2]].position
+					};
+
+					const char *msg = va("Vertex at %s has invalid tangents", vtos(v->position));
+					Mon_SendWinding(MON_WARN, tri, 3, msg);
+
+					break;
+				}
+			}
+
+			num_bad_vertexes++;
+		}
 	}
+
+	Com_Debug(DEBUG_ALL, "%d bad vertexes\n", num_bad_vertexes);
+
+	Mem_Free(vertexes);
 }

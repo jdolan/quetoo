@@ -624,7 +624,7 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 
 		const float r = 1.f / (x1 * y2 - x2 * y1);
 
-		if (r == INFINITY || r == -INFINITY || r == NAN || r == -NAN) {
+		if (r == INFINITY || r == -INFINITY) {
 			continue;
 		}
 
@@ -638,6 +638,10 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 		*v0->bitangent = Vec3_Add(*v0->bitangent, b);
 		*v1->bitangent = Vec3_Add(*v1->bitangent, b);
 		*v2->bitangent = Vec3_Add(*v2->bitangent, b);
+
+		v0->num_tris++;
+		v1->num_tris++;
+		v2->num_tris++;
 	}
 
 	cm_vertex_t *v = vertexes;

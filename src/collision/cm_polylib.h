@@ -103,6 +103,11 @@ typedef struct {
 	 * @brief The vertex texture coordinate.
 	 */
 	vec2_t *st;
+
+	/**
+	 * @brief The number of triangles referencing this vertex.
+	 */
+	int32_t num_tris;
 } cm_vertex_t;
 
 
