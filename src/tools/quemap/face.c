@@ -154,6 +154,9 @@ static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
 
 int32_t num_welds = 0;
 
+/**
+ * @brief
+ */
 static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
 	static const int32_t offsets[] = { 0, 1, -1 };
 	
@@ -240,14 +243,8 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			.normal = planes[brush_side->plane].normal
 		};
 
-		/*
-		 * Texcoords are derived from the original winding point, not the welded vertex position.
-		 * This produces WYSIWYG texture mapping, and avoids unsightly specular artifacts
-		 * introduced by moving the vertex in order to weld cracks.
-		 */
-
-		const float s = Vec3_Dot(face->w->points[i], sdir) + brush_side->axis[0].w;
-		const float t = Vec3_Dot(face->w->points[i], tdir) + brush_side->axis[1].w;
+		const float s = Vec3_Dot(points[i], sdir) + brush_side->axis[0].w;
+		const float t = Vec3_Dot(points[i], tdir) + brush_side->axis[1].w;
 
 		out.diffusemap.x = s / (diffusemap ? diffusemap->w : 1.f);
 		out.diffusemap.y = t / (diffusemap ? diffusemap->h : 1.f);
