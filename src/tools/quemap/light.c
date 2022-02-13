@@ -621,7 +621,7 @@ void BuildIndirectLights(void) {
 
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->brush_side->surface & (SURF_LIGHT | SURF_MASK_NO_LIGHTMAP)) {
+		if (lm->brush_side->surface & (SURF_LIGHT | SURF_MATERIAL | SURF_MASK_NO_LIGHTMAP)) {
 			continue;
 		}
 
