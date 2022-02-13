@@ -108,7 +108,7 @@ static const char *R_Debug_Severity(const GLenum severity) {
  * @brief Callback for OpenGL's debug system.
 */
 static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei length, const GLchar *message, const void *userParam) {
-	
+
 	char temp[length + 1];
 	GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
 
@@ -130,7 +130,10 @@ static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, 
 
 		if (last_gl_func) {
 			trace = last_gl_func;
-			*strchr(last_gl_func, '\n') = 0;
+			char* c = strchr(last_gl_func, '\n');
+			if (c) {
+				*c = 0;
+			}
 		}
 	}
 
