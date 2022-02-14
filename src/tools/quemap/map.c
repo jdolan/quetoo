@@ -427,7 +427,7 @@ static void SetMaterialFlags(brush_side_t *side) {
 	} else if (!g_strcmp0(side->texture, "common/sky")) {
 		side->surface |= SURF_SKY;
 	} else if (!g_strcmp0(side->texture, "common/trigger")) {
-		side->contents |= CONTENTS_PLAYER_CLIP;
+		side->surface |= SURF_NO_DRAW;
 	}
 
 	if (side->contents & CONTENTS_MASK_LIQUID) {
@@ -557,14 +557,16 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
 		}
 
-		// clip brushes, similarly, are not drawn and therefore can not occlude
+		// clip brushes are not drawn and should not be splitters
 		if (side->contents & CONTENTS_MASK_CLIP) {
 			side->contents |= CONTENTS_DETAIL;
+			side->surface |= SURF_NODE;
 		}
 
 		// and the same goes for atmospherics like dust and fog
 		if (side->contents & CONTENTS_ATMOSPHERIC) {
 			side->contents |= CONTENTS_DETAIL;
+			side->surface |= SURF_NODE;
 		}
 
 		// default brushes with no explicit contents to either solid or window
@@ -583,6 +585,11 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		// hints and skips have no contents
 		if (side->surface & (SURF_HINT | SURF_SKIP)) {
 			side->contents = CONTENTS_NONE;
+		}
+
+		// and skips should never be splitters
+		if (side->surface & SURF_SKIP) {
+			side->surface |= SURF_NODE;
 		}
 
 		brush->num_brush_sides++;
@@ -621,13 +628,6 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 		UnparseBrush(brush);
 		return brush;
-	}
-
-	// ensure that skip sides do not become BSP splitters
-	for (int32_t i = 0; i < brush->num_brush_sides; i++) {
-		if (brush->brush_sides[i].surface & SURF_SKIP) {
-			brush->brush_sides[i].surface |= SURF_NODE;
-		}
 	}
 
 	// add brush bevels, which are required for collision
