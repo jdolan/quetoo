@@ -315,8 +315,21 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 		return;
 	}
 
+#if 0
+	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+	const float thresh = cosf(light->theta);
+	const float smooth = 0.03f;
+	const float cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
+
+	if (cutoff <= 0.f) {
+		return;
+	}
+#else
+	const float cutoff = 1.f;
+#endif
+
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * atten * atten * scale;
+	const float intensity = light->radius * cutoff * atten * atten * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -335,6 +348,7 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
  * @brief
  */
 static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float scale) {
+	vec3_t dir;
 
 	if (light->model != bsp_file.models) {
 		return;
@@ -344,14 +358,27 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 		return;
 	}
 	
-	float dist = Vec3_Distance(light->origin, luxel->origin);
+	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
 	dist = Maxf(0.f, dist - light->size * .5f);
 	if (dist > light->radius) {
 		return;
 	}
 
+#if 1
+	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+	const float thresh = cosf(light->theta);
+	const float smooth = 0.03f;
+	const float cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
+
+	if (cutoff <= 0.f) {
+		return;
+	}
+#else
+	const float cutoff = 1.f;
+#endif
+
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * atten * atten * scale;
+	const float intensity = light->radius * cutoff * atten * atten * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 

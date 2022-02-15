@@ -342,6 +342,8 @@ static void LightForPatch(const patch_t *patch) {
 		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, plane->normal),
 		.face = patch->face,
 		.plane = plane,
+		.normal = plane->normal,
+		.theta = LIGHT_CONE,
 		.model = patch->model,
 	};
 
@@ -529,6 +531,8 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, lm->plane->normal),
 		.face = patch->face,
 		.plane = plane,
+		.normal = plane->normal,
+		.theta = LIGHT_CONE,
 		.model = patch->model,
 	};
 
