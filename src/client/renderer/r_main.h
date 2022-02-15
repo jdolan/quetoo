@@ -174,6 +174,11 @@ typedef struct {
 		int32_t ticks;
 
 		/**
+		 * @brief The lightmaps debugging mask.
+		 */
+		int32_t lightmaps;
+
+		/**
 		 * @brief The brightness scalar.
 		 */
 		float brightness;
@@ -232,6 +237,7 @@ extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
 extern cvar_t *r_draw_bsp_lightgrid;
+extern cvar_t *r_draw_bsp_lightmap;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_bsp_occlusion_queries;
 extern cvar_t *r_draw_entity_bounds;

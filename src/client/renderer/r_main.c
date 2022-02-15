@@ -30,6 +30,7 @@ cvar_t *r_blend_depth_sorting;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
 cvar_t *r_draw_bsp_lightgrid;
+cvar_t *r_draw_bsp_lightmap;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_bsp_occlusion_queries;
 cvar_t *r_draw_entity_bounds;
@@ -241,6 +242,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		r_uniforms.block.view_type = view->type;
 		r_uniforms.block.ticks = view->ticks;
 
+		r_uniforms.block.lightmaps = r_draw_bsp_lightmap->integer;
 		r_uniforms.block.modulate = r_modulate->value;
 		
 		r_uniforms.block.fog_density = r_fog_density->value;
@@ -464,6 +466,7 @@ static void R_InitLocal(void) {
 	r_blend_depth_sorting = Cvar_Add("r_blend_depth_sorting", "1", CVAR_DEVELOPER, "Controls alpha blending sorting (developer tool)");
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
+	r_draw_bsp_lightmap = Cvar_Add("r_draw_bsp_lightmap", "0", CVAR_DEVELOPER, "Controls the rendering of BSP lightmap textures (developer tool");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
 	r_draw_bsp_occlusion_queries = Cvar_Add("r_draw_bsp_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of BSP occlusion queries (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");

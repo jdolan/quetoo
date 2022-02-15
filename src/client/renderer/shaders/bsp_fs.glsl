@@ -127,6 +127,12 @@ void main(void) {
 		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 		global_fog(out_color, vertex.position);
 
+		if (lightmaps == 1) {
+			out_color.rgb = (diffuse + ambient) * modulate;
+		} else if (lightmaps == 2) {
+			out_color.rgb = direction * 0.5 + 0.5;
+		}
+
 		//out_color.rgb = caustic;
 		//out_color.rgb = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 		//out_color.rgb = diffuse + ambient;

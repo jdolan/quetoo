@@ -106,6 +106,12 @@ void main(void) {
 		// out_color.rgb *= 1.0 - vertex.fog.a; // black? sigh.
 		out_color.rgb += vertex.fog.rgb * out_color.a;
 
+		if (lightmaps == 1) {
+			out_color.rgb = (vertex.diffuse + vertex.ambient) * modulate;
+		} else if (lightmaps == 2) {
+			out_color.rgb = vertex.direction * 0.5 + 0.5;
+		}
+
 	} else {
 
 		// effect
@@ -115,7 +121,7 @@ void main(void) {
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			effect.rgb += vertex.fog.rgb * effect.a;
 		}
-		
+
 		out_color = effect;
 	}
 

@@ -104,6 +104,11 @@ layout (std140) uniform uniforms_block {
 	int ticks;
 
 	/**
+	 * @brief The lightmaps debugging mask.
+	 */
+	int lightmaps;
+
+	/**
 	 * @brief The brightness scalar.
 	 */
 	float brightness;
