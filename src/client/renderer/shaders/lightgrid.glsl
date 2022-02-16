@@ -86,7 +86,7 @@ void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler,
 
 	avg_fog /= float(num_samples);
 
-	vec4 fog = mix(avg_fog, max_fog, 0);
+	vec4 fog = mix(avg_fog, max_fog, .5);
 
 	float density = clamp(fog.a * fog_density, 0.0, 1.0);
 
