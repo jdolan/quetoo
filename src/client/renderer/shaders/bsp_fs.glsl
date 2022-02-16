@@ -78,7 +78,11 @@ void main(void) {
 
 		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
 		vec4 normalmap = texture(texture_material, vec3(texcoord_material, 1));
+		vec4 normalmap_mipofs1 = texture(texture_material, vec3(texcoord_material, 1), 1);
 		vec4 glossmap = texture(texture_material, vec3(texcoord_material, 2));
+
+		vec3 normalmap_scaled = (normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0);
+		vec3 normalmap_mipofs1_scaled = (normalmap_mipofs1.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0);
 
 		diffusemap *= vertex.color;
 
@@ -86,7 +90,7 @@ void main(void) {
 			discard;
 		}
 
-		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
+		vec3 normal = normalize(tbn * normalmap_scaled);
 
 		vec3 ambient = sample_lightmap(0).rgb;
 		vec3 diffuse = sample_lightmap(1).rgb;
@@ -106,7 +110,15 @@ void main(void) {
 		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
 		vec3 diffuse_light = ambient + diffuse * 2.0 * bump_shading;
 
-		vec3 specular_light = brdf_blinn(viewdir, direction, normal, diffuse, glossmap.a, material.specularity * 100.0);
+		float power = material.specularity * 100.0;
+		float gloss = min(
+			toksvig(normalmap_scaled.xyz, power),
+			toksvig(normalmap_mipofs1_scaled.xyz, power));
+		float n_dot_v = saturate(dot(viewdir, normal));
+		float n_dot_h = saturate(dot(normalize(viewdir + direction), normal));
+		float spec_direct = blinn(n_dot_h, gloss * glossmap.a, power);
+		float spec_indirect = blinn(n_dot_v, glossmap.a, power * 0.125);
+		vec3 specular_light = (diffuse * spec_direct) + (ambient * spec_indirect);
 		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		vec3 stainmap = sample_lightmap(4).rgb;
@@ -163,8 +175,8 @@ void main(void) {
 	}
 
 	// postprocessing
-
 	out_color = postprocess(out_color);
+
 
 	// debugging
 
