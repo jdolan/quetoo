@@ -457,8 +457,6 @@ AC_CONFIG_FILES([
 	deps/rapidjson/rapidjson/internal/Makefile
 	deps/rapidjson/rapidjson/msinttypes/Makefile
 	src/Makefile
-	src/ai/Makefile
-	src/ai/default/Makefile
 	src/collision/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile

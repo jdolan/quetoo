@@ -5,7 +5,6 @@ SUBDIRS = \
 	net \
 	server \
 	game \
-	ai \
 	client \
 	cgame \
 	main \
