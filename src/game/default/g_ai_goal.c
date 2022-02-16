@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "../g_local.h"
+#include "g_local.h"
 
 /**
  * @brief Setup base entity goal for the specified target.

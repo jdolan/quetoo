@@ -981,7 +981,7 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 	ent->client->locals.respawn_time = g_level.time;
 	ent->client->locals.respawn_protection_time = g_level.time + g_respawn_protection->value * 1000;
 
-	Ai_Spawn(ent);
+	G_Ai_Respawn(ent);
 
 	if (!voluntary) { // don't announce involuntary spectator changes
 		return;

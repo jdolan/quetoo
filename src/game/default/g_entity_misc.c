@@ -153,7 +153,7 @@ void G_misc_teleporter(g_entity_t *ent) {
 	ent->locals.Touch = G_misc_teleporter_Touch;
 	
 	// create link to destination
-	if (!Ai_Node_DevMode()) {
+	if (!G_Ai_InDeveloperMode()) {
 		ent->locals.Think = G_misc_teleporter_Think;
 		ent->locals.next_think = g_level.time + 1;
 	}

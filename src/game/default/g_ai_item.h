@@ -21,10 +21,9 @@
 
 #pragma once
 
-#include "ai_types.h"
+#ifdef __GAME_LOCAL_H__
+extern size_t ai_num_weapons;
 
-#ifdef __AI_LOCAL_H__
-void Ai_InitSkins(void);
-void Ai_ShutdownSkins(void);
-void Ai_GetUserInfo(const g_entity_t *self, char *info);
-#endif /* __AI_LOCAL_H__ */
+_Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other);
+void Ai_InitItems(void);
+#endif /* __GAME_LOCAL_H__ */

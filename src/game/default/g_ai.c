@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "ai/ai_types.h"
 #include "bg_pmove.h"
 
 cvar_t *g_ai_max_clients;
@@ -91,9 +90,7 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 		memset(&cmd, 0, sizeof(cmd));
 		cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
 
-		Ai_Think(self, &cmd);
-		G_ClientThink(self, &cmd);
-		Ai_PostThink(self, &cmd);
+		G_Ai_Think(self, &cmd);
 
 		msec_left -= cmd.msec;
 	}
@@ -159,7 +156,7 @@ static void G_Ai_ClientBegin(g_entity_t *self) {
 
 	G_ClientBegin(self);
 
-	Ai_Begin(self);
+	G_Ai_Begin(self);
 
 	G_Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
 
@@ -294,7 +291,7 @@ void G_Ai_ClientDisconnect(g_entity_t *ent) {
 		}
 	}
 
-	Ai_Disconnect(ent);
+	G_Ai_Disconnect(ent);
 }
 
 /**
@@ -357,8 +354,15 @@ void G_Ai_Frame(void) {
 			G_RunThink(ent);
 		}
 	}
+	
+	// Mark loading finished if 1 second has passed
+	if (g_level.time > 1000) {
+		if (!ai_level.load_finished) {
 
-	Ai_Frame();
+			Ai_NodesReady();
+			ai_level.load_finished = true;
+		}
+	}
 }
 
 /**
@@ -372,23 +376,7 @@ void G_Ai_Init(void) {
 	gi.AddCmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 	gi.AddCmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");
 
-	Ai_Init();
-}
-
-/**
- * @brief
- */
-void G_Ai_Shutdown(void) {
-
-	Ai_Shutdown();
-}
-
-/**
- * @brief
- */
-void G_Ai_Load(void) {
-
-	Ai_Load();
+	G_Ai_InitLocals();
 }
 
 /**
@@ -397,7 +385,7 @@ void G_Ai_Load(void) {
  */
 bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 
-	if (!Ai_Node_DevMode()) {
+	if (!G_Ai_InDeveloperMode()) {
 		return false;
 	}
 

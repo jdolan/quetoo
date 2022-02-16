@@ -19,9 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "../g_local.h"
-#include "game/default/bg_pmove.h"
-#include "game/default/g_ai.h"
+#include "g_local.h"
+#include "bg_pmove.h"
 
 ai_level_t ai_level;
 
@@ -1330,7 +1329,7 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 /**
  * @brief Called just before an AI leaves this mortal plane.
  */
-void Ai_Disconnect(g_entity_t *self) {
+void G_Ai_Disconnect(g_entity_t *self) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 
 	// clear any dynamic memory
@@ -1450,7 +1449,7 @@ static const Ai_GoalFunc ai_goalfuncs[AI_FUNCGOAL_TOTAL] = {
 /**
  * @brief Called every frame for every AI.
  */
-void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
+void G_Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 
 	if (self->solid == SOLID_DEAD) {
@@ -1471,13 +1470,9 @@ void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	ai->last_origin = self->s.origin;
-}
-
-/**
- * @brief Called after a successful think.
- */
-void Ai_PostThink(g_entity_t *self, const pm_cmd_t *cmd) {
-	ai_locals_t *ai = Ai_GetLocals(self);
+	
+	// run client think
+	G_ClientThink(self, cmd);
 
 	// can't trick jump when we hit the ground.
 	if (ai->move_target.type == AI_GOAL_PATH && self->locals.ground.ent && ai->move_target.path.trick_jump) {
@@ -1491,14 +1486,13 @@ void Ai_PostThink(g_entity_t *self, const pm_cmd_t *cmd) {
 		}
 	}
 }
-
 /**
  * @brief Called every time an AI spawns
  */
-void Ai_Spawn(g_entity_t *self) {
+void G_Ai_Respawn(g_entity_t *self) {
 
 	// clean up state
-	Ai_Disconnect(self);
+	G_Ai_Disconnect(self);
 
 	if (self->solid == SOLID_NOT) { // intermission, spectator, etc
 		return;
@@ -1508,21 +1502,7 @@ void Ai_Spawn(g_entity_t *self) {
 /**
  * @brief Called when an AI is first spawned and is ready to go.
  */
-void Ai_Begin(g_entity_t *self) {
-}
-
-/**
- * @brief Advance the bot simulation one frame.
- */
-void Ai_Frame(void) {
-
-	if (g_level.time > 1000) {
-		if (!ai_level.load_finished) {
-
-			Ai_NodesReady();
-			ai_level.load_finished = true;
-		}
-	}
+void G_Ai_Begin(g_entity_t *self) {
 }
 
 /**
@@ -1575,9 +1555,9 @@ void Ai_OffsetNodes_f(void);
 /**
  * @brief Initializes the AI subsystem.
  */
-void Ai_Init(void) {
+void G_Ai_InitLocals(void) {
 
-	gi.Print("Ai module initialization...\n");
+	gi.Print("Ai initialization...\n");
 	gi.Mkdir("ai");
 
 	const char *s = va("%s %s %s", VERSION, BUILD, REVISION);
@@ -1606,7 +1586,7 @@ void Ai_Init(void) {
 /**
  * @brief Loads map data for the AI subsystem.
  */
-void Ai_Load(void) {
+void G_Ai_Load(void) {
 
 	ai_level.load_finished = false;
 
@@ -1616,7 +1596,7 @@ void Ai_Load(void) {
 /**
  * @brief Shuts down the AI subsystem
  */
-void Ai_Shutdown(void) {
+void G_Ai_Shutdown(void) {
 
 	gi.Print("  ^5Ai module shutdown...\n");
 
@@ -1629,50 +1609,7 @@ void Ai_Shutdown(void) {
 /**
  * @brief 
  */
-_Bool Ai_Node_DevMode(void) {
+_Bool G_Ai_InDeveloperMode(void) {
 
 	return ai_node_dev->integer == 1;
 }
-
-/**
- * @brief Load the AI subsystem.
- */
-/*ai_export_t *Ai_LoadAi(ai_import_t *import) {
-
-	aim = *import;
-
-	aix.api_version = AI_API_VERSION;
-
-	aix.Init = Ai_Init;
-	aix.Shutdown = Ai_Shutdown;
-	aix.Load = Ai_Load;
-
-	aix.State = Ai_State;
-	aix.Frame = Ai_Frame;
-
-	aix.GetUserInfo = Ai_GetUserInfo;
-	aix.Begin = Ai_Begin;
-	aix.Spawn = Ai_Spawn;
-	aix.Think = Ai_Think;
-	aix.PostThink = Ai_PostThink;
-	aix.Disconnect = Ai_Disconnect;
-
-	aix.GameRestarted = Ai_GameStarted;
-
-	aix.RegisterItem = Ai_RegisterItem;
-
-	aix.SetDataPointers = Ai_SetDataPointers;
-	
-	aix.PlayerRoam = Ai_Node_PlayerRoam;
-	aix.Render = Ai_Node_Render;
-	aix.IsDeveloperMode = Ai_Node_DevMode;
-	aix.CreateNode = Ai_Node_CreateNode;
-	aix.GetNodePosition = Ai_Node_GetPosition;
-	aix.FindClosestNode = Ai_Node_FindClosest;
-	aix.CreateLink = Ai_Node_CreateLink;
-	aix.GetNodeLinks = Ai_Node_GetLinks;
-	aix.IsLinked = Ai_Node_IsLinked;
-
-	return &aix;
-}
-*/

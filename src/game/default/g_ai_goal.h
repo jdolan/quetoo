@@ -21,31 +21,13 @@
 
 #pragma once
 
-void Ai_Disconnect(g_entity_t *self);
-void Ai_Think(g_entity_t *self, pm_cmd_t *cmd);
-void Ai_PostThink(g_entity_t *self, const pm_cmd_t *cmd);
-void Ai_Spawn(g_entity_t *self);
-void Ai_Begin(g_entity_t *self);
-void Ai_Frame(void);
-void Ai_Init(void);
-void Ai_Load(void);
-void Ai_Shutdown(void);
-_Bool Ai_Node_DevMode(void);
+#ifdef __GAME_LOCAL_H__
+#include "g_ai_types.h"
 
-#ifdef __AI_LOCAL_H__
-extern ai_level_t ai_level;
-
-extern cvar_t *ai_no_target;
-extern cvar_t *ai_node_dev;
-
-/**
- * @brief Resolve the entity at the given index.
- */
-#define ENTITY_FOR_NUM(n) \
-	&g_game.entities[n]
-
-ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
-
-_Bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node);
-
-#endif /* __AI_LOCAL_H__ */
+void Ai_SetPositionalGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const vec3_t position);
+void Ai_SetEntityGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const g_entity_t *entity);
+void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GArray *path, const g_entity_t *path_target);
+void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
+void Ai_ClearGoal(ai_goal_t *goal);
+_Bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent);
+#endif /* __GAME_LOCAL_H__ */

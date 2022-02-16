@@ -21,15 +21,8 @@
 
 #pragma once
 
-#include "ai_types.h"
-
-#ifdef __AI_LOCAL_H__
-void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func);
-void Ai_AddFuncGoal(g_entity_t *ent, Ai_GoalFunc func, uint32_t time_offset);
-void Ai_SetPositionalGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const vec3_t position);
-void Ai_SetEntityGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const g_entity_t *entity);
-void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GArray *path, const g_entity_t *path_target);
-void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
-void Ai_ClearGoal(ai_goal_t *goal);
-_Bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent);
-#endif /* __AI_LOCAL_H__ */
+#ifdef __GAME_LOCAL_H__
+void Ai_InitSkins(void);
+void Ai_ShutdownSkins(void);
+void Ai_GetUserInfo(const g_entity_t *self, char *info);
+#endif /* __GAME_LOCAL_H__ */

@@ -22,14 +22,14 @@
 #pragma once
 
 #include "game/game.h"
-#include "game/default/g_types.h"
+#include "g_types.h"
 
 /**
  * @brief
  */
 #define AI_NODE_INVALID	((ai_node_id_t)-1)
 
-#ifdef __AI_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 
 typedef struct {
 	_Bool load_finished;
@@ -203,4 +203,4 @@ typedef struct ai_locals_s {
 	uint32_t distress_jump_offset;
 	vec3_t ideal_angles;
 } ai_locals_t;
-#endif /* __AI_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */

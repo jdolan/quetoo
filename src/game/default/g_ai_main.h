@@ -21,11 +21,29 @@
 
 #pragma once
 
-#include "ai_types.h"
+void G_Ai_Disconnect(g_entity_t *self);
+void G_Ai_Think(g_entity_t *self, pm_cmd_t *cmd);
+void G_Ai_Respawn(g_entity_t *self);
+void G_Ai_Begin(g_entity_t *self);
+void G_Ai_InitLocals(void);
+void G_Ai_Load(void);
+void G_Ai_Shutdown(void);
+_Bool G_Ai_InDeveloperMode(void);
 
-#ifdef __AI_LOCAL_H__
-extern size_t ai_num_weapons;
+#ifdef __GAME_LOCAL_H__
+extern ai_level_t ai_level;
 
-_Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other);
-void Ai_InitItems(void);
-#endif
+extern cvar_t *ai_no_target;
+extern cvar_t *ai_node_dev;
+
+/**
+ * @brief Resolve the entity at the given index.
+ */
+#define ENTITY_FOR_NUM(n) \
+	&g_game.entities[n]
+
+ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
+
+_Bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node);
+
+#endif /* __GAME_LOCAL_H__ */
