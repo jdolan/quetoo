@@ -90,12 +90,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Items", "Items", "{88A4851C
 		build_settings.props = build_settings.props
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ai", "ai.vcxproj", "{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}"
-	ProjectSection(ProjectDependencies) = postProject
-		{2F1C792E-6243-462B-AF0D-E2554E77D5C5} = {2F1C792E-6243-462B-AF0D-E2554E77D5C5}
-		{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1} = {B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1}
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32

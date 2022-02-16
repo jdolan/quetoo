@@ -21,18 +21,15 @@
 
 #pragma once
 
+#define __AI_LOCAL_H__
+
+#define AI_NAME "default"
+
+#define Ai_Debug(...) ({ if (gi.DebugMask() & DEBUG_AI) { gi.Debug_(DEBUG_AI, __func__, __VA_ARGS__); } })
+
+#include "ai_goal.h"
+#include "ai_info.h"
+#include "ai_item.h"
+#include "ai_main.h"
+#include "ai_node.h"
 #include "ai_types.h"
-
-#ifdef __AI_LOCAL_H__
-extern ai_item_data_t ai_item_data;
-
-extern g_item_t const *ai_items[];
-
-extern size_t ai_num_items;
-extern size_t ai_num_weapons;
-
-void Ai_RegisterItem(const g_item_t *item);
-_Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other);
-void Ai_InitItems(void);
-void Ai_ShutdownItems(void);
-#endif

@@ -218,63 +218,6 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 	return true;
 }
 
-static void *ai_handle;
-
-/**
- * @brief
- */
-static ai_export_t *Sv_LoadAi(ai_import_t *import) {
-
-	Com_Print("Ai initialization...\n");
-
-	ai_handle = Sys_OpenLibrary("ai", false);
-	assert(ai_handle);
-
-	svs.ai = Sys_LoadLibrary(ai_handle, "Ai_LoadAi", import);
-
-	if (!svs.ai) {
-		Com_Error(ERROR_DROP, "Failed to load ai\n");
-	}
-
-	if (svs.ai->api_version != AI_API_VERSION) {
-		Com_Error(ERROR_DROP, "Ai is version %i, not %i\n", svs.ai->api_version, AI_API_VERSION);
-	}
-
-	svs.ai->Init();
-
-	Com_Print("Ai initialized\n");
-	Com_InitSubsystem(QUETOO_AI);
-
-	return svs.ai;
-}
-
-/**
- * @brief Called when the AI needs to be killed.
- */
-static void Sv_ShutdownAi(void) {
-
-	if (!svs.ai) {
-		return;
-	}
-
-	Com_Print("Ai shutdown...\n");
-
-	svs.ai->Shutdown();
-	svs.ai = NULL;
-
-	Cmd_RemoveAll(CMD_AI);
-
-	// the game module code should call this, but lets not assume
-	Mem_FreeTag(MEM_TAG_AI);
-
-	Com_Print("Ai down\n");
-	Com_QuitSubsystem(QUETOO_AI);
-
-	Sys_CloseLibrary(ai_handle);
-	ai_handle = NULL;
-}
-
-
 static void *game_handle;
 
 /**
@@ -375,8 +318,6 @@ void Sv_InitGame(void) {
 	import.BroadcastPrint = Sv_BroadcastPrint;
 	import.ClientPrint = Sv_ClientPrint;
 
-	import.LoadAi = Sv_LoadAi;
-
 	game_handle = Sys_OpenLibrary("game", false);
 	assert(game_handle);
 	
@@ -405,9 +346,6 @@ void Sv_ShutdownGame(void) {
 	if (!svs.game) {
 		return;
 	}
-
-	// shutdown AI first
-	Sv_ShutdownAi();
 
 	Com_Print("Game shutdown...\n");
 

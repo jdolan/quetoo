@@ -626,30 +626,28 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 	g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
 	// see if we have bots to keep
-	if (aix) {
-		g_game.ai_fill_slots = 0;
-		g_game.ai_left_to_spawn = 0;
+	g_game.ai_fill_slots = 0;
+	g_game.ai_left_to_spawn = 0;
 
-		if (g_ai_max_clients->integer) {
-			if (g_ai_max_clients->integer == -1) {
-				g_game.ai_fill_slots = sv_max_clients->integer;
-			} else {
-				g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
-			}
-
-			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
-			g_ai_max_clients->modified = false;
+	if (g_ai_max_clients->integer) {
+		if (g_ai_max_clients->integer == -1) {
+			g_game.ai_fill_slots = sv_max_clients->integer;
 		} else {
-			for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-				if (g_game.entities[i + 1].client && g_game.entities[i + 1].client->ai) {
-					g_game.ai_left_to_spawn++;
-				}
-			}
+			g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
 		}
 
-		// load nav data
-		G_Ai_Load(name);
+		g_game.ai_left_to_spawn = g_game.ai_fill_slots;
+		g_ai_max_clients->modified = false;
+	} else {
+		for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+			if (g_game.entities[i + 1].client && g_game.entities[i + 1].client->ai) {
+				g_game.ai_left_to_spawn++;
+			}
+		}
 	}
+
+	// load nav data
+	G_Ai_Load();
 	
 	memset(g_game.entities, 0, g_max_entities->integer * sizeof(g_entity_t));
 	memset(g_game.clients, 0, sv_max_clients->integer * sizeof(g_client_t));

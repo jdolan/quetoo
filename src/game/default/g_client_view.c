@@ -431,9 +431,7 @@ void G_EndClientFrames(void) {
 	}
 
 	// render the nodes to the clients
-	if (aix) {
-		aix->Render();
-	}
+	Ai_Node_Render();
 
 	// now loop through again, and for chase camera users, copy the final player state
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {

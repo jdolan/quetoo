@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ai_local.h"
+#include "../g_local.h"
 #include "game/default/bg_pmove.h"
 
 /**
@@ -106,7 +106,7 @@ static inline ai_node_id_t Ai_Node_Index(const ai_node_t *node) {
  */
 static _Bool Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
 
-	return aim.gi->Trace(position, Ai_Node_GetPosition(node), Box3_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
+	return gi.Trace(position, Ai_Node_GetPosition(node), Box3_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
 }
 
 /**
@@ -134,7 +134,7 @@ ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance
 
 		vec3_t dir = Vec3_Subtract(position, node->position);
 		// weigh the Z axis more heavily
-		if (prefer_level && !(aim.gi->PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
+		if (prefer_level && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
 			dir.z *= 4.0f;
 		}
 		const float dist = Vec3_LengthSquared(dir);
@@ -352,7 +352,7 @@ static void Ai_Node_Destroy(const ai_node_id_t id) {
  * @brief
  */
 static _Bool Ai_Node_PlayerIsOnFloor(const g_entity_t *player) {
-	const cm_trace_t tr = aim.gi->Trace(player->s.origin, Vec3_Add(player->s.origin, Vec3(0, 0, -PM_GROUND_DIST)), player->s.bounds, NULL, CONTENTS_MASK_CLIP_CORPSE);
+	const cm_trace_t tr = gi.Trace(player->s.origin, Vec3_Add(player->s.origin, Vec3(0, 0, -PM_GROUND_DIST)), player->s.bounds, NULL, CONTENTS_MASK_CLIP_CORPSE);
 
 	return tr.fraction < 1.0f && tr.plane.normal.z > PM_STEP_NORMAL;
 }
@@ -397,7 +397,7 @@ _Bool Ai_Node_CanPathTo(const vec3_t position) {
 	const vec3_t end = Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f));
 
 	// check if the destination has ground
-	cm_trace_t tr = aim.gi->Trace(position, end, Box3_Expand3(PM_BOUNDS, Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+	cm_trace_t tr = gi.Trace(position, end, Box3_Expand3(PM_BOUNDS, Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
 	// bad ground
 	_Bool stuck_in_mover = tr.ent
@@ -409,7 +409,7 @@ _Bool Ai_Node_CanPathTo(const vec3_t position) {
 
 		// check with a thinner box; it might be a button press or rotating thing
 		if (stuck_in_mover) {
-			tr = aim.gi->Trace(position,
+			tr = gi.Trace(position,
 							   Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)),
 							   Box3(Vec3(-4.f, -4.f, PM_BOUNDS.mins.z), Vec3(4.f, 4.f, PM_BOUNDS.maxs.z)),
 							   NULL,
@@ -478,7 +478,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		ai_player_roam.await_landing = true;
 	}
 
-	const _Bool in_water = aim.gi->PointContents(player->s.origin) & (CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA);
+	const _Bool in_water = gi.PointContents(player->s.origin) & (CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA);
 	const float last_node_distance_compare = ai_player_roam.last_nodes[0] == AI_NODE_INVALID ? FLT_MAX : Vec3_Distance(player->s.origin, Ai_Node_GetPosition(ai_player_roam.last_nodes[0]));
 	const float player_distance_compare = Vec3_Distance(player->s.origin, ai_player_roam.position);
 
@@ -585,7 +585,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 	// we're walkin'
 
 	const ai_node_id_t closest_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 4, true, false);
-	const _Bool on_mover = ENTITY_DATA(player, ground).ent && ENTITY_DATA(player, ground).ent->s.number != 0;
+	const _Bool on_mover = player->locals.ground.ent && player->locals.ground.ent->s.number != 0;
 
 	// attack button moves node
 	if (allow_adjustments && (ai_player_roam.latched_buttons & BUTTON_ATTACK)) {
@@ -594,7 +594,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 			node->position = player->s.origin;
 
 			if (cmd->up < 0) {
-				const cm_trace_t tr = aim.gi->Trace(node->position, Vec3_Subtract(node->position, Vec3(0.f, 0.f, MAX_WORLD_COORD)), PM_BOUNDS, player, CONTENTS_MASK_SOLID);
+				const cm_trace_t tr = gi.Trace(node->position, Vec3_Subtract(node->position, Vec3(0.f, 0.f, MAX_WORLD_COORD)), PM_BOUNDS, player, CONTENTS_MASK_SOLID);
 				node->position = tr.end;
 			}
 
@@ -723,12 +723,12 @@ static void Ai_Node_RenderLinks(gpointer key, gpointer value, gpointer userdata)
 	const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, ulink.a);
 	const ai_node_t *node_b = &g_array_index(ai_nodes, ai_node_t, ulink.b);
 
-	aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
-	aim.gi->WriteByte(TE_AI_NODE_LINK);
-	aim.gi->WritePosition(node_a->position);
-	aim.gi->WritePosition(node_b->position);
-	aim.gi->WriteByte(bits);
-	aim.gi->Multicast(node_a->position, MULTICAST_PVS, NULL);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_AI_NODE_LINK);
+	gi.WritePosition(node_a->position);
+	gi.WritePosition(node_b->position);
+	gi.WriteByte(bits);
+	gi.Multicast(node_a->position, MULTICAST_PVS, NULL);
 }
 
 /**
@@ -769,10 +769,10 @@ void Ai_Node_Render(void) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
 		const _Bool in_path = Ai_NodeInPath(ai_player_roam.test_path, i);
 
-		aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
-		aim.gi->WriteByte(TE_AI_NODE);
-		aim.gi->WritePosition(node->position);
-		aim.gi->WriteShort(i);
+		gi.WriteByte(SV_CMD_TEMP_ENTITY);
+		gi.WriteByte(TE_AI_NODE);
+		gi.WritePosition(node->position);
+		gi.WriteShort(i);
 
 		byte bits = 0;
 
@@ -788,8 +788,8 @@ void Ai_Node_Render(void) {
 			bits |= 16;
 		}
 
-		aim.gi->WriteByte(bits);
-		aim.gi->Multicast(node->position, MULTICAST_PVS, NULL);
+		gi.WriteByte(bits);
+		gi.Multicast(node->position, MULTICAST_PVS, NULL);
 
 		if (node->links) {
 
@@ -844,12 +844,12 @@ void Ai_Node_Render(void) {
 			continue;
 		}
 		
-		aim.gi->WriteByte(SV_CMD_TEMP_ENTITY);
-		aim.gi->WriteByte(TE_AI_NODE_LINK);
-		aim.gi->WritePosition(ent->s.origin);
-		aim.gi->WritePosition(ai->move_target.path.path_position);
-		aim.gi->WriteByte(8);
-		aim.gi->Multicast(ent->s.origin, MULTICAST_PVS, NULL);
+		gi.WriteByte(SV_CMD_TEMP_ENTITY);
+		gi.WriteByte(TE_AI_NODE_LINK);
+		gi.WritePosition(ent->s.origin);
+		gi.WritePosition(ai->move_target.path.path_position);
+		gi.WriteByte(8);
+		gi.Multicast(ent->s.origin, MULTICAST_PVS, NULL);
 	}
 }
 
@@ -859,44 +859,42 @@ void Ai_Node_Render(void) {
 /**
  * @brief 
  */
-void Ai_InitNodes(const char *mapname) {
+void Ai_InitNodes(void) {
 
 	ai_player_roam.position = Vec3(MAX_WORLD_DIST, MAX_WORLD_DIST, MAX_WORLD_DIST);
 	ai_player_roam.last_nodes[0] = ai_player_roam.last_nodes[1] = AI_NODE_INVALID;
 	ai_player_roam.await_landing = true;
 
-	g_strlcpy(ai_level.mapname, mapname, sizeof(ai_level.mapname));
-
 	char filename[MAX_OS_PATH];
 
-	g_snprintf(filename, sizeof(filename), "maps/%s.nav", ai_level.mapname);
+	g_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
 
-	if (!aim.gi->FileExists(filename)) {
-		aim.gi->Warn("No navigation file exists for this map; bots will be dumb!\nUse `ai_node_dev` to set up nodes.\n");
+	if (!gi.FileExists(filename)) {
+		gi.Warn("No navigation file exists for this map; bots will be dumb!\nUse `ai_node_dev` to set up nodes.\n");
 		return;
 	}
 
-	file_t *file = aim.gi->OpenFile(filename);
+	file_t *file = gi.OpenFile(filename);
 	int32_t magic, version;
 	
-	aim.gi->ReadFile(file, &magic, sizeof(magic), 1);
+	gi.ReadFile(file, &magic, sizeof(magic), 1);
 
 	if (magic != AI_NODE_MAGIC) {
-		aim.gi->Warn("Nav file invalid format!\n");
-		aim.gi->CloseFile(file);
+		gi.Warn("Nav file invalid format!\n");
+		gi.CloseFile(file);
 		return;
 	}
 
-	aim.gi->ReadFile(file, &version, sizeof(version), 1);
+	gi.ReadFile(file, &version, sizeof(version), 1);
 
 	if (version != AI_NODE_VERSION) {
-		aim.gi->Warn("Nav file out of date!\n");
-		aim.gi->CloseFile(file);
+		gi.Warn("Nav file out of date!\n");
+		gi.CloseFile(file);
 		return;
 	}
 
 	guint num_nodes;
-	aim.gi->ReadFile(file, &num_nodes, sizeof(num_nodes), 1);
+	gi.ReadFile(file, &num_nodes, sizeof(num_nodes), 1);
 
 	ai_nodes = g_array_sized_new(false, true, sizeof(ai_node_t), num_nodes);
 	g_array_set_size(ai_nodes, num_nodes);
@@ -906,16 +904,16 @@ void Ai_InitNodes(const char *mapname) {
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
 
-		aim.gi->ReadFile(file, &node->position, sizeof(node->position), 1);
+		gi.ReadFile(file, &node->position, sizeof(node->position), 1);
 
 		guint num_links;
 	
-		aim.gi->ReadFile(file, &num_links, sizeof(num_links), 1);
+		gi.ReadFile(file, &num_links, sizeof(num_links), 1);
 
 		if (num_links) {
 			node->links = g_array_sized_new(false, false, sizeof(ai_link_t), num_links);
 			g_array_set_size(node->links, num_links);
-			aim.gi->ReadFile(file, node->links->data, sizeof(ai_link_t), num_links);
+			gi.ReadFile(file, node->links->data, sizeof(ai_link_t), num_links);
 			total_links += num_links;
 
 			Ai_Node_DestroyLink(i, i);
@@ -924,8 +922,8 @@ void Ai_InitNodes(const char *mapname) {
 		}
 	}
 
-	aim.gi->CloseFile(file);
-	aim.gi->Print("  Loaded %u nodes with %u total links.\n", num_nodes, total_links);
+	gi.CloseFile(file);
+	gi.Print("  Loaded %u nodes with %u total links.\n", num_nodes, total_links);
 
 	ai_player_roam.file_nodes = num_nodes;
 	ai_player_roam.file_links = 0;
@@ -945,7 +943,7 @@ void Ai_InitNodes(const char *mapname) {
 static void Ai_CheckNodes(void) {
 
 	if (ai_node_dev->integer) {
-		for (int32_t i = sv_max_clients->integer; i < aim.ge->num_entities; i++) {
+		for (int32_t i = sv_max_clients->integer; i < ge.num_entities; i++) {
 		
 			g_entity_t *ent = ENTITY_FOR_NUM(i);
 
@@ -954,14 +952,14 @@ static void Ai_CheckNodes(void) {
 			}
 
 			// only warn for item nodes
-			if (!ENTITY_DATA(ent, item)) {
+			if (!ent->locals.item) {
 				continue;
 			}
 
 			const ai_node_id_t node = Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
 
 			if (node == AI_NODE_INVALID) {
-				aim.gi->Warn("Entity %s @ %s appears to be unreachable by nodes\n", ENTITY_DATA(ent, class_name), vtos(ent->s.origin));
+				gi.Warn("Entity %s @ %s appears to be unreachable by nodes\n", ent->class_name, vtos(ent->s.origin));
 			}
 		}
 	}
@@ -969,8 +967,8 @@ static void Ai_CheckNodes(void) {
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
 		
-		if (aim.gi->PointContents(node->position) & CONTENTS_MASK_SOLID) {
-			aim.gi->Warn("Node %i @ %s is inside of solid\n", i, vtos(node->position));
+		if (gi.PointContents(node->position) & CONTENTS_MASK_SOLID) {
+			gi.Warn("Node %i @ %s is inside of solid\n", i, vtos(node->position));
 		}
 	}
 }
@@ -996,11 +994,11 @@ void Ai_NodesReady(void) {
 	}
 
 	added_links -= ai_player_roam.file_links;
-	aim.gi->Print("  Game loaded %u additional nodes with %u new links.\n", added_nodes, added_links);
+	gi.Print("  Game loaded %u additional nodes with %u new links.\n", added_nodes, added_links);
 
 	/*if (ai_node_dev->integer != 1) {
 		const guint optimized = Ai_OptimizeNodes();
-		aim.gi->Print("  %u nodes optimized\n", optimized);
+		gi.Print("  %u nodes optimized\n", optimized);
 	}*/
 
 	Ai_CheckNodes();
@@ -1012,45 +1010,45 @@ void Ai_NodesReady(void) {
 void Ai_SaveNodes(void) {
 
 	if (ai_node_dev->integer != 1) {
-		aim.gi->Warn("This command only works with `ai_node_dev` set to 1.\n");
+		gi.Warn("This command only works with `ai_node_dev` set to 1.\n");
 		return;
 	}
 
 	char filename[MAX_OS_PATH];
 
-	g_snprintf(filename, sizeof(filename), "maps/%s.nav", ai_level.mapname);
+	g_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
 
 	if (!ai_nodes) {
-		aim.gi->Warn("No nodes to write.\n");
+		gi.Warn("No nodes to write.\n");
 		return;
 	}
 
-	file_t *file = aim.gi->OpenFileWrite(filename);
+	file_t *file = gi.OpenFileWrite(filename);
 	int32_t magic = AI_NODE_MAGIC;
 	int32_t version = AI_NODE_VERSION;
 	
-	aim.gi->WriteFile(file, &magic, sizeof(magic), 1);
-	aim.gi->WriteFile(file, &version, sizeof(version), 1);
+	gi.WriteFile(file, &magic, sizeof(magic), 1);
+	gi.WriteFile(file, &version, sizeof(version), 1);
 
-	aim.gi->WriteFile(file, &ai_nodes->len, sizeof(ai_nodes->len), 1);
+	gi.WriteFile(file, &ai_nodes->len, sizeof(ai_nodes->len), 1);
 
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
 
-		aim.gi->WriteFile(file, &node->position, sizeof(node->position), 1);
+		gi.WriteFile(file, &node->position, sizeof(node->position), 1);
 
 		if (node->links) {
-			aim.gi->WriteFile(file, &node->links->len, sizeof(node->links->len), 1);
-			aim.gi->WriteFile(file, node->links->data, sizeof(ai_link_t), node->links->len);
+			gi.WriteFile(file, &node->links->len, sizeof(node->links->len), 1);
+			gi.WriteFile(file, node->links->data, sizeof(ai_link_t), node->links->len);
 		} else {
 			guint len = 0;
-			aim.gi->WriteFile(file, &len, sizeof(len), 1);
+			gi.WriteFile(file, &len, sizeof(len), 1);
 		}
 	}
 
-	aim.gi->CloseFile(file);
+	gi.CloseFile(file);
 
-	aim.gi->Print("Wrote nodes to %s.\n", aim.gi->RealPath(filename));
+	gi.Print("Wrote nodes to %s.\n", gi.RealPath(filename));
 
 	Ai_CheckNodes();
 }
@@ -1227,7 +1225,7 @@ void Ai_OffsetNodes_f(void) {
 
 	vec3_t translate;
 
-	if (aim.gi->Argc() <= 1) {
+	if (gi.Argc() <= 1) {
 		if (ai_player_roam.last_nodes[0] == AI_NODE_INVALID) {
 			return;
 		}
@@ -1236,7 +1234,7 @@ void Ai_OffsetNodes_f(void) {
 		const vec3_t player_position = ai_player_roam.position;
 		translate = Vec3_Subtract(player_position, node);
 	} else {	
-		const char *offset = aim.gi->Argv(1);
+		const char *offset = gi.Argv(1);
 
 		if (Parse_QuickPrimitive(offset, PARSER_DEFAULT, PARSE_DEFAULT, PARSE_FLOAT, &translate, 3) != 3) {
 			return;

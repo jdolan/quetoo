@@ -58,7 +58,7 @@ void Ai_Node_Render(void);
 /**
  * @brief
  */
-void Ai_InitNodes(const char *mapname);
+void Ai_InitNodes(void);
 
 /**
  * @brief

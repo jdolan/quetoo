@@ -94,21 +94,21 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
 	}
 
 	// find nodes closest to src and dst
-	const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true, true);
-	const ai_node_id_t dst_node = aix->FindClosestNode(dest->s.origin, 512.f, true, true);
+	const ai_node_id_t src_node = Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+	const ai_node_id_t dst_node = Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
 
 	if (src_node != AI_NODE_INVALID && dst_node != AI_NODE_INVALID) {
 
 		// make a new node on top of src so we touch the teleporter, connect
 		// it to dst with a small cost
 
-		const ai_node_id_t new_node = aix->CreateNode(ent->s.origin);
+		const ai_node_id_t new_node = Ai_Node_CreateNode(ent->s.origin);
 
 		// use default cost for the entrance
-		aix->CreateLink(src_node, new_node, Vec3_Distance(aix->GetNodePosition(src_node), ent->s.origin));
+		Ai_Node_CreateLink(src_node, new_node, Vec3_Distance(Ai_Node_GetPosition(src_node), ent->s.origin));
 
 		// small cost for teleport node
-		aix->CreateLink(new_node, dst_node, 1.f);
+		Ai_Node_CreateLink(new_node, dst_node, 1.f);
 
 		ent->locals.node = src_node;
 	}
@@ -153,7 +153,7 @@ void G_misc_teleporter(g_entity_t *ent) {
 	ent->locals.Touch = G_misc_teleporter_Touch;
 	
 	// create link to destination
-	if (aix && !aix->IsDeveloperMode()) {
+	if (!Ai_Node_DevMode()) {
 		ent->locals.Think = G_misc_teleporter_Think;
 		ent->locals.next_think = g_level.time + 1;
 	}

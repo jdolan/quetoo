@@ -981,9 +981,7 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 	ent->client->locals.respawn_time = g_level.time;
 	ent->client->locals.respawn_protection_time = g_level.time + g_respawn_protection->value * 1000;
 
-	if (aix) {
-		aix->Spawn(ent);
-	}
+	Ai_Spawn(ent);
 
 	if (!voluntary) { // don't announce involuntary spectator changes
 		return;
@@ -1780,8 +1778,8 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	// if we're the first player in a game, send our client over
 	// to the AI system in case it needs to make nodes
-	if (aix && ent->s.number == 1) {
-		aix->PlayerRoam(ent, cmd);
+	if (ent->s.number == 1) {
+		Ai_Node_PlayerRoam(ent, cmd);
 	}
 }
 

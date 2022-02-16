@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ai_local.h"
+#include "../g_local.h"
 
 static cvar_t *ai_name_prefix;
 
@@ -62,7 +62,7 @@ static void Ai_EnumerateSkins(const char *path, void *data) {
  * @brief Fs_Enumerator for resolving available models.
  */
 static void Ai_EnumerateModels(const char *path, void *data) {
-	aim.gi->EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
+	gi.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
 }
 
 /**
@@ -123,10 +123,11 @@ void Ai_GetUserInfo(const g_entity_t *self, char *info) {
  */
 void Ai_InitSkins(void) {
 
-	ai_name_prefix = aim.gi->AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
+	ai_name_prefix = gi.AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 
 	ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
-	aim.gi->EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
+
+	gi.EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
 }
 
 /**

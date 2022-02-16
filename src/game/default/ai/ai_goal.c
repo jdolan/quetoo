@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ai_local.h"
+#include "../g_local.h"
 
 /**
  * @brief Setup base entity goal for the specified target.
@@ -96,7 +96,7 @@ void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
 	memcpy(to, from, sizeof(ai_goal_t));
 
 	// reset state-dependent objects
-	to->time = ai_level.time;
+	to->time = g_level.time;
 	to->last_distance = FLT_MAX;
 	to->distress = 0;
 	to->distress_extension = false;
@@ -116,6 +116,6 @@ void Ai_ClearGoal(ai_goal_t *goal) {
 	}
 
 	memset(goal, 0, sizeof(ai_goal_t));
-	goal->time = ai_level.time;
+	goal->time = g_level.time;
 	goal->last_distance = FLT_MAX;
 }

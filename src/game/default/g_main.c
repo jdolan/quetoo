@@ -24,8 +24,6 @@
 g_import_t gi;
 g_export_t ge;
 
-ai_export_t *aix;
-
 g_game_t g_game;
 
 g_level_t g_level;
@@ -269,8 +267,6 @@ void G_ResetItems(void) {
 	}
 
 	G_SpawnTechs();
-
-	G_Ai_RegisterItems();
 }
 
 /**
@@ -368,10 +364,6 @@ void G_ResetSpawnPoints(void) {
  * to ready again. Teams are only reset when teamz is true.
  */
 static void G_RestartGame(_Bool teamz) {
-
-	if (aix) { // reset bot level state before they respawn
-		aix->GameRestarted();
-	}
 
 	if (g_level.match_time) {
 		g_level.match_num++;

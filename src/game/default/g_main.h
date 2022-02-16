@@ -36,8 +36,6 @@ extern g_media_t g_media;
 extern g_import_t gi;
 extern g_export_t ge;
 
-extern ai_export_t *aix;
-
 extern cvar_t *g_admin_password;
 extern cvar_t *g_ammo_respawn_time;
 extern cvar_t *g_auto_join;

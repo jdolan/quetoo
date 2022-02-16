@@ -22,7 +22,6 @@
 #pragma once
 
 #include "shared/shared.h"
-#include "ai/ai.h"
 #include "collision/cm_types.h"
 
 #define GAME_API_VERSION 13
@@ -644,11 +643,6 @@ typedef struct g_import_s {
 	/**
 	 * @}
 	 */
-
-	/**
-	 * @brief Load AI functions
-	 */
-	ai_export_t *(*LoadAi)(ai_import_t *import);
 } g_import_t;
 
 /**

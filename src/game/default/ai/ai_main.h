@@ -21,16 +21,20 @@
 
 #pragma once
 
-#ifdef __AI_LOCAL_H__
-extern ai_import_t aim;
-extern ai_export_t aix;
+void Ai_Disconnect(g_entity_t *self);
+void Ai_Think(g_entity_t *self, pm_cmd_t *cmd);
+void Ai_PostThink(g_entity_t *self, const pm_cmd_t *cmd);
+void Ai_Spawn(g_entity_t *self);
+void Ai_Begin(g_entity_t *self);
+void Ai_Frame(void);
+void Ai_Init(void);
+void Ai_Load(void);
+void Ai_Shutdown(void);
+_Bool Ai_Node_DevMode(void);
 
+#ifdef __AI_LOCAL_H__
 extern ai_level_t ai_level;
 
-extern ai_entity_data_t ai_entity_data;
-extern ai_client_data_t ai_client_data;
-
-extern cvar_t *sv_max_clients;
 extern cvar_t *ai_no_target;
 extern cvar_t *ai_node_dev;
 
@@ -38,10 +42,9 @@ extern cvar_t *ai_node_dev;
  * @brief Resolve the entity at the given index.
  */
 #define ENTITY_FOR_NUM(n) \
-	((g_entity_t *) (((intptr_t) aim.ge->entities) + aim.ge->entity_size * (n)))
+	&g_game.entities[n]
 
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
-ai_export_t *Ai_LoadAi(ai_import_t *import);
 
 _Bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node);
 

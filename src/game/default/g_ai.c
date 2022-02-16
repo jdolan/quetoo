@@ -20,7 +20,7 @@
  */
 
 #include "g_local.h"
-#include "ai/default/ai_types.h"
+#include "ai/ai_types.h"
 #include "bg_pmove.h"
 
 cvar_t *g_ai_max_clients;
@@ -91,9 +91,9 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 		memset(&cmd, 0, sizeof(cmd));
 		cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
 
-		aix->Think(self, &cmd);
+		Ai_Think(self, &cmd);
 		G_ClientThink(self, &cmd);
-		aix->PostThink(self, &cmd);
+		Ai_PostThink(self, &cmd);
 
 		msec_left -= cmd.msec;
 	}
@@ -159,7 +159,7 @@ static void G_Ai_ClientBegin(g_entity_t *self) {
 
 	G_ClientBegin(self);
 
-	aix->Begin(self);
+	Ai_Begin(self);
 
 	G_Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
 
@@ -173,7 +173,7 @@ static void G_Ai_ClientBegin(g_entity_t *self) {
 static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 
 	char userinfo[MAX_USER_INFO_STRING];
-	aix->GetUserInfo(self, userinfo);
+	Ai_GetUserInfo(self, userinfo);
 
 	self->client->ai = true; // and away we go!
 
@@ -268,10 +268,6 @@ static void G_Ai_Remove_f(void) {
  */
 void G_Ai_ClientConnect(const g_entity_t *ent) {
 
-	if (!aix) {
-		return;
-	}
-
 	// see if this overfilled the server
 	if (g_game.ai_fill_slots) {
 
@@ -289,10 +285,6 @@ void G_Ai_ClientConnect(const g_entity_t *ent) {
  */
 void G_Ai_ClientDisconnect(g_entity_t *ent) {
 
-	if (!aix) {
-		return;
-	}
-
 	if (g_game.ai_fill_slots) {
 		// see if this opened up a slot for a bot
 		uint8_t empty_slots = G_Ai_EmptySlots();
@@ -302,7 +294,7 @@ void G_Ai_ClientDisconnect(g_entity_t *ent) {
 		}
 	}
 
-	aix->Disconnect(ent);
+	Ai_Disconnect(ent);
 }
 
 /**
@@ -310,17 +302,11 @@ void G_Ai_ClientDisconnect(g_entity_t *ent) {
  */
 void G_Ai_Frame(void) {
 
-	if (!aix) {
-		return;
-	}
-
 	// don't run bots for a few frames so that the game has settled
 	// or during intermission
 	if (g_level.frame_num <= 5 || g_level.intermission_time) {
 		return;
 	}
-
-	aix->State(g_level.frame_num);
 
 	if (g_ai_max_clients->modified) {
 		g_ai_max_clients->modified = false;
@@ -372,74 +358,7 @@ void G_Ai_Frame(void) {
 		}
 	}
 
-	aix->Frame();
-}
-
-/**
- * @brief
- */
-void G_Ai_RegisterItems(void) {
-
-	if (!aix) {
-		return;
-	}
-
-	for (size_t i = 0; i < g_num_items; i++) {
-		aix->RegisterItem(G_ItemByIndex(i));
-	}
-}
-
-#define ENTITY_PTR_OFFSET(m) \
-	entity.m = (typeof(entity.m)) offsetof(g_entity_t, m)
-
-#define ENTITY_LOCALS_PTR_OFFSET(m) \
-	entity.m = (typeof(entity.m)) offsetof(g_entity_t, locals.m)
-
-#define CLIENT_PTR_OFFSET(m) \
-	client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
-
-#define CLIENT_PERSISTENT_PTR_OFFSET(m) \
-	client.m = (typeof(client.m)) offsetof(g_client_locals_t, persistent) + offsetof(g_client_persistent_t, m)
-
-#define ITEM_PTR_OFFSET(m) \
-	item.m = (typeof(item.m)) offsetof(g_item_t, m)
-
-/**
- * @brief
- */
-static void G_Ai_SetDataPointers(void) {
-	static ai_entity_data_t entity;
-	static ai_client_data_t client;
-	static ai_item_data_t item;
-	
-	ENTITY_PTR_OFFSET(class_name);
-	ENTITY_LOCALS_PTR_OFFSET(ground);
-	ENTITY_LOCALS_PTR_OFFSET(item);
-	ENTITY_LOCALS_PTR_OFFSET(velocity);
-	ENTITY_LOCALS_PTR_OFFSET(health);
-	ENTITY_LOCALS_PTR_OFFSET(max_health);
-	ENTITY_LOCALS_PTR_OFFSET(water_level);
-	ENTITY_LOCALS_PTR_OFFSET(node);
-
-	CLIENT_PTR_OFFSET(angles);
-	CLIENT_PTR_OFFSET(inventory);
-	CLIENT_PTR_OFFSET(max_armor);
-	CLIENT_PTR_OFFSET(weapon);
-	CLIENT_PERSISTENT_PTR_OFFSET(team);
-	CLIENT_PTR_OFFSET(grenade_hold_time);
-
-	ITEM_PTR_OFFSET(class_name);
-	ITEM_PTR_OFFSET(index);
-	ITEM_PTR_OFFSET(type);
-	ITEM_PTR_OFFSET(tag);
-	ITEM_PTR_OFFSET(flags);
-	ITEM_PTR_OFFSET(name);
-	ITEM_PTR_OFFSET(ammo);
-	ITEM_PTR_OFFSET(quantity);
-	ITEM_PTR_OFFSET(max);
-	ITEM_PTR_OFFSET(priority);
-
-	aix->SetDataPointers(&entity, &client, &item);
+	Ai_Frame();
 }
 
 /**
@@ -447,25 +366,13 @@ static void G_Ai_SetDataPointers(void) {
  */
 void G_Ai_Init(void) {
 
-	ai_import_t import;
-
-	memset(&import, 0, sizeof(import));
-
-	import.gi = &gi;
-	import.ge = &ge;
-
-	import.OnSameTeam = G_OnSameTeam;
-	import.G_FindItem = G_FindItem;
-
-	aix = gi.LoadAi(&import);
-
-	G_Ai_SetDataPointers();
-
 	g_ai_max_clients = gi.AddCvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
 								  "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
 	gi.AddCmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 	gi.AddCmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");
+
+	Ai_Init();
 }
 
 /**
@@ -473,16 +380,15 @@ void G_Ai_Init(void) {
  */
 void G_Ai_Shutdown(void) {
 
+	Ai_Shutdown();
 }
 
 /**
  * @brief
  */
-void G_Ai_Load(const char *mapname) {
+void G_Ai_Load(void) {
 
-	if (aix) {
-		aix->Load(mapname);
-	}
+	Ai_Load();
 }
 
 /**
@@ -491,12 +397,12 @@ void G_Ai_Load(const char *mapname) {
  */
 bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 
-	if (!aix || aix->IsDeveloperMode()) {
+	if (!Ai_Node_DevMode()) {
 		return false;
 	}
 
 	// find node closest to us
-	const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true, true);
+	const ai_node_id_t src_node = Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
 
 	if (src_node == AI_NODE_INVALID) {
 		return false;
@@ -513,14 +419,14 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 	}
 
 	// grab all the links of the node that brought us here
-	GArray *src_links = aix->GetNodeLinks(src_node);
+	GArray *src_links = Ai_Node_GetLinks(src_node);
 
-	const ai_node_id_t new_node = aix->CreateNode(pos);
-	const float dist = Vec3_Distance(aix->GetNodePosition(src_node), ent->s.origin);
+	const ai_node_id_t new_node = Ai_Node_CreateNode(pos);
+	const float dist = Vec3_Distance(Ai_Node_GetPosition(src_node), ent->s.origin);
 
 	// bidirectionally connect us to source
-	aix->CreateLink(src_node, new_node, dist);
-	aix->CreateLink(new_node, src_node, dist);
+	Ai_Node_CreateLink(src_node, new_node, dist);
+	Ai_Node_CreateLink(new_node, src_node, dist);
 
 	// if we had source links, link any connected bi-directional nodes
 	// to the item as well
@@ -530,11 +436,11 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 			ai_node_id_t src_link = g_array_index(src_links, ai_node_id_t, i);
 
 			// not bidirectional
-			if (!aix->IsLinked(src_link, src_node)) {
+			if (!Ai_Node_IsLinked(src_link, src_node)) {
 				continue;
 			}
 
-			const vec3_t link_pos = aix->GetNodePosition(src_link);
+			const vec3_t link_pos = Ai_Node_GetPosition(src_link);
 
 			// can't see 
 			if (gi.Trace(ent->s.origin, link_pos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
@@ -544,8 +450,8 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 			const float dist = Vec3_Distance(link_pos, ent->s.origin);
 
 			// bidirectionally connect us to source
-			aix->CreateLink(src_link, new_node, dist);
-			aix->CreateLink(new_node, src_link, dist);
+			Ai_Node_CreateLink(src_link, new_node, dist);
+			Ai_Node_CreateLink(new_node, src_link, dist);
 		}
 
 		g_array_free(src_links, true);

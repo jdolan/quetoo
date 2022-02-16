@@ -7,6 +7,9 @@
     <Filter Include="src\default">
       <UniqueIdentifier>{00e4a3c3-5a72-4d24-b7fb-95ba936b2245}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\default\ai">
+      <UniqueIdentifier>{6d7d6919-36e2-4529-9a05-fb1e3fa55578}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="game.def" />
@@ -84,6 +87,27 @@
     <ClInclude Include="..\src\game\default\g_sound.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\default\ai\ai_goal.h">
+      <Filter>src\default\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\default\ai\ai_info.h">
+      <Filter>src\default\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\default\ai\ai_item.h">
+      <Filter>src\default\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\default\ai\ai_local.h">
+      <Filter>src\default\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\default\ai\ai_main.h">
+      <Filter>src\default\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\default\ai\ai_node.h">
+      <Filter>src\default\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\default\ai\ai_types.h">
+      <Filter>src\default\ai</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\game\default\g_ai.c">
@@ -148,6 +172,21 @@
     </ClCompile>
     <ClCompile Include="..\src\game\default\g_sound.c">
       <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\default\ai\ai_goal.c">
+      <Filter>src\default\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\default\ai\ai_info.c">
+      <Filter>src\default\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\default\ai\ai_item.c">
+      <Filter>src\default\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\default\ai\ai_main.c">
+      <Filter>src\default\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\default\ai\ai_node.c">
+      <Filter>src\default\ai</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
