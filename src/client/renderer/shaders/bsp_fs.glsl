@@ -140,9 +140,24 @@ void main(void) {
 		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
-			out_color.rgb = (diffuse + ambient) * modulate;
+			out_color.rgb = diffuse * 0.5 + ambient * 0.5;
 		} else if (lightmaps == 2) {
+			out_color.rgb = diffuse;
+		} else if (lightmaps == 3) {
+			out_color.rgb = ambient;
+		} else if (lightmaps == 4) {
 			out_color.rgb = direction * 0.5 + 0.5;
+		} else if (lightmaps == 5) {
+			out_color.rgb = vec3(bump_shading);
+		} else if (lightmaps == 6) {
+			out_color.rgb = specular_light;
+		} else if (lightmaps == 7) {
+			out_color.rgb = vec3(gloss);
+		} else if (lightmaps == 8) {
+			out_color = diffusemap;
+		} else {
+			// postprocessing
+			out_color = postprocess(out_color);
 		}
 
 		//out_color.rgb = caustic;
@@ -172,11 +187,10 @@ void main(void) {
 		}
 
 		out_color = effect;
+
+		// postprocessing
+		out_color = postprocess(out_color);
 	}
-
-	// postprocessing
-	out_color = postprocess(out_color);
-
 
 	// debugging
 
