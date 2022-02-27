@@ -38,6 +38,7 @@ float micro_volume = 0.125;
 _Bool no_csg = false;
 _Bool no_detail = false;
 _Bool no_liquid = false;
+_Bool no_merge = false;
 _Bool no_phong = false;
 _Bool no_prune = false;
 _Bool no_tjunc = false;
@@ -71,15 +72,19 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 
 	MakeTreeFaces(tree);
 
+	if (!no_merge) {
+		MergeTreeFaces(tree);
+	}
+
 	if (!no_prune) {
-		PruneNodes(tree->head_node);
+		PruneNodes(tree);
 	}
 
 	if (!no_tjunc) {
-		FixTJunctions(tree->head_node);
+		FixTJunctions(tree);
 	}
 
-	out->head_node = EmitNodes(tree->head_node);
+	out->head_node = EmitNodes(tree);
 
 	if (!leaked) {
 		WritePortalFile(tree);
@@ -106,15 +111,19 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 
 	MakeTreeFaces(tree);
 
+	if (!no_merge) {
+		MergeTreeFaces(tree);
+	}
+
 	if (!no_prune) {
-		PruneNodes(tree->head_node);
+		PruneNodes(tree);
 	}
 
 	if (!no_tjunc) {
-		FixTJunctions(tree->head_node);
+		FixTJunctions(tree);
 	}
 
-	out->head_node = EmitNodes(tree->head_node);
+	out->head_node = EmitNodes(tree);
 
 	FreeTree(tree);
 }

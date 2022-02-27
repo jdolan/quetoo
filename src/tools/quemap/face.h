@@ -34,14 +34,20 @@ typedef struct face_s {
 	struct face_s *next;
 
 	/**
-	 * @brief The portal that created this face.
+	 * @brief Faces may be merged if they share the same node side and brush side.
+	 * @details If set, this face has been merged and should not be emitted to the BSP.
 	 */
-	struct portal_s *portal;
+	struct face_s *merged;
 
 	/**
-	 * @brief The original brush side that gives this face its texture.
+	 * @brief The original brush side that created this face.
 	 */
 	const struct brush_side_s *brush_side;
+
+	/**
+	 * @brief The plane number.
+	 */
+	int32_t plane;
 
 	/**
 	 * @brief The ordered, welded face winding, used to emit BSP vertexes.
@@ -58,6 +64,7 @@ extern int32_t num_welds;
 
 face_t *AllocFace(void);
 void FreeFace(face_t *f);
+face_t *MergeFaces(face_t *a, face_t *b);
 void ClearWeldingSpatialHash(void);
 bsp_face_t *EmitFace(const face_t *face);
 void PhongShading(void);

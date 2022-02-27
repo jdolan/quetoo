@@ -154,7 +154,8 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		face->brush_side = LittleLong(face->brush_side);
-
+		face->plane = LittleLong(face->plane);
+		
 		face->bounds = LittleBounds(face->bounds);
 
 		face->first_vertex = LittleLong(face->first_vertex);

@@ -69,6 +69,11 @@ static int32_t EmitFaces(const node_t *node) {
 	const int32_t num_faces = bsp_file.num_faces;
 
 	for (face_t *face = node->faces; face; face = face->next) {
+
+		if (face->merged) {
+			continue;
+		}
+
 		face->out = EmitFace(face);
 	}
 
@@ -138,6 +143,10 @@ static int32_t EmitLeaf(node_t *node) {
 			continue; // not a visible portal
 		}
 
+		while (face->merged) {
+			face = face->merged;
+		}
+
 		assert(face->out);
 
 		const int32_t face_num = (int32_t) (ptrdiff_t) (face->out - bsp_file.faces);
@@ -166,7 +175,7 @@ static int32_t EmitLeaf(node_t *node) {
 /**
  * @brief
  */
-static int32_t EmitNode(node_t *node) {
+static int32_t EmitNode(const node_t *node) {
 
 	if (node->plane == PLANE_LEAF) {
 		Com_Error(ERROR_FATAL, "Node does not reference a plane\n");
@@ -211,14 +220,14 @@ static int32_t EmitNode(node_t *node) {
 /**
  * @brief
  */
-int32_t EmitNodes(node_t *head_node) {
+int32_t EmitNodes(const tree_t *tree) {
 
 	const uint32_t start = SDL_GetTicks();
 
 	num_welds = 0;
 	ClearWeldingSpatialHash();
 
-	const int32_t node = EmitNode(head_node);
+	const int32_t node = EmitNode(tree->head_node);
 
 	Com_Verbose("%5i welded vertices\n", num_welds);
 

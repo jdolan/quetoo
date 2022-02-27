@@ -674,9 +674,6 @@ static void FindPortalBrushSides_r(const node_t *node) {
  * @brief
  */
 void FindPortalBrushSides(tree_t *tree) {
-
-	Com_Verbose("--- MarkVisibleSides ---\n");
-
 	FindPortalBrushSides_r(tree->head_node);
 }
 
@@ -693,7 +690,7 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	face_t *f = AllocFace();
 
 	f->brush_side = side;
-	f->portal = p;
+	f->plane = (side->plane & ~1) | pside;
 
 	if (pside) {
 		f->w = Cm_ReverseWinding(p->winding);
@@ -707,7 +704,7 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 static int32_t c_faces;
 
 /**
- * @brief If a portal will make a visible face, mark the side that originally created it.
+ * @brief Create faces from portals and the brush sides they reference.
  *
  *   solid / empty : solid
  *   solid / water : solid
@@ -747,7 +744,7 @@ static void MakeFaces_r(node_t *node) {
  * @brief
  */
 void MakeTreeFaces(tree_t *tree) {
-	Com_Verbose("--- MakeFaces ---\n");
+	Com_Verbose("--- MakeTreeFaces ---\n");
 
 	c_faces = 0;
 

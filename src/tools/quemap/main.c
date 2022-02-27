@@ -187,6 +187,9 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "--no-liquid")) {
 			Com_Verbose("no_liquid = true\n");
 			no_liquid = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-merge")) {
+			Com_Verbose("no_merge = true\n");
+			no_merge = true;
 		} else if (!g_strcmp0(Com_Argv(i), "--no-phong")) {
 			Com_Verbose("no_phong = true\n");
 			no_phong = true;

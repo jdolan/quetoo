@@ -241,6 +241,7 @@ typedef struct {
  */
 typedef struct {
 	int32_t brush_side; // the brush side that produced this face
+	int32_t plane; // the plane; for translucent brushes, this may be the negation of the side plane
 
 	box3_t bounds;
 

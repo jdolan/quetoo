@@ -23,6 +23,7 @@
 #include "face.h"
 #include "map.h"
 #include "material.h"
+#include "tree.h"
 #include "qbsp.h"
 
 /**
@@ -45,6 +46,38 @@ void FreeFace(face_t *f) {
 	Mem_Free(f);
 }
 
+/**
+ * @brief Merges the two faces if they share a brush side, plane, and common edge.
+ *
+ * @return NULL if the faces couldn't be merged, or the new face.
+ * @remark The originals will NOT be freed.
+ */
+face_t *MergeFaces(face_t *a, face_t *b) {
+
+	if (a->brush_side != b->brush_side) {
+		return NULL;
+	}
+
+	if (a->plane != b->plane) {
+		return NULL;
+	}
+
+	const plane_t *plane = &planes[a->plane];
+	cm_winding_t *w = Cm_MergeWindings(a->w, b->w, plane->normal);
+	if (!w) {
+		return NULL;
+	}
+
+	face_t *merged = AllocFace();
+	merged->brush_side = a->brush_side;
+	merged->plane = a->plane;
+	merged->w = w;
+
+	a->merged = merged;
+	b->merged = merged;
+
+	return merged;
+}
 
 static GHashTable* welding_spatial_hash;
 static GSList* welding_hash_keys;
@@ -314,7 +347,8 @@ bsp_face_t *EmitFace(const face_t *face) {
 	bsp_file.num_faces++;
 
 	out->brush_side = (int32_t) (ptrdiff_t) (face->brush_side->out - bsp_file.brush_sides);
-
+	out->plane = face->plane;
+	
 	out->bounds = Box3_Null();
 
 	out->first_vertex = bsp_file.num_vertexes;

@@ -153,6 +153,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 	for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
 		out->brush_side = bsp->brush_sides + in->brush_side;
+		out->plane = bsp->planes + in->plane;
 
 		out->bounds = in->bounds;
 

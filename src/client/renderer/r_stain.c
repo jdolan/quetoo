@@ -120,13 +120,17 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 		for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
 			// faces may exist on either side of the node, only stain the correct side
-			const int32_t face_side = face->brush_side->plane == node->plane ? 0 : 1;
+			const int32_t face_side = face->plane == node->plane ? 0 : 1;
 			
 			if (face_side != side) {
 				continue;
 			}
 
 			if (face->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
+				continue;
+			}
+
+			if (!(face->brush_side->contents & CONTENTS_MASK_SOLID)) {
 				continue;
 			}
 

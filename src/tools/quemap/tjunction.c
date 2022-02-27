@@ -148,13 +148,13 @@ static void FixTJunctions_r(node_t *node) {
 /**
  * @brief
  */
-void FixTJunctions(node_t *node) {
+void FixTJunctions(tree_t *tree) {
 
 	Com_Verbose("--- FixTJunctions ---\n");
 	SDL_AtomicSet(&c_tjunctions, 0);
 
 	faces = g_ptr_array_new();
-	FixTJunctions_r(node);
+	FixTJunctions_r(tree->head_node);
 
 	largest_winding = sizeof(cm_winding_t) + (sizeof(vec3_t) * largest_winding);
 

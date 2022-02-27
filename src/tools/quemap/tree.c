@@ -470,9 +470,62 @@ void PruneNodes_r(node_t *node) {
  * parents, until an ancestor of different contents mask is found. The pruned
  * nodes become leafs.
  */
-void PruneNodes(node_t *node) {
+void PruneNodes(tree_t *tree) {
 	Com_Verbose("--- PruneNodes ---\n");
 	c_pruned = 0;
-	PruneNodes_r(node);
+	PruneNodes_r(tree->head_node);
 	Com_Verbose("%5i pruned nodes\n", c_pruned);
+}
+
+static int32_t c_merged_faces;
+
+/**
+ * @brief
+ */
+void MergeFaces_r(node_t *node) {
+
+	if (node->plane == PLANE_LEAF) {
+		return;
+	}
+
+again:
+	for (face_t *a = node->faces; a; a = a->next) {
+		if (a->merged) {
+			continue;
+		}
+		for (face_t *b = node->faces; b; b = b->next) {
+			if (a == b) {
+				continue;
+			}
+
+			if (b->merged) {
+				continue;
+			}
+
+			face_t *merged = MergeFaces(a, b);
+			if (!merged) {
+				continue;
+			}
+
+			c_merged_faces++;
+
+			merged->next = node->faces;
+			node->faces = merged;
+
+			goto again;
+		}
+	}
+
+	MergeFaces_r(node->children[0]);
+	MergeFaces_r(node->children[1]);
+}
+
+/**
+ * @brief
+ */
+void MergeTreeFaces(tree_t *tree) {
+	Com_Verbose("--- MergeTreeFaces ---\n");
+	c_merged_faces = 0;
+	MergeFaces_r(tree->head_node);
+	Com_Verbose("%5i merged faces\n", c_merged_faces);
 }

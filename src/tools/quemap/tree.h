@@ -62,6 +62,7 @@ void FreeTree(tree_t *tree);
 void FreeTree_r(node_t *node);
 void FreeTreePortals_r(node_t *node);
 void PruneNodes_r(node_t *node);
-void PruneNodes(node_t *node);
+void PruneNodes(tree_t *tree);
+void MergeTreeFaces(tree_t *tree);
 
 tree_t *BuildTree(csg_brush_t *brushes);

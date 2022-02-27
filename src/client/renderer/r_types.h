@@ -362,6 +362,7 @@ typedef struct {
 	struct r_bsp_node_s *node;
 
 	r_bsp_brush_side_t *brush_side;
+	r_bsp_plane_t *plane;
 
 	box3_t bounds;
 

@@ -30,6 +30,7 @@ extern float micro_volume;
 extern _Bool no_csg;
 extern _Bool no_detail;
 extern _Bool no_liquid;
+extern _Bool no_merge;
 extern _Bool no_phong;
 extern _Bool no_prune;
 extern _Bool no_tjunc;
