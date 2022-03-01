@@ -49,11 +49,6 @@ typedef struct {
 	 * @brief The entity referencing the model containin this flare, if any.
 	 */
 	const cl_entity_t *entity;
-
-	/**
-	 * @brief The flare alpha value, ramped by occlusion traces.
-	 */
-	float alpha;
 } cg_flare_t;
 
 static GPtrArray *cg_flares;
@@ -108,29 +103,22 @@ void Cg_AddFlares(void) {
 			flare->out.origin = Mat4_Transform(matrix, flare->in.origin);
 		}
 
-		r_sprite_t *out = cgi.AddSprite(cgi.view, &flare->out);
+		const vec3_t dir = Vec3_Direction(flare->out.origin, cgi.view->origin);
 
-		// occluded, so don't bother checking this
-		if (!out) {
+		const float dot = Vec3_Dot(cgi.view->forward, dir);
+
+		const float alpha = Clampf(dot * cg_add_flares->value, 0.f, 1.f);
+
+		if (alpha == 0.f) {
 			continue;
 		}
 
-		const vec3_t dir = Vec3_Direction(flare->out.origin, cgi.view->origin);
-		const float dot = (Vec3_Dot(cgi.view->forward, dir) - 0.4f) / 0.6f;
+		const color_t in_color = Color32_Color(flare->in.color);
+		const color_t out_color = Color_Scale(in_color, alpha);
 
-		flare->alpha = Clampf(dot * cg_add_flares->value, 0.f, 1.f);
+		flare->out.color = Color_Color32(out_color);
 
-		if (flare->alpha > 0.f) {
-
-
-			const color_t in_color = Color32_Color(flare->in.color);
-			const color_t out_color = Color_Scale(in_color, flare->alpha);
-
-			out->color = Color_Color32(out_color);
-		} else {
-			// "undo" the sprite addition
-			cgi.view->num_sprites--;
-		}
+		cgi.AddSprite(cgi.view, &flare->out);
 	}
 }
 
@@ -149,6 +137,8 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 		flare->bounds = Box3_Append(flare->bounds, face->vertexes[i].position);
 	}
 
+	flare->bounds = Box3_Expand(flare->bounds, Box3_Distance(flare->bounds) * .1f);
+
 	if (stage->cm->flags & STAGE_COLOR) {
 		flare->in.color = Color_Color32(stage->cm->color);
 	} else {
@@ -158,7 +148,6 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 	flare->in.media = stage->media;
 	flare->in.softness = 1.f;
 	flare->in.lighting = 1.f;
-	//flare->in.flags = SPRITE_NO_DEPTH;
 
 	return flare;
 }
