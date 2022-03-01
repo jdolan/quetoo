@@ -54,15 +54,9 @@ typedef struct {
 	 * @brief The flare alpha value, ramped by occlusion traces.
 	 */
 	float alpha;
-
-	/**
-	 * @brief The flare exposure value, calculated every once in a while.
-	 */
-	float exposure;
 } cg_flare_t;
 
 static GPtrArray *cg_flares;
-static uint32_t cg_flare_timestamp;
 
 #define FLARE_ALPHA_RAMP 0.01
 
@@ -118,61 +112,25 @@ void Cg_AddFlares(void) {
 
 		// occluded, so don't bother checking this
 		if (!out) {
-			flare->alpha = flare->exposure = 0.f;
 			continue;
 		}
 
-		if ((cgi.client->unclamped_time - cg_flare_timestamp) > 50) {
+		const vec3_t dir = Vec3_Direction(flare->out.origin, cgi.view->origin);
+		const float dot = (Vec3_Dot(cgi.view->forward, dir) - 0.4f) / 0.6f;
 
-			const cm_bsp_plane_t plane = *flare->face->brush_side->plane->cm;
-			const float dist = Vec3_Dot(cgi.view->origin, plane.normal) - plane.dist;
-
-			flare->exposure = 0.f;
-
-			if (dist > 0.f) {
-				const cm_trace_t tr = cgi.Trace(cgi.view->origin, flare->out.origin, Box3_Zero(), 0, CONTENTS_SOLID);
-
-				if (tr.fraction > 0.99f) {
-					const float dot = (Vec3_Dot(cgi.view->forward, Vec3_Normalize(Vec3_Subtract(flare->out.origin, cgi.view->origin))) - 0.4f) / 0.6f;
-
-					if (dot > 0.f) {
-						flare->exposure = 1.f * (dot * dot * dot * dot);
-					}
-				}
-			}
-		}
-
-		if (flare->alpha != flare->exposure) {
-			float alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP;
-
-			if (flare->exposure > flare->alpha) {
- 				flare->alpha = Minf(flare->alpha + alpha, flare->exposure);
-			} else {
-				flare->alpha = Maxf(flare->alpha - alpha, flare->exposure);
-			}
-		}
+		flare->alpha = Clampf(dot * cg_add_flares->value, 0.f, 1.f);
 
 		if (flare->alpha > 0.f) {
-			const float alpha = Clampf(flare->alpha * cg_add_flares->value, 0.f, 1.f);
 
-			if (alpha > 0.f) {
 
-				const color_t in_color = Color32_Color(flare->in.color);
-				const color_t out_color = Color_Scale(in_color, alpha);
+			const color_t in_color = Color32_Color(flare->in.color);
+			const color_t out_color = Color_Scale(in_color, flare->alpha);
 
-				out->color = Color_Color32(out_color);
-			} else {
-				// "undo" the sprite addition
-				cgi.view->num_sprites--;
-			}
+			out->color = Color_Color32(out_color);
 		} else {
 			// "undo" the sprite addition
 			cgi.view->num_sprites--;
 		}
-	}
-
-	if ((cgi.client->unclamped_time - cg_flare_timestamp) > 50) {
-		cg_flare_timestamp = cgi.client->unclamped_time;
 	}
 }
 
@@ -198,9 +156,9 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 	}
 
 	flare->in.media = stage->media;
-	flare->in.softness = 0.f;
+	flare->in.softness = 1.f;
 	flare->in.lighting = 1.f;
-	flare->in.flags = SPRITE_NO_DEPTH;
+	//flare->in.flags = SPRITE_NO_DEPTH;
 
 	return flare;
 }
