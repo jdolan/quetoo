@@ -390,7 +390,7 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, int32_t value, con
 			continue;
 		}
 
-		const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane];
+		const bsp_plane_t *plane = &bsp_file.planes[face->plane];
 		if (Vec3_Dot(vertex->normal, plane->normal) < 0.f) {
 			continue;
 		}
