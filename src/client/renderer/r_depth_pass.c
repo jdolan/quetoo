@@ -84,7 +84,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 		r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
 		for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
 
-			if (Box3_ContainsPoint(q->bounds, view->origin)) {
+			if (Box3_ContainsPoint(Box3_Expand(q->bounds, 1.f), view->origin)) {
 				q->pending = false;
 				q->result = 1;
 				continue;
