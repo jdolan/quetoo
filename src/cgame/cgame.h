@@ -514,7 +514,7 @@ typedef struct cg_import_s {
 	 * @return A pointer array of brushes originally defined within `entity`.
 	 * @remarks This function returns the brushes within an entity as it was defined
 	 * in the source .map file. Even `func_group` and other entities which have their
-	 * contents merged into `worldspawn` during the compilation step are fully supported.
+	 * brushes merged into `worldspawn` during the compilation step are fully supported.
 	 */
 	GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
 
