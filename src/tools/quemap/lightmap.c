@@ -769,11 +769,19 @@ void FinalizeLightmap(int32_t face_num) {
 		ambient = ColorFilter(ambient);
 		diffuse = ColorFilter(diffuse);
 
+#if 0
+		// write the interpolated normal for debugging
+		const vec3_t n = Vec3_Scale(Vec3_Add(l->normal, Vec3(1.f, 1.f, 1.f)), .5f);
+		for (int32_t j = 0; j < 3; j++) {
+			*out_diffuse++ = (byte) Clampf(n.xyz[j] * 255.f, 0.f, 255.f);
+		}
+#else
 		// write the color sample data as bytes
 		for (int32_t j = 0; j < 3; j++) {
 			*out_ambient++ = (byte) Clampf(ambient.xyz[j] * 255.f, 0.f, 255.f);
 			*out_diffuse++ = (byte) Clampf(diffuse.xyz[j] * 255.f, 0.f, 255.f);
 		}
+#endif
 
 		// re-project the luxel to calculate its centered normal
 		ProjectLightmapLuxel(lm, l, 0.f, 0.f);
