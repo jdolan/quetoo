@@ -769,7 +769,7 @@ void FinalizeLightmap(int32_t face_num) {
 		ambient = ColorFilter(ambient);
 		diffuse = ColorFilter(diffuse);
 
-#if 1
+#if 0
 		// write the interpolated normal for debugging
 		const vec3_t n = Vec3_Scale(Vec3_Add(l->normal, Vec3(1.f, 1.f, 1.f)), .5f);
 		for (int32_t j = 0; j < 3; j++) {
