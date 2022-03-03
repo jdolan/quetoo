@@ -172,7 +172,7 @@ void BuildLightmaps(void) {
 		
 		lm->face = &bsp_file.faces[i];
 		lm->brush_side = &bsp_file.brush_sides[lm->face->brush_side];
-		lm->plane = &bsp_file.planes[lm->brush_side->plane];
+		lm->plane = &bsp_file.planes[lm->face->plane];
 
 		if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 			continue;
