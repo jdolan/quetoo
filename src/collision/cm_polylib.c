@@ -670,27 +670,40 @@ float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c) {
 
 /**
 * @brief Calculates barycentric coordinates for p in the triangle defined by a, b and c.
+* @remarks The max_area checks ensure that p is (approximately) inside the triangle abc.
 * @see https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
 */
 float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t *out) {
 
-   const float abc = Cm_TriangleArea(a, b, c);
-   if (abc) {
-	   const float bcp = Cm_TriangleArea(b, c, p);
-	   out->x = bcp / abc;
+	const float abc = Cm_TriangleArea(a, b, c);
+	if (abc) {
+		const float max_area = abc * 1.1f;
 
-	   const float cap = Cm_TriangleArea(c, a, p);
-	   out->y = cap / abc;
+		const float bcp = Cm_TriangleArea(b, c, p);
+		if (bcp > max_area) {
+			return FLT_MAX;
+		}
 
-	   const float abp = Cm_TriangleArea(a, b, p);
-	   out->z = abp / abc;
+		const float cap = Cm_TriangleArea(c, a, p);
+		if (cap > max_area) {
+			return FLT_MAX;
+		}
 
-	   return out->x + out->y + out->z;
-   } else {
+		const float abp = Cm_TriangleArea(a, b, p);
+		if (abp > max_area) {
+			return FLT_MAX;
+		}
+
+		out->x = bcp / abc;
+		out->y = cap / abc;
+		out->z = abp / abc;
+
+		return out->x + out->y + out->z;
+	} else {
 	   *out = Vec3_Zero();
-   }
+	}
 
-   return FLT_MAX;
+	return FLT_MAX;
 }
 
 /**
