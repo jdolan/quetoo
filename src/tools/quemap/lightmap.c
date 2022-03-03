@@ -192,14 +192,14 @@ void BuildLightmaps(void) {
  * @brief For Phong-shaded luxels, calculate the interpolated normal vector using
  * barycentric coordinates over the face's triangles.
  */
-static vec3_t PhongLuxel(const lightmap_t *lm, const vec3_t origin) {
+static vec3_t LuxelNormal(const lightmap_t *lm, const vec3_t origin) {
 
 	vec3_t normal = lm->plane->normal;
 
 	float best = FLT_MAX;
 
 	const int32_t *e = bsp_file.elements + lm->face->first_element;
-	for (int32_t i = 0; i < lm->face->num_elements / 3; i++, e += 3) {
+	for (int32_t i = 0; i < lm->face->num_elements; i += 3, e += 3) {
 
 		const bsp_vertex_t *a = bsp_file.vertexes + e[0];
 		const bsp_vertex_t *b = bsp_file.vertexes + e[1];
@@ -207,7 +207,7 @@ static vec3_t PhongLuxel(const lightmap_t *lm, const vec3_t origin) {
 
 		vec3_t out;
 		const float bary = Cm_Barycentric(a->position, b->position, c->position, origin, &out);
-		const float delta = fabsf(1.0f - bary);
+		const float delta = fabsf(1.f - bary);
 		if (delta < best) {
 			best = delta;
 
@@ -231,19 +231,15 @@ static vec3_t PhongLuxel(const lightmap_t *lm, const vec3_t origin) {
  */
 static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs) {
 
-	const float padding_s = ((lm->st_maxs.x - lm->st_mins.x) - lm->w) * 0.5;
-	const float padding_t = ((lm->st_maxs.y - lm->st_mins.y) - lm->h) * 0.5;
+	const float padding_s = ((lm->st_maxs.x - lm->st_mins.x) - lm->w) * 0.5f;
+	const float padding_t = ((lm->st_maxs.y - lm->st_mins.y) - lm->h) * 0.5f;
 
-	const float s = lm->st_mins.x + padding_s + l->s + 0.5 + soffs;
-	const float t = lm->st_mins.y + padding_t + l->t + 0.5 + toffs;
+	const float s = lm->st_mins.x + padding_s + l->s + 0.5f + soffs;
+	const float t = lm->st_mins.y + padding_t + l->t + 0.5f + toffs;
 
 	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
 
-	if (lm->brush_side->surface & SURF_PHONG) {
-		l->normal = PhongLuxel(lm, l->origin);
-	} else {
-		l->normal = lm->plane->normal;
-	}
+	l->normal = LuxelNormal(lm, l->origin);
 
 	l->origin = Vec3_Add(l->origin, l->normal);
 	return Light_PointContents(l->origin, lm->model->head_node);
