@@ -333,7 +333,7 @@ static void LightForEntity(const cm_entity_t *entity) {
 static void LightForPatch(const patch_t *patch) {
 
 	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
-	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane];
+	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane];
 
 	light_t light = {
 		.type = LIGHT_PATCH,
@@ -521,8 +521,7 @@ void BuildDirectLights(void) {
  */
 static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
-	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
-	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane];
+	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane];
 
 	light_t light = {
 		.type = LIGHT_INDIRECT,
