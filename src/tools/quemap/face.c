@@ -367,45 +367,38 @@ bsp_face_t *EmitFace(const face_t *face) {
 	return out;
 }
 
-#define MAX_PHONG_FACES 256
+#define MAX_VERTEX_FACES 32
+
+static entity_t **face_entities;
 
 /**
- * @brief Populate phong_faces with pointers to all Phong shaded faces referencing the vertex.
- * @return The number of Phong shaded bsp_face_t's referencing the vertex.
+ * @brief Populates faces with pointers to all those referencing the vertex.
+ * @return The count of faces referencing the vertex.
  */
-static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, int32_t value, const bsp_face_t **phong_faces) {
+static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex, const bsp_face_t **faces) {
 
 	size_t count = 0;
 
-	const bsp_face_t *face = bsp_file.faces;
-	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
+	const entity_t *face_entity = face_entities[face - bsp_file.faces];
 
-		const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[face->brush_side];
+	const bsp_face_t *f = bsp_file.faces;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, f++) {
 
-		if (!(brush_side->surface & SURF_PHONG)) {
+		if (face_entity != face_entities[i]) {
 			continue;
 		}
 
-		if (brush_side->value != value) {
-			continue;
-		}
-
-		const bsp_plane_t *plane = &bsp_file.planes[face->plane];
-		if (Vec3_Dot(vertex->normal, plane->normal) < 0.f) {
-			continue;
-		}
-
-		const bsp_vertex_t *v = &bsp_file.vertexes[face->first_vertex];
-		for (int32_t j = 0; j < face->num_vertexes; j++, v++) {
+		const bsp_vertex_t *v = &bsp_file.vertexes[f->first_vertex];
+		for (int32_t j = 0; j < f->num_vertexes; j++, v++) {
 
 			if (Vec3_Distance(vertex->position, v->position) < VERTEX_EPSILON) {
-				phong_faces[count++] = face;
+				faces[count++] = f;
 				break;
 			}
 		}
 
-		if (count == MAX_PHONG_FACES) {
-			Mon_SendPoint(MON_ERROR, vertex->position, "MAX_PHONG_FACES");
+		if (count == MAX_VERTEX_FACES) {
+			Mon_SendPoint(MON_ERROR, vertex->position, "MAX_VERTEX_FACES");
 			break;
 		}
 	}
@@ -417,29 +410,51 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, int32_t value, con
  * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by finding all of
  * the faces which share a given vertex, and calculating a weighted average of their normals.
  */
-static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v) {
-	const bsp_face_t *phong_faces[MAX_PHONG_FACES];
+static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cosine) {
+	const bsp_face_t *faces[MAX_VERTEX_FACES];
 
-	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[face->brush_side];
-	if (brush_side->surface & SURF_PHONG) {
+	const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
+	const bsp_plane_t *plane = &bsp_file.planes[face->plane];
 
-		const size_t count = PhongFacesForVertex(v, brush_side->value, phong_faces);
+	if ((side->surface & SURF_PHONG) || phong_cosine > 0.f) {
+
+		const size_t count = FacesForVertex(face, v, faces);
 		if (count > 1) {
 
 			v->normal = Vec3_Zero();
 
-			const bsp_face_t **pf = phong_faces;
-			for (size_t j = 0; j < count; j++, pf++) {
+			const bsp_face_t **f = faces;
+			for (size_t j = 0; j < count; j++, f++) {
 
-				const bsp_brush_side_t *side = &bsp_file.brush_sides[(*pf)->brush_side];
-				const bsp_plane_t *plane = &bsp_file.planes[side->plane];
+				const bsp_brush_side_t *s = &bsp_file.brush_sides[(*f)->brush_side];
+				const bsp_plane_t *p = &bsp_file.planes[(*f)->plane];
 
-				cm_winding_t *w = Cm_WindingForFace(&bsp_file, *pf);
-				v->normal = Vec3_Fmaf(v->normal, Cm_WindingArea(w), plane->normal);
+				const float dot = Vec3_Dot(plane->normal, p->normal);
+				if (dot <= 0.f) {
+					continue;
+				}
+
+				if (!(s->surface & SURF_PHONG)) {
+					if (dot < phong_cosine) {
+						continue;
+					}
+				}
+
+				if (side->value != s->value) {
+					continue;
+				}
+
+				cm_winding_t *w = Cm_WindingForFace(&bsp_file, *f);
+				v->normal = Vec3_Fmaf(v->normal, Cm_WindingArea(w), p->normal);
 				Cm_FreeWinding(w);
 			}
 
-			v->normal = Vec3_Normalize(v->normal);
+
+			if (Vec3_LengthSquared(v->normal)) {
+				v->normal = Vec3_Normalize(v->normal);
+			} else {
+				v->normal = plane->normal;
+			}
 		}
 	}
 }
@@ -449,15 +464,17 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v) {
  */
 static void PhongFace(int32_t face_num) {
 
-	if (no_phong) {
-		return;
-	}
+	const entity_t *entity = face_entities[face_num];
+	assert(entity);
+
+	const float phong_angle = atof(ValueForKey(entity, "phong", ""));
+	const float phong_cosine = cosf(Radians(phong_angle));
 
 	const bsp_face_t *face = bsp_file.faces + face_num;
 
 	bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;
 	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
-		PhongVertex(face, v);
+		PhongVertex(face, v, phong_cosine);
 	}
 }
 
@@ -466,7 +483,31 @@ static void PhongFace(int32_t face_num) {
  */
 void PhongShading(void) {
 
+	if (no_phong) {
+		return;
+	}
+
+	face_entities = Mem_Malloc(sizeof(entity_t *) * bsp_file.num_faces);
+
+	const bsp_face_t *face = bsp_file.faces;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
+
+		const bsp_brush_t *brush = bsp_file.brushes;
+		for (int32_t j = 0; j < bsp_file.num_brushes; j++, brush++) {
+
+			if (face->brush_side >= brush->first_brush_side
+				&& face->brush_side < brush->first_brush_side + brush->num_brush_sides) {
+				face_entities[i] = entities + brush->entity;
+				break;
+			}
+		}
+
+		assert(face_entities[i]);
+	}
+
 	Work("Phong shading", PhongFace, bsp_file.num_faces);
+
+	Mem_Free(face_entities);
 }
 
 /**
