@@ -102,14 +102,36 @@ void main(void) {
 		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 		out_bloom.a = out_color.a;
 
-		// fog 
-		// out_color.rgb *= 1.0 - vertex.fog.a; // black? sigh.
-		out_color.rgb += vertex.fog.rgb * out_color.a;
-
 		if (lightmaps == 1) {
-			out_color.rgb = (vertex.diffuse + vertex.ambient) * modulate;
+			// direct and indirect diffuse lighting
+			out_color.rgb = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + vertex.ambient;
 		} else if (lightmaps == 2) {
-			out_color.rgb = vertex.direction * 0.5 + 0.5;
+			// direct diffuse lighting
+			out_color.rgb = vertex.diffuse * max(0.0, dot(normal, vertex.direction));
+		} else if (lightmaps == 3) {
+			// indirect diffuse lighting
+			out_color.rgb = vertex.ambient;
+		} else if (lightmaps == 5) {
+			// diffuse bumpmap lighting
+			float bump_shading = (dot(vertex.direction, normal) - dot(vertex.direction, vertex.normal)) * 0.5 + 0.5;
+			out_color.rgb = vec3(bump_shading);
+		} else if (lightmaps == 6) {
+			// specular lighting
+			out_color.rgb = specular_light;
+		} else if (lightmaps == 7) {
+			// toksvig gloss factor
+			// out_color.rgb = vec3(gloss);
+		} else if (lightmaps == 8) {
+			// diffuse albedo
+			out_color = diffusemap;
+		} else {
+			// fog
+			out_color.rgb += vertex.fog.rgb * out_color.a; // additive fog
+			// out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a); // alpha blended fog
+			// (could do both using premultiplied alpha? that might mean map tweaks)
+
+			// postprocessing
+			out_color = postprocess(out_color);
 		}
 
 	} else {
@@ -123,7 +145,7 @@ void main(void) {
 		}
 
 		out_color = effect;
-	}
 
-	postprocess(out_color);
+		out_color = postprocess(out_color);
+	}
 }
