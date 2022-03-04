@@ -94,18 +94,18 @@ void main(void) {
 
 		vec3 ambient = sample_lightmap(0).rgb;
 		vec3 diffuse = sample_lightmap(1).rgb;
-		vec3 direction = sample_lightmap(2).xyz;
+		vec3 direction_ts = sample_lightmap(2).xyz;
 		vec3 caustic = sample_lightmap(3).rgb;
 
 		if (entity > 0) {
 			ambient = mix(ambient, texture(texture_lightgrid_ambient, vertex.lightgrid).rgb, .666);
 			diffuse = mix(diffuse, texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb, .666);
-			direction = mix(direction, texture(texture_lightgrid_direction, vertex.lightgrid).xyz, .666);
+			direction_ts = mix(direction_ts, texture(texture_lightgrid_direction, vertex.lightgrid).xyz, .666);
 			caustic = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
-			direction = normalize(direction);
+			direction_ts = normalize(direction_ts);
 		}
 
-		direction = normalize(tbn * (direction * 2.0 - 1.0));
+		vec3 direction = normalize(tbn * (direction_ts * 2.0 - 1.0));
 
 		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
 		vec3 diffuse_light = ambient + diffuse * 2.0 * bump_shading;
@@ -146,7 +146,7 @@ void main(void) {
 		} else if (lightmaps == 3) {
 			out_color.rgb = ambient;
 		} else if (lightmaps == 4) {
-			out_color.rgb = direction * 0.5 + 0.5;
+			out_color.rgb = direction_ts;
 		} else if (lightmaps == 5) {
 			out_color.rgb = vec3(bump_shading);
 		} else if (lightmaps == 6) {
