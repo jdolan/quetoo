@@ -22,14 +22,13 @@
     <None Include="game.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\game\default\ai\ai_goal.h" />
-    <ClInclude Include="..\src\game\default\ai\ai_info.h" />
-    <ClInclude Include="..\src\game\default\ai\ai_item.h" />
-    <ClInclude Include="..\src\game\default\ai\ai_local.h" />
-    <ClInclude Include="..\src\game\default\ai\ai_main.h" />
-    <ClInclude Include="..\src\game\default\ai\ai_node.h" />
-    <ClInclude Include="..\src\game\default\ai\ai_types.h" />
     <ClInclude Include="..\src\game\default\g_ai.h" />
+    <ClInclude Include="..\src\game\default\g_ai_goal.h" />
+    <ClInclude Include="..\src\game\default\g_ai_info.h" />
+    <ClInclude Include="..\src\game\default\g_ai_item.h" />
+    <ClInclude Include="..\src\game\default\g_ai_main.h" />
+    <ClInclude Include="..\src\game\default\g_ai_node.h" />
+    <ClInclude Include="..\src\game\default\g_ai_types.h" />
     <ClInclude Include="..\src\game\default\g_ballistics.h" />
     <ClInclude Include="..\src\game\default\g_client.h" />
     <ClInclude Include="..\src\game\default\g_client_chase.h" />
@@ -55,12 +54,12 @@
     <ClInclude Include="..\src\game\game.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\game\default\ai\ai_goal.c" />
-    <ClCompile Include="..\src\game\default\ai\ai_info.c" />
-    <ClCompile Include="..\src\game\default\ai\ai_item.c" />
-    <ClCompile Include="..\src\game\default\ai\ai_main.c" />
-    <ClCompile Include="..\src\game\default\ai\ai_node.c" />
     <ClCompile Include="..\src\game\default\g_ai.c" />
+    <ClCompile Include="..\src\game\default\g_ai_goal.c" />
+    <ClCompile Include="..\src\game\default\g_ai_info.c" />
+    <ClCompile Include="..\src\game\default\g_ai_item.c" />
+    <ClCompile Include="..\src\game\default\g_ai_main.c" />
+    <ClCompile Include="..\src\game\default\g_ai_node.c" />
     <ClCompile Include="..\src\game\default\g_ballistics.c" />
     <ClCompile Include="..\src\game\default\g_client.c" />
     <ClCompile Include="..\src\game\default\g_client_chase.c" />

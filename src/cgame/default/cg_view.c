@@ -164,7 +164,8 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
  * are on the ground, determine the bob frequency and amplitude.
  */
 static void Cg_UpdateBob(const player_state_t *ps) {
-	static uint32_t bob, time;
+	static uint32_t time;
+	static float bob;
 
 	if (!cg_bob->value) {
 		return;
