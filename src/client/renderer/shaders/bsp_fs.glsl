@@ -100,9 +100,11 @@ void main(void) {
 		if (entity > 0) {
 			ambient = mix(ambient, texture(texture_lightgrid_ambient, vertex.lightgrid).rgb, .666);
 			diffuse = mix(diffuse, texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb, .666);
-			direction_ts = mix(direction_ts, texture(texture_lightgrid_direction, vertex.lightgrid).xyz, .666);
+			vec3 direction_lg = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
+			direction_lg = normalize((view * vec4(direction_lg * 2.0 - 1.0, 0.0)).xyz);
+			diffuse *= max(0.0, dot(normal, direction_lg));
+			direction_ts = normalize(mix(direction_ts, direction_lg, .666));
 			caustic = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
-			direction_ts = normalize(direction_ts);
 		}
 
 		vec3 direction = normalize(tbn * (direction_ts * 2.0 - 1.0));
