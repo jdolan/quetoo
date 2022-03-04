@@ -131,6 +131,24 @@ vec4 cubic(float v) {
 }
 
 /**
+ * @brief Toksvig normal map gloss factor.
+ */
+float toksvig(vec3 normalmap, float power)
+{
+	float len_rcp = 1.0 / saturate(length(normalmap));
+	return 1.0 / (1.0 + power * (len_rcp - 1.0));
+}
+
+/**
+ * @brief Blinn-Phong BRDF for specular highlights.
+ */
+float blinn(float n_dot_h, float gloss, float power) {
+	float p = power * gloss;
+	float result = pow(n_dot_h, p) * (p + 2.0) / 8.0;
+	return max(result, 0.001);
+}
+
+/**
  * @brief Phong BRDF for specular highlights.
  */
 vec3 brdf_phong(vec3 view_dir, vec3 light_dir, vec3 normal,
