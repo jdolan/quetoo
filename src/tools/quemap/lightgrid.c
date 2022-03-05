@@ -729,9 +729,7 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	l->diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
 	l->diffuse = ColorFilter(l->diffuse);
 
-	l->direction = Vec3_Add(l->direction, Vec3_Up());
 	l->direction = Vec3_Normalize(l->direction);
-
 	l->caustics = ColorNormalize(l->caustics);
 
 	l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));
