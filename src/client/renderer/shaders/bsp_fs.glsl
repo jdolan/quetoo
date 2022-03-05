@@ -95,8 +95,8 @@ void main(void) {
 
 		vec3 ambient = sample_lightmap(0).rgb;
 		vec3 diffuse = sample_lightmap(1).rgb;
-		vec3 direction_ts = sample_lightmap(2).xyz;
-		vec3 indirection_ts = sample_lightmap(3).xyz;
+		vec3 direction_lm = sample_lightmap(2).xyz;
+		vec3 indirection_lm = sample_lightmap(3).xyz;
 		vec3 caustic = sample_lightmap(4).rgb;
 
 		if (entity > 0) {
@@ -105,61 +105,80 @@ void main(void) {
 			vec3 direction_lg = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
 			direction_lg = normalize((view * vec4(direction_lg * 2.0 - 1.0, 0.0)).xyz);
 			diffuse *= max(0.0, dot(normal, direction_lg));
-			direction_ts = normalize(mix(direction_ts, direction_lg, .666));
+			direction_lm = normalize(mix(direction_lm, direction_lg, .666));
 			caustic = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
 		}
 
-		vec3 direction = normalize(tbn * (direction_ts * 2.0 - 1.0));
-		vec3 indirection = normalize(tbn * (indirection_ts * 2.0 - 1.0));
+		vec3 direction   = normalize(tbn * (direction_lm   * 2.0 - 1.0));
+		vec3 indirection = normalize(tbn * (indirection_lm * 2.0 - 1.0));
 
-		float direct_bump = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
-		float indirect_bump = (dot(indirection, normal) - dot(indirection, vertex.normal)) * 0.5 + 0.5;
-		vec3 diffuse_light = (ambient * indirect_bump) + (diffuse * indirect_bump) * 2.0;
+		float bump_shade_direct   = (dot(direction, normal)   - dot(direction,   vertex.normal)) * 0.5 + 0.5;
+		float bump_shade_indirect = (dot(indirection, normal) - dot(indirection, vertex.normal)) * 0.5 + 0.5;
+		// The * 2.0 is because the bump shade neutral value is 0.5.
+		vec3 diffuse_light = (ambient * 2.0 * bump_shade_indirect) + (diffuse * 2.0 * bump_shade_direct);
 
+		// * 100.0 = eyeballed magic value for old content
 		float power = material.specularity * 100.0;
+
 		float gloss = min(
 			toksvig(normalmap_scaled.xyz, power),
 			toksvig(normalmap_mipofs1_scaled.xyz, power));
 
-		vec3 specular_direct = brdf_blinn(viewdir, direction, normal, diffuse, gloss * glossmap.a, power);
-		vec3 specular_indirect = brdf_blinn(viewdir, indirection, normal, ambient, gloss * glossmap.a, power);
+		float n_dot_v = saturate(dot(viewdir, normal));
+		float n_dot_h = saturate(dot(normalize(viewdir + direction), normal));
+		float spec_direct = blinn(n_dot_h, gloss * glossmap.a, power);
+		// * 0.XXX = to spread it out some more, like true ambient light would.
+		float spec_indirect = blinn(n_dot_h, gloss * glossmap.a, power * 0.05);
+		vec3 specular_light = (diffuse * spec_direct) + (ambient * spec_indirect);
 
-		vec3 specular_light = min((specular_direct + specular_indirect) * glossmap.xyz * material.hardness, MAX_HARDNESS);
+		// * 0.2 = eyeballed magic value for old content
+		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		vec3 stainmap = sample_lightmap(4).rgb;
 
-		caustic_light(vertex.model, caustic, diffuse_light);
+		//caustic_light(vertex.model, caustic, diffuse_light);
 
-		dynamic_light(vertex.position, normal, 64.0, diffuse_light, specular_light);
+		//dynamic_light(vertex.position, normal, 64.0, diffuse_light, specular_light);
 
 		out_color = diffusemap;
-		out_color *= vec4(stainmap, 1.0);
+		//out_color.rgb *= stainmap;
 
 		out_color.rgb = clamp(out_color.rgb * diffuse_light  * modulate, 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + specular_light * modulate, 0.0, 32.0);
 
-		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.rgb = vec3(0.0); // clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 		out_bloom.a = out_color.a;
 
-		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-		global_fog(out_color, vertex.position);
+		// lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
+		// global_fog(out_color, vertex.position);
 
-		if (lightmaps == 1) {
+		int val = 0;
+		if (lightmaps == ++val) {
 			out_color.rgb = diffuse * 0.5 + ambient * 0.5;
-		} else if (lightmaps == 2) {
+		} else if (lightmaps == ++val) {
 			out_color.rgb = diffuse;
-		} else if (lightmaps == 3) {
+		} else if (lightmaps == ++val) {
 			out_color.rgb = ambient;
-		} else if (lightmaps == 4) {
-			out_color.rgb = direction_ts;
-		} else if (lightmaps == 5) {
-			out_color.rgb = vec3(direct_bump);
-		} else if (lightmaps == 6) {
+		} else if (lightmaps == ++val) {
+			out_color.rgb = direction_lm;
+		} else if (lightmaps == ++val) {
+			out_color.rgb = vec3(bump_shade_direct);
+		} else if (lightmaps == ++val) {
+			out_color.rgb = vec3(bump_shade_indirect);
+		} else if (lightmaps == ++val) {
+			out_color.rgb = (vec3(bump_shade_direct) + vec3(bump_shade_indirect)) * 0.5;
+		} else if (lightmaps == ++val) {
+			out_color.rgb = diffuse * spec_direct;
+		} else if (lightmaps == ++val) {
+			out_color.rgb = ambient * spec_indirect;
+		} else if (lightmaps == ++val) {
 			out_color.rgb = specular_light;
-		} else if (lightmaps == 7) {
+		} else if (lightmaps == ++val) {
 			out_color.rgb = vec3(gloss);
-		} else if (lightmaps == 8) {
+		} else if (lightmaps == ++val) {
 			out_color = diffusemap;
+		} else if (lightmaps == ++val) {
+			out_color.rgb = stainmap.rgb;
 		} else {
 			// postprocessing
 			out_color = postprocess(out_color);
