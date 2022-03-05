@@ -124,7 +124,6 @@ void main(void) {
 			toksvig(normalmap_scaled.xyz, power),
 			toksvig(normalmap_mipofs1_scaled.xyz, power));
 
-		float n_dot_v = saturate(dot(viewdir, normal));
 		float n_dot_h = saturate(dot(normalize(viewdir + direction), normal));
 		float spec_direct = blinn(n_dot_h, gloss * glossmap.a, power);
 		// * 0.XXX = to spread it out some more, like true ambient light would.
@@ -134,23 +133,23 @@ void main(void) {
 		// * 0.2 = eyeballed magic value for old content
 		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
-		vec3 stainmap = sample_lightmap(4).rgb;
+		vec3 stainmap = sample_lightmap(5).rgb;
 
-		//caustic_light(vertex.model, caustic, diffuse_light);
+		caustic_light(vertex.model, caustic, diffuse_light);
 
-		//dynamic_light(vertex.position, normal, 64.0, diffuse_light, specular_light);
+		dynamic_light(vertex.position, normal, 64.0, diffuse_light, specular_light);
 
 		out_color = diffusemap;
-		//out_color.rgb *= stainmap;
+		out_color.rgb *= stainmap;
 
 		out_color.rgb = clamp(out_color.rgb * diffuse_light  * modulate, 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + specular_light * modulate, 0.0, 32.0);
 
-		out_bloom.rgb = vec3(0.0); // clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 		out_bloom.a = out_color.a;
 
-		// lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-		// global_fog(out_color, vertex.position);
+		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
+		global_fog(out_color, vertex.position);
 
 		int val = 0;
 		if (lightmaps == ++val) {
