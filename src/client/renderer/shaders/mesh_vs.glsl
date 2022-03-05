@@ -33,6 +33,7 @@ layout (location = 8) in vec3 in_next_bitangent;
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
+uniform sampler3D texture_lightgrid_indirection;
 uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
 
@@ -55,6 +56,7 @@ out vertex_data {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
+	vec3 indirection;
 	vec3 caustic;
 	vec4 fog;
 } vertex;
@@ -98,6 +100,8 @@ void main(void) {
 		vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
 		vertex.direction = texture(texture_lightgrid_direction, lightgrid_uvw).xyz;
 		vertex.direction = normalize((view * vec4(vertex.direction * 2.0 - 1.0, 0.0)).xyz);
+		vertex.indirection = texture(texture_lightgrid_indirection, lightgrid_uvw).xyz;
+		vertex.indirection = normalize((view * vec4(vertex.indirection * 2.0 - 1.0, 0.0)).xyz);
 		vertex.caustic = texture(texture_lightgrid_caustics, lightgrid_uvw).rgb;
 
 		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);

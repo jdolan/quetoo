@@ -92,6 +92,7 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 			l->t = t;
 
 			l->direction = Vec3_Up();
+			l->indirection = Vec3_Up();
 		}
 	}
 }
@@ -517,6 +518,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		}
 
 		luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
+		luxel->indirection = Vec3_Fmaf(luxel->indirection, intensity, dir);
 		break;
 	}
 }
@@ -749,6 +751,9 @@ void FinalizeLightmap(int32_t face_num) {
 	lm->direction = CreateLightmapSurface(lm->w, lm->h);
 	byte *out_direction = lm->direction->pixels;
 
+	lm->indirection = CreateLightmapSurface(lm->w, lm->h);
+	byte *out_indirection = lm->indirection->pixels;
+
 	lm->caustics = CreateLightmapSurface(lm->w, lm->h);
 	byte *out_caustics = lm->caustics->pixels;
 
@@ -800,9 +805,17 @@ void FinalizeLightmap(int32_t face_num) {
 
 		direction = Vec3_Normalize(direction);
 
+		vec3_t indirection;
+		indirection.x = Vec3_Dot(l->indirection, tangent);
+		indirection.y = Vec3_Dot(l->indirection, bitangent);
+		indirection.z = Vec3_Dot(l->indirection, l->normal);
+
+		indirection = Vec3_Normalize(indirection);
+
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 		for (int32_t j = 0; j < 3; j++) {
 			*out_direction++ = (byte) Clampf((direction.xyz[j] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+			*out_indirection++ = (byte) Clampf((indirection.xyz[j] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
 		}
 
 		// pack the caustics
@@ -831,7 +844,7 @@ void EmitLightmap(void) {
 			continue;
 		}
 
-		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction, lm->caustics);
+		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction, lm->indirection, lm->caustics);
 		nodes[i]->w = lm->w;
 		nodes[i]->h = lm->h;
 	}
@@ -853,18 +866,21 @@ void EmitLightmap(void) {
 		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_bytes);
 		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_bytes);
 		SDL_Surface *direction = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_bytes);
-		SDL_Surface *caustics = CreateLightmapSurfaceFrom(width, width, out + 3 * layer_bytes);
+		SDL_Surface *indirection = CreateLightmapSurfaceFrom(width, width, out + 3 * layer_bytes);
+		SDL_Surface *caustics = CreateLightmapSurfaceFrom(width, width, out + 4 * layer_bytes);
 
-		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction, caustics) == 0) {
+		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction, indirection, caustics) == 0) {
 
 //			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
 //			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
 //			IMG_SavePNG(direction, va("/tmp/%s_lm_direction.png", map_base));
+//			IMG_SavePNG(indirection, va("/tmp/%s_lm_indirection.png", map_base));
 //			IMG_SavePNG(caustics, va("/tmp/%s_lm_caustics.png", map_base));
 
 			SDL_FreeSurface(ambient);
 			SDL_FreeSurface(diffuse);
 			SDL_FreeSurface(direction);
+			SDL_FreeSurface(indirection);
 			SDL_FreeSurface(caustics);
 
 			break;
@@ -873,6 +889,7 @@ void EmitLightmap(void) {
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
 		SDL_FreeSurface(direction);
+		SDL_FreeSurface(indirection);
 		SDL_FreeSurface(caustics);
 	}
 
@@ -900,6 +917,7 @@ void EmitLightmap(void) {
 		SDL_FreeSurface(lm->ambient);
 		SDL_FreeSurface(lm->diffuse);
 		SDL_FreeSurface(lm->direction);
+		SDL_FreeSurface(lm->indirection);
 		SDL_FreeSurface(lm->caustics);
 	}
 

@@ -47,6 +47,7 @@ static struct {
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_direction;
+	GLint texture_lightgrid_indirection;
 	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
 
@@ -161,14 +162,15 @@ void R_DrawBspLightgrid(r_view_t *view) {
 	const byte *ambient = in + sizeof(bsp_lightgrid_t);
 	const byte *diffuse = ambient + luxels * BSP_LIGHTGRID_BPP;
 	const byte *direction = diffuse + luxels * BSP_LIGHTGRID_BPP;
-	const byte *caustics = direction + luxels * BSP_LIGHTGRID_BPP;
+	const byte *indirection = direction + luxels * BSP_LIGHTGRID_BPP;
+	const byte *caustics = indirection + luxels * BSP_LIGHTGRID_BPP;
 	const byte *fog = caustics + luxels * BSP_LIGHTGRID_BPP;
 
 	r_image_t *particle = R_LoadImage("sprites/particle", IT_SPRITE);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, caustics += 3, fog += 4) {
+			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, indirection += 3, caustics += 3, fog += 4) {
 
 				if (s & 1 || t & 1 || u & 1) {
 					continue;
@@ -194,14 +196,27 @@ void R_DrawBspLightgrid(r_view_t *view) {
 						.media = (r_media_t *) particle
 					});
 
-					const float x = direction[0] / 255.f * 2.f - 1.f;
-					const float y = direction[1] / 255.f * 2.f - 1.f;
-					const float z = direction[2] / 255.f * 2.f - 1.f;
+					{
+						const float x = direction[0] / 255.f * 2.f - 1.f;
+						const float y = direction[1] / 255.f * 2.f - 1.f;
+						const float z = direction[2] / 255.f * 2.f - 1.f;
 
-					const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
-					const vec3_t end = Vec3_Fmaf(origin, 16.f, dir);
+						const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
+						const vec3_t end = Vec3_Fmaf(origin, 16.f, dir);
 
-					R_Draw3DLines((vec3_t []) { origin, end }, 2, Color3b(r, g, b));
+						R_Draw3DLines((vec3_t []) { origin, end }, 2, Color3b(diffuse[0], diffuse[1], diffuse[2]));
+					}
+
+					{
+						const float x = indirection[0] / 255.f * 2.f - 1.f;
+						const float y = indirection[1] / 255.f * 2.f - 1.f;
+						const float z = indirection[2] / 255.f * 2.f - 1.f;
+
+						const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
+						const vec3_t end = Vec3_Fmaf(origin, 8.f, dir);
+
+						R_Draw3DLines((vec3_t []) { origin, end }, 2, Color3b(ambient[0], ambient[1], ambient[2]));
+					}
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
 
@@ -765,6 +780,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
 	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
 	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
+	r_bsp_program.texture_lightgrid_indirection = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_indirection");
 	r_bsp_program.texture_lightgrid_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_caustics");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
@@ -797,6 +813,7 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
+	glUniform1i(r_bsp_program.texture_lightgrid_indirection, TEXTURE_LIGHTGRID_INDIRECTION);
 	glUniform1i(r_bsp_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 

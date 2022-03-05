@@ -59,7 +59,7 @@
 /**
  * @brief Lightmap ambient, diffuse, direction and caustics layers.
  */
-#define BSP_LIGHTMAP_LAYERS 4
+#define BSP_LIGHTMAP_LAYERS 5
 
 /**
  * @brief Stainmap layers.
@@ -74,6 +74,7 @@ typedef enum {
 	BSP_LIGHTMAP_AMBIENT = BSP_LIGHTMAP_FIRST,
 	BSP_LIGHTMAP_DIFFUSE,
 	BSP_LIGHTMAP_DIRECTION,
+	BSP_LIGHTMAP_INDIRECTION,
 	BSP_LIGHTMAP_CAUSTICS,
 	BSP_LIGHTMAP_STAINS,
 	BSP_LIGHTMAP_LAST,
@@ -90,9 +91,9 @@ typedef enum {
 #define BSP_LIGHTGRID_BPP 3
 
 /**
- * @brief Lightgrid ambient, diffuse, direction and caustics textures.
+ * @brief Lightgrid ambient, diffuse, direction, indirection and caustics textures.
  */
-#define BSP_LIGHTGRID_TEXTURES 4
+#define BSP_LIGHTGRID_TEXTURES 5
 
 /**
  * @brief Fog color and density textures.
@@ -122,6 +123,7 @@ typedef enum {
 	BSP_LIGHTGRID_AMBIENT = BSP_LIGHTGRID_FIRST,
 	BSP_LIGHTGRID_DIFFUSE,
 	BSP_LIGHTGRID_DIRECTION,
+	BSP_LIGHTGRID_INDIRECTION,
 	BSP_LIGHTGRID_CAUSTICS,
 	BSP_LIGHTGRID_FOG,
 	BSP_LIGHTGRID_LAST

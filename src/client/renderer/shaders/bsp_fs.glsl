@@ -26,6 +26,7 @@ uniform sampler2D texture_warp;
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
+uniform sampler3D texture_lightgrid_indirection;
 uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
 
@@ -95,7 +96,8 @@ void main(void) {
 		vec3 ambient = sample_lightmap(0).rgb;
 		vec3 diffuse = sample_lightmap(1).rgb;
 		vec3 direction_ts = sample_lightmap(2).xyz;
-		vec3 caustic = sample_lightmap(3).rgb;
+		vec3 indirection_ts = sample_lightmap(3).xyz;
+		vec3 caustic = sample_lightmap(4).rgb;
 
 		if (entity > 0) {
 			ambient = mix(ambient, texture(texture_lightgrid_ambient, vertex.lightgrid).rgb, .666);
@@ -108,20 +110,21 @@ void main(void) {
 		}
 
 		vec3 direction = normalize(tbn * (direction_ts * 2.0 - 1.0));
+		vec3 indirection = normalize(tbn * (indirection_ts * 2.0 - 1.0));
 
-		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
-		vec3 diffuse_light = ambient + diffuse * 2.0 * bump_shading;
+		float direct_bump = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
+		float indirect_bump = (dot(indirection, normal) - dot(indirection, vertex.normal)) * 0.5 + 0.5;
+		vec3 diffuse_light = (ambient * indirect_bump) + (diffuse * indirect_bump) * 2.0;
 
 		float power = material.specularity * 100.0;
 		float gloss = min(
 			toksvig(normalmap_scaled.xyz, power),
 			toksvig(normalmap_mipofs1_scaled.xyz, power));
-		float n_dot_v = saturate(dot(viewdir, normal));
-		float n_dot_h = saturate(dot(normalize(viewdir + direction), normal));
-		float spec_direct = blinn(n_dot_h, gloss * glossmap.a, power);
-		float spec_indirect = blinn(n_dot_v, glossmap.a, power * 0.125);
-		vec3 specular_light = (diffuse * spec_direct) + (ambient * spec_indirect);
-		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
+
+		vec3 specular_direct = brdf_blinn(viewdir, direction, normal, diffuse, gloss * glossmap.a, power);
+		vec3 specular_indirect = brdf_blinn(viewdir, indirection, normal, ambient, gloss * glossmap.a, power);
+
+		vec3 specular_light = min((specular_direct + specular_indirect) * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		vec3 stainmap = sample_lightmap(4).rgb;
 
@@ -150,7 +153,7 @@ void main(void) {
 		} else if (lightmaps == 4) {
 			out_color.rgb = direction_ts;
 		} else if (lightmaps == 5) {
-			out_color.rgb = vec3(bump_shading);
+			out_color.rgb = vec3(direct_bump);
 		} else if (lightmaps == 6) {
 			out_color.rgb = specular_light;
 		} else if (lightmaps == 7) {

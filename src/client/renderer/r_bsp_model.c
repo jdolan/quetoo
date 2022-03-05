@@ -403,6 +403,7 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 					c = Color32(0x00, 0x00, 0x00, 0x00);
 					break;
 				case BSP_LIGHTMAP_DIRECTION:
+				case BSP_LIGHTMAP_INDIRECTION:
 					c = Color32(0x7f, 0x7f, 0xff, 0x00);
 					break;
 				default:
@@ -479,6 +480,7 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 			0xff, 0xff, 0xff, // ambient
 			0xff, 0xff, 0xff, // diffuse
 			0x7f, 0x7f, 0xff, // direction
+			0x7f, 0x7f, 0xff, // indirection
 			0x00, 0x00, 0x00, // caustics
 			0x00, 0x00, 0x00, 0x00, // fog
 		};

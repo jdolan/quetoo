@@ -36,6 +36,7 @@ in vertex_data {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
+	vec3 indirection;
 	vec3 caustic;
 	vec4 fog;
 } vertex;
