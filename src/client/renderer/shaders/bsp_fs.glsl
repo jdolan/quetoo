@@ -112,15 +112,18 @@ void main(void) {
 		float bump_shading = (dot(direction, normal) - dot(direction, vertex.normal)) * 0.5 + 0.5;
 		vec3 diffuse_light = ambient + diffuse * 2.0 * bump_shading;
 
-		float power = material.specularity * 100.0;
-		float gloss = min(
-			toksvig(normalmap_scaled.xyz, power),
-			toksvig(normalmap_mipofs1_scaled.xyz, power));
-		float n_dot_v = saturate(dot(viewdir, normal));
-		float n_dot_h = saturate(dot(normalize(viewdir + direction), normal));
-		float spec_direct = blinn(n_dot_h, gloss * glossmap.a, power);
-		float spec_indirect = blinn(n_dot_v, glossmap.a, power * 0.125);
-		vec3 specular_light = (diffuse * spec_direct) + (ambient * spec_indirect);
+//		float power = material.specularity * 100.0;
+//		float gloss = min(
+//			toksvig(normalmap_scaled.xyz, power),
+//			toksvig(normalmap_mipofs1_scaled.xyz, power));
+//		float n_dot_v = saturate(dot(viewdir, normal));
+//		float n_dot_h = saturate(dot(normalize(viewdir + direction), normal));
+//		float spec_direct = blinn(n_dot_h, gloss * glossmap.a, power);
+//		float spec_indirect = blinn(n_dot_v, glossmap.a, power * 0.125);
+//		vec3 specular_light = (diffuse * spec_direct) + (ambient * spec_indirect);
+
+		vec3 specular_light = brdf_blinn(viewdir, direction, normal, diffuse, glossmap.a, material.specularity * 100.0);
+
 		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
 		vec3 stainmap = sample_lightmap(4).rgb;
@@ -154,7 +157,7 @@ void main(void) {
 		} else if (lightmaps == 6) {
 			out_color.rgb = specular_light;
 		} else if (lightmaps == 7) {
-			out_color.rgb = vec3(gloss);
+			//out_color.rgb = vec3(gloss);
 		} else if (lightmaps == 8) {
 			out_color = diffusemap;
 		} else {
