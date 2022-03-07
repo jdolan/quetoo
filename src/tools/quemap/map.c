@@ -557,6 +557,12 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			side->contents |= CONTENTS_TRANSLUCENT | CONTENTS_DETAIL;
 		}
 
+		// FIXME: Opaque water must be made detail, or it eats solids (?) and fails to
+		// generate the desired faces; it'd be nice to fix this correctly some rainy day
+		if (side->contents & CONTENTS_MASK_LIQUID) {
+			side->contents |= CONTENTS_DETAIL;
+		}
+
 		// clip brushes are not drawn and should not be splitters
 		if (side->contents & CONTENTS_MASK_CLIP) {
 			side->contents |= CONTENTS_DETAIL;

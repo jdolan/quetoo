@@ -86,7 +86,6 @@ static GSList* welding_hash_keys;
  * @brief 
  */
 static void WeldingSpatialHashValueDestroyFunc(GHashTable *ptr) {
-
 	g_hash_table_destroy(ptr);
 }
 
@@ -94,7 +93,6 @@ static void WeldingSpatialHashValueDestroyFunc(GHashTable *ptr) {
  * @brief
  */
 static vec3i_t GetWeldingPoint(const vec3_t p) {
-
 	return Vec3i(roundf(p.x), roundf(p.y), roundf(p.z));
 }
 
@@ -112,8 +110,7 @@ static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
 /**
  * @brief
  */
-static gboolean WeldingSpatialHashEqualFunc (const vec3i_t* a, const vec3i_t* b) {
-
+static gboolean WeldingSpatialHashEqualFunc(const vec3i_t* a, const vec3i_t* b) {
 	return a->x == b->x && a->y == b->y && a->z == b->z;
 }
 
@@ -121,7 +118,7 @@ static gboolean WeldingSpatialHashEqualFunc (const vec3i_t* a, const vec3i_t* b)
  * @brief
  */
 void ClearWeldingSpatialHash(void) {
-	
+
 	if (welding_spatial_hash) {
 		g_hash_table_remove_all(welding_spatial_hash);
 		g_slist_free_full(welding_hash_keys, Mem_Free);
@@ -192,7 +189,7 @@ int32_t num_welds = 0;
  */
 static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
 	static const int32_t offsets[] = { 0, 1, -1 };
-	
+
 	for (int32_t z = 0; z < (int32_t) lengthof(offsets); z++) {
 		for (int32_t y = 0; y < (int32_t) lengthof(offsets); y++) {
 			for (int32_t x = 0; x < (int32_t) lengthof(offsets); x++) {
@@ -202,7 +199,7 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
 				if (!array) {
 					continue;
 				}
-				
+
 				GHashTableIter iter;
 				gpointer iter_key;
 				g_hash_table_iter_init(&iter, array);
