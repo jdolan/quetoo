@@ -91,8 +91,8 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 			l->s = s;
 			l->t = t;
 
-			l->direction = Vec3_Up();
-			l->indirection = Vec3_Up();
+			l->direction = lm->plane->normal;
+			l->indirection = lm->plane->normal;
 		}
 	}
 }
