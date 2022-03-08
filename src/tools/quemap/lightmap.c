@@ -74,6 +74,9 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 	lm->h = floorf(lm->st_maxs.y - lm->st_mins.y) + 4;
 }
 
+static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs);
+static vec3_t LuxelNormal(const lightmap_t *lm, const vec3_t origin);
+
 /**
  * @brief Allocates and seeds the luxels for the given lightmap. Projection of the luxels into world
  * space is handled individually by the actual lighting passes, as they have different projections.
@@ -91,13 +94,13 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 			l->s = s;
 			l->t = t;
 
-			l->direction = lm->plane->normal;
-			l->indirection = lm->plane->normal;
+			ProjectLightmapLuxel(lm, l, 0.0, 0.0);
+
+			l->direction = LuxelNormal(lm, l->origin);
+			l->indirection = l->direction;
 		}
 	}
 }
-
-static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs);
 
 /**
  * @brief Authors a .map file which can be imported into Radiant to view the luxel projections.
@@ -122,8 +125,6 @@ static void DebugLightmapLuxels(void) {
 
 			luxel_t *l = lm->luxels;
 			for (size_t j = 0; j < lm->num_luxels; j++, l++) {
-
-				ProjectLightmapLuxel(lm, l, 0.0, 0.0);
 
 				Fs_Print(file, "{\n");
 				Fs_Print(file, "  \"classname\" \"info_luxel\"\n");
