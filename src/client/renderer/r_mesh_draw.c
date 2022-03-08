@@ -48,9 +48,10 @@ static struct {
 	GLint texture_material;
 	GLint texture_stage;
 	GLint texture_lightgrid_ambient;
-	GLint texture_lightgrid_diffuse;
-	GLint texture_lightgrid_direction;
-	GLint texture_lightgrid_indirection;
+	GLint texture_lightgrid_direct;
+	GLint texture_lightgrid_direct_dir;
+	GLint texture_lightgrid_indirect;
+	GLint texture_lightgrid_indirect_dir;
 	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
 
@@ -463,10 +464,11 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
 	r_mesh_program.texture_stage = glGetUniformLocation(r_mesh_program.name, "texture_stage");
 	r_mesh_program.texture_lightgrid_ambient = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_ambient");
-	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
-	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
-	r_mesh_program.texture_lightgrid_indirection = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_indirection");
-	r_mesh_program.texture_lightgrid_caustics = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_caustics");
+	r_mesh_program.texture_lightgrid_direct = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direct");
+	r_mesh_program.texture_lightgrid_direct_dir = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direct_dir");
+	r_mesh_program.texture_lightgrid_indirect = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_indirect");
+	r_mesh_program.texture_lightgrid_indirect_dir = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_indirect_dir");
+	r_mesh_program.texture_lightgrid_caustics= glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_caustics");
 	r_mesh_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_fog");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
@@ -489,9 +491,10 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
-	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
-	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
-	glUniform1i(r_mesh_program.texture_lightgrid_indirection, TEXTURE_LIGHTGRID_INDIRECTION);
+	glUniform1i(r_mesh_program.texture_lightgrid_direct, TEXTURE_LIGHTGRID_DIRECT);
+	glUniform1i(r_mesh_program.texture_lightgrid_direct_dir, TEXTURE_LIGHTGRID_DIRECT_DIR);
+	glUniform1i(r_mesh_program.texture_lightgrid_indirect, TEXTURE_LIGHTGRID_INDIRECT);
+	glUniform1i(r_mesh_program.texture_lightgrid_indirect_dir, TEXTURE_LIGHTGRID_INDIRECT_DIR);
 	glUniform1i(r_mesh_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_mesh_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 

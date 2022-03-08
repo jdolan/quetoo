@@ -24,9 +24,10 @@ uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
 uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
-uniform sampler3D texture_lightgrid_indirection;
+uniform sampler3D texture_lightgrid_direct;
+uniform sampler3D texture_lightgrid_direct_dir;
+uniform sampler3D texture_lightgrid_indirect;
+uniform sampler3D texture_lightgrid_indirect_dir;
 uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
 
@@ -94,28 +95,37 @@ void main(void) {
 		vec3 normal = normalize(tbn * normalmap_scaled);
 
 		vec3 ambient = sample_lightmap(0).rgb;
-		vec3 diffuse = sample_lightmap(1).rgb;
-		vec3 direction_lm = sample_lightmap(2).xyz;
-		vec3 indirection_lm = sample_lightmap(3).xyz;
-		vec3 caustic = sample_lightmap(4).rgb;
+		vec3 direct = sample_lightmap(1).rgb;
+		vec3 direct_dir = sample_lightmap(2).xyz;
+		vec3 indirect = sample_lightmap(3).rgb;
+		vec3 indirect_dir = sample_lightmap(4).xyz;
+		vec3 caustics = sample_lightmap(5).rgb;
 
 		if (entity > 0) {
 			ambient = mix(ambient, texture(texture_lightgrid_ambient, vertex.lightgrid).rgb, .666);
-			diffuse = mix(diffuse, texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb, .666);
-			vec3 direction_lg = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
-			direction_lg = normalize((view * vec4(direction_lg * 2.0 - 1.0, 0.0)).xyz);
-			diffuse *= max(0.0, dot(normal, direction_lg));
-			direction_lm = normalize(mix(direction_lm, direction_lg, .666));
-			caustic = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
+
+			direct = mix(direct, texture(texture_lightgrid_direct, vertex.lightgrid).rgb, .666);
+			vec3 lg_direct_dir = texture(texture_lightgrid_direct_dir, vertex.lightgrid).xyz;
+			lg_direct_dir = normalize((view * vec4(lg_direct_dir * 2.0 - 1.0, 0.0)).xyz);
+			direct *= max(0.0, dot(normal, lg_direct_dir));
+			direct_dir = normalize(mix(direct_dir, lg_direct_dir, .666));
+
+			indirect = mix(indirect, texture(texture_lightgrid_indirect, vertex.lightgrid).rgb, .666);
+			vec3 lg_indirect_dir = texture(texture_lightgrid_indirect_dir, vertex.lightgrid).xyz;
+			lg_indirect_dir = normalize((view * vec4(lg_indirect_dir * 2.0 - 1.0, 0.0)).xyz);
+			indirect *= max(0.0, dot(normal, lg_indirect_dir));
+			indirect_dir = normalize(mix(indirect_dir, lg_indirect_dir, .666));
+
+			caustics = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
 		}
 
-		vec3 direction   = normalize(tbn * (direction_lm   * 2.0 - 1.0));
-		vec3 indirection = normalize(tbn * (indirection_lm * 2.0 - 1.0));
+		vec3 direct_dir_ts = normalize(tbn * (direct_dir * 2.0 - 1.0));
+		vec3 indirect_dir_ts = normalize(tbn * (indirect_dir * 2.0 - 1.0));
 
-		float bump_shade_direct   = (dot(direction, normal)   - dot(direction,   vertex.normal)) * 0.5 + 0.5;
-		float bump_shade_indirect = (dot(indirection, normal) - dot(indirection, vertex.normal)) * 0.5 + 0.5;
+		float bump_shade_direct = (dot(direct_dir_ts, normal) - dot(direct_dir,   vertex.normal)) * 0.5 + 0.5;
+		float bump_shade_indirect = (dot(indirect_dir_ts, normal) - dot(indirect_dir, vertex.normal)) * 0.5 + 0.5;
 		// The * 2.0 is because the bump shade neutral value is 0.5.
-		vec3 diffuse_light = (ambient * 2.0 * bump_shade_indirect) + (diffuse * 2.0 * bump_shade_direct);
+		vec3 diffuse = ambient + (direct * 2.0 * bump_shade_direct) + (indirect * 2.0 * bump_shade_indirect);
 
 		// * 100.0 = eyeballed magic value for old content
 		float power = material.specularity * 100.0;
@@ -124,25 +134,24 @@ void main(void) {
 			toksvig(normalmap_scaled.xyz, power),
 			toksvig(normalmap_mipofs1_scaled.xyz, power));
 
-		float n_dot_h = saturate(dot(normalize(viewdir + direction), normal));
-		float spec_direct = blinn(n_dot_h, gloss * glossmap.a, power);
-		// * 0.XXX = to spread it out some more, like true ambient light would.
-		float spec_indirect = blinn(n_dot_h, gloss * glossmap.a, power * 0.05);
-		vec3 specular_light = (diffuse * spec_direct) + (ambient * spec_indirect);
+		float specular_direct = blinn(saturate(dot(normalize(viewdir + direct_dir_ts), normal)), gloss * glossmap.a, power);
+		float specular_indirect = blinn(saturate(dot(normalize(viewdir + indirect_dir_ts), normal)), gloss * glossmap.a, power * 0.05);
+
+		vec3 specular_light = (direct * specular_direct) + (indirect * specular_indirect);
 
 		// * 0.2 = eyeballed magic value for old content
 		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
-		vec3 stainmap = sample_lightmap(5).rgb;
+		vec3 stainmap = sample_lightmap(6).rgb;
 
-		caustic_light(vertex.model, caustic, diffuse_light);
+		caustic_light(vertex.model, caustics, diffuse);
 
-		dynamic_light(vertex.position, normal, 64.0, diffuse_light, specular_light);
+		dynamic_light(vertex.position, normal, 64.0, diffuse, specular_light);
 
 		out_color = diffusemap;
 		out_color.rgb *= stainmap;
 
-		out_color.rgb = clamp(out_color.rgb * diffuse_light  * modulate, 0.0, 32.0);
+		out_color.rgb = clamp(out_color.rgb * diffuse  * modulate, 0.0, 32.0);
 		out_color.rgb = clamp(out_color.rgb + specular_light * modulate, 0.0, 32.0);
 
 		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
@@ -159,7 +168,7 @@ void main(void) {
 		} else if (lightmaps == ++val) {
 			out_color.rgb = ambient;
 		} else if (lightmaps == ++val) {
-			out_color.rgb = direction_lm;
+			out_color.rgb = direct_dir;
 		} else if (lightmaps == ++val) {
 			out_color.rgb = vec3(bump_shade_direct);
 		} else if (lightmaps == ++val) {
@@ -167,9 +176,9 @@ void main(void) {
 		} else if (lightmaps == ++val) {
 			out_color.rgb = (vec3(bump_shade_direct) + vec3(bump_shade_indirect)) * 0.5;
 		} else if (lightmaps == ++val) {
-			out_color.rgb = diffuse * spec_direct;
+			out_color.rgb = diffuse * specular_direct;
 		} else if (lightmaps == ++val) {
-			out_color.rgb = ambient * spec_indirect;
+			out_color.rgb = ambient * specular_indirect;
 		} else if (lightmaps == ++val) {
 			out_color.rgb = specular_light;
 		} else if (lightmaps == ++val) {
@@ -183,8 +192,8 @@ void main(void) {
 			out_color = postprocess(out_color);
 		}
 
-		//out_color.rgb = caustic;
-		//out_color.rgb = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
+		//out_color.rgb = caustics
+		//out_color.rgb = texture(texture_lightgrid_direct, vertex.lightgrid).rgb;
 		//out_color.rgb = diffuse + ambient;
 		//out_color.rgb = sample_lightmap(1).xyz;
 	} else {

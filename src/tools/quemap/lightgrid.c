@@ -88,8 +88,8 @@ static void BuildLightgridLuxels(void) {
 				l->t = t;
 				l->u = u;
 
-				l->direction = Vec3_Up();
-				l->indirection = Vec3_Up();
+				l->direct_dir = Vec3_Up();
+				l->indirect_dir = Vec3_Up();
 			}
 		}
 	}
@@ -198,8 +198,8 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 
 			const float intensity = (light->radius / light->num_points);
 
-			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity * scale, light->color);
-			luxel->direction = Vec3_Fmaf(luxel->direction, intensity * scale, dir);
+			luxel->direct = Vec3_Fmaf(luxel->direct, intensity * scale, light->color);
+			luxel->direct_dir = Vec3_Fmaf(luxel->direct_dir, intensity * scale, dir);
 		}
 	}
 }
@@ -239,8 +239,8 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
-		luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
+		luxel->direct = Vec3_Fmaf(luxel->direct, intensity, light->color);
+		luxel->direct_dir = Vec3_Fmaf(luxel->direct_dir, intensity, dir);
 
 		break;
 	}
@@ -290,8 +290,8 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 			continue;
 		}
 
-		luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
-		luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
+		luxel->direct = Vec3_Fmaf(luxel->direct, intensity, light->color);
+		luxel->direct_dir = Vec3_Fmaf(luxel->direct_dir, intensity, dir);
 		break;
 	}
 }
@@ -339,8 +339,8 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
-		luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
+		luxel->direct = Vec3_Fmaf(luxel->direct, intensity, light->color);
+		luxel->direct_dir = Vec3_Fmaf(luxel->direct_dir, intensity, dir);
 		break;
 	}
 }
@@ -388,8 +388,8 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 			continue;
 		}
 
-		luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
-		luxel->indirection = Vec3_Fmaf(luxel->indirection, intensity, dir);
+		luxel->indirect[bounce] = Vec3_Fmaf(luxel->indirect[bounce], intensity, light->color);
+		luxel->indirect_dir = Vec3_Fmaf(luxel->indirect_dir, intensity, dir);
 		break;
 	}
 }
@@ -473,8 +473,8 @@ void DirectLightgrid(int32_t luxel_num) {
 	if (contribution > 0.f) {
 		if (contribution < 1.f) {
 			l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
-			l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
-			l->direction = Vec3_Scale(l->direction, 1.f / contribution);
+			l->direct = Vec3_Scale(l->direct, 1.f / contribution);
+			l->direct_dir = Vec3_Scale(l->direct_dir, 1.f / contribution);
 		}
 	} else {
 		// Even luxels in solids should receive at least ambient light
@@ -528,8 +528,8 @@ void IndirectLightgrid(int32_t luxel_num) {
 
 	if (contribution > 0.f) {
 		if (contribution < 1.f) {
-			l->radiosity[bounce] = Vec3_Scale(l->radiosity[bounce], 1.f / contribution);
-			l->indirection = Vec3_Scale(l->indirection, 1.f / contribution);
+			l->indirect[bounce] = Vec3_Scale(l->indirect[bounce], 1.f / contribution);
+			l->indirect_dir = Vec3_Scale(l->indirect_dir, 1.f / contribution);
 		}
 	}
 }
@@ -660,8 +660,8 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
-		const vec3_t diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
-		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), diffuse);
+		const vec3_t direct = Vec3_Scale(l->direct, 1.f / 255.f);
+		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), direct);
 
 		switch (fog->type) {
 			case FOG_INVALID:
@@ -722,18 +722,21 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	for (int32_t i = 0; i < num_bounces; i++) {
-		l->ambient = Vec3_Add(l->ambient, l->radiosity[i]);
-	}
-
 	l->ambient = Vec3_Scale(l->ambient, 1.f / 255.f);
 	l->ambient = ColorFilter(l->ambient);
 
-	l->diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
-	l->diffuse = ColorFilter(l->diffuse);
+	l->direct = Vec3_Scale(l->direct, 1.f / 255.f);
+	l->direct = ColorFilter(l->direct);
 
-	l->direction = Vec3_Normalize(l->direction);
-	l->indirection = Vec3_Normalize(l->indirection);
+	for (int32_t i = 1; i < num_bounces; i++) {
+		l->indirect[0] = Vec3_Add(l->indirect[0], l->indirect[i]);
+	}
+
+	l->indirect[0] = Vec3_Scale(l->indirect[0], 1.f / 255.f);
+	l->indirect[0] = ColorFilter(l->indirect[0]);
+
+	l->direct_dir = Vec3_Normalize(l->direct_dir);
+	l->indirect_dir = Vec3_Normalize(l->indirect_dir);
 
 	l->caustics = ColorNormalize(l->caustics);
 
@@ -768,19 +771,21 @@ void EmitLightgrid(void) {
 	bsp_file.lightgrid->size = lg.size;
 
 	byte *out_ambient = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
-	byte *out_diffuse = out_ambient + lg.num_luxels * BSP_LIGHTGRID_BPP;
-	byte *out_direction = out_diffuse + lg.num_luxels * BSP_LIGHTGRID_BPP;
-	byte *out_indirection = out_direction + lg.num_luxels * BSP_LIGHTGRID_BPP;
-	byte *out_caustics = out_indirection + lg.num_luxels * BSP_LIGHTGRID_BPP;
-	byte *out_fog = out_caustics + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_direct = out_ambient + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_direct_dir = out_direct + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_indirect = out_direct_dir + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_indirect_dir = out_indirect + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_caustics= out_indirect_dir + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_fog = out_caustics+ lg.num_luxels * BSP_LIGHTGRID_BPP;
 
 	const luxel_t *l = lg.luxels;
 	for (int32_t u = 0; u < lg.size.z; u++) {
 
 		SDL_Surface *ambient = CreateLightgridSurfaceFrom(out_ambient, lg.size.x, lg.size.y);
-		SDL_Surface *diffuse = CreateLightgridSurfaceFrom(out_diffuse, lg.size.x, lg.size.y);
-		SDL_Surface *direction = CreateLightgridSurfaceFrom(out_direction, lg.size.x, lg.size.y);
-		SDL_Surface *indirection = CreateLightgridSurfaceFrom(out_indirection, lg.size.x, lg.size.y);
+		SDL_Surface *direct = CreateLightgridSurfaceFrom(out_direct, lg.size.x, lg.size.y);
+		SDL_Surface *direct_dir = CreateLightgridSurfaceFrom(out_direct_dir, lg.size.x, lg.size.y);
+		SDL_Surface *indirect = CreateLightgridSurfaceFrom(out_indirect, lg.size.x, lg.size.y);
+		SDL_Surface *indirect_dir = CreateLightgridSurfaceFrom(out_indirect_dir, lg.size.x, lg.size.y);
 		SDL_Surface *caustics = CreateLightgridSurfaceFrom(out_caustics, lg.size.x, lg.size.y);
 		SDL_Surface *fog = CreateFogSurfaceFrom(out_fog, lg.size.x, lg.size.y);
 
@@ -789,9 +794,10 @@ void EmitLightgrid(void) {
 
 				for (int32_t i = 0; i < BSP_LIGHTGRID_BPP; i++) {
 					*out_ambient++ = (byte) Clampf(l->ambient.xyz[i] * 255.f, 0.f, 255.f);
-					*out_diffuse++ = (byte) Clampf(l->diffuse.xyz[i] * 255.f, 0.f, 255.f);
-					*out_direction++ = (byte) Clampf((l->direction.xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
-					*out_indirection++ = (byte) Clampf((l->indirection.xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+					*out_direct++ = (byte) Clampf(l->direct.xyz[i] * 255.f, 0.f, 255.f);
+					*out_direct_dir++ = (byte) Clampf((l->direct_dir.xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+					*out_indirect++ = (byte) Clampf(l->indirect[0].xyz[i] * 255.f, 0.f, 255.f);
+					*out_indirect_dir++ = (byte) Clampf((l->indirect_dir.xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
 					*out_caustics++ = (byte) Clampf(l->caustics.xyz[i] * 255, 0.f, 255.f);
 				}
 
@@ -802,16 +808,18 @@ void EmitLightgrid(void) {
 		}
 
 		//IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
-		//IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
-		//IMG_SavePNG(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
-		//IMG_SavePNG(indirection, va("/tmp/%s_lg_indirection_%d.png", map_base, u));
+		//IMG_SavePNG(direct, va("/tmp/%s_lg_direct_%d.png", map_base, u));
+		//IMG_SavePNG(direct_dir, va("/tmp/%s_lg_direction_%d.png", map_base, u));
+		//IMG_SavePNG(indirect, va("/tmp/%s_lg_indirect_%d.png", map_base, u));
+		//IMG_SavePNG(indirect_dir, va("/tmp/%s_lg_indirect_dir_%d.png", map_base, u));
 		//IMG_SavePNG(caustics, va("/tmp/%s_lg_caustics_%d.png", map_base, u));
 		//IMG_SavePNG(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
 
 		SDL_FreeSurface(ambient);
-		SDL_FreeSurface(diffuse);
-		SDL_FreeSurface(direction);
-		SDL_FreeSurface(indirection);
+		SDL_FreeSurface(direct);
+		SDL_FreeSurface(direct_dir);
+		SDL_FreeSurface(indirect);
+		SDL_FreeSurface(indirect_dir);
 		SDL_FreeSurface(caustics);
 		SDL_FreeSurface(fog);
 	}

@@ -57,9 +57,9 @@
 #define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
 
 /**
- * @brief Lightmap ambient, diffuse, direction and caustics layers.
+ * @brief Lightmap layers.
  */
-#define BSP_LIGHTMAP_LAYERS 5
+#define BSP_LIGHTMAP_LAYERS 6
 
 /**
  * @brief Stainmap layers.
@@ -72,9 +72,10 @@
 typedef enum {
 	BSP_LIGHTMAP_FIRST,
 	BSP_LIGHTMAP_AMBIENT = BSP_LIGHTMAP_FIRST,
-	BSP_LIGHTMAP_DIFFUSE,
-	BSP_LIGHTMAP_DIRECTION,
-	BSP_LIGHTMAP_INDIRECTION,
+	BSP_LIGHTMAP_DIRECT,
+	BSP_LIGHTMAP_DIRECT_DIR,
+	BSP_LIGHTMAP_INDIRECT,
+	BSP_LIGHTMAP_INDIRECT_DIR,
 	BSP_LIGHTMAP_CAUSTICS,
 	BSP_LIGHTMAP_STAINS,
 	BSP_LIGHTMAP_LAST,
@@ -91,9 +92,9 @@ typedef enum {
 #define BSP_LIGHTGRID_BPP 3
 
 /**
- * @brief Lightgrid ambient, diffuse, direction, indirection and caustics textures.
+ * @brief Lightgrid textures.
  */
-#define BSP_LIGHTGRID_TEXTURES 5
+#define BSP_LIGHTGRID_TEXTURES 6
 
 /**
  * @brief Fog color and density textures.
@@ -121,9 +122,10 @@ typedef enum {
 typedef enum {
 	BSP_LIGHTGRID_FIRST,
 	BSP_LIGHTGRID_AMBIENT = BSP_LIGHTGRID_FIRST,
-	BSP_LIGHTGRID_DIFFUSE,
-	BSP_LIGHTGRID_DIRECTION,
-	BSP_LIGHTGRID_INDIRECTION,
+	BSP_LIGHTGRID_DIRECT,
+	BSP_LIGHTGRID_DIRECT_DIR,
+	BSP_LIGHTGRID_INDIRECT,
+	BSP_LIGHTGRID_INDIRECT_DIR,
 	BSP_LIGHTGRID_CAUSTICS,
 	BSP_LIGHTGRID_FOG,
 	BSP_LIGHTGRID_LAST
@@ -310,9 +312,7 @@ typedef struct {
 
 /**
  * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
- * @details The first layer contains ambient light color, the second contains diffuse
- * light color, and the third contains diffuse light direction. The fourth layer contains
- * caustic lighting.
+ * @details Each layer stores either a color or a directional vector.
  */
 typedef struct {
 	int32_t width;
@@ -320,10 +320,7 @@ typedef struct {
 
 /**
  * @brief Lightgrids are layered 24 bit 3D texture objects of variable size.
- * @details Each layer is up to 128x128x128 RGB at 24bpp. The first layer contains
- * ambient light color, the second contains diffuse light color, and the third contains
- * diffuse light direction. The fourth layer contains caustic lighting, and the fifth
- * contains fog color and density (32bpp).
+ * @details Each layer is up to 256x256x256 RGB[A] at 24-32bpp.
  */
 typedef struct {
 	vec3i_t size;

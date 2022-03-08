@@ -34,10 +34,11 @@ in vertex_data {
 	vec2 diffusemap;
 	vec4 color;
 	vec3 ambient;
-	vec3 diffuse;
-	vec3 direction;
-	vec3 indirection;
-	vec3 caustic;
+	vec3 direct;
+	vec3 direct_dir;
+	vec3 indirect;
+	vec3 indirect_dir;
+	vec3 caustics;
 	vec4 fog;
 } vertex;
 
@@ -89,11 +90,12 @@ void main(void) {
 		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
 
 		// lighting
-		vec3 diffuse_light = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + vertex.ambient;
-		vec3 specular_light = brdf_blinn(normalize(-vertex.position), vertex.direction, normal, diffuse_light, glossmap.a, material.specularity * 100.0);
+		vec3 diffuse_light = vertex.ambient + vertex.direct * max(0.0, dot(normal, vertex.direct_dir)) + vertex.indirect * max(0.0, dot(normal, vertex.indirect_dir));
+		vec3 specular_light = brdf_blinn(normalize(-vertex.position), vertex.direct_dir, normal, vertex.direct, glossmap.a, material.specularity * 100.0) +
+		                      brdf_blinn(normalize(-vertex.position), vertex.indirect_dir, normal, vertex.indirect, glossmap.a, material.specularity * 100.0);
 		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
 
-		caustic_light(vertex.model, vertex.caustic, diffuse_light);
+		caustic_light(vertex.model, vertex.caustics, diffuse_light);
 
 		dynamic_light(vertex.position, normal, 64.0, diffuse_light, specular_light);
 
@@ -103,7 +105,7 @@ void main(void) {
 		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 		out_bloom.a = out_color.a;
 
-		if (lightmaps == 1) {
+		/*if (lightmaps == 1) {
 			// direct and indirect diffuse lighting
 			out_color.rgb = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + vertex.ambient;
 		} else if (lightmaps == 2) {
@@ -125,7 +127,7 @@ void main(void) {
 		} else if (lightmaps == 8) {
 			// diffuse albedo
 			out_color = diffusemap;
-		} else {
+		} else*/ {
 			// fog
 			out_color.rgb += vertex.fog.rgb * out_color.a; // additive fog
 			// out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a); // alpha blended fog

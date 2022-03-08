@@ -30,10 +30,10 @@ typedef struct {
 	vec3_t origin;
 	vec3_t normal;
 	vec3_t ambient;
-	vec3_t diffuse;
-	vec3_t direction;
-	vec3_t radiosity[MAX_BOUNCES];
-	vec3_t indirection;
+	vec3_t direct;
+	vec3_t direct_dir;
+	vec3_t indirect[MAX_BOUNCES];
+	vec3_t indirect_dir;
 	vec3_t caustics;
 	vec4_t fog;
 } luxel_t;
@@ -52,9 +52,10 @@ typedef struct {
 	luxel_t *luxels;
 	size_t num_luxels;
 	SDL_Surface *ambient;
-	SDL_Surface *diffuse;
-	SDL_Surface *direction;
-	SDL_Surface *indirection;
+	SDL_Surface *direct;
+	SDL_Surface *direct_dir;
+	SDL_Surface *indirect;
+	SDL_Surface *indirect_dir;
 	SDL_Surface *caustics;
 } lightmap_t;
 

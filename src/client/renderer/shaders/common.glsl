@@ -133,8 +133,7 @@ vec4 cubic(float v) {
 /**
  * @brief Toksvig normal map gloss factor.
  */
-float toksvig(vec3 normalmap, float power)
-{
+float toksvig(vec3 normalmap, float power) {
 	float len_rcp = 1.0 / saturate(length(normalmap));
 	return 1.0 / (1.0 + power * (len_rcp - 1.0));
 }
