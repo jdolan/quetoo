@@ -388,7 +388,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 			continue;
 		}
 
-		luxel->indirect[bounce] = Vec3_Fmaf(luxel->indirect[bounce], intensity, light->color);
+		luxel->indirect[indirect_bounce] = Vec3_Fmaf(luxel->indirect[indirect_bounce], intensity, light->color);
 		luxel->indirect_dir = Vec3_Fmaf(luxel->indirect_dir, intensity, dir);
 		break;
 	}
@@ -528,7 +528,7 @@ void IndirectLightgrid(int32_t luxel_num) {
 
 	if (contribution > 0.f) {
 		if (contribution < 1.f) {
-			l->indirect[bounce] = Vec3_Scale(l->indirect[bounce], 1.f / contribution);
+			l->indirect[indirect_bounce] = Vec3_Scale(l->indirect[indirect_bounce], 1.f / contribution);
 			l->indirect_dir = Vec3_Scale(l->indirect_dir, 1.f / contribution);
 		}
 	}
@@ -728,7 +728,7 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	l->direct = Vec3_Scale(l->direct, 1.f / 255.f);
 	l->direct = ColorFilter(l->direct);
 
-	for (int32_t i = 1; i < num_bounces; i++) {
+	for (int32_t i = 1; i < num_indirect_bounces; i++) {
 		l->indirect[0] = Vec3_Add(l->indirect[0], l->indirect[i]);
 	}
 

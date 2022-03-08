@@ -218,19 +218,11 @@ static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
 		if (!g_strcmp0(Com_Argv(i), "--no-indirect")) {
-			indirect = false;
+			indirect_brightness = 0.f;
 			Com_Verbose("indirect: false\n");
 		} else if (!g_strcmp0(Com_Argv(i), "--antialias")) {
 			antialias = true;
 			Com_Verbose("antialias: true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--radiosity")) {
-			radiosity = atof(Com_Argv(i + 1));
-			Com_Verbose("radiosity: %g\n", radiosity);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--bounce")) {
-			num_bounces = (int32_t) CLAMP(strtol(Com_Argv(i + 1), NULL, 10), 1, MAX_BOUNCES);
-			Com_Verbose("bounces: %d\n", num_bounces);
-			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--brightness")) {
 			brightness = atof(Com_Argv(i + 1));
 			Com_Verbose("brightness: %g\n", brightness);
@@ -250,6 +242,30 @@ static void Check_LIGHT_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "--patch-size")) {
 			patch_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
 			Com_Verbose("patch size: %d\n", patch_size);
+			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--ambient-brightness")) {
+			ambient_brightness = atof(Com_Argv(i + 1));
+			Com_Verbose("ambient brightness: %g\n", ambient_brightness);
+			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--sun-brightness")) {
+			sun_brightness = atof(Com_Argv(i + 1));
+			Com_Verbose("sun brightness: %g\n", sun_brightness);
+			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--light-brightness")) {
+			light_brightness = atof(Com_Argv(i + 1));
+			Com_Verbose("light brightness: %g\n", light_brightness);
+			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--patch-brightness")) {
+			patch_brightness = atof(Com_Argv(i + 1));
+			Com_Verbose("patch brightness: %g\n", patch_brightness);
+			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--indirect-brightness")) {
+			indirect_brightness = atof(Com_Argv(i + 1));
+			Com_Verbose("indirect brightness: %g\n", indirect_brightness);
+			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--bounce")) {
+			num_indirect_bounces = (int32_t) CLAMP(strtol(Com_Argv(i + 1), NULL, 10), 1, MAX_BOUNCES);
+			Com_Verbose("bounces: %d\n", num_indirect_bounces);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--caustics")) {
 			caustics = atof(Com_Argv(i + 1));
@@ -320,10 +336,14 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --antialias - calculate extra lighting samples and average them\n");
 	Com_Print(" --no-indirect - skip indirect lighting\n");
 	Com_Print(" --bounce <integer> - indirect lighting bounces (default 1)\n");
-	Com_Print(" --radiosity <float> - radiosity level (default 0.125)\n");
 	Com_Print(" --brightness <float> - brightness (default 1.0)\n");
 	Com_Print(" --contrast <float> - contrast (default 1.0)\n");
 	Com_Print(" --saturation <float> - saturation (default 1.0)\n");
+	Com_Print(" --ambient-brightness <float> - ambient light brightness (default 1.0)\n");
+	Com_Print(" --sun-brightness <float> - sun light brightness (default 1.0)\n");
+	Com_Print(" --light-brightness <float> - entity light brightness (default 1.0)\n");
+	Com_Print(" --patch-brightness <float> - patch light brightness (default 1.0)\n");
+	Com_Print(" --indirect-brightness <float> - indirect light brightness (default 1.0)\n");
 	Com_Print(" --luxel-size <float> - luxel size (default 4)\n");
 	Com_Print(" --patch-size <float> - patch size (default 16)\n");
 	Com_Print("\n");

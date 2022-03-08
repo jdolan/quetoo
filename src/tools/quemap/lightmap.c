@@ -538,7 +538,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 			continue;
 		}
 
-		luxel->indirect[bounce] = Vec3_Fmaf(luxel->indirect[bounce], intensity, light->color);
+		luxel->indirect[indirect_bounce] = Vec3_Fmaf(luxel->indirect[indirect_bounce], intensity, light->color);
 		luxel->indirect_dir = Vec3_Fmaf(luxel->indirect_dir, intensity, dir);
 		break;
 	}
@@ -786,7 +786,7 @@ void FinalizeLightmap(int32_t face_num) {
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
 		// accumulate indirect
-		for (int32_t i = 1; i < num_bounces; i++) {
+		for (int32_t i = 1; i < num_indirect_bounces; i++) {
 			l->indirect[0] = Vec3_Add(l->indirect[0], l->indirect[i]);
 		}
 

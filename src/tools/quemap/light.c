@@ -122,6 +122,8 @@ static void LightForEntity_worldspawn(const cm_entity_t *entity, light_t *light)
 		light->color = ambient;
 		light->radius = LIGHT_RADIUS_AMBIENT;
 		light->bounds = Box3_Null();
+
+		light->color = Vec3_Scale(light->color, ambient_brightness);
 	}
 }
 
@@ -140,6 +142,8 @@ static void LightForEntity_light_sun(const cm_entity_t *entity, light_t *light) 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
 	}
+	
+	light->radius *= sun_brightness;
 
 	light->normal = Vec3_Down();
 
@@ -191,7 +195,7 @@ static void LightForEntity_light(const cm_entity_t *entity, light_t *light) {
 		light->color = LIGHT_COLOR;
 	}
 
-	light->radius *= lightscale_point;
+	light->radius *= light_brightness;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -242,7 +246,7 @@ static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light)
 		light->color = LIGHT_COLOR;
 	}
 
-	light->radius *= lightscale_point;
+	light->radius *= light_brightness;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -359,7 +363,7 @@ static void LightForPatch(const patch_t *patch) {
 		light.color = Vec3_Scale(light.color, 1.0 / max);
 	}
 
-	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * lightscale_patch;
+	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * patch_brightness;
 
 	light.bounds = Box3_FromCenter(light.origin);
 
@@ -570,7 +574,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 			assert(l->s == ds);
 			assert(l->t == dt);
 
-			lightmap = Vec3_Add(lightmap, bounce ? l->indirect[bounce - 1] : l->direct);
+			lightmap = Vec3_Add(lightmap, indirect_bounce ? l->indirect[indirect_bounce - 1] : l->direct);
 		}
 	}
 
@@ -579,7 +583,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	}
 
 	lightmap = Vec3_Scale(lightmap, 1.f / (w * h));
-	light.radius = Vec3_Length(lightmap) * radiosity;
+	light.radius = Vec3_Length(lightmap) * indirect_brightness;
 
 	lightmap = ColorNormalize(lightmap);
 	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
