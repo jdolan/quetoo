@@ -134,10 +134,11 @@ void main(void) {
 			toksvig(normalmap_scaled.xyz, power),
 			toksvig(normalmap_mipofs1_scaled.xyz, power));
 
+		float specular_ambient = blinn(saturate(dot(normalize(viewdir + normal), normal)), gloss * glossmap.a, power * .05);
 		float specular_direct = blinn(saturate(dot(normalize(viewdir + direct_dir_ts), normal)), gloss * glossmap.a, power);
-		float specular_indirect = blinn(saturate(dot(normalize(viewdir + indirect_dir_ts), normal)), gloss * glossmap.a, power * 0.05);
+		float specular_indirect = blinn(saturate(dot(normalize(viewdir + indirect_dir_ts), normal)), gloss * glossmap.a, power);
 
-		vec3 specular_light = (direct * specular_direct) + (indirect * specular_indirect);
+		vec3 specular_light = (ambient * specular_ambient) + (direct * specular_direct) + (indirect * specular_indirect);
 
 		// * 0.2 = eyeballed magic value for old content
 		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
