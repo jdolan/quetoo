@@ -620,6 +620,10 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 	// create windings for sides and bounds for brush
 	MakeBrushWindings(brush);
 
+	if (!brush->num_brush_sides) {
+		return brush;
+	}
+
 	// origin brushes are removed, but they set the rotation origin for the rest of the brushes
 	// in the entity. After the entire entity is parsed, the planes and textures will be adjusted for
 	// the origin brush
