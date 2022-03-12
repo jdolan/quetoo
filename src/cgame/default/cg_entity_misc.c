@@ -529,8 +529,8 @@ static void Cg_misc_sparks_Init(cg_entity_t *self) {
 		const vec3_t target_origin = cgi.EntityValue(self->target, "origin")->vec3;
 		sparks->dir = Vec3_Normalize(Vec3_Subtract(target_origin, self->origin));
 	} else {
-		if (cgi.EntityValue(self->def, "_angle")->parsed & ENTITY_INTEGER) {
-			const int32_t angle = cgi.EntityValue(self->def, "_angle")->integer;
+		if (cgi.EntityValue(self->def, "angle")->parsed & ENTITY_INTEGER) {
+			const int32_t angle = cgi.EntityValue(self->def, "angle")->integer;
 			if (angle == -1.f) {
 				sparks->dir = Vec3_Up();
 			} else if (angle == -2.f) {
