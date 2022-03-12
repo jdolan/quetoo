@@ -259,8 +259,8 @@ static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light)
 	const cm_entity_t *target = EntityTarget(entity);
 	if (target) {
 		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
-	} else if (Cm_EntityValue(entity, "_angle")->parsed & ENTITY_INTEGER) {
-		const int32_t angle = Cm_EntityValue(entity, "_angle")->integer;
+	} else if (Cm_EntityValue(entity, "angle")->parsed & ENTITY_INTEGER) {
+		const int32_t angle = Cm_EntityValue(entity, "angle")->integer;
 		if (angle == LIGHT_ANGLE_UP) {
 			light->normal = Vec3_Up();
 		} else if (angle == LIGHT_ANGLE_DOWN) {
@@ -270,7 +270,7 @@ static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light)
 		}
 	} else {
 		Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0,
-					   va("light_spot at %s missing target and _angle", vtos(light->origin)));
+					   va("light_spot at %s missing target and angle", vtos(light->origin)));
 	}
 
 	if (Cm_EntityValue(entity, "_cone")->parsed & ENTITY_FLOAT) {
