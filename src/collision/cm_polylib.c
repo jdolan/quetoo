@@ -677,7 +677,7 @@ float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_
 
 	const float abc = Cm_TriangleArea(a, b, c);
 	if (abc) {
-		const float max_area = abc * 1.1f;
+		const float max_area = abc * 1.f;
 
 		const float bcp = Cm_TriangleArea(b, c, p);
 		if (bcp > max_area) {
