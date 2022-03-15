@@ -71,20 +71,17 @@ void main(void) {
 
 	vec3 view_dir = normalize(-vertex.position);
 
-	vec2 texcoord_material = vertex.diffusemap;
-	vec2 texcoord_lightmap = vertex.lightmap;
-
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
-		vec3 normalmap = texture(texture_material, vec3(texcoord_material, 1)).xyz;
-		vec4 glossmap = texture(texture_material, vec3(texcoord_material, 2));
-
+		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
 		diffusemap *= vertex.color;
 
 		if (diffusemap.a < material.alpha_test) {
 			discard;
 		}
+
+		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
+		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
 		vec3 ambient = sample_lightmap(0).rgb;
 		vec3 diffuse = sample_lightmap(1).rgb;
@@ -93,7 +90,8 @@ void main(void) {
 		vec3 stainmap = sample_lightmap(4).rgb;
 
 		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
-		float specularity = pow(material.specularity, 3.0);
+		vec3 hardness = glossmap.rgb * material.hardness;
+		float specularity = glossmap.a * pow(material.specularity + 1.0, 3.0);
 
 		vec3 normal = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
 		direction = normalize(tbn * normalize(direction * 2.0 - 1.0));
@@ -112,7 +110,7 @@ void main(void) {
 		ambient *= max(0.0, dot(vertex.normal, normal));
 		diffuse *= max(0.0, dot(direction, normal));
 
-		vec3 specular = diffuse * pow(max(0.0, dot(reflect(-direction, normal), view_dir)), specularity);
+		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normal), view_dir)), specularity);
 
 		caustic_light(vertex.model, caustics, diffuse);
 
@@ -137,11 +135,13 @@ void main(void) {
 
 	} else {
 
+		vec2 st = vertex.diffusemap;
+
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-			texcoord_material += texture(texture_warp, texcoord_material + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
+			st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
 		}
 
-		vec4 effect = texture(texture_stage, texcoord_material);
+		vec4 effect = texture(texture_stage, st);
 
 		effect *= vertex.color;
 

@@ -78,12 +78,13 @@ void main(void) {
 
 		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
 		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
-		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
 
+		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
 		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
 
 		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
-		float specularity = pow(material.specularity, 3.0);
+		vec3 hardness = glossmap.rgb * material.hardness;
+		float specularity = glossmap.a * pow(material.specularity + 1.0, 3.0);
 
 		vec3 normal = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
 		vec3 direction = normalize(vertex.direction * 2.0 - 1.0);
@@ -91,7 +92,7 @@ void main(void) {
 		vec3 ambient = vertex.ambient * max(0.0, dot(vertex.normal, normal));
 		vec3 diffuse = vertex.diffuse * max(0.0, dot(direction, normal));
 
-		vec3 specular = diffuse * pow(max(0.0, dot(reflect(-direction, normal), view_dir)), specularity);
+		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normal), view_dir)), specularity);
 
 		caustic_light(vertex.model, vertex.caustics, diffuse);
 
