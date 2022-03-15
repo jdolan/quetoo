@@ -77,6 +77,7 @@ void main(void) {
 		}
 
 		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
+		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
 
 		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);

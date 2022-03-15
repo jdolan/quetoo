@@ -116,6 +116,8 @@ static void AddMaterial(const cm_material_t *material) {
 
 	if (Add(material->diffusemap.path)) {
 		Add(material->normalmap.path);
+		Add(material->glossmap.path);
+		Add(material->specularmap.path);
 		Add(material->tintmap.path);
 
 		for (const cm_stage_t *stage = material->stages; stage; stage = stage->next) {

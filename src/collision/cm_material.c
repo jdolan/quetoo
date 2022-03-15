@@ -643,6 +643,7 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	Cm_MaterialBasename(mat->name, mat->basename, sizeof(mat->basename));
 
 	mat->roughness = DEFAULT_ROUGHNESS;
+	mat->hardness = DEFAULT_HARDNESS;
 	mat->specularity = DEFAULT_SPECULARITY;
 	mat->bloom = DEFAULT_BLOOM;
 
@@ -716,6 +717,22 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
+		if (!g_strcmp0(token, "glossmap")) {
+
+			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->glossmap.name, sizeof(m->glossmap.name))) {
+				Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
+				continue;
+			}
+		}
+
+		if (!g_strcmp0(token, "specularmap")) {
+
+			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->specularmap.name, sizeof(m->specularmap.name))) {
+				Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
+				continue;
+			}
+		}
+
 		if (!g_strcmp0(token, "tintmap")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->tintmap.name, sizeof(m->tintmap.name))) {
@@ -763,6 +780,16 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			} else if (m->roughness < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid roughness value, must be >= 0.0");
 				m->roughness = DEFAULT_ROUGHNESS;
+			}
+		}
+
+		if (!g_strcmp0(token, "hardness")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No hardness specified");
+			} else if (m->hardness < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be >= 0.0");
+				m->hardness = DEFAULT_HARDNESS;
 			}
 		}
 
@@ -1094,6 +1121,8 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 	}
 
 	Cm_ResolveMaterialAsset(material, &material->normalmap, context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
+	Cm_ResolveMaterialAsset(material, &material->glossmap, context, (const char *[]) { "_g", "_gloss", NULL });
+	Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", NULL });
 	Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
 
 	cm_stage_t *stage = material->stages;
@@ -1203,11 +1232,18 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	if (*material->normalmap.name) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
 	}
+	if (*material->glossmap.name) {
+		Fs_Print(file, "\tglossmap %s\n", material->glossmap.name);
+	}
+	if (*material->specularmap.name) {
+		Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);
+	}
 	if (*material->tintmap.name) {
 		Fs_Print(file, "\ttintmap %s\n", material->tintmap.name);
 	}
 
 	Fs_Print(file, "\troughness %g\n", material->roughness);
+	Fs_Print(file, "\thardness %g\n", material->hardness);
 	Fs_Print(file, "\tspecularity %g\n", material->specularity);
 	Fs_Print(file, "\tbloom %g\n", material->bloom);
 
