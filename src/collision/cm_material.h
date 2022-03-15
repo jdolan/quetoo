@@ -259,16 +259,6 @@ typedef struct cm_material_s {
 	cm_asset_t normalmap;
 
 	/**
-	 * @brief The glossmap asset.
-	 */
-	cm_asset_t glossmap;
-
-	/**
-	 * @brief The specularmap asset.
-	 */
-	cm_asset_t specularmap;
-
-	/**
 	 * @brief The tintmap asset.
 	 */
 	cm_asset_t tintmap;
@@ -304,17 +294,12 @@ typedef struct cm_material_s {
 	float alpha_test;
 
 	/**
-	 * @brief The roughness factor to use for the normalmap.
+	 * @brief The roughness factor to use for bump-mapping.
 	 */
 	float roughness;
 
 	/**
-	 * @brief The hardness factor to use for the normalmap.
-	 */
-	float hardness;
-
-	/**
-	 * @brief The specular factor to use for the specularmap.
+	 * @brief The specularity factor to use for specular reflection.
 	 */
 	float specularity;
 

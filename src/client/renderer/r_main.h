@@ -36,7 +36,6 @@ extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_gamma;
-extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_modulate;
 extern cvar_t *r_multisample;

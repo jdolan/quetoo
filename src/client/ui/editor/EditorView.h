@@ -72,24 +72,9 @@ struct EditorView {
 	TextView *normalmap;
 
 	/**
-	 * @brief The glossmap texture.
-	 */
-	TextView *glossmap;
-
-	/**
-	 * @brief The specularmap texture.
-	 */
-	TextView *specularmap;
-
-	/**
 	 * @brief The roughness slider.
 	 */
 	Slider *roughness;
-
-	/**
-	 * @brief The hardness slider.
-	 */
-	Slider *hardness;
 
 	/**
 	 * @brief The specularity slider.

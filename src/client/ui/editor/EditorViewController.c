@@ -50,8 +50,6 @@ static void didSetValue(Slider *slider, double value) {
 
 	if (slider == view->roughness) {
 		view->material->cm->roughness = view->roughness->value;
-	} else if (slider == view->hardness) {
-		view->material->cm->hardness = view->hardness->value;
 	} else if (slider == view->specularity) {
 		view->material->cm->specularity = view->specularity->value;
 	} else if (slider == view->bloom) {
@@ -75,9 +73,6 @@ static void loadView(ViewController *self) {
 
 	view->roughness->delegate.self = self;
 	view->roughness->delegate.didSetValue = didSetValue;
-
-	view->hardness->delegate.self = self;
-	view->hardness->delegate.didSetValue = didSetValue;
 
 	view->specularity->delegate.self = self;
 	view->specularity->delegate.didSetValue = didSetValue;

@@ -58,7 +58,6 @@ static struct {
 	struct {
 		GLint alpha_test;
 		GLint roughness;
-		GLint hardness;
 		GLint specularity;
 		GLint bloom;
 	} material;
@@ -429,7 +428,6 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 
 			glUniform1f(r_bsp_program.material.alpha_test, (*material)->cm->alpha_test * r_alpha_test->value);
 			glUniform1f(r_bsp_program.material.roughness, (*material)->cm->roughness * r_roughness->value);
-			glUniform1f(r_bsp_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
 			glUniform1f(r_bsp_program.material.bloom, (*material)->cm->bloom * r_bloom->value);
 		}
@@ -775,7 +773,6 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
 	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
-	r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");
 	r_bsp_program.material.specularity = glGetUniformLocation(r_bsp_program.name, "material.specularity");
 	r_bsp_program.material.bloom = glGetUniformLocation(r_bsp_program.name, "material.bloom");
 

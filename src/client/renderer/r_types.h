@@ -246,7 +246,7 @@ typedef struct r_material_s {
 	cm_material_t *cm;
 
 	/**
-	 * @brief The layered texture containing the diffusemap, normalmap and glossmap.
+	 * @brief The layered texture containing the diffusemap, normalmap and tintmap.
 	 */
 	r_image_t *texture;
 

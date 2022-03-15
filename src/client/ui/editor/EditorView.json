@@ -56,51 +56,12 @@
                   "class": "Input",
                   "label": {
                     "text": {
-                      "text": "Glossmap texture"
-                    }
-                  },
-                  "control": {
-                    "class": "TextView",
-                    "identifier": "glossmap"
-                  }
-                },
-				{
-                  "class": "Input",
-                  "label": {
-                    "text": {
-                      "text": "Specularmap texture"
-                    }
-                  },
-                  "control": {
-                    "class": "TextView",
-                    "identifier": "specularmap"
-                  }
-                },
-                {
-                  "class": "Input",
-                  "label": {
-                    "text": {
                       "text": "Roughness"
                     }
                   },
                   "control": {
                     "class": "Slider",
                     "identifier": "roughness",
-                    "min": 0,
-                    "max": 8,
-                    "step": 0.125
-                  }
-                },
-                {
-                  "class": "Input",
-                  "label": {
-                    "text": {
-                      "text": "Hardness"
-                    }
-                  },
-                  "control": {
-                    "class": "Slider",
-                    "identifier": "hardness",
                     "min": 0,
                     "max": 8,
                     "step": 0.125

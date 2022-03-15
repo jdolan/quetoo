@@ -159,23 +159,6 @@ static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t colo
 }
 
 /**
- * @brief Merges the red channel of src into the alpha channel of dest.
- */
-static void R_MergeMaterialSurfaces(SDL_Surface *dest, const SDL_Surface *src) {
-
-	assert(src->w == dest->w);
-	assert(src->h == dest->h);
-
-	const byte *in = src->pixels;
-	byte *out = dest->pixels;
-
-	const int32_t pixels = dest->w * dest->h;
-	for (int32_t i = 0; i < pixels; i++, in += 4, out += 4) {
-		out[3] = in[0];
-	}
-}
-
-/**
  * @brief Resolves all asset references in the specified render material's stages
  */
 static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
@@ -278,27 +261,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			} else {
 				normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 127));
 			}
-
-			SDL_Surface *glossmap = NULL;
-			if (*cm->glossmap.path) {
-				glossmap = R_LoadMaterialSurface(w, h, cm->glossmap.path);
-				if (glossmap == NULL) {
-					Com_Warn("Failed to load glossmap %s for %s\n", cm->glossmap.path, cm->basename);
-					glossmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 127, 127));
-				}
-			} else {
-				glossmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 127, 127));
-			}
-
-			if (*cm->specularmap.path) {
-				SDL_Surface *specularmap = R_LoadMaterialSurface(w, h, cm->specularmap.path);
-				if (specularmap) {
-					R_MergeMaterialSurfaces(glossmap, specularmap);
-					SDL_FreeSurface(specularmap);
-				} else {
-					Com_Warn("Failed to load specularmap %s for %s\n", cm->specularmap.path, cm->basename);
-				}
-			}
 			
 			SDL_Surface *tintmap = NULL;
 			if (*cm->tintmap.path) {
@@ -318,7 +280,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 			memcpy(data + 0 * layer_size, diffusemap->pixels, layer_size);
 			memcpy(data + 1 * layer_size, normalmap->pixels, layer_size);
-			memcpy(data + 2 * layer_size, glossmap->pixels, layer_size);
 			memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
 			R_UploadImage(material->texture, material->texture->target, data);
@@ -326,7 +287,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			free(data);
 
 			SDL_FreeSurface(normalmap);
-			SDL_FreeSurface(glossmap);
 			SDL_FreeSurface(tintmap);
 		}
 			break;

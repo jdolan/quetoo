@@ -78,7 +78,6 @@ void main(void) {
 
 		vec4 diffusemap = texture(texture_material, vec3(texcoord_material, 0));
 		vec3 normalmap = texture(texture_material, vec3(texcoord_material, 1)).xyz;
-		vec4 glossmap = texture(texture_material, vec3(texcoord_material, 2));
 
 		diffusemap *= vertex.color;
 
