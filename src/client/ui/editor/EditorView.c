@@ -51,6 +51,7 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			MakeOutlet("hardness", &self->hardness),
 			MakeOutlet("specularity", &self->specularity),
 			MakeOutlet("bloom", &self->bloom),
+			MakeOutlet("alpha_test", &self->alphaTest),
 			MakeOutlet("save", &self->save)
 		);
 
@@ -82,6 +83,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->hardness, setValue, (double) self->material->cm->hardness);
 		$(self->specularity, setValue, (double) self->material->cm->specularity);
 		$(self->bloom, setValue, (double) self->material->cm->bloom);
+		$(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
 	} else {
 		$(self->name, setDefaultText, NULL);
 		$(self->diffusemap, setDefaultText, NULL);
@@ -93,6 +95,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->hardness, setValue, DEFAULT_HARDNESS);
 		$(self->specularity, setValue, DEFAULT_SPECULARITY);
 		$(self->bloom, setValue, DEFAULT_BLOOM);
+		$(self->alphaTest, setValue, DEFAULT_ALPHA_TEST);
 	}
 }
 

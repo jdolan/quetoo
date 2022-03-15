@@ -102,6 +102,11 @@ struct EditorView {
 	Slider *bloom;
 
 	/**
+	 * @brief The alpha test slider.
+	 */
+	Slider *alphaTest;
+
+	/**
 	 * @brief The save button.
 	 */
 	Button *save;
