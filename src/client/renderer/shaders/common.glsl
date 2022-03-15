@@ -131,61 +131,6 @@ vec4 cubic(float v) {
 }
 
 /**
- * @brief Toksvig normal map gloss factor.
- */
-float toksvig(vec3 normalmap, float power) {
-	float len_rcp = 1.0 / saturate(length(normalmap));
-	return 1.0 / (1.0 + power * (len_rcp - 1.0));
-}
-
-/**
- * @brief Blinn-Phong BRDF for specular highlights.
- */
-float blinn(float n_dot_h, float gloss, float power) {
-	float p = power * gloss;
-	float result = pow(n_dot_h, p) * (p + 2.0) / 8.0;
-	return max(result, 0.001);
-}
-
-/**
- * @brief Phong BRDF for specular highlights.
- */
-vec3 brdf_phong(vec3 view_dir, vec3 light_dir, vec3 normal,
-	vec3 light_color, float specular_intensity, float specular_exponent) {
-
-	vec3 reflection = reflect(light_dir, normal);
-	float r_dot_v = max(-dot(view_dir, reflection), 0.0);
-	return light_color * specular_intensity * pow(r_dot_v, 16.0 * specular_exponent);
-}
-
-/**
- * @brief Blinn-Phong BRDF for specular highlights.
- */
-vec3 brdf_blinn(vec3 view_dir, vec3 light_dir, vec3 normal,
-	vec3 light_color, float glossiness, float specular_exponent) {
-
-	vec3 half_angle = normalize(light_dir + view_dir);
-	float n_dot_h = max(dot(normal, half_angle), 0.0);
-	float p = specular_exponent * glossiness;
-	float gloss = pow(n_dot_h, p) * (p + 2.0) / 8.0; // energy preserving
-	return light_color * max(gloss, 0.001);
-}
-
-/**
- * @brief Lambert BRDF for diffuse lighting.
- */
-vec3 brdf_lambert(vec3 light_dir, vec3 normal, vec3 light_color) {
-	return light_color * max(dot(light_dir, normal), 0.0);
-}
-
-/**
- * @brief Half-Lambert BRDF for diffuse lighting.
- */
-vec3 brdf_halflambert(vec3 light_dir, vec3 normal, vec3 light_color) {
-	return light_color * (1.0 - (dot(normal, light_dir) * 0.5 + 0.5));
-}
-
-/**
 * @brief
 */
 float grayscale(vec3 color) {
