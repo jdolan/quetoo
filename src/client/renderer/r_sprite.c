@@ -57,8 +57,7 @@ static struct {
 	
 	GLint texture_diffusemap;
 	GLint texture_lightgrid_ambient;
-	GLint texture_lightgrid_direct;
-	GLint texture_lightgrid_indirect;
+	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_fog;
 	GLint texture_next_diffusemap;
 	GLint texture_depth_stencil_attachment;
@@ -555,16 +554,14 @@ static void R_InitSpriteProgram(void) {
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.texture_lightgrid_ambient = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_ambient");
-	r_sprite_program.texture_lightgrid_direct = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_direct");
-	r_sprite_program.texture_lightgrid_indirect = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_indirect");
+	r_sprite_program.texture_lightgrid_diffuse = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_diffuse");
 	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
 	r_sprite_program.texture_depth_stencil_attachment = glGetUniformLocation(r_sprite_program.name, "texture_depth_stencil_attachment");
 
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
-	glUniform1i(r_sprite_program.texture_lightgrid_direct, TEXTURE_LIGHTGRID_DIRECT);
-	glUniform1i(r_sprite_program.texture_lightgrid_indirect, TEXTURE_LIGHTGRID_INDIRECT);
+	glUniform1i(r_sprite_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_sprite_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);

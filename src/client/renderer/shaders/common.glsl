@@ -247,12 +247,12 @@ void caustic_light(in vec3 model, in vec3 color, inout vec3 diffuse_light) {
 	// make the inner edges stronger, clamp to 0-1
 
 	float thickness = 0.02;
-	float glow = 3.0;
+	float glow = 30.0;
 
 	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
 
 	// add it up
-	diffuse_light += clamp(diffuse_light * length(color) * noise * caustics, 0.0, 1.0);
+	diffuse_light += clamp(diffuse_light * length(color) * noise * caustics * modulate, 0.0, 1.0);
 }
 
 /**

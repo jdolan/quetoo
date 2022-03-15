@@ -31,10 +31,8 @@ layout (location = 7) in vec3 in_next_tangent;
 layout (location = 8) in vec3 in_next_bitangent;
 
 uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_direct;
-uniform sampler3D texture_lightgrid_direct_dir;
-uniform sampler3D texture_lightgrid_indirect;
-uniform sampler3D texture_lightgrid_indirect_dir;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
 
@@ -55,10 +53,8 @@ out vertex_data {
 	vec2 diffusemap;
 	vec4 color;
 	vec3 ambient;
-	vec3 direct;
-	vec3 direct_dir;
-	vec3 indirect;
-	vec3 indirect_dir;
+	vec3 diffuse;
+	vec3 direction;
 	vec3 caustics;
 	vec4 fog;
 } vertex;
@@ -91,22 +87,17 @@ void main(void) {
 	if (view_type == VIEW_PLAYER_MODEL) {
 
 		vertex.ambient = vec3(1.0);
-		vertex.direct = vec3(1.0);
-		vertex.direct_dir = vec3(0.0, 0.0, 1.0);
-		vertex.indirect = vec3(1.0);
-		vertex.indirect_dir = vec3(0.0, 0.0, 1.0);
-		vertex.fog = vec4(0.f);
+		vertex.diffuse = vec3(1.0);
+		vertex.direction = vec3(0.0, 0.0, 1.0);
+		vertex.caustics = vec3(0.0);
+		vertex.fog = vec4(0.0);
 	} else {
 
 		vec3 lightgrid_uvw = lightgrid_uvw(vec3(model * position));
 
 		vertex.ambient = texture(texture_lightgrid_ambient, lightgrid_uvw).rgb;
-		vertex.direct = texture(texture_lightgrid_direct, lightgrid_uvw).rgb;
-		vertex.direct_dir = texture(texture_lightgrid_direct_dir, lightgrid_uvw).xyz;
-		vertex.direct_dir = normalize((view * vec4(vertex.direct_dir * 2.0 - 1.0, 0.0)).xyz);
-		vertex.indirect = texture(texture_lightgrid_indirect, lightgrid_uvw).rgb;
-		vertex.indirect_dir = texture(texture_lightgrid_indirect_dir, lightgrid_uvw).xyz;
-		vertex.indirect_dir = normalize((view * vec4(vertex.indirect_dir * 2.0 - 1.0, 0.0)).xyz);
+		vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
+		vertex.direction = texture(texture_lightgrid_direction, lightgrid_uvw).xyz;
 		vertex.caustics = texture(texture_lightgrid_caustics, lightgrid_uvw).rgb;
 
 		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);

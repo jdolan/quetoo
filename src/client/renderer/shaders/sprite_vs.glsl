@@ -28,8 +28,7 @@ layout (location = 5) in float in_softness;
 layout (location = 6) in float in_lighting;
 
 uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_direct;
-uniform sampler3D texture_lightgrid_indirect;
+uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_fog;
 
 out vertex_data {
@@ -55,8 +54,7 @@ void sprite_lighting(vec3 position, vec3 normal) {
 
 	vec3 grid_coord = lightgrid_uvw(in_position);
 	light += texture(texture_lightgrid_ambient, grid_coord).rgb;
-	light += texture(texture_lightgrid_direct, grid_coord).rgb;
-	light += texture(texture_lightgrid_indirect, grid_coord).rgb;
+	light += texture(texture_lightgrid_diffuse, grid_coord).rgb;
 
 	for (int i = 0; i < num_lights; i++) {
 
