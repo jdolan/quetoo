@@ -82,6 +82,7 @@ void main(void) {
 		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
 
 		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
+		float specularity = pow(material.specularity, 3.0);
 
 		vec3 normal = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
 		vec3 direction = normalize(vertex.direction * 2.0 - 1.0);
@@ -89,29 +90,28 @@ void main(void) {
 		vec3 ambient = vertex.ambient * max(0.0, dot(vertex.normal, normal));
 		vec3 diffuse = vertex.diffuse * max(0.0, dot(direction, normal));
 
-		vec3 specular = diffuse * material.hardness * pow(max(0.0, dot(reflect(-direction, normal), view_dir)), pow(material.specularity, 3.0));
+		vec3 specular = diffuse * pow(max(0.0, dot(reflect(-direction, normal), view_dir)), specularity);
 
 		caustic_light(vertex.model, vertex.caustics, diffuse);
 
-		dynamic_light(vertex.position, normal, 64.0, diffuse, specular);
+		dynamic_light(vertex.position, normal, specularity, diffuse, specular);
 
 		out_color = diffusemap;
 
 		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * modulate, 0.0, 1.0);
-
-		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
-		out_bloom.a = out_color.a;
-
 		out_color.rgb = clamp(out_color.rgb + specular * modulate, 0.0, 1.0);
 
 		out_color.rgb += vertex.fog.rgb * out_color.a;
 
+		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = out_color.a;
+
 		if (lightmaps == 1) {
 			out_color.rgb = vertex.ambient + vertex.diffuse;
 		} else {
-			// postprocessing
 			out_color = postprocess(out_color);
 		}
+		
 	} else {
 
 		// effect

@@ -761,7 +761,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->roughness, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No roughness specified");
 			} else if (m->roughness < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be >= 0.0");
+				Cm_MaterialWarn(path, &parser, "Invalid roughness value, must be >= 0.0");
 				m->roughness = DEFAULT_ROUGHNESS;
 			}
 		}
@@ -772,7 +772,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No specularity specified");
 			} else if (m->specularity < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be >= 0.0");
-				m->specularity = DEFAULT_HARDNESS;
+				m->specularity = DEFAULT_SPECULARITY;
 			}
 		}
 
