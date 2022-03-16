@@ -77,26 +77,27 @@ void main(void) {
 		}
 
 		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
-		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
+		vec4 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 
 		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
 		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
 
 		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
-		vec3 hardness = glossmap.rgb * material.hardness;
-		float specularity = glossmap.a * pow(material.specularity + 1.0, 3.0);
+		vec3 hardness = specularmap.rgb * material.hardness;
 
-		vec3 normal = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
-		vec3 direction = normalize(vertex.direction * 2.0 - 1.0);
+		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
+		vec3 direction = normalize(vertex.direction);
 
-		vec3 ambient = vertex.ambient * max(0.0, dot(vertex.normal, normal));
-		vec3 diffuse = vertex.diffuse * max(0.0, dot(direction, normal));
+		vec3 ambient = vertex.ambient * max(0.0, dot(vertex.normal, normalmap));
+		vec3 diffuse = vertex.diffuse * max(0.0, dot(direction, normalmap));
 
-		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normal), view_dir)), specularity);
+		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
+		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), view_dir)), specularity);
+		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), view_dir)), specularity);
 
 		caustic_light(vertex.model, vertex.caustics, diffuse);
 
-		dynamic_light(vertex.position, normal, specularity, diffuse, specular);
+		dynamic_light(vertex.position, normalmap, specularity, diffuse, specular);
 
 		out_color = diffusemap;
 

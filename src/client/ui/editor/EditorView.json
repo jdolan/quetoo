@@ -56,18 +56,6 @@
                   "class": "Input",
                   "label": {
                     "text": {
-                      "text": "Glossmap texture"
-                    }
-                  },
-                  "control": {
-                    "class": "TextView",
-                    "identifier": "glossmap"
-                  }
-                },
-				{
-                  "class": "Input",
-                  "label": {
-                    "text": {
                       "text": "Specularmap texture"
                     }
                   },

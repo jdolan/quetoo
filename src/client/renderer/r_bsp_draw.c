@@ -168,7 +168,7 @@ void R_DrawBspLightgrid(r_view_t *view) {
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, caustics+= 3, fog += 4) {
+			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, caustics += 3, fog += 4) {
 
 				if (s & 1 || t & 1 || u & 1) {
 					continue;
@@ -202,7 +202,7 @@ void R_DrawBspLightgrid(r_view_t *view) {
 					const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
 					const vec3_t end = Vec3_Fmaf(origin, 16.f, dir);
 
-					R_Draw3DLines((vec3_t []) { origin, end }, 2, Color3b(diffuse[0], diffuse[1], diffuse[2]));
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, Color3b(r, g, b));
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
 
