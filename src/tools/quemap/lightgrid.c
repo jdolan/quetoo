@@ -767,7 +767,7 @@ void EmitLightgrid(void) {
 	byte *out_diffuse = out_ambient + lg.num_luxels * BSP_LIGHTGRID_BPP;
 	byte *out_direction = out_diffuse + lg.num_luxels * BSP_LIGHTGRID_BPP;
 	byte *out_caustics = out_direction + lg.num_luxels * BSP_LIGHTGRID_BPP;
-	byte *out_fog = out_caustics+ lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_fog = out_caustics + lg.num_luxels * BSP_LIGHTGRID_BPP;
 
 	const luxel_t *l = lg.luxels;
 	for (int32_t u = 0; u < lg.size.z; u++) {
