@@ -193,7 +193,7 @@ float noise3d(vec3 p) {
 /**
  * @brief
  */
-void caustic_light(in vec3 model, in vec3 color, inout vec3 diffuse_light) {
+void caustic_light(in vec3 model, in vec3 color, in vec3 ambient_light, inout vec3 diffuse_light) {
 
 	float noise = noise3d(model * .05 + (ticks / 1000.0) * 0.5);
 
@@ -204,8 +204,7 @@ void caustic_light(in vec3 model, in vec3 color, inout vec3 diffuse_light) {
 
 	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
 
-	// add it up
-	diffuse_light += clamp(diffuse_light * length(color) * noise * caustics, 0.0, 1.0);
+	diffuse_light += clamp((ambient_light + diffuse_light) * length(color) * noise * caustics, 0.0, 1.0);
 }
 
 /**

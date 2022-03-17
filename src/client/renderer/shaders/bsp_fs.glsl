@@ -108,7 +108,7 @@ void main(void) {
 		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
 		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
 
-		caustic_light(vertex.model, caustics, diffuse);
+		caustic_light(vertex.model, caustics, ambient, diffuse);
 
 		dynamic_light(vertex.position, normalmap, specularity, diffuse, specular);
 
@@ -126,7 +126,7 @@ void main(void) {
 		out_bloom.a = out_color.a;
 
 		if (lightmaps == 1) {
-			out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
+			out_color.rgb = sample_lightmap(2).rgb + sample_lightmap(1).rgb;
 		} else {
 			out_color = postprocess(out_color);
 		}

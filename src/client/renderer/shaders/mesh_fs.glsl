@@ -93,7 +93,7 @@ void main(void) {
 		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
 		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
 
-		caustic_light(vertex.model, vertex.caustics, diffuse);
+		caustic_light(vertex.model, vertex.caustics, ambient, diffuse);
 
 		dynamic_light(vertex.position, normalmap, specularity, diffuse, specular);
 
