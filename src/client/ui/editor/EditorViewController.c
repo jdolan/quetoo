@@ -148,7 +148,11 @@ static void viewWillAppear(ViewController *self) {
 			continue;
 		}
 
-		if (e->effects & EF_WEAPON) {
+		if (e->model->mesh->faces->material == NULL) {
+			continue;
+		}
+
+		if (e->effects & (EF_SELF | EF_WEAPON)) {
 			continue;
 		}
 
