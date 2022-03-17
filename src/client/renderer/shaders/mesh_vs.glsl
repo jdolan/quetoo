@@ -85,7 +85,6 @@ void main(void) {
 	vertex.color = color;
 
 	if (view_type == VIEW_PLAYER_MODEL) {
-
 		vertex.ambient = vec3(1.0);
 		vertex.diffuse = vec3(1.0);
 		vertex.direction = vec3(0.0, 0.0, 1.0);

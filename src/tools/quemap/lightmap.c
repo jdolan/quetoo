@@ -886,8 +886,8 @@ void EmitLightmap(void) {
 		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction, caustics) == 0) {
 
 //			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
-//			IMG_SavePNG(diffuse, va("/tmp/%s_lm_direct.png", map_base));
-//			IMG_SavePNG(direction, va("/tmp/%s_lm_direct_dir.png", map_base));
+//			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
+//			IMG_SavePNG(direction, va("/tmp/%s_lm_direction.png", map_base));
 //			IMG_SavePNG(caustics, va("/tmp/%s_lm_caustics.png", map_base));
 
 			SDL_FreeSurface(ambient);

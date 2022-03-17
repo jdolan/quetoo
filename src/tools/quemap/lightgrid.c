@@ -657,8 +657,8 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
-		const vec3_t direct = Vec3_Scale(l->diffuse, 1.f / 255.f);
-		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), direct);
+		const vec3_t diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
+		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), diffuse);
 
 		switch (fog->type) {
 			case FOG_INVALID:
@@ -719,18 +719,15 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
+	for (int32_t i = 0; i < num_indirect_bounces; i++) {
+		l->ambient = Vec3_Add(l->ambient, l->indirect[i]);
+	}
+
 	l->ambient = Vec3_Scale(l->ambient, 1.f / 255.f);
 	l->ambient = ColorFilter(l->ambient);
 
 	l->diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
 	l->diffuse = ColorFilter(l->diffuse);
-
-	for (int32_t i = 1; i < num_indirect_bounces; i++) {
-		l->indirect[0] = Vec3_Add(l->indirect[0], l->indirect[i]);
-	}
-
-	l->indirect[0] = Vec3_Scale(l->indirect[0], 1.f / 255.f);
-	l->indirect[0] = ColorFilter(l->indirect[0]);
 
 	l->direction = Vec3_Normalize(l->direction);
 
@@ -769,7 +766,7 @@ void EmitLightgrid(void) {
 	byte *out_ambient = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
 	byte *out_diffuse = out_ambient + lg.num_luxels * BSP_LIGHTGRID_BPP;
 	byte *out_direction = out_diffuse + lg.num_luxels * BSP_LIGHTGRID_BPP;
-	byte *out_caustics= out_direction + lg.num_luxels * BSP_LIGHTGRID_BPP;
+	byte *out_caustics = out_direction + lg.num_luxels * BSP_LIGHTGRID_BPP;
 	byte *out_fog = out_caustics+ lg.num_luxels * BSP_LIGHTGRID_BPP;
 
 	const luxel_t *l = lg.luxels;
@@ -798,7 +795,7 @@ void EmitLightgrid(void) {
 		}
 
 		//IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
-		//IMG_SavePNG(diffuse, va("/tmp/%s_lg_direct_%d.png", map_base, u));
+		//IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
 		//IMG_SavePNG(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
 		//IMG_SavePNG(caustics, va("/tmp/%s_lg_caustics_%d.png", map_base, u));
 		//IMG_SavePNG(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));

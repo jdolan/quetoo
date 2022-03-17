@@ -194,7 +194,6 @@ void R_DrawBspLightgrid(r_view_t *view) {
 						.media = (r_media_t *) particle
 					});
 
-
 					const float x = direction[0] / 255.f * 2.f - 1.f;
 					const float y = direction[1] / 255.f * 2.f - 1.f;
 					const float z = direction[2] / 255.f * 2.f - 1.f;

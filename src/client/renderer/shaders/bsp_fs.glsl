@@ -67,10 +67,6 @@ vec4 sample_lightmap(int index) {
  */
 void main(void) {
 
-	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-
-	vec3 view_dir = normalize(-vertex.position);
-
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
@@ -82,42 +78,43 @@ void main(void) {
 
 		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
 		vec4 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2));
-
-		vec3 ambient = sample_lightmap(0).rgb;
-		vec3 diffuse = sample_lightmap(1).rgb;
-		vec3 direction = sample_lightmap(2).xyz;
-		vec3 caustics = sample_lightmap(3).rgb;
-		vec3 stainmap = sample_lightmap(4).rgb;
-
 		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
 		vec3 hardness = specularmap.rgb * material.hardness;
 
+		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+
 		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
-		direction = normalize(tbn * (normalize(direction * 2.0 - 1.0)));
 
-		if (entity > 0) {
-			ambient = mix(ambient, texture(texture_lightgrid_ambient, vertex.lightgrid).rgb, .666);
-			diffuse = mix(diffuse, texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb, .666);
-
-			vec3 dir = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
-			dir = normalize((view * vec4(dir * 2.0 - 1.0, 0.0)).xyz);
-
-			direction = normalize(mix(direction, dir, .666));
+		vec3 ambient, diffuse, direction, caustics;
+		if (entity == 0) {
+			ambient = sample_lightmap(0).rgb;
+			diffuse = sample_lightmap(1).rgb;
+			direction = sample_lightmap(2).xyz;
+			caustics = sample_lightmap(3).rgb;
+		} else {
+			ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
+			diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
+			direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
+			direction = normalize((view * vec4(direction * 2.0 - 1.0, 0.0)).xyz);
 			caustics = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
 		}
+
+		direction = normalize(tbn * (normalize(direction * 2.0 - 1.0)));
 
 		ambient *= max(0.0, dot(vertex.normal, normalmap));
 		diffuse *= max(0.0, dot(direction, normalmap));
 
 		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
-		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), view_dir)), specularity);
-		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), view_dir)), specularity);
+		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
+		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
 
 		caustic_light(vertex.model, caustics, diffuse);
 
 		dynamic_light(vertex.position, normalmap, specularity, diffuse, specular);
 
 		out_color = diffusemap;
+
+		vec3 stainmap = sample_lightmap(4).rgb;
 
 		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * stainmap * modulate, 0.0, 1.0);
 		out_color.rgb = clamp(out_color.rgb + specular * stainmap * modulate, 0.0, 1.0);
@@ -160,7 +157,6 @@ void main(void) {
 
 		out_color = effect;
 
-		// postprocessing
 		out_color = postprocess(out_color);
 	}
 
@@ -175,10 +171,5 @@ void main(void) {
 	#if 0
 	// draw vertex tangents
 	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
-	#endif
-
-	#if 0
-	// draw flat lightmaps
-	out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
 	#endif
 }

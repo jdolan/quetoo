@@ -63,10 +63,6 @@ vec3 tint_fragment(vec3 diffuse, vec4 tintmap) {
  */
 void main(void) {
 
-	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-
-	vec3 view_dir = normalize(-vertex.position);
-
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
@@ -85,6 +81,8 @@ void main(void) {
 		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
 		vec3 hardness = specularmap.rgb * material.hardness;
 
+		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+
 		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
 		vec3 direction = normalize(vertex.direction);
 
@@ -92,8 +90,8 @@ void main(void) {
 		vec3 diffuse = vertex.diffuse * max(0.0, dot(direction, normalmap));
 
 		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
-		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), view_dir)), specularity);
-		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), view_dir)), specularity);
+		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
+		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
 
 		caustic_light(vertex.model, vertex.caustics, diffuse);
 
@@ -114,10 +112,9 @@ void main(void) {
 		} else {
 			out_color = postprocess(out_color);
 		}
-		
+
 	} else {
 
-		// effect
 		vec4 effect = texture(texture_stage, vertex.diffusemap);
 		effect *= vertex.color;
 
