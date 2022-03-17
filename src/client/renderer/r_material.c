@@ -370,39 +370,37 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 }
 
 /**
- * @brief Writes all r_material_t for the specified BSP model to disk.
+ * @brief Writes all r_material_t for the specified model to disk.
  */
-static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
-	char path[MAX_QPATH];
-
-	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-
-	GList *materials = NULL;
-	for (int32_t i = 0; i < mod->bsp->num_materials; i++) {
-		materials = g_list_prepend(materials, mod->bsp->materials[i]->cm);
-	}
-
-	const ssize_t count = Cm_WriteMaterials(path, materials);
-
-	g_list_free(materials);
-	return count;
-}
-
-/**
- * @brief
- */
-static ssize_t R_SaveMeshMaterials(const r_model_t *mod) {
+static ssize_t R_SaveMaterials(const r_model_t *mod) {
 	char path[MAX_QPATH];
 
 	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
 	GList *materials = NULL;
 
-	const r_mesh_face_t *face = mod->mesh->faces;
-	for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
-		if (face->material && g_list_find(materials, face->material) == NULL) {
-			materials = g_list_prepend(materials, face->material);
+	switch (mod->type) {
+		case MOD_BSP: {
+			r_material_t **mat = mod->bsp->materials;
+			for (int32_t i = 0; i < mod->bsp->num_materials; i++, mat++) {
+				cm_material_t *cm = (*mat)->cm;
+				materials = g_list_prepend(materials, cm);
+			}
 		}
+			break;
+		case MOD_MESH: {
+			const r_mesh_face_t *face = mod->mesh->faces;
+			for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+				cm_material_t *cm = face->material->cm;
+				if (face->material && g_list_find(materials, cm) == NULL) {
+					materials = g_list_prepend(materials, cm);
+				}
+			}
+		}
+			break;
+		default:
+			Com_Warn("Unsupported model: %s\n", mod->media.name);
+			break;
 	}
 
 	const ssize_t count = Cm_WriteMaterials(path, materials);
@@ -431,17 +429,5 @@ void R_SaveMaterials_f(void) {
 	}
 
 	assert(model);
-
-	switch (model->type) {
-		case MOD_BSP:
-		case MOD_BSP_INLINE:
-			R_SaveBspMaterials(model);
-			break;
-		case MOD_MESH:
-			R_SaveMeshMaterials(model);
-			break;
-		default:
-			Com_Warn("Unsupported model %s\n", model->media.name);
-			break;
-	}
+	R_SaveMaterials(model);
 }
