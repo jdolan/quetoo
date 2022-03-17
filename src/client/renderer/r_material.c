@@ -391,6 +391,29 @@ static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
 /**
  * @brief
  */
+static ssize_t R_SaveMeshMaterials(const r_model_t *mod) {
+	char path[MAX_QPATH];
+
+	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
+
+	GList *materials = NULL;
+
+	const r_mesh_face_t *face = mod->mesh->faces;
+	for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+		if (face->material && g_list_find(materials, face->material) == NULL) {
+			materials = g_list_prepend(materials, face->material);
+		}
+	}
+
+	const ssize_t count = Cm_WriteMaterials(path, materials);
+
+	g_list_free(materials);
+	return count;
+}
+
+/**
+ * @brief
+ */
 void R_SaveMaterials_f(void) {
 
 	if (!r_world_model) {
@@ -398,5 +421,27 @@ void R_SaveMaterials_f(void) {
 		return;
 	}
 
-	R_SaveBspMaterials(r_world_model);
+	const r_model_t *model = r_world_model;
+
+	if (Cmd_Argc() > 1) {
+		model = (r_model_t *) R_FindMedia(Cmd_Argv(1), R_MEDIA_MODEL);
+		if (model == NULL) {
+			Com_Warn("Failed to save materials for %s\n", Cmd_Argv(1));
+		}
+	}
+
+	assert(model);
+
+	switch (model->type) {
+		case MOD_BSP:
+		case MOD_BSP_INLINE:
+			R_SaveBspMaterials(model);
+			break;
+		case MOD_MESH:
+			R_SaveMeshMaterials(model);
+			break;
+		default:
+			Com_Warn("Unsupported model %s\n", model->media.name);
+			break;
+	}
 }

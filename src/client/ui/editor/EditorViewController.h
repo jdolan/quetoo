@@ -50,6 +50,11 @@ struct EditorViewController {
 	 * @private
 	 */
 	EditorViewControllerInterface *interface;
+
+	/**
+	 * @brief The model currently being edited.
+	 */
+	const r_model_t *model;
 };
 
 /**

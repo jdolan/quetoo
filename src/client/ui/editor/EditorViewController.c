@@ -33,7 +33,15 @@
  * @brief ActionFunction for the Save Button.
  */
 static void saveAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-	Cmd_ExecuteString("r_save_materials");
+
+	EditorViewController *this = sender;
+
+	if (this->model == NULL) {
+		Com_Debug(DEBUG_UI, "Not editing a material\n");
+		return;
+	}
+
+	Cmd_ExecuteString(va("r_save_materials %s", this->model->media.name));
 }
 
 /**
@@ -101,9 +109,13 @@ static void loadView(ViewController *self) {
  */
 static void viewWillAppear(ViewController *self) {
 
-	EditorView *view = (EditorView *) self->view;
+	EditorViewController *this = (EditorViewController *) self;
+	this->model = NULL;
 
+	EditorView *view = (EditorView *) self->view;
 	r_material_t *material = NULL;
+	
+	float distance = MAX_WORLD_DIST;
 
 	vec3_t start = cl_view.origin, end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
 
@@ -120,6 +132,39 @@ static void viewWillAppear(ViewController *self) {
 		}
 
 		material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
+		distance = Vec3_Distance(cl_view.origin, tr.end);
+
+		this->model = R_WorldModel();
+	}
+
+	const r_entity_t *e = cl_view.entities;
+	for (int32_t i = 0; i < cl_view.num_entities; i++, e++) {
+
+		if (e->model == NULL) {
+			continue;
+		}
+
+		if (e->model->type != MOD_MESH) {
+			continue;
+		}
+
+		if (e->effects & EF_WEAPON) {
+			continue;
+		}
+
+		const int32_t head_node = Cm_SetBoxHull(e->abs_model_bounds, CONTENTS_SOLID);
+
+		const cm_trace_t tr = Cm_BoxTrace(cl_view.origin, end, Box3_Zero(), head_node, CONTENTS_SOLID);
+		if (tr.fraction < 1.f) {
+
+			const float dist = Vec3_Distance(cl_view.origin, tr.end);
+			if (dist < distance) {
+				material = e->model->mesh->faces->material;
+				distance = dist;
+
+				this->model = e->model;
+			}
+		}
 	}
 
 	$(view, setMaterial, material);
