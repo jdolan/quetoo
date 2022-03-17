@@ -387,7 +387,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 			continue;
 		}
 
-		luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
+		luxel->indirect[indirect_bounce] = Vec3_Fmaf(luxel->indirect[indirect_bounce], intensity, light->color);
 		break;
 	}
 }
@@ -526,7 +526,7 @@ void IndirectLightgrid(int32_t luxel_num) {
 
 	if (contribution > 0.f) {
 		if (contribution < 1.f) {
-			l->radiosity[bounce] = Vec3_Scale(l->radiosity[bounce], 1.f / contribution);
+			l->indirect[indirect_bounce] = Vec3_Scale(l->indirect[indirect_bounce], 1.f / contribution);
 		}
 	}
 }
@@ -719,8 +719,8 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	for (int32_t i = 0; i < num_bounces; i++) {
-		l->ambient = Vec3_Add(l->ambient, l->radiosity[i]);
+	for (int32_t i = 0; i < num_indirect_bounces; i++) {
+		l->ambient = Vec3_Add(l->ambient, l->indirect[i]);
 	}
 
 	l->ambient = Vec3_Scale(l->ambient, 1.f / 255.f);
@@ -730,6 +730,7 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	l->diffuse = ColorFilter(l->diffuse);
 
 	l->direction = Vec3_Normalize(l->direction);
+
 	l->caustics = ColorNormalize(l->caustics);
 
 	l->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(l->fog)), Clampf(l->fog.w, 0.f, 1.f));

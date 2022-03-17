@@ -202,20 +202,27 @@ static vec3_t LuxelNormal(const lightmap_t *lm, const vec3_t origin) {
 	const int32_t *e = bsp_file.elements + lm->face->first_element;
 	for (int32_t i = 0; i < lm->face->num_elements; i += 3, e += 3) {
 
-		const bsp_vertex_t *a = bsp_file.vertexes + e[0];
-		const bsp_vertex_t *b = bsp_file.vertexes + e[1];
-		const bsp_vertex_t *c = bsp_file.vertexes + e[2];
+		const bsp_vertex_t *v0 = bsp_file.vertexes + e[0];
+		const bsp_vertex_t *v1 = bsp_file.vertexes + e[1];
+		const bsp_vertex_t *v2 = bsp_file.vertexes + e[2];
+
+		const vec3_t center = Vec3_Scale(Vec3_Add(Vec3_Add(v0->position, v1->position), v2->position), 1.f / 3.f);
+		const float padding = BSP_LIGHTMAP_LUXEL_SIZE * 1.f;
+
+		const vec3_t a = Vec3_Fmaf(v0->position, padding, Vec3_Direction(v0->position, center));
+		const vec3_t b = Vec3_Fmaf(v1->position, padding, Vec3_Direction(v1->position, center));
+		const vec3_t c = Vec3_Fmaf(v2->position, padding, Vec3_Direction(v2->position, center));
 
 		vec3_t out;
-		const float bary = Cm_Barycentric(a->position, b->position, c->position, origin, &out);
+		const float bary = Cm_Barycentric(a, b, c, origin, &out);
 		const float delta = fabsf(1.f - bary);
 		if (delta < best) {
 			best = delta;
 
 			normal = Vec3_Zero();
-			normal = Vec3_Fmaf(normal, out.x, a->normal);
-			normal = Vec3_Fmaf(normal, out.y, b->normal);
-			normal = Vec3_Fmaf(normal, out.z, c->normal);
+			normal = Vec3_Fmaf(normal, out.x, v0->normal);
+			normal = Vec3_Fmaf(normal, out.y, v1->normal);
+			normal = Vec3_Fmaf(normal, out.z, v2->normal);
 		}
 	}
 
@@ -537,7 +544,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 			continue;
 		}
 
-		luxel->radiosity[bounce] = Vec3_Fmaf(luxel->radiosity[bounce], intensity, light->color);
+		luxel->indirect[indirect_bounce] = Vec3_Fmaf(luxel->indirect[indirect_bounce], intensity, light->color);
 		break;
 	}
 }
@@ -777,9 +784,9 @@ void FinalizeLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		// accumulate radiosity in ambient
-		for (int32_t i = 0; i < num_bounces; i++) {
-			l->ambient = Vec3_Add(l->ambient, l->radiosity[i]);
+		// accumulate indirect
+		for (int32_t i = 1; i < num_indirect_bounces; i++) {
+			l->ambient = Vec3_Add(l->ambient, l->indirect[i]);
 		}
 
 		// normalize to 0.0 - 1.0

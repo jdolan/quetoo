@@ -36,7 +36,7 @@ in vertex_data {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
-	vec3 caustic;
+	vec3 caustics;
 	vec4 fog;
 } vertex;
 
@@ -65,7 +65,6 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		// diffuse albedo
 		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
 		diffusemap *= vertex.color;
 
@@ -73,70 +72,49 @@ void main(void) {
 			discard;
 		}
 
-		// diffuse albedo tinting
+		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
+		vec4 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2));
+
 		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
 		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
 
+		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
+		vec3 hardness = specularmap.rgb * material.hardness;
+
+		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+
+		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
+		vec3 direction = normalize(vertex.direction);
+
+		vec3 ambient = vertex.ambient * max(0.0, dot(vertex.normal, normalmap));
+		vec3 diffuse = vertex.diffuse * max(0.0, dot(direction, normalmap));
+
+		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
+		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
+		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
+
+		caustic_light(vertex.model, vertex.caustics, ambient, diffuse);
+
+		dynamic_light(vertex.position, normalmap, specularity, diffuse, specular);
+
 		out_color = diffusemap;
 
-		// specular albedo and roughness
-		vec4 glossmap = texture(texture_material, vec3(vertex.diffusemap, 2));
+		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * modulate, 0.0, 1.0);
+		out_color.rgb = clamp(out_color.rgb + specular * modulate, 0.0, 1.0);
 
-		// normal
-		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
-		vec4 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1));
-		vec3 normal = normalize(tbn * ((normalmap.xyz * 2.0 - 1.0) * vec3(material.roughness, material.roughness, 1.0)));
+		out_color.rgb += vertex.fog.rgb * out_color.a;
 
-		// lighting
-		vec3 diffuse_light = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + vertex.ambient;
-		vec3 specular_light = brdf_blinn(normalize(-vertex.position), vertex.direction, normal, diffuse_light, glossmap.a, material.specularity * 100.0);
-		specular_light = min(specular_light * 0.2 * glossmap.xyz * material.hardness, MAX_HARDNESS);
-
-		caustic_light(vertex.model, vertex.caustic, diffuse_light);
-
-		dynamic_light(vertex.position, normal, 64.0, diffuse_light, specular_light);
-
-		out_color.rgb = clamp(out_color.rgb * (diffuse_light  * modulate), 0.0, 32.0);
-		out_color.rgb = clamp(out_color.rgb + (specular_light * modulate), 0.0, 32.0);
-
-		out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 		out_bloom.a = out_color.a;
 
 		if (lightmaps == 1) {
-			// direct and indirect diffuse lighting
-			out_color.rgb = vertex.diffuse * max(0.0, dot(normal, vertex.direction)) + vertex.ambient;
-		} else if (lightmaps == 2) {
-			// direct diffuse lighting
-			out_color.rgb = vertex.diffuse * max(0.0, dot(normal, vertex.direction));
-		} else if (lightmaps == 3) {
-			// indirect diffuse lighting
-			out_color.rgb = vertex.ambient;
-		} else if (lightmaps == 5) {
-			// diffuse bumpmap lighting
-			float bump_shading = (dot(vertex.direction, normal) - dot(vertex.direction, vertex.normal)) * 0.5 + 0.5;
-			out_color.rgb = vec3(bump_shading);
-		} else if (lightmaps == 6) {
-			// specular lighting
-			out_color.rgb = specular_light;
-		} else if (lightmaps == 7) {
-			// toksvig gloss factor
-			// out_color.rgb = vec3(gloss);
-		} else if (lightmaps == 8) {
-			// diffuse albedo
-			out_color = diffusemap;
+			out_color.rgb = vertex.ambient + vertex.diffuse;
 		} else {
-			// fog
-			out_color.rgb += vertex.fog.rgb * out_color.a; // additive fog
-			// out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a); // alpha blended fog
-			// (could do both using premultiplied alpha? that might mean map tweaks)
-
-			// postprocessing
 			out_color = postprocess(out_color);
 		}
 
 	} else {
 
-		// effect
 		vec4 effect = texture(texture_stage, vertex.diffusemap);
 		effect *= vertex.color;
 

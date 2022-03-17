@@ -31,7 +31,6 @@
 #include "writebsp.h"
 
 extern _Bool antialias;
-extern _Bool indirect;
 
 extern float brightness;
 extern float saturation;
@@ -40,12 +39,14 @@ extern float contrast;
 extern int32_t luxel_size;
 extern int32_t patch_size;
 
-extern float radiosity;
-extern int32_t num_bounces;
-extern int32_t bounce;
+extern float ambient_brightness;
+extern float sun_brightness;
+extern float light_brightness;
+extern float patch_brightness;
+extern float indirect_brightness;
 
-extern float lightscale_point;
-extern float lightscale_patch;
+extern int32_t num_indirect_bounces;
+extern int32_t indirect_bounce;
 
 extern float caustics;
 

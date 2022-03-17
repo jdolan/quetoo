@@ -53,8 +53,8 @@ void sprite_lighting(vec3 position, vec3 normal) {
 	vec3 light = vec3(0.0);
 
 	vec3 grid_coord = lightgrid_uvw(in_position);
-	light += texture(texture_lightgrid_diffuse, grid_coord).rgb;
 	light += texture(texture_lightgrid_ambient, grid_coord).rgb;
+	light += texture(texture_lightgrid_diffuse, grid_coord).rgb;
 
 	for (int i = 0; i < num_lights; i++) {
 

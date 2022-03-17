@@ -413,71 +413,72 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
 	const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
 	const bsp_plane_t *plane = &bsp_file.planes[face->plane];
 
-	if ((side->surface & SURF_PHONG) || phong_cosine > 0.f) {
+	const size_t count = FacesForVertex(face, v, faces);
+	if (count > 1) {
 
-		const size_t count = FacesForVertex(face, v, faces);
-		if (count > 1) {
+		v->normal = Vec3_Zero();
 
-			v->normal = Vec3_Zero();
+		const bsp_face_t **f = faces;
+		for (size_t i = 0; i < count; i++, f++) {
 
-			const bsp_face_t **f = faces;
-			for (size_t i = 0; i < count; i++, f++) {
-
-				size_t j;
-				for (j = 0; j < i; j++) {
-					if (faces[j]->brush_side == (*f)->brush_side &&
-						faces[j]->plane == (*f)->plane) {
-						break;
-					}
+			size_t j;
+			for (j = 0; j < i; j++) {
+				if (faces[j]->brush_side == (*f)->brush_side &&
+					faces[j]->plane == (*f)->plane) {
+					break;
 				}
-
-				if (j < i) {
-					continue;
-				}
-
-				const bsp_brush_side_t *s = &bsp_file.brush_sides[(*f)->brush_side];
-				const bsp_plane_t *p = &bsp_file.planes[(*f)->plane];
-
-				const float dot = Vec3_Dot(plane->normal, p->normal);
-				if (dot <= 0.f) {
-					continue;
-				}
-
-				if (!(s->surface & SURF_PHONG)) {
-					if (dot < phong_cosine) {
-						continue;
-					}
-				}
-
-				if (side->value != s->value) {
-					continue;
-				}
-
-				/*
-				 * Find the original brush side winding that the vertex came from, rather than the
-				 * winding of the face itself. This is because faces are split by the BSP process,
-				 * and so to get the correct normal vector weighting, the original side windings
-				 * are more reliable.
-				 */
-
-				cm_winding_t *w = NULL;
-				const brush_side_t *map_side = brush_sides;
-				for (int32_t j = 0; j < num_brush_sides; j++, map_side++) {
-					if (s == map_side->out) {
-						w = map_side->winding;
-						break;
-					}
-				}
-				assert(w);
-
-				v->normal = Vec3_Fmaf(v->normal, Cm_WindingArea(w), p->normal);
 			}
 
-			if (Vec3_LengthSquared(v->normal)) {
-				v->normal = Vec3_Normalize(v->normal);
+			if (j < i) {
+				continue;
+			}
+
+			const bsp_brush_side_t *s = &bsp_file.brush_sides[(*f)->brush_side];
+			const bsp_plane_t *p = &bsp_file.planes[(*f)->plane];
+
+			const float dot = Vec3_Dot(plane->normal, p->normal);
+			if (dot <= 0.f) {
+				continue;
+			}
+
+			if (side->surface & SURF_PHONG) {
+				if ((s->surface & SURF_PHONG) && (side->value == s->value)) {
+					// phong enabled via surface flag and shading groups
+				} else {
+					continue;
+				}
 			} else {
-				v->normal = plane->normal;
+				if (phong_cosine > 0.f && dot > phong_cosine) {
+					// phong enabled via entity key and dot product
+				} else {
+					continue;
+				}
 			}
+
+			/*
+			 * Find the original brush side winding that the vertex came from, rather than the
+			 * winding of the face itself. This is because faces are split by the BSP process,
+			 * and so to get the correct normal vector weighting, the original side windings
+			 * are more reliable.
+			 */
+
+			cm_winding_t *w = NULL;
+			const brush_side_t *map_side = brush_sides;
+			for (int32_t j = 0; j < num_brush_sides; j++, map_side++) {
+				if (s == map_side->out) {
+					w = map_side->winding;
+					break;
+				}
+			}
+			assert(w);
+
+			v->normal = Vec3_Fmaf(v->normal, Cm_WindingArea(w), p->normal);
+		}
+
+		if (Vec3_LengthSquared(v->normal)) {
+			v->normal = Vec3_Normalize(v->normal);
+		} else {
+			v->normal = plane->normal;
 		}
 	}
 }

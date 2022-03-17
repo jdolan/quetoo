@@ -64,7 +64,7 @@ static const cm_entity_t *EntityForModel(int32_t num) {
 }
 
 /**
- * @brief Create surface fragments for emissive lights and radiosity.
+ * @brief Create patches for direct and indirect surface lights.
  */
 void BuildPatches(void) {
 

@@ -55,7 +55,7 @@ out vertex_data {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
-	vec3 caustic;
+	vec3 caustics;
 	vec4 fog;
 } vertex;
 
@@ -85,11 +85,11 @@ void main(void) {
 	vertex.color = color;
 
 	if (view_type == VIEW_PLAYER_MODEL) {
-
 		vertex.ambient = vec3(1.0);
 		vertex.diffuse = vec3(1.0);
 		vertex.direction = vec3(0.0, 0.0, 1.0);
-		vertex.fog = vec4(0.f);
+		vertex.caustics = vec3(0.0);
+		vertex.fog = vec4(0.0);
 	} else {
 
 		vec3 lightgrid_uvw = lightgrid_uvw(vec3(model * position));
@@ -97,10 +97,9 @@ void main(void) {
 		vertex.ambient = texture(texture_lightgrid_ambient, lightgrid_uvw).rgb;
 		vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
 		vertex.direction = texture(texture_lightgrid_direction, lightgrid_uvw).xyz;
-		vertex.direction = normalize((view * vec4(vertex.direction * 2.0 - 1.0, 0.0)).xyz);
-		vertex.caustic = texture(texture_lightgrid_caustics, lightgrid_uvw).rgb;
+		vertex.direction = normalize(vec3(view * vec4(vertex.direction * 2.0 - 1.0, 0.0)));
+		vertex.caustics = texture(texture_lightgrid_caustics, lightgrid_uvw).rgb;
 
-		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 		lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
 		global_fog(vertex.fog, vertex.position);
 	}

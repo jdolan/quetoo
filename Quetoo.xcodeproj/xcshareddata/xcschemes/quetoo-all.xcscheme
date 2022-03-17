@@ -105,7 +105,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map torn"
+            argument = "+set sv_max_clients 32 +map pits"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -122,7 +122,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

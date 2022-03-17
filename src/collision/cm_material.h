@@ -259,11 +259,6 @@ typedef struct cm_material_s {
 	cm_asset_t normalmap;
 
 	/**
-	 * @brief The glossmap asset.
-	 */
-	cm_asset_t glossmap;
-
-	/**
 	 * @brief The specularmap asset.
 	 */
 	cm_asset_t specularmap;
@@ -309,7 +304,7 @@ typedef struct cm_material_s {
 	float roughness;
 
 	/**
-	 * @brief The hardness factor to use for the normalmap.
+	 * @brief The hardness factor to use for the specularmap.
 	 */
 	float hardness;
 

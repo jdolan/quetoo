@@ -72,11 +72,6 @@ struct EditorView {
 	TextView *normalmap;
 
 	/**
-	 * @brief The glossmap texture.
-	 */
-	TextView *glossmap;
-
-	/**
 	 * @brief The specularmap texture.
 	 */
 	TextView *specularmap;
@@ -100,6 +95,11 @@ struct EditorView {
 	 * @brief The bloom slider.
 	 */
 	Slider *bloom;
+
+	/**
+	 * @brief The alpha test slider.
+	 */
+	Slider *alphaTest;
 
 	/**
 	 * @brief The save button.

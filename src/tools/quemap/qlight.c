@@ -21,7 +21,6 @@
 
 #include "qlight.h"
 
-_Bool indirect = true;
 _Bool antialias = false;
 
 float brightness = 1.f;
@@ -31,12 +30,14 @@ float contrast = 1.f;
 int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 int32_t patch_size = DEFAULT_PATCH_SIZE;
 
-float radiosity = 1.f;
-int32_t num_bounces = 0;
-int32_t bounce = 0;
+float ambient_brightness = 1.f;
+float sun_brightness = 1.f;
+float light_brightness = 1.f;
+float patch_brightness = 1.f;
+float indirect_brightness = 1.f;
 
-float lightscale_point = 1.f;
-float lightscale_patch = 1.f;
+int32_t num_indirect_bounces = 0;
+int32_t indirect_bounce = 0;
 
 float caustics = 1.f;
 
@@ -427,11 +428,6 @@ static void LightWorld(void) {
 
 	const cm_entity_t *e = Cm_Bsp()->entities[0];
 
-	if (radiosity == 1.f) {
-		radiosity = Cm_EntityValue(e, "radiosity")->value ?: radiosity;
-		Com_Verbose("Radiosity: %g\n", radiosity);
-	}
-
 	if (brightness == 1.f) {
 		brightness = Cm_EntityValue(e, "brightness")->value ?: brightness;
 		Com_Verbose("Brightness: %g\n", brightness);
@@ -457,19 +453,40 @@ static void LightWorld(void) {
 		Com_Verbose("Patch size: %d\n", patch_size);
 	}
 
-	if (num_bounces == 0) {
-		num_bounces = Cm_EntityValue(e, "bounce")->integer ?: 1;
-		Com_Verbose("Indirect bounces: %d\n", num_bounces);
+	if (num_indirect_bounces == 0) {
+		num_indirect_bounces = Cm_EntityValue(e, "bounce")->integer ?: 1;
+		Com_Verbose("Indirect bounces: %d\n", num_indirect_bounces);
 	}
 
-	if (lightscale_point == 1.f) {
-		lightscale_point = Cm_EntityValue(e, "lightscale_point")->value ?: lightscale_point;
-		Com_Verbose("Point light intensity: %g\n", lightscale_point);
+	if (ambient_brightness == 1.f) {
+		ambient_brightness = Cm_EntityValue(e, "ambient_brightness")->value ?: ambient_brightness;
+		Com_Verbose("Ambient brightness: %g\n", ambient_brightness);
 	}
 
-	if (lightscale_patch == 1.f) {
-		lightscale_patch = Cm_EntityValue(e, "lightscale_patch")->value ?: lightscale_patch;
-		Com_Verbose("Patch light intensity: %g\n", lightscale_patch);
+	if (sun_brightness == 1.f) {
+		ambient_brightness = Cm_EntityValue(e, "sun_brightness")->value ?: sun_brightness;
+		Com_Verbose("Sun brightness: %g\n", sun_brightness);
+	}
+
+	if (light_brightness == 1.f) {
+		light_brightness = Cm_EntityValue(e, "light_brightness")->value ?: light_brightness;
+		Com_Verbose("Light brightness: %g\n", light_brightness);
+	}
+
+	if (patch_brightness == 1.f) {
+		patch_brightness = Cm_EntityValue(e, "patch_brightness")->value ?: patch_brightness;
+		Com_Verbose("Patch brightness: %g\n", patch_brightness);
+	}
+
+	if (indirect_brightness == 1.f) {
+		indirect_brightness = Cm_EntityValue(e, "indirect_brightness")->value ?: indirect_brightness;
+		if (indirect_brightness == 1.f) {
+			if (Cm_EntityValue(e, "radiosity")->value) {
+				indirect_brightness = Cm_EntityValue(e, "radiosity")->value;
+				Com_Warn("Worldspawn key radiosity is deprecated. Use indirect_brightness.\n");
+			}
+		}
+		Com_Verbose("Indirect brightness: %g\n", indirect_brightness);
 	}
 
 	if (caustics == 1.f) {
@@ -496,8 +513,8 @@ static void LightWorld(void) {
 	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
 	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
-	if (indirect && radiosity > 0.f) {
-		for (bounce = 0; bounce < num_bounces; bounce++) {
+	if (indirect_brightness > 0.f) {
+		for (indirect_bounce = 0; indirect_bounce < num_indirect_bounces; indirect_bounce++) {
 
 			// build indirect lights from lightmapped patches
 			BuildIndirectLights();

@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define MAX_HARDNESS       16
-
 #define STAGE_TEXTURE      0
 #define STAGE_BLEND        4
 #define STAGE_COLOR        8

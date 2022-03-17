@@ -717,14 +717,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "glossmap")) {
-
-			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->glossmap.name, sizeof(m->glossmap.name))) {
-				Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
-				continue;
-			}
-		}
-
 		if (!g_strcmp0(token, "specularmap")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->specularmap.name, sizeof(m->specularmap.name))) {
@@ -778,7 +770,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->roughness, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No roughness specified");
 			} else if (m->roughness < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be >= 0.0");
+				Cm_MaterialWarn(path, &parser, "Invalid roughness value, must be >= 0.0");
 				m->roughness = DEFAULT_ROUGHNESS;
 			}
 		}
@@ -799,7 +791,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No specularity specified");
 			} else if (m->specularity < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be >= 0.0");
-				m->specularity = DEFAULT_HARDNESS;
+				m->specularity = DEFAULT_SPECULARITY;
 			}
 		}
 
@@ -1121,8 +1113,7 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 	}
 
 	Cm_ResolveMaterialAsset(material, &material->normalmap, context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
-	Cm_ResolveMaterialAsset(material, &material->glossmap, context, (const char *[]) { "_g", "_gloss", NULL });
-	Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", NULL });
+	Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", "_g", "_gloss", NULL });
 	Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
 
 	cm_stage_t *stage = material->stages;
@@ -1231,9 +1222,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 	if (*material->normalmap.name) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
-	}
-	if (*material->glossmap.name) {
-		Fs_Print(file, "\tglossmap %s\n", material->glossmap.name);
 	}
 	if (*material->specularmap.name) {
 		Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);

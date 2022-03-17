@@ -32,7 +32,7 @@ typedef struct {
 	vec3_t ambient;
 	vec3_t diffuse;
 	vec3_t direction;
-	vec3_t radiosity[MAX_BOUNCES];
+	vec3_t indirect[MAX_BOUNCES];
 	vec3_t caustics;
 	vec4_t fog;
 } luxel_t;
