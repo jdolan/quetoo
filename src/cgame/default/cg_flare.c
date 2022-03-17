@@ -99,14 +99,22 @@ void Cg_AddFlares(void) {
 			assert(flare->entity);
 		}
 
+		cm_bsp_plane_t plane = *(flare->face->plane->cm);
+
 		if (flare->entity) {
 			flare->out.origin = Mat4_Transform(matrix, flare->in.origin);
+
+			const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
+
+			plane.normal = Vec4_XYZ(out);
+			plane.dist = out.w;
 		}
 
-		const vec3_t dir = Vec3_Direction(flare->out.origin, cgi.view->origin);
+		if (Vec3_Dot(cgi.view->origin, plane.normal) - plane.dist < 0.f) {
+			continue;
+		}
 
-		const float dot = Vec3_Dot(cgi.view->forward, dir);
-
+		const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
 		const float alpha = Clampf(dot * cg_add_flares->value, 0.f, 1.f);
 
 		if (alpha == 0.f) {
