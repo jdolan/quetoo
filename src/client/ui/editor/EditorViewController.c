@@ -110,16 +110,17 @@ static void loadView(ViewController *self) {
 static void viewWillAppear(ViewController *self) {
 
 	EditorViewController *this = (EditorViewController *) self;
+
+	this->material = NULL;
 	this->model = NULL;
 
 	EditorView *view = (EditorView *) self->view;
-	r_material_t *material = NULL;
-	
+
 	float distance = MAX_WORLD_DIST;
 
 	vec3_t start = cl_view.origin, end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
 
-	while (material == NULL) {
+	while (this->material == NULL) {
 
 		const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 		if (!tr.material) {
@@ -131,10 +132,10 @@ static void viewWillAppear(ViewController *self) {
 			continue;
 		}
 
-		material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
-		distance = Vec3_Distance(cl_view.origin, tr.end);
-
+		this->material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
 		this->model = R_WorldModel();
+
+		distance = Vec3_Distance(cl_view.origin, tr.end);
 	}
 
 	const r_entity_t *e = cl_view.entities;
@@ -163,15 +164,16 @@ static void viewWillAppear(ViewController *self) {
 
 			const float dist = Vec3_Distance(cl_view.origin, tr.end);
 			if (dist < distance) {
-				material = e->model->mesh->faces->material;
+				this->material = e->model->mesh->faces->material;
+				this->model = e->model;
+
 				distance = dist;
 
-				this->model = e->model;
 			}
 		}
 	}
 
-	$(view, setMaterial, material);
+	$(view, setMaterial, this->material);
 
 	super(ViewController, self, viewWillAppear);
 }
