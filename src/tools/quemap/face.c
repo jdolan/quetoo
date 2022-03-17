@@ -491,7 +491,7 @@ static void PhongFace(int32_t face_num) {
 	const entity_t *entity = face_entities[face_num];
 	assert(entity);
 
-	const float phong_angle = atof(ValueForKey(entity, "phong", ""));
+	const float phong_angle = atof(ValueForKey(entity, "phong", "60"));
 	const float phong_cosine = cosf(Radians(phong_angle));
 
 	const bsp_face_t *face = bsp_file.faces + face_num;
