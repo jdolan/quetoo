@@ -122,9 +122,6 @@ void main(void) {
 		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 		global_fog(out_color, vertex.position);
 
-		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
-		out_bloom.a = out_color.a;
-
 		if (lightmaps == 1) {
 			out_color.rgb = sample_lightmap(2).rgb + sample_lightmap(1).rgb;
 		} else {
@@ -159,6 +156,9 @@ void main(void) {
 
 		out_color = postprocess(out_color);
 	}
+
+	out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+	out_bloom.a = out_color.a;
 
 	// debugging
 

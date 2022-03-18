@@ -104,9 +104,6 @@ void main(void) {
 
 		out_color.rgb += vertex.fog.rgb * out_color.a;
 
-		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
-		out_bloom.a = out_color.a;
-
 		if (lightmaps == 1) {
 			out_color.rgb = vertex.ambient + vertex.diffuse;
 		} else {
@@ -126,4 +123,7 @@ void main(void) {
 
 		out_color = postprocess(out_color);
 	}
+
+	out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+	out_bloom.a = out_color.a;
 }
