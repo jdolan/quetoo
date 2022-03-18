@@ -159,6 +159,26 @@ static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t colo
 }
 
 /**
+ * @brief
+ */
+static SDL_Surface *R_CreateSpecularmap(SDL_Surface *diffusemap) {
+
+	const color32_t *in = diffusemap->pixels;
+
+	SDL_Surface *specularmap = SDL_CreateRGBSurfaceWithFormat(0, diffusemap->w, diffusemap->h, 32, SDL_PIXELFORMAT_RGBA32);
+	color32_t *out = specularmap->pixels;
+
+	for (int32_t i = 0; i < diffusemap->w; i++) {
+		for (int32_t j = 0; j < diffusemap->h; j++, in++, out++) {
+			out->r = out->g = out->b = (byte) (in->r + in->g + in->b) / 3.f;
+			out->a = 255;
+		}
+	}
+
+	return specularmap;
+}
+
+/**
  * @brief Resolves all asset references in the specified render material's stages
  */
 static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
@@ -267,10 +287,10 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				specularmap = R_LoadMaterialSurface(w, h, cm->specularmap.path);
 				if (specularmap == NULL) {
 					Com_Warn("Failed to load specularmap %s for %s\n", cm->specularmap.path, cm->basename);
-					specularmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 127, 127));
+					specularmap = R_CreateSpecularmap(diffusemap);
 				}
 			} else {
-				specularmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 127, 127));
+				specularmap = R_CreateSpecularmap(diffusemap);
 			}
 			
 			SDL_Surface *tintmap = NULL;
