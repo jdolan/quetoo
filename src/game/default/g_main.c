@@ -32,6 +32,10 @@ g_media_t g_media;
 cvar_t *g_admin_password;
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
+cvar_t *g_balance_armor_shard_respawn;
+cvar_t *g_balance_armor_jacket_respawn;
+cvar_t *g_balance_armor_combat_respawn;
+cvar_t *g_balance_armor_body_respawn;
 cvar_t *g_balance_bfg_damage;
 cvar_t *g_balance_bfg_knockback;
 cvar_t *g_balance_bfg_prefire;
@@ -92,10 +96,10 @@ cvar_t *g_techs;
 cvar_t *g_hook;
 cvar_t *g_hook_auto_refire;
 cvar_t *g_hook_distance;
-cvar_t *g_hook_refire;
-cvar_t *g_hook_style;
-cvar_t *g_hook_speed;
 cvar_t *g_hook_pull_speed;
+cvar_t *g_hook_refire;
+cvar_t *g_hook_speed;
+cvar_t *g_hook_style;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
@@ -1441,6 +1445,10 @@ void G_Init(void) {
 	g_balance_blaster_refire = gi.AddCvar("g_balance_blaster_refire", "0.45", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_speed = gi.AddCvar("g_balance_blaster_speed", "2000", CVAR_SERVER_INFO, NULL);
 	g_balance_handgrenade_refire = gi.AddCvar("g_balance_handgrenade_refire", "2", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_shard_respawn = gi.AddCvar("g_balance_armor_shard_respawn", "15", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_jacket_respawn = gi.AddCvar("g_balance_armor_jacket_respawn", "20", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_combat_respawn = gi.AddCvar("g_balance_armor_combat_respawn", "25", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_body_respawn = gi.AddCvar("g_balance_armor_body_respawn", "30", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_damage = gi.AddCvar("g_balance_hyperblaster_climb_damage", "3", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_knockback = gi.AddCvar("g_balance_hyperblaster_climb_knockback", "68", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_damage = gi.AddCvar("g_balance_hyperblaster_damage", "16", CVAR_SERVER_INFO, NULL);
@@ -1487,17 +1495,14 @@ void G_Init(void) {
 	g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
 	g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-	g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO,
-				     "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
-	g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO,
-							  "The maximum distance the hook will travel.");
-	g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO,
-	                       "The refire delay on the grapple hook in seconds.");
 	g_hook_style = gi.AddCvar("g_hook_style", "default", CVAR_SERVER_INFO,
 	                       "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
+	g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO,
+					 "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
+	g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO, "The maximum distance the hook will travel.");
+	g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO, "The speed that you get pulled towards the hook.");
+	g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO, "The refire delay on the grapple hook in seconds.");
 	g_hook_speed = gi.AddCvar("g_hook_speed", "1200", CVAR_SERVER_INFO, "The speed that the hook will fly at.");
-	g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO,
-	                            "The speed that you get pulled towards the hook.");
 	g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
 	g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
 	g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat.");

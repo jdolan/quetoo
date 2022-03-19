@@ -436,16 +436,16 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
 		switch (new_armor->tag) {
 			case ARMOR_SHARD:
-				G_SetItemRespawn(ent, 15000);
+				G_SetItemRespawn(ent, g_balance_armor_shard_respawn->integer * 1000);
 				break;
 			case ARMOR_JACKET:
-				G_SetItemRespawn(ent, 20000);
+				G_SetItemRespawn(ent, g_balance_armor_jacket_respawn->integer * 1000);
 				break;
 			case ARMOR_COMBAT:
-				G_SetItemRespawn(ent, 25000);
+				G_SetItemRespawn(ent, g_balance_armor_combat_respawn->integer * 1000);
 				break;
 			case ARMOR_BODY:
-				G_SetItemRespawn(ent, 30000);
+				G_SetItemRespawn(ent, g_balance_armor_body_respawn->integer * 1000);
 				break;
 			default:
 				G_Debug("Invalid armor tag: %d\n", new_armor->tag);
