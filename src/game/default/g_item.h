@@ -30,12 +30,12 @@
 	const g_item_t *G_ItemList(void);
 
 	/**
-	* @brief Item bounding box scaling.
-	*/
+	 * @brief Item bounding box scaling.
+	 */
 	#define ITEM_SCALE 1.0
 	
 	/**
-	 * @brief Quad DAmage scaling factor
+	 * @brief Quad Damage scaling factors
 	 */
 	#define QUAD_DAMAGE_FACTOR 2.5
 	#define QUAD_KNOCKBACK_FACTOR 2.0

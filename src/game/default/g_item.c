@@ -161,9 +161,9 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 		other->client->locals.quad_damage_time = ent->locals.next_think;
 		other->client->locals.quad_countdown_time = ent->locals.next_think - delta;
 	} else {
-		other->client->locals.quad_damage_time = g_level.time + SECONDS_TO_MILLIS(g_quad_damage_time->value);
+		other->client->locals.quad_damage_time = g_level.time + SECONDS_TO_MILLIS(g_balance_quad_damage_time->value);
 		other->client->locals.quad_countdown_time = other->client->locals.quad_damage_time - delta;
-		G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_quad_damage_respawn_time->value));
+		G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balance_quad_damage_respawn_time->value));
 	}
 
 	other->s.effects |= EF_QUAD;
@@ -2419,7 +2419,6 @@ const size_t g_num_items = lengthof(g_items);
  * @brief Fetch the item list.
  */
 const g_item_t *G_ItemList(void) {
-
 	return g_items;
 }
 
