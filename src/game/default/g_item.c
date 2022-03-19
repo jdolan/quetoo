@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 const box3_t ITEM_BOUNDS = { .mins = { { -16.0, -16.0, -16.0 } },
-							   .maxs = { {  16.0,  16.0,  32.0 } } };
+							 .maxs = { {  16.0,  16.0,  32.0 } } };
 
 #define ITEM_SCALE 1.0
 
@@ -442,10 +442,10 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 				G_SetItemRespawn(ent, 20000);
 				break;
 			case ARMOR_COMBAT:
-				G_SetItemRespawn(ent, 30000);
+				G_SetItemRespawn(ent, 25000);
 				break;
 			case ARMOR_BODY:
-				G_SetItemRespawn(ent, 40000);
+				G_SetItemRespawn(ent, 30000);
 				break;
 			default:
 				G_Debug("Invalid armor tag: %d\n", new_armor->tag);
