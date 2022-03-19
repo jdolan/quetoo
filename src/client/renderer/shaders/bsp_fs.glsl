@@ -123,7 +123,7 @@ void main(void) {
 		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
-			out_color.rgb = sample_lightmap(2).rgb + sample_lightmap(1).rgb;
+			out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
 		} else {
 			out_color = postprocess(out_color);
 		}
