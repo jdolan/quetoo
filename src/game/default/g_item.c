@@ -329,12 +329,19 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 
 		other->locals.health = h;
 
-		if (tag == HEALTH_MEGA) { // respawn the item
-			G_SetItemRespawn(ent, 60000);
-		} else if (tag == HEALTH_LARGE) {
-			G_SetItemRespawn(ent, 30000);
-		} else {
-			G_SetItemRespawn(ent, 20000);
+		switch (tag) {
+			case HEALTH_SMALL:
+				G_SetItemRespawn(ent, g_balance_health_small_respawn->integer * 1000);
+				break;
+			case HEALTH_MEDIUM:
+				G_SetItemRespawn(ent, g_balance_health_medium_respawn->integer * 1000);
+				break;
+			case HEALTH_LARGE:
+				G_SetItemRespawn(ent, g_balance_health_large_respawn->integer * 1000);
+				break;
+			case HEALTH_MEGA:
+				G_SetItemRespawn(ent, g_balance_health_mega_respawn->integer * 1000);
+				break;
 		}
 
 		return true;

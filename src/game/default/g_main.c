@@ -47,6 +47,10 @@ cvar_t *g_balance_blaster_knockback;
 cvar_t *g_balance_blaster_refire;
 cvar_t *g_balance_blaster_speed;
 cvar_t *g_balance_handgrenade_refire;
+cvar_t *g_balance_health_small_respawn;
+cvar_t *g_balance_health_medium_respawn;
+cvar_t *g_balance_health_large_respawn;
+cvar_t *g_balance_health_mega_respawn;
 cvar_t *g_balance_hyperblaster_climb_damage;
 cvar_t *g_balance_hyperblaster_climb_knockback;
 cvar_t *g_balance_hyperblaster_damage;
@@ -1433,6 +1437,10 @@ void G_Init(void) {
 	g_ammo_respawn_time = gi.AddCvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds.");
 	g_auto_join = gi.AddCvar("g_auto_join", "0", CVAR_SERVER_INFO,
 	                      "Automatically assigns players to teams, ignored for duel mode.");
+	g_balance_armor_shard_respawn = gi.AddCvar("g_balance_armor_shard_respawn", "15", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_jacket_respawn = gi.AddCvar("g_balance_armor_jacket_respawn", "20", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_combat_respawn = gi.AddCvar("g_balance_armor_combat_respawn", "25", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_body_respawn = gi.AddCvar("g_balance_armor_body_respawn", "30", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_damage = gi.AddCvar("g_balance_bfg_damage", "180", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_knockback = gi.AddCvar("g_balance_bfg_knockback", "140", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_prefire = gi.AddCvar("g_balance_bfg_prefire", "1", CVAR_SERVER_INFO,
@@ -1445,10 +1453,10 @@ void G_Init(void) {
 	g_balance_blaster_refire = gi.AddCvar("g_balance_blaster_refire", "0.45", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_speed = gi.AddCvar("g_balance_blaster_speed", "2000", CVAR_SERVER_INFO, NULL);
 	g_balance_handgrenade_refire = gi.AddCvar("g_balance_handgrenade_refire", "2", CVAR_SERVER_INFO, NULL);
-	g_balance_armor_shard_respawn = gi.AddCvar("g_balance_armor_shard_respawn", "15", CVAR_SERVER_INFO, NULL);
-	g_balance_armor_jacket_respawn = gi.AddCvar("g_balance_armor_jacket_respawn", "20", CVAR_SERVER_INFO, NULL);
-	g_balance_armor_combat_respawn = gi.AddCvar("g_balance_armor_combat_respawn", "25", CVAR_SERVER_INFO, NULL);
-	g_balance_armor_body_respawn = gi.AddCvar("g_balance_armor_body_respawn", "30", CVAR_SERVER_INFO, NULL);
+	g_balance_health_small_respawn = gi.AddCvar("g_balance_health_small_respawn", "15", CVAR_SERVER_INFO, NULL);
+	g_balance_health_medium_respawn = gi.AddCvar("g_balance_health_medium_respawn", "20", CVAR_SERVER_INFO, NULL);
+	g_balance_health_large_respawn = gi.AddCvar("g_balance_health_large_respawn", "30", CVAR_SERVER_INFO, NULL);
+	g_balance_health_mega_respawn = gi.AddCvar("g_balance_health_mega_respawn", "60", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_damage = gi.AddCvar("g_balance_hyperblaster_climb_damage", "3", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_knockback = gi.AddCvar("g_balance_hyperblaster_climb_knockback", "68", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_damage = gi.AddCvar("g_balance_hyperblaster_damage", "16", CVAR_SERVER_INFO, NULL);
