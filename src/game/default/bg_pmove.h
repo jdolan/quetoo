@@ -33,7 +33,7 @@
 #define PM_ACCEL_GROUND_SLICK	4.375f
 #define PM_ACCEL_LADDER			16.f
 #define PM_ACCEL_SPECTATOR		2.5f
-#define PM_ACCEL_WATER			2.8f
+#define PM_ACCEL_WATER			3.f
 
 /**
  * @brief Bounce constant when clipping against solids.
@@ -78,7 +78,7 @@
 #define PM_SPEED_STOP			100.f
 #define PM_SPEED_UP				0.1f
 #define PM_SPEED_TRICK_JUMP		0.f
-#define PM_SPEED_WATER			118.f
+#define PM_SPEED_WATER			120.f
 #define PM_SPEED_WATER_JUMP		420.f
 #define PM_SPEED_WATER_SINK		-16.f
 #define PM_SPEED_STEP			150.f
