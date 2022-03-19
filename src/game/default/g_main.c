@@ -116,6 +116,7 @@ cvar_t *g_respawn_protection;
 cvar_t *g_round_limit;
 cvar_t *g_rounds;
 cvar_t *g_self_damage;
+cvar_t *g_self_knockback;
 cvar_t *g_show_attacker_stats;
 cvar_t *g_spawn_farthest;
 cvar_t *g_spectator_chat;
@@ -997,6 +998,15 @@ static void G_CheckRules(void) {
 		                  g_self_damage->value);
 	}
 
+	if (g_self_knockback->modified) {
+		g_self_knockback->modified = false;
+
+		gi.SetCvarValue(g_self_knockback->name, Clampf(g_self_knockback->value, 0.0, 4.0));
+
+		gi.BroadcastPrint(PRINT_HIGH, "Self knockback has been changed to %g\n",
+						  g_self_knockback->value);
+	}
+
 	if (g_hook_pull_speed->modified) {
 		g_hook_pull_speed->modified = false;
 
@@ -1510,7 +1520,8 @@ void G_Init(void) {
 	g_respawn_protection = gi.AddCvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds.");
 	g_round_limit = gi.AddCvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level.");
 	g_rounds = gi.AddCvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins.");
-	g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to yourself.");
+	g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
+	g_self_knockback = gi.AddCvar("g_self_knockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");
 	g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO,
 					"Allows can see their attackers' health and armor when they die.");
 	g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);

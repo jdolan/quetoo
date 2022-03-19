@@ -105,7 +105,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map pits"
+            argument = "+set sv_max_clients 32 +map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -113,8 +113,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_cheats 1 +give all +no_clip"
-            isEnabled = "NO">
+            argument = "+set g_cheats 1 +give all +god"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+g_ai_add 16"
@@ -122,7 +122,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
