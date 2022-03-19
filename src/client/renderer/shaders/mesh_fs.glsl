@@ -84,7 +84,7 @@ void main(void) {
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
 		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
-		vec3 direction = normalize(vertex.direction);
+		vec3 direction = normalize(vertex.direction * 2.0 - 1.0);
 
 		vec3 ambient = vertex.ambient * max(0.0, dot(vertex.normal, normalmap));
 		vec3 diffuse = vertex.diffuse * max(0.0, dot(direction, normalmap));
