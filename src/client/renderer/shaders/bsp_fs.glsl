@@ -119,6 +119,9 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * stainmap * modulate, 0.0, 1.0);
 		out_color.rgb = clamp(out_color.rgb + specular * stainmap * modulate, 0.0, 1.0);
 
+		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = out_color.a;
+
 		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 		global_fog(out_color, vertex.position);
 
@@ -147,6 +150,9 @@ void main(void) {
 			effect.rgb *= (ambient + diffuse) * modulate;
 		}
 
+		out_bloom.rgb = clamp(effect.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = effect.a;
+
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			lightgrid_fog(effect, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 			global_fog(effect, vertex.position);
@@ -156,9 +162,6 @@ void main(void) {
 
 		out_color = postprocess(out_color);
 	}
-
-	out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
-	out_bloom.a = out_color.a;
 
 	// debugging
 

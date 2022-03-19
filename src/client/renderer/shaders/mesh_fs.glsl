@@ -102,6 +102,9 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * modulate, 0.0, 1.0);
 		out_color.rgb = clamp(out_color.rgb + specular * modulate, 0.0, 1.0);
 
+		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = out_color.a;
+
 		out_color.rgb += vertex.fog.rgb * out_color.a;
 
 		if (lightmaps == 1) {
@@ -115,6 +118,9 @@ void main(void) {
 		vec4 effect = texture(texture_stage, vertex.diffusemap);
 		effect *= vertex.color;
 
+		out_bloom.rgb = clamp(effect.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = effect.a;
+
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			effect.rgb += vertex.fog.rgb * effect.a;
 		}
@@ -123,7 +129,4 @@ void main(void) {
 
 		out_color = postprocess(out_color);
 	}
-
-	out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
-	out_bloom.a = out_color.a;
 }
