@@ -1438,7 +1438,7 @@ void G_Init(void) {
 	g_auto_join = gi.AddCvar("g_auto_join", "0", CVAR_SERVER_INFO,
 	                      "Automatically assigns players to teams, ignored for duel mode.");
 	g_balance_armor_shard_respawn = gi.AddCvar("g_balance_armor_shard_respawn", "15", CVAR_SERVER_INFO, NULL);
-	g_balance_armor_jacket_respawn = gi.AddCvar("g_balance_armor_jacket_respawn", "20", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_jacket_respawn = gi.AddCvar("g_balance_armor_jacket_respawn", "25", CVAR_SERVER_INFO, NULL);
 	g_balance_armor_combat_respawn = gi.AddCvar("g_balance_armor_combat_respawn", "25", CVAR_SERVER_INFO, NULL);
 	g_balance_armor_body_respawn = gi.AddCvar("g_balance_armor_body_respawn", "30", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_damage = gi.AddCvar("g_balance_bfg_damage", "180", CVAR_SERVER_INFO, NULL);
