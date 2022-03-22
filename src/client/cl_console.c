@@ -58,8 +58,8 @@ static void Cl_DrawConsole_Background(void) {
 
 	const float scale = Maxf(x_scale, y_scale);
 
-	const float width = conback->width * scale;
-	const float height = conback->height * scale;
+	const float width = ceilf(conback->width * scale);
+	const float height = ceilf(conback->height * scale);
 
 	const r_pixel_t x = (r_context.width / 2.f) - (width / 2.f);
 	const r_pixel_t y = (r_context.height / 2.f) - (height / 2.f);
