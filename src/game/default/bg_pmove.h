@@ -78,7 +78,7 @@
 #define PM_SPEED_STOP			100.f
 #define PM_SPEED_UP				0.1f
 #define PM_SPEED_TRICK_JUMP		0.f
-#define PM_SPEED_WATER			120.f
+#define PM_SPEED_WATER			140.f
 #define PM_SPEED_WATER_JUMP		420.f
 #define PM_SPEED_WATER_SINK		-16.f
 #define PM_SPEED_STEP			150.f
