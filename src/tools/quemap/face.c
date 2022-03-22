@@ -54,11 +54,6 @@ void FreeFace(face_t *f) {
  */
 face_t *MergeFaces(face_t *a, face_t *b) {
 
-	// jdolan: HACK to avoid face merging errors on blended faces
-	if (a->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-		return NULL;
-	}
-
 	if (a->brush_side != b->brush_side) {
 		return NULL;
 	}
@@ -80,6 +75,12 @@ face_t *MergeFaces(face_t *a, face_t *b) {
 
 	a->merged = merged;
 	b->merged = merged;
+
+	Cm_FreeWinding(a->w);
+	Cm_FreeWinding(b->w);
+
+	a->w = NULL;
+	b->w = NULL;
 
 	return merged;
 }
