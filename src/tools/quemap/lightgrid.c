@@ -167,7 +167,7 @@ size_t BuildLightgrid(void) {
 static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float scale) {
 
 	const vec3_t points[] = CUBE_8;
-	float sample_fraction = 1.f / lengthof(points);
+	float sample_fraction = scale / lengthof(points);
 
 	float intensity = 0.f;
 
@@ -179,7 +179,7 @@ static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float s
 		intensity += sample_fraction * trace.fraction;
 	}
 
-	luxel->ambient = Vec3_Fmaf(luxel->ambient, light->radius * intensity * scale, light->color);
+	luxel->ambient = Vec3_Fmaf(luxel->ambient, light->radius * intensity, light->color);
 }
 
 /**
