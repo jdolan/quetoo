@@ -353,6 +353,7 @@ void Sv_ShutdownGame(void) {
 	svs.game = NULL;
 
 	Cmd_RemoveAll(CMD_GAME);
+	Cmd_RemoveAll(CMD_AI);
 
 	// the game module code should call this, but lets not assume
 	Mem_FreeTag(MEM_TAG_GAME_LEVEL);
