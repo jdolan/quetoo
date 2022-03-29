@@ -1219,6 +1219,17 @@ static void Pm_WalkMove(void) {
 
 	Pm_Currents();
 
+	// if the player is walking on the sea floor and wishes to swim, let them
+
+	if (pm->water_level == WATER_UNDER && pm_locals.forward.z > 0.f) {
+
+		pm->s.flags &= ~PMF_ON_GROUND;
+		memset(&pm->ground, 0, sizeof(pm->ground));
+
+		Pm_WaterMove();
+		return;
+	}
+
 	// project the desired movement into the X/Y plane
 
 	const vec3_t forward = Vec3_Normalize(Pm_ClipVelocity(pm_locals.forward_xy, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE));
@@ -1396,6 +1407,9 @@ static void Pm_InitLocal(void) {
 	Vec3_Vectors(Vec3(0.f, pm->angles.y, 0.f), &pm_locals.forward_xy, &pm_locals.right_xy, NULL);
 }
 
+/**
+ * @brief
+ */
 static void Pm_CheckViewStep(void) {
 
 	// add the step offset we've made on this frame

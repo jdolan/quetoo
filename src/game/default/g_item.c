@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 const box3_t ITEM_BOUNDS = { .mins = { { -16.0, -16.0, -16.0 } },
-							   .maxs = { {  16.0,  16.0,  32.0 } } };
+							 .maxs = { {  16.0,  16.0,  32.0 } } };
 
 #define ITEM_SCALE 1.0
 
@@ -161,9 +161,9 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 		other->client->locals.quad_damage_time = ent->locals.next_think;
 		other->client->locals.quad_countdown_time = ent->locals.next_think - delta;
 	} else {
-		other->client->locals.quad_damage_time = g_level.time + SECONDS_TO_MILLIS(g_quad_damage_time->value);
+		other->client->locals.quad_damage_time = g_level.time + SECONDS_TO_MILLIS(g_balance_quad_damage_time->value);
 		other->client->locals.quad_countdown_time = other->client->locals.quad_damage_time - delta;
-		G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_quad_damage_respawn_time->value));
+		G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balance_quad_damage_respawn_time->value));
 	}
 
 	other->s.effects |= EF_QUAD;
@@ -329,12 +329,19 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 
 		other->locals.health = h;
 
-		if (tag == HEALTH_MEGA) { // respawn the item
-			G_SetItemRespawn(ent, 60000);
-		} else if (tag == HEALTH_LARGE) {
-			G_SetItemRespawn(ent, 30000);
-		} else {
-			G_SetItemRespawn(ent, 20000);
+		switch (tag) {
+			case HEALTH_SMALL:
+				G_SetItemRespawn(ent, g_balance_health_small_respawn->integer * 1000);
+				break;
+			case HEALTH_MEDIUM:
+				G_SetItemRespawn(ent, g_balance_health_medium_respawn->integer * 1000);
+				break;
+			case HEALTH_LARGE:
+				G_SetItemRespawn(ent, g_balance_health_large_respawn->integer * 1000);
+				break;
+			case HEALTH_MEGA:
+				G_SetItemRespawn(ent, g_balance_health_mega_respawn->integer * 1000);
+				break;
 		}
 
 		return true;
@@ -436,16 +443,16 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
 		switch (new_armor->tag) {
 			case ARMOR_SHARD:
-				G_SetItemRespawn(ent, 15000);
+				G_SetItemRespawn(ent, g_balance_armor_shard_respawn->integer * 1000);
 				break;
 			case ARMOR_JACKET:
-				G_SetItemRespawn(ent, 20000);
+				G_SetItemRespawn(ent, g_balance_armor_jacket_respawn->integer * 1000);
 				break;
 			case ARMOR_COMBAT:
-				G_SetItemRespawn(ent, 30000);
+				G_SetItemRespawn(ent, g_balance_armor_combat_respawn->integer * 1000);
 				break;
 			case ARMOR_BODY:
-				G_SetItemRespawn(ent, 40000);
+				G_SetItemRespawn(ent, g_balance_armor_body_respawn->integer * 1000);
 				break;
 			default:
 				G_Debug("Invalid armor tag: %d\n", new_armor->tag);
@@ -2412,7 +2419,6 @@ const size_t g_num_items = lengthof(g_items);
  * @brief Fetch the item list.
  */
 const g_item_t *G_ItemList(void) {
-
 	return g_items;
 }
 

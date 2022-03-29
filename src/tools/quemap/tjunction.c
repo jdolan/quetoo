@@ -135,6 +135,10 @@ static void FixTJunctions_r(node_t *node) {
 
 	for (face_t *face = node->faces; face; face = face->next) {
 
+		if (face->merged) {
+			continue;
+		}
+		
 		if (g_ptr_array_find(faces, face, NULL)) {
 			continue;
 		}

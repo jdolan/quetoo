@@ -101,8 +101,8 @@ void main(void) {
 
 		direction = normalize(tbn * (normalize(direction * 2.0 - 1.0)));
 
-		ambient *= max(0.0, dot(vertex.normal, normalmap));
-		diffuse *= max(0.0, dot(direction, normalmap));
+		ambient *= max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
+		diffuse *= max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
 
 		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
 		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
@@ -119,11 +119,16 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * stainmap * modulate, 0.0, 1.0);
 		out_color.rgb = clamp(out_color.rgb + specular * stainmap * modulate, 0.0, 1.0);
 
+		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = out_color.a;
+
 		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
 			out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
+		} else if (lightmaps == 2) {
+			out_color.rgb = sample_lightmap(2).rgb * 0.5 + 0.5;
 		} else {
 			out_color = postprocess(out_color);
 		}
@@ -147,6 +152,9 @@ void main(void) {
 			effect.rgb *= (ambient + diffuse) * modulate;
 		}
 
+		out_bloom.rgb = clamp(effect.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = effect.a;
+
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			lightgrid_fog(effect, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 			global_fog(effect, vertex.position);
@@ -156,9 +164,6 @@ void main(void) {
 
 		out_color = postprocess(out_color);
 	}
-
-	out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
-	out_bloom.a = out_color.a;
 
 	// debugging
 

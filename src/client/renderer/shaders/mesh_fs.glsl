@@ -86,8 +86,8 @@ void main(void) {
 		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
 		vec3 direction = normalize(vertex.direction * 2.0 - 1.0);
 
-		vec3 ambient = vertex.ambient * max(0.0, dot(vertex.normal, normalmap));
-		vec3 diffuse = vertex.diffuse * max(0.0, dot(direction, normalmap));
+		vec3 ambient = vertex.ambient * max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
+		vec3 diffuse = vertex.diffuse * max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
 
 		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
 		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
@@ -102,10 +102,15 @@ void main(void) {
 		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * modulate, 0.0, 1.0);
 		out_color.rgb = clamp(out_color.rgb + specular * modulate, 0.0, 1.0);
 
+		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = out_color.a;
+
 		out_color.rgb += vertex.fog.rgb * out_color.a;
 
 		if (lightmaps == 1) {
 			out_color.rgb = vertex.ambient + vertex.diffuse;
+		} else if (lightmaps == 2) {
+			out_color.rgb = vertex.direction * 0.5 + 0.5;
 		} else {
 			out_color = postprocess(out_color);
 		}
@@ -115,6 +120,9 @@ void main(void) {
 		vec4 effect = texture(texture_stage, vertex.diffusemap);
 		effect *= vertex.color;
 
+		out_bloom.rgb = clamp(effect.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.a = effect.a;
+
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			effect.rgb += vertex.fog.rgb * effect.a;
 		}
@@ -123,7 +131,4 @@ void main(void) {
 
 		out_color = postprocess(out_color);
 	}
-
-	out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
-	out_bloom.a = out_color.a;
 }

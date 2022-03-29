@@ -382,15 +382,11 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 static void Cl_UpdateMouseState(void) {
 
 	if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE) {
-		if (SDL_GetWindowGrab(r_context.window)) {
-			SDL_ShowCursor(true);
-			SDL_SetWindowGrab(r_context.window, false);
-		}
+		SDL_ShowCursor(true);
+		SDL_SetWindowGrab(r_context.window, false);
 	} else {
-		if (!SDL_GetWindowGrab(r_context.window)) {
-			SDL_ShowCursor(false);
-			SDL_SetWindowGrab(r_context.window, true);
-		}
+		SDL_ShowCursor(false);
+		SDL_SetWindowGrab(r_context.window, true);
 	}
 }
 

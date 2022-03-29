@@ -291,10 +291,12 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 		// ensure the target has valid mass for knockback calculation
 		const float mass = Clampf(target->locals.mass, 1.0, 1000.0);
 
-		// rocket jump hack
-		const float scale = (target == attacker ? 1200.0 : 800.0);
+		if (target == attacker) { // self knockback (rocket jump / grenade jump / plasma climb)
+			knockback *= g_self_knockback->value;
+		}
 
-		knockback_vel = Vec3_Scale(ndir, scale * knockback / mass);
+		knockback_vel = Vec3_Scale(ndir, knockback * 100.f / sqrtf(mass));
+
 		target->locals.velocity = Vec3_Add(target->locals.velocity, knockback_vel);
 
 		// apply angular velocity (rotate)

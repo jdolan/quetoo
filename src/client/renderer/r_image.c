@@ -197,7 +197,7 @@ void R_SetupImage(r_image_t *image) {
 		glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
 		glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
 
-		if (r_image_state.anisotropy > 1.0) {
+		if (r_image_state.anisotropy > 1.f) {
 			glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 		}
 	} else {

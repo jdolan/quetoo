@@ -265,7 +265,7 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 	const float t = lightmap->st_mins.y + padding_t + luxel->t + 0.5f;
 
 	const vec3_t points[] = DOME_COSINE_36X;
-	float sample_fraction = 1.f / lengthof(points);
+	float sample_fraction = scale / lengthof(points);
 
 	float intensity = 0.f;
 
@@ -289,7 +289,7 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 		intensity += sample_fraction * trace.fraction;
 	}
 
-	luxel->ambient = Vec3_Fmaf(luxel->ambient, light->radius * intensity * scale, light->color);
+	luxel->ambient = Vec3_Fmaf(luxel->ambient, light->radius * intensity, light->color);
 }
 
 /**
@@ -313,10 +313,10 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, lightmap->model->head_node, CONTENTS_SOLID);
 
 		if (trace.surface & SURF_SKY) {
-			const float intensity = (light->radius / light->num_points) * dot;
+			const float intensity = (light->radius / light->num_points) * dot * scale;
 
-			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity * scale, light->color);
-			luxel->direction = Vec3_Fmaf(luxel->direction, intensity * scale, dir);
+			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
+			luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
 		}
 	}
 }
@@ -356,7 +356,7 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 			break;
 	}
 
-	const float intensity = light->radius * dot * atten * scale;
+	const float intensity = light->radius * atten * dot * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -415,7 +415,7 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 			break;
 	}
 
-	const float intensity = light->radius * dot * cutoff * atten * scale;
+	const float intensity = light->radius * atten * cutoff * dot * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -473,7 +473,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * dot * cutoff * atten * atten * scale;
+	const float intensity = light->radius * atten * atten * cutoff * dot * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -535,7 +535,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * dot * cutoff * atten * atten * scale;
+	const float intensity = light->radius * atten * atten * cutoff * dot * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 

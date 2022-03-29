@@ -46,12 +46,15 @@ void main(void) {
 		vertex.lerp);
 
 	out_color = texture_color * vertex.color;
-	out_color.rgb += vertex.fog.rgb * out_color.a;
-
-	out_color = color_filter(out_color);
-	
-	out_color *= soften(vertex.softness);
 
 	out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * 2.0 * bloom - 1.0, 0.0, 1.0);
 	out_bloom.a = out_color.a;
+
+	out_color.rgb += vertex.fog.rgb * out_color.a;
+
+	float softness = soften(vertex.softness);
+	out_color *= softness;
+	out_bloom *= softness;
+
+	out_color = color_filter(out_color);
 }

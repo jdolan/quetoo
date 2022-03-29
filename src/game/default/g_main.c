@@ -32,6 +32,10 @@ g_media_t g_media;
 cvar_t *g_admin_password;
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
+cvar_t *g_balance_armor_shard_respawn;
+cvar_t *g_balance_armor_jacket_respawn;
+cvar_t *g_balance_armor_combat_respawn;
+cvar_t *g_balance_armor_body_respawn;
 cvar_t *g_balance_bfg_damage;
 cvar_t *g_balance_bfg_knockback;
 cvar_t *g_balance_bfg_prefire;
@@ -43,6 +47,10 @@ cvar_t *g_balance_blaster_knockback;
 cvar_t *g_balance_blaster_refire;
 cvar_t *g_balance_blaster_speed;
 cvar_t *g_balance_handgrenade_refire;
+cvar_t *g_balance_health_small_respawn;
+cvar_t *g_balance_health_medium_respawn;
+cvar_t *g_balance_health_large_respawn;
+cvar_t *g_balance_health_mega_respawn;
 cvar_t *g_balance_hyperblaster_climb_damage;
 cvar_t *g_balance_hyperblaster_climb_knockback;
 cvar_t *g_balance_hyperblaster_damage;
@@ -64,6 +72,8 @@ cvar_t *g_balance_grenadelauncher_radius;
 cvar_t *g_balance_grenadelauncher_refire;
 cvar_t *g_balance_grenadelauncher_speed;
 cvar_t *g_balance_grenadelauncher_timer;
+cvar_t *g_balance_quad_damage_respawn_time;
+cvar_t *g_balance_quad_damage_time;
 cvar_t *g_balance_railgun_damage;
 cvar_t *g_balance_railgun_knockback;
 cvar_t *g_balance_railgun_refire;
@@ -92,10 +102,10 @@ cvar_t *g_techs;
 cvar_t *g_hook;
 cvar_t *g_hook_auto_refire;
 cvar_t *g_hook_distance;
-cvar_t *g_hook_refire;
-cvar_t *g_hook_style;
-cvar_t *g_hook_speed;
 cvar_t *g_hook_pull_speed;
+cvar_t *g_hook_refire;
+cvar_t *g_hook_speed;
+cvar_t *g_hook_style;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
@@ -109,13 +119,12 @@ cvar_t *g_num_teams;
 cvar_t *g_password;
 static cvar_t *g_paused;
 cvar_t *g_player_projectile;
-cvar_t *g_quad_damage_respawn_time;
-cvar_t *g_quad_damage_time;
 cvar_t *g_random_map;
 cvar_t *g_respawn_protection;
 cvar_t *g_round_limit;
 cvar_t *g_rounds;
 cvar_t *g_self_damage;
+cvar_t *g_self_knockback;
 cvar_t *g_show_attacker_stats;
 cvar_t *g_spawn_farthest;
 cvar_t *g_spectator_chat;
@@ -997,6 +1006,15 @@ static void G_CheckRules(void) {
 		                  g_self_damage->value);
 	}
 
+	if (g_self_knockback->modified) {
+		g_self_knockback->modified = false;
+
+		gi.SetCvarValue(g_self_knockback->name, Clampf(g_self_knockback->value, 0.0, 4.0));
+
+		gi.BroadcastPrint(PRINT_HIGH, "Self knockback has been changed to %g\n",
+						  g_self_knockback->value);
+	}
+
 	if (g_hook_pull_speed->modified) {
 		g_hook_pull_speed->modified = false;
 
@@ -1419,6 +1437,10 @@ void G_Init(void) {
 	g_ammo_respawn_time = gi.AddCvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds.");
 	g_auto_join = gi.AddCvar("g_auto_join", "0", CVAR_SERVER_INFO,
 	                      "Automatically assigns players to teams, ignored for duel mode.");
+	g_balance_armor_shard_respawn = gi.AddCvar("g_balance_armor_shard_respawn", "15", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_jacket_respawn = gi.AddCvar("g_balance_armor_jacket_respawn", "25", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_combat_respawn = gi.AddCvar("g_balance_armor_combat_respawn", "25", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_body_respawn = gi.AddCvar("g_balance_armor_body_respawn", "30", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_damage = gi.AddCvar("g_balance_bfg_damage", "180", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_knockback = gi.AddCvar("g_balance_bfg_knockback", "140", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_prefire = gi.AddCvar("g_balance_bfg_prefire", "1", CVAR_SERVER_INFO,
@@ -1431,6 +1453,10 @@ void G_Init(void) {
 	g_balance_blaster_refire = gi.AddCvar("g_balance_blaster_refire", "0.45", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_speed = gi.AddCvar("g_balance_blaster_speed", "2000", CVAR_SERVER_INFO, NULL);
 	g_balance_handgrenade_refire = gi.AddCvar("g_balance_handgrenade_refire", "2", CVAR_SERVER_INFO, NULL);
+	g_balance_health_small_respawn = gi.AddCvar("g_balance_health_small_respawn", "15", CVAR_SERVER_INFO, NULL);
+	g_balance_health_medium_respawn = gi.AddCvar("g_balance_health_medium_respawn", "20", CVAR_SERVER_INFO, NULL);
+	g_balance_health_large_respawn = gi.AddCvar("g_balance_health_large_respawn", "30", CVAR_SERVER_INFO, NULL);
+	g_balance_health_mega_respawn = gi.AddCvar("g_balance_health_mega_respawn", "60", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_damage = gi.AddCvar("g_balance_hyperblaster_climb_damage", "3", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_knockback = gi.AddCvar("g_balance_hyperblaster_climb_knockback", "68", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_damage = gi.AddCvar("g_balance_hyperblaster_damage", "16", CVAR_SERVER_INFO, NULL);
@@ -1452,11 +1478,13 @@ void G_Init(void) {
 	g_balance_grenadelauncher_refire = gi.AddCvar("g_balance_grenadelauncher_refire", "1", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_speed = gi.AddCvar("g_balance_grenadelauncher_speed", "800", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_timer = gi.AddCvar("g_balance_grenadelauncher_timer", "2.5", CVAR_SERVER_INFO, NULL);
+	g_balance_quad_damage_respawn_time = gi.AddCvar("g_balance_quad_damage_respawn_time", "60", CVAR_SERVER_INFO, NULL);
+	g_balance_quad_damage_time = gi.AddCvar("g_balance_quad_damage_time", "20", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_damage = gi.AddCvar("g_balance_railgun_damage", "100", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_knockback = gi.AddCvar("g_balance_railgun_knockback", "80", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_refire = gi.AddCvar("g_balance_railgun_refire", "1.4", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_damage = gi.AddCvar("g_balance_rocketlauncher_damage", "100", CVAR_SERVER_INFO, NULL);
-	g_balance_rocketlauncher_knockback = gi.AddCvar("g_balance_rocketlauncher_knockback", "100", CVAR_SERVER_INFO, NULL);
+	g_balance_rocketlauncher_knockback = gi.AddCvar("g_balance_rocketlauncher_knockback", "75", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_radius = gi.AddCvar("g_balance_rocketlauncher_radius", "150", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_refire = gi.AddCvar("g_balance_rocketlauncher_refire", "1", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_speed = gi.AddCvar("g_balance_rocketlauncher_speed", "1000", CVAR_SERVER_INFO, NULL);
@@ -1477,17 +1505,14 @@ void G_Init(void) {
 	g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
 	g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-	g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO,
-				     "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
-	g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO,
-							  "The maximum distance the hook will travel.");
-	g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO,
-	                       "The refire delay on the grapple hook in seconds.");
 	g_hook_style = gi.AddCvar("g_hook_style", "default", CVAR_SERVER_INFO,
 	                       "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
+	g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO,
+					 "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
+	g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO, "The maximum distance the hook will travel.");
+	g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO, "The speed that you get pulled towards the hook.");
+	g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO, "The refire delay on the grapple hook in seconds.");
 	g_hook_speed = gi.AddCvar("g_hook_speed", "1200", CVAR_SERVER_INFO, "The speed that the hook will fly at.");
-	g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO,
-	                            "The speed that you get pulled towards the hook.");
 	g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
 	g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
 	g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat.");
@@ -1504,13 +1529,12 @@ void G_Init(void) {
 	g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
 	g_paused = gi.AddCvar("g_paused", "0", CVAR_DEVELOPER, "Pause the server. Developer tool.");
 	g_player_projectile = gi.AddCvar("g_player_projectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
-	g_quad_damage_respawn_time = gi.AddCvar("g_quad_damage_respawn_time", "60", CVAR_SERVER_INFO, "How long it takes for Quad Damage to respawn, in seconds.");
-	g_quad_damage_time = gi.AddCvar("g_quad_damage_time", "20", CVAR_SERVER_INFO, "How long Quad Damage lasts, in seconds.");
 	g_random_map = gi.AddCvar("g_random_map", "0", 0, "Enables map shuffling.");
 	g_respawn_protection = gi.AddCvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds.");
 	g_round_limit = gi.AddCvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level.");
 	g_rounds = gi.AddCvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins.");
-	g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to yourself.");
+	g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
+	g_self_knockback = gi.AddCvar("g_self_knockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");
 	g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO,
 					"Allows can see their attackers' health and armor when they die.");
 	g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);

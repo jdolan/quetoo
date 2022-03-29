@@ -76,6 +76,12 @@ face_t *MergeFaces(face_t *a, face_t *b) {
 	a->merged = merged;
 	b->merged = merged;
 
+	Cm_FreeWinding(a->w);
+	Cm_FreeWinding(b->w);
+
+	a->w = NULL;
+	b->w = NULL;
+
 	return merged;
 }
 
