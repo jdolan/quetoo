@@ -86,8 +86,8 @@ void main(void) {
 		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
 		vec3 direction = normalize(vertex.direction * 2.0 - 1.0);
 
-		vec3 ambient = vertex.ambient * max(0.0, dot(vertex.normal, normalmap));
-		vec3 diffuse = vertex.diffuse * max(0.0, dot(direction, normalmap));
+		vec3 ambient = vertex.ambient * max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
+		vec3 diffuse = vertex.diffuse * max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
 
 		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
 		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
