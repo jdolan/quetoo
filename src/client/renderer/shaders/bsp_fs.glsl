@@ -127,6 +127,8 @@ void main(void) {
 
 		if (lightmaps == 1) {
 			out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
+		} else if (lightmaps == 2) {
+			out_color.rgb = sample_lightmap(2).rgb * 0.5 + 0.5;
 		} else {
 			out_color = postprocess(out_color);
 		}

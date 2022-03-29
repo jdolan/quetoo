@@ -109,6 +109,8 @@ void main(void) {
 
 		if (lightmaps == 1) {
 			out_color.rgb = vertex.ambient + vertex.diffuse;
+		} else if (lightmaps == 2) {
+			out_color.rgb = vertex.direction * 0.5 + 0.5;
 		} else {
 			out_color = postprocess(out_color);
 		}
