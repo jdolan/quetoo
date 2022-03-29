@@ -195,10 +195,10 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
 		if (trace.surface & SURF_SKY) {
 
-			const float intensity = (light->radius / light->num_points);
+			const float intensity = (light->radius / light->num_points) * scale;
 
-			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity * scale, light->color);
-			luxel->direction = Vec3_Fmaf(luxel->direction, intensity * scale, dir);
+			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, intensity, light->color);
+			luxel->direction = Vec3_Fmaf(luxel->direction, intensity, dir);
 		}
 	}
 }
@@ -329,7 +329,7 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * cutoff * atten * atten * scale;
+	const float intensity = light->radius * atten * atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -378,7 +378,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * cutoff * atten * atten * scale;
+	const float intensity = light->radius * atten * atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
