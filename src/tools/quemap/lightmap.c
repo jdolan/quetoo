@@ -785,7 +785,7 @@ void FinalizeLightmap(int32_t face_num) {
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
 		// accumulate indirect
-		for (int32_t i = 1; i < num_indirect_bounces; i++) {
+		for (int32_t i = 0; i < num_indirect_bounces; i++) {
 			l->ambient = Vec3_Add(l->ambient, l->indirect[i]);
 		}
 
