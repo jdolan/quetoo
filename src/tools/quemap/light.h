@@ -53,7 +53,7 @@ typedef enum {
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
-typedef struct {
+typedef struct light_s {
 	/**
 	 * @brief The type.
 	 */

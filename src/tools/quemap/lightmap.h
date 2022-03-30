@@ -26,12 +26,19 @@
 #define MAX_BOUNCES 3
 
 typedef struct {
+	vec3_t diffuse;
+	vec3_t direction;
+	const struct light_s *light;
+} lumen_t;
+
+typedef struct {
 	int32_t s, t, u;
 	vec3_t origin;
 	vec3_t normal;
 	vec3_t ambient;
 	vec3_t diffuse;
 	vec3_t direction;
+	GArray *lumens;
 	vec3_t indirect[MAX_BOUNCES];
 	vec3_t caustics;
 	vec4_t fog;
