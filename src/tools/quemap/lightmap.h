@@ -29,6 +29,7 @@ typedef struct {
 	vec3_t diffuse;
 	vec3_t direction;
 	const struct light_s *light;
+	float intensity;
 } lumen_t;
 
 typedef struct {
@@ -58,8 +59,8 @@ typedef struct {
 	luxel_t *luxels;
 	size_t num_luxels;
 	SDL_Surface *ambient;
-	SDL_Surface *diffuse;
-	SDL_Surface *direction;
+	SDL_Surface *diffuse[BSP_LIGHTMAP_CHANNELS];
+	SDL_Surface *direction[BSP_LIGHTMAP_CHANNELS];
 	SDL_Surface *caustics;
 } lightmap_t;
 

@@ -80,33 +80,45 @@ void main(void) {
 		vec4 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
 		vec3 hardness = specularmap.rgb * material.hardness;
+		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
 
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
 		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
 
-		vec3 ambient, diffuse, direction, caustics;
+		vec3 ambient, diffuse, direction, caustics, specular;
 		if (entity == 0) {
 			ambient = sample_lightmap(0).rgb;
-			diffuse = sample_lightmap(1).rgb;
-			direction = sample_lightmap(2).xyz;
-			caustics = sample_lightmap(3).rgb;
+			ambient *= max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
+
+			specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
+
+			caustics = sample_lightmap(9).rgb;
+
+			diffuse = vec3(0);
+			specular = vec3(0);
+
+			for (int i = 0; i < 4; i++) {
+				vec3 dif = sample_lightmap(1 + (2 * i) + 0).rgb;
+				vec3 dir = sample_lightmap(1 + (2 * i) + 1).xyz;
+
+				dir = normalize(tbn * (normalize(dir * 2.0 - 1.0)));
+
+				dif *= max(0.0, 0.5 + dot(dir, normalmap) * 0.5);
+
+				diffuse += dif;
+				specular += dif * hardness * pow(max(0.0, dot(reflect(-dir, normalmap), normalize(-vertex.position))), specularity);
+			}
+
 		} else {
 			ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
 			diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 			direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
 			direction = normalize((view * vec4(direction * 2.0 - 1.0, 0.0)).xyz);
 			caustics = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
+
+			specular = vec3(0);
 		}
-
-		direction = normalize(tbn * (normalize(direction * 2.0 - 1.0)));
-
-		ambient *= max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
-		diffuse *= max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
-
-		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
-		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
-		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
 
 		caustic_light(vertex.model, caustics, ambient, diffuse);
 
@@ -114,7 +126,7 @@ void main(void) {
 
 		out_color = diffusemap;
 
-		vec3 stainmap = sample_lightmap(4).rgb;
+		vec3 stainmap = sample_lightmap(10).rgb;
 
 		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * stainmap * modulate, 0.0, 1.0);
 		out_color.rgb = clamp(out_color.rgb + specular * stainmap * modulate, 0.0, 1.0);
