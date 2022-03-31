@@ -89,7 +89,7 @@ void main(void) {
 		vertex.diffuse = vec3(1.0);
 		vertex.direction = vec3(0.0, 0.0, 1.0);
 		vertex.caustics = vec3(0.0);
-		vertex.fog = vec4(0.0);
+		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 	} else {
 
 		vec3 lightgrid_uvw = lightgrid_uvw(vec3(model * position));
