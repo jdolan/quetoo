@@ -753,7 +753,16 @@ static void Pm_CheckGround(void) {
 
 			pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, PM_CLIP_BOUNCE);
 		}
+
+		// clear jump buffer
+		pm->s.jump_buffer = 0;
 	} else {
+
+		// leaving ground; if we had ground, give us jump buffer
+		if (pm->ground.ent) {
+			pm->s.jump_buffer = PM_JUMP_BUFFER_TIME;
+		}
+
 		pm->s.flags &= ~PMF_ON_GROUND;
 		memset(&pm->ground, 0, sizeof(pm->ground));
 	}
@@ -1167,6 +1176,10 @@ static void Pm_AirMove(void) {
 
 	Pm_Debug("%s\n", vtos(pm->s.origin));
 
+	if (pm->s.jump_buffer) {
+		Pm_CheckJump();
+	}
+
 	Pm_Friction(false);
 
 	Pm_Gravity();
@@ -1364,6 +1377,15 @@ static void Pm_Init(void) {
 		} else { // or just decrement the timer
 			pm->s.time -= pm->cmd.msec;
 		}
+	}
+
+	if (pm->s.jump_buffer) {
+		if (pm->cmd.msec > pm->s.jump_buffer) {
+			pm->s.jump_buffer = 0;
+		} else {
+			pm->s.jump_buffer -= pm->cmd.msec;
+		}
+		Pm_Debug("jump buffer: %u\n", pm->s.jump_buffer);
 	}
 }
 
