@@ -124,6 +124,11 @@ typedef struct light_s {
 	 * @brief The light source model for patch and indirect lights.
 	 */
 	const bsp_model_t *model;
+
+	/**
+	 * @brief The light identifier, used to associate lumens.
+	 */
+	int32_t id;
 } light_t;
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];

@@ -21,15 +21,16 @@
 
 #pragma once
 
-#include "quemap.h"
+#include "light.h"
 
 #define MAX_BOUNCES 3
 
 typedef struct {
 	vec3_t diffuse;
 	vec3_t direction;
-	const struct light_s *light;
-	float intensity;
+	int32_t light_id;
+	light_type_t light_type;
+	int32_t indirect_bounce;
 } lumen_t;
 
 typedef struct {
@@ -39,10 +40,10 @@ typedef struct {
 	vec3_t ambient;
 	vec3_t diffuse;
 	vec3_t direction;
-	GArray *lumens;
 	vec3_t indirect[MAX_BOUNCES];
 	vec3_t caustics;
 	vec4_t fog;
+	GArray *lumens;
 } luxel_t;
 
 typedef struct {
@@ -59,8 +60,8 @@ typedef struct {
 	luxel_t *luxels;
 	size_t num_luxels;
 	SDL_Surface *ambient;
-	SDL_Surface *diffuse[BSP_LIGHTMAP_CHANNELS];
-	SDL_Surface *direction[BSP_LIGHTMAP_CHANNELS];
+	SDL_Surface *diffuse;
+	SDL_Surface *direction;
 	SDL_Surface *caustics;
 } lightmap_t;
 

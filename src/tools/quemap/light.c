@@ -24,6 +24,7 @@
 #include "qlight.h"
 
 static GArray *lights = NULL;
+static int32_t id;
 
 GPtrArray *node_lights[MAX_BSP_NODES];
 GPtrArray *leaf_lights[MAX_BSP_LEAFS];
@@ -313,7 +314,10 @@ static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light)
  */
 static void LightForEntity(const cm_entity_t *entity) {
 
-	light_t light = { .type = LIGHT_INVALID };
+	light_t light = {
+		.type = LIGHT_INVALID,
+		.id = id++,
+	};
 
 	const char *class_name = Cm_EntityValue(entity, "classname")->string;
 	if (!g_strcmp0(class_name, "worldspawn")) {
@@ -349,6 +353,7 @@ static void LightForPatch(const patch_t *patch) {
 		.normal = plane->normal,
 		.theta = LIGHT_CONE,
 		.model = patch->model,
+		.id = id++,
 	};
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
@@ -537,6 +542,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		.normal = plane->normal,
 		.theta = LIGHT_CONE,
 		.model = patch->model,
+		.id = id++,
 	};
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
@@ -574,7 +580,33 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 			assert(l->s == ds);
 			assert(l->t == dt);
 
-			lightmap = Vec3_Add(lightmap, indirect_bounce ? l->indirect[indirect_bounce - 1] : l->diffuse);
+			if (l->lumens) {
+				for (guint i = 0; i < l->lumens->len; i++) {
+					const lumen_t *lumen = &g_array_index(l->lumens, lumen_t, i);
+					if (indirect_bounce == 0) {
+						switch (lumen->light_type) {
+							case LIGHT_SUN:
+							case LIGHT_POINT:
+							case LIGHT_SPOT:
+							case LIGHT_PATCH:
+								lightmap = Vec3_Add(lightmap, lumen->diffuse);
+								break;
+							default:
+								break;
+						}
+					} else {
+						switch (lumen->light_type) {
+							case LIGHT_INDIRECT:
+								if (lumen->indirect_bounce == indirect_bounce - 1) {
+									lightmap = Vec3_Add(lightmap, lumen->diffuse);
+									break;
+								}
+							default:
+								break;
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -584,6 +616,10 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	lightmap = Vec3_Scale(lightmap, 1.f / (w * h));
 	light.radius = Vec3_Length(lightmap) * indirect_brightness;
+
+	if (light.radius < 1.f) {
+		return;
+	}
 
 	lightmap = ColorNormalize(lightmap);
 	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
