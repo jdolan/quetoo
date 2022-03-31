@@ -89,7 +89,7 @@ void main(void) {
 		vertex.diffuse = vec3(1.0);
 		vertex.direction = vec3(0.0, 0.0, 1.0);
 		vertex.caustics = vec3(0.0);
-		vertex.fog = vec4(0.0);
+		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 	} else {
 
 		vec3 lightgrid_uvw = lightgrid_uvw(vec3(model * position));
@@ -98,7 +98,7 @@ void main(void) {
 		vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
 		vertex.direction = texture(texture_lightgrid_direction, lightgrid_uvw).xyz;
 		vertex.caustics = texture(texture_lightgrid_caustics, lightgrid_uvw).rgb;
-		vertex.fog = vec4(0.0);
+		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 
 		lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
 		global_fog(vertex.fog, vertex.position);
