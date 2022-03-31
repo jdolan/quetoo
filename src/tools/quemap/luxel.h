@@ -21,12 +21,34 @@
 
 #pragma once
 
-#include "luxel.h"
+#include "light.h"
 
-size_t BuildLightgrid(void);
-void DirectLightgrid(int32_t luxel_num);
-void IndirectLightgrid(int32_t luxel_num);
-void CausticsLightgrid(int32_t luxel_num);
-void FogLightgrid(int32_t luxel_num);
-void FinalizeLightgrid(int32_t luxel_num);
-void EmitLightgrid(void);
+/**
+ * @brief Lumens are light source contributions to individual luxels.
+ */
+typedef struct {
+	vec3_t diffuse;
+	vec3_t direction;
+	int32_t light_id;
+	light_type_t light_type;
+	int32_t indirect_bounce;
+} lumen_t;
+
+/**
+ * @brief Luxels are individual lightmap or lightgrid pixels.
+ */
+typedef struct {
+	int32_t s, t, u;
+	vec3_t origin;
+	vec3_t normal;
+	vec3_t ambient;
+	vec3_t diffuse;
+	vec3_t direction;
+	vec3_t caustics;
+	vec4_t fog;
+	GArray *lumens;
+} luxel_t;
+
+extern void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t dir, float intensity);
+extern void Luxel_SortLumens(luxel_t *luxel);
+extern void Luxel_FreeLumens(luxel_t *luxel);

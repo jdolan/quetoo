@@ -45,6 +45,7 @@ extern float light_brightness;
 extern float patch_brightness;
 extern float indirect_brightness;
 
+#define MAX_BOUNCES 3
 extern int32_t num_indirect_bounces;
 extern int32_t indirect_bounce;
 

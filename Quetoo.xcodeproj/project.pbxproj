@@ -582,6 +582,7 @@
 		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
 		CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C292030F25B004BC58E /* DialogViewController.json */; };
+		CEAFB9BC27F618BA002ED92D /* luxel.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAFB9BB27F618BA002ED92D /* luxel.c */; };
 		CEB112B022544B3900CE65F6 /* lightgrid.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB112AF22544B3900CE65F6 /* lightgrid.c */; };
 		CEB58F2025E88D2300407322 /* libopenal.1.21.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEB58F1F25E88D2300407322 /* libopenal.1.21.1.dylib */; };
 		CEB8D6271E00B73200043814 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
@@ -1649,6 +1650,8 @@
 		CEAC32BF242125ED007E1253 /* sprite_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_vs.glsl; sourceTree = "<group>"; };
 		CEAC32C0242125ED007E1253 /* sprite_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_fs.glsl; sourceTree = "<group>"; };
 		CEAD2AB3203CF7E800F1FB7E /* libopenal.1.18.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.18.2.dylib; path = ../../../../usr/local/lib/libopenal.1.18.2.dylib; sourceTree = "<group>"; };
+		CEAFB9BA27F618BA002ED92D /* luxel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = luxel.h; sourceTree = "<group>"; };
+		CEAFB9BB27F618BA002ED92D /* luxel.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = luxel.c; sourceTree = "<group>"; };
 		CEB112AE22544B3800CE65F6 /* lightgrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lightgrid.h; sourceTree = "<group>"; };
 		CEB112AF22544B3900CE65F6 /* lightgrid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lightgrid.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
@@ -2797,6 +2800,8 @@
 				CEB112AE22544B3800CE65F6 /* lightgrid.h */,
 				CE12D6ED1C5C58C300CD0B13 /* lightmap.c */,
 				CEBDB0C3214A02B400A7AC3D /* lightmap.h */,
+				CEAFB9BA27F618BA002ED92D /* luxel.h */,
+				CEAFB9BB27F618BA002ED92D /* luxel.c */,
 				CE12D6EE1C5C58C300CD0B13 /* main.c */,
 				CE12D6F11C5C58C300CD0B13 /* map.c */,
 				CE42657321C3CD7D00F768DD /* map.h */,
@@ -4479,6 +4484,7 @@
 				CE80FFE41C5E4D1800A21A51 /* bsp.c in Sources */,
 				CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */,
 				CE34099021C2D52500989FC9 /* entity.c in Sources */,
+				CEAFB9BC27F618BA002ED92D /* luxel.c in Sources */,
 				CE80FFE61C5E4D1800A21A51 /* face.c in Sources */,
 				CEF3C9462570732300BA332E /* fog.c in Sources */,
 				CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */,

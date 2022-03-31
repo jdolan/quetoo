@@ -21,31 +21,11 @@
 
 #pragma once
 
-#include "light.h"
+#include "luxel.h"
 
-#define MAX_BOUNCES 3
-
-typedef struct {
-	vec3_t diffuse;
-	vec3_t direction;
-	int32_t light_id;
-	light_type_t light_type;
-	int32_t indirect_bounce;
-} lumen_t;
-
-typedef struct {
-	int32_t s, t, u;
-	vec3_t origin;
-	vec3_t normal;
-	vec3_t ambient;
-	vec3_t diffuse;
-	vec3_t direction;
-	vec3_t indirect[MAX_BOUNCES];
-	vec3_t caustics;
-	vec4_t fog;
-	GArray *lumens;
-} luxel_t;
-
+/**
+ * @brief Lightmaps are per-face textures of lighting information.
+ */
 typedef struct {
 	bsp_face_t *face;
 	const bsp_node_t *node;

@@ -12,6 +12,7 @@ noinst_HEADERS = \
 	light.h \
 	lightgrid.h \
 	lightmap.h \
+	luxel.h \
 	material.h \
 	monitor.h \
 	patch.h \
@@ -42,6 +43,7 @@ quemap_SOURCES = \
 	light.c \
 	lightgrid.c \
 	lightmap.c \
+	luxel.c \
 	main.c \
 	map.c \
 	material.c \
