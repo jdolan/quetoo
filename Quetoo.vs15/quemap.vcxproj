@@ -30,6 +30,7 @@
     <ClCompile Include="..\src\tools\quemap\light.c" />
     <ClCompile Include="..\src\tools\quemap\lightgrid.c" />
     <ClCompile Include="..\src\tools\quemap\lightmap.c" />
+    <ClCompile Include="..\src\tools\quemap\luxel.c" />
     <ClCompile Include="..\src\tools\quemap\main.c" />
     <ClCompile Include="..\src\tools\quemap\map.c" />
     <ClCompile Include="..\src\tools\quemap\material.c" />
@@ -62,6 +63,7 @@
     <ClInclude Include="..\src\tools\quemap\light.h" />
     <ClInclude Include="..\src\tools\quemap\lightgrid.h" />
     <ClInclude Include="..\src\tools\quemap\lightmap.h" />
+    <ClInclude Include="..\src\tools\quemap\luxel.h" />
     <ClInclude Include="..\src\tools\quemap\map.h" />
     <ClInclude Include="..\src\tools\quemap\material.h" />
     <ClInclude Include="..\src\tools\quemap\monitor.h" />

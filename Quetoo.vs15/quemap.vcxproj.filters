@@ -111,6 +111,9 @@
     <ClCompile Include="..\src\tools\quemap\texture.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\tools\quemap\luxel.c">
+      <Filter>src\tools\quemap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\tools\quemap\brush.h">
@@ -201,6 +204,9 @@
       <Filter>deps\minizip</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tools\quemap\texture.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\luxel.h">
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
   </ItemGroup>
