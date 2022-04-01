@@ -363,9 +363,9 @@ static void LightForPatch(const patch_t *patch) {
 	light.color = GetMaterialColor(brush_side->material);
 	light.color = ColorNormalize(light.color);
 
-	const float max = Maxf(Maxf(light.color.x, light.color.y), light.color.z);
-	if (max < 1.0) {
-		light.color = Vec3_Scale(light.color, 1.0 / max);
+	const float max = Vec3_Hmaxf(light.color);
+	if (max < 1.f) {
+		light.color = Vec3_Scale(light.color, 1.f / max);
 	}
 
 	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * patch_brightness;
