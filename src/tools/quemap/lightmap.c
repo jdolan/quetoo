@@ -94,9 +94,7 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 			l->s = s;
 			l->t = t;
 
-			ProjectLightmapLuxel(lm, l, 0.0, 0.0);
-
-			l->direction = LuxelNormal(lm, l->origin);
+			l->direction = Vec3_Up();
 		}
 	}
 }
@@ -780,7 +778,7 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	for (guint i = 0; i < luxel->lumens->len; i++) {
 		lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
 
-		// normalize to 0.0 - 1.0
+		// normalize to light radius
 		lumen->diffuse = Vec3_Scale(lumen->diffuse, 1.f / 255.f);
 
 		// apply brightness, saturation and contrast
