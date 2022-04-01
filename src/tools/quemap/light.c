@@ -121,10 +121,8 @@ static void LightForEntity_worldspawn(const cm_entity_t *entity, light_t *light)
 		light->type = LIGHT_AMBIENT;
 		light->atten = LIGHT_ATTEN_NONE;
 		light->color = ambient;
-		light->radius = LIGHT_RADIUS_AMBIENT;
+		light->radius = LIGHT_RADIUS_AMBIENT * ambient_brightness;
 		light->bounds = Box3_Null();
-
-		light->color = Vec3_Scale(light->color, ambient_brightness);
 	}
 }
 
