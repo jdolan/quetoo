@@ -163,36 +163,6 @@ size_t BuildLightgrid(void) {
 /**
  * @brief
  */
-static void Lightgrid_Lumen(const light_t *light, luxel_t *luxel, const vec3_t dir, float intensity) {
-
-	if (luxel->lumens == NULL) {
-		luxel->lumens = g_array_new(false, true, sizeof(lumen_t));
-	} else {
-		for (guint i = 0; i < luxel->lumens->len; i++) {
-			lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
-
-			if (lumen->light_id == light->id) {
-				lumen->diffuse = Vec3_Fmaf(lumen->diffuse, intensity, light->color);
-				lumen->direction = Vec3_Fmaf(lumen->direction, intensity, dir);
-				return;
-			}
-		}
-	}
-
-	const lumen_t lumen = (lumen_t) {
-		.diffuse = Vec3_Scale(light->color, intensity),
-		.direction = Vec3_Scale(dir, intensity),
-		.light_id = light->id,
-		.light_type = light->type,
-		.indirect_bounce = indirect_bounce
-	};
-
-	luxel->lumens = g_array_append_val(luxel->lumens, lumen);
-}
-
-/**
- * @brief
- */
 static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float scale) {
 
 	const vec3_t points[] = CUBE_8;
@@ -208,7 +178,7 @@ static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float s
 		intensity += light->radius * sample_fraction * trace.fraction;
 	}
 
-	Lightgrid_Lumen(light, luxel, luxel->normal, intensity);
+	Luxel_LightLumen(light, luxel, luxel->normal, intensity);
 }
 
 /**
@@ -224,7 +194,7 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
 		if (trace.surface & SURF_SKY) {
 			const float intensity = (light->radius / light->num_points) * scale;
-			Lightgrid_Lumen(light, luxel, dir, intensity);
+			Luxel_LightLumen(light, luxel, dir, intensity);
 		}
 	}
 }
@@ -264,7 +234,7 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		Lightgrid_Lumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, intensity);
 		break;
 	}
 }
@@ -313,7 +283,7 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 			continue;
 		}
 
-		Lightgrid_Lumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, intensity);
 		break;
 	}
 }
@@ -361,7 +331,7 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		Lightgrid_Lumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, intensity);
 		break;
 	}
 }
@@ -409,7 +379,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 			continue;
 		}
 
-		Lightgrid_Lumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, intensity);
 		break;
 	}
 }
