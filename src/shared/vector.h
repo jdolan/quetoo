@@ -877,6 +877,13 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Fmaf(const vec3_t
 }
 
 /**
+ * @return A vector containing the max component of `v`.
+ */
+static inline float __attribute__ ((warn_unused_result)) Vec3_Hmaxf(const vec3_t v) {
+	return Maxf(Maxf(v.x, v.y), v.z);
+}
+
+/**
  * @return A vector containing the max components of `a` and `b`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Maxf(const vec3_t a, const vec3_t b) {
@@ -884,7 +891,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Maxf(const vec3_t
 }
 
 /**
- * @return The vector `(-FLT_MAX, -FLT_MAX)`.
+ * @return The vector `(-FLT_MAX, -FLT_MAX, -FLT_MAX)`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Maxs(void) {
 	return Vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
@@ -898,7 +905,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Minf(const vec3_t
 }
 
 /**
- * @return The vector `(FLT_MAX, FLT_MAX)`.
+ * @return The vector `(FLT_MAX, FLT_MAX, FLT_MAX)`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mins(void) {
 	return Vec3(FLT_MAX, FLT_MAX, FLT_MAX);
