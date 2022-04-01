@@ -165,18 +165,7 @@ size_t BuildLightgrid(void) {
  */
 static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float scale) {
 
-	const vec3_t points[] = CUBE_8;
-	float sample_fraction = scale / lengthof(points);
-
-	float intensity = 0.f;
-
-	for (size_t i = 0; i < lengthof(points); i++) {
-
-		const vec3_t end = Vec3_Fmaf(luxel->origin, light->radius, points[i]);
-		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
-
-		intensity += light->radius * sample_fraction * trace.fraction;
-	}
+	const float intensity = light->radius * scale;
 
 	Luxel_LightLumen(light, luxel, luxel->normal, intensity);
 }
@@ -434,13 +423,11 @@ void DirectLightgrid(int32_t luxel_num) {
 		Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
 	};
 
-	const float weight = antialias ? 1.f / lengthof(offsets) : 1.f;
+	const float weight = 1.f / lengthof(offsets);
 
 	luxel_t *l = &lg.luxels[luxel_num];
 
-	float contribution = 0.f;
-
-	for (size_t i = 0; i < lengthof(offsets) && contribution < 1.f; i++) {
+	for (size_t i = 0; i < lengthof(offsets); i++) {
 
 		const float soffs = offsets[i].x;
 		const float toffs = offsets[i].y;
@@ -455,25 +442,7 @@ void DirectLightgrid(int32_t luxel_num) {
 			continue;
 		}
 
-		contribution += weight;
-
 		LightgridLuxel(lights, l, weight);
-	}
-
-	if (contribution > 0.f) {
-		if (contribution < 1.f) {
-			l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
-			l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
-			l->direction = Vec3_Scale(l->direction, 1.f / contribution);
-		}
-	} else {
-		// Even luxels in solids should receive at least ambient light
-		for (guint j = 0; j < unattenuated_lights->len; j++) {
-			const light_t *light = g_ptr_array_index(unattenuated_lights, j);
-			if (light->type == LIGHT_AMBIENT) {
-				l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
-			}
-		}
 	}
 }
 
