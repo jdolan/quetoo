@@ -668,11 +668,8 @@ void FinalizeLightgrid(int32_t luxel_num) {
 		// apply brightness, saturation and contrast
 		lumen->diffuse = ColorFilter(lumen->diffuse);
 
-		// mix the luxel normal to attenuate the direction
-		const float intensity = Clampf(Vec3_Length(lumen->direction) / 255.f, 0.0, 1.f);
-		const vec3_t direction = Vec3_Mix(Vec3_Normalize(lumen->direction), Vec3_Up(), 1.f - intensity);
-
-		lumen->direction = Vec3_Normalize(direction);
+		// normalize the directional vector
+		lumen->direction = Vec3_Normalize(lumen->direction);
 
 		switch (lumen->light_type) {
 			case LIGHT_SUN:
