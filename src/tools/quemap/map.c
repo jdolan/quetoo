@@ -395,11 +395,6 @@ static void SetMaterialFlags(brush_side_t *side) {
 				side->surface = material->cm->surface;
 			}
 		}
-		if (material->cm->light) {
-			if (side->value == 0) {
-				side->value = material->cm->light;
-			}
-		}
 	}
 
 	if (!g_strcmp0(side->texture, "common/caulk")) {
