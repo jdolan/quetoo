@@ -26,6 +26,7 @@
 #define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
 #define LIGHT_RADIUS DEFAULT_LIGHT
 #define LIGHT_RADIUS_AMBIENT 255.f
+#define LIGHT_INTENSITY DEFAULT_INTENSITY
 #define LIGHT_ANGLE_UP -1.f
 #define LIGHT_ANGLE_DOWN -2.f
 #define LIGHT_CONE 22.5f
@@ -83,6 +84,11 @@ typedef struct light_s {
 	 * @brief The light radius in units.
 	 */
 	float radius;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
 
 	/**
 	 * @brief The angle, in radians, from the normal where spotlight attenuation occurs.

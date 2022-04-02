@@ -232,6 +232,7 @@ typedef struct {
 #define DEFAULT_BLOOM 1.f
 #define DEFAULT_ALPHA_TEST .5f
 #define DEFAULT_LIGHT 300.f
+#define DEFAULT_INTENSITY 1.f
 #define DEFAULT_PATCH_SIZE 128
 
 /**
@@ -289,9 +290,14 @@ typedef struct cm_material_s {
 	int32_t surface;
 
 	/**
-	 * @brief Light emission applied to surfaces referencing this material.
+	 * @brief Light emission radius applied to surfaces referencing this material.
 	 */
 	float light;
+
+	/**
+	 * @brief Light emission intensity applied to surfaces referencing this material.
+	 */
+	float intensity;
 
 	/**
 	 * @brief The alpha test threshold.

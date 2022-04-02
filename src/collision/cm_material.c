@@ -846,6 +846,17 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			m->surface |= SURF_LIGHT;
 		}
 
+		if (!g_strcmp0(token, "intensity")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->intensity, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No intensity specified");
+				m->intensity = DEFAULT_INTENSITY;
+			} else if (m->intensity < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid intensity value, must be > 0.0");
+				m->light = DEFAULT_INTENSITY;
+			}
+		}
+
 		if (!g_strcmp0(token, "alpha_test")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alpha_test, 1) != 1) {
@@ -1247,11 +1258,15 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tlight %g\n", material->light);
 	}
 
-	if (material->alpha_test) {
+	if (material->intensity != DEFAULT_INTENSITY) {
+		Fs_Print(file, "\tintensity %g\n", material->intensity);
+	}
+
+	if (material->alpha_test != DEFAULT_ALPHA_TEST) {
 		Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
 	}
 
-	if (material->patch_size) {
+	if (material->patch_size != DEFAULT_PATCH_SIZE) {
 		Fs_Print(file, "\tpatch_size %g\n", material->patch_size);
 	}
 

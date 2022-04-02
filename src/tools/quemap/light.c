@@ -122,6 +122,7 @@ static void LightForEntity_worldspawn(const cm_entity_t *entity, light_t *light)
 		light->atten = LIGHT_ATTEN_NONE;
 		light->color = ambient;
 		light->radius = LIGHT_RADIUS_AMBIENT * ambient_brightness;
+		light->intensity = LIGHT_INTENSITY;
 		light->bounds = Box3_Null();
 	}
 }
@@ -135,6 +136,7 @@ static void LightForEntity_light_sun(const cm_entity_t *entity, light_t *light) 
 	light->atten = LIGHT_ATTEN_NONE;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
 	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
+	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->bounds = Box3_Null();
 
@@ -187,6 +189,7 @@ static void LightForEntity_light(const cm_entity_t *entity, light_t *light) {
 	light->atten = LIGHT_ATTEN_LINEAR;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
 	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
+	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->size = Cm_EntityValue(entity, "_size")->value;
 
@@ -238,6 +241,7 @@ static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light)
 	light->atten = LIGHT_ATTEN_LINEAR;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
 	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
+	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->size = Cm_EntityValue(entity, "_size")->value;
 
@@ -328,6 +332,8 @@ static void LightForEntity(const cm_entity_t *entity) {
 		LightForEntity_light_spot(entity, &light);
 	}
 
+	light.color = Vec3_Scale(light.color, light.intensity);
+
 	if (light.type != LIGHT_INVALID) {
 		g_array_append_val(lights, light);
 	}
@@ -350,6 +356,7 @@ static void LightForPatch(const patch_t *patch) {
 		.plane = plane,
 		.normal = plane->normal,
 		.theta = LIGHT_CONE,
+		.intensity = material->cm->intensity ?: LIGHT_INTENSITY,
 		.model = patch->model,
 		.id = id++,
 	};
@@ -367,6 +374,7 @@ static void LightForPatch(const patch_t *patch) {
 	}
 
 	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * patch_brightness;
+	light.color = Vec3_Scale(light.color, light.intensity);
 
 	light.bounds = Box3_FromCenter(light.origin);
 
@@ -539,6 +547,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		.plane = plane,
 		.normal = plane->normal,
 		.theta = LIGHT_CONE,
+		.intensity = LIGHT_INTENSITY,
 		.model = patch->model,
 		.id = id++,
 	};
