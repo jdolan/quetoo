@@ -779,44 +779,56 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	for (guint i = 0; i < luxel->lumens->len; i++) {
 		lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
 
-		// mix the luxel normal to attenuate the direction
-		const float intensity = Clampf(Vec3_Length(lumen->direction), 0.0, 0.9f);
-		vec3_t direction = Vec3_Mix(Vec3_Normalize(lumen->direction), luxel->normal, 1.f - intensity);
-
-		// transform the direction into tangent space
-		lumen->direction.x = Vec3_Dot(direction, tangent);
-		lumen->direction.y = Vec3_Dot(direction, bitangent);
-		lumen->direction.z = Vec3_Dot(direction, luxel->normal);
-
-		lumen->direction = Vec3_Normalize(lumen->direction);
-
 		switch (lumen->light_type) {
 			case LIGHT_SUN:
 			case LIGHT_POINT:
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
-			case LIGHT_INDIRECT:
 				if (i == 0) {
 					luxel->diffuse = lumen->diffuse;
 					luxel->direction = lumen->direction;
 				} else {
-					const float dot = Clampf(Vec3_Dot(luxel->direction, lumen->direction), 0.f, 1.f);
+					const vec3_t a = Vec3_Normalize(luxel->direction);
+					const vec3_t b = Vec3_Normalize(lumen->direction);
+					const float dot = Clampf(Vec3_Dot(a, b), 0.f, 1.f);
 					luxel->diffuse = Vec3_Fmaf(luxel->diffuse, dot, lumen->diffuse);
 					luxel->direction = Vec3_Fmaf(luxel->direction, dot, lumen->direction);
 					luxel->ambient = Vec3_Fmaf(luxel->ambient, 1.f - dot, lumen->diffuse);
 				}
 				break;
+			case LIGHT_INDIRECT:
+				if (i == 0) {
+					luxel->diffuse = lumen->diffuse;
+					luxel->direction = lumen->direction;
+				} else {
+					luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->diffuse);
+				}
+				break;
 			default:
 				luxel->ambient = Vec3_Add(luxel->ambient, lumen->diffuse);
+				if (i == 0) {
+					luxel->direction = luxel->normal;
+				}
 				break;
 		}
 	}
+
+	// keep the pre-filtered diffuse color for determining intensity
+	const vec3_t diffuse = luxel->diffuse;
 
 	// normalize the accumulated light
 	luxel->ambient = ColorFilter(luxel->ambient);
 	luxel->diffuse = ColorFilter(luxel->diffuse);
 
-	// normalize the direction
+	// lerp the direction with the normal, according to the light intensity
+	const float intensity = Clampf(Vec3_Length(diffuse), 0.0, 1.f);
+	vec3_t direction = Vec3_Normalize(Vec3_Mix(Vec3_Normalize(luxel->direction), luxel->normal, 1.f - intensity));
+
+	// transform the direction into tangent space
+	luxel->direction.x = Vec3_Dot(direction, tangent);
+	luxel->direction.y = Vec3_Dot(direction, bitangent);
+	luxel->direction.z = Vec3_Dot(direction, luxel->normal);
+
 	luxel->direction = Vec3_Normalize(luxel->direction);
 
 	// and normalize the cuastics
