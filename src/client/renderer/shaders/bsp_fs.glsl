@@ -102,8 +102,8 @@ void main(void) {
 
 		direction = normalize(tbn * (normalize(direction * 2.0 - 1.0)));
 
-		ambient *= modulate * max(0.0, dot(vertex.normal, normalmap));
-		diffuse *= modulate * max(0.0, dot(direction, normalmap));
+		ambient *= modulate * max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
+		diffuse *= modulate * max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
 
 		specular += diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
 		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
