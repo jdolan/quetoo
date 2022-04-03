@@ -30,6 +30,7 @@ uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
 
 uniform int entity;
+uniform mat4 model;
 
 uniform int bicubic;
 
@@ -84,23 +85,22 @@ void main(void) {
 
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
-		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
+		normalmap = normalize(tbn * (normalize((normalmap * 2.0 - 1.0) * roughness)));
 
 		vec3 ambient, diffuse, direction, caustics, specular = vec3(0.0);
 		if (entity == 0) {
 			ambient = sample_lightmap(0).rgb;
 			diffuse = sample_lightmap(1).rgb;
 			direction = sample_lightmap(2).xyz;
+			direction = normalize(tbn * (normalize(direction * 2.0 - 1.0)));
 			caustics = sample_lightmap(3).rgb;
 		} else {
 			ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
 			diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 			direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
-			direction = normalize((view * vec4(direction * 2.0 - 1.0, 0.0)).xyz);
+			direction = normalize((view * model * vec4(normalize(direction * 2.0 - 1.0), 0.0)).xyz);
 			caustics = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
 		}
-
-		direction = normalize(tbn * (normalize(direction * 2.0 - 1.0)));
 
 		ambient *= modulate * max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
 		diffuse *= modulate * max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
