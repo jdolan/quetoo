@@ -83,7 +83,15 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->hardness, setValue, (double) self->material->cm->hardness);
 		$(self->specularity, setValue, (double) self->material->cm->specularity);
 		$(self->bloom, setValue, (double) self->material->cm->bloom);
-		$(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
+
+		if (material->cm->surface & SURF_ALPHA_TEST) {
+			$(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
+			self->alphaTest->control.state &= ~ControlStateDisabled;
+		} else {
+			$(self->alphaTest, setValue, DEFAULT_ALPHA_TEST);
+			self->alphaTest->control.state |= ControlStateDisabled;
+		}
+
 		$(self->lightRadius, setValue, (double) self->material->cm->light.radius);
 		$(self->lightIntensity, setValue, (double) self->material->cm->light.intensity);
 
