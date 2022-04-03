@@ -116,8 +116,8 @@ void main(void) {
 
 		vec3 stainmap = sample_lightmap(4).rgb;
 
-		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * stainmap * modulate, 0.0, 1.0);
-		out_color.rgb = clamp(out_color.rgb + specular * stainmap * modulate, 0.0, 1.0);
+		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * stainmap, 0.0, 1.0);
+		out_color.rgb = clamp(out_color.rgb + specular * stainmap, 0.0, 1.0);
 
 		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 		out_bloom.a = out_color.a;
