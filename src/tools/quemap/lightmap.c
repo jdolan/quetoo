@@ -605,9 +605,7 @@ void DirectLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		float contribution = 0.0;
-
-		for (size_t j = 0; j < lengthof(offsets) && contribution < 1.f; j++) {
+		for (size_t j = 0; j < lengthof(offsets); j++) {
 
 			const float soffs = offsets[j].x;
 			const float toffs = offsets[j].y;
@@ -618,27 +616,20 @@ void DirectLightmap(int32_t face_num) {
 				continue;
 			}
 
-			contribution += weight;
-
 			LightmapLuxel(lights, lm, l, weight);
+			if (!antialias) {
+				break;
+			}
 		}
 
-		// FIXME: Fucked
-		if (contribution > 0.f) {
-			if (contribution < 1.f) {
-//				l->ambient = Vec3_Scale(l->ambient, 1.f / contribution);
-//				l->diffuse = Vec3_Scale(l->diffuse, 1.f / contribution);
-//				l->direction = Vec3_Scale(l->direction, 1.f / contribution);
-			}
-		} else {
-			// For inline models, always add ambient light sources, even if the sample resides
-			// in solid. This prevents completely unlit tops of doors, bottoms of plats, etc.
-			if (lm->model != bsp_file.models) {
-				for (guint j = 0; j < unattenuated_lights->len; j++) {
-					const light_t *light = g_ptr_array_index(lights, j);
-					if (light->type == LIGHT_AMBIENT) {
-						l->ambient = Vec3_Fmaf(l->ambient, light->radius, light->color);
-					}
+		// For inline models, always add ambient light sources, even if the sample resides
+		// in solid. This prevents completely unlit tops of doors, bottoms of plats, etc.
+
+		if (lm->model != bsp_file.models && l->lumens == NULL) {
+			for (guint j = 0; j < unattenuated_lights->len; j++) {
+				const light_t *light = g_ptr_array_index(lights, j);
+				if (light->type == LIGHT_AMBIENT) {
+					Luxel_LightLumen(light, l, Vec3_Zero(), 1.f);
 				}
 			}
 		}
