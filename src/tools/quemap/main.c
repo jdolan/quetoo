@@ -218,7 +218,7 @@ static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
 		if (!g_strcmp0(Com_Argv(i), "--no-indirect")) {
-			indirect_brightness = 0.f;
+			indirect_intensity = 0.f;
 			Com_Verbose("indirect: false\n");
 		} else if (!g_strcmp0(Com_Argv(i), "--antialias")) {
 			antialias = true;
@@ -243,25 +243,25 @@ static void Check_LIGHT_Options(int32_t argc) {
 			patch_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
 			Com_Verbose("patch size: %d\n", patch_size);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--ambient-brightness")) {
-			ambient_brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("ambient brightness: %g\n", ambient_brightness);
+		} else if (!g_strcmp0(Com_Argv(i), "--ambient-intensity")) {
+			ambient_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("ambient intensity: %g\n", ambient_intensity);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--sun-brightness")) {
-			sun_brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("sun brightness: %g\n", sun_brightness);
+		} else if (!g_strcmp0(Com_Argv(i), "--sun-intensity")) {
+			sun_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("sun intensity: %g\n", sun_intensity);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--light-brightness")) {
-			light_brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("light brightness: %g\n", light_brightness);
+		} else if (!g_strcmp0(Com_Argv(i), "--light-intensity")) {
+			light_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("light intensity: %g\n", light_intensity);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--patch-brightness")) {
-			patch_brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("patch brightness: %g\n", patch_brightness);
+		} else if (!g_strcmp0(Com_Argv(i), "--patch-intensity")) {
+			patch_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("patch intensity: %g\n", patch_intensity);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--indirect-brightness")) {
-			indirect_brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("indirect brightness: %g\n", indirect_brightness);
+		} else if (!g_strcmp0(Com_Argv(i), "--indirect-intensity")) {
+			indirect_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("indirect intensity: %g\n", indirect_intensity);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--bounce")) {
 			num_indirect_bounces = (int32_t) CLAMP(strtol(Com_Argv(i + 1), NULL, 10), 1, MAX_BOUNCES);

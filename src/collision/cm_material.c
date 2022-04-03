@@ -646,6 +646,9 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->hardness = DEFAULT_HARDNESS;
 	mat->specularity = DEFAULT_SPECULARITY;
 	mat->bloom = DEFAULT_BLOOM;
+	mat->alpha_test = DEFAULT_ALPHA_TEST;
+	mat->patch_size = DEFAULT_PATCH_SIZE;
+	mat->light.intensity = DEFAULT_LIGHT_INTENSITY;
 
 	return mat;
 }
@@ -822,8 +825,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			} else {
 				m->surface |= Cm_ParseSurface(token);
 
-				if ((m->surface & SURF_LIGHT) && m->light == 0.f) {
-					m->light = DEFAULT_LIGHT;
+				if ((m->surface & SURF_LIGHT) && m->light.radius == 0.f) {
+					m->light.radius = DEFAULT_LIGHT_RADIUS;
 				}
 				
 				if ((m->surface & SURF_ALPHA_TEST) && m->alpha_test == 0.f) {
@@ -831,30 +834,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				}
 			}
 			continue;
-		}
-
-		if (!g_strcmp0(token, "light")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No light specified");
-				m->light = DEFAULT_LIGHT;
-			} else if (m->light < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid light value, must be > 0.0");
-				m->light = DEFAULT_LIGHT;
-			}
-
-			m->surface |= SURF_LIGHT;
-		}
-
-		if (!g_strcmp0(token, "intensity")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->intensity, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No intensity specified");
-				m->intensity = DEFAULT_INTENSITY;
-			} else if (m->intensity < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid intensity value, must be > 0.0");
-				m->light = DEFAULT_INTENSITY;
-			}
 		}
 
 		if (!g_strcmp0(token, "alpha_test")) {
@@ -885,6 +864,30 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps.name, sizeof(m->footsteps.name))) {
 				Cm_MaterialWarn(path, &parser, "Invalid footsteps value");
+			}
+		}
+
+		if (!g_strcmp0(token, "light") || !g_strcmp0(token, "light.radius")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light radius specified");
+				m->light.radius = DEFAULT_LIGHT_RADIUS;
+			} else if (m->light.radius < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light radius, must be > 0.0");
+				m->light.radius = DEFAULT_LIGHT_RADIUS;
+			}
+
+			m->surface |= SURF_LIGHT;
+		}
+
+		if (!g_strcmp0(token, "light.intensity")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.intensity, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light intensity specified");
+				m->light.intensity = DEFAULT_LIGHT_INTENSITY;
+			} else if (m->light.intensity < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light intensity, must be > 0.0");
+				m->light.intensity = DEFAULT_LIGHT_INTENSITY;
 			}
 		}
 
@@ -1254,14 +1257,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tsurface \"%s\"\n", Cm_UnparseSurface(material->surface));
 	}
 
-	if (material->light) {
-		Fs_Print(file, "\tlight %g\n", material->light);
-	}
-
-	if (material->intensity != DEFAULT_INTENSITY) {
-		Fs_Print(file, "\tintensity %g\n", material->intensity);
-	}
-
 	if (material->alpha_test != DEFAULT_ALPHA_TEST) {
 		Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
 	}
@@ -1273,6 +1268,14 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	// if not empty/default, write footsteps
 	if (*material->footsteps.name && g_strcmp0(material->footsteps.name, "default")) {
 		Fs_Print(file, "\tfootsteps %s\n", material->footsteps.name);
+	}
+
+	if (material->light.radius) {
+		Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
+	}
+
+	if (material->light.intensity != DEFAULT_LIGHT_INTENSITY) {
+		Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
 	}
 
 	// write stages

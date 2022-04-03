@@ -25,7 +25,7 @@
 /**
  * @brief
  */
-void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t dir, float intensity) {
+void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t dir, float lumens) {
 
 	if (luxel->lumens == NULL) {
 		luxel->lumens = g_array_new(false, true, sizeof(lumen_t));
@@ -34,16 +34,16 @@ void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t dir, fl
 			lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
 
 			if (lumen->light_id == light->id) {
-				lumen->diffuse = Vec3_Fmaf(lumen->diffuse, intensity, light->color);
-				lumen->direction = Vec3_Fmaf(lumen->direction, intensity, dir);
+				lumen->diffuse = Vec3_Fmaf(lumen->diffuse, lumens, light->color);
+				lumen->direction = Vec3_Fmaf(lumen->direction, lumens, dir);
 				return;
 			}
 		}
 	}
 
 	const lumen_t lumen = (lumen_t) {
-		.diffuse = Vec3_Scale(light->color, intensity),
-		.direction = Vec3_Scale(dir, intensity),
+		.diffuse = Vec3_Scale(light->color, lumens),
+		.direction = Vec3_Scale(dir, lumens),
 		.light_id = light->id,
 		.light_type = light->type,
 		.indirect_bounce = indirect_bounce

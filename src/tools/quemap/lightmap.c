@@ -265,7 +265,7 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 	const vec3_t points[] = DOME_COSINE_36X;
 	float sample_fraction = scale / lengthof(points);
 
-	float intensity = 0.f;
+	float lumens = 0.f;
 
 	for (size_t i = 0; i < lengthof(points); i++) {
 
@@ -284,10 +284,10 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 		const vec3_t point = Mat4_Transform(lightmap->inverse_matrix, sample);
 		const cm_trace_t trace = Light_Trace(luxel->origin, point, lightmap->model->head_node, CONTENTS_SOLID);
 
-		intensity += light->radius * sample_fraction * trace.fraction;
+		lumens += sample_fraction * trace.fraction;
 	}
 
-	Luxel_LightLumen(light, luxel, luxel->normal, intensity);
+	Luxel_LightLumen(light, luxel, Vec3_Zero(), lumens);
 }
 
 /**
@@ -296,6 +296,7 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	for (int32_t i = 0; i < light->num_points; i++) {
+
 		const vec3_t dir = Vec3_Negate(light->points[i]);
 
 		float dot = Vec3_Dot(dir, luxel->normal);
@@ -311,8 +312,8 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, lightmap->model->head_node, CONTENTS_SOLID);
 
 		if (trace.surface & SURF_SKY) {
-			const float intensity = (light->radius / light->num_points) * dot * scale;
-			Luxel_LightLumen(light, luxel, dir, intensity);
+			const float lumens = (1.f / light->num_points) * dot * scale;
+			Luxel_LightLumen(light, luxel, dir, lumens);
 		}
 	}
 }
@@ -352,7 +353,7 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 			break;
 	}
 
-	const float intensity = light->radius * atten * dot * scale;
+	const float lumens = atten * dot * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -361,7 +362,7 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, lumens);
 		break;
 	}
 }
@@ -410,7 +411,7 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 			break;
 	}
 
-	const float intensity = light->radius * atten * cutoff * dot * scale;
+	const float lumens = atten * cutoff * dot * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -419,7 +420,7 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, lumens);
 		break;
 	}
 }
@@ -467,7 +468,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * atten * atten * cutoff * dot * scale;
+	const float lumens = atten * atten * cutoff * dot * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -476,7 +477,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, lumens);
 		break;
 	}
 }
@@ -528,7 +529,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * atten * atten * cutoff * dot * scale;
+	const float lumens = atten * atten * cutoff * dot * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -537,7 +538,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, lumens);
 		break;
 	}
 }
@@ -778,14 +779,8 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	for (guint i = 0; i < luxel->lumens->len; i++) {
 		lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
 
-		// normalize to light radius
-		lumen->diffuse = Vec3_Scale(lumen->diffuse, 1.f / 255.f);
-
-		// apply brightness, saturation and contrast
-		lumen->diffuse = ColorFilter(lumen->diffuse);
-
 		// mix the luxel normal to attenuate the direction
-		const float intensity = Clampf(Vec3_Length(lumen->direction) / 255.f, 0.0, 1.f);
+		const float intensity = Clampf(Vec3_Length(lumen->direction), 0.0, 0.9f);
 		vec3_t direction = Vec3_Mix(Vec3_Normalize(lumen->direction), luxel->normal, 1.f - intensity);
 
 		// transform the direction into tangent space
@@ -800,11 +795,15 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 			case LIGHT_POINT:
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
+			case LIGHT_INDIRECT:
 				if (i == 0) {
 					luxel->diffuse = lumen->diffuse;
 					luxel->direction = lumen->direction;
 				} else {
-					luxel->ambient = Vec3_Add(luxel->ambient, lumen->diffuse);
+					const float dot = Clampf(Vec3_Dot(luxel->direction, lumen->direction), 0.f, 1.f);
+					luxel->diffuse = Vec3_Fmaf(luxel->diffuse, dot, lumen->diffuse);
+					luxel->direction = Vec3_Fmaf(luxel->direction, dot, lumen->direction);
+					luxel->ambient = Vec3_Fmaf(luxel->ambient, 1.f - dot, lumen->diffuse);
 				}
 				break;
 			default:
@@ -813,8 +812,12 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 		}
 	}
 
-	// re-normalize the accumulated ambient
-	luxel->ambient = ColorNormalize(luxel->ambient);
+	// normalize the accumulated light
+	luxel->ambient = ColorFilter(luxel->ambient);
+	luxel->diffuse = ColorFilter(luxel->diffuse);
+
+	// normalize the direction
+	luxel->direction = Vec3_Normalize(luxel->direction);
 
 	// and normalize the cuastics
 	luxel->caustics = ColorNormalize(luxel->caustics);

@@ -27,14 +27,14 @@ float brightness = 1.f;
 float saturation = 1.f;
 float contrast = 1.f;
 
+float ambient_intensity = LIGHT_INTENSITY;
+float sun_intensity = LIGHT_INTENSITY;
+float light_intensity = LIGHT_INTENSITY;
+float patch_intensity = LIGHT_INTENSITY;
+float indirect_intensity = LIGHT_INTENSITY;
+
 int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 int32_t patch_size = DEFAULT_PATCH_SIZE;
-
-float ambient_brightness = 1.f;
-float sun_brightness = 1.f;
-float light_brightness = 1.f;
-float patch_brightness = 1.f;
-float indirect_brightness = 1.f;
 
 int32_t num_indirect_bounces = 0;
 int32_t indirect_bounce = 0;
@@ -430,69 +430,68 @@ static void LightWorld(void) {
 
 	if (brightness == 1.f) {
 		brightness = Cm_EntityValue(e, "brightness")->value ?: brightness;
-		Com_Verbose("Brightness: %g\n", brightness);
 	}
 
 	if (saturation == 1.f) {
 		saturation = Cm_EntityValue(e, "saturation")->value ?: saturation;
-		Com_Verbose("Saturation: %g\n", saturation);
+
 	}
 
 	if (contrast == 1.f) {
 		contrast = Cm_EntityValue(e, "contrast")->value ?: contrast;
-		Com_Verbose("Contrast: %g\n", contrast);
+	}
+
+	if (ambient_intensity == LIGHT_INTENSITY) {
+		ambient_intensity = Cm_EntityValue(e, "ambient_intensity")->value ?: ambient_intensity;
+	}
+
+	if (sun_intensity == LIGHT_INTENSITY) {
+		sun_intensity = Cm_EntityValue(e, "sun_intensity")->value ?: sun_intensity;
+	}
+
+	if (light_intensity == LIGHT_INTENSITY) {
+		light_intensity = Cm_EntityValue(e, "light_intensity")->value ?: light_intensity;
+	}
+
+	if (patch_intensity == LIGHT_INTENSITY) {
+		patch_intensity = Cm_EntityValue(e, "patch_intensity")->value ?: patch_intensity;
+	}
+
+	if (indirect_intensity == LIGHT_INTENSITY) {
+		indirect_intensity = Cm_EntityValue(e, "indirect_intensity")->value ?: indirect_intensity;
 	}
 
 	if (luxel_size == BSP_LIGHTMAP_LUXEL_SIZE) {
 		luxel_size = Cm_EntityValue(e, "luxel_size")->integer ?: luxel_size;
-		Com_Verbose("Luxel size: %d\n", luxel_size);
 	}
 
 	if (patch_size == DEFAULT_PATCH_SIZE) {
 		patch_size = Cm_EntityValue(e, "patch_size")->integer ?: patch_size;
-		Com_Verbose("Patch size: %d\n", patch_size);
 	}
 
 	if (num_indirect_bounces == 0) {
 		num_indirect_bounces = Cm_EntityValue(e, "bounce")->integer ?: 1;
-		Com_Verbose("Indirect bounces: %d\n", num_indirect_bounces);
-	}
-
-	if (ambient_brightness == 1.f) {
-		ambient_brightness = Cm_EntityValue(e, "ambient_brightness")->value ?: ambient_brightness;
-		Com_Verbose("Ambient brightness: %g\n", ambient_brightness);
-	}
-
-	if (sun_brightness == 1.f) {
-		ambient_brightness = Cm_EntityValue(e, "sun_brightness")->value ?: sun_brightness;
-		Com_Verbose("Sun brightness: %g\n", sun_brightness);
-	}
-
-	if (light_brightness == 1.f) {
-		light_brightness = Cm_EntityValue(e, "light_brightness")->value ?: light_brightness;
-		Com_Verbose("Light brightness: %g\n", light_brightness);
-	}
-
-	if (patch_brightness == 1.f) {
-		patch_brightness = Cm_EntityValue(e, "patch_brightness")->value ?: patch_brightness;
-		Com_Verbose("Patch brightness: %g\n", patch_brightness);
-	}
-
-	if (indirect_brightness == 1.f) {
-		indirect_brightness = Cm_EntityValue(e, "indirect_brightness")->value ?: indirect_brightness;
-		if (indirect_brightness == 1.f) {
-			if (Cm_EntityValue(e, "radiosity")->value) {
-				indirect_brightness = Cm_EntityValue(e, "radiosity")->value;
-				Com_Warn("Worldspawn key radiosity is deprecated. Use indirect_brightness.\n");
-			}
-		}
-		Com_Verbose("Indirect brightness: %g\n", indirect_brightness);
 	}
 
 	if (caustics == 1.f) {
 		caustics = Cm_EntityValue(e, "caustics")->value ?: caustics;
-		Com_Verbose("Caustics intensity: %g\n", caustics);
 	}
+
+	Com_Print("\n");
+	Com_Print("Lighting parameters\n");
+	Com_Print("  Brightness: %g\n", brightness);
+	Com_Print("  Saturation: %g\n", saturation);
+	Com_Print("  Contrast: %g\n", contrast);
+	Com_Print("  Ambient intensity: %g\n", ambient_intensity);
+	Com_Print("  Sun intensity: %g\n", sun_intensity);
+	Com_Print("  Light intensity: %g\n", light_intensity);
+	Com_Print("  Patch intensity: %g\n", patch_intensity);
+	Com_Print("  Indirect intensity: %g\n", indirect_intensity);
+	Com_Print("  Caustics intensity: %g\n", caustics);
+	Com_Print("  Luxel size: %d\n", luxel_size);
+	Com_Print("  Patch size: %d\n", patch_size);
+	Com_Print("  Indirect bounces: %d\n", num_indirect_bounces);
+	Com_Print("\n");
 
 	// build patches
 	BuildPatches();
@@ -513,7 +512,7 @@ static void LightWorld(void) {
 	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
 	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
-	if (indirect_brightness > 0.f) {
+	if (indirect_intensity > 0.f) {
 		for (indirect_bounce = 0; indirect_bounce < num_indirect_bounces; indirect_bounce++) {
 
 			// build indirect lights from lightmapped patches

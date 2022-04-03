@@ -226,13 +226,28 @@ typedef struct {
 	int32_t num_samples;
 } cm_footsteps_t;
 
+/**
+ * @brief Materials may optionally specify an emissive light.
+ */
+typedef struct {
+	/**
+	 * @brief The light radius.
+	 */
+	float radius;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
+} cm_light_t;
+
 #define DEFAULT_ROUGHNESS 1.f
 #define DEFAULT_HARDNESS 1.f
 #define DEFAULT_SPECULARITY 1.f
 #define DEFAULT_BLOOM 1.f
 #define DEFAULT_ALPHA_TEST .5f
-#define DEFAULT_LIGHT 300.f
-#define DEFAULT_INTENSITY 1.f
+#define DEFAULT_LIGHT_RADIUS 300.f
+#define DEFAULT_LIGHT_INTENSITY 1.f
 #define DEFAULT_PATCH_SIZE 128
 
 /**
@@ -290,16 +305,6 @@ typedef struct cm_material_s {
 	int32_t surface;
 
 	/**
-	 * @brief Light emission radius applied to surfaces referencing this material.
-	 */
-	float light;
-
-	/**
-	 * @brief Light emission intensity applied to surfaces referencing this material.
-	 */
-	float intensity;
-
-	/**
 	 * @brief The alpha test threshold.
 	 */
 	float alpha_test;
@@ -333,6 +338,11 @@ typedef struct cm_material_s {
 	 * @brief The footsteps to play when the player walks on this material.
 	 */
 	cm_footsteps_t footsteps;
+
+	/**
+	 * @brief Emissive light.
+	 */
+	cm_light_t light;
 
 	/**
 	 * @brief Default tint colors

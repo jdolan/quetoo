@@ -39,11 +39,11 @@ extern float contrast;
 extern int32_t luxel_size;
 extern int32_t patch_size;
 
-extern float ambient_brightness;
-extern float sun_brightness;
-extern float light_brightness;
-extern float patch_brightness;
-extern float indirect_brightness;
+extern float ambient_intensity;
+extern float sun_intensity;
+extern float light_intensity;
+extern float patch_intensity;
+extern float indirect_intensity;
 
 #define MAX_BOUNCES 3
 extern int32_t num_indirect_bounces;

@@ -121,8 +121,11 @@ static void LightForEntity_worldspawn(const cm_entity_t *entity, light_t *light)
 		light->type = LIGHT_AMBIENT;
 		light->atten = LIGHT_ATTEN_NONE;
 		light->color = ambient;
-		light->radius = LIGHT_RADIUS_AMBIENT * ambient_brightness;
+		light->radius = LIGHT_RADIUS_AMBIENT;
 		light->intensity = LIGHT_INTENSITY;
+
+		light->color = Vec3_Scale(light->color, light->intensity * ambient_intensity);
+
 		light->bounds = Box3_Null();
 	}
 }
@@ -135,16 +138,22 @@ static void LightForEntity_light_sun(const cm_entity_t *entity, light_t *light) 
 	light->type = LIGHT_SUN;
 	light->atten = LIGHT_ATTEN_NONE;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
-	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->bounds = Box3_Null();
 
+	const int32_t num = Cm_EntityNumber(entity);
+
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
 	}
-	
-	light->radius *= sun_brightness;
+
+	if (Cm_EntityValue(entity, "light")->value) {
+		light->intensity = Cm_EntityValue(entity, "light")->value / 255.f;
+		Mon_SendSelect(MON_WARN, num, 0, "light_sun key light is deprecated. Use _intensity.");
+	}
+
+	light->color = Vec3_Scale(light->color, light->intensity * sun_intensity);
 
 	light->normal = Vec3_Down();
 
@@ -152,7 +161,7 @@ static void LightForEntity_light_sun(const cm_entity_t *entity, light_t *light) 
 	if (target) {
 		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
 	} else {
-		Mon_SendSelect(MON_WARN, Cm_EntityNumber(entity), 0, "light_sun missing target");
+		Mon_SendSelect(MON_WARN, num, 0, "light_sun missing target");
 	}
 
 	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE_SUN;
@@ -197,7 +206,7 @@ static void LightForEntity_light(const cm_entity_t *entity, light_t *light) {
 		light->color = LIGHT_COLOR;
 	}
 
-	light->radius *= light_brightness;
+	light->color = Vec3_Scale(light->color, light->intensity * light_intensity);
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -249,7 +258,7 @@ static void LightForEntity_light_spot(const cm_entity_t *entity, light_t *light)
 		light->color = LIGHT_COLOR;
 	}
 
-	light->radius *= light_brightness;
+	light->color = Vec3_Scale(light->color, light->intensity * light_intensity);
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -332,8 +341,6 @@ static void LightForEntity(const cm_entity_t *entity) {
 		LightForEntity_light_spot(entity, &light);
 	}
 
-	light.color = Vec3_Scale(light.color, light.intensity);
-
 	if (light.type != LIGHT_INVALID) {
 		g_array_append_val(lights, light);
 	}
@@ -346,17 +353,18 @@ static void LightForPatch(const patch_t *patch) {
 
 	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane];
+	const material_t *material = &materials[brush_side->material];
 
 	light_t light = {
 		.type = LIGHT_PATCH,
 		.atten = LIGHT_ATTEN_INVERSE_SQUARE,
-		.size = sqrtf(Cm_WindingArea(patch->winding)),
+		.size = material->cm->patch_size ?: DEFAULT_PATCH_SIZE,
 		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, plane->normal),
 		.face = patch->face,
 		.plane = plane,
 		.normal = plane->normal,
 		.theta = LIGHT_CONE,
-		.intensity = material->cm->intensity ?: LIGHT_INTENSITY,
+		.intensity = material->cm->light.intensity ?: LIGHT_INTENSITY,
 		.model = patch->model,
 		.id = id++,
 	};
@@ -366,15 +374,15 @@ static void LightForPatch(const patch_t *patch) {
 	}
 
 	light.color = GetMaterialColor(brush_side->material);
-	light.color = ColorNormalize(light.color);
 
 	const float max = Vec3_Hmaxf(light.color);
 	if (max < 1.f) {
 		light.color = Vec3_Scale(light.color, 1.f / max);
 	}
 
-	light.radius = (brush_side->value ?: DEFAULT_LIGHT) * patch_brightness;
-	light.color = Vec3_Scale(light.color, light.intensity);
+	light.color = Vec3_Scale(light.color, light.intensity * patch_intensity);
+
+	light.radius = brush_side->value ?: material->cm->light.radius;
 
 	light.bounds = Box3_FromCenter(light.origin);
 
@@ -537,11 +545,12 @@ void BuildDirectLights(void) {
 static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane];
+	const material_t *material = &materials[lm->brush_side->material];
 
 	light_t light = {
 		.type = LIGHT_INDIRECT,
 		.atten = LIGHT_ATTEN_INVERSE_SQUARE,
-		.size = sqrtf(Cm_WindingArea(patch->winding)),
+		.size = material->cm->patch_size ?: DEFAULT_PATCH_SIZE,
 		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, lm->plane->normal),
 		.face = patch->face,
 		.plane = plane,
@@ -622,14 +631,15 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	}
 
 	lightmap = Vec3_Scale(lightmap, 1.f / (w * h));
-	light.radius = Vec3_Length(lightmap) * indirect_brightness;
 
-	if (light.radius < 1.f) {
+	light.color = Vec3_Scale(lightmap, light.intensity * indirect_intensity);
+	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
+
+	light.radius = light.size * Vec3_Length(light.color);
+
+	if (light.radius < luxel_size) {
 		return;
 	}
-
-	lightmap = ColorNormalize(lightmap);
-	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
 
 	light.bounds = Box3_FromCenter(light.origin);
 

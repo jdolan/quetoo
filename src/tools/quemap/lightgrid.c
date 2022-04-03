@@ -165,9 +165,9 @@ size_t BuildLightgrid(void) {
  */
 static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float scale) {
 
-	const float intensity = light->radius * scale;
+	const float lumens = scale;
 
-	Luxel_LightLumen(light, luxel, luxel->normal, intensity);
+	Luxel_LightLumen(light, luxel, Vec3_Zero(), lumens);
 }
 
 /**
@@ -182,8 +182,8 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
 		if (trace.surface & SURF_SKY) {
-			const float intensity = (light->radius / light->num_points) * scale;
-			Luxel_LightLumen(light, luxel, dir, intensity);
+			const float lumens = (1.f / light->num_points) * scale;
+			Luxel_LightLumen(light, luxel, dir, lumens);
 		}
 	}
 }
@@ -214,7 +214,7 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 			break;
 	}
 
-	const float intensity = light->radius * atten * scale;
+	const float lumens = atten * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -223,7 +223,7 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, lumens);
 		break;
 	}
 }
@@ -263,7 +263,7 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 			break;
 	}
 
-	const float intensity = light->radius * cutoff * atten * scale;
+	const float lumens = cutoff * atten * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -272,7 +272,7 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, lumens);
 		break;
 	}
 }
@@ -311,7 +311,7 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * atten * atten * cutoff * scale;
+	const float lumens = atten * atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -320,7 +320,7 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, lumens);
 		break;
 	}
 }
@@ -359,7 +359,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float intensity = light->radius * atten * atten * cutoff * scale;
+	const float lumens = atten * atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -368,7 +368,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, intensity);
+		Luxel_LightLumen(light, luxel, dir, lumens);
 		break;
 	}
 }
@@ -662,26 +662,13 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	for (guint i = 0; i < luxel->lumens->len; i++) {
 		lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
 
-		// normalize to 0.0 - 1.0
-		lumen->diffuse = Vec3_Scale(lumen->diffuse, 1.f / 255.f);
-
-		// apply brightness, saturation and contrast
-		lumen->diffuse = ColorFilter(lumen->diffuse);
-
-		// normalize the directional vector
-		lumen->direction = Vec3_Normalize(lumen->direction);
-
 		switch (lumen->light_type) {
 			case LIGHT_SUN:
 			case LIGHT_POINT:
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
-				if (i == 0) {
-					luxel->diffuse = lumen->diffuse;
-					luxel->direction = lumen->direction;
-				} else {
-					luxel->ambient = Vec3_Add(luxel->ambient, lumen->diffuse);
-				}
+				luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->diffuse);
+				luxel->direction = Vec3_Add(luxel->direction, lumen->direction);
 				break;
 			default:
 				luxel->ambient = Vec3_Add(luxel->ambient, lumen->diffuse);
@@ -689,8 +676,12 @@ void FinalizeLightgrid(int32_t luxel_num) {
 		}
 	}
 
-	// re-normalize the accumulated ambient
-	luxel->ambient = ColorNormalize(luxel->ambient);
+	// normalize the accumulated light
+	luxel->ambient = ColorFilter(luxel->ambient);
+	luxel->diffuse = ColorFilter(luxel->diffuse);
+
+	// normalize the direction
+	luxel->direction = Vec3_Normalize(luxel->direction);
 
 	// normalize the caustics
 	luxel->caustics = ColorNormalize(luxel->caustics);

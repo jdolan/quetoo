@@ -336,7 +336,7 @@ static void Cg_misc_light_Init(cg_entity_t *self) {
 	cg_misc_light_data_t *data = self->data;
 
 	data->light.origin = self->origin;
-	data->light.radius = cgi.EntityValue(self->def, "light")->value ?: DEFAULT_LIGHT;
+	data->light.radius = cgi.EntityValue(self->def, "light")->value ?: DEFAULT_LIGHT_RADIUS;
 
 	const cm_entity_t *color = cgi.EntityValue(self->def, "_color");
 	if (color->parsed & ENTITY_VEC3) {
