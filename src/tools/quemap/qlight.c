@@ -398,9 +398,15 @@ int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
  */
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask) {
 	cm_trace_t trace = Light_Trace_(start, end, 0, mask);
+	if (trace.start_solid) {
+		trace.fraction = 0.f;
+	}
 
 	if (head_node) {
 		cm_trace_t tr = Light_Trace_(start, end, head_node, mask);
+		if (tr.start_solid) {
+			tr.fraction = 0.f;
+		}
 		if (tr.fraction < trace.fraction) {
 			trace = tr;
 		}
