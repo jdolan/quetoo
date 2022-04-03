@@ -128,7 +128,7 @@ void main(void) {
 		if (lightmaps == 1) {
 			out_color.rgb = ambient + diffuse;
 		} else if (lightmaps == 2) {
-			out_color.rgb = sample_lightmap(2).rgb * 0.5 + 0.5;
+			out_color.rgb = sample_lightmap(2).rgb;
 		} else {
 			out_color = postprocess(out_color);
 		}
