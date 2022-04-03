@@ -86,8 +86,8 @@ void main(void) {
 		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
 		vec3 direction = normalize(vertex.direction * 2.0 - 1.0);
 
-		vec3 ambient = vertex.ambient * max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
-		vec3 diffuse = vertex.diffuse * max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
+		vec3 ambient = vertex.ambient * modulate * max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
+		vec3 diffuse = vertex.diffuse * modulate * max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
 
 		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
 		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
@@ -99,8 +99,8 @@ void main(void) {
 
 		out_color = diffusemap;
 
-		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * modulate, 0.0, 1.0);
-		out_color.rgb = clamp(out_color.rgb + specular * modulate, 0.0, 1.0);
+		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse), 0.0, 1.0);
+		out_color.rgb = clamp(out_color.rgb + specular, 0.0, 1.0);
 
 		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 		out_bloom.a = out_color.a;

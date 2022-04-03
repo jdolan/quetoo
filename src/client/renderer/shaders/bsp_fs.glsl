@@ -102,8 +102,8 @@ void main(void) {
 
 		direction = normalize(tbn * (normalize(direction * 2.0 - 1.0)));
 
-		ambient *= max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
-		diffuse *= max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
+		ambient *= modulate * max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
+		diffuse *= modulate * max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
 
 		specular += diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
 		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
@@ -126,7 +126,7 @@ void main(void) {
 		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
-			out_color.rgb = sample_lightmap(0).rgb + sample_lightmap(1).rgb;
+			out_color.rgb = ambient + diffuse;
 		} else if (lightmaps == 2) {
 			out_color.rgb = sample_lightmap(2).rgb * 0.5 + 0.5;
 		} else {
