@@ -358,7 +358,7 @@ static void LightForPatch(const patch_t *patch) {
 	light_t light = {
 		.type = LIGHT_PATCH,
 		.atten = LIGHT_ATTEN_INVERSE_SQUARE,
-		.size = material->cm->patch_size ?: DEFAULT_PATCH_SIZE,
+		.size = sqrtf(Cm_WindingArea(patch->winding)),
 		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, plane->normal),
 		.face = patch->face,
 		.plane = plane,
@@ -545,12 +545,11 @@ void BuildDirectLights(void) {
 static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane];
-	const material_t *material = &materials[lm->brush_side->material];
 
 	light_t light = {
 		.type = LIGHT_INDIRECT,
 		.atten = LIGHT_ATTEN_INVERSE_SQUARE,
-		.size = material->cm->patch_size ?: DEFAULT_PATCH_SIZE,
+		.size = sqrtf(Cm_WindingArea(patch->winding)),
 		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, lm->plane->normal),
 		.face = patch->face,
 		.plane = plane,
