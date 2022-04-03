@@ -63,12 +63,12 @@ static gint Luxel_SortLumensCmp(gconstpointer a, gconstpointer b) {
 	float a_intensity = Vec3_LengthSquared(a_lumen->diffuse);
 	switch (a_lumen->light_type) {
 		case LIGHT_SUN:
-			a_intensity *= 2.f;
+			a_intensity *= 8.f;
 			break;
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
 		case LIGHT_PATCH:
-			a_intensity *= 4.f;
+			a_intensity *= 16.f;
 			break;
 		default:
 			break;
@@ -77,12 +77,12 @@ static gint Luxel_SortLumensCmp(gconstpointer a, gconstpointer b) {
 	float b_intensity = Vec3_LengthSquared(b_lumen->diffuse);
 	switch (b_lumen->light_type) {
 		case LIGHT_SUN:
-			a_intensity *= 2.f;
+			a_intensity *= 8.f;
 			break;
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
 		case LIGHT_PATCH:
-			b_intensity *= 4.f;
+			b_intensity *= 16.f;
 			break;
 		default:
 			break;
