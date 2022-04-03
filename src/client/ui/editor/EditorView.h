@@ -102,6 +102,16 @@ struct EditorView {
 	Slider *alphaTest;
 
 	/**
+	 * @brief The light radius slider.
+	 */
+	Slider *lightRadius;
+
+	/**
+	 *@brief The light intensity slider.
+	 */
+	Slider *lightIntensity;
+
+	/**
 	 * @brief The save button.
 	 */
 	Button *save;

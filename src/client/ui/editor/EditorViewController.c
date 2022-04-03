@@ -66,6 +66,10 @@ static void didSetValue(Slider *slider, double value) {
 		view->material->cm->bloom = view->bloom->value;
 	} else if (slider == view->alphaTest) {
 		view->material->cm->alpha_test = view->alphaTest->value;
+	}  else if (slider == view->lightRadius) {
+		view->material->cm->light.radius = view->lightRadius->value;
+	}  else if (slider == view->lightIntensity) {
+		view->material->cm->light.intensity = view->lightIntensity->value;
 	} else {
 		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
 	}
@@ -97,6 +101,12 @@ static void loadView(ViewController *self) {
 
 	view->alphaTest->delegate.self = self;
 	view->alphaTest->delegate.didSetValue = didSetValue;
+
+	view->lightRadius->delegate.self = self;
+	view->lightRadius->delegate.didSetValue = didSetValue;
+
+	view->lightIntensity->delegate.self = self;
+	view->lightIntensity->delegate.didSetValue = didSetValue;
 
 	$((Control *) view->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
 
