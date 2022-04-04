@@ -297,15 +297,16 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
-		const vec3_t dir = Vec3_Negate(light->points[i]);
+		vec3_t dir = Vec3_Negate(light->points[i]);
 
 		float dot = Vec3_Dot(dir, luxel->normal);
-		if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-			dot = fabsf(dot);
-		}
-
 		if (dot <= 0.f) {
-			continue;
+			if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+				dir = Vec3_Reflect(dir, lightmap->plane->normal);
+				dot = fabsf(dot);
+			} else {
+				return;
+			}
 		}
 
 		const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
@@ -331,12 +332,13 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 	}
 
 	float dot = Vec3_Dot(dir, luxel->normal);
-	if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-		dot = fabsf(dot);
-	}
-
 	if (dot <= 0.f) {
-		return;
+		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dot = fabsf(dot);
+		} else {
+			return;
+		}
 	}
 
 	float atten = 1.f;
@@ -380,12 +382,13 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 	}
 
 	float dot = Vec3_Dot(dir, luxel->normal);
-	if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-		dot = fabsf(dot);
-	}
-
 	if (dot <= 0.f) {
-		return;
+		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dot = fabsf(dot);
+		} else {
+			return;
+		}
 	}
 
 	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
@@ -446,12 +449,13 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 	}
 
 	float dot = Vec3_Dot(dir, luxel->normal);
-	if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-		dot = fabsf(dot);
-	}
-
 	if (dot <= 0.f) {
-		return;
+		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dot = fabsf(dot);
+		} else {
+			return;
+		}
 	}
 
 #if 0
@@ -507,12 +511,13 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 	}
 
 	float dot = Vec3_Dot(dir, luxel->normal);
-	if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-		dot = fabsf(dot);
-	}
-
 	if (dot <= 0.f) {
-		return;
+		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dot = fabsf(dot);
+		} else {
+			return;
+		}
 	}
 
 #if 1
