@@ -646,7 +646,6 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->hardness = DEFAULT_HARDNESS;
 	mat->specularity = DEFAULT_SPECULARITY;
 	mat->bloom = DEFAULT_BLOOM;
-	mat->alpha_test = DEFAULT_ALPHA_TEST;
 	mat->patch_size = DEFAULT_PATCH_SIZE;
 	mat->light.intensity = DEFAULT_LIGHT_INTENSITY;
 
