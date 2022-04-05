@@ -1256,7 +1256,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tsurface \"%s\"\n", Cm_UnparseSurface(material->surface));
 	}
 
-	if (material->alpha_test != DEFAULT_ALPHA_TEST) {
+	if (material->alpha_test) {
 		Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
 	}
 
