@@ -865,6 +865,7 @@ void FinalizeLightmap(int32_t face_num) {
 		const vec3_t n = Vec3_Scale(Vec3_Add(l->normal, Vec3(1.f, 1.f, 1.f)), .5f);
 		for (int32_t j = 0; j < 3; j++) {
 			*out_diffuse++ = (byte) Clampf(n.xyz[j] * 255.f, 0.f, 255.f);
+			*out_direction++ = (byte) Clampf(Vec3_Up().xyz[j] * 255.f, 0.f, 255.f);
 		}
 #else
 		// write the color sample data as bytes
