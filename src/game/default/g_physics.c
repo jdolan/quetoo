@@ -585,6 +585,11 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
 
 				cm_trace_t tr = gi.Clip(ent->s.origin, Vec3_Subtract(ent->s.origin, move), ent->bounds, self, ent->locals.clip_mask);
 
+				// move back to final position
+				self->s.origin = final_position;
+
+				gi.LinkEntity(self);
+
 				// did we even collide with it?
 				if (tr.fraction >= 1.0) {
 					G_Debug("%s false positive clip\n", etos(self));
