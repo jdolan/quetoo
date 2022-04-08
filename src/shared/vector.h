@@ -1045,7 +1045,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Clamp01(const vec
 }
 
 /**
- * @return Reflected vector
+ * @return The vector `a` reflected by the vector `b`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Reflect(const vec3_t a, const vec3_t b) {
 	return Vec3_Add(a, Vec3_Scale(b, -2.f * Vec3_Dot(a, b)));

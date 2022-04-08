@@ -276,7 +276,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 
 		bsp_vertex_t out = {
 			.position = points[i],
-			.normal = planes[brush_side->plane].normal
+			.normal = planes[face->plane].normal
 		};
 
 		const float s = Vec3_Dot(points[i], sdir) + brush_side->axis[0].w;
@@ -490,7 +490,10 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
 }
 
 /**
- * @brief
+ * @brief Phong shades the specified face.
+ * @details Phong shading only applies to "superverts," or vertexes created from original geometry,
+ * and not from BSP splits or T-junctions. That is, it only applies to corners of faces, not to
+ * vertexes with colinear neighbors.
  */
 static void PhongFace(int32_t face_num) {
 
@@ -501,10 +504,48 @@ static void PhongFace(int32_t face_num) {
 	const float phong_cosine = cosf(Radians(phong_angle));
 
 	const bsp_face_t *face = bsp_file.faces + face_num;
-
 	bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;
-	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
-		PhongVertex(face, v, phong_cosine);
+
+	for (int32_t i = 0; i < face->num_vertexes; i++) {
+
+		bsp_vertex_t *a = v + ((i + 0) % face->num_vertexes);
+		bsp_vertex_t *b = v + ((i + 1) % face->num_vertexes);
+		bsp_vertex_t *c = v + ((i + 2) % face->num_vertexes);
+
+		const vec3_t ba = Vec3_Direction(b->position, a->position);
+		const vec3_t cb = Vec3_Direction(c->position, b->position);
+
+		const float dot = Vec3_Dot(ba, cb);
+		if (dot > 1.f - COLINEAR_EPSILON) {
+			continue;
+		}
+
+		PhongVertex(face, b, phong_cosine);
+	}
+
+	// FIXME: There is a corner case here (get it?) where multiple colinear vertexes on a Phong
+	// FIXME: shaded face will receive bad normals. A complete solution here would be to copy what
+	// FIXME: Cm_ElementsForWinding does, and actually flag the corners of the winding, and then
+	// FIXME: linear interpolate all non-corner vertex normals in this loop between their two
+	// FIXME: bounding corners.
+
+	for (int32_t i = 0; i < face->num_vertexes; i++) {
+
+		bsp_vertex_t *a = v + ((i + 0) % face->num_vertexes);
+		bsp_vertex_t *b = v + ((i + 1) % face->num_vertexes);
+		bsp_vertex_t *c = v + ((i + 2) % face->num_vertexes);
+
+		vec3_t ba, cb;
+
+		const float ba_dist = fabsf(Vec3_DistanceDir(b->position, a->position, &ba));
+		const float cb_dist = fabsf(Vec3_DistanceDir(c->position, b->position, &cb));
+
+		const float dot = Vec3_Dot(ba, cb);
+		if (dot <= 1.f - COLINEAR_EPSILON) {
+			continue;
+		}
+
+		b->normal = Vec3_Normalize(Vec3_Mix(a->normal, c->normal, ba_dist / (ba_dist + cb_dist)));
 	}
 }
 

@@ -297,15 +297,16 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
-		const vec3_t dir = Vec3_Negate(light->points[i]);
+		vec3_t dir = Vec3_Negate(light->points[i]);
 
 		float dot = Vec3_Dot(dir, luxel->normal);
-		if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-			dot = fabsf(dot);
-		}
-
 		if (dot <= 0.f) {
-			continue;
+			if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+				dir = Vec3_Reflect(dir, lightmap->plane->normal);
+				dot = fabsf(dot);
+			} else {
+				return;
+			}
 		}
 
 		const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
@@ -331,12 +332,13 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 	}
 
 	float dot = Vec3_Dot(dir, luxel->normal);
-	if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-		dot = fabsf(dot);
-	}
-
 	if (dot <= 0.f) {
-		return;
+		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dot = fabsf(dot);
+		} else {
+			return;
+		}
 	}
 
 	float atten = 1.f;
@@ -380,12 +382,13 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 	}
 
 	float dot = Vec3_Dot(dir, luxel->normal);
-	if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-		dot = fabsf(dot);
-	}
-
 	if (dot <= 0.f) {
-		return;
+		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dot = fabsf(dot);
+		} else {
+			return;
+		}
 	}
 
 	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
@@ -446,12 +449,13 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 	}
 
 	float dot = Vec3_Dot(dir, luxel->normal);
-	if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-		dot = fabsf(dot);
-	}
-
 	if (dot <= 0.f) {
-		return;
+		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dot = fabsf(dot);
+		} else {
+			return;
+		}
 	}
 
 #if 0
@@ -507,12 +511,13 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 	}
 
 	float dot = Vec3_Dot(dir, luxel->normal);
-	if (lightmap->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-		dot = fabsf(dot);
-	}
-
 	if (dot <= 0.f) {
-		return;
+		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dot = fabsf(dot);
+		} else {
+			return;
+		}
 	}
 
 #if 1
@@ -804,15 +809,12 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 		}
 	}
 
-	// keep the pre-filtered diffuse color for determining intensity
-	const vec3_t diffuse = luxel->diffuse;
-
 	// normalize the accumulated light
 	luxel->ambient = ColorFilter(luxel->ambient);
 	luxel->diffuse = ColorFilter(luxel->diffuse);
 
 	// lerp the direction with the normal, according to the light intensity
-	const float intensity = Clampf(Vec3_Length(diffuse) * brightness, 0.0, 1.f);
+	const float intensity = Clampf(Vec3_Length(luxel->diffuse), 0.0, 1.f);
 	vec3_t direction = Vec3_Normalize(Vec3_Mix(Vec3_Normalize(luxel->direction), luxel->normal, 1.f - intensity));
 
 	// transform the direction into tangent space
@@ -863,6 +865,7 @@ void FinalizeLightmap(int32_t face_num) {
 		const vec3_t n = Vec3_Scale(Vec3_Add(l->normal, Vec3(1.f, 1.f, 1.f)), .5f);
 		for (int32_t j = 0; j < 3; j++) {
 			*out_diffuse++ = (byte) Clampf(n.xyz[j] * 255.f, 0.f, 255.f);
+			*out_direction++ = (byte) Clampf(Vec3_Up().xyz[j] * 255.f, 0.f, 255.f);
 		}
 #else
 		// write the color sample data as bytes
