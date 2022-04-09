@@ -375,6 +375,8 @@ static void Cg_UpdateConfigString(int32_t i) {
 		case CS_ROUNDS:
 			cg_state.num_rounds = (int32_t) strtol(s, NULL, 10);
 			return;
+		case CS_NAV_EDIT:
+			cg_state.nav_edit = (int32_t) strtol(s, NULL, 10);
 		default:
 			break;
 	}

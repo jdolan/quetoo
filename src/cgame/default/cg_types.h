@@ -181,6 +181,11 @@ typedef struct {
 	 * @brief The current number of rounds
 	 */
 	int32_t num_rounds;
+
+	/**
+	 * @brief Nav editor state.
+	 */
+	int32_t nav_edit;
 } cg_state_t;
 
 extern cg_state_t cg_state;

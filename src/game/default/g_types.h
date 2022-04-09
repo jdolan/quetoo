@@ -95,6 +95,8 @@ typedef struct {
 #define CS_HOOK_PULL_SPEED	(CS_GAME + 8)  // hook speed
 #define CS_MAXCLIENTS		(CS_GAME + 9)  // maxclients of server
 #define CS_NUMCLIENTS		(CS_GAME + 10) // number of players in server
+#define CS_NAV_EDIT			(CS_GAME + 11) // nav edit mode
+
 /**
  * @brief Player state statistics (inventory, score, etc).
  */

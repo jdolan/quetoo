@@ -1350,17 +1350,20 @@ static void G_Frame(void) {
 		G_Ai_Frame();
 	}
 
-	// inspect and enforce gameplay rules
-	G_CheckRules();
+	if (!G_Ai_InDeveloperMode()) {
 
-	// see if a match should end
-	G_CheckMatchEnd();
+		// inspect and enforce gameplay rules
+		G_CheckRules();
 
-	// see if an arena round should start
-	G_CheckRoundStart();
+		// see if a match should end
+		G_CheckMatchEnd();
 
-	// see if an arena round should end
-	G_CheckRoundEnd();
+		// see if an arena round should start
+		G_CheckRoundStart();
+
+		// see if an arena round should end
+		G_CheckRoundEnd();
+	}
 
 	// build the player_state_t structures for all players
 	G_EndClientFrames();

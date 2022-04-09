@@ -1273,6 +1273,11 @@ void Cg_DrawHud(const player_state_t *ps) {
 		return;
 	}
 
+	// hide HUD in nav edit
+	if (cg_state.nav_edit) {
+		return;
+	}
+
 	if (!ps->stats[STAT_TIME]) { // intermission
 		return;
 	}

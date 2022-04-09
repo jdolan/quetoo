@@ -1568,6 +1568,8 @@ void G_Ai_InitLocals(void) {
 		gi.SetCvarInteger("g_cheats", 1);
 	}
 
+	gi.SetConfigString(CS_NAV_EDIT, ai_node_dev->string);
+
 	ai_locals = (ai_locals_t *) gi.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	gi.AddCmd("ai_save_nodes", Ai_SaveNodes_f, CMD_AI, "Save current node data");

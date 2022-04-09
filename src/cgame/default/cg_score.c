@@ -296,6 +296,10 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
  */
 void Cg_DrawScores(const player_state_t *ps) {
 
+	if (cg_state.nav_edit) {
+		return;
+	}
+
 	if (!ps->stats[STAT_SCORES]) {
 		return;
 	}
