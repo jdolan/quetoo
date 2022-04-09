@@ -629,10 +629,9 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		return;
 	}
 
-	lightmap = Vec3_Scale(lightmap, 1.f / (w * h));
-
-	light.color = Vec3_Scale(lightmap, light.intensity * indirect_intensity);
-	light.color = Vec3_Multiply(lightmap, GetMaterialColor(lm->brush_side->material));
+	light.color = Vec3_Scale(lightmap, 1.f / (w * h));
+	light.color = Vec3_Scale(light.color, light.intensity * indirect_intensity);
+	light.color = Vec3_Multiply(light.color, GetMaterialColor(lm->brush_side->material));
 
 	light.radius = light.size * Vec3_Length(light.color);
 
