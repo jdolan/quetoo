@@ -633,11 +633,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 	light.color = Vec3_Scale(light.color, light.intensity * indirect_intensity);
 	light.color = Vec3_Multiply(light.color, GetMaterialColor(lm->brush_side->material));
 
-	light.radius = light.size * Vec3_Length(light.color);
-
-	if (light.radius < luxel_size) {
-		return;
-	}
+	light.radius = Maxf(patch_size, light.size * Vec3_Length(light.color));
 
 	light.bounds = Box3_FromCenter(light.origin);
 
