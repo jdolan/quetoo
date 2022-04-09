@@ -126,11 +126,14 @@ void main(void) {
 		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
-			out_color.rgb = ambient + diffuse;
+			out_color.rgb = modulate * (sample_lightmap(0).rgb + sample_lightmap(1).rgb);
 		} else if (lightmaps == 2) {
 			out_color.rgb = sample_lightmap(2).rgb;
+		} else if (lightmaps == 3) {
+			out_color.rgb = ambient + diffuse;
 		} else {
 			out_color = postprocess(out_color);
+			//out_color.rgb = normalize(vertex.normal * .5 + .5);
 		}
 
 	} else {

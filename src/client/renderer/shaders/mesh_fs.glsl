@@ -108,9 +108,11 @@ void main(void) {
 		out_color.rgb += vertex.fog.rgb * out_color.a;
 
 		if (lightmaps == 1) {
-			out_color.rgb = vertex.ambient + vertex.diffuse;
+			out_color.rgb = modulate * (vertex.ambient + vertex.diffuse);
 		} else if (lightmaps == 2) {
 			out_color.rgb = vertex.direction * 0.5 + 0.5;
+		} else if (lightmaps == 3) {
+			out_color.rgb = ambient + diffuse;
 		} else {
 			out_color = postprocess(out_color);
 		}
