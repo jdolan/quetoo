@@ -947,8 +947,10 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->client->ps.pm_state.flags = PMF_TIME_TELEPORT;
 		ent->client->ps.pm_state.time = 20;
 
-		// setup inventory, max health, weapon, etc
-		G_InitClientInventory(ent);
+		// setup inventory/weapon
+		if (!G_Ai_InDeveloperMode()) {
+			G_InitClientInventory(ent);
+		}
 
 		// briefly disable firing, since we likely just clicked to respawn
 		ent->client->locals.weapon_fire_time = g_level.time + 250;

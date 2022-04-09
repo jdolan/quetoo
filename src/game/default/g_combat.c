@@ -349,7 +349,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 		}
 
 		// kill target if he has *excessive blood loss*
-		if (target->locals.health <= 0) {
+		if (target->locals.health <= 0 && !G_Ai_InDeveloperMode()) {
 			target->locals.dead = true;
 
 			if (target->locals.Die) {

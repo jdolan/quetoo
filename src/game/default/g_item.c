@@ -685,6 +685,10 @@ static void G_DropItem_Think(g_entity_t *ent) {
  */
 void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
+	if (G_Ai_InDeveloperMode()) {
+		return;
+	}
+
 	if (other == ent->owner) {
 		if (ent->locals.touch_time > g_level.time) {
 			return;

@@ -723,6 +723,11 @@ static void Ai_Node_RenderLinks(gpointer key, gpointer value, gpointer userdata)
 	const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, ulink.a);
 	const ai_node_t *node_b = &g_array_index(ai_nodes, ai_node_t, ulink.b);
 
+	if (!Ai_Node_Visible(Vec3_Add(g_game.entities[1].s.origin, g_game.entities[1].client->ps.pm_state.view_offset), ulink.a) &&
+		!Ai_Node_Visible(Vec3_Add(g_game.entities[1].s.origin, g_game.entities[1].client->ps.pm_state.view_offset), ulink.b)) {
+		return;
+	}
+
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_AI_NODE_LINK);
 	gi.WritePosition(node_a->position);
@@ -769,27 +774,30 @@ void Ai_Node_Render(void) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
 		const _Bool in_path = Ai_NodeInPath(ai_player_roam.test_path, i);
 
-		gi.WriteByte(SV_CMD_TEMP_ENTITY);
-		gi.WriteByte(TE_AI_NODE);
-		gi.WritePosition(node->position);
-		gi.WriteShort(i);
+		if (Ai_Node_Visible(Vec3_Add(g_game.entities[1].s.origin, g_game.entities[1].client->ps.pm_state.view_offset), i)) {
 
-		byte bits = 0;
+			gi.WriteByte(SV_CMD_TEMP_ENTITY);
+			gi.WriteByte(TE_AI_NODE);
+			gi.WritePosition(node->position);
+			gi.WriteShort(i);
 
-		if (in_path) {
-			bits = 3;
-		} else if (ai_player_roam.last_nodes[0] == i) {
-			bits = 1;
-		} else if (ai_player_roam.last_nodes[1] == i) {
-			bits = 2;
+			byte bits = 0;
+
+			if (in_path) {
+				bits = 3;
+			} else if (ai_player_roam.last_nodes[0] == i) {
+				bits = 1;
+			} else if (ai_player_roam.last_nodes[1] == i) {
+				bits = 2;
+			}
+
+			if (!Ai_Node_CanPathTo(node->position)) {
+				bits |= 16;
+			}
+
+			gi.WriteByte(bits);
+			gi.Multicast(node->position, MULTICAST_PVS, NULL);
 		}
-
-		if (!Ai_Node_CanPathTo(node->position)) {
-			bits |= 16;
-		}
-
-		gi.WriteByte(bits);
-		gi.Multicast(node->position, MULTICAST_PVS, NULL);
 
 		if (node->links) {
 
@@ -860,6 +868,8 @@ void Ai_Node_Render(void) {
  * @brief 
  */
 void Ai_InitNodes(void) {
+
+	Ai_ShutdownNodes();
 
 	ai_player_roam.position = Vec3(MAX_WORLD_DIST, MAX_WORLD_DIST, MAX_WORLD_DIST);
 	ai_player_roam.last_nodes[0] = ai_player_roam.last_nodes[1] = AI_NODE_INVALID;

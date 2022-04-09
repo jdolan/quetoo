@@ -1501,7 +1501,13 @@ void G_Init(void) {
 	g_balance_supershotgun_spread_x = gi.AddCvar("g_balance_supershotgun_spread_x", "1600", CVAR_SERVER_INFO, NULL);
 	g_balance_supershotgun_spread_y = gi.AddCvar("g_balance_supershotgun_spread_y", "500", CVAR_SERVER_INFO, NULL);
 	g_capture_limit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");
-	g_cheats = gi.AddCvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
+	g_cheats = gi.AddCvar("g_cheats",
+#if _DEBUG
+		"1"
+#else
+		"0"
+#endif
+		, CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
 	g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");

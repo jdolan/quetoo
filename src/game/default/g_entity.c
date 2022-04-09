@@ -488,14 +488,16 @@ static void G_InitSpawnPoints(void) {
 	GSList *dm_spawns = NULL;
 	g_entity_t *spot = NULL;
 
-	while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
+	while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
 		dm_spawns = g_slist_prepend(dm_spawns, spot);
 	}
 
-	spot = NULL;
+	if (!dm_spawns) {
+		spot = NULL;
 
-	while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
-		dm_spawns = g_slist_prepend(dm_spawns, spot);
+		while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
+			dm_spawns = g_slist_prepend(dm_spawns, spot);
+		}
 	}
 	
 	// find the team points, if we have any explicit ones in the map.

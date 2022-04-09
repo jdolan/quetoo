@@ -520,7 +520,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 	ai_locals_t *ai = Ai_GetLocals(self);
 
-	if (ai_no_target->integer) {
+	if (ai_no_target->integer || ai_node_dev->integer) {
 
 		if (ai->combat_target.type == AI_GOAL_ENTITY) {
 			Ai_ClearGoal(&ai->combat_target);
@@ -1560,14 +1560,13 @@ void G_Ai_InitLocals(void) {
 	gi.Print("Ai initialization...\n");
 	gi.Mkdir("ai");
 
-	const char *s = va("%s %s %s", VERSION, BUILD, REVISION);
-	cvar_t *ai_version = gi.AddCvar("ai_version", s, CVAR_NO_SET, NULL);
-
-	gi.Print("  Version:    ^2%s^7\n", ai_version->string);
-
 	ai_no_target = gi.AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
 
 	ai_node_dev = gi.AddCvar("ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
+	
+	if (ai_node_dev->integer) {
+		gi.SetCvarInteger("g_cheats", 1);
+	}
 
 	ai_locals = (ai_locals_t *) gi.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
