@@ -391,7 +391,7 @@ static void LightForPatch(const patch_t *patch) {
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], 4.f, plane->normal);
+		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], ON_EPSILON, plane->normal);
 		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
 		}
@@ -642,7 +642,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], 4.f, lm->plane->normal);
+		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], ON_EPSILON, lm->plane->normal);
 		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
 		}
