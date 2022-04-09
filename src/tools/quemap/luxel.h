@@ -27,7 +27,7 @@
  * @brief Lumens are light source contributions to individual luxels.
  */
 typedef struct {
-	vec3_t diffuse;
+	vec3_t color;
 	vec3_t direction;
 	int32_t light_id;
 	light_type_t light_type;

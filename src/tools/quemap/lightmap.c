@@ -781,27 +781,27 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
 				if (i == 0) {
-					luxel->diffuse = lumen->diffuse;
+					luxel->diffuse = lumen->color;
 					luxel->direction = lumen->direction;
 				} else {
 					const vec3_t a = Vec3_Normalize(luxel->direction);
 					const vec3_t b = Vec3_Normalize(lumen->direction);
 					const float dot = Clampf(Vec3_Dot(a, b), 0.f, 1.f);
-					luxel->diffuse = Vec3_Fmaf(luxel->diffuse, dot, lumen->diffuse);
+					luxel->diffuse = Vec3_Fmaf(luxel->diffuse, dot, lumen->color);
 					luxel->direction = Vec3_Fmaf(luxel->direction, dot, lumen->direction);
-					luxel->ambient = Vec3_Fmaf(luxel->ambient, 1.f - dot, lumen->diffuse);
+					luxel->ambient = Vec3_Fmaf(luxel->ambient, 1.f - dot, lumen->color);
 				}
 				break;
 			case LIGHT_INDIRECT:
 				if (i == 0) {
-					luxel->diffuse = lumen->diffuse;
+					luxel->diffuse = lumen->color;
 					luxel->direction = lumen->direction;
 				} else {
-					luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->diffuse);
+					luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->color);
 				}
 				break;
 			default:
-				luxel->ambient = Vec3_Add(luxel->ambient, lumen->diffuse);
+				luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
 				if (i == 0) {
 					luxel->direction = luxel->normal;
 				}

@@ -646,7 +646,6 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->hardness = DEFAULT_HARDNESS;
 	mat->specularity = DEFAULT_SPECULARITY;
 	mat->bloom = DEFAULT_BLOOM;
-	mat->patch_size = DEFAULT_PATCH_SIZE;
 	mat->light.intensity = DEFAULT_LIGHT_INTENSITY;
 
 	return mat;
@@ -852,10 +851,10 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->patch_size, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No patch size specified");
-				m->patch_size = DEFAULT_PATCH_SIZE;
+				m->patch_size = 0.f;
 			} else if (m->patch_size < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid patch size value, must be > 0.0");
-				m->patch_size = DEFAULT_PATCH_SIZE;
+				m->patch_size = 0.f;
 			}
 		}
 
@@ -1260,7 +1259,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
 	}
 
-	if (material->patch_size != DEFAULT_PATCH_SIZE) {
+	if (material->patch_size) {
 		Fs_Print(file, "\tpatch_size %g\n", material->patch_size);
 	}
 

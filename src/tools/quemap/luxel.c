@@ -34,7 +34,7 @@ void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t directi
 			lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
 
 			if (lumen->light_id == light->id) {
-				lumen->diffuse = Vec3_Fmaf(lumen->diffuse, lumens, light->color);
+				lumen->color = Vec3_Fmaf(lumen->color, lumens, light->color);
 				lumen->direction = Vec3_Fmaf(lumen->direction, lumens, direction);
 				return;
 			}
@@ -42,7 +42,7 @@ void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t directi
 	}
 
 	const lumen_t lumen = (lumen_t) {
-		.diffuse = Vec3_Scale(light->color, lumens),
+		.color = Vec3_Scale(light->color, lumens),
 		.direction = Vec3_Scale(direction, lumens),
 		.light_id = light->id,
 		.light_type = light->type,
@@ -60,7 +60,7 @@ static gint Luxel_SortLumensCmp(gconstpointer a, gconstpointer b) {
 	const lumen_t *a_lumen = (lumen_t *) a;
 	const lumen_t *b_lumen = (lumen_t *) b;
 
-	float a_intensity = Vec3_LengthSquared(a_lumen->diffuse);
+	float a_intensity = Vec3_LengthSquared(a_lumen->color);
 	switch (a_lumen->light_type) {
 		case LIGHT_SUN:
 			a_intensity *= 8.f;
@@ -74,7 +74,7 @@ static gint Luxel_SortLumensCmp(gconstpointer a, gconstpointer b) {
 			break;
 	}
 
-	float b_intensity = Vec3_LengthSquared(b_lumen->diffuse);
+	float b_intensity = Vec3_LengthSquared(b_lumen->color);
 	switch (b_lumen->light_type) {
 		case LIGHT_SUN:
 			a_intensity *= 8.f;
@@ -92,7 +92,7 @@ static gint Luxel_SortLumensCmp(gconstpointer a, gconstpointer b) {
 }
 
 /**
- * @brief Sorts luxel lumens by diffuse color descending.
+ * @brief Sorts luxel lumens by light color descending.
  */
 void Luxel_SortLumens(luxel_t *luxel) {
 
