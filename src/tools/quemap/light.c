@@ -604,7 +604,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 							case LIGHT_POINT:
 							case LIGHT_SPOT:
 							case LIGHT_PATCH:
-								lightmap = Vec3_Add(lightmap, lumen->diffuse);
+								lightmap = Vec3_Add(lightmap, lumen->color);
 								break;
 							default:
 								break;
@@ -613,7 +613,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 						switch (lumen->light_type) {
 							case LIGHT_INDIRECT:
 								if (lumen->indirect_bounce == indirect_bounce - 1) {
-									lightmap = Vec3_Add(lightmap, lumen->diffuse);
+									lightmap = Vec3_Add(lightmap, lumen->color);
 									break;
 								}
 							default:
