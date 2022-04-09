@@ -102,8 +102,8 @@ void main(void) {
 			caustics = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
 		}
 
-		ambient *= modulate * max(0.0, 0.5 + dot(vertex.normal, normalmap) * 0.5);
-		diffuse *= modulate * max(0.0, 0.5 + dot(direction, normalmap) * 0.5);
+		ambient *= modulate * max(0.0, dot(vertex.normal, normalmap));
+		diffuse *= modulate * max(0.0, dot(direction, normalmap));
 
 		specular += diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
 		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);

@@ -299,11 +299,10 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 
 		vec3_t dir = Vec3_Negate(light->points[i]);
 
-		float dot = Vec3_Dot(dir, luxel->normal);
+		const float dot = Vec3_Dot(dir, luxel->normal);
 		if (dot <= 0.f) {
 			if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
 				dir = Vec3_Reflect(dir, lightmap->plane->normal);
-				dot = fabsf(dot);
 			} else {
 				return;
 			}
@@ -313,7 +312,7 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, lightmap->model->head_node, CONTENTS_SOLID);
 
 		if (trace.surface & SURF_SKY) {
-			const float lumens = (1.f / light->num_points) * dot * scale;
+			const float lumens = (1.f / light->num_points) * scale;
 			Luxel_LightLumen(light, luxel, dir, lumens);
 		}
 	}
@@ -331,11 +330,10 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, luxel->normal);
+	const float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot <= 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
 			dir = Vec3_Reflect(dir, lightmap->plane->normal);
-			dot = fabsf(dot);
 		} else {
 			return;
 		}
@@ -355,7 +353,7 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 			break;
 	}
 
-	const float lumens = atten * dot * scale;
+	const float lumens = atten * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -381,11 +379,10 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, luxel->normal);
+	const float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot <= 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
 			dir = Vec3_Reflect(dir, lightmap->plane->normal);
-			dot = fabsf(dot);
 		} else {
 			return;
 		}
@@ -414,7 +411,7 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 			break;
 	}
 
-	const float lumens = atten * cutoff * dot * scale;
+	const float lumens = atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -448,11 +445,10 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, luxel->normal);
+	const float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot <= 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
 			dir = Vec3_Reflect(dir, lightmap->plane->normal);
-			dot = fabsf(dot);
 		} else {
 			return;
 		}
@@ -472,7 +468,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float lumens = atten * atten * cutoff * dot * scale;
+	const float lumens = atten * atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -510,11 +506,10 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, luxel->normal);
+	const float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot <= 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
 			dir = Vec3_Reflect(dir, lightmap->plane->normal);
-			dot = fabsf(dot);
 		} else {
 			return;
 		}
@@ -534,7 +529,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 #endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float lumens = atten * atten * cutoff * dot * scale;
+	const float lumens = atten * atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
