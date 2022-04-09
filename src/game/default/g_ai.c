@@ -385,7 +385,7 @@ void G_Ai_Init(void) {
  */
 bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 
-	if (!G_Ai_InDeveloperMode()) {
+	if (G_Ai_InDeveloperMode()) {
 		return false;
 	}
 

@@ -1601,7 +1601,6 @@ void G_Ai_Shutdown(void) {
 	gi.Print("  ^5Ai module shutdown...\n");
 
 	Ai_ShutdownSkins();
-	Ai_ShutdownNodes();
 
 	gi.FreeTag(MEM_TAG_AI);
 }
