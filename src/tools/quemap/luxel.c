@@ -53,7 +53,7 @@ void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t directi
 }
 
 /**
- * @brief Comparator for sorting luxel lumens by diffuse color descending.
+ * @brief Comparator for sorting luxel lumens by color intensity descending.
  */
 static gint Luxel_SortLumensCmp(gconstpointer a, gconstpointer b) {
 
