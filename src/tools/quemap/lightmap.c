@@ -830,7 +830,7 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	luxel->diffuse = ColorFilter(luxel->diffuse);
 
 	// lerp the direction with the normal, according to its intensity
-	const float intensity = Clampf(Vec3_Length(luxel->direction), 0.f, 1.f);
+	const float intensity = Clampf(Maxf(Vec3_Length(luxel->direction), Vec3_Length(luxel->diffuse)), 0.f, 1.f);
 	vec3_t direction = Vec3_Normalize(Vec3_Mix(Vec3_Normalize(luxel->direction), luxel->normal, 1.f - intensity));
 
 	// transform the direction into tangent space
