@@ -790,7 +790,7 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 			case LIGHT_INDIRECT:
 				if (i == 0) {
 					luxel->diffuse = lumen->color;
-					luxel->direction = lumen->direction;
+					luxel->direction = luxel->normal;
 				} else {
 					luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->color);
 				}
