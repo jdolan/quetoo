@@ -69,7 +69,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
+            argument = "+set r_draw_bsp_lightmap 1 +set r_texture_mode GL_NEAREST"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -77,12 +77,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightgrid 0 +set r_draw_bsp_lightmap 1"
-            isEnabled = "NO">
+            argument = "+set r_draw_bsp_lightgrid 0 +set r_draw_bsp_lightmap 2"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_normals 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
@@ -109,7 +109,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map edge"
+            argument = "+set sv_max_clients 32 +map pits"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
