@@ -49,6 +49,6 @@ typedef struct {
 	GArray *lumens;
 } luxel_t;
 
-extern void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t direction, float lumens);
+extern void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t color, const vec3_t direction);
 extern void Luxel_SortLumens(luxel_t *luxel);
 extern void Luxel_FreeLumens(luxel_t *luxel);

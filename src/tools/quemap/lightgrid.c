@@ -167,7 +167,9 @@ static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float s
 
 	const float lumens = scale;
 
-	Luxel_LightLumen(light, luxel, Vec3_Zero(), lumens);
+	const vec3_t color = Vec3_Scale(light->color, lumens);
+
+	Luxel_LightLumen(light, luxel, color, Vec3_Zero());
 }
 
 /**
@@ -183,7 +185,11 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
 		if (trace.surface & SURF_SKY) {
 			const float lumens = (1.f / light->num_points) * scale;
-			Luxel_LightLumen(light, luxel, dir, lumens);
+
+			const vec3_t color = Vec3_Scale(light->color, lumens);
+			const vec3_t direction = Vec3_Scale(dir, lumens);
+
+			Luxel_LightLumen(light, luxel, color, direction);
 		}
 	}
 }
@@ -223,7 +229,10 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, lumens);
+		const vec3_t color = Vec3_Scale(light->color, lumens);
+		const vec3_t direction = Vec3_Scale(dir, lumens);
+
+		Luxel_LightLumen(light, luxel, color, direction);
 		break;
 	}
 }
@@ -272,7 +281,10 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, lumens);
+		const vec3_t color = Vec3_Scale(light->color, lumens);
+		const vec3_t direction = Vec3_Scale(dir, lumens);
+
+		Luxel_LightLumen(light, luxel, color, direction);
 		break;
 	}
 }
@@ -320,7 +332,10 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, lumens);
+		const vec3_t color = Vec3_Scale(light->color, lumens);
+		const vec3_t direction = Vec3_Scale(dir, lumens);
+
+		Luxel_LightLumen(light, luxel, color, direction);
 		break;
 	}
 }
@@ -368,7 +383,10 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, lumens);
+		const vec3_t color = Vec3_Scale(light->color, lumens);
+		const vec3_t direction = Vec3_Scale(dir, lumens);
+
+		Luxel_LightLumen(light, luxel, color, direction);
 		break;
 	}
 }
