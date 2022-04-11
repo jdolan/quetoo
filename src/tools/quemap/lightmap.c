@@ -468,7 +468,6 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		}
 	}
 
-#if 0
 	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 	const float thresh = cosf(light->theta);
 	const float smooth = 0.03f;
@@ -477,9 +476,6 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 	if (cutoff <= 0.f) {
 		return;
 	}
-#else
-	const float cutoff = 1.f;
-#endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
 	const float lumens = atten * atten * cutoff * dot * scale;
@@ -533,7 +529,6 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		}
 	}
 
-#if 1
 	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 	const float thresh = cosf(light->theta);
 	const float smooth = 0.03f;
@@ -542,9 +537,6 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 	if (cutoff <= 0.f) {
 		return;
 	}
-#else
-	const float cutoff = 1.f;
-#endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
 	const float lumens = atten * atten * dot * cutoff * scale;

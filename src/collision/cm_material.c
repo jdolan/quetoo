@@ -646,7 +646,6 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->hardness = DEFAULT_HARDNESS;
 	mat->specularity = DEFAULT_SPECULARITY;
 	mat->bloom = DEFAULT_BLOOM;
-	mat->light.intensity = DEFAULT_LIGHT_INTENSITY;
 
 	return mat;
 }
@@ -806,6 +805,18 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
+		if (!g_strcmp0(token, "alpha_test")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alpha_test, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No alpha test specified");
+			} else if (m->alpha_test < 0.f || m->alpha_test > 1.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid alpha test value, must be > 0.0 and < 1.0");
+				m->alpha_test = DEFAULT_ALPHA_TEST;
+			}
+
+			m->surface |= SURF_ALPHA_TEST;
+		}
+
 		if (!g_strcmp0(token, "contents")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
@@ -822,36 +833,14 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No surface flags specified");
 			} else {
 				m->surface |= Cm_ParseSurface(token);
-
-				if ((m->surface & SURF_LIGHT) && m->light.radius == 0.f) {
-					m->light.radius = DEFAULT_LIGHT_RADIUS;
-				}
-				
-				if ((m->surface & SURF_ALPHA_TEST) && m->alpha_test == 0.f) {
-					m->alpha_test = DEFAULT_ALPHA_TEST;
-				}
 			}
 			continue;
-		}
-
-		if (!g_strcmp0(token, "alpha_test")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alpha_test, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No alpha test specified");
-				m->alpha_test = DEFAULT_ALPHA_TEST;
-			} else if (m->alpha_test < 0.f || m->alpha_test > 1.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid alpha test value, must be > 0.0 and < 1.0");
-				m->patch_size = DEFAULT_ALPHA_TEST;
-			}
-
-			m->surface |= SURF_ALPHA_TEST;
 		}
 
 		if (!g_strcmp0(token, "patch_size")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->patch_size, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No patch size specified");
-				m->patch_size = 0.f;
 			} else if (m->patch_size < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid patch size value, must be > 0.0");
 				m->patch_size = 0.f;
@@ -869,10 +858,9 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light radius specified");
-				m->light.radius = DEFAULT_LIGHT_RADIUS;
 			} else if (m->light.radius < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light radius, must be > 0.0");
-				m->light.radius = DEFAULT_LIGHT_RADIUS;
+				m->light.radius = 0.f;
 			}
 
 			m->surface |= SURF_LIGHT;
@@ -882,10 +870,19 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.intensity, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light intensity specified");
-				m->light.intensity = DEFAULT_LIGHT_INTENSITY;
 			} else if (m->light.intensity < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light intensity, must be > 0.0");
-				m->light.intensity = DEFAULT_LIGHT_INTENSITY;
+				m->light.intensity = 0.f;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.cone")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.cone, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light cone specified");
+			} else if (m->light.cone < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light cone, must be > 0.0");
+				m->light.cone = 0.f;
 			}
 		}
 
@@ -1272,8 +1269,12 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
 	}
 
-	if (material->light.intensity != DEFAULT_LIGHT_INTENSITY) {
+	if (material->light.intensity) {
 		Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
+	}
+
+	if (material->light.cone) {
+		Fs_Print(file, "\tlight.cone %g\n", material->light.cone);
 	}
 
 	// write stages

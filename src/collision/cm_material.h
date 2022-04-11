@@ -239,6 +239,11 @@ typedef struct {
 	 * @brief The light intensity.
 	 */
 	float intensity;
+
+	/**
+	 * @brief The light cone for angular attenuation, in degrees.
+	 */
+	float cone;
 } cm_light_t;
 
 #define DEFAULT_ROUGHNESS 1.f
@@ -248,6 +253,7 @@ typedef struct {
 #define DEFAULT_ALPHA_TEST .5f
 #define DEFAULT_LIGHT_RADIUS 300.f
 #define DEFAULT_LIGHT_INTENSITY 1.f
+#define DEFAULT_LIGHT_CONE 75.f
 #define DEFAULT_PATCH_SIZE 128
 
 /**

@@ -363,8 +363,8 @@ static void LightForPatch(const patch_t *patch) {
 		.face = patch->face,
 		.plane = plane,
 		.normal = plane->normal,
-		.theta = LIGHT_CONE,
-		.intensity = material->cm->light.intensity ?: LIGHT_INTENSITY,
+		.theta = Radians(material->cm->light.cone) ?: Radians(DEFAULT_LIGHT_CONE),
+		.intensity = material->cm->light.intensity ?: DEFAULT_LIGHT_INTENSITY,
 		.model = patch->model,
 		.id = id++,
 	};
@@ -382,7 +382,7 @@ static void LightForPatch(const patch_t *patch) {
 
 	light.color = Vec3_Scale(light.color, light.intensity * patch_intensity);
 
-	light.radius = brush_side->value ?: material->cm->light.radius;
+	light.radius = brush_side->value ?: material->cm->light.radius ?: DEFAULT_LIGHT_RADIUS;
 
 	light.bounds = Box3_FromCenter(light.origin);
 
@@ -554,8 +554,8 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 		.face = patch->face,
 		.plane = plane,
 		.normal = plane->normal,
-		.theta = LIGHT_CONE,
-		.intensity = LIGHT_INTENSITY,
+		.theta = Radians(DEFAULT_LIGHT_CONE),
+		.intensity = DEFAULT_LIGHT_INTENSITY,
 		.model = patch->model,
 		.id = id++,
 	};
