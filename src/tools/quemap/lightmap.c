@@ -75,17 +75,6 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 }
 
 /**
- * @brief Resolves the tangent vectors for the given lightmap.
- */
-static void BuildLightmapTangents(lightmap_t *lm) {
-
-	const vec3_t sdir = Vec4_XYZ(lm->brush_side->axis[0]);
-	const vec3_t tdir = Vec4_XYZ(lm->brush_side->axis[1]);
-
-	Vec3_Tangents(lm->plane->normal, sdir, tdir, &lm->tangent, &lm->bitangent);
-}
-
-/**
  * @brief Allocates and seeds the luxels for the given lightmap. Projection of the luxels into world
  * space is handled individually by the actual lighting passes, as they have different projections.
  */
@@ -189,12 +178,50 @@ void BuildLightmaps(void) {
 
 		BuildLightmapExtents(lm);
 
-		BuildLightmapTangents(lm);
-
 		BuildLightmapLuxels(lm);
 	}
 
 	DebugLightmapLuxels();
+}
+
+/**
+ * @brief For Phong-shaded luxels, calculate the interpolated normal vector using
+ * barycentric coordinates over the face's triangles.
+ */
+static vec3_t LuxelNormal(const lightmap_t *lm, const vec3_t origin) {
+
+	vec3_t normal = lm->plane->normal;
+
+	float best = FLT_MAX;
+
+	const int32_t *e = bsp_file.elements + lm->face->first_element;
+	for (int32_t i = 0; i < lm->face->num_elements; i += 3, e += 3) {
+
+		const bsp_vertex_t *v0 = bsp_file.vertexes + e[0];
+		const bsp_vertex_t *v1 = bsp_file.vertexes + e[1];
+		const bsp_vertex_t *v2 = bsp_file.vertexes + e[2];
+
+		const vec3_t center = Vec3_Scale(Vec3_Add(Vec3_Add(v0->position, v1->position), v2->position), 1.f / 3.f);
+		const float padding = BSP_LIGHTMAP_LUXEL_SIZE * 1.f;
+
+		const vec3_t a = Vec3_Fmaf(v0->position, padding, Vec3_Direction(v0->position, center));
+		const vec3_t b = Vec3_Fmaf(v1->position, padding, Vec3_Direction(v1->position, center));
+		const vec3_t c = Vec3_Fmaf(v2->position, padding, Vec3_Direction(v2->position, center));
+
+		vec3_t out;
+		const float bary = Cm_Barycentric(a, b, c, origin, &out);
+		const float delta = fabsf(1.f - bary);
+		if (delta < best) {
+			best = delta;
+
+			normal = Vec3_Zero();
+			normal = Vec3_Fmaf(normal, out.x, v0->normal);
+			normal = Vec3_Fmaf(normal, out.y, v1->normal);
+			normal = Vec3_Fmaf(normal, out.z, v2->normal);
+		}
+	}
+
+	return Vec3_Normalize(normal);
 }
 
 /**
@@ -214,6 +241,7 @@ static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soff
 	const float t = lm->st_mins.y + padding_t + l->t + 0.5f + toffs;
 
 	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
+	l->normal = LuxelNormal(lm, l->origin);
 	l->origin = Vec3_Fmaf(l->origin, 2.f, lm->plane->normal);
 
 	return Light_PointContents(l->origin, lm->model->head_node);
@@ -267,10 +295,10 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 
 		vec3_t dir = Vec3_Negate(light->points[i]);
 
-		float dot = Vec3_Dot(dir, lightmap->plane->normal);
+		float dot = Vec3_Dot(dir, luxel->normal);
 		if (dot <= 0.f) {
 			if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-				dir = Vec3_Reflect(dir, lightmap->plane->normal);
+				dir = Vec3_Reflect(dir, luxel->normal);
 				dot = fabsf(dot);
 			} else {
 				return;
@@ -303,10 +331,10 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, lightmap->plane->normal);
+	float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot <= 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dir = Vec3_Reflect(dir, luxel->normal);
 			dot = fabsf(dot);
 		} else {
 			return;
@@ -356,10 +384,10 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, lightmap->plane->normal);
+	float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot <= 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dir = Vec3_Reflect(dir, luxel->normal);
 			dot = fabsf(dot);
 		} else {
 			return;
@@ -426,10 +454,10 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, lightmap->plane->normal);
+	float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot <= 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dir = Vec3_Reflect(dir, luxel->normal);
 			dot = fabsf(dot);
 		} else {
 			return;
@@ -487,10 +515,10 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, lightmap->plane->normal);
+	float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot <= 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-			dir = Vec3_Reflect(dir, lightmap->plane->normal);
+			dir = Vec3_Reflect(dir, luxel->normal);
 			dot = fabsf(dot);
 		} else {
 			return;
@@ -774,20 +802,30 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	// normalize the accumulated light
 	luxel->ambient = ColorFilter(luxel->ambient);
 
+	// re-project the luxel so that it reflects its centered normal vector
+	ProjectLightmapLuxel(lightmap, luxel, 0.f, 0.f);
+
+	// calculate the tangents to encode the light direction
+	const vec3_t sdir = Vec4_XYZ(lightmap->brush_side->axis[0]);
+	const vec3_t tdir = Vec4_XYZ(lightmap->brush_side->axis[1]);
+
+	vec3_t tangent, bitangent;
+	Vec3_Tangents(luxel->normal, sdir, tdir, &tangent, &bitangent);
+
 	for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++) {
 		luxel->diffuse[i] = ColorFilter(luxel->diffuse[i]);
 
 		// lerp the direction with the normal, according to its intensity
 		const float intensity = Clampf(Vec3_Length(luxel->direction[i]), 0.f, 1.f);
 
-		const vec3_t direction = Vec3_Normalize(Vec3_Mix(Vec3_Normalize(luxel->direction[i]), lightmap->plane->normal, 1.f - intensity));
+		const vec3_t direction = Vec3_Normalize(Vec3_Mix(Vec3_Normalize(luxel->direction[i]), luxel->normal, 1.f - intensity));
 
-		assert(Vec3_Dot(direction, lightmap->plane->normal) >= 0.f);
+		assert(Vec3_Dot(direction, luxel->normal) >= 0.f);
 
 		// transform the direction into tangent space
-		luxel->direction[i].x = Vec3_Dot(direction, lightmap->tangent);
-		luxel->direction[i].y = Vec3_Dot(direction, lightmap->bitangent);
-		luxel->direction[i].z = Vec3_Dot(direction, lightmap->plane->normal);
+		luxel->direction[i].x = Vec3_Dot(direction, tangent);
+		luxel->direction[i].y = Vec3_Dot(direction, bitangent);
+		luxel->direction[i].z = Vec3_Dot(direction, luxel->normal);
 
 		luxel->direction[i] = Vec3_Normalize(luxel->direction[i]);
 

@@ -35,7 +35,6 @@ typedef struct {
 	mat4_t matrix;
 	mat4_t inverse_matrix;
 	vec2_t st_mins, st_maxs;
-	vec3_t tangent, bitangent;
 	int16_t w, h;
 	int16_t s, t;
 	luxel_t *luxels;
