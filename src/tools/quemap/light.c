@@ -497,7 +497,7 @@ static void HashLights(void) {
 	const bsp_leaf_t *leaf = bsp_file.leafs;
 	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
 
-		if (leaf->cluster == 0) {
+		if (leaf->contents & CONTENTS_SOLID) {
 			continue;
 		}
 
