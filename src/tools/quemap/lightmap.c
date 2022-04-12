@@ -258,7 +258,7 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 	const float s = lightmap->st_mins.x + padding_s + luxel->s + 0.5f;
 	const float t = lightmap->st_mins.y + padding_t + luxel->t + 0.5f;
 
-	const vec3_t points[] = DOME_COSINE_36X;
+	const vec3_t points[] = DOME_COSINE_16X;
 	float sample_fraction = scale / lengthof(points);
 
 	vec3_t color = Vec3_Zero();
