@@ -677,7 +677,6 @@ void FinalizeLightgrid(int32_t luxel_num) {
 			case LIGHT_POINT:
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
-			case LIGHT_INDIRECT:
 				if (i == 0) {
 					luxel->diffuse[0] = lumen->color;
 					luxel->direction[0] = lumen->direction;
@@ -686,13 +685,15 @@ void FinalizeLightgrid(int32_t luxel_num) {
 					luxel->direction[0] = Vec3_Add(luxel->direction[0], lumen->direction);
 				}
 				break;
-			default:
-				if (i == 0) {
-					luxel->ambient = lumen->color;
-					luxel->direction[0] = Vec3_Up();
+			case LIGHT_INDIRECT:
+				if (i > 0) {
+					luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
 				} else {
 					luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
 				}
+				break;
+			default:
+				luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
 				break;
 		}
 	}
