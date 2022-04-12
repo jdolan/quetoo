@@ -35,13 +35,14 @@ typedef struct {
 	mat4_t matrix;
 	mat4_t inverse_matrix;
 	vec2_t st_mins, st_maxs;
+	vec3_t tangent, bitangent;
 	int16_t w, h;
 	int16_t s, t;
 	luxel_t *luxels;
 	size_t num_luxels;
 	SDL_Surface *ambient;
-	SDL_Surface *diffuse;
-	SDL_Surface *direction;
+	SDL_Surface *diffuse[BSP_LIGHTMAP_CHANNELS];
+	SDL_Surface *direction[BSP_LIGHTMAP_CHANNELS];
 	SDL_Surface *caustics;
 } lightmap_t;
 

@@ -87,7 +87,7 @@ static void BuildLightgridLuxels(void) {
 				l->t = t;
 				l->u = u;
 
-				l->direction = Vec3_Up();
+				l->direction[0] = Vec3_Up();
 			}
 		}
 	}
@@ -608,7 +608,7 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
-		const vec3_t diffuse = Vec3_Scale(l->diffuse, 1.f / 255.f);
+		const vec3_t diffuse = Vec3_Scale(l->diffuse[0], 1.f / 255.f);
 		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), diffuse);
 
 		switch (fog->type) {
@@ -679,17 +679,17 @@ void FinalizeLightgrid(int32_t luxel_num) {
 			case LIGHT_PATCH:
 			case LIGHT_INDIRECT:
 				if (i == 0) {
-					luxel->diffuse = lumen->color;
-					luxel->direction = lumen->direction;
+					luxel->diffuse[0] = lumen->color;
+					luxel->direction[0] = lumen->direction;
 				} else {
-					luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->color);
-					luxel->direction = Vec3_Add(luxel->direction, lumen->direction);
+					luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
+					luxel->direction[0] = Vec3_Add(luxel->direction[0], lumen->direction);
 				}
 				break;
 			default:
 				if (i == 0) {
 					luxel->ambient = lumen->color;
-					luxel->direction = Vec3_Up();
+					luxel->direction[0] = Vec3_Up();
 				} else {
 					luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
 				}
@@ -699,10 +699,10 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	// normalize the accumulated light
 	luxel->ambient = ColorFilter(luxel->ambient);
-	luxel->diffuse = ColorFilter(luxel->diffuse);
+	luxel->diffuse[0] = ColorFilter(luxel->diffuse[0]);
 
 	// normalize the direction
-	luxel->direction = Vec3_Normalize(luxel->direction);
+	luxel->direction[0] = Vec3_Normalize(luxel->direction[0]);
 
 	// normalize the caustics
 	luxel->caustics = ColorNormalize(luxel->caustics);
@@ -761,8 +761,8 @@ void EmitLightgrid(void) {
 
 				for (int32_t i = 0; i < BSP_LIGHTGRID_BPP; i++) {
 					*out_ambient++ = (byte) Clampf(l->ambient.xyz[i] * 255.f, 0.f, 255.f);
-					*out_diffuse++ = (byte) Clampf(l->diffuse.xyz[i] * 255.f, 0.f, 255.f);
-					*out_direction++ = (byte) Clampf((l->direction.xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+					*out_diffuse++ = (byte) Clampf(l->diffuse[0].xyz[i] * 255.f, 0.f, 255.f);
+					*out_direction++ = (byte) Clampf((l->direction[0].xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
 					*out_caustics++ = (byte) Clampf(l->caustics.xyz[i] * 255, 0.f, 255.f);
 				}
 

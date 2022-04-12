@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#define BSP_LIGHTMAP_CHANNELS 2
+
 uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stage;
@@ -90,23 +92,37 @@ void main(void) {
 		vec3 ambient, diffuse, direction, caustics, specular = vec3(0.0);
 		if (entity == 0) {
 			ambient = sample_lightmap(0).rgb;
-			diffuse = sample_lightmap(1).rgb;
-			direction = sample_lightmap(2).xyz;
-			direction = normalize(tbn * (normalize(direction * 2.0 - 1.0)));
-			caustics = sample_lightmap(3).rgb;
+			ambient *= modulate * max(0.0, dot(vertex.normal, normalmap));
+			specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
+
+			for (int i = 0; i < BSP_LIGHTMAP_CHANNELS; i++) {
+				vec3 dif = sample_lightmap(1 + BSP_LIGHTMAP_CHANNELS * i).rgb;
+				vec3 dir = sample_lightmap(2 + BSP_LIGHTMAP_CHANNELS * i).xyz;
+
+				dir = normalize(tbn * (normalize(dir * 2.0 - 1.0)));
+				dir = normalize(vec3(dir.xy * material.roughness, dir.z));
+
+				dif *= modulate * max(0.0, dot(dir, normalmap));
+				diffuse += dif;
+
+				specular += dif * hardness * pow(max(0.0, dot(reflect(-dir, normalmap), normalize(-vertex.position))), specularity);
+			}
+
+			caustics = sample_lightmap(5).rgb;
 		} else {
 			ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
+			ambient *= modulate * max(0.0, dot(vertex.normal, normalmap));
+
 			diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 			direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
 			direction = normalize((view * model * vec4(normalize(direction * 2.0 - 1.0), 0.0)).xyz);
+			diffuse *= modulate * max(0.0, dot(direction, normalmap));
+
+			specular += diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
+			specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
+
 			caustics = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
 		}
-
-		ambient *= modulate * max(0.0, dot(vertex.normal, normalmap));
-		diffuse *= modulate * max(0.0, dot(direction, normalmap));
-
-		specular += diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
-		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
 
 		caustic_light(vertex.model, caustics, ambient, diffuse);
 
@@ -114,7 +130,7 @@ void main(void) {
 
 		out_color = diffusemap;
 
-		vec3 stainmap = sample_lightmap(4).rgb;
+		vec3 stainmap = sample_lightmap(6).rgb;
 
 		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse) * stainmap, 0.0, 1.0);
 		out_color.rgb = clamp(out_color.rgb + specular * stainmap, 0.0, 1.0);
@@ -126,7 +142,7 @@ void main(void) {
 		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
-			out_color.rgb = modulate * (sample_lightmap(0).rgb + sample_lightmap(1).rgb);
+			out_color.rgb = modulate * (sample_lightmap(0).rgb + sample_lightmap(1).rgb + sample_lightmap(3).rgb);
 		} else if (lightmaps == 2) {
 			out_color.rgb = sample_lightmap(2).rgb;
 		} else if (lightmaps == 3) {

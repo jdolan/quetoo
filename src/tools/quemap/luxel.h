@@ -40,10 +40,9 @@ typedef struct {
 typedef struct {
 	int32_t s, t, u;
 	vec3_t origin;
-	vec3_t normal;
 	vec3_t ambient;
-	vec3_t diffuse;
-	vec3_t direction;
+	vec3_t diffuse[BSP_LIGHTMAP_CHANNELS];
+	vec3_t direction[BSP_LIGHTMAP_CHANNELS];
 	vec3_t caustics;
 	vec4_t fog;
 	GArray *lumens;
