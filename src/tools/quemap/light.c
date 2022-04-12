@@ -484,7 +484,14 @@ static void HashLights(void) {
 			continue;
 		}
 
-		node_lights[i] = BoxLights(node->bounds);
+		box3_t bounds = Box3_Null();
+
+		const bsp_face_t *face = bsp_file.faces + node->first_face;
+		for (int32_t i = 0; i < node->num_faces; i++, face++) {
+			bounds = Box3_Union(bounds, face->bounds);
+		}
+
+		node_lights[i] = BoxLights(bounds);
 	}
 
 	const bsp_leaf_t *leaf = bsp_file.leafs;
