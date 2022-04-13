@@ -821,7 +821,7 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 
 		const vec3_t direction = Vec3_Normalize(Vec3_Mix(Vec3_Normalize(luxel->direction[i]), luxel->normal, 1.f - intensity));
 
-		assert(Vec3_Dot(direction, luxel->normal) >= 0.f);
+		//assert(Vec3_Dot(direction, luxel->normal) >= 0.f);
 
 		// transform the direction into tangent space
 		luxel->direction[i].x = Vec3_Dot(direction, tangent);
@@ -830,7 +830,7 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 
 		luxel->direction[i] = Vec3_Normalize(luxel->direction[i]);
 
-		assert(luxel->direction[i].z >= 0.f);
+		//assert(luxel->direction[i].z >= 0.f);
 	}
 
 	// and normalize the cuastics
