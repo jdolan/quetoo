@@ -660,42 +660,43 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *luxel = &lg.luxels[luxel_num];
 
-	// skip luxels that received no light
-	if (luxel->lumens == NULL) {
-		return;
-	}
+	if (luxel->lumens) {
 
-	// sort the lumens by intensity
-	Luxel_SortLumens(luxel);
+		// sort the lumens by intensity
+		Luxel_SortLumens(luxel);
 
-	// finalize them for writing to pixels
-	for (guint i = 0; i < luxel->lumens->len; i++) {
-		lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
+		// finalize them for writing to pixels
+		for (guint i = 0; i < luxel->lumens->len; i++) {
+			const lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
 
-		switch (lumen->light_type) {
-			case LIGHT_SUN:
-			case LIGHT_POINT:
-			case LIGHT_SPOT:
-			case LIGHT_PATCH:
-				if (i == 0) {
-					luxel->diffuse[0] = lumen->color;
-					luxel->direction[0] = lumen->direction;
-				} else {
-					luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
-					luxel->direction[0] = Vec3_Add(luxel->direction[0], lumen->direction);
-				}
-				break;
-			case LIGHT_INDIRECT:
-				if (i > 0) {
-					luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
-				} else {
+			switch (lumen->light_type) {
+				case LIGHT_SUN:
+				case LIGHT_POINT:
+				case LIGHT_SPOT:
+				case LIGHT_PATCH:
+					if (i == 0) {
+						luxel->diffuse[0] = lumen->color;
+						luxel->direction[0] = lumen->direction;
+					} else {
+						luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
+						luxel->direction[0] = Vec3_Add(luxel->direction[0], lumen->direction);
+					}
+					break;
+				case LIGHT_INDIRECT:
+					if (i > 0) {
+						luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
+					} else {
+						luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
+					}
+					break;
+				default:
 					luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
-				}
-				break;
-			default:
-				luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
-				break;
+					break;
+			}
 		}
+
+		// we're done with the lumens
+		Luxel_FreeLumens(luxel);
 	}
 
 	// normalize the accumulated light
@@ -710,9 +711,6 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	// filter the fog
 	luxel->fog = Vec3_ToVec4(ColorFilter(Vec4_XYZ(luxel->fog)), Clampf(luxel->fog.w, 0.f, 1.f));
-
-	// we're done with the lumens
-	Luxel_FreeLumens(luxel);
 }
 
 /**

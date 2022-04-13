@@ -757,46 +757,47 @@ static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h) {
  */
 static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 
-	// skip luxels that received no light
-	if (luxel->lumens == NULL) {
-		return;
-	}
+	if (luxel->lumens) {
 
-	// sort the lumens by intensity
-	Luxel_SortLumens(luxel);
+		// sort the lumens by intensity
+		Luxel_SortLumens(luxel);
 
-	// finalize them for writing to pixels
-	for (guint i = 0; i < luxel->lumens->len; i++) {
-		lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
+		// finalize them for writing to pixels
+		for (guint i = 0; i < luxel->lumens->len; i++) {
+			const lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
 
-		switch (lumen->light_type) {
-			case LIGHT_SUN:
-			case LIGHT_POINT:
-			case LIGHT_SPOT:
-			case LIGHT_PATCH:
-				if (i < BSP_LIGHTMAP_CHANNELS) {
-					luxel->diffuse[i] = lumen->color;
-					luxel->direction[i] = lumen->direction;
-				} else {
-					const vec3_t a = Vec3_Normalize(luxel->direction[0]);
-					const vec3_t b = Vec3_Normalize(lumen->direction);
-					const float dot = Clampf(Vec3_Dot(a, b), 0.f, 1.f);
-					luxel->diffuse[0] = Vec3_Fmaf(luxel->diffuse[0], dot, lumen->color);
-					luxel->direction[0] = Vec3_Fmaf(luxel->direction[0], dot, lumen->direction);
-					luxel->ambient = Vec3_Fmaf(luxel->ambient, 1.f - dot, lumen->color);
-				}
-				break;
-			case LIGHT_INDIRECT:
-				if (i > 0) {
-					luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
-				} else {
+			switch (lumen->light_type) {
+				case LIGHT_SUN:
+				case LIGHT_POINT:
+				case LIGHT_SPOT:
+				case LIGHT_PATCH:
+					if (i < BSP_LIGHTMAP_CHANNELS) {
+						luxel->diffuse[i] = lumen->color;
+						luxel->direction[i] = lumen->direction;
+					} else {
+						const vec3_t a = Vec3_Normalize(luxel->direction[0]);
+						const vec3_t b = Vec3_Normalize(lumen->direction);
+						const float dot = Clampf(Vec3_Dot(a, b), 0.f, 1.f);
+						luxel->diffuse[0] = Vec3_Fmaf(luxel->diffuse[0], dot, lumen->color);
+						luxel->direction[0] = Vec3_Fmaf(luxel->direction[0], dot, lumen->direction);
+						luxel->ambient = Vec3_Fmaf(luxel->ambient, 1.f - dot, lumen->color);
+					}
+					break;
+				case LIGHT_INDIRECT:
+					if (i > 0) {
+						luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
+					} else {
+						luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
+					}
+					break;
+				default:
 					luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
-				}
-				break;
-			default:
-				luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
-				break;
+					break;
+			}
 		}
+
+		// we're done with the lumens
+		Luxel_FreeLumens(luxel);
 	}
 
 	// normalize the accumulated light
@@ -834,9 +835,6 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 
 	// and normalize the cuastics
 	luxel->caustics = ColorNormalize(luxel->caustics);
-
-	// we're done with the lumens
-	Luxel_FreeLumens(luxel);
 }
 
 /**
@@ -876,31 +874,31 @@ void FinalizeLightmap(int32_t face_num) {
 #if 0
 		// write the interpolated normal for debugging
 		const vec3_t n = Vec3_Scale(Vec3_Add(l->normal, Vec3(1.f, 1.f, 1.f)), .5f);
-		for (int32_t j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
 			*out_diffuse++ = (byte) Clampf(n.xyz[j] * 255.f, 0.f, 255.f);
 			*out_direction++ = (byte) Clampf(Vec3_Up().xyz[j] * 255.f, 0.f, 255.f);
 		}
 #else
 		// write the color sample data as bytes
-		for (int32_t j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
 			*out_ambient++ = (byte) Clampf(l->ambient.xyz[j] * 255.f, 0.f, 255.f);
 		}
 
-		for (int32_t k = 0; k < BSP_LIGHTMAP_CHANNELS; k++) {
+		for (int32_t channel = 0; channel < BSP_LIGHTMAP_CHANNELS; channel++) {
 
 			// write the color sample data as bytes
-			for (int32_t j = 0; j < 3; j++) {
-				*out_diffuse[k]++ = (byte) Clampf(l->diffuse[k].xyz[j] * 255.f, 0.f, 255.f);
+			for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
+				*out_diffuse[channel]++ = (byte) Clampf(l->diffuse[channel].xyz[j] * 255.f, 0.f, 255.f);
 			}
 
 			// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
-			for (int32_t j = 0; j < 3; j++) {
-				*out_direction[k]++ = (byte) Clampf((l->direction[k].xyz[j] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+			for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
+				*out_direction[channel]++ = (byte) Clampf((l->direction[channel].xyz[j] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
 			}
 		}
 
 		// pack the caustics
-		for (int32_t j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
 			*out_caustics++ = (byte) Clampf(l->caustics.xyz[j] * 255.f, 0.f, 255.f);
 		}
 #endif

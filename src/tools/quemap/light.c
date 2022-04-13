@@ -339,11 +339,11 @@ static void LightForEntity(const cm_entity_t *entity) {
 		LightForEntity_light(entity, &light);
 	} else if (!g_strcmp0(class_name, "light_spot")) {
 		LightForEntity_light_spot(entity, &light);
+	} else {
+		return;
 	}
 
-	if (light.type != LIGHT_INVALID) {
-		g_array_append_val(lights, light);
-	}
+	g_array_append_val(lights, light);
 }
 
 /**
