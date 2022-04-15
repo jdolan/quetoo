@@ -45,10 +45,6 @@ extern float light_intensity;
 extern float patch_intensity;
 extern float indirect_intensity;
 
-#define MAX_BOUNCES 3
-extern int32_t num_indirect_bounces;
-extern int32_t indirect_bounce;
-
 extern float caustics;
 
 int32_t Light_PointContents(const vec3_t p, int32_t head_node);
