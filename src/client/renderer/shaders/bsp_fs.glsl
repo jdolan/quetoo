@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define BSP_LIGHTMAP_CHANNELS 2
-
 uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stage;
@@ -88,25 +86,26 @@ void main(void) {
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
 		normalmap = normalize(tbn * (normalize((normalmap * 2.0 - 1.0) * roughness)));
+		vec3 view_dir = normalize(-vertex.position);
 
-		vec3 ambient, diffuse, direction, caustics, specular = vec3(0.0);
+		vec3 ambient = vec3(0.0), diffuse = vec3(0.0), caustics = vec3(0.0), specular = vec3(0.0);
 		if (entity == 0) {
 			ambient = sample_lightmap(0).rgb;
 			ambient *= modulate * max(0.0, dot(vertex.normal, normalmap));
-			specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
 
-			for (int i = 0; i < BSP_LIGHTMAP_CHANNELS; i++) {
-				vec3 dif = sample_lightmap(1 + BSP_LIGHTMAP_CHANNELS * i).rgb;
-				vec3 dir = sample_lightmap(2 + BSP_LIGHTMAP_CHANNELS * i).xyz;
+			vec3 diffuse0 = sample_lightmap(1).rgb;
+			vec3 direction0 = normalize(tbn * (normalize(sample_lightmap(2).xyz * 2.0 - 1.0)));
+			diffuse0 *= modulate * max(0.0, dot(direction0, normalmap));
 
-				dir = normalize(tbn * (normalize(dir * 2.0 - 1.0)));
-				dir = normalize(vec3(dir.xy * material.roughness, dir.z));
+			vec3 diffuse1 = sample_lightmap(3).rgb;
+			vec3 direction1 = normalize(tbn * (normalize(sample_lightmap(4).xyz * 2.0 - 1.0)));
+			diffuse1 *= modulate * max(0.0, dot(direction1, normalmap));
 
-				dif *= modulate * max(0.0, dot(dir, normalmap));
-				diffuse += dif;
+			diffuse += diffuse0 + diffuse1;
 
-				specular += dif * hardness * pow(max(0.0, dot(reflect(-dir, normalmap), normalize(-vertex.position))), specularity);
-			}
+			specular += diffuse0 * hardness * pow(max(0.0, dot(reflect(-direction0, normalmap), view_dir)), specularity);
+			specular += diffuse1 * hardness * pow(max(0.0, dot(reflect(-direction1, normalmap), view_dir)), specularity);
+			specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), view_dir)), specularity);
 
 			caustics = sample_lightmap(5).rgb;
 		} else {
@@ -114,12 +113,12 @@ void main(void) {
 			ambient *= modulate * max(0.0, dot(vertex.normal, normalmap));
 
 			diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
-			direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
+			vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
 			direction = normalize((view * model * vec4(normalize(direction * 2.0 - 1.0), 0.0)).xyz);
 			diffuse *= modulate * max(0.0, dot(direction, normalmap));
 
-			specular += diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
-			specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
+			specular += diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), view_dir)), specularity);
+			specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), view_dir)), specularity);
 
 			caustics = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
 		}
@@ -144,12 +143,11 @@ void main(void) {
 		if (lightmaps == 1) {
 			out_color.rgb = modulate * (sample_lightmap(0).rgb + sample_lightmap(1).rgb + sample_lightmap(3).rgb);
 		} else if (lightmaps == 2) {
-			out_color.rgb = sample_lightmap(2).rgb;
+			out_color.rgb = normalize(sample_lightmap(2).xyz + sample_lightmap(4).xyz);
 		} else if (lightmaps == 3) {
 			out_color.rgb = ambient + diffuse;
 		} else {
 			out_color = postprocess(out_color);
-			//out_color.rgb = normalize(vertex.normal * .5 + .5);
 		}
 
 	} else {

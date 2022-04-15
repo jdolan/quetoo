@@ -86,8 +86,6 @@ static void BuildLightgridLuxels(void) {
 				l->s = s;
 				l->t = t;
 				l->u = u;
-
-				l->direction[0] = Vec3_Up();
 			}
 		}
 	}
@@ -165,11 +163,10 @@ size_t BuildLightgrid(void) {
  */
 static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float scale) {
 
-	const float lumens = scale;
-
-	const vec3_t color = Vec3_Scale(light->color, lumens);
-
-	Luxel_LightLumen(light, luxel, color, Vec3_Zero());
+	Luxel_Illuminate(luxel, &(const lumen_t) {
+		.light = light,
+		.color = Vec3_Scale(light->color, scale)
+	});
 }
 
 /**
@@ -186,10 +183,11 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 		if (trace.surface & SURF_SKY) {
 			const float lumens = (1.f / light->num_points) * scale;
 
-			const vec3_t color = Vec3_Scale(light->color, lumens);
-			const vec3_t direction = Vec3_Scale(dir, lumens);
-
-			Luxel_LightLumen(light, luxel, color, direction);
+			Luxel_Illuminate(luxel, &(const lumen_t) {
+				.light = light,
+				.color = Vec3_Scale(light->color, lumens),
+				.direction = Vec3_Scale(dir, lumens)
+			});
 		}
 	}
 }
@@ -229,10 +227,11 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		const vec3_t color = Vec3_Scale(light->color, lumens);
-		const vec3_t direction = Vec3_Scale(dir, lumens);
-
-		Luxel_LightLumen(light, luxel, color, direction);
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.color = Vec3_Scale(light->color, lumens),
+			.direction = Vec3_Scale(dir, lumens)
+		});
 		break;
 	}
 }
@@ -281,10 +280,11 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 			continue;
 		}
 
-		const vec3_t color = Vec3_Scale(light->color, lumens);
-		const vec3_t direction = Vec3_Scale(dir, lumens);
-
-		Luxel_LightLumen(light, luxel, color, direction);
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.color = Vec3_Scale(light->color, lumens),
+			.direction = Vec3_Scale(dir, lumens)
+		});
 		break;
 	}
 }
@@ -328,10 +328,11 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 			continue;
 		}
 
-		const vec3_t color = Vec3_Scale(light->color, lumens);
-		const vec3_t direction = Vec3_Scale(dir, lumens);
-
-		Luxel_LightLumen(light, luxel, color, direction);
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.color = Vec3_Scale(light->color, lumens),
+			.direction = Vec3_Scale(dir, lumens)
+		});
 		break;
 	}
 }
@@ -375,10 +376,11 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 			continue;
 		}
 
-		const vec3_t color = Vec3_Scale(light->color, lumens);
-		const vec3_t direction = Vec3_Scale(dir, lumens);
-
-		Luxel_LightLumen(light, luxel, color, direction);
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.color = Vec3_Scale(light->color, lumens),
+			.direction = Vec3_Scale(dir, lumens)
+		});
 		break;
 	}
 }
@@ -608,8 +610,14 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
-		const vec3_t diffuse = Vec3_Scale(l->diffuse[0], 1.f / 255.f);
-		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), diffuse);
+		vec3_t light = l->ambient.color;
+		const lumen_t *diffuse = l->diffuse;
+		for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
+			light = Vec3_Add(light, diffuse->color);
+		}
+		light = ColorFilter(light);
+
+		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), light);
 
 		switch (fog->type) {
 			case FOG_INVALID:
@@ -660,53 +668,24 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *luxel = &lg.luxels[luxel_num];
 
-	if (luxel->lumens) {
+	// normalize the accumulated light
+	luxel->ambient.color = ColorFilter(luxel->ambient.color);
 
-		// sort the lumens by intensity
-		Luxel_SortLumens(luxel);
+	vec3_t color = Vec3_Zero();
+	vec3_t direction = Vec3_Zero();
 
-		// finalize them for writing to pixels
-		for (guint i = 0; i < luxel->lumens->len; i++) {
-			const lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
-
-			switch (lumen->light_type) {
-				case LIGHT_SUN:
-				case LIGHT_POINT:
-				case LIGHT_SPOT:
-				case LIGHT_PATCH:
-					if (i == 0) {
-						luxel->diffuse[0] = lumen->color;
-						luxel->direction[0] = lumen->direction;
-					} else {
-						luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
-						luxel->direction[0] = Vec3_Add(luxel->direction[0], lumen->direction);
-					}
-					break;
-				case LIGHT_INDIRECT:
-					if (i > 0) {
-						luxel->diffuse[0] = Vec3_Add(luxel->diffuse[0], lumen->color);
-					} else {
-						luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
-					}
-					break;
-				default:
-					luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
-					break;
-			}
-		}
-
-		// we're done with the lumens
-		Luxel_FreeLumens(luxel);
+	for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++) {
+		color = Vec3_Add(color, luxel->diffuse[i].color);
+		direction = Vec3_Add(direction, luxel->diffuse[i].direction);
 	}
 
-	// normalize the accumulated light
-	luxel->ambient = ColorFilter(luxel->ambient);
-	luxel->diffuse[0] = ColorFilter(luxel->diffuse[0]);
+	luxel->diffuse[0].color = ColorFilter(color);
+	luxel->diffuse[0].direction = Vec3_Normalize(direction);
 
-	// normalize the direction
-	luxel->direction[0] = Vec3_Normalize(luxel->direction[0]);
+	if (Vec3_Equal(luxel->diffuse[0].direction, Vec3_Zero())) {
+		luxel->diffuse[0].direction = Vec3_Up();
+	}
 
-	// normalize the caustics
 	luxel->caustics = ColorNormalize(luxel->caustics);
 
 	// filter the fog
@@ -759,9 +738,9 @@ void EmitLightgrid(void) {
 			for (int32_t s = 0; s < lg.size.x; s++, l++) {
 
 				for (int32_t i = 0; i < BSP_LIGHTGRID_BPP; i++) {
-					*out_ambient++ = (byte) Clampf(l->ambient.xyz[i] * 255.f, 0.f, 255.f);
-					*out_diffuse++ = (byte) Clampf(l->diffuse[0].xyz[i] * 255.f, 0.f, 255.f);
-					*out_direction++ = (byte) Clampf((l->direction[0].xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+					*out_ambient++ = (byte) Clampf(l->ambient.color.xyz[i] * 255.f, 0.f, 255.f);
+					*out_diffuse++ = (byte) Clampf(l->diffuse[0].color.xyz[i] * 255.f, 0.f, 255.f);
+					*out_direction++ = (byte) Clampf((l->diffuse[0].direction.xyz[i] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
 					*out_caustics++ = (byte) Clampf(l->caustics.xyz[i] * 255, 0.f, 255.f);
 				}
 
