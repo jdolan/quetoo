@@ -134,7 +134,6 @@ typedef struct light_s {
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];
 extern GPtrArray *leaf_lights[MAX_BSP_LEAFS];
-extern GPtrArray *unattenuated_lights;
 
 vec3_t ColorNormalize(const vec3_t in);
 vec3_t ColorFilter(const vec3_t in);

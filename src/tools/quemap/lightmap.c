@@ -640,14 +640,18 @@ void DirectLightmap(int32_t face_num) {
 		// For inline models, always add ambient light sources, even if the sample resides
 		// in solid. This prevents completely unlit tops of doors, bottoms of plats, etc.
 
-//		if (lm->model != bsp_file.models && l->lumens == NULL) {
-//			for (guint j = 0; j < unattenuated_lights->len; j++) {
-//				const light_t *light = g_ptr_array_index(lights, j);
-//				if (light->type == LIGHT_AMBIENT) {
-//					Luxel_LightLumen(light, l, light->color, Vec3_Zero());
-//				}
-//			}
-//		}
+		if (lm->model != bsp_file.models && l->diffuse->light == NULL) {
+			for (guint j = 0; j < lights->len; j++) {
+				const light_t *light = g_ptr_array_index(lights, j);
+				if (light->type == LIGHT_AMBIENT) {
+					Luxel_Illuminate(l, &(const lumen_t) {
+						.light = light,
+						.color = light->color
+					});
+					break;
+				}
+			}
+		}
 	}
 }
 
