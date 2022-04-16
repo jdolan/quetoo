@@ -29,9 +29,9 @@ uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
 
-uniform int entity;
 uniform mat4 model;
 
+uniform int entity;
 uniform int bicubic;
 
 uniform material_t material;
