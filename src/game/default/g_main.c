@@ -1479,7 +1479,7 @@ void G_Init(void) {
 	g_balance_grenadelauncher_speed = gi.AddCvar("g_balance_grenadelauncher_speed", "800", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_timer = gi.AddCvar("g_balance_grenadelauncher_timer", "2.5", CVAR_SERVER_INFO, NULL);
 	g_balance_quad_damage_respawn_time = gi.AddCvar("g_balance_quad_damage_respawn_time", "60", CVAR_SERVER_INFO, NULL);
-	g_balance_quad_damage_time = gi.AddCvar("g_balance_quad_damage_time", "20", CVAR_SERVER_INFO, NULL);
+	g_balance_quad_damage_time = gi.AddCvar("g_balance_quad_damage_time", "30", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_damage = gi.AddCvar("g_balance_railgun_damage", "100", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_knockback = gi.AddCvar("g_balance_railgun_knockback", "80", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_refire = gi.AddCvar("g_balance_railgun_refire", "1.4", CVAR_SERVER_INFO, NULL);
