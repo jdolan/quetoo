@@ -48,7 +48,7 @@ static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
 /**
  * @brief
  */
-r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, int32_t attachments) {
+r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments) {
 
 	r_framebuffer_t framebuffer = {
 		.width = width,
@@ -123,7 +123,7 @@ void R_CopyFramebufferAttachments(const r_framebuffer_t *framebuffer, int32_t at
 /**
  * @brief Blits the framebuffer object to the specified screen rect.
  */
-void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
+void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h) {
 
 	assert(framebuffer);
 
