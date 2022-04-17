@@ -211,6 +211,11 @@ typedef struct {
 	 * @brief The light decay interval.
 	 */
 	uint32_t light_decay;
+
+	/**
+	 * @brief The looping sample to play.
+	 */
+	s_sample_t *sample;
 } cg_flame_t;
 
 /**
@@ -225,6 +230,15 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 
 	flame->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
 	flame->radius = cgi.EntityValue(self->def, "radius")->value ?: 16.f;
+
+	const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
+	if (sound) {
+		if (g_strcmp0(sound, "none")) {
+			flame->sample = cgi.LoadSample(sound);
+		}
+	} else {
+		flame->sample = cg_sample_fire;
+	}
 }
 
 /**
@@ -272,14 +286,16 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 //		});
 //	}
 
-	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
-		.sample = cg_sample_fire,
-		.origin = self->origin,
-		.atten = SOUND_ATTEN_CUBIC,
-		.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
-		.pitch = RandomRangei(-1, 1),
-		.entity = self->id
-	});
+	if (flame->sample) {
+		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+			.sample = flame->sample,
+			.origin = self->origin,
+			.atten = SOUND_ATTEN_CUBIC,
+			.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+			.pitch = RandomRangei(-1, 1),
+			.entity = self->id
+		});
+	}
 }
 
 /**
