@@ -663,6 +663,8 @@ void Cl_Frame(const uint32_t msec) {
 
 	R_EndFrame();
 
+	R_Screenshot(&cl_view);
+
 	S_RenderStage(&cl_stage);
 
 	cls.cgame->UpdateDiscord();

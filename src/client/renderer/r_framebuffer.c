@@ -155,6 +155,24 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_
 /**
  * @brief
  */
+SDL_Surface *R_ReadFramebuffer(const r_framebuffer_t *framebuffer) {
+
+	SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0,
+														  framebuffer->width,
+														  framebuffer->height,
+														  24,
+														  SDL_PIXELFORMAT_RGB24);
+
+	glBindTexture(GL_TEXTURE_2D, framebuffer->color_attachment);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+
+	return surface;
+}
+
+
+/**
+ * @brief
+ */
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
 	assert(framebuffer);

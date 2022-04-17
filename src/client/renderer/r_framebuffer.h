@@ -26,6 +26,7 @@
 r_framebuffer_t R_CreateFramebuffer(r_pixel_t width, r_pixel_t height, int32_t attachments);
 void R_CopyFramebufferAttachments(const r_framebuffer_t *framebuffer, int32_t attachments);
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h);
+SDL_Surface *R_ReadFramebuffer(const r_framebuffer_t *framebuffer);
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer);
 
 #ifdef __R_LOCAL_H__
