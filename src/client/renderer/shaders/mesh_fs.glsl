@@ -72,26 +72,29 @@ void main(void) {
 			discard;
 		}
 
-		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
-		vec4 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2));
-
 		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
 		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
 
+		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
+		vec4 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2));
 		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
 		vec3 hardness = specularmap.rgb * material.hardness;
+		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
 
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
 		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
-		vec3 direction = normalize((view * vec4(normalize(vertex.direction * 2.0 - 1.0), 0.0)).xyz);
+		vec3 view_dir = normalize(-vertex.position);
+
+		vec3 direction = normalize(vertex.direction);
 
 		vec3 ambient = vertex.ambient * modulate * max(0.0, dot(vertex.normal, normalmap));
 		vec3 diffuse = vertex.diffuse * modulate * max(0.0, dot(direction, normalmap));
 
-		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
-		vec3 specular = diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), normalize(-vertex.position))), specularity);
-		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), normalize(-vertex.position))), specularity);
+		vec3 specular = vec3(0.0);
+
+		specular += diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), view_dir)), specularity);
+		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), view_dir)), specularity);
 
 		caustic_light(vertex.model, vertex.caustics, ambient, diffuse);
 
@@ -110,7 +113,7 @@ void main(void) {
 		if (lightmaps == 1) {
 			out_color.rgb = modulate * (vertex.ambient + vertex.diffuse);
 		} else if (lightmaps == 2) {
-			out_color.rgb = vertex.direction * 0.5 + 0.5;
+			out_color.rgb = inverse(tbn) * vertex.direction;
 		} else if (lightmaps == 3) {
 			out_color.rgb = ambient + diffuse;
 		} else {
