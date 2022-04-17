@@ -710,6 +710,7 @@ typedef struct {
 	vec3_t velocity;
 	float size;
 	int32_t count;
+	s_sample_t *sample;
 } cg_misc_steam_t;
 
 /**
@@ -736,6 +737,15 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 
 	steam->size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
 	steam->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
+
+	const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
+	if (sound) {
+		if (g_strcmp0(sound, "none")) {
+			steam->sample = cgi.LoadSample(sound);
+		}
+	} else {
+		steam->sample = cg_sample_steam;
+	}
 }
 
 /**
@@ -771,13 +781,15 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
 		};
 	}
 
-	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
-		.sample = cg_sample_steam,
-		.origin = self->origin,
-		.atten = SOUND_ATTEN_CUBIC,
-		.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
-		.entity = self->id,
-	});
+	if (steam->sample) {
+		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+			.sample = steam->sample,
+			.origin = self->origin,
+			.atten = SOUND_ATTEN_CUBIC,
+			.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+			.entity = self->id,
+		});
+	}
 }
 
 /**
