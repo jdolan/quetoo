@@ -615,14 +615,12 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 		for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
 			light = Vec3_Add(light, diffuse->color);
 		}
-		light = ColorFilter(light);
 
 		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), light);
 
 		switch (fog->type) {
 			case FOG_INVALID:
 				break;
-			case FOG_GLOBAL:
 			case FOG_VOLUME:
 				l->fog = Vec4_Add(l->fog, Vec3_ToVec4(color, intensity));
 				break;

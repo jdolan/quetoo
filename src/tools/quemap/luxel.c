@@ -43,7 +43,6 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 					return;
 				}
 
-
 				if (diffuse->light == lumen->light) {
 					diffuse->color = Vec3_Add(diffuse->color, lumen->color);
 					diffuse->direction = Vec3_Add(diffuse->direction, lumen->direction);

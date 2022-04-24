@@ -156,10 +156,7 @@ static void FogForEntity(const cm_entity_t *entity) {
 		fog.persistence = Cm_EntityValue(entity, "persistence")->value ?: FOG_PERSISTENCE;
 		fog.octaves = Cm_EntityValue(entity, "octaves")->integer ?: FOG_OCTAVES;
 		fog.seed = Cm_EntityValue(entity, "seed")->integer ?: FOG_SEED;
-		fog.offset = (Cm_EntityValue(entity, "offset")->parsed & ENTITY_VEC3) ?
-			Cm_EntityValue(entity, "offset")->vec3 : FOG_OFFSET;
-
-
+		fog.offset = (Cm_EntityValue(entity, "offset")->parsed & ENTITY_VEC3) ? Cm_EntityValue(entity, "offset")->vec3 : FOG_OFFSET;
 
 		FogSetPermutationVector(&fog);
 
