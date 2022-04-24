@@ -77,6 +77,12 @@ void R_DrawBloom(const r_view_t *view) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, view->framebuffer->bloom_attachment_copy);
 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, r_bloom_lod->integer);
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment_copy);
 

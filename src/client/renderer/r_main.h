@@ -28,6 +28,7 @@ extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bicubic;
 extern cvar_t *r_bloom;
+extern cvar_t *r_bloom_lod;
 extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
 extern cvar_t *r_display;
@@ -221,6 +222,11 @@ typedef struct {
 		 * @brief The bloom scalar.
 		 */
 		float bloom;
+
+		/**
+		 * @brief The bloom level of detail.
+		 */
+		int32_t bloom_lod;
 	} block;
 
 } r_uniforms_t;
