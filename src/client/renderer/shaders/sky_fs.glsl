@@ -22,6 +22,8 @@
 uniform samplerCube texture_cubemap;
 uniform sampler3D texture_lightgrid_fog;
 
+uniform material_t material;
+
 in vertex_data {
 	vec3 position;
 	vec3 cubemap;
@@ -38,7 +40,7 @@ void main(void) {
 
 	out_color = texture(texture_cubemap, normalize(vertex.cubemap));
 
-	out_bloom.rgb = clamp(out_color.rgb * out_color.rgb * bloom * 2.0 - 1.0, 0.0, 1.0);
+	out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 	out_bloom.a = out_color.a;
 
 	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);

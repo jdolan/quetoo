@@ -57,6 +57,10 @@ static struct {
 	GLint texture_lightgrid_fog;
 
 	GLint cube;
+
+	struct {
+		GLint bloom;
+	} material;
 } r_sky_program;
 
 /**
@@ -88,6 +92,7 @@ void R_DrawSky(const r_view_t *view) {
 	glBindTexture(GL_TEXTURE_CUBE_MAP, r_sky.image->texnum);
 
 	const r_bsp_draw_elements_t *sky = r_world_model->bsp->sky;
+	glUniform1f(r_sky_program.material.bloom, sky->material->cm->bloom * r_bloom->value);
 	glDrawElements(GL_TRIANGLES, sky->num_elements, GL_UNSIGNED_INT, sky->elements);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
@@ -114,7 +119,7 @@ static void R_InitSkyProgram(void) {
 
 	r_sky_program.name = R_LoadProgram(
 			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "sky_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "sky_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "sky_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_sky_program.name);
@@ -128,6 +133,8 @@ static void R_InitSkyProgram(void) {
 	r_sky_program.texture_lightgrid_fog = glGetUniformLocation(r_sky_program.name, "texture_lightgrid_fog");
 
 	r_sky_program.cube = glGetUniformLocation(r_sky_program.name, "cube");
+
+	r_sky_program.material.bloom = glGetUniformLocation(r_sky_program.name, "material.bloom");
 
 	glUniform1i(r_sky_program.texture_cubemap, TEXTURE_SKY);
 	glUniform1i(r_sky_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
