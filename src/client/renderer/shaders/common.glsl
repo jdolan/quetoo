@@ -193,7 +193,7 @@ float noise3d(vec3 p) {
 /**
  * @brief
  */
-void caustic_light(in vec3 model, in vec3 color, in vec3 ambient_light, inout vec3 diffuse_light) {
+void caustic_light(in vec3 model, in vec3 color, in vec3 ambient, inout vec3 diffuse) {
 
 	float noise = noise3d(model * .05 + (ticks / 1000.0) * 0.5);
 
@@ -204,14 +204,23 @@ void caustic_light(in vec3 model, in vec3 color, in vec3 ambient_light, inout ve
 
 	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
 
-	diffuse_light += clamp((ambient_light + diffuse_light) * length(color) * noise * caustics, 0.0, 1.0);
+	diffuse += clamp((ambient + diffuse) * length(color) * noise * caustics, 0.0, 1.0);
 }
 
 /**
  * @brief
  */
-void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
-				   inout vec3 diffuse_light, inout vec3 specular_light) {
+float blinn(in vec3 normal, in vec3 light_dir, in vec3 view_dir, in float specularity) {
+	return pow(max(0.0, dot(normalize(light_dir + view_dir), normal)), specularity);
+}
+
+/**
+ * @brief
+ */
+void dynamic_light(in vec3 position, in vec3 normalmap, in vec3 specularmap, in float specularity,
+				   inout vec3 diffuse, inout vec3 specular) {
+
+	vec3 view_dir = normalize(-position);
 
 	for (int i = 0; i < num_lights; i++) {
 
@@ -225,31 +234,24 @@ void dynamic_light(in vec3 position, in vec3 normal, in float specular_exponent,
 			continue;
 		}
 
-		float dist = distance(lights[i].origin.xyz, position);
-		if (dist < radius) {
-
-			vec3 light_dir = normalize(lights[i].origin.xyz - position);
-			float angle_atten = dot(light_dir, normal);
-			if (angle_atten > 0.0) {
-
-				float dist_atten;
-				dist_atten = 1.0 - dist / radius;
-				dist_atten *= dist_atten; // for looks, not for correctness
-
-				float attenuation = dist_atten * angle_atten;
-
-				vec3 view_dir = normalize(-position);
-				vec3 half_dir = normalize(light_dir + view_dir);
-
-				float specular_base = max(dot(half_dir, normal), 0.0);
-				float specular = pow(specular_base, specular_exponent);
-
-				vec3 color = lights[i].color.rgb * intensity;
-
-				diffuse_light += attenuation * radius * color;
-				specular_light += attenuation * attenuation * radius * specular * color;
-			}
+		float atten = 1.0 - distance(lights[i].origin.xyz, position) / radius;
+		if (atten <= 0.0) {
+			continue;
 		}
+
+		vec3 light_dir = normalize(lights[i].origin.xyz - position);
+		float lambert = dot(light_dir, normalmap);
+		if (lambert <= 0.0) {
+			continue;
+		}
+
+		vec3 color = lights[i].color.rgb;
+
+		vec3 diff = radius * intensity * color * atten * atten * lambert;
+		vec3 spec = diff * atten * specularmap * blinn(normalmap, light_dir, view_dir, specularity);
+
+		diffuse += diff;
+		specular += spec;
 	}
 }
 

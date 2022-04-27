@@ -75,30 +75,30 @@ void main(void) {
 		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
 		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
 
-		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
-		vec4 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2));
-		vec3 roughness = vec3(material.roughness, material.roughness, 1.0);
-		vec3 hardness = specularmap.rgb * material.hardness;
-		float specularity = pow(material.specularity * (hmax(specularmap.rgb) + 1.0), 4.0);
-
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
-		normalmap = normalize(tbn * (normalize(normalmap * 2.0 - 1.0) * roughness));
-		vec3 view_dir = normalize(-vertex.position);
+		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
+		normalmap = normalize(tbn * (normalize((normalmap * 2.0 - 1.0) * vec3(vec2(material.roughness), 1.0))));
 
+		vec3 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb;
+		specularmap = clamp(specularmap * pow(material.hardness, 2.0), 0.0, 1.0);
+
+		vec3 view_dir = normalize(-vertex.position);
 		vec3 direction = normalize(vertex.direction);
+
+		float specularity = pow(2.0 + material.specularity, 4.0);
 
 		vec3 ambient = vertex.ambient * modulate * max(0.0, dot(vertex.normal, normalmap));
 		vec3 diffuse = vertex.diffuse * modulate * max(0.0, dot(direction, normalmap));
 
 		vec3 specular = vec3(0.0);
 
-		specular += diffuse * hardness * pow(max(0.0, dot(reflect(-direction, normalmap), view_dir)), specularity);
-		specular += ambient * hardness * pow(max(0.0, dot(reflect(-vertex.normal, normalmap), view_dir)), specularity);
+		specular += diffuse * specularmap * blinn(normalmap, direction, view_dir, specularity);
+		specular += ambient * specularmap * blinn(normalmap, vertex.normal, view_dir, specularity);
 
 		caustic_light(vertex.model, vertex.caustics, ambient, diffuse);
 
-		dynamic_light(vertex.position, normalmap, specularity, diffuse, specular);
+		dynamic_light(vertex.position, normalmap, specularmap, specularity, diffuse, specular);
 
 		out_color = diffusemap;
 
