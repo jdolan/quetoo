@@ -143,8 +143,13 @@ static void viewWillAppear(ViewController *self) {
 		}
 
 		if (g_str_has_prefix(tr.material->name, "common/")) {
-			start = Vec3_Add(tr.end, cl_view.forward);
-			continue;
+
+			// skip most common materials, but allow sky bloom to be tuned in-game
+
+			if (g_strcmp0(tr.material->name, "common/sky")) {
+				start = Vec3_Add(tr.end, cl_view.forward);
+				continue;
+			}
 		}
 
 		this->material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
