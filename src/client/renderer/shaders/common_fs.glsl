@@ -94,20 +94,6 @@ float toksvig(in sampler2DArray sampler, in vec3 texcoord, in float roughness, i
 }
 
 /**
- * @brief Prevents surfaces from becoming overexposed by lights (looks bad).
- */
-vec3 tonemap(vec3 color) {
-	#if 1
-	color *= exp(color);
-	color /= color + 0.825;
-	return color;
-	#else
-	color = color * color;
-	return sqrt(color / (color + 0.75));
-	#endif
-}
-
-/**
  * @brief Brightness, contrast, saturation and gamma.
  */
 vec4 color_filter(vec4 color) {
@@ -123,64 +109,8 @@ vec4 color_filter(vec4 color) {
 }
 
 /**
- * @brief Converts uniform distribution into triangle-shaped distribution. Used for dithering.
- */
-float remap_triangular(float v) {
-
-	float original = v * 2.0 - 1.0;
-	v = original / sqrt(abs(original));
-	v = max(-1.0, v);
-	v = v - sign(original) + 0.5;
-
-	return v;
-
-	// result is range [-0.5,1.5] which is useful for actual dithering.
-	// convert to [0,1] for output
-	// return (v + 0.5f) * 0.5f;
-}
-
-/**
- * @brief Converts uniform distribution into triangle-shaped distribution for vec3. Used for dithering.
- */
-vec3 remap_triangular_3(vec3 c) {
-	return vec3(remap_triangular(c.r), remap_triangular(c.g), remap_triangular(c.b));
-}
-
-/**
- * @brief Applies dithering before quantizing to 8-bit values to remove color banding.
- */
-vec3 dither(vec3 color) {
-
-	// The function is adapted from slide 49 of Alex Vlachos's
-	// GDC 2015 talk: "Advanced VR Rendering".
-	// http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
-	// original shadertoy implementation by Zavie:
-	// https://www.shadertoy.com/view/4dcSRX
-	// modification with triangular distribution by Hornet (loopit.dk):
-	// https://www.shadertoy.com/view/Md3XRf
-
-	vec3 pattern;
-	// generate dithering pattern
-	pattern = vec3(dot(vec2(131.0, 312.0), gl_FragCoord.xy));
-	pattern = fract(pattern / vec3(103.0, 71.0, 97.0));
-	// remap distribution for smoother results
-	pattern = remap_triangular_3(pattern);
-	// scale the magnitude to be the distance between two 8-bit colors
-	pattern /= 255.0;
-	// apply the pattern, causing some fractional color values to be
-	// rounded up and others down, thus removing banding artifacts.
-	return saturate3(color + pattern);
-}
-
-
-/**
  * @brief Groups postprocessing operations
  */
 vec4 postprocess(vec4 color) {
-
-	color.rgb = tonemap(color.rgb);
-	color = color_filter(color);
-	color.rgb = dither(color.rgb);
-
-	return color;
+	return color_filter(color);
 }

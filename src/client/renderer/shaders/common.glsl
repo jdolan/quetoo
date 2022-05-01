@@ -69,16 +69,6 @@ float saturate(float x) {
 }
 
 /**
- * @brief Clamps vec3 components to [0.0, 1.0], like in HLSL.
- */
-vec3 saturate3(vec3 v) {
-	v.x = saturate(v.x);
-	v.y = saturate(v.y);
-	v.z = saturate(v.z);
-	return v;
-}
-
-/**
  * @brief
  */
 vec3 hash33(vec3 p) {
