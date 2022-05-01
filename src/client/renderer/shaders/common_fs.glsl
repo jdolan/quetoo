@@ -20,71 +20,16 @@
  */
 
 /**
- * @brief Shim for OpenGL 4.5's fwidth.
+ * @brief
  */
-vec2 fwidth(vec2 p) {
-	return abs(dFdx(p)) + abs(dFdy(p));
-}
-
-/**
- * @brief Get (approximate) mipmap level.
- */
-float mipmap_level(vec2 uv) {
-    vec2  dx = dFdx(uv);
-    vec2  dy = dFdy(uv);
-    float delta_max_sqr = max(dot(dx, dx), dot(dy, dy));
-
-    return 0.5 * log2(delta_max_sqr); // == log2(sqrt(delta_max_sqr));
-}
-
-/**
- * @brief Converts uniform distribution into triangle-shaped distribution. Used for dithering.
- */
-float remap_triangular(float v) {
-	
-    float original = v * 2.0 - 1.0;
-    v = original / sqrt(abs(original));
-    v = max(-1.0, v);
-    v = v - sign(original) + 0.5;
-
-    return v;
-
-    // result is range [-0.5,1.5] which is useful for actual dithering.
-    // convert to [0,1] for output
-    // return (v + 0.5f) * 0.5f;
-}
-
-/**
- * @brief Converts uniform distribution into triangle-shaped distribution for vec3. Used for dithering.
- */
-vec3 remap_triangular_3(vec3 c) {
-    return vec3(remap_triangular(c.r), remap_triangular(c.g), remap_triangular(c.b));
-}
-
-/**
- * @brief Applies dithering before quantizing to 8-bit values to remove color banding.
- */
-vec3 dither(vec3 color) {
-
-	// The function is adapted from slide 49 of Alex Vlachos's
-	// GDC 2015 talk: "Advanced VR Rendering".
-	// http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
-	// original shadertoy implementation by Zavie:
-	// https://www.shadertoy.com/view/4dcSRX
-	// modification with triangular distribution by Hornet (loopit.dk):
-	// https://www.shadertoy.com/view/Md3XRf
-
-	vec3 pattern;
-	// generate dithering pattern
-	pattern = vec3(dot(vec2(131.0, 312.0), gl_FragCoord.xy));
-    pattern = fract(pattern / vec3(103.0, 71.0, 97.0));
-	// remap distribution for smoother results
-	pattern = remap_triangular_3(pattern);
-	// scale the magnitude to be the distance between two 8-bit colors
-	pattern /= 255.0;
-	// apply the pattern, causing some fractional color values to be
-	// rounded up and others down, thus removing banding artifacts.
-	return saturate3(color + pattern);
+vec4 cubic(float v) {
+	vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
+	vec4 s = n * n * n;
+	float x = s.x;
+	float y = s.y - 4.0 * s.x;
+	float z = s.z - 4.0 * s.y + 6.0 * s.x;
+	float w = 6.0 - x - y - z;
+	return vec4(x, y, z, w) * (1.0 / 6.0);
 }
 
 /**
@@ -123,10 +68,110 @@ vec4 texture_bicubic(sampler2DArray sampler, vec3 coords) {
 	float sx = s.x / (s.x + s.y);
 	float sy = s.z / (s.z + s.w);
 
-	return mix(
-	   mix(sample3, sample2, sx), mix(sample1, sample0, sx)
-	, sy);
+	return mix(mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
 }
+
+/**
+ * @brief
+ */
+float toksvig_gloss(in vec3 normal, in float power) {
+
+	float len_rcp = 1.0 / saturate(length(normal));
+	return 1.0 / (1.0 + power * (len_rcp - 1.0));
+}
+
+/**
+ * @brief Toksvig normalmap antialiasing.
+ */
+float toksvig(in sampler2DArray sampler, in vec3 texcoord, in float roughness, in float specularity) {
+
+	float power = pow(1.0 + specularity, 4.0);
+
+	vec3 normalmap0 = (texture(sampler, texcoord, 0).xyz * 2.0 - 1.0) * vec3(vec2(roughness), 1.0);
+	vec3 normalmap1 = (texture(sampler, texcoord, 1).xyz * 2.0 - 1.0) * vec3(vec2(roughness), 1.0);
+
+	return power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
+}
+
+/**
+ * @brief Prevents surfaces from becoming overexposed by lights (looks bad).
+ */
+vec3 tonemap(vec3 color) {
+	#if 1
+	color *= exp(color);
+	color /= color + 0.825;
+	return color;
+	#else
+	color = color * color;
+	return sqrt(color / (color + 0.75));
+	#endif
+}
+
+/**
+ * @brief Brightness, contrast, saturation and gamma.
+ */
+vec4 color_filter(vec4 color) {
+
+	vec3 luminance = vec3(0.2125, 0.7154, 0.0721);
+	vec3 bias = vec3(0.5);
+
+	vec3 scaled = mix(vec3(color.a), color.rgb, gamma) * brightness;
+
+	color.rgb = mix(bias, mix(vec3(dot(luminance, scaled)), scaled, saturation), contrast);
+
+	return color;
+}
+
+/**
+ * @brief Converts uniform distribution into triangle-shaped distribution. Used for dithering.
+ */
+float remap_triangular(float v) {
+
+	float original = v * 2.0 - 1.0;
+	v = original / sqrt(abs(original));
+	v = max(-1.0, v);
+	v = v - sign(original) + 0.5;
+
+	return v;
+
+	// result is range [-0.5,1.5] which is useful for actual dithering.
+	// convert to [0,1] for output
+	// return (v + 0.5f) * 0.5f;
+}
+
+/**
+ * @brief Converts uniform distribution into triangle-shaped distribution for vec3. Used for dithering.
+ */
+vec3 remap_triangular_3(vec3 c) {
+	return vec3(remap_triangular(c.r), remap_triangular(c.g), remap_triangular(c.b));
+}
+
+/**
+ * @brief Applies dithering before quantizing to 8-bit values to remove color banding.
+ */
+vec3 dither(vec3 color) {
+
+	// The function is adapted from slide 49 of Alex Vlachos's
+	// GDC 2015 talk: "Advanced VR Rendering".
+	// http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
+	// original shadertoy implementation by Zavie:
+	// https://www.shadertoy.com/view/4dcSRX
+	// modification with triangular distribution by Hornet (loopit.dk):
+	// https://www.shadertoy.com/view/Md3XRf
+
+	vec3 pattern;
+	// generate dithering pattern
+	pattern = vec3(dot(vec2(131.0, 312.0), gl_FragCoord.xy));
+	pattern = fract(pattern / vec3(103.0, 71.0, 97.0));
+	// remap distribution for smoother results
+	pattern = remap_triangular_3(pattern);
+	// scale the magnitude to be the distance between two 8-bit colors
+	pattern /= 255.0;
+	// apply the pattern, causing some fractional color values to be
+	// rounded up and others down, thus removing banding artifacts.
+	return saturate3(color + pattern);
+}
+
 
 /**
  * @brief Groups postprocessing operations
@@ -136,6 +181,6 @@ vec4 postprocess(vec4 color) {
 	color.rgb = tonemap(color.rgb);
 	color = color_filter(color);
 	color.rgb = dither(color.rgb);
-	
+
 	return color;
 }

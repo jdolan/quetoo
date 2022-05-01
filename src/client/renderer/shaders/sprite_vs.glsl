@@ -68,15 +68,12 @@ void sprite_lighting(vec3 position, vec3 normal) {
 			continue;
 		}
 
-		float dist = distance(lights[i].origin.xyz, position);
-		if (dist > radius) {
+		float atten = 1.0 - distance(lights[i].origin.xyz, position) / radius;
+		if (atten <= 0.0) {
 			continue;
 		}
 
-		float dist_atten = 1.0 - dist / radius;
-		dist_atten *= dist_atten; // for looks, not for correctness
-
-		light += dist_atten * radius * lights[i].color.rgb * intensity;
+		light += radius * lights[i].color.rgb * intensity * atten * atten;
 	}
 
 	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * light * modulate, in_lighting);

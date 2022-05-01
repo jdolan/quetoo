@@ -78,15 +78,13 @@ void main(void) {
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
 		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
-		normalmap = normalize(tbn * (normalize((normalmap * 2.0 - 1.0) * vec3(vec2(material.roughness), 1.0))));
+		normalmap = normalize(tbn * normalize((normalmap * 2.0 - 1.0) * vec3(vec2(material.roughness), 1.0)));
 
-		vec3 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb;
-		specularmap = clamp(specularmap * pow(material.hardness, 2.0), 0.0, 1.0);
+		vec3 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
+		float specularity = toksvig(texture_material, vec3(vertex.diffusemap, 1), material.roughness, material.specularity);
 
 		vec3 view_dir = normalize(-vertex.position);
 		vec3 direction = normalize(vertex.direction);
-
-		float specularity = pow(2.0 + material.specularity, 4.0);
 
 		vec3 ambient = vertex.ambient * modulate * max(0.0, dot(vertex.normal, normalmap));
 		vec3 diffuse = vertex.diffuse * modulate * max(0.0, dot(direction, normalmap));

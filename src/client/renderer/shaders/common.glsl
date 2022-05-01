@@ -79,80 +79,6 @@ vec3 saturate3(vec3 v) {
 }
 
 /**
- * @brief Brightness, contrast, saturation and gamma.
- */
-vec4 color_filter(vec4 color) {
-
-	vec3 luminance = vec3(0.2125, 0.7154, 0.0721);
-	vec3 bias = vec3(0.5);
-
-	vec3 scaled = mix(vec3(color.a), color.rgb, gamma) * brightness;
-
-	color.rgb = mix(bias, mix(vec3(dot(luminance, scaled)), scaled, saturation), contrast);
-
-	return color;
-}
-
-/**
- * @brief Prevents surfaces from becoming overexposed by lights (looks bad).
- */
-vec3 tonemap(vec3 color) {
-	#if 1
-	color *= exp(color);
-	color /= color + 0.825;
-	return color;
-	#else
-	color = color * color;
-	return sqrt(color / (color + 0.75));
-	#endif
-}
-
-/**
- * @brief
- */
-vec3 pow3(vec3 v, float exponent) {
-	v.x = pow(v.x, exponent);
-	v.y = pow(v.y, exponent);
-	v.z = pow(v.z, exponent);
-	return v;
-}
-
-/**
- * @brief
- */
-vec4 cubic(float v) {
-	vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
-	vec4 s = n * n * n;
-	float x = s.x;
-	float y = s.y - 4.0 * s.x;
-	float z = s.z - 4.0 * s.y + 6.0 * s.x;
-	float w = 6.0 - x - y - z;
-	return vec4(x, y, z, w) * (1.0 / 6.0);
-}
-
-/**
- * @brief Toksvig normal map gloss factor.
- */
-float toksvig(vec3 normalmap, float power) {
-	float len_rcp = 1.0 / saturate(length(normalmap));
-	return 1.0 / (1.0 + power * (len_rcp - 1.0));
-}
-
-/**
-* @brief
-*/
-float grayscale(vec3 color) {
-	return dot(color, vec3(0.299, 0.587, 0.114));
-}
-
-/**
- * @brief Clamp value t to range [a,b] and map [a,b] to [0,1].
- */
-float linearstep(float a, float b, float t) {
-	return clamp((t - a) / (b - a), 0.0, 1.0);
-}
-
-/**
  * @brief
  */
 vec3 hash33(vec3 p) {
@@ -247,7 +173,7 @@ void dynamic_light(in vec3 position, in vec3 normalmap, in vec3 specularmap, in 
 
 		vec3 color = lights[i].color.rgb;
 
-		vec3 diff = radius * intensity * color * atten * atten * lambert;
+		vec3 diff = radius * color * intensity * atten * atten * lambert;
 		vec3 spec = diff * atten * specularmap * blinn(normalmap, light_dir, view_dir, specularity);
 
 		diffuse += diff;
