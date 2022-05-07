@@ -23,7 +23,7 @@ uniform sampler2D texture_color_attachment;
 uniform sampler2D texture_bloom_attachment;
 
 in vertex_data {
-    vec2 texcoord;
+	vec2 texcoord;
 } vertex;
 
 out vec4 out_color;
@@ -31,23 +31,11 @@ out vec4 out_color;
 /**
  * @brief
  */
-vec3 invert(vec3 color) {
-    return vec3(1.0) - color;
-}
-
-/**
- * @brief
- */
 void main(void) {
 
-    vec3 pixel_color = textureLod(texture_color_attachment, vertex.texcoord, 0).rgb;
-    vec3 bloom_color = vec3(0.0);
+	out_color = texture(texture_color_attachment, vertex.texcoord);
 
-    for (int i = 1; i <= bloom_lod; i++) {
-        // Max makes it look the same regardless of the LOD used.
-        bloom_color = max(bloom_color, textureLod(texture_bloom_attachment, vertex.texcoord, i).rgb);
-    }
-
-    // This way adds the colors without overexposure artifacts.
-    out_color.rgb = invert(invert(pixel_color) * invert(bloom_color));
+	for (int i = 1; i <= bloom_lod; i++) {
+		out_color.rgb += textureLod(texture_bloom_attachment, vertex.texcoord, i).rgb * 1.f / float(bloom_lod);
+	}
 }
