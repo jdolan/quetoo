@@ -26,14 +26,20 @@
  * in Pm_Init. They are referenced in a few other places e.g. to create effects
  * at a certain body position on the player model.
  */
-const box3_t PM_BOUNDS = { .mins = { { -16.f, -16.f, -24.f } },
-							 .maxs = { {  16.f,  16.f,  32.f } } };
+const box3_t PM_BOUNDS = {
+	.mins = { { -16.f, -16.f, -24.f } },
+	.maxs = { {  16.f,  16.f,  36.f } }
+};
 
-static const box3_t PM_DEAD_BOUNDS = { .mins = { { -16.f, -16.f, -24.f } },
-										 .maxs = { {  16.f,  16.f,  -4.f } } };
+static const box3_t PM_DEAD_BOUNDS = {
+	.mins = { { -16.f, -16.f, -24.f } },
+	.maxs = { {  16.f,  16.f,  -4.f } }
+};
 
-static const box3_t PM_GIBLET_BOUNDS = { .mins = { { -8.f, -8.f, -8.f } },
-										   .maxs = { {  8.f,  8.f,  8.f } } };
+static const box3_t PM_GIBLET_BOUNDS = {
+	.mins = { { -8.f, -8.f, -8.f } },
+	.maxs = { {  8.f,  8.f,  8.f } }
+};
 
 static pm_move_t *pm;
 
@@ -201,7 +207,7 @@ static _Bool Pm_SlideMove(void) {
 		// trace to it
 		cm_trace_t trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
 
-		// if the player is trapped in a solid, don't build up Z
+		// if the player is trapped in a solid, don't build up falling velocity
 		if (trace.all_solid) {
 			pm->s.velocity.z = 0.0f;
 			return true;
@@ -224,16 +230,10 @@ static _Bool Pm_SlideMove(void) {
 		// store a reference to the entity for firing game events
 		Pm_TouchEntity(&trace);
 
-		// record the impacted plane, or nudge velocity out along it
+		// record the impacted plane
 		if (Pm_ImpactPlane(planes, num_planes, trace.plane.normal)) {
 			planes[num_planes] = trace.plane.normal;
 			num_planes++;
-
-			// if we didn't move *at all* from the trace we'll probably be stuck, so
-			// move us out a tiny bit.
-			//if (trace.fraction == 0.f) {
-			//	pm->s.origin = Vec3_Fmaf(pm->s.origin, TRACE_EPSILON, trace.plane.normal);
-			//}
 		} else {
 			// if we've seen this plane before, nudge our velocity out along it
 			pm->s.velocity = Vec3_Add(pm->s.velocity, trace.plane.normal);
