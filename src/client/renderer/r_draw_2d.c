@@ -29,14 +29,14 @@ typedef struct {
 
 	r_image_t *image;
 
-	r_pixel_t char_width;
-	r_pixel_t char_height;
+	GLint char_width;
+	GLint char_height;
 } r_font_t;
 
 #define MAX_DRAW_FONTS 3
 
 typedef struct {
-	r_pixel_t x, y, w, h;
+	GLint x, y, w, h;
 } r_draw_2d_clipping_frame_t;
 
 /**
@@ -168,7 +168,7 @@ static void R_EmitDrawVertexes2D_Quad(const r_draw_2d_vertex_t *quad) {
 /**
  * @brief
  */
-static void R_Draw2DChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
+static void R_Draw2DChar_(GLint x, GLint y, char c, const color_t color) {
 
 	if (isspace(c) && c != 0x0b) {
 		return;
@@ -182,8 +182,8 @@ static void R_Draw2DChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color)
 	const float s1 = (col + 1) * 0.0625;
 	const float t1 = (row + 1) * 0.1250;
 
-	const r_pixel_t cw = r_draw_2d.font->char_width;
-	const r_pixel_t ch = r_draw_2d.font->char_height;
+	const GLint cw = r_draw_2d.font->char_width;
+	const GLint ch = r_draw_2d.font->char_height;
 
 	r_draw_2d_vertex_t quad[4];
 
@@ -210,7 +210,7 @@ static void R_Draw2DChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color)
 /**
  * @brief
  */
-void R_Draw2DChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
+void R_Draw2DChar(GLint x, GLint y, char c, const color_t color) {
 
 	if (isspace(c) && c != 0x0b) {
 		return;
@@ -231,7 +231,7 @@ void R_Draw2DChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
  * @brief Return the width of the specified string in pixels. This will vary based
  * on the currently bound font. Color escapes are omitted.
  */
-r_pixel_t R_StringWidth(const char *s) {
+GLint R_StringWidth(const char *s) {
 
 	size_t len = 0;
 
@@ -251,20 +251,20 @@ r_pixel_t R_StringWidth(const char *s) {
 		len++;
 	}
 
-	return len * r_draw_2d.font->char_width;
+	return (GLint) (len * r_draw_2d.font->char_width);
 }
 
 /**
  * @brief
  */
-size_t R_Draw2DString(r_pixel_t x, r_pixel_t y, const char *s, const color_t color) {
+size_t R_Draw2DString(GLint x, GLint y, const char *s, const color_t color) {
 	return R_Draw2DSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
 }
 
 /**
  * @brief
  */
-size_t R_Draw2DBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, const color_t color) {
+size_t R_Draw2DBytes(GLint x, GLint y, const char *s, size_t size, const color_t color) {
 	return R_Draw2DSizedString(x, y, s, size, size, color);
 }
 
@@ -272,7 +272,7 @@ size_t R_Draw2DBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, const
  * @brief Draws at most len chars or size bytes of the specified string. Color escape
  * sequences are not visible chars. Returns the number of chars drawn.
  */
-size_t R_Draw2DSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size, const color_t color) {
+size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t size, const color_t color) {
 	size_t i, j;
 
 	r_draw_2d_arrays_t draw = {
@@ -334,7 +334,7 @@ size_t R_Draw2DSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, 
 /**
  * @brief Binds the specified font, returning the character width and height.
  */
-void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
+void R_BindFont(const char *name, GLint *cw, GLint *ch) {
 
 	if (name == NULL) {
 		name = "medium";
@@ -368,7 +368,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 /**
  * @brief
  */
-void R_SetClippingFrame(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
+void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
 
 	r_draw_2d.clipping_frame.x = x;
 	r_draw_2d.clipping_frame.y = y;
@@ -379,7 +379,7 @@ void R_SetClippingFrame(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
 /**
  * @brief
  */
-void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color) {
+void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color) {
 
 	if (image == NULL) {
 		Com_Warn("NULL image\n");
@@ -427,7 +427,7 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 /**
  * @brief
  */
-void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color) {
+void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color) {
 
 	if (framebuffer == NULL) {
 		Com_Warn("NULL framebuffer\n");
@@ -469,7 +469,7 @@ void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, con
  * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
-void R_Draw2DFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color) {
+void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color) {
 
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_TRIANGLES,
@@ -499,7 +499,7 @@ void R_Draw2DFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const colo
 /**
  * @brief
  */
-void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
+void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
 
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_LINE_STRIP,
@@ -510,7 +510,7 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
 
 	r_draw_2d_vertex_t *out = r_draw_2d.vertexes + r_draw_2d.num_vertexes;
 	
-	const r_pixel_t *in = points;
+	const GLint *in = points;
 	for (size_t i = 0; i < count; i++, in += 2, out++) {
 
 		out->position.x = *(in + 0);

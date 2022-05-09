@@ -25,92 +25,72 @@
 /**
  * @brief
  */
-void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t direction, float lumens) {
+void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 
-	if (luxel->lumens == NULL) {
-		luxel->lumens = g_array_new(false, true, sizeof(lumen_t));
-	} else {
-		for (guint i = 0; i < luxel->lumens->len; i++) {
-			lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
+	assert(lumen->light);
 
-			if (lumen->light_id == light->id) {
-				lumen->color = Vec3_Fmaf(lumen->color, lumens, light->color);
-				lumen->direction = Vec3_Fmaf(lumen->direction, lumens, direction);
-				return;
+	switch (lumen->light->type) {
+		case LIGHT_SUN:
+		case LIGHT_POINT:
+		case LIGHT_SPOT:
+		case LIGHT_PATCH: {
+
+			lumen_t *diffuse = luxel->diffuse;
+			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
+
+				if (diffuse->light == NULL) {
+					*diffuse = *lumen;
+					return;
+				}
+
+				if (diffuse->light == lumen->light) {
+					diffuse->color = Vec3_Add(diffuse->color, lumen->color);
+					diffuse->direction = Vec3_Add(diffuse->direction, lumen->direction);
+					return;
+				}
+
+				if (Vec3_LengthSquared(lumen->color) > Vec3_LengthSquared(diffuse->color)) {
+
+					const lumen_t last = luxel->diffuse[BSP_LIGHTMAP_CHANNELS - 1];
+
+					for (int32_t j = BSP_LIGHTMAP_CHANNELS - 1; j > i; j--) {
+						luxel->diffuse[j] = luxel->diffuse[j - 1];
+					}
+
+					*diffuse = *lumen;
+
+					if (last.light) {
+						Luxel_Illuminate(luxel, &last);
+					}
+
+					return;
+				}
 			}
+
+			vec3_t c = lumen->color;
+			vec3_t d = lumen->direction;
+
+			diffuse = luxel->diffuse;
+			for (int32_t j = 0; j < BSP_LIGHTMAP_CHANNELS; j++, diffuse++) {
+
+				const vec3_t a = Vec3_Normalize(lumen->direction);
+				const vec3_t b = Vec3_Normalize(diffuse->direction);
+
+				const float dot = Clampf(Vec3_Dot(a, b), 0.f, 1.f);
+
+				diffuse->color = Vec3_Fmaf(diffuse->color, dot, c);
+				diffuse->direction = Vec3_Fmaf(diffuse->direction, dot, d);
+
+				c = Vec3_Fmaf(c, -dot, c);
+				d = Vec3_Fmaf(d, -dot, d);
+			}
+
+			luxel->ambient.color = Vec3_Add(luxel->ambient.color, c);
 		}
-	}
 
-	const lumen_t lumen = (lumen_t) {
-		.color = Vec3_Scale(light->color, lumens),
-		.direction = Vec3_Scale(direction, lumens),
-		.light_id = light->id,
-		.light_type = light->type,
-		.indirect_bounce = indirect_bounce
-	};
-
-	luxel->lumens = g_array_append_val(luxel->lumens, lumen);
-}
-
-/**
- * @brief Comparator for sorting luxel lumens by diffuse color descending.
- */
-static gint Luxel_SortLumensCmp(gconstpointer a, gconstpointer b) {
-
-	const lumen_t *a_lumen = (lumen_t *) a;
-	const lumen_t *b_lumen = (lumen_t *) b;
-
-	float a_intensity = Vec3_LengthSquared(a_lumen->color);
-	switch (a_lumen->light_type) {
-		case LIGHT_SUN:
-			a_intensity *= 8.f;
-			break;
-		case LIGHT_POINT:
-		case LIGHT_SPOT:
-		case LIGHT_PATCH:
-			a_intensity *= 16.f;
 			break;
 		default:
+			luxel->ambient.color = Vec3_Add(luxel->ambient.color, lumen->color);
 			break;
-	}
-
-	float b_intensity = Vec3_LengthSquared(b_lumen->color);
-	switch (b_lumen->light_type) {
-		case LIGHT_SUN:
-			a_intensity *= 8.f;
-			break;
-		case LIGHT_POINT:
-		case LIGHT_SPOT:
-		case LIGHT_PATCH:
-			b_intensity *= 16.f;
-			break;
-		default:
-			break;
-	}
-
-	return 1000.f * (b_intensity - a_intensity);
-}
-
-/**
- * @brief Sorts luxel lumens by light color descending.
- */
-void Luxel_SortLumens(luxel_t *luxel) {
-
-	assert(luxel);
-
-	if (luxel->lumens) {
-		g_array_sort(luxel->lumens, Luxel_SortLumensCmp);
-	}
-}
-
-/**
- * @brief
- */
-void Luxel_FreeLumens(luxel_t *luxel) {
-
-	assert(luxel);
-
-	if (luxel->lumens) {
-		g_array_free(luxel->lumens, true);
 	}
 }

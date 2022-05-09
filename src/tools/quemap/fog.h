@@ -42,11 +42,6 @@ typedef enum {
 	FOG_INVALID = -1,
 
 	/**
-	 * @brief Global fog comes from worldspawn.
-	 */
-	FOG_GLOBAL,
-
-	/**
 	 * @brief Fog volumes come from brush entities that are merged into worldspawn.
 	 */
 	FOG_VOLUME

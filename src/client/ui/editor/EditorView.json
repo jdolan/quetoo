@@ -168,6 +168,21 @@
 					"max": 3,
 					"step": .05
 				  }
+				},
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Light cone"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "light_cone",
+					"min": 0,
+					"max": 90,
+					"step": 5
+				  }
 				}
               ]
             }

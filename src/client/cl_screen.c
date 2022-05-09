@@ -91,10 +91,10 @@ static void Cl_DrawNetGraph(void) {
 		return;
 	}
 
-	r_pixel_t ch;
+	GLint ch;
 	R_BindFont("small", NULL, &ch);
 
-	const r_pixel_t netgraph_height = ch * 3;
+	const GLint netgraph_height = ch * 3;
 
 	x = r_context.width - NET_GRAPH_WIDTH;
 	y = r_context.height - NET_GRAPH_Y - netgraph_height;
@@ -113,7 +113,7 @@ static void Cl_DrawNetGraph(void) {
 		x = r_context.width - i;
 		y = r_context.height - NET_GRAPH_Y;
 
-		const r_pixel_t points[4] = { x, y, x, y - h };
+		const GLint points[4] = { x, y, x, y - h };
 		R_Draw2DLines(points, 2, net_graph_samples[j].color);
 	}
 }
@@ -122,7 +122,7 @@ static void Cl_DrawNetGraph(void) {
  * @brief Draws counters and performance information about the renderer.
  */
 static void Cl_DrawRendererStats(void) {
-	r_pixel_t ch, x = 1, y = 64;
+	GLint ch, x = 1, y = 64;
 
 	if (!cl_draw_renderer_stats->value) {
 		return;
@@ -240,7 +240,7 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-	r_pixel_t ch, x = 1, y = cl_draw_renderer_stats->value ? 540 : 64;
+	GLint ch, x = 1, y = cl_draw_renderer_stats->value ? 540 : 64;
 
 	if (!cl_draw_sound_stats->value) {
 		return;
@@ -345,7 +345,7 @@ static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
 	static char ft[28], pps[28], fps[28], spd[8];
 	static int32_t last_draw_time, last_speed_time;
-	r_pixel_t cw, ch;
+	GLint cw, ch;
 
 	if (!cl_draw_counters->integer) {
 		return;
@@ -353,8 +353,8 @@ static void Cl_DrawCounters(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	r_pixel_t x = r_context.width - 7 * cw;
-	r_pixel_t y = r_context.height - 4 * ch;
+	GLint x = r_context.width - 7 * cw;
+	GLint y = r_context.height - 4 * ch;
 	
 	cl.frame_counter[cl.sample_index]++;
 

@@ -162,7 +162,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/fragpipe.map"
@@ -190,7 +190,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/pits.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lavatomb.map"

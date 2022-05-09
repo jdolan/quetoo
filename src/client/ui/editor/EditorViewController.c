@@ -66,10 +66,12 @@ static void didSetValue(Slider *slider, double value) {
 		view->material->cm->bloom = view->bloom->value;
 	} else if (slider == view->alphaTest) {
 		view->material->cm->alpha_test = view->alphaTest->value;
-	}  else if (slider == view->lightRadius) {
+	} else if (slider == view->lightRadius) {
 		view->material->cm->light.radius = view->lightRadius->value;
-	}  else if (slider == view->lightIntensity) {
+	} else if (slider == view->lightIntensity) {
 		view->material->cm->light.intensity = view->lightIntensity->value;
+	} else if (slider == view->lightCone) {
+		view->material->cm->light.cone = view->lightCone->value;
 	} else {
 		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
 	}
@@ -108,6 +110,9 @@ static void loadView(ViewController *self) {
 	view->lightIntensity->delegate.self = self;
 	view->lightIntensity->delegate.didSetValue = didSetValue;
 
+	view->lightCone->delegate.self = self;
+	view->lightCone->delegate.didSetValue = didSetValue;
+
 	$((Control *) view->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
 
 	$(self, setView, (View *) view);
@@ -138,8 +143,13 @@ static void viewWillAppear(ViewController *self) {
 		}
 
 		if (g_str_has_prefix(tr.material->name, "common/")) {
-			start = Vec3_Add(tr.end, cl_view.forward);
-			continue;
+
+			// skip most common materials, but allow sky bloom to be tuned in-game
+
+			if (g_strcmp0(tr.material->name, "common/sky")) {
+				start = Vec3_Add(tr.end, cl_view.forward);
+				continue;
+			}
 		}
 
 		this->material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);

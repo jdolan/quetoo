@@ -48,6 +48,7 @@ cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bicubic;
 cvar_t *r_bloom;
+cvar_t *r_bloom_lod;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
 cvar_t *r_display;
@@ -63,7 +64,6 @@ cvar_t *r_multisample;
 cvar_t *r_roughness;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
-cvar_t *r_shell;
 cvar_t *r_specularity;
 cvar_t *r_sprite_downsample;
 cvar_t *r_stains;
@@ -250,6 +250,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 		r_uniforms.block.caustics = r_caustics->value;
 		r_uniforms.block.bloom = r_bloom->value;
+		r_uniforms.block.bloom_lod = r_bloom_lod->integer;
 
 		if (r_world_model) {
 			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
@@ -407,6 +408,8 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_DrawBloom(view);
 
+	R_DrawSky(view);
+
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
@@ -484,6 +487,7 @@ static void R_InitLocal(void) {
 	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE, "Controls texture brightness");
 	r_bicubic = Cvar_Add("r_bicubic", "1", CVAR_ARCHIVE, "Enable or disable high quality texture filtering on lightmaps and stainmaps.");
 	r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of light bloom effects");
+	r_bloom_lod = Cvar_Add("r_bloom_lod", "8", CVAR_ARCHIVE, "Controls the level of detail of light bloom effects");
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
@@ -498,8 +502,7 @@ static void R_InitLocal(void) {
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects");
 	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation.");
-	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
-	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE, "Controls mesh shell effect (e.g. Quad Damage shell)");
+	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_sprite_downsample = Cvar_Add("r_sprite_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of sprite effects to boost performance on low-end systems.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");

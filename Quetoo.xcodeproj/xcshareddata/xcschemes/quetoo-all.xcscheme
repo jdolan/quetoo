@@ -65,11 +65,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1440 +set r_height 900 +set r_display 1 +set r_allow_high_dpi 1"
+            argument = "+set r_fullscreen 0 +set r_width 1920 +set r_height 1080 +set r_display 1 +set r_allow_high_dpi 0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
+            argument = "+set r_draw_bsp_lightmap 1 +set r_texture_mode GL_NEAREST"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -77,12 +77,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightgrid 0 +set r_draw_bsp_lightmap 1"
+            argument = "+set r_draw_bsp_lightgrid 0 +set r_draw_bsp_lightmap 2"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_normals 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
@@ -109,7 +109,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map edge"
+            argument = "+set sv_max_clients 32 +map slimyplace"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -118,7 +118,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god +no_clip"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+g_ai_add 16"
@@ -126,7 +126,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

@@ -274,6 +274,12 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 
 	const vec3_t dir = self->locals.velocity;
 
+	if (g_level.time < self->locals.touch_time) {
+		return;
+	}
+
+	self->locals.touch_time = g_level.time + 1000;
+
 	if (G_IsMeat(other)) {
 
 		if (other->solid == SOLID_DEAD) {

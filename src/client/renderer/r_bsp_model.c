@@ -402,7 +402,8 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 				case BSP_LIGHTMAP_CAUSTICS:
 					c = Color32(0x00, 0x00, 0x00, 0x00);
 					break;
-				case BSP_LIGHTMAP_DIRECTION:
+				case BSP_LIGHTMAP_DIRECTION_0:
+				case BSP_LIGHTMAP_DIRECTION_1:
 					c = Color32(0x7f, 0x7f, 0xff, 0x00);
 					break;
 				default:

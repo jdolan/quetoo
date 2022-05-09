@@ -91,14 +91,14 @@ static void drawLine(const Renderer *self, const SDL_Point *points) {
 static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
 	assert(points);
 
-	r_pixel_t p[count][2];
+	GLint p[count][2];
 
 	for (size_t i = 0; i < count; i++) {
 		p[i][0] = points[i].x;
 		p[i][1] = points[i].y;
 	}
 
-	R_Draw2DLines((r_pixel_t *) p, count, drawColor);
+	R_Draw2DLines((GLint *) p, count, drawColor);
 }
 
 
@@ -111,7 +111,7 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
 	const SDL_Rect r = *rect;
 
-	const r_pixel_t points[][2] = {
+	const GLint points[][2] = {
 		{ r.x,			r.y },
 		{ r.x + r.w,	r.y },
 		{ r.x + r.w,	r.y + r.h },
@@ -119,7 +119,7 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 		{ r.x,			r.y },
 	};
 
-	R_Draw2DLines((r_pixel_t *) points, lengthof(points), drawColor);
+	R_Draw2DLines((GLint *) points, lengthof(points), drawColor);
 }
 
 /**

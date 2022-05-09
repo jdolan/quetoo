@@ -617,7 +617,7 @@ typedef struct cg_import_s {
 	 * @param attachments The framebuffer attachments.
 	 * @return The framebuffer.
 	 */
-	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height, int32_t attachments);
+	r_framebuffer_t (*CreateFramebuffer)(GLint width, GLint height, int32_t attachments);
 
 	/**
 	 * @brief Destroys the specified framebuffer, releasing any OpenGL resources.
@@ -633,7 +633,7 @@ typedef struct cg_import_s {
 	 * @param w The width of the screen rectangle in drawable pixels.
 	 * @param h The height of the screen rectangle in drawable pixels.
 	 */
-	void (*BlitFramebuffer)(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h);
+	void (*BlitFramebuffer)(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h);
 
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
@@ -758,7 +758,7 @@ typedef struct cg_import_s {
 	 * @param cw The optional return pointer for the character width.
 	 * @param ch The optional return pointer for the character height.
 	 */
-	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);
+	void (*BindFont)(const char *name, GLint *cw, GLint *ch);
 
 	/**
 	 * @brief Draws a filled rectangle in orthographic projection on the screen.
@@ -769,7 +769,7 @@ typedef struct cg_import_s {
 	 * @param c The color.
 	 * @param a The alpha component.
 	 */
-	void (*Draw2DFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color);
+	void (*Draw2DFill)(GLint x, GLint y, GLint w, GLint h, const color_t color);
 
 	/**
 	 * @brief Draws an image in orthographic projection on the screen.
@@ -780,7 +780,7 @@ typedef struct cg_import_s {
 	 * @param image The image.
 	 * @param color The color.
 	 */
-	void (*Draw2DImage)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
+	void (*Draw2DImage)(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color);
 
 	/**
 	 * @brief Draws the framebuffer color attachment in orthographic projection on the screen.
@@ -794,7 +794,7 @@ typedef struct cg_import_s {
 	 * textures in menus or on the HUD. For drawing directly and immediately to the screen,
 	 * use BlitFramebuffer.
 	 */
-	void (*Draw2DFramebuffer)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color);
+	void (*Draw2DFramebuffer)(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color);
 
 	/**
 	 * @brief Draws the string `s` at the given coordinates.
@@ -804,12 +804,12 @@ typedef struct cg_import_s {
 	 * @param color The color.
 	 * @return The number of visible characters drawn.
 	 */
-	size_t (*Draw2DString)(r_pixel_t x, r_pixel_t y, const char *s, const color_t color);
+	size_t (*Draw2DString)(GLint x, GLint y, const char *s, const color_t color);
 
 	/**
 	 * @return The width of the string `s` in pixels, using the currently bound font.
 	 */
-	r_pixel_t (*StringWidth)(const char *s);
+	GLint (*StringWidth)(const char *s);
 
 	/**
 	 * @brief Draw a 3D line at the given coordinates.

@@ -53,6 +53,7 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			MakeOutlet("alpha_test", &self->alphaTest),
 		    MakeOutlet("light_radius", &self->lightRadius),
 		    MakeOutlet("light_intensity", &self->lightIntensity),
+			MakeOutlet("light_cone", &self->lightCone),
 			MakeOutlet("save", &self->save)
 		);
 
@@ -94,6 +95,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 
 		$(self->lightRadius, setValue, (double) self->material->cm->light.radius);
 		$(self->lightIntensity, setValue, (double) self->material->cm->light.intensity);
+		$(self->lightCone, setValue, (double) self->material->cm->light.cone);
 
 	} else {
 		$(self->name, setDefaultText, NULL);
@@ -108,6 +110,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->alphaTest, setValue, DEFAULT_ALPHA_TEST);
 		$(self->lightRadius, setValue, DEFAULT_LIGHT_RADIUS);
 		$(self->lightIntensity, setValue, DEFAULT_LIGHT_INTENSITY);
+		$(self->lightIntensity, setValue, DEFAULT_LIGHT_CONE);
 	}
 }
 

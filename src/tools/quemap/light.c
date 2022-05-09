@@ -24,11 +24,9 @@
 #include "qlight.h"
 
 static GArray *lights = NULL;
-static int32_t id;
 
 GPtrArray *node_lights[MAX_BSP_NODES];
 GPtrArray *leaf_lights[MAX_BSP_LEAFS];
-GPtrArray *unattenuated_lights;
 
 /**
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
@@ -327,7 +325,6 @@ static void LightForEntity(const cm_entity_t *entity) {
 
 	light_t light = {
 		.type = LIGHT_INVALID,
-		.id = id++,
 	};
 
 	const char *class_name = Cm_EntityValue(entity, "classname")->string;
@@ -339,11 +336,11 @@ static void LightForEntity(const cm_entity_t *entity) {
 		LightForEntity_light(entity, &light);
 	} else if (!g_strcmp0(class_name, "light_spot")) {
 		LightForEntity_light_spot(entity, &light);
+	} else {
+		return;
 	}
 
-	if (light.type != LIGHT_INVALID) {
-		g_array_append_val(lights, light);
-	}
+	g_array_append_val(lights, light);
 }
 
 /**
@@ -359,14 +356,13 @@ static void LightForPatch(const patch_t *patch) {
 		.type = LIGHT_PATCH,
 		.atten = LIGHT_ATTEN_INVERSE_SQUARE,
 		.size = sqrtf(Cm_WindingArea(patch->winding)),
-		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, plane->normal),
+		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, plane->normal),
 		.face = patch->face,
 		.plane = plane,
 		.normal = plane->normal,
-		.theta = LIGHT_CONE,
-		.intensity = material->cm->light.intensity ?: LIGHT_INTENSITY,
+		.theta = Radians(material->cm->light.cone) ?: Radians(DEFAULT_LIGHT_CONE),
+		.intensity = material->cm->light.intensity ?: DEFAULT_LIGHT_INTENSITY,
 		.model = patch->model,
-		.id = id++,
 	};
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
@@ -382,7 +378,7 @@ static void LightForPatch(const patch_t *patch) {
 
 	light.color = Vec3_Scale(light.color, light.intensity * patch_intensity);
 
-	light.radius = brush_side->value ?: material->cm->light.radius;
+	light.radius = brush_side->value ?: material->cm->light.radius ?: DEFAULT_LIGHT_RADIUS;
 
 	light.bounds = Box3_FromCenter(light.origin);
 
@@ -391,7 +387,7 @@ static void LightForPatch(const patch_t *patch) {
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], 4.f, plane->normal);
+		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], ON_EPSILON, plane->normal);
 		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
 		}
@@ -443,20 +439,21 @@ void FreeLights(void) {
 			leaf_lights[i] = NULL;
 		}
 	}
-
-	g_ptr_array_free(unattenuated_lights, true);
-	unattenuated_lights = NULL;
 }
 
 /**
- * @return A GPtrArray of all light sources that intersect the specified bounds.
+ * @return A GPtrArray of all light sources of the specified types intersecting the given bounds.
  */
-static GPtrArray *BoxLights(const box3_t bounds) {
+static GPtrArray *BoxLights(light_type_t type, const box3_t bounds) {
 
 	GPtrArray *box_lights = g_ptr_array_new();
 
 	const light_t *light = (light_t *) lights->data;
 	for (guint i = 0; i < lights->len; i++, light++) {
+
+		if (!(light->type & type)) {
+			continue;
+		}
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
 			if (!Box3_Intersects(bounds, light->bounds)) {
@@ -471,9 +468,24 @@ static GPtrArray *BoxLights(const box3_t bounds) {
 }
 
 /**
- * @brief Hashes all light sources into bins by node and leaf.
+ * @brief
  */
-static void HashLights(void) {
+static box3_t NodeBounds(const bsp_node_t *node) {
+
+	box3_t bounds = Box3_Null();
+
+	const bsp_face_t *face = bsp_file.faces + node->first_face;
+	for (int32_t i = 0; i < node->num_faces; i++, face++) {
+		bounds = Box3_Union(bounds, face->bounds);
+	}
+
+	return bounds;
+}
+
+/**
+ * @brief Hashes light sources of the specified type(s) into bins by node and leaf.
+ */
+static void HashLights(light_type_t type) {
 
 	assert(lights);
 
@@ -484,27 +496,25 @@ static void HashLights(void) {
 			continue;
 		}
 
-		node_lights[i] = BoxLights(node->bounds);
+		if (node_lights[i]) {
+			g_ptr_array_free(node_lights[i], true);
+		}
+
+		node_lights[i] = BoxLights(type, NodeBounds(node));
 	}
 
 	const bsp_leaf_t *leaf = bsp_file.leafs;
 	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
 
-		if (leaf->cluster == 0) {
+		if (leaf->contents & CONTENTS_SOLID) {
 			continue;
 		}
 
-		leaf_lights[i] = BoxLights(leaf->bounds);
-	}
-
-	unattenuated_lights = g_ptr_array_new();
-
-	for (guint i = 0; i < lights->len; i++) {
-		light_t *light = &g_array_index(lights, light_t, i);
-
-		if (light->atten == LIGHT_ATTEN_NONE) {
-			g_ptr_array_add(unattenuated_lights, light);
+		if (leaf_lights[i]) {
+			g_ptr_array_free(leaf_lights[i], true);
 		}
+
+		leaf_lights[i] = BoxLights(type, leaf->bounds);
 	}
 }
 
@@ -513,9 +523,7 @@ static void HashLights(void) {
  */
 void BuildDirectLights(void) {
 
-	FreeLights();
-
-	lights = g_array_new(false, false, sizeof(light_t));
+	lights = lights ?: g_array_new(false, false, sizeof(light_t));
 
 	cm_entity_t **entity = Cm_Bsp()->entities;
 	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
@@ -534,7 +542,7 @@ void BuildDirectLights(void) {
 		}
 	}
 
-	HashLights();
+	HashLights(~LIGHT_INDIRECT);
 
 	Com_Verbose("Direct lighting for %d lights\n", lights->len);
 }
@@ -544,20 +552,17 @@ void BuildDirectLights(void) {
  */
 static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
-	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane];
-
 	light_t light = {
 		.type = LIGHT_INDIRECT,
 		.atten = LIGHT_ATTEN_INVERSE_SQUARE,
 		.size = sqrtf(Cm_WindingArea(patch->winding)),
-		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 4.f, lm->plane->normal),
+		.origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, lm->plane->normal),
 		.face = patch->face,
-		.plane = plane,
-		.normal = plane->normal,
-		.theta = LIGHT_CONE,
-		.intensity = LIGHT_INTENSITY,
+		.plane = lm->plane,
+		.normal = lm->plane->normal,
+		.theta = Radians(DEFAULT_LIGHT_CONE),
+		.intensity = DEFAULT_LIGHT_INTENSITY,
 		.model = patch->model,
-		.id = id++,
 	};
 
 	if (Light_PointContents(light.origin, 0) & CONTENTS_SOLID) {
@@ -595,32 +600,9 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 			assert(l->s == ds);
 			assert(l->t == dt);
 
-			if (l->lumens) {
-				for (guint i = 0; i < l->lumens->len; i++) {
-					const lumen_t *lumen = &g_array_index(l->lumens, lumen_t, i);
-					if (indirect_bounce == 0) {
-						switch (lumen->light_type) {
-							case LIGHT_SUN:
-							case LIGHT_POINT:
-							case LIGHT_SPOT:
-							case LIGHT_PATCH:
-								lightmap = Vec3_Add(lightmap, lumen->color);
-								break;
-							default:
-								break;
-						}
-					} else {
-						switch (lumen->light_type) {
-							case LIGHT_INDIRECT:
-								if (lumen->indirect_bounce == indirect_bounce - 1) {
-									lightmap = Vec3_Add(lightmap, lumen->color);
-									break;
-								}
-							default:
-								break;
-						}
-					}
-				}
+			const lumen_t *diffuse = l->diffuse;
+			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
+				lightmap = Vec3_Add(lightmap, diffuse->color);
 			}
 		}
 	}
@@ -642,7 +624,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], 4.f, lm->plane->normal);
+		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], ON_EPSILON, lm->plane->normal);
 		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
 		}
@@ -667,9 +649,7 @@ static void LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch)
  */
 void BuildIndirectLights(void) {
 
-	FreeLights();
-
-	lights = g_array_new(false, false, sizeof(light_t));
+	lights = lights ?: g_array_new(false, false, sizeof(light_t));
 
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 
@@ -684,7 +664,7 @@ void BuildIndirectLights(void) {
 		}
 	}
 
-	HashLights();
+	HashLights(LIGHT_INDIRECT);
 
 	Com_Verbose("Indirect lighting for %d patches\n", lights->len);
 }

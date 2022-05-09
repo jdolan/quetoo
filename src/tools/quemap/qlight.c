@@ -36,9 +36,6 @@ float indirect_intensity = LIGHT_INTENSITY;
 int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 int32_t patch_size = DEFAULT_PATCH_SIZE;
 
-int32_t num_indirect_bounces = 0;
-int32_t indirect_bounce = 0;
-
 float caustics = 1.f;
 
 // we use the collision detection facilities for lighting
@@ -475,10 +472,6 @@ static void LightWorld(void) {
 		patch_size = Cm_EntityValue(e, "patch_size")->integer ?: patch_size;
 	}
 
-	if (num_indirect_bounces == 0) {
-		num_indirect_bounces = Cm_EntityValue(e, "bounce")->integer ?: 1;
-	}
-
 	if (caustics == 1.f) {
 		caustics = Cm_EntityValue(e, "caustics")->value ?: caustics;
 	}
@@ -496,7 +489,6 @@ static void LightWorld(void) {
 	Com_Print("  Caustics intensity: %g\n", caustics);
 	Com_Print("  Luxel size: %d\n", luxel_size);
 	Com_Print("  Patch size: %d\n", patch_size);
-	Com_Print("  Indirect bounces: %d\n", num_indirect_bounces);
 	Com_Print("\n");
 
 	// build patches
@@ -511,23 +503,22 @@ static void LightWorld(void) {
 	// build lightgrid
 	const size_t num_lightgrid = BuildLightgrid();
 
-	// build lights out of patches and entities
+	// build lights out of entities and emissive patches
 	BuildDirectLights();
 
-	// ambient and diffuse lighting
+	// calculate direct lighting
 	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
 	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
+	// indirect lighting
 	if (indirect_intensity > 0.f) {
-		for (indirect_bounce = 0; indirect_bounce < num_indirect_bounces; indirect_bounce++) {
 
-			// build indirect lights from lightmapped patches
-			BuildIndirectLights();
+		// build lights out of lightmapped patches
+		BuildIndirectLights();
 
-			// calculate indirect lighting
-			Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
-			Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
-		}
+		// calculate indirect lighting
+		Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
+		Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
 	}
 
 	// caustic effects

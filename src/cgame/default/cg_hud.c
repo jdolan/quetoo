@@ -104,7 +104,7 @@ static cvar_t *cg_select_weapon_interval;
 /**
  * @brief Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
-static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const int16_t icon, const color_t color) {
+static void Cg_DrawIcon(const GLint x, const GLint y, const int16_t icon, const color_t color) {
 
 	const r_image_t *image = cgi.client->images[icon];
 	if (!image) {
@@ -118,8 +118,8 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const int16_t icon
 /**
  * @brief Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(r_pixel_t x, r_pixel_t ch, const int16_t value, const int16_t icon, int16_t med, int16_t low) {
-	r_pixel_t y = cgi.context->height - HUD_PIC_HEIGHT + (HUD_PIC_HEIGHT - ch) / 2;
+static void Cg_DrawVital(GLint x, GLint ch, const int16_t value, const int16_t icon, int16_t med, int16_t low) {
+	GLint y = cgi.context->height - HUD_PIC_HEIGHT + (HUD_PIC_HEIGHT - ch) / 2;
 
 	color_t color = HUD_COLOR_STAT;
 	color_t pulse = color_white;
@@ -147,7 +147,7 @@ static void Cg_DrawVital(r_pixel_t x, r_pixel_t ch, const int16_t value, const i
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawVitals(const player_state_t *ps) {
-	r_pixel_t x, cw, ch, x_offset;
+	GLint x, cw, ch, x_offset;
 
 	if (!cg_draw_vitals->integer) {
 		return;
@@ -194,8 +194,8 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 /**
  * @brief Draws the powerup and the time remaining
  */
-static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *icon) {
-	r_pixel_t x;
+static void Cg_DrawPowerup(GLint y, const int16_t value, const r_image_t *icon) {
+	GLint x;
 
 	color_t color = HUD_COLOR_STAT;
 
@@ -218,7 +218,7 @@ static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *ic
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawPowerups(const player_state_t *ps) {
-	r_pixel_t y, ch;
+	GLint y, ch;
 
 	if (!cg_draw_powerups->integer) {
 		return;
@@ -240,7 +240,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
  * @brief Draws the flag you are currently holding
  */
 static void Cg_DrawHeldFlag(const player_state_t *ps) {
-	r_pixel_t x, y;
+	GLint x, y;
 
 	if (!cg_draw_held_flag->integer) {
 		return;
@@ -265,7 +265,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
  * @brief Draws the flag you are currently holding
  */
 static void Cg_DrawHeldTech(const player_state_t *ps) {
-	r_pixel_t x, y;
+	GLint x, y;
 
 	if (!cg_draw_held_tech->integer) {
 		return;
@@ -289,7 +289,7 @@ static void Cg_DrawHeldTech(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
-	r_pixel_t x, y, cw, ch;
+	GLint x, y, cw, ch;
 
 	if (!cg_draw_pickup->integer) {
 		return;
@@ -320,7 +320,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
  */
 static void Cg_DrawFrags(const player_state_t *ps) {
 	const int16_t frags = ps->stats[STAT_FRAGS];
-	r_pixel_t x, y, cw, ch;
+	GLint x, y, cw, ch;
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
 		return;
@@ -352,7 +352,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
  */
 static void Cg_DrawDeaths(const player_state_t *ps) {
 	const int16_t deaths = ps->stats[STAT_DEATHS];
-	r_pixel_t x, y, cw, ch;
+	GLint x, y, cw, ch;
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
 		return;
@@ -385,7 +385,7 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
  */
 static void Cg_DrawCaptures(const player_state_t *ps) {
 	const int16_t captures = ps->stats[STAT_CAPTURES];
-	r_pixel_t x, y, cw, ch;
+	GLint x, y, cw, ch;
 
 	if (!cg_draw_captures->integer) {
 		return;
@@ -420,7 +420,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawSpectator(const player_state_t *ps) {
-	r_pixel_t x, y, cw;
+	GLint x, y, cw;
 
 	if (!ps->stats[STAT_SPECTATOR] || ps->stats[STAT_CHASE]) {
 		return;
@@ -440,7 +440,7 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawChase(const player_state_t *ps) {
-	r_pixel_t x, y, ch;
+	GLint x, y, ch;
 	char string[MAX_USER_INFO_VALUE * 2], *s;
 
 	// if we've changed chase targets, reset the HUD
@@ -480,7 +480,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawTime(const player_state_t *ps) {
-	r_pixel_t x, y, ch;
+	GLint x, y, ch;
 	const char *string = cgi.ConfigString(CS_TIME);
 
 	if (!ps->stats[STAT_TIME]) {
@@ -509,7 +509,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawReady(const player_state_t *ps) {
-	r_pixel_t x, y, ch;
+	GLint x, y, ch;
 
 	if (!ps->stats[STAT_READY]) {
 		return;
@@ -536,7 +536,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
  */
 static void Cg_DrawTeamBanner(const player_state_t *ps) {
 	const int16_t team = ps->stats[STAT_TEAM];
-	r_pixel_t x, y;
+	GLint x, y;
 
 	if (team == -1) {
 		return;
@@ -564,7 +564,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		vec4_t color;
 	} crosshair;
 
-	r_pixel_t x, y, w, h;
+	GLint x, y, w, h;
 
 	if (!cg_draw_crosshair->value) {
 		return;
@@ -763,7 +763,7 @@ void Cg_ParseCenterPrint(void) {
  * @brief
  */
 static void Cg_DrawCenterPrint(const player_state_t *ps) {
-	r_pixel_t cw, ch, x, y;
+	GLint cw, ch, x, y;
 	char *line = cg_center_print.lines[0];
 
 	if (ps->stats[STAT_SCORES]) {
@@ -1158,11 +1158,11 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	// figure out weapon.tag
 	Cg_ValidateSelectedWeapon(ps);
 
-	r_pixel_t x = ((cgi.context->width / 2) - ((cg_hud_state.weapon.num * HUD_PIC_HEIGHT) / 2));
-	r_pixel_t y = cgi.context->height - (HUD_PIC_HEIGHT * 2.0) - 16;
+	GLint x = ((cgi.context->width / 2) - ((cg_hud_state.weapon.num * HUD_PIC_HEIGHT) / 2));
+	GLint y = cgi.context->height - (HUD_PIC_HEIGHT * 2.0) - 16;
 
 	// draw the weapons inventory bar
-	r_pixel_t ch;
+	GLint ch;
 	cgi.BindFont("medium", NULL, &ch);
 
 	if (cg_select_weapon_fade->modified || cg_select_weapon_interval->modified) {
@@ -1239,12 +1239,12 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 	}
 
 	if (*name) {
-		r_pixel_t ch;
+		GLint ch;
 		cgi.BindFont("medium", NULL, &ch);
 
-		const r_pixel_t w = cgi.StringWidth(name);
-		const r_pixel_t x = cgi.context->width / 2 - w / 2;
-		const r_pixel_t y = cgi.context->height - 192 - ch;
+		const GLint w = cgi.StringWidth(name);
+		const GLint x = cgi.context->width / 2 - w / 2;
+		const GLint y = cgi.context->height - 192 - ch;
 
 		cgi.Draw2DString(x, y, name, color_green);
 	}

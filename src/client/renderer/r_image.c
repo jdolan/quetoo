@@ -36,6 +36,18 @@ typedef struct {
 	GLenum minify, magnify, minify_no_mip;
 } r_texture_mode_t;
 
+/**
+ * @brief Screenshot types.
+ */
+typedef enum {
+	SCREENSHOT_NONE,
+	SCREENSHOT_DEFAULT,
+	SCREENSHOT_VIEW,
+} r_screenshot_type_t;
+
+/**
+ * @brief Image state.
+ */
 static struct {
 	/**
 	 * @brief The texture sampling mode.
@@ -46,6 +58,11 @@ static struct {
 	 * @brief The texture sampling anisotropy level.
 	 */
 	GLfloat anisotropy;
+
+	/**
+	 * @brief If set, take a screenshot at the end of the frame.
+	 */
+	r_screenshot_type_t screenshot;
 } r_image_state;
 
 /**
@@ -93,16 +110,10 @@ static void R_TextureMode(void) {
 
 #define MAX_SCREENSHOTS 1000
 
-typedef struct {
-	uint32_t width;
-	uint32_t height;
-	byte *buffer;
-} r_screenshot_t;
-
 /**
- * @brief ThreadRunFunc for R_Screenshot_f.
+ * @brief ThreadRunFunc for R_Screenshot.
  */
-static void R_Screenshot_f_encode(void *data) {
+static void R_Screenshot_encode(void *data) {
 	static int32_t last_screenshot;
 	char filename[MAX_QPATH];
 	int32_t i;
@@ -122,13 +133,13 @@ static void R_Screenshot_f_encode(void *data) {
 
 	last_screenshot = i;
 
-	r_screenshot_t *s = (r_screenshot_t *) data;
+	SDL_Surface *surface = (SDL_Surface *) data;
 	_Bool screenshot_saved;
 
 	if (!g_strcmp0(r_screenshot_format->string, "tga")) {
-		screenshot_saved = Img_WriteTGA(filename, s->buffer, s->width, s->height);
+		screenshot_saved = Img_WriteTGA(filename, surface->pixels, surface->w, surface->h);
 	} else {
-		screenshot_saved = Img_WritePNG(filename, s->buffer, s->width, s->height);
+		screenshot_saved = Img_WritePNG(filename, surface->pixels, surface->w, surface->h);
 	}
 
 	if (screenshot_saved) {
@@ -137,24 +148,50 @@ static void R_Screenshot_f_encode(void *data) {
 		Com_Warn("Failed to write %s\n", filename);
 	}
 
-	Mem_Free(s);
+	SDL_FreeSurface(surface);
 }
 
 /**
-* @brief Captures a screenshot, writing it to the user's directory.
+ * @brief Captures a screenshot, if requested, writing it to the user's directory.
+ */
+void R_Screenshot(r_view_t *view) {
+
+	SDL_Surface *surface = NULL;
+
+	switch (r_image_state.screenshot) {
+		case SCREENSHOT_NONE:
+			return;
+		case SCREENSHOT_VIEW:
+			surface = R_ReadFramebuffer(view->framebuffer);
+			break;
+		default:
+			surface = SDL_CreateRGBSurfaceWithFormat(0,
+													 r_context.drawable_width,
+													 r_context.drawable_height,
+													 24,
+													 SDL_PIXELFORMAT_RGB24);
+
+			glReadPixels(0, 0, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+			break;
+	}
+
+	assert(surface);
+
+	Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
+
+	r_image_state.screenshot = SCREENSHOT_NONE;
+}
+
+/**
+* @brief Sets the screenshot type to take this frame.
 */
 void R_Screenshot_f(void) {
 
-	r_screenshot_t *s = Mem_Malloc(sizeof(r_screenshot_t));
-
-	s->width = r_context.drawable_width;
-	s->height = r_context.drawable_height;
-
-	s->buffer = Mem_LinkMalloc(s->width * s->height * 3, s);
-
-	glReadPixels(0, 0, s->width, s->height, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
-
-	Thread_Create(R_Screenshot_f_encode, s, THREAD_NO_WAIT);
+	if (!g_strcmp0(Cmd_Argv(1), "view")) {
+		r_image_state.screenshot = SCREENSHOT_VIEW;
+	} else {
+		r_image_state.screenshot = SCREENSHOT_DEFAULT;
+	}
 }
 
 /**

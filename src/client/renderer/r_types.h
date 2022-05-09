@@ -82,8 +82,9 @@ typedef struct r_media_s {
 	int32_t seed;
 } r_media_t;
 
-typedef int16_t r_pixel_t;
-
+/**
+ * @brief Model types.
+ */
 typedef enum {
 	MOD_INVALID,
 	MOD_BSP,
@@ -91,13 +92,17 @@ typedef enum {
 	MOD_MESH
 } r_model_type_t;
 
-// high bits OR'ed with image types, flags are bits 24..31
+/**
+ * @brief Bit masks used in conjunction with r_image_type_t.
+ */
 #define IT_MASK_MIPMAP		(1 << 24)
 #define IT_MASK_CLAMP_EDGE  (1 << 25)
 #define IT_MASK_QUALITY		(1 << 26)
 #define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE)
 
-// image categories (bits 0..23) + flags are making image types
+/**
+ * @brieef Image types.
+ */
 typedef enum {
 	IT_PROGRAM =     (1 <<  1),
 	IT_FONT =        (1 <<  2),
@@ -128,7 +133,7 @@ typedef struct {
 	/**
 	 * @brief The image width, height and depth (or layers).
 	 */
-	r_pixel_t width, height, depth;
+	GLint width, height, depth;
 
 	/**
 	 * @brief The target to bind this texture.
@@ -332,12 +337,12 @@ typedef struct {
 	/**
 	 * @brief The texture coordinates of this lightmap in the lightmap atlas.
 	 */
-	r_pixel_t s, t;
+	GLint s, t;
 
 	/**
 	 * @brief The width and height of this lightmap.
 	 */
-	r_pixel_t w, h;
+	GLint w, h;
 
 	/**
 	 * @brief The world-to-lightmap projection matrix.
@@ -1159,12 +1164,12 @@ typedef struct {
 	/**
 	 * @brief The framebuffer width.
 	 */
-	r_pixel_t width;
+	GLint width;
 
 	/**
 	 * @brief The framebuffer height.
 	 */
-	r_pixel_t height;
+	GLint height;
 } r_framebuffer_t;
 
 /**
@@ -1323,12 +1328,12 @@ typedef struct {
 	/**
 	 * @brief OpenGL context size in drawable pixels, as reported by SDL_GL_GetDrawableSize.
 	 */
-	r_pixel_t drawable_width, drawable_height;
+	GLint drawable_width, drawable_height;
 
 	/**
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
 	 */
-	r_pixel_t width, height;
+	GLint width, height;
 
 	/**
 	 * @brief The display vertical refresh rate, in Hz.

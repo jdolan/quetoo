@@ -262,6 +262,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 		case EV_CLIENT_SIZZLE:
 			play.sample = Cg_ClientModelSample(ent, "*sizzle_1");
+			play.pitch = RandomRangei(-12, +12);
 			break;
 		case EV_CLIENT_TELEPORT:
 			play.sample = cg_sample_teleport;

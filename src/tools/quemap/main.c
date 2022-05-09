@@ -263,10 +263,6 @@ static void Check_LIGHT_Options(int32_t argc) {
 			indirect_intensity = atof(Com_Argv(i + 1));
 			Com_Verbose("indirect intensity: %g\n", indirect_intensity);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--bounce")) {
-			num_indirect_bounces = (int32_t) CLAMP(strtol(Com_Argv(i + 1), NULL, 10), 1, MAX_BOUNCES);
-			Com_Verbose("bounces: %d\n", num_indirect_bounces);
-			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--caustics")) {
 			caustics = atof(Com_Argv(i + 1));
 			Com_Verbose("caustics: %g\n", caustics);

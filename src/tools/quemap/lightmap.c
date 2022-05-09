@@ -74,9 +74,6 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 	lm->h = floorf(lm->st_maxs.y - lm->st_mins.y) + 4;
 }
 
-static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs);
-static vec3_t LuxelNormal(const lightmap_t *lm, const vec3_t origin);
-
 /**
  * @brief Allocates and seeds the luxels for the given lightmap. Projection of the luxels into world
  * space is handled individually by the actual lighting passes, as they have different projections.
@@ -93,8 +90,6 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 
 			l->s = s;
 			l->t = t;
-
-			l->direction = Vec3_Up();
 		}
 	}
 }
@@ -126,7 +121,6 @@ static void DebugLightmapLuxels(void) {
 				Fs_Print(file, "{\n");
 				Fs_Print(file, "  \"classname\" \"info_luxel\"\n");
 				Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", l->origin.x, l->origin.y, l->origin.z);
-				Fs_Print(file, "  \"normal\" \"%g %g %g\"\n", l->normal.x, l->normal.y, l->normal.z);
 				Fs_Print(file, "  \"face\" \"%d\"\n", i);
 				Fs_Print(file, "  \"s\" \"%d\"\n", l->s);
 				Fs_Print(file, "  \"t\" \"%d\"\n", l->t);
@@ -244,10 +238,9 @@ static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soff
 	const float t = lm->st_mins.y + padding_t + l->t + 0.5f + toffs;
 
 	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
-
 	l->normal = LuxelNormal(lm, l->origin);
+	l->origin = Vec3_Fmaf(l->origin, 2.f, lm->plane->normal);
 
-	l->origin = Vec3_Fmaf(l->origin, 2.f, l->normal);
 	return Light_PointContents(l->origin, lm->model->head_node);
 }
 
@@ -262,10 +255,12 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 	const float s = lightmap->st_mins.x + padding_s + luxel->s + 0.5f;
 	const float t = lightmap->st_mins.y + padding_t + luxel->t + 0.5f;
 
-	const vec3_t points[] = DOME_COSINE_36X;
+	const vec3_t points[] = DOME_COSINE_16X;
 	float sample_fraction = scale / lengthof(points);
 
-	float lumens = 0.f;
+	lumen_t lumen = {
+		.light = light
+	};
 
 	for (size_t i = 0; i < lengthof(points); i++) {
 
@@ -284,10 +279,12 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 		const vec3_t point = Mat4_Transform(lightmap->inverse_matrix, sample);
 		const cm_trace_t trace = Light_Trace(luxel->origin, point, lightmap->model->head_node, CONTENTS_SOLID);
 
-		lumens += sample_fraction * trace.fraction;
+		lumen.color = Vec3_Fmaf(lumen.color, sample_fraction * trace.fraction, light->color);
 	}
 
-	Luxel_LightLumen(light, luxel, Vec3_Zero(), lumens);
+	if (!Vec3_Equal(lumen.color, Vec3_Zero())) {
+		Luxel_Illuminate(luxel, &lumen);
+	}
 }
 
 /**
@@ -299,11 +296,10 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 
 		vec3_t dir = Vec3_Negate(light->points[i]);
 
-		float dot = Vec3_Dot(dir, luxel->normal);
-		if (dot <= 0.f) {
+		const float dot = Vec3_Dot(dir, luxel->normal);
+		if (dot < 0.f) {
 			if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-				dir = Vec3_Reflect(dir, lightmap->plane->normal);
-				dot = fabsf(dot);
+				dir = Vec3_Negate(dir);
 			} else {
 				return;
 			}
@@ -313,8 +309,13 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, lightmap->model->head_node, CONTENTS_SOLID);
 
 		if (trace.surface & SURF_SKY) {
-			const float lumens = (1.f / light->num_points) * dot * scale;
-			Luxel_LightLumen(light, luxel, dir, lumens);
+			const float lumens = (1.f / light->num_points) * scale;
+
+			Luxel_Illuminate(luxel, &(const lumen_t) {
+				.light = light,
+				.color = Vec3_Scale(light->color, lumens),
+				.direction = Vec3_Scale(dir, lumens * light->intensity)
+			});
 		}
 	}
 }
@@ -331,11 +332,10 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, luxel->normal);
-	if (dot <= 0.f) {
+	const float dot = Vec3_Dot(dir, luxel->normal);
+	if (dot < 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-			dir = Vec3_Reflect(dir, lightmap->plane->normal);
-			dot = fabsf(dot);
+			dir = Vec3_Negate(dir);
 		} else {
 			return;
 		}
@@ -355,7 +355,7 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 			break;
 	}
 
-	const float lumens = atten * dot * scale;
+	const float lumens = atten * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -364,7 +364,11 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, lumens);
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.color = Vec3_Scale(light->color, lumens),
+			.direction = Vec3_Scale(dir, lumens * light->intensity)
+		});
 		break;
 	}
 }
@@ -381,11 +385,10 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, luxel->normal);
-	if (dot <= 0.f) {
+	const float dot = Vec3_Dot(dir, luxel->normal);
+	if (dot < 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-			dir = Vec3_Reflect(dir, lightmap->plane->normal);
-			dot = fabsf(dot);
+			dir = Vec3_Negate(dir);
 		} else {
 			return;
 		}
@@ -414,7 +417,7 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 			break;
 	}
 
-	const float lumens = atten * cutoff * dot * scale;
+	const float lumens = atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -423,7 +426,11 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, lumens);
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.color = Vec3_Scale(light->color, lumens),
+			.direction = Vec3_Scale(dir, lumens * light->intensity)
+		});
 		break;
 	}
 }
@@ -448,17 +455,15 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, luxel->normal);
-	if (dot <= 0.f) {
+	const float dot = Vec3_Dot(dir, luxel->normal);
+	if (dot < 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-			dir = Vec3_Reflect(dir, lightmap->plane->normal);
-			dot = fabsf(dot);
+			dir = Vec3_Negate(dir);
 		} else {
 			return;
 		}
 	}
 
-#if 0
 	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 	const float thresh = cosf(light->theta);
 	const float smooth = 0.03f;
@@ -467,12 +472,9 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 	if (cutoff <= 0.f) {
 		return;
 	}
-#else
-	const float cutoff = 1.f;
-#endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float lumens = atten * atten * cutoff * dot * scale;
+	const float lumens = atten * atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -481,7 +483,11 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, lumens);
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.color = Vec3_Scale(light->color, lumens),
+			.direction = Vec3_Scale(dir, lumens * light->intensity)
+		});
 		break;
 	}
 }
@@ -510,17 +516,15 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		return;
 	}
 
-	float dot = Vec3_Dot(dir, luxel->normal);
+	const float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot <= 0.f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-			dir = Vec3_Reflect(dir, lightmap->plane->normal);
-			dot = fabsf(dot);
+			dir = Vec3_Negate(dir);
 		} else {
 			return;
 		}
 	}
 
-#if 1
 	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 	const float thresh = cosf(light->theta);
 	const float smooth = 0.03f;
@@ -529,12 +533,9 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 	if (cutoff <= 0.f) {
 		return;
 	}
-#else
-	const float cutoff = 1.f;
-#endif
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float lumens = atten * atten * cutoff * dot * scale;
+	const float lumens = atten * atten * cutoff * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -543,7 +544,10 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 			continue;
 		}
 
-		Luxel_LightLumen(light, luxel, dir, lumens);
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.color = Vec3_Scale(light->color, lumens * dot)
+		});
 		break;
 	}
 }
@@ -630,11 +634,15 @@ void DirectLightmap(int32_t face_num) {
 		// For inline models, always add ambient light sources, even if the sample resides
 		// in solid. This prevents completely unlit tops of doors, bottoms of plats, etc.
 
-		if (lm->model != bsp_file.models && l->lumens == NULL) {
-			for (guint j = 0; j < unattenuated_lights->len; j++) {
+		if (lm->model != bsp_file.models && l->diffuse->light == NULL) {
+			for (guint j = 0; j < lights->len; j++) {
 				const light_t *light = g_ptr_array_index(lights, j);
 				if (light->type == LIGHT_AMBIENT) {
-					Luxel_LightLumen(light, l, Vec3_Zero(), 1.f);
+					Luxel_Illuminate(l, &(const lumen_t) {
+						.light = light,
+						.color = light->color
+					});
+					break;
 				}
 			}
 		}
@@ -753,12 +761,10 @@ static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h) {
  */
 static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 
-	// skip luxels that received no light
-	if (luxel->lumens == NULL) {
-		return;
-	}
+	// normalize the accumulated light
+	luxel->ambient.color = ColorFilter(luxel->ambient.color);
 
-	// re-project the luxel to calculate its centered normal
+	// re-project the luxel so that it reflects its centered normal vector
 	ProjectLightmapLuxel(lightmap, luxel, 0.f, 0.f);
 
 	// calculate the tangents to encode the light direction
@@ -768,67 +774,28 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	vec3_t tangent, bitangent;
 	Vec3_Tangents(luxel->normal, sdir, tdir, &tangent, &bitangent);
 
-	// sort the lumens by intensity
-	Luxel_SortLumens(luxel);
+	lumen_t *diffuse = luxel->diffuse;
+	for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
+		diffuse->color = ColorFilter(diffuse->color);
 
-	// finalize them for writing to pixels
-	for (guint i = 0; i < luxel->lumens->len; i++) {
-		lumen_t *lumen = &g_array_index(luxel->lumens, lumen_t, i);
+		// lerp the direction with the normal, according to its intensity
+		const float intensity = Clampf(Vec3_Length(diffuse->direction), 0.f, 1.f);
+		const vec3_t dir = Vec3_Normalize(Vec3_Mix(Vec3_Normalize(diffuse->direction), luxel->normal, 1.f - intensity));
 
-		switch (lumen->light_type) {
-			case LIGHT_SUN:
-			case LIGHT_POINT:
-			case LIGHT_SPOT:
-			case LIGHT_PATCH:
-				if (i == 0) {
-					luxel->diffuse = lumen->color;
-					luxel->direction = lumen->direction;
-				} else {
-					const vec3_t a = Vec3_Normalize(luxel->direction);
-					const vec3_t b = Vec3_Normalize(lumen->direction);
-					const float dot = Clampf(Vec3_Dot(a, b), 0.f, 1.f);
-					luxel->diffuse = Vec3_Fmaf(luxel->diffuse, dot, lumen->color);
-					luxel->direction = Vec3_Fmaf(luxel->direction, dot, lumen->direction);
-					luxel->ambient = Vec3_Fmaf(luxel->ambient, 1.f - dot, lumen->color);
-				}
-				break;
-			case LIGHT_INDIRECT:
-				if (i == 0) {
-					luxel->diffuse = lumen->color;
-					luxel->direction = lumen->direction;
-				} else {
-					luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->color);
-				}
-				break;
-			default:
-				luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
-				if (i == 0) {
-					luxel->direction = luxel->normal;
-				}
-				break;
-		}
+		//assert(Vec3_Dot(dir, luxel->normal) >= 0.f);
+
+		// transform the direction into tangent space
+		diffuse->direction.x = Vec3_Dot(dir, tangent);
+		diffuse->direction.y = Vec3_Dot(dir, bitangent);
+		diffuse->direction.z = Vec3_Dot(dir, luxel->normal);
+
+		diffuse->direction = Vec3_Normalize(diffuse->direction);
+
+		//assert(diffuse->direction.z >= 0.f);
 	}
-
-	// normalize the accumulated light
-	luxel->ambient = ColorFilter(luxel->ambient);
-	luxel->diffuse = ColorFilter(luxel->diffuse);
-
-	// lerp the direction with the normal, according to the light intensity
-	const float intensity = Clampf(Vec3_Length(luxel->diffuse), 0.0, 1.f);
-	vec3_t direction = Vec3_Normalize(Vec3_Mix(Vec3_Normalize(luxel->direction), luxel->normal, 1.f - intensity));
-
-	// transform the direction into tangent space
-	luxel->direction.x = Vec3_Dot(direction, tangent);
-	luxel->direction.y = Vec3_Dot(direction, bitangent);
-	luxel->direction.z = Vec3_Dot(direction, luxel->normal);
-
-	luxel->direction = Vec3_Normalize(luxel->direction);
 
 	// and normalize the cuastics
 	luxel->caustics = ColorNormalize(luxel->caustics);
-
-	// we're done with the lumens
-	Luxel_FreeLumens(luxel);
 }
 
 /**
@@ -845,11 +812,16 @@ void FinalizeLightmap(int32_t face_num) {
 	lm->ambient = CreateLightmapSurface(lm->w, lm->h);
 	byte *out_ambient = lm->ambient->pixels;
 
-	lm->diffuse = CreateLightmapSurface(lm->w, lm->h);
-	byte *out_diffuse = lm->diffuse->pixels;
+	byte *out_diffuse[BSP_LIGHTMAP_CHANNELS];
+	byte *out_direction[BSP_LIGHTMAP_CHANNELS];
 
-	lm->direction = CreateLightmapSurface(lm->w, lm->h);
-	byte *out_direction = lm->direction->pixels;
+	for (int32_t channel = 0; channel < BSP_LIGHTMAP_CHANNELS; channel++) {
+		lm->diffuse[channel] = CreateLightmapSurface(lm->w, lm->h);
+		out_diffuse[channel] = lm->diffuse[channel]->pixels;
+
+		lm->direction[channel] = CreateLightmapSurface(lm->w, lm->h);
+		out_direction[channel] = lm->direction[channel]->pixels;
+	}
 
 	lm->caustics = CreateLightmapSurface(lm->w, lm->h);
 	byte *out_caustics = lm->caustics->pixels;
@@ -860,34 +832,29 @@ void FinalizeLightmap(int32_t face_num) {
 
 		FinalizeLightmapLuxel(lm, l);
 
-#if 0
-		// write the interpolated normal for debugging
-		const vec3_t n = Vec3_Scale(Vec3_Add(l->normal, Vec3(1.f, 1.f, 1.f)), .5f);
-		for (int32_t j = 0; j < 3; j++) {
-			*out_diffuse++ = (byte) Clampf(n.xyz[j] * 255.f, 0.f, 255.f);
-			*out_direction++ = (byte) Clampf(Vec3_Up().xyz[j] * 255.f, 0.f, 255.f);
-		}
-#else
 		// write the color sample data as bytes
-		for (int32_t j = 0; j < 3; j++) {
-			*out_ambient++ = (byte) Clampf(l->ambient.xyz[j] * 255.f, 0.f, 255.f);
+		for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
+			*out_ambient++ = (byte) Clampf(l->ambient.color.xyz[j] * 255.f, 0.f, 255.f);
 		}
 
-		// write the color sample data as bytes
-		for (int32_t j = 0; j < 3; j++) {
-			*out_diffuse++ = (byte) Clampf(l->diffuse.xyz[j] * 255.f, 0.f, 255.f);
-		}
+		lumen_t *diffuse = l->diffuse;
+		for (int32_t c = 0; c < BSP_LIGHTMAP_CHANNELS; c++, diffuse++) {
 
-		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
-		for (int32_t j = 0; j < 3; j++) {
-			*out_direction++ = (byte) Clampf((l->direction.xyz[j] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+			// write the color sample data as bytes
+			for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
+				*out_diffuse[c]++ = (byte) Clampf(diffuse->color.xyz[j] * 255.f, 0.f, 255.f);
+			}
+
+			// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
+			for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
+				*out_direction[c]++ = (byte) Clampf((diffuse->direction.xyz[j] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+			}
 		}
 
 		// pack the caustics
-		for (int32_t j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
 			*out_caustics++ = (byte) Clampf(l->caustics.xyz[j] * 255.f, 0.f, 255.f);
 		}
-#endif
 	}
 }
 
@@ -908,7 +875,13 @@ void EmitLightmap(void) {
 			continue;
 		}
 
-		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction, lm->caustics);
+		nodes[i] = Atlas_Insert(atlas,
+								lm->ambient,
+								lm->diffuse[0],
+								lm->direction[0],
+								lm->diffuse[1],
+								lm->direction[1],
+								lm->caustics);
 		nodes[i]->w = lm->w;
 		nodes[i]->h = lm->h;
 	}
@@ -928,28 +901,36 @@ void EmitLightmap(void) {
 		byte *out = (byte *) bsp_file.lightmap + sizeof(bsp_lightmap_t);
 
 		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_bytes);
-		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_bytes);
-		SDL_Surface *direction = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_bytes);
-		SDL_Surface *caustics = CreateLightmapSurfaceFrom(width, width, out + 3 * layer_bytes);
+		SDL_Surface *diffuse0 = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_bytes);
+		SDL_Surface *direction0 = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_bytes);
+		SDL_Surface *diffuse1 = CreateLightmapSurfaceFrom(width, width, out + 3 * layer_bytes);
+		SDL_Surface *direction1 = CreateLightmapSurfaceFrom(width, width, out + 4 * layer_bytes);
+		SDL_Surface *caustics = CreateLightmapSurfaceFrom(width, width, out + 5 * layer_bytes);
 
-		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction, caustics) == 0) {
+		if (Atlas_Compile(atlas, 0, ambient, diffuse0, direction0, diffuse1, direction1, caustics) == 0) {
 
 //			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
-//			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
-//			IMG_SavePNG(direction, va("/tmp/%s_lm_direction.png", map_base));
+//			IMG_SavePNG(diffuse0, va("/tmp/%s_lm_diffuse0.png", map_base));
+//			IMG_SavePNG(direction0, va("/tmp/%s_lm_direction0.png", map_base));
+//			IMG_SavePNG(diffuse1, va("/tmp/%s_lm_diffuse1.png", map_base));
+//			IMG_SavePNG(direction1, va("/tmp/%s_lm_direction1.png", map_base));
 //			IMG_SavePNG(caustics, va("/tmp/%s_lm_caustics.png", map_base));
 
 			SDL_FreeSurface(ambient);
-			SDL_FreeSurface(diffuse);
-			SDL_FreeSurface(direction);
+			SDL_FreeSurface(diffuse0);
+			SDL_FreeSurface(direction0);
+			SDL_FreeSurface(diffuse1);
+			SDL_FreeSurface(direction1);
 			SDL_FreeSurface(caustics);
 
 			break;
 		}
 
 		SDL_FreeSurface(ambient);
-		SDL_FreeSurface(diffuse);
-		SDL_FreeSurface(direction);
+		SDL_FreeSurface(diffuse0);
+		SDL_FreeSurface(direction0);
+		SDL_FreeSurface(diffuse1);
+		SDL_FreeSurface(direction1);
 		SDL_FreeSurface(caustics);
 	}
 
@@ -975,8 +956,10 @@ void EmitLightmap(void) {
 		lm->face->lightmap.st_maxs = lm->st_maxs;
 
 		SDL_FreeSurface(lm->ambient);
-		SDL_FreeSurface(lm->diffuse);
-		SDL_FreeSurface(lm->direction);
+		SDL_FreeSurface(lm->diffuse[0]);
+		SDL_FreeSurface(lm->direction[0]);
+		SDL_FreeSurface(lm->diffuse[1]);
+		SDL_FreeSurface(lm->direction[1]);
 		SDL_FreeSurface(lm->caustics);
 	}
 

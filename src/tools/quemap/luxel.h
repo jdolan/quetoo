@@ -27,11 +27,9 @@
  * @brief Lumens are light source contributions to individual luxels.
  */
 typedef struct {
+	const light_t *light;
 	vec3_t color;
 	vec3_t direction;
-	int32_t light_id;
-	light_type_t light_type;
-	int32_t indirect_bounce;
 } lumen_t;
 
 /**
@@ -41,14 +39,10 @@ typedef struct {
 	int32_t s, t, u;
 	vec3_t origin;
 	vec3_t normal;
-	vec3_t ambient;
-	vec3_t diffuse;
-	vec3_t direction;
+	lumen_t ambient;
+	lumen_t diffuse[BSP_LIGHTMAP_CHANNELS];
 	vec3_t caustics;
 	vec4_t fog;
-	GArray *lumens;
 } luxel_t;
 
-extern void Luxel_LightLumen(const light_t *light, luxel_t *luxel, const vec3_t direction, float lumens);
-extern void Luxel_SortLumens(luxel_t *luxel);
-extern void Luxel_FreeLumens(luxel_t *luxel);
+extern void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen);
