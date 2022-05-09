@@ -515,14 +515,57 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 	}
 }
 
+static const char *Cg_Nav_KeyBind(const char *bind) {
+	SDL_Scancode code = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);
+
+	if (code == SDL_SCANCODE_UNKNOWN) {
+		return "^1UNBOUND^7";
+	}
+
+	return va("^2%s^7", cgi.KeyName(code));
+}
+
 /**
  * @brief
  */
 static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
-	Cg_DrawHud(&frame->ps);
+	// hide HUD in nav edit
+	if (cg_state.nav_edit) {
 
-	Cg_DrawScores(&frame->ps);
+		if (cg_state.nav_edit == 1) {
+			r_pixel_t ch;
+			cgi.BindFont("small", NULL, &ch);
+
+			r_pixel_t y = 32;
+
+			cgi.Draw2DString(32, y += ch, "NAVIGATION EDIT MODE", color_blue);
+			cgi.Draw2DString(32, y += ch, "You're in nav edit mode; items can't be picked up,", color_white);
+			cgi.Draw2DString(32, y += ch, "you can't die, and the map will never end.", color_white);
+
+			cgi.Draw2DString(32, y += ch, va("* To start placing nav nodes, press %s. A node will", Cg_Nav_KeyBind("+attack")), color_white);
+			cgi.Draw2DString(32, y += ch, "  drop at your location, and you can now place them", color_white);
+			cgi.Draw2DString(32, y += ch, "  by running around like you normally would.", color_white);
+
+			cgi.Draw2DString(32, y += ch, va("* To stop placing nodes, press %s again.", Cg_Nav_KeyBind("+attack")), color_white);
+
+			cgi.Draw2DString(32, y += ch, "* To change a node's position, select the node by touching it", color_white);
+			cgi.Draw2DString(32, y += ch, va("  so it turns yellow, and press %s.", Cg_Nav_KeyBind("use")), color_white);
+
+			cgi.Draw2DString(32, y += ch, "* To delete a node, select the node by touching it", color_white);
+			cgi.Draw2DString(32, y += ch, va("  so it turns yellow, and press %s.", Cg_Nav_KeyBind("+hook")), color_white);
+
+			cgi.Draw2DString(32, y += ch, "* To adjust the link state between two nodes, select", color_white);
+			cgi.Draw2DString(32, y += ch, "  the nodes by touching them so they turn yellow & purple respectively", color_white);
+			cgi.Draw2DString(32, y += ch, va("  then tap %s to cycle between connection types.", Cg_Nav_KeyBind("+score")), color_white);
+		}
+
+	} else {
+
+		Cg_DrawHud(&frame->ps);
+
+		Cg_DrawScores(&frame->ps);
+	}
 }
 
 /**

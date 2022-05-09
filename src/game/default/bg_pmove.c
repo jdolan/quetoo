@@ -343,7 +343,7 @@ static void Pm_StepSlideMove(void) {
 	const vec3_t org0 = pm->s.origin;
 	const vec3_t vel0 = pm->s.velocity;
 
-	// attempt to move; if nothing blocks us, we're done
+	// attempt to move
 	Pm_SlideMove();
 
 	// attempt to step down to remain on ground
@@ -357,7 +357,7 @@ static void Pm_StepSlideMove(void) {
 		}
 	}
 
-	// we were blocked, so try to step over the obstacle
+	// try to step over the obstacle
 
 	const vec3_t org1 = pm->s.origin;
 	const vec3_t vel1 = pm->s.velocity;
@@ -371,21 +371,21 @@ static void Pm_StepSlideMove(void) {
 		pm->s.origin = step_up.end;
 		pm->s.velocity = vel0;
 
-		Pm_SlideMove();
+		if (Pm_SlideMove()) {
+			// settle to the new ground, keeping the step if and only if it was successful
+			const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
+			const cm_trace_t step_down = Pm_Trace(pm->s.origin, down, pm->bounds);
 
-		// settle to the new ground, keeping the step if and only if it was successful
-		const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-		const cm_trace_t step_down = Pm_Trace(pm->s.origin, down, pm->bounds);
+			if (Pm_CheckStep(&step_down)) {
+				// Quake2 trick jump secret sauce
+				if ((pm->s.flags & PMF_ON_GROUND) || vel0.z < PM_SPEED_UP) {
+					Pm_StepDown(&step_down);
+				} else {
+					pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
+				}
 
-		if (Pm_CheckStep(&step_down)) {
-			// Quake2 trick jump secret sauce
-			if ((pm->s.flags & PMF_ON_GROUND) || vel0.z < PM_SPEED_UP) {
-				Pm_StepDown(&step_down);
-			} else {
-				pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
+				return;
 			}
-
-			return;
 		}
 	}
 

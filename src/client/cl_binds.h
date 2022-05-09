@@ -44,9 +44,9 @@ static const char *DEFAULT_BINDS =
     "bind right +right\n"
     "bind home center_view\n"
     "bind \"left shift\" +speed\n"
+    "bind e use\n"
 
     "bind t cl_message_mode\n"
-	//"bind enter cl_message_mode\n"
 	"bind return cl_message_mode\n"
     "bind y cl_message_mode_2\n"
 

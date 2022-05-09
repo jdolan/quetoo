@@ -283,6 +283,13 @@ static _Bool G_PickupGrenades(g_entity_t *ent, g_entity_t *other) {
 }
 
 /**
+ * @brief When "using" grenades, route it to the Hand Grenades
+ */
+static void G_UseGrenades(g_entity_t *ent, const g_item_t *item) {
+	G_UseWeapon(ent, G_FindItem("Hand Grenades"));
+}
+
+/**
  * @brief When picking up the grenade launcher, give the hand grenades weapon as well.
  */
 static _Bool G_PickupGrenadeLauncher(g_entity_t *ent, g_entity_t *other) {
@@ -1816,7 +1823,7 @@ static g_item_t g_items[] = {
 	{
 		.class_name = "ammo_grenades",
 		.Pickup = G_PickupGrenades,
-		.Use = NULL,
+		.Use = G_UseGrenades,
 		.Drop = G_DropItem,
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",

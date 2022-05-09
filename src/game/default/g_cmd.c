@@ -229,6 +229,10 @@ static void G_Use_f(g_entity_t *ent) {
 		it = G_FindItem(s);
 	} else {
 		it = ent->client->locals.last_pickup;
+
+		if (!it) {
+			return;
+		}
 	}
 	if (!it) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Unknown item: %s\n", s);
