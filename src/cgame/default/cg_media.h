@@ -84,6 +84,8 @@ extern r_atlas_image_t *cg_sprite_water_circle;
 extern r_atlas_image_t *cg_sprite_water_ring;
 extern r_atlas_image_t *cg_sprite_water_ring2;
 extern r_atlas_image_t *cg_sprite_abstract_01;
+extern r_atlas_image_t *cg_sprite_node_wait;
+extern r_atlas_image_t *cg_sprite_node_slow;
 extern r_image_t *cg_beam_hook;
 extern r_image_t *cg_beam_arrow;
 extern r_image_t *cg_beam_line;
@@ -111,10 +113,6 @@ extern r_animation_t *cg_sprite_impact_spark_01;
 extern r_animation_t *cg_sprite_hyperball_01;
 
 extern r_framebuffer_t cg_framebuffer;
-
-extern r_atlas_image_t cg_sprite_font[16 * 8];
-
-extern int32_t cg_sprite_font_width, cg_sprite_font_height;
 
 void Cg_LoadMedia(void);
 void Cg_FreeMedia(void);

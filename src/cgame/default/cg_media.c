@@ -82,6 +82,8 @@ r_atlas_image_t *cg_sprite_water_circle;
 r_atlas_image_t *cg_sprite_water_ring;
 r_atlas_image_t *cg_sprite_water_ring2;
 r_atlas_image_t *cg_sprite_abstract_01;
+r_atlas_image_t *cg_sprite_node_wait;
+r_atlas_image_t *cg_sprite_node_slow;
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_arrow;
 r_image_t *cg_beam_line;
@@ -110,10 +112,6 @@ r_animation_t *cg_sprite_impact_spark_01;
 r_animation_t *cg_sprite_hyperball_01;
 
 r_framebuffer_t cg_framebuffer;
-
-r_atlas_image_t cg_sprite_font[16 * 8];
-
-int32_t cg_sprite_font_width, cg_sprite_font_height;
 
 /**
  * @brief
@@ -233,6 +231,8 @@ void Cg_LoadMedia(void) {
 	cg_sprite_water_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring", IT_SPRITE | IT_MASK_QUALITY);
 	cg_sprite_water_ring2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring2", IT_SPRITE | IT_MASK_QUALITY);
 	cg_sprite_abstract_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/abstract/abstract_01", IT_SPRITE | IT_MASK_QUALITY);
+	cg_sprite_node_wait = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/teamkill", IT_SPRITE | IT_MASK_QUALITY);
+	cg_sprite_node_slow = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/crush", IT_SPRITE | IT_MASK_QUALITY);
 
 	cgi.LoadingProgress(-1, "sprites");
 
@@ -257,33 +257,6 @@ void Cg_LoadMedia(void) {
 
 	const int32_t w = cgi.context->drawable_width, h = cgi.context->drawable_height;
 	cg_framebuffer = cgi.CreateFramebuffer(w, h, ATTACHMENT_ALL);
-
-	// font sprite, used for debugging
-	const r_image_t *font_image = cgi.LoadImage("fonts/medium", IT_FONT);
-	const float texel = (1.f / font_image->width) * .5f;
-
-	for (uint32_t i = 0; i < lengthof(cg_sprite_font); i++) {
-		r_atlas_image_t *atlas = &cg_sprite_font[i];
-
-		const uint32_t row = (uint32_t) i >> 4;
-		const uint32_t col = (uint32_t) i & 15;
-
-		const float s0 = col * 0.0625;
-		const float t0 = row * 0.1250;
-		const float s1 = (col + 1) * 0.0625;
-		const float t1 = (row + 1) * 0.1250;
-
-		atlas->image = *font_image;
-		atlas->image.media.type = R_MEDIA_ATLAS_IMAGE;
-		atlas->node = NULL;
-		atlas->texcoords = Vec4(
-			s0 + texel, t0 + texel,
-			s1 - texel, t1 - texel
-		);
-	}
-
-	cg_sprite_font_width = font_image->width / 16;
-	cg_sprite_font_height = font_image->height / 8;
 
 	Cg_LoadFlares();
 

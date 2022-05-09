@@ -542,11 +542,11 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
 			cgi.Draw2DString(32, y += ch, "You're in nav edit mode; items can't be picked up,", color_white);
 			cgi.Draw2DString(32, y += ch, "you can't die, and the map will never end.", color_white);
 
-			cgi.Draw2DString(32, y += ch, va("* To start placing nav nodes, press %s. A node will", Cg_Nav_KeyBind("+attack")), color_white);
+			cgi.Draw2DString(32, y += ch, va("* To start placing/linking nav nodes, press %s. A node will", Cg_Nav_KeyBind("+attack")), color_white);
 			cgi.Draw2DString(32, y += ch, "  drop at your location, and you can now place them", color_white);
 			cgi.Draw2DString(32, y += ch, "  by running around like you normally would.", color_white);
 
-			cgi.Draw2DString(32, y += ch, va("* To stop placing nodes, press %s again.", Cg_Nav_KeyBind("+attack")), color_white);
+			cgi.Draw2DString(32, y += ch, va("* To stop placing/linking nodes, press %s again.", Cg_Nav_KeyBind("+attack")), color_white);
 
 			cgi.Draw2DString(32, y += ch, "* To change a node's position, select the node by touching it", color_white);
 			cgi.Draw2DString(32, y += ch, va("  so it turns yellow, and press %s.", Cg_Nav_KeyBind("use")), color_white);

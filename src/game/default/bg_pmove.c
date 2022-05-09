@@ -31,6 +31,11 @@ const box3_t PM_BOUNDS = {
 	.maxs = { {  16.f,  16.f,  36.f } }
 };
 
+const box3_t PM_CROUCHED_BOUNDS = {
+	.mins = { { -16.f, -16.f, -24.f } },
+	.maxs = { {  16.f,  16.f,  6.f } }
+};
+
 static const box3_t PM_DEAD_BOUNDS = {
 	.mins = { { -16.f, -16.f, -24.f } },
 	.maxs = { {  16.f,  16.f,  -4.f } }
@@ -852,7 +857,7 @@ static void Pm_CheckDuck(void) {
 			}
 
 			// change the bounding box to reflect ducking
-			pm->bounds.maxs.z = pm->bounds.maxs.z + pm->bounds.mins.z * 0.5f;
+			pm->bounds = PM_CROUCHED_BOUNDS;
 		} else {
 			const float target = pm->bounds.mins.z + height * 0.9f;
 

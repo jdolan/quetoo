@@ -40,7 +40,7 @@ static struct {
 
 	guint file_nodes, file_links;
 
-	_Bool do_noding;
+	_Bool do_noding, drop_nodes;
 } ai_player_roam;
 
 /**
@@ -455,7 +455,7 @@ _Bool Ai_Path_CanPathTo(const GArray *path, const guint index) {
 /**
  * @brief
  */
-void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
+void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd) {
 
 	if (!ai_node_dev->integer) {
 		return;
@@ -466,7 +466,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 	ai_player_roam.latched_buttons |= ai_player_roam.buttons & ~ai_player_roam.old_buttons;
 	
 	const _Bool allow_adjustments = ai_node_dev->integer == 1;
-	const _Bool do_noding = allow_adjustments && player->client->ps.pm_state.type == PM_NORMAL;	
+	const _Bool do_noding = allow_adjustments && ai_player_roam.drop_nodes && player->client->ps.pm_state.type == PM_NORMAL;	
 
 	// we just switched between noclip/not noclip, clear some stuff
 	// so we don't accidentally drop nodes
@@ -587,8 +587,13 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 	const ai_node_id_t closest_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 4, true, false);
 	const _Bool on_mover = player->locals.ground.ent && player->locals.ground.ent->s.number != 0;
 
-	// attack button moves node
+	// attack button enables/disables placement
 	if (allow_adjustments && (ai_player_roam.latched_buttons & BUTTON_ATTACK)) {
+		ai_player_roam.drop_nodes = !ai_player_roam.drop_nodes;
+
+		ai_player_roam.latched_buttons &= ~BUTTON_ATTACK;
+	// "use" moves node
+	} else if (allow_adjustments && player->locals.move_node) {
 		if (ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
 			ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, ai_player_roam.last_nodes[0]);
 			node->position = player->s.origin;
@@ -601,9 +606,10 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 			// recalculate links
 			Ai_Node_RecalculateCosts(ai_player_roam.last_nodes[0]);
 		}
-		ai_player_roam.latched_buttons &= ~BUTTON_ATTACK;
+
+		player->locals.move_node = false;
 	// hook destroys node
-	} else if ((allow_adjustments) && (ai_player_roam.latched_buttons & BUTTON_HOOK)) {
+	} else if (allow_adjustments && (ai_player_roam.latched_buttons & BUTTON_HOOK)) {
 		if (ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
 			Ai_Node_Destroy(ai_player_roam.last_nodes[0]);
 			ai_player_roam.position = player->s.origin;
@@ -612,7 +618,7 @@ void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd) {
 		}
 		ai_player_roam.latched_buttons &= ~BUTTON_HOOK;
 	// score adjusts link connections
-	} else if ((allow_adjustments) && (ai_player_roam.latched_buttons & BUTTON_SCORE)) {
+	} else if (allow_adjustments && (ai_player_roam.latched_buttons & BUTTON_SCORE)) {
 
 		if (ai_player_roam.last_nodes[1] != AI_NODE_INVALID && ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
 			uint8_t bits = 0;

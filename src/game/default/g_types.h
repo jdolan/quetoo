@@ -1166,6 +1166,7 @@ typedef struct {
 
 	const g_item_t *item; // for bonus items
 	ai_node_id_t node; // for item paths
+	_Bool move_node;
 } g_entity_locals_t;
 
 #include "game/game.h"

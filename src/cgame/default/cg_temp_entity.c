@@ -142,39 +142,20 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
 /**
  * @brief
  */
-static void Cg_DrawFloatingStringLine(vec3_t position, const char *string, const float size, const vec3_t color) {
-
-	position = Vec3_Fmaf(position, -(size * strlen(string)) * 0.5f, Vec3(1.f, 0.f, 0.f));
-
-	for (const char *c = string; *c; c++) {
-
-		Cg_AddSprite(&(cg_sprite_t) {
-			.atlas_image = &cg_sprite_font[(int32_t) *c],
-			.origin = position,
-			.lifetime = 1,
-			.width = size,
-			.height = size * 2.f,
-			.color = Vec3_ToVec4(color, 1.f),
-			.end_color = Vec3_ToVec4(color, 1.f),
-			.flags = SPRITE_SERVER_TIME,
-			.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y
-		});
-
-		position = Vec3_Fmaf(position, size, Vec3(1.f, 0.f, 0.f));
-	}
-}
-
-/**
- * @brief
- */
 static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint16_t id) {
 	const uint8_t color_id = color & 0x7;
 	const float hue = color_id == 3 ? color_hue_red : color_id == 2 ? color_hue_rose : color_id == 1 ? color_hue_yellow : color_hue_orange;
 
-	Cg_DrawFloatingStringLine(Vec3_Fmaf(start, 8.f, Vec3_Up()), va("%d", id), 1.f, Vec3(color_hue_yellow, 1.f, 1.f));
-
 	if (color & 16) {
-		Cg_DrawFloatingStringLine(Vec3_Fmaf(start, 4.f, Vec3_Up()), "WAIT", 1.f, Vec3(color_hue_red, 1.f, 1.f));
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_node_wait,
+			.origin = Vec3_Add(start, Vec3(0, 0, 16.f)),
+			.flags = SPRITE_SERVER_TIME,
+			.lifetime = 1,
+			.size = 8.f,
+			.color = Vec4(0.f, 0.f, 1.f, 1.f),
+			.end_color = Vec4(0.f, 0.f, 1.f, 1.f)
+		});
 	}
 
 	Cg_AddSprite(&(cg_sprite_t) {
@@ -182,7 +163,67 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
 		.origin = start,
 		.flags = SPRITE_SERVER_TIME,
 		.lifetime = 1,
-		.size = 8.f,
+		.size = 4.f,
+		.color = Vec4(hue, 1.f, 1.f, 1.f),
+		.end_color = Vec4(hue, 1.f, 1.f, 1.f)
+	});
+
+	// draw bbox representation
+	cm_trace_t tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), PM_BOUNDS, 0, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
+
+	if (tr.start_solid) {
+		tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), PM_CROUCHED_BOUNDS, 0, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
+	}
+
+	box3_t box = Box3_Translate(PM_BOUNDS, tr.end);
+	box.maxs.z = box.mins.z = tr.end.z + PM_BOUNDS.mins.z;
+	vec3_t points[8];
+	Box3_ToPoints(box, points);
+
+	Cg_AddSprite(&(cg_sprite_t) {
+		.type = SPRITE_BEAM,
+		.image = cg_beam_line,
+		.origin = points[0],
+		.termination = points[1],
+		.size = 1.5f,
+		.flags = SPRITE_SERVER_TIME,
+		.lifetime = 1,
+		.color = Vec4(hue, 1.f, 1.f, 1.f),
+		.end_color = Vec4(hue, 1.f, 1.f, 1.f)
+	});
+
+	Cg_AddSprite(&(cg_sprite_t) {
+		.type = SPRITE_BEAM,
+		.image = cg_beam_line,
+		.origin = points[0],
+		.termination = points[2],
+		.size = 1.5f,
+		.flags = SPRITE_SERVER_TIME,
+		.lifetime = 1,
+		.color = Vec4(hue, 1.f, 1.f, 1.f),
+		.end_color = Vec4(hue, 1.f, 1.f, 1.f)
+	});
+
+	Cg_AddSprite(&(cg_sprite_t) {
+		.type = SPRITE_BEAM,
+		.image = cg_beam_line,
+		.origin = points[3],
+		.termination = points[1],
+		.size = 1.5f,
+		.flags = SPRITE_SERVER_TIME,
+		.lifetime = 1,
+		.color = Vec4(hue, 1.f, 1.f, 1.f),
+		.end_color = Vec4(hue, 1.f, 1.f, 1.f)
+	});
+
+	Cg_AddSprite(&(cg_sprite_t) {
+		.type = SPRITE_BEAM,
+		.image = cg_beam_line,
+		.origin = points[3],
+		.termination = points[2],
+		.size = 1.5f,
+		.flags = SPRITE_SERVER_TIME,
+		.lifetime = 1,
 		.color = Vec4(hue, 1.f, 1.f, 1.f),
 		.end_color = Vec4(hue, 1.f, 1.f, 1.f)
 	});
@@ -222,11 +263,20 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 	vec3_t text_center = center;
 	text_center.z += 8.f;
 
-	Cg_DrawFloatingStringLine(text_center, va("%.1f", Vec3_Distance(start, end)), 1.f, Vec3(0.f, 0.f, 1.f));
+	//Cg_DrawFloatingStringLine(text_center, va("%.1f", Vec3_Distance(start, end)), 1.f, Vec3(0.f, 0.f, 1.f));
 
 	if (bits & 16) {
 		text_center.z -= 2;
-		Cg_DrawFloatingStringLine(text_center, "Slow-drop", 1.f, Vec3(0.f, 0.f, 1.f));
+	//	Cg_DrawFloatingStringLine(text_center, "Slow-drop", 1.f, Vec3(0.f, 0.f, 1.f));
+		Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_node_slow,
+			.origin = text_center,
+			.flags = SPRITE_SERVER_TIME,
+			.lifetime = 1,
+			.size = 8.f,
+			.color = Vec4(0.f, 0.f, 1.f, 1.f),
+			.end_color = Vec4(0.f, 0.f, 1.f, 1.f)
+		});
 	}
 
 	// both sides connected

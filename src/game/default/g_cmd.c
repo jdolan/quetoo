@@ -222,6 +222,11 @@ static void G_Use_f(g_entity_t *ent) {
 		return;
 	}
 
+	if (G_Ai_InDeveloperMode()) {
+		ent->locals.move_node = true;
+		return;
+	}
+
 	const char *s = gi.Args();
 	const g_item_t *it;
 	

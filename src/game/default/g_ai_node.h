@@ -48,7 +48,7 @@ void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float 
 /**
  * @brief
  */
-void Ai_Node_PlayerRoam(const g_entity_t *player, const pm_cmd_t *cmd);
+void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd);
 
 /**
  * @brief

@@ -123,7 +123,7 @@
  */
 #define PM_SCALE 1.f
 
-extern const box3_t PM_BOUNDS;
+extern const box3_t PM_BOUNDS, PM_CROUCHED_BOUNDS;
 
 /**
  * @brief Game-specific button hits.
