@@ -377,8 +377,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 			return;
 		case CS_NAV_EDIT:
 			cg_state.nav_edit = (int32_t) strtol(s, NULL, 10);
-		default:
-			break;
+			return;
 	}
 
 	if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
@@ -534,10 +533,10 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
 	if (cg_state.nav_edit) {
 
 		if (cg_state.nav_edit == 1) {
-			r_pixel_t ch;
+			GLint ch;
 			cgi.BindFont("small", NULL, &ch);
 
-			r_pixel_t y = 32;
+			GLint y = 32;
 
 			cgi.Draw2DString(32, y += ch, "NAVIGATION EDIT MODE", color_blue);
 			cgi.Draw2DString(32, y += ch, "You're in nav edit mode; items can't be picked up,", color_white);
