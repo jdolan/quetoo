@@ -4,6 +4,6 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(QUETOO_HOME)\bin\</LocalDebuggerWorkingDirectory>
     <LocalDebuggerCommand>$(QUETOO_HOME)\bin\quemap.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default" -bsp -light tokays</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default" -bsp -light slimyplace</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
