@@ -88,14 +88,14 @@ static struct {
 	cm_trace_t ground;
 
 	/**
-	 * @brief The impacted brush sides per slide-move.
+	 * @brief The clipping planes per slide-move.
 	 */
-	const cm_bsp_brush_side_t *brush_sides[MAX_CLIP_PLANES];
+	cm_bsp_plane_t clip_planes[MAX_CLIP_PLANES];
 
 	/**
-	 * @brief The number of impacted brush_sides.
+	 * @brief The number of clipping planes per slide-move.
 	 */
-	int32_t num_brush_sides;
+	int32_t num_clip_planes;
 
 } pm_locals;
 
@@ -176,24 +176,24 @@ static vec3_t Pm_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce
 /**
  * @brief Collide with the results of the trace, clipping our velocity along the normal.
  */
-static void Pm_ImpactBrush(const cm_trace_t *trace) {
+static void Pm_ClipMove(const cm_trace_t *trace) {
 
 	if (trace->ent == NULL) {
 		return;
 	}
 
-	if (pm_locals.num_brush_sides == MAX_CLIP_PLANES) {
+	if (pm_locals.num_clip_planes == MAX_CLIP_PLANES) {
 		Pm_Debug("MAX_CLIP_PLANES\n");
 		return;
 	}
 
-	for (int32_t i = 0; i < pm_locals.num_brush_sides; i++) {
-		if (trace->brush_side == pm_locals.brush_sides[i]) {
+	for (int32_t i = 0; i < pm_locals.num_clip_planes; i++) {
+		if (Vec3_Dot(trace->plane.normal, pm_locals.clip_planes[i].normal) > 1.f - ON_EPSILON) {
 			return;
 		}
 	}
 
-	pm_locals.brush_sides[pm_locals.num_brush_sides++] = trace->brush_side;
+	pm_locals.clip_planes[pm_locals.num_clip_planes++] = trace->plane;
 
 	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, trace->plane.normal, PM_CLIP_BOUNCE);
 
@@ -207,8 +207,8 @@ static float Pm_SlideMove(void) {
 
 	const vec3_t org0 = pm->s.origin;
 
-	memset(pm_locals.brush_sides, 0, sizeof(pm_locals.brush_sides));
-	pm_locals.num_brush_sides = 0;
+	memset(pm_locals.clip_planes, 0, sizeof(pm_locals.clip_planes));
+	pm_locals.num_clip_planes = 0;
 
 	float time_remaining = pm_locals.time;
 	while (time_remaining > FLT_EPSILON) {
@@ -226,7 +226,7 @@ static float Pm_SlideMove(void) {
 		Pm_TouchEntity(&trace);
 
 		// clip along the plane
-		Pm_ImpactBrush(&trace);
+		Pm_ClipMove(&trace);
 
 		// if the player is trapped in a solid, we're stuck, but don't build up falling velocity
 		if (trace.all_solid) {
