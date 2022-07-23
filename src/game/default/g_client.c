@@ -1502,6 +1502,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 #endif
 
 	pm.PointContents = gi.PointContents;
+	pm.BoxContents = gi.BoxContents;
+	
 	pm.Trace = G_ClientMove_Trace;
 
 	pm.Debug = gi.Debug_;

@@ -38,7 +38,7 @@
 /**
  * @brief Bounce constant when clipping against solids.
  */
-#define PM_CLIP_BOUNCE			1.01f
+#define PM_CLIP_BOUNCE			1.0125f
 
 /**
  * @brief Friction constants.
@@ -192,8 +192,11 @@ typedef struct {
 
 	float step; // traversed step height (out)
 
-	// collision with the world and solid entities
+	// contents checks with the world
 	int32_t (*PointContents)(const vec3_t point);
+	int32_t (*BoxContents)(const box3_t box);
+
+	// collision with the world and solid entities
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds);
 
 	// print debug messages for development

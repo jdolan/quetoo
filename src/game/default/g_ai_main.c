@@ -1051,6 +1051,8 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	//pm.hook_pull_speed = g_hook_pull_speed->value;
 
 	pm.PointContents = gi.PointContents;
+	pm.BoxContents = gi.BoxContents;
+	
 	pm.Trace = Ai_ClientMove_Trace;
 
 	pm.Debug = gi.Debug_;
