@@ -38,7 +38,7 @@
 /**
  * @brief Bounce constant when clipping against solids.
  */
-#define PM_CLIP_BOUNCE			1.01f
+#define PM_CLIP_BOUNCE			1.1f
 
 /**
  * @brief Friction constants.

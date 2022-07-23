@@ -187,6 +187,7 @@ static void Pm_ClipMove(const cm_trace_t *trace) {
 		return;
 	}
 
+	// determine if this plane is new to this move
 	for (int32_t i = 0; i < pm_locals.num_clip_planes; i++) {
 		if (Vec3_Dot(trace->plane.normal, pm_locals.clip_planes[i].normal) > 1.f - ON_EPSILON) {
 			return;
@@ -195,9 +196,14 @@ static void Pm_ClipMove(const cm_trace_t *trace) {
 
 	pm_locals.clip_planes[pm_locals.num_clip_planes++] = trace->plane;
 
+	// it is, so clip to it, and nudge out along the normal
 	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, trace->plane.normal, PM_CLIP_BOUNCE);
-
 	pm->s.origin = Vec3_Fmaf(pm->s.origin, TRACE_EPSILON, trace->plane.normal);
+
+	// re-clip to all previously intersected planes, too
+	for (int32_t i = 0; i < pm_locals.num_clip_planes - 1; i++) {
+		pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pm_locals.clip_planes[i].normal, PM_CLIP_BOUNCE);
+	}
 }
 
 /**
@@ -211,7 +217,7 @@ static float Pm_SlideMove(void) {
 	pm_locals.num_clip_planes = 0;
 
 	float time_remaining = pm_locals.time;
-	while (time_remaining > FLT_EPSILON) {
+	for (int32_t i = 0; i < MAX_CLIP_PLANES && time_remaining > 0.f; i++) {
 
 		// project desired destination
 		const vec3_t pos = Vec3_Fmaf(pm->s.origin, pm_locals.time, pm->s.velocity);
@@ -228,14 +234,8 @@ static float Pm_SlideMove(void) {
 		// clip along the plane
 		Pm_ClipMove(&trace);
 
-		// if the player is trapped in a solid, we're stuck, but don't build up falling velocity
-		if (trace.all_solid) {
-			pm->s.velocity.z = 0.f;
-			break;
-		}
-
 		// update the movement time remaining
-		time_remaining -= time_remaining * Maxf(trace.fraction, TRACE_EPSILON);
+		time_remaining -= time_remaining * trace.fraction;
 	}
 
 	const vec3_t org1 = pm->s.origin;
