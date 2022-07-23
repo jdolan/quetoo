@@ -76,6 +76,8 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 	pm.hook_pull_speed = cg_state.hook_pull_speed;
 
 	pm.PointContents = cgi.PointContents;
+	pm.BoxContents = cgi.BoxContents;
+	
 	pm.Trace = Cg_PredictMovement_Trace;
 
 	pm.Debug = cgi.Debug_;
