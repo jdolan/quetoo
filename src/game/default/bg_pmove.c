@@ -216,11 +216,11 @@ static float Pm_SlideMove(void) {
 	memset(pm_locals.clip_planes, 0, sizeof(pm_locals.clip_planes));
 	pm_locals.num_clip_planes = 0;
 
-	float time_remaining = pm_locals.time;
-	for (int32_t i = 0; i < MAX_CLIP_PLANES && time_remaining > 0.f; i++) {
+	float time = pm_locals.time;
+	for (int32_t i = 0; i < MAX_CLIP_PLANES && time > 0.f; i++) {
 
 		// project desired destination
-		const vec3_t pos = Vec3_Fmaf(pm->s.origin, pm_locals.time, pm->s.velocity);
+		const vec3_t pos = Vec3_Fmaf(pm->s.origin, time, pm->s.velocity);
 
 		// trace to it
 		const cm_trace_t trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
@@ -235,7 +235,7 @@ static float Pm_SlideMove(void) {
 		Pm_ClipMove(&trace);
 
 		// update the movement time remaining
-		time_remaining -= time_remaining * trace.fraction;
+		time -= time * trace.fraction;
 	}
 
 	const vec3_t org1 = Vec3(pm->s.origin.x, pm->s.origin.y, 0.f);
