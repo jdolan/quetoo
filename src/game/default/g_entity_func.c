@@ -1865,7 +1865,9 @@ again:
 		}
 		first = false;
 		self->s.origin = Vec3_Subtract(ent->s.origin, self->bounds.mins);
-		self->s.event = EV_CLIENT_TELEPORT;
+		if (!(ent->locals.spawn_flags & 2)) {
+			self->s.event = EV_CLIENT_TELEPORT;
+		}
 		gi.LinkEntity(self);
 		goto again;
 	}
