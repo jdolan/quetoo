@@ -298,8 +298,8 @@ static void Pm_StepSlideMove(void) {
 	const vec3_t org1 = pm->s.origin;
 	const vec3_t vel1 = pm->s.velocity;
 
-	const vec3_t up = Vec3_Fmaf(org1, PM_STEP_HEIGHT, Vec3_Up());
-	const cm_trace_t step_up = Pm_Trace(org1, up, pm->bounds);
+	const vec3_t up = Vec3_Fmaf(org0, PM_STEP_HEIGHT, Vec3_Up());
+	const cm_trace_t step_up = Pm_Trace(org0, up, pm->bounds);
 
 	if (step_up.fraction == 1.f) {
 
