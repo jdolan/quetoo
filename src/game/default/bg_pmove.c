@@ -308,7 +308,7 @@ static void Pm_StepSlideMove(void) {
 		pm->s.velocity = vel0;
 
 		const float dist1 = Pm_SlideMove();
-		if (dist1 > dist0 + FLT_EPSILON || (pm->s.flags & PMF_ON_GROUND)) {
+		if (dist1 > dist0) {
 
 			// settle to the new ground, keeping the step if and only if it was successful
 			const vec3_t down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
