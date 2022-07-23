@@ -408,8 +408,6 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_DrawBloom(view);
 
-	R_DrawSky(view);
-
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
