@@ -211,7 +211,7 @@ static void Pm_ClipMove(const cm_trace_t *trace) {
  */
 static float Pm_SlideMove(void) {
 
-	const vec3_t org0 = Vec3(pm->s.origin.x, pm->s.origin.y, 0.f);
+	const vec3_t org0 = pm->s.origin;
 
 	memset(pm_locals.clip_planes, 0, sizeof(pm_locals.clip_planes));
 	pm_locals.num_clip_planes = 0;
@@ -238,9 +238,9 @@ static float Pm_SlideMove(void) {
 		time -= time * trace.fraction;
 	}
 
-	const vec3_t org1 = Vec3(pm->s.origin.x, pm->s.origin.y, 0.f);
+	const vec3_t org1 = pm->s.origin;
 
-	return fabsf(Vec3_Distance(org0, org1));
+	return fabsf(Vec2_Distance(Vec3_XY(org0), Vec3_XY(org1)));
 }
 
 /**
