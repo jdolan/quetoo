@@ -337,12 +337,6 @@ static inline cm_trace_t Light_Trace_(vec3_t start, vec3_t end, int32_t head_nod
 	data.trace = (cm_trace_t) {
 		.fraction = 1.f
 	};
-
-	// check for position test special case
-	if (Vec3_Equal(start, end)) {
-		data.trace.end = start;
-		return data.trace;
-	}
 	
 	data.start = start;
 	data.end = end;
