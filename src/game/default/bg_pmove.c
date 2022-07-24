@@ -237,11 +237,16 @@ static float Pm_SlideMove(void) {
 		// clip along the plane
 		Pm_ClipMove(&trace);
 
-		// calculate the actual move distance, which includes clipping and nudging
+		// calculate the actual move distance, which includes nudging along the normal
 		const float dist1 = Vec3_Distance(pm->s.origin, org0);
 
 		// calculate the trace fraction based on actual distance moved
 		float fraction = Maxf(trace.fraction, dist1 / dist0);
+
+		// if we didn't move at all, we're done
+		if (fraction == 0.f || isnan(fraction)) {
+			break;
+		}
 
 		// and update the movement time remaining
 		time -= time * fraction;
