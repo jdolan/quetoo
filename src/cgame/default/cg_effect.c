@@ -77,8 +77,14 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 	// resolve the origins and their end positions
 
-	int32_t i = 0;
+	int32_t i = 0, j = 0;
 	while (i < e->num_origins) {
+
+		if (j++ == INT16_MAX) {
+			Cg_Debug("Failed to resolve weather effects @%s. Does your map leak?\n", vtos(center));
+			break;
+		}
+		
 		vec4_t *origin = e->origins + i;
 
 		// randomize the origin over the surface
