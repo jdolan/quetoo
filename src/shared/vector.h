@@ -566,13 +566,6 @@ static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Mix(const vec2_t 
 }
 
 /**
- * @brief Bilinear interpolation of 4 vec2_t.
- */
-static inline vec2_t __attribute__((warn_unused_result)) Vec2_Bilinear(const vec2_t tl, const vec2_t tr, const vec2_t bl, const vec2_t br, vec2_t mix) {
-	return Vec2_Mix(Vec2_Mix(tl, tr, mix.x), Vec2_Mix(bl, br, mix.x), mix.y);
-}
-
-/**
  * @return The zero vector.
  */
 static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Zero(void) {
