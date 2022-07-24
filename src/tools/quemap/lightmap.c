@@ -455,13 +455,12 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
+	// unlike other light types, don't reflect patch lights through blended faces
+	// doing so produces banding on emissive blended faces (slime, lava, etc).
+	
 	const float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot < 0.f) {
-		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
-			dir = Vec3_Negate(dir);
-		} else {
-			return;
-		}
+		return;
 	}
 
 	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
