@@ -479,7 +479,7 @@ static box3_t NodeBounds(const bsp_node_t *node) {
 		bounds = Box3_Union(bounds, face->bounds);
 	}
 
-	return bounds;
+	return Box3_Expand(bounds, BSP_LIGHTGRID_LUXEL_SIZE);
 }
 
 /**
