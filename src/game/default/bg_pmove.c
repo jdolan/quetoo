@@ -703,8 +703,6 @@ static void Pm_CheckGround(void) {
 		// and sink down to it if not trick jumping
 		if (!(pm->s.flags & PMF_TIME_TRICK_JUMP)) {
 			pm->s.origin = trace.end;
-
-			pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, PM_CLIP_BOUNCE);
 		}
 
 		// clear jump buffer
@@ -1198,12 +1196,9 @@ static void Pm_WalkMove(void) {
 
 	// project the desired movement into the X/Y plane
 
-	const vec3_t forward = Vec3_Normalize(Pm_ClipVelocity(pm_locals.forward_xy, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE));
-	const vec3_t right = Vec3_Normalize(Pm_ClipVelocity(pm_locals.right_xy, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE));
-
 	vec3_t vel = Vec3_Zero();
-	vel = Vec3_Fmaf(vel, pm->cmd.forward, forward);
-	vel = Vec3_Fmaf(vel, pm->cmd.right, right);
+	vel = Vec3_Fmaf(vel, pm->cmd.forward, pm_locals.forward_xy);
+	vel = Vec3_Fmaf(vel, pm->cmd.right, pm_locals.right_xy);
 
 	float max_speed;
 
@@ -1237,9 +1232,6 @@ static void Pm_WalkMove(void) {
 
 	// determine the speed after acceleration
 	speed = Vec3_Length(pm->s.velocity);
-
-	// clip to the ground
-	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE);
 
 	// and now scale by the speed to avoid slowing down on slopes
 	pm->s.velocity = Vec3_Normalize(pm->s.velocity);
