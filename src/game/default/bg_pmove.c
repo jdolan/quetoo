@@ -217,10 +217,13 @@ static float Pm_SlideMove(void) {
 	pm_locals.num_clip_planes = 0;
 
 	float time = pm_locals.time;
-	for (int32_t i = 0; i < MAX_CLIP_PLANES && time > 0.f; i++) {
+	while (time > 0.f) {
 
 		// project desired destination
 		const vec3_t pos = Vec3_Fmaf(pm->s.origin, time, pm->s.velocity);
+
+		// and move distance
+		const float dist0 = Vec3_Distance(pos, org0);
 
 		// trace to it
 		const cm_trace_t trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
@@ -234,8 +237,14 @@ static float Pm_SlideMove(void) {
 		// clip along the plane
 		Pm_ClipMove(&trace);
 
-		// update the movement time remaining
-		time -= time * trace.fraction;
+		// calculate the actual move distance, which includes clipping and nudging
+		const float dist1 = Vec3_Distance(pm->s.origin, org0);
+
+		// calculate the trace fraction based on actual distance moved
+		float fraction = Maxf(trace.fraction, dist1 / dist0);
+
+		// and update the movement time remaining
+		time -= time * fraction;
 	}
 
 	const vec3_t org1 = pm->s.origin;
