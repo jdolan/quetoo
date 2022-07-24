@@ -1200,6 +1200,9 @@ static void Pm_WalkMove(void) {
 	vel = Vec3_Fmaf(vel, pm->cmd.forward, pm_locals.forward_xy);
 	vel = Vec3_Fmaf(vel, pm->cmd.right, pm_locals.right_xy);
 
+	// clip XY velocity to ground to enable ramp jumps
+	vel = Pm_ClipVelocity(vel, pm_locals.ground.plane.normal, PM_CLIP_BOUNCE);
+
 	float max_speed;
 
 	// clamp to max speed
