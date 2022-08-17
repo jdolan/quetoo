@@ -293,11 +293,6 @@ typedef enum {
 #define PMF_GAME			(1 << 0)
 
 /**
- * @brief Time, in milliseconds, for jump buffering
- */
-#define PM_JUMP_BUFFER_TIME	100
-
-/**
  * @brief The player movement state contains quantized snapshots of player
  * position, orientation, velocity and world interaction state. This should
  * be modified only through invoking Pm_Move.
@@ -315,7 +310,6 @@ typedef struct {
 	vec3_t delta_angles; // offset for spawns, pushers, etc.
 	vec3_t hook_position; // position we're hooking to
 	uint16_t hook_length; // length of the hook, for swing hook
-	uint8_t jump_buffer; // milliseconds of jump buffer time
 } pm_state_t;
 
 /**
