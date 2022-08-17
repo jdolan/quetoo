@@ -27,7 +27,7 @@
 /**
  * @brief Acceleration constants.
  */
-#define PM_ACCEL_AIR			2.125f
+#define PM_ACCEL_AIR			2.f
 #define PM_ACCEL_AIR_MOD_DUCKED	0.125f
 #define PM_ACCEL_GROUND			10.f
 #define PM_ACCEL_GROUND_SLICK	4.375f
@@ -43,7 +43,7 @@
 /**
  * @brief Friction constants.
  */
-#define PM_FRICT_AIR			0.1f
+#define PM_FRICT_AIR			0.125f
 #define PM_FRICT_GROUND			6.f
 #define PM_FRICT_GROUND_SLICK	2.f
 #define PM_FRICT_LADDER			5.f
