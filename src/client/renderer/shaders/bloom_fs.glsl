@@ -35,7 +35,10 @@ void main(void) {
 
 	out_color = texture(texture_color_attachment, vertex.texcoord);
 
+	vec3 bloom_color = vec3(0.0);
 	for (int i = 1; i <= bloom_lod; i++) {
-		out_color.rgb += textureLod(texture_bloom_attachment, vertex.texcoord, i).rgb * 1.f / float(bloom_lod);
+		bloom_color += textureLod(texture_bloom_attachment, vertex.texcoord, i).rgb * 1.f / float(bloom_lod);
 	}
+
+	out_color.rgb = invert(invert(out_color.rgb) * invert(bloom_color));
 }

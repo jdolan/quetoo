@@ -62,6 +62,13 @@ float hmin(vec4 v) {
 }
 
 /**
+ * @brief Inverse of v.
+ */
+vec3 invert(vec3 v) {
+	return vec3(1.0) - v;
+}
+
+/**
  * @brief Clamps to [0.0, 1.0], like in HLSL.
  */
 float saturate(float x) {
