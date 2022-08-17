@@ -136,10 +136,10 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 		case SDLK_LEFT:
 			if (SDL_GetModState() & KMOD_CTRL) { // move one word left
 				while (in->pos > 0 && in->buffer[in->pos] == ' ') {
-					in->pos--;    // off current word
+					in->pos--; // off current word
 				}
 				while (in->pos > 0 && in->buffer[in->pos] != ' ') {
-					in->pos--;    // and behind previous word
+					in->pos--; // and behind previous word
 				}
 			} else if (in->pos > 0) {
 				in->pos--;
@@ -150,10 +150,10 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			if (SDL_GetModState() & KMOD_CTRL) { // move one word right
 				const size_t len = strlen(in->buffer);
 				while (in->pos < len && in->buffer[in->pos] == ' ') {
-					in->pos++;    // off current word
+					in->pos++; // off current word
 				}
 				while (in->pos < len && in->buffer[in->pos] != ' ') {
-					in->pos++;    // and in front of next word
+					in->pos++; // and in front of next word
 				}
 				if (in->pos < len) { // all the way in front
 					in->pos++;
@@ -180,11 +180,11 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			break;
 
 		case SDLK_HOME:
-			cl_console.scroll = console_state.strings.length;
+			in->pos = 0;
 			break;
 
 		case SDLK_END:
-			cl_console.scroll = 0;
+			in->pos = strlen(in->buffer);
 			break;
 
 		case SDLK_a:
