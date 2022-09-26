@@ -143,7 +143,6 @@
 		CE15E8C11ED0CAE900A9FB7A /* s_al_ext.c in Sources */ = {isa = PBXBuildFile; fileRef = CE15E8BF1ED0CAE900A9FB7A /* s_al_ext.c */; };
 		CE15E8C21ED0CAE900A9FB7A /* s_al_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = CE15E8C01ED0CAE900A9FB7A /* s_al_ext.h */; };
 		CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FF561C5E485A00A21A51 /* libcurl.4.dylib */; };
-		CE1A281C1F740E7B005F62A9 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1A28201F748B20005F62A9 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
 		CE1A28211F748B3A005F62A9 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */; };
 		CE1A28221F748B59005F62A9 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
@@ -161,7 +160,6 @@
 		CE1A28491F7600AC005F62A9 /* CrosshairView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A28451F7600AC005F62A9 /* CrosshairView.h */; };
 		CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */; };
-		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE27E1C527AC2740003D56AC /* rpc_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0D727AC1682003D56AC /* rpc_connection.cpp */; };
 		CE27E1C627AC2740003D56AC /* discord_rpc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0D827AC1683003D56AC /* discord_rpc.cpp */; };
 		CE27E1C927AC2740003D56AC /* connection_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0DC27AC1683003D56AC /* connection_unix.cpp */; };
@@ -645,6 +643,8 @@
 		CED4397A1D9D3E4F0052BAFA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CED4397C1D9D3EBF0052BAFA /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CED4397F1D9D3EBF0052BAFA /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
+		CED4F41528E1D96E00336783 /* libncursesw.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED4F41428E1D96D00336783 /* libncursesw.6.dylib */; };
+		CED4F41628E1D9A800336783 /* libncursesw.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED4F41428E1D96D00336783 /* libncursesw.6.dylib */; };
 		CED5BB152406A95800784D93 /* r_draw_3d.h in Headers */ = {isa = PBXBuildFile; fileRef = CED5BB132406A95800784D93 /* r_draw_3d.h */; };
 		CED5BB162406A95800784D93 /* r_draw_3d.c in Sources */ = {isa = PBXBuildFile; fileRef = CED5BB142406A95800784D93 /* r_draw_3d.c */; };
 		CED5BB192407163D00784D93 /* draw_3d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CED5BB182406B74300784D93 /* draw_3d_fs.glsl */; };
@@ -1679,6 +1679,7 @@
 		CECD8AFB2587CC5A00D8C7E6 /* libopenal.1.21.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.21.0.dylib; path = ../../../../opt/local/lib/libopenal.1.21.0.dylib; sourceTree = "<group>"; };
 		CED438AD1D9D34450052BAFA /* libclient-renderer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-renderer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CED4393B1D9D344E0052BAFA /* libclient-sound.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-sound.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CED4F41428E1D96D00336783 /* libncursesw.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncursesw.6.dylib; path = ../../../../usr/local/Cellar/ncurses/6.3/lib/libncursesw.6.dylib; sourceTree = "<group>"; };
 		CED5BB132406A95800784D93 /* r_draw_3d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_draw_3d.h; sourceTree = "<group>"; };
 		CED5BB142406A95800784D93 /* r_draw_3d.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_draw_3d.c; sourceTree = "<group>"; };
 		CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = draw_3d_vs.glsl; sourceTree = "<group>"; };
@@ -1745,7 +1746,7 @@
 				CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */,
 				CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */,
 				CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */,
-				CE1A281C1F740E7B005F62A9 /* libncurses.6.dylib in Frameworks */,
+				CED4F41628E1D9A800336783 /* libncursesw.6.dylib in Frameworks */,
 				CED6C0F5288DBA3F007290BA /* libopenal.1.22.2.dylib in Frameworks */,
 				CE78386523FDC2EB004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */,
@@ -1800,8 +1801,8 @@
 				CE80FFD31C5E4B9B00A21A51 /* libserver.a in Frameworks */,
 				CE80FFD41C5E4B9B00A21A51 /* libshared.a in Frameworks */,
 				CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */,
+				CED4F41528E1D96E00336783 /* libncursesw.6.dylib in Frameworks */,
 				CEC74D1325C8F98D009C6218 /* libObjectively.dylib in Frameworks */,
-				CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */,
 				CE78386823FDC37F004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
 				CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
@@ -2928,6 +2929,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CED4F41428E1D96D00336783 /* libncursesw.6.dylib */,
 				CED6C0F4288DBA3F007290BA /* libopenal.1.22.2.dylib */,
 				CE27E84827AC998A003D56AC /* libc++.1.dylib */,
 				CE27E72427AC982F003D56AC /* libstdc++.6.0.9.dylib */,
@@ -4152,7 +4154,7 @@
 		CE12D4A11C5C579D00CD0B13 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 1400;
 				ORGANIZATIONNAME = "https://github.com/jdolan";
 				TargetAttributes = {
 					CE052A8C2148333C003446C9 = {
@@ -4914,17 +4916,17 @@
 				HEADER_SEARCH_PATHS = (
 					"$(BUILT_PRODUCTS_DIR)/usr/local/include",
 					/usr/local/include,
-					/opt/local/include,
-					/opt/local/include/SDL2,
-					"/opt/local/include/glib-2.0",
-					/opt/local/include/libxml2,
-					"/opt/local/lib/glib-2.0/include",
+					/usr/local/include/SDL2,
+					"/usr/local/include/glib-2.0",
+					/usr/local/include/libxml2,
+					"/usr/local/lib/glib-2.0/include",
+					"/usr/local/opt/openal-soft/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
-					/opt/local/lib,
 					/usr/local/lib,
+					"/usr/local/opt/openal-soft/lib",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/src/**";
 				USE_HEADERMAP = NO;
@@ -4959,17 +4961,17 @@
 				HEADER_SEARCH_PATHS = (
 					"$(BUILT_PRODUCTS_DIR)/usr/local/include",
 					/usr/local/include,
-					/opt/local/include,
-					/opt/local/include/SDL2,
-					"/opt/local/include/glib-2.0",
-					/opt/local/include/libxml2,
-					"/opt/local/lib/glib-2.0/include",
+					/usr/local/include/SDL2,
+					"/usr/local/include/glib-2.0",
+					/usr/local/include/libxml2,
+					"/usr/local/lib/glib-2.0/include",
+					"/usr/local/opt/openal-soft/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
-					/opt/local/lib,
 					/usr/local/lib,
+					"/usr/local/opt/openal-soft/lib",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/src/**";
 				USE_HEADERMAP = NO;
@@ -4980,6 +4982,10 @@
 		CE12D73B1C5C5B9300CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/ncurses/6.3/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4987,6 +4993,10 @@
 		CE12D73C1C5C5B9300CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/ncurses/6.3/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5054,6 +5064,10 @@
 		CE12D8F21C5CF86600CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/ncurses/6.3/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5061,6 +5075,10 @@
 		CE12D8F31C5CF86600CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/ncurses/6.3/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
