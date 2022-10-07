@@ -125,7 +125,7 @@ export class Side {
   }
 
   write(stream) {
-    stream.write(format(" ( %d %d %d ) ( %d %d %d ) ( %d %d %d ) %s %f %f %f %f %f\n",
+    stream.write(format("  ( %d %d %d ) ( %d %d %d ) ( %d %d %d ) %s %f %f %f %f %f\n",
       this.points[0][0], this.points[0][1], this.points[0][2],
       this.points[1][0], this.points[1][1], this.points[1][2],
       this.points[2][0], this.points[2][1], this.points[2][2],
@@ -188,13 +188,53 @@ export class Entity {
       brushes: this.brushes.map(brush => brush.convert())
     });
 
-    switch (this.classname) {
+    delete that.spawnflags;
+
+    switch (this.classname.toLowerCase()) {
+      case "ambient_drip":
+        return Object.assign(that, {
+          classname: "misc_sound",
+          sound: "world/drip"
+        });
+      case "item_armor1":
+        return Object.assign(that, {
+          classname: "armor_jacket"
+        });
+      case "item_armor2":
+        return Object.assign(that, {
+          classname: "armor_combat"
+        });
+      case "item_cells":
+        return Object.assign(that, {
+          classname: "ammo_bolts"
+        });
+      case "item_rockets":
+        return Object.assign(that, {
+          classname: "ammo_rockets"
+        });
+      case "item_shells":
+        return Object.assign(that, {
+          classname: "ammo_shells"
+        });
+      case "item_spikes":
+        return Object.assign(that, {
+          classname: "ammo_bullets"
+        });
       case "light":
       case "light_torch_small_walltorch":
+      case "light_flame_large_yellow":
         return [];
       case "info_teleport_destination":
         return Object.assign(that, {
           classname: "misc_teleporter_dest"
+        });
+      case "weapon_nailgun":
+        return Object.assign(that, {
+          classname: "weapon_machinegun"
+        });
+      case "weapon_supernailgun":
+        return Object.assign(that, {
+          classname: "weapon_hyperblaster"
         });
       default:
         return that;
