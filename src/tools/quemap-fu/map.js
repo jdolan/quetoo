@@ -8,12 +8,16 @@ export class Parser {
   constructor(data) {
     this.data = data;
     this.pos = 0;
-    this.token = null;
   }
 
   nextToken() {
-    while (this.isSpace()) {
+
+    while (this.isSpace() && !this.isEof()) {
       this.pos++;
+    }
+
+    if (this.isEof()) {
+      return undefined;
     }
 
     if (this.isQuote()) {
@@ -21,26 +25,24 @@ export class Parser {
 
       const start = this.pos;
 
-      while (!this.isQuote()) {
+      while (!this.isQuote() && !this.isEof()) {
         this.pos++;
       }
 
       const end = this.pos++;
 
-      this.token = this.data.substring(start, end);
-      return this.token;
+      return this.data.substring(start, end);
     }
   
     const start = this.pos;
 
-    while (!this.isSpace()) {
+    while (!this.isSpace() && !this.isEof()) {
       this.pos++;
     }
 
     const end = this.pos++;
 
-    this.token = this.data.substring(start, end);
-    return this.token;
+    return this.data.substring(start, end);
   }
 
   nextNumber() {
@@ -54,6 +56,18 @@ export class Parser {
     return point;
   }
 
+  nextLine() {
+    const start = this.pos;
+
+    while (!this.isNewLine()) {
+      this.pos++;
+    }
+
+    const end = this.pos++;
+
+    return this.data.substring(start, end);
+  }
+
   peek() {
     const pos = this.pos;
     const token = this.nextToken();
@@ -61,12 +75,25 @@ export class Parser {
     return token;
   }
 
+  skip(token) {
+    if (this.peek().startsWith(token)) {
+      while (this.isSpace()) {
+        this.pos++;
+      }
+      this.pos += token.length;
+    }
+  }
+
   assert(token) {
     assert(this.nextToken() === token);
   }
 
+  isNewLine() {
+    return "\n\r".indexOf(this.data[this.pos]) != -1;
+  }
+
   isSpace() {
-    return " \t\n".indexOf(this.data[this.pos]) != -1;
+    return " \t\n\r".indexOf(this.data[this.pos]) != -1;
   }
 
   isQuote() {
@@ -74,7 +101,7 @@ export class Parser {
   }
 
   isEof() {
-    return this.pos == this.data.length;
+    return this.pos >= this.data.length;
   }
 }
 
@@ -117,7 +144,7 @@ export class Side {
       default:
         return Object.assign(Object.create(Side.prototype), {
           ...this,
-          texture: `rygel/${this.texture.toLowerCase()}`,
+          texture: `rygel/${this.texture.toLowerCase()}`.replace("*", "#"),
           translate: this.translate.map(t => t / 16),
           scale: this.scale.map(s => s / 16)
         });
@@ -196,6 +223,10 @@ export class Entity {
           classname: "misc_sound",
           sound: "world/drip"
         });
+      case "info_intermission":
+        return Object.assign(that, {
+          classname: "info_player_intermission"
+        });
       case "item_armor1":
         return Object.assign(that, {
           classname: "armor_jacket"
@@ -208,6 +239,19 @@ export class Entity {
         return Object.assign(that, {
           classname: "ammo_bolts"
         });
+      case "item_health":
+        switch (this.spawnflags) {
+          case 1: 
+            return Object.assign(that, {
+              classname: "item_health"
+            });
+          case 2: 
+            return Object.assign(that, {
+              classname: "item_health_mega"
+            });
+          default:
+            return that;
+        }
       case "item_rockets":
         return Object.assign(that, {
           classname: "ammo_rockets"
@@ -225,6 +269,7 @@ export class Entity {
       case "light_flame_large_yellow":
         return [];
       case "info_teleport_destination":
+        delete that.light;
         return Object.assign(that, {
           classname: "misc_teleporter_dest"
         });
@@ -235,6 +280,16 @@ export class Entity {
       case "weapon_supernailgun":
         return Object.assign(that, {
           classname: "weapon_hyperblaster"
+        });
+      case "worldspawn":
+        delete that.wad;
+        delete that.worldtype;
+        delete that.sounds;
+        return Object.assign(that, {
+          ambient: ".1 .1 .1",
+          brightness: "2",
+          give: "shotgun",
+          sky: "sky1",
         });
       default:
         return that;
@@ -253,20 +308,64 @@ export class Entity {
   }
 }
 
+export class Light {
+
+  constructor(parser) {
+
+    parser.skip("!");
+
+    this.origin = [
+      parser.nextNumber(),
+      parser.nextNumber(),
+      parser.nextNumber()
+    ];
+
+    this.radius = parser.nextNumber();
+
+    this.color = [
+      parser.nextNumber(),
+      parser.nextNumber(),
+      parser.nextNumber()
+    ];
+
+    parser.nextLine();
+  }
+
+  write(stream) {
+    stream.write("{\n");
+    stream.write(format(` "classname" "light"\n`));
+    stream.write(format(` "origin" "%f %f %f"\n`, this.origin[0], this.origin[1], this.origin[2]));
+    stream.write(format(` "light" "%f"\n`, this.radius));
+    stream.write(format(` "_color" "%f %f %f"\n`, this.color[0], this.color[1], this.color[2]));
+    stream.write("}\n");
+  }
+}
+
 export class Map {
 
-  constructor(path) {
-    this.path = path;
+  constructor(args) {
+    [this.map, this.rtlights] = args;
   }
 
   async read() {
     this.entities = [];
+    this.lights = [];
 
-    const data = await readFile(this.path, { "encoding": "utf-8" });
-    const parser = new Parser(data);
+    let data = await readFile(this.map, { "encoding": "utf-8" });
+    let parser = new Parser(data);
     
     while (!parser.isEof()) {
       this.entities.push(new Entity(parser));
+      while (parser.isSpace()) {
+        parser.pos++;
+      }
+    }
+
+    data = await readFile(this.rtlights, { "encoding": "utf-8" });
+    parser = new Parser(data);
+    
+    while (!parser.isEof()) {
+      this.lights.push(new Light(parser));
     }
   }
 
@@ -279,5 +378,6 @@ export class Map {
 
   write(stream) {
     this.entities.forEach(e => e.write(stream));
+    this.lights.forEach(l => l.write(stream));
   }
 }
