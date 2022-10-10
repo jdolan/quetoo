@@ -205,6 +205,7 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 		for (GList *list = materials; list; list = list->next) {
 			if (!g_strcmp0(((cm_material_t *) list->data)->name, in->name)) {
 				*out = list->data;
+                materials = g_list_remove(materials, *out);
 				break;
 			}
 		}
@@ -215,8 +216,8 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 
 		*out = Mem_Link(*out, bsp->materials);
 	}
-
-	g_list_free(materials);
+    
+    g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
 }
 
 /**
