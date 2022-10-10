@@ -2,45 +2,47 @@
 import { assert } from "console";
 import { format } from "util";
 import { readFile } from "fs/promises";
+import { exit } from "process";
 
 export class Parser {
 
-  constructor(data) {
+  constructor(data, pos = 0) {
     this.data = data;
-    this.pos = 0;
+    this.pos = pos;
   }
 
   nextToken() {
 
-    while (this.isSpace() && !this.isEof()) {
+    while (this.isSpace()) {
       this.pos++;
     }
 
     if (this.isEof()) {
-      return undefined;
+      return "";
     }
+
+    let start = this.pos, end = this.pos;
 
     if (this.isQuote()) {
       this.pos++;
+      start++;
 
-      const start = this.pos;
-
-      while (!this.isQuote() && !this.isEof()) {
+      while (!this.isQuote()) {
         this.pos++;
+        if (this.isEof()) {
+          throw new Error(`Unmatched quote at ${this.pos}: ${this.data.substring(start)}`);
+        }
       }
-
-      const end = this.pos++;
-
-      return this.data.substring(start, end);
+      end = this.pos++;
+    } else {
+      while (!this.isSpace()) {
+        this.pos++;
+        if (this.isEof()) {
+          break;
+        }
+      }
+      end = this.pos;
     }
-  
-    const start = this.pos;
-
-    while (!this.isSpace() && !this.isEof()) {
-      this.pos++;
-    }
-
-    const end = this.pos++;
 
     return this.data.substring(start, end);
   }
@@ -69,17 +71,16 @@ export class Parser {
   }
 
   peek() {
-    const pos = this.pos;
-    const token = this.nextToken();
-    this.pos = pos;
-    return token;
+    return new Parser(this.data, this.pos).nextToken();
   }
 
   skip(token) {
+
     if (this.peek().startsWith(token)) {
       while (this.isSpace()) {
         this.pos++;
       }
+      
       this.pos += token.length;
     }
   }
@@ -116,12 +117,12 @@ export class Side {
 
     this.texture = parser.nextToken();
 
-    this.rotate = parser.nextNumber();
-
     this.translate = [
       parser.nextNumber(),
       parser.nextNumber()
     ];
+
+    this.rotate = parser.nextNumber();
 
     this.scale = [
       parser.nextNumber(),
@@ -130,13 +131,29 @@ export class Side {
   }
 
   convert() {
-    switch (this.texture.toLowerCase()) {
+    const that = Object.assign(Object.create(Side.prototype), {
+      ...this,
+      texture: this.texture.toLowerCase().replace("*", "#")
+    });
+
+    switch (that.texture) {
       case "clip":
-      case "sky":
       case "trigger":
         return Object.assign(Object.create(Side.prototype), {
           ...this,
-          texture: `common/${this.texture.toLowerCase()}`,
+          texture: `common/${that.texture}`,
+          rotate: 0,
+          translate: [0, 0],
+          scale: [.5, .5]
+        });
+      case "sky":
+      case "sky1":
+      case "sky2":
+      case "sky3":
+      case "sky4":
+        return Object.assign(Object.create(Side.prototype), {
+          ...this,
+          texture: "common/sky",
           rotate: 0,
           translate: [0, 0],
           scale: [.5, .5]
@@ -144,7 +161,7 @@ export class Side {
       default:
         return Object.assign(Object.create(Side.prototype), {
           ...this,
-          texture: `rygel/${this.texture.toLowerCase()}`.replace("*", "#"),
+          texture: `rygel/${that.texture}`,
           translate: this.translate.map(t => t / 16),
           scale: this.scale.map(s => s / 16)
         });
@@ -157,8 +174,8 @@ export class Side {
       this.points[1][0], this.points[1][1], this.points[1][2],
       this.points[2][0], this.points[2][1], this.points[2][2],
       this.texture,
+      this.translate[0], this.translate[1],
       this.rotate, 
-      this.translate[0], this.translate[1], 
       this.scale[0], this.scale[1]
     ));
   }
@@ -209,6 +226,12 @@ export class Entity {
     parser.assert("}");
   }
 
+  translate(delta) {
+    this.origin = this.origin.split(" ")
+      .map((s, i) => new Number(s) + delta[i])
+      .join(" ");
+  }
+
   convert() {
     const that = Object.assign(Object.create(Entity.prototype), {
       ...this,
@@ -216,6 +239,11 @@ export class Entity {
     });
 
     delete that.spawnflags;
+
+    if (that.classname.startsWith("item_") || 
+        that.classname.startsWith("weapon_")) {
+      this.translate([0, 0, 16]);
+    }
 
     switch (this.classname.toLowerCase()) {
       case "ambient_drip":
@@ -265,9 +293,16 @@ export class Entity {
           classname: "ammo_bullets"
         });
       case "light":
-      case "light_torch_small_walltorch":
-      case "light_flame_large_yellow":
         return [];
+      case "light_torch_small_walltorch":
+        return Object.assign(that, {
+          classname: "misc_flame"
+        });
+      case "light_flame_large_yellow":
+        return Object.assign(that, {
+          classname: "misc_flame",
+          radius: 32
+        });
       case "info_teleport_destination":
         delete that.light;
         return Object.assign(that, {
@@ -286,8 +321,8 @@ export class Entity {
         delete that.worldtype;
         delete that.sounds;
         return Object.assign(that, {
-          ambient: ".1 .1 .1",
-          brightness: "2",
+          ambient: ".05 .05 .05",
+          brightness: "1",
           give: "shotgun",
           sky: "sky1",
         });
@@ -345,27 +380,36 @@ export class Map {
 
   constructor(args) {
     [this.map, this.rtlights] = args;
+    if (!this.rtlights) {
+      this.rtlights = this.map.replace(".map", ".rtlights");
+    }
   }
 
   async read() {
     this.entities = [];
     this.lights = [];
 
-    let data = await readFile(this.map, { "encoding": "utf-8" });
-    let parser = new Parser(data);
-    
-    while (!parser.isEof()) {
-      this.entities.push(new Entity(parser));
-      while (parser.isSpace()) {
-        parser.pos++;
+    try {
+      const data = await readFile(this.map, { "encoding": "utf-8" });
+      const parser = new Parser(data);
+      
+      while (parser.peek() == "{") {
+        this.entities.push(new Entity(parser));
       }
+    } catch (err) {
+      console.error(`Failed to load ${this.map}`, err);
+      exit(1);
     }
 
-    data = await readFile(this.rtlights, { "encoding": "utf-8" });
-    parser = new Parser(data);
-    
-    while (!parser.isEof()) {
-      this.lights.push(new Light(parser));
+    try {
+      const data = await readFile(this.rtlights, { "encoding": "utf-8" });
+      const parser = new Parser(data);
+      
+      while (!parser.isEof()) {
+        this.lights.push(new Light(parser));
+      }
+    } catch (err) {
+      console.warn(`Failed to load ${this.rtlights}`, err);
     }
   }
 
