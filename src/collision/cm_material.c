@@ -676,6 +676,18 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
 			break;
 		}
+        
+        if (!g_strcmp0(token, "#include")) {
+            
+            if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
+                Cm_MaterialWarn(path, &parser, "Missing include name");
+                continue;
+            }
+            
+            Com_Debug(DEBUG_COLLISION, "Including materials from %s\n", token);
+            Cm_LoadMaterials(token, materials);
+            continue;
+        }
 
 		if (*token == '{' && !in_material) {
 			in_material = true;
@@ -693,11 +705,11 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			assert(m);
 
 			for (const GList *list = *materials; list; list = list->next) {
-				const cm_material_t *mat = list->data;
-				if (!g_strcmp0(m->basename, mat->basename)) {
-					Cm_MaterialWarn(path, &parser, "Ignoring redefined material");
-					Cm_FreeMaterial(m);
-					m = NULL;
+				cm_material_t *material = list->data;
+				if (!g_strcmp0(m->basename, material->basename)) {
+					Com_Debug(DEBUG_COLLISION, "Overriding material definition %s\n", m->basename);
+                    *materials = g_list_remove(*materials, material);
+					Cm_FreeMaterial(material);
 					break;
 				}
 			}
