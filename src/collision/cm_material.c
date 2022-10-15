@@ -714,6 +714,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				}
 			}
 
+			g_strlcpy(m->path, path, sizeof(m->path));
 			continue;
 		}
 
@@ -1316,8 +1317,14 @@ ssize_t Cm_WriteMaterials(const char *path, GList *materials) {
 
 		GList *sorted = g_list_sort(g_list_copy(materials), Cm_WriteMaterials_compare);
 
-		for (const GList *list = sorted; list; list = list->next, count++) {
-			Cm_WriteMaterial((cm_material_t *) list->data, file);
+		for (const GList *list = sorted; list; list = list->next) {
+			const cm_material_t *m = list->data;
+			if (!g_strcmp0(path, m->path)) {
+				Cm_WriteMaterial(m, file);
+				count++;
+			} else {
+				Com_Debug(DEBUG_COLLISION, "Skipping %s with path %s\n", m->name, m->path);
+			}
 		}
 
 		g_list_free(sorted);

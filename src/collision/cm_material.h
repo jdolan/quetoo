@@ -261,6 +261,11 @@ typedef struct {
  */
 typedef struct cm_material_s {
 	/**
+	 * @brief The materials file path defining this material, if any.
+	 */
+	char path[MAX_QPATH];
+
+	/**
 	 * @brief The material name, as it appears in the materials file.
 	 */
 	char name[MAX_QPATH];
