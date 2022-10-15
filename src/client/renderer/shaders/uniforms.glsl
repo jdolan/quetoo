@@ -157,6 +157,11 @@ layout (std140) uniform uniforms_block {
 	 * @brief The bloom level of detail.
 	 */
 	int bloom_lod;
+
+	/**
+	 * @brief The developer toggle, used for shader development tweaking.
+	 */
+	int developer;
 };
 
 /**

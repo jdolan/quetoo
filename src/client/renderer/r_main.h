@@ -227,6 +227,11 @@ typedef struct {
 		 * @brief The bloom level of detail.
 		 */
 		int32_t bloom_lod;
+
+		/**
+		 * @brief The developer flags.
+		 */
+		int32_t developer;
 	} block;
 
 } r_uniforms_t;
@@ -241,6 +246,7 @@ extern cvar_t *r_alpha_test;
 extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
+extern cvar_t *r_developer;
 extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_lightmap;
 extern cvar_t *r_draw_bsp_normals;

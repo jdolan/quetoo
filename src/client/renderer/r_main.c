@@ -29,6 +29,7 @@ cvar_t *r_alpha_test;
 cvar_t *r_blend_depth_sorting;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
+cvar_t *r_developer;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_lightmap;
 cvar_t *r_draw_bsp_normals;
@@ -252,6 +253,8 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		r_uniforms.block.bloom = r_bloom->value;
 		r_uniforms.block.bloom_lod = r_bloom_lod->integer;
 
+		r_uniforms.block.developer = r_developer->integer;
+
 		if (r_world_model) {
 			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
 			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
@@ -474,6 +477,7 @@ static void R_InitLocal(void) {
 	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
+	r_developer = Cvar_Add("r_developer", "0", CVAR_DEVELOPER, "Controls shader debugging tools (developer tool)");
 	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool)");
 	r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
 	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
