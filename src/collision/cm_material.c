@@ -997,29 +997,48 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t cont
 	const size_t size = sizeof(cm_asset_t) * stage->animation.num_frames;
 	stage->animation.frames = Mem_LinkMalloc(size, stage);
 
-	char base[MAX_QPATH];
-	g_strlcpy(base, stage->asset.name, sizeof(base));
+	if (g_str_has_prefix(stage->asset.name, "+0")) { // support for Quake style "+0texture" naming
+		const char *base = stage->asset.name + 2;
 
-	char *c = base + strlen(base) - 1;
-	while (isdigit(*c)) {
-		c--;
-	}
+		for (int32_t i = 1; i < stage->animation.num_frames; i++) {
 
-	c++;
+			cm_asset_t *frame = &stage->animation.frames[i];
+			g_snprintf(frame->name, sizeof(frame->name), "+%d%s", i, base);
 
-	int32_t start = (int32_t) strtol(c, NULL, 10);
-	*c = '\0';
+			if (!Cm_ResolveAsset(frame, context)) {
+				Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
+				return false;
+			}
+		}
+	} else { // as well as suffix "texture0" naming
 
-	for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+		char base[MAX_QPATH];
+		g_strlcpy(base, stage->asset.name, sizeof(base));
 
-		cm_asset_t *frame = &stage->animation.frames[i];
-		g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
-		if (!Cm_ResolveAsset(frame, context)) {
-			Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
-			return false;
+		char *c = base + strlen(base) - 1;
+		while (isdigit(*c)) {
+			c--;
+		}
+
+		c++;
+
+		int32_t start = (int32_t) strtol(c, NULL, 10);
+		*c = '\0';
+
+		for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+
+			cm_asset_t *frame = &stage->animation.frames[i];
+			g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
+
+			if (!Cm_ResolveAsset(frame, context)) {
+				Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
+				return false;
+			}
 		}
 	}
+
+
 
 	return true;
 }
