@@ -2781,9 +2781,9 @@
 			isa = PBXGroup;
 			children = (
 				CEE13C0B290F49F70075585D /* quemap-fu */,
-				CEE13C0A290F49F70075585D /* rygel-fu */,
 				CE12D6E51C5C58C300CD0B13 /* quemap */,
 				CE67EF861E350D54009C2819 /* quetoo-master */,
+				CEE13C0A290F49F70075585D /* rygel-fu */,
 				CE12D6E11C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = tools;
