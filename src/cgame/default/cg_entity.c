@@ -255,6 +255,8 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 	}
 }
 
+#define SHADOW_ATTEN 128.f
+
 /**
  * @brief
  */
@@ -275,16 +277,6 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 	if (ent->effects & EF_NO_SHADOW) {
 		return;
 	}
-
-	r_sprite_t shadow_sprite = {
-		.color = Color32(0, 0, 0, 255),
-		.width = Box3_Size(ent->model->bounds).y * 2,
-		.height = Box3_Size(ent->model->bounds).x * 2,
-		.rotation = Radians(ent->angles.y),
-		.media = (r_media_t *) cg_sprite_particle3,
-		.softness = -1.f,
-		.origin = ent->origin
-	};
 
 	vec3_t forward, right;
 	Vec3_Vectors(ent->angles, &forward, &right, NULL);
@@ -323,10 +315,11 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 	for (int32_t i = 0; i < num_shadows; i++) {
 		vec3_t start = Vec3_Fmaf(ent->origin, offsets[i].x, forward);
 		start = Vec3_Fmaf(start, offsets[i].y, right);
-		const vec3_t down = Vec3_Fmaf(start, MAX_WORLD_COORD, Vec3_Down());
-		const cm_trace_t tr = cgi.Trace(start, down, Box3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
-		int32_t p;
+		
+		const vec3_t down = Vec3_Fmaf(start, SHADOW_ATTEN, Vec3_Down());
+		const cm_trace_t tr = cgi.Trace(start, down, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
+		int32_t p;
 		for (p = 0; p < num_planes; p++) {
 			if (Vec3_EqualEpsilon(planes[p].normal, tr.plane.normal, .01f) && fabsf(planes[p].dist - tr.plane.dist) <= 8.f) {
 				break;
@@ -334,11 +327,20 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 		}
 
 		if (p == num_planes) {
+
 			planes[num_planes] = tr.plane;
 			num_planes++;
-			shadow_sprite.dir = tr.plane.normal;
-			shadow_sprite.origin.z = tr.end.z + 1.25f;
-			cgi.AddSprite(cgi.view, &shadow_sprite);
+
+			cgi.AddSprite(cgi.view, &(const r_sprite_t) {
+				.color = Color32(0, 0, 0, (1.f - tr.fraction) * 255),
+				.width = Box3_Size(ent->model->bounds).y * 2.f,
+				.height = Box3_Size(ent->model->bounds).x * 2.f,
+				.rotation = Radians(ent->angles.y),
+				.media = (r_media_t *) cg_sprite_particle3,
+				.softness = -1.f,
+				.origin = Vec3_Add(tr.end, Vec3_Up()),
+				.dir = tr.plane.normal
+			});
 		}
 	}
 }
