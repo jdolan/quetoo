@@ -135,10 +135,6 @@ static void R_DrawOcclusionQueries(const r_view_t *view) {
 	}
 }
 
-static void R_DrawMeshDepthPass(const r_view_t *view) {
-
-}
-
 /**
  * @brief
  */
@@ -158,8 +154,6 @@ void R_DrawDepthPass(const r_view_t *view) {
 	R_DrawBspDepthPass(view);
 
 	R_DrawOcclusionQueries(view);
-
-	R_DrawMeshDepthPass(view);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
