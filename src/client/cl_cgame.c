@@ -193,6 +193,7 @@ void Cl_InitCgame(void) {
 	import.Cbuf = Cbuf_AddText;
 
 	import.Theme = Ui_Theme;
+	import.TopViewController = Ui_TopViewController;
 	import.PushViewController = Ui_PushViewController;
 	import.PopToViewController = Ui_PopToViewController;
 	import.PopViewController = Ui_PopViewController;

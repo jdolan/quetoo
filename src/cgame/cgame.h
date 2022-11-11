@@ -356,6 +356,11 @@ typedef struct cg_import_s {
 	Theme *(*Theme)(void);
 
 	/**
+	 * @return The ViewController currently at the top of the stack.
+	 */
+	ViewController *(*TopViewController)(void);
+
+	/**
 	 * @brief Pushes the specified ViewController to the user interface.
 	 */
 	void (*PushViewController)(ViewController *viewController);

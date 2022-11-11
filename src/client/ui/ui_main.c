@@ -91,6 +91,19 @@ void Ui_Draw(void) {
 /**
  * @brief
  */
+ViewController *Ui_TopViewController(void) {
+
+	if (navigationViewController) {
+		return $(navigationViewController, topViewController);
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
+		return NULL;
+	}
+}
+
+/**
+ * @brief
+ */
 void Ui_PushViewController(ViewController *viewController) {
 
 	if (navigationViewController) {
