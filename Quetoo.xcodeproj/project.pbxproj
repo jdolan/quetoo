@@ -1686,6 +1686,8 @@
 		CED5BB182406B74300784D93 /* draw_3d_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = draw_3d_fs.glsl; sourceTree = "<group>"; };
 		CED6C0F4288DBA3F007290BA /* libopenal.1.22.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.22.2.dylib; path = ../../../../opt/local/lib/libopenal.1.22.2.dylib; sourceTree = "<group>"; };
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
+		CEE13C0A290F49F70075585D /* rygel-fu */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "rygel-fu"; sourceTree = "<group>"; };
+		CEE13C0B290F49F70075585D /* quemap-fu */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "quemap-fu"; sourceTree = "<group>"; };
 		CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_polylib.c; sourceTree = "<group>"; };
 		CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_polylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = /opt/local/lib/libz.1.2.11.dylib; sourceTree = "<absolute>"; };
@@ -2772,8 +2774,10 @@
 		CE12D6E01C5C58C300CD0B13 /* tools */ = {
 			isa = PBXGroup;
 			children = (
+				CEE13C0B290F49F70075585D /* quemap-fu */,
 				CE12D6E51C5C58C300CD0B13 /* quemap */,
 				CE67EF861E350D54009C2819 /* quetoo-master */,
+				CEE13C0A290F49F70075585D /* rygel-fu */,
 				CE12D6E11C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = tools;

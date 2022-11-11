@@ -133,23 +133,14 @@ static void viewWillAppear(ViewController *self) {
 
 	float distance = MAX_WORLD_DIST;
 
-	vec3_t start = cl_view.origin, end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
+	vec3_t start = Vec3_Fmaf(cl_view.origin, 16.f, cl_view.forward);
+	vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
 
 	while (this->material == NULL) {
 
 		const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 		if (!tr.material) {
 			break;
-		}
-
-		if (g_str_has_prefix(tr.material->name, "common/")) {
-
-			// skip most common materials, but allow sky bloom to be tuned in-game
-
-			if (g_strcmp0(tr.material->name, "common/sky")) {
-				start = Vec3_Add(tr.end, cl_view.forward);
-				continue;
-			}
 		}
 
 		this->material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);

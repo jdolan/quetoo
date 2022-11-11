@@ -255,6 +255,8 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 	}
 }
 
+#define SHADOW_ATTEN 128.f
+
 /**
  * @brief
  */
@@ -276,71 +278,19 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 		return;
 	}
 
-	r_sprite_t shadow_sprite = {
-		.color = Color32(0, 0, 0, 255),
-		.width = Box3_Size(ent->model->bounds).y * 2,
-		.height = Box3_Size(ent->model->bounds).x * 2,
+	const vec3_t down = Vec3_Fmaf(ent->origin, SHADOW_ATTEN, Vec3_Down());
+	const cm_trace_t tr = cgi.Trace(ent->origin, down, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+
+	cgi.AddSprite(cgi.view, &(const r_sprite_t) {
+		.color = Color32(0, 0, 0, (1.f - tr.fraction) * 255),
+		.width = Box3_Size(ent->model->bounds).y * 2.f,
+		.height = Box3_Size(ent->model->bounds).x * 2.f,
 		.rotation = Radians(ent->angles.y),
 		.media = (r_media_t *) cg_sprite_particle3,
 		.softness = -1.f,
-		.origin = ent->origin
-	};
-
-	vec3_t forward, right;
-	Vec3_Vectors(ent->angles, &forward, &right, NULL);
-
-	const vec2_t offsets[9] = {
-		Vec2(0.f, 0.f),
-		
-		Vec2(ent->model->bounds.mins.x, ent->model->bounds.mins.y),
-		Vec2(ent->model->bounds.maxs.x, ent->model->bounds.mins.y),
-		Vec2(ent->model->bounds.maxs.x, ent->model->bounds.maxs.y),
-		Vec2(ent->model->bounds.mins.x, ent->model->bounds.maxs.y),
-		
-		Vec2(0.f, ent->model->bounds.mins.y),
-		Vec2(ent->model->bounds.maxs.x, 0.f),
-		Vec2(0.f, ent->model->bounds.maxs.y),
-		Vec2(ent->model->bounds.mins.x, 0.f)
-	};
-
-	int32_t num_shadows;
-	switch (cg_add_entity_shadows->integer) {
-		case 1:
-			num_shadows = 1;
-			break;
-		case 2:
-			num_shadows = 5;
-			break;
-		case 3:
-		default:
-			num_shadows = 9;
-			break;
-	}
-
-	cm_bsp_plane_t planes[num_shadows];
-	int32_t num_planes = 0;
-
-	for (int32_t i = 0; i < num_shadows; i++) {
-		vec3_t start = Vec3_Fmaf(ent->origin, offsets[i].x, forward);
-		start = Vec3_Fmaf(start, offsets[i].y, right);
-		const vec3_t down = Vec3_Fmaf(start, MAX_WORLD_COORD, Vec3_Down());
-		const cm_trace_t tr = cgi.Trace(start, down, Box3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
-		int32_t p;
-
-		for (p = 0; p < num_planes; p++) {
-			if (Vec3_EqualEpsilon(planes[p].normal, tr.plane.normal, .01f) && fabsf(planes[p].dist - tr.plane.dist) <= 8.f) {
-				break;
-			}
-		}
-
-		if (p == num_planes) {
-			planes[num_planes] = tr.plane;
-			num_planes++;
-			shadow_sprite.dir = tr.plane.normal;
-			shadow_sprite.origin.z = tr.end.z + 1.25f;
-			cgi.AddSprite(cgi.view, &shadow_sprite);
-		}
-	}
+		.origin = Vec3_Add(tr.end, Vec3_Up()),
+		.dir = tr.plane.normal
+	});
 }
 
 /**
