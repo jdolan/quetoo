@@ -43,7 +43,6 @@
 #include "r_material.h"
 #include "r_media.h"
 #include "r_mesh_draw.h"
-#include "r_mesh_shadow.h"
 #include "r_mesh_model.h"
 #include "r_mesh_model_md3.h"
 #include "r_mesh_model_obj.h"
