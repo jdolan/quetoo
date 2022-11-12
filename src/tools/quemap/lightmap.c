@@ -455,21 +455,28 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	// unlike other light types, don't reflect patch lights through blended faces
-	// doing so produces banding on emissive blended faces (slime, lava, etc).
-	
-	const float dot = Vec3_Dot(dir, luxel->normal);
-	if (dot < 0.f) {
-		return;
-	}
+	float cutoff = 1.f;
+	if (light->face != lightmap->face) {
 
-	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	const float thresh = cosf(light->theta);
-	const float smooth = 0.03f;
-	const float cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
+		// calculate conical falloff for luxels that are not part of the light itself
 
-	if (cutoff <= 0.f) {
-		return;
+		// unlike other light types, don't reflect patch lights through blended faces
+		// doing so produces banding on emissive blended faces (slime, lava, etc).
+
+		const float dot = Vec3_Dot(dir, luxel->normal);
+		if (dot < 0.f) {
+			return;
+		}
+
+		const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+		const float thresh = cosf(light->theta);
+		const float smooth = 0.03f;
+
+		cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
+
+		if (cutoff <= 0.f) {
+			return;
+		}
 	}
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
