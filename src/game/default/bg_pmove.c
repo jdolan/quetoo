@@ -182,12 +182,6 @@ static void Pm_ClipMove(const cm_trace_t *trace) {
 		return;
 	}
 
-	// ground clipping is handled separately in Pm_WalkMove
-
-	if (trace->plane.normal.z > PM_STEP_NORMAL) {
-		return;
-	}
-
 	if (pm_locals.num_clip_planes == MAX_CLIP_PLANES) {
 		Pm_Debug("MAX_CLIP_PLANES\n");
 		return;
