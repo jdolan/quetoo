@@ -1,3 +1,4 @@
+
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
@@ -19,38 +20,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+in vec4 FragPos;
 
-#include "collision/collision.h"
+uniform vec3 lightPos;
+uniform float far_plane;
 
-#include "r_gl_types.h"
-
-#include "r_atlas.h"
-#include "r_animation.h"
-#include "r_bloom.h"
-#include "r_bsp.h"
-#include "r_bsp_draw.h"
-#include "r_bsp_model.h"
-#include "r_context.h"
-#include "r_depth_pass.h"
-#include "r_draw_2d.h"
-#include "r_draw_3d.h"
-#include "r_entity.h"
-#include "r_framebuffer.h"
-#include "r_image.h"
-#include "r_light.h"
-#include "r_main.h"
-#include "r_material.h"
-#include "r_media.h"
-#include "r_mesh_draw.h"
-#include "r_mesh_model.h"
-#include "r_mesh_model_md3.h"
-#include "r_mesh_model_obj.h"
-#include "r_mesh.h"
-#include "r_model.h"
-#include "r_program.h"
-#include "r_shadowmap.h"
-#include "r_sky.h"
-#include "r_sprite.h"
-#include "r_stain.h"
-#include "r_types.h"
+void main()
+{
+    // get distance between fragment and light source
+    float lightDistance = length(FragPos.xyz - lightPos);
+    
+    // map to [0;1] range by dividing by far_plane
+    lightDistance = lightDistance / far_plane;
+    
+    // write this as modified depth
+    gl_FragDepth = lightDistance;
+}  

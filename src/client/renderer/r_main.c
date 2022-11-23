@@ -388,6 +388,8 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_UpdateLights(view);
 
+	R_DrawShadowmaps(view);
+
 	R_UpdateSprites(view);
 
 	R_UpdateStains(view);
@@ -603,6 +605,8 @@ void R_Init(void) {
 
 	R_InitDepthPass();
 
+	R_InitShadowmaps();
+
 	R_InitDraw2D();
 
 	R_InitDraw3D();
@@ -648,6 +652,8 @@ void R_Shutdown(void) {
 	R_ShutdownSky();
 
 	R_ShutdownBloom();
+
+	R_ShutdownShadowmaps();
 
 	R_ShutdownDepthPass();
 

@@ -224,7 +224,7 @@ static void R_InitDepthPassProgram(void) {
 	glUniformBlockBinding(r_depth_pass_program.name, r_depth_pass_program.uniforms_block, 0);
 
 	r_depth_pass_program.in_position = glGetAttribLocation(r_depth_pass_program.name, "in_position");
-
+	
 	r_depth_pass_program.model = glGetUniformLocation(r_depth_pass_program.name, "model");
 
 	glUseProgram(0);

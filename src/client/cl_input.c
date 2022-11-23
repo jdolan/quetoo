@@ -416,6 +416,13 @@ void Cl_HandleEvents(void) {
 			break;
 		}
 	}
+
+	if (cls.key_state.dest == KEY_GAME) {
+		const GLint cx = r_context.width * 0.5;
+		const GLint cy = r_context.height * 0.5;
+
+		SDL_WarpMouseInWindow(r_context.window, cx, cy);
+	}
 }
 
 /**
