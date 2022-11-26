@@ -148,12 +148,12 @@ void dynamic_light(in vec3 position, in vec3 normalmap, in vec3 specularmap, in 
 	for (int i = 0; i < num_lights; i++) {
 
 		float radius = lights[i].origin.w;
-		if (radius == 0.0) {
+		if (radius <= 0.0) {
 			continue;
 		}
 
 		float intensity = lights[i].color.w;
-		if (intensity == 0.0) {
+		if (intensity <= 0.0) {
 			continue;
 		}
 

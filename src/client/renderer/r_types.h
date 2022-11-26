@@ -978,7 +978,6 @@ typedef struct {
 
 /**
  * @brief Dynamic light sources.
- * @remarks This struct is vec4 aligned.
  */
 typedef struct {
 	/**

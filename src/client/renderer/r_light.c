@@ -50,12 +50,14 @@ void R_UpdateLights(const r_view_t *view) {
 
 		const r_light_t *in = view->lights;
 		
-		r_light_t *out = r_lights.block.lights;
+		r_light_uniform_t *out = r_lights.block.lights;
 
 		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
 
-			*out = *in;
 			out->origin = Mat4_Transform(r_uniforms.block.view, in->origin);
+			out->radius = in->radius;
+			out->color = in->color;
+			out->intensity = in->intensity;
 		}
 
 		r_lights.block.num_lights = view->num_lights;
@@ -63,7 +65,7 @@ void R_UpdateLights(const r_view_t *view) {
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
 	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, num_lights), sizeof(r_lights.block.num_lights), &r_lights.block.num_lights);
-	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, lights), sizeof(r_light_t) * r_lights.block.num_lights, &r_lights.block.lights);
+	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, lights), sizeof(r_light_uniform_t) * r_lights.block.num_lights, &r_lights.block.lights);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
