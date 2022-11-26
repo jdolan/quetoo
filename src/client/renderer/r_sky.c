@@ -90,6 +90,7 @@ void R_DrawSky(const r_view_t *view) {
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, r_sky.image->texnum);
+	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadowmaps.cubemap_array);
 
 	const r_bsp_draw_elements_t *sky = r_world_model->bsp->sky;
 	glUniform1f(r_sky_program.material.bloom, sky->material->cm->bloom * r_bloom->value);

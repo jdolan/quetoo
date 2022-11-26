@@ -62,6 +62,7 @@ void Cg_AddLight(const cg_light_t *l) {
  */
 void Cg_AddLights(void) {
 
+#if 0
 	cg_light_t *l = cg_lights;
 	for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
 
@@ -85,8 +86,7 @@ void Cg_AddLights(void) {
 
 		cgi.AddLight(cgi.view, &out);
 	}
-
-#if 1
+#else
 	cgi.AddLight(cgi.view, &(r_light_t) {
 		.origin = cgi.view->origin,
 		.radius = 300.f,
