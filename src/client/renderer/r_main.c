@@ -87,8 +87,7 @@ void R_GetError_(const char *function, const char *msg) {
 		return;
 	}
 	
-	// reset error count, so as-it-happens errors
-	// can happen again.
+	// reset error count, so as-it-happens errors can happen again.
 	r_error_count = 0;
 
 	// reinstall debug handler.

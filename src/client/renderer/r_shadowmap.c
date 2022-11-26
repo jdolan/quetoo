@@ -154,9 +154,6 @@ void R_DrawShadowmaps(const r_view_t *view) {
 		}
 
 		glUniformMatrix4fv(r_shadowmap_program.name, 6, GL_FALSE, sh->matrix);
-		
-		// bind light's cubemap render target
-		// glViewport
 
 		const r_entity_t *e = view->entities;
 		for (int32_t j = 0; j < view->num_entities; j++, e++) {

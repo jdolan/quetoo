@@ -97,6 +97,9 @@
 		CE052A8721483275003446C9 /* check_thread.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D71C5C58C300CD0B13 /* check_thread.c */; };
 		CE052A88214832E1003446C9 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE0C0752260CC75700FFE27B /* box.h in Headers */ = {isa = PBXBuildFile; fileRef = CE0C0751260CC75700FFE27B /* box.h */; };
+		CE0FDB8A29329FE700353351 /* shadowmap_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEE13C12293241740075585D /* shadowmap_fs.glsl */; };
+		CE0FDB8B29329FE700353351 /* shadowmap_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEE13C10293241740075585D /* shadowmap_gs.glsl */; };
+		CE0FDB8C29329FE700353351 /* shadowmap_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEE13C11293241740075585D /* shadowmap_vs.glsl */; };
 		CE12D7A91C5C5C3200CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D7D11C5C5D6A00CD0B13 /* g_ai.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6431C5C58C300CD0B13 /* g_ai.c */; };
 		CE12D7D31C5C5D6A00CD0B13 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
@@ -651,6 +654,8 @@
 		CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */; };
 		CED6C0F5288DBA3F007290BA /* libopenal.1.22.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED6C0F4288DBA3F007290BA /* libopenal.1.22.2.dylib */; };
 		CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
+		CEE13C15293241970075585D /* r_shadowmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE13C13293241970075585D /* r_shadowmap.c */; };
+		CEE13C16293241970075585D /* r_shadowmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE13C14293241970075585D /* r_shadowmap.h */; };
 		CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEE3A0FA21EE2B3F0070FD3E /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CEE3A10421EE2B7A0070FD3E /* check_cm_polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */; };
@@ -885,6 +890,9 @@
 				CE57E13D2462572900F8902F /* material.glsl in CopyFiles */,
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
+				CE0FDB8A29329FE700353351 /* shadowmap_fs.glsl in CopyFiles */,
+				CE0FDB8B29329FE700353351 /* shadowmap_gs.glsl in CopyFiles */,
+				CE0FDB8C29329FE700353351 /* shadowmap_vs.glsl in CopyFiles */,
 				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
 				CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */,
 				F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */,
@@ -1688,6 +1696,11 @@
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
 		CEE13C0A290F49F70075585D /* rygel-fu */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "rygel-fu"; sourceTree = "<group>"; };
 		CEE13C0B290F49F70075585D /* quemap-fu */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "quemap-fu"; sourceTree = "<group>"; };
+		CEE13C10293241740075585D /* shadowmap_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadowmap_gs.glsl; sourceTree = "<group>"; };
+		CEE13C11293241740075585D /* shadowmap_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadowmap_vs.glsl; sourceTree = "<group>"; };
+		CEE13C12293241740075585D /* shadowmap_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadowmap_fs.glsl; sourceTree = "<group>"; };
+		CEE13C13293241970075585D /* r_shadowmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_shadowmap.c; sourceTree = "<group>"; };
+		CEE13C14293241970075585D /* r_shadowmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_shadowmap.h; sourceTree = "<group>"; };
 		CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_polylib.c; sourceTree = "<group>"; };
 		CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_polylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = /opt/local/lib/libz.1.2.11.dylib; sourceTree = "<absolute>"; };
@@ -2516,6 +2529,8 @@
 				CE12D5E01C5C58C300CD0B13 /* r_model.h */,
 				CE8FD2EA23D3E034002FD074 /* r_program.h */,
 				CE8FD2EB23D3E034002FD074 /* r_program.c */,
+				CEE13C13293241970075585D /* r_shadowmap.c */,
+				CEE13C14293241970075585D /* r_shadowmap.h */,
 				CE12D5ED1C5C58C300CD0B13 /* r_sky.c */,
 				CE12D5EE1C5C58C300CD0B13 /* r_sky.h */,
 				CEAC32BA24212553007E1253 /* r_sprite.c */,
@@ -2549,6 +2564,9 @@
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CE63992C23E1251A00DB7A2D /* mesh_fs.glsl */,
 				CE63992B23E124F700DB7A2D /* mesh_vs.glsl */,
+				CEE13C12293241740075585D /* shadowmap_fs.glsl */,
+				CEE13C10293241740075585D /* shadowmap_gs.glsl */,
+				CEE13C11293241740075585D /* shadowmap_vs.glsl */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
 				F57902A124843E730023101D /* soften_fs.glsl */,
@@ -3565,6 +3583,7 @@
 				CED438911D9D34450052BAFA /* r_material.h in Headers */,
 				CED438921D9D34450052BAFA /* r_media.h in Headers */,
 				CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */,
+				CEE13C16293241970075585D /* r_shadowmap.h in Headers */,
 				CED438931D9D34450052BAFA /* r_mesh_draw.h in Headers */,
 				CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */,
 				CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */,
@@ -4666,6 +4685,7 @@
 				CED438411D9D34450052BAFA /* r_entity.c in Sources */,
 				CE548C8025B79F17003677ED /* r_framebuffer.c in Sources */,
 				CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */,
+				CEE13C15293241970075585D /* r_shadowmap.c in Sources */,
 				CED438441D9D34450052BAFA /* r_image.c in Sources */,
 				CED438451D9D34450052BAFA /* r_light.c in Sources */,
 				CED438481D9D34450052BAFA /* r_main.c in Sources */,

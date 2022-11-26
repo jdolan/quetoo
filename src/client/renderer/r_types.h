@@ -1424,8 +1424,6 @@ typedef enum {
 	 */
 	TEXTURE_NEXT_DIFFUSEMAP,
 
-
-	TEXTURE_
 	/**
 	 * @brief Framebuffer specific textures.
 	 */

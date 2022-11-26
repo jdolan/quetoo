@@ -30,6 +30,7 @@ noinst_HEADERS = \
 	r_mesh.h \
 	r_model.h \
 	r_program.h \
+	r_shadowmap.h \
 	r_sky.h \
 	r_sprite.h \
 	r_stain.h \
@@ -65,6 +66,7 @@ librenderer_la_SOURCES = \
 	r_mesh_model_obj.c \
 	r_model.c \
 	r_program.c \
+	r_shadowmap.c \
 	r_sky.c \
 	r_sprite.c \
 	r_stain.c
