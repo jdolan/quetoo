@@ -147,16 +147,14 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	R_FreeImage((r_media_t *) atlas->image);
 
-	atlas->image->width = 0;
-
-	// calculate number of mip levels; basically we just take the smallest possible
-	// mip size. larger textures get kinda shafted...
 	GLsizei levels = INT32_MAX;
 
 	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
 		const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
 		levels = MIN(levels, floorf(log2f(MAX(node->w, node->h)) + 1));
 	}
+
+	atlas->image->width = 0;
 
 	for (int32_t width = 256; atlas->image->width == 0; width += 512) {
 

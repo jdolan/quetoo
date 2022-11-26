@@ -22,21 +22,26 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices=18) out;
 
-uniform mat4 cubemap_projections[6];
+uniform mat4 cubemap_view[6];
+uniform mat4 cubemap_projection;
 
-out vec4 FragPos;
+out vec4 frag_pos;
 
-void main()
-{
-    for (int face = 0; face < 6; ++face)
-    {
-        gl_Layer = face; // built-in variable that specifies to which face we render.
-        for(int i = 0; i < 3; ++i) // for each triangle vertex
-        {
-            FragPos = gl_in[i].gl_Position;
-            gl_Position = cubemap_projections[face] * FragPos;
+void main() {
+
+    for (int i = 0; i < 6; i++) {
+
+		gl_Layer = i;
+
+        for (int j = 0; j < 3; j++) {
+
+			frag_pos = gl_in[j].gl_Position;
+
+            gl_Position = cubemap_projection * cubemap_view[i] * frag_pos;
+
             EmitVertex();
-        }    
+        }
+
         EndPrimitive();
     }
 }  

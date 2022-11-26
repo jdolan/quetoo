@@ -1179,6 +1179,7 @@ typedef enum {
 	VIEW_UNKNOWN,
 	VIEW_MAIN,
 	VIEW_PLAYER_MODEL,
+	VIEW_SHADOWMAP,
 } r_view_type_t;
 
 /**
