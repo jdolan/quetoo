@@ -23,6 +23,20 @@
 
 #include "r_types.h"
 
+typedef struct {
+	/**
+	 * @brief A cubemap array teture with `MAX_LIGHTS` layers.
+	 */
+	GLuint cubemap_array;
+
+	/**
+	 * @brief The per-light depth framebuffers.
+	 */
+	GLuint framebuffers[MAX_LIGHTS];
+} r_shadowmaps_t;
+
+extern r_shadowmaps_t r_shadowmaps;
+
 void R_DrawShadowmaps(const r_view_t *view);
 void R_InitShadowmaps(void);
 void R_ShutdownShadowmaps(void);

@@ -28,6 +28,7 @@ uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
+uniform samplerCubeArrayShadow texture_shadowmap;
 
 uniform mat4 model;
 
@@ -60,6 +61,53 @@ vec4 sample_lightmap(int index) {
 		return texture_bicubic(texture_lightmap, vec3(vertex.lightmap, index));
 	} else {
 		return texture(texture_lightmap, vec3(vertex.lightmap, index));
+	}
+}
+
+void dynamic_light2(in vec3 position,
+				   in vec3 normalmap,
+				   in vec3 specularmap,
+				   in float specularity,
+				   inout vec3 diffuse,
+				   inout vec3 specular) {
+
+	vec3 view_dir = normalize(-position);
+
+	for (int i = 0; i < num_lights; i++) {
+
+		float shadow = texture(texture_shadowmap, vec4(position - lights[i].origin.xyz, i), 0.0);
+		if (shadow <= 0.0) {
+			continue;
+		}
+
+		float radius = lights[i].origin.w;
+		if (radius <= 0.0) {
+			continue;
+		}
+
+		float intensity = lights[i].color.w;
+		if (intensity <= 0.0) {
+			continue;
+		}
+
+		float atten = 1.0 - distance(lights[i].origin.xyz, position) / radius;
+		if (atten <= 0.0) {
+			continue;
+		}
+
+		vec3 light_dir = normalize(lights[i].origin.xyz - position);
+		float lambert = dot(light_dir, normalmap);
+		if (lambert <= 0.0) {
+			continue;
+		}
+
+		vec3 color = lights[i].color.rgb;
+
+		vec3 diff = radius * color * intensity * atten * atten * lambert;
+		vec3 spec = diff * atten * specularmap * blinn(normalmap, light_dir, view_dir, specularity);
+
+		diffuse += diff;
+		specular += spec;
 	}
 }
 
@@ -124,7 +172,7 @@ void main(void) {
 
 		caustic_light(vertex.model, caustics, ambient, diffuse);
 
-		dynamic_light(vertex.position, normalmap, specularmap, specularity, diffuse, specular);
+		dynamic_light2(vertex.position, normalmap, specularmap, specularity, diffuse, specular);
 
 		out_color = diffusemap;
 

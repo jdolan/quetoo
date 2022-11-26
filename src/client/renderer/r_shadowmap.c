@@ -41,20 +41,7 @@ static struct {
 	GLint origin;
 } r_shadowmap_program;
 
-/**
- * @brief The shadowmap type.
- */
-static struct {
-	/**
-	 * @brief A cubemap array texture with `MAX_LIGHTS` layers.
-	 */
-	GLuint cubemaps;
-
-	/**
-	 * @brief The framebuffer objects for each light's depth buffer.
-	 */
-	GLuint framebuffers[MAX_LIGHTS];
-} r_shadowmaps;
+r_shadowmaps_t r_shadowmaps;
 
 /**
  * @brief
@@ -251,8 +238,8 @@ void R_InitShadowmaps(void) {
 
 	R_InitShadowmapProgram();
 
-	glGenTextures(1, &r_shadowmaps.cubemaps);
-	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadowmaps.cubemaps);
+	glGenTextures(1, &r_shadowmaps.cubemap_array);
+	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadowmaps.cubemap_array);
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -273,10 +260,9 @@ void R_InitShadowmaps(void) {
 		NULL);
 
 	for (int32_t i = 0; i < MAX_LIGHTS; i++) {
-
 		glGenFramebuffers(1, &r_shadowmaps.framebuffers[i]);
 		glBindFramebuffer(GL_FRAMEBUFFER, r_shadowmaps.framebuffers[i]);
-		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadowmaps.cubemaps, 0, i);
+		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadowmaps.cubemap_array, 0, i);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
 	}
@@ -304,7 +290,7 @@ void R_ShutdownShadowmaps(void) {
 
 	R_ShutdownShadowmapProgram();
 
-	glDeleteTextures(1, &r_shadowmaps.cubemaps);
+	glDeleteTextures(1, &r_shadowmaps.cubemap_array);
 
 	for (int32_t i = 0; i < MAX_LIGHTS; i++) {
 		glDeleteFramebuffers(1, &r_shadowmaps.framebuffers[i]);

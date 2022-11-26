@@ -49,6 +49,7 @@ static struct {
 	GLint texture_lightgrid_direction;
 	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
+	GLint texture_shadowmap;
 
 	GLint entity;
 	GLint alpha_test;
@@ -675,6 +676,9 @@ void R_DrawWorld(const r_view_t *view) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->atlas->texnum);
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP);
+	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadowmaps.cubemap_array);
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
 	glBindTexture(GL_TEXTURE_2D, r_bsp_program.warp_image->texnum);
 
@@ -767,6 +771,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
 	r_bsp_program.texture_lightgrid_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_caustics");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
+	r_bsp_program.texture_shadowmap = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap");
 
 	r_bsp_program.entity = glGetUniformLocation(r_bsp_program.name, "entity");
 
@@ -799,6 +804,7 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_bsp_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+	glUniform1i(r_bsp_program.texture_shadowmap, TEXTURE_SHADOWMAP);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;

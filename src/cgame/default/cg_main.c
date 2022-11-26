@@ -495,7 +495,6 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
 	Cg_AddLights();
 
-
 	if (*cg_draw_trace_test->string && *cg_draw_trace_test->string != '0') {
 		static box3_t bounds;
 

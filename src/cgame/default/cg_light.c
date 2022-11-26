@@ -85,6 +85,15 @@ void Cg_AddLights(void) {
 
 		cgi.AddLight(cgi.view, &out);
 	}
+
+#if 1
+	cgi.AddLight(cgi.view, &(r_light_t) {
+		.origin = cgi.view->origin,
+		.radius = 300.f,
+		.color = Vec3(1.f, 1.f, 1.f),
+		.intensity = 1.f
+	});
+#endif
 }
 
 /**
