@@ -106,6 +106,7 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_entity_t *e) {
 /**
  * @brief Draws a single light source shadow from the provided sparse view.
  */
+static void R_DrawShadowmapView(const r_view_t *view) {
 
 	if (!view->num_entities) {
 		return;
@@ -137,7 +138,10 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_entity_t *e) {
 
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-		R_DrawShadowmapMeshEntity(view, e);
+
+		if (IS_MESH_MODEL(e->model)) {
+			R_DrawMeshEntityShadow(view, e);
+		}
 	}
 }
 
@@ -182,7 +186,6 @@ void R_DrawShadowmaps(const r_view_t *view) {
 
 		R_DrawShadowmapView(&v);
 	}
-
 
 	glUseProgram(0);
 
