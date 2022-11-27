@@ -75,8 +75,9 @@ void dynamic_light2(in vec3 position,
 
 	for (int i = 0; i < num_lights; i++) {
 
-		float shadow = texture(texture_shadowmap, vec4(position - lights[i].origin.xyz, i), 0.0);
-		if (shadow <= 0.0) {
+		vec3 shadow_dir = lights[i].origin.xyz - vertex.model;
+		float shadow = texture(texture_shadowmap, vec4(shadow_dir, i), 0.0);
+		if (shadow <= 1.0) {
 			continue;
 		}
 
