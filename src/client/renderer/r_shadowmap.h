@@ -25,12 +25,12 @@
 
 typedef struct {
 	/**
-	 * @brief A cubemap array teture with `MAX_LIGHTS` layers.
+	 * @brief Each light source targets a layer in the cubemap array.
 	 */
 	GLuint cubemap_array;
 
 	/**
-	 * @brief The per-light depth framebuffers.
+	 * @brief Each light source has a framebuffer to capture its depth pass.
 	 */
 	GLuint framebuffers[MAX_LIGHTS];
 } r_shadowmaps_t;

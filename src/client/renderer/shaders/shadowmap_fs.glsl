@@ -20,11 +20,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in vec4 frag_pos;
-
-uniform vec3 origin;
+in vec4 position;
 
 void main() {
-    gl_FragDepth = length(frag_pos.xyz - origin) / depth_range.y;
-
-}  
+	gl_FragDepth = length(position) / depth_range.y;
+}

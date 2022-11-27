@@ -25,19 +25,18 @@ layout (triangle_strip, max_vertices=18) out;
 uniform mat4 cubemap_view[6];
 uniform mat4 cubemap_projection;
 
-out vec4 frag_pos;
+out vec4 position;
 
 void main() {
 
     for (int i = 0; i < 6; i++) {
-
 		gl_Layer = i;
 
         for (int j = 0; j < 3; j++) {
 
-			frag_pos = gl_in[j].gl_Position;
+			position = cubemap_view[i] * gl_in[j].gl_Position;
 
-            gl_Position = cubemap_projection * cubemap_view[i] * frag_pos;
+            gl_Position = cubemap_projection * cubemap_view[i] * gl_in[j].gl_Position;
 
             EmitVertex();
         }

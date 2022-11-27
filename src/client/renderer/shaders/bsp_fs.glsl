@@ -64,7 +64,8 @@ vec4 sample_lightmap(int index) {
 	}
 }
 
-void dynamic_light2(in vec3 position,
+void dynamic_light2(
+				   in vec3 position,
 				   in vec3 normalmap,
 				   in vec3 specularmap,
 				   in float specularity,
@@ -74,12 +75,6 @@ void dynamic_light2(in vec3 position,
 	vec3 view_dir = normalize(-position);
 
 	for (int i = 0; i < num_lights; i++) {
-
-		vec3 shadow_dir = lights[i].origin.xyz - vertex.model;
-		float shadow = texture(texture_shadowmap, vec4(shadow_dir, i), 0.0);
-		if (shadow <= 1.0) {
-			continue;
-		}
 
 		float radius = lights[i].origin.w;
 		if (radius <= 0.0) {
@@ -102,7 +97,11 @@ void dynamic_light2(in vec3 position,
 			continue;
 		}
 
-		vec3 color = lights[i].color.rgb;
+		vec3 shadow_dir = position - lights[i].origin.xyz;
+		float depth = length(shadow_dir) / depth_range.y;
+		float shadow = texture(texture_shadowmap, vec4(shadow_dir, i), depth);
+
+		vec3 color = lights[i].color.rgb * shadow;
 
 		vec3 diff = radius * color * intensity * atten * atten * lambert;
 		vec3 spec = diff * atten * specularmap * blinn(normalmap, light_dir, view_dir, specularity);

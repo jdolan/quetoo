@@ -48,5 +48,5 @@ void main(void) {
 //
 //	out_color = postprocess(out_color);
 
-	out_color = texture(texture_cubemap, vec4(normalize(vertex.cubemap), 0)) * .5 + .5;
+	out_color = texture(texture_cubemap, vec4(normalize(vertex.cubemap), 0)) * 0.5 + 0.5;
 }
