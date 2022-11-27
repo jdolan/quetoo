@@ -54,13 +54,10 @@ void R_UpdateLights(const r_view_t *view) {
 
 		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
 
-			out->origin = in->origin;
+			out->origin = Mat4_Transform(r_uniforms.block.view, in->origin);
 			out->radius = in->radius;
 			out->color = in->color;
 			out->intensity = in->intensity;
-
-			const vec3_t position = Mat4_Transform(r_uniforms.block.view, in->origin);
-			out->position = Vec3_ToVec4(position, 1.f);
 		}
 
 		r_lights.block.num_lights = view->num_lights;

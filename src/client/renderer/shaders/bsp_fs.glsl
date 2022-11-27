@@ -91,12 +91,12 @@ void dynamic_light2(in vec3 position,
 			continue;
 		}
 
-		float atten = 1.0 - distance(lights[i].position.xyz, position) / radius;
+		float atten = 1.0 - distance(lights[i].origin.xyz, position) / radius;
 		if (atten <= 0.0) {
 			continue;
 		}
 
-		vec3 light_dir = normalize(lights[i].position.xyz - position);
+		vec3 light_dir = normalize(lights[i].origin.xyz - position);
 		float lambert = dot(light_dir, normalmap);
 		if (lambert <= 0.0) {
 			continue;

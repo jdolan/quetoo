@@ -296,7 +296,7 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_LookAt(const vec3
 	m.m[0][3] = 0.f;
 	m.m[1][3] = 0.f;
 	m.m[2][3] = 0.f;
-	m.m[3][3] = 1.0f;
+	m.m[3][3] = 1.f;
 
 	return m;
 }
