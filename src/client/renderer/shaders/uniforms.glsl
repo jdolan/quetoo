@@ -169,7 +169,7 @@ layout (std140) uniform uniforms_block {
  */
 struct light_t {
 	/**
-	 * @brief The light origin and radius.
+	 * @brief The light origin in world space and radius.
 	 */
 	vec4 origin;
 
@@ -177,6 +177,11 @@ struct light_t {
 	 * @brief The light color and intensity.
 	 */
 	vec4 color;
+
+	/**
+	 * @brief The light position in view space.
+	 */
+	vec4 position;
 };
 
 #define MAX_LIGHTS 32

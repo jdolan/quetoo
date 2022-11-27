@@ -51,6 +51,11 @@ typedef struct {
 	 * @brief The light intensity.
 	 */
 	float intensity;
+
+	/**
+	 * @brief The light origin, transformed to view space.
+	 */
+	vec4_t position;
 } r_light_uniform_t;
 
 /**
