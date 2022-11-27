@@ -125,22 +125,14 @@ static void R_DrawShadowmap(const r_view_t *view) {
 
 	glUniformMatrix4fv(r_shadowmap_program.cubemap_projection, 1, GL_FALSE, cubemap_projection.array);
 
-	const vec3_t angles[] = {
-		Vec3(0.f,    0.f, 0.f), // north
-		Vec3(0.f,   90.f, 0.f), // east
-		Vec3(0.f,  180.f, 0.f), // south
-		Vec3(0.f,  270.f, 0.f), // west
-		Vec3(270.f,  0.f, 0.f), // up
-		Vec3(90.f,   0.f, 0.f)  // down
+	mat4_t cubemap_view[6] = {
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 1.f,  0.f,  0.f)), Vec3_Up()),
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3(-1.f,  0.f,  0.f)), Vec3_Up()),
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f,  0.f,  1.f)), Vec3(0, 1, 0)),
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0, -1, 0)),
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f,  1.f,  0.f)), Vec3_Up()),
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f, -1.f,  0.f)), Vec3_Up()),
 	};
-
-	mat4_t cubemap_view[6];
-	for (size_t i = 0; i < lengthof(cubemap_view); i++) {
-		cubemap_view[i] = Mat4_FromRotation(-90.f, Vec3(1.f, 0.f, 0.f)); // put Z going up
-		cubemap_view[i] = Mat4_ConcatRotation(cubemap_view[i], 90.f, Vec3(0.f, 0.f, 1.f)); // put Z going up
-		cubemap_view[i] = Mat4_ConcatRotation3(cubemap_view[i], angles[i]);
-		cubemap_view[i] = Mat4_ConcatTranslation(cubemap_view[i], Vec3_Negate(view->origin));
-	}
 
 	glUniformMatrix4fv(r_shadowmap_program.cubemap_view, 6, GL_FALSE, (GLfloat *) cubemap_view);
 
@@ -163,7 +155,7 @@ void R_DrawShadowmaps(const r_view_t *view) {
 	const r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		r_framebuffer_t framebuffer = {
+		r_framebuffer_t fb = {
 			.name = r_shadowmaps.framebuffers[i],
 			.width = SHADOWMAP_SIZE,
 			.height = SHADOWMAP_SIZE
@@ -172,7 +164,7 @@ void R_DrawShadowmaps(const r_view_t *view) {
 		r_view_t v = {
 			.type = VIEW_SHADOWMAP,
 			.origin = l->origin,
-			.framebuffer = &framebuffer,
+			.framebuffer = &fb,
 			.fov = Vec2(90.f, 90.f)
 		};
 
@@ -243,6 +235,7 @@ void R_InitShadowmaps(void) {
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
