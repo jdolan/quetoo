@@ -56,7 +56,7 @@ layout (std140) uniform uniforms_block {
 	/**
 	 * @brief The viewport (x, y, w, h) in device pixels.
 	 */
-	vec4 viewport;
+	ivec4 viewport;
 
 	/**
 	 * @brief The 2D projection matrix.

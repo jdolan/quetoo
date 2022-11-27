@@ -1198,7 +1198,7 @@ typedef struct {
 	/**
 	 * @brief The viewport, in device pixels.
 	 */
-	vec4_t viewport;
+	vec4i_t viewport;
 
 	/**
 	 * @brief The horizontal and vertical field of view.
@@ -1290,7 +1290,7 @@ typedef struct {
  */
 static inline void R_ClearView(r_view_t *view) {
 
-	view->viewport = Vec4_Zero();
+	view->viewport = Vec4i_Zero();
 	view->fov = Vec2_Zero();
 
 	view->origin = Vec3_Zero();

@@ -298,7 +298,7 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
 	cgi.view->framebuffer = &cg_framebuffer;
 
-	cgi.view->viewport = Vec4(0.f, 0.f, cg_framebuffer.width, cg_framebuffer.height);
+	cgi.view->viewport = Vec4i(0, 0, cg_framebuffer.width, cg_framebuffer.height);
 
 	const player_state_t *ps0;
 
