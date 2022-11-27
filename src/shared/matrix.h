@@ -272,6 +272,36 @@ static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_FromRotationTrans
 }
 
 /**
+ * @return A view matrix with the specified eye, center and up vector.
+ */
+static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_LookAt(const vec3_t eye, const vec3_t pos, const vec3_t up) {
+
+	vec3_t Z = Vec3_Direction(eye, pos);
+	vec3_t X = Vec3_Normalize(Vec3_Cross(up, Z));
+	vec3_t Y = Vec3_Normalize(Vec3_Cross(Z, X));
+
+	mat4_t m;
+	m.m[0][0] = X.x;
+	m.m[1][0] = X.y;
+	m.m[2][0] = X.z;
+	m.m[3][0] = -Vec3_Dot(X, eye);
+	m.m[0][1] = Y.x;
+	m.m[1][1] = Y.y;
+	m.m[2][1] = Y.z;
+	m.m[3][1] = -Vec3_Dot(Y, eye);
+	m.m[0][2] = Z.x;
+	m.m[1][2] = Z.y;
+	m.m[2][2] = Z.z;
+	m.m[3][2] = -Vec3_Dot(Z, eye);
+	m.m[0][3] = 0.f;
+	m.m[1][3] = 0.f;
+	m.m[2][3] = 0.f;
+	m.m[3][3] = 1.0f;
+
+	return m;
+}
+
+/**
  * @return The inverse of the input matrix.
  */
 static inline mat4_t __attribute__ ((warn_unused_result)) Mat4_Inverse(const mat4_t a) {

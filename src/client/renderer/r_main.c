@@ -230,11 +230,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		const float xmax = ymax * aspect;
 
 		r_uniforms.block.projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
-
-		r_uniforms.block.view = Mat4_FromRotation(-90.f, Vec3(1.f, 0.f, 0.f)); // put Z going up
-		r_uniforms.block.view = Mat4_ConcatRotation(r_uniforms.block.view, 90.f, Vec3(0.f, 0.f, 1.f)); // put Z going up
-		r_uniforms.block.view = Mat4_ConcatRotation3(r_uniforms.block.view, Vec3(-view->angles.z, -view->angles.x, -view->angles.y));
-		r_uniforms.block.view = Mat4_ConcatTranslation(r_uniforms.block.view, Vec3_Negate(view->origin));
+		r_uniforms.block.view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
 		r_uniforms.block.depth_range.x = NEAR_DIST;
 		r_uniforms.block.depth_range.y = MAX_WORLD_DIST;
