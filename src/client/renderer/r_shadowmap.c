@@ -106,7 +106,7 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_entity_t *e) {
  */
 static void R_DrawShadowmapView(const r_view_t *view) {
 
-	glViewport(0, 0, view->viewport.z, view->viewport.w);
+	glViewport(view->viewport.x, view->viewport.y, view->viewport.z, view->viewport.w);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -247,7 +247,9 @@ static void R_InitShadowmapFramebuffers(void) {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, r_shadowmaps.framebuffers[i]);
 
-		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadowmaps.cubemap_array, 0, i * 6);
+		for (int32_t j = 0; j < 6; j++) {
+			glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadowmaps.cubemap_array, 0, i * 6 + j);
+		}
 
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
