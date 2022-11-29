@@ -1282,6 +1282,11 @@ typedef struct {
 	 */
 	cm_bsp_plane_t frustum[4];
 
+	/**
+	 * @brief The view tag.
+	 */
+	int32_t tag;
+
 } r_view_t;
 
 /**

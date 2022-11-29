@@ -109,7 +109,11 @@ static void R_DrawShadowmapView(const r_view_t *view) {
 	glViewport(view->viewport.x, view->viewport.y, view->viewport.z, view->viewport.w);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-	glClear(GL_DEPTH_BUFFER_BIT);
+
+	for (int32_t i = 0; i < 6; i++) {
+		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadowmaps.cubemap_array, 0, view->tag * 6 + i);
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
 
 	const float fov = tanf(Radians(view->fov.x / 2.f));
 	const mat4_t cubemap_projection = Mat4_FromFrustum(-fov, fov, -fov, fov, NEAR_DIST, MAX_WORLD_DIST);
@@ -157,6 +161,7 @@ void R_DrawShadowmaps(const r_view_t *view) {
 			.viewport = Vec4i(0, 0, fb.width, fb.height),
 			.origin = l->origin,
 			.fov = Vec2(90.f, 90.f),
+			.tag = i,
 		};
 
 		const box3_t bounds = Box3_FromCenterRadius(l->origin, l->radius);
