@@ -150,17 +150,14 @@ void R_DrawShadowmaps(const r_view_t *view) {
 	const r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		r_framebuffer_t fb = {
-			.name = r_shadowmaps.framebuffers[i],
-			.width = SHADOWMAP_SIZE,
-			.height = SHADOWMAP_SIZE
-		};
-
 		r_view_t v = {
-			.framebuffer = &fb,
-			.viewport = Vec4i(0, 0, fb.width, fb.height),
-			.origin = l->origin,
+			.framebuffer = &(r_framebuffer_t) {
+				.name = r_shadowmaps.framebuffers[i]
+			},
+			.viewport = Vec4i(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE),
 			.fov = Vec2(90.f, 90.f),
+			.origin = l->origin,
+			.ticks = view->ticks,
 			.tag = i,
 		};
 
