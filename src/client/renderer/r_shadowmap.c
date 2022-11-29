@@ -21,6 +21,8 @@
 
 #include "r_local.h"
 
+// https://learnopengl.com/Advanced-Lighting/Shadows/Point-Shadows
+
 #define SHADOWMAP_SIZE 1024
 
 /**
@@ -35,6 +37,7 @@ static struct {
 	
 	GLint model;
 
+	GLint cubemap_layer;
 	GLint cubemap_view;
 	GLint cubemap_projection;
 } r_shadowmap_program;
@@ -115,6 +118,8 @@ static void R_DrawShadowmapView(const r_view_t *view) {
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 
+	glUniform1i(r_shadowmap_program.cubemap_layer, view->tag);
+
 	const float fov = tanf(Radians(view->fov.x / 2.f));
 	const mat4_t cubemap_projection = Mat4_FromFrustum(-fov, fov, -fov, fov, NEAR_DIST, MAX_WORLD_DIST);
 
@@ -138,6 +143,8 @@ static void R_DrawShadowmapView(const r_view_t *view) {
 			R_DrawMeshEntityShadow(view, e);
 		}
 	}
+
+	R_GetError(NULL);
 }
 
 /**
@@ -152,7 +159,9 @@ void R_DrawShadowmaps(const r_view_t *view) {
 
 		r_view_t v = {
 			.framebuffer = &(r_framebuffer_t) {
-				.name = r_shadowmaps.framebuffers[i]
+				.name = r_shadowmaps.framebuffers[i],
+				.width = SHADOWMAP_SIZE,
+				.height = SHADOWMAP_SIZE,
 			},
 			.viewport = Vec4i(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE),
 			.fov = Vec2(90.f, 90.f),
@@ -207,6 +216,7 @@ static void R_InitShadowmapProgram(void) {
 
 	r_shadowmap_program.model = glGetUniformLocation(r_shadowmap_program.name, "model");
 
+	r_shadowmap_program.cubemap_layer = glGetUniformLocation(r_shadowmap_program.name, "cubemap_layer");
 	r_shadowmap_program.cubemap_view = glGetUniformLocation(r_shadowmap_program.name, "cubemap_view");
 	r_shadowmap_program.cubemap_projection = glGetUniformLocation(r_shadowmap_program.name, "cubemap_projection");
 
