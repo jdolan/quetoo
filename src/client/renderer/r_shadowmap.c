@@ -114,7 +114,12 @@ static void R_DrawShadowmapView(const r_view_t *view) {
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
 	for (int32_t i = 0; i < 6; i++) {
-		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadowmaps.cubemap_array, 0, view->tag * 6 + i);
+		glFramebufferTextureLayer(
+								  GL_FRAMEBUFFER,
+								  GL_DEPTH_ATTACHMENT,
+								  r_shadowmaps.cubemap_array,
+								  0,
+								  view->tag * 6 + i);
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 
@@ -260,7 +265,13 @@ static void R_InitShadowmapFramebuffers(void) {
 		glBindFramebuffer(GL_FRAMEBUFFER, r_shadowmaps.framebuffers[i]);
 
 		for (int32_t j = 0; j < 6; j++) {
-			glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadowmaps.cubemap_array, 0, i * 6 + j);
+			glFramebufferTextureLayer(
+									  GL_FRAMEBUFFER,
+									  GL_DEPTH_ATTACHMENT,
+									  r_shadowmaps.cubemap_array,
+									  0,
+									  i * 6 + j);
+			glClear(GL_DEPTH_BUFFER_BIT);
 		}
 
 		glDrawBuffer(GL_NONE);
