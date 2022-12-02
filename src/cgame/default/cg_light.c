@@ -41,7 +41,7 @@ void Cg_AddLight(const cg_light_t *l) {
 		}
 
 	if (i == lengthof(cg_lights)) {
-		Cg_Debug("MAX_LIGHTS\n");
+		Cg_Debug("MAX_ENTITIES\n");
 		return;
 	}
 
@@ -62,7 +62,6 @@ void Cg_AddLight(const cg_light_t *l) {
  */
 void Cg_AddLights(void) {
 
-#if 0
 	cg_light_t *l = cg_lights;
 	for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
 
@@ -86,14 +85,22 @@ void Cg_AddLights(void) {
 
 		cgi.AddLight(cgi.view, &out);
 	}
-#else
-	cgi.AddLight(cgi.view, &(r_light_t) {
-		.origin = cgi.view->origin,
-		.radius = 300.f,
-		.color = Vec3(1.f, 1.f, 1.f),
-		.intensity = 1.f
-	});
-#endif
+
+	if (cg_add_lights->integer == 2) {
+
+		const r_entity_t *e = cgi.view->entities;
+		for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
+
+			if (IS_MESH_MODEL(e->model)) {
+				cgi.AddLight(cgi.view, &(r_light_t) {
+					.origin = Vec3_Fmaf(e->origin, 64.f, Vec3_Up()),
+					.radius = 100.f,
+					.color = Vec3_Add(Vec3(.5f, .5f, .5f), Vec3_Scale(Vec3_Fmodf(e->origin, Vec3(3.f, 3.f, 3.f)), .5f / 3.f)),
+					.intensity = .666f
+				});
+			}
+		}
+	}
 }
 
 /**
