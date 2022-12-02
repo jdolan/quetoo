@@ -913,6 +913,13 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Fmaf(const vec3_t
 }
 
 /**
+ * @return The vector containing the floating point modulo of `a / b`.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Fmodf(const vec3_t a, const vec3_t b) {
+	return Vec3(fmodf(a.x, b.x), fmodf(a.y, b.y), fmodf(a.z, b.z));
+}
+
+/**
  * @return A vector containing the max component of `v`.
  */
 static inline float __attribute__ ((warn_unused_result)) Vec3_Hmaxf(const vec3_t v) {
