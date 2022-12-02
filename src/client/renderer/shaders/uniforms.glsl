@@ -177,6 +177,11 @@ struct light_t {
 	 * @brief The light color and intensity.
 	 */
 	vec4 color;
+
+	/**
+	 * @brief The light position in view space and shadow intensity.
+	 */
+	vec4 position;
 };
 
 #define MAX_LIGHTS 64

@@ -86,18 +86,18 @@ void dynamic_light2(
 			continue;
 		}
 
-		float atten = 1.0 - distance(lights[i].origin.xyz, position) / radius;
+		float atten = 1.0 - distance(lights[i].position.xyz, position) / radius;
 		if (atten <= 0.0) {
 			continue;
 		}
 
-		vec3 light_dir = normalize(lights[i].origin.xyz - position);
+		vec3 light_dir = normalize(lights[i].position.xyz - position);
 		float lambert = dot(light_dir, normalmap);
 		if (lambert <= 0.0) {
 			continue;
 		}
 
-		vec3 shadow_dir = position - lights[i].origin.xyz;
+		vec3 shadow_dir = vertex.model - lights[i].origin.xyz;
 		float depth = length(shadow_dir) / depth_range.y;
 		float shadow = texture(texture_shadowmap, vec4(shadow_dir, i), depth);
 
