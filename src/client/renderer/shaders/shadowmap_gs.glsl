@@ -22,7 +22,7 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices=18) out;
 
-uniform int  cubemap_layer;
+uniform int cubemap_layer;
 uniform mat4 cubemap_view[6];
 uniform mat4 cubemap_projection;
 
@@ -37,7 +37,7 @@ void main() {
 
 			position = cubemap_view[i] * gl_in[j].gl_Position;
 
-            gl_Position = cubemap_projection * cubemap_view[i] * gl_in[j].gl_Position;
+            gl_Position = cubemap_projection * position;
 
             EmitVertex();
         }

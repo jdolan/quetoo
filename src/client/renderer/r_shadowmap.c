@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-// https://learnopengl.com/Advanced-Lighting/Shadows/Point-Shadows
-
 #define SHADOWMAP_SIZE 1024
 
 /**
@@ -34,7 +32,7 @@ static struct {
 
 	GLint in_position;
 	//GLint in_next_position;
-	
+
 	GLint model;
 
 	GLint cubemap_layer;
@@ -131,12 +129,14 @@ static void R_DrawShadowmapView(const r_view_t *view) {
 	glUniformMatrix4fv(r_shadowmap_program.cubemap_projection, 1, GL_FALSE, cubemap_projection.array);
 
 	const mat4_t cubemap_view[6] = {
-		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f,  1.f,  0.f)), Vec3_Down()),
-		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f, -1.f,  0.f)), Vec3_Down()),
-		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 1.f,  0.f,  0.f)), Vec3_Down()),
-		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3(-1.f,  0.f,  0.f)), Vec3_Down()),
-		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f,  0.f,  1.f)), Vec3(0.f, -1.f, 0.f)),
-		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0.f,  1.f, 0.f)),
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 1.f,  0.f,  0.f)), Vec3(0.f,  0.f, -1.f)),
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3(-1.f,  0.f,  0.f)), Vec3(0.f,  0.f, -1.f)),
+
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f,  0.f,  1.f)), Vec3(0.f, -1.f,  0.f)),
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0.f, -1.f,  0.f)),
+
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f,  1.f,  0.f)), Vec3(0.f,  0.f, -1.f)),
+		Mat4_LookAt(view->origin, Vec3_Add(view->origin, Vec3( 0.f, -1.f,  0.f)), Vec3(0.f,  0.f,  1.f)),
 	};
 
 	glUniformMatrix4fv(r_shadowmap_program.cubemap_view, 6, GL_FALSE, (GLfloat *) cubemap_view);
