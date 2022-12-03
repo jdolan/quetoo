@@ -46,6 +46,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(leaf_faces, MAX_BSP_LEAF_FACES),
 	BSP_LUMP_NUM_STRUCT(leafs, MAX_BSP_LEAFS),
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
+	BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
 	BSP_LUMP_SIZE_STRUCT(lightmap, MAX_BSP_LIGHTMAP_SIZE),
 	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID_SIZE)
 };
@@ -295,6 +296,27 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
+static void Bsp_SwapLights(void *lump, const int32_t num) {
+
+	bsp_light_t *light = (bsp_light_t *) lump;
+
+	for (int32_t i = 0; i < num; i++) {
+		light->type = LittleLong(light->type);
+		light->atten = LittleLong(light->atten);
+		light->origin = LittleVec3(light->origin);
+		light->color = LittleVec3(light->color);
+		light->normal = LittleVec3(light->normal);
+		light->radius = LittleFloat(light->radius);
+		light->theta = LittleFloat(light->theta);
+		light->size = LittleFloat(light->size);
+
+		light++;
+	}
+}
+
+/**
+ * @brief Swap function.
+ */
 static void Bsp_SwapLightmap(void *lump, const int32_t num) {
 
 	bsp_lightmap_t *lightmap = (bsp_lightmap_t *) lump;
@@ -332,6 +354,7 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
 		Bsp_SwapLeafFaces,
 		Bsp_SwapLeafs,
 		Bsp_SwapModels,
+		Bsp_SwapLights,
 		Bsp_SwapLightmap,
 		Bsp_SwapLightgrid,
 	};

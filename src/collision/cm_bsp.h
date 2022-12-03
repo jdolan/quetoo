@@ -47,6 +47,7 @@
 #define MAX_BSP_LEAF_FACES			0x20000
 #define MAX_BSP_LEAFS				0x20000
 #define MAX_BSP_MODELS				0x400
+#define MAX_BSP_LIGHTS				0x400
 #define MAX_BSP_LIGHTMAP_SIZE		0x60000000
 #define MAX_BSP_LIGHTGRID_SIZE		0x2400000
 #define MAX_BSP_OCCLUSION_QUERIES	0x40
@@ -173,6 +174,7 @@ typedef enum {
 	BSP_LUMP_LEAF_FACES,
 	BSP_LUMP_LEAFS,
 	BSP_LUMP_MODELS,
+	BSP_LUMP_LIGHTS,
 	BSP_LUMP_LIGHTMAP,
 	BSP_LUMP_LIGHTGRID,
 	BSP_LUMP_LAST
@@ -333,6 +335,37 @@ typedef struct {
 	int32_t num_draw_elements;
 } bsp_model_t;
 
+typedef enum {
+	LIGHT_INVALID  = 0x0,
+	LIGHT_AMBIENT  = 0x1,
+	LIGHT_SUN      = 0x2,
+	LIGHT_POINT    = 0x4,
+	LIGHT_SPOT     = 0x8,
+	LIGHT_PATCH    = 0x10,
+	LIGHT_INDIRECT = 0x20
+} light_type_t;
+
+typedef enum {
+	LIGHT_ATTEN_NONE,
+	LIGHT_ATTEN_LINEAR,
+	LIGHT_ATTEN_INVERSE_SQUARE,
+} light_atten_t;
+
+/**
+ * @brief BSP representation of light sources.
+ */
+typedef struct {
+	light_type_t type;
+	light_atten_t atten;
+	vec3_t origin;
+	vec3_t color;
+	vec3_t normal;
+	float radius;
+	float intensity;
+	float theta;
+	float size;
+} bsp_light_t;
+
 /**
  * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
  * @details Each layer stores either a color or a directional vector.
@@ -397,6 +430,9 @@ typedef struct bsp_file_s {
 
 	int32_t num_models;
 	bsp_model_t *models;
+
+	int32_t num_lights;
+	bsp_light_t *lights;
 
 	int32_t lightmap_size;
 	bsp_lightmap_t *lightmap;

@@ -362,13 +362,36 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 }
 
 /**
+ * @brief
+ */
+static void R_LoadBspLights(r_bsp_model_t *bsp) {
+
+	const bsp_light_t *in = bsp->cm->file->lights;
+
+	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->cm->file->num_lights, bsp);
+
+	for (int32_t i = 0; i < bsp->cm->file->num_lights; i++, in++, out++) {
+
+		out->type = in->type;
+		out->atten = in->atten;
+		out->origin = in->origin;
+		out->color = in->color;
+		out->normal = in->normal;
+		out->radius = in->radius;
+		out->intensity = in->intensity;
+		out->theta = in->theta;
+		out->size = in->size;
+	}
+}
+
+/**
  * @brief Loads the lightmap layers to a 2D array texture, appending a layer for the stainmap.
  */
-static void R_LoadBspLightmap(r_model_t *mod) {
+static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 
-	const bsp_lightmap_t *in = mod->bsp->cm->file->lightmap;
+	const bsp_lightmap_t *in = bsp->cm->file->lightmap;
 
-	r_bsp_lightmap_t *out = mod->bsp->lightmap = Mem_LinkMalloc(sizeof(*out), mod->bsp);
+	r_bsp_lightmap_t *out = bsp->lightmap = Mem_LinkMalloc(sizeof(*out), bsp);
 
 	if (in) {
 		out->width = in->width;
@@ -424,14 +447,14 @@ static void R_LoadBspLightmap(r_model_t *mod) {
 /**
  * @brief Resets all face stainmaps in the event that the map is reloaded.
  */
-static void R_ResetBspLightmap(r_model_t *mod) {
+static void R_ResetBspLightmap(r_bsp_model_t *bsp) {
 
-	r_bsp_lightmap_t *out = mod->bsp->lightmap;
+	r_bsp_lightmap_t *out = bsp->lightmap;
 
 	glBindTexture(GL_TEXTURE_2D_ARRAY, out->atlas->texnum);
 
-	r_bsp_face_t *face = mod->bsp->faces;
-	for (int32_t i = 0; i < mod->bsp->num_faces; i++, face++) {
+	r_bsp_face_t *face = bsp->faces;
+	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
 		memset(face->lightmap.stainmap, 0xff, face->lightmap.w * face->lightmap.h * BSP_LIGHTMAP_BPP);
 
@@ -638,6 +661,7 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	(1 << BSP_LUMP_ELEMENTS) | \
 	(1 << BSP_LUMP_FACES) | \
 	(1 << BSP_LUMP_DRAW_ELEMENTS) | \
+	(1 << BSP_LUMP_LIGHTS) | \
 	(1 << BSP_LUMP_LIGHTMAP) | \
 	(1 << BSP_LUMP_LIGHTGRID) \
 )
@@ -668,7 +692,8 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspInlineModels(mod->bsp);
 	R_SetupBspInlineModels(mod);
 	R_LoadBspVertexArray(mod);
-	R_LoadBspLightmap(mod);
+	R_LoadBspLights(mod->bsp);
+	R_LoadBspLightmap(mod->bsp);
 	R_LoadBspLightgrid(mod);
 	R_LoadBspDepthPassElements(mod->bsp);
 	R_LoadBspOcclusionQueries(mod->bsp);
@@ -697,7 +722,7 @@ static void R_RegisterBspModel(r_media_t *self) {
 
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);
 
-	R_ResetBspLightmap(mod);
+	R_ResetBspLightmap(mod->bsp);
 
 	for (size_t i = 0; i < lengthof(mod->bsp->lightgrid->textures); i++) {
 		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->textures[i]);

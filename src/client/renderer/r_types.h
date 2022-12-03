@@ -496,6 +496,23 @@ typedef struct r_bsp_inline_model_s {
  * @brief
  */
 typedef struct {
+	light_type_t type;
+	light_atten_t atten;
+
+	vec3_t origin;
+	vec3_t color;
+	vec3_t normal;
+
+	float radius;
+	float intensity;
+	float theta;
+	float size;
+} r_bsp_light_t;
+
+/**
+ * @brief
+ */
+typedef struct {
 	/**
 	 * @brief The atlas width.
 	 */
@@ -567,6 +584,9 @@ typedef struct {
 	int32_t num_inline_models;
 	r_bsp_inline_model_t *inline_models;
 
+	int32_t num_lights;
+	r_bsp_light_t *lights;
+	
 	int32_t luxel_size;
 
 	r_bsp_lightmap_t *lightmap;

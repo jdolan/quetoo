@@ -34,21 +34,7 @@
 #define LIGHT_SIZE_SUN 32.f
 #define LIGHT_SIZE_STEP 16.f
 
-typedef enum {
-	LIGHT_INVALID  = 0x0,
-	LIGHT_AMBIENT  = 0x1,
-	LIGHT_SUN      = 0x2,
-	LIGHT_POINT    = 0x4,
-	LIGHT_SPOT     = 0x8,
-	LIGHT_PATCH    = 0x10,
-	LIGHT_INDIRECT = 0x20
-} light_type_t;
 
-typedef enum {
-	LIGHT_ATTEN_NONE,
-	LIGHT_ATTEN_LINEAR,
-	LIGHT_ATTEN_INVERSE_SQUARE,
-} light_atten_t;
 
 
 /**
@@ -141,3 +127,4 @@ vec3_t ColorFilter(const vec3_t in);
 void FreeLights(void);
 void BuildDirectLights(void);
 void BuildIndirectLights(void);
+void EmitLights(void);

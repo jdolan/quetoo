@@ -668,3 +668,34 @@ void BuildIndirectLights(void) {
 
 	Com_Verbose("Indirect lighting for %d patches\n", lights->len);
 }
+
+/**
+ * @brief
+ */
+void EmitLights(void) {
+
+	const uint32_t start = SDL_GetTicks();
+
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->len);
+
+	bsp_light_t *out = bsp_file.lights;
+
+	for (guint i = 0; i < lights->len; i++, out++) {
+
+		const light_t *light = &g_array_index(lights, light_t, i);
+
+		out->type = light->type;
+		out->atten = light->atten;
+		out->origin = light->origin;
+		out->color = light->color;
+		out->normal = light->normal;
+		out->radius = light->radius;
+		out->intensity = light->intensity;
+		out->theta = light->theta;
+		out->size = light->size;
+
+		Progress("Emitting lights", 100.f * i / lights->len);
+	}
+
+	Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting lights", SDL_GetTicks() - start);
+}
