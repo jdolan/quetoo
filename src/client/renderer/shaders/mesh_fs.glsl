@@ -61,6 +61,47 @@ vec3 tint_fragment(vec3 diffuse, vec4 tintmap) {
 /**
  * @brief
  */
+void dynamic_light(in vec3 position, in vec3 normalmap, in vec3 specularmap, in float specularity,
+				   inout vec3 diffuse, inout vec3 specular) {
+
+	vec3 view_dir = normalize(-position);
+
+	for (int i = 0; i < num_lights; i++) {
+
+		float radius = lights[i].origin.w;
+		if (radius <= 0.0) {
+			continue;
+		}
+
+		float intensity = lights[i].color.w;
+		if (intensity <= 0.0) {
+			continue;
+		}
+
+		float atten = 1.0 - distance(lights[i].position.xyz, position) / radius;
+		if (atten <= 0.0) {
+			continue;
+		}
+
+		vec3 light_dir = normalize(lights[i].position.xyz - position);
+		float lambert = dot(light_dir, normalmap);
+		if (lambert <= 0.0) {
+			continue;
+		}
+
+		vec3 color = lights[i].color.rgb;
+
+		vec3 diff = radius * color * intensity * atten * atten * lambert;
+		vec3 spec = diff * atten * specularmap * blinn(normalmap, light_dir, view_dir, specularity);
+
+		diffuse += diff;
+		specular += spec;
+	}
+}
+
+/**
+ * @brief
+ */
 void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
