@@ -58,7 +58,6 @@ void R_UpdateLights(const r_view_t *view) {
 			out->radius = in->radius;
 			out->color = in->color;
 			out->intensity = in->intensity;
-			out->position = Mat4_Transform(r_uniforms.block.view, in->origin);
 		}
 
 		r_lights.block.num_lights = view->num_lights;

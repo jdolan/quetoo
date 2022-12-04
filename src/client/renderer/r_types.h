@@ -1022,7 +1022,7 @@ typedef struct {
 } r_light_t;
 
 /**
- * @brief 64 dynamic light sources per scene.
+ * @brief Dynamic light sources per scene.
  */
 #define MAX_LIGHTS			0x40
 

@@ -68,7 +68,8 @@ void sprite_lighting(vec3 position, vec3 normal) {
 			continue;
 		}
 
-		float atten = 1.0 - distance(lights[i].position.xyz, position) / radius;
+		vec3 light_pos = (view * vec4(lights[i].origin.xyz, 1.0)).xyz;
+		float atten = 1.0 - distance(light_pos, position) / radius;
 		if (atten <= 0.0) {
 			continue;
 		}

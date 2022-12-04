@@ -90,36 +90,48 @@ void dynamic_light(void) {
 
 	for (int i = 0; i < num_lights; i++) {
 
+		vec3 diffuse = lights[i].color.rgb;
+
 		float radius = lights[i].origin.w;
 		if (radius <= 0.0) {
 			continue;
 		}
+
+		diffuse *= radius;
 
 		float intensity = lights[i].color.w;
 		if (intensity <= 0.0) {
 			continue;
 		}
 
-		float atten = 1.0 - distance(lights[i].position.xyz, vertex.position) / radius;
+		diffuse *= intensity;
+
+		vec3 light_pos = (view * vec4(lights[i].origin.xyz, 1.0)).xyz;
+		float atten = 1.0 - distance(light_pos, vertex.position) / radius;
 		if (atten <= 0.0) {
 			continue;
 		}
 
-		vec3 light_dir = normalize(lights[i].position.xyz - vertex.position);
+		diffuse *= atten * atten;
+
+		vec3 light_dir = normalize(light_pos - vertex.position);
 		float lambert = dot(light_dir, fragment.normalmap);
 		if (lambert <= 0.0) {
 			continue;
 		}
 
-		vec3 shadow_dir = vertex.model - lights[i].origin.xyz;
-		float depth = length(shadow_dir) / depth_range.y;
-		float shadow = texture(texture_shadowmap, vec4(shadow_dir, i), depth);
+		diffuse *= lambert;
 
-		vec3 diffuse = radius * lights[i].color.rgb * intensity * atten * atten * lambert * shadow;
-		vec3 specular = blinn_phong(diffuse, light_dir);
+		vec3 shadow_dir = vertex.model - lights[i].origin.xyz;
+		float shadow = texture(texture_shadowmap, vec4(shadow_dir, i), length(shadow_dir) / depth_range.y);
+		if (shadow <= 0.0) {
+			continue;
+		}
+
+		diffuse *= shadow;
 
 		fragment.diffuse += diffuse;
-		fragment.specular += specular;
+		fragment.specular += blinn_phong(diffuse, light_dir);
 	}
 }
 
