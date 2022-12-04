@@ -89,25 +89,35 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
  */
 void dynamic_light(void) {
 
-	for (int i = 0; i < num_lights; i++) {
+	for (int i = 0; i < 4; i++) {
 
-		vec3 diffuse = lights[i].color.rgb;
+		light_t light = lights[vertex.lights[i]];
 
-		float radius = lights[i].origin.w;
+		vec3 diffuse = light.color.rgb;
+
+		float radius = light.origin.w;
 		if (radius <= 0.0) {
 			continue;
 		}
 
 		diffuse *= radius;
 
-		float intensity = lights[i].color.w;
+		float intensity = light.color.w;
 		if (intensity <= 0.0) {
+
+			vec3 shadow_dir = vertex.model - light.origin.xyz;
+			vec4 shadowmap = vec4(shadow_dir, vertex.lights[i]);
+			float shadow = texture(texture_shadowmap, shadowmap, length(shadow_dir) / depth_range.y);
+
+			fragment.diffuse *= shadow;
+			fragment.specular *= shadow;
+
 			continue;
 		}
 
 		diffuse *= intensity;
 
-		vec3 light_pos = (view * vec4(lights[i].origin.xyz, 1.0)).xyz;
+		vec3 light_pos = (view * vec4(light.origin.xyz, 1.0)).xyz;
 		float atten = 1.0 - distance(light_pos, vertex.position) / radius;
 		if (atten <= 0.0) {
 			continue;
@@ -123,8 +133,9 @@ void dynamic_light(void) {
 
 		diffuse *= lambert;
 
-		vec3 shadow_dir = vertex.model - lights[i].origin.xyz;
-		float shadow = texture(texture_shadowmap, vec4(shadow_dir, i), length(shadow_dir) / depth_range.y);
+		vec3 shadow_dir = vertex.model - light.origin.xyz;
+		vec4 shadowmap = vec4(shadow_dir, vertex.lights[i]);
+		float shadow = texture(texture_shadowmap, shadowmap, length(shadow_dir) / depth_range.y);
 		if (shadow <= 0.0) {
 			continue;
 		}

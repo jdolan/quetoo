@@ -37,6 +37,7 @@ static struct {
 	GLint in_diffusemap;
 	GLint in_lightmap;
 	GLint in_color;
+	GLint in_lights;
 
 	GLint model;
 
@@ -664,6 +665,7 @@ void R_DrawWorld(const r_view_t *view) {
 	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
+	glEnableVertexAttribArray(r_bsp_program.in_lights);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
@@ -759,6 +761,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.in_diffusemap = glGetAttribLocation(r_bsp_program.name, "in_diffusemap");
 	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
 	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
+	r_bsp_program.in_lights = glGetAttribLocation(r_bsp_program.name, "in_lights");
 
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 

@@ -249,7 +249,6 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
 
 		out->contents = in->contents;
-
 		out->bounds = in->bounds;
 	}
 }
@@ -382,6 +381,9 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 		out->intensity = in->intensity;
 		out->theta = in->theta;
 		out->size = in->size;
+
+		out->bounds = Box3_FromCenterSize(out->origin, Vec3(out->size, out->size, out->size));
+		out->bounds = Box3_Expand(out->bounds, out->radius);
 	}
 }
 

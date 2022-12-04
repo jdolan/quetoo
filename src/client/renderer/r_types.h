@@ -508,6 +508,9 @@ typedef struct {
 	float intensity;
 	float theta;
 	float size;
+
+	box3_t bounds;
+	r_bsp_node_t *node;
 } r_bsp_light_t;
 
 /**
@@ -1023,9 +1026,9 @@ typedef struct {
 } r_light_t;
 
 /**
- * @brief Dynamic light sources per scene.
+ * @brief Light sources per scene.
  */
-#define MAX_LIGHTS			0x40
+#define MAX_LIGHTS			0x80
 
 /**
  * @brief Entity sub-mesh skins.

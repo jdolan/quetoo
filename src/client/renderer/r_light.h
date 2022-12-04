@@ -89,7 +89,7 @@ typedef struct {
  */
 extern r_lights_t r_lights;
 
-void R_UpdateLights(const r_view_t *view);
+void R_UpdateLights(r_view_t *view);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif /* __R_LOCAL_H__ */

@@ -179,7 +179,7 @@ struct light_t {
 	vec4 color;
 };
 
-#define MAX_LIGHTS 64
+#define MAX_LIGHTS 128
 
 /**
  * @brief The lights uniform block.
