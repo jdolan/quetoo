@@ -368,9 +368,10 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 	const bsp_light_t *in = bsp->cm->file->lights;
 
-	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->cm->file->num_lights, bsp);
+	bsp->num_lights = bsp->cm->file->num_lights;
+	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->num_lights, bsp);
 
-	for (int32_t i = 0; i < bsp->cm->file->num_lights; i++, in++, out++) {
+	for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
 
 		out->type = in->type;
 		out->atten = in->atten;

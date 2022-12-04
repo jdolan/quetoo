@@ -676,23 +676,42 @@ void EmitLights(void) {
 
 	const uint32_t start = SDL_GetTicks();
 
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->len);
+	for (guint i = 0; i < lights->len; i++) {
+		const light_t *light = &g_array_index(lights, light_t, i);
+		switch (light->type) {
+			case LIGHT_INDIRECT:
+				break;
+			default:
+				bsp_file.num_lights++;
+				break;
+		}
+	}
+
+	if (bsp_file.num_lights >= MAX_BSP_LIGHTS) {
+		Com_Error(ERROR_FATAL, "MAX_LIGHTS\n");
+	}
+
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, bsp_file.num_lights);
 
 	bsp_light_t *out = bsp_file.lights;
-
-	for (guint i = 0; i < lights->len; i++, out++) {
-
+	for (guint i = 0; i < lights->len; i++) {
 		const light_t *light = &g_array_index(lights, light_t, i);
-
-		out->type = light->type;
-		out->atten = light->atten;
-		out->origin = light->origin;
-		out->color = light->color;
-		out->normal = light->normal;
-		out->radius = light->radius;
-		out->intensity = light->intensity;
-		out->theta = light->theta;
-		out->size = light->size;
+		switch (light->type) {
+			case LIGHT_INDIRECT:
+				break;
+			default:
+				out->type = light->type;
+				out->atten = light->atten;
+				out->origin = light->origin;
+				out->color = light->color;
+				out->normal = light->normal;
+				out->radius = light->radius;
+				out->intensity = light->intensity;
+				out->theta = light->theta;
+				out->size = light->size;
+				out++;
+				break;
+		}
 
 		Progress("Emitting lights", 100.f * i / lights->len);
 	}
