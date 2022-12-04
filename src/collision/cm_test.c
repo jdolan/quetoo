@@ -429,7 +429,9 @@ size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t length, int32_t
 		.top_node = -1
 	};
 
-	Cm_BoxLeafnums_r(&data, head_node);
+	if (cm_bsp.num_nodes) {
+		Cm_BoxLeafnums_r(&data, head_node);
+	}
 
 	if (top_node) {
 		*top_node = data.top_node;
