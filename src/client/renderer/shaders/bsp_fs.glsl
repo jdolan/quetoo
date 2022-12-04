@@ -48,6 +48,7 @@ in vertex_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
+	flat ivec4 lights;
 } vertex;
 
 layout (location = 0) out vec4 out_color;

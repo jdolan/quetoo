@@ -130,7 +130,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cg_add_lights 2"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"

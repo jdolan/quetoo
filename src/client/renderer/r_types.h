@@ -328,6 +328,7 @@ typedef struct {
 	vec2_t diffusemap;
 	vec2_t lightmap;
 	color32_t color;
+	vec4i_t lights;
 } r_bsp_vertex_t;
 
 /**
