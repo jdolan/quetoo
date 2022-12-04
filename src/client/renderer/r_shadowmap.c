@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-#define SHADOWMAP_SIZE 1024
+#define SHADOWMAP_SIZE 384
 
 /**
  * @brief The shadowmap program.
