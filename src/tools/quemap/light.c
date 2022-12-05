@@ -405,7 +405,17 @@ static void LightForPatch(const patch_t *patch) {
 			dir.z = Vec3_Dot(dome[j], plane->normal);
 			dir = Vec3_Normalize(dir);
 
-			light.bounds = Box3_Append(light.bounds, Vec3_Fmaf(p, light.radius, dir));
+			if (Vec3_Dot(dir, plane->normal) < 0.f) {
+				dir = Vec3_Negate(dir);
+			}
+
+			const vec3_t p0 = Vec3_Fmaf(p, light.radius, dir);
+
+			if (Light_PointContents(p0, 0) & CONTENTS_SOLID) {
+				continue;
+			}
+
+			light.bounds = Box3_Append(light.bounds, p0);
 		}
 	}
 
@@ -546,9 +556,26 @@ void BuildDirectLights(void) {
 		const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[face->brush_side];
 		if (brush_side->surface & SURF_LIGHT) {
 
-			for (const patch_t *patch = &patches[i]; patch; patch = patch->next) {
-				LightForPatch(patch);
+			cm_winding_t *w = Cm_WindingForBrushSide(&bsp_file, brush_side);
+			if (w == NULL) {
+				Com_Warn("Light face had NULL winding\n");
+				continue;
 			}
+			
+			if (Cm_WindingArea(w) <= patch_size * patch_size) {
+
+				patch_t patch = patches[i];
+				patch.next = NULL;
+				patch.winding = w;
+
+				LightForPatch(&patch);
+			} else {
+				for (const patch_t *patch = &patches[i]; patch; patch = patch->next) {
+					LightForPatch(patch);
+				}
+			}
+
+			Cm_FreeWinding(w);
 		}
 	}
 
