@@ -37,14 +37,14 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 	vec3_t s = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[0]));
 	vec3_t t = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[1]));
 
-	s = Vec3_Scale(s, 1.0 / luxel_size);
-	t = Vec3_Scale(t, 1.0 / luxel_size);
+	s = Vec3_Scale(s, 1.f / luxel_size);
+	t = Vec3_Scale(t, 1.f / luxel_size);
 
 	lm->matrix = Mat4((const float[]) {
-		s.x, t.x, lm->plane->normal.x, 0.0,
-		s.y, t.y, lm->plane->normal.y, 0.0,
-		s.z, t.z, lm->plane->normal.z, 0.0,
-		0.0, 0.0, -lm->plane->dist,    1.0
+		s.x, t.x, lm->plane->normal.x, 0.f,
+		s.y, t.y, lm->plane->normal.y, 0.f,
+		s.z, t.z, lm->plane->normal.z, 0.f,
+		0.f, 0.f, -lm->plane->dist,    1.f
 	});
 
 	const vec3_t origin = patches[lm - lightmaps].origin;

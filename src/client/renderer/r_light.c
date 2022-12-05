@@ -86,6 +86,9 @@ static void R_AddBspLight_Spot(r_view_t *view, const r_bsp_light_t *light) {
  */
 static void R_AddBspLight_Patch(r_view_t *view, const r_bsp_light_t *light) {
 
+	if (Vec3_Distance(view->origin, light->origin) < 300.f) {
+		R_Draw3DBox(light->bounds, Color3fv(light->color), false);
+	}
 	R_AddLight(view, &(r_light_t) {
 		.origin = light->origin,
 		.radius = light->radius,
@@ -168,43 +171,23 @@ void R_UpdateLights(r_view_t *view) {
 		r_light_uniform_t *out = r_lights.block.lights;
 
 		if (r_world_model) {
-			r_bsp_vertex_t *vertex = r_world_model->bsp->vertexes;
-			for (int32_t i = 0; i < r_world_model->bsp->num_vertexes; i++, vertex++) {
-				vertex->lights = Vec4i(0, 0, 0, 0);
+
+			r_bsp_draw_elements_t *draw = r_world_model->bsp->draw_elements;
+			for (int32_t i = 0; i < r_world_model->bsp->num_draw_elements; i++, draw++) {
+
+				draw->num_active_lights = 0;
+
+				const r_light_t *light = view->lights;
+				for (int32_t j = 0; j < view->num_lights; j++, light++) {
+
+					if (Box3_Intersects(draw->bounds, Box3_FromCenterRadius(light->origin, light->radius))) {
+						draw->active_lights[draw->num_active_lights++] = j;
+					}
+				}
 			}
 		}
 
 		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
-
-			if (r_world_model) {
-				const r_bsp_model_t *bsp = r_world_model->bsp;
-
-				const box3_t bounds = Box3_FromCenterRadius(in->origin, in->radius);
-
-				const r_bsp_node_t *node = R_NodeForBounds(bounds);
-				if (node == NULL) {
-					continue;
-				}
-
-				const r_bsp_face_t *face = node->faces;
-				for (int32_t j = 0; j < node->num_faces; j++, face++) {
-
-					r_bsp_vertex_t *vertex = face->vertexes;
-					for (int32_t k = 0; k < face->num_vertexes; k++, vertex++) {
-
-						for (size_t l = 0; l < lengthof(vertex->lights.xyzw); l++) {
-							if (vertex->lights.xyzw[l] == 0) {
-								vertex->lights.xyzw[l] = i;
-								break;
-							}
-						}
-					}
-				}
-
-				glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-				glBufferData(GL_ARRAY_BUFFER, bsp->num_vertexes * sizeof(r_bsp_vertex_t), bsp->vertexes, GL_STATIC_DRAW);
-			}
-
 			out->origin = in->origin;
 			out->radius = in->radius;
 			out->color = in->color;

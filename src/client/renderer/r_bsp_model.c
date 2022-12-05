@@ -375,15 +375,10 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 		out->type = in->type;
 		out->atten = in->atten;
 		out->origin = in->origin;
-		out->color = in->color;
-		out->normal = in->normal;
 		out->radius = in->radius;
+		out->color = in->color;
 		out->intensity = in->intensity;
-		out->theta = in->theta;
-		out->size = in->size;
-
-		out->bounds = Box3_FromCenterSize(out->origin, Vec3(out->size, out->size, out->size));
-		out->bounds = Box3_Expand(out->bounds, out->radius);
+		out->bounds = in->bounds;
 	}
 }
 
@@ -647,7 +642,6 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
 	glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, lightmap));
 	glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
-	glVertexAttribPointer(7, 4, GL_INT, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, lights));
 
 	R_GetError(mod->media.name);
 

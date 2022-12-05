@@ -157,6 +157,10 @@ static void R_DrawShadowmapView(const r_view_t *view) {
  */
 void R_DrawShadowmaps(const r_view_t *view) {
 
+	if (!r_shadowmap->value) {
+		return;
+	}
+
 	glUseProgram(r_shadowmap_program.name);
 
 	const r_light_t *l = view->lights;
@@ -292,6 +296,10 @@ static void R_InitShadowmapFramebuffers(void) {
  * @brief 
  */
 void R_InitShadowmaps(void) {
+
+	if (!r_shadowmap->value) {
+		return;
+	}
 
 	R_InitShadowmapProgram();
 

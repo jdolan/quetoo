@@ -138,7 +138,7 @@ void main(void) {
 
 		caustic_light(vertex.model, vertex.caustics, ambient, diffuse);
 
-		//dynamic_light(vertex.position, normalmap, specularmap, specularity, diffuse, specular);
+		dynamic_light(vertex.position, normalmap, specularmap, specularity, diffuse, specular);
 
 		out_color = diffusemap;
 

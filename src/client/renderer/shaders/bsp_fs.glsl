@@ -32,6 +32,8 @@ uniform samplerCubeArrayShadow texture_shadowmap;
 
 uniform mat4 model;
 
+uniform int active_lights[MAX_LIGHTS];
+uniform int num_active_lights;
 uniform int entity;
 uniform int bicubic;
 
@@ -48,7 +50,6 @@ in vertex_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
-	flat ivec4 lights;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
@@ -89,9 +90,9 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
  */
 void dynamic_light(void) {
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < num_active_lights; i++) {
 
-		light_t light = lights[vertex.lights[i]];
+		light_t light = lights[active_lights[i]];
 
 		vec3 diffuse = light.color.rgb;
 
@@ -104,14 +105,6 @@ void dynamic_light(void) {
 
 		float intensity = light.color.w;
 		if (intensity <= 0.0) {
-
-			vec3 shadow_dir = vertex.model - light.origin.xyz;
-			vec4 shadowmap = vec4(shadow_dir, vertex.lights[i]);
-			float shadow = texture(texture_shadowmap, shadowmap, length(shadow_dir) / depth_range.y);
-
-			fragment.diffuse *= shadow;
-			fragment.specular *= shadow;
-
 			continue;
 		}
 
@@ -134,7 +127,7 @@ void dynamic_light(void) {
 		diffuse *= lambert;
 
 		vec3 shadow_dir = vertex.model - light.origin.xyz;
-		vec4 shadowmap = vec4(shadow_dir, vertex.lights[i]);
+		vec4 shadowmap = vec4(shadow_dir, active_lights[i]);
 		float shadow = texture(texture_shadowmap, shadowmap, length(shadow_dir) / depth_range.y);
 		if (shadow <= 0.0) {
 			continue;

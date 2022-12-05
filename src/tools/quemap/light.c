@@ -715,12 +715,10 @@ void EmitLights(void) {
 				out->type = light->type;
 				out->atten = light->atten;
 				out->origin = light->origin;
-				out->color = light->color;
-				out->normal = light->normal;
 				out->radius = light->radius;
+				out->color = light->color;
 				out->intensity = light->intensity;
-				out->theta = light->theta;
-				out->size = light->size;
+				out->bounds = light->bounds;
 				out++;
 				break;
 		}

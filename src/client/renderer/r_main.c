@@ -65,6 +65,7 @@ cvar_t *r_multisample;
 cvar_t *r_roughness;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
+cvar_t *r_shadowmap;
 cvar_t *r_specularity;
 cvar_t *r_sprite_downsample;
 cvar_t *r_stains;
@@ -502,6 +503,7 @@ static void R_InitLocal(void) {
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects");
 	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
+	r_shadowmap = Cvar_Add("r_shadowmap", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls dynamic shadows");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_sprite_downsample = Cvar_Add("r_sprite_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of sprite effects to boost performance on low-end systems.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");

@@ -358,12 +358,10 @@ typedef struct {
 	light_type_t type;
 	light_atten_t atten;
 	vec3_t origin;
-	vec3_t color;
-	vec3_t normal;
 	float radius;
+	vec3_t color;
 	float intensity;
-	float theta;
-	float size;
+	box3_t bounds;
 } bsp_light_t;
 
 /**

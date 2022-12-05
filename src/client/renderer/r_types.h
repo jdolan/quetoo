@@ -328,7 +328,6 @@ typedef struct {
 	vec2_t diffusemap;
 	vec2_t lightmap;
 	color32_t color;
-	vec4i_t lights;
 } r_bsp_vertex_t;
 
 /**
@@ -384,6 +383,11 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
+ * @brief Light sources per scene.
+ */
+#define MAX_LIGHTS			0x80
+
+/**
  * @brief BSP draw elements, which include all opaque faces of a given material
  * within a particular inline model.
  */
@@ -400,6 +404,9 @@ typedef struct {
 	vec2_t st_origin;
 
 	int32_t blend_depth_types;
+
+	int32_t active_lights[MAX_LIGHTS];
+	int32_t num_active_lights;
 } r_bsp_draw_elements_t;
 
 /**
@@ -499,18 +506,11 @@ typedef struct r_bsp_inline_model_s {
 typedef struct {
 	light_type_t type;
 	light_atten_t atten;
-
 	vec3_t origin;
-	vec3_t color;
-	vec3_t normal;
-
 	float radius;
+	vec3_t color;
 	float intensity;
-	float theta;
-	float size;
-
 	box3_t bounds;
-	r_bsp_node_t *node;
 } r_bsp_light_t;
 
 /**
@@ -1024,11 +1024,6 @@ typedef struct {
 	 */
 	float intensity;
 } r_light_t;
-
-/**
- * @brief Light sources per scene.
- */
-#define MAX_LIGHTS			0x80
 
 /**
  * @brief Entity sub-mesh skins.

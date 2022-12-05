@@ -44,6 +44,7 @@ extern cvar_t *r_multisample;
 extern cvar_t *r_roughness;
 extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
+extern cvar_t *r_shadowmap;
 extern cvar_t *r_specularity;
 extern cvar_t *r_sprite_downsample;
 extern cvar_t *r_stains;

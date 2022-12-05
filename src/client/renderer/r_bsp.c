@@ -156,18 +156,3 @@ void R_UpdateBlendDepth(const r_view_t *view) {
 		}
 	}
 }
-
-/**
- * @return The BSP node that most tightly contains the given bounds.
- */
-const r_bsp_node_t *R_NodeForBounds(const box3_t bounds) {
-
-	int32_t top_node;
-	Cm_BoxLeafnums(bounds, NULL, 0, &top_node, 0);
-
-	if (top_node != -1) {
-		return &r_world_model->bsp->nodes[top_node];
-	}
-
-	return NULL;
-}

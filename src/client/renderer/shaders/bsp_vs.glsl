@@ -42,7 +42,6 @@ out vertex_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
-	flat ivec4 lights;
 } vertex;
 
 invariant gl_Position;
@@ -71,7 +70,6 @@ void main(void) {
 	vertex.lightmap = in_lightmap;
 	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
 	vertex.color = in_color;
-	vertex.lights = in_lights;
 
 	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
 
