@@ -33,24 +33,14 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
  */
 typedef struct {
 	/**
-	 * @brief The light origin.
+	 * @brief The light origin and radius.
 	 */
-	vec3_t origin;
+	vec4_t origin;
 
 	/**
-	 * @brief The light radius.
+	 * @brief The light color and intensity.
 	 */
-	float radius;
-
-	/**
-	 * @brief The light color.
-	 */
-	vec3_t color;
-
-	/**
-	 * @brief The light intensity.
-	 */
-	float intensity;
+	vec4_t color;
 } r_light_uniform_t;
 
 /**

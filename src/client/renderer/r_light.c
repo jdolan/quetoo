@@ -64,7 +64,7 @@ static void R_AddBspLight_Point(r_view_t *view, const r_bsp_light_t *light) {
 		.origin = light->origin,
 		.radius = light->radius,
 		.color = light->color,
-		.intensity = -light->intensity
+		.intensity = light->intensity
 	});
 }
 
@@ -77,7 +77,7 @@ static void R_AddBspLight_Spot(r_view_t *view, const r_bsp_light_t *light) {
 		.origin = light->origin,
 		.radius = light->radius,
 		.color = light->color,
-		.intensity = -light->intensity
+		.intensity = light->intensity
 	});
 }
 
@@ -86,14 +86,11 @@ static void R_AddBspLight_Spot(r_view_t *view, const r_bsp_light_t *light) {
  */
 static void R_AddBspLight_Patch(r_view_t *view, const r_bsp_light_t *light) {
 
-	if (Vec3_Distance(view->origin, light->origin) < 300.f) {
-		R_Draw3DBox(light->bounds, Color3fv(light->color), false);
-	}
 	R_AddLight(view, &(r_light_t) {
 		.origin = light->origin,
 		.radius = light->radius,
 		.color = light->color,
-		.intensity = -light->intensity
+		.intensity = light->intensity
 	});
 
 }
@@ -188,10 +185,8 @@ void R_UpdateLights(r_view_t *view) {
 		}
 
 		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
-			out->origin = in->origin;
-			out->radius = in->radius;
-			out->color = in->color;
-			out->intensity = in->intensity;
+			out->origin = Vec3_ToVec4(in->origin, in->radius);
+			out->color = Vec3_ToVec4(in->color, in->intensity);
 		}
 
 		r_lights.block.num_lights = view->num_lights;
