@@ -395,9 +395,19 @@ static void LightForPatch(const patch_t *patch) {
 		light.bounds = Box3_Append(light.bounds, p);
 
 		g_array_append_val(points, p);
-	}
 
-	light.bounds = Box3_Expand(light.bounds, light.radius);
+		const vec3_t dome[] = DOME_COSINE_64X;
+		for (size_t j = 0; j < lengthof(dome); j++) {
+
+			vec3_t dir;
+			dir.x = Vec3_Dot(dome[j], Vec4_XYZ(brush_side->axis[0]));
+			dir.y = Vec3_Dot(dome[j], Vec4_XYZ(brush_side->axis[1]));
+			dir.z = Vec3_Dot(dome[j], plane->normal);
+			dir = Vec3_Normalize(dir);
+
+			light.bounds = Box3_Append(light.bounds, Vec3_Fmaf(p, light.radius, dir));
+		}
+	}
 
 	light.points = (vec3_t *) points->data;
 	light.num_points = points->len;
