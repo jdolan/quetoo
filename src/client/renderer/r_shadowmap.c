@@ -297,10 +297,6 @@ static void R_InitShadowmapFramebuffers(void) {
  */
 void R_InitShadowmaps(void) {
 
-	if (!r_shadowmap->value) {
-		return;
-	}
-
 	R_InitShadowmapProgram();
 
 	R_InitShadowmapTexture();
