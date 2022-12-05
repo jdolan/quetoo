@@ -686,6 +686,8 @@ void EmitLights(void) {
 
 	const uint32_t start = SDL_GetTicks();
 
+	bsp_file.num_lights = 0;
+
 	for (guint i = 0; i < lights->len; i++) {
 		const light_t *light = &g_array_index(lights, light_t, i);
 		switch (light->type) {
