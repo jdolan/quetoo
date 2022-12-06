@@ -167,23 +167,6 @@ void R_UpdateLights(r_view_t *view) {
 		const r_light_t *in = view->lights;
 		r_light_uniform_t *out = r_lights.block.lights;
 
-		if (r_world_model) {
-
-			r_bsp_draw_elements_t *draw = r_world_model->bsp->draw_elements;
-			for (int32_t i = 0; i < r_world_model->bsp->num_draw_elements; i++, draw++) {
-
-				draw->num_active_lights = 0;
-
-				const r_light_t *light = view->lights;
-				for (int32_t j = 0; j < view->num_lights; j++, light++) {
-
-					if (Box3_Intersects(draw->bounds, Box3_FromCenterRadius(light->origin, light->radius))) {
-						draw->active_lights[draw->num_active_lights++] = j;
-					}
-				}
-			}
-		}
-
 		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
 			out->origin = Vec3_ToVec4(in->origin, in->radius);
 			out->color = Vec3_ToVec4(in->color, in->intensity);

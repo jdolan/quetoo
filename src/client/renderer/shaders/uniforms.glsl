@@ -180,6 +180,7 @@ struct light_t {
 };
 
 #define MAX_LIGHTS 128
+#define MAX_ACTIVE_LIGHTS 4
 
 /**
  * @brief The lights uniform block.

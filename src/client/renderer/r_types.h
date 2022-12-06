@@ -404,9 +404,6 @@ typedef struct {
 	vec2_t st_origin;
 
 	int32_t blend_depth_types;
-
-	int32_t active_lights[MAX_LIGHTS];
-	int32_t num_active_lights;
 } r_bsp_draw_elements_t;
 
 /**

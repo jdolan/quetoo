@@ -26,7 +26,6 @@ layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
 layout (location = 5) in vec2 in_lightmap;
 layout (location = 6) in vec4 in_color;
-layout (location = 7) in ivec4 in_lights;
 
 uniform mat4 model;
 
@@ -42,9 +41,30 @@ out vertex_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
+	flat int active_lights[MAX_ACTIVE_LIGHTS];
+	flat int num_active_lights;
 } vertex;
 
 invariant gl_Position;
+
+/**
+ * @brief
+ */
+void dynamic_light(void) {
+
+	vertex.num_active_lights = 0;
+
+	for (int i = 0; i < MAX_LIGHTS; i++) {
+
+		if (distance(vertex.model, lights[i].origin.xyz) <= lights[i].origin.w) {
+			vertex.active_lights[vertex.num_active_lights++] = i;
+
+			if (vertex.num_active_lights == MAX_ACTIVE_LIGHTS) {
+				break;
+			}
+		}
+	}
+}
 
 /**
  * @brief
@@ -70,6 +90,8 @@ void main(void) {
 	vertex.lightmap = in_lightmap;
 	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
 	vertex.color = in_color;
+
+	dynamic_light();
 
 	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
 

@@ -51,9 +51,6 @@ static struct {
 	GLint texture_lightgrid_fog;
 	GLint texture_shadowmap;
 
-	GLint active_lights;
-	GLint num_active_lights;
-
 	GLint entity;
 	GLint alpha_test;
 
@@ -423,9 +420,6 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_bsp_draw_elements_t *draw,
 										 const r_material_t **material) {
 
-	glUniform1iv(r_bsp_program.active_lights, draw->num_active_lights, draw->active_lights);
-	glUniform1i(r_bsp_program.num_active_lights, draw->num_active_lights);
-
 	if (!(draw->surface & SURF_MATERIAL)) {
 
 		if (*material != draw->material) {
@@ -778,9 +772,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_caustics");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 	r_bsp_program.texture_shadowmap = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap");
-
-	r_bsp_program.active_lights = glGetUniformLocation(r_bsp_program.name, "active_lights");
-	r_bsp_program.num_active_lights = glGetUniformLocation(r_bsp_program.name, "num_active_lights");
 
 	r_bsp_program.entity = glGetUniformLocation(r_bsp_program.name, "entity");
 	r_bsp_program.bicubic = glGetUniformLocation(r_bsp_program.name, "bicubic");
