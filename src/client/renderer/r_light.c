@@ -38,6 +38,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 	}
 
 	view->lights[view->num_lights] = *l;
+	view->lights[view->num_lights].type = l->type ?: LIGHT_POINT;
 	view->num_lights++;
 }
 
@@ -60,12 +61,6 @@ static void R_AddBspLight_Sun(r_view_t *view, const r_bsp_light_t *light) {
  */
 static void R_AddBspLight_Point(r_view_t *view, const r_bsp_light_t *light) {
 
-	R_AddLight(view, &(r_light_t) {
-		.origin = light->origin,
-		.radius = light->radius,
-		.color = light->color,
-		.intensity = light->intensity
-	});
 }
 
 /**
@@ -73,12 +68,6 @@ static void R_AddBspLight_Point(r_view_t *view, const r_bsp_light_t *light) {
  */
 static void R_AddBspLight_Spot(r_view_t *view, const r_bsp_light_t *light) {
 
-	R_AddLight(view, &(r_light_t) {
-		.origin = light->origin,
-		.radius = light->radius,
-		.color = light->color,
-		.intensity = light->intensity
-	});
 }
 
 /**
@@ -86,11 +75,18 @@ static void R_AddBspLight_Spot(r_view_t *view, const r_bsp_light_t *light) {
  */
 static void R_AddBspLight_Patch(r_view_t *view, const r_bsp_light_t *light) {
 
+	if (Box3_Distance(light->bounds) < 64.f) {
+		return;
+	}
+
 	R_AddLight(view, &(r_light_t) {
-		.origin = light->origin,
-		.radius = light->radius,
-		.color = light->color,
-		.intensity = light->intensity
+		.type = light->type,
+		.origin = Vec4_XYZ(light->origin),
+		.radius = light->origin.w,
+		.normal = Vec4_XYZ(light->plane),
+		.dist = light->plane.w,
+		.color = Vec4_XYZ(light->color),
+		.intensity = light->color.w,
 	});
 
 }
@@ -129,7 +125,7 @@ static void R_AddBspLights(r_view_t *view) {
 			}
 
 			if (!has_entities) {
-				continue;
+				//continue;
 			}
 		}
 
@@ -168,7 +164,9 @@ void R_UpdateLights(r_view_t *view) {
 		r_light_uniform_t *out = r_lights.block.lights;
 
 		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
-			out->origin = Vec3_ToVec4(in->origin, in->radius);
+			out->model = Vec3_ToVec4(in->origin, in->radius);
+			out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->radius);
+			out->normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal, in->dist);
 			out->color = Vec3_ToVec4(in->color, in->intensity);
 		}
 

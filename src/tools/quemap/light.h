@@ -34,9 +34,6 @@
 #define LIGHT_SIZE_SUN 32.f
 #define LIGHT_SIZE_STEP 16.f
 
-
-
-
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
  */

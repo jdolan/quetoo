@@ -359,6 +359,8 @@
 		CE78386923FDC3D2004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
 		CE78386A23FDC3E9004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
 		CE78386B23FDC3FF004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CE79596E293EC648001B52F3 /* bsp_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE79596D293EC606001B52F3 /* bsp_gs.glsl */; };
+		CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE79596F293F7812001B52F3 /* polylib.glsl */; };
 		CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C0D202F6134004BC58E /* MainView.json */; };
 		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7D2C14202F690A004BC58E /* HomeViewController.h */; };
@@ -876,6 +878,7 @@
 				CEA9524D2764DBC100C43140 /* bloom_fs.glsl in CopyFiles */,
 				CEA952702764ECF900C43140 /* bloom_vs.glsl in CopyFiles */,
 				CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */,
+				CE79596E293EC648001B52F3 /* bsp_gs.glsl in CopyFiles */,
 				CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */,
 				CE3CFD3625A2994F003D6148 /* common.glsl in CopyFiles */,
 				CE8FD2F423D611C0002FD074 /* common_fs.glsl in CopyFiles */,
@@ -890,6 +893,7 @@
 				CE57E13D2462572900F8902F /* material.glsl in CopyFiles */,
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
+				CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */,
 				CE0FDB8A29329FE700353351 /* shadowmap_fs.glsl in CopyFiles */,
 				CE0FDB8B29329FE700353351 /* shadowmap_gs.glsl in CopyFiles */,
 				CE0FDB8C29329FE700353351 /* shadowmap_vs.glsl in CopyFiles */,
@@ -1565,6 +1569,8 @@
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
 		CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.0.2.dylib; path = ../../../../opt/local/lib/libphysfs.3.0.2.dylib; sourceTree = "<group>"; };
 		CE78386C23FDC5CF004A7EBB /* libopenal.1.20.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.20.1.dylib; path = ../../../../opt/local/lib/libopenal.1.20.1.dylib; sourceTree = "<group>"; };
+		CE79596D293EC606001B52F3 /* bsp_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_gs.glsl; sourceTree = "<group>"; };
+		CE79596F293F7812001B52F3 /* polylib.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = polylib.glsl; sourceTree = "<group>"; };
 		CE7D2C06202E670E004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C07202E9C6D004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C08202E9DE6004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2550,6 +2556,7 @@
 				CEA9524B2764DB9900C43140 /* bloom_fs.glsl */,
 				CEA9524C2764DB9900C43140 /* bloom_vs.glsl */,
 				CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */,
+				CE79596D293EC606001B52F3 /* bsp_gs.glsl */,
 				CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */,
 				CE3CFD3525A29932003D6148 /* common.glsl */,
 				CE8FD2F323D60E7B002FD074 /* common_fs.glsl */,
@@ -2564,6 +2571,7 @@
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CE63992C23E1251A00DB7A2D /* mesh_fs.glsl */,
 				CE63992B23E124F700DB7A2D /* mesh_vs.glsl */,
+				CE79596F293F7812001B52F3 /* polylib.glsl */,
 				CEE13C12293241740075585D /* shadowmap_fs.glsl */,
 				CEE13C10293241740075585D /* shadowmap_gs.glsl */,
 				CEE13C11293241740075585D /* shadowmap_vs.glsl */,

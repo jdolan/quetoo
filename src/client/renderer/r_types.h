@@ -383,9 +383,9 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
- * @brief Light sources per scene.
+ * @brief Light sources per scene. Limited by OpenGL UBO constraint of 16KB.
  */
-#define MAX_LIGHTS			0x80
+#define MAX_LIGHTS			256
 
 /**
  * @brief BSP draw elements, which include all opaque faces of a given material
@@ -503,10 +503,9 @@ typedef struct r_bsp_inline_model_s {
 typedef struct {
 	light_type_t type;
 	light_atten_t atten;
-	vec3_t origin;
-	float radius;
-	vec3_t color;
-	float intensity;
+	vec4_t origin;
+	vec4_t color;
+	vec4_t plane;
 	box3_t bounds;
 } r_bsp_light_t;
 
@@ -1002,6 +1001,11 @@ typedef struct {
  */
 typedef struct {
 	/**
+	 * @brief The light type.
+	 */
+	light_type_t type;
+
+	/**
 	 * @brief The light origin.
 	 */
 	vec3_t origin;
@@ -1010,6 +1014,16 @@ typedef struct {
 	 * @brief The light radius.
 	 */
 	float radius;
+
+	/**
+	 * @brief The light normal, for directional lights.
+	 */
+	vec3_t normal;
+
+	/**
+	 * @brief The light plane distance, for surface lights.
+	 */
+	float dist;
 
 	/**
 	 * @brief The light color.

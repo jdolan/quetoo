@@ -38,7 +38,7 @@ uniform int bicubic;
 uniform material_t material;
 uniform stage_t stage;
 
-in vertex_data {
+in geometry_data {
 	vec3 model;
 	vec3 position;
 	vec3 normal;
@@ -48,6 +48,7 @@ in vertex_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
+
 	flat int active_lights[MAX_ACTIVE_LIGHTS];
 	flat int num_active_lights;
 } vertex;
@@ -95,7 +96,7 @@ void dynamic_light(void) {
 
 		vec3 diffuse = light.color.rgb;
 
-		float radius = light.origin.w;
+		float radius = light.model.w;
 		if (radius <= 0.0) {
 			continue;
 		}
@@ -109,7 +110,7 @@ void dynamic_light(void) {
 
 		diffuse *= intensity;
 
-		vec3 light_pos = (view * vec4(light.origin.xyz, 1.0)).xyz;
+		vec3 light_pos = light.position.xyz;
 		float atten = 1.0 - distance(light_pos, vertex.position) / radius;
 		if (atten <= 0.0) {
 			continue;
@@ -125,11 +126,11 @@ void dynamic_light(void) {
 
 		diffuse *= lambert;
 
-		vec3 shadow_dir = vertex.model - light.origin.xyz;
-		vec4 shadowmap = vec4(shadow_dir, vertex.active_lights[i]);
-		float shadow = texture(texture_shadowmap, shadowmap, length(shadow_dir) / depth_range.y);
-
-		diffuse *= shadow;
+//		vec3 shadow_dir = vertex.model - light.model.xyz;
+//		vec4 shadowmap = vec4(shadow_dir, vertex.active_lights[i]);
+//		float shadow = texture(texture_shadowmap, shadowmap, length(shadow_dir) / depth_range.y);
+//
+//		diffuse *= shadow;
 
 		fragment.diffuse += diffuse;
 		fragment.specular += blinn_phong(diffuse, light_dir);

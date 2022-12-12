@@ -121,9 +121,7 @@ static void LightForEntity_worldspawn(const cm_entity_t *entity, light_t *light)
 		light->color = ambient;
 		light->radius = LIGHT_RADIUS_AMBIENT;
 		light->intensity = LIGHT_INTENSITY;
-
 		light->color = Vec3_Scale(light->color, light->intensity * ambient_intensity);
-
 		light->bounds = Box3_Null();
 	}
 }
@@ -741,10 +739,15 @@ void EmitLights(void) {
 			default:
 				out->type = light->type;
 				out->atten = light->atten;
-				out->origin = light->origin;
-				out->radius = light->radius;
-				out->color = light->color;
-				out->intensity = light->intensity;
+				out->origin = Vec3_ToVec4(light->origin, light->radius);
+				out->color = Vec3_ToVec4(light->color, light->intensity);
+
+				if (light->plane) {
+					out->plane = Vec3_ToVec4(light->plane->normal, light->plane->dist);
+				} else {
+					out->plane = Vec3_ToVec4(light->normal, 0.f);
+				}
+				
 				out->bounds = light->bounds;
 				out++;
 				break;

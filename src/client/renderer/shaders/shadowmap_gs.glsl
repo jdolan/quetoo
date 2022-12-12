@@ -20,7 +20,7 @@
  */
 
 layout (triangles) in;
-layout (triangle_strip, max_vertices=18) out;
+layout (triangle_strip, max_vertices = 18) out;
 
 uniform int cubemap_layer;
 uniform mat4 cubemap_view[6];
