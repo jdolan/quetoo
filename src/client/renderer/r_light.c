@@ -38,7 +38,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 	}
 
 	view->lights[view->num_lights] = *l;
-	view->lights[view->num_lights].type = l->type ?: LIGHT_POINT;
+	view->lights[view->num_lights].type = l->type ?: LIGHT_DYNAMIC;
 	view->num_lights++;
 }
 
@@ -79,6 +79,8 @@ static void R_AddBspLight_Patch(r_view_t *view, const r_bsp_light_t *light) {
 		return;
 	}
 
+	//R_Draw3DBox(light->bounds, Color3fv(Vec4_XYZ(light->color)), false);
+
 	R_AddLight(view, &(r_light_t) {
 		.type = light->type,
 		.origin = Vec4_XYZ(light->origin),
@@ -109,6 +111,10 @@ static void R_AddBspLights(r_view_t *view) {
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
 
+			if (Vec3_Distance(view->origin, Vec4_XYZ(light->origin)) > 2048.f) {
+				continue;
+			}
+
 			_Bool has_entities = false;
 
 			const r_entity_t *e = view->entities;
@@ -125,7 +131,7 @@ static void R_AddBspLights(r_view_t *view) {
 			}
 
 			if (!has_entities) {
-				//continue;
+				continue;
 			}
 		}
 
@@ -158,7 +164,7 @@ void R_UpdateLights(r_view_t *view) {
 
 	if (view) {
 
-		R_AddBspLights(view);
+		//R_AddBspLights(view);
 
 		const r_light_t *in = view->lights;
 		r_light_uniform_t *out = r_lights.block.lights;

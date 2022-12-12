@@ -88,52 +88,66 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
 /**
  * @brief
  */
+float sample_shadowmap(in vec4 shadowmap, in light_t light) {
+	return texture(texture_shadowmap, shadowmap, length(shadowmap.xyz) / light.model.w);
+}
+
+/**
+ * @brief
+ */
 void dynamic_light(void) {
 
 	for (int i = 0; i < vertex.num_active_lights; i++) {
 
-		light_t light = lights[vertex.active_lights[i]];
+		int index = vertex.active_lights[i];
+		light_t light = lights[index];
 
-		vec3 diffuse = light.color.rgb;
+		vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
+		float shadow = sample_shadowmap(shadowmap, light);
 
-		float radius = light.model.w;
-		if (radius <= 0.0) {
-			continue;
+		if (int(light.position.w) == LIGHT_DYNAMIC) {
+
+			vec3 diffuse = light.color.rgb * shadow;
+			if (length(diffuse) <= 0.0) {
+				continue;
+			}
+
+			float radius = light.model.w;
+			if (radius <= 0.0) {
+				continue;
+			}
+
+			diffuse *= radius;
+
+			float intensity = light.color.w;
+			if (intensity <= 0.0) {
+				continue;
+			}
+
+			diffuse *= intensity;
+
+			vec3 light_pos = light.position.xyz;
+			float atten = 1.0 - distance(light_pos, vertex.position) / radius;
+			if (atten <= 0.0) {
+				continue;
+			}
+
+			diffuse *= atten * atten;
+
+			vec3 light_dir = normalize(light_pos - vertex.position);
+			float lambert = dot(light_dir, fragment.normalmap);
+			if (lambert <= 0.0) {
+				continue;
+			}
+
+			diffuse *= lambert;
+
+			fragment.diffuse += diffuse;
+			fragment.specular += blinn_phong(diffuse, light_dir);
+		} else {
+			fragment.diffuse *= shadow;
+			fragment.specular *= shadow;
 		}
-
-		diffuse *= radius;
-
-		float intensity = light.color.w;
-		if (intensity <= 0.0) {
-			continue;
-		}
-
-		diffuse *= intensity;
-
-		vec3 light_pos = light.position.xyz;
-		float atten = 1.0 - distance(light_pos, vertex.position) / radius;
-		if (atten <= 0.0) {
-			continue;
-		}
-
-		diffuse *= atten * atten;
-
-		vec3 light_dir = normalize(light_pos - vertex.position);
-		float lambert = dot(light_dir, fragment.normalmap);
-		if (lambert <= 0.0) {
-			continue;
-		}
-
-		diffuse *= lambert;
-
-//		vec3 shadow_dir = vertex.model - light.model.xyz;
-//		vec4 shadowmap = vec4(shadow_dir, vertex.active_lights[i]);
-//		float shadow = texture(texture_shadowmap, shadowmap, length(shadow_dir) / depth_range.y);
-//
-//		diffuse *= shadow;
-
-		fragment.diffuse += diffuse;
-		fragment.specular += blinn_phong(diffuse, light_dir);
 	}
 }
 

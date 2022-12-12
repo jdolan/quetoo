@@ -1235,6 +1235,11 @@ typedef struct {
 	vec2_t fov;
 
 	/**
+	 * @brief The depth range; near and far clipping plane distances.
+	 */
+	vec2_t depth_range;
+
+	/**
 	 * @brief The view origin.
 	 */
 	vec3_t origin;

@@ -398,8 +398,6 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 		const light_t *light = g_ptr_array_index(lights, i);
 
 		switch (light->type) {
-			case LIGHT_INVALID:
-				break;
 			case LIGHT_AMBIENT:
 				LightgridLuxel_Ambient(light, luxel, scale);
 				break;
@@ -417,6 +415,8 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 				break;
 			case LIGHT_INDIRECT:
 				LightgridLuxel_Indirect(light, luxel, scale);
+				break;
+			default:
 				break;
 		}
 	}

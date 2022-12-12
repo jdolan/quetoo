@@ -572,8 +572,6 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 		const light_t *light = g_ptr_array_index(lights, i);
 
 		switch (light->type) {
-			case LIGHT_INVALID:
-				break;
 			case LIGHT_AMBIENT:
 				LightmapLuxel_Ambient(light, lightmap, luxel, scale);
 				break;
@@ -591,6 +589,8 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 				break;
 			case LIGHT_INDIRECT:
 				LightmapLuxel_Indirect(light, lightmap, luxel, scale);
+				break;
+			default:
 				break;
 		}
 	}

@@ -88,6 +88,16 @@ void Cg_AddLights(void) {
 
 	if (cg_add_lights->integer == 2) {
 
+		cgi.AddLight(cgi.view, &(r_light_t) {
+			.origin = Vec3_Fmaf(Vec3_Fmaf(cgi.view->origin, 64.f, Vec3_Up()), -64.f, cgi.view->forward),
+			.radius = 300.f,
+			.color = Vec3(.5f, .5f, .5f),
+			.intensity = .666f
+		});
+	}
+
+	if (cg_add_lights->integer == 3) {
+
 		const r_entity_t *e = cgi.view->entities;
 		for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
 

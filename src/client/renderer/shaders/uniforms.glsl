@@ -171,6 +171,7 @@ layout (std140) uniform uniforms_block {
 #define LIGHT_SPOT      8
 #define LIGHT_PATCH    16
 #define LIGHT_INDIRECT 32
+#define LIGHT_DYNAMIC  64
 
 /**
  * @brief The light struct.
