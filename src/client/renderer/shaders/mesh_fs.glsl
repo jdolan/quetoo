@@ -68,7 +68,7 @@ void dynamic_light(in vec3 position, in vec3 normalmap, in vec3 specularmap, in 
 
 	for (int i = 0; i < num_lights; i++) {
 
-		float radius = lights[i].origin.w;
+		float radius = lights[i].model.w;
 		if (radius <= 0.0) {
 			continue;
 		}
@@ -78,7 +78,7 @@ void dynamic_light(in vec3 position, in vec3 normalmap, in vec3 specularmap, in 
 			continue;
 		}
 
-		vec3 light_pos = (view * vec4(lights[i].origin.xyz, 1.0)).xyz;
+		vec3 light_pos = lights[i].position.xyz;
 		float atten = 1.0 - distance(light_pos, position) / radius;
 		if (atten <= 0.0) {
 			continue;
@@ -138,7 +138,7 @@ void main(void) {
 
 		caustic_light(vertex.model, vertex.caustics, ambient, diffuse);
 
-		dynamic_light(vertex.position, normalmap, specularmap, specularity, diffuse, specular);
+		//dynamic_light(vertex.position, normalmap, specularmap, specularity, diffuse, specular);
 
 		out_color = diffusemap;
 
