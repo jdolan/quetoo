@@ -165,7 +165,7 @@ void R_UpdateLights(r_view_t *view) {
 
 		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
 			out->model = Vec3_ToVec4(in->origin, in->radius);
-			out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->radius);
+			out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->type);
 			out->normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal, in->dist);
 			out->color = Vec3_ToVec4(in->color, in->intensity);
 		}

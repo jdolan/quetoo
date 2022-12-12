@@ -59,6 +59,14 @@ void main(void) {
 
 	for (int i = 0; i < num_lights && num_active_lights < MAX_ACTIVE_LIGHTS; i++) {
 
+		if (int(lights[i].position.w) == LIGHT_PATCH) {
+			if (distance_to_plane(lights[i].normal, in_vertex[0].position) < -0.1 &&
+				distance_to_plane(lights[i].normal, in_vertex[1].position) < -0.1 &&
+				distance_to_plane(lights[i].normal, in_vertex[2].position) < -0.1) {
+				continue;
+			}
+		}
+
 		float dist = distance_to_triangle(in_vertex[0].position,
 										  in_vertex[1].position,
 										  in_vertex[2].position,
