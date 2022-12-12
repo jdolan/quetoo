@@ -43,16 +43,19 @@ float distance_to_plane(in vec4 plane, in vec3 p) {
  */
 float distance_to_line(in vec3 a, in vec3 b, in vec3 p) {
 
-	float f = clamp(dot(p - a, b - a) / dot(a, b), 0.0, 1.0);
+	float dist_squared = dot(b - a, b - a);
 
-	return abs(distance(p, a + f * (b - a)));
+	float fraction = clamp(dot(p - a, b - a) / dist_squared, 0.0, 1.0);
+	return distance(p, a + fraction * (b - a));
 }
 
 /**
  * @return The distance from `p` to the triangle `abc`.
  */
 float distance_to_triangle(in vec3 a, in vec3 b, in vec3 c, in vec3 p) {
-	return min(distance_to_line(a, b, p), min(distance_to_line(b, c, p), distance_to_line(c, a, p)));
+	return min(abs(distance_to_line(a, b, p)),
+		   min(abs(distance_to_line(b, c, p)),
+			   abs(distance_to_line(c, a, p))));
 }
 
 /**

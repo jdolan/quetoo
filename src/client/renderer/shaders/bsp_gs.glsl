@@ -59,10 +59,11 @@ void main(void) {
 
 	for (int i = 0; i < num_lights && num_active_lights < MAX_ACTIVE_LIGHTS; i++) {
 
-		float dist = distance_to_triangle(in_vertex[0].model,
-										  in_vertex[1].model,
-										  in_vertex[2].model,
-										  lights[i].model.xyz);
+		float dist = distance_to_triangle(in_vertex[0].position,
+										  in_vertex[1].position,
+										  in_vertex[2].position,
+										  lights[i].position.xyz);
+
 		if (dist < lights[i].model.w) {
 			active_lights[num_active_lights++] = i;
 		}
