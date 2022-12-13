@@ -130,6 +130,7 @@ static void R_DrawShadowmapView(const r_view_t *view) {
 
 	const float fov = tanf(Radians(view->fov.x / 2.f));
 	const float near = view->depth_range.x, far = view->depth_range.y;
+
 	const mat4_t cubemap_projection = Mat4_FromFrustum(-fov, fov, -fov, fov, near, far);
 
 	glUniformMatrix4fv(r_shadowmap_program.cubemap_projection, 1, GL_FALSE, cubemap_projection.array);
@@ -180,7 +181,7 @@ void R_DrawShadowmaps(const r_view_t *view) {
 			},
 			.viewport = Vec4i(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE),
 			.fov = Vec2(90.f, 90.f),
-			.depth_range = Vec2(NEAR_DIST, l->radius),
+			.depth_range = Vec2(NEAR_DIST, MAX_WORLD_DIST),
 			.origin = l->origin,
 			.ticks = view->ticks,
 			.tag = i,
