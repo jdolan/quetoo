@@ -112,14 +112,19 @@ static void R_DrawShadowmapView(const r_view_t *view) {
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
 	for (int32_t i = 0; i < 6; i++) {
-		glFramebufferTextureLayer(
-								  GL_FRAMEBUFFER,
+		glFramebufferTextureLayer(GL_FRAMEBUFFER,
 								  GL_DEPTH_ATTACHMENT,
 								  r_shadowmaps.cubemap_array,
 								  0,
 								  view->tag * 6 + i);
+
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
+
+	glFramebufferTexture(GL_FRAMEBUFFER,
+						 GL_DEPTH_ATTACHMENT,
+						 r_shadowmaps.cubemap_array,
+						 0);
 
 	glUniform1i(r_shadowmap_program.cubemap_layer, view->tag);
 
