@@ -138,6 +138,7 @@ void dynamic_light(void) {
 		diffuse *= lambert;
 
 		float shadow = sample_shadowmap(vec4(vertex.model - light.model.xyz, index));
+		float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
 
 		diffuse *= shadow;
 
@@ -145,8 +146,8 @@ void dynamic_light(void) {
 			fragment.diffuse += diffuse;
 			fragment.specular += blinn_phong(diffuse, light_dir);
 		} else {
-			fragment.diffuse *= max(fragment.ambient, shadow);
-			fragment.specular *= max(fragment.ambient, shadow);
+			fragment.diffuse -= shadow_atten;
+			fragment.specular -= shadow_atten;
 		}
 	}
 }

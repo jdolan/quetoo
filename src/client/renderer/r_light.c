@@ -84,7 +84,7 @@ static void R_AddBspLight_Patch(r_view_t *view, const r_bsp_light_t *light) {
 	R_AddLight(view, &(r_light_t) {
 		.type = light->type,
 		.origin = Vec4_XYZ(light->origin),
-		.radius = light->origin.w,
+		.radius = Box3_Radius(light->bounds),
 		.normal = Vec4_XYZ(light->plane),
 		.dist = light->plane.w,
 		.color = Vec4_XYZ(light->color),
