@@ -164,7 +164,7 @@ void R_UpdateLights(r_view_t *view) {
 
 	if (view) {
 
-		//R_AddBspLights(view);
+		R_AddBspLights(view);
 
 		const r_light_t *in = view->lights;
 		r_light_uniform_t *out = r_lights.block.lights;
