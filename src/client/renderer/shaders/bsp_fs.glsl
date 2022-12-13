@@ -89,7 +89,7 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
  * @brief
  */
 float sample_shadowmap(in vec4 shadowmap) {
-	return texture(texture_shadowmap, shadowmap, length(shadowmap.xyz) / depth_range.y);
+	return max(0.0, texture(texture_shadowmap, shadowmap, length(shadowmap.xyz) / depth_range.y));
 }
 
 /**
@@ -138,20 +138,15 @@ void dynamic_light(void) {
 		diffuse *= lambert;
 
 		float shadow = sample_shadowmap(vec4(vertex.model - light.model.xyz, index));
-		if (shadow <= 0.0) {
-			continue;
-		}
 
 		diffuse *= shadow;
 
-		vec3 specular = blinn_phong(diffuse, light_dir);
-
 		if (int(light.position.w) == LIGHT_DYNAMIC) {
 			fragment.diffuse += diffuse;
-			fragment.specular += specular;
+			fragment.specular += blinn_phong(diffuse, light_dir);
 		} else {
-			fragment.diffuse *= shadow;
-			fragment.specular *= shadow;
+			fragment.diffuse *= max(fragment.ambient, shadow);
+			fragment.specular *= max(fragment.ambient, shadow);
 		}
 	}
 }
