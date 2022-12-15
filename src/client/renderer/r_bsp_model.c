@@ -376,7 +376,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 		out->atten = in->atten;
 		out->origin = in->origin;
 		out->color = in->color;
-		out->plane = in->plane;
+		out->normal = in->normal;
 		out->bounds = in->bounds;
 	}
 }

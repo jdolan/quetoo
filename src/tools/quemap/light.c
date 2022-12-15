@@ -743,11 +743,11 @@ void EmitLights(void) {
 				out->color = Vec3_ToVec4(light->color, light->intensity);
 
 				if (light->plane) {
-					out->plane = Vec3_ToVec4(light->plane->normal, light->plane->dist);
+					out->normal = Vec3_ToVec4(light->plane->normal, light->plane->dist);
 				} else {
-					out->plane = Vec3_ToVec4(light->normal, 0.f);
+					out->normal = Vec3_ToVec4(light->normal, 0.f);
 				}
-				
+
 				out->bounds = light->bounds;
 				out++;
 				break;

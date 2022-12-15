@@ -505,7 +505,7 @@ typedef struct {
 	light_atten_t atten;
 	vec4_t origin;
 	vec4_t color;
-	vec4_t plane;
+	vec4_t normal;
 	box3_t bounds;
 } r_bsp_light_t;
 
@@ -1001,11 +1001,6 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The light type.
-	 */
-	light_type_t type;
-
-	/**
 	 * @brief The light origin.
 	 */
 	vec3_t origin;
@@ -1014,16 +1009,6 @@ typedef struct {
 	 * @brief The light radius.
 	 */
 	float radius;
-
-	/**
-	 * @brief The light normal, for directional lights.
-	 */
-	vec3_t normal;
-
-	/**
-	 * @brief The light plane distance, for surface lights.
-	 */
-	float dist;
 
 	/**
 	 * @brief The light color.

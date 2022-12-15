@@ -170,8 +170,8 @@ void R_DrawShadowmaps(const r_view_t *view) {
 
 	glUseProgram(r_shadowmap_program.name);
 
-	const r_light_t *l = view->lights;
-	for (int32_t i = 0; i < view->num_lights; i++, l++) {
+	const r_light_uniform_t *l = r_lights.block.lights;
+	for (int32_t i = 0; i < r_lights.block.num_lights; i++, l++) {
 
 		r_view_t v = {
 			.framebuffer = &(r_framebuffer_t) {
@@ -182,16 +182,16 @@ void R_DrawShadowmaps(const r_view_t *view) {
 			.viewport = Vec4i(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE),
 			.fov = Vec2(90.f, 90.f),
 			.depth_range = Vec2(NEAR_DIST, MAX_WORLD_DIST),
-			.origin = l->origin,
+			.origin = Vec4_XYZ(l->model),
 			.ticks = view->ticks,
 			.tag = i,
 		};
 
-		const box3_t bounds = Box3_FromCenterRadius(l->origin, l->radius);
+		const box3_t bounds = Box3_FromCenterRadius(Vec4_XYZ(l->model), l->model.w);
 		const r_entity_t *e = view->entities;
 		for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
-			if (!IS_MESH_MODEL(e->model)) {
+			if (!e->model) {
 				continue;
 			}
 

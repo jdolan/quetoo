@@ -360,7 +360,7 @@ typedef struct {
 	light_atten_t atten;
 	vec4_t origin;
 	vec4_t color;
-	vec4_t plane;
+	vec4_t normal;
 	box3_t bounds;
 } bsp_light_t;
 

@@ -305,7 +305,7 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
 		light->atten = LittleLong(light->atten);
 		light->origin = LittleVec4(light->origin);
 		light->color = LittleVec4(light->color);
-		light->plane = LittleVec4(light->plane);
+		light->normal = LittleVec4(light->normal);
 		light->bounds = LittleBounds(light->bounds);
 
 		light++;
