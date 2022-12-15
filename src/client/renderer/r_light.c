@@ -54,42 +54,22 @@ static void R_AddLightUniform(const r_light_uniform_t *l) {
 }
 
 /**
- * @brief
+ * @brief Transforms all active light sources to view space for rendering.
  */
-static void R_AddBspLights(const r_view_t *view) {
+void R_UpdateLights(const r_view_t *view) {
 
-	if (!r_world_model) {
-		return;
-	}
+	r_lights.block.num_lights = 0;
 
-	if (view->type != VIEW_MAIN) {
-		return;
-	}
+	if (view->type == VIEW_MAIN) {
 
-	r_light_uniform_t *out = r_lights.block.lights;
+		const r_bsp_light_t *in = r_world_model->bsp->lights;
+		for (int32_t i = 0; i < r_world_model->bsp->num_lights; i++, in++) {
 
-	const r_bsp_light_t *in = r_world_model->bsp->lights;
-	for (int32_t i = 0; i < r_world_model->bsp->num_lights; i++, in++) {
+			if (in->type == LIGHT_PATCH) {
 
-		switch (in->type) {
-			case LIGHT_SUN: {
-//				const r_entity_t *e = view->entities;
-//				for (int32_t j = 0; j < view->num_entities; j++, e++) {
-//
-//					if (e->model && !e->parent) {
-//						const vec3_t origin = Vec3_Fmaf(e->origin, <#float multiply#>, <#const vec3_t add#>)
-//						R_AddLightUniform(&(const r_light_uniform_t) {
-//							.model = Vec3_ToVec4(e->origin, 2.f * Box3_Radius(e->abs_model_bounds)),
-//							.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, e->origin), in->type),
-//							.normal = Mat4_TransformPlane(r_uniforms.block.view, Vec4_XYZ(in->normal), in->normal.w),
-//							.color = in->color,
-//						});
-//					}
-//				}
-			}
-				break;
-
-			case LIGHT_PATCH: {
+				if (in->origin.w < 64.f) {
+					continue;
+				}
 
 				if (Vec3_Distance(view->origin, Vec4_XYZ(in->origin)) > 2048.f) {
 					continue;
@@ -109,31 +89,31 @@ static void R_AddBspLights(const r_view_t *view) {
 					}
 				}
 			}
-				break;
-			default:
-				break;
 		}
 	}
-}
 
-/**
- * @brief Transforms all active light sources to view space for rendering.
- */
-void R_UpdateLights(const r_view_t *view) {
 
-	if (view) {
+	const r_light_t *l = view->lights;
+	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		r_lights.block.num_lights = 0;
+		R_AddLightUniform(&(r_light_uniform_t) {
+			.model = Vec3_ToVec4(l->origin, l->radius),
+			.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, l->origin), LIGHT_DYNAMIC),
+			.color = Vec3_ToVec4(l->color, l->intensity),
+		});
+	}
 
-		R_AddBspLights(view);
+	const r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-		const r_light_t *in = view->lights;
-		for (int32_t i = 0; i < view->num_lights; i++, in++) {
-			
+		if (IS_MESH_MODEL(e->model)) {
+
+			const vec3_t origin = Vec3_Fmaf(e->origin, 64.f, Vec3_Up());
+
 			R_AddLightUniform(&(r_light_uniform_t) {
-				.model = Vec3_ToVec4(in->origin, in->radius),
-				.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), LIGHT_DYNAMIC),
-				.color = Vec3_ToVec4(in->color, in->intensity),
+				.model = Vec3_ToVec4(origin, 96.f),
+				.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, origin), LIGHT_AMBIENT),
+				.color = Vec4_One(),
 			});
 		}
 	}
@@ -149,14 +129,14 @@ void R_UpdateLights(const r_view_t *view) {
  */
 void R_InitLights(void) {
 
+	memset(&r_lights, 0, sizeof(r_lights));
+
 	glGenBuffers(1, &r_lights.buffer);
 	
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
-
-	R_UpdateLights(NULL);
 }
 
 /**
