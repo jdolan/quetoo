@@ -195,26 +195,29 @@ static void Cl_DrawRendererStats(void) {
 	{
 		R_Draw2DString(x, y, "Other:", color_yellow);
 		y += ch;
+
 		R_Draw2DString(x, y, va(" %d occlusion queries (%d passed)",
 								r_stats.count_occlusion_queries,
 								r_stats.count_occlusion_queries_passed), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d lights", cl_view.num_lights), color_yellow);
+		R_Draw2DString(x, y, va(" %d lights", cl_view.num_lights), color_yellow);
 		y += ch;
 	}
+
+	y += ch;
 
 	{
 		R_Draw2DString(x, y, "Draw 2D:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d chars", r_stats.count_draw_chars), color_yellow);
+		R_Draw2DString(x, y, va(" %d chars", r_stats.count_draw_chars), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d fills", r_stats.count_draw_fills), color_yellow);
+		R_Draw2DString(x, y, va(" %d fills", r_stats.count_draw_fills), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d images", r_stats.count_draw_images), color_yellow);
+		R_Draw2DString(x, y, va(" %d images", r_stats.count_draw_images), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d lines", r_stats.count_draw_lines), color_yellow);
+		R_Draw2DString(x, y, va(" %d lines", r_stats.count_draw_lines), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d arrays", r_stats.count_draw_arrays), color_yellow);
+		R_Draw2DString(x, y, va(" %d arrays", r_stats.count_draw_arrays), color_yellow);
 		y += ch;
 	}
 
