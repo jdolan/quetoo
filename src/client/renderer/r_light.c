@@ -70,7 +70,7 @@ void R_UpdateLights(const r_view_t *view) {
 		});
 	}
 
-	if (view->type == VIEW_MAIN) {
+	if (view->type == VIEW_MAIN && r_shadowmap->value) {
 
 		const r_bsp_light_t *l = r_world_model->bsp->lights;
 		for (int32_t i = 0; i < r_world_model->bsp->num_lights; i++, l++) {
