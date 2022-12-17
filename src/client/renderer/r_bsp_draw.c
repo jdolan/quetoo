@@ -598,7 +598,7 @@ void R_DrawBspInlineModelEntities(const r_view_t *view, int32_t blend_depth) {
 				continue;
 			}
 
-			R_DrawBspInlineModelEntity(view, e);
+			R_CONDITIONAL_RENDER(e->abs_model_bounds, R_DrawBspInlineModelEntity(view, e));
 		}
 	}
 

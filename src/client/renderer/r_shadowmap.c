@@ -202,7 +202,7 @@ void R_DrawShadowmaps(const r_view_t *view) {
 			v.entities[v.num_entities++] = *e;
 		}
 
-		R_DrawShadowmapView(&v);
+		R_CONDITIONAL_RENDER(bounds, R_DrawShadowmapView(&v));
 	}
 
 	glUseProgram(0);

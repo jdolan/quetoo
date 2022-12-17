@@ -63,9 +63,11 @@ void R_UpdateLights(const r_view_t *view) {
 	const r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
+		const vec3_t position = Mat4_Transform(r_uniforms.block.view, l->origin);
+
 		R_AddLightUniform(&(r_light_uniform_t) {
 			.model = Vec3_ToVec4(l->origin, l->radius),
-			.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, l->origin), LIGHT_DYNAMIC),
+			.position = Vec3_ToVec4(position, LIGHT_DYNAMIC),
 			.color = Vec3_ToVec4(l->color, l->intensity),
 		});
 	}
@@ -75,24 +77,28 @@ void R_UpdateLights(const r_view_t *view) {
 		const r_bsp_light_t *l = r_world_model->bsp->lights;
 		for (int32_t i = 0; i < r_world_model->bsp->num_lights; i++, l++) {
 
-			if (l->type == LIGHT_PATCH) {
+			if (l->type != LIGHT_PATCH) {
+				continue;
+			}
 
-				if (R_OccludeBox(view, l->bounds)) {
-					continue;
-				}
+			if (R_OccludeBox(view, l->bounds)) {
+				continue;
+			}
 
-				const r_entity_t *e = view->entities;
-				for (int32_t j = 0; j < view->num_entities; j++, e++) {
+			const r_entity_t *e = view->entities;
+			for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
-					if (e->model && Box3_Intersects(l->bounds, e->abs_model_bounds)) {
-						R_AddLightUniform(&(const r_light_uniform_t) {
-							.model = l->origin,
-							.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, Vec4_XYZ(l->origin)), l->type),
-							.normal = Mat4_TransformPlane(r_uniforms.block.view, Vec4_XYZ(l->normal), l->normal.w),
-							.color = l->color,
-						});
-						break;
-					}
+				if (e->model && Box3_Intersects(l->bounds, e->abs_model_bounds)) {
+
+					const vec3_t position = Mat4_Transform(r_uniforms.block.view, Vec4_XYZ(l->origin));
+					const vec4_t normal = Mat4_TransformPlane(r_uniforms.block.view, Vec4_XYZ(l->normal), l->normal.w);
+					R_AddLightUniform(&(const r_light_uniform_t) {
+						.model = l->origin,
+						.position = Vec3_ToVec4(position, l->type),
+						.normal = normal,
+						.color = l->color,
+					});
+					break;
 				}
 			}
 		}

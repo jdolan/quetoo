@@ -388,6 +388,8 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	R_DrawOcclusionQueries(view);
 
+	//R_UpdateOcclusionQueries(view);
+
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
@@ -403,7 +405,7 @@ void R_DrawMainView(r_view_t *view) {
 
 	assert(view);
 	assert(view->framebuffer);
-	
+
 	R_DrawBspLightgrid(view);
 
 	R_UpdateBlendDepth(view);

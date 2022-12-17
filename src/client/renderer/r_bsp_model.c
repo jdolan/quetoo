@@ -596,7 +596,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
 	r_bsp_light_t *l = bsp->lights;
 	for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
-		if (l->type == LIGHT_PATCH && l->origin.w > 64.f) {
+		if (l->type == LIGHT_PATCH) {
 			g_ptr_array_add(bsp->occlusion_queries, R_CreateOcclusionQuery(l->bounds));
 		}
 	}

@@ -488,8 +488,8 @@ typedef struct r_bsp_inline_model_s {
 typedef struct {
 	GLuint name;
 	box3_t bounds;
+	float size;
 	vec3_t vertexes[8];
-	_Bool pending;
 	GLint result;
 } r_occlusion_query_t;
 
