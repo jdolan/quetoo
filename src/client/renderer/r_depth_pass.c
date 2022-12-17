@@ -282,13 +282,6 @@ void R_DestroyOcclusionQuery(r_occlusion_query_t *query) {
 /**
  * @brief
  */
-void R_DestroyOcclusionQueries(void) {
-	g_ptr_array_set_size(r_occlusion_queries.queries, 0);
-}
-
-/**
- * @brief
- */
 static void R_FreeOcclusionQuery(gpointer p) {
 
 	r_occlusion_query_t *query = p;
