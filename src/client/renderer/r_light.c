@@ -60,6 +60,16 @@ void R_UpdateLights(const r_view_t *view) {
 
 	r_lights.block.num_lights = 0;
 
+	const r_light_t *l = view->lights;
+	for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+		R_AddLightUniform(&(r_light_uniform_t) {
+			.model = Vec3_ToVec4(l->origin, l->radius),
+			.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, l->origin), LIGHT_DYNAMIC),
+			.color = Vec3_ToVec4(l->color, l->intensity),
+		});
+	}
+
 	if (view->type == VIEW_MAIN) {
 
 		const r_bsp_light_t *l = r_world_model->bsp->lights;
@@ -67,11 +77,7 @@ void R_UpdateLights(const r_view_t *view) {
 
 			if (l->type == LIGHT_PATCH) {
 
-				if (l->query == NULL) {
-					continue;
-				}
-
-				if (l->query->result == 0) {
+				if (R_OccludeBox(view, l->bounds)) {
 					continue;
 				}
 
@@ -90,17 +96,6 @@ void R_UpdateLights(const r_view_t *view) {
 				}
 			}
 		}
-	}
-
-
-	const r_light_t *l = view->lights;
-	for (int32_t i = 0; i < view->num_lights; i++, l++) {
-
-		R_AddLightUniform(&(r_light_uniform_t) {
-			.model = Vec3_ToVec4(l->origin, l->radius),
-			.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, l->origin), LIGHT_DYNAMIC),
-			.color = Vec3_ToVec4(l->color, l->intensity),
-		});
 	}
 
 //	const r_entity_t *e = view->entities;
@@ -137,6 +132,8 @@ void R_InitLights(void) {
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
+
+	R_GetError(NULL);
 }
 
 /**

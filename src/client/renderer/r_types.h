@@ -503,7 +503,6 @@ typedef struct {
 	vec4_t color;
 	vec4_t normal;
 	box3_t bounds;
-	r_occlusion_query_t *query;
 } r_bsp_light_t;
 
 /**
@@ -587,6 +586,8 @@ typedef struct {
 	r_bsp_lightgrid_t *lightgrid;
 
 	r_bsp_draw_elements_t *sky;
+
+	GPtrArray *occlusion_queries;
 
 	GLuint vertex_array;
 	GLuint vertex_buffer;
