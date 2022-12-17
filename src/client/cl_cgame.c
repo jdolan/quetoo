@@ -257,6 +257,7 @@ void Cl_InitCgame(void) {
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 
+	import.InitView = R_InitView;
 	import.AddEntity = R_AddEntity;
 	import.AddLight = R_AddLight;
 	import.AddSprite = R_AddSprite;

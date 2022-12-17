@@ -632,7 +632,7 @@ void Cl_Frame(const uint32_t msec) {
 		}
 	}
 
-	R_ClearView(&cl_view);
+	R_InitView(&cl_view);
 
 	S_ClearStage(&cl_stage);
 

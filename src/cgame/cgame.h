@@ -721,6 +721,11 @@ typedef struct cg_import_s {
 	 */
 
 	/**
+	 * @brief Initializes the view, preparing it for a new frae.
+	 */
+	void (*InitView)(r_view_t *view);
+
+	/**
 	 * @brief Adds an entity to the scene for the current frame.
 	 * @return The added entity.
 	 */

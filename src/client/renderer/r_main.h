@@ -59,6 +59,7 @@ extern r_stats_t r_stats;
 void R_Init(void);
 void R_Shutdown(void);
 void R_BeginFrame(void);
+void R_InitView(r_view_t *view);
 void R_DrawViewDepth(r_view_t *view);
 void R_DrawMainView(r_view_t *view);
 void R_DrawPlayerModelView(r_view_t *view);

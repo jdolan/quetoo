@@ -86,7 +86,7 @@ static void render(View *self, Renderer *renderer) {
 	if (this->client.torso) {
 		$(this, animate);
 
-		R_ClearView(&this->view);
+		cgi.InitView(&this->view);
 
 		this->view.type = VIEW_PLAYER_MODEL;
 		this->view.ticks = cgi.client->ticks;

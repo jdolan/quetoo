@@ -1305,32 +1305,6 @@ typedef struct {
 } r_view_t;
 
 /**
- * @brief Convenience inline function to clear a view. Use this instead of memset.
- */
-static inline void R_ClearView(r_view_t *view) {
-
-	view->viewport = Vec4i_Zero();
-	view->fov = Vec2_Zero();
-
-	view->origin = Vec3_Zero();
-	view->angles = Vec3_Zero();
-	view->forward = Vec3_Zero();
-	view->right = Vec3_Zero();
-	view->up = Vec3_Zero();
-
-	view->contents = CONTENTS_NONE;
-
-	view->num_beams = 0;
-	view->num_entities = 0;
-	view->num_lights = 0;
-	view->num_sprites = 0;
-	view->num_sprite_instances = 0;
-	view->num_stains = 0;
-
-	memset(view->frustum, 0, sizeof(view->frustum));
-}
-
-/**
  * @brief Window and OpenGL context information.
  */
 typedef struct {
