@@ -29,6 +29,7 @@ noinst_HEADERS = \
 	r_mesh_model_obj.h \
 	r_mesh.h \
 	r_model.h \
+	r_occlude.h \
 	r_program.h \
 	r_shadowmap.h \
 	r_sky.h \
@@ -65,6 +66,7 @@ librenderer_la_SOURCES = \
 	r_mesh_model_md3.c \
 	r_mesh_model_obj.c \
 	r_model.c \
+	r_occlude.c \
 	r_program.c \
 	r_shadowmap.c \
 	r_sky.c \

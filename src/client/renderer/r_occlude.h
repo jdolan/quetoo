@@ -24,22 +24,13 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
+r_occlusion_query_t *R_CreateOcclusionQuery(const box3_t bounds);
+void R_DestroyOcclusionQuery(r_occlusion_query_t *query);
 
-/**
- * @brief The depth program.
- */
-typedef struct {
-	GLuint name;
-	GLuint uniforms_block;
+_Bool R_OccludeBox(const r_view_t *view, const box3_t bounds);
+_Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
 
-	GLint in_position;
-
-	GLint model;
-} r_depth_pass_program_t;
-
-extern r_depth_pass_program_t r_depth_pass_program;
-
-void R_DrawDepthPass(const r_view_t *view);
-void R_InitDepthPass(void);
-void R_ShutdownDepthPass(void);
+void R_DrawOcclusionQueries(const r_view_t *view);
+void R_InitOcclusionQueries(void);
+void R_ShutdownOcclusionQueries(void);
 #endif /* __R_LOCAL_H__ */

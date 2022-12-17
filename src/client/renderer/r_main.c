@@ -386,6 +386,8 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	R_DrawDepthPass(view);
 
+	R_DrawOcclusionQueries(view);
+
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
@@ -628,6 +630,8 @@ void R_Init(void) {
 
 	R_InitDepthPass();
 
+	R_InitOcclusionQueries();
+
 	R_InitShadowmaps();
 
 	R_InitDraw2D();
@@ -677,6 +681,8 @@ void R_Shutdown(void) {
 	R_ShutdownBloom();
 
 	R_ShutdownShadowmaps();
+
+	R_ShutdownOcclusionQueries();
 
 	R_ShutdownDepthPass();
 
