@@ -407,23 +407,6 @@ typedef struct {
 } r_bsp_draw_elements_t;
 
 /**
- * @brief BSP occlusion queries are defined by brushes with CONTENTS_OCCLUSION_QUERY.
- * @remarks Occlusion queries are processed once per frame. Objects residing completely
- * within such a brush may be culled if the occlusion query produces no visible samples.
- */
-typedef struct {
-	GLuint name;
-
-	box3_t bounds;
-
-	vec3_t vertexes[8];
-
-	_Bool pending;
-	
-	GLint result;
-} r_bsp_occlusion_query_t;
-
-/**
  * @brief BSP nodes comprise the tree representation of the world.
  */
 struct r_bsp_node_s {
@@ -498,6 +481,19 @@ typedef struct r_bsp_inline_model_s {
 } r_bsp_inline_model_t;
 
 /**
+ * @brief OpenGL hardware-accelerated occlusion queries.
+ * @remarks Occlusion queries are processed once per frame. Objects residing completely
+ * within a query volume may be culled if the occlusion query produces no visible samples.
+ */
+typedef struct {
+	GLuint name;
+	box3_t bounds;
+	vec3_t vertexes[8];
+	_Bool pending;
+	GLint result;
+} r_occlusion_query_t;
+
+/**
  * @brief
  */
 typedef struct {
@@ -507,6 +503,7 @@ typedef struct {
 	vec4_t color;
 	vec4_t normal;
 	box3_t bounds;
+	r_occlusion_query_t *query;
 } r_bsp_light_t;
 
 /**
@@ -571,9 +568,6 @@ typedef struct {
 
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
-
-	int32_t num_occlusion_queries;
-	r_bsp_occlusion_query_t *occlusion_queries;
 
 	int32_t num_nodes;
 	r_bsp_node_t *nodes;
@@ -1385,12 +1379,13 @@ typedef struct {
  */
 typedef struct {
 
+	int32_t count_occlusion_queries;
+	int32_t count_occlusion_queries_passed;
+
 	int32_t count_bsp_inline_models;
 	int32_t count_bsp_draw_elements;
 	int32_t count_bsp_blend_draw_elements;
 	int32_t count_bsp_triangles;
-	int32_t count_bsp_occlusion_queries;
-	int32_t count_bsp_occlusion_queries_passed;
 
 	int32_t count_mesh_models;
 	int32_t count_mesh_triangles;

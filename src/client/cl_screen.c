@@ -149,9 +149,6 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 		R_Draw2DString(x, y, va(" %d triangles", r_stats.count_bsp_triangles), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d occlusion queries (%d passed)", r_stats.count_bsp_occlusion_queries,
-								r_stats.count_bsp_occlusion_queries_passed), color_yellow);
-		y += ch;
 	}
 
 	y += ch;
@@ -196,6 +193,17 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	{
+		R_Draw2DString(x, y, "Other:", color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d occlusion queries (%d passed)",
+								r_stats.count_occlusion_queries,
+								r_stats.count_occlusion_queries_passed), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va("%d lights", cl_view.num_lights), color_yellow);
+		y += ch;
+	}
+
+	{
 		R_Draw2DString(x, y, "Draw 2D:", color_yellow);
 		y += ch;
 		R_Draw2DString(x, y, va("%d chars", r_stats.count_draw_chars), color_yellow);
@@ -211,13 +219,6 @@ static void Cl_DrawRendererStats(void) {
 	}
 
 	y += ch;
-
-	{
-		R_Draw2DString(x, y, "Other:", color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va("%d lights", cl_view.num_lights), color_yellow);
-		y += ch;
-	}
 
 	const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
 	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);

@@ -37,6 +37,8 @@ static struct {
  * @brief The occlusion queries.
  */
 static struct {
+	GPtrArray *queries;
+
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
@@ -72,7 +74,7 @@ static void R_DrawOcclusionQueries(const r_view_t *view) {
 		return;
 	}
 
-	r_stats.count_bsp_occlusion_queries = r_world_model->bsp->num_occlusion_queries;
+	r_stats.count_occlusion_queries = r_occlusion_queries.queries->len;
 
 	glDepthMask(GL_FALSE);
 
@@ -82,8 +84,8 @@ static void R_DrawOcclusionQueries(const r_view_t *view) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
 
-	r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
-	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
+	for (guint i = 0; i < r_occlusion_queries.queries->len; i++) {
+		r_occlusion_query_t *q = g_ptr_array_index(r_occlusion_queries.queries, i);
 
 		if (Box3_ContainsPoint(Box3_Expand(q->bounds, 1.f), view->origin)) {
 			q->pending = false;
@@ -127,10 +129,23 @@ static void R_DrawOcclusionQueries(const r_view_t *view) {
 
 	glDepthMask(GL_TRUE);
 
-	q = r_world_model->bsp->occlusion_queries;
-	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
+	for (guint i = 0; i < r_occlusion_queries.queries->len; i++) {
+		const r_occlusion_query_t *q = g_ptr_array_index(r_occlusion_queries.queries, i);
+
+		if (r_draw_occlusion_queries->value) {
+
+			color_t c = q->result ? color_green : color_red;
+
+			if (q->pending) {
+				c.b = 1.f;
+			}
+
+			c.a = .1f;
+			R_Draw3DBox(q->bounds, c, true);
+		}
+
 		if (q->result) {
-			r_stats.count_bsp_occlusion_queries_passed++;
+			r_stats.count_occlusion_queries_passed++;
 		}
 	}
 }
@@ -185,12 +200,8 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 		return false;
 	}
 
-	const r_bsp_occlusion_query_t *q = r_world_model->bsp->occlusion_queries;
-	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, q++) {
-		
-		if (!Box3_Contains(q->bounds, bounds)) {
-			continue;
-		}
+	for (guint i = 0; i < r_occlusion_queries.queries->len; i++) {
+		const r_occlusion_query_t *q = g_ptr_array_index(r_occlusion_queries.queries, i);
 
 		if (Box3_Contains(q->bounds, bounds) && q->result == 0) {
 			return true;
@@ -204,7 +215,6 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
  * @brief
  */
 _Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
-
 	return R_OccludeBox(view, Box3_FromCenterRadius(origin, radius));
 }
 
@@ -247,7 +257,53 @@ static void R_ShutdownDepthPassProgram(void) {
 /**
  * @brief
  */
+r_occlusion_query_t *R_CreateOcclusionQuery(const box3_t bounds) {
+
+	r_occlusion_query_t *query = Mem_TagMalloc(sizeof(r_occlusion_query_t), MEM_TAG_RENDERER);
+
+	glGenQueries(1, &query->name);
+
+	query->bounds = Box3_Expand(bounds, 1.f);
+	query->result = 1;
+
+	Box3_ToPoints(query->bounds, query->vertexes);
+
+	g_ptr_array_add(r_occlusion_queries.queries, query);
+	return query;
+}
+
+/**
+ * @brief
+ */
+void R_DestroyOcclusionQuery(r_occlusion_query_t *query) {
+	g_ptr_array_remove(r_occlusion_queries.queries, query);
+}
+
+/**
+ * @brief
+ */
+void R_DestroyOcclusionQueries(void) {
+	g_ptr_array_set_size(r_occlusion_queries.queries, 0);
+}
+
+/**
+ * @brief
+ */
+static void R_FreeOcclusionQuery(gpointer p) {
+
+	r_occlusion_query_t *query = p;
+
+	glDeleteQueries(1, &query->name);
+
+	Mem_Free(query);
+}
+
+/**
+ * @brief
+ */
 static void R_InitOcclusionQueries(void) {
+
+	r_occlusion_queries.queries = g_ptr_array_new_with_free_func(R_FreeOcclusionQuery);
 
 	glGenVertexArrays(1, &r_occlusion_queries.vertex_array);
 	glBindVertexArray(r_occlusion_queries.vertex_array);
@@ -288,6 +344,8 @@ static void R_InitOcclusionQueries(void) {
  * @brief
  */
 static void R_ShutdownOcclusionQueries(void) {
+
+	g_ptr_array_free(r_occlusion_queries.queries, true);
 
 	glDeleteVertexArrays(1, &r_occlusion_queries.vertex_array);
 

@@ -50,7 +50,6 @@
 #define MAX_BSP_LIGHTS				0x400
 #define MAX_BSP_LIGHTMAP_SIZE		0x60000000
 #define MAX_BSP_LIGHTGRID_SIZE		0x2400000
-#define MAX_BSP_OCCLUSION_QUERIES	0x40
 
 /**
  * @brief Lightmap luxel size in world units.

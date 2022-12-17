@@ -84,31 +84,6 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawBspOcclusionQueries(const r_view_t *view) {
-
-	if (!r_draw_bsp_occlusion_queries->value) {
-		return;
-	}
-
-	const r_bsp_model_t *bsp = r_world_model->bsp;
-
-	const r_bsp_occlusion_query_t *query = bsp->occlusion_queries;
-
-	for (int32_t i = 0; i < bsp->num_occlusion_queries; i++, query++) {
-		color_t c = query->result ? color_green : color_red;
-
-		if (query->pending) {
-			c.b = 1.f;
-		}
-
-		c.a = .1f;
-		R_Draw3DBox(query->bounds, c, true);
-	}
-}
-
-/**
- * @brief
- */
 static void R_DrawBspNormals(const r_view_t *view) {
 
 	if (!r_draw_bsp_normals->value) {
@@ -726,8 +701,6 @@ void R_DrawWorld(const r_view_t *view) {
 	R_GetError(NULL);
 
 	R_DrawBspNormals(view);
-
-	R_DrawBspOcclusionQueries(view);
 }
 
 #define WARP_IMAGE_SIZE 16

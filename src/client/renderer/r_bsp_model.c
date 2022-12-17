@@ -585,34 +585,18 @@ static void R_LoadBspDepthPassElements(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
-	const cm_bsp_brush_t *in = bsp->cm->brushes;
-	r_bsp_occlusion_query_t *out = NULL;
-
-	for (int32_t i = 0; i < bsp->cm->file->num_brushes; i++, in++) {
-		if (in->contents & CONTENTS_OCCLUSION_QUERY) {
-
-			if (bsp->num_occlusion_queries == MAX_BSP_OCCLUSION_QUERIES) {
-				Com_Error(ERROR_DROP, "MAX_BSP_OCCLUSION_QUERIES");
-			}
-			
-			bsp->occlusion_queries = Mem_Realloc(bsp->occlusion_queries, (bsp->num_occlusion_queries + 1) * sizeof(*out));
-			out = bsp->occlusion_queries + bsp->num_occlusion_queries;
-
-			glGenQueries(1, &out->name);
-
-			out->bounds = Box3_Expand(in->bounds, NEAR_DIST);
-
-			Box3_ToPoints(out->bounds, out->vertexes);
-
-			out->pending = false;
-			out->result = 1;
-
-			bsp->num_occlusion_queries++;
+	const cm_bsp_brush_t *b = bsp->cm->brushes;
+	for (int32_t i = 0; i < bsp->cm->file->num_brushes; i++, b++) {
+		if (b->contents & CONTENTS_OCCLUSION_QUERY) {
+			R_CreateOcclusionQuery(b->bounds);
 		}
 	}
 
-	if (out) {
-		Mem_Link(bsp, bsp->occlusion_queries);
+	r_bsp_light_t *l = bsp->lights;
+	for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
+		if (l->type == LIGHT_PATCH && l->origin.w > 64.f) {
+			l->query = R_CreateOcclusionQuery(l->bounds);
+		}
 	}
 
 	R_GetError(NULL);
@@ -667,6 +651,8 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
  * @brief
  */
 static void R_LoadBspModel(r_model_t *mod, void *buffer) {
+
+	R_DestroyOcclusionQueries(); // FIXME: Put this somewhere better
 
 	bsp_header_t *header = (bsp_header_t *) buffer;
 
@@ -739,10 +725,6 @@ static void R_FreeBspModel(r_media_t *self) {
 	glDeleteBuffers(1, &mod->bsp->depth_pass_elements_buffer);
 
 	glDeleteVertexArrays(1, &mod->bsp->vertex_array);
-
-	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++) {
-		glDeleteQueries(1, &mod->bsp->occlusion_queries[i].name);
-	}
 
 	r_bsp_inline_model_t *in = mod->bsp->inline_models;
 	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
