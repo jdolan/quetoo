@@ -192,7 +192,9 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 			continue;
 		}
 
-		return q->result == 0;
+		if (Box3_Contains(q->bounds, bounds) && q->result == 0) {
+			return true;
+		}
 	}
 
 	return false;
