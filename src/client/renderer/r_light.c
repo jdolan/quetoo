@@ -70,11 +70,13 @@ void R_UpdateLights(const r_view_t *view) {
 		}
 
 		const vec3_t position = Mat4_Transform(r_uniforms.block.view, l->origin);
+		const vec4_t normal = Mat4_TransformPlane(r_uniforms.block.view, l->normal, l->dist);
 
 		R_AddLightUniform(&(r_light_uniform_t) {
 			.model = Vec3_ToVec4(l->origin, l->radius),
 			.position = Vec3_ToVec4(position, l->type),
 			.color = Vec3_ToVec4(l->color, l->intensity),
+			.normal = normal,
 		});
 	}
 

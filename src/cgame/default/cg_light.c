@@ -108,6 +108,8 @@ void Cg_AddLights(void) {
 						.radius = b->origin.w,
 						.color = Vec4_XYZ(b->color),
 						.intensity = b->color.w,
+						.normal = Vec4_XYZ(b->normal),
+						.dist = b->normal.w,
 						.bounds = b->bounds,
 					});
 					break;
@@ -126,6 +128,8 @@ void Cg_AddLights(void) {
 				.radius = 96.f,
 				.color = Vec3_One(),
 				.intensity = 1.f,
+				.normal = Vec3_Down(),
+				.dist = -(e->origin.z + 64.f),
 				.bounds = Box3_Expand3(e->abs_model_bounds, Vec3(0.f, 0.f, 64.f))
 			});
 		}

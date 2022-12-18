@@ -1006,7 +1006,17 @@ typedef struct {
 	float intensity;
 
 	/**
-	 * @brief The light bounds, for directional lights.
+	 * @brief The light normal.
+	 */
+	vec3_t normal;
+
+	/**
+	 * @brief The light plane distance.
+	 */
+	float dist;
+
+	/**
+	 * @brief The light bounds.
 	 */
 	box3_t bounds;
 } r_light_t;
