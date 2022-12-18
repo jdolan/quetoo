@@ -29,6 +29,10 @@
  * @brief Light sources that optionally persistent over multiple frames.
  */
 typedef struct {
+	/**
+	 * @brief The light type.
+	 */
+	light_type_t type;
 
 	/**
 	 * @brief The light origin.

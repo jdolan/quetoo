@@ -47,6 +47,10 @@ void Cg_AddLight(const cg_light_t *l) {
 
 	cg_lights[i] = *l;
 
+	if (cg_lights[i].type == LIGHT_INVALID) {
+		cg_lights[i].type = LIGHT_DYNAMIC;
+	}
+
 	assert(cg_lights[i].decay >= 0.f);
 	assert(cg_lights[i].intensity >= 0.f);
 	
@@ -72,10 +76,12 @@ void Cg_AddLights(void) {
 		}
 
 		r_light_t out = {
+			.type = l->type,
 			.origin = l->origin,
 			.radius = l->radius,
 			.color = l->color,
-			.intensity = l->intensity
+			.intensity = l->intensity,
+			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
 		};
 
 		if (l->decay) {
@@ -86,29 +92,42 @@ void Cg_AddLights(void) {
 		cgi.AddLight(cgi.view, &out);
 	}
 
-	if (cg_add_lights->integer == 2) {
+	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+	const r_bsp_light_t *b = bsp->lights;
+	for (int32_t i = 0; i < bsp->num_lights; i++, b++) {
 
-		cgi.AddLight(cgi.view, &(r_light_t) {
-			.origin = Vec3_Fmaf(Vec3_Fmaf(cgi.view->origin, 64.f, Vec3_Up()), -64.f, cgi.view->forward),
-			.radius = 300.f,
-			.color = Vec3(.5f, .5f, .5f),
-			.intensity = .666f
-		});
+		if (b->type == LIGHT_PATCH && b->origin.w > 96.f) {
+
+			const r_entity_t *e = cgi.view->entities;
+			for (int32_t j = 0; j < cgi.view->num_entities; j++) {
+
+				if (IS_MESH_MODEL(e->model) && Box3_Intersects(b->bounds, e->abs_model_bounds)) {
+					cgi.AddLight(cgi.view, &(const r_light_t) {
+						.type = b->type,
+						.origin = Vec4_XYZ(b->origin),
+						.radius = b->origin.w,
+						.color = Vec4_XYZ(b->color),
+						.intensity = b->color.w,
+						.bounds = b->bounds,
+					});
+					break;
+				}
+			}
+		}
 	}
 
-	if (cg_add_lights->integer == 3) {
+	const r_entity_t *e = cgi.view->entities;
+	for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
 
-		const r_entity_t *e = cgi.view->entities;
-		for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
-
-			if (IS_MESH_MODEL(e->model)) {
-				cgi.AddLight(cgi.view, &(r_light_t) {
-					.origin = Vec3_Fmaf(e->origin, 64.f, Vec3_Up()),
-					.radius = 100.f,
-					.color = Vec3_Add(Vec3(.5f, .5f, .5f), Vec3_Scale(Vec3_Fmodf(e->origin, Vec3(3.f, 3.f, 3.f)), .5f / 3.f)),
-					.intensity = .666f
-				});
-			}
+		if (IS_MESH_MODEL(e->model) && !e->parent) {
+			cgi.AddLight(cgi.view, &(r_light_t) {
+				.type = LIGHT_SPOT,
+				.origin = Vec3_Fmaf(e->origin, 64.f, Vec3_Up()),
+				.radius = 96.f,
+				.color = Vec3_One(),
+				.intensity = 1.f,
+				.bounds = Box3_Expand3(e->abs_model_bounds, Vec3(0.f, 0.f, 64.f))
+			});
 		}
 	}
 }

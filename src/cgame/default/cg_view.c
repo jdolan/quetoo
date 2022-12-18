@@ -302,13 +302,6 @@ static void Cg_AddOcclusionQueries(void) {
 			cgi.AddOcclusionQuery(cgi.view, b->bounds);
 		}
 	}
-
-	const r_bsp_light_t *l = bsp->lights;
-	for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
-		if (l->type == LIGHT_PATCH && l->origin.w > 96.f) {
-			cgi.AddOcclusionQuery(cgi.view, l->bounds);
-		}
-	}
 }
 
 /**

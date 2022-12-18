@@ -192,7 +192,6 @@ _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius)
  * false otherwise.
  */
 _Bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
-
 	return R_OccludeBox(view, bounds) || R_CullBox(view, bounds);
 }
 
@@ -201,7 +200,6 @@ _Bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
  * false otherwise.
  */
 _Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius) {
-
 	return R_OccludeSphere(view, point, radius) || R_CullSphere(view, point, radius);
 }
 
@@ -389,7 +387,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	R_DrawOcclusionQueries(view);
 
-	R_UpdateOcclusionQueries(view);
+	//R_UpdateOcclusionQueries(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
@@ -413,11 +411,11 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_UpdateBlendDepth(view);
 
+	R_UpdateOcclusionQueries(view);
+
 	R_UpdateEntities(view);
 
 	R_UpdateLights(view);
-
-	R_UpdateOcclusionQueries(view);
 
 	R_DrawShadowmaps(view);
 

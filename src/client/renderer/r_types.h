@@ -981,6 +981,11 @@ typedef struct {
  */
 typedef struct {
 	/**
+	 * @brief The light type.
+	 */
+	light_type_t type;
+
+	/**
 	 * @brief The light origin.
 	 */
 	vec3_t origin;
@@ -999,6 +1004,11 @@ typedef struct {
 	 * @brief The light intensity.
 	 */
 	float intensity;
+
+	/**
+	 * @brief The light bounds, for directional lights.
+	 */
+	box3_t bounds;
 } r_light_t;
 
 /**

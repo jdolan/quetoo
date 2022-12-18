@@ -81,7 +81,20 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 		return;
 	}
 
-	r_occlusion_query_t *q = &view->occlusion_queries[view->num_occlusion_queries];
+	r_occlusion_query_t *q = view->occlusion_queries;
+	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
+
+		if (q->status > QUERY_INVALID) {
+			continue;
+		}
+
+		if (Box3_Intersects(q->bounds, bounds)) {
+			q->bounds = Box3_Union(q->bounds, bounds);
+			return;
+		}
+	}
+
+	q = &view->occlusion_queries[view->num_occlusion_queries];
 	q->name = r_occlusion_queries.query_objects[view->num_occlusion_queries];
 	q->bounds = Box3_Expand(bounds, 1.f);
 	q->status = QUERY_INVALID;
