@@ -97,43 +97,35 @@ void Cg_AddLights(void) {
 	for (int32_t i = 0; i < bsp->num_lights; i++, b++) {
 
 		if (b->type == LIGHT_PATCH && b->origin.w > 96.f) {
-
-			const r_entity_t *e = cgi.view->entities;
-			for (int32_t j = 0; j < cgi.view->num_entities; j++) {
-
-				if (IS_MESH_MODEL(e->model) && Box3_Intersects(b->bounds, e->abs_model_bounds)) {
-					cgi.AddLight(cgi.view, &(const r_light_t) {
-						.type = b->type,
-						.origin = Vec4_XYZ(b->origin),
-						.radius = b->origin.w,
-						.color = Vec4_XYZ(b->color),
-						.intensity = b->color.w,
-						.normal = Vec4_XYZ(b->normal),
-						.dist = b->normal.w,
-						.bounds = b->bounds,
-					});
-					break;
-				}
-			}
-		}
-	}
-
-	const r_entity_t *e = cgi.view->entities;
-	for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
-
-		if (IS_MESH_MODEL(e->model) && !e->parent) {
-			cgi.AddLight(cgi.view, &(r_light_t) {
-				.type = LIGHT_AMBIENT,
-				.origin = Vec3_Fmaf(e->origin, 64.f, Vec3_Up()),
-				.radius = 96.f,
-				.color = Vec3_One(),
-				.intensity = 1.f,
-				.normal = Vec3_Down(),
-				.dist = -(e->origin.z + 64.f),
-				.bounds = Box3_Expand3(e->abs_model_bounds, Vec3(0.f, 0.f, 64.f))
+			cgi.AddLight(cgi.view, &(const r_light_t) {
+				.type = b->type,
+				.origin = Vec4_XYZ(b->origin),
+				.radius = b->origin.w,
+				.color = Vec4_XYZ(b->color),
+				.intensity = b->color.w,
+				.normal = Vec4_XYZ(b->normal),
+				.dist = b->normal.w,
+				.bounds = b->bounds,
 			});
 		}
 	}
+
+//	const r_entity_t *e = cgi.view->entities;
+//	for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
+//
+//		if (IS_MESH_MODEL(e->model) && !e->parent) {
+//			cgi.AddLight(cgi.view, &(r_light_t) {
+//				.type = LIGHT_AMBIENT,
+//				.origin = Vec3_Fmaf(e->origin, 64.f, Vec3_Up()),
+//				.radius = 96.f,
+//				.color = Vec3_One(),
+//				.intensity = 1.f,
+//				.normal = Vec3_Down(),
+//				.dist = -(e->origin.z + 64.f),
+//				.bounds = Box3_Expand3(e->abs_model_bounds, Vec3(0.f, 0.f, 64.f))
+//			});
+//		}
+//	}
 }
 
 /**

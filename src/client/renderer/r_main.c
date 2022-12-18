@@ -356,7 +356,6 @@ void R_InitView(r_view_t *view) {
 	view->num_beams = 0;
 	view->num_entities = 0;
 	view->num_lights = 0;
-	view->num_shadows = 0;
 	view->num_sprites = 0;
 	view->num_sprite_instances = 0;
 	view->num_stains = 0;

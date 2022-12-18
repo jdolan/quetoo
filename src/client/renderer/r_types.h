@@ -977,68 +977,6 @@ typedef struct {
 #define MAX_STAINS			0x400
 
 /**
- * @brief Hardware light sources.
- */
-typedef struct {
-	/**
-	 * @brief The light type.
-	 */
-	light_type_t type;
-
-	/**
-	 * @brief The light origin.
-	 */
-	vec3_t origin;
-
-	/**
-	 * @brief The light radius.
-	 */
-	float radius;
-
-	/**
-	 * @brief The light color.
-	 */
-	vec3_t color;
-
-	/**
-	 * @brief The light intensity.
-	 */
-	float intensity;
-
-	/**
-	 * @brief The light normal.
-	 */
-	vec3_t normal;
-
-	/**
-	 * @brief The light plane distance.
-	 */
-	float dist;
-
-	/**
-	 * @brief The light bounds.
-	 */
-	box3_t bounds;
-} r_light_t;
-
-#define MAX_SHADOWS MAX_LIGHTS
-
-/**
- * @brief Shadow cubemaps for light sources.
- */
-typedef struct {
-	/**
-	 * @brief The light source.
-	 */
-	r_light_t *source;
-
-	/**
-	 * @brief The light uniform index and cubemap layer.
-	 */
-	GLint index;
-} r_shadow_t;
-
-/**
  * @brief Entity sub-mesh skins.
  */
 #define MAX_ENTITY_SKINS 	0x8
@@ -1154,6 +1092,64 @@ typedef struct r_entity_s {
 	 */
 	int32_t blend_depth;
 } r_entity_t;
+
+#define MAX_LIGHT_ENTITIES 16
+
+/**
+ * @brief Hardware light sources.
+ */
+typedef struct {
+	/**
+	 * @brief The light type.
+	 */
+	light_type_t type;
+
+	/**
+	 * @brief The light origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The light radius.
+	 */
+	float radius;
+
+	/**
+	 * @brief The light color.
+	 */
+	vec3_t color;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
+
+	/**
+	 * @brief The light normal.
+	 */
+	vec3_t normal;
+
+	/**
+	 * @brief The light plane distance.
+	 */
+	float dist;
+
+	/**
+	 * @brief The light bounds.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The entities that are within the bounds of this light.
+	 */
+	const r_entity_t *entities[MAX_LIGHT_ENTITIES];
+	int32_t num_entities;
+
+	/**
+	 * @brief The light uniform index and shadowmap layer.
+	 */
+	GLint index;
+} r_light_t;
 
 #define MAX_OCCLUSION_QUERIES 256
 
@@ -1341,13 +1337,6 @@ typedef struct {
 	 */
 	r_light_t lights[MAX_LIGHTS];
 	int32_t num_lights;
-
-	/**
-	 * @brief The shadows to render for the current frame.
-	 * @remarks Only lights which illuminate entities will produce shadows.
-	 */
-	r_shadow_t shadows[MAX_SHADOWS];
-	int32_t num_shadows;
 
 	/**
 	 * @brief The stains to render for the current frame.
