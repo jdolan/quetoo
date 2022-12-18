@@ -356,6 +356,7 @@ void R_InitView(r_view_t *view) {
 	view->num_beams = 0;
 	view->num_entities = 0;
 	view->num_lights = 0;
+	view->num_shadows = 0;
 	view->num_sprites = 0;
 	view->num_sprite_instances = 0;
 	view->num_stains = 0;
@@ -417,7 +418,7 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_UpdateLights(view);
 
-	R_DrawShadowmaps(view);
+	R_DrawShadows(view);
 
 	R_UpdateSprites(view);
 
@@ -637,7 +638,7 @@ void R_Init(void) {
 
 	R_InitOcclusionQueries();
 
-	R_InitShadowmaps();
+	R_InitShadows();
 
 	R_InitDraw2D();
 
@@ -685,7 +686,7 @@ void R_Shutdown(void) {
 
 	R_ShutdownBloom();
 
-	R_ShutdownShadowmaps();
+	R_ShutdownShadows();
 
 	R_ShutdownOcclusionQueries();
 

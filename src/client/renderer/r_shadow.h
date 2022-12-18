@@ -23,20 +23,8 @@
 
 #include "r_types.h"
 
-typedef struct {
-	/**
-	 * @brief Each light source targets a layer in the cubemap array.
-	 */
-	GLuint cubemap_array;
-
-	/**
-	 * @brief Each light source has a framebuffer to capture its depth pass.
-	 */
-	GLuint framebuffers[MAX_LIGHTS];
-} r_shadowmaps_t;
-
-extern r_shadowmaps_t r_shadowmaps;
-
-void R_DrawShadowmaps(const r_view_t *view);
-void R_InitShadowmaps(void);
-void R_ShutdownShadowmaps(void);
+#ifdef __R_LOCAL_H__
+void R_DrawShadows(const r_view_t *view);
+void R_InitShadows(void);
+void R_ShutdownShadows(void);
+#endif /* __R_LOCAL_H__ */

@@ -20,9 +20,9 @@ shaders_DATA = \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
 	polylib.glsl \
-	shadowmap_fs.glsl \
-	shadowmap_gs.glsl \
-	shadowmap_vs.glsl \
+	shadow_fs.glsl \
+	shadow_gs.glsl \
+	shadow_vs.glsl \
 	sky_fs.glsl \
 	sky_vs.glsl \
 	soften_fs.glsl \

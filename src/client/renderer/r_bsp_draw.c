@@ -651,9 +651,6 @@ void R_DrawWorld(const r_view_t *view) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->atlas->texnum);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP);
-	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadowmaps.cubemap_array);
-
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
 	glBindTexture(GL_TEXTURE_2D, r_bsp_program.warp_image->texnum);
 

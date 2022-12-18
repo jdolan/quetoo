@@ -977,7 +977,7 @@ typedef struct {
 #define MAX_STAINS			0x400
 
 /**
- * @brief Dynamic light sources.
+ * @brief Hardware light sources.
  */
 typedef struct {
 	/**
@@ -1020,6 +1020,23 @@ typedef struct {
 	 */
 	box3_t bounds;
 } r_light_t;
+
+#define MAX_SHADOWS MAX_LIGHTS
+
+/**
+ * @brief Shadow cubemaps for light sources.
+ */
+typedef struct {
+	/**
+	 * @brief The light source.
+	 */
+	r_light_t *source;
+
+	/**
+	 * @brief The light uniform index and cubemap layer.
+	 */
+	GLint index;
+} r_shadow_t;
 
 /**
  * @brief Entity sub-mesh skins.
@@ -1326,6 +1343,13 @@ typedef struct {
 	int32_t num_lights;
 
 	/**
+	 * @brief The shadows to render for the current frame.
+	 * @remarks Only lights which illuminate entities will produce shadows.
+	 */
+	r_shadow_t shadows[MAX_SHADOWS];
+	int32_t num_shadows;
+
+	/**
 	 * @brief The stains to render for the current frame.
 	 */
 	r_stain_t stains[MAX_STAINS];
@@ -1461,7 +1485,7 @@ typedef enum {
 	TEXTURE_SKY,
 
 	/**
-	 * @brief The shadowmap cubemap array texture.
+	 * @brief The shadow cubemap array texture.
 	 */
 	TEXTURE_SHADOWMAP,
 

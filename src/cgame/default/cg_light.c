@@ -123,7 +123,7 @@ void Cg_AddLights(void) {
 
 		if (IS_MESH_MODEL(e->model) && !e->parent) {
 			cgi.AddLight(cgi.view, &(r_light_t) {
-				.type = LIGHT_SPOT,
+				.type = LIGHT_AMBIENT,
 				.origin = Vec3_Fmaf(e->origin, 64.f, Vec3_Up()),
 				.radius = 96.f,
 				.color = Vec3_One(),
