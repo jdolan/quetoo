@@ -188,6 +188,11 @@ void R_DrawShadowmaps(const r_view_t *view) {
 		};
 
 		const box3_t bounds = Box3_FromCenterRadius(Vec4_XYZ(l->model), l->model.w);
+
+		if (R_CulludeBox(view, bounds)) {
+			continue;
+		}
+
 		const r_entity_t *e = view->entities;
 		for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
@@ -202,7 +207,7 @@ void R_DrawShadowmaps(const r_view_t *view) {
 			v.entities[v.num_entities++] = *e;
 		}
 
-		R_CONDITIONAL_RENDER(bounds, R_DrawShadowmapView(&v));
+		R_DrawShadowmapView(&v);
 	}
 
 	glUseProgram(0);

@@ -415,7 +415,7 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 				continue;
 			}
 
-			R_CONDITIONAL_RENDER(e->abs_model_bounds, R_DrawMeshEntity(view, e));
+			R_DrawMeshEntity(view, e);
 		}
 	}
 

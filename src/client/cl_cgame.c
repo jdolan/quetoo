@@ -263,6 +263,7 @@ void Cl_InitCgame(void) {
 	import.AddSprite = R_AddSprite;
 	import.AddBeam = R_AddBeam;
 	import.AddStain = R_AddStain;
+	import.AddOcclusionQuery = R_AddOcclusionQuery;
 	import.DrawPlayerModelView = R_DrawPlayerModelView;
 
 	import.BindFont = R_BindFont;

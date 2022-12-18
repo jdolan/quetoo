@@ -583,30 +583,6 @@ static void R_LoadBspDepthPassElements(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
-
-	bsp->occlusion_queries = g_ptr_array_new_with_free_func((GDestroyNotify) R_DestroyOcclusionQuery);
-
-	const cm_bsp_brush_t *b = bsp->cm->brushes;
-	for (int32_t i = 0; i < bsp->cm->file->num_brushes; i++, b++) {
-		if (b->contents & CONTENTS_OCCLUSION_QUERY) {
-			g_ptr_array_add(bsp->occlusion_queries, R_CreateOcclusionQuery(b->bounds));
-		}
-	}
-
-	r_bsp_light_t *l = bsp->lights;
-	for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
-		if (l->type == LIGHT_PATCH) {
-			g_ptr_array_add(bsp->occlusion_queries, R_CreateOcclusionQuery(l->bounds));
-		}
-	}
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
 static void R_LoadBspVertexArray(r_model_t *mod) {
 
 	glGenVertexArrays(1, &mod->bsp->vertex_array);
@@ -679,7 +655,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspLightmap(mod->bsp);
 	R_LoadBspLightgrid(mod);
 	R_LoadBspDepthPassElements(mod->bsp);
-	R_LoadBspOcclusionQueries(mod->bsp);
 
 	if (r_draw_bsp_lightgrid->value) {
 		Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_LIGHTGRID));
@@ -730,8 +705,6 @@ static void R_FreeBspModel(r_media_t *self) {
 	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 		g_ptr_array_free(in->blend_elements, 1);
 	}
-
-	g_ptr_array_free(mod->bsp->occlusion_queries, true);
 }
 
 /**

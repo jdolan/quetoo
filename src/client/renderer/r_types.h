@@ -481,19 +481,6 @@ typedef struct r_bsp_inline_model_s {
 } r_bsp_inline_model_t;
 
 /**
- * @brief OpenGL hardware-accelerated occlusion queries.
- * @remarks Occlusion queries are processed once per frame. Objects residing completely
- * within a query volume may be culled if the occlusion query produces no visible samples.
- */
-typedef struct {
-	GLuint name;
-	box3_t bounds;
-	float size;
-	vec3_t vertexes[8];
-	GLint result;
-} r_occlusion_query_t;
-
-/**
  * @brief
  */
 typedef struct {
@@ -586,8 +573,6 @@ typedef struct {
 	r_bsp_lightgrid_t *lightgrid;
 
 	r_bsp_draw_elements_t *sky;
-
-	GPtrArray *occlusion_queries;
 
 	GLuint vertex_array;
 	GLuint vertex_buffer;
@@ -1133,6 +1118,41 @@ typedef struct r_entity_s {
 	int32_t blend_depth;
 } r_entity_t;
 
+#define MAX_OCCLUSION_QUERIES 256
+
+typedef enum {
+	QUERY_INVALID,
+	QUERY_CULLED,
+	QUERY_PENDING,
+	QUERY_VISIBLE,
+	QUERY_OCCLUDED
+} r_occlusion_query_status_t;
+
+/**
+ * @brief OpenGL occlusion queries.
+ */
+typedef struct {
+	/**
+	 * @brief The query name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The query bounds.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The query vertexes (box corners).
+	 */
+	vec3_t vertexes[8];
+
+	/**
+	 * @brief The query status.
+	 */
+	r_occlusion_query_status_t status;
+} r_occlusion_query_t;
+
 /**
  * @brief Framebuffer attachments bitmask.
  */
@@ -1292,6 +1312,12 @@ typedef struct {
 	int32_t num_stains;
 
 	/**
+	 * @brief The occlusion queries for the current frame.
+	 */
+	r_occlusion_query_t occlusion_queries[MAX_OCCLUSION_QUERIES];
+	int32_t num_occlusion_queries;
+
+	/**
 	 * @brief The view frustum, for box and sphere culling.
 	 * @remarks This is populated by the renderer.
 	 */
@@ -1354,8 +1380,9 @@ typedef struct {
  */
 typedef struct {
 
-	int32_t count_occlusion_queries;
-	int32_t count_occlusion_queries_passed;
+	int32_t count_occlusion_queries_visible;
+	int32_t count_occlusion_queries_occluded;
+	int32_t count_occlusion_queries_pending;
 
 	int32_t count_bsp_inline_models;
 	int32_t count_bsp_draw_elements;

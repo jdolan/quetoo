@@ -361,6 +361,7 @@ void R_InitView(r_view_t *view) {
 	view->num_sprites = 0;
 	view->num_sprite_instances = 0;
 	view->num_stains = 0;
+	view->num_occlusion_queries = 0;
 
 	memset(view->frustum, 0, sizeof(view->frustum));
 }
@@ -388,7 +389,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	R_DrawOcclusionQueries(view);
 
-	//R_UpdateOcclusionQueries(view);
+	R_UpdateOcclusionQueries(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
@@ -406,6 +407,8 @@ void R_DrawMainView(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
+	R_DrawOcclusionQueries(view);
+
 	R_DrawBspLightgrid(view);
 
 	R_UpdateBlendDepth(view);
@@ -413,6 +416,8 @@ void R_DrawMainView(r_view_t *view) {
 	R_UpdateEntities(view);
 
 	R_UpdateLights(view);
+
+	R_UpdateOcclusionQueries(view);
 
 	R_DrawShadowmaps(view);
 

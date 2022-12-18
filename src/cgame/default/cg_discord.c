@@ -130,9 +130,9 @@ static void Cg_DiscordDisconnected(int errorCode, const char* message) {
 }
 
 typedef enum {
-	INVALID,
-	IN_MENU,
-	PLAYING
+	DISCORD_INVALID,
+	DISCORD_INACTIVE,
+	DISCORD_ACTIVE
 } cg_discord_status_t;
 
 typedef struct {
@@ -186,7 +186,7 @@ void Cg_UpdateDiscord(void) {
 		char spectateSecret[128];
 
 		if (*cgi.state == CL_ACTIVE) {
-			if (cg_discord_state.status != PLAYING) {
+			if (cg_discord_state.status != DISCORD_ACTIVE) {
 				needs_update = true;
 			
 				presence.largeImageKey = "default";
@@ -207,17 +207,17 @@ void Cg_UpdateDiscord(void) {
 
 				presence.partySize = cg_state.num_clients;
 				presence.partyMax = cg_state.max_clients;
-				cg_discord_state.status = PLAYING;
+				cg_discord_state.status = DISCORD_ACTIVE;
 				presence.instance = true;
 			}
 		} else {
-			if (cg_discord_state.status != IN_MENU) {
+			if (cg_discord_state.status != DISCORD_INACTIVE) {
 				needs_update = true;
 			
 				presence.largeImageKey = "default";
 				presence.state = "In Main Menu";
 
-				cg_discord_state.status = IN_MENU;
+				cg_discord_state.status = DISCORD_INACTIVE;
 			}
 		}
 

@@ -193,13 +193,23 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	{
-		R_Draw2DString(x, y, "Other:", color_yellow);
+		R_Draw2DString(x, y, "Occlusion queries:", color_yellow);
 		y += ch;
 
-		R_Draw2DString(x, y, va(" %d occlusion queries (%d passed)",
-								r_stats.count_occlusion_queries,
-								r_stats.count_occlusion_queries_passed), color_yellow);
+		R_Draw2DString(x, y, va(" %d visible", r_stats.count_occlusion_queries_visible), color_yellow);
 		y += ch;
+		R_Draw2DString(x, y, va(" %d occluded", r_stats.count_occlusion_queries_occluded), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d pending", r_stats.count_occlusion_queries_pending), color_yellow);
+		y += ch;
+	}
+
+	y += ch;
+
+	{
+		R_Draw2DString(x, y, "Lights:", color_yellow);
+		y += ch;
+
 		R_Draw2DString(x, y, va(" %d lights", cl_view.num_lights), color_yellow);
 		y += ch;
 	}
@@ -244,7 +254,7 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-	GLint ch, x = 1, y = cl_draw_renderer_stats->value ? 540 : 64;
+	GLint ch, x = 1, y = cl_draw_renderer_stats->value ? 600 : 64;
 
 	if (!cl_draw_sound_stats->value) {
 		return;

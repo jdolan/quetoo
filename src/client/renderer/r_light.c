@@ -37,6 +37,8 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
+	R_AddOcclusionQuery(view, Box3_FromCenterRadius(l->origin, l->radius));
+
 	view->lights[view->num_lights++] = *l;
 }
 
@@ -72,7 +74,9 @@ void R_UpdateLights(const r_view_t *view) {
 		});
 	}
 
-	if (view->type == VIEW_MAIN && r_shadowmap->value) {
+	if (r_shadowmap->value) {
+
+		// add static BSP light sources as shadow casters
 
 		const r_bsp_light_t *l = r_world_model->bsp->lights;
 		for (int32_t i = 0; i < r_world_model->bsp->num_lights; i++, l++) {
@@ -81,7 +85,11 @@ void R_UpdateLights(const r_view_t *view) {
 				continue;
 			}
 
-			if (R_OccludeBox(view, l->bounds)) {
+			if (l->origin.w < 96.f) {
+				continue;
+			}
+
+			if (R_CulludeBox(view, l->bounds)) {
 				continue;
 			}
 
@@ -91,33 +99,35 @@ void R_UpdateLights(const r_view_t *view) {
 				if (e->model && Box3_Intersects(l->bounds, e->abs_model_bounds)) {
 
 					const vec3_t position = Mat4_Transform(r_uniforms.block.view, Vec4_XYZ(l->origin));
-					const vec4_t normal = Mat4_TransformPlane(r_uniforms.block.view, Vec4_XYZ(l->normal), l->normal.w);
+
 					R_AddLightUniform(&(const r_light_uniform_t) {
 						.model = l->origin,
 						.position = Vec3_ToVec4(position, l->type),
-						.normal = normal,
+						.normal = Mat4_TransformPlane(r_uniforms.block.view, Vec4_XYZ(l->normal), l->normal.w),
 						.color = l->color,
 					});
 					break;
 				}
 			}
 		}
-	}
 
-//	const r_entity_t *e = view->entities;
-//	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-//
-//		if (IS_MESH_MODEL(e->model)) {
-//
-//			const vec3_t origin = Vec3_Fmaf(e->origin, 64.f, Vec3_Up());
-//
-//			R_AddLightUniform(&(r_light_uniform_t) {
-//				.model = Vec3_ToVec4(origin, 96.f),
-//				.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, origin), LIGHT_AMBIENT),
-//				.color = Vec4_One(),
-//			});
-//		}
-//	}
+		// add a fake sun / ambient shadow caster above each entity
+
+		const r_entity_t *e = view->entities;
+		for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+			if (IS_MESH_MODEL(e->model)) {
+
+				const vec3_t origin = Vec3_Fmaf(e->origin, 56.f, Vec3_Up());
+
+				R_AddLightUniform(&(r_light_uniform_t) {
+					.model = Vec3_ToVec4(origin, 96.f),
+					.position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, origin), LIGHT_AMBIENT),
+					.color = Vec4_One(),
+				});
+			}
+		}
+	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
 	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, num_lights), sizeof(r_lights.block.num_lights), &r_lights.block.num_lights);

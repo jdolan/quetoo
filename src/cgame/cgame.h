@@ -752,6 +752,11 @@ typedef struct cg_import_s {
 	void (*AddStain)(r_view_t *view, const r_stain_t *s);
 
 	/**
+	 * @brief Add an occlusion query to the scene.
+	 */
+	void (*AddOcclusionQuery)(r_view_t *view, const box3_t bounds);
+
+	/**
 	 * @brief Draws the player model view.
 	 */
 	void (*DrawPlayerModelView)(r_view_t *view);
