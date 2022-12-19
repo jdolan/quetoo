@@ -142,8 +142,20 @@ static void R_DrawShadow(const r_light_t *l) {
 
 	glUniform1i(r_shadow_program.cubemap_layer, l->index);
 
+	mat4_t projection;
+	switch (l->type) {
+		case LIGHT_AMBIENT:
+		case LIGHT_SUN:
+			projection = Mat4_FromOrtho(-512.f, 512.f, -512.f, 512.f, 0.f, 1024.f);
+			break;
+		default:
+			projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+			break;
+	}
 
-	const mat4_t cubemap_view[6] = {
+	glUniformMatrix4fv(r_shadow_program.cubemap_projection, 1, GL_FALSE, projection.array);
+
+	const mat4_t view[6] = {
 		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
 		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3(-1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
 
@@ -154,7 +166,7 @@ static void R_DrawShadow(const r_light_t *l) {
 		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0.f, -1.f,  0.f)),
 	};
 
-	glUniformMatrix4fv(r_shadow_program.cubemap_view, 6, GL_FALSE, (GLfloat *) cubemap_view);
+	glUniformMatrix4fv(r_shadow_program.cubemap_view, 6, GL_FALSE, (GLfloat *) view);
 
 	for (int32_t i = 0; i < l->num_entities; i++) {
 		const r_entity_t *e = l->entities[i];
@@ -172,7 +184,7 @@ static void R_DrawShadow(const r_light_t *l) {
  */
 void R_DrawShadows(const r_view_t *view) {
 
-	if (!r_shadowmap->value) {
+	if (!r_shadowmap->integer) {
 		return;
 	}
 
@@ -231,11 +243,6 @@ static void R_InitShadowProgram(void) {
 	r_shadow_program.cubemap_layer = glGetUniformLocation(r_shadow_program.name, "cubemap_layer");
 	r_shadow_program.cubemap_view = glGetUniformLocation(r_shadow_program.name, "cubemap_view");
 	r_shadow_program.cubemap_projection = glGetUniformLocation(r_shadow_program.name, "cubemap_projection");
-
-	const float fov = tanf(Radians(90.f / 2.f));
-	const mat4_t cubemap_projection = Mat4_FromFrustum(-fov, fov, -fov, fov, NEAR_DIST, MAX_WORLD_DIST);
-
-	glUniformMatrix4fv(r_shadow_program.cubemap_projection, 1, GL_FALSE, cubemap_projection.array);
 
 	glUseProgram(0);
 
