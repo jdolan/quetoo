@@ -33,7 +33,6 @@ uniform samplerCubeArrayShadow texture_shadowmap;
 uniform mat4 model;
 
 uniform int entity;
-uniform int bicubic;
 
 uniform material_t material;
 uniform stage_t stage;
@@ -68,14 +67,10 @@ struct fragment_t {
 } fragment;
 
 /**
- * @brief Samples the lightmap and stainmap with either bilinear or bicubic sampling.
+ * @brief
  */
 vec4 sample_lightmap(int index) {
-	if (bicubic > 0) {
-		return texture_bicubic(texture_lightmap, vec3(vertex.lightmap, index));
-	} else {
-		return texture(texture_lightmap, vec3(vertex.lightmap, index));
-	}
+	return texture(texture_lightmap, vec3(vertex.lightmap, index));
 }
 
 /**

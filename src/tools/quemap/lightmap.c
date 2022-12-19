@@ -69,9 +69,9 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 		lm->st_maxs = Vec2_Maxf(lm->st_maxs, Vec3_XY(st));
 	}
 
-	// add 4 luxels of padding around the lightmap for bicubic filtering
-	lm->w = floorf(lm->st_maxs.x - lm->st_mins.x) + 4;
-	lm->h = floorf(lm->st_maxs.y - lm->st_mins.y) + 4;
+	// add 2 luxels of padding around the lightmap for bilinear filtering
+	lm->w = floorf(lm->st_maxs.x - lm->st_mins.x) + 2;
+	lm->h = floorf(lm->st_maxs.y - lm->st_mins.y) + 2;
 }
 
 /**

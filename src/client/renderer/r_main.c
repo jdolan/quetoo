@@ -47,7 +47,6 @@ int32_t r_error_count;
 cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
-cvar_t *r_bicubic;
 cvar_t *r_bloom;
 cvar_t *r_bloom_lod;
 cvar_t *r_caustics;
@@ -518,7 +517,6 @@ static void R_InitLocal(void) {
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
 	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
 	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE, "Controls texture brightness");
-	r_bicubic = Cvar_Add("r_bicubic", "1", CVAR_ARCHIVE, "Enable or disable high quality texture filtering on lightmaps and stainmaps.");
 	r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of light bloom effects");
 	r_bloom_lod = Cvar_Add("r_bloom_lod", "8", CVAR_ARCHIVE, "Controls the level of detail of light bloom effects");
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");

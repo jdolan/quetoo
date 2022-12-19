@@ -54,8 +54,6 @@ static struct {
 	GLint entity;
 	GLint alpha_test;
 
-	GLint bicubic;
-
 	struct {
 		GLint alpha_test;
 		GLint roughness;
@@ -626,8 +624,6 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glUseProgram(r_bsp_program.name);
 
-	glUniform1i(r_bsp_program.bicubic, r_bicubic->integer);
-
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
@@ -745,7 +741,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_shadowmap = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap");
 
 	r_bsp_program.entity = glGetUniformLocation(r_bsp_program.name, "entity");
-	r_bsp_program.bicubic = glGetUniformLocation(r_bsp_program.name, "bicubic");
 
 	r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
 	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");

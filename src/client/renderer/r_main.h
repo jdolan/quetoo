@@ -26,7 +26,6 @@
 extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
-extern cvar_t *r_bicubic;
 extern cvar_t *r_bloom;
 extern cvar_t *r_bloom_lod;
 extern cvar_t *r_caustics;
