@@ -142,7 +142,6 @@ static void R_DrawShadow(const r_light_t *l) {
 
 	glUniform1i(r_shadow_program.cubemap_layer, l->index);
 
-	glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
 
 	const mat4_t cubemap_view[6] = {
 		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
@@ -177,6 +176,8 @@ void R_DrawShadows(const r_view_t *view) {
 		return;
 	}
 
+	glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
+
 	glUseProgram(r_shadow_program.name);
 
 	const r_light_t *l = view->lights;
@@ -198,6 +199,8 @@ void R_DrawShadows(const r_view_t *view) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glUseProgram(0);
+
+	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	R_GetError(NULL);
 }
