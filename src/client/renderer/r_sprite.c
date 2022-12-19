@@ -498,7 +498,7 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		}
 
 		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) in->offset);
-		r_stats.count_sprite_draw_elements++;
+		r_stats.sprite_draw_elements++;
 
 		in = chain;
 	}

@@ -307,7 +307,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 	const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
 	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 
-	r_stats.count_mesh_triangles += face->num_elements / 3;
+	r_stats.mesh_triangles += face->num_elements / 3;
 
 	R_DrawMeshEntityMaterialStages(e, face, mesh, material);
 }
@@ -393,7 +393,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 		glDepthRange(0.f, 1.f);
 	}
 
-	r_stats.count_mesh_models++;
+	r_stats.mesh_models++;
 }
 
 /**

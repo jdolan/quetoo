@@ -201,13 +201,13 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 
 		switch (q->status) {
 			case QUERY_VISIBLE:
-				r_stats.count_occlusion_queries_visible++;
+				r_stats.occlusion_queries_visible++;
 				break;
 			case QUERY_OCCLUDED:
-				r_stats.count_occlusion_queries_occluded++;
+				r_stats.occlusion_queries_occluded++;
 				break;
 			case QUERY_PENDING:
-				r_stats.count_occlusion_queries_pending++;
+				r_stats.occlusion_queries_pending++;
 				break;
 			default:
 				break;

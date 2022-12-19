@@ -1412,26 +1412,27 @@ typedef struct {
  * @brief Renderer statistics.
  */
 typedef struct {
+	int32_t lights;
 
-	int32_t count_occlusion_queries_visible;
-	int32_t count_occlusion_queries_occluded;
-	int32_t count_occlusion_queries_pending;
+	int32_t occlusion_queries_visible;
+	int32_t occlusion_queries_occluded;
+	int32_t occlusion_queries_pending;
 
-	int32_t count_bsp_inline_models;
-	int32_t count_bsp_draw_elements;
-	int32_t count_bsp_blend_draw_elements;
-	int32_t count_bsp_triangles;
+	int32_t bsp_inline_models;
+	int32_t bsp_draw_elements;
+	int32_t bsp_blend_draw_elements;
+	int32_t bsp_triangles;
 
-	int32_t count_mesh_models;
-	int32_t count_mesh_triangles;
+	int32_t mesh_models;
+	int32_t mesh_triangles;
 
-	int32_t count_sprite_draw_elements;
+	int32_t sprite_draw_elements;
 
-	int32_t count_draw_chars;
-	int32_t count_draw_fills;
-	int32_t count_draw_images;
-	int32_t count_draw_lines;
-	int32_t count_draw_arrays;
+	int32_t draw_chars;
+	int32_t draw_fills;
+	int32_t draw_images;
+	int32_t draw_lines;
+	int32_t draw_arrays;
 
 } r_stats_t;
 

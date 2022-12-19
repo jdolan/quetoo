@@ -100,6 +100,8 @@ void R_UpdateLights(r_view_t *view) {
 		R_AddLightUniform(l);
 	}
 
+	r_stats.lights = r_lights.block.num_lights;
+
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
 	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, num_lights), sizeof(r_lights.block.num_lights), &r_lights.block.num_lights);
 	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, lights), sizeof(r_light_uniform_t) * r_lights.block.num_lights, &r_lights.block.lights);
