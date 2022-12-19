@@ -22,26 +22,44 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 18) out;
 
-uniform int cubemap_layer;
-uniform mat4 cubemap_view[6];
-uniform mat4 cubemap_projection;
+uniform int shadow_index;
+uniform mat4 shadow_view[6];
+uniform mat4 shadow_projection;
 
 out vec4 position;
 
 void main() {
 
-    for (int i = 0; i < 6; i++) {
-		gl_Layer = cubemap_layer * 6 + i;
+	light_t light = lights[shadow_index];
+	int type = int(light.position.w);
 
-        for (int j = 0; j < 3; j++) {
+	if (type == LIGHT_AMBIENT || type == LIGHT_SUN) {
+		gl_Layer = shadow_index;
 
-			position = cubemap_view[i] * gl_in[j].gl_Position;
+		for (int j = 0; j < 3; j++) {
 
-            gl_Position = cubemap_projection * position;
+			position = shadow_view[0] * gl_in[j].gl_Position;
 
-            EmitVertex();
-        }
+			gl_Position = shadow_projection * position;
 
-        EndPrimitive();
-    }
-}  
+			EmitVertex();
+		}
+
+		EndPrimitive();
+	} else {
+		for (int i = 0; i < 6; i++) {
+			gl_Layer = shadow_index * 6 + i;
+
+			for (int j = 0; j < 3; j++) {
+
+				position = shadow_view[i] * gl_in[j].gl_Position;
+
+				gl_Position = shadow_projection * position;
+
+				EmitVertex();
+			}
+
+			EndPrimitive();
+		}
+	}
+}

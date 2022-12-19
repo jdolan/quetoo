@@ -21,7 +21,8 @@
 
 #include "r_local.h"
 
-#define SHADOWMAP_SIZE 512
+#define SHADOWMAP_SIZE 1024
+#define SHADOWMAP_CUBE_SIZE 512
 
 /**
  * @brief The shadow program.
@@ -35,9 +36,9 @@ static struct {
 
 	GLint model;
 
-	GLint cubemap_layer;
-	GLint cubemap_view;
-	GLint cubemap_projection;
+	GLint shadow_index;
+	GLint shadow_view;
+	GLint shadow_projection;
 } r_shadow_program;
 
 /**
@@ -45,7 +46,12 @@ static struct {
  */
 static struct {
 	/**
-	 * @brief Each shadow targets a layer in the cubemap array.
+	 * @brief Each directional light source targets a layer in the texture array.
+	 */
+	GLuint texture_array;
+
+	/**
+	 * @brief Each point light source targets a layer in the cubemap array.
 	 */
 	GLuint cubemap_array;
 
@@ -116,23 +122,38 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 }
 
 /**
- * @brief Clears the shadow cubemap for the specified light.
+ * @brief Clears the shadow texture for the specified light.
  */
 static void R_ClearShadow(const r_light_t *l) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffers[l->index]);
 
-	for (int32_t i = 0; i < 6; i++) {
+	if (l->type == LIGHT_AMBIENT || l->type == LIGHT_SUN) {
 		glFramebufferTextureLayer(GL_FRAMEBUFFER,
 								  GL_DEPTH_ATTACHMENT,
-								  r_shadows.cubemap_array,
+								  r_shadows.texture_array,
 								  0,
-								  l->index * 6 + i);
+								  l->index);
 
 		glClear(GL_DEPTH_BUFFER_BIT);
+
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.texture_array, 0);
+	} else {
+		for (int32_t i = 0; i < 6; i++) {
+			glFramebufferTextureLayer(GL_FRAMEBUFFER,
+									  GL_DEPTH_ATTACHMENT,
+									  r_shadows.cubemap_array,
+									  0,
+									  l->index * 6 + i);
+
+			glClear(GL_DEPTH_BUFFER_BIT);
+		}
+
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_array, 0);
 	}
 
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_array, 0);
+	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	assert(status == GL_FRAMEBUFFER_COMPLETE);
 }
 
 /**
@@ -140,33 +161,38 @@ static void R_ClearShadow(const r_light_t *l) {
  */
 static void R_DrawShadow(const r_light_t *l) {
 
-	glUniform1i(r_shadow_program.cubemap_layer, l->index);
+	glUniform1i(r_shadow_program.shadow_index, l->index);
 
-	mat4_t projection;
-	switch (l->type) {
-		case LIGHT_AMBIENT:
-		case LIGHT_SUN:
-			projection = Mat4_FromOrtho(-512.f, 512.f, -512.f, 512.f, 0.f, 1024.f);
-			break;
-		default:
-			projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
-			break;
+	if (l->type == LIGHT_AMBIENT || l->type == LIGHT_SUN) {
+
+		glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
+
+		const mat4_t projection = Mat4_FromOrtho(-512.f, 512.f, -512.f, 512.f, 0.f, 1024.f);
+		glUniformMatrix4fv(r_shadow_program.shadow_projection, 1, GL_FALSE, projection.array);
+
+		const mat4_t view = Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3(0.f, 0.f, -1.f)), Vec3(0.f, -1.f, 0.f));
+		glUniformMatrix4fv(r_shadow_program.shadow_view, 1, GL_FALSE, view.array);
+
+	} else {
+		
+		glViewport(0, 0, SHADOWMAP_CUBE_SIZE, SHADOWMAP_CUBE_SIZE);
+
+		const mat4_t projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+		glUniformMatrix4fv(r_shadow_program.shadow_projection, 1, GL_FALSE, projection.array);
+
+		const mat4_t view[6] = {
+			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
+			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3(-1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
+
+			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  1.f,  0.f)), Vec3(0.f,  0.f,  1.f)),
+			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f, -1.f,  0.f)), Vec3(0.f,  0.f, -1.f)),
+
+			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  0.f,  1.f)), Vec3(0.f, -1.f,  0.f)),
+			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0.f, -1.f,  0.f)),
+		};
+
+		glUniformMatrix4fv(r_shadow_program.shadow_view, 6, GL_FALSE, (GLfloat *) view);
 	}
-
-	glUniformMatrix4fv(r_shadow_program.cubemap_projection, 1, GL_FALSE, projection.array);
-
-	const mat4_t view[6] = {
-		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
-		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3(-1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
-
-		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  1.f,  0.f)), Vec3(0.f,  0.f,  1.f)),
-		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f, -1.f,  0.f)), Vec3(0.f,  0.f, -1.f)),
-
-		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  0.f,  1.f)), Vec3(0.f, -1.f,  0.f)),
-		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0.f, -1.f,  0.f)),
-	};
-
-	glUniformMatrix4fv(r_shadow_program.cubemap_view, 6, GL_FALSE, (GLfloat *) view);
 
 	for (int32_t i = 0; i < l->num_entities; i++) {
 		const r_entity_t *e = l->entities[i];
@@ -187,8 +213,6 @@ void R_DrawShadows(const r_view_t *view) {
 	if (!r_shadowmap->integer) {
 		return;
 	}
-
-	glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
 
 	glUseProgram(r_shadow_program.name);
 
@@ -240,9 +264,9 @@ static void R_InitShadowProgram(void) {
 
 	r_shadow_program.model = glGetUniformLocation(r_shadow_program.name, "model");
 
-	r_shadow_program.cubemap_layer = glGetUniformLocation(r_shadow_program.name, "cubemap_layer");
-	r_shadow_program.cubemap_view = glGetUniformLocation(r_shadow_program.name, "cubemap_view");
-	r_shadow_program.cubemap_projection = glGetUniformLocation(r_shadow_program.name, "cubemap_projection");
+	r_shadow_program.shadow_index = glGetUniformLocation(r_shadow_program.name, "shadow_index");
+	r_shadow_program.shadow_view = glGetUniformLocation(r_shadow_program.name, "shadow_view");
+	r_shadow_program.shadow_projection = glGetUniformLocation(r_shadow_program.name, "shadow_projection");
 
 	glUseProgram(0);
 
@@ -254,9 +278,26 @@ static void R_InitShadowProgram(void) {
  */
 static void R_InitShadowTexture(void) {
 
+	glGenTextures(1, &r_shadows.texture_array);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, r_shadows.texture_array);
+
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, MAX_LIGHTS, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
 	glGenTextures(1, &r_shadows.cubemap_array);
 	
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP_CUBE);
 	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadows.cubemap_array);
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -269,7 +310,7 @@ static void R_InitShadowTexture(void) {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, MAX_LIGHTS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_CUBE_SIZE, SHADOWMAP_CUBE_SIZE, MAX_LIGHTS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
@@ -287,23 +328,8 @@ static void R_InitShadowFramebuffers(void) {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffers[i]);
 
-		for (int32_t j = 0; j < 6; j++) {
-			glFramebufferTextureLayer(
-									  GL_FRAMEBUFFER,
-									  GL_DEPTH_ATTACHMENT,
-									  r_shadows.cubemap_array,
-									  0,
-									  i * 6 + j);
-			glClear(GL_DEPTH_BUFFER_BIT);
-		}
-
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
-
-		const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if (status != GL_FRAMEBUFFER_COMPLETE) {
-			Com_Error(ERROR_FATAL, "Failed to create shadow framebuffer: %d\n", status);
-		}
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

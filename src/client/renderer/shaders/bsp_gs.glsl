@@ -65,7 +65,7 @@ void main(void) {
 			type == LIGHT_SUN ||
 			type == LIGHT_SPOT ||
 			type == LIGHT_PATCH) {
-			
+
 			if (distance_to_plane(lights[i].normal, in_vertex[0].position) < -0.1 &&
 				distance_to_plane(lights[i].normal, in_vertex[1].position) < -0.1 &&
 				distance_to_plane(lights[i].normal, in_vertex[2].position) < -0.1) {

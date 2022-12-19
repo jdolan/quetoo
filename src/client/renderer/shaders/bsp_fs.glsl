@@ -28,7 +28,8 @@ uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
-uniform samplerCubeArrayShadow texture_shadowmap;
+uniform sampler2DArrayShadow texture_shadowmap;
+uniform samplerCubeArrayShadow texture_shadowmap_cube;
 
 uniform mat4 model;
 
@@ -84,7 +85,14 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
  * @brief
  */
 float sample_shadowmap(in vec4 shadowmap) {
-	return max(0.0, texture(texture_shadowmap, shadowmap, length(shadowmap.xyz) / depth_range.y));
+	return max(0.0, texture(texture_shadowmap, shadowmap));
+}
+
+/**
+ * @brief
+ */
+float sample_shadowmap_cube(in vec4 shadowmap) {
+	return max(0.0, texture(texture_shadowmap_cube, shadowmap, length(shadowmap.xyz) / depth_range.y));
 }
 
 /**
@@ -132,12 +140,20 @@ void dynamic_light(void) {
 
 		diffuse *= lambert;
 
-		float shadow = sample_shadowmap(vec4(vertex.model - light.model.xyz, index));
-		float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+		int type = int(light.position.w);
+
+		float shadow, shadow_atten;
+		if (type == LIGHT_AMBIENT || type == LIGHT_SUN) {
+			shadow = 0;
+			shadow_atten = 0;
+		} else {
+			shadow = sample_shadowmap_cube(vec4(vertex.model - light.model.xyz, index));
+			shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+		}
 
 		diffuse *= shadow;
 
-		if (int(light.position.w) == LIGHT_DYNAMIC) {
+		if (type == LIGHT_DYNAMIC) {
 			fragment.diffuse += diffuse;
 			fragment.specular += blinn_phong(diffuse, light_dir);
 		} else {
