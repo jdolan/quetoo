@@ -60,8 +60,12 @@ void main(void) {
 	for (int i = 0; i < num_lights && num_active_lights < MAX_ACTIVE_LIGHTS; i++) {
 
 		int type = int(lights[i].position.w);
-		
-		if (type == LIGHT_PATCH || type == LIGHT_SPOT) {
+
+		if (type == LIGHT_AMBIENT ||
+			type == LIGHT_SUN ||
+			type == LIGHT_SPOT ||
+			type == LIGHT_PATCH) {
+			
 			if (distance_to_plane(lights[i].normal, in_vertex[0].position) < -0.1 &&
 				distance_to_plane(lights[i].normal, in_vertex[1].position) < -0.1 &&
 				distance_to_plane(lights[i].normal, in_vertex[2].position) < -0.1) {
