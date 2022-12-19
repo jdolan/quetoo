@@ -1093,7 +1093,7 @@ typedef struct r_entity_s {
 	int32_t blend_depth;
 } r_entity_t;
 
-#define MAX_LIGHT_ENTITIES 16
+#define MAX_LIGHT_ENTITIES 32
 
 /**
  * @brief Hardware light sources.

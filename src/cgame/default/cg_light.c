@@ -110,22 +110,27 @@ void Cg_AddLights(void) {
 		}
 	}
 
-//	const r_entity_t *e = cgi.view->entities;
-//	for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
-//
-//		if (IS_MESH_MODEL(e->model) && !e->parent) {
-//			cgi.AddLight(cgi.view, &(r_light_t) {
-//				.type = LIGHT_AMBIENT,
-//				.origin = Vec3_Fmaf(e->origin, 64.f, Vec3_Up()),
-//				.radius = 96.f,
-//				.color = Vec3_One(),
-//				.intensity = 1.f,
-//				.normal = Vec3_Down(),
-//				.dist = -(e->origin.z + 64.f),
-//				.bounds = Box3_Expand3(e->abs_model_bounds, Vec3(0.f, 0.f, 64.f))
-//			});
-//		}
-//	}
+	const r_bsp_lightgrid_t *lg = bsp->lightgrid;
+	for (int32_t x = lg->bounds.mins.x; x < lg->bounds.maxs.x; x += 1024) {
+		for (int32_t y = lg->bounds.mins.y; y < lg->bounds.maxs.y; y += 1024) {
+			for (int32_t z = lg->bounds.mins.z; z < lg->bounds.maxs.z; z += 1024) {
+
+				const box3_t bounds = Box3(Vec3(x, y, z), Vec3(x + 1024.f, y + 1024.f, z + 1024.f));
+				const vec3_t origin = Vec3_Fmaf(Box3_Center(bounds), Box3_Size(bounds).z * .5f, Vec3_Up());
+
+				cgi.AddLight(cgi.view, &(r_light_t) {
+					.type = LIGHT_AMBIENT,
+					.origin = origin,
+					.radius = Box3_Radius(bounds),
+					.color = Vec3_One(),
+					.intensity = 1.f,
+					.normal = Vec3_Down(),
+					.dist = -origin.z,
+					.bounds = bounds
+				});
+			}
+		}
+	}
 }
 
 /**

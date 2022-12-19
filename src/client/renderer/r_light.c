@@ -60,7 +60,7 @@ static void R_AddLightUniform(r_light_t *in) {
 }
 
 /**
- * @brief Transforms all active light sources to view space for rendering.
+ * @brief Cull lights by occlusion queries, and transform them into view space.
  */
 void R_UpdateLights(r_view_t *view) {
 

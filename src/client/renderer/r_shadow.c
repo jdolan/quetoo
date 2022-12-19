@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-#define SHADOWMAP_SIZE 384
+#define SHADOWMAP_SIZE 512
 
 /**
  * @brief The shadow program.
@@ -116,50 +116,49 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 }
 
 /**
- * @brief Draws a single light source shadow from the provided sparse view.
+ * @brief Clears the shadow cubemap for the specified light.
  */
-static void R_DrawShadow(const r_light_t *light) {
+static void R_ClearShadow(const r_light_t *l) {
 
-	glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffers[light->index]);
+	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffers[l->index]);
 
 	for (int32_t i = 0; i < 6; i++) {
 		glFramebufferTextureLayer(GL_FRAMEBUFFER,
 								  GL_DEPTH_ATTACHMENT,
 								  r_shadows.cubemap_array,
 								  0,
-								  light->index * 6 + i);
+								  l->index * 6 + i);
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 
-	glFramebufferTexture(GL_FRAMEBUFFER,
-						 GL_DEPTH_ATTACHMENT,
-						 r_shadows.cubemap_array,
-						 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_array, 0);
+}
 
-	glUniform1i(r_shadow_program.cubemap_layer, light->index);
+/**
+ * @brief Renders the shadow cubemap for the specified light.
+ */
+static void R_DrawShadow(const r_light_t *l) {
 
-	if (!light->num_entities) {
-		return;
-	}
+	glUniform1i(r_shadow_program.cubemap_layer, l->index);
+
+	glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
 
 	const mat4_t cubemap_view[6] = {
-		Mat4_LookAt(light->origin, Vec3_Add(light->origin, Vec3( 1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
-		Mat4_LookAt(light->origin, Vec3_Add(light->origin, Vec3(-1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
+		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
+		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3(-1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
 
-		Mat4_LookAt(light->origin, Vec3_Add(light->origin, Vec3( 0.f,  1.f,  0.f)), Vec3(0.f,  0.f,  1.f)),
-		Mat4_LookAt(light->origin, Vec3_Add(light->origin, Vec3( 0.f, -1.f,  0.f)), Vec3(0.f,  0.f, -1.f)),
+		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  1.f,  0.f)), Vec3(0.f,  0.f,  1.f)),
+		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f, -1.f,  0.f)), Vec3(0.f,  0.f, -1.f)),
 
-		Mat4_LookAt(light->origin, Vec3_Add(light->origin, Vec3( 0.f,  0.f,  1.f)), Vec3(0.f, -1.f,  0.f)),
-		Mat4_LookAt(light->origin, Vec3_Add(light->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0.f, -1.f,  0.f)),
+		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  0.f,  1.f)), Vec3(0.f, -1.f,  0.f)),
+		Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0.f, -1.f,  0.f)),
 	};
 
 	glUniformMatrix4fv(r_shadow_program.cubemap_view, 6, GL_FALSE, (GLfloat *) cubemap_view);
 
-	for (int32_t i = 0; i < light->num_entities; i++) {
-		const r_entity_t *e = light->entities[i];
+	for (int32_t i = 0; i < l->num_entities; i++) {
+		const r_entity_t *e = l->entities[i];
 
 		if (IS_MESH_MODEL(e->model)) {
 			R_DrawMeshEntityShadow(e);
@@ -187,8 +186,16 @@ void R_DrawShadows(const r_view_t *view) {
 			continue;
 		}
 
+		R_ClearShadow(l);
+
+		if (l->num_entities == 0) {
+			continue;
+		}
+
 		R_DrawShadow(l);
 	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glUseProgram(0);
 
