@@ -103,7 +103,10 @@ void dynamic_light(void) {
 	for (int i = 0; i < vertex.num_active_lights; i++) {
 
 		int index = vertex.active_lights[i];
+
 		light_t light = lights[index];
+
+		int type = int(light.position.w);
 
 		vec3 diffuse = light.color.rgb;
 		if (length(diffuse) <= 0.0) {
@@ -156,9 +159,12 @@ void dynamic_light(void) {
 		if (type == LIGHT_DYNAMIC) {
 			fragment.diffuse += diffuse;
 			fragment.specular += blinn_phong(diffuse, light_dir);
+		} else if (type == LIGHT_AMBIENT || type == LIGHT_INDIRECT) {
+			fragment.ambient -= fragment.ambient * shadow_atten;
+			fragment.specular -= fragment.specular * shadow_atten;
 		} else {
-			fragment.diffuse -= shadow_atten;
-			fragment.specular -= shadow_atten;
+			fragment.diffuse -= fragment.diffuse * shadow_atten;
+			fragment.specular -= fragment.specular * shadow_atten;
 		}
 	}
 }
