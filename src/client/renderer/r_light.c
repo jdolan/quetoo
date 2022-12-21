@@ -56,6 +56,9 @@ static void R_AddLightUniform(r_light_t *in) {
 	out->color = Vec3_ToVec4(in->color, in->intensity);
 	out->normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal, in->dist);
 
+	out->projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+	out->view = Mat4_LookAt(in->origin, Vec3_Add(in->origin, Vec3(0.f, 0.f, -1.f)), Vec3(0.f, -1.f, 0.f));
+
 	r_lights.block.num_lights++;
 }
 

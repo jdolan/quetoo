@@ -774,7 +774,6 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_shadowmap, TEXTURE_SHADOWMAP);
 	glUniform1i(r_bsp_program.texture_shadowmap_cube, TEXTURE_SHADOWMAP_CUBE);
 
-
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;
 	r_bsp_program.warp_image->media.Free = R_FreeImage;

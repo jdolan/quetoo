@@ -31,6 +31,7 @@ out vec4 position;
 void main() {
 
 	light_t light = lights[shadow_index];
+
 	int type = int(light.position.w);
 
 	if (type == LIGHT_AMBIENT || type == LIGHT_SUN) {

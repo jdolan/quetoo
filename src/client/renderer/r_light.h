@@ -33,7 +33,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
  */
 typedef struct {
 	/**
-	 * @brief The light origin and radius in world space.
+	 * @brief The light position in model space, and radius.
 	 */
 	vec4_t model;
 
@@ -51,6 +51,16 @@ typedef struct {
 	 * @brief The light color and intensity.
 	 */
 	vec4_t color;
+
+	/**
+	 * @brief The light projection matrix.
+	 */
+	mat4_t projection;
+
+	/**
+	 * @brief The light view matrix.
+	 */
+	mat4_t view;
 } r_light_uniform_t;
 
 /**

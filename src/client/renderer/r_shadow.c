@@ -167,14 +167,17 @@ static void R_DrawShadow(const r_light_t *l) {
 
 		glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
 
-		const mat4_t projection = Mat4_FromOrtho(-512.f, 512.f, -512.f, 512.f, 0.f, 1024.f);
+//		const mat4_t projection = Mat4_FromOrtho(-512.f, 512.f, -512.f, 512.f, 0.f, 1024.f);
+//		glUniformMatrix4fv(r_shadow_program.shadow_projection, 1, GL_FALSE, projection.array);
+
+		const mat4_t projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
 		glUniformMatrix4fv(r_shadow_program.shadow_projection, 1, GL_FALSE, projection.array);
 
 		const mat4_t view = Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3(0.f, 0.f, -1.f)), Vec3(0.f, -1.f, 0.f));
 		glUniformMatrix4fv(r_shadow_program.shadow_view, 1, GL_FALSE, view.array);
 
 	} else {
-		
+
 		glViewport(0, 0, SHADOWMAP_CUBE_SIZE, SHADOWMAP_CUBE_SIZE);
 
 		const mat4_t projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
@@ -276,7 +279,7 @@ static void R_InitShadowProgram(void) {
 /**
  * @brief
  */
-static void R_InitShadowTexture(void) {
+static void R_InitShadowTextures(void) {
 
 	glGenTextures(1, &r_shadows.texture_array);
 
@@ -286,9 +289,8 @@ static void R_InitShadowTexture(void) {
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
@@ -344,7 +346,7 @@ void R_InitShadows(void) {
 
 	R_InitShadowProgram();
 
-	R_InitShadowTexture();
+	R_InitShadowTextures();
 
 	R_InitShadowFramebuffers();
 }
