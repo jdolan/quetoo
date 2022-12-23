@@ -129,7 +129,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set cg_add_lights 2"
+            argument = "+set cl_draw_renderer_stats 1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
