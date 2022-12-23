@@ -50,7 +50,7 @@ in geometry_data {
 	vec3 lightgrid;
 	vec4 color;
 
-	flat int active_lights[MAX_ACTIVE_LIGHTS];
+	flat int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
 	flat int num_active_lights;
 } vertex;
 
@@ -101,12 +101,13 @@ float sample_shadowmap_cube(in vec4 shadowmap) {
  */
 void dynamic_light_ambient(light_t light, int index) {
 
-	vec4 position = light.projection * light.view * vec4(vertex.model, 1.0);
+	vec4 position = light.projection * light.view[0] * vec4(vertex.model, 1.0);
 	vec3 shadowmap = (position.xyz / position.w) * 0.5 + 0.5;
 
 	float shadow = sample_shadowmap(vec4(shadowmap.xy, index, shadowmap.z / depth_range.y));
 	float shadow_atten = (1.0 - shadow);
 
+	//fragment.diffusemap.rgb = vec3(shadow);
 	fragment.ambient -= fragment.ambient * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
 }

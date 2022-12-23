@@ -114,7 +114,7 @@ void Cg_AddLights(void) {
 
 	// Break the world into a grid, and add an ambient shadow caster per cell
 
-	const float size = 512.f;
+	const float size = 1024.f;
 
 	const r_bsp_lightgrid_t *lg = bsp->lightgrid;
 	for (int32_t x = lg->bounds.mins.x; x < lg->bounds.maxs.x; x += size) {

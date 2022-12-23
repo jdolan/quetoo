@@ -45,7 +45,7 @@ out geometry_data {
 	vec3 lightgrid;
 	vec4 color;
 
-	flat int active_lights[MAX_ACTIVE_LIGHTS];
+	flat int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
 	flat int num_active_lights;
 } out_vertex;
 
@@ -54,10 +54,10 @@ out geometry_data {
  */
 void main(void) {
 
-	int active_lights[MAX_ACTIVE_LIGHTS];
+	int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
 	int num_active_lights = 0;
 
-	for (int i = 0; i < num_lights && num_active_lights < MAX_ACTIVE_LIGHTS; i++) {
+	for (int i = 0; i < num_lights && num_active_lights < MAX_LIGHT_UNIFORMS_ACTIVE; i++) {
 
 		int type = int(lights[i].position.w);
 
@@ -98,7 +98,7 @@ void main(void) {
 		out_vertex.active_lights = active_lights;
 		out_vertex.num_active_lights = num_active_lights;
 
-		if (out_vertex.num_active_lights == MAX_ACTIVE_LIGHTS) {
+		if (out_vertex.num_active_lights == MAX_LIGHT_UNIFORMS_ACTIVE) {
 			out_vertex.color = vec4(1, 0, 0, 1);
 		}
 

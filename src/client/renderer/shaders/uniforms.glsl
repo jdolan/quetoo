@@ -203,13 +203,13 @@ struct light_t {
 	mat4 projection;
 
 	/**
-	 * @brief The light view matrix.
+	 * @brief The light view matrices.
 	 */
-	mat4 view;
+	mat4 view[6];
 };
 
-#define MAX_LIGHTS 256
-#define MAX_ACTIVE_LIGHTS 8
+#define MAX_LIGHT_UNIFORMS 64
+#define MAX_LIGHT_UNIFORMS_ACTIVE 8
 
 /**
  * @brief The lights uniform block.
@@ -218,7 +218,7 @@ layout (std140) uniform lights_block {
 	/**
 	 * @brief The light sources for the current frame, transformed to view space.
 	 */
-	light_t lights[MAX_LIGHTS];
+	light_t lights[MAX_LIGHT_UNIFORMS];
 
 	/**
 	 * @brief The number of active light sources.

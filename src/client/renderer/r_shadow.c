@@ -29,16 +29,22 @@
  */
 static struct {
 	GLuint name;
+
 	GLuint uniforms_block;
+	GLuint lights_block;
 
 	GLint in_position;
 	//GLint in_next_position;
 
+	/**
+	 * @brief The model matrix.
+	 */
 	GLint model;
 
-	GLint shadow_index;
-	GLint shadow_view;
-	GLint shadow_projection;
+	/**
+	 * @brief The light index and shadow layer.
+	 */
+	GLint light_index;
 } r_shadow_program;
 
 /**
@@ -46,19 +52,19 @@ static struct {
  */
 static struct {
 	/**
-	 * @brief Each directional light source targets a layer in the texture array.
+	 * @brief Directional light sources target a layer in the texture array.
 	 */
 	GLuint texture_array;
 
 	/**
-	 * @brief Each point light source targets a layer in the cubemap array.
+	 * @brief Point light sources target a layer in the cubemap array.
 	 */
 	GLuint cubemap_array;
 
 	/**
-	 * @brief Each light source has a framebuffer to capture its depth pass.
+	 * @brief Every light source has a framebuffer to capture its depth pass.
 	 */
-	GLuint framebuffers[MAX_LIGHTS];
+	GLuint framebuffers[MAX_LIGHT_UNIFORMS];
 } r_shadows;
 
 /**
@@ -161,40 +167,12 @@ static void R_ClearShadow(const r_light_t *l) {
  */
 static void R_DrawShadow(const r_light_t *l) {
 
-	glUniform1i(r_shadow_program.shadow_index, l->index);
+	glUniform1i(r_shadow_program.light_index, l->index);
 
 	if (l->type == LIGHT_AMBIENT || l->type == LIGHT_SUN) {
-
 		glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
-
-//		const mat4_t projection = Mat4_FromOrtho(-512.f, 512.f, -512.f, 512.f, 0.f, 1024.f);
-//		glUniformMatrix4fv(r_shadow_program.shadow_projection, 1, GL_FALSE, projection.array);
-
-		const mat4_t projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
-		glUniformMatrix4fv(r_shadow_program.shadow_projection, 1, GL_FALSE, projection.array);
-
-		const mat4_t view = Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3(0.f, 0.f, -1.f)), Vec3(0.f, -1.f, 0.f));
-		glUniformMatrix4fv(r_shadow_program.shadow_view, 1, GL_FALSE, view.array);
-
 	} else {
-
 		glViewport(0, 0, SHADOWMAP_CUBE_SIZE, SHADOWMAP_CUBE_SIZE);
-
-		const mat4_t projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
-		glUniformMatrix4fv(r_shadow_program.shadow_projection, 1, GL_FALSE, projection.array);
-
-		const mat4_t view[6] = {
-			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
-			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3(-1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f)),
-
-			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  1.f,  0.f)), Vec3(0.f,  0.f,  1.f)),
-			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f, -1.f,  0.f)), Vec3(0.f,  0.f, -1.f)),
-
-			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  0.f,  1.f)), Vec3(0.f, -1.f,  0.f)),
-			Mat4_LookAt(l->origin, Vec3_Add(l->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0.f, -1.f,  0.f)),
-		};
-
-		glUniformMatrix4fv(r_shadow_program.shadow_view, 6, GL_FALSE, (GLfloat *) view);
 	}
 
 	for (int32_t i = 0; i < l->num_entities; i++) {
@@ -262,14 +240,15 @@ static void R_InitShadowProgram(void) {
 	r_shadow_program.uniforms_block = glGetUniformBlockIndex(r_shadow_program.name, "uniforms_block");
 	glUniformBlockBinding(r_shadow_program.name, r_shadow_program.uniforms_block, 0);
 
+	r_shadow_program.lights_block = glGetUniformBlockIndex(r_shadow_program.name, "lights_block");
+	glUniformBlockBinding(r_shadow_program.name, r_shadow_program.lights_block, 1);
+
 	r_shadow_program.in_position = glGetAttribLocation(r_shadow_program.name, "in_position");
 	//r_shadow_program.in_next_position = glGetAttribLocation(r_shadow_program.name, "in_next_position");
 
 	r_shadow_program.model = glGetUniformLocation(r_shadow_program.name, "model");
 
-	r_shadow_program.shadow_index = glGetUniformLocation(r_shadow_program.name, "shadow_index");
-	r_shadow_program.shadow_view = glGetUniformLocation(r_shadow_program.name, "shadow_view");
-	r_shadow_program.shadow_projection = glGetUniformLocation(r_shadow_program.name, "shadow_projection");
+	r_shadow_program.light_index = glGetUniformLocation(r_shadow_program.name, "light_index");
 
 	glUseProgram(0);
 
@@ -295,7 +274,7 @@ static void R_InitShadowTextures(void) {
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, MAX_LIGHTS, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, MAX_LIGHT_UNIFORMS, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
 	glGenTextures(1, &r_shadows.cubemap_array);
 	
@@ -312,7 +291,7 @@ static void R_InitShadowTextures(void) {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_CUBE_SIZE, SHADOWMAP_CUBE_SIZE, MAX_LIGHTS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_CUBE_SIZE, SHADOWMAP_CUBE_SIZE, MAX_LIGHT_UNIFORMS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
@@ -324,9 +303,9 @@ static void R_InitShadowTextures(void) {
  */
 static void R_InitShadowFramebuffers(void) {
 
-	glGenFramebuffers(MAX_LIGHTS, r_shadows.framebuffers);
+	glGenFramebuffers(MAX_LIGHT_UNIFORMS, r_shadows.framebuffers);
 
-	for (int32_t i = 0; i < MAX_LIGHTS; i++) {
+	for (int32_t i = 0; i < MAX_LIGHT_UNIFORMS; i++) {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffers[i]);
 
@@ -380,7 +359,7 @@ static void R_ShutdownShadowTexture(void) {
  */
 static void R_ShutdownShadowFramebuffers(void) {
 
-	glDeleteFramebuffers(MAX_LIGHTS, r_shadows.framebuffers);
+	glDeleteFramebuffers(MAX_LIGHT_UNIFORMS, r_shadows.framebuffers);
 
 	memset(r_shadows.framebuffers, 0, sizeof(r_shadows.framebuffers));
 

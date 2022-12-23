@@ -58,10 +58,12 @@ typedef struct {
 	mat4_t projection;
 
 	/**
-	 * @brief The light view matrix.
+	 * @brief The light view matrices.
 	 */
-	mat4_t view;
+	mat4_t view[6];
 } r_light_uniform_t;
+
+#define MAX_LIGHT_UNIFORMS 64
 
 /**
  * @brief The lights uniform block struct.
@@ -69,9 +71,9 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The light sources for the current frame, transformed to view space.
+	 * @brief The visible light sources for the current frame, transformed to view space.
 	 */
-	r_light_uniform_t lights[MAX_LIGHTS];
+	r_light_uniform_t lights[MAX_LIGHT_UNIFORMS];
 
 	/**
 	 * @brief The number of active light sources.

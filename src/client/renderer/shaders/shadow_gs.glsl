@@ -22,26 +22,24 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 18) out;
 
-uniform int shadow_index;
-uniform mat4 shadow_view[6];
-uniform mat4 shadow_projection;
+uniform int light_index;
 
 out vec4 position;
 
 void main() {
 
-	light_t light = lights[shadow_index];
+	light_t light = lights[light_index];
 
 	int type = int(light.position.w);
 
 	if (type == LIGHT_AMBIENT || type == LIGHT_SUN) {
-		gl_Layer = shadow_index;
+		gl_Layer = light_index;
 
 		for (int j = 0; j < 3; j++) {
 
-			position = shadow_view[0] * gl_in[j].gl_Position;
+			position = light.view[0] * gl_in[j].gl_Position;
 
-			gl_Position = shadow_projection * position;
+			gl_Position = light.projection * position;
 
 			EmitVertex();
 		}
@@ -49,13 +47,13 @@ void main() {
 		EndPrimitive();
 	} else {
 		for (int i = 0; i < 6; i++) {
-			gl_Layer = shadow_index * 6 + i;
+			gl_Layer = light_index * 6 + i;
 
 			for (int j = 0; j < 3; j++) {
 
-				position = shadow_view[i] * gl_in[j].gl_Position;
+				position = light.view[i] * gl_in[j].gl_Position;
 
-				gl_Position = shadow_projection * position;
+				gl_Position = light.projection * position;
 
 				EmitVertex();
 			}

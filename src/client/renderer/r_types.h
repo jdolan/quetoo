@@ -383,9 +383,11 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
- * @brief Light sources per scene. Limited by OpenGL UBO constraint of 16KB.
+ * @brief Light sources per scene.
+ * @remarks Lights that are frustum culled or occluded are discarded.
+ * @see `MAX_LIGHT_UNIFORMS`
  */
-#define MAX_LIGHTS			256
+#define MAX_LIGHTS 256
 
 /**
  * @brief BSP draw elements, which include all opaque faces of a given material

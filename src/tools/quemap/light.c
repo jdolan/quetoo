@@ -725,7 +725,7 @@ void EmitLights(void) {
 	}
 
 	if (bsp_file.num_lights >= MAX_BSP_LIGHTS) {
-		Com_Error(ERROR_FATAL, "MAX_LIGHTS\n");
+		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTS\n");
 	}
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, bsp_file.num_lights);
