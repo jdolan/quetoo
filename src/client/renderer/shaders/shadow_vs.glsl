@@ -24,6 +24,8 @@ layout (location = 1) in vec3 in_next_position;
 
 uniform mat4 model;
 
+uniform float lerp;
+
 void main() {
-    gl_Position = model * vec4(in_position, 1.0);
+    gl_Position = model * vec4(mix(in_position, in_next_position, lerp), 1.0);
 }  

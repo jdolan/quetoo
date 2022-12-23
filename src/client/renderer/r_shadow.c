@@ -30,16 +30,27 @@
 static struct {
 	GLuint name;
 
+	/**
+	 * @brief The uniform blocks.
+	 */
 	GLuint uniforms_block;
 	GLuint lights_block;
 
+	/**
+	 * @brief The vertex attributes.
+	 */
 	GLint in_position;
-	//GLint in_next_position;
+	GLint in_next_position;
 
 	/**
 	 * @brief The model matrix.
 	 */
 	GLint model;
+
+	/**
+	 * @brief The frame interpolation fraction.
+	 */
+	GLint lerp;
 
 	/**
 	 * @brief The light index and shadow layer.
@@ -75,8 +86,8 @@ static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh
 	const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
 	
-//	const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
-//	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
+	const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
 	
 	const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
 	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
@@ -96,11 +107,11 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->elements_buffer);
 
 	glEnableVertexAttribArray(r_shadow_program.in_position);
-	//glEnableVertexAttribArray(r_shadow_program.in_next_position);
+	glEnableVertexAttribArray(r_shadow_program.in_next_position);
 	
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
 
-	//glUniform1f(r_mesh_program.lerp, e->lerp);
+	glUniform1f(r_shadow_program.lerp, e->lerp);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -244,9 +255,10 @@ static void R_InitShadowProgram(void) {
 	glUniformBlockBinding(r_shadow_program.name, r_shadow_program.lights_block, 1);
 
 	r_shadow_program.in_position = glGetAttribLocation(r_shadow_program.name, "in_position");
-	//r_shadow_program.in_next_position = glGetAttribLocation(r_shadow_program.name, "in_next_position");
+	r_shadow_program.in_next_position = glGetAttribLocation(r_shadow_program.name, "in_next_position");
 
 	r_shadow_program.model = glGetUniformLocation(r_shadow_program.name, "model");
+	r_shadow_program.lerp = glGetUniformLocation(r_shadow_program.name, "lerp");
 
 	r_shadow_program.light_index = glGetUniformLocation(r_shadow_program.name, "light_index");
 
