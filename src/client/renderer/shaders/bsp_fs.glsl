@@ -104,10 +104,10 @@ void dynamic_light_ambient(light_t light, int index) {
 	vec4 position = light.projection * light.view[0] * vec4(vertex.model, 1.0);
 	vec3 shadowmap = (position.xyz / position.w) * 0.5 + 0.5;
 
-	float shadow = sample_shadowmap(vec4(shadowmap.xy, index, shadowmap.z / depth_range.y));
+	float shadow = sample_shadowmap(vec4(shadowmap.xy, index, shadowmap.z));
 	float shadow_atten = (1.0 - shadow);
 
-	//fragment.diffusemap.rgb = vec3(shadow);
+	//fragment.diffusemap.rgb = vec3(shadowmap);
 	fragment.ambient -= fragment.ambient * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
 }
@@ -213,7 +213,7 @@ void dynamic_light_patch(light_t light, int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(vec4(vertex.model - light.model.xyz, index));
-	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
