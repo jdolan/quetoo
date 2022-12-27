@@ -390,17 +390,17 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_UpdateBlendDepth(view);
 
-	R_UpdateOcclusionQueries(view);
-
 	R_UpdateEntities(view);
+
+	R_UpdateStains(view);
+
+	R_UpdateSprites(view);
+
+	R_UpdateOcclusionQueries(view);
 
 	R_UpdateLights(view);
 
 	R_DrawShadows(view);
-
-	R_UpdateSprites(view);
-
-	R_UpdateStains(view);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
