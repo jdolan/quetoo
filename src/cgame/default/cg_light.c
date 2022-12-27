@@ -122,14 +122,11 @@ void Cg_AddLights(void) {
 			for (int32_t z = lg->bounds.mins.z; z < lg->bounds.maxs.z; z += size) {
 
 				const box3_t bounds = Box3(Vec3(x, y, z), Vec3(x + size, y + size, z + size));
-				const vec3_t origin = Vec3_Fmaf(Box3_Center(bounds), Box3_Size(bounds).z * .5f, Vec3_Up());
+				const vec3_t origin = Vec3_Fmaf(Box3_Center(bounds), Box3_Extents(bounds).z, Vec3_Up());
 
 				cgi.AddLight(cgi.view, &(r_light_t) {
 					.type = LIGHT_AMBIENT,
 					.origin = Vec3(origin.x, origin.z, origin.y),
-					.radius = Vec3_Distance(origin, bounds.mins),
-					.color = Vec3_One(),
-					.intensity = 1.f,
 					.normal = Vec3_Down(),
 					.dist = -origin.z,
 					.bounds = bounds

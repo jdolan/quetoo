@@ -64,7 +64,8 @@ static void R_AddLightUniform(r_light_t *in) {
 	out->maxs = Vec3_ToVec4(in->bounds.maxs, 1.f);
 
 	if (in->type == LIGHT_AMBIENT || in->type == LIGHT_SUN) {
-		out->projection = Mat4_FromOrtho(-512.f, 512.f, -512.f, 512.f, 0.f, 1024.f);
+		const vec3_t e = Box3_Extents(in->bounds);
+		out->projection = Mat4_FromOrtho(-e.x, e.x, -e.y, e.y, 0.f, e.z * 2.f);
 		out->view[0] = Mat4_LookAt(in->origin, Vec3_Add(in->origin, Vec3(0.f, 0.f, -1.f)), Vec3(0.f, -1.f, 0.f));
 	} else {
 		out->projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
