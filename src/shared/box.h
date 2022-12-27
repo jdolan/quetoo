@@ -179,6 +179,13 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Size(const box3_t
 }
 
 /**
+ * @return The box extents, or the half size.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Extents(const box3_t b) {
+	return Vec3_Scale(Box3_Size(b), 0.5f);
+}
+
+/**
  * @return The distance between the two corners of the bounds.
  */
 static inline float __attribute__ ((warn_unused_result)) Box3_Distance(const box3_t a) {
