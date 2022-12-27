@@ -57,30 +57,18 @@ void main(void) {
 	int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
 	int num_active_lights = 0;
 
+	vec3 a = in_vertex[0].model;
+	vec3 b = in_vertex[1].model;
+	vec3 c = in_vertex[2].model;
+
 	for (int i = 0; i < num_lights && num_active_lights < MAX_LIGHT_UNIFORMS_ACTIVE; i++) {
 
-		int type = int(lights[i].position.w);
-
-		if (type == LIGHT_AMBIENT ||
-			type == LIGHT_SUN ||
-			type == LIGHT_SPOT ||
-			type == LIGHT_PATCH) {
-
-			if (distance_to_plane(lights[i].normal, in_vertex[0].position) < -0.1 &&
-				distance_to_plane(lights[i].normal, in_vertex[1].position) < -0.1 &&
-				distance_to_plane(lights[i].normal, in_vertex[2].position) < -0.1) {
-				continue;
-			}
+		light_t light = lights[i];
+		if (!triangle_intersects(a, b, c, light.mins.xyz, light.maxs.xyz)) {
+			continue;
 		}
 
-		float dist = distance_to_triangle(in_vertex[0].position,
-										  in_vertex[1].position,
-										  in_vertex[2].position,
-										  lights[i].position.xyz);
-
-		if (dist < lights[i].model.w) {
-			active_lights[num_active_lights++] = i;
-		}
+		active_lights[num_active_lights++] = i;
 	}
 
 	for (int i = 0; i < 3; i++) {

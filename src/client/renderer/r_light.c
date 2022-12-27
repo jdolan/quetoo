@@ -37,9 +37,9 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	view->lights[view->num_lights++] = *l;
-
 	R_AddOcclusionQuery(view, l->bounds);
+
+	view->lights[view->num_lights++] = *l;
 }
 
 /**
@@ -60,6 +60,8 @@ static void R_AddLightUniform(r_light_t *in) {
 	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->type);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
 	out->normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal, in->dist);
+	out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
+	out->maxs = Vec3_ToVec4(in->bounds.maxs, 1.f);
 
 	if (in->type == LIGHT_AMBIENT || in->type == LIGHT_SUN) {
 		out->projection = Mat4_FromOrtho(-512.f, 512.f, -512.f, 512.f, 0.f, 1024.f);

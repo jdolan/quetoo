@@ -198,6 +198,16 @@ struct light_t {
 	vec4 color;
 
 	/**
+	 * @brief The light mins in view space.
+	 */
+	vec4 mins;
+
+	/**
+	 * @brief The light maxs in view space.
+	 */
+	vec4 maxs;
+
+	/**
 	 * @brief The light projection matrix.
 	 */
 	mat4 projection;

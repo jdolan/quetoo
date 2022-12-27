@@ -84,3 +84,68 @@ bool barycentric(in vec3 a, in vec3 b, in vec3 c, in vec3 p) {
 
 	return true;
 }
+
+/**
+ * @brief The AABB normal vectors.
+ */
+vec3[] box_normals = vec3[](
+	vec3(1.0, 0.0, 0.0),
+	vec3(0.0, 1.0, 0.0),
+	vec3(0.0, 0.0, 1.0));
+
+/**
+ * @brief Separating axis test.
+ * @return True if abc and extents are separated by axis.
+ */
+bool sat(in vec3 a, in vec3 b, in vec3 c, vec3 extents, in vec3 axis) {
+
+	vec3 p = vec3(dot(a, axis), dot(b, axis), dot(c, axis));
+
+	float r = extents.x * abs(dot(box_normals[0], axis)) +
+			  extents.y * abs(dot(box_normals[1], axis)) +
+			  extents.z * abs(dot(box_normals[2], axis));
+
+	if (max(-hmax(p), hmin(p)) > r) {
+		return true; // separating axis
+	}
+
+	return false;
+}
+
+/**
+ * @return True if the triangle abc intersects the bounding box.
+ * @see https://gdbooks.gitbooks.io/3dcollisions/content/Chapter4/aabb-triangle.html
+ */
+bool triangle_intersects(in vec3 a, in vec3 b, in vec3 c, in vec3 mins, in vec3 maxs) {
+
+	vec3 center = mix(mins, maxs, 0.5);
+	vec3 extents = maxs - center;
+
+	a -= center;
+	b -= center;
+	c -= center;
+
+	vec3[] tri_edges = vec3[](b - a, c - b, a - c);
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			vec3 axis = cross(box_normals[i], tri_edges[j]);
+			if (sat(a, b, c, extents, axis)) {
+				return false;
+			}
+		}
+	}
+
+	for (int i = 0; i < 3; i++) {
+		if (sat(a, b, c, extents, box_normals[i])) {
+			return false;
+		}
+	}
+
+	vec3 tri_normal = cross(b - a, c - b);
+	if (sat(a, b, c, extents, tri_normal)) {
+		return false;
+	}
+
+	return true;
+}

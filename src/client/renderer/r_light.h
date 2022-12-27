@@ -53,6 +53,16 @@ typedef struct {
 	vec4_t color;
 
 	/**
+	 * @brief The light mins in view space.
+	 */
+	vec4_t mins;
+
+	/**
+	 * @brief The light maxs in view space.
+	 */
+	vec4_t maxs;
+
+	/**
 	 * @brief The light projection matrix.
 	 */
 	mat4_t projection;
