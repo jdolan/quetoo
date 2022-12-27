@@ -73,7 +73,7 @@ typedef struct {
 	mat4_t view[6];
 } r_light_uniform_t;
 
-#define MAX_LIGHT_UNIFORMS 64
+#define MAX_LIGHT_UNIFORMS 96
 
 /**
  * @brief The lights uniform block struct.

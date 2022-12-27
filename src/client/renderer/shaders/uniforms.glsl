@@ -218,7 +218,7 @@ struct light_t {
 	mat4 view[6];
 };
 
-#define MAX_LIGHT_UNIFORMS 64
+#define MAX_LIGHT_UNIFORMS 96
 #define MAX_LIGHT_UNIFORMS_ACTIVE 8
 
 /**
