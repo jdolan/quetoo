@@ -37,8 +37,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	R_AddOcclusionQuery(view, l->bounds);
-
 	view->lights[view->num_lights++] = *l;
 }
 
