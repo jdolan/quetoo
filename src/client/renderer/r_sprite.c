@@ -114,9 +114,9 @@ r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 		return NULL;
 	}
 
-	const float size = (s->size ?: Maxf(s->width, s->height)) * .5f;
+	const float radius = (s->size ?: Maxf(s->width, s->height)) * .5f;
 
-	if (R_CulludeSphere(view, s->origin, size)) {
+	if (R_CullSphere(view, s->origin, radius)) {
 		return NULL;
 	}
 
@@ -140,7 +140,7 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 
 	const box3_t bounds = Cm_TraceBounds(b->start, b->end, Box3f(b->size, b->size, b->size));
 
-	if (R_CulludeBox(view, bounds)) {
+	if (R_CullBox(view, bounds)) {
 		return NULL;
 	}
 
@@ -174,6 +174,12 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
  * @brief
  */
 static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
+
+	const float radius = (s->size ?: Maxf(s->width, s->height)) * .5f;
+
+	if (R_OccludeSphere(view, s->origin, radius)) {
+		return;
+	}
 
 	r_sprite_instance_t *in = R_AllocSpriteInstance(view);
 	if (!in) {
@@ -327,6 +333,16 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 			}
 		}
 
+		vec3_t positions[4];
+		positions[0] = Vec3_Add(x, right);
+		positions[1] = Vec3_Add(y, right);
+		positions[2] = Vec3_Subtract(y, right);
+		positions[3] = Vec3_Subtract(x, right);
+
+		if (R_OccludeBox(view, Box3_FromPoints(positions, lengthof(positions)))) {
+			continue;
+		}
+
 		r_sprite_instance_t *in = R_AllocSpriteInstance(view);
 		if (!in) {
 			return;
@@ -335,10 +351,10 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->flags = b->flags;
 		in->diffusemap = b->image;
 
-		in->vertexes[0].position = Vec3_Add(x, right);
-		in->vertexes[1].position = Vec3_Add(y, right);
-		in->vertexes[2].position = Vec3_Subtract(y, right);
-		in->vertexes[3].position = Vec3_Subtract(x, right);
+		in->vertexes[0].position = positions[0];
+		in->vertexes[1].position = positions[1];
+		in->vertexes[2].position = positions[2];
+		in->vertexes[3].position = positions[3];
 
 		in->vertexes[0].diffusemap = texcoords[0];
 		in->vertexes[1].diffusemap = texcoords[1];
