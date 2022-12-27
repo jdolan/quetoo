@@ -84,11 +84,11 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 	r_occlusion_query_t *q = view->occlusion_queries;
 	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
 
-		if (q->status > QUERY_INVALID) {
-			continue;
+		if (Box3_Contains(q->bounds, bounds)) {
+			return;
 		}
 
-		if (Box3_Intersects(q->bounds, bounds)) {
+		if (Box3_ContainsPoint(q->bounds, Box3_Center(bounds))) {
 			q->bounds = Box3_Union(q->bounds, bounds);
 			return;
 		}
@@ -105,7 +105,6 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 
 /**
  * @brief Draws any pending occlusion queries in the specified view.
- * @remarks This is called multiple times per frame, as some queries are added late.
  */
 void R_DrawOcclusionQueries(r_view_t *view) {
 
@@ -130,17 +129,8 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 	r_occlusion_query_t *q = view->occlusion_queries;
 	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
 
-		if (q->status == QUERY_PENDING) {
-			continue;
-		}
-
 		if (Box3_ContainsPoint(Box3_Expand(q->bounds, 1.f), view->origin)) {
 			q->status = QUERY_VISIBLE;
-			continue;
-		}
-
-		if (R_CullBox(view, q->bounds)) {
-			q->status = QUERY_CULLED;
 			continue;
 		}
 
@@ -196,6 +186,22 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 				} else {
 					q->status = QUERY_OCCLUDED;
 				}
+			}
+		}
+
+		if (r_draw_occlusion_queries->value) {
+			switch (q->status) {
+				case QUERY_VISIBLE:
+					R_Draw3DBox(q->bounds, color_red, false);
+					break;
+				case QUERY_OCCLUDED:
+					R_Draw3DBox(q->bounds, color_green, false);
+					break;
+				case QUERY_PENDING:
+					R_Draw3DBox(q->bounds, color_yellow, false);
+					break;
+				default:
+					break;
 			}
 		}
 

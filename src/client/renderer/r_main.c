@@ -187,22 +187,6 @@ _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius)
 }
 
 /**
- * @return True if the specified box is occluded *or* culled by the view frustum,
- * false otherwise.
- */
-_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
-	return R_OccludeBox(view, bounds) || R_CullBox(view, bounds);
-}
-
-/**
- * @return True if the specified sphere is occluded *or* culled by the view frustum,
- * false otherwise.
- */
-_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius) {
-	return R_OccludeSphere(view, point, radius) || R_CullSphere(view, point, radius);
-}
-
-/**
  * @brief
  */
 static void R_UpdateUniforms(const r_view_t *view) {
@@ -383,10 +367,6 @@ void R_DrawViewDepth(r_view_t *view) {
 	R_UpdateUniforms(view);
 
 	R_DrawDepthPass(view);
-
-	R_DrawOcclusionQueries(view);
-
-	//R_UpdateOcclusionQueries(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 

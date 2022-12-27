@@ -415,6 +415,10 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 				continue;
 			}
 
+			if (R_OccludeBox(view, e->abs_model_bounds)) {
+				continue;
+			}
+
 			R_DrawMeshEntity(view, e);
 		}
 	}

@@ -290,21 +290,6 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 }
 
 /**
- * @brief
- */
-static void Cg_AddOcclusionQueries(void) {
-
-	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
-
-	const cm_bsp_brush_t *b = bsp->cm->brushes;
-	for (int32_t i = 0; i < bsp->cm->file->num_brushes; i++, b++) {
-		if (b->contents & CONTENTS_OCCLUSION_QUERY) {
-			cgi.AddOcclusionQuery(cgi.view, b->bounds);
-		}
-	}
-}
-
-/**
  * @brief Updates the view origin, angles, and field of view.
  */
 void Cg_PrepareView(const cl_frame_t *frame) {
@@ -334,8 +319,6 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 	Cg_UpdateFov();
 
 	Cg_UpdateBob(ps1);
-
-	Cg_AddOcclusionQueries();
 
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 

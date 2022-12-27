@@ -481,6 +481,21 @@ static void Cg_PrepareScene(const cl_frame_t *frame) {
 }
 
 /**
+ * @brief
+ */
+static void Cg_AddOcclusionQueries(void) {
+
+	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+
+	const cm_bsp_brush_t *b = bsp->cm->brushes;
+	for (int32_t i = 0; i < bsp->cm->file->num_brushes; i++, b++) {
+		if (b->contents & CONTENTS_OCCLUSION_QUERY) {
+			cgi.AddOcclusionQuery(cgi.view, b->bounds);
+		}
+	}
+}
+
+/**
  * @brief Populates the scene with entities, sprites, samples, etc.. for the interpolated frame.
  */
 static void Cg_PopulateScene(const cl_frame_t *frame) {
@@ -494,6 +509,8 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 	Cg_AddSprites();
 
 	Cg_AddLights();
+
+	Cg_AddOcclusionQueries();
 
 	if (*cg_draw_trace_test->string && *cg_draw_trace_test->string != '0') {
 		static box3_t bounds;

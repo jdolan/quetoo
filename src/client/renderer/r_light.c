@@ -33,7 +33,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	if (R_CulludeBox(view, l->bounds)) {
+	if (R_CullBox(view, l->bounds)) {
 		return;
 	}
 

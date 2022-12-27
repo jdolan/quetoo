@@ -551,11 +551,9 @@ static void R_LoadBspDepthPassElements(r_bsp_model_t *bsp) {
 		}
 	}
 
-	glBindBuffer(GL_COPY_WRITE_BUFFER, bsp->depth_pass_elements_buffer);
-
-	glBufferData(GL_COPY_WRITE_BUFFER, bsp->num_depth_pass_elements * sizeof(GLuint), NULL, GL_STATIC_DRAW);
-
 	glBindBuffer(GL_COPY_READ_BUFFER, bsp->elements_buffer);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, bsp->depth_pass_elements_buffer);
+	glBufferData(GL_COPY_WRITE_BUFFER, bsp->num_depth_pass_elements * sizeof(GLuint), NULL, GL_STATIC_DRAW);
 
 	draw = in->draw_elements;
 

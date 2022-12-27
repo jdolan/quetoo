@@ -166,7 +166,8 @@ void R_DrawBspLightgrid(r_view_t *view) {
 						.origin = origin,
 						.size = 8.f,
 						.color = Color32(r, g, b, 255),
-						.media = (r_media_t *) particle
+						.media = (r_media_t *) particle,
+						.flags = SPRITE_NO_BLEND_DEPTH
 					});
 
 					const float x = direction[0] / 255.f * 2.f - 1.f;
@@ -594,6 +595,10 @@ void R_DrawBspInlineModelEntities(const r_view_t *view, int32_t blend_depth) {
 			}
 
 			if (e->blend_depth != blend_depth) {
+				continue;
+			}
+
+			if (R_OccludeBox(view, e->abs_model_bounds)) {
 				continue;
 			}
 

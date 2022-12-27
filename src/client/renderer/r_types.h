@@ -1157,7 +1157,6 @@ typedef struct {
 
 typedef enum {
 	QUERY_INVALID,
-	QUERY_CULLED,
 	QUERY_PENDING,
 	QUERY_VISIBLE,
 	QUERY_OCCLUDED
