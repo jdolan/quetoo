@@ -112,6 +112,9 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 		return;
 	}
 
+	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
@@ -119,6 +122,8 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 	glDepthMask(GL_FALSE);
 
 	glUseProgram(r_depth_pass_program.name);
+
+	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, Mat4_Identity().array);
 
 	glBindVertexArray(r_occlusion_queries.vertex_array);
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
@@ -155,6 +160,9 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	R_GetError(NULL);
 }
