@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-#define SHADOWMAP_SIZE 1024
+#define SHADOWMAP_SIZE 2048
 #define SHADOWMAP_CUBE_SIZE 512
 
 /**
