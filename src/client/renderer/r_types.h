@@ -387,7 +387,7 @@ typedef struct {
  * @remarks Lights that are frustum culled or occluded are discarded.
  * @see `MAX_LIGHT_UNIFORMS`
  */
-#define MAX_LIGHTS 256
+#define MAX_LIGHTS 1024
 
 /**
  * @brief BSP draw elements, which include all opaque faces of a given material
