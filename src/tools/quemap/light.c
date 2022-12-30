@@ -724,6 +724,10 @@ static box3_t LightBounds(const light_t *light) {
 	const lightmap_t *lightmap = lightmaps;
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, lightmap++) {
 
+		if (!Box3_Intersects(light->bounds, lightmap->node->bounds)) {
+			continue;
+		}
+
 		const luxel_t *luxel = lightmap->luxels;
 		for (size_t j = 0; j < lightmap->num_luxels; j++, luxel++) {
 
