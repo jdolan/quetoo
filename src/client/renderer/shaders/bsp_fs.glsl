@@ -28,7 +28,6 @@ uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
-//uniform sampler2DArray texture_shadowmap;
 uniform sampler2DArrayShadow texture_shadowmap;
 uniform samplerCubeArrayShadow texture_shadowmap_cube;
 
@@ -99,23 +98,23 @@ float sample_shadowmap_cube(in vec4 shadowmap) {
 /**
  * @brief
  */
-void dynamic_light_ambient(light_t light, int index) {
+void light_and_shadow_ambient(light_t light, int index) {
 
-	vec4 position = light.projection * light.view[0] * vec4(vertex.model, 1.0);
-	vec3 shadowmap = (position.xyz / position.w) * 0.5 + 0.5;
-
-	float shadow = sample_shadowmap(vec4(shadowmap.xy, index, shadowmap.z));
-	float shadow_atten = (1.0 - shadow);
-
-	//fragment.diffusemap.rgb = vec3(shadowmap);
-	fragment.ambient -= fragment.ambient * shadow_atten;
-	fragment.specular -= fragment.specular * shadow_atten;
+//	vec4 position = light.projection * light.view[0] * vec4(vertex.model, 1.0);
+//	vec3 shadowmap = (position.xyz / position.w) * 0.5 + 0.5;
+//
+//	float shadow = sample_shadowmap(vec4(shadowmap.xy, index, shadowmap.z));
+//	float shadow_atten = (1.0 - shadow);
+//
+//	//fragment.diffusemap.rgb = vec3(shadowmap);
+//	fragment.ambient -= fragment.ambient * shadow_atten;
+//	fragment.specular -= fragment.specular * shadow_atten;
 }
 
 /**
  * @brief
  */
-void dynamic_light_sun(light_t light, int index) {
+void light_and_shadow_sun(light_t light, int index) {
 
 	vec3 light_pos = light.position.xyz;
 
@@ -135,7 +134,7 @@ void dynamic_light_sun(light_t light, int index) {
 /**
  * @brief
  */
-void dynamic_light_point(light_t light, int index) {
+void light_and_shadow_point(light_t light, int index) {
 
 	float radius = light.model.w;
 	if (radius <= 0.0) {
@@ -164,7 +163,7 @@ void dynamic_light_point(light_t light, int index) {
 /**
  * @brief
  */
-void dynamic_light_spot(light_t light, int index) {
+void light_and_shadow_spot(light_t light, int index) {
 
 	float radius = light.model.w;
 	if (radius <= 0.0) {
@@ -193,7 +192,7 @@ void dynamic_light_spot(light_t light, int index) {
 /**
  * @brief
  */
-void dynamic_light_patch(light_t light, int index) {
+void light_and_shadow_patch(light_t light, int index) {
 
 	float radius = light.model.w;
 	if (radius <= 0.0) {
@@ -222,7 +221,7 @@ void dynamic_light_patch(light_t light, int index) {
 /**
  * @brief
  */
-void dynamic_light_dynamic(light_t light, int index) {
+void light_and_shadow_dynamic(light_t light, int index) {
 
 	vec3 diffuse = light.color.rgb;
 	if (length(diffuse) <= 0.0) {
@@ -272,7 +271,7 @@ void dynamic_light_dynamic(light_t light, int index) {
 /**
  * @brief
  */
-void dynamic_light(void) {
+void light_and_shadow(void) {
 
 	for (int i = 0; i < vertex.num_active_lights; i++) {
 
@@ -283,22 +282,22 @@ void dynamic_light(void) {
 		int type = int(light.position.w);
 		switch (type) {
 			case LIGHT_AMBIENT:
-				dynamic_light_ambient(light, index);
+				light_and_shadow_ambient(light, index);
 				break;
 			case LIGHT_SUN:
-				dynamic_light_sun(light, index);
+				light_and_shadow_sun(light, index);
 				break;
 			case LIGHT_POINT:
-				dynamic_light_point(light, index);
+				light_and_shadow_point(light, index);
 				break;
 			case LIGHT_SPOT:
-				dynamic_light_spot(light, index);
+				light_and_shadow_spot(light, index);
 				break;
 			case LIGHT_PATCH:
-				dynamic_light_patch(light, index);
+				light_and_shadow_patch(light, index);
 				break;
 			case LIGHT_DYNAMIC:
-				dynamic_light_dynamic(light, index);
+				light_and_shadow_dynamic(light, index);
 				break;
 			default:
 				break;
@@ -367,7 +366,7 @@ void main(void) {
 
 		caustic_light(vertex.model, fragment.caustics, fragment.ambient, fragment.diffuse);
 
-		dynamic_light();
+		light_and_shadow();
 
 		out_color = fragment.diffusemap;
 

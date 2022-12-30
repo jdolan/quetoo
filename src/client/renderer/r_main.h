@@ -123,7 +123,7 @@ typedef struct {
 	 * @brief The uniform block struct.
 	 * @remarks This struct is vec4 aligned.
 	 */
-	struct {
+	struct r_uniform_block_t {
 		/**
 		 * @brief The viewport (x, y, w, h) in device pixels.
 		 */

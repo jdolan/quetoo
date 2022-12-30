@@ -183,48 +183,53 @@ struct light_t {
 	vec4 model;
 
 	/**
+	 * @brief The light mins in model space.
+	 */
+	vec4 mins;
+
+	/**
+	 * @brief The light maxs in model space.
+	 */
+	vec4 maxs;
+
+	/**
 	 * @brief The light position in view space, and type.
 	 */
 	vec4 position;
 
 	/**
-	 * @brief The light normal in view space, and plane distance.
-	 */
-	vec4 normal;
-
-	/**
 	 * @brief The light color and intensity.
 	 */
 	vec4 color;
-
-	/**
-	 * @brief The light mins in view space.
-	 */
-	vec4 mins;
-
-	/**
-	 * @brief The light maxs in view space.
-	 */
-	vec4 maxs;
-
-	/**
-	 * @brief The light projection matrix.
-	 */
-	mat4 projection;
-
-	/**
-	 * @brief The light view matrices.
-	 */
-	mat4 view[6];
 };
 
-#define MAX_LIGHT_UNIFORMS 96
+#define MAX_LIGHT_UNIFORMS 128
 #define MAX_LIGHT_UNIFORMS_ACTIVE 8
 
 /**
  * @brief The lights uniform block.
  */
 layout (std140) uniform lights_block {
+	/**
+	 * @brief The projection matrix for directional lights.
+	 */
+	mat4 shadow_projection;
+
+	/**
+	 * @brief The view matrix for directional lights, centered at the origin.
+	 */
+	mat4 shadow_view;
+
+	/**
+	 * @brief The projection matrix for point lights.
+	 */
+	mat4 shadow_projection_cube;
+
+	/**
+	 * @brief The view matrices for point lights, centered at the origin.
+	 */
+	mat4 shadow_view_cube[6];
+
 	/**
 	 * @brief The light sources for the current frame, transformed to view space.
 	 */

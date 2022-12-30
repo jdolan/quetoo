@@ -55,27 +55,15 @@ static void R_AddLightUniform(r_light_t *in) {
 	r_light_uniform_t *out = &r_lights.block.lights[in->index];
 
 	out->model = Vec3_ToVec4(in->origin, in->radius);
-	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->type);
-	out->color = Vec3_ToVec4(in->color, in->intensity);
-	out->normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal, in->dist);
 	out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
 	out->maxs = Vec3_ToVec4(in->bounds.maxs, 1.f);
 
-	if (in->type == LIGHT_AMBIENT || in->type == LIGHT_SUN) {
-		const vec3_t e = Box3_Extents(in->bounds);
-		out->projection = Mat4_FromOrtho(-e.x, e.x, -e.y, e.y, 0.f, e.z * 2.f);
-		out->view[0] = Mat4_LookAt(in->origin, Vec3_Add(in->origin, Vec3(0.f, 0.f, -1.f)), Vec3(0.f, -1.f, 0.f));
-	} else {
-		out->projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
-		out->view[0] = Mat4_LookAt(in->origin, Vec3_Add(in->origin, Vec3( 1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f));
-		out->view[1] = Mat4_LookAt(in->origin, Vec3_Add(in->origin, Vec3(-1.f,  0.f,  0.f)), Vec3(0.f, -1.f,  0.f));
-		out->view[2] = Mat4_LookAt(in->origin, Vec3_Add(in->origin, Vec3( 0.f,  1.f,  0.f)), Vec3(0.f,  0.f,  1.f));
-		out->view[3] = Mat4_LookAt(in->origin, Vec3_Add(in->origin, Vec3( 0.f, -1.f,  0.f)), Vec3(0.f,  0.f, -1.f));
-		out->view[4] = Mat4_LookAt(in->origin, Vec3_Add(in->origin, Vec3( 0.f,  0.f,  1.f)), Vec3(0.f, -1.f,  0.f));
-		out->view[5] = Mat4_LookAt(in->origin, Vec3_Add(in->origin, Vec3( 0.f,  0.f, -1.f)), Vec3(0.f, -1.f,  0.f));
-	}
+	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->type);
+	out->color = Vec3_ToVec4(in->color, in->intensity);
 
 	r_lights.block.num_lights++;
+
+	R_Draw3DBox(in->bounds, Color3fv(in->color), false);
 }
 
 /**
@@ -83,7 +71,21 @@ static void R_AddLightUniform(r_light_t *in) {
  */
 void R_UpdateLights(r_view_t *view) {
 
-	memset(&r_lights.block, 0, sizeof(r_lights.block));
+	r_light_uniform_block_t *out = &r_lights.block;
+
+	memset(out, 0, sizeof(*out));
+
+	const vec3_t e = Box3_Extents(Box3_FromCenterSize(Vec3_Zero(), Vec3(1024.f, 1024.f, 1024.f)));
+	out->shadow_projection = Mat4_FromOrtho(-e.x, e.x, -e.y, e.y, 0.f, e.z * 2.f);
+	out->shadow_view = Mat4_LookAt(Vec3_Zero(), Vec3(0.f, 0.f, -1.f), Vec3(0.f, -1.f, 0.f));
+
+	out->shadow_projection_cube = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+	out->shadow_view_cube[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+	out->shadow_view_cube[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+	out->shadow_view_cube[2] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  1.f,  0.f), Vec3(0.f,  0.f,  1.f));
+	out->shadow_view_cube[3] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f, -1.f,  0.f), Vec3(0.f,  0.f, -1.f));
+	out->shadow_view_cube[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
+	out->shadow_view_cube[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
 
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
@@ -119,10 +121,10 @@ void R_UpdateLights(r_view_t *view) {
 		R_AddLightUniform(l);
 	}
 
-	r_stats.lights = r_lights.block.num_lights;
+	r_stats.lights = out->num_lights;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(*out), out, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 

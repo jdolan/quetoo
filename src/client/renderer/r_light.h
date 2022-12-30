@@ -38,42 +38,27 @@ typedef struct {
 	vec4_t model;
 
 	/**
+	 * @brief The light mins in model space.
+	 */
+	vec4_t mins;
+
+	/**
+	 * @brief The light maxs in model space.
+	 */
+	vec4_t maxs;
+
+	/**
 	 * @brief The light position in view space, and type.
 	 */
 	vec4_t position;
 
 	/**
-	 * @brief The light normal and distance for directional lights.
-	 */
-	vec4_t normal;
-
-	/**
 	 * @brief The light color and intensity.
 	 */
 	vec4_t color;
-
-	/**
-	 * @brief The light mins in view space.
-	 */
-	vec4_t mins;
-
-	/**
-	 * @brief The light maxs in view space.
-	 */
-	vec4_t maxs;
-
-	/**
-	 * @brief The light projection matrix.
-	 */
-	mat4_t projection;
-
-	/**
-	 * @brief The light view matrices.
-	 */
-	mat4_t view[6];
 } r_light_uniform_t;
 
-#define MAX_LIGHT_UNIFORMS 96
+#define MAX_LIGHT_UNIFORMS 128
 
 /**
  * @brief The lights uniform block struct.
@@ -81,15 +66,35 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The visible light sources for the current frame, transformed to view space.
+	 * @brief The projection matrix for directional lights.
+	 */
+	mat4_t shadow_projection;
+
+	/**
+	 * @brief The view matrix for directional lights, centered at the origin.
+	 */
+	mat4_t shadow_view;
+
+	/**
+	 * @brief The projection matrix for point lights.
+	 */
+	mat4_t shadow_projection_cube;
+
+	/**
+	 * @brief The view matrices for point lights, centered at the origin.
+	 */
+	mat4_t shadow_view_cube[6];
+
+	/**
+	 * @brief The visible light sources for the current frame.
 	 */
 	r_light_uniform_t lights[MAX_LIGHT_UNIFORMS];
 
 	/**
-	 * @brief The number of active light sources.
+	 * @brief The number of visible light sources.
 	 */
 	int32_t num_lights;
-} r_lights_block_t;
+} r_light_uniform_block_t;
 
 /**
  * @brief The lights uniform block type.
@@ -103,7 +108,7 @@ typedef struct {
 	/**
 	 * @brief The uniform buffer interface block.
 	 */
-	r_lights_block_t block;
+	r_light_uniform_block_t block;
 } r_lights_t;
 
 /**

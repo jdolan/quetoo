@@ -191,17 +191,18 @@ _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius)
  */
 static void R_UpdateUniforms(const r_view_t *view) {
 
-	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
+	struct r_uniform_block_t *out = &r_uniforms.block;
+	memset(out, 0, sizeof(*out));
 
-	r_uniforms.block.projection2D = Mat4_FromOrtho(0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
+	out->projection2D = Mat4_FromOrtho(0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
 
-	r_uniforms.block.brightness = r_brightness->value;
-	r_uniforms.block.contrast = r_contrast->value;
-	r_uniforms.block.saturation = r_saturation->value;
-	r_uniforms.block.gamma = r_gamma->value;
+	out->brightness = r_brightness->value;
+	out->contrast = r_contrast->value;
+	out->saturation = r_saturation->value;
+	out->gamma = r_gamma->value;
 
 	if (view) {
-		r_uniforms.block.viewport = view->viewport;
+		out->viewport = view->viewport;
 
 		const float aspect = view->viewport.z / (float) view->viewport.w;
 
@@ -211,55 +212,56 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		const float xmin = ymin * aspect;
 		const float xmax = ymax * aspect;
 
-		r_uniforms.block.projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
-		r_uniforms.block.view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
+		out->projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
+		out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
-		r_uniforms.block.depth_range.x = NEAR_DIST;
-		r_uniforms.block.depth_range.y = MAX_WORLD_DIST;
+		out->depth_range.x = NEAR_DIST;
+		out->depth_range.y = MAX_WORLD_DIST;
 
-		r_uniforms.block.view_type = view->type;
-		r_uniforms.block.ticks = view->ticks;
+		out->view_type = view->type;
+		out->ticks = view->ticks;
 
-		r_uniforms.block.lightmaps = r_draw_bsp_lightmap->integer;
-		r_uniforms.block.modulate = r_modulate->value;
+		out->lightmaps = r_draw_bsp_lightmap->integer;
+		out->modulate = r_modulate->value;
 		
-		r_uniforms.block.fog_density = r_fog_density->value;
-		r_uniforms.block.fog_samples = r_fog_samples->integer;
+		out->fog_density = r_fog_density->value;
+		out->fog_samples = r_fog_samples->integer;
 
-		r_uniforms.block.caustics = r_caustics->value;
-		r_uniforms.block.bloom = r_bloom->value;
-		r_uniforms.block.bloom_lod = r_bloom_lod->integer;
+		out->caustics = r_caustics->value;
+		out->bloom = r_bloom->value;
+		out->bloom_lod = r_bloom_lod->integer;
 
-		r_uniforms.block.developer = r_developer->integer;
+		out->developer = r_developer->integer;
 
 		if (r_world_model) {
-			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
-			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
+
+			out->lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
+			out->lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
 
 			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->bounds.mins);
 			const vec3_t size = Box3_Size(r_world_model->bsp->lightgrid->bounds);
 
-			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
-			r_uniforms.block.lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
+			out->lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
+			out->lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 
 			const cm_entity_t *worldspawn = r_world_model->bsp->cm->entities[0];
 			const cm_entity_t *fog_color = Cm_EntityValue(worldspawn, "fog_color");
 			const cm_entity_t *fog_density = Cm_EntityValue(worldspawn, "fog_density");
 			const cm_entity_t *fog_depth_range = Cm_EntityValue(worldspawn, "fog_depth_range");
 
-			r_uniforms.block.fog_density = FOG_DENSITY * r_fog_density->value;
-			r_uniforms.block.fog_depth_range = Vec2(FOG_DEPTH_NEAR, FOG_DEPTH_FAR);
+			out->fog_density = FOG_DENSITY * r_fog_density->value;
+			out->fog_depth_range = Vec2(FOG_DEPTH_NEAR, FOG_DEPTH_FAR);
 
 			if (fog_color->parsed & ENTITY_VEC3) {
-				r_uniforms.block.fog_color = Vec3_ToVec4(fog_color->vec3, FOG_DENSITY);
+				out->fog_color = Vec3_ToVec4(fog_color->vec3, FOG_DENSITY);
 			}
 
 			if (fog_density->parsed & ENTITY_FLOAT) {
-				r_uniforms.block.fog_color.w = fog_density->value * r_fog_density->value;
+				out->fog_color.w = fog_density->value * r_fog_density->value;
 			}
 
 			if (fog_depth_range->parsed & ENTITY_VEC2) {
-				r_uniforms.block.fog_depth_range = fog_depth_range->vec2;
+				out->fog_depth_range = fog_depth_range->vec2;
 			}
 		}
 	}
