@@ -778,15 +778,13 @@ void EmitLights(void) {
 			default:
 				out->type = light->type;
 				out->atten = light->atten;
-				out->origin = Vec3_ToVec4(light->origin, light->radius);
-				out->color = Vec3_ToVec4(light->color, light->intensity);
-
-				if (light->plane) {
-					out->normal = Vec3_ToVec4(light->plane->normal, light->theta);
-				} else {
-					out->normal = Vec3_ToVec4(light->normal, light->theta);
-				}
-
+				out->origin = light->origin;
+				out->radius = light->radius;
+				out->size = light->size;
+				out->color = light->color;
+				out->intensity = light->intensity;
+				out->normal = light->normal;
+				out->theta = light->theta;
 				out->bounds = LightBounds(light);
 				out++;
 				break;

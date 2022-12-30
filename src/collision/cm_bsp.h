@@ -357,9 +357,13 @@ typedef enum {
 typedef struct {
 	light_type_t type;
 	light_atten_t atten;
-	vec4_t origin;
-	vec4_t color;
-	vec4_t normal;
+	vec3_t origin;
+	float radius;
+	float size;
+	vec3_t color;
+	float intensity;
+	vec3_t normal;
+	float theta;
 	box3_t bounds;
 } bsp_light_t;
 

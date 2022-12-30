@@ -23,42 +23,44 @@
 
 #define LIGHT_INTENSITY .125f
 
-static cg_light_t cg_lights[MAX_ENTITIES];
+static cg_light_t cg_lights[MAX_LIGHTS];
 
 /**
  * @brief
  */
 void Cg_AddLight(const cg_light_t *l) {
-	size_t i;
 
 	if (!cg_add_lights->value) {
 		return;
 	}
 
+	size_t i;
 	for (i = 0; i < lengthof(cg_lights); i++)
 		if (cg_lights[i].radius == 0.0) {
 			break;
 		}
 
 	if (i == lengthof(cg_lights)) {
-		Cg_Debug("MAX_ENTITIES\n");
+		Cg_Debug("MAX_LIGHTS\n");
 		return;
 	}
 
-	cg_lights[i] = *l;
+	cg_light_t *out = cg_lights + i;
 
-	if (cg_lights[i].type == LIGHT_INVALID) {
-		cg_lights[i].type = LIGHT_DYNAMIC;
+	*out = *l;
+
+	assert(out->decay >= 0.f);
+	assert(out->intensity >= 0.f);
+
+	if (out->type == LIGHT_INVALID) {
+		out->type = LIGHT_DYNAMIC;
 	}
 
-	assert(cg_lights[i].decay >= 0.f);
-	assert(cg_lights[i].intensity >= 0.f);
-	
-	if (cg_lights[i].intensity == 0.0) {
-		cg_lights[i].intensity = LIGHT_INTENSITY;
+	if (out->intensity == 0.0) {
+		out->intensity = LIGHT_INTENSITY;
 	}
 
-	cg_lights[i].time = cgi.client->unclamped_time;
+	out->time = cgi.client->unclamped_time;
 }
 
 /**
@@ -77,6 +79,7 @@ void Cg_AddLights(void) {
 
 		r_light_t out = {
 			.type = l->type,
+			.atten = LIGHT_ATTEN_INVERSE_SQUARE,
 			.origin = l->origin,
 			.radius = l->radius,
 			.color = l->color,
@@ -98,15 +101,17 @@ void Cg_AddLights(void) {
 	const r_bsp_light_t *b = bsp->lights;
 	for (int32_t i = 0; i < bsp->num_lights; i++, b++) {
 
-		if (b->type == LIGHT_PATCH && b->origin.w > 96.f) {
+		if (b->type == LIGHT_PATCH && b->radius + b->size > 96.f) {
 			cgi.AddLight(cgi.view, &(const r_light_t) {
 				.type = b->type,
-				.origin = Vec4_XYZ(b->origin),
-				.radius = b->origin.w,
-				.color = Vec4_XYZ(b->color),
-				.intensity = b->color.w,
-				.normal = Vec4_XYZ(b->normal),
-				.dist = b->normal.w,
+				.atten = b->atten,
+				.origin = b->origin,
+				.radius = b->radius,
+				.size = b->size,
+				.color = b->color,
+				.intensity = b->intensity,
+				.normal = b->normal,
+				.theta = b->theta,
 				.bounds = b->bounds,
 			});
 		}
@@ -127,8 +132,6 @@ void Cg_AddLights(void) {
 				cgi.AddLight(cgi.view, &(r_light_t) {
 					.type = LIGHT_AMBIENT,
 					.origin = Vec3(origin.x, origin.z, origin.y),
-					.normal = Vec3_Down(),
-					.dist = -origin.z,
 					.bounds = bounds
 				});
 			}

@@ -141,8 +141,10 @@ void light_and_shadow_point(light_t light, int index) {
 		return;
 	}
 
+	float size = light.mins.w;
+
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / radius;
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -154,7 +156,7 @@ void light_and_shadow_point(light_t light, int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(vec4(vertex.model - light.model.xyz, index));
-	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -170,8 +172,10 @@ void light_and_shadow_spot(light_t light, int index) {
 		return;
 	}
 
+	float size = light.mins.w;
+
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / radius;
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -183,7 +187,7 @@ void light_and_shadow_spot(light_t light, int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(vec4(vertex.model - light.model.xyz, index));
-	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -199,8 +203,10 @@ void light_and_shadow_patch(light_t light, int index) {
 		return;
 	}
 
+	float size = light.mins.w;
+
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / radius;
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -233,6 +239,8 @@ void light_and_shadow_dynamic(light_t light, int index) {
 		return;
 	}
 
+	float size = light.mins.w;
+
 	diffuse *= radius;
 
 	float intensity = light.color.w;
@@ -244,7 +252,7 @@ void light_and_shadow_dynamic(light_t light, int index) {
 
 	vec3 light_pos = light.position.xyz;
 
-	float atten = 1.0 - distance(light_pos, vertex.position) / radius;
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
 	if (atten <= 0.0) {
 		return;
 	}

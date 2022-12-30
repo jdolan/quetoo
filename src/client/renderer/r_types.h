@@ -497,19 +497,39 @@ typedef struct {
 	light_atten_t atten;
 
 	/**
-	 * @brief The light origin and radius.
+	 * @brief The light origin.
 	 */
-	vec4_t origin;
+	vec3_t origin;
 
 	/**
-	 * @brief The light color and intensity.
+	 * @brief The light radius.
 	 */
-	vec4_t color;
+	float radius;
 
 	/**
-	 * @brief The light normal and cone radius (spotlights).
+	 * @brief The light size, for area lights.
 	 */
-	vec4_t normal;
+	float size;
+
+	/**
+	 * @brief The light color.
+	 */
+	vec3_t color;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
+
+	/**
+	 * @brief The light normal, for directional lights.
+	 */
+	vec3_t normal;
+
+	/**
+	 * @brief The light cone radius, for spotlights.
+	 */
+	float theta;
 
 	/**
 	 * @brief The light bounds, for frustum and occlusion culling.
@@ -1130,6 +1150,11 @@ typedef struct {
 	light_type_t type;
 
 	/**
+	 * @brief The light attenuation.
+	 */
+	light_atten_t atten;
+
+	/**
 	 * @brief The light origin.
 	 */
 	vec3_t origin;
@@ -1138,6 +1163,11 @@ typedef struct {
 	 * @brief The light radius.
 	 */
 	float radius;
+
+	/**
+	 * @brief The light size, for area lights.
+	 */
+	float size;
 
 	/**
 	 * @brief The light color.
@@ -1150,14 +1180,14 @@ typedef struct {
 	float intensity;
 
 	/**
-	 * @brief The light normal.
+	 * @brief The light normal for directional lights.
 	 */
 	vec3_t normal;
 
 	/**
-	 * @brief The light plane distance.
+	 * @brief The light cone angle for spotlights.
 	 */
-	float dist;
+	float theta;
 
 	/**
 	 * @brief The light bounds.

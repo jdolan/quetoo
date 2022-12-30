@@ -38,12 +38,12 @@ typedef struct {
 	vec4_t model;
 
 	/**
-	 * @brief The light mins in model space.
+	 * @brief The light mins in model space, and size.
 	 */
 	vec4_t mins;
 
 	/**
-	 * @brief The light maxs in model space.
+	 * @brief The light maxs in model space, and attenuation.
 	 */
 	vec4_t maxs;
 

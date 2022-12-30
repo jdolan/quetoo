@@ -183,12 +183,12 @@ struct light_t {
 	vec4 model;
 
 	/**
-	 * @brief The light mins in model space.
+	 * @brief The light mins in model space, and size.
 	 */
 	vec4 mins;
 
 	/**
-	 * @brief The light maxs in model space.
+	 * @brief The light maxs in model space, and attenuation.
 	 */
 	vec4 maxs;
 
