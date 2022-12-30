@@ -486,11 +486,34 @@ typedef struct r_bsp_inline_model_s {
  * @brief
  */
 typedef struct {
+	/**
+	 * @brief The light type.
+	 */
 	light_type_t type;
+
+	/**
+	 * @brief The light attenuation.
+	 */
 	light_atten_t atten;
+
+	/**
+	 * @brief The light origin and radius.
+	 */
 	vec4_t origin;
+
+	/**
+	 * @brief The light color and intensity.
+	 */
 	vec4_t color;
+
+	/**
+	 * @brief The light normal and cone radius (spotlights).
+	 */
 	vec4_t normal;
+
+	/**
+	 * @brief The light bounds, for frustum and occlusion culling.
+	 */
 	box3_t bounds;
 } r_bsp_light_t;
 
