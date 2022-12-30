@@ -740,6 +740,17 @@ static box3_t LightBounds(const light_t *light) {
 		}
 	}
 
+	const luxel_t *luxel = lg.luxels;
+	for (size_t i = 0; i < lg.num_luxels; i++, luxel++) {
+
+		for (size_t k = 0; k < lengthof(luxel->diffuse); k++) {
+
+			if (luxel->diffuse[k].light == light) {
+				bounds = Box3_Append(bounds, luxel->origin);
+			}
+		}
+	}
+
 	return Box3_Expand(bounds, luxel_size);
 }
 

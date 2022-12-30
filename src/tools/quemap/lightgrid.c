@@ -25,18 +25,7 @@
 #include "qlight.h"
 #include "simplex.h"
 
-typedef struct {
-	box3_t stu_bounds;
-	vec3i_t size;
-
-	mat4_t matrix;
-	mat4_t inverse_matrix;
-
-	size_t num_luxels;
-	luxel_t *luxels;
-} lightgrid_t;
-
-static lightgrid_t lg;
+lightgrid_t lg;
 
 /**
  * @brief
