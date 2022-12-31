@@ -18,6 +18,7 @@ shaders_DATA = \
 	lightgrid.glsl \
 	material.glsl \
 	mesh_fs.glsl \
+	mesh_gs.glsl \
 	mesh_vs.glsl \
 	polylib.glsl \
 	shadow_fs.glsl \

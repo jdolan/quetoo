@@ -52,6 +52,8 @@ static struct {
 	GLint texture_lightgrid_direction;
 	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
+	GLint texture_shadowmap;
+	GLint texture_shadowmap_cube;
 
 	GLint color;
 
@@ -437,6 +439,7 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.name = R_LoadProgram(
 			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "mesh_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "polylib.glsl", "mesh_gs.glsl", NULL),
 			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "mesh_fs.glsl", NULL),
 			NULL);
 
@@ -470,6 +473,8 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
 	r_mesh_program.texture_lightgrid_caustics = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_caustics");
 	r_mesh_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_fog");
+	r_mesh_program.texture_shadowmap = glGetUniformLocation(r_mesh_program.name, "texture_shadowmap");
+	r_mesh_program.texture_shadowmap_cube = glGetUniformLocation(r_mesh_program.name, "texture_shadowmap_cube");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 
@@ -495,6 +500,8 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_mesh_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_mesh_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+	glUniform1i(r_mesh_program.texture_shadowmap, TEXTURE_SHADOWMAP);
+	glUniform1i(r_mesh_program.texture_shadowmap_cube, TEXTURE_SHADOWMAP_CUBE);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 

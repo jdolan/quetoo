@@ -62,8 +62,6 @@ static void R_AddLightUniform(r_light_t *in) {
 	out->color = Vec3_ToVec4(in->color, in->intensity);
 
 	r_lights.block.num_lights++;
-
-	R_Draw3DBox(in->bounds, Color3fv(in->color), false);
 }
 
 /**

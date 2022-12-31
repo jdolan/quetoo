@@ -82,8 +82,11 @@ void Cg_AddLights(void) {
 			.atten = LIGHT_ATTEN_INVERSE_SQUARE,
 			.origin = l->origin,
 			.radius = l->radius,
+			.size = 0.f,
 			.color = l->color,
 			.intensity = l->intensity,
+			.normal = Vec3_Zero(),
+			.theta = 0.f,
 			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
 		};
 

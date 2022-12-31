@@ -115,6 +115,7 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
 
 	{
 		const r_mesh_face_t *face = mesh->faces;
@@ -129,6 +130,7 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 		}
 	}
 
+	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 

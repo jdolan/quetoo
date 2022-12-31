@@ -57,9 +57,6 @@ out vertex_data {
 	vec3 direction;
 	vec3 caustics;
 	vec4 fog;
-
-	flat int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
-	flat int num_active_lights;
 } vertex;
 
 invariant gl_Position;

@@ -363,6 +363,7 @@
 		CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE79596F293F7812001B52F3 /* polylib.glsl */; };
 		CE795973294E4207001B52F3 /* r_occlude.h in Headers */ = {isa = PBXBuildFile; fileRef = CE795971294E4207001B52F3 /* r_occlude.h */; };
 		CE795974294E4207001B52F3 /* r_occlude.c in Sources */ = {isa = PBXBuildFile; fileRef = CE795972294E4207001B52F3 /* r_occlude.c */; };
+		CE795978295FDE72001B52F3 /* mesh_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE795977295FDAF5001B52F3 /* mesh_gs.glsl */; };
 		CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C0D202F6134004BC58E /* MainView.json */; };
 		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7D2C14202F690A004BC58E /* HomeViewController.h */; };
@@ -894,6 +895,7 @@
 				CEC59522257DD26E00DC7908 /* lightgrid.glsl in CopyFiles */,
 				CE57E13D2462572900F8902F /* material.glsl in CopyFiles */,
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
+				CE795978295FDE72001B52F3 /* mesh_gs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
 				CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */,
 				CE0FDB8A29329FE700353351 /* shadow_fs.glsl in CopyFiles */,
@@ -1575,6 +1577,7 @@
 		CE79596F293F7812001B52F3 /* polylib.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = polylib.glsl; sourceTree = "<group>"; };
 		CE795971294E4207001B52F3 /* r_occlude.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_occlude.h; sourceTree = "<group>"; };
 		CE795972294E4207001B52F3 /* r_occlude.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_occlude.c; sourceTree = "<group>"; };
+		CE795977295FDAF5001B52F3 /* mesh_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = mesh_gs.glsl; sourceTree = "<group>"; };
 		CE7D2C06202E670E004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C07202E9C6D004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C08202E9DE6004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2576,6 +2579,7 @@
 				CEC594C7257DC69300DC7908 /* lightgrid.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CE63992C23E1251A00DB7A2D /* mesh_fs.glsl */,
+				CE795977295FDAF5001B52F3 /* mesh_gs.glsl */,
 				CE63992B23E124F700DB7A2D /* mesh_vs.glsl */,
 				CE79596F293F7812001B52F3 /* polylib.glsl */,
 				CEE13C12293241740075585D /* shadow_fs.glsl */,

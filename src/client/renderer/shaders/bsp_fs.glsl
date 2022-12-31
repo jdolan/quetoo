@@ -100,13 +100,18 @@ float sample_shadowmap_cube(in vec4 shadowmap) {
  */
 void light_and_shadow_ambient(light_t light, int index) {
 
-//	vec4 position = light.projection * light.view[0] * vec4(vertex.model, 1.0);
-//	vec3 shadowmap = (position.xyz / position.w) * 0.5 + 0.5;
-//
-//	float shadow = sample_shadowmap(vec4(shadowmap.xy, index, shadowmap.z));
-//	float shadow_atten = (1.0 - shadow);
-//
-//	//fragment.diffusemap.rgb = vec3(shadowmap);
+	mat4 shadow_model = mat4(vec4(1.0, 0.0, 0.0, 0.0),
+							 vec4(0.0, 1.0, 0.0, 0.0),
+							 vec4(0.0, 0.0, 1.0, 0.0),
+							 vec4(-light.model.xyz, 1.0));
+
+	vec4 position = shadow_projection * shadow_view * shadow_model * vec4(vertex.model, 1.0);
+	vec3 shadowmap = (position.xyz / position.w) * 0.5 + 0.5;
+
+	float shadow = sample_shadowmap(vec4(shadowmap.xy, index, shadowmap.z));
+	float shadow_atten = (1.0 - shadow);
+
+	//fragment.diffusemap.rgb = vec3(shadowmap);
 //	fragment.ambient -= fragment.ambient * shadow_atten;
 //	fragment.specular -= fragment.specular * shadow_atten;
 }
