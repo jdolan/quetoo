@@ -74,6 +74,7 @@ void R_UpdateLights(r_view_t *view) {
 	memset(out, 0, sizeof(*out));
 
 	const vec3_t e = Box3_Extents(Box3_FromCenterSize(Vec3_Zero(), Vec3(1024.f, 1024.f, 1024.f)));
+
 	out->shadow_projection = Mat4_FromOrtho(-e.x, e.x, -e.y, e.y, 0.f, e.z * 2.f);
 	out->shadow_view = Mat4_LookAt(Vec3_Zero(), Vec3(0.f, 0.f, -1.f), Vec3(0.f, -1.f, 0.f));
 
@@ -102,7 +103,7 @@ void R_UpdateLights(r_view_t *view) {
 				continue;
 			}
 
-			if (Box3_Intersects(e->abs_model_bounds, l->bounds)) {
+			if (Box3_Intersects(e->abs_bounds, l->bounds)) {
 				l->entities[l->num_entities++] = e;
 
 				if (l->num_entities == MAX_LIGHT_ENTITIES) {
