@@ -260,12 +260,16 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 /**
  * @brief
  */
-void Cg_AddEntityShadow(const r_entity_t *ent) {
+void Cg_AddShadow(const r_entity_t *ent, ...) {
 
-	if (!cg_add_entity_shadows->integer) {
+	if (!cg_add_shadows->integer) {
 		return;
 	}
 
+	if (!ent) {
+		return;
+	}
+	
 	if (!ent->model) {
 		return;
 	}
@@ -278,19 +282,29 @@ void Cg_AddEntityShadow(const r_entity_t *ent) {
 		return;
 	}
 
-	const vec3_t down = Vec3_Fmaf(ent->origin, SHADOW_ATTEN, Vec3_Down());
-	const cm_trace_t tr = cgi.Trace(ent->origin, down, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+	box3_t bounds = Box3_Expand3(ent->abs_bounds, Vec3_Scale(Box3_Size(ent->abs_bounds), 1.25f));
+	bounds.mins.z -= Box3_Size(ent->abs_bounds).z;
 
-	cgi.AddSprite(cgi.view, &(const r_sprite_t) {
-		.color = Color32(0, 0, 0, (1.f - tr.fraction) * 255),
-		.width = Box3_Size(ent->model->bounds).y * 2.f,
-		.height = Box3_Size(ent->model->bounds).x * 2.f,
-		.rotation = Radians(ent->angles.y),
-		.media = (r_media_t *) cg_sprite_particle3,
-		.softness = -1.f,
-		.origin = Vec3_Add(tr.end, Vec3_Up()),
-		.dir = tr.plane.normal
-	});
+	const vec3_t origin = Vec3_Fmaf(ent->origin, Box3_Size(ent->abs_bounds).z * 3, Vec3_Up());
+
+	r_light_t light = {
+		.type = LIGHT_AMBIENT,
+		.origin = origin,
+		.bounds = bounds,
+		.radius = Vec3_Distance(bounds.mins, origin)
+	};
+
+	va_list args;
+	va_start(args, ent);
+
+	while (ent) {
+		light.entities[light.num_entities++] = ent;
+		ent = va_arg(args, const r_entity_t *);
+	}
+
+	va_end(args);
+
+	cgi.AddLight(cgi.view, &light);
 }
 
 /**
@@ -340,11 +354,11 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	// and any frame animations (button state, etc)
 	e.frame = ent->current.animation1;
 
-	// add a sprite shadow
-	Cg_AddEntityShadow(&e);
-
 	// add to view list
-	cgi.AddEntity(cgi.view, &e);
+	r_entity_t *added = cgi.AddEntity(cgi.view, &e);
+
+	// add a shadow
+	Cg_AddShadow(added, NULL);
 }
 
 /**

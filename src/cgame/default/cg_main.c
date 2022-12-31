@@ -25,9 +25,9 @@ cg_state_t cg_state;
 
 cvar_t *cg_add_atmospheric;
 cvar_t *cg_add_entities;
-cvar_t *cg_add_entity_shadows;
 cvar_t *cg_add_flares;
 cvar_t *cg_add_lights;
+cvar_t *cg_add_shadows;
 cvar_t *cg_add_sprites;
 cvar_t *cg_add_weather;
 cvar_t *cg_auto_switch;
@@ -116,9 +116,9 @@ static void Cg_Init(void) {
 
 	cg_add_atmospheric = cgi.AddCvar("cg_add_atmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
 	cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
-	cg_add_entity_shadows = cgi.AddCvar("cg_add_entity_shadows", "1", CVAR_ARCHIVE, "Toggles adding mesh entity shadows to the scene.");
 	cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
 	cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
+	cg_add_shadows = cgi.AddCvar("cg_add_shadows", "1", CVAR_ARCHIVE, "Toggles adding entity shadows to the scene.");
 	cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
 	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
 

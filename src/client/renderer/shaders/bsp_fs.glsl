@@ -133,19 +133,7 @@ void light_and_shadow_ambient(in light_t light, in int index) {
  */
 void light_and_shadow_sun(in light_t light, in int index) {
 
-	vec3 light_pos = light.position.xyz;
-
-	vec3 light_dir = normalize(light_pos - vertex.position);
-	float lambert = dot(light_dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert;
-
-	fragment.diffuse -= fragment.diffuse * shadow_atten;
-	fragment.specular -= fragment.specular * shadow_atten;
+	// TODO
 }
 
 /**

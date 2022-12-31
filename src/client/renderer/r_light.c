@@ -43,6 +43,37 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 /**
  * @brief
  */
+static void R_AddBspLights(r_view_t *view) {
+
+	if (view->type != VIEW_MAIN) {
+		return;
+	}
+
+	const r_bsp_model_t *bsp = r_world_model->bsp;
+
+	const r_bsp_light_t *b = bsp->lights;
+	for (int32_t i = 0; i < bsp->num_lights; i++, b++) {
+
+		if (b->type == LIGHT_PATCH && Box3_Radius(b->bounds) > 64.f) {
+			R_AddLight(view, &(const r_light_t) {
+				.type = b->type,
+				.atten = b->atten,
+				.origin = b->origin,
+				.radius = b->radius,
+				.size = b->size,
+				.color = b->color,
+				.intensity = b->intensity,
+				.normal = b->normal,
+				.theta = b->theta,
+				.bounds = b->bounds,
+			});
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_AddLightUniform(r_light_t *in) {
 
 	if (r_lights.block.num_lights == MAX_LIGHT_UNIFORMS) {
@@ -84,29 +115,33 @@ void R_UpdateLights(r_view_t *view) {
 	out->shadow_view_cube[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
 	out->shadow_view_cube[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
 
+	R_AddBspLights(view);
+
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+		l->index = -1;
 
 		if (R_OccludeBox(view, l->bounds)) {
 			continue;
 		}
 
-		l->num_entities = 0;
-		l->index = -1;
+		if (l->num_entities == 0) {
 
-		const r_entity_t *e = view->entities;
-		for (int32_t j = 0; j < view->num_entities; j++, e++) {
+			const r_entity_t *e = view->entities;
+			for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
-			if (!IS_MESH_MODEL(e->model)) {
-				continue;
-			}
+				if (!IS_MESH_MODEL(e->model)) {
+					continue;
+				}
 
-			if (Box3_Intersects(e->abs_bounds, l->bounds)) {
-				l->entities[l->num_entities++] = e;
+				if (Box3_Intersects(e->abs_bounds, l->bounds)) {
+					l->entities[l->num_entities++] = e;
 
-				if (l->num_entities == MAX_LIGHT_ENTITIES) {
-					Com_Warn("MAX_LIGHT_ENTITIES\n");
-					break;
+					if (l->num_entities == MAX_LIGHT_ENTITIES) {
+						Com_Warn("MAX_LIGHT_ENTITIES\n");
+						break;
+					}
 				}
 			}
 		}

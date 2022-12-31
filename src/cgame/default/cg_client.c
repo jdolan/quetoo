@@ -602,8 +602,6 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 
-	Cg_AddEntityShadow(&legs);
-
 	r_entity_t *r_legs = cgi.AddEntity(cgi.view, &legs);
 
 	if (!r_legs) {
@@ -622,8 +620,9 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	r_entity_t *r_head = cgi.AddEntity(cgi.view, &head);
 	assert(r_head);
 
+	r_entity_t *r_weapon = NULL;
 	if (s->model2) {
-		cgi.AddEntity(cgi.view, &(const r_entity_t) {
+		r_weapon = cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_weapon",
 			.scale = e->scale,
@@ -632,10 +631,13 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			.color = e->color,
 			.shell = e->shell,
 		});
+
+		assert(r_weapon);
 	}
 
+	r_entity_t *r_flag = NULL;
 	if (s->model3) {
-		cgi.AddEntity(cgi.view, &(const r_entity_t) {
+		r_flag = cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_head",
 			.scale = e->scale,
@@ -644,9 +646,13 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			.color = e->color,
 			.shell = e->shell,
 		});
+
+		assert(r_flag);
 	}
 
 	if (s->model4) {
 		cgi.Warn("Unsupported model_index4\n");
 	}
+
+	Cg_AddShadow(r_legs, r_torso, r_head, r_weapon, r_flag, NULL);
 }
