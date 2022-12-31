@@ -255,8 +255,6 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 	}
 }
 
-#define SHADOW_ATTEN 128.f
-
 /**
  * @brief
  */
@@ -269,7 +267,7 @@ void Cg_AddShadow(const r_entity_t *ent, ...) {
 	if (!ent) {
 		return;
 	}
-	
+
 	if (!ent->model) {
 		return;
 	}

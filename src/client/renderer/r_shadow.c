@@ -73,9 +73,9 @@ static struct {
 	GLuint cubemap_array;
 
 	/**
-	 * @brief Every light source has a framebuffer to capture its depth pass.
+	 * @brief The depth pass framebuffer.
 	 */
-	GLuint framebuffers[MAX_LIGHT_UNIFORMS];
+	GLuint framebuffer;
 } r_shadows;
 
 /**
@@ -145,8 +145,6 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
  */
 static void R_ClearShadow(const r_light_t *l) {
 
-	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffers[l->index]);
-
 	if (l->type == LIGHT_AMBIENT || l->type == LIGHT_SUN) {
 		glFramebufferTextureLayer(GL_FRAMEBUFFER,
 								  GL_DEPTH_ATTACHMENT,
@@ -170,9 +168,6 @@ static void R_ClearShadow(const r_light_t *l) {
 
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_array, 0);
 	}
-
-	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	assert(status == GL_FRAMEBUFFER_COMPLETE);
 }
 
 /**
@@ -209,6 +204,8 @@ void R_DrawShadows(const r_view_t *view) {
 	}
 
 	glUseProgram(r_shadow_program.name);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffer);
 
 	const r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
@@ -317,17 +314,14 @@ static void R_InitShadowTextures(void) {
 /**
  * @brief
  */
-static void R_InitShadowFramebuffers(void) {
+static void R_InitShadowFramebuffer(void) {
 
-	glGenFramebuffers(MAX_LIGHT_UNIFORMS, r_shadows.framebuffers);
+	glGenFramebuffers(1, &r_shadows.framebuffer);
 
-	for (int32_t i = 0; i < MAX_LIGHT_UNIFORMS; i++) {
+	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffer);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffers[i]);
-
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-	}
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -343,7 +337,7 @@ void R_InitShadows(void) {
 
 	R_InitShadowTextures();
 
-	R_InitShadowFramebuffers();
+	R_InitShadowFramebuffer();
 }
 
 /**
@@ -373,11 +367,11 @@ static void R_ShutdownShadowTexture(void) {
 /**
  * @brief
  */
-static void R_ShutdownShadowFramebuffers(void) {
+static void R_ShutdownShadowFramebuffer(void) {
 
-	glDeleteFramebuffers(MAX_LIGHT_UNIFORMS, r_shadows.framebuffers);
+	glDeleteFramebuffers(1, &r_shadows.framebuffer);
 
-	memset(r_shadows.framebuffers, 0, sizeof(r_shadows.framebuffers));
+	r_shadows.framebuffer = 0;
 
 	R_GetError(NULL);
 }
@@ -391,5 +385,5 @@ void R_ShutdownShadows(void) {
 
 	R_ShutdownShadowTexture();
 
-	R_ShutdownShadowFramebuffers();
+	R_ShutdownShadowFramebuffer();
 }
