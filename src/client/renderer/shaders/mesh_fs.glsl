@@ -85,42 +85,46 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
 /**
  * @brief
  */
-float sample_shadowmap(in vec4 shadowmap) {
-	return texture(texture_shadowmap, shadowmap);
-}
-
-/**
- * @brief
- */
-float sample_shadowmap_cube(in vec4 shadowmap) {
-	return texture(texture_shadowmap_cube, shadowmap, length(shadowmap.xyz) / depth_range.y);
-}
-
-/**
- * @brief
- */
-void light_and_shadow_ambient(light_t light, int index) {
+float sample_shadowmap(in light_t light, in int index) {
 
 	mat4 shadow_model = mat4(vec4(1.0, 0.0, 0.0, 0.0),
 							 vec4(0.0, 1.0, 0.0, 0.0),
 							 vec4(0.0, 0.0, 1.0, 0.0),
 							 vec4(-light.model.xyz, 1.0));
 
-	vec4 position = shadow_projection * shadow_view * shadow_model * vec4(vertex.model, 1.0);
-	vec3 shadowmap = (position.xyz / position.w) * 0.5 + 0.5;
+	vec4 position = shadow_view * shadow_model * vec4(vertex.model, 1.0);
+	vec4 projected = shadow_projection * position;
+	vec2 shadowmap = (projected.xy / projected.w) * 0.5 + 0.5;
 
-	float shadow = sample_shadowmap(vec4(shadowmap.xy, index, shadowmap.z));
-	float shadow_atten = (1.0 - shadow);
-
-	//fragment.diffusemap.rgb = vec3(shadowmap);
-//	fragment.ambient -= fragment.ambient * shadow_atten;
-//	fragment.specular -= fragment.specular * shadow_atten;
+	return texture(texture_shadowmap, vec4(shadowmap, index, length(position.xyz) / depth_range.y));
 }
 
 /**
  * @brief
  */
-void light_and_shadow_sun(light_t light, int index) {
+float sample_shadowmap_cube(in light_t light, in int index) {
+
+	vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
+
+	return texture(texture_shadowmap_cube, shadowmap, length(shadowmap.xyz) / depth_range.y);
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_ambient(in light_t light, in int index) {
+
+	float shadow = sample_shadowmap(light, index);
+	float shadow_atten = (1.0 - shadow);
+
+	fragment.ambient -= fragment.ambient * shadow_atten;
+	fragment.specular -= fragment.specular * shadow_atten;
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_sun(in light_t light, in int index) {
 
 	vec3 light_pos = light.position.xyz;
 
@@ -130,7 +134,7 @@ void light_and_shadow_sun(light_t light, int index) {
 		return;
 	}
 
-	float shadow = sample_shadowmap_cube(vec4(vertex.model - light.model.xyz, index));
+	float shadow = sample_shadowmap_cube(light, index);
 	float shadow_atten = (1.0 - shadow) * lambert;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
@@ -140,7 +144,7 @@ void light_and_shadow_sun(light_t light, int index) {
 /**
  * @brief
  */
-void light_and_shadow_point(light_t light, int index) {
+void light_and_shadow_point(in light_t light, in int index) {
 
 	float radius = light.model.w;
 	if (radius <= 0.0) {
@@ -161,7 +165,7 @@ void light_and_shadow_point(light_t light, int index) {
 		return;
 	}
 
-	float shadow = sample_shadowmap_cube(vec4(vertex.model - light.model.xyz, index));
+	float shadow = sample_shadowmap_cube(light, index);
 	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
@@ -171,7 +175,7 @@ void light_and_shadow_point(light_t light, int index) {
 /**
  * @brief
  */
-void light_and_shadow_spot(light_t light, int index) {
+void light_and_shadow_spot(in light_t light, in int index) {
 
 	float radius = light.model.w;
 	if (radius <= 0.0) {
@@ -192,7 +196,7 @@ void light_and_shadow_spot(light_t light, int index) {
 		return;
 	}
 
-	float shadow = sample_shadowmap_cube(vec4(vertex.model - light.model.xyz, index));
+	float shadow = sample_shadowmap_cube(light, index);
 	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
@@ -202,7 +206,7 @@ void light_and_shadow_spot(light_t light, int index) {
 /**
  * @brief
  */
-void light_and_shadow_patch(light_t light, int index) {
+void light_and_shadow_patch(in light_t light, in int index) {
 
 	float radius = light.model.w;
 	if (radius <= 0.0) {
@@ -223,7 +227,7 @@ void light_and_shadow_patch(light_t light, int index) {
 		return;
 	}
 
-	float shadow = sample_shadowmap_cube(vec4(vertex.model - light.model.xyz, index));
+	float shadow = sample_shadowmap_cube(light, index);
 	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
@@ -233,7 +237,7 @@ void light_and_shadow_patch(light_t light, int index) {
 /**
  * @brief
  */
-void light_and_shadow_dynamic(light_t light, int index) {
+void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	vec3 diffuse = light.color.rgb;
 	if (length(diffuse) <= 0.0) {
@@ -273,7 +277,7 @@ void light_and_shadow_dynamic(light_t light, int index) {
 
 	diffuse *= lambert;
 
-	float shadow = sample_shadowmap_cube(vec4(vertex.model - light.model.xyz, index));
+	float shadow = sample_shadowmap_cube(light, index);
 	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
 
 	diffuse *= shadow;

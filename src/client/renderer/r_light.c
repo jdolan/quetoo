@@ -75,7 +75,7 @@ void R_UpdateLights(r_view_t *view) {
 
 	const vec3_t e = Box3_Extents(Box3_FromCenterSize(Vec3_Zero(), Vec3(1024.f, 1024.f, 1024.f)));
 
-	out->shadow_projection = Mat4_FromOrtho(-e.x, e.x, -e.y, e.y, 0.f, e.z * 2.f);
+	out->shadow_projection = Mat4_FromOrtho(-e.x, e.x, -e.y, e.y, NEAR_DIST, MAX_WORLD_DIST);
 	out->shadow_view = Mat4_LookAt(Vec3_Zero(), Vec3(0.f, 0.f, -1.f), Vec3(0.f, -1.f, 0.f));
 
 	out->shadow_projection_cube = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
