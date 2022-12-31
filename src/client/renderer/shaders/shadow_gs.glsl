@@ -30,10 +30,7 @@ void main() {
 
 	light_t light = lights[light_index];
 
-	mat4 model = mat4(vec4(1.0, 0.0, 0.0, 0.0),
-					  vec4(0.0, 1.0, 0.0, 0.0),
-					  vec4(0.0, 0.0, 1.0, 0.0),
-					  vec4(-light.model.xyz, 1.0));
+	vec4 translate = vec4(-light.model.xyz, 0.0);
 
 	int type = int(light.position.w);
 
@@ -42,7 +39,7 @@ void main() {
 
 		for (int j = 0; j < 3; j++) {
 
-			position = shadow_view * model * gl_in[j].gl_Position;
+			position = shadow_view * (gl_in[j].gl_Position + translate);
 
 			gl_Position = shadow_projection * position;
 
@@ -56,7 +53,7 @@ void main() {
 
 			for (int j = 0; j < 3; j++) {
 
-				position = shadow_view_cube[i] * model * gl_in[j].gl_Position;
+				position = shadow_view_cube[i] * (gl_in[j].gl_Position + translate);
 
 				gl_Position = shadow_projection_cube * position;
 
