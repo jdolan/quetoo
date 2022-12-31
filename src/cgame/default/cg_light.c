@@ -121,22 +121,30 @@ void Cg_AddLights(void) {
 		}
 	}
 
-	// Break the world into a grid, and add an ambient shadow caster per cell
+	// Add an ambient shadow caster for all visible entities
 
-	const float size = 1024.f;
-	for (int32_t x = mod->bounds.mins.x; x < mod->bounds.maxs.x; x += size) {
-		for (int32_t y = mod->bounds.mins.y; y < mod->bounds.maxs.y; y += size) {
-			for (int32_t z = mod->bounds.mins.z; z < mod->bounds.maxs.z; z += size) {
+	const r_entity_t *e = cgi.view->entities;
+	for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
 
-				const box3_t bounds = Box3(Vec3(x, y, z), Vec3(x + size, y + size, z + size));
-
-				cgi.AddLight(cgi.view, &(r_light_t) {
-					.type = LIGHT_AMBIENT,
-					.origin = Vec3_Add(Box3_Center(bounds), Vec3(0.f, 0.f, Box3_Extents(bounds).z)),
-					.bounds = bounds
-				});
-			}
+		if (!IS_MESH_MODEL(e->model)) {
+			continue;
 		}
+
+		if (e->parent) {
+			continue;
+		}
+
+		box3_t bounds = e->abs_bounds;
+		bounds.mins.z -= Box3_Size(e->abs_bounds).z;
+
+		const vec3_t origin = Vec3_Fmaf(e->origin, Box3_Size(e->abs_bounds).z * 3, Vec3_Up());
+
+		cgi.AddLight(cgi.view, &(r_light_t) {
+			.type = LIGHT_AMBIENT,
+			.origin = origin,
+			.bounds = bounds,
+			.radius = Vec3_Distance(bounds.mins, origin),
+		});
 	}
 }
 

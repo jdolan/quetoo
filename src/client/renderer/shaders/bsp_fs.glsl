@@ -108,8 +108,21 @@ float sample_shadowmap_cube(in light_t light, in int index) {
  */
 void light_and_shadow_ambient(in light_t light, in int index) {
 
+	float radius = light.model.w;
+	if (radius <= 0.0) {
+		return;
+	}
+
+	float size = light.mins.w;
+
+	vec3 light_pos = light.position.xyz;
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	if (atten <= 0.0) {
+		return;
+	}
+
 	float shadow = sample_shadowmap(light, index);
-	float shadow_atten = (1.0 - shadow);
+	float shadow_atten = (1.0 - shadow) * sqrt(atten);
 
 	fragment.ambient -= fragment.ambient * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;

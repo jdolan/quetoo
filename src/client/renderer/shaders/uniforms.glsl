@@ -203,7 +203,7 @@ struct light_t {
 	vec4 color;
 };
 
-#define MAX_LIGHT_UNIFORMS 128
+#define MAX_LIGHT_UNIFORMS 256
 #define MAX_LIGHT_UNIFORMS_ACTIVE 8
 
 /**
