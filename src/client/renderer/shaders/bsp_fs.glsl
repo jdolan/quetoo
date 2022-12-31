@@ -112,8 +112,8 @@ void light_and_shadow_ambient(light_t light, int index) {
 	float shadow_atten = (1.0 - shadow);
 
 	//fragment.diffusemap.rgb = vec3(shadowmap);
-//	fragment.ambient -= fragment.ambient * shadow_atten;
-//	fragment.specular -= fragment.specular * shadow_atten;
+	fragment.ambient -= fragment.ambient * shadow_atten;
+	fragment.specular -= fragment.specular * shadow_atten;
 }
 
 /**

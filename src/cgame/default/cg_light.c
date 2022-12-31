@@ -100,11 +100,12 @@ void Cg_AddLights(void) {
 
 	// Add world lights as shadow casters
 
-	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
-	const r_bsp_light_t *b = bsp->lights;
-	for (int32_t i = 0; i < bsp->num_lights; i++, b++) {
+	const r_model_t *mod = cgi.WorldModel();
 
-		if (b->type == LIGHT_PATCH && b->radius + b->size > 96.f) {
+	const r_bsp_light_t *b = mod->bsp->lights;
+	for (int32_t i = 0; i < mod->bsp->num_lights; i++, b++) {
+
+		if (b->type == LIGHT_PATCH && Box3_Radius(b->bounds) > 64.f) {
 			cgi.AddLight(cgi.view, &(const r_light_t) {
 				.type = b->type,
 				.atten = b->atten,
@@ -123,18 +124,15 @@ void Cg_AddLights(void) {
 	// Break the world into a grid, and add an ambient shadow caster per cell
 
 	const float size = 1024.f;
-
-	const r_bsp_lightgrid_t *lg = bsp->lightgrid;
-	for (int32_t x = lg->bounds.mins.x; x < lg->bounds.maxs.x; x += size) {
-		for (int32_t y = lg->bounds.mins.y; y < lg->bounds.maxs.y; y += size) {
-			for (int32_t z = lg->bounds.mins.z; z < lg->bounds.maxs.z; z += size) {
+	for (int32_t x = mod->bounds.mins.x; x < mod->bounds.maxs.x; x += size) {
+		for (int32_t y = mod->bounds.mins.y; y < mod->bounds.maxs.y; y += size) {
+			for (int32_t z = mod->bounds.mins.z; z < mod->bounds.maxs.z; z += size) {
 
 				const box3_t bounds = Box3(Vec3(x, y, z), Vec3(x + size, y + size, z + size));
-				const vec3_t origin = Vec3_Fmaf(Box3_Center(bounds), Box3_Extents(bounds).z, Vec3_Up());
 
 				cgi.AddLight(cgi.view, &(r_light_t) {
 					.type = LIGHT_AMBIENT,
-					.origin = Vec3(origin.x, origin.z, origin.y),
+					.origin = Vec3_Add(Box3_Center(bounds), Vec3(0.f, 0.f, Box3_Extents(bounds).z)),
 					.bounds = bounds
 				});
 			}
