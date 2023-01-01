@@ -80,6 +80,43 @@ static struct {
 /**
  * @brief
  */
+static void R_DrawBspInlineModelShadow(const r_bsp_inline_model_t *in) {
+
+	const r_bsp_model_t *bsp = r_world_model->bsp;
+
+	glBindVertexArray(bsp->vertex_array);
+
+	glEnableVertexAttribArray(r_shadow_program.in_position);
+	glDisableVertexAttribArray(r_shadow_program.in_next_position);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, in->depth_pass_elements_buffer);
+	glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+}
+
+/**
+ * @brief
+ */
+static void R_DrawBspInlineModelEntityShadow(const r_view_t *view, const r_entity_t *e) {
+
+	const r_bsp_inline_model_t *in = e->model->bsp_inline;
+	assert(in);
+
+	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
+	glUniform1f(r_shadow_program.lerp, 0.f);
+
+	R_DrawBspInlineModelShadow(in);
+}
+
+/**
+ * @brief
+ */
 static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh, const r_mesh_face_t *face) {
 
 	const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
@@ -109,12 +146,7 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 	glEnableVertexAttribArray(r_shadow_program.in_next_position);
 	
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
-
 	glUniform1f(r_shadow_program.lerp, e->lerp);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
 
 	{
 		const r_mesh_face_t *face = mesh->faces;
@@ -129,10 +161,6 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 		}
 	}
 
-	glCullFace(GL_BACK);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	
@@ -142,7 +170,7 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 /**
  * @brief Clears the shadow texture for the specified light.
  */
-static void R_ClearShadow(const r_light_t *l) {
+static void R_ClearShadow(const r_view_t *view, const r_light_t *l) {
 
 	if (l->type == LIGHT_AMBIENT || l->type == LIGHT_SUN) {
 		glFramebufferTextureLayer(GL_FRAMEBUFFER,
@@ -172,15 +200,26 @@ static void R_ClearShadow(const r_light_t *l) {
 /**
  * @brief Renders the shadow cubemap for the specified light.
  */
-static void R_DrawShadow(const r_light_t *l) {
+static void R_DrawShadow(const r_view_t *view, const r_light_t *l) {
 
 	glUniform1i(r_shadow_program.light_index, l->index);
+
+	if (l->type == LIGHT_DYNAMIC) {
+		glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
+		glUniform1f(r_shadow_program.lerp, 0.f);
+
+		R_DrawBspInlineModelShadow(r_world_model->bsp->inline_models);
+	}
 
 	for (int32_t i = 0; i < l->num_entities; i++) {
 		const r_entity_t *e = l->entities[i];
 
 		if (IS_MESH_MODEL(e->model)) {
 			R_DrawMeshEntityShadow(e);
+		} else if (IS_BSP_INLINE_MODEL(e->model)) {
+			R_DrawBspInlineModelEntityShadow(view, e);
+		} else {
+			assert(false);
 		}
 	}
 
@@ -198,9 +237,13 @@ void R_DrawShadows(const r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffer);
 
+	glUseProgram(r_shadow_program.name);
+
 	glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
 
-	glUseProgram(r_shadow_program.name);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
 
 	const r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
@@ -209,20 +252,24 @@ void R_DrawShadows(const r_view_t *view) {
 			continue;
 		}
 
-		R_ClearShadow(l);
+		R_ClearShadow(view, l);
 
 		if (l->num_entities == 0) {
 			continue;
 		}
 
-		R_DrawShadow(l);
+		R_DrawShadow(view, l);
 	}
+
+	glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
+	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glUseProgram(0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	R_GetError(NULL);
 }

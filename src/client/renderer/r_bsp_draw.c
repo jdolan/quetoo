@@ -421,9 +421,9 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 /**
  * @brief Draws opaque draw elements for the specified inline model.
  */
-static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
-												   const r_entity_t *entity,
-												   const r_bsp_inline_model_t *in) {
+static void R_DrawBspInlineOpaqueDrawElements(const r_view_t *view,
+											  const r_entity_t *entity,
+											  const r_bsp_inline_model_t *in) {
 
 	const r_material_t *material = NULL;
 
@@ -447,9 +447,9 @@ static void R_DrawBspInlineModelOpaqueDrawElements(const r_view_t *view,
 /**
  * @brief Draws alpha test draw elements for the specified inline model.
  */
-static void R_DrawBspInlineModelAlphaTestDrawElements(const r_view_t *view,
-													  const r_entity_t *entity,
-													  const r_bsp_inline_model_t *in) {
+static void R_DrawBspInlineAlphaTestDrawElements(const r_view_t *view,
+												 const r_entity_t *entity,
+												 const r_bsp_inline_model_t *in) {
 
 	const r_material_t *material = NULL;
 
@@ -471,9 +471,9 @@ static void R_DrawBspInlineModelAlphaTestDrawElements(const r_view_t *view,
  * @details In order to ensure correct blend ordering, sprites and mesh entities may be dispatched
  * here, to be drawn immediately behind (before) any draw elements that may occlude them.
  */
-static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
-												  const r_entity_t *entity,
-												  const r_bsp_inline_model_t *in) {
+static void R_DrawBspInlineBlendDrawElements(const r_view_t *view,
+											 const r_entity_t *entity,
+											 const r_bsp_inline_model_t *in) {
 
 	const r_material_t *material = NULL;
 
@@ -526,7 +526,7 @@ static void R_DrawBspInlineModelBlendDrawElements(const r_view_t *view,
 /**
  * @brief
  */
-void R_UpdateBspInlineModelEntities(r_view_t *view) {
+void R_UpdateBspInlineEntities(r_view_t *view) {
 
 	r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -544,18 +544,18 @@ void R_UpdateBspInlineModelEntities(r_view_t *view) {
 /**
  * @brief
  */
-static void R_DrawBspInlineModelEntity(const r_view_t *view, const r_entity_t *e) {
+static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 
-	R_DrawBspInlineModelOpaqueDrawElements(view, e, e->model->bsp_inline);
+	R_DrawBspInlineOpaqueDrawElements(view, e, e->model->bsp_inline);
 
-	R_DrawBspInlineModelAlphaTestDrawElements(view, e, e->model->bsp_inline);
+	R_DrawBspInlineAlphaTestDrawElements(view, e, e->model->bsp_inline);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	R_DrawBspInlineModelBlendDrawElements(view, e, e->model->bsp_inline);
+	R_DrawBspInlineBlendDrawElements(view, e, e->model->bsp_inline);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
@@ -568,7 +568,7 @@ static void R_DrawBspInlineModelEntity(const r_view_t *view, const r_entity_t *e
 /**
  * @brief
  */
-void R_DrawBspInlineModelEntities(const r_view_t *view, int32_t blend_depth) {
+void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 
 	if (view->type == VIEW_PLAYER_MODEL) {
 		return;
@@ -602,7 +602,7 @@ void R_DrawBspInlineModelEntities(const r_view_t *view, int32_t blend_depth) {
 				continue;
 			}
 
-			R_DrawBspInlineModelEntity(view, e);
+			R_DrawBspInlineEntity(view, e);
 		}
 	}
 
@@ -667,20 +667,20 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
 
-	R_DrawBspInlineModelOpaqueDrawElements(view, NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineOpaqueDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
 	if (r_depth_pass->value) {
 		glDepthMask(GL_TRUE);
 	}
 
-	R_DrawBspInlineModelAlphaTestDrawElements(view, NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineAlphaTestDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_DrawBlendDepthTypes(view, INT32_MIN, BLEND_DEPTH_ALL);
 
-	R_DrawBspInlineModelBlendDrawElements(view, NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineBlendDrawElements(view, NULL, r_world_model->bsp->inline_models);
 
 	R_DrawBlendDepthTypes(view, INT32_MAX, BLEND_DEPTH_ALL);
 

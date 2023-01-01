@@ -272,10 +272,6 @@ void Cg_AddShadow(const r_entity_t *ent, ...) {
 		return;
 	}
 
-	if (ent->model->type == MOD_BSP_INLINE) {
-		return;
-	}
-
 	if (ent->effects & EF_NO_SHADOW) {
 		return;
 	}
@@ -285,7 +281,7 @@ void Cg_AddShadow(const r_entity_t *ent, ...) {
 	}
 
 	// FIXME: Could this be more elegant? Union of all ents?
-	
+
 	box3_t bounds = Box3_Expand3(ent->abs_bounds, Vec3_Scale(Box3_Size(ent->abs_bounds), 1.25f));
 	bounds.mins.z -= Box3_Size(ent->abs_bounds).z;
 

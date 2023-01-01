@@ -131,7 +131,7 @@ void R_UpdateLights(r_view_t *view) {
 			const r_entity_t *e = view->entities;
 			for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
-				if (!IS_MESH_MODEL(e->model)) {
+				if (!e->model) {
 					continue;
 				}
 
