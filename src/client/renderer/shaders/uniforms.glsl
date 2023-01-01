@@ -204,7 +204,7 @@ struct light_t {
 };
 
 #define MAX_LIGHT_UNIFORMS 256
-#define MAX_LIGHT_UNIFORMS_ACTIVE 8
+#define MAX_LIGHT_UNIFORMS_ACTIVE 16
 
 /**
  * @brief The lights uniform block.
