@@ -21,8 +21,7 @@
 
 #include "r_local.h"
 
-#define SHADOWMAP_SIZE 192
-#define SHADOWMAP_CUBE_SIZE 512
+#define SHADOWMAP_SIZE 512
 
 /**
  * @brief The shadow program.
@@ -177,12 +176,6 @@ static void R_DrawShadow(const r_light_t *l) {
 
 	glUniform1i(r_shadow_program.light_index, l->index);
 
-	if (l->type == LIGHT_AMBIENT || l->type == LIGHT_SUN) {
-		glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
-	} else {
-		glViewport(0, 0, SHADOWMAP_CUBE_SIZE, SHADOWMAP_CUBE_SIZE);
-	}
-
 	for (int32_t i = 0; i < l->num_entities; i++) {
 		const r_entity_t *e = l->entities[i];
 
@@ -203,9 +196,11 @@ void R_DrawShadows(const r_view_t *view) {
 		return;
 	}
 
-	glUseProgram(r_shadow_program.name);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffer);
+
+	glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
+
+	glUseProgram(r_shadow_program.name);
 
 	const r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
@@ -223,9 +218,9 @@ void R_DrawShadows(const r_view_t *view) {
 		R_DrawShadow(l);
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	glUseProgram(0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
@@ -304,7 +299,7 @@ static void R_InitShadowTextures(void) {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_CUBE_SIZE, SHADOWMAP_CUBE_SIZE, MAX_LIGHT_UNIFORMS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, MAX_LIGHT_UNIFORMS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
