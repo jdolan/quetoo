@@ -280,6 +280,12 @@ void Cg_AddShadow(const r_entity_t *ent, ...) {
 		return;
 	}
 
+	if (Vec3_Distance(ent->origin, cgi.view->origin) > 1024.f) {
+		return;
+	}
+
+	// FIXME: Could this be more elegant? Union of all ents?
+	
 	box3_t bounds = Box3_Expand3(ent->abs_bounds, Vec3_Scale(Box3_Size(ent->abs_bounds), 1.25f));
 	bounds.mins.z -= Box3_Size(ent->abs_bounds).z;
 
