@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-#define SHADOWMAP_SIZE 512
-
 /**
  * @brief The shadow program.
  */
@@ -292,7 +290,8 @@ void R_DrawShadows(const r_view_t *view) {
 
 	glUseProgram(r_shadow_program.name);
 
-	glViewport(0, 0, SHADOWMAP_SIZE, SHADOWMAP_SIZE);
+	const GLsizei size = r_shadowmap_size->integer;
+	glViewport(0, 0, size, size);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -366,6 +365,8 @@ static void R_InitShadowProgram(void) {
  */
 static void R_InitShadowTextures(void) {
 
+	const GLsizei size = r_shadowmap_size->integer;
+
 	glGenTextures(1, &r_shadows.texture_array);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP);
@@ -381,7 +382,7 @@ static void R_InitShadowTextures(void) {
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, MAX_LIGHT_UNIFORMS, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, size, size, MAX_LIGHT_UNIFORMS, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
 	glGenTextures(1, &r_shadows.cubemap_array);
 	
@@ -399,7 +400,7 @@ static void R_InitShadowTextures(void) {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, MAX_LIGHT_UNIFORMS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, size, size, MAX_LIGHT_UNIFORMS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
