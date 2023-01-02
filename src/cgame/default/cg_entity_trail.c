@@ -331,7 +331,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.origin = end,
 		.radius = 100.f,
 		.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
-		.intensity = .025f,
+		.intensity = .25f,
 	});
 }
 
@@ -382,7 +382,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.origin = end, // TODO: find a way to nudge this away from the surface a bit
 		.radius = 40.f + 20.f * pulse1,
 		.color = Vec3(.05f, .5f, .05f),
-		// .intensity = .05f
+		.intensity = .5f
 	});
 
 	/*mat4_t m = Mat4_FromTranslation(end);
@@ -559,8 +559,9 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
-		.radius = 150.f,
-		.color = Vec3(.8f, .4f, .2f)
+		.radius = 100.f,
+		.color = Vec3(.8f, .5f, .4f),
+		.intensity = .4f,
 	});
 }
 
@@ -641,7 +642,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.origin = ent->origin,
 		.radius = 100.f,
 		.color = Vec3(.4f, .7f, 1.f),
-		.intensity = 0.1
+		.intensity = .5f
 	});
 }
 
@@ -680,7 +681,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			.origin = Vec3_Fmaf(start, f, dir),
 			.radius = 128.f + RandomRangef(-32.f, 32.f),
 			.color = Vec3(1.f, .5f, 1.f),
-			.intensity = .05f
+			.intensity = .333f
 		});
 	}
 
@@ -844,7 +845,8 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = ent->origin,
 		.radius = 160.f,
-		.color = Vec3(.4f, 1.f, .4f)
+		.color = Vec3(.4f, 1.f, .4f),
+		.intensity = .666f,
 	});
 }
 
@@ -970,7 +972,7 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 		.origin = end,
 		.radius = 85.f,
 		.color = Vec3(0.9f, 0.3f, 0.1f),
-		.intensity = 0.125f,
+		.intensity = 0.25f,
 	};
 
 	if (ent->current.effects & EF_DESPAWN) {

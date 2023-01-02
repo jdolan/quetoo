@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-#define LIGHT_INTENSITY .125f
+#define LIGHT_INTENSITY 1.f
 
 static cg_light_t cg_lights[MAX_LIGHTS];
 

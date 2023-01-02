@@ -77,6 +77,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 		.origin = org,
 		.radius = 80.f,
 		.color = Vec3(.1f, .6f, .3f),
+		.intensity = 1.f,
 		.decay = 1000
 	});
 }
@@ -116,6 +117,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 		.origin = org,
 		.radius = 80.f,
 		.color = Vec3(.2f, .4f, .3f),
+		.intensity = 1.f,
 		.decay = 1000
 	});
 }
@@ -143,6 +145,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 		.origin = org,
 		.radius = 120.f,
 		.color = Vec3(.9f, .9f, .9f),
+		.intensity = .666f,
 		.decay = 1000
 	});
 }
