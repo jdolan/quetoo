@@ -49,6 +49,10 @@ static void R_AddBspLights(r_view_t *view) {
 		return;
 	}
 
+	if (r_shadowmap->integer != 2) {
+		return;
+	}
+
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 
 	const r_bsp_light_t *b = bsp->lights;
