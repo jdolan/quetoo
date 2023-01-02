@@ -253,6 +253,7 @@ extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_lightmap;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
+extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_occlusion_queries;
 extern cvar_t *r_draw_wireframe;

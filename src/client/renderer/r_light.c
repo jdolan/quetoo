@@ -96,6 +96,9 @@ static void R_AddLightUniform(r_light_t *in) {
 	out-> normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal, 0.f);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
 
+	if (r_draw_light_bounds->value) {
+		R_Draw3DBox(in->bounds, Color3fv(in->color), false);
+	}
 }
 
 /**
