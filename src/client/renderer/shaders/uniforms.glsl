@@ -198,6 +198,11 @@ struct light_t {
 	vec4 position;
 
 	/**
+	 * @brief The normal and plane distance in view space.
+	 */
+	vec4 normal;
+
+	/**
 	 * @brief The light color and intensity.
 	 */
 	vec4 color;

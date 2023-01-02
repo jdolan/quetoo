@@ -53,6 +53,11 @@ typedef struct {
 	vec4_t position;
 
 	/**
+	 * @brief The normal and plane distance in view space.
+	 */
+	vec4_t normal;
+
+	/**
 	 * @brief The light color and intensity.
 	 */
 	vec4_t color;

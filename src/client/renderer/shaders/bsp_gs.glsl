@@ -64,8 +64,17 @@ void main(void) {
 	for (int i = 0; i < num_lights && num_active_lights < MAX_LIGHT_UNIFORMS_ACTIVE; i++) {
 
 		light_t light = lights[i];
+
 		if (!triangle_intersects(a, b, c, light.mins.xyz, light.maxs.xyz)) {
 			continue;
+		}
+
+		int type = int(light.position.w);
+
+		if (type == LIGHT_AMBIENT || type == LIGHT_SUN) {
+			if (dot(-light.normal.xyz, in_vertex[0].normal) < 0.0) {
+				continue;
+			}
 		}
 
 		active_lights[num_active_lights++] = i;

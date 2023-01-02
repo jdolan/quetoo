@@ -85,18 +85,17 @@ static void R_AddLightUniform(r_light_t *in) {
 		return;
 	}
 
-	in->index = r_lights.block.num_lights;
+	in->index = r_lights.block.num_lights++;
 
 	r_light_uniform_t *out = &r_lights.block.lights[in->index];
 
 	out->model = Vec3_ToVec4(in->origin, in->radius);
 	out->mins = Vec3_ToVec4(in->bounds.mins, in->size);
 	out->maxs = Vec3_ToVec4(in->bounds.maxs, in->atten);
-	const vec3_t position = Mat4_Transform(r_uniforms.block.view, in->origin);
-	out->position = Vec3_ToVec4(position, in->type);
+	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->type);
+	out-> normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal, 0.f);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
 
-	r_lights.block.num_lights++;
 }
 
 /**

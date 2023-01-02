@@ -121,8 +121,13 @@ void light_and_shadow_ambient(in light_t light, in int index) {
 		return;
 	}
 
+	float lambert = dot(-light.normal.xyz, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
 	float shadow = sample_shadowmap(light, index);
-	float shadow_atten = (1.0 - shadow) * sqrt(atten);
+	float shadow_atten = (1.0 - shadow) * sqrt(atten) * lambert;
 
 	fragment.ambient -= fragment.ambient * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
