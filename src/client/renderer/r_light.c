@@ -53,10 +53,8 @@ static void R_AddBspLights(r_view_t *view) {
 		return;
 	}
 
-	const r_bsp_model_t *bsp = r_world_model->bsp;
-
-	const r_bsp_light_t *b = bsp->lights;
-	for (int32_t i = 0; i < bsp->num_lights; i++, b++) {
+	const r_bsp_light_t *b = r_world_model->bsp->lights;
+	for (int32_t i = 0; i < r_world_model->bsp->num_lights; i++, b++) {
 
 		if (b->type == LIGHT_PATCH && Box3_Radius(b->bounds) > 64.f &&
 			Vec3_Distance(view->origin, b->origin) - Box3_Radius(b->bounds) < 1024.f) {
@@ -110,16 +108,16 @@ void R_UpdateLights(r_view_t *view) {
 
 	memset(out, 0, sizeof(*out));
 
-	out->shadow_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
-	out->shadow_view = Mat4_LookAt(Vec3_Zero(), Vec3(0.f, 0.f, -1.f), Vec3(0.f, 1.f, 0.f));
+	out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+	out->light_view = Mat4_LookAt(Vec3_Zero(), Vec3(0.f, 0.f, -1.f), Vec3(0.f, 1.f, 0.f));
 
-	out->shadow_projection_cube = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
-	out->shadow_view_cube[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
-	out->shadow_view_cube[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
-	out->shadow_view_cube[2] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  1.f,  0.f), Vec3(0.f,  0.f,  1.f));
-	out->shadow_view_cube[3] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f, -1.f,  0.f), Vec3(0.f,  0.f, -1.f));
-	out->shadow_view_cube[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
-	out->shadow_view_cube[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
+	out->light_projection_cube = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+	out->light_view_cube[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+	out->light_view_cube[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+	out->light_view_cube[2] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  1.f,  0.f), Vec3(0.f,  0.f,  1.f));
+	out->light_view_cube[3] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f, -1.f,  0.f), Vec3(0.f,  0.f, -1.f));
+	out->light_view_cube[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
+	out->light_view_cube[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
 
 	R_AddBspLights(view);
 

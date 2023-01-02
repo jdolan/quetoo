@@ -39,9 +39,9 @@ void main() {
 
 		for (int j = 0; j < 3; j++) {
 
-			position = shadow_view * (gl_in[j].gl_Position + translate);
+			position = light_view * (gl_in[j].gl_Position + translate);
 
-			gl_Position = shadow_projection * position;
+			gl_Position = light_projection * position;
 
 			EmitVertex();
 		}
@@ -53,9 +53,9 @@ void main() {
 
 			for (int j = 0; j < 3; j++) {
 
-				position = shadow_view_cube[i] * (gl_in[j].gl_Position + translate);
+				position = light_view_cube[i] * (gl_in[j].gl_Position + translate);
 
-				gl_Position = shadow_projection_cube * position;
+				gl_Position = light_projection_cube * position;
 
 				EmitVertex();
 			}

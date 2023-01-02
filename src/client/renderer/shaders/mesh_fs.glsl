@@ -92,8 +92,8 @@ float sample_shadowmap(in light_t light, in int index) {
 							 vec4(0.0, 0.0, 1.0, 0.0),
 							 vec4(-light.model.xyz, 1.0));
 
-	vec4 position = shadow_view * shadow_model * vec4(vertex.model, 1.0);
-	vec4 projected = shadow_projection * position;
+	vec4 position = light_view * shadow_model * vec4(vertex.model, 1.0);
+	vec4 projected = light_projection * position;
 	vec2 shadowmap = (projected.xy / projected.w) * 0.5 + 0.5;
 
 	return texture(texture_shadowmap, vec4(shadowmap, index, length(position.xyz) / depth_range.y));

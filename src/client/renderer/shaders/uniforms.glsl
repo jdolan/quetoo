@@ -213,22 +213,22 @@ layout (std140) uniform lights_block {
 	/**
 	 * @brief The projection matrix for directional lights.
 	 */
-	mat4 shadow_projection;
+	mat4 light_projection;
 
 	/**
 	 * @brief The view matrix for directional lights, centered at the origin.
 	 */
-	mat4 shadow_view;
+	mat4 light_view;
 
 	/**
 	 * @brief The projection matrix for point lights.
 	 */
-	mat4 shadow_projection_cube;
+	mat4 light_projection_cube;
 
 	/**
 	 * @brief The view matrices for point lights, centered at the origin.
 	 */
-	mat4 shadow_view_cube[6];
+	mat4 light_view_cube[6];
 
 	/**
 	 * @brief The light sources for the current frame, transformed to view space.
