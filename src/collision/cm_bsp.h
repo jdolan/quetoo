@@ -323,6 +323,7 @@ typedef struct {
 } bsp_draw_elements_t;
 
 typedef struct {
+	int32_t entity;
 	int32_t head_node;
 
 	box3_t bounds;

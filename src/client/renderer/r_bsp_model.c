@@ -320,6 +320,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_inline_models; i++, in++, out++) {
 
+		out->def = bsp->cm->entities[in->entity];
 		out->head_node = bsp->nodes + in->head_node;
 
 		out->bounds = in->bounds;

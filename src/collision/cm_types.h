@@ -98,6 +98,11 @@ typedef struct {
  */
 typedef struct {
 	/**
+	 * @brief The entity definition of this inline model.
+	 */
+	struct cm_entity_s *entity;
+
+	/**
 	 * @brief The index of the head node in the BSP file.
 	 */
 	int32_t head_node;

@@ -280,7 +280,9 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
+		model->entity = LittleLong(model->entity);
 		model->head_node = LittleLong(model->head_node);
+		
 		model->bounds = LittleBounds(model->bounds);
 
 		model->first_face = LittleLong(model->first_face);

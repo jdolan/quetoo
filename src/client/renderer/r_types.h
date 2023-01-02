@@ -452,6 +452,11 @@ typedef struct r_bsp_leaf_s r_bsp_leaf_t;
  */
 typedef struct r_bsp_inline_model_s {
 	/**
+	 * @brief The backing entity definition for this inline model.
+	 */
+	cm_entity_t *def;
+
+	/**
 	 * @brief The head node of this inline model.
 	 * @brief This is a pointer into the BSP model's nodes array.
 	 */
