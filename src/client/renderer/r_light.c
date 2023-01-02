@@ -58,7 +58,9 @@ static void R_AddBspLights(r_view_t *view) {
 	const r_bsp_light_t *b = bsp->lights;
 	for (int32_t i = 0; i < bsp->num_lights; i++, b++) {
 
-		if (b->type == LIGHT_PATCH && Box3_Radius(b->bounds) > 64.f) {
+		if (b->type == LIGHT_PATCH && Box3_Radius(b->bounds) > 64.f &&
+			Vec3_Distance(view->origin, b->origin) - Box3_Radius(b->bounds) < 1024.f) {
+
 			R_AddLight(view, &(const r_light_t) {
 				.type = b->type,
 				.atten = b->atten,

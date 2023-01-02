@@ -311,10 +311,6 @@ void R_DrawShadows(const r_view_t *view) {
 			continue;
 		}
 
-		if (Vec3_Distance(view->origin, l->origin) - l->radius - l->size > 1024.f) {
-			continue;
-		}
-
 		R_DrawShadow(view, l);
 	}
 
