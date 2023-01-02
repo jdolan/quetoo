@@ -139,6 +139,10 @@ void R_UpdateLights(r_view_t *view) {
 					continue;
 				}
 
+				if (e->effects & EF_NO_SHADOW) {
+					continue;
+				}
+
 				if (Box3_Intersects(e->abs_bounds, l->bounds)) {
 					l->entities[l->num_entities++] = e;
 

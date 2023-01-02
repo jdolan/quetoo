@@ -565,6 +565,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 	projectile->s.model1 = g_media.models.rocket;
 	projectile->s.sound = g_media.sounds.rocket_fly;
 	projectile->s.trail = TRAIL_ROCKET;
+	projectile->s.effects = (uint16_t) EF_NO_SHADOW;
 
 	gi.LinkEntity(projectile);
 }
