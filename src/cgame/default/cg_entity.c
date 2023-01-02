@@ -25,7 +25,7 @@
 static GArray *cg_entities;
 
 /**
- * @brief The Cg_EntityPredicate type for Cg_FindEntity.
+ * @brief The `Cg_EntityPredicate` type for `Cg_FindEntity`.
  */
 typedef _Bool (*Cg_EntityPredicate)(const cm_entity_t *e, void *data);
 
@@ -72,7 +72,7 @@ static _Bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
 }
 
 /**
- * @return The cg_entity_t * for the specified cm_entity_t *, if any.
+ * @return The `cg_entity_t *` for the specified `cm_entity_t *`, if any.
  */
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
 
@@ -264,45 +264,48 @@ void Cg_AddShadow(const r_entity_t *ent, ...) {
 		return;
 	}
 
-	if (!ent) {
-		return;
-	}
-
-	if (!ent->model) {
-		return;
-	}
-
-	if (ent->effects & EF_NO_SHADOW) {
-		return;
-	}
-
-	if (Vec3_Distance(ent->origin, cgi.view->origin) > 1024.f) {
-		return;
-	}
-
-	// FIXME: Could this be more elegant? Union of all ents?
-
-	box3_t bounds = Box3_Expand3(ent->abs_bounds, Vec3_Scale(Box3_Size(ent->abs_bounds), 1.25f));
-	bounds.mins.z -= Box3_Size(ent->abs_bounds).z;
-
-	const vec3_t origin = Vec3_Fmaf(ent->origin, Box3_Size(ent->abs_bounds).z * 3, Vec3_Up());
-
 	r_light_t light = {
 		.type = LIGHT_AMBIENT,
-		.origin = origin,
-		.bounds = bounds,
-		.radius = Vec3_Distance(bounds.mins, origin)
+		.bounds = Box3_Null(),
 	};
 
 	va_list args;
 	va_start(args, ent);
 
 	while (ent) {
-		light.entities[light.num_entities++] = ent;
+
+		if (!(ent->effects & EF_NO_SHADOW)) {
+
+			light.entities[light.num_entities++] = ent;
+
+			light.bounds = Box3_Union(light.bounds, ent->abs_bounds);
+			light.origin = Box3_Center(light.bounds);
+
+			if (IS_BSP_INLINE_MODEL(ent->model)) {
+				const r_bsp_inline_model_t *in = ent->model->bsp_inline;
+
+				const cm_entity_t *cm = cgi.EntityValue(in->def, "classname");
+				if (!g_strcmp0(cm->string, "func_rotating") ||
+					!g_strcmp0(cm->string, "func_door_rotating")) {
+					light.origin = ent->origin;
+				}
+			}
+		}
+
 		ent = va_arg(args, const r_entity_t *);
 	}
 
 	va_end(args);
+
+	if (light.num_entities == 0) {
+		return;
+	}
+
+	light.bounds = Box3_Expand3(light.bounds, Vec3_Scale(Box3_Size(light.bounds), .25f));
+	light.bounds.mins.z -= Box3_Size(light.bounds).z;
+
+	light.origin = Vec3_Fmaf(light.origin, Box3_Size(light.bounds).z * 3, Vec3_Up());
+	light.radius = Vec3_Distance(light.bounds.mins, light.origin);
 
 	cgi.AddLight(cgi.view, &light);
 }
