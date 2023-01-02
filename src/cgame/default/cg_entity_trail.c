@@ -676,12 +676,13 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.softness = 0.5f
 	});
 
-	for (float f = 0.f; f < Vec3_Distance(start, end); f += 128.f) {
+	const int32_t seed = (int32_t) cgi.client->unclamped_time % 96;
+	for (float f = seed; f < Vec3_Distance(start, end); f += 128.f) {
 		Cg_AddLight(&(const cg_light_t) {
 			.origin = Vec3_Fmaf(start, f, dir),
 			.radius = 128.f + RandomRangef(-32.f, 32.f),
 			.color = Vec3(1.f, .5f, 1.f),
-			.intensity = .333f
+			.intensity = .333f,
 		});
 	}
 
