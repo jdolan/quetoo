@@ -588,16 +588,19 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	legs.model = ci->legs;
 	legs.angles.y = ent->legs_current_yaw;
 	legs.angles.x = legs.angles.z = 0.0; // legs only use yaw
+	legs.bounds = legs.model->bounds;
 	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
 
 	torso.model = ci->torso;
 	torso.origin = Vec3_Zero();
 	torso.angles.y = ent->angles.y - legs.angles.y; // legs twisted already, we just need to pitch/roll
+	torso.bounds = torso.model->bounds;
 	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
 
 	head.model = ci->head;
 	head.origin = Vec3_Zero();
 	head.angles.y = 0.0;
+	head.bounds = head.model->bounds;
 	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
