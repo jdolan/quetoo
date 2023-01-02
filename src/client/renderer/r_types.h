@@ -1194,6 +1194,11 @@ typedef struct {
 	box3_t bounds;
 
 	/**
+	 * @brief The top node containing the light bounds.
+	 */
+	int32_t node;
+
+	/**
 	 * @brief The entities that are within the bounds of this light.
 	 */
 	const r_entity_t *entities[MAX_LIGHT_ENTITIES];

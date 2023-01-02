@@ -117,6 +117,62 @@ static void R_DrawBspInlineModelEntityShadow(const r_view_t *view, const r_entit
 /**
  * @brief
  */
+static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *node) {
+
+	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	const r_bsp_face_t *face = node->faces;
+	for (int32_t i = 0; i < node->num_faces; i++, face++) {
+
+		if (!Box3_Intersects(light->bounds, face->bounds)) {
+			continue;
+		}
+
+		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
+	}
+
+	const int32_t side = Cm_BoxOnPlaneSide(light->bounds, node->plane->cm);
+
+	if (side & SIDE_FRONT) {
+		R_DrawBspNodeShadow_r(light, node->children[0]);
+	}
+	
+	if (side & SIDE_BACK) {
+		R_DrawBspNodeShadow_r(light, node->children[1]);
+	}
+}
+
+/**
+ * @brief
+ */
+static void R_DrawBspNodeShadow(const r_light_t *light) {
+
+	const r_bsp_model_t *bsp = r_world_model->bsp;
+
+	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
+	glUniform1f(r_shadow_program.lerp, 0.f);
+
+	glBindVertexArray(bsp->vertex_array);
+
+	glEnableVertexAttribArray(r_shadow_program.in_position);
+	glDisableVertexAttribArray(r_shadow_program.in_next_position);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
+
+	R_DrawBspNodeShadow_r(light, bsp->nodes + light->node);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+}
+
+/**
+ * @brief
+ */
 static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh, const r_mesh_face_t *face) {
 
 	const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
@@ -205,10 +261,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *l) {
 	glUniform1i(r_shadow_program.light_index, l->index);
 
 	if (l->type == LIGHT_DYNAMIC) {
-		glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
-		glUniform1f(r_shadow_program.lerp, 0.f);
-
-		R_DrawBspInlineModelShadow(r_world_model->bsp->inline_models);
+		R_DrawBspNodeShadow(l);
 	}
 
 	for (int32_t i = 0; i < l->num_entities; i++) {

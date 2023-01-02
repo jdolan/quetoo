@@ -227,6 +227,7 @@ void Cl_InitCgame(void) {
 	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Cl_PointContents;
 	import.BoxContents = Cl_BoxContents;
+	import.BoxLeafnums = Cm_BoxLeafnums;
 	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Cl_Trace;
 
