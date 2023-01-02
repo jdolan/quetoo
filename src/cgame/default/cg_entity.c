@@ -267,6 +267,7 @@ void Cg_AddShadow(const r_entity_t *ent, ...) {
 	r_light_t light = {
 		.type = LIGHT_AMBIENT,
 		.bounds = Box3_Null(),
+		.normal = Vec3_Down(),
 	};
 
 	va_list args;
@@ -301,11 +302,11 @@ void Cg_AddShadow(const r_entity_t *ent, ...) {
 		return;
 	}
 
-	light.bounds = Box3_Expand3(light.bounds, Vec3_Scale(Box3_Size(light.bounds), .25f));
+	light.bounds = Box3_Expand3(light.bounds, Vec3_Scale(Box3_Size(light.bounds), .125f));
 	light.bounds.mins.z -= Box3_Size(light.bounds).z;
 
-	light.origin = Vec3_Fmaf(light.origin, Box3_Size(light.bounds).z * 3, Vec3_Up());
-	light.radius = Vec3_Distance(light.bounds.mins, light.origin);
+	light.origin = Vec3_Fmaf(light.origin, Box3_Size(light.bounds).z * 2.f, Vec3_Up());
+	light.radius = Vec3_Distance(light.origin, light.bounds.mins);
 
 	cgi.AddLight(cgi.view, &light);
 }
