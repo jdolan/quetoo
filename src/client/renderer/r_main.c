@@ -372,6 +372,8 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	R_DrawDepthPass(view);
 
+	glFlush();
+
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });

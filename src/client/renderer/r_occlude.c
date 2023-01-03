@@ -138,10 +138,6 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 		glEndQuery(GL_ANY_SAMPLES_PASSED);
 	}
 
-	if (r_occlude->integer == 2) {
-		glFlush();
-	}
-
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
