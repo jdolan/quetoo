@@ -390,6 +390,8 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
  * @brief Generate sprite instances from sprites and beams, and update the vertex array.
  */
 void R_UpdateSprites(r_view_t *view) {
+
+	R_AddBspLightgridSprites(view);
 	
 	const r_sprite_t *s = view->sprites;
 	for (int32_t i = 0; i < view->num_sprites; i++, s++) {

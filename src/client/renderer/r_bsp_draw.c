@@ -118,7 +118,7 @@ static void R_DrawBspNormals(const r_view_t *view) {
 /**
  * @brief
  */
-void R_DrawBspLightgrid(r_view_t *view) {
+void R_AddBspLightgridSprites(r_view_t *view) {
 
 	if (!r_draw_bsp_lightgrid->value) {
 		return;
