@@ -33,46 +33,30 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
+	switch (l->type) {
+		case LIGHT_AMBIENT:
+		case LIGHT_DYNAMIC:
+			if (r_shadowmap->integer < 1) {
+				return;
+			}
+			break;
+		case LIGHT_SUN:
+		case LIGHT_POINT:
+		case LIGHT_SPOT:
+		case LIGHT_PATCH:
+			if (r_shadowmap->integer < 2) {
+				return;
+			}
+			break;
+		default:
+			return;
+	}
+
 	if (R_CullBox(view, l->bounds)) {
 		return;
 	}
 
 	view->lights[view->num_lights++] = *l;
-}
-
-/**
- * @brief
- */
-static void R_AddBspLights(r_view_t *view) {
-
-	if (view->type != VIEW_MAIN) {
-		return;
-	}
-
-	if (r_shadowmap->integer != 2) {
-		return;
-	}
-
-	const r_bsp_light_t *b = r_world_model->bsp->lights;
-	for (int32_t i = 0; i < r_world_model->bsp->num_lights; i++, b++) {
-
-		if (b->type == LIGHT_PATCH && Box3_Radius(b->bounds) > 64.f &&
-			Vec3_Distance(view->origin, b->origin) - Box3_Radius(b->bounds) < 1024.f) {
-
-			R_AddLight(view, &(const r_light_t) {
-				.type = b->type,
-				.atten = b->atten,
-				.origin = b->origin,
-				.radius = b->radius,
-				.size = b->size,
-				.color = b->color,
-				.intensity = b->intensity,
-				.normal = b->normal,
-				.theta = b->theta,
-				.bounds = b->bounds,
-			});
-		}
-	}
 }
 
 /**
@@ -120,8 +104,6 @@ void R_UpdateLights(r_view_t *view) {
 	out->light_view_cube[3] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f, -1.f,  0.f), Vec3(0.f,  0.f, -1.f));
 	out->light_view_cube[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
 	out->light_view_cube[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
-
-	R_AddBspLights(view);
 
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {

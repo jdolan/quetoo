@@ -66,6 +66,33 @@ void Cg_AddLight(const cg_light_t *l) {
 /**
  * @brief
  */
+static void Cg_AddBspLights(void) {
+
+	const r_bsp_light_t *b = cgi.WorldModel()->bsp->lights;
+	for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, b++) {
+
+		if (b->type == LIGHT_PATCH && Box3_Radius(b->bounds) > 64.f &&
+			Vec3_Distance(cgi.view->origin, b->origin) - Box3_Radius(b->bounds) < 1024.f) {
+
+			cgi.AddLight(cgi.view, &(const r_light_t) {
+				.type = b->type,
+				.atten = b->atten,
+				.origin = b->origin,
+				.radius = b->radius,
+				.size = b->size,
+				.color = b->color,
+				.intensity = b->intensity,
+				.normal = b->normal,
+				.theta = b->theta,
+				.bounds = b->bounds,
+			});
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 void Cg_AddLights(void) {
 
 	cg_light_t *l = cg_lights;
@@ -99,6 +126,8 @@ void Cg_AddLights(void) {
 
 		cgi.AddLight(cgi.view, &out);
 	}
+
+	Cg_AddBspLights();
 }
 
 /**
