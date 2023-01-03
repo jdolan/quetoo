@@ -28,6 +28,8 @@ static struct {
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
+
+	vec3_t vertexes[MAX_OCCLUSION_QUERIES][8];
 } r_occlusion_queries;
 
 /**
@@ -100,6 +102,9 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 
 	Box3_ToPoints(q->bounds, q->vertexes);
 
+	vec3_t *out = r_occlusion_queries.vertexes[view->num_occlusion_queries];
+	memcpy(out, q->vertexes, sizeof(q->vertexes));
+
 	view->num_occlusion_queries++;
 }
 
@@ -121,6 +126,9 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
 
+	const GLsizeiptr size = view->num_occlusion_queries * sizeof(r_occlusion_queries.vertexes[0]);
+	glBufferData(GL_ARRAY_BUFFER, size, r_occlusion_queries.vertexes, GL_DYNAMIC_DRAW);
+
 	r_occlusion_query_t *q = view->occlusion_queries;
 	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
 
@@ -130,8 +138,6 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 		}
 
 		q->status = QUERY_PENDING;
-
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(q->vertexes), q->vertexes);
 
 		glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
