@@ -140,7 +140,7 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 		q->status = QUERY_PENDING;
 
 		glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0);
+		glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid *) 0, i * 8);
 		glEndQuery(GL_ANY_SAMPLES_PASSED);
 	}
 
