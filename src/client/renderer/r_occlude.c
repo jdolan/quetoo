@@ -25,8 +25,6 @@
  * @brief The occlusion queries.
  */
 static struct {
-	GLuint query_objects[MAX_OCCLUSION_QUERIES];
-
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
@@ -95,9 +93,11 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 	}
 
 	q = &view->occlusion_queries[view->num_occlusion_queries];
-	q->name = r_occlusion_queries.query_objects[view->num_occlusion_queries];
+	glGenQueries(1, &q->name);
+
 	q->bounds = Box3_Expand(bounds, 1.f);
 	q->status = QUERY_INVALID;
+
 	Box3_ToPoints(q->bounds, q->vertexes);
 
 	view->num_occlusion_queries++;
@@ -105,6 +105,7 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 
 /**
  * @brief Draws any pending occlusion queries in the specified view.
+ * @remarks This as drawn as part of the depth pass, and assumes that program is bound.
  */
 void R_DrawOcclusionQueries(r_view_t *view) {
 
@@ -112,18 +113,7 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 		return;
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_FALSE);
-
-	glUseProgram(r_depth_pass_program.name);
-
-	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, Mat4_Identity().array);
 
 	glBindVertexArray(r_occlusion_queries.vertex_array);
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
@@ -153,16 +143,7 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 
 	glBindVertexArray(0);
 
-	glUseProgram(0);
-
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_TRUE);
-
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	R_GetError(NULL);
 }
@@ -196,6 +177,8 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 				}
 			}
 		}
+
+		glDeleteQueries(1, &q->name);
 
 		if (r_draw_occlusion_queries->value) {
 			switch (q->status) {
@@ -268,8 +251,6 @@ void R_InitOcclusionQueries(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	glGenQueries(MAX_OCCLUSION_QUERIES, r_occlusion_queries.query_objects);
-
 	R_GetError(NULL);
 }
 
@@ -277,8 +258,6 @@ void R_InitOcclusionQueries(void) {
  * @brief
  */
 void R_ShutdownOcclusionQueries(void) {
-
-	glDeleteQueries(MAX_OCCLUSION_QUERIES, r_occlusion_queries.query_objects);
 
 	glDeleteVertexArrays(1, &r_occlusion_queries.vertex_array);
 

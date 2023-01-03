@@ -290,6 +290,32 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 }
 
 /**
+ * @brief
+ */
+static void Cg_AddOcclusionQueries(void) {
+
+	const r_model_t *mod = cgi.WorldModel();
+
+	const cm_bsp_brush_t *b = mod->bsp->cm->brushes;
+	for (int32_t i = 0; i < mod->bsp->cm->file->num_brushes; i++, b++) {
+		if (b->contents & CONTENTS_OCCLUSION_QUERY) {
+			cgi.AddOcclusionQuery(cgi.view, b->bounds);
+		}
+	}
+
+	// Break the world into a grid and add an OQ for each cell
+
+	const float size = 1024.f;
+	for (int32_t x = mod->bounds.mins.x; x < mod->bounds.maxs.x; x += size) {
+		for (int32_t y = mod->bounds.mins.y; y < mod->bounds.maxs.y; y += size) {
+			for (int32_t z = mod->bounds.mins.z; z < mod->bounds.maxs.z; z += size) {
+				cgi.AddOcclusionQuery(cgi.view, Box3(Vec3(x, y, z), Vec3(x + size, y + size, z + size)));
+			}
+		}
+	}
+}
+
+/**
  * @brief Updates the view origin, angles, and field of view.
  */
 void Cg_PrepareView(const cl_frame_t *frame) {
@@ -319,6 +345,8 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 	Cg_UpdateFov();
 
 	Cg_UpdateBob(ps1);
+
+	Cg_AddOcclusionQueries();
 
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 

@@ -52,7 +52,7 @@ static void R_DrawBspDepthPass(const r_view_t *view) {
 /**
  * @brief
  */
-void R_DrawDepthPass(const r_view_t *view) {
+void R_DrawDepthPass(r_view_t *view) {
 
 	if (!r_depth_pass->value) {
 		return;
@@ -67,8 +67,7 @@ void R_DrawDepthPass(const r_view_t *view) {
 
 	R_DrawBspDepthPass(view);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	R_DrawOcclusionQueries(view);
 
 	glUseProgram(0);
 

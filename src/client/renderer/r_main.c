@@ -388,8 +388,6 @@ void R_DrawMainView(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
-	R_DrawOcclusionQueries(view);
-
 	R_DrawBspLightgrid(view);
 
 	R_UpdateBlendDepth(view);
