@@ -68,23 +68,33 @@ void Cg_AddLight(const cg_light_t *l) {
  */
 static void Cg_AddBspLights(void) {
 
-	const r_bsp_light_t *b = cgi.WorldModel()->bsp->lights;
-	for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, b++) {
+	const r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
+	for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
-		if (b->type == LIGHT_PATCH && Box3_Radius(b->bounds) > 64.f &&
-			Vec3_Distance(cgi.view->origin, b->origin) - Box3_Radius(b->bounds) < 1024.f) {
+		switch (l->type) {
+			case LIGHT_INVALID:
+			case LIGHT_AMBIENT:
+			case LIGHT_SUN:
+			case LIGHT_INDIRECT:
+				continue;
+			default:
+				break;
+		}
 
+		const float dist = Vec3_Distance(cgi.view->origin, l->origin) - Box3_Radius(l->bounds);
+
+		if (dist < 1024.f && Box3_Radius(l->bounds) > 64.f) {
 			cgi.AddLight(cgi.view, &(const r_light_t) {
-				.type = b->type,
-				.atten = b->atten,
-				.origin = b->origin,
-				.radius = b->radius,
-				.size = b->size,
-				.color = b->color,
-				.intensity = b->intensity,
-				.normal = b->normal,
-				.theta = b->theta,
-				.bounds = b->bounds,
+				.type = l->type,
+				.atten = l->atten,
+				.origin = l->origin,
+				.radius = l->radius,
+				.size = l->size,
+				.color = l->color,
+				.intensity = l->intensity,
+				.normal = l->normal,
+				.theta = l->theta,
+				.bounds = l->bounds,
 			});
 		}
 	}
