@@ -127,7 +127,7 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
 
 	const GLsizeiptr size = view->num_occlusion_queries * sizeof(r_occlusion_queries.vertexes[0]);
-	glBufferData(GL_ARRAY_BUFFER, size, r_occlusion_queries.vertexes, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, size, r_occlusion_queries.vertexes);
 
 	r_occlusion_query_t *q = view->occlusion_queries;
 	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
@@ -230,7 +230,7 @@ void R_InitOcclusionQueries(void) {
 
 	glGenBuffers(1, &r_occlusion_queries.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3_t[8]), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(r_occlusion_queries.vertexes), NULL, GL_DYNAMIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
 
