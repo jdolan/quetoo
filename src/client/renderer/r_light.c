@@ -35,7 +35,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 
 	switch (l->type) {
 		case LIGHT_AMBIENT:
-		case LIGHT_DYNAMIC:
 			if (r_shadowmap->integer < 1) {
 				return;
 			}
@@ -47,6 +46,8 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 			if (r_shadowmap->integer < 2) {
 				return;
 			}
+			break;
+		case LIGHT_DYNAMIC:
 			break;
 		default:
 			return;
