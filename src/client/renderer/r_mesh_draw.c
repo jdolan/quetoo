@@ -412,7 +412,7 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 			if (e->effects & EF_NO_DRAW) {
 				continue;
 			}
-			
+
 			if (e->blend_depth != blend_depth) {
 				continue;
 			}
