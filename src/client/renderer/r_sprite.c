@@ -418,12 +418,6 @@ void R_UpdateSprites(r_view_t *view) {
 			in->prev->next = in;
 		}
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	R_GetError(NULL);
 }
 
 /**
@@ -444,6 +438,8 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
+
+	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
 	
 	glEnableVertexAttribArray(r_sprite_program.in_position);
 	glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
