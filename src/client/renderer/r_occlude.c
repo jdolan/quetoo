@@ -90,6 +90,7 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 
 		if (Box3_ContainsPoint(q->bounds, Box3_Center(bounds))) {
 			q->bounds = Box3_Union(q->bounds, bounds);
+			Box3_ToPoints(q->bounds, q->vertexes);
 			return;
 		}
 	}
