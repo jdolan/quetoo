@@ -99,11 +99,9 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 
 	q->bounds = Box3_Expand(bounds, 1.f);
 	q->status = QUERY_INVALID;
+	q->vertexes = r_occlusion_queries.vertexes[view->num_occlusion_queries];
 
 	Box3_ToPoints(q->bounds, q->vertexes);
-
-	vec3_t *out = r_occlusion_queries.vertexes[view->num_occlusion_queries];
-	memcpy(out, q->vertexes, sizeof(q->vertexes));
 
 	view->num_occlusion_queries++;
 }

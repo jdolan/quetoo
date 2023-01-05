@@ -1241,7 +1241,7 @@ typedef struct {
 	/**
 	 * @brief The query vertexes (box corners).
 	 */
-	vec3_t vertexes[8];
+	vec3_t *vertexes;
 
 	/**
 	 * @brief The query status.
