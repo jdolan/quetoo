@@ -149,7 +149,7 @@ void R_UpdateLights(r_view_t *view) {
 	r_stats.lights = out->num_lights;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(*out), out, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(*out), out);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
