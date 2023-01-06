@@ -83,6 +83,10 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		return;
 	}
 
+	if (R_OccludeBox(view, bounds)) {
+		return;
+	}
+
 	r_bsp_plane_t *plane = node->plane;
 
 	cm_bsp_plane_t transformed_plane;

@@ -265,6 +265,10 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *l) {
 	for (int32_t i = 0; i < l->num_entities; i++) {
 		const r_entity_t *e = l->entities[i];
 
+		if (R_OccludeBox(view, e->abs_bounds)) {
+			continue;
+		}
+
 		if (IS_MESH_MODEL(e->model)) {
 			R_DrawMeshEntityShadow(e);
 		} else if (IS_BSP_INLINE_MODEL(e->model)) {
@@ -306,7 +310,7 @@ void R_DrawShadows(const r_view_t *view) {
 
 		R_ClearShadow(view, l);
 
-		if (l->num_entities == 0) {
+		if (R_OccludeBox(view, l->bounds) || l->num_entities == 0) {
 			continue;
 		}
 
