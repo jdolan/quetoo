@@ -1418,12 +1418,6 @@ typedef struct {
 	 * @remarks This is populated by the renderer.
 	 */
 	cm_bsp_plane_t frustum[4];
-
-	/**
-	 * @brief The view tag.
-	 */
-	int32_t tag;
-
 } r_view_t;
 
 /**
