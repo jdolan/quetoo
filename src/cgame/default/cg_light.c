@@ -122,6 +122,10 @@ static void Cg_AddAmbientLights(void) {
 
 		int32_t j;
 
+		// FIXME: A better way to do this would be to sample the lightgrid at the
+		// FIXME: entity origin and determine if there is enough diffuse brightness
+		// FIXME: to warrant skipping the ambient light
+		
 		const r_light_t *l = cgi.view->lights;
 		for (j = 0; j < cgi.view->num_lights; j++, l++) {
 
