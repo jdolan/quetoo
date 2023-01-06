@@ -95,9 +95,9 @@ void main(void) {
 		out_vertex.active_lights = active_lights;
 		out_vertex.num_active_lights = num_active_lights;
 
-		if (out_vertex.num_active_lights == MAX_LIGHT_UNIFORMS_ACTIVE) {
-			out_vertex.color = vec4(1, 0, 0, 1);
-		}
+//		if (out_vertex.num_active_lights == MAX_LIGHT_UNIFORMS_ACTIVE) {
+//			out_vertex.color = vec4(1, 0, 0, 1);
+//		}
 
 		gl_Position = gl_in[i].gl_Position;
 
