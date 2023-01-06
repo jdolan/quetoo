@@ -116,7 +116,7 @@ r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 
 	const float radius = (s->size ?: Maxf(s->width, s->height)) * .5f;
 
-	if (R_CullSphere(view, s->origin, radius)) {
+	if (R_CulludeSphere(view, s->origin, radius)) {
 		return NULL;
 	}
 
@@ -140,7 +140,7 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 
 	const box3_t bounds = Cm_TraceBounds(b->start, b->end, Box3f(b->size, b->size, b->size));
 
-	if (R_CullBox(view, bounds)) {
+	if (R_CulludeBox(view, bounds)) {
 		return NULL;
 	}
 
@@ -484,8 +484,6 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 			glDepthRange(0.f, 1.f);
 		}
 
-		box3_t bounds = Box3_Null();
-
 		GLsizei count = 0;
 
 		r_sprite_instance_t *chain;
@@ -495,21 +493,10 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 				chain->diffusemap == in->diffusemap &&
 				chain->next_diffusemap == in->next_diffusemap &&
 				(chain->flags & SPRITE_NO_DEPTH) == (in->flags & SPRITE_NO_DEPTH)) {
-
-				bounds = Box3_Append(bounds, chain->vertexes[0].position);
-				bounds = Box3_Append(bounds, chain->vertexes[1].position);
-				bounds = Box3_Append(bounds, chain->vertexes[2].position);
-				bounds = Box3_Append(bounds, chain->vertexes[3].position);
-
 				count++;
 			} else {
 				break;
 			}
-		}
-
-		if (R_OccludeBox(view, bounds)) {
-			in = chain;
-			continue;
 		}
 
 		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) (in->index * sizeof(GLuint) * 6));

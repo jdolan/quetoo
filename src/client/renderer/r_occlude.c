@@ -29,6 +29,21 @@ static struct {
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
 
+	/**
+	 * @brief The occlusion queries from the _previous_ frame.
+	 */
+	r_occlusion_query_t read[MAX_OCCLUSION_QUERIES];
+	int32_t num_read;
+
+	/**
+	 * @brief The occlusion queries from the _current_ frame.
+	 */
+	r_occlusion_query_t draw[MAX_OCCLUSION_QUERIES];
+	int32_t num_draw;
+
+	/**
+	 * @brief The shared vertex array for draw queries.
+	 */
 	vec3_t vertexes[MAX_OCCLUSION_QUERIES][8];
 } r_occlusion_queries;
 
@@ -45,29 +60,9 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 		return false;
 	}
 
-	r_occlusion_query_t *q = (r_occlusion_query_t *) view->occlusion_queries;
-	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
-
+	const r_occlusion_query_t *q = r_occlusion_queries.read;
+	for (int32_t i = 0; i < r_occlusion_queries.num_read; i++, q++) {
 		if (Box3_Contains(q->bounds, bounds)) {
-
-			if (q->status == QUERY_PENDING) {
-
-				GLint available;
-				glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
-
-				if (available || r_occlude->integer == 2) {
-
-					GLint result;
-					glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &result);
-
-					if (result) {
-						q->status = QUERY_VISIBLE;
-					} else {
-						q->status = QUERY_OCCLUDED;
-					}
-				}
-			}
-
 			return q->status == QUERY_OCCLUDED;
 		}
 	}
@@ -100,75 +95,41 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 		return;
 	}
 
+	if (Box3_ContainsPoint(Box3_Expand(bounds, 1.f), view->origin)) {
+		return;
+	}
+
 	r_occlusion_query_t *q = &view->occlusion_queries[view->num_occlusion_queries];
-	glGenQueries(1, &q->name);
-
 	q->bounds = Box3_Expand(bounds, 1.f);
-	q->status = QUERY_INVALID;
-	q->vertexes = r_occlusion_queries.vertexes[view->num_occlusion_queries];
 
-	Box3_ToPoints(q->bounds, q->vertexes);
+	vec3_t *vertexes = r_occlusion_queries.vertexes[view->num_occlusion_queries];
+	Box3_ToPoints(q->bounds, vertexes);
 
 	view->num_occlusion_queries++;
 }
 
 /**
- * @brief Draws any pending occlusion queries in the specified view.
- * @remarks This as drawn as part of the depth pass, and assumes that program is bound.
+ * @brief Reads the previous frame's occlusion queries to apply them to the current frame.
  */
-void R_DrawOcclusionQueries(r_view_t *view) {
+static void R_ReadOcclusionQueries(const r_view_t *view) {
 
-	if (!r_occlude->integer) {
-		return;
-	}
+	r_occlusion_query_t *q = r_occlusion_queries.read;
+	for (int32_t i = 0; i < r_occlusion_queries.num_read; i++, q++) {
 
-	glDepthMask(GL_FALSE);
+		GLint available;
+		glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
 
-	glBindVertexArray(r_occlusion_queries.vertex_array);
-	glEnableVertexAttribArray(r_depth_pass_program.in_position);
+		if (available || r_occlude->integer == 2) {
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
+			GLint result;
+			glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &result);
 
-	const GLsizeiptr size = view->num_occlusion_queries * sizeof(r_occlusion_queries.vertexes[0]);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, size, r_occlusion_queries.vertexes);
-
-	r_occlusion_query_t *q = view->occlusion_queries;
-	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
-
-		if (Box3_ContainsPoint(Box3_Expand(q->bounds, 1.f), view->origin)) {
-			q->status = QUERY_VISIBLE;
-			continue;
+			if (result) {
+				q->status = QUERY_VISIBLE;
+			} else {
+				q->status = QUERY_OCCLUDED;
+			}
 		}
-
-		q->status = QUERY_PENDING;
-
-		glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
-		glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, i * 8);
-		glEndQuery(GL_ANY_SAMPLES_PASSED);
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-
-	glDepthMask(GL_TRUE);
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_DeleteOcclusionQueries(r_view_t *view) {
-
-	if (!r_occlude->integer) {
-		return;
-	}
-
-	r_occlusion_query_t *q = view->occlusion_queries;
-	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
 
 		glDeleteQueries(1, &q->name);
 
@@ -202,6 +163,74 @@ void R_DeleteOcclusionQueries(r_view_t *view) {
 				break;
 		}
 	}
+}
+
+/**
+ * @brief Draws the current view's occlusion queries, to benefit the next frame.
+ */
+static void R_DrawOcclusionQueries(const r_view_t *view) {
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+
+	glUseProgram(r_depth_pass_program.name);
+
+	glBindVertexArray(r_occlusion_queries.vertex_array);
+	glEnableVertexAttribArray(r_depth_pass_program.in_position);
+
+	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
+
+	const GLsizeiptr size = r_occlusion_queries.num_draw * sizeof(r_occlusion_queries.vertexes[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, size, r_occlusion_queries.vertexes);
+
+	r_occlusion_query_t *q = r_occlusion_queries.draw;
+	for (int32_t i = 0; i < r_occlusion_queries.num_draw; i++, q++) {
+
+		glGenQueries(1, &q->name);
+		glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
+		glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, i * 8);
+		glEndQuery(GL_ANY_SAMPLES_PASSED);
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+
+	glDepthMask(GL_TRUE);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief Reads the previous frame's queries so that they may be used for the current frame.
+ */
+void R_UpdateOcclusionQueries(const r_view_t *view) {
+
+	if (!r_occlude->integer) {
+		return;
+	}
+
+	r_occlusion_query_t *read = r_occlusion_queries.read;
+	r_occlusion_query_t *draw = r_occlusion_queries.draw;
+
+	memcpy(read, draw, r_occlusion_queries.num_draw * sizeof(r_occlusion_query_t));
+	r_occlusion_queries.num_read = r_occlusion_queries.num_draw;
+
+	R_ReadOcclusionQueries(view);
+
+	memcpy(draw, view->occlusion_queries, view->num_occlusion_queries * sizeof(r_occlusion_query_t));
+	r_occlusion_queries.num_draw = view->num_occlusion_queries;
+
+	R_DrawOcclusionQueries(view);
 }
 
 /**

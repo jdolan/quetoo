@@ -67,8 +67,6 @@ void R_DrawDepthPass(r_view_t *view) {
 
 	R_DrawBspDepthPass(view);
 
-	R_DrawOcclusionQueries(view);
-
 	glUseProgram(0);
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

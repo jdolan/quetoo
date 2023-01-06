@@ -53,7 +53,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 			return;
 	}
 
-	if (R_CullBox(view, l->bounds)) {
+	if (R_CulludeBox(view, l->bounds)) {
 		return;
 	}
 
@@ -110,10 +110,6 @@ void R_UpdateLights(r_view_t *view) {
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
 		l->index = -1;
-
-		if (R_OccludeBox(view, l->bounds)) {
-			continue;
-		}
 
 		if (l->num_entities == 0) {
 

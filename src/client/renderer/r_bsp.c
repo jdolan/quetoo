@@ -79,11 +79,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		bounds = Mat4_TransformBounds(e->matrix, bounds);
 	}
 
-	if (R_CullBox(view, bounds)) {
-		return;
-	}
-
-	if (R_OccludeBox(view, bounds)) {
+	if (R_CulludeBox(view, bounds)) {
 		return;
 	}
 

@@ -395,7 +395,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_bsp_draw_elements_t *draw,
 										 const r_material_t **material) {
 
-	if (entity == NULL && R_OccludeBox(view, draw->bounds)) {
+	if (entity == NULL && R_CulludeBox(view, draw->bounds)) {
 		return;
 	}
 
@@ -599,10 +599,6 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 			}
 
 			if (e->blend_depth != blend_depth) {
-				continue;
-			}
-
-			if (R_OccludeBox(view, e->abs_model_bounds)) {
 				continue;
 			}
 

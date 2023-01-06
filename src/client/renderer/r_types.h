@@ -1217,8 +1217,10 @@ typedef struct {
 
 #define MAX_OCCLUSION_QUERIES 256
 
+/**
+ * @brief Occlusion query status.
+ */
 typedef enum {
-	QUERY_INVALID,
 	QUERY_PENDING,
 	QUERY_VISIBLE,
 	QUERY_OCCLUDED
@@ -1237,11 +1239,6 @@ typedef struct {
 	 * @brief The query bounds.
 	 */
 	box3_t bounds;
-
-	/**
-	 * @brief The query vertexes (box corners).
-	 */
-	vec3_t *vertexes;
 
 	/**
 	 * @brief The query status.
