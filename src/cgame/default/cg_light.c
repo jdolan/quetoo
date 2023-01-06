@@ -190,6 +190,10 @@ static void Cg_AddAmbientLights(void) {
  */
 void Cg_AddLights(void) {
 
+	if (!cg_add_lights->value) {
+		return;
+	}
+
 	cg_light_t *l = cg_lights;
 	for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
 
