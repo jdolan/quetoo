@@ -183,13 +183,15 @@ void R_UpdateStains(const r_view_t *view) {
 
 /**
  * @brief Draws the stains for the current frame.
- * @remarks Assumes that the lightmap texture is bound to the active texture unit.
  */
 void R_DrawStains(const r_view_t *view) {
 
 	if (!view->num_stains) {
 		return;
 	}
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->atlas->texnum);
 
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 
@@ -210,6 +212,8 @@ void R_DrawStains(const r_view_t *view) {
 					face->lightmap.stainmap);
 		}
 	}
+
+	glActiveTexture(GL_TEXTURE0);
 
 	R_GetError(NULL);
 }
