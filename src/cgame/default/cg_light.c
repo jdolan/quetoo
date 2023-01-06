@@ -103,6 +103,87 @@ static void Cg_AddBspLights(void) {
 /**
  * @brief
  */
+static void Cg_AddAmbientLights(void) {
+
+	const r_entity_t *e = cgi.view->entities;
+	for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
+
+		if (!e->model) {
+			continue;
+		}
+
+		if (e->parent) {
+			continue;
+		}
+
+		if (e->effects & EF_NO_SHADOW) {
+			continue;
+		}
+
+		int32_t j;
+
+		const r_light_t *l = cgi.view->lights;
+		for (j = 0; j < cgi.view->num_lights; j++, l++) {
+
+			if (l->type == LIGHT_AMBIENT) {
+				continue;
+			}
+
+			if (Box3_Contains(l->bounds, e->abs_bounds)) {
+				break;
+			}
+		}
+
+		if (j < cgi.view->num_lights) {
+			continue;
+		}
+
+		r_light_t light = {
+			.type = LIGHT_AMBIENT,
+			.bounds = e->abs_bounds,
+			.normal = Vec3_Down(),
+			.entities[0] = e,
+			.num_entities = 1,
+		};
+
+		const r_entity_t *child = e + 1;
+		for (int32_t j = i + 1; j < cgi.view->num_entities; j++, child++) {
+			const r_entity_t *c = child;
+			while (c) {
+				if (c->parent == e) {
+					light.entities[light.num_entities++] = child;
+					light.bounds = Box3_Union(light.bounds, child->abs_bounds);
+					break;
+				}
+				c = c->parent;
+			}
+		}
+
+		light.origin = Box3_Center(light.bounds);
+
+		if (IS_BSP_INLINE_MODEL(e->model)) {
+			const r_bsp_inline_model_t *in = e->model->bsp_inline;
+
+			const cm_entity_t *cm = cgi.EntityValue(in->def, "classname");
+			if (!g_strcmp0(cm->string, "func_rotating") ||
+				!g_strcmp0(cm->string, "func_door_rotating")) {
+				light.origin = e->origin;
+			}
+		}
+
+		light.bounds = Box3_Expand3(light.bounds, Vec3_Scale(Box3_Size(light.bounds), .125f));
+		light.bounds.mins.z -= Box3_Size(light.bounds).z;
+
+		light.origin = Vec3_Fmaf(light.origin, Box3_Size(light.bounds).z * 2.f, Vec3_Up());
+		light.radius = Vec3_Distance(light.origin, light.bounds.mins);
+
+		cgi.AddLight(cgi.view, &light);
+	}
+}
+
+/**
+ * @brief
+ */
 void Cg_AddLights(void) {
 
 	cg_light_t *l = cg_lights;
@@ -138,6 +219,8 @@ void Cg_AddLights(void) {
 	}
 
 	Cg_AddBspLights();
+
+	Cg_AddAmbientLights();
 }
 
 /**

@@ -256,62 +256,6 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 }
 
 /**
- * @brief
- */
-void Cg_AddShadow(const r_entity_t *ent, ...) {
-
-	if (!cg_add_shadows->integer) {
-		return;
-	}
-
-	r_light_t light = {
-		.type = LIGHT_AMBIENT,
-		.bounds = Box3_Null(),
-		.normal = Vec3_Down(),
-	};
-
-	va_list args;
-	va_start(args, ent);
-
-	while (ent) {
-
-		if (!(ent->effects & EF_NO_SHADOW)) {
-
-			light.entities[light.num_entities++] = ent;
-
-			light.bounds = Box3_Union(light.bounds, ent->abs_bounds);
-			light.origin = Box3_Center(light.bounds);
-
-			if (IS_BSP_INLINE_MODEL(ent->model)) {
-				const r_bsp_inline_model_t *in = ent->model->bsp_inline;
-
-				const cm_entity_t *cm = cgi.EntityValue(in->def, "classname");
-				if (!g_strcmp0(cm->string, "func_rotating") ||
-					!g_strcmp0(cm->string, "func_door_rotating")) {
-					light.origin = ent->origin;
-				}
-			}
-		}
-
-		ent = va_arg(args, const r_entity_t *);
-	}
-
-	va_end(args);
-
-	if (light.num_entities == 0) {
-		return;
-	}
-
-	light.bounds = Box3_Expand3(light.bounds, Vec3_Scale(Box3_Size(light.bounds), .125f));
-	light.bounds.mins.z -= Box3_Size(light.bounds).z;
-
-	light.origin = Vec3_Fmaf(light.origin, Box3_Size(light.bounds).z * 2.f, Vec3_Up());
-	light.radius = Vec3_Distance(light.origin, light.bounds.mins);
-
-	cgi.AddLight(cgi.view, &light);
-}
-
-/**
  * @brief Adds the specified client entity to the view.
  */
 static void Cg_AddEntity(cl_entity_t *ent) {
@@ -359,10 +303,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	e.frame = ent->current.animation1;
 
 	// add to view list
-	r_entity_t *added = cgi.AddEntity(cgi.view, &e);
-
-	// add a shadow
-	Cg_AddShadow(added, NULL);
+	cgi.AddEntity(cgi.view, &e);
 }
 
 /**

@@ -656,6 +656,4 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	if (s->model4) {
 		cgi.Warn("Unsupported model_index4\n");
 	}
-
-	Cg_AddShadow(r_legs, r_torso, r_head, r_weapon, r_flag, NULL);
 }
