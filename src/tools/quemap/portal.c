@@ -542,8 +542,6 @@ _Bool FloodEntities(tree_t *tree) {
 	return inside_occupied && !tree->outside_node.occupied;
 }
 
-
-
 static int32_t c_outside;
 static int32_t c_inside;
 static int32_t c_solid;
