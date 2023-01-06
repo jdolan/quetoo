@@ -302,17 +302,6 @@ static void Cg_AddOcclusionQueries(void) {
 			cgi.AddOcclusionQuery(cgi.view, b->bounds);
 		}
 	}
-
-	// Break the world into a grid and add an OQ for each cell
-
-	const float size = 1024.f;
-	for (int32_t x = mod->bounds.mins.x; x < mod->bounds.maxs.x; x += size) {
-		for (int32_t y = mod->bounds.mins.y; y < mod->bounds.maxs.y; y += size) {
-			for (int32_t z = mod->bounds.mins.z; z < mod->bounds.maxs.z; z += size) {
-				cgi.AddOcclusionQuery(cgi.view, Box3(Vec3(x, y, z), Vec3(x + size, y + size, z + size)));
-			}
-		}
-	}
 }
 
 /**
