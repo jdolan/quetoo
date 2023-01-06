@@ -985,9 +985,9 @@ typedef struct r_sprite_instance_s {
 	r_sprite_vertex_t *vertexes;
 
 	/**
-	 * @brief The element offset in the shared array.
+	 * @brief The sprite index, for instancing within blend depth chains.
 	 */
-	ptrdiff_t offset;
+	int32_t index;
 
 	/**
 	 * @brief The blend depth at which this sprite should be rendered.

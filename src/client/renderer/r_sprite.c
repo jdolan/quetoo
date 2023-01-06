@@ -163,10 +163,9 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 	r_sprite_instance_t *in = &view->sprite_instances[view->num_sprite_instances];
 	memset(in, 0, sizeof(*in));
 
-	in->vertexes = r_sprites.vertexes + 4 * view->num_sprite_instances;
-	in->offset = view->num_sprite_instances * 6 * sizeof(GLuint);
+	in->index = view->num_sprite_instances++;
+	in->vertexes = r_sprites.vertexes + 4 * in->index;
 
-	view->num_sprite_instances++;
 	return in;
 }
 
@@ -485,23 +484,35 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 			glDepthRange(0.f, 1.f);
 		}
 
-		const ptrdiff_t stride = 6 * (ptrdiff_t) sizeof(GLuint);
+		box3_t bounds = Box3_Null();
 
-		int32_t count = 0;
+		GLsizei count = 0;
+
 		r_sprite_instance_t *chain;
-
 		for (chain = in; chain; chain = chain->next) {
-			if (chain->offset == in->offset + count * stride &&
+
+			if (chain->index == in->index + count &&
 				chain->diffusemap == in->diffusemap &&
 				chain->next_diffusemap == in->next_diffusemap &&
 				(chain->flags & SPRITE_NO_DEPTH) == (in->flags & SPRITE_NO_DEPTH)) {
+
+				bounds = Box3_Append(bounds, chain->vertexes[0].position);
+				bounds = Box3_Append(bounds, chain->vertexes[1].position);
+				bounds = Box3_Append(bounds, chain->vertexes[2].position);
+				bounds = Box3_Append(bounds, chain->vertexes[3].position);
+
 				count++;
 			} else {
 				break;
 			}
 		}
 
-		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) in->offset);
+		if (R_OccludeBox(view, bounds)) {
+			in = chain;
+			continue;
+		}
+
+		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) (in->index * sizeof(GLuint) * 6));
 		r_stats.sprite_draw_elements++;
 
 		in = chain;
@@ -609,7 +620,6 @@ void R_InitSprites(void) {
 		elements[e + 4] = v + 2;
 		elements[e + 5] = v + 3;
 	}
-
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
