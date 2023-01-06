@@ -181,6 +181,11 @@ typedef struct {
 		int32_t lightmaps;
 
 		/**
+		 * @brief The shadows debugging mask.
+		 */
+		int32_t shadows;
+
+		/**
 		 * @brief The brightness scalar.
 		 */
 		float brightness;

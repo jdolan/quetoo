@@ -109,6 +109,11 @@ layout (std140) uniform uniforms_block {
 	int lightmaps;
 
 	/**
+	 * @brief The shadow debugging mask.
+	 */
+	int shadows;
+
+	/**
 	 * @brief The brightness scalar.
 	 */
 	float brightness;

@@ -224,6 +224,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->ticks = view->ticks;
 
 		out->lightmaps = r_draw_bsp_lightmap->integer;
+		out->shadows = r_shadowmap->integer;
 		out->modulate = r_modulate->value;
 		
 		out->fog_density = r_fog_density->value;
