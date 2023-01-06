@@ -394,11 +394,9 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_UpdateEntities(view);
 
-	R_UpdateStains(view);
-
 	R_UpdateSprites(view);
 
-	R_UpdateOcclusionQueries(view);
+	R_UpdateStains(view);
 
 	R_UpdateLights(view);
 
@@ -422,6 +420,8 @@ void R_DrawMainView(r_view_t *view) {
 	R_Draw3D();
 
 	R_DrawBloom(view);
+
+	R_DeleteOcclusionQueries(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 

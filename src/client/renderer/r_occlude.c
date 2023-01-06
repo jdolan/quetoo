@@ -45,11 +45,30 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 		return false;
 	}
 
-	const r_occlusion_query_t *q = view->occlusion_queries;
+	r_occlusion_query_t *q = (r_occlusion_query_t *) view->occlusion_queries;
 	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
 
-		if (Box3_Contains(q->bounds, bounds) && q->status == QUERY_OCCLUDED) {
-			return true;
+		if (Box3_Contains(q->bounds, bounds)) {
+
+			if (q->status == QUERY_PENDING) {
+
+				GLint available;
+				glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
+
+				if (available || r_occlude->integer == 2) {
+
+					GLint result;
+					glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &result);
+
+					if (result) {
+						q->status = QUERY_VISIBLE;
+					} else {
+						q->status = QUERY_OCCLUDED;
+					}
+				}
+			}
+
+			return q->status == QUERY_OCCLUDED;
 		}
 	}
 
@@ -81,21 +100,7 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 		return;
 	}
 
-	r_occlusion_query_t *q = view->occlusion_queries;
-	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
-
-		if (Box3_Contains(q->bounds, bounds)) {
-			return;
-		}
-
-		if (Box3_ContainsPoint(q->bounds, Box3_Center(bounds))) {
-			q->bounds = Box3_Union(q->bounds, bounds);
-			Box3_ToPoints(q->bounds, q->vertexes);
-			return;
-		}
-	}
-
-	q = &view->occlusion_queries[view->num_occlusion_queries];
+	r_occlusion_query_t *q = &view->occlusion_queries[view->num_occlusion_queries];
 	glGenQueries(1, &q->name);
 
 	q->bounds = Box3_Expand(bounds, 1.f);
@@ -156,7 +161,7 @@ void R_DrawOcclusionQueries(r_view_t *view) {
 /**
  * @brief
  */
-void R_UpdateOcclusionQueries(r_view_t *view) {
+void R_DeleteOcclusionQueries(r_view_t *view) {
 
 	if (!r_occlude->integer) {
 		return;
@@ -164,24 +169,6 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 
 	r_occlusion_query_t *q = view->occlusion_queries;
 	for (int32_t i = 0; i < view->num_occlusion_queries; i++, q++) {
-
-		if (q->status == QUERY_PENDING) {
-
-			GLint available;
-			glGetQueryObjectiv(q->name, GL_QUERY_RESULT_AVAILABLE, &available);
-
-			if (available || r_occlude->integer == 2) {
-
-				GLint result;
-				glGetQueryObjectiv(q->name, GL_QUERY_RESULT, &result);
-
-				if (result) {
-					q->status = QUERY_VISIBLE;
-				} else {
-					q->status = QUERY_OCCLUDED;
-				}
-			}
-		}
 
 		glDeleteQueries(1, &q->name);
 
