@@ -395,6 +395,10 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_bsp_draw_elements_t *draw,
 										 const r_material_t **material) {
 
+	if (R_OccludeBox(view, draw->bounds)) {
+		return;
+	}
+
 	if (!(draw->surface & SURF_MATERIAL)) {
 
 		if (*material != draw->material) {
