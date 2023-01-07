@@ -172,12 +172,12 @@ void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds) {
 		return;
 	}
 
-	if (Box3_ContainsPoint(Box3_Expand(bounds, 1.f), view->origin)) {
+	if (Box3_ContainsPoint(Box3_Expand(bounds, 16.f), view->origin)) {
 		return;
 	}
 
 	r_occlusion_query_t *q = &view->occlusion_queries[view->num_occlusion_queries];
-	q->bounds = Box3_Expand(bounds, 1.f);
+	q->bounds = bounds;
 
 	vec3_t *vertexes = r_occlusion_queries.vertexes[view->num_occlusion_queries];
 	Box3_ToPoints(q->bounds, vertexes);
