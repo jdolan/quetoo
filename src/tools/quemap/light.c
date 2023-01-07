@@ -178,6 +178,10 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 
 	light->color = Vec3_Scale(light->color, light->intensity * sun_intensity);
 
+	if (Cm_EntityValue(entity, "_shadow")->parsed & ENTITY_FLOAT) {
+		light->shadow = Cm_EntityValue(entity, "_shadow")->value;
+	}
+
 	light->normal = Vec3_Down();
 
 	const cm_entity_t *target = EntityTarget(entity);
@@ -238,6 +242,10 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
 	}
 
+	if (Cm_EntityValue(entity, "_shadow")->parsed & ENTITY_FLOAT) {
+		light->shadow = Cm_EntityValue(entity, "_shadow")->value;
+	}
+
 	light->bounds = Box3_FromCenter(light->origin);
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
@@ -291,6 +299,10 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
+	}
+
+	if (Cm_EntityValue(entity, "_shadow")->parsed & ENTITY_FLOAT) {
+		light->shadow = Cm_EntityValue(entity, "_shadow")->value;
 	}
 
 	light->bounds = Box3_FromCenter(light->origin);
@@ -387,8 +399,9 @@ static light_t *LightForPatch(const patch_t *patch) {
 	light->face = patch->face;
 	light->plane = plane;
 	light->normal = plane->normal;
-	light->theta = Radians(material->cm->light.cone) ?: Radians(DEFAULT_LIGHT_CONE);
-	light->intensity = material->cm->light.intensity ?: DEFAULT_LIGHT_INTENSITY;
+	light->theta = Radians(material->cm->light.cone);
+	light->intensity = material->cm->light.intensity;
+	light->shadow = material->cm->light.shadow;
 	light->model = patch->model;
 
 	light->color = GetMaterialColor(brush_side->material);
@@ -400,7 +413,7 @@ static light_t *LightForPatch(const patch_t *patch) {
 
 	light->color = Vec3_Scale(light->color, light->intensity * patch_intensity);
 
-	light->radius = brush_side->value ?: material->cm->light.radius ?: DEFAULT_LIGHT_RADIUS;
+	light->radius = brush_side->value ?: material->cm->light.radius;
 
 	light->bounds = Box3_FromCenter(light->origin);
 
@@ -790,11 +803,12 @@ void EmitLights(void) {
 				out->type = light->type;
 				out->atten = light->atten;
 				out->origin = light->origin;
+				out->color = light->color;
+				out->normal = light->normal;
 				out->radius = light->radius;
 				out->size = light->size;
-				out->color = light->color;
 				out->intensity = light->intensity;
-				out->normal = light->normal;
+				out->shadow = light->shadow;
 				out->theta = light->theta;
 				out->bounds = LightBounds(light);
 				out++;

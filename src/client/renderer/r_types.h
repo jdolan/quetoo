@@ -510,6 +510,16 @@ typedef struct {
 	vec3_t origin;
 
 	/**
+	 * @brief The light color.
+	 */
+	vec3_t color;
+
+	/**
+	 * @brief The light normal, for directional lights.
+	 */
+	vec3_t normal;
+
+	/**
 	 * @brief The light radius.
 	 */
 	float radius;
@@ -520,19 +530,14 @@ typedef struct {
 	float size;
 
 	/**
-	 * @brief The light color.
-	 */
-	vec3_t color;
-
-	/**
 	 * @brief The light intensity.
 	 */
 	float intensity;
 
 	/**
-	 * @brief The light normal, for directional lights.
+	 * @brief The light shadow.
 	 */
-	vec3_t normal;
+	float shadow;
 
 	/**
 	 * @brief The light cone radius, for spotlights.
@@ -1164,6 +1169,16 @@ typedef struct {
 	vec3_t origin;
 
 	/**
+	 * @brief The light color.
+	 */
+	vec3_t color;
+
+	/**
+	 * @brief The light normal for directional lights.
+	 */
+	vec3_t normal;
+
+	/**
 	 * @brief The light radius.
 	 */
 	float radius;
@@ -1174,19 +1189,14 @@ typedef struct {
 	float size;
 
 	/**
-	 * @brief The light color.
-	 */
-	vec3_t color;
-
-	/**
 	 * @brief The light intensity.
 	 */
 	float intensity;
 
 	/**
-	 * @brief The light normal for directional lights.
+	 * @brief The light shadow.
 	 */
-	vec3_t normal;
+	float shadow;
 
 	/**
 	 * @brief The light cone angle for spotlights.

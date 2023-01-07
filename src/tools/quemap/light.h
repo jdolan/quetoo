@@ -27,6 +27,7 @@
 #define LIGHT_RADIUS DEFAULT_LIGHT_RADIUS
 #define LIGHT_RADIUS_AMBIENT 256.f
 #define LIGHT_INTENSITY DEFAULT_LIGHT_INTENSITY
+#define LIGHT_SHADOW DEFAULT_LIGHT_SHADOW
 #define LIGHT_ANGLE_UP -1.f
 #define LIGHT_ANGLE_DOWN -2.f
 #define LIGHT_CONE 22.5f
@@ -77,6 +78,11 @@ typedef struct light_s {
 	 * @brief The angle, in radians, from the normal where spotlight attenuation occurs.
 	 */
 	float theta;
+
+	/**
+	 * @brief The light shadow scalar.
+	 */
+	float shadow;
 
 	/**
 	 * @brief The size of the light, in world units, to simulate area lights.

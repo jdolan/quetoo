@@ -81,22 +81,27 @@ static void Cg_AddBspLights(void) {
 				break;
 		}
 
-		const float dist = Vec3_Distance(cgi.view->origin, l->origin) - Box3_Radius(l->bounds);
-
-		if (dist < 1024.f && Box3_Radius(l->bounds) > 64.f) {
-			cgi.AddLight(cgi.view, &(const r_light_t) {
-				.type = l->type,
-				.atten = l->atten,
-				.origin = l->origin,
-				.radius = l->radius,
-				.size = l->size,
-				.color = l->color,
-				.intensity = l->intensity,
-				.normal = l->normal,
-				.theta = l->theta,
-				.bounds = l->bounds,
-			});
+		if (l->shadow == 0.f) {
+			continue;
 		}
+
+		if (Box3_Radius(l->bounds) < 64.f) {
+			continue;
+		}
+
+		cgi.AddLight(cgi.view, &(const r_light_t) {
+			.type = l->type,
+			.atten = l->atten,
+			.origin = l->origin,
+			.color = l->color,
+			.normal = l->normal,
+			.radius = l->radius,
+			.size = l->size,
+			.intensity = l->intensity,
+			.shadow = l->shadow,
+			.theta = l->theta,
+			.bounds = l->bounds,
+		});
 	}
 }
 
@@ -120,34 +125,13 @@ static void Cg_AddAmbientLights(void) {
 			continue;
 		}
 
-		int32_t j;
-
-		// FIXME: A better way to do this would be to sample the lightgrid at the
-		// FIXME: entity origin and determine if there is enough diffuse brightness
-		// FIXME: to warrant skipping the ambient light
-		
-		const r_light_t *l = cgi.view->lights;
-		for (j = 0; j < cgi.view->num_lights; j++, l++) {
-
-			if (l->type == LIGHT_AMBIENT) {
-				continue;
-			}
-
-			if (Box3_Contains(l->bounds, e->abs_bounds)) {
-				break;
-			}
-		}
-
-		if (j < cgi.view->num_lights) {
-			continue;
-		}
-
 		r_light_t light = {
 			.type = LIGHT_AMBIENT,
 			.bounds = e->abs_bounds,
 			.normal = Vec3_Down(),
 			.entities[0] = e,
 			.num_entities = 1,
+			.shadow = 1.f,
 		};
 
 		const r_entity_t *child = e + 1;
@@ -207,11 +191,12 @@ void Cg_AddLights(void) {
 			.type = l->type,
 			.atten = LIGHT_ATTEN_INVERSE_SQUARE,
 			.origin = l->origin,
+			.color = l->color,
+			.normal = Vec3_Zero(),
 			.radius = l->radius,
 			.size = 0.f,
-			.color = l->color,
 			.intensity = l->intensity,
-			.normal = Vec3_Zero(),
+			.shadow = DEFAULT_LIGHT_SHADOW,
 			.theta = 0.f,
 			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
 		};
