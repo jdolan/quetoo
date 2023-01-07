@@ -160,9 +160,9 @@ static void Cg_AddAmbientLights(void) {
 		}
 
 		light.bounds = Box3_Expand3(light.bounds, Vec3_Scale(Box3_Size(light.bounds), .125f));
-		light.bounds.mins.z -= Box3_Size(light.bounds).z;
+		light.bounds.mins.z -= Box3_Extents(light.bounds).z;
 
-		light.origin = Vec3_Fmaf(light.origin, Box3_Size(light.bounds).z * 2.f, Vec3_Up());
+		light.origin = Vec3_Fmaf(light.origin, Box3_Size(light.bounds).z * 1.5, Vec3_Up());
 		light.radius = Vec3_Distance(light.origin, light.bounds.mins);
 
 		cgi.AddLight(cgi.view, &light);
