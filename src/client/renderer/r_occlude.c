@@ -50,7 +50,7 @@ static struct {
 /**
  * @brief
  */
-_Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
+static _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
 	if (!r_occlude->integer) {
 		return false;
@@ -73,8 +73,85 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 /**
  * @brief
  */
-_Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
+static _Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
 	return R_OccludeBox(view, Box3_FromCenterRadius(origin, radius));
+}
+
+/**
+ * @return True if the specified bounding box is culled by the view frustum, false otherwise.
+ * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
+ */
+static _Bool R_CullBox(const r_view_t *view, const box3_t bounds) {
+
+	if (!r_cull->value) {
+		return false;
+	}
+
+	if (view->type == VIEW_PLAYER_MODEL) {
+		return false;
+	}
+
+	vec3_t points[8];
+
+	Box3_ToPoints(bounds, points);
+
+	const cm_bsp_plane_t *plane = view->frustum;
+	for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
+
+		size_t j;
+		for (j = 0; j < lengthof(points); j++) {
+			const float dist = Cm_DistanceToPlane(points[j], plane);
+			if (dist >= 0.f) {
+				break;
+			}
+		}
+
+		if (j == lengthof(points)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @return True if the specified sphere is culled by the view frustum, false otherwise.
+ */
+static _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) {
+
+	if (!r_cull->value) {
+		return false;
+	}
+
+	if (view->type == VIEW_PLAYER_MODEL) {
+		return false;
+	}
+
+	const cm_bsp_plane_t *plane = view->frustum;
+	for (size_t i = 0 ; i < lengthof(view->frustum) ; i++, plane++)  {
+		const float dist = Cm_DistanceToPlane(point, plane);
+		if (dist < -radius) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @return True if the specified box is occluded *or* culled by the view frustum,
+ * false otherwise.
+ */
+_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
+	return R_OccludeBox(view, bounds) || R_CullBox(view, bounds);
+}
+
+/**
+ * @return True if the specified sphere is occluded *or* culled by the view frustum,
+ * false otherwise.
+ */
+_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius) {
+	return R_OccludeSphere(view, point, radius) || R_CullSphere(view, point, radius);
 }
 
 /**

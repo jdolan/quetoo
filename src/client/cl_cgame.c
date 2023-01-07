@@ -259,12 +259,15 @@ void Cl_InitCgame(void) {
 	import.WorldModel = R_WorldModel;
 
 	import.InitView = R_InitView;
+	import.AddOcclusionQuery = R_AddOcclusionQuery;
+	import.CulludeBox = R_CulludeBox;
+	import.CulludeSphere = R_CulludeSphere;
 	import.AddEntity = R_AddEntity;
 	import.AddLight = R_AddLight;
 	import.AddSprite = R_AddSprite;
 	import.AddBeam = R_AddBeam;
 	import.AddStain = R_AddStain;
-	import.AddOcclusionQuery = R_AddOcclusionQuery;
+
 	import.DrawPlayerModelView = R_DrawPlayerModelView;
 
 	import.BindFont = R_BindFont;

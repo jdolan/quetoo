@@ -281,9 +281,4 @@ void R_GetError_(const char *function, const char *msg);
 	} \
 }
 
-_Bool R_CullBox(const r_view_t *view, const box3_t bounds);
-_Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius);
-
-_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds);
-_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius);
 #endif /* __R_LOCAL_H__ */

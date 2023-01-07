@@ -31,6 +31,11 @@
  */
 typedef struct {
 	/**
+	 * @brief The bounding box.
+	 */
+	box3_t bounds;
+
+	/**
 	 * @brief The sprite template.
 	 */
 	cg_sprite_t sprite;
@@ -105,6 +110,8 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
 	dust->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
 
+	dust->bounds = Box3_Null();
+
 	GPtrArray *brushes = cgi.EntityBrushes(self->def);
 	for (guint i = 0; i < brushes->len; i++) {
 
@@ -125,6 +132,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 			const vec3_t point = Box3_RandomPoint(brush->bounds);
 
 			if (cgi.PointInsideBrush(point, brush)) {
+				dust->bounds = Box3_Append(dust->bounds, point);
 				dust->origins[j++] = point;
 			}
 		}
@@ -157,8 +165,13 @@ static void Cg_misc_dust_Think(cg_entity_t *self) {
 	if (!cg_add_atmospheric->value) {
 		return;
 	}
-	
+
 	cg_dust_t *dust = self->data;
+
+	if (cgi.CulludeBox(cgi.view, dust->bounds)) {
+		return;
+	}
+
 	while (dust->num_active < dust->num_origins) {
 
 		cg_sprite_t s = dust->sprite;
