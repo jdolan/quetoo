@@ -285,19 +285,19 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 		}
 	}
 
-//	if (cgi.client->unclamped_time - flame->light_time > flame->light_decay * .9f) {
-//
-//		flame->light_time = cgi.client->unclamped_time;
-//		flame->light_decay = RandomRangeu(100, 500);
-//
-//		Cg_AddLight(&(const cg_light_t) {
-//			.origin = self->origin,
-//			.radius = r * RandomRangef(3.f, 4.f),
-//			.color = Vec3(1.f, 0.5f, 0.3f),
-//			.intensity = .05f,
-//			.decay = flame->light_decay,
-//		});
-//	}
+	if (cgi.client->unclamped_time - flame->light_time > flame->light_decay * .666f) {
+
+		flame->light_time = cgi.client->unclamped_time;
+		flame->light_decay = RandomRangeu(300, 800);
+
+		Cg_AddLight(&(const cg_light_t) {
+			.origin = self->origin,
+			.radius = r * RandomRangef(10.f, 12.f),
+			.color = Vec3_RandomRanges(.8f, .9f, .4f, .5f, .2f, .3f),
+			.intensity = RandomRangef(.02f, .06f),
+			.decay = flame->light_decay,
+		});
+	}
 
 	if (flame->sample) {
 		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
