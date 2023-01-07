@@ -302,6 +302,43 @@ static void Cg_AddOcclusionQueries(void) {
 			cgi.AddOcclusionQuery(cgi.view, b->bounds);
 		}
 	}
+
+#if 0
+
+	// Break the world into a grid and add an OQ for each occupied cell
+
+	const int32_t count = cgi.view->num_occlusion_queries;
+
+	const float size = 1024.f;
+	for (int32_t x = mod->bounds.mins.x; x < mod->bounds.maxs.x; x += size) {
+		for (int32_t y = mod->bounds.mins.y; y < mod->bounds.maxs.y; y += size) {
+			for (int32_t z = mod->bounds.mins.z; z < mod->bounds.maxs.z; z += size) {
+
+				const box3_t bounds = Box3(Vec3(x, y, z), Vec3(x + size, y + size, z + size));
+
+				int32_t leaf;
+				if (cgi.BoxLeafnums(bounds, &leaf, 1, NULL, 0) == 0) {
+					continue;
+				}
+
+				const r_occlusion_query_t *query = NULL;
+				const r_occlusion_query_t *q = cgi.view->occlusion_queries;
+				for (int32_t i = 0; i < count; i++, q++) {
+					if (Box3_Intersects(q->bounds, bounds)) {
+						query = q;
+						break;
+					}
+				}
+
+				if (query) {
+					continue;
+				}
+
+				cgi.AddOcclusionQuery(cgi.view, bounds);
+			}
+		}
+	}
+#endif
 }
 
 /**
