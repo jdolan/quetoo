@@ -1225,16 +1225,7 @@ typedef struct {
 	GLint index;
 } r_light_t;
 
-#define MAX_OCCLUSION_QUERIES 256
-
-/**
- * @brief Occlusion query status.
- */
-typedef enum {
-	QUERY_PENDING,
-	QUERY_VISIBLE,
-	QUERY_OCCLUDED
-} r_occlusion_query_status_t;
+#define MAX_OCCLUSION_QUERIES MAX_ENTITIES
 
 /**
  * @brief OpenGL occlusion queries.
@@ -1246,14 +1237,24 @@ typedef struct {
 	GLuint name;
 
 	/**
+	 * @brief The query index.
+	 */
+	int32_t index;
+
+	/**
 	 * @brief The query bounds.
 	 */
 	box3_t bounds;
 
 	/**
-	 * @brief The query status.
+	 * @brief
 	 */
-	r_occlusion_query_status_t status;
+	GLint available;
+
+	/**
+	 * @brief
+	 */
+	GLint result;
 } r_occlusion_query_t;
 
 /**
@@ -1314,6 +1315,14 @@ typedef enum {
 } r_view_type_t;
 
 /**
+ * @brief View flags.
+ */
+typedef enum {
+	VIEW_FLAG_NONE = 0x0,
+	VIEW_FLAG_NO_DELTA = 0x1
+} r_view_flags_t;
+
+/**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
@@ -1321,6 +1330,11 @@ typedef struct {
 	 * @brief The view type.
 	 */
 	r_view_type_t type;
+
+	/**
+	 * @brief The view flags.
+	 */
+	r_view_flags_t flags;
 
 	/**
 	 * @brief The target framebuffer (required).
@@ -1417,7 +1431,7 @@ typedef struct {
 	/**
 	 * @brief The occlusion queries for the current frame.
 	 */
-	r_occlusion_query_t occlusion_queries[MAX_OCCLUSION_QUERIES];
+	r_occlusion_query_t *occlusion_queries[MAX_OCCLUSION_QUERIES];
 	int32_t num_occlusion_queries;
 
 	/**
@@ -1480,7 +1494,6 @@ typedef struct {
 
 	int32_t occlusion_queries_visible;
 	int32_t occlusion_queries_occluded;
-	int32_t occlusion_queries_pending;
 
 	int32_t bsp_inline_models;
 	int32_t bsp_draw_elements;

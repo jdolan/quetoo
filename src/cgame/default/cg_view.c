@@ -303,42 +303,29 @@ static void Cg_AddOcclusionQueries(void) {
 		}
 	}
 
-#if 0
+	const r_bsp_light_t *l = mod->bsp->lights;
+	for (int32_t i = 0; i < mod->bsp->num_lights; i++, l++) {
 
-	// Break the world into a grid and add an OQ for each occupied cell
-
-	const int32_t count = cgi.view->num_occlusion_queries;
-
-	const float size = 1024.f;
-	for (int32_t x = mod->bounds.mins.x; x < mod->bounds.maxs.x; x += size) {
-		for (int32_t y = mod->bounds.mins.y; y < mod->bounds.maxs.y; y += size) {
-			for (int32_t z = mod->bounds.mins.z; z < mod->bounds.maxs.z; z += size) {
-
-				const box3_t bounds = Box3(Vec3(x, y, z), Vec3(x + size, y + size, z + size));
-
-				int32_t leaf;
-				if (cgi.BoxLeafnums(bounds, &leaf, 1, NULL, 0) == 0) {
-					continue;
-				}
-
-				const r_occlusion_query_t *query = NULL;
-				const r_occlusion_query_t *q = cgi.view->occlusion_queries;
-				for (int32_t i = 0; i < count; i++, q++) {
-					if (Box3_Intersects(q->bounds, bounds)) {
-						query = q;
-						break;
-					}
-				}
-
-				if (query) {
-					continue;
-				}
-
-				cgi.AddOcclusionQuery(cgi.view, bounds);
-			}
+		switch (l->type) {
+			case LIGHT_INVALID:
+			case LIGHT_AMBIENT:
+			case LIGHT_SUN:
+			case LIGHT_INDIRECT:
+				continue;
+			default:
+				break;
 		}
+
+		if (l->shadow == 0.f) {
+			continue;
+		}
+
+		if (Box3_Radius(l->bounds) < 64.f) {
+			continue;
+		}
+
+		cgi.AddOcclusionQuery(cgi.view, Box3_Expand(l->bounds, 1.f));
 	}
-#endif
 }
 
 /**
@@ -347,6 +334,7 @@ static void Cg_AddOcclusionQueries(void) {
 void Cg_PrepareView(const cl_frame_t *frame) {
 
 	cgi.view->type = VIEW_MAIN;
+	cgi.view->flags = VIEW_FLAG_NONE;
 
 	cgi.view->framebuffer = &cg_framebuffer;
 
@@ -357,6 +345,7 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 	if (cgi.client->previous_frame) {
 		ps0 = &cgi.client->previous_frame->ps;
 	} else {
+		cgi.view->flags |= VIEW_FLAG_NO_DELTA;
 		ps0 = &frame->ps;
 	}
 

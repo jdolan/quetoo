@@ -214,47 +214,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 }
 
 /**
- * @brief Updates the clipping planes for the view frustum for the current frame.
- * @details The frustum planes are outward facing. Thus, any object that appears
- * partially behind any of the frustum planes should be visible.
- */
-static void R_UpdateFrustum(r_view_t *view) {
-
-	if (!r_cull->value) {
-		return;
-	}
-
-	cm_bsp_plane_t *p = view->frustum;
-
-	float ang = Radians(view->fov.x);
-	float xs = sinf(ang);
-	float xc = cosf(ang);
-
-	p[0].normal = Vec3_Scale(view->forward, xs);
-	p[0].normal = Vec3_Fmaf(p[0].normal, xc, view->right);
-
-	p[1].normal = Vec3_Scale(view->forward, xs);
-	p[1].normal = Vec3_Fmaf(p[1].normal, -xc, view->right);
-
-	ang = Radians(view->fov.y);
-	xs = sinf(ang);
-	xc = cosf(ang);
-
-	p[2].normal = Vec3_Scale(view->forward, xs);
-	p[2].normal = Vec3_Fmaf(p[2].normal, xc, view->up);
-
-	p[3].normal = Vec3_Scale(view->forward, xs);
-	p[3].normal = Vec3_Fmaf(p[3].normal, -xc, view->up);
-
-	for (size_t i = 0; i < lengthof(view->frustum); i++) {
-		p[i].normal = Vec3_Normalize(p[i].normal);
-		p[i].dist = Vec3_Dot(view->origin, p[i].normal);
-		p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
-		p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
-	}
-}
-
-/**
  * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
@@ -432,7 +391,7 @@ static void R_InitLocal(void) {
 	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool)");
 	r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
 	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
-	r_occlude = Cvar_Add("r_occlude", "2", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
+	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");

@@ -200,8 +200,6 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 		R_Draw2DString(x, y, va(" %d occluded", r_stats.occlusion_queries_occluded), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d pending", r_stats.occlusion_queries_pending), color_yellow);
-		y += ch;
 	}
 
 	y += ch;
