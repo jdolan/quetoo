@@ -67,8 +67,8 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
 	for (int32_t i = 0; i < view->num_occlusion_queries; i++) {
 		const r_occlusion_query_t *q = view->occlusion_queries[i];
-		if (Box3_Contains(q->bounds, bounds)) {
-			return q->result == 0;
+		if (Box3_Contains(q->bounds, bounds) && q->result == 0) {
+			return true;
 		}
 	}
 
