@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-static GArray *cg_entities;
+GArray *cg_entities = NULL;
 
 /**
  * @brief The `Cg_EntityPredicate` type for `Cg_FindEntity`.
@@ -126,6 +126,7 @@ void Cg_LoadEntities(void) {
 				};
 
 				e.origin = cgi.EntityValue(def, "origin")->vec3;
+				e.bounds = Box3_FromCenter(e.origin);
 
 				if (cgi.EntityValue(def, "target")->parsed & ENTITY_STRING) {
 					const char *target_name = cgi.EntityValue(def, "target")->string;

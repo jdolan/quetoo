@@ -31,11 +31,6 @@
  */
 typedef struct {
 	/**
-	 * @brief The bounding box.
-	 */
-	box3_t bounds;
-
-	/**
 	 * @brief The sprite template.
 	 */
 	cg_sprite_t sprite;
@@ -110,7 +105,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
 	dust->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
 
-	dust->bounds = Box3_Null();
+	self->bounds = Box3_Null();
 
 	GPtrArray *brushes = cgi.EntityBrushes(self->def);
 	for (guint i = 0; i < brushes->len; i++) {
@@ -132,7 +127,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 			const vec3_t point = Box3_RandomPoint(brush->bounds);
 
 			if (cgi.PointInsideBrush(point, brush)) {
-				dust->bounds = Box3_Append(dust->bounds, point);
+				self->bounds = Box3_Append(self->bounds, point);
 				dust->origins[j++] = point;
 			}
 		}
@@ -166,11 +161,11 @@ static void Cg_misc_dust_Think(cg_entity_t *self) {
 		return;
 	}
 
-	cg_dust_t *dust = self->data;
-
-	if (cgi.CulludeBox(cgi.view, dust->bounds)) {
+	if (cgi.CulludeBox(cgi.view, self->bounds)) {
 		return;
 	}
+
+	cg_dust_t *dust = self->data;
 
 	while (dust->num_active < dust->num_origins) {
 
@@ -244,6 +239,8 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 	flame->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
 	flame->radius = cgi.EntityValue(self->def, "radius")->value ?: 16.f;
 
+	self->bounds = Box3_FromCenterRadius(self->origin, flame->radius * 16.f);
+
 	const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
 	if (sound) {
 		if (g_strcmp0(sound, "none")) {
@@ -262,7 +259,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 	cg_flame_t *flame = self->data;
 
 	const float r = flame->radius;
-	const float s = Clampf(flame->radius / 64.f, .125f, 1.f);
+	const float s = Clampf(r / 64.f, .125f, 1.f);
 
 	for (int32_t i = 0; i < flame->radius * flame->density; i++) {
 		const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
@@ -292,7 +289,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 
 		Cg_AddLight(&(const cg_light_t) {
 			.origin = self->origin,
-			.radius = r * RandomRangef(10.f, 12.f),
+			.radius = r * RandomRangef(10.f, 16.f),
 			.color = Vec3_RandomRanges(.8f, .9f, .4f, .5f, .2f, .3f),
 			.intensity = RandomRangef(.02f, .06f),
 			.decay = flame->light_decay,
@@ -378,6 +375,8 @@ static void Cg_misc_light_Init(cg_entity_t *self) {
 
 	const char *style = cgi.EntityValue(self->def, "style")->nullable_string ?: "zzz";
 	g_strlcpy(data->style.string, style, sizeof(data->style.string));
+
+	self->bounds = Box3_FromCenterRadius(self->origin, data->light.radius);
 }
 
 /**
@@ -450,7 +449,10 @@ static void Cg_misc_model_Think(cg_entity_t *self) {
 	const r_entity_t *entity = self->data;
 
 	if (entity->model) {
-		cgi.AddEntity(cgi.view, entity);
+		r_entity_t *out = cgi.AddEntity(cgi.view, entity);
+		if (out) {
+			self->bounds = out->abs_model_bounds;
+		}
 	}
 }
 

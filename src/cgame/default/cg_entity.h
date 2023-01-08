@@ -83,6 +83,11 @@ struct cg_entity_s {
 	vec3_t origin;
 
 	/**
+	 * @brief The entity bounds.
+	 */
+	box3_t bounds;
+
+	/**
 	 * @brief The entity's target, if any.
 	 */
 	const cm_entity_t *target;
@@ -108,6 +113,8 @@ struct cg_entity_s {
 	 */
 	void *data;
 };
+
+extern GArray *cg_entities;
 
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e);
 void Cg_LoadEntities(void);

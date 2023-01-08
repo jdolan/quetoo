@@ -326,6 +326,14 @@ static void Cg_AddOcclusionQueries(void) {
 
 		cgi.AddOcclusionQuery(cgi.view, Box3_Expand(l->bounds, 1.f));
 	}
+
+	cg_entity_t *e = (cg_entity_t *) cg_entities->data;
+	for (guint i = 0; i < cg_entities->len; i++, e++) {
+
+		if (Box3_Distance(e->bounds) > 0.f) {
+			cgi.AddOcclusionQuery(cgi.view, Box3_Expand(e->bounds, 1.f));
+		}
+	}
 }
 
 /**
