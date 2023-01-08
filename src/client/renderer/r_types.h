@@ -383,6 +383,13 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
+ * @brief Light sources per scene.
+ * @remarks Lights that are frustum culled or occluded are discarded.
+ * @see `MAX_LIGHT_UNIFORMS`
+ */
+#define MAX_LIGHTS 1024
+
+/**
  * @brief BSP draw elements, which include all opaque faces of a given material
  * within a particular inline model.
  */
@@ -400,23 +407,6 @@ typedef struct {
 
 	int32_t blend_depth_types;
 } r_bsp_draw_elements_t;
-
-/**
- * @brief BSP occlusion queries are defined by brushes with CONTENTS_OCCLUSION_QUERY.
- * @remarks Occlusion queries are processed once per frame. Objects residing completely
- * within such a brush may be culled if the occlusion query produces no visible samples.
- */
-typedef struct {
-	GLuint name;
-
-	box3_t bounds;
-
-	vec3_t vertexes[8];
-
-	_Bool pending;
-	
-	GLint result;
-} r_bsp_occlusion_query_t;
 
 /**
  * @brief BSP nodes comprise the tree representation of the world.
@@ -462,6 +452,11 @@ typedef struct r_bsp_leaf_s r_bsp_leaf_t;
  */
 typedef struct r_bsp_inline_model_s {
 	/**
+	 * @brief The backing entity definition for this inline model.
+	 */
+	cm_entity_t *def;
+
+	/**
 	 * @brief The head node of this inline model.
 	 * @brief This is a pointer into the BSP model's nodes array.
 	 */
@@ -490,7 +485,70 @@ typedef struct r_bsp_inline_model_s {
 	 */
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
+
+	GLuint depth_pass_elements_buffer;
+	GLuint num_depth_pass_elements;
 } r_bsp_inline_model_t;
+
+/**
+ * @brief
+ */
+typedef struct {
+	/**
+	 * @brief The light type.
+	 */
+	light_type_t type;
+
+	/**
+	 * @brief The light attenuation.
+	 */
+	light_atten_t atten;
+
+	/**
+	 * @brief The light origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The light color.
+	 */
+	vec3_t color;
+
+	/**
+	 * @brief The light normal, for directional lights.
+	 */
+	vec3_t normal;
+
+	/**
+	 * @brief The light radius.
+	 */
+	float radius;
+
+	/**
+	 * @brief The light size, for area lights.
+	 */
+	float size;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
+
+	/**
+	 * @brief The light shadow.
+	 */
+	float shadow;
+
+	/**
+	 * @brief The light cone radius, for spotlights.
+	 */
+	float theta;
+
+	/**
+	 * @brief The light bounds, for frustum and occlusion culling.
+	 */
+	box3_t bounds;
+} r_bsp_light_t;
 
 /**
  * @brief
@@ -555,9 +613,6 @@ typedef struct {
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
 
-	int32_t num_occlusion_queries;
-	r_bsp_occlusion_query_t *occlusion_queries;
-
 	int32_t num_nodes;
 	r_bsp_node_t *nodes;
 
@@ -567,6 +622,9 @@ typedef struct {
 	int32_t num_inline_models;
 	r_bsp_inline_model_t *inline_models;
 
+	int32_t num_lights;
+	r_bsp_light_t *lights;
+	
 	int32_t luxel_size;
 
 	r_bsp_lightmap_t *lightmap;
@@ -577,10 +635,6 @@ typedef struct {
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
-
-	GLuint depth_pass_elements_buffer;
-	GLuint num_depth_pass_elements;
-
 } r_bsp_model_t;
 
 // mesh model, used for objects
@@ -936,9 +990,9 @@ typedef struct r_sprite_instance_s {
 	r_sprite_vertex_t *vertexes;
 
 	/**
-	 * @brief The element offset in the shared array.
+	 * @brief The sprite index, for instancing within blend depth chains.
 	 */
-	ptrdiff_t offset;
+	int32_t index;
 
 	/**
 	 * @brief The blend depth at which this sprite should be rendered.
@@ -975,37 +1029,6 @@ typedef struct {
 } r_stain_t;
 
 #define MAX_STAINS			0x400
-
-/**
- * @brief Dynamic light sources.
- * @remarks This struct is vec4 aligned.
- */
-typedef struct {
-	/**
-	 * @brief The light origin.
-	 */
-	vec3_t origin;
-
-	/**
-	 * @brief The light radius.
-	 */
-	float radius;
-
-	/**
-	 * @brief The light color.
-	 */
-	vec3_t color;
-
-	/**
-	 * @brief The light intensity.
-	 */
-	float intensity;
-} r_light_t;
-
-/**
- * @brief 32 dynamic light sources per scene.
- */
-#define MAX_LIGHTS			0x20
 
 /**
  * @brief Entity sub-mesh skins.
@@ -1124,6 +1147,116 @@ typedef struct r_entity_s {
 	int32_t blend_depth;
 } r_entity_t;
 
+#define MAX_LIGHT_ENTITIES 32
+
+/**
+ * @brief Hardware light sources.
+ */
+typedef struct {
+	/**
+	 * @brief The light type.
+	 */
+	light_type_t type;
+
+	/**
+	 * @brief The light attenuation.
+	 */
+	light_atten_t atten;
+
+	/**
+	 * @brief The light origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The light color.
+	 */
+	vec3_t color;
+
+	/**
+	 * @brief The light normal for directional lights.
+	 */
+	vec3_t normal;
+
+	/**
+	 * @brief The light radius.
+	 */
+	float radius;
+
+	/**
+	 * @brief The light size, for area lights.
+	 */
+	float size;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
+
+	/**
+	 * @brief The light shadow.
+	 */
+	float shadow;
+
+	/**
+	 * @brief The light cone angle for spotlights.
+	 */
+	float theta;
+
+	/**
+	 * @brief The light bounds.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The top node containing the light bounds.
+	 */
+	int32_t node;
+
+	/**
+	 * @brief The entities that are within the bounds of this light.
+	 */
+	const r_entity_t *entities[MAX_LIGHT_ENTITIES];
+	int32_t num_entities;
+
+	/**
+	 * @brief The light uniform index and shadowmap layer.
+	 */
+	GLint index;
+} r_light_t;
+
+#define MAX_OCCLUSION_QUERIES MAX_ENTITIES
+
+/**
+ * @brief OpenGL occlusion queries.
+ */
+typedef struct {
+	/**
+	 * @brief The query name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The query index.
+	 */
+	int32_t index;
+
+	/**
+	 * @brief The query bounds.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief
+	 */
+	GLint available;
+
+	/**
+	 * @brief
+	 */
+	GLint result;
+} r_occlusion_query_t;
+
 /**
  * @brief Framebuffer attachments bitmask.
  */
@@ -1182,6 +1315,14 @@ typedef enum {
 } r_view_type_t;
 
 /**
+ * @brief View flags.
+ */
+typedef enum {
+	VIEW_FLAG_NONE = 0x0,
+	VIEW_FLAG_NO_DELTA = 0x1
+} r_view_flags_t;
+
+/**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
@@ -1191,6 +1332,11 @@ typedef struct {
 	r_view_type_t type;
 
 	/**
+	 * @brief The view flags.
+	 */
+	r_view_flags_t flags;
+
+	/**
 	 * @brief The target framebuffer (required).
 	 */
 	r_framebuffer_t *framebuffer;
@@ -1198,12 +1344,17 @@ typedef struct {
 	/**
 	 * @brief The viewport, in device pixels.
 	 */
-	vec4_t viewport;
+	vec4i_t viewport;
 
 	/**
 	 * @brief The horizontal and vertical field of view.
 	 */
 	vec2_t fov;
+
+	/**
+	 * @brief The depth range; near and far clipping plane distances.
+	 */
+	vec2_t depth_range;
 
 	/**
 	 * @brief The view origin.
@@ -1278,38 +1429,17 @@ typedef struct {
 	int32_t num_stains;
 
 	/**
+	 * @brief The occlusion queries for the current frame.
+	 */
+	r_occlusion_query_t *occlusion_queries[MAX_OCCLUSION_QUERIES];
+	int32_t num_occlusion_queries;
+
+	/**
 	 * @brief The view frustum, for box and sphere culling.
 	 * @remarks This is populated by the renderer.
 	 */
 	cm_bsp_plane_t frustum[4];
-
 } r_view_t;
-
-/**
- * @brief Convenience inline function to clear a view. Use this instead of memset.
- */
-static inline void R_ClearView(r_view_t *view) {
-
-	view->viewport = Vec4_Zero();
-	view->fov = Vec2_Zero();
-
-	view->origin = Vec3_Zero();
-	view->angles = Vec3_Zero();
-	view->forward = Vec3_Zero();
-	view->right = Vec3_Zero();
-	view->up = Vec3_Zero();
-
-	view->contents = CONTENTS_NONE;
-
-	view->num_beams = 0;
-	view->num_entities = 0;
-	view->num_lights = 0;
-	view->num_sprites = 0;
-	view->num_sprite_instances = 0;
-	view->num_stains = 0;
-
-	memset(view->frustum, 0, sizeof(view->frustum));
-}
 
 /**
  * @brief Window and OpenGL context information.
@@ -1360,24 +1490,26 @@ typedef struct {
  * @brief Renderer statistics.
  */
 typedef struct {
+	int32_t lights;
 
-	int32_t count_bsp_inline_models;
-	int32_t count_bsp_draw_elements;
-	int32_t count_bsp_blend_draw_elements;
-	int32_t count_bsp_triangles;
-	int32_t count_bsp_occlusion_queries;
-	int32_t count_bsp_occlusion_queries_passed;
+	int32_t occlusion_queries_visible;
+	int32_t occlusion_queries_occluded;
 
-	int32_t count_mesh_models;
-	int32_t count_mesh_triangles;
+	int32_t bsp_inline_models;
+	int32_t bsp_draw_elements;
+	int32_t bsp_blend_draw_elements;
+	int32_t bsp_triangles;
 
-	int32_t count_sprite_draw_elements;
+	int32_t mesh_models;
+	int32_t mesh_triangles;
 
-	int32_t count_draw_chars;
-	int32_t count_draw_fills;
-	int32_t count_draw_images;
-	int32_t count_draw_lines;
-	int32_t count_draw_arrays;
+	int32_t sprite_draw_elements;
+
+	int32_t draw_chars;
+	int32_t draw_fills;
+	int32_t draw_images;
+	int32_t draw_lines;
+	int32_t draw_arrays;
 
 } r_stats_t;
 
@@ -1418,6 +1550,16 @@ typedef enum {
 	 * @brief The sky cubemap texture.
 	 */
 	TEXTURE_SKY,
+
+	/**
+	 * @brief The shadowmap array texture.
+	 */
+	TEXTURE_SHADOWMAP,
+
+	/**
+	 * @brief The shadowmap cubemap array texture.
+	 */
+	TEXTURE_SHADOWMAP_CUBE,
 
 	/**
 	 * @brief Sprite specific textures.

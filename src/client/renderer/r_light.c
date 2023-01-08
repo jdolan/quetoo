@@ -33,37 +33,119 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	if (R_CulludeSphere(view, l->origin, l->radius)) {
+	switch (l->type) {
+		case LIGHT_AMBIENT:
+			if (r_shadowmap->integer < 1) {
+				return;
+			}
+			break;
+		case LIGHT_SUN:
+		case LIGHT_POINT:
+		case LIGHT_SPOT:
+		case LIGHT_PATCH:
+			if (r_shadowmap->integer < 2) {
+				return;
+			}
+			break;
+		case LIGHT_DYNAMIC:
+			break;
+		default:
+			return;
+	}
+
+	if (R_CulludeBox(view, l->bounds)) {
 		return;
 	}
 
-	view->lights[view->num_lights] = *l;
-	view->num_lights++;
+	view->lights[view->num_lights++] = *l;
 }
 
 /**
- * @brief Transforms all active light sources to view space for rendering.
+ * @brief
  */
-void R_UpdateLights(const r_view_t *view) {
+static void R_AddLightUniform(r_light_t *in) {
 
-	if (view) {
-
-		const r_light_t *in = view->lights;
-		
-		r_light_t *out = r_lights.block.lights;
-
-		for (int32_t i = 0; i < view->num_lights; i++, in++, out++) {
-
-			*out = *in;
-			out->origin = Mat4_Transform(r_uniforms.block.view, in->origin);
-		}
-
-		r_lights.block.num_lights = view->num_lights;
+	if (r_lights.block.num_lights == MAX_LIGHT_UNIFORMS) {
+		Com_Warn("MAX_LIGHT_UNIFORMS");
+		return;
 	}
 
+	in->index = r_lights.block.num_lights++;
+
+	r_light_uniform_t *out = &r_lights.block.lights[in->index];
+
+	out->model = Vec3_ToVec4(in->origin, in->radius);
+	out->mins = Vec3_ToVec4(in->bounds.mins, in->size);
+	out->maxs = Vec3_ToVec4(in->bounds.maxs, in->atten);
+	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->type);
+	out->normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal, 0.f);
+	out->color = Vec3_ToVec4(in->color, in->intensity);
+
+	if (r_draw_light_bounds->value) {
+		R_Draw3DBox(in->bounds, Color3fv(in->color), false);
+	}
+}
+
+/**
+ * @brief Cull lights by occlusion queries, and transform them into view space.
+ */
+void R_UpdateLights(r_view_t *view) {
+
+	r_light_uniform_block_t *out = &r_lights.block;
+
+	memset(out, 0, sizeof(*out));
+
+	out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+	out->light_view = Mat4_LookAt(Vec3_Zero(), Vec3(0.f, 0.f, -1.f), Vec3(0.f, 1.f, 0.f));
+
+	out->light_projection_cube = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+	out->light_view_cube[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+	out->light_view_cube[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+	out->light_view_cube[2] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  1.f,  0.f), Vec3(0.f,  0.f,  1.f));
+	out->light_view_cube[3] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f, -1.f,  0.f), Vec3(0.f,  0.f, -1.f));
+	out->light_view_cube[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
+	out->light_view_cube[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
+
+	r_light_t *l = view->lights;
+	for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+		l->index = -1;
+
+		if (l->num_entities == 0) {
+
+			const r_entity_t *e = view->entities;
+			for (int32_t j = 0; j < view->num_entities; j++, e++) {
+
+				if (!e->model) {
+					continue;
+				}
+
+				if (e->effects & EF_NO_SHADOW) {
+					continue;
+				}
+
+				if (Box3_Intersects(e->abs_bounds, l->bounds)) {
+					l->entities[l->num_entities++] = e;
+
+					if (l->num_entities == MAX_LIGHT_ENTITIES) {
+						Com_Warn("MAX_LIGHT_ENTITIES\n");
+						break;
+					}
+				}
+			}
+		}
+
+		if (l->num_entities == 0 && l->type != LIGHT_DYNAMIC) {
+			continue;
+		}
+
+		R_AddLightUniform(l);
+	}
+
+	r_stats.lights = out->num_lights;
+
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, num_lights), sizeof(r_lights.block.num_lights), &r_lights.block.num_lights);
-	glBufferSubData(GL_UNIFORM_BUFFER, offsetof(r_lights_block_t, lights), sizeof(r_light_t) * r_lights.block.num_lights, &r_lights.block.lights);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(*out), out);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -72,14 +154,15 @@ void R_UpdateLights(const r_view_t *view) {
  */
 void R_InitLights(void) {
 
+	memset(&r_lights, 0, sizeof(r_lights));
+
 	glGenBuffers(1, &r_lights.buffer);
-	
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), NULL, GL_DYNAMIC_DRAW);
-
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	R_UpdateLights(NULL);
+	R_GetError(NULL);
 }
 
 /**

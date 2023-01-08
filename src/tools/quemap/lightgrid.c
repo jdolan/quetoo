@@ -25,18 +25,7 @@
 #include "qlight.h"
 #include "simplex.h"
 
-typedef struct {
-	box3_t stu_bounds;
-	vec3i_t size;
-
-	mat4_t matrix;
-	mat4_t inverse_matrix;
-
-	size_t num_luxels;
-	luxel_t *luxels;
-} lightgrid_t;
-
-static lightgrid_t lg;
+lightgrid_t lg;
 
 /**
  * @brief
@@ -398,8 +387,6 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 		const light_t *light = g_ptr_array_index(lights, i);
 
 		switch (light->type) {
-			case LIGHT_INVALID:
-				break;
 			case LIGHT_AMBIENT:
 				LightgridLuxel_Ambient(light, luxel, scale);
 				break;
@@ -417,6 +404,8 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 				break;
 			case LIGHT_INDIRECT:
 				LightgridLuxel_Indirect(light, luxel, scale);
+				break;
+			default:
 				break;
 		}
 	}

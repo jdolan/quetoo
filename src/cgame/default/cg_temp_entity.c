@@ -99,7 +99,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
 		.origin = Vec3_Fmaf(org, 8.f, dir),
 		.radius = 100.f,
 		.color = Color_Vec3(color_rgb),
-		.intensity = .125f,
+		.intensity = .33f,
 		.decay = 350.f
 	});
 
@@ -545,7 +545,8 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		.origin = org,
 		.radius = 100.0,
 		.color = Vec3(0.7, 0.5, 0.5),
-		.decay = RandomRangeu(120, 180)
+		.intensity = .5f,
+		.decay = RandomRangeu(120, 180),
 	});
 
 	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
@@ -657,9 +658,10 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 200.0,
-		.color = Vec3(0.8, 0.4, 0.2),
-		.decay = 1200
+		.radius = 150.0,
+		.color = Vec3(0.8, 0.5, 0.4),
+		.intensity = .5f,
+		.decay = 1000
 	});
 
 	cgi.AddStain(cgi.view, &(const r_stain_t) {
@@ -733,8 +735,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.origin = Vec3_Add(org, dir),
 		.radius = 100.f,
 		.color = Vec3(.4f, .7f, 1.f),
+		.intensity = .5f,
 		.decay = 250,
-		.intensity = 0.1
 	});
 
 	cgi.AddStain(cgi.view, &(const r_stain_t) {
@@ -763,6 +765,7 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 		.origin = org,
 		.radius = 160.f,
 		.color = Vec3(.6f, .6f, 1.f),
+		.intensity = .666f,
 		.decay = 750
 	});
 
@@ -784,6 +787,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.origin = start,
 		.radius = 100.f,
 		.color = Color_Vec3(color_rgb),
+		.intensity = .6f,
 		.decay = 500,
 	});
 
@@ -853,11 +857,11 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Impact light
 	Cg_AddLight(&(cg_light_t) {
-		.origin = Vec3_Fmaf(end, 20.f, dir),
-		.radius = 120.f,
+		.origin = Vec3_Fmaf(end, 1.f, dir),
+		.radius = 6.f,
 		.color = Color_Vec3(color_rgb),
-		.decay = 350.f,
-		.intensity = .1f
+		.intensity = 10.f,
+		.decay = 1600.f,
 	});
 
 	// hit billboards
@@ -966,6 +970,7 @@ static void Cg_BfgLaserEffect(const uint16_t org_entity, const uint16_t dest_ent
 		.origin = end,
 		.radius = 80.0,
 		.color = Vec3(0.8, 1.0, 0.5),
+		.intensity = .4f,
 		.decay = 50,
 	});
 }
@@ -1054,7 +1059,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 		.origin = org,
 		.radius = 200.f,
 		.color = Vec3(.8f, 1.f, .5f),
-		.intensity = .1f,
+		.intensity = .6f,
 		.decay = 1500
 	});
 	
@@ -1219,6 +1224,7 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 		.origin = Vec3_Add(org, dir),
 		.radius = 80.0,
 		.color = Vec3(0.7, 0.5, 0.5),
+		.intensity = .4f,
 		.decay = 850
 	});
 

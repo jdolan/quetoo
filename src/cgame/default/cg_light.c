@@ -21,20 +21,20 @@
 
 #include "cg_local.h"
 
-#define LIGHT_INTENSITY .125f
+#define LIGHT_INTENSITY 1.f
 
-static cg_light_t cg_lights[MAX_ENTITIES];
+static cg_light_t cg_lights[MAX_LIGHTS];
 
 /**
  * @brief
  */
 void Cg_AddLight(const cg_light_t *l) {
-	size_t i;
 
 	if (!cg_add_lights->value) {
 		return;
 	}
 
+	size_t i;
 	for (i = 0; i < lengthof(cg_lights); i++)
 		if (cg_lights[i].radius == 0.0) {
 			break;
@@ -45,22 +45,138 @@ void Cg_AddLight(const cg_light_t *l) {
 		return;
 	}
 
-	cg_lights[i] = *l;
+	cg_light_t *out = cg_lights + i;
 
-	assert(cg_lights[i].decay >= 0.f);
-	assert(cg_lights[i].intensity >= 0.f);
-	
-	if (cg_lights[i].intensity == 0.0) {
-		cg_lights[i].intensity = LIGHT_INTENSITY;
+	*out = *l;
+
+	assert(out->decay >= 0.f);
+	assert(out->intensity >= 0.f);
+
+	if (out->type == LIGHT_INVALID) {
+		out->type = LIGHT_DYNAMIC;
 	}
 
-	cg_lights[i].time = cgi.client->unclamped_time;
+	if (out->intensity == 0.0) {
+		out->intensity = LIGHT_INTENSITY;
+	}
+
+	out->time = cgi.client->unclamped_time;
+}
+
+/**
+ * @brief
+ */
+static void Cg_AddBspLights(void) {
+
+	const r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
+	for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
+
+		switch (l->type) {
+			case LIGHT_INVALID:
+			case LIGHT_AMBIENT:
+			case LIGHT_SUN:
+			case LIGHT_INDIRECT:
+				continue;
+			default:
+				break;
+		}
+
+		if (l->shadow == 0.f) {
+			continue;
+		}
+
+		if (Box3_Radius(l->bounds) < 64.f) {
+			continue;
+		}
+
+		cgi.AddLight(cgi.view, &(const r_light_t) {
+			.type = l->type,
+			.atten = l->atten,
+			.origin = l->origin,
+			.color = l->color,
+			.normal = l->normal,
+			.radius = l->radius,
+			.size = l->size,
+			.intensity = l->intensity,
+			.shadow = l->shadow,
+			.theta = l->theta,
+			.bounds = l->bounds,
+		});
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cg_AddAmbientLights(void) {
+
+	const r_entity_t *e = cgi.view->entities;
+	for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
+
+		if (!e->model) {
+			continue;
+		}
+
+		if (e->parent) {
+			continue;
+		}
+
+		if (e->effects & EF_NO_SHADOW) {
+			continue;
+		}
+
+		r_light_t light = {
+			.type = LIGHT_AMBIENT,
+			.bounds = e->abs_bounds,
+			.normal = Vec3_Down(),
+			.entities[0] = e,
+			.num_entities = 1,
+			.shadow = 1.f,
+		};
+
+		const r_entity_t *child = e + 1;
+		for (int32_t j = i + 1; j < cgi.view->num_entities; j++, child++) {
+			const r_entity_t *c = child;
+			while (c) {
+				if (c->parent == e) {
+					light.entities[light.num_entities++] = child;
+					light.bounds = Box3_Union(light.bounds, child->abs_bounds);
+					break;
+				}
+				c = c->parent;
+			}
+		}
+
+		light.origin = Box3_Center(light.bounds);
+
+		if (IS_BSP_INLINE_MODEL(e->model)) {
+			const r_bsp_inline_model_t *in = e->model->bsp_inline;
+
+			const cm_entity_t *cm = cgi.EntityValue(in->def, "classname");
+			if (!g_strcmp0(cm->string, "func_rotating") ||
+				!g_strcmp0(cm->string, "func_door_rotating")) {
+				light.origin = e->origin;
+			}
+		}
+
+		light.bounds = Box3_Expand3(light.bounds, Vec3_Scale(Box3_Size(light.bounds), .125f));
+		light.bounds.mins.z -= Box3_Extents(light.bounds).z;
+
+		light.origin = Vec3_Fmaf(light.origin, Box3_Size(light.bounds).z * 1.5, Vec3_Up());
+		light.radius = Vec3_Distance(light.origin, light.bounds.mins);
+
+		cgi.AddLight(cgi.view, &light);
+	}
 }
 
 /**
  * @brief
  */
 void Cg_AddLights(void) {
+
+	if (!cg_add_lights->value) {
+		return;
+	}
 
 	cg_light_t *l = cg_lights;
 	for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
@@ -72,11 +188,20 @@ void Cg_AddLights(void) {
 		}
 
 		r_light_t out = {
+			.type = l->type,
+			.atten = LIGHT_ATTEN_INVERSE_SQUARE,
 			.origin = l->origin,
-			.radius = l->radius,
 			.color = l->color,
-			.intensity = l->intensity
+			.normal = Vec3_Zero(),
+			.radius = l->radius,
+			.size = 0.f,
+			.intensity = l->intensity,
+			.shadow = DEFAULT_LIGHT_SHADOW,
+			.theta = 0.f,
+			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
 		};
+
+		cgi.BoxLeafnums(out.bounds, NULL, 0, &out.node, 0);
 
 		if (l->decay) {
 			assert(out.intensity >= 0.f);
@@ -85,6 +210,10 @@ void Cg_AddLights(void) {
 
 		cgi.AddLight(cgi.view, &out);
 	}
+
+	Cg_AddBspLights();
+
+	Cg_AddAmbientLights();
 }
 
 /**

@@ -56,6 +56,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 		.origin = org,
 		.radius = 80.0,
 		.color = Color_Vec3(color),
+		.intensity = .5f,
 		.decay = 450,
 	});
 
@@ -78,6 +79,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		.origin = org,
 		.radius = 120.0,
 		.color = Vec3(0.8, 0.7, 0.5),
+		.intensity = .5f,
 		.decay = 300
 	});
 
@@ -115,6 +117,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 		.origin = org,
 		.radius = 120.0,
 		.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y * 0.5f, effect_color.z)),
+		.intensity = .4f,
 		.decay = 300
 	});
 

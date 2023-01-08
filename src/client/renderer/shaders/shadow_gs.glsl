@@ -19,17 +19,48 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+layout (triangles) in;
+layout (triangle_strip, max_vertices = 18) out;
 
-#include "r_types.h"
+uniform int light_index;
 
-#ifdef __R_LOCAL_H__
+out vec4 position;
 
-extern void R_InitBspProgram(void);
-extern void R_ShutdownBspProgram(void);
+void main() {
 
-void R_UpdateBspInlineEntities(r_view_t *view);
-void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth);
-void R_DrawWorld(const r_view_t *view);
-void R_AddBspLightgridSprites(r_view_t *view);
-#endif /* __R_LOCAL_H__ */
+	light_t light = lights[light_index];
+
+	vec4 translate = vec4(-light.model.xyz, 0.0);
+
+	int type = int(light.position.w);
+
+	if (type == LIGHT_AMBIENT || type == LIGHT_SUN) {
+		gl_Layer = light_index;
+
+		for (int j = 0; j < 3; j++) {
+
+			position = light_view * (gl_in[j].gl_Position + translate);
+
+			gl_Position = light_projection * position;
+
+			EmitVertex();
+		}
+
+		EndPrimitive();
+	} else {
+		for (int i = 0; i < 6; i++) {
+			gl_Layer = light_index * 6 + i;
+
+			for (int j = 0; j < 3; j++) {
+
+				position = light_view_cube[i] * (gl_in[j].gl_Position + translate);
+
+				gl_Position = light_projection_cube * position;
+
+				EmitVertex();
+			}
+
+			EndPrimitive();
+		}
+	}
+}

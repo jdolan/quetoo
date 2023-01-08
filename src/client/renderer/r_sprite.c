@@ -114,9 +114,9 @@ r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 		return NULL;
 	}
 
-	const float size = (s->size ?: Maxf(s->width, s->height)) * .5f;
+	const float radius = (s->size ?: Maxf(s->width, s->height)) * .5f;
 
-	if (R_CulludeSphere(view, s->origin, size)) {
+	if (R_CulludeSphere(view, s->origin, radius)) {
 		return NULL;
 	}
 
@@ -163,10 +163,9 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 	r_sprite_instance_t *in = &view->sprite_instances[view->num_sprite_instances];
 	memset(in, 0, sizeof(*in));
 
-	in->vertexes = r_sprites.vertexes + 4 * view->num_sprite_instances;
-	in->offset = view->num_sprite_instances * 6 * sizeof(GLuint);
+	in->index = view->num_sprite_instances++;
+	in->vertexes = r_sprites.vertexes + 4 * in->index;
 
-	view->num_sprite_instances++;
 	return in;
 }
 
@@ -327,6 +326,12 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 			}
 		}
 
+		vec3_t positions[4];
+		positions[0] = Vec3_Add(x, right);
+		positions[1] = Vec3_Add(y, right);
+		positions[2] = Vec3_Subtract(y, right);
+		positions[3] = Vec3_Subtract(x, right);
+
 		r_sprite_instance_t *in = R_AllocSpriteInstance(view);
 		if (!in) {
 			return;
@@ -335,10 +340,10 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->flags = b->flags;
 		in->diffusemap = b->image;
 
-		in->vertexes[0].position = Vec3_Add(x, right);
-		in->vertexes[1].position = Vec3_Add(y, right);
-		in->vertexes[2].position = Vec3_Subtract(y, right);
-		in->vertexes[3].position = Vec3_Subtract(x, right);
+		in->vertexes[0].position = positions[0];
+		in->vertexes[1].position = positions[1];
+		in->vertexes[2].position = positions[2];
+		in->vertexes[3].position = positions[3];
 
 		in->vertexes[0].diffusemap = texcoords[0];
 		in->vertexes[1].diffusemap = texcoords[1];
@@ -384,6 +389,8 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
  * @brief Generate sprite instances from sprites and beams, and update the vertex array.
  */
 void R_UpdateSprites(r_view_t *view) {
+
+	R_AddBspLightgridSprites(view);
 	
 	const r_sprite_t *s = view->sprites;
 	for (int32_t i = 0; i < view->num_sprites; i++, s++) {
@@ -410,12 +417,6 @@ void R_UpdateSprites(r_view_t *view) {
 			in->prev->next = in;
 		}
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	R_GetError(NULL);
 }
 
 /**
@@ -436,6 +437,8 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
+
+	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
 	
 	glEnableVertexAttribArray(r_sprite_program.in_position);
 	glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
@@ -481,13 +484,12 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 			glDepthRange(0.f, 1.f);
 		}
 
-		const ptrdiff_t stride = 6 * (ptrdiff_t) sizeof(GLuint);
+		GLsizei count = 0;
 
-		int32_t count = 0;
 		r_sprite_instance_t *chain;
-
 		for (chain = in; chain; chain = chain->next) {
-			if (chain->offset == in->offset + count * stride &&
+
+			if (chain->index == in->index + count &&
 				chain->diffusemap == in->diffusemap &&
 				chain->next_diffusemap == in->next_diffusemap &&
 				(chain->flags & SPRITE_NO_DEPTH) == (in->flags & SPRITE_NO_DEPTH)) {
@@ -497,8 +499,8 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 			}
 		}
 
-		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) in->offset);
-		r_stats.count_sprite_draw_elements++;
+		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) (in->index * sizeof(GLuint) * 6));
+		r_stats.sprite_draw_elements++;
 
 		in = chain;
 	}
@@ -605,7 +607,6 @@ void R_InitSprites(void) {
 		elements[e + 4] = v + 2;
 		elements[e + 5] = v + 3;
 	}
-
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

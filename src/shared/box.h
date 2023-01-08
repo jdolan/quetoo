@@ -179,6 +179,13 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Size(const box3_t
 }
 
 /**
+ * @return The box extents, or the half size.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Extents(const box3_t b) {
+	return Vec3_Scale(Box3_Size(b), 0.5f);
+}
+
+/**
  * @return The distance between the two corners of the bounds.
  */
 static inline float __attribute__ ((warn_unused_result)) Box3_Distance(const box3_t a) {
@@ -196,15 +203,15 @@ static inline float __attribute__ ((warn_unused_result)) Box3_Radius(const box3_
 /**
  * @return The center of the bounding box.
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Center(const box3_t a) {
-	return Vec3_Mix(a.mins, a.maxs, .5f);
+static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Center(const box3_t b) {
+	return Vec3_Mix(b.mins, b.maxs, .5f);
 }
 
 /**
- * @return A bounding box centered around `a` with a size of zero.
+ * @return A bounding box centered around `center` with a size of zero.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenter(const vec3_t a) {
-	return Box3(a, a);
+static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenter(const vec3_t center) {
+	return Box3(center, center);
 }
 
 /**

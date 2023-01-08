@@ -27,29 +27,13 @@
 #define LIGHT_RADIUS DEFAULT_LIGHT_RADIUS
 #define LIGHT_RADIUS_AMBIENT 256.f
 #define LIGHT_INTENSITY DEFAULT_LIGHT_INTENSITY
+#define LIGHT_SHADOW DEFAULT_LIGHT_SHADOW
 #define LIGHT_ANGLE_UP -1.f
 #define LIGHT_ANGLE_DOWN -2.f
 #define LIGHT_CONE 22.5f
 #define LIGHT_SUN_DIST 1024.f
 #define LIGHT_SIZE_SUN 32.f
 #define LIGHT_SIZE_STEP 16.f
-
-typedef enum {
-	LIGHT_INVALID  = 0x0,
-	LIGHT_AMBIENT  = 0x1,
-	LIGHT_SUN      = 0x2,
-	LIGHT_POINT    = 0x4,
-	LIGHT_SPOT     = 0x8,
-	LIGHT_PATCH    = 0x10,
-	LIGHT_INDIRECT = 0x20
-} light_type_t;
-
-typedef enum {
-	LIGHT_ATTEN_NONE,
-	LIGHT_ATTEN_LINEAR,
-	LIGHT_ATTEN_INVERSE_SQUARE,
-} light_atten_t;
-
 
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
@@ -96,6 +80,11 @@ typedef struct light_s {
 	float theta;
 
 	/**
+	 * @brief The light shadow scalar.
+	 */
+	float shadow;
+
+	/**
 	 * @brief The size of the light, in world units, to simulate area lights.
 	 */
 	float size;
@@ -130,6 +119,11 @@ typedef struct light_s {
 	 * @brief The light source model for patch and indirect lights.
 	 */
 	const bsp_model_t *model;
+
+	/**
+	 * @brief The output light source.
+	 */
+	const bsp_light_t *out;
 } light_t;
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];
@@ -141,3 +135,4 @@ vec3_t ColorFilter(const vec3_t in);
 void FreeLights(void);
 void BuildDirectLights(void);
 void BuildIndirectLights(void);
+void EmitLights(void);

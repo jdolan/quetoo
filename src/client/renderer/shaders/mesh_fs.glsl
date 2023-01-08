@@ -21,11 +21,15 @@
 
 uniform sampler2DArray texture_material;
 uniform sampler2D texture_stage;
+uniform sampler2DArrayShadow texture_shadowmap;
+uniform samplerCubeArrayShadow texture_shadowmap_cube;
 
 uniform material_t material;
 uniform stage_t stage;
 
-in vertex_data {
+uniform vec4 tint_colors[3];
+
+in geometry_data {
 	vec3 model;
 	vec3 position;
 	vec3 normal;
@@ -38,24 +42,283 @@ in vertex_data {
 	vec3 direction;
 	vec3 caustics;
 	vec4 fog;
+
+	flat int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
+	flat int num_active_lights;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 out_bloom;
 
-uniform vec4 tint_colors[3];
+struct fragment_t {
+	vec3 view_dir;
+	vec4 diffusemap;
+	vec3 normalmap;
+	vec4 specularmap;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+	vec3 caustics;
+} fragment;
 
 /**
  * @brief
  */
-vec3 tint_fragment(vec3 diffuse, vec4 tintmap) {
-	diffuse.rgb *= 1.0 - tintmap.a;
+void tint_fragment() {
+
+	vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
+
+	fragment.diffusemap.rgb *= 1.0 - tintmap.a;
 	
 	for (int i = 0; i < 3; i++) {
-		diffuse.rgb += (tint_colors[i] * tintmap[i]).rgb * tintmap.a;
+		fragment.diffusemap.rgb += (tint_colors[i] * tintmap[i]).rgb * tintmap.a;
+	}
+}
+
+/**
+ * @brief
+ */
+vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
+	return diffuse * fragment.specularmap.rgb * blinn(fragment.normalmap, light_dir, fragment.view_dir, fragment.specularmap.w);
+}
+
+/**
+ * @brief
+ */
+float sample_shadowmap(in light_t light, in int index) {
+
+	if (shadows == 0) {
+		return 1.0;
 	}
 
-	return diffuse.rgb;
+	vec4 position = vec4(light.model.xyz - vertex.model, 1.0);
+	vec4 projected = light_projection * position;
+	vec2 shadowmap = (projected.xy / projected.w) * 0.5 + 0.5;
+
+	return texture(texture_shadowmap, vec4(shadowmap, index, length(position.xyz) / depth_range.y));
+}
+
+/**
+ * @brief
+ */
+float sample_shadowmap_cube(in light_t light, in int index) {
+
+	if (shadows == 0) {
+		return 1.0;
+	}
+
+	vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
+	return texture(texture_shadowmap_cube, shadowmap, length(shadowmap.xyz) / depth_range.y);
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_ambient(in light_t light, in int index) {
+
+	// Don't bother with self-shadowing ambient on mesh models
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_sun(in light_t light, in int index) {
+
+	vec3 light_pos = light.position.xyz;
+
+	vec3 light_dir = normalize(light_pos - vertex.position);
+	float lambert = dot(light_dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	float shadow = sample_shadowmap_cube(light, index);
+	float shadow_atten = (1.0 - shadow) * lambert;
+
+	fragment.diffuse -= fragment.diffuse * shadow_atten;
+	fragment.specular -= fragment.specular * shadow_atten;
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_point(in light_t light, in int index) {
+
+	float radius = light.model.w;
+	if (radius <= 0.0) {
+		return;
+	}
+
+	float size = light.mins.w;
+
+	vec3 light_pos = light.position.xyz;
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	if (atten <= 0.0) {
+		return;
+	}
+
+	vec3 light_dir = normalize(light_pos - vertex.position);
+	float lambert = dot(light_dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	float shadow = sample_shadowmap_cube(light, index);
+	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
+
+	fragment.diffuse -= fragment.diffuse * shadow_atten;
+	fragment.specular -= fragment.specular * shadow_atten;
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_spot(in light_t light, in int index) {
+
+	float radius = light.model.w;
+	if (radius <= 0.0) {
+		return;
+	}
+
+	float size = light.mins.w;
+
+	vec3 light_pos = light.position.xyz;
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	if (atten <= 0.0) {
+		return;
+	}
+
+	vec3 light_dir = normalize(light_pos - vertex.position);
+	float lambert = dot(light_dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	float shadow = sample_shadowmap_cube(light, index);
+	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
+
+	fragment.diffuse -= fragment.diffuse * shadow_atten;
+	fragment.specular -= fragment.specular * shadow_atten;
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_patch(in light_t light, in int index) {
+
+	float radius = light.model.w;
+	if (radius <= 0.0) {
+		return;
+	}
+
+	float size = light.mins.w;
+
+	vec3 light_pos = light.position.xyz;
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	if (atten <= 0.0) {
+		return;
+	}
+
+	vec3 light_dir = normalize(light_pos - vertex.position);
+	float lambert = dot(light_dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	float shadow = sample_shadowmap_cube(light, index);
+	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
+
+	fragment.diffuse -= fragment.diffuse * shadow_atten;
+	fragment.specular -= fragment.specular * shadow_atten;
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_dynamic(in light_t light, in int index) {
+
+	vec3 diffuse = light.color.rgb;
+	if (length(diffuse) <= 0.0) {
+		return;
+	}
+
+	float radius = light.model.w;
+	if (radius <= 0.0) {
+		return;
+	}
+
+	float size = light.mins.w;
+
+	diffuse *= radius;
+
+	float intensity = light.color.w;
+	if (intensity <= 0.0) {
+		return;
+	}
+
+	diffuse *= intensity;
+
+	vec3 light_pos = light.position.xyz;
+
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	if (atten <= 0.0) {
+		return;
+	}
+
+	diffuse *= atten * atten;
+
+	vec3 light_dir = normalize(light_pos - vertex.position);
+	float lambert = dot(light_dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	diffuse *= lambert;
+
+	float shadow = sample_shadowmap_cube(light, index);
+	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+
+	diffuse *= shadow;
+
+	fragment.diffuse += diffuse;
+	fragment.specular += blinn_phong(diffuse, light_dir);
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow(void) {
+
+	for (int i = 0; i < vertex.num_active_lights; i++) {
+
+		int index = vertex.active_lights[i];
+
+		light_t light = lights[index];
+
+		int type = int(light.position.w);
+		switch (type) {
+			case LIGHT_AMBIENT:
+				light_and_shadow_ambient(light, index);
+				break;
+			case LIGHT_SUN:
+				light_and_shadow_sun(light, index);
+				break;
+			case LIGHT_POINT:
+				light_and_shadow_point(light, index);
+				break;
+			case LIGHT_SPOT:
+				light_and_shadow_spot(light, index);
+				break;
+			case LIGHT_PATCH:
+				light_and_shadow_patch(light, index);
+				break;
+			case LIGHT_DYNAMIC:
+				light_and_shadow_dynamic(light, index);
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 /**
@@ -65,43 +328,42 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		vec4 diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-		diffusemap *= vertex.color;
+		fragment.diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
+		fragment.diffusemap *= vertex.color;
 
-		if (diffusemap.a < material.alpha_test) {
+		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;
 		}
 
-		vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
-		diffusemap.rgb = tint_fragment(diffusemap.rgb, tintmap);
+		tint_fragment();
 
 		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
-		vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
-		normalmap = normalize(tbn * normalize((normalmap * 2.0 - 1.0) * vec3(vec2(material.roughness), 1.0)));
+		fragment.normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
+		fragment.normalmap = normalize(tbn * normalize((fragment.normalmap * 2.0 - 1.0) * vec3(vec2(material.roughness), 1.0)));
 
-		vec3 specularmap = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
-		float specularity = toksvig(texture_material, vec3(vertex.diffusemap, 1), material.roughness, material.specularity);
+		fragment.specularmap.xyz = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
+		fragment.specularmap.w = toksvig(texture_material, vec3(vertex.diffusemap, 1), material.roughness, material.specularity);
 
 		vec3 view_dir = normalize(-vertex.position);
 		vec3 direction = normalize(vertex.direction);
 
-		vec3 ambient = vertex.ambient * modulate * max(0.0, dot(vertex.normal, normalmap));
-		vec3 diffuse = vertex.diffuse * modulate * max(0.0, dot(direction, normalmap));
+		fragment.ambient = vertex.ambient * modulate * max(0.0, dot(vertex.normal, fragment.normalmap));
+		fragment.diffuse = vertex.diffuse * modulate * max(0.0, dot(direction, fragment.normalmap));
 
-		vec3 specular = vec3(0.0);
+		fragment.specular = vec3(0.0);
 
-		specular += diffuse * specularmap * blinn(normalmap, direction, view_dir, specularity);
-		specular += ambient * specularmap * blinn(normalmap, vertex.normal, view_dir, specularity);
+		fragment.specular += fragment.diffuse * fragment.specularmap.xyz * blinn(fragment.normalmap, direction, view_dir, fragment.specularmap.w);
+		fragment.specular += fragment.ambient * fragment.specularmap.xyz * blinn(fragment.normalmap, vertex.normal, view_dir, fragment.specularmap.w);
 
-		caustic_light(vertex.model, vertex.caustics, ambient, diffuse);
+		caustic_light(vertex.model, vertex.caustics, fragment.ambient, fragment.diffuse);
 
-		dynamic_light(vertex.position, normalmap, specularmap, specularity, diffuse, specular);
+		light_and_shadow();
 
-		out_color = diffusemap;
+		out_color = fragment.diffusemap;
 
-		out_color.rgb = clamp(out_color.rgb * (ambient + diffuse), 0.0, 1.0);
-		out_color.rgb = clamp(out_color.rgb + specular, 0.0, 1.0);
+		out_color.rgb = clamp(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0, 1.0);
+		out_color.rgb = clamp(out_color.rgb + fragment.specular, 0.0, 1.0);
 
 		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
 		out_bloom.a = out_color.a;
@@ -113,7 +375,7 @@ void main(void) {
 		} else if (lightmaps == 2) {
 			out_color.rgb = inverse(tbn) * vertex.direction;
 		} else if (lightmaps == 3) {
-			out_color.rgb = ambient + diffuse;
+			out_color.rgb = fragment.ambient + fragment.diffuse;
 		} else {
 			out_color = postprocess(out_color);
 		}

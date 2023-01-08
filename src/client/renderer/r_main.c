@@ -33,9 +33,10 @@ cvar_t *r_developer;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_lightmap;
 cvar_t *r_draw_bsp_normals;
-cvar_t *r_draw_bsp_occlusion_queries;
 cvar_t *r_draw_entity_bounds;
+cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
+cvar_t *r_draw_occlusion_queries;
 cvar_t *r_draw_wireframe;
 cvar_t *r_get_error;
 cvar_t *r_error_level;
@@ -47,7 +48,6 @@ int32_t r_error_count;
 cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
-cvar_t *r_bicubic;
 cvar_t *r_bloom;
 cvar_t *r_bloom_lod;
 cvar_t *r_caustics;
@@ -65,6 +65,8 @@ cvar_t *r_multisample;
 cvar_t *r_roughness;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
+cvar_t *r_shadowmap;
+cvar_t *r_shadowmap_size;
 cvar_t *r_specularity;
 cvar_t *r_sprite_downsample;
 cvar_t *r_stains;
@@ -87,8 +89,7 @@ void R_GetError_(const char *function, const char *msg) {
 		return;
 	}
 	
-	// reset error count, so as-it-happens errors
-	// can happen again.
+	// reset error count, so as-it-happens errors can happen again.
 	r_error_count = 0;
 
 	// reinstall debug handler.
@@ -127,102 +128,24 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /**
- * @return True if the specified bounding box is culled by the view frustum, false otherwise.
- * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
- */
-_Bool R_CullBox(const r_view_t *view, const box3_t bounds) {
-
-	if (!r_cull->value) {
-		return false;
-	}
-
-	if (view->type == VIEW_PLAYER_MODEL) {
-		return false;
-	}
-
-	vec3_t points[8];
-	
-	Box3_ToPoints(bounds, points);
-
-	const cm_bsp_plane_t *plane = view->frustum;
-	for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
-
-		size_t j;
-		for (j = 0; j < lengthof(points); j++) {
-			const float dist = Cm_DistanceToPlane(points[j], plane);
-			if (dist >= 0.f) {
-				break;
-			}
-		}
-
-		if (j == lengthof(points)) {
-			return true;
-		}
-    }
-
-	return false;
-}
-
-/**
- * @return True if the specified sphere is culled by the view frustum, false otherwise.
- */
-_Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) {
-
-	if (!r_cull->value) {
-		return false;
-	}
-
-	if (view->type == VIEW_PLAYER_MODEL) {
-		return false;
-	}
-
-	const cm_bsp_plane_t *plane = view->frustum;
-	for (size_t i = 0 ; i < lengthof(view->frustum) ; i++, plane++)  {
-		const float dist = Cm_DistanceToPlane(point, plane);
-		if (dist < -radius) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/**
- * @return True if the specified box is occluded *or* culled by the view frustum,
- * false otherwise.
- */
-_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
-
-	return R_OccludeBox(view, bounds) || R_CullBox(view, bounds);
-}
-
-/**
- * @return True if the specified sphere is occluded *or* culled by the view frustum,
- * false otherwise.
- */
-_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius) {
-
-	return R_OccludeSphere(view, point, radius) || R_CullSphere(view, point, radius);
-}
-
-/**
  * @brief
  */
 static void R_UpdateUniforms(const r_view_t *view) {
 
-	memset(&r_uniforms.block, 0, sizeof(r_uniforms.block));
+	struct r_uniform_block_t *out = &r_uniforms.block;
+	memset(out, 0, sizeof(*out));
 
-	r_uniforms.block.projection2D = Mat4_FromOrtho(0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
+	out->projection2D = Mat4_FromOrtho(0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
 
-	r_uniforms.block.brightness = r_brightness->value;
-	r_uniforms.block.contrast = r_contrast->value;
-	r_uniforms.block.saturation = r_saturation->value;
-	r_uniforms.block.gamma = r_gamma->value;
+	out->brightness = r_brightness->value;
+	out->contrast = r_contrast->value;
+	out->saturation = r_saturation->value;
+	out->gamma = r_gamma->value;
 
 	if (view) {
-		r_uniforms.block.viewport = view->viewport;
+		out->viewport = view->viewport;
 
-		const float aspect = view->viewport.z / view->viewport.w;
+		const float aspect = view->viewport.z / (float) view->viewport.w;
 
 		const float ymax = tanf(Radians(view->fov.y));
 		const float ymin = -ymax;
@@ -230,59 +153,57 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		const float xmin = ymin * aspect;
 		const float xmax = ymax * aspect;
 
-		r_uniforms.block.projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
+		out->projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
+		out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
-		r_uniforms.block.view = Mat4_FromRotation(-90.f, Vec3(1.f, 0.f, 0.f)); // put Z going up
-		r_uniforms.block.view = Mat4_ConcatRotation(r_uniforms.block.view, 90.f, Vec3(0.f, 0.f, 1.f)); // put Z going up
-		r_uniforms.block.view = Mat4_ConcatRotation3(r_uniforms.block.view, Vec3(-view->angles.z, -view->angles.x, -view->angles.y));
-		r_uniforms.block.view = Mat4_ConcatTranslation(r_uniforms.block.view, Vec3_Negate(view->origin));
+		out->depth_range.x = NEAR_DIST;
+		out->depth_range.y = MAX_WORLD_DIST;
 
-		r_uniforms.block.depth_range.x = NEAR_DIST;
-		r_uniforms.block.depth_range.y = MAX_WORLD_DIST;
+		out->view_type = view->type;
+		out->ticks = view->ticks;
 
-		r_uniforms.block.view_type = view->type;
-		r_uniforms.block.ticks = view->ticks;
-
-		r_uniforms.block.lightmaps = r_draw_bsp_lightmap->integer;
-		r_uniforms.block.modulate = r_modulate->value;
+		out->lightmaps = r_draw_bsp_lightmap->integer;
+		out->shadows = r_shadowmap->integer;
+		out->modulate = r_modulate->value;
 		
-		r_uniforms.block.fog_density = r_fog_density->value;
-		r_uniforms.block.fog_samples = r_fog_samples->integer;
+		out->fog_density = r_fog_density->value;
+		out->fog_samples = r_fog_samples->integer;
 
-		r_uniforms.block.caustics = r_caustics->value;
-		r_uniforms.block.bloom = r_bloom->value;
-		r_uniforms.block.bloom_lod = r_bloom_lod->integer;
+		out->caustics = r_caustics->value;
+		out->bloom = r_bloom->value;
+		out->bloom_lod = r_bloom_lod->integer;
 
-		r_uniforms.block.developer = r_developer->integer;
+		out->developer = r_developer->integer;
 
 		if (r_world_model) {
-			r_uniforms.block.lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
-			r_uniforms.block.lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
+
+			out->lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
+			out->lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
 
 			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->bounds.mins);
 			const vec3_t size = Box3_Size(r_world_model->bsp->lightgrid->bounds);
 
-			r_uniforms.block.lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
-			r_uniforms.block.lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
+			out->lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
+			out->lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 
 			const cm_entity_t *worldspawn = r_world_model->bsp->cm->entities[0];
 			const cm_entity_t *fog_color = Cm_EntityValue(worldspawn, "fog_color");
 			const cm_entity_t *fog_density = Cm_EntityValue(worldspawn, "fog_density");
 			const cm_entity_t *fog_depth_range = Cm_EntityValue(worldspawn, "fog_depth_range");
 
-			r_uniforms.block.fog_density = FOG_DENSITY * r_fog_density->value;
-			r_uniforms.block.fog_depth_range = Vec2(FOG_DEPTH_NEAR, FOG_DEPTH_FAR);
+			out->fog_density = FOG_DENSITY * r_fog_density->value;
+			out->fog_depth_range = Vec2(FOG_DEPTH_NEAR, FOG_DEPTH_FAR);
 
 			if (fog_color->parsed & ENTITY_VEC3) {
-				r_uniforms.block.fog_color = Vec3_ToVec4(fog_color->vec3, FOG_DENSITY);
+				out->fog_color = Vec3_ToVec4(fog_color->vec3, FOG_DENSITY);
 			}
 
 			if (fog_density->parsed & ENTITY_FLOAT) {
-				r_uniforms.block.fog_color.w = fog_density->value * r_fog_density->value;
+				out->fog_color.w = fog_density->value * r_fog_density->value;
 			}
 
 			if (fog_depth_range->parsed & ENTITY_VEC2) {
-				r_uniforms.block.fog_depth_range = fog_depth_range->vec2;
+				out->fog_depth_range = fog_depth_range->vec2;
 			}
 		}
 	}
@@ -293,47 +214,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 }
 
 /**
- * @brief Updates the clipping planes for the view frustum for the current frame.
- * @details The frustum planes are outward facing. Thus, any object that appears
- * partially behind any of the frustum planes should be visible.
- */
-static void R_UpdateFrustum(r_view_t *view) {
-
-	if (!r_cull->value) {
-		return;
-	}
-
-	cm_bsp_plane_t *p = view->frustum;
-
-	float ang = Radians(view->fov.x);
-	float xs = sinf(ang);
-	float xc = cosf(ang);
-
-	p[0].normal = Vec3_Scale(view->forward, xs);
-	p[0].normal = Vec3_Fmaf(p[0].normal, xc, view->right);
-
-	p[1].normal = Vec3_Scale(view->forward, xs);
-	p[1].normal = Vec3_Fmaf(p[1].normal, -xc, view->right);
-
-	ang = Radians(view->fov.y);
-	xs = sinf(ang);
-	xc = cosf(ang);
-
-	p[2].normal = Vec3_Scale(view->forward, xs);
-	p[2].normal = Vec3_Fmaf(p[2].normal, xc, view->up);
-
-	p[3].normal = Vec3_Scale(view->forward, xs);
-	p[3].normal = Vec3_Fmaf(p[3].normal, -xc, view->up);
-
-	for (size_t i = 0; i < lengthof(view->frustum); i++) {
-		p[i].normal = Vec3_Normalize(p[i].normal);
-		p[i].dist = Vec3_Dot(view->origin, p[i].normal);
-		p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
-		p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
-	}
-}
-
-/**
  * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
@@ -341,6 +221,33 @@ void R_BeginFrame(void) {
 	memset(&r_stats, 0, sizeof(r_stats));
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+/**
+ * @brief Initializes the view, preparing it for a new frame.
+ */
+void R_InitView(r_view_t *view) {
+
+	view->viewport = Vec4i_Zero();
+	view->fov = Vec2_Zero();
+
+	view->origin = Vec3_Zero();
+	view->angles = Vec3_Zero();
+	view->forward = Vec3_Zero();
+	view->right = Vec3_Zero();
+	view->up = Vec3_Zero();
+
+	view->contents = CONTENTS_NONE;
+
+	view->num_beams = 0;
+	view->num_entities = 0;
+	view->num_lights = 0;
+	view->num_sprites = 0;
+	view->num_sprite_instances = 0;
+	view->num_stains = 0;
+	view->num_occlusion_queries = 0;
+
+	memset(view->frustum, 0, sizeof(view->frustum));
 }
 
 /**
@@ -364,6 +271,8 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	R_DrawDepthPass(view);
 
+	R_UpdateOcclusionQueries(view);
+
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
@@ -379,18 +288,18 @@ void R_DrawMainView(r_view_t *view) {
 
 	assert(view);
 	assert(view->framebuffer);
-	
-	R_DrawBspLightgrid(view);
 
 	R_UpdateBlendDepth(view);
 
 	R_UpdateEntities(view);
 
-	R_UpdateLights(view);
-
 	R_UpdateSprites(view);
 
 	R_UpdateStains(view);
+
+	R_UpdateLights(view);
+
+	R_DrawShadows(view);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
@@ -472,9 +381,10 @@ static void R_InitLocal(void) {
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
 	r_draw_bsp_lightmap = Cvar_Add("r_draw_bsp_lightmap", "0", CVAR_DEVELOPER, "Controls the rendering of BSP lightmap textures (developer tool");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
-	r_draw_bsp_occlusion_queries = Cvar_Add("r_draw_bsp_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of BSP occlusion queries (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
+	r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");
 	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
+	r_draw_occlusion_queries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of BSP occlusion queries (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
 	r_developer = Cvar_Add("r_developer", "0", CVAR_DEVELOPER, "Controls shader debugging tools (developer tool)");
@@ -487,7 +397,6 @@ static void R_InitLocal(void) {
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
 	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
 	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE, "Controls texture brightness");
-	r_bicubic = Cvar_Add("r_bicubic", "1", CVAR_ARCHIVE, "Enable or disable high quality texture filtering on lightmaps and stainmaps.");
 	r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of light bloom effects");
 	r_bloom_lod = Cvar_Add("r_bloom_lod", "8", CVAR_ARCHIVE, "Controls the level of detail of light bloom effects");
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
@@ -502,15 +411,17 @@ static void R_InitLocal(void) {
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");
-	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects");
+	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
 	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
+	r_shadowmap = Cvar_Add("r_shadowmap", "2", CVAR_ARCHIVE, "Controls dynamic shadows.");
+	r_shadowmap_size = Cvar_Add("r_shadowmap_size", "512", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls dynamic shadow quality.");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_sprite_downsample = Cvar_Add("r_sprite_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of sprite effects to boost performance on low-end systems.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_downsample = Cvar_Add("r_texture_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of textures to boost performance on low-end systems.");
-	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
+	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode.");
 	r_texture_storage = Cvar_Add("r_texture_storage", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies whether to use newer texture storage routines; keep on unless you have errors stemming from glTexStorage.");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
@@ -603,6 +514,10 @@ void R_Init(void) {
 
 	R_InitDepthPass();
 
+	R_InitOcclusionQueries();
+
+	R_InitShadows();
+
 	R_InitDraw2D();
 
 	R_InitDraw3D();
@@ -648,6 +563,10 @@ void R_Shutdown(void) {
 	R_ShutdownSky();
 
 	R_ShutdownBloom();
+
+	R_ShutdownShadows();
+
+	R_ShutdownOcclusionQueries();
 
 	R_ShutdownDepthPass();
 

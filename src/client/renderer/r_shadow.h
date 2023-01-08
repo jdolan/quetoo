@@ -24,12 +24,7 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-
-extern void R_InitBspProgram(void);
-extern void R_ShutdownBspProgram(void);
-
-void R_UpdateBspInlineEntities(r_view_t *view);
-void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth);
-void R_DrawWorld(const r_view_t *view);
-void R_AddBspLightgridSprites(r_view_t *view);
+void R_DrawShadows(const r_view_t *view);
+void R_InitShadows(void);
+void R_ShutdownShadows(void);
 #endif /* __R_LOCAL_H__ */

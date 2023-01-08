@@ -4,6 +4,7 @@ shaders_DATA = \
 	bloom_fs.glsl \
 	bloom_vs.glsl \
 	bsp_fs.glsl \
+	bsp_gs.glsl \
 	bsp_vs.glsl \
 	common.glsl \
 	common_fs.glsl \
@@ -17,7 +18,12 @@ shaders_DATA = \
 	lightgrid.glsl \
 	material.glsl \
 	mesh_fs.glsl \
+	mesh_gs.glsl \
 	mesh_vs.glsl \
+	polylib.glsl \
+	shadow_fs.glsl \
+	shadow_gs.glsl \
+	shadow_vs.glsl \
 	sky_fs.glsl \
 	sky_vs.glsl \
 	soften_fs.glsl \

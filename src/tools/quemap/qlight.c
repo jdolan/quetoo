@@ -519,6 +519,9 @@ static void LightWorld(void) {
 	Work("Caustics lightmap", CausticsLightmap, bsp_file.num_faces);
 	Work("Caustics lightgrid", CausticsLightgrid, (int32_t) num_lightgrid);
 
+	// save the light sources to the BSP
+	EmitLights();
+
 	// free the light sources
 	FreeLights();
 

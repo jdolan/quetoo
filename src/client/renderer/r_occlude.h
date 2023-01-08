@@ -23,13 +23,16 @@
 
 #include "r_types.h"
 
+_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds);
+_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius);
+_Bool R_OccludeBox(const r_view_t *view, const box3_t bounds);
+_Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
+
+void R_AddOcclusionQuery(r_view_t *view, const box3_t bounds);
+
 #ifdef __R_LOCAL_H__
 
-extern void R_InitBspProgram(void);
-extern void R_ShutdownBspProgram(void);
-
-void R_UpdateBspInlineEntities(r_view_t *view);
-void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth);
-void R_DrawWorld(const r_view_t *view);
-void R_AddBspLightgridSprites(r_view_t *view);
+void R_UpdateOcclusionQueries(r_view_t *view);
+void R_InitOcclusionQueries(void);
+void R_ShutdownOcclusionQueries(void);
 #endif /* __R_LOCAL_H__ */

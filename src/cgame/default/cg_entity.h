@@ -83,6 +83,11 @@ struct cg_entity_s {
 	vec3_t origin;
 
 	/**
+	 * @brief The entity bounds.
+	 */
+	box3_t bounds;
+
+	/**
 	 * @brief The entity's target, if any.
 	 */
 	const cm_entity_t *target;
@@ -109,6 +114,8 @@ struct cg_entity_s {
 	void *data;
 };
 
+extern GArray *cg_entities;
+
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e);
 void Cg_LoadEntities(void);
 void Cg_FreeEntities(void);
@@ -118,6 +125,5 @@ _Bool Cg_IsSelf(const cl_entity_t *ent);
 _Bool Cg_IsDucking(const cl_entity_t *ent);
 void Cg_Interpolate(const cl_frame_t *frame);
 void Cg_AddEntities(const cl_frame_t *frame);
-void Cg_AddEntityShadow(const r_entity_t *e);
 
 #endif /* __CG_ENTITY_H__ */

@@ -227,6 +227,7 @@ void Cl_InitCgame(void) {
 	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Cl_PointContents;
 	import.BoxContents = Cl_BoxContents;
+	import.BoxLeafnums = Cm_BoxLeafnums;
 	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Cl_Trace;
 
@@ -257,11 +258,16 @@ void Cl_InitCgame(void) {
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 
+	import.InitView = R_InitView;
+	import.AddOcclusionQuery = R_AddOcclusionQuery;
+	import.CulludeBox = R_CulludeBox;
+	import.CulludeSphere = R_CulludeSphere;
 	import.AddEntity = R_AddEntity;
 	import.AddLight = R_AddLight;
 	import.AddSprite = R_AddSprite;
 	import.AddBeam = R_AddBeam;
 	import.AddStain = R_AddStain;
+
 	import.DrawPlayerModelView = R_DrawPlayerModelView;
 
 	import.BindFont = R_BindFont;

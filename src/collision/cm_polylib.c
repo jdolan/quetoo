@@ -252,6 +252,44 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 /**
  * @brief
  */
+cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_side_t *brush_side) {
+
+	const bsp_plane_t *plane = file->planes + brush_side->plane;
+	cm_winding_t *winding = Cm_WindingForPlane(plane->normal, plane->dist);
+
+	const int32_t side = (int32_t) (brush_side - file->brush_sides);
+
+	const bsp_brush_t *brush = file->brushes;
+	for (int32_t i = 0; i < file->num_brushes; i++, brush++) {
+
+		if (side >= brush->first_brush_side
+			&& side < brush->first_brush_side + brush->num_brush_sides) {
+			break;
+		}
+	}
+
+	const bsp_brush_side_t *s = file->brush_sides + brush->first_brush_side;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, s++) {
+		if (s == brush_side) {
+			continue;
+		}
+		if (s->surface & SURF_BEVEL) {
+			continue;
+		}
+		const bsp_plane_t *p = &file->planes[s->plane ^ 1];
+		Cm_ClipWinding(&winding, p->normal, p->dist, SIDE_EPSILON);
+
+		if (winding == NULL) {
+			break;
+		}
+	}
+
+	return winding;
+}
+
+/**
+ * @brief
+ */
 static cm_winding_t *Cm_FixWinding(cm_winding_t *w) {
 
 	for (int32_t i = 0; i < w->num_points; i++) {

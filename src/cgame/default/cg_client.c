@@ -588,21 +588,22 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	legs.model = ci->legs;
 	legs.angles.y = ent->legs_current_yaw;
 	legs.angles.x = legs.angles.z = 0.0; // legs only use yaw
+	legs.bounds = legs.model->bounds;
 	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
 
 	torso.model = ci->torso;
 	torso.origin = Vec3_Zero();
 	torso.angles.y = ent->angles.y - legs.angles.y; // legs twisted already, we just need to pitch/roll
+	torso.bounds = torso.model->bounds;
 	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
 
 	head.model = ci->head;
 	head.origin = Vec3_Zero();
 	head.angles.y = 0.0;
+	head.bounds = head.model->bounds;
 	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
-
-	Cg_AddEntityShadow(&legs);
 
 	r_entity_t *r_legs = cgi.AddEntity(cgi.view, &legs);
 
@@ -622,8 +623,9 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	r_entity_t *r_head = cgi.AddEntity(cgi.view, &head);
 	assert(r_head);
 
+	r_entity_t *r_weapon = NULL;
 	if (s->model2) {
-		cgi.AddEntity(cgi.view, &(const r_entity_t) {
+		r_weapon = cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_weapon",
 			.scale = e->scale,
@@ -632,10 +634,13 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			.color = e->color,
 			.shell = e->shell,
 		});
+
+		assert(r_weapon);
 	}
 
+	r_entity_t *r_flag = NULL;
 	if (s->model3) {
-		cgi.AddEntity(cgi.view, &(const r_entity_t) {
+		r_flag = cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_head",
 			.scale = e->scale,
@@ -644,6 +649,8 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			.color = e->color,
 			.shell = e->shell,
 		});
+
+		assert(r_flag);
 	}
 
 	if (s->model4) {

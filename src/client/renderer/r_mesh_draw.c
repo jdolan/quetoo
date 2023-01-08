@@ -52,6 +52,8 @@ static struct {
 	GLint texture_lightgrid_direction;
 	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
+	GLint texture_shadowmap;
+	GLint texture_shadowmap_cube;
 
 	GLint color;
 
@@ -307,7 +309,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 	const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
 	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 
-	r_stats.count_mesh_triangles += face->num_elements / 3;
+	r_stats.mesh_triangles += face->num_elements / 3;
 
 	R_DrawMeshEntityMaterialStages(e, face, mesh, material);
 }
@@ -393,7 +395,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 		glDepthRange(0.f, 1.f);
 	}
 
-	r_stats.count_mesh_models++;
+	r_stats.mesh_models++;
 }
 
 /**
@@ -410,7 +412,7 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 			if (e->effects & EF_NO_DRAW) {
 				continue;
 			}
-			
+
 			if (e->blend_depth != blend_depth) {
 				continue;
 			}
@@ -433,6 +435,7 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.name = R_LoadProgram(
 			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "mesh_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "polylib.glsl", "mesh_gs.glsl", NULL),
 			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "mesh_fs.glsl", NULL),
 			NULL);
 
@@ -466,6 +469,8 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
 	r_mesh_program.texture_lightgrid_caustics = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_caustics");
 	r_mesh_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_fog");
+	r_mesh_program.texture_shadowmap = glGetUniformLocation(r_mesh_program.name, "texture_shadowmap");
+	r_mesh_program.texture_shadowmap_cube = glGetUniformLocation(r_mesh_program.name, "texture_shadowmap_cube");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 
@@ -491,6 +496,8 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_mesh_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_mesh_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+	glUniform1i(r_mesh_program.texture_shadowmap, TEXTURE_SHADOWMAP);
+	glUniform1i(r_mesh_program.texture_shadowmap_cube, TEXTURE_SHADOWMAP_CUBE);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 

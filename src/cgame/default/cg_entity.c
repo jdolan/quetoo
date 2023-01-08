@@ -22,10 +22,10 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-static GArray *cg_entities;
+GArray *cg_entities = NULL;
 
 /**
- * @brief The Cg_EntityPredicate type for Cg_FindEntity.
+ * @brief The `Cg_EntityPredicate` type for `Cg_FindEntity`.
  */
 typedef _Bool (*Cg_EntityPredicate)(const cm_entity_t *e, void *data);
 
@@ -72,7 +72,7 @@ static _Bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
 }
 
 /**
- * @return The cg_entity_t * for the specified cm_entity_t *, if any.
+ * @return The `cg_entity_t *` for the specified `cm_entity_t *`, if any.
  */
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
 
@@ -126,6 +126,7 @@ void Cg_LoadEntities(void) {
 				};
 
 				e.origin = cgi.EntityValue(def, "origin")->vec3;
+				e.bounds = Box3_FromCenter(e.origin);
 
 				if (cgi.EntityValue(def, "target")->parsed & ENTITY_STRING) {
 					const char *target_name = cgi.EntityValue(def, "target")->string;
@@ -255,44 +256,6 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 	}
 }
 
-#define SHADOW_ATTEN 128.f
-
-/**
- * @brief
- */
-void Cg_AddEntityShadow(const r_entity_t *ent) {
-
-	if (!cg_add_entity_shadows->integer) {
-		return;
-	}
-
-	if (!ent->model) {
-		return;
-	}
-
-	if (ent->model->type == MOD_BSP_INLINE) {
-		return;
-	}
-
-	if (ent->effects & EF_NO_SHADOW) {
-		return;
-	}
-
-	const vec3_t down = Vec3_Fmaf(ent->origin, SHADOW_ATTEN, Vec3_Down());
-	const cm_trace_t tr = cgi.Trace(ent->origin, down, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-
-	cgi.AddSprite(cgi.view, &(const r_sprite_t) {
-		.color = Color32(0, 0, 0, (1.f - tr.fraction) * 255),
-		.width = Box3_Size(ent->model->bounds).y * 2.f,
-		.height = Box3_Size(ent->model->bounds).x * 2.f,
-		.rotation = Radians(ent->angles.y),
-		.media = (r_media_t *) cg_sprite_particle3,
-		.softness = -1.f,
-		.origin = Vec3_Add(tr.end, Vec3_Up()),
-		.dir = tr.plane.normal
-	});
-}
-
 /**
  * @brief Adds the specified client entity to the view.
  */
@@ -339,9 +302,6 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 
 	// and any frame animations (button state, etc)
 	e.frame = ent->current.animation1;
-
-	// add a sprite shadow
-	Cg_AddEntityShadow(&e);
 
 	// add to view list
 	cgi.AddEntity(cgi.view, &e);

@@ -204,7 +204,7 @@ static void R_Draw2DChar_(GLint x, GLint y, char c, const color_t color) {
 
 	R_EmitDrawVertexes2D_Quad(quad);
 
-	r_stats.count_draw_chars++;
+	r_stats.draw_chars++;
 }
 
 /**
@@ -421,7 +421,7 @@ void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, c
 	R_EmitDrawVertexes2D_Quad(quad);
 	R_AddDraw2DArrays(&draw);
 
-	r_stats.count_draw_images++;
+	r_stats.draw_images++;
 }
 
 /**
@@ -493,7 +493,7 @@ void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color) {
 	R_EmitDrawVertexes2D_Quad(quad);
 	R_AddDraw2DArrays(&draw);
 
-	r_stats.count_draw_fills++;
+	r_stats.draw_fills++;
 }
 
 /**
@@ -523,7 +523,7 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
 
 	R_AddDraw2DArrays(&draw);
 
-	r_stats.count_draw_lines += count >> 1;
+	r_stats.draw_lines += count >> 1;
 }
 
 /**
@@ -531,7 +531,7 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
  */
 void R_Draw2D(void) {
 	
-	r_stats.count_draw_arrays = r_draw_2d.num_draw_arrays;
+	r_stats.draw_arrays = r_draw_2d.num_draw_arrays;
 
 	if (r_draw_2d.num_draw_arrays == 0) {
 		return;

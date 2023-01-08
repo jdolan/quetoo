@@ -68,6 +68,7 @@ float Cm_WindingArea(const cm_winding_t *w);
 float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p);
 cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist);
 cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face);
+cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_side_t *brush_side);
 void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist);
 void Cm_SplitWinding(const cm_winding_t *w, const vec3_t normal, double dist, double epsilon, cm_winding_t **front, cm_winding_t **back);
 void Cm_ClipWinding(cm_winding_t **w, const vec3_t normal, double dist, double epsilon);

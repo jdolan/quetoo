@@ -873,8 +873,12 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No light radius specified");
 			} else if (m->light.radius < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light radius, must be > 0.0");
-				m->light.radius = 0.f;
+				m->light.radius = DEFAULT_LIGHT_RADIUS;
 			}
+
+			m->light.intensity = m->light.intensity ?: DEFAULT_LIGHT_INTENSITY;
+			m->light.shadow = m->light.shadow ?: DEFAULT_LIGHT_SHADOW;
+			m->light.cone = m->light.cone ?: DEFAULT_LIGHT_CONE;
 
 			m->surface |= SURF_LIGHT;
 		}
@@ -883,9 +887,19 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.intensity, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light intensity specified");
-			} else if (m->light.intensity < 0.f) {
+			} else if (m->light.intensity <= 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light intensity, must be > 0.0");
-				m->light.intensity = 0.f;
+				m->light.intensity = DEFAULT_LIGHT_INTENSITY;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.shadow")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.shadow, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light shadow specified");
+			} else if (m->light.shadow < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light shadow, must be >= 0.0");
+				m->light.shadow = DEFAULT_LIGHT_SHADOW;
 			}
 		}
 
@@ -895,7 +909,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No light cone specified");
 			} else if (m->light.cone < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light cone, must be > 0.0");
-				m->light.cone = 0.f;
+				m->light.cone = DEFAULT_LIGHT_CONE;
 			}
 		}
 

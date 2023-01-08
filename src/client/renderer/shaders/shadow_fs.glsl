@@ -1,3 +1,4 @@
+
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
@@ -19,17 +20,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+in vec4 position;
 
-#include "r_types.h"
-
-#ifdef __R_LOCAL_H__
-
-extern void R_InitBspProgram(void);
-extern void R_ShutdownBspProgram(void);
-
-void R_UpdateBspInlineEntities(r_view_t *view);
-void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth);
-void R_DrawWorld(const r_view_t *view);
-void R_AddBspLightgridSprites(r_view_t *view);
-#endif /* __R_LOCAL_H__ */
+void main() {
+	gl_FragDepth = length(position) / depth_range.y;
+}

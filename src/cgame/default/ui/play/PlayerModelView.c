@@ -86,7 +86,7 @@ static void render(View *self, Renderer *renderer) {
 	if (this->client.torso) {
 		$(this, animate);
 
-		R_ClearView(&this->view);
+		cgi.InitView(&this->view);
 
 		this->view.type = VIEW_PLAYER_MODEL;
 		this->view.ticks = cgi.client->ticks;
@@ -94,7 +94,7 @@ static void render(View *self, Renderer *renderer) {
 		this->view.fov.x = 30.f / 2.f;
 
 		const SDL_Rect viewport = $(self, viewport);
-		this->view.viewport = Vec4(viewport.x, viewport.y, viewport.w, viewport.h);
+		this->view.viewport = Vec4i(viewport.x, viewport.y, viewport.w, viewport.h);
 
 		const float x = viewport.w / tanf(Radians(30.f));
 		const float y = atan2f(viewport.w, x);

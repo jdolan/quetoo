@@ -506,6 +506,8 @@ bsp_model_t *BeginModel(const entity_t *e) {
 	bsp_model_t *mod = &bsp_file.models[bsp_file.num_models];
 	bsp_file.num_models++;
 
+	mod->entity = (int32_t) (ptrdiff_t) (e - entities);
+
 	mod->first_face = bsp_file.num_faces;
 	mod->first_draw_elements = bsp_file.num_draw_elements;
 

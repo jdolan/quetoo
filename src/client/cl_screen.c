@@ -141,16 +141,13 @@ static void Cl_DrawRendererStats(void) {
 	{
 		R_Draw2DString(x, y, "BSP:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d inline models", r_stats.count_bsp_inline_models), color_yellow);
+		R_Draw2DString(x, y, va(" %d inline models", r_stats.bsp_inline_models), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d draw elements", r_stats.count_bsp_draw_elements), color_yellow);
+		R_Draw2DString(x, y, va(" %d draw elements", r_stats.bsp_draw_elements), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d blend draw elements", r_stats.count_bsp_blend_draw_elements), color_yellow);
+		R_Draw2DString(x, y, va(" %d blend draw elements", r_stats.bsp_blend_draw_elements), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d triangles", r_stats.count_bsp_triangles), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d occlusion queries (%d passed)", r_stats.count_bsp_occlusion_queries,
-								r_stats.count_bsp_occlusion_queries_passed), color_yellow);
+		R_Draw2DString(x, y, va(" %d triangles", r_stats.bsp_triangles), color_yellow);
 		y += ch;
 	}
 
@@ -159,9 +156,9 @@ static void Cl_DrawRendererStats(void) {
 	{
 		R_Draw2DString(x, y, "Mesh:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d models", r_stats.count_mesh_models), color_yellow);
+		R_Draw2DString(x, y, va(" %d models", r_stats.mesh_models), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d triangles", r_stats.count_mesh_triangles), color_yellow);
+		R_Draw2DString(x, y, va(" %d triangles", r_stats.mesh_triangles), color_yellow);
 		y += ch;
 	}
 
@@ -180,7 +177,7 @@ static void Cl_DrawRendererStats(void) {
 			g_snprintf(sprites, sizeof(sprites),      " %d sprites", cl_view.num_sprites);
 			g_snprintf(beams, sizeof(beams),          " %d beams", cl_view.num_beams);
 			g_snprintf(instances, sizeof(instances),  " %d instances", cl_view.num_sprite_instances);
-			g_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.count_sprite_draw_elements);
+			g_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.sprite_draw_elements);
 		}
 
 		R_Draw2DString(x, y, sprites, color_yellow);
@@ -196,28 +193,43 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	{
-		R_Draw2DString(x, y, "Draw 2D:", color_yellow);
+		R_Draw2DString(x, y, "Occlusion queries:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d chars", r_stats.count_draw_chars), color_yellow);
+
+		R_Draw2DString(x, y, va(" %d visible", r_stats.occlusion_queries_visible), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d fills", r_stats.count_draw_fills), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va("%d images", r_stats.count_draw_images), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va("%d lines", r_stats.count_draw_lines), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va("%d arrays", r_stats.count_draw_arrays), color_yellow);
+		R_Draw2DString(x, y, va(" %d occluded", r_stats.occlusion_queries_occluded), color_yellow);
 		y += ch;
 	}
 
 	y += ch;
 
 	{
-		R_Draw2DString(x, y, "Other:", color_yellow);
+		R_Draw2DString(x, y, "Lights:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d lights", cl_view.num_lights), color_yellow);
+
+		R_Draw2DString(x, y, va(" %d lights", r_stats.lights), color_yellow);
 		y += ch;
 	}
+
+	y += ch;
+
+	{
+		R_Draw2DString(x, y, "Draw 2D:", color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d chars", r_stats.draw_chars), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d fills", r_stats.draw_fills), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d images", r_stats.draw_images), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d lines", r_stats.draw_lines), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d arrays", r_stats.draw_arrays), color_yellow);
+		y += ch;
+	}
+
+	y += ch;
 
 	const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
 	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
@@ -240,7 +252,7 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-	GLint ch, x = 1, y = cl_draw_renderer_stats->value ? 540 : 64;
+	GLint ch, x = 1, y = cl_draw_renderer_stats->value ? 600 : 64;
 
 	if (!cl_draw_sound_stats->value) {
 		return;

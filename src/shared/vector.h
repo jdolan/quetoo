@@ -75,6 +75,23 @@ typedef union {
 } vec3i_t;
 
 /**
+ * @brief Four component signed integer vector type.
+ */
+typedef union {
+	/**
+	 * @brief Array accessor.
+	 */
+	int32_t xyzw[4];
+
+	/**
+	 * @brief Component accessors.
+	 */
+	struct {
+		int32_t x, y, z, w;
+	};
+} vec4i_t;
+
+/**
  * @brief Two component single precision vector type.
  */
 typedef union {
@@ -209,7 +226,7 @@ static inline vec3s_t __attribute__ ((warn_unused_result)) Vec3s_Zero(void) {
 #pragma mark - integer vectors
 
 /**
- * @return A `s32vec3_t` with the specified components.
+ * @return A `vec3i_t` with the specified components.
  */
 static inline vec3i_t __attribute__ ((warn_unused_result)) Vec3i(int32_t x, int32_t y, int32_t z) {
 	return (vec3i_t) {
@@ -231,6 +248,25 @@ static inline vec3i_t __attribute__ ((warn_unused_result)) Vec3i_Add(const vec3i
  */
 static inline vec3i_t __attribute__ ((warn_unused_result)) Vec3i_Zero(void) {
 	return Vec3i(0, 0, 0);
+}
+
+/**
+ * @return A `vec4i_t` with the specified components.
+ */
+static inline vec4i_t __attribute__ ((warn_unused_result)) Vec4i(int32_t x, int32_t y, int32_t z, int32_t w) {
+	return (vec4i_t) {
+		.x = x,
+		.y = y,
+		.z = z,
+		.w = w
+	};
+}
+
+/**
+ * @return The vector `(0, 0, 0, 0)`.
+ */
+static inline vec4i_t __attribute__ ((warn_unused_result)) Vec4i_Zero(void) {
+	return Vec4i(0, 0, 0, 0);
 }
 
 #pragma mark - single precision
@@ -874,6 +910,13 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Floorf(const vec3
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Fmaf(const vec3_t v, float multiply, const vec3_t add) {
 	return Vec3(fmaf(add.x, multiply, v.x), fmaf(add.y, multiply, v.y), fmaf(add.z, multiply, v.z));
+}
+
+/**
+ * @return The vector containing the floating point modulo of `a / b`.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Fmodf(const vec3_t a, const vec3_t b) {
+	return Vec3(fmodf(a.x, b.x), fmodf(a.y, b.y), fmodf(a.z, b.z));
 }
 
 /**

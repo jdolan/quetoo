@@ -538,6 +538,18 @@ typedef struct cg_import_s {
 	int32_t (*BoxContents)(const box3_t bounds);
 
 	/**
+	 * @brief Populates the list of leafs the specified bounding box touches.
+	 * @param bounds The bounds in world space.
+	 * @param list The list of leaf numbers to populate.
+	 * @param length The maximum number of leafs to return.
+	 * @param top_node If not null, this will contain the top node for the box.
+	 * @param head_node The head node to recurse from.
+	 * @param matrix The matrix by which to transform planes.
+	 * @return The number of leafs accumulated to the list.
+	 */
+	size_t (*BoxLeafnums)(const box3_t bounds, int32_t *list, size_t length, int32_t *top_node, int32_t head_node);
+
+	/**
 	 * @return True if `point` resides inside `brush`, falses otherwise.
 	 * @param point The point to test.
 	 * @param brush The brush to test against.
@@ -719,6 +731,27 @@ typedef struct cg_import_s {
 	 * @defgroup scene Scene management
 	 * @{
 	 */
+
+	/**
+	 * @brief Initializes the view, preparing it for a new frae.
+	 */
+	void (*InitView)(r_view_t *view);
+
+	/**
+	 * @brief Add an occlusion query to the scene.
+	 * @remarks Occlusion queries must be added in `Cg_PrepareView` and not `Cg_PopulateView`.
+	 */
+	void (*AddOcclusionQuery)(r_view_t *view, const box3_t bounds);
+
+	/**
+	 * @return True if the bounding box is culled or occluded, false otherwise.
+	 */
+	_Bool (*CulludeBox)(const r_view_t *view, const box3_t bounds);
+
+	/**
+	 * @brief True if the bounding sphere is culled or occluded, false otherwise.
+	 */
+	_Bool (*CulludeSphere)(const r_view_t *view, const vec3_t origin, float radius);
 
 	/**
 	 * @brief Adds an entity to the scene for the current frame.

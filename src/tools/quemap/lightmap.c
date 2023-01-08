@@ -37,14 +37,14 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 	vec3_t s = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[0]));
 	vec3_t t = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[1]));
 
-	s = Vec3_Scale(s, 1.0 / luxel_size);
-	t = Vec3_Scale(t, 1.0 / luxel_size);
+	s = Vec3_Scale(s, 1.f / luxel_size);
+	t = Vec3_Scale(t, 1.f / luxel_size);
 
 	lm->matrix = Mat4((const float[]) {
-		s.x, t.x, lm->plane->normal.x, 0.0,
-		s.y, t.y, lm->plane->normal.y, 0.0,
-		s.z, t.z, lm->plane->normal.z, 0.0,
-		0.0, 0.0, -lm->plane->dist,    1.0
+		s.x, t.x, lm->plane->normal.x, 0.f,
+		s.y, t.y, lm->plane->normal.y, 0.f,
+		s.z, t.z, lm->plane->normal.z, 0.f,
+		0.f, 0.f, -lm->plane->dist,    1.f
 	});
 
 	const vec3_t origin = patches[lm - lightmaps].origin;
@@ -69,9 +69,9 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 		lm->st_maxs = Vec2_Maxf(lm->st_maxs, Vec3_XY(st));
 	}
 
-	// add 4 luxels of padding around the lightmap for bicubic filtering
-	lm->w = floorf(lm->st_maxs.x - lm->st_mins.x) + 4;
-	lm->h = floorf(lm->st_maxs.y - lm->st_mins.y) + 4;
+	// add 2 luxels of padding around the lightmap for bilinear filtering
+	lm->w = floorf(lm->st_maxs.x - lm->st_mins.x) + 2;
+	lm->h = floorf(lm->st_maxs.y - lm->st_mins.y) + 2;
 }
 
 /**
@@ -572,8 +572,6 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 		const light_t *light = g_ptr_array_index(lights, i);
 
 		switch (light->type) {
-			case LIGHT_INVALID:
-				break;
 			case LIGHT_AMBIENT:
 				LightmapLuxel_Ambient(light, lightmap, luxel, scale);
 				break;
@@ -591,6 +589,8 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 				break;
 			case LIGHT_INDIRECT:
 				LightmapLuxel_Indirect(light, lightmap, luxel, scale);
+				break;
+			default:
 				break;
 		}
 	}

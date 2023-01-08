@@ -58,17 +58,23 @@ void sprite_lighting(vec3 position, vec3 normal) {
 
 	for (int i = 0; i < num_lights; i++) {
 
-		float radius = lights[i].origin.w;
-		if (radius == 0.0) {
+		int type = int(lights[i].position.w);
+		if (type != LIGHT_DYNAMIC) {
+			continue;
+		}
+
+		float radius = lights[i].model.w;
+		if (radius <= 0.0) {
 			continue;
 		}
 
 		float intensity = lights[i].color.w;
-		if (intensity == 0.0) {
+		if (intensity <= 0.0) {
 			continue;
 		}
 
-		float atten = 1.0 - distance(lights[i].origin.xyz, position) / radius;
+		vec3 light_pos = lights[i].position.xyz;
+		float atten = 1.0 - distance(light_pos, position) / radius;
 		if (atten <= 0.0) {
 			continue;
 		}

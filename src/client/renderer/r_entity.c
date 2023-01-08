@@ -96,7 +96,7 @@ void R_UpdateEntities(r_view_t *view) {
 
 	R_UpdateMeshEntities(view);
 
-	R_UpdateBspInlineModelEntities(view);
+	R_UpdateBspInlineEntities(view);
 }
 
 /**
@@ -148,7 +148,7 @@ static void R_DrawEntitiesBounds(const r_view_t *view, int32_t blend_depth) {
  */
 void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
 
-	R_DrawBspInlineModelEntities(view, blend_depth);
+	R_DrawBspInlineEntities(view, blend_depth);
 
 	R_DrawMeshEntities(view, blend_depth);
 

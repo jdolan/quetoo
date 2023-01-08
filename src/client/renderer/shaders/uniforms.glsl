@@ -56,7 +56,7 @@ layout (std140) uniform uniforms_block {
 	/**
 	 * @brief The viewport (x, y, w, h) in device pixels.
 	 */
-	vec4 viewport;
+	ivec4 viewport;
 
 	/**
 	 * @brief The 2D projection matrix.
@@ -107,6 +107,11 @@ layout (std140) uniform uniforms_block {
 	 * @brief The lightmaps debugging mask.
 	 */
 	int lightmaps;
+
+	/**
+	 * @brief The shadow debugging mask.
+	 */
+	int shadows;
 
 	/**
 	 * @brief The brightness scalar.
@@ -164,14 +169,43 @@ layout (std140) uniform uniforms_block {
 	int developer;
 };
 
+#define LIGHT_INVALID   0
+#define LIGHT_AMBIENT   1
+#define LIGHT_SUN       2
+#define LIGHT_POINT     4
+#define LIGHT_SPOT      8
+#define LIGHT_PATCH    16
+#define LIGHT_INDIRECT 32
+#define LIGHT_DYNAMIC  64
+
 /**
  * @brief The light struct.
  */
 struct light_t {
 	/**
-	 * @brief The light origin and radius.
+	 * @brief The light position in model space, and radius.
 	 */
-	vec4 origin;
+	vec4 model;
+
+	/**
+	 * @brief The light mins in model space, and size.
+	 */
+	vec4 mins;
+
+	/**
+	 * @brief The light maxs in model space, and attenuation.
+	 */
+	vec4 maxs;
+
+	/**
+	 * @brief The light position in view space, and type.
+	 */
+	vec4 position;
+
+	/**
+	 * @brief The normal and plane distance in view space.
+	 */
+	vec4 normal;
 
 	/**
 	 * @brief The light color and intensity.
@@ -179,16 +213,37 @@ struct light_t {
 	vec4 color;
 };
 
-#define MAX_LIGHTS 32
+#define MAX_LIGHT_UNIFORMS 256
+#define MAX_LIGHT_UNIFORMS_ACTIVE 16
 
 /**
  * @brief The lights uniform block.
  */
 layout (std140) uniform lights_block {
 	/**
+	 * @brief The projection matrix for directional lights.
+	 */
+	mat4 light_projection;
+
+	/**
+	 * @brief The view matrix for directional lights, centered at the origin.
+	 */
+	mat4 light_view;
+
+	/**
+	 * @brief The projection matrix for point lights.
+	 */
+	mat4 light_projection_cube;
+
+	/**
+	 * @brief The view matrices for point lights, centered at the origin.
+	 */
+	mat4 light_view_cube[6];
+
+	/**
 	 * @brief The light sources for the current frame, transformed to view space.
 	 */
-	light_t lights[MAX_LIGHTS];
+	light_t lights[MAX_LIGHT_UNIFORMS];
 
 	/**
 	 * @brief The number of active light sources.

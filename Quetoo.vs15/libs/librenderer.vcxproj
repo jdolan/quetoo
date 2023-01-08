@@ -44,6 +44,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_mesh_model_obj.c" />
     <ClCompile Include="..\..\src\client\renderer\r_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_shadowmap.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sprite.c" />
     <ClCompile Include="..\..\src\client\renderer\r_stain.c" />
@@ -77,6 +78,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_mesh_model_obj.h" />
     <ClInclude Include="..\..\src\client\renderer\r_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_shadowmap.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sprite.h" />
     <ClInclude Include="..\..\src\client\renderer\r_stain.h" />
@@ -98,6 +100,9 @@
     <None Include="..\..\src\client\renderer\shaders\material.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\shadowmap_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\shadowmap_gs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\shadowmap_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sky_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sky_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\soften_fs.glsl" />

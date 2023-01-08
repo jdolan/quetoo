@@ -25,7 +25,6 @@ cg_state_t cg_state;
 
 cvar_t *cg_add_atmospheric;
 cvar_t *cg_add_entities;
-cvar_t *cg_add_entity_shadows;
 cvar_t *cg_add_flares;
 cvar_t *cg_add_lights;
 cvar_t *cg_add_sprites;
@@ -116,7 +115,6 @@ static void Cg_Init(void) {
 
 	cg_add_atmospheric = cgi.AddCvar("cg_add_atmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
 	cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
-	cg_add_entity_shadows = cgi.AddCvar("cg_add_entity_shadows", "1", CVAR_ARCHIVE, "Toggles adding mesh entity shadows to the scene.");
 	cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
 	cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
 	cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
@@ -494,7 +492,6 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 	Cg_AddSprites();
 
 	Cg_AddLights();
-
 
 	if (*cg_draw_trace_test->string && *cg_draw_trace_test->string != '0') {
 		static box3_t bounds;

@@ -19,17 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec3 in_next_position;
 
-#include "r_types.h"
+uniform mat4 model;
 
-#ifdef __R_LOCAL_H__
+uniform float lerp;
 
-extern void R_InitBspProgram(void);
-extern void R_ShutdownBspProgram(void);
-
-void R_UpdateBspInlineEntities(r_view_t *view);
-void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth);
-void R_DrawWorld(const r_view_t *view);
-void R_AddBspLightgridSprites(r_view_t *view);
-#endif /* __R_LOCAL_H__ */
+void main() {
+    gl_Position = model * vec4(mix(in_position, in_next_position, lerp), 1.0);
+}  
