@@ -795,10 +795,46 @@ void EmitLights(void) {
 
 	bsp_light_t *out = bsp_file.lights;
 	for (guint i = 0; i < lights->len; i++) {
-		const light_t *light = g_ptr_array_index(lights, i);
+
+		light_t *light = g_ptr_array_index(lights, i);
+
+		if (light->out) {
+			continue;
+		}
+
 		switch (light->type) {
 			case LIGHT_INDIRECT:
 				break;
+
+			case LIGHT_PATCH:
+				out->type = light->type;
+				out->atten = light->atten;
+				out->origin = light->origin;
+				out->color = light->color;
+				out->normal = light->normal;
+				out->radius = light->radius;
+				out->size = light->size;
+				out->intensity = light->intensity;
+				out->shadow = light->shadow;
+				out->theta = light->theta;
+				out->bounds = LightBounds(light);
+
+				/*for (guint j = i + 1; j < lights->len; j++) {
+					light_t *l = g_ptr_array_index(lights, j);
+					if (l->type == LIGHT_PATCH &&
+						l->face->brush_side == light->face->brush_side) {
+
+						out->bounds = Box3_Union(out->bounds, l->bounds);
+						out->origin = Box3_Center(out->bounds);
+						out->radius = Box3_Radius(out->bounds);
+						out->size = Box3_Distance(light->face->bounds);
+
+						l->out = out;
+					}
+				}*/
+				light->out = out++;
+				break;
+
 			default:
 				out->type = light->type;
 				out->atten = light->atten;
@@ -811,7 +847,7 @@ void EmitLights(void) {
 				out->shadow = light->shadow;
 				out->theta = light->theta;
 				out->bounds = LightBounds(light);
-				out++;
+				light->out++;
 				break;
 		}
 
