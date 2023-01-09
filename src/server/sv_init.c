@@ -134,7 +134,7 @@ static void Sv_ShutdownMessage(const char *msg, _Bool reconnect) {
 /**
  * @brief Wipes the sv_server_t structure after freeing any references it holds.
  */
-static void Sv_ClearState() {
+static void Sv_ClearState(void) {
 
 	if (svs.initialized) { // if we were intialized, cleanup
 

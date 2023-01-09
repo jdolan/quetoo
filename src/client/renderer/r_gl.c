@@ -4792,7 +4792,7 @@ int gladLoadGL( GLADloadfunc load) {
 
 
 
-void gladInstallGLDebug() {
+void gladInstallGLDebug(void) {
 	glad_debug_glActiveShaderProgram = glad_debug_impl_glActiveShaderProgram;
 	glad_debug_glActiveTexture = glad_debug_impl_glActiveTexture;
 	glad_debug_glAttachShader = glad_debug_impl_glAttachShader;
@@ -5287,7 +5287,7 @@ void gladInstallGLDebug() {
 	glad_debug_glWaitSync = glad_debug_impl_glWaitSync;
 }
 
-void gladUninstallGLDebug() {
+void gladUninstallGLDebug(void) {
 	glad_debug_glActiveShaderProgram = glad_glActiveShaderProgram;
 	glad_debug_glActiveTexture = glad_glActiveTexture;
 	glad_debug_glAttachShader = glad_glAttachShader;

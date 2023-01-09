@@ -266,7 +266,7 @@ static void Cg_AddUnderwater(void) {
 /**
  * @brief
  */
-void Cg_AddEffects() {
+void Cg_AddEffects(void) {
 
 	Cg_AddWeather();
 

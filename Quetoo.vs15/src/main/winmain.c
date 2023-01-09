@@ -9,7 +9,7 @@
 #if defined(_MSC_VER)
 #include <DbgHelp.h>
 
-static HMODULE GetCurrentModule() {
+static HMODULE GetCurrentModule(void) {
 	HMODULE hModule = NULL;
 	GetModuleHandleEx(
 	    GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
