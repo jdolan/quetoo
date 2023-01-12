@@ -259,6 +259,8 @@ void Cl_InitCgame(void) {
 	import.WorldModel = R_WorldModel;
 
 	import.InitView = R_InitView;
+	import.CreateOcclusionQuery = R_CreateOcclusionQuery;
+	import.DestroyOcclusionQuery = R_DestroyOcclusionQuery;
 	import.AddOcclusionQuery = R_AddOcclusionQuery;
 	import.CulludeBox = R_CulludeBox;
 	import.CulludeSphere = R_CulludeSphere;

@@ -64,6 +64,10 @@ typedef struct {
 	 */
 	uint32_t time;
 
+	/**
+	 * @brief The light occlusion query.
+	 */
+	r_occlusion_query_t query;
 } cg_light_t;
 
 void Cg_AddLight(const cg_light_t *s);

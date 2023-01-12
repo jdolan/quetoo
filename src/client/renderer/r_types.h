@@ -28,6 +28,34 @@
 
 #include "r_gl_types.h"
 
+
+#define MAX_OCCLUSION_QUERIES MAX_ENTITIES
+
+/**
+ * @brief OpenGL occlusion queries.
+ */
+typedef struct {
+	/**
+	 * @brief The query name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The query bounds.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief Non-zero if the query is available.
+	 */
+	GLint available;
+
+	/**
+	 * @brief Non-zero of the query produced visible fragments.
+	 */
+	GLint result;
+} r_occlusion_query_t;
+
 /**
  * @brief Media types.
  */
@@ -383,13 +411,6 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
- * @brief Light sources per scene.
- * @remarks Lights that are frustum culled or occluded are discarded.
- * @see `MAX_LIGHT_UNIFORMS`
- */
-#define MAX_LIGHTS 1024
-
-/**
  * @brief BSP draw elements, which include all opaque faces of a given material
  * within a particular inline model.
  */
@@ -548,6 +569,11 @@ typedef struct {
 	 * @brief The light bounds, for frustum and occlusion culling.
 	 */
 	box3_t bounds;
+
+	/**
+	 * @brief The light occlusion query.
+	 */
+	r_occlusion_query_t query;
 } r_bsp_light_t;
 
 /**
@@ -621,6 +647,9 @@ typedef struct {
 
 	int32_t num_inline_models;
 	r_bsp_inline_model_t *inline_models;
+
+	int32_t num_occlusion_queries;
+	r_occlusion_query_t *occlusion_queries;
 
 	int32_t num_lights;
 	r_bsp_light_t *lights;
@@ -1147,6 +1176,13 @@ typedef struct r_entity_s {
 	int32_t blend_depth;
 } r_entity_t;
 
+/**
+ * @brief Light sources per scene.
+ * @remarks Lights that are frustum culled or occluded are discarded.
+ * @see `MAX_LIGHT_UNIFORMS`
+ */
+#define MAX_LIGHTS 1024
+
 #define MAX_LIGHT_ENTITIES 32
 
 /**
@@ -1224,38 +1260,6 @@ typedef struct {
 	 */
 	GLint index;
 } r_light_t;
-
-#define MAX_OCCLUSION_QUERIES MAX_ENTITIES
-
-/**
- * @brief OpenGL occlusion queries.
- */
-typedef struct {
-	/**
-	 * @brief The query name.
-	 */
-	GLuint name;
-
-	/**
-	 * @brief The query index.
-	 */
-	int32_t index;
-
-	/**
-	 * @brief The query bounds.
-	 */
-	box3_t bounds;
-
-	/**
-	 * @brief
-	 */
-	GLint available;
-
-	/**
-	 * @brief
-	 */
-	GLint result;
-} r_occlusion_query_t;
 
 /**
  * @brief Framebuffer attachments bitmask.

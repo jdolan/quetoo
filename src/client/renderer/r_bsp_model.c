@@ -340,6 +340,29 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
+
+	const cm_bsp_brush_t *in = bsp->cm->brushes;
+	for (int32_t i = 0; i < bsp->cm->num_brushes; i++, in++) {
+		if (in->contents & CONTENTS_OCCLUSION_QUERY) {
+			bsp->num_occlusion_queries++;
+		}
+	}
+
+	r_occlusion_query_t *out = bsp->occlusion_queries =
+			Mem_LinkMalloc(sizeof(r_occlusion_query_t) * bsp->num_occlusion_queries, bsp);
+
+	in = bsp->cm->brushes;
+	for (int32_t i = 0; i < bsp->cm->num_brushes; i++, in++) {
+		if (in->contents & CONTENTS_OCCLUSION_QUERY) {
+			*out++ = R_CreateOcclusionQuery(in->bounds);
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 	const bsp_light_t *in = bsp->cm->file->lights;
@@ -360,6 +383,8 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 		out->shadow = in->shadow;
 		out->theta = in->theta;
 		out->bounds = in->bounds;
+
+		out->query = R_CreateOcclusionQuery(out->bounds);
 	}
 }
 
@@ -657,6 +682,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspInlineModels(mod->bsp);
 	R_LoadBspVertexArray(mod);
 	R_SetupBspInlineModels(mod);
+	R_LoadBspOcclusionQueries(mod->bsp);
 	R_LoadBspLights(mod->bsp);
 	R_LoadBspLightmap(mod->bsp);
 	R_LoadBspLightgrid(mod);
@@ -709,6 +735,16 @@ static void R_FreeBspModel(r_media_t *self) {
 	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 		glDeleteBuffers(1, &in->depth_pass_elements_buffer);
 		g_ptr_array_free(in->blend_elements, 1);
+	}
+
+	r_occlusion_query_t *query = mod->bsp->occlusion_queries;
+	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++, query++) {
+		R_DestroyOcclusionQuery(query);
+	}
+
+	r_bsp_light_t *l = mod->bsp->lights;
+	for (int32_t i = 0; i < mod->bsp->num_lights; i++, l++) {
+		R_DestroyOcclusionQuery(&l->query);
 	}
 }
 

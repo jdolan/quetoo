@@ -88,6 +88,11 @@ struct cg_entity_s {
 	box3_t bounds;
 
 	/**
+	 * @brief The entity occlusion query.
+	 */
+	r_occlusion_query_t query;
+
+	/**
 	 * @brief The entity's target, if any.
 	 */
 	const cm_entity_t *target;

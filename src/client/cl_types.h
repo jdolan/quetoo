@@ -94,6 +94,8 @@ typedef struct {
 
 	mat4_t matrix; // snapped transform matrix, for traces
 	mat4_t inverse_matrix; // inverse transform, for point contents
+
+	r_occlusion_query_t query; // the occlusion query
 } cl_entity_t;
 
 /**

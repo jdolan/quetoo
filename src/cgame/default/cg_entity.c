@@ -158,6 +158,12 @@ void Cg_LoadEntities(void) {
 void Cg_FreeEntities(void) {
 
 	if (cg_entities) {
+
+		cg_entity_t *e = (cg_entity_t *) cg_entities->data;
+		for (guint i = 0; i < cg_entities->len; i++, e++) {
+			cgi.DestroyOcclusionQuery(&e->query);
+		}
+
 		g_array_free(cg_entities, true);
 		cg_entities = NULL;
 	}
@@ -334,7 +340,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 		Cg_AddEntity(ent);
 	}
 
-	// and client-side entities too
+	// and client side entities too
 	cg_entity_t *e = (cg_entity_t *) cg_entities->data;
 	for (guint i = 0; i < cg_entities->len; i++, e++) {
 

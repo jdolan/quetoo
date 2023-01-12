@@ -89,6 +89,10 @@ static void Cg_AddBspLights(void) {
 			continue;
 		}
 
+		if (l->query.result == 0) {
+			continue;
+		}
+
 		cgi.AddLight(cgi.view, &(const r_light_t) {
 			.type = l->type,
 			.atten = l->atten,
