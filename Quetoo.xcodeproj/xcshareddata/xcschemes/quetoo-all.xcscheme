@@ -89,6 +89,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set r_draw_occlusion_queries 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+set r_texture_storage 0"
             isEnabled = "YES">
          </CommandLineArgument>

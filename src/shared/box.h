@@ -145,7 +145,15 @@ static inline void Box3_ToPoints(const box3_t bounds, vec3_t *points) {
 */
 static inline _Bool __attribute__ ((warn_unused_result)) Box3_Intersects(const box3_t a, const box3_t b) {
 
-	return Vec3_BoxIntersect(a.mins, a.maxs, b.mins, b.maxs);
+	if (a.mins.x >= b.maxs.x || a.mins.y >= b.maxs.y || a.mins.z >= b.maxs.z) {
+		return false;
+	}
+
+	if (a.maxs.x <= b.mins.x || a.maxs.y <= b.mins.y || a.maxs.z <= b.mins.z) {
+		return false;
+	}
+
+	return true;
 }
 
 /**
@@ -153,7 +161,15 @@ static inline _Bool __attribute__ ((warn_unused_result)) Box3_Intersects(const b
 */
 static inline _Bool __attribute__ ((warn_unused_result)) Box3_ContainsPoint(const box3_t a, const vec3_t b) {
 
-	return Vec3_BoxIntersect(b, b, a.mins, a.maxs);
+	if (a.mins.x > b.x || a.mins.y > b.y || a.mins.z > b.z) {
+		return false;
+	}
+
+	if (a.maxs.x < b.x || a.maxs.y < b.y || a.maxs.z < b.z) {
+		return false;
+	}
+
+	return true;
 }
 
 /**
@@ -322,4 +338,12 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Scale(const box3_
 		Vec3_Scale(bounds.mins, scale),
 		Vec3_Scale(bounds.maxs, scale)
 	);
+}
+
+/**
+ * @return The volume of `b`.
+ */
+static inline float __attribute__ ((warn_unused_result)) Box3_Volume(const box3_t b) {
+	const vec3_t size =  Box3_Size(b);
+	return size.x * size.y * size.z;
 }

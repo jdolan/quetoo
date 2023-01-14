@@ -738,23 +738,6 @@ typedef struct cg_import_s {
 	void (*InitView)(r_view_t *view);
 
 	/**
-	 * @brief Creates an occlusion query with the specified bounds.
-	 * @remarks The returned query should be destroyed when no longer needed.
-	 */
-	r_occlusion_query_t (*CreateOcclusionQuery)(const box3_t bounds);
-
-	/*
-	 * @brief Destroys the specified occlusion query.
-	 */
-	void (*DestroyOcclusionQuery)(r_occlusion_query_t *query);
-
-	/**
-	 * @brief Add an occlusion query to the scene.
-	 * @remarks Occlusion queries must be added in `Cg_PrepareView` and not `Cg_PopulateView`.
-	 */
-	void (*AddOcclusionQuery)(r_view_t *view, r_occlusion_query_t *query);
-
-	/**
 	 * @return True if the bounding box is culled or occluded, false otherwise.
 	 */
 	_Bool (*CulludeBox)(const r_view_t *view, const box3_t bounds);

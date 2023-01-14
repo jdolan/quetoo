@@ -81,15 +81,7 @@ static void Cg_AddBspLights(void) {
 				break;
 		}
 
-		if (l->shadow == 0.f) {
-			continue;
-		}
-
-		if (Box3_Radius(l->bounds) < 64.f) {
-			continue;
-		}
-
-		if (l->query.result == 0) {
+		if (l->shadow == 0.f || Box3_Radius(l->bounds) < 64.f) {
 			continue;
 		}
 
@@ -217,7 +209,7 @@ void Cg_AddLights(void) {
 
 	Cg_AddBspLights();
 
-	Cg_AddAmbientLights();
+	//Cg_AddAmbientLights();
 }
 
 /**

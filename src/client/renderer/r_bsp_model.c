@@ -289,10 +289,11 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inline_model_t *model) {
+static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
 
-	node->parent = parent;
+
 	node->model = model;
+	node->parent = parent;
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
@@ -303,8 +304,8 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 		face->node = node;
 	}
 
-	R_SetupBspNode(node->children[0], node, model);
-	R_SetupBspNode(node->children[1], node, model);
+	R_SetupBspNode(model, node, node->children[0]);
+	R_SetupBspNode(model, node, node->children[1]);
 }
 
 /**
@@ -333,31 +334,50 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
 
-		R_SetupBspNode(out->head_node, NULL, out);
+		R_SetupBspNode(out, NULL, out->head_node);
 	}
 }
 
 /**
  * @brief
  */
-static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
+static _Bool R_LoadBspOcclusionQueries(const r_bsp_model_t *bsp, r_bsp_node_t *node) {
 
-	const cm_bsp_brush_t *in = bsp->cm->brushes;
-	for (int32_t i = 0; i < bsp->cm->num_brushes; i++, in++) {
-		if (in->contents & CONTENTS_OCCLUSION_QUERY) {
-			bsp->num_occlusion_queries++;
+	if (node->contents != CONTENTS_NODE) {
+
+		node->visible_bounds = Box3_Null();
+
+		const r_bsp_face_t *face = bsp->faces;
+		for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
+			if (Box3_Intersects(node->bounds, face->bounds)) {
+				node->visible_bounds = Box3_Union(node->visible_bounds, face->bounds);
+			}
+		}
+
+		return false;
+	}
+
+	const _Bool a = R_LoadBspOcclusionQueries(bsp, node->children[0]);
+	const _Bool b = R_LoadBspOcclusionQueries(bsp, node->children[1]);
+
+	node->visible_bounds = Box3_Union(node->children[0]->visible_bounds, node->children[1]->visible_bounds);
+
+	if (!a || !b) {
+
+		const float size = 256.f;
+		if (Box3_Volume(node->visible_bounds) > size * size * size) {
+			if (a) {
+				R_DestroyOcclusionQuery(&node->children[0]->query);
+			}
+			if (b) {
+				R_DestroyOcclusionQuery(&node->children[1]->query);
+			}
+			node->query = R_CreateOcclusionQuery(node->visible_bounds);
+			return true;
 		}
 	}
 
-	r_occlusion_query_t *out = bsp->occlusion_queries =
-			Mem_LinkMalloc(sizeof(r_occlusion_query_t) * bsp->num_occlusion_queries, bsp);
-
-	in = bsp->cm->brushes;
-	for (int32_t i = 0; i < bsp->cm->num_brushes; i++, in++) {
-		if (in->contents & CONTENTS_OCCLUSION_QUERY) {
-			*out++ = R_CreateOcclusionQuery(in->bounds);
-		}
-	}
+	return a || b;
 }
 
 /**
@@ -383,8 +403,6 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 		out->shadow = in->shadow;
 		out->theta = in->theta;
 		out->bounds = in->bounds;
-
-		out->query = R_CreateOcclusionQuery(out->bounds);
 	}
 }
 
@@ -680,9 +698,9 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspLeafs(mod->bsp);
 	R_LoadBspNodes(mod->bsp);
 	R_LoadBspInlineModels(mod->bsp);
+	R_LoadBspOcclusionQueries(mod->bsp, mod->bsp->nodes);
 	R_LoadBspVertexArray(mod);
 	R_SetupBspInlineModels(mod);
-	R_LoadBspOcclusionQueries(mod->bsp);
 	R_LoadBspLights(mod->bsp);
 	R_LoadBspLightmap(mod->bsp);
 	R_LoadBspLightgrid(mod);
@@ -737,14 +755,9 @@ static void R_FreeBspModel(r_media_t *self) {
 		g_ptr_array_free(in->blend_elements, 1);
 	}
 
-	r_occlusion_query_t *query = mod->bsp->occlusion_queries;
-	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++, query++) {
-		R_DestroyOcclusionQuery(query);
-	}
-
-	r_bsp_light_t *l = mod->bsp->lights;
-	for (int32_t i = 0; i < mod->bsp->num_lights; i++, l++) {
-		R_DestroyOcclusionQuery(&l->query);
+	r_bsp_node_t *node = mod->bsp->nodes;
+	for (int32_t i = 0; i < mod->bsp->num_nodes; i++, node++) {
+		R_DestroyOcclusionQuery(&node->query);
 	}
 }
 

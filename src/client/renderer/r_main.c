@@ -245,7 +245,6 @@ void R_InitView(r_view_t *view) {
 	view->num_sprites = 0;
 	view->num_sprite_instances = 0;
 	view->num_stains = 0;
-	view->num_occlusion_queries = 0;
 
 	memset(view->frustum, 0, sizeof(view->frustum));
 }

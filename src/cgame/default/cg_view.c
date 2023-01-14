@@ -290,70 +290,6 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 }
 
 /**
- * @brief
- */
-static void Cg_AddOcclusionQueries(const cl_frame_t *frame) {
-
-	const r_model_t *mod = cgi.WorldModel();
-
-	// add brush queries
-	r_occlusion_query_t *query = mod->bsp->occlusion_queries;
-	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++, query++) {
-		cgi.AddOcclusionQuery(cgi.view, query);
-	}
-
-	// and light queries
-	r_bsp_light_t *light = mod->bsp->lights;
-	for (int32_t i = 0; i < mod->bsp->num_lights; i++, light++) {
-
-		switch (light->type) {
-			case LIGHT_INVALID:
-			case LIGHT_AMBIENT:
-			case LIGHT_SUN:
-			case LIGHT_INDIRECT:
-				continue;
-			default:
-				break;
-		}
-
-		if (light->shadow == 0.f) {
-			continue;
-		}
-
-		if (Box3_Radius(light->bounds) < 64.f) {
-			continue;
-		}
-
-		cgi.AddOcclusionQuery(cgi.view, &light->query);
-	}
-
-	// and server side entity queries
-//	for (int32_t i = 0; i < frame->num_entities; i++) {
-//
-//		const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-//		const entity_state_t *s = &cgi.client->entity_states[snum];
-//
-//		cl_entity_t *ent = &cgi.client->entities[s->number];
-//
-//		if (ent->current.model1) {
-//			if (ent->query.name == 0) {
-//				ent->query = cgi.CreateOcclusionQuery(ent->abs_bounds);
-//			}
-//			cgi.AddOcclusionQuery(cgi.view, &ent->query);
-//		}
-//	}
-
-	// and client side queries too
-	cg_entity_t *e = (cg_entity_t *) cg_entities->data;
-	for (guint i = 0; i < cg_entities->len; i++, e++) {
-
-		if (e->query.name) {
-			cgi.AddOcclusionQuery(cgi.view, &e->query);
-		}
-	}
-}
-
-/**
  * @brief Updates the view origin, angles, and field of view.
  */
 void Cg_PrepareView(const cl_frame_t *frame) {
@@ -385,8 +321,6 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 	Cg_UpdateFov();
 
 	Cg_UpdateBob(ps1);
-
-	Cg_AddOcclusionQueries(frame);
 
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 

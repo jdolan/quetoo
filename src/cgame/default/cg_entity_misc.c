@@ -134,8 +134,6 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
 		dust->num_origins += brush_origins;
 	}
-
-	self->query = cgi.CreateOcclusionQuery(self->bounds);
 }
 
 /**
@@ -242,7 +240,6 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 	flame->radius = cgi.EntityValue(self->def, "radius")->value ?: 16.f;
 
 	self->bounds = Box3_FromCenterRadius(self->origin, flame->radius * 16.f);
-	self->query = cgi.CreateOcclusionQuery(self->bounds);
 
 	const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
 	if (sound) {
@@ -380,7 +377,6 @@ static void Cg_misc_light_Init(cg_entity_t *self) {
 	g_strlcpy(data->style.string, style, sizeof(data->style.string));
 
 	self->bounds = Box3_FromCenterRadius(self->origin, data->light.radius);
-	self->query = cgi.CreateOcclusionQuery(self->bounds);
 }
 
 /**
