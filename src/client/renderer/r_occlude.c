@@ -47,31 +47,32 @@ static struct {
 static _Bool R_OccludeBox_r(const r_view_t *view, const box3_t bounds, const r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
-		return false;
+		return true;
 	}
 
 	const int32_t side = Cm_BoxOnPlaneSide(bounds, node->plane->cm);
+
 	if (side & SIDE_FRONT) {
-		if (R_OccludeBox_r(view, bounds, node->children[0])) {
-			return true;
+		if (R_OccludeBox_r(view, bounds, node->children[0]) == false) {
+			return false;
 		}
 	}
 
 	if (side & SIDE_BACK) {
-		if (R_OccludeBox_r(view, bounds, node->children[1])) {
-			return true;
+		if (R_OccludeBox_r(view, bounds, node->children[1]) == false) {
+			return false;
 		}
 	}
 
 	if (node->query.name) {
-		if (Box3_Contains(node->query.bounds, bounds)) {
-			if (node->query.result == 0) {
-				return true;
+		if (Box3_Intersects(node->query.bounds, bounds)) {
+			if (node->query.result == 1) {
+				return false;
 			}
 		}
 	}
 
-	return false;
+	return true;
 }
 
 /**

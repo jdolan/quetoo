@@ -364,7 +364,7 @@ static _Bool R_LoadBspOcclusionQueries(const r_bsp_model_t *bsp, r_bsp_node_t *n
 
 	if (!a || !b) {
 
-		const float size = 256.f;
+		const float size = 384.f;
 		if (Box3_Volume(node->visible_bounds) > size * size * size) {
 			if (a) {
 				R_DestroyOcclusionQuery(&node->children[0]->query);
