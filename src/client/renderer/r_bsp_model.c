@@ -290,14 +290,13 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
-
+static _Bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
 
 	node->model = model;
 	node->parent = parent;
 
 	if (node->contents != CONTENTS_NODE) {
-		return;
+		return false;
 	}
 
 	r_bsp_face_t *face = node->faces;
@@ -305,8 +304,25 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 		face->node = node;
 	}
 
-	R_SetupBspNode(model, node, node->children[0]);
-	R_SetupBspNode(model, node, node->children[1]);
+	const _Bool a = R_SetupBspNode(model, node, node->children[0]);
+	const _Bool b = R_SetupBspNode(model, node, node->children[1]);
+
+	if (!a || !b) {
+
+		const float size = 512.f;
+		if (Box3_Volume(node->visible_bounds) > size * size * size) {
+			if (a) {
+				R_DestroyOcclusionQuery(&node->children[0]->query);
+			}
+			if (b) {
+				R_DestroyOcclusionQuery(&node->children[1]->query);
+			}
+			node->query = R_CreateOcclusionQuery(node->visible_bounds);
+			return true;
+		}
+	}
+
+	return a || b;
 }
 
 /**
@@ -337,36 +353,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		R_SetupBspNode(out, NULL, out->head_node);
 	}
-}
-
-/**
- * @brief
- */
-static _Bool R_LoadBspOcclusionQueries(const r_bsp_model_t *bsp, r_bsp_node_t *node) {
-
-	if (node->contents != CONTENTS_NODE) {
-		return false;
-	}
-
-	const _Bool a = R_LoadBspOcclusionQueries(bsp, node->children[0]);
-	const _Bool b = R_LoadBspOcclusionQueries(bsp, node->children[1]);
-
-	if (!a || !b) {
-
-		const float size = 384.f;
-		if (Box3_Volume(node->visible_bounds) > size * size * size) {
-			if (a) {
-				R_DestroyOcclusionQuery(&node->children[0]->query);
-			}
-			if (b) {
-				R_DestroyOcclusionQuery(&node->children[1]->query);
-			}
-			node->query = R_CreateOcclusionQuery(node->visible_bounds);
-			return true;
-		}
-	}
-
-	return a || b;
 }
 
 /**
@@ -687,7 +673,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspLeafs(mod->bsp);
 	R_LoadBspNodes(mod->bsp);
 	R_LoadBspInlineModels(mod->bsp);
-	R_LoadBspOcclusionQueries(mod->bsp, mod->bsp->nodes);
 	R_LoadBspVertexArray(mod);
 	R_SetupBspInlineModels(mod);
 	R_LoadBspLights(mod->bsp);
