@@ -147,7 +147,6 @@ static void Cg_AddAmbientLights(void) {
 
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 			const r_bsp_inline_model_t *in = e->model->bsp_inline;
-
 			const cm_entity_t *cm = cgi.EntityValue(in->def, "classname");
 			if (!g_strcmp0(cm->string, "func_rotating") ||
 				!g_strcmp0(cm->string, "func_door_rotating")) {
@@ -209,7 +208,7 @@ void Cg_AddLights(void) {
 
 	Cg_AddBspLights();
 
-	//Cg_AddAmbientLights();
+	Cg_AddAmbientLights();
 }
 
 /**
