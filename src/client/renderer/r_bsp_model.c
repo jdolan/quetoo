@@ -250,6 +250,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 		out->contents = in->contents;
 		out->bounds = in->bounds;
+		out->visible_bounds = in->visible_bounds;
 	}
 }
 
@@ -267,8 +268,8 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 	for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
 
 		out->contents = CONTENTS_NODE; // differentiate from leafs
-
 		out->bounds = in->bounds;
+		out->visible_bounds = in->visible_bounds;
 
 		out->plane = bsp->planes + in->plane;
 
@@ -344,23 +345,11 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 static _Bool R_LoadBspOcclusionQueries(const r_bsp_model_t *bsp, r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
-
-		node->visible_bounds = Box3_Null();
-
-		const r_bsp_face_t *face = bsp->faces;
-		for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
-			if (Box3_Intersects(node->bounds, face->bounds)) {
-				node->visible_bounds = Box3_Union(node->visible_bounds, face->bounds);
-			}
-		}
-
 		return false;
 	}
 
 	const _Bool a = R_LoadBspOcclusionQueries(bsp, node->children[0]);
 	const _Bool b = R_LoadBspOcclusionQueries(bsp, node->children[1]);
-
-	node->visible_bounds = Box3_Union(node->children[0]->visible_bounds, node->children[1]->visible_bounds);
 
 	if (!a || !b) {
 

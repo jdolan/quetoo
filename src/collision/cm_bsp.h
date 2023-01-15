@@ -286,7 +286,8 @@ typedef struct {
 	int32_t plane;
 	int32_t children[2]; // negative numbers are -(leafs + 1), not nodes
 
-	box3_t bounds; // for frustum culling
+	box3_t bounds; // for collision
+	box3_t visible_bounds; // for frustum culling
 
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
@@ -296,7 +297,8 @@ typedef struct {
 	int32_t contents; // OR of all brushes
 	int32_t cluster;
 
-	box3_t bounds; // for frustum culling
+	box3_t bounds; // for collision
+	box3_t visible_bounds; // for frustum culling
 
 	int32_t first_leaf_face;
 	int32_t num_leaf_faces;
