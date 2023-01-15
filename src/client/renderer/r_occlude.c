@@ -21,10 +21,17 @@
 
 #include "r_local.h"
 
+#define MAX_OCCLUSION_QUERIES 1024
+
 /**
  * @brief Hardware occlusion queries.
  */
 static struct {
+	/**
+	 * @brief
+	 */
+	vec3_t vertexes[MAX_OCCLUSION_QUERIES][8];
+
 	/**
 	 * @brief The vertex array object.
 	 */
@@ -126,8 +133,19 @@ r_occlusion_query_t R_CreateOcclusionQuery(const box3_t bounds) {
 	};
 
 	glGenQueries(1, &query.name);
-	R_GetError(NULL);
 
+	// FIXME: This indexing is ghetto, but should be safe on most GL drivers
+	assert(query.name < MAX_OCCLUSION_QUERIES);
+	Box3_ToPoints(bounds, r_occlusion.vertexes[query.name]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
+	glBufferSubData(GL_ARRAY_BUFFER,
+					query.name * sizeof(r_occlusion.vertexes[0]),
+					sizeof(r_occlusion.vertexes[0]),
+					r_occlusion.vertexes[query.name]);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	R_GetError(NULL);
 	return query;
 }
 
@@ -174,19 +192,13 @@ static void R_UpdateOcclusionQuery(const r_view_t *view, r_bsp_node_t *node) {
 		}
 
 		if (q->available) {
-
-			vec3_t vertexes[8];
-			Box3_ToPoints(q->bounds, vertexes);
-			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexes), vertexes);
-
 			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
-			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL);
+			glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, q->name * 8);
 			glEndQuery(GL_ANY_SAMPLES_PASSED);
-
 			q->available = 0;
 		}
 
-		if (Box3_ContainsPoint(q->bounds, view->origin)) {
+		if (Box3_ContainsPoint(Box3_Expand(q->bounds, 16.f), view->origin)) {
 			q->result = 1;
 		}
 
@@ -261,7 +273,7 @@ void R_InitOcclusionQueries(void) {
 
 	glGenBuffers(1, &r_occlusion.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vec3_t) * 8, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(r_occlusion.vertexes), NULL, GL_DYNAMIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
 
@@ -295,11 +307,6 @@ void R_InitOcclusionQueries(void) {
  * @brief
  */
 void R_ShutdownOcclusionQueries(void) {
-
-//	r_occlusion_query_t *q = r_occlusion.queries;
-//	for (int32_t i = 0; i < MAX_OCCLUSION_QUERIES; i++, q++) {
-//		glDeleteQueries(1, &q->name);
-//	}
 
 	glDeleteVertexArrays(1, &r_occlusion.vertex_array);
 
