@@ -290,6 +290,25 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static void R_DestroyNodeOcclusionQueries(r_bsp_node_t *node) {
+
+	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	R_DestroyOcclusionQuery(&node->query);
+
+	R_DestroyNodeOcclusionQueries(node->children[0]);
+	R_DestroyNodeOcclusionQueries(node->children[1]);
+}
+
+/**
+ * @brief Sets up in-memory relationships between node, parent and model.
+ * @remarks Additionally, occlusion queries are generated from the visible bounds of the node.
+ * The desired occlusion query size is controlled by `r_occlusion_query_size`. Nodes of this size
+ * or greater are selected from the tree using bottom-up recursion.
+ * @return True if an occlusion query was generated for the node.
+ */
 static _Bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
 
 	node->model = model;
@@ -312,10 +331,10 @@ static _Bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r
 		const float size = r_occlusion_query_size->value;
 		if (Box3_Volume(node->visible_bounds) > size * size * size) {
 			if (a) {
-				R_DestroyOcclusionQuery(&node->children[0]->query);
+				R_DestroyNodeOcclusionQueries(node->children[0]);
 			}
 			if (b) {
-				R_DestroyOcclusionQuery(&node->children[1]->query);
+				R_DestroyNodeOcclusionQueries(node->children[1]);
 			}
 			node->query = R_CreateOcclusionQuery(node->visible_bounds);
 			return true;
