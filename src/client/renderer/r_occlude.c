@@ -191,13 +191,6 @@ static void R_UpdateOcclusionQuery(const r_view_t *view, r_bsp_node_t *node) {
 			}
 		}
 
-		if (q->available) {
-			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
-			glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, q->name * 8);
-			glEndQuery(GL_ANY_SAMPLES_PASSED);
-			q->available = 0;
-		}
-
 		if (Box3_ContainsPoint(Box3_Expand(q->bounds, 16.f), view->origin)) {
 			q->result = 1;
 		}
@@ -211,6 +204,27 @@ static void R_UpdateOcclusionQuery(const r_view_t *view, r_bsp_node_t *node) {
 			r_stats.occlusion_queries_occluded++;
 			if (r_draw_occlusion_queries->value) {
 				R_Draw3DBox(q->bounds, color_green, false);
+			}
+		}
+
+		if (q->available) {
+			glBeginQuery(GL_ANY_SAMPLES_PASSED, q->name);
+			glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, q->name * 8);
+			glEndQuery(GL_ANY_SAMPLES_PASSED);
+
+			q->available = 0;
+
+			if (q->result == 0) {
+				return;
+			} else {
+				r_bsp_node_t *parent = node->parent;
+				while (parent) {
+					if (parent->query.name) {
+						parent->query.available = 1;
+						parent->query.result = 1;
+					}
+					parent = parent->parent;
+				}
 			}
 		}
 	}
