@@ -309,7 +309,7 @@ static _Bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r
 
 	if (!a || !b) {
 
-		const float size = 512.f;
+		const float size = r_occlusion_query_size->value;
 		if (Box3_Volume(node->visible_bounds) > size * size * size) {
 			if (a) {
 				R_DestroyOcclusionQuery(&node->children[0]->query);

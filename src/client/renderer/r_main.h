@@ -266,6 +266,7 @@ extern cvar_t *r_get_error;
 extern cvar_t *r_error_level;
 extern cvar_t *r_max_errors;
 extern cvar_t *r_occlude;
+extern cvar_t *r_occlusion_query_size;
 
 /**
  * @brief Keeps track of how many errors we've run into, so we can
