@@ -111,6 +111,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 	for (guint i = 0; i < brushes->len; i++) {
 
 		const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
+		self->bounds = Box3_Union(self->bounds, brush->bounds);
 
 		const vec3_t brush_size = Box3_Size(brush->bounds);
 		const int32_t brush_origins = Maxi(Vec3_Length(brush_size) * dust->density, 1);
@@ -127,7 +128,6 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 			const vec3_t point = Box3_RandomPoint(brush->bounds);
 
 			if (cgi.PointInsideBrush(point, brush)) {
-				self->bounds = Box3_Append(self->bounds, point);
 				dust->origins[j++] = point;
 			}
 		}
@@ -257,6 +257,10 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 static void Cg_misc_flame_Think(cg_entity_t *self) {
 
 	cg_flame_t *flame = self->data;
+
+	if (cgi.CulludeBox(cgi.view, self->bounds)) {
+		return;
+	}
 
 	const float r = flame->radius;
 	const float s = Clampf(r / 64.f, .125f, 1.f);
