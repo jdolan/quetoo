@@ -111,6 +111,11 @@ typedef struct light_s {
 	const bsp_face_t *face;
 
 	/**
+	 * @brief The light source brush side for patch and indirect lights.
+	 */
+	const bsp_brush_side_t *brush_side;
+
+	/**
 	 * @brief The light source plane for patch and indirect lights.
 	 */
 	const bsp_plane_t *plane;

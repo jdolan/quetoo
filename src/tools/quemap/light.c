@@ -397,6 +397,7 @@ static light_t *LightForPatch(const patch_t *patch) {
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
 	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, plane->normal);
 	light->face = patch->face;
+	light->brush_side = brush_side;
 	light->plane = plane;
 	light->normal = plane->normal;
 	light->theta = Radians(material->cm->light.cone);
@@ -597,6 +598,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
 	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, lm->plane->normal);
 	light->face = patch->face;
+	light->brush_side = patch->brush_side;
 	light->plane = lm->plane;
 	light->normal = lm->plane->normal;
 	light->theta = Radians(DEFAULT_LIGHT_CONE);

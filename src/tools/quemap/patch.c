@@ -30,7 +30,7 @@ patch_t *patches;
  */
 static patch_t *BuildPatch(const bsp_model_t *model,
 						   const bsp_face_t *face,
-						   const bsp_brush_side_t *side,
+						   const bsp_brush_side_t *brush_side,
 						   const vec3_t origin,
 						   cm_winding_t *w) {
 
@@ -38,7 +38,7 @@ static patch_t *BuildPatch(const bsp_model_t *model,
 
 	patch->model = model;
 	patch->face = face;
-	patch->side = side;
+	patch->brush_side = brush_side;
 	patch->origin = origin;
 	patch->winding = w;
 
@@ -111,7 +111,7 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	vec3_t normal = Vec3_Zero();
 
-	const float size = materials[patch->side->material].cm->patch_size ?: patch_size;
+	const float size = materials[patch->brush_side->material].cm->patch_size ?: patch_size;
 
 	int32_t i;
 	for (i = 0; i < 3; i++) {
@@ -138,7 +138,7 @@ static void SubdividePatch_r(patch_t *patch) {
 	patch_t *p = (patch_t *) Mem_TagMalloc(sizeof(*p), MEM_TAG_PATCH);
 	p->model = patch->model;
 	p->face = patch->face;
-	p->side = patch->side;
+	p->brush_side = patch->brush_side;
 	p->origin = patch->origin;
 
 	patch->winding = front;
@@ -158,7 +158,7 @@ void SubdividePatch(int32_t patch_num) {
 
 	patch_t *patch = &patches[patch_num];
 
-	if (patch->side->surface & SURF_MASK_NO_LIGHTMAP) {
+	if (patch->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 		return;
 	}
 
