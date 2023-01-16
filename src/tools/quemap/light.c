@@ -495,21 +495,6 @@ static GPtrArray *BoxLights(light_type_t type, const box3_t bounds) {
 }
 
 /**
- * @brief
- */
-static box3_t NodeBounds(const bsp_node_t *node) {
-
-	box3_t bounds = Box3_Null();
-
-	const bsp_face_t *face = bsp_file.faces + node->first_face;
-	for (int32_t i = 0; i < node->num_faces; i++, face++) {
-		bounds = Box3_Union(bounds, face->bounds);
-	}
-
-	return Box3_Expand(bounds, BSP_LIGHTGRID_LUXEL_SIZE);
-}
-
-/**
  * @brief Hashes light sources of the specified type(s) into bins by node and leaf.
  */
 static void HashLights(light_type_t type) {
@@ -527,7 +512,7 @@ static void HashLights(light_type_t type) {
 			g_ptr_array_free(node_lights[i], true);
 		}
 
-		node_lights[i] = BoxLights(type, NodeBounds(node));
+		node_lights[i] = BoxLights(type, Box3_Expand(node->visible_bounds, BSP_LIGHTMAP_LUXEL_SIZE));
 	}
 
 	const bsp_leaf_t *leaf = bsp_file.leafs;
@@ -541,7 +526,7 @@ static void HashLights(light_type_t type) {
 			g_ptr_array_free(leaf_lights[i], true);
 		}
 
-		leaf_lights[i] = BoxLights(type, leaf->bounds);
+		leaf_lights[i] = BoxLights(type, Box3_Expand(leaf->visible_bounds, BSP_LIGHTMAP_LUXEL_SIZE));
 	}
 }
 
