@@ -28,13 +28,17 @@ patch_t *patches;
 /**
  * @brief
  */
-static patch_t *BuildPatch(const bsp_model_t *model, const bsp_face_t *face,
-						   const vec3_t origin, cm_winding_t *w) {
+static patch_t *BuildPatch(const bsp_model_t *model,
+						   const bsp_face_t *face,
+						   const bsp_brush_side_t *side,
+						   const vec3_t origin,
+						   cm_winding_t *w) {
 
 	patch_t *patch = &patches[face - bsp_file.faces];
 
 	patch->model = model;
 	patch->face = face;
+	patch->side = side;
 	patch->origin = origin;
 	patch->winding = w;
 
@@ -81,7 +85,9 @@ void BuildPatches(void) {
 		for (int32_t j = 0; j < model->num_faces; j++) {
 
 			const int32_t face_num = model->first_face + j;
+
 			const bsp_face_t *face = &bsp_file.faces[face_num];
+			const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
 
 			cm_winding_t *w = Cm_WindingForFace(&bsp_file, face);
 
@@ -89,7 +95,7 @@ void BuildPatches(void) {
 				w->points[k] = Vec3_Add(w->points[k], origin);
 			}
 
-			BuildPatch(model, face, origin, w);
+			BuildPatch(model, face, side, origin, w);
 		}
 	}
 }
@@ -105,8 +111,7 @@ static void SubdividePatch_r(patch_t *patch) {
 
 	vec3_t normal = Vec3_Zero();
 
-	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];	
-	const float size = materials[brush_side->material].cm->patch_size ?: patch_size;
+	const float size = materials[patch->side->material].cm->patch_size ?: patch_size;
 
 	int32_t i;
 	for (i = 0; i < 3; i++) {
@@ -133,7 +138,7 @@ static void SubdividePatch_r(patch_t *patch) {
 	patch_t *p = (patch_t *) Mem_TagMalloc(sizeof(*p), MEM_TAG_PATCH);
 	p->model = patch->model;
 	p->face = patch->face;
-
+	p->side = patch->side;
 	p->origin = patch->origin;
 
 	patch->winding = front;
@@ -153,9 +158,7 @@ void SubdividePatch(int32_t patch_num) {
 
 	patch_t *patch = &patches[patch_num];
 
-	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
-
-	if (brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
+	if (patch->side->surface & SURF_MASK_NO_LIGHTMAP) {
 		return;
 	}
 

@@ -27,6 +27,7 @@
 typedef struct patch_s {
 	const bsp_model_t *model;
 	const bsp_face_t *face;
+	const bsp_brush_side_t *side;
 	vec3_t origin;
 	cm_winding_t *winding;
 	struct patch_s *next;  // next in face
