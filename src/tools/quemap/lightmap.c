@@ -396,7 +396,7 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 
 	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 	const float thresh = cosf(light->theta);
-	const float smooth = 0.03f;
+	const float smooth = .125f;
 	const float cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
 
 	if (cutoff <= 0.f) {
@@ -470,7 +470,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 
 		const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 		const float thresh = cosf(light->theta);
-		const float smooth = 0.03f;
+		const float smooth = .125f;
 
 		cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
 
@@ -533,7 +533,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 
 	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 	const float thresh = cosf(light->theta);
-	const float smooth = 0.03f;
+	const float smooth = .125f;
 	const float cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
 
 	if (cutoff <= 0.f) {
