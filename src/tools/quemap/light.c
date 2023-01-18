@@ -101,6 +101,10 @@ static light_t *AllocLight(void) {
  */
 static void FreeLight(light_t *light) {
 
+	if (light->winding) {
+		Cm_FreeWinding(light->winding);
+	}
+	
 	if (light->points) {
 		g_free(light->points);
 	}
@@ -396,6 +400,7 @@ static light_t *LightForPatch(const patch_t *patch) {
 	light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
 	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, plane->normal);
+	light->winding = Cm_CopyWinding(patch->winding);
 	light->face = patch->face;
 	light->brush_side = brush_side;
 	light->plane = plane;
@@ -597,6 +602,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
 	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, lm->plane->normal);
+	light->winding = Cm_CopyWinding(patch->winding);
 	light->face = patch->face;
 	light->brush_side = patch->brush_side;
 	light->plane = lm->plane;

@@ -106,6 +106,11 @@ typedef struct light_s {
 	int32_t num_points;
 
 	/**
+	 * @brief The light source winding for patch and indirect lights.
+	 */
+	cm_winding_t *winding;
+
+	/**
 	 * @brief The light source face for patch and indirect lights.
 	 */
 	const bsp_face_t *face;
