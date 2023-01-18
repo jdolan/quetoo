@@ -449,24 +449,27 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
-	dist = Maxf(0.f, dist - light->size * .5f);
+	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin);
 	if (dist > light->radius) {
 		return;
 	}
 
-	float cutoff = 1.f;
-	if (light->face != lightmap->face) {
-
-		// calculate conical falloff for luxels that are not part of the light itself
-
-		// unlike other light types, don't reflect patch lights through blended faces
-		// doing so produces banding on emissive blended faces (slime, lava, etc).
-
-		const float dot = Vec3_Dot(dir, luxel->normal);
-		if (dot < 0.f) {
+	vec3_t dir = Vec3_Direction(light->origin, luxel->origin);
+	const float dot = Vec3_Dot(dir, luxel->normal);
+	if (dot < -.5f) {
+		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
+			dir = Vec3_Negate(dir);
+		} else {
 			return;
 		}
+	}
+
+	float cutoff = 1.f;
+	if (light->face == lightmap->face) {
+		dir = luxel->normal;
+	} else {
+
+		// calculate conical falloff for luxels that are not part of the light itself
 
 		const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 		const float thresh = cosf(light->theta);
@@ -502,7 +505,6 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
  * @brief
  */
 static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
-	vec3_t dir;
 
 	if (light->plane == lightmap->plane) {
 		return;
@@ -516,16 +518,17 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		return;
 	}
 
-	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
-	dist = Maxf(0.f, dist - light->size * .5f);
+	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin);
 	if (dist > light->radius) {
 		return;
 	}
 
-	const float dot = Vec3_Dot(dir, luxel->normal);
-	if (dot <= 0.f) {
+	vec3_t dir = Vec3_Direction(light->origin, luxel->origin);
+	float dot = Vec3_Dot(dir, luxel->normal);
+	if (dot < -.5f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
 			dir = Vec3_Negate(dir);
+			dot = Vec3_Dot(dir, luxel->normal);
 		} else {
 			return;
 		}
@@ -541,7 +544,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 	}
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float lumens = atten * atten * cutoff * scale;
+	const float lumens = atten * atten * cutoff * dot * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -552,7 +555,7 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, lumens * dot)
+			.color = Vec3_Scale(light->color, lumens)
 		});
 		break;
 	}
