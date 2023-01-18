@@ -145,11 +145,11 @@ static inline void Box3_ToPoints(const box3_t bounds, vec3_t *points) {
 */
 static inline _Bool __attribute__ ((warn_unused_result)) Box3_Intersects(const box3_t a, const box3_t b) {
 
-	if (a.mins.x >= b.maxs.x || a.mins.y >= b.maxs.y || a.mins.z >= b.maxs.z) {
+	if (a.mins.x > b.maxs.x || a.mins.y > b.maxs.y || a.mins.z > b.maxs.z) {
 		return false;
 	}
 
-	if (a.maxs.x <= b.mins.x || a.maxs.y <= b.mins.y || a.maxs.z <= b.mins.z) {
+	if (a.maxs.x < b.mins.x || a.maxs.y < b.mins.y || a.maxs.z < b.mins.z) {
 		return false;
 	}
 
