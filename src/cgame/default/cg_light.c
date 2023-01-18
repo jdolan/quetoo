@@ -81,11 +81,7 @@ static void Cg_AddBspLights(void) {
 				break;
 		}
 
-		if (l->shadow == 0.f) {
-			continue;
-		}
-
-		if (Box3_Radius(l->bounds) < 64.f) {
+		if (l->shadow == 0.f || Box3_Radius(l->bounds) < 64.f) {
 			continue;
 		}
 
@@ -151,7 +147,6 @@ static void Cg_AddAmbientLights(void) {
 
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 			const r_bsp_inline_model_t *in = e->model->bsp_inline;
-
 			const cm_entity_t *cm = cgi.EntityValue(in->def, "classname");
 			if (!g_strcmp0(cm->string, "func_rotating") ||
 				!g_strcmp0(cm->string, "func_door_rotating")) {

@@ -290,53 +290,6 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 }
 
 /**
- * @brief
- */
-static void Cg_AddOcclusionQueries(void) {
-
-	const r_model_t *mod = cgi.WorldModel();
-
-	const cm_bsp_brush_t *b = mod->bsp->cm->brushes;
-	for (int32_t i = 0; i < mod->bsp->cm->file->num_brushes; i++, b++) {
-		if (b->contents & CONTENTS_OCCLUSION_QUERY) {
-			cgi.AddOcclusionQuery(cgi.view, b->bounds);
-		}
-	}
-
-	const r_bsp_light_t *l = mod->bsp->lights;
-	for (int32_t i = 0; i < mod->bsp->num_lights; i++, l++) {
-
-		switch (l->type) {
-			case LIGHT_INVALID:
-			case LIGHT_AMBIENT:
-			case LIGHT_SUN:
-			case LIGHT_INDIRECT:
-				continue;
-			default:
-				break;
-		}
-
-		if (l->shadow == 0.f) {
-			continue;
-		}
-
-		if (Box3_Radius(l->bounds) < 64.f) {
-			continue;
-		}
-
-		cgi.AddOcclusionQuery(cgi.view, Box3_Expand(l->bounds, 1.f));
-	}
-
-	cg_entity_t *e = (cg_entity_t *) cg_entities->data;
-	for (guint i = 0; i < cg_entities->len; i++, e++) {
-
-		if (Box3_Distance(e->bounds) > 0.f) {
-			cgi.AddOcclusionQuery(cgi.view, Box3_Expand(e->bounds, 1.f));
-		}
-	}
-}
-
-/**
  * @brief Updates the view origin, angles, and field of view.
  */
 void Cg_PrepareView(const cl_frame_t *frame) {
@@ -368,8 +321,6 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 	Cg_UpdateFov();
 
 	Cg_UpdateBob(ps1);
-
-	Cg_AddOcclusionQueries();
 
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 

@@ -94,8 +94,8 @@ static int32_t EmitLeaf(node_t *node) {
 
 	out->contents = node->contents;
 	out->cluster = node->cluster;
-
 	out->bounds = node->bounds;
+	out->visible_bounds = node->visible_bounds;
 
 	// write the leaf_brushes
 	out->first_leaf_brush = bsp_file.num_leaf_brushes;
@@ -194,9 +194,9 @@ static int32_t EmitNode(const node_t *node) {
 	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
 
-	out->bounds = node->bounds;
-
 	out->plane = node->plane;
+	out->bounds = node->bounds;
+	out->visible_bounds = node->visible_bounds;
 
 	if (node->faces) {
 		out->first_face = bsp_file.num_faces;

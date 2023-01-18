@@ -32,6 +32,7 @@ typedef struct node_s {
 	struct node_s *parent;
 	int32_t plane; // -1 = leaf node
 	box3_t bounds; // valid after portalization
+	box3_t visible_bounds;
 	csg_brush_t *volume; // one for each leaf/node
 
 	// nodes only

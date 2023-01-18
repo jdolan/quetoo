@@ -414,7 +414,7 @@ static void CalcNodeBounds(node_t *node) {
 
 	node->bounds = Box3_Null();
 
-	for (portal_t *p = node->portals; p; p = p->next[s]) {
+	for (const portal_t *p = node->portals; p; p = p->next[s]) {
 		s = (p->nodes[1] == node);
 		node->bounds = Box3_Union(node->bounds, Cm_WindingBounds(p->winding));
 	}
@@ -741,12 +741,52 @@ static void MakeFaces_r(node_t *node) {
 /**
  * @brief
  */
+static box3_t CalcNodeVisibleBounds_r(node_t *node) {
+
+	node->visible_bounds = Box3_Null();
+
+	if (node->plane == PLANE_LEAF) {
+
+		int32_t s;
+		for (const portal_t *p = node->portals; p; p = p->next[s]) {
+
+			s = (p->nodes[1] == node);
+
+			const face_t *face = p->face[s];
+			if (!face) {
+				continue; // not a visible portal
+			}
+
+			while (face->merged) {
+				face = face->merged;
+			}
+
+			const box3_t bounds = Cm_WindingBounds(face->w);
+			node->visible_bounds = Box3_Union(node->visible_bounds, bounds);
+		}
+
+		return node->visible_bounds;
+	}
+
+	const box3_t a = CalcNodeVisibleBounds_r(node->children[0]);
+	const box3_t b = CalcNodeVisibleBounds_r(node->children[1]);
+
+	node->visible_bounds = Box3_Union(a, b);
+	return node->visible_bounds;
+}
+
+
+/**
+ * @brief
+ */
 void MakeTreeFaces(tree_t *tree) {
 	Com_Verbose("--- MakeTreeFaces ---\n");
 
 	c_faces = 0;
 
 	MakeFaces_r(tree->head_node);
+
+	CalcNodeVisibleBounds_r(tree->head_node);
 
 	Com_Verbose("%5i faces\n", c_faces);
 }

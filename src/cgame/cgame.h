@@ -738,12 +738,6 @@ typedef struct cg_import_s {
 	void (*InitView)(r_view_t *view);
 
 	/**
-	 * @brief Add an occlusion query to the scene.
-	 * @remarks Occlusion queries must be added in `Cg_PrepareView` and not `Cg_PopulateView`.
-	 */
-	void (*AddOcclusionQuery)(r_view_t *view, const box3_t bounds);
-
-	/**
 	 * @return True if the bounding box is culled or occluded, false otherwise.
 	 */
 	_Bool (*CulludeBox)(const r_view_t *view, const box3_t bounds);

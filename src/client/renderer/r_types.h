@@ -383,13 +383,6 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
- * @brief Light sources per scene.
- * @remarks Lights that are frustum culled or occluded are discarded.
- * @see `MAX_LIGHT_UNIFORMS`
- */
-#define MAX_LIGHTS 1024
-
-/**
  * @brief BSP draw elements, which include all opaque faces of a given material
  * within a particular inline model.
  */
@@ -409,41 +402,62 @@ typedef struct {
 } r_bsp_draw_elements_t;
 
 /**
+ * @brief OpenGL occlusion queries.
+ */
+typedef struct {
+	/**
+	 * @brief The query name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The query bounds.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief Non-zero if the query is available.
+	 */
+	GLint available;
+
+	/**
+	 * @brief Non-zero of the query produced visible fragments.
+	 */
+	GLint result;
+} r_occlusion_query_t;
+
+/**
  * @brief BSP nodes comprise the tree representation of the world.
  */
-struct r_bsp_node_s {
-	// common with leaf
-	int32_t contents; // -1, to differentiate from leafs
-
+typedef struct r_bsp_node_s {
+	int32_t contents;
 	box3_t bounds;
+	box3_t visible_bounds;
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
 
-	// node specific
 	r_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
-};
 
-typedef struct r_bsp_node_s r_bsp_node_t;
+	r_occlusion_query_t query;
+} r_bsp_node_t;
 
 /**
  * @brief BSP leafs terminate the branches of the BSP tree.
+ * @remarks Leafs share a starts-with structure with nodes, so that they may reside in the tree as child nodes.
  */
-struct r_bsp_leaf_s {
-	// common with node
+typedef struct {
 	int32_t contents;
-
 	box3_t bounds;
+	box3_t visible_bounds;
 
 	struct r_bsp_node_s *parent;
 	struct r_bsp_inline_model_s *model;
-};
-
-typedef struct r_bsp_leaf_s r_bsp_leaf_t;
+} r_bsp_leaf_t;
 
 /**
  * @brief The BSP is organized into one or more models (trees). The first model is
@@ -1147,6 +1161,13 @@ typedef struct r_entity_s {
 	int32_t blend_depth;
 } r_entity_t;
 
+/**
+ * @brief Light sources per scene.
+ * @remarks Lights that are frustum culled or occluded are discarded.
+ * @see `MAX_LIGHT_UNIFORMS`
+ */
+#define MAX_LIGHTS 1024
+
 #define MAX_LIGHT_ENTITIES 32
 
 /**
@@ -1224,38 +1245,6 @@ typedef struct {
 	 */
 	GLint index;
 } r_light_t;
-
-#define MAX_OCCLUSION_QUERIES MAX_ENTITIES
-
-/**
- * @brief OpenGL occlusion queries.
- */
-typedef struct {
-	/**
-	 * @brief The query name.
-	 */
-	GLuint name;
-
-	/**
-	 * @brief The query index.
-	 */
-	int32_t index;
-
-	/**
-	 * @brief The query bounds.
-	 */
-	box3_t bounds;
-
-	/**
-	 * @brief
-	 */
-	GLint available;
-
-	/**
-	 * @brief
-	 */
-	GLint result;
-} r_occlusion_query_t;
 
 /**
  * @brief Framebuffer attachments bitmask.
@@ -1427,12 +1416,6 @@ typedef struct {
 	 */
 	r_stain_t stains[MAX_STAINS];
 	int32_t num_stains;
-
-	/**
-	 * @brief The occlusion queries for the current frame.
-	 */
-	r_occlusion_query_t *occlusion_queries[MAX_OCCLUSION_QUERIES];
-	int32_t num_occlusion_queries;
 
 	/**
 	 * @brief The view frustum, for box and sphere culling.

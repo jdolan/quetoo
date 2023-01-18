@@ -105,28 +105,25 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 		return;
 	}
 
-	if (node->contents & CONTENTS_MASK_SOLID) {
+	// project the stain onto the node's plane
+	const r_stain_t projected = {
+		.origin = Vec3_Fmaf(stain->origin, -dist, plane->normal),
+		.radius = stain->radius - fabsf(dist),
+		.color = stain->color
+	};
 
-		// project the stain onto the node's plane
-		const r_stain_t s = {
-			.origin = Vec3_Fmaf(stain->origin, -dist, plane->normal),
-			.radius = stain->radius - fabsf(dist),
-			.color = stain->color
-		};
+	r_bsp_face_t *face = node->faces;
+	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
-		r_bsp_face_t *face = node->faces;
-		for (int32_t i = 0; i < node->num_faces; i++, face++) {
-
-			if (!(face->brush_side->contents & CONTENTS_MASK_SOLID)) {
-				continue;
-			}
-
-			if (face->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
-				continue;
-			}
-
-			R_StainFace(&s, face);
+		if (!(face->brush_side->contents & CONTENTS_MASK_SOLID)) {
+			continue;
 		}
+
+		if (face->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
+			continue;
+		}
+
+		R_StainFace(&projected, face);
 	}
 
 	// recurse down both sides

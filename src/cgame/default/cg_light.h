@@ -63,7 +63,6 @@ typedef struct {
 	 * @brief The time when this light was added.
 	 */
 	uint32_t time;
-
 } cg_light_t;
 
 void Cg_AddLight(const cg_light_t *s);

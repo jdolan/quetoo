@@ -73,7 +73,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		return;
 	}
 
-	box3_t bounds = node->bounds;
+	box3_t bounds = node->visible_bounds;
 
 	if (e) {
 		bounds = Mat4_TransformBounds(e->matrix, bounds);
@@ -112,7 +112,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 			continue;
 		}
 		
-		if (!Box3_Intersects(draw->bounds, node->bounds)) {
+		if (!Box3_Intersects(draw->bounds, node->visible_bounds)) {
 			continue;
 		}
 

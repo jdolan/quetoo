@@ -250,6 +250,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 		out->contents = in->contents;
 		out->bounds = in->bounds;
+		out->visible_bounds = in->visible_bounds;
 	}
 }
 
@@ -267,8 +268,8 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 	for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
 
 		out->contents = CONTENTS_NODE; // differentiate from leafs
-
 		out->bounds = in->bounds;
+		out->visible_bounds = in->visible_bounds;
 
 		out->plane = bsp->planes + in->plane;
 
@@ -289,13 +290,32 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inline_model_t *model) {
-
-	node->parent = parent;
-	node->model = model;
+static void R_DestroyNodeOcclusionQueries(r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
+	}
+
+	R_DestroyOcclusionQuery(&node->query);
+
+	R_DestroyNodeOcclusionQueries(node->children[0]);
+	R_DestroyNodeOcclusionQueries(node->children[1]);
+}
+
+/**
+ * @brief Sets up in-memory relationships between node, parent and model.
+ * @remarks Additionally, occlusion queries are generated from the visible bounds of the node.
+ * The desired occlusion query size is controlled by `r_occlusion_query_size`. Nodes of this size
+ * or greater are selected from the tree using bottom-up recursion.
+ * @return True if an occlusion query was generated for the node.
+ */
+static _Bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
+
+	node->model = model;
+	node->parent = parent;
+
+	if (node->contents != CONTENTS_NODE) {
+		return false;
 	}
 
 	r_bsp_face_t *face = node->faces;
@@ -303,8 +323,25 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inlin
 		face->node = node;
 	}
 
-	R_SetupBspNode(node->children[0], node, model);
-	R_SetupBspNode(node->children[1], node, model);
+	const _Bool a = R_SetupBspNode(model, node, node->children[0]);
+	const _Bool b = R_SetupBspNode(model, node, node->children[1]);
+
+	if (!a || !b) {
+
+		const float size = r_occlusion_query_size->value;
+		if (Box3_Volume(node->visible_bounds) > size * size * size) {
+			if (a) {
+				R_DestroyNodeOcclusionQueries(node->children[0]);
+			}
+			if (b) {
+				R_DestroyNodeOcclusionQueries(node->children[1]);
+			}
+			node->query = R_CreateOcclusionQuery(Box3_Expand(node->visible_bounds, 1.f));
+			return true;
+		}
+	}
+
+	return a || b;
 }
 
 /**
@@ -333,7 +370,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
 
-		R_SetupBspNode(out->head_node, NULL, out);
+		R_SetupBspNode(out, NULL, out->head_node);
 	}
 }
 
@@ -709,6 +746,11 @@ static void R_FreeBspModel(r_media_t *self) {
 	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 		glDeleteBuffers(1, &in->depth_pass_elements_buffer);
 		g_ptr_array_free(in->blend_elements, 1);
+	}
+
+	r_bsp_node_t *node = mod->bsp->nodes;
+	for (int32_t i = 0; i < mod->bsp->num_nodes; i++, node++) {
+		R_DestroyOcclusionQuery(&node->query);
 	}
 }
 
