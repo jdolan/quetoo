@@ -331,12 +331,12 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	}
 
 	if (Cm_EntityValue(entity, "_cone")->parsed & ENTITY_FLOAT) {
-		light->theta = Cm_EntityValue(entity, "_cone")->value;
+		light->cone = Cm_EntityValue(entity, "_cone")->value;
 	} else {
-		light->theta = LIGHT_CONE;
+		light->cone = LIGHT_CONE;
 	}
 
-	light->theta = Radians(light->theta);
+	light->theta = cosf(Radians(light->cone));
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 	g_array_append_val(points, light->origin);
@@ -405,7 +405,8 @@ static light_t *LightForPatch(const patch_t *patch) {
 	light->brush_side = brush_side;
 	light->plane = plane;
 	light->normal = plane->normal;
-	light->theta = Radians(material->cm->light.cone);
+	light->cone = material->cm->light.cone;
+	light->theta = cosf(Radians(light->cone));
 	light->intensity = material->cm->light.intensity;
 	light->shadow = material->cm->light.shadow;
 	light->model = patch->model;
@@ -607,7 +608,8 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	light->brush_side = patch->brush_side;
 	light->plane = lm->plane;
 	light->normal = lm->plane->normal;
-	light->theta = Radians(DEFAULT_LIGHT_CONE);
+	light->cone = DEFAULT_LIGHT_CONE;
+	light->theta = cosf(Radians(light->cone));
 	light->intensity = DEFAULT_LIGHT_INTENSITY;
 	light->model = patch->model;
 
@@ -809,7 +811,7 @@ void EmitLights(void) {
 				out->size = light->size;
 				out->intensity = light->intensity;
 				out->shadow = light->shadow;
-				out->theta = light->theta;
+				out->cone = light->cone;
 				out->bounds = LightBounds(light);
 
 				/*for (guint j = i + 1; j < lights->len; j++) {
@@ -838,7 +840,7 @@ void EmitLights(void) {
 				out->size = light->size;
 				out->intensity = light->intensity;
 				out->shadow = light->shadow;
-				out->theta = light->theta;
+				out->cone = light->cone;
 				out->bounds = LightBounds(light);
 				light->out++;
 				break;

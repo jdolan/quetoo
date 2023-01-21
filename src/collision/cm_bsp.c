@@ -314,7 +314,7 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
 		light->size = LittleFloat(light->size);
 		light->intensity = LittleFloat(light->intensity);
 		light->shadow = LittleFloat(light->shadow);
-		light->theta = LittleFloat(light->theta);
+		light->cone = LittleFloat(light->cone);
 		light->bounds = LittleBounds(light->bounds);
 
 		light++;

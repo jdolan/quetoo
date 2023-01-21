@@ -395,7 +395,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 		out->size = in->size;
 		out->intensity = in->intensity;
 		out->shadow = in->shadow;
-		out->theta = in->theta;
+		out->cone = in->cone;
 		out->bounds = in->bounds;
 	}
 }

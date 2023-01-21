@@ -95,7 +95,7 @@ static void Cg_AddBspLights(void) {
 			.size = l->size,
 			.intensity = l->intensity,
 			.shadow = l->shadow,
-			.theta = l->theta,
+			.cone = l->cone,
 			.bounds = l->bounds,
 		});
 	}
@@ -192,7 +192,6 @@ void Cg_AddLights(void) {
 			.size = 0.f,
 			.intensity = l->intensity,
 			.shadow = DEFAULT_LIGHT_SHADOW,
-			.theta = 0.f,
 			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
 		};
 

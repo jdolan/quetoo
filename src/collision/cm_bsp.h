@@ -367,7 +367,7 @@ typedef struct {
 	float size;
 	float intensity;
 	float shadow;
-	float theta;
+	float cone;
 	box3_t bounds;
 } bsp_light_t;
 

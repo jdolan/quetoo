@@ -554,9 +554,9 @@ typedef struct {
 	float shadow;
 
 	/**
-	 * @brief The light cone radius, for spotlights.
+	 * @brief The light cone for angular attenuation, in degrees.
 	 */
-	float theta;
+	float cone;
 
 	/**
 	 * @brief The light bounds, for frustum and occlusion culling.
@@ -1220,9 +1220,9 @@ typedef struct {
 	float shadow;
 
 	/**
-	 * @brief The light cone angle for spotlights.
+	 * @brief The light cone angle for spotlights, in degrees.
 	 */
-	float theta;
+	float cone;
 
 	/**
 	 * @brief The light bounds.

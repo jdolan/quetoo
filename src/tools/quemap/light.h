@@ -75,7 +75,12 @@ typedef struct light_s {
 	float intensity;
 
 	/**
-	 * @brief The angle, in radians, from the normal where spotlight attenuation occurs.
+	 * @brief The light cone, for spotlights, in degrees.
+	 */
+	float cone;
+
+	/**
+	 * @brief The cosine of the light cone, in radians.
 	 */
 	float theta;
 
