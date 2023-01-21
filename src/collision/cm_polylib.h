@@ -65,7 +65,7 @@ cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w);
 box3_t Cm_WindingBounds(const cm_winding_t *w);
 vec3_t Cm_WindingCenter(const cm_winding_t *w);
 float Cm_WindingArea(const cm_winding_t *w);
-float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p);
+float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p, vec3_t *out);
 cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist);
 cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face);
 cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_side_t *brush_side);

@@ -449,12 +449,11 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin);
+	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin, &dir);
 	if (dist > light->radius) {
 		return;
 	}
 
-	vec3_t dir = Vec3_Direction(light->origin, luxel->origin);
 	const float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot < -.5f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
@@ -505,6 +504,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
  * @brief
  */
 static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+	vec3_t dir;
 
 	if (light->plane == lightmap->plane) {
 		return;
@@ -518,12 +518,11 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		return;
 	}
 
-	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin);
+	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin, &dir);
 	if (dist > light->radius) {
 		return;
 	}
 
-	vec3_t dir = Vec3_Direction(light->origin, luxel->origin);
 	float dot = Vec3_Dot(dir, luxel->normal);
 	if (dot < -.5f) {
 		if (lightmap->brush_side->surface & SURF_MASK_BLEND) {
