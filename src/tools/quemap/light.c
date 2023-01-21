@@ -397,7 +397,7 @@ static light_t *LightForPatch(const patch_t *patch) {
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
 	light->type = LIGHT_PATCH;
-	light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
+	light->atten = material->cm->light.atten;
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
 	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, plane->normal);
 	light->winding = Cm_CopyWinding(patch->winding);
@@ -599,7 +599,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
 	light->type = LIGHT_INDIRECT;
-	light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
+	light->atten = DEFAULT_LIGHT_ATTEN;
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
 	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, lm->plane->normal);
 	light->winding = Cm_CopyWinding(patch->winding);

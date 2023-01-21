@@ -869,18 +869,29 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 		if (!g_strcmp0(token, "light") || !g_strcmp0(token, "light.radius")) {
 
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1) != 1) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.radius, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light radius specified");
 			} else if (m->light.radius < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light radius, must be > 0.0");
 				m->light.radius = DEFAULT_LIGHT_RADIUS;
 			}
 
+			m->light.atten = m->light.atten ?: DEFAULT_LIGHT_ATTEN;
 			m->light.intensity = m->light.intensity ?: DEFAULT_LIGHT_INTENSITY;
 			m->light.shadow = m->light.shadow ?: DEFAULT_LIGHT_SHADOW;
 			m->light.cone = m->light.cone ?: DEFAULT_LIGHT_CONE;
 
 			m->surface |= SURF_LIGHT;
+		}
+
+		if (!g_strcmp0(token, "light.atten")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_INT32, &m->light.atten, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light atten specified");
+			} else if (m->light.atten < 1) {
+				Cm_MaterialWarn(path, &parser, "Invalid light atten, must be > 0");
+				m->light.atten = DEFAULT_LIGHT_ATTEN;
+			}
 		}
 
 		if (!g_strcmp0(token, "light.intensity")) {
@@ -907,7 +918,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.cone, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light cone specified");
-			} else if (m->light.cone < 0.f) {
+			} else if (m->light.cone <= 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light cone, must be > 0.0");
 				m->light.cone = DEFAULT_LIGHT_CONE;
 			}
@@ -1298,11 +1309,11 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tsurface \"%s\"\n", Cm_UnparseSurface(material->surface));
 	}
 
-	if (material->alpha_test) {
+	if (material->alpha_test != DEFAULT_ALPHA_TEST) {
 		Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
 	}
 
-	if (material->patch_size) {
+	if (material->patch_size != DEFAULT_PATCH_SIZE) {
 		Fs_Print(file, "\tpatch_size %g\n", material->patch_size);
 	}
 
@@ -1311,15 +1322,19 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tfootsteps %s\n", material->footsteps.name);
 	}
 
-	if (material->light.radius) {
+	if (material->light.atten != DEFAULT_LIGHT_ATTEN) {
+		Fs_Print(file, "\tlight.atten %d\n", material->light.atten);
+	}
+
+	if (material->light.radius != DEFAULT_LIGHT_RADIUS) {
 		Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
 	}
 
-	if (material->light.intensity) {
+	if (material->light.intensity != DEFAULT_LIGHT_INTENSITY) {
 		Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
 	}
 
-	if (material->light.cone) {
+	if (material->light.cone != DEFAULT_LIGHT_CONE) {
 		Fs_Print(file, "\tlight.cone %g\n", material->light.cone);
 	}
 

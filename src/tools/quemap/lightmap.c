@@ -473,16 +473,33 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 		const float thresh = cosf(light->theta);
 		const float smooth = .125f;
+	float atten = 1.f;
+	switch (light->atten) {
+		case LIGHT_ATTEN_NONE:
+			break;
+		case LIGHT_ATTEN_LINEAR:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten *= atten;
+			break;
+	}
 
 		cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
+	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+	if (dot < light->theta) {
+		atten *= Maxf(0.f, dot);
+	}
 
 		if (cutoff <= 0.f) {
 			return;
 		}
+	if (atten <= 0.f) {
+		return;
 	}
 
-	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float lumens = atten * atten * cutoff * scale;
+	const float lumens = atten * scale;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
