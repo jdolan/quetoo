@@ -876,10 +876,11 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				m->light.radius = DEFAULT_LIGHT_RADIUS;
 			}
 
-			m->light.atten = m->light.atten ?: DEFAULT_LIGHT_ATTEN;
-			m->light.intensity = m->light.intensity ?: DEFAULT_LIGHT_INTENSITY;
-			m->light.shadow = m->light.shadow ?: DEFAULT_LIGHT_SHADOW;
-			m->light.cone = m->light.cone ?: DEFAULT_LIGHT_CONE;
+			m->light.atten = DEFAULT_LIGHT_ATTEN;
+			m->light.intensity = DEFAULT_LIGHT_INTENSITY;
+			m->light.shadow = DEFAULT_LIGHT_SHADOW;
+			m->light.cone = DEFAULT_LIGHT_CONE;
+			m->light.falloff = DEFAULT_LIGHT_FALLOFF;
 
 			m->surface |= SURF_LIGHT;
 		}
@@ -921,6 +922,16 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			} else if (m->light.cone <= 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light cone, must be > 0.0");
 				m->light.cone = DEFAULT_LIGHT_CONE;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.falloff")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.falloff, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light falloff specified");
+			} else if (m->light.falloff < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light falloff, must be >= 0.0");
+				m->light.falloff = DEFAULT_LIGHT_FALLOFF;
 			}
 		}
 
@@ -1336,6 +1347,10 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 	if (material->light.cone != DEFAULT_LIGHT_CONE) {
 		Fs_Print(file, "\tlight.cone %g\n", material->light.cone);
+	}
+
+	if (material->light.falloff != DEFAULT_LIGHT_FALLOFF) {
+		Fs_Print(file, "\tlight.falloff %g\n", material->light.falloff);
 	}
 
 	// write stages

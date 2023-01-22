@@ -255,6 +255,11 @@ typedef struct {
 	 * @brief The light cone for angular attenuation, in degrees.
 	 */
 	float cone;
+
+	/**
+	 * @brief The light angular attenuation falloff, in degrees.
+	 */
+	float falloff;
 } cm_light_t;
 
 #define DEFAULT_ROUGHNESS 1.f
@@ -267,6 +272,7 @@ typedef struct {
 #define DEFAULT_LIGHT_INTENSITY 1.f
 #define DEFAULT_LIGHT_SHADOW 1.f
 #define DEFAULT_LIGHT_CONE 75.f
+#define DEFAULT_LIGHT_FALLOFF .333f
 #define DEFAULT_PATCH_SIZE 128
 
 /**

@@ -96,6 +96,7 @@ static void Cg_AddBspLights(void) {
 			.intensity = l->intensity,
 			.shadow = l->shadow,
 			.cone = l->cone,
+			.falloff = l->falloff,
 			.bounds = l->bounds,
 		});
 	}

@@ -31,6 +31,7 @@
 #define LIGHT_ANGLE_UP -1.f
 #define LIGHT_ANGLE_DOWN -2.f
 #define LIGHT_CONE 22.5f
+#define LIGHT_FALLOFF DEFAULT_LIGHT_FALLOFF
 #define LIGHT_SUN_DIST 1024.f
 #define LIGHT_SIZE_SUN 32.f
 #define LIGHT_SIZE_STEP 16.f
@@ -75,14 +76,24 @@ typedef struct light_s {
 	float intensity;
 
 	/**
-	 * @brief The light cone, for spotlights, in degrees.
+	 * @brief The light cone for angular attenuation in degrees.
 	 */
 	float cone;
 
 	/**
-	 * @brief The cosine of the light cone, in radians.
+	 * @brief The angular attenuation interval in degrees.
+	 */
+	float falloff;
+
+	/**
+	 * @brief The cosine of the light cone.
 	 */
 	float theta;
+
+	/**
+	 * @brief The cosine of the light falloff.
+	 */
+	float phi;
 
 	/**
 	 * @brief The light shadow scalar.

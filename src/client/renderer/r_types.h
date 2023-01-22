@@ -559,6 +559,11 @@ typedef struct {
 	float cone;
 
 	/**
+	 * @brief The angular attenuation falloff, in degrees.
+	 */
+	float falloff;
+
+	/**
 	 * @brief The light bounds, for frustum and occlusion culling.
 	 */
 	box3_t bounds;
@@ -1220,9 +1225,14 @@ typedef struct {
 	float shadow;
 
 	/**
-	 * @brief The light cone angle for spotlights, in degrees.
+	 * @brief The light cone for angular attenuation, in degrees.
 	 */
 	float cone;
+
+	/**
+	 * @brief The light angular attenuation falloff, in degrees.
+	 */
+	float falloff;
 
 	/**
 	 * @brief The light bounds.
