@@ -559,7 +559,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
-		.radius = 100.f,
+		.radius = 180.f,
 		.color = Vec3(.8f, .5f, .4f),
 		.intensity = .4f,
 	});

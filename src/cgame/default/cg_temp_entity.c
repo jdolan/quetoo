@@ -658,7 +658,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 150.0,
+		.radius = 250.0,
 		.color = Vec3(0.8, 0.5, 0.4),
 		.intensity = .5f,
 		.decay = 1000
