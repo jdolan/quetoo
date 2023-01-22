@@ -148,8 +148,9 @@ static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 		light->color = ambient;
 		light->radius = LIGHT_RADIUS_AMBIENT;
 		light->intensity = LIGHT_INTENSITY;
-		light->color = Vec3_Scale(light->color, light->intensity * ambient_intensity);
 		light->bounds = Box3_Null();
+
+		light->intensity *= ambient_intensity;
 	}
 
 	return light;
@@ -169,6 +170,8 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->bounds = Box3_Null();
 
+	light->intensity *= sun_intensity;
+
 	const int32_t num = Cm_EntityNumber(entity);
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
@@ -179,8 +182,6 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 		light->intensity = Cm_EntityValue(entity, "light")->value / 255.f;
 		Mon_SendSelect(MON_WARN, num, 0, "light_sun key light is deprecated. Use _intensity.");
 	}
-
-	light->color = Vec3_Scale(light->color, light->intensity * sun_intensity);
 
 	if (Cm_EntityValue(entity, "_shadow")->parsed & ENTITY_FLOAT) {
 		light->shadow = Cm_EntityValue(entity, "_shadow")->value;
@@ -240,7 +241,7 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 		light->color = LIGHT_COLOR;
 	}
 
-	light->color = Vec3_Scale(light->color, light->intensity * light_intensity);
+	light->intensity *= light_intensity;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -299,7 +300,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 		light->color = LIGHT_COLOR;
 	}
 
-	light->color = Vec3_Scale(light->color, light->intensity * light_intensity);
+	light->intensity *= light_intensity;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -428,7 +429,7 @@ static light_t *LightForPatch(const patch_t *patch) {
 		light->color = Vec3_Scale(light->color, 1.f / max);
 	}
 
-	light->color = Vec3_Scale(light->color, light->intensity * patch_intensity);
+	light->intensity *= patch_intensity;
 
 	light->radius = brush_side->value ?: material->cm->light.radius;
 
@@ -625,6 +626,8 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	light->intensity = DEFAULT_LIGHT_INTENSITY;
 	light->model = patch->model;
 
+	light->intensity *= indirect_intensity;
+
 	vec2_t patch_mins = Vec2_Mins();
 	vec2_t patch_maxs = Vec2_Maxs();
 
@@ -669,7 +672,6 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	}
 
 	light->color = Vec3_Scale(lightmap, 1.f / (w * h));
-	light->color = Vec3_Scale(light->color, light->intensity * indirect_intensity);
 	light->color = Vec3_Multiply(light->color, GetMaterialColor(lm->brush_side->material));
 
 	light->radius = Maxf(patch_size, light->size * Vec3_Length(light->color));

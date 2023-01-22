@@ -207,7 +207,7 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 			break;
 	}
 
-	const float lumens = atten * scale;
+	const float lumens = atten * scale * light->intensity;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -219,7 +219,7 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
 			.color = Vec3_Scale(light->color, lumens),
-			.direction = Vec3_Scale(dir, lumens * light->intensity)
+			.direction = Vec3_Scale(dir, lumens)
 		});
 		break;
 	}
@@ -237,19 +237,11 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 		return;
 	}
 
-	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	const float thresh = cosf(light->theta);
-	const float smooth = 0.03f;
-	const float cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
-
-	if (cutoff <= 0.f) {
-		return;
-	}
-
-	float atten = 1.f;
+	float atten;
 
 	switch (light->atten) {
 		case LIGHT_ATTEN_NONE:
+			atten = 1.f;
 			break;
 		case LIGHT_ATTEN_LINEAR:
 			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
@@ -260,7 +252,13 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 			break;
 	}
 
-	const float lumens = cutoff * atten * scale;
+	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+	atten *= Smoothf(dot, light->theta - light->phi, light->theta + light->phi);
+
+	const float lumens = atten * scale * light->intensity;
+	if (lumens <= 0.f) {
+		return;
+	}
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -272,7 +270,7 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
 			.color = Vec3_Scale(light->color, lumens),
-			.direction = Vec3_Scale(dir, lumens * light->intensity)
+			.direction = Vec3_Scale(dir, lumens)
 		});
 		break;
 	}
@@ -298,17 +296,28 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 		return;
 	}
 
-	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	const float thresh = cosf(light->theta);
-	const float smooth = 0.03f;
-	const float cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
+	float atten;
 
-	if (cutoff <= 0.f) {
-		return;
+	switch (light->atten) {
+		case LIGHT_ATTEN_NONE:
+			atten = 1.f;
+			break;
+		case LIGHT_ATTEN_LINEAR:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten *= atten;
+			break;
 	}
 
-	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float lumens = atten * atten * cutoff * scale;
+	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+	atten *= Smoothf(dot, light->theta - light->phi, light->theta + light->phi);
+
+	const float lumens = atten * scale * light->intensity;
+	if (lumens <= 0.f) {
+		return;
+	}
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -320,7 +329,7 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
 			.color = Vec3_Scale(light->color, lumens),
-			.direction = Vec3_Scale(dir, lumens * light->intensity)
+			.direction = Vec3_Scale(dir, lumens)
 		});
 		break;
 	}
@@ -346,17 +355,28 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 		return;
 	}
 
-	const float cone_dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	const float thresh = cosf(light->theta);
-	const float smooth = 0.03f;
-	const float cutoff = Smoothf(cone_dot, thresh - smooth, thresh + smooth);
+	float atten;
 
-	if (cutoff <= 0.f) {
-		return;
+	switch (light->atten) {
+		case LIGHT_ATTEN_NONE:
+			atten = 1.f;
+			break;
+		case LIGHT_ATTEN_LINEAR:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten *= atten;
+			break;
 	}
 
-	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-	const float lumens = atten * atten * cutoff * scale;
+	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+	atten *= Smoothf(dot, light->theta - light->phi, light->theta + light->phi);
+
+	const float lumens = atten * scale * light->intensity;
+	if (lumens <= 0.f) {
+		return;
+	}
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -368,7 +388,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
 			.color = Vec3_Scale(light->color, lumens),
-			.direction = Vec3_Zero()
+			.direction = luxel->normal,
 		});
 		break;
 	}
