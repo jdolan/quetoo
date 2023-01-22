@@ -580,12 +580,9 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 void DirectLightmap(int32_t face_num) {
 
 	const vec3_t offsets[] = {
-		Vec3(+0.f, +0.f, 0.f / 273.f),
-		Vec3(-2.f, -2.f, 1.f / 273.f), Vec3(-1.f, -2.f,  4.f / 273.f), Vec3(+0.f, -2.f,  7.f / 273.f), Vec3(+1.f, -2.f,  4.f / 273.f), Vec3(+2.f, -2.f, 1.f / 273.f),
-		Vec3(-2.f, -1.f, 4.f / 273.f), Vec3(-1.f, -1.f, 16.f / 273.f), Vec3(+0.f, -1.f, 26.f / 273.f), Vec3(+1.f, -1.f, 16.f / 273.f), Vec3(+2.f, -1.f, 4.f / 273.f),
-		Vec3(-2.f, +0.f, 7.f / 273.f), Vec3(-1.f, +0.f, 26.f / 273.f), Vec3(+0.f, +0.f, 41.f / 273.f), Vec3(+1.f, +0.f, 26.f / 273.f), Vec3(+2.f, +0.f, 7.f / 273.f),
-		Vec3(-2.f, +1.f, 4.f / 273.f), Vec3(-1.f, +1.f, 16.f / 273.f), Vec3(+0.f, +1.f, 26.f / 273.f), Vec3(+1.f, +1.f, 16.f / 273.f), Vec3(+2.f, +1.f, 4.f / 273.f),
-		Vec3(-2.f, +2.f, 1.f / 273.f), Vec3(-1.f, +2.f,  4.f / 273.f), Vec3(+0.f, +2.f,  7.f / 273.f), Vec3(+1.f, +2.f,  4.f / 273.f), Vec3(+2.f, +2.f, 1.f / 273.f),
+		Vec3(+0.0f, +0.0f, 0.195346f), Vec3(-1.0f, -1.0f, 0.077847f), Vec3(+0.0f, -1.0f, 0.123317f),
+		Vec3(+1.0f, -1.0f, 0.077847f), Vec3(-1.0f, +0.0f, 0.123317f), Vec3(+1.0f, +0.0f, 0.123317f),
+		Vec3(-1.0f, +1.0f, 0.077847f), Vec3(+0.0f, +1.0f, 0.123317f), Vec3(+1.0f, +1.0f, 0.077847f),
 	};
 
 	const lightmap_t *lm = &lightmaps[face_num];
