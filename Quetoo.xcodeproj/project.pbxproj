@@ -5036,7 +5036,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/ncurses/6.3/lib,
+					/usr/local/Cellar/ncurses/6.4/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5047,7 +5047,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/ncurses/6.3/lib,
+					/usr/local/Cellar/ncurses/6.4/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5118,7 +5118,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/ncurses/6.3/lib,
+					/usr/local/Cellar/ncurses/6.4/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5129,7 +5129,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/ncurses/6.3/lib,
+					/usr/local/Cellar/ncurses/6.4/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
