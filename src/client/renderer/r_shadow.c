@@ -124,6 +124,14 @@ static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *no
 	const r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
+		if (face->brush_side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
+			continue;
+		}
+
+		if (face->brush_side->surface & SURF_MASK_TRANSLUCENT) {
+			continue;
+		}
+
 		if (!Box3_Intersects(light->bounds, face->bounds)) {
 			continue;
 		}
