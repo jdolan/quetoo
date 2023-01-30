@@ -387,8 +387,7 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, lumens),
-			.direction = luxel->normal,
+			.color = Vec3_Scale(light->color, lumens)
 		});
 		break;
 	}
