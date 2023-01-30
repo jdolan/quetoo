@@ -182,8 +182,9 @@ void BuildLightmaps(void) {
 }
 
 /**
- * @brief For Phong-shaded luxels, calculate the interpolated normal vector using
- * barycentric coordinates over the face's triangles.
+ * @brief Calculate the Phong-interpolated normal vector for a given luxel using barycentric
+ * coordinates. This reqiures first finding the triangle within the face that best encloses
+ * the luxel origin. The triangles are expanded to help with luxels residing along edges.
  */
 static vec3_t LuxelNormal(const lightmap_t *lm, const vec3_t origin) {
 
@@ -239,7 +240,8 @@ static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soff
 
 	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
 	l->normal = LuxelNormal(lm, l->origin);
-	l->origin = Vec3_Fmaf(l->origin, ON_EPSILON, lm->plane->normal);
+	l->origin = Vec3_Fmaf(l->origin, 2.f, l->normal);
+	l->dist = Vec3_Dot(l->origin, l->normal);
 
 	return Light_PointContents(l->origin, lm->model->head_node);
 }
@@ -426,6 +428,10 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 	}
 
 	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -luxel_size) {
+		return;
+	}
+
+	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -luxel_size) {
 		return;
 	}
 
