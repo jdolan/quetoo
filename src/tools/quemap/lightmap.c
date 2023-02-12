@@ -764,7 +764,15 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 
 	lumen_t *diffuse = luxel->diffuse;
 	for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
+
+		float a = Vec3_Length(diffuse->color);
+
 		diffuse->color = ColorFilter(diffuse->color);
+
+		float b = Vec3_Length(diffuse->color);
+
+		// ensure that brightness affects directional intensity too
+		diffuse->direction = Vec3_Scale(diffuse->direction, 1.f + b - a);
 
 		// lerp the direction with the normal, according to its intensity
 		const float intensity = Clampf(Vec3_Length(diffuse->direction), 0.f, 1.f);
