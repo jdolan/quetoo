@@ -431,30 +431,29 @@ static void LightWorld(void) {
 
 	if (saturation == 1.f) {
 		saturation = Cm_EntityValue(e, "saturation")->value ?: saturation;
-
 	}
 
 	if (contrast == 1.f) {
 		contrast = Cm_EntityValue(e, "contrast")->value ?: contrast;
 	}
 
-	if (ambient_intensity == LIGHT_INTENSITY) {
+	if (ambient_intensity == 1.f) {
 		ambient_intensity = Cm_EntityValue(e, "ambient_intensity")->value ?: ambient_intensity;
 	}
 
-	if (sun_intensity == LIGHT_INTENSITY) {
+	if (sun_intensity == 1.f) {
 		sun_intensity = Cm_EntityValue(e, "sun_intensity")->value ?: sun_intensity;
 	}
 
-	if (light_intensity == LIGHT_INTENSITY) {
+	if (light_intensity == 1.f) {
 		light_intensity = Cm_EntityValue(e, "light_intensity")->value ?: light_intensity;
 	}
 
-	if (patch_intensity == LIGHT_INTENSITY) {
+	if (patch_intensity == 1.f) {
 		patch_intensity = Cm_EntityValue(e, "patch_intensity")->value ?: patch_intensity;
 	}
 
-	if (indirect_intensity == LIGHT_INTENSITY) {
+	if (indirect_intensity == 1.f) {
 		indirect_intensity = Cm_EntityValue(e, "indirect_intensity")->value ?: indirect_intensity;
 	}
 
