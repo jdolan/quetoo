@@ -59,14 +59,14 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.name);
 
 	if (attachments & ATTACHMENT_COLOR) {
-		framebuffer.color_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-		framebuffer.color_attachment_copy = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+		framebuffer.color_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+		framebuffer.color_attachment_copy = R_CreateFramebufferTexture(&framebuffer, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.color_attachment, 0);
 	}
 
 	if (attachments & ATTACHMENT_BLOOM) {
-		framebuffer.bloom_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-		framebuffer.bloom_attachment_copy = R_CreateFramebufferTexture(&framebuffer, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+		framebuffer.bloom_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+		framebuffer.bloom_attachment_copy = R_CreateFramebufferTexture(&framebuffer, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, framebuffer.bloom_attachment, 0);
 	}
 
