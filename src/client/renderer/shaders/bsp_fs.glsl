@@ -77,6 +77,13 @@ vec4 sample_lightmap(int index) {
 /**
  * @brief
  */
+vec4 sample_lightgrid(sampler3D texture_lightgrid) {
+	return texture(texture_lightgrid, vertex.lightgrid);
+}
+
+/**
+ * @brief
+ */
 vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
 	return diffuse * fragment.specularmap.rgb * blinn(fragment.normalmap, light_dir, fragment.view_dir, fragment.specularmap.w);
 }
@@ -356,16 +363,16 @@ void main(void) {
 
 		fragment.ambient = vec3(0.0), fragment.diffuse = vec3(0.0), fragment.caustics = vec3(0.0), fragment.specular = vec3(0.0);
 		if (entity == 0) {
-			fragment.ambient = sample_lightmap(0).rgb;
-			fragment.ambient *= modulate * max(0.0, dot(vertex.normal, fragment.normalmap));
+			fragment.ambient = sample_lightmap(0).rgb * modulate;
+			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));
 
-			vec3 diffuse0 = sample_lightmap(1).rgb;
+			vec3 diffuse0 = sample_lightmap(1).rgb * modulate;
 			vec3 direction0 = normalize(tbn * normalize(sample_lightmap(2).xyz * 2.0 - 1.0));
-			diffuse0 *= modulate * max(0.0, dot(direction0, fragment.normalmap));
+			diffuse0 *= max(0.0, dot(direction0, fragment.normalmap));
 
-			vec3 diffuse1 = sample_lightmap(3).rgb;
+			vec3 diffuse1 = sample_lightmap(3).rgb * modulate;
 			vec3 direction1 = normalize(tbn * normalize(sample_lightmap(4).xyz * 2.0 - 1.0));
-			diffuse1 *= modulate * max(0.0, dot(direction1, fragment.normalmap));
+			diffuse1 *= max(0.0, dot(direction1, fragment.normalmap));
 
 			fragment.diffuse += diffuse0 + diffuse1;
 
@@ -375,18 +382,18 @@ void main(void) {
 
 			fragment.caustics = sample_lightmap(5).rgb;
 		} else {
-			fragment.ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
-			fragment.ambient *= modulate * max(0.0, dot(vertex.normal, fragment.normalmap));
+			fragment.ambient = sample_lightgrid(texture_lightgrid_ambient).rgb * modulate;
+			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));
 
-			fragment.diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
-			vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
+			fragment.diffuse = sample_lightgrid(texture_lightgrid_diffuse).rgb * modulate;
+			vec3 direction = sample_lightgrid(texture_lightgrid_direction).xyz;
 			direction = normalize((view * model * vec4(normalize(direction * 2.0 - 1.0), 0.0)).xyz);
-			fragment.diffuse *= modulate * max(0.0, dot(direction, fragment.normalmap));
+			fragment.diffuse *= max(0.0, dot(direction, fragment.normalmap));
 
 			fragment.specular += blinn_phong(fragment.diffuse, direction);
 			fragment.specular += blinn_phong(fragment.ambient, vertex.normal);
 
-			fragment.caustics = texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
+			fragment.caustics = sample_lightgrid(texture_lightgrid_caustics).rgb;
 		}
 
 		caustic_light(vertex.model, fragment.caustics, fragment.ambient, fragment.diffuse);
