@@ -141,9 +141,19 @@ typedef struct {
 	GLenum target;
 
 	/**
-	 * @brief The pixel format, typically GL_RGB or GL_RGBA.
+	 * @brief The internal pixel format, typically `GL_RGB` or `GL_RGBA`, but may be a sized value.
+	 */
+	GLenum internal_format;
+
+	/**
+	 * @brief The pixel format, typically `GL_RGB` or `GL_RGBA`.
 	 */
 	GLenum format;
+
+	/**
+	 * @brief The pixel data type, typically `GL_UNSIGNED_BYTE`.
+	 */
+	GLenum pixel_type;
 
 	/**
 	 * @brief The texture name.

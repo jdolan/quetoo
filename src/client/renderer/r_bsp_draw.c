@@ -788,7 +788,9 @@ void R_InitBspProgram(void) {
 	r_bsp_program.warp_image->width = r_bsp_program.warp_image->height = WARP_IMAGE_SIZE;
 	r_bsp_program.warp_image->type = IT_PROGRAM;
 	r_bsp_program.warp_image->target = GL_TEXTURE_2D;
+	r_bsp_program.warp_image->internal_format = GL_RGBA;
 	r_bsp_program.warp_image->format = GL_RGBA;
+	r_bsp_program.warp_image->pixel_type = GL_UNSIGNED_BYTE;
 
 	byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
 
@@ -801,7 +803,7 @@ void R_InitBspProgram(void) {
 		}
 	}
 
-	R_UploadImage(r_bsp_program.warp_image, GL_TEXTURE_2D, (byte *) data);
+	R_UploadImage(r_bsp_program.warp_image, (byte *) data);
 
 	R_GetError(NULL);
 }

@@ -230,7 +230,9 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 	material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), R_MEDIA_IMAGE);
 	material->texture->type = IT_MATERIAL;
 	material->texture->target = GL_TEXTURE_2D;
+	material->texture->internal_format = GL_RGBA;
 	material->texture->format = GL_RGBA;
+	material->texture->pixel_type = GL_UNSIGNED_BYTE;
 
 	R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 
@@ -314,7 +316,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			memcpy(data + 2 * layer_size, specularmap->pixels, layer_size);
 			memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
-			R_UploadImage(material->texture, material->texture->target, data);
+			R_UploadImage(material->texture, data);
 
 			free(data);
 
@@ -325,7 +327,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			break;
 
 		default:
-			R_UploadImage(material->texture, material->texture->target, diffusemap->pixels);
+			R_UploadImage(material->texture, diffusemap->pixels);
 			break;
 	}
 

@@ -195,24 +195,6 @@ void R_Screenshot_f(void) {
 }
 
 /**
- * @brief
- */
-static GLenum R_GetInternalImageFormat(const r_image_t *image) {
-
-	switch (image->format) {
-		case GL_RED:
-			return GL_R8;
-		case GL_RGBA:
-			return GL_RGBA8;
-		case GL_RGB:
-			return GL_RGB8;
-		default:
-			Com_Error(ERROR_DROP, "Unsupported format %d\n", image->format);
-
-	}
-}
-
-/**
  * @brief Creates the base image state for the image.
  */
 void R_SetupImage(r_image_t *image) {
@@ -263,11 +245,10 @@ void R_SetupImage(r_image_t *image) {
 			}
 		}
 		
-		const GLenum internal_format = R_GetInternalImageFormat(image);
 		if (image->depth) {
-			glTexStorage3D(image->target, levels, internal_format, image->width, image->height, image->depth);
+			glTexStorage3D(image->target, levels, image->internal_format, image->width, image->height, image->depth);
 		} else {
-			glTexStorage2D(image->target, levels, internal_format, image->width, image->height);
+			glTexStorage2D(image->target, levels, image->internal_format, image->width, image->height);
 		}
 	}
 
@@ -279,10 +260,10 @@ void R_SetupImage(r_image_t *image) {
 /**
  * @brief Uploads the given pixel data to the specified image and target.
  * @param image The image.
- * @param target The target, which may be different than the image's bind target.
+ * @param target The upload target, which may be different from the image's bind target.
  * @param data The pixel data.
  */
-void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
+void R_UploadImageTarget(r_image_t *image, GLenum target, void *data) {
 
 	assert(image);
 	assert(target);
@@ -296,17 +277,15 @@ void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 
 	if (r_texture_storage->integer && GLAD_GL_ARB_texture_storage) {
 		if (image->depth) {
-			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, GL_UNSIGNED_BYTE, data);
+			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, image->pixel_type, data);
 		} else {
-			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, GL_UNSIGNED_BYTE, data);
+			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, image->pixel_type, data);
 		}
 	} else {
-		const GLenum internal_format = R_GetInternalImageFormat(image);
-
 		if (image->depth) {
-			glTexImage3D(target, 0, internal_format, image->width, image->height, image->depth, 0, image->format, GL_UNSIGNED_BYTE, data);
+			glTexImage3D(target, 0, image->internal_format, image->width, image->height, image->depth, 0, image->format, image->pixel_type, data);
 		} else {
-			glTexImage2D(target, 0, internal_format, image->width, image->height, 0, image->format, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(target, 0, image->internal_format, image->width, image->height, 0, image->format, image->pixel_type, data);
 		}
 	}
 
@@ -316,6 +295,17 @@ void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 
 	R_GetError(image->media.name);
 }
+
+/**
+ * @brief Uploads the given pixel data to the specified image.
+ * @param image The image.
+ * @param data The pixel data.
+ */
+void R_UploadImage(r_image_t *image, void *data) {
+
+	R_UploadImageTarget(image, image->target, data);
+}
+
 
 /**
  * @brief Retain event listener for images.
@@ -382,11 +372,12 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	image->type = type;
 
 	if (type == IT_CUBEMAP) {
-		image->target = GL_TEXTURE_CUBE_MAP;
-		image->format = GL_RGB;
-		
 		image->width = surface->w / 4;
 		image->height = surface->h / 3;
+		image->target = GL_TEXTURE_CUBE_MAP;
+		image->internal_format = GL_RGB;
+		image->format = GL_RGB;
+		image->pixel_type = GL_UNSIGNED_BYTE;
 
 		// right left front back up down
 		const vec2s_t offsets[] = {
@@ -433,7 +424,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 				}
 			}
 
-			R_UploadImage(image, target, side->pixels);
+			R_UploadImageTarget(image, target, side->pixels);
 
 			SDL_FreeSurface(side);
 		}
@@ -441,9 +432,11 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 		image->width = surface->w;
 		image->height = surface->h;
 		image->target = GL_TEXTURE_2D;
+		image->internal_format = GL_RGBA;
 		image->format = GL_RGBA;
+		image->pixel_type = GL_UNSIGNED_BYTE;
 
-		R_UploadImage(image, image->target, surface->pixels);
+		R_UploadImage(image, surface->pixels);
 	}
 		
 	SDL_FreeSurface(surface);

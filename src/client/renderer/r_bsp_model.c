@@ -423,7 +423,9 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->atlas->height = out->width;
 	out->atlas->depth = BSP_LIGHTMAP_LAST;
 	out->atlas->target = GL_TEXTURE_2D_ARRAY;
+	out->atlas->internal_format = GL_RGB;
 	out->atlas->format = GL_RGB;
+	out->atlas->pixel_type = GL_UNSIGNED_BYTE;
 
 	const size_t layer_size = out->width * out->width * BSP_LIGHTMAP_BPP;
 
@@ -456,7 +458,7 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 		}
 	}
 
-	R_UploadImage(out->atlas, GL_TEXTURE_2D_ARRAY, data);
+	R_UploadImage(out->atlas, data);
 
 	Mem_Free(data);
 }
@@ -538,16 +540,20 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 		size_t layer_size;
 		switch (i) {
 			default:
+				texture->internal_format = GL_RGB;
 				texture->format = GL_RGB;
 				layer_size = luxels * BSP_LIGHTGRID_BPP;
 				break;
 			case BSP_LIGHTGRID_FOG:
+				texture->internal_format = GL_RGBA;
 				texture->format = GL_RGBA;
 				layer_size = luxels * BSP_FOG_BPP;
 				break;
 		}
 
-		R_UploadImage(texture, texture->target, data);
+		texture->pixel_type = GL_UNSIGNED_BYTE;
+
+		R_UploadImage(texture, data);
 
 		out->textures[i] = texture;
 
