@@ -447,11 +447,13 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 							*out_color = Color32_Color(*in_color);
 							break;
 						case BSP_LIGHTMAP_DIRECTION_0:
-						case BSP_LIGHTMAP_DIRECTION_1:
-							*out_color = Color4fv(Vec4bv(in_color->rgba));
-							assert(out_color->r >= -1.f && out_color->r <= 1.f);
-							assert(out_color->g >= -1.f && out_color->g <= 1.f);
-							assert(out_color->b >=  0.f && out_color->b <= 1.f);
+						case BSP_LIGHTMAP_DIRECTION_1: {
+							const vec4_t unclamped = Vec4bv(in_color->rgba);
+							out_color->r = unclamped.x;
+							out_color->g = unclamped.y;
+							out_color->b = unclamped.z;
+							out_color->a = unclamped.w;
+						}
 							break;
 						default:
 							*out_color = Color32_RGBE(*in_color);
@@ -563,8 +565,13 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 							case BSP_LIGHTGRID_FOG:
 								*out_color = Color32_Color(*in_color);
 								break;
-							case BSP_LIGHTGRID_DIRECTION:
-								*out_color = Color4fv(Vec4bv(in_color->rgba));
+							case BSP_LIGHTGRID_DIRECTION: {
+								const vec4_t unclamped = Vec4bv(in_color->rgba);
+								out_color->r = unclamped.x;
+								out_color->g = unclamped.y;
+								out_color->b = unclamped.z;
+								out_color->a = unclamped.w;
+							}
 								break;
 							default:
 								*out_color = Color32_RGBE(*in_color);
