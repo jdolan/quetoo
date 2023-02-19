@@ -59,13 +59,11 @@ vec3_t ColorNormalize(const vec3_t in) {
  * @brief Applies brightness, saturation and contrast to the specified input color.
  */
 vec3_t ColorFilter(const vec3_t in) {
-	const vec3_t luminosity = Vec3(0.2125f, 0.7154f, 0.0721f);
 
-	vec3_t out = ColorNormalize(in);
+	vec3_t out = in;
 
 	if (brightness != 1.f) { // apply brightness
 		out = Vec3_Scale(out, brightness);
-		out = ColorNormalize(out);
 	}
 
 	if (contrast != 1.f) { // apply contrast
@@ -75,15 +73,13 @@ vec3_t ColorFilter(const vec3_t in) {
 			out.xyz[i] *= contrast; // scale
 			out.xyz[i] += 0.5f;
 		}
-
-		out = ColorNormalize(out);
 	}
 
 	if (saturation != 1.f) { // apply saturation
+		const vec3_t luminosity = Vec3(0.2125f, 0.7154f, 0.0721f);
 		const float d = Vec3_Dot(out, luminosity);
 		const vec3_t intensity = Vec3(d, d, d);
 		out = Vec3_Mix(intensity, out, saturation);
-		out = ColorNormalize(out);
 	}
 
 	return out;
@@ -145,12 +141,10 @@ static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 
 		light->type = LIGHT_AMBIENT;
 		light->atten = LIGHT_ATTEN_NONE;
-		light->color = ambient;
+		light->color = ColorFilter(ambient);
 		light->radius = LIGHT_RADIUS_AMBIENT;
-		light->intensity = LIGHT_INTENSITY;
+		light->intensity = LIGHT_INTENSITY * ambient_intensity;
 		light->bounds = Box3_Null();
-
-		light->intensity *= ambient_intensity;
 	}
 
 	return light;
@@ -170,13 +164,15 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->bounds = Box3_Null();
 
-	light->intensity *= sun_intensity;
-
-	const int32_t num = Cm_EntityNumber(entity);
-
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
 	}
+
+	light->color = ColorFilter(light->color);
+
+	light->intensity *= sun_intensity;
+
+	const int32_t num = Cm_EntityNumber(entity);
 
 	if (Cm_EntityValue(entity, "light")->value) {
 		light->intensity = Cm_EntityValue(entity, "light")->value / 255.f;
@@ -241,6 +237,8 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 		light->color = LIGHT_COLOR;
 	}
 
+	light->color = ColorFilter(light->color);
+
 	light->intensity *= light_intensity;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
@@ -299,6 +297,8 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
 	}
+
+	light->color = ColorFilter(light->color);
 
 	light->intensity *= light_intensity;
 
@@ -428,6 +428,8 @@ static light_t *LightForPatch(const patch_t *patch) {
 	if (max < 1.f) {
 		light->color = Vec3_Scale(light->color, 1.f / max);
 	}
+
+	light->color = ColorFilter(light->color);
 
 	light->intensity *= patch_intensity;
 

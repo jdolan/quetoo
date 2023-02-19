@@ -750,9 +750,6 @@ static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h) {
  */
 static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 
-	// normalize the accumulated light
-	luxel->ambient.color = ColorFilter(luxel->ambient.color);
-
 	// re-project the luxel so that it reflects its centered normal vector
 	ProjectLightmapLuxel(lightmap, luxel, 0.f, 0.f);
 
