@@ -423,44 +423,61 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->atlas->height = out->width;
 	out->atlas->depth = BSP_LIGHTMAP_LAST;
 	out->atlas->target = GL_TEXTURE_2D_ARRAY;
-	out->atlas->internal_format = GL_RGB;
-	out->atlas->format = GL_RGB;
-	out->atlas->pixel_type = GL_UNSIGNED_BYTE;
+	out->atlas->internal_format = GL_RGBA32F;
+	out->atlas->format = GL_RGBA;
+	out->atlas->pixel_type = GL_FLOAT;
 
-	const size_t layer_size = out->width * out->width * BSP_LIGHTMAP_BPP;
+	const size_t layer_size = out->width * out->width * sizeof(color_t);
 
 	const size_t in_size = layer_size * BSP_LIGHTMAP_LAYERS;
 	const size_t out_size = in_size + layer_size * BSP_STAINMAP_LAYERS;
 
-	byte *data = Mem_Malloc(out_size);
+	const byte *in_data = (byte *) in + sizeof(bsp_lightmap_t);
+	color32_t *in_color = (color32_t *) in_data;
 
-	if (in) {
-		memcpy(data, (byte *) in + sizeof(bsp_lightmap_t), in_size);
-	} else {
-		byte *layer = data;
-		for (bsp_lightmap_texture_t i = BSP_LIGHTMAP_FIRST; i < BSP_LIGHTMAP_LAST; i++) {
-			color32_t c;
-			switch (i) {
-				case BSP_LIGHTMAP_CAUSTICS:
-					c = Color32(0x00, 0x00, 0x00, 0x00);
-					break;
-				case BSP_LIGHTMAP_DIRECTION_0:
-				case BSP_LIGHTMAP_DIRECTION_1:
-					c = Color32(0x7f, 0x7f, 0xff, 0x00);
-					break;
-				default:
-					c = Color32(0xff, 0xff, 0xff, 0x00);
-					break;
+	byte *out_data = Mem_Malloc(out_size);
+	color_t *out_color = (color_t *) out_data;
+
+	for (bsp_lightmap_texture_t i = BSP_LIGHTMAP_FIRST; i < BSP_LIGHTMAP_LAST; i++) {
+		for (int32_t x = 0; x < out->width; x++) {
+			for (int32_t y = 0; y < out->width; y++, out_color++, in_color++) {
+				if (in) {
+					switch (i) {
+						case BSP_LIGHTMAP_CAUSTICS:
+							*out_color = Color32_Color(*in_color);
+							break;
+						case BSP_LIGHTMAP_DIRECTION_0:
+						case BSP_LIGHTMAP_DIRECTION_1:
+							*out_color = Color4fv(Vec4bv(in_color->rgba));
+							assert(out_color->r >= -1.f && out_color->r <= 1.f);
+							assert(out_color->g >= -1.f && out_color->g <= 1.f);
+							assert(out_color->b >=  0.f && out_color->b <= 1.f);
+							break;
+						default:
+							*out_color = Color32_RGBE(*in_color);
+							break;
+					}
+				} else {
+					switch (i) {
+						case BSP_LIGHTMAP_CAUSTICS:
+							*out_color = Color4f(0.f, 0.f, 0.f, 0.f);
+							break;
+						case BSP_LIGHTMAP_DIRECTION_0:
+						case BSP_LIGHTMAP_DIRECTION_1:
+							*out_color = Color4f(0.f, 0.f, 1.f, 0.f);
+							break;
+						default:
+							*out_color = Color4f(1.f, 1.f, 1.f, 1.f);
+							break;
+					}
+				}
 			}
-
-			Color32_Fill24(layer, c, layer_size);
-			layer += layer_size;
 		}
 	}
 
-	R_UploadImage(out->atlas, data);
+	R_UploadImage(out->atlas, out_data);
 
-	Mem_Free(data);
+	Mem_Free(out_data);
 }
 
 /**
@@ -513,19 +530,10 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->bounds = Box3_Expand3(mod->bounds, padding);
 
 	const size_t luxels = out->size.x * out->size.y * out->size.z;
+	const size_t out_size = luxels * sizeof(color_t) * BSP_LIGHTGRID_TEXTURES;
 
-	byte *data;
-	if (in) {
-		data = (byte *) in + sizeof(bsp_lightgrid_t);
-	} else {
-		data = (byte []) {
-			0xff, 0xff, 0xff, // ambient
-			0x00, 0x00, 0x00, // diffuse
-			0x7f, 0x7f, 0xff, // direction
-			0x00, 0x00, 0x00, // caustics
-			0x00, 0x00, 0x00, 0x00, // fog
-		};
-	}
+	const byte *in_data = (byte *) in + sizeof(bsp_lightgrid_t);
+	byte *out_data = Mem_Malloc(out_size);
 
 	for (bsp_lightgrid_texture_t i = BSP_LIGHTGRID_FIRST; i < BSP_LIGHTGRID_LAST; i++) {
 
@@ -536,28 +544,53 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 		texture->height = out->size.y;
 		texture->depth = out->size.z;
 		texture->target = GL_TEXTURE_3D;
+		texture->internal_format = GL_RGBA32F;
+		texture->format = GL_RGBA;
+		texture->pixel_type = GL_FLOAT;
 
-		size_t layer_size;
-		switch (i) {
-			default:
-				texture->internal_format = GL_RGB;
-				texture->format = GL_RGB;
-				layer_size = luxels * BSP_LIGHTGRID_BPP;
-				break;
-			case BSP_LIGHTGRID_FOG:
-				texture->internal_format = GL_RGBA;
-				texture->format = GL_RGBA;
-				layer_size = luxels * BSP_FOG_BPP;
-				break;
+		const byte *in_layer = in_data + i * luxels * sizeof(color32_t);
+		byte *out_layer = out_data + i * luxels * sizeof(color_t);
+
+		const color32_t *in_color = (color32_t *) in_layer;
+		color_t *out_color = (color_t *) out_layer;
+
+		for (int32_t x = 0; x < out->size.x; x++) {
+			for (int32_t y = 0; y < out->size.y; y++) {
+				for (int32_t z = 0; z < out->size.z; z++, out_color++, in_color++) {
+					if (in) {
+						switch (i) {
+							case BSP_LIGHTGRID_CAUSTICS:
+							case BSP_LIGHTGRID_FOG:
+								*out_color = Color32_Color(*in_color);
+								break;
+							case BSP_LIGHTGRID_DIRECTION:
+								*out_color = Color4fv(Vec4bv(in_color->rgba));
+								break;
+							default:
+								*out_color = Color32_RGBE(*in_color);
+								break;
+						}
+					} else {
+						switch (i) {
+							case BSP_LIGHTGRID_CAUSTICS:
+							case BSP_LIGHTGRID_FOG:
+								*out_color = Color4f(0.f, 0.f, 0.f, 0.f);
+								break;
+							case BSP_LIGHTGRID_DIRECTION:
+								*out_color = Color4f(0.f, 0.f, 1.f, 0.f);
+								break;
+							default:
+								*out_color = Color4f(1.f, 1.f, 1.f, 1.f);
+								break;
+						}
+					}
+				}
+			}
 		}
 
-		texture->pixel_type = GL_UNSIGNED_BYTE;
-
-		R_UploadImage(texture, data);
+		R_UploadImage(texture, out_layer);
 
 		out->textures[i] = texture;
-
-		data += layer_size;
 	}
 }
 

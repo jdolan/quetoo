@@ -735,7 +735,7 @@ void CausticsLightmap(int32_t face_num) {
  * @brief
  */
 static SDL_Surface *CreateLightmapSurfaceFrom(int32_t w, int32_t h, void *pixels) {
-	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 24, w * BSP_LIGHTMAP_BPP, SDL_PIXELFORMAT_RGB24);
+	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 32, w * BSP_LIGHTMAP_BPP, SDL_PIXELFORMAT_RGBA32);
 }
 
 /**
@@ -765,15 +765,6 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 
 	lumen_t *diffuse = luxel->diffuse;
 	for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
-
-		float a = Vec3_Length(diffuse->color);
-
-		diffuse->color = ColorFilter(diffuse->color);
-
-		float b = Vec3_Length(diffuse->color);
-
-		// ensure that brightness affects directional intensity too
-		diffuse->direction = Vec3_Scale(diffuse->direction, 1.f + b - a);
 
 		// lerp the direction with the normal, according to its intensity
 		const float intensity = Clampf(Vec3_Length(diffuse->direction), 0.f, 1.f);
@@ -807,21 +798,21 @@ void FinalizeLightmap(int32_t face_num) {
 	}
 
 	lm->ambient = CreateLightmapSurface(lm->w, lm->h);
-	byte *out_ambient = lm->ambient->pixels;
+	color32_t *out_ambient = lm->ambient->pixels;
 
-	byte *out_diffuse[BSP_LIGHTMAP_CHANNELS];
-	byte *out_direction[BSP_LIGHTMAP_CHANNELS];
+	color32_t *out_diffuse[BSP_LIGHTMAP_CHANNELS];
+	color32_t *out_direction[BSP_LIGHTMAP_CHANNELS];
 
-	for (int32_t channel = 0; channel < BSP_LIGHTMAP_CHANNELS; channel++) {
-		lm->diffuse[channel] = CreateLightmapSurface(lm->w, lm->h);
-		out_diffuse[channel] = lm->diffuse[channel]->pixels;
+	for (int32_t c = 0; c < BSP_LIGHTMAP_CHANNELS; c++) {
+		lm->diffuse[c] = CreateLightmapSurface(lm->w, lm->h);
+		out_diffuse[c] = lm->diffuse[c]->pixels;
 
-		lm->direction[channel] = CreateLightmapSurface(lm->w, lm->h);
-		out_direction[channel] = lm->direction[channel]->pixels;
+		lm->direction[c] = CreateLightmapSurface(lm->w, lm->h);
+		out_direction[c] = lm->direction[c]->pixels;
 	}
 
 	lm->caustics = CreateLightmapSurface(lm->w, lm->h);
-	byte *out_caustics = lm->caustics->pixels;
+	color32_t *out_caustics = lm->caustics->pixels;
 
 	// write it out
 	luxel_t *l = lm->luxels;
@@ -829,29 +820,14 @@ void FinalizeLightmap(int32_t face_num) {
 
 		FinalizeLightmapLuxel(lm, l);
 
-		// write the color sample data as bytes
-		for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
-			*out_ambient++ = (byte) Clampf(l->ambient.color.xyz[j] * 255.f, 0.f, 255.f);
+		*out_ambient++ = Color_RGBE(l->ambient.color);
+
+		for (int32_t c = 0; c < BSP_LIGHTMAP_CHANNELS; c++) {
+			*out_diffuse[c]++ = Color_RGBE(l->diffuse[c].color);
+			*out_direction[c]++ = (color32_t) Vec3_Bytes(l->diffuse[c].direction);
 		}
 
-		lumen_t *diffuse = l->diffuse;
-		for (int32_t c = 0; c < BSP_LIGHTMAP_CHANNELS; c++, diffuse++) {
-
-			// write the color sample data as bytes
-			for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
-				*out_diffuse[c]++ = (byte) Clampf(diffuse->color.xyz[j] * 255.f, 0.f, 255.f);
-			}
-
-			// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
-			for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
-				*out_direction[c]++ = (byte) Clampf((diffuse->direction.xyz[j] + 1.f) * 0.5f * 255.f, 0.f, 255.f);
-			}
-		}
-
-		// pack the caustics
-		for (int32_t j = 0; j < BSP_LIGHTMAP_BPP; j++) {
-			*out_caustics++ = (byte) Clampf(l->caustics.xyz[j] * 255.f, 0.f, 255.f);
-		}
+		*out_caustics++ = Color_Color32(Color3fv(l->caustics));
 	}
 }
 

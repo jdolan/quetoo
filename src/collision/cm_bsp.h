@@ -69,7 +69,7 @@
 /**
  * @brief Lightmap atlas bytes per pixel.
  */
-#define BSP_LIGHTMAP_BPP 3
+#define BSP_LIGHTMAP_BPP 4
 
 /**
  * @brief Largest lightmap atlas layer size in bytes.
@@ -114,22 +114,12 @@ typedef enum {
 /**
  * @brief Lightgrid bytes per pixel.
  */
-#define BSP_LIGHTGRID_BPP 3
+#define BSP_LIGHTGRID_BPP 4
 
 /**
  * @brief Lightgrid textures.
  */
-#define BSP_LIGHTGRID_TEXTURES 4
-
-/**
- * @brief Fog color and density textures.
- */
-#define BSP_FOG_TEXTURES 1
-
-/**
- * @brief Fog bytes per pixel.
- */
-#define BSP_FOG_BPP 4
+#define BSP_LIGHTGRID_TEXTURES 5
 
 /**
  * @brief Largest lightgrid width in luxels (8192 / 32 = 256).
