@@ -358,13 +358,57 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color32(byte r, byt
 }
 
 /**
- * @return A 32-bit integer color for the specified color.
+ * @return A 32-bit color for the specified floating point color.
  */
 static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const color_t color) {
 	return Color32(color.r * 255.f,
 				   color.g * 255.f,
 				   color.b * 255.f,
 				   color.a * 255.f);
+}
+
+/**
+ * @return The RGBE encoded representation of the unclamped floating point color `in`.
+ * @see http://cbloomrants.blogspot.com/2020/06/widespread-error-in-radiance-hdr-rgbe.html
+ */
+static inline color32_t __attribute__ ((warn_unused_result)) Color_RGBE(const vec3_t in) {
+	color32_t out;
+
+	const float max = Vec3_Hmaxf(in);
+	if (max <= 1e-32f ) {
+		out = Color32(0, 0, 0, 0);
+	} else {
+		int32_t exponent;
+		frexpf(max, &exponent);
+		const float scale = ldexpf(1.f, -exponent + 8);
+
+		out.r = (byte) (in.x * scale);
+		out.g = (byte) (in.y * scale);
+		out.b = (byte) (in.z * scale);
+		out.a = (byte) (exponent + 128);
+	}
+
+	return out;
+}
+
+/**
+ * @return The decoded RGBE color `in` as unclamped floating point RGB.
+ * @see http://cbloomrants.blogspot.com/2020/06/widespread-error-in-radiance-hdr-rgbe.html
+ */
+static inline color_t __attribute__ ((warn_unused_result)) Color32_RGBE(const color32_t in) {
+	color_t out;
+
+	if (in.a == 0) {
+		out = Color4f(0.f, 0.f, 0.f, 1.f);
+	} else {
+		float e = ldexpf(1.f, (int32_t) in.a - (128 + 8));
+		out.r = (in.r + .5f) * e;
+		out.g = (in.g + .5f) * e;
+		out.b = (in.b + .5f) * e;
+		out.a = 255;
+	}
+
+	return out;
 }
 
 /**
