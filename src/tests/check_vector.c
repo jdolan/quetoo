@@ -32,6 +32,10 @@ static void assert_vec3_eq(const vec3_t a, const vec3_t b) {
 	ck_assert_msg(Vec3_Equal(a, b), "(%g %g %g) != (%g %g %g)", a.x, a.y, a.z, b.x, b.y, b.z);
 }
 
+static void assert_vec4_eq(const vec4_t a, const vec4_t b) {
+	ck_assert_msg(Vec4_EqualEpsilon(a, b, .01), "(%g %g %g %g) != (%g %g %g %g)", a.x, a.y, a.z, a.w, b.x, b.y, b.z, b.w);
+}
+
 START_TEST(_Clampf) {
 	assert_flt_eq(0, Clampf(-1, 0, 1));
 	assert_flt_eq(1, Clampf( 1, 0, 1));
@@ -110,6 +114,29 @@ START_TEST(_Vec3_Up) {
 	assert_vec3_eq(Vec3(0, 0, 1), Vec3_Up());
 } END_TEST
 
+START_TEST(_Vec4_Bytes) {
+
+	const vec4_t a = Vec4(1, 0, 0, 1);
+	const vec4_t b = Vec4bv(Vec4_Bytes(a));
+
+	assert_vec4_eq(a, b);
+
+	const vec4_t c = Vec4(-1, 0, 0, 1);
+	const vec4_t d = Vec4bv(Vec4_Bytes(c));
+
+	assert_vec4_eq(c, d);
+
+	const vec4_t e = Vec4(0, .7, .7, 1);
+	const vec4_t f = Vec4bv(Vec4_Bytes(e));
+
+	assert_vec4_eq(e, f);
+
+	const vec4_t g = Vec4(0, -.7, -.7, 1);
+	const vec4_t h = Vec4bv(Vec4_Bytes(g));
+
+	assert_vec4_eq(g, h);
+} END_TEST
+
 int32_t main(int32_t argc, char **argv) {
 
 	Suite *suite = suite_create("vector");
@@ -137,6 +164,7 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_test(tcase, _Vec3_Subtract);
 	tcase_add_test(tcase, _Vec3_Scale);
 	tcase_add_test(tcase, _Vec3_Up);
+	tcase_add_test(tcase, _Vec4_Bytes);
 
 	suite_add_tcase(suite, tcase);
 

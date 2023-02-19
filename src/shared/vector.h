@@ -1148,6 +1148,27 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4(float x, float y,
 }
 
 /**
+ * @return A `vec4_t` from the encoded normalized bytes.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4bv(const uint32_t xyzw) {
+
+	union {
+		struct {
+			byte x, y, z, w;
+		};
+		uint32_t integer;
+	} in;
+
+	in.integer = xyzw;
+
+	return Vec4(
+		((float) in.x / 255.f) * 2.f - 1.f,
+		((float) in.y / 255.f) * 2.f - 1.f,
+		((float) in.z / 255.f) * 2.f - 1.f,
+		((float) in.w / 255.f) * 2.f - 1.f);
+}
+
+/**
  * @return A `vec4_t` comprised of the specified `vec3_t` and `w`.
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec3_ToVec4(const vec3_t v, float w) {
@@ -1242,6 +1263,34 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_RandomRange(float
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Random(void) {
 	return Vec4_RandomRange(0.f, 1.f);
+}
+
+/**
+ * @return A byte encoded representation of the normalized vector `v`.
+ * @details Floating point -1.0 to 1.0 are packed to bytes, where -1.0 -> 0 and 1.0 -> 255.
+ */
+static inline uint32_t __attribute__ ((warn_unused_result)) Vec4_Bytes(const vec4_t v) {
+
+	union {
+		struct {
+			byte x, y, z, w;
+		};
+		uint32_t integer;
+	} out;
+
+	out.x = (byte) Clampf((v.x + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+	out.y = (byte) Clampf((v.y + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+	out.z = (byte) Clampf((v.z + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+	out.w = (byte) Clampf((v.w + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+
+	return out.integer;
+}
+
+/**
+ * @return A byte encoded representation of the normalized vector `v`.
+ */
+static inline int32_t __attribute__ ((warn_unused_result)) Vec3_Bytes(const vec3_t v) {
+	return Vec4_Bytes(Vec3_ToVec4(v, 1.f));
 }
 
 /**
