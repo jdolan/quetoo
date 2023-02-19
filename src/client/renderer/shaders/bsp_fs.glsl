@@ -416,7 +416,7 @@ void main(void) {
 		if (lightmaps == 1) {
 			out_color.rgb = modulate * (sample_lightmap(0).rgb + sample_lightmap(1).rgb + sample_lightmap(3).rgb);
 		} else if (lightmaps == 2) {
-			out_color.rgb = normalize(sample_lightmap(2).xyz + sample_lightmap(4).xyz);
+			out_color.rgb = normalize(((sample_lightmap(2).xyz + sample_lightmap(4).xyz) + 1.0) * 0.5);
 		} else if (lightmaps == 3) {
 			out_color.rgb = fragment.ambient + fragment.diffuse;
 		} else {
