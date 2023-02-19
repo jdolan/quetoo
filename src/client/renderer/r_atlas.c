@@ -168,6 +168,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 			atlas->image->width = width;
 			atlas->image->height = width;
 			atlas->image->target = GL_TEXTURE_2D;
+			atlas->image->internal_format = GL_RGBA8;
 			atlas->image->format = GL_RGBA;
 
 			R_SetupImage(atlas->image);

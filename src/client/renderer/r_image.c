@@ -375,7 +375,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 		image->width = surface->w / 4;
 		image->height = surface->h / 3;
 		image->target = GL_TEXTURE_CUBE_MAP;
-		image->internal_format = GL_RGB;
+		image->internal_format = GL_RGB8;
 		image->format = GL_RGB;
 		image->pixel_type = GL_UNSIGNED_BYTE;
 
@@ -432,7 +432,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 		image->width = surface->w;
 		image->height = surface->h;
 		image->target = GL_TEXTURE_2D;
-		image->internal_format = GL_RGBA;
+		image->internal_format = GL_RGBA8;
 		image->format = GL_RGBA;
 		image->pixel_type = GL_UNSIGNED_BYTE;
 

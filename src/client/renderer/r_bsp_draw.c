@@ -788,7 +788,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.warp_image->width = r_bsp_program.warp_image->height = WARP_IMAGE_SIZE;
 	r_bsp_program.warp_image->type = IT_PROGRAM;
 	r_bsp_program.warp_image->target = GL_TEXTURE_2D;
-	r_bsp_program.warp_image->internal_format = GL_RGBA;
+	r_bsp_program.warp_image->internal_format = GL_RGBA8;
 	r_bsp_program.warp_image->format = GL_RGBA;
 	r_bsp_program.warp_image->pixel_type = GL_UNSIGNED_BYTE;
 
