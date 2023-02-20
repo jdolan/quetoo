@@ -425,7 +425,7 @@ static light_t *LightForPatch(const patch_t *patch) {
 	light->color = GetMaterialColor(brush_side->material);
 
 	const float max = Vec3_Hmaxf(light->color);
-	if (max < 1.f) {
+	if (max > 0.f && max < 1.f) {
 		light->color = Vec3_Scale(light->color, 1.f / max);
 	}
 
