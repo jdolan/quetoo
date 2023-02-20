@@ -133,17 +133,17 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 	const size_t luxels = lg->size.x * lg->size.y * lg->size.z;
 
-	const byte *ambient = in + sizeof(bsp_lightgrid_t);
-	const byte *diffuse = ambient + luxels * BSP_LIGHTGRID_BPP;
-	const byte *direction = diffuse + luxels * BSP_LIGHTGRID_BPP;
-	const byte *caustics = direction + luxels * BSP_LIGHTGRID_BPP;
-	const byte *fog = caustics+ luxels * BSP_LIGHTGRID_BPP;
+	const color32_t *ambient = (color32_t *) (in + sizeof(bsp_lightgrid_t));
+	const color32_t *diffuse = ambient + luxels;
+	const color32_t *direction = diffuse + luxels;
+	const color32_t *caustics = direction + luxels;
+	const color32_t *fog = caustics+ luxels;
 
 	r_image_t *particle = R_LoadImage("sprites/particle", IT_SPRITE);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, caustics += 3, fog += 4) {
+			for (int32_t s = 0; s < lg->size.x; s++, ambient++, diffuse++, direction++, caustics++, fog++) {
 
 				if (s & 1 || t & 1 || u & 1) {
 					continue;
@@ -158,32 +158,30 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 				if (r_draw_bsp_lightgrid->integer == 1) {
 
-					const byte r = Mini(ambient[0] + diffuse[0], 255);
-					const byte g = Mini(ambient[1] + diffuse[1], 255);
-					const byte b = Mini(ambient[2] + diffuse[2], 255);
+					const color_t color = Color_Add(Color32_RGBE(*ambient), Color32_RGBE(*diffuse));
 
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
 						.size = 8.f,
-						.color = Color32(r, g, b, 255),
+						.color = Color_Color32(color),
 						.media = (r_media_t *) particle,
 						.flags = SPRITE_NO_BLEND_DEPTH
 					});
 
-					const float x = direction[0] / 255.f * 2.f - 1.f;
-					const float y = direction[1] / 255.f * 2.f - 1.f;
-					const float z = direction[2] / 255.f * 2.f - 1.f;
+					const float x = direction->r / 255.f * 2.f - 1.f;
+					const float y = direction->g / 255.f * 2.f - 1.f;
+					const float z = direction->b / 255.f * 2.f - 1.f;
 
 					const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
 					const vec3_t end = Vec3_Fmaf(origin, 16.f, dir);
 
-					R_Draw3DLines((vec3_t []) { origin, end }, 2, Color3b(r, g, b));
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
 
-					const byte r = caustics[0];
-					const byte g = caustics[1];
-					const byte b = caustics[2];
+					const byte r = caustics->r;
+					const byte g = caustics->g;
+					const byte b = caustics->b;
 
 					if (r || g || b) {
 						const float a = Clampf((r + g + b) / 255.f, 0.f, 255.f);
@@ -197,12 +195,12 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 					}
 				} else if (r_draw_bsp_lightgrid->integer == 3) {
 
-					const byte a = Mini(fog[3], 255);
+					const byte a = Mini(fog->a, 255);
 
 					if (a) {
-						const byte r = fog[0];
-						const byte g = fog[1];
-						const byte b = fog[2];
+						const byte r = fog->r;
+						const byte g = fog->g;
+						const byte b = fog->b;
 						const float af = a / 255.f;
 
 						R_AddSprite(view, &(r_sprite_t) {
