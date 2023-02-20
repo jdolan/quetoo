@@ -829,12 +829,38 @@ void FinalizeLightmap(int32_t face_num) {
 }
 
 /**
+ * @brief Blits `src` to the given `rect` in `dst`.
+ * @remarks This is a raw no frills blit. Don't expect this to work for anything besides
+ */
+static int32_t BlitLightmap(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect) {
+
+	const color32_t *in = (color32_t *) src->pixels;
+	color32_t *out = (color32_t *) dest->pixels;
+
+	out += rect->y * dest->w + rect->x;
+
+	for (int32_t x = 0; x < src->w; x++) {
+		for (int32_t y = 0; y < src->h; y++) {
+
+			const color32_t *in_color = in + y * src->w + x;
+			color32_t *out_color = out + y * dest->w + x;
+
+			*out_color = *in_color;
+		}
+	}
+
+	return 0;
+}
+
+/**
  * @brief
  */
 void EmitLightmap(void) {
 
 	atlas_t *atlas = Atlas_Create(BSP_LIGHTMAP_LAYERS);
 	assert(atlas);
+
+	atlas->blit = BlitLightmap;
 
 	atlas_node_t *nodes[bsp_file.num_faces];
 
@@ -852,8 +878,6 @@ void EmitLightmap(void) {
 								lm->diffuse[1],
 								lm->direction[1],
 								lm->caustics);
-		nodes[i]->w = lm->w;
-		nodes[i]->h = lm->h;
 	}
 
 	int32_t width;
