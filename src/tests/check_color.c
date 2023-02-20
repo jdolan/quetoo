@@ -24,42 +24,34 @@
 
 #include "shared/color.h"
 
-static void assert_flt_eq(float a, float b) {
-	ck_assert_msg(fabsf(a - b) <= .01, "%g != %g", a, b);
+/**
+ * @brief Asserts that the given color encodes and decodes to approximately the same color.
+ */
+static void check_color_rgbe(const vec3_t in) {
+	#define PRINT(in, out, index) "(%g %g %g) !~= (%g %g %g) (%d epsilon %g)", \
+		in.x, in.y, in.z, out.r, out.g, out.b, index, epsilon
+
+	const color_t out = Color32_RGBE(Color_RGBE(in));
+
+	const float range = Maxf(1.f, Vec3_Hmaxf(in) - Vec3_Hminf(in));
+	const float epsilon = Minf(1.f, .33f * range);
+
+	ck_assert_msg(EqualEpsilonf(in.x, out.r, epsilon), PRINT(in, out, 0));
+	ck_assert_msg(EqualEpsilonf(in.y, out.g, epsilon), PRINT(in, out, 1));
+	ck_assert_msg(EqualEpsilonf(in.z, out.b, epsilon), PRINT(in, out, 2));
 }
 
 START_TEST(_Color_RGBE) {
 
-	color32_t in;
-	color_t out;
+	check_color_rgbe(Vec3(  1.f,   0.f,   0.f));
+	check_color_rgbe(Vec3(  2.f,   0.f,   0.f));
+	check_color_rgbe(Vec3(  2.f,   2.f,   2.f));
+	check_color_rgbe(Vec3(100.f, 200.f, 300.f));
+	check_color_rgbe(Vec3(   .1f,   .2f,   .3f));
 
-	in = Color_RGBE(Vec3(1, 0, 0));
-	out = Color32_RGBE(in);
-
-	assert_flt_eq(out.r, 1);
-	assert_flt_eq(out.g, 0);
-	assert_flt_eq(out.b, 0);
-
-	in = Color_RGBE(Vec3(2, 0, 0));
-	out = Color32_RGBE(in);
-
-	assert_flt_eq(out.r, 2);
-	assert_flt_eq(out.g, 0);
-	assert_flt_eq(out.b, 0);
-
-	in = Color_RGBE(Vec3(2, 2, 3));
-	out = Color32_RGBE(in);
-
-	assert_flt_eq(out.r, 2);
-	assert_flt_eq(out.g, 2);
-	assert_flt_eq(out.b, 3);
-
-	in = Color_RGBE(Vec3(.1, .2, .3));
-	out = Color32_RGBE(in);
-
-	assert_flt_eq(out.r, .1);
-	assert_flt_eq(out.g, .2);
-	assert_flt_eq(out.b, .3);
+	for (int32_t i = 0; i < 1000; i++) {
+		check_color_rgbe(Vec3_RandomRange(0.f, 100.f));
+	}
 
 } END_TEST
 

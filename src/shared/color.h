@@ -368,7 +368,7 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const
 }
 
 /**
- * @return The RGBE encoded representation of the unclamped floating point color `in`.
+ * @return The RGBE encoded representation of the **unclamped** floating point color `in`.
  * @see http://cbloomrants.blogspot.com/2020/06/widespread-error-in-radiance-hdr-rgbe.html
  */
 static inline color32_t __attribute__ ((warn_unused_result)) Color_RGBE(const vec3_t in) {

@@ -911,6 +911,13 @@ static inline float __attribute__ ((warn_unused_result)) Vec3_Hmaxf(const vec3_t
 }
 
 /**
+ * @return A vector containing the min component of `v`.
+ */
+static inline float __attribute__ ((warn_unused_result)) Vec3_Hminf(const vec3_t v) {
+	return Minf(Minf(v.x, v.y), v.z);
+}
+
+/**
  * @return A vector containing the max components of `a` and `b`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Maxf(const vec3_t a, const vec3_t b) {
