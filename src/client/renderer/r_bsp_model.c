@@ -438,13 +438,15 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	byte *out_data = Mem_Malloc(out_size);
 	color_t *out_color = (color_t *) out_data;
 
-	for (bsp_lightmap_texture_t i = BSP_LIGHTMAP_FIRST; i < BSP_LIGHTMAP_LAST; i++) {
+	for (bsp_lightmap_texture_t tex = BSP_LIGHTMAP_FIRST; tex < BSP_LIGHTMAP_STAINS; tex++) {
 		for (int32_t x = 0; x < out->width; x++) {
 			for (int32_t y = 0; y < out->width; y++, out_color++, in_color++) {
 				if (in) {
-					switch (i) {
-						case BSP_LIGHTMAP_CAUSTICS:
-							*out_color = Color32_Color(*in_color);
+					switch (tex) {
+						case BSP_LIGHTMAP_AMBIENT:
+						case BSP_LIGHTMAP_DIFFUSE_0:
+						case BSP_LIGHTMAP_DIFFUSE_1:
+							*out_color = Color32_RGBE(*in_color);
 							break;
 						case BSP_LIGHTMAP_DIRECTION_0:
 						case BSP_LIGHTMAP_DIRECTION_1: {
@@ -455,21 +457,29 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 							out_color->a = unclamped.w;
 						}
 							break;
+						case BSP_LIGHTMAP_CAUSTICS:
+							*out_color = Color32_Color(*in_color);
+							break;
 						default:
-							*out_color = Color32_RGBE(*in_color);
 							break;
 					}
 				} else {
-					switch (i) {
-						case BSP_LIGHTMAP_CAUSTICS:
-							*out_color = Color4f(0.f, 0.f, 0.f, 0.f);
+					switch (tex) {
+						case BSP_LIGHTMAP_AMBIENT:
+							*out_color = Color3f(1.f, 1.f, 1.f);
+							break;
+						case BSP_LIGHTMAP_DIFFUSE_0:
+						case BSP_LIGHTMAP_DIFFUSE_1:
+							*out_color = Color3f(0.f, 0.f, 0.f);
 							break;
 						case BSP_LIGHTMAP_DIRECTION_0:
 						case BSP_LIGHTMAP_DIRECTION_1:
-							*out_color = Color4f(0.f, 0.f, 1.f, 0.f);
+							*out_color = Color3f(0.f, 0.f, 1.f);
+							break;
+						case BSP_LIGHTMAP_CAUSTICS:
+							*out_color = Color3f(0.f, 0.f, 0.f);
 							break;
 						default:
-							*out_color = Color3f(1.f, 1.f, 1.f);
 							break;
 					}
 				}
@@ -561,9 +571,9 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 				for (int32_t z = 0; z < out->size.z; z++, out_color++, in_color++) {
 					if (in) {
 						switch (i) {
-							case BSP_LIGHTGRID_CAUSTICS:
-							case BSP_LIGHTGRID_FOG:
-								*out_color = Color32_Color(*in_color);
+							case BSP_LIGHTGRID_AMBIENT:
+							case BSP_LIGHTGRID_DIFFUSE:
+								*out_color = Color32_RGBE(*in_color);
 								break;
 							case BSP_LIGHTGRID_DIRECTION: {
 								const vec4_t unclamped = Vec4bv(in_color->rgba);
@@ -573,21 +583,32 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 								out_color->a = unclamped.w;
 							}
 								break;
+							case BSP_LIGHTGRID_CAUSTICS:
+							case BSP_LIGHTGRID_FOG:
+								*out_color = Color32_Color(*in_color);
+								break;
+
 							default:
-								*out_color = Color32_RGBE(*in_color);
 								break;
 						}
 					} else {
 						switch (i) {
-							case BSP_LIGHTGRID_CAUSTICS:
-							case BSP_LIGHTGRID_FOG:
-								*out_color = Color4f(0.f, 0.f, 0.f, 0.f);
+							case BSP_LIGHTGRID_AMBIENT:
+								*out_color = Color3f(1.f, 1.f, 1.f);
+								break;
+							case BSP_LIGHTGRID_DIFFUSE:
+								*out_color = Color3f(0.f, 0.f, 0.f);
 								break;
 							case BSP_LIGHTGRID_DIRECTION:
-								*out_color = Color4f(0.f, 0.f, 1.f, 0.f);
+								*out_color = Color3f(0.f, 0.f, 1.f);
+								break;
+							case BSP_LIGHTGRID_CAUSTICS:
+								*out_color = Color3f(0.f, 0.f, 0.f);
+								break;
+							case BSP_LIGHTGRID_FOG:
+								*out_color = Color3f(0.f, 0.f, 0.f);
 								break;
 							default:
-								*out_color = Color4f(1.f, 1.f, 1.f, 1.f);
 								break;
 						}
 					}
