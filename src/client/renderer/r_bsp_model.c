@@ -469,7 +469,7 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 							*out_color = Color4f(0.f, 0.f, 1.f, 0.f);
 							break;
 						default:
-							*out_color = Color4f(1.f, 1.f, 1.f, 1.f);
+							*out_color = Color3f(1.f, 1.f, 1.f);
 							break;
 					}
 				}
