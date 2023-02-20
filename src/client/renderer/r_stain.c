@@ -59,7 +59,7 @@ static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 			}
 
 			// this luxel is stained, so attenuate and blend it
-			byte *stainmap = face->lightmap.stainmap + (face->lightmap.w * t + s) * BSP_LIGHTMAP_BPP;
+			color_t *stainmap = face->lightmap.stainmap + (face->lightmap.w * t + s);
 
 			const float dist_squared = Vec2_LengthSquared(Vec2(i, j));
 			const float atten = (radius_squared - dist_squared) / radius_squared;
@@ -70,13 +70,9 @@ static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 			const float dst_alpha = 1.0 - src_alpha;
 
 			const color_t src = Color_Scale(stain->color, src_alpha);
-			const color_t dst = Color_Scale(Color3b(stainmap[0], stainmap[1], stainmap[2]), dst_alpha);
+			const color_t dst = Color_Scale(*stainmap, dst_alpha);
 
-			const color32_t out = Color_Color32(Color_Add(src, dst));
-
-			stainmap[0] = out.r;
-			stainmap[1] = out.g;
-			stainmap[2] = out.b;
+			*stainmap = Color_Add(src, dst);
 
 			face->stain_frame = stain_frame;
 		}
@@ -204,8 +200,8 @@ void R_DrawStains(const r_view_t *view) {
 					face->lightmap.w,
 					face->lightmap.h,
 					1,
-					GL_RGB,
-					GL_UNSIGNED_BYTE,
+					GL_RGBA,
+					GL_FLOAT,
 					face->lightmap.stainmap);
 		}
 	}

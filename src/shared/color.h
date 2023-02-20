@@ -170,6 +170,16 @@ static inline color_t __attribute__ ((warn_unused_result)) Color4fv(const vec4_t
 }
 
 /**
+ * @brief Fills `len` of `out` with RGBA values from the floating point color (like memset).
+ */
+static inline void Color_Fill(color_t *out, const color_t c, size_t len) {
+
+	for (size_t i = 0; i < len; i++) {
+		*out++ = c;
+	}
+}
+
+/**
  * @return A color with the specified RGB vector converted from HSV.
  */
 static inline color_t __attribute__ ((warn_unused_result)) ColorHSV(float hue, float saturation, float value) {

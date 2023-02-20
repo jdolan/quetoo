@@ -367,7 +367,7 @@ typedef struct {
 	/**
 	 * @brief The stainmap for this lightmap.
 	 */
-	byte *stainmap;
+	color_t *stainmap;
 } r_bsp_face_lightmap_t;
 
 /**

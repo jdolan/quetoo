@@ -179,8 +179,8 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->lightmap.st_mins = in->lightmap.st_mins;
 		out->lightmap.st_maxs = in->lightmap.st_maxs;
 
-		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * BSP_LIGHTMAP_BPP, bsp->faces);
-		memset(lm->stainmap, 0xff, lm->w * lm->h * BSP_LIGHTMAP_BPP);
+		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * sizeof(color_t), bsp->faces);
+		memset(lm->stainmap, 0xff, lm->w * lm->h * sizeof(color_t));
 	}
 }
 
@@ -504,7 +504,7 @@ static void R_ResetBspLightmap(r_bsp_model_t *bsp) {
 	r_bsp_face_t *face = bsp->faces;
 	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
-		memset(face->lightmap.stainmap, 0xff, face->lightmap.w * face->lightmap.h * BSP_LIGHTMAP_BPP);
+		Color_Fill(face->lightmap.stainmap, color_white, face->lightmap.w * face->lightmap.h);
 
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 				0,
@@ -514,8 +514,8 @@ static void R_ResetBspLightmap(r_bsp_model_t *bsp) {
 				face->lightmap.w,
 				face->lightmap.h,
 				1,
-				GL_RGB,
-				GL_UNSIGNED_BYTE,
+				GL_RGBA,
+				GL_FLOAT,
 				face->lightmap.stainmap);
 	}
 }
