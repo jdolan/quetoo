@@ -405,7 +405,7 @@ static inline color_t __attribute__ ((warn_unused_result)) Color32_RGBE(const co
 		out.r = (in.r + .5f) * e;
 		out.g = (in.g + .5f) * e;
 		out.b = (in.b + .5f) * e;
-		out.a = 255;
+		out.a = 1.f;
 	}
 
 	return out;
