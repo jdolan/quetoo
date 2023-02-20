@@ -179,14 +179,14 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 			return -1;
 		}
 
-		if (y + node->h > surfaces[0]->h) {
-			return i;
-		}
-
 		if (x + node->w > surfaces[0]->w) {
 			x = 0;
 			y += row;
 			row = 0;
+		}
+
+		if (y + node->h > surfaces[0]->h) {
+			return i;
 		}
 
 		node->x = x;
