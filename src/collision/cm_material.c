@@ -1320,37 +1320,43 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tsurface \"%s\"\n", Cm_UnparseSurface(material->surface));
 	}
 
-	if (material->alpha_test != DEFAULT_ALPHA_TEST) {
-		Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
+	if (material->surface & SURF_ALPHA_TEST) {
+
+		if (material->alpha_test != DEFAULT_ALPHA_TEST) {
+			Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
+		}
 	}
 
-	if (material->patch_size != DEFAULT_PATCH_SIZE) {
-		Fs_Print(file, "\tpatch_size %g\n", material->patch_size);
+	if (material->surface & SURF_LIGHT) {
+
+		if (material->patch_size != DEFAULT_PATCH_SIZE) {
+			Fs_Print(file, "\tpatch_size %g\n", material->patch_size);
+		}
+
+		if (material->light.atten != DEFAULT_LIGHT_ATTEN) {
+			Fs_Print(file, "\tlight.atten %d\n", material->light.atten);
+		}
+
+		if (material->light.radius != DEFAULT_LIGHT_RADIUS) {
+			Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
+		}
+
+		if (material->light.intensity != DEFAULT_LIGHT_INTENSITY) {
+			Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
+		}
+
+		if (material->light.cone != DEFAULT_LIGHT_CONE) {
+			Fs_Print(file, "\tlight.cone %g\n", material->light.cone);
+		}
+
+		if (material->light.falloff != DEFAULT_LIGHT_FALLOFF) {
+			Fs_Print(file, "\tlight.falloff %g\n", material->light.falloff);
+		}
 	}
 
 	// if not empty/default, write footsteps
 	if (*material->footsteps.name && g_strcmp0(material->footsteps.name, "default")) {
 		Fs_Print(file, "\tfootsteps %s\n", material->footsteps.name);
-	}
-
-	if (material->light.atten != DEFAULT_LIGHT_ATTEN) {
-		Fs_Print(file, "\tlight.atten %d\n", material->light.atten);
-	}
-
-	if (material->light.radius != DEFAULT_LIGHT_RADIUS) {
-		Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
-	}
-
-	if (material->light.intensity != DEFAULT_LIGHT_INTENSITY) {
-		Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
-	}
-
-	if (material->light.cone != DEFAULT_LIGHT_CONE) {
-		Fs_Print(file, "\tlight.cone %g\n", material->light.cone);
-	}
-
-	if (material->light.falloff != DEFAULT_LIGHT_FALLOFF) {
-		Fs_Print(file, "\tlight.falloff %g\n", material->light.falloff);
 	}
 
 	// write stages
