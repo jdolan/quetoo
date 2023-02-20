@@ -18,6 +18,7 @@
 				CE948B2B2235660C00D961FA /* PBXTargetDependency */,
 				CE45F550257733B8004DEFED /* PBXTargetDependency */,
 				CE052A9121483352003446C9 /* PBXTargetDependency */,
+				CEB3850029A3D2C6006DEA13 /* PBXTargetDependency */,
 				CE052A9321483352003446C9 /* PBXTargetDependency */,
 				CE052A9521483352003446C9 /* PBXTargetDependency */,
 				CE052A9721483352003446C9 /* PBXTargetDependency */,
@@ -25,6 +26,7 @@
 				CE052A9B21483352003446C9 /* PBXTargetDependency */,
 				CE948B2D2235660C00D961FA /* PBXTargetDependency */,
 				CE052A9D21483352003446C9 /* PBXTargetDependency */,
+				CEB3850229A3D2E3006DEA13 /* PBXTargetDependency */,
 			);
 			name = "quetoo-tests";
 			productName = "quetoo-tests";
@@ -866,6 +868,69 @@
 			proxyType = 1;
 			remoteGlobalIDString = CEA029C51C5E558100341079;
 			remoteInfo = "quetoo-master";
+		};
+		CEB384F129A3D24D006DEA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
+			remoteInfo = common;
+		};
+		CEB384F329A3D251006DEA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
+			remoteInfo = common;
+		};
+		CEB384F529A3D260006DEA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
+			remoteInfo = common;
+		};
+		CEB384F729A3D265006DEA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
+			remoteInfo = common;
+		};
+		CEB384F929A3D27D006DEA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CEA029C51C5E558100341079;
+			remoteInfo = "quetoo-master";
+		};
+		CEB384FB29A3D28C006DEA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
+			remoteInfo = common;
+		};
+		CEB384FD29A3D29C006DEA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
+			remoteInfo = common;
+		};
+		CEB384FF29A3D2C6006DEA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CEB384DE29A3A73B006DEA13;
+			remoteInfo = check_color;
+		};
+		CEB3850129A3D2E3006DEA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE9CFC9E23EB3D020009DA65;
+			remoteInfo = check_vector;
 		};
 		CEE3A10221EE2B570070FD3E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -3677,6 +3742,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CEB384FC29A3D28C006DEA13 /* PBXTargetDependency */,
 			);
 			name = check_mem;
 			productName = "test-r_media";
@@ -3693,6 +3759,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CEB384FE29A3D29C006DEA13 /* PBXTargetDependency */,
 			);
 			name = check_thread;
 			productName = "test-r_media";
@@ -3813,6 +3880,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CEB384F429A3D251006DEA13 /* PBXTargetDependency */,
 			);
 			name = check_atlas;
 			productName = "test-r_media";
@@ -3863,6 +3931,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CEB384F229A3D24D006DEA13 /* PBXTargetDependency */,
 			);
 			name = check_cmd;
 			productName = "test-r_media";
@@ -3879,6 +3948,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CEB384F629A3D260006DEA13 /* PBXTargetDependency */,
 			);
 			name = check_cvar;
 			productName = "test-r_media";
@@ -3895,6 +3965,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CEB384F829A3D265006DEA13 /* PBXTargetDependency */,
 			);
 			name = check_filesystem;
 			productName = "test-r_media";
@@ -3911,6 +3982,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CEB384FA29A3D27D006DEA13 /* PBXTargetDependency */,
 			);
 			name = check_master;
 			productName = "test-r_media";
@@ -4329,7 +4401,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cm_test &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread\n";
+			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cm_test &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_color &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread &&\n$BUILT_PRODUCTS_DIR/check_vector\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -4930,6 +5002,51 @@
 			isa = PBXTargetDependency;
 			target = CEA029C51C5E558100341079 /* quetoo-master */;
 			targetProxy = CEA029F81C5E560100341079 /* PBXContainerItemProxy */;
+		};
+		CEB384F229A3D24D006DEA13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FDD91C5E3E1100A21A51 /* common */;
+			targetProxy = CEB384F129A3D24D006DEA13 /* PBXContainerItemProxy */;
+		};
+		CEB384F429A3D251006DEA13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FDD91C5E3E1100A21A51 /* common */;
+			targetProxy = CEB384F329A3D251006DEA13 /* PBXContainerItemProxy */;
+		};
+		CEB384F629A3D260006DEA13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FDD91C5E3E1100A21A51 /* common */;
+			targetProxy = CEB384F529A3D260006DEA13 /* PBXContainerItemProxy */;
+		};
+		CEB384F829A3D265006DEA13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FDD91C5E3E1100A21A51 /* common */;
+			targetProxy = CEB384F729A3D265006DEA13 /* PBXContainerItemProxy */;
+		};
+		CEB384FA29A3D27D006DEA13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CEA029C51C5E558100341079 /* quetoo-master */;
+			targetProxy = CEB384F929A3D27D006DEA13 /* PBXContainerItemProxy */;
+		};
+		CEB384FC29A3D28C006DEA13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FDD91C5E3E1100A21A51 /* common */;
+			targetProxy = CEB384FB29A3D28C006DEA13 /* PBXContainerItemProxy */;
+		};
+		CEB384FE29A3D29C006DEA13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FDD91C5E3E1100A21A51 /* common */;
+			targetProxy = CEB384FD29A3D29C006DEA13 /* PBXContainerItemProxy */;
+		};
+		CEB3850029A3D2C6006DEA13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CEB384DE29A3A73B006DEA13 /* check_color */;
+			targetProxy = CEB384FF29A3D2C6006DEA13 /* PBXContainerItemProxy */;
+		};
+		CEB3850229A3D2E3006DEA13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE9CFC9E23EB3D020009DA65 /* check_vector */;
+			targetProxy = CEB3850129A3D2E3006DEA13 /* PBXContainerItemProxy */;
 		};
 		CEE3A10321EE2B570070FD3E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
