@@ -93,8 +93,8 @@ atlas_node_t *Atlas_Insert(atlas_t *atlas, ...) {
 
 		for (int32_t i = 0; i < atlas->layers; i++) {
 			node->surfaces[i] = va_arg(args, SDL_Surface *);
-			node->w = Maxi(node->w, node->surfaces[i]->w);
-			node->h = Maxi(node->h, node->surfaces[i]->h);
+			node->w = node->surfaces[i]->w;
+			node->h = node->surfaces[i]->h;
 		}
 
 		va_end(args);
