@@ -34,6 +34,7 @@ TESTS = \
 	check_cm_polylib \
 	check_cm_test \
 	check_cmd \
+	check_color \
 	check_cvar \
 	check_filesystem \
 	check_master \
@@ -74,6 +75,13 @@ check_cm_test_CFLAGS = \
 check_cm_test_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/collision/libcollision.la
+
+check_color_SOURCES = \
+	check_color.c
+check_color_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_color_LDADD = \
+	$(TESTS_LIBS)
 
 check_cvar_SOURCES = \
 	check_cvar.c
