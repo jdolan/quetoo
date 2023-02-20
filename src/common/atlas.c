@@ -23,6 +23,22 @@
 
 #include "atlas.h"
 
+
+/**
+ * @brief The default node comparator.
+ */
+static int32_t Atlas_DefaultComparator(const atlas_node_t *a, const atlas_node_t *b) {
+
+	return b->surfaces[0]->h - a->surfaces[0]->h;
+}
+
+/**
+ * @brief The default blit function.
+ */
+static int32_t Atlas_DefaultBlit(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect) {
+	return SDL_BlitScaled((SDL_Surface *) src, NULL, dest, (SDL_Rect *) rect);
+}
+
 /**
  * @brief GDestroyNotify for atlas nodes.
  */
@@ -45,6 +61,10 @@ atlas_t *Atlas_Create(int32_t layers) {
 		assert(atlas->layers);
 
 		atlas->nodes = g_ptr_array_new_with_free_func(Atlas_FreeNode);
+		assert(atlas->nodes);
+
+		atlas->comparator = Atlas_DefaultComparator;
+		atlas->blit = Atlas_DefaultBlit;
 		atlas->tag = -1;
 	}
 
@@ -73,6 +93,8 @@ atlas_node_t *Atlas_Insert(atlas_t *atlas, ...) {
 
 		for (int32_t i = 0; i < atlas->layers; i++) {
 			node->surfaces[i] = va_arg(args, SDL_Surface *);
+			node->w = Maxi(node->w, node->surfaces[i]->w);
+			node->h = Maxi(node->h, node->surfaces[i]->h);
 		}
 
 		va_end(args);
@@ -103,18 +125,6 @@ atlas_node_t *Atlas_Find(atlas_t *atlas, int32_t layer, SDL_Surface *surface) {
 }
 
 /**
- * @brief The default node comparator.
- */
-static int32_t Atlas_DefaultComparator(const atlas_node_t *a, const atlas_node_t *b) {
-
-	return b->surfaces[0]->h - a->surfaces[0]->h;
-}
-
-typedef struct {
-	AtlasNodeComparator func;
-} atlas_comparator_t;
-
-/**
  * @brief GCompareDataFunc for node sorting. Note that g_ptr_array_sort provides pointers to pointers.
  */
 static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b, gpointer data) {
@@ -122,9 +132,9 @@ static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b, gpointer data
 	const atlas_node_t *a_node = *(const atlas_node_t * const*) a;
 	const atlas_node_t *b_node = *(const atlas_node_t * const*) b;
 
-	const atlas_comparator_t *comparator = (const atlas_comparator_t *) data;
+	const atlas_t *atlas = data;
 
-	return comparator->func(a_node, b_node);
+	return atlas->comparator(a_node, b_node);
 }
 
 /**
@@ -140,6 +150,8 @@ static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b, gpointer data
 int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 
 	assert(atlas);
+	assert(atlas->comparator);
+	assert(atlas->blit);
 
 	SDL_Surface *surfaces[atlas->layers];
 
@@ -148,16 +160,14 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 
 	for (int32_t i = 0; i < atlas->layers; i++) {
 		surfaces[i] = va_arg(args, SDL_Surface *);
+		assert(surfaces[i]);
 	}
 
 	va_end(args);
-	assert(surfaces[0]);
 
 	atlas->tag++;
 
-	atlas_comparator_t comparator = { .func = atlas->comparator ?: Atlas_DefaultComparator };
-
-	g_ptr_array_sort_with_data(atlas->nodes, Atlas_NodeComparator, &comparator);
+	g_ptr_array_sort_with_data(atlas->nodes, Atlas_NodeComparator, atlas);
 
 	int32_t x = 0, y = 0, row = 0;
 
@@ -189,7 +199,7 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 			SDL_Surface *dest = surfaces[layer];
 
 			if (src && dest) {
-				SDL_BlitScaled(src, NULL, dest, &(SDL_Rect) {
+				atlas->blit(src, dest, &(const SDL_Rect) {
 					node->x, node->y, node->w, node->h
 				});
 			}

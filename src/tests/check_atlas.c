@@ -26,7 +26,7 @@
 
 static SDL_Surface *CreateSurface(int32_t w, int32_t h, int32_t color) {
 
-	SDL_Surface *surface = SDL_CreateRGBSurface(0, w, h, 24, 0, 0, 0, 0);
+	SDL_Surface *surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 
 	SDL_FillRect(surface, &(SDL_Rect) {
 		0, 0, surface->w, surface->h
@@ -178,6 +178,65 @@ START_TEST(check_atlas_custom_comparator) {
 } END_TEST
 
 /**
+ * @brief The custom blit function used by the lightmap packer.
+ */
+static int32_t blit(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect) {
+
+	const color32_t *in = (color32_t *) src->pixels;
+	color32_t *out = (color32_t *) dest->pixels;
+
+	out += rect->y * dest->w + rect->x;
+
+	for (int32_t x = 0; x < src->w; x++) {
+		for (int32_t y = 0; y < src->h; y++) {
+
+			const color32_t *in_color = in + y * src->w + x;
+			color32_t *out_color = out + y * dest->w + x;
+
+			*out_color = *in_color;
+		}
+	}
+
+	return 0;
+}
+
+START_TEST(check_atlas_custom_blit) {
+
+	srand(getpid());
+
+	atlas_t *atlas = Atlas_Create(1);
+	atlas->blit = blit;
+
+	SDL_Surface *surfaces[100];
+
+	for (size_t i = 0; i < 100; i++) {
+
+		const int32_t w = rand() % 96 + 1;
+		const int32_t h = rand() % 96 + 1;
+		const int32_t color = 255 << 24 | rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255;
+
+		surfaces[i] = CreateSurface(w, h, color);
+
+		Atlas_Insert(atlas, surfaces[i]);
+	}
+
+	SDL_Surface *surface = CreateSurface(1024, 1024, 0);
+
+	const int32_t res = Atlas_Compile(atlas, 0, surface);
+	ck_assert_int_eq(0, res);
+
+	Atlas_Destroy(atlas);
+
+	IMG_SavePNG(surface, "/tmp/check_atlas_custom_blit.png");
+
+	for (size_t i = 0; i < 100; i++) {
+		SDL_FreeSurface(surfaces[i]);
+	}
+
+	SDL_FreeSurface(surface);
+} END_TEST
+
+/**
  * @brief Test entry point.
  */
 int32_t main(int32_t argc, char **argv) {
@@ -187,6 +246,7 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_test(tcase, check_atlas);
 	tcase_add_test(tcase, check_atlas_random);
 	tcase_add_test(tcase, check_atlas_custom_comparator);
+	tcase_add_test(tcase, check_atlas_custom_blit);
 
 	Suite *suite = suite_create("check_atlas");
 	suite_add_tcase(suite, tcase);

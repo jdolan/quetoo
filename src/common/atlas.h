@@ -64,6 +64,15 @@ typedef struct {
 typedef int32_t (*AtlasNodeComparator)(const atlas_node_t *a, const atlas_node_t *b);
 
 /**
+ * @brief A blit function for blitting packed nodes into the atlas.
+ * @param src The node layer.
+ * @param dest The atlas layer.
+ * @param rect The target rectangle in `dest` in which to blit `src`.
+ * @details The default blit function delegates to `SDL_BlitScaled`.
+ */
+typedef int32_t (*AtlasBlit)(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect);
+
+/**
  * @brief An atlas efficiently packs multiple surfaces into a single large surface.
  * @details Atlases are 3 dimensional, and can act on layers of surfaces. For example,
  * an atlas that is 2 layers deep can be used to pack lightmaps and deluxemaps into
@@ -86,6 +95,11 @@ typedef struct atlas_s {
 	 * @brief The comparator to sort nodes for packing.
 	 */
 	AtlasNodeComparator comparator;
+
+	/**
+	 * @brief The blit function for blitting packed nodes into the atlas.
+	 */
+	AtlasBlit blit;
 
 	/**
 	 * @brief The iteration identifier, which is written to nodes as they are compiled.
