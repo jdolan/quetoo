@@ -442,7 +442,7 @@ void main(void) {
 			effect.rgb *= (ambient + diffuse) * modulate;
 		}
 
-		out_bloom.rgb = clamp(effect.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.rgb = max(effect.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = effect.a;
 
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {

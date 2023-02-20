@@ -40,7 +40,7 @@ void main(void) {
 
 	out_color = texture(texture_cubemap, normalize(vertex.cubemap));
 
-	out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+	out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 	out_bloom.a = out_color.a;
 
 	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);

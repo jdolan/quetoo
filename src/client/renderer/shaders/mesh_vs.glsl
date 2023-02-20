@@ -97,7 +97,7 @@ void main(void) {
 		vertex.ambient = texture(texture_lightgrid_ambient, lightgrid_uvw).rgb;
 		vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
 		vec3 direction = texture(texture_lightgrid_direction, lightgrid_uvw).xyz;
-		vertex.direction = (view * vec4(normalize(direction * 2.0 - 1.0), 0.0)).xyz;
+		vertex.direction = (view * vec4(normalize(direction), 0.0)).xyz;
 		vertex.caustics = texture(texture_lightgrid_caustics, lightgrid_uvw).rgb;
 		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 

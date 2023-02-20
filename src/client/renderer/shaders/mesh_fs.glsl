@@ -362,10 +362,10 @@ void main(void) {
 
 		out_color = fragment.diffusemap;
 
-		out_color.rgb = clamp(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0, 1.0);
-		out_color.rgb = clamp(out_color.rgb + fragment.specular, 0.0, 1.0);
+		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
+		out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
 
-		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
 
 		out_color.rgb += vertex.fog.rgb * out_color.a;
@@ -385,7 +385,7 @@ void main(void) {
 		vec4 effect = texture(texture_stage, vertex.diffusemap);
 		effect *= vertex.color;
 
-		out_bloom.rgb = clamp(effect.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.rgb = max(effect.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = effect.a;
 
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {

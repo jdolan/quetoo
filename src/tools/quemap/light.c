@@ -67,7 +67,6 @@ vec3_t ColorFilter(const vec3_t in) {
 	}
 
 	if (contrast != 1.f) { // apply contrast
-
 		for (int32_t i = 0; i < 3; i++) {
 			out.xyz[i] -= 0.5f; // normalize to -0.5 through 0.5
 			out.xyz[i] *= contrast; // scale
