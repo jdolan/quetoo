@@ -709,7 +709,7 @@ void EmitLightgrid(void) {
 
 	bsp_file.lightgrid->size = lg.size;
 
-	color32_t *out_ambient = (color32_t *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
+	color32_t *out_ambient = (color32_t *) ((byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t));
 	color32_t *out_diffuse = out_ambient + lg.num_luxels;
 	color32_t *out_direction = out_diffuse + lg.num_luxels;
 	color32_t *out_caustics = out_direction + lg.num_luxels;
