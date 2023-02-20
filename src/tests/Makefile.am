@@ -140,7 +140,6 @@ check_thread_LDADD = \
 check_vector_SOURCES = \
 	check_vector.c
 check_vector_CFLAGS = \
-	-I$(top_srcdir)/src \
 	$(TESTS_CFLAGS)
 check_vector_LDADD = \
 	$(TESTS_LIBS)
