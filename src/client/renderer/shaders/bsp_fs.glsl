@@ -404,10 +404,10 @@ void main(void) {
 
 		vec3 stainmap = sample_lightmap(6).rgb;
 
-		out_color.rgb = clamp(out_color.rgb * (fragment.ambient + fragment.diffuse) * stainmap, 0.0, 1.0);
-		out_color.rgb = clamp(out_color.rgb + fragment.specular * stainmap, 0.0, 1.0);
+		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse) * stainmap, 0.0);
+		out_color.rgb = max(out_color.rgb + fragment.specular * stainmap, 0.0);
 
-		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
 
 		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
