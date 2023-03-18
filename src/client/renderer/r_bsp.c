@@ -36,6 +36,8 @@ int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend
 
 	box3_t bounds = Cm_TraceBounds(view->origin, p, Box3_Zero());
 
+	// FIXME: Because blend_elements are pre-sorted, a binary search here would be faster
+	
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 	for (guint i = 0; i < in->blend_elements->len; i++) {
 
