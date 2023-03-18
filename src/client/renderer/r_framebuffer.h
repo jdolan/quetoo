@@ -30,4 +30,4 @@ SDL_Surface *R_ReadFramebuffer(const r_framebuffer_t *framebuffer);
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer);
 
 #ifdef __R_LOCAL_H__
-#endif /* __R_LOCAL_H__ */
+#endif

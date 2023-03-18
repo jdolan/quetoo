@@ -1577,4 +1577,4 @@ typedef enum {
 	TEXTURE_DEPTH_STENCIL_ATTACHMENT,
 } r_texture_t;
 
-#endif /* __R_LOCAL_H__ */
+#endif

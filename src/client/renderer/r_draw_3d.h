@@ -30,4 +30,4 @@ void R_Draw3D(void);
 #ifdef __R_LOCAL_H__
 void R_InitDraw3D(void);
 void R_ShutdownDraw3D(void);
-#endif /* __R_LOCAL_H__ */
+#endif

@@ -37,4 +37,4 @@ void R_InitImages(void);
 void R_FreeImage(r_media_t *media);
 _Bool R_RetainImage(r_media_t *self);
 
-#endif /* __R_LOCAL_H__ */
+#endif

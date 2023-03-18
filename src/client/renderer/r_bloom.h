@@ -23,6 +23,10 @@
 
 #include "r_types.h"
 
+#ifdef __R_LOCAL_H__
+
 void R_DrawBloom(const r_view_t *view);
 void R_InitBloom(void);
 void R_ShutdownBloom(void);
+
+#endif

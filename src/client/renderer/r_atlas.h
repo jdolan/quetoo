@@ -29,4 +29,4 @@ void R_CompileAtlas(r_atlas_t *atlas);
 
 #ifdef __R_LOCAL_H__
 
-#endif /* __R_LOCAL_H__ */
+#endif

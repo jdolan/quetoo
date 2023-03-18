@@ -282,4 +282,4 @@ void R_GetError_(const char *function, const char *msg);
 	} \
 }
 
-#endif /* __R_LOCAL_H__ */
+#endif

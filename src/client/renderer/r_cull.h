@@ -27,4 +27,4 @@
 _Bool R_CullBox(const r_view_t *view, const box3_t bounds);
 _Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius);
 void R_UpdateFrustum(r_view_t *view);
-#endif /* __R_LOCAL_H__ */
+#endif
