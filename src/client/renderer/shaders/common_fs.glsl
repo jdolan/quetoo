@@ -40,27 +40,3 @@ float toksvig(in sampler2DArray sampler, in vec3 texcoord, in float roughness, i
 
 	return power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
 }
-
-/**
- * @brief Brightness, contrast, saturation and gamma.
- */
-vec4 color_filter(inout vec4 color) {
-
-	vec3 luminance = vec3(0.2125, 0.7154, 0.0721);
-	vec3 bias = vec3(0.5);
-
-	// brightness and gamma
-	vec3 scaled = mix(vec3(color.a), color.rgb, 1.0 / gamma) * brightness;
-
-	// saturation and contrast
-	color.rgb = mix(bias, mix(vec3(dot(luminance, scaled)), scaled, saturation), contrast);
-
-	return color;
-}
-
-/**
- * @brief Groups postprocessing operations
- */
-vec4 postprocess(inout vec4 color) {
-	return color_filter(color);
-}

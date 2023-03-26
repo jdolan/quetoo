@@ -50,7 +50,6 @@ cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bloom;
-cvar_t *r_bloom_lod;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
 cvar_t *r_display;
@@ -71,10 +70,11 @@ cvar_t *r_shadowmap_size;
 cvar_t *r_specularity;
 cvar_t *r_sprite_downsample;
 cvar_t *r_stains;
+cvar_t *r_swap_interval;
 cvar_t *r_texture_downsample;
 cvar_t *r_texture_mode;
 cvar_t *r_texture_storage;
-cvar_t *r_swap_interval;
+cvar_t *r_tonemap;
 cvar_t *r_width;
 
 /**
@@ -166,13 +166,13 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->lightmaps = r_draw_bsp_lightmap->integer;
 		out->shadows = r_shadowmap->integer;
 		out->modulate = r_modulate->value;
+		out->tonemap = r_tonemap->integer;
 		
 		out->fog_density = r_fog_density->value;
 		out->fog_samples = r_fog_samples->integer;
 
 		out->caustics = r_caustics->value;
 		out->bloom = r_bloom->value;
-		out->bloom_lod = r_bloom_lod->integer;
 
 		out->developer = r_developer->integer;
 
@@ -320,6 +320,8 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_DrawBloom(view);
 
+	//R_DrawPost(view);
+
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
@@ -399,7 +401,6 @@ static void R_InitLocal(void) {
 	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
 	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE, "Controls texture brightness");
 	r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of light bloom effects");
-	r_bloom_lod = Cvar_Add("r_bloom_lod", "8", CVAR_ARCHIVE, "Controls the level of detail of light bloom effects");
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
@@ -424,6 +425,7 @@ static void R_InitLocal(void) {
 	r_texture_downsample = Cvar_Add("r_texture_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of textures to boost performance on low-end systems.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode.");
 	r_texture_storage = Cvar_Add("r_texture_storage", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies whether to use newer texture storage routines; keep on unless you have errors stemming from glTexStorage.");
+	r_tonemap = Cvar_Add("r_tonemap", "1", CVAR_ARCHIVE, "Selects the tonemapping algorithm for HDR");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
 	Cvar_ClearAll(CVAR_R_MASK);
@@ -533,6 +535,8 @@ void R_Init(void) {
 
 	R_InitBloom();
 
+	R_InitPost();
+
 	R_GetError("Video initialization");
 
 	Com_Print("Video initialized %dx%d (%dx%d) %s\n",
@@ -564,6 +568,8 @@ void R_Shutdown(void) {
 	R_ShutdownSky();
 
 	R_ShutdownBloom();
+
+	R_ShutdownPost();
 
 	R_ShutdownShadows();
 

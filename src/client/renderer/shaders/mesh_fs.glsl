@@ -376,8 +376,6 @@ void main(void) {
 			out_color.rgb = inverse(tbn) * vertex.direction;
 		} else if (lightmaps == 3) {
 			out_color.rgb = fragment.ambient + fragment.diffuse;
-		} else {
-			out_color = postprocess(out_color);
 		}
 
 	} else {
@@ -391,9 +389,5 @@ void main(void) {
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			effect.rgb += vertex.fog.rgb * effect.a;
 		}
-
-		out_color = effect;
-
-		out_color = postprocess(out_color);
 	}
 }

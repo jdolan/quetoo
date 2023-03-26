@@ -55,6 +55,4 @@ void main(void) {
 	float softness = soften(vertex.softness);
 	out_color *= softness;
 	out_bloom *= softness;
-
-	out_color = color_filter(out_color);
 }

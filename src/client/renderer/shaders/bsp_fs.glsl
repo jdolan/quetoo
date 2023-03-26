@@ -419,8 +419,6 @@ void main(void) {
 			out_color.rgb = normalize(((sample_lightmap(2).xyz + sample_lightmap(4).xyz) + 1.0) * 0.5);
 		} else if (lightmaps == 3) {
 			out_color.rgb = fragment.ambient + fragment.diffuse;
-		} else {
-			out_color = postprocess(out_color);
 		}
 
 	} else {
@@ -449,10 +447,6 @@ void main(void) {
 			lightgrid_fog(effect, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 			global_fog(effect, vertex.position);
 		}
-
-		out_color = effect;
-
-		out_color = postprocess(out_color);
 	}
 
 	// debugging

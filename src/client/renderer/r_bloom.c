@@ -48,8 +48,9 @@ static struct {
 	GLint in_position;
 	GLint in_texcoord;
 
-	GLint texture_bloom_attachment;
-	GLint texture_color_attachment;
+	GLint texture_ping_pong;
+
+	GLint horizontal;
 } r_bloom_program;
 
 /**
@@ -63,8 +64,6 @@ void R_DrawBloom(const r_view_t *view) {
 
 	assert(view->framebuffer);
 
-	R_CopyFramebufferAttachments(view->framebuffer, ATTACHMENT_COLOR | ATTACHMENT_BLOOM);
-
 	glUseProgram(r_bloom_program.name);
 
 	glBindVertexArray(r_bloom_data.vertex_array);
@@ -74,27 +73,24 @@ void R_DrawBloom(const r_view_t *view) {
 	glEnableVertexAttribArray(r_bloom_program.in_position);
 	glEnableVertexAttribArray(r_bloom_program.in_texcoord);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, view->framebuffer->bloom_attachment_copy);
+	for (int32_t i = 0; i < 10; i++) {
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, r_bloom_lod->integer);
+		const GLuint ping = view->framebuffer->bloom_attachment_copy[(i + 0) & 1];
+		const GLuint pong = view->framebuffer->bloom_attachment_copy[(i + 1) & 1];
 
-	glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, ping);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment_copy);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pong, 0);
+		glUniform1i(r_bloom_program.horizontal, i & 1);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glUseProgram(0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
+
+	glUseProgram(0);
 
 	R_GetError(NULL);
 }
@@ -117,11 +113,11 @@ static void R_InitBloomProgram(void) {
 	r_bloom_program.in_position = glGetAttribLocation(r_bloom_program.name, "in_position");
 	r_bloom_program.in_texcoord = glGetAttribLocation(r_bloom_program.name, "in_texcoord");
 
-	r_bloom_program.texture_bloom_attachment = glGetUniformLocation(r_bloom_program.name, "texture_bloom_attachment");
-	r_bloom_program.texture_color_attachment = glGetUniformLocation(r_bloom_program.name, "texture_color_attachment");
+	r_bloom_program.texture_ping_pong = glGetUniformLocation(r_bloom_program.name, "texture_ping_pong");
+	glUniform1i(r_bloom_program.texture_ping_pong, TEXTURE_DIFFUSEMAP);
 
-	glUniform1i(r_bloom_program.texture_bloom_attachment, TEXTURE_BLOOM_ATTACHMENT);
-	glUniform1i(r_bloom_program.texture_color_attachment, TEXTURE_COLOR_ATTACHMENT);
+	r_bloom_program.horizontal = glGetUniformLocation(r_bloom_program.name, "horizontal");
+	glUniform1i(r_bloom_program.horizontal, 1);
 
 	glUseProgram(0);
 

@@ -32,10 +32,5 @@ out vec4 out_color;
  * @brief
  */
 void main(void) {
-
 	out_color = vertex.color * texture(texture_diffusemap, vertex.diffusemap);
-	
-	// postprocessing
-	
-	out_color = color_filter(out_color);
 }

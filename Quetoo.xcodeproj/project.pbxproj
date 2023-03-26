@@ -381,6 +381,10 @@
 		CE7D2C322031080B004BC58E /* OptionsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C3020310779004BC58E /* OptionsViewController.json */; };
 		CE7D2C3320310810004BC58E /* SettingsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2F20310763004BC58E /* SettingsViewController.json */; };
 		CE7D2C3420310813004BC58E /* SystemViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C31203107C6004BC58E /* SystemViewController.json */; };
+		CE7F7F5529C5EA5800986D1D /* r_post.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7F7F5329C5EA5800986D1D /* r_post.h */; };
+		CE7F7F5629C5EA5800986D1D /* r_post.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7F7F5429C5EA5800986D1D /* r_post.c */; };
+		CE7F7F5929C622BA00986D1D /* post_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7F7F5829C5EB7400986D1D /* post_fs.glsl */; };
+		CE7F7F5A29C622BE00986D1D /* post_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7F7F5729C5EB6600986D1D /* post_vs.glsl */; };
 		CE7FCDD72596996600E49A2D /* cl_screen.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7FCDD52596996500E49A2D /* cl_screen.c */; };
 		CE7FCDD82596996600E49A2D /* cl_screen.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7FCDD62596996500E49A2D /* cl_screen.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
@@ -968,6 +972,8 @@
 				CE795978295FDE72001B52F3 /* mesh_gs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
 				CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */,
+				CE7F7F5929C622BA00986D1D /* post_fs.glsl in CopyFiles */,
+				CE7F7F5A29C622BE00986D1D /* post_vs.glsl in CopyFiles */,
 				CE0FDB8A29329FE700353351 /* shadow_fs.glsl in CopyFiles */,
 				CE0FDB8B29329FE700353351 /* shadow_gs.glsl in CopyFiles */,
 				CE0FDB8C29329FE700353351 /* shadow_vs.glsl in CopyFiles */,
@@ -1672,6 +1678,10 @@
 		CE7D2C2F20310763004BC58E /* SettingsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SettingsViewController.json; sourceTree = "<group>"; };
 		CE7D2C3020310779004BC58E /* OptionsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = OptionsViewController.json; sourceTree = "<group>"; };
 		CE7D2C31203107C6004BC58E /* SystemViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SystemViewController.json; sourceTree = "<group>"; };
+		CE7F7F5329C5EA5800986D1D /* r_post.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_post.h; sourceTree = "<group>"; };
+		CE7F7F5429C5EA5800986D1D /* r_post.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_post.c; sourceTree = "<group>"; };
+		CE7F7F5729C5EB6600986D1D /* post_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = post_vs.glsl; sourceTree = "<group>"; };
+		CE7F7F5829C5EB7400986D1D /* post_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
 		CE7FCDD52596996500E49A2D /* cl_screen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cl_screen.c; sourceTree = "<group>"; };
 		CE7FCDD62596996500E49A2D /* cl_screen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cl_screen.h; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
@@ -2627,6 +2637,8 @@
 				CE12D5E01C5C58C300CD0B13 /* r_model.h */,
 				CE795972294E4207001B52F3 /* r_occlude.c */,
 				CE795971294E4207001B52F3 /* r_occlude.h */,
+				CE7F7F5429C5EA5800986D1D /* r_post.c */,
+				CE7F7F5329C5EA5800986D1D /* r_post.h */,
 				CE8FD2EB23D3E034002FD074 /* r_program.c */,
 				CE8FD2EA23D3E034002FD074 /* r_program.h */,
 				CEE13C13293241970075585D /* r_shadow.c */,
@@ -2667,6 +2679,8 @@
 				CE795977295FDAF5001B52F3 /* mesh_gs.glsl */,
 				CE63992B23E124F700DB7A2D /* mesh_vs.glsl */,
 				CE79596F293F7812001B52F3 /* polylib.glsl */,
+				CE7F7F5829C5EB7400986D1D /* post_fs.glsl */,
+				CE7F7F5729C5EB6600986D1D /* post_vs.glsl */,
 				CEE13C12293241740075585D /* shadow_fs.glsl */,
 				CEE13C10293241740075585D /* shadow_gs.glsl */,
 				CEE13C11293241740075585D /* shadow_vs.glsl */,
@@ -3695,6 +3709,7 @@
 				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
 				CED438971D9D34450052BAFA /* r_model.h in Headers */,
 				CE795973294E4207001B52F3 /* r_occlude.h in Headers */,
+				CE7F7F5529C5EA5800986D1D /* r_post.h in Headers */,
 				CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */,
 				CEE13C16293241970075585D /* r_shadow.h in Headers */,
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
@@ -4837,6 +4852,7 @@
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
 				CE795974294E4207001B52F3 /* r_occlude.c in Sources */,
+				CE7F7F5629C5EA5800986D1D /* r_post.c in Sources */,
 				CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */,
 				CEE13C15293241970075585D /* r_shadow.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,

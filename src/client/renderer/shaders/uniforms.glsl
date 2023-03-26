@@ -134,6 +134,11 @@ layout (std140) uniform uniforms_block {
 	float gamma;
 
 	/**
+	 * @brief The tonemapping algorithm.
+	 */
+	int tonemap;
+
+	/**
 	 * @brief The modulate scalar.
 	 */
 	float modulate;
@@ -157,11 +162,6 @@ layout (std140) uniform uniforms_block {
 	 * @brief The bloom scalar, for non-material based objects.
 	 */
 	float bloom;
-
-	/**
-	 * @brief The bloom level of detail.
-	 */
-	int bloom_lod;
 
 	/**
 	 * @brief The developer toggle, used for shader development tweaking.

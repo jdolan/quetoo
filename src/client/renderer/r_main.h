@@ -27,7 +27,6 @@ extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bloom;
-extern cvar_t *r_bloom_lod;
 extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
 extern cvar_t *r_display;
@@ -48,10 +47,11 @@ extern cvar_t *r_shadowmap_size;
 extern cvar_t *r_specularity;
 extern cvar_t *r_sprite_downsample;
 extern cvar_t *r_stains;
+extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_downsample;
 extern cvar_t *r_texture_mode;
 extern cvar_t *r_texture_storage;
-extern cvar_t *r_swap_interval;
+extern cvar_t *r_tonemap;
 extern cvar_t *r_width;
 
 extern r_stats_t r_stats;
@@ -206,6 +206,11 @@ typedef struct {
 		float gamma;
 
 		/**
+		 * @brief The tonemapping algorithm.
+		 */
+		int32_t tonemap;
+
+		/**
 		 * @brief The modulate scalar.
 		 */
 		float modulate;
@@ -229,11 +234,6 @@ typedef struct {
 		 * @brief The bloom scalar.
 		 */
 		float bloom;
-
-		/**
-		 * @brief The bloom level of detail.
-		 */
-		int32_t bloom_lod;
 
 		/**
 		 * @brief The developer flags.

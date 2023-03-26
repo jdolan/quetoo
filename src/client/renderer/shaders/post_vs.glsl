@@ -19,30 +19,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform samplerCube texture_cubemap;
-uniform sampler3D texture_lightgrid_fog;
+layout (location = 0) in vec2 in_position;
+layout (location = 1) in vec2 in_texcoord;
 
-uniform material_t material;
-
-in vertex_data {
-	vec3 position;
-	vec3 cubemap;
-	vec3 lightgrid;
+out vertex_data {
+	vec2 texcoord;
 } vertex;
-
-layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec4 out_bloom;
 
 /**
  * @brief
  */
 void main(void) {
 
-	out_color = texture(texture_cubemap, normalize(vertex.cubemap));
+	gl_Position = vec4(in_position, 0.0, 1.0);
 
-	out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
-	out_bloom.a = out_color.a;
-
-	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-	global_fog(out_color, vec3(fog_depth_range.y));
+	vertex.texcoord = in_texcoord;
 }
