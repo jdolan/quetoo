@@ -66,8 +66,7 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 
 	if (attachments & ATTACHMENT_BLOOM) {
 		framebuffer.bloom_attachment = R_CreateFramebufferTexture(&framebuffer, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-		framebuffer.bloom_attachment_copy[0] = R_CreateFramebufferTexture(&framebuffer, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-		framebuffer.bloom_attachment_copy[1] = R_CreateFramebufferTexture(&framebuffer, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+		framebuffer.bloom_attachment_copy = R_CreateFramebufferTexture(&framebuffer, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, framebuffer.bloom_attachment, 0);
 	}
 
@@ -94,6 +93,8 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
  */
 void R_CopyFramebufferAttachments(const r_framebuffer_t *framebuffer, int32_t attachments) {
 
+	assert(framebuffer);
+
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
 
 	if (attachments & ATTACHMENT_COLOR) {
@@ -104,7 +105,7 @@ void R_CopyFramebufferAttachments(const r_framebuffer_t *framebuffer, int32_t at
 
 	if (attachments & ATTACHMENT_BLOOM) {
 		glReadBuffer(GL_COLOR_ATTACHMENT1);
-		glBindTexture(GL_TEXTURE_2D, framebuffer->bloom_attachment_copy[0]);
+		glBindTexture(GL_TEXTURE_2D, framebuffer->bloom_attachment_copy);
 		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
 	}
 
@@ -170,7 +171,6 @@ SDL_Surface *R_ReadFramebuffer(const r_framebuffer_t *framebuffer) {
 	return surface;
 }
 
-
 /**
  * @brief
  */
@@ -188,8 +188,7 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
 		if (framebuffer->bloom_attachment) {
 			glDeleteTextures(1, &framebuffer->bloom_attachment);
-			glDeleteTextures(1, &framebuffer->bloom_attachment_copy[0]);
-			glDeleteTextures(1, &framebuffer->bloom_attachment_copy[1]);
+			glDeleteTextures(1, &framebuffer->bloom_attachment_copy);
 		}
 
 		if (framebuffer->depth_attachment) {
@@ -202,4 +201,3 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
 	memset(framebuffer, 0, sizeof(*framebuffer));
 }
-

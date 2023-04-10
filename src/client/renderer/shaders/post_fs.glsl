@@ -20,6 +20,7 @@
  */
 
 uniform sampler2D texture_color_attachment;
+uniform sampler2D texture_bloom_attachment;
 
 in vertex_data {
 	vec2 texcoord;
@@ -179,7 +180,10 @@ vec3 tonemap_color(in vec3 color) {
  */
 void main(void) {
 
-	out_color = texture(texture_color_attachment, vertex.texcoord);
+	out_color = vec4(0.0);
+
+	out_color += texture(texture_color_attachment, vertex.texcoord);
+	out_color += texture(texture_bloom_attachment, vertex.texcoord);
 
 	out_color.rgb = color_filter(out_color.rgb);
 

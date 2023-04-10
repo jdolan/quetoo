@@ -27,7 +27,7 @@
 
 #include "r_atlas.h"
 #include "r_animation.h"
-#include "r_bloom.h"
+#include "r_blur.h"
 #include "r_bsp.h"
 #include "r_bsp_draw.h"
 #include "r_bsp_model.h"

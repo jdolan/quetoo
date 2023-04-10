@@ -5,7 +5,7 @@ SUBDIRS = \
 noinst_HEADERS = \
 	r_animation.h \
 	r_atlas.h \
-	r_bloom.h \
+	r_blur.h \
 	r_bsp.h \
 	r_bsp_draw.h \
 	r_bsp_model.h \
@@ -46,7 +46,7 @@ noinst_LTLIBRARIES = \
 librenderer_la_SOURCES = \
 	r_animation.c \
 	r_atlas.c \
-	r_bloom.c \
+	r_blur.c \
 	r_bsp.c \
 	r_bsp_draw.c \
 	r_bsp_model.c \

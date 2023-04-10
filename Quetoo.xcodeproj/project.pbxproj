@@ -575,10 +575,8 @@
 		CEA153B4296B4BE100916F83 /* r_cull.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA153B2296B4BE100916F83 /* r_cull.c */; };
 		CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA3B4851E057569004A6CF3 /* cm_material.c */; };
 		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
-		CEA952052764D3FB00C43140 /* r_bloom.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA952032764D3FB00C43140 /* r_bloom.h */; };
-		CEA952062764D3FB00C43140 /* r_bloom.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA952042764D3FB00C43140 /* r_bloom.c */; };
-		CEA9524D2764DBC100C43140 /* bloom_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9524B2764DB9900C43140 /* bloom_fs.glsl */; };
-		CEA952702764ECF900C43140 /* bloom_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9524C2764DB9900C43140 /* bloom_vs.glsl */; };
+		CEA9524D2764DBC100C43140 /* blur_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9524B2764DB9900C43140 /* blur_fs.glsl */; };
+		CEA952702764ECF900C43140 /* blur_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9524C2764DB9900C43140 /* blur_vs.glsl */; };
 		CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA77F02775333300EAC853 /* TeamsViewController.h */; };
 		CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		CEAA78EC2775388700EAC853 /* TeamView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA78EA2775388700EAC853 /* TeamView.h */; };
@@ -598,6 +596,8 @@
 		CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C292030F25B004BC58E /* DialogViewController.json */; };
 		CEAFB9BC27F618BA002ED92D /* luxel.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAFB9BB27F618BA002ED92D /* luxel.c */; };
 		CEB112B022544B3900CE65F6 /* lightgrid.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB112AF22544B3900CE65F6 /* lightgrid.c */; };
+		CEB2F88129D083FC00CDFEF5 /* r_blur.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB2F87F29D083FC00CDFEF5 /* r_blur.h */; };
+		CEB2F88229D083FC00CDFEF5 /* r_blur.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB2F88029D083FC00CDFEF5 /* r_blur.c */; };
 		CEB384E529A3A73B006DEA13 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CEB384E629A3A73B006DEA13 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEB384EE29A3A76C006DEA13 /* check_color.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB384ED29A3A76C006DEA13 /* check_color.c */; };
@@ -952,8 +952,8 @@
 			dstPath = shaders;
 			dstSubfolderSpec = 16;
 			files = (
-				CEA9524D2764DBC100C43140 /* bloom_fs.glsl in CopyFiles */,
-				CEA952702764ECF900C43140 /* bloom_vs.glsl in CopyFiles */,
+				CEA9524D2764DBC100C43140 /* blur_fs.glsl in CopyFiles */,
+				CEA952702764ECF900C43140 /* blur_vs.glsl in CopyFiles */,
 				CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */,
 				CE79596E293EC648001B52F3 /* bsp_gs.glsl in CopyFiles */,
 				CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */,
@@ -1732,10 +1732,8 @@
 		CEA153B2296B4BE100916F83 /* r_cull.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_cull.c; sourceTree = "<group>"; };
 		CEA3B4851E057569004A6CF3 /* cm_material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_material.c; sourceTree = "<group>"; };
 		CEA3B4861E057569004A6CF3 /* cm_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_material.h; sourceTree = "<group>"; };
-		CEA952032764D3FB00C43140 /* r_bloom.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bloom.h; sourceTree = "<group>"; };
-		CEA952042764D3FB00C43140 /* r_bloom.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bloom.c; sourceTree = "<group>"; };
-		CEA9524B2764DB9900C43140 /* bloom_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bloom_fs.glsl; sourceTree = "<group>"; };
-		CEA9524C2764DB9900C43140 /* bloom_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bloom_vs.glsl; sourceTree = "<group>"; };
+		CEA9524B2764DB9900C43140 /* blur_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = blur_fs.glsl; sourceTree = "<group>"; };
+		CEA9524C2764DB9900C43140 /* blur_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = blur_vs.glsl; sourceTree = "<group>"; };
 		CEAA77F02775333300EAC853 /* TeamsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamsViewController.h; sourceTree = "<group>"; };
 		CEAA78182775337300EAC853 /* TeamsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TeamsViewController.c; sourceTree = "<group>"; };
 		CEAA7882277533B100EAC853 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1757,6 +1755,8 @@
 		CEAFB9BB27F618BA002ED92D /* luxel.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = luxel.c; sourceTree = "<group>"; };
 		CEB112AE22544B3800CE65F6 /* lightgrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lightgrid.h; sourceTree = "<group>"; };
 		CEB112AF22544B3900CE65F6 /* lightgrid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lightgrid.c; sourceTree = "<group>"; };
+		CEB2F87F29D083FC00CDFEF5 /* r_blur.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_blur.h; sourceTree = "<group>"; };
+		CEB2F88029D083FC00CDFEF5 /* r_blur.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_blur.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
 		CEB384EC29A3A73B006DEA13 /* check_color */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_color; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEB384ED29A3A76C006DEA13 /* check_color.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_color.c; sourceTree = "<group>"; };
@@ -2587,8 +2587,8 @@
 				CE148DA7242A37BA00B589D8 /* r_animation.h */,
 				CEA082331DC6EBB7001207AA /* r_atlas.c */,
 				CEA082341DC6EBB7001207AA /* r_atlas.h */,
-				CEA952042764D3FB00C43140 /* r_bloom.c */,
-				CEA952032764D3FB00C43140 /* r_bloom.h */,
+				CEB2F88029D083FC00CDFEF5 /* r_blur.c */,
+				CEB2F87F29D083FC00CDFEF5 /* r_blur.h */,
 				CE12D5B21C5C58C300CD0B13 /* r_bsp.c */,
 				CE12D5B31C5C58C300CD0B13 /* r_bsp.h */,
 				CE12D5B81C5C58C300CD0B13 /* r_bsp_draw.c */,
@@ -2659,8 +2659,8 @@
 		CE12D5F31C5C58C300CD0B13 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
-				CEA9524B2764DB9900C43140 /* bloom_fs.glsl */,
-				CEA9524C2764DB9900C43140 /* bloom_vs.glsl */,
+				CEA9524B2764DB9900C43140 /* blur_fs.glsl */,
+				CEA9524C2764DB9900C43140 /* blur_vs.glsl */,
 				CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */,
 				CE79596D293EC606001B52F3 /* bsp_gs.glsl */,
 				CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */,
@@ -3683,7 +3683,7 @@
 			files = (
 				CE148DA9242A37BA00B589D8 /* r_animation.h in Headers */,
 				CEA082381DC6EC59001207AA /* r_atlas.h in Headers */,
-				CEA952052764D3FB00C43140 /* r_bloom.h in Headers */,
+				CEB2F88129D083FC00CDFEF5 /* r_blur.h in Headers */,
 				CED438801D9D34450052BAFA /* r_bsp.h in Headers */,
 				CED438831D9D34450052BAFA /* r_bsp_draw.h in Headers */,
 				CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */,
@@ -4828,7 +4828,7 @@
 			files = (
 				CE148DA8242A37BA00B589D8 /* r_animation.c in Sources */,
 				CEA082371DC6EC50001207AA /* r_atlas.c in Sources */,
-				CEA952062764D3FB00C43140 /* r_bloom.c in Sources */,
+				CEB2F88229D083FC00CDFEF5 /* r_blur.c in Sources */,
 				CED438391D9D34450052BAFA /* r_bsp.c in Sources */,
 				CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */,
 				CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */,

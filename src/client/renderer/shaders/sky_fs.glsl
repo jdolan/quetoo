@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform samplerCube texture_cubemap;
+uniform samplerCube texture_sky;
 uniform sampler3D texture_lightgrid_fog;
 
 uniform material_t material;
@@ -38,7 +38,7 @@ layout (location = 1) out vec4 out_bloom;
  */
 void main(void) {
 
-	out_color = texture(texture_cubemap, normalize(vertex.cubemap));
+	out_color = texture(texture_sky, normalize(vertex.cubemap));
 
 	out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 	out_bloom.a = out_color.a;

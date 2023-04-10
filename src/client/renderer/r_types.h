@@ -1295,7 +1295,7 @@ typedef struct {
 	 * @brief The bloom attachment texture name.
 	 */
 	GLuint bloom_attachment;
-	GLuint bloom_attachment_copy[2];
+	GLuint bloom_attachment_copy;
 
 	/**
 	 * @brief The depth attachment texture name.

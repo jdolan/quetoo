@@ -25,8 +25,8 @@
 
 #ifdef __R_LOCAL_H__
 
-void R_DrawBloom(const r_view_t *view);
-void R_InitBloom(void);
-void R_ShutdownBloom(void);
+void R_BlurFramebuffer(const r_framebuffer_t *framebuffer, r_attachment_t attachment, int32_t kernel);
+void R_InitBlur(void);
+void R_ShutdownBlur(void);
 
 #endif

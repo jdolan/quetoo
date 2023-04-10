@@ -53,7 +53,7 @@ static struct {
 
 	GLint in_position;
 
-	GLint texture_cubemap;
+	GLint texture_sky;
 	GLint texture_lightgrid_fog;
 
 	GLint cube;
@@ -129,14 +129,14 @@ static void R_InitSkyProgram(void) {
 
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
 
-	r_sky_program.texture_cubemap = glGetUniformLocation(r_sky_program.name, "texture_cubemap");
+	r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
 	r_sky_program.texture_lightgrid_fog = glGetUniformLocation(r_sky_program.name, "texture_lightgrid_fog");
 
 	r_sky_program.cube = glGetUniformLocation(r_sky_program.name, "cube");
 
 	r_sky_program.material.bloom = glGetUniformLocation(r_sky_program.name, "material.bloom");
 
-	glUniform1i(r_sky_program.texture_cubemap, TEXTURE_SKY);
+	glUniform1i(r_sky_program.texture_sky, TEXTURE_SKY);
 	glUniform1i(r_sky_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 
 	glUseProgram(0);

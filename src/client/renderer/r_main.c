@@ -318,9 +318,7 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_Draw3D();
 
-	R_DrawBloom(view);
-
-	//R_DrawPost(view);
+	R_DrawPost(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
@@ -349,7 +347,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	R_DrawEntities(view, INT32_MIN);
 
-	R_DrawBloom(view);
+	R_DrawPost(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
@@ -533,7 +531,7 @@ void R_Init(void) {
 
 	R_InitSky();
 
-	R_InitBloom();
+	R_InitBlur();
 
 	R_InitPost();
 
@@ -567,7 +565,7 @@ void R_Shutdown(void) {
 
 	R_ShutdownSky();
 
-	R_ShutdownBloom();
+	R_ShutdownBlur();
 
 	R_ShutdownPost();
 
