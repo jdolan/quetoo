@@ -24,10 +24,12 @@
 #include "r_types.h"
 
 r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments);
-void R_CopyFramebufferAttachments(const r_framebuffer_t *framebuffer, int32_t attachments);
+void R_CopyFramebufferAttachment(r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture);
+void R_BlurFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, int32_t kernel);
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h);
-SDL_Surface *R_ReadFramebuffer(const r_framebuffer_t *framebuffer);
+void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, SDL_Surface **surface);
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer);
-
+void R_InitFramebuffer(void);
+void R_ShutdownFramebuffer(void);
 #ifdef __R_LOCAL_H__
 #endif

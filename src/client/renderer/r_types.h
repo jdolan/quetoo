@@ -1289,19 +1289,16 @@ typedef struct {
 	 * @brief The color attachment texture name.
 	 */
 	GLuint color_attachment;
-	GLuint color_attachment_copy;
 
 	/**
 	 * @brief The bloom attachment texture name.
 	 */
 	GLuint bloom_attachment;
-	GLuint bloom_attachment_copy;
 
 	/**
 	 * @brief The depth attachment texture name.
 	 */
 	GLuint depth_attachment;
-	GLuint depth_attachment_copy;
 
 	/**
 	 * @brief The framebuffer width.

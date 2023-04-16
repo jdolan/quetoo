@@ -36,6 +36,8 @@ static struct {
 
 	GHashTable *blend_depth_hash;
 
+	GLuint depth_attachment;
+
 } r_sprites;
 
 /**
@@ -448,11 +450,11 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glEnableVertexAttribArray(r_sprite_program.in_lighting);
 
 	if (r_sprite_soften->value) {
-		R_CopyFramebufferAttachments(view->framebuffer, ATTACHMENT_DEPTH);
+		R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_DEPTH, &r_sprites.depth_attachment);
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment_copy);
+	glBindTexture(GL_TEXTURE_2D, r_sprites.depth_attachment);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -644,6 +646,10 @@ void R_ShutdownSprites(void) {
 	glDeleteBuffers(1, &r_sprites.elements_buffer);
 
 	g_hash_table_destroy(r_sprites.blend_depth_hash);
+
+	if (r_sprites.depth_attachment) {
+		glDeleteTextures(1, &r_sprites.depth_attachment);
+	}
 
 	R_ShutdownSpriteProgram();
 }

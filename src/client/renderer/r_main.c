@@ -507,6 +507,8 @@ void R_Init(void) {
 
 	R_InitConfig();
 
+	R_InitFramebuffer();
+
 	R_InitUniforms();
 
 	R_InitMedia();
@@ -530,8 +532,6 @@ void R_Init(void) {
 	R_InitLights();
 
 	R_InitSky();
-
-	R_InitBlur();
 
 	R_InitPost();
 
@@ -565,8 +565,6 @@ void R_Shutdown(void) {
 
 	R_ShutdownSky();
 
-	R_ShutdownBlur();
-
 	R_ShutdownPost();
 
 	R_ShutdownShadows();
@@ -576,6 +574,8 @@ void R_Shutdown(void) {
 	R_ShutdownDepthPass();
 
 	R_ShutdownUniforms();
+
+	R_ShutdownFramebuffer();
 
 	R_ShutdownContext();
 

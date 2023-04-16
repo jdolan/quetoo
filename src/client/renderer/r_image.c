@@ -162,12 +162,12 @@ void R_Screenshot(r_view_t *view) {
 		case SCREENSHOT_NONE:
 			return;
 		case SCREENSHOT_VIEW:
-			surface = R_ReadFramebuffer(view->framebuffer);
+			R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &surface);
 			break;
 		default:
 			surface = SDL_CreateRGBSurfaceWithFormat(0,
-													 r_context.drawable_width,
-													 r_context.drawable_height,
+													 view->framebuffer->width,
+													 view->framebuffer->height,
 													 24,
 													 SDL_PIXELFORMAT_RGB24);
 
