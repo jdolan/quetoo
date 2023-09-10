@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 53;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -293,7 +293,16 @@
 		CE548C8025B79F17003677ED /* r_framebuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE548C7E25B79F17003677ED /* r_framebuffer.c */; };
 		CE55308D1E57E3670009A127 /* ui_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55308B1E57E3670009A127 /* ui_editor.c */; };
 		CE55308E1E57E3670009A127 /* ui_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CE55308C1E57E3670009A127 /* ui_editor.h */; };
-		CE576505256F1F540034886E /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
+		CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CE56BD562AAE34C100A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CE56BD572AAE34DA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CE56BD582AAE34F900A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CE56BD592AAE350D00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CE56BD5A2AAE357300A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CE56BD5B2AAE358200A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CE56BD5C2AAE359300A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CE56BD5D2AAE35CA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CE56BD5F2AAE37B000A8AB5E /* libopenal.1.23.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD5E2AAE37B000A8AB5E /* libopenal.1.23.1.dylib */; };
 		CE57E13D2462572900F8902F /* material.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE57E13C246255D100F8902F /* material.glsl */; };
 		CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
@@ -354,13 +363,6 @@
 		CE6EE40E1F720F3A00FBC830 /* libcgame-ui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */; };
 		CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
-		CE78386523FDC2EB004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
-		CE78386623FDC353004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
-		CE78386723FDC368004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
-		CE78386823FDC37F004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
-		CE78386923FDC3D2004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
-		CE78386A23FDC3E9004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
-		CE78386B23FDC3FF004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
 		CE79596E293EC648001B52F3 /* bsp_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE79596D293EC606001B52F3 /* bsp_gs.glsl */; };
 		CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE79596F293F7812001B52F3 /* polylib.glsl */; };
 		CE795973294E4207001B52F3 /* r_occlude.h in Headers */ = {isa = PBXBuildFile; fileRef = CE795971294E4207001B52F3 /* r_occlude.h */; };
@@ -605,7 +607,6 @@
 		CEBDB0CA214A037900A7AC3D /* cm_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDB0C8214A037900A7AC3D /* cm_entity.c */; };
 		CEBDD1B625A0C2710055860E /* cg_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEBDD1B425A0C2710055860E /* cg_sound.h */; };
 		CEBDD1B725A0C2710055860E /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
-		CEC212CE2430CB4D009AA456 /* libphysfs.3.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE78386423FDC2EB004A7EBB /* libphysfs.3.0.2.dylib */; };
 		CEC59522257DD26E00DC7908 /* lightgrid.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEC594C7257DC69300DC7908 /* lightgrid.glsl */; };
 		CEC74D1325C8F98D009C6218 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CECA8CB01E50B5F1005E97E8 /* material.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* material.c */; };
@@ -666,7 +667,6 @@
 		CED5BB162406A95800784D93 /* r_draw_3d.c in Sources */ = {isa = PBXBuildFile; fileRef = CED5BB142406A95800784D93 /* r_draw_3d.c */; };
 		CED5BB192407163D00784D93 /* draw_3d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CED5BB182406B74300784D93 /* draw_3d_fs.glsl */; };
 		CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */; };
-		CED6C0F5288DBA3F007290BA /* libopenal.1.22.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED6C0F4288DBA3F007290BA /* libopenal.1.22.2.dylib */; };
 		CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
 		CEE13C15293241970075585D /* r_shadow.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE13C13293241970075585D /* r_shadow.c */; };
 		CEE13C16293241970075585D /* r_shadow.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE13C14293241970075585D /* r_shadow.h */; };
@@ -1581,6 +1581,8 @@
 		CE55308C1E57E3670009A127 /* ui_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_editor.h; sourceTree = "<group>"; };
 		CE55309A1E5A93C60009A127 /* parse.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parse.c; sourceTree = "<group>"; };
 		CE55309B1E5A93C60009A127 /* parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
+		CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.2.0.dylib; path = ../../../../usr/local/Cellar/physfs/3.2.0/lib/libphysfs.3.2.0.dylib; sourceTree = "<group>"; };
+		CE56BD5E2AAE37B000A8AB5E /* libopenal.1.23.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.23.1.dylib; path = "../../../../usr/local/Cellar/openal-soft/1.23.1/lib/libopenal.1.23.1.dylib"; sourceTree = "<group>"; };
 		CE57E13C246255D100F8902F /* material.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = material.glsl; sourceTree = "<group>"; };
 		CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CreateServerViewController.c; sourceTree = "<group>"; };
 		CE5870801F5CDFE0004CAAB2 /* CreateServerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CreateServerViewController.h; sourceTree = "<group>"; };
@@ -1855,8 +1857,8 @@
 				CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */,
 				CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CED4F41628E1D9A800336783 /* libncursesw.6.dylib in Frameworks */,
-				CED6C0F5288DBA3F007290BA /* libopenal.1.22.2.dylib in Frameworks */,
-				CE78386523FDC2EB004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
+				CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
+				CE56BD5F2AAE37B000A8AB5E /* libopenal.1.23.1.dylib in Frameworks */,
 				CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
 				CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */,
@@ -1911,7 +1913,7 @@
 				CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CED4F41528E1D96E00336783 /* libncursesw.6.dylib in Frameworks */,
 				CEC74D1325C8F98D009C6218 /* libObjectively.dylib in Frameworks */,
-				CE78386823FDC37F004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
+				CE56BD562AAE34C100A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1944,7 +1946,7 @@
 				CE4DCF97256F0DAD00FECAFC /* libshared.a in Frameworks */,
 				CE4DCF99256F0DAD00FECAFC /* libcheck.0.dylib in Frameworks */,
 				CE4DCF9A256F0DAD00FECAFC /* libglib-2.0.0.dylib in Frameworks */,
-				CE576505256F1F540034886E /* libphysfs.3.0.2.dylib in Frameworks */,
+				CE56BD592AAE350D00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE4DD109256F0F7C00FECAFC /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1969,7 +1971,7 @@
 				CE04F5AA25CAE14500C31433 /* libshared.a in Frameworks */,
 				CE51FBA821481DD300ABE14F /* libcheck.0.dylib in Frameworks */,
 				CE51FBA921481DD300ABE14F /* libglib-2.0.0.dylib in Frameworks */,
-				CE78386923FDC3D2004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
+				CE56BD582AAE34F900A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE51FBB121481E5C00ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1982,7 +1984,7 @@
 				CE2B084D23F9EEBC007C77B6 /* libshared.a in Frameworks */,
 				CE51FBBC21481F2500ABE14F /* libcheck.0.dylib in Frameworks */,
 				CE51FBBD21481F2500ABE14F /* libglib-2.0.0.dylib in Frameworks */,
-				CEC212CE2430CB4D009AA456 /* libphysfs.3.0.2.dylib in Frameworks */,
+				CE56BD5A2AAE357300A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE51FBBF21481F2500ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1995,7 +1997,7 @@
 				CE2B084423F9EE46007C77B6 /* libshared.a in Frameworks */,
 				CE51FBD721481FC100ABE14F /* libcheck.0.dylib in Frameworks */,
 				CE51FBD821481FC100ABE14F /* libglib-2.0.0.dylib in Frameworks */,
-				CE78386A23FDC3E9004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
+				CE56BD5B2AAE358200A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE51FBDA21481FC100ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2008,7 +2010,7 @@
 				CE51FC042148213200ABE14F /* libshared.a in Frameworks */,
 				CE51FBEF2148207700ABE14F /* libcheck.0.dylib in Frameworks */,
 				CE51FBF02148207700ABE14F /* libglib-2.0.0.dylib in Frameworks */,
-				CE78386B23FDC3FF004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
+				CE56BD5C2AAE359300A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE51FBF22148207700ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2038,7 +2040,7 @@
 				CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */,
 				CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */,
 				CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */,
-				CE78386723FDC368004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
+				CE56BD572AAE34DA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */,
 				CE1A28201F748B20005F62A9 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */,
@@ -2122,7 +2124,7 @@
 				CEFC7A931D9CB75D000FA6B2 /* libcommon.a in Frameworks */,
 				CEFC7A941D9CB75D000FA6B2 /* libshared.a in Frameworks */,
 				CEFC7A961D9CB776000FA6B2 /* libglib-2.0.0.dylib in Frameworks */,
-				CE78386623FDC353004A7EBB /* libphysfs.3.0.2.dylib in Frameworks */,
+				CE56BD5D2AAE35CA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE1A28261F748BBA005F62A9 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3064,6 +3066,8 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE56BD5E2AAE37B000A8AB5E /* libopenal.1.23.1.dylib */,
+				CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */,
 				CED4F41428E1D96D00336783 /* libncursesw.6.dylib */,
 				CED6C0F4288DBA3F007290BA /* libopenal.1.22.2.dylib */,
 				CE27E84827AC998A003D56AC /* libc++.1.dylib */,
@@ -4315,7 +4319,8 @@
 		CE12D4A11C5C579D00CD0B13 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1400;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
 				ORGANIZATIONNAME = "https://github.com/jdolan";
 				TargetAttributes = {
 					CE052A8C2148333C003446C9 = {
@@ -5144,9 +5149,12 @@
 					/usr/local/lib,
 					"/usr/local/opt/openal-soft/lib",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				ONLY_ACTIVE_ARCH = YES;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/src/**";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src/**",
+				);
 				USE_HEADERMAP = NO;
 				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 			};
@@ -5189,9 +5197,12 @@
 					/usr/local/lib,
 					"/usr/local/opt/openal-soft/lib",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				ONLY_ACTIVE_ARCH = YES;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(SRCROOT)/src/**";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src/**",
+				);
 				USE_HEADERMAP = NO;
 				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 			};
@@ -5203,6 +5214,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/ncurses/6.4/lib,
+					/usr/local/Cellar/physfs/3.2.0/lib,
+					"/usr/local/Cellar/openal-soft/1.23.1/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5214,6 +5227,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/ncurses/6.4/lib,
+					/usr/local/Cellar/physfs/3.2.0/lib,
+					"/usr/local/Cellar/openal-soft/1.23.1/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5285,6 +5300,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/ncurses/6.4/lib,
+					/usr/local/Cellar/physfs/3.2.0/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5296,6 +5312,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/ncurses/6.4/lib,
+					/usr/local/Cellar/physfs/3.2.0/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5348,6 +5365,10 @@
 		CE4DCF9D256F0DAD00FECAFC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5355,6 +5376,10 @@
 		CE4DCF9E256F0DAD00FECAFC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5376,6 +5401,10 @@
 		CE51FBAD21481DD300ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5383,6 +5412,10 @@
 		CE51FBAE21481DD300ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5390,6 +5423,10 @@
 		CE51FBC221481F2500ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5397,6 +5434,10 @@
 		CE51FBC321481F2500ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5404,6 +5445,10 @@
 		CE51FBDD21481FC100ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5411,6 +5456,10 @@
 		CE51FBDE21481FC100ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5418,6 +5467,10 @@
 		CE51FBF52148207700ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5425,6 +5478,10 @@
 		CE51FBF62148207700ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5464,6 +5521,10 @@
 		CE80FD8B1C5E3B6F00A21A51 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5471,6 +5532,10 @@
 		CE80FD8C1C5E3B6F00A21A51 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5632,6 +5697,10 @@
 		CEA029F21C5E558100341079 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5639,6 +5708,10 @@
 		CEA029F31C5E558100341079 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/physfs/3.2.0/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
