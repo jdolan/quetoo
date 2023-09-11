@@ -183,7 +183,9 @@ void main(void) {
 	out_color = vec4(0.0);
 
 	out_color += texture(texture_color_attachment, vertex.texcoord);
-	out_color += texture(texture_bloom_attachment, vertex.texcoord);
+	if (bloom > 0.0) {
+		out_color += texture(texture_bloom_attachment, vertex.texcoord);
+	}
 
 	out_color.rgb = color_filter(out_color.rgb);
 

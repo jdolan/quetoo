@@ -60,15 +60,17 @@ static struct {
  */
 void R_DrawPost(const r_view_t *view) {
 
-	assert(view->framebuffer);
 	if (!r_post->integer) {
 		return;
 	}
 
-	R_BlurFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, 10);
+	assert(view->framebuffer);
 
 	R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &r_post_data.color_attachment);
-	R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, &r_post_data.bloom_attachment);
+
+	if (r_bloom->value) {
+		R_BlurFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, 5, 0, &r_post_data.bloom_attachment);
+	}
 
 	glUseProgram(r_post_program.name);
 

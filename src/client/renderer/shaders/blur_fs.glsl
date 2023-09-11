@@ -27,9 +27,9 @@ in vertex_data {
 
 out vec4 out_color;
 
+uniform int kernel;
+uniform int level;
 uniform bool horizontal;
-
-const float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
 /**
  * @brief
@@ -37,20 +37,23 @@ const float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.0162
  */
 void main(void) {
 
-	vec2 offset = 2.0 / textureSize(texture_diffusemap, 0);
-	vec3 in_color = texture(texture_diffusemap, vertex.texcoord).rgb * weight[0];
+	vec2 offset = 2.0 / textureSize(texture_diffusemap, level);
 
-	if (horizontal) {
-		for (int i = 1; i < 5; i++) {
-			in_color += texture(texture_diffusemap, vertex.texcoord + vec2(offset.x * i, 0.0)).rgb * weight[i];
-			in_color += texture(texture_diffusemap, vertex.texcoord - vec2(offset.x * i, 0.0)).rgb * weight[i];
-		}
-	} else {
-		for (int i = 1; i < 5; i++) {
-			in_color += texture(texture_diffusemap, vertex.texcoord + vec2(0.0, offset.y * i)).rgb * weight[i];
-			in_color += texture(texture_diffusemap, vertex.texcoord - vec2(0.0, offset.y * i)).rgb * weight[i];
+	out_color = vec4(0.0, 0.0, 0.0, 1.0);
+
+	// https://www.quora.com/Given-a-number-n-what-is-the-sum-of-all-integers-less-than-n
+	float frac = 1.0 / kernel * (kernel + 1.0) / 2.0;
+
+	for (int i = kernel; i >= 0; i--) {
+
+		float weight = i * frac;
+
+		if (horizontal) {
+			out_color.rgb += textureLod(texture_diffusemap, vertex.texcoord + vec2(offset.x * i, 0.0), level).rgb * weight;
+			out_color.rgb += textureLod(texture_diffusemap, vertex.texcoord - vec2(offset.x * i, 0.0), level).rgb * weight;
+		} else {
+			out_color.rgb += textureLod(texture_diffusemap, vertex.texcoord + vec2(0.0, offset.y * i), level).rgb * weight;
+			out_color.rgb += textureLod(texture_diffusemap, vertex.texcoord - vec2(0.0, offset.y * i), level).rgb * weight;
 		}
 	}
-
-	out_color = vec4(in_color, 1.0);
 }

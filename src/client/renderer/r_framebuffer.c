@@ -22,40 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief The blur vertex type.
- */
-typedef struct {
-	vec2_t position;
-	vec2_t texcoord;
-} r_blur_vertex_t;
-
-/**
- * @brief The blur data.
- */
-static struct {
-	r_framebuffer_t framebuffers[2];
-
-	GLuint vertex_array;
-	GLuint vertex_buffer;
-} r_blur_data;
-
-/**
- * @brief The blur program.
- */
-static struct {
-	GLuint name;
-
-	GLuint uniforms_block;
-
-	GLint in_position;
-	GLint in_texcoord;
-
-	GLint texture_diffusemap;
-
-	GLint horizontal;
-} r_blur_program;
-
-/**
  * @brief
  */
 static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
@@ -138,7 +104,7 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 /**
  * @brief
  */
-void R_CopyFramebufferAttachment(r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture) {
+void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture) {
 
 	assert(framebuffer);
 	assert(texture);
@@ -254,25 +220,65 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 }
 
 /**
+ * @brief The blur vertex type.
+ */
+typedef struct {
+	vec2_t position;
+	vec2_t texcoord;
+} r_blur_vertex_t;
+
+/**
+ * @brief The blur data.
+ */
+static struct {
+	r_framebuffer_t framebuffers[2];
+
+	GLuint vertex_array;
+	GLuint vertex_buffer;
+} r_blur_data;
+
+/**
+ * @brief The blur program.
+ */
+static struct {
+GLuint name;
+
+	GLuint uniforms_block;
+
+	GLint in_position;
+	GLint in_texcoord;
+
+	GLint texture_diffusemap;
+
+	GLint kernel;
+	GLint level;
+	GLint horizontal;
+} r_blur_program;
+
+/**
  * @brief
  */
-void R_BlurFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, int32_t kernel) {
+void R_BlurFramebufferAttachment(const r_framebuffer_t *framebuffer,
+								 r_attachment_t attachment,
+								 GLuint kernel,
+								 GLuint level,
+								 GLuint *texture) {
 
 	assert(framebuffer);
 
-	GLuint texture = 0;
+	GLuint in = 0;
 	switch (attachment) {
 		case ATTACHMENT_COLOR:
-			texture = framebuffer->color_attachment;
+			in = framebuffer->color_attachment;
 			break;
 		case ATTACHMENT_BLOOM:
-			texture = framebuffer->bloom_attachment;
+			in = framebuffer->bloom_attachment;
 			break;
 		default:
 			break;
 	}
 
-	assert(texture);
+	assert(in);
 
 	glUseProgram(r_blur_program.name);
 
@@ -283,28 +289,28 @@ void R_BlurFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
 	glEnableVertexAttribArray(r_blur_program.in_position);
 	glEnableVertexAttribArray(r_blur_program.in_texcoord);
 
-	for (int32_t i = 0; i < kernel; i++) {
+	glUniform1i(r_blur_program.kernel, kernel);
+	glUniform1i(r_blur_program.level, level);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, r_blur_data.framebuffers[i & 1].name);
-		glUniform1i(r_blur_program.horizontal, i & 1);
+	glBindFramebuffer(GL_FRAMEBUFFER, r_blur_data.framebuffers[0].name);
+	glUniform1i(r_blur_program.horizontal, 0);
 
-		if (i == 0) {
-			glBindTexture(GL_TEXTURE_2D, texture);
-		} else {
-			glBindTexture(GL_TEXTURE_2D, r_blur_data.framebuffers[(i + 1) & 1].color_attachment);
-		}
+	glBindTexture(GL_TEXTURE_2D, in);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
+	glBindFramebuffer(GL_FRAMEBUFFER, r_blur_data.framebuffers[1].name);
+	glUniform1i(r_blur_program.horizontal, 1);
 
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
+	glBindTexture(GL_TEXTURE_2D, r_blur_data.framebuffers[0].color_attachment);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 
 	glUseProgram(0);
+
+	R_CopyFramebufferAttachment(&r_blur_data.framebuffers[0], ATTACHMENT_COLOR, texture);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->name);
 
@@ -331,6 +337,9 @@ static void R_InitBlurProgram(void) {
 
 	r_blur_program.texture_diffusemap = glGetUniformLocation(r_blur_program.name, "texture_diffusemap");
 	glUniform1i(r_blur_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+
+	r_blur_program.level = glGetUniformLocation(r_blur_program.name, "level");
+	glUniform1i(r_blur_program.level, 0);
 
 	r_blur_program.horizontal = glGetUniformLocation(r_blur_program.name, "horizontal");
 	glUniform1i(r_blur_program.horizontal, 1);
