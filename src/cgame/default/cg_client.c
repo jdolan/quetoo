@@ -488,6 +488,9 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		return;
 	}
 
+	// inform the renderer this is a player model
+	e->effects |= EF_CLIENT;
+
 	// deal with our own player model
 	if (Cg_IsSelf(ent)) {
 		e->effects |= EF_SELF;

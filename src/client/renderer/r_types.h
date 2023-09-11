@@ -1064,6 +1064,20 @@ typedef struct {
  */
 #define MAX_ENTITY_SKINS 	0x8
 
+
+/**
+ * @brief Renderer-specific entity effect bits. The lower 16 bits are reserved for the game and
+ * client game module, and are sent over the wire as part of entity state. The higher bits are applied
+ * locally by the client, client game or renderer.
+ */
+#define EF_CLIENT			(1 << 16) // client entitiy
+#define EF_SELF             (1 << 17) // local client's entity model
+#define EF_WEAPON			(1 << 18) // view weapon
+#define EF_SHELL			(1 << 19) // colored shell
+#define EF_BLEND			(1 << 20) // preset alpha blend
+#define EF_NO_SHADOW		(1 << 21) // no shadow
+#define EF_NO_DRAW			(1 << 22) // no draw (but perhaps shadow)
+
 /**
  * @brief Entities provide a means to add model instances to the view. Entity
  * lighting is cached on the client entity so that it is only recalculated
