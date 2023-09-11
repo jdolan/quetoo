@@ -618,7 +618,7 @@ static void G_CheckRoundStart(void) {
 /**
  * @brief
  */
-static void G_CheckRoundLimit() {
+static void G_CheckRoundLimit(void) {
 	int32_t i;
 	g_entity_t *ent;
 	g_client_t *cl;
