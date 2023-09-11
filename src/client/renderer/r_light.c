@@ -35,10 +35,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 
 	switch (l->type) {
 		case LIGHT_AMBIENT:
-			if (r_shadowmap->integer < 1) {
-				return;
-			}
-			break;
 		case LIGHT_SUN:
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
