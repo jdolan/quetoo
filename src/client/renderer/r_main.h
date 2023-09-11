@@ -39,6 +39,7 @@ extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_modulate;
 extern cvar_t *r_multisample;
+extern cvar_t *r_post;
 extern cvar_t *r_roughness;
 extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;

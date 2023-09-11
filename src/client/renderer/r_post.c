@@ -56,11 +56,14 @@ static struct {
 } r_post_program;
 
 /**
- * @brief
+ * @brief Draw post-processing stages like bloom, depth of field and tonemapping.
  */
 void R_DrawPost(const r_view_t *view) {
 
 	assert(view->framebuffer);
+	if (!r_post->integer) {
+		return;
+	}
 
 	R_BlurFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, 10);
 
