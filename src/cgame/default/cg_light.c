@@ -131,16 +131,19 @@ static void Cg_AddAmbientLights(void) {
 			.shadow = 1.f,
 		};
 
-		const r_entity_t *child = e + 1;
-		for (int32_t j = i + 1; j < cgi.view->num_entities; j++, child++) {
-			const r_entity_t *c = child;
-			while (c) {
-				if (c->parent == e) {
-					light.entities[light.num_entities++] = child;
-					light.bounds = Box3_Union(light.bounds, child->abs_bounds);
-					break;
+		if (IS_MESH_MODEL(e->model)) {
+
+			const r_entity_t *child = e + 1;
+			for (int32_t j = i + 1; j < cgi.view->num_entities; j++, child++) {
+				const r_entity_t *c = child;
+				while (c) {
+					if (c->parent == e) {
+						light.entities[light.num_entities++] = child;
+						light.bounds = Box3_Union(light.bounds, child->abs_bounds);
+						break;
+					}
+					c = c->parent;
 				}
-				c = c->parent;
 			}
 		}
 
