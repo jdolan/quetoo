@@ -99,7 +99,7 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 
 	if (attachments & ATTACHMENT_POST) {
 		framebuffer.post_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_POST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, framebuffer.post_attachment, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, framebuffer.post_attachment, 0);
 	}
 
 	if (attachments & ATTACHMENT_DEPTH) {
