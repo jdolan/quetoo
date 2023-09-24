@@ -72,6 +72,7 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 	r_framebuffer_t framebuffer = {
 		.width = width,
 		.height = height,
+		.attachments = attachments,
 	};
 
 	glGenFramebuffers(1, &framebuffer.name);

@@ -1303,6 +1303,11 @@ typedef struct r_framebuffer_s {
 	GLuint name;
 
 	/**
+	 * The attachments enabled for this framebuffer.
+	 */
+	int32_t attachments;
+
+	/**
 	 * @brief The color attachment texture name.
 	 */
 	GLuint color_attachment;
