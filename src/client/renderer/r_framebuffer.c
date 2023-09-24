@@ -239,6 +239,18 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 }
 
 /**
+ * @brief Blits the framebuffer object to the specified screen rect.
+ */
+void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h) {
+
+	if (framebuffer->post_attachment) {
+		R_BlitFramebufferAttachment(framebuffer, ATTACHMENT_POST, x, y, w, h);
+	} else {
+		R_BlitFramebufferAttachment(framebuffer, ATTACHMENT_COLOR, x, y, w, h);
+	}
+}
+
+/**
  * @brief
  */
 void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer,
