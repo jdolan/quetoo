@@ -360,7 +360,6 @@ GLuint name;
 	GLint texture_diffusemap;
 
 	GLint axis;
-	GLint blur;
 } r_blur_program;
 
 /**
@@ -368,25 +367,29 @@ GLuint name;
  */
 void R_BlurFramebufferAttachment(r_framebuffer_t *framebuffer,
 								 r_attachment_t attachment,
-								 float blur) {
+								 int32_t blur) {
 
 	assert(framebuffer);
 	assert(framebuffer->blur_attachment_x);
 	assert(framebuffer->blur_attachment_y);
 
 	GLuint in = 0;
+	GLenum out = 0;
 	switch (attachment) {
 		case ATTACHMENT_COLOR:
 			in = framebuffer->color_attachment;
+			out = GL_COLOR_ATTACHMENT0;
 			break;
 		case ATTACHMENT_BLOOM:
 			in = framebuffer->bloom_attachment;
+			out = GL_COLOR_ATTACHMENT1;
 			break;
 		default:
 			break;
 	}
 
 	assert(in);
+	assert(out);
 
 	glUseProgram(r_blur_program.name);
 
@@ -397,17 +400,18 @@ void R_BlurFramebufferAttachment(r_framebuffer_t *framebuffer,
 	glEnableVertexAttribArray(r_blur_program.in_position);
 	glEnableVertexAttribArray(r_blur_program.in_texcoord);
 
-	glUniform1f(r_blur_program.blur, blur);
+	for (int32_t i = 0; i < blur; i++) {
 
-	glUniform1i(r_blur_program.axis, 0);
-	glBindTexture(GL_TEXTURE_2D, in);
-	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT2 });
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+		glUniform1i(r_blur_program.axis, 0);
+		glBindTexture(GL_TEXTURE_2D, i == 0 ? in : framebuffer->blur_attachment_x);
+		glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT3 });
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	glUniform1i(r_blur_program.axis, 1);
-	glBindTexture(GL_TEXTURE_2D, framebuffer->blur_attachment_x);
-	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT3 });
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+		glUniform1i(r_blur_program.axis, 1);
+		glBindTexture(GL_TEXTURE_2D, framebuffer->blur_attachment_y);
+		glDrawBuffers(1, (const GLenum []) { i == blur - 1 ? out : GL_COLOR_ATTACHMENT2 });
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 
@@ -416,8 +420,6 @@ void R_BlurFramebufferAttachment(r_framebuffer_t *framebuffer,
 	glBindVertexArray(0);
 
 	glUseProgram(0);
-
-	R_CopyFramebufferAttachment(framebuffer, ATTACHMENT_BLUR_Y, &in);
 
 	R_GetError(NULL);
 }
@@ -445,9 +447,6 @@ static void R_InitBlurProgram(void) {
 
 	r_blur_program.axis = glGetUniformLocation(r_blur_program.name, "axis");
 	glUniform1i(r_blur_program.axis, 0);
-
-	r_blur_program.blur = glGetUniformLocation(r_blur_program.name, "blur");
-	glUniform1f(r_blur_program.blur, 1.f);
 
 	glUseProgram(0);
 

@@ -28,16 +28,15 @@ in vertex_data {
 out vec4 out_color;
 
 uniform int axis;
-uniform float blur;
 
 const float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
 /**
- * @brief
+ * @brief https://learnopengl.com/Advanced-Lighting/Bloom
  */
 void main(void) {
 
-	vec2 offset = blur / textureSize(texture_diffusemap, 0);
+	vec2 offset = 1.0 / textureSize(texture_diffusemap, 0);
 	out_color = texture(texture_diffusemap, vertex.texcoord) * weight[0];
 
 	if (axis == 0) {

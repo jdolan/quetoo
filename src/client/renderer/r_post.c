@@ -64,7 +64,7 @@ void R_DrawPost(const r_view_t *view) {
 	assert(view->framebuffer);
 
 	if (r_bloom->value) {
-		R_BlurFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, r_bloom->value);
+		R_BlurFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, r_bloom_iterations->integer);
 	}
 
 	glUseProgram(r_post_program.name);
