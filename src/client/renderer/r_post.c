@@ -35,9 +35,6 @@ typedef struct {
 static struct {
 	GLuint vertex_array;
 	GLuint vertex_buffer;
-
-	GLuint color_attachment;
-	GLuint bloom_attachment;
 } r_post_data;
 
 /**
@@ -66,11 +63,8 @@ void R_DrawPost(const r_view_t *view) {
 
 	assert(view->framebuffer);
 
-	R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &r_post_data.color_attachment);
-
 	if (r_bloom->value) {
-		R_BlurFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, 0, 1.f);
-		R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, &r_post_data.bloom_attachment);
+		R_BlurFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, r_bloom->value);
 	}
 
 	glUseProgram(r_post_program.name);
@@ -83,10 +77,10 @@ void R_DrawPost(const r_view_t *view) {
 	glEnableVertexAttribArray(r_post_program.in_texcoord);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, r_post_data.color_attachment);
+	glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, r_post_data.bloom_attachment);
+	glBindTexture(GL_TEXTURE_2D, view->framebuffer->bloom_attachment);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -192,14 +186,6 @@ void R_ShutdownPost(void) {
 
 	glDeleteBuffers(1, &r_post_data.vertex_buffer);
 	glDeleteVertexArrays(1, &r_post_data.vertex_array);
-
-	if (r_post_data.color_attachment) {
-		glDeleteTextures(1, &r_post_data.color_attachment);
-	}
-
-	if (r_post_data.bloom_attachment) {
-		glDeleteTextures(1, &r_post_data.bloom_attachment);
-	}
 
 	R_GetError(NULL);
 

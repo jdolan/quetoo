@@ -594,7 +594,7 @@ static void Cl_UpdateScene(void) {
 
 	R_DrawMainView(&cl_view);
 
-	R_BlitFramebuffer(cl_view.framebuffer, 0, 0, 0, 0);
+	R_BlitFramebufferAttachment(cl_view.framebuffer, ATTACHMENT_COLOR, 0, 0, 0, 0);
 }
 
 /**
