@@ -1286,7 +1286,8 @@ typedef struct {
 typedef enum {
 	ATTACHMENT_COLOR = 0x1,
 	ATTACHMENT_BLOOM = 0x2,
-	ATTACHMENT_DEPTH = 0x4,
+	ATTACHMENT_BLUR  = 0x4,
+	ATTACHMENT_DEPTH = 0x8,
 	ATTACHMENT_ALL   = 0xFF
 } r_attachment_t;
 
@@ -1308,6 +1309,11 @@ typedef struct {
 	 * @brief The bloom attachment texture name.
 	 */
 	GLuint bloom_attachment;
+
+	/**
+	 * @brief The blur attachment texture name.
+	 */
+	GLuint blur_attachment;
 
 	/**
 	 * @brief The depth attachment texture name.

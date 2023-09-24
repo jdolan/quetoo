@@ -25,35 +25,27 @@ in vertex_data {
 	vec2 texcoord;
 } vertex;
 
-out vec4 out_color;
+layout (location = 2) out vec4 blur_color;
 
-uniform int kernel;
 uniform int level;
-uniform bool horizontal;
+uniform float blur;
 
 /**
  * @brief
- * @see https://learnopengl.com/Advanced-Lighting/Bloom
  */
 void main(void) {
 
-	vec2 offset = 2.0 / textureSize(texture_diffusemap, level);
+	vec3 kernel[9] = vec3[](
+		vec3(-1.0, -1.0, 0.077847), vec3(+0.0, -1.0, 0.123317), vec3(+1.0, -1.0, 0.077847),
+		vec3(-1.0, +0.0, 0.123317), vec3(+0.0, +0.0, 0.195346), vec3(+1.0, +0.0, 0.123317),
+		vec3(-1.0, +1.0, 0.077847), vec3(+0.0, +1.0, 0.123317), vec3(+1.0, +1.0, 0.077847));
 
-	out_color = vec4(0.0, 0.0, 0.0, 1.0);
+	vec2 texel = blur / textureSize(texture_diffusemap, level);
 
-	// https://www.quora.com/Given-a-number-n-what-is-the-sum-of-all-integers-less-than-n
-	float frac = 1.0 / kernel * (kernel + 1.0) / 2.0;
+	blur_color = vec4(0.0, 0.0, 0.0, 1.0);
 
-	for (int i = kernel; i >= 0; i--) {
-
-		float weight = i * frac;
-
-		if (horizontal) {
-			out_color.rgb += textureLod(texture_diffusemap, vertex.texcoord + vec2(offset.x * i, 0.0), level).rgb * weight;
-			out_color.rgb += textureLod(texture_diffusemap, vertex.texcoord - vec2(offset.x * i, 0.0), level).rgb * weight;
-		} else {
-			out_color.rgb += textureLod(texture_diffusemap, vertex.texcoord + vec2(0.0, offset.y * i), level).rgb * weight;
-			out_color.rgb += textureLod(texture_diffusemap, vertex.texcoord - vec2(0.0, offset.y * i), level).rgb * weight;
-		}
+	for (int j = 0; j < 9; j++) {
+		vec2 texcoord = clamp(vertex.texcoord + texel * kernel[j].xy, 0.0, 1.0);
+		blur_color.rgb += textureLod(texture_diffusemap, texcoord, level).rgb * kernel[j].z;
 	}
 }

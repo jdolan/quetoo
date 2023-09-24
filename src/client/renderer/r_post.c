@@ -69,7 +69,8 @@ void R_DrawPost(const r_view_t *view) {
 	R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &r_post_data.color_attachment);
 
 	if (r_bloom->value) {
-		R_BlurFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, 5, 0, &r_post_data.bloom_attachment);
+		R_BlurFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, 0, 1.f);
+		R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_BLOOM, &r_post_data.bloom_attachment);
 	}
 
 	glUseProgram(r_post_program.name);

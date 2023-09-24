@@ -53,6 +53,7 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
 	switch (attachment) {
 		case ATTACHMENT_COLOR:
 		case ATTACHMENT_BLOOM:
+		case ATTACHMENT_BLUR:
 			return R_CreateFramebufferTexture(f, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 		case ATTACHMENT_DEPTH:
 			return R_CreateFramebufferTexture(f, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
@@ -82,6 +83,11 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 	if (attachments & ATTACHMENT_BLOOM) {
 		framebuffer.bloom_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_BLOOM);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, framebuffer.bloom_attachment, 0);
+	}
+
+	if (attachments & ATTACHMENT_BLUR) {
+		framebuffer.blur_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_BLUR);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, framebuffer.blur_attachment, 0);
 	}
 
 	if (attachments & ATTACHMENT_DEPTH) {
@@ -121,6 +127,9 @@ void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
 			break;
 		case ATTACHMENT_BLOOM:
 			glReadBuffer(GL_COLOR_ATTACHMENT1);
+			break;
+		case ATTACHMENT_BLUR:
+			glReadBuffer(GL_COLOR_ATTACHMENT2);
 			break;
 		default:
 			break;
@@ -185,7 +194,24 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer,
 												  SDL_PIXELFORMAT_RGB24);
 	}
 
-	glBindTexture(GL_TEXTURE_2D, framebuffer->color_attachment);
+	GLuint in = 0;
+	switch (attachment) {
+		case ATTACHMENT_COLOR:
+			in = framebuffer->color_attachment;
+			break;
+		case ATTACHMENT_BLOOM:
+			in = framebuffer->bloom_attachment;
+			break;
+		case ATTACHMENT_BLUR:
+			in = framebuffer->blur_attachment;
+			break;
+		default:
+			break;
+	}
+
+	assert(in);
+
+	glBindTexture(GL_TEXTURE_2D, in);
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, (*surface)->pixels);
 
 	R_GetError(NULL);
@@ -207,6 +233,10 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
 		if (framebuffer->bloom_attachment) {
 			glDeleteTextures(1, &framebuffer->bloom_attachment);
+		}
+
+		if (framebuffer->blur_attachment) {
+			glDeleteTextures(1, &framebuffer->blur_attachment);
 		}
 
 		if (framebuffer->depth_attachment) {
@@ -231,8 +261,6 @@ typedef struct {
  * @brief The blur data.
  */
 static struct {
-	r_framebuffer_t framebuffers[2];
-
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 } r_blur_data;
@@ -250,21 +278,20 @@ GLuint name;
 
 	GLint texture_diffusemap;
 
-	GLint kernel;
+	GLint blur;
 	GLint level;
-	GLint horizontal;
 } r_blur_program;
 
 /**
  * @brief
  */
-void R_BlurFramebufferAttachment(const r_framebuffer_t *framebuffer,
+void R_BlurFramebufferAttachment(r_framebuffer_t *framebuffer,
 								 r_attachment_t attachment,
-								 GLuint kernel,
 								 GLuint level,
-								 GLuint *texture) {
+								 float blur) {
 
 	assert(framebuffer);
+	assert(framebuffer->blur_attachment);
 
 	GLuint in = 0;
 	switch (attachment) {
@@ -289,20 +316,15 @@ void R_BlurFramebufferAttachment(const r_framebuffer_t *framebuffer,
 	glEnableVertexAttribArray(r_blur_program.in_position);
 	glEnableVertexAttribArray(r_blur_program.in_texcoord);
 
-	glUniform1i(r_blur_program.kernel, kernel);
 	glUniform1i(r_blur_program.level, level);
+	glUniform1f(r_blur_program.blur, blur);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, r_blur_data.framebuffers[0].name);
-	glUniform1i(r_blur_program.horizontal, 0);
+	glDrawBuffers(3, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 });
 
 	glBindTexture(GL_TEXTURE_2D, in);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, r_blur_data.framebuffers[1].name);
-	glUniform1i(r_blur_program.horizontal, 1);
-
-	glBindTexture(GL_TEXTURE_2D, r_blur_data.framebuffers[0].color_attachment);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -310,9 +332,7 @@ void R_BlurFramebufferAttachment(const r_framebuffer_t *framebuffer,
 
 	glUseProgram(0);
 
-	R_CopyFramebufferAttachment(&r_blur_data.framebuffers[0], ATTACHMENT_COLOR, texture);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->name);
+	R_CopyFramebufferAttachment(framebuffer, ATTACHMENT_BLUR, &in);
 
 	R_GetError(NULL);
 }
@@ -341,8 +361,8 @@ static void R_InitBlurProgram(void) {
 	r_blur_program.level = glGetUniformLocation(r_blur_program.name, "level");
 	glUniform1i(r_blur_program.level, 0);
 
-	r_blur_program.horizontal = glGetUniformLocation(r_blur_program.name, "horizontal");
-	glUniform1i(r_blur_program.horizontal, 1);
+	r_blur_program.blur = glGetUniformLocation(r_blur_program.name, "blur");
+	glUniform1f(r_blur_program.blur, 1.f);
 
 	glUseProgram(0);
 
@@ -355,10 +375,6 @@ static void R_InitBlurProgram(void) {
 void R_InitFramebuffer(void) {
 
 	memset(&r_blur_data, 0, sizeof(r_blur_data));
-
-	// FIXME: These should be associated with an actual framebuffer, and use the same sizes
-	r_blur_data.framebuffers[0] = R_CreateFramebuffer(r_context.width, r_context.height, ATTACHMENT_COLOR);
-	r_blur_data.framebuffers[1] = R_CreateFramebuffer(r_context.width, r_context.height, ATTACHMENT_COLOR);
 
 	glGenVertexArrays(1, &r_blur_data.vertex_array);
 	glBindVertexArray(r_blur_data.vertex_array);
@@ -412,9 +428,6 @@ void R_ShutdownBlurProgram(void) {
 void R_ShutdownFramebuffer(void) {
 
 	R_ShutdownBlurProgram();
-
-	R_DestroyFramebuffer(&r_blur_data.framebuffers[0]);
-	R_DestroyFramebuffer(&r_blur_data.framebuffers[1]);
 
 	glDeleteBuffers(1, &r_blur_data.vertex_buffer);
 	glDeleteVertexArrays(1, &r_blur_data.vertex_array);
