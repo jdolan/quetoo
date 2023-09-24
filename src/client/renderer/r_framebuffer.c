@@ -243,7 +243,7 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
  */
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h) {
 
-	if (framebuffer->post_attachment) {
+	if (r_post->value) {
 		R_BlitFramebufferAttachment(framebuffer, ATTACHMENT_POST, x, y, w, h);
 	} else {
 		R_BlitFramebufferAttachment(framebuffer, ATTACHMENT_COLOR, x, y, w, h);
