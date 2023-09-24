@@ -122,6 +122,30 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 /**
  * @brief
  */
+void R_ClearFramebuffer(r_framebuffer_t *framebuffer) {
+
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->name);
+
+	glDrawBuffers(4, (const GLenum []) {
+		GL_COLOR_ATTACHMENT0,
+		GL_COLOR_ATTACHMENT1,
+		GL_COLOR_ATTACHMENT2,
+		GL_COLOR_ATTACHMENT3,
+		GL_COLOR_ATTACHMENT4
+	});
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glDrawBuffers(1, (const GLenum []) {
+		GL_COLOR_ATTACHMENT0,
+	});
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+/**
+ * @brief
+ */
 void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture) {
 
 	assert(framebuffer);

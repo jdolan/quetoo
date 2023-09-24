@@ -24,6 +24,7 @@
 #include "r_types.h"
 
 r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments);
+void R_ClearFramebuffer(r_framebuffer_t *framebuffer);
 void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture);
 void R_BlurFramebufferAttachment(r_framebuffer_t *framebuffer, r_attachment_t attachment, float blur);
 void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLint x, GLint y, GLint w, GLint h);
