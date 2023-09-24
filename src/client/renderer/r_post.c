@@ -76,6 +76,8 @@ void R_DrawPost(const r_view_t *view) {
 	glEnableVertexAttribArray(r_post_program.in_position);
 	glEnableVertexAttribArray(r_post_program.in_texcoord);
 
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT4 });
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
 	glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
 
@@ -85,6 +87,8 @@ void R_DrawPost(const r_view_t *view) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+
+	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 
 	glUseProgram(0);
 
