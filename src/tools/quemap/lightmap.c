@@ -414,16 +414,6 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 	vec3_t dir;
 
-	if (light->face == lightmap->face) {
-		const float lumens = scale * light->intensity;
-		Luxel_Illuminate(luxel, &(const lumen_t) {
-			.light = light,
-			.color = Vec3_Scale(light->color, lumens),
-			.direction = Vec3_Scale(luxel->normal, lumens)
-		});
-		return;
-	}
-
 	if (light->model != bsp_file.models && light->model != lightmap->model) {
 		return;
 	}
