@@ -161,8 +161,13 @@ void R_Screenshot(r_view_t *view) {
 	switch (r_image_state.screenshot) {
 		case SCREENSHOT_NONE:
 			return;
-		case SCREENSHOT_VIEW:
-			R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &surface);
+		case SCREENSHOT_VIEW: {
+			if (r_post->value) {
+				R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_POST, &surface);
+			} else {
+				R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &surface);
+			}
+		}
 			break;
 		default:
 			surface = SDL_CreateRGBSurfaceWithFormat(0,

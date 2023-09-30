@@ -283,6 +283,9 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer,
 		case ATTACHMENT_BLUR_Y:
 			in = framebuffer->blur_attachment_y;
 			break;
+		case ATTACHMENT_POST:
+			in = framebuffer->post_attachment;
+			break;
 		default:
 			break;
 	}
