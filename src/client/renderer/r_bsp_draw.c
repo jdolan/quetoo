@@ -43,6 +43,7 @@ static struct {
 	GLint texture_material;
 	GLint texture_lightmap;
 	GLint texture_stainmap;
+	GLint texture_caustics;
 	GLint texture_stage;
 	GLint texture_warp;
 	GLint texture_lightgrid_ambient;
@@ -652,6 +653,9 @@ void R_DrawWorld(const r_view_t *view) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->lightmap->texnum);
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_CAUSTICS);
+	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->caustics->texnum);
+
 	R_DrawStains(view);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
@@ -739,6 +743,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
 	r_bsp_program.texture_stainmap = glGetUniformLocation(r_bsp_program.name, "texture_stainmap");
+	r_bsp_program.texture_caustics = glGetUniformLocation(r_bsp_program.name, "texture_caustics");
 	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
@@ -772,6 +777,7 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
 	glUniform1i(r_bsp_program.texture_stainmap, TEXTURE_STAINMAP);
+	glUniform1i(r_bsp_program.texture_caustics, TEXTURE_CAUSTICS);
 	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
 	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);

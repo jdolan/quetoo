@@ -22,6 +22,7 @@
 uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
 uniform sampler2D texture_stainmap;
+uniform sampler2D texture_caustics;
 uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
 uniform sampler3D texture_lightgrid_ambient;
@@ -80,6 +81,13 @@ vec4 sample_lightmap(int index) {
  */
 vec4 sample_stainmap() {
 	return texture(texture_stainmap, vertex.lightmap);
+}
+
+/**
+ * @brief
+ */
+vec4 sample_caustics() {
+	return texture(texture_caustics, vertex.lightmap);
 }
 
 /**
@@ -388,7 +396,7 @@ void main(void) {
 			fragment.specular += blinn_phong(diffuse1, direction1);
 			fragment.specular += blinn_phong(fragment.ambient, vertex.normal);
 
-			fragment.caustics = sample_lightmap(5).rgb;
+			fragment.caustics = sample_caustics().rgb;
 		} else {
 			fragment.ambient = sample_lightgrid(texture_lightgrid_ambient).rgb * modulate;
 			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));

@@ -589,7 +589,7 @@ typedef struct {
 	int32_t width;
 
 	/**
-	 * @brief The lightmap atlas (RGB32F).
+	 * @brief The lightmap atlas (RGB32F array).
 	 */
 	r_image_t *lightmap;
 
@@ -597,6 +597,11 @@ typedef struct {
 	 * @brief The stainmap atlas (RGBA8).
 	 */
 	r_image_t *stainmap;
+
+	/**
+	 * @brief The caustics atlas (RGB8).
+	 */
+	r_image_t *caustics;
 } r_bsp_lightmap_t;
 
 /**
@@ -1582,6 +1587,11 @@ typedef enum {
 	 * @brief The stainmap texture, used by the BSP program.
 	 */
 	TEXTURE_STAINMAP,
+
+	/**
+	 * @brief The castics lightmap texture, used by the BSP program.
+	 */
+	TEXTURE_CAUSTICS,
 
 	/**
 	 * @brief The lightgrid textures, used by the BSP, mesh, sprite and sky programs.
