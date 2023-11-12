@@ -427,16 +427,14 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->atlas->format = GL_RGBA;
 	out->atlas->pixel_type = GL_FLOAT;
 
-	const size_t layer_size = out->width * out->width * sizeof(color_t);
-
-	const size_t in_size = layer_size * BSP_LIGHTMAP_LAYERS;
-	const size_t out_size = in_size + layer_size * BSP_STAINMAP_LAYERS;
-
 	const byte *in_data = (byte *) in + sizeof(bsp_lightmap_t);
-	color32_t *in_color = (color32_t *) in_data;
+	const vec3_t *in_color = (vec3_t *) in_data;
 
-	byte *out_data = Mem_Malloc(out_size);
-	color_t *out_color = (color_t *) out_data;
+	const size_t layer_size = out->width * out->width * sizeof(vec4_t);
+	const size_t out_size = layer_size * (BSP_LIGHTMAP_LAYERS + BSP_STAINMAP_LAYERS);
+
+	vec4_t *out_data = Mem_Malloc(out_size);
+	vec4_t *out_color = out_data;
 
 	for (bsp_lightmap_texture_t tex = BSP_LIGHTMAP_FIRST; tex < BSP_LIGHTMAP_STAINS; tex++) {
 		for (int32_t x = 0; x < out->width; x++) {
@@ -446,19 +444,12 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 						case BSP_LIGHTMAP_AMBIENT:
 						case BSP_LIGHTMAP_DIFFUSE_0:
 						case BSP_LIGHTMAP_DIFFUSE_1:
-							*out_color = Color32_RGBE(*in_color);
+						case BSP_LIGHTMAP_CAUSTICS:
+							*out_color = Vec3_ToVec4(*in_color, 1.f);
 							break;
 						case BSP_LIGHTMAP_DIRECTION_0:
-						case BSP_LIGHTMAP_DIRECTION_1: {
-							const vec4_t unclamped = Vec4bv(in_color->rgba);
-							out_color->r = unclamped.x;
-							out_color->g = unclamped.y;
-							out_color->b = unclamped.z;
-							out_color->a = unclamped.w;
-						}
-							break;
-						case BSP_LIGHTMAP_CAUSTICS:
-							*out_color = Color32_Color(*in_color);
+						case BSP_LIGHTMAP_DIRECTION_1:
+							*out_color = Vec3_ToVec4(*in_color, 0.f);
 							break;
 						default:
 							break;
@@ -466,18 +457,16 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 				} else {
 					switch (tex) {
 						case BSP_LIGHTMAP_AMBIENT:
-							*out_color = Color3f(1.f, 1.f, 1.f);
+							*out_color = Vec4(1.f, 1.f, 1.f, 1.f);
 							break;
 						case BSP_LIGHTMAP_DIFFUSE_0:
 						case BSP_LIGHTMAP_DIFFUSE_1:
-							*out_color = Color3f(0.f, 0.f, 0.f);
+						case BSP_LIGHTMAP_CAUSTICS:
+							*out_color = Vec4(0.f, 0.f, 0.f, 1.f);
 							break;
 						case BSP_LIGHTMAP_DIRECTION_0:
 						case BSP_LIGHTMAP_DIRECTION_1:
-							*out_color = Color3f(0.f, 0.f, 1.f);
-							break;
-						case BSP_LIGHTMAP_CAUSTICS:
-							*out_color = Color3f(0.f, 0.f, 0.f);
+							*out_color = Vec4(0.f, 0.f, 1.f, 0.f);
 							break;
 						default:
 							break;

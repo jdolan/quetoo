@@ -722,10 +722,18 @@ void CausticsLightmap(int32_t face_num) {
 }
 
 /**
- * @brief
+ * @brief Create an `SDL_Surface` with the given `GL_RGB32F` pixel data.
  */
 static SDL_Surface *CreateLightmapSurfaceFrom(int32_t w, int32_t h, void *pixels) {
-	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 32, w * BSP_LIGHTMAP_BPP, SDL_PIXELFORMAT_RGBA32);
+
+	SDL_Surface *surface = SDL_malloc(sizeof(SDL_Surface));
+
+	surface->flags = SDL_DONTFREE;
+	surface->w = w;
+	surface->h = h;
+	surface->pixels = pixels;
+
+	return surface;
 }
 
 /**
@@ -785,10 +793,10 @@ void FinalizeLightmap(int32_t face_num) {
 	}
 
 	lm->ambient = CreateLightmapSurface(lm->w, lm->h);
-	color32_t *out_ambient = lm->ambient->pixels;
+	vec3_t *out_ambient = lm->ambient->pixels;
 
-	color32_t *out_diffuse[BSP_LIGHTMAP_CHANNELS];
-	color32_t *out_direction[BSP_LIGHTMAP_CHANNELS];
+	vec3_t *out_diffuse[BSP_LIGHTMAP_CHANNELS];
+	vec3_t *out_direction[BSP_LIGHTMAP_CHANNELS];
 
 	for (int32_t c = 0; c < BSP_LIGHTMAP_CHANNELS; c++) {
 		lm->diffuse[c] = CreateLightmapSurface(lm->w, lm->h);
@@ -799,7 +807,7 @@ void FinalizeLightmap(int32_t face_num) {
 	}
 
 	lm->caustics = CreateLightmapSurface(lm->w, lm->h);
-	color32_t *out_caustics = lm->caustics->pixels;
+	vec3_t *out_caustics = lm->caustics->pixels;
 
 	// write it out
 	luxel_t *l = lm->luxels;
@@ -807,33 +815,33 @@ void FinalizeLightmap(int32_t face_num) {
 
 		FinalizeLightmapLuxel(lm, l);
 
-		*out_ambient++ = Color_RGBE(l->ambient.color);
+		*out_ambient++ = l->ambient.color;
 
 		for (int32_t c = 0; c < BSP_LIGHTMAP_CHANNELS; c++) {
-			*out_diffuse[c]++ = Color_RGBE(l->diffuse[c].color);
-			*out_direction[c]++ = (color32_t) Vec3_Bytes(l->diffuse[c].direction);
+			*out_diffuse[c]++ = l->diffuse[c].color;
+			*out_direction[c]++ = l->diffuse[c].direction;
 		}
 
-		*out_caustics++ = Color_Color32(Color3fv(l->caustics));
+		*out_caustics++ = l->caustics;
 	}
 }
 
 /**
  * @brief Blits `src` to the given `rect` in `dst`.
- * @remarks This is a raw no frills blit. Don't expect this to work for anything besides
+ * @remarks This is a raw no frills RGB32F blit. Don't expect this to work for anything else.
  */
 static int32_t BlitLightmap(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect) {
 
-	const color32_t *in = (color32_t *) src->pixels;
-	color32_t *out = (color32_t *) dest->pixels;
+	const vec3_t *in = (vec3_t *) src->pixels;
+	vec3_t *out = (vec3_t *) dest->pixels;
 
 	out += rect->y * dest->w + rect->x;
 
 	for (int32_t x = 0; x < src->w; x++) {
 		for (int32_t y = 0; y < src->h; y++) {
 
-			const color32_t *in_color = in + y * src->w + x;
-			color32_t *out_color = out + y * dest->w + x;
+			const vec3_t *in_color = in + y * src->w + x;
+			vec3_t *out_color = out + y * dest->w + x;
 
 			*out_color = *in_color;
 		}
@@ -873,23 +881,24 @@ void EmitLightmap(void) {
 	int32_t width;
 	for (width = MIN_BSP_LIGHTMAP_WIDTH; width <= MAX_BSP_LIGHTMAP_WIDTH; width += 256) {
 
-		const int32_t layer_bytes = width * width * BSP_LIGHTMAP_BPP;
+		const int32_t layer_size = width * width * BSP_LIGHTMAP_BPP;
 
-		bsp_file.lightmap_size = sizeof(bsp_lightmap_t) + layer_bytes * BSP_LIGHTMAP_LAYERS;
+		bsp_file.lightmap_size = sizeof(bsp_lightmap_t) + layer_size * BSP_LIGHTMAP_LAYERS;
 
 		Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAP, bsp_file.lightmap_size);
  		memset(bsp_file.lightmap, 0, bsp_file.lightmap_size);
 
 		bsp_file.lightmap->width = width;
 
-		byte *out = (byte *) bsp_file.lightmap + sizeof(bsp_lightmap_t);
+		byte *out_data = (byte *) bsp_file.lightmap + sizeof(bsp_lightmap_t);
+		vec3_t *out = (vec3_t *) out_data;
 
-		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_bytes);
-		SDL_Surface *diffuse0 = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_bytes);
-		SDL_Surface *direction0 = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_bytes);
-		SDL_Surface *diffuse1 = CreateLightmapSurfaceFrom(width, width, out + 3 * layer_bytes);
-		SDL_Surface *direction1 = CreateLightmapSurfaceFrom(width, width, out + 4 * layer_bytes);
-		SDL_Surface *caustics = CreateLightmapSurfaceFrom(width, width, out + 5 * layer_bytes);
+		SDL_Surface *ambient    = CreateLightmapSurfaceFrom(width, width, out + 0 * width * width);
+		SDL_Surface *diffuse0   = CreateLightmapSurfaceFrom(width, width, out + 1 * width * width);
+		SDL_Surface *direction0 = CreateLightmapSurfaceFrom(width, width, out + 2 * width * width);
+		SDL_Surface *diffuse1   = CreateLightmapSurfaceFrom(width, width, out + 3 * width * width);
+		SDL_Surface *direction1 = CreateLightmapSurfaceFrom(width, width, out + 4 * width * width);
+		SDL_Surface *caustics   = CreateLightmapSurfaceFrom(width, width, out + 5 * width * width);
 
 		if (Atlas_Compile(atlas, 0, ambient, diffuse0, direction0, diffuse1, direction1, caustics) == 0) {
 

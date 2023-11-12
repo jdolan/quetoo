@@ -69,7 +69,7 @@
 /**
  * @brief Lightmap atlas bytes per pixel.
  */
-#define BSP_LIGHTMAP_BPP 4
+#define BSP_LIGHTMAP_BPP sizeof(vec3_t)
 
 /**
  * @brief Largest lightmap atlas layer size in bytes.
