@@ -87,11 +87,6 @@
 #define BSP_LIGHTMAP_LAYERS 6
 
 /**
- * @brief Stainmap layers.
- */
-#define BSP_STAINMAP_LAYERS 1
-
-/**
  * @brief The lightmap textures.
  */
 typedef enum {
@@ -102,7 +97,6 @@ typedef enum {
 	BSP_LIGHTMAP_DIFFUSE_1,
 	BSP_LIGHTMAP_DIRECTION_1,
 	BSP_LIGHTMAP_CAUSTICS,
-	BSP_LIGHTMAP_STAINS,
 	BSP_LIGHTMAP_LAST,
 } bsp_lightmap_texture_t;
 
@@ -114,7 +108,7 @@ typedef enum {
 /**
  * @brief Lightgrid bytes per pixel.
  */
-#define BSP_LIGHTGRID_BPP 4
+#define BSP_LIGHTGRID_BPP sizeof(vec3_t)
 
 /**
  * @brief Lightgrid textures.

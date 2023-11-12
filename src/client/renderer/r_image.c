@@ -272,7 +272,6 @@ void R_UploadImageTarget(r_image_t *image, GLenum target, void *data) {
 
 	assert(image);
 	assert(target);
-	assert(data);
 
 	if (image->texnum == 0) {
 		R_SetupImage(image);

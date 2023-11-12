@@ -21,6 +21,7 @@
 
 uniform sampler2DArray texture_material;
 uniform sampler2DArray texture_lightmap;
+uniform sampler2D texture_stainmap;
 uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
 uniform sampler3D texture_lightgrid_ambient;
@@ -72,6 +73,13 @@ struct fragment_t {
  */
 vec4 sample_lightmap(int index) {
 	return texture(texture_lightmap, vec3(vertex.lightmap, index));
+}
+
+/**
+ * @brief
+ */
+vec4 sample_stainmap() {
+	return texture(texture_stainmap, vertex.lightmap);
 }
 
 /**
@@ -402,7 +410,7 @@ void main(void) {
 
 		out_color = fragment.diffusemap;
 
-		vec3 stainmap = sample_lightmap(6).rgb;
+		vec3 stainmap = sample_stainmap().rgb;
 
 		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse) * stainmap, 0.0);
 		out_color.rgb = max(out_color.rgb + fragment.specular * stainmap, 0.0);

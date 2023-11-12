@@ -367,7 +367,7 @@ typedef struct {
 	/**
 	 * @brief The stainmap for this lightmap.
 	 */
-	color_t *stainmap;
+	color32_t *stainmap;
 } r_bsp_face_lightmap_t;
 
 /**
@@ -589,9 +589,14 @@ typedef struct {
 	int32_t width;
 
 	/**
-	 * @brief The lightmap atlas.
+	 * @brief The lightmap atlas (RGB32F).
 	 */
-	r_image_t *atlas;
+	r_image_t *lightmap;
+
+	/**
+	 * @brief The stainmap atlas (RGBA8).
+	 */
+	r_image_t *stainmap;
 } r_bsp_lightmap_t;
 
 /**
@@ -1572,6 +1577,11 @@ typedef enum {
 	 * @brief The lightmap texture, used by the BSP program.
 	 */
 	TEXTURE_LIGHTMAP,
+
+	/**
+	 * @brief The stainmap texture, used by the BSP program.
+	 */
+	TEXTURE_STAINMAP,
 
 	/**
 	 * @brief The lightgrid textures, used by the BSP, mesh, sprite and sky programs.

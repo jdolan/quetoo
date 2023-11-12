@@ -409,102 +409,73 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	const bsp_lightmap_t *in = bsp->cm->file->lightmap;
 
 	r_bsp_lightmap_t *out = bsp->lightmap = Mem_LinkMalloc(sizeof(*out), bsp);
+	void *data;
 
 	if (in) {
 		out->width = in->width;
+		data = (byte *) in + sizeof(bsp_lightmap_t);
 	} else {
 		out->width = 1;
+		data = (byte *) (vec3_t[]) {
+			{{1.f, 1.f, 1.f}}, // ambient
+			{{0.f, 0.f, 0.f}}, // diffuse0
+			{{0.f, 0.f, 1.f}}, // direction0
+			{{0.f, 0.f, 0.f}}, // diffuse1
+			{{0.f, 0.f, 1.f}}, // direction1
+			{{0.f, 0.f, 0.f}}, // caustics
+		};
 	}
 
-	out->atlas = (r_image_t *) R_AllocMedia("lightmap", sizeof(r_image_t), R_MEDIA_IMAGE);
-	out->atlas->media.Free = R_FreeImage;
-	out->atlas->type = IT_LIGHTMAP;
-	out->atlas->width = out->width;
-	out->atlas->height = out->width;
-	out->atlas->depth = BSP_LIGHTMAP_LAST;
-	out->atlas->target = GL_TEXTURE_2D_ARRAY;
-	out->atlas->internal_format = GL_RGBA32F;
-	out->atlas->format = GL_RGBA;
-	out->atlas->pixel_type = GL_FLOAT;
+	out->lightmap = (r_image_t *) R_AllocMedia("lightmap", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->lightmap->media.Free = R_FreeImage;
+	out->lightmap->type = IT_LIGHTMAP;
+	out->lightmap->width = out->width;
+	out->lightmap->height = out->width;
+	out->lightmap->depth = BSP_LIGHTMAP_LAST;
+	out->lightmap->target = GL_TEXTURE_2D_ARRAY;
+	out->lightmap->internal_format = GL_RGB32F;
+	out->lightmap->format = GL_RGB;
+	out->lightmap->pixel_type = GL_FLOAT;
 
-	const byte *in_data = (byte *) in + sizeof(bsp_lightmap_t);
-	const vec3_t *in_color = (vec3_t *) in_data;
+	R_UploadImage(out->lightmap, data);
 
-	const size_t layer_size = out->width * out->width * sizeof(vec4_t);
-	const size_t out_size = layer_size * (BSP_LIGHTMAP_LAYERS + BSP_STAINMAP_LAYERS);
+	out->stainmap = (r_image_t *) R_AllocMedia("stainmap", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->stainmap->media.Free = R_FreeImage;
+	out->stainmap->type = IT_LIGHTMAP;
+	out->stainmap->width = out->width;
+	out->stainmap->height = out->width;
+	out->stainmap->target = GL_TEXTURE_2D;
+	out->stainmap->internal_format = GL_RGBA8;
+	out->stainmap->format = GL_RGBA;
+	out->stainmap->pixel_type = GL_UNSIGNED_BYTE;
 
-	vec4_t *out_data = Mem_Malloc(out_size);
-	vec4_t *out_color = out_data;
-
-	for (bsp_lightmap_texture_t tex = BSP_LIGHTMAP_FIRST; tex < BSP_LIGHTMAP_STAINS; tex++) {
-		for (int32_t x = 0; x < out->width; x++) {
-			for (int32_t y = 0; y < out->width; y++, out_color++, in_color++) {
-				if (in) {
-					switch (tex) {
-						case BSP_LIGHTMAP_AMBIENT:
-						case BSP_LIGHTMAP_DIFFUSE_0:
-						case BSP_LIGHTMAP_DIFFUSE_1:
-						case BSP_LIGHTMAP_CAUSTICS:
-							*out_color = Vec3_ToVec4(*in_color, 1.f);
-							break;
-						case BSP_LIGHTMAP_DIRECTION_0:
-						case BSP_LIGHTMAP_DIRECTION_1:
-							*out_color = Vec3_ToVec4(*in_color, 0.f);
-							break;
-						default:
-							break;
-					}
-				} else {
-					switch (tex) {
-						case BSP_LIGHTMAP_AMBIENT:
-							*out_color = Vec4(1.f, 1.f, 1.f, 1.f);
-							break;
-						case BSP_LIGHTMAP_DIFFUSE_0:
-						case BSP_LIGHTMAP_DIFFUSE_1:
-						case BSP_LIGHTMAP_CAUSTICS:
-							*out_color = Vec4(0.f, 0.f, 0.f, 1.f);
-							break;
-						case BSP_LIGHTMAP_DIRECTION_0:
-						case BSP_LIGHTMAP_DIRECTION_1:
-							*out_color = Vec4(0.f, 0.f, 1.f, 0.f);
-							break;
-						default:
-							break;
-					}
-				}
-			}
-		}
-	}
-
-	R_UploadImage(out->atlas, out_data);
-
-	Mem_Free(out_data);
+	R_UploadImage(out->stainmap, NULL);
 }
 
 /**
  * @brief Resets all face stainmaps in the event that the map is reloaded.
  */
-static void R_ResetBspLightmap(r_bsp_model_t *bsp) {
+static void R_ResetBspStainmap(r_bsp_model_t *bsp) {
 
 	r_bsp_lightmap_t *out = bsp->lightmap;
 
-	glBindTexture(GL_TEXTURE_2D_ARRAY, out->atlas->texnum);
+	glBindTexture(GL_TEXTURE_2D, out->stainmap->texnum);
 
 	r_bsp_face_t *face = bsp->faces;
 	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
-		Color_Fill(face->lightmap.stainmap, color_white, face->lightmap.w * face->lightmap.h);
+		Color32_Fill((byte *) face->lightmap.stainmap,
+					 Color32(0xff, 0xff, 0xff, 0xff),
+					 face->lightmap.w * face->lightmap.h);
 
-		glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+		glTexSubImage2D(GL_TEXTURE_2D,
 				0,
 				face->lightmap.s,
 				face->lightmap.t,
-				BSP_LIGHTMAP_LAYERS,
 				face->lightmap.w,
 				face->lightmap.h,
-				1,
 				GL_RGBA,
-				GL_FLOAT,
+				GL_UNSIGNED_BYTE,
 				face->lightmap.stainmap);
 	}
 }
@@ -777,9 +748,10 @@ static void R_RegisterBspModel(r_media_t *self) {
 
 	r_model_t *mod = (r_model_t *) self;
 
-	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->lightmap);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->stainmap);
 
-	R_ResetBspLightmap(mod->bsp);
+	R_ResetBspStainmap(mod->bsp);
 
 	for (size_t i = 0; i < lengthof(mod->bsp->lightgrid->textures); i++) {
 		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->textures[i]);
