@@ -740,7 +740,7 @@ static SDL_Surface *CreateLightmapSurfaceFrom(int32_t w, int32_t h, void *pixels
  * @brief
  */
 static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h) {
-	return CreateLightmapSurfaceFrom(w, h, Mem_TagMalloc(w * h * BSP_LIGHTMAP_BPP, MEM_TAG_LIGHTMAP));
+	return CreateLightmapSurfaceFrom(w, h, Mem_TagMalloc(w * h * BSP_LIGHTMAP_BYTES_PER_LUXEL, MEM_TAG_LIGHTMAP));
 }
 
 /**
@@ -851,6 +851,30 @@ static int32_t BlitLightmap(const SDL_Surface *src, SDL_Surface *dest, const SDL
 }
 
 /**
+ * @brief Converts the HDR floating point lightmap surface to a 24 bit RGB surface (for debugging).
+ */
+static void SaveRGBLightmap(const SDL_Surface *in, const char *name) {
+
+	SDL_Surface *out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 24, SDL_PIXELFORMAT_RGB24);
+
+	const vec3_t *in_luxel = (vec3_t *) in->pixels;
+	byte *out_luxel = (byte *) out->pixels;
+
+	for (int32_t x = 0; x < in->w; x++) {
+		for (int32_t y = 0; y < in->h; y++, in_luxel++, out_luxel += 3) {
+
+			const color32_t out_color = Color_Color32(Color3fv(*in_luxel));
+
+			out_luxel[0] = out_color.r;
+			out_luxel[1] = out_color.g;
+			out_luxel[2] = out_color.b;
+		}
+	}
+
+	IMG_SavePNG(out, name);
+}
+
+/**
  * @brief
  */
 void EmitLightmap(void) {
@@ -881,7 +905,7 @@ void EmitLightmap(void) {
 	int32_t width;
 	for (width = MIN_BSP_LIGHTMAP_WIDTH; width <= MAX_BSP_LIGHTMAP_WIDTH; width += 256) {
 
-		const int32_t layer_size = width * width * BSP_LIGHTMAP_BPP;
+		const int32_t layer_size = width * width * BSP_LIGHTMAP_BYTES_PER_LUXEL;
 
 		bsp_file.lightmap_size = sizeof(bsp_lightmap_t) + layer_size * BSP_LIGHTMAP_LAYERS;
 
@@ -902,12 +926,14 @@ void EmitLightmap(void) {
 
 		if (Atlas_Compile(atlas, 0, ambient, diffuse0, direction0, diffuse1, direction1, caustics) == 0) {
 
-//			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
-//			IMG_SavePNG(diffuse0, va("/tmp/%s_lm_diffuse0.png", map_base));
-//			IMG_SavePNG(direction0, va("/tmp/%s_lm_direction0.png", map_base));
-//			IMG_SavePNG(diffuse1, va("/tmp/%s_lm_diffuse1.png", map_base));
-//			IMG_SavePNG(direction1, va("/tmp/%s_lm_direction1.png", map_base));
-//			IMG_SavePNG(caustics, va("/tmp/%s_lm_caustics.png", map_base));
+			if (debug) {
+				SaveRGBLightmap(ambient,    va("/tmp/%s_lm_ambient.png", map_base));
+				SaveRGBLightmap(diffuse0,   va("/tmp/%s_lm_diffuse0.png", map_base));
+				SaveRGBLightmap(direction0, va("/tmp/%s_lm_direction0.png", map_base));
+				SaveRGBLightmap(diffuse1,   va("/tmp/%s_lm_diffuse1.png", map_base));
+				SaveRGBLightmap(direction1, va("/tmp/%s_lm_direction1.png", map_base));
+				SaveRGBLightmap(caustics,   va("/tmp/%s_lm_caustics.png", map_base));
+			}
 
 			SDL_FreeSurface(ambient);
 			SDL_FreeSurface(diffuse0);

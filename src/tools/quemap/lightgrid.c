@@ -694,7 +694,7 @@ void FinalizeLightgrid(int32_t luxel_num) {
  * @brief
  */
 static SDL_Surface *CreateLightgridSurfaceFrom(void *pixels, int32_t w, int32_t h) {
-	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 32, w * BSP_LIGHTMAP_BPP, SDL_PIXELFORMAT_RGBA32);
+	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 32, w * BSP_LIGHTMAP_BYTES_PER_LUXEL, SDL_PIXELFORMAT_RGBA32);
 }
 
 /**

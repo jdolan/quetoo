@@ -580,7 +580,7 @@ typedef struct {
 } r_bsp_light_t;
 
 /**
- * @brief
+ * @brief The BSP lightmap, which is comprised of several atlas textures of various storage types.
  */
 typedef struct {
 	/**
@@ -589,19 +589,25 @@ typedef struct {
 	int32_t width;
 
 	/**
-	 * @brief The lightmap atlas (RGB32F array).
+	 * @brief The lightmap atlas (RGB32F array texture).
+	 * @details The array layers are as follows:
+	 *  * BSP_LIGHTMAP_AMBIENT
+	 *  * BSP_LIGHTMAP_DIFFUSE
+	 *  * BSP_LIGHTMAP_DIRECTION0
+	 *  * BSP_LIGHTMAP_DIFFUSE1
+	 *  * BSP_LIGHTMAP_DIRECTION1
 	 */
 	r_image_t *lightmap;
 
 	/**
-	 * @brief The stainmap atlas (RGBA8).
-	 */
-	r_image_t *stainmap;
-
-	/**
-	 * @brief The caustics atlas (RGB8).
+	 * @brief The caustics atlas (RGB8 caustics).
 	 */
 	r_image_t *caustics;
+
+	/**
+	 * @brief The stainmap atlas (RGBA8 alpha-blended stains).
+	 */
+	r_image_t *stainmap;
 } r_bsp_lightmap_t;
 
 /**

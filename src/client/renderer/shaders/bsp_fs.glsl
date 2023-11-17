@@ -383,12 +383,12 @@ void main(void) {
 			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));
 
 			vec3 diffuse0 = sample_lightmap(1).rgb * modulate;
-			vec3 direction0 = normalize(tbn * normalize(sample_lightmap(2).xyz));
-			diffuse0 *= max(0.0, dot(direction0, fragment.normalmap));
+			vec3 direction0 = normalize(tbn * sample_lightmap(2).xyz);
+			diffuse0 *= max(0.5, dot(direction0, fragment.normalmap));
 
 			vec3 diffuse1 = sample_lightmap(3).rgb * modulate;
-			vec3 direction1 = normalize(tbn * normalize(sample_lightmap(4).xyz));
-			diffuse1 *= max(0.0, dot(direction1, fragment.normalmap));
+			vec3 direction1 = normalize(tbn * sample_lightmap(4).xyz);
+			diffuse1 *= max(0.5, dot(direction1, fragment.normalmap));
 
 			fragment.diffuse += diffuse0 + diffuse1;
 

@@ -67,14 +67,9 @@
 #define MAX_BSP_LIGHTMAP_WIDTH 4096
 
 /**
- * @brief Lightmap atlas bytes per pixel.
+ * @brief Lightmap bytes per luxel. These are RGB floating point textures (HDR).
  */
-#define BSP_LIGHTMAP_BPP sizeof(vec3_t)
-
-/**
- * @brief Largest lightmap atlas layer size in bytes.
- */
-#define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
+#define BSP_LIGHTMAP_BYTES_PER_LUXEL sizeof(vec3_t)
 
 /**
  * @brief Lightmap diffuse and directional channels.

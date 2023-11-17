@@ -439,6 +439,19 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 
 	R_UploadImage(out->lightmap, data);
 
+	out->caustics = (r_image_t *) R_AllocMedia("caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->caustics->media.Free = R_FreeImage;
+	out->caustics->type = IT_LIGHTMAP;
+	out->caustics->width = out->width;
+	out->caustics->height = out->width;
+	out->caustics->target = GL_TEXTURE_2D;
+	out->caustics->internal_format = GL_RGB8;
+	out->caustics->format = GL_RGB;
+	out->caustics->pixel_type = GL_FLOAT;
+
+	data += out->width * out->width * BSP_LIGHTMAP_BYTES_PER_LUXEL * BSP_LIGHTMAP_CAUSTICS;
+	R_UploadImage(out->caustics, data);
+
 	out->stainmap = (r_image_t *) R_AllocMedia("stainmap", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->stainmap->media.Free = R_FreeImage;
 	out->stainmap->type = IT_LIGHTMAP;
@@ -450,19 +463,6 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->stainmap->pixel_type = GL_UNSIGNED_BYTE;
 
 	R_UploadImage(out->stainmap, NULL);
-
-	out->caustics = (r_image_t *) R_AllocMedia("caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
-	out->caustics->media.Free = R_FreeImage;
-	out->caustics->type = IT_LIGHTMAP;
-	out->caustics->width = out->width;
-	out->caustics->height = out->width;
-	out->caustics->target = GL_TEXTURE_2D;
-	out->caustics->internal_format = GL_RGB8;
-	out->caustics->format = GL_RGB;
-	out->caustics->pixel_type = GL_FLOAT;
-
-	data += out->width * out->width * BSP_LIGHTMAP_BPP * BSP_LIGHTMAP_CAUSTICS;
-	R_UploadImage(out->caustics, data);
 }
 
 /**
