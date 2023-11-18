@@ -47,3 +47,7 @@ typedef struct {
 } luxel_t;
 
 extern void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen);
+extern SDL_Surface *CreateLuxelSurface(int32_t w, int32_t h, size_t luxel_size, void *luxels);
+extern int32_t BlitLuxelSurface(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect);
+extern int32_t WriteLuxelSurface(const SDL_Surface *in, const char *name);
+

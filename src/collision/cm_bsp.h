@@ -57,6 +57,11 @@
 #define BSP_LIGHTMAP_LUXEL_SIZE 4
 
 /**
+ * @brief Lightmap diffuse and directional channels.
+ */
+#define BSP_LIGHTMAP_CHANNELS 2
+
+/**
  * @brief Smallest lightmap atlas width in luxels.
  */
 #define MIN_BSP_LIGHTMAP_WIDTH 1024
@@ -65,21 +70,6 @@
  * @brief Largest lightmap atlas width in luxels.
  */
 #define MAX_BSP_LIGHTMAP_WIDTH 4096
-
-/**
- * @brief Lightmap bytes per luxel. These are RGB floating point textures (HDR).
- */
-#define BSP_LIGHTMAP_BYTES_PER_LUXEL sizeof(vec3_t)
-
-/**
- * @brief Lightmap diffuse and directional channels.
- */
-#define BSP_LIGHTMAP_CHANNELS 2
-
-/**
- * @brief Lightmap layers.
- */
-#define BSP_LIGHTMAP_LAYERS 6
 
 /**
  * @brief The lightmap textures.
@@ -99,16 +89,6 @@ typedef enum {
  * @brief Lightgrid luxel size in world units.
  */
 #define BSP_LIGHTGRID_LUXEL_SIZE 32
-
-/**
- * @brief Lightgrid bytes per pixel.
- */
-#define BSP_LIGHTGRID_BPP sizeof(vec3_t)
-
-/**
- * @brief Lightgrid textures.
- */
-#define BSP_LIGHTGRID_TEXTURES 5
 
 /**
  * @brief Largest lightgrid width in luxels (8192 / 32 = 256).

@@ -94,3 +94,107 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 			break;
 	}
 }
+
+/**
+ * @brief Create an `SDL_Surface` with the given luxel data.
+ */
+SDL_Surface *CreateLuxelSurface(int32_t w, int32_t h, size_t luxel_size, void *luxels) {
+
+	SDL_Surface *surface = SDL_malloc(sizeof(SDL_Surface));
+
+	surface->flags = SDL_DONTFREE;
+	surface->w = w;
+	surface->h = h;
+	surface->pixels = luxels;
+	surface->userdata = (void *) luxel_size;
+
+	return surface;
+}
+
+/**
+ * @brief Blits the `src` to the given `rect` in `dest`.
+ */
+int32_t BlitLuxelSurface(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect) {
+
+	assert(src);
+	assert(src->pixels);
+	
+	assert(dest);
+	assert(dest->pixels);
+
+	assert(src->userdata == dest->userdata);
+
+	const size_t luxel_size = (size_t) src->userdata;
+
+	const byte *in = src->pixels;
+	byte *out = dest->pixels;
+
+	out += rect->y * dest->w * luxel_size + rect->x * luxel_size;
+
+	for (int32_t x = 0; x < src->w; x++) {
+		for (int32_t y = 0; y < src->h; y++) {
+
+			const byte *in_luxel = in + y * src->w * luxel_size + x * luxel_size;
+			byte *out_luxel = out + y * dest->w * luxel_size + x * luxel_size;
+
+			memcpy(out_luxel, in_luxel, luxel_size);
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * @brief Writes the HDR floating point lightgrid surface to a 24 bit RGB surface for debugging.
+ */
+int32_t WriteLuxelSurface(const SDL_Surface *in, const char *name) {
+
+	assert(in);
+	assert(in->pixels);
+
+	SDL_Surface *out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 24, SDL_PIXELFORMAT_RGB24);
+	color24_t *out_luxel = (color24_t *) out->pixels;
+
+	const size_t luxel_size = (size_t) in->userdata;
+	switch (luxel_size) {
+
+		case sizeof(vec3_t): {
+
+			const vec3_t *in_luxel = (vec3_t *) in->pixels;
+			for (int32_t x = 0; x < in->w; x++) {
+				for (int32_t y = 0; y < in->h; y++) {
+					*out_luxel++ = Color_Color24(Color3fv(*in_luxel++));
+				}
+			}
+		}
+			break;
+
+		case sizeof(color24_t): {
+
+			const color24_t *in_luxel = (color24_t *) in->pixels;
+			for (int32_t x = 0; x < in->w; x++) {
+				for (int32_t y = 0; y < in->h; y++) {
+					*out_luxel++ = *in_luxel++;
+				}
+			}
+		}
+			break;
+
+		case sizeof(color32_t): {
+
+			const color32_t *in_luxel = (color32_t *) in->pixels;
+			for (int32_t x = 0; x < in->w; x++) {
+				for (int32_t y = 0; y < in->h; y++) {
+					*out_luxel++ = Color32_Color24(*in_luxel++);
+				}
+			}
+		}
+			break;
+	}
+
+	const int32_t err = IMG_SavePNG(out, name);
+
+	SDL_FreeSurface(out);
+
+	return err;
+}

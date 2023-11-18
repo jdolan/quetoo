@@ -409,7 +409,7 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	const bsp_lightmap_t *in = bsp->cm->file->lightmap;
 
 	r_bsp_lightmap_t *out = bsp->lightmap = Mem_LinkMalloc(sizeof(*out), bsp);
-	void *data;
+	byte *data;
 
 	if (in) {
 		out->width = in->width;
@@ -439,6 +439,12 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 
 	R_UploadImage(out->lightmap, data);
 
+	data += out->width * out->width * sizeof(vec3_t);
+	data += out->width * out->width * sizeof(vec3_t);
+	data += out->width * out->width * sizeof(vec3_t);
+	data += out->width * out->width * sizeof(vec3_t);
+	data += out->width * out->width * sizeof(vec3_t);
+
 	out->caustics = (r_image_t *) R_AllocMedia("caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->caustics->media.Free = R_FreeImage;
 	out->caustics->type = IT_LIGHTMAP;
@@ -447,9 +453,8 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->caustics->target = GL_TEXTURE_2D;
 	out->caustics->internal_format = GL_RGB8;
 	out->caustics->format = GL_RGB;
-	out->caustics->pixel_type = GL_FLOAT;
+	out->caustics->pixel_type = GL_UNSIGNED_BYTE;
 
-	data += out->width * out->width * BSP_LIGHTMAP_BYTES_PER_LUXEL * BSP_LIGHTMAP_CAUSTICS;
 	R_UploadImage(out->caustics, data);
 
 	out->stainmap = (r_image_t *) R_AllocMedia("stainmap", sizeof(r_image_t), R_MEDIA_IMAGE);
@@ -499,6 +504,7 @@ static void R_ResetBspStainmap(r_bsp_model_t *bsp) {
 static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	const bsp_lightgrid_t *in = mod->bsp->cm->file->lightgrid;
+	byte *data = (byte *) in + sizeof(bsp_lightgrid_t);
 
 	r_bsp_lightgrid_t *out = mod->bsp->lightgrid = Mem_LinkMalloc(sizeof(*out), mod->bsp);
 
@@ -515,84 +521,82 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->bounds = Box3_Expand3(mod->bounds, padding);
 
 	const size_t luxels = out->size.x * out->size.y * out->size.z;
-	const size_t out_size = luxels * sizeof(color_t) * BSP_LIGHTGRID_TEXTURES;
 
-	const byte *in_data = (byte *) in + sizeof(bsp_lightgrid_t);
-	byte *out_data = Mem_Malloc(out_size);
+	r_image_t *ambient = (r_image_t *) R_AllocMedia("lightgrid_ambient", sizeof(r_image_t), R_MEDIA_IMAGE);
+	ambient->media.Free = R_FreeImage;
+	ambient->type = IT_LIGHTGRID;
+	ambient->width = out->size.x;
+	ambient->height = out->size.y;
+	ambient->depth = out->size.z;
+	ambient->target = GL_TEXTURE_3D;
+	ambient->internal_format = GL_RGB8;
+	ambient->format = GL_RGB;
+	ambient->pixel_type = GL_UNSIGNED_BYTE;
 
-	for (bsp_lightgrid_texture_t i = BSP_LIGHTGRID_FIRST; i < BSP_LIGHTGRID_LAST; i++) {
+	R_UploadImage(ambient, data);
+	data += luxels * sizeof(color24_t);
 
-		r_image_t *texture = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), R_MEDIA_IMAGE);
-		texture->media.Free = R_FreeImage;
-		texture->type = IT_LIGHTGRID;
-		texture->width = out->size.x;
-		texture->height = out->size.y;
-		texture->depth = out->size.z;
-		texture->target = GL_TEXTURE_3D;
-		texture->internal_format = GL_RGBA32F;
-		texture->format = GL_RGBA;
-		texture->pixel_type = GL_FLOAT;
+	r_image_t *diffuse = (r_image_t *) R_AllocMedia("lightgrid_diffuse", sizeof(r_image_t), R_MEDIA_IMAGE);
+	diffuse->media.Free = R_FreeImage;
+	diffuse->type = IT_LIGHTGRID;
+	diffuse->width = out->size.x;
+	diffuse->height = out->size.y;
+	diffuse->depth = out->size.z;
+	diffuse->target = GL_TEXTURE_3D;
+	diffuse->internal_format = GL_RGB32F;
+	diffuse->format = GL_RGB;
+	diffuse->pixel_type = GL_FLOAT;
 
-		const byte *in_layer = in_data + i * luxels * sizeof(color32_t);
-		byte *out_layer = out_data + i * luxels * sizeof(color_t);
+	R_UploadImage(diffuse, data);
+	data += luxels * sizeof(vec3_t);
 
-		const color32_t *in_color = (color32_t *) in_layer;
-		color_t *out_color = (color_t *) out_layer;
+	r_image_t *direction = (r_image_t *) R_AllocMedia("lightgrid_direction", sizeof(r_image_t), R_MEDIA_IMAGE);
+	direction->media.Free = R_FreeImage;
+	direction->type = IT_LIGHTGRID;
+	direction->width = out->size.x;
+	direction->height = out->size.y;
+	direction->depth = out->size.z;
+	direction->target = GL_TEXTURE_3D;
+	direction->internal_format = GL_RGB32F;
+	direction->format = GL_RGB;
+	direction->pixel_type = GL_FLOAT;
 
-		for (int32_t x = 0; x < out->size.x; x++) {
-			for (int32_t y = 0; y < out->size.y; y++) {
-				for (int32_t z = 0; z < out->size.z; z++, out_color++, in_color++) {
-					if (in) {
-						switch (i) {
-							case BSP_LIGHTGRID_AMBIENT:
-							case BSP_LIGHTGRID_DIFFUSE:
-								*out_color = Color32_RGBE(*in_color);
-								break;
-							case BSP_LIGHTGRID_DIRECTION: {
-								const vec4_t unclamped = Vec4bv(in_color->rgba);
-								out_color->r = unclamped.x;
-								out_color->g = unclamped.y;
-								out_color->b = unclamped.z;
-								out_color->a = unclamped.w;
-							}
-								break;
-							case BSP_LIGHTGRID_CAUSTICS:
-							case BSP_LIGHTGRID_FOG:
-								*out_color = Color32_Color(*in_color);
-								break;
+	R_UploadImage(direction, data);
+	data += luxels * sizeof(vec3_t);
 
-							default:
-								break;
-						}
-					} else {
-						switch (i) {
-							case BSP_LIGHTGRID_AMBIENT:
-								*out_color = Color3f(1.f, 1.f, 1.f);
-								break;
-							case BSP_LIGHTGRID_DIFFUSE:
-								*out_color = Color3f(0.f, 0.f, 0.f);
-								break;
-							case BSP_LIGHTGRID_DIRECTION:
-								*out_color = Color3f(0.f, 0.f, 1.f);
-								break;
-							case BSP_LIGHTGRID_CAUSTICS:
-								*out_color = Color3f(0.f, 0.f, 0.f);
-								break;
-							case BSP_LIGHTGRID_FOG:
-								*out_color = Color3f(0.f, 0.f, 0.f);
-								break;
-							default:
-								break;
-						}
-					}
-				}
-			}
-		}
+	r_image_t *caustics = (r_image_t *) R_AllocMedia("lightgrid_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
+	caustics->media.Free = R_FreeImage;
+	caustics->type = IT_LIGHTGRID;
+	caustics->width = out->size.x;
+	caustics->height = out->size.y;
+	caustics->depth = out->size.z;
+	caustics->target = GL_TEXTURE_3D;
+	caustics->internal_format = GL_RGB8;
+	caustics->format = GL_RGB;
+	caustics->pixel_type = GL_UNSIGNED_BYTE;
 
-		R_UploadImage(texture, out_layer);
+	R_UploadImage(caustics, data);
+	data += luxels * sizeof(color24_t);
 
-		out->textures[i] = texture;
-	}
+	r_image_t *fog = (r_image_t *) R_AllocMedia("lightgrid_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
+	fog->media.Free = R_FreeImage;
+	fog->type = IT_LIGHTGRID;
+	fog->width = out->size.x;
+	fog->height = out->size.y;
+	fog->depth = out->size.z;
+	fog->target = GL_TEXTURE_3D;
+	fog->internal_format = GL_RGBA8;
+	fog->format = GL_RGBA;
+	fog->pixel_type = GL_UNSIGNED_BYTE;
+
+	R_UploadImage(fog, data);
+	data += luxels * sizeof(color32_t);
+
+	out->textures[BSP_LIGHTGRID_AMBIENT] = ambient;
+	out->textures[BSP_LIGHTGRID_DIFFUSE] = diffuse;
+	out->textures[BSP_LIGHTGRID_DIRECTION] = direction;
+	out->textures[BSP_LIGHTGRID_CAUSTICS] = caustics;
+	out->textures[BSP_LIGHTGRID_FOG] = fog;
 }
 
 /**

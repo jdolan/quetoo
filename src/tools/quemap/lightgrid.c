@@ -693,53 +693,63 @@ void FinalizeLightgrid(int32_t luxel_num) {
 /**
  * @brief
  */
-static SDL_Surface *CreateLightgridSurfaceFrom(void *pixels, int32_t w, int32_t h) {
-	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 32, w * BSP_LIGHTMAP_BYTES_PER_LUXEL, SDL_PIXELFORMAT_RGBA32);
-}
-
-/**
- * @brief
- */
 void EmitLightgrid(void) {
 
 	bsp_file.lightgrid_size = sizeof(bsp_lightgrid_t);
-	bsp_file.lightgrid_size += lg.num_luxels * BSP_LIGHTGRID_TEXTURES * BSP_LIGHTGRID_BPP;
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(vec3_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(vec3_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTGRID, bsp_file.lightgrid_size);
 
 	bsp_file.lightgrid->size = lg.size;
 
-	color32_t *out_ambient = (color32_t *) ((byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t));
-	color32_t *out_diffuse = out_ambient + lg.num_luxels;
-	color32_t *out_direction = out_diffuse + lg.num_luxels;
-	color32_t *out_caustics = out_direction + lg.num_luxels;
-	color32_t *out_fog = out_caustics + lg.num_luxels;
+	byte *out = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
+
+	color24_t *out_ambient = (color24_t *) out;
+	out += lg.num_luxels * sizeof(color24_t);
+
+	vec3_t *out_diffuse = (vec3_t *) out;
+	out += lg.num_luxels * sizeof(vec3_t);
+
+	vec3_t *out_direction = (vec3_t *) out;
+	out += lg.num_luxels * sizeof(vec3_t);
+
+	color24_t *out_caustics = (color24_t *) out;
+	out += lg.num_luxels * sizeof(color24_t);
+
+	color32_t *out_fog = (color32_t *) out;
+	out += lg.num_luxels * sizeof(color32_t);
 
 	const luxel_t *l = lg.luxels;
 	for (int32_t u = 0; u < lg.size.z; u++) {
 
-		SDL_Surface *ambient = CreateLightgridSurfaceFrom(out_ambient, lg.size.x, lg.size.y);
-		SDL_Surface *diffuse = CreateLightgridSurfaceFrom(out_diffuse, lg.size.x, lg.size.y);
-		SDL_Surface *direction = CreateLightgridSurfaceFrom(out_direction, lg.size.x, lg.size.y);
-		SDL_Surface *caustics = CreateLightgridSurfaceFrom(out_caustics, lg.size.x, lg.size.y);
-		SDL_Surface *fog = CreateLightgridSurfaceFrom(out_fog, lg.size.x, lg.size.y);
+		SDL_Surface *ambient = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_ambient);
+		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(vec3_t), out_diffuse);
+		SDL_Surface *direction = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(vec3_t), out_direction);
+		SDL_Surface *caustics = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_caustics);
+		SDL_Surface *fog = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_fog);
 
 		for (int32_t t = 0; t < lg.size.y; t++) {
 			for (int32_t s = 0; s < lg.size.x; s++, l++) {
 
-				*out_ambient++ = Color_RGBE(l->ambient.color);
-				*out_diffuse++ = Color_RGBE(l->diffuse[0].color);
-				*out_direction++ = (color32_t) Vec3_Bytes(l->diffuse[0].direction);
-				*out_caustics++ = Color_Color32(Color3fv(l->caustics));
+				*out_ambient++ = Color_Color24(Color3fv(l->ambient.color));
+				*out_diffuse++ = l->diffuse[0].color;
+				*out_direction++ = l->diffuse[0].direction;
+				*out_caustics++ = Color_Color24(Color3fv(l->caustics));
 				*out_fog++ = Color_Color32(Color4fv(l->fog));
 			}
 		}
 
-		//IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
-		//IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
-		//IMG_SavePNG(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
-		//IMG_SavePNG(caustics, va("/tmp/%s_lg_caustics_%d.png", map_base, u));
-		//IMG_SavePNG(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
+		if (debug) {
+			WriteLuxelSurface(ambient, va("/tmp/%s_lm_ambient_%d.png", map_base, u));
+			WriteLuxelSurface(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
+			WriteLuxelSurface(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
+			WriteLuxelSurface(caustics, va("/tmp/%s_lg_caustics_%d.png", map_base, u));
+			WriteLuxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
+		}
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);

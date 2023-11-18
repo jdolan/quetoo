@@ -91,6 +91,24 @@ typedef union {
 } color32_t;
 
 /**
+ * @brief A clamped integer RGBA color.
+ */
+typedef union {
+
+	/**
+	 * @brief Component accessors.
+	 */
+	struct {
+		byte r, g, b;
+	};
+
+	/**
+	 * @brief Array accessor.
+	 */
+	byte bytes[3];
+} color24_t;
+
+/**
  * @return A color with the specified RGBA bytes.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color4b(byte r, byte g, byte b, byte a) {
@@ -378,7 +396,27 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const
 }
 
 /**
- * @return The RGBE encoded representation of the **unclamped** floating point color `in`.
+ * @return A color24_t with the specified RGB components.
+ */
+static inline color24_t __attribute__ ((warn_unused_result)) Color24(byte r, byte g, byte b) {
+	return (color24_t) {
+		.r = r,
+		.g = g,
+		.b = b
+	};
+}
+
+/**
+ * @return A 24-bit color for the specified floating point color.
+ */
+static inline color24_t __attribute__ ((warn_unused_result)) Color_Color24(const color_t c) {
+	return Color24(c.r * 255.f, 
+				   c.g * 255.f,
+				   c.b * 255.f);
+}
+
+/**
+ * @return The RGBE encoded representation of the **unclamped** RGB floating point color `in`.
  * @see http://cbloomrants.blogspot.com/2020/06/widespread-error-in-radiance-hdr-rgbe.html
  */
 static inline color32_t __attribute__ ((warn_unused_result)) Color_RGBE(const vec3_t in) {
@@ -448,7 +486,7 @@ static inline color_t __attribute__ ((warn_unused_result)) Color32_Color(const c
 }
 
 /**
- * @brief Fills `len` of `out` with RGBA values from the 32 bit integer color (like memset).
+ * @brief Fills `len` of `out` with RGBA values from the 32 bit color (like memset).
  */
 static inline void Color32_Fill(byte *out, const color32_t c, size_t len) {
 	for (size_t i = 0; i < len; i += 4, out += 4) {
@@ -460,9 +498,25 @@ static inline void Color32_Fill(byte *out, const color32_t c, size_t len) {
 }
 
 /**
- * @brief Fills `len` of `out` with the RGB values from the 32 bit integer color (like memset).
+ * @return A 24 bit color for the specified 32 bit color (RGB swizzle).
  */
-static inline void Color32_Fill24(byte *out, const color32_t c, size_t len) {
+static inline color24_t __attribute__ ((warn_unused_result)) Color32_Color24(const color32_t c) {
+	return Color24(c.r, c.g, c.b);
+}
+
+/**
+ * @rretur A floating point color for the specified 24 bit integer color.
+ */
+static inline color_t Color24_Color(const color24_t c) {
+	return Color3f(c.r / 255.f, 
+				   c.g / 255.f,
+				   c.b / 255.f);
+}
+
+/**
+ * @brief Fills `len` of `out` with the RGB values from the 24 bit color (like memset).
+ */
+static inline void Color24_Fill(byte *out, const color24_t c, size_t len) {
 	for (size_t i = 0; i < len; i += 3, out += 3) {
 		out[0] = c.r;
 		out[1] = c.g;

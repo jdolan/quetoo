@@ -600,12 +600,12 @@ typedef struct {
 	r_image_t *lightmap;
 
 	/**
-	 * @brief The caustics atlas (RGB8 caustics).
+	 * @brief The caustics atlas (RGB8).
 	 */
 	r_image_t *caustics;
 
 	/**
-	 * @brief The stainmap atlas (RGBA8 alpha-blended stains).
+	 * @brief The stainmap atlas (RGBA8).
 	 */
 	r_image_t *stainmap;
 } r_bsp_lightmap_t;

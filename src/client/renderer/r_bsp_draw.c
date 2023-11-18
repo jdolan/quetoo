@@ -131,15 +131,26 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 		return;
 	}
 
+	in += sizeof(bsp_lightgrid_t);
+
 	const r_bsp_lightgrid_t *lg = r_world_model->bsp->lightgrid;
 
-	const size_t luxels = lg->size.x * lg->size.y * lg->size.z;
+	const size_t num_luxels = lg->size.x * lg->size.y * lg->size.z;
 
-	const color32_t *ambient = (color32_t *) (in + sizeof(bsp_lightgrid_t));
-	const color32_t *diffuse = ambient + luxels;
-	const color32_t *direction = diffuse + luxels;
-	const color32_t *caustics = direction + luxels;
-	const color32_t *fog = caustics+ luxels;
+	const color24_t *ambient = (color24_t *) in;
+	in += num_luxels * sizeof(color24_t);
+
+	const vec3_t *diffuse = (vec3_t *) in;
+	in += num_luxels * sizeof(vec3_t);
+
+	const vec3_t *direction = (vec3_t *) in;
+	in += num_luxels * sizeof(vec3_t);
+
+	const color24_t *caustics = (color24_t *) in;
+	in += num_luxels * sizeof(color24_t);
+
+	const color32_t *fog = (color32_t *) in;
+	in += num_luxels * sizeof(color32_t);
 
 	r_image_t *particle = R_LoadImage("sprites/particle", IT_SPRITE);
 
@@ -160,7 +171,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 				if (r_draw_bsp_lightgrid->integer == 1) {
 
-					const color_t color = Color_Add(Color32_RGBE(*ambient), Color32_RGBE(*diffuse));
+					const color_t color = Color_Add(Color24_Color(*ambient), Color3fv(*diffuse));
 
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
@@ -170,13 +181,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 						.flags = SPRITE_NO_BLEND_DEPTH
 					});
 
-					const float x = direction->r / 255.f * 2.f - 1.f;
-					const float y = direction->g / 255.f * 2.f - 1.f;
-					const float z = direction->b / 255.f * 2.f - 1.f;
-
-					const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
-					const vec3_t end = Vec3_Fmaf(origin, 16.f, dir);
-
+					const vec3_t end = Vec3_Fmaf(origin, 16.f, *direction);
 					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
