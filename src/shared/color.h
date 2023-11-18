@@ -91,7 +91,7 @@ typedef union {
 } color32_t;
 
 /**
- * @brief A clamped integer RGBA color.
+ * @brief A clamped integer RGB color.
  */
 typedef union {
 
