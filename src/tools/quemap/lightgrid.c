@@ -703,6 +703,7 @@ void EmitLightgrid(void) {
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTGRID, bsp_file.lightgrid_size);
+	memset(bsp_file.lightgrid, 0, bsp_file.lightgrid_size);
 
 	bsp_file.lightgrid->size = lg.size;
 
@@ -744,7 +745,7 @@ void EmitLightgrid(void) {
 		}
 
 		if (debug) {
-			WriteLuxelSurface(ambient, va("/tmp/%s_lm_ambient_%d.png", map_base, u));
+			WriteLuxelSurface(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
 			WriteLuxelSurface(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
 			WriteLuxelSurface(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
 			WriteLuxelSurface(caustics, va("/tmp/%s_lg_caustics_%d.png", map_base, u));

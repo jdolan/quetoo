@@ -105,8 +105,8 @@ SDL_Surface *CreateLuxelSurface(int32_t w, int32_t h, size_t luxel_size, void *l
 	surface->flags = SDL_DONTFREE;
 	surface->w = w;
 	surface->h = h;
-	surface->pixels = luxels;
 	surface->userdata = (void *) luxel_size;
+	surface->pixels = luxels;
 
 	return surface;
 }
@@ -123,6 +123,11 @@ int32_t BlitLuxelSurface(const SDL_Surface *src, SDL_Surface *dest, const SDL_Re
 	assert(dest->pixels);
 
 	assert(src->userdata == dest->userdata);
+
+	assert(rect);
+
+	assert(src->w == rect->w);
+	assert(src->h == rect->h);
 
 	const size_t luxel_size = (size_t) src->userdata;
 
@@ -145,22 +150,24 @@ int32_t BlitLuxelSurface(const SDL_Surface *src, SDL_Surface *dest, const SDL_Re
 }
 
 /**
- * @brief Writes the HDR floating point lightgrid surface to a 24 bit RGB surface for debugging.
+ * @brief Writes the luxel surface to a 24 bit RGB surface for debugging.
  */
 int32_t WriteLuxelSurface(const SDL_Surface *in, const char *name) {
 
 	assert(in);
 	assert(in->pixels);
 
-	SDL_Surface *out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 24, SDL_PIXELFORMAT_RGB24);
-	color24_t *out_luxel = (color24_t *) out->pixels;
+	SDL_Surface *out;
 
 	const size_t luxel_size = (size_t) in->userdata;
 	switch (luxel_size) {
 
 		case sizeof(vec3_t): {
-
 			const vec3_t *in_luxel = (vec3_t *) in->pixels;
+
+			out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 24, SDL_PIXELFORMAT_RGB24);
+			color24_t *out_luxel = (color24_t *) out->pixels;
+
 			for (int32_t x = 0; x < in->w; x++) {
 				for (int32_t y = 0; y < in->h; y++) {
 					*out_luxel++ = Color_Color24(Color3fv(*in_luxel++));
@@ -170,8 +177,11 @@ int32_t WriteLuxelSurface(const SDL_Surface *in, const char *name) {
 			break;
 
 		case sizeof(color24_t): {
-
 			const color24_t *in_luxel = (color24_t *) in->pixels;
+
+			out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 24, SDL_PIXELFORMAT_RGB24);
+			color24_t *out_luxel = (color24_t *) out->pixels;
+
 			for (int32_t x = 0; x < in->w; x++) {
 				for (int32_t y = 0; y < in->h; y++) {
 					*out_luxel++ = *in_luxel++;
@@ -181,11 +191,14 @@ int32_t WriteLuxelSurface(const SDL_Surface *in, const char *name) {
 			break;
 
 		case sizeof(color32_t): {
-
 			const color32_t *in_luxel = (color32_t *) in->pixels;
+
+			out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 32, SDL_PIXELFORMAT_RGBA32);
+			color32_t *out_luxel = (color32_t *) out->pixels;
+
 			for (int32_t x = 0; x < in->w; x++) {
 				for (int32_t y = 0; y < in->h; y++) {
-					*out_luxel++ = Color32_Color24(*in_luxel++);
+					*out_luxel++ = *in_luxel++;
 				}
 			}
 		}

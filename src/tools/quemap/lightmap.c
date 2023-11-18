@@ -860,7 +860,7 @@ void EmitLightmap(void) {
 		bsp_file.lightmap_size += layer_size * sizeof(color24_t);
 
 		Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAP, bsp_file.lightmap_size);
- 		memset(bsp_file.lightmap, 0, bsp_file.lightmap_size);
+		memset(bsp_file.lightmap, 0, bsp_file.lightmap_size);
 
 		bsp_file.lightmap->width = width;
 
@@ -882,6 +882,7 @@ void EmitLightmap(void) {
 		out += layer_size * sizeof(vec3_t);
 
 		SDL_Surface *caustics = CreateLuxelSurface(width, width, sizeof(color24_t), out);
+		out += layer_size * sizeof(color24_t);
 
 		if (Atlas_Compile(atlas, 0, ambient, diffuse0, direction0, diffuse1, direction1, caustics) == 0) {
 
