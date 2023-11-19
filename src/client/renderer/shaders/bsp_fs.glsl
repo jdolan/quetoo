@@ -438,11 +438,11 @@ void main(void) {
 		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
-			out_color.rgb = modulate * (sample_lightmap_diffuse(0).rgb + sample_lightmap_diffuse(1).rgb + sample_lightmap_diffuse(3).rgb);
+			out_color.rgb = modulate * (sample_lightmap_diffuse(0).rgb + sample_lightmap_diffuse(2).rgb);
 		} else if (lightmaps == 2) {
-			out_color.rgb = normalize(((sample_lightmap_diffuse(2).xyz + sample_lightmap_diffuse(4).xyz) + 1.0) * 0.5);
+			out_color.rgb = normalize(((sample_lightmap_diffuse(1).xyz + sample_lightmap_diffuse(3).xyz) + 1.0) * 0.5);
 		} else if (lightmaps == 3) {
-			out_color.rgb = fragment.ambient + fragment.diffuse;
+			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
 		}
 
 	} else {
