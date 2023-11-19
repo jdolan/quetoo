@@ -380,7 +380,7 @@ static light_t *LightForPatch(const patch_t *patch) {
 	light->type = LIGHT_PATCH;
 	light->atten = material->cm->light.atten;
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
-	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, plane->normal);
+	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), .125f, plane->normal);
 	light->winding = Cm_CopyWinding(patch->winding);
 	light->face = patch->face;
 	light->brush_side = brush_side;
@@ -587,7 +587,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	light->type = LIGHT_INDIRECT;
 	light->atten = DEFAULT_LIGHT_ATTEN;
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
-	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, lm->plane->normal);
+	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), .125f, lm->plane->normal);
 	light->winding = Cm_CopyWinding(patch->winding);
 	light->face = patch->face;
 	light->brush_side = patch->brush_side;
