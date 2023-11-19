@@ -375,12 +375,14 @@ static light_t *LightForPatch(const patch_t *patch) {
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane];
 	const material_t *material = &materials[brush_side->material];
 
+	const vec3_t center = Cm_WindingCenter(patch->winding);
+
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
 	light->type = LIGHT_PATCH;
 	light->atten = material->cm->light.atten;
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
-	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), .125f, plane->normal);
+	light->origin = Vec3_Fmaf(center, ON_EPSILON, plane->normal);
 	light->winding = Cm_CopyWinding(patch->winding);
 	light->face = patch->face;
 	light->brush_side = brush_side;
@@ -414,7 +416,11 @@ static light_t *LightForPatch(const patch_t *patch) {
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], 1.f, plane->normal);
+		vec3_t p = patch->winding->points[i];
+
+		p = Vec3_Fmaf(p, ON_EPSILON, Vec3_Direction(p, center));
+		p = Vec3_Fmaf(p, ON_EPSILON, plane->normal);
+
 		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
 		}
@@ -582,12 +588,14 @@ void BuildDirectLights(void) {
  */
 static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
+	const vec3_t center = Cm_WindingCenter(patch->winding);
+
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
 	light->type = LIGHT_INDIRECT;
 	light->atten = DEFAULT_LIGHT_ATTEN;
 	light->size = sqrtf(Cm_WindingArea(patch->winding));
-	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), .125f, lm->plane->normal);
+	light->origin = Vec3_Fmaf(center, ON_EPSILON, lm->plane->normal);
 	light->winding = Cm_CopyWinding(patch->winding);
 	light->face = patch->face;
 	light->brush_side = patch->brush_side;
@@ -657,7 +665,11 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], ON_EPSILON, lm->plane->normal);
+		vec3_t p = patch->winding->points[i];
+
+		p = Vec3_Fmaf(p, ON_EPSILON, Vec3_Direction(p, center));
+		p = Vec3_Fmaf(p, ON_EPSILON, lm->plane->normal);
+
 		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
 		}
