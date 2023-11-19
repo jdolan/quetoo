@@ -652,7 +652,7 @@ void R_DrawWorld(const r_view_t *view) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_AMBIENT);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->ambient->texnum);
+	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->ambient->texnum);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIFFUSE);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->diffuse->texnum);
