@@ -368,6 +368,8 @@ void main(void) {
 
 	fragment.view_dir = normalize(-vertex.position);
 
+	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		fragment.diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
@@ -376,8 +378,6 @@ void main(void) {
 		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;
 		}
-
-		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
 		fragment.normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
 		fragment.normalmap = normalize(tbn * normalize((fragment.normalmap * 2.0 - 1.0) * vec3(vec2(material.roughness), 1.0)));
@@ -458,10 +458,17 @@ void main(void) {
 		effect *= vertex.color;
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
-			vec3 ambient = sample_lightmap_diffuse(0).rgb;
-			vec3 diffuse = sample_lightmap_diffuse(1).rgb;
+			vec3 ambient = sample_lightmap_ambient().rgb;
 
-			effect.rgb *= (ambient + diffuse) * modulate;
+			vec3 diffuse0 = sample_lightmap_diffuse(0).rgb;
+			vec3 direction0 = normalize(tbn * sample_lightmap_diffuse(1).xyz);
+			diffuse0 *= max(0.0, dot(diffuse0, direction0));
+
+			vec3 diffuse1 = sample_lightmap_diffuse(2).rgb;
+			vec3 direction1 = normalize(tbn * sample_lightmap_diffuse(3).xyz);
+			diffuse1 *= max(0.0, dot(diffuse1, direction1));
+
+			effect.rgb *= (ambient + diffuse0 + diffuse1) * modulate;
 		}
 
 		out_bloom.rgb = max(effect.rgb * material.bloom - 1.0, 0.0);
