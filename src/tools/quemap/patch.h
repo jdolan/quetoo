@@ -24,13 +24,39 @@
 #include "bsp.h"
 #include "polylib.h"
 
+/**
+ * @brief Faces are divided into patches to emit light, creating the illusion of area lights.
+ */
 typedef struct patch_s {
+	/**
+	 * @brief The model this patch belongs to.
+	 */
 	const bsp_model_t *model;
+
+	/**
+	 * @brief The face this patch belongs to.
+	 */
 	const bsp_face_t *face;
+
+	/**
+	 * @brief The brush side, for convenience.
+	 */
 	const bsp_brush_side_t *brush_side;
+
+	/**
+	 * @brief The patch offset, if it is part of an inline model.
+	 */
 	vec3_t origin;
+
+	/**
+	 * @brief The winding.
+	 */
 	cm_winding_t *winding;
-	struct patch_s *next;  // next in face
+
+	/**
+	 * @brief The next patch in the same face.
+	 */
+	struct patch_s *next;
 } patch_t;
 
 extern patch_t *patches;
