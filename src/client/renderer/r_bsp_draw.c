@@ -41,9 +41,10 @@ static struct {
 	GLint model;
 
 	GLint texture_material;
-	GLint texture_lightmap;
-	GLint texture_stainmap;
-	GLint texture_caustics;
+	GLint texture_lightmap_ambient;
+	GLint texture_lightmap_diffuse;
+	GLint texture_lightmap_caustics;
+	GLint texture_lightmap_stains;
 	GLint texture_stage;
 	GLint texture_warp;
 	GLint texture_lightgrid_ambient;
@@ -650,18 +651,34 @@ void R_DrawWorld(const r_view_t *view) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
 
-	for (bsp_lightgrid_texture_t i = BSP_LIGHTGRID_FIRST; i < BSP_LIGHTGRID_LAST; i++) {
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
-		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[i]->texnum);
-	}
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_AMBIENT);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->ambient->texnum);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->lightmap->texnum);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIFFUSE);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->diffuse->texnum);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_CAUSTICS);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_CAUSTICS);
 	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->caustics->texnum);
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
+	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->stains->texnum);
+
 	R_DrawStains(view);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
+	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->ambient->texnum);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
+	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->diffuse->texnum);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
+	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->direction->texnum);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_CAUSTICS);
+	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->caustics->texnum);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
+	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->fog->texnum);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
 	glBindTexture(GL_TEXTURE_2D, r_bsp_program.warp_image->texnum);
@@ -746,11 +763,12 @@ void R_InitBspProgram(void) {
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 
 	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
-	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
-	r_bsp_program.texture_stainmap = glGetUniformLocation(r_bsp_program.name, "texture_stainmap");
-	r_bsp_program.texture_caustics = glGetUniformLocation(r_bsp_program.name, "texture_caustics");
 	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
+		r_bsp_program.texture_lightmap_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_ambient");
+	r_bsp_program.texture_lightmap_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_diffuse");
+	r_bsp_program.texture_lightmap_stains = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_stains");
+	r_bsp_program.texture_lightmap_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_caustics");
 	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
 	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
 	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
@@ -780,11 +798,12 @@ void R_InitBspProgram(void) {
 	r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
 
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
-	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
-	glUniform1i(r_bsp_program.texture_stainmap, TEXTURE_STAINMAP);
-	glUniform1i(r_bsp_program.texture_caustics, TEXTURE_CAUSTICS);
 	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
+	glUniform1i(r_bsp_program.texture_lightmap_ambient, TEXTURE_LIGHTMAP_AMBIENT);
+	glUniform1i(r_bsp_program.texture_lightmap_diffuse, TEXTURE_LIGHTMAP_DIFFUSE);
+	glUniform1i(r_bsp_program.texture_lightmap_caustics, TEXTURE_LIGHTMAP_CAUSTICS);
+	glUniform1i(r_bsp_program.texture_lightmap_stains, TEXTURE_LIGHTMAP_STAINS);
 	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);

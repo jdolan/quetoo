@@ -589,15 +589,14 @@ typedef struct {
 	int32_t width;
 
 	/**
-	 * @brief The lightmap atlas (RGB32F array texture).
-	 * @details The array layers are as follows:
-	 *  * BSP_LIGHTMAP_AMBIENT
-	 *  * BSP_LIGHTMAP_DIFFUSE
-	 *  * BSP_LIGHTMAP_DIRECTION0
-	 *  * BSP_LIGHTMAP_DIFFUSE1
-	 *  * BSP_LIGHTMAP_DIRECTION1
+	 * @brief The ambient atlas (RGB8).
 	 */
-	r_image_t *lightmap;
+	r_image_t *ambient;
+
+	/**
+	 * @brief The diffuse atlas array (RGB32F).
+	 */
+	r_image_t *diffuse;
 
 	/**
 	 * @brief The caustics atlas (RGB8).
@@ -605,9 +604,9 @@ typedef struct {
 	r_image_t *caustics;
 
 	/**
-	 * @brief The stainmap atlas (RGBA8).
+	 * @brief The stain atlas (RGBA8).
 	 */
-	r_image_t *stainmap;
+	r_image_t *stains;
 } r_bsp_lightmap_t;
 
 /**
@@ -625,9 +624,29 @@ typedef struct {
 	box3_t bounds;
 
 	/**
-	 * @brief The lightgrid textures (ambient, diffuse, etc..).
+	 * @brief The ambient 3D texture (RGB8).
 	 */
-	r_image_t *textures[BSP_LIGHTGRID_LAST];
+	r_image_t *ambient;
+
+	/**
+	 * @brief The diffuse 3D texture (RGB32F).
+	 */
+	r_image_t *diffuse;
+
+	/**
+	 * @brief The direction 3D texture (RGB32F).
+	 */
+	r_image_t *direction;
+
+	/**
+	 * @brief The caustics 3D texture (RGB8).
+	 */
+	r_image_t *caustics;
+
+	/**
+	 * @brief The fog 3D texture (RGBA8).
+	 */
+	r_image_t *fog;
 } r_bsp_lightgrid_t;
 
 /**
@@ -1585,19 +1604,13 @@ typedef enum {
 	TEXTURE_WARP,
 
 	/**
-	 * @brief The lightmap texture, used by the BSP program.
+	 * @brief The lightmap textures, used by the BSP program.
 	 */
 	TEXTURE_LIGHTMAP,
-
-	/**
-	 * @brief The stainmap texture, used by the BSP program.
-	 */
-	TEXTURE_STAINMAP,
-
-	/**
-	 * @brief The castics lightmap texture, used by the BSP program.
-	 */
-	TEXTURE_CAUSTICS,
+	TEXTURE_LIGHTMAP_AMBIENT = TEXTURE_LIGHTMAP,
+	TEXTURE_LIGHTMAP_DIFFUSE,
+	TEXTURE_LIGHTMAP_CAUSTICS,
+	TEXTURE_LIGHTMAP_STAINS,
 
 	/**
 	 * @brief The lightgrid textures, used by the BSP, mesh, sprite and sky programs.

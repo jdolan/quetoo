@@ -179,27 +179,28 @@ void R_UpdateStains(const r_view_t *view) {
  */
 void R_DrawStains(const r_view_t *view) {
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_STAINMAP);
-	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->stainmap->texnum);
+	if (!view->num_stains) {
+		return;
+	}
 
-	if (view->num_stains) {
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
+	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->stains->texnum);
 
-		const r_bsp_model_t *bsp = r_world_model->bsp;
+	const r_bsp_model_t *bsp = r_world_model->bsp;
 
-		const r_bsp_face_t *face = bsp->faces;
-		for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
+	const r_bsp_face_t *face = bsp->faces;
+	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
-			if (face->stain_frame == stain_frame) {
-				glTexSubImage2D(GL_TEXTURE_2D,
-						0,
-						face->lightmap.s,
-						face->lightmap.t,
-						face->lightmap.w,
-						face->lightmap.h,
-						GL_RGBA,
-						GL_UNSIGNED_BYTE,
-						face->lightmap.stainmap);
-			}
+		if (face->stain_frame == stain_frame) {
+			glTexSubImage2D(GL_TEXTURE_2D,
+					0,
+					face->lightmap.s,
+					face->lightmap.t,
+					face->lightmap.w,
+					face->lightmap.h,
+					GL_RGBA,
+					GL_UNSIGNED_BYTE,
+					face->lightmap.stainmap);
 		}
 	}
 

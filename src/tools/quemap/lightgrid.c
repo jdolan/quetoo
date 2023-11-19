@@ -154,7 +154,7 @@ static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float s
 
 	Luxel_Illuminate(luxel, &(const lumen_t) {
 		.light = light,
-		.color = Vec3_Scale(light->color, scale)
+		.color = Vec3_Scale(light->color, light->intensity * scale)
 	});
 }
 

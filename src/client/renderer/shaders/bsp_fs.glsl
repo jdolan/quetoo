@@ -20,11 +20,12 @@
  */
 
 uniform sampler2DArray texture_material;
-uniform sampler2DArray texture_lightmap;
-uniform sampler2D texture_stainmap;
-uniform sampler2D texture_caustics;
 uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
+uniform sampler2D texture_lightmap_ambient;
+uniform sampler2DArray texture_lightmap_diffuse;
+uniform sampler2D texture_lightmap_caustics;
+uniform sampler2D texture_lightmap_stains;
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
@@ -72,22 +73,29 @@ struct fragment_t {
 /**
  * @brief
  */
-vec4 sample_lightmap(int index) {
-	return texture(texture_lightmap, vec3(vertex.lightmap, index));
+vec4 sample_lightmap_ambient() {
+	return texture(texture_lightmap_ambient, vertex.lightmap);
 }
 
 /**
  * @brief
  */
-vec4 sample_stainmap() {
-	return texture(texture_stainmap, vertex.lightmap);
+vec4 sample_lightmap_diffuse(int index) {
+	return texture(texture_lightmap_diffuse, vec3(vertex.lightmap, index));
 }
 
 /**
  * @brief
  */
-vec4 sample_caustics() {
-	return texture(texture_caustics, vertex.lightmap);
+vec4 sample_lightmap_caustics() {
+	return texture(texture_lightmap_caustics, vertex.lightmap);
+}
+
+/**
+ * @brief
+ */
+vec4 sample_lightmap_stains() {
+	return texture(texture_lightmap_stains, vertex.lightmap);
 }
 
 /**
@@ -379,15 +387,15 @@ void main(void) {
 
 		fragment.ambient = vec3(0.0), fragment.diffuse = vec3(0.0), fragment.caustics = vec3(0.0), fragment.specular = vec3(0.0);
 		if (entity == 0) {
-			fragment.ambient = sample_lightmap(0).rgb * modulate;
+			fragment.ambient = sample_lightmap_ambient().rgb * modulate;
 			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));
 
-			vec3 diffuse0 = sample_lightmap(1).rgb * modulate;
-			vec3 direction0 = normalize(tbn * sample_lightmap(2).xyz);
+			vec3 diffuse0 = sample_lightmap_diffuse(0).rgb * modulate;
+			vec3 direction0 = normalize(tbn * sample_lightmap_diffuse(1).xyz);
 			diffuse0 *= max(0.5, dot(direction0, fragment.normalmap));
 
-			vec3 diffuse1 = sample_lightmap(3).rgb * modulate;
-			vec3 direction1 = normalize(tbn * sample_lightmap(4).xyz);
+			vec3 diffuse1 = sample_lightmap_diffuse(2).rgb * modulate;
+			vec3 direction1 = normalize(tbn * sample_lightmap_diffuse(3).xyz);
 			diffuse1 *= max(0.5, dot(direction1, fragment.normalmap));
 
 			fragment.diffuse += diffuse0 + diffuse1;
@@ -396,7 +404,7 @@ void main(void) {
 			fragment.specular += blinn_phong(diffuse1, direction1);
 			fragment.specular += blinn_phong(fragment.ambient, vertex.normal);
 
-			fragment.caustics = sample_caustics().rgb;
+			fragment.caustics = sample_lightmap_caustics().rgb;
 		} else {
 			fragment.ambient = sample_lightgrid(texture_lightgrid_ambient).rgb * modulate;
 			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));
@@ -418,7 +426,7 @@ void main(void) {
 
 		out_color = fragment.diffusemap;
 
-		vec3 stainmap = sample_stainmap().rgb;
+		vec3 stainmap = sample_lightmap_stains().rgb;
 
 		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse) * stainmap, 0.0);
 		out_color.rgb = max(out_color.rgb + fragment.specular * stainmap, 0.0);
@@ -430,9 +438,9 @@ void main(void) {
 		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
-			out_color.rgb = modulate * (sample_lightmap(0).rgb + sample_lightmap(1).rgb + sample_lightmap(3).rgb);
+			out_color.rgb = modulate * (sample_lightmap_diffuse(0).rgb + sample_lightmap_diffuse(1).rgb + sample_lightmap_diffuse(3).rgb);
 		} else if (lightmaps == 2) {
-			out_color.rgb = normalize(((sample_lightmap(2).xyz + sample_lightmap(4).xyz) + 1.0) * 0.5);
+			out_color.rgb = normalize(((sample_lightmap_diffuse(2).xyz + sample_lightmap_diffuse(4).xyz) + 1.0) * 0.5);
 		} else if (lightmaps == 3) {
 			out_color.rgb = fragment.ambient + fragment.diffuse;
 		}
@@ -450,8 +458,8 @@ void main(void) {
 		effect *= vertex.color;
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
-			vec3 ambient = sample_lightmap(0).rgb;
-			vec3 diffuse = sample_lightmap(1).rgb;
+			vec3 ambient = sample_lightmap_diffuse(0).rgb;
+			vec3 diffuse = sample_lightmap_diffuse(1).rgb;
 
 			effect.rgb *= (ambient + diffuse) * modulate;
 		}
