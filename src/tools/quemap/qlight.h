@@ -26,7 +26,6 @@
 #include "lightgrid.h"
 #include "lightmap.h"
 #include "material.h"
-#include "patch.h"
 #include "quemap.h"
 #include "writebsp.h"
 
@@ -37,12 +36,11 @@ extern float saturation;
 extern float contrast;
 
 extern int32_t luxel_size;
-extern int32_t patch_size;
 
 extern float ambient_intensity;
 extern float sun_intensity;
 extern float light_intensity;
-extern float patch_intensity;
+extern float face_intensity;
 extern float indirect_intensity;
 
 extern float caustics;

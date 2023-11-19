@@ -244,7 +244,7 @@ void light_and_shadow_spot(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_patch(in light_t light, in int index) {
+void light_and_shadow_face(in light_t light, in int index) {
 
 	float radius = light.model.w;
 	if (radius <= 0.0) {
@@ -349,8 +349,8 @@ void light_and_shadow(void) {
 			case LIGHT_SPOT:
 				light_and_shadow_spot(light, index);
 				break;
-			case LIGHT_PATCH:
-				light_and_shadow_patch(light, index);
+			case LIGHT_FACE:
+				light_and_shadow_face(light, index);
 				break;
 			case LIGHT_DYNAMIC:
 				light_and_shadow_dynamic(light, index);

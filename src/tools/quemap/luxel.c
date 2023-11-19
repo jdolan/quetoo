@@ -33,7 +33,7 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 		case LIGHT_SUN:
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
-		case LIGHT_PATCH: {
+		case LIGHT_FACE: {
 
 			lumen_t *diffuse = luxel->diffuse;
 			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {

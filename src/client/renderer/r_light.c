@@ -38,7 +38,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		case LIGHT_SUN:
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
-		case LIGHT_PATCH:
+		case LIGHT_FACE:
 			if (r_shadowmap->integer < 2) {
 				return;
 			}

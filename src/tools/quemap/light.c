@@ -369,34 +369,32 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 /**
  * @brief
  */
-static light_t *LightForPatch(const patch_t *patch) {
+static light_t *LightForFace(const bsp_face_t *face) {
 
-	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
-	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane];
-	const material_t *material = &materials[brush_side->material];
+	const lightmap_t *lm = &lightmaps[face - bsp_file.faces];
 
-	const vec3_t center = Cm_WindingCenter(patch->winding);
+	const vec3_t center = Cm_WindingCenter(lm->winding);
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
-	light->type = LIGHT_PATCH;
-	light->atten = material->cm->light.atten;
-	light->size = sqrtf(Cm_WindingArea(patch->winding));
-	light->origin = Vec3_Fmaf(center, ON_EPSILON, plane->normal);
-	light->winding = Cm_CopyWinding(patch->winding);
-	light->face = patch->face;
-	light->brush_side = brush_side;
-	light->plane = plane;
-	light->normal = plane->normal;
-	light->cone = material->cm->light.cone;
+	light->type = LIGHT_FACE;
+	light->atten = lm->material->cm->light.atten;
+	light->size = sqrtf(Cm_WindingArea(lm->winding));
+	light->origin = Vec3_Fmaf(center, ON_EPSILON, lm->plane->normal);
+	light->winding = Cm_CopyWinding(lm->winding);
+	light->face = lm->face;
+	light->brush_side = lm->brush_side;
+	light->plane = lm->plane;
+	light->normal = lm->plane->normal;
+	light->cone = lm->material->cm->light.cone;
 	light->theta = cosf(Radians(light->cone));
-	light->falloff = material->cm->light.falloff;
+	light->falloff = lm->material->cm->light.falloff;
 	light->phi = cosf(Radians(light->falloff));
-	light->intensity = material->cm->light.intensity;
-	light->shadow = material->cm->light.shadow;
-	light->model = patch->model;
+	light->intensity = lm->material->cm->light.intensity;
+	light->shadow = lm->material->cm->light.shadow;
+	light->model = lm->model;
 
-	light->color = GetMaterialColor(brush_side->material);
+	light->color = GetMaterialColor(lm->brush_side->material);
 
 	const float max = Vec3_Hmaxf(light->color);
 	if (max > 0.f && max < 1.f) {
@@ -405,21 +403,21 @@ static light_t *LightForPatch(const patch_t *patch) {
 
 	light->color = ColorFilter(light->color);
 
-	light->intensity *= patch_intensity;
+	light->intensity *= face_intensity;
 
-	light->radius = brush_side->value ?: material->cm->light.radius;
+	light->radius = lm->brush_side->value ?: lm->material->cm->light.radius;
 
 	light->bounds = Box3_FromCenter(light->origin);
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 	g_array_append_val(points, light->origin);
 
-	for (int32_t i = 0; i < patch->winding->num_points; i++) {
+	for (int32_t i = 0; i < lm->winding->num_points; i++) {
 
-		vec3_t p = patch->winding->points[i];
+		vec3_t p = lm->winding->points[i];
 
 		p = Vec3_Fmaf(p, ON_EPSILON, Vec3_Direction(p, center));
-		p = Vec3_Fmaf(p, ON_EPSILON, plane->normal);
+		p = Vec3_Fmaf(p, ON_EPSILON, lm->plane->normal);
 
 		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
@@ -549,32 +547,10 @@ void BuildDirectLights(void) {
 		const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[face->brush_side];
 		if (brush_side->surface & SURF_LIGHT) {
 
-			cm_winding_t *w = Cm_WindingForBrushSide(&bsp_file, brush_side);
-			if (w == NULL) {
-				Com_Warn("Light face had NULL winding\n");
-				continue;
+			light_t *light = LightForFace(face);
+			if (light) {
+				g_ptr_array_add(lights, light);
 			}
-
-			if (Cm_WindingArea(w) <= patch_size * patch_size) {
-
-				patch_t patch = patches[i];
-				patch.next = NULL;
-				patch.winding = w;
-
-				light_t *light = LightForPatch(&patch);
-				if (light) {
-					g_ptr_array_add(lights, light);
-				}
-			} else {
-				for (const patch_t *patch = &patches[i]; patch; patch = patch->next) {
-					light_t *light = LightForPatch(patch);
-					if (light) {
-						g_ptr_array_add(lights, light);
-					}
-				}
-			}
-
-			Cm_FreeWinding(w);
 		}
 	}
 
@@ -584,21 +560,21 @@ void BuildDirectLights(void) {
 }
 
 /**
- * @brief Add an indirect light source from a directly lit patch.
+ * @brief Add an indirect light source from a directly lit face.
  */
-static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
+static light_t *LightForLightmappedFace(const lightmap_t *lm) {
 
-	const vec3_t center = Cm_WindingCenter(patch->winding);
+	const vec3_t center = Cm_WindingCenter(lm->winding);
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
 	light->type = LIGHT_INDIRECT;
 	light->atten = DEFAULT_LIGHT_ATTEN;
-	light->size = sqrtf(Cm_WindingArea(patch->winding));
+	light->size = sqrtf(Cm_WindingArea(lm->winding));
 	light->origin = Vec3_Fmaf(center, ON_EPSILON, lm->plane->normal);
-	light->winding = Cm_CopyWinding(patch->winding);
-	light->face = patch->face;
-	light->brush_side = patch->brush_side;
+	light->winding = Cm_CopyWinding(lm->winding);
+	light->face = lm->face;
+	light->brush_side = lm->brush_side;
 	light->plane = lm->plane;
 	light->normal = lm->plane->normal;
 	light->cone = DEFAULT_LIGHT_CONE;
@@ -606,45 +582,18 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	light->falloff = DEFAULT_LIGHT_FALLOFF;
 	light->phi = cosf(Radians(light->falloff));
 	light->intensity = DEFAULT_LIGHT_INTENSITY;
-	light->model = patch->model;
+	light->model = lm->model;
 
 	light->intensity *= indirect_intensity;
 
-	vec2_t patch_mins = Vec2_Mins();
-	vec2_t patch_maxs = Vec2_Maxs();
-
-	for (int32_t i = 0; i < patch->winding->num_points; i++) {
-		const vec3_t point = Vec3_Subtract(patch->winding->points[i], patch->origin);
-		const vec3_t st = Mat4_Transform(lm->matrix, point);
-
-		patch_mins = Vec2_Minf(patch_mins, Vec3_XY(st));
-		patch_maxs = Vec2_Maxf(patch_maxs, Vec3_XY(st));
-	}
-
-	assert(patch_mins.x >= lm->st_mins.x - 0.001f);
-	assert(patch_mins.y >= lm->st_mins.y - 0.001f);
-	assert(patch_maxs.x <= lm->st_maxs.x + 0.001f);
-	assert(patch_maxs.y <= lm->st_maxs.y + 0.001f);
-
-	const int16_t w = patch_maxs.x - patch_mins.x;
-	const int16_t h = patch_maxs.y - patch_mins.y;
-
 	vec3_t lightmap = Vec3_Zero();
 
-	for (int32_t t = 0; t < h; t++) {
-		for (int32_t s = 0; s < w; s++) {
-			const int32_t ds = patch_mins.x - lm->st_mins.x + s;
-			const int32_t dt = patch_mins.y - lm->st_mins.y + t;
+	const luxel_t *l = lm->luxels;
+	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-			const luxel_t *l = &lm->luxels[dt * lm->w + ds];
-
-			assert(l->s == ds);
-			assert(l->t == dt);
-
-			const lumen_t *diffuse = l->diffuse;
-			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
-				lightmap = Vec3_Add(lightmap, diffuse->color);
-			}
+		const lumen_t *diffuse = l->diffuse;
+		for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
+			lightmap = Vec3_Add(lightmap, diffuse->color);
 		}
 	}
 
@@ -653,19 +602,19 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 		return NULL;
 	}
 
-	light->color = Vec3_Scale(lightmap, 1.f / (w * h));
+	light->color = Vec3_Scale(lightmap, 1.f / (lm->w * lm->h));
 	light->color = Vec3_Multiply(light->color, GetMaterialColor(lm->brush_side->material));
 
-	light->radius = Maxf(patch_size, light->size * Vec3_Length(light->color));
+	light->radius = Vec3_Length(light->color) * light->size;
 
 	light->bounds = Box3_FromCenter(light->origin);
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 	g_array_append_val(points, light->origin);
 
-	for (int32_t i = 0; i < patch->winding->num_points; i++) {
+	for (int32_t i = 0; i < lm->winding->num_points; i++) {
 
-		vec3_t p = patch->winding->points[i];
+		vec3_t p = lm->winding->points[i];
 
 		p = Vec3_Fmaf(p, ON_EPSILON, Vec3_Direction(p, center));
 		p = Vec3_Fmaf(p, ON_EPSILON, lm->plane->normal);
@@ -703,14 +652,12 @@ void BuildIndirectLights(void) {
 			continue;
 		}
 
-		for (const patch_t *patch = &patches[i]; patch; patch = patch->next) {
-			LightForLightmappedPatch(lm, patch);
-		}
+		LightForLightmappedFace(lm);
 	}
 
 	HashLights(LIGHT_INDIRECT);
 
-	Com_Verbose("Indirect lighting for %d patches\n", lights->len);
+	Com_Verbose("Indirect lighting for %d lit faces\n", lights->len);
 }
 
 /**
@@ -801,7 +748,7 @@ void EmitLights(void) {
 			case LIGHT_INDIRECT:
 				break;
 
-			case LIGHT_PATCH:
+			case LIGHT_FACE:
 				out->type = light->type;
 				out->atten = light->atten;
 				out->origin = light->origin;
@@ -817,7 +764,7 @@ void EmitLights(void) {
 
 				/*for (guint j = i + 1; j < lights->len; j++) {
 					light_t *l = g_ptr_array_index(lights, j);
-					if (l->type == LIGHT_PATCH &&
+					if (l->type == LIGHT_FACE &&
 						l->face->brush_side == light->face->brush_side) {
 
 						out->bounds = Box3_Union(out->bounds, l->bounds);

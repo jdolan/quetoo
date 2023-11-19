@@ -273,7 +273,6 @@ typedef struct {
 #define DEFAULT_LIGHT_SHADOW 1.f
 #define DEFAULT_LIGHT_CONE 75.f
 #define DEFAULT_LIGHT_FALLOFF .333f
-#define DEFAULT_PATCH_SIZE 128
 
 /**
  * @brief Materials define the rendering attributes of textures.
@@ -358,11 +357,6 @@ typedef struct cm_material_s {
 	 * @brief The bloom factor to apply to the diffusemap.
 	 */
 	float bloom;
-
-	/**
-	 * @brief The per-material patch size, for light emission.
-	 */
-	float patch_size;
 
 	/**
 	 * @brief The footsteps to play when the player walks on this material.

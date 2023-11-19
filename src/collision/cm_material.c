@@ -850,16 +850,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			continue;
 		}
 
-		if (!g_strcmp0(token, "patch_size")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->patch_size, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No patch size specified");
-			} else if (m->patch_size < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid patch size value, must be > 0.0");
-				m->patch_size = 0.f;
-			}
-		}
-
 		if (!g_strcmp0(token, "footsteps")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps.name, sizeof(m->footsteps.name))) {
@@ -1328,10 +1318,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	}
 
 	if (material->surface & SURF_LIGHT) {
-
-		if (material->patch_size != DEFAULT_PATCH_SIZE) {
-			Fs_Print(file, "\tpatch_size %g\n", material->patch_size);
-		}
 
 		if (material->light.atten != DEFAULT_LIGHT_ATTEN) {
 			Fs_Print(file, "\tlight.atten %d\n", material->light.atten);

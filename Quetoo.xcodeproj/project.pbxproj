@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 53;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -531,7 +531,6 @@
 		CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EE1C5C58C300CD0B13 /* main.c */; };
 		CE80FFEB1C5E4D1800A21A51 /* map.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F11C5C58C300CD0B13 /* map.c */; };
 		CE80FFEC1C5E4D1800A21A51 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F21C5C58C300CD0B13 /* monitor.c */; };
-		CE80FFED1C5E4D1800A21A51 /* patch.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F41C5C58C300CD0B13 /* patch.c */; };
 		CE80FFEE1C5E4D1800A21A51 /* polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F51C5C58C300CD0B13 /* polylib.c */; };
 		CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F71C5C58C300CD0B13 /* portal.c */; };
 		CE80FFF01C5E4D1800A21A51 /* prtfile.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F81C5C58C300CD0B13 /* prtfile.c */; };
@@ -1388,7 +1387,6 @@
 		CE12D6F11C5C58C300CD0B13 /* map.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = map.c; sourceTree = "<group>"; };
 		CE12D6F21C5C58C300CD0B13 /* monitor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = monitor.c; sourceTree = "<group>"; };
 		CE12D6F31C5C58C300CD0B13 /* monitor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = monitor.h; sourceTree = "<group>"; };
-		CE12D6F41C5C58C300CD0B13 /* patch.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = patch.c; sourceTree = "<group>"; };
 		CE12D6F51C5C58C300CD0B13 /* polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = polylib.c; sourceTree = "<group>"; };
 		CE12D6F61C5C58C300CD0B13 /* polylib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = polylib.h; sourceTree = "<group>"; };
 		CE12D6F71C5C58C300CD0B13 /* portal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = portal.c; sourceTree = "<group>"; };
@@ -1764,7 +1762,6 @@
 		CEBCE0C521CFC6CE00976E76 /* leakfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = leakfile.h; sourceTree = "<group>"; };
 		CEBCE0C621CFD43500976E76 /* work.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = work.h; sourceTree = "<group>"; };
 		CEBCE0C721CFDD1600976E76 /* texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
-		CEBDB0C2214A02B400A7AC3D /* patch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = patch.h; sourceTree = "<group>"; };
 		CEBDB0C3214A02B400A7AC3D /* lightmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lightmap.h; sourceTree = "<group>"; };
 		CEBDB0C4214A02B400A7AC3D /* light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = light.h; sourceTree = "<group>"; };
 		CEBDB0C5214A02B500A7AC3D /* light.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = light.c; sourceTree = "<group>"; };
@@ -2947,8 +2944,6 @@
 				CECA8CAF1E50B5F1005E97E8 /* material.h */,
 				CE12D6F21C5C58C300CD0B13 /* monitor.c */,
 				CE12D6F31C5C58C300CD0B13 /* monitor.h */,
-				CE12D6F41C5C58C300CD0B13 /* patch.c */,
-				CEBDB0C2214A02B400A7AC3D /* patch.h */,
 				CEB3038D2247A59F000FCB07 /* points.h */,
 				CE12D6F51C5C58C300CD0B13 /* polylib.c */,
 				CE12D6F61C5C58C300CD0B13 /* polylib.h */,
@@ -4667,7 +4662,6 @@
 				CE80FFEB1C5E4D1800A21A51 /* map.c in Sources */,
 				CECA8CB01E50B5F1005E97E8 /* material.c in Sources */,
 				CE80FFEC1C5E4D1800A21A51 /* monitor.c in Sources */,
-				CE80FFED1C5E4D1800A21A51 /* patch.c in Sources */,
 				CE80FFEE1C5E4D1800A21A51 /* polylib.c in Sources */,
 				CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */,
 				CE80FFF01C5E4D1800A21A51 /* prtfile.c in Sources */,

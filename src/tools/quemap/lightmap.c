@@ -22,12 +22,23 @@
 #include "bsp.h"
 #include "light.h"
 #include "lightmap.h"
-#include "patch.h"
 #include "points.h"
 #include "polylib.h"
 #include "qlight.h"
 
 lightmap_t *lightmaps;
+
+/**
+ * @brief Resolves the lightmap winding, offset for the model origin.
+ */
+static void BuildLightmapWinding(lightmap_t *lm) {
+
+	lm->winding = Cm_WindingForFace(&bsp_file, lm->face);
+
+	for (int32_t i = 0; i < lm->winding->num_points; i++) {
+		lm->winding->points[i] = Vec3_Add(lm->winding->points[i], lm->model_origin);
+	}
+}
 
 /**
  * @brief Resolves the texture projection matrices for the given lightmap.
@@ -47,9 +58,9 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 		0.f, 0.f, -lm->plane->dist,    1.f
 	});
 
-	const vec3_t origin = patches[lm - lightmaps].origin;
-	const mat4_t translate = Mat4_FromTranslation(origin);
+	const mat4_t translate = Mat4_FromTranslation(lm->model_origin);
 	const mat4_t inverse = Mat4_Inverse(lm->matrix);
+
 	lm->inverse_matrix = Mat4_Concat(translate, inverse);
 }
 
@@ -150,8 +161,13 @@ void BuildLightmaps(void) {
 
 	const bsp_model_t *model = bsp_file.models;
 	for (int32_t i = 0; i < bsp_file.num_models; i++, model++) {
+
+		const cm_entity_t *entity = Cm_Bsp()->entities[model->entity];
+		const vec3_t model_origin = Cm_EntityValue(entity, "origin")->vec3;
+
 		for (int32_t j = 0; j < model->num_faces; j++) {
 			lightmaps[model->first_face + j].model = model;
+			lightmaps[model->first_face + j].model_origin = model_origin;
 		}
 	}
 
@@ -166,10 +182,13 @@ void BuildLightmaps(void) {
 		lm->face = &bsp_file.faces[i];
 		lm->brush_side = &bsp_file.brush_sides[lm->face->brush_side];
 		lm->plane = &bsp_file.planes[lm->face->plane];
+		lm->material = &materials[lm->brush_side->material];
 
 		if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
 			continue;
 		}
+
+		BuildLightmapWinding(lm);
 
 		BuildLightmapMatrices(lm);
 
@@ -411,7 +430,7 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 /**
  * @brief
  */
-static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 	vec3_t dir;
 
 	if (light->model != bsp_file.models && light->model != lightmap->model) {
@@ -557,8 +576,8 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 			case LIGHT_SPOT:
 				LightmapLuxel_Spot(light, lightmap, luxel, scale);
 				break;
-			case LIGHT_PATCH:
-				LightmapLuxel_Patch(light, lightmap, luxel, scale);
+			case LIGHT_FACE:
+				LightmapLuxel_Face(light, lightmap, luxel, scale);
 				break;
 			case LIGHT_INDIRECT:
 				LightmapLuxel_Indirect(light, lightmap, luxel, scale);

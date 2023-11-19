@@ -30,11 +30,10 @@ float contrast = 1.f;
 float ambient_intensity = LIGHT_INTENSITY;
 float sun_intensity = LIGHT_INTENSITY;
 float light_intensity = LIGHT_INTENSITY;
-float patch_intensity = LIGHT_INTENSITY;
+float face_intensity = LIGHT_INTENSITY;
 float indirect_intensity = LIGHT_INTENSITY;
 
 int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
-int32_t patch_size = DEFAULT_PATCH_SIZE;
 
 float caustics = 1.f;
 
@@ -449,8 +448,8 @@ static void LightWorld(void) {
 		light_intensity = Cm_EntityValue(e, "light_intensity")->value ?: light_intensity;
 	}
 
-	if (patch_intensity == 1.f) {
-		patch_intensity = Cm_EntityValue(e, "patch_intensity")->value ?: patch_intensity;
+	if (face_intensity == 1.f) {
+		face_intensity = Cm_EntityValue(e, "face_intensity")->value ?: face_intensity;
 	}
 
 	if (indirect_intensity == 1.f) {
@@ -459,10 +458,6 @@ static void LightWorld(void) {
 
 	if (luxel_size == BSP_LIGHTMAP_LUXEL_SIZE) {
 		luxel_size = Cm_EntityValue(e, "luxel_size")->integer ?: luxel_size;
-	}
-
-	if (patch_size == DEFAULT_PATCH_SIZE) {
-		patch_size = Cm_EntityValue(e, "patch_size")->integer ?: patch_size;
 	}
 
 	if (caustics == 1.f) {
@@ -477,18 +472,11 @@ static void LightWorld(void) {
 	Com_Print("  Ambient intensity: %g\n", ambient_intensity);
 	Com_Print("  Sun intensity: %g\n", sun_intensity);
 	Com_Print("  Light intensity: %g\n", light_intensity);
-	Com_Print("  Patch intensity: %g\n", patch_intensity);
+	Com_Print("  Face intensity: %g\n", face_intensity);
 	Com_Print("  Indirect intensity: %g\n", indirect_intensity);
 	Com_Print("  Caustics intensity: %g\n", caustics);
 	Com_Print("  Luxel size: %d\n", luxel_size);
-	Com_Print("  Patch size: %d\n", patch_size);
 	Com_Print("\n");
-
-	// build patches
-	BuildPatches();
-
-	// subdivide patches to the desired resolution
-	Work("Building patches", SubdividePatch, bsp_file.num_faces);
 
 	// build lightmaps
 	BuildLightmaps();
@@ -496,7 +484,7 @@ static void LightWorld(void) {
 	// build lightgrid
 	const size_t num_lightgrid = BuildLightgrid();
 
-	// build lights out of entities and emissive patches
+	// build lights out of entities and emissive faces
 	BuildDirectLights();
 
 	// calculate direct lighting
@@ -506,7 +494,7 @@ static void LightWorld(void) {
 	// indirect lighting
 	if (indirect_intensity > 0.f) {
 
-		// build lights out of lightmapped patches
+		// build lights out of lightmapped faces
 		BuildIndirectLights();
 
 		// calculate indirect lighting
@@ -523,9 +511,6 @@ static void LightWorld(void) {
 
 	// free the light sources
 	FreeLights();
-
-	// free the patches
-	Mem_FreeTag(MEM_TAG_PATCH);
 
 	// build fog volumes out of brush entities
 	BuildFog();

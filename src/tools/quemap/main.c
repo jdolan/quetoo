@@ -239,10 +239,6 @@ static void Check_LIGHT_Options(int32_t argc) {
 			luxel_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
 			Com_Verbose("luxel size: %d\n", luxel_size);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--patch-size")) {
-			patch_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
-			Com_Verbose("patch size: %d\n", patch_size);
-			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--ambient-intensity")) {
 			ambient_intensity = atof(Com_Argv(i + 1));
 			Com_Verbose("ambient intensity: %g\n", ambient_intensity);
@@ -255,9 +251,9 @@ static void Check_LIGHT_Options(int32_t argc) {
 			light_intensity = atof(Com_Argv(i + 1));
 			Com_Verbose("light intensity: %g\n", light_intensity);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--patch-intensity")) {
-			patch_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("patch intensity: %g\n", patch_intensity);
+		} else if (!g_strcmp0(Com_Argv(i), "--face-intensity")) {
+			face_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("face intensity: %g\n", face_intensity);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--indirect-intensity")) {
 			indirect_intensity = atof(Com_Argv(i + 1));
@@ -271,8 +267,6 @@ static void Check_LIGHT_Options(int32_t argc) {
 			break;
 		}
 	}
-
-	patch_size = Maxf(patch_size, luxel_size);
 }
 
 /**
@@ -335,13 +329,12 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --brightness <float> - brightness (default 1.0)\n");
 	Com_Print(" --contrast <float> - contrast (default 1.0)\n");
 	Com_Print(" --saturation <float> - saturation (default 1.0)\n");
-	Com_Print(" --ambient-brightness <float> - ambient light brightness (default 1.0)\n");
-	Com_Print(" --sun-brightness <float> - sun light brightness (default 1.0)\n");
-	Com_Print(" --light-brightness <float> - entity light brightness (default 1.0)\n");
-	Com_Print(" --patch-brightness <float> - patch light brightness (default 1.0)\n");
-	Com_Print(" --indirect-brightness <float> - indirect light brightness (default 1.0)\n");
+	Com_Print(" --ambient-intensity <float> - ambient light intensity (default 1.0)\n");
+	Com_Print(" --sun-intensity <float> - sun light intensity (default 1.0)\n");
+	Com_Print(" --light-intensity <float> - entity light intensity (default 1.0)\n");
+	Com_Print(" --face-intensity <float> - face light intensity (default 1.0)\n");
+	Com_Print(" --indirect-intensity <float> - indirect light intensity (default 1.0)\n");
 	Com_Print(" --luxel-size <float> - luxel size (default 4)\n");
-	Com_Print(" --patch-size <float> - patch size (default 16)\n");
 	Com_Print("\n");
 
 	Com_Print("-zip               ZIP stage options:\n");
