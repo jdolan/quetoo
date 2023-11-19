@@ -416,14 +416,24 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 		data = (byte *) in + sizeof(bsp_lightmap_t);
 	} else {
 		out->width = 1;
-		data = (byte *) (vec3_t[]) {
-			{{1.f, 1.f, 1.f}}, // ambient
-			{{0.f, 0.f, 0.f}}, // diffuse0
-			{{0.f, 0.f, 1.f}}, // direction0
-			{{0.f, 0.f, 0.f}}, // diffuse1
-			{{0.f, 0.f, 1.f}}, // direction1
-			{{0.f, 0.f, 0.f}}, // caustics
-		};
+		
+		static struct __attribute__((packed)) {
+			color24_t ambient;
+			vec3_t diffuse0;
+			vec3_t direction0;
+			vec3_t diffuse1;
+			vec3_t direction1;
+			color24_t caustics;
+		} default_lightmap;
+
+		default_lightmap.ambient = Color24(255, 255, 255);
+		default_lightmap.diffuse0 = Vec3_Zero();
+		default_lightmap.direction0 = Vec3_Up();
+		default_lightmap.diffuse1 = Vec3_Zero();
+		default_lightmap.direction1 = Vec3_Up();
+		default_lightmap.caustics = Color24(0, 0, 0);
+
+		data = (byte *) &default_lightmap;
 	}
 
 	out->ambient = (r_image_t *) R_AllocMedia("lightmap_ambient", sizeof(r_image_t), R_MEDIA_IMAGE);
@@ -516,14 +526,31 @@ static void R_ResetBspStainmap(r_bsp_model_t *bsp) {
 static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	const bsp_lightgrid_t *in = mod->bsp->cm->file->lightgrid;
-	byte *data = (byte *) in + sizeof(bsp_lightgrid_t);
+	byte *data;
 
 	r_bsp_lightgrid_t *out = mod->bsp->lightgrid = Mem_LinkMalloc(sizeof(*out), mod->bsp);
 
 	if (in) {
 		out->size = in->size;
+		data = (byte *) in + sizeof(bsp_lightgrid_t);
 	} else {
 		out->size = Vec3i(1, 1, 1);
+
+		static struct __attribute__((packed)) {
+			color24_t ambient;
+			vec3_t diffuse;
+			vec3_t direction;
+			color24_t caustics;
+			color32_t fog;
+		} default_lightgrid;
+
+		default_lightgrid.ambient = Color24(255, 255, 255);
+		default_lightgrid.diffuse = Vec3_One();
+		default_lightgrid.direction = Vec3_Up();
+		default_lightgrid.caustics = Color24(0, 0, 0);
+		default_lightgrid.fog = Color32(0, 0, 0, 0);
+
+		data = (byte *) &default_lightgrid;
 	}
 
 	const vec3_t grid_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
