@@ -471,6 +471,8 @@ void main(void) {
 			lightgrid_fog(effect, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 			global_fog(effect, vertex.position);
 		}
+
+		out_color = effect;
 	}
 
 	// debugging
