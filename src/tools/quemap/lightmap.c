@@ -769,8 +769,8 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 		//assert(diffuse->direction.z >= 0.f);
 	}
 
-	// and normalize the cuastics
-	luxel->caustics = ColorNormalize(luxel->caustics);
+	// and clamp the cuastics
+	luxel->caustics = Vec3_Clampf(luxel->caustics, 0.f, 1.f);
 }
 
 /**

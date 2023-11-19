@@ -29,33 +29,6 @@ GPtrArray *node_lights[MAX_BSP_NODES];
 GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 
 /**
- * @brief Clamps the components of the specified vector to 1.0, scaling the vector
- * down if necessary.
- */
-vec3_t ColorNormalize(const vec3_t in) {
-
-	vec3_t out = in;
-
-	float max = 0.0;
-	for (int32_t i = 0; i < 3; i++) { // find the brightest component
-
-		if (out.xyz[i] < 0.0) { // enforcing positive values
-			out.xyz[i] = 0.0;
-		}
-
-		if (out.xyz[i] > max) {
-			max = out.xyz[i];
-		}
-	}
-
-	if (max > 1.0) { // clamp without changing hue
-		out = Vec3_Scale(out, 1.0 / max);
-	}
-
-	return out;
-}
-
-/**
  * @brief Applies brightness, saturation and contrast to the specified input color.
  */
 vec3_t ColorFilter(const vec3_t in) {
