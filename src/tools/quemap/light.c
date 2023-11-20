@@ -586,23 +586,23 @@ static light_t *LightForLightmappedFace(const lightmap_t *lm) {
 
 	light->intensity *= indirect_intensity;
 
-	vec3_t lightmap = Vec3_Zero();
+	vec3_t diffuse = Vec3_Zero();
 
 	const luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		const lumen_t *diffuse = l->diffuse;
-		for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
-			lightmap = Vec3_Add(lightmap, diffuse->color);
+		const lumen_t *lumen = l->diffuse;
+		for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, lumen++) {
+			diffuse = Vec3_Add(diffuse, lumen->color);
 		}
 	}
 
-	if (Vec3_Equal(lightmap, Vec3_Zero())) {
+	if (Vec3_Equal(diffuse, Vec3_Zero())) {
 		FreeLight(light);
 		return NULL;
 	}
 
-	light->color = Vec3_Scale(lightmap, 1.f / (lm->w * lm->h));
+	light->color = Vec3_Scale(diffuse, 1.f / (lm->w * lm->h));
 	light->color = Vec3_Multiply(light->color, GetMaterialColor(lm->brush_side->material));
 
 	light->radius = Vec3_Length(light->color) * light->size;
@@ -652,7 +652,10 @@ void BuildIndirectLights(void) {
 			continue;
 		}
 
-		LightForLightmappedFace(lm);
+		light_t *light = LightForLightmappedFace(lm);
+		if (light) {
+			g_ptr_array_add(lights, light);
+		}
 	}
 
 	HashLights(LIGHT_INDIRECT);
