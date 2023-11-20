@@ -453,7 +453,7 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 	if (light->plane == lightmap->plane) {
 		if (light->face == lightmap->face) {
 			dist = 0.f;
-			dir = Vec3_Negate(light->normal);
+			dir = luxel->normal;
 		} else {
 			return;
 		}
