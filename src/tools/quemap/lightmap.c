@@ -259,7 +259,7 @@ static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soff
 
 	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
 	l->normal = LuxelNormal(lm, l->origin);
-	l->origin = Vec3_Fmaf(l->origin, 2.f, l->normal);
+	l->origin = Vec3_Fmaf(l->origin, ON_EPSILON, l->normal);
 	l->dist = Vec3_Dot(l->origin, l->normal);
 
 	return Light_PointContents(l->origin, lm->model->head_node);
@@ -448,18 +448,11 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 	// For neighboring emissive faces of the same material, do not light each other. This avoids
 	// light seams on slime, lava, and other large emissive brush sides that are split by BSP.
 
-	float dist;
-
-	if (light->plane == lightmap->plane) {
-		if (light->face == lightmap->face) {
-			dist = 0.f;
-			dir = luxel->normal;
-		} else {
-			return;
-		}
-	} else {
-		dist = Cm_DistanceToWinding(light->winding, luxel->origin, &dir);
+	if (light->plane == lightmap->plane && light->face != lightmap->face) {
+		return;
 	}
+
+	float dist = Cm_DistanceToWinding(light->winding, luxel->origin, &dir);
 
 	if (dist > light->radius) {
 		return;
