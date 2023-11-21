@@ -448,7 +448,7 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 	// For neighboring emissive faces of the same material, do not light each other. This avoids
 	// light seams on slime, lava, and other large emissive brush sides that are split by BSP.
 
-	float dist;
+	float dist = Cm_DistanceToWinding(light->winding, luxel->origin, &dir);
 
 	if (light->plane == lightmap->plane) {
 		if (light->brush_side->material == lightmap->brush_side->material) {
@@ -458,11 +458,7 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 			} else {
 				return;
 			}
-		} else {
-			dist = Cm_DistanceToWinding(light->winding, luxel->origin, &dir);
 		}
-	} else {
-		dist = Cm_DistanceToWinding(light->winding, luxel->origin, &dir);
 	}
 
 	if (dist > light->radius) {
