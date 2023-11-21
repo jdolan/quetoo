@@ -510,44 +510,21 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 	vec3_t dir;
 
-	if (light->plane == lightmap->plane) {
-		return;
-	}
-
 	if (light->model != bsp_file.models && light->model != lightmap->model) {
 		return;
 	}
 
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -luxel_size) {
+	if (light->plane == lightmap->plane) {
 		return;
 	}
 
-	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -luxel_size) {
-		return;
-	}
-
-	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin, &dir);
+	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
+	dist = Maxf(0.f, dist - light->size * .5f);
 	if (dist > light->radius) {
 		return;
 	}
 
-	float atten;
-
-	switch (light->atten) {
-		case LIGHT_ATTEN_NONE:
-			atten = 1.f;
-			break;
-		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-			atten *= atten;
-			break;
-	}
-
-	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	atten *= Smoothf(dot, light->theta - light->phi, light->theta + light->phi);
+	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
 
 	const float lumens = atten * scale * light->intensity;
 	if (lumens <= 0.f) {
@@ -563,7 +540,8 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, lumens)
+			.color = Vec3_Scale(light->color, lumens),
+			.direction = Vec3_Scale(dir, lumens)
 		});
 		break;
 	}

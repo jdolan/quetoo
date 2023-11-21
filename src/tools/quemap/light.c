@@ -562,78 +562,65 @@ void BuildDirectLights(void) {
 /**
  * @brief Add an indirect light source from a directly lit face.
  */
-static light_t *LightForLightmappedFace(const lightmap_t *lm) {
+static light_t *LightForLightmappedFace(const lightmap_t *lm, int32_t s, int32_t t, int32_t size) {
 
-	const vec3_t center = Cm_WindingCenter(lm->winding);
+	struct {
+		int32_t s, t;
+		int32_t w, h;
+
+		box3_t bounds;
+		vec3_t diffuse;
+	} patch;
+
+	patch.s = s;
+	patch.t = t;
+	patch.w = Mini(s + size, lm->w) - s;
+	patch.h = Mini(t + size, lm->h) - t;
+
+	patch.bounds = Box3_Null();
+	patch.diffuse = Vec3_Zero();
+
+	for (int32_t s = patch.s; s < patch.s + patch.w; s++) {
+		for (int32_t t = patch.t; t < patch.t + patch.h; t++) {
+
+			const luxel_t *luxel = &lm->luxels[t * lm->w + s];
+			patch.bounds = Box3_Append(patch.bounds, luxel->origin);
+
+			const lumen_t *lumen = luxel->diffuse;
+			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, lumen++) {
+				patch.diffuse = Vec3_Add(patch.diffuse, lumen->color);
+			}
+		}
+	}
+
+	//patch.diffuse = Vec3_Scale(patch.diffuse, 1.f / (patch.w * patch.h));
+	patch.diffuse = Vec3_Multiply(patch.diffuse, GetMaterialColor(lm->brush_side->material));
+
+	if (Vec3_Length(patch.diffuse) < .1f) {
+		return NULL;
+	}
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
 	light->type = LIGHT_INDIRECT;
 	light->atten = DEFAULT_LIGHT_ATTEN;
-	light->size = sqrtf(Cm_WindingArea(lm->winding));
-	light->origin = Vec3_Fmaf(center, ON_EPSILON, lm->plane->normal);
-	light->winding = Cm_CopyWinding(lm->winding);
-	light->face = lm->face;
-	light->brush_side = lm->brush_side;
-	light->plane = lm->plane;
-	light->normal = lm->plane->normal;
-	light->cone = DEFAULT_LIGHT_CONE;
-	light->theta = cosf(Radians(light->cone));
-	light->falloff = DEFAULT_LIGHT_FALLOFF;
-	light->phi = cosf(Radians(light->falloff));
-	light->intensity = DEFAULT_LIGHT_INTENSITY;
 	light->model = lm->model;
-
+	light->plane = lm->plane;
+	light->size = Box3_Distance(patch.bounds);
+	light->origin = Box3_Center(patch.bounds);
+	light->color = patch.diffuse;
+	light->intensity = DEFAULT_LIGHT_INTENSITY;
 	light->intensity *= indirect_intensity;
 
-	vec3_t diffuse = Vec3_Zero();
-
-	const luxel_t *l = lm->luxels;
-	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
-
-		const lumen_t *lumen = l->diffuse;
-		for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, lumen++) {
-			diffuse = Vec3_Add(diffuse, lumen->color);
-		}
-	}
-
-	if (Vec3_Equal(diffuse, Vec3_Zero())) {
-		FreeLight(light);
-		return NULL;
-	}
-
-	light->color = Vec3_Scale(diffuse, 1.f / (lm->w * lm->h));
-	light->color = Vec3_Multiply(light->color, GetMaterialColor(lm->brush_side->material));
-
 	light->radius = Vec3_Length(light->color) * light->size;
+	light->bounds = patch.bounds;
 
-	light->bounds = Box3_FromCenter(light->origin);
+	light->points = g_malloc_n(9, sizeof(vec3_t));
+	light->points[0] = light->origin;
+	Box3_ToPoints(patch.bounds, &light->points[1]);
 
-	GArray *points = g_array_new(false, false, sizeof(vec3_t));
-	g_array_append_val(points, light->origin);
+	light->bounds = Box3_Expand(patch.bounds, light->radius);
 
-	for (int32_t i = 0; i < lm->winding->num_points; i++) {
-
-		vec3_t p = lm->winding->points[i];
-
-		p = Vec3_Fmaf(p, ON_EPSILON, Vec3_Direction(p, center));
-		p = Vec3_Fmaf(p, ON_EPSILON, lm->plane->normal);
-
-		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
-			continue;
-		}
-
-		light->bounds = Box3_Append(light->bounds, p);
-
-		g_array_append_val(points, p);
-	}
-
-	light->bounds = Box3_Expand(light->bounds, light->radius);
-
-	light->points = (vec3_t *) points->data;
-	light->num_points = points->len;
-
-	g_array_free(points, false);
 	return light;
 }
 
@@ -652,9 +639,21 @@ void BuildIndirectLights(void) {
 			continue;
 		}
 
-		light_t *light = LightForLightmappedFace(lm);
-		if (light) {
-			g_ptr_array_add(lights, light);
+		for (int32_t s = 0; s < lm->w; s += /*lm->material->cm->patch_size*/ 8) {
+			for (int32_t t = 0; t < lm->h; t += /*lm->material->cm->patch_size*/ 8) {
+
+				light_t *light = LightForLightmappedFace(lm, s, t, 8);
+				if (light) {
+					//if (light->radius > light->size) {
+						printf("radius %g, size: %g, color: %s\n",
+							   light->radius,
+							   light->size,
+							   vtos(light->color));
+					//}
+
+					g_ptr_array_add(lights, light);
+				}
+			}
 		}
 	}
 
