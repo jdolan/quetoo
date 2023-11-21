@@ -515,6 +515,10 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		return;
 	}
 
+	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -luxel_size) {
+		return;
+	}
+
 	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin, &dir);
 	if (dist > light->radius) {
 		return;
