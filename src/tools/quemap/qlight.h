@@ -35,8 +35,6 @@ extern float brightness;
 extern float saturation;
 extern float contrast;
 
-extern int32_t luxel_size;
-
 extern float ambient_intensity;
 extern float sun_intensity;
 extern float point_intensity;

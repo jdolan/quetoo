@@ -689,8 +689,6 @@ typedef struct {
 	int32_t num_lights;
 	r_bsp_light_t *lights;
 	
-	int32_t luxel_size;
-
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
 

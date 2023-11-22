@@ -38,7 +38,7 @@ static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 	st = Vec2_Add(st, Vec2_Scale(padding, .5f));
 
 	// convert the radius to luxels
-	const float radius = stain->radius / r_world_model->bsp->luxel_size;
+	const float radius = stain->radius / BSP_LIGHTMAP_LUXEL_SIZE;
 
 	// square it to avoid a sqrt per luxe;
 	const float radius_squared = radius * radius;

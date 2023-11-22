@@ -24,19 +24,6 @@
 /**
  * @brief
  */
-static void R_LoadBspEntities(r_bsp_model_t *bsp) {
-
-	bsp->luxel_size = Cm_EntityValue(Cm_Worldspawn(), "luxel_size")->integer;
-	if (bsp->luxel_size <= 0) {
-		bsp->luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
-	}
-
-	Com_Debug(DEBUG_RENDERER, "Resolved luxel_size: %d\n", bsp->luxel_size);
-}
-
-/**
- * @brief
- */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 	r_bsp_plane_t *out;
 
@@ -759,7 +746,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// load in lumps that the renderer needs
 	Bsp_LoadLumps(header, mod->bsp->cm->file, R_BSP_LUMPS);
 
-	R_LoadBspEntities(mod->bsp);
 	R_LoadBspPlanes(mod->bsp);
 	R_LoadBspMaterials(mod);
 	R_LoadBspBrushSides(mod->bsp);

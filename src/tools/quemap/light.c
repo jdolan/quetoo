@@ -613,7 +613,7 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t, int32_
 	light->intensity = LIGHT_INTENSITY;
 	light->intensity *= patch_intensity;
 
-	light->radius = patch.w * patch.h * luxel_size;
+	light->radius = patch.w * patch.h * BSP_LIGHTMAP_LUXEL_SIZE;
 	light->bounds = patch.bounds;
 
 	light->points = g_malloc_n(9, sizeof(vec3_t));
@@ -710,7 +710,7 @@ static box3_t LightBounds(const light_t *light) {
 		}
 	}
 
-	return Box3_Expand(bounds, luxel_size);
+	return Box3_Expand(bounds, BSP_LIGHTMAP_LUXEL_SIZE);
 }
 
 /**

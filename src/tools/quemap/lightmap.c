@@ -48,8 +48,8 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 	vec3_t s = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[0]));
 	vec3_t t = Vec3_Normalize(Vec4_XYZ(lm->brush_side->axis[1]));
 
-	s = Vec3_Scale(s, 1.f / luxel_size);
-	t = Vec3_Scale(t, 1.f / luxel_size);
+	s = Vec3_Scale(s, 1.f / BSP_LIGHTMAP_LUXEL_SIZE);
+	t = Vec3_Scale(t, 1.f / BSP_LIGHTMAP_LUXEL_SIZE);
 
 	lm->matrix = Mat4((const float[]) {
 		s.x, t.x, lm->plane->normal.x, 0.f,
@@ -292,7 +292,7 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 		sample.y += RandomRangef(-.02f, .02f);
 
 		// Scale the sample and move it into position
-		sample = Vec3_Scale(sample, light->radius / luxel_size);
+		sample = Vec3_Scale(sample, light->radius / BSP_LIGHTMAP_LUXEL_SIZE);
 
 		sample.x += s;
 		sample.y += t;
@@ -437,11 +437,11 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 		return;
 	}
 
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -luxel_size) {
+	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTMAP_LUXEL_SIZE) {
 		return;
 	}
 
-	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -luxel_size) {
+	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -BSP_LIGHTMAP_LUXEL_SIZE) {
 		return;
 	}
 
@@ -513,11 +513,11 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -luxel_size) {
+	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTMAP_LUXEL_SIZE) {
 		return;
 	}
 
-	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -luxel_size) {
+	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -BSP_LIGHTMAP_LUXEL_SIZE) {
 		return;
 	}
 

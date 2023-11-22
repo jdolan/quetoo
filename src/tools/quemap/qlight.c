@@ -34,8 +34,6 @@ float spot_intensity = LIGHT_INTENSITY;
 float face_intensity = LIGHT_INTENSITY;
 float patch_intensity = LIGHT_INTENSITY;
 
-int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
-
 float caustics = 1.f;
 
 // we use the collision detection facilities for lighting
@@ -461,10 +459,6 @@ static void LightWorld(void) {
 		patch_intensity = Cm_EntityValue(e, "patch_intensity")->value ?: patch_intensity;
 	}
 
-	if (luxel_size == BSP_LIGHTMAP_LUXEL_SIZE) {
-		luxel_size = Cm_EntityValue(e, "luxel_size")->integer ?: luxel_size;
-	}
-
 	if (caustics == 1.f) {
 		caustics = Cm_EntityValue(e, "caustics")->value ?: caustics;
 	}
@@ -480,7 +474,6 @@ static void LightWorld(void) {
 	Com_Print("  Face intensity: %g\n", face_intensity);
 	Com_Print("  Indirect intensity: %g\n", patch_intensity);
 	Com_Print("  Caustics intensity: %g\n", caustics);
-	Com_Print("  Luxel size: %d\n", luxel_size);
 	Com_Print("\n");
 
 	// build lightmaps

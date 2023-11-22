@@ -235,10 +235,6 @@ static void Check_LIGHT_Options(int32_t argc) {
 			contrast = atof(Com_Argv(i + 1));
 			Com_Verbose("contrast: %g\n", contrast);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--luxel-size")) {
-			luxel_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
-			Com_Verbose("luxel size: %d\n", luxel_size);
-			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--ambient-intensity")) {
 			ambient_intensity = atof(Com_Argv(i + 1));
 			Com_Verbose("ambient intensity: %g\n", ambient_intensity);
