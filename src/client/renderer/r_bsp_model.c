@@ -206,7 +206,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 
 		if ((out->surface & SURF_ALPHA_TEST) && out->material->cm->alpha_test == 0.f) {
-			out->material->cm->alpha_test = DEFAULT_ALPHA_TEST;
+			out->material->cm->alpha_test = MATERIAL_ALPHA_TEST;
 		}
 
 		if (out->material->cm->stage_flags & (STAGE_STRETCH | STAGE_ROTATE)) {

@@ -21,8 +21,6 @@
 
 #include "cg_local.h"
 
-#define LIGHT_INTENSITY 1.f
-
 static cg_light_t cg_lights[MAX_LIGHTS];
 
 /**
@@ -57,7 +55,7 @@ void Cg_AddLight(const cg_light_t *l) {
 	}
 
 	if (out->intensity == 0.0) {
-		out->intensity = LIGHT_INTENSITY;
+		out->intensity = MATERIAL_LIGHT_INTENSITY;
 	}
 
 	out->time = cgi.client->unclamped_time;
@@ -75,7 +73,7 @@ static void Cg_AddBspLights(void) {
 			case LIGHT_INVALID:
 			case LIGHT_AMBIENT:
 			case LIGHT_SUN:
-			case LIGHT_INDIRECT:
+			case LIGHT_PATCH:
 				continue;
 			default:
 				break;
@@ -195,7 +193,7 @@ void Cg_AddLights(void) {
 			.radius = l->radius,
 			.size = 0.f,
 			.intensity = l->intensity,
-			.shadow = DEFAULT_LIGHT_SHADOW,
+			.shadow = MATERIAL_LIGHT_SHADOW,
 			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
 		};
 

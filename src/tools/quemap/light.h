@@ -24,14 +24,14 @@
 #include "bsp.h"
 
 #define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
-#define LIGHT_RADIUS DEFAULT_LIGHT_RADIUS
+#define LIGHT_RADIUS 300.f
 #define LIGHT_RADIUS_AMBIENT 256.f
-#define LIGHT_INTENSITY DEFAULT_LIGHT_INTENSITY
-#define LIGHT_SHADOW DEFAULT_LIGHT_SHADOW
+#define LIGHT_INTENSITY 1.f
+#define LIGHT_SHADOW 1.f
 #define LIGHT_ANGLE_UP -1.f
 #define LIGHT_ANGLE_DOWN -2.f
 #define LIGHT_CONE 22.5f
-#define LIGHT_FALLOFF DEFAULT_LIGHT_FALLOFF
+#define LIGHT_FALLOFF .333f
 #define LIGHT_SUN_DIST 1024.f
 #define LIGHT_SIZE_SUN 32.f
 #define LIGHT_SIZE_STEP 16.f
@@ -122,27 +122,27 @@ typedef struct light_s {
 	int32_t num_points;
 
 	/**
-	 * @brief The light source winding for face and indirect lights.
+	 * @brief The light source winding for face lights.
 	 */
 	cm_winding_t *winding;
 
 	/**
-	 * @brief The light source face for face and indirect lights.
+	 * @brief The light source face for face and patch lights.
 	 */
 	const bsp_face_t *face;
 
 	/**
-	 * @brief The light source brush side for face and indirect lights.
+	 * @brief The light source brush side for face and patch lights.
 	 */
 	const bsp_brush_side_t *brush_side;
 
 	/**
-	 * @brief The light source plane for face and indirect lights.
+	 * @brief The light source plane for face and patch lights.
 	 */
 	const bsp_plane_t *plane;
 
 	/**
-	 * @brief The light source model for face and indirect lights.
+	 * @brief The light source model for face and patch lights.
 	 */
 	const bsp_model_t *model;
 

@@ -29,9 +29,10 @@ float contrast = 1.f;
 
 float ambient_intensity = LIGHT_INTENSITY;
 float sun_intensity = LIGHT_INTENSITY;
-float light_intensity = LIGHT_INTENSITY;
+float point_intensity = LIGHT_INTENSITY;
+float spot_intensity = LIGHT_INTENSITY;
 float face_intensity = LIGHT_INTENSITY;
-float indirect_intensity = LIGHT_INTENSITY;
+float patch_intensity = LIGHT_INTENSITY;
 
 int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 
@@ -444,16 +445,20 @@ static void LightWorld(void) {
 		sun_intensity = Cm_EntityValue(e, "sun_intensity")->value ?: sun_intensity;
 	}
 
-	if (light_intensity == 1.f) {
-		light_intensity = Cm_EntityValue(e, "light_intensity")->value ?: light_intensity;
+	if (point_intensity == 1.f) {
+		point_intensity = Cm_EntityValue(e, "light_intensity")->value ?: point_intensity;
+	}
+
+	if (spot_intensity == 1.f) {
+		spot_intensity = Cm_EntityValue(e, "spot_intensity")->value ?: spot_intensity;
 	}
 
 	if (face_intensity == 1.f) {
 		face_intensity = Cm_EntityValue(e, "face_intensity")->value ?: face_intensity;
 	}
 
-	if (indirect_intensity == 1.f) {
-		indirect_intensity = Cm_EntityValue(e, "indirect_intensity")->value ?: indirect_intensity;
+	if (patch_intensity == 1.f) {
+		patch_intensity = Cm_EntityValue(e, "patch_intensity")->value ?: patch_intensity;
 	}
 
 	if (luxel_size == BSP_LIGHTMAP_LUXEL_SIZE) {
@@ -471,9 +476,9 @@ static void LightWorld(void) {
 	Com_Print("  Contrast: %g\n", contrast);
 	Com_Print("  Ambient intensity: %g\n", ambient_intensity);
 	Com_Print("  Sun intensity: %g\n", sun_intensity);
-	Com_Print("  Light intensity: %g\n", light_intensity);
+	Com_Print("  Light intensity: %g\n", point_intensity);
 	Com_Print("  Face intensity: %g\n", face_intensity);
-	Com_Print("  Indirect intensity: %g\n", indirect_intensity);
+	Com_Print("  Indirect intensity: %g\n", patch_intensity);
 	Com_Print("  Caustics intensity: %g\n", caustics);
 	Com_Print("  Luxel size: %d\n", luxel_size);
 	Com_Print("\n");
@@ -492,7 +497,7 @@ static void LightWorld(void) {
 	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
 	// indirect lighting
-	if (indirect_intensity > 0.f) {
+	if (patch_intensity > 0.f) {
 
 		// build lights out of lightmapped faces
 		BuildIndirectLights();

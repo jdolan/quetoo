@@ -338,7 +338,7 @@ static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scal
 /**
  * @brief
  */
-static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models) {
 		return;
@@ -404,8 +404,8 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 			case LIGHT_FACE:
 				LightgridLuxel_Face(light, luxel, scale);
 				break;
-			case LIGHT_INDIRECT:
-				LightgridLuxel_Indirect(light, luxel, scale);
+			case LIGHT_PATCH:
+				LightgridLuxel_Patch(light, luxel, scale);
 				break;
 			default:
 				break;

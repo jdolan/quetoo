@@ -193,7 +193,7 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 /**
  * @brief
  */
-static light_t *LightForEntity_light(const cm_entity_t *entity) {
+static light_t *LightForEntity_point(const cm_entity_t *entity) {
 
 	light_t *light = AllocLight();
 
@@ -211,7 +211,7 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 
 	light->color = ColorFilter(light->color);
 
-	light->intensity *= light_intensity;
+	light->intensity *= point_intensity;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -272,7 +272,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 
 	light->color = ColorFilter(light->color);
 
-	light->intensity *= light_intensity;
+	light->intensity *= spot_intensity;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -358,7 +358,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 	} else if (!g_strcmp0(class_name, "light_sun")) {
 		return LightForEntity_light_sun(entity);
 	} else if (!g_strcmp0(class_name, "light")) {
-		return LightForEntity_light(entity);
+		return LightForEntity_point(entity);
 	} else if (!g_strcmp0(class_name, "light_spot")) {
 		return LightForEntity_light_spot(entity);
 	} else {
@@ -554,15 +554,15 @@ void BuildDirectLights(void) {
 		}
 	}
 
-	HashLights(~LIGHT_INDIRECT);
+	HashLights(~LIGHT_PATCH);
 
 	Com_Verbose("Direct lighting for %d lights\n", lights->len);
 }
 
 /**
- * @brief Add an indirect light source from a directly lit face.
+ * @brief Add a patch light source from a directly lit lightmap.
  */
-static light_t *LightForLightmappedFace(const lightmap_t *lm, int32_t s, int32_t t, int32_t size) {
+static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t, int32_t size) {
 
 	struct {
 		int32_t s, t;
@@ -601,8 +601,8 @@ static light_t *LightForLightmappedFace(const lightmap_t *lm, int32_t s, int32_t
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
-	light->type = LIGHT_INDIRECT;
-	light->atten = DEFAULT_LIGHT_ATTEN;
+	light->type = LIGHT_PATCH;
+	light->atten = LIGHT_ATTEN_LINEAR;
 	light->model = lm->model;
 	light->plane = lm->plane;
 	light->brush_side = lm->brush_side;
@@ -610,8 +610,8 @@ static light_t *LightForLightmappedFace(const lightmap_t *lm, int32_t s, int32_t
 	light->size = Maxi(patch.w, patch.h);
 	light->origin = Box3_Center(patch.bounds);
 	light->color = patch.diffuse;
-	light->intensity = DEFAULT_LIGHT_INTENSITY;
-	light->intensity *= indirect_intensity;
+	light->intensity = LIGHT_INTENSITY;
+	light->intensity *= patch_intensity;
 
 	light->radius = patch.w * patch.h * luxel_size;
 	light->bounds = patch.bounds;
@@ -644,7 +644,7 @@ void BuildIndirectLights(void) {
 		for (int32_t s = 0; s < lm->w; s += /*lm->material->cm->patch_size*/ 8) {
 			for (int32_t t = 0; t < lm->h; t += /*lm->material->cm->patch_size*/ 8) {
 
-				light_t *light = LightForLightmappedFace(lm, s, t, 8);
+				light_t *light = LightForPatch(lm, s, t, 8);
 				if (light) {
 //					if (light->radius > light->size) {
 //						printf("radius %g, size: %g, color: %s\n",
@@ -659,7 +659,7 @@ void BuildIndirectLights(void) {
 		}
 	}
 
-	HashLights(LIGHT_INDIRECT);
+	HashLights(LIGHT_PATCH);
 
 	Com_Verbose("Indirect lighting for %d lit faces\n", lights->len);
 }
@@ -725,7 +725,7 @@ void EmitLights(void) {
 	for (guint i = 0; i < lights->len; i++) {
 		const light_t *light = g_ptr_array_index(lights, i);
 		switch (light->type) {
-			case LIGHT_INDIRECT:
+			case LIGHT_PATCH:
 				break;
 			default:
 				bsp_file.num_lights++;
@@ -749,7 +749,7 @@ void EmitLights(void) {
 		}
 
 		switch (light->type) {
-			case LIGHT_INDIRECT:
+			case LIGHT_PATCH:
 				break;
 
 			case LIGHT_FACE:

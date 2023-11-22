@@ -89,7 +89,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 			$(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
 			self->alphaTest->control.state &= ~ControlStateDisabled;
 		} else {
-			$(self->alphaTest, setValue, DEFAULT_ALPHA_TEST);
+			$(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
 			self->alphaTest->control.state |= ControlStateDisabled;
 		}
 
@@ -103,14 +103,14 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->normalmap, setDefaultText, NULL);
 		$(self->specularmap, setDefaultText, NULL);
 
-		$(self->roughness, setValue, DEFAULT_ROUGHNESS);
-		$(self->hardness, setValue, DEFAULT_HARDNESS);
-		$(self->specularity, setValue, DEFAULT_SPECULARITY);
-		$(self->bloom, setValue, DEFAULT_BLOOM);
-		$(self->alphaTest, setValue, DEFAULT_ALPHA_TEST);
-		$(self->lightRadius, setValue, DEFAULT_LIGHT_RADIUS);
-		$(self->lightIntensity, setValue, DEFAULT_LIGHT_INTENSITY);
-		$(self->lightIntensity, setValue, DEFAULT_LIGHT_CONE);
+		$(self->roughness, setValue, MATERIAL_ROUGHNESS);
+		$(self->hardness, setValue, MATERIAL_HARDNESS);
+		$(self->specularity, setValue, MATERIAL_SPECULARITY);
+		$(self->bloom, setValue, MATERIAL_BLOOM);
+		$(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
+		$(self->lightRadius, setValue, MATERIAL_LIGHT_RADIUS);
+		$(self->lightIntensity, setValue, MATERIAL_LIGHT_INTENSITY);
+		$(self->lightIntensity, setValue, MATERIAL_LIGHT_CONE);
 	}
 }
 

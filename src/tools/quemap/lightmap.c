@@ -507,7 +507,7 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 /**
  * @brief
  */
-static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models && light->model != lightmap->model) {
 		return;
@@ -582,8 +582,8 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 			case LIGHT_FACE:
 				LightmapLuxel_Face(light, lightmap, luxel, scale);
 				break;
-			case LIGHT_INDIRECT:
-				LightmapLuxel_Indirect(light, lightmap, luxel, scale);
+			case LIGHT_PATCH:
+				LightmapLuxel_Patch(light, lightmap, luxel, scale);
 				break;
 			default:
 				break;
@@ -722,7 +722,7 @@ static void CausticsLightmapLuxel(luxel_t *luxel, float scale) {
 }
 
 /**
- * @brief Calculates indirect lighting for the given face.
+ * @brief Calculates caustics lighting for the given face.
  */
 void CausticsLightmap(int32_t face_num) {
 

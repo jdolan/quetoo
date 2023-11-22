@@ -262,17 +262,17 @@ typedef struct {
 	float falloff;
 } cm_light_t;
 
-#define DEFAULT_ROUGHNESS 1.f
-#define DEFAULT_HARDNESS 1.f
-#define DEFAULT_SPECULARITY 1.f
-#define DEFAULT_BLOOM 1.f
-#define DEFAULT_ALPHA_TEST .5f
-#define DEFAULT_LIGHT_ATTEN 2
-#define DEFAULT_LIGHT_RADIUS 300.f
-#define DEFAULT_LIGHT_INTENSITY 1.f
-#define DEFAULT_LIGHT_SHADOW 1.f
-#define DEFAULT_LIGHT_CONE 75.f
-#define DEFAULT_LIGHT_FALLOFF .333f
+#define MATERIAL_ROUGHNESS 1.f
+#define MATERIAL_HARDNESS 1.f
+#define MATERIAL_SPECULARITY 1.f
+#define MATERIAL_BLOOM 1.f
+#define MATERIAL_ALPHA_TEST .5f
+#define MATERIAL_LIGHT_ATTEN 2
+#define MATERIAL_LIGHT_RADIUS 300.f
+#define MATERIAL_LIGHT_INTENSITY 1.f
+#define MATERIAL_LIGHT_SHADOW 1.f
+#define MATERIAL_LIGHT_CONE 75.f
+#define MATERIAL_LIGHT_FALLOFF .333f
 
 /**
  * @brief Materials define the rendering attributes of textures.
