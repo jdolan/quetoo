@@ -339,7 +339,6 @@ static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scal
  * @brief
  */
 static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float scale) {
-	vec3_t dir;
 
 	if (light->model != bsp_file.models) {
 		return;
@@ -348,30 +347,14 @@ static void LightgridLuxel_Indirect(const light_t *light, luxel_t *luxel, float 
 	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTGRID_LUXEL_SIZE) {
 		return;
 	}
-	
-	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
+
+	float dist = Vec3_Distance(light->origin, luxel->origin);
 	dist = Maxf(0.f, dist - light->size * .5f);
 	if (dist > light->radius) {
 		return;
 	}
 
-	float atten;
-
-	switch (light->atten) {
-		case LIGHT_ATTEN_NONE:
-			atten = 1.f;
-			break;
-		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-			atten *= atten;
-			break;
-	}
-
-	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	atten *= Smoothf(dot, light->theta - light->phi, light->theta + light->phi);
+	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
 
 	const float lumens = atten * scale * light->intensity;
 	if (lumens <= 0.f) {

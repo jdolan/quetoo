@@ -508,17 +508,24 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
  * @brief
  */
 static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
-	vec3_t dir;
 
 	if (light->model != bsp_file.models && light->model != lightmap->model) {
 		return;
 	}
 
-	if (light->plane == lightmap->plane) {
+	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -luxel_size) {
 		return;
 	}
 
-	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
+	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -luxel_size) {
+		return;
+	}
+
+	if (light->plane == lightmap->plane && light->brush_side->material == lightmap->brush_side->material) {
+		return;
+	}
+
+	float dist = Vec3_Distance(light->origin, luxel->origin);
 	dist = Maxf(0.f, dist - light->size * .5f);
 	if (dist > light->radius) {
 		return;
@@ -541,7 +548,6 @@ static void LightmapLuxel_Indirect(const light_t *light, const lightmap_t *light
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
 			.color = Vec3_Scale(light->color, lumens),
-			.direction = Vec3_Scale(dir, lumens)
 		});
 		break;
 	}

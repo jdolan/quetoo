@@ -567,7 +567,6 @@ static light_t *LightForLightmappedFace(const lightmap_t *lm, int32_t s, int32_t
 	struct {
 		int32_t s, t;
 		int32_t w, h;
-
 		box3_t bounds;
 		vec3_t diffuse;
 	} patch;
@@ -593,7 +592,7 @@ static light_t *LightForLightmappedFace(const lightmap_t *lm, int32_t s, int32_t
 		}
 	}
 
-	//patch.diffuse = Vec3_Scale(patch.diffuse, 1.f / (patch.w * patch.h));
+	patch.diffuse = Vec3_Scale(patch.diffuse, 1.f / (patch.w * patch.h));
 	patch.diffuse = Vec3_Multiply(patch.diffuse, GetMaterialColor(lm->brush_side->material));
 
 	if (Vec3_Length(patch.diffuse) < .1f) {
@@ -606,18 +605,21 @@ static light_t *LightForLightmappedFace(const lightmap_t *lm, int32_t s, int32_t
 	light->atten = DEFAULT_LIGHT_ATTEN;
 	light->model = lm->model;
 	light->plane = lm->plane;
-	light->size = Box3_Distance(patch.bounds);
+	light->brush_side = lm->brush_side;
+	light->face = lm->face;
+	light->size = Maxi(patch.w, patch.h);
 	light->origin = Box3_Center(patch.bounds);
 	light->color = patch.diffuse;
 	light->intensity = DEFAULT_LIGHT_INTENSITY;
 	light->intensity *= indirect_intensity;
 
-	light->radius = Vec3_Length(light->color) * light->size;
+	light->radius = patch.w * patch.h * luxel_size;
 	light->bounds = patch.bounds;
 
 	light->points = g_malloc_n(9, sizeof(vec3_t));
 	light->points[0] = light->origin;
 	Box3_ToPoints(patch.bounds, &light->points[1]);
+	light->num_points = 9;
 
 	light->bounds = Box3_Expand(patch.bounds, light->radius);
 
@@ -644,12 +646,12 @@ void BuildIndirectLights(void) {
 
 				light_t *light = LightForLightmappedFace(lm, s, t, 8);
 				if (light) {
-					//if (light->radius > light->size) {
-						printf("radius %g, size: %g, color: %s\n",
-							   light->radius,
-							   light->size,
-							   vtos(light->color));
-					//}
+//					if (light->radius > light->size) {
+//						printf("radius %g, size: %g, color: %s\n",
+//							   light->radius,
+//							   light->size,
+//							   vtos(light->color));
+//					}
 
 					g_ptr_array_add(lights, light);
 				}
