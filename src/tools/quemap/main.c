@@ -406,6 +406,7 @@ int32_t main(int32_t argc, char **argv) {
 		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "--debug")) {
 			Com_SetDebug("all");
 			debug = true;
+			verbose = true;
 			continue;
 		}
 
