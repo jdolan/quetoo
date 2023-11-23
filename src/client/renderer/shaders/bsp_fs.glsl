@@ -398,7 +398,7 @@ void main(void) {
 			vec3 direction1 = normalize(tbn * sample_lightmap_diffuse(3).xyz);
 			diffuse1 *= max(0.5, dot(direction1, fragment.normalmap));
 
-			fragment.diffuse += diffuse0 + diffuse1;
+			fragment.diffuse = diffuse0 + diffuse1;
 
 			fragment.specular += blinn_phong(diffuse0, direction0);
 			fragment.specular += blinn_phong(diffuse1, direction1);
@@ -438,11 +438,15 @@ void main(void) {
 		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
-			out_color.rgb = modulate * (sample_lightmap_diffuse(0).rgb + sample_lightmap_diffuse(2).rgb);
+			out_color.rgb = fragment.ambient;
 		} else if (lightmaps == 2) {
-			out_color.rgb = normalize(((sample_lightmap_diffuse(1).xyz + sample_lightmap_diffuse(3).xyz) + 1.0) * 0.5);
+			out_color.rgb = fragment.diffuse;
 		} else if (lightmaps == 3) {
+			out_color.rgb = fragment.specular;
+		} else if (lightmaps == 4) {
 			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
+		} else if (lightmaps == 5) {
+			out_color.rgb = normalize(((sample_lightmap_diffuse(1).xyz + sample_lightmap_diffuse(3).xyz) + 1.0) * 0.5);
 		}
 
 	} else {

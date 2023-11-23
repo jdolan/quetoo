@@ -371,11 +371,15 @@ void main(void) {
 		out_color.rgb += vertex.fog.rgb * out_color.a;
 
 		if (lightmaps == 1) {
-			out_color.rgb = modulate * (vertex.ambient + vertex.diffuse);
+			out_color.rgb = fragment.ambient;
 		} else if (lightmaps == 2) {
-			out_color.rgb = inverse(tbn) * vertex.direction;
+			out_color.rgb = fragment.diffuse;
 		} else if (lightmaps == 3) {
-			out_color.rgb = fragment.ambient + fragment.diffuse;
+			out_color.rgb = fragment.specular;
+		} else if (lightmaps == 4) {
+			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
+		} else if (lightmaps == 5) {
+			out_color.rgb = inverse(tbn) * vertex.direction;
 		}
 
 	} else {
