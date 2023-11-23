@@ -33,8 +33,7 @@ float point_intensity = LIGHT_INTENSITY;
 float spot_intensity = LIGHT_INTENSITY;
 float face_intensity = LIGHT_INTENSITY;
 float patch_intensity = LIGHT_INTENSITY;
-
-float caustics = 1.f;
+float caustic_intensity = LIGHT_INTENSITY;
 
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
@@ -459,8 +458,8 @@ static void LightWorld(void) {
 		patch_intensity = Cm_EntityValue(e, "patch_intensity")->value ?: patch_intensity;
 	}
 
-	if (caustics == 1.f) {
-		caustics = Cm_EntityValue(e, "caustics")->value ?: caustics;
+	if (caustic_intensity == 1.f) {
+		caustic_intensity = Cm_EntityValue(e, "caustic_intensity")->value ?: caustic_intensity;
 	}
 
 	Com_Print("\n");
@@ -470,10 +469,11 @@ static void LightWorld(void) {
 	Com_Print("  Contrast: %g\n", contrast);
 	Com_Print("  Ambient intensity: %g\n", ambient_intensity);
 	Com_Print("  Sun intensity: %g\n", sun_intensity);
-	Com_Print("  Light intensity: %g\n", point_intensity);
+	Com_Print("  Point intensity: %g\n", point_intensity);
+	Com_Print("  Spot intensity: %g\n", spot_intensity);
 	Com_Print("  Face intensity: %g\n", face_intensity);
-	Com_Print("  Indirect intensity: %g\n", patch_intensity);
-	Com_Print("  Caustics intensity: %g\n", caustics);
+	Com_Print("  Patch intensity: %g\n", patch_intensity);
+	Com_Print("  Caustic intensity: %g\n", caustic_intensity);
 	Com_Print("\n");
 
 	// build lightmaps

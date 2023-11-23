@@ -259,9 +259,9 @@ static void Check_LIGHT_Options(int32_t argc) {
 			patch_intensity = atof(Com_Argv(i + 1));
 			Com_Verbose("patch intensity: %g\n", patch_intensity);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--caustics")) {
-			caustics = atof(Com_Argv(i + 1));
-			Com_Verbose("caustics: %g\n", caustics);
+		} else if (!g_strcmp0(Com_Argv(i), "--caustic-intensity")) {
+			caustic_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("caustic intensity: %g\n", caustic_intensity);
 			i++;
 		} else {
 			break;
@@ -311,7 +311,7 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 
 	Com_Print("-bsp               BSP stage options:\n");
-	Com_Print(" --micro_volume <float>\n");
+	Com_Print(" --micro-volume <float>\n");
 	Com_Print(" --no-csg - don't subtract brushes\n");
 	Com_Print(" --no-detail - skip detail brushes\n");
 	Com_Print(" --no-liquid - skip liquid brushes\n");
@@ -334,7 +334,7 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --spot-intensity <float> - spot light intensity (default 1.0)\n");
 	Com_Print(" --face-intensity <float> - face light intensity (default 1.0)\n");
 	Com_Print(" --patch-intensity <float> - patch light intensity (default 1.0)\n");
-	Com_Print(" --luxel-size <float> - luxel size (default 4)\n");
+	Com_Print(" --caustics-intensity <float> - caustics light intensity (default 1.0)\n");
 	Com_Print("\n");
 
 	Com_Print("-zip               ZIP stage options:\n");
@@ -345,9 +345,9 @@ static void PrintHelpMessage(void) {
 	Com_Print("Examples:\n");
 	Com_Print("Materials file generation:\n"
 			  " quemap -mat maps/my.map\n");
-	Com_Print("Development compile with normal quality lighting:\n"
+	Com_Print("Development compile:\n"
 			  " quemap -bsp -light maps/my.map\n");
-	Com_Print("Final compile with high quality lighting:\n"
+	Com_Print("Release compile with high quality lighting:\n"
 	          " quemap -bsp -light --antialias maps/my.map\n");
 	Com_Print("Zip file generation:\n"
 			  " quemap -zip maps/my.bsp\n");

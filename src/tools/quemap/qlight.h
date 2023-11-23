@@ -42,7 +42,7 @@ extern float spot_intensity;
 extern float face_intensity;
 extern float patch_intensity;
 
-extern float caustics;
+extern float caustic_intensity;
 
 int32_t Light_PointContents(const vec3_t p, int32_t head_node);
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask);
