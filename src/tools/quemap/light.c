@@ -592,7 +592,7 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t, int32_
 		}
 	}
 
-	patch.diffuse = Vec3_Scale(patch.diffuse, 1.f / (patch.w * patch.h));
+	patch.diffuse = Vec3_Scale(patch.diffuse, 1.f / (patch.w * patch.h * BSP_LIGHTMAP_LUXEL_SIZE));
 	patch.diffuse = Vec3_Multiply(patch.diffuse, GetMaterialColor(lm->brush_side->material));
 
 	if (Vec3_Length(patch.diffuse) < .1f) {
