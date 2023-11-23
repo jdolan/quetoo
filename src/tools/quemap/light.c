@@ -562,7 +562,7 @@ void BuildDirectLights(void) {
 /**
  * @brief Add a patch light source from a directly lit lightmap.
  */
-static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t, int32_t size) {
+static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 
 	struct {
 		int32_t s, t;
@@ -573,8 +573,11 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t, int32_
 
 	patch.s = s;
 	patch.t = t;
-	patch.w = Mini(s + size, lm->w) - s;
-	patch.h = Mini(t + size, lm->h) - t;
+	patch.w = Mini(s + BSP_LIGHTMAP_PATCH_SIZE, lm->w) - s;
+	patch.h = Mini(t + BSP_LIGHTMAP_PATCH_SIZE, lm->h) - t;
+
+	assert(patch.w);
+	assert(patch.h);
 
 	patch.bounds = Box3_Null();
 	patch.diffuse = Vec3_Zero();
@@ -595,7 +598,7 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t, int32_
 	patch.diffuse = Vec3_Scale(patch.diffuse, 1.f / (patch.w * patch.h * BSP_LIGHTMAP_LUXEL_SIZE));
 	patch.diffuse = Vec3_Multiply(patch.diffuse, GetMaterialColor(lm->brush_side->material));
 
-	if (Vec3_Length(patch.diffuse) < .1f) {
+	if (Vec3_Hmaxf(patch.diffuse) < .01f) {
 		return NULL;
 	}
 
@@ -641,17 +644,15 @@ void BuildIndirectLights(void) {
 			continue;
 		}
 
-		for (int32_t s = 0; s < lm->w; s += /*lm->material->cm->patch_size*/ 8) {
-			for (int32_t t = 0; t < lm->h; t += /*lm->material->cm->patch_size*/ 8) {
+		for (int32_t s = 0; s < lm->w; s += BSP_LIGHTMAP_PATCH_SIZE) {
+			for (int32_t t = 0; t < lm->h; t += BSP_LIGHTMAP_PATCH_SIZE) {
 
-				light_t *light = LightForPatch(lm, s, t, 8);
+				light_t *light = LightForLightmappedPatch(lm, s, t);
 				if (light) {
-//					if (light->radius > light->size) {
-//						printf("radius %g, size: %g, color: %s\n",
-//							   light->radius,
-//							   light->size,
-//							   vtos(light->color));
-//					}
+					Com_Debug(DEBUG_ALL, "Patch radius %g, size: %g, color: %s\n",
+						   light->radius,
+						   light->size,
+						   vtos(light->color));
 
 					g_ptr_array_add(lights, light);
 				}

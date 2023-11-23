@@ -57,6 +57,11 @@
 #define BSP_LIGHTMAP_LUXEL_SIZE 4
 
 /**
+ * @brief Lightmap patch (indirect light) size in luxels.
+ */
+#define BSP_LIGHTMAP_PATCH_SIZE 8
+
+/**
  * @brief Lightmap diffuse and directional channels.
  */
 #define BSP_LIGHTMAP_CHANNELS 2
