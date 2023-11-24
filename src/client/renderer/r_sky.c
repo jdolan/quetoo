@@ -88,14 +88,9 @@ void R_DrawSky(const r_view_t *view) {
 
 	glEnableVertexAttribArray(r_sky_program.in_position);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, r_sky.image->texnum);
-
 	const r_bsp_draw_elements_t *sky = r_world_model->bsp->sky;
 	glUniform1f(r_sky_program.material.bloom, sky->material->cm->bloom * r_bloom->value);
 	glDrawElements(GL_TRIANGLES, sky->num_elements, GL_UNSIGNED_INT, sky->elements);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -183,6 +178,8 @@ void R_LoadSky(const char *name) {
 		return;
 	}
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
+
 	if (name && *name) {
 		r_sky.image = R_LoadImage(va("sky/%s", name), IT_CUBEMAP);
 	} else {
@@ -199,6 +196,8 @@ void R_LoadSky(const char *name) {
 			Com_Error(ERROR_DROP, "Failed to load default sky\n");
 		}
 	}
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }
 
 /**

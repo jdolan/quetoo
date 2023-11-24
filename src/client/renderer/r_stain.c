@@ -184,7 +184,6 @@ void R_DrawStains(const r_view_t *view) {
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
-	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->stains->texnum);
 
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 
@@ -204,7 +203,7 @@ void R_DrawStains(const r_view_t *view) {
 		}
 	}
 
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	R_GetError(NULL);
 }

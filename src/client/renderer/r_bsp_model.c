@@ -433,6 +433,8 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->ambient->format = GL_RGB;
 	out->ambient->pixel_type = GL_UNSIGNED_BYTE;
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_AMBIENT);
+
 	R_UploadImage(out->ambient, data);
 	data += out->width * out->width * sizeof(color24_t);
 
@@ -446,6 +448,8 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->diffuse->internal_format = GL_RGB32F;
 	out->diffuse->format = GL_RGB;
 	out->diffuse->pixel_type = GL_FLOAT;
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIFFUSE);
 
 	R_UploadImage(out->diffuse, data);
 
@@ -464,6 +468,8 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->caustics->format = GL_RGB;
 	out->caustics->pixel_type = GL_UNSIGNED_BYTE;
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_CAUSTICS);
+
 	R_UploadImage(out->caustics, data);
 
 	out->stains = (r_image_t *) R_AllocMedia("lightmap_stains", sizeof(r_image_t), R_MEDIA_IMAGE);
@@ -476,6 +482,8 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->stains->format = GL_RGBA;
 	out->stains->pixel_type = GL_UNSIGNED_BYTE;
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
+
 	R_UploadImage(out->stains, NULL);
 }
 
@@ -484,9 +492,7 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
  */
 static void R_ResetBspStainmap(r_bsp_model_t *bsp) {
 
-	r_bsp_lightmap_t *out = bsp->lightmap;
-
-	glBindTexture(GL_TEXTURE_2D, out->stains->texnum);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
 
 	r_bsp_face_t *face = bsp->faces;
 	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
@@ -505,6 +511,8 @@ static void R_ResetBspStainmap(r_bsp_model_t *bsp) {
 				GL_UNSIGNED_BYTE,
 				face->lightmap.stainmap);
 	}
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }
 
 /**
@@ -559,6 +567,8 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->ambient->format = GL_RGB;
 	out->ambient->pixel_type = GL_UNSIGNED_BYTE;
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
+
 	R_UploadImage(out->ambient, data);
 	data += luxels * sizeof(color24_t);
 
@@ -572,6 +582,8 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->diffuse->internal_format = GL_RGB32F;
 	out->diffuse->format = GL_RGB;
 	out->diffuse->pixel_type = GL_FLOAT;
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
 
 	R_UploadImage(out->diffuse, data);
 	data += luxels * sizeof(vec3_t);
@@ -587,6 +599,8 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->direction->format = GL_RGB;
 	out->direction->pixel_type = GL_FLOAT;
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
+
 	R_UploadImage(out->direction, data);
 	data += luxels * sizeof(vec3_t);
 
@@ -600,6 +614,8 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->caustics->internal_format = GL_RGB8;
 	out->caustics->format = GL_RGB;
 	out->caustics->pixel_type = GL_UNSIGNED_BYTE;
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_CAUSTICS);
 
 	R_UploadImage(out->caustics, data);
 	data += luxels * sizeof(color24_t);
@@ -615,8 +631,12 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->fog->format = GL_RGBA;
 	out->fog->pixel_type = GL_UNSIGNED_BYTE;
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
+
 	R_UploadImage(out->fog, data);
 	data += luxels * sizeof(color32_t);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }
 
 /**

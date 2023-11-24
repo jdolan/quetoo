@@ -651,37 +651,7 @@ void R_DrawWorld(const r_view_t *view) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_AMBIENT);
-	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->ambient->texnum);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIFFUSE);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->diffuse->texnum);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_CAUSTICS);
-	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->caustics->texnum);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
-	glBindTexture(GL_TEXTURE_2D, r_world_model->bsp->lightmap->stains->texnum);
-
 	R_DrawStains(view);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->ambient->texnum);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->diffuse->texnum);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->direction->texnum);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_CAUSTICS);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->caustics->texnum);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
-	glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->fog->texnum);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
-	glBindTexture(GL_TEXTURE_2D, r_bsp_program.warp_image->texnum);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -765,7 +735,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
 	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
-		r_bsp_program.texture_lightmap_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_ambient");
+	r_bsp_program.texture_lightmap_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_ambient");
 	r_bsp_program.texture_lightmap_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_diffuse");
 	r_bsp_program.texture_lightmap_stains = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_stains");
 	r_bsp_program.texture_lightmap_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_caustics");
@@ -834,7 +804,11 @@ void R_InitBspProgram(void) {
 		}
 	}
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
+
 	R_UploadImage(r_bsp_program.warp_image, (byte *) data);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	R_GetError(NULL);
 }
