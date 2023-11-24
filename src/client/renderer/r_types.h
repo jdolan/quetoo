@@ -1316,13 +1316,14 @@ typedef struct {
  * @brief Framebuffer attachments bitmask.
  */
 typedef enum {
-	ATTACHMENT_COLOR  = 0x1,
-	ATTACHMENT_BLOOM  = 0x2,
-	ATTACHMENT_BLUR_X = 0x4,
-	ATTACHMENT_BLUR_Y = 0x8,
-	ATTACHMENT_POST   = 0x10,
-	ATTACHMENT_DEPTH  = 0x20,
-	ATTACHMENT_ALL    = 0xFF
+	ATTACHMENT_COLOR      = 0x1,
+	ATTACHMENT_BLOOM      = 0x2,
+	ATTACHMENT_BLUR_X     = 0x4,
+	ATTACHMENT_BLUR_Y     = 0x8,
+	ATTACHMENT_POST       = 0x10,
+	ATTACHMENT_DEPTH      = 0x20,
+	ATTACHMENT_DEPTH_COPY = 0x40,
+	ATTACHMENT_ALL        = 0xFF
 } r_attachment_t;
 
 /**
@@ -1368,6 +1369,11 @@ typedef struct r_framebuffer_s {
 	 * @brief The depth attachment texture name.
 	 */
 	GLuint depth_attachment;
+
+	/**
+	 * @brief The depth attachment copy texture name.
+	 */
+	GLuint depth_attachment_copy;
 
 	/**
 	 * @brief The framebuffer width.
@@ -1645,7 +1651,7 @@ typedef enum {
 	TEXTURE_COLOR_ATTACHMENT,
 	TEXTURE_BLOOM_ATTACHMENT,
 	TEXTURE_POST_ATTACHMENT,
-	TEXTURE_DEPTH_STENCIL_ATTACHMENT,
+	TEXTURE_DEPTH_ATTACHMENT_COPY,
 } r_texture_t;
 
 #endif

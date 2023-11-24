@@ -271,8 +271,7 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 32);
 
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	const int32_t s = Clampf(r_multisample->integer, 0, 8);
@@ -308,8 +307,7 @@ void R_InitContext(void) {
 
 	const int32_t valid_attribs[] = {
 		SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
-		SDL_GL_DEPTH_SIZE, SDL_GL_STENCIL_SIZE, SDL_GL_BUFFER_SIZE,
-		SDL_GL_DOUBLEBUFFER,
+		SDL_GL_DEPTH_SIZE, SDL_GL_BUFFER_SIZE, SDL_GL_DOUBLEBUFFER,
 		SDL_GL_MULTISAMPLEBUFFERS, SDL_GL_MULTISAMPLESAMPLES,
 		SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
 		SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK
@@ -320,13 +318,12 @@ void R_InitContext(void) {
 		SDL_GL_GetAttribute(valid_attribs[i], &attr[valid_attribs[i]]);
 	}
 
-	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i stencil %i framebuffer %i\n",
+	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i framebuffer %i\n",
 				attr[SDL_GL_RED_SIZE],
 	            attr[SDL_GL_GREEN_SIZE],
 				attr[SDL_GL_BLUE_SIZE],
 				attr[SDL_GL_ALPHA_SIZE],
 				attr[SDL_GL_DEPTH_SIZE],
-	            attr[SDL_GL_STENCIL_SIZE],
 				attr[SDL_GL_BUFFER_SIZE]);
 
 	Com_Verbose("   Double-buffered: %s\n", attr[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");

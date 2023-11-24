@@ -58,7 +58,8 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
 		case ATTACHMENT_POST:
 			return R_CreateFramebufferTexture(f, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 		case ATTACHMENT_DEPTH:
-			return R_CreateFramebufferTexture(f, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+		case ATTACHMENT_DEPTH_COPY:
+			return R_CreateFramebufferTexture(f, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 		default:
 			assert(0);
 	}
@@ -105,7 +106,11 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 
 	if (attachments & ATTACHMENT_DEPTH) {
 		framebuffer.depth_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_DEPTH);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, framebuffer.depth_attachment, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, framebuffer.depth_attachment, 0);
+	}
+
+	if (attachments & ATTACHMENT_DEPTH_COPY) {
+		framebuffer.depth_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_DEPTH_COPY);
 	}
 
 	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
