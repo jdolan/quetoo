@@ -299,8 +299,8 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Color_HSV(const color_
 /**
  * @return An HSV vector of the specified color.
  */
-static inline vec4_t __attribute__ ((warn_unused_result)) Color_HSVA(const color_t color) {
-	return Vec3_ToVec4(Color_HSV(color), color.a);
+static inline vec4_t __attribute__ ((warn_unused_result)) Color_HSVA(const color_t c) {
+	return Vec3_ToVec4(Color_HSV(c), c.a);
 }
 
 /**
@@ -377,11 +377,11 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color32(byte r, byt
 }
 
 /**
- * @return A 32-bit color for the specified floating point color.
+ * @return A clamped 32-bit color for the specified floating point color.
  */
-static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const color_t color) {
+static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const color_t c) {
 
-	vec3_t rgb = Vec3(color.r, color.g, color.b);
+	vec3_t rgb = Vec3(c.r, c.g, c.b);
 	const float max = Vec3_Hmaxf(rgb);
 	if (max > 1.f) {
 		rgb = Vec3_Scale(rgb, 1.f / max);
@@ -390,7 +390,7 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const
 	return Color32(Clampf(rgb.x, 0.f, 1.f) * 255.f,
 				   Clampf(rgb.y, 0.f, 1.f) * 255.f,
 				   Clampf(rgb.z, 0.f, 1.f) * 255.f,
-				   Clampf(color.a, 0.f, 1.f) * 255.f);
+				   Clampf(c.a, 0.f, 1.f) * 255.f);
 }
 
 /**
@@ -408,9 +408,16 @@ static inline color24_t __attribute__ ((warn_unused_result)) Color24(byte r, byt
  * @return A 24-bit color for the specified floating point color.
  */
 static inline color24_t __attribute__ ((warn_unused_result)) Color_Color24(const color_t c) {
-	return Color24(c.r * 255.f, 
-				   c.g * 255.f,
-				   c.b * 255.f);
+
+	vec3_t rgb = Vec3(c.r, c.g, c.b);
+	const float max = Vec3_Hmaxf(rgb);
+	if (max > 1.f) {
+		rgb = Vec3_Scale(rgb, 1.f / max);
+	}
+
+	return Color24(Clampf(rgb.x, 0.f, 1.f) * 255.f,
+				   Clampf(rgb.y, 0.f, 1.f) * 255.f,
+				   Clampf(rgb.z, 0.f, 1.f) * 255.f);
 }
 
 /**
