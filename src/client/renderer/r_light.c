@@ -62,7 +62,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 static void R_AddLightUniform(r_light_t *in) {
 
 	if (r_lights.block.num_lights == MAX_LIGHT_UNIFORMS) {
-		Com_Warn("MAX_LIGHT_UNIFORMS");
+		Com_Warn("MAX_LIGHT_UNIFORMS\n");
 		return;
 	}
 
