@@ -77,8 +77,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightgrid 0 +set r_draw_bsp_lightmap 2"
-            isEnabled = "NO">
+            argument = "+set r_draw_bsp_lightgrid 1 +set r_draw_bsp_lightmap 0"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_normals 1"
