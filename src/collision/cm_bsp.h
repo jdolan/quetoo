@@ -337,7 +337,7 @@ typedef struct {
 } bsp_light_t;
 
 /**
- * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
+ * @brief Lightmaps are atlas-packed, layered texture objects of variable size.
  * @details Each layer stores either a color or a directional vector.
  */
 typedef struct {
@@ -345,8 +345,8 @@ typedef struct {
 } bsp_lightmap_t;
 
 /**
- * @brief Lightgrids are layered 24 bit 3D texture objects of variable size.
- * @details Each layer is up to 256x256x256 RGB[A] at 24-32bpp.
+ * @brief Lightgrids are layered 3D texture objects of variable size.
+ * @details Each layer is up to 256x256x256.
  */
 typedef struct {
 	vec3i_t size;
