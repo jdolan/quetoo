@@ -922,8 +922,8 @@ typedef struct {
 	/**
 	 * @brief The sprite color.
 	 */
-	color32_t color;
-	
+	color_t color;
+
 	/**
 	 * @brief The sprite's life from 0 to 1.
 	 */
@@ -984,7 +984,7 @@ typedef struct {
 	/**
 	 * @brief The beam color.
 	 */
-	color32_t color;
+	color_t color;
 	
 	/**
 	 * @brief The beam texture translation.
@@ -1021,7 +1021,7 @@ typedef struct {
 	vec3_t position;
 	vec2_t diffusemap;
 	vec2_t next_diffusemap;
-	color32_t color;
+	color_t color;
 	float lerp;
 	float softness;
 	float lighting;

@@ -146,22 +146,13 @@ static inline color_t __attribute__ ((warn_unused_result)) Color3bv(uint32_t rgb
 }
 
 /**
- * @return A color with the specified RGBA floating point values. Note that the resulting color is clamped.
+ * @return A color with the specified unclamped RGBA floating point values. Note that the resulting color is clamped.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color4f(float r, float g, float b, float a) {
-
-	const float max = Maxf(r, Maxf(g, b));
-	if (max > 1.f) {
-		const float inverse = 1.f / max;
-		r *= inverse;
-		g *= inverse;
-		b *= inverse;
-	}
-
 	return (color_t) {
-		.r = Clampf(r, 0.f, 1.f),
-		.g = Clampf(g, 0.f, 1.f),
-		.b = Clampf(b, 0.f, 1.f),
+		.r = Maxf(0.f, r),
+		.g = Maxf(0.f, g),
+		.b = Maxf(0.f, b),
 		.a = Clampf(a, 0.f, 1.f)
 	};
 }
@@ -389,10 +380,17 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color32(byte r, byt
  * @return A 32-bit color for the specified floating point color.
  */
 static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const color_t color) {
-	return Color32(color.r * 255.f,
-				   color.g * 255.f,
-				   color.b * 255.f,
-				   color.a * 255.f);
+
+	vec3_t rgb = Vec3(color.r, color.g, color.b);
+	const float max = Vec3_Hmaxf(rgb);
+	if (max > 1.f) {
+		rgb = Vec3_Scale(rgb, 1.f / max);
+	}
+	
+	return Color32(Clampf(rgb.x, 0.f, 1.f) * 255.f,
+				   Clampf(rgb.y, 0.f, 1.f) * 255.f,
+				   Clampf(rgb.z, 0.f, 1.f) * 255.f,
+				   Clampf(color.a, 0.f, 1.f) * 255.f);
 }
 
 /**

@@ -323,7 +323,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.media = (r_media_t *) cg_sprite_particle,
 		.origin = end,
 		.size = 8.f,
-		.color = Color_Color32(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
+		.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z),
 		.softness = 1.f
 	});
 
@@ -353,7 +353,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.media = (r_media_t *) cg_sprite_ring,
 		.origin = ent->origin,
 		.size = pulse1 * 10.f + 20.f,
-		.color = Color_Color32(ColorHSVA(120.f, .76f, .20f, 0.f)),
+		.color = ColorHSVA(120.f, .76f, .20f, 0.f),
 		.softness = 1.f
 	});
 	
@@ -362,7 +362,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.media = (r_media_t *) cg_sprite_aniso_flare_01,
 		.origin = ent->origin,
 		.size = pulse2 * 10.f + 10.f,
-		.color = Color_Color32(ColorHSVA(120.f, .76f, .20f + (pulse2 * .33f), 0.f)),
+		.color = ColorHSVA(120.f, .76f, .20f + (pulse2 * .33f), 0.f),
 		.softness = 1.f
 	});
 
@@ -372,7 +372,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			.media = (r_media_t *) cg_sprite_flash,
 			.origin = ent->origin,
 			.size = 40.f,
-			.color = Color_Color32(ColorHSVA(120.f, .76f, .20f, 0.f)),
+			.color = ColorHSVA(120.f, .76f, .20f, 0.f),
 			.rotation = sinf(cgi.client->unclamped_time * (i == 0 ? .002f : -.001f)),
 			.softness = 1.f
 		});
@@ -433,7 +433,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		.media = (r_media_t *) cg_sprite_explosion_glow,
 		.origin = Vec3_Fmaf(ent->origin, -20.f, direction),
 		.size = 50.f,
-		.color = Color_Color32(ColorHSVA(29.f, .57f, .34f, 0.f)),
+		.color = ColorHSVA(29.f, .57f, .34f, 0.f),
 		.softness = 1.f
 	});
 
@@ -443,7 +443,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			.media = (r_media_t *) cg_sprite_explosion_flash,
 			.origin = Vec3_Fmaf(ent->origin, -20.f, direction),
 			.size = 35.f,
-			.color = Color_Color32(ColorHSVA(0.f, 0.f, .50f, 0.f)),
+			.color = ColorHSVA(0.f, 0.f, .50f, 0.f),
 			.rotation = (i == 0 ? sine : -sine),
 			.softness = 1.f
 		});
@@ -576,7 +576,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 
 	vec4_t color_start = Vec4(204.f, .75f, .44f, 0.f);
 	vec4_t color_end = Vec4(204.f, .75f, .0f, 0.f);
-	color32_t bcolor = Color32(28, 79, 112, 0);
+	color_t bcolor = Color4b(28, 79, 112, 0);
 
 	vec3_t dir = Vec3_Direction(start, end);
 
@@ -611,7 +611,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.origin = ent->origin,
 		.size = RandomRangef(10.f, 15.f),
 		.rotation = RandomRadian(),
-		.color = Color32(27, 133, 194, 0),
+		.color = Color4b(27, 133, 194, 0),
 		.softness = 1.f,
 		.lighting = .3f,
 	});
@@ -658,7 +658,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	cgi.AddBeam(cgi.view, &(const r_beam_t) {
 		.start = start,
 		.end = end,
-		.color = Color32(255, 255, 255, 0),
+		.color = Color4b(255, 255, 255, 0),
 		.image = cg_beam_lightning,
 		.size = 8.5f,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
@@ -766,7 +766,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 	cgi.AddBeam(cgi.view, &(const r_beam_t) {
 		.start = start,
 		.end = Vec3_Fmaf(end, -3.f, forward),
-		.color = Color_Color32(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
+		.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z),
 		.image = cg_beam_hook,
 		.size = 1.f,
 		.softness = 1.f
@@ -818,7 +818,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		.size = 100.f,
 		.media = (r_media_t*)cg_sprite_hyperball_01,
 		.rotation = mod * 200.f * M_PI,
-		.color = Color32(255, 255, 255, 0),
+		.color = Color4b(255, 255, 255, 0),
 		.life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f),
 		.softness = 1.f
 	});
@@ -905,7 +905,7 @@ static void Cg_PlayerSpawnTrail(cl_entity_t *ent) {
 		.media = (r_media_t *) cg_sprite_ring,
 		.origin = Vec3_Fmaf(ent->origin, 16.f, Vec3_Down()),
 		.size = 48.f + Cg_Oscillate(1, 12.f, 1.f, 0.f),
-		.color = Color_Color32(ColorHSVA(color.x, color.y, color.z, color.w)),
+		.color = ColorHSVA(color.x, color.y, color.z, color.w),
 		.dir = Vec3_Up()
 	});
 }

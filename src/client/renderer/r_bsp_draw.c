@@ -177,7 +177,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
 						.size = 8.f,
-						.color = Color_Color32(color),
+						.color = color,
 						.media = (r_media_t *) particle,
 						.flags = SPRITE_NO_BLEND_DEPTH
 					});
@@ -192,7 +192,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
 						.size = 8.f,
-						.color = Color_Color32(color),
+						.color = color,
 						.media = (r_media_t *) particle,
 						.flags = SPRITE_NO_BLEND_DEPTH
 					});
@@ -207,7 +207,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
 						.size = 8.f,
-						.color = Color_Color32(color),
+						.color = color,
 						.media = (r_media_t *) particle,
 						.flags = SPRITE_NO_BLEND_DEPTH
 					});
@@ -217,34 +217,27 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 				} else if (r_draw_bsp_lightgrid->integer == 4) {
 
-					const byte r = caustics->r;
-					const byte g = caustics->g;
-					const byte b = caustics->b;
+					const color_t color = Color24_Color(*caustics);
 
-					if (r || g || b) {
-						const float a = Clampf((r + g + b) / 255.f, 0.f, 255.f);
+					if (color.r || color.g || color.b) {
 
 						R_AddSprite(view, &(r_sprite_t) {
 							.origin = origin,
 							.size = 8.f,
-							.color = Color32(r, g, b, a),
+							.color = color,
 							.media = (r_media_t *) particle
 						});
 					}
 				} else if (r_draw_bsp_lightgrid->integer == 5) {
 
-					const byte a = Mini(fog->a, 255);
+					const color_t color = Color32_Color(*fog);
 
-					if (a) {
-						const byte r = fog->r;
-						const byte g = fog->g;
-						const byte b = fog->b;
-						const float af = a / 255.f;
+					if (color.a) {
 
 						R_AddSprite(view, &(r_sprite_t) {
 							.origin = origin,
 							.size = 8.f,
-							.color = Color32(r * af, g * af, b * af, 0),
+							.color = color,
 							.media = (r_media_t *) particle
 						});
 					}
