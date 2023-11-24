@@ -745,42 +745,8 @@ void EmitLights(void) {
 
 		light_t *light = g_ptr_array_index(lights, i);
 
-		if (light->out) {
-			continue;
-		}
-
 		switch (light->type) {
 			case LIGHT_PATCH:
-				break;
-
-			case LIGHT_FACE:
-				out->type = light->type;
-				out->atten = light->atten;
-				out->origin = light->origin;
-				out->color = light->color;
-				out->normal = light->normal;
-				out->radius = light->radius;
-				out->size = light->size;
-				out->intensity = light->intensity;
-				out->shadow = light->shadow;
-				out->cone = light->cone;
-				out->falloff = light->falloff;
-				out->bounds = LightBounds(light);
-
-				/*for (guint j = i + 1; j < lights->len; j++) {
-					light_t *l = g_ptr_array_index(lights, j);
-					if (l->type == LIGHT_FACE &&
-						l->face->brush_side == light->face->brush_side) {
-
-						out->bounds = Box3_Union(out->bounds, l->bounds);
-						out->origin = Box3_Center(out->bounds);
-						out->radius = Box3_Radius(out->bounds);
-						out->size = Box3_Distance(light->face->bounds);
-
-						l->out = out;
-					}
-				}*/
-				light->out = out++;
 				break;
 
 			default:
@@ -796,7 +762,7 @@ void EmitLights(void) {
 				out->cone = light->cone;
 				out->falloff = light->falloff;
 				out->bounds = LightBounds(light);
-				light->out++;
+				out++;
 				break;
 		}
 

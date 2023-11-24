@@ -34,7 +34,7 @@ void Cg_AddLight(const cg_light_t *l) {
 
 	size_t i;
 	for (i = 0; i < lengthof(cg_lights); i++)
-		if (cg_lights[i].radius == 0.0) {
+		if (cg_lights[i].radius == 0.f) {
 			break;
 		}
 
@@ -54,8 +54,8 @@ void Cg_AddLight(const cg_light_t *l) {
 		out->type = LIGHT_DYNAMIC;
 	}
 
-	if (out->intensity == 0.0) {
-		out->intensity = MATERIAL_LIGHT_INTENSITY;
+	if (out->intensity == 0.f) {
+		out->intensity = 1.f;
 	}
 
 	out->time = cgi.client->unclamped_time;

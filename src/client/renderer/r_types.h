@@ -1097,7 +1097,6 @@ typedef struct {
  */
 #define MAX_ENTITY_SKINS 	0x8
 
-
 /**
  * @brief Renderer-specific entity effect bits. The lower 16 bits are reserved for the game and
  * client game module, and are sent over the wire as part of entity state. The higher bits are applied
@@ -1302,7 +1301,7 @@ typedef struct {
 	int32_t node;
 
 	/**
-	 * @brief The entities that are within the bounds of this light.
+	 * @brief The entities that are within the bounds of this light, for shadow mapping.
 	 */
 	const r_entity_t *entities[MAX_LIGHT_ENTITIES];
 	int32_t num_entities;
