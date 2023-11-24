@@ -172,7 +172,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 				if (r_draw_bsp_lightgrid->integer == 1) {
 
-					const color_t color = Color_Add(Color24_Color(*ambient), Color3fv(*diffuse));
+					const color_t color = Color24_Color(*ambient);
 
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
@@ -186,6 +186,36 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
+
+					const color_t color = Color3fv(*diffuse);
+
+					R_AddSprite(view, &(r_sprite_t) {
+						.origin = origin,
+						.size = 8.f,
+						.color = Color_Color32(color),
+						.media = (r_media_t *) particle,
+						.flags = SPRITE_NO_BLEND_DEPTH
+					});
+
+					const vec3_t end = Vec3_Fmaf(origin, 16.f, *direction);
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
+
+				}  else if (r_draw_bsp_lightgrid->integer == 3) {
+
+					const color_t color = Color_Add(Color24_Color(*ambient), Color3fv(*diffuse));
+
+					R_AddSprite(view, &(r_sprite_t) {
+						.origin = origin,
+						.size = 8.f,
+						.color = Color_Color32(color),
+						.media = (r_media_t *) particle,
+						.flags = SPRITE_NO_BLEND_DEPTH
+					});
+
+					const vec3_t end = Vec3_Fmaf(origin, 16.f, *direction);
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
+
+				} else if (r_draw_bsp_lightgrid->integer == 4) {
 
 					const byte r = caustics->r;
 					const byte g = caustics->g;
@@ -201,7 +231,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 							.media = (r_media_t *) particle
 						});
 					}
-				} else if (r_draw_bsp_lightgrid->integer == 3) {
+				} else if (r_draw_bsp_lightgrid->integer == 5) {
 
 					const byte a = Mini(fog->a, 255);
 
