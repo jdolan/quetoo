@@ -379,8 +379,9 @@ static light_t *LightForFace(const bsp_face_t *face) {
 
 	light->type = LIGHT_FACE;
 	light->atten = lm->material->cm->light.atten;
+	light->radius = lm->brush_side->value ?: lm->material->cm->light.radius;
 	light->size = sqrtf(Cm_WindingArea(lm->winding));
-	light->origin = Vec3_Fmaf(center, ON_EPSILON, lm->plane->normal);
+	light->origin = Vec3_Fmaf(center, BSP_LIGHTMAP_LUXEL_SIZE * .5f, lm->plane->normal);
 	light->winding = Cm_CopyWinding(lm->winding);
 	light->face = lm->face;
 	light->brush_side = lm->brush_side;
@@ -391,6 +392,7 @@ static light_t *LightForFace(const bsp_face_t *face) {
 	light->falloff = lm->material->cm->light.falloff;
 	light->phi = cosf(Radians(light->falloff));
 	light->intensity = lm->material->cm->light.intensity;
+	light->intensity *= face_intensity;
 	light->shadow = lm->material->cm->light.shadow;
 	light->model = lm->model;
 
@@ -402,10 +404,6 @@ static light_t *LightForFace(const bsp_face_t *face) {
 	}
 
 	light->color = ColorFilter(light->color);
-
-	light->intensity *= face_intensity;
-
-	light->radius = lm->brush_side->value ?: lm->material->cm->light.radius;
 
 	light->bounds = Box3_FromCenter(light->origin);
 
