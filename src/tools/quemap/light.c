@@ -414,8 +414,8 @@ static light_t *LightForFace(const bsp_face_t *face) {
 
 		vec3_t p = lm->winding->points[i];
 
-		p = Vec3_Fmaf(p, ON_EPSILON, Vec3_Direction(p, center));
-		p = Vec3_Fmaf(p, ON_EPSILON, lm->plane->normal);
+		p = Vec3_Fmaf(p, BSP_LIGHTMAP_LUXEL_SIZE * .5f, Vec3_Direction(p, center));
+		p = Vec3_Fmaf(p, BSP_LIGHTMAP_LUXEL_SIZE * .5f, lm->plane->normal);
 
 		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
 			continue;
