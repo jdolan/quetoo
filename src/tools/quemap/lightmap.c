@@ -647,6 +647,9 @@ void DirectLightmap(int32_t face_num) {
 				}
 			}
 		}
+
+		// re-center the luxel for any downstream operations
+		ProjectLightmapLuxel(lm, l, 0.f, 0.f);
 	}
 }
 
