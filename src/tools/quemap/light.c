@@ -587,6 +587,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_
 			patch.bounds = Box3_Append(patch.bounds, luxel->origin);
 
 			const lumen_t *lumen = luxel->diffuse;
+
 			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, lumen++) {
 				patch.diffuse = Vec3_Add(patch.diffuse, lumen->color);
 			}
@@ -606,24 +607,55 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_
 	light->atten = LIGHT_ATTEN_LINEAR;
 	light->model = lm->model;
 	light->plane = lm->plane;
+	light->normal = lm->plane->normal;
 	light->brush_side = lm->brush_side;
 	light->face = lm->face;
-	light->size = Maxi(patch.w, patch.h);
-	light->origin = Box3_Center(patch.bounds);
+
+	light->winding = Cm_AllocWinding(4);
+	light->winding->num_points = 4;
+
+	light->winding->points[0] = lm->luxels[t * lm->w + s].origin;
+	light->winding->points[1] = lm->luxels[t * lm->w + s + patch.w].origin;
+	light->winding->points[2] = lm->luxels[(t + patch.h) * lm->w + s].origin;
+	light->winding->points[3] = lm->luxels[(t + patch.h) * lm->w + s + patch.w].origin;
+
+	light->origin = Cm_WindingCenter(light->winding);
+	light->radius = patch.w * patch.h * BSP_LIGHTMAP_LUXEL_SIZE;
+	light->size = sqrtf(Cm_WindingArea(light->winding));
 	light->color = patch.diffuse;
 	light->intensity = LIGHT_INTENSITY;
 	light->intensity *= patch_intensity;
 
-	light->radius = patch.w * patch.h * BSP_LIGHTMAP_LUXEL_SIZE;
-	light->bounds = patch.bounds;
+	light->bounds = Box3_FromCenter(light->origin);
 
-	light->points = g_malloc_n(9, sizeof(vec3_t));
-	light->points[0] = light->origin;
-	Box3_ToPoints(patch.bounds, &light->points[1]);
-	light->num_points = 9;
+	GArray *points = g_array_new(false, false, sizeof(vec3_t));
+	//g_array_append_val(points, light->origin);
 
-	light->bounds = Box3_Expand(patch.bounds, light->radius);
+	for (int32_t i = 0; i < light->winding->num_points; i++) {
 
+		const vec3_t p = light->winding->points[i];
+
+		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
+			continue;
+		}
+
+		light->bounds = Box3_Append(light->bounds, p);
+
+		g_array_append_val(points, p);
+	}
+
+	if (points->len == 0) {
+		printf("see ya!~\n");
+		Mem_Free(light);
+		return NULL;
+	}
+
+	light->bounds = Box3_Expand(light->bounds, light->radius);
+
+	light->points = (vec3_t *) points->data;
+	light->num_points = points->len;
+
+	g_array_free(points, false);
 	return light;
 }
 
