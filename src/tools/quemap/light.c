@@ -114,7 +114,7 @@ static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 		light->type = LIGHT_AMBIENT;
 		light->atten = LIGHT_ATTEN_NONE;
 		light->color = ColorFilter(ambient);
-		light->radius = LIGHT_RADIUS_AMBIENT;
+		light->radius = LIGHT_AMBIENT_RADIUS;
 		light->intensity = LIGHT_INTENSITY * ambient_intensity;
 		light->bounds = Box3_Null();
 	}
@@ -164,7 +164,7 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 		Mon_SendSelect(MON_WARN, num, 0, "light_sun missing target");
 	}
 
-	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE_SUN;
+	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SUN_SIZE;
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 	g_array_append_val(points, light->normal);
@@ -291,9 +291,9 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
 	} else if (Cm_EntityValue(entity, "angle")->parsed & ENTITY_INTEGER) {
 		const int32_t angle = Cm_EntityValue(entity, "angle")->integer;
-		if (angle == LIGHT_ANGLE_UP) {
+		if (angle == LIGHT_SPOT_ANGLE_UP) {
 			light->normal = Vec3_Up();
-		} else if (angle == LIGHT_ANGLE_DOWN) {
+		} else if (angle == LIGHT_SPOT_ANGLE_DOWN) {
 			light->normal = Vec3_Down();
 		} else {
 			Vec3_Vectors(Vec3(0.f, angle, 0.f), &light->normal, NULL, NULL);
@@ -306,7 +306,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	if (Cm_EntityValue(entity, "_cone")->parsed & ENTITY_FLOAT) {
 		light->cone = Cm_EntityValue(entity, "_cone")->value;
 	} else {
-		light->cone = LIGHT_CONE;
+		light->cone = LIGHT_SPOT_CONE;
 	}
 
 	light->theta = cosf(Radians(light->cone));
@@ -314,7 +314,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	if (Cm_EntityValue(entity, "_falloff")->parsed & ENTITY_FLOAT) {
 		light->falloff = Cm_EntityValue(entity, "_falloff")->value;
 	} else {
-		light->falloff = LIGHT_FALLOFF;
+		light->falloff = LIGHT_SPOT_FALLOFF;
 	}
 
 	light->phi = cosf(Radians(light->falloff));
@@ -590,6 +590,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_
 
 			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, lumen++) {
 				patch.diffuse = Vec3_Add(patch.diffuse, lumen->color);
+				diffuse = Vec3_Add(diffuse, lumen->color);
 			}
 		}
 	}

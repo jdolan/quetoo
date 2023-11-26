@@ -25,16 +25,22 @@
 
 #define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
 #define LIGHT_RADIUS 300.f
-#define LIGHT_RADIUS_AMBIENT 256.f
 #define LIGHT_INTENSITY 1.f
 #define LIGHT_SHADOW 1.f
-#define LIGHT_ANGLE_UP -1.f
-#define LIGHT_ANGLE_DOWN -2.f
-#define LIGHT_CONE 22.5f
-#define LIGHT_FALLOFF .333f
-#define LIGHT_SUN_DIST 1024.f
-#define LIGHT_SIZE_SUN 32.f
 #define LIGHT_SIZE_STEP 16.f
+
+#define LIGHT_AMBIENT_RADIUS 256.f
+
+#define LIGHT_SUN_DIST 1024.f
+#define LIGHT_SUN_SIZE 32.f
+
+#define LIGHT_SPOT_ANGLE_UP -1.f
+#define LIGHT_SPOT_ANGLE_DOWN -2.f
+#define LIGHT_SPOT_CONE 22.5f
+#define LIGHT_SPOT_FALLOFF .333f
+
+#define LIGHT_PATCH_CONE 60.f
+#define LIGHT_PATCH_FALLOFF .333f
 
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
