@@ -513,15 +513,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTMAP_LUXEL_SIZE) {
-		return;
-	}
-
-	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -BSP_LIGHTMAP_LUXEL_SIZE) {
-		return;
-	}
-
-	if (light->plane == lightmap->plane && light->brush_side->material == lightmap->brush_side->material) {
+	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -ON_EPSILON) {
 		return;
 	}
 

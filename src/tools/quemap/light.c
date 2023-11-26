@@ -562,96 +562,74 @@ void BuildDirectLights(void) {
  */
 static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 
-	struct {
-		int32_t s, t;
-		int32_t w, h;
-		box3_t bounds;
-		vec3_t diffuse;
-	} patch;
+	const int32_t w = Mini(s + BSP_LIGHTMAP_PATCH_SIZE, lm->w) - s;
+	const int32_t h = Mini(t + BSP_LIGHTMAP_PATCH_SIZE, lm->h) - t;
 
-	patch.s = s;
-	patch.t = t;
-	patch.w = Mini(s + BSP_LIGHTMAP_PATCH_SIZE, lm->w) - s;
-	patch.h = Mini(t + BSP_LIGHTMAP_PATCH_SIZE, lm->h) - t;
+	assert(w);
+	assert(h);
 
-	assert(patch.w);
-	assert(patch.h);
+	vec3_t diffuse = Vec3_Zero();
 
-	patch.bounds = Box3_Null();
-	patch.diffuse = Vec3_Zero();
+	for (int32_t i = s; i < s + w; i++) {
+		for (int32_t j = t; j < t + h; j++) {
 
-	for (int32_t s = patch.s; s < patch.s + patch.w; s++) {
-		for (int32_t t = patch.t; t < patch.t + patch.h; t++) {
-
-			const luxel_t *luxel = &lm->luxels[t * lm->w + s];
-			patch.bounds = Box3_Append(patch.bounds, luxel->origin);
-
+			const luxel_t *luxel = &lm->luxels[j * lm->w + i];
 			const lumen_t *lumen = luxel->diffuse;
-
-			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, lumen++) {
-				patch.diffuse = Vec3_Add(patch.diffuse, lumen->color);
+			for (int32_t k = 0; k < BSP_LIGHTMAP_CHANNELS; k++, lumen++) {
 				diffuse = Vec3_Add(diffuse, lumen->color);
 			}
 		}
 	}
 
-	patch.diffuse = Vec3_Scale(patch.diffuse, 1.f / (patch.w * patch.h * BSP_LIGHTMAP_LUXEL_SIZE));
-	patch.diffuse = Vec3_Multiply(patch.diffuse, GetMaterialColor(lm->brush_side->material));
+	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE));
+	diffuse = Vec3_Multiply(diffuse, GetMaterialColor(lm->brush_side->material));
 
-	if (Vec3_Hmaxf(patch.diffuse) < .01f) {
+	if (Vec3_Hmaxf(diffuse) < .01f) {
 		return NULL;
 	}
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
-	light->type = LIGHT_PATCH;
-	light->atten = LIGHT_ATTEN_LINEAR;
-	light->model = lm->model;
-	light->plane = lm->plane;
-	light->normal = lm->plane->normal;
-	light->brush_side = lm->brush_side;
-	light->face = lm->face;
-
 	light->winding = Cm_AllocWinding(4);
 	light->winding->num_points = 4;
 
-	light->winding->points[0] = lm->luxels[t * lm->w + s].origin;
-	light->winding->points[1] = lm->luxels[t * lm->w + s + patch.w].origin;
-	light->winding->points[2] = lm->luxels[(t + patch.h) * lm->w + s].origin;
-	light->winding->points[3] = lm->luxels[(t + patch.h) * lm->w + s + patch.w].origin;
+	const luxel_t *a = &lm->luxels[t * lm->w + s];
+	const luxel_t *b = &lm->luxels[t * lm->w + s + w];
+	const luxel_t *c = &lm->luxels[(t + h) * lm->w + s];
+	const luxel_t *d = &lm->luxels[(t + h) * lm->w + s + w];
 
+	light->winding->points[0] = Vec3_Fmaf(a->origin, .5f * BSP_LIGHTMAP_LUXEL_SIZE, a->normal);
+	light->winding->points[1] = Vec3_Fmaf(b->origin, .5f * BSP_LIGHTMAP_LUXEL_SIZE, b->normal);
+	light->winding->points[2] = Vec3_Fmaf(c->origin, .5f * BSP_LIGHTMAP_LUXEL_SIZE, c->normal);
+	light->winding->points[3] = Vec3_Fmaf(d->origin, .5f * BSP_LIGHTMAP_LUXEL_SIZE, d->normal);
+
+	light->type = LIGHT_PATCH;
+	light->atten = LIGHT_ATTEN_LINEAR;
 	light->origin = Cm_WindingCenter(light->winding);
-	light->radius = patch.w * patch.h * BSP_LIGHTMAP_LUXEL_SIZE;
-	light->size = sqrtf(Cm_WindingArea(light->winding));
-	light->color = patch.diffuse;
+	light->radius = w * h * BSP_LIGHTMAP_LUXEL_SIZE;
+	light->bounds = Box3_Expand(Cm_WindingBounds(light->winding), light->radius);
+	light->size = Maxi(w, h) * BSP_LIGHTMAP_LUXEL_SIZE;
+	light->color = diffuse;
+	light->model = lm->model;
+	light->face = lm->face;
+	light->brush_side = lm->brush_side;
+	light->plane = lm->plane;
 	light->intensity = LIGHT_INTENSITY;
 	light->intensity *= patch_intensity;
 
-	light->bounds = Box3_FromCenter(light->origin);
-
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
-	//g_array_append_val(points, light->origin);
+	g_array_append_val(points, light->origin);
 
 	for (int32_t i = 0; i < light->winding->num_points; i++) {
 
 		const vec3_t p = light->winding->points[i];
 
-		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
+		if (Light_PointContents(p, lm->model->head_node) & CONTENTS_SOLID) {
 			continue;
 		}
 
-		light->bounds = Box3_Append(light->bounds, p);
-
 		g_array_append_val(points, p);
 	}
-
-	if (points->len == 0) {
-		printf("see ya!~\n");
-		Mem_Free(light);
-		return NULL;
-	}
-
-	light->bounds = Box3_Expand(light->bounds, light->radius);
 
 	light->points = (vec3_t *) points->data;
 	light->num_points = points->len;
