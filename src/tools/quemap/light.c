@@ -568,12 +568,20 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_
 	assert(w);
 	assert(h);
 
+	box3_t bounds = Box3_Null();
 	vec3_t diffuse = Vec3_Zero();
 
 	for (int32_t i = s; i < s + w; i++) {
 		for (int32_t j = t; j < t + h; j++) {
 
 			const luxel_t *luxel = &lm->luxels[j * lm->w + i];
+
+			if (Light_PointContents(luxel->origin, lm->model->head_node) & CONTENTS_SOLID) {
+				continue;
+			}
+
+			bounds = Box3_Append(bounds, luxel->origin);
+
 			const lumen_t *lumen = luxel->diffuse;
 			for (int32_t k = 0; k < BSP_LIGHTMAP_CHANNELS; k++, lumen++) {
 				diffuse = Vec3_Add(diffuse, lumen->color);
@@ -581,34 +589,21 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_
 		}
 	}
 
-	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE));
-	diffuse = Vec3_Multiply(diffuse, GetMaterialColor(lm->brush_side->material));
-
-	if (Vec3_Hmaxf(diffuse) < .01f) {
+	if (Vec3_Equal(diffuse, Vec3_Zero())) {
 		return NULL;
 	}
 
+	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE));
+	diffuse = Vec3_Multiply(diffuse, GetMaterialColor(lm->brush_side->material));
+
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
-
-	light->winding = Cm_AllocWinding(4);
-	light->winding->num_points = 4;
-
-	const luxel_t *a = &lm->luxels[t * lm->w + s];
-	const luxel_t *b = &lm->luxels[t * lm->w + s + w];
-	const luxel_t *c = &lm->luxels[(t + h) * lm->w + s];
-	const luxel_t *d = &lm->luxels[(t + h) * lm->w + s + w];
-
-	light->winding->points[0] = Vec3_Fmaf(a->origin, .5f * BSP_LIGHTMAP_LUXEL_SIZE, a->normal);
-	light->winding->points[1] = Vec3_Fmaf(b->origin, .5f * BSP_LIGHTMAP_LUXEL_SIZE, b->normal);
-	light->winding->points[2] = Vec3_Fmaf(c->origin, .5f * BSP_LIGHTMAP_LUXEL_SIZE, c->normal);
-	light->winding->points[3] = Vec3_Fmaf(d->origin, .5f * BSP_LIGHTMAP_LUXEL_SIZE, d->normal);
 
 	light->type = LIGHT_PATCH;
 	light->atten = LIGHT_ATTEN_LINEAR;
-	light->origin = Cm_WindingCenter(light->winding);
+	light->origin = Box3_Center(bounds);
 	light->radius = w * h * BSP_LIGHTMAP_LUXEL_SIZE;
-	light->bounds = Box3_Expand(Cm_WindingBounds(light->winding), light->radius);
 	light->size = Maxi(w, h) * BSP_LIGHTMAP_LUXEL_SIZE;
+	light->bounds = Box3_Expand(bounds, light->radius);
 	light->color = diffuse;
 	light->model = lm->model;
 	light->face = lm->face;
@@ -617,24 +612,26 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_
 	light->intensity = LIGHT_INTENSITY;
 	light->intensity *= patch_intensity;
 
-	GArray *points = g_array_new(false, false, sizeof(vec3_t));
-	g_array_append_val(points, light->origin);
+	vec3_t points[8];
+	Box3_ToPoints(bounds, points);
 
-	for (int32_t i = 0; i < light->winding->num_points; i++) {
+	light->points = g_malloc_n(8, sizeof(vec3_t));
 
-		const vec3_t p = light->winding->points[i];
+	for (size_t i = 0; i < lengthof(points); i++) {
 
-		if (Light_PointContents(p, lm->model->head_node) & CONTENTS_SOLID) {
-			continue;
+		_Bool unique = true;
+
+		for (int32_t j = 0; j < light->num_points; j++) {
+			if (Vec3_Equal(light->points[j], points[i])) {
+				unique = false;
+			}
 		}
 
-		g_array_append_val(points, p);
+		if (unique) {
+			light->points[light->num_points++] = points[i];
+		}
 	}
 
-	light->points = (vec3_t *) points->data;
-	light->num_points = points->len;
-
-	g_array_free(points, false);
 	return light;
 }
 
