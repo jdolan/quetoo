@@ -546,12 +546,12 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_
 		}
 	}
 
-	if (Vec3_Equal(diffuse, Vec3_Zero())) {
-		return NULL;
-	}
-
 	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE));
 	diffuse = Vec3_Multiply(diffuse, GetMaterialColor(lm->brush_side->material));
+
+	if (Vec3_Hmaxf(diffuse) < .01f) {
+		return NULL;
+	}
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
