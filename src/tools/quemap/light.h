@@ -153,8 +153,6 @@ typedef struct light_s {
 extern GPtrArray *node_lights[MAX_BSP_NODES];
 extern GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 
-vec3_t ColorFilter(const vec3_t in);
-
 void FreeLights(void);
 void BuildDirectLights(void);
 void BuildIndirectLights(void);

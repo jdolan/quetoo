@@ -148,8 +148,6 @@ static void FogForEntity(const cm_entity_t *entity) {
 			fog.color = FOG_COLOR;
 		}
 
-		fog.color = ColorFilter(fog.color);
-
 		fog.density = Cm_EntityValue(entity, "density")->value ?: FOG_DENSITY;
 		fog.noise = Cm_EntityValue(entity, "noise")->value ?: FOG_NOISE;
 		fog.frequency = Cm_EntityValue(entity, "frequency")->value ?: FOG_FREQUENCY;

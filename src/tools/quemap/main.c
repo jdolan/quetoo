@@ -223,18 +223,6 @@ static void Check_LIGHT_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "--antialias")) {
 			antialias = true;
 			Com_Verbose("antialias: true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--brightness")) {
-			brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("brightness: %g\n", brightness);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--saturation")) {
-			saturation = atof(Com_Argv(i + 1));
-			Com_Verbose("saturation: %g\n", saturation);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--contrast")) {
-			contrast = atof(Com_Argv(i + 1));
-			Com_Verbose("contrast: %g\n", contrast);
-			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--ambient-intensity")) {
 			ambient_intensity = atof(Com_Argv(i + 1));
 			Com_Verbose("ambient intensity: %g\n", ambient_intensity);

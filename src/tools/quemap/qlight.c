@@ -23,10 +23,6 @@
 
 _Bool antialias = false;
 
-float brightness = 1.f;
-float saturation = 1.f;
-float contrast = 1.f;
-
 float ambient_intensity = LIGHT_INTENSITY;
 float sun_intensity = LIGHT_INTENSITY;
 float point_intensity = LIGHT_INTENSITY;
@@ -422,18 +418,6 @@ static void LightWorld(void) {
 
 	const cm_entity_t *e = Cm_Bsp()->entities[0];
 
-	if (brightness == 1.f) {
-		brightness = Cm_EntityValue(e, "brightness")->value ?: brightness;
-	}
-
-	if (saturation == 1.f) {
-		saturation = Cm_EntityValue(e, "saturation")->value ?: saturation;
-	}
-
-	if (contrast == 1.f) {
-		contrast = Cm_EntityValue(e, "contrast")->value ?: contrast;
-	}
-
 	if (ambient_intensity == 1.f) {
 		ambient_intensity = Cm_EntityValue(e, "ambient_intensity")->value ?: ambient_intensity;
 	}
@@ -464,9 +448,6 @@ static void LightWorld(void) {
 
 	Com_Print("\n");
 	Com_Print("Lighting parameters\n");
-	Com_Print("  Brightness: %g\n", brightness);
-	Com_Print("  Saturation: %g\n", saturation);
-	Com_Print("  Contrast: %g\n", contrast);
 	Com_Print("  Ambient intensity: %g\n", ambient_intensity);
 	Com_Print("  Sun intensity: %g\n", sun_intensity);
 	Com_Print("  Point intensity: %g\n", point_intensity);

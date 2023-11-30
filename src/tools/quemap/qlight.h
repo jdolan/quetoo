@@ -31,10 +31,6 @@
 
 extern _Bool antialias;
 
-extern float brightness;
-extern float saturation;
-extern float contrast;
-
 extern float ambient_intensity;
 extern float sun_intensity;
 extern float point_intensity;
