@@ -113,19 +113,13 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 
 	light->intensity *= sun_intensity;
 
-	const int32_t num = Cm_EntityNumber(entity);
-
-	if (Cm_EntityValue(entity, "light")->value) {
-		light->intensity = Cm_EntityValue(entity, "light")->value / 255.f;
-		Mon_SendSelect(MON_WARN, num, 0, "light_sun key light is deprecated. Use _intensity.");
-	}
-
 	if (Cm_EntityValue(entity, "_shadow")->parsed & ENTITY_FLOAT) {
 		light->shadow = Cm_EntityValue(entity, "_shadow")->value;
 	}
 
 	light->normal = Vec3_Down();
 
+	const int32_t num = Cm_EntityNumber(entity);
 	const cm_entity_t *target = EntityTarget(entity);
 	if (target) {
 		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
