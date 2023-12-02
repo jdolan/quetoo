@@ -404,7 +404,9 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 	}
 
 	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	atten *= Smoothf(dot, light->theta - light->phi, light->theta + light->phi);
+	if (dot < light->theta) {
+		atten *= Smoothf(dot, light->theta - light->phi, light->theta);
+	}
 
 	const float lumens = atten * scale * light->intensity;
 	if (lumens <= 0.f) {
@@ -481,7 +483,9 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 	}
 
 	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	atten *= Smoothf(dot, light->theta - light->phi, light->theta + light->phi);
+	if (dot < light->theta) {
+		atten *= Smoothf(dot, light->theta - light->phi, light->theta);
+	}
 
 	const float lumens = atten * scale * light->intensity;
 	if (lumens <= 0.f) {
