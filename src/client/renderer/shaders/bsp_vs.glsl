@@ -61,9 +61,9 @@ void main(void) {
 
 	vertex.model = vec3(model * position);
 	vertex.position = vec3(view_model * position);
-	vertex.normal = vec3(view_model * normal);
-	vertex.tangent = vec3(view_model * tangent);
-	vertex.bitangent = vec3(view_model * bitangent);
+	vertex.normal = normalize(vec3(view_model * normal));
+	vertex.tangent = normalize(vec3(view_model * tangent));
+	vertex.bitangent = normalize(vec3(view_model * bitangent));
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
