@@ -139,11 +139,11 @@ int32_t FindMaterial(const char *name) {
 vec3_t GetMaterialColor(int32_t num) {
 	static color_t colors[MAX_BSP_MATERIALS];
 
-	if (Vec3_Equal(Vec3_Zero(), Color_Vec3(colors[num]))) {
+	if (Vec3_Equal(Vec3_Zero(), colors[num].vec3)) {
 		colors[num] = Img_Color(materials[num].diffusemap);
 	}
 
-	return Color_Vec3(colors[num]);
+	return colors[num].vec3;
 }
 
 /**

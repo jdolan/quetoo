@@ -73,29 +73,36 @@ struct fragment_t {
 /**
  * @brief
  */
-vec4 sample_lightmap_ambient() {
-	return texture(texture_lightmap_ambient, vertex.lightmap);
+vec3 sample_lightmap_ambient() {
+	return texture(texture_lightmap_ambient, vertex.lightmap).rgb * modulate;
 }
 
 /**
  * @brief
  */
-vec4 sample_lightmap_diffuse(int index) {
-	return texture(texture_lightmap_diffuse, vec3(vertex.lightmap, index));
+vec3 sample_lightmap_diffuse(int channel) {
+	return texture(texture_lightmap_diffuse, vec3(vertex.lightmap, channel * 2)).rgb * modulate;
+}
+
+/**
+* @brief
+*/
+vec3 sample_lightmap_direction(int channel) {
+   return normalize(texture(texture_lightmap_diffuse, vec3(vertex.lightmap, channel * 2 + 1)).xyz);
 }
 
 /**
  * @brief
  */
-vec4 sample_lightmap_caustics() {
-	return texture(texture_lightmap_caustics, vertex.lightmap);
+vec3 sample_lightmap_caustics() {
+	return texture(texture_lightmap_caustics, vertex.lightmap).rgb * caustics;
 }
 
 /**
- * @brief
+ * @brief FIXME: Make these alpha blended
  */
-vec4 sample_lightmap_stains() {
-	return texture(texture_lightmap_stains, vertex.lightmap);
+vec3 sample_lightmap_stains() {
+	return texture(texture_lightmap_stains, vertex.lightmap).rgb;
 }
 
 /**
@@ -387,16 +394,16 @@ void main(void) {
 
 		fragment.ambient = vec3(0.0), fragment.diffuse = vec3(0.0), fragment.caustics = vec3(0.0), fragment.specular = vec3(0.0);
 		if (entity == 0) {
-			fragment.ambient = sample_lightmap_ambient().rgb * modulate;
+			fragment.ambient = sample_lightmap_ambient();
 			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));
 
-			vec3 diffuse0 = sample_lightmap_diffuse(0).rgb * modulate;
-			vec3 direction0 = normalize(tbn * sample_lightmap_diffuse(1).xyz);
-			diffuse0 *= max(0.5, dot(direction0, fragment.normalmap));
+			vec3 diffuse0 = sample_lightmap_diffuse(0);
+			vec3 direction0 = normalize(tbn * sample_lightmap_direction(0));
+			diffuse0 *= max(0.0, dot(direction0, fragment.normalmap));
 
-			vec3 diffuse1 = sample_lightmap_diffuse(2).rgb * modulate;
-			vec3 direction1 = normalize(tbn * sample_lightmap_diffuse(3).xyz);
-			diffuse1 *= max(0.5, dot(direction1, fragment.normalmap));
+			vec3 diffuse1 = sample_lightmap_diffuse(1);
+			vec3 direction1 = normalize(tbn * sample_lightmap_direction(1));
+			diffuse1 *= max(0.0, dot(direction1, fragment.normalmap));
 
 			fragment.diffuse = diffuse0 + diffuse1;
 

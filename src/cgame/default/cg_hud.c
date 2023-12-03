@@ -620,7 +620,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			}
 		}
 
-		crosshair.color = Color_Vec4(color);
+		crosshair.color = color.vec4;
 	}
 
 	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {

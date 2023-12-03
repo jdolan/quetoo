@@ -113,7 +113,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 				const cg_light_t l = {
 					.origin = e->origin,
 					.radius = 128.f,
-					.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
+					.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z).vec3,
 					.intensity = .333f,
 				};
 
@@ -146,7 +146,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		const cg_light_t l = {
 			.origin = e->origin,
 			.radius = e->termination.x,
-			.color = Color_Vec3(color),
+			.color = color.vec3,
 			.intensity = .5f,
 		};
 

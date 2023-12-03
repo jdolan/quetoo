@@ -322,15 +322,15 @@ static void animate(PlayerModelView *self) {
 	};
 
 	if (self->client.shirt.a) {
-		tints[0] = Color_Vec4(self->client.shirt);
+		tints[0] = self->client.shirt.vec4;
 	}
 
 	if (self->client.pants.a) {
-		tints[1] = Color_Vec4(self->client.pants);
+		tints[1] = self->client.pants.vec4;
 	}
 
 	if (self->client.helmet.a) {
-		tints[2] = Color_Vec4(self->client.helmet);
+		tints[2] = self->client.helmet.vec4;
 	}
 	
 	memcpy(self->legs.tints, tints, sizeof(tints));

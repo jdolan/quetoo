@@ -65,6 +65,16 @@ typedef union {
 	 * @brief Array accessor.
 	 */
 	float rgba[4];
+
+	/**
+	 * @brief Vec3 accessor.
+	 */
+	vec3_t vec3;
+
+	/**
+	 * @brief Vec4 accessor.
+	 */
+	vec4_t vec4;
 } color_t;
 
 /**
@@ -257,13 +267,6 @@ static inline color_t __attribute__ ((warn_unused_result)) ColorHSVA(float hue, 
 }
 
 /**
- * @return A floating point vector for the specified color.
- */
-static inline vec4_t __attribute__ ((warn_unused_result)) Color_Vec4(const color_t color) {
-	return Vec4(color.r, color.g, color.b, color.a);
-}
-
-/**
  * @return An HSV vector of the specified color.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Color_HSV(const color_t color) {
@@ -307,35 +310,36 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Color_HSVA(const color
  * @return The sum of `a + b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Add(const color_t a, const color_t b) {
-	return Color4fv(Vec4_Add(Color_Vec4(a), Color_Vec4(b)));
+	return Color4fv(Vec4_Add(a.vec4, b.vec4));
 }
 
 /**
  * @return The difference of `a - b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Subtract(const color_t a, const color_t b) {
-	return Color4fv(Vec4_Subtract(Color_Vec4(a), Color_Vec4(b)));
+	return Color4fv(Vec4_Subtract(a.vec4, b.vec4));
 }
 
 /**
  * @return The value of `a * b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Multiply(const color_t a, const color_t b) {
-	return Color4fv(Vec4_Multiply(Color_Vec4(a), Color_Vec4(b)));
+	return Color4fv(Vec4_Multiply(a.vec4, b.vec4));
 }
 
 /**
  * @return The value of `a * b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Scale(const color_t a, const float b) {
-	return Color4fv(Vec4_Scale(Color_Vec4(a), b));
+	return Color4fv(Vec4_Scale(a.vec4, b));
 }
 
 /**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Mix(const color_t a, const color_t b, float mix) {
-	return Color4fv(Vec4_Mix(Color_Vec4(a), Color_Vec4(b), mix));
+	return Color4fv(Vec4_Mix(a.vec4, b.vec4, mix));
+}
 }
 
 /**
@@ -474,13 +478,6 @@ static inline const char * __attribute__ ((warn_unused_result)) Color_Unparse(co
 	g_snprintf(buffer, sizeof(buffer), "%02x%02x%02x%02x", c.r, c.g, c.b, c.a);
 
 	return buffer;
-}
-
-/**
- * @return A floating point vector for the specified color;
- */
-static inline vec3_t __attribute__ ((warn_unused_result)) Color_Vec3(const color_t color) {
-	return Vec3(color.r, color.g, color.b);
 }
 
 /**
