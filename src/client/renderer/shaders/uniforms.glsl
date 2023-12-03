@@ -114,19 +114,9 @@ layout (std140) uniform uniforms_block {
 	int shadows;
 
 	/**
-	 * @brief The brightness scalar.
+	 * @brief The tonemapping algorithm.
 	 */
-	float brightness;
-
-	/**
-	 * @brief The contrast scalar.
-	 */
-	float contrast;
-
-	/**
-	 * @brief The saturation scalar.
-	 */
-	float saturation;
+	int tonemap;
 
 	/**
 	 * @brief The gamma scalar.
@@ -134,24 +124,9 @@ layout (std140) uniform uniforms_block {
 	float gamma;
 
 	/**
-	 * @brief The tonemapping algorithm.
-	 */
-	int tonemap;
-
-	/**
 	 * @brief The modulate scalar.
 	 */
 	float modulate;
-
-	/**
-	 * @brief The volumetric fog density scalar.
-	 */
-	float fog_density;
-
-	/**
-	 * @brief The number of volumetric fog samples per fragment (quality).
-	 */
-	int fog_samples;
 
 	/**
 	 * @brief The caustics scalar.
@@ -162,6 +137,16 @@ layout (std140) uniform uniforms_block {
 	 * @brief The bloom scalar, for non-material based objects.
 	 */
 	float bloom;
+
+	/**
+	 * @brief The volumetric fog density scalar.
+	 */
+	float fog_density;
+
+	/**
+	 * @brief The number of volumetric fog samples per fragment (quality).
+	 */
+	int fog_samples;
 
 	/**
 	 * @brief The developer toggle, used for shader development tweaking.

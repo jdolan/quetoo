@@ -25,11 +25,9 @@
 
 extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
-extern cvar_t *r_brightness;
 extern cvar_t *r_bloom;
 extern cvar_t *r_bloom_iterations;
 extern cvar_t *r_caustics;
-extern cvar_t *r_contrast;
 extern cvar_t *r_display;
 extern cvar_t *r_finish;
 extern cvar_t *r_fog_density;
@@ -42,7 +40,6 @@ extern cvar_t *r_modulate;
 extern cvar_t *r_multisample;
 extern cvar_t *r_post;
 extern cvar_t *r_roughness;
-extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadowmap;
 extern cvar_t *r_shadowmap_size;
@@ -188,19 +185,9 @@ typedef struct {
 		int32_t shadows;
 
 		/**
-		 * @brief The brightness scalar.
+		 * @brief The tonemapping algorithm.
 		 */
-		float brightness;
-
-		/**
-		 * @brief The contrast scalar.
-		 */
-		float contrast;
-
-		/**
-		 * @brief The saturation scalar.
-		 */
-		float saturation;
+		int32_t tonemap;
 
 		/**
 		 * @brief The gamma scalar.
@@ -208,24 +195,9 @@ typedef struct {
 		float gamma;
 
 		/**
-		 * @brief The tonemapping algorithm.
-		 */
-		int32_t tonemap;
-
-		/**
 		 * @brief The modulate scalar.
 		 */
 		float modulate;
-
-		/**
-		 * @brief The volumetric fog density scalar.
-		 */
-		float fog_density;
-
-		/**
-		 * @brief The number of volumetric fog samples per fragment (quality).
-		 */
-		int32_t fog_samples;
 
 		/**
 		 * @brief The caustics scalar.
@@ -236,6 +208,16 @@ typedef struct {
 		 * @brief The bloom scalar.
 		 */
 		float bloom;
+
+		/**
+		 * @brief The volumetric fog density scalar.
+		 */
+		float fog_density;
+
+		/**
+		 * @brief The number of volumetric fog samples per fragment (quality).
+		 */
+		int32_t fog_samples;
 
 		/**
 		 * @brief The developer flags.

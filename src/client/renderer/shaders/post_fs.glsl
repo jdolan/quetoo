@@ -29,21 +29,6 @@ in vertex_data {
 out vec4 out_color;
 
 /**
- * @brief Brightness, contrast, saturation and gamma.
- */
-vec3 color_filter(in vec3 color) {
-
-	vec3 luminance = vec3(0.2125, 0.7154, 0.0721);
-	vec3 bias = vec3(0.5);
-
-	// brightness and gamma
-	vec3 scaled = color.rgb * brightness / gamma;
-
-	// saturation and contrast
-	return mix(bias, mix(vec3(dot(luminance, scaled)), scaled, saturation), contrast);
-}
-
-/**
  * @brief Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
  */
 vec3 tonemap_color(in vec3 color) {
@@ -62,14 +47,10 @@ vec3 tonemap_color(in vec3 color) {
 void main(void) {
 
 	out_color = texture(texture_color_attachment, vertex.texcoord);
-
-	if (bloom > 0.0) {
-		out_color += texture(texture_bloom_attachment, vertex.texcoord);
-	}
-
-	out_color.rgb = color_filter(out_color.rgb);
+	out_color += texture(texture_bloom_attachment, vertex.texcoord);
 
 	if (tonemap > 0.0) {
 		out_color.rgb = tonemap_color(out_color.rgb);
 	}
-}
+
+	out_color.rgb = pow(out_color.rgb, vec3(1.0 / gamma));}
