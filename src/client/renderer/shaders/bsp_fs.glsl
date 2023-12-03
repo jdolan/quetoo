@@ -411,7 +411,7 @@ void main(void) {
 			fragment.specular += blinn_phong(diffuse1, direction1);
 			fragment.specular += blinn_phong(fragment.ambient, vertex.normal);
 
-			fragment.caustics = sample_lightmap_caustics().rgb;
+			fragment.caustics = sample_lightmap_caustics();
 		} else {
 			fragment.ambient = sample_lightgrid(texture_lightgrid_ambient).rgb * modulate;
 			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));
@@ -433,7 +433,7 @@ void main(void) {
 
 		out_color = fragment.diffusemap;
 
-		vec3 stainmap = sample_lightmap_stains().rgb;
+		vec3 stainmap = sample_lightmap_stains();
 
 		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse) * stainmap, 0.0);
 		out_color.rgb = max(out_color.rgb + fragment.specular * stainmap, 0.0);
@@ -453,7 +453,7 @@ void main(void) {
 		} else if (lightmaps == 4) {
 			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
 		} else if (lightmaps == 5) {
-			out_color.rgb = normalize(((sample_lightmap_diffuse(1).xyz + sample_lightmap_diffuse(3).xyz) + 1.0) * 0.5);
+			out_color.rgb = normalize(((sample_lightmap_direction(0) + sample_lightmap_direction(1)) + 1.0) * 0.5);
 		}
 
 	} else {
@@ -465,21 +465,20 @@ void main(void) {
 		}
 
 		vec4 effect = texture(texture_stage, st);
-
 		effect *= vertex.color;
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
-			vec3 ambient = sample_lightmap_ambient().rgb;
+			vec3 ambient = sample_lightmap_ambient();
 
-			vec3 diffuse0 = sample_lightmap_diffuse(0).rgb;
-			vec3 direction0 = normalize(tbn * sample_lightmap_diffuse(1).xyz);
+			vec3 diffuse0 = sample_lightmap_diffuse(0);
+			vec3 direction0 = normalize(tbn * sample_lightmap_direction(0));
 			diffuse0 *= max(0.0, dot(diffuse0, direction0));
 
-			vec3 diffuse1 = sample_lightmap_diffuse(2).rgb;
-			vec3 direction1 = normalize(tbn * sample_lightmap_diffuse(3).xyz);
+			vec3 diffuse1 = sample_lightmap_diffuse(1);
+			vec3 direction1 = normalize(tbn * sample_lightmap_direction(1));
 			diffuse1 *= max(0.0, dot(diffuse1, direction1));
 
-			effect.rgb *= (ambient + diffuse0 + diffuse1) * modulate;
+			effect.rgb *= (ambient + diffuse0 + diffuse1);
 		}
 
 		out_bloom.rgb = max(effect.rgb * material.bloom - 1.0, 0.0);
