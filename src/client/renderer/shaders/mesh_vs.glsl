@@ -77,9 +77,9 @@ void main(void) {
 
 	vertex.model = vec3(model * position);
 	vertex.position = vec3(model_view * position);
-	vertex.normal = vec3(model_view * normal);
-	vertex.tangent = vec3(model_view * tangent);
-	vertex.bitangent = vec3(model_view * bitangent);
+	vertex.normal = normalize(vec3(model_view * normal));
+	vertex.tangent = normalize(vec3(model_view * tangent));
+	vertex.bitangent = normalize(vec3(model_view * bitangent));
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.color = color;
