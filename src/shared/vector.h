@@ -993,6 +993,13 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mix3(const vec3_t
 }
 
 /**
+ * @return The vector `a` raised tht exponent `exp`.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Pow(const vec3_t a, float exp) {
+	return Vec3(powf(a.x, exp), powf(a.y, exp), powf(a.z, exp));
+}
+
+/**
  * @return The vector `degrees` in radians.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Radians(const vec3_t degrees) {
@@ -1253,6 +1260,20 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Mix(const vec4_t 
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_One(void) {
 	return Vec4(1.f, 1.f, 1.f, 1.f);
+}
+
+/**
+ * @return The vector `a` raised tht exponent `exp`.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Pow(const vec4_t a, float exp) {
+	return Vec4(powf(a.x, exp), powf(a.y, exp), powf(a.z, exp), powf(a.w, exp));
+}
+
+/**
+ * @return The vector `a` raised tht exponent `exp`.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Pow3(const vec4_t a, const vec3_t exp) {
+	return Vec4(powf(a.x, exp.x), powf(a.y, exp.y), powf(a.z, exp.z), a.w);
 }
 
 /**

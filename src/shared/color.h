@@ -340,6 +340,12 @@ static inline color_t __attribute__ ((warn_unused_result)) Color_Scale(const col
 static inline color_t __attribute__ ((warn_unused_result)) Color_Mix(const color_t a, const color_t b, float mix) {
 	return Color4fv(Vec4_Mix(a.vec4, b.vec4, mix));
 }
+
+/**
+ * @return The gamma corrected `color`.
+ */
+static inline color_t __attribute__ ((warn_unused_result)) Color_Gamma(const color_t color, float gamma) {
+	return (color_t) Vec4_Pow3(color.vec4, Vec3(gamma, gamma, gamma));
 }
 
 /**
