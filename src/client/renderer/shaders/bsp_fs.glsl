@@ -454,6 +454,8 @@ void main(void) {
 			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
 		} else if (lightmaps == 5) {
 			out_color.rgb = normalize(((sample_lightmap_direction(0) + sample_lightmap_direction(1)) + 1.0) * 0.5);
+		} else if (lightmaps == 6) {
+			out_color.rgb = normalize((fragment.normalmap.xyz + 1.0) * 0.5);
 		}
 
 	} else {
