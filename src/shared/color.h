@@ -506,6 +506,13 @@ static inline void Color32_Fill(byte *out, const color32_t c, size_t len) {
 }
 
 /**
+ * @return The gamma corrected color.
+ */
+static inline color32_t Color32_Gamma(const color32_t c, float gamma) {
+	return Color_Color32(Color_Gamma(Color32_Color(c), gamma));
+}
+
+/**
  * @return A 24 bit color for the specified 32 bit color (RGB swizzle).
  */
 static inline color24_t __attribute__ ((warn_unused_result)) Color32_Color24(const color32_t c) {
