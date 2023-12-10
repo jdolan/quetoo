@@ -885,6 +885,17 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
+		if (!g_strcmp0(token, "light.color")) {
+			char color[MAX_TOKEN_CHARS];
+
+			Parse_Token(&parser, PARSE_DEFAULT, color, sizeof(color));
+
+			if (Parse_QuickPrimitive(color, PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, m->light.color.xyz, 3) != 3) {
+				Cm_MaterialWarn(path, &parser, "Invalid light color");
+				m->light.color = Vec3_Zero();
+			}
+		}
+
 		if (!g_strcmp0(token, "light.intensity")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.intensity, 1) != 1) {
@@ -1325,6 +1336,10 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 		if (material->light.radius != MATERIAL_LIGHT_RADIUS) {
 			Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
+		}
+
+		if (!Vec3_Equal(material->light.color, Vec3_Zero())) {
+			Fs_Print(file, "\tlight.color \"%s\"\n", vtos(material->light.color));
 		}
 
 		if (material->light.intensity != MATERIAL_LIGHT_INTENSITY) {

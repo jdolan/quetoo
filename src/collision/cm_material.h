@@ -237,6 +237,11 @@ typedef struct {
 	int32_t atten;
 
 	/**
+	 * @brief The light color. If not set, this will be the scaled average of the diffusemap.
+	 */
+	vec3_t color;
+
+	/**
 	 * @brief The light radius.
 	 */
 	float radius;

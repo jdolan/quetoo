@@ -81,6 +81,13 @@ static material_t *LoadMaterial(const char *name) {
 		material->diffusemap = Img_LoadSurface(material->cm->diffusemap.path);
 		if (material->diffusemap) {
 			Com_Verbose("Loaded %s\n", material->cm->diffusemap.path);
+			
+			material->ambient = Img_Color(material->diffusemap).vec3;
+			material->diffuse = material->cm->light.color;
+
+			if (Vec3_Equal(material->diffuse, Vec3_Zero())) {
+				material->diffuse = Vec3_Scale(material->ambient, 1.f / Vec3_Hmaxf(material->ambient));
+			}
 		} else {
 			Com_Warn("Failed to load %s\n", material->cm->diffusemap.path);
 		}
@@ -131,19 +138,6 @@ int32_t FindMaterial(const char *name) {
 	}
 
 	return (int32_t) (ptrdiff_t) (material - materials);
-}
-
-/**
- * @brief
- */
-vec3_t GetMaterialColor(int32_t num) {
-	static color_t colors[MAX_BSP_MATERIALS];
-
-	if (Vec3_Equal(Vec3_Zero(), colors[num].vec3)) {
-		colors[num] = Img_Color(materials[num].diffusemap);
-	}
-
-	return colors[num].vec3;
 }
 
 /**

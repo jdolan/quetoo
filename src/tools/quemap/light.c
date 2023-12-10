@@ -350,17 +350,11 @@ static light_t *LightForFace(const bsp_face_t *face) {
 	light->theta = cosf(Radians(light->cone));
 	light->falloff = lm->material->cm->light.falloff;
 	light->phi = cosf(Radians(light->falloff));
+	light->color = lm->material->diffuse;
 	light->intensity = lm->material->cm->light.intensity;
 	light->intensity *= face_intensity;
 	light->shadow = lm->material->cm->light.shadow;
 	light->model = lm->model;
-
-	light->color = GetMaterialColor(lm->brush_side->material);
-
-	const float max = Vec3_Hmaxf(light->color);
-	if (max > 0.f && max < 1.f) {
-		light->color = Vec3_Scale(light->color, 1.f / max);
-	}
 
 	light->bounds = Box3_FromCenter(light->origin);
 
@@ -379,7 +373,6 @@ static light_t *LightForFace(const bsp_face_t *face) {
 		}
 
 		light->bounds = Box3_Append(light->bounds, p);
-
 		g_array_append_val(points, p);
 	}
 
@@ -517,7 +510,7 @@ void BuildDirectLights(void) {
 /**
  * @brief Add a patch light source from a directly lit lightmap.
  */
-static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_t t) {
+static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 
 	const int32_t w = Mini(s + BSP_LIGHTMAP_PATCH_SIZE, lm->w) - s;
 	const int32_t h = Mini(t + BSP_LIGHTMAP_PATCH_SIZE, lm->h) - t;
@@ -547,7 +540,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, int32_t s, int32_
 	}
 
 	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE));
-	diffuse = Vec3_Multiply(diffuse, GetMaterialColor(lm->brush_side->material));
+	diffuse = Vec3_Multiply(diffuse, lm->material->ambient);
 
 	if (Vec3_Hmaxf(diffuse) < .01f) {
 		return NULL;
@@ -610,7 +603,7 @@ void BuildIndirectLights(void) {
 		for (int32_t s = 0; s < lm->w; s += BSP_LIGHTMAP_PATCH_SIZE) {
 			for (int32_t t = 0; t < lm->h; t += BSP_LIGHTMAP_PATCH_SIZE) {
 
-				light_t *light = LightForLightmappedPatch(lm, s, t);
+				light_t *light = LightForPatch(lm, s, t);
 				if (light) {
 					Com_Debug(DEBUG_ALL, "Patch radius %g, size: %g, color: %s\n",
 						   light->radius,
@@ -625,7 +618,7 @@ void BuildIndirectLights(void) {
 
 	HashLights(LIGHT_PATCH);
 
-	Com_Verbose("Indirect lighting for %d lit faces\n", lights->len);
+	Com_Verbose("Indirect lighting for %d lit patches\n", lights->len);
 }
 
 /**

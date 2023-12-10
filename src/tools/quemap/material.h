@@ -38,6 +38,18 @@ typedef struct {
 	 * @brief The diffusemap texture.
 	 */
 	SDL_Surface *diffusemap;
+
+	/**
+	 * @brief The ambient emissive color for patch lights.
+	 * @remarks This is mulitiplied by the direct diffuse lightmap value to reflect indirect light.
+	 */
+	vec3_t ambient;
+
+	/**
+	 * @brief The diffuse color for face lights.
+	 */
+	vec3_t diffuse;
+
 } material_t;
 
 extern int32_t num_materials;
@@ -45,6 +57,5 @@ extern material_t materials[MAX_BSP_MATERIALS];
 
 void LoadMaterials(const char *path);
 int32_t FindMaterial(const char *name);
-vec3_t GetMaterialColor(int32_t num);
 ssize_t WriteMaterialsFile(const char *path);
 void FreeMaterials(void);
