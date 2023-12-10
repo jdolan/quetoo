@@ -28,6 +28,7 @@ in vertex_data {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
+	mat3 tbn;
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec3 lightgrid;
@@ -40,6 +41,7 @@ out geometry_data {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
+	mat3 tbn;
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec3 lightgrid;
@@ -87,6 +89,7 @@ void main(void) {
 		out_vertex.normal = in_vertex[i].normal;
 		out_vertex.tangent = in_vertex[i].tangent;
 		out_vertex.bitangent = in_vertex[i].bitangent;
+		out_vertex.tbn = in_vertex[i].tbn;
 		out_vertex.diffusemap = in_vertex[i].diffusemap;
 		out_vertex.lightmap = in_vertex[i].lightmap;
 		out_vertex.lightgrid = in_vertex[i].lightgrid;

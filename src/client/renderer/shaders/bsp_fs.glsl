@@ -47,6 +47,7 @@ in geometry_data {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
+	mat3 tbn;
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec3 lightgrid;
@@ -83,6 +84,25 @@ vec4 sample_diffusemap() {
 /**
  * @brief
  */
+vec3 sample_normalmap() {
+	vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz * 2.0 - 1.0;
+	vec3 roughness = vec3(vec2(material.roughness), 1.0);
+	return normalize(vertex.tbn * normalize(normalmap * roughness));
+}
+
+/**
+ * @brief
+ */
+vec4 sample_specularmap() {
+	vec4 specularmap;
+	specularmap.rgb = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
+	specularmap.w = toksvig(texture_material, vec3(vertex.diffusemap, 1), material.roughness, material.specularity);
+	return specularmap;
+}
+
+/**
+ * @brief
+ */
 vec3 sample_lightmap_ambient() {
 	return texture(texture_lightmap_ambient, vertex.lightmap).rgb * modulate;
 }
@@ -98,7 +118,8 @@ vec3 sample_lightmap_diffuse(int channel) {
 * @brief
 */
 vec3 sample_lightmap_direction(int channel) {
-   return normalize(texture(texture_lightmap_diffuse, vec3(vertex.lightmap, channel * 2 + 1)).xyz);
+	vec3 direction = texture(texture_lightmap_diffuse, vec3(vertex.lightmap, channel * 2 + 1)).xyz;
+	return normalize(vertex.tbn * normalize(direction));
 }
 
 /**
@@ -387,8 +408,6 @@ void main(void) {
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
 
-	mat3 tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
-
 	fragment.view_dir = normalize(-vertex.position);
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
@@ -400,11 +419,8 @@ void main(void) {
 			discard;
 		}
 
-		fragment.normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
-		fragment.normalmap = normalize(tbn * normalize((fragment.normalmap * 2.0 - 1.0) * vec3(vec2(material.roughness), 1.0)));
-
-		fragment.specularmap.xyz = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
-		fragment.specularmap.w = toksvig(texture_material, vec3(vertex.diffusemap, 1), material.roughness, material.specularity);
+		fragment.normalmap = sample_normalmap();
+		fragment.specularmap = sample_specularmap();
 
 		fragment.ambient = vec3(0.0), fragment.diffuse = vec3(0.0), fragment.caustics = vec3(0.0), fragment.specular = vec3(0.0);
 		if (entity == 0) {
@@ -412,11 +428,11 @@ void main(void) {
 			fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
 
 			vec3 diffuse0 = sample_lightmap_diffuse(0);
-			vec3 direction0 = normalize(tbn * sample_lightmap_direction(0));
+			vec3 direction0 = sample_lightmap_direction(0);
 			diffuse0 *= max(0.0, dot(direction0, fragment.normalmap));
 
 			vec3 diffuse1 = sample_lightmap_diffuse(1);
-			vec3 direction1 = normalize(tbn * sample_lightmap_direction(1));
+			vec3 direction1 = sample_lightmap_direction(1);
 			diffuse1 *= max(0.0, dot(direction1, fragment.normalmap));
 
 			fragment.diffuse = diffuse0 + diffuse1;
@@ -467,9 +483,9 @@ void main(void) {
 		} else if (lightmaps == 4) {
 			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
 		} else if (lightmaps == 5) {
-			out_color.rgb = normalize(((sample_lightmap_direction(0) + sample_lightmap_direction(1)) + 1.0) * 0.5);
+			out_color.rgb = normalize(sample_lightmap_direction(0) + sample_lightmap_direction(1)) * 0.5 + 0.5;
 		} else if (lightmaps == 6) {
-			out_color.rgb = normalize((fragment.normalmap.xyz + 1.0) * 0.5);
+			out_color.rgb = sample_normalmap();
 		}
 
 	} else {
@@ -487,11 +503,11 @@ void main(void) {
 			vec3 ambient = sample_lightmap_ambient();
 
 			vec3 diffuse0 = sample_lightmap_diffuse(0);
-			vec3 direction0 = normalize(tbn * sample_lightmap_direction(0));
+			vec3 direction0 = sample_lightmap_direction(0);
 			diffuse0 *= max(0.0, dot(diffuse0, direction0));
 
 			vec3 diffuse1 = sample_lightmap_diffuse(1);
-			vec3 direction1 = normalize(tbn * sample_lightmap_direction(1));
+			vec3 direction1 = sample_lightmap_direction(1);
 			diffuse1 *= max(0.0, dot(diffuse1, direction1));
 
 			effect.rgb *= (ambient + diffuse0 + diffuse1);
