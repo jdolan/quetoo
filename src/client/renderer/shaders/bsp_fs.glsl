@@ -76,6 +76,13 @@ struct fragment_t {
 /**
  * @brief
  */
+vec4 sample_diffusemap() {
+	return pow(texture(texture_material, vec3(vertex.diffusemap, 0)), vec4(vec3(gamma), 1.0));
+}
+
+/**
+ * @brief
+ */
 vec3 sample_lightmap_ambient() {
 	return texture(texture_lightmap_ambient, vertex.lightmap).rgb * modulate;
 }
@@ -386,7 +393,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
+		fragment.diffusemap = sample_diffusemap();
 		fragment.diffusemap *= vertex.color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
