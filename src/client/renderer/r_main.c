@@ -183,6 +183,9 @@ static void R_UpdateUniforms(const r_view_t *view) {
 			out->lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
 			out->lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
 
+			const vec3_t luxel_size = Vec3(BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE);
+			out->lightgrid.luxel_size = Vec3_ToVec4(Vec3_Divide(luxel_size, size), 0.f);
+
 			const cm_entity_t *worldspawn = r_world_model->bsp->cm->entities[0];
 			const cm_entity_t *fog_color = Cm_EntityValue(worldspawn, "fog_color");
 			const cm_entity_t *fog_density = Cm_EntityValue(worldspawn, "fog_density");

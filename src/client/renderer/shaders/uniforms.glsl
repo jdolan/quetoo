@@ -47,6 +47,11 @@ struct lightgrid_t {
 	 * @brief The lightgrid size, in luxels.
 	 */
 	vec4 size;
+
+	/**
+	 * @brief The lightrgrid luxel size, in texture space.
+	 */
+	vec4 luxel_size;
 };
 
 /**

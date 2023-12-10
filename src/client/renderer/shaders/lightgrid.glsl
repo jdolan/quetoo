@@ -74,10 +74,17 @@ void lightgrid_fog(inout vec4 color, in sampler3D lightgrid_fog_sampler,
 
 	vec4 fog = vec4(0.0);
 
-	int num_samples = int(clamp(length(position) / 16.0, 1, fog_samples));
+	int num_samples = int(clamp(length(position) / (BSP_LIGHTGRID_LUXEL_SIZE / 2.f), 1, fog_samples));
+
+	// Add some movement to fog volumes by shifting the sample coordinates over time
+	vec3 drift_size = lightgrid.luxel_size.xyz * vec3(0.25f, 0.25f, 0.125f);
+	vec3 drift_seed = vec3(ticks / 2000.f, ticks / 3000.f, ticks / 5000.f);
+
+	vec3 drift = sin(drift_seed) * drift_size;
 
 	for (int i = 0; i < num_samples; i++) {
-		vec3 uvw = mix(lightgrid_uvw, lightgrid.view_coordinate.xyz, float(i) / float(num_samples));
+
+		vec3 uvw = mix(lightgrid_uvw + drift, lightgrid.view_coordinate.xyz, float(i) / float(num_samples));
 		fog = max(fog, texture(lightgrid_fog_sampler, uvw));
 	}
 

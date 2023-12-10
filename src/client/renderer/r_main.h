@@ -104,6 +104,11 @@ typedef struct {
 	 * @brief The lightgrid size, in luxels.
 	 */
 	vec4_t size;
+
+	/**
+	 * @brief The lightgrid luxel size, in texture space.
+	 */
+	vec4_t luxel_size;
 } r_lightgrid_t;
 
 #define FOG_DENSITY    1.f
