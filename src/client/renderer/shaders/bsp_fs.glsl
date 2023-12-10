@@ -60,6 +60,9 @@ layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 out_bloom;
 
 struct fragment_t {
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
 	vec3 view_dir;
 	vec4 diffusemap;
 	vec3 normalmap;
@@ -373,9 +376,13 @@ void light_and_shadow(void) {
  */
 void main(void) {
 
-	fragment.view_dir = normalize(-vertex.position);
+	fragment.normal = normalize(vertex.normal);
+	fragment.tangent = normalize(vertex.tangent);
+	fragment.bitangent = normalize(vertex.bitangent);
 
-	mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+	mat3 tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
+
+	fragment.view_dir = normalize(-vertex.position);
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
@@ -395,7 +402,7 @@ void main(void) {
 		fragment.ambient = vec3(0.0), fragment.diffuse = vec3(0.0), fragment.caustics = vec3(0.0), fragment.specular = vec3(0.0);
 		if (entity == 0) {
 			fragment.ambient = sample_lightmap_ambient();
-			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));
+			fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
 
 			vec3 diffuse0 = sample_lightmap_diffuse(0);
 			vec3 direction0 = normalize(tbn * sample_lightmap_direction(0));
@@ -409,7 +416,7 @@ void main(void) {
 
 			fragment.specular += blinn_phong(diffuse0, direction0);
 			fragment.specular += blinn_phong(diffuse1, direction1);
-			fragment.specular += blinn_phong(fragment.ambient, vertex.normal);
+			fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
 
 			fragment.caustics = sample_lightmap_caustics();
 		} else {
