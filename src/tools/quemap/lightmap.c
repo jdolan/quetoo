@@ -86,6 +86,71 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 }
 
 /**
+ * @brief Calculate the Phong-interpolated normal vector for a given luxel using barycentric
+ * coordinates. This reqiures first finding the triangle within the face that best encloses
+ * the luxel origin. The triangles are expanded to help with luxels residing along edges.
+ */
+static vec3_t LuxelNormal(const lightmap_t *lm, const vec3_t origin) {
+
+	vec3_t normal = lm->plane->normal;
+
+	float best = FLT_MAX;
+
+	const int32_t *e = bsp_file.elements + lm->face->first_element;
+	for (int32_t i = 0; i < lm->face->num_elements; i += 3, e += 3) {
+
+		const bsp_vertex_t *v0 = bsp_file.vertexes + e[0];
+		const bsp_vertex_t *v1 = bsp_file.vertexes + e[1];
+		const bsp_vertex_t *v2 = bsp_file.vertexes + e[2];
+
+		const vec3_t center = Vec3_Scale(Vec3_Add(Vec3_Add(v0->position, v1->position), v2->position), 1.f / 3.f);
+		const float padding = BSP_LIGHTMAP_LUXEL_SIZE * 1.f;
+
+		const vec3_t a = Vec3_Fmaf(v0->position, padding, Vec3_Direction(v0->position, center));
+		const vec3_t b = Vec3_Fmaf(v1->position, padding, Vec3_Direction(v1->position, center));
+		const vec3_t c = Vec3_Fmaf(v2->position, padding, Vec3_Direction(v2->position, center));
+
+		vec3_t out;
+		const float bary = Cm_Barycentric(a, b, c, origin, &out);
+		const float delta = fabsf(1.f - bary);
+		if (delta < best) {
+			best = delta;
+
+			normal = Vec3_Zero();
+			normal = Vec3_Fmaf(normal, out.x, v0->normal);
+			normal = Vec3_Fmaf(normal, out.y, v1->normal);
+			normal = Vec3_Fmaf(normal, out.z, v2->normal);
+		}
+	}
+
+	return Vec3_Normalize(normal);
+}
+
+/**
+ * @brief Projects the luxel for the given lightmap into world space.
+ * @param lm The lightmap.
+ * @param l The luxel.
+ * @param soffs The S offset in texture space, for antialiasing.
+ * @param toffs The T offset in texture space, for antialiasing.
+ * @return The contents mask at the projected luxel origin.
+ */
+static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs) {
+
+	const float padding_s = ((lm->st_maxs.x - lm->st_mins.x) - lm->w) * 0.5f;
+	const float padding_t = ((lm->st_maxs.y - lm->st_mins.y) - lm->h) * 0.5f;
+
+	const float s = lm->st_mins.x + padding_s + l->s + 0.5f + soffs;
+	const float t = lm->st_mins.y + padding_t + l->t + 0.5f + toffs;
+
+	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
+	l->normal = LuxelNormal(lm, l->origin);
+	l->origin = Vec3_Fmaf(l->origin, 1.f, l->normal);
+	l->dist = Vec3_Dot(l->origin, l->normal);
+
+	return Light_PointContents(l->origin, lm->model->head_node);
+}
+
+/**
  * @brief Allocates and seeds the luxels for the given lightmap. Projection of the luxels into world
  * space is handled individually by the actual lighting passes, as they have different projections.
  */
@@ -101,6 +166,8 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 
 			l->s = s;
 			l->t = t;
+
+			ProjectLightmapLuxel(lm, l, 0.f, 0.f);
 		}
 	}
 }
@@ -198,71 +265,6 @@ void BuildLightmaps(void) {
 	}
 
 	DebugLightmapLuxels();
-}
-
-/**
- * @brief Calculate the Phong-interpolated normal vector for a given luxel using barycentric
- * coordinates. This reqiures first finding the triangle within the face that best encloses
- * the luxel origin. The triangles are expanded to help with luxels residing along edges.
- */
-static vec3_t LuxelNormal(const lightmap_t *lm, const vec3_t origin) {
-
-	vec3_t normal = lm->plane->normal;
-
-	float best = FLT_MAX;
-
-	const int32_t *e = bsp_file.elements + lm->face->first_element;
-	for (int32_t i = 0; i < lm->face->num_elements; i += 3, e += 3) {
-
-		const bsp_vertex_t *v0 = bsp_file.vertexes + e[0];
-		const bsp_vertex_t *v1 = bsp_file.vertexes + e[1];
-		const bsp_vertex_t *v2 = bsp_file.vertexes + e[2];
-
-		const vec3_t center = Vec3_Scale(Vec3_Add(Vec3_Add(v0->position, v1->position), v2->position), 1.f / 3.f);
-		const float padding = BSP_LIGHTMAP_LUXEL_SIZE * 1.f;
-
-		const vec3_t a = Vec3_Fmaf(v0->position, padding, Vec3_Direction(v0->position, center));
-		const vec3_t b = Vec3_Fmaf(v1->position, padding, Vec3_Direction(v1->position, center));
-		const vec3_t c = Vec3_Fmaf(v2->position, padding, Vec3_Direction(v2->position, center));
-
-		vec3_t out;
-		const float bary = Cm_Barycentric(a, b, c, origin, &out);
-		const float delta = fabsf(1.f - bary);
-		if (delta < best) {
-			best = delta;
-
-			normal = Vec3_Zero();
-			normal = Vec3_Fmaf(normal, out.x, v0->normal);
-			normal = Vec3_Fmaf(normal, out.y, v1->normal);
-			normal = Vec3_Fmaf(normal, out.z, v2->normal);
-		}
-	}
-
-	return Vec3_Normalize(normal);
-}
-
-/**
- * @brief Projects the luxel for the given lightmap into world space.
- * @param lm The lightmap.
- * @param l The luxel.
- * @param soffs The S offset in texture space, for antialiasing.
- * @param toffs The T offset in texture space, for antialiasing.
- * @return The contents mask at the projected luxel origin.
- */
-static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float toffs) {
-
-	const float padding_s = ((lm->st_maxs.x - lm->st_mins.x) - lm->w) * 0.5f;
-	const float padding_t = ((lm->st_maxs.y - lm->st_mins.y) - lm->h) * 0.5f;
-
-	const float s = lm->st_mins.x + padding_s + l->s + 0.5f + soffs;
-	const float t = lm->st_mins.y + padding_t + l->t + 0.5f + toffs;
-
-	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
-	l->normal = LuxelNormal(lm, l->origin);
-	l->origin = Vec3_Fmaf(l->origin, 1.f, l->normal);
-	l->dist = Vec3_Dot(l->origin, l->normal);
-
-	return Light_PointContents(l->origin, lm->model->head_node);
 }
 
 /**
