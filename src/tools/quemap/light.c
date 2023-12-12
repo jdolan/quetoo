@@ -276,7 +276,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 		light->falloff = LIGHT_SPOT_FALLOFF;
 	}
 
-	light->phi = cosf(Radians(light->falloff));
+	light->phi = cosf(Radians(light->cone + light->falloff));
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 	g_array_append_val(points, light->origin);
@@ -349,7 +349,7 @@ static light_t *LightForFace(const bsp_face_t *face) {
 	light->cone = lm->material->cm->light.cone;
 	light->theta = cosf(Radians(light->cone));
 	light->falloff = lm->material->cm->light.falloff;
-	light->phi = cosf(Radians(light->falloff));
+	light->phi = cosf(Radians(light->cone + light->falloff));
 	light->color = lm->material->diffuse;
 	light->intensity = lm->material->cm->light.intensity;
 	light->intensity *= face_intensity;

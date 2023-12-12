@@ -36,8 +36,8 @@
 
 #define LIGHT_SPOT_ANGLE_UP -1.f
 #define LIGHT_SPOT_ANGLE_DOWN -2.f
-#define LIGHT_SPOT_CONE 25.f
-#define LIGHT_SPOT_FALLOFF 5.f
+#define LIGHT_SPOT_CONE 30.f
+#define LIGHT_SPOT_FALLOFF 30.f
 
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.

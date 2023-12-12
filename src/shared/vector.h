@@ -476,7 +476,7 @@ static inline int32_t __attribute__ ((warn_unused_result)) SignOf(float f) {
  */
 static inline float __attribute__ ((warn_unused_result)) Smoothf(float f, float min, float max) {
 	const float s = Clampf((f - min) / (max - min), 0.f, 1.f);
-	return s * s * (3.f - 2.f * s);
+	return s * s;
 }
 
 #pragma mark - vec2_t
