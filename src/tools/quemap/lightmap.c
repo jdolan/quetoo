@@ -145,7 +145,6 @@ static int32_t ProjectLightmapLuxel(const lightmap_t *lm, luxel_t *l, float soff
 	l->origin = Mat4_Transform(lm->inverse_matrix, Vec3(s, t, 0.f));
 	l->normal = LuxelNormal(lm, l->origin);
 	l->origin = Vec3_Fmaf(l->origin, 1.f, l->normal);
-	l->dist = Vec3_Dot(l->origin, l->normal);
 
 	return Light_PointContents(l->origin, lm->model->head_node);
 }

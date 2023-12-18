@@ -39,7 +39,6 @@ typedef struct {
 	int32_t s, t, u;
 	vec3_t origin;
 	vec3_t normal;
-	float dist;
 	lumen_t ambient;
 	lumen_t diffuse[BSP_LIGHTMAP_CHANNELS];
 	vec3_t caustics;
