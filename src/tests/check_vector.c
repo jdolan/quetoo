@@ -114,6 +114,15 @@ START_TEST(_Vec3_Up) {
 	assert_vec3_eq(Vec3(0, 0, 1), Vec3_Up());
 } END_TEST
 
+START_TEST(_Smoothf ) {
+	ck_assert_float_eq(Smoothf(-0.2f, -0.2f, 0.5f), 0.f);
+	ck_assert_float_eq(Smoothf( 0.5f, -0.2f, 0.5f), 1.f);
+
+	ck_assert_float_gt(Smoothf( 0.f, -0.2f, 0.5f),  0.f);
+	ck_assert_float_lt(Smoothf( 0.f, -0.2f, 0.5f),  1.f);
+
+} END_TEST
+
 START_TEST(_Vec4_Bytes) {
 
 	const vec4_t a = Vec4(1, 0, 0, 1);
@@ -164,6 +173,7 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_test(tcase, _Vec3_Subtract);
 	tcase_add_test(tcase, _Vec3_Scale);
 	tcase_add_test(tcase, _Vec3_Up);
+	tcase_add_test(tcase, _Smoothf);
 	tcase_add_test(tcase, _Vec4_Bytes);
 
 	suite_add_tcase(suite, tcase);
