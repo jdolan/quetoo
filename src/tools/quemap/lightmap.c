@@ -446,14 +446,6 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 		return;
 	}
 
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTMAP_LUXEL_SIZE) {
-		return;
-	}
-
-	if (Vec3_Dot(light->origin, luxel->normal) - luxel->dist < -BSP_LIGHTMAP_LUXEL_SIZE) {
-		return;
-	}
-
 	// For neighboring emissive faces of the same material, do not light each other. This avoids
 	// light seams on slime, lava, and other large emissive brush sides that are split by BSP.
 
