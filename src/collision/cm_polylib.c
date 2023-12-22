@@ -138,7 +138,9 @@ float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p, vec3_t *dir) {
 
 		if (dist < distance) {
 			distance = dist;
-			*dir = dir0;
+			if (dir) {
+				*dir = dir0;
+			}
 		}
 	}
 
