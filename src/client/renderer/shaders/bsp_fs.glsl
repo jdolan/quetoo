@@ -499,7 +499,7 @@ void main(void) {
 			st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
 		}
 
-		vec4 effect = texture(texture_stage, st);
+		vec4 effect = pow(texture(texture_stage, st), vec4(vec3(gamma), 1.0));
 		effect *= vertex.color;
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
