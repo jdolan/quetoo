@@ -276,8 +276,8 @@ typedef struct {
 #define MATERIAL_LIGHT_RADIUS 300.f
 #define MATERIAL_LIGHT_INTENSITY 1.f
 #define MATERIAL_LIGHT_SHADOW 1.f
-#define MATERIAL_LIGHT_CONE 60.f
-#define MATERIAL_LIGHT_FALLOFF 30.f
+#define MATERIAL_LIGHT_CONE 75.f
+#define MATERIAL_LIGHT_FALLOFF 60.f
 
 /**
  * @brief Materials define the rendering attributes of textures.
