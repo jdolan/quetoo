@@ -24,6 +24,7 @@ uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
 uniform sampler2D texture_lightmap_ambient;
 uniform sampler2DArray texture_lightmap_diffuse;
+uniform sampler2DArray texture_lightmap_direction;
 uniform sampler2D texture_lightmap_caustics;
 uniform sampler2D texture_lightmap_stains;
 uniform sampler3D texture_lightgrid_ambient;
@@ -111,14 +112,14 @@ vec3 sample_lightmap_ambient() {
  * @brief
  */
 vec3 sample_lightmap_diffuse(int channel) {
-	return texture(texture_lightmap_diffuse, vec3(vertex.lightmap, channel * 2)).rgb * modulate;
+	return texture(texture_lightmap_diffuse, vec3(vertex.lightmap, channel)).rgb * modulate;
 }
 
 /**
 * @brief
 */
 vec3 sample_lightmap_direction(int channel) {
-	vec3 direction = texture(texture_lightmap_diffuse, vec3(vertex.lightmap, channel * 2 + 1)).xyz;
+	vec3 direction = texture(texture_lightmap_direction, vec3(vertex.lightmap, channel)).xyz * 2.0 - 1.0;
 	return normalize(fragment.tbn * normalize(direction));
 }
 
@@ -484,8 +485,8 @@ void main(void) {
 			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
 		} else if (lightmaps == 5) {
 			out_color.rgb = vec3(0.0);
-			out_color.rgb += sample_lightmap_direction(0) * 0.5;
-			out_color.rgb += sample_lightmap_direction(1) * 0.5;
+			out_color.rgb += texture(texture_lightmap_direction, vec3(vertex.lightmap, 0)).xyz * 0.5;
+			out_color.rgb += texture(texture_lightmap_direction, vec3(vertex.lightmap, 1)).xyz * 0.5;
 		} else if (lightmaps == 6) {
 			out_color.rgb = sample_normalmap();
 		}

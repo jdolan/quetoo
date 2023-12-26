@@ -406,18 +406,16 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 		
 		static struct __attribute__((packed)) {
 			color24_t ambient;
-			vec3_t diffuse0;
-			vec3_t direction0;
-			vec3_t diffuse1;
-			vec3_t direction1;
+			vec3_t diffuse[BSP_LIGHTMAP_CHANNELS];
+			color24_t direction[BSP_LIGHTMAP_CHANNELS];
 			color24_t caustics;
 		} default_lightmap;
 
 		default_lightmap.ambient = Color24(255, 255, 255);
-		default_lightmap.diffuse0 = Vec3_Zero();
-		default_lightmap.direction0 = Vec3_Up();
-		default_lightmap.diffuse1 = Vec3_Zero();
-		default_lightmap.direction1 = Vec3_Up();
+		default_lightmap.diffuse[0] = Vec3_Zero();
+		default_lightmap.diffuse[1] = Vec3_Zero();
+		default_lightmap.direction[0] = Color24(127, 127, 255);
+		default_lightmap.direction[1] = Color24(127, 127, 255);
 		default_lightmap.caustics = Color24(0, 0, 0);
 
 		data = (byte *) &default_lightmap;
@@ -443,7 +441,7 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->diffuse->type = IT_LIGHTMAP;
 	out->diffuse->width = out->width;
 	out->diffuse->height = out->width;
-	out->diffuse->depth = 4;
+	out->diffuse->depth = BSP_LIGHTMAP_CHANNELS;
 	out->diffuse->target = GL_TEXTURE_2D_ARRAY;
 	out->diffuse->internal_format = GL_RGB32F;
 	out->diffuse->format = GL_RGB;
@@ -453,10 +451,24 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 
 	R_UploadImage(out->diffuse, data);
 
-	data += out->width * out->width * sizeof(vec3_t);
-	data += out->width * out->width * sizeof(vec3_t);
-	data += out->width * out->width * sizeof(vec3_t);
-	data += out->width * out->width * sizeof(vec3_t);
+	data += out->width * out->width * sizeof(vec3_t) * BSP_LIGHTMAP_CHANNELS;
+
+	out->direction = (r_image_t *) R_AllocMedia("lightmap_direction", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->direction->media.Free = R_FreeImage;
+	out->direction->type = IT_LIGHTMAP;
+	out->direction->width = out->width;
+	out->direction->height = out->width;
+	out->direction->depth = BSP_LIGHTMAP_CHANNELS;
+	out->direction->target = GL_TEXTURE_2D_ARRAY;
+	out->direction->internal_format = GL_RGB8;
+	out->direction->format = GL_RGB;
+	out->direction->pixel_type = GL_UNSIGNED_BYTE;
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIRECTION);
+
+	R_UploadImage(out->direction, data);
+
+	data += out->width * out->width * sizeof(color24_t) * BSP_LIGHTMAP_CHANNELS;
 
 	out->caustics = (r_image_t *) R_AllocMedia("lightmap_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->caustics->media.Free = R_FreeImage;
@@ -534,14 +546,14 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 		static struct __attribute__((packed)) {
 			color24_t ambient;
 			vec3_t diffuse;
-			vec3_t direction;
+			color24_t direction;
 			color24_t caustics;
 			color32_t fog;
 		} default_lightgrid;
 
 		default_lightgrid.ambient = Color24(255, 255, 255);
 		default_lightgrid.diffuse = Vec3_One();
-		default_lightgrid.direction = Vec3_Up();
+		default_lightgrid.direction = Color24(127, 127, 255);
 		default_lightgrid.caustics = Color24(0, 0, 0);
 		default_lightgrid.fog = Color32(0, 0, 0, 0);
 
@@ -595,14 +607,14 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->direction->height = out->size.y;
 	out->direction->depth = out->size.z;
 	out->direction->target = GL_TEXTURE_3D;
-	out->direction->internal_format = GL_RGB32F;
+	out->direction->internal_format = GL_RGB8;
 	out->direction->format = GL_RGB;
-	out->direction->pixel_type = GL_FLOAT;
+	out->direction->pixel_type = GL_UNSIGNED_BYTE;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
 
 	R_UploadImage(out->direction, data);
-	data += luxels * sizeof(vec3_t);
+	data += luxels * sizeof(color24_t);
 
 	out->caustics = (r_image_t *) R_AllocMedia("lightgrid_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->caustics->media.Free = R_FreeImage;

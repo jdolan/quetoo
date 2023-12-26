@@ -687,7 +687,7 @@ void EmitLightgrid(void) {
 	bsp_file.lightgrid_size = sizeof(bsp_lightgrid_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(vec3_t);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(vec3_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 
@@ -704,8 +704,8 @@ void EmitLightgrid(void) {
 	vec3_t *out_diffuse = (vec3_t *) out;
 	out += lg.num_luxels * sizeof(vec3_t);
 
-	vec3_t *out_direction = (vec3_t *) out;
-	out += lg.num_luxels * sizeof(vec3_t);
+	color24_t *out_direction = (color24_t *) out;
+	out += lg.num_luxels * sizeof(color24_t);
 
 	color24_t *out_caustics = (color24_t *) out;
 	out += lg.num_luxels * sizeof(color24_t);
@@ -718,16 +718,20 @@ void EmitLightgrid(void) {
 
 		SDL_Surface *ambient = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_ambient);
 		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(vec3_t), out_diffuse);
-		SDL_Surface *direction = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(vec3_t), out_direction);
+		SDL_Surface *direction = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_direction);
 		SDL_Surface *caustics = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_caustics);
 		SDL_Surface *fog = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_fog);
 
 		for (int32_t t = 0; t < lg.size.y; t++) {
 			for (int32_t s = 0; s < lg.size.x; s++, l++) {
 
+				const color32_t encoded = {
+					.rgba = Vec3_Bytes(l->diffuse[0].direction)
+				};
+
 				*out_ambient++ = Color_Color24(Color3fv(l->ambient.color));
 				*out_diffuse++ = l->diffuse[0].color;
-				*out_direction++ = l->diffuse[0].direction;
+				*out_direction++ = Color32_Color24(encoded);
 				*out_caustics++ = Color_Color24(Color3fv(l->caustics));
 				*out_fog++ = Color_Color32(Color4fv(l->fog));
 			}
