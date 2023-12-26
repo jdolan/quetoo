@@ -321,8 +321,8 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 
 		const vec3_t dir = Vec3_Negate(light->points[i]);
 		const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
-		const cm_trace_t trace = Light_Trace(luxel->origin, end, lightmap->model->head_node, CONTENTS_SOLID);
 
+		const cm_trace_t trace = Light_Trace(luxel->origin, end, lightmap->model->head_node, CONTENTS_SOLID);
 		if (trace.surface & SURF_SKY) {
 			Luxel_Illuminate(luxel, &(const lumen_t) {
 				.light = light,

@@ -163,6 +163,8 @@ static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float s
  */
 static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale) {
 
+	const float lumens = (1.f / light->num_points) * scale;
+
 	for (int32_t i = 0; i < light->num_points; i++) {
 
 		const vec3_t dir = Vec3_Negate(light->points[i]);
@@ -170,12 +172,10 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
 		if (trace.surface & SURF_SKY) {
-			const float lumens = (1.f / light->num_points) * scale;
-
 			Luxel_Illuminate(luxel, &(const lumen_t) {
 				.light = light,
-				.color = Vec3_Scale(light->color, lumens),
-				.direction = Vec3_Scale(dir, lumens * light->intensity)
+				.color = Vec3_Scale(light->color, light->intensity * lumens),
+				.direction = Vec3_Scale(dir, lumens)
 			});
 		}
 	}
@@ -207,7 +207,10 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 			break;
 	}
 
-	const float lumens = atten * scale * light->intensity;
+	const float lumens = atten * scale / light->num_points;
+	if (lumens <= 0.f) {
+		return;
+	}
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -218,10 +221,9 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, lumens),
+			.color = Vec3_Scale(light->color, light->intensity * lumens),
 			.direction = Vec3_Scale(dir, lumens)
 		});
-		break;
 	}
 }
 
@@ -253,9 +255,16 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 	}
 
 	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	atten *= Smoothf(dot, light->theta - light->phi, light->theta + light->phi);
+	if (dot < light->theta) {
 
-	const float lumens = atten * scale * light->intensity;
+		if (dot < light->phi) {
+			return;
+		}
+
+		atten *= atten;//Smoothf(dot, light->phi, light->theta);
+	}
+
+	const float lumens = atten * scale / light->num_points;
 	if (lumens <= 0.f) {
 		return;
 	}
@@ -272,7 +281,6 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 			.color = Vec3_Scale(light->color, lumens),
 			.direction = Vec3_Scale(dir, lumens)
 		});
-		break;
 	}
 }
 
@@ -280,18 +288,12 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
  * @brief
  */
 static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scale) {
-	vec3_t dir;
 
 	if (light->model != bsp_file.models) {
 		return;
 	}
 
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTGRID_LUXEL_SIZE) {
-		return;
-	}
-
-	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
-	dist = Maxf(0.f, dist - light->size * .5f);
+	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin, NULL);
 	if (dist > light->radius) {
 		return;
 	}
@@ -311,15 +313,20 @@ static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scal
 			break;
 	}
 
-	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	atten *= Smoothf(dot, light->theta - light->phi, light->theta + light->phi);
-
-	const float lumens = atten * scale * light->intensity;
-	if (lumens <= 0.f) {
-		return;
-	}
-
 	for (int32_t i = 0; i < light->num_points; i++) {
+
+		float lumens = atten * scale / light->num_points;
+
+		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
+		const float dot = Vec3_Dot(Vec3_Negate(dir), light->normal);
+		if (dot <= light->theta) {
+
+			if (dot <= light->phi) {
+				continue;
+			}
+
+			lumens *= atten; //FIXME Smoothf(dot, light->phi, light->theta);
+		}
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
 		if (trace.fraction < 1.f) {
@@ -328,10 +335,9 @@ static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scal
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, lumens),
+			.color = Vec3_Scale(light->color, light->intensity * lumens),
 			.direction = Vec3_Scale(dir, lumens)
 		});
-		break;
 	}
 }
 
