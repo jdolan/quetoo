@@ -37,7 +37,6 @@ out vertex_data {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
-	mat3 tbn;
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec3 lightgrid;
@@ -65,8 +64,6 @@ void main(void) {
 	vertex.normal = normalize(vec3(view_model * normal));
 	vertex.tangent = normalize(vec3(view_model * tangent));
 	vertex.bitangent = normalize(vec3(view_model * bitangent));
-
-	vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;

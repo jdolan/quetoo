@@ -47,7 +47,6 @@ in geometry_data {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
-	mat3 tbn;
 	vec2 diffusemap;
 	vec2 lightmap;
 	vec3 lightgrid;
@@ -64,7 +63,8 @@ struct fragment_t {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
-	vec3 view_dir;
+	mat3 tbn;
+	vec3 dir;
 	vec4 diffusemap;
 	vec3 normalmap;
 	vec4 specularmap;
@@ -87,7 +87,7 @@ vec4 sample_diffusemap() {
 vec3 sample_normalmap() {
 	vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz * 2.0 - 1.0;
 	vec3 roughness = vec3(vec2(material.roughness), 1.0);
-	return normalize(vertex.tbn * normalize(normalmap * roughness));
+	return normalize(fragment.tbn * normalize(normalmap * roughness));
 }
 
 /**
@@ -119,7 +119,7 @@ vec3 sample_lightmap_diffuse(int channel) {
 */
 vec3 sample_lightmap_direction(int channel) {
 	vec3 direction = texture(texture_lightmap_diffuse, vec3(vertex.lightmap, channel * 2 + 1)).xyz;
-	return normalize(vertex.tbn * normalize(direction));
+	return normalize(fragment.tbn * normalize(direction));
 }
 
 /**
@@ -147,7 +147,7 @@ vec4 sample_lightgrid(sampler3D texture_lightgrid) {
  * @brief
  */
 vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
-	return diffuse * fragment.specularmap.rgb * blinn(fragment.normalmap, light_dir, fragment.view_dir, fragment.specularmap.w);
+	return diffuse * fragment.specularmap.rgb * blinn(fragment.normalmap, light_dir, fragment.dir, fragment.specularmap.w);
 }
 
 /**
@@ -407,8 +407,8 @@ void main(void) {
 	fragment.normal = normalize(vertex.normal);
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
-
-	fragment.view_dir = normalize(-vertex.position);
+	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
+	fragment.dir = normalize(-vertex.position);
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
@@ -422,7 +422,7 @@ void main(void) {
 		fragment.normalmap = sample_normalmap();
 		fragment.specularmap = sample_specularmap();
 
-		fragment.ambient = vec3(0.0), fragment.diffuse = vec3(0.0), fragment.caustics = vec3(0.0), fragment.specular = vec3(0.0);
+		fragment.ambient = vec3(0.0), fragment.diffuse = vec3(0.0), fragment.specular = vec3(0.0), fragment.caustics = vec3(0.0);
 		if (entity == 0) {
 			fragment.ambient = sample_lightmap_ambient();
 			fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
@@ -483,7 +483,9 @@ void main(void) {
 		} else if (lightmaps == 4) {
 			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
 		} else if (lightmaps == 5) {
-			out_color.rgb = normalize(sample_lightmap_direction(0) + sample_lightmap_direction(1)) * 0.5 + 0.5;
+			out_color.rgb = vec3(0.0);
+			out_color.rgb += sample_lightmap_direction(0) * 0.5;
+			out_color.rgb += sample_lightmap_direction(1) * 0.5;
 		} else if (lightmaps == 6) {
 			out_color.rgb = sample_normalmap();
 		}
