@@ -27,7 +27,6 @@
 #define LIGHT_RADIUS 300.f
 #define LIGHT_INTENSITY 1.f
 #define LIGHT_SHADOW 1.f
-#define LIGHT_SIZE_STEP 16.f
 
 #define LIGHT_AMBIENT_RADIUS 256.f
 
@@ -128,11 +127,6 @@ typedef struct light_s {
 	 * @brief The light source winding for face lights.
 	 */
 	cm_winding_t *winding;
-
-	/**
-	 * @brief The light source face for face and patch lights.
-	 */
-	const bsp_face_t *face;
 
 	/**
 	 * @brief The light source brush side for face and patch lights.
