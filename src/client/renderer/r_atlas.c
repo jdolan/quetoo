@@ -99,11 +99,6 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 	node->w = surf->w;
 	node->h = surf->h;
 
-	if ((type & IT_MASK_QUALITY) && r_sprite_downsample->integer > 1) {
-		node->w = Maxf(1, surf->w / r_sprite_downsample->integer);
-		node->h = Maxf(1, surf->h / r_sprite_downsample->integer);
-	}
-
 	atlas_image->image.type = type;
 	atlas_image->image.width = surf->w;
 	atlas_image->image.height = surf->h;

@@ -97,7 +97,6 @@ typedef enum {
  */
 #define IT_MASK_MIPMAP		(1 << 24)
 #define IT_MASK_CLAMP_EDGE  (1 << 25)
-#define IT_MASK_QUALITY		(1 << 26)
 #define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE)
 
 /**

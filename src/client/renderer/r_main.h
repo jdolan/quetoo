@@ -44,7 +44,6 @@ extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadowmap;
 extern cvar_t *r_shadowmap_size;
 extern cvar_t *r_specularity;
-extern cvar_t *r_sprite_downsample;
 extern cvar_t *r_stains;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_downsample;
