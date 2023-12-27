@@ -209,7 +209,9 @@ void R_SetupImage(r_image_t *image) {
 	assert(image->width);
 	assert(image->height);
 	assert(image->target);
+	assert(image->internal_format);
 	assert(image->format);
+	assert(image->pixel_type);
 
 	if (image->texnum == 0) {
 		glGenTextures(1, &(image->texnum));
@@ -239,19 +241,22 @@ void R_SetupImage(r_image_t *image) {
 		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
 
-	GLsizei levels = 1;
-	if (image->type & IT_MASK_MIPMAP) {
-		if (image->depth && image->target == GL_TEXTURE_3D) {
-			levels = floorf(log2f(Mini(Mini(image->width, image->height), image->depth))) + 1;
+	if (image->levels == 0) {
+		if (image->type & IT_MASK_MIPMAP) {
+			if (image->depth && image->target == GL_TEXTURE_3D) {
+				image->levels = floorf(log2f(Mini(Mini(image->width, image->height), image->depth))) + 1;
+			} else {
+				image->levels = floorf(log2f(Mini(image->width, image->height))) + 1;
+			}
 		} else {
-			levels = floorf(log2f(Mini(image->width, image->height))) + 1;
+			image->levels = 1;
 		}
 	}
 
 	if (image->depth) {
-		glTexStorage3D(image->target, levels, image->internal_format, image->width, image->height, image->depth);
+		glTexStorage3D(image->target, image->levels, image->internal_format, image->width, image->height, image->depth);
 	} else {
-		glTexStorage2D(image->target, levels, image->internal_format, image->width, image->height);
+		glTexStorage2D(image->target, image->levels, image->internal_format, image->width, image->height);
 	}
 
 	R_RegisterMedia((r_media_t *) image);

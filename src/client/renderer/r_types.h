@@ -141,6 +141,11 @@ typedef struct {
 	GLenum target;
 
 	/**
+	 * @brief The number of mipmap levels to allocate.
+	 */
+	GLsizei levels;
+
+	/**
 	 * @brief The internal pixel format, typically `GL_RGB` or `GL_RGBA`, but may be a sized value.
 	 */
 	GLenum internal_format;

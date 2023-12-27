@@ -147,12 +147,17 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	R_FreeImage((r_media_t *) atlas->image);
 
-	GLsizei levels = INT32_MAX;
-
+	atlas->image->target = GL_TEXTURE_2D;
+	atlas->image->levels = INT32_MAX;
+	
 	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
 		const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
-		levels = MIN(levels, floorf(log2f(MAX(node->w, node->h)) + 1));
+		atlas->image->levels = Mini(atlas->image->levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
 	}
+	
+	atlas->image->internal_format = GL_RGBA8;
+	atlas->image->format = GL_RGBA;
+	atlas->image->pixel_type = GL_UNSIGNED_BYTE;
 
 	atlas->image->width = 0;
 
@@ -167,16 +172,13 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 			atlas->image->width = width;
 			atlas->image->height = width;
-			atlas->image->target = GL_TEXTURE_2D;
-			atlas->image->internal_format = GL_RGBA8;
-			atlas->image->format = GL_RGBA;
 
 			R_SetupImage(atlas->image);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, atlas->image->levels - 1);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
 
-			for (GLsizei i = 1; i < levels; i++) {
+			for (GLsizei i = 1; i < atlas->image->levels; i++) {
 				SDL_Surface *mip_surf = SDL_CreateRGBSurfaceWithFormat(0, width >> i, width >> i, 32, SDL_PIXELFORMAT_RGBA32);
 
 				for (guint l = 0; l < atlas->atlas->nodes->len; l++) {
@@ -184,9 +186,15 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 					const r_atlas_image_t *atlas_image = node->data;
 
 					SDL_BlitScaled(surf, &(const SDL_Rect) {
-						.x = node->x, .y = node->y, .w = atlas_image->image.width, .h = atlas_image->image.height
+						.x = node->x, 
+						.y = node->y,
+						.w = atlas_image->image.width,
+						.h = atlas_image->image.height
 					}, mip_surf, &(SDL_Rect) {
-						.x = node->x >> i, .y = node->y >> i, .w = node->w >> i, .h = node->h >> i
+						.x = node->x >> i, 
+						.y = node->y >> i,
+						.w = node->w >> i,
+						.h = node->h >> i
 					});
 				}
 				
