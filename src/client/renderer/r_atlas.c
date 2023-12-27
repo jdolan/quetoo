@@ -52,7 +52,7 @@ r_atlas_t *R_LoadAtlas(const char *name) {
 		atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), R_MEDIA_IMAGE);
 		atlas->image->media.Free = R_FreeImage;
 
-		atlas->image->type = IT_ATLAS;
+		atlas->image->type = IMG_ATLAS;
 
 		R_RegisterMedia((r_media_t *) atlas->image);
 		R_RegisterMedia((r_media_t *) atlas);

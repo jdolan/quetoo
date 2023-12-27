@@ -54,9 +54,9 @@ static r_animation_t *R_LoadStageAnimation(r_stage_t *stage, cm_asset_context_t 
 
 		cm_asset_t *frame = &stage->cm->animation.frames[i];
 		if (*frame->path) {
-			*out = R_LoadImage(frame->path, IT_MATERIAL);
+			*out = R_LoadImage(frame->path, IMG_MATERIAL);
 		} else {
-			*out = R_LoadImage("textures/common/notex", IT_MATERIAL);
+			*out = R_LoadImage("textures/common/notex", IMG_MATERIAL);
 			Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->cm->asset.name);
 		}
 	}
@@ -196,7 +196,7 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 			} else if (stage->cm->flags & STAGE_MATERIAL) {
 				stage->media = (r_media_t *) R_LoadMaterial(stage->cm->asset.name, context);
 			} else {
-				stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IT_MATERIAL);
+				stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
 			}
 
 			assert(stage->media);
@@ -228,7 +228,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 	R_RegisterMedia((r_media_t *) material);
 
 	material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), R_MEDIA_IMAGE);
-	material->texture->type = IT_MATERIAL;
+	material->texture->type = IMG_MATERIAL;
 	material->texture->target = GL_TEXTURE_2D;
 	material->texture->internal_format = GL_RGBA8;
 	material->texture->format = GL_RGBA;

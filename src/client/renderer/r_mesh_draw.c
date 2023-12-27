@@ -505,7 +505,7 @@ void R_InitMeshProgram(void) {
 	
 	R_GetError(NULL);
 
-	r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IT_PROGRAM);
+	r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IMG_PROGRAM);
 	assert(r_mesh_program.shell);
 }
 

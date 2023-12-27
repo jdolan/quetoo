@@ -851,8 +851,12 @@ void EmitLightmap(void) {
 								lm->ambient,
 								lm->diffuse[0],
 								lm->diffuse[1],
+								lm->diffuse[2],
+								lm->diffuse[3],
 								lm->direction[0],
 								lm->direction[1],
+								lm->direction[2],
+								lm->direction[3],
 								lm->caustics);
 	}
 
@@ -863,10 +867,8 @@ void EmitLightmap(void) {
 
 		bsp_file.lightmap_size = sizeof(bsp_lightmap_t);
 		bsp_file.lightmap_size += layer_size * sizeof(color24_t);
-		bsp_file.lightmap_size += layer_size * sizeof(vec3_t);
-		bsp_file.lightmap_size += layer_size * sizeof(vec3_t);
-		bsp_file.lightmap_size += layer_size * sizeof(color24_t);
-		bsp_file.lightmap_size += layer_size * sizeof(color24_t);
+		bsp_file.lightmap_size += layer_size * sizeof(vec3_t) * BSP_LIGHTMAP_CHANNELS;
+		bsp_file.lightmap_size += layer_size * sizeof(color24_t) * BSP_LIGHTMAP_CHANNELS;
 		bsp_file.lightmap_size += layer_size * sizeof(color24_t);
 
 		Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAP, bsp_file.lightmap_size);
@@ -879,47 +881,63 @@ void EmitLightmap(void) {
 		SDL_Surface *ambient = CreateLuxelSurface(width, width, sizeof(color24_t), out);
 		out += layer_size * sizeof(color24_t);
 
-		SDL_Surface *diffuse0 = CreateLuxelSurface(width, width, sizeof(vec3_t), out);
-		out += layer_size * sizeof(vec3_t);
+		SDL_Surface *diffuse[BSP_LIGHTMAP_CHANNELS];
+		for (size_t i = 0; i < lengthof(diffuse); i++) {
+			diffuse[i] = CreateLuxelSurface(width, width, sizeof(vec3_t), out);
+			out += layer_size * sizeof(vec3_t);
+		}
 
-		SDL_Surface *diffuse1 = CreateLuxelSurface(width, width, sizeof(vec3_t), out);
-		out += layer_size * sizeof(vec3_t);
-
-		SDL_Surface *direction0 = CreateLuxelSurface(width, width, sizeof(color24_t), out);
-		out += layer_size * sizeof(color24_t);
-
-		SDL_Surface *direction1 = CreateLuxelSurface(width, width, sizeof(color24_t), out);
-		out += layer_size * sizeof(color24_t);
+		SDL_Surface *direction[BSP_LIGHTMAP_CHANNELS];
+		for (size_t i = 0; i < lengthof(direction); i++) {
+			direction[i] = CreateLuxelSurface(width, width, sizeof(color24_t), out);
+			out += layer_size * sizeof(color24_t);
+		}
 
 		SDL_Surface *caustics = CreateLuxelSurface(width, width, sizeof(color24_t), out);
 		out += layer_size * sizeof(color24_t);
 
-		if (Atlas_Compile(atlas, 0, ambient, diffuse0, diffuse1, direction0, direction1, caustics) == 0) {
+		if (Atlas_Compile(atlas, 
+						  0,
+						  ambient,
+						  diffuse[0], diffuse[1], diffuse[2], diffuse[3],
+						  direction[0], direction[1], direction[2], direction[3], 
+						  caustics) == 0) {
 
 			if (debug) {
 				WriteLuxelSurface(ambient, va("/tmp/%s_lm_ambient.png", map_base));
-				WriteLuxelSurface(diffuse0, va("/tmp/%s_lm_diffuse0.png", map_base));
-				WriteLuxelSurface(diffuse1, va("/tmp/%s_lm_diffuse1.png", map_base));
-				WriteLuxelSurface(direction0, va("/tmp/%s_lm_direction0.png", map_base));
-				WriteLuxelSurface(direction1, va("/tmp/%s_lm_direction1.png", map_base));
+				for (size_t i = 0; i < lengthof(diffuse); i++) {
+					WriteLuxelSurface(diffuse[i], va("/tmp/%s_lm_diffuse_%zd.png", map_base, i));
+				}
+				for (size_t i = 0; i < lengthof(direction); i++) {
+					WriteLuxelSurface(direction[i], va("/tmp/%s_lm_direction_%zd.png", map_base, i));
+				}
 				WriteLuxelSurface(caustics, va("/tmp/%s_lm_caustics.png", map_base));
 			}
 
 			SDL_FreeSurface(ambient);
-			SDL_FreeSurface(diffuse0);
-			SDL_FreeSurface(diffuse1);
-			SDL_FreeSurface(direction0);
-			SDL_FreeSurface(direction1);
-			SDL_FreeSurface(caustics);
 
+			for (size_t i = 0; i < lengthof(diffuse); i++) {
+				SDL_FreeSurface(diffuse[i]);
+			}
+
+			for (size_t i = 0; i < lengthof(direction); i++) {
+				SDL_FreeSurface(direction[i]);
+			}
+
+			SDL_FreeSurface(caustics);
 			break;
 		}
 
 		SDL_FreeSurface(ambient);
-		SDL_FreeSurface(diffuse0);
-		SDL_FreeSurface(diffuse1);
-		SDL_FreeSurface(direction0);
-		SDL_FreeSurface(direction1);
+
+		for (size_t i = 0; i < lengthof(diffuse); i++) {
+			SDL_FreeSurface(diffuse[i]);
+		}
+
+		for (size_t i = 0; i < lengthof(direction); i++) {
+			SDL_FreeSurface(direction[i]);
+		}
+
 		SDL_FreeSurface(caustics);
 	}
 
@@ -946,9 +964,13 @@ void EmitLightmap(void) {
 
 		SDL_FreeSurface(lm->ambient);
 		SDL_FreeSurface(lm->diffuse[0]);
-		SDL_FreeSurface(lm->direction[0]);
 		SDL_FreeSurface(lm->diffuse[1]);
+		SDL_FreeSurface(lm->diffuse[2]);
+		SDL_FreeSurface(lm->diffuse[3]);
+		SDL_FreeSurface(lm->direction[0]);
 		SDL_FreeSurface(lm->direction[1]);
+		SDL_FreeSurface(lm->direction[2]);
+		SDL_FreeSurface(lm->direction[3]);
 		SDL_FreeSurface(lm->caustics);
 	}
 

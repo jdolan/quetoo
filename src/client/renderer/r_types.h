@@ -93,26 +93,19 @@ typedef enum {
 } r_model_type_t;
 
 /**
- * @brief Bit masks used in conjunction with r_image_type_t.
- */
-#define IT_MASK_MIPMAP		(1 << 24)
-#define IT_MASK_CLAMP_EDGE  (1 << 25)
-#define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE)
-
-/**
  * @brieef Image types.
  */
 typedef enum {
-	IT_PROGRAM =     (1 <<  1),
-	IT_FONT =        (1 <<  2),
-	IT_UI =          (1 <<  3),
-	IT_SPRITE =      (1 <<  4) + (IT_MASK_MIPMAP),
-	IT_MATERIAL =    (1 <<  5) + (IT_MASK_MIPMAP),
-	IT_CUBEMAP =     (1 <<  6) + (IT_MASK_CLAMP_EDGE),
-	IT_PIC =         (1 <<  7) + (IT_MASK_MIPMAP),
-	IT_ATLAS =       (1 <<  8) + (IT_MASK_CLAMP_EDGE),
-	IT_LIGHTMAP =    (1 <<  9) + (IT_MASK_CLAMP_EDGE),
-	IT_LIGHTGRID =   (1 << 10) + (IT_MASK_CLAMP_EDGE),
+	IMG_PROGRAM = 1,
+	IMG_FONT,
+	IMG_UI,
+	IMG_PIC,
+	IMG_SPRITE,
+	IMG_ATLAS,
+	IMG_MATERIAL,
+	IMG_CUBEMAP,
+	IMG_LIGHTMAP,
+	IMG_LIGHTGRID,
 } r_image_type_t;
 
 /**
@@ -140,9 +133,14 @@ typedef struct {
 	GLenum target;
 
 	/**
-	 * @brief The number of mipmap levels to allocate.
+	 * @brief The number of mipmap levels to allocate, typically `log2(Maxi(w, h)) + 1`.
 	 */
 	GLsizei levels;
+
+	/**
+	 * @brief The minification and magnifaction filters, typically `GL_LINEAR`.
+	 */
+	GLenum minify, magnify;
 
 	/**
 	 * @brief The internal pixel format, typically `GL_RGB` or `GL_RGBA`, but may be a sized value.

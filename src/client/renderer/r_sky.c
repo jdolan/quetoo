@@ -181,18 +181,16 @@ void R_LoadSky(const char *name) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
 
 	if (name && *name) {
-		r_sky.image = R_LoadImage(va("sky/%s", name), IT_CUBEMAP);
+		r_sky.image = R_LoadImage(va("sky/%s", name), IMG_CUBEMAP);
 	} else {
 		r_sky.image = NULL;
 	}
 
 	if (r_sky.image == NULL) {
-
 		Com_Warn("Failed to load sky sky/%s\n", name);
 
-		r_sky.image = R_LoadImage("sky/template", IT_CUBEMAP);
+		r_sky.image = R_LoadImage("sky/template", IMG_CUBEMAP);
 		if (r_sky.image == NULL) {
-
 			Com_Error(ERROR_DROP, "Failed to load default sky\n");
 		}
 	}

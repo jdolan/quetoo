@@ -295,7 +295,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 	vec2_t texcoords[4];
 	R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
 
-	if (!(b->image->type & IT_MASK_CLAMP_EDGE)) {
+	//FIXME: if (!(b->image->type & IT_MASK_CLAMP_EDGE)) {
 
 		if (b->stretch) {
 			length *= b->stretch;
@@ -309,7 +309,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 				texcoords[i].x += b->translate;
 			}
 		}
-	}
+	//}
 
 	float step = 1.f;
 	for (float frac = 0.f; frac < 1.f; ) {

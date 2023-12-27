@@ -158,9 +158,9 @@ static _Bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const c
 				Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin)) {
 
 				g_snprintf(path, sizeof(path), "players/%s/%s_i.tga", ci->model, ci->skin);
-				ci->icon = cgi.LoadImage(path, IT_PIC);
+				ci->icon = cgi.LoadImage(path, IMG_PIC);
 
-				if (ci->icon->type == IT_PIC) {
+				if (ci->icon->type == IMG_PIC) {
 					return true;
 				}
 			}

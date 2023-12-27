@@ -154,7 +154,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 	const color32_t *fog = (color32_t *) in;
 	in += num_luxels * sizeof(color32_t);
 
-	r_image_t *particle = R_LoadImage("sprites/particle", IT_SPRITE);
+	r_image_t *particle = R_LoadImage("sprites/particle", IMG_SPRITE);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
@@ -816,7 +816,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.warp_image->media.Free = R_FreeImage;
 
 	r_bsp_program.warp_image->width = r_bsp_program.warp_image->height = WARP_IMAGE_SIZE;
-	r_bsp_program.warp_image->type = IT_PROGRAM;
+	r_bsp_program.warp_image->type = IMG_PROGRAM;
 	r_bsp_program.warp_image->target = GL_TEXTURE_2D;
 	r_bsp_program.warp_image->internal_format = GL_RGBA8;
 	r_bsp_program.warp_image->format = GL_RGBA;

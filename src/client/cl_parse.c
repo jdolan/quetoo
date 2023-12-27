@@ -188,7 +188,7 @@ int32_t Cl_ParseConfigString(void) {
 		}
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
 		if (cls.state == CL_ACTIVE) {
-			cl.images[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
+			cl.images[i - CS_IMAGES] = R_LoadImage(s, IMG_PIC);
 		}
 	}
 
