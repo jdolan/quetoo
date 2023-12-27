@@ -440,7 +440,7 @@ static void R_InitConfig(void) {
 	r_config.vendor = (const char *) glGetString(GL_VENDOR);
 	r_config.version = (const char *) glGetString(GL_VERSION);
 
-	int32_t num_extensions;
+	GLint num_extensions;
 	glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
