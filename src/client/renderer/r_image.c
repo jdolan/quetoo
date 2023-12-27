@@ -239,22 +239,19 @@ void R_SetupImage(r_image_t *image) {
 		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
 
-	if (r_texture_storage->integer && GLAD_GL_ARB_texture_storage) {
-
-		GLsizei levels = 1;
-		if (image->type & IT_MASK_MIPMAP) {
-			if (image->depth && image->target == GL_TEXTURE_3D) {
-				levels = floorf(log2f(Mini(Mini(image->width, image->height), image->depth))) + 1;
-			} else {
-				levels = floorf(log2f(Mini(image->width, image->height))) + 1;
-			}
-		}
-		
-		if (image->depth) {
-			glTexStorage3D(image->target, levels, image->internal_format, image->width, image->height, image->depth);
+	GLsizei levels = 1;
+	if (image->type & IT_MASK_MIPMAP) {
+		if (image->depth && image->target == GL_TEXTURE_3D) {
+			levels = floorf(log2f(Mini(Mini(image->width, image->height), image->depth))) + 1;
 		} else {
-			glTexStorage2D(image->target, levels, image->internal_format, image->width, image->height);
+			levels = floorf(log2f(Mini(image->width, image->height))) + 1;
 		}
+	}
+
+	if (image->depth) {
+		glTexStorage3D(image->target, levels, image->internal_format, image->width, image->height, image->depth);
+	} else {
+		glTexStorage2D(image->target, levels, image->internal_format, image->width, image->height);
 	}
 
 	R_RegisterMedia((r_media_t *) image);
@@ -279,18 +276,10 @@ void R_UploadImageTarget(r_image_t *image, GLenum target, void *data) {
 
 	glBindTexture(image->target, image->texnum);
 
-	if (r_texture_storage->integer && GLAD_GL_ARB_texture_storage) {
-		if (image->depth) {
-			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, image->pixel_type, data);
-		} else {
-			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, image->pixel_type, data);
-		}
+	if (image->depth > 1) {
+		glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, image->pixel_type, data);
 	} else {
-		if (image->depth) {
-			glTexImage3D(target, 0, image->internal_format, image->width, image->height, image->depth, 0, image->format, image->pixel_type, data);
-		} else {
-			glTexImage2D(target, 0, image->internal_format, image->width, image->height, 0, image->format, image->pixel_type, data);
-		}
+		glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, image->pixel_type, data);
 	}
 
 	if (image->type & IT_MASK_MIPMAP) {

@@ -49,7 +49,6 @@ extern cvar_t *r_stains;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_downsample;
 extern cvar_t *r_texture_mode;
-extern cvar_t *r_texture_storage;
 extern cvar_t *r_tonemap;
 extern cvar_t *r_width;
 

@@ -496,7 +496,12 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
 
+	byte *stains = Mem_Malloc(out->width * out->width * sizeof(color32_t));
+	Color32_Fill(stains, Color_Color32(color_white), out->width * out->width);
+
 	R_UploadImage(out->stains, NULL);
+
+	Mem_Free(stains);
 }
 
 /**

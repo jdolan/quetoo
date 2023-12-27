@@ -72,7 +72,6 @@ cvar_t *r_stains;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_downsample;
 cvar_t *r_texture_mode;
-cvar_t *r_texture_storage;
 cvar_t *r_tonemap;
 cvar_t *r_width;
 
@@ -418,7 +417,6 @@ static void R_InitLocal(void) {
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_downsample = Cvar_Add("r_texture_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of textures to boost performance on low-end systems.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode.");
-	r_texture_storage = Cvar_Add("r_texture_storage", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies whether to use newer texture storage routines; keep on unless you have errors stemming from glTexStorage.");
 	r_tonemap = Cvar_Add("r_tonemap", "1", CVAR_ARCHIVE, "Selects the tonemapping algorithm for HDR");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 

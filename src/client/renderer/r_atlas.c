@@ -174,12 +174,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 			R_SetupImage(atlas->image);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
-
-			if (r_texture_storage->integer && GL_ARB_texture_storage) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
-			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, surf->w, surf->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
-			}
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
 
 			for (GLsizei i = 1; i < levels; i++) {
 				SDL_Surface *mip_surf = SDL_CreateRGBSurfaceWithFormat(0, width >> i, width >> i, 32, SDL_PIXELFORMAT_RGBA32);
@@ -195,11 +190,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 					});
 				}
 				
-				if (r_texture_storage->integer && GL_ARB_texture_storage) {
-					glTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mip_surf->w, mip_surf->h, GL_RGBA, GL_UNSIGNED_BYTE, mip_surf->pixels);
-				} else {
-					glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA8, mip_surf->w, mip_surf->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, mip_surf->pixels);
-				}
+				glTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mip_surf->w, mip_surf->h, GL_RGBA, GL_UNSIGNED_BYTE, mip_surf->pixels);
 
 				R_GetError(NULL);
 
