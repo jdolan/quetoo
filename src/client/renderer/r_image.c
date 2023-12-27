@@ -95,14 +95,7 @@ static void R_TextureMode(void) {
 	}
 
 	if (r_anisotropy->value) {
-		if (GLAD_GL_ARB_texture_filter_anisotropic) {
-			GLfloat max_anisotropy;
-			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &max_anisotropy);
-			r_image_state.anisotropy = Minf(max_anisotropy, r_anisotropy->value);
-		} else {
-			Com_Warn("Anisotropy is enabled but not supported by your GPU.\n");
-			Cvar_ForceSetInteger(r_anisotropy->name, 0);
-		}
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &r_image_state.anisotropy);
 	} else {
 		r_image_state.anisotropy = 1.0;
 	}
@@ -235,10 +228,6 @@ void R_SetupImage(r_image_t *image) {
 		glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	} else {
-		glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
 
 	if (image->levels == 0) {
