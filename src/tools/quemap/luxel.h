@@ -28,8 +28,8 @@
  */
 typedef struct {
 	const light_t *light;
-	vec3_t color;
 	vec3_t direction;
+	float lumens;
 } lumen_t;
 
 /**

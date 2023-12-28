@@ -103,8 +103,8 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 	light->type = LIGHT_SUN;
 	light->atten = LIGHT_ATTEN_NONE;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
-	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
+	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->bounds = Box3_Null();
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
@@ -328,7 +328,6 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
  * @brief
  */
 static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t side) {
-
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 

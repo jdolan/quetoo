@@ -156,7 +156,7 @@ static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float s
 
 	Luxel_Illuminate(luxel, &(const lumen_t) {
 		.light = light,
-		.color = Vec3_Scale(light->color, light->intensity * scale)
+		.lumens = scale,
 	});
 }
 
@@ -173,13 +173,15 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 		const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
-		if (trace.surface & SURF_SKY) {
-			Luxel_Illuminate(luxel, &(const lumen_t) {
-				.light = light,
-				.color = Vec3_Scale(light->color, light->intensity * lumens),
-				.direction = Vec3_Scale(dir, lumens)
-			});
+		if (!(trace.surface & SURF_SKY)) {
+			continue;
 		}
+
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.direction = dir,
+			.lumens = lumens,
+		});
 	}
 }
 
@@ -211,8 +213,6 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
-		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
-
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
 		if (trace.fraction < 1.f) {
 			continue;
@@ -220,8 +220,8 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, light->intensity * lumens),
-			.direction = Vec3_Scale(dir, lumens)
+			.direction = Vec3_Direction(light->points[i], luxel->origin),
+			.lumens = lumens,
 		});
 	}
 }
@@ -273,8 +273,8 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, light->intensity * lumens),
-			.direction = Vec3_Scale(dir, lumens)
+			.direction = dir,
+			.lumens = lumens,
 		});
 	}
 }
@@ -330,8 +330,8 @@ static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scal
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, light->intensity * lumens),
-			.direction = Vec3_Scale(dir, lumens)
+			.direction = dir,
+			.lumens = lumens,
 		});
 	}
 }
@@ -366,7 +366,7 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, light->intensity * lumens)
+			.lumens = lumens,
 		});
 	}
 }

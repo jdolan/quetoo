@@ -303,13 +303,10 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 		const vec3_t point = Mat4_Transform(lightmap->inverse_matrix, sample);
 		const cm_trace_t trace = Light_Trace(luxel->origin, point, lightmap->model->head_node, CONTENTS_SOLID);
 
-		const float lumens = sample_fraction * trace.fraction;
-		lumen.color = Vec3_Fmaf(lumen.color, light->intensity * lumens, light->color);
+		lumen.lumens += sample_fraction * trace.fraction;
 	}
 
-	if (!Vec3_Equal(lumen.color, Vec3_Zero())) {
-		Luxel_Illuminate(luxel, &lumen);
-	}
+	Luxel_Illuminate(luxel, &lumen);
 }
 
 /**
@@ -325,13 +322,15 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 		const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, lightmap->model->head_node, CONTENTS_SOLID);
-		if (trace.surface & SURF_SKY) {
-			Luxel_Illuminate(luxel, &(const lumen_t) {
-				.light = light,
-				.color = Vec3_Scale(light->color, light->intensity * lumens),
-				.direction = Vec3_Scale(dir, lumens)
-			});
+		if (!(trace.surface & SURF_SKY)) {
+			continue;
 		}
+
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.direction = dir,
+			.lumens = lumens,
+		});
 	}
 }
 
@@ -364,8 +363,6 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
-		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
-
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], lightmap->model->head_node, CONTENTS_SOLID);
 		if (trace.fraction < 1.f) {
 			continue;
@@ -373,8 +370,8 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, light->intensity * lumens),
-			.direction = Vec3_Scale(dir, lumens)
+			.direction = Vec3_Direction(light->points[i], luxel->origin),
+			.lumens = lumens,
 		});
 	}
 }
@@ -426,8 +423,8 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, light->intensity * lumens),
-			.direction = Vec3_Scale(dir, lumens)
+			.direction = dir,
+			.lumens = lumens,
 		});
 	}
 }
@@ -483,8 +480,8 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, light->intensity * lumens),
-			.direction = Vec3_Scale(dir, lumens)
+			.direction = dir,
+			.lumens = lumens,
 		});
 	}
 }
@@ -519,7 +516,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, light->intensity * lumens),
+			.lumens = lumens,
 		});
 	}
 }
@@ -612,7 +609,7 @@ void DirectLightmap(int32_t face_num) {
 				if (light->type == LIGHT_AMBIENT) {
 					Luxel_Illuminate(l, &(const lumen_t) {
 						.light = light,
-						.color = light->color
+						.lumens = 1.f,
 					});
 					break;
 				}

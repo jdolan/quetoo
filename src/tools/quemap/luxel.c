@@ -29,30 +29,32 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 
 	assert(lumen->light);
 
+	const vec3_t color = Vec3_Scale(lumen->light->color, lumen->light->intensity);
+
 	switch (lumen->light->type) {
 		case LIGHT_AMBIENT:
-			luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
+			luxel->ambient = Vec3_Fmaf(luxel->ambient, lumen->lumens, color);
 			break;
 
 		case LIGHT_SUN:
-			luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->color);
-			luxel->direction = Vec3_Add(luxel->direction, lumen->direction);
+			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, lumen->lumens, color);
+			luxel->direction = Vec3_Fmaf(luxel->direction, lumen->lumens, lumen->direction);
 			break;
 
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
 		case LIGHT_FACE:
-			luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->color);
-			luxel->direction = Vec3_Add(luxel->direction, lumen->direction);
-
+			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, lumen->lumens, color);
+			luxel->direction = Vec3_Fmaf(luxel->direction, lumen->lumens, lumen->direction);
 			if (!g_ptr_array_find(luxel->lights, lumen->light, NULL)) {
 				g_ptr_array_add(luxel->lights, (gpointer) lumen->light);
 			}
-
 			break;
+		
 		case LIGHT_PATCH:
-			luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
+			luxel->ambient = Vec3_Fmaf(luxel->ambient, lumen->lumens, color);
 			break;
+		
 		default:
 			assert(0);
 			break;
