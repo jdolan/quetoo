@@ -193,13 +193,13 @@ void Cg_LoadMedia(void) {
 	Cg_FreeSprites();
 
 	cg_beam_hook = cgi.LoadImage("sprites/rope", IMG_SPRITE);
-	cg_beam_arrow = cgi.LoadImage("sprites/arrow", IMG_SPRITE/* | IT_MASK_CLAMP_EDGE*/);
-	cg_beam_line = cgi.LoadImage("sprites/line", IMG_SPRITE/* | IT_MASK_CLAMP_EDGE*/);
-	cg_beam_rail = cgi.LoadImage("sprites/beam", IMG_SPRITE/* | IT_MASK_CLAMP_EDGE*/);
+	cg_beam_arrow = cgi.LoadImage("sprites/arrow", IMG_SPRITE);
+	cg_beam_line = cgi.LoadImage("sprites/line", IMG_SPRITE);
+	cg_beam_rail = cgi.LoadImage("sprites/beam", IMG_SPRITE);
 	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IMG_SPRITE);
-	cg_beam_tracer = cgi.LoadImage("sprites/tracer", IMG_SPRITE/* | IT_MASK_CLAMP_EDGE*/);
-	cg_beam_tail = cgi.LoadImage("sprites/particle_tail", IMG_SPRITE/* | IT_MASK_CLAMP_EDGE*/);
 	cg_sprite_blaster_flash = cgi.LoadImage("sprites/blast_01/blast_01_flash", IMG_SPRITE);
+	cg_beam_tracer = cgi.LoadImage("sprites/tracer", IMG_SPRITE);
+	cg_beam_tail = cgi.LoadImage("sprites/particle_tail", IMG_SPRITE);
 
 	cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");
 	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IMG_SPRITE);

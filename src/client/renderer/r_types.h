@@ -860,6 +860,11 @@ enum {
 	SPRITE_NO_DEPTH			= 1 << 2,
 
 	/**
+	 * @brief If set, the sprite will tile its bounds, rather than stretch to them.
+	 */
+	SPRITE_BEAM_REPEAT      = 1 << 3,
+
+	/**
 	 * @brief Beginning of flags reserved for cgame
 	 */
 	SPRITE_CGAME			= 1 << 16
@@ -992,7 +997,7 @@ typedef struct {
 	 * @brief The beam color.
 	 */
 	color_t color;
-	
+
 	/**
 	 * @brief The beam texture translation.
 	 */

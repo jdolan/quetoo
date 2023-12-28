@@ -40,7 +40,7 @@ typedef enum {
 	 * @brief A beam, or segmented sprite with origin and termination points.
 	 */
 	SPRITE_BEAM		= 1,
-	
+
 } cg_sprite_type_t;
 
 /**

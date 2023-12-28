@@ -661,6 +661,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.color = Color4b(255, 255, 255, 0),
 		.image = cg_beam_lightning,
 		.size = 8.5f,
+		.flags = SPRITE_BEAM_REPEAT,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
 		.softness = 1.f,
 	});
@@ -769,6 +770,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 		.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z),
 		.image = cg_beam_hook,
 		.size = 1.f,
+		.flags = SPRITE_BEAM_REPEAT,
 		.softness = 1.f
 	});
 }
