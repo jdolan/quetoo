@@ -341,7 +341,7 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
-	if (dist > light->radius) {
+	if (dist >= light->radius) {
 		return;
 	}
 
@@ -385,7 +385,7 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
-	if (dist > light->radius) {
+	if (dist >= light->radius) {
 		return;
 	}
 
@@ -442,7 +442,7 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 	}
 
 	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin, NULL);
-	if (dist > light->radius) {
+	if (dist >= light->radius) {
 		return;
 	}
 
@@ -503,7 +503,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 	}
 
 	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
-	if (dist > light->radius) {
+	if (dist >= light->radius) {
 		return;
 	}
 

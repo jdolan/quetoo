@@ -187,11 +187,9 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
  * @brief
  */
 static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float scale) {
-	vec3_t dir;
 
-	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
-	dist = Maxf(0.f, dist - light->size * .5f);
-	if (dist > light->radius) {
+	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
+	if (dist >= light->radius) {
 		return;
 	}
 
@@ -210,11 +208,10 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 	}
 
 	const float lumens = atten * scale / light->num_points;
-	if (lumens <= 0.f) {
-		return;
-	}
 
 	for (int32_t i = 0; i < light->num_points; i++) {
+
+		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
 		if (trace.fraction < 1.f) {
@@ -233,11 +230,9 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
  * @brief
  */
 static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scale) {
-	vec3_t dir;
-
-	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
-	dist = Maxf(0.f, dist - light->size * .5f);
-	if (dist > light->radius) {
+	
+	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
+	if (dist >= light->radius) {
 		return;
 	}
 
@@ -256,22 +251,20 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 			break;
 	}
 
-	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	if (dot < light->theta) {
-
-		if (dot < light->phi) {
-			return;
-		}
-
-		atten *= atten;//Smoothf(dot, light->phi, light->theta);
-	}
-
-	const float lumens = atten * scale / light->num_points;
-	if (lumens <= 0.f) {
-		return;
-	}
-
 	for (int32_t i = 0; i < light->num_points; i++) {
+
+		float lumens = atten * scale / light->num_points;
+
+		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
+		const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+		if (dot < light->theta) {
+
+			if (dot < light->phi) {
+				continue;
+			}
+
+			lumens *= Smoothf(dot, light->phi, light->theta);
+		}
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
 		if (trace.fraction < 1.f) {
@@ -280,7 +273,7 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, lumens),
+			.color = Vec3_Scale(light->color, light->intensity * lumens),
 			.direction = Vec3_Scale(dir, lumens)
 		});
 	}
@@ -296,7 +289,7 @@ static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scal
 	}
 
 	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin, NULL);
-	if (dist > light->radius) {
+	if (dist >= light->radius) {
 		return;
 	}
 
@@ -327,7 +320,7 @@ static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scal
 				continue;
 			}
 
-			lumens *= atten; //FIXME Smoothf(dot, light->phi, light->theta);
+			lumens *= Smoothf(dot, light->phi, light->theta);
 		}
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
@@ -352,22 +345,17 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 		return;
 	}
 
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTGRID_LUXEL_SIZE) {
+	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < ON_EPSILON) {
 		return;
 	}
 
-	float dist = Vec3_Distance(light->origin, luxel->origin);
-	dist = Maxf(0.f, dist - light->size * .5f);
-	if (dist > light->radius) {
+	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
+	if (dist >= light->radius) {
 		return;
 	}
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-
-	const float lumens = atten * scale * light->intensity;
-	if (lumens <= 0.f) {
-		return;
-	}
+	const float lumens = atten * scale / light->num_points;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
@@ -378,9 +366,8 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 
 		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
-			.color = Vec3_Scale(light->color, lumens)
+			.color = Vec3_Scale(light->color, light->intensity * lumens)
 		});
-		break;
 	}
 }
 
