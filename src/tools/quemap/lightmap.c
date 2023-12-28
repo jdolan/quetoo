@@ -901,6 +901,11 @@ void EmitLightmap(void) {
 		SDL_FreeSurface(lm->diffuse);
 		SDL_FreeSurface(lm->direction);
 		SDL_FreeSurface(lm->caustics);
+
+		luxel_t *luxel = lm->luxels;
+		for (size_t j = 0; j < lm->num_luxels; j++, luxel++) {
+			g_ptr_array_free(luxel->lights, true);
+		}
 	}
 
 	Atlas_Destroy(atlas);
