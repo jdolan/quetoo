@@ -147,7 +147,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 	}
 
 	Cg_AddSprite(&(cg_sprite_t) {
-		.image = cg_sprite_blaster_flash,
+		.image = (r_image_t *) cg_sprite_blaster_flash,
 		.lifetime = 200,
 		.origin = Vec3_Fmaf(org, 3.f, forward),
 		.size = 30.f,

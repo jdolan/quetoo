@@ -58,6 +58,7 @@ r_atlas_image_t *cg_sprite_particle2;
 r_atlas_image_t *cg_sprite_particle3;
 r_atlas_image_t *cg_sprite_flash;
 r_atlas_image_t *cg_sprite_ring;
+r_atlas_image_t *cg_sprite_blaster_flash;
 r_atlas_image_t *cg_sprite_aniso_flare_01;
 r_atlas_image_t *cg_sprite_rain;
 r_atlas_image_t *cg_sprite_snow;
@@ -91,7 +92,6 @@ r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
 r_image_t *cg_beam_tracer;
 r_image_t *cg_beam_tail;
-r_image_t *cg_sprite_blaster_flash;
 
 r_animation_t *cg_sprite_explosion;
 r_animation_t *cg_sprite_explosion_ring_02;
@@ -197,7 +197,6 @@ void Cg_LoadMedia(void) {
 	cg_beam_line = cgi.LoadImage("sprites/line", IMG_SPRITE);
 	cg_beam_rail = cgi.LoadImage("sprites/beam", IMG_SPRITE);
 	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IMG_SPRITE);
-	cg_sprite_blaster_flash = cgi.LoadImage("sprites/blast_01/blast_01_flash", IMG_SPRITE);
 	cg_beam_tracer = cgi.LoadImage("sprites/tracer", IMG_SPRITE);
 	cg_beam_tail = cgi.LoadImage("sprites/particle_tail", IMG_SPRITE);
 
@@ -207,6 +206,7 @@ void Cg_LoadMedia(void) {
 	cg_sprite_particle3 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle3", IMG_SPRITE);
 	cg_sprite_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flash", IMG_SPRITE);
 	cg_sprite_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/ring", IMG_SPRITE);
+	cg_sprite_blaster_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/blast_01/blast_01_flash", IMG_SPRITE);
 	cg_sprite_aniso_flare_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/aniso_flare_01", IMG_SPRITE);
 	cg_sprite_smoke = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/smoke", IMG_SPRITE);
 	cg_sprite_flame = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flame", IMG_SPRITE);
