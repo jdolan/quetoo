@@ -44,8 +44,8 @@ typedef struct {
 	luxel_t *luxels;
 	size_t num_luxels;
 	SDL_Surface *ambient;
-	SDL_Surface *diffuse[BSP_LIGHTMAP_CHANNELS];
-	SDL_Surface *direction[BSP_LIGHTMAP_CHANNELS];
+	SDL_Surface *diffuse;
+	SDL_Surface *direction;
 	SDL_Surface *caustics;
 } lightmap_t;
 

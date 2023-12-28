@@ -23,8 +23,8 @@ uniform sampler2DArray texture_material;
 uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
 uniform sampler2D texture_lightmap_ambient;
-uniform sampler2DArray texture_lightmap_diffuse;
-uniform sampler2DArray texture_lightmap_direction;
+uniform sampler2D texture_lightmap_diffuse;
+uniform sampler2D texture_lightmap_direction;
 uniform sampler2D texture_lightmap_caustics;
 uniform sampler2D texture_lightmap_stains;
 uniform sampler3D texture_lightgrid_ambient;
@@ -71,6 +71,7 @@ struct fragment_t {
 	vec4 specularmap;
 	vec3 ambient;
 	vec3 diffuse;
+	vec3 direction;
 	vec3 specular;
 	vec3 caustics;
 } fragment;
@@ -111,16 +112,23 @@ vec3 sample_lightmap_ambient() {
 /**
  * @brief
  */
-vec3 sample_lightmap_diffuse(int channel) {
-	return texture(texture_lightmap_diffuse, vec3(vertex.lightmap, channel)).rgb * modulate;
+vec3 sample_lightmap_diffuse() {
+	return texture(texture_lightmap_diffuse, vertex.lightmap).rgb * modulate;
 }
 
 /**
 * @brief
 */
-vec3 sample_lightmap_direction(int channel) {
-	vec3 direction = texture(texture_lightmap_direction, vec3(vertex.lightmap, channel)).xyz * 2.0 - 1.0;
+vec3 sample_lightmap_direction() {
+	vec3 direction = texture(texture_lightmap_direction, vertex.lightmap).xyz * 2.0 - 1.0;
 	return normalize(fragment.tbn * normalize(direction));
+}
+
+/**
+ * @brief
+ */
+vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
+	return diffuse * fragment.specularmap.rgb * blinn(fragment.normalmap, light_dir, fragment.dir, fragment.specularmap.w);
 }
 
 /**
@@ -142,13 +150,6 @@ vec3 sample_lightmap_stains() {
  */
 vec4 sample_lightgrid(sampler3D texture_lightgrid) {
 	return texture(texture_lightgrid, vertex.lightgrid);
-}
-
-/**
- * @brief
- */
-vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
-	return diffuse * fragment.specularmap.rgb * blinn(fragment.normalmap, light_dir, fragment.dir, fragment.specularmap.w);
 }
 
 /**
@@ -428,18 +429,11 @@ void main(void) {
 			fragment.ambient = sample_lightmap_ambient();
 			fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
 
-			vec3 diffuse0 = sample_lightmap_diffuse(0);
-			vec3 direction0 = sample_lightmap_direction(0);
-			diffuse0 *= max(0.0, dot(direction0, fragment.normalmap));
+			fragment.diffuse = sample_lightmap_diffuse();
+			fragment.direction = sample_lightmap_direction();
+			fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
 
-			vec3 diffuse1 = sample_lightmap_diffuse(1);
-			vec3 direction1 = sample_lightmap_direction(1);
-			diffuse1 *= max(0.0, dot(direction1, fragment.normalmap));
-
-			fragment.diffuse = diffuse0 + diffuse1;
-
-			fragment.specular += blinn_phong(diffuse0, direction0);
-			fragment.specular += blinn_phong(diffuse1, direction1);
+			fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
 			fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
 
 			fragment.caustics = sample_lightmap_caustics();
@@ -484,9 +478,7 @@ void main(void) {
 		} else if (lightmaps == 4) {
 			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
 		} else if (lightmaps == 5) {
-			out_color.rgb = vec3(0.0);
-			out_color.rgb += texture(texture_lightmap_direction, vec3(vertex.lightmap, 0)).xyz * 0.5;
-			out_color.rgb += texture(texture_lightmap_direction, vec3(vertex.lightmap, 1)).xyz * 0.5;
+			out_color.rgb = texture(texture_lightmap_direction, vertex.lightmap).xyz * 2.0 - 1.0;
 		} else if (lightmaps == 6) {
 			out_color.rgb = sample_normalmap();
 		}
@@ -504,16 +496,11 @@ void main(void) {
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
 			vec3 ambient = sample_lightmap_ambient();
+			vec3 diffuse = sample_lightmap_diffuse();
+			vec3 direction = sample_lightmap_direction();
+			diffuse *= max(0.0, dot(diffuse, direction));
 
-			vec3 diffuse0 = sample_lightmap_diffuse(0);
-			vec3 direction0 = sample_lightmap_direction(0);
-			diffuse0 *= max(0.0, dot(diffuse0, direction0));
-
-			vec3 diffuse1 = sample_lightmap_diffuse(1);
-			vec3 direction1 = sample_lightmap_direction(1);
-			diffuse1 *= max(0.0, dot(diffuse1, direction1));
-
-			effect.rgb *= (ambient + diffuse0 + diffuse1);
+			effect.rgb *= (ambient + diffuse);
 		}
 
 		out_bloom.rgb = max(effect.rgb * material.bloom - 1.0, 0.0);

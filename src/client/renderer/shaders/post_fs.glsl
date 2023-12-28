@@ -47,10 +47,14 @@ vec3 tonemap_color(in vec3 color) {
 void main(void) {
 
 	out_color = texture(texture_color_attachment, vertex.texcoord);
-	out_color += texture(texture_bloom_attachment, vertex.texcoord);
+
+	if (bloom > 0.0) {
+		out_color += texture(texture_bloom_attachment, vertex.texcoord);
+	}
 
 	if (tonemap > 0.0) {
 		out_color.rgb = tonemap_color(out_color.rgb);
 	}
 
-	out_color.rgb = pow(out_color.rgb, vec3(1.0 / gamma));}
+	out_color.rgb = pow(out_color.rgb, vec3(1.0 / gamma));
+}

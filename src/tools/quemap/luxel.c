@@ -33,64 +33,13 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 		case LIGHT_SUN:
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
-		case LIGHT_FACE: {
-
-			lumen_t *diffuse = luxel->diffuse;
-			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
-
-				if (diffuse->light == NULL) {
-					*diffuse = *lumen;
-					return;
-				}
-
-				if (diffuse->light == lumen->light) {
-					diffuse->color = Vec3_Add(diffuse->color, lumen->color);
-					diffuse->direction = Vec3_Add(diffuse->direction, lumen->direction);
-					return;
-				}
-
-				if (Vec3_LengthSquared(lumen->color) > Vec3_LengthSquared(diffuse->color)) {
-
-					const lumen_t last = luxel->diffuse[BSP_LIGHTMAP_CHANNELS - 1];
-
-					for (int32_t j = BSP_LIGHTMAP_CHANNELS - 1; j > i; j--) {
-						luxel->diffuse[j] = luxel->diffuse[j - 1];
-					}
-
-					*diffuse = *lumen;
-
-					if (last.light) {
-						Luxel_Illuminate(luxel, &last);
-					}
-
-					return;
-				}
-			}
-
-			vec3_t c = lumen->color;
-			vec3_t d = lumen->direction;
-
-			diffuse = luxel->diffuse;
-			for (int32_t j = 0; j < BSP_LIGHTMAP_CHANNELS; j++, diffuse++) {
-
-				const vec3_t a = Vec3_Normalize(lumen->direction);
-				const vec3_t b = Vec3_Normalize(diffuse->direction);
-
-				const float dot = Clampf(Vec3_Dot(a, b), 0.f, 1.f);
-
-				diffuse->color = Vec3_Fmaf(diffuse->color, dot, c);
-				diffuse->direction = Vec3_Fmaf(diffuse->direction, dot, d);
-
-				c = Vec3_Fmaf(c, -dot, c);
-				d = Vec3_Fmaf(d, -dot, d);
-			}
-
-			luxel->ambient.color = Vec3_Add(luxel->ambient.color, c);
-		}
-
+		case LIGHT_FACE:
+			luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->color);
+			luxel->direction = Vec3_Add(luxel->direction, lumen->direction);
+			lumen->light->illuminate_bounds = Box3_Append(lumen->light->illuminate_bounds, luxel->origin);
 			break;
 		default:
-			luxel->ambient.color = Vec3_Add(luxel->ambient.color, lumen->color);
+			luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);
 			break;
 	}
 }

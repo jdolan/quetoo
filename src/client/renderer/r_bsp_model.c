@@ -406,16 +406,14 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 		
 		static struct __attribute__((packed)) {
 			color24_t ambient;
-			vec3_t diffuse[BSP_LIGHTMAP_CHANNELS];
-			color24_t direction[BSP_LIGHTMAP_CHANNELS];
+			vec3_t diffuse;
+			color24_t direction;
 			color24_t caustics;
 		} default_lightmap;
 
 		default_lightmap.ambient = Color24(255, 255, 255);
-		for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++) {
-			default_lightmap.diffuse[i] = Vec3_Zero();
-			default_lightmap.direction[i] = Color24(127, 127, 255);
-		}
+		default_lightmap.diffuse = Vec3_Zero();
+		default_lightmap.direction = Color24(127, 127, 255);
 		default_lightmap.caustics = Color24(0, 0, 0);
 
 		data = (byte *) &default_lightmap;
@@ -446,8 +444,7 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->diffuse->type = IMG_LIGHTMAP;
 	out->diffuse->width = out->width;
 	out->diffuse->height = out->width;
-	out->diffuse->depth = BSP_LIGHTMAP_CHANNELS;
-	out->diffuse->target = GL_TEXTURE_2D_ARRAY;
+	out->diffuse->target = GL_TEXTURE_2D;
 	out->diffuse->levels = levels;
 	out->diffuse->minify = GL_LINEAR_MIPMAP_LINEAR;
 	out->diffuse->magnify = GL_LINEAR;
@@ -459,15 +456,14 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 
 	R_UploadImage(out->diffuse, data);
 
-	data += out->width * out->width * sizeof(vec3_t) * BSP_LIGHTMAP_CHANNELS;
+	data += out->width * out->width * sizeof(vec3_t);
 
 	out->direction = (r_image_t *) R_AllocMedia("lightmap_direction", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->direction->media.Free = R_FreeImage;
 	out->direction->type = IMG_LIGHTMAP;
 	out->direction->width = out->width;
 	out->direction->height = out->width;
-	out->direction->depth = BSP_LIGHTMAP_CHANNELS;
-	out->direction->target = GL_TEXTURE_2D_ARRAY;
+	out->direction->target = GL_TEXTURE_2D;
 	out->direction->levels = levels;
 	out->direction->minify = GL_LINEAR_MIPMAP_LINEAR;
 	out->direction->magnify = GL_LINEAR;
@@ -479,7 +475,7 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 
 	R_UploadImage(out->direction, data);
 
-	data += out->width * out->width * sizeof(color24_t) * BSP_LIGHTMAP_CHANNELS;
+	data += out->width * out->width * sizeof(color24_t);
 
 	out->caustics = (r_image_t *) R_AllocMedia("lightmap_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->caustics->media.Free = R_FreeImage;

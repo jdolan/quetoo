@@ -375,7 +375,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Color_Parse(const char 
 }
 
 /**
- * @return A color32_t with the specified RGBA components.
+ * @return A `color32_t` with the specified RGBA components.
  */
 static inline color32_t __attribute__ ((warn_unused_result)) Color32(byte r, byte g, byte b, byte a) {
 	return (color32_t) {
@@ -383,6 +383,15 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color32(byte r, byt
 		.b = b,
 		.g = g,
 		.a = a
+	};
+}
+
+/**
+ * @return A `color32_t` with the specified RGBA integer.
+ */
+static inline color32_t __attribute__ ((warn_unused_result)) Color32i(int32_t rgba) {
+	return (color32_t) {
+		.rgba = rgba
 	};
 }
 
@@ -404,7 +413,7 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const
 }
 
 /**
- * @return A color24_t with the specified RGB components.
+ * @return A `color24_t` with the specified RGB components.
  */
 static inline color24_t __attribute__ ((warn_unused_result)) Color24(byte r, byte g, byte b) {
 	return (color24_t) {
@@ -412,6 +421,19 @@ static inline color24_t __attribute__ ((warn_unused_result)) Color24(byte r, byt
 		.g = g,
 		.b = b
 	};
+}
+
+/**
+ * @return A `color24_t` with the specified RGB integer.
+ */
+static inline color24_t __attribute__ ((warn_unused_result)) Color24i(int32_t rgb) {
+	union {
+		int32_t rgb;
+		color24_t c24;
+	} out;
+
+	out.rgb = rgb;
+	return out.c24;
 }
 
 /**

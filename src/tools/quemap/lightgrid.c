@@ -150,7 +150,7 @@ size_t BuildLightgrid(void) {
 /**
  * @brief
  */
-static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Ambient(light_t *light, luxel_t *luxel, float scale) {
 
 	Luxel_Illuminate(luxel, &(const lumen_t) {
 		.light = light,
@@ -161,7 +161,7 @@ static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float s
 /**
  * @brief
  */
-static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Sun(light_t *light, luxel_t *luxel, float scale) {
 
 	const float lumens = (1.f / light->num_points) * scale;
 
@@ -184,7 +184,7 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 /**
  * @brief
  */
-static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 	vec3_t dir;
 
 	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
@@ -230,7 +230,7 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 /**
  * @brief
  */
-static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Spot(light_t *light, luxel_t *luxel, float scale) {
 	vec3_t dir;
 
 	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
@@ -287,7 +287,7 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 /**
  * @brief
  */
-static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Face(light_t *light, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models) {
 		return;
@@ -344,7 +344,7 @@ static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scal
 /**
  * @brief
  */
-static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Patch(light_t *light, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models) {
 		return;
@@ -392,7 +392,7 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 
 	for (guint i = 0; i < lights->len; i++) {
 
-		const light_t *light = g_ptr_array_index(lights, i);
+		light_t *light = g_ptr_array_index(lights, i);
 
 		switch (light->type) {
 			case LIGHT_AMBIENT:
@@ -607,12 +607,7 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
-		vec3_t light = l->ambient.color;
-		const lumen_t *diffuse = l->diffuse;
-		for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
-			light = Vec3_Add(light, diffuse->color);
-		}
-
+		const vec3_t light = Vec3_Add(l->ambient, l->diffuse);
 		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), light);
 
 		switch (fog->type) {
@@ -663,19 +658,8 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *luxel = &lg.luxels[luxel_num];
 
-	vec3_t color = Vec3_Zero();
-	vec3_t direction = Vec3_Zero();
-
-	for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++) {
-		color = Vec3_Add(color, luxel->diffuse[i].color);
-		direction = Vec3_Add(direction, luxel->diffuse[i].direction);
-	}
-
-	luxel->diffuse[0].color = color;
-	luxel->diffuse[0].direction = Vec3_Normalize(direction);
-
-	if (Vec3_Equal(luxel->diffuse[0].direction, Vec3_Zero())) {
-		luxel->diffuse[0].direction = Vec3_Up();
+	if (Vec3_Equal(luxel->direction, Vec3_Zero())) {
+		luxel->direction = Vec3_Up();
 	}
 }
 
@@ -725,13 +709,9 @@ void EmitLightgrid(void) {
 		for (int32_t t = 0; t < lg.size.y; t++) {
 			for (int32_t s = 0; s < lg.size.x; s++, l++) {
 
-				const color32_t encoded = {
-					.rgba = Vec3_Bytes(l->diffuse[0].direction)
-				};
-
-				*out_ambient++ = Color_Color24(Color3fv(l->ambient.color));
-				*out_diffuse++ = l->diffuse[0].color;
-				*out_direction++ = Color32_Color24(encoded);
+				*out_ambient++ = Color_Color24(Color3fv(l->ambient));
+				*out_diffuse++ = l->diffuse;
+				*out_direction++ = Color24i(Vec3_Bytes(l->direction));
 				*out_caustics++ = Color_Color24(Color3fv(l->caustics));
 				*out_fog++ = Color_Color32(Color4fv(l->fog));
 			}

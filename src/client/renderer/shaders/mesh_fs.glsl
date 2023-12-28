@@ -329,6 +329,7 @@ void main(void) {
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		fragment.diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
+		fragment.diffusemap.rgb = pow(fragment.diffusemap.rgb, vec3(2.2));
 		fragment.diffusemap *= vertex.color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
@@ -385,6 +386,8 @@ void main(void) {
 	} else {
 
 		vec4 effect = texture(texture_stage, vertex.diffusemap);
+		effect.rgb = pow(effect.rgb, vec3(2.2));
+
 		effect *= vertex.color;
 
 		out_bloom.rgb = max(effect.rgb * material.bloom - 1.0, 0.0);
