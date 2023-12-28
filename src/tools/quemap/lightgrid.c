@@ -345,7 +345,7 @@ static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float sca
 		return;
 	}
 
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < ON_EPSILON) {
+	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTGRID_LUXEL_SIZE) {
 		return;
 	}
 

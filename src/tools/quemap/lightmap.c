@@ -498,7 +498,7 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < ON_EPSILON) {
+	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTMAP_LUXEL_SIZE) {
 		return;
 	}
 
