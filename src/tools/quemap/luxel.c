@@ -29,6 +29,10 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 
 	assert(lumen->light);
 
+	if (!g_ptr_array_find(luxel->lights, lumen->light, NULL)) {
+		g_ptr_array_add(luxel->lights, (gpointer) lumen->light);
+	}
+
 	switch (lumen->light->type) {
 		case LIGHT_SUN:
 		case LIGHT_POINT:
@@ -36,7 +40,6 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 		case LIGHT_FACE:
 			luxel->diffuse = Vec3_Add(luxel->diffuse, lumen->color);
 			luxel->direction = Vec3_Add(luxel->direction, lumen->direction);
-			lumen->light->illuminate_bounds = Box3_Append(lumen->light->illuminate_bounds, luxel->origin);
 			break;
 		default:
 			luxel->ambient = Vec3_Add(luxel->ambient, lumen->color);

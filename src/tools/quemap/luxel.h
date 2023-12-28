@@ -44,6 +44,7 @@ typedef struct {
 	vec3_t direction;
 	vec3_t caustics;
 	vec4_t fog;
+	GPtrArray *lights;
 } luxel_t;
 
 extern void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen);

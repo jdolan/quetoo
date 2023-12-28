@@ -166,6 +166,8 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 			l->s = s;
 			l->t = t;
 
+			l->lights = g_ptr_array_new();
+
 			ProjectLightmapLuxel(lm, l, 0.f, 0.f);
 		}
 	}

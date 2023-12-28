@@ -142,11 +142,6 @@ typedef struct light_s {
 	 * @brief The light source model for face and patch lights.
 	 */
 	const bsp_model_t *model;
-
-	/**
-	 * @brief The bounds of the luxels this light source reached.
-	 */
-	box3_t illuminate_bounds;
 } light_t;
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];

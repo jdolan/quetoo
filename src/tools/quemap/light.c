@@ -88,7 +88,6 @@ static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 		light->radius = LIGHT_AMBIENT_RADIUS;
 		light->intensity = LIGHT_INTENSITY * ambient_intensity;
 		light->bounds = Box3_Null();
-		light->illuminate_bounds = Box3_Null();
 	}
 
 	return light;
@@ -107,7 +106,6 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->bounds = Box3_Null();
-	light->illuminate_bounds = Box3_Null();
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
@@ -211,9 +209,6 @@ static light_t *LightForEntity_point(const cm_entity_t *entity) {
 	light->num_points = points->len;
 
 	g_array_free(points, false);
-
-	light->illuminate_bounds = Box3_Null();
-
 	return light;
 }
 
@@ -307,9 +302,6 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	light->num_points = points->len;
 
 	g_array_free(points, false);
-
-	light->illuminate_bounds = Box3_Null();
-
 	return light;
 }
 
@@ -399,9 +391,6 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 	light->size = Box3_Distance(light->bounds);
 
 	light->bounds = Box3_Expand(light->bounds, light->radius);
-
-	light->illuminate_bounds = Box3_Null();
-
 	return light;
 }
 
@@ -663,11 +652,8 @@ static box3_t LightBounds(const light_t *light) {
 		const luxel_t *luxel = lightmap->luxels;
 		for (size_t j = 0; j < lightmap->num_luxels; j++, luxel++) {
 
-			for (size_t k = 0; k < lengthof(luxel->diffuse); k++) {
-
-				if (luxel->diffuse[k].light == light) {
-					bounds = Box3_Append(bounds, luxel->origin);
-				}
+			if (g_ptr_array_find(luxel->lights, light, NULL)) {
+				bounds = Box3_Append(bounds, luxel->origin);
 			}
 		}
 	}
@@ -675,11 +661,8 @@ static box3_t LightBounds(const light_t *light) {
 	const luxel_t *luxel = lg.luxels;
 	for (size_t i = 0; i < lg.num_luxels; i++, luxel++) {
 
-		for (size_t k = 0; k < lengthof(luxel->diffuse); k++) {
-
-			if (luxel->diffuse[k].light == light) {
-				bounds = Box3_Append(bounds, luxel->origin);
-			}
+		if (g_ptr_array_find(luxel->lights, light, NULL)) {
+			bounds = Box3_Append(bounds, luxel->origin);
 		}
 	}
 
@@ -733,7 +716,7 @@ void EmitLights(void) {
 				out->shadow = light->shadow;
 				out->cone = light->cone;
 				out->falloff = light->falloff;
-				out->bounds = Box3_Expand(light->illuminate_bounds, BSP_LIGHTMAP_LUXEL_SIZE);
+				out->bounds = LightBounds(light);
 				out++;
 				break;
 		}

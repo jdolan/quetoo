@@ -75,6 +75,8 @@ static void BuildLightgridLuxels(void) {
 				l->s = s;
 				l->t = t;
 				l->u = u;
+
+				l->lights = g_ptr_array_new();
 			}
 		}
 	}
