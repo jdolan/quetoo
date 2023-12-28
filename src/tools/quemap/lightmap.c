@@ -339,56 +339,8 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
  * @brief
  */
 static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
-	vec3_t dir;
 
-	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
-	dist = Maxf(0.f, dist - light->size * .5f);
-	if (dist > light->radius) {
-		return;
-	}
-
-	float atten = 1.f;
-
-	switch (light->atten) {
-		case LIGHT_ATTEN_NONE:
-			break;
-		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-			atten *= atten;
-			break;
-	}
-
-	const float lumens = atten * scale / light->num_points;
-	if (lumens <= 0.f) {
-		return;
-	}
-
-	for (int32_t i = 0; i < light->num_points; i++) {
-
-		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], lightmap->model->head_node, CONTENTS_SOLID);
-		if (trace.fraction < 1.f) {
-			continue;
-		}
-
-		Luxel_Illuminate(luxel, &(const lumen_t) {
-			.light = light,
-			.color = Vec3_Scale(light->color, light->intensity * lumens),
-			.direction = Vec3_Scale(dir, lumens)
-		});
-	}
-}
-
-/**
- * @brief
- */
-static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
-	vec3_t dir;
-
-	float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
-	dist = Maxf(0.f, dist - light->size * .5f);
+	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
 	if (dist > light->radius) {
 		return;
 	}
@@ -408,22 +360,64 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 			break;
 	}
 
-	const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-	if (dot < light->theta) {
+	const float lumens = atten * scale / light->num_points;
 
-		if (dot < light->phi) {
-			return;
+	for (int32_t i = 0; i < light->num_points; i++) {
+
+		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
+
+		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], lightmap->model->head_node, CONTENTS_SOLID);
+		if (trace.fraction < 1.f) {
+			continue;
 		}
 
-		atten *= atten;//Smoothf(dot, light->phi, light->theta);
+		Luxel_Illuminate(luxel, &(const lumen_t) {
+			.light = light,
+			.color = Vec3_Scale(light->color, light->intensity * lumens),
+			.direction = Vec3_Scale(dir, lumens)
+		});
 	}
+}
 
-	const float lumens = atten * scale / light->num_points;
-	if (lumens <= 0.f) {
+/**
+ * @brief
+ */
+static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+
+	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
+	if (dist > light->radius) {
 		return;
 	}
 
+	float atten;
+
+	switch (light->atten) {
+		case LIGHT_ATTEN_NONE:
+			atten = 1.f;
+			break;
+		case LIGHT_ATTEN_LINEAR:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten *= atten;
+			break;
+	}
+
 	for (int32_t i = 0; i < light->num_points; i++) {
+
+		float lumens = atten * scale / light->num_points;
+
+		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
+		const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
+		if (dot < light->theta) {
+
+			if (dot < light->phi) {
+				continue;
+			}
+
+			lumens *= Smoothf(dot, light->phi, light->theta);
+		}
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], lightmap->model->head_node, CONTENTS_SOLID);
 		if (trace.fraction < 1.f) {
@@ -479,7 +473,7 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 				continue;
 			}
 
-			lumens *= atten; //FIXME Smoothf(dot, light->phi, light->theta);
+			lumens *= Smoothf(dot, light->phi, light->theta);
 		}
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], lightmap->model->head_node, CONTENTS_SOLID);
@@ -508,18 +502,13 @@ static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap
 		return;
 	}
 
-	float dist = Vec3_Distance(light->origin, luxel->origin);
-	dist = Maxf(0.f, dist - light->size * .5f);
+	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
 	if (dist > light->radius) {
 		return;
 	}
 
 	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-
 	const float lumens = atten * scale / light->num_points;
-	if (lumens <= 0.f) {
-		return;
-	}
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
