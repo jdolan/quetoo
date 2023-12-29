@@ -20,33 +20,6 @@
  */
 
 #define BSP_LIGHTGRID_LUXEL_SIZE 32
-#define WORLD_TRACE_DISTANCE 1024.0
-
-/**
- * @brief Clamps softly to 1.0 for values up to 1.5, to prevent an unsightly hard cutoff.
- */
-float soft_clip_fog(float x) {
-	x = clamp(x, 0.0, 1.5);
-	float x3 = x * x * x;
-	return 0.5 * (2.0 * x - x3 / 3.375);
-}
-
-/**
- * @brief Draws the boundaries of the lightgrid voxels;
- */
-vec4 lightgrid_raster(vec3 uvw, float distance) {
-	float alpha = 1.0 - clamp(distance / WORLD_TRACE_DISTANCE, 0.0, 1.0);
-	vec4 c = vec4(1.0);
-	c.rgb = fract(uvw * lightgrid.size.xyz);
-	c.rgb = abs(c.rgb * 2.0 - 1.0);
-	float t = 0.7 + (0.25 * alpha);
-	float m = max(max(c.r, c.g), c.b);
-	return vec4(
-		smoothstep(t, 1.0, c.r),
-		smoothstep(t, 1.0, c.g),
-		smoothstep(t, 1.0, c.b),
-		smoothstep(t, 1.0, m) * alpha);
-}
 
 /**
  * @brief Resolves the lightgrid coordinate for the specified position in world space.
