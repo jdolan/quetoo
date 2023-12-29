@@ -588,13 +588,13 @@ void DirectLightmap(int32_t face_num) {
 			const float soffs = offsets[j].x;
 			const float toffs = offsets[j].y;
 
-			const float weight = antialias ? offsets[j].z : 1.f;
+			const float scale = antialias ? offsets[j].z : 1.f;
 
 			if (ProjectLightmapLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
 				continue;
 			}
 
-			LightmapLuxel(lights, lm, l, weight);
+			LightmapLuxel(lights, lm, l, scale);
 			if (!antialias) {
 				break;
 			}
@@ -626,6 +626,12 @@ void DirectLightmap(int32_t face_num) {
  */
 void IndirectLightmap(int32_t face_num) {
 
+	const vec3_t offsets[] = {
+		Vec3(+0.0f, +0.0f, 0.195346f), Vec3(-1.0f, -1.0f, 0.077847f), Vec3(+0.0f, -1.0f, 0.123317f),
+		Vec3(+1.0f, -1.0f, 0.077847f), Vec3(-1.0f, +0.0f, 0.123317f), Vec3(+1.0f, +0.0f, 0.123317f),
+		Vec3(-1.0f, +1.0f, 0.077847f), Vec3(+0.0f, +1.0f, 0.123317f), Vec3(+1.0f, +1.0f, 0.077847f),
+	};
+
 	const lightmap_t *lm = &lightmaps[face_num];
 
 	if (lm->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
@@ -637,11 +643,22 @@ void IndirectLightmap(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		if (ProjectLightmapLuxel(lm, l, 0.f, 0.f) == CONTENTS_SOLID) {
-			continue;
-		}
+		for (size_t j = 0; j < lengthof(offsets); j++) {
 
-		LightmapLuxel(lights, lm, l, 1.f);
+			const float soffs = offsets[j].x;
+			const float toffs = offsets[j].y;
+
+			const float scale = antialias ? offsets[j].z : 1.f;
+
+			if (ProjectLightmapLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
+				continue;
+			}
+
+			LightmapLuxel(lights, lm, l, scale);
+			if (!antialias) {
+				break;
+			}
+		}
 	}
 }
 
