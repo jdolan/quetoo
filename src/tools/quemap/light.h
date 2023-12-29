@@ -39,6 +39,11 @@
 #define LIGHT_SPOT_FALLOFF 30.f
 
 /**
+ * @brief Patch (indirect) light size in luxels.
+ */
+#define LIGHT_PATCH_SIZE 16.f
+
+/**
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
 typedef struct light_s {

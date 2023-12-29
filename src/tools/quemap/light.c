@@ -521,8 +521,8 @@ void BuildDirectLights(void) {
  */
 static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 
-	const int32_t w = Mini(s + BSP_LIGHTMAP_PATCH_SIZE, lm->w) - s;
-	const int32_t h = Mini(t + BSP_LIGHTMAP_PATCH_SIZE, lm->h) - t;
+	const int32_t w = Mini(s + LIGHT_PATCH_SIZE, lm->w) - s;
+	const int32_t h = Mini(t + LIGHT_PATCH_SIZE, lm->h) - t;
 
 	assert(w);
 	assert(h);
@@ -604,8 +604,8 @@ void BuildIndirectLights(void) {
 			continue;
 		}
 
-		for (int32_t s = 0; s < lm->w; s += BSP_LIGHTMAP_PATCH_SIZE) {
-			for (int32_t t = 0; t < lm->h; t += BSP_LIGHTMAP_PATCH_SIZE) {
+		for (int32_t s = 0; s < lm->w; s += LIGHT_PATCH_SIZE) {
+			for (int32_t t = 0; t < lm->h; t += LIGHT_PATCH_SIZE) {
 
 				light_t *light = LightForPatch(lm, s, t);
 				if (light) {
