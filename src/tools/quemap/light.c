@@ -544,10 +544,10 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 		}
 	}
 
-	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE));
+	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE * BSP_LIGHTMAP_LUXEL_SIZE));
 	diffuse = Vec3_Multiply(diffuse, lm->material->ambient);
 
-	if (Vec3_Hmaxf(diffuse) < .01f) {
+	if (Vec3_Hmaxf(diffuse) == 0.f) {
 		return NULL;
 	}
 
@@ -556,8 +556,8 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 	light->type = LIGHT_PATCH;
 	light->atten = LIGHT_ATTEN_LINEAR;
 	light->origin = Box3_Center(bounds);
-	light->radius = w * h * BSP_LIGHTMAP_LUXEL_SIZE;
-	light->size = Maxi(w, h) * BSP_LIGHTMAP_LUXEL_SIZE;
+	light->radius = w * h;
+	light->size = Maxi(w, h);
 	light->bounds = Box3_Expand(bounds, light->radius);
 	light->color = diffuse;
 	light->model = lm->model;

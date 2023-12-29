@@ -59,7 +59,7 @@
 /**
  * @brief Lightmap patch (indirect light) size in luxels.
  */
-#define BSP_LIGHTMAP_PATCH_SIZE 8
+#define BSP_LIGHTMAP_PATCH_SIZE 16
 
 /**
  * @brief Smallest lightmap atlas width in luxels.
