@@ -156,7 +156,7 @@ void R_SetupImage(r_image_t *image) {
 	assert(image->pixel_type);
 
 	if (image->minify == 0) {
-		image->minify = GL_LINEAR;
+		image->minify = GL_LINEAR_MIPMAP_LINEAR;
 	}
 
 	if (image->magnify == 0) {
@@ -185,6 +185,20 @@ void R_SetupImage(r_image_t *image) {
 	glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, image->minify);
 	glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, image->magnify);
 	glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY, r_image_state.anisotropy);
+
+	switch (image->type) {
+		case IMG_LIGHTMAP:
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			break;
+		case IMG_CUBEMAP:
+		case IMG_LIGHTGRID:
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		default:
+			break;
+	}
 
 	if (image->depth) {
 		glTexStorage3D(image->target, image->levels, image->internal_format, image->width, image->height, image->depth);
