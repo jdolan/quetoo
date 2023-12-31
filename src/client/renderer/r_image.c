@@ -217,7 +217,7 @@ void R_SetupImage(r_image_t *image) {
  * @param target The upload target, which may be different from the image's bind target.
  * @param data The pixel data.
  */
-void R_UploadImageTarget(r_image_t *image, GLenum target, void *data) {
+void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data) {
 
 	assert(image);
 	assert(target);
@@ -246,7 +246,7 @@ void R_UploadImageTarget(r_image_t *image, GLenum target, void *data) {
  * @param image The image.
  * @param data The pixel data.
  */
-void R_UploadImage(r_image_t *image, void *data) {
+void R_UploadImage(r_image_t *image, const void *data) {
 
 	R_UploadImageTarget(image, image->target, data);
 }
