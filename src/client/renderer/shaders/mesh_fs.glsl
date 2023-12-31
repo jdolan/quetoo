@@ -366,6 +366,9 @@ void main(void) {
 		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
 		out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
 
+		float exposure = lightgrid.view_coordinate.w;
+		out_color.rgb += out_color.rgb / exposure;
+
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
 

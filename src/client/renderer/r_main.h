@@ -93,7 +93,7 @@ typedef struct {
 	vec4_t maxs;
 
 	/**
-	 * @brief The view origin, in lightgrid space.
+	 * @brief The view origin, in lightgrid space. The fourth component is exposure.
 	 */
 	vec4_t view_coordinate;
 

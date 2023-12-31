@@ -631,6 +631,11 @@ typedef struct {
 	box3_t bounds;
 
 	/**
+	 * @brief The luxel size in world units (constant).
+	 */
+	vec3_t luxel_size;
+
+	/**
 	 * @brief The ambient 3D texture (RGB8).
 	 */
 	r_image_t *ambient;
@@ -654,6 +659,11 @@ typedef struct {
 	 * @brief The fog 3D texture (RGBA8).
 	 */
 	r_image_t *fog;
+
+	/**
+	 * @brief The exposure for each lightgrid luxel.
+	 */
+	float *exposure;
 } r_bsp_lightgrid_t;
 
 /**
@@ -1453,6 +1463,12 @@ typedef struct {
 	 * @brief The view origin.
 	 */
 	vec3_t origin;
+
+
+	/**
+	 * @brief The view exposure.
+	 */
+	float exposure;
 
 	/**
 	 * @brief The view angles.

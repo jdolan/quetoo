@@ -40,6 +40,9 @@ void main(void) {
 
 	out_color = texture(texture_sky, normalize(vertex.cubemap));
 
+	float exposure = lightgrid.view_coordinate.w;
+	out_color.rgb += out_color.rgb / exposure;
+
 	out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 	out_bloom.a = out_color.a;
 

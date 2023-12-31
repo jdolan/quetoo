@@ -551,7 +551,7 @@ static void R_ResetBspStainmap(r_bsp_model_t *bsp) {
 static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	const bsp_lightgrid_t *in = mod->bsp->cm->file->lightgrid;
-	byte *data;
+	const byte *data;
 
 	r_bsp_lightgrid_t *out = mod->bsp->lightgrid = Mem_LinkMalloc(sizeof(*out), mod->bsp);
 
@@ -584,9 +584,13 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	out->bounds = Box3_Expand3(mod->bounds, padding);
 
+	out->luxel_size = Vec3(BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE);
+
 	const size_t luxels = out->size.x * out->size.y * out->size.z;
 
 	const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
+
+	const color24_t *ambient = (color24_t *) data;
 
 	out->ambient = (r_image_t *) R_AllocMedia("lightgrid_ambient", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->ambient->media.Free = R_FreeImage;
@@ -606,6 +610,8 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	R_UploadImage(out->ambient, data);
 	data += luxels * sizeof(color24_t);
+
+	const vec3_t *diffuse = (vec3_t *) data;
 
 	out->diffuse = (r_image_t *) R_AllocMedia("lightgrid_diffuse", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->diffuse->media.Free = R_FreeImage;
@@ -684,6 +690,11 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	data += luxels * sizeof(color32_t);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+
+	out->exposure = Mem_LinkMalloc(luxels * sizeof(float), out);
+	for (size_t i = 0; i < luxels; i++) {
+		out->exposure[i] = Vec3_Hmaxf(Vec3_Add(Color24_Color(ambient[i]).vec3, diffuse[i]));
+	}
 }
 
 /**

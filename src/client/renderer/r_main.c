@@ -170,18 +170,18 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->developer = r_developer->integer;
 
 		if (r_world_model) {
+			const r_bsp_lightgrid_t *lightgrid = r_world_model->bsp->lightgrid;
 
-			out->lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
-			out->lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
+			out->lightgrid.mins = Vec3_ToVec4(lightgrid->bounds.mins, 0.f);
+			out->lightgrid.maxs = Vec3_ToVec4(lightgrid->bounds.maxs, 0.f);
 
-			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->bounds.mins);
-			const vec3_t size = Box3_Size(r_world_model->bsp->lightgrid->bounds);
+			const vec3_t pos = Vec3_Subtract(view->origin, lightgrid->bounds.mins);
+			const vec3_t extents = Box3_Size(lightgrid->bounds);
 
-			out->lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
-			out->lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
+			out->lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), view->exposure ?: 1.f);
+			out->lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(lightgrid->size), 0.f);
 
-			const vec3_t luxel_size = Vec3(BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE);
-			out->lightgrid.luxel_size = Vec3_ToVec4(Vec3_Divide(luxel_size, size), 0.f);
+			out->lightgrid.luxel_size = Vec3_ToVec4(Vec3_Divide(lightgrid->luxel_size, extents), 0.f);
 
 			const cm_entity_t *worldspawn = r_world_model->bsp->cm->entities[0];
 			const cm_entity_t *fog_color = Cm_EntityValue(worldspawn, "fog_color");
