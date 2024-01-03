@@ -618,6 +618,18 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3(float x, float y,
 }
 
 /**
+ * @return A `vec3_t` from the specified bytes.
+ * @see `Vec3_Bytes`
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3bv(const byte *bytes) {
+	return Vec3(
+		(bytes[0] / 255.f) * 2.f - 1.f,
+		(bytes[1] / 255.f) * 2.f - 1.f,
+		(bytes[2] / 255.f) * 2.f - 1.f
+	);
+}
+
+/**
  * @return A `vec3_t` comprised of the specified `vec2_t` and `z`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec2_ToVec3(const vec2_t v, float z) {
