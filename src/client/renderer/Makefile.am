@@ -61,11 +61,13 @@ librenderer_la_SOURCES = \
 	r_main.c \
 	r_material.c \
 	r_media.c \
-	r_mesh.c \
 	r_mesh_draw.c \
 	r_mesh_model.c \
 	r_mesh_model_md3.c \
 	r_mesh_model_obj.c \
+	r_mesh.c \
+	r_model_draw.c \
+	r_model_draw.h \
 	r_model.c \
 	r_occlude.c \
 	r_post.c \

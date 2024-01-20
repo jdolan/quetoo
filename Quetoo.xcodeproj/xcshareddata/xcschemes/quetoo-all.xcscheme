@@ -77,7 +77,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightgrid 1 +set r_draw_bsp_lightmap 0"
+            argument = "+set r_draw_bsp_lightgrid 5 +set r_draw_bsp_lightmap 0"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -97,8 +97,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_get_error 2"
-            isEnabled = "YES">
+            argument = "+set r_get_error 2 +set verbose 1"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_ambient_volume 0"
@@ -134,7 +134,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_draw_renderer_stats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"

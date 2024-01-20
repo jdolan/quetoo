@@ -57,7 +57,6 @@ static struct {
 	GLint texture_shadowmap_cube;
 
 	GLint entity;
-	GLint alpha_test;
 
 	struct {
 		GLint alpha_test;
@@ -258,46 +257,46 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 											   const r_bsp_draw_elements_t *draw,
 											   const r_stage_t *stage) {
 
-	glUniform1i(r_bsp_program.stage.flags, stage->cm->flags);
+	glUniform1i(r_model_program.stage.flags, stage->cm->flags);
 
 	if (stage->cm->flags & STAGE_COLOR) {
-		glUniform4fv(r_bsp_program.stage.color, 1, stage->cm->color.rgba);
+		glUniform4fv(r_model_program.stage.color, 1, stage->cm->color.rgba);
 	}
 
 	if (stage->cm->flags & STAGE_PULSE) {
-		glUniform1f(r_bsp_program.stage.pulse, stage->cm->pulse.hz);
+		glUniform1f(r_model_program.stage.pulse, stage->cm->pulse.hz);
 	}
 
 	if (stage->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
-		glUniform2fv(r_bsp_program.stage.st_origin, 1, draw->st_origin.xy);
+		glUniform2fv(r_model_program.stage.st_origin, 1, draw->st_origin.xy);
 	}
 
 	if (stage->cm->flags & STAGE_STRETCH) {
-		glUniform2f(r_bsp_program.stage.stretch, stage->cm->stretch.amp, stage->cm->stretch.hz);
+		glUniform2f(r_model_program.stage.stretch, stage->cm->stretch.amp, stage->cm->stretch.hz);
 	}
 
 	if (stage->cm->flags & STAGE_ROTATE) {
-		glUniform1f(r_bsp_program.stage.rotate, stage->cm->rotate.hz);
+		glUniform1f(r_model_program.stage.rotate, stage->cm->rotate.hz);
 	}
 
 	if (stage->cm->flags & (STAGE_SCROLL_S | STAGE_SCROLL_T)) {
-		glUniform2f(r_bsp_program.stage.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
+		glUniform2f(r_model_program.stage.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
 	}
 
 	if (stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-		glUniform2f(r_bsp_program.stage.scale, stage->cm->scale.s, stage->cm->scale.t);
+		glUniform2f(r_model_program.stage.scale, stage->cm->scale.s, stage->cm->scale.t);
 	}
 
 	if (stage->cm->flags & STAGE_TERRAIN) {
-		glUniform2f(r_bsp_program.stage.terrain, stage->cm->terrain.floor, stage->cm->terrain.ceil);
+		glUniform2f(r_model_program.stage.terrain, stage->cm->terrain.floor, stage->cm->terrain.ceil);
 	}
 
 	if (stage->cm->flags & STAGE_DIRTMAP) {
-		glUniform1f(r_bsp_program.stage.dirtmap, stage->cm->dirtmap.intensity);
+		glUniform1f(r_model_program.stage.dirtmap, stage->cm->dirtmap.intensity);
 	}
 
 	if (stage->cm->flags & STAGE_WARP) {
-		glUniform2f(r_bsp_program.stage.warp, stage->cm->warp.hz, stage->cm->warp.amplitude);
+		glUniform2f(r_model_program.stage.warp, stage->cm->warp.hz, stage->cm->warp.amplitude);
 	}
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
@@ -371,7 +370,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 		R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage);
 	}
 
-	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+	glUniform1i(r_model_program.stage.flags, STAGE_MATERIAL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -409,7 +408,7 @@ static void R_DrawBlendDepthTypes(const r_view_t *view, int32_t blend_depth, r_b
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glUseProgram(r_bsp_program.name);
+	glUseProgram(r_model_program.name);
 	glBindVertexArray(r_world_model->bsp->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
@@ -438,11 +437,11 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 
 			glBindTexture(GL_TEXTURE_2D_ARRAY, (*material)->texture->texnum);
 
-			glUniform1f(r_bsp_program.material.alpha_test, (*material)->cm->alpha_test * r_alpha_test->value);
-			glUniform1f(r_bsp_program.material.roughness, (*material)->cm->roughness * r_roughness->value);
-			glUniform1f(r_bsp_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
-			glUniform1f(r_bsp_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
-			glUniform1f(r_bsp_program.material.bloom, (*material)->cm->bloom * r_bloom->value);
+			glUniform1f(r_model_program.material.alpha_test, (*material)->cm->alpha_test * r_alpha_test->value);
+			glUniform1f(r_model_program.material.roughness, (*material)->cm->roughness * r_roughness->value);
+			glUniform1f(r_model_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
+			glUniform1f(r_model_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
+			glUniform1f(r_model_program.material.bloom, (*material)->cm->bloom * r_bloom->value);
 		}
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
@@ -546,11 +545,11 @@ static void R_DrawBspInlineBlendDrawElements(const r_view_t *view,
 
 		glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
-		glUniform1f(r_bsp_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
-		glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
-		glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
-		glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
-		glUniform1f(r_bsp_program.material.bloom, material->cm->bloom* r_bloom->value);
+		glUniform1f(r_model_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
+		glUniform1f(r_model_program.material.roughness, material->cm->roughness * r_roughness->value);
+		glUniform1f(r_model_program.material.hardness, material->cm->hardness * r_hardness->value);
+		glUniform1f(r_model_program.material.specularity, material->cm->specularity * r_specularity->value);
+		glUniform1f(r_model_program.material.bloom, material->cm->bloom* r_bloom->value);
 
 		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
 	}
@@ -582,7 +581,7 @@ void R_UpdateBspInlineEntities(r_view_t *view) {
  */
 static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
+	glUniformMatrix4fv(r_model_program.model, 1, GL_FALSE, e->matrix.array);
 
 	R_DrawBspInlineOpaqueDrawElements(view, e, e->model->bsp_inline);
 
@@ -596,7 +595,7 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
+	glUniformMatrix4fv(r_model_program.model, 1, GL_FALSE, Mat4_Identity().array);
 
 	r_stats.bsp_inline_models++;
 }
@@ -610,14 +609,14 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 		return;
 	}
 	
-	glUseProgram(r_bsp_program.name);
+	glUseProgram(r_model_program.name);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
 
-	glUniform1i(r_bsp_program.entity, 1);
+	glUniform1i(r_model_program.model_type, MODEL_BSP_INLINE);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -641,7 +640,7 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
-	glUniform1i(r_bsp_program.entity, 0);
+	glUniform1i(r_model_program.model_type, MODEL_BSP);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -660,19 +659,19 @@ void R_DrawWorld(const r_view_t *view) {
 
 	R_DrawSky(view);
 
-	glUseProgram(r_bsp_program.name);
+	glUseProgram(r_model_program.name);
 
-	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+	glUniform1i(r_model_program.stage.flags, STAGE_MATERIAL);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
 
-	glEnableVertexAttribArray(r_bsp_program.in_position);
-	glEnableVertexAttribArray(r_bsp_program.in_normal);
-	glEnableVertexAttribArray(r_bsp_program.in_tangent);
-	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
-	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
-	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
-	glEnableVertexAttribArray(r_bsp_program.in_color);
+	glEnableVertexAttribArray(r_model_program.in_position);
+	glEnableVertexAttribArray(r_model_program.in_normal);
+	glEnableVertexAttribArray(r_model_program.in_tangent);
+	glEnableVertexAttribArray(r_model_program.in_bitangent);
+	glEnableVertexAttribArray(r_model_program.in_diffusemap);
+	glEnableVertexAttribArray(r_model_program.in_lightmap);
+	glEnableVertexAttribArray(r_model_program.in_color);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
@@ -688,7 +687,7 @@ void R_DrawWorld(const r_view_t *view) {
 		glDepthMask(GL_FALSE);
 	}
 
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
+	glUniformMatrix4fv(r_model_program.model, 1, GL_FALSE, Mat4_Identity().array);
 
 	R_DrawBspInlineOpaqueDrawElements(view, NULL, r_world_model->bsp->inline_models);
 

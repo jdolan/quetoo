@@ -16,6 +16,9 @@ shaders_DATA = \
 	draw_3d_fs.glsl \
 	draw_3d_vs.glsl \
 	lightgrid.glsl \
+	main_fs.glsl \
+	main_gs.glsl \
+	main_vs.glsl \
 	material.glsl \
 	mesh_fs.glsl \
 	mesh_gs.glsl \

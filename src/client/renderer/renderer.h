@@ -47,6 +47,7 @@
 #include "r_mesh_model_md3.h"
 #include "r_mesh_model_obj.h"
 #include "r_mesh.h"
+#include "r_model_draw.h"
 #include "r_model.h"
 #include "r_occlude.h"
 #include "r_post.h"

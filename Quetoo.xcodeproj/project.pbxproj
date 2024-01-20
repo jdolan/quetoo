@@ -607,6 +607,11 @@
 		CEBDD1B625A0C2710055860E /* cg_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEBDD1B425A0C2710055860E /* cg_sound.h */; };
 		CEBDD1B725A0C2710055860E /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
 		CEC59522257DD26E00DC7908 /* lightgrid.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEC594C7257DC69300DC7908 /* lightgrid.glsl */; };
+		CEC734FB2B5C7DAF00C2CC93 /* model_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEC734F62B5C79D800C2CC93 /* model_fs.glsl */; };
+		CEC734FC2B5C7DAF00C2CC93 /* model_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEC734F72B5C7A0000C2CC93 /* model_gs.glsl */; };
+		CEC734FD2B5C7DAF00C2CC93 /* model_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEC734F82B5C7A1400C2CC93 /* model_vs.glsl */; };
+		CEC734FE2B5C7DCD00C2CC93 /* r_model_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC734FA2B5C7D5900C2CC93 /* r_model_draw.h */; };
+		CEC734FF2B5C7DD900C2CC93 /* r_model_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC734F92B5C7D3500C2CC93 /* r_model_draw.c */; };
 		CEC74D1325C8F98D009C6218 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CECA8CB01E50B5F1005E97E8 /* material.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* material.c */; };
 		CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
@@ -968,6 +973,9 @@
 				CE63992D23E1321100DB7A2D /* mesh_fs.glsl in CopyFiles */,
 				CE795978295FDE72001B52F3 /* mesh_gs.glsl in CopyFiles */,
 				CE63992E23E1321100DB7A2D /* mesh_vs.glsl in CopyFiles */,
+				CEC734FB2B5C7DAF00C2CC93 /* model_fs.glsl in CopyFiles */,
+				CEC734FC2B5C7DAF00C2CC93 /* model_gs.glsl in CopyFiles */,
+				CEC734FD2B5C7DAF00C2CC93 /* model_vs.glsl in CopyFiles */,
 				CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */,
 				CE7F7F5929C622BA00986D1D /* post_fs.glsl in CopyFiles */,
 				CE7F7F5A29C622BE00986D1D /* post_vs.glsl in CopyFiles */,
@@ -1770,6 +1778,11 @@
 		CEBDD1B425A0C2710055860E /* cg_sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_sound.h; sourceTree = "<group>"; };
 		CEBDD1B525A0C2710055860E /* cg_sound.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_sound.c; sourceTree = "<group>"; };
 		CEC594C7257DC69300DC7908 /* lightgrid.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = lightgrid.glsl; sourceTree = "<group>"; };
+		CEC734F62B5C79D800C2CC93 /* model_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = model_fs.glsl; sourceTree = "<group>"; };
+		CEC734F72B5C7A0000C2CC93 /* model_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = model_gs.glsl; sourceTree = "<group>"; };
+		CEC734F82B5C7A1400C2CC93 /* model_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = model_vs.glsl; sourceTree = "<group>"; };
+		CEC734F92B5C7D3500C2CC93 /* r_model_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_model_draw.c; sourceTree = "<group>"; };
+		CEC734FA2B5C7D5900C2CC93 /* r_model_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_model_draw.h; sourceTree = "<group>"; };
 		CEC74B3725C8EE94009C6218 /* installer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = installer.h; sourceTree = "<group>"; };
 		CEC74B3825C8EE94009C6218 /* installer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = installer.c; sourceTree = "<group>"; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = /opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<absolute>"; };
@@ -2626,6 +2639,8 @@
 				CE5022EA23DE3CF900B333CE /* r_mesh_model_md3.h */,
 				CE5022E723DE3C3600B333CE /* r_mesh_model_obj.c */,
 				CE5022E623DE3C3600B333CE /* r_mesh_model_obj.h */,
+				CEC734F92B5C7D3500C2CC93 /* r_model_draw.c */,
+				CEC734FA2B5C7D5900C2CC93 /* r_model_draw.h */,
 				CE12D5DF1C5C58C300CD0B13 /* r_model.c */,
 				CE12D5E01C5C58C300CD0B13 /* r_model.h */,
 				CE795972294E4207001B52F3 /* r_occlude.c */,
@@ -2667,6 +2682,9 @@
 				CED5BB182406B74300784D93 /* draw_3d_fs.glsl */,
 				CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */,
 				CEC594C7257DC69300DC7908 /* lightgrid.glsl */,
+				CEC734F62B5C79D800C2CC93 /* model_fs.glsl */,
+				CEC734F72B5C7A0000C2CC93 /* model_gs.glsl */,
+				CEC734F82B5C7A1400C2CC93 /* model_vs.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CE63992C23E1251A00DB7A2D /* mesh_fs.glsl */,
 				CE795977295FDAF5001B52F3 /* mesh_gs.glsl */,
@@ -3699,6 +3717,7 @@
 				CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */,
 				CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */,
 				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
+				CEC734FE2B5C7DCD00C2CC93 /* r_model_draw.h in Headers */,
 				CED438971D9D34450052BAFA /* r_model.h in Headers */,
 				CE795973294E4207001B52F3 /* r_occlude.h in Headers */,
 				CE7F7F5529C5EA5800986D1D /* r_post.h in Headers */,
@@ -4841,6 +4860,7 @@
 				CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */,
 				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
+				CEC734FF2B5C7DD900C2CC93 /* r_model_draw.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
 				CE795974294E4207001B52F3 /* r_occlude.c in Sources */,
 				CE7F7F5629C5EA5800986D1D /* r_post.c in Sources */,
