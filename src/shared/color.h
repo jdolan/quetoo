@@ -328,6 +328,18 @@ static inline color_t __attribute__ ((warn_unused_result)) Color_Multiply(const 
 }
 
 /**
+ * @return The color `c` normalized to the range `0.f - 1.f`. Hue is preserved.
+ */
+static inline color_t __attribute__ ((warn_unused_result)) Color_Normalize(const color_t c) {
+	const float max = Vec3_Hmaxf(c.vec3);
+	if (max > 1.f) {
+		return Color4f(c.r / max, c.g / max, c.b / max, c.a);
+	} else {
+		return c;
+	}
+}
+
+/**
  * @return The value of `a * b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Scale(const color_t a, const float b) {
