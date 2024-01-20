@@ -787,7 +787,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 
 		r_model_t *out = (r_model_t *) R_AllocMedia(name, sizeof(r_model_t), R_MEDIA_MODEL);
 
-		out->type = MOD_BSP_INLINE;
+		out->type = MODEL_BSP_INLINE;
 		out->bsp_inline = in;
 
 		out->bounds = in->bounds;
@@ -906,7 +906,7 @@ static void R_FreeBspModel(r_media_t *self) {
  */
 const r_model_format_t r_bsp_model_format = {
 	.extension = "bsp",
-	.type = MOD_BSP,
+	.type = MODEL_BSP,
 	.Load = R_LoadBspModel,
 	.Register = R_RegisterBspModel,
 	.Free = R_FreeBspModel

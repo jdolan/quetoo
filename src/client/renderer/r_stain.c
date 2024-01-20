@@ -162,7 +162,7 @@ void R_UpdateStains(const r_view_t *view) {
 
 		const r_entity_t *e = view->entities;
 		for (int32_t j = 0; j < view->num_entities; j++, e++) {
-			if (e->model && e->model->type == MOD_BSP_INLINE) {
+			if (e->model && e->model->type == MODEL_BSP_INLINE) {
 
 				r_stain_t s = *stain;
 

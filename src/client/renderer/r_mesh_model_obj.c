@@ -236,7 +236,7 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
  */
 const r_model_format_t r_obj_model_format = {
 	.extension = "obj",
-	.type = MOD_MESH,
+	.type = MODEL_MESH,
 	.Load = R_LoadObjModel,
 	.Register = R_RegisterMeshModel,
 	.Free = R_FreeMeshModel,

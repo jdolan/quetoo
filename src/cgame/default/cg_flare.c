@@ -87,7 +87,7 @@ void Cg_AddFlares(void) {
 
 				const r_model_t *mod = cgi.client->models[e->current.model1];
 
-				if (mod && mod->type == MOD_BSP_INLINE) {
+				if (mod && mod->type == MODEL_BSP_INLINE) {
 					if (in == mod->bsp_inline) {
 						matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, 1.f);
 						flare->entity = e;

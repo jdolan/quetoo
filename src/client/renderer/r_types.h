@@ -87,9 +87,9 @@ typedef struct r_media_s {
  */
 typedef enum {
 	MOD_INVALID,
-	MOD_BSP,
-	MOD_BSP_INLINE,
-	MOD_MESH
+	MODEL_BSP,
+	MODEL_BSP_INLINE,
+	MODEL_MESH
 } r_model_type_t;
 
 /**
@@ -816,9 +816,9 @@ typedef struct r_model_s {
 	float radius;
 } r_model_t;
 
-#define IS_BSP_MODEL(m) (m && m->type == MOD_BSP)
-#define IS_BSP_INLINE_MODEL(m) (m && m->type == MOD_BSP_INLINE)
-#define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
+#define IS_BSP_MODEL(m) (m && m->type == MODEL_BSP)
+#define IS_BSP_INLINE_MODEL(m) (m && m->type == MODEL_BSP_INLINE)
+#define IS_MESH_MODEL(m) (m && m->type == MODEL_MESH)
 
 /**
  * @brief The model format type.

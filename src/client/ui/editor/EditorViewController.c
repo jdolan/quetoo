@@ -156,7 +156,7 @@ static void viewWillAppear(ViewController *self) {
 			continue;
 		}
 
-		if (e->model->type != MOD_MESH) {
+		if (e->model->type != MODEL_MESH) {
 			continue;
 		}
 

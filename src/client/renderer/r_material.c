@@ -389,7 +389,7 @@ static ssize_t R_SaveMaterials(const r_model_t *mod) {
 	GList *materials = NULL;
 
 	switch (mod->type) {
-		case MOD_BSP: {
+		case MODEL_BSP: {
 			r_material_t **mat = mod->bsp->materials;
 			for (int32_t i = 0; i < mod->bsp->num_materials; i++, mat++) {
 				cm_material_t *cm = (*mat)->cm;
@@ -397,7 +397,7 @@ static ssize_t R_SaveMaterials(const r_model_t *mod) {
 			}
 		}
 			break;
-		case MOD_MESH: {
+		case MODEL_MESH: {
 			const r_mesh_face_t *face = mod->mesh->faces;
 			for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
 				cm_material_t *cm = face->material->cm;
