@@ -39,6 +39,7 @@ layout (location = 1) out vec4 out_bloom;
 void main(void) {
 
 	out_color = texture(texture_sky, normalize(vertex.cubemap));
+	out_color.rgb = pow(out_color.rgb, vec3(gamma));
 
 	float exposure = lightgrid.view_coordinate.w;
 	out_color.rgb += out_color.rgb / exposure;
@@ -47,5 +48,4 @@ void main(void) {
 	out_bloom.a = out_color.a;
 
 	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-	global_fog(out_color, vec3(fog_depth_range.y));
 }

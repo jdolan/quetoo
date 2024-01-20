@@ -74,6 +74,7 @@ struct fragment_t {
 	vec3 direction;
 	vec3 specular;
 	vec3 caustics;
+	vec4 fog;
 } fragment;
 
 /**
@@ -148,8 +149,62 @@ vec3 sample_lightmap_stains() {
 /**
  * @brief
  */
-vec4 sample_lightgrid(sampler3D texture_lightgrid) {
-	return texture(texture_lightgrid, vertex.lightgrid);
+vec3 sample_lightgrid_ambient() {
+	return texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
+}
+
+/**
+ * @brief
+ */
+vec3 sample_lightgrid_diffuse() {
+	return texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
+}
+
+/**
+ * @brief
+ */
+vec3 sample_lightgrid_direction() {
+	vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
+	return normalize((view * model * vec4(normalize(direction), 0.0)).xyz);
+}
+
+/**
+ * @brief
+ */
+vec3 sample_lightgrid_caustics() {
+	return texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
+}
+
+/**
+ * @brief
+ */
+vec4 sample_lightgrid_fog() {
+
+	vec4 fog = vec4(0.0);
+
+	if (fog_density > 0.0) {
+
+		int samples = fog_samples;
+
+		for (int i = 0; i < samples; i++) {
+			vec3 xyz = mix(vertex.model, view[0].xyz, float(i) / float(samples));
+			vec3 uvw = mix(vertex.lightgrid, lightgrid.view_coordinate.xyz, float(i) / float(samples));
+			//uvw += noise3d(vertex.model) * 2.0 * lightgrid.luxel_size.xyz;
+
+			vec3 noise = noise3d(sin(xyz * .05 + ticks * .00125)) * lightgrid.luxel_size.xyz;
+
+			fog += texture(texture_lightgrid_fog, uvw + noise) * vec4(vec3(1.0), fog_density);
+			if (fog.a >= 1.0) {
+				break;
+			}
+		}
+	}
+
+	if (hmax(fog.rgb) > 1.0) {
+		fog.rgb /= hmax(fog.rgb);
+	}
+
+	return clamp(fog, 0.0, 1.0);
 }
 
 /**
@@ -427,30 +482,20 @@ void main(void) {
 		fragment.ambient = vec3(0.0), fragment.diffuse = vec3(0.0), fragment.specular = vec3(0.0), fragment.caustics = vec3(0.0);
 		if (entity == 0) {
 			fragment.ambient = sample_lightmap_ambient();
-			fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
-
 			fragment.diffuse = sample_lightmap_diffuse();
 			fragment.direction = sample_lightmap_direction();
-			fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
-
-			fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
-			fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
-
 			fragment.caustics = sample_lightmap_caustics();
 		} else {
-			fragment.ambient = sample_lightgrid(texture_lightgrid_ambient).rgb * modulate;
-			fragment.ambient *= max(0.0, dot(vertex.normal, fragment.normalmap));
-
-			fragment.diffuse = sample_lightgrid(texture_lightgrid_diffuse).rgb * modulate;
-			vec3 direction = sample_lightgrid(texture_lightgrid_direction).xyz;
-			direction = normalize((view * model * vec4(normalize(direction), 0.0)).xyz);
-			fragment.diffuse *= max(0.0, dot(direction, fragment.normalmap));
-
-			fragment.specular += blinn_phong(fragment.diffuse, direction);
-			fragment.specular += blinn_phong(fragment.ambient, vertex.normal);
-
-			fragment.caustics = sample_lightgrid(texture_lightgrid_caustics).rgb;
+			fragment.ambient = sample_lightgrid_ambient();
+			fragment.diffuse = sample_lightgrid_diffuse();
+			fragment.direction = sample_lightgrid_direction();
+			fragment.caustics = sample_lightgrid_caustics();
 		}
+
+		fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
+		fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
+		fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
+		fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
 
 		caustic_light(vertex.model, fragment.caustics, fragment.ambient, fragment.diffuse);
 
@@ -463,14 +508,15 @@ void main(void) {
 		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse) * stainmap, 0.0);
 		out_color.rgb = max(out_color.rgb + fragment.specular * stainmap, 0.0);
 
+		//lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
+		fragment.fog = sample_lightgrid_fog();
+		out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
+
 		float exposure = lightgrid.view_coordinate.w;
 		out_color.rgb += out_color.rgb / exposure;
 
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
-
-		lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-		global_fog(out_color, vertex.position);
 
 		if (lightmaps == 1) {
 			out_color.rgb = fragment.ambient;
@@ -511,7 +557,6 @@ void main(void) {
 
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			lightgrid_fog(effect, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-			global_fog(effect, vertex.position);
 		}
 
 		out_color = effect;

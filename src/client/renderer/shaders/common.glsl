@@ -136,14 +136,3 @@ void caustic_light(in vec3 model, in vec3 color, in vec3 ambient, inout vec3 dif
 float blinn(in vec3 normal, in vec3 light_dir, in vec3 view_dir, in float specularity) {
 	return pow(max(0.0, dot(normalize(light_dir + view_dir), normal)), specularity);
 }
-
-/**
- * @brief
- */
-void global_fog(inout vec4 color, in vec3 position) {
-
-	float dist = clamp(0.0, length(position) - fog_depth_range.x, fog_depth_range.y);
-	float frac = dist / (fog_depth_range.y - fog_depth_range.x);
-
-	color.rgb += fog_color.rgb * frac * fog_color.a;
-}

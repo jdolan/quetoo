@@ -84,19 +84,9 @@ layout (std140) uniform uniforms_block {
 	lightgrid_t lightgrid;
 
 	/**
-	 * @brief The global fog color (RGB, density).
-	 */
-	vec4 fog_color;
-
-	/**
 	 * @brief The depth range, in world units.
 	 */
 	vec2 depth_range;
-
-	/**
-	 * @brief The global fog depth range, in world units.
-	 */
-	vec2 fog_depth_range;
 
 	/**
 	 * @brief The view type, e.g. VIEW_MAIN.

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define BSP_LIGHTGRID_LUXEL_SIZE 32
+#define BSP_LIGHTGRID_LUXEL_SIZE 32.0
 
 /**
  * @brief Resolves the lightgrid coordinate for the specified position in world space.

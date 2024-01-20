@@ -182,26 +182,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 			out->lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(lightgrid->size), 0.f);
 
 			out->lightgrid.luxel_size = Vec3_ToVec4(Vec3_Divide(lightgrid->luxel_size, extents), 0.f);
-
-			const cm_entity_t *worldspawn = r_world_model->bsp->cm->entities[0];
-			const cm_entity_t *fog_color = Cm_EntityValue(worldspawn, "fog_color");
-			const cm_entity_t *fog_density = Cm_EntityValue(worldspawn, "fog_density");
-			const cm_entity_t *fog_depth_range = Cm_EntityValue(worldspawn, "fog_depth_range");
-
-			out->fog_density = FOG_DENSITY * r_fog_density->value;
-			out->fog_depth_range = Vec2(FOG_DEPTH_NEAR, FOG_DEPTH_FAR);
-
-			if (fog_color->parsed & ENTITY_VEC3) {
-				out->fog_color = Vec3_ToVec4(fog_color->vec3, FOG_DENSITY);
-			}
-
-			if (fog_density->parsed & ENTITY_FLOAT) {
-				out->fog_color.w = fog_density->value * r_fog_density->value;
-			}
-
-			if (fog_depth_range->parsed & ENTITY_VEC2) {
-				out->fog_depth_range = fog_depth_range->vec2;
-			}
 		}
 	}
 

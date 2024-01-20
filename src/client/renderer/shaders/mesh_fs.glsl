@@ -329,7 +329,7 @@ void main(void) {
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		fragment.diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-		fragment.diffusemap.rgb = pow(fragment.diffusemap.rgb, vec3(2.2));
+		fragment.diffusemap.rgb = pow(fragment.diffusemap.rgb, vec3(gamma));
 		fragment.diffusemap *= vertex.color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {

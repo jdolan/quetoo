@@ -566,46 +566,26 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 	const fog_t *fog = (fog_t *) fogs->data;
 	for (guint i = 0; i < fogs->len; i++, fog++) {
 
-		float intensity = 1.f;
+		float density = Clampf(fog->density * scale, 0.f, 1.f);
 
 		switch (fog->type) {
 			case FOG_VOLUME:
 				if (!PointInsideFog(l->origin, fog)) {
-					intensity = 0.f;
+					density = 0.f;
 				}
 				break;
 			default:
 				break;
 		}
 
-		float noise = SimplexNoiseFBM(fog->octaves,
-									  fog->frequency,
-									  fog->amplitude,
-									  fog->lacunarity,
-									  fog->persistence,
-									  (l->s + fog->offset.x) / (float) MAX_BSP_LIGHTGRID_WIDTH,
-									  (l->t + fog->offset.y) / (float) MAX_BSP_LIGHTGRID_WIDTH,
-									  (l->u + fog->offset.z) / (float) MAX_BSP_LIGHTGRID_WIDTH,
-									  fog->permutation_vector);
-
-		intensity *= fog->density + (fog->noise * noise);
-
-		intensity = Clampf(intensity * scale, 0.f, 1.f);
-
-		if (intensity == 0.f) {
+		if (density == 0.f) {
 			continue;
 		}
 
-		const vec3_t light = Vec3_Add(l->ambient, l->diffuse);
-		const vec3_t color = Vec3_Fmaf(fog->color, Clampf(fog->absorption, 0.f, 1.f), light);
+		const vec3_t light = Color_Normalize(Color3fv(Vec3_Add(l->ambient, l->diffuse))).vec3;
+		const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(light, fog->absorption));
 
-		switch (fog->type) {
-			case FOG_INVALID:
-				break;
-			case FOG_VOLUME:
-				l->fog = Vec4_Add(l->fog, Vec3_ToVec4(color, intensity));
-				break;
-		}
+		l->fog = Vec4_Add(l->fog, Vec3_ToVec4(color, density));
 	}
 }
 

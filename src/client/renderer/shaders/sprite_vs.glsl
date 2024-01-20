@@ -103,7 +103,6 @@ void main(void) {
 
 	vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 	lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
-	global_fog(vertex.fog, vertex.position);
 
 	sprite_lighting(vertex.position, vec3(0.0, 0.0, 1.0)); // TODO: actual normals
 
