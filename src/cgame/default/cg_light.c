@@ -131,6 +131,10 @@ static void Cg_AddAmbientLights(void) {
 
 		if (IS_MESH_MODEL(e->model)) {
 
+			if (!(e->effects & EF_CLIENT)) {
+				continue;
+			}
+
 			const r_entity_t *child = e + 1;
 			for (int32_t j = i + 1; j < cgi.view->num_entities; j++, child++) {
 				const r_entity_t *c = child;
