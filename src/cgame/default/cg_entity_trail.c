@@ -854,7 +854,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 }
 
 /**
- * @brief Oscillate value, from material.glsl
+ * @brief
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
 	const float value = .7f + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * .3f;

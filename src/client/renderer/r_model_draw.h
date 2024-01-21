@@ -67,8 +67,6 @@ typedef struct {
 	GLint texture_shadowmap;
 	GLint texture_shadowmap_cube;
 
-	GLint alpha_test;
-
 	struct {
 		GLint alpha_test;
 		GLint roughness;
@@ -88,13 +86,19 @@ typedef struct {
 		GLint scale;
 		GLint terrain;
 		GLint dirtmap;
+		GLint shell;
 		GLint warp;
 	} stage;
 
-	r_image_t *warp_image;
+	GLint tint_colors;
+
+	r_image_t *shell;
+	r_image_t *warp;
 } r_model_program_t;
 
 extern r_model_program_t r_model_program;
+
+extern void R_UseModelProgram(const r_entity_t *entity, const r_model_t *model);
 
 extern void R_InitModelProgram(void);
 extern void R_ShutdownModelProgram(void);

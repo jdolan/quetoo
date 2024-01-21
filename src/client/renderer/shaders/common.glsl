@@ -112,27 +112,3 @@ float noise3d(vec3 p) {
 			w.z),
 		w.y);
 }
-
-/**
- * @brief
- */
-void caustic_light(in vec3 model, in vec3 color, in vec3 ambient, inout vec3 diffuse) {
-
-	float noise = noise3d(model * .05 + (ticks / 1000.0) * 0.5);
-
-	// make the inner edges stronger, clamp to 0-1
-
-	float thickness = 0.02;
-	float glow = 5.0;
-
-	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
-
-	diffuse += clamp((ambient + diffuse) * length(color) * noise * caustics, 0.0, 1.0);
-}
-
-/**
- * @brief
- */
-float blinn(in vec3 normal, in vec3 light_dir, in vec3 view_dir, in float specularity) {
-	return pow(max(0.0, dot(normalize(light_dir + view_dir), normal)), specularity);
-}

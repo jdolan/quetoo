@@ -3,12 +3,7 @@ shadersdir = @PKGLIBDIR@/default/shaders
 shaders_DATA = \
 	blur_fs.glsl \
 	blur_vs.glsl \
-	bsp_fs.glsl \
-	bsp_gs.glsl \
-	bsp_vs.glsl \
 	common.glsl \
-	common_fs.glsl \
-	common_vs.glsl \
 	depth_pass_fs.glsl \
 	depth_pass_vs.glsl \
 	draw_2d_fs.glsl \
@@ -16,13 +11,10 @@ shaders_DATA = \
 	draw_3d_fs.glsl \
 	draw_3d_vs.glsl \
 	lightgrid.glsl \
-	main_fs.glsl \
-	main_gs.glsl \
-	main_vs.glsl \
+	model_fs.glsl \
+	model_gs.glsl \
+	model_vs.glsl \
 	material.glsl \
-	mesh_fs.glsl \
-	mesh_gs.glsl \
-	mesh_vs.glsl \
 	polylib.glsl \
 	post_fs.glsl \
 	post_vs.glsl \

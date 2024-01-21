@@ -111,10 +111,6 @@ void R_InitModels(void) {
 
 	R_InitModelProgram();
 
-	R_InitBspProgram();
-
-	R_InitMeshProgram();
-
 	glFrontFace(GL_CW);
 
 	R_GetError(NULL);
@@ -128,8 +124,4 @@ void R_ShutdownModels(void) {
 	r_world_model = NULL;
 
 	R_ShutdownModelProgram();
-
-	R_ShutdownBspProgram();
-
-	R_ShutdownMeshProgram();
 }

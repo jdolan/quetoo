@@ -100,6 +100,28 @@ vec3 sample_normalmap() {
 /**
  * @brief
  */
+float toksvig_gloss(in vec3 normal, in float power) {
+
+	float len_rcp = 1.0 / saturate(length(normal));
+	return 1.0 / (1.0 + power * (len_rcp - 1.0));
+}
+
+/**
+ * @brief Toksvig normalmap antialiasing.
+ */
+float toksvig(in sampler2DArray sampler, in vec3 texcoord, in float roughness, in float specularity) {
+
+	float power = pow(1.0 + specularity, 4.0);
+
+	vec3 normalmap0 = (texture(sampler, texcoord, 0).xyz * 2.0 - 1.0) * vec3(vec2(roughness), 1.0);
+	vec3 normalmap1 = (texture(sampler, texcoord, 1).xyz * 2.0 - 1.0) * vec3(vec2(roughness), 1.0);
+
+	return power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
+}
+
+/**
+ * @brief
+ */
 vec4 sample_specularmap() {
 	vec4 specularmap;
 	specularmap.rgb = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
@@ -132,8 +154,32 @@ vec3 sample_lightmap_direction() {
 /**
  * @brief
  */
+float blinn(in vec3 normal, in vec3 light_dir, in vec3 view_dir, in float specularity) {
+	return pow(max(0.0, dot(normalize(light_dir + view_dir), normal)), specularity);
+}
+
+/**
+ * @brief
+ */
 vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
 	return diffuse * fragment.specularmap.rgb * blinn(fragment.normalmap, light_dir, fragment.dir, fragment.specularmap.w);
+}
+
+/**
+ * @brief
+ */
+void caustic_light(in vec3 model, in vec3 color, in vec3 ambient, inout vec3 diffuse) {
+
+	float noise = noise3d(model * .05 + (ticks / 1000.0) * 0.5);
+
+	// make the inner edges stronger, clamp to 0-1
+
+	float thickness = 0.02;
+	float glow = 5.0;
+
+	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
+
+	diffuse += clamp((ambient + diffuse) * length(color) * noise * caustics, 0.0, 1.0);
 }
 
 /**
@@ -188,14 +234,14 @@ vec4 sample_lightgrid_fog() {
 
 	if (fog_density > 0.0) {
 
-		int samples = fog_samples;
+		int samples = int(clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1, fog_samples));
 
 		for (int i = 0; i < samples; i++) {
 			vec3 xyz = mix(vertex.model, view[0].xyz, float(i) / float(samples));
 			vec3 uvw = mix(vertex.lightgrid, lightgrid.view_coordinate.xyz, float(i) / float(samples));
 			//uvw += noise3d(vertex.model) * 2.0 * lightgrid.luxel_size.xyz;
 
-			vec3 noise = noise3d(sin(xyz * .05 + ticks * .00125)) * lightgrid.luxel_size.xyz;
+			vec3 noise = vec3(0);//noise3d(sin(xyz * .05 + ticks * .00125)) * lightgrid.luxel_size.xyz;
 
 			fog += texture(texture_lightgrid_fog, uvw + noise) * vec4(vec3(1.0), fog_density);
 			if (fog.a >= 1.0) {
@@ -483,7 +529,6 @@ void main(void) {
 		fragment.normalmap = sample_normalmap();
 		fragment.specularmap = sample_specularmap();
 
-		fragment.ambient = vec3(0.0), fragment.diffuse = vec3(0.0), fragment.specular = vec3(0.0), fragment.caustics = vec3(0.0);
 		if (model_type == MODEL_BSP) {
 			fragment.ambient = sample_lightmap_ambient();
 			fragment.diffuse = sample_lightmap_diffuse();

@@ -22,68 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief The BSP program.
- */
-static struct {
-	GLuint name;
-
-	GLuint uniforms_block;
-	GLuint lights_block;
-
-	GLint in_position;
-	GLint in_normal;
-	GLint in_tangent;
-	GLint in_bitangent;
-	GLint in_diffusemap;
-	GLint in_lightmap;
-	GLint in_color;
-
-	GLint model;
-
-	GLint texture_material;
-	GLint texture_lightmap_ambient;
-	GLint texture_lightmap_diffuse;
-	GLint texture_lightmap_direction;
-	GLint texture_lightmap_caustics;
-	GLint texture_lightmap_stains;
-	GLint texture_stage;
-	GLint texture_warp;
-	GLint texture_lightgrid_ambient;
-	GLint texture_lightgrid_diffuse;
-	GLint texture_lightgrid_direction;
-	GLint texture_lightgrid_caustics;
-	GLint texture_lightgrid_fog;
-	GLint texture_shadowmap;
-	GLint texture_shadowmap_cube;
-
-	GLint entity;
-
-	struct {
-		GLint alpha_test;
-		GLint roughness;
-		GLint hardness;
-		GLint specularity;
-		GLint bloom;
-	} material;
-
-	struct {
-		GLint flags;
-		GLint color;
-		GLint pulse;
-		GLint st_origin;
-		GLint stretch;
-		GLint rotate;
-		GLint scroll;
-		GLint scale;
-		GLint terrain;
-		GLint dirtmap;
-		GLint warp;
-	} stage;
-
-	r_image_t *warp_image;
-} r_bsp_program;
-
-/**
  * @brief
  */
 static void R_DrawBspNormals(const r_view_t *view) {
@@ -408,11 +346,7 @@ static void R_DrawBlendDepthTypes(const r_view_t *view, int32_t blend_depth, r_b
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glUseProgram(r_model_program.name);
-	glBindVertexArray(r_world_model->bsp->vertex_array);
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+	R_UseModelProgram(NULL, r_world_model);
 }
 
 /**
@@ -640,7 +574,7 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
-	glUniform1i(r_model_program.model_type, MODEL_BSP);
+	glUniform1i(r_model_program.model_type, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -658,25 +592,9 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 void R_DrawWorld(const r_view_t *view) {
 
 	R_DrawSky(view);
-
-	glUseProgram(r_model_program.name);
-
-	glUniform1i(r_model_program.stage.flags, STAGE_MATERIAL);
-
-	glBindVertexArray(r_world_model->bsp->vertex_array);
-
-	glEnableVertexAttribArray(r_model_program.in_position);
-	glEnableVertexAttribArray(r_model_program.in_normal);
-	glEnableVertexAttribArray(r_model_program.in_tangent);
-	glEnableVertexAttribArray(r_model_program.in_bitangent);
-	glEnableVertexAttribArray(r_model_program.in_diffusemap);
-	glEnableVertexAttribArray(r_model_program.in_lightmap);
-	glEnableVertexAttribArray(r_model_program.in_color);
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
-
 	R_DrawStains(view);
+
+	R_UseModelProgram(NULL, r_world_model);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -714,7 +632,9 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
+
+	glUniform1i(r_model_program.model_type, 0);
+
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -722,133 +642,4 @@ void R_DrawWorld(const r_view_t *view) {
 	R_GetError(NULL);
 
 	R_DrawBspNormals(view);
-}
-
-#define WARP_IMAGE_SIZE 16
-
-/**
- * @brief
- */
-void R_InitBspProgram(void) {
-
-	memset(&r_bsp_program, 0, sizeof(r_bsp_program));
-
-	r_bsp_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "bsp_vs.glsl", NULL),
-		    R_ShaderDescriptor(GL_GEOMETRY_SHADER, "polylib.glsl", "bsp_gs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "bsp_fs.glsl", NULL),
-			NULL);
-
-	glUseProgram(r_bsp_program.name);
-
-	r_bsp_program.uniforms_block = glGetUniformBlockIndex(r_bsp_program.name, "uniforms_block");
-	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.uniforms_block, 0);
-
-	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
-	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 1);
-
-	r_bsp_program.in_position = glGetAttribLocation(r_bsp_program.name, "in_position");
-	r_bsp_program.in_normal = glGetAttribLocation(r_bsp_program.name, "in_normal");
-	r_bsp_program.in_tangent = glGetAttribLocation(r_bsp_program.name, "in_tangent");
-	r_bsp_program.in_bitangent = glGetAttribLocation(r_bsp_program.name, "in_bitangent");
-	r_bsp_program.in_diffusemap = glGetAttribLocation(r_bsp_program.name, "in_diffusemap");
-	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
-	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
-
-	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
-
-	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
-	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
-	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
-	
-	r_bsp_program.texture_lightmap_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_ambient");
-	r_bsp_program.texture_lightmap_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_diffuse");
-	r_bsp_program.texture_lightmap_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_direction");
-	r_bsp_program.texture_lightmap_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_caustics");
-	r_bsp_program.texture_lightmap_stains = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_stains");
-	
-	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
-	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
-	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
-	r_bsp_program.texture_lightgrid_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_caustics");
-	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
-	
-	r_bsp_program.texture_shadowmap = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap");
-	r_bsp_program.texture_shadowmap_cube = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap_cube");
-
-	r_bsp_program.entity = glGetUniformLocation(r_bsp_program.name, "entity");
-
-	r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
-	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
-	r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");
-	r_bsp_program.material.specularity = glGetUniformLocation(r_bsp_program.name, "material.specularity");
-	r_bsp_program.material.bloom = glGetUniformLocation(r_bsp_program.name, "material.bloom");
-
-	r_bsp_program.stage.flags = glGetUniformLocation(r_bsp_program.name, "stage.flags");
-	r_bsp_program.stage.color = glGetUniformLocation(r_bsp_program.name, "stage.color");
-	r_bsp_program.stage.pulse = glGetUniformLocation(r_bsp_program.name, "stage.pulse");
-	r_bsp_program.stage.st_origin = glGetUniformLocation(r_bsp_program.name, "stage.st_origin");
-	r_bsp_program.stage.stretch = glGetUniformLocation(r_bsp_program.name, "stage.stretch");
-	r_bsp_program.stage.rotate = glGetUniformLocation(r_bsp_program.name, "stage.rotate");
-	r_bsp_program.stage.scroll = glGetUniformLocation(r_bsp_program.name, "stage.scroll");
-	r_bsp_program.stage.scale = glGetUniformLocation(r_bsp_program.name, "stage.scale");
-	r_bsp_program.stage.terrain = glGetUniformLocation(r_bsp_program.name, "stage.terrain");
-	r_bsp_program.stage.dirtmap = glGetUniformLocation(r_bsp_program.name, "stage.dirtmap");
-	r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
-
-	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
-	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
-	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
-	glUniform1i(r_bsp_program.texture_lightmap_ambient, TEXTURE_LIGHTMAP_AMBIENT);
-	glUniform1i(r_bsp_program.texture_lightmap_diffuse, TEXTURE_LIGHTMAP_DIFFUSE);
-	glUniform1i(r_bsp_program.texture_lightmap_direction, TEXTURE_LIGHTMAP_DIRECTION);
-	glUniform1i(r_bsp_program.texture_lightmap_caustics, TEXTURE_LIGHTMAP_CAUSTICS);
-	glUniform1i(r_bsp_program.texture_lightmap_stains, TEXTURE_LIGHTMAP_STAINS);
-	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
-	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
-	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
-	glUniform1i(r_bsp_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
-	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
-	glUniform1i(r_bsp_program.texture_shadowmap, TEXTURE_SHADOWMAP);
-	glUniform1i(r_bsp_program.texture_shadowmap_cube, TEXTURE_SHADOWMAP_CUBE);
-
-	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
-	r_bsp_program.warp_image->media.Retain = R_RetainImage;
-	r_bsp_program.warp_image->media.Free = R_FreeImage;
-
-	r_bsp_program.warp_image->width = r_bsp_program.warp_image->height = WARP_IMAGE_SIZE;
-	r_bsp_program.warp_image->type = IMG_PROGRAM;
-	r_bsp_program.warp_image->target = GL_TEXTURE_2D;
-	r_bsp_program.warp_image->internal_format = GL_RGBA8;
-	r_bsp_program.warp_image->format = GL_RGBA;
-	r_bsp_program.warp_image->pixel_type = GL_UNSIGNED_BYTE;
-
-	byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
-
-	for (int32_t i = 0; i < WARP_IMAGE_SIZE; i++) {
-		for (int32_t j = 0; j < WARP_IMAGE_SIZE; j++) {
-			data[i][j][0] = RandomRangeu(0, 48);
-			data[i][j][1] = RandomRangeu(0, 48);
-			data[i][j][2] = 0;
-			data[i][j][3] = 255;
-		}
-	}
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
-
-	R_UploadImage(r_bsp_program.warp_image, (byte *) data);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_ShutdownBspProgram(void) {
-
-	glDeleteProgram(r_bsp_program.name);
-
-	r_bsp_program.name = 0;
 }
