@@ -168,9 +168,9 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
 /**
  * @brief
  */
-void caustic_light(in vec3 model, in vec3 color, in vec3 ambient, inout vec3 diffuse) {
+void caustic_light() {
 
-	float noise = noise3d(model * .05 + (ticks / 1000.0) * 0.5);
+	float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
 
 	// make the inner edges stronger, clamp to 0-1
 
@@ -179,7 +179,8 @@ void caustic_light(in vec3 model, in vec3 color, in vec3 ambient, inout vec3 dif
 
 	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
 
-	diffuse += clamp((ambient + diffuse) * length(color) * noise * caustics, 0.0, 1.0);
+	vec3 light = fragment.ambient + fragment.diffuse;
+	fragment.diffuse += max(vec3(0.0), light * length(fragment.caustics) * noise);
 }
 
 /**
@@ -474,6 +475,8 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
  */
 void light_and_shadow(void) {
 
+	caustic_light();
+
 	for (int i = 0; i < vertex.num_active_lights; i++) {
 
 		int index = vertex.active_lights[i];
@@ -545,8 +548,6 @@ void main(void) {
 		fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
 		fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
 		fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
-
-		caustic_light(vertex.model, fragment.caustics, fragment.ambient, fragment.diffuse);
 
 		light_and_shadow();
 
