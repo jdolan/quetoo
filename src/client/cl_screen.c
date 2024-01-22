@@ -149,6 +149,8 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 		R_Draw2DString(x, y, va(" %d triangles", r_stats.bsp_triangles), color_yellow);
 		y += ch;
+		R_Draw2DString(x, y, va(" %d blend depth types", r_stats.blend_depth_types), color_yellow);
+		y += ch;
 	}
 
 	y += ch;

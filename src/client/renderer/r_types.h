@@ -1608,6 +1608,8 @@ typedef struct {
 
 	int32_t sprite_draw_elements;
 
+	int32_t blend_depth_types;
+
 	int32_t draw_chars;
 	int32_t draw_fills;
 	int32_t draw_images;

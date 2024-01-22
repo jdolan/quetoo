@@ -347,6 +347,8 @@ static void R_DrawBlendDepthTypes(const r_view_t *view, int32_t blend_depth, r_b
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_UseModelProgram(NULL, r_world_model);
+
+	r_stats.blend_depth_types++;
 }
 
 /**
