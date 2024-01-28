@@ -233,21 +233,16 @@ vec4 sample_lightgrid_fog() {
 
 	vec4 fog = vec4(0.0);
 
-	if (fog_density > 0.0) {
+	float samples = clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
 
-		int samples = int(clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1, fog_samples));
+	for (float i = 0; i < samples; i++) {
 
-		for (int i = 0; i < samples; i++) {
-			vec3 xyz = mix(vertex.model, view[0].xyz, float(i) / float(samples));
-			vec3 uvw = mix(vertex.lightgrid, lightgrid.view_coordinate.xyz, float(i) / float(samples));
-			//uvw += noise3d(vertex.model) * 2.0 * lightgrid.luxel_size.xyz;
+		vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
+		vec3 uvw = mix(vertex.lightgrid, lightgrid.view_coordinate.xyz, i / samples);
 
-			vec3 noise = vec3(0);//noise3d(sin(xyz * .05 + ticks * .00125)) * lightgrid.luxel_size.xyz;
-
-			fog += texture(texture_lightgrid_fog, uvw + noise) * vec4(vec3(1.0), fog_density);
-			if (fog.a >= 1.0) {
-				break;
-			}
+		fog += texture(texture_lightgrid_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+		if (fog.a >= 1.0) {
+			break;
 		}
 	}
 
@@ -558,7 +553,6 @@ void main(void) {
 		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse) * stainmap, 0.0);
 		out_color.rgb = max(out_color.rgb + fragment.specular * stainmap, 0.0);
 
-		//lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
 		fragment.fog = sample_lightgrid_fog();
 		out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
 
