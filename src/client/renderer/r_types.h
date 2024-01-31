@@ -1139,6 +1139,11 @@ typedef struct {
  */
 typedef struct r_entity_s {
 	/**
+	 * @brief The entity identifier.
+	 */
+	const void *id;
+
+	/**
 	 * @brief The parent entity, if any, for linked mesh models.
 	 */
 	const struct r_entity_s *parent;
@@ -1321,6 +1326,11 @@ typedef struct {
 	 * @brief The top node containing the light bounds.
 	 */
 	int32_t node;
+
+	/**
+	 * @brief The optional light source, which will not cast shadow.
+	 */
+	const r_entity_t *source;
 
 	/**
 	 * @brief The entities that are within the bounds of this light, for shadow mapping.

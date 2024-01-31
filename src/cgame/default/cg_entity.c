@@ -263,6 +263,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 
 	// set the origin and angles so that we know where to add effects
 	r_entity_t e = {
+		.id = ent,
 		.origin = ent->origin,
 		.termination = ent->termination,
 		.angles = ent->angles,

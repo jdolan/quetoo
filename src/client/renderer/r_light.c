@@ -83,6 +83,21 @@ static void R_AddLightUniform(r_light_t *in) {
 }
 
 /**
+ * @brief
+ */
+static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
+
+	while (e) {
+		if (light->source == e->id) {
+			return true;
+		}
+		e = e->parent;
+	}
+
+	return false;
+}
+
+/**
  * @brief Cull lights by occlusion queries, and transform them into view space.
  */
 void R_UpdateLights(r_view_t *view) {
@@ -117,6 +132,10 @@ void R_UpdateLights(r_view_t *view) {
 				}
 
 				if (e->effects & EF_NO_SHADOW) {
+					continue;
+				}
+
+				if (R_IsLightSource(l, e)) {
 					continue;
 				}
 

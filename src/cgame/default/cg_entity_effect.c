@@ -97,6 +97,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 			.radius = 80.0,
 			.color = Vec3(0.3f, 0.7f, 0.7f),
 			.intensity = .333f,
+			.source = ent,
 		};
 
 		Cg_AddLight(&l);
@@ -115,6 +116,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 					.radius = 128.f,
 					.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z).vec3,
 					.intensity = .333f,
+					.source = ent,
 				};
 
 				Cg_AddLight(&l);
@@ -165,6 +167,6 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (ent->current.trail == TRAIL_ROCKET) {
-		e->effects |= EF_NO_SHADOW;
+		e->effects |= EF_NO_SHADOW; // FIXME: Make this entity the light's source instead
 	}
 }
