@@ -134,6 +134,11 @@ layout (std140) uniform uniforms_block {
 	float bloom;
 
 	/**
+	 * @brief The HDR scalar.
+	 */
+	float hdr;
+
+	/**
 	 * @brief The volumetric fog density scalar.
 	 */
 	float fog_density;

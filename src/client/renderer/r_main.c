@@ -58,6 +58,7 @@ cvar_t *r_fog_samples;
 cvar_t *r_fullscreen;
 cvar_t *r_gamma;
 cvar_t *r_hardness;
+cvar_t *r_hdr;
 cvar_t *r_height;
 cvar_t *r_modulate;
 cvar_t *r_multisample;
@@ -166,6 +167,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 		out->caustics = r_caustics->value;
 		out->bloom = r_bloom->value;
+		out->hdr = r_hdr->value;
 
 		out->developer = r_developer->integer;
 
@@ -381,6 +383,7 @@ static void R_InitLocal(void) {
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
 	r_gamma = Cvar_Add("r_gamma", "2.2", CVAR_ARCHIVE, "Controls video gamma (brightness)");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
+	r_hdr = Cvar_Add("r_hdr", "1", CVAR_ARCHIVE, "Controls high dynamic range effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");

@@ -35,6 +35,7 @@ extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_gamma;
 extern cvar_t *r_hardness;
+extern cvar_t *r_hdr;
 extern cvar_t *r_height;
 extern cvar_t *r_modulate;
 extern cvar_t *r_multisample;
@@ -196,6 +197,11 @@ typedef struct {
 		 * @brief The bloom scalar.
 		 */
 		float bloom;
+
+		/**
+		 * @brief The HDR scalar.
+		 */
+		float hdr;
 
 		/**
 		 * @brief The fog density scalar.
