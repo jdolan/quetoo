@@ -199,6 +199,7 @@ void Cg_AddLights(void) {
 			.intensity = l->intensity,
 			.shadow = MATERIAL_LIGHT_SHADOW,
 			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
+			.source = l->source,
 		};
 
 		cgi.BoxLeafnums(out.bounds, NULL, 0, &out.node, 0);
