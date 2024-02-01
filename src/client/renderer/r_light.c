@@ -87,6 +87,10 @@ static void R_AddLightUniform(r_light_t *in) {
  */
 static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 
+	if (light->source == NULL) {
+		return false;
+	}
+
 	while (e) {
 		if (light->source == e->id) {
 			return true;
