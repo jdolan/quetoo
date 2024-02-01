@@ -228,10 +228,12 @@ void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data) {
 
 	glBindTexture(image->target, image->texnum);
 
-	if (image->depth > 1) {
-		glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, image->pixel_type, data);
-	} else {
-		glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, image->pixel_type, data);
+	if (data) {
+		if (image->depth > 1) {
+			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, image->pixel_type, data);
+		} else {
+			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, image->pixel_type, data);
+		}
 	}
 
 	if (image->levels > 1) {
