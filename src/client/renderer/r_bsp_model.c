@@ -166,8 +166,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->lightmap.st_mins = in->lightmap.st_mins;
 		out->lightmap.st_maxs = in->lightmap.st_maxs;
 
-		lm->stainmap = Mem_LinkMalloc(lm->w * lm->h * sizeof(color_t), bsp->faces);
-		memset(lm->stainmap, 0xff, lm->w * lm->h * sizeof(color_t));
+		lm->stains = Mem_LinkMalloc(lm->w * lm->h * sizeof(color_t), bsp->faces);
 	}
 }
 
@@ -509,27 +508,20 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
 
-	byte *stains = Mem_Malloc(out->width * out->width * sizeof(color32_t));
-	Color32_Fill(stains, Color_Color32(color_white), out->width * out->width);
-
-	R_UploadImage(out->stains, stains);
-
-	Mem_Free(stains);
+	R_UploadImage(out->stains, NULL);
 }
 
 /**
- * @brief Resets all face stainmaps in the event that the map is reloaded.
+ * @brief Resets all face stains in the event that the map is reloaded.
  */
-static void R_ResetBspStainmap(r_bsp_model_t *bsp) {
+static void R_ResetBspLightmapStains(r_bsp_model_t *bsp) {
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
 
 	r_bsp_face_t *face = bsp->faces;
 	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
-		Color32_Fill((byte *) face->lightmap.stainmap,
-					 Color32(0xff, 0xff, 0xff, 0xff),
-					 face->lightmap.w * face->lightmap.h);
+		memset(face->lightmap.stains, 0, face->lightmap.w * face->lightmap.h * sizeof(color32_t));
 
 		glTexSubImage2D(GL_TEXTURE_2D,
 				0,
@@ -539,7 +531,7 @@ static void R_ResetBspStainmap(r_bsp_model_t *bsp) {
 				face->lightmap.h,
 				GL_RGBA,
 				GL_UNSIGNED_BYTE,
-				face->lightmap.stainmap);
+				face->lightmap.stains);
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
@@ -867,7 +859,7 @@ static void R_RegisterBspModel(r_media_t *self) {
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->caustics);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->stains);
 
-	R_ResetBspStainmap(mod->bsp);
+	R_ResetBspLightmapStains(mod->bsp);
 
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->ambient);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->diffuse);

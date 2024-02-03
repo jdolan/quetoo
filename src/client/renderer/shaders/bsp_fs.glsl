@@ -19,32 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define MODEL_INVALID    0
 #define MODEL_BSP        1
 #define MODEL_BSP_INLINE 2
-#define MODEL_MESH       3
-
-uniform sampler2DArray texture_material;
-uniform sampler2D texture_stage;
-uniform sampler2D texture_warp;
-uniform sampler2D texture_lightmap_ambient;
-uniform sampler2D texture_lightmap_diffuse;
-uniform sampler2D texture_lightmap_direction;
-uniform sampler2D texture_lightmap_caustics;
-uniform sampler2D texture_lightmap_stains;
-uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
-uniform sampler3D texture_lightgrid_caustics;
-uniform sampler3D texture_lightgrid_fog;
-uniform sampler2DArrayShadow texture_shadowmap;
-uniform samplerCubeArrayShadow texture_shadowmap_cube;
 
 uniform int model_type;
 uniform mat4 model;
-
-uniform material_t material;
-uniform stage_t stage;
 
 in geometry_data {
 	vec3 model;
@@ -79,6 +58,7 @@ struct fragment_t {
 	vec3 specular;
 	vec3 caustics;
 	vec4 fog;
+	vec4 stains;
 } fragment;
 
 /**
@@ -107,25 +87,20 @@ float toksvig_gloss(in vec3 normal, in float power) {
 }
 
 /**
- * @brief Toksvig normalmap antialiasing.
- */
-float toksvig(in sampler2DArray sampler, in vec3 texcoord, in float roughness, in float specularity) {
-
-	float power = pow(1.0 + specularity, 4.0);
-
-	vec3 normalmap0 = (texture(sampler, texcoord, 0).xyz * 2.0 - 1.0) * vec3(vec2(roughness), 1.0);
-	vec3 normalmap1 = (texture(sampler, texcoord, 1).xyz * 2.0 - 1.0) * vec3(vec2(roughness), 1.0);
-
-	return power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
-}
-
-/**
  * @brief
  */
 vec4 sample_specularmap() {
 	vec4 specularmap;
+
 	specularmap.rgb = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
-	specularmap.w = toksvig(texture_material, vec3(vertex.diffusemap, 1), material.roughness, material.specularity);
+
+	vec3 roughness = vec3(vec2(material.roughness), 1.0);
+	vec3 normalmap0 = (texture(texture_material, vec3(vertex.diffusemap, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
+	vec3 normalmap1 = (texture(texture_material, vec3(vertex.diffusemap, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
+
+	float power = pow(1.0 + material.specularity, 4.0);
+	specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
+
 	return specularmap;
 }
 
@@ -154,20 +129,6 @@ vec3 sample_lightmap_direction() {
 /**
  * @brief
  */
-float blinn(in vec3 normal, in vec3 light_dir, in vec3 view_dir, in float specularity) {
-	return pow(max(0.0, dot(normalize(light_dir + view_dir), normal)), specularity);
-}
-
-/**
- * @brief
- */
-vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
-	return diffuse * fragment.specularmap.rgb * blinn(fragment.normalmap, light_dir, fragment.dir, fragment.specularmap.w);
-}
-
-/**
- * @brief
- */
 void caustic_light() {
 
 	float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
@@ -191,10 +152,10 @@ vec3 sample_lightmap_caustics() {
 }
 
 /**
- * @brief FIXME: Make these alpha blended
+ * @brief
  */
-vec3 sample_lightmap_stains() {
-	return texture(texture_lightmap_stains, vertex.lightmap).rgb;
+vec4 sample_lightmap_stains() {
+	return texture(texture_lightmap_stains, vertex.lightmap) * stains;
 }
 
 /**
@@ -251,6 +212,20 @@ vec4 sample_lightgrid_fog() {
 	}
 
 	return clamp(fog, 0.0, 1.0);
+}
+
+/**
+ * @brief
+ */
+float blinn(in vec3 light_dir) {
+	return pow(max(0.0, dot(normalize(light_dir + fragment.dir), fragment.normalmap)), fragment.specularmap.w);
+}
+
+/**
+ * @brief
+ */
+vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
+	return diffuse * fragment.specularmap.rgb * blinn(light_dir);
 }
 
 /**
@@ -517,8 +492,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.diffusemap = sample_diffusemap();
-		fragment.diffusemap *= vertex.color;
+		fragment.diffusemap = sample_diffusemap() * vertex.color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;
@@ -539,6 +513,9 @@ void main(void) {
 			fragment.caustics = sample_lightgrid_caustics();
 		}
 
+		fragment.stains = sample_lightmap_stains();
+		fragment.fog = sample_lightgrid_fog();
+
 		fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
 		fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
 		fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
@@ -548,16 +525,14 @@ void main(void) {
 
 		out_color = fragment.diffusemap;
 
-		vec3 stainmap = sample_lightmap_stains();
+		out_color.rgb *= (fragment.ambient + fragment.diffuse);
+		out_color.rgb += fragment.specular;
 
-		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse) * stainmap, 0.0);
-		out_color.rgb = max(out_color.rgb + fragment.specular * stainmap, 0.0);
-
-		fragment.fog = sample_lightgrid_fog();
+		out_color.rgb = out_color.rgb * (1.0 - fragment.stains.a) + fragment.stains.rgb * fragment.stains.a;
 		out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
 
 		float exposure = lightgrid.view_coordinate.w;
-		out_color.rgb += out_color.rgb / exposure;
+		out_color.rgb += out_color.rgb * hdr / exposure;
 
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
@@ -574,6 +549,8 @@ void main(void) {
 			out_color.rgb = texture(texture_lightmap_direction, vertex.lightmap).xyz * 2.0 - 1.0;
 		} else if (lightmaps == 6) {
 			out_color.rgb = sample_normalmap();
+		} else if (lightmaps == 7) {
+			out_color = fragment.stains;
 		}
 
 	} else {

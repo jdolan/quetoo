@@ -27,5 +27,4 @@ void R_AddStain(r_view_t *view, const r_stain_t *stain);
 
 #ifdef __R_LOCAL_H__
 void R_UpdateStains(const r_view_t *view);
-void R_DrawStains(const r_view_t *view);
 #endif

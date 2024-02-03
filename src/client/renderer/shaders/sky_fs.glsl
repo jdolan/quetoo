@@ -19,11 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform samplerCube texture_sky;
-uniform sampler3D texture_lightgrid_fog;
-
-uniform material_t material;
-
 in vertex_data {
 	vec3 position;
 	vec3 cubemap;

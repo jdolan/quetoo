@@ -19,9 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
  
-uniform sampler2D texture_diffusemap;
-uniform sampler2D texture_next_diffusemap;
-
 in vertex_data {
 	vec3 position;
 	vec2 diffusemap;

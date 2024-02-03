@@ -27,10 +27,6 @@ layout (location = 4) in float in_lerp;
 layout (location = 5) in float in_softness;
 layout (location = 6) in float in_lighting;
 
-uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_fog;
-
 out vertex_data {
 	vec3 position;
 	vec2 diffusemap;

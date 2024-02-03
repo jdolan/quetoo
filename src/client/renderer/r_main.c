@@ -166,6 +166,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->fog_samples = r_fog_samples->integer;
 
 		out->caustics = r_caustics->value;
+		out->stains = r_stains->value;
 		out->bloom = r_bloom->value;
 		out->hdr = r_hdr->value;
 

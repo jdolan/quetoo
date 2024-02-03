@@ -194,6 +194,11 @@ typedef struct {
 		float caustics;
 
 		/**
+		 * @brief The stains scalar.
+		 */
+		float stains;
+
+		/**
 		 * @brief The bloom scalar.
 		 */
 		float bloom;

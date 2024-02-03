@@ -129,6 +129,11 @@ layout (std140) uniform uniforms_block {
 	float caustics;
 
 	/**
+	 * @brief The stains scalar.
+	 */
+	float stains;
+
+	/**
 	 * @brief The bloom scalar, for non-material based objects.
 	 */
 	float bloom;
@@ -235,3 +240,60 @@ layout (std140) uniform lights_block {
 	 */
 	int num_lights;
 };
+
+/**
+ * @brief The diffusemap textures, for non-material passes such as sprites.
+ */
+uniform sampler2D texture_diffusemap;
+uniform sampler2D texture_next_diffusemap;
+
+/**
+ * @brief The material texture.
+ */
+uniform sampler2DArray texture_material;
+
+/**
+ * @brief The material secondary texture.
+ */
+uniform sampler2D texture_stage;
+
+/**
+ * @brief The warp texture, for liquids.
+ */
+uniform sampler2D texture_warp;
+
+/**
+ * @brief The lightmap textures.
+ */
+uniform sampler2D texture_lightmap_ambient;
+uniform sampler2D texture_lightmap_diffuse;
+uniform sampler2D texture_lightmap_direction;
+uniform sampler2D texture_lightmap_caustics;
+uniform sampler2D texture_lightmap_stains;
+
+/**
+ * @brief The lightgrid textures.
+ */
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_direction;
+uniform sampler3D texture_lightgrid_caustics;
+uniform sampler3D texture_lightgrid_fog;
+
+/**
+ * @brief The sky cubemap texture.
+ */
+uniform samplerCube texture_sky;
+
+/**
+ * @brief The shadowmap textures.
+ */
+uniform sampler2DArrayShadow texture_shadowmap;
+uniform samplerCubeArrayShadow texture_shadowmap_cube;
+
+/**
+ * @brief The framebuffer attachment textures.
+ */
+uniform sampler2D texture_color_attachment;
+uniform sampler2D texture_bloom_attachment;
+uniform sampler2D texture_depth_attachment_copy;

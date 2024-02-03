@@ -77,6 +77,8 @@ struct material_t {
 	float bloom;
 };
 
+uniform material_t material;
+
 /**
  * @brief The stage type.
  */
@@ -141,6 +143,8 @@ struct stage_t {
 	 */
 	float shell;
 };
+
+uniform stage_t stage;
 
 /**
  * @brief

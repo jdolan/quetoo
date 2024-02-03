@@ -59,22 +59,22 @@ static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 			}
 
 			// this luxel is stained, so attenuate and blend it
-			color32_t *stainmap = face->lightmap.stainmap + (face->lightmap.w * t + s);
+			color32_t *out = face->lightmap.stains + (face->lightmap.w * t + s);
 
 			const float dist_squared = Vec2_LengthSquared(Vec2(i, j));
 			const float atten = (radius_squared - dist_squared) / radius_squared;
 
-			const float intensity = stain->color.a * atten * r_stains->value;
+			const float intensity = stain->color.a * atten;
 
 			const float src_alpha = Clampf(intensity, 0.0, 1.0);
 			const float dst_alpha = 1.0 - src_alpha;
 
 			const color_t src = Color_Scale(stain->color, src_alpha);
-			const color_t dst = Color_Scale(Color32_Color(*stainmap), dst_alpha);
+			const color_t dst = Color_Scale(Color32_Color(*out), dst_alpha);
 
-			*stainmap = Color_Color32(Color_Add(src, dst));
+			*out = Color_Color32(Color_Add(src, dst));
 
-			face->stain_frame = stain_frame;
+			face->lightmap.stain_frame = stain_frame;
 		}
 	}
 }
@@ -172,25 +172,13 @@ void R_UpdateStains(const r_view_t *view) {
 			}
 		}
 	}
-}
-
-/**
- * @brief Draws the stains for the current frame.
- */
-void R_DrawStains(const r_view_t *view) {
-
-	if (!view->num_stains) {
-		return;
-	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
 
-	const r_bsp_model_t *bsp = r_world_model->bsp;
+	const r_bsp_face_t *face = r_world_model->bsp->faces;
+	for (int32_t i = 0; i < r_world_model->bsp->num_faces; i++, face++) {
 
-	const r_bsp_face_t *face = bsp->faces;
-	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
-
-		if (face->stain_frame == stain_frame) {
+		if (face->lightmap.stain_frame == stain_frame) {
 			glTexSubImage2D(GL_TEXTURE_2D,
 					0,
 					face->lightmap.s,
@@ -199,7 +187,7 @@ void R_DrawStains(const r_view_t *view) {
 					face->lightmap.h,
 					GL_RGBA,
 					GL_UNSIGNED_BYTE,
-					face->lightmap.stainmap);
+					face->lightmap.stains);
 		}
 	}
 

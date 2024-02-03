@@ -78,7 +78,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightgrid 5 +set r_draw_bsp_lightmap 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_normals 1"
@@ -98,7 +98,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set verbose 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_ambient_volume 0"

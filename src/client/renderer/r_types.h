@@ -367,9 +367,14 @@ typedef struct {
 	vec2_t st_mins, st_maxs;
 
 	/**
-	 * @brief The stainmap for this lightmap.
+	 * @brief The stains for this lightmap.
 	 */
-	color32_t *stainmap;
+	color32_t *stains;
+
+	/**
+	 * @brief The frame number at which this lightmap was last stained.
+	 */
+	int32_t stain_frame;
 } r_bsp_face_lightmap_t;
 
 /**
@@ -390,8 +395,6 @@ typedef struct {
 
 	GLvoid *elements;
 	int32_t num_elements;
-
-	int32_t stain_frame;
 } r_bsp_face_t;
 
 /**
