@@ -392,13 +392,13 @@ void main(void) {
 		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
 		out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
 
+		out_color.rgb = out_color.rgb * (1.0 - vertex.fog.a) + vertex.fog.rgb * vertex.fog.a;
+
 		float exposure = lightgrid.view_coordinate.w;
 		out_color.rgb += out_color.rgb * hdr / exposure;
 
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
-
-		//out_color.rgb += vertex.fog.rgb * out_color.a;
 
 		if (lightmaps == 1) {
 			out_color.rgb = fragment.ambient;
