@@ -26,6 +26,7 @@ in geometry_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
+	vec4 color;
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
@@ -398,7 +399,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.diffusemap = sample_material() * color;
+		fragment.diffusemap = sample_material() * vertex.color * color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;
@@ -431,7 +432,7 @@ void main(void) {
 
 	} else {
 
-		fragment.diffusemap = sample_material_stage() * color;
+		fragment.diffusemap = sample_material_stage() * vertex.color * color;
 
 		fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
 		fragment.diffuse = vertex.diffuse * max(0.0, dot(fragment.direction, fragment.normalmap));

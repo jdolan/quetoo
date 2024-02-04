@@ -29,6 +29,7 @@ in vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
+	vec4 color;
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
@@ -43,6 +44,7 @@ out geometry_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
+	vec4 color;
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
@@ -92,6 +94,7 @@ void main(void) {
 		out_vertex.tangent = in_vertex[i].tangent;
 		out_vertex.bitangent = in_vertex[i].bitangent;
 		out_vertex.diffusemap = in_vertex[i].diffusemap;
+		out_vertex.color = in_vertex[i].color;
 		out_vertex.ambient = in_vertex[i].ambient;
 		out_vertex.diffuse = in_vertex[i].diffuse;
 		out_vertex.direction = in_vertex[i].direction;

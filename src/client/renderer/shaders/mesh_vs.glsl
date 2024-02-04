@@ -127,6 +127,7 @@ void main(void) {
 	vertex.tangent = normalize(vec3(view_model * tangent));
 	vertex.bitangent = normalize(vec3(view_model * bitangent));
 	vertex.diffusemap = in_diffusemap;
+	vertex.color = vec4(1.0);
 
 	vec3 texcoord = lightgrid_uvw(vec3(model * position));
 

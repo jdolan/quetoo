@@ -56,6 +56,7 @@ static struct {
 	GLint texture_shadowmap_cube;
 
 	GLint color;
+	GLint tint_colors;
 
 	struct {
 		GLint alpha_test;
@@ -73,8 +74,6 @@ static struct {
 		GLint scale;
 		GLint shell;
 	} stage;
-
-	GLint tint_colors;
 
 	r_media_t *shell;
 } r_mesh_program;
