@@ -131,6 +131,8 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		e->effects |= EF_SHELL;
 	}
 
+	e->color = Vec4_One();
+
 	if (e->effects & EF_DESPAWN) {
 
 		if (!(ent->prev.effects & EF_DESPAWN)) {

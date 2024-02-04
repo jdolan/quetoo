@@ -291,19 +291,20 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 		glUniform4fv(r_mesh_program.tint_colors, 3, tints[0].xyzw);
 	}
 
-	float alpha = 1.f;
+	vec4_t color = e->color;
 	switch (material->cm->surface & SURF_MASK_BLEND) {
 		case SURF_BLEND_33:
-			alpha = .333f;
+			color.w *= .333f;
 			break;
 		case SURF_BLEND_66:
-			alpha = .666f;
+			color.w *= .666f;
 			break;
 		default:
+			color.w *= 1.f;
 			break;
 	}
 
-	glUniform4f(r_mesh_program.color, 1.f, 1.f, 1.f, alpha);
+	glUniform4fv(r_mesh_program.color, 1, color.xyzw);
 
 	const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
 	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);

@@ -511,6 +511,8 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		Cg_BreathTrail(ent);
 	}
 
+	e->color = Vec4_One();
+
 	// set tints
 	if (ci->shirt.a) {
 		e->tints[0] = ci->shirt.vec4;
