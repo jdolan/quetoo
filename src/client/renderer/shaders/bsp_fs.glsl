@@ -64,7 +64,7 @@ struct fragment_t {
 /**
  * @brief
  */
-vec4 sample_diffusemap() {
+vec4 sample_material() {
 	return pow(texture(texture_material, vec3(vertex.diffusemap, 0)), vec4(vec3(gamma), 1.0));
 }
 
@@ -102,6 +102,13 @@ vec4 sample_specularmap() {
 	specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
 
 	return specularmap;
+}
+
+/**
+ * @brief
+ */
+vec4 sample_material_stage(in vec2 texcoord) {
+	return pow(texture(texture_stage, texcoord), vec4(vec3(gamma), 1.0));
 }
 
 /**
@@ -445,8 +452,6 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
  */
 void light_and_shadow(void) {
 
-	caustic_light();
-
 	for (int i = 0; i < vertex.num_active_lights; i++) {
 
 		int index = vertex.active_lights[i];
@@ -477,6 +482,8 @@ void light_and_shadow(void) {
 				break;
 		}
 	}
+
+	caustic_light();
 }
 
 /**
@@ -492,7 +499,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.diffusemap = sample_diffusemap() * vertex.color;
+		fragment.diffusemap = sample_material() * vertex.color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;
@@ -537,22 +544,6 @@ void main(void) {
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
 
-		if (lightmaps == 1) {
-			out_color.rgb = fragment.ambient;
-		} else if (lightmaps == 2) {
-			out_color.rgb = fragment.diffuse;
-		} else if (lightmaps == 3) {
-			out_color.rgb = fragment.specular;
-		} else if (lightmaps == 4) {
-			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
-		} else if (lightmaps == 5) {
-			out_color.rgb = texture(texture_lightmap_direction, vertex.lightmap).xyz * 2.0 - 1.0;
-		} else if (lightmaps == 6) {
-			out_color.rgb = sample_normalmap();
-		} else if (lightmaps == 7) {
-			out_color = fragment.stains;
-		}
-
 	} else {
 
 		vec2 st = vertex.diffusemap;
@@ -561,39 +552,57 @@ void main(void) {
 			st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
 		}
 
-		vec4 effect = pow(texture(texture_stage, st), vec4(vec3(gamma), 1.0));
-		effect *= vertex.color;
+		fragment.diffusemap = sample_material_stage(st) * vertex.color;
+		
+		if (model_type == MODEL_BSP) {
+			fragment.ambient = sample_lightmap_ambient();
+			fragment.diffuse = sample_lightmap_diffuse();
+			fragment.direction = sample_lightmap_direction();
+			fragment.caustics = sample_lightmap_caustics();
+		} else {
+			fragment.ambient = sample_lightgrid_ambient();
+			fragment.diffuse = sample_lightgrid_diffuse();
+			fragment.direction = sample_lightgrid_direction();
+			fragment.caustics = sample_lightgrid_caustics();
+		}
+
+		fragment.stains = sample_lightmap_stains();
+		fragment.fog = sample_lightgrid_fog();
+
+		fragment.diffuse *= max(0.0, dot(fragment.diffuse, fragment.direction));
+
+		light_and_shadow();
+
+		out_color = fragment.diffusemap;
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
-			vec3 ambient = sample_lightmap_ambient();
-			vec3 diffuse = sample_lightmap_diffuse();
-			vec3 direction = sample_lightmap_direction();
-			diffuse *= max(0.0, dot(diffuse, direction));
-
-			effect.rgb *= (ambient + diffuse);
+			out_color.rgb *= (fragment.ambient + fragment.diffuse);
 		}
 
-		out_bloom.rgb = max(effect.rgb * material.bloom - 1.0, 0.0);
-		out_bloom.a = effect.a;
+		out_color.rgb = out_color.rgb * (1.0 - fragment.stains.a) + fragment.stains.rgb * fragment.stains.a;
+		out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
 
-		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-			lightgrid_fog(effect, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-		}
+		float exposure = lightgrid.view_coordinate.w;
+		out_color.rgb += out_color.rgb * hdr / exposure;
 
-		out_color = effect;
+		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
+		out_bloom.a = out_color.a;
 	}
 
-	// debugging
-
-	#if 0
-	// draw lightgrid texel borders
-	vec4 raster = lightgrid_raster(vertex.lightgrid.xyz, length(vertex.position));
-	out_color.rgb = mix(out_color.rgb, raster.rgb, raster.a * 0.5);
-	#endif
-
-	#if 0
-	// draw vertex tangents
-	out_color.rgb = (vertex.tangent.xyz + 1) * 0.5;
-	#endif
+	if (lightmaps == 1) {
+		out_color.rgb = fragment.ambient;
+	} else if (lightmaps == 2) {
+		out_color.rgb = fragment.diffuse;
+	} else if (lightmaps == 3) {
+		out_color.rgb = fragment.specular;
+	} else if (lightmaps == 4) {
+		out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
+	} else if (lightmaps == 5) {
+		out_color.rgb = texture(texture_lightmap_direction, vertex.lightmap).xyz * 2.0 - 1.0;
+	} else if (lightmaps == 6) {
+		out_color.rgb = sample_normalmap();
+	} else if (lightmaps == 7) {
+		out_color = fragment.stains;
+	}
 }
 
