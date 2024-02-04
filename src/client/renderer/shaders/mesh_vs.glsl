@@ -137,7 +137,7 @@ void main(void) {
 	vertex.caustics = sample_lightgrid_caustics(texcoord);
 	vertex.fog = sample_lightgrid_fog(texcoord);
 
-	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
+	gl_Position = projection3D * vec4(vertex.position, 1.0);
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }

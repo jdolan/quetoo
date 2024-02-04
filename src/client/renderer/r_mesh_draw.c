@@ -345,7 +345,6 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, e->matrix.array);
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
-	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
