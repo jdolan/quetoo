@@ -52,8 +52,6 @@ struct fragment_t {
 	vec3 diffuse;
 	vec3 direction;
 	vec3 specular;
-	vec3 caustics;
-	vec4 fog;
 } fragment;
 
 uniform vec4 color;
@@ -62,7 +60,7 @@ uniform vec4 tint_colors[3];
 /**
  * @brief
  */
-vec4 sample_diffusemap() {
+vec4 sample_material() {
 	return pow(texture(texture_material, vec3(vertex.diffusemap, 0)), vec4(vec3(gamma), 1.0));
 }
 
@@ -100,6 +98,13 @@ vec4 sample_specularmap() {
 	specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
 
 	return specularmap;
+}
+
+/**
+ * @brief
+ */
+vec4 sample_material_stage() {
+	return pow(texture(texture_stage, vertex.diffusemap), vec4(vec3(gamma), 1.0));
 }
 
 /**
@@ -321,6 +326,28 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 /**
  * @brief
  */
+void caustic_light() {
+
+	if (vertex.caustics == vec3(0.0)) {
+		return;
+	}
+
+	float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
+
+	// make the inner edges stronger, clamp to 0-1
+
+	float thickness = 0.02;
+	float glow = 5.0;
+
+	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
+
+	vec3 light = fragment.ambient + fragment.diffuse;
+	fragment.diffuse += max(vec3(0.0), light * length(vertex.caustics) * noise);
+}
+
+/**
+ * @brief
+ */
 void light_and_shadow(void) {
 
 	for (int i = 0; i < vertex.num_active_lights; i++) {
@@ -353,6 +380,8 @@ void light_and_shadow(void) {
 				break;
 		}
 	}
+
+	caustic_light();
 }
 
 /**
@@ -369,7 +398,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.diffusemap = sample_diffusemap() * color;
+		fragment.diffusemap = sample_material() * color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;
@@ -400,30 +429,41 @@ void main(void) {
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
 
-		if (lightmaps == 1) {
-			out_color.rgb = fragment.ambient;
-		} else if (lightmaps == 2) {
-			out_color.rgb = fragment.diffuse;
-		} else if (lightmaps == 3) {
-			out_color.rgb = fragment.specular;
-		} else if (lightmaps == 4) {
-			out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
-		} else if (lightmaps == 5) {
-			out_color.rgb = inverse(fragment.tbn) * vertex.direction;
-		}
-
 	} else {
 
-		vec4 effect = texture(texture_stage, vertex.diffusemap);
-		effect.rgb = pow(effect.rgb, vec3(2.2));
+		fragment.diffusemap = sample_material_stage() * color;
 
-		effect *= color;
+		fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
+		fragment.diffuse = vertex.diffuse * max(0.0, dot(fragment.direction, fragment.normalmap));
 
-		out_bloom.rgb = max(effect.rgb * material.bloom - 1.0, 0.0);
-		out_bloom.a = effect.a;
+		light_and_shadow();
+
+		out_color = fragment.diffusemap;
+
+		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
+			out_color.rgb *= (fragment.ambient + fragment.diffuse);
+		}
 
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-			effect.rgb += vertex.fog.rgb * effect.a;
+			out_color.rgb = out_color.rgb * (1.0 - vertex.fog.a) + vertex.fog.rgb * vertex.fog.a;
 		}
+
+		float exposure = lightgrid.view_coordinate.w;
+		out_color.rgb += out_color.rgb * hdr / exposure;
+
+		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
+		out_bloom.a = out_color.a;
+	}
+
+	if (lightmaps == 1) {
+		out_color.rgb = fragment.ambient;
+	} else if (lightmaps == 2) {
+		out_color.rgb = fragment.diffuse;
+	} else if (lightmaps == 3) {
+		out_color.rgb = fragment.specular;
+	} else if (lightmaps == 4) {
+		out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
+	} else if (lightmaps == 5) {
+		out_color.rgb = inverse(fragment.tbn) * vertex.direction;
 	}
 }

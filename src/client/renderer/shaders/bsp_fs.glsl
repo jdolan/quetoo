@@ -138,6 +138,10 @@ vec3 sample_lightmap_direction() {
  */
 void caustic_light() {
 
+	if (fragment.caustics == vec3(0.0)) {
+		return;
+	}
+
 	float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
 
 	// make the inner edges stronger, clamp to 0-1
@@ -553,7 +557,7 @@ void main(void) {
 		}
 
 		fragment.diffusemap = sample_material_stage(st) * vertex.color;
-		
+
 		if (model_type == MODEL_BSP) {
 			fragment.ambient = sample_lightmap_ambient();
 			fragment.diffuse = sample_lightmap_diffuse();
@@ -580,7 +584,10 @@ void main(void) {
 		}
 
 		out_color.rgb = out_color.rgb * (1.0 - fragment.stains.a) + fragment.stains.rgb * fragment.stains.a;
-		out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
+
+		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
+			out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
+		}
 
 		float exposure = lightgrid.view_coordinate.w;
 		out_color.rgb += out_color.rgb * hdr / exposure;
