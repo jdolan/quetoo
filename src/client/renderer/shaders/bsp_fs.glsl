@@ -542,9 +542,6 @@ void main(void) {
 		out_color.rgb = out_color.rgb * (1.0 - fragment.stains.a) + fragment.stains.rgb * fragment.stains.a;
 		out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
 
-		float exposure = lightgrid.view_coordinate.w;
-		out_color.rgb += out_color.rgb * hdr / exposure;
-
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
 
@@ -588,9 +585,6 @@ void main(void) {
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
 		}
-
-		float exposure = lightgrid.view_coordinate.w;
-		out_color.rgb += out_color.rgb * hdr / exposure;
 
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;

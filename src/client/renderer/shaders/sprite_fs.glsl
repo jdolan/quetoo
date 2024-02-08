@@ -44,9 +44,6 @@ void main(void) {
 
 	out_color = texture_color * vertex.color;
 
-	float exposure = lightgrid.view_coordinate.w;
-	out_color.rgb += out_color.rgb / exposure;
-	
 	out_bloom.rgb = max(out_color.rgb * 2.0 * bloom - 1.0, 0.0);
 	out_bloom.a = out_color.a;
 
