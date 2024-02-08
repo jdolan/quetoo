@@ -1479,7 +1479,7 @@ typedef struct {
 
 
 	/**
-	 * @brief The view exposure.
+	 * @brief The view exposure (HDR).
 	 */
 	float exposure;
 

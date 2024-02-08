@@ -302,7 +302,7 @@ static void Cg_UpdateExposure(void) {
 
 	const size_t index = lightgrid->size.x * lightgrid->size.y * xyz.z + lightgrid->size.x * xyz.y + xyz.x;
 
-	exposure += (lightgrid->exposure[index] - exposure) * .0125f;
+	exposure += (lightgrid->exposure[index] - exposure) * cgi.client->frame_msec / 800.0;
 
 	cgi.view->exposure = Clampf(exposure, .333f, 16.f);
 }
