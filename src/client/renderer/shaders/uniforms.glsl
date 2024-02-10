@@ -24,6 +24,8 @@
 #define VIEW_MAIN			1
 #define VIEW_PLAYER_MODEL	2
 
+#define BSP_LIGHTGRID_LUXEL_SIZE 32.0
+
 /**
  * @brief The lightgrid struct.
  */
@@ -164,7 +166,7 @@ layout (std140) uniform uniforms_block {
 #define LIGHT_SUN       2
 #define LIGHT_POINT     4
 #define LIGHT_SPOT      8
-#define LIGHT_FACE     16
+#define LIGHT_BRUSH_SIDE     16
 #define LIGHT_PATCH    32
 #define LIGHT_DYNAMIC  64
 

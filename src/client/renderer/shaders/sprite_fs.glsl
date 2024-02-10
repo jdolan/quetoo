@@ -24,9 +24,10 @@ in vertex_data {
 	vec2 diffusemap;
 	vec2 next_diffusemap;
 	vec4 color;
+	vec4 fog;
+
 	float lerp;
 	float softness;
-	vec4 fog;
 } vertex;
 
 layout (location = 0) out vec4 out_color;

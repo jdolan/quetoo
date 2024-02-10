@@ -112,3 +112,13 @@ float noise3d(vec3 p) {
 			w.z),
 		w.y);
 }
+
+/**
+ * @brief Resolves the lightgrid coordinate for the specified position in world space.
+ * @param lightgrid The lightgrid struct instance.
+ * @param position The position in world space.
+ * @return The lightgrid coordinate for the specified position.
+ */
+vec3 lightgrid_uvw(in vec3 position) {
+	return (position - lightgrid.mins.xyz) / (lightgrid.maxs.xyz - lightgrid.mins.xyz);
+}

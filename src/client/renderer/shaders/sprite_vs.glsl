@@ -32,25 +32,64 @@ out vertex_data {
 	vec2 diffusemap;
 	vec2 next_diffusemap;
 	vec4 color;
+	vec4 fog;
+
 	float lerp;
 	float softness;
-	vec4 fog;
 } vertex;
+
+/**
+ * @brief
+ */
+vec3 sample_lightgrid_ambient(in vec3 texcoord) {
+	return texture(texture_lightgrid_ambient, texcoord).rgb * modulate;
+}
+
+/**
+ * @brief
+ */
+vec3 sample_lightgrid_diffuse(in vec3 texcoord) {
+	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate;
+}
+
+/**
+ * @brief
+ */
+vec4 sample_lightgrid_fog(in vec3 texcoord) {
+
+	vec4 fog = vec4(0.0);
+
+	float samples = clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
+
+	for (float i = 0; i < samples; i++) {
+
+		vec3 xyz = mix(vertex.position, view[0].xyz, i / samples);
+		vec3 uvw = mix(texcoord, lightgrid.view_coordinate.xyz, i / samples);
+
+		fog += texture(texture_lightgrid_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+		if (fog.a >= 1.0) {
+			break;
+		}
+	}
+
+	if (hmax(fog.rgb) > 1.0) {
+		fog.rgb /= hmax(fog.rgb);
+	}
+
+	return clamp(fog, 0.0, 1.0);
+}
 
 /**
  * @brief Dynamic lighting for sprites
  */
-void sprite_lighting(vec3 position, vec3 normal) {
+void light_and_shadow(in vec3 texcoord) {
 
 	if (in_lighting == 0.0) {
 		return;
 	}
 
-	vec3 light = vec3(0.0);
-
-	vec3 grid_coord = lightgrid_uvw(in_position);
-	light += texture(texture_lightgrid_ambient, grid_coord).rgb;
-	light += texture(texture_lightgrid_diffuse, grid_coord).rgb;
+	vec3 ambient = sample_lightgrid_ambient(texcoord);
+	vec3 diffuse = sample_lightgrid_diffuse(texcoord);
 
 	for (int i = 0; i < num_lights; i++) {
 
@@ -70,15 +109,15 @@ void sprite_lighting(vec3 position, vec3 normal) {
 		}
 
 		vec3 light_pos = lights[i].position.xyz;
-		float atten = 1.0 - distance(light_pos, position) / radius;
+		float atten = 1.0 - distance(light_pos, vertex.position) / radius;
 		if (atten <= 0.0) {
 			continue;
 		}
 
-		light += radius * lights[i].color.rgb * intensity * atten * atten;
+		diffuse += radius * lights[i].color.rgb * intensity * atten * atten;
 	}
 
-	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * light * modulate, in_lighting);
+	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * (ambient + diffuse), in_lighting);
 }
 
 /**
@@ -95,12 +134,11 @@ void main(void) {
 	vertex.lerp = in_lerp;
 	vertex.softness = in_softness;
 
-	vec3 lightgrid_uvw = lightgrid_uvw(in_position);
+	vec3 texcoord = lightgrid_uvw(in_position);
 
-	vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
-	lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
+	vertex.fog = sample_lightgrid_fog(texcoord);
 
-	sprite_lighting(vertex.position, vec3(0.0, 0.0, 1.0)); // TODO: actual normals
+	light_and_shadow(texcoord);
 
 	gl_Position = projection3D * view * position;
 }
