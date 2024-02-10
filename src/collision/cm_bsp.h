@@ -290,14 +290,14 @@ typedef struct {
 } bsp_model_t;
 
 typedef enum {
-	LIGHT_INVALID  = 0x0,
-	LIGHT_AMBIENT  = 0x1,
-	LIGHT_SUN      = 0x2,
-	LIGHT_POINT    = 0x4,
-	LIGHT_SPOT     = 0x8,
-	LIGHT_FACE     = 0x10,
-	LIGHT_PATCH    = 0x20,
-	LIGHT_DYNAMIC  = 0x40,
+	LIGHT_INVALID    = 0x0,
+	LIGHT_AMBIENT    = 0x1,
+	LIGHT_SUN        = 0x2,
+	LIGHT_POINT      = 0x4,
+	LIGHT_SPOT       = 0x8,
+	LIGHT_BRUSH_SIDE = 0x10,
+	LIGHT_PATCH      = 0x20,
+	LIGHT_DYNAMIC    = 0x40,
 } light_type_t;
 
 typedef enum {

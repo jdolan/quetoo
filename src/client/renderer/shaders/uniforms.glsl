@@ -161,14 +161,14 @@ layout (std140) uniform uniforms_block {
 	int developer;
 };
 
-#define LIGHT_INVALID   0
-#define LIGHT_AMBIENT   1
-#define LIGHT_SUN       2
-#define LIGHT_POINT     4
-#define LIGHT_SPOT      8
-#define LIGHT_BRUSH_SIDE     16
-#define LIGHT_PATCH    32
-#define LIGHT_DYNAMIC  64
+#define LIGHT_INVALID     0
+#define LIGHT_AMBIENT     1
+#define LIGHT_SUN         2
+#define LIGHT_POINT       4
+#define LIGHT_SPOT        8
+#define LIGHT_BRUSH_SIDE 16
+#define LIGHT_PATCH      32
+#define LIGHT_DYNAMIC    64
 
 /**
  * @brief The light struct.

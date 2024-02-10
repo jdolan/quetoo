@@ -394,7 +394,7 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 			case LIGHT_SPOT:
 				LightgridLuxel_Spot(light, luxel, scale);
 				break;
-			case LIGHT_FACE:
+			case LIGHT_BRUSH_SIDE:
 				LightgridLuxel_Face(light, luxel, scale);
 				break;
 			case LIGHT_PATCH:

@@ -551,7 +551,7 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 			case LIGHT_SPOT:
 				LightmapLuxel_Spot(light, lightmap, luxel, scale);
 				break;
-			case LIGHT_FACE:
+			case LIGHT_BRUSH_SIDE:
 				LightmapLuxel_Face(light, lightmap, luxel, scale);
 				break;
 			case LIGHT_PATCH:

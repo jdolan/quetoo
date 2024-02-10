@@ -40,7 +40,7 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 		case LIGHT_SUN:
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
-		case LIGHT_FACE:
+		case LIGHT_BRUSH_SIDE:
 			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, lumen->lumens, color);
 			luxel->direction = Vec3_Fmaf(luxel->direction, lumen->lumens, lumen->direction);
 			break;

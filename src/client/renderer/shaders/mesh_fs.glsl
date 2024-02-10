@@ -371,7 +371,7 @@ void light_and_shadow(void) {
 			case LIGHT_SPOT:
 				light_and_shadow_spot(light, index);
 				break;
-			case LIGHT_FACE:
+			case LIGHT_BRUSH_SIDE:
 				light_and_shadow_face(light, index);
 				break;
 			case LIGHT_DYNAMIC:

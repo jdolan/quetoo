@@ -335,7 +335,7 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
-	light->type = LIGHT_FACE;
+	light->type = LIGHT_BRUSH_SIDE;
 	light->brush_side = brush_side;
 
 	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane + side];
