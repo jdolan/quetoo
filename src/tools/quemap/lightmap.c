@@ -166,8 +166,6 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 			l->s = s;
 			l->t = t;
 
-			l->lights = g_ptr_array_new();
-
 			ProjectLightmapLuxel(lm, l, 0.f, 0.f);
 		}
 	}
@@ -218,6 +216,8 @@ static void DebugLightmapLuxels(void) {
  */
 void BuildLightmaps(void) {
 
+	const uint32_t start = SDL_GetTicks();
+
 	lightmaps = Mem_TagMalloc(sizeof(lightmap_t) * bsp_file.num_faces, MEM_TAG_LIGHTMAP);
 
 	const bsp_node_t *node = bsp_file.nodes;
@@ -263,15 +263,19 @@ void BuildLightmaps(void) {
 		BuildLightmapExtents(lm);
 
 		BuildLightmapLuxels(lm);
+
+		Progress("Building lightmaps", i * 100.f / bsp_file.num_faces);
 	}
 
 	DebugLightmapLuxels();
+
+	Com_Print("\r%-24s [100%%] %d ms\n", "Building lightmaps", SDL_GetTicks() - start);
 }
 
 /**
  * @brief
  */
-static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightmapLuxel_Ambient(light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	const float padding_s = ((lightmap->st_maxs.x - lightmap->st_mins.x) - lightmap->w) * 0.5f;
 	const float padding_t = ((lightmap->st_maxs.y - lightmap->st_mins.y) - lightmap->h) * 0.5f;
@@ -312,7 +316,7 @@ static void LightmapLuxel_Ambient(const light_t *light, const lightmap_t *lightm
 /**
  * @brief
  */
-static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightmapLuxel_Sun(light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	const float lumens = scale / light->num_points;
 
@@ -337,7 +341,7 @@ static void LightmapLuxel_Sun(const light_t *light, const lightmap_t *lightmap, 
 /**
  * @brief
  */
-static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightmapLuxel_Point(light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
 	if (dist >= light->radius) {
@@ -379,7 +383,7 @@ static void LightmapLuxel_Point(const light_t *light, const lightmap_t *lightmap
 /**
  * @brief
  */
-static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightmapLuxel_Spot(light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
 	if (dist >= light->radius) {
@@ -432,7 +436,7 @@ static void LightmapLuxel_Spot(const light_t *light, const lightmap_t *lightmap,
 /**
  * @brief
  */
-static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightmapLuxel_Face(light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models && light->model != lightmap->model) {
 		return;
@@ -489,7 +493,7 @@ static void LightmapLuxel_Face(const light_t *light, const lightmap_t *lightmap,
 /**
  * @brief
  */
-static void LightmapLuxel_Patch(const light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightmapLuxel_Patch(light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models && light->model != lightmap->model) {
 		return;
@@ -532,7 +536,7 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 
 	for (guint i = 0; i < lights->len; i++) {
 
-		const light_t *light = g_ptr_array_index(lights, i);
+		light_t *light = g_ptr_array_index(lights, i);
 
 		switch (light->type) {
 			case LIGHT_AMBIENT:
@@ -915,11 +919,6 @@ void EmitLightmap(void) {
 		SDL_FreeSurface(lm->diffuse);
 		SDL_FreeSurface(lm->direction);
 		SDL_FreeSurface(lm->caustics);
-
-		luxel_t *luxel = lm->luxels;
-		for (size_t j = 0; j < lm->num_luxels; j++, luxel++) {
-			g_ptr_array_free(luxel->lights, true);
-		}
 	}
 
 	Atlas_Destroy(atlas);

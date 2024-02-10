@@ -75,8 +75,6 @@ static void BuildLightgridLuxels(void) {
 				l->s = s;
 				l->t = t;
 				l->u = u;
-
-				l->lights = g_ptr_array_new();
 			}
 		}
 	}
@@ -152,7 +150,7 @@ size_t BuildLightgrid(void) {
 /**
  * @brief
  */
-static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Ambient(light_t *light, luxel_t *luxel, float scale) {
 
 	Luxel_Illuminate(luxel, &(const lumen_t) {
 		.light = light,
@@ -163,7 +161,7 @@ static void LightgridLuxel_Ambient(const light_t *light, luxel_t *luxel, float s
 /**
  * @brief
  */
-static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Sun(light_t *light, luxel_t *luxel, float scale) {
 
 	const float lumens = (1.f / light->num_points) * scale;
 
@@ -188,7 +186,7 @@ static void LightgridLuxel_Sun(const light_t *light, luxel_t *luxel, float scale
 /**
  * @brief
  */
-static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 
 	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
 	if (dist >= light->radius) {
@@ -229,7 +227,7 @@ static void LightgridLuxel_Point(const light_t *light, luxel_t *luxel, float sca
 /**
  * @brief
  */
-static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Spot(light_t *light, luxel_t *luxel, float scale) {
 	
 	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
 	if (dist >= light->radius) {
@@ -282,7 +280,7 @@ static void LightgridLuxel_Spot(const light_t *light, luxel_t *luxel, float scal
 /**
  * @brief
  */
-static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Face(light_t *light, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models) {
 		return;
@@ -339,7 +337,7 @@ static void LightgridLuxel_Face(const light_t *light, luxel_t *luxel, float scal
 /**
  * @brief
  */
-static void LightgridLuxel_Patch(const light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_Patch(light_t *light, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models) {
 		return;
@@ -381,7 +379,7 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 
 	for (guint i = 0; i < lights->len; i++) {
 
-		const light_t *light = g_ptr_array_index(lights, i);
+		light_t *light = g_ptr_array_index(lights, i);
 
 		switch (light->type) {
 			case LIGHT_AMBIENT:
@@ -683,8 +681,6 @@ void EmitLightgrid(void) {
 				*out_direction++ = Color24i(Vec3_Bytes(luxel->direction));
 				*out_caustics++ = Color_Color24(Color3fv(luxel->caustics));
 				*out_fog++ = Color_Color32(Color4fv(luxel->fog));
-
-				g_ptr_array_free(luxel->lights, true);
 			}
 		}
 

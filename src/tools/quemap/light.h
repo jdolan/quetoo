@@ -118,6 +118,12 @@ typedef struct light_s {
 	box3_t bounds;
 
 	/**
+	 * @brief The visible bounds of the light source; that is, the bounding box of
+	 * all luxels that this light source contributed to.
+	 */
+	box3_t visible_bounds;
+
+	/**
 	 * @brief The sample points (origins) to be traced to for this light.
 	 * @remarks For directional lights, these are directional vectors, not points.
 	 */

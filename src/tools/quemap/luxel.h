@@ -27,7 +27,7 @@
  * @brief Lumens are light source contributions to individual luxels.
  */
 typedef struct {
-	const light_t *light;
+	light_t *light;
 	vec3_t direction;
 	float lumens;
 } lumen_t;
@@ -44,7 +44,6 @@ typedef struct {
 	vec3_t direction;
 	vec3_t caustics;
 	vec4_t fog;
-	GPtrArray *lights;
 } luxel_t;
 
 extern void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen);

@@ -88,6 +88,7 @@ static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 		light->radius = LIGHT_AMBIENT_RADIUS;
 		light->intensity = LIGHT_INTENSITY * ambient_intensity;
 		light->bounds = Box3_Null();
+		light->visible_bounds = Box3_Null();
 	}
 
 	return light;
@@ -106,6 +107,7 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->bounds = Box3_Null();
+	light->visible_bounds = Box3_Null();
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
@@ -182,6 +184,7 @@ static light_t *LightForEntity_point(const cm_entity_t *entity) {
 	}
 
 	light->bounds = Box3_FromCenter(light->origin);
+	light->visible_bounds = Box3_Null();
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 
@@ -242,6 +245,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	}
 
 	light->bounds = Box3_FromCenter(light->origin);
+	light->visible_bounds = Box3_Null();
 
 	light->normal = Vec3_Down();
 
@@ -354,6 +358,7 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 	assert(light->phi <= light->theta);
 
 	light->bounds = Box3_Null();
+	light->visible_bounds = Box3_Null();
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 
@@ -487,7 +492,13 @@ static void HashLights(light_type_t type) {
  */
 void BuildDirectLights(void) {
 
+	const uint32_t start = SDL_GetTicks();
+
+	Progress("Building direct lights", 0);
+
 	lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
+
+	const int32_t count = Cm_Bsp()->num_entities + Cm_Bsp()->num_brush_sides;
 
 	cm_entity_t **entity = Cm_Bsp()->entities;
 	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
@@ -495,6 +506,7 @@ void BuildDirectLights(void) {
 		if (light) {
 			g_ptr_array_add(lights, light);
 		}
+		Progress("Building direct lights", i * 100.f / count);
 	}
 
 	const bsp_brush_side_t *side = bsp_file.brush_sides;
@@ -508,10 +520,14 @@ void BuildDirectLights(void) {
 					g_ptr_array_add(lights, light);
 				}
 			}
+
+			Progress("Building direct lights", i * 100.f / count);
 		}
 	}
 
 	HashLights(~LIGHT_PATCH);
+
+	Com_Print("\r%-24s [100%%] %d ms\n", "Building direct lights", SDL_GetTicks() - start);
 
 	Com_Verbose("Direct lighting for %d lights\n", lights->len);
 }
@@ -559,6 +575,7 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 	light->radius = w * h;
 	light->size = Maxi(w, h);
 	light->bounds = Box3_Expand(bounds, light->radius);
+	light->visible_bounds = Box3_Null();
 	light->color = diffuse;
 	light->model = lm->model;
 	light->brush_side = lm->brush_side;
@@ -594,6 +611,10 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
  */
 void BuildIndirectLights(void) {
 
+	const uint32_t start = SDL_GetTicks();
+
+	Progress("Building indirect lights", 0);
+
 	lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
 
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
@@ -618,54 +639,15 @@ void BuildIndirectLights(void) {
 				}
 			}
 		}
+
+		Progress("Building indirect lights", i * 100.f / bsp_file.num_faces);
 	}
 
 	HashLights(LIGHT_PATCH);
 
+	Com_Print("\r%-24s [100%%] %d ms\n", "Building indirect lights", SDL_GetTicks() - start);
+
 	Com_Verbose("Indirect lighting for %d lit patches\n", lights->len);
-}
-
-/**
- * @brief Gather feedback from the lightmaps to determine the _actual_ light bounds. This is
- * used for culling and shadow casting in the renderer, and must be pixel-perfect.
- */
-static box3_t LightBounds(const light_t *light) {
-
-	switch (light->type) {
-		case LIGHT_AMBIENT:
-		case LIGHT_SUN:
-			return light->bounds;
-		default:
-			break;
-	}
-
-	box3_t bounds = Box3_FromCenter(light->origin);
-
-	const lightmap_t *lightmap = lightmaps;
-	for (int32_t i = 0; i < bsp_file.num_faces; i++, lightmap++) {
-
-		if (!Box3_Intersects(light->bounds, lightmap->node->bounds)) {
-			continue;
-		}
-
-		const luxel_t *luxel = lightmap->luxels;
-		for (size_t j = 0; j < lightmap->num_luxels; j++, luxel++) {
-
-			if (g_ptr_array_find(luxel->lights, light, NULL)) {
-				bounds = Box3_Append(bounds, luxel->origin);
-			}
-		}
-	}
-
-	const luxel_t *luxel = lg.luxels;
-	for (size_t i = 0; i < lg.num_luxels; i++, luxel++) {
-
-		if (g_ptr_array_find(luxel->lights, light, NULL)) {
-			bounds = Box3_Append(bounds, luxel->origin);
-		}
-	}
-
-	return Box3_Expand(bounds, BSP_LIGHTMAP_LUXEL_SIZE);
 }
 
 /**
@@ -715,7 +697,7 @@ void EmitLights(void) {
 				out->shadow = light->shadow;
 				out->cone = light->cone;
 				out->falloff = light->falloff;
-				out->bounds = LightBounds(light);
+				out->bounds = light->visible_bounds;
 				out++;
 				break;
 		}
