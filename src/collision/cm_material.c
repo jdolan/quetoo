@@ -857,7 +857,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "light") || !g_strcmp0(token, "light.radius")) {
+		if (!g_strcmp0(token, "light.radius")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.radius, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light radius specified");
