@@ -129,13 +129,19 @@ void main(void) {
 	vertex.diffusemap = in_diffusemap;
 	vertex.color = vec4(1.0);
 
-	vec3 texcoord = lightgrid_uvw(vec3(model * position));
-
-	vertex.ambient = sample_lightgrid_ambient(texcoord);
-	vertex.diffuse = sample_lightgrid_diffuse(texcoord);
-	vertex.direction = sample_lightgrid_direction(texcoord);
-	vertex.caustics = sample_lightgrid_caustics(texcoord);
-	vertex.fog = sample_lightgrid_fog(texcoord);
+	if (view_type == VIEW_PLAYER_MODEL) {
+		vertex.ambient = vec3(0.333);
+		vertex.diffuse = vec3(0.666);
+		vertex.direction = vec3(0.0, 0.0, 1.0);
+	} else {
+		vec3 texcoord = lightgrid_uvw(vec3(model * position));
+		
+		vertex.ambient = sample_lightgrid_ambient(texcoord);
+		vertex.diffuse = sample_lightgrid_diffuse(texcoord);
+		vertex.direction = sample_lightgrid_direction(texcoord);
+		vertex.caustics = sample_lightgrid_caustics(texcoord);
+		vertex.fog = sample_lightgrid_fog(texcoord);
+	}
 
 	gl_Position = projection3D * vec4(vertex.position, 1.0);
 
