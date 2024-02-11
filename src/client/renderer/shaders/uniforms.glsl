@@ -111,11 +111,6 @@ layout (std140) uniform uniforms_block {
 	int shadows;
 
 	/**
-	 * @brief The tonemapping algorithm.
-	 */
-	int tonemap;
-
-	/**
 	 * @brief The gamma scalar.
 	 */
 	float gamma;

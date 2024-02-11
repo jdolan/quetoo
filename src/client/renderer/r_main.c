@@ -71,7 +71,6 @@ cvar_t *r_specularity;
 cvar_t *r_stains;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
-cvar_t *r_tonemap;
 cvar_t *r_width;
 
 /**
@@ -160,8 +159,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->lightmaps = r_draw_bsp_lightmap->integer;
 		out->shadows = r_shadowmap->integer;
 		out->modulate = r_modulate->value;
-		out->tonemap = r_tonemap->integer;
-		
+
 		out->fog_density = r_fog_density->value;
 		out->fog_samples = r_fog_samples->integer;
 
@@ -397,7 +395,6 @@ static void R_InitLocal(void) {
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode.");
-	r_tonemap = Cvar_Add("r_tonemap", "1", CVAR_ARCHIVE, "Selects the tonemapping algorithm for HDR");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
 	Cvar_ClearAll(CVAR_R_MASK);

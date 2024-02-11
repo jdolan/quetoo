@@ -48,7 +48,6 @@ extern cvar_t *r_specularity;
 extern cvar_t *r_stains;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_mode;
-extern cvar_t *r_tonemap;
 extern cvar_t *r_width;
 
 extern r_stats_t r_stats;
@@ -172,11 +171,6 @@ typedef struct {
 		 * @brief The shadows debugging mask.
 		 */
 		int32_t shadows;
-
-		/**
-		 * @brief The tonemapping algorithm.
-		 */
-		int32_t tonemap;
 
 		/**
 		 * @brief The gamma scalar.
