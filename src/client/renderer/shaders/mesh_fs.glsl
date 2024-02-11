@@ -104,6 +104,13 @@ vec4 sample_specularmap() {
 /**
  * @brief
  */
+vec4 sample_tintmap() {
+	return texture(texture_material, vec3(vertex.diffusemap, 3));
+}
+
+/**
+ * @brief
+ */
 vec4 sample_material_stage() {
 	return pow(texture(texture_stage, vertex.diffusemap), vec4(vec3(gamma), 1.0));
 }
@@ -405,7 +412,11 @@ void main(void) {
 			discard;
 		}
 
-		//sample_tintmap(vertex.diffusemap, fragment.diffusemap);
+		vec4 tintmap = sample_tintmap();
+		fragment.diffusemap.rgb *= 1.0 - tintmap.a;
+		fragment.diffusemap.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
+		fragment.diffusemap.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
+		fragment.diffusemap.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
 
 		fragment.normalmap = sample_normalmap();
 		fragment.specularmap = sample_specularmap();
