@@ -122,7 +122,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--patch-intensity 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--sun-intensity 0"
@@ -150,7 +150,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/claustrophobopolis.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/darkzone.map"
@@ -186,7 +186,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/pits.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lavatomb.map"
