@@ -136,7 +136,7 @@ vec3 sample_lightmap_direction() {
 /**
  * @brief
  */
-void caustic_light() {
+void light_and_shadow_caustics() {
 
 	if (fragment.caustics == vec3(0.0)) {
 		return;
@@ -281,7 +281,7 @@ void light_and_shadow_ambient(in light_t light, in int index) {
 	float size = light.mins.w;
 
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -319,7 +319,7 @@ void light_and_shadow_point(in light_t light, in int index) {
 	float size = light.mins.w;
 
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -331,7 +331,7 @@ void light_and_shadow_point(in light_t light, in int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
+	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -350,7 +350,7 @@ void light_and_shadow_spot(in light_t light, in int index) {
 	float size = light.mins.w;
 
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -362,7 +362,7 @@ void light_and_shadow_spot(in light_t light, in int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
+	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -371,7 +371,7 @@ void light_and_shadow_spot(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_face(in light_t light, in int index) {
+void light_and_shadow_brush_side(in light_t light, in int index) {
 
 	float radius = light.model.w;
 	if (radius <= 0.0) {
@@ -381,7 +381,7 @@ void light_and_shadow_face(in light_t light, in int index) {
 	float size = light.mins.w;
 
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -393,7 +393,7 @@ void light_and_shadow_face(in light_t light, in int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
+	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -427,7 +427,7 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	vec3 light_pos = light.position.xyz;
 
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -477,7 +477,7 @@ void light_and_shadow(void) {
 				light_and_shadow_spot(light, index);
 				break;
 			case LIGHT_BRUSH_SIDE:
-				light_and_shadow_face(light, index);
+				light_and_shadow_brush_side(light, index);
 				break;
 			case LIGHT_DYNAMIC:
 				light_and_shadow_dynamic(light, index);
@@ -487,7 +487,7 @@ void light_and_shadow(void) {
 		}
 	}
 
-	caustic_light();
+	light_and_shadow_caustics();
 }
 
 /**
