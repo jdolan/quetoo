@@ -479,12 +479,9 @@ static inline color_t __attribute__ ((warn_unused_result)) Color32_Color(const c
 /**
  * @brief Fills `len` of `out` with RGBA values from the 32 bit color (like memset).
  */
-static inline void Color32_Fill(byte *out, const color32_t c, size_t len) {
-	for (size_t i = 0; i < len; i += 4, out += 4) {
-		out[0] = c.r;
-		out[1] = c.g;
-		out[2] = c.b;
-		out[3] = c.a;
+static inline void Color32_Fill(color32_t *out, const color32_t c, size_t len) {
+	for (size_t i = 0; i < len; i++, out++) {
+		*out = c;
 	}
 }
 
@@ -507,10 +504,8 @@ static inline color_t Color24_Color(const color24_t c) {
 /**
  * @brief Fills `len` of `out` with the RGB values from the 24 bit color (like memset).
  */
-static inline void Color24_Fill(byte *out, const color24_t c, size_t len) {
-	for (size_t i = 0; i < len; i += 3, out += 3) {
-		out[0] = c.r;
-		out[1] = c.g;
-		out[2] = c.b;
+static inline void Color24_Fill(color24_t *out, const color24_t c, size_t len) {
+	for (size_t i = 0; i < len; i++, out++) {
+		*out = c;
 	}
 }

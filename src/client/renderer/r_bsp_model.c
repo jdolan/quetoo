@@ -521,7 +521,7 @@ static void R_ResetBspLightmapStains(r_bsp_model_t *bsp) {
 	r_bsp_face_t *face = bsp->faces;
 	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
-		memset(face->lightmap.stains, 0, face->lightmap.w * face->lightmap.h * sizeof(color32_t));
+		Color32_Fill(face->lightmap.stains, Color32(0, 0, 0, 0), face->lightmap.w * face->lightmap.h);
 
 		glTexSubImage2D(GL_TEXTURE_2D,
 				0,
@@ -533,6 +533,8 @@ static void R_ResetBspLightmapStains(r_bsp_model_t *bsp) {
 				GL_UNSIGNED_BYTE,
 				face->lightmap.stains);
 	}
+
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }
