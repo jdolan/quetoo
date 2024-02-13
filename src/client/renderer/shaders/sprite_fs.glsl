@@ -45,10 +45,11 @@ void main(void) {
 
 	out_color = texture_color * vertex.color;
 
+	out_color.rgb += vertex.fog.rgb * out_color.a;
+
+	// TODO: Add bloom vertex attrib
 	out_bloom.rgb = max(out_color.rgb * 2.0 * bloom - 1.0, 0.0);
 	out_bloom.a = out_color.a;
-
-	out_color.rgb += vertex.fog.rgb * out_color.a;
 
 	float softness = soften(vertex.softness);
 	out_color *= softness;

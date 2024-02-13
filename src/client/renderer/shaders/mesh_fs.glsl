@@ -432,8 +432,7 @@ void main(void) {
 
 		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
 		out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
-
-		out_color.rgb = out_color.rgb * (1.0 - vertex.fog.a) + vertex.fog.rgb * vertex.fog.a;
+		out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
 
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
@@ -442,19 +441,20 @@ void main(void) {
 
 		fragment.diffusemap = sample_material_stage() * vertex.color * color;
 
-		fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
-		fragment.diffuse = vertex.diffuse * max(0.0, dot(fragment.direction, fragment.normalmap));
-
-		light_and_shadow();
-
 		out_color = fragment.diffusemap;
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
+
+			fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
+			fragment.diffuse = vertex.diffuse * max(0.0, dot(fragment.direction, fragment.normalmap));
+
+			light_and_shadow();
+
 			out_color.rgb *= (fragment.ambient + fragment.diffuse);
 		}
 
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-			out_color.rgb = out_color.rgb * (1.0 - vertex.fog.a) + vertex.fog.rgb * vertex.fog.a;
+			out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
 		}
 
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
@@ -471,5 +471,7 @@ void main(void) {
 		out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
 	} else if (lightmaps == 5) {
 		out_color.rgb = inverse(fragment.tbn) * vertex.direction;
+	} else if (lightmaps == 6) {
+		out_color.rgb = sample_normalmap();
 	}
 }

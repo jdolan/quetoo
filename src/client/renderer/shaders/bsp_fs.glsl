@@ -58,7 +58,7 @@ struct fragment_t {
 	vec3 specular;
 	vec3 caustics;
 	vec4 fog;
-	vec4 stains;
+	vec3 stains;
 } fragment;
 
 /**
@@ -165,8 +165,8 @@ vec3 sample_lightmap_caustics() {
 /**
  * @brief
  */
-vec4 sample_lightmap_stains() {
-	return texture(texture_lightmap_stains, vertex.lightmap) * stains;
+vec3 sample_lightmap_stains() {
+	return texture(texture_lightmap_stains, vertex.lightmap).rgb * stains;
 }
 
 /**
@@ -538,9 +538,8 @@ void main(void) {
 
 		out_color.rgb *= (fragment.ambient + fragment.diffuse);
 		out_color.rgb += fragment.specular;
-
-		out_color.rgb = out_color.rgb * (1.0 - fragment.stains.a) + fragment.stains.rgb * fragment.stains.a;
-		out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
+		out_color.rgb *= fragment.stains;
+		out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
@@ -555,35 +554,35 @@ void main(void) {
 
 		fragment.diffusemap = sample_material_stage(st) * vertex.color;
 
-		if (model_type == MODEL_BSP) {
-			fragment.ambient = sample_lightmap_ambient();
-			fragment.diffuse = sample_lightmap_diffuse();
-			fragment.direction = sample_lightmap_direction();
-			fragment.caustics = sample_lightmap_caustics();
-		} else {
-			fragment.ambient = sample_lightgrid_ambient();
-			fragment.diffuse = sample_lightgrid_diffuse();
-			fragment.direction = sample_lightgrid_direction();
-			fragment.caustics = sample_lightgrid_caustics();
-		}
-
-		fragment.stains = sample_lightmap_stains();
-		fragment.fog = sample_lightgrid_fog();
-
-		fragment.diffuse *= max(0.0, dot(fragment.diffuse, fragment.direction));
-
-		light_and_shadow();
-
 		out_color = fragment.diffusemap;
 
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
+
+			if (model_type == MODEL_BSP) {
+				fragment.ambient = sample_lightmap_ambient();
+				fragment.diffuse = sample_lightmap_diffuse();
+				fragment.direction = sample_lightmap_direction();
+				fragment.caustics = sample_lightmap_caustics();
+			} else {
+				fragment.ambient = sample_lightgrid_ambient();
+				fragment.diffuse = sample_lightgrid_diffuse();
+				fragment.direction = sample_lightgrid_direction();
+				fragment.caustics = sample_lightgrid_caustics();
+			}
+
+			fragment.stains = sample_lightmap_stains();
+
+			fragment.diffuse *= max(0.0, dot(fragment.diffuse, fragment.direction));
+
+			light_and_shadow();
+
 			out_color.rgb *= (fragment.ambient + fragment.diffuse);
+			out_color.rgb *= fragment.stains;
 		}
 
-		out_color.rgb = out_color.rgb * (1.0 - fragment.stains.a) + fragment.stains.rgb * fragment.stains.a;
-
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-			out_color.rgb = out_color.rgb * (1.0 - fragment.fog.a) + fragment.fog.rgb * fragment.fog.a;
+			fragment.fog = sample_lightgrid_fog();
+			out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 		}
 
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
@@ -603,7 +602,7 @@ void main(void) {
 	} else if (lightmaps == 6) {
 		out_color.rgb = sample_normalmap();
 	} else if (lightmaps == 7) {
-		out_color = fragment.stains;
+		out_color = vec4(fragment.stains, 1.0);
 	}
 }
 

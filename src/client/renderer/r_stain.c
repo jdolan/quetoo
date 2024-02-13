@@ -191,6 +191,8 @@ void R_UpdateStains(const r_view_t *view) {
 		}
 	}
 
+	glGenerateMipmap(GL_TEXTURE_2D);
+
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	R_GetError(NULL);
