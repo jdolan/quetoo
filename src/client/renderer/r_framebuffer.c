@@ -33,10 +33,18 @@ static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, f->width, f->height, 0, format, type, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 
+				 0,
+				 internal_format,
+				 f->drawable_width,
+				 f->drawable_height,
+				 0,
+				 format,
+				 type,
+				 NULL);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -72,9 +80,16 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 
 	r_framebuffer_t framebuffer = {
 		.width = width,
+		.drawable_width = width,
 		.height = height,
+		.drawable_height = height,
 		.attachments = attachments,
 	};
+
+	if (r_supersample->value) {
+		framebuffer.drawable_width *= 2;
+		framebuffer.drawable_height *= 2;
+	}
 
 	glGenFramebuffers(1, &framebuffer.name);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.name);
@@ -184,7 +199,7 @@ void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
 	}
 
 	glBindTexture(GL_TEXTURE_2D, *texture);
-	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
+	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->drawable_width, framebuffer->drawable_height);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -228,14 +243,14 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 
 	glBlitFramebuffer(0,
 					  0,
-					  framebuffer->width,
-					  framebuffer->height,
+					  framebuffer->drawable_width,
+					  framebuffer->drawable_height,
 					  x,
 					  y,
 					  x + w,
 					  y + h,
 					  GL_COLOR_BUFFER_BIT,
-					  GL_NEAREST);
+					  GL_LINEAR);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
@@ -268,8 +283,8 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer,
 
 	if (*surface == NULL) {
 		*surface = SDL_CreateRGBSurfaceWithFormat(0,
-												  framebuffer->width,
-												  framebuffer->height,
+												  framebuffer->drawable_width,
+												  framebuffer->drawable_height,
 												  24,
 												  SDL_PIXELFORMAT_RGB24);
 	}

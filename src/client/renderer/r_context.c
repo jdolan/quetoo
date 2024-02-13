@@ -272,11 +272,6 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	const int32_t s = Clampf(r_multisample->integer, 0, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
-
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
 			SDL_WINDOWPOS_CENTERED_DISPLAY(display),
 			SDL_WINDOWPOS_CENTERED_DISPLAY(display), w, h, flags)) == NULL) {
@@ -306,7 +301,6 @@ void R_InitContext(void) {
 	const int32_t valid_attribs[] = {
 		SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
 		SDL_GL_DEPTH_SIZE, SDL_GL_BUFFER_SIZE, SDL_GL_DOUBLEBUFFER,
-		SDL_GL_MULTISAMPLEBUFFERS, SDL_GL_MULTISAMPLESAMPLES,
 		SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
 		SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK
 	};
@@ -325,10 +319,6 @@ void R_InitContext(void) {
 				attr[SDL_GL_BUFFER_SIZE]);
 
 	Com_Verbose("   Double-buffered: %s\n", attr[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
-
-	Com_Verbose("   Multisample: %i buffers, %i samples\n",
-				attr[SDL_GL_MULTISAMPLEBUFFERS],
-	            attr[SDL_GL_MULTISAMPLESAMPLES]);
 
 	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n",
 				attr[SDL_GL_CONTEXT_MAJOR_VERSION],
@@ -360,8 +350,6 @@ void R_InitContext(void) {
 	r_context.window_scale = dw / (float) ww;
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
-
-	r_context.multisample_samples = attr[SDL_GL_MULTISAMPLESAMPLES];
 
 	gladLoaderLoadGL();
 	

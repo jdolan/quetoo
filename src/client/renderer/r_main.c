@@ -61,7 +61,6 @@ cvar_t *r_hardness;
 cvar_t *r_hdr;
 cvar_t *r_height;
 cvar_t *r_modulate;
-cvar_t *r_multisample;
 cvar_t *r_post;
 cvar_t *r_roughness;
 cvar_t *r_screenshot_format;
@@ -69,6 +68,7 @@ cvar_t *r_shadowmap;
 cvar_t *r_shadowmap_size;
 cvar_t *r_specularity;
 cvar_t *r_stains;
+cvar_t *r_supersample;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
 cvar_t *r_width;
@@ -239,7 +239,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
-	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
+	glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
 
 	R_UpdateFrustum(view);
 
@@ -279,7 +279,7 @@ void R_DrawMainView(r_view_t *view) {
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
-	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
+	glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -385,7 +385,6 @@ static void R_InitLocal(void) {
 	r_hdr = Cvar_Add("r_hdr", "1", CVAR_ARCHIVE, "Controls high dynamic range effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
-	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");
 	r_post = Cvar_Add("r_post", "1", CVAR_ARCHIVE, "Controls the rendering of post-processing effects.");
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
@@ -393,6 +392,7 @@ static void R_InitLocal(void) {
 	r_shadowmap_size = Cvar_Add("r_shadowmap_size", "512", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls dynamic shadow quality.");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
+	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls supersampling (anti-aliasing).");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode.");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);

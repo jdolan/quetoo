@@ -1430,6 +1430,17 @@ typedef struct r_framebuffer_s {
 	 * @brief The framebuffer height.
 	 */
 	GLint height;
+
+	/**
+	 * @brief The framebuffer width in pixels (supersampling).
+	 */
+	GLint drawable_width;
+
+	/**
+	 * @brief The framebuffer height in pixels (supersampling).
+	 */
+	GLint drawable_height;
+
 } r_framebuffer_t;
 
 /**
@@ -1607,10 +1618,6 @@ typedef struct {
 	 */
 	_Bool fullscreen;
 
-	/**
-	 * @brief Number of samples for multisampled buffers
-	 */
-	int32_t multisample_samples;
 } r_context_t;
 
 /**
