@@ -249,6 +249,11 @@ struct cg_sprite_s {
 	float lighting;
 
 	/**
+	 * @brief Sprite bloom scalar.
+	 */
+	float bloom;
+
+	/**
 	 * @brief Entity to follow, for SPRITE_FOLLOW_ENTITY. Use Cg_GetSpriteEntity.
 	 */
 	cg_sprite_entity_t entity;

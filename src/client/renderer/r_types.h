@@ -978,6 +978,11 @@ typedef struct {
 	 * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
 	 */
 	float lighting;
+
+	/**
+	 * @brief Sprite bloom scalar.
+	 */
+	float bloom;
 } r_sprite_t;
 
 #define MAX_SPRITES		0x8000
@@ -1035,6 +1040,11 @@ typedef struct {
 	 * @brief Beam lighting mix factor. 0 is fullbright, 1 is fully affected by light.
 	 */
 	float lighting;
+
+	/**
+	 * @brief Beam bloom scalar.
+	 */
+	float bloom;
 } r_beam_t;
 
 #define MAX_BEAMS 0x200
@@ -1050,6 +1060,7 @@ typedef struct {
 	float lerp;
 	float softness;
 	float lighting;
+	float bloom;
 } r_sprite_vertex_t;
 
 /**
